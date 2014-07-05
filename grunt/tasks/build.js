@@ -4,8 +4,10 @@ module.exports = function ( grunt ) {
 
 	grunt.registerTask( 'build', [
 		'jshint',
-		'clean:tmp',
-		'requirejs',
+		'clean:tmpDir',
+		'buildTests',
+		'broccoli:toTmpDir:build',
+		'concurrent:requirejs',
 		'concat:closure',
 		'revision',
 		'jsbeautifier'

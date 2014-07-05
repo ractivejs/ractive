@@ -1,313 +1,140 @@
-define([
-	'circular',
-	'global/css',
-	'utils/removeFromArray',
-	'shared/getValueFromCheckboxes',
-	'shared/resolveRef',
-	'shared/getUpstreamChanges',
-	'shared/notifyDependants',
-	'shared/makeTransitionManager'
-], function (
-	circular,
-	css,
-	removeFromArray,
-	getValueFromCheckboxes,
-	resolveRef,
-	getUpstreamChanges,
-	notifyDependants,
-	makeTransitionManager
-) {
+import circular from 'circular';
+import removeFromArray from 'utils/removeFromArray';
+import Promise from 'utils/Promise';
+import resolveRef from 'shared/resolveRef';
+import TransitionManager from 'global/TransitionManager';
 
-	'use strict';
+var batch, runloop, unresolved = [];
 
-	circular.push( function () {
-		get = circular.get;
-		set = circular.set;
-	});
+runloop = {
+	start: function ( instance, returnPromise ) {
+		var promise, fulfilPromise;
 
-	var runloop,
-		get,
-		set,
+		if ( returnPromise ) {
+			promise = new Promise( f => ( fulfilPromise = f ) );
+		}
 
-		dirty = false,
-		flushing = false,
-		pendingCssChanges,
-		inFlight = 0,
-		toFocus = null,
+		batch = {
+			previousBatch: batch,
+			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
+			views: [],
+			tasks: [],
+			viewmodels: []
+		};
 
-		liveQueries = [],
-		decorators = [],
-		transitions = [],
-		observers = [],
-		attributes = [],
-		activeBindings = [],
+		if ( instance ) {
+			batch.viewmodels.push( instance.viewmodel );
+		}
 
-		evaluators = [],
-		computations = [],
-		selectValues = [],
-		checkboxKeypaths = {},
-		checkboxes = [],
-		radios = [],
-		unresolved = [],
+		return promise;
+	},
 
-		instances = [],
-		transitionManager;
+	end: function () {
+		flushChanges();
 
-	runloop = {
-		start: function ( instance, callback ) {
-			this.addInstance( instance );
+		batch.transitionManager.init();
+		batch = batch.previousBatch;
+	},
 
-			if ( !flushing ) {
-				inFlight += 1;
-
-				// create a new transition manager
-				transitionManager = makeTransitionManager( callback, transitionManager );
+	addViewmodel: function ( viewmodel ) {
+		if ( batch ) {
+			if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
+				batch.viewmodels.push( viewmodel );
 			}
-		},
+		} else {
+			viewmodel.applyChanges();
+		}
+	},
 
-		end: function () {
-			if ( flushing ) {
-				attemptKeypathResolution();
-				return;
-			}
+	registerTransition: function ( transition ) {
+		transition._manager = batch.transitionManager;
+		batch.transitionManager.add( transition );
+	},
 
-			if ( !--inFlight ) {
-				flushing = true;
-				flushChanges();
-				flushing = false;
+	addView: function ( view ) {
+		batch.views.push( view );
+	},
 
-				land();
-			}
+	addUnresolved: function ( thing ) {
+		unresolved.push( thing );
+	},
 
-			transitionManager.init();
-			transitionManager = transitionManager._previous;
-		},
+	removeUnresolved: function ( thing ) {
+		removeFromArray( unresolved, thing );
+	},
 
-		trigger: function () {
-			if ( inFlight || flushing ) {
-				attemptKeypathResolution();
-				return;
-			}
+	// synchronise node detachments with transition ends
+	detachWhenReady: function ( thing ) {
+		batch.transitionManager.detachQueue.push( thing );
+	},
 
-			flushing = true;
-			flushChanges();
-			flushing = false;
+	scheduleTask: function ( task ) {
+		if ( !batch ) {
+			task();
+		} else {
+			batch.tasks.push( task );
+		}
+	}
+};
 
-			land();
-		},
+circular.runloop = runloop;
+export default runloop;
 
-		focus: function ( node ) {
-			toFocus = node;
-		},
+function flushChanges () {
+	var i, thing, changeHash;
 
-		addInstance: function ( instance ) {
-			if ( instance && !instances[ instance._guid ] ) {
-				instances.push( instance );
-				instances[ instances._guid ] = true;
-			}
-		},
+	for ( i = 0; i < batch.viewmodels.length; i += 1 ) {
+		thing = batch.viewmodels[i];
+		changeHash = thing.applyChanges();
 
-		addLiveQuery: function ( query ) {
-			liveQueries.push( query );
-		},
+		if ( changeHash ) {
+			thing.ractive.fire( 'change', changeHash );
+		}
+	}
+	batch.viewmodels.length = 0;
 
-		addDecorator: function ( decorator ) {
-			decorators.push( decorator );
-		},
+	attemptKeypathResolution();
 
-		addTransition: function ( transition ) {
-			transition._manager = transitionManager;
-			transitionManager.push( transition );
-			transitions.push( transition );
-		},
+	// Now that changes have been fully propagated, we can update the DOM
+	// and complete other tasks
+	for ( i = 0; i < batch.views.length; i += 1 ) {
+		batch.views[i].update();
+	}
+	batch.views.length = 0;
 
-		addObserver: function ( observer ) {
-			observers.push( observer );
-		},
+	for ( i = 0; i < batch.tasks.length; i += 1 ) {
+		batch.tasks[i]();
+	}
+	batch.tasks.length = 0;
 
-		addAttribute: function ( attribute ) {
-			attributes.push( attribute );
-		},
+	// If updating the view caused some model blowback - e.g. a triple
+	// containing <option> elements caused the binding on the <select>
+	// to update - then we start over
+	if ( batch.viewmodels.length ) return flushChanges();
+}
 
-		addBinding: function ( binding ) {
-			binding.active = true;
-			activeBindings.push( binding );
-		},
+function attemptKeypathResolution () {
+	var array, thing, keypath;
 
-		scheduleCssUpdate: function () {
-			// if runloop isn't currently active, we need to trigger change immediately
-			if ( !inFlight && !flushing ) {
-				// TODO does this ever happen?
-				css.update();
-			} else {
-				pendingCssChanges = true;
-			}
-		},
+	if ( !unresolved.length ) {
+		return;
+	}
 
-		// changes that may cause additional changes...
-		addEvaluator: function ( evaluator ) {
-			dirty = true;
-			evaluators.push( evaluator );
-		},
+	// see if we can resolve any unresolved references
+	array = unresolved.splice( 0, unresolved.length );
+	while ( thing = array.pop() ) {
+		if ( thing.keypath ) {
+			continue; // it did resolve after all
+		}
 
-		addComputation: function ( thing ) {
-			dirty = true;
-			computations.push( thing );
-		},
+		keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );
 
-		addSelectValue: function ( selectValue ) {
-			dirty = true;
-			selectValues.push( selectValue );
-		},
-
-		addCheckbox: function ( checkbox ) {
-			if ( !checkboxKeypaths[ checkbox.keypath ] ) {
-				dirty = true;
-				checkboxes.push( checkbox );
-			}
-		},
-
-		addRadio: function ( radio ) {
-			dirty = true;
-			radios.push( radio );
-		},
-
-		addUnresolved: function ( thing ) {
-			dirty = true;
+		if ( keypath !== undefined ) {
+			// If we've resolved the keypath, we can initialise this item
+			thing.resolve( keypath );
+		} else {
+			// If we can't resolve the reference, try again next time
 			unresolved.push( thing );
-		},
-
-		removeUnresolved: function ( thing ) {
-			removeFromArray( unresolved, thing );
-		},
-
-		// synchronise node detachments with transition ends
-		detachWhenReady: function ( thing ) {
-			transitionManager.detachQueue.push( thing );
-		}
-	};
-
-	circular.runloop = runloop;
-	return runloop;
-
-
-	function land () {
-		var thing, changedKeypath, changeHash;
-
-		if ( toFocus ) {
-			toFocus.focus();
-			toFocus = null;
-		}
-
-		while ( thing = attributes.pop() ) {
-			thing.update().deferred = false;
-		}
-
-		while ( thing = liveQueries.pop() ) {
-			thing._sort();
-		}
-
-		while ( thing = decorators.pop() ) {
-			thing.init();
-		}
-
-		while ( thing = transitions.pop() ) {
-			thing.init();
-		}
-
-		while ( thing = observers.pop() ) {
-			thing.update();
-		}
-
-		while ( thing = activeBindings.pop() ) {
-			thing.active = false;
-		}
-
-		// Change events are fired last
-		while ( thing = instances.pop() ) {
-			instances[ thing._guid ] = false;
-
-			if ( thing._changes.length ) {
-				changeHash = {};
-
-				while ( changedKeypath = thing._changes.pop() ) {
-					changeHash[ changedKeypath ] = get( thing, changedKeypath );
-				}
-
-				thing.fire( 'change', changeHash );
-			}
-		}
-
-		if ( pendingCssChanges ) {
-			css.update();
-			pendingCssChanges = false;
 		}
 	}
-
-	function flushChanges () {
-		var thing, upstreamChanges, i;
-
-		i = instances.length;
-		while ( i-- ) {
-			thing = instances[i];
-
-			if ( thing._changes.length ) {
-				upstreamChanges = getUpstreamChanges( thing._changes );
-				notifyDependants.multiple( thing, upstreamChanges, true );
-			}
-		}
-
-		attemptKeypathResolution();
-
-		while ( dirty ) {
-			dirty = false;
-
-			while ( thing = computations.pop() ) {
-				thing.update();
-			}
-
-			while ( thing = evaluators.pop() ) {
-				thing.update().deferred = false;
-			}
-
-			while ( thing = selectValues.pop() ) {
-				thing.deferredUpdate();
-			}
-
-			while ( thing = checkboxes.pop() ) {
-				set( thing.root, thing.keypath, getValueFromCheckboxes( thing.root, thing.keypath ) );
-			}
-
-			while ( thing = radios.pop() ) {
-				thing.update();
-			}
-		}
-	}
-
-	function attemptKeypathResolution () {
-		var array, thing, keypath;
-
-		if ( !unresolved.length ) {
-			return;
-		}
-
-		// see if we can resolve any unresolved references
-		array = unresolved.splice( 0, unresolved.length );
-		while ( thing = array.pop() ) {
-			if ( thing.keypath ) {
-				continue; // it did resolve after all. TODO does this ever happen?
-			}
-
-			keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );
-
-			if ( keypath !== undefined ) {
-				// If we've resolved the keypath, we can initialise this item
-				thing.resolve( keypath );
-			} else {
-				// If we can't resolve the reference, try again next time
-				unresolved.push( thing );
-			}
-		}
-	}
-
-});
+}

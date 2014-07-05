@@ -2,6 +2,7 @@
 <html lang='en-GB'>
 <head>
 	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
 
 	<title>NAME_HERE | Ractive.js sandbox</title>
 
@@ -9,7 +10,7 @@
 	<link rel='stylesheet' href='../_sandbox.css'>
 
 	<!--[if lte IE 8]>
-		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<script src="../html5.js"></script>
 	<![endif]-->
 </head>
 
@@ -34,10 +35,11 @@
 
 	<!-- JS -->
 	<script src='../require.js'></script>
+	<script src='../debugRequire.js'></script>
 	<script>
 		var ractive, fixture;
 
-		fixture = document.querySelector( 'main' ); // so we can copy and paste into test suite more easily
+		fixture = document.getElementsByTagName( 'main' )[0]; // so we can copy and paste into test suite more easily
 
 		// Configure RequireJS to load Ractive from the src/ folder
 		require.config({ baseUrl: '../../src/' });

@@ -1,9 +1,8 @@
-define( function () {
+import removeFromArray from 'utils/removeFromArray';
 
-	'use strict';
-
-	return function () {
-		return this.fragment.detach();
-	};
-
-});
+export default function Ractive$detach () {
+	if ( this.el ) {
+		removeFromArray( this.el.__ractive_instances__, this );
+	}
+	return this.fragment.detach();
+}

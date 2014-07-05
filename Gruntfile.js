@@ -7,10 +7,12 @@ module.exports = function ( grunt ) {
 
 	config = {
 		pkg: grunt.file.readJSON( 'package.json' ),
-		intro: grunt.file.read( 'wrapper/intro.js' ),
-		outro: grunt.file.read( 'wrapper/outro.js' ),
-		banner: grunt.file.read( 'wrapper/banner.js' )
+		tmpDir: 'tmp-build',
+		tmpSrcDir: 'src'
 	};
+
+	// Initialise grunt "before" other config
+	grunt.initConfig( config );
 
 	// Read config files from the `grunt/config/` folder
 	grunt.file.expand( 'grunt/config/*.js' ).forEach( function ( path ) {
@@ -18,9 +20,6 @@ module.exports = function ( grunt ) {
 			module = require( './' + path );
 		config[ property ] = typeof module === 'function' ? module( grunt ) : module;
 	});
-
-	// Initialise grunt
-	grunt.initConfig( config );
 
 	// Load development dependencies specified in package.json
 	for ( dependency in config.pkg.devDependencies ) {

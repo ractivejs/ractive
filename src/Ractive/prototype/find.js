@@ -1,13 +1,7 @@
-define( function () {
+export default function Ractive$find ( selector ) {
+	if ( !this.el ) {
+		return null;
+	}
 
-	'use strict';
-
-	return function ( selector ) {
-		if ( !this.el ) {
-			return null;
-		}
-
-		return this.fragment.find( selector );
-	};
-
-});
+	return this.fragment.find( selector );
+}

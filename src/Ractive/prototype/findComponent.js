@@ -1,13 +1,3 @@
-define([
-
-], function (
-
-) {
-
-	'use strict';
-
-	return function ( selector ) {
-		return this.fragment.findComponent( selector );
-	};
-
-});
+export default function Ractive$findComponent ( selector ) {
+	return this.fragment.findComponent( selector );
+}

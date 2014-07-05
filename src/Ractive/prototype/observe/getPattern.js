@@ -1,57 +1,14 @@
-define([
-	'utils/isArray'
-], function (
-	isArray
-) {
+import getMatchingKeypaths from 'shared/getMatchingKeypaths';
 
-	'use strict';
+export default function getPattern ( ractive, pattern ) {
+	var matchingKeypaths, values;
 
-	return function ( ractive, pattern ) {
-		var keys, key, values, toGet, newToGet, expand, concatenate;
+	matchingKeypaths = getMatchingKeypaths( ractive, pattern );
 
-		keys = pattern.split( '.' );
-		toGet = [];
+	values = {};
+	matchingKeypaths.forEach( keypath => {
+		values[ keypath ] = ractive.get( keypath );
+	});
 
-		expand = function ( keypath ) {
-			var value, key;
-
-			value = ( ractive._wrapped[ keypath ] ? ractive._wrapped[ keypath ].get() : ractive.get( keypath ) );
-
-			for ( key in value ) {
-				if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
-					newToGet.push( keypath + '.' + key );
-				}
-			}
-		};
-
-		concatenate = function ( keypath ) {
-			return keypath + '.' + key;
-		};
-
-		while ( key = keys.shift() ) {
-			if ( key === '*' ) {
-				newToGet = [];
-
-				toGet.forEach( expand );
-				toGet = newToGet;
-			}
-
-			else {
-				if ( !toGet[0] ) {
-					toGet[0] = key;
-				} else {
-					toGet = toGet.map( concatenate );
-				}
-			}
-		}
-
-		values = {};
-
-		toGet.forEach( function ( keypath ) {
-			values[ keypath ] = ractive.get( keypath );
-		});
-
-		return values;
-	};
-
-});
+	return values;
+}

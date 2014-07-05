@@ -96,6 +96,11 @@ var renderTests = [
 		result: '<ul><li data-index="0">0: zero</li><li data-index="1">1: one</li><li data-index="2">2: two</li><li data-index="3">3: three</li></ul>'
 	},
 	{
+		name: "Static string attributes",
+		template: "<p class=\"myclass\">test</p>",
+		result: "<p class=\"myclass\">test</p>"
+	},
+	{
 		name: "Empty string attributes",
 		template: "<p class=\"\">test</p>",
 		result: "<p class=\"\">test</p>"
@@ -137,6 +142,14 @@ var renderTests = [
 		result: '<div>before <strong>bold</strong> <em>italic</em> after</div>',
 		new_data: { triple: '<em>italic</em> <strong>bold</strong>' },
 		new_result: '<div>before <em>italic</em> <strong>bold</strong> after</div>'
+	},
+	{
+		name: 'Static',
+		template: '<div>[[color]]</div>',
+		data: { color: 'purple' },
+		result: '<div>purple</div>',
+		new_data: { color: 'orange' },
+		new_result: '<div>purple</div>'
 	},
 	{
 		name: 'SVG',
@@ -240,7 +253,7 @@ var renderTests = [
 			total: function ( numbers ) {
 				return numbers.reduce( function ( prev, curr ) {
 					return prev + curr;
-				});
+				}, 0 );
 			}
 		},
 		result: '<p>Total: 10</p>',
@@ -479,7 +492,8 @@ var renderTests = [
 	{
 		name: 'style tags in svg',
 		template: '<svg><style>text { font-size: 40px }</style></svg>',
-		result: '<svg><style>text { font-size: 40px }</style></svg>'
+		result: '<svg><style>text { font-size: 40px }</style></svg>',
+		svg: true
 	},
 
 	// Elements with two-way bindings should render correctly with .toHTML() - #446
@@ -488,7 +502,7 @@ var renderTests = [
 		name: 'Two-way select bindings',
 		template: '<select value="{{foo}}"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
 		data: {},
-		result: '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>',
+		result: '<select><option value="a" selected>a</option><option value="b">b</option><option value="c">c</option></select>',
 		new_data: { foo: 'c' },
 		new_result: '<select><option value="a">a</option><option value="b">b</option><option value="c" selected>c</option></select>'
 	},
@@ -528,7 +542,7 @@ var renderTests = [
 		result: '',
 		new_data: { bar: 'boo' },
 		new_result: 'bizz'
-	},	
+	},
 	{
 		name: 'Keypath expression with top level unresolved',
 		template: '{{foo[bar]}}',
@@ -536,7 +550,7 @@ var renderTests = [
 		result: '',
 		new_data: { foo: { boo: 'bizz' } },
 		new_result: 'bizz'
-	},	
+	},
 	{
 		name: 'Nested keypath expression with top level unresolved',
 		template: '{{#item}}{{foo[bar]}}{{/}}',
@@ -544,7 +558,7 @@ var renderTests = [
 		result: '',
 		new_data: { item: { foo: { boo: 'bizz' } } },
 		new_result: 'bizz'
-	},	
+	},
 	{
 		name: 'Keypath expression with array index member',
 		template: '{{foo[bar]}}',
@@ -552,7 +566,7 @@ var renderTests = [
 		result: 'fizz',
 		new_data: { bar: 1 },
 		new_result: 'bizz'
-	},	
+	},
 	{
 		name: 'Keypath expression with unrooted references and array index member',
 		template: '{{#item}}{{foo[bar]}}{{/}}',
@@ -560,6 +574,186 @@ var renderTests = [
 		result: 'fizz',
 		new_data: { item: { foo: ['fizz', 'bizz'], bar: 1 } },
 		new_result: 'bizz'
+	},
+	{
+		name: 'Attribute value with characters that need to be escaped',
+		template: '<div class="{{className}}"></div>',
+		data: { className: '"find & \'replace\'"' },
+		result: '<div class="&quot;find &amp; &#39;replace&#39;&quot;"></div>'
+	},
+	{
+		nodeOnly: true, // fixture.innerHTML doesn't work in our favour
+		name: 'Boolean attributes',
+		template: '<input type="checkbox" checked="{{isChecked}}">',
+		data: { isChecked: true },
+		result: '<input type=checkbox checked>',
+		new_data: { isChecked: false },
+		new_result: '<input type=checkbox>'
+	},
+	{
+		name: 'References resolve on the basis of the first key (#522)',
+		template: '{{#foo}}{{bar.baz}}{{/foo}}',
+		data: { foo: { bar: {} }, bar: { baz: 'hello' } },
+		result: '',
+		new_data: { foo: { bar: { baz: 'goodbye' } }, bar: { baz: 'hello' } },
+		new_result: 'goodbye'
+	},
+	{
+		name: '{{#each object}}...{{/each}} works',
+		handlebars: true,
+		template: '{{#each object}}<p>{{this}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>1</p><p>2</p><p>3</p>',
+		new_data: { object: { bar: 2, baz: 4, qux: 5 } },
+		new_result: '<p>2</p><p>4</p><p>5</p>'
+	},
+	{
+		name: '@index can be used as an index reference',
+		handlebars: true,
+		template: '{{#each items}}<p>{{@index}}: {{this}}</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p>0: a</p><p>1: b</p><p>2: c</p>'
+	},
+	{
+		name: '@key can be used as an key reference',
+		handlebars: true,
+		template: '{{#each object}}<p>{{@key}}: {{this}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>foo: 1</p><p>bar: 2</p><p>baz: 3</p>'
+	},
+	{
+		name: '@index can be used in an expression',
+		handlebars: true,
+		template: '{{#each items}}<p>{{@index + 1}}: {{this}}</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p>1: a</p><p>2: b</p><p>3: c</p>'
+	},
+	{
+		name: '@index can be used in a reference expression',
+		handlebars: true,
+		template: '{{#each items}}<p>{{items[@index]}} - {{items[@index+1]}}</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p>a - b</p><p>b - c</p><p>c - </p>'
+	},
+	{
+		name: '{{#each items}}...{{else}}...{{/each}}',
+		handlebars: true,
+		template: '{{#each items}}<p>{{this}}</p>{{else}}<p>no items!</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p>a</p><p>b</p><p>c</p>',
+		new_data: { items: null },
+		new_result: '<p>no items!</p>'
+	},
+	{
+		name: '#if/else with true static expression',
+		handlebars: true,
+		template: '{{#if true}}yes{{else}}no{{/if}}',
+		result: 'yes'
+	},
+	{
+		name: '#if/else with false static expression',
+		handlebars: true,
+		template: '{{#if false}}yes{{else}}no{{/if}}',
+		result: 'no'
+	},
+	{
+		name: '#if/else with true keypath expression',
+		handlebars: true,
+		template: '{{#if foo[bar]}}yes{{else}}no{{/if}}',
+		data: { foo: { a: true, b: false }, bar: 'a' },
+		result: 'yes'
+	},
+	{
+		name: '#if/else with false keypath expression',
+		handlebars: true,
+		template: '{{#if foo[bar]}}yes{{else}}no{{/if}}',
+		data: { foo: { a: true, b: false }, bar: 'b' },
+		result: 'no'
+	},
+	{
+		name: '#if/else with true reference expression',
+		handlebars: true,
+		template: '{{#if (foo+1<12)}}yes{{else}}no{{/if}}',
+		data: { foo: 6 },
+		result: 'yes'
+	},
+	{
+		name: '#if/else with false reference expression',
+		handlebars: true,
+		template: '{{#if (foo+1<12)}}yes{{else}}no{{/if}}',
+		data: { foo: 16 },
+		result: 'no'
+	},
+	{
+		name: 'Restricting references with `this`',
+		template: '{{#foo}}{{this.bar}}{{/foo}}',
+		data: { foo: {}, bar: 'fail' },
+		result: '',
+		new_data: { foo: { bar: 'success' }, bar: 'fail' },
+		new_result: 'success'
+	},
+	{
+		name: 'Section in attribute',
+		template: '<div style="{{#red}}color: red;{{/}}">{{#red}}is red{{/red}}</div>',
+		data: { red: true },
+		result: '<div style="color: red;">is red</div>',
+		new_data: { red: false },
+		new_result: '<div style=""></div>'
+	},
+	{
+		name: 'Triple inside an unrendering section (#726)',
+		template: '{{#condition}}{{{getTriple(condition)}}}{{/condition}}',
+		data: { condition: true, getTriple: ( condition ) => condition ? 'yes' : 'no' },
+		result: 'yes',
+		new_data: { condition: false },
+		new_result: ''
+	},
+	{
+		name: 'Reference expression with sub-expression',
+		template: '{{ foo[ "ba" + letter ].prop}}',
+		data: { foo: { bar: { prop: 'one' }, baz: { prop: 'two' } }, letter: 'r' },
+		result: 'one',
+		new_data: { foo: { bar: { prop: 'one' }, baz: { prop: 'two' } }, letter: 'z' },
+		new_result: 'two'
+	},
+	{
+		name: 'Empty non-boolean attributes (#878)',
+		template: '<div data-attr></div>',
+		result: '<div data-attr></div>'
+	},
+	{
+		name: 'Falsy boolean attributes',
+		template: '<video autoplay="{{foo}}"></video>',
+		result: '<video></video>'
+	},
+	{
+		name: 'Root-level reference',
+		template: '{{#a}}{{#b}}{{#c}}{{~/foo}}{{/c}}{{/b}}{{/a}}',
+		data: { foo: 'top', a: { b: { c: { foo: 'c' }, foo: 'b' }, foo: 'a' } },
+		result: 'top'
+	},
+	{
+		name: 'else in non-Handlebars blocks',
+		template: '{{#foo}}yes{{else}}no{{/foo}}',
+		data: { foo: true },
+		result: 'yes',
+		new_data: { foo: false },
+		new_result: 'no'
+	},
+	{
+		name: 'Double-rendering bug (#748) is prevented',
+		template: '{{#foo}}{{#f(this)}}{{this}}{{/f}}{{/foo}}',
+		data: {
+			foo: [
+				[ 2, 1, 4, 3 ]
+			],
+			f: function (x) {
+				return x.sort(function (a, b) { // ... or this (sort) and it will work
+					return b - a;
+				});
+			}
+		},
+		result: '4321'
 	}
 ];
 

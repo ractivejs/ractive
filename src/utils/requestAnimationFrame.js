@@ -1,18 +1,13 @@
-define([
-	'config/vendors'
-], function (
-	vendors
-) {
+import vendors from 'config/vendors';
 
-	'use strict';
+var requestAnimationFrame;
 
-	// If window doesn't exist, we don't need requestAnimationFrame
-	if ( typeof window === 'undefined' ) {
-		return;
-	}
-
+// If window doesn't exist, we don't need requestAnimationFrame
+if ( typeof window === 'undefined' ) {
+	requestAnimationFrame = null;
+} else {
 	// https://gist.github.com/paulirish/1579671
-	(function( vendors, lastTime, window ) {
+	(function(vendors, lastTime, window) {
 
 		var x, setTimeout;
 
@@ -41,6 +36,7 @@ define([
 
 	}( vendors, 0, window ));
 
-	return window.requestAnimationFrame;
+	requestAnimationFrame = window.requestAnimationFrame;
+}
 
-});
+export default requestAnimationFrame;

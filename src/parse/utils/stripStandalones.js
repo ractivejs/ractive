@@ -1,43 +1,62 @@
-define([ 'config/types' ], function ( types ) {
+import types from 'config/types';
 
-	'use strict';
+var leadingLinebreak = /^\s*\r?\n/,
+	trailingLinebreak = /\r?\n\s*$/;
 
-	return function ( tokens ) {
-		var i, current, backOne, backTwo, leadingLinebreak, trailingLinebreak;
+export default function ( items ) {
+	var i, current, backOne, backTwo, lastSectionItem;
 
-		leadingLinebreak = /^\s*\r?\n/;
-		trailingLinebreak = /\r?\n\s*$/;
+	for ( i=1; i<items.length; i+=1 ) {
+		current = items[i];
+		backOne = items[i-1];
+		backTwo = items[i-2];
 
-		for ( i=2; i<tokens.length; i+=1 ) {
-			current = tokens[i];
-			backOne = tokens[i-1];
-			backTwo = tokens[i-2];
+		// if we're at the end of a [text][comment][text] sequence...
+		if ( isString( current ) && isComment( backOne ) && isString( backTwo ) ) {
 
-			// if we're at the end of a [text][mustache][text] sequence, where [mustache] isn't a partial...
-			if ( current.type === types.TEXT && ( backOne.type === types.MUSTACHE && backOne.mustacheType !== types.PARTIAL ) && backTwo.type === types.TEXT ) {
+			// ... and the comment is a standalone (i.e. line breaks either side)...
+			if ( trailingLinebreak.test( backTwo ) && leadingLinebreak.test( current ) ) {
 
-				// ... and the mustache is a standalone (i.e. line breaks either side)...
-				if ( trailingLinebreak.test( backTwo.value ) && leadingLinebreak.test( current.value ) ) {
+				// ... then we want to remove the whitespace after the first line break
+				items[i-2] = backTwo.replace( trailingLinebreak, '\n' );
 
-					// ... then we want to remove the whitespace after the first line break
-					// if the mustache wasn't a triple or interpolator or partial
-					if ( backOne.mustacheType !== types.INTERPOLATOR && backOne.mustacheType !== types.TRIPLE ) {
-						backTwo.value = backTwo.value.replace( trailingLinebreak, '\n' );
-					}
-
-					// and the leading line break of the second text token
-					current.value = current.value.replace( leadingLinebreak, '' );
-
-					// if that means the current token is now empty, we should remove it
-					if ( current.value === '' ) {
-						tokens.splice( i--, 1 ); // splice and decrement
-					}
-				}
+				// and the leading line break of the second text token
+				items[i] = current.replace( leadingLinebreak, '' );
 			}
 		}
 
-		return tokens;
-	};
+		// if the current item is a section, and it is preceded by a linebreak, and
+		// its first item is a linebreak...
+		if ( isSection( current ) && isString( backOne ) ) {
+			if ( trailingLinebreak.test( backOne ) && isString( current.f[0] ) && leadingLinebreak.test( current.f[0] ) ) {
+				items[i-1] = backOne.replace( trailingLinebreak, '\n' );
+				current.f[0] = current.f[0].replace( leadingLinebreak, '' );
+			}
+		}
 
-});
+		// if the last item was a section, and it is followed by a linebreak, and
+		// its last item is a linebreak...
+		if ( isString( current ) && isSection( backOne ) ) {
+			lastSectionItem = backOne.f[ backOne.f.length - 1 ];
 
+			if ( isString( lastSectionItem ) && trailingLinebreak.test( lastSectionItem ) && leadingLinebreak.test( current ) ) {
+				backOne.f[ backOne.f.length - 1 ] = lastSectionItem.replace( trailingLinebreak, '\n' );
+				items[i] = current.replace( leadingLinebreak, '' );
+			}
+		}
+	}
+
+	return items;
+}
+
+function isString ( item ) {
+	return typeof item === 'string';
+}
+
+function isComment ( item ) {
+	return item.t === types.COMMENT || item.t === types.DELIMCHANGE;
+}
+
+function isSection ( item ) {
+	return ( item.t === types.SECTION || item.t === types.INVERTED ) && item.f;
+}

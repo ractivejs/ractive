@@ -1,16 +1,7 @@
-define([
-	'Ractive/prototype/shared/makeQuery/sortByDocumentPosition',
-	'Ractive/prototype/shared/makeQuery/sortByItemPosition'
-], function (
-	sortByDocumentPosition,
-	sortByItemPosition
-) {
+import sortByDocumentPosition from 'Ractive/prototype/shared/makeQuery/sortByDocumentPosition';
+import sortByItemPosition from 'Ractive/prototype/shared/makeQuery/sortByItemPosition';
 
-	'use strict';
-
-	return function () {
-		this.sort( this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition );
-		this._dirty = false;
-	};
-
-});
+export default function () {
+	this.sort( this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition );
+	this._dirty = false;
+}

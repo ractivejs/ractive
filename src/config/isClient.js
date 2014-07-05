@@ -1,7 +1,2 @@
-define( function () {
-
-	'use strict';
-
-	return ( typeof document === 'object' );
-
-});
+var isClient = ( typeof document === 'object' );
+export default isClient;

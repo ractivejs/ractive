@@ -1,66 +1,74 @@
-define([
-	'global/runloop',
-	'global/css',
-	'render/DomFragment/_DomFragment'
-], function (
-	runloop,
-	css,
-	DomFragment
-) {
+import runloop from 'global/runloop';
+import css from 'global/css';
+import getElement from 'utils/getElement';
 
-	'use strict';
+var queues = {}, rendering = {};
 
-	return function Ractive_prototype_render ( target, callback ) {
+export default function Ractive$render ( target, anchor ) {
+	var promise, instances;
 
-		this._rendering = true;
-		runloop.start( this, callback );
+	rendering[ this._guid ] = true;
 
-		// This method is part of the API for one reason only - so that it can be
-		// overwritten by components that don't want to use the templating system
-		// (e.g. canvas-based components). It shouldn't be called outside of the
-		// initialisation sequence!
-		if ( !this._initing ) {
-			throw new Error( 'You cannot call ractive.render() directly!' );
+	promise = runloop.start( this, true );
+
+	if ( this.rendered ) {
+		throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
+	}
+
+	target = getElement( target ) || this.el;
+	anchor = getElement( anchor ) || this.anchor;
+
+	this.el = target;
+	this.anchor = anchor;
+
+	// Add CSS, if applicable
+	if ( this.constructor.css ) {
+		css.add( this.constructor );
+	}
+
+	if ( target ) {
+		if ( !( instances = target.__ractive_instances__ ) ) {
+			target.__ractive_instances__ = [ this ];
+		} else {
+			instances.push( this );
 		}
 
-		// Add CSS, if applicable
-		if ( this.constructor.css ) {
-			css.add( this.constructor );
-		}
-
-		// Render our *root fragment*
-		this.fragment = new DomFragment({
-			descriptor: this.template,
-			root: this,
-			owner: this, // saves doing `if ( this.parent ) { /*...*/ }` later on
-			pNode: target
-		});
-
-		if ( target ) {
-			target.appendChild( this.fragment.docFrag );
-		}
-
-		// If this is *isn't* a child of a component that's in the process of rendering,
-		// it should call any `init()` methods at this point
-		if ( !this._parent || !this._parent._rendering ) {
-			initChildren( this );
-		}
-
-		delete this._rendering;
-		runloop.end();
-	};
-
-	function initChildren ( instance ) {
-		var child;
-
-		while ( child = instance._childInitQueue.pop() ) {
-			if ( child.instance.init ) {
-				child.instance.init( child.options );
-			}
-
-			// now do the same for grandchildren, etc
-			initChildren( child.instance );
+		if ( anchor ) {
+			target.insertBefore( this.fragment.render(), anchor );
+		} else {
+			target.appendChild( this.fragment.render() );
 		}
 	}
 
-});
+	// If this is *isn't* a child of a component that's in the process of rendering,
+	// it should call any `init()` methods at this point
+	if ( !this._parent || !rendering[ this._parent._guid ] ) {
+		init( this );
+	} else {
+		getChildInitQueue( this._parent ).push( this );
+	}
+
+	rendering[ this._guid ] = false;
+	runloop.end();
+
+	this.rendered = true;
+
+	if ( this.complete ) {
+		promise.then( () => this.complete() );
+	}
+
+	return promise;
+}
+
+function init ( instance ) {
+	if ( instance.init ) {
+		instance.init( instance._config.options );
+	}
+
+	getChildInitQueue( instance ).forEach( init );
+	queues[ instance._guid ] = null;
+}
+
+function getChildInitQueue ( instance ) {
+	return queues[ instance._guid ] || ( queues[ instance._guid ] = [] );
+}

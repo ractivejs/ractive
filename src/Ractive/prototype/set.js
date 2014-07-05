@@ -1,55 +1,48 @@
-define([
-	'global/runloop',
-	'utils/isObject',
-	'utils/normaliseKeypath',
-	'utils/Promise',
-	'shared/set'
-], function (
-	runloop,
-	isObject,
-	normaliseKeypath,
-	Promise,
-	set
-) {
+import runloop from 'global/runloop';
+import isObject from 'utils/isObject';
+import normaliseKeypath from 'utils/normaliseKeypath';
+import getMatchingKeypaths from 'shared/getMatchingKeypaths';
 
-	'use strict';
+var wildcard = /\*/;
 
-	return function Ractive_prototype_set ( keypath, value, callback ) {
-		var map,
-			promise,
-			fulfilPromise;
+export default function Ractive$set ( keypath, value, callback ) {
+	var map, promise;
 
-		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-		runloop.start( this, fulfilPromise );
+	promise = runloop.start( this, true );
 
-		// Set multiple keypaths in one go
-		if ( isObject( keypath ) ) {
-			map = keypath;
-			callback = value;
+	// Set multiple keypaths in one go
+	if ( isObject( keypath ) ) {
+		map = keypath;
+		callback = value;
 
-			for ( keypath in map ) {
-				if ( map.hasOwnProperty( keypath) ) {
-					value = map[ keypath ];
-					keypath = normaliseKeypath( keypath );
+		for ( keypath in map ) {
+			if ( map.hasOwnProperty( keypath) ) {
+				value = map[ keypath ];
+				keypath = normaliseKeypath( keypath );
 
-					set( this, keypath, value );
-				}
+				this.viewmodel.set( keypath, value );
 			}
 		}
+	}
 
-		// Set a single keypath
-		else {
-			keypath = normaliseKeypath( keypath );
-			set( this, keypath, value );
+	// Set a single keypath
+	else {
+		keypath = normaliseKeypath( keypath );
+
+		if ( wildcard.test( keypath ) ) {
+			getMatchingKeypaths( this, keypath ).forEach( keypath => {
+				this.viewmodel.set( keypath, value );
+			});
+		} else {
+			this.viewmodel.set( keypath, value );
 		}
+	}
 
-		runloop.end();
+	runloop.end();
 
-		if ( callback ) {
-			promise.then( callback.bind( this ) );
-		}
+	if ( callback ) {
+		promise.then( callback.bind( this ) );
+	}
 
-		return promise;
-	};
-
-});
+	return promise;
+}

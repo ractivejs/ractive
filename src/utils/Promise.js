@@ -1,13 +1,13 @@
-define( function () {
+var _Promise,
+	PENDING = {},
+	FULFILLED = {},
+	REJECTED = {};
 
-	'use strict';
-
-	var Promise,
-		PENDING = {},
-		FULFILLED = {},
-		REJECTED = {};
-
-	Promise = function ( callback ) {
+if ( typeof Promise === 'function' ) {
+	// use native Promise
+	_Promise = Promise;
+} else {
+	_Promise = function ( callback ) {
 		var fulfilledHandlers = [],
 			rejectedHandlers = [],
 			state = PENDING,
@@ -39,12 +39,16 @@ define( function () {
 		fulfil = makeResolver( FULFILLED );
 		reject = makeResolver( REJECTED );
 
-		callback( fulfil, reject );
+		try {
+			callback( fulfil, reject );
+		} catch ( err ) {
+			reject( err );
+		}
 
 		promise = {
 			// `then()` returns a Promise - 2.2.7
 			then: function ( onFulfilled, onRejected ) {
-				var promise2 = new Promise( function ( fulfil, reject ) {
+				var promise2 = new _Promise( function ( fulfil, reject ) {
 
 					var processResolutionHandler = function ( handler, handlers, forward ) {
 
@@ -89,8 +93,8 @@ define( function () {
 		return promise;
 	};
 
-	Promise.all = function ( promises ) {
-		return new Promise( function ( fulfil, reject ) {
+	_Promise.all = function ( promises ) {
+		return new _Promise( function ( fulfil, reject ) {
 			var result = [], pending, i, processPromise;
 
 			if ( !promises.length ) {
@@ -115,91 +119,87 @@ define( function () {
 		});
 	};
 
-	Promise.resolve = function ( value ) {
-		return new Promise( function ( fulfil ) {
+	_Promise.resolve = function ( value ) {
+		return new _Promise( function ( fulfil ) {
 			fulfil( value );
 		});
 	};
 
-	Promise.reject = function ( reason ) {
-		return new Promise( function ( fulfil, reject ) {
+	_Promise.reject = function ( reason ) {
+		return new _Promise( function ( fulfil, reject ) {
 			reject( reason );
 		});
 	};
+}
 
-	return Promise;
+export default _Promise;
 
-	// TODO use MutationObservers or something to simulate setImmediate
-	function wait ( callback ) {
-		setTimeout( callback, 0 );
+// TODO use MutationObservers or something to simulate setImmediate
+function wait ( callback ) {
+	setTimeout( callback, 0 );
+}
+
+function makeDispatcher ( handlers, result ) {
+	return function () {
+		var handler;
+
+		while ( handler = handlers.shift() ) {
+			handler( result );
+		}
+	};
+}
+
+function resolve ( promise, x, fulfil, reject ) {
+	// Promise Resolution Procedure
+	var then;
+
+	// 2.3.1
+	if ( x === promise ) {
+		throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
 	}
 
-	function makeDispatcher ( handlers, result ) {
-		return function () {
-			var handler;
-
-			while ( handler = handlers.shift() ) {
-				handler( result );
-			}
-		};
+	// 2.3.2
+	if ( x instanceof _Promise ) {
+		x.then( fulfil, reject );
 	}
 
-	function resolve ( promise, x, fulfil, reject ) {
-		// Promise Resolution Procedure
-		var then;
-
-		// 2.3.1
-		if ( x === promise ) {
-			throw new TypeError( 'A promise\'s fulfillment handler cannot return the same promise' );
+	// 2.3.3
+	else if ( x && ( typeof x === 'object' || typeof x === 'function' ) ) {
+		try {
+			then = x.then; // 2.3.3.1
+		} catch ( e ) {
+			reject( e ); // 2.3.3.2
+			return;
 		}
 
-		// 2.3.2
-		if ( x instanceof Promise ) {
-			x.then( fulfil, reject );
-		}
+		// 2.3.3.3
+		if ( typeof then === 'function' ) {
+			var called, resolvePromise, rejectPromise;
 
-		// 2.3.3
-		else if ( x && ( typeof x === 'object' || typeof x === 'function' ) ) {
-			try {
-				then = x.then; // 2.3.3.1
-			} catch ( e ) {
-				reject( e ); // 2.3.3.2
-				return;
-			}
-
-			// 2.3.3.3
-			if ( typeof then === 'function' ) {
-				var called, resolvePromise, rejectPromise;
-
-				resolvePromise = function ( y ) {
-					if ( called ) {
-						return;
-					}
-					called = true;
-					resolve( promise, y, fulfil, reject );
-				};
-
-				rejectPromise = function ( r ) {
-					if ( called ) {
-						return;
-					}
-					called = true;
-					reject( r );
-				};
-
-				try {
-					then.call( x, resolvePromise, rejectPromise );
-				} catch ( e ) {
-					if ( !called ) { // 2.3.3.3.4.1
-						reject( e ); // 2.3.3.3.4.2
-						called = true;
-						return;
-					}
+			resolvePromise = function ( y ) {
+				if ( called ) {
+					return;
 				}
-			}
+				called = true;
+				resolve( promise, y, fulfil, reject );
+			};
 
-			else {
-				fulfil( x );
+			rejectPromise = function ( r ) {
+				if ( called ) {
+					return;
+				}
+				called = true;
+				reject( r );
+			};
+
+			try {
+				then.call( x, resolvePromise, rejectPromise );
+			} catch ( e ) {
+				if ( !called ) { // 2.3.3.3.4.1
+					reject( e ); // 2.3.3.3.4.2
+					called = true;
+					return;
+				}
 			}
 		}
 
@@ -208,4 +208,7 @@ define( function () {
 		}
 	}
 
-});
+	else {
+		fulfil( x );
+	}
+}

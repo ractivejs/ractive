@@ -1,42 +1,25 @@
-define([
-	'global/runloop',
-	'utils/Promise',
-	'shared/clearCache',
-	'shared/notifyDependants'
-], function (
-	runloop,
-	Promise,
-	clearCache,
-	notifyDependants
-) {
+import runloop from 'global/runloop';
 
-	'use strict';
+export default function Ractive$update ( keypath, callback ) {
+	var promise;
 
-	return function ( keypath, callback ) {
-		var promise, fulfilPromise;
+	if ( typeof keypath === 'function' ) {
+		callback = keypath;
+		keypath = '';
+	} else {
+		keypath = keypath || '';
+	}
 
-		if ( typeof keypath === 'function' ) {
-			callback = keypath;
-			keypath = '';
-		} else {
-			keypath = keypath || '';
-		}
+	promise = runloop.start( this, true );
 
-		promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
-		runloop.start( this, fulfilPromise );
+	this.viewmodel.mark( keypath );
+	runloop.end();
 
-		clearCache( this, keypath );
-		notifyDependants( this, keypath );
+	this.fire( 'update', keypath );
 
-		runloop.end();
+	if ( callback ) {
+		promise.then( callback.bind( this ) );
+	}
 
-		this.fire( 'update', keypath );
-
-		if ( callback ) {
-			promise.then( callback.bind( this ) );
-		}
-
-		return promise;
-	};
-
-});
+	return promise;
+}

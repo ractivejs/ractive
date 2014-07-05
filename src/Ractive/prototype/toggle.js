@@ -1,19 +1,17 @@
-define( function () {
+import log from 'utils/log';
 
-	'use strict';
+export default function Ractive$toggle ( keypath, callback ) {
+	var value;
 
-	return function ( keypath, callback ) {
-		var value;
+	if ( typeof keypath !== 'string' ) {
 
-		if ( typeof keypath !== 'string' ) {
-			if ( this.debug ) {
-				throw new Error( 'Bad arguments' );
-			}
-			return;
-		}
+		log.errorOnly({
+			debug: this.debug,
+			messsage: 'badArguments',
+			arg: { arguments: keypath }
+		});
+	}
 
-		value = this.get( keypath );
-		return this.set( keypath, !value, callback );
-	};
-
-});
+	value = this.get( keypath );
+	return this.set( keypath, !value, callback );
+}

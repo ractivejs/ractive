@@ -1,7 +1,1 @@
-define( function () {
-
-	'use strict';
-
-	return Object.prototype.hasOwnProperty;
-
-});
+export default Object.prototype.hasOwnProperty;

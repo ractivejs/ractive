@@ -168,7 +168,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p><p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
 		});
 
-		test( 'Keypath expression resolvers survive a splice operation', function ( t ) {
+		test( 'Reference expression resolvers survive a splice operation', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#rows:r}}{{#columns:c}}<p>{{columns[c]}}{{r}}{{rows[r][this]}}</p>{{/columns}}<strong>{{rows[r][selectedColumn]}}</strong>{{/rows}}',
@@ -194,6 +194,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.get( 'columns' ).splice( 0, 1 );
 			ractive.set( 'selectedColumn', 'baz' );
 			t.htmlEqual( fixture.innerHTML, '<p>bar0b</p><p>baz0c</p><strong>c</strong><p>bar1h</p><p>baz1i</p><strong>i</strong>');
+		});
+
+		test( 'Option lists linked to arrays are updated when the array mutates', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select>{{#options}}<option>{{this}}</option>{{/options}}</select>',
+				data: {
+					options: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.get( 'options' ).push( 'd' );
+			t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option><option value="d">d</option></select>' );
 		});
 
 	};

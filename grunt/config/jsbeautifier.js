@@ -1,5 +1,5 @@
 module.exports = {
-	files: 'tmp/**/*.js',
+	files: '<%= tmpDir %>/*.js',
 	options: {
 		js: {
 			indentWithTabs: true,

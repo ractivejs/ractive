@@ -1,17 +1,11 @@
-define( function () {
+export default function ( a, b ) {
+	if ( a === null && b === null ) {
+		return true;
+	}
 
-	'use strict';
+	if ( typeof a === 'object' || typeof b === 'object' ) {
+		return false;
+	}
 
-	return function ( a, b ) {
-		if ( a === null && b === null ) {
-			return true;
-		}
-
-		if ( typeof a === 'object' || typeof b === 'object' ) {
-			return false;
-		}
-
-		return a === b;
-	};
-
-});
+	return a === b;
+}

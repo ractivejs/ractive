@@ -1,6 +1,7 @@
 var Ractive, renderTests, cheerio, normaliseHTML;
 
-Ractive = require( '../../tmp/ractive' );
+
+Ractive = require( '../../ractive' );
 renderTests = require( '../samples/render' );
 cheerio = require( 'cheerio' );
 
@@ -19,6 +20,7 @@ renderTests.forEach( function ( theTest ) {
 				template: theTest.template,
 				data: data,
 				partials: theTest.partials,
+				handlebars: theTest.handlebars, // TODO remove this if handlebars becomes default
 				magic: magic
 			});
 

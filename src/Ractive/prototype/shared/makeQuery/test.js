@@ -1,23 +1,15 @@
-define([
-	'utils/matches'
-], function (
-	matches
-) {
+import matches from 'utils/matches';
 
-	'use strict';
+export default function ( item, noDirty ) {
+	var itemMatches = ( this._isComponentQuery ? ( !this.selector || item.name === this.selector ) : ( matches( item.node, this.selector ) ) );
 
-	return function ( item, noDirty ) {
-		var itemMatches = ( this._isComponentQuery ? ( !this.selector || item.name === this.selector ) : ( matches( item.node, this.selector ) ) );
+	if ( itemMatches ) {
+		this.push( item.node || item.instance );
 
-		if ( itemMatches ) {
-			this.push( item.node || item.instance );
-
-			if ( !noDirty ) {
-				this._makeDirty();
-			}
-
-			return true;
+		if ( !noDirty ) {
+			this._makeDirty();
 		}
-	};
 
-});
+		return true;
+	}
+}

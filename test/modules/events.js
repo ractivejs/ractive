@@ -3,7 +3,7 @@
 //
 // TODO: add moar tests
 
-define([ 'ractive', '../vendor/ractive-events-tap' ], function ( Ractive ) {
+define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
@@ -333,55 +333,6 @@ define([ 'ractive', '../vendor/ractive-events-tap' ], function ( Ractive ) {
 			t.equal( ractive.findAll( 'input' ).length, 2 );
 		});
 
-		test( 'Mousedown followed by click results in a tap event', function ( t ) {
-			var ractive, tapped;
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<span id="test" on-tap="tap">tap me</span>',
-				debug: true
-			});
-
-			ractive.on( 'tap', function () {
-				tapped = true;
-			});
-
-			t.equal( tapped, undefined );
-			simulant.fire( ractive.nodes.test, 'mousedown' );
-			simulant.fire( ractive.nodes.test, 'click' );
-			t.equal( tapped, true );
-		});
-
-		// TODO move this into Ractive-events-tap repo
-		asyncTest( 'Pressing spacebar on a focused button results in a tap event', function ( t ) {
-			var ractive, node, tapped;
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<button id="test" on-tap="tap">tap me</button>'
-			});
-
-			node = ractive.nodes.test;
-
-			ractive.on( 'tap', function ( event ) {
-				tapped = true;
-			});
-
-			t.equal( tapped, undefined );
-
-			simulant.fire( node, 'keydown', { which: 32 });
-			t.equal( tapped, undefined );
-
-			node.focus();
-			t.equal( document.activeElement, node );
-			simulant.fire( node, 'keydown', { which: 32 });
-
-			setTimeout( function () {
-				t.ok( tapped );
-				start();
-			}, 0 );
-		});
-
 		test( 'Calling ractive.off() without a keypath removes all handlers', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
@@ -434,11 +385,95 @@ define([ 'ractive', '../vendor/ractive-events-tap' ], function ( Ractive ) {
 			simulant.fire( ractive.findAll( 'input' )[1], 'click' );
 			t.htmlEqual( ractive.find( '.result' ).innerHTML, '2' );
 
-			t.deepEqual( changes, { 'items.1.completed': true });
+			t.equal( changes[ 'items.1.completed' ], true );
 
 			simulant.fire( ractive.findAll( 'input' )[0], 'click' );
 			simulant.fire( ractive.findAll( 'input' )[1], 'click' );
 			t.htmlEqual( ractive.find( '.result' ).innerHTML, '0' );
+		});
+
+		test( 'Multiple events can share the same directive', function ( t ) {
+			var ractive, count = 0;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div on-click-mouseover="foo"></div>'
+			});
+
+			ractive.on( 'foo', function () {
+				count += 1;
+			});
+
+			simulant.fire( ractive.find( 'div' ), 'click' );
+			t.equal( count, 1 );
+
+			simulant.fire( ractive.find( 'div' ), 'mouseover' );
+			t.equal( count, 2 );
+		});
+
+		test( 'Superfluous whitespace is ignored', function ( t ) {
+			var ractive, fooCount = 0, barCount = 0;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div class="one" on-click=" foo "></div><div class="two" on-click="{{#bar}} bar {{/}}"></div>'
+			});
+
+			ractive.on({
+				foo: function () {
+					fooCount += 1;
+				},
+				bar: function () {
+					barCount += 1;
+				}
+			});
+
+			simulant.fire( ractive.find( '.one' ), 'click' );
+			t.equal( fooCount, 1 );
+
+			simulant.fire( ractive.find( '.two' ), 'click' );
+			t.equal( barCount, 0 );
+
+			ractive.set( 'bar', true );
+			simulant.fire( ractive.find( '.two' ), 'click' );
+			t.equal( barCount, 1 );
+		});
+
+		test( 'Multiple space-separated events can be handled with a single callback (#731)', function ( t ) {
+			var ractive, count = 0;
+
+			ractive = new Ractive({});
+
+			ractive.on( ' foo bar  baz', () => count += 1 );
+
+			ractive.fire( 'foo' );
+			t.equal( count, 1 );
+
+			ractive.fire( 'bar' );
+			t.equal( count, 2 );
+
+			ractive.fire( 'baz' );
+			t.equal( count, 3 );
+
+			ractive.off( ' bar  foo ' );
+
+			ractive.fire( 'foo' );
+			t.equal( count, 3 );
+
+			ractive.fire( 'bar' );
+			t.equal( count, 3 );
+
+			ractive.fire( 'baz' );
+			t.equal( count, 4 );
+		});
+
+		test( 'ractive.off() is chainable (#677)', t => {
+			var ractive, returnedValue;
+
+			ractive = new Ractive();
+			returnedValue = ractive.off('foo');
+
+			t.equal( returnedValue, ractive );
 		});
 
 	};

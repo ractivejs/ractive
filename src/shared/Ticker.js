@@ -1,89 +1,78 @@
-define([
-	'utils/warn',
-	'utils/getTime',
-	'shared/animations'
-], function (
-	warn,
-	getTime,
-	animations
-) {
+import warn from 'utils/warn';
+import getTime from 'utils/getTime';
+import animations from 'shared/animations';
 
-	'use strict';
+// TODO what happens if a transition is aborted?
+// TODO use this with Animation to dedupe some code?
 
-	// TODO what happens if a transition is aborted?
-	// TODO use this with Animation to dedupe some code?
+var Ticker = function ( options ) {
+	var easing;
 
-	var Ticker = function ( options ) {
-		var easing;
+	this.duration = options.duration;
+	this.step = options.step;
+	this.complete = options.complete;
 
-		this.duration = options.duration;
-		this.step = options.step;
-		this.complete = options.complete;
+	// easing
+	if ( typeof options.easing === 'string' ) {
+		easing = options.root.easing[ options.easing ];
 
-		// easing
-		if ( typeof options.easing === 'string' ) {
-			easing = options.root.easing[ options.easing ];
-
-			if ( !easing ) {
-				warn( 'Missing easing function ("' + options.easing + '"). You may need to download a plugin from [TODO]' );
-				easing = linear;
-			}
-		} else if ( typeof options.easing === 'function' ) {
-			easing = options.easing;
-		} else {
+		if ( !easing ) {
+			warn( 'Missing easing function ("' + options.easing + '"). You may need to download a plugin from [TODO]' );
 			easing = linear;
 		}
+	} else if ( typeof options.easing === 'function' ) {
+		easing = options.easing;
+	} else {
+		easing = linear;
+	}
 
-		this.easing = easing;
+	this.easing = easing;
 
-		this.start = getTime();
-		this.end = this.start + this.duration;
+	this.start = getTime();
+	this.end = this.start + this.duration;
 
-		this.running = true;
-		animations.add( this );
-	};
+	this.running = true;
+	animations.add( this );
+};
 
-	Ticker.prototype = {
-		tick: function ( now ) {
-			var elapsed, eased;
+Ticker.prototype = {
+	tick: function ( now ) {
+		var elapsed, eased;
 
-			if ( !this.running ) {
-				return false;
-			}
-
-			if ( now > this.end ) {
-				if ( this.step ) {
-					this.step( 1 );
-				}
-
-				if ( this.complete ) {
-					this.complete( 1 );
-				}
-
-				return false;
-			}
-
-			elapsed = now - this.start;
-			eased = this.easing( elapsed / this.duration );
-
-			if ( this.step ) {
-				this.step( eased );
-			}
-
-			return true;
-		},
-
-		stop: function () {
-			if ( this.abort ) {
-				this.abort();
-			}
-
-			this.running = false;
+		if ( !this.running ) {
+			return false;
 		}
-	};
 
-	return Ticker;
+		if ( now > this.end ) {
+			if ( this.step ) {
+				this.step( 1 );
+			}
 
-	function linear ( t ) { return t; }
+			if ( this.complete ) {
+				this.complete( 1 );
+			}
 
-});
+			return false;
+		}
+
+		elapsed = now - this.start;
+		eased = this.easing( elapsed / this.duration );
+
+		if ( this.step ) {
+			this.step( eased );
+		}
+
+		return true;
+	},
+
+	stop: function () {
+		if ( this.abort ) {
+			this.abort();
+		}
+
+		this.running = false;
+	}
+};
+
+export default Ticker;
+function linear ( t ) { return t; }

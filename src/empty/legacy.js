@@ -1,1 +1,1 @@
-define( function () {});
+export default null;

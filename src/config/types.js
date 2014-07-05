@@ -1,4 +1,4 @@
-define({
+export default {
 	TEXT              : 1,
 	INTERPOLATOR      : 2,
 	TRIPLE            : 3,
@@ -12,7 +12,7 @@ define({
 	MUSTACHE          : 11,
 	TAG               : 12,
 	ATTRIBUTE         : 13,
-
+	CLOSING_TAG       : 14,
 	COMPONENT         : 15,
 
 	NUMBER_LITERAL    : 20,
@@ -33,5 +33,10 @@ define({
 	CONDITIONAL       : 35,
 	INFIX_OPERATOR    : 36,
 
-	INVOCATION        : 40
-});
+	INVOCATION        : 40,
+
+	SECTION_IF        : 50,
+	SECTION_UNLESS    : 51,
+	SECTION_EACH      : 52,
+	SECTION_WITH      : 53
+};

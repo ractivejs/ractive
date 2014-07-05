@@ -1,88 +1,82 @@
-define([
-	'shared/getValueFromCheckboxes',
-	'utils/arrayContentsMatch',
-	'utils/isEqual'
-], function (
-	getValueFromCheckboxes,
-	arrayContentsMatch,
-	isEqual
-) {
+import arrayContentsMatch from 'utils/arrayContentsMatch';
+import isEqual from 'utils/isEqual';
 
-	'use strict';
+export default function Ractive$updateModel ( keypath, cascade ) {
+	var values;
 
-	return function Ractive_prototype_updateModel ( keypath, cascade ) {
-		var values, deferredCheckboxes, i;
+	if ( typeof keypath !== 'string' ) {
+		keypath = '';
+		cascade = true;
+	}
 
-		if ( typeof keypath !== 'string' ) {
-			keypath = '';
-			cascade = true;
-		}
+	consolidateChangedValues( this, keypath, values = {}, cascade );
+	return this.set( values );
+}
 
-		consolidateChangedValues( this, keypath, values = {}, deferredCheckboxes = [], cascade );
+function consolidateChangedValues ( ractive, keypath, values, cascade ) {
+	var bindings, childDeps, i, binding, oldValue, newValue, checkboxGroups = [];
 
-		if ( i = deferredCheckboxes.length ) {
-			while ( i-- ) {
-				keypath = deferredCheckboxes[i];
-				values[ keypath ] = getValueFromCheckboxes( this, keypath );
+	bindings = ractive._twowayBindings[ keypath ];
+
+	if ( bindings && ( i = bindings.length ) ) {
+		while ( i-- ) {
+			binding = bindings[i];
+
+			// special case - radio name bindings
+			if ( binding.radioName && !binding.element.node.checked ) {
+				continue;
 			}
-		}
 
-		this.set( values );
-	};
-
-	function consolidateChangedValues ( ractive, keypath, values, deferredCheckboxes, cascade ) {
-		var bindings, childDeps, i, binding, oldValue, newValue;
-
-		bindings = ractive._twowayBindings[ keypath ];
-
-		if ( bindings ) {
-			i = bindings.length;
-			while ( i-- ) {
-				binding = bindings[i];
-
-				// special case - radio name bindings
-				if ( binding.radioName && !binding.node.checked ) {
-					continue;
+			// special case - checkbox name bindings come in groups, so
+			// we want to get the value once at most
+			if ( binding.checkboxName ) {
+				if ( !checkboxGroups[ binding.keypath ] && !binding.changed() ) {
+					checkboxGroups.push( binding.keypath );
+					checkboxGroups[ binding.keypath ] = binding;
 				}
 
-				// special case - checkbox name bindings
-				if ( binding.checkboxName ) {
-					if ( binding.changed() && ( deferredCheckboxes[ keypath ] !== true ) ) {
-						// we will need to see which checkboxes with the same name are checked,
-						// but we only want to do so once
-						deferredCheckboxes[ keypath ] = true; // for quick lookup without indexOf
-						deferredCheckboxes.push( keypath );
-					}
-
-					continue;
-				}
-
-				oldValue = binding.attr.value;
-				newValue = binding.value();
-
-				if ( arrayContentsMatch( oldValue, newValue ) ) {
-					continue;
-				}
-
-				if ( !isEqual( oldValue, newValue ) ) {
-					values[ keypath ] = newValue;
-				}
+				continue;
 			}
-		}
 
-		if ( !cascade ) {
-			return;
-		}
+			oldValue = binding.attribute.value;
+			newValue = binding.getValue();
 
-		// cascade
-		childDeps = ractive._depsMap[ keypath ];
+			if ( arrayContentsMatch( oldValue, newValue ) ) {
+				continue;
+			}
 
-		if ( childDeps ) {
-			i = childDeps.length;
-			while ( i-- ) {
-				consolidateChangedValues( ractive, childDeps[i], values, deferredCheckboxes, cascade );
+			if ( !isEqual( oldValue, newValue ) ) {
+				values[ keypath ] = newValue;
 			}
 		}
 	}
 
-});
+	// Handle groups of `<input type='checkbox' name='{{foo}}' ...>`
+	if ( checkboxGroups.length ) {
+		checkboxGroups.forEach( keypath => {
+			var binding, oldValue, newValue;
+
+			binding = checkboxGroups[ keypath ]; // one to represent the entire group
+			oldValue = binding.attribute.value;
+			newValue = binding.getValue();
+
+			if ( !arrayContentsMatch( oldValue, newValue ) ) {
+				values[ keypath ] = newValue;
+			}
+		});
+	}
+
+	if ( !cascade ) {
+		return;
+	}
+
+	// cascade
+	childDeps = ractive.viewmodel.depsMap[ 'default' ][ keypath ];
+
+	if ( childDeps ) {
+		i = childDeps.length;
+		while ( i-- ) {
+			consolidateChangedValues( ractive, childDeps[i], values, cascade );
+		}
+	}
+}

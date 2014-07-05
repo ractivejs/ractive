@@ -4,7 +4,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture, Foo;
+		var fixture;
 
 		module( 'Computations' );
 
@@ -173,7 +173,45 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.set( 'foo.bar', 'works' );
 			t.htmlEqual( fixture.innerHTML, 'WORKS' );
-		})
+		});
+
+		test( 'Computations can be updated with ractive.update() (#651)', function ( t ) {
+			var ractive, bar;
+
+			ractive = new Ractive({
+				computed: {
+					foo: function () {
+						return bar;
+					}
+				}
+			});
+
+			t.equal( ractive.get( 'foo' ), undefined );
+
+			bar = 1;
+			ractive.update( 'foo' );
+			t.equal( ractive.get( 'foo' ), 1 );
+		});
+
+		test( 'Regression test for #836', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{# foo <= bar }}yes{{/}}',
+				computed: { foo: '[]' },
+				init: function () {
+					this.set({ bar: 10 });
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget>',
+				components: { widget: Widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+		});
 
 	};
 

@@ -64,6 +64,7 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 						data: data,
 						template: theTest.template,
 						partials: theTest.partials,
+						handlebars: theTest.handlebars, // TODO remove this if handlebars mode becomes default
 						debug: true,
 						magic: magic
 					});
@@ -92,69 +93,108 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			runTest( i );
 		}
 
-		test('Style elements have content inserted that becomes .textContent gh #569', function(t){
+		if ( Ractive.svg ) {
+			test('Style elements have content inserted that becomes .textContent gh #569', function(t){
+				var ractive = new Ractive({
+						el: fixture,
+						template: '<svg><style id="style">text { font-size: 40px }</style></svg>'
+					}),
+					style = document.getElementById('style');
+
+				t.ok( style );
+				t.equal( style.textContent, 'text { font-size: 40px }' )
+			});
+		}
+
+		test('Nested reference expression updates when array index member changes', function(t){
 			var ractive = new Ractive({
-					el: fixture,
-					template: '<svg><style id="style">text { font-size: 40px }</style></svg>'
-				}),
-			 	style = document.getElementById('style');
-			 	t.ok( style );
-			 	t.equal( style.textContent, 'text { font-size: 40px }' )
-		});
+				el: fixture,
+				template: '{{#item}}{{foo[bar]}}{{/}}',
+				data: { item: { foo: ['fizz', 'bizz'], bar: 0 } }
+			});
 
-		test('Nested keypath expression updates when array index member changes', function(t){
-			var ractive = new Ractive({
-					el: fixture,
-					template: '{{#item}}{{foo[bar]}}{{/}}',
-					data: { item: { foo: ['fizz', 'bizz'], bar: 0 } }
-				})
-			 	t.equal( fixture.innerHTML, 'fizz' )
-			 	ractive.set( 'item.bar', 1)
-			 	t.equal( fixture.innerHTML, 'bizz' )
-
-		});
-
-/*
-		test('List of inputs with nested keypathexpression name updates correctly', function(t){
-			var ractive = new Ractive({
-					el: fixture,
-					template: "{{#step}}{{#options}}<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>{{/}}{{/}}",
-					data: {
-				        step: {
-				            name: 'Products',
-				            options: ['1', '2']
-				        },
-				        responses: {}
-				    }
-				})
-				ractive.set('step', {
-				    name: 'Colors',
-				    options: ['red', 'blue', 'yellow']
-				})
-
-			 	expect(3)
-			 	ractive.findAll('input').forEach(function(input){
-				    t.equal( input.name, '{{responses.Colors}}' )
-				})
+			t.equal( fixture.innerHTML, 'fizz' )
+			ractive.set( 'item.bar', 1)
+			t.equal( fixture.innerHTML, 'bizz' )
 
 		});
 
-		test('List of inputs with keypathexpression name update correctly', function(t){
+		test('Conditional section with reference expression updates when keypath changes', function(t){
 			var ractive = new Ractive({
-					el: fixture,
-					template: "<input type='radio' name='{{responses[topic]}}'/>",
-					data: {
-				        topic: 'Product',
-				        responses: {}
-				    }
-				})
-			ractive.set('topic', 'Color')	
-			var input = ractive.find('input')
-			t.ok( input )
-			t.equal( input.name, '{{responses.Colors}}' )
-			
+				el: fixture,
+				template: '{{#foo[bar]}}buzz{{/}}',
+				data: {
+					foo:{ fop: false, bizz: true } ,
+					bar: 'fop',
+				}
+			});
+
+			t.equal( fixture.innerHTML, '' );
+			ractive.set( 'bar', 'bizz' );
+			t.equal( fixture.innerHTML, 'buzz' );
+
 		});
-*/
+
+		test('Input with reference expression updates target when keypath changes', function(t){
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo[bar]}}"/>',
+				data: {
+					foo:{ fop: 'fop', bizz: 'bizz' } ,
+					bar: 'fop',
+				}
+			});
+
+			ractive.set( 'bar', 'bizz' );
+			ractive.find( 'input' ).value = 'buzz';
+			ractive.updateModel();
+			t.equal( ractive.data.foo.bizz, 'buzz' );
+
+		});
+
+		test('List of inputs with referenceExpression name update correctly', function(t){
+			var ractive = new Ractive({
+				el: fixture,
+				template: "<input type='radio' name='{{responses[topic]}}'/>",
+				data: {
+					topic: 'Product',
+					responses: {}
+				}
+			});
+
+			ractive.set( 'topic', 'Color' );
+			var input = ractive.find('input');
+			t.ok( input );
+			t.equal( input.name, '{{responses.Color}}' );
+
+		});
+
+		test('List of inputs with nested referenceExpression name updates correctly', function(t){
+			var ractive = new Ractive({
+				el: fixture,
+				template: "{{#step}}{{#options}}<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>{{/}}{{/}}",
+				data: {
+					step: {
+						name: 'Products',
+						options: ['1', '2']
+					},
+					responses: {}
+				}
+			});
+
+			ractive.set( 'step', {
+				name: 'Colors',
+				options: ['red', 'blue', 'yellow']
+			});
+
+			expect(3);
+
+			ractive.findAll('input').forEach(function(input){
+				t.equal( input.name, '{{responses.Colors}}' )
+			});
+
+		});
+
 	};
 
 	function deepClone ( source ) {

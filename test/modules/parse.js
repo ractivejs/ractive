@@ -9,42 +9,37 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 
 		module( 'Parse' );
 
-		runTest = function ( theTest ) {
-			test( theTest.name, function ( t ) {
-                if (theTest.error) {
-                    var error = "No error thrown";
-                    try {
-                        Ractive.parse( theTest.template, theTest.options );
-                    } catch (e) {
-                        error = String(e.message || e);
-                    }
-                    t.deepEqual(error, theTest.error);
-                } else {
-                    var parsed = Ractive.parse( theTest.template, theTest.options );
+		test( 'Mismatched template version causes error', function ( t ) {
+			t.throws( function () {
+				var ractive = new Ractive({
+					template: {v:2,t:[]}
+				});
+			});
+		});
 
-                    t.deepEqual( parsed, theTest.parsed );
-                }
+		var runTest = function ( theTest ) {
+			test( theTest.name, function ( t ) {
+				if (theTest.error) {
+					t.throws( function () {
+						Ractive.parse( theTest.template, theTest.options );
+					}, function ( error ) {
+						if (error.name !== 'ParseError') {
+							throw error;
+						}
+						t.equal( error.message, theTest.error );
+						return true;
+					}, 'Expected ParseError');
+				} else {
+					var parsed = Ractive.parse( theTest.template, theTest.options );
+
+					t.deepEqual( parsed, theTest.parsed );
+				}
 			});
 		};
 
-		for ( i=0; i<tests.length; i+=1 ) {
+		for ( var i=0; i<tests.length; i+=1 ) {
 			runTest( tests[i] );
 		}
-
-		//TODO: create structure like above to run parsing error tests
-		test('Illegal closing section: ref mismatch', function(t){
-			throws( function(){
-				Ractive.parse( '{{#foo}}{{/bar}}' );
-			},
-			/(?=.*foo)(?=.*bar)/)
-		});
-
-		test('Illegal closing section: closing must be contained in openning', function(t){
-			throws( function(){
-				Ractive.parse( '{{#foo}}{{/foo:i}}' );
-			},
-			/(?=.*foo)(?=.*foo:i)/)
-		});
 
 	};
 

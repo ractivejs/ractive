@@ -1,10 +1,12 @@
-define([ 'ractive' ], function ( Ractive ) {
+define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 	'use strict';
 
 	return function () {
 
-		var fixture, colorTester, colors;
+		var fixture, hexCodes, getComputedStyle;
+
+		getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
 		module( 'CSS encapsulation' );
 
@@ -12,13 +14,38 @@ define([ 'ractive' ], function ( Ractive ) {
 		fixture = document.getElementById( 'qunit-fixture' );
 
 		// normalise colours
-		colorTester = document.createElement( 'div' );
-		document.getElementsByTagName( 'body' )[0].appendChild( colorTester );
+		hexCodes = {
+			red: '#FF0000',
+			green: '#008000',
+			blue: '#0000FF',
+			black: '#000000'
+		};
 
-		colors = {};
-		[ 'red', 'green', 'blue', 'black' ].forEach( function ( color ) {
-			colors[ color ] = normaliseColor( color );
-		});
+		function getHexColor ( node ) {
+			var color, match;
+
+			color = getComputedStyle( node ).color;
+
+			match = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec( color );
+			if ( match ) {
+				color = '#' + toHex( match[1] ) + toHex( match[2] ) + toHex( match[3] );
+			} else {
+				color = hexCodes[ color ] || color;
+			}
+
+			return color;
+		}
+
+		function toHex ( str ) {
+			var num = +str, hex;
+
+			hex = num.toString(16);
+			if ( hex.length < 2 ) {
+				hex = '0' + hex;
+			}
+
+			return hex.toUpperCase();
+		}
 
 		test( 'CSS is applied to components', function ( t ) {
 			var Widget, ractive;
@@ -32,7 +59,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				el: fixture
 			});
 
-			t.equal( getComputedStyle( ractive.find( 'p' ) ).color, colors.red );
+			t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.red );
 		});
 
 		test( 'CSS is encapsulated', function ( t ) {
@@ -53,8 +80,8 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			paragraphs = ractive.findAll( 'p' );
 
-			t.equal( getComputedStyle( paragraphs[0] ).color, colors.black );
-			t.equal( getComputedStyle( paragraphs[1] ).color, colors.red );
+			t.equal( getHexColor( paragraphs[0] ), hexCodes.black );
+			t.equal( getHexColor( paragraphs[1] ), hexCodes.red );
 		});
 
 		asyncTest( 'CSS encapsulation transformation is optional', function ( t ) {
@@ -76,8 +103,8 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			paragraphs = ractive.findAll( 'p' );
 
-			t.equal( getComputedStyle( paragraphs[0] ).color, colors.red );
-			t.equal( getComputedStyle( paragraphs[1] ).color, colors.red );
+			t.equal( getHexColor( paragraphs[0] ), hexCodes.red );
+			t.equal( getHexColor( paragraphs[1] ), hexCodes.red );
 
 			// we need to clean up after ourselves otherwise the global styles remain in the DOM!
 			ractive.teardown().then( start );
@@ -95,7 +122,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				el: fixture
 			});
 
-			t.equal( getComputedStyle( ractive.find( 'p' ) ).color, colors.blue );
+			t.equal( getHexColor( ractive.find( 'p' ) ), hexCodes.blue );
 		});
 
 		test( 'Multiple pseudo-selectors work', function ( t ) {
@@ -114,10 +141,10 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			paragraphs = ractive.findAll( 'p' );
 
-			t.equal( getComputedStyle( paragraphs[0] ).color, colors.black );
-			t.equal( getComputedStyle( paragraphs[1] ).color, colors.black );
-			t.equal( getComputedStyle( paragraphs[2] ).color, colors.blue );
-			t.equal( getComputedStyle( paragraphs[3] ).color, colors.black );
+			t.equal( getHexColor( paragraphs[0] ), hexCodes.black );
+			t.equal( getHexColor( paragraphs[1] ), hexCodes.black );
+			t.equal( getHexColor( paragraphs[2] ), hexCodes.blue );
+			t.equal( getHexColor( paragraphs[3] ), hexCodes.black );
 		});
 
 		test( 'Combinators work', function ( t ) {
@@ -136,17 +163,53 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			paragraphs = ractive.findAll( 'p' );
 
-			t.equal( getComputedStyle( paragraphs[0] ).color, colors.black );
-			t.equal( getComputedStyle( paragraphs[1] ).color, colors.black );
-			t.equal( getComputedStyle( paragraphs[2] ).color, colors.black );
-			t.equal( getComputedStyle( paragraphs[3] ).color, colors.green );
+			t.equal( getHexColor( paragraphs[0] ), hexCodes.black );
+			t.equal( getHexColor( paragraphs[1] ), hexCodes.black );
+			t.equal( getHexColor( paragraphs[2] ), hexCodes.black );
+			t.equal( getHexColor( paragraphs[3] ), hexCodes.green );
 		});
 
+		test( 'Media queries work', function ( t ) {
+			var Widget, ractive, paragraphs;
 
-		function normaliseColor ( color ) {
-			colorTester.style.color = color;
-			return getComputedStyle( colorTester ).color;
-		}
+			Widget = Ractive.extend({
+				template: '<p>red</p>',
+				css: 'p { color: blue } @media screen and (max-width: 99999px) { p { color: red; } }'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<p>black</p><widget/>',
+				components: {
+					widget: Widget
+				}
+			});
+
+			paragraphs = ractive.findAll( 'p' );
+
+			t.equal( getHexColor( paragraphs[0] ), hexCodes.black );
+			t.equal( getHexColor( paragraphs[1] ), hexCodes.red );
+		});
+
+		test( 'Multiple inheritance doesn\'t break css', function ( t ) {
+			var C, D, d, paragraph;
+
+			C = Ractive.extend({
+				css: 'p { color: red; }',
+				template: '<p>Hi!</p>'
+			});
+
+			D = C.extend({});
+
+			d = new D({
+				el: fixture
+			});
+
+			paragraph = d.findAll( 'p' )[0];
+
+			t.equal( getHexColor( paragraph ), hexCodes.red );
+		});
+
 	};
 
 });

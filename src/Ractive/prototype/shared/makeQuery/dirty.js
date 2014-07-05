@@ -1,16 +1,13 @@
-define([
-	'global/runloop'
-], function (
-	runloop
-) {
+import runloop from 'global/runloop';
 
-	'use strict';
+export default function () {
+	if ( !this._dirty ) {
+		this._dirty = true;
 
-	return function () {
-		if ( !this._dirty ) {
-			runloop.addLiveQuery( this );
-			this._dirty = true;
-		}
-	};
-
-});
+		// Once the DOM has been updated, ensure the query
+		// is correctly ordered
+		runloop.scheduleTask( () => {
+			this._sort();
+		});
+	}
+}

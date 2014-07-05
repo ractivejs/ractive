@@ -1,28 +1,21 @@
-define([
-	'circular',
-	'config/isClient',
-	'utils/removeFromArray'
-], function (
-	circular,
-	isClient,
-	removeFromArray
-) {
+import circular from 'circular';
+import isClient from 'config/isClient';
+import removeFromArray from 'utils/removeFromArray';
 
-	'use strict';
+var css,
+	update,
+	runloop,
+	styleElement,
+	head,
+	styleSheet,
+	inDom,
+	prefix = '/* Ractive.js component styles */\n',
+	componentsInPage = {},
+	styles = [];
 
-	var runloop,
-		styleElement,
-		head,
-		styleSheet,
-		inDom,
-		prefix = '/* Ractive.js component styles */\n',
-		componentsInPage = {},
-		styles = [];
-
-	if ( !isClient ) {
-		return;
-	}
-
+if ( !isClient ) {
+	css = null;
+} else {
 	circular.push( function () {
 		runloop = circular.runloop;
 	});
@@ -38,7 +31,31 @@ define([
 	// use styleSheet.cssText instead
 	styleSheet = styleElement.styleSheet;
 
-	return {
+	update = function () {
+		var css;
+
+		if ( styles.length ) {
+			css = prefix + styles.join( ' ' );
+
+			if ( styleSheet ) {
+				styleSheet.cssText = css;
+			} else {
+				styleElement.innerHTML = css;
+			}
+
+			if ( !inDom ) {
+				head.appendChild( styleElement );
+				inDom = true;
+			}
+		}
+
+		else if ( inDom ) {
+			head.removeChild( styleElement );
+			inDom = false;
+		}
+	};
+
+	css = {
 		add: function ( Component ) {
 			if ( !Component.css ) {
 				return;
@@ -51,7 +68,7 @@ define([
 				componentsInPage[ Component._guid ] = 0;
 				styles.push( Component.css );
 
-				runloop.scheduleCssUpdate();
+				runloop.scheduleTask( update );
 			}
 
 			componentsInPage[ Component._guid ] += 1;
@@ -66,32 +83,10 @@ define([
 
 			if ( !componentsInPage[ Component._guid ] ) {
 				removeFromArray( styles, Component.css );
-
-				runloop.scheduleCssUpdate();
-			}
-		},
-
-		update: function () {
-			var css;
-
-			if ( styles.length ) {
-				css = prefix + styles.join( ' ' );
-
-				if ( styleSheet ) {
-					styleSheet.cssText = css;
-				} else {
-					styleElement.innerHTML = css;
-				}
-
-				if ( !inDom ) {
-					head.appendChild( styleElement );
-				}
-			}
-
-			else if ( inDom ) {
-				head.removeChild( styleElement );
+				runloop.scheduleTask( update );
 			}
 		}
 	};
+}
 
-});
+export default css;

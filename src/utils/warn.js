@@ -1,14 +1,20 @@
 /* global console */
-define( function () {
+var warn, warned = {};
 
-	'use strict';
+if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
+	warn = function ( message, allowDuplicates ) {
+		if ( !allowDuplicates ) {
+			if ( warned[ message ] ) {
+				return;
+			}
 
-	if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
-		return function () {
-			console.warn.apply( console, arguments );
-		};
-	}
+			warned[ message ] = true;
+		}
 
-	return function () {};
+		console.warn( message );
+	};
+} else {
+	warn = function () {};
+}
 
-});
+export default warn;

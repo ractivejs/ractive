@@ -132,31 +132,33 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div>qux</div>' );
 		});
 
-		test( 'Referencing parent data context in magic mode does not break decorators', function ( t ) {
-			var ractive, data;
+		if ( Ractive.magic ) {
+			test( 'Referencing parent data context in magic mode does not break decorators', function ( t ) {
+				var ractive, data;
 
-			data = {
-				item: { name: 'one' },
-				foo: {
-					bar: 'biz'
-				}
-			};
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{foo}}"></span>{{/item}}',
-				magic: true,
-				data: data,
-				decorators: {
-					decorateme: function(node, foo){
-						node.innerHTML = foo ? foo.bar || 'fail' : 'fail';
-						return { teardown: function () {} };
+				data = {
+					item: { name: 'one' },
+					foo: {
+						bar: 'biz'
 					}
-				}
-			});
+				};
 
-			t.htmlEqual( fixture.innerHTML, 'bizone<span>biz</span>' );
-		});
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{foo}}"></span>{{/item}}',
+					magic: true,
+					data: data,
+					decorators: {
+						decorateme: function(node, foo){
+							node.innerHTML = foo ? foo.bar || 'fail' : 'fail';
+							return { teardown: function () {} };
+						}
+					}
+				});
+
+				t.htmlEqual( fixture.innerHTML, 'bizone<span>biz</span>' );
+			});
+		}
 
 		test( 'Decorator without arguments can be torn down (#453)', function ( t ) {
 			var ractive = new Ractive({
@@ -174,6 +176,24 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.set("foo", false);
 			t.ok( true );
+		});
+
+		test( 'Unnecessary whitespace is trimmed (#810)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<pre decorator="show: blue is the moon   "/><pre decorator="show:\' blue is the moon   \'"/>',
+				decorators: {
+					show: function ( node, arg ) {
+						node.innerHTML = typeof arg === 'string'
+							? '|' + arg + '|'
+							: JSON.stringify(arg)
+
+						return { teardown: Function.prototype }
+					}
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<pre>|blue is the moon|</pre><pre>| blue is the moon   |</pre>' );
 		});
 
 	};

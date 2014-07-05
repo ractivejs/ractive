@@ -1,17 +1,20 @@
-define([ 'utils/getElement' ], function ( getElement ) {
+import getElement from 'utils/getElement';
 
-	'use strict';
+export default function Ractive$insert ( target, anchor ) {
+	if ( !this.rendered ) {
+		// TODO create, and link to, documentation explaining this
+		throw new Error( 'The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.' );
+	}
 
-	return function ( target, anchor ) {
-		target = getElement( target );
-		anchor = getElement( anchor ) || null;
+	target = getElement( target );
+	anchor = getElement( anchor ) || null;
 
-		if ( !target ) {
-			throw new Error( 'You must specify a valid target to insert into' );
-		}
+	if ( !target ) {
+		throw new Error( 'You must specify a valid target to insert into' );
+	}
 
-		target.insertBefore( this.detach(), anchor );
-		this.fragment.pNode = this.el = target;
-	};
+	target.insertBefore( this.detach(), anchor );
+	this.el = target;
 
-});
+	( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( this );
+}
