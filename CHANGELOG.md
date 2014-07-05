@@ -2,22 +2,22 @@ Changelog
 ---------
 
 * 0.5.0
-    * BREAKING: errors in observers and evalutors are not longer caught
+    * BREAKING: errors in observers and evaluators are no longer caught
 	* `ractive.off()` returns instance making it chainable
-    * Array mutation methods are now also available as methods on ractive that take the keypath as arugments and returns a promise for when transitions complete
+    * Array mutation methods are now also available as methods on `Ractive.prototype` - e.g. `ractive.push('items', newItem)`. The return value is a Promise that fulfils when any transitions complete
 	* Warn on bad two-way radio bindings
     * BREAKING: Better handling of removal of outro nodes, prevents loitering orphans in most cases
     * Improved runloop handling
-    * Support for static mustache delimeters that do one-time binding
-    * Improved suport for extending Components with Components
-	* BREAKING: The options argument of `init: function(options)` is now strictly what was passed into the constructor, use this.option to access configured value.
+    * Support for static mustache delimiters that do one-time binding
+    * Improved support for extending Components with Components
+	* BREAKING: The options argument of `init: function(options)` is now strictly what was passed into the constructor, use `this.option` to access configured value.
 	* BREAKING: `data` with properties on prototype are no longer cloned when accessed. `data` from "baseClass" is no longer deconstructed and copied.
-    * The following plugins: adaptors, components, decorators, easing, events, interpolators, partials, transitions, when used in components will be looked up in the view hierachy if they cannot be found in the inheritance chain.
+    * The following plugins: adaptors, components, decorators, easing, events, interpolators, partials, transitions, when used in components will be looked up in the view hierarchy if they cannot be found in the inheritance chain.
     * BREAKING: Use of a `<script>` tag for specifing inline templates is not enforced.
-    * BREAKING: Options specifed on constructor will not be picked up as defaults. `debug` now on `defaults`, not constructor
+    * BREAKING: Options specified on constructor will not be picked up as defaults. `debug` now on `defaults`, not constructor
 	* BREAKING: select binding follows general browser rules for choosing options. Disabled options have no value.
     * `ractive.set` supports pattern observers, eg `ractive.set('foo.*.bar')`
-    * Duplicate, repetive console.warn messages are not repeated.
+    * Duplicate, repetitive console.warn messages are not repeated.
     * BREAKING: Input values are not coerced to numbers, unless input type is `number` or `range`
     * Support for specifying multiple events in single `on`, eg `ractive.on( 'foo bar baz', handleFooBarOrBaz )`
 	* Unnecessary leading and trailing whitespace in templates is removed
@@ -32,15 +32,14 @@ Changelog
         * Non-dynamic (bound) fragments of html are no longer stored as single string
 	    * See https://github.com/ractivejs/template-spec for current spec.
 	* BREAKING: Arrays being observed via `array.*` no longer send `item.length` event on mutation changes
-	* Observers with wildcards now recieve actual wildcard values as additional arguments
+	* Observers with wildcards now receive actual wildcard values as additional arguments
 	* BREAKING: Reserved event names in templates ('change', 'reset', 'teardown', 'update') will cause the parser to throw an error
 	* Computed properties can be updated with `ractive.update(property)`
 	* `updateModel` returns a `Promise`
-	* Media queries are work correctly in component css
+	* Media queries work correctly in component css
 	* Support for handlebars style blocks: `#if`, `#with`, `#each`, `#unless` and corresponding `@index` and `@key`
 	* BREAKING: `{{else}}` support in both handlebars-style blocks and regular mustache conditional blocks, but is now a restricted keyword that cannot be used as a regular reference
 	* `Component.extend` is writable (can be extended)
-	* wildcard `*` can be used as first part of observer keypath
 	* `append` option can now take a target element, behavior same as `ractive.insert`
 	* BREAKING: Child components are created in data order
 	* BREAKING: Keypath expressions resolve left to right and follow same logic as regular mustache references (bind to root, not context, if left-most part is unresolved).
@@ -50,9 +49,9 @@ Changelog
 	    * boolean and empty string attributes
 	* All configuration options, except plugin registries, can be specified on `defaults`
     * Any configuration option except registries and computed properties can be specfied using a function that returns a value
-    * `ractive.reset()` will rerender if template or partial specified by a function changes it's value
-    * New `ractive.resetTemplate()` method that reredners with new template
-    * Value of key/value pair for partials and components can be specified using a funciton
+    * `ractive.reset()` will rerender if template or partial specified by a function changes its value
+    * New `ractive.resetTemplate()` method that re-renders with new template
+    * Value of key/value pair for partials and components can be specified using a function
 	* Bug fixes:
 	    * Component names not restricted by array method name conflicts
 	    * Ensure all change operations update DOM synchronously
@@ -85,11 +84,7 @@ Changelog
 	    * DOCTYPE declarations are uppercased
 	    * Transitioned elements not detaching if window is not active
 	    * CSS transitions apply correctly
-
-
-
-
-
+	    * wildcard `*` can be used as first part of observer keypath
 
 * 0.4.0
 	* BREAKING: Filenames are now lowercase. May affect you if you use Browserify etc.
