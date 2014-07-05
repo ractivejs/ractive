@@ -43,8 +43,6 @@ function getPartialFromRegistry ( ractive, name ) {
 	var partials = config.registries.partials;
 
 	// find first instance in the ractive or view hierarchy that has this partial
-	// TODO is this necessary, with prototypal inheritance (and item-level rather
-	// than registry-level option functions)?
 	var instance = partials.findInstance( ractive, name );
 
 	if ( !instance ) { return; }
