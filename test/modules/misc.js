@@ -1248,6 +1248,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'foo', null );
 		});
 
+		test( 'Ractive.extend() with parsed template (#939)', function ( t ) {
+			var parsed, Widget, ractive;
+
+			parsed = Ractive.parse( '<p>{{foo}}</p>' );
+			Widget = Ractive.extend({ template: parsed });
+
+			ractive = new Widget({ data: { foo: 'bar' }});
+			t.equal( ractive.toHTML(), '<p>bar</p>' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
