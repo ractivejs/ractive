@@ -9,6 +9,14 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 
 		module( 'Parse' );
 
+		test( 'Mismatched template version causes error', function ( t ) {
+			t.throws( function () {
+				var ractive = new Ractive({
+					template: {v:2,t:[]}
+				});
+			});
+		});
+
 		var runTest = function ( theTest ) {
 			test( theTest.name, function ( t ) {
 				if (theTest.error) {

@@ -45,8 +45,7 @@ var StandardParser,
 	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 	preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 	leadingWhitespace = /^\s+/,
-	trailingWhitespace = /\s+$/,
-	parseCompoundTemplate;
+	trailingWhitespace = /\s+$/;
 
 StandardParser = Parser.extend({
 	init: function ( str, options ) {
@@ -90,54 +89,38 @@ StandardParser = Parser.extend({
 	]
 });
 
-parse = function ( template, options ) {
-	var parser;
+parse = function ( template, options = {} ) {
+	var result, remaining, partials, name, startMatch, endMatch;
 
-	options = options || {};
+	result = {
+		v: 1 // template spec version, defined in https://github.com/ractivejs/template-spec
+	};
 
-	// does this template include inline partials?
 	if ( inlinePartialStart.test( template ) ) {
-		return parseCompoundTemplate( template, options );
-	}
+		remaining = template;
+		template = '';
 
-	parser = new StandardParser( template, options );
+		while ( startMatch = inlinePartialStart.exec( remaining ) ) {
+			name = startMatch[1];
 
-	if ( parser.leftover ) {
-		parser.error( 'Unexpected character' );
-	}
+			template += remaining.substr( 0, startMatch.index );
+			remaining = remaining.substring( startMatch.index + startMatch[0].length );
 
-	return parser.result;
-};
+			endMatch = inlinePartialEnd.exec( remaining );
 
-parseCompoundTemplate = function ( template, options ) {
-	var mainTemplate, remaining, partials, name, startMatch, endMatch;
+			if ( !endMatch || endMatch[1] !== name ) {
+				throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
+			}
 
-	partials = {};
-
-	mainTemplate = '';
-	remaining = template;
-
-	while ( startMatch = inlinePartialStart.exec( remaining ) ) {
-		name = startMatch[1];
-
-		mainTemplate += remaining.substr( 0, startMatch.index );
-		remaining = remaining.substring( startMatch.index + startMatch[0].length );
-
-		endMatch = inlinePartialEnd.exec( remaining );
-
-		if ( !endMatch || endMatch[1] !== name ) {
-			throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
+			( partials || ( partials = {} ) )[ name ] = new StandardParser( remaining.substr( 0, endMatch.index ), options ).result;
+			remaining = remaining.substring( endMatch.index + endMatch[0].length );
 		}
 
-		partials[ name ] = parse( remaining.substr( 0, endMatch.index ), options );
-
-		remaining = remaining.substring( endMatch.index + endMatch[0].length );
+		result.p = partials;
 	}
 
-	return {
-		main: parse( mainTemplate, options ),
-		partials: partials
-	};
+	result.t = new StandardParser( template, options ).result;
+	return result;
 };
 
 export default parse;

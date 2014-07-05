@@ -23,10 +23,9 @@ Ractive = function ( options ) {
 // Ractive properties
 properties = {
 
-	// static props and methods:
+	// static methods:
 	extend:        { value: extend },
 	parse:         { value: parse },
-	debug:         { value: false, writable: true },
 
 	// Namespaced constructors
 	Promise:       { value: Promise },

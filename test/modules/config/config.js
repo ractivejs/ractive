@@ -23,7 +23,7 @@ define([
 
 			config.forEach( itemConfig => {
 
-				var name = itemConfig.name,
+				var name = itemConfig.name || itemConfig,
 					actual = target,
 					expected = compare.prototype;
 
@@ -32,10 +32,7 @@ define([
 				}
 
 				if ( expected ) {
-					if ( config.registries[ name ] ) {
-
-					}
-					else {
+					if ( !config.registries[ name ] && name !== 'template' ) { // TODO template is a special case... this should probably be handled differently
 						deepEqual( actual[ name ], expected[ name ], 'compare ' + name );
 					}
 				}

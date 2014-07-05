@@ -21,9 +21,10 @@ export default function getPartialDescriptor ( ractive, name ) {
 		// parse and register to this ractive instance
 		let parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
 
-		// register (and return main partial if there are others in the template)
-		return ractive.partials[ name ] = config.template.processCompound( ractive, parsed );
 
+
+		// register (and return main partial if there are others in the template)
+		return ractive.partials[ name ] = parsed.t;
 	}
 
 	log.error({
@@ -69,14 +70,24 @@ function getPartialFromRegistry ( ractive, name ) {
 	if ( !parser.isParsed( partial ) ) {
 
 		// use the parseOptions of the ractive instance on which it was found
-		partial = parser.parse( partial, parser.getParseOptions( instance ) );
+		let parsed = parser.parse( partial, parser.getParseOptions( instance ) );
+
+		// Partials cannot contain nested partials!
+		// TODO add a test for this
+		if ( parsed.p ) {
+			log.warn({
+				debug: ractive.debug,
+				message: 'noNestedPartials',
+				args: { rname: name }
+			});
+		}
 
 		// if fn, use instance to store result, otherwise needs to go
 		// in the correct point in prototype chain on instance or constructor
 		let target = fn ? instance : partials.findOwner( instance, name );
 
 		// may be a template with partials, which need to be registered and main template extracted
-		target.partials[ name ] = partial = config.template.processCompound( target, partial );
+		target.partials[ name ] = partial = parsed.t;
 	}
 
 	// store for reset

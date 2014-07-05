@@ -47,11 +47,11 @@ function customConfig ( method, key, Parent, instance, options ) {
 }
 
 config.extend = function ( Parent, proto, options ) {
-	configure ( 'extend', Parent, proto, options );
+	configure( 'extend', Parent, proto, options );
 };
 
 config.init = function ( Parent, ractive, options ) {
-	configure ( 'init', Parent, ractive, options );
+	configure( 'init', Parent, ractive, options );
 
 	if ( ractive._config ) {
 		ractive._config.options = options;

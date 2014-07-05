@@ -34,7 +34,7 @@ function fromId ( id, options ) {
 
 	if ( !isClient ) {
 		if ( options && options.noThrow ) { return; }
-		throw new Error('Cannot retieve template #' + id + 'as Ractive is not running in the client.');
+		throw new Error( 'Cannot retrieve template #' + id + ' as Ractive is not running in a browser.' );
 	}
 
 	if ( isHashedId( id ) ) {
@@ -59,7 +59,7 @@ function fromId ( id, options ) {
 }
 
 function isHashedId ( id ) {
-	return ( id.charAt( 0 ) === '#' );
+	return ( id.charAt( 0 ) === '#' ); // TODO what about `id[0]`, does that work everywhere?
 }
 
 function isParsed ( template) {
@@ -79,6 +79,3 @@ function getParseOptions ( ractive ) {
 }
 
 export default parser;
-
-
-

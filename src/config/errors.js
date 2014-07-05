@@ -11,6 +11,9 @@ export default {
 	noTemplateForPartial:
 		'Could not find template for partial "{name}"',
 
+	noNestedPartials:
+		'Partials ({{>{name}}}) cannot contain nested inline partials',
+
 	evaluationError:
 		'Error evaluating "{uniqueString}": {err}',
 
