@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.4.0
-	2014-07-04 - commit ad9cd724 
+	2014-07-05 - commit 99208aa1 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -26,7 +26,10 @@
 			el: void 0,
 			append: false,
 			// template:
-			template: [],
+			template: {
+				v: 1,
+				t: []
+			},
 			// parse:
 			preserveWhitespace: false,
 			sanitize: false,
@@ -1517,6 +1520,7 @@
 		mergeComparisonFail: 'Merge operation: comparison failed. Falling back to identity checking',
 		noComponentEventArguments: 'Components currently only support simple events - you cannot include arguments. Sorry!',
 		noTemplateForPartial: 'Could not find template for partial "{name}"',
+		noNestedPartials: 'Partials ({{>{name}}}) cannot contain nested inline partials',
 		evaluationError: 'Error evaluating "{uniqueString}": {err}',
 		badArguments: 'Bad arguments "{arguments}". I\'m not allowed to argue unless you\'ve paid.',
 		failedComputation: 'Failed to compute "{key}": {err}',
@@ -4300,8 +4304,7 @@
 			inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 			preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 			leadingWhitespace = /^\s+/,
-			trailingWhitespace = /\s+$/,
-			parseCompoundTemplate;
+			trailingWhitespace = /\s+$/;
 		StandardParser = Parser.extend( {
 			init: function( str, options ) {
 				// config
@@ -4348,39 +4351,32 @@
 				text
 			]
 		} );
-		parse = function( template, options ) {
-			var parser;
-			options = options || {};
-			// does this template include inline partials?
-			if ( inlinePartialStart.test( template ) ) {
-				return parseCompoundTemplate( template, options );
-			}
-			parser = new StandardParser( template, options );
-			if ( parser.leftover ) {
-				parser.error( 'Unexpected character' );
-			}
-			return parser.result;
-		};
-		parseCompoundTemplate = function( template, options ) {
-			var mainTemplate, remaining, partials, name, startMatch, endMatch;
-			partials = {};
-			mainTemplate = '';
-			remaining = template;
-			while ( startMatch = inlinePartialStart.exec( remaining ) ) {
-				name = startMatch[ 1 ];
-				mainTemplate += remaining.substr( 0, startMatch.index );
-				remaining = remaining.substring( startMatch.index + startMatch[ 0 ].length );
-				endMatch = inlinePartialEnd.exec( remaining );
-				if ( !endMatch || endMatch[ 1 ] !== name ) {
-					throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
-				}
-				partials[ name ] = parse( remaining.substr( 0, endMatch.index ), options );
-				remaining = remaining.substring( endMatch.index + endMatch[ 0 ].length );
-			}
-			return {
-				main: parse( mainTemplate, options ),
-				partials: partials
+		parse = function( template ) {
+			var options = arguments[ 1 ];
+			if ( options === void 0 )
+				options = {};
+			var result, remaining, partials, name, startMatch, endMatch;
+			result = {
+				v: 1
 			};
+			if ( inlinePartialStart.test( template ) ) {
+				remaining = template;
+				template = '';
+				while ( startMatch = inlinePartialStart.exec( remaining ) ) {
+					name = startMatch[ 1 ];
+					template += remaining.substr( 0, startMatch.index );
+					remaining = remaining.substring( startMatch.index + startMatch[ 0 ].length );
+					endMatch = inlinePartialEnd.exec( remaining );
+					if ( !endMatch || endMatch[ 1 ] !== name ) {
+						throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
+					}
+					( partials || ( partials = {} ) )[ name ] = new StandardParser( remaining.substr( 0, endMatch.index ), options ).result;
+					remaining = remaining.substring( endMatch.index + endMatch[ 0 ].length );
+				}
+				result.p = partials;
+			}
+			result.t = new StandardParser( template, options ).result;
+			return result;
 		};
 		return parse;
 
@@ -4534,7 +4530,7 @@
 				if ( options && options.noThrow ) {
 					return;
 				}
-				throw new Error( 'Cannot retieve template #' + id + 'as Ractive is not running in the client.' );
+				throw new Error( 'Cannot retrieve template #' + id + ' as Ractive is not running in a browser.' );
 			}
 			if ( isHashedId( id ) ) {
 				id = id.substring( 1 );
@@ -4577,60 +4573,69 @@
 	}( errors, isClient, parse, create, parseOptions );
 
 	/* config/options/template/template.js */
-	var template = function( parser, isObject ) {
+	var template = function( parser, parse ) {
 
 		var templateConfig = {
 			name: 'template',
-			extend: extend,
-			init: init,
-			reset: reset,
-			processCompound: processCompound
+			extend: function extend( Parent, proto, options ) {
+				var template;
+				// only assign if exists
+				if ( 'template' in options ) {
+					template = options.template;
+					if ( typeof template === 'function' ) {
+						proto.template = template;
+					} else {
+						proto.template = parse( template, parser.getParseOptions( proto ) );
+					}
+				}
+			},
+			init: function init( Parent, ractive, options ) {
+				var template, fn;
+				// TODO because of prototypal inheritance, we might just be able to use
+				// ractive.template, and not bother passing through the Parent object.
+				// At present that breaks the test mocks' expectations
+				template = 'template' in options ? options.template : Parent.prototype.template;
+				if ( typeof template === 'function' ) {
+					fn = template;
+					template = getDynamicTemplate( ractive, fn );
+					ractive._config.template = {
+						fn: fn,
+						result: template
+					};
+				}
+				template = parseIfString( template, ractive );
+				// TODO the naming of this is confusing - ractive.template refers to [...],
+				// but Component.prototype.template refers to {v:1,t:[],p:[]}...
+				// it's unnecessary, because the developer never needs to access
+				// ractive.template
+				ractive.template = template.t;
+				if ( template.p ) {
+					extendPartials( ractive.partials, template.p );
+				}
+			},
+			reset: function( ractive ) {
+				var result = resetValue( ractive ),
+					parsed;
+				if ( result ) {
+					parsed = parseIfString( result, ractive );
+					ractive.template = parsed.t;
+					extendPartials( ractive.partials, parsed.p, true );
+					return true;
+				}
+			}
 		};
-
-		function extend( Parent, proto, options ) {
-			// only assign if exists
-			if ( options && 'template' in options ) {
-				proto.template = parseTemplate( proto, options.template, true );
-			}
-		}
-
-		function init( Parent, ractive, options ) {
-			var result, option = options ? options.template : void 0;
-			result = parseTemplate( ractive, option || Parent.prototype.template );
-			if ( typeof result === 'function' ) {
-				var fn = result;
-				result = getDynamicTemplate( ractive, fn );
-				// store fn and fn result for reset
-				ractive._config[ this.name ] = {
-					fn: fn,
-					result: result
-				};
-				result = parseTemplate( ractive, result );
-			}
-			if ( result ) {
-				ractive.template = result;
-			}
-		}
-
-		function reset( ractive ) {
-			var result = resetValue( ractive );
-			if ( result ) {
-				ractive.template = parseTemplate( ractive, result );
-				return true;
-			}
-		}
 
 		function resetValue( ractive ) {
 			var initial = ractive._config.template,
 				result;
-			// is this dynamic template?
+			// If this isn't a dynamic template, there's nothing to do
 			if ( !initial || !initial.fn ) {
 				return;
 			}
 			result = getDynamicTemplate( ractive, initial.fn );
-			result = parseTemplate( ractive, result );
-			// compare results of fn return, which is likely
-			// be string comparison ( not yet parsed )
+			result = parseIfString( result, ractive );
+			// TODO deep equality check to prevent unnecessary re-rendering
+			// in the case of already-parsed templates
 			if ( result !== initial.result ) {
 				initial.result = result;
 				return result;
@@ -4642,41 +4647,32 @@
 			return fn.call( ractive, ractive.data, helper );
 		}
 
-		function parseTemplate( target, template, isExtend ) {
-			if ( !template || typeof template === 'function' ) {
-				return template;
-			}
-			if ( !parser.isParsed( template ) ) {
-				// Assume this is an ID of a <script type='text/ractive'> tag
-				if ( parser.isHashedId( template ) ) {
+		function parseIfString( template, ractive ) {
+			if ( typeof template === 'string' ) {
+				// ID of an element containing the template?
+				if ( template[ 0 ] === '#' ) {
 					template = parser.fromId( template );
 				}
-				template = parser.parse( template, parser.getParseOptions( target ) );
-			}
-			template = processCompound( target, template, isExtend );
-			// If the template was an array with a single string member, that means
-			// we can use innerHTML - we just need to unpack it
-			if ( template && template.length === 1 && typeof template[ 0 ] === 'string' ) {
-				template = template[ 0 ];
+				template = parse( template, parser.getParseOptions( ractive ) );
+			} else if ( template.v !== 1 ) {
+				throw new Error( 'Mismatched template version! Please ensure you are using the latest version of Ractive.js in your build process as well as in your app' );
 			}
 			return template;
 		}
 
-		function processCompound( target, template, isExtend ) {
-			if ( !isObject( template ) ) {
-				return template;
+		function extendPartials( existingPartials, newPartials, overwrite ) {
+			if ( !newPartials )
+				return;
+			// TODO there's an ambiguity here - we need to overwrite in the `reset()`
+			// case, but not initially...
+			for ( var key in newPartials ) {
+				if ( overwrite || !existingPartials.hasOwnProperty( key ) ) {
+					existingPartials[ key ] = newPartials[ key ];
+				}
 			}
-			if ( isExtend ) {
-				target = target.constructor;
-			}
-			//target.partials = target.partials || {};
-			for ( var key in template.partials ) {
-				target.partials[ key ] = template.partials[ key ];
-			}
-			return template.main;
 		}
 		return templateConfig;
-	}( parser, isObject );
+	}( parser, parse );
 
 	/* config/options/Registry.js */
 	var Registry = function( create ) {
@@ -4843,7 +4839,7 @@
 			deprecate( options, 'eventDefinitions', 'events' );
 		}
 
-		function depricateAdaptors( options ) {
+		function deprecateAdaptors( options ) {
 			// Using extend with Component instead of options,
 			// like Human.extend( Spider ) means adaptors as a registry
 			// gets copied to options. So we have to check if actually an array
@@ -4853,7 +4849,7 @@
 		}
 		return function deprecateOptions( options ) {
 			deprecateEventDefinitions( options );
-			depricateAdaptors( options );
+			deprecateAdaptors( options );
 		};
 	}( warn, isArray );
 
@@ -10767,7 +10763,7 @@
 				// parse and register to this ractive instance
 				var parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
 				// register (and return main partial if there are others in the template)
-				return ractive.partials[ name ] = config.template.processCompound( ractive, parsed );
+				return ractive.partials[ name ] = parsed.t;
 			}
 			log.error( {
 				debug: ractive.debug,
@@ -10810,12 +10806,23 @@
 			// but hasn't been parsed, parse it now
 			if ( !parser.isParsed( partial ) ) {
 				// use the parseOptions of the ractive instance on which it was found
-				partial = parser.parse( partial, parser.getParseOptions( instance ) );
+				var parsed = parser.parse( partial, parser.getParseOptions( instance ) );
+				// Partials cannot contain nested partials!
+				// TODO add a test for this
+				if ( parsed.p ) {
+					log.warn( {
+						debug: ractive.debug,
+						message: 'noNestedPartials',
+						args: {
+							rname: name
+						}
+					} );
+				}
 				// if fn, use instance to store result, otherwise needs to go
 				// in the correct point in prototype chain on instance or constructor
 				var target = fn ? instance : partials.findOwner( instance, name );
 				// may be a template with partials, which need to be registered and main template extracted
-				target.partials[ name ] = partial = config.template.processCompound( target, partial );
+				target.partials[ name ] = partial = parsed.t;
 			}
 			// store for reset
 			if ( fn ) {
@@ -13176,12 +13183,13 @@
 			// which hasn't been set till line above finishes.
 			ractive.viewmodel.compute();
 			// Render our *root fragment*
-			ractive.fragment = new Fragment( {
-				template: ractive.template || [],
-				// hmm, does this mean we don't need to create the fragment?
-				root: ractive,
-				owner: ractive
-			} );
+			if ( ractive.template ) {
+				ractive.fragment = new Fragment( {
+					template: ractive.template,
+					root: ractive,
+					owner: ractive
+				} );
+			}
 			ractive.viewmodel.applyChanges();
 			// render automatically ( if `el` is specified )
 			tryRender( ractive );
@@ -13405,16 +13413,12 @@
 		};
 		// Ractive properties
 		properties = {
-			// static props and methods:
+			// static methods:
 			extend: {
 				value: extend
 			},
 			parse: {
 				value: parse
-			},
-			debug: {
-				value: false,
-				writable: true
 			},
 			// Namespaced constructors
 			Promise: {
