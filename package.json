@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "homepage": "http://ractivejs.org",
   "main": "ractive.js",
   "keywords": [
@@ -87,7 +87,8 @@
     "broccoli-es6-transpiler": "~0.1.0",
     "grunt-broccoli": "~0.3.3",
     "broccoli-env": "0.0.1",
-    "grunt-concurrent": "~0.5.0"
+    "grunt-concurrent": "~0.5.0",
+    "exec-sync": "~0.1.6"
   },
   "testling": {
     "html": "test/testling.html",
