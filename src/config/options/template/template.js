@@ -98,6 +98,11 @@ function parseIfString ( template, ractive ) {
 		template = parse( template, parser.getParseOptions( ractive ) );
 	}
 
+	// Check we're using the correct version
+	else if ( template.v !== 1 ) {
+		throw new Error( 'Mismatched template version! Please ensure you are using the latest version of Ractive.js in your build process as well as in your app' );
+	}
+
 	return template;
 }
 
