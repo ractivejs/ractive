@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+* 0.5.2, 0.5.3, 0.5.4
+	* No actual changes, just wrestling with npm and bower!
+* 0.5.1
+	* Fix for #939
 * 0.5.0
 	* Code organisation
 		* Codebase is now structured as ES6 modules, which can use new ES6 features such as arrow functions
