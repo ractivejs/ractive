@@ -925,13 +925,15 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		if ( Ractive.svg ) {
-			test( 'foreignObject elements and their children default to html namespace (#713)', function ( t ) {
+			test( 'Children of foreignObject elements default to html namespace (#713)', function ( t ) {
 				var ractive = new Ractive({
 					el: fixture,
 					template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
 				});
 
-				t.equal( ractive.find( 'foreignObject' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+				// We can't do `ractive.find( 'foreignObject' )` because of a longstanding browser bug
+				// (https://bugs.webkit.org/show_bug.cgi?id=83438)
+				t.equal( ractive.find( 'svg' ).firstChild.namespaceURI, 'http://www.w3.org/2000/svg' );
 				t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
 			});
 		}
