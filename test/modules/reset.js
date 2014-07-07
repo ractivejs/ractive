@@ -216,6 +216,45 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'type', 2 );
 			t.htmlEqual( fixture.innerHTML, 'TWO' );
 		});
+
+		test( 'reset removes correctly from the DOM (#941)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#active}}active{{/active}}{{^active}}not active{{/active}}',
+				data: {
+					active: false
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'not active' );
+			ractive.reset( { active: true } );
+			t.htmlEqual( fixture.innerHTML, 'active' );
+		});
+
+		test( 'reset removes an inline component from the DOM', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<widget type="{{type}}"/>',
+				data: {
+					type: 1
+				},
+				components: {
+					widget: Ractive.extend({
+						template: function ( data ) {
+							return data.type === 1 ? 'ONE' : 'TWO';
+						},
+						init: function () {
+							this.observe( 'type', function ( type ) {
+								this.reset( { type: type } );
+							}, { init: false });
+						}
+					})
+				}
+			});
+
+			ractive.set( 'type', 2 );
+			t.htmlEqual( fixture.innerHTML, 'TWO' );
+		});
 	};
 
 });
