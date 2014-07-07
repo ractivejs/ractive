@@ -91,6 +91,35 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 		});
 
+		test( 'partial function has access to parser helper', function ( t ) {
+
+			expect( 1 );
+
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{>foo}}',
+				partials: {
+					foo: function ( data, parser ) {
+						t.ok( parser.fromId )
+					}
+				}
+			});
+
+		});
+
+		test( 'partial can be preparsed template (gh-942)', function ( t ) {
+
+			var ractive, partial = Ractive.parse('<p>hello partial</p>');
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{>foo}}',
+				partials: { foo: partial }
+			});
+
+			t.equal( fixture.innerHTML, '<p>hello partial</p>' );
+		});
+
 		test( 'partial functions belong to instance, not Component', function ( t ) {
 
 			var Component, ractive1, ractive2;
