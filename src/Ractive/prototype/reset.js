@@ -34,7 +34,7 @@ export default function Ractive$reset ( data, callback ) {
 
 	i = changes.length;
 	while ( i-- ) {
-		if ( shouldRerender.indexOf( changes[i] > -1 ) ) {
+		if ( shouldRerender.indexOf( changes[i].name ) > -1 ) {
 			rerender = true;
 			break;
 		}
