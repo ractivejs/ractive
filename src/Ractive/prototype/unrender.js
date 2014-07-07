@@ -14,6 +14,7 @@ export default function Ractive$unrender () {
 	// If this is a component, and the component isn't marked for destruction,
 	// don't detach nodes from the DOM unnecessarily
 	shouldDestroy = !this.component || this.component.shouldDestroy;
+	shouldDestroy = shouldDestroy || this.shouldDestroy;
 
 	if ( this.constructor.css ) {
 		promise.then( () => {

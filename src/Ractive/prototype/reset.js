@@ -41,9 +41,23 @@ export default function Ractive$reset ( data, callback ) {
 	}
 
 	if ( rerender ) {
+		let component;
+
 		this.viewmodel.mark( '' );
 
+		// Is this is a component, we need to set the `shouldDestroy`
+	 	// flag, otherwise it will assume by default that a parent node
+	 	// will be detached, and therefore it doesn't need to bother
+	 	// detaching its own nodes
+	 	if ( component = this.component ) {
+	 		component.shouldDestroy = true;
+	 	}
+
 		this.unrender();
+
+		if ( component ) {
+			component.shouldDestroy = false;
+		}
 
 		// If the template changed, we need to destroy the parallel DOM
 		// TODO if we're here, presumably it did?
