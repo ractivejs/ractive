@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.4
-	2014-07-08 - commit 2c0a86e6 
+	2014-07-08 - commit 6c3ebb7a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10135,14 +10135,25 @@
 			changes = config.reset( this );
 			i = changes.length;
 			while ( i-- ) {
-				if ( shouldRerender.indexOf( changes[ i ] > -1 ) ) {
+				if ( shouldRerender.indexOf( changes[ i ].name ) > -1 ) {
 					rerender = true;
 					break;
 				}
 			}
 			if ( rerender ) {
+				var component;
 				this.viewmodel.mark( '' );
+				// Is this is a component, we need to set the `shouldDestroy`
+				// flag, otherwise it will assume by default that a parent node
+				// will be detached, and therefore it doesn't need to bother
+				// detaching its own nodes
+				if ( component = this.component ) {
+					component.shouldDestroy = true;
+				}
 				this.unrender();
+				if ( component ) {
+					component.shouldDestroy = false;
+				}
 				// If the template changed, we need to destroy the parallel DOM
 				// TODO if we're here, presumably it did?
 				if ( this.fragment.template !== this.template ) {
@@ -10329,6 +10340,7 @@
 			// If this is a component, and the component isn't marked for destruction,
 			// don't detach nodes from the DOM unnecessarily
 			shouldDestroy = !this.component || this.component.shouldDestroy;
+			shouldDestroy = shouldDestroy || this.shouldDestroy;
 			if ( this.constructor.css ) {
 				promise.then( function() {
 					css.remove( this$0.constructor );
