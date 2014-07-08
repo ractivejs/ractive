@@ -40,12 +40,16 @@ export default function Ractive$render ( target, anchor ) {
 		}
 	}
 
-	// If this is *isn't* a child of a component that's in the process of rendering,
-	// it should call any `init()` methods at this point
-	if ( !this._parent || !rendering[ this._parent._guid ] ) {
-		init( this );
-	} else {
-		getChildInitQueue( this._parent ).push( this );
+	// Only init once, until we rework lifecycle events
+	if ( !this._hasInited ) {
+		this._hasInited = true;
+		// If this is *isn't* a child of a component that's in the process of rendering,
+		// it should call any `init()` methods at this point
+		if ( !this._parent || !rendering[ this._parent._guid ] ) {
+			init( this );
+		} else {
+			getChildInitQueue( this._parent ).push( this );
+		}
 	}
 
 	rendering[ this._guid ] = false;
