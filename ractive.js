@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.4
-	2014-07-08 - commit 6c3ebb7a 
+	2014-07-08 - commit a751c03d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4235,11 +4235,11 @@
 				return;
 			}
 			result = getDynamicTemplate( ractive, initial.fn );
-			result = parseIfString( result, ractive );
 			// TODO deep equality check to prevent unnecessary re-rendering
 			// in the case of already-parsed templates
 			if ( result !== initial.result ) {
 				initial.result = result;
+				result = parseIfString( result, ractive );
 				return result;
 			}
 		}
@@ -4515,6 +4515,8 @@
 		config.reset = function( ractive ) {
 			return config.filter( function( c ) {
 				return c.reset && c.reset( ractive );
+			} ).map( function( c ) {
+				return c.name;
 			} );
 		};
 		return config;
@@ -11186,7 +11188,7 @@
 			changes = config.reset( this );
 			i = changes.length;
 			while ( i-- ) {
-				if ( shouldRerender.indexOf( changes[ i ].name ) > -1 ) {
+				if ( shouldRerender.indexOf( changes[ i ] ) > -1 ) {
 					rerender = true;
 					break;
 				}
