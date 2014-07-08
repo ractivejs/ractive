@@ -1340,17 +1340,21 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'init only fires once on a component (#943 #927)', t => {
+		asyncTest( 'init only fires once on a component (#943 #927), complete fires each render', t => {
 
-			var Component, component, inited = false;
+			var Component, component, inited = false, completed = 0;
 
-			expect( 1 );
-
+			expect( 3 );
 
 			Component = Ractive.extend({
 				init: function () {
 					t.ok( !inited, 'init should not be called second time' );
 					inited = true;
+				},
+				complete: function() {
+					completed++;
+					t.ok( true );
+					if( completed === 2 ) { start(); }
 				}
 			});
 
