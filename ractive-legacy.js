@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.4
-	2014-07-07 - commit 9ff0abab 
+	2014-07-08 - commit 2c0a86e6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10792,7 +10792,7 @@
 			if ( typeof partial === 'function' ) {
 				fn = partial.bind( instance );
 				fn.isOwner = instance.partials.hasOwnProperty( name );
-				partial = fn( instance.data );
+				partial = fn( instance.data, parser );
 			}
 			if ( !partial ) {
 				log.warn( {
@@ -10831,7 +10831,7 @@
 			if ( fn ) {
 				partial._fn = fn;
 			}
-			return partial;
+			return partial.v ? partial.t : partial;
 		}
 	}( log, config, parser, deIndent );
 
