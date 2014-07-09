@@ -73,12 +73,12 @@ function resetValue ( ractive ) {
 	}
 
 	result = getDynamicTemplate( ractive, initial.fn );
-	result = parseIfString( result, ractive );
 
 	// TODO deep equality check to prevent unnecessary re-rendering
 	// in the case of already-parsed templates
 	if ( result !== initial.result ) {
 		initial.result = result;
+		result = parseIfString( result, ractive );
 		return result;
 	}
 }

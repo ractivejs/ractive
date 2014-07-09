@@ -11,7 +11,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
 
-		test( 'Static data is propagated from parent to child', function ( t ) {
+		test( 'Static data is propagated from parent to child', t => {
 			var Widget, ractive, widget;
 
 			Widget = Ractive.extend({
@@ -32,7 +32,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>blah</p>' );
 		});
 
-		test( 'Static object data is propagated from parent to child', function ( t ) {
+		test( 'Static object data is propagated from parent to child', t => {
 			var Widget, ractive, widget;
 
 			Widget = Ractive.extend({
@@ -56,7 +56,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>bah</p>' );
 		});
 
-		test( 'Dynamic data is propagated from parent to child, and (two-way) bindings are created', function ( t ) {
+		test( 'Dynamic data is propagated from parent to child, and (two-way) bindings are created', t => {
 			var Widget, ractive, widget;
 
 			Widget = Ractive.extend({
@@ -90,7 +90,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		// Commenting out this test for the moment - is this a desirable feature?
 		// It prevents JavaScript closure-like behaviour with data contexts
-		/*test( 'Missing data on the parent is not propagated', function ( t ) {
+		/*test( 'Missing data on the parent is not propagated', t => {
 			var Widget, ractive, widget;
 
 			Widget = Ractive.extend({
@@ -111,7 +111,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p></p>' );
 		});*/
 
-		test( 'Missing data on the parent is added when set', function ( t ) {
+		test( 'Missing data on the parent is added when set', t => {
 			var Widget, ractive, widget;
 
 			Widget = Ractive.extend({
@@ -136,7 +136,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Data on the child is propagated to the parent, if it is not missing', function ( t ) {
+		test( 'Data on the child is propagated to the parent, if it is not missing', t => {
 			var Widget, ractive, widget;
 
 			Widget = Ractive.extend({
@@ -161,7 +161,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 		});
 
-		test( 'Parent data overrides child data during child model creation', function ( t ) {
+		test( 'Parent data overrides child data during child model creation', t => {
 			var Widget, ractive, widget;
 
 			Widget = Ractive.extend({
@@ -194,7 +194,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>unodos</p>' );
 		});
 
-		test( 'Components are rendered in the correct place', function ( t ) {
+		test( 'Components are rendered in the correct place', t => {
 			var Component, ractive;
 
 			Component = Ractive.extend({
@@ -212,7 +212,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<h2>Here is a component:</h2><p>this is a component!</p><p>(that was a component)</p>' );
 		});
 
-		test( 'Top-level sections in components are updated correctly', function ( t ) {
+		test( 'Top-level sections in components are updated correctly', t => {
 			var ractive, Component, component;
 
 			Component = Ractive.extend({
@@ -233,7 +233,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'foo is truthy' );
 		});
 
-		test( 'Element order is maintained correctly with components with multiple top-level elements', function ( t ) {
+		test( 'Element order is maintained correctly with components with multiple top-level elements', t => {
 			var ractive, TestComponent;
 
 			TestComponent = Ractive.extend({
@@ -255,7 +255,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>before</p> FALSE <p>after</p>' );
 		});
 
-		test( 'Regression test for #317', function ( t ) {
+		test( 'Regression test for #317', t => {
 			var Widget, widget, ractive, items;
 
 			Widget = Ractive.extend({
@@ -308,7 +308,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
-		asyncTest( 'Component complete() methods are called', function ( t ) {
+		asyncTest( 'Component complete() methods are called', t => {
 			var ractive, Widget, counter, done;
 
 			expect( 2 );
@@ -336,7 +336,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		test( 'Components can access outer data context, in the same way JavaScript functions can access outer lexical scope', function ( t ) {
+		test( 'Components can access outer data context, in the same way JavaScript functions can access outer lexical scope', t => {
 			var ractive, Widget;
 
 			Widget = Ractive.extend({
@@ -367,7 +367,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'Nested components can access outer-most data context', function ( t ) {
+		test( 'Nested components can access outer-most data context', t => {
 			var ractive, Widget;
 
 			ractive = new Ractive({
@@ -391,7 +391,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'hello venus' );
 		});
 
-		test( 'Nested components registered at global Ractive can access outer-most data context', function ( t ) {
+		test( 'Nested components registered at global Ractive can access outer-most data context', t => {
 			var ractive, Widget;
 
 			Ractive.components.widget = Ractive.extend({ template: '<grandwidget/>' });
@@ -412,7 +412,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		if ( Ractive.magic ) {
-			asyncTest( 'Data passed into component updates inside component in magic mode', function ( t ) {
+			asyncTest( 'Data passed into component updates inside component in magic mode', t => {
 				var ractive, Widget;
 
 				expect( 1 );
@@ -438,7 +438,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				});
 			});
 
-			test( 'Data passed into component updates from outside component in magic mode', function ( t ) {
+			test( 'Data passed into component updates from outside component in magic mode', t => {
 				var ractive, Widget;
 
 				Widget = Ractive.extend({
@@ -460,7 +460,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.htmlEqual( fixture.innerHTML, 'venusvenus' );
 			});
 
-			test( 'Indirect changes propagate across components in magic mode (#480)', function ( t ) {
+			test( 'Indirect changes propagate across components in magic mode (#480)', t => {
 				var Blocker, ractive, blocker;
 
 				Blocker = Ractive.extend({
@@ -493,7 +493,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		}
 
-		test( 'Component data passed but non-existent on parent data', function ( t ) {
+		test( 'Component data passed but non-existent on parent data', t => {
 			var ractive, Widget;
 
 			Widget = Ractive.extend({
@@ -510,7 +510,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'exists' );
 		});
 
-		test( 'Some component data not included in invocation parameters', function ( t ) {
+		test( 'Some component data not included in invocation parameters', t => {
 			var ractive, Widget;
 
 			Widget = Ractive.extend({
@@ -527,7 +527,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'exists' );
 		});
 
-		test( 'Some component data not included, with implicit sibling', function ( t ) {
+		test( 'Some component data not included, with implicit sibling', t => {
 			var ractive, Widget;
 
 			Widget = Ractive.extend({
@@ -548,7 +548,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'existsalso' );
 		});
 
-		test( 'Isolated components do not interact with ancestor viewmodels', function ( t ) {
+		test( 'Isolated components do not interact with ancestor viewmodels', t => {
 			var ractive, Widget;
 
 			Widget = Ractive.extend({
@@ -569,7 +569,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'you should see me.' );
 		});
 
-		test( 'Top-level list sections in components do not cause elements to be out of order (#412 regression)', function ( t ) {
+		test( 'Top-level list sections in components do not cause elements to be out of order (#412 regression)', t => {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({
@@ -591,7 +591,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<h1>Names</h1><p>one</p><p>two</p><p>three</p><p>four</p>' );
 		});
 
-		test( 'Children do not nuke parent data when inheriting from ancestors', function ( t ) {
+		test( 'Children do not nuke parent data when inheriting from ancestors', t => {
 			var Widget, Block, ractive;
 
 			Widget = Ractive.extend({
@@ -622,7 +622,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } )
 		});
 
-		test( 'Uninitialised implicit dependencies of evaluators that use inherited functions are handled', function ( t ) {
+		test( 'Uninitialised implicit dependencies of evaluators that use inherited functions are handled', t => {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({
@@ -651,7 +651,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'bar-bar' );
 		});
 
-		asyncTest( 'Instances with multiple components still fire complete() handlers (#486 regression)', function ( t ) {
+		asyncTest( 'Instances with multiple components still fire complete() handlers (#486 regression)', t => {
 			var Widget, ractive, counter, done;
 
 			Widget = Ractive.extend({
@@ -678,7 +678,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		test( 'findComponent and findAllComponents work through {{>content}}', function ( t ) {
+		test( 'findComponent and findAllComponents work through {{>content}}', t => {
 
 			var Wrapper, Component, ractive;
 
@@ -706,7 +706,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( findAll.length, 1);
 		});
 
-		test( 'Correct value is given to node._ractive.keypath when a component is torn down and re-rendered (#470)', function ( t ) {
+		test( 'Correct value is given to node._ractive.keypath when a component is torn down and re-rendered (#470)', t => {
 			var ractive;
 
 			ractive = new Ractive({
@@ -728,7 +728,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
 		});
 
-		test( 'Nested components fire the init() event correctly (#511)', function ( t ) {
+		test( 'Nested components fire the init() event correctly (#511)', t => {
 			var ractive, Outer, Inner, outerInitCount = 0, innerInitCount = 0;
 
 			Inner = Ractive.extend({
@@ -759,7 +759,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( innerInitCount, 1, '<inner/> component should call init()' );
 		});
 
-		test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', function ( t ) {
+		test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '<one foo="{{foo}}"/><two foo="{{foo}}"/>',
@@ -779,7 +779,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
 		});
 
-		test( 'Index references propagate down to non-isolated components', function ( t ) {
+		test( 'Index references propagate down to non-isolated components', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#items:i}}<widget letter="{{.}}"/>{{/items}}',
@@ -797,7 +797,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 		});
 
-		test( 'Component removed from DOM on tear-down with teardown override that calls _super', function ( t ) {
+		test( 'Component removed from DOM on tear-down with teardown override that calls _super', t => {
 
 			var Widget = Ractive.extend({
 					template: 'foo',
@@ -820,7 +820,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
 
-		test( 'Component names cannot include underscores (#483)', function ( t ) {
+		test( 'Component names cannot include underscores (#483)', t => {
 			var Component, ractive;
 
 			expect( 1 );
@@ -841,7 +841,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		});
 
-		test( 'Data will propagate up through multiple component boundaries (#520)', function ( t ) {
+		test( 'Data will propagate up through multiple component boundaries (#520)', t => {
 			var ractive, Outer, Inner, inner;
 
 			Inner = Ractive.extend({
@@ -875,7 +875,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Components can have names that happen to be Array.prototype or Object.prototype methods', function ( t ) {
+		test( 'Components can have names that happen to be Array.prototype or Object.prototype methods', t => {
 			var Map, ractive;
 
 			Map = Ractive.extend({
@@ -893,7 +893,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div class="map"></div>' );
 		});
 
-		test( 'Component in template has data function called on initialize', function ( t ) {
+		test( 'Component in template has data function called on initialize', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
 			Component = Ractive.extend({
@@ -911,7 +911,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'bar' );
 		});
 
-		test( 'Component in template having data function with no return uses existing data instance', function ( t ) {
+		test( 'Component in template having data function with no return uses existing data instance', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
 			Component = Ractive.extend({
@@ -931,7 +931,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'barbam' );
 		});
 
-		test( 'Component in template passed parameters with data function', function ( t ) {
+		test( 'Component in template passed parameters with data function', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
 			Component = Ractive.extend({
@@ -951,7 +951,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'barbar' );
 		});
 
-		test( 'Component in template with dynamic template function', function ( t ) {
+		test( 'Component in template with dynamic template function', t => {
 			var Component, ractive;
 
 			Component = Ractive.extend({
@@ -971,7 +971,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'bar' );
 		});
 
-		test( 'Set operations inside an inline component\'s init() method update the DOM synchronously', function ( t ) {
+		test( 'Set operations inside an inline component\'s init() method update the DOM synchronously', t => {
 			var ListWidget, ractive, previousHeight = -1;
 
 			ListWidget = Ractive.extend({
@@ -1004,7 +1004,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		test( 'Inline component attributes are passed through correctly', function ( t ) {
+		test( 'Inline component attributes are passed through correctly', t => {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({
@@ -1025,7 +1025,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		// See issue #681
-		test( 'Inline component attributes update the value of bindings pointing to them even if they are old values', function ( t ) {
+		test( 'Inline component attributes update the value of bindings pointing to them even if they are old values', t => {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({
@@ -1048,7 +1048,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'old - old' );
 		});
 
-		asyncTest( 'Component render methods called in consistent order (gh #589)', function ( t ) {
+		asyncTest( 'Component render methods called in consistent order (gh #589)', t => {
 			var Simpson, ractive, order = { beforeInit: [], init: [], complete: [] },
 				simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
 
@@ -1089,7 +1089,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( 'Insane variable shadowing bug doesn\'t appear (#710)', function ( t ) {
+		test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
 			var List, ractive;
 
 			List = Ractive.extend({
@@ -1120,7 +1120,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>0:</p><p>1:0</p><p>2:0</p>' );
 		});
 
-		test( 'Components found in view hierarchy', function ( t ) {
+		test( 'Components found in view hierarchy', t => {
 			var FooComponent, BarComponent, ractive;
 
 			FooComponent = Ractive.extend({
@@ -1143,7 +1143,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'foo' );
 		});
 
-		test( 'Components not found in view hierarchy when isolated is true', function ( t ) {
+		test( 'Components not found in view hierarchy when isolated is true', t => {
 			var FooComponent, BarComponent, ractive;
 
 			FooComponent = Ractive.extend({
@@ -1167,7 +1167,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, '<foo></foo>' );
 		});
 
-		test( 'Evaluator in against in component more than once (gh-844)', function ( t ) {
+		test( 'Evaluator in against in component more than once (gh-844)', t => {
 			var Component, BarComponent, ractive;
 
 
@@ -1189,7 +1189,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'fooboo' );
 		});
 
-		test( 'Removing inline components causes teardown events to fire (#853)', function ( t ) {
+		test( 'Removing inline components causes teardown events to fire (#853)', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#if foo}}<widget/>{{/if}}',
@@ -1212,7 +1212,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.toggle( 'foo' );
 		});
 
-		test( 'Regression test for #871', function ( t ) {
+		test( 'Regression test for #871', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#items:i}}<p>outside component: {{i}}-{{uppercase(.)}}</p><widget text="{{uppercase(.)}}" />{{/items}}',
@@ -1234,7 +1234,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>outside component: 0-A</p><p>inside component: 0-A</p><p>outside component: 1-C</p><p>inside component: 1-C</p>' );
 		});
 
-		test( 'Specify component by function', function ( t ) {
+		test( 'Specify component by function', t => {
 			var Widget1, Widget2, ractive;
 
 			Widget1 = Ractive.extend({ template: 'widget1' });
@@ -1263,7 +1263,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'widget2widget2' );
 		});
 
-		test( 'Specify component by function as string', function ( t ) {
+		test( 'Specify component by function as string', t => {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({ template: 'foo' });
@@ -1284,7 +1284,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		if ( console && console.warn ) {
 
-			test( 'no return of component warns in debug', function ( t ) {
+			test( 'no return of component warns in debug', t => {
 
 				var ractive, warn = console.warn;
 
@@ -1310,7 +1310,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		}
 
-		test( '`this` in function refers to ractive instance', function ( t ) {
+		test( '`this` in function refers to ractive instance', t => {
 
 			var thisForFoo, thisForBar, ractive, Component;
 
@@ -1340,6 +1340,34 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		asyncTest( 'init only fires once on a component (#943 #927), complete fires each render', t => {
+
+			var Component, component, inited = false, completed = 0;
+
+			expect( 3 );
+
+			Component = Ractive.extend({
+				init: function () {
+					t.ok( !inited, 'init should not be called second time' );
+					inited = true;
+				},
+				complete: function() {
+					completed++;
+					t.ok( true );
+					if( completed === 2 ) { start(); }
+				}
+			});
+
+			component = new Component({
+				el: fixture,
+				template: function( data ){
+					return data.foo ? 'foo' : 'bar';
+				}
+			});
+
+			component.reset( { foo: true } );
+		});
+
 		if ( Ractive.svg ) {
 			test( 'Top-level elements in components have the correct namespace (#953)', function ( t ) {
 				var ractive = new Ractive({
@@ -1356,7 +1384,6 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.htmlEqual( fixture.innerHTML, '<svg><text>yup</text></svg>' );
 			});
 		}
-
 
 	};
 

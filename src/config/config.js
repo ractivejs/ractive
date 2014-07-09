@@ -89,7 +89,7 @@ function configure ( method, Parent, instance, options ) {
 config.reset = function ( ractive ) {
 	return config.filter( c => {
 		return c.reset && c.reset( ractive );
-	});
+	}).map( c => c.name );
 };
 
 export default config;
