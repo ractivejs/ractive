@@ -1,7 +1,5 @@
 import types from 'config/types';
-import namespaces from 'config/namespaces';
 import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
-import getElementNamespace from 'virtualdom/items/Element/prototype/init/getElementNamespace';
 import createAttributes from 'virtualdom/items/Element/prototype/init/createAttributes';
 import createTwowayBinding from 'virtualdom/items/Element/prototype/init/createTwowayBinding';
 import createEventHandlers from 'virtualdom/items/Element/prototype/init/createEventHandlers';
@@ -20,7 +18,6 @@ circular.push( function () {
 export default function Element$init ( options ) {
 	var parentFragment,
 		template,
-		namespace,
 		ractive,
 		binding,
 		bindings;
@@ -36,8 +33,7 @@ export default function Element$init ( options ) {
 	this.root = ractive = parentFragment.root;
 	this.index = options.index;
 
-	this.namespace = getElementNamespace( template, this.parent );
-	this.name = ( namespace !== namespaces.html ? enforceCase( template.e ) : template.e );
+	this.name = enforceCase( template.e );
 
 	// Special case - <option> elements
 	if ( this.name === 'option' ) {
