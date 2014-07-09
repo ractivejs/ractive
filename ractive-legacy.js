@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.4
-	2014-07-08 - commit c3ccd4ef 
+	2014-07-09 - commit efdca27f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8094,26 +8094,6 @@
 		};
 	}();
 
-	/* virtualdom/items/Element/prototype/init/getElementNamespace.js */
-	var virtualdom_items_Element$init_getElementNamespace = function( namespaces ) {
-
-		return function( template, parent ) {
-			var namespace;
-			// if the element has an xmlns attribute, use that
-			if ( template.a && template.a.xmlns ) {
-				return template.a.xmlns;
-			}
-			// otherwise, guess namespace for <svg/> elements, or inherit namespace from parent, unless
-			// parent is a <foreignObject/>
-			if ( template.e === 'svg' ) {
-				namespace = namespaces.svg;
-			} else if ( parent ) {
-				namespace = parent.name === 'foreignObject' ? namespaces.html : parent.namespace;
-			}
-			return namespace || namespaces.html;
-		};
-	}( namespaces );
-
 	/* virtualdom/items/Element/Attribute/prototype/bubble.js */
 	var virtualdom_items_Element_Attribute$bubble = function( runloop ) {
 
@@ -9628,14 +9608,14 @@
 	}( findParentSelect );
 
 	/* virtualdom/items/Element/prototype/init.js */
-	var virtualdom_items_Element$init = function( types, namespaces, enforceCase, getElementNamespace, createAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
+	var virtualdom_items_Element$init = function( types, enforceCase, createAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
 
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
 		return function Element$init( options ) {
-			var parentFragment, template, namespace, ractive, binding, bindings;
+			var parentFragment, template, ractive, binding, bindings;
 			this.type = types.ELEMENT;
 			// stuff we'll need later
 			parentFragment = this.parentFragment = options.parentFragment;
@@ -9643,8 +9623,7 @@
 			this.parent = options.pElement || parentFragment.pElement;
 			this.root = ractive = parentFragment.root;
 			this.index = options.index;
-			this.namespace = getElementNamespace( template, this.parent );
-			this.name = namespace !== namespaces.html ? enforceCase( template.e ) : template.e;
+			this.name = enforceCase( template.e );
 			// Special case - <option> elements
 			if ( this.name === 'option' ) {
 				initOption( this, template );
@@ -9684,7 +9663,7 @@
 			this.intro = template.t0 || template.t1;
 			this.outro = template.t0 || template.t2;
 		};
-	}( types, namespaces, enforceCase, virtualdom_items_Element$init_getElementNamespace, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
+	}( types, enforceCase, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
 
 	/* virtualdom/items/shared/utils/startsWith.js */
 	var startsWith = function( startsWithKeypath ) {
@@ -10384,7 +10363,7 @@
 	}( virtualdom_items_Element_Transition$init, virtualdom_items_Element_Transition$getStyle, virtualdom_items_Element_Transition$setStyle, virtualdom_items_Element_Transition$animateStyle__animateStyle, virtualdom_items_Element_Transition$processParams, virtualdom_items_Element_Transition$start, circular );
 
 	/* virtualdom/items/Element/prototype/render.js */
-	var virtualdom_items_Element$render = function( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage, Transition ) {
+	var virtualdom_items_Element$render = function( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage, Transition ) {
 
 		var updateCss, updateScript;
 		updateCss = function() {
@@ -10408,8 +10387,9 @@
 		return function Element$render() {
 			var this$0 = this;
 			var root = this.root,
-				node;
-			node = this.node = createElement( this.name, this.namespace );
+				namespace, node;
+			namespace = getNamespace( this );
+			node = this.node = createElement( this.name, namespace );
 			// Is this a top-level node of a component? If so, we may need to add
 			// a data-rvcguid attribute, for CSS encapsulation
 			// NOTE: css no longer copied to instance, so we check constructor.css -
@@ -10496,6 +10476,26 @@
 			return this.node;
 		};
 
+		function getNamespace( element ) {
+			var namespace, xmlns, parent;
+			// Use specified namespace...
+			if ( xmlns = element.getAttribute( 'xmlns' ) ) {
+				namespace = xmlns;
+			} else if ( element.name === 'svg' ) {
+				namespace = namespaces.svg;
+			} else if ( parent = element.parent ) {
+				// ...or HTML, if the parent is a <foreignObject>
+				if ( parent.name === 'foreignObject' ) {
+					namespace = namespaces.html;
+				} else {
+					namespace = parent.node.namespaceURI;
+				}
+			} else {
+				namespace = element.root.el.namespaceURI;
+			}
+			return namespace;
+		}
+
 		function processOption( option ) {
 			var optionValue, selectValue, i;
 			selectValue = option.select.getAttribute( 'value' );
@@ -10533,7 +10533,7 @@
 				}
 			} while ( instance = instance._parent );
 		}
-	}( isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render, Transition );
+	}( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render, Transition );
 
 	/* virtualdom/items/Element/prototype/toString.js */
 	var virtualdom_items_Element$toString = function( voidElementNames, isArray ) {
