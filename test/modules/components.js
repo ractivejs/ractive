@@ -1368,6 +1368,23 @@ define([ 'ractive' ], function ( Ractive ) {
 			component.reset( { foo: true } );
 		});
 
+		if ( Ractive.svg ) {
+			test( 'Top-level elements in components have the correct namespace (#953)', function ( t ) {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '<svg><widget message="yup"/></svg>',
+					components: {
+						widget: Ractive.extend({
+							template: '<text>{{message}}</text>'
+						})
+					}
+				});
+
+				t.equal( ractive.find( 'text' ).namespaceURI, 'http://www.w3.org/2000/svg' );
+				t.htmlEqual( fixture.innerHTML, '<svg><text>yup</text></svg>' );
+			});
+		}
+
 	};
 
 });

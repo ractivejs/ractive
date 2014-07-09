@@ -40,6 +40,7 @@ define([
 						'_computations': [],
 						'_wrapped': [],
 						'_evaluators': [],
+						el: { namespaceURI: 'http://www.w3.org/1999/xhtml' },
 						adapt: []
 					},
 					indexRefs: { i: opt.oldKeypath.replace('items.','')}
