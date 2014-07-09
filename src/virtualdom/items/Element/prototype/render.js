@@ -154,7 +154,7 @@ function getNamespace ( element ) {
 	}
 
 	else if ( parent = element.parent ) {
-		// ...or HTML, if the parent is a <foreignObject
+		// ...or HTML, if the parent is a <foreignObject>
 		if ( parent.name === 'foreignObject' ) {
 			namespace = namespaces.html;
 		}
