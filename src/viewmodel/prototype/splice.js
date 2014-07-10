@@ -19,5 +19,5 @@ export default function Viewmodel$splice ( keypath, spliceSummary ) {
 }
 
 function canSplice ( dependant ) {
-	return dependant.type === types.SECTION && !dependant.inverted && dependant.rendered;
+	return dependant.type === types.SECTION && ( !dependant.subtype || dependant.subtype === types.SECTION_EACH ) && dependant.rendered;
 }
