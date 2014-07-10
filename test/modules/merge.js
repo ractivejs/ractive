@@ -277,6 +277,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'b,a,c ["b","a","c"]' );
 		});
 
+		test( '#if section with merged array (#952)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if list}}yes{{else}}no{{/if}}',
+				data: {
+					list: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+
+			ractive.merge( 'list', [ 'a', 'b', 'c', 'd' ] );
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+		});
+
 	};
 
 	function isOrphan ( node ) {

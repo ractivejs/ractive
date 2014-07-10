@@ -1,3 +1,4 @@
+import types from 'config/types';
 import warn from 'utils/warn';
 import mapOldToNewIndex from 'viewmodel/prototype/merge/mapOldToNewIndex';
 
@@ -64,7 +65,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 }
 
 function canMerge ( dependant ) {
-	return typeof dependant.merge === 'function';
+	return typeof dependant.merge === 'function' && ( !dependant.subtype || dependant.subtype === types.SECTION_EACH );
 }
 
 function stringify ( item ) {

@@ -176,6 +176,24 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( observedLengthChange );
 		});
 
+		test( '#if sections only render once when arrays are mutated', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if list}}yes{{else}}no{{/if}}',
+				data: {
+					list: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+
+			ractive.push( 'list', 'd' );
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+
+			ractive.splice( 'list', 0, 0, 'e', 'f' );
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+		});
+
 	};
 
 });

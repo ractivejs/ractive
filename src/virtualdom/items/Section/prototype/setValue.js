@@ -77,8 +77,8 @@ function reevaluateSection ( section, value ) {
 	// If we already know the section type, great
 	// TODO can this be optimised? i.e. pick an reevaluateSection function during init
 	// and avoid doing this each time?
-	if ( section.template.n ) {
-		switch ( section.template.n ) {
+	if ( section.subtype ) {
+		switch ( section.subtype ) {
 			case types.SECTION_IF:
 			return reevaluateConditionalSection( section, value, false, fragmentOptions );
 
