@@ -12,12 +12,14 @@ var exec = require( 'exec-sync' ),
 templates = {
 	pkg: fs.readFileSync( __dirname + '/templates/package.json' ).toString(),
 	bower: fs.readFileSync( __dirname + '/templates/bower.json' ).toString(),
+	component: fs.readFileSync( __dirname + '/templates/component.json' ).toString(),
 	deploy: fs.readFileSync( __dirname + '/templates/deploy.sh' ).toString()
 }
 
 // Create temporary package.json and bower.json files
 fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'package.json' ), replace( templates.pkg ) );
 fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'bower.json' ), replace( templates.bower ) );
+fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'component.json' ), replace( templates.component ) );
 fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'deploy.sh' ), replace( templates.deploy ) );
 
 

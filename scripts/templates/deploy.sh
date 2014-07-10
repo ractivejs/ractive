@@ -31,3 +31,10 @@ cp tmp/bower.json build-branch/bower.json
 	# ...and to npm
 	npm publish
 )
+
+# Update component.json and ractive.js in root folder
+rm ractive.js
+rm component.json
+
+cp tmp/component.json component.json
+cp build/ractive.js ractive.js
