@@ -2,7 +2,7 @@
   "name": "ractive",
   "repo": "ractivejs/ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "keywords": [],
   "dependencies": {},
   "development": {},
