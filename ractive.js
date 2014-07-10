@@ -1,6 +1,6 @@
 /*
-	ractive.js v0.5.0
-	2014-07-05 - commit 1c20c21b
+	ractive.js v0.5.4
+	2014-07-05 - commit 1099eeed
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4187,7 +4187,7 @@
 					if ( typeof template === 'function' ) {
 						proto.template = template;
 					} else {
-						proto.template = parse( template, parser.getParseOptions( proto ) );
+						proto.template = parseIfString( template, proto );
 					}
 				}
 			},
@@ -13035,7 +13035,7 @@
 			},
 			// version
 			VERSION: {
-				value: '0.5.0'
+				value: '0.5.4'
 			},
 			// Plugins
 			adaptors: {
