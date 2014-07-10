@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.4
-	2014-07-10 - commit 5489aaf1 
+	2014-07-10 - commit c583e030 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9320,11 +9320,24 @@
 		}
 	};
 
-	/* virtualdom/items/Element/EventHandler/prototype/render.js */
-	var virtualdom_items_Element_EventHandler$render = function( warn, config ) {
+	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
+	var genericHandler = function genericHandler( event ) {
+		var storage, handler;
+		storage = this._ractive;
+		handler = storage.events[ event.type ];
+		handler.fire( {
+			node: this,
+			original: event,
+			index: storage.index,
+			keypath: storage.keypath,
+			context: storage.root.get( storage.keypath )
+		} );
+	};
 
-		var alreadyWarned = {},
-			customHandlers = {};
+	/* virtualdom/items/Element/EventHandler/prototype/render.js */
+	var virtualdom_items_Element_EventHandler$render = function( warn, config, genericHandler ) {
+
+		var customHandlers = {};
 		return function EventHandler$render() {
 			var name = this.name,
 				definition;
@@ -9334,10 +9347,7 @@
 			} else {
 				// Looks like we're dealing with a standard DOM event... but let's check
 				if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
-					if ( !alreadyWarned[ name ] ) {
-						warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
-						alreadyWarned[ name ] = true;
-					}
+					warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
 				}
 				this.node.addEventListener( name, genericHandler, false );
 			}
@@ -9345,19 +9355,6 @@
 			// universal handler
 			this.node._ractive.events[ name ] = this;
 		};
-
-		function genericHandler( event ) {
-			var storage, handler;
-			storage = this._ractive;
-			handler = storage.events[ event.type ];
-			handler.fire( {
-				node: this,
-				original: event,
-				index: storage.index,
-				keypath: storage.keypath,
-				context: storage.root.get( storage.keypath )
-			} );
-		}
 
 		function getCustomHandler( name ) {
 			if ( !customHandlers[ name ] ) {
@@ -9371,7 +9368,7 @@
 			}
 			return customHandlers[ name ];
 		}
-	}( warn, config );
+	}( warn, config, genericHandler );
 
 	/* virtualdom/items/Element/EventHandler/prototype/teardown.js */
 	var virtualdom_items_Element_EventHandler$teardown = function EventHandler$teardown() {
@@ -9386,7 +9383,16 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/unrender.js */
-	var virtualdom_items_Element_EventHandler$unrender = function EventHandler$unrender() {};
+	var virtualdom_items_Element_EventHandler$unrender = function( genericHandler ) {
+
+		return function EventHandler$unrender() {
+			if ( this.custom ) {
+				this.custom.teardown();
+			} else {
+				this.node.removeEventListener( this.name, genericHandler, false );
+			}
+		};
+	}( genericHandler );
 
 	/* virtualdom/items/Element/EventHandler/_EventHandler.js */
 	var EventHandler = function( fire, init, rebind, render, teardown, unrender ) {
@@ -10645,7 +10651,6 @@
 				// since option elements can't have transitions anyway
 				this.detach();
 			} else if ( shouldDestroy ) {
-				this.willDetach = true;
 				runloop.detachWhenReady( this );
 			}
 			// Children first. that way, any transitions on child elements will be
