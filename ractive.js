@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.4
-	2014-07-10 - commit f05c0a0a 
+	2014-07-10 - commit 5489aaf1 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8586,7 +8586,7 @@
 					}
 				}
 				// or the first non-disabled option, if none are selected
-				while ( i++ < len ) {
+				while ( ++i < len ) {
 					if ( !options[ i ].getAttribute( 'disabled' ) ) {
 						return options[ i ].getAttribute( 'value' );
 					}
