@@ -344,6 +344,15 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.get( 'value' ), '999' );
 		});
 
+		test( 'Select bindings work even if there is only a disabled option', function ( t ) {
+			expect( 0 );
+
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select value="{{foo}}"><option disabled>yo</option></select>'
+			});
+		});
+
 	};
 
 });
