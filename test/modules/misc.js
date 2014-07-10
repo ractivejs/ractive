@@ -1260,6 +1260,49 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.toHTML(), '<p>bar</p>' );
 		});
 
+		test( 'Regression test for #950', function ( t ) {
+			var ractive, select;
+
+			expect( 0 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#if editing}}
+						<select value="{{selected}}" on-select="done-selecting" on-blur="done-selecting">
+							<option disabled>Select:</option>
+							{{#each items}}
+							<option>{{this}}</option>
+							{{/each}}
+						</select>
+					{{else}}
+						<input type="checkbox" checked="{{editing}}"/>
+						<span class="hover-text">{{#if selected}}{{selected}}{{else}}Select...{{/if}}</span>
+					{{/if}}`,
+				data: {
+					editing: true,
+					items: ["Apples", "Oranges", "Samsungs"]
+				}
+			});
+
+			ractive.observe('selected', function() {
+				console.group( 'selected' );
+				ractive.set('editing', false);
+				console.groupEnd();
+			}, { init: false });
+
+			ractive.on('done-selecting', function( event ) {
+				console.group( 'done selecting (%s)', event.original.type );
+				ractive.set('editing', false);
+				console.groupEnd();
+			});
+
+			select = ractive.find( 'select' );
+			select.focus();
+			select.options[2].selected = true;
+			simulant.fire( select, 'change' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
