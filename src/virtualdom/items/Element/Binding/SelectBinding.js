@@ -20,7 +20,7 @@ var SelectBinding = Binding.extend({
 		}
 
 		// or the first non-disabled option, if none are selected
-		while ( i++ < len ) {
+		while ( ++i < len ) {
 			if ( !options[i].getAttribute( 'disabled' ) ) {
 				return options[i].getAttribute( 'value' );
 			}
