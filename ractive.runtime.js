@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.4
-	2014-07-09 - commit efdca27f 
+	2014-07-10 - commit f05c0a0a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5529,8 +5529,8 @@
 			// If we already know the section type, great
 			// TODO can this be optimised? i.e. pick an reevaluateSection function during init
 			// and avoid doing this each time?
-			if ( section.template.n ) {
-				switch ( section.template.n ) {
+			if ( section.subtype ) {
+				switch ( section.subtype ) {
 					case types.SECTION_IF:
 						return reevaluateConditionalSection( section, value, false, fragmentOptions );
 					case types.SECTION_UNLESS:
@@ -5832,7 +5832,8 @@
 
 		var Section = function( options ) {
 			this.type = types.SECTION;
-			this.inverted = options.template.n === types.SECTION_UNLESS;
+			this.subtype = options.template.n;
+			this.inverted = this.subtype === types.SECTION_UNLESS;
 			this.pElement = options.pElement;
 			this.fragments = [];
 			this.fragmentsToCreate = [];
@@ -10842,7 +10843,7 @@
 	};
 
 	/* viewmodel/prototype/merge.js */
-	var viewmodel$merge = function( warn, mapOldToNewIndex ) {
+	var viewmodel$merge = function( types, warn, mapOldToNewIndex ) {
 
 		var comparators = {};
 		return function Viewmodel$merge( keypath, currentArray, array, options ) {
@@ -10892,7 +10893,7 @@
 		};
 
 		function canMerge( dependant ) {
-			return typeof dependant.merge === 'function';
+			return typeof dependant.merge === 'function' && ( !dependant.subtype || dependant.subtype === types.SECTION_EACH );
 		}
 
 		function stringify( item ) {
@@ -10919,7 +10920,7 @@
 			}
 			throw new Error( 'The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)' );
 		}
-	}( warn, viewmodel$merge_mapOldToNewIndex );
+	}( types, warn, viewmodel$merge_mapOldToNewIndex );
 
 	/* viewmodel/prototype/register.js */
 	var viewmodel$register = function() {
@@ -11050,7 +11051,7 @@
 		};
 
 		function canSplice( dependant ) {
-			return dependant.type === types.SECTION && !dependant.inverted && dependant.rendered;
+			return dependant.type === types.SECTION && ( !dependant.subtype || dependant.subtype === types.SECTION_EACH ) && dependant.rendered;
 		}
 	}( types );
 
