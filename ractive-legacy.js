@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.4
-	2014-07-12 - commit 022a1cc9 
+	2014-07-12 - commit 13947d72 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5588,7 +5588,6 @@
 			this.keypath = keypath;
 			this.callback = callback;
 			this.defer = options.defer;
-			this.debug = options.debug;
 			// Observers are notified before any DOM changes take place (though
 			// they can defer execution until afterwards)
 			this.priority = 0;
@@ -5695,7 +5694,6 @@
 			this.root = ractive;
 			this.callback = callback;
 			this.defer = options.defer;
-			this.debug = options.debug;
 			this.keypath = keypath;
 			this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
 			this.values = {};
