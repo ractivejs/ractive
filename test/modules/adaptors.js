@@ -256,6 +256,27 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( instance.adapt, ['Foo'] );
 		});
 
+		test( 'Original values are passed to event handlers (#945)', function ( t ) {
+			expect( 2 );
+
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#with model}}<button on-click="select:{{this}}">{{foo}}</button>{{/with}}',
+				data: {
+					model: new Model({ foo: 'bar' })
+				},
+				adapt: [ adaptor ]
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<button>bar</button>' );
+
+			ractive.on( 'select', function ( event, model ) {
+				t.ok( model instanceof Model );
+			});
+
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
 	};
 
 });

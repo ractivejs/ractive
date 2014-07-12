@@ -62,5 +62,8 @@ export default function Fragment$init ( options ) {
 		index: i
 	}) );
 
+	this.value = this.argsList = null;
+	this.dirtyArgs = this.dirtyValue = true;
+
 	this.inited = true;
 }

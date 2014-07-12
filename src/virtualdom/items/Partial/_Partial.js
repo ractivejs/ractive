@@ -16,6 +16,8 @@ Partial = function ( options ) {
 	this.name = options.template.r;
 	this.index = options.index;
 
+	this.root = parentFragment.root;
+
 	if ( !options.template.r ) {
 		// TODO support dynamic partial switching
 		throw new Error( 'Partials must have a static reference (no expressions). This may change in a future version of Ractive.' );
@@ -98,6 +100,10 @@ Partial.prototype = {
 
 	findAllComponents: function ( selector, query ) {
 		return this.fragment.findAllComponents( selector, query );
+	},
+
+	getValue: function () {
+		return this.fragment.getValue();
 	}
 };
 

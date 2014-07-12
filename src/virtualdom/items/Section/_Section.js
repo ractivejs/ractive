@@ -45,6 +45,7 @@ Section.prototype = {
 	findComponent: findComponent,
 	findNextNode: findNextNode,
 	firstNode: firstNode,
+	getValue: Mustache.getValue,
 	merge: merge,
 	rebind: Mustache.rebind,
 	render: render,
