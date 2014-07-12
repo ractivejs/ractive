@@ -48,8 +48,6 @@ var Binding = function ( element ) {
 	this.keypath = keypath = interpolator.keypath;
 
 	// initialise value, if it's undefined
-	// TODO could we use a similar mechanism instead of the convoluted
-	// select/checkbox init logic?
 	if ( this.root.viewmodel.get( keypath ) === undefined && this.getInitialValue ) {
 		value = this.getInitialValue();
 

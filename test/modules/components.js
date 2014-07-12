@@ -1408,6 +1408,29 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			t.ok( ractive.get( 'model' ) instanceof Model );
 		});
 
+		test( 'Implicit bindings are created at the highest level possible (#960)', function ( t ) {
+			var ractive, widget;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: {
+					widget: Ractive.extend({
+						template: '<input value="{{person.first}}"/><input value="{{person.last}}"/>'
+					})
+				}
+			});
+
+			widget = ractive.findComponent( 'widget' );
+
+			widget.findAll( 'input' )[0].value = 'Buzz';
+			widget.findAll( 'input' )[1].value = 'Lightyear';
+			widget.updateModel();
+
+			t.deepEqual( ractive.get( 'person' ), { first: 'Buzz', last: 'Lightyear' });
+			t.equal( ractive.get( 'person' ), widget.get( 'person' ) );
+		});
+
 	};
 
 });
