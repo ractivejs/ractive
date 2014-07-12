@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.4
-	2014-07-12 - commit d325b3a5 
+	2014-07-12 - commit 022a1cc9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12375,13 +12375,10 @@
 	/* viewmodel/prototype/applyChanges.js */
 	var viewmodel$applyChanges = function( getUpstreamChanges, notifyPatternObservers ) {
 
-		var unwrap = {
-				evaluateWrapped: true
-			},
-			dependantGroups = [
-				'observers',
-				'default'
-			];
+		var dependantGroups = [
+			'observers',
+			'default'
+		];
 		return function Viewmodel$applyChanges() {
 			var this$0 = this;
 			var self = this,
@@ -12452,7 +12449,7 @@
 		function notifyUpstreamDependants( viewmodel, keypath, groupName ) {
 			var dependants, value;
 			if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
-				value = viewmodel.get( keypath, unwrap );
+				value = viewmodel.get( keypath );
 				dependants.forEach( function( d ) {
 					return d.setValue( value );
 				} );
@@ -12487,7 +12484,7 @@
 			}
 
 			function dispatch( set ) {
-				var value = viewmodel.get( set.keypath, unwrap );
+				var value = viewmodel.get( set.keypath );
 				set.deps.forEach( function( d ) {
 					return d.setValue( value );
 				} );
