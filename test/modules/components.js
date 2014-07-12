@@ -1,4 +1,4 @@
-define([ 'ractive' ], function ( Ractive ) {
+define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 
 	'use strict';
 
@@ -1384,6 +1384,29 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.htmlEqual( fixture.innerHTML, '<svg><text>yup</text></svg>' );
 			});
 		}
+
+		test( 'Component bindings propagate the underlying value in the case of adaptors (#945)', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				adapt: [ Model.adaptor ],
+				template: '{{#model}}Title: {{title}}{{/model}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#model}}<widget model="{{this}}"/>{{/model}}',
+				data: {
+					model: new Model({"title": "aaa", "something": ""})
+				},
+				components: {
+					widget: Widget
+				}
+			});
+
+			ractive.get("model").set("something", "anything");
+			t.ok( ractive.get( 'model' ) instanceof Model );
+		});
 
 	};
 

@@ -1,8 +1,7 @@
 import getUpstreamChanges from 'viewmodel/helpers/getUpstreamChanges';
 import notifyPatternObservers from 'viewmodel/prototype/applyChanges/notifyPatternObservers';
 
-var unwrap = { evaluateWrapped: true },
-	dependantGroups = [ 'observers', 'default' ];
+var dependantGroups = [ 'observers', 'default' ];
 
 export default function Viewmodel$applyChanges () {
 	var self = this,
@@ -91,7 +90,7 @@ function notifyUpstreamDependants ( viewmodel, keypath, groupName ) {
 	var dependants, value;
 
 	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
-		value = viewmodel.get( keypath, unwrap );
+		value = viewmodel.get( keypath );
 		dependants.forEach( d => d.setValue( value ) );
 	}
 }
@@ -127,7 +126,7 @@ function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 	}
 
 	function dispatch ( set ) {
-		var value = viewmodel.get( set.keypath, unwrap );
+		var value = viewmodel.get( set.keypath );
 		set.deps.forEach( d => d.setValue( value ) );
 	}
 }
