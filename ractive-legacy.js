@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.4
-	2014-07-10 - commit bb0bab83 
+	2014-07-12 - commit d325b3a5 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6318,39 +6318,29 @@
 	};
 
 	/* virtualdom/Fragment/prototype/getValue.js */
-	var virtualdom_Fragment$getValue = function( types, parseJSON ) {
+	var virtualdom_Fragment$getValue = function( parseJSON ) {
 
 		var empty = {};
-		return function Fragment$getValue( options ) {
-			var asArgs, parse, value, values, jsonesque, parsed, cache, dirtyFlag, result;
-			options = options || empty;
+		return function Fragment$getValue() {
+			var options = arguments[ 0 ];
+			if ( options === void 0 )
+				options = empty;
+			var asArgs, values, source, parsed, cachedResult, dirtyFlag, result;
 			asArgs = options.args;
-			parse = asArgs || options.parse;
-			cache = asArgs ? 'argsList' : 'value';
+			cachedResult = asArgs ? 'argsList' : 'value';
 			dirtyFlag = asArgs ? 'dirtyArgs' : 'dirtyValue';
-			if ( this[ dirtyFlag ] || !this.hasOwnProperty( cache ) ) {
-				// Fast path
-				if ( this.items.length === 1 && this.items[ 0 ].type === types.INTERPOLATOR ) {
-					value = this.items[ 0 ].value;
-					if ( value !== undefined ) {
-						result = asArgs ? [ value ] : value;
-					}
+			if ( this[ dirtyFlag ] ) {
+				source = processItems( this.items, values = {}, this.root._guid );
+				parsed = parseJSON( asArgs ? '[' + source + ']' : source, values );
+				if ( !parsed ) {
+					result = asArgs ? [ this.toString() ] : this.toString();
 				} else {
-					if ( parse ) {
-						values = {};
-						jsonesque = processItems( this.items, values, this.root._guid );
-						parsed = parseJSON( asArgs ? '[' + jsonesque + ']' : jsonesque, values );
-					}
-					if ( !parsed ) {
-						result = asArgs ? [ this.toString() ] : this.toString();
-					} else {
-						result = parsed.value;
-					}
+					result = parsed.value;
 				}
-				this[ cache ] = result;
+				this[ cachedResult ] = result;
 				this[ dirtyFlag ] = false;
 			}
-			return this[ cache ];
+			return this[ cachedResult ];
 		};
 
 		function processItems( items, values, guid, counter ) {
@@ -6369,13 +6359,13 @@
 				if ( wrapped = item.root.viewmodel.wrapped[ item.keypath ] ) {
 					value = wrapped.value;
 				} else {
-					value = item.value;
+					value = item.getValue();
 				}
 				values[ placeholderId ] = value;
 				return '${' + placeholderId + '}';
 			} ).join( '' );
 		}
-	}( types, parseJSON );
+	}( parseJSON );
 
 	/* utils/escapeHtml.js */
 	var escapeHtml = function() {
@@ -6449,6 +6439,11 @@
 			}
 		};
 	}( runloop );
+
+	/* virtualdom/items/shared/Mustache/getValue.js */
+	var getValue = function Mustache$getValue() {
+		return this.value;
+	};
 
 	/* shared/Unresolved.js */
 	var Unresolved = function( runloop ) {
@@ -7097,14 +7092,15 @@
 	}( getNewKeypath );
 
 	/* virtualdom/items/shared/Mustache/_Mustache.js */
-	var Mustache = function( init, resolve, rebind ) {
+	var Mustache = function( getValue, init, resolve, rebind ) {
 
 		return {
+			getValue: getValue,
 			init: init,
 			resolve: resolve,
 			rebind: rebind
 		};
-	}( initialise, resolve, rebind );
+	}( getValue, initialise, resolve, rebind );
 
 	/* virtualdom/items/Interpolator.js */
 	var Interpolator = function( types, runloop, escapeHtml, detachNode, unbind, Mustache, detach ) {
@@ -7132,6 +7128,7 @@
 					detachNode( this.node );
 				}
 			},
+			getValue: Mustache.getValue,
 			// TEMP
 			setValue: function( value ) {
 				var wrapper;
@@ -7706,6 +7703,7 @@
 			findComponent: findComponent,
 			findNextNode: findNextNode,
 			firstNode: firstNode,
+			getValue: Mustache.getValue,
 			merge: merge,
 			rebind: Mustache.rebind,
 			render: render,
@@ -7986,6 +7984,7 @@
 			find: find,
 			findAll: findAll,
 			firstNode: firstNode,
+			getValue: Mustache.getValue,
 			rebind: Mustache.rebind,
 			render: render,
 			resolve: Mustache.resolve,
@@ -10348,13 +10347,10 @@
 	/* virtualdom/items/Element/Transition/_Transition.js */
 	var Transition = function( init, getStyle, setStyle, animateStyle, processParams, start, circular ) {
 
-		var Fragment, getValueOptions, Transition;
+		var Fragment, Transition;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		getValueOptions = {
-			args: true
-		};
 		Transition = function( owner, template, isIntro ) {
 			this.init( owner, template, isIntro );
 		};
@@ -10872,6 +10868,7 @@
 			this.type = types.PARTIAL;
 			this.name = options.template.r;
 			this.index = options.index;
+			this.root = parentFragment.root;
 			if ( !options.template.r ) {
 				// TODO support dynamic partial switching
 				throw new Error( 'Partials must have a static reference (no expressions). This may change in a future version of Ractive.' );
@@ -10933,6 +10930,9 @@
 			},
 			findAllComponents: function( selector, query ) {
 				return this.fragment.findAllComponents( selector, query );
+			},
+			getValue: function() {
+				return this.fragment.getValue();
 			}
 		};
 		return Partial;
@@ -11029,13 +11029,10 @@
 	/* virtualdom/items/Component/initialise/createModel/ComponentParameter.js */
 	var ComponentParameter = function( runloop, circular ) {
 
-		var Fragment, getValueOptions, ComponentParameter;
+		var Fragment, ComponentParameter;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		getValueOptions = {
-			parse: true
-		};
 		ComponentParameter = function( component, key, value ) {
 			this.parentFragment = component.parentFragment;
 			this.component = component;
@@ -11045,7 +11042,7 @@
 				root: component.root,
 				owner: this
 			} );
-			this.value = this.fragment.getValue( getValueOptions );
+			this.value = this.fragment.getValue();
 		};
 		ComponentParameter.prototype = {
 			bubble: function() {
@@ -11055,7 +11052,7 @@
 				}
 			},
 			update: function() {
-				var value = this.fragment.getValue( getValueOptions );
+				var value = this.fragment.getValue();
 				this.component.instance.viewmodel.set( this.key, value );
 				runloop.addViewmodel( this.component.instance.viewmodel );
 				this.value = value;
@@ -11464,6 +11461,8 @@
 					index: i
 				} );
 			} );
+			this.value = this.argsList = null;
+			this.dirtyArgs = this.dirtyValue = true;
 			this.inited = true;
 		};
 	}( types, create, virtualdom_Fragment$init_createItem );
