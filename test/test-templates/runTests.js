@@ -8,6 +8,7 @@
 			paths: {
 				modules: '../test/modules',
 				samples: '../test/samples',
+				helpers: '../test/helpers',
 				vendor: '../test/vendor'
 			}
 		};
