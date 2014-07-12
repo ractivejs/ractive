@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.4
-	2014-07-12 - commit 13947d72 
+	2014-07-12 - commit 0d169191 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -539,7 +539,7 @@
 			evaluateWrapped: true
 		};
 		return function resolveRef( ractive, ref, fragment ) {
-			var context, key, index, keypath, parentValue, hasContextChain;
+			var context, key, index, keypath, parentValue, hasContextChain, parentKeys, childKeys;
 			ref = normaliseRef( ref );
 			// If a reference begins '~/', it's a top-level reference
 			if ( ref.substr( 0, 2 ) === '~/' ) {
@@ -583,7 +583,16 @@
 				if ( keypath ) {
 					// Need to create an inter-component binding
 					ractive.viewmodel.set( ref, ractive._parent.viewmodel.get( keypath ), true );
-					createComponentBinding( ractive.component, ractive._parent, keypath, ref );
+					// if parent keypath is 'one.foo' and child is 'two.foo', we bind
+					// 'one' to 'two' as it's more efficient and avoids edge cases
+					parentKeys = keypath.split( '.' );
+					childKeys = ref.split( '.' );
+					while ( parentKeys.length > 1 && childKeys.length > 1 && parentKeys[ parentKeys.length - 1 ] === childKeys[ childKeys.length - 1 ] ) {
+						parentKeys.pop();
+						childKeys.pop();
+					}
+					createComponentBinding( ractive.component, ractive._parent, parentKeys.join( '.' ), childKeys.join( '.' ) );
+					return keypath;
 				}
 			}
 			// If there's no context chain, and the instance is either a) isolated or
@@ -8268,8 +8277,6 @@
 			}
 			this.keypath = keypath = interpolator.keypath;
 			// initialise value, if it's undefined
-			// TODO could we use a similar mechanism instead of the convoluted
-			// select/checkbox init logic?
 			if ( this.root.viewmodel.get( keypath ) === undefined && this.getInitialValue ) {
 				value = this.getInitialValue();
 				if ( value !== undefined ) {
