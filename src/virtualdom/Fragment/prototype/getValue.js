@@ -1,48 +1,30 @@
-import types from 'config/types';
 import parseJSON from 'utils/parseJSON';
 
 var empty = {};
 
-export default function Fragment$getValue ( options ) {
-	var asArgs, parse, value, values, jsonesque, parsed, cache, dirtyFlag, result;
+export default function Fragment$getValue ( options = empty ) {
+	var asArgs, values, source, parsed, cachedResult, dirtyFlag, result;
 
-	options = options || empty;
 	asArgs = options.args;
-	parse = asArgs || options.parse;
 
-	cache = asArgs ? 'argsList' : 'value';
+	cachedResult = asArgs ? 'argsList' : 'value';
 	dirtyFlag = asArgs ? 'dirtyArgs' : 'dirtyValue';
 
-	if ( this[ dirtyFlag ] || !this.hasOwnProperty( cache ) ) {
+	if ( this[ dirtyFlag ] ) {
+		source = processItems( this.items, values = {}, this.root._guid );
+		parsed = parseJSON( asArgs ? '[' + source + ']' : source, values );
 
-		// Fast path
-		if ( this.items.length === 1 && this.items[0].type === types.INTERPOLATOR ) {
-			value = this.items[0].value;
-			if ( value !== undefined ) {
-				result = asArgs ? [ value ] : value;
-			}
+		if ( !parsed ) {
+			result = asArgs ? [ this.toString() ] : this.toString();
+		} else {
+			result = parsed.value;
 		}
 
-		else {
-			if ( parse ) {
-				values = {};
-				jsonesque = processItems( this.items, values, this.root._guid );
-
-				parsed = parseJSON( asArgs ? '[' + jsonesque + ']' : jsonesque, values );
-			}
-
-			if ( !parsed ) {
-				result = asArgs ? [ this.toString() ] : this.toString();
-			} else {
-				result = parsed.value;
-			}
-		}
-
-		this[ cache ] = result;
+		this[ cachedResult ] = result;
 		this[ dirtyFlag ] = false;
 	}
 
-	return this[ cache ];
+	return this[ cachedResult ];
 }
 
 function processItems ( items, values, guid, counter ) {
@@ -66,7 +48,7 @@ function processItems ( items, values, guid, counter ) {
 		if ( wrapped = item.root.viewmodel.wrapped[ item.keypath ] ) {
 			value = wrapped.value;
 		} else {
-			value = item.value;
+			value = item.getValue();
 		}
 
 		values[ placeholderId ] = value;

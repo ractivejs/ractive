@@ -35,6 +35,8 @@ Interpolator.prototype = {
 		}
 	},
 
+	getValue: Mustache.getValue,
+
 	// TEMP
 	setValue: function ( value ) {
 		var wrapper;

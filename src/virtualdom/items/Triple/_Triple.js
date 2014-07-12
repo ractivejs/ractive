@@ -23,6 +23,7 @@ Triple.prototype = {
 	find: find,
 	findAll: findAll,
 	firstNode: firstNode,
+	getValue: Mustache.getValue,
 	rebind: Mustache.rebind,
 	render: render,
 	resolve: Mustache.resolve,

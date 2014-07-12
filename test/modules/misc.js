@@ -1286,15 +1286,11 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.observe('selected', function() {
-				console.group( 'selected' );
 				ractive.set('editing', false);
-				console.groupEnd();
 			}, { init: false });
 
 			ractive.on('done-selecting', function( event ) {
-				console.group( 'done selecting (%s)', event.original.type );
 				ractive.set('editing', false);
-				console.groupEnd();
 			});
 
 			select = ractive.find( 'select' );
