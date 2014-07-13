@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.4
-	2014-07-12 - commit 0d169191 
+	2014-07-13 - commit adf3e124 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7253,6 +7253,9 @@
 		return function Section$merge( newIndices ) {
 			var section = this,
 				parentFragment, firstChange, i, newLength, reboundFragments, fragmentOptions, fragment, nextNode;
+			if ( this.unbound ) {
+				return;
+			}
 			parentFragment = this.parentFragment;
 			reboundFragments = [];
 			// first, rebind existing fragments
@@ -7279,16 +7282,17 @@
 				fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
 				reboundFragments[ newIndex ] = fragment;
 			} );
+			newLength = this.root.get( this.keypath ).length;
 			// If nothing changed with the existing fragments, then we start adding
 			// new fragments at the end...
 			if ( firstChange === undefined ) {
+				// ...unless there are no new fragments to add
+				if ( this.length === newLength ) {
+					return;
+				}
 				firstChange = this.length;
 			}
-			this.length = this.fragments.length = newLength = this.root.get( this.keypath ).length;
-			if ( newLength === firstChange ) {
-				// ...unless there are no new fragments to add
-				return;
-			}
+			this.length = this.fragments.length = newLength;
 			runloop.addView( this );
 			// Prepare new fragment options
 			fragmentOptions = {
@@ -7545,6 +7549,12 @@
 		return function Section$splice( spliceSummary ) {
 			var section = this,
 				balance, start, insertStart, insertEnd, spliceArgs;
+			// In rare cases, a section will receive a splice instruction after it has
+			// been unbound (see https://github.com/ractivejs/ractive/issues/967). This
+			// prevents errors arising from those situations
+			if ( this.unbound ) {
+				return;
+			}
 			balance = spliceSummary.balance;
 			if ( !balance ) {
 				// The array length hasn't changed - we don't need to add or remove anything
@@ -7628,6 +7638,7 @@
 			this.fragments.forEach( unbindFragment );
 			unbind.call( this );
 			this.length = 0;
+			this.unbound = true;
 		};
 
 		function unbindFragment( fragment ) {
