@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-07-13 - commit 8b1d34ef 
+	2014-07-13 - commit b0421f0a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -531,7 +531,7 @@
 			evaluateWrapped: true
 		};
 		return function resolveRef( ractive, ref, fragment ) {
-			var context, key, index, keypath, parentValue, hasContextChain, parentKeys, childKeys;
+			var context, key, index, keypath, parentValue, hasContextChain, parentKeys, childKeys, parentKeypath, childKeypath;
 			ref = normaliseRef( ref );
 			// If a reference begins '~/', it's a top-level reference
 			if ( ref.substr( 0, 2 ) === '~/' ) {
@@ -573,9 +573,8 @@
 				}
 				keypath = resolveRef( ractive._parent, ref, fragment );
 				if ( keypath ) {
-					// Need to create an inter-component binding
-					ractive.viewmodel.set( ref, ractive._parent.viewmodel.get( keypath ), true );
-					// if parent keypath is 'one.foo' and child is 'two.foo', we bind
+					// We need to create an inter-component binding
+					// If parent keypath is 'one.foo' and child is 'two.foo', we bind
 					// 'one' to 'two' as it's more efficient and avoids edge cases
 					parentKeys = keypath.split( '.' );
 					childKeys = ref.split( '.' );
@@ -583,8 +582,11 @@
 						parentKeys.pop();
 						childKeys.pop();
 					}
-					createComponentBinding( ractive.component, ractive._parent, parentKeys.join( '.' ), childKeys.join( '.' ) );
-					return keypath;
+					parentKeypath = parentKeys.join( '.' );
+					childKeypath = childKeys.join( '.' );
+					ractive.viewmodel.set( childKeypath, ractive._parent.viewmodel.get( parentKeypath ), true );
+					createComponentBinding( ractive.component, ractive._parent, parentKeypath, childKeypath );
+					return ref;
 				}
 			}
 			// If there's no context chain, and the instance is either a) isolated or
