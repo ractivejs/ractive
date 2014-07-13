@@ -1,7 +1,8 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.5.4",
+  "version": "0.5.5",
+  "keywords": [ "reactive", "templates", "templating", "ui", "mustache", "handlebars", "dom" ],
   "homepage": "http://ractivejs.org",
   "main": "ractive.js",
   "licenses": [
