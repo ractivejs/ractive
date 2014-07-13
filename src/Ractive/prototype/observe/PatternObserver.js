@@ -9,7 +9,6 @@ PatternObserver = function ( ractive, keypath, callback, options ) {
 
 	this.callback = callback;
 	this.defer = options.defer;
-	this.debug = options.debug;
 
 	this.keypath = keypath;
 	this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );

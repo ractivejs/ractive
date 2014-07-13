@@ -11,12 +11,12 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'option element with custom selected logic works without error and correctly', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template:
-					'<select>' +
-					'{{#options}}' +
-					'<option value="{{.}}" selected="{{.===selected}}">{{.}}</option>' +
-					'{{/options}}' +
-					'</select>',
+				template: `
+					<select>
+						{{#options}}
+							<option value="{{.}}" selected="{{.===selected}}">{{.}}</option>
+						{{/options}}
+					</select>`,
 				data: {
 					selected: 2,
 					options: [1,2,3]

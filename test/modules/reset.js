@@ -231,6 +231,55 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'active' );
 		});
 
+		test( 'reset does not re-render if template does not change', function ( t ) {
+			var p, ractive = new Ractive({
+				el: fixture,
+				template: '<p>me</p>',
+				data: {
+					active: false
+				}
+			});
+
+			p = ractive.find( 'p' );
+			t.ok( p );
+			ractive.reset( { active: true } );
+			t.equal( ractive.find('p'), p );
+		});
+
+		test( 'reset does not re-render if template function does not change', function ( t ) {
+			var p, ractive = new Ractive({
+				el: fixture,
+				template: function( data ) {
+					return data.active ? '<p>active</p>' : '<p>not active</p>';
+				},
+				data: {
+					active: false
+				}
+			});
+
+			p = ractive.find( 'p' );
+			t.ok( p );
+			ractive.reset( { active: false } );
+			t.equal( ractive.find('p'), p );
+		});
+
+		test( 'reset does re-render if template changes', function ( t ) {
+			var p, ractive = new Ractive({
+				el: fixture,
+				template: function( data ) {
+					return data.active ? '<p>active</p>' : '<p>not active</p>';
+				},
+				data: {
+					active: false
+				}
+			});
+
+			p = ractive.find( 'p' );
+			t.ok( p );
+			ractive.reset( { active: true } );
+			t.notEqual( ractive.find('p'), p );
+		});
+
 		test( 'reset removes an inline component from the DOM', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,

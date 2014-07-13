@@ -77,6 +77,10 @@ StandardParser = Parser.extend({
 	},
 
 	postProcess: function ( items, options ) {
+		if ( this.sectionDepth > 0 ) {
+			this.error( 'A section was left open' );
+		}
+
 		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
 		return items;
 	},

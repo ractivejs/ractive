@@ -176,6 +176,42 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( observedLengthChange );
 		});
 
+		test( '#if sections only render once when arrays are mutated', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if list}}yes{{else}}no{{/if}}',
+				data: {
+					list: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+
+			ractive.push( 'list', 'd' );
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+
+			ractive.splice( 'list', 0, 0, 'e', 'f' );
+			t.htmlEqual( fixture.innerHTML, 'yes' );
+		});
+
+		test( 'Unbound sections disregard splice instructions (#967)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					<ul>
+						{{#list:i}}
+							<li>{{.}}: {{#list}}{{.}}{{/}}</li>
+						{{/list}}
+					</ul>`,
+				data: {
+					list: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.splice( 'list', 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<ul><li>a: ac</li><li>c: ac</li></ul>' );
+		});
+
 	};
 
 });

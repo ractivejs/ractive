@@ -6,7 +6,6 @@ var Observer = function ( ractive, keypath, callback, options ) {
 	this.keypath = keypath;
 	this.callback = callback;
 	this.defer = options.defer;
-	this.debug = options.debug;
 
 	// Observers are notified before any DOM changes take place (though
 	// they can defer execution until afterwards)

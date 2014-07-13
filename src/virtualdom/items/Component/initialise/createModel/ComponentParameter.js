@@ -1,13 +1,11 @@
 import runloop from 'global/runloop';
 import circular from 'circular';
 
-var Fragment, getValueOptions, ComponentParameter;
+var Fragment, ComponentParameter;
 
 circular.push( function () {
 	Fragment = circular.Fragment;
 });
-
-getValueOptions = { parse: true };
 
 ComponentParameter = function ( component, key, value ) {
 
@@ -21,7 +19,7 @@ ComponentParameter = function ( component, key, value ) {
 		owner:    this
 	});
 
-	this.value = this.fragment.getValue( getValueOptions );
+	this.value = this.fragment.getValue();
 };
 
 ComponentParameter.prototype = {
@@ -33,7 +31,7 @@ ComponentParameter.prototype = {
 	},
 
 	update: function () {
-		var value = this.fragment.getValue( getValueOptions );
+		var value = this.fragment.getValue();
 
 		this.component.instance.viewmodel.set( this.key, value );
 		runloop.addViewmodel( this.component.instance.viewmodel );

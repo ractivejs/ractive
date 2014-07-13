@@ -11,7 +11,13 @@ export default function ( parser ) {
 	if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
 		index = remaining.indexOf( barrier );
 	} else {
-		disallowed = [ barrier, parser.delimiters[0], parser.tripleDelimiters[0] ];
+		disallowed = [
+			barrier,
+			parser.delimiters[0],
+			parser.tripleDelimiters[0],
+			parser.staticDelimiters[0],
+			parser.staticTripleDelimiters[0]
+		];
 
 		// http://developers.whatwg.org/syntax.html#syntax-attributes
 		if ( parser.inAttribute === true ) {

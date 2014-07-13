@@ -30,6 +30,11 @@ var parseTests = [
 		parsed: {v:1,t:[{t:3,r:"mustache",s:true}]}
 	},
 	{
+		name: "Static Section",
+		template: "[[#foo]]yes[[/foo]]",
+		parsed: {v:1,t:[{t:4,r:"foo",s:true,f:["yes"]}]}
+	},
+	{
 		name: "Empty section",
 		template: "{{#mustache}}{{/mustache}}",
 		parsed: {v:1,t:[{t:4,r:"mustache"}]}

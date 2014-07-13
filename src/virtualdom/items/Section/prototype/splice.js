@@ -10,6 +10,13 @@ circular.push( function () {
 export default function Section$splice ( spliceSummary ) {
 	var section = this, balance, start, insertStart, insertEnd, spliceArgs;
 
+	// In rare cases, a section will receive a splice instruction after it has
+	// been unbound (see https://github.com/ractivejs/ractive/issues/967). This
+	// prevents errors arising from those situations
+	if ( this.unbound ) {
+		return;
+	}
+
 	balance = spliceSummary.balance;
 
 	if ( !balance ) {

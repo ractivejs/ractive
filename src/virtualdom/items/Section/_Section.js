@@ -20,7 +20,9 @@ import update from 'virtualdom/items/Section/prototype/update';
 
 var Section = function ( options ) {
 	this.type = types.SECTION;
-	this.inverted = options.template.n === types.SECTION_UNLESS;
+	this.subtype = options.template.n;
+	this.inverted = this.subtype === types.SECTION_UNLESS;
+
 
 	this.pElement = options.pElement;
 
@@ -43,6 +45,7 @@ Section.prototype = {
 	findComponent: findComponent,
 	findNextNode: findNextNode,
 	firstNode: firstNode,
+	getValue: Mustache.getValue,
 	merge: merge,
 	rebind: Mustache.rebind,
 	render: render,

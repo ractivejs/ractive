@@ -1,7 +1,8 @@
 import warn from 'utils/warn';
 import config from 'config/config';
+import genericHandler from 'virtualdom/items/Element/EventHandler/shared/genericHandler';
 
-var alreadyWarned = {}, customHandlers = {};
+var customHandlers = {};
 
 export default function EventHandler$render () {
 	var name = this.name, definition;
@@ -13,10 +14,7 @@ export default function EventHandler$render () {
 	} else {
 		// Looks like we're dealing with a standard DOM event... but let's check
 		if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
-			if ( !alreadyWarned[ name ] ) {
-				warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
-				alreadyWarned[ name ] = true;
-			}
+			warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
 		}
 
 		this.node.addEventListener( name, genericHandler, false );
@@ -25,21 +23,6 @@ export default function EventHandler$render () {
 	// store this on the node itself, so it can be retrieved by a
 	// universal handler
 	this.node._ractive.events[ name ] = this;
-}
-
-function genericHandler ( event ) {
-	var storage, handler;
-
-	storage = this._ractive;
-	handler = storage.events[ event.type ];
-
-	handler.fire({
-		node: this,
-		original: event,
-		index: storage.index,
-		keypath: storage.keypath,
-		context: storage.root.get( storage.keypath )
-	});
 }
 
 function getCustomHandler ( name ) {

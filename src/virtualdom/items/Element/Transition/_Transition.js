@@ -7,13 +7,11 @@ import start from 'virtualdom/items/Element/Transition/prototype/start';
 
 import circular from 'circular';
 
-var Fragment, getValueOptions, Transition;
+var Fragment, Transition;
 
 circular.push( function () {
 	Fragment = circular.Fragment;
 });
-
-getValueOptions = { args: true };
 
 Transition = function ( owner, template, isIntro ) {
 	this.init( owner, template, isIntro );

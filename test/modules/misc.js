@@ -925,13 +925,15 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		if ( Ractive.svg ) {
-			test( 'foreignObject elements and their children default to html namespace (#713)', function ( t ) {
+			test( 'Children of foreignObject elements default to html namespace (#713)', function ( t ) {
 				var ractive = new Ractive({
 					el: fixture,
 					template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
 				});
 
-				t.equal( ractive.find( 'foreignObject' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
+				// We can't do `ractive.find( 'foreignObject' )` because of a longstanding browser bug
+				// (https://bugs.webkit.org/show_bug.cgi?id=83438)
+				t.equal( ractive.find( 'svg' ).firstChild.namespaceURI, 'http://www.w3.org/2000/svg' );
 				t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
 			});
 		}
@@ -1256,6 +1258,45 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Widget({ data: { foo: 'bar' }});
 			t.equal( ractive.toHTML(), '<p>bar</p>' );
+		});
+
+		test( 'Regression test for #950', function ( t ) {
+			var ractive, select;
+
+			expect( 0 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#if editing}}
+						<select value="{{selected}}" on-select="done-selecting" on-blur="done-selecting">
+							<option disabled>Select:</option>
+							{{#each items}}
+							<option>{{this}}</option>
+							{{/each}}
+						</select>
+					{{else}}
+						<input type="checkbox" checked="{{editing}}"/>
+						<span class="hover-text">{{#if selected}}{{selected}}{{else}}Select...{{/if}}</span>
+					{{/if}}`,
+				data: {
+					editing: true,
+					items: ["Apples", "Oranges", "Samsungs"]
+				}
+			});
+
+			ractive.observe('selected', function() {
+				ractive.set('editing', false);
+			}, { init: false });
+
+			ractive.on('done-selecting', function( event ) {
+				ractive.set('editing', false);
+			});
+
+			select = ractive.find( 'select' );
+			select.focus();
+			select.options[2].selected = true;
+			simulant.fire( select, 'change' );
 		});
 
 

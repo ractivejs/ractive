@@ -16,8 +16,6 @@ var defaultOptions = {
 	preserveWhitespace: false,
 	sanitize:           false,
 	stripComments:      true,
-	delimiters:         [ '{{', '}}' ],
-	tripleDelimiters:   [ '{{{', '}}}' ],
 
 	// data & binding:
 	data:               {},

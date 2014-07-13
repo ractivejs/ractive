@@ -1,6 +1,8 @@
 Changelog
 ---------
 
+* 0.5.5
+	* Fixes for #713, #941, #942, #943, #945, #950, #951, #952, #953, #960, #965, #967 and #974
 * 0.5.2, 0.5.3, 0.5.4
 	* No actual changes, just wrestling with npm and bower!
 * 0.5.1

@@ -1,3 +1,4 @@
+import namespaces from 'config/namespaces';
 import isArray from 'utils/isArray';
 import warn from 'utils/warn';
 import create from 'utils/create';
@@ -38,9 +39,10 @@ updateScript = function () {
 };
 
 export default function Element$render () {
-	var root = this.root, node;
+	var root = this.root, namespace, node;
 
-	node = this.node = createElement( this.name, this.namespace );
+	namespace = getNamespace( this );
+	node = this.node = createElement( this.name, namespace );
 
 	// Is this a top-level node of a component? If so, we may need to add
 	// a data-rvcguid attribute, for CSS encapsulation
@@ -136,6 +138,38 @@ export default function Element$render () {
 
 	updateLiveQueries( this );
 	return this.node;
+}
+
+function getNamespace ( element ) {
+	var namespace, xmlns, parent;
+
+	// Use specified namespace...
+	if ( xmlns = element.getAttribute( 'xmlns' ) ) {
+		namespace = xmlns;
+	}
+
+	// ...or SVG namespace, if this is an <svg> element
+	else if ( element.name === 'svg' ) {
+		namespace = namespaces.svg;
+	}
+
+	else if ( parent = element.parent ) {
+		// ...or HTML, if the parent is a <foreignObject>
+		if ( parent.name === 'foreignObject' ) {
+			namespace = namespaces.html;
+		}
+
+		// ...or inherit from the parent node
+		else {
+			namespace = parent.node.namespaceURI;
+		}
+	}
+
+	else {
+		namespace = element.root.el.namespaceURI;
+	}
+
+	return namespace;
 }
 
 function processOption ( option ) {
