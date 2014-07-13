@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.4
-	2014-07-13 - commit adf3e124 
+	2014-07-13 - commit 0c4b4f67 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -34,14 +34,6 @@
 			preserveWhitespace: false,
 			sanitize: false,
 			stripComments: true,
-			delimiters: [
-				'{{',
-				'}}'
-			],
-			tripleDelimiters: [
-				'{{{',
-				'}}}'
-			],
 			// data & binding:
 			data: {},
 			computed: {},
