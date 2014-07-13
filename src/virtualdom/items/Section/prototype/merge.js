@@ -18,6 +18,10 @@ export default function Section$merge ( newIndices ) {
 		fragment,
 		nextNode;
 
+	if ( this.unbound ) {
+		return;
+	}
+
 	parentFragment = this.parentFragment;
 
 	reboundFragments = [];
@@ -53,18 +57,20 @@ export default function Section$merge ( newIndices ) {
 		reboundFragments[ newIndex ] = fragment;
 	});
 
+	newLength = this.root.get( this.keypath ).length;
+
 	// If nothing changed with the existing fragments, then we start adding
 	// new fragments at the end...
 	if ( firstChange === undefined ) {
+		// ...unless there are no new fragments to add
+		if ( this.length === newLength ) {
+			return;
+		}
+
 		firstChange = this.length;
 	}
 
-	this.length = this.fragments.length = newLength = this.root.get( this.keypath ).length;
-
-	if ( newLength === firstChange ) {
-		// ...unless there are no new fragments to add
-		return;
-	}
+	this.length = this.fragments.length = newLength;
 
 	runloop.addView( this );
 
