@@ -9,7 +9,16 @@ ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 getOptions = { evaluateWrapped: true };
 
 export default function resolveRef ( ractive, ref, fragment ) {
-	var context, key, index, keypath, parentValue, hasContextChain, parentKeys, childKeys;
+	var context,
+		key,
+		index,
+		keypath,
+		parentValue,
+		hasContextChain,
+		parentKeys,
+		childKeys,
+		parentKeypath,
+		childKeypath;
 
 	ref = normaliseRef( ref );
 
@@ -64,10 +73,9 @@ export default function resolveRef ( ractive, ref, fragment ) {
 		keypath = resolveRef( ractive._parent, ref, fragment );
 
 		if ( keypath ) {
-			// Need to create an inter-component binding
-			ractive.viewmodel.set( ref, ractive._parent.viewmodel.get( keypath ), true );
+			// We need to create an inter-component binding
 
-			// if parent keypath is 'one.foo' and child is 'two.foo', we bind
+			// If parent keypath is 'one.foo' and child is 'two.foo', we bind
 			// 'one' to 'two' as it's more efficient and avoids edge cases
 			parentKeys = keypath.split( '.' );
 			childKeys = ref.split( '.' );
@@ -77,8 +85,13 @@ export default function resolveRef ( ractive, ref, fragment ) {
 				childKeys.pop();
 			}
 
-			createComponentBinding( ractive.component, ractive._parent, parentKeys.join( '.' ), childKeys.join( '.' ) );
-			return keypath;
+			parentKeypath = parentKeys.join( '.' );
+			childKeypath = childKeys.join( '.' );
+
+			ractive.viewmodel.set( childKeypath, ractive._parent.viewmodel.get( parentKeypath ), true );
+			createComponentBinding( ractive.component, ractive._parent, parentKeypath, childKeypath );
+
+			return ref;
 		}
 	}
 
