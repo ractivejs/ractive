@@ -19,7 +19,7 @@ Of course, if you've encountered a bug, then the best course of action is to rai
 Raising issues
 --------------
 
-Before submitting an issue, please make sure you're using the latest released version - http://cdn.ractivejs.org/latest/Ractive.js.
+Before submitting an issue, please make sure you're using the latest released version - http://cdn.ractivejs.org/latest/ractive.js.
 
 If the bug persists, it may have been fixed in the latest development version. You can always get the most recent successful build from http://cdn.ractivejs.org/edge/Ractive.js.
 
