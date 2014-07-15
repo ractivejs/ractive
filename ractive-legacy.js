@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-07-15 - commit b6578be7 
+	2014-07-15 - commit 9bdd4d40 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9260,9 +9260,24 @@
 		}
 	}( log, ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding );
 
+	/* virtualdom/items/Element/EventHandler/prototype/bubble.js */
+	var virtualdom_items_Element_EventHandler$bubble = function EventHandler$bubble() {
+		var hasAction = this.getAction();
+		if ( hasAction && !this.hasListener ) {
+			this.listen();
+		} else if ( !hasAction && this.hasListener ) {
+			this.unrender();
+		}
+	};
+
 	/* virtualdom/items/Element/EventHandler/prototype/fire.js */
 	var virtualdom_items_Element_EventHandler$fire = function EventHandler$fire( event ) {
-		this.root.fire( this.action.toString().trim(), event );
+		this.root.fire( this.getAction(), event );
+	};
+
+	/* virtualdom/items/Element/EventHandler/prototype/getAction.js */
+	var virtualdom_items_Element_EventHandler$getAction = function EventHandler$getAction() {
+		return this.action.toString().trim();
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
@@ -9286,7 +9301,7 @@
 				action = new Fragment( {
 					template: action,
 					root: this.root,
-					owner: this.element
+					owner: this
 				} );
 			}
 			this.action = action;
@@ -9306,7 +9321,7 @@
 
 		function fireEventWithParams( event ) {
 			this.root.fire.apply( this.root, [
-				this.action.toString().trim(),
+				this.getAction(),
 				event
 			].concat( this.params ) );
 		}
@@ -9318,21 +9333,11 @@
 				args = args.substr( 1, args.length - 2 );
 			}
 			this.root.fire.apply( this.root, [
-				this.action.toString().trim(),
+				this.getAction(),
 				event
 			].concat( args ) );
 		}
 	}( circular );
-
-	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
-	var virtualdom_items_Element_EventHandler$rebind = function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-		if ( typeof this.action !== 'string' ) {
-			this.action.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-		}
-		if ( this.dynamicParams ) {
-			this.dynamicParams.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-		}
-	};
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
 	var genericHandler = function genericHandler( event ) {
@@ -9348,14 +9353,12 @@
 		} );
 	};
 
-	/* virtualdom/items/Element/EventHandler/prototype/render.js */
-	var virtualdom_items_Element_EventHandler$render = function( warn, config, genericHandler ) {
+	/* virtualdom/items/Element/EventHandler/prototype/listen.js */
+	var virtualdom_items_Element_EventHandler$listen = function( warn, config, genericHandler ) {
 
 		var customHandlers = {};
-		return function EventHandler$render() {
-			var name = this.name,
-				definition;
-			this.node = this.element.node;
+		return function EventHandler$listen() {
+			var definition, name = this.name;
 			if ( definition = config.registries.events.find( this.root, name ) ) {
 				this.custom = definition( this.node, getCustomHandler( name ) );
 			} else {
@@ -9365,9 +9368,7 @@
 				}
 				this.node.addEventListener( name, genericHandler, false );
 			}
-			// store this on the node itself, so it can be retrieved by a
-			// universal handler
-			this.node._ractive.events[ name ] = this;
+			this.hasListener = true;
 		};
 
 		function getCustomHandler( name ) {
@@ -9383,6 +9384,27 @@
 			return customHandlers[ name ];
 		}
 	}( warn, config, genericHandler );
+
+	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
+	var virtualdom_items_Element_EventHandler$rebind = function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+		if ( typeof this.action !== 'string' ) {
+			this.action.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		}
+		if ( this.dynamicParams ) {
+			this.dynamicParams.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		}
+	};
+
+	/* virtualdom/items/Element/EventHandler/prototype/render.js */
+	var virtualdom_items_Element_EventHandler$render = function EventHandler$render() {
+		this.node = this.element.node;
+		// store this on the node itself, so it can be retrieved by a
+		// universal handler
+		this.node._ractive.events[ this.name ] = this;
+		if ( this.getAction() ) {
+			this.listen();
+		}
+	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/teardown.js */
 	var virtualdom_items_Element_EventHandler$teardown = function EventHandler$teardown() {
@@ -9405,25 +9427,29 @@
 			} else {
 				this.node.removeEventListener( this.name, genericHandler, false );
 			}
+			this.hasListener = false;
 		};
 	}( genericHandler );
 
 	/* virtualdom/items/Element/EventHandler/_EventHandler.js */
-	var EventHandler = function( fire, init, rebind, render, teardown, unrender ) {
+	var EventHandler = function( bubble, fire, getAction, init, listen, rebind, render, teardown, unrender ) {
 
 		var EventHandler = function( element, name, template ) {
 			this.init( element, name, template );
 		};
 		EventHandler.prototype = {
+			bubble: bubble,
 			fire: fire,
+			getAction: getAction,
 			init: init,
+			listen: listen,
 			rebind: rebind,
 			render: render,
 			teardown: teardown,
 			unrender: unrender
 		};
 		return EventHandler;
-	}( virtualdom_items_Element_EventHandler$fire, virtualdom_items_Element_EventHandler$init, virtualdom_items_Element_EventHandler$rebind, virtualdom_items_Element_EventHandler$render, virtualdom_items_Element_EventHandler$teardown, virtualdom_items_Element_EventHandler$unrender );
+	}( virtualdom_items_Element_EventHandler$bubble, virtualdom_items_Element_EventHandler$fire, virtualdom_items_Element_EventHandler$getAction, virtualdom_items_Element_EventHandler$init, virtualdom_items_Element_EventHandler$listen, virtualdom_items_Element_EventHandler$rebind, virtualdom_items_Element_EventHandler$render, virtualdom_items_Element_EventHandler$teardown, virtualdom_items_Element_EventHandler$unrender );
 
 	/* virtualdom/items/Element/prototype/init/createEventHandlers.js */
 	var virtualdom_items_Element$init_createEventHandlers = function( EventHandler ) {
