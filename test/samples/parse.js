@@ -645,6 +645,12 @@ var parseTests = [
 		name: 'Unclosed section in attribute',
 		template: '<p class="{{#foo}}yo{{#foo}}"></p>',
 		error: 'An attribute value must contain as many opening section tags as closing section tags at line 1 character 10:\n<p class=\"{{#foo}}yo{{#foo}}\"></p>\n         ^----'
+	},
+	// #983
+	{
+		name: 'Handlebars closing sections can contain whitespace',
+		template: '{{ #each a }}{{ /each a }}',
+		parsed: {'v':1,'t':[{'t':4,'n':52,'r':'a'}]}
 	}
 ];
 
