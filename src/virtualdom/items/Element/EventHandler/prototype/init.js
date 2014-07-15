@@ -21,7 +21,7 @@ export default function EventHandler$init ( element, name, template ) {
 		action = new Fragment({
 			template: action,
 			root: this.root,
-			owner: this.element
+			owner: this
 		});
 	}
 
@@ -43,7 +43,7 @@ export default function EventHandler$init ( element, name, template ) {
 }
 
 function fireEventWithParams ( event ) {
-	this.root.fire.apply( this.root, [ this.action.toString().trim(), event ].concat( this.params ) );
+	this.root.fire.apply( this.root, [ this.getAction(), event ].concat( this.params ) );
 }
 
 function fireEventWithDynamicParams ( event ) {
@@ -54,5 +54,5 @@ function fireEventWithDynamicParams ( event ) {
 		args = args.substr( 1, args.length - 2 );
 	}
 
-	this.root.fire.apply( this.root, [ this.action.toString().trim(), event ].concat( args ) );
+	this.root.fire.apply( this.root, [ this.getAction(), event ].concat( args ) );
 }
