@@ -1,15 +1,12 @@
 {
   "name": "ractive",
-  "repo": "ractivejs/ractive",
+  "repository": "ractivejs/ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.5.4",
-  "keywords": [],
-  "dependencies": {},
-  "development": {},
+  "version": "0.5.5",
+  "keywords": [ "reactive", "templates", "templating", "ui", "mustache", "handlebars", "dom" ],
   "license": "MIT",
   "main": "ractive.js",
   "scripts": [
     "ractive.js"
-  ],
-  "main": "ractive.js"
+  ]
 }
