@@ -26,6 +26,9 @@ cp tmp/package.json build-branch/package.json
 rm build-branch/bower.json
 cp tmp/bower.json build-branch/bower.json
 
+rm build-branch/component.json
+cp tmp/component.json build-branch/component.json
+
 # Update remote build branch
 ( cd build-branch
 	git add -A
