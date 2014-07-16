@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-07-16 - commit 57fb0777 
+	2014-07-16 - commit e63d6278 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6260,6 +6260,10 @@
 			// TODO this can register the attribute multiple times (see render test
 			// 'Attribute with nested mustaches')
 			if ( value !== this.value ) {
+				// Need to clear old id from ractive.nodes
+				if ( this.name === 'id' && this.value ) {
+					delete this.root.nodes[ this.value ];
+				}
 				this.value = value;
 				if ( this.name === 'value' && this.node ) {
 					// We need to store the value on the DOM like this so we
@@ -8869,6 +8873,10 @@
 			// Remove this node from any live queries
 			if ( this.liveQueries ) {
 				removeFromLiveQueries( this );
+			}
+			// Remove from nodes
+			if ( this.node.id ) {
+				delete this.root.nodes[ this.node.id ];
 			}
 		};
 
