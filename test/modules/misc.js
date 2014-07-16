@@ -1299,6 +1299,15 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( select, 'change' );
 		});
 
+		test( 'Custom delimiters apply to inline partials (#990)', function ( t ) {
+			var ractive = new Ractive({
+				template: '<!-- ([>a]) --> abc <!-- ([/a]) -->',
+				delimiters: [ '([', '])' ]
+			});
+
+			t.deepEqual( ractive.partials, { a : [ 'abc' ] });
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
