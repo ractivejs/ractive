@@ -30,7 +30,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		test( 'on-click="someEvent" does not fire event when unrendered', t => {
-			var ractive;
+			var ractive, node;
 
 			expect( 0 );
 
@@ -43,13 +43,15 @@ define([ 'ractive' ], function ( Ractive ) {
 				throw new Error('Event handler called after unrender');
 			});
 
-			ractive.unrender()
+			node = ractive.nodes.test;
 
-			simulant.fire( ractive.nodes.test, 'click' );
+			ractive.unrender();
+
+			simulant.fire( node, 'click' );
 		});
 
 		test( 'custom event invoked and torndown', t => {
-			var ractive, custom;
+			var ractive, custom, node;
 
 			expect( 3 );
 
@@ -91,11 +93,13 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.equal( event.original.type, 'click' );
 			});
 
-			simulant.fire( ractive.nodes.test, 'click' );
+			node = ractive.nodes.test;
 
-			ractive.unrender()
+			simulant.fire( node, 'click' );
 
-			simulant.fire( ractive.nodes.test, 'click' );
+			ractive.unrender();
+
+			simulant.fire( node, 'click' );
 
 		});
 
