@@ -37,5 +37,35 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.updateModel();
 			t.htmlEqual( fixture.innerHTML, '<input>bar' );
 		});
+
+		test( 'Elements with id are registered and unregistered with ractive.nodes', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: "{{#hasP}}<p id='foo'></p>{{/}}",
+				data: {
+					hasP: true
+				}
+			});
+
+			t.equal( ractive.nodes.foo, ractive.find('p') );
+			ractive.set( 'hasP', false );
+			t.ok( !ractive.nodes.foo );
+		});
+
+		test( 'Elements with dynamic id is unregistered with ractive.nodes on change', function ( t ) {
+			var p, ractive = new Ractive({
+				el: fixture,
+				template: "<p id='{{id}}'></p>",
+				data: {
+					id: 'foo'
+				}
+			});
+
+			p = ractive.find('p')
+			t.equal( ractive.nodes.foo, p );
+			ractive.set( 'id', 'bar' );
+			t.ok( !ractive.nodes.foo );
+			t.equal( ractive.nodes.bar, p );
+		});
 	};
 });
