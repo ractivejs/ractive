@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-07-15 - commit 9bdd4d40 
+	2014-07-16 - commit 920fd6df 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3874,8 +3874,17 @@
 		}
 	}( types );
 
+	/* utils/escapeRegExp.js */
+	var escapeRegExp = function() {
+
+		var pattern = /[-/\\^$*+?.()|[\]{}]/g;
+		return function escapeRegExp( str ) {
+			return str.replace( pattern, '\\$&' );
+		};
+	}();
+
 	/* parse/_parse.js */
-	var parse = function( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones ) {
+	var parse = function( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones, escapeRegExp ) {
 
 		// Ractive.parse
 		// ===============
@@ -3907,30 +3916,13 @@
 		// * c - is Content (e.g. of a comment node)
 		// * p - line Position information - array with line number and character position of each node
 		var StandardParser, parse, contiguousWhitespace = /[ \t\f\r\n]+/g,
-			inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
-			inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 			preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 			leadingWhitespace = /^\s+/,
 			trailingWhitespace = /\s+$/;
 		StandardParser = Parser.extend( {
 			init: function( str, options ) {
 				// config
-				this.delimiters = options.delimiters || [
-					'{{',
-					'}}'
-				];
-				this.tripleDelimiters = options.tripleDelimiters || [
-					'{{{',
-					'}}}'
-				];
-				this.staticDelimiters = options.staticDelimiters || [
-					'[[',
-					']]'
-				];
-				this.staticTripleDelimiters = options.staticTripleDelimiters || [
-					'[[[',
-					']]]'
-				];
+				setDelimiters( options, this );
 				this.sectionDepth = 0;
 				this.interpolate = {
 					script: !options.interpolate || options.interpolate.script !== false,
@@ -3965,7 +3957,10 @@
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = {};
-			var result, remaining, partials, name, startMatch, endMatch;
+			var result, remaining, partials, name, startMatch, endMatch, inlinePartialStart, inlinePartialEnd;
+			setDelimiters( options );
+			inlinePartialStart = new RegExp( '<!--\\s*' + escapeRegExp( options.delimiters[ 0 ] ) + '\\s*>\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*' + escapeRegExp( options.delimiters[ 1 ] ) + '\\s*-->' );
+			inlinePartialEnd = new RegExp( '<!--\\s*' + escapeRegExp( options.delimiters[ 0 ] ) + '\\s*\\/\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*' + escapeRegExp( options.delimiters[ 1 ] ) + '\\s*-->' );
 			result = {
 				v: 1
 			};
@@ -4076,7 +4071,29 @@
 				}
 			}
 		}
-	}( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones );
+
+		function setDelimiters( source ) {
+			var target = arguments[ 1 ];
+			if ( target === void 0 )
+				target = source;
+			target.delimiters = source.delimiters || [
+				'{{',
+				'}}'
+			];
+			target.tripleDelimiters = source.tripleDelimiters || [
+				'{{{',
+				'}}}'
+			];
+			target.staticDelimiters = source.staticDelimiters || [
+				'[[',
+				']]'
+			];
+			target.staticTripleDelimiters = source.staticTripleDelimiters || [
+				'[[[',
+				']]]'
+			];
+		}
+	}( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones, escapeRegExp );
 
 	/* config/options/groups/optionGroup.js */
 	var optionGroup = function() {
