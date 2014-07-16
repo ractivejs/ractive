@@ -1,5 +1,6 @@
 module.exports = {
 	tmpDir: [ '<%= tmpDir %>/' ],
 	build: [ 'build/**/*.js' ],
-	tests: [ 'test/tests/' ]
+	tests: [ 'test/tests/' ],
+	tmp: [ 'tmp/' ]
 };
