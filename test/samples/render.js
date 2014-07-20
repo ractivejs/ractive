@@ -727,6 +727,18 @@ var renderTests = [
 		result: '<video></video>'
 	},
 	{
+		name: 'Truthy aria attributes (#1011)',
+		template: '<span aria-haspopup="{{#yes}}true{{/yes}}">...</span>',
+		data: { yes: true },
+		result: '<span aria-haspopup="true">...</span>'
+	},
+	{
+		name: 'Falsy aria attributes (#1011)',
+		template: '<span aria-haspopup="{{^yes}}false{{/yes}}">...</span>',
+		data: { yes: false },
+		result: '<span aria-haspopup="false">...</span>'
+	},
+	{
 		name: 'Root-level reference',
 		template: '{{#a}}{{#b}}{{#c}}{{~/foo}}{{/c}}{{/b}}{{/a}}',
 		data: { foo: 'top', a: { b: { c: { foo: 'c' }, foo: 'b' }, foo: 'a' } },
