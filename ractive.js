@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-07-20 - commit d20d8cc2 
+	2014-07-20 - commit d6b3d7f8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2377,37 +2377,42 @@
 			},
 			flattenExpression: flattenExpression,
 			getLinePos: function() {
-				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum;
+				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, charNum, annotation;
 				lines = this.str.split( '\n' );
-				lineNum = -1;
+				lineNum = 0;
 				nextLineEnd = 0;
 				do {
 					currentLineEnd = nextLineEnd;
 					lineNum++;
-					currentLine = lines[ lineNum ];
+					currentLine = lines[ lineNum - 1 ];
 					nextLineEnd += currentLine.length + 1;
 				} while ( nextLineEnd <= this.pos );
-				columnNum = this.pos - currentLineEnd;
+				charNum = this.pos - currentLineEnd + 1;
+				annotation = currentLine + '\n' + new Array( charNum ).join( ' ' ) + '^----';
 				return {
-					line: lineNum + 1,
-					ch: columnNum + 1,
+					line: lineNum,
+					ch: charNum,
 					text: currentLine,
+					annotation: annotation,
 					toJSON: function() {
 						return [
-							this.line,
-							this.ch
+							lineNum,
+							charNum
 						];
 					},
 					toString: function() {
-						return 'line ' + this.line + ' character ' + this.ch + ':\n' + this.text + '\n' + this.text.substr( 0, this.ch - 1 ).replace( /[\S]/g, ' ' ) + '^----';
+						return 'line ' + lineNum + ( ' character ' + charNum ) + '';
 					}
 				};
 			},
-			error: function( err ) {
-				var pos, message;
+			error: function( message ) {
+				var pos, error;
 				pos = this.getLinePos();
-				message = err + ' at ' + pos;
-				throw new ParseError( message );
+				error = new ParseError( message + ' at ' + pos + ':\n' + pos.annotation );
+				error.line = pos.line;
+				error.character = pos.ch;
+				error.shortMessage = message;
+				throw error;
 			},
 			matchString: function( string ) {
 				if ( this.str.substr( this.pos, string.length ) === string ) {
