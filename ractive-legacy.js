@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-07-20 - commit 6ff4de29 
+	2014-07-20 - commit 927e3440 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8568,7 +8568,7 @@
 			} else if ( name === 'value' ) {
 				// special case - selects
 				if ( element.name === 'select' && name === 'value' ) {
-					updateMethod = node.multiple ? updateMultipleSelectValue : updateSelectValue;
+					updateMethod = element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
 				} else if ( element.name === 'textarea' ) {
 					updateMethod = updateValue;
 				} else if ( node.getAttribute( 'contenteditable' ) ) {
