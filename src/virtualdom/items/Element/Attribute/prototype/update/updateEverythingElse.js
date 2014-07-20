@@ -1,3 +1,5 @@
+import booleanAttributes from 'config/booleanAttributes';
+
 export default function Attribute$updateEverythingElse () {
 	var node, name, value;
 
@@ -9,7 +11,7 @@ export default function Attribute$updateEverythingElse () {
 		node.setAttributeNS( this.namespace, name, value );
 	}
 
-	else if ( typeof value === 'string' || typeof value === 'number' ) {
+	else if ( !booleanAttributes.test( name ) ) {
 		node.setAttribute( name, value );
 	}
 
