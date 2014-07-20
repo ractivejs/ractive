@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-07-20 - commit 48dafffa 
+	2014-07-20 - commit d20d8cc2 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6673,23 +6673,26 @@
 	};
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateEverythingElse.js */
-	var virtualdom_items_Element_Attribute$update_updateEverythingElse = function Attribute$updateEverythingElse() {
-		var node, name, value;
-		node = this.node;
-		name = this.name;
-		value = this.value;
-		if ( this.namespace ) {
-			node.setAttributeNS( this.namespace, name, value );
-		} else if ( typeof value === 'string' || typeof value === 'number' ) {
-			node.setAttribute( name, value );
-		} else {
-			if ( value ) {
-				node.setAttribute( name, '' );
+	var virtualdom_items_Element_Attribute$update_updateEverythingElse = function( booleanAttributes ) {
+
+		return function Attribute$updateEverythingElse() {
+			var node, name, value;
+			node = this.node;
+			name = this.name;
+			value = this.value;
+			if ( this.namespace ) {
+				node.setAttributeNS( this.namespace, name, value );
+			} else if ( !booleanAttributes.test( name ) ) {
+				node.setAttribute( name, value );
 			} else {
-				node.removeAttribute( name );
+				if ( value ) {
+					node.setAttribute( name, '' );
+				} else {
+					node.removeAttribute( name );
+				}
 			}
-		}
-	};
+		};
+	}( booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/update.js */
 	var virtualdom_items_Element_Attribute$update = function( namespaces, noop, updateSelectValue, updateMultipleSelectValue, updateRadioName, updateRadioValue, updateCheckboxName, updateClassName, updateIdAttribute, updateIEStyleAttribute, updateContentEditableValue, updateValue, updateBoolean, updateEverythingElse ) {
