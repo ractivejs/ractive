@@ -1,3 +1,5 @@
+import booleanAttributes from 'config/booleanAttributes';
+
 export default function Attribute$toString () {
 	var name, value, interpolator;
 
@@ -14,18 +16,18 @@ export default function Attribute$toString () {
 		return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 	}
 
-	// Numbers
-	if ( typeof value === 'number' ) {
-		return name + '="' + value + '"';
+	// Boolean attributes
+	if ( booleanAttributes.test( name ) ) {
+		return value ? name : '';
 	}
 
 	// Strings
 	if ( typeof value === 'string' ) {
-		return name + '="' + escape( value ) + '"';
+		return value ? name + '="' + escape( value ) + '"' : name;
 	}
 
 	// Everything else
-	return value ? name : '';
+	return name + '="' + value + '"';
 }
 
 function escape ( value ) {
