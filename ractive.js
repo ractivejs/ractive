@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-07-16 - commit e63d6278 
+	2014-07-20 - commit 48dafffa 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7755,6 +7755,14 @@
 		};
 	}( runloop );
 
+	/* config/booleanAttributes.js */
+	var booleanAttributes = function() {
+
+		// https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
+		var booleanAttributes = /allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|draggable|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|spellcheck|translate|trueSpeed|typeMustMatch|visible/;
+		return booleanAttributes;
+	}();
+
 	/* virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace.js */
 	var determineNameAndNamespace = function( namespaces, enforceCase ) {
 
@@ -7839,7 +7847,7 @@
 	}( namespaces );
 
 	/* virtualdom/items/Element/Attribute/prototype/init.js */
-	var virtualdom_items_Element_Attribute$init = function( types, determineNameAndNamespace, getInterpolator, determinePropertyName, circular ) {
+	var virtualdom_items_Element_Attribute$init = function( types, booleanAttributes, determineNameAndNamespace, getInterpolator, determinePropertyName, circular ) {
 
 		var Fragment;
 		circular.push( function() {
@@ -7853,7 +7861,7 @@
 			// if it's an empty attribute, or just a straight key-value pair, with no
 			// mustache shenanigans, set the attribute accordingly and go home
 			if ( !options.value || typeof options.value === 'string' ) {
-				this.value = options.value || true;
+				this.value = booleanAttributes.test( this.name ) ? true : options.value || '';
 				return;
 			}
 			// otherwise we need to do some work
@@ -7875,7 +7883,7 @@
 			// mark as ready
 			this.ready = true;
 		};
-	}( types, determineNameAndNamespace, getInterpolator, determinePropertyName, circular );
+	}( types, booleanAttributes, determineNameAndNamespace, getInterpolator, determinePropertyName, circular );
 
 	/* virtualdom/items/Element/Attribute/prototype/rebind.js */
 	var virtualdom_items_Element_Attribute$rebind = function Attribute$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -7935,7 +7943,7 @@
 	}( namespaces );
 
 	/* virtualdom/items/Element/Attribute/prototype/toString.js */
-	var virtualdom_items_Element_Attribute$toString = function() {
+	var virtualdom_items_Element_Attribute$toString = function( booleanAttributes ) {
 
 		return function Attribute$toString() {
 			var name, value, interpolator;
@@ -7949,22 +7957,22 @@
 			if ( name === 'name' && this.element.name === 'input' && ( interpolator = this.interpolator ) ) {
 				return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 			}
-			// Numbers
-			if ( typeof value === 'number' ) {
-				return name + '="' + value + '"';
+			// Boolean attributes
+			if ( booleanAttributes.test( name ) ) {
+				return value ? name : '';
 			}
 			// Strings
 			if ( typeof value === 'string' ) {
-				return name + '="' + escape( value ) + '"';
+				return value ? name + '="' + escape( value ) + '"' : name;
 			}
 			// Everything else
-			return value ? name : '';
+			return name + '="' + value + '"';
 		};
 
 		function escape( value ) {
 			return value.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
 		}
-	}();
+	}( booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/unbind.js */
 	var virtualdom_items_Element_Attribute$unbind = function Attribute$unbind() {
