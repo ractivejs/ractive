@@ -353,6 +353,31 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'Model -> view binding works with <select multiple> (#1009)', function ( t ) {
+			var ractive, options;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					<select value='{{selectedColors}}' multiple>
+						{{#each colors}}
+							<option>{{this}}</option>
+						{{/each}}
+					</select>`,
+				data: {
+					colors: [ 'red', 'green', 'blue', 'purple' ]
+				}
+			});
+
+			options = ractive.findAll( 'option' );
+
+			ractive.set( 'selectedColors', [ 'green', 'purple' ]);
+			t.ok( !options[0].selected );
+			t.ok( options[1].selected );
+			t.ok( !options[2].selected );
+			t.ok( options[3].selected );
+		});
+
 	};
 
 });
