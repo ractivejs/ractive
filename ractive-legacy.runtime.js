@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-07-20 - commit d6b3d7f8 
+	2014-07-20 - commit 6ff4de29 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -188,31 +188,6 @@
 						intermediate[ prop ] = interpolators[ prop ]( t );
 					}
 					return intermediate;
-				};
-			},
-			cssLength: function( from, to ) {
-				var fromMatch, toMatch, fromUnit, toUnit, fromValue, toValue, unit, delta;
-				if ( from !== 0 && typeof from !== 'string' || to !== 0 && typeof to !== 'string' ) {
-					return null;
-				}
-				fromMatch = cssLengthPattern.exec( from );
-				toMatch = cssLengthPattern.exec( to );
-				fromUnit = fromMatch ? fromMatch[ 2 ] : '';
-				toUnit = toMatch ? toMatch[ 2 ] : '';
-				if ( fromUnit && toUnit && fromUnit !== toUnit ) {
-					return null;
-				}
-				unit = fromUnit || toUnit;
-				fromValue = fromMatch ? +fromMatch[ 1 ] : 0;
-				toValue = toMatch ? +toMatch[ 1 ] : 0;
-				delta = toValue - fromValue;
-				if ( !delta ) {
-					return function() {
-						return fromValue + unit;
-					};
-				}
-				return function( t ) {
-					return fromValue + t * delta + unit;
 				};
 			}
 		};
@@ -2430,7 +2405,7 @@
 				}
 				warn( 'Missing "' + type + '" interpolator. You may need to download a plugin from [TODO]' );
 			}
-			return interpolators.number( from, to ) || interpolators.array( from, to ) || interpolators.object( from, to ) || interpolators.cssLength( from, to ) || snap( to );
+			return interpolators.number( from, to ) || interpolators.array( from, to ) || interpolators.object( from, to ) || snap( to );
 		};
 		circular.interpolate = interpolate;
 		return interpolate;
@@ -2456,6 +2431,7 @@
 			}
 			this.interpolator = interpolate( this.from, this.to, this.root, this.interpolator );
 			this.running = true;
+			this.tick();
 		};
 		Animation.prototype = {
 			tick: function() {
