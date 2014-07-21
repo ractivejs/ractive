@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-07-21 - commit f8f09759 
+	2014-07-21 - commit 9f83c6da 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3958,6 +3958,7 @@
 					( partials || ( partials = {} ) )[ name ] = new StandardParser( remaining.substr( 0, endMatch.index ), options ).result;
 					remaining = remaining.substring( endMatch.index + endMatch[ 0 ].length );
 				}
+				template += remaining;
 				result.p = partials;
 			}
 			result.t = new StandardParser( template, options ).result;
