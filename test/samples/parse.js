@@ -650,6 +650,12 @@ var parseTests = [
 		name: 'Whitespace before block declaration',
 		template: '{{ # if foo }}...{{ / if }}',
 		parsed: {v:1,t:[{t:4,r:'foo',n:50,f:['...']}]}
+	},
+	// #1024
+	{
+		name: 'Content after inline partials is not ignored (#1024)',
+		template: 'testing <!-- {{>a}} -->a<!-- {{/a}} --><script>alert()</script>',
+		parsed: {v:1,p:{a:['a']},t:['testing ',{t:7,e:'script',f:['alert()']}]}
 	}
 ];
 
