@@ -1308,6 +1308,24 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( ractive.partials, { a : [ 'abc' ] });
 		});
 
+		asyncTest( 'Regression test for #1019', function ( t ) {
+			var ractive, img;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<img src="http://placehold.it/350x150" width="{{350}}">'
+			});
+
+			img = ractive.find( 'img' );
+
+			img.addEventListener( 'load', function () {
+				setTimeout( function () {
+					t.equal( img.width, 350 );
+					QUnit.start();
+				});
+			});
+		})
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
