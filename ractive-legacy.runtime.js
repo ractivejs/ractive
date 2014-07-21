@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-07-21 - commit 761b10ea 
+	2014-07-21 - commit f8f09759 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8318,10 +8318,10 @@
 				var width = img.getAttribute( 'width' ),
 					height = img.getAttribute( 'height' );
 				if ( width !== undefined ) {
-					img.node.width = width;
+					img.node.setAttribute( 'width', width );
 				}
 				if ( height !== undefined ) {
-					img.node.height = height;
+					img.node.setAttribute( 'height', height );
 				}
 				img.node.removeEventListener( 'load', loadHandler, false );
 			}, false );
