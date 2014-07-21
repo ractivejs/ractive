@@ -645,6 +645,11 @@ var parseTests = [
 		name: 'Unclosed section in attribute',
 		template: '<p class="{{#foo}}yo{{#foo}}"></p>',
 		error: 'An attribute value must contain as many opening section tags as closing section tags at line 1 character 10:\n<p class=\"{{#foo}}yo{{#foo}}\"></p>\n         ^----'
+	},
+	{
+		name: 'Whitespace before block declaration',
+		template: '{{ # if foo }}...{{ / if }}',
+		parsed: {v:1,t:[{t:4,r:'foo',n:50,f:['...']}]}
 	}
 ];
 

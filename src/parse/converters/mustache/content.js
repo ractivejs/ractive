@@ -5,7 +5,7 @@ import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	arrayMemberPattern = /^[0-9][1-9]*$/,
-	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
+	handlebarsBlockPattern = new RegExp( '^\\s*(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
 	legalReference;
 
 legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
@@ -27,6 +27,8 @@ export default function ( parser, delimiterType ) {
 	if ( delimiterType.isTriple ) {
 		mustache.t = types.TRIPLE;
 	} else {
+		parser.allowWhitespace();
+
 		// We need to test for expressions before we test for mustache type, because
 		// an expression that begins '!' looks a lot like a comment
 		if ( parser.remaining()[0] === '!' && ( expression = parser.readExpression() ) ) {
