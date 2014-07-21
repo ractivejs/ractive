@@ -1,10 +1,7 @@
 import booleanAttributes from 'config/booleanAttributes';
 
 export default function Attribute$toString () {
-	var name, value, interpolator;
-
-	name = this.name;
-	value = this.value;
+	var { name, value, interpolator, fragment } = this;
 
 	// Special case - select values (should not be stringified)
 	if ( name === 'value' && this.element.name === 'select' ) {
@@ -12,7 +9,7 @@ export default function Attribute$toString () {
 	}
 
 	// Special case - radio names
-	if ( name === 'name' && this.element.name === 'input' && ( interpolator = this.interpolator ) ) {
+	if ( name === 'name' && this.element.name === 'input' && interpolator ) {
 		return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 	}
 
@@ -21,13 +18,11 @@ export default function Attribute$toString () {
 		return value ? name : '';
 	}
 
-	// Strings
-	if ( typeof value === 'string' ) {
-		return value ? name + '="' + escape( value ) + '"' : name;
+	if ( fragment ) {
+		value = fragment.toString();
 	}
 
-	// Everything else
-	return name + '="' + value + '"';
+	return value ? name + '="' + escape( value ) + '"' : name;
 }
 
 function escape ( value ) {

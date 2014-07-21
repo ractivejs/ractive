@@ -1,18 +1,14 @@
 import booleanAttributes from 'config/booleanAttributes';
 
 export default function Attribute$updateEverythingElse () {
-	var node, name, value;
+	var { node, namespace, name, value, fragment } = this;
 
-	node = this.node;
-	name = this.name;
-	value = this.value;
-
-	if ( this.namespace ) {
-		node.setAttributeNS( this.namespace, name, value );
+	if ( namespace ) {
+		node.setAttributeNS( namespace, name, fragment || value );
 	}
 
 	else if ( !booleanAttributes.test( name ) ) {
-		node.setAttribute( name, value );
+		node.setAttribute( name, fragment || value );
 	}
 
 	// Boolean attributes - truthy becomes '', falsy means 'remove attribute'

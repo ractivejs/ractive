@@ -766,6 +766,12 @@ var renderTests = [
 			}
 		},
 		result: '4321'
+	},
+	{
+		name: 'Attribute values are passed through as strings, not parsed (#1007)',
+		template: `<p data-foo="{foo:'{{foo}}'}"></p>`,
+		data: { foo: 'bar' },
+		result: `<p data-foo="{foo:'bar'}"></p>`
 	}
 ];
 
