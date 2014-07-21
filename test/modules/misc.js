@@ -1324,7 +1324,21 @@ define([ 'ractive' ], function ( Ractive ) {
 					QUnit.start();
 				});
 			});
-		})
+		});
+
+		test( 'Regression test for #1003', function ( t ) {
+			expect( 0 );
+
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#unless foo}}y{{/unless}}
+
+					<select value="{{foo}}">
+						<option>x</option>
+					</select>`
+			});
+		});
 
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
