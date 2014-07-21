@@ -1326,6 +1326,24 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		asyncTest( 'Another regression test for #1019', function ( t ) {
+			var ractive, img;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div style="width: 350px"><img src="http://placehold.it/350x150" width="100%"></div>'
+			});
+
+			img = ractive.find( 'img' );
+
+			img.addEventListener( 'load', function () {
+				setTimeout( function () {
+					t.equal( img.width, 350 );
+					QUnit.start();
+				});
+			});
+		});
+
 		test( 'Regression test for #1003', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,

@@ -9,11 +9,11 @@ export default function renderImage ( img ) {
 				height = img.getAttribute( 'height' );
 
 			if ( width !== undefined ) {
-				img.node.width = width;
+				img.node.setAttribute('width', width);
 			}
 
 			if ( height !== undefined ) {
-				img.node.height = height;
+				img.node.setAttribute('height', height);
 			}
 
 			img.node.removeEventListener( 'load', loadHandler, false );
