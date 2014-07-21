@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-07-21 - commit 105c31f4 
+	2014-07-21 - commit 761b10ea 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8329,27 +8329,26 @@
 	var virtualdom_items_Element_Attribute$toString = function( booleanAttributes ) {
 
 		return function Attribute$toString() {
-			var name, value, interpolator;
-			name = this.name;
-			value = this.value;
+			var name = ( fragment = this ).name,
+				value = fragment.value,
+				interpolator = fragment.interpolator,
+				fragment = fragment.fragment;
 			// Special case - select values (should not be stringified)
 			if ( name === 'value' && this.element.name === 'select' ) {
 				return;
 			}
 			// Special case - radio names
-			if ( name === 'name' && this.element.name === 'input' && ( interpolator = this.interpolator ) ) {
+			if ( name === 'name' && this.element.name === 'input' && interpolator ) {
 				return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 			}
 			// Boolean attributes
 			if ( booleanAttributes.test( name ) ) {
 				return value ? name : '';
 			}
-			// Strings
-			if ( typeof value === 'string' ) {
-				return value ? name + '="' + escape( value ) + '"' : name;
+			if ( fragment ) {
+				value = fragment.toString();
 			}
-			// Everything else
-			return name + '="' + value + '"';
+			return value ? name + '="' + escape( value ) + '"' : name;
 		};
 
 		function escape( value ) {
@@ -8537,14 +8536,15 @@
 	var virtualdom_items_Element_Attribute$update_updateEverythingElse = function( booleanAttributes ) {
 
 		return function Attribute$updateEverythingElse() {
-			var node, name, value;
-			node = this.node;
-			name = this.name;
-			value = this.value;
-			if ( this.namespace ) {
-				node.setAttributeNS( this.namespace, name, value );
+			var node = ( fragment = this ).node,
+				namespace = fragment.namespace,
+				name = fragment.name,
+				value = fragment.value,
+				fragment = fragment.fragment;
+			if ( namespace ) {
+				node.setAttributeNS( namespace, name, fragment || value );
 			} else if ( !booleanAttributes.test( name ) ) {
-				node.setAttribute( name, value );
+				node.setAttribute( name, fragment || value );
 			} else {
 				if ( value ) {
 					node.setAttribute( name, '' );
