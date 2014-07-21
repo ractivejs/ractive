@@ -1327,8 +1327,6 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		test( 'Regression test for #1003', function ( t ) {
-			expect( 0 );
-
 			var ractive = new Ractive({
 				el: fixture,
 				template: `
@@ -1338,6 +1336,8 @@ define([ 'ractive' ], function ( Ractive ) {
 						<option>x</option>
 					</select>`
 			});
+
+			t.htmlEqual( fixture.innerHTML, '<select><option>x</option></select>' );
 		});
 
 

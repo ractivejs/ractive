@@ -258,7 +258,7 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 	else if ( section.length ) {
 		section.fragmentsToUnrender = section.fragments.splice( 0, section.fragments.length ).filter( isRendered );
 		section.fragmentsToUnrender.forEach( unbind );
-		section.length = 0;
+		section.length = section.fragmentsToRender.length = 0;
 
 		return true;
 	}
