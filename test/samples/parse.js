@@ -645,6 +645,13 @@ var parseTests = [
 		name: 'Unclosed section in attribute',
 		template: '<p class="{{#foo}}yo{{#foo}}"></p>',
 		error: 'An attribute value must contain as many opening section tags as closing section tags at line 1 character 10:\n<p class=\"{{#foo}}yo{{#foo}}\"></p>\n         ^----'
+	},
+
+	// #1024
+	{
+		name: 'Content after inline partials is not ignored (#1024)',
+		template: 'testing <!-- {{>a}} -->a<!-- {{/a}} --><script>alert()</script>',
+		parsed: {v:1,p:{a:['a']},t:['testing ',{t:7,e:'script',f:['alert()']}]}
 	}
 ];
 

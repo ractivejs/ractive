@@ -120,6 +120,7 @@ parse = function ( template, options = {} ) {
 			remaining = remaining.substring( endMatch.index + endMatch[0].length );
 		}
 
+		template += remaining;
 		result.p = partials;
 	}
 
