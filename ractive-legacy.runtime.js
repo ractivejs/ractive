@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-07-21 - commit 02533ba5 
+	2014-07-21 - commit 105c31f4 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6048,7 +6048,7 @@
 			} else if ( section.length ) {
 				section.fragmentsToUnrender = section.fragments.splice( 0, section.fragments.length ).filter( isRendered );
 				section.fragmentsToUnrender.forEach( unbind );
-				section.length = 0;
+				section.length = section.fragmentsToRender.length = 0;
 				return true;
 			}
 		}
