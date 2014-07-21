@@ -1309,7 +1309,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		asyncTest( 'Regression test for #1019', function ( t ) {
-			var ractive, img;
+			var ractive, img, int, i;
 
 			ractive = new Ractive({
 				el: fixture,
@@ -1318,16 +1318,18 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			img = ractive.find( 'img' );
 
-			img.addEventListener( 'load', function () {
-				setTimeout( function () {
+			i = 0;
+			int = setInterval( function () {
+				if ( img.complete || i++ === 20 ) {
+					clearInterval( int );
 					t.equal( img.width, 350 );
 					QUnit.start();
-				});
-			});
+				}
+			}, 100);
 		});
 
 		asyncTest( 'Another regression test for #1019', function ( t ) {
-			var ractive, img;
+			var ractive, img, int, i;
 
 			ractive = new Ractive({
 				el: fixture,
@@ -1336,12 +1338,14 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			img = ractive.find( 'img' );
 
-			img.addEventListener( 'load', function () {
-				setTimeout( function () {
+			i = 0;
+			int = setInterval( function () {
+				if ( img.complete || i++ === 20 ) {
+					clearInterval( int );
 					t.equal( img.width, 350 );
 					QUnit.start();
-				});
-			});
+				}
+			}, 100);
 		});
 
 		test( 'Regression test for #1003', function ( t ) {
