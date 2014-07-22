@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-07-21 - commit c65f615c 
+	2014-07-22 - commit a6574a5d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9655,6 +9655,10 @@
 
 		return function initOption( option, template ) {
 			option.select = findParentSelect( option.parent );
+			// we might be inside a <datalist> element
+			if ( !option.select ) {
+				return;
+			}
 			option.select.options.push( option );
 			// If the value attribute is missing, use the element's content
 			if ( !template.a ) {
@@ -10562,6 +10566,9 @@
 
 		function processOption( option ) {
 			var optionValue, selectValue, i;
+			if ( !option.select ) {
+				return;
+			}
 			selectValue = option.select.getAttribute( 'value' );
 			if ( selectValue === undefined ) {
 				return;
@@ -10629,7 +10636,7 @@
 		function optionIsSelected( element ) {
 			var optionValue, selectValue, i;
 			optionValue = element.getAttribute( 'value' );
-			if ( optionValue === undefined ) {
+			if ( optionValue === undefined || !element.select ) {
 				return false;
 			}
 			selectValue = element.select.getAttribute( 'value' );
@@ -10670,7 +10677,9 @@
 	var virtualdom_items_Element_special_option_unbind = function( removeFromArray ) {
 
 		return function unbindOption( option ) {
-			removeFromArray( option.select.options, option );
+			if ( option.select ) {
+				removeFromArray( option.select.options, option );
+			}
 		};
 	}( removeFromArray );
 
