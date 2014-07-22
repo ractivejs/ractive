@@ -772,6 +772,12 @@ var renderTests = [
 		template: `<p data-foo="{foo:'{{foo}}'}"></p>`,
 		data: { foo: 'bar' },
 		result: `<p data-foo="{foo:'bar'}"></p>`
+	},
+	{
+		name: '<datalist> is supported (#1033)',
+		template: '<datalist id="test">{{#list}}<option value="{{this}}"></option>{{/list}}</datalist>',
+		data: { list: [ 'a', 'b', 'c' ] },
+		result: '<datalist id="test"><option value="a"></option><option value="b"></option><option value="c"></option></datalist>'
 	}
 ];
 

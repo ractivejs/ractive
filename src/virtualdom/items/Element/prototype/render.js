@@ -175,6 +175,10 @@ function getNamespace ( element ) {
 function processOption ( option ) {
 	var optionValue, selectValue, i;
 
+	if ( !option.select ) {
+		return;
+	}
+
 	selectValue = option.select.getAttribute( 'value' );
 	if ( selectValue === undefined ) {
 		return;
