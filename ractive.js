@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-07-22 - commit a6574a5d 
+	2014-07-23 - commit 6ccaccd3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8145,9 +8145,9 @@
 				value = fragment.value,
 				fragment = fragment.fragment;
 			if ( namespace ) {
-				node.setAttributeNS( namespace, name, fragment || value );
+				node.setAttributeNS( namespace, name, ( fragment || value ).toString() );
 			} else if ( !booleanAttributes.test( name ) ) {
-				node.setAttribute( name, fragment || value );
+				node.setAttribute( name, ( fragment || value ).toString() );
 			} else {
 				if ( value ) {
 					node.setAttribute( name, '' );
