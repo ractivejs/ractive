@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-07-23 - commit ccbe31bb 
+	2014-07-30 - commit ba184c5f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3675,7 +3675,7 @@
 				index = remaining.length;
 			}
 			parser.pos += index;
-			return decodeCharacterReferences( remaining.substr( 0, index ) );
+			return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
 		};
 	}( getLowestIndex, decodeCharacterReferences );
 
