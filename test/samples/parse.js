@@ -652,6 +652,13 @@ var parseTests = [
 		name: 'Content after inline partials is not ignored (#1024)',
 		template: 'testing <!-- {{>a}} -->a<!-- {{/a}} --><script>alert()</script>',
 		parsed: {v:1,p:{a:['a']},t:['testing ',{t:7,e:'script',f:['alert()']}]}
+	},
+
+	// #1050
+	{
+		name: 'Characters inside script and style tags are not decoded.',
+		template: '<script> var a = \'&amp;\'; </script>',
+		parsed: {v:1,t:[{t:7,e:'script',f:[" var a = '&amp;'; "]}]}
 	}
 ];
 
