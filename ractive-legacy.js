@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-07-30 - commit ba184c5f 
+	2014-08-01 - commit 9729506d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6559,7 +6559,9 @@
 	var Evaluator = function( log, isEqual, defineProperty, diff ) {
 
 		// TODO this is a red flag... should be treated the same?
-		var Evaluator, cache = {};
+		// for fn.bind()
+		var Evaluator, cache = {},
+			bind = Function.prototype.bind;
 		Evaluator = function( root, keypath, uniqueString, functionStr, args, priority ) {
 			var evaluator = this,
 				viewmodel = root.viewmodel;
@@ -6661,7 +6663,7 @@
 		}
 
 		function wrap( fn, ractive ) {
-			var wrapped, prop;
+			var wrapped, prop, key;
 			if ( fn._noWrap ) {
 				return fn;
 			}
@@ -6671,8 +6673,14 @@
 				return wrapped;
 			} else if ( /this/.test( fn.toString() ) ) {
 				defineProperty( fn, prop, {
-					value: fn.bind( ractive )
+					value: bind.call( fn, ractive )
 				} );
+				// Add properties/methods to wrapped function
+				for ( key in fn ) {
+					if ( fn.hasOwnProperty( key ) ) {
+						fn[ prop ][ key ] = fn[ key ];
+					}
+				}
 				return fn[ prop ];
 			}
 			defineProperty( fn, '__ractive_nowrap', {
@@ -6684,7 +6692,7 @@
 		function call( arg ) {
 			return typeof arg === 'function' ? arg() : arg;
 		}
-	}( log, isEqual, defineProperty, diff );
+	}( log, isEqual, defineProperty, diff, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
 	var ExpressionResolver = function( removeFromArray, resolveRef, Unresolved, Evaluator, getNewKeypath ) {
