@@ -1361,6 +1361,30 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select><option>x</option></select>' );
 		});
 
+		test( 'Regression test for #1055', function ( t ) {
+			var _, ractive;
+
+			_ = {
+				bind: function () {
+					// do nothing
+				},
+				uppercase: function ( str ) {
+					return str.toUpperCase();
+				}
+			};
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{_.uppercase(str)}}',
+				data: {
+					_: _,
+					str: 'foo'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'FOO' );
+		});
+
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
