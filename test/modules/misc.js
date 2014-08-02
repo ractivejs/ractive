@@ -1385,6 +1385,17 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'FOO' );
 		});
 
+		test( 'Interpolation of script/style contents can be disabled (#1050)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<script>window.TEST_VALUE = "{{uninterpolated}}";</script>',
+				data: { uninterpolated: 'whoops' },
+				interpolate: { script: false }
+			});
+
+			t.equal( window.TEST_VALUE, '{{uninterpolated}}' );
+			delete window.TEST_VALUE;
+		});
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

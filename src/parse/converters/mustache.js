@@ -12,6 +12,12 @@ export default getMustache;
 function getMustache ( parser ) {
 	var types;
 
+	// If we're inside a <script> or <style> tag, and we're not
+	// interpolating, bug out
+	if ( parser.interpolate[ parser.inside ] === false ) {
+		return null;
+	}
+
 	types = delimiterTypes.slice().sort( function compare (a, b) {
 		// Sort in order of descending opening delimiter length (longer first),
 		// to protect against opening delimiters being substrings of each other

@@ -661,9 +661,9 @@ var parseTests = [
 		parsed: {v:1,t:[{t:7,e:'script',f:[" var a = '&amp;'; "]}]}
 	},
 	{
-		name: 'Interpolation can be disabled inside script tags',
-		template: '<script>var foo="{{foo}}"</script>',
-		parsed: {v:1,t:[{t:7,e:'script',f:['var foo="{{foo}}"']}]},
+		name: 'Interpolation can be disabled inside script tags (#1050)',
+		template: '<script>{{foo}}</script>',
+		parsed: {v:1,t:[{t:7,e:'script',f:['{{foo}}']}]},
 		options: {
 			interpolate: { script: false }
 		}
