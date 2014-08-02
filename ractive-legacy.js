@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-01 - commit 9729506d 
+	2014-08-02 - commit 9fb8f105 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5071,36 +5071,35 @@
 						animations.push( animate( this, k, keypath[ k ], options ) );
 					}
 				}
-				if ( step || complete ) {
-					dummyOptions = {
-						easing: easing,
-						duration: duration
+				// Create a dummy animation, to facilitate step/complete
+				// callbacks, and Promise fulfilment
+				dummyOptions = {
+					easing: easing,
+					duration: duration
+				};
+				if ( step ) {
+					dummyOptions.step = function( t ) {
+						step( t, currentValues );
 					};
-					if ( step ) {
-						dummyOptions.step = function( t ) {
-							step( t, currentValues );
-						};
-					}
-					if ( complete ) {
-						promise.then( function( t ) {
-							complete( t, currentValues );
-						} );
-					}
-					dummyOptions.complete = fulfilPromise;
-					dummy = animate( this, null, null, dummyOptions );
-					animations.push( dummy );
 				}
-				return {
-					stop: function() {
-						var animation;
-						while ( animation = animations.pop() ) {
-							animation.stop();
-						}
-						if ( dummy ) {
-							dummy.stop();
-						}
+				if ( complete ) {
+					promise.then( function( t ) {
+						complete( t, currentValues );
+					} );
+				}
+				dummyOptions.complete = fulfilPromise;
+				dummy = animate( this, null, null, dummyOptions );
+				animations.push( dummy );
+				promise.stop = function() {
+					var animation;
+					while ( animation = animations.pop() ) {
+						animation.stop();
+					}
+					if ( dummy ) {
+						dummy.stop();
 					}
 				};
+				return promise;
 			}
 			// animate a single keypath
 			options = options || {};
