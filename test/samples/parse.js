@@ -659,6 +659,14 @@ var parseTests = [
 		name: 'Characters inside script and style tags are not decoded.',
 		template: '<script> var a = \'&amp;\'; </script>',
 		parsed: {v:1,t:[{t:7,e:'script',f:[" var a = '&amp;'; "]}]}
+	},
+	{
+		name: 'Interpolation can be disabled inside script tags (#1050)',
+		template: '<script>{{foo}}</script>',
+		parsed: {v:1,t:[{t:7,e:'script',f:['{{foo}}']}]},
+		options: {
+			interpolate: { script: false }
+		}
 	}
 ];
 
