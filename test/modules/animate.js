@@ -24,6 +24,32 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>bar</p>' );
 		});
 
+		asyncTest( 'ractive.animate() returns a promise that resolves when the animation completes (#1047)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{~~foo}}',
+				data: { foo: 0 }
+			});
+
+			ractive.animate( 'foo', 100, { duration: 10 }).then( function () {
+				t.htmlEqual( fixture.innerHTML, '100' );
+				QUnit.start();
+			});
+		});
+
+		asyncTest( 'ractive.animate() returns a promise that resolves when the animation completes when using a map of values (#1047)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{~~foo}}',
+				data: { foo: 0 }
+			});
+
+			ractive.animate({ foo: 100 }, { duration: 10 }).then( function () {
+				t.htmlEqual( fixture.innerHTML, '100' );
+				QUnit.start();
+			});
+		});
+
 	};
 
 });
