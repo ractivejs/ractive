@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-02 - commit 9fb8f105 
+	2014-08-02 - commit 53bf46d6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2672,6 +2672,11 @@
 
 		function getMustache( parser ) {
 			var types;
+			// If we're inside a <script> or <style> tag, and we're not
+			// interpolating, bug out
+			if ( parser.interpolate[ parser.inside ] === false ) {
+				return null;
+			}
 			types = delimiterTypes.slice().sort( function compare( a, b ) {
 				// Sort in order of descending opening delimiter length (longer first),
 				// to protect against opening delimiters being substrings of each other
@@ -4097,7 +4102,8 @@
 			'sanitize',
 			'stripComments',
 			'delimiters',
-			'tripleDelimiters'
+			'tripleDelimiters',
+			'interpolate'
 		];
 		parseOptions = optionGroup( keys, function( key ) {
 			return key;

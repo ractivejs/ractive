@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-02 - commit 9fb8f105 
+	2014-08-02 - commit 53bf46d6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1960,7 +1960,8 @@
 			'sanitize',
 			'stripComments',
 			'delimiters',
-			'tripleDelimiters'
+			'tripleDelimiters',
+			'interpolate'
 		];
 		parseOptions = optionGroup( keys, function( key ) {
 			return key;
