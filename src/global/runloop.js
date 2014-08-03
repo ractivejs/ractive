@@ -114,27 +114,35 @@ function flushChanges () {
 }
 
 function attemptKeypathResolution () {
-	var array, thing, keypath;
+	var i, item, keypath, resolved;
 
-	if ( !unresolved.length ) {
-		return;
-	}
+	i = unresolved.length;
 
 	// see if we can resolve any unresolved references
-	array = unresolved.splice( 0, unresolved.length );
-	while ( thing = array.pop() ) {
-		if ( thing.keypath ) {
-			continue; // it did resolve after all
+	while ( i-- ) {
+		item = unresolved[i];
+
+		if ( item.keypath ) {
+			// it resolved some other way. TODO how? two-way binding? Seems
+			// weird that we'd still end up here
+			unresolved.splice( i, 1 );
 		}
 
-		keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );
+		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment ) ) {
+			( resolved || ( resolved = [] ) ).push({
+				item: item,
+				keypath: keypath
+			});
 
-		if ( keypath !== undefined ) {
-			// If we've resolved the keypath, we can initialise this item
-			thing.resolve( keypath );
-		} else {
-			// If we can't resolve the reference, try again next time
-			unresolved.push( thing );
+			unresolved.splice( i, 1 );
 		}
 	}
+
+	if ( resolved ) {
+		resolved.forEach( resolve );
+	}
+}
+
+function resolve ( resolved ) {
+	resolved.item.resolve( resolved.keypath );
 }
