@@ -8,7 +8,6 @@ circular.push( function () {
 });
 
 ComponentParameter = function ( component, key, value ) {
-
 	this.parentFragment = component.parentFragment;
 	this.component = component;
 	this.key = key;

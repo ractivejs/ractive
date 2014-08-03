@@ -1450,6 +1450,42 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			t.htmlEqual( fixture.innerHTML, 'works? yes' );
 		});
 
+		test( 'Reference expressions default to two-way binding (#996)', function ( t ) {
+			var ractive, widgets, output;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#each rows:r}}
+						{{#columns}}
+							<widget row="{{rows[r]}}" column="{{this}}" />
+						{{/columns}}
+					{{/each}}
+					<pre>{{JSON.stringify(rows)}}</pre>`,
+				data: {
+					rows: [
+						{ name: 'Alice', age: 30 }
+					],
+					columns: [ 'name', 'age' ]
+				},
+				components: {
+					widget: Ractive.extend({ template: '<input value="{{row[column]}}" />' })
+				}
+			});
+
+			output = ractive.find( 'pre' );
+			widgets = ractive.findAllComponents( 'widget', { live: true });
+
+			widgets[0].find( 'input' ).value = 'Angela';
+			widgets[0].updateModel();
+			t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Angela', age: 30 }] );
+
+			ractive.unshift( 'rows', { name: 'Bob', age: 54 });
+			widgets[0].find( 'input' ).value = 'Brian';
+			widgets[0].updateModel();
+			t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Brian', age: 54 }, { name: 'Angela', age: 30 }] );
+		});
+
 	};
 
 });

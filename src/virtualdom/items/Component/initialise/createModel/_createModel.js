@@ -2,6 +2,7 @@ import types from 'config/types';
 import parseJSON from 'utils/parseJSON';
 import resolveRef from 'shared/resolveRef';
 import ComponentParameter from 'virtualdom/items/Component/initialise/createModel/ComponentParameter';
+import ReferenceExpressionParameter from 'virtualdom/items/Component/initialise/createModel/ReferenceExpressionParameter';
 
 export default function ( component, defaultData, attributes, toBind ) {
 	var data = {}, key, value;
@@ -46,23 +47,36 @@ function getValue ( component, key, template, toBind ) {
 		return true;
 	}
 
-	// If a regular interpolator, we bind to it
-	if ( template.length === 1 && template[0].t === types.INTERPOLATOR && template[0].r ) {
+	// Single interpolator?
+	if ( template.length === 1 && template[0].t === types.INTERPOLATOR ) {
 
-		// Is it an index reference?
-		if ( parentFragment.indexRefs && parentFragment.indexRefs[ ( indexRef = template[0].r ) ] !== undefined ) {
-			component.indexRefBindings[ indexRef ] = key;
-			return parentFragment.indexRefs[ indexRef ];
+		// If it's a regular interpolator, we bind to it
+		if ( template[0].r ) {
+			// Is it an index reference?
+			if ( parentFragment.indexRefs && parentFragment.indexRefs[ ( indexRef = template[0].r ) ] !== undefined ) {
+				component.indexRefBindings[ indexRef ] = key;
+				return parentFragment.indexRefs[ indexRef ];
+			}
+
+			// TODO what about references that resolve late? Should these be considered?
+			keypath = resolveRef( parentInstance, template[0].r, parentFragment ) || template[0].r;
+
+			// We need to set up bindings between parent and child, but
+			// we can't do it yet because the child instance doesn't exist
+			// yet - so we make a note instead
+			toBind.push({ childKeypath: key, parentKeypath: keypath });
+			return parentInstance.viewmodel.get( keypath );
 		}
 
-		// TODO what about references that resolve late? Should these be considered?
-		keypath = resolveRef( parentInstance, template[0].r, parentFragment ) || template[0].r;
+		// If it's a reference expression (e.g. `{{foo[bar]}}`), we need
+		// to watch the keypath and create/destroy bindings
+		if ( template[0].rx ) {
+			parameter = new ReferenceExpressionParameter( component, key, template[0].rx, toBind );
+			component.complexParameters.push( parameter );
 
-		// We need to set up bindings between parent and child, but
-		// we can't do it yet because the child instance doesn't exist
-		// yet - so we make a note instead
-		toBind.push({ childKeypath: key, parentKeypath: keypath });
-		return parentInstance.viewmodel.get( keypath );
+			parameter.ready = true;
+			return parameter.value;
+		}
 	}
 
 	// We have a 'complex parameter' - we need to create a full-blown string
