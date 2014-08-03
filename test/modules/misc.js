@@ -1419,7 +1419,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				data: {
 					letters: [ 'a', 'b', 'c' ]
 				}
-			})
+			});
 
 			ractive.detach();
 			ractive.push( 'letters', 'd', 'e', 'f' );
