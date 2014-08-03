@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-03 - commit b0862983 
+	2014-08-03 - commit 1479f24a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2580,7 +2580,7 @@
 						remaining = parser.remaining();
 						index = remaining.indexOf( delimiters[ 1 ] );
 						if ( index !== -1 ) {
-							mustache.r = remaining.substr( 0, index );
+							mustache.r = remaining.substr( 0, index ).split( ' ' )[ 0 ];
 							parser.pos += index;
 							return mustache;
 						}
