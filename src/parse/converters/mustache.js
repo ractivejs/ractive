@@ -153,7 +153,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 }
 
 function handlebarsIndexRef ( fragment ) {
-	var i, child, indexRef, eventName;
+	var i, child, indexRef, name;
 
 	if ( !fragment ) {
 		return;
@@ -180,8 +180,15 @@ function handlebarsIndexRef ( fragment ) {
 			}
 
 			// proxy events
-			for ( eventName in child.v ) {
-				if ( child.v.hasOwnProperty( eventName ) && child.v[ eventName ].d && ( indexRef = handlebarsIndexRef( child.v[ eventName ].d ) ) ) {
+			for ( name in child.v ) {
+				if ( child.v.hasOwnProperty( name ) && child.v[ name ].d && ( indexRef = handlebarsIndexRef( child.v[ name ].d ) ) ) {
+					return indexRef;
+				}
+			}
+
+			// attributes
+			for ( name in child.a ) {
+				if ( child.a.hasOwnProperty( name ) && ( indexRef = handlebarsIndexRef( child.a[ name ] ) ) ) {
 					return indexRef;
 				}
 			}
