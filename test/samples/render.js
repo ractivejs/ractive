@@ -784,6 +784,12 @@ var renderTests = [
 		template: '{{foo+_0+"_0"+"${0}"}}',
 		data: { foo: 'bar', _0: 'baz' },
 		result: 'barbaz_0${0}'
+	},
+	{
+		name: '@index in attributes (#1035)',
+		template: '{{#each foo}}<p data-index="{{@index}}"></p>{{/each}}',
+		data: { foo: [ 'a', 'b', 'c' ] },
+		result: '<p data-index="0"></p><p data-index="1"></p><p data-index="2"></p>'
 	}
 ];
 
