@@ -65,7 +65,7 @@ export default function ( parser, delimiterType ) {
 				index = remaining.indexOf( delimiters[1] );
 
 				if ( index !== -1 ) {
-					mustache.r = remaining.substr( 0, index );
+					mustache.r = remaining.substr( 0, index ).split( ' ' )[0];
 					parser.pos += index;
 					return mustache;
 				}
