@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-02 - commit 53bf46d6 
+	2014-08-03 - commit a5c66ecd 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2634,10 +2634,14 @@
 	var Ractive$detach = function( removeFromArray ) {
 
 		return function Ractive$detach() {
+			if ( this.detached ) {
+				return this.detached;
+			}
 			if ( this.el ) {
 				removeFromArray( this.el.__ractive_instances__, this );
 			}
-			return this.fragment.detach();
+			this.detached = this.fragment.detach();
+			return this.detached;
 		};
 	}( removeFromArray );
 
@@ -3025,6 +3029,7 @@
 			target.insertBefore( this.detach(), anchor );
 			this.el = target;
 			( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( this );
+			this.detached = null;
 		};
 	}( getElement );
 
@@ -3784,7 +3789,7 @@
 				return fragment.pElement.node;
 			}
 		} while ( fragment = fragment.parent );
-		return this.root.el;
+		return this.root.detached || this.root.el;
 	};
 
 	/* config/types.js */
@@ -9894,7 +9899,7 @@
 		var instance = this.instance;
 		instance.render( this.parentFragment.getNode() );
 		this.rendered = true;
-		return instance.detach();
+		return instance.fragment.detach();
 	};
 
 	/* virtualdom/items/Component/prototype/toString.js */
