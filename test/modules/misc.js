@@ -1460,8 +1460,6 @@ define([ 'ractive' ], function ( Ractive ) {
 				ractive.set('obj.error', true);
 				ractive.set('obj.loading', false);
 
-				console.log( 'fine' );
-
 				QUnit.start();
 			}, 100 );
 		});

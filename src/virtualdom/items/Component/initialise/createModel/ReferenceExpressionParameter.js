@@ -9,21 +9,28 @@ var ReferenceExpressionParameter = function ( component, childKeypath, template,
 	this.hash = null;
 
 	this.resolver = new ReferenceExpressionResolver( this, template, keypath => {
-		if ( this.hash && component.bindings[ this.hash ] ) {
-			component.bindings[ this.hash ].unbind();
+		// Are we updating an existing binding?
+		if ( this.binding || ( this.binding = component.bindings[ this.hash ] ) ) {
 			component.bindings[ this.hash ] = null;
+
+			this.binding.rebind( keypath );
+
+			this.hash = keypath + '=' + childKeypath;
+			component.bindings[ this.hash ];
 		}
 
-		if ( !this.ready ) {
-			toBind.push({
-				childKeypath: childKeypath,
-				parentKeypath: keypath
-			});
-		} else {
-			createComponentBinding( component, component.root, keypath, childKeypath );
+		else {
+			if ( !this.ready ) {
+				// The child instance isn't created yet, we need to create the binding later
+				toBind.push({
+					childKeypath: childKeypath,
+					parentKeypath: keypath
+				});
+			} else {
+				createComponentBinding( component, component.root, keypath, childKeypath );
+			}
 		}
 
-		this.hash = keypath + '=' + childKeypath; // so we can unbind if it changes
 		this.value = component.root.viewmodel.get( keypath );
 	});
 };
