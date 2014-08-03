@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-03 - commit a5c66ecd 
+	2014-08-03 - commit c9787ea3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2289,7 +2289,7 @@
 				case types.CONDITIONAL:
 					return stringify( parser, node.o[ 0 ], refs ) + '?' + stringify( parser, node.o[ 1 ], refs ) + ':' + stringify( parser, node.o[ 2 ], refs );
 				case types.REFERENCE:
-					return '${' + refs.indexOf( node.n ) + '}';
+					return '_' + refs.indexOf( node.n );
 				default:
 					parser.error( 'Expected legal JavaScript' );
 			}
@@ -6261,7 +6261,6 @@
 
 		function getFunctionFromString( str, i ) {
 			var fn, args;
-			str = str.replace( /\$\{([0-9]+)\}/g, '_$1' );
 			if ( cache[ str ] ) {
 				return cache[ str ];
 			}
@@ -6414,7 +6413,7 @@
 
 		function getUniqueString( str, args ) {
 			// get string that is unique to this expression
-			return str.replace( /\$\{([0-9]+)\}/g, function( match, $1 ) {
+			return str.replace( /_([0-9]+)/g, function( match, $1 ) {
 				var arg = args[ $1 ];
 				if ( !arg )
 					return 'undefined';
