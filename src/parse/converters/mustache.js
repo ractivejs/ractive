@@ -153,15 +153,38 @@ function getMustacheOfType ( parser, delimiterType ) {
 }
 
 function handlebarsIndexRef ( fragment ) {
-	var i, child, indexRef;
+	var i, child, indexRef, eventName;
+
+	if ( !fragment ) {
+		return;
+	}
 
 	i = fragment.length;
 	while ( i-- ) {
 		child = fragment[i];
 
 		// Recurse into elements (but not sections)
-		if ( child.t === types.ELEMENT && child.f && ( indexRef = handlebarsIndexRef( child.f ) ) ) {
-			return indexRef;
+		if ( child.t === types.ELEMENT ) {
+
+			if ( indexRef =
+				// directive arguments
+				handlebarsIndexRef( child.o  && child.o.d ) ||
+				handlebarsIndexRef( child.t0 && child.t0.d ) ||
+				handlebarsIndexRef( child.t1 && child.t1.d ) ||
+				handlebarsIndexRef( child.t2 && child.t2.d ) ||
+
+				// children
+				handlebarsIndexRef( child.f )
+			) {
+				return indexRef;
+			}
+
+			// proxy events
+			for ( eventName in child.v ) {
+				if ( child.v.hasOwnProperty( eventName ) && child.v[ eventName ].d && ( indexRef = handlebarsIndexRef( child.v[ eventName ].d ) ) ) {
+					return indexRef;
+				}
+			}
 		}
 
 		// Mustache?
