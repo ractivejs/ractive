@@ -1397,6 +1397,38 @@ define([ 'ractive' ], function ( Ractive ) {
 			delete window.TEST_VALUE;
 		});
 
+		test( 'Changing the length of a section has no effect to detached ractives until they are reattached (#1053)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if foo}}yes{{else}}no{{/if}}',
+				data: {
+					foo: true
+				}
+			});
+
+			ractive.detach();
+			ractive.set( 'foo', false );
+			t.htmlEqual( fixture.innerHTML, '' );
+
+			ractive.insert( fixture );
+			t.htmlEqual( fixture.innerHTML, 'no' );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#each letters}}{{this}}{{/each}}',
+				data: {
+					letters: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.detach();
+			ractive.push( 'letters', 'd', 'e', 'f' );
+			t.htmlEqual( fixture.innerHTML, '' );
+
+			ractive.insert( fixture );
+			t.htmlEqual( fixture.innerHTML, 'abcdef' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
