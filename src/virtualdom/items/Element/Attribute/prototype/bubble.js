@@ -6,6 +6,12 @@ export default function Attribute$bubble () {
 	// TODO this can register the attribute multiple times (see render test
 	// 'Attribute with nested mustaches')
 	if ( value !== this.value ) {
+
+		// Need to clear old id from ractive.nodes
+		if ( this.name === 'id' && this.value ) {
+			delete this.root.nodes[ this.value ];
+		}
+
 		this.value = value;
 
 		if ( this.name === 'value' && this.node ) {

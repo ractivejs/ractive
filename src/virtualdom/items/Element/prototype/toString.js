@@ -38,7 +38,7 @@ function optionIsSelected ( element ) {
 
 	optionValue = element.getAttribute( 'value' );
 
-	if ( optionValue === undefined ) {
+	if ( optionValue === undefined || !element.select ) {
 		return false;
 	}
 

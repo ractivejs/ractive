@@ -6,6 +6,7 @@ import element from 'parse/converters/element';
 import text from 'parse/converters/text';
 import trimWhitespace from 'parse/utils/trimWhitespace';
 import stripStandalones from 'parse/utils/stripStandalones';
+import escapeRegExp from 'utils/escapeRegExp';
 
 // Ractive.parse
 // ===============
@@ -41,8 +42,6 @@ import stripStandalones from 'parse/utils/stripStandalones';
 var StandardParser,
 	parse,
 	contiguousWhitespace = /[ \t\f\r\n]+/g,
-	inlinePartialStart = /<!--\s*\{\{\s*>\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
-	inlinePartialEnd = /<!--\s*\{\{\s*\/\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\s*}\}\s*-->/,
 	preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 	leadingWhitespace = /^\s+/,
 	trailingWhitespace = /\s+$/;
@@ -50,11 +49,7 @@ var StandardParser,
 StandardParser = Parser.extend({
 	init: function ( str, options ) {
 		// config
-		this.delimiters = options.delimiters || [ '{{', '}}' ];
-		this.tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ];
-
-		this.staticDelimiters = options.staticDelimiters || [ '[[', ']]' ];
-		this.staticTripleDelimiters = options.staticTripleDelimiters || [ '[[[', ']]]' ];
+		setDelimiters( options, this );
 
 		this.sectionDepth = 0;
 
@@ -94,7 +89,12 @@ StandardParser = Parser.extend({
 });
 
 parse = function ( template, options = {} ) {
-	var result, remaining, partials, name, startMatch, endMatch;
+	var result, remaining, partials, name, startMatch, endMatch, inlinePartialStart, inlinePartialEnd;
+
+	setDelimiters(options);
+
+	inlinePartialStart = new RegExp('<!--\\s*' + escapeRegExp(options.delimiters[0]) + '\\s*>\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*' + escapeRegExp(options.delimiters[1]) + '\\s*-->');
+	inlinePartialEnd = new RegExp('<!--\\s*' + escapeRegExp(options.delimiters[0]) + '\\s*\\/\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*' + escapeRegExp(options.delimiters[1]) + '\\s*-->');
 
 	result = {
 		v: 1 // template spec version, defined in https://github.com/ractivejs/template-spec
@@ -120,6 +120,7 @@ parse = function ( template, options = {} ) {
 			remaining = remaining.substring( endMatch.index + endMatch[0].length );
 		}
 
+		template += remaining;
 		result.p = partials;
 	}
 
@@ -236,4 +237,12 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			}
 		}
 	}
+}
+
+function setDelimiters ( source, target = source ) {
+	target.delimiters = source.delimiters || [ '{{', '}}' ];
+	target.tripleDelimiters = source.tripleDelimiters || [ '{{{', '}}}' ];
+
+	target.staticDelimiters = source.staticDelimiters || [ '[[', ']]' ];
+	target.staticTripleDelimiters = source.staticTripleDelimiters || [ '[[[', ']]]' ];
 }

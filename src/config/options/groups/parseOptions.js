@@ -7,7 +7,8 @@ keys = [
 	'sanitize',
 	'stripComments',
 	'delimiters',
-	'tripleDelimiters'
+	'tripleDelimiters',
+	'interpolate'
 ];
 
 parseOptions = optionGroup( keys, key => key );

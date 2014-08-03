@@ -29,6 +29,81 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, 'click' );
 		});
 
+		test( 'on-click="someEvent" does not fire event when unrendered', t => {
+			var ractive, node;
+
+			expect( 0 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="someEvent">click me</span>'
+			});
+
+			ractive.on( 'someEvent', function ( event ) {
+				throw new Error('Event handler called after unrender');
+			});
+
+			node = ractive.nodes.test;
+
+			ractive.unrender();
+
+			simulant.fire( node, 'click' );
+		});
+
+		test( 'custom event invoked and torndown', t => {
+			var ractive, custom, node;
+
+			expect( 3 );
+
+			custom = function ( node, fire ) {
+
+				var torndown = false;
+
+				node.addEventListener( 'click', fireEvent, false );
+
+				function fireEvent ( event ) {
+
+					if ( torndown ) {
+						throw new Error('Custom event called after teardown');
+					}
+
+					fire({
+						node: node,
+						original: event
+					});
+				}
+
+				return {
+					teardown: function () {
+						t.ok( torndown = true );
+						node.removeEventListener( 'click', fireEvent, false );
+					}
+				}
+			}
+
+
+			ractive = new Ractive({
+				el: fixture,
+				events: { custom: custom },
+				template: '<span id="test" on-custom="someEvent">click me</span>'
+			});
+
+			ractive.on( 'someEvent', function ( event ) {
+				t.ok( true );
+				t.equal( event.original.type, 'click' );
+			});
+
+			node = ractive.nodes.test;
+
+			simulant.fire( node, 'click' );
+
+			ractive.unrender();
+
+			simulant.fire( node, 'click' );
+
+		});
+
+
 		test( 'Standard events have correct properties: node, original, keypath, context, index', function ( t ) {
 			var ractive, fakeEvent;
 
@@ -475,6 +550,60 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( returnedValue, ractive );
 		});
+
+		test( 'Events really do not call addEventListener when no proxy name', function ( t ) {
+			var ractive,
+				addEventListener = Element.prototype.addEventListener,
+				errorAdd = function(){
+					throw new Error('addEventListener should not be called')
+				};
+
+			try {
+				Element.prototype.addEventListener = errorAdd;
+
+				expect( 1 );
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<span id="test" on-click="{{foo}}">click me</span>'
+				});
+
+				ractive.on('bar', function(){
+					t.ok( true );
+				})
+
+				simulant.fire( ractive.nodes.test, 'click' );
+
+				Element.prototype.addEventListener = addEventListener;
+				ractive.set( 'foo', 'bar' );
+				simulant.fire( ractive.nodes.test, 'click' );
+
+				Element.prototype.addEventListener = errorAdd;
+				ractive.set( 'foo', ' ' );
+				simulant.fire( ractive.nodes.test, 'click' );
+			}
+			finally {
+				Element.prototype.addEventListener = addEventListener;
+			}
+
+		});
+
+		test( '@index can be used in proxy event directives', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#each letters}}<button on-click="select:{{@index}}"></button>{{/each}}',
+				data: { letters: [ 'a', 'b', 'c' ] }
+			});
+
+			expect( 1 );
+
+			ractive.on( 'select', function ( event, index ) {
+				t.equal( index, 1 );
+			});
+
+			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
+		});
+
 
 	};
 

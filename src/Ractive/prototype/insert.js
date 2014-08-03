@@ -17,4 +17,5 @@ export default function Ractive$insert ( target, anchor ) {
 	this.el = target;
 
 	( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( this );
+	this.detached = null;
 }

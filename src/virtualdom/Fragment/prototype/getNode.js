@@ -7,5 +7,5 @@ export default function Fragment$getNode () {
 		}
 	} while ( fragment = fragment.parent );
 
-	return this.root.el;
+	return this.root.detached || this.root.el;
 }

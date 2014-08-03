@@ -16,6 +16,8 @@ var Animation = function ( options ) {
 
 	this.interpolator = interpolate( this.from, this.to, this.root, this.interpolator );
 	this.running = true;
+
+	this.tick();
 };
 
 Animation.prototype = {

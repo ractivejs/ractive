@@ -10,7 +10,8 @@ module.exports = function ( grunt ) {
 		'concurrent:requirejs',
 		'concat:closure',
 		'revision',
-		'jsbeautifier'
+		'jsbeautifier',
+		'clean:tmp'
 	]);
 
 };

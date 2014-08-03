@@ -40,5 +40,5 @@ export default function ( parser ) {
 
 	parser.pos += index;
 
-	return decodeCharacterReferences( remaining.substr( 0, index ) );
+	return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
 }

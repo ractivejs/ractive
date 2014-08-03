@@ -21,7 +21,6 @@ var interpolate = function ( from, to, ractive, type ) {
 	return interpolators.number( from, to ) ||
 	       interpolators.array( from, to ) ||
 	       interpolators.object( from, to ) ||
-	       interpolators.cssLength( from, to ) ||
 	       snap( to );
 };
 
@@ -29,5 +28,5 @@ circular.interpolate = interpolate;
 export default interpolate;
 
 function snap ( to ) {
-	return function () { return to; };
+	return () => to;
 }

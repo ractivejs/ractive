@@ -1114,7 +1114,6 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		test( 'Doctype declarations are handled, and the tag name is uppercased (#877)', function ( t ) {
 			var ractive = new Ractive({
-				el: fixture,
 				template: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>{{title}}</title></head><body>{{hello}} World!</body></html>',
 				data: { title: 'hi', hello: 'Hello' }
 			});
@@ -1299,6 +1298,173 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( select, 'change' );
 		});
 
+		test( 'Custom delimiters apply to inline partials (#990)', function ( t ) {
+			var ractive = new Ractive({
+				template: '<!-- ([>a]) --> abc <!-- ([/a]) -->',
+				delimiters: [ '([', '])' ]
+			});
+
+			t.deepEqual( ractive.partials, { a : [ 'abc' ] });
+		});
+
+		asyncTest( 'Regression test for #1019', function ( t ) {
+			var ractive, img, int, i;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<img src="http://placehold.it/350x150" width="{{350}}">'
+			});
+
+			img = ractive.find( 'img' );
+
+			i = 0;
+			int = setInterval( function () {
+				if ( img.complete || i++ === 20 ) {
+					clearInterval( int );
+					t.equal( img.width, 350 );
+					QUnit.start();
+				}
+			}, 100);
+		});
+
+		asyncTest( 'Another regression test for #1019', function ( t ) {
+			var ractive, img, int, i;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div style="width: 350px"><img src="http://placehold.it/350x150" width="100%"></div>'
+			});
+
+			img = ractive.find( 'img' );
+
+			i = 0;
+			int = setInterval( function () {
+				if ( img.complete || i++ === 20 ) {
+					clearInterval( int );
+					t.equal( img.width, 350 );
+					QUnit.start();
+				}
+			}, 100);
+		});
+
+		test( 'Regression test for #1003', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#unless foo}}y{{/unless}}
+
+					<select value="{{foo}}">
+						<option>x</option>
+					</select>`
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<select><option>x</option></select>' );
+		});
+
+		test( 'Regression test for #1055', function ( t ) {
+			var _, ractive;
+
+			_ = {
+				bind: function () {
+					// do nothing
+				},
+				uppercase: function ( str ) {
+					return str.toUpperCase();
+				}
+			};
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{_.uppercase(str)}}',
+				data: {
+					_: _,
+					str: 'foo'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'FOO' );
+		});
+
+		test( 'Interpolation of script/style contents can be disabled (#1050)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<script>window.TEST_VALUE = "{{uninterpolated}}";</script>',
+				data: { uninterpolated: 'whoops' },
+				interpolate: { script: false }
+			});
+
+			t.equal( window.TEST_VALUE, '{{uninterpolated}}' );
+			delete window.TEST_VALUE;
+		});
+
+		test( 'Changing the length of a section has no effect to detached ractives until they are reattached (#1053)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if foo}}yes{{else}}no{{/if}}',
+				data: {
+					foo: true
+				}
+			});
+
+			ractive.detach();
+			ractive.set( 'foo', false );
+			t.htmlEqual( fixture.innerHTML, '' );
+
+			ractive.insert( fixture );
+			t.htmlEqual( fixture.innerHTML, 'no' );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#each letters}}{{this}}{{/each}}',
+				data: {
+					letters: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.detach();
+			ractive.push( 'letters', 'd', 'e', 'f' );
+			t.htmlEqual( fixture.innerHTML, '' );
+
+			ractive.insert( fixture );
+			t.htmlEqual( fixture.innerHTML, 'abcdef' );
+		});
+
+		asyncTest( 'Regression test for #1038', function ( t ) {
+ 			expect( 0 );
+
+			var el, ractive;
+
+			el = document.createElement( 'div' );
+			ractive = new Ractive({
+				el: el,
+				template: `
+					{{#with obj}}
+						{{#if loading}}
+							Loading...
+						{{else}}
+							{{#error}}
+								Error!
+							{{/error}}
+
+							Content.
+						{{/if}}
+					{{/with}}`,
+				data: {
+					obj: {}
+				}
+			});
+
+			ractive.set('obj.loading', true);
+
+			setTimeout( function () {
+				ractive.set('obj.error', true);
+				ractive.set('obj.loading', false);
+
+				console.log( 'fine' );
+
+				QUnit.start();
+			}, 100 );
+		});
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
