@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-03 - commit c9787ea3 
+	2014-08-03 - commit 9e7e3bb9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -780,25 +780,31 @@
 		}
 
 		function attemptKeypathResolution() {
-			var array, thing, keypath;
-			if ( !unresolved.length ) {
-				return;
-			}
+			var i, item, keypath, resolved;
+			i = unresolved.length;
 			// see if we can resolve any unresolved references
-			array = unresolved.splice( 0, unresolved.length );
-			while ( thing = array.pop() ) {
-				if ( thing.keypath ) {
-					continue;
+			while ( i-- ) {
+				item = unresolved[ i ];
+				if ( item.keypath ) {
+					// it resolved some other way. TODO how? two-way binding? Seems
+					// weird that we'd still end up here
+					unresolved.splice( i, 1 );
 				}
-				keypath = resolveRef( thing.root, thing.ref, thing.parentFragment );
-				if ( keypath !== undefined ) {
-					// If we've resolved the keypath, we can initialise this item
-					thing.resolve( keypath );
-				} else {
-					// If we can't resolve the reference, try again next time
-					unresolved.push( thing );
+				if ( keypath = resolveRef( item.root, item.ref, item.parentFragment ) ) {
+					( resolved || ( resolved = [] ) ).push( {
+						item: item,
+						keypath: keypath
+					} );
+					unresolved.splice( i, 1 );
 				}
 			}
+			if ( resolved ) {
+				resolved.forEach( resolve );
+			}
+		}
+
+		function resolve( resolved ) {
+			resolved.item.resolve( resolved.keypath );
 		}
 	}( circular, removeFromArray, Promise, resolveRef, TransitionManager );
 
@@ -11836,7 +11842,7 @@
 	}( Ractive$shared_add );
 
 	/* Ractive/prototype/teardown.js */
-	var Ractive$teardown = function( Promise ) {
+	var Ractive$teardown = function( removeFromArray, Promise ) {
 
 		// Teardown. This goes through the root fragment and all its children, removing observers
 		// and generally cleaning up after itself
@@ -11845,6 +11851,9 @@
 			this.fire( 'teardown' );
 			this.fragment.unbind();
 			this.viewmodel.teardown();
+			if ( this.rendered && this.el.__ractive_instances__ ) {
+				removeFromArray( this.el.__ractive_instances__, this );
+			}
 			promise = this.rendered ? this.unrender() : Promise.resolve();
 			if ( callback ) {
 				// TODO deprecate this?
@@ -11852,7 +11861,7 @@
 			}
 			return promise;
 		};
-	}( Promise );
+	}( removeFromArray, Promise );
 
 	/* Ractive/prototype/toggle.js */
 	var Ractive$toggle = function( log ) {
