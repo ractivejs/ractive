@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-08-03 - commit 004a78af 
+	2014-08-03 - commit b1939fb8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11280,12 +11280,16 @@
 	var Computation = function( log, isEqual, diff ) {
 
 		var Computation = function( ractive, key, signature ) {
+			var initial;
 			this.ractive = ractive;
 			this.viewmodel = ractive.viewmodel;
 			this.key = key;
 			this.getter = signature.get;
 			this.setter = signature.set;
 			this.dependencies = [];
+			if ( initial = ractive.viewmodel.get( key ) ) {
+				this.set( initial );
+			}
 			this.update();
 		};
 		Computation.prototype = {
