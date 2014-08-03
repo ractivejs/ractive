@@ -98,7 +98,7 @@ function stringify ( parser, node, refs ) {
 		return stringify( parser, node.o[0], refs ) + '?' + stringify( parser, node.o[1], refs ) + ':' + stringify( parser, node.o[2], refs );
 
 		case types.REFERENCE:
-		return '${' + refs.indexOf( node.n ) + '}';
+		return '_' + refs.indexOf( node.n );
 
 		default:
 		parser.error( 'Expected legal JavaScript' );

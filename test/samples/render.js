@@ -778,6 +778,12 @@ var renderTests = [
 		template: '<datalist id="test">{{#list}}<option value="{{this}}"></option>{{/list}}</datalist>',
 		data: { list: [ 'a', 'b', 'c' ] },
 		result: '<datalist id="test"><option value="a"></option><option value="b"></option><option value="c"></option></datalist>'
+	},
+	{
+		name: 'Expressions are transported safely',
+		template: '{{foo+_0+"_0"+"${0}"}}',
+		data: { foo: 'bar', _0: 'baz' },
+		result: 'barbaz_0${0}'
 	}
 ];
 
