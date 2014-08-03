@@ -1429,6 +1429,43 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'abcdef' );
 		});
 
+		asyncTest( 'Regression test for #1038', function ( t ) {
+ 			expect( 0 );
+
+			var el, ractive;
+
+			el = document.createElement( 'div' );
+			ractive = new Ractive({
+				el: el,
+				template: `
+					{{#with obj}}
+						{{#if loading}}
+							Loading...
+						{{else}}
+							{{#error}}
+								Error!
+							{{/error}}
+
+							Content.
+						{{/if}}
+					{{/with}}`,
+				data: {
+					obj: {}
+				}
+			});
+
+			ractive.set('obj.loading', true);
+
+			setTimeout( function () {
+				ractive.set('obj.error', true);
+				ractive.set('obj.loading', false);
+
+				console.log( 'fine' );
+
+				QUnit.start();
+			}, 100 );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
