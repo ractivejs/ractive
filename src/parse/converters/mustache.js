@@ -96,7 +96,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 
 		while ( child = parser.read() ) {
 			if ( child.t === types.CLOSING ) {
-				if ( expectedClose && child.r !== expectedClose ) {
+				if ( expectedClose && child.r.trim() !== expectedClose ) {
 					parser.error( 'Expected {{/' + expectedClose + '}}' );
 				}
 				break;
