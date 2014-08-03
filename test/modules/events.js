@@ -588,6 +588,22 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( '@index can be used in proxy event directives', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#each letters}}<button on-click="select:{{@index}}"></button>{{/each}}',
+				data: { letters: [ 'a', 'b', 'c' ] }
+			});
+
+			expect( 1 );
+
+			ractive.on( 'select', function ( event, index ) {
+				t.equal( index, 1 );
+			});
+
+			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
+		});
+
 
 	};
 
