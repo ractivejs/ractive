@@ -11,7 +11,7 @@ export default function Ractive$teardown ( callback ) {
 	this.fragment.unbind();
 	this.viewmodel.teardown();
 
-	if ( this.el.__ractive_instances__ ) {
+	if ( this.rendered && this.el.__ractive_instances__ ) {
 		removeFromArray( this.el.__ractive_instances__, this );
 	}
 
