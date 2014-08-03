@@ -160,12 +160,12 @@ var parseTests = [
 	{
 		name: "Expression mustache",
 		template: "{{( i + 1 )}}",
-		parsed: {v:1,t:[{t:2,"x":{r:["i"],"s":"${0}+1"}}]}
+		parsed: {v:1,t:[{t:2,"x":{r:["i"],"s":"_0+1"}}]}
 	},
 	{
 		name: "Expression mustache with brackets",
 		template: "{{( (i) + 1 )}}",
-		parsed: {v:1,t:[{t:2,"x":{r:["i"],"s":"(${0})+1"}}]}
+		parsed: {v:1,t:[{t:2,"x":{r:["i"],"s":"(_0)+1"}}]}
 	},
 	{
 		name: "Nodes with id attributes and no mustaches don't get stringified",
@@ -185,17 +185,17 @@ var parseTests = [
 	{
 		name: "Expression with keypath like foo.0.bar",
 		template: "{{( process( foo.0.bar ) )}}",
-		parsed: {v:1,t:[{t:2,"x":{r:["process","foo.0.bar"],"s":"${0}(${1})"}}]}
+		parsed: {v:1,t:[{t:2,"x":{r:["process","foo.0.bar"],"s":"_0(_1)"}}]}
 	},
 	{
 		name: "Expression with method",
 		template: "{{( one.two.three() )}}",
-		parsed: {v:1,t:[{t:2,"x":{r:["one.two"],"s":"${0}.three()"}}]}
+		parsed: {v:1,t:[{t:2,"x":{r:["one.two"],"s":"_0.three()"}}]}
 	},
 	{
 		name: "Expression with indirectly-identified method",
 		template: "{{( one.two[ three ]() )}}",
-		parsed: {v:1,t:[{t:2,"x":{r:["three","one.two"],"s":"${1}[${0}]()"}}]}
+		parsed: {v:1,t:[{t:2,"x":{r:["three","one.two"],"s":"_1[_0]()"}}]}
 	},
 	{
 		name: "Void tag with spaces",
@@ -205,12 +205,12 @@ var parseTests = [
 	{
 		name: "Expression with JSON object",
 		template: "{{( fn({ foo: 1, 'bar': 2, '0foo': 3, '0bar': { baz: 'test', arr: [ 1, 2, 3 ] } }) )}}",
-		parsed: {v:1,t:[{t:2,"x":{r:["fn"],"s":"${0}({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:\"test\",arr:[1,2,3]}})"}}]}
+		parsed: {v:1,t:[{t:2,"x":{r:["fn"],"s":"_0({foo:1,bar:2,\"0foo\":3,\"0bar\":{baz:\"test\",arr:[1,2,3]}})"}}]}
 	},
 	{
 		name: 'Invocation refinements',
 		template: '{{ array.filter( someFilter ).length }}',
-		parsed: {v:1,t:[{t:2,"x":{r:["array","someFilter"],"s":"${0}.filter(${1}).length"}}]}
+		parsed: {v:1,t:[{t:2,"x":{r:["array","someFilter"],"s":"_0.filter(_1).length"}}]}
 	},
 	{
 		name: 'Boolean attributes',
@@ -220,7 +220,7 @@ var parseTests = [
 	{
 		name: 'Methods on `this`',
 		template: '{{ this.getId() }}',
-		parsed: {v:1,t:[{t:2,x:{r:['.'],s:'${0}.getId()'}}]}
+		parsed: {v:1,t:[{t:2,x:{r:['.'],s:'_0.getId()'}}]}
 	},
 	{
 		name: 'Sloppy whitespace in tags',
@@ -260,7 +260,7 @@ var parseTests = [
 	{
 		name: 'Multiple method invocations',
 		template: '{{ a.foo().bar() }}',
-		parsed: {v:1,t:[{t:2,x:{s:'${0}.foo().bar()',r:['a']}}]}
+		parsed: {v:1,t:[{t:2,x:{s:'_0.foo().bar()',r:['a']}}]}
 	},
 	{
 		name: 'Whitespace before mustache type character',
@@ -290,7 +290,7 @@ var parseTests = [
 	{
 		name: 'Intro and outro with dynamic parameters',
 		template: "<div intro='fade:{\"delay\":{{i*50}}}' outro='fade:{\"delay\":{{i*50}}}'></div>",
-		parsed: {v:1,t:[{t:7,e:'div',t1:{d:['{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}'],n:'fade'},t2:{d:['{"delay":',{t:2,x:{r:['i'],s:'${0}*50'}},'}'],n:'fade'}}]}
+		parsed: {v:1,t:[{t:7,e:'div',t1:{d:['{"delay":',{t:2,x:{r:['i'],s:'_0*50'}},'}'],n:'fade'},t2:{d:['{"delay":',{t:2,x:{r:['i'],s:'_0*50'}},'}'],n:'fade'}}]}
 	},
 	{
 		name: 'Doctype declarations are handled',
@@ -459,7 +459,7 @@ var parseTests = [
 	{
 		name: 'If syntax',
 		template: '{{#if (foo*5 < 20)}}foo{{/if}}',
-		parsed: {v:1,t:[{t:4,n:50,x:{r:['foo'],s:'${0}*5<20'},f:['foo']}]}
+		parsed: {v:1,t:[{t:4,n:50,x:{r:['foo'],s:'_0*5<20'},f:['foo']}]}
 	},
 	{
 		name: 'Illegal closing section for {{#if}}',
@@ -475,7 +475,7 @@ var parseTests = [
 	{
 		name: 'Unless syntax',
 		template: '{{#unless (foo*5 < 20)}}foo{{/unless}}',
-		parsed: {v:1,t:[{t:4,n:51,x:{r:['foo'],s:'${0}*5<20'},f:['foo']}]}
+		parsed: {v:1,t:[{t:4,n:51,x:{r:['foo'],s:'_0*5<20'},f:['foo']}]}
 	},
 	{
 		name: 'If else syntax',
@@ -500,7 +500,7 @@ var parseTests = [
 	{
 		name: 'Each else syntax',
 		template: '{{#each foo:i}}foo #{{i+1}}{{else}}no foos{{/each}}',
-		parsed: {v:1,t:[{t:4,n:52,r:'foo',i:'i',f:['foo #',{ t:2,x:{r:['i'],s:'${0}+1'}}]},{t:4,n:51,r:'foo',f:['no foos']}]}
+		parsed: {v:1,t:[{t:4,n:52,r:'foo',i:'i',f:['foo #',{ t:2,x:{r:['i'],s:'_0+1'}}]},{t:4,n:51,r:'foo',f:['no foos']}]}
 	},
 	{
 		name: 'Else not allowed in #unless',
@@ -522,7 +522,7 @@ var parseTests = [
 	{
 		name: 'Expression close syntax',
 		template: '{{#(foo*5 < 20)}}foo{{/()}}',
-		parsed: {v:1,t:[{t:4,x:{r:['foo'],s:'${0}*5<20'},f:['foo']}]}
+		parsed: {v:1,t:[{t:4,x:{r:['foo'],s:'_0*5<20'},f:['foo']}]}
 	},
 	{
 		name: "SVG trace",

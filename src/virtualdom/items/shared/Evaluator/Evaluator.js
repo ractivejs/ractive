@@ -113,8 +113,6 @@ export default Evaluator;
 function getFunctionFromString ( str, i ) {
 	var fn, args;
 
-	str = str.replace( /\$\{([0-9]+)\}/g, '_$1' );
-
 	if ( cache[ str ] ) {
 		return cache[ str ];
 	}
