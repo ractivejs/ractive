@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-03 - commit 1479f24a 
+	2014-08-03 - commit 004a78af 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -483,7 +483,6 @@
 				// TODO does this ever happen?
 				return;
 			}
-			bindings[ hash ] = true;
 			childInstance = component.instance;
 			priority = component.parentFragment.priority;
 			parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath, priority );
@@ -494,6 +493,7 @@
 				parentToChildBinding.counterpart = childToParentBinding;
 				childToParentBinding.counterpart = parentToChildBinding;
 			}
+			bindings[ hash ] = parentToChildBinding;
 		};
 	}( circular, isArray, isEqual );
 
@@ -9688,8 +9688,49 @@
 		return ComponentParameter;
 	}( runloop, circular );
 
+	/* virtualdom/items/Component/initialise/createModel/ReferenceExpressionParameter.js */
+	var ReferenceExpressionParameter = function( ReferenceExpressionResolver, createComponentBinding ) {
+
+		var ReferenceExpressionParameter = function( component, childKeypath, template, toBind ) {
+			var this$0 = this;
+			this.root = component.root;
+			this.parentFragment = component.parentFragment;
+			this.ready = false;
+			this.hash = null;
+			this.resolver = new ReferenceExpressionResolver( this, template, function( keypath ) {
+				// Are we updating an existing binding?
+				if ( this$0.binding || ( this$0.binding = component.bindings[ this$0.hash ] ) ) {
+					component.bindings[ this$0.hash ] = null;
+					this$0.binding.rebind( keypath );
+					this$0.hash = keypath + '=' + childKeypath;
+					component.bindings[ this$0.hash ];
+				} else {
+					if ( !this$0.ready ) {
+						// The child instance isn't created yet, we need to create the binding later
+						toBind.push( {
+							childKeypath: childKeypath,
+							parentKeypath: keypath
+						} );
+					} else {
+						createComponentBinding( component, component.root, keypath, childKeypath );
+					}
+				}
+				this$0.value = component.root.viewmodel.get( keypath );
+			} );
+		};
+		ReferenceExpressionParameter.prototype = {
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			},
+			unbind: function() {
+				this.resolver.unbind();
+			}
+		};
+		return ReferenceExpressionParameter;
+	}( ReferenceExpressionResolver, createComponentBinding );
+
 	/* virtualdom/items/Component/initialise/createModel/_createModel.js */
-	var createModel = function( types, parseJSON, resolveRef, ComponentParameter ) {
+	var createModel = function( types, parseJSON, resolveRef, ComponentParameter, ReferenceExpressionParameter ) {
 
 		return function( component, defaultData, attributes, toBind ) {
 			var data = {},
@@ -9725,23 +9766,34 @@
 			if ( template === null ) {
 				return true;
 			}
-			// If a regular interpolator, we bind to it
-			if ( template.length === 1 && template[ 0 ].t === types.INTERPOLATOR && template[ 0 ].r ) {
-				// Is it an index reference?
-				if ( parentFragment.indexRefs && parentFragment.indexRefs[ indexRef = template[ 0 ].r ] !== undefined ) {
-					component.indexRefBindings[ indexRef ] = key;
-					return parentFragment.indexRefs[ indexRef ];
+			// Single interpolator?
+			if ( template.length === 1 && template[ 0 ].t === types.INTERPOLATOR ) {
+				// If it's a regular interpolator, we bind to it
+				if ( template[ 0 ].r ) {
+					// Is it an index reference?
+					if ( parentFragment.indexRefs && parentFragment.indexRefs[ indexRef = template[ 0 ].r ] !== undefined ) {
+						component.indexRefBindings[ indexRef ] = key;
+						return parentFragment.indexRefs[ indexRef ];
+					}
+					// TODO what about references that resolve late? Should these be considered?
+					keypath = resolveRef( parentInstance, template[ 0 ].r, parentFragment ) || template[ 0 ].r;
+					// We need to set up bindings between parent and child, but
+					// we can't do it yet because the child instance doesn't exist
+					// yet - so we make a note instead
+					toBind.push( {
+						childKeypath: key,
+						parentKeypath: keypath
+					} );
+					return parentInstance.viewmodel.get( keypath );
 				}
-				// TODO what about references that resolve late? Should these be considered?
-				keypath = resolveRef( parentInstance, template[ 0 ].r, parentFragment ) || template[ 0 ].r;
-				// We need to set up bindings between parent and child, but
-				// we can't do it yet because the child instance doesn't exist
-				// yet - so we make a note instead
-				toBind.push( {
-					childKeypath: key,
-					parentKeypath: keypath
-				} );
-				return parentInstance.viewmodel.get( keypath );
+				// If it's a reference expression (e.g. `{{foo[bar]}}`), we need
+				// to watch the keypath and create/destroy bindings
+				if ( template[ 0 ].rx ) {
+					parameter = new ReferenceExpressionParameter( component, key, template[ 0 ].rx, toBind );
+					component.complexParameters.push( parameter );
+					parameter.ready = true;
+					return parameter.value;
+				}
 			}
 			// We have a 'complex parameter' - we need to create a full-blown string
 			// fragment in order to evaluate and observe its value
@@ -9749,7 +9801,7 @@
 			component.complexParameters.push( parameter );
 			return parameter.value;
 		}
-	}( types, parseJSON, resolveRef, ComponentParameter );
+	}( types, parseJSON, resolveRef, ComponentParameter, ReferenceExpressionParameter );
 
 	/* virtualdom/items/Component/initialise/createInstance.js */
 	var createInstance = function( component, Component, data, contentDescriptor ) {
