@@ -38,9 +38,9 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 
 				ractive.viewmodel.patternObservers.splice( index, 1 );
 				ractive.viewmodel.unregister( keypath, observer, 'patternObservers' );
+			} else {
+				ractive.viewmodel.unregister( keypath, observer, 'observers' );
 			}
-
-			ractive.viewmodel.unregister( keypath, observer, 'observers' );
 			cancelled = true;
 		}
 	};
