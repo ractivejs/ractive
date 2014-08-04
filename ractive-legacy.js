@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-03 - commit b1939fb8 
+	2014-08-04 - commit 3c50da7b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2990,6 +2990,18 @@
 				parser.allowWhitespace();
 				// get expression
 				expression = parser.readExpression();
+				// If this is a partial, it may have a context (e.g. `{{>item foo}}`). These
+				// cases involve a bit of a hack - we want to turn it into the equivalent of
+				// `{{#with foo}}{{>item}}{{/with}}`, but to get there we temporarily append
+				// a 'contextPartialId' to the mustache, and process the context instead of
+				// the reference
+				var temp;
+				if ( mustache.t === types.PARTIAL && expression.t === types.REFERENCE && ( temp = parser.readExpression() ) ) {
+					mustache = {
+						contextPartialId: expression.n
+					};
+					expression = temp;
+				}
 				// With certain valid references that aren't valid expressions,
 				// e.g. {{1.foo}}, we have a problem: it looks like we've got an
 				// expression, but the expression didn't consume the entire
@@ -3134,8 +3146,16 @@
 					parser.error( 'Attempted to close a section that wasn\'t open' );
 				}
 			}
-			// section children
-			if ( isSection( mustache ) ) {
+			// partials with context
+			if ( mustache.contextPartialId ) {
+				mustache.f = [ {
+					t: types.PARTIAL,
+					r: mustache.contextPartialId
+				} ];
+				mustache.t = types.SECTION;
+				mustache.n = 'with';
+				delete mustache.contextPartialId;
+			} else if ( isSection( mustache ) ) {
 				parser.sectionDepth += 1;
 				children = [];
 				currentChildren = children;
