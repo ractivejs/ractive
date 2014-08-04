@@ -446,6 +446,48 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		});
 
+		test( 'Setting up and cancelling a regular observer', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'unimportant',
+				data: {
+					person: { name: 'Joe' }
+				}
+			});
+
+			var dummy = false,
+			observer = ractive.observe('person.name', function(nv) { dummy = nv; });
+
+			t.equal(dummy, 'Joe');
+
+			ractive.set('person.name', 'Londo');
+
+			t.equal(dummy, 'Londo');
+
+			observer.cancel();
+		});
+
+		test( 'Setting up and cancelling a pattern observer', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'unimportant',
+				data: {
+					person: { name: 'Joe' }
+				}
+			});
+
+			var dummy = false,
+			observer = ractive.observe('person.*', function(nv) { dummy = nv; });
+
+			t.equal(dummy, 'Joe');
+
+			ractive.set('person.name', 'Londo');
+
+			t.equal(dummy, 'Londo');
+
+			observer.cancel();
+		});
+
 	};
 
 });
