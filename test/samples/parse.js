@@ -674,6 +674,11 @@ var parseTests = [
 		options: {
 			interpolate: { script: false }
 		}
+	},
+	{
+		name: 'Partial with context',
+		template: '{{>item foo}}',
+		parsed: {v:1,t:[{t:4,n:53,r:'foo',f:[{t:8,r:'item'}]}]}
 	}
 ];
 
