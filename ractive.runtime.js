@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-08-04 - commit 3c50da7b 
+	2014-08-04 - commit cb1ac703 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2894,8 +2894,9 @@
 						index = ractive.viewmodel.patternObservers.indexOf( observer );
 						ractive.viewmodel.patternObservers.splice( index, 1 );
 						ractive.viewmodel.unregister( keypath, observer, 'patternObservers' );
+					} else {
+						ractive.viewmodel.unregister( keypath, observer, 'observers' );
 					}
-					ractive.viewmodel.unregister( keypath, observer, 'observers' );
 					cancelled = true;
 				}
 			};
