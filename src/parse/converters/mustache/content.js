@@ -80,6 +80,20 @@ export default function ( parser, delimiterType ) {
 		// get expression
 		expression = parser.readExpression();
 
+		// If this is a partial, it may have a context (e.g. `{{>item foo}}`). These
+		// cases involve a bit of a hack - we want to turn it into the equivalent of
+		// `{{#with foo}}{{>item}}{{/with}}`, but to get there we temporarily append
+		// a 'contextPartialId' to the mustache, and process the context instead of
+		// the reference
+		let temp;
+		if ( mustache.t === types.PARTIAL && ( expression.t === types.REFERENCE ) && ( temp = parser.readExpression() ) ) {
+			mustache = {
+				contextPartialId: expression.n
+			};
+
+			expression = temp;
+		}
+
 		// With certain valid references that aren't valid expressions,
 		// e.g. {{1.foo}}, we have a problem: it looks like we've got an
 		// expression, but the expression didn't consume the entire

@@ -86,8 +86,17 @@ function getMustacheOfType ( parser, delimiterType ) {
 		}
 	}
 
+	// partials with context
+	if ( mustache.contextPartialId ) {
+		mustache.f = [{ t: types.PARTIAL, r: mustache.contextPartialId }];
+		mustache.t = types.SECTION;
+		mustache.n = 'with';
+
+		delete mustache.contextPartialId;
+	}
+
 	// section children
-	if ( isSection( mustache ) ) {
+	else if ( isSection( mustache ) ) {
 		parser.sectionDepth += 1;
 		children = [];
 		currentChildren = children;
