@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-05 - commit 618644fd 
+	2014-08-05 - commit 4b25ee7f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7171,7 +7171,7 @@
 	}( getValue, initialise, resolve, rebind );
 
 	/* virtualdom/items/Interpolator.js */
-	var Interpolator = function( types, runloop, escapeHtml, detachNode, unbind, Mustache, detach ) {
+	var Interpolator = function( types, runloop, escapeHtml, detachNode, isEqual, unbind, Mustache, detach ) {
 
 		var Interpolator = function( options ) {
 			this.type = types.INTERPOLATOR;
@@ -7204,7 +7204,7 @@
 				if ( wrapper = this.root.viewmodel.wrapped[ this.keypath ] ) {
 					value = wrapper.get();
 				}
-				if ( value !== this.value ) {
+				if ( !isEqual( value, this.value ) ) {
 					this.value = value;
 					this.parentFragment.bubble();
 					if ( this.node ) {
@@ -7221,7 +7221,7 @@
 			}
 		};
 		return Interpolator;
-	}( types, runloop, escapeHtml, detachNode, unbind, Mustache, detach );
+	}( types, runloop, escapeHtml, detachNode, isEqual, unbind, Mustache, detach );
 
 	/* virtualdom/items/Section/prototype/bubble.js */
 	var virtualdom_items_Section$bubble = function Section$bubble() {
@@ -9067,7 +9067,10 @@
 		var SelectBinding = Binding.extend( {
 			getInitialValue: function() {
 				var options = this.element.options,
-					len, i;
+					len, i, value, optionWasSelected;
+				if ( this.element.getAttribute( 'value' ) !== undefined ) {
+					return;
+				}
 				i = len = options.length;
 				if ( !len ) {
 					return;
@@ -9075,15 +9078,26 @@
 				// take the final selected option...
 				while ( i-- ) {
 					if ( options[ i ].getAttribute( 'selected' ) ) {
-						return options[ i ].getAttribute( 'value' );
+						value = options[ i ].getAttribute( 'value' );
+						optionWasSelected = true;
+						break;
 					}
 				}
 				// or the first non-disabled option, if none are selected
-				while ( ++i < len ) {
-					if ( !options[ i ].getAttribute( 'disabled' ) ) {
-						return options[ i ].getAttribute( 'value' );
+				if ( !optionWasSelected ) {
+					while ( ++i < len ) {
+						if ( !options[ i ].getAttribute( 'disabled' ) ) {
+							value = options[ i ].getAttribute( 'value' );
+							break;
+						}
 					}
 				}
+				// This is an optimisation (aka hack) that allows us to forgo some
+				// other more expensive work
+				if ( value !== undefined ) {
+					this.element.attributes.value.value = value;
+				}
+				return value;
 			},
 			render: function() {
 				this.element.node.addEventListener( 'change', handleDomEvent, false );
@@ -13414,7 +13428,6 @@
 					owner: ractive
 				} );
 			}
-			ractive.viewmodel.applyChanges();
 			// render automatically ( if `el` is specified )
 			tryRender( ractive );
 		};
