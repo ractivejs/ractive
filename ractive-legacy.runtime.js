@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-05 - commit 91cd7f98 
+	2014-08-05 - commit 3122859a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6881,6 +6881,10 @@
 			if ( name === 'value' && this.element.name === 'select' ) {
 				return;
 			}
+			// Special case - content editable
+			if ( name === 'value' && this.element.getAttribute( 'contenteditable' ) !== undefined ) {
+				return;
+			}
 			// Special case - radio names
 			if ( name === 'name' && this.element.name === 'input' && interpolator ) {
 				return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
@@ -7116,10 +7120,10 @@
 			} else if ( name === 'value' ) {
 				// special case - selects
 				if ( element.name === 'select' && name === 'value' ) {
-					updateMethod = element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
+					updateMethod = element.getAttribute( 'multiple' ) !== null ? updateMultipleSelectValue : updateSelectValue;
 				} else if ( element.name === 'textarea' ) {
 					updateMethod = updateValue;
-				} else if ( node.getAttribute( 'contenteditable' ) ) {
+				} else if ( node.getAttribute( 'contenteditable' ) !== null ) {
 					updateMethod = updateContentEditableValue;
 				} else if ( element.name === 'input' ) {
 					type = element.getAttribute( 'type' );
@@ -9186,6 +9190,10 @@
 				str += ' checked';
 			}
 			str += '>';
+			// Special case - contenteditable
+			if ( this.getAttribute( 'contenteditable' ) !== undefined ) {
+				str += this.getAttribute( 'value' );
+			}
 			if ( this.fragment ) {
 				escape = this.name !== 'script' && this.name !== 'style';
 				str += this.fragment.toString( escape );
