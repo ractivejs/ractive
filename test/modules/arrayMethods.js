@@ -212,6 +212,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>a: ac</li><li>c: ac</li></ul>' );
 		});
 
+		test( 'Interpolators that directly reference arrays are updated on array mutation (#1074)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{letters}}',
+				data: {
+					letters: [ 'a', 'b', 'c' ]
+				}
+			});
+
+			ractive.push( 'letters', 'd', 'e', 'f' );
+			t.htmlEqual( fixture.innerHTML, 'a,b,c,d,e,f' );
+		});
+
 	};
 
 });
