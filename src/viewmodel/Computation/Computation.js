@@ -22,6 +22,11 @@ var Computation = function ( ractive, key, signature ) {
 };
 
 Computation.prototype = {
+	get: function () {
+		this.compute();
+		return this.value;
+	},
+
 	set: function ( value ) {
 		if ( this.setting ) {
 			this.value = value;

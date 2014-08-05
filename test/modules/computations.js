@@ -239,6 +239,29 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'Colonel' );
 		});
 
+		test( 'Set operations are not short-circuited when the set value is identical to the current get value (#837)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{bar}}',
+				data: {
+					bar: 1
+				},
+				computed: {
+					foo: {
+						get: function () {
+							return this.get( 'bar' );
+						},
+						set: function ( value ) {
+							this.set( 'bar', value + 1 );
+						}
+					}
+				}
+			});
+
+			ractive.set( 'foo', 1 );
+			t.htmlEqual( fixture.innerHTML, '2' );
+		});
+
 	};
 
 });
