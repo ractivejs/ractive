@@ -790,6 +790,11 @@ var renderTests = [
 		template: '{{#each foo}}<p data-index="{{@index}}"></p>{{/each}}',
 		data: { foo: [ 'a', 'b', 'c' ] },
 		result: '<p data-index="0"></p><p data-index="1"></p><p data-index="2"></p>'
+	},
+	{
+		name: 'Boolean attributes work correctly (#1078)',
+		template: '<input type="text" value="{{value}}" readOnly><input type="text" value="anything" readonly>',
+		result: '<input type="text" value="" readOnly><input type="text" value="anything" readonly>'
 	}
 ];
 
