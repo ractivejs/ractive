@@ -795,6 +795,11 @@ var renderTests = [
 		name: 'Boolean attributes work correctly (#1078)',
 		template: '<input type="text" value="{{value}}" readOnly><input type="text" value="anything" readonly>',
 		result: '<input type="text" value="" readOnly><input type="text" value="anything" readonly>'
+	},
+	{
+		name: 'ContentEditable works correctly (#1078)',
+		template: '<span contenteditable value="abc<div></div>"></span>',
+		result: '<span contenteditable>abc<div></div></span>'
 	}
 ];
 
