@@ -8,6 +8,11 @@ export default function Attribute$toString () {
 		return;
 	}
 
+	// Special case - content editable
+	if ( name === 'value' && this.element.getAttribute( 'contenteditable' ) !== undefined ) {
+		return;
+	}
+
 	// Special case - radio names
 	if ( name === 'name' && this.element.name === 'input' && interpolator ) {
 		return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
