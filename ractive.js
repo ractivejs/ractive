@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-05 - commit 45fdc4fa 
+	2014-08-05 - commit 91cd7f98 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5385,6 +5385,7 @@
 				}
 			},
 			update: function( keypath ) {
+				var this$0 = this;
 				var values;
 				if ( wildcard.test( keypath ) ) {
 					values = getPattern( this.root, keypath );
@@ -5401,7 +5402,9 @@
 					return;
 				}
 				if ( this.defer && this.ready ) {
-					runloop.addObserver( this.getProxy( keypath ) );
+					runloop.scheduleTask( function() {
+						return this$0.getProxy( keypath ).update();
+					} );
 					return;
 				}
 				this.reallyUpdate( keypath );
