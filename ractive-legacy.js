@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-04 - commit cb1ac703 
+	2014-08-05 - commit 618644fd 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13018,15 +13018,16 @@
 
 		return function Viewmodel$set( keypath, value, silent ) {
 			var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
+			computation = this.computations[ keypath ];
+			if ( computation && !computation.setting ) {
+				computation.set( value );
+				value = computation.get();
+			}
 			if ( isEqual( this.cache[ keypath ], value ) ) {
 				return;
 			}
-			computation = this.computations[ keypath ];
 			wrapper = this.wrapped[ keypath ];
 			evaluator = this.evaluators[ keypath ];
-			if ( computation && !computation.setting ) {
-				computation.set( value );
-			}
 			// If we have a wrapper with a `reset()` method, we try and use it. If the
 			// `reset()` method returns false, the wrapper should be torn down, and
 			// (most likely) a new one should be created later
@@ -13208,6 +13209,10 @@
 			this.update();
 		};
 		Computation.prototype = {
+			get: function() {
+				this.compute();
+				return this.value;
+			},
 			set: function( value ) {
 				if ( this.setting ) {
 					this.value = value;
