@@ -4,7 +4,11 @@ import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEve
 
 var SelectBinding = Binding.extend({
 	getInitialValue: function () {
-		var options = this.element.options, len, i;
+		var options = this.element.options, len, i, value, optionWasSelected;
+
+		if ( this.element.getAttribute( 'value' ) !== undefined ) {
+			return;
+		}
 
 		i = len = options.length;
 
@@ -15,16 +19,29 @@ var SelectBinding = Binding.extend({
 		// take the final selected option...
 		while ( i-- ) {
 			if ( options[i].getAttribute( 'selected' ) ) {
-				return options[i].getAttribute( 'value' );
+				value = options[i].getAttribute( 'value' );
+				optionWasSelected = true;
+				break;
 			}
 		}
 
 		// or the first non-disabled option, if none are selected
-		while ( ++i < len ) {
-			if ( !options[i].getAttribute( 'disabled' ) ) {
-				return options[i].getAttribute( 'value' );
+		if ( !optionWasSelected ) {
+			while ( ++i < len ) {
+				if ( !options[i].getAttribute( 'disabled' ) ) {
+					value = options[i].getAttribute( 'value' );
+					break;
+				}
 			}
 		}
+
+		// This is an optimisation (aka hack) that allows us to forgo some
+		// other more expensive work
+		if ( value !== undefined ) {
+			this.element.attributes.value.value = value;
+		}
+
+		return value;
 	},
 
 	render: function () {

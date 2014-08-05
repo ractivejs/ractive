@@ -30,8 +30,6 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 		});
 	}
 
-	ractive.viewmodel.applyChanges();
-
 	// render automatically ( if `el` is specified )
 	tryRender( ractive );
 }
