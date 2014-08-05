@@ -488,6 +488,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			observer.cancel();
 		});
 
+		test( 'Deferred pattern observers work correctly (#1079)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'unimportant',
+				data: {
+					fruits : ['apple','banana','orange']
+				}
+			});
+
+			var dummy = [],
+				observer = ractive.observe('fruits.*', function(nv) { dummy.push(nv); }, { defer: true });
+
+			t.deepEqual(dummy, [ 'apple', 'banana', 'orange' ]);
+
+			ractive.get('fruits').push('cabbage');
+
+			t.deepEqual(dummy, [ 'apple', 'banana', 'orange', 'cabbage' ]);
+
+			observer.cancel();
+		});
 	};
 
 });
