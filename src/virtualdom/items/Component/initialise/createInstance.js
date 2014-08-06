@@ -8,6 +8,7 @@ export default function ( component, Component, data, contentDescriptor ) {
 	partials = { content: contentDescriptor || [] };
 
 	instance = new Component({
+		el: null,
 		append: true,
 		data: data,
 		partials: partials,

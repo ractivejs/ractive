@@ -1486,6 +1486,24 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Brian', age: 54 }, { name: 'Angela', age: 30 }] );
 		});
 
+		test( 'Inline components disregard `el` option (#1072)', function ( t ) {
+			expect( 0 );
+
+			var ractive = new Ractive({
+				el: fixture,
+				data: { show: true },
+				template: '{{#if show}}<widget/>{{/if}}',
+				components: {
+					widget: Ractive.extend({
+					    el: fixture,
+					    template: '{{whatever}}'
+					})
+				}
+			});
+
+			ractive.set( 'show', false );
+		});
+
 	};
 
 });
