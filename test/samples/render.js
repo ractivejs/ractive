@@ -800,6 +800,12 @@ var renderTests = [
 		name: 'ContentEditable works correctly (#1078)',
 		template: '<span contenteditable value="abc<div></div>"></span>',
 		result: '<span contenteditable>abc<div></div></span>'
+	},
+	{
+		name: 'Partial at end of attribute (#1082)',
+		template: '<div class="box {{>color}}"/>',
+		partials: { color: 'red' },
+		result: '<div class="box red"/>'
 	}
 ];
 
