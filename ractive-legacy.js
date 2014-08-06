@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-05 - commit 3122859a 
+	2014-08-06 - commit 2042aa83 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11075,7 +11075,7 @@
 				if ( !previousItem || previousItem.type !== types.TEXT ) {
 					return string;
 				}
-				lastLine = previousItem.template.split( '\n' ).pop();
+				lastLine = previousItem.text.split( '\n' ).pop();
 				if ( match = /^\s+$/.exec( lastLine ) ) {
 					return applyIndent( string, match[ 0 ] );
 				}
