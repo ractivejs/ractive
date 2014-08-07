@@ -434,7 +434,7 @@ if ( !win.getComputedStyle ) {
 						style[ property ] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
 					}
 				} else if (property === 'styleFloat') {
-					style.float = currentStyle[property];
+					style['float'] = currentStyle[property];
 				} else {
 					style[property] = currentStyle[property];
 				}
