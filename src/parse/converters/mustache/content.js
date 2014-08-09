@@ -29,19 +29,31 @@ export default function ( parser, delimiterType ) {
 	} else {
 		// We need to test for expressions before we test for mustache type, because
 		// an expression that begins '!' looks a lot like a comment
-		if ( parser.remaining()[0] === '!' && ( expression = parser.readExpression() ) ) {
-			mustache.t = types.INTERPOLATOR;
+		if ( parser.remaining()[0] === '!' ) {
+			try {
+				expression = parser.readExpression();
 
-			// Was it actually an expression, or a comment block in disguise?
-			parser.allowWhitespace();
+				// Was it actually an expression, or a comment block in disguise?
+				parser.allowWhitespace();
+				if ( parser.remaining().indexOf( delimiters[1] ) ) {
+					expression = null;
+				} else {
+					mustache.t = types.INTERPOLATOR;
+				}
+			} catch ( err ) {}
 
-			if ( parser.matchString( delimiters[1] ) ) {
-				// expression
-				parser.pos -= delimiters[1].length;
-			} else {
-				// comment block
-				parser.pos = start;
-				expression = null;
+			if ( !expression ) {
+				index = parser.remaining().indexOf( delimiters[1] );
+
+				if ( ~index ) {
+					parser.pos += index;
+				} else {
+					parser.error( 'Expected closing delimiter (\'' + delimiters[1] + '\')' );
+				}
+
+				return {
+					t: types.COMMENT
+				};
 			}
 		}
 

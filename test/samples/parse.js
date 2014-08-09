@@ -679,6 +679,28 @@ var parseTests = [
 		name: 'Partial with context',
 		template: '{{>item foo}}',
 		parsed: {v:1,t:[{t:4,n:53,r:'foo',f:[{t:8,r:'item'}]}]}
+	},
+
+	// #1094
+	{
+		name: 'Mustache comment 1',
+		template: '{{! ignore me }}',
+		parsed: {v:1,t:[]}
+	},
+	{
+		name: 'Mustache comment 2',
+		template: '{{! }}',
+		parsed: {v:1,t:[]}
+	},
+	{
+		name: 'Mustache comment 3',
+		template: '{{! <p>commented out HTML</p> }}',
+		parsed: {v:1,t:[]}
+	},
+	{
+		name: 'Mustache comment 4',
+		template: '{{! ... }}',
+		parsed: {v:1,t:[]}
 	}
 ];
 
