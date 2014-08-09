@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-06 - commit 2042aa83 
+	2014-08-09 - commit 0ff34b59 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2553,17 +2553,27 @@
 			} else {
 				// We need to test for expressions before we test for mustache type, because
 				// an expression that begins '!' looks a lot like a comment
-				if ( parser.remaining()[ 0 ] === '!' && ( expression = parser.readExpression() ) ) {
-					mustache.t = types.INTERPOLATOR;
-					// Was it actually an expression, or a comment block in disguise?
-					parser.allowWhitespace();
-					if ( parser.matchString( delimiters[ 1 ] ) ) {
-						// expression
-						parser.pos -= delimiters[ 1 ].length;
-					} else {
-						// comment block
-						parser.pos = start;
-						expression = null;
+				if ( parser.remaining()[ 0 ] === '!' ) {
+					try {
+						expression = parser.readExpression();
+						// Was it actually an expression, or a comment block in disguise?
+						parser.allowWhitespace();
+						if ( parser.remaining().indexOf( delimiters[ 1 ] ) ) {
+							expression = null;
+						} else {
+							mustache.t = types.INTERPOLATOR;
+						}
+					} catch ( err ) {}
+					if ( !expression ) {
+						index = parser.remaining().indexOf( delimiters[ 1 ] );
+						if ( ~index ) {
+							parser.pos += index;
+						} else {
+							parser.error( 'Expected closing delimiter (\'' + delimiters[ 1 ] + '\')' );
+						}
+						return {
+							t: types.COMMENT
+						};
 					}
 				}
 				if ( !expression ) {
