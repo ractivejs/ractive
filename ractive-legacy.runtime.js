@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-09 - commit 8656b702 
+	2014-08-09 - commit 98118993 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1510,7 +1510,8 @@
 		failedComputation: 'Failed to compute "{key}": {err}',
 		missingPlugin: 'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s',
 		badRadioInputBinding: 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both',
-		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned'
+		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned',
+		defaultElSpecified: 'The <{name}/> component has a default `el` property; it has been disregarded'
 	};
 
 	/* empty/parse.js */
@@ -9830,27 +9831,40 @@
 	}( types, parseJSON, resolveRef, ComponentParameter, ReferenceExpressionParameter );
 
 	/* virtualdom/items/Component/initialise/createInstance.js */
-	var createInstance = function( component, Component, data, contentDescriptor ) {
-		var instance, parentFragment, partials, root;
-		parentFragment = component.parentFragment;
-		root = component.root;
-		// Make contents available as a {{>content}} partial
-		partials = {
-			content: contentDescriptor || []
+	var createInstance = function( log ) {
+
+		return function( component, Component, data, contentDescriptor ) {
+			var instance, parentFragment, partials, ractive;
+			parentFragment = component.parentFragment;
+			ractive = component.root;
+			// Make contents available as a {{>content}} partial
+			partials = {
+				content: contentDescriptor || []
+			};
+			if ( Component.defaults.el ) {
+				log.warn( {
+					debug: ractive.debug,
+					message: 'defaultElSpecified',
+					args: {
+						name: component.name
+					}
+				} );
+			}
+			instance = new Component( {
+				el: null,
+				append: true,
+				data: data,
+				partials: partials,
+				magic: ractive.magic || Component.defaults.magic,
+				modifyArrays: ractive.modifyArrays,
+				_parent: ractive,
+				_component: component,
+				// need to inherit runtime parent adaptors
+				adapt: ractive.adapt
+			} );
+			return instance;
 		};
-		instance = new Component( {
-			append: true,
-			data: data,
-			partials: partials,
-			magic: root.magic || Component.defaults.magic,
-			modifyArrays: root.modifyArrays,
-			_parent: root,
-			_component: component,
-			// need to inherit runtime parent adaptors
-			adapt: root.adapt
-		} );
-		return instance;
-	};
+	}( log );
 
 	/* virtualdom/items/Component/initialise/createBindings.js */
 	var createBindings = function( createComponentBinding ) {
