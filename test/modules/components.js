@@ -1486,13 +1486,12 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Brian', age: 54 }, { name: 'Angela', age: 30 }] );
 		});
 
-		test( 'Inline components disregard `el` option (#1072) and print a warning in debug mode', function ( t ) {
-			var warn = log.warn;
+		test( 'Inline components disregard `el` option (#1072) (and print a warning in debug mode)', function ( t ) {
+			var warn = console.warn;
 
 			expect( 1 );
 
-			log.warn = function () {
-				console.log( arguments );
+			console.warn = function () {
 				t.ok( true );
 			};
 
@@ -1505,11 +1504,12 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 					    el: fixture,
 					    template: '{{whatever}}'
 					})
-				}
+				},
+				debug: true
 			});
 
 			ractive.set( 'show', false );
-			log.warn = warn;
+			console.warn = warn;
 		});
 
 	};
