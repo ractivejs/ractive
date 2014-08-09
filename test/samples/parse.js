@@ -701,6 +701,21 @@ var parseTests = [
 		name: 'Mustache comment 4',
 		template: '{{! ... }}',
 		parsed: {v:1,t:[]}
+	},
+	{
+		name: 'Non-comment 1',
+		template: '{{!foo}}',
+		parsed: {v:1,t:[{t:2,x:{r:['foo'],s:'!_0'}}]}
+	},
+	{
+		name: 'Non-comment 2',
+		template: '{{!foo.bar}}',
+		parsed: {v:1,t:[{t:2,x:{r:['foo.bar'],s:'!_0'}}]}
+	},
+	{
+		name: 'Non-comment 3',
+		template: '{{!foo()}}',
+		parsed: {v:1,t:[{t:2,x:{r:['foo'],s:'!_0()'}}]}
 	}
 ];
 
