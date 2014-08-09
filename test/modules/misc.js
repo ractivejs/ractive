@@ -1312,7 +1312,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<img src="http://placehold.it/350x150" width="{{350}}">'
+				template: '<img src="../samples/350x150.gif" width="{{350}}">'
 			});
 
 			img = ractive.find( 'img' );
@@ -1332,7 +1332,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<div style="width: 350px"><img src="http://placehold.it/350x150" width="100%"></div>'
+				template: '<div style="width: 350px"><img src="../samples/350x150.gif" width="100%"></div>'
 			});
 
 			img = ractive.find( 'img' );
