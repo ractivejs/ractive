@@ -1,4 +1,4 @@
-define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
+define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, log ) {
 
 	'use strict';
 
@@ -1486,8 +1486,15 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Brian', age: 54 }, { name: 'Angela', age: 30 }] );
 		});
 
-		test( 'Inline components disregard `el` option (#1072)', function ( t ) {
-			expect( 0 );
+		test( 'Inline components disregard `el` option (#1072) and print a warning in debug mode', function ( t ) {
+			var warn = log.warn;
+
+			expect( 1 );
+
+			log.warn = function () {
+				console.log( arguments );
+				t.ok( true );
+			};
 
 			var ractive = new Ractive({
 				el: fixture,
@@ -1502,6 +1509,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			});
 
 			ractive.set( 'show', false );
+			log.warn = warn;
 		});
 
 	};
