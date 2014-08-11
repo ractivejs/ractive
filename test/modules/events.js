@@ -604,6 +604,45 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
 		});
 
+		test( 'events can be fired on ancestors when components are nested', function ( t ) {
+			var shouldntHappen = function ( event ) { t.ok( false ); };
+
+			var cmp = Ractive.extend({
+				template: '<button on-click="../childClicked" on-dblclick="meClicked">click me</button><button on-click="../../foo">no fire, please</button>'
+			});
+
+			var ractive = new Ractive({
+				components: { cmp: cmp },
+				el: fixture,
+				template: '<span><cmp /></span>'
+			});
+
+			ractive.on( 'childClicked', function ( event ) {
+				t.ok( true );
+				t.equal( event.original.type, 'click' );
+				t.equal( event.parent, ractive );
+				t.equal( event.child, ractive.findComponent('cmp') );
+			});
+
+			ractive.on( 'meClicked', shouldntHappen);
+			ractive.on( 'foo', shouldntHappen );
+
+			var btns = ractive.findComponent( 'cmp' );
+
+			btns.on( 'meClicked', function ( event ) {
+				// this should have gone through the non-ancestor code path and thus have no parent/child
+				t.ok( !!!event.parent );
+				t.ok( !!!event.child );
+			});
+
+			btns.on( 'childClicked', shouldntHappen );
+			btns.on( 'foo', shouldntHappen );
+
+			simulant.fire( btns.findAll( 'button' )[ 0 ], 'click' );
+			simulant.fire( btns.findAll( 'button' )[ 0 ], 'dblclick' );
+			simulant.fire( btns.findAll( 'button' )[ 1 ], 'click' );
+		});
+
 
 	};
 
