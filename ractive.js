@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-09 - commit 56f7bf22 
+	2014-08-12 - commit a0567311 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5154,14 +5154,21 @@
 	};
 
 	/* Ractive/prototype/fire.js */
-	var Ractive$fire = function Ractive$fire( eventName ) {
-		var args, i, len, subscribers = this._subs[ eventName ];
+	var Ractive$fire = function Ractive$fire( eventName, event ) {
+		var args, i, len, originalEvent, stopEvent = false,
+			subscribers = this._subs[ eventName ];
 		if ( !subscribers ) {
 			return;
 		}
 		args = Array.prototype.slice.call( arguments, 1 );
 		for ( i = 0, len = subscribers.length; i < len; i += 1 ) {
-			subscribers[ i ].apply( this, args );
+			if ( subscribers[ i ].apply( this, args ) === false ) {
+				stopEvent = true;
+			}
+		}
+		if ( stopEvent && ( originalEvent = event.original ) ) {
+			originalEvent.preventDefault && originalEvent.preventDefault();
+			originalEvent.stopPropagation && originalEvent.stopPropagation();
 		}
 	};
 
