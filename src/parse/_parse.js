@@ -113,7 +113,8 @@ parse = function ( template, options = {} ) {
 			endMatch = inlinePartialEnd.exec( remaining );
 
 			if ( !endMatch || endMatch[1] !== name ) {
-				throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested' );
+				throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested. Expected closing for "' + name +
+					'", but ' + ( endMatch ? 'instead found "' + endMatch[1] + '"' : ' no closing found' ) );
 			}
 
 			( partials || ( partials = {} ) )[ name ] = new StandardParser( remaining.substr( 0, endMatch.index ), options ).result;
