@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-12 - commit a0567311 
+	2014-08-12 - commit 049392b9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
