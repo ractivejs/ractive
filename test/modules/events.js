@@ -127,6 +127,66 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, fakeEvent );
 		});
 
+
+		test( 'preventDefault and stopPropagation if event handler returned false', function ( t ) {
+			var ractive, preventedDefault = false, stoppedPropagation = false;
+
+			expect( 9 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="return_false" on-click="returnFalse">click me</span>' +
+							'<span id="return_undefined" on-click="returnUndefined">click me</span>' +
+							'<span id="return_zero" on-click="returnZero">click me</span> ' +
+							'<span id="multiHandler" on-click="multiHandler">click me</span> '
+			});
+
+			function mockOriginalEvent( original ) {
+				preventedDefault = stoppedPropagation = false;
+				original.preventDefault = function() { preventedDefault = true; }
+				original.stopPropagation = function() { stoppedPropagation = true; }
+			}
+
+			ractive.on( 'returnFalse', function ( event ) {
+				t.ok( true );
+				mockOriginalEvent( event.original );
+				return false;
+			});
+			ractive.on( 'returnUndefined', function ( event ) {
+				t.ok( true );
+				mockOriginalEvent( event.original );
+			});
+			ractive.on( 'returnZero', function ( event ) {
+				t.ok( true );
+				mockOriginalEvent( event.original );
+				return 0;
+			});
+
+			ractive.on( 'multiHandler', function ( event ) {
+				t.ok( true );
+				mockOriginalEvent( event.original );
+				return false;
+			});
+			ractive.on( 'multiHandler', function ( event ) {
+				t.ok( true );
+				mockOriginalEvent( event.original );
+				return 0;
+			});
+
+			simulant.fire( ractive.nodes.return_false, 'click' );
+			t.ok( preventedDefault && stoppedPropagation );
+
+			simulant.fire( ractive.nodes.return_undefined, 'click' );
+			t.ok( !preventedDefault && !stoppedPropagation );
+
+			simulant.fire( ractive.nodes.return_zero, 'click' );
+			t.ok( !preventedDefault && !stoppedPropagation );
+
+			simulant.fire( ractive.nodes.multiHandler, 'click' );
+			t.ok( preventedDefault && stoppedPropagation );
+		});
+
+
 		test( 'event.keypath is set to the innermost context', function ( t ) {
 			var ractive;
 
