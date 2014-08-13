@@ -2,7 +2,7 @@ export default function Mustache$resolve ( keypath ) {
 	var wasResolved, value, twowayBinding;
 
 	// If we resolved previously, we need to unregister
-	if ( this.keypath !== undefined ) {
+	if ( this.keypath != undefined ) { // undefined or null
 		this.root.viewmodel.unregister( this.keypath, this );
 		wasResolved = true;
 	}
@@ -11,7 +11,7 @@ export default function Mustache$resolve ( keypath ) {
 
 	// If the new keypath exists, we need to register
 	// with the viewmodel
-	if ( keypath !== undefined ) {
+	if ( keypath != undefined ) { // undefined or null
 		value = this.root.viewmodel.get( keypath );
 		this.root.viewmodel.register( keypath, this );
 	}
