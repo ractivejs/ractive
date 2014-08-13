@@ -1464,6 +1464,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			}, 100 );
 		});
 
+		test( 'Reference expressions can become invalid after being valid, without breaking (#1106)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#with items[i]}}
+						{{this}}
+					{{/with}}`,
+				data: {
+					items: [ 'a', 'b', 'c', 'd' ]
+				}
+			});
+
+			ractive.set( 'i', 0 );
+			ractive.set( 'i', 1 );
+			ractive.set( 'i', null );
+			ractive.set( 'i', 2 );
+
+			t.htmlEqual( fixture.innerHTML, 'c' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
