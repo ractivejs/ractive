@@ -39,7 +39,7 @@ ReferenceExpressionResolver.prototype = {
 		var values = this.members.map( getValue );
 
 		if ( !values.every( isDefined ) || this.baseResolver ) {
-			return;
+			return null;
 		}
 
 		return this.base + '.' + values.join( '.' );
