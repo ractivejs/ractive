@@ -8,6 +8,6 @@ export default function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
 
 	// partial match based on leading keypath segments
 	if ( startsWithKeypath( targetKeypath, oldKeypath ) ){
-		return targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
+		return newKeypath === null ? newKeypath : targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
 	}
 }
