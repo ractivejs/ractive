@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-12 - commit 049392b9 
+	2014-08-13 - commit a5e2a78c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -401,7 +401,7 @@
 	/* shared/getInnerContext.js */
 	var getInnerContext = function( fragment ) {
 		do {
-			if ( fragment.context ) {
+			if ( fragment.context !== undefined ) {
 				return fragment.context;
 			}
 		} while ( fragment = fragment.parent );
@@ -6149,7 +6149,7 @@
 
 	/* virtualdom/items/shared/utils/startsWithKeypath.js */
 	var startsWithKeypath = function startsWithKeypath( target, keypath ) {
-		return target.substr( 0, keypath.length + 1 ) === keypath + '.';
+		return target && keypath && target.substr( 0, keypath.length + 1 ) === keypath + '.';
 	};
 
 	/* virtualdom/items/shared/utils/getNewKeypath.js */
@@ -6158,11 +6158,11 @@
 		return function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
 			// exact match
 			if ( targetKeypath === oldKeypath ) {
-				return newKeypath;
+				return newKeypath !== undefined ? newKeypath : null;
 			}
 			// partial match based on leading keypath segments
 			if ( startsWithKeypath( targetKeypath, oldKeypath ) ) {
-				return targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
+				return newKeypath === null ? newKeypath : targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
 			}
 		};
 	}( startsWithKeypath );
@@ -6621,7 +6621,7 @@
 			getKeypath: function() {
 				var values = this.members.map( getValue );
 				if ( !values.every( isDefined ) || this.baseResolver ) {
-					return;
+					return null;
 				}
 				return this.base + '.' + values.join( '.' );
 			},
@@ -6734,14 +6734,16 @@
 	var resolve = function Mustache$resolve( keypath ) {
 		var wasResolved, value, twowayBinding;
 		// If we resolved previously, we need to unregister
-		if ( this.keypath !== undefined ) {
+		if ( this.keypath != undefined ) {
+			// undefined or null
 			this.root.viewmodel.unregister( this.keypath, this );
 			wasResolved = true;
 		}
 		this.keypath = keypath;
 		// If the new keypath exists, we need to register
 		// with the viewmodel
-		if ( keypath !== undefined ) {
+		if ( keypath != undefined ) {
+			// undefined or null
 			value = this.root.viewmodel.get( keypath );
 			this.root.viewmodel.register( keypath, this );
 		}
@@ -6770,9 +6772,10 @@
 				this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 			}
 			// Normal keypath mustache or reference expression?
-			if ( this.keypath ) {
+			if ( this.keypath !== undefined ) {
+				keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
 				// was a new keypath created?
-				if ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
+				if ( keypath !== undefined ) {
 					// resolve it
 					this.resolve( keypath );
 				}
