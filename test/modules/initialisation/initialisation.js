@@ -19,6 +19,14 @@ define([ 'ractive' ], function ( Ractive ) {
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
 
+		function createScriptTemplate ( template ) {
+			var script;
+			fixture.appendChild( script = document.createElement('SCRIPT') );
+			script.id = 'template';
+			script.setAttribute( 'type', 'text/ractive' );
+			script.innerHTML = template;
+		}
+
 		test( 'Ractive initialize with no options ok', t => {
 			var ractive = new Ractive();
 			t.ok( ractive );
@@ -222,13 +230,13 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		test( 'Template with hash is retrieved from element Id', t => {
-			var ractive;
+			var script, ractive;
 
-			fixture.innerHTML = '{{foo}}';
+			createScriptTemplate( '{{foo}}' );
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '#qunit-fixture',
+				template: '#template',
 				data: { foo: 'bar' }
 			});
 
@@ -279,10 +287,10 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'Template function has helper object', t => {
 			var ractive, assert = t;
 
-			fixture.innerHTML = '{{foo}}';
+			createScriptTemplate( '{{foo}}' );
 
 			Ractive.defaults.template = function ( d, t ) {
-				var template = t.fromId( 'qunit-fixture' );
+				var template = t.fromId( 'template' );
 				template += '{{bar}}';
 				assert.ok( !t.isParsed(template) );
 				template = t.parse( template );
@@ -359,6 +367,24 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( cThis, ractive );
 			t.equal( dThis, ractive );
+
+
+		});
+
+
+		test( 'Non-script tag for template throws error', t => {
+			var div, ractive;
+
+			fixture.appendChild( div = document.createElement('DIV') );
+			div.id = 'template';
+
+			t.throws(function(){
+				new Ractive({
+					el: fixture,
+					template: '#template'
+				})
+			},
+			/script/ );
 
 
 		});
