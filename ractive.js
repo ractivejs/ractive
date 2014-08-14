@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-13 - commit a5e2a78c 
+	2014-08-14 - commit b70ef126 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4211,13 +4211,12 @@
 				}
 				throw new Error( 'Could not find template element with id #' + id );
 			}
-			// Do we want to turn this on?
-			/*
-            	if ( template.tagName.toUpperCase() !== 'SCRIPT' )) {
-            		if ( options && options.noThrow ) { return; }
-            		throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
-            	}
-            	*/
+			if ( template.tagName.toUpperCase() !== 'SCRIPT' ) {
+				if ( options && options.noThrow ) {
+					return;
+				}
+				throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
+			}
 			return template.innerHTML;
 		}
 
