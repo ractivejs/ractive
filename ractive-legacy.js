@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-15 - commit 1fd8f3c0 
+	2014-08-15 - commit e752d2c8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3805,6 +3805,9 @@
 			}
 			if ( value === null ) {
 				parser.pos = start;
+				return null;
+			}
+			if ( !value.length ) {
 				return null;
 			}
 			if ( value.length === 1 && typeof value[ 0 ] === 'string' ) {
