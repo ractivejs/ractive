@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-08-14 - commit e2105338 
+	2014-08-15 - commit 1fd8f3c0 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6732,7 +6732,7 @@
 			} else if ( name === 'value' ) {
 				// special case - selects
 				if ( element.name === 'select' && name === 'value' ) {
-					updateMethod = element.getAttribute( 'multiple' ) !== null ? updateMultipleSelectValue : updateSelectValue;
+					updateMethod = element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
 				} else if ( element.name === 'textarea' ) {
 					updateMethod = updateValue;
 				} else if ( node.getAttribute( 'contenteditable' ) !== null ) {
