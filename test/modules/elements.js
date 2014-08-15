@@ -67,5 +67,13 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( !ractive.nodes.foo );
 			t.equal( ractive.nodes.bar, p );
 		});
+
+		test( 'Textarea is stringified correctly', function ( t ) {
+			var ractive = new Ractive({
+				template: '<textarea value="123<div></div>"></textarea>'
+			});
+
+			t.equal( ractive.toHTML(), '<textarea>123&lt;div&gt;&lt;/div&gt;</textarea>' );
+		});
 	};
 });
