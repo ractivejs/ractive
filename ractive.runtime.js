@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-08-15 - commit ecdbbfb5 
+	2014-08-15 - commit e4a4d7b1 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6489,8 +6489,8 @@
 				value = fragment.value,
 				interpolator = fragment.interpolator,
 				fragment = fragment.fragment;
-			// Special case - select values (should not be stringified)
-			if ( name === 'value' && this.element.name === 'select' ) {
+			// Special case - select and textarea values (should not be stringified)
+			if ( name === 'value' && ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
 				return;
 			}
 			// Special case - content editable
@@ -8797,7 +8797,7 @@
 	}();
 
 	/* virtualdom/items/Element/prototype/toString.js */
-	var virtualdom_items_Element$toString = function( voidElementNames, isArray ) {
+	var virtualdom_items_Element$toString = function( voidElementNames, isArray, escapeHtml ) {
 
 		return function() {
 			var str, escape;
@@ -8812,8 +8812,10 @@
 				str += ' checked';
 			}
 			str += '>';
-			// Special case - contenteditable
-			if ( this.getAttribute( 'contenteditable' ) !== undefined ) {
+			// Special case - textarea
+			if ( this.name === 'textarea' && this.getAttribute( 'value' ) !== undefined ) {
+				str += escapeHtml( this.getAttribute( 'value' ) );
+			} else if ( this.getAttribute( 'contenteditable' ) !== undefined ) {
 				str += this.getAttribute( 'value' );
 			}
 			if ( this.fragment ) {
@@ -8865,7 +8867,7 @@
 			var str = attribute.toString();
 			return str ? ' ' + str : '';
 		}
-	}( voidElementNames, isArray );
+	}( voidElementNames, isArray, escapeHtml );
 
 	/* virtualdom/items/Element/special/option/unbind.js */
 	var virtualdom_items_Element_special_option_unbind = function( removeFromArray ) {
