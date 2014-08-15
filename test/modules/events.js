@@ -664,7 +664,91 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
 		});
 
+		module( 'Events bubble up components' );
 
+		test( 'Parents fire component namespaced events', function ( t ) {
+			var ractive, Component, Middle;
+
+			expect( 2 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="someEvent">click me</span>'
+			});
+
+			Middle = Ractive.extend({
+				template: '<component/>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<middle/>',
+				components: {
+					component: Component,
+					middle: Middle
+				}
+			});
+
+			ractive.on( 'component.someEvent', function ( event ) {
+				t.ok( true );
+				t.equal( event.original.type, 'click' );
+			});
+
+			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+		});
+
+		/*
+		test( 'Component events fire both non-namespaced and namespaced events', function ( t ) {
+			var ractive, middle, Component, Middle;
+
+			expect( 3 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="someEvent">click me</span>',
+				init: function () {
+					this.on( 'someEvent', function () {
+						this.fire( 'newEvent' );
+					}.bind( this ) );
+				}
+			});
+
+			Middle = Ractive.extend({
+				template: '<component on-newEvent="newEvent"/>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<middle/>',
+				components: {
+					component: Component,
+					middle: Middle
+				}
+			});
+
+			middle = ractive.findComponent( 'middle' );
+
+			middle.on( 'newEvent', function ( event ) {
+				t.ok( true );
+			});
+
+			middle.on( 'component.newEvent', function ( event ) {
+				t.ok( true );
+			});
+
+			ractive.on( 'newEvent', function ( event ) {
+				throw new Error( 'non-namespaced event should not fire above immediate parent' );
+			});
+
+			ractive.on( 'component.newEvent', function ( event ) {
+				t.ok( true );
+			});
+
+			ractive.on( 'middle.newEvent', function ( event ) {
+				throw new Error( 'namespaced event of immediate parent should not fire' );
+			});
+
+			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+		});
+		*/
 	};
 
 });
