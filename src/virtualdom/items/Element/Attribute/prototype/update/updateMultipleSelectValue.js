@@ -1,3 +1,4 @@
+import arrayContains from 'utils/arrayContains';
 import isArray from 'utils/isArray';
 
 export default function Attribute$updateMultipleSelect () {
@@ -13,6 +14,6 @@ export default function Attribute$updateMultipleSelect () {
 	while ( i-- ) {
 		option = options[i];
 		optionValue = option._ractive ? option._ractive.value : option.value; // options inserted via a triple don't have _ractive
-		option.selected = ( value.indexOf( optionValue ) !== -1 );
+		option.selected = arrayContains( value, optionValue );
 	}
 }
