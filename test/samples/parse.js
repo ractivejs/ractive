@@ -716,6 +716,11 @@ var parseTests = [
 		name: 'Non-comment 3',
 		template: '{{!foo()}}',
 		parsed: {v:1,t:[{t:2,x:{r:['foo'],s:'!_0()'}}]}
+	},
+	{
+		name: 'Empty attribute',
+		template: '<div contenteditable=""></div>',
+		parsed: {v:1,t:[{t:7,e:'div',a:{contenteditable:0}}]}
 	}
 ];
 

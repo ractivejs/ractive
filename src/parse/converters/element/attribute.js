@@ -59,6 +59,10 @@ function getAttributeValue ( parser ) {
 		return null;
 	}
 
+	if ( !value.length ) {
+		return null;
+	}
+
 	if ( value.length === 1 && typeof value[0] === 'string' ) {
 		return value[0];
 	}
