@@ -378,6 +378,24 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( options[3].selected );
 		});
 
+		test( 'A multiple select uses non-strict comparison', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select multiple value="{{i}}"><option id="_1" value="1">one</option><option id="_2" value="2">two</option><option id="_3" value="3">three</option></select>',
+				data: { i: [ 1, '2' ] }
+			});
+
+			t.ok(  ractive.nodes._1.selected );
+			t.ok(  ractive.nodes._2.selected );
+			t.ok( !ractive.nodes._3.selected );
+
+			ractive.set( 'i', [ 2, '3' ] );
+
+			t.ok( !ractive.nodes._1.selected );
+			t.ok(  ractive.nodes._2.selected );
+			t.ok(  ractive.nodes._3.selected );
+		});
+
 	};
 
 });
