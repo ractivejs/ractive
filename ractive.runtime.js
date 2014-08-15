@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-08-15 - commit e752d2c8 
+	2014-08-15 - commit ecdbbfb5 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6545,8 +6545,18 @@
 		}
 	};
 
+	/* utils/arrayContains.js */
+	var arrayContains = function arrayContains( array, value ) {
+		for ( var i = 0, c = array.length; i < c; i++ ) {
+			if ( array[ i ] == value ) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	/* virtualdom/items/Element/Attribute/prototype/update/updateMultipleSelectValue.js */
-	var virtualdom_items_Element_Attribute$update_updateMultipleSelectValue = function( isArray ) {
+	var virtualdom_items_Element_Attribute$update_updateMultipleSelectValue = function( arrayContains, isArray ) {
 
 		return function Attribute$updateMultipleSelect() {
 			var value = this.value,
@@ -6560,10 +6570,10 @@
 				option = options[ i ];
 				optionValue = option._ractive ? option._ractive.value : option.value;
 				// options inserted via a triple don't have _ractive
-				option.selected = value.indexOf( optionValue ) !== -1;
+				option.selected = arrayContains( value, optionValue );
 			}
 		};
-	}( isArray );
+	}( arrayContains, isArray );
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateRadioName.js */
 	var virtualdom_items_Element_Attribute$update_updateRadioName = function Attribute$updateRadioName() {
