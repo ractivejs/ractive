@@ -843,59 +843,108 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
 		});
 
-		/*
-		test( 'Component events fire both non-namespaced and namespaced events', function ( t ) {
-			var ractive, middle, Component, Middle;
+		test( 'ractive.fire events proxied through component have event object with context', function ( t) {
+			var ractive, Component, items, component;
 
-			expect( 3 );
+			expect( 5 );
 
 			Component = Ractive.extend({
-				template: '<span id="test" on-click="someEvent">click me</span>',
-				init: function () {
-					this.on( 'someEvent', function () {
-						this.fire( 'newEvent' );
-					}.bind( this ) );
-				}
+				template: 'foo'
 			});
 
-			Middle = Ractive.extend({
-				template: '<component on-newEvent="newEvent"/>'
+			items = [ { is: 'a' }, { is: 'b' }, { is: 'c' } ];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<component on-foo="bar"/>{{/}}',
+				data: { items: items },
+				components: { component: Component }
+			});
+
+			component = ractive.findAllComponents('component')[1];
+
+			ractive.on( 'bar', function ( event ) {
+				t.ok( event );
+				t.equal( event.component, component );
+				t.equal( event.index.i, 1 );
+				t.equal( event.context, items[1] );
+				t.equal( event.keypath, 'items.1' );
+
+			});
+
+			component.fire('foo');
+
+		});
+
+		test( 'ractive.fire events have event object with root and bubble context', function ( t) {
+			var ractive, Component, items, component;
+
+			expect( 10 );
+
+			Component = Ractive.extend({
+				template: 'foo'
+			});
+
+			items = [ { is: 'a' }, { is: 'b' }, { is: 'c' } ];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<component foo="bar"/>{{/}}',
+				data: { items: items },
+				components: { component: Component }
+			});
+
+			component = ractive.findAllComponents('component')[1];
+
+			component.on( 'foo', function ( event ) {
+				t.ok( event );
+				t.equal( event.component, component );
+				t.ok( !event.index );
+				t.equal( event.context.foo, 'bar' );
+				t.equal( event.keypath, '' );
+			});
+
+			ractive.on( 'foo', function ( event ) {
+				t.ok( event );
+				t.equal( event.component, component );
+				t.equal( event.index.i, 1 );
+				t.equal( event.context, items[1] );
+				t.equal( event.keypath, 'items.1' );
+
+			});
+
+			component.fire('*foo');
+		});
+
+		test( 'ractive.fire events can have bubble cancelled', function ( t) {
+			var ractive, Component, items, component;
+
+			expect( 1 );
+
+			Component = Ractive.extend({
+				template: 'foo'
 			});
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<middle/>',
-				components: {
-					component: Component,
-					middle: Middle
-				}
+				template: '<component/>',
+				components: { component: Component }
 			});
 
-			middle = ractive.findComponent( 'middle' );
+			component = ractive.findComponent('component');
 
-			middle.on( 'newEvent', function ( event ) {
-				t.ok( true );
+			component.on( 'foo', function ( event ) {
+				t.ok( event.stopBubble );
+				event.stopBubble();
 			});
 
-			middle.on( 'component.newEvent', function ( event ) {
-				t.ok( true );
+			ractive.on( 'foo', function ( event ) {
+				throw new Error('event should not bubble')
 			});
 
-			ractive.on( 'newEvent', function ( event ) {
-				throw new Error( 'non-namespaced event should not fire above immediate parent' );
-			});
-
-			ractive.on( 'component.newEvent', function ( event ) {
-				t.ok( true );
-			});
-
-			ractive.on( 'middle.newEvent', function ( event ) {
-				throw new Error( 'namespaced event of immediate parent should not fire' );
-			});
-
-			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+			component.fire('*foo');
 		});
-		*/
+
 	};
 
 });

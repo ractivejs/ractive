@@ -1,5 +1,6 @@
 import warn from 'utils/warn';
 import config from 'config/config';
+import EventObject from 'virtualdom/items/Element/EventHandler/shared/EventObject';
 import genericHandler from 'virtualdom/items/Element/EventHandler/shared/genericHandler';
 
 var customHandlers = {};
@@ -32,7 +33,7 @@ function getCustomHandler ( name ) {
 			event.keypath = storage.keypath;
 			event.context = storage.root.get( storage.keypath );
 
-			storage.events[ name ].fire( event );
+			storage.events[ name ].fire( new EventObject( event ) );
 		};
 	}
 
