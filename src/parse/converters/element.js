@@ -111,7 +111,7 @@ function getElement ( parser ) {
 		// or is it hacky and should this be own template primitive???
 		else if ( namespacePattern.test( attribute.name ) ) {
 			if ( !element.v ) element.v = {};
-			directive = processDirective( attribute.value );
+			directive = attribute.value ? processDirective( attribute.value ) : '';
 			addProxyEvent( '*', directive );
 		}
 
