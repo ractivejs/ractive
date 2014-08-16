@@ -9,6 +9,6 @@ function EventObject ( options ) {
 
 EventObject.prototype.stopBubble = function () {
 	this._bubble = false;
-}
+};
 
-export default EventObject
+export default EventObject;

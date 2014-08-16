@@ -36,7 +36,7 @@ function fireEventAs  ( ractive, eventName, event, args, bubble, rootInstance, i
 				let fragment = ractive.component.parentFragment;
 				event.index = fragment.indexRefs;
 				event.keypath = fragment.context;
-				event.context = ractive._parent.get( event.keypath )
+				event.context = ractive._parent.get( event.keypath );
 			}
 		}
 
