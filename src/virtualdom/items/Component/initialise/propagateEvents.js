@@ -1,3 +1,4 @@
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import log from 'utils/log';
 
 // TODO how should event arguments be handled? e.g.
@@ -6,12 +7,26 @@ import log from 'utils/log';
 // when 'foo' fires on the child, but the 1,2,3 arguments
 // will be lost
 
-export default function ( component, eventsDescriptor ) {
+export default function propagateEvents ( component, eventsDescriptor ) {
 	var eventName;
 
 	for ( eventName in eventsDescriptor ) {
 		if ( eventsDescriptor.hasOwnProperty( eventName ) ) {
-			propagateEvent( component.instance, component.root, eventName, eventsDescriptor[ eventName ] );
+			if( eventName === '*' ) {
+				// TODO: allow dynamic fragments
+				let namespace = eventsDescriptor[ eventName ];
+				if ( typeof namespace === 'string' ) {
+					namespace = namespace.trim();
+				}
+				if ( !namespace || namespace === '*' || ( namespace.d && !namespace.d.length ) ) {
+					namespace = component.name;
+				}
+
+				component.eventNamespace = namespace;
+
+			} else {
+				propagateEvent( component.instance, component.root, eventName, eventsDescriptor[ eventName ] );
+			}
 		}
 	}
 }
@@ -28,8 +43,7 @@ function propagateEvent ( childInstance, parentInstance, eventName, proxyEventNa
 
 	childInstance.on( eventName, function () {
 		var args = Array.prototype.slice.call( arguments );
-		args.unshift( proxyEventName );
 
-		parentInstance.fire.apply( parentInstance, args );
+		fireEvent( parentInstance, proxyEventName, { args: args } );
 	});
 }

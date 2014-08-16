@@ -1,4 +1,5 @@
 import circular from 'circular';
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
 
 var Fragment, getValueOptions = { args: true };
 
@@ -43,7 +44,7 @@ export default function EventHandler$init ( element, name, template ) {
 }
 
 function fireEventWithParams ( event ) {
-	this.root.fire.apply( this.root, [ this.getAction(), event ].concat( this.params ) );
+	fireEvent( this.root, this.getAction(), { event: event, args: this.params } );
 }
 
 function fireEventWithDynamicParams ( event ) {
@@ -54,5 +55,5 @@ function fireEventWithDynamicParams ( event ) {
 		args = args.substr( 1, args.length - 2 );
 	}
 
-	this.root.fire.apply( this.root, [ this.getAction(), event ].concat( args ) );
+	fireEvent( this.root, this.getAction(), { event: event, args: args } );
 }

@@ -1,5 +1,7 @@
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
+
 export default function Component$unrender ( shouldDestroy ) {
-	this.instance.fire( 'teardown' );
+	fireEvent( this.instance, 'teardown' );
 
 	this.shouldDestroy = shouldDestroy;
 	this.instance.unrender();

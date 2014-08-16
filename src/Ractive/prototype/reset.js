@@ -1,3 +1,4 @@
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
 import config from 'config/config';
@@ -78,7 +79,7 @@ export default function Ractive$reset ( data, callback ) {
 		runloop.end();
 	}
 
-	this.fire( 'reset', data );
+	fireEvent( this, 'reset', { args: [ data ] } );
 
 	if ( callback ) {
 		promise.then( callback );

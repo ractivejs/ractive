@@ -666,13 +666,13 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		module( 'Events bubble up components' );
 
-		test( 'Parents fire component namespaced events', function ( t ) {
+		test( '"*" prefixed event handlers bubble', function ( t ) {
 			var ractive, Component, Middle;
 
 			expect( 2 );
 
 			Component = Ractive.extend({
-				template: '<span id="test" on-click="someEvent">click me</span>'
+				template: '<span id="test" on-click="*someEvent">click me</span>'
 			});
 
 			Middle = Ractive.extend({
@@ -688,9 +688,156 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			ractive.on( 'component.someEvent', function ( event ) {
+			ractive.on( 'someEvent', function ( event ) {
 				t.ok( true );
 				t.equal( event.original.type, 'click' );
+			});
+
+			ractive.on( 'component.someEvent', function ( event ) {
+				throw new Error('event should not be namespaced');
+			});
+
+			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+		});
+
+		test( 'non "*" prefixed event handlers do not bubble', function ( t ) {
+			var ractive, Component, Middle;
+
+			expect( 0 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="someEvent">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'someEvent', function ( event ) {
+				throw new Error('event should not bubble');
+			});
+
+			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+		});
+
+		test( '"on-*" attribute sets namespace for component events', function ( t ) {
+			var ractive, Component, Middle;
+
+			expect( 2 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="*someEvent">click me</span>'
+			});
+
+			Middle = Ractive.extend({
+				template: '<component on-*="foo"/>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<middle/>',
+				components: {
+					component: Component,
+					middle: Middle
+				}
+			});
+
+			ractive.on( 'foo.someEvent', function ( event ) {
+				t.ok( true );
+			});
+
+			ractive.findComponent('middle').on( 'foo.someEvent', function ( event ) {
+				t.ok( true );
+			});
+
+			ractive.on( 'someEvent', function ( event ) {
+				throw new Error('event should not be namespaced');
+			});
+
+			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+		});
+
+		test( '"on-*" attribute defaults to component name', function ( t ) {
+			var ractive, Component, Middle;
+
+			expect( 1 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="*someEvent">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component on-*=""/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'component.someEvent', function ( event ) {
+				t.ok( true );
+			});
+
+			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+		});
+
+		test( '"on-*" attribute with "*" value defaults to component name', function ( t ) {
+			var ractive, Component, Middle;
+
+			expect( 1 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="*someEvent">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component on-*="*"/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'component.someEvent', function ( event ) {
+				t.ok( true );
+			});
+
+			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+		});
+
+		test( 'bubble events can be stopped with event.stopBubble()', function ( t ) {
+			var ractive, Component, Middle;
+
+			expect( 1 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="*someEvent">click me</span>'
+			});
+
+			Middle = Ractive.extend({
+				template: '<component/>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<middle/>',
+				components: {
+					component: Component,
+					middle: Middle
+				}
+			});
+
+			ractive.findComponent('middle').on( 'someEvent', function ( event ) {
+				t.ok( true );
+				event.stopBubble();
+			});
+
+			ractive.on( 'someEvent', function ( event ) {
+				throw new Error('event should not bubbled');
 			});
 
 			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
