@@ -3,8 +3,8 @@ import booleanAttributes from 'config/booleanAttributes';
 export default function Attribute$toString () {
 	var { name, value, interpolator, fragment } = this;
 
-	// Special case - select values (should not be stringified)
-	if ( name === 'value' && this.element.name === 'select' ) {
+	// Special case - select and textarea values (should not be stringified)
+	if ( name === 'value' && ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
 		return;
 	}
 

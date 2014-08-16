@@ -32,7 +32,7 @@ export default function Attribute$update () {
 	else if ( name === 'value' ) {
 		// special case - selects
 		if ( element.name === 'select' && name === 'value' ) {
-			updateMethod = element.getAttribute( 'multiple' ) !== null ? updateMultipleSelectValue : updateSelectValue;
+			updateMethod = element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
 		}
 
 		else if ( element.name === 'textarea' ) {

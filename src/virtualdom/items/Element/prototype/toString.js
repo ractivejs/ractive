@@ -1,5 +1,6 @@
 import voidElementNames from 'config/voidElementNames';
 import isArray from 'utils/isArray';
+import escapeHtml from 'utils/escapeHtml';
 
 export default function () {
 	var str, escape;
@@ -20,8 +21,13 @@ export default function () {
 
 	str += '>';
 
+	// Special case - textarea
+	if ( this.name === 'textarea' && this.getAttribute( 'value' ) !== undefined ) {
+		str += escapeHtml( this.getAttribute( 'value' ) );
+	}
+
 	// Special case - contenteditable
-	if ( this.getAttribute( 'contenteditable' ) !== undefined ) {
+	else if ( this.getAttribute( 'contenteditable' ) !== undefined ) {
 		str += this.getAttribute( 'value' );
 	}
 
