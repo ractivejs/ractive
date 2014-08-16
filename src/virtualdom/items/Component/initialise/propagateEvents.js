@@ -1,5 +1,4 @@
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
-import EventObject from 'virtualdom/items/Element/EventHandler/shared/EventObject';
 import log from 'utils/log';
 
 // TODO how should event arguments be handled? e.g.
@@ -45,12 +44,12 @@ function propagateEvent ( childInstance, parentInstance, eventName, proxyEventNa
 	childInstance.on( eventName, function () {
 		var fragment = this.component.parentFragment,
 			options = {
-				event: new EventObject({
+				event: {
 					component: this,
 					index: fragment.indexRefs,
 					keypath: fragment.context,
 					context: parentInstance.get( fragment.context )
-				}),
+				},
 				args: Array.prototype.slice.call( arguments ),
 			};
 

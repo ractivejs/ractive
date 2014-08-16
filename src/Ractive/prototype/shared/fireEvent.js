@@ -4,17 +4,25 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 
 	if ( bubble ) {
 		eventName = eventName.substr(1);
+
+		if ( options.event ) {
+			options.event._bubble = true;
+			options.event.stopBubble = function () { this._bubble = false; }
+		}
 	}
 
-	if ( options.event ) {
-		options.event._bubble = bubble;
-	}
-
-	fireEventAs( ractive, eventName, options.event, options.args, bubble, true, options.isFire );
+	fireEventAs(
+		ractive,
+		eventName,
+		options.event,
+		options.args,
+		bubble,
+		true, // root fire
+		options.changeBubbleContext );
 
 }
 
-function fireEventAs  ( ractive, eventName, event, args, bubble, rootInstance, isFire ) {
+function fireEventAs  ( ractive, eventName, event, args, bubble, rootInstance, changeContext ) {
 
 	if ( !ractive ) { return; }
 
@@ -32,7 +40,7 @@ function fireEventAs  ( ractive, eventName, event, args, bubble, rootInstance, i
 				eventName = eventNamespace + '.' + eventName;
 			}
 
-			if ( isFire && ractive._parent && ractive.component ) {
+			if ( changeContext && ractive._parent && ractive.component ) {
 				let fragment = ractive.component.parentFragment;
 				event.index = fragment.indexRefs;
 				event.keypath = fragment.context;
@@ -46,7 +54,7 @@ function fireEventAs  ( ractive, eventName, event, args, bubble, rootInstance, i
 
 function notifySubscribers ( ractive, subscribers, event, args ) {
 
-	var i = 0, len = 0, originalEvent = null, stopEvent = false;
+	var i = 0, len = 0, originalEvent = null, bubble = true, stopEvent = false;
 
 	if ( event ) {
 		args = [ event ].concat( args );
