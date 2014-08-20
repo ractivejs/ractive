@@ -94,8 +94,7 @@
     "exec-sync": "~0.1.6",
     "gobble": "~0.2.2",
     "gobble-esperanto": "~0.1.0",
-    "gobble-esnext": "~0.1.1",
-    "buffer-crc32": "~0.2.3"
+    "gobble-esnext": "~0.1.1"
   },
   "testling": {
     "html": "test/testling.html",
