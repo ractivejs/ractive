@@ -13,3 +13,4 @@ build/*
 !build/README.md
 .amd/
 .transpiled/
+.gobble

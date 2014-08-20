@@ -91,7 +91,11 @@
     "grunt-broccoli": "~0.3.3",
     "broccoli-env": "0.0.1",
     "grunt-concurrent": "~0.5.0",
-    "exec-sync": "~0.1.6"
+    "exec-sync": "~0.1.6",
+    "gobble": "~0.2.2",
+    "gobble-esperanto": "~0.1.0",
+    "gobble-esnext": "~0.1.1",
+    "buffer-crc32": "~0.2.3"
   },
   "testling": {
     "html": "test/testling.html",
