@@ -40,11 +40,6 @@ function tryRender ( ractive ) {
 	if ( el = getElement( ractive.el ) ) {
 		let wasEnabled = ractive.transitionsEnabled;
 
-		// Temporarily disable transitions, if `noIntro` flag is set
-		if ( ractive.noIntro ) {
-			ractive.transitionsEnabled = false;
-		}
-
 		// If the target contains content, and `append` is falsy, clear it
 		if ( el && !ractive.append ) {
 			// Tear down any existing instances on this element
@@ -63,9 +58,6 @@ function tryRender ( ractive ) {
 		}
 
 		ractive.render( el, ractive.append );
-
-		// reset transitionsEnabled
-		ractive.transitionsEnabled = wasEnabled;
 	}
 }
 
