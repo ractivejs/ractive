@@ -40,7 +40,7 @@ export default function Attribute$update () {
 		}
 
 		// special case - contenteditable
-		else if ( node.getAttribute( 'contenteditable' ) !== null ) {
+		else if ( element.getAttribute( 'contenteditable' ) != null ) {
 			updateMethod = updateContentEditableValue;
 		}
 
