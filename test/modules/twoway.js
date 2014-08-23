@@ -151,6 +151,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true">overridden</div>' );
 		});
 
+		test( 'The order of attributes does not affect contenteditable (#1134)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					<div value='{{foo}}' contenteditable='true'></div>
+					<div contenteditable='true' value='{{bar}}'></div>`,
+				data: {
+					foo: 'one',
+					bar: 'two'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true">one</div><div contenteditable="true">two</div>' );
+		});
+
 		[ 'number', 'range' ].forEach( function ( type ) {
 			test( 'input type=' + type + ' values are coerced', function ( t ) {
 				var ractive, inputs;
