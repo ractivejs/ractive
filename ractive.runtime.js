@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-08-23 - commit 063b4cfe 
+	2014-08-23 - commit b03f9fea 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2691,6 +2691,8 @@
 				this.value = this.root.viewmodel.get( this.keypath );
 				if ( immediate !== false ) {
 					this.update();
+				} else {
+					this.oldValue = this.value;
 				}
 			},
 			setValue: function( value ) {
