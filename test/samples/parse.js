@@ -721,6 +721,11 @@ var parseTests = [
 		name: 'Empty attribute',
 		template: '<div contenteditable=""></div>',
 		parsed: {v:1,t:[{t:7,e:'div',a:{contenteditable:0}}]}
+	},
+	{
+		name: '{{else}} block in attribute',
+		template: '<img src="{{#if mobile}}small{{else}}big{{/if}}.png">',
+		parsed: {v:1,t:[{t:7,e:'img',a:{src:[{t:4,r:'mobile',n:50,f:['small']},{t:4,r:'mobile',n:51,f:['big']},'.png']}}]}
 	}
 ];
 

@@ -188,25 +188,25 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			}
 
 			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+		}
 
-			// Split if-else blocks into two (an if, and an unless)
-			if ( item.l ) {
-				cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+		// Split if-else blocks into two (an if, and an unless)
+		if ( item.l ) {
+			cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
 
-				if ( rewriteElse ) {
-					unlessBlock = {
-						t: 4,
-						n: types.SECTION_UNLESS,
-						f: item.l
-					};
-					// copy the conditional based on its type
-					if( item.r  ) { unlessBlock.r  = item.r;  }
-					if( item.x  ) { unlessBlock.x  = item.x;  }
-					if( item.rx ) { unlessBlock.rx = item.rx; }
+			if ( rewriteElse ) {
+				unlessBlock = {
+					t: 4,
+					n: types.SECTION_UNLESS,
+					f: item.l
+				};
+				// copy the conditional based on its type
+				if( item.r  ) { unlessBlock.r  = item.r;  }
+				if( item.x  ) { unlessBlock.x  = item.x;  }
+				if( item.rx ) { unlessBlock.rx = item.rx; }
 
-					items.splice( i + 1, 0, unlessBlock );
-					delete item.l;
-				}
+				items.splice( i + 1, 0, unlessBlock );
+				delete item.l;
 			}
 		}
 
@@ -214,7 +214,7 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 		if ( item.a ) {
 			for ( key in item.a ) {
 				if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-					cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
+					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
 				}
 			}
 		}
