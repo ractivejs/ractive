@@ -5,9 +5,15 @@ import getElement from 'utils/getElement';
 var queues = {}, rendering = {};
 
 export default function Ractive$render ( target, anchor ) {
-	var promise, instances;
+	var promise, instances, transitionsEnabled;
 
 	rendering[ this._guid ] = true;
+
+	// if `noIntro` is `true`, temporarily disable transitions
+	transitionsEnabled = this.transitionsEnabled;
+	if ( this.noIntro ) {
+		this.transitionsEnabled = false;
+	}
 
 	promise = runloop.start( this, true );
 
@@ -56,6 +62,7 @@ export default function Ractive$render ( target, anchor ) {
 	runloop.end();
 
 	this.rendered = true;
+	this.transitionsEnabled = transitionsEnabled;
 
 	if ( this.complete ) {
 		promise.then( () => this.complete() );

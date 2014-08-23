@@ -96,6 +96,26 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			});
 		});
 
+		asyncTest( 'noIntro option prevents intro transition when el is initially undefined', function ( t ) {
+			var ractive, transitioned;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				template: '<div intro="test"></div>',
+				noIntro: true,
+				beforeComplete: function(){
+					transitioned = true;
+				},
+				complete: function(){
+					t.ok( !transitioned, 'transition happened');
+					start()
+				}
+			});
+
+			ractive.render( fixture );
+		});
+
 		asyncTest( 'ractive.transitionsEnabled false prevents all transitions', function ( t ) {
 
 			var ractive, Component, transitioned;
