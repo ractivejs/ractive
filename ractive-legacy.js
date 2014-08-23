@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-23 - commit b03f9fea 
+	2014-08-23 - commit 45867f92 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4524,35 +4524,35 @@
 						}
 					}
 					cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
-					// Split if-else blocks into two (an if, and an unless)
-					if ( item.l ) {
-						cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
-						if ( rewriteElse ) {
-							unlessBlock = {
-								t: 4,
-								n: types.SECTION_UNLESS,
-								f: item.l
-							};
-							// copy the conditional based on its type
-							if ( item.r ) {
-								unlessBlock.r = item.r;
-							}
-							if ( item.x ) {
-								unlessBlock.x = item.x;
-							}
-							if ( item.rx ) {
-								unlessBlock.rx = item.rx;
-							}
-							items.splice( i + 1, 0, unlessBlock );
-							delete item.l;
+				}
+				// Split if-else blocks into two (an if, and an unless)
+				if ( item.l ) {
+					cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					if ( rewriteElse ) {
+						unlessBlock = {
+							t: 4,
+							n: types.SECTION_UNLESS,
+							f: item.l
+						};
+						// copy the conditional based on its type
+						if ( item.r ) {
+							unlessBlock.r = item.r;
 						}
+						if ( item.x ) {
+							unlessBlock.x = item.x;
+						}
+						if ( item.rx ) {
+							unlessBlock.rx = item.rx;
+						}
+						items.splice( i + 1, 0, unlessBlock );
+						delete item.l;
 					}
 				}
 				// Clean up element attributes
 				if ( item.a ) {
 					for ( key in item.a ) {
 						if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-							cleanup( item.a[ key ], stripComments, preserveWhitespace, rewriteElse );
+							cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
 						}
 					}
 				}
