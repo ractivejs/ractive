@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-23 - commit 01302ccf 
+	2014-08-23 - commit 063b4cfe 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4121,7 +4121,7 @@
 			exclude = {
 				exclude: true
 			},
-			converters;
+			converters, disallowedContents;
 		// Different set of converters, because this time we're looking for closing tags
 		converters = [
 			getMustache,
@@ -4130,6 +4130,55 @@
 			getText,
 			getClosingTag
 		];
+		// based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
+		disallowedContents = {
+			li: [ 'li' ],
+			dt: [
+				'dt',
+				'dd'
+			],
+			dd: [
+				'dt',
+				'dd'
+			],
+			p: 'address article aside blockquote div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr main menu nav ol p pre section table ul'.split( ' ' ),
+			rt: [
+				'rt',
+				'rp'
+			],
+			rp: [
+				'rt',
+				'rp'
+			],
+			optgroup: [ 'optgroup' ],
+			option: [
+				'option',
+				'optgroup'
+			],
+			thead: [
+				'tbody',
+				'tfoot'
+			],
+			tbody: [
+				'tbody',
+				'tfoot'
+			],
+			tfoot: [ 'tbody' ],
+			tr: [
+				'tr',
+				'tbody'
+			],
+			td: [
+				'td',
+				'th',
+				'tr'
+			],
+			th: [
+				'td',
+				'th',
+				'tr'
+			]
+		};
 		return getElement;
 
 		function getElement( parser ) {
@@ -4208,7 +4257,7 @@
 					parser.inside = lowerCaseName;
 				}
 				children = [];
-				while ( child = parser.read( converters ) ) {
+				while ( canContain( lowerCaseName, parser.remaining() ) && ( child = parser.read( converters ) ) ) {
 					// Special case - closing section tag
 					if ( child.t === types.CLOSING ) {
 						break;
@@ -4227,6 +4276,16 @@
 				return exclude;
 			}
 			return element;
+		}
+
+		function canContain( name, remaining ) {
+			var match, disallowed;
+			match = /^<([a-zA-Z][a-zA-Z0-9]*)/.exec( remaining );
+			disallowed = disallowedContents[ name ];
+			if ( !match || !disallowed ) {
+				return true;
+			}
+			return !~disallowed.indexOf( match[ 1 ].toLowerCase() );
 		}
 	}( types, voidElementNames, mustache, comment, text, closingTag, attribute, processDirective );
 
