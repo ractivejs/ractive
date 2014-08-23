@@ -38,8 +38,6 @@ function tryRender ( ractive ) {
 	var el;
 
 	if ( el = getElement( ractive.el ) ) {
-		let wasEnabled = ractive.transitionsEnabled;
-
 		// If the target contains content, and `append` is falsy, clear it
 		if ( el && !ractive.append ) {
 			// Tear down any existing instances on this element
