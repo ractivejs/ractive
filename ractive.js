@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-23 - commit c01f23f7 
+	2014-08-23 - commit 01302ccf 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5822,8 +5822,13 @@
 			rendering = {};
 		return function Ractive$render( target, anchor ) {
 			var this$0 = this;
-			var promise, instances;
+			var promise, instances, transitionsEnabled;
 			rendering[ this._guid ] = true;
+			// if `noIntro` is `true`, temporarily disable transitions
+			transitionsEnabled = this.transitionsEnabled;
+			if ( this.noIntro ) {
+				this.transitionsEnabled = false;
+			}
 			promise = runloop.start( this, true );
 			if ( this.rendered ) {
 				throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
@@ -5862,6 +5867,7 @@
 			rendering[ this._guid ] = false;
 			runloop.end();
 			this.rendered = true;
+			this.transitionsEnabled = transitionsEnabled;
 			if ( this.complete ) {
 				promise.then( function() {
 					return this$0.complete();
@@ -13093,11 +13099,6 @@
 		function tryRender( ractive ) {
 			var el;
 			if ( el = getElement( ractive.el ) ) {
-				var wasEnabled = ractive.transitionsEnabled;
-				// Temporarily disable transitions, if `noIntro` flag is set
-				if ( ractive.noIntro ) {
-					ractive.transitionsEnabled = false;
-				}
 				// If the target contains content, and `append` is falsy, clear it
 				if ( el && !ractive.append ) {
 					// Tear down any existing instances on this element
@@ -13111,8 +13112,6 @@
 					el.innerHTML = '';
 				}
 				ractive.render( el, ractive.append );
-				// reset transitionsEnabled
-				ractive.transitionsEnabled = wasEnabled;
 			}
 		}
 
