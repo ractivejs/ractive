@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-20 - commit f9fdfd0f 
+	2014-08-23 - commit f2b3868a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7067,22 +7067,19 @@
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateContentEditableValue.js */
 	var virtualdom_items_Element_Attribute$update_updateContentEditableValue = function Attribute$updateContentEditableValue() {
-		var node, value;
-		node = this.node;
-		value = this.value;
+		var value = this.value;
 		if ( value === undefined ) {
 			value = '';
 		}
 		if ( !this.locked ) {
-			node.innerHTML = value;
+			this.node.innerHTML = value;
 		}
 	};
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateValue.js */
 	var virtualdom_items_Element_Attribute$update_updateValue = function Attribute$updateValue() {
-		var node, value;
-		node = this.node;
-		value = this.value;
+		var node = ( value = this ).node,
+			value = value.value;
 		// store actual value, so it doesn't get coerced to a string
 		node._ractive.value = value;
 		// with two-way binding, only update if the change wasn't initiated by the user
@@ -7144,7 +7141,7 @@
 					updateMethod = element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
 				} else if ( element.name === 'textarea' ) {
 					updateMethod = updateValue;
-				} else if ( node.getAttribute( 'contenteditable' ) !== null ) {
+				} else if ( element.getAttribute( 'contenteditable' ) != null ) {
 					updateMethod = updateContentEditableValue;
 				} else if ( element.name === 'input' ) {
 					type = element.getAttribute( 'type' );
