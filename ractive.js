@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-23 - commit 45867f92 
+	2014-08-24 - commit d387d098 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9351,6 +9351,9 @@
 					this.init();
 				}
 			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			},
 			teardown: function( updating ) {
 				this.actual.teardown();
 				if ( !updating && this.fragment ) {
@@ -9547,6 +9550,9 @@
 			}
 			if ( this.eventHandlers ) {
 				this.eventHandlers.forEach( rebind );
+			}
+			if ( this.decorator ) {
+				rebind( this.decorator );
 			}
 			// rebind children
 			if ( this.fragment ) {
