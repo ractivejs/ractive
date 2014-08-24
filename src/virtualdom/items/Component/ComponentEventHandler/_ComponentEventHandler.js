@@ -8,14 +8,14 @@ import teardown from 'virtualdom/items/shared/EventHandler/prototype/teardown';
 import unrender from 'virtualdom/items/shared/EventHandler/prototype/unrender';
 
 
-import listen from 'virtualdom/items/Element/EventHandler/prototype/listen';
+import listen from 'virtualdom/items/Component/EventHandler/prototype/listen';
 
-var EventHandler = function ( element, name, template ) {
-	this.element = element;
-	this.init( element.root, name, template );
+var ComponentEventHandler = function ( component, name, template ) {
+	this.component = component
+	this.init( component.root, name, template );
 };
 
-EventHandler.prototype = {
+ComponentEventHandler.prototype = {
 	bubble: bubble,
 	fire: fire,
 	getAction: getAction,
@@ -27,4 +27,4 @@ EventHandler.prototype = {
 	unrender: unrender
 };
 
-export default EventHandler;
+export default ComponentEventHandler;

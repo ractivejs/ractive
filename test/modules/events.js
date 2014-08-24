@@ -664,15 +664,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
 		});
 
-		module( 'Events bubble up components' );
 
-		test( '"*" prefixed event handlers bubble', function ( t ) {
+		function resetBubble(){
+			Ractive.prototype.bubble = false;
+		}
+
+		module( 'Events bubble up components', {
+			setup: resetBubble,
+			teardown: resetBubble
+		});
+
+		test( 'bubble = true causes event handlers to bubble under "eventname" and "component.eventname"', function ( t ) {
 			var ractive, Component, Middle;
 
-			expect( 2 );
+			expect( 4 );
+
+			Ractive.defaults.bubble = true;
 
 			Component = Ractive.extend({
-				template: '<span id="test" on-click="*someEvent">click me</span>'
+				template: '<span id="test" on-click="someEvent">click me</span>'
 			});
 
 			Middle = Ractive.extend({
@@ -694,7 +704,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.on( 'component.someEvent', function ( event ) {
-				throw new Error('event should not be namespaced');
+				t.ok( true );
+				t.equal( event.original.type, 'click' );
 			});
 
 			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
@@ -723,7 +734,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
 		});
-
+/*
 		test( '"on-*" attribute sets namespace for component events', function ( t ) {
 			var ractive, Component, Middle;
 
@@ -809,6 +820,33 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
 		});
 
+		test( '"on-*" attribute with dynamic value changes handler', function ( t ) {
+			var ractive, Component, Middle;
+
+			expect( 1 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="*someEvent">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component on-*="{{foo}}" on-*foo="foo"/>',
+				data: {
+					foo: 'bar'
+				},
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'bar.someEvent', function ( event ) {
+				t.ok( true );
+			});
+
+			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
+		});
+*/
 		test( 'bubble events can be stopped with event.stopBubble()', function ( t ) {
 			var ractive, Component, Middle;
 

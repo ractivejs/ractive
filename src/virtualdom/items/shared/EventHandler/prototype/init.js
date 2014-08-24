@@ -7,11 +7,10 @@ circular.push( function () {
 	Fragment = circular.Fragment;
 });
 
-export default function EventHandler$init ( element, name, template ) {
+export default function EventHandler$init ( root, name, template ) {
 	var action;
 
-	this.element = element;
-	this.root = element.root;
+	this.root = root;
 	this.name = name;
 
 	// Get action ('foo' in 'on-click='foo')

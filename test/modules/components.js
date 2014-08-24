@@ -1512,25 +1512,6 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			console.warn = warn;
 		});
 
-		test( 'Component events use their own context and paramters', function ( t ) {
-			var ractive = new Ractive({
-				el: fixture,
-				template: '{{#context}}<widget/>{{/}}',
-				components: {
-					widget: Ractive.extend({
-						template: 'works? {{works}}'
-					})
-				},
-				data: {
-					context: {
-						works: 'yes'
-					}
-				}
-			});
-
-			t.htmlEqual( fixture.innerHTML, 'works? yes' );
-		});
-
 	};
 
 });

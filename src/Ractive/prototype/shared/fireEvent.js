@@ -1,9 +1,6 @@
 export default function fireEvent ( ractive, eventName, options = {} ) {
 
-	var bubble = ( eventName[0] === '*' );
-
-	if ( bubble ) {
-		eventName = eventName.substr(1);
+	if ( ractive.bubble ) {
 
 		if ( options.event ) {
 			options.event._bubble = true;
@@ -16,7 +13,7 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 		eventName,
 		options.event,
 		options.args,
-		bubble,
+		ractive.bubble,
 		true, // root fire
 		options.changeBubbleContext );
 
@@ -29,7 +26,7 @@ function fireEventAs  ( ractive, eventName, event, args, bubble, rootInstance, c
 	var subscribers = ractive._subs[ eventName ];
 
 	if ( subscribers ) {
-		bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
+		bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble && ractive.bubble;
 	}
 
 	if ( bubble ) {
@@ -54,7 +51,7 @@ function fireEventAs  ( ractive, eventName, event, args, bubble, rootInstance, c
 
 function notifySubscribers ( ractive, subscribers, event, args ) {
 
-	var i = 0, len = 0, originalEvent = null, bubble = true, stopEvent = false;
+	var i = 0, len = 0, originalEvent = null, stopEvent = false;
 
 	if ( event ) {
 		args = [ event ].concat( args );

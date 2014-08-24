@@ -10,7 +10,7 @@ import processDirective from 'parse/converters/element/processDirective';
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,
 	onPattern = /^on/,
-	namespacePattern = /^on-\\*/,
+	// namespacePattern = /^on-\\*/,
 	proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)$/,
 	reservedEventNames = /^(?:change|reset|teardown|update)$/,
 	directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
@@ -109,11 +109,11 @@ function getElement ( parser ) {
 		// on-* namespace
 		// is this ok to create faux-directive?
 		// or is it hacky and should this be own template primitive???
-		else if ( namespacePattern.test( attribute.name ) ) {
-			if ( !element.v ) element.v = {};
-			directive = attribute.value ? processDirective( attribute.value ) : '';
-			addProxyEvent( '*', directive );
-		}
+		// else if ( namespacePattern.test( attribute.name ) ) {
+		// 	if ( !element.v ) element.v = {};
+		// 	directive = attribute.value ? processDirective( attribute.value ) : '';
+		// 	addProxyEvent( '*', directive );
+		// }
 
 		else {
 			if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
