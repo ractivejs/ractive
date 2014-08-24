@@ -100,6 +100,10 @@ Decorator.prototype = {
 		}
 	},
 
+	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+	},
+
 	teardown: function ( updating ) {
 		this.actual.teardown();
 

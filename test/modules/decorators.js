@@ -196,6 +196,29 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<pre>|blue is the moon|</pre><pre>| blue is the moon   |</pre>' );
 		});
 
+		test( 'Rebinding causes decorators to update, if arguments are index references', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#each letters :i}}<p decorator="check:{{i}}"></p>{{/each}}',
+				data: {
+					letters: [ 'a', 'b' ]
+				},
+				decorators: {
+					check: function ( node, index ) {
+						return {
+							update: function ( newIndex ) {
+								t.equal( newIndex, index - 1 );
+								index = newIndex;
+							},
+							teardown: function () {}
+						};
+					}
+				}
+			});
+
+			ractive.shift( 'letters' );
+		});
+
 	};
 
 });
