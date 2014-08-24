@@ -21,6 +21,7 @@ export default function Component$init ( options, Component ) {
 	this.index = options.index;
 	this.indexRefBindings = {};
 	this.bindings = [];
+	this.yielder = null;
 
 	if ( !Component ) {
 		throw new Error( 'Component "' + this.name + '" not found' );
