@@ -76,11 +76,11 @@ ExpressionResolver.prototype = {
 		this.callback( this.keypath );
 	},
 
-	teardown: function () {
+	unbind: function () {
 		var unresolved;
 
 		while ( unresolved = this.unresolved.pop() ) {
-			unresolved.teardown();
+			unresolved.unbind();
 		}
 	},
 

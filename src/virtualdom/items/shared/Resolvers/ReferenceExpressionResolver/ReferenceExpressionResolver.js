@@ -52,7 +52,7 @@ ReferenceExpressionResolver.prototype = {
 		this.callback( this.getKeypath() );
 	},
 
-	teardown: function () {
+	unbind: function () {
 		this.members.forEach( unbind );
 	},
 
@@ -74,7 +74,7 @@ ReferenceExpressionResolver.prototype = {
 		if ( this.baseResolver ) {
 			this.base = this.ref;
 
-			this.baseResolver.teardown();
+			this.baseResolver.unbind();
 			this.baseResolver = null;
 		}
 

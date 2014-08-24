@@ -97,19 +97,15 @@ MemberResolver.prototype = {
 		if ( this.keypath ) {
 			this.root.viewmodel.unregister( this.keypath, this );
 		}
-	},
-
-	teardown: function () {
-		this.unbind();
 
 		if ( this.unresolved ) {
-			this.unresolved.teardown();
+			this.unresolved.unbind();
 		}
 	},
 
 	forceResolution: function () {
 		if ( this.unresolved ) {
-			this.unresolved.teardown();
+			this.unresolved.unbind();
 			this.unresolved = null;
 
 			this.keypath = this.ref;
