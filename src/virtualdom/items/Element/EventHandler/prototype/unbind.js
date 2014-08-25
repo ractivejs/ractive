@@ -6,12 +6,12 @@ export default function EventHandler$unbind () {
 
 	// Tear down dynamic name
 	if ( typeof this.action !== 'string' ) {
-		this.action.teardown();
+		this.action.unbind();
 	}
 
 	// Tear down dynamic parameters
 	if ( this.dynamicParams ) {
-		this.dynamicParams.teardown();
+		this.dynamicParams.unbind();
 	}
 }
 
