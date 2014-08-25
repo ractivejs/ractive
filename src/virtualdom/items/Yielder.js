@@ -7,7 +7,7 @@ circular.push( function () {
 });
 
 var Yielder = function ( options ) {
-	var componentInstance, component, ractive;
+	var componentInstance, component;
 
 	componentInstance = options.parentFragment.root;
 	component = componentInstance.component;
