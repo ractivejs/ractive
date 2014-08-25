@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-24 - commit d387d098 
+	2014-08-25 - commit 88d47600 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5777,14 +5777,14 @@
 			return function( keypath ) {
 				var SLICE$0 = Array.prototype.slice;
 				var args = SLICE$0.call( arguments, 1 );
-				var array, spliceEquivalent, spliceSummary, promise;
+				var array, spliceEquivalent, spliceSummary, promise, change;
 				array = this.get( keypath );
 				if ( !isArray( array ) ) {
 					throw new Error( 'Called ractive.' + methodName + '(\'' + keypath + '\'), but \'' + keypath + '\' does not refer to an array' );
 				}
 				spliceEquivalent = getSpliceEquivalent( array, methodName, args );
 				spliceSummary = summariseSpliceOperation( array, spliceEquivalent );
-				arrayProto[ methodName ].apply( array, args );
+				change = arrayProto[ methodName ].apply( array, args );
 				promise = runloop.start( this, true );
 				if ( spliceSummary ) {
 					this.viewmodel.splice( keypath, spliceSummary );
@@ -5792,6 +5792,12 @@
 					this.viewmodel.mark( keypath );
 				}
 				runloop.end();
+				// resolve the promise with removals if applicable
+				if ( methodName === 'splice' || methodName === 'pop' || methodName === 'shift' ) {
+					promise = promise.then( function() {
+						return change;
+					} );
+				}
 				return promise;
 			};
 		};
