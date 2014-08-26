@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-25 - commit 88d47600 
+	2014-08-26 - commit f6943b12 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9358,7 +9358,9 @@
 				}
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+				if ( this.fragment ) {
+					this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+				}
 			},
 			teardown: function( updating ) {
 				this.actual.teardown();
