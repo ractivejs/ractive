@@ -19,8 +19,8 @@ test = gobble( 'test' )
 
 result = [ src, test ];
 
-if ( !gobble.isBuild ) {
+if ( gobble.env() !== 'production' ) {
 	result.push( gobble( 'sandbox' ).moveTo( 'sandbox' ) );
 }
 
-module.exports = result;
+module.exports = gobble( result );
