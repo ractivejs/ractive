@@ -12,7 +12,7 @@ templates = {
 	bower: fs.readFileSync( __dirname + '/templates/bower.json' ).toString(),
 	component: fs.readFileSync( __dirname + '/templates/component.json' ).toString(),
 	releaseScript: fs.readFileSync( __dirname + '/templates/release.sh' ).toString()
-}
+};
 
 // Create temporary package.json and bower.json files
 fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'package.json' ), replace( templates.pkg ) );
