@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-26 - commit f6943b12 
+	2014-08-28 - commit dbac447a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -217,6 +217,7 @@
 	/* utils/Promise.js */
 	var Promise = function() {
 
+		var __export;
 		var _Promise, PENDING = {},
 			FULFILLED = {},
 			REJECTED = {};
@@ -319,7 +320,7 @@
 				} );
 			};
 		}
-		return _Promise;
+		__export = _Promise;
 		// TODO use MutationObservers or something to simulate setImmediate
 		function wait( callback ) {
 			setTimeout( callback, 0 );
@@ -387,6 +388,7 @@
 				fulfil( x );
 			}
 		}
+		return __export;
 	}();
 
 	/* utils/normaliseRef.js */
@@ -500,12 +502,13 @@
 	/* shared/resolveRef.js */
 	var resolveRef = function( normaliseRef, getInnerContext, createComponentBinding ) {
 
+		var __export;
 		var ancestorErrorMessage, getOptions;
 		ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 		getOptions = {
 			evaluateWrapped: true
 		};
-		return function resolveRef( ractive, ref, fragment ) {
+		__export = function resolveRef( ractive, ref, fragment ) {
 			var context, key, index, keypath, parentValue, hasContextChain, parentKeys, childKeys, parentKeypath, childKeypath;
 			ref = normaliseRef( ref );
 			// If a reference begins '~/', it's a top-level reference
@@ -598,6 +601,7 @@
 			}
 			return baseContext + ref.replace( /^\.\//, '.' );
 		}
+		return __export;
 	}( normaliseRef, getInnerContext, createComponentBinding );
 
 	/* global/TransitionManager.js */
@@ -688,6 +692,7 @@
 	/* global/runloop.js */
 	var runloop = function( circular, removeFromArray, Promise, resolveRef, TransitionManager ) {
 
+		var __export;
 		var batch, runloop, unresolved = [];
 		runloop = {
 			start: function( instance, returnPromise ) {
@@ -749,7 +754,7 @@
 			}
 		};
 		circular.runloop = runloop;
-		return runloop;
+		__export = runloop;
 
 		function flushChanges() {
 			var i, thing, changeHash;
@@ -806,6 +811,7 @@
 		function resolve( resolved ) {
 			resolved.item.resolve( resolved.keypath );
 		}
+		return __export;
 	}( circular, removeFromArray, Promise, resolveRef, TransitionManager );
 
 	/* utils/createBranch.js */
@@ -820,6 +826,7 @@
 	/* viewmodel/prototype/get/magicAdaptor.js */
 	var viewmodel$get_magicAdaptor = function( runloop, createBranch, isArray ) {
 
+		var __export;
 		var magicAdaptor, MagicWrapper;
 		try {
 			Object.defineProperty( {}, 'test', {
@@ -933,7 +940,7 @@
 		} catch ( err ) {
 			magicAdaptor = false;
 		}
-		return magicAdaptor;
+		__export = magicAdaptor;
 
 		function createAccessors( originalWrapper, value, template ) {
 			var object, property, oldGet, oldSet, get, set;
@@ -987,6 +994,7 @@
 				configurable: true
 			} );
 		}
+		return __export;
 	}( runloop, createBranch, isArray );
 
 	/* config/magic.js */
@@ -1257,12 +1265,13 @@
 	/* config/options/css/transform.js */
 	var transform = function() {
 
+		var __export;
 		var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
 			commentsPattern = /\/\*.*?\*\//g,
 			selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g,
 			mediaQueryPattern = /^@media/,
 			dataRvcGuidPattern = /\[data-rvcguid="[a-z0-9-]+"]/g;
-		return function transformCss( css, guid ) {
+		__export = function transformCss( css, guid ) {
 			var transformed, addGuid;
 			addGuid = function( selector ) {
 				var selectorUnits, match, unit, dataAttr, base, prepended, appended, i, transformed = [];
@@ -1316,6 +1325,7 @@
 		function extractString( unit ) {
 			return unit.str;
 		}
+		return __export;
 	}();
 
 	/* config/options/css/css.js */
@@ -1347,7 +1357,8 @@
 	/* utils/wrapMethod.js */
 	var wrapMethod = function() {
 
-		return function( method, superMethod, force ) {
+		var __export;
+		__export = function( method, superMethod, force ) {
 			if ( force || needsSuper( method, superMethod ) ) {
 				return function() {
 					var hasSuper = '_super' in this,
@@ -1368,18 +1379,20 @@
 		function needsSuper( method, superMethod ) {
 			return typeof superMethod === 'function' && /_super/.test( method );
 		}
+		return __export;
 	}();
 
 	/* config/options/data.js */
 	var data = function( wrap ) {
 
+		var __export;
 		var dataConfig = {
 			name: 'data',
 			extend: extend,
 			init: init,
 			reset: reset
 		};
-		return dataConfig;
+		__export = dataConfig;
 
 		function combine( Parent, target, options ) {
 			var value = options.data || {},
@@ -1496,6 +1509,7 @@
 			}
 			return wrap( childFn, parentFn );
 		}
+		return __export;
 	}( wrapMethod );
 
 	/* config/errors.js */
@@ -1589,7 +1603,6 @@
 	/* parse/Parser/expressions/primary/literal/numberLiteral.js */
 	var numberLiteral = function( types ) {
 
-		// bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
 		var numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 		return function( parser ) {
 			var result;
@@ -2179,7 +2192,6 @@
 	/* parse/Parser/expressions/conditional.js */
 	var conditional = function( types, getLogicalOr, errors ) {
 
-		// The conditional operator is the lowest precedence operator, so we start here
 		return function( parser ) {
 			var start, expression, ifTrue, ifFalse;
 			expression = getLogicalOr( parser );
@@ -2220,7 +2232,8 @@
 	/* parse/Parser/utils/flattenExpression.js */
 	var flattenExpression = function( types, isObject ) {
 
-		return function( expression ) {
+		var __export;
+		__export = function( expression ) {
 			var refs = [],
 				flattened;
 			extractRefs( expression, refs );
@@ -2301,6 +2314,7 @@
 					parser.error( 'Expected legal JavaScript' );
 			}
 		}
+		return __export;
 	}( types, isObject );
 
 	/* parse/Parser/_Parser.js */
@@ -2704,32 +2718,32 @@
 				};
 			}
 			/*
-                	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
-                	if (!Array.prototype.find) {
-                		Array.prototype.find = function(predicate) {
-                			if (this == null) {
-                			throw new TypeError('Array.prototype.find called on null or undefined');
-                			}
-                			if (typeof predicate !== 'function') {
-                			throw new TypeError('predicate must be a function');
-                			}
-                			var list = Object(this);
-                			var length = list.length >>> 0;
-                			var thisArg = arguments[1];
-                			var value;
-            
-                			for (var i = 0; i < length; i++) {
-                				if (i in list) {
-                					value = list[i];
-                					if (predicate.call(thisArg, value, i, list)) {
-                					return value;
-                					}
-                				}
-                			}
-                			return undefined;
-                		}
-                	}
-                	*/
+        		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
+        		if (!Array.prototype.find) {
+        			Array.prototype.find = function(predicate) {
+        				if (this == null) {
+        				throw new TypeError('Array.prototype.find called on null or undefined');
+        				}
+        				if (typeof predicate !== 'function') {
+        				throw new TypeError('predicate must be a function');
+        				}
+        				var list = Object(this);
+        				var length = list.length >>> 0;
+        				var thisArg = arguments[1];
+        				var value;
+        	
+        				for (var i = 0; i < length; i++) {
+        					if (i in list) {
+        						value = list[i];
+        						if (predicate.call(thisArg, value, i, list)) {
+        						return value;
+        						}
+        					}
+        				}
+        				return undefined;
+        			}
+        		}
+        		*/
 			if ( typeof Function.prototype.bind !== 'function' ) {
 				Function.prototype.bind = function( context ) {
 					var args, fn, Empty, bound, slice = [].slice;
@@ -2934,12 +2948,13 @@
 	/* parse/converters/mustache/content.js */
 	var content = function( types, mustacheType, handlebarsBlockCodes ) {
 
+		var __export;
 		var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 			arrayMemberPattern = /^[0-9][1-9]*$/,
 			handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
 			legalReference;
 		legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
-		return function( parser, delimiterType ) {
+		__export = function( parser, delimiterType ) {
 			var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, referenceExpression;
 			start = parser.pos;
 			mustache = {};
@@ -3086,17 +3101,19 @@
 				m: members
 			};
 		}
+		return __export;
 	}( types, type, handlebarsBlockCodes, legacy );
 
 	/* parse/converters/mustache.js */
 	var mustache = function( types, delimiterChange, delimiterTypes, mustacheContent, handlebarsBlockCodes ) {
 
+		var __export;
 		var delimiterChangeToken = {
 				t: types.DELIMCHANGE,
 				exclude: true
 			},
 			handlebarsIndexRefPattern = /^@(?:index|key)$/;
-		return getMustache;
+		__export = getMustache;
 
 		function getMustache( parser ) {
 			var types;
@@ -3293,6 +3310,7 @@
 		function isSection( mustache ) {
 			return mustache.t === types.SECTION || mustache.t === types.INVERTED;
 		}
+		return __export;
 	}( types, delimiterChange, delimiterTypes, content, handlebarsBlockCodes );
 
 	/* parse/converters/comment.js */
@@ -3354,6 +3372,7 @@
 	/* parse/converters/utils/decodeCharacterReferences.js */
 	var decodeCharacterReferences = function() {
 
+		var __export;
 		var htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern;
 		htmlEntities = {
 			quot: 34,
@@ -3647,7 +3666,7 @@
 		namedEntityPattern = new RegExp( '&(' + Object.keys( htmlEntities ).join( '|' ) + ');?', 'g' );
 		hexEntityPattern = /&#x([0-9]+);?/g;
 		decimalEntityPattern = /&#([0-9]+);?/g;
-		return function decodeCharacterReferences( html ) {
+		__export = function decodeCharacterReferences( html ) {
 			var result;
 			// named entities
 			result = html.replace( namedEntityPattern, function( match, name ) {
@@ -3702,6 +3721,7 @@
 			}
 			return 65533;
 		}
+		return __export;
 	}( legacy );
 
 	/* parse/converters/text.js */
@@ -3766,9 +3786,10 @@
 	/* parse/converters/element/attribute.js */
 	var attribute = function( getLowestIndex, getMustache ) {
 
+		var __export;
 		var attributeNamePattern = /^[^\s"'>\/=]+/,
 			unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
-		return getAttribute;
+		__export = getAttribute;
 
 		function getAttribute( parser ) {
 			var attr, name, value;
@@ -3885,16 +3906,12 @@
 			parser.pos += index;
 			return remaining.substr( 0, index );
 		}
+		return __export;
 	}( getLowestIndex, mustache );
 
 	/* utils/parseJSON.js */
 	var parseJSON = function( Parser, getStringLiteral, getKey ) {
 
-		// simple JSON parser, without the restrictions of JSON parse
-		// (i.e. having to double-quote keys).
-		//
-		// If passed a hash of values as the second argument, ${placeholders}
-		// will be replaced with those values
 		var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 		specials = {
 			'true': true,
@@ -4050,7 +4067,6 @@
 	/* parse/converters/element/processDirective.js */
 	var processDirective = function( parseJSON ) {
 
-		// TODO clean this up, it's shocking
 		return function( tokens ) {
 			var result, token, colonIndex, directiveName, directiveArgs, parsed;
 			if ( typeof tokens === 'string' ) {
@@ -4107,6 +4123,7 @@
 	/* parse/converters/element.js */
 	var element = function( types, voidElementNames, getMustache, getComment, getText, getClosingTag, getAttribute, processDirective ) {
 
+		var __export;
 		var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 			validTagNameFollower = /^[\s\n\/>]/,
 			onPattern = /^on/,
@@ -4179,7 +4196,7 @@
 				'tr'
 			]
 		};
-		return getElement;
+		__export = getElement;
 
 		function getElement( parser ) {
 			var start, startPos, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
@@ -4287,6 +4304,7 @@
 			}
 			return !~disallowed.indexOf( match[ 1 ].toLowerCase() );
 		}
+		return __export;
 	}( types, voidElementNames, mustache, comment, text, closingTag, attribute, processDirective );
 
 	/* parse/utils/trimWhitespace.js */
@@ -4324,9 +4342,10 @@
 	/* parse/utils/stripStandalones.js */
 	var stripStandalones = function( types ) {
 
+		var __export;
 		var leadingLinebreak = /^\s*\r?\n/,
 			trailingLinebreak = /\r?\n\s*$/;
-		return function( items ) {
+		__export = function( items ) {
 			var i, current, backOne, backTwo, lastSectionItem;
 			for ( i = 1; i < items.length; i += 1 ) {
 				current = items[ i ];
@@ -4374,6 +4393,7 @@
 		function isSection( item ) {
 			return ( item.t === types.SECTION || item.t === types.INVERTED ) && item.f;
 		}
+		return __export;
 	}( types );
 
 	/* utils/escapeRegExp.js */
@@ -4388,35 +4408,7 @@
 	/* parse/_parse.js */
 	var parse = function( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones, escapeRegExp ) {
 
-		// Ractive.parse
-		// ===============
-		//
-		// Takes in a string, and returns an object representing the parsed template.
-		// A parsed template is an array of 1 or more 'templates', which in some
-		// cases have children.
-		//
-		// The format is optimised for size, not readability, however for reference the
-		// keys for each template are as follows:
-		//
-		// * r - Reference, e.g. 'mustache' in {{mustache}}
-		// * t - Type code (e.g. 1 is text, 2 is interpolator...)
-		// * f - Fragment. Contains a template's children
-		// * l - eLse fragment. Contains a template's children in the else case
-		// * e - Element name
-		// * a - map of element Attributes, or proxy event/transition Arguments
-		// * d - Dynamic proxy event/transition arguments
-		// * n - indicates an iNverted section
-		// * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
-		// * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
-		// * x - eXpressions
-		// * s - String representation of an expression function
-		// * t0 - intro/outro Transition
-		// * t1 - intro Transition
-		// * t2 - outro Transition
-		// * o - decOrator
-		// * y - is doctYpe
-		// * c - is Content (e.g. of a comment node)
-		// * p - line Position information - array with line number and character position of each node
+		var __export;
 		var StandardParser, parse, contiguousWhitespace = /[ \t\f\r\n]+/g,
 			preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 			leadingWhitespace = /^\s+/,
@@ -4486,7 +4478,7 @@
 			result.t = new StandardParser( template, options ).result;
 			return result;
 		};
-		return parse;
+		__export = parse;
 
 		function cleanup( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse ) {
 			var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, unlessBlock, key;
@@ -4596,6 +4588,7 @@
 				']]]'
 			];
 		}
+		return __export;
 	}( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones, escapeRegExp );
 
 	/* config/options/groups/optionGroup.js */
@@ -4906,7 +4899,8 @@
 	/* utils/wrapPrototypeMethod.js */
 	var wrapPrototypeMethod = function( noop ) {
 
-		return function wrap( parent, name, method ) {
+		var __export;
+		__export = function wrap( parent, name, method ) {
 			if ( !/_super/.test( method ) ) {
 				return method;
 			}
@@ -4945,6 +4939,7 @@
 			}
 			return method;
 		}
+		return __export;
 	}( noop );
 
 	/* config/deprecate.js */
@@ -5053,6 +5048,7 @@
 	/* shared/interpolate.js */
 	var interpolate = function( circular, warn, interpolators, config ) {
 
+		var __export;
 		var interpolate = function( from, to, ractive, type ) {
 			if ( from === to ) {
 				return snap( to );
@@ -5067,13 +5063,14 @@
 			return interpolators.number( from, to ) || interpolators.array( from, to ) || interpolators.object( from, to ) || snap( to );
 		};
 		circular.interpolate = interpolate;
-		return interpolate;
+		__export = interpolate;
 
 		function snap( to ) {
 			return function() {
 				return to;
 			};
 		}
+		return __export;
 	}( circular, warn, interpolators, config );
 
 	/* Ractive/prototype/animate/Animation.js */
@@ -5149,11 +5146,12 @@
 	/* Ractive/prototype/animate.js */
 	var Ractive$animate = function( isEqual, Promise, normaliseKeypath, animations, Animation ) {
 
+		var __export;
 		var noop = function() {},
 			noAnimation = {
 				stop: noop
 			};
-		return function Ractive$animate( keypath, to, options ) {
+		__export = function Ractive$animate( keypath, to, options ) {
 			var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
 			promise = new Promise( function( fulfil ) {
 				fulfilPromise = fulfil;
@@ -5286,6 +5284,7 @@
 			root._animations.push( animation );
 			return animation;
 		}
+		return __export;
 	}( isEqual, Promise, normaliseKeypath, animations, Ractive$animate_Animation );
 
 	/* Ractive/prototype/detach.js */
@@ -5400,7 +5399,8 @@
 	/* Ractive/prototype/shared/makeQuery/sortByItemPosition.js */
 	var Ractive$shared_makeQuery_sortByItemPosition = function() {
 
-		return function( a, b ) {
+		var __export;
+		__export = function( a, b ) {
 			var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
 			ancestryA = getAncestry( a.component || a._ractive.proxy );
 			ancestryB = getAncestry( b.component || b._ractive.proxy );
@@ -5458,6 +5458,7 @@
 			}
 			return ancestry;
 		}
+		return __export;
 	}();
 
 	/* Ractive/prototype/shared/makeQuery/sortByDocumentPosition.js */
@@ -6284,9 +6285,10 @@
 	/* Ractive/prototype/render.js */
 	var Ractive$render = function( runloop, css, getElement ) {
 
+		var __export;
 		var queues = {},
 			rendering = {};
-		return function Ractive$render( target, anchor ) {
+		__export = function Ractive$render( target, anchor ) {
 			var this$0 = this;
 			var promise, instances, transitionsEnabled;
 			rendering[ this._guid ] = true;
@@ -6353,6 +6355,7 @@
 		function getChildInitQueue( instance ) {
 			return queues[ instance._guid ] || ( queues[ instance._guid ] = [] );
 		}
+		return __export;
 	}( runloop, global_css, getElement );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
@@ -6478,8 +6481,9 @@
 	/* virtualdom/Fragment/prototype/getValue.js */
 	var virtualdom_Fragment$getValue = function( parseJSON ) {
 
+		var __export;
 		var empty = {};
-		return function Fragment$getValue() {
+		__export = function Fragment$getValue() {
 			var options = arguments[ 0 ];
 			if ( options === void 0 )
 				options = empty;
@@ -6523,6 +6527,7 @@
 				return '${' + placeholderId + '}';
 			} ).join( '' );
 		}
+		return __export;
 	}( parseJSON );
 
 	/* utils/escapeHtml.js */
@@ -6711,8 +6716,7 @@
 	/* virtualdom/items/shared/Evaluator/Evaluator.js */
 	var Evaluator = function( log, isEqual, defineProperty, diff ) {
 
-		// TODO this is a red flag... should be treated the same?
-		// for fn.bind()
+		var __export;
 		var Evaluator, cache = {},
 			bind = Function.prototype.bind;
 		Evaluator = function( root, keypath, uniqueString, functionStr, args, priority ) {
@@ -6798,7 +6802,7 @@
 				this.root.viewmodel.evaluators[ this.keypath ] = null;
 			}
 		};
-		return Evaluator;
+		__export = Evaluator;
 
 		function getFunctionFromString( str, i ) {
 			var fn, args;
@@ -6844,11 +6848,13 @@
 		function call( arg ) {
 			return typeof arg === 'function' ? arg() : arg;
 		}
+		return __export;
 	}( log, isEqual, defineProperty, diff, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
 	var ExpressionResolver = function( removeFromArray, resolveRef, Unresolved, Evaluator, getNewKeypath ) {
 
+		var __export;
 		var ExpressionResolver = function( owner, parentFragment, expression, callback ) {
 			var expressionResolver = this,
 				ractive, indexRefs, args;
@@ -6950,7 +6956,7 @@
 				}
 			}
 		};
-		return ExpressionResolver;
+		__export = ExpressionResolver;
 
 		function getUniqueString( str, args ) {
 			// get string that is unique to this expression
@@ -6969,6 +6975,7 @@
 			// we can't split the keypath into keys!
 			return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
 		}
+		return __export;
 	}( removeFromArray, resolveRef, Unresolved, Evaluator, getNewKeypath );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js */
@@ -7495,11 +7502,12 @@
 	/* virtualdom/items/Section/prototype/setValue.js */
 	var virtualdom_items_Section$setValue = function( types, isArray, isObject, runloop, circular ) {
 
+		var __export;
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function Section$setValue( value ) {
+		__export = function Section$setValue( value ) {
 			var this$0 = this;
 			var wrapper, fragmentOptions;
 			if ( this.updating ) {
@@ -7702,16 +7710,18 @@
 		function isRendered( fragment ) {
 			return fragment.rendered;
 		}
+		return __export;
 	}( types, isArray, isObject, runloop, circular );
 
 	/* virtualdom/items/Section/prototype/splice.js */
 	var virtualdom_items_Section$splice = function( runloop, circular ) {
 
+		var __export;
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function Section$splice( spliceSummary ) {
+		__export = function Section$splice( spliceSummary ) {
 			var section = this,
 				balance, start, insertStart, insertEnd, spliceArgs;
 			// In rare cases, a section will receive a splice instruction after it has
@@ -7782,6 +7792,7 @@
 				fragment.rebind( indexRef, i, oldKeypath, newKeypath );
 			}
 		}
+		return __export;
 	}( runloop, circular );
 
 	/* virtualdom/items/Section/prototype/toString.js */
@@ -7799,7 +7810,8 @@
 	/* virtualdom/items/Section/prototype/unbind.js */
 	var virtualdom_items_Section$unbind = function( unbind ) {
 
-		return function Section$unbind() {
+		var __export;
+		__export = function Section$unbind() {
 			this.fragments.forEach( unbindFragment );
 			unbind.call( this );
 			this.length = 0;
@@ -7809,12 +7821,14 @@
 		function unbindFragment( fragment ) {
 			fragment.unbind();
 		}
+		return __export;
 	}( unbind );
 
 	/* virtualdom/items/Section/prototype/unrender.js */
 	var virtualdom_items_Section$unrender = function() {
 
-		return function Section$unrender( shouldDestroy ) {
+		var __export;
+		__export = function Section$unrender( shouldDestroy ) {
 			this.fragments.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
 		};
 
@@ -7825,6 +7839,7 @@
 		function unrender( fragment ) {
 			fragment.unrender( false );
 		}
+		return __export;
 	}();
 
 	/* virtualdom/items/Section/prototype/update.js */
@@ -7970,6 +7985,7 @@
 	/* virtualdom/items/Triple/helpers/insertHtml.js */
 	var insertHtml = function( namespaces, createElement ) {
 
+		var __export;
 		var elementCache = {},
 			ieBug, ieBlacklist;
 		try {
@@ -7999,7 +8015,7 @@
 				]
 			};
 		}
-		return function( html, node, docFrag ) {
+		__export = function( html, node, docFrag ) {
 			var container, nodes = [],
 				wrapper, selectedOption, child, i;
 			if ( html ) {
@@ -8041,6 +8057,7 @@
 		function element( tagName ) {
 			return elementCache[ tagName ] || ( elementCache[ tagName ] = createElement( tagName ) );
 		}
+		return __export;
 	}( namespaces, createElement );
 
 	/* utils/toArray.js */
@@ -8056,7 +8073,8 @@
 	/* virtualdom/items/Triple/helpers/updateSelect.js */
 	var updateSelect = function( toArray ) {
 
-		return function updateSelect( parentElement ) {
+		var __export;
+		__export = function updateSelect( parentElement ) {
 			var selectedOptions, option, value;
 			if ( !parentElement || parentElement.name !== 'select' || !parentElement.binding ) {
 				return;
@@ -8080,6 +8098,7 @@
 		function isSelected( option ) {
 			return option.selected;
 		}
+		return __export;
 	}( toArray );
 
 	/* virtualdom/items/Triple/prototype/render.js */
@@ -8354,8 +8373,6 @@
 	/* virtualdom/items/Element/Attribute/helpers/determinePropertyName.js */
 	var determinePropertyName = function( namespaces ) {
 
-		// the property name equivalents for element attributes, where they differ
-		// from the lowercased attribute name
 		var propertyNames = {
 			'accept-charset': 'acceptCharset',
 			accesskey: 'accessKey',
@@ -8442,8 +8459,6 @@
 	/* virtualdom/items/Element/Attribute/prototype/render.js */
 	var virtualdom_items_Element_Attribute$render = function( namespaces ) {
 
-		// the property name equivalents for element attributes, where they differ
-		// from the lowercased attribute name
 		var propertyNames = {
 			'accept-charset': 'acceptCharset',
 			'accesskey': 'accessKey',
@@ -8492,7 +8507,8 @@
 	/* virtualdom/items/Element/Attribute/prototype/toString.js */
 	var virtualdom_items_Element_Attribute$toString = function( booleanAttributes ) {
 
-		return function Attribute$toString() {
+		var __export;
+		__export = function Attribute$toString() {
 			var name = ( fragment = this ).name,
 				value = fragment.value,
 				interpolator = fragment.interpolator,
@@ -8522,6 +8538,7 @@
 		function escape( value ) {
 			return value.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
 		}
+		return __export;
 	}( booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/unbind.js */
@@ -8733,10 +8750,6 @@
 	/* virtualdom/items/Element/Attribute/prototype/update.js */
 	var virtualdom_items_Element_Attribute$update = function( namespaces, noop, updateSelectValue, updateMultipleSelectValue, updateRadioName, updateRadioValue, updateCheckboxName, updateClassName, updateIdAttribute, updateIEStyleAttribute, updateContentEditableValue, updateValue, updateBoolean, updateEverythingElse ) {
 
-		// There are a few special cases when it comes to updating attributes. For this reason,
-		// the prototype .update() method points to this method, which waits until the
-		// attribute has finished initialising, then replaces the prototype method with a more
-		// suitable one. That way, we save ourselves doing a bunch of tests on each call
 		return function Attribute$update() {
 			var name, element, node, type, updateMethod;
 			name = this.name;
@@ -9361,6 +9374,7 @@
 	/* virtualdom/items/Element/Binding/GenericBinding.js */
 	var GenericBinding = function( Binding, handleDomEvent ) {
 
+		var __export;
 		var GenericBinding, getOptions;
 		getOptions = {
 			evaluateWrapped: true
@@ -9391,7 +9405,7 @@
 				node.removeEventListener( 'blur', handleBlur, false );
 			}
 		} );
-		return GenericBinding;
+		__export = GenericBinding;
 
 		function handleBlur() {
 			var value;
@@ -9399,6 +9413,7 @@
 			value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath, getOptions );
 			this.value = value == undefined ? '' : value;
 		}
+		return __export;
 	}( Binding, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/NumericBinding.js */
@@ -9418,7 +9433,8 @@
 	/* virtualdom/items/Element/prototype/init/createTwowayBinding.js */
 	var virtualdom_items_Element$init_createTwowayBinding = function( log, ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding ) {
 
-		return function createTwowayBinding( element ) {
+		var __export;
+		__export = function createTwowayBinding( element ) {
 			var attributes = element.attributes,
 				type, Binding, bindName, bindChecked;
 			// if this is a late binding, and there's already one, it
@@ -9464,6 +9480,7 @@
 		function isBindable( attribute ) {
 			return attribute && attribute.isBindable;
 		}
+		return __export;
 	}( log, ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding );
 
 	/* virtualdom/items/Element/EventHandler/prototype/bubble.js */
@@ -9489,13 +9506,14 @@
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
 	var virtualdom_items_Element_EventHandler$init = function( circular ) {
 
+		var __export;
 		var Fragment, getValueOptions = {
 			args: true
 		};
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function EventHandler$init( element, name, template ) {
+		__export = function EventHandler$init( element, name, template ) {
 			var action;
 			this.element = element;
 			this.root = element.root;
@@ -9543,6 +9561,7 @@
 				event
 			].concat( args ) );
 		}
+		return __export;
 	}( circular );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
@@ -9562,8 +9581,9 @@
 	/* virtualdom/items/Element/EventHandler/prototype/listen.js */
 	var virtualdom_items_Element_EventHandler$listen = function( warn, config, genericHandler ) {
 
+		var __export;
 		var customHandlers = {};
-		return function EventHandler$listen() {
+		__export = function EventHandler$listen() {
 			var definition, name = this.name;
 			if ( definition = config.registries.events.find( this.root, name ) ) {
 				this.custom = definition( this.node, getCustomHandler( name ) );
@@ -9589,6 +9609,7 @@
 			}
 			return customHandlers[ name ];
 		}
+		return __export;
 	}( warn, config, genericHandler );
 
 	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
@@ -9774,7 +9795,8 @@
 	/* virtualdom/items/Element/special/select/sync.js */
 	var sync = function( toArray ) {
 
-		return function syncSelect( selectElement ) {
+		var __export;
+		__export = function syncSelect( selectElement ) {
 			var selectNode, selectValue, isMultiple, options, optionWasSelected;
 			selectNode = selectElement.node;
 			if ( !selectNode ) {
@@ -9816,6 +9838,7 @@
 				}
 			}
 		}
+		return __export;
 	}( toArray );
 
 	/* virtualdom/items/Element/special/select/bubble.js */
@@ -10159,8 +10182,7 @@
 	/* shared/Ticker.js */
 	var Ticker = function( warn, getTime, animations ) {
 
-		// TODO what happens if a transition is aborted?
-		// TODO use this with Animation to dedupe some code?
+		var __export;
 		var Ticker = function( options ) {
 			var easing;
 			this.duration = options.duration;
@@ -10213,11 +10235,12 @@
 				this.running = false;
 			}
 		};
-		return Ticker;
+		__export = Ticker;
 
 		function linear( t ) {
 			return t;
 		}
+		return __export;
 	}( warn, getTime, animations );
 
 	/* virtualdom/items/Element/Transition/helpers/unprefix.js */
@@ -10570,7 +10593,8 @@
 	/* virtualdom/items/Element/Transition/prototype/start.js */
 	var virtualdom_items_Element_Transition$start = function() {
 
-		return function Transition$start() {
+		var __export;
+		__export = function Transition$start() {
 			var t = this,
 				node, originalStyle;
 			node = t.node = t.element.node;
@@ -10603,6 +10627,7 @@
 				node.removeAttribute( 'style' );
 			}
 		}
+		return __export;
 	}();
 
 	/* virtualdom/items/Element/Transition/_Transition.js */
@@ -10629,6 +10654,7 @@
 	/* virtualdom/items/Element/prototype/render.js */
 	var virtualdom_items_Element$render = function( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage, Transition ) {
 
+		var __export;
 		var updateCss, updateScript;
 		updateCss = function() {
 			var node = this.node,
@@ -10648,7 +10674,7 @@
 			}
 			this.node.text = this.fragment.toString( false );
 		};
-		return function Element$render() {
+		__export = function Element$render() {
 			var this$0 = this;
 			var root = this.root,
 				namespace, node;
@@ -10800,12 +10826,14 @@
 				}
 			} while ( instance = instance._parent );
 		}
+		return __export;
 	}( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render, Transition );
 
 	/* virtualdom/items/Element/prototype/toString.js */
 	var virtualdom_items_Element$toString = function( voidElementNames, isArray, escapeHtml ) {
 
-		return function() {
+		var __export;
+		__export = function() {
 			var str, escape;
 			str = '<' + ( this.template.y ? '!DOCTYPE' : this.template.e );
 			str += this.attributes.map( stringifyAttribute ).join( '' );
@@ -10873,6 +10901,7 @@
 			var str = attribute.toString();
 			return str ? ' ' + str : '';
 		}
+		return __export;
 	}( voidElementNames, isArray, escapeHtml );
 
 	/* virtualdom/items/Element/special/option/unbind.js */
@@ -10888,7 +10917,8 @@
 	/* virtualdom/items/Element/prototype/unbind.js */
 	var virtualdom_items_Element$unbind = function( unbindOption ) {
 
-		return function Element$unbind() {
+		var __export;
+		__export = function Element$unbind() {
 			if ( this.fragment ) {
 				this.fragment.unbind();
 			}
@@ -10905,12 +10935,14 @@
 		function unbindAttribute( attribute ) {
 			attribute.unbind();
 		}
+		return __export;
 	}( virtualdom_items_Element_special_option_unbind );
 
 	/* virtualdom/items/Element/prototype/unrender.js */
 	var virtualdom_items_Element$unrender = function( runloop, Transition ) {
 
-		return function Element$unrender( shouldDestroy ) {
+		var __export;
+		__export = function Element$unrender( shouldDestroy ) {
 			var binding, bindings;
 			// Detach as soon as we can
 			if ( this.name === 'option' ) {
@@ -10968,6 +11000,7 @@
 				query._remove( element.node );
 			}
 		}
+		return __export;
 	}( runloop, Transition );
 
 	/* virtualdom/items/Element/_Element.js */
@@ -10999,9 +11032,10 @@
 	/* virtualdom/items/Partial/deIndent.js */
 	var deIndent = function() {
 
+		var __export;
 		var empty = /^\s*$/,
 			leadingWhitespace = /^\s*/;
-		return function( str ) {
+		__export = function( str ) {
 			var lines, firstLine, lastLine, minIndent;
 			lines = str.split( '\n' );
 			// remove first and last line, if they only contain whitespace
@@ -11029,12 +11063,14 @@
 			}
 			return previous;
 		}
+		return __export;
 	}();
 
 	/* virtualdom/items/Partial/getPartialDescriptor.js */
 	var getPartialDescriptor = function( log, config, parser, deIndent ) {
 
-		return function getPartialDescriptor( ractive, name ) {
+		var __export;
+		__export = function getPartialDescriptor( ractive, name ) {
 			var partial;
 			// If the partial in instance or view heirarchy instances, great
 			if ( partial = getPartialFromRegistry( ractive, name ) ) {
@@ -11117,6 +11153,7 @@
 			}
 			return partial.v ? partial.t : partial;
 		}
+		return __export;
 	}( log, config, parser, deIndent );
 
 	/* virtualdom/items/Partial/applyIndent.js */
@@ -11388,7 +11425,8 @@
 	/* virtualdom/items/Component/initialise/createModel/_createModel.js */
 	var createModel = function( types, parseJSON, resolveRef, ComponentParameter, ReferenceExpressionParameter ) {
 
-		return function( component, defaultData, attributes, toBind ) {
+		var __export;
+		__export = function( component, defaultData, attributes, toBind ) {
 			var data = {},
 				key, value;
 			// some parameters, e.g. foo="The value is {{bar}}", are 'complex' - in
@@ -11457,6 +11495,7 @@
 			component.complexParameters.push( parameter );
 			return parameter.value;
 		}
+		return __export;
 	}( types, parseJSON, resolveRef, ComponentParameter, ReferenceExpressionParameter );
 
 	/* virtualdom/items/Component/initialise/createInstance.js */
@@ -11514,12 +11553,8 @@
 	/* virtualdom/items/Component/initialise/propagateEvents.js */
 	var propagateEvents = function( log ) {
 
-		// TODO how should event arguments be handled? e.g.
-		// <widget on-foo='bar:1,2,3'/>
-		// The event 'bar' will be fired on the parent instance
-		// when 'foo' fires on the child, but the 1,2,3 arguments
-		// will be lost
-		return function( component, eventsDescriptor ) {
+		var __export;
+		__export = function( component, eventsDescriptor ) {
 			var eventName;
 			for ( eventName in eventsDescriptor ) {
 				if ( eventsDescriptor.hasOwnProperty( eventName ) ) {
@@ -11541,6 +11576,7 @@
 				parentInstance.fire.apply( parentInstance, args );
 			} );
 		}
+		return __export;
 	}( log );
 
 	/* virtualdom/items/Component/initialise/updateLiveQueries.js */
@@ -11636,7 +11672,8 @@
 	/* virtualdom/items/Component/prototype/unbind.js */
 	var virtualdom_items_Component$unbind = function() {
 
-		return function Component$unbind() {
+		var __export;
+		__export = function Component$unbind() {
 			this.complexParameters.forEach( unbind );
 			this.bindings.forEach( unbind );
 			removeFromLiveComponentQueries( this );
@@ -11656,6 +11693,7 @@
 				}
 			} while ( instance = instance._parent );
 		}
+		return __export;
 	}();
 
 	/* virtualdom/items/Component/prototype/unrender.js */
@@ -11853,7 +11891,8 @@
 	/* virtualdom/Fragment/prototype/unbind.js */
 	var virtualdom_Fragment$unbind = function() {
 
-		return function Fragment$unbind() {
+		var __export;
+		__export = function Fragment$unbind() {
 			this.items.forEach( unbindItem );
 		};
 
@@ -11862,6 +11901,7 @@
 				item.unbind();
 			}
 		}
+		return __export;
 	}();
 
 	/* virtualdom/Fragment/prototype/unrender.js */
@@ -11982,10 +12022,6 @@
 	/* Ractive/prototype/resetTemplate.js */
 	var Ractive$resetTemplate = function( config, Fragment ) {
 
-		// TODO should resetTemplate be asynchronous? i.e. should it be a case
-		// of outro, update template, intro? I reckon probably not, since that
-		// could be achieved with unrender-resetTemplate-render. Also, it should
-		// conceptually be similar to resetPartial, which couldn't be async
 		return function Ractive$resetTemplate( template ) {
 			var transitionsEnabled, component;
 			config.template.init( null, this, {
@@ -12088,8 +12124,6 @@
 	/* Ractive/prototype/teardown.js */
 	var Ractive$teardown = function( removeFromArray, Promise ) {
 
-		// Teardown. This goes through the root fragment and all its children, removing observers
-		// and generally cleaning up after itself
 		return function Ractive$teardown( callback ) {
 			var promise;
 			this.fire( 'teardown' );
@@ -12193,7 +12227,8 @@
 	/* Ractive/prototype/updateModel.js */
 	var Ractive$updateModel = function( arrayContentsMatch, isEqual ) {
 
-		return function Ractive$updateModel( keypath, cascade ) {
+		var __export;
+		__export = function Ractive$updateModel( keypath, cascade ) {
 			var values;
 			if ( typeof keypath !== 'string' ) {
 				keypath = '';
@@ -12257,6 +12292,7 @@
 				}
 			}
 		}
+		return __export;
 	}( arrayContentsMatch, isEqual );
 
 	/* Ractive/prototype.js */
@@ -12532,8 +12568,9 @@
 	/* viewmodel/prototype/adapt.js */
 	var viewmodel$adapt = function( config, arrayAdaptor, magicAdaptor, magicArrayAdaptor ) {
 
+		var __export;
 		var prefixers = {};
-		return function Viewmodel$adapt( keypath, value ) {
+		__export = function Viewmodel$adapt( keypath, value ) {
 			var ractive = this.ractive,
 				len, i, adaptor, wrapped;
 			// Do we have an adaptor for this value?
@@ -12601,6 +12638,7 @@
 			}
 			return prefixers[ rootKeypath ];
 		}
+		return __export;
 	}( config, viewmodel$get_arrayAdaptor, viewmodel$get_magicAdaptor, viewmodel$get_magicArrayAdaptor );
 
 	/* viewmodel/helpers/getUpstreamChanges.js */
@@ -12625,6 +12663,7 @@
 	/* viewmodel/prototype/applyChanges/getPotentialWildcardMatches.js */
 	var viewmodel$applyChanges_getPotentialWildcardMatches = function() {
 
+		var __export;
 		var starMaps = {};
 		// This function takes a keypath such as 'foo.bar.baz', and returns
 		// all the variants of that keypath that include a wildcard in place
@@ -12632,7 +12671,7 @@
 		// These are then checked against the dependants map (ractive.viewmodel.depsMap)
 		// to see if any pattern observers are downstream of one or more of
 		// these wildcard keypaths (e.g. 'foo.bar.*.status')
-		return function getPotentialWildcardMatches( keypath ) {
+		__export = function getPotentialWildcardMatches( keypath ) {
 			var keys, starMap, mapper, result;
 			keys = keypath.split( '.' );
 			starMap = getStarMap( keys.length );
@@ -12671,13 +12710,15 @@
 			}
 			return starMaps[ length ];
 		}
+		return __export;
 	}();
 
 	/* viewmodel/prototype/applyChanges/notifyPatternObservers.js */
 	var viewmodel$applyChanges_notifyPatternObservers = function( getPotentialWildcardMatches ) {
 
+		var __export;
 		var lastKey = /[^\.]+$/;
-		return notifyPatternObservers;
+		__export = notifyPatternObservers;
 
 		function notifyPatternObservers( viewmodel, keypath, onlyDirect ) {
 			var potentialWildcardMatches;
@@ -12714,16 +12755,18 @@
 				}
 			} );
 		}
+		return __export;
 	}( viewmodel$applyChanges_getPotentialWildcardMatches );
 
 	/* viewmodel/prototype/applyChanges.js */
 	var viewmodel$applyChanges = function( getUpstreamChanges, notifyPatternObservers ) {
 
+		var __export;
 		var dependantGroups = [
 			'observers',
 			'default'
 		];
-		return function Viewmodel$applyChanges() {
+		__export = function Viewmodel$applyChanges() {
 			var this$0 = this;
 			var self = this,
 				changes, upstreamChanges, allChanges = [],
@@ -12847,6 +12890,7 @@
 				}
 			} );
 		}
+		return __export;
 	}( getUpstreamChanges, viewmodel$applyChanges_notifyPatternObservers );
 
 	/* viewmodel/prototype/capture.js */
@@ -12913,8 +12957,9 @@
 	/* viewmodel/prototype/get.js */
 	var viewmodel$get = function( FAILED_LOOKUP, UnresolvedImplicitDependency ) {
 
+		var __export;
 		var empty = {};
-		return function Viewmodel$get( keypath ) {
+		__export = function Viewmodel$get( keypath ) {
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = empty;
@@ -12987,6 +13032,7 @@
 			viewmodel.cache[ keypath ] = value;
 			return value;
 		}
+		return __export;
 	}( viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
 
 	/* viewmodel/prototype/mark.js */
@@ -13037,8 +13083,9 @@
 	/* viewmodel/prototype/merge.js */
 	var viewmodel$merge = function( types, warn, mapOldToNewIndex ) {
 
+		var __export;
 		var comparators = {};
-		return function Viewmodel$merge( keypath, currentArray, array, options ) {
+		__export = function Viewmodel$merge( keypath, currentArray, array, options ) {
 			var this$0 = this;
 			var oldArray, newArray, comparator, newIndices, dependants;
 			this.mark( keypath );
@@ -13112,12 +13159,14 @@
 			}
 			throw new Error( 'The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)' );
 		}
+		return __export;
 	}( types, warn, viewmodel$merge_mapOldToNewIndex );
 
 	/* viewmodel/prototype/register.js */
 	var viewmodel$register = function() {
 
-		return function Viewmodel$register( keypath, dependant ) {
+		var __export;
+		__export = function Viewmodel$register( keypath, dependant ) {
 			var group = arguments[ 2 ];
 			if ( group === void 0 )
 				group = 'default';
@@ -13157,6 +13206,7 @@
 				keypath = parentKeypath;
 			}
 		}
+		return __export;
 	}();
 
 	/* viewmodel/prototype/release.js */
@@ -13225,7 +13275,8 @@
 	/* viewmodel/prototype/splice.js */
 	var viewmodel$splice = function( types ) {
 
-		return function Viewmodel$splice( keypath, spliceSummary ) {
+		var __export;
+		__export = function Viewmodel$splice( keypath, spliceSummary ) {
 			var viewmodel = this,
 				i, dependants;
 			// Mark changed keypaths
@@ -13246,6 +13297,7 @@
 		function canSplice( dependant ) {
 			return dependant.type === types.SECTION && ( !dependant.subtype || dependant.subtype === types.SECTION_EACH ) && dependant.rendered;
 		}
+		return __export;
 	}( types );
 
 	/* viewmodel/prototype/teardown.js */
@@ -13266,7 +13318,8 @@
 	/* viewmodel/prototype/unregister.js */
 	var viewmodel$unregister = function() {
 
-		return function Viewmodel$unregister( keypath, dependant ) {
+		var __export;
+		__export = function Viewmodel$unregister( keypath, dependant ) {
 			var group = arguments[ 2 ];
 			if ( group === void 0 )
 				group = 'default';
@@ -13310,13 +13363,15 @@
 				keypath = parentKeypath;
 			}
 		}
+		return __export;
 	}();
 
 	/* viewmodel/Computation/getComputationSignature.js */
 	var getComputationSignature = function() {
 
+		var __export;
 		var pattern = /\$\{([^\}]+)\}/g;
-		return function( signature ) {
+		__export = function( signature ) {
 			if ( typeof signature === 'function' ) {
 				return {
 					get: signature
@@ -13342,6 +13397,7 @@
 			} ) + ')';
 			return new Function( functionBody );
 		}
+		return __export;
 	}();
 
 	/* viewmodel/Computation/Computation.js */
@@ -13474,8 +13530,6 @@
 	/* viewmodel/Viewmodel.js */
 	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, get, mark, merge, register, release, set, splice, teardown, unregister, createComputations, adaptConfig ) {
 
-		// TODO: fix our ES6 modules so we can have multiple exports
-		// then this magic check can be reused by magicAdaptor
 		var noMagic;
 		try {
 			Object.defineProperty( {}, 'test', {
@@ -13544,7 +13598,8 @@
 	/* Ractive/initialise.js */
 	var Ractive_initialise = function( config, create, getElement, getNextNumber, Viewmodel, Fragment ) {
 
-		return function initialiseRactiveInstance( ractive ) {
+		var __export;
+		__export = function initialiseRactiveInstance( ractive ) {
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = {};
@@ -13615,12 +13670,12 @@
 				options._component.instance = ractive;
 			}
 		}
+		return __export;
 	}( config, create, getElement, getNextNumber, Viewmodel, Fragment );
 
 	/* extend/initChildInstance.js */
 	var initChildInstance = function( initialise ) {
 
-		// The Child constructor contains the default init options for this class
 		return function initChildInstance( child, Child, options ) {
 			if ( child.beforeInit ) {
 				child.beforeInit( options );
@@ -13632,6 +13687,7 @@
 	/* extend/childOptions.js */
 	var childOptions = function( wrapPrototype, wrap, config, circular ) {
 
+		var __export;
 		var Ractive,
 			// would be nice to not have these here,
 			// they get added during initialise, so for now we have
@@ -13653,7 +13709,7 @@
 		circular.push( function() {
 			Ractive = circular.Ractive;
 		} );
-		return childOptions;
+		__export = childOptions;
 
 		function toPrototype( parent, proto, options ) {
 			for ( var key in options ) {
@@ -13720,6 +13776,7 @@
 				return registry[ key ] = target[ name ][ key ];
 			} );
 		}
+		return __export;
 	}( wrapPrototypeMethod, wrapMethod, config, circular );
 
 	/* extend/_extend.js */
