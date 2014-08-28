@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-28 - commit 7be875f0 
+	2014-08-28 - commit 2fd96d83 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5946,10 +5946,13 @@
 		};
 
 		function init( instance ) {
+			var childQueue = getChildInitQueue( instance );
 			if ( instance.init ) {
 				instance.init( instance._config.options );
 			}
-			getChildInitQueue( instance ).forEach( init );
+			while ( childQueue.length ) {
+				init( childQueue.shift() );
+			}
 			queues[ instance._guid ] = null;
 		}
 
