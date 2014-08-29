@@ -664,7 +664,114 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
 		});
 
+		test ('*event can be used to bubble an event to the first component in the hierarchy that can handle it', function ( t ) {
+			var cmp = Ractive.extend({
+				template: '<div>{{>content}}</div>'
+			});
 
+			var ractive = new Ractive({
+				components: { cmp: cmp },
+				el: fixture,
+				template: '<cmp><cmp><cmp><button on-click="*bubble">click me</button></cmp></cmp></cmp>'
+			});
+
+			expect( 4 );
+
+			var count = 0;
+			var target = ractive.findComponent( 'cmp' ).findComponent( 'cmp' ).findComponent( 'cmp' );
+
+			ractive.findComponent( 'cmp' ).on( 'bubble', function ( event ) {
+				t.ok( true );
+				count += 1;
+				t.equal( this, ractive.findComponent( 'cmp' ) );
+				t.equal( target, event.component );
+			});
+
+			// make sure bubbling stops at the first handling level
+			ractive.on( 'bubble', function ( event ) {
+				t.ok( false );
+				count += 1;
+			});
+
+			simulant.fire( ractive.find( 'button' ), 'click' );
+
+			t.equal( count, 1 );
+		});
+
+
+		test ('**event can be used to bubble an event all the way up the component hierarchy', function ( t ) {
+			var cmp = Ractive.extend({
+				template: '<div>{{>content}}</div>'
+			});
+
+			var ractive = new Ractive({
+				components: { cmp: cmp },
+				el: fixture,
+				template: '<cmp><cmp><button on-click="**bubble">click me</button></cmp></cmp>'
+			});
+
+			expect( 7 );
+
+			var count = 0;
+			var target = ractive.findComponent( 'cmp' ).findComponent( 'cmp' );
+
+			ractive.on( 'bubble', function ( event ) {
+				t.ok( true );
+				count += 1;
+				t.equal( this, ractive );
+				t.equal( target, event.component );
+			});
+
+			ractive.findComponent( 'cmp' ).on( 'bubble', function ( event ) {
+				t.ok( true );
+				count += 1;
+				t.equal( this, ractive.findComponent( 'cmp' ));
+				t.equal( event.component, target );
+			});
+
+			simulant.fire( ractive.find( 'button' ), 'click' );
+
+			t.equal( count, 2 );
+		});
+
+		test ('**events can have their bubbling halted by calling cancelBubble() on the event', function ( t ) {
+			var cmp = Ractive.extend({
+				template: '<div>{{>content}}</div>'
+			});
+
+			var ractive = new Ractive({
+				components: { cmp: cmp },
+				el: fixture,
+				template: '<cmp><cmp><button on-click="**bubble">click me</button></cmp></cmp>'
+			});
+
+			expect( 3 );
+
+			var count = 0;
+
+
+			ractive.on( 'bubble', function ( event ) {
+				t.ok( false );
+				count += 1;
+			});
+
+			ractive.findComponent( 'cmp' ).on( 'bubble', function ( event ) {
+				t.ok( true );
+				count += 1;
+				event.cancelBubble();
+			});
+
+			// make sure all listeners at this level get run before cancellation
+			ractive.findComponent( 'cmp' ).on( 'bubble', function ( event ) {
+				t.ok( true );
+				count += 1;
+				event.cancelBubble();
+			});
+
+			simulant.fire( ractive.find( 'button' ), 'click' );
+
+			t.equal( count, 2 );
+		});
 	};
 
 });
