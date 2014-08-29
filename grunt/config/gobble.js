@@ -1,6 +1,7 @@
 module.exports = {
 	toTmpDir: {
 		dest: '<%= tmpDir %>',
-		environment: 'production'
+		environment: 'production',
+		force: true
 	}
 };
