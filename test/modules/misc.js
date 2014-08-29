@@ -1502,6 +1502,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.findAll( 'tr > td' ).length, 3 );
 		});
 
+		test( 'Reference expressions used in component parameters teardown properly (#1130)', function ( t ) {
+
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<widget data="{{foo[bar]}}"/>',
+				components: {
+					widget: Ractive.extend({})
+				},
+				data: {
+					foo: { a: 'apple', b: 'banana' },
+					bar: 'a'
+				}
+			});
+
+			ractive.teardown();
+
+			t.ok( true );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

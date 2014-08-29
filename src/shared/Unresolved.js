@@ -11,7 +11,7 @@ var Unresolved = function ( ractive, ref, parentFragment, callback ) {
 };
 
 Unresolved.prototype = {
-	teardown: function () {
+	unbind: function () {
 		runloop.removeUnresolved( this );
 	}
 };

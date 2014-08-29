@@ -10,6 +10,6 @@ export default function unbind () {
 	}
 
 	if ( this.resolver ) {
-		this.resolver.teardown();
+		this.resolver.unbind();
 	}
 }
