@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-29 - commit a5c184ec 
+	2014-08-29 - commit 2e7cbdb2 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3515,6 +3515,12 @@
 		}
 		// figure out where the changes started...
 		rangeStart = +( args[ 0 ] < 0 ? array.length + args[ 0 ] : args[ 0 ] );
+		// make sure we don't get out of bounds...
+		if ( rangeStart < 0 ) {
+			rangeStart = 0;
+		} else if ( rangeStart > array.length ) {
+			rangeStart = array.length;
+		}
 		// ...and how many items were added to or removed from the array
 		addedItems = Math.max( 0, args.length - 2 );
 		removedItems = args[ 1 ] !== undefined ? args[ 1 ] : array.length - rangeStart;
@@ -3554,7 +3560,11 @@
 				}
 				spliceEquivalent = getSpliceEquivalent( array, methodName, args );
 				spliceSummary = summariseSpliceOperation( array, spliceEquivalent );
-				change = arrayProto[ methodName ].apply( array, args );
+				if ( spliceSummary ) {
+					change = arrayProto.splice.apply( array, spliceEquivalent );
+				} else {
+					change = arrayProto[ methodName ].apply( array, args );
+				}
 				promise = runloop.start( this, true );
 				if ( spliceSummary ) {
 					this.viewmodel.splice( keypath, spliceSummary );
