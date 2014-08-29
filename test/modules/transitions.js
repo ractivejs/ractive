@@ -197,5 +197,18 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			ractive.set( 'foo', true );
 			t.ok( !fixture.contains( target ) );
 		});
+
+		asyncTest( 'Regression test for #1157', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div intro="test: { duration: {{ foo ? 1000 : 0 }} }"></div>',
+				transitions: {
+					test: function ( transition, params ) {
+						t.deepEqual( params, { duration: 0 });
+						QUnit.start();
+					}
+				}
+			});
+		});
 	};
 });
