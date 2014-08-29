@@ -85,7 +85,7 @@
     "gobble": "~0.5.2",
     "gobble-esperanto": "~0.1.0",
     "gobble-es6-transpiler": "~0.1.0",
-    "grunt-gobble": "~0.1.0"
+    "grunt-gobble": "~0.1.1"
   },
   "testling": {
     "html": "test/testling.html",
