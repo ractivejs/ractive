@@ -72,11 +72,14 @@ export default function Ractive$render ( target, anchor ) {
 }
 
 function init ( instance ) {
+	var childQueue = getChildInitQueue( instance );
 	if ( instance.init ) {
 		instance.init( instance._config.options );
 	}
 
-	getChildInitQueue( instance ).forEach( init );
+	while ( childQueue.length ) {
+		init( childQueue.shift() );
+	}
 	queues[ instance._guid ] = null;
 }
 
