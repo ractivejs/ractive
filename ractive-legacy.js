@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-29 - commit 2e7cbdb2 
+	2014-08-29 - commit b9628a19 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8452,7 +8452,7 @@
 			// takes the form `{{foo}}`. This is necessary for two-way binding and
 			// for correctly rendering HTML later
 			this.interpolator = getInterpolator( this );
-			this.isBindable = !!this.interpolator;
+			this.isBindable = !!this.interpolator && !this.interpolator.isStatic;
 			// can we establish this attribute's property name equivalent?
 			determinePropertyName( this, options );
 			// mark as ready
