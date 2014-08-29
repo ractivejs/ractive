@@ -99,6 +99,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'foo', 'bar' );
 		});
 
+		test( 'Uninitialised observers correctly report initial value on first fire (#1137)', function ( t ) {
+			var ractive = new Ractive({
+				data: { foo: 'bar' }
+			});
+
+			expect( 2 );
+
+			ractive.observe( 'foo', function ( n, o ) {
+				t.equal( o, 'bar' );
+				t.equal( n, 'baz' );
+			}, { init: false });
+
+			ractive.set( 'foo', 'baz' );
+		});
+
 		test( 'Pattern observers fire on changes to keypaths that match their pattern', function ( t ) {
 			var ractive, expected;
 

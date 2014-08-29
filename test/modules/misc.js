@@ -1484,6 +1484,43 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, 'c' );
 		});
 
+		test( 'Implicitly-closed elements without closing section tag (#1124)', function ( t ) {
+			// this test lives here, not in render.js, due to an awkward quirk with htmlEqual -
+			// it corrects malformed HTML before stubbing it
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<ul><li>one<li>two<li>three'
+			});
+
+			t.equal( ractive.findAll( 'ul > li' ).length, 3 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<table><tr><td>one<td>two<td>three'
+			});
+
+			t.equal( ractive.findAll( 'tr > td' ).length, 3 );
+		});
+
+		test( 'Reference expressions used in component parameters teardown properly (#1130)', function ( t ) {
+
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<widget data="{{foo[bar]}}"/>',
+				components: {
+					widget: Ractive.extend({})
+				},
+				data: {
+					foo: { a: 'apple', b: 'banana' },
+					bar: 'a'
+				}
+			});
+
+			ractive.teardown();
+
+			t.ok( true );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build

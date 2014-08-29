@@ -21,6 +21,8 @@ Observer.prototype = {
 
 		if ( immediate !== false ) {
 			this.update();
+		} else {
+			this.oldValue = this.value;
 		}
 	},
 
