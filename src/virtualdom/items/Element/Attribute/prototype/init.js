@@ -47,7 +47,7 @@ export default function Attribute$init ( options ) {
 	// takes the form `{{foo}}`. This is necessary for two-way binding and
 	// for correctly rendering HTML later
 	this.interpolator = getInterpolator( this );
-	this.isBindable = !!this.interpolator;
+	this.isBindable = !!this.interpolator && !this.interpolator.isStatic;
 
 	// can we establish this attribute's property name equivalent?
 	determinePropertyName( this, options );
