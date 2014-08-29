@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.5
-	2014-08-29 - commit 8355a1a4 
+	2014-08-29 - commit a5c184ec 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3528,6 +3528,7 @@
 		JsonParser = Parser.extend( {
 			init: function( str, options ) {
 				this.values = options.values;
+				this.allowWhitespace();
 			},
 			postProcess: function( result ) {
 				if ( result.length !== 1 || !onlyWhitespace.test( this.leftover ) ) {
