@@ -8,7 +8,7 @@ import log from 'utils/log';
 // when 'foo' fires on the child, but the 1,2,3 arguments
 // will be lost
 
-var Fragment, getValueOptions = { args: true };
+var Fragment;
 
 circular.push( function () {
 	Fragment = circular.Fragment;
@@ -19,33 +19,7 @@ export default function propagateEvents ( component, eventsDescriptor ) {
 
 	for ( eventName in eventsDescriptor ) {
 		if ( eventsDescriptor.hasOwnProperty( eventName ) ) {
-			// if( eventName === '*' ) {
-				// To be determined, I don't thin this is right way go...
-
-				// // TODO: allow dynamic fragments
-				// let namespace = eventsDescriptor[ eventName ];
-				// namespace = namespace.n || namespace;
-
-				// if ( typeof namespace !== 'string' ) {
-				// 	namespace = = new Fragment({
-				// 		template: action,
-				// 		root: this.root,
-				// 		owner: this
-				// 	});
-
-
-				// 	namespace = namespace.trim();
-				// }
-				// else if ( namespace && namespace.n && namespace.n.length )
-				// if ( !namespace || namespace === '*' || ( namespace.n && !namespace.n.length ) ) {
-				// 	namespace = component.name;
-				// }
-
-				// component.eventNamespace = namespace;
-
-			// } else {
-				propagateEvent( component.instance, component.root, eventName, eventsDescriptor[ eventName ] );
-			// }
+			propagateEvent( component.instance, component.root, eventName, eventsDescriptor[ eventName ] );
 		}
 	}
 }

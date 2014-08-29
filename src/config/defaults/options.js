@@ -23,7 +23,8 @@ var defaultOptions = {
 	lazy:               false,
 
 	//events:
-	bubble:				false,
+	bubble:				true,
+	namespace: 			'',
 
 	// transitions:
 	noIntro:            false,

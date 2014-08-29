@@ -4,48 +4,62 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 
 		if ( options.event ) {
 			options.event._bubble = true;
-			options.event.stopBubble = function () { this._bubble = false; }
+			options.event.stopBubble = function () { options.event._bubble = false; };
 		}
 	}
 
 	fireEventAs(
 		ractive,
-		eventName,
+		[ eventName ],
 		options.event,
 		options.args,
 		ractive.bubble,
-		true, // root fire
-		options.changeBubbleContext );
+		true
+	);
 
 }
 
-function fireEventAs  ( ractive, eventName, event, args, bubble, rootInstance, changeContext ) {
+function fireEventAs  ( ractive, eventNames, event, args, bubble, initialFire ) {
 
 	if ( !ractive ) { return; }
 
-	var subscribers = ractive._subs[ eventName ];
+	var subscribers, i;
 
-	if ( subscribers ) {
-		bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble && ractive.bubble;
+	// eventNames has both the provided event name and potentially the namespaced event
+	for ( i = 0; i < eventNames.length; i++ ) {
+		subscribers = ractive._subs[ eventNames[ i ] ];
+
+		if ( subscribers ) {
+			// to bubble or not to bubble:
+			// 1. this event doesn't cancel: bubble =
+			// 2. not already cancelled: && bubble
+			// 3. ractive instance allows bubble: && ractive.bubble
+			bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble && ractive.bubble;
+		}
 	}
 
 	if ( bubble ) {
 
-		if ( rootInstance ) {
-			let eventNamespace = '';
-			if ( eventNamespace = ractive.component.eventNamespace ) {
-				eventName = eventNamespace + '.' + eventName;
+		if ( initialFire && ractive.bubble !== 'nameOnly' ) {
+			// use the explicit namespace option if provided, otherwise component name
+			let namespace = ractive.namespace;
+			if( !namespace && ractive.component ) {
+				namespace = ractive.component.name;
 			}
 
-			if ( changeContext && ractive._parent && ractive.component ) {
-				let fragment = ractive.component.parentFragment;
-				event.index = fragment.indexRefs;
-				event.keypath = fragment.context;
-				event.context = ractive._parent.get( event.keypath );
+			if ( namespace ) {
+				namespace += '.' + eventNames[ 0 ];
+
+				if ( ractive.bubble === 'nsOnly' ) {
+					eventNames = [ namespace ];
+				}
+				else {
+					eventNames.push( namespace );
+				}
 			}
 		}
 
-		fireEventAs( ractive._parent, eventName, event, args, bubble );
+		fireEventAs( ractive._parent, eventNames, event, args, bubble );
 	}
 }
 

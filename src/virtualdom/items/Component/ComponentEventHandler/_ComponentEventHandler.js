@@ -11,7 +11,7 @@ import unrender from 'virtualdom/items/shared/EventHandler/prototype/unrender';
 import listen from 'virtualdom/items/Component/EventHandler/prototype/listen';
 
 var ComponentEventHandler = function ( component, name, template ) {
-	this.component = component
+	this.component = component;
 	this.init( component.root, name, template );
 };
 

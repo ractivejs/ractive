@@ -665,322 +665,258 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		function resetBubble(){
-			Ractive.prototype.bubble = false;
+		var Component, Middle, View, setup, eventName = 'someEvent';
+
+		setup = {
+			setup: function(){
+				Component = Ractive.extend({
+					template: '<span id="test" on-click="' + eventName + '">click me</span>'
+				});
+
+				Middle = Ractive.extend({
+					template: '<component/>'
+				});
+
+				View = Ractive.extend({
+					el: fixture,
+					template: '<middle/>',
+					components: {
+						component: Component,
+						middle: Middle
+					}
+				});
+
+			},
+			teardown: function(){
+				Component = Middle = View = void 0;
+			}
+		};
+
+		function goodEvent( event ) {
+			ok( event.context );
 		}
 
-		module( 'Events bubble up components', {
-			setup: resetBubble,
-			teardown: resetBubble
+		function goodEventWithArg( event, arg ) {
+			equal( arg, 'foo' );
+		}
+
+		function wrongNamespace () {
+			throw new Error( 'Component name should not be used as namespace when explicit namespace option provided' );
+		}
+
+		function shouldNotFire () {
+			throw new Error( 'This event should not fire with current bubble option setting' );
+		}
+
+		function notOnOriginating () {
+			throw new Error( 'Namespaced event should not fire on originating component' );
+		}
+
+		function shouldBeNoBubbling () {
+			throw new Error( 'Event bubbling should not have happened' );
+		}
+
+		function testEventBubbling( name, fire ) {
+
+			module( 'Component events bubbling ' + name, setup )
+
+			test( 'default event bubbling under "eventname", plus "component.eventname" above firing component', function ( t ) {
+				var ractive, middle, component;
+
+				expect( 5 );
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', goodEvent );
+				middle.on( 'component.someEvent', goodEvent );
+
+				ractive.on( 'someEvent', goodEvent );
+				ractive.on( 'component.someEvent', goodEvent );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'arguments bubble', function ( t ) {
+				var ractive, middle, component;
+
+				expect( 5 );
+
+				Component.prototype.template = '<span id="test" on-click="someEvent:foo">click me</span>'
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEventWithArg );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', goodEventWithArg );
+				middle.on( 'component.someEvent', goodEventWithArg );
+
+				ractive.on( 'someEvent', goodEventWithArg );
+				ractive.on( 'component.someEvent', goodEventWithArg );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'namespace option on component used for bubbling', function ( t ) {
+				var ractive, middle, component;
+
+				expect( 5 );
+
+				View.prototype.namespace = 'should_be_ignored'
+				Middle.prototype.namespace = 'should_also_be_ignored'
+				Component.prototype.namespace = 'foo'
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+				component.on( 'foo.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', goodEvent );
+				middle.on( 'foo.someEvent', goodEvent );
+				middle.on( 'component.someEvent', wrongNamespace );
+
+				ractive.on( 'someEvent', goodEvent );
+				ractive.on( 'foo.someEvent', goodEvent );
+				ractive.on( 'component.someEvent', wrongNamespace );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'bubble events can be stopped with event.stopBubble()', function ( t ) {
+				var ractive, middle, component;
+
+				expect( 2 );
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', function( event ) {
+					event.stopBubble();
+				});
+				// still fires on same level
+				middle.on( 'component.someEvent', goodEvent );
+
+				ractive.on( 'someEvent', shouldBeNoBubbling );
+				ractive.on( 'component.someEvent', shouldBeNoBubbling );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'bubble = false prevents bubbling', function ( t ) {
+				var ractive, middle, component;
+
+				expect( 1 );
+
+				Component.prototype.bubble = false
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', shouldBeNoBubbling);
+				middle.on( 'component.someEvent', shouldBeNoBubbling );
+				ractive.on( 'someEvent', shouldBeNoBubbling );
+				ractive.on( 'component.someEvent', shouldBeNoBubbling );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			// is this the right thing to do?
+			// and what is relationship to "isolated"?
+			// or is that orthangonal?
+			test( 'bubble = false prevents bubbling when higher up in bubble chain', function ( t ) {
+				var ractive, middle, component;
+
+				expect( 3 );
+
+				Middle.prototype.bubble = false
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', goodEvent);
+				middle.on( 'component.someEvent', goodEvent );
+
+				ractive.on( 'someEvent', shouldBeNoBubbling );
+				ractive.on( 'component.someEvent', shouldBeNoBubbling );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'bubble = "nameOnly" ONLY bubbles "eventname"', function ( t ) {
+				var ractive, middle, component;
+
+				expect( 3 );
+
+				Component.prototype.bubble = 'nameOnly';
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', goodEvent );
+				middle.on( 'component.someEvent', shouldNotFire );
+
+				ractive.on( 'someEvent', goodEvent );
+				ractive.on( 'component.someEvent', shouldNotFire );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'bubble = "nsOnly" ONLY bubbles "component.eventname"', function ( t ) {
+				var ractive, middle, component;
+
+				expect( 3 );
+
+				Component.prototype.bubble = 'nsOnly';
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', shouldNotFire );
+				middle.on( 'component.someEvent', goodEvent );
+
+				ractive.on( 'someEvent', shouldNotFire );
+				ractive.on( 'component.someEvent', goodEvent );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+		}
+
+		testEventBubbling( 'proxy events', function ( component ) {
+			simulant.fire( component.nodes.test, 'click' );
 		});
 
-		test( 'bubble = true causes event handlers to bubble under "eventname" and "component.eventname"', function ( t ) {
-			var ractive, Component, Middle;
-
-			expect( 4 );
-
-			Ractive.defaults.bubble = true;
-
-			Component = Ractive.extend({
-				template: '<span id="test" on-click="someEvent">click me</span>'
-			});
-
-			Middle = Ractive.extend({
-				template: '<component/>'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<middle/>',
-				components: {
-					component: Component,
-					middle: Middle
-				}
-			});
-
-			ractive.on( 'someEvent', function ( event ) {
-				t.ok( true );
-				t.equal( event.original.type, 'click' );
-			});
-
-			ractive.on( 'component.someEvent', function ( event ) {
-				t.ok( true );
-				t.equal( event.original.type, 'click' );
-			});
-
-			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
-		});
-
-		test( 'non "*" prefixed event handlers do not bubble', function ( t ) {
-			var ractive, Component, Middle;
-
-			expect( 0 );
-
-			Component = Ractive.extend({
-				template: '<span id="test" on-click="someEvent">click me</span>'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<component/>',
-				components: {
-					component: Component
-				}
-			});
-
-			ractive.on( 'someEvent', function ( event ) {
-				throw new Error('event should not bubble');
-			});
-
-			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
-		});
-/*
-		test( '"on-*" attribute sets namespace for component events', function ( t ) {
-			var ractive, Component, Middle;
-
-			expect( 2 );
-
-			Component = Ractive.extend({
-				template: '<span id="test" on-click="*someEvent">click me</span>'
-			});
-
-			Middle = Ractive.extend({
-				template: '<component on-*="foo"/>'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<middle/>',
-				components: {
-					component: Component,
-					middle: Middle
-				}
-			});
-
-			ractive.on( 'foo.someEvent', function ( event ) {
-				t.ok( true );
-			});
-
-			ractive.findComponent('middle').on( 'foo.someEvent', function ( event ) {
-				t.ok( true );
-			});
-
-			ractive.on( 'someEvent', function ( event ) {
-				throw new Error('event should not be namespaced');
-			});
-
-			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
-		});
-
-		test( '"on-*" attribute defaults to component name', function ( t ) {
-			var ractive, Component, Middle;
-
-			expect( 1 );
-
-			Component = Ractive.extend({
-				template: '<span id="test" on-click="*someEvent">click me</span>'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<component on-*=""/>',
-				components: {
-					component: Component
-				}
-			});
-
-			ractive.on( 'component.someEvent', function ( event ) {
-				t.ok( true );
-			});
-
-			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
-		});
-
-		test( '"on-*" attribute with "*" value defaults to component name', function ( t ) {
-			var ractive, Component, Middle;
-
-			expect( 1 );
-
-			Component = Ractive.extend({
-				template: '<span id="test" on-click="*someEvent">click me</span>'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<component on-*="*"/>',
-				components: {
-					component: Component
-				}
-			});
-
-			ractive.on( 'component.someEvent', function ( event ) {
-				t.ok( true );
-			});
-
-			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
-		});
-
-		test( '"on-*" attribute with dynamic value changes handler', function ( t ) {
-			var ractive, Component, Middle;
-
-			expect( 1 );
-
-			Component = Ractive.extend({
-				template: '<span id="test" on-click="*someEvent">click me</span>'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<component on-*="{{foo}}" on-*foo="foo"/>',
-				data: {
-					foo: 'bar'
-				},
-				components: {
-					component: Component
-				}
-			});
-
-			ractive.on( 'bar.someEvent', function ( event ) {
-				t.ok( true );
-			});
-
-			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
-		});
-*/
-		test( 'bubble events can be stopped with event.stopBubble()', function ( t ) {
-			var ractive, Component, Middle;
-
-			expect( 1 );
-
-			Component = Ractive.extend({
-				template: '<span id="test" on-click="*someEvent">click me</span>'
-			});
-
-			Middle = Ractive.extend({
-				template: '<component/>'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<middle/>',
-				components: {
-					component: Component,
-					middle: Middle
-				}
-			});
-
-			ractive.findComponent('middle').on( 'someEvent', function ( event ) {
-				t.ok( true );
-				event.stopBubble();
-			});
-
-			ractive.on( 'someEvent', function ( event ) {
-				throw new Error('event should not bubbled');
-			});
-
-			simulant.fire( ractive.findComponent('component').nodes.test, 'click' );
-		});
-
-		test( 'ractive.fire events proxied through component have event object with context', function ( t) {
-			var ractive, Component, items, component;
-
-			expect( 5 );
-
-			Component = Ractive.extend({
-				template: 'foo'
-			});
-
-			items = [ { is: 'a' }, { is: 'b' }, { is: 'c' } ];
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{#items:i}}<component on-foo="bar"/>{{/}}',
-				data: { items: items },
-				components: { component: Component }
-			});
-
-			component = ractive.findAllComponents('component')[1];
-
-			ractive.on( 'bar', function ( event ) {
-				t.ok( event );
-				t.equal( event.component, component );
-				t.equal( event.index.i, 1 );
-				t.equal( event.context, items[1] );
-				t.equal( event.keypath, 'items.1' );
-
-			});
-
-			component.fire('foo');
-
-		});
-
-		test( 'ractive.fire events have event object with root and bubble context', function ( t) {
-			var ractive, Component, items, component;
-
-			expect( 10 );
-
-			Component = Ractive.extend({
-				template: 'foo'
-			});
-
-			items = [ { is: 'a' }, { is: 'b' }, { is: 'c' } ];
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{#items:i}}<component foo="bar"/>{{/}}',
-				data: { items: items },
-				components: { component: Component }
-			});
-
-			component = ractive.findAllComponents('component')[1];
-
-			component.on( 'foo', function ( event ) {
-				t.ok( event );
-				t.equal( event.component, component );
-				t.ok( !event.index );
-				t.equal( event.context.foo, 'bar' );
-				t.equal( event.keypath, '' );
-			});
-
-			ractive.on( 'foo', function ( event ) {
-				t.ok( event );
-				t.equal( event.component, component );
-				t.equal( event.index.i, 1 );
-				t.equal( event.context, items[1] );
-				t.equal( event.keypath, 'items.1' );
-
-			});
-
-			component.fire('*foo');
-		});
-
-		test( 'ractive.fire events can have bubble cancelled', function ( t) {
-			var ractive, Component, items, component;
-
-			expect( 1 );
-
-			Component = Ractive.extend({
-				template: 'foo'
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<component/>',
-				components: { component: Component }
-			});
-
-			component = ractive.findComponent('component');
-
-			component.on( 'foo', function ( event ) {
-				t.ok( event.stopBubble );
-				event.stopBubble();
-			});
-
-			ractive.on( 'foo', function ( event ) {
-				throw new Error('event should not bubble')
-			});
-
-			component.fire('*foo');
+		testEventBubbling( 'fire() events', function ( component ) {
+			component.fire( 'someEvent', 'foo' );
 		});
 
 	};
