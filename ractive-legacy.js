@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-28 - commit 2fd96d83 
+	2014-08-29 - commit 8355a1a4 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6601,7 +6601,7 @@
 				this.root.viewmodel.unregister( this.keypath, this );
 			}
 			if ( this.resolver ) {
-				this.resolver.teardown();
+				this.resolver.unbind();
 			}
 		};
 	}( runloop );
@@ -6622,7 +6622,7 @@
 			runloop.addUnresolved( this );
 		};
 		Unresolved.prototype = {
-			teardown: function() {
+			unbind: function() {
 				runloop.removeUnresolved( this );
 			}
 		};
@@ -6916,10 +6916,10 @@
 				this.createEvaluator();
 				this.callback( this.keypath );
 			},
-			teardown: function() {
+			unbind: function() {
 				var unresolved;
 				while ( unresolved = this.unresolved.pop() ) {
-					unresolved.teardown();
+					unresolved.unbind();
 				}
 			},
 			resolve: function( index, keypath ) {
@@ -7050,16 +7050,13 @@
 				if ( this.keypath ) {
 					this.root.viewmodel.unregister( this.keypath, this );
 				}
-			},
-			teardown: function() {
-				this.unbind();
 				if ( this.unresolved ) {
-					this.unresolved.teardown();
+					this.unresolved.unbind();
 				}
 			},
 			forceResolution: function() {
 				if ( this.unresolved ) {
-					this.unresolved.teardown();
+					this.unresolved.unbind();
 					this.unresolved = null;
 					this.keypath = this.ref;
 					this.value = this.viewmodel.get( this.ref );
@@ -7115,7 +7112,7 @@
 				}
 				this.callback( this.getKeypath() );
 			},
-			teardown: function() {
+			unbind: function() {
 				this.members.forEach( unbind );
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -7132,7 +7129,7 @@
 			forceResolution: function() {
 				if ( this.baseResolver ) {
 					this.base = this.ref;
-					this.baseResolver.teardown();
+					this.baseResolver.unbind();
 					this.baseResolver = null;
 				}
 				this.members.forEach( function( m ) {
