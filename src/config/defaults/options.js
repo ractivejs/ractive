@@ -22,10 +22,6 @@ var defaultOptions = {
 	twoway:             true,
 	lazy:               false,
 
-	//events:
-	bubble:				true,
-	namespace: 			'',
-
 	// transitions:
 	noIntro:            false,
 	transitionsEnabled: true,

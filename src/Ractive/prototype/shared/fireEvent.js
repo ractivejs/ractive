@@ -1,25 +1,15 @@
+import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
+
 export default function fireEvent ( ractive, eventName, options = {} ) {
-
-
-	fireEventAs(
-		ractive,
-		[ eventName ],
-		options.event,
-		options.args,
-		ractive.bubble,
-		true
-	);
-
+	var eventNames = getPotentialWildcardMatches( eventName );
+	fireEventAs( ractive, eventNames, options.event, options.args, true );
 }
 
-function fireEventAs  ( ractive, eventNames, event, args, bubble, initialFire ) {
+function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
 
-	if ( !ractive ) { return; }
+	var subscribers, i, bubble = true;
 
-	var subscribers, i;
-
-	// eventNames has both the provided event name and potentially the namespaced event
-	for ( i = 0; i < eventNames.length; i++ ) {
+	for ( i = eventNames.length; i >= 0; i-- ) {
 		subscribers = ractive._subs[ eventNames[ i ] ];
 
 		if ( subscribers ) {
@@ -30,22 +20,27 @@ function fireEventAs  ( ractive, eventNames, event, args, bubble, initialFire ) 
 	if ( ractive._parent && bubble ) {
 
 		if ( initialFire && ractive.component ) {
-			eventNames.push( ractive.component.name + eventNames[ 0 ] );
+			let fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ];
+			eventNames = eventNames.concat( getPotentialWildcardMatches( fullName ) );
+
+			if( event ) {
+				event.component = ractive;
+			}
 		}
 
-		fireEventAs( ractive._parent, eventNames, event, args, bubble );
+		fireEventAs( ractive._parent, eventNames, event, args );
 	}
 }
 
 function notifySubscribers ( ractive, subscribers, event, args ) {
 
-	var i = 0, len = 0, originalEvent = null, stopEvent = false;
+	var originalEvent = null, stopEvent = false;
 
 	if ( event ) {
 		args = [ event ].concat( args );
 	}
 
-	for ( i=0, len=subscribers.length; i<len; i+=1 ) {
+	for ( let i = 0, len = subscribers.length; i < len; i += 1 ) {
 		if ( subscribers[ i ].apply( ractive, args ) === false ) {
 			stopEvent = true;
 		}

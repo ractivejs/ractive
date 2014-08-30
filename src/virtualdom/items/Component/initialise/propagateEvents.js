@@ -27,7 +27,6 @@ export default function propagateEvents ( component, eventsDescriptor ) {
 function propagateEvent ( childInstance, parentInstance, eventName, proxyEventName ) {
 
 	if ( typeof proxyEventName !== 'string' ) {
-
 		log.error({
 			debug: parentInstance.debug,
 			message: 'noComponentEventArguments'
@@ -35,17 +34,24 @@ function propagateEvent ( childInstance, parentInstance, eventName, proxyEventNa
 	}
 
 	childInstance.on( eventName, function () {
-		var fragment = this.component.parentFragment,
+		var options;
+
+		// semi-weak test, but what else? tag the event obj ._isEvent ?
+		if ( arguments[0].node ) {
 			options = {
-				event: {
-					component: this,
-					index: fragment.indexRefs,
-					keypath: fragment.context,
-					context: parentInstance.get( fragment.context )
-				},
-				args: Array.prototype.slice.call( arguments ),
+				event: Array.prototype.shift.call( arguments ),
+				args: arguments
 			};
+		}
+		else {
+			options = {
+				args: Array.prototype.slice.call( arguments )
+			};
+		}
 
 		fireEvent( parentInstance, proxyEventName, options );
+
+		// cancel bubbling
+		return false;
 	});
 }

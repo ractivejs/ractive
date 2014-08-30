@@ -33,5 +33,8 @@ export default {
 		'A function was specified for "{name}" {registry}, but no {registry} was returned',
 
 	defaultElSpecified:
-		'The <{name}/> component has a default `el` property; it has been disregarded'
+		'The <{name}/> component has a default `el` property; it has been disregarded',
+
+	noElementProxyEventWildcards:
+		'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.'
 };

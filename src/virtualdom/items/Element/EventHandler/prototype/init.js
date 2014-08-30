@@ -1,5 +1,6 @@
 import circular from 'circular';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
+import log from 'utils/log';
 
 var Fragment, getValueOptions = { args: true };
 
@@ -13,6 +14,19 @@ export default function EventHandler$init ( element, name, template ) {
 	this.element = element;
 	this.root = element.root;
 	this.name = name;
+
+	if( name.indexOf( '*' ) !== -1 ) {
+		log.error({
+			debug: this.root.debug,
+			message: 'noElementProxyEventWildcards',
+			args: {
+				element: element.tagName,
+				event: name
+			}
+		});
+
+		this.invalid = true;
+	}
 
 	// Get action ('foo' in 'on-click='foo')
 	action = template.n || template;
