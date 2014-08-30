@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-29 - commit b9628a19 
+	2014-08-30 - commit 096c7ab7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3746,6 +3746,7 @@
 					// we're inside an unquoted attribute value
 					disallowed.push( '"', '\'', '=', '>', '`' );
 				} else if ( parser.inAttribute ) {
+					// quoted attribute value
 					disallowed.push( parser.inAttribute );
 				}
 				index = getLowestIndex( remaining, disallowed );
@@ -3838,13 +3839,20 @@
 		}
 
 		function getUnquotedAttributeValueToken( parser ) {
-			var start, text, index;
+			var start, text, haystack, needles, index;
 			start = parser.pos;
 			text = parser.matchPattern( unquotedAttributeValueTextPattern );
 			if ( !text ) {
 				return null;
 			}
-			if ( ( index = text.indexOf( parser.delimiters[ 0 ] ) ) !== -1 ) {
+			haystack = text;
+			needles = [
+				parser.delimiters[ 0 ],
+				parser.tripleDelimiters[ 0 ],
+				parser.staticDelimiters[ 0 ],
+				parser.staticTripleDelimiters[ 0 ]
+			];
+			if ( ( index = getLowestIndex( haystack, needles ) ) !== -1 ) {
 				text = text.substr( 0, index );
 				parser.pos = start + text.length;
 			}
@@ -3889,14 +3897,17 @@
 		}
 
 		function getQuotedStringToken( parser, quoteMark ) {
-			var start, index, remaining;
+			var start, index, haystack, needles;
 			start = parser.pos;
-			remaining = parser.remaining();
-			index = getLowestIndex( remaining, [
+			haystack = parser.remaining();
+			needles = [
 				quoteMark,
 				parser.delimiters[ 0 ],
-				parser.delimiters[ 1 ]
-			] );
+				parser.tripleDelimiters[ 0 ],
+				parser.staticDelimiters[ 0 ],
+				parser.staticTripleDelimiters[ 0 ]
+			];
+			index = getLowestIndex( haystack, needles );
 			if ( index === -1 ) {
 				parser.error( 'Quoted attribute value must have a closing quote' );
 			}
@@ -3904,7 +3915,7 @@
 				return null;
 			}
 			parser.pos += index;
-			return remaining.substr( 0, index );
+			return haystack.substr( 0, index );
 		}
 		return __export;
 	}( getLowestIndex, mustache );
