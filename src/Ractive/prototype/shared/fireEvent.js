@@ -1,12 +1,5 @@
 export default function fireEvent ( ractive, eventName, options = {} ) {
 
-	if ( ractive.bubble ) {
-
-		if ( options.event ) {
-			options.event._bubble = true;
-			options.event.stopBubble = function () { options.event._bubble = false; };
-		}
-	}
 
 	fireEventAs(
 		ractive,
@@ -30,33 +23,14 @@ function fireEventAs  ( ractive, eventNames, event, args, bubble, initialFire ) 
 		subscribers = ractive._subs[ eventNames[ i ] ];
 
 		if ( subscribers ) {
-			// to bubble or not to bubble:
-			// 1. this event doesn't cancel: bubble =
-			// 2. not already cancelled: && bubble
-			// 3. ractive instance allows bubble: && ractive.bubble
-			bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble && ractive.bubble;
+			bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
 		}
 	}
 
-	if ( bubble ) {
+	if ( ractive._parent && bubble ) {
 
-		if ( initialFire && ractive.bubble !== 'nameOnly' ) {
-			// use the explicit namespace option if provided, otherwise component name
-			let namespace = ractive.namespace;
-			if( !namespace && ractive.component ) {
-				namespace = ractive.component.name;
-			}
-
-			if ( namespace ) {
-				namespace += '.' + eventNames[ 0 ];
-
-				if ( ractive.bubble === 'nsOnly' ) {
-					eventNames = [ namespace ];
-				}
-				else {
-					eventNames.push( namespace );
-				}
-			}
+		if ( initialFire && ractive.component ) {
+			eventNames.push( ractive.component.name + eventNames[ 0 ] );
 		}
 
 		fireEventAs( ractive._parent, eventNames, event, args, bubble );
@@ -82,7 +56,7 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 		originalEvent.stopPropagation && originalEvent.stopPropagation();
 	}
 
-	return event ? event._bubble : true;
+	return !stopEvent;
 }
 
 

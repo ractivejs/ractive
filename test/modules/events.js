@@ -792,7 +792,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				fire( ractive.findComponent( 'component' ) );
 			});
 
-			test( 'bubble events can be stopped with event.stopBubble()', function ( t ) {
+			test( 'bubbling events can be stopped by returning false', function ( t ) {
 				var ractive, middle, component;
 
 				expect( 2 );
@@ -805,7 +805,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				component.on( 'component.someEvent', notOnOriginating );
 
 				middle.on( 'someEvent', function( event ) {
-					event.stopBubble();
+					return false;
 				});
 				// still fires on same level
 				middle.on( 'component.someEvent', goodEvent );
