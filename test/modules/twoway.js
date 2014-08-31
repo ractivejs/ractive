@@ -471,6 +471,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>foo[0]: test</p><input>' );
 		});
 
+		test( 'Static bindings can only be one-way (#1149)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input value="[[foo]]">{{foo}}',
+				data: {
+					foo: 'static'
+				}
+			});
+
+			ractive.find( 'input' ).value = 'dynamic';
+			ractive.updateModel();
+			t.equal( ractive.get( 'foo' ), 'static' );
+			t.htmlEqual( fixture.innerHTML, '<input>static' );
+		});
+
 	};
 
 });

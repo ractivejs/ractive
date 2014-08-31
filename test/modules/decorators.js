@@ -219,6 +219,28 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.shift( 'letters' );
 		});
 
+		test( 'Rebinding safe if decorators have no arguments', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#each letters :i}}<p decorator="whatever"></p>{{/each}}',
+				data: {
+					letters: [ 'a', 'b' ]
+				},
+				decorators: {
+					whatever: function ( node ) {
+						return {
+							update: function () {},
+							teardown: function () {
+								t.ok( true );
+							}
+						};
+					}
+				}
+			});
+
+			ractive.shift( 'letters' );
+		});
+
 	};
 
 });

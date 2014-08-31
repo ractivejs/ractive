@@ -1,8 +1,7 @@
-
 module.exports = {
 	toTmpDir: {
 		dest: '<%= tmpDir %>',
-		config: 'brocfile.js',
-		env: 'production'
+		environment: 'production',
+		force: true
 	}
 };
