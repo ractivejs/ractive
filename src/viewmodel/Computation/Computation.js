@@ -3,6 +3,8 @@ import isEqual from 'utils/isEqual';
 import diff from 'viewmodel/Computation/diff';
 
 var Computation = function ( ractive, key, signature ) {
+	var initial;
+
 	this.ractive = ractive;
 	this.viewmodel = ractive.viewmodel;
 	this.key = key;
@@ -11,10 +13,20 @@ var Computation = function ( ractive, key, signature ) {
 	this.setter = signature.set;
 
 	this.dependencies = [];
+
+	if ( initial = ractive.viewmodel.get( key ) ) {
+		this.set( initial );
+	}
+
 	this.update();
 };
 
 Computation.prototype = {
+	get: function () {
+		this.compute();
+		return this.value;
+	},
+
 	set: function ( value ) {
 		if ( this.setting ) {
 			this.value = value;

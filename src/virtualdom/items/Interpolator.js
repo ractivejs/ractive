@@ -2,6 +2,7 @@ import types from 'config/types';
 import runloop from 'global/runloop';
 import escapeHtml from 'utils/escapeHtml';
 import detachNode from 'utils/detachNode';
+import isEqual from 'utils/isEqual';
 import unbind from 'virtualdom/items/shared/unbind';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 import detach from 'virtualdom/items/shared/detach';
@@ -46,7 +47,7 @@ Interpolator.prototype = {
 			value = wrapper.get();
 		}
 
-		if ( value !== this.value ) {
+		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 			this.parentFragment.bubble();
 

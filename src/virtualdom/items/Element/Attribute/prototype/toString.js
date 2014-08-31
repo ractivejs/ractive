@@ -1,31 +1,33 @@
+import booleanAttributes from 'config/booleanAttributes';
+
 export default function Attribute$toString () {
-	var name, value, interpolator;
+	var { name, value, interpolator, fragment } = this;
 
-	name = this.name;
-	value = this.value;
+	// Special case - select and textarea values (should not be stringified)
+	if ( name === 'value' && ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
+		return;
+	}
 
-	// Special case - select values (should not be stringified)
-	if ( name === 'value' && this.element.name === 'select' ) {
+	// Special case - content editable
+	if ( name === 'value' && this.element.getAttribute( 'contenteditable' ) !== undefined ) {
 		return;
 	}
 
 	// Special case - radio names
-	if ( name === 'name' && this.element.name === 'input' && ( interpolator = this.interpolator ) ) {
+	if ( name === 'name' && this.element.name === 'input' && interpolator ) {
 		return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
 	}
 
-	// Numbers
-	if ( typeof value === 'number' ) {
-		return name + '="' + value + '"';
+	// Boolean attributes
+	if ( booleanAttributes.test( name ) ) {
+		return value ? name : '';
 	}
 
-	// Strings
-	if ( typeof value === 'string' ) {
-		return name + '="' + escape( value ) + '"';
+	if ( fragment ) {
+		value = fragment.toString();
 	}
 
-	// Everything else
-	return value ? name : '';
+	return value ? name + '="' + escape( value ) + '"' : name;
 }
 
 function escape ( value ) {

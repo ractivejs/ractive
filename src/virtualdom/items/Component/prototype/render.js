@@ -4,5 +4,5 @@ export default function Component$render () {
 	instance.render( this.parentFragment.getNode() );
 
 	this.rendered = true;
-	return instance.detach();
+	return instance.fragment.detach();
 }

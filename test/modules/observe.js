@@ -99,6 +99,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'foo', 'bar' );
 		});
 
+		test( 'Uninitialised observers correctly report initial value on first fire (#1137)', function ( t ) {
+			var ractive = new Ractive({
+				data: { foo: 'bar' }
+			});
+
+			expect( 2 );
+
+			ractive.observe( 'foo', function ( n, o ) {
+				t.equal( o, 'bar' );
+				t.equal( n, 'baz' );
+			}, { init: false });
+
+			ractive.set( 'foo', 'baz' );
+		});
+
 		test( 'Pattern observers fire on changes to keypaths that match their pattern', function ( t ) {
 			var ractive, expected;
 
@@ -446,6 +461,68 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		});
 
+		test( 'Setting up and cancelling a regular observer', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'unimportant',
+				data: {
+					person: { name: 'Joe' }
+				}
+			});
+
+			var dummy = false,
+			observer = ractive.observe('person.name', function(nv) { dummy = nv; });
+
+			t.equal(dummy, 'Joe');
+
+			ractive.set('person.name', 'Londo');
+
+			t.equal(dummy, 'Londo');
+
+			observer.cancel();
+		});
+
+		test( 'Setting up and cancelling a pattern observer', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'unimportant',
+				data: {
+					person: { name: 'Joe' }
+				}
+			});
+
+			var dummy = false,
+			observer = ractive.observe('person.*', function(nv) { dummy = nv; });
+
+			t.equal(dummy, 'Joe');
+
+			ractive.set('person.name', 'Londo');
+
+			t.equal(dummy, 'Londo');
+
+			observer.cancel();
+		});
+
+		test( 'Deferred pattern observers work correctly (#1079)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'unimportant',
+				data: {
+					fruits : ['apple','banana','orange']
+				}
+			});
+
+			var dummy = [],
+				observer = ractive.observe('fruits.*', function(nv) { dummy.push(nv); }, { defer: true });
+
+			t.deepEqual(dummy, [ 'apple', 'banana', 'orange' ]);
+
+			ractive.get('fruits').push('cabbage');
+
+			t.deepEqual(dummy, [ 'apple', 'banana', 'orange', 'cabbage' ]);
+
+			observer.cancel();
+		});
 	};
 
 });

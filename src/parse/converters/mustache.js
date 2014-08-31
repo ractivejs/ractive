@@ -12,6 +12,12 @@ export default getMustache;
 function getMustache ( parser ) {
 	var types;
 
+	// If we're inside a <script> or <style> tag, and we're not
+	// interpolating, bug out
+	if ( parser.interpolate[ parser.inside ] === false ) {
+		return null;
+	}
+
 	types = delimiterTypes.slice().sort( function compare (a, b) {
 		// Sort in order of descending opening delimiter length (longer first),
 		// to protect against opening delimiters being substrings of each other
@@ -80,8 +86,17 @@ function getMustacheOfType ( parser, delimiterType ) {
 		}
 	}
 
+	// partials with context
+	if ( mustache.contextPartialId ) {
+		mustache.f = [{ t: types.PARTIAL, r: mustache.contextPartialId }];
+		mustache.t = types.SECTION;
+		mustache.n = 'with';
+
+		delete mustache.contextPartialId;
+	}
+
 	// section children
-	if ( isSection( mustache ) ) {
+	else if ( isSection( mustache ) ) {
 		parser.sectionDepth += 1;
 		children = [];
 		currentChildren = children;
@@ -147,15 +162,45 @@ function getMustacheOfType ( parser, delimiterType ) {
 }
 
 function handlebarsIndexRef ( fragment ) {
-	var i, child, indexRef;
+	var i, child, indexRef, name;
+
+	if ( !fragment ) {
+		return;
+	}
 
 	i = fragment.length;
 	while ( i-- ) {
 		child = fragment[i];
 
 		// Recurse into elements (but not sections)
-		if ( child.t === types.ELEMENT && child.f && ( indexRef = handlebarsIndexRef( child.f ) ) ) {
-			return indexRef;
+		if ( child.t === types.ELEMENT ) {
+
+			if ( indexRef =
+				// directive arguments
+				handlebarsIndexRef( child.o  && child.o.d ) ||
+				handlebarsIndexRef( child.t0 && child.t0.d ) ||
+				handlebarsIndexRef( child.t1 && child.t1.d ) ||
+				handlebarsIndexRef( child.t2 && child.t2.d ) ||
+
+				// children
+				handlebarsIndexRef( child.f )
+			) {
+				return indexRef;
+			}
+
+			// proxy events
+			for ( name in child.v ) {
+				if ( child.v.hasOwnProperty( name ) && child.v[ name ].d && ( indexRef = handlebarsIndexRef( child.v[ name ].d ) ) ) {
+					return indexRef;
+				}
+			}
+
+			// attributes
+			for ( name in child.a ) {
+				if ( child.a.hasOwnProperty( name ) && ( indexRef = handlebarsIndexRef( child.a[ name ] ) ) ) {
+					return indexRef;
+				}
+			}
 		}
 
 		// Mustache?

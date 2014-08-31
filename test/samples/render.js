@@ -727,6 +727,18 @@ var renderTests = [
 		result: '<video></video>'
 	},
 	{
+		name: 'Truthy aria attributes (#1011)',
+		template: '<span aria-haspopup="{{#yes}}true{{/yes}}">...</span>',
+		data: { yes: true },
+		result: '<span aria-haspopup="true">...</span>'
+	},
+	{
+		name: 'Falsy aria attributes (#1011)',
+		template: '<span aria-haspopup="{{^yes}}false{{/yes}}">...</span>',
+		data: { yes: false },
+		result: '<span aria-haspopup="false">...</span>'
+	},
+	{
 		name: 'Root-level reference',
 		template: '{{#a}}{{#b}}{{#c}}{{~/foo}}{{/c}}{{/b}}{{/a}}',
 		data: { foo: 'top', a: { b: { c: { foo: 'c' }, foo: 'b' }, foo: 'a' } },
@@ -754,6 +766,54 @@ var renderTests = [
 			}
 		},
 		result: '4321'
+	},
+	{
+		name: 'Attribute values are passed through as strings, not parsed (#1007)',
+		template: `<p data-foo="{foo:'{{foo}}'}"></p>`,
+		data: { foo: 'bar' },
+		result: `<p data-foo="{foo:'bar'}"></p>`
+	},
+	{
+		name: '<datalist> is supported (#1033)',
+		template: '<datalist id="test">{{#list}}<option value="{{this}}"></option>{{/list}}</datalist>',
+		data: { list: [ 'a', 'b', 'c' ] },
+		result: '<datalist id="test"><option value="a"></option><option value="b"></option><option value="c"></option></datalist>'
+	},
+	{
+		name: 'Expressions are transported safely',
+		template: '{{foo+_0+"_0"+"${0}"}}',
+		data: { foo: 'bar', _0: 'baz' },
+		result: 'barbaz_0${0}'
+	},
+	{
+		name: '@index in attributes (#1035)',
+		template: '{{#each foo}}<p data-index="{{@index}}"></p>{{/each}}',
+		data: { foo: [ 'a', 'b', 'c' ] },
+		result: '<p data-index="0"></p><p data-index="1"></p><p data-index="2"></p>'
+	},
+	{
+		name: 'Boolean attributes work correctly (#1078)',
+		template: '<input type="text" value="{{value}}" readOnly><input type="text" value="anything" readonly>',
+		result: '<input type="text" value="" readOnly><input type="text" value="anything" readonly>'
+	},
+	{
+		name: 'ContentEditable works correctly (#1078)',
+		template: '<span contenteditable value="abc<div></div>"></span>',
+		result: '<span contenteditable>abc<div></div></span>'
+	},
+	{
+		name: 'Partial at end of attribute (#1082)',
+		template: '<div class="box {{>color}}"/>',
+		partials: { color: 'red' },
+		result: '<div class="box red"/>'
+	},
+	{
+		name: 'Static mustaches in attributes (#1147)',
+		template: '<img style="width: [[width]]px;">',
+		data: { width: 100 },
+		result: '<img style="width: 100px;">',
+		new_data: { width: 200 },
+		new_result: '<img style="width: 100px;">'
 	}
 ];
 

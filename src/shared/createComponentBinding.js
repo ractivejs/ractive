@@ -77,8 +77,6 @@ export default function createComponentBinding ( component, parentInstance, pare
 		return;
 	}
 
-	bindings[ hash ] = true;
-
 	childInstance = component.instance;
 	priority = component.parentFragment.priority;
 
@@ -92,4 +90,6 @@ export default function createComponentBinding ( component, parentInstance, pare
 		parentToChildBinding.counterpart = childToParentBinding;
 		childToParentBinding.counterpart = parentToChildBinding;
 	}
+
+	bindings[ hash ] = parentToChildBinding;
 }

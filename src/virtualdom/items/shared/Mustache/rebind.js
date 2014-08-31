@@ -14,9 +14,10 @@ export default function Mustache$rebind ( indexRef, newIndex, oldKeypath, newKey
 	}
 
 	// Normal keypath mustache or reference expression?
-	if ( this.keypath ) {
+	if ( this.keypath !== undefined ) {
+		keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
 		// was a new keypath created?
-		if ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) {
+		if ( keypath !== undefined ) {
 			// resolve it
 			this.resolve( keypath );
 		}

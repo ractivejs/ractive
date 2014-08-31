@@ -10,11 +10,12 @@ import processDirective from 'parse/converters/element/processDirective';
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,
 	onPattern = /^on/,
-	proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)$/,
+	proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
 	reservedEventNames = /^(?:change|reset|teardown|update)$/,
 	directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 	exclude = { exclude: true },
-	converters;
+	converters,
+	disallowedContents;
 
 // Different set of converters, because this time we're looking for closing tags
 converters = [
@@ -24,6 +25,24 @@ converters = [
 	getText,
 	getClosingTag
 ];
+
+// based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
+disallowedContents = {
+	li: [ 'li' ],
+	dt: [ 'dt', 'dd' ],
+	dd: [ 'dt', 'dd' ],
+	p: 'address article aside blockquote div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr main menu nav ol p pre section table ul'.split( ' ' ),
+	rt: [ 'rt', 'rp' ],
+	rp: [ 'rt', 'rp' ],
+	optgroup: [ 'optgroup' ],
+	option: [ 'option', 'optgroup' ],
+	thead: [ 'tbody', 'tfoot' ],
+	tbody: [ 'tbody', 'tfoot' ],
+	tfoot: [ 'tbody' ],
+	tr: [ 'tr', 'tbody' ],
+	td: [ 'td', 'th', 'tr' ],
+	th: [ 'td', 'th', 'tr' ]
+};
 
 export default getElement;
 
@@ -136,7 +155,7 @@ function getElement ( parser ) {
 		}
 
 		children = [];
-		while ( child = parser.read( converters ) ) {
+		while ( canContain( lowerCaseName, parser.remaining() ) && ( child = parser.read( converters ) ) ) {
 			// Special case - closing section tag
 			if ( child.t === types.CLOSING ) {
 				break;
@@ -152,9 +171,6 @@ function getElement ( parser ) {
 			}
 
 			children.push( child );
-
-			// TODO handle sibling elements that close blocks
-
 		}
 
 		if ( children.length ) {
@@ -169,4 +185,17 @@ function getElement ( parser ) {
 	}
 
 	return element;
+}
+
+function canContain ( name, remaining ) {
+	var match, disallowed;
+
+	match = /^<([a-zA-Z][a-zA-Z0-9]*)/.exec( remaining );
+	disallowed = disallowedContents[ name ];
+
+	if ( !match || !disallowed ) {
+		return true;
+	}
+
+	return !~disallowed.indexOf( match[1].toLowerCase() );
 }

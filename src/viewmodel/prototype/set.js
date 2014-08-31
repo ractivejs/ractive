@@ -4,17 +4,18 @@ import createBranch from 'utils/createBranch';
 export default function Viewmodel$set ( keypath, value, silent ) {
 	var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
 
+	computation = this.computations[ keypath ];
+	if ( computation && !computation.setting ) {
+		computation.set( value );
+		value = computation.get();
+	}
+
 	if ( isEqual( this.cache[ keypath ], value ) ) {
 		return;
 	}
 
-	computation = this.computations[ keypath ];
 	wrapper = this.wrapped[ keypath ];
 	evaluator = this.evaluators[ keypath ];
-
-	if ( computation && !computation.setting ) {
-		computation.set( value );
-	}
 
 	// If we have a wrapper with a `reset()` method, we try and use it. If the
 	// `reset()` method returns false, the wrapper should be torn down, and

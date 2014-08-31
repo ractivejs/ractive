@@ -96,6 +96,26 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			});
 		});
 
+		asyncTest( 'noIntro option prevents intro transition when el is initially undefined', function ( t ) {
+			var ractive, transitioned;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				template: '<div intro="test"></div>',
+				noIntro: true,
+				beforeComplete: function(){
+					transitioned = true;
+				},
+				complete: function(){
+					t.ok( !transitioned, 'transition happened');
+					start()
+				}
+			});
+
+			ractive.render( fixture );
+		});
+
 		asyncTest( 'ractive.transitionsEnabled false prevents all transitions', function ( t ) {
 
 			var ractive, Component, transitioned;
@@ -176,6 +196,19 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 
 			ractive.set( 'foo', true );
 			t.ok( !fixture.contains( target ) );
+		});
+
+		asyncTest( 'Regression test for #1157', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div intro="test: { duration: {{ foo ? 1000 : 0 }} }"></div>',
+				transitions: {
+					test: function ( transition, params ) {
+						t.deepEqual( params, { duration: 0 });
+						QUnit.start();
+					}
+				}
+			});
 		});
 	};
 });

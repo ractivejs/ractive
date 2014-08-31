@@ -46,13 +46,12 @@ function fromId ( id, options ) {
 		throw new Error( 'Could not find template element with id #' + id );
 	}
 
-	// Do we want to turn this on?
-	/*
-	if ( template.tagName.toUpperCase() !== 'SCRIPT' )) {
+	if ( template.tagName.toUpperCase() !== 'SCRIPT' ) {
 		if ( options && options.noThrow ) { return; }
 		throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
 	}
-	*/
+
+
 
 	return template.innerHTML;
 

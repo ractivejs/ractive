@@ -32,7 +32,7 @@ export default function Attribute$update () {
 	else if ( name === 'value' ) {
 		// special case - selects
 		if ( element.name === 'select' && name === 'value' ) {
-			updateMethod = node.multiple ? updateMultipleSelectValue : updateSelectValue;
+			updateMethod = element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
 		}
 
 		else if ( element.name === 'textarea' ) {
@@ -40,7 +40,7 @@ export default function Attribute$update () {
 		}
 
 		// special case - contenteditable
-		else if ( node.getAttribute( 'contenteditable' ) ) {
+		else if ( element.getAttribute( 'contenteditable' ) != null ) {
 			updateMethod = updateContentEditableValue;
 		}
 

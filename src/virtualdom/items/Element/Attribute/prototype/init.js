@@ -1,4 +1,5 @@
 import types from 'config/types';
+import booleanAttributes from 'config/booleanAttributes';
 import determineNameAndNamespace from 'virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace';
 import getInterpolator from 'virtualdom/items/Element/Attribute/helpers/getInterpolator';
 import determinePropertyName from 'virtualdom/items/Element/Attribute/helpers/determinePropertyName';
@@ -21,7 +22,10 @@ export default function Attribute$init ( options ) {
 	// if it's an empty attribute, or just a straight key-value pair, with no
 	// mustache shenanigans, set the attribute accordingly and go home
 	if ( !options.value || typeof options.value === 'string' ) {
-		this.value = options.value || true;
+		this.value = booleanAttributes.test( this.name )
+			? true
+			: options.value || '';
+
 		return;
 	}
 
@@ -43,7 +47,7 @@ export default function Attribute$init ( options ) {
 	// takes the form `{{foo}}`. This is necessary for two-way binding and
 	// for correctly rendering HTML later
 	this.interpolator = getInterpolator( this );
-	this.isBindable = !!this.interpolator;
+	this.isBindable = !!this.interpolator && !this.interpolator.isStatic;
 
 	// can we establish this attribute's property name equivalent?
 	determinePropertyName( this, options );

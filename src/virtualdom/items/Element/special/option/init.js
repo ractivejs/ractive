@@ -2,6 +2,12 @@ import findParentSelect from 'virtualdom/items/Element/special/option/findParent
 
 export default function initOption ( option, template ) {
 	option.select = findParentSelect( option.parent );
+
+	// we might be inside a <datalist> element
+	if ( !option.select ) {
+		return;
+	}
+
 	option.select.options.push( option );
 
 	// If the value attribute is missing, use the element's content

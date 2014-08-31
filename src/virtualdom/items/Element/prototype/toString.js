@@ -1,5 +1,6 @@
 import voidElementNames from 'config/voidElementNames';
 import isArray from 'utils/isArray';
+import escapeHtml from 'utils/escapeHtml';
 
 export default function () {
 	var str, escape;
@@ -20,6 +21,16 @@ export default function () {
 
 	str += '>';
 
+	// Special case - textarea
+	if ( this.name === 'textarea' && this.getAttribute( 'value' ) !== undefined ) {
+		str += escapeHtml( this.getAttribute( 'value' ) );
+	}
+
+	// Special case - contenteditable
+	else if ( this.getAttribute( 'contenteditable' ) !== undefined ) {
+		str += this.getAttribute( 'value' );
+	}
+
 	if ( this.fragment ) {
 		escape = ( this.name !== 'script' && this.name !== 'style' );
 		str += this.fragment.toString( escape );
@@ -38,7 +49,7 @@ function optionIsSelected ( element ) {
 
 	optionValue = element.getAttribute( 'value' );
 
-	if ( optionValue === undefined ) {
+	if ( optionValue === undefined || !element.select ) {
 		return false;
 	}
 

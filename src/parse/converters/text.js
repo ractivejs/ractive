@@ -24,6 +24,7 @@ export default function ( parser ) {
 			// we're inside an unquoted attribute value
 			disallowed.push( '"', "'", '=', '>', '`' );
 		} else if ( parser.inAttribute ) {
+			// quoted attribute value
 			disallowed.push( parser.inAttribute );
 		}
 
@@ -40,5 +41,5 @@ export default function ( parser ) {
 
 	parser.pos += index;
 
-	return decodeCharacterReferences( remaining.substr( 0, index ) );
+	return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
 }

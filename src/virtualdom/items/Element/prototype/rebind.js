@@ -11,6 +11,10 @@ export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeyp
 		this.eventHandlers.forEach( rebind );
 	}
 
+	if ( this.decorator ) {
+		rebind( this.decorator );
+	}
+
 	// rebind children
 	if ( this.fragment ) {
 		rebind( this.fragment );
