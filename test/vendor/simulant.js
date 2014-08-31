@@ -97,7 +97,7 @@ var initialisersByGroup = {
 	MouseEvent:          [ global.MouseEvent,          'initMouseEvent'       ],
 	CompositionEvent:    [ global.CompositionEvent,    'initCompositionEvent' ],
 	HashChangeEvent:     [ global.HashChangeEvent,     'initHashChangeEvent'  ],
-	KeyboardEvent:       [ global.Event,               'initEvent'            ], 
+	KeyboardEvent:       [ global.Event,               'initEvent'            ],
 	ProgressEvent:       [ global.ProgressEvent,       'initEvent'            ],
 	MessageEvent:        [ global.MessageEvent,        'initMessageEvent'     ], // TODO prefixed?
 	PageTransitionEvent: [ global.PageTransitionEvent, 'initEvent'            ],
@@ -153,7 +153,7 @@ var useAncient = function () {
 
 		event = document.createEventObject();
 		initialise( event, type, params || {} );
-		
+
 		if ( isKeyboardEvent ) {
 			extendWithKeyboardParams( event, params );
 		}
@@ -209,7 +209,7 @@ var useLegacy = function () {
 			isKeyboardEvent = true;
 			group = 'Event';
 		}
-		
+
 		initialiserName = initialisersByGroup[ group ][1];
 		initialise = initialisers[ initialiserName ];
 
@@ -429,7 +429,7 @@ simulant.polyfill = function () {
 
 		listeners = element.listeners || ( element.listeners = [] );
 		i = listeners.length;
-		
+
 		listeners[i] = [ listener, function (e) {
 			listener.call( element, new Event( e, element ) );
 		}];

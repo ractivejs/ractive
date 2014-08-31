@@ -104,6 +104,11 @@ function fireMethodCall ( event ) {
 	var ractive, values, args;
 
 	ractive = this.root;
+
+	if ( typeof ractive[ this.method ] !== 'function' ) {
+		throw new Error( 'Attempted to call a non-existent method ("' + this.method + '")' );
+	}
+
 	values = this.args.map( function ( arg ) {
 		var value, len, i;
 
