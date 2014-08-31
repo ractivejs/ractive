@@ -122,6 +122,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, fakeEvent );
 		});
 
+		test( 'Empty event names are safe, though do not fire', t => {
+			var ractive = new Ractive();
+
+			expect( 1 );
+			ractive.on( '', function ( event ) {
+				throw new Error( 'Empty event name should not fire' );
+			});
+			ractive.fire( '' );
+			t.ok( true );
+		});
 
 		test( 'preventDefault and stopPropagation if event handler returned false', t => {
 			var ractive, preventedDefault = false, stoppedPropagation = false;
