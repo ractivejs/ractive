@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.5
-	2014-08-30 - commit 096c7ab7 
+	2014-08-31 - commit 6e061c8f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5126,6 +5126,25 @@
 		return log;
 	}( warn, errors );
 
+	/* shared/getFunctionFromString.js */
+	var getFunctionFromString = function() {
+
+		var cache = {};
+		return function getFunctionFromString( str, i ) {
+			var fn, args;
+			if ( cache[ str ] ) {
+				return cache[ str ];
+			}
+			args = [];
+			while ( i-- ) {
+				args[ i ] = '_' + i;
+			}
+			fn = new Function( args.join( ',' ), 'return(' + str + ')' );
+			cache[ str ] = fn;
+			return fn;
+		};
+	}();
+
 	/* viewmodel/Computation/diff.js */
 	var diff = function diff( computation, dependencies, newDependencies ) {
 		var i, keypath;
@@ -5149,11 +5168,10 @@
 	};
 
 	/* virtualdom/items/shared/Evaluator/Evaluator.js */
-	var Evaluator = function( log, isEqual, defineProperty, diff ) {
+	var Evaluator = function( log, isEqual, defineProperty, getFunctionFromString, diff ) {
 
 		var __export;
-		var Evaluator, cache = {},
-			bind = Function.prototype.bind;
+		var Evaluator, bind = Function.prototype.bind;
 		Evaluator = function( root, keypath, uniqueString, functionStr, args, priority ) {
 			var evaluator = this,
 				viewmodel = root.viewmodel;
@@ -5239,20 +5257,6 @@
 		};
 		__export = Evaluator;
 
-		function getFunctionFromString( str, i ) {
-			var fn, args;
-			if ( cache[ str ] ) {
-				return cache[ str ];
-			}
-			args = [];
-			while ( i-- ) {
-				args[ i ] = '_' + i;
-			}
-			fn = new Function( args.join( ',' ), 'return(' + str + ')' );
-			cache[ str ] = fn;
-			return fn;
-		}
-
 		function wrap( fn, ractive ) {
 			var wrapped, prop, key;
 			if ( fn._noWrap ) {
@@ -5284,7 +5288,7 @@
 			return typeof arg === 'function' ? arg() : arg;
 		}
 		return __export;
-	}( log, isEqual, defineProperty, diff, legacy );
+	}( log, isEqual, defineProperty, getFunctionFromString, diff, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
 	var ExpressionResolver = function( removeFromArray, resolveRef, Unresolved, Evaluator, getNewKeypath ) {
@@ -7936,44 +7940,124 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
-	var virtualdom_items_Element_EventHandler$init = function( circular ) {
+	var virtualdom_items_Element_EventHandler$init = function( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular ) {
 
 		var __export;
 		var Fragment, getValueOptions = {
-			args: true
-		};
+				args: true
+			},
+			eventPattern = /^event(?:\.(.+))?/;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
 		__export = function EventHandler$init( element, name, template ) {
-			var action;
-			this.element = element;
-			this.root = element.root;
-			this.name = name;
-			this.proxies = [];
-			// Get action ('foo' in 'on-click='foo')
-			action = template.n || template;
-			if ( typeof action !== 'string' ) {
-				action = new Fragment( {
-					template: action,
-					root: this.root,
-					owner: this
+			var handler = this,
+				action, args, indexRefs, ractive, parentFragment;
+			handler.element = element;
+			handler.root = element.root;
+			handler.name = name;
+			if ( template.m ) {
+				// This is a method call
+				handler.method = template.m;
+				handler.args = args = [];
+				handler.unresolved = [];
+				handler.refs = template.a.r;
+				// TODO need to resolve these!
+				handler.fn = getFunctionFromString( template.a.s, handler.refs.length );
+				parentFragment = element.parentFragment;
+				indexRefs = parentFragment.indexRefs;
+				ractive = handler.root;
+				// Create resolvers for each reference
+				template.a.r.forEach( function( reference, i ) {
+					var index, keypath, match, unresolved;
+					// Is this an index reference?
+					if ( indexRefs && ( index = indexRefs[ reference ] ) !== undefined ) {
+						args[ i ] = {
+							indexRef: reference,
+							value: index
+						};
+						return;
+					}
+					if ( match = eventPattern.exec( reference ) ) {
+						args[ i ] = {
+							eventObject: true,
+							refinements: match[ 1 ] ? match[ 1 ].split( '.' ) : []
+						};
+						return;
+					}
+					// Can we resolve it immediately?
+					if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
+						args[ i ] = {
+							keypath: keypath
+						};
+						return;
+					}
+					// Couldn't resolve yet
+					args[ i ] = null;
+					unresolved = new Unresolved( ractive, reference, parentFragment, function( keypath ) {
+						handler.resolve( i, keypath );
+						removeFromArray( handler.unresolved, unresolved );
+					} );
+					handler.unresolved.push( unresolved );
 				} );
-			}
-			this.action = action;
-			// Get parameters
-			if ( template.d ) {
-				this.dynamicParams = new Fragment( {
-					template: template.d,
-					root: this.root,
-					owner: this.element
-				} );
-				this.fire = fireEventWithDynamicParams;
-			} else if ( template.a ) {
-				this.params = template.a;
-				this.fire = fireEventWithParams;
+				this.fire = fireMethodCall;
+			} else {
+				// Get action ('foo' in 'on-click='foo')
+				action = template.n || template;
+				if ( typeof action !== 'string' ) {
+					action = new Fragment( {
+						template: action,
+						root: this.root,
+						owner: this
+					} );
+				}
+				this.action = action;
+				// Get parameters
+				if ( template.d ) {
+					this.dynamicParams = new Fragment( {
+						template: template.d,
+						root: this.root,
+						owner: this.element
+					} );
+					this.fire = fireEventWithDynamicParams;
+				} else if ( template.a ) {
+					this.params = template.a;
+					this.fire = fireEventWithParams;
+				}
 			}
 		};
+
+		function fireMethodCall( event ) {
+			var ractive, values, args;
+			ractive = this.root;
+			if ( typeof ractive[ this.method ] !== 'function' ) {
+				throw new Error( 'Attempted to call a non-existent method ("' + this.method + '")' );
+			}
+			values = this.args.map( function( arg ) {
+				var value, len, i;
+				if ( !arg ) {
+					// not yet resolved
+					return undefined;
+				}
+				if ( arg.indexRef ) {
+					return arg.value;
+				}
+				// TODO the refinements stuff would be better handled at parse time
+				if ( arg.eventObject ) {
+					value = event;
+					if ( len = arg.refinements.length ) {
+						for ( i = 0; i < len; i += 1 ) {
+							value = value[ arg.refinements[ i ] ];
+						}
+					}
+				} else {
+					value = ractive.get( arg.keypath );
+				}
+				return value;
+			} );
+			args = this.fn.apply( null, values );
+			ractive[ this.method ].apply( ractive, args );
+		}
 
 		function fireEventWithParams( event ) {
 			this.root.fire.apply( this.root, [
@@ -7994,7 +8078,7 @@
 			].concat( args ) );
 		}
 		return __export;
-	}( circular );
+	}( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
 	var genericHandler = function genericHandler( event ) {
@@ -8045,14 +8129,28 @@
 	}( warn, config, genericHandler );
 
 	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
-	var virtualdom_items_Element_EventHandler$rebind = function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-		if ( typeof this.action !== 'string' ) {
-			this.action.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-		}
-		if ( this.dynamicParams ) {
-			this.dynamicParams.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-		}
-	};
+	var virtualdom_items_Element_EventHandler$rebind = function( getNewKeypath ) {
+
+		return function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+			if ( this.method ) {
+				this.args.forEach( function( arg ) {
+					if ( arg.indexRef && arg.indexRef === indexRef ) {
+						arg.value = newIndex;
+					}
+					if ( arg.keypath && ( newKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
+						arg.keypath = newKeypath;
+					}
+				} );
+				return;
+			}
+			if ( typeof this.action !== 'string' ) {
+				this.action.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			}
+			if ( this.dynamicParams ) {
+				this.dynamicParams.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			}
+		};
+	}( getNewKeypath );
 
 	/* virtualdom/items/Element/EventHandler/prototype/render.js */
 	var virtualdom_items_Element_EventHandler$render = function EventHandler$render() {
@@ -8060,22 +8158,42 @@
 		// store this on the node itself, so it can be retrieved by a
 		// universal handler
 		this.node._ractive.events[ this.name ] = this;
-		if ( this.getAction() ) {
+		if ( this.method || this.getAction() ) {
 			this.listen();
 		}
 	};
 
-	/* virtualdom/items/Element/EventHandler/prototype/teardown.js */
-	var virtualdom_items_Element_EventHandler$teardown = function EventHandler$teardown() {
-		// Tear down dynamic name
-		if ( typeof this.action !== 'string' ) {
-			this.action.teardown();
-		}
-		// Tear down dynamic parameters
-		if ( this.dynamicParams ) {
-			this.dynamicParams.teardown();
-		}
+	/* virtualdom/items/Element/EventHandler/prototype/resolve.js */
+	var virtualdom_items_Element_EventHandler$resolve = function EventHandler$resolve( index, keypath ) {
+		this.args[ index ] = {
+			keypath: keypath
+		};
 	};
+
+	/* virtualdom/items/Element/EventHandler/prototype/unbind.js */
+	var virtualdom_items_Element_EventHandler$unbind = function() {
+
+		var __export;
+		__export = function EventHandler$unbind() {
+			if ( this.method ) {
+				this.unresolved.forEach( teardown );
+				return;
+			}
+			// Tear down dynamic name
+			if ( typeof this.action !== 'string' ) {
+				this.action.unbind();
+			}
+			// Tear down dynamic parameters
+			if ( this.dynamicParams ) {
+				this.dynamicParams.unbind();
+			}
+		};
+
+		function teardown( x ) {
+			x.teardown();
+		}
+		return __export;
+	}();
 
 	/* virtualdom/items/Element/EventHandler/prototype/unrender.js */
 	var virtualdom_items_Element_EventHandler$unrender = function( genericHandler ) {
@@ -8091,7 +8209,7 @@
 	}( genericHandler );
 
 	/* virtualdom/items/Element/EventHandler/_EventHandler.js */
-	var EventHandler = function( bubble, fire, getAction, init, listen, rebind, render, teardown, unrender ) {
+	var EventHandler = function( bubble, fire, getAction, init, listen, rebind, render, resolve, unbind, unrender ) {
 
 		var EventHandler = function( element, name, template ) {
 			this.init( element, name, template );
@@ -8104,11 +8222,12 @@
 			listen: listen,
 			rebind: rebind,
 			render: render,
-			teardown: teardown,
+			resolve: resolve,
+			unbind: unbind,
 			unrender: unrender
 		};
 		return EventHandler;
-	}( virtualdom_items_Element_EventHandler$bubble, virtualdom_items_Element_EventHandler$fire, virtualdom_items_Element_EventHandler$getAction, virtualdom_items_Element_EventHandler$init, virtualdom_items_Element_EventHandler$listen, virtualdom_items_Element_EventHandler$rebind, virtualdom_items_Element_EventHandler$render, virtualdom_items_Element_EventHandler$teardown, virtualdom_items_Element_EventHandler$unrender );
+	}( virtualdom_items_Element_EventHandler$bubble, virtualdom_items_Element_EventHandler$fire, virtualdom_items_Element_EventHandler$getAction, virtualdom_items_Element_EventHandler$init, virtualdom_items_Element_EventHandler$listen, virtualdom_items_Element_EventHandler$rebind, virtualdom_items_Element_EventHandler$render, virtualdom_items_Element_EventHandler$resolve, virtualdom_items_Element_EventHandler$unbind, virtualdom_items_Element_EventHandler$unrender );
 
 	/* virtualdom/items/Element/prototype/init/createEventHandlers.js */
 	var virtualdom_items_Element$init_createEventHandlers = function( EventHandler ) {
@@ -9364,15 +9483,18 @@
 			if ( this.binding ) {
 				this.binding.unbind();
 			}
+			if ( this.eventHandlers ) {
+				this.eventHandlers.forEach( unbind );
+			}
 			// Special case - <option>
 			if ( this.name === 'option' ) {
 				unbindOption( this );
 			}
-			this.attributes.forEach( unbindAttribute );
+			this.attributes.forEach( unbind );
 		};
 
-		function unbindAttribute( attribute ) {
-			attribute.unbind();
+		function unbind( x ) {
+			x.unbind();
 		}
 		return __export;
 	}( virtualdom_items_Element_special_option_unbind );
