@@ -9,14 +9,18 @@ export default function Element$unbind () {
 		this.binding.unbind();
 	}
 
+	if ( this.eventHandlers ) {
+		this.eventHandlers.forEach( unbind );
+	}
+
 	// Special case - <option>
 	if ( this.name === 'option' ) {
 		unbindOption( this );
 	}
 
-	this.attributes.forEach( unbindAttribute );
+	this.attributes.forEach( unbind );
 }
 
-function unbindAttribute ( attribute ) {
-	attribute.unbind();
+function unbind ( x ) {
+	x.unbind();
 }
