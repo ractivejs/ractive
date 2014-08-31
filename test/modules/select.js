@@ -353,6 +353,49 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		test( 'Model -> view binding works with <select multiple> (#1009)', function ( t ) {
+			var ractive, options;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					<select value='{{selectedColors}}' multiple>
+						{{#each colors}}
+							<option>{{this}}</option>
+						{{/each}}
+					</select>`,
+				data: {
+					colors: [ 'red', 'green', 'blue', 'purple' ]
+				}
+			});
+
+			options = ractive.findAll( 'option' );
+
+			ractive.set( 'selectedColors', [ 'green', 'purple' ]);
+			t.ok( !options[0].selected );
+			t.ok( options[1].selected );
+			t.ok( !options[2].selected );
+			t.ok( options[3].selected );
+		});
+
+		test( 'A multiple select uses non-strict comparison', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<select multiple value="{{i}}"><option id="_1" value="1">one</option><option id="_2" value="2">two</option><option id="_3" value="3">three</option></select>',
+				data: { i: [ 1, '2' ] }
+			});
+
+			t.ok(  ractive.nodes._1.selected );
+			t.ok(  ractive.nodes._2.selected );
+			t.ok( !ractive.nodes._3.selected );
+
+			ractive.set( 'i', [ 2, '3' ] );
+
+			t.ok( !ractive.nodes._1.selected );
+			t.ok(  ractive.nodes._2.selected );
+			t.ok(  ractive.nodes._3.selected );
+		});
+
 	};
 
 });

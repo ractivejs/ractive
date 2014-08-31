@@ -71,48 +71,44 @@ Parser.prototype = {
 	flattenExpression: flattenExpression,
 
 	getLinePos: function () {
-		var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, columnNum;
+		var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, charNum, annotation;
 
 		lines = this.str.split( '\n' );
 
-		lineNum = -1;
+		lineNum = 0;
 		nextLineEnd = 0;
 
 		do {
 			currentLineEnd = nextLineEnd;
 			lineNum ++;
-			currentLine = lines[ lineNum ];
+			currentLine = lines[ lineNum - 1 ];
 			nextLineEnd += currentLine.length + 1; // +1 for the newline
 		} while ( nextLineEnd <= this.pos );
 
-		columnNum = this.pos - currentLineEnd;
+		charNum = ( this.pos - currentLineEnd ) + 1;
+		annotation = currentLine + '\n' + new Array( charNum ).join( ' ' ) + '^----';
 
 		return {
-			line:lineNum + 1,
-			ch: columnNum + 1,
+			line: lineNum,
+			ch: charNum,
 			text: currentLine,
-			toJSON: function() {
-				return [
-					this.line,
-					this.ch
-				];
-			},
-			toString: function () {
-				return "line " + this.line + " character " + this.ch + ":\n" +
-					this.text + "\n" +
-					this.text.substr(0,this.ch-1).replace(/[\S]/g,' ') + "^----";
-			}
+			annotation: annotation,
+			toJSON: () => [ lineNum, charNum ],
+			toString: () => `line ${lineNum} character ${charNum}`
 		};
 	},
 
-	error: function ( err ) {
-		var pos, message;
+	error: function ( message ) {
+		var pos, error;
 
 		pos = this.getLinePos();
+		error = new ParseError( message + ' at ' + pos + ':\n' + pos.annotation );
 
-		message = err + ' at ' + pos;
+		error.line = pos.line;
+		error.character = pos.ch;
+		error.shortMessage = message;
 
-		throw new ParseError( message );
+		throw error;
 	},
 
 	matchString: function ( string ) {

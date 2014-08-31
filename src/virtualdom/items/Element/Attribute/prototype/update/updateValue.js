@@ -1,8 +1,5 @@
 export default function Attribute$updateValue () {
-	var node, value;
-
-	node = this.node;
-	value = this.value;
+	var { node, value } = this;
 
 	// store actual value, so it doesn't get coerced to a string
 	node._ractive.value = value;

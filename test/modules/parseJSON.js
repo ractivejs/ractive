@@ -61,6 +61,11 @@ define([ 'utils/parseJSON' ], function ( parseJSON ) {
 			t.deepEqual( parsed.value, {} );
 		});
 
+		test( 'Object with leading whitespace (#1157)', function ( t ) {
+			var parsed = parseJSON( ' { foo: "bar" }' );
+			t.deepEqual( parsed.value, { foo: 'bar' });
+		});
+
 	};
 
 });

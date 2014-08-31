@@ -1,9 +1,11 @@
 import log from 'utils/log';
 import isEqual from 'utils/isEqual';
 import defineProperty from 'utils/defineProperty';
+import getFunctionFromString from 'shared/getFunctionFromString';
 import diff from 'viewmodel/Computation/diff'; // TODO this is a red flag... should be treated the same?
+import 'legacy'; // for fn.bind()
 
-var Evaluator, cache = {};
+var Evaluator, bind = Function.prototype.bind;
 
 Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority ) {
 	var evaluator = this, viewmodel = root.viewmodel;
@@ -109,28 +111,8 @@ Evaluator.prototype = {
 
 export default Evaluator;
 
-function getFunctionFromString ( str, i ) {
-	var fn, args;
-
-	str = str.replace( /\$\{([0-9]+)\}/g, '_$1' );
-
-	if ( cache[ str ] ) {
-		return cache[ str ];
-	}
-
-	args = [];
-	while ( i-- ) {
-		args[i] = '_' + i;
-	}
-
-	fn = new Function( args.join( ',' ), 'return(' + str + ')' );
-
-	cache[ str ] = fn;
-	return fn;
-}
-
 function wrap ( fn, ractive ) {
-	var wrapped, prop;
+	var wrapped, prop, key;
 
 	if ( fn._noWrap ) {
 		return fn;
@@ -145,8 +127,15 @@ function wrap ( fn, ractive ) {
 
 	else if ( /this/.test( fn.toString() ) ) {
 		defineProperty( fn, prop, {
-			value: fn.bind( ractive )
+			value: bind.call( fn, ractive )
 		});
+
+		// Add properties/methods to wrapped function
+		for ( key in fn ) {
+			if ( fn.hasOwnProperty( key ) ) {
+				fn[ prop ][ key ] = fn[ key ];
+			}
+		}
 
 		return fn[ prop ];
 	}

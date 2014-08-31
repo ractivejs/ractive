@@ -1,5 +1,8 @@
 Changelog
 ---------
+* next
+    * Breaking changes:
+        * Use of other elements besides `<script>` for templates is an error
 
 * 0.5.5
 	* Fixes for #713, #941, #942, #943, #945, #950, #951, #952, #953, #960, #965, #967 and #974

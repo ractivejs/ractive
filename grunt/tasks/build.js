@@ -6,11 +6,12 @@ module.exports = function ( grunt ) {
 		'jshint',
 		'clean:tmpDir',
 		'buildTests',
-		'broccoli:toTmpDir:build',
+		'gobble:toTmpDir',
 		'concurrent:requirejs',
 		'concat:closure',
 		'revision',
-		'jsbeautifier'
+		'jsbeautifier',
+		'clean:tmp'
 	]);
 
 };

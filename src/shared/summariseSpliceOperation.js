@@ -11,6 +11,13 @@ export default function ( array, args ) {
 	// figure out where the changes started...
 	rangeStart = +( args[0] < 0 ? array.length + args[0] : args[0] );
 
+	// make sure we don't get out of bounds...
+	if ( rangeStart < 0 ) {
+		rangeStart = 0;
+	} else if ( rangeStart > array.length ) {
+		rangeStart = array.length;
+	}
+
 	// ...and how many items were added to or removed from the array
 	addedItems = Math.max( 0, args.length - 2 );
 	removedItems = ( args[1] !== undefined ? args[1] : array.length - rangeStart );

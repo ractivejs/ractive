@@ -1,10 +1,38 @@
+import Parser from 'parse/Parser/_Parser';
+import conditional from 'parse/Parser/expressions/conditional';
+import flattenExpression from 'parse/Parser/utils/flattenExpression';
 import parseJSON from 'utils/parseJSON';
+
+var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/,
+	ExpressionParser;
+
+ExpressionParser = Parser.extend({
+	converters: [ conditional ]
+});
 
 // TODO clean this up, it's shocking
 export default function ( tokens ) {
-	var result, token, colonIndex, directiveName, directiveArgs, parsed;
+	var result,
+		match,
+		parser,
+		args,
+		token,
+		colonIndex,
+		directiveName,
+		directiveArgs,
+		parsed;
 
 	if ( typeof tokens === 'string' ) {
+		if ( match = methodCallPattern.exec( tokens ) ) {
+			result = { m: match[1] };
+			args = '[' + tokens.slice( result.m.length + 1, -1 ) + ']';
+
+			parser = new ExpressionParser( args );
+			result.a = flattenExpression( parser.result[0] );
+
+			return result;
+		}
+
 		if ( tokens.indexOf( ':' ) === -1 ) {
 			return tokens.trim();
 		}

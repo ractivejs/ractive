@@ -30,5 +30,11 @@ export default {
 		'A radio input can have two-way binding on its name attribute, or its checked attribute - not both',
 
 	noRegistryFunctionReturn:
-		'A function was specified for "{name}" {registry}, but no {registry} was returned'
+		'A function was specified for "{name}" {registry}, but no {registry} was returned',
+
+	defaultElSpecified:
+		'The <{name}/> component has a default `el` property; it has been disregarded',
+
+	noElementProxyEventWildcards:
+		'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.'
 };

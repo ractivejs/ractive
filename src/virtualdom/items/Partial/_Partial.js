@@ -77,7 +77,7 @@ Partial.prototype = {
 			return string;
 		}
 
-		lastLine = previousItem.template.split( '\n' ).pop();
+		lastLine = previousItem.text.split( '\n' ).pop();
 
 		if ( match = /^\s+$/.exec( lastLine ) ) {
 			return applyIndent( string, match[0] );

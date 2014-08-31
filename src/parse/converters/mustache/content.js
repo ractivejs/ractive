@@ -29,19 +29,31 @@ export default function ( parser, delimiterType ) {
 	} else {
 		// We need to test for expressions before we test for mustache type, because
 		// an expression that begins '!' looks a lot like a comment
-		if ( parser.remaining()[0] === '!' && ( expression = parser.readExpression() ) ) {
-			mustache.t = types.INTERPOLATOR;
+		if ( parser.remaining()[0] === '!' ) {
+			try {
+				expression = parser.readExpression();
 
-			// Was it actually an expression, or a comment block in disguise?
-			parser.allowWhitespace();
+				// Was it actually an expression, or a comment block in disguise?
+				parser.allowWhitespace();
+				if ( parser.remaining().indexOf( delimiters[1] ) ) {
+					expression = null;
+				} else {
+					mustache.t = types.INTERPOLATOR;
+				}
+			} catch ( err ) {}
 
-			if ( parser.matchString( delimiters[1] ) ) {
-				// expression
-				parser.pos -= delimiters[1].length;
-			} else {
-				// comment block
-				parser.pos = start;
-				expression = null;
+			if ( !expression ) {
+				index = parser.remaining().indexOf( delimiters[1] );
+
+				if ( ~index ) {
+					parser.pos += index;
+				} else {
+					parser.error( 'Expected closing delimiter (\'' + delimiters[1] + '\')' );
+				}
+
+				return {
+					t: types.COMMENT
+				};
 			}
 		}
 
@@ -65,7 +77,7 @@ export default function ( parser, delimiterType ) {
 				index = remaining.indexOf( delimiters[1] );
 
 				if ( index !== -1 ) {
-					mustache.r = remaining.substr( 0, index );
+					mustache.r = remaining.substr( 0, index ).split( ' ' )[0];
 					parser.pos += index;
 					return mustache;
 				}
@@ -79,6 +91,20 @@ export default function ( parser, delimiterType ) {
 
 		// get expression
 		expression = parser.readExpression();
+
+		// If this is a partial, it may have a context (e.g. `{{>item foo}}`). These
+		// cases involve a bit of a hack - we want to turn it into the equivalent of
+		// `{{#with foo}}{{>item}}{{/with}}`, but to get there we temporarily append
+		// a 'contextPartialId' to the mustache, and process the context instead of
+		// the reference
+		let temp;
+		if ( mustache.t === types.PARTIAL && ( expression.t === types.REFERENCE ) && ( temp = parser.readExpression() ) ) {
+			mustache = {
+				contextPartialId: expression.n
+			};
+
+			expression = temp;
+		}
 
 		// With certain valid references that aren't valid expressions,
 		// e.g. {{1.foo}}, we have a problem: it looks like we've got an

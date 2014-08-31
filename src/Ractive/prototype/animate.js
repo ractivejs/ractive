@@ -74,43 +74,43 @@ export default function Ractive$animate ( keypath, to, options ) {
 			}
 		}
 
-		if ( step || complete ) {
-			dummyOptions = {
-				easing: easing,
-				duration: duration
+		// Create a dummy animation, to facilitate step/complete
+		// callbacks, and Promise fulfilment
+		dummyOptions = {
+			easing: easing,
+			duration: duration
+		};
+
+		if ( step ) {
+			dummyOptions.step = function ( t ) {
+				step( t, currentValues );
 			};
-
-			if ( step ) {
-				dummyOptions.step = function ( t ) {
-					step( t, currentValues );
-				};
-			}
-
-			if ( complete ) {
-				promise.then( function ( t ) {
-					complete( t, currentValues );
-				});
-			}
-
-			dummyOptions.complete = fulfilPromise;
-
-			dummy = animate( this, null, null, dummyOptions );
-			animations.push( dummy );
 		}
 
-		return {
-			stop: function () {
-				var animation;
+		if ( complete ) {
+			promise.then( function ( t ) {
+				complete( t, currentValues );
+			});
+		}
 
-				while ( animation = animations.pop() ) {
-					animation.stop();
-				}
+		dummyOptions.complete = fulfilPromise;
 
-				if ( dummy ) {
-					dummy.stop();
-				}
+		dummy = animate( this, null, null, dummyOptions );
+		animations.push( dummy );
+
+		promise.stop = function () {
+			var animation;
+
+			while ( animation = animations.pop() ) {
+				animation.stop();
+			}
+
+			if ( dummy ) {
+				dummy.stop();
 			}
 		};
+
+		return promise;
 	}
 
 	// animate a single keypath

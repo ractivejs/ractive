@@ -18,9 +18,11 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 		}
 	});
 
-	this.complexParameters.forEach( parameter => {
-		parameter.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-	});
+	this.complexParameters.forEach( rebind );
+
+	if ( this.yielder ) {
+		rebind( this.yielder );
+	}
 
 	if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
 		runloop.addViewmodel( childInstance.viewmodel );
@@ -29,5 +31,9 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 
 	if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
 		query._makeDirty();
+	}
+
+	function rebind ( x ) {
+		x.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	}
 }

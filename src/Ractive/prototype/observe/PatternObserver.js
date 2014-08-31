@@ -65,7 +65,7 @@ PatternObserver.prototype = {
 		}
 
 		if ( this.defer && this.ready ) {
-			runloop.addObserver( this.getProxy( keypath ) );
+			runloop.scheduleTask( () => this.getProxy( keypath ).update() );
 			return;
 		}
 

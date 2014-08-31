@@ -112,39 +112,6 @@ interpolators = {
 
 			return intermediate;
 		};
-	},
-
-	cssLength: function ( from, to ) {
-		var fromMatch, toMatch, fromUnit, toUnit, fromValue, toValue, unit, delta;
-
-		if ( ( from !== 0 && typeof from !== 'string' ) || ( to !== 0 && typeof to !== 'string' ) ) {
-			return null;
-		}
-
-		fromMatch = cssLengthPattern.exec( from );
-		toMatch = cssLengthPattern.exec( to );
-
-		fromUnit = fromMatch ? fromMatch[2] : '';
-		toUnit = toMatch ? toMatch[2] : '';
-
-		if ( fromUnit && toUnit && ( fromUnit !== toUnit ) ) {
-			return null; // can't transition from e.g. 10px to 50%
-		}
-
-		unit = fromUnit || toUnit;
-
-		fromValue = fromMatch ? +fromMatch[1] : 0;
-		toValue = toMatch ? +toMatch[1] : 0;
-
-		delta = toValue - fromValue;
-
-		if ( !delta ) {
-			return function () { return fromValue + unit; };
-		}
-
-		return function ( t ) {
-			return ( fromValue + ( t * delta ) ) + unit;
-		};
 	}
 };
 
