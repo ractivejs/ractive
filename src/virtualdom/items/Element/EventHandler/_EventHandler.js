@@ -8,8 +8,6 @@ import render from 'virtualdom/items/Element/EventHandler/prototype/render';
 import teardown from 'virtualdom/items/Element/EventHandler/prototype/teardown';
 import unrender from 'virtualdom/items/Element/EventHandler/prototype/unrender';
 
-
-
 var EventHandler = function ( element, name, template ) {
 	this.init( element, name, template );
 };
