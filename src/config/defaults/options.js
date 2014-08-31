@@ -1,8 +1,3 @@
-// These are both the values for Ractive.defaults
-// as well as the determination for whether an option
-// value will be placed on Component.defaults
-// (versus directly on Component) during an extend operation
-
 var defaultOptions = {
 
 	// render placement:

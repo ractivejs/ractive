@@ -75,5 +75,15 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( ractive.toHTML(), '<textarea>123&lt;div&gt;&lt;/div&gt;</textarea>' );
 		});
+
+		test( 'Wildcard proxy-events invalid on elements', function ( t ) {
+			throws( function () {
+				var ractive = new Ractive({
+					el: fixture,
+					debug: true,
+					template: '<p on-foo.*="foo"></p>'
+				});
+			}, /wildcards/ );
+		});
 	};
 });

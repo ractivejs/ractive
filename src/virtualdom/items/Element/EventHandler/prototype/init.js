@@ -3,6 +3,8 @@ import getFunctionFromString from 'shared/getFunctionFromString';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
 import circular from 'circular';
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
+import log from 'utils/log';
 
 var Fragment, getValueOptions = { args: true }, eventPattern = /^event(?:\.(.+))?/;
 
@@ -16,6 +18,19 @@ export default function EventHandler$init ( element, name, template ) {
 	handler.element = element;
 	handler.root = element.root;
 	handler.name = name;
+
+	if( name.indexOf( '*' ) !== -1 ) {
+		log.error({
+			debug: this.root.debug,
+			message: 'noElementProxyEventWildcards',
+			args: {
+				element: element.tagName,
+				event: name
+			}
+		});
+
+		this.invalid = true;
+	}
 
 	if ( template.m ) {
 		// This is a method call
@@ -142,7 +157,7 @@ function fireMethodCall ( event ) {
 }
 
 function fireEventWithParams ( event ) {
-	this.root.fire.apply( this.root, [ this.getAction(), event ].concat( this.params ) );
+	fireEvent( this.root, this.getAction(), { event: event, args: this.params } );
 }
 
 function fireEventWithDynamicParams ( event ) {
@@ -153,5 +168,5 @@ function fireEventWithDynamicParams ( event ) {
 		args = args.substr( 1, args.length - 2 );
 	}
 
-	this.root.fire.apply( this.root, [ this.getAction(), event ].concat( args ) );
+	fireEvent( this.root, this.getAction(), { event: event, args: args } );
 }

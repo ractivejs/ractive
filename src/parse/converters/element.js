@@ -10,7 +10,7 @@ import processDirective from 'parse/converters/element/processDirective';
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,
 	onPattern = /^on/,
-	proxyEventPattern = /^on-([a-zA-Z$_][a-zA-Z$_0-9\-]+)$/,
+	proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
 	reservedEventNames = /^(?:change|reset|teardown|update)$/,
 	directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 	exclude = { exclude: true },
