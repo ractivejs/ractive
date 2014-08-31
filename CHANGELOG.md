@@ -1,8 +1,18 @@
 Changelog
 ---------
-* next
-    * Breaking changes:
-        * Use of other elements besides `<script>` for templates is an error
+* 0.5.6
+	* Breaking changes:
+		* Use of other elements besides `<script>` for templates is an error
+		* Removed CSS length interpolator
+	* New features
+		* `{{yield}}` operator - see https://github.com/ractivejs/ractive/pull/1141
+		* Event bubbling - see https://github.com/ractivejs/ractive/pull/1117
+		* Method calls from templates - see https://github.com/ractivejs/ractive/pull/1146
+		* Parse errors contain `line` and `character` data for debugging inside live editors
+		* Partials have an optional context, e.g. `{{>item foo}}`
+	* Fixes for #618, #837, #983, #990, #995, #996, #1003, #1007, #1009, #1011, #1014, #1019, #1024, #1033, #1035, #1036, #1038, #1055, #1053, #1057, #1072, #1074, #1078, #1079, #1082, #1094, #1104, #1106, #1109, #1121, #1124, #1128, #1133, #1134, #1137, #1147, #1149, #1155, #1157
+	* Other changes
+		* Initial changes from `ractive.animate()` are applied immediately, not on the next frame
 
 * 0.5.5
 	* Fixes for #713, #941, #942, #943, #945, #950, #951, #952, #953, #960, #965, #967 and #974
