@@ -1,0 +1,56 @@
+define(['config/namespaces'],function (namespaces) {
+
+	'use strict';
+	
+	var propertyNames = {
+		'accept-charset': 'acceptCharset',
+		'accesskey': 'accessKey',
+		'bgcolor': 'bgColor',
+		'class': 'className',
+		'codebase': 'codeBase',
+		'colspan': 'colSpan',
+		'contenteditable': 'contentEditable',
+		'datetime': 'dateTime',
+		'dirname': 'dirName',
+		'for': 'htmlFor',
+		'http-equiv': 'httpEquiv',
+		'ismap': 'isMap',
+		'maxlength': 'maxLength',
+		'novalidate': 'noValidate',
+		'pubdate': 'pubDate',
+		'readonly': 'readOnly',
+		'rowspan': 'rowSpan',
+		'tabindex': 'tabIndex',
+		'usemap': 'useMap'
+	};
+	
+	return function Attribute$render ( node ) {
+		var propertyName;
+	
+		this.node = node;
+	
+		// should we use direct property access, or setAttribute?
+		if ( !node.namespaceURI || node.namespaceURI === namespaces.html ) {
+			propertyName = propertyNames[ this.name ] || this.name;
+	
+			if ( node[ propertyName ] !== undefined ) {
+				this.propertyName = propertyName;
+			}
+	
+			// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
+			// node.selected = true rather than node.setAttribute( 'selected', '' )
+			if ( typeof node[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+				this.useProperty = true;
+			}
+	
+			if ( propertyName === 'value' ) {
+				this.useProperty = true;
+				node._ractive.value = this.value;
+			}
+		}
+	
+		this.rendered = true;
+		this.update();
+	};
+
+});
