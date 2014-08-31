@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.5
-	2014-08-31 - commit 6e061c8f 
+	2014-08-31 - commit 1b86f3c6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -30,6 +30,7 @@
 				v: 1,
 				t: []
 			},
+			yield: null,
 			// parse:
 			preserveWhitespace: false,
 			sanitize: false,
@@ -11687,7 +11688,11 @@
 				_parent: ractive,
 				_component: component,
 				// need to inherit runtime parent adaptors
-				adapt: ractive.adapt
+				adapt: ractive.adapt,
+				yield: {
+					template: contentDescriptor,
+					instance: ractive
+				}
 			} );
 			return instance;
 		};
@@ -11764,6 +11769,7 @@
 			this.index = options.index;
 			this.indexRefBindings = {};
 			this.bindings = [];
+			this.yielder = null;
 			if ( !Component ) {
 				throw new Error( 'Component "' + this.name + '" not found' );
 			}
@@ -11802,15 +11808,20 @@
 					binding.rebind( updated );
 				}
 			} );
-			this.complexParameters.forEach( function( parameter ) {
-				parameter.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			} );
+			this.complexParameters.forEach( rebind );
+			if ( this.yielder ) {
+				rebind( this.yielder );
+			}
 			if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
 				runloop.addViewmodel( childInstance.viewmodel );
 				childInstance.viewmodel.set( indexRefAlias, newIndex );
 			}
 			if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
 				query._makeDirty();
+			}
+
+			function rebind( x ) {
+				x.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 			}
 		};
 	}( runloop, getNewKeypath );
@@ -11916,8 +11927,76 @@
 		return Comment;
 	}( types, detach );
 
+	/* virtualdom/items/Yielder.js */
+	var Yielder = function( circular ) {
+
+		var Fragment;
+		circular.push( function() {
+			Fragment = circular.Fragment;
+		} );
+		var Yielder = function( options ) {
+			var componentInstance, component;
+			componentInstance = options.parentFragment.root;
+			component = componentInstance.component;
+			this.surrogateParent = options.parentFragment;
+			this.parentFragment = component.parentFragment;
+			if ( component.yielder ) {
+				// TODO catch this at parse time
+				throw new Error( 'A component template can only have one {{yield}} declaration' );
+			}
+			this.fragment = new Fragment( {
+				owner: this,
+				root: componentInstance.yield.instance,
+				template: componentInstance.yield.template
+			} );
+			component.yielder = this;
+		};
+		Yielder.prototype = {
+			detach: function() {
+				return this.fragment.detach();
+			},
+			find: function( selector ) {
+				return this.fragment.find( selector );
+			},
+			findAll: function( selector, query ) {
+				return this.fragment.findAll( selector, query );
+			},
+			findComponent: function( selector ) {
+				return this.fragment.findComponent( selector );
+			},
+			findAllComponents: function( selector, query ) {
+				return this.fragment.findAllComponents( selector, query );
+			},
+			findNextNode: function() {
+				return this.surrogateParent.findNextNode( this );
+			},
+			firstNode: function() {
+				return this.fragment.firstNode();
+			},
+			getValue: function( options ) {
+				return this.fragment.getValue( options );
+			},
+			render: function() {
+				return this.fragment.render();
+			},
+			unbind: function() {
+				this.fragment.unbind();
+			},
+			unrender: function() {
+				this.fragment.unrender();
+			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			},
+			toString: function() {
+				return this.fragment.toString();
+			}
+		};
+		return Yielder;
+	}( circular );
+
 	/* virtualdom/Fragment/prototype/init/createItem.js */
-	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment ) {
+	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder ) {
 
 		return function createItem( options ) {
 			if ( typeof options.template === 'string' ) {
@@ -11925,6 +12004,9 @@
 			}
 			switch ( options.template.t ) {
 				case types.INTERPOLATOR:
+					if ( options.template.r === 'yield' ) {
+						return new Yielder( options );
+					}
 					return new Interpolator( options );
 				case types.SECTION:
 					return new Section( options );
@@ -11944,7 +12026,7 @@
 					throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 			}
 		};
-	}( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment );
+	}( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder );
 
 	/* virtualdom/Fragment/prototype/init.js */
 	var virtualdom_Fragment$init = function( types, create, createItem ) {
