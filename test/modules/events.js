@@ -715,6 +715,65 @@ define([ 'ractive' ], function ( Ractive ) {
 			};
 
 			simulant.fire( ractive.find( 'button' ), 'click' );
+			window.onerror = onerror;
+		});
+
+		test( 'Passing the event object to a method', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(event)'>{{foo}}</button>`,
+				activate: function ( event ) {
+					t.equal( event.original.type, 'click' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		test( 'Passing a child of the event object to a method', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(event.original.type)'>{{foo}}</button>`,
+				activate: function ( type ) {
+					t.equal( type, 'click' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		// Bit of a cheeky workaround...
+		test( 'Passing a reference to this.event', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(.event)'>{{foo}}</button>`,
+				activate: function ( event ) {
+					t.equal( event, 'Christmas' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture,
+				data: {
+					event: 'Christmas'
+				}
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
 		});
 
 
