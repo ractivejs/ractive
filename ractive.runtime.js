@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.5
-	2014-08-31 - commit 1b86f3c6 
+	2014-08-31 - commit 58b7125e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -17,10 +17,6 @@
 	/* config/defaults/options.js */
 	var options = function() {
 
-		// These are both the values for Ractive.defaults
-		// as well as the determination for whether an option
-		// value will be placed on Component.defaults
-		// (versus directly on Component) during an extend operation
 		var defaultOptions = {
 			// render placement:
 			el: void 0,
@@ -206,6 +202,125 @@
 		}
 		return svg;
 	}();
+
+	/* utils/getPotentialWildcardMatches.js */
+	var getPotentialWildcardMatches = function() {
+
+		var __export;
+		var starMaps = {};
+		// This function takes a keypath such as 'foo.bar.baz', and returns
+		// all the variants of that keypath that include a wildcard in place
+		// of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
+		// These are then checked against the dependants map (ractive.viewmodel.depsMap)
+		// to see if any pattern observers are downstream of one or more of
+		// these wildcard keypaths (e.g. 'foo.bar.*.status')
+		__export = function getPotentialWildcardMatches( keypath ) {
+			var keys, starMap, mapper, i, result, wildcardKeypath;
+			keys = keypath.split( '.' );
+			if ( !( starMap = starMaps[ keys.length ] ) ) {
+				starMap = getStarMap( keys.length );
+			}
+			result = [];
+			mapper = function( star, i ) {
+				return star ? '*' : keys[ i ];
+			};
+			i = starMap.length;
+			while ( i-- ) {
+				wildcardKeypath = starMap[ i ].map( mapper ).join( '.' );
+				if ( !result[ wildcardKeypath ] ) {
+					result.push( wildcardKeypath );
+					result[ wildcardKeypath ] = true;
+				}
+			}
+			return result;
+		};
+		// This function returns all the possible true/false combinations for
+		// a given number - e.g. for two, the possible combinations are
+		// [ true, true ], [ true, false ], [ false, true ], [ false, false ].
+		// It does so by getting all the binary values between 0 and e.g. 11
+		function getStarMap( num ) {
+			var ones = '',
+				max, binary, starMap, mapper, i;
+			if ( !starMaps[ num ] ) {
+				starMap = [];
+				while ( ones.length < num ) {
+					ones += 1;
+				}
+				max = parseInt( ones, 2 );
+				mapper = function( digit ) {
+					return digit === '1';
+				};
+				for ( i = 0; i <= max; i += 1 ) {
+					binary = i.toString( 2 );
+					while ( binary.length < num ) {
+						binary = '0' + binary;
+					}
+					starMap[ i ] = Array.prototype.map.call( binary, mapper );
+				}
+				starMaps[ num ] = starMap;
+			}
+			return starMaps[ num ];
+		}
+		return __export;
+	}();
+
+	/* Ractive/prototype/shared/fireEvent.js */
+	var Ractive$shared_fireEvent = function( getPotentialWildcardMatches ) {
+
+		var __export;
+		__export = function fireEvent( ractive, eventName ) {
+			var options = arguments[ 2 ];
+			if ( options === void 0 )
+				options = {};
+			if ( !eventName ) {
+				return;
+			}
+			var eventNames = getPotentialWildcardMatches( eventName );
+			fireEventAs( ractive, eventNames, options.event, options.args, true );
+		};
+
+		function fireEventAs( ractive, eventNames, event, args ) {
+			var initialFire = arguments[ 4 ];
+			if ( initialFire === void 0 )
+				initialFire = false;
+			var subscribers, i, bubble = true;
+			for ( i = eventNames.length; i >= 0; i-- ) {
+				subscribers = ractive._subs[ eventNames[ i ] ];
+				if ( subscribers ) {
+					bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
+				}
+			}
+			if ( ractive._parent && bubble ) {
+				if ( initialFire && ractive.component ) {
+					var fullName = ractive.component.name + '.' + eventNames[ eventNames.length - 1 ];
+					eventNames = getPotentialWildcardMatches( fullName );
+					if ( event ) {
+						event.component = ractive;
+					}
+				}
+				fireEventAs( ractive._parent, eventNames, event, args );
+			}
+		}
+
+		function notifySubscribers( ractive, subscribers, event, args ) {
+			var originalEvent = null,
+				stopEvent = false;
+			if ( event ) {
+				args = [ event ].concat( args );
+			}
+			for ( var i = 0, len = subscribers.length; i < len; i += 1 ) {
+				if ( subscribers[ i ].apply( ractive, args ) === false ) {
+					stopEvent = true;
+				}
+			}
+			if ( event && stopEvent && ( originalEvent = event.original ) ) {
+				originalEvent.preventDefault && originalEvent.preventDefault();
+				originalEvent.stopPropagation && originalEvent.stopPropagation();
+			}
+			return !stopEvent;
+		}
+		return __export;
+	}( getPotentialWildcardMatches );
 
 	/* utils/removeFromArray.js */
 	var removeFromArray = function( array, member ) {
@@ -691,7 +806,7 @@
 	}( removeFromArray );
 
 	/* global/runloop.js */
-	var runloop = function( circular, removeFromArray, Promise, resolveRef, TransitionManager ) {
+	var runloop = function( circular, fireEvent, removeFromArray, Promise, resolveRef, TransitionManager ) {
 
 		var __export;
 		var batch, runloop, unresolved = [];
@@ -763,7 +878,9 @@
 				thing = batch.viewmodels[ i ];
 				changeHash = thing.applyChanges();
 				if ( changeHash ) {
-					thing.ractive.fire( 'change', changeHash );
+					fireEvent( thing.ractive, 'change', {
+						args: [ changeHash ]
+					} );
 				}
 			}
 			batch.viewmodels.length = 0;
@@ -813,7 +930,7 @@
 			resolved.item.resolve( resolved.keypath );
 		}
 		return __export;
-	}( circular, removeFromArray, Promise, resolveRef, TransitionManager );
+	}( circular, Ractive$shared_fireEvent, removeFromArray, Promise, resolveRef, TransitionManager );
 
 	/* utils/createBranch.js */
 	var createBranch = function() {
@@ -1526,7 +1643,8 @@
 		missingPlugin: 'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s',
 		badRadioInputBinding: 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both',
 		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned',
-		defaultElSpecified: 'The <{name}/> component has a default `el` property; it has been disregarded'
+		defaultElSpecified: 'The <{name}/> component has a default `el` property; it has been disregarded',
+		noElementProxyEventWildcards: 'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.'
 	};
 
 	/* empty/parse.js */
@@ -2587,23 +2705,15 @@
 	};
 
 	/* Ractive/prototype/fire.js */
-	var Ractive$fire = function Ractive$fire( eventName, event ) {
-		var args, i, len, originalEvent, stopEvent = false,
-			subscribers = this._subs[ eventName ];
-		if ( !subscribers ) {
-			return;
-		}
-		args = Array.prototype.slice.call( arguments, 1 );
-		for ( i = 0, len = subscribers.length; i < len; i += 1 ) {
-			if ( subscribers[ i ].apply( this, args ) === false ) {
-				stopEvent = true;
-			}
-		}
-		if ( stopEvent && ( originalEvent = event.original ) ) {
-			originalEvent.preventDefault && originalEvent.preventDefault();
-			originalEvent.stopPropagation && originalEvent.stopPropagation();
-		}
-	};
+	var Ractive$fire = function( fireEvent ) {
+
+		return function Ractive$fire( eventName ) {
+			var options = {
+				args: Array.prototype.slice.call( arguments, 1 )
+			};
+			fireEvent( this, eventName, options );
+		};
+	}( Ractive$shared_fireEvent );
 
 	/* Ractive/prototype/get.js */
 	var Ractive$get = function( normaliseKeypath ) {
@@ -3346,7 +3456,7 @@
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
 		this.dirtyValue = this.dirtyArgs = true;
-		if ( this.inited && this.owner.bubble ) {
+		if ( this.inited && typeof this.owner.bubble === 'function' ) {
 			this.owner.bubble();
 		}
 	};
@@ -7532,9 +7642,14 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/fire.js */
-	var virtualdom_items_Element_EventHandler$fire = function EventHandler$fire( event ) {
-		this.root.fire( this.getAction(), event );
-	};
+	var virtualdom_items_Element_EventHandler$fire = function( fireEvent ) {
+
+		return function EventHandler$fire( event ) {
+			fireEvent( this.root, this.getAction(), {
+				event: event
+			} );
+		};
+	}( Ractive$shared_fireEvent );
 
 	/* virtualdom/items/Element/EventHandler/prototype/getAction.js */
 	var virtualdom_items_Element_EventHandler$getAction = function EventHandler$getAction() {
@@ -7542,7 +7657,7 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
-	var virtualdom_items_Element_EventHandler$init = function( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular ) {
+	var virtualdom_items_Element_EventHandler$init = function( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular, fireEvent, log ) {
 
 		var __export;
 		var Fragment, getValueOptions = {
@@ -7558,6 +7673,17 @@
 			handler.element = element;
 			handler.root = element.root;
 			handler.name = name;
+			if ( name.indexOf( '*' ) !== -1 ) {
+				log.error( {
+					debug: this.root.debug,
+					message: 'noElementProxyEventWildcards',
+					args: {
+						element: element.tagName,
+						event: name
+					}
+				} );
+				this.invalid = true;
+			}
 			if ( template.m ) {
 				// This is a method call
 				handler.method = template.m;
@@ -7662,10 +7788,10 @@
 		}
 
 		function fireEventWithParams( event ) {
-			this.root.fire.apply( this.root, [
-				this.getAction(),
-				event
-			].concat( this.params ) );
+			fireEvent( this.root, this.getAction(), {
+				event: event,
+				args: this.params
+			} );
 		}
 
 		function fireEventWithDynamicParams( event ) {
@@ -7674,13 +7800,13 @@
 			if ( typeof args === 'string' ) {
 				args = args.substr( 1, args.length - 2 );
 			}
-			this.root.fire.apply( this.root, [
-				this.getAction(),
-				event
-			].concat( args ) );
+			fireEvent( this.root, this.getAction(), {
+				event: event,
+				args: args
+			} );
 		}
 		return __export;
-	}( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular );
+	}( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
 	var genericHandler = function genericHandler( event ) {
@@ -7697,18 +7823,28 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/listen.js */
-	var virtualdom_items_Element_EventHandler$listen = function( warn, config, genericHandler ) {
+	var virtualdom_items_Element_EventHandler$listen = function( config, genericHandler, log ) {
 
 		var __export;
 		var customHandlers = {};
 		__export = function EventHandler$listen() {
 			var definition, name = this.name;
+			if ( this.invalid ) {
+				return;
+			}
 			if ( definition = config.registries.events.find( this.root, name ) ) {
 				this.custom = definition( this.node, getCustomHandler( name ) );
 			} else {
 				// Looks like we're dealing with a standard DOM event... but let's check
 				if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
-					warn( 'Missing "' + this.name + '" event. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#events' );
+					log.error( {
+						debug: this.root.debug,
+						message: 'missingPlugin',
+						args: {
+							plugin: 'event',
+							name: name
+						}
+					} );
 				}
 				this.node.addEventListener( name, genericHandler, false );
 			}
@@ -7728,7 +7864,7 @@
 			return customHandlers[ name ];
 		}
 		return __export;
-	}( warn, config, genericHandler );
+	}( config, genericHandler, log );
 
 	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
 	var virtualdom_items_Element_EventHandler$rebind = function( getNewKeypath ) {
@@ -8459,6 +8595,7 @@
 					var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete, transitionEndHandler;
 					checkComplete = function() {
 						if ( jsTransitionsComplete && cssTransitionsComplete ) {
+							// will changes to events and fire have an unexpected consequence here?
 							t.root.fire( t.name + ':end', t.node, t.isIntro );
 							resolve();
 						}
@@ -9718,10 +9855,14 @@
 	}( createComponentBinding );
 
 	/* virtualdom/items/Component/initialise/propagateEvents.js */
-	var propagateEvents = function( log ) {
+	var propagateEvents = function( circular, fireEvent, log ) {
 
 		var __export;
-		__export = function( component, eventsDescriptor ) {
+		var Fragment;
+		circular.push( function() {
+			Fragment = circular.Fragment;
+		} );
+		__export = function propagateEvents( component, eventsDescriptor ) {
 			var eventName;
 			for ( eventName in eventsDescriptor ) {
 				if ( eventsDescriptor.hasOwnProperty( eventName ) ) {
@@ -9738,13 +9879,25 @@
 				} );
 			}
 			childInstance.on( eventName, function() {
-				var args = Array.prototype.slice.call( arguments );
-				args.unshift( proxyEventName );
-				parentInstance.fire.apply( parentInstance, args );
+				var options;
+				// semi-weak test, but what else? tag the event obj ._isEvent ?
+				if ( arguments[ 0 ].node ) {
+					options = {
+						event: Array.prototype.shift.call( arguments ),
+						args: arguments
+					};
+				} else {
+					options = {
+						args: Array.prototype.slice.call( arguments )
+					};
+				}
+				fireEvent( parentInstance, proxyEventName, options );
+				// cancel bubbling
+				return false;
 			} );
 		}
 		return __export;
-	}( log );
+	}( circular, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Component/initialise/updateLiveQueries.js */
 	var updateLiveQueries = function( component ) {
@@ -9870,11 +10023,16 @@
 	}();
 
 	/* virtualdom/items/Component/prototype/unrender.js */
-	var virtualdom_items_Component$unrender = function Component$unrender( shouldDestroy ) {
-		this.instance.fire( 'teardown' );
-		this.shouldDestroy = shouldDestroy;
-		this.instance.unrender();
-	};
+	var virtualdom_items_Component$unrender = function( fireEvent ) {
+
+		return function Component$unrender( shouldDestroy ) {
+			fireEvent( this.instance, 'teardown', {
+				reserved: true
+			} );
+			this.shouldDestroy = shouldDestroy;
+			this.instance.unrender();
+		};
+	}( Ractive$shared_fireEvent );
 
 	/* virtualdom/items/Component/_Component.js */
 	var Component = function( detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, init, rebind, render, toString, unbind, unrender ) {
@@ -10187,7 +10345,7 @@
 	}( virtualdom_Fragment$bubble, virtualdom_Fragment$detach, virtualdom_Fragment$find, virtualdom_Fragment$findAll, virtualdom_Fragment$findAllComponents, virtualdom_Fragment$findComponent, virtualdom_Fragment$findNextNode, virtualdom_Fragment$firstNode, virtualdom_Fragment$getNode, virtualdom_Fragment$getValue, virtualdom_Fragment$init, virtualdom_Fragment$rebind, virtualdom_Fragment$render, virtualdom_Fragment$toString, virtualdom_Fragment$unbind, virtualdom_Fragment$unrender, circular );
 
 	/* Ractive/prototype/reset.js */
-	var Ractive$reset = function( runloop, Fragment, config ) {
+	var Ractive$reset = function( fireEvent, runloop, Fragment, config ) {
 
 		var shouldRerender = [
 			'template',
@@ -10255,13 +10413,15 @@
 				this.viewmodel.mark( '' );
 				runloop.end();
 			}
-			this.fire( 'reset', data );
+			fireEvent( this, 'reset', {
+				args: [ data ]
+			} );
 			if ( callback ) {
 				promise.then( callback );
 			}
 			return promise;
 		};
-	}( runloop, Fragment, config );
+	}( Ractive$shared_fireEvent, runloop, Fragment, config );
 
 	/* Ractive/prototype/resetTemplate.js */
 	var Ractive$resetTemplate = function( config, Fragment ) {
@@ -10366,11 +10526,11 @@
 	}( Ractive$shared_add );
 
 	/* Ractive/prototype/teardown.js */
-	var Ractive$teardown = function( removeFromArray, Promise ) {
+	var Ractive$teardown = function( fireEvent, removeFromArray, Promise ) {
 
 		return function Ractive$teardown( callback ) {
 			var promise;
-			this.fire( 'teardown' );
+			fireEvent( this, 'teardown' );
 			this.fragment.unbind();
 			this.viewmodel.teardown();
 			if ( this.rendered && this.el.__ractive_instances__ ) {
@@ -10383,7 +10543,7 @@
 			}
 			return promise;
 		};
-	}( removeFromArray, Promise );
+	}( Ractive$shared_fireEvent, removeFromArray, Promise );
 
 	/* Ractive/prototype/toggle.js */
 	var Ractive$toggle = function( log ) {
@@ -10447,7 +10607,7 @@
 	}( Ractive$shared_makeArrayMethod );
 
 	/* Ractive/prototype/update.js */
-	var Ractive$update = function( runloop ) {
+	var Ractive$update = function( fireEvent, runloop ) {
 
 		return function Ractive$update( keypath, callback ) {
 			var promise;
@@ -10460,13 +10620,15 @@
 			promise = runloop.start( this, true );
 			this.viewmodel.mark( keypath );
 			runloop.end();
-			this.fire( 'update', keypath );
+			fireEvent( this, 'update', {
+				args: [ keypath ]
+			} );
 			if ( callback ) {
 				promise.then( callback.bind( this ) );
 			}
 			return promise;
 		};
-	}( runloop );
+	}( Ractive$shared_fireEvent, runloop );
 
 	/* Ractive/prototype/updateModel.js */
 	var Ractive$updateModel = function( arrayContentsMatch, isEqual ) {
