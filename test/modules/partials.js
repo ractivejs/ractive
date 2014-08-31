@@ -241,6 +241,15 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
 		})
+
+		test( 'Partials .toString() works when not the first child of parent (#1163)', function ( t ) {
+			var ractive = new Ractive({
+				template: "<div>Foo {{>foo}}</div>",
+				partials: { foo: '...' }
+			});
+
+			t.htmlEqual( ractive.toHTML(), '<div>Foo ...</div>' );
+		})
 	};
 
 });
