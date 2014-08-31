@@ -79,7 +79,10 @@ export default function Ractive$reset ( data, callback ) {
 		runloop.end();
 	}
 
-	fireEvent( this, 'reset', { args: [ data ] } );
+	fireEvent( this, 'reset', {
+		args: [ data ],
+		reserved: true
+	});
 
 	if ( callback ) {
 		promise.then( callback );

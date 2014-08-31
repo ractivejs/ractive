@@ -1,3 +1,4 @@
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import removeFromArray from 'utils/removeFromArray';
 import Promise from 'utils/Promise';
 
@@ -7,7 +8,7 @@ import Promise from 'utils/Promise';
 export default function Ractive$teardown ( callback ) {
 	var promise;
 
-	this.fire( 'teardown' );
+	fireEvent( this, 'teardown', { reserved: true } );
 	this.fragment.unbind();
 	this.viewmodel.teardown();
 

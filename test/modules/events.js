@@ -1,8 +1,3 @@
-// EVENT TESTS
-// ===========
-//
-// TODO: add moar tests
-
 define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
@@ -11,7 +6,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		module( 'Events' );
 
-		test( 'on-click="someEvent" fires an event when user clicks the element', function ( t ) {
+		test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 			var ractive;
 
 			expect( 2 );
@@ -104,7 +99,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'Standard events have correct properties: node, original, keypath, context, index', function ( t ) {
+		test( 'Standard events have correct properties: node, original, keypath, context, index', t => {
 			var ractive, fakeEvent;
 
 			expect( 5 );
@@ -128,7 +123,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'preventDefault and stopPropagation if event handler returned false', function ( t ) {
+		test( 'preventDefault and stopPropagation if event handler returned false', t => {
 			var ractive, preventedDefault = false, stoppedPropagation = false;
 
 			expect( 9 );
@@ -187,7 +182,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'event.keypath is set to the innermost context', function ( t ) {
+		test( 'event.keypath is set to the innermost context', t => {
 			var ractive;
 
 			expect( 2 );
@@ -208,7 +203,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, 'click' );
 		});
 
-		test( 'event.index stores current indices against their references', function ( t ) {
+		test( 'event.index stores current indices against their references', t => {
 			var ractive;
 
 			expect( 4 );
@@ -231,7 +226,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.item_2, 'click' );
 		});
 
-		test( 'event.index reports nested indices correctly', function ( t ) {
+		test( 'event.index reports nested indices correctly', t => {
 			var ractive;
 
 			expect( 2 );
@@ -261,7 +256,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test_001, 'click' );
 		});
 
-		test( 'proxy events can have dynamic names', function ( t ) {
+		test( 'proxy events can have dynamic names', t => {
 			var ractive, last;
 
 			expect( 2 );
@@ -290,7 +285,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( last, 'bar' );
 		});
 
-		test( 'proxy event parameters are correctly parsed as JSON, or treated as a string', function ( t ) {
+		test( 'proxy event parameters are correctly parsed as JSON, or treated as a string', t => {
 			var ractive, last;
 
 			expect( 3 );
@@ -316,7 +311,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( last, [ 1, 2, 3 ] );
 		});
 
-		test( 'proxy events can have dynamic arguments', function ( t ) {
+		test( 'proxy events can have dynamic arguments', t => {
 			var ractive;
 
 			ractive = new Ractive({
@@ -336,7 +331,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.foo, 'click' );
 		});
 
-		test( 'proxy events can have multiple arguments', function ( t ) {
+		test( 'proxy events can have multiple arguments', t => {
 			var ractive;
 
 			ractive = new Ractive({
@@ -368,7 +363,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.baz, 'click' );
 		});
 
-		test( 'Splicing arrays correctly modifies proxy events', function ( t ) {
+		test( 'Splicing arrays correctly modifies proxy events', t => {
 			var ractive;
 
 			expect( 4 );
@@ -395,7 +390,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.findAll( 'button' ).length, 2 );
 		});
 
-		test( 'Splicing arrays correctly modifies two-way bindings', function ( t ) {
+		test( 'Splicing arrays correctly modifies two-way bindings', t => {
 			var ractive, items;
 
 			expect( 25 );
@@ -468,7 +463,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.findAll( 'input' ).length, 2 );
 		});
 
-		test( 'Calling ractive.off() without a keypath removes all handlers', function ( t ) {
+		test( 'Calling ractive.off() without a keypath removes all handlers', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: 'doesn\'t matter'
@@ -495,7 +490,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.fire( 'baz' );
 		});
 
-		test( 'Changes triggered by two-way bindings propagate properly (#460)', function ( t ) {
+		test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
 			var changes, ractive = new Ractive({
 				el: fixture,
 				template: '{{#items}}<label><input type="checkbox" checked="{{completed}}"> {{description}}</label>{{/items}}<p class="result">{{ items.filter( completed ).length }}</p>{{# items.filter( completed ).length }}<p class="conditional">foo</p>{{/ items.filter( completed ).length }}',
@@ -527,7 +522,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( ractive.find( '.result' ).innerHTML, '0' );
 		});
 
-		test( 'Multiple events can share the same directive', function ( t ) {
+		test( 'Multiple events can share the same directive', t => {
 			var ractive, count = 0;
 
 			ractive = new Ractive({
@@ -546,7 +541,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( count, 2 );
 		});
 
-		test( 'Superfluous whitespace is ignored', function ( t ) {
+		test( 'Superfluous whitespace is ignored', t => {
 			var ractive, fooCount = 0, barCount = 0;
 
 			ractive = new Ractive({
@@ -574,7 +569,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( barCount, 1 );
 		});
 
-		test( 'Multiple space-separated events can be handled with a single callback (#731)', function ( t ) {
+		test( 'Multiple space-separated events can be handled with a single callback (#731)', t => {
 			var ractive, count = 0;
 
 			ractive = new Ractive({});
@@ -611,7 +606,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( returnedValue, ractive );
 		});
 
-		test( 'Events really do not call addEventListener when no proxy name', function ( t ) {
+		test( 'Events really do not call addEventListener when no proxy name', t => {
 			var ractive,
 				addEventListener = Element.prototype.addEventListener,
 				errorAdd = function(){
@@ -648,7 +643,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( '@index can be used in proxy event directives', function ( t ) {
+		test( '@index can be used in proxy event directives', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#each letters}}<button on-click="select:{{@index}}"></button>{{/each}}',
@@ -692,6 +687,10 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		};
 
+		function fired ( event ) {
+			ok( true );
+		}
+
 		function goodEvent( event ) {
 			ok( event.context || event === 'foo' );
 		}
@@ -718,7 +717,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		function testEventBubbling( fire ) {
 
-			test( 'Events bubble under "eventname", and also "component.eventname" above firing component', function ( t ) {
+			test( 'Events bubble under "eventname", and also "component.eventname" above firing component', t => {
 				var ractive, middle, component;
 
 				expect( 5 );
@@ -739,7 +738,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				fire( ractive.findComponent( 'component' ) );
 			});
 
-			test( 'arguments bubble', function ( t ) {
+			test( 'arguments bubble', t => {
 				var ractive, middle, component;
 
 				expect( 5 );
@@ -762,7 +761,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				fire( ractive.findComponent( 'component' ) );
 			});
 
-			test( 'bubbling events can be stopped by returning false', function ( t ) {
+			test( 'bubbling events can be stopped by returning false', t => {
 				var ractive, middle, component;
 
 				expect( 2 );
@@ -786,7 +785,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				fire( ractive.findComponent( 'component' ) );
 			});
 
-			test( 'bubbling events with event object have component reference', function ( t ) {
+			test( 'bubbling events with event object have component reference', t => {
 				var ractive, middle, component;
 
 				expect( 5 );
@@ -827,13 +826,43 @@ define([ 'ractive' ], function ( Ractive ) {
 			component.fire( 'someEvent', 'foo' );
 		});
 
+		module( 'Event bubbling' );
+
+		test( 'Reserved events do not bubble under non-namespaced name', t => {
+			var Component, component, ractive;
+
+			expect( 6 );
+
+			Component = Ractive.extend({
+				template: '{{foo}}',
+				data: {
+					foo: ''
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component/>',
+				components: {
+					component: Component
+				}
+			});
+
+			'change reset teardown update'.split(' ').forEach( function( name ) {
+				ractive.on( name, shouldNotFire);
+				ractive.on( 'component.' + name, fired);
+			})
+
+			component = ractive.findComponent( 'component' );
+			component.reset( component.data ); // also fires change
+			component.update(); // also fires change
+			component.set( 'foo', 'bar' ); // change
+			component.teardown();
+		});
+
 		module( 'Event pattern matching' );
 
-		function fired ( event ) {
-			ok( true );
-		}
-
-		test( 'handlers can use pattern matching', function ( t ) {
+		test( 'handlers can use pattern matching', t => {
 			var ractive;
 
 			expect( 4 );
@@ -851,7 +880,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, 'click' );
 		});
 
-		test( 'bubbling handlers can use pattern matching', function ( t ) {
+		test( 'bubbling handlers can use pattern matching', t => {
 			var Component, component, ractive;
 
 			expect( 5 );
@@ -882,7 +911,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.off();
 		});
 
-		test( 'component "on-someEvent" implicitly cancels bubbling', function ( t ) {
+		test( 'component "on-someEvent" implicitly cancels bubbling', t => {
 			var Component, component, ractive;
 
 			expect( 1 );
@@ -907,7 +936,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( component.nodes.test, 'click' );
 		});
 
-		test( 'component "on-" wildcards match', function ( t ) {
+		test( 'component "on-" wildcards match', t => {
 			var Component, component, ractive;
 
 			expect( 3 );
@@ -932,7 +961,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( component.nodes.test, 'click' );
 		});
 
-		test( 'component "on-" do not get auto-namespaced events', function ( t ) {
+		test( 'component "on-" do not get auto-namespaced events', t => {
 			var Component, component, ractive;
 
 			expect( 1 );
@@ -955,6 +984,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( component.nodes.test, 'click' );
 			t.ok( true );
 		});
+
+
 
 
 	};

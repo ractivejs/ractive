@@ -2,10 +2,10 @@ import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
 export default function fireEvent ( ractive, eventName, options = {} ) {
 	var eventNames = getPotentialWildcardMatches( eventName );
-	fireEventAs( ractive, eventNames, options.event, options.args, true );
+	fireEventAs( ractive, eventNames, options.event, options.args, options.reserved, true );
 }
 
-function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
+function fireEventAs  ( ractive, eventNames, event, args, reserved = false, initialFire = false ) {
 
 	var subscribers, i, bubble = true;
 
@@ -20,8 +20,10 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 	if ( ractive._parent && bubble ) {
 
 		if ( initialFire && ractive.component ) {
-			let fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ];
-			eventNames = eventNames.concat( getPotentialWildcardMatches( fullName ) );
+			let fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ],
+				nsEventNames = getPotentialWildcardMatches( fullName ) ;
+
+			eventNames = reserved ? nsEventNames : eventNames.concat( nsEventNames );
 
 			if( event ) {
 				event.component = ractive;

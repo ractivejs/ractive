@@ -89,7 +89,10 @@ function flushChanges () {
 		changeHash = thing.applyChanges();
 
 		if ( changeHash ) {
-			fireEvent( thing.ractive, 'change', { args: [ changeHash ] } );
+			fireEvent( thing.ractive, 'change', {
+				args: [ changeHash ],
+				reserved: true
+			});
 		}
 	}
 	batch.viewmodels.length = 0;
