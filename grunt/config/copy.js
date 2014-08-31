@@ -9,51 +9,39 @@ module.exports = function ( grunt) {
 		moduleTemplate = grunt.file.read( templateDir + 'module.html' )
 
 	function setLevels(filepath){
-    	var levels = path.relative( path.resolve( filepath ), path.resolve( testDir ) ).replace(/\\/g, '/');
+		var levels = path.relative( path.resolve( filepath ), path.resolve( testDir ) ).replace(/\\/g, '/');
 		levels = levels.substring( 0, levels.length-2 );
-    	grunt.config( 'levels', levels );
+		grunt.config( 'levels', levels );
 	}
 
 	return {
-		release: {
-			files: [{
-				expand: true,
-				cwd: 'build/',
-				src: [ '**/*' ],
-				dest: 'release/<%= pkg.version %>/'
-			}]
-		},
-		link: {
-			src: 'build/ractive.js',
-			dest: 'ractive.js'
-		},
 		testModules: {
 			files: [{
 				expand: true,
 				cwd: moduleDir,
 				src: [ '**/*' ],
-		        rename: function(dest, src) {
-		          return dest + src.replace(/\.js$/, '.html');
-		        },
+				rename: function(dest, src) {
+					return dest + src.replace(/\.js$/, '.html');
+				},
 				dest: testsDir
 			}],
 			options: {
-		        process: function(src, filepath) {
-		        	var module = path
-			        		.relative(moduleDir, filepath)
-							.replace(/\\/g, '/')
-							.replace(/\.js$/, ''),
-						all = grunt.config('allTestModules') || [];
+				process: function(src, filepath) {
+					var module = path
+					.relative(moduleDir, filepath)
+					.replace(/\\/g, '/')
+					.replace(/\.js$/, ''),
+					all = grunt.config('allTestModules') || [];
 
-		        	all.push( module );
-		        	grunt.config( 'allTestModules', all );
+					all.push( module );
+					grunt.config( 'allTestModules', all );
 
 					setLevels( filepath ); //sets grunt.config('levels')
-		        	grunt.config( 'moduleName', module );
+					grunt.config( 'moduleName', module );
 					grunt.config( 'runTestsjs', runTestsjs );
 
-		        	return grunt.template.process(moduleTemplate);
-		        }
+					return grunt.template.process(moduleTemplate);
+				}
 			}
 		},
 		testIndex: {
@@ -64,10 +52,10 @@ module.exports = function ( grunt) {
 				dest: testsDir
 			}],
 			options: {
-		        process: function(src, filepath) {
+				process: function(src, filepath) {
 					setLevels( filepath );
-		        	return grunt.template.process(src);
-		        }
+					return grunt.template.process(src);
+				}
 			}
 		}
 	};

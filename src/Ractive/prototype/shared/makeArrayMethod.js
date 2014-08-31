@@ -7,7 +7,7 @@ var arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		var array, spliceEquivalent, spliceSummary, promise;
+		var array, spliceEquivalent, spliceSummary, promise, change;
 
 		array = this.get( keypath );
 
@@ -18,7 +18,11 @@ export default function ( methodName ) {
 		spliceEquivalent = getSpliceEquivalent( array, methodName, args );
 		spliceSummary = summariseSpliceOperation( array, spliceEquivalent );
 
-		arrayProto[ methodName ].apply( array, args );
+		if ( spliceSummary ) {
+			change = arrayProto.splice.apply( array, spliceEquivalent );
+		} else {
+			change = arrayProto[ methodName ].apply( array, args );
+		}
 
 		promise = runloop.start( this, true );
 		if ( spliceSummary ) {
@@ -27,6 +31,13 @@ export default function ( methodName ) {
 			this.viewmodel.mark( keypath );
 		}
 		runloop.end();
+
+		// resolve the promise with removals if applicable
+		if ( methodName === 'splice' || methodName === 'pop' || methodName === 'shift' ) {
+			promise = promise.then( function() {
+				return change;
+			} );
+		}
 
 		return promise;
 	};

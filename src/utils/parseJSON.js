@@ -26,6 +26,7 @@ onlyWhitespace = /^\s*$/;
 JsonParser = Parser.extend({
 	init: function ( str, options ) {
 		this.values = options.values;
+		this.allowWhitespace();
 	},
 
 	postProcess: function ( result ) {

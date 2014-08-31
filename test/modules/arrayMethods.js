@@ -33,31 +33,39 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>' );
 			});
 
-			test( 'ractive.pop() (modifyArrays: ' + modifyArrays + ')', function ( t ) {
+			asyncTest( 'ractive.pop() (modifyArrays: ' + modifyArrays + ')', function ( t ) {
 				var items, ractive;
 
 				items = baseItems.slice();
+				expect(2);
 
 				ractive = new List({
 					el: fixture,
 					data: { items: items }
 				});
 
-				ractive.pop( 'items' );
+				ractive.pop( 'items' ).then( function(v) {
+					t.equal( v, 'charles' );
+					QUnit.start();
+				} );
 				t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li></ul>' );
 			});
 
-			test( 'ractive.shift() (modifyArrays: ' + modifyArrays + ')', function ( t ) {
+			asyncTest( 'ractive.shift() (modifyArrays: ' + modifyArrays + ')', function ( t ) {
 				var items, ractive;
 
 				items = baseItems.slice();
+				expect(2);
 
 				ractive = new List({
 					el: fixture,
 					data: { items: items }
 				});
 
-				ractive.shift( 'items' );
+				ractive.shift( 'items' ).then( function(v) {
+					t.equal( v, 'alice' );
+					QUnit.start();
+				} );
 				t.htmlEqual( fixture.innerHTML, '<ul><li>bob</li><li>charles</li></ul>' );
 			});
 
@@ -75,18 +83,35 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.htmlEqual( fixture.innerHTML, '<ul><li>dave</li><li>alice</li><li>bob</li><li>charles</li></ul>' );
 			});
 
-			test( 'ractive.splice() (modifyArrays: ' + modifyArrays + ')', function ( t ) {
+			asyncTest( 'ractive.splice() (modifyArrays: ' + modifyArrays + ')', function ( t ) {
 				var items, ractive;
 
 				items = baseItems.slice();
+				expect(6);
 
 				ractive = new List({
 					el: fixture,
 					data: { items: items }
 				});
 
-				ractive.splice( 'items', 1, 1, 'dave', 'eric' );
+				ractive.splice( 'items', 1, 1, 'dave', 'eric' ).then( function(v) {
+					t.equal( v[0], 'bob' );
+					t.equal( v.length, 1 );
+					QUnit.start();
+				} );
 				t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>dave</li><li>eric</li><li>charles</li></ul>' );
+
+				// removing before the beginning removes from the beginning
+				ractive.splice( 'items', -10, 1, 'john' );
+				t.htmlEqual( fixture.innerHTML, '<ul><li>john</li><li>dave</li><li>eric</li><li>charles</li></ul>' );
+
+				// removing beyond the end is a noop
+				ractive.splice( 'items', 10, 1, 'larry' );
+				t.htmlEqual( fixture.innerHTML, '<ul><li>john</li><li>dave</li><li>eric</li><li>charles</li><li>larry</li></ul>' );
+
+				// negative indexing within bounds starts from the end
+				ractive.splice( 'items', -1, 1 );
+				t.htmlEqual( fixture.innerHTML, '<ul><li>john</li><li>dave</li><li>eric</li><li>charles</li></ul>' );
 			});
 
 			test( 'ractive.reverse() (modifyArrays: ' + modifyArrays + ')', function ( t ) {

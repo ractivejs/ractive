@@ -452,6 +452,36 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 		*/
 
+		test( 'Late-comer components on render still fire init', t => {
+			var ractive, Widget, Widget2;
+
+			Widget = Ractive.extend({
+				template: '{{~/init}}',
+				init: function(){
+					this.set('init', 'yes')
+				}
+			})
+
+			Widget2 = Ractive.extend({
+				template: '',
+				init: function(){
+					this.set('show', true)
+				}
+			})
+
+			ractive = new Ractive( {
+				el: fixture,
+				template: '{{#show}}<widget/>{{/}}<widget-two show="{{show}}"/>',
+				components: {
+					widget: Widget,
+					'widget-two': Widget2
+				}
+			});
+
+			t.equal( fixture.innerHTML, 'yes' );
+
+		});
+
 	};
 
 

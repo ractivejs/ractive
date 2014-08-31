@@ -71,7 +71,7 @@ function getAttributeValue ( parser ) {
 }
 
 function getUnquotedAttributeValueToken ( parser ) {
-	var start, text, index;
+	var start, text, haystack, needles, index;
 
 	start = parser.pos;
 
@@ -81,7 +81,15 @@ function getUnquotedAttributeValueToken ( parser ) {
 		return null;
 	}
 
-	if ( ( index = text.indexOf( parser.delimiters[0] ) ) !== -1 ) {
+	haystack = text;
+	needles = [
+		parser.delimiters[0],
+		parser.tripleDelimiters[0],
+		parser.staticDelimiters[0],
+		parser.staticTripleDelimiters[0]
+	];
+
+	if ( ( index = getLowestIndex( haystack, needles ) ) !== -1 ) {
 		text = text.substr( 0, index );
 		parser.pos = start + text.length;
 	}
@@ -140,12 +148,20 @@ function getQuotedAttributeValue ( parser, quoteMark ) {
 }
 
 function getQuotedStringToken ( parser, quoteMark ) {
-	var start, index, remaining;
+	var start, index, haystack, needles;
 
 	start = parser.pos;
-	remaining = parser.remaining();
+	haystack = parser.remaining();
 
-	index = getLowestIndex( remaining, [ quoteMark, parser.delimiters[0], parser.delimiters[1] ] );
+	needles = [
+		quoteMark,
+		parser.delimiters[0],
+		parser.tripleDelimiters[0],
+		parser.staticDelimiters[0],
+		parser.staticTripleDelimiters[0]
+	];
+
+	index = getLowestIndex( haystack, needles );
 
 	if ( index === -1 ) {
 		parser.error( 'Quoted attribute value must have a closing quote' );
@@ -156,5 +172,5 @@ function getQuotedStringToken ( parser, quoteMark ) {
 	}
 
 	parser.pos += index;
-	return remaining.substr( 0, index );
+	return haystack.substr( 0, index );
 }

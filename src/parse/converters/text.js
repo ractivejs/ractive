@@ -24,6 +24,7 @@ export default function ( parser ) {
 			// we're inside an unquoted attribute value
 			disallowed.push( '"', "'", '=', '>', '`' );
 		} else if ( parser.inAttribute ) {
+			// quoted attribute value
 			disallowed.push( parser.inAttribute );
 		}
 

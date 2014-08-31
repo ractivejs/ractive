@@ -806,6 +806,14 @@ var renderTests = [
 		template: '<div class="box {{>color}}"/>',
 		partials: { color: 'red' },
 		result: '<div class="box red"/>'
+	},
+	{
+		name: 'Static mustaches in attributes (#1147)',
+		template: '<img style="width: [[width]]px;">',
+		data: { width: 100 },
+		result: '<img style="width: 100px;">',
+		new_data: { width: 200 },
+		new_result: '<img style="width: 100px;">'
 	}
 ];
 
