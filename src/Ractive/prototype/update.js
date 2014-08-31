@@ -16,10 +16,7 @@ export default function Ractive$update ( keypath, callback ) {
 	this.viewmodel.mark( keypath );
 	runloop.end();
 
-	fireEvent( this, 'update', {
-		args: [ keypath ],
-		reserved: true
-	});
+	fireEvent( this, 'update', { args: [ keypath ] });
 
 	if ( callback ) {
 		promise.then( callback.bind( this ) );

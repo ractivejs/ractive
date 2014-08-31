@@ -8,7 +8,7 @@ import Promise from 'utils/Promise';
 export default function Ractive$teardown ( callback ) {
 	var promise;
 
-	fireEvent( this, 'teardown', { reserved: true } );
+	fireEvent( this, 'teardown' );
 	this.fragment.unbind();
 	this.viewmodel.teardown();
 

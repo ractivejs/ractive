@@ -18,7 +18,11 @@ export default function ( methodName ) {
 		spliceEquivalent = getSpliceEquivalent( array, methodName, args );
 		spliceSummary = summariseSpliceOperation( array, spliceEquivalent );
 
-		change = arrayProto[ methodName ].apply( array, args );
+		if ( spliceSummary ) {
+			change = arrayProto.splice.apply( array, spliceEquivalent );
+		} else {
+			change = arrayProto[ methodName ].apply( array, args );
+		}
 
 		promise = runloop.start( this, true );
 		if ( spliceSummary ) {

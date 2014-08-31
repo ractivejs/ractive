@@ -4,7 +4,7 @@ export default function EventHandler$render () {
 	// universal handler
 	this.node._ractive.events[ this.name ] = this;
 
-	if ( this.getAction() ) {
+	if ( this.method || this.getAction() ) {
 		this.listen();
 	}
 }

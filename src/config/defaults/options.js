@@ -6,6 +6,7 @@ var defaultOptions = {
 
 	// template:
 	template:           {v:1,t:[]},
+	yield:              null,
 
 	// parse:
 	preserveWhitespace: false,

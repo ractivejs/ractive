@@ -1,10 +1,11 @@
 import log from 'utils/log';
 import isEqual from 'utils/isEqual';
 import defineProperty from 'utils/defineProperty';
+import getFunctionFromString from 'shared/getFunctionFromString';
 import diff from 'viewmodel/Computation/diff'; // TODO this is a red flag... should be treated the same?
 import 'legacy'; // for fn.bind()
 
-var Evaluator, cache = {}, bind = Function.prototype.bind;
+var Evaluator, bind = Function.prototype.bind;
 
 Evaluator = function ( root, keypath, uniqueString, functionStr, args, priority ) {
 	var evaluator = this, viewmodel = root.viewmodel;
@@ -109,24 +110,6 @@ Evaluator.prototype = {
 };
 
 export default Evaluator;
-
-function getFunctionFromString ( str, i ) {
-	var fn, args;
-
-	if ( cache[ str ] ) {
-		return cache[ str ];
-	}
-
-	args = [];
-	while ( i-- ) {
-		args[i] = '_' + i;
-	}
-
-	fn = new Function( args.join( ',' ), 'return(' + str + ')' );
-
-	cache[ str ] = fn;
-	return fn;
-}
 
 function wrap ( fn, ractive ) {
 	var wrapped, prop, key;

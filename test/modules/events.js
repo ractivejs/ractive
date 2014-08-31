@@ -669,6 +669,118 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
 		});
 
+		test( 'Calling a builtin method', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `<button on-click='set("foo",foo+1)'>{{foo}}</button>`,
+				data: { foo: 0 }
+			});
+
+			simulant.fire( ractive.find( 'button' ), 'click' );
+			t.equal( ractive.get( 'foo' ), 1 );
+			t.htmlEqual( fixture.innerHTML, '<button>1</button>' );
+		});
+
+		test( 'Calling a custom method', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate()'>{{foo}}</button>`,
+				activate: function () {
+					t.ok( true );
+					t.equal( this, ractive );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			expect( 2 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		test( 'Calling an unknown method', function ( t ) {
+			var Widget, ractive, onerror;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate()'>{{foo}}</button>`
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			// Catching errors inside handlers for programmatically-fired events
+			// is a world of facepalm http://jsfiddle.net/geoz2tks/
+			onerror = window.onerror;
+			window.onerror = function ( err ) {
+				t.ok( /Attempted to call a non-existent method \(\"activate\"\)/.test( err ) )
+				return true;
+			};
+
+			simulant.fire( ractive.find( 'button' ), 'click' );
+			window.onerror = onerror;
+		});
+
+		test( 'Passing the event object to a method', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(event)'>{{foo}}</button>`,
+				activate: function ( event ) {
+					t.equal( event.original.type, 'click' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		test( 'Passing a child of the event object to a method', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(event.original.type)'>{{foo}}</button>`,
+				activate: function ( type ) {
+					t.equal( type, 'click' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		// Bit of a cheeky workaround...
+		test( 'Passing a reference to this.event', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(.event)'>{{foo}}</button>`,
+				activate: function ( event ) {
+					t.equal( event, 'Christmas' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture,
+				data: {
+					event: 'Christmas'
+				}
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
 
 		var Component, Middle, View, setup;
 
@@ -709,12 +821,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			equal( arg || event, 'foo' );
 		}
 
-		function wrongNamespace () {
-			throw new Error( 'Component name should not be used as namespace when explicit namespace option provided' );
-		}
-
 		function shouldNotFire () {
-			throw new Error( 'This event should not fire with current bubble option setting' );
+			throw new Error( 'This event should not fire' );
 		}
 
 		function notOnOriginating () {
@@ -730,7 +838,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			test( 'Events bubble under "eventname", and also "component.eventname" above firing component', t => {
 				var ractive, middle, component;
 
-				expect( 5 );
+				expect( 3 );
 
 				ractive = new View();
 				middle = ractive.findComponent( 'middle' );
@@ -739,10 +847,10 @@ define([ 'ractive' ], function ( Ractive ) {
 				component.on( 'someEvent', goodEvent );
 				component.on( 'component.someEvent', notOnOriginating );
 
-				middle.on( 'someEvent', goodEvent );
+				middle.on( 'someEvent', shouldNotFire );
 				middle.on( 'component.someEvent', goodEvent );
 
-				ractive.on( 'someEvent', goodEvent );
+				ractive.on( 'someEvent', shouldNotFire );
 				ractive.on( 'component.someEvent', goodEvent );
 
 				fire( ractive.findComponent( 'component' ) );
@@ -751,7 +859,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			test( 'arguments bubble', t => {
 				var ractive, middle, component;
 
-				expect( 5 );
+				expect( 3 );
 
 				Component.prototype.template = '<span id="test" on-click="someEvent:foo">click me</span>'
 
@@ -762,10 +870,10 @@ define([ 'ractive' ], function ( Ractive ) {
 				component.on( 'someEvent', goodEventWithArg );
 				component.on( 'component.someEvent', notOnOriginating );
 
-				middle.on( 'someEvent', goodEventWithArg );
+				middle.on( 'someEvent', shouldNotFire );
 				middle.on( 'component.someEvent', goodEventWithArg );
 
-				ractive.on( 'someEvent', goodEventWithArg );
+				ractive.on( 'someEvent', shouldNotFire );
 				ractive.on( 'component.someEvent', goodEventWithArg );
 
 				fire( ractive.findComponent( 'component' ) );
@@ -783,13 +891,12 @@ define([ 'ractive' ], function ( Ractive ) {
 				component.on( 'someEvent', goodEvent );
 				component.on( 'component.someEvent', notOnOriginating );
 
-				middle.on( 'someEvent', function( event ) {
+				middle.on( 'component.someEvent', function( event ) {
 					return false;
 				});
 				// still fires on same level
 				middle.on( 'component.someEvent', goodEvent );
 
-				ractive.on( 'someEvent', shouldBeNoBubbling );
 				ractive.on( 'component.someEvent', shouldBeNoBubbling );
 
 				fire( ractive.findComponent( 'component' ) );
@@ -798,7 +905,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			test( 'bubbling events with event object have component reference', t => {
 				var ractive, middle, component;
 
-				expect( 5 );
+				expect( 3 );
 
 				ractive = new View();
 				middle = ractive.findComponent( 'middle' );
@@ -811,11 +918,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				component.on( 'someEvent', function( event ) {
 					t.ok( !event.component );
 				});
-
-				middle.on( 'someEvent', hasComponentRef );
 				middle.on( 'component.someEvent', hasComponentRef );
-
-				ractive.on( 'someEvent', hasComponentRef );
 				ractive.on( 'component.someEvent', hasComponentRef );
 
 				fire( ractive.findComponent( 'component' ) );
@@ -834,40 +937,6 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		testEventBubbling( function ( component ) {
 			component.fire( 'someEvent', 'foo' );
-		});
-
-		module( 'Event bubbling' );
-
-		test( 'Reserved events do not bubble under non-namespaced name', t => {
-			var Component, component, ractive;
-
-			expect( 6 );
-
-			Component = Ractive.extend({
-				template: '{{foo}}',
-				data: {
-					foo: ''
-				}
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<component/>',
-				components: {
-					component: Component
-				}
-			});
-
-			'change reset teardown update'.split(' ').forEach( function( name ) {
-				ractive.on( name, shouldNotFire);
-				ractive.on( 'component.' + name, fired);
-			})
-
-			component = ractive.findComponent( 'component' );
-			component.reset( component.data ); // also fires change
-			component.update(); // also fires change
-			component.set( 'foo', 'bar' ); // change
-			component.teardown();
 		});
 
 		module( 'Event pattern matching' );
@@ -893,7 +962,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'bubbling handlers can use pattern matching', t => {
 			var Component, component, ractive;
 
-			expect( 5 );
+			expect( 4 );
 
 			Component = Ractive.extend({
 				template: '<span id="test" on-click="foo">click me</span>'
@@ -907,7 +976,6 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			ractive.on( '*', fired);
 			ractive.on( '*.*', fired);
 			ractive.on( 'component.*', fired);
 			ractive.on( '*.foo', fired);
@@ -939,7 +1007,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.on( 'foo', fired);
-			ractive.on( 'someEvent', shouldBeNoBubbling);
 			ractive.on( 'component.someEvent', shouldBeNoBubbling);
 
 			component = ractive.findComponent( 'component' );
