@@ -1,6 +1,7 @@
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
 export default function fireEvent ( ractive, eventName, options = {} ) {
+	if ( !eventName ) { return; }
 	var eventNames = getPotentialWildcardMatches( eventName );
 	fireEventAs( ractive, eventNames, options.event, options.args, options.reserved, true );
 }
