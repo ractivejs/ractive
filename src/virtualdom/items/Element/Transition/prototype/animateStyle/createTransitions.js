@@ -55,6 +55,7 @@ if ( !isClient ) {
 
 			checkComplete = function () {
 				if ( jsTransitionsComplete && cssTransitionsComplete ) {
+					// will changes to events and fire have an unexpected consequence here?
 					t.root.fire( t.name + ':end', t.node, t.isIntro );
 					resolve();
 				}

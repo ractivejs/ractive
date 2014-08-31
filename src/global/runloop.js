@@ -1,4 +1,5 @@
 import circular from 'circular';
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import removeFromArray from 'utils/removeFromArray';
 import Promise from 'utils/Promise';
 import resolveRef from 'shared/resolveRef';
@@ -88,7 +89,7 @@ function flushChanges () {
 		changeHash = thing.applyChanges();
 
 		if ( changeHash ) {
-			thing.ractive.fire( 'change', changeHash );
+			fireEvent( thing.ractive, 'change', { args: [ changeHash ] });
 		}
 	}
 	batch.viewmodels.length = 0;

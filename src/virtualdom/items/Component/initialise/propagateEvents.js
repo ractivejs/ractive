@@ -1,3 +1,5 @@
+import circular from 'circular';
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import log from 'utils/log';
 
 // TODO how should event arguments be handled? e.g.
@@ -6,7 +8,13 @@ import log from 'utils/log';
 // when 'foo' fires on the child, but the 1,2,3 arguments
 // will be lost
 
-export default function ( component, eventsDescriptor ) {
+var Fragment;
+
+circular.push( function () {
+	Fragment = circular.Fragment;
+});
+
+export default function propagateEvents ( component, eventsDescriptor ) {
 	var eventName;
 
 	for ( eventName in eventsDescriptor ) {
@@ -19,7 +27,6 @@ export default function ( component, eventsDescriptor ) {
 function propagateEvent ( childInstance, parentInstance, eventName, proxyEventName ) {
 
 	if ( typeof proxyEventName !== 'string' ) {
-
 		log.error({
 			debug: parentInstance.debug,
 			message: 'noComponentEventArguments'
@@ -27,9 +34,24 @@ function propagateEvent ( childInstance, parentInstance, eventName, proxyEventNa
 	}
 
 	childInstance.on( eventName, function () {
-		var args = Array.prototype.slice.call( arguments );
-		args.unshift( proxyEventName );
+		var options;
 
-		parentInstance.fire.apply( parentInstance, args );
+		// semi-weak test, but what else? tag the event obj ._isEvent ?
+		if ( arguments[0].node ) {
+			options = {
+				event: Array.prototype.shift.call( arguments ),
+				args: arguments
+			};
+		}
+		else {
+			options = {
+				args: Array.prototype.slice.call( arguments )
+			};
+		}
+
+		fireEvent( parentInstance, proxyEventName, options );
+
+		// cancel bubbling
+		return false;
 	});
 }
