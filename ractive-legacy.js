@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.6
-	2014-08-31 - commit 4483f56f 
+	2014-09-01 - commit fd034ff3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8477,7 +8477,7 @@
 	var booleanAttributes = function() {
 
 		// https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
-		var booleanAttributes = /allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|draggable|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|spellcheck|translate|trueSpeed|typeMustMatch|visible/i;
+		var booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|draggable|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
 		return booleanAttributes;
 	}();
 
