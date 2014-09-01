@@ -69,8 +69,8 @@ Yielder.prototype = {
 		this.fragment.unbind();
 	},
 
-	unrender: function () {
-		this.fragment.unrender();
+	unrender: function ( shouldDestroy ) {
+		this.fragment.unrender( shouldDestroy );
 		this.component.yielder = void 0;
 	},
 

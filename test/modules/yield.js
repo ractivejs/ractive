@@ -110,15 +110,13 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<p>{{yield}}{{yield}}</p>'
 			});
 
-			try {
+			throws( () => {
 				ractive = new Ractive({
 					el: fixture,
 					template: '<widget>yeah!</widget>',
 					components: { widget: Widget }
 				});
-			} catch ( err ) {
-				t.equal( err.message, 'A component template can only have one {{yield}} declaration' );
-			}
+			}, /one {{yield}} declaration/ );
 		});
 
 		test( 'A component {{yield}} can be replaced if section block changes', function ( t ) {
