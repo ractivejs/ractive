@@ -110,17 +110,53 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<p>{{yield}}{{yield}}</p>'
 			});
 
-			try {
+			throws( () => {
 				ractive = new Ractive({
 					el: fixture,
 					template: '<widget>yeah!</widget>',
 					components: { widget: Widget }
 				});
-			} catch ( err ) {
-				t.equal( err.message, 'A component template can only have one {{yield}} declaration' );
-			}
+			}, /one {{yield}} declaration/ );
 		});
 
+		test( 'A component {{yield}} can be rerendered in conditional section block', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>{{#foo}}{{yield}}{{/}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget>yield</widget>',
+				components: { widget: Widget },
+				data: { foo: true }
+			});
+
+			ractive.set('foo', false);
+			ractive.set('foo', true);
+
+			t.htmlEqual( fixture.innerHTML, '<p>yield</p>' );
+		});
+
+		test( 'A component {{yield}} can be rerendered in list section block', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{#items:i}}{{.}}{{#i===1}}{{yield}}{{/}}{{/}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget>yield</widget>',
+				components: { widget: Widget },
+				data: { items: [ 'a', 'b', 'c' ] }
+			});
+
+			ractive.merge('items', [ 'c', 'a' ] );
+
+			t.htmlEqual( fixture.innerHTML, 'cayield' );
+		});
 	};
 
 });
