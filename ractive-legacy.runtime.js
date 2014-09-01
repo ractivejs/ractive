@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.6
-	2014-09-01 - commit fd034ff3 
+	2014-09-01 - commit 7f7b8a5c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10497,12 +10497,11 @@
 		var Yielder = function( options ) {
 			var componentInstance, component;
 			componentInstance = options.parentFragment.root;
-			component = componentInstance.component;
+			this.component = component = componentInstance.component;
 			this.surrogateParent = options.parentFragment;
 			this.parentFragment = component.parentFragment;
 			if ( component.yielder ) {
-				// TODO catch this at parse time
-				throw new Error( 'A component template can only have one {{yield}} declaration' );
+				throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
 			}
 			this.fragment = new Fragment( {
 				owner: this,
@@ -10542,8 +10541,9 @@
 			unbind: function() {
 				this.fragment.unbind();
 			},
-			unrender: function() {
-				this.fragment.unrender();
+			unrender: function( shouldDestroy ) {
+				this.fragment.unrender( shouldDestroy );
+				this.component.yielder = void 0;
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
 				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
