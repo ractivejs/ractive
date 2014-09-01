@@ -119,7 +119,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			}, /one {{yield}} declaration/ );
 		});
 
-		test( 'A component {{yield}} can be replaced if section block changes', function ( t ) {
+		test( 'A component {{yield}} can be rerendered in conditional section block', function ( t ) {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({
@@ -128,15 +128,34 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<widget>yeah!</widget>',
+				template: '<widget>yield</widget>',
 				components: { widget: Widget },
 				data: { foo: true }
 			});
 
-			ractive.set('foo', false)
-			ractive.set('foo', true)
+			ractive.set('foo', false);
+			ractive.set('foo', true);
 
-			t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>yield</p>' );
+		});
+
+		test( 'A component {{yield}} can be rerendered in list section block', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{#items:i}}{{.}}{{#i===1}}{{yield}}{{/}}{{/}}'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget>yield</widget>',
+				components: { widget: Widget },
+				data: { items: [ 'a', 'b', 'c' ] }
+			});
+
+			ractive.merge('items', [ 'c', 'a' ] );
+
+			t.htmlEqual( fixture.innerHTML, 'cayield' );
 		});
 	};
 
