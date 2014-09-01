@@ -121,6 +121,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		});
 
+		test( 'A component {{yield}} can be replaced if section block changes', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>{{#foo}}{{yield}}{{/}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget>yeah!</widget>',
+				components: { widget: Widget },
+				data: { foo: true }
+			});
+
+			ractive.set('foo', false)
+			ractive.set('foo', true)
+
+			t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
+		});
 	};
 
 });
