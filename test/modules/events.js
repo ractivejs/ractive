@@ -1065,7 +1065,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'component "on-" handles arguments correctly', t => {
 			var Component, component, ractive;
 
-			expect( 3 );
+			expect( 4 );
 
 			Component = Ractive.extend({
 				template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
@@ -1073,7 +1073,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<component on-foo="foo-reproxy" on-bar="bar-reproxy"/>',
+				template: '<component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
 				components: {
 					component: Component
 				}
@@ -1086,10 +1086,14 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.on( 'bar-reproxy', ( arg ) => {
 				t.equal( arg, 'bar' );
 			});
+			ractive.on( 'bizz-reproxy', () => {
+				t.equal( arguments.length, 0 );
+			});
 
 			component = ractive.findComponent( 'component' );
 			simulant.fire( component.nodes.test, 'click' );
 			component.fire( 'bar', 'bar' );
+			component.fire( 'bizz' );
 		});
 
 
