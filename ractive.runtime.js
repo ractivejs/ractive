@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.6
-	2014-09-02 - commit 7fbc5390 
+	2014-09-02 - commit c26cf47b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9881,7 +9881,7 @@
 			childInstance.on( eventName, function() {
 				var event, args;
 				// semi-weak test, but what else? tag the event obj ._isEvent ?
-				if ( arguments[ 0 ].node ) {
+				if ( arguments.length && arguments[ 0 ].node ) {
 					event = Array.prototype.shift.call( arguments );
 				}
 				args = Array.prototype.slice.call( arguments );
