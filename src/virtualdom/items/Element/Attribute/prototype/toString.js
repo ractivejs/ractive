@@ -1,7 +1,8 @@
 import booleanAttributes from 'config/booleanAttributes';
+import namespaces from 'config/namespaces';
 
 export default function Attribute$toString () {
-	var { name, value, interpolator, fragment } = this;
+	var { name, namespace, value, interpolator, fragment } = this;
 
 	// Special case - select and textarea values (should not be stringified)
 	if ( name === 'value' && ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
@@ -27,7 +28,23 @@ export default function Attribute$toString () {
 		value = fragment.toString();
 	}
 
+	if ( namespace ) {
+		name = findKey(namespaces, namespace) + ':' + name;
+	}
+
 	return value ? name + '="' + escape( value ) + '"' : name;
+}
+
+function findKey(object, value) {
+	var key;
+
+	for ( key in object ) {
+		if ( object[key] === value ) {
+			return key;
+		}
+	}
+
+	return null;
 }
 
 function escape ( value ) {
