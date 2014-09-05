@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.6
-	2014-09-02 - commit c26cf47b 
+	2014-09-05 - commit 681a1004 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -227,7 +227,7 @@
 			i = starMap.length;
 			while ( i-- ) {
 				wildcardKeypath = starMap[ i ].map( mapper ).join( '.' );
-				if ( !result[ wildcardKeypath ] ) {
+				if ( !result.hasOwnProperty( wildcardKeypath ) ) {
 					result.push( wildcardKeypath );
 					result[ wildcardKeypath ] = true;
 				}
