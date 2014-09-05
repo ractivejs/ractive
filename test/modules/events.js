@@ -45,6 +45,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( node, 'click' );
 		});
 
+		test( 'sharing names with array mutator functions doesn\'t break events', t => {
+			var ractive,
+				eventNames = ['sort', 'reverse', 'push', 'pop', 'shift', 'unshift', 'fhtagn'], // the last one just tests the test
+				results = new Object(null);
+
+			expect(eventNames.length);
+
+			ractive = new Ractive({
+				el: fixture,
+				template: ''
+			});
+
+			eventNames.forEach(function(eventName) {
+				ractive.on( eventName, function () { results[eventName] = true; });
+				ractive.fire( eventName );
+				t.ok( typeof( results[eventName] ) != 'undefined', 'Event "'+eventName+'" did not fire.' );
+			});
+		});
+
 		test( 'custom event invoked and torndown', t => {
 			var ractive, custom, node;
 
