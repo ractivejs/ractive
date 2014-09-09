@@ -3,6 +3,12 @@ import getPartialDescriptor from 'virtualdom/items/Partial/getPartialDescriptor'
 import applyIndent from 'virtualdom/items/Partial/applyIndent';
 import circular from 'circular';
 
+import runloop from 'global/runloop';
+
+import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
+import config from 'config/config';
+import parser from 'config/options/template/parser';
+
 var Partial, Fragment;
 
 circular.push( function () {
@@ -10,7 +16,7 @@ circular.push( function () {
 });
 
 Partial = function ( options ) {
-	var parentFragment = this.parentFragment = options.parentFragment, template;
+	var parentFragment = this.parentFragment = options.parentFragment;
 
 	this.type = types.PARTIAL;
 	this.name = options.template.r;
@@ -18,19 +24,9 @@ Partial = function ( options ) {
 
 	this.root = parentFragment.root;
 
-	if ( !options.template.r ) {
-		// TODO support dynamic partial switching
-		throw new Error( 'Partials must have a static reference (no expressions). This may change in a future version of Ractive.' );
-	}
+	Mustache.init( this, options );
 
-	template = getPartialDescriptor( parentFragment.root, options.template.r );
-
-	this.fragment = new Fragment({
-		template: template,
-		root:     parentFragment.root,
-		owner:    this,
-		pElement: parentFragment.pElement
-	});
+	this.update();
 };
 
 Partial.prototype = {
@@ -51,11 +47,15 @@ Partial.prototype = {
 	},
 
 	render: function () {
+		this.update();
+
+		this.rendered = true;
 		return this.fragment.render();
 	},
 
 	unrender: function ( shouldDestroy ) {
 		this.fragment.unrender( shouldDestroy );
+		this.rendered = false;
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -63,7 +63,9 @@ Partial.prototype = {
 	},
 
 	unbind: function () {
-		this.fragment.unbind();
+		if ( this.fragment ) {
+			this.fragment.unbind();
+		}
 	},
 
 	toString: function ( toString ) {
@@ -104,6 +106,52 @@ Partial.prototype = {
 
 	getValue: function () {
 		return this.fragment.getValue();
+	},
+
+	resolve: Mustache.resolve,
+
+	setValue: function( value ) {
+		if ( this.value !== value ) {
+			if ( this.fragment ) {
+				this.fragment.unrender( true );
+			}
+
+			this.fragment = null;
+
+			if ( this.rendered ) {
+				runloop.addView( this );
+			}
+		}
+
+		this.value = value;
+	},
+
+	update: function() {
+		var template, docFrag, target, anchor;
+
+		if ( !this.fragment ) {
+			if ( this.name && ( config.registries.partials.findInstance( this.root, this.name ) || parser.fromId( this.name, { noThrow: true } ) ) ) {
+				template = getPartialDescriptor( this.root, this.name );
+			} else if ( this.value ){
+				template = getPartialDescriptor( this.root, this.value );
+			} else {
+				template = [];
+			}
+
+			this.fragment = new Fragment({
+				template: template,
+				root: this.root,
+				owner: this,
+				pElement: this.parentFragment.pElement
+			});
+
+			if ( this.rendered ) {
+				target = this.parentFragment.getNode();
+				docFrag = this.render();
+				anchor = this.parentFragment.findNextNode( this );
+				target.insertBefore( docFrag, anchor );
+			}
+		}
 	}
 };
 

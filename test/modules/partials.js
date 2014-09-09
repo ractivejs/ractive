@@ -241,6 +241,29 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
 		})
+
+		test( 'Partials be references or expressions that resolve to a partial', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}{{>.type}}{{/}}{{>test + ".partial"}}',
+				data: {
+					items: [ { type: 'foo' }, { type: 'bar' }, { type: 'foo' }, { type: 'baz' } ],
+					test: 'a'
+				},
+				partials: {
+					foo: 'foo',
+					bar: 'bar',
+					baz: 'baz',
+					'a.partial': '- a partial'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foobarfoobaz- a partial' );
+
+			ractive.push( 'items', { type: 'foo' } );
+
+			t.htmlEqual( fixture.innerHTML, 'foobarfoobazfoo- a partial' );
+		})
 	};
 
 });
