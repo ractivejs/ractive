@@ -242,28 +242,54 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 			t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
 		})
 
-		test( 'Partials be references or expressions that resolve to a partial', function ( t ) {
+		test( 'Partial mustaches can be references or expressions that resolve to a partial', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{#items}}{{>.type}}{{/}}{{>test + ".partial"}}',
+				template: '{{#items}}{{>.type}}{{/}}{{>test + ".partial"}}{{>part(1)}}\n' +
+					'<div id="{{>id(test)}}">{{>guts}}</div>',
 				data: {
 					items: [ { type: 'foo' }, { type: 'bar' }, { type: 'foo' }, { type: 'baz' } ],
-					test: 'a'
+					test: 'a',
+					part: function(id) { return 'part' + id; },
+					id: function(test) { return test + 'divid'; }
 				},
 				partials: {
 					foo: 'foo',
 					bar: 'bar',
 					baz: 'baz',
-					'a.partial': '- a partial'
+					'a.partial': '- a partial',
+					'b.partial': '- b partial',
+					part1: 'hello',
+					adivid: 'theid',
+					bdivid: 'otherid',
+					guts: '<h1>{{>(\'part\' + 1)}} plain partial</h1>'
 				}
 			});
 
-			t.htmlEqual( fixture.innerHTML, 'foobarfoobaz- a partial' );
+			t.htmlEqual( fixture.innerHTML, 'foobarfoobaz- a partialhello <div id="theid"><h1>hello plain partial</h1></div>' );
 
 			ractive.push( 'items', { type: 'foo' } );
+			ractive.set('test', 'b')
 
-			t.htmlEqual( fixture.innerHTML, 'foobarfoobazfoo- a partial' );
-		})
+			t.htmlEqual( fixture.innerHTML, 'foobarfoobazfoo- b partialhello <div id="otherid"><h1>hello plain partial</h1></div>' );
+		});
+
+		test( 'Partials with expressions may also have context', function( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{>(tpl + ".test") ctx}} : {{>"test." + tpl ctx.expr}}',
+				data: {
+					ctx: { id: 1, expr: { id: 2 } },
+					tpl: 'foo'
+				},
+				partials: {
+					'test.foo': 'normal - {{.id}}',
+					'foo.test': 'inverted - {{.id}}'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'inverted - 1 : normal - 2');
+		});
 	};
 
 });

@@ -54,8 +54,10 @@ Partial.prototype = {
 	},
 
 	unrender: function ( shouldDestroy ) {
-		this.fragment.unrender( shouldDestroy );
-		this.rendered = false;
+		if ( this.rendered ) {
+			this.fragment.unrender( shouldDestroy );
+			this.rendered = false;
+		}
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -112,18 +114,20 @@ Partial.prototype = {
 
 	setValue: function( value ) {
 		if ( this.value !== value ) {
-			if ( this.fragment ) {
+			if ( this.fragment && this.rendered ) {
 				this.fragment.unrender( true );
 			}
 
 			this.fragment = null;
+			this.value = value;
 
 			if ( this.rendered ) {
 				runloop.addView( this );
+			} else {
+				this.update();
+				this.bubble();
 			}
 		}
-
-		this.value = value;
 	},
 
 	update: function() {
@@ -147,7 +151,7 @@ Partial.prototype = {
 
 			if ( this.rendered ) {
 				target = this.parentFragment.getNode();
-				docFrag = this.render();
+				docFrag = this.fragment.render();
 				anchor = this.parentFragment.findNextNode( this );
 				target.insertBefore( docFrag, anchor );
 			}
