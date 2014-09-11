@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.6
-	2014-09-05 - commit 681a1004 
+	2014-09-11 - commit a4cb32cf 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6519,7 +6519,7 @@
 	}( types );
 
 	/* virtualdom/items/Element/Attribute/helpers/determinePropertyName.js */
-	var determinePropertyName = function( namespaces ) {
+	var determinePropertyName = function( namespaces, booleanAttributes ) {
 
 		var propertyNames = {
 			'accept-charset': 'acceptCharset',
@@ -6551,12 +6551,12 @@
 				}
 				// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 				// node.selected = true rather than node.setAttribute( 'selected', '' )
-				if ( typeof options.pNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+				if ( booleanAttributes.test( propertyName ) || propertyName === 'value' ) {
 					attribute.useProperty = true;
 				}
 			}
 		};
-	}( namespaces );
+	}( namespaces, booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/init.js */
 	var virtualdom_items_Element_Attribute$init = function( types, booleanAttributes, determineNameAndNamespace, getInterpolator, determinePropertyName, circular ) {
@@ -6605,7 +6605,7 @@
 	};
 
 	/* virtualdom/items/Element/Attribute/prototype/render.js */
-	var virtualdom_items_Element_Attribute$render = function( namespaces ) {
+	var virtualdom_items_Element_Attribute$render = function( namespaces, booleanAttributes ) {
 
 		var propertyNames = {
 			'accept-charset': 'acceptCharset',
@@ -6639,7 +6639,7 @@
 				}
 				// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 				// node.selected = true rather than node.setAttribute( 'selected', '' )
-				if ( typeof node[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+				if ( booleanAttributes.test( propertyName ) || propertyName === 'value' ) {
 					this.useProperty = true;
 				}
 				if ( propertyName === 'value' ) {
@@ -6650,7 +6650,7 @@
 			this.rendered = true;
 			this.update();
 		};
-	}( namespaces );
+	}( namespaces, booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/toString.js */
 	var virtualdom_items_Element_Attribute$toString = function( booleanAttributes ) {
