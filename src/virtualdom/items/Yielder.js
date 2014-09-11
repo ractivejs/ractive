@@ -10,14 +10,13 @@ var Yielder = function ( options ) {
 	var componentInstance, component;
 
 	componentInstance = options.parentFragment.root;
-	component = componentInstance.component;
+	this.component = component = componentInstance.component;
 
 	this.surrogateParent = options.parentFragment;
 	this.parentFragment = component.parentFragment;
 
 	if ( component.yielder ) {
-		// TODO catch this at parse time
-		throw new Error( 'A component template can only have one {{yield}} declaration' );
+		throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
 	}
 
 	this.fragment = new Fragment({
@@ -70,8 +69,9 @@ Yielder.prototype = {
 		this.fragment.unbind();
 	},
 
-	unrender: function () {
-		this.fragment.unrender();
+	unrender: function ( shouldDestroy ) {
+		this.fragment.unrender( shouldDestroy );
+		this.component.yielder = void 0;
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
