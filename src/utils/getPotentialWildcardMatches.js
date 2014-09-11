@@ -24,7 +24,7 @@ export function getPotentialWildcardMatches ( keypath ) {
 	while ( i-- ) {
 		wildcardKeypath = starMap[i].map( mapper ).join( '.' );
 
-		if ( !result[ wildcardKeypath ] ) {
+		if ( !result.hasOwnProperty( wildcardKeypath ) ) {
 			result.push( wildcardKeypath );
 			result[ wildcardKeypath ] = true;
 		}

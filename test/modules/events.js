@@ -45,6 +45,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( node, 'click' );
 		});
 
+		test( 'sharing names with array mutator functions doesn\'t break events', t => {
+			var ractive,
+				eventNames = ['sort', 'reverse', 'push', 'pop', 'shift', 'unshift', 'fhtagn'], // the last one just tests the test
+				results = new Object(null);
+
+			expect(eventNames.length);
+
+			ractive = new Ractive({
+				el: fixture,
+				template: ''
+			});
+
+			eventNames.forEach(function(eventName) {
+				ractive.on( eventName, function () { results[eventName] = true; });
+				ractive.fire( eventName );
+				t.ok( typeof( results[eventName] ) != 'undefined', 'Event "'+eventName+'" did not fire.' );
+			});
+		});
+
 		test( 'custom event invoked and torndown', t => {
 			var ractive, custom, node;
 
@@ -1062,6 +1081,39 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
+		test( 'component "on-" handles arguments correctly', t => {
+			var Component, component, ractive;
+
+			expect( 4 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'foo-reproxy', ( e, arg ) => {
+				t.equal( e.original.type, 'click' );
+				t.equal( arg, 'foo' );
+			});
+			ractive.on( 'bar-reproxy', ( arg ) => {
+				t.equal( arg, 'bar' );
+			});
+			ractive.on( 'bizz-reproxy', () => {
+				t.equal( arguments.length, 0 );
+			});
+
+			component = ractive.findComponent( 'component' );
+			simulant.fire( component.nodes.test, 'click' );
+			component.fire( 'bar', 'bar' );
+			component.fire( 'bizz' );
+		});
 
 
 

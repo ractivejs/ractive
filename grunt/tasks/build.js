@@ -14,4 +14,11 @@ module.exports = function ( grunt ) {
 		'clean:tmp'
 	]);
 
+	grunt.registerTask( 'release', [
+		'build',
+		'concurrent:test',
+		'concurrent:uglify',
+		'concat:banner'
+	]);
+
 };

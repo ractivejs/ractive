@@ -1521,6 +1521,23 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
+		test( 'Regression test for #1166 (spellcheck bug)', function ( t ) {
+			var ractive, one, two;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input class="one" spellcheck="false"><input class="two" spellchecker="false">',
+				data: { name: 'world' }
+			});
+
+			one = ractive.find( '.one' );
+			two = ractive.find( '.two' );
+
+			t.ok( !one.spellcheck );
+			t.equal( one.getAttribute( 'spellcheck' ), 'false' );
+			t.equal( two.getAttribute( 'spellchecker' ), 'false' );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
