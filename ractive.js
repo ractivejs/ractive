@@ -1,6 +1,6 @@
 /*
-	ractive.js v0.5.6
-	2014-08-31 - commit ea62fca5 
+	ractive.js v0.5.7
+	2014-09-11 - commit 91b287c4 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -227,7 +227,7 @@
 			i = starMap.length;
 			while ( i-- ) {
 				wildcardKeypath = starMap[ i ].map( mapper ).join( '.' );
-				if ( !result[ wildcardKeypath ] ) {
+				if ( !result.hasOwnProperty( wildcardKeypath ) ) {
 					result.push( wildcardKeypath );
 					result[ wildcardKeypath ] = true;
 				}
@@ -8078,7 +8078,7 @@
 	var booleanAttributes = function() {
 
 		// https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
-		var booleanAttributes = /allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|draggable|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|spellcheck|translate|trueSpeed|typeMustMatch|visible/i;
+		var booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|draggable|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
 		return booleanAttributes;
 	}();
 
@@ -8124,7 +8124,7 @@
 	}( types );
 
 	/* virtualdom/items/Element/Attribute/helpers/determinePropertyName.js */
-	var determinePropertyName = function( namespaces ) {
+	var determinePropertyName = function( namespaces, booleanAttributes ) {
 
 		var propertyNames = {
 			'accept-charset': 'acceptCharset',
@@ -8156,12 +8156,12 @@
 				}
 				// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 				// node.selected = true rather than node.setAttribute( 'selected', '' )
-				if ( typeof options.pNode[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+				if ( booleanAttributes.test( propertyName ) || propertyName === 'value' ) {
 					attribute.useProperty = true;
 				}
 			}
 		};
-	}( namespaces );
+	}( namespaces, booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/init.js */
 	var virtualdom_items_Element_Attribute$init = function( types, booleanAttributes, determineNameAndNamespace, getInterpolator, determinePropertyName, circular ) {
@@ -8210,7 +8210,7 @@
 	};
 
 	/* virtualdom/items/Element/Attribute/prototype/render.js */
-	var virtualdom_items_Element_Attribute$render = function( namespaces ) {
+	var virtualdom_items_Element_Attribute$render = function( namespaces, booleanAttributes ) {
 
 		var propertyNames = {
 			'accept-charset': 'acceptCharset',
@@ -8244,7 +8244,7 @@
 				}
 				// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 				// node.selected = true rather than node.setAttribute( 'selected', '' )
-				if ( typeof node[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+				if ( booleanAttributes.test( propertyName ) || propertyName === 'value' ) {
 					this.useProperty = true;
 				}
 				if ( propertyName === 'value' ) {
@@ -8255,7 +8255,7 @@
 			this.rendered = true;
 			this.update();
 		};
-	}( namespaces );
+	}( namespaces, booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/toString.js */
 	var virtualdom_items_Element_Attribute$toString = function( booleanAttributes ) {
@@ -11477,19 +11477,16 @@
 				} );
 			}
 			childInstance.on( eventName, function() {
-				var options;
+				var event, args;
 				// semi-weak test, but what else? tag the event obj ._isEvent ?
-				if ( arguments[ 0 ].node ) {
-					options = {
-						event: Array.prototype.shift.call( arguments ),
-						args: arguments
-					};
-				} else {
-					options = {
-						args: Array.prototype.slice.call( arguments )
-					};
+				if ( arguments.length && arguments[ 0 ].node ) {
+					event = Array.prototype.shift.call( arguments );
 				}
-				fireEvent( parentInstance, proxyEventName, options );
+				args = Array.prototype.slice.call( arguments );
+				fireEvent( parentInstance, proxyEventName, {
+					event: event,
+					args: args
+				} );
 				// cancel bubbling
 				return false;
 			} );
@@ -11696,12 +11693,11 @@
 		var Yielder = function( options ) {
 			var componentInstance, component;
 			componentInstance = options.parentFragment.root;
-			component = componentInstance.component;
+			this.component = component = componentInstance.component;
 			this.surrogateParent = options.parentFragment;
 			this.parentFragment = component.parentFragment;
 			if ( component.yielder ) {
-				// TODO catch this at parse time
-				throw new Error( 'A component template can only have one {{yield}} declaration' );
+				throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
 			}
 			this.fragment = new Fragment( {
 				owner: this,
@@ -11741,8 +11737,9 @@
 			unbind: function() {
 				this.fragment.unbind();
 			},
-			unrender: function() {
-				this.fragment.unrender();
+			unrender: function( shouldDestroy ) {
+				this.fragment.unrender( shouldDestroy );
+				this.component.yielder = void 0;
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
 				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
@@ -13862,7 +13859,7 @@
 			},
 			// version
 			VERSION: {
-				value: '0.5.6'
+				value: '0.5.7'
 			},
 			// Plugins
 			adaptors: {
