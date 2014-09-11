@@ -1,4 +1,5 @@
 import namespaces from 'config/namespaces';
+import booleanAttributes from 'config/booleanAttributes';
 
 // the property name equivalents for element attributes, where they differ
 // from the lowercased attribute name
@@ -39,7 +40,7 @@ export default function Attribute$render ( node ) {
 
 		// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 		// node.selected = true rather than node.setAttribute( 'selected', '' )
-		if ( typeof node[ propertyName ] === 'boolean' || propertyName === 'value' ) {
+		if ( booleanAttributes.test( propertyName ) || propertyName === 'value' ) {
 			this.useProperty = true;
 		}
 
