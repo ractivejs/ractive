@@ -4,7 +4,7 @@
 #  STEP 1 - BUILD
 ###############################
 
-grunt build
+grunt release
 
 
 #  STEP 2 - UPDATE BUILD BRANCH
@@ -21,13 +21,13 @@ rm build-branch/*
 cp build/* build-branch
 
 rm build-branch/package.json
-cp tmp/package.json build-branch/package.json
+cp tmp-rel/package.json build-branch/package.json
 
 rm build-branch/bower.json
-cp tmp/bower.json build-branch/bower.json
+cp tmp-rel/bower.json build-branch/bower.json
 
 rm build-branch/component.json
-cp tmp/component.json build-branch/component.json
+cp tmp-rel/component.json build-branch/component.json
 
 # Update remote build branch
 ( cd build-branch
@@ -87,10 +87,15 @@ rm -rf cdn
 rm ractive.js
 rm component.json
 
-cp tmp/component.json component.json
+cp tmp-rel/component.json component.json
 cp build/ractive.js ractive.js
 
 git checkout master
 git add -A
 git commit -m '${VERSION} release'
 git push
+
+
+#  STEP 6 - CLEAN UP
+###############################
+rm -r tmp-rel
