@@ -1,5 +1,10 @@
 Changelog
 ---------
+
+* 0.5.7
+	* Release script got pooched; there was a tag mix-up of some sort with npm and 0.5.6 contained source files but not all the build files.
+	* Fixes for #1166, #1169, #1174, and #1183
+
 * 0.5.6
 	* Breaking changes:
 		* Use of other elements besides `<script>` for templates is an error
