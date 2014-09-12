@@ -29,7 +29,11 @@ export default function ( component, Component, data, contentDescriptor ) {
 		_parent: ractive,
 		_component: component,
 		// need to inherit runtime parent adaptors
-		adapt: ractive.adapt
+		adapt: ractive.adapt,
+		yield: {
+			template: contentDescriptor,
+			instance: ractive
+		}
 	});
 
 	return instance;

@@ -8,6 +8,7 @@ import Partial from 'virtualdom/items/Partial/_Partial';
 import getComponent from 'virtualdom/items/Component/getComponent';
 import Component from 'virtualdom/items/Component/_Component';
 import Comment from 'virtualdom/items/Comment';
+import Yielder from 'virtualdom/items/Yielder';
 
 export default function createItem ( options ) {
 	if ( typeof options.template === 'string' ) {
@@ -15,7 +16,11 @@ export default function createItem ( options ) {
 	}
 
 	switch ( options.template.t ) {
-		case types.INTERPOLATOR: return new Interpolator( options );
+		case types.INTERPOLATOR:
+			if ( options.template.r === 'yield' ) {
+				return new Yielder( options );
+			}
+			return new Interpolator( options );
 		case types.SECTION:      return new Section( options );
 		case types.TRIPLE:       return new Triple( options );
 		case types.ELEMENT:

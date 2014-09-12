@@ -1,8 +1,3 @@
-// EVENT TESTS
-// ===========
-//
-// TODO: add moar tests
-
 define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
@@ -11,7 +6,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		module( 'Events' );
 
-		test( 'on-click="someEvent" fires an event when user clicks the element', function ( t ) {
+		test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 			var ractive;
 
 			expect( 2 );
@@ -48,6 +43,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.unrender();
 
 			simulant.fire( node, 'click' );
+		});
+
+		test( 'sharing names with array mutator functions doesn\'t break events', t => {
+			var ractive,
+				eventNames = ['sort', 'reverse', 'push', 'pop', 'shift', 'unshift', 'fhtagn'], // the last one just tests the test
+				results = new Object(null);
+
+			expect(eventNames.length);
+
+			ractive = new Ractive({
+				el: fixture,
+				template: ''
+			});
+
+			eventNames.forEach(function(eventName) {
+				ractive.on( eventName, function () { results[eventName] = true; });
+				ractive.fire( eventName );
+				t.ok( typeof( results[eventName] ) != 'undefined', 'Event "'+eventName+'" did not fire.' );
+			});
 		});
 
 		test( 'custom event invoked and torndown', t => {
@@ -104,7 +118,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'Standard events have correct properties: node, original, keypath, context, index', function ( t ) {
+		test( 'Standard events have correct properties: node, original, keypath, context, index', t => {
 			var ractive, fakeEvent;
 
 			expect( 5 );
@@ -127,8 +141,18 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, fakeEvent );
 		});
 
+		test( 'Empty event names are safe, though do not fire', t => {
+			var ractive = new Ractive();
 
-		test( 'preventDefault and stopPropagation if event handler returned false', function ( t ) {
+			expect( 1 );
+			ractive.on( '', function ( event ) {
+				throw new Error( 'Empty event name should not fire' );
+			});
+			ractive.fire( '' );
+			t.ok( true );
+		});
+
+		test( 'preventDefault and stopPropagation if event handler returned false', t => {
 			var ractive, preventedDefault = false, stoppedPropagation = false;
 
 			expect( 9 );
@@ -187,7 +211,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'event.keypath is set to the innermost context', function ( t ) {
+		test( 'event.keypath is set to the innermost context', t => {
 			var ractive;
 
 			expect( 2 );
@@ -208,7 +232,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, 'click' );
 		});
 
-		test( 'event.index stores current indices against their references', function ( t ) {
+		test( 'event.index stores current indices against their references', t => {
 			var ractive;
 
 			expect( 4 );
@@ -231,7 +255,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.item_2, 'click' );
 		});
 
-		test( 'event.index reports nested indices correctly', function ( t ) {
+		test( 'event.index reports nested indices correctly', t => {
 			var ractive;
 
 			expect( 2 );
@@ -261,7 +285,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test_001, 'click' );
 		});
 
-		test( 'proxy events can have dynamic names', function ( t ) {
+		test( 'proxy events can have dynamic names', t => {
 			var ractive, last;
 
 			expect( 2 );
@@ -290,7 +314,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( last, 'bar' );
 		});
 
-		test( 'proxy event parameters are correctly parsed as JSON, or treated as a string', function ( t ) {
+		test( 'proxy event parameters are correctly parsed as JSON, or treated as a string', t => {
 			var ractive, last;
 
 			expect( 3 );
@@ -316,7 +340,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( last, [ 1, 2, 3 ] );
 		});
 
-		test( 'proxy events can have dynamic arguments', function ( t ) {
+		test( 'proxy events can have dynamic arguments', t => {
 			var ractive;
 
 			ractive = new Ractive({
@@ -336,7 +360,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.foo, 'click' );
 		});
 
-		test( 'proxy events can have multiple arguments', function ( t ) {
+		test( 'proxy events can have multiple arguments', t => {
 			var ractive;
 
 			ractive = new Ractive({
@@ -368,7 +392,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.baz, 'click' );
 		});
 
-		test( 'Splicing arrays correctly modifies proxy events', function ( t ) {
+		test( 'Splicing arrays correctly modifies proxy events', t => {
 			var ractive;
 
 			expect( 4 );
@@ -395,7 +419,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.findAll( 'button' ).length, 2 );
 		});
 
-		test( 'Splicing arrays correctly modifies two-way bindings', function ( t ) {
+		test( 'Splicing arrays correctly modifies two-way bindings', t => {
 			var ractive, items;
 
 			expect( 25 );
@@ -468,7 +492,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.findAll( 'input' ).length, 2 );
 		});
 
-		test( 'Calling ractive.off() without a keypath removes all handlers', function ( t ) {
+		test( 'Calling ractive.off() without a keypath removes all handlers', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: 'doesn\'t matter'
@@ -495,7 +519,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.fire( 'baz' );
 		});
 
-		test( 'Changes triggered by two-way bindings propagate properly (#460)', function ( t ) {
+		test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
 			var changes, ractive = new Ractive({
 				el: fixture,
 				template: '{{#items}}<label><input type="checkbox" checked="{{completed}}"> {{description}}</label>{{/items}}<p class="result">{{ items.filter( completed ).length }}</p>{{# items.filter( completed ).length }}<p class="conditional">foo</p>{{/ items.filter( completed ).length }}',
@@ -527,7 +551,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( ractive.find( '.result' ).innerHTML, '0' );
 		});
 
-		test( 'Multiple events can share the same directive', function ( t ) {
+		test( 'Multiple events can share the same directive', t => {
 			var ractive, count = 0;
 
 			ractive = new Ractive({
@@ -546,7 +570,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( count, 2 );
 		});
 
-		test( 'Superfluous whitespace is ignored', function ( t ) {
+		test( 'Superfluous whitespace is ignored', t => {
 			var ractive, fooCount = 0, barCount = 0;
 
 			ractive = new Ractive({
@@ -574,7 +598,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( barCount, 1 );
 		});
 
-		test( 'Multiple space-separated events can be handled with a single callback (#731)', function ( t ) {
+		test( 'Multiple space-separated events can be handled with a single callback (#731)', t => {
 			var ractive, count = 0;
 
 			ractive = new Ractive({});
@@ -611,7 +635,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( returnedValue, ractive );
 		});
 
-		test( 'Events really do not call addEventListener when no proxy name', function ( t ) {
+		test( 'Events really do not call addEventListener when no proxy name', t => {
 			var ractive,
 				addEventListener = Element.prototype.addEventListener,
 				errorAdd = function(){
@@ -648,7 +672,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		test( '@index can be used in proxy event directives', function ( t ) {
+		test( '@index can be used in proxy event directives', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#each letters}}<button on-click="select:{{@index}}"></button>{{/each}}',
@@ -663,6 +687,434 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
 		});
+
+		test( 'Calling a builtin method', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `<button on-click='set("foo",foo+1)'>{{foo}}</button>`,
+				data: { foo: 0 }
+			});
+
+			simulant.fire( ractive.find( 'button' ), 'click' );
+			t.equal( ractive.get( 'foo' ), 1 );
+			t.htmlEqual( fixture.innerHTML, '<button>1</button>' );
+		});
+
+		test( 'Calling a custom method', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate()'>{{foo}}</button>`,
+				activate: function () {
+					t.ok( true );
+					t.equal( this, ractive );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			expect( 2 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		test( 'Calling an unknown method', function ( t ) {
+			var Widget, ractive, onerror;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate()'>{{foo}}</button>`
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			// Catching errors inside handlers for programmatically-fired events
+			// is a world of facepalm http://jsfiddle.net/geoz2tks/
+			onerror = window.onerror;
+			window.onerror = function ( err ) {
+				t.ok( /Attempted to call a non-existent method \(\"activate\"\)/.test( err ) )
+				return true;
+			};
+
+			simulant.fire( ractive.find( 'button' ), 'click' );
+			window.onerror = onerror;
+		});
+
+		test( 'Passing the event object to a method', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(event)'>{{foo}}</button>`,
+				activate: function ( event ) {
+					t.equal( event.original.type, 'click' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		test( 'Passing a child of the event object to a method', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(event.original.type)'>{{foo}}</button>`,
+				activate: function ( type ) {
+					t.equal( type, 'click' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		// Bit of a cheeky workaround...
+		test( 'Passing a reference to this.event', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: `<button on-click='activate(.event)'>{{foo}}</button>`,
+				activate: function ( event ) {
+					t.equal( event, 'Christmas' );
+				}
+			});
+
+			ractive = new Widget({
+				el: fixture,
+				data: {
+					event: 'Christmas'
+				}
+			});
+
+			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+
+		var Component, Middle, View, setup;
+
+		setup = {
+			setup: function(){
+				Component = Ractive.extend({
+					template: '<span id="test" on-click="someEvent">click me</span>'
+				});
+
+				Middle = Ractive.extend({
+					template: '<component/>'
+				});
+
+				View = Ractive.extend({
+					el: fixture,
+					template: '<middle/>',
+					components: {
+						component: Component,
+						middle: Middle
+					}
+				});
+
+			},
+			teardown: function(){
+				Component = Middle = View = void 0;
+			}
+		};
+
+		function fired ( event ) {
+			ok( true );
+		}
+
+		function goodEvent( event ) {
+			ok( event.context || event === 'foo' );
+		}
+
+		function goodEventWithArg( event, arg ) {
+			equal( arg || event, 'foo' );
+		}
+
+		function shouldNotFire () {
+			throw new Error( 'This event should not fire' );
+		}
+
+		function notOnOriginating () {
+			throw new Error( 'Namespaced event should not fire on originating component' );
+		}
+
+		function shouldBeNoBubbling () {
+			throw new Error( 'Event bubbling should not have happened' );
+		}
+
+		function testEventBubbling( fire ) {
+
+			test( 'Events bubble under "eventname", and also "component.eventname" above firing component', t => {
+				var ractive, middle, component;
+
+				expect( 3 );
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', shouldNotFire );
+				middle.on( 'component.someEvent', goodEvent );
+
+				ractive.on( 'someEvent', shouldNotFire );
+				ractive.on( 'component.someEvent', goodEvent );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'arguments bubble', t => {
+				var ractive, middle, component;
+
+				expect( 3 );
+
+				Component.prototype.template = '<span id="test" on-click="someEvent:foo">click me</span>'
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEventWithArg );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'someEvent', shouldNotFire );
+				middle.on( 'component.someEvent', goodEventWithArg );
+
+				ractive.on( 'someEvent', shouldNotFire );
+				ractive.on( 'component.someEvent', goodEventWithArg );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'bubbling events can be stopped by returning false', t => {
+				var ractive, middle, component;
+
+				expect( 2 );
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				component.on( 'someEvent', goodEvent );
+				component.on( 'component.someEvent', notOnOriginating );
+
+				middle.on( 'component.someEvent', function( event ) {
+					return false;
+				});
+				// still fires on same level
+				middle.on( 'component.someEvent', goodEvent );
+
+				ractive.on( 'component.someEvent', shouldBeNoBubbling );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+			test( 'bubbling events with event object have component reference', t => {
+				var ractive, middle, component;
+
+				expect( 3 );
+
+				ractive = new View();
+				middle = ractive.findComponent( 'middle' );
+				component = ractive.findComponent( 'component' );
+
+				function hasComponentRef( event, arg ) {
+					event.original ? t.equal( event.component, component ) : t.ok( true );
+				}
+
+				component.on( 'someEvent', function( event ) {
+					t.ok( !event.component );
+				});
+				middle.on( 'component.someEvent', hasComponentRef );
+				ractive.on( 'component.someEvent', hasComponentRef );
+
+				fire( ractive.findComponent( 'component' ) );
+			});
+
+		}
+
+
+		module( 'Component events bubbling proxy events', setup )
+
+		testEventBubbling( function ( component ) {
+			simulant.fire( component.nodes.test, 'click' );
+		});
+
+		module( 'Component events bubbling fire() events', setup )
+
+		testEventBubbling( function ( component ) {
+			component.fire( 'someEvent', 'foo' );
+		});
+
+		module( 'Event pattern matching' );
+
+		test( 'handlers can use pattern matching', t => {
+			var ractive;
+
+			expect( 4 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="some.event">click me</span>'
+			});
+
+			ractive.on( '*.*', fired);
+			ractive.on( 'some.*', fired);
+			ractive.on( '*.event', fired);
+			ractive.on( 'some.event', fired);
+
+			simulant.fire( ractive.nodes.test, 'click' );
+		});
+
+		test( 'bubbling handlers can use pattern matching', t => {
+			var Component, component, ractive;
+
+			expect( 4 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="foo">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( '*.*', fired);
+			ractive.on( 'component.*', fired);
+			ractive.on( '*.foo', fired);
+			ractive.on( 'component.foo', fired);
+
+			component = ractive.findComponent( 'component' );
+			simulant.fire( component.nodes.test, 'click' );
+
+			// otherwise we get cross test failure due to "teardown" event
+			// becasue we're reusing fixture element
+			ractive.off();
+		});
+
+		test( 'component "on-someEvent" implicitly cancels bubbling', t => {
+			var Component, component, ractive;
+
+			expect( 1 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="someEvent">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component on-someEvent="foo"/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'foo', fired);
+			ractive.on( 'component.someEvent', shouldBeNoBubbling);
+
+			component = ractive.findComponent( 'component' );
+			simulant.fire( component.nodes.test, 'click' );
+		});
+
+		test( 'component "on-" wildcards match', t => {
+			var Component, component, ractive;
+
+			expect( 3 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="foo.bar">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component on-foo.*="foo" on-*.bar="bar" on-*.*="both"/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'foo', fired);
+			ractive.on( 'bar', fired);
+			ractive.on( 'both', fired);
+
+			component = ractive.findComponent( 'component' );
+			simulant.fire( component.nodes.test, 'click' );
+		});
+
+		test( 'component "on-" do not get auto-namespaced events', t => {
+			var Component, component, ractive;
+
+			expect( 1 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="someEvent">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component on-component.someEvent="foo"/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'foo', shouldNotFire);
+
+			component = ractive.findComponent( 'component' );
+			simulant.fire( component.nodes.test, 'click' );
+			t.ok( true );
+		});
+
+		test( 'component "on-" handles arguments correctly', t => {
+			var Component, component, ractive;
+
+			expect( 4 );
+
+			Component = Ractive.extend({
+				template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
+				components: {
+					component: Component
+				}
+			});
+
+			ractive.on( 'foo-reproxy', ( e, arg ) => {
+				t.equal( e.original.type, 'click' );
+				t.equal( arg, 'foo' );
+			});
+			ractive.on( 'bar-reproxy', ( arg ) => {
+				t.equal( arg, 'bar' );
+			});
+			ractive.on( 'bizz-reproxy', () => {
+				t.equal( arguments.length, 0 );
+			});
+
+			component = ractive.findComponent( 'component' );
+			simulant.fire( component.nodes.test, 'click' );
+			component.fire( 'bar', 'bar' );
+			component.fire( 'bizz' );
+		});
+
 
 
 	};

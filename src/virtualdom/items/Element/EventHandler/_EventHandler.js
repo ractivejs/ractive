@@ -5,7 +5,8 @@ import init from 'virtualdom/items/Element/EventHandler/prototype/init';
 import listen from 'virtualdom/items/Element/EventHandler/prototype/listen';
 import rebind from 'virtualdom/items/Element/EventHandler/prototype/rebind';
 import render from 'virtualdom/items/Element/EventHandler/prototype/render';
-import teardown from 'virtualdom/items/Element/EventHandler/prototype/teardown';
+import resolve from 'virtualdom/items/Element/EventHandler/prototype/resolve';
+import unbind from 'virtualdom/items/Element/EventHandler/prototype/unbind';
 import unrender from 'virtualdom/items/Element/EventHandler/prototype/unrender';
 
 var EventHandler = function ( element, name, template ) {
@@ -20,7 +21,8 @@ EventHandler.prototype = {
 	listen: listen,
 	rebind: rebind,
 	render: render,
-	teardown: teardown,
+	resolve: resolve,
+	unbind: unbind,
 	unrender: unrender
 };
 

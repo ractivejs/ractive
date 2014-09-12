@@ -14,16 +14,20 @@ templates = {
 	releaseScript: fs.readFileSync( __dirname + '/templates/release.sh' ).toString()
 };
 
+if ( !fs.existsSync( path.join( __dirname, '..', 'tmp-rel' ) ) ) {
+	fs.mkdirSync( path.join( __dirname, '..', 'tmp-rel' ) );
+}
+
 // Create temporary package.json and bower.json files
-fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'package.json' ), replace( templates.pkg ) );
-fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'bower.json' ), replace( templates.bower ) );
-fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'component.json' ), replace( templates.component ) );
-fs.writeFileSync( path.join( __dirname, '..', 'tmp', 'release.sh' ), replace( templates.releaseScript ) );
+fs.writeFileSync( path.join( __dirname, '..', 'tmp-rel', 'package.json' ), replace( templates.pkg ) );
+fs.writeFileSync( path.join( __dirname, '..', 'tmp-rel', 'bower.json' ), replace( templates.bower ) );
+fs.writeFileSync( path.join( __dirname, '..', 'tmp-rel', 'component.json' ), replace( templates.component ) );
+fs.writeFileSync( path.join( __dirname, '..', 'tmp-rel', 'release.sh' ), replace( templates.releaseScript ) );
 
 
 // Execute script
 task = require( 'child_process' ).spawn( 'sh',
-	[ path.join( __dirname, '..', 'tmp', 'release.sh' ) ],
+	[ path.join( __dirname, '..', 'tmp-rel', 'release.sh' ) ],
 	{
 		cwd: path.join( __dirname, '..' ),
 		stdio: 'inherit'
