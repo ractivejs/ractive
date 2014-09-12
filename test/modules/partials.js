@@ -243,15 +243,28 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 		})
 
 		test( 'Partial mustaches can be references or expressions that resolve to a partial', function ( t ) {
+			// please never do anything like this
 			var ractive = new Ractive({
 				el: fixture,
 				template: '{{#items}}{{>.type}}{{/}}{{>test + ".partial"}}{{>part(1)}}\n' +
-					'<div id="{{>id(test)}}">{{>guts}}</div>',
+					'<div id="{{>id(test)}}">{{>guts}}</div>{{>("NEST" + "ED").toLowerCase()}} {{>onTheFly("george")}} {{>last0}}',
 				data: {
 					items: [ { type: 'foo' }, { type: 'bar' }, { type: 'foo' }, { type: 'baz' } ],
 					test: 'a',
 					part: function(id) { return 'part' + id; },
-					id: function(test) { return test + 'divid'; }
+					id: function(test) { return test + 'divid'; },
+					last: {
+						one: function() { return 'st'; }
+					},
+					onTheFly: function(v) {
+						var str = 's' + Math.random();
+						this.partials[str] = 'onTheFly:{{' + v + '}}';
+						return str;
+					},
+					george: 'plimpton',
+					last0: 'last1',
+					last30: 'last3',
+					last40: 'last4'
 				},
 				partials: {
 					foo: 'foo',
@@ -262,16 +275,27 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 					part1: 'hello',
 					adivid: 'theid',
 					bdivid: 'otherid',
-					guts: '<h1>{{>(\'part\' + 1)}} plain partial</h1>'
+					guts: '<h1>{{>(\'part\' + 1)}} plain partial</h1>',
+					nested: 'ne{{>manylayered}}ed',
+					manylayered: '{{>last.one()}}',
+					'st': 'st',
+					'wt': 'wt',
+					last1: '{{>last30}}',
+					last2: '{{>last40}}',
+					last3: 'last3',
+					last4: 'last4'
 				}
 			});
 
-			t.htmlEqual( fixture.innerHTML, 'foobarfoobaz- a partialhello <div id="theid"><h1>hello plain partial</h1></div>' );
+			t.htmlEqual( fixture.innerHTML, 'foobarfoobaz- a partialhello <div id="theid"><h1>hello plain partial</h1></div>nested onTheFly:plimpton last3' );
 
 			ractive.push( 'items', { type: 'foo' } );
-			ractive.set('test', 'b')
+			ractive.set('test', 'b');
+			ractive.set('last.one', function() { return 'wt'; });
+			ractive.set('george', 'lazenby');
+			ractive.set('last0', 'last2');
 
-			t.htmlEqual( fixture.innerHTML, 'foobarfoobazfoo- b partialhello <div id="otherid"><h1>hello plain partial</h1></div>' );
+			t.htmlEqual( fixture.innerHTML, 'foobarfoobazfoo- b partialhello <div id="otherid"><h1>hello plain partial</h1></div>newted onTheFly:lazenby last4' );
 		});
 
 		test( 'Partials with expressions may also have context', function( t ) {
