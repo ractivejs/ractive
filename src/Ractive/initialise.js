@@ -16,6 +16,10 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
 
+	if ( ractive.config ) {
+		ractive.config()
+	}
+
 	// TEMPORARY. This is so we can implement Viewmodel gradually
 	ractive.viewmodel = new Viewmodel( ractive );
 

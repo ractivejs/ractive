@@ -11,33 +11,38 @@ define([ 'ractive' ], function ( Ractive ) {
 		// some set-up
 		fixture = document.getElementById( 'qunit-fixture' );
 
+		function getTest ( fired, html, fn ) {
+
+			return function test( Constructor, options = {} ) {
+
+				options.el = fixture;
+
+				var ractive = new Constructor(options),
+					widget = ractive.findComponent( 'widget' ),
+					expected = fn( ractive, widget );
+
+				deepEqual( fired, expected );
+				equal( fixture.innerHTML, html );
+
+				ractive.teardown();
+				fired.splice(0, fired.length);
+			}
+		}
+
 
 		test( 'construct', t => {
 
 			expect( 4 )
 
 			var fired = [], options = {
-				construct: function( options ) {
+				construct: function ( options ) {
 					fired.push( this );
 					options.template = '{{foo}}';
 					options.data = { foo: 'bar' };
 				}
 			};
 
-			function test( Constructor, options = {} ) {
-
-				options.el = fixture;
-
-				var ractive = new Constructor(options),
-					widget = ractive.findComponent( 'widget' ),
-					expected = [ widget || ractive ];
-
-				t.deepEqual( fired, expected );
-				t.equal( fixture.innerHTML, 'bar' );
-
-				ractive.teardown();
-				fired = [];
-			}
+			var test = getTest( fired, 'bar', ( ractive, widget ) => [ widget || ractive ] );
 
 			test( Ractive.extend( options ) );
 
@@ -53,57 +58,46 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			expect( 8 )
 
-			var fired = [], options = {
-				config: function() {
-					fired.push( this );
-					this.data.foo++;
-				},
-				template: '{{foo}}',
-				data: 1
-			};
+			var fired = []
 
-			function test( Constructor, options = {} ) {
-
-				options.el = fixture;
-
-				var ractive = new Constructor(options),
-					widget = ractive.findComponent( 'widget' ),
-					expected = [ractive];
-
-				if( widget ) {
-					expected.push( widget );
-				}
-
-				t.deepEqual( fired, expected );
-				t.equal( fixture.innerHTML, '2' );
-
-				ractive.teardown();
-				fired = [];
+			function getOptions(){
+				return {
+					config: function () {
+						fired.push( this );
+						this.data.foo++;
+					},
+					template: '{{foo}}',
+					data: { foo: 1 }
+				};
 			}
 
-			test( Ractive, options );
-			// test( Ractive.extend( options ) );
+			var test = getTest( fired, '2', ( ractive, widget ) => widget ? [ ractive, widget ] : [ ractive ]  );
 
-			// test( Ractive, {
-			// 	el: fixture,
-			// 	template: '<widget/>',
-			// 	config: function () {
-			// 		fired.push( this );
-			// 	},
-			// 	components: {
-			// 		widget: Ractive.extend(options)
-			// 	}
-			// }, true)
+			test( Ractive, getOptions() );
+			test( Ractive.extend( getOptions() ) );
 
-			// var ractive = new (Ractive.extend( options ) )( {
-			// 	config: function( options ) {
-			// 		fired.push( this );
-			// 		options.data = { foo: 12 };
-			// 	}
-			// });
+			test( Ractive, {
+				el: fixture,
+				template: '<widget/>',
+				config: function () {
+					fired.push( this );
+				},
+				components: {
+					widget: Ractive.extend( getOptions() )
+				}
+			})
 
-			// t.deepEqual( fired, [ ractive, ractive ] );
-			// t.equal( fixture.innerHTML, '13' );
+			var ractive = new (Ractive.extend( getOptions() ) )( {
+				el: fixture,
+				config: function () {
+					fired.push( this );
+					this.data = { foo: 12 };
+					this._super();
+				}
+			});
+
+			t.deepEqual( fired, [ ractive, ractive ] );
+			t.equal( fixture.innerHTML, '13' );
 
 
 		});

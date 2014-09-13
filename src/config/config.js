@@ -7,10 +7,22 @@ import parseOptions from 'config/options/groups/parseOptions';
 import registries from 'config/options/groups/registries';
 
 import wrap from 'utils/wrapPrototypeMethod';
+import wrapPrototype from 'utils/wrapPrototypeMethod';
 import deprecate from 'config/deprecate';
 
 
-var custom, options, config;
+var custom, options, config, blacklisted;
+
+
+// would be nice to not have these here,
+// they get added during initialise, so for now we have
+// to make sure not to try and extend them.
+// Possibly, we could re-order and not add till later
+// in process.
+blacklisted = {
+	'_parent' : true,
+	'_component' : true
+};
 
 custom = {
 	data: data,
@@ -37,6 +49,9 @@ for( let key in custom ) {
 
 // for iteration
 config.keys = Object.keys( defaults ).concat( registries.map( r => r.name ) ).concat( [ 'css' ] );
+
+// add these to blacklisted key's that we don't double extend
+config.keys.forEach( key => blacklisted[ key ] = true );
 
 config.parseOptions = parseOptions;
 config.registries = registries;
@@ -84,6 +99,23 @@ function configure ( method, Parent, instance, options ) {
 
 	customConfig( method, 'template', Parent, instance, options );
 	customConfig( method, 'css', Parent, instance, options );
+
+	extendOtherMethods( Parent.prototype, instance, options );
+}
+
+function extendOtherMethods ( parent, instance, options ) {
+	for ( let key in options ) {
+		if ( !( key in blacklisted ) && options.hasOwnProperty( key ) ) {
+			let member = options[ key ];
+
+			// if this is a method that overwrites a method, wrap it:
+			if ( typeof member === 'function' ) {
+				member = wrapPrototype( parent, key, member );
+			}
+
+			instance[ key ] = member;
+		}
+	}
 }
 
 config.reset = function ( ractive ) {
