@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.7
-	2014-09-12 - commit 06ce3d16 
+	2014-09-14 - commit c48f8d8e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2675,7 +2675,7 @@
 			legalReference;
 		legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
 		__export = function( parser, delimiterType ) {
-			var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, referenceExpression;
+			var start, pos, mustache, type, block, expression, i, remaining, index, delimiters;
 			start = parser.pos;
 			mustache = {};
 			delimiters = parser[ delimiterType.delimiters ];
@@ -2740,12 +2740,12 @@
 				// If this is a partial, it may have a context (e.g. `{{>item foo}}`). These
 				// cases involve a bit of a hack - we want to turn it into the equivalent of
 				// `{{#with foo}}{{>item}}{{/with}}`, but to get there we temporarily append
-				// a 'contextPartialId' to the mustache, and process the context instead of
+				// a 'contextPartialExpression' to the mustache, and process the context instead of
 				// the reference
 				var temp;
-				if ( mustache.t === types.PARTIAL && expression.t === types.REFERENCE && ( temp = parser.readExpression() ) ) {
+				if ( mustache.t === types.PARTIAL && expression && ( temp = parser.readExpression() ) ) {
 					mustache = {
-						contextPartialId: expression.n
+						contextPartialExpression: expression
 					};
 					expression = temp;
 				}
@@ -2772,6 +2772,22 @@
 					parser.pos = pos;
 				}
 			}
+			refineExpression( parser, expression, mustache );
+			// if there was context, process the expression now and save it for later
+			if ( mustache.contextPartialExpression ) {
+				mustache.contextPartialExpression = [ refineExpression( parser, mustache.contextPartialExpression, {
+					t: types.PARTIAL
+				} ) ];
+			}
+			// optional index reference
+			if ( i = parser.matchPattern( indexRefPattern ) ) {
+				mustache.i = i;
+			}
+			return mustache;
+		};
+
+		function refineExpression( parser, expression, mustache ) {
+			var referenceExpression;
 			if ( expression ) {
 				while ( expression.t === types.BRACKETED && expression.x ) {
 					expression = expression.x;
@@ -2789,13 +2805,9 @@
 						mustache.x = parser.flattenExpression( expression );
 					}
 				}
+				return mustache;
 			}
-			// optional index reference
-			if ( i = parser.matchPattern( indexRefPattern ) ) {
-				mustache.i = i;
-			}
-			return mustache;
-		};
+		}
 		// TODO refactor this! it's bewildering
 		function getReferenceExpression( parser, expression ) {
 			var members = [],
@@ -2896,14 +2908,11 @@
 				}
 			}
 			// partials with context
-			if ( mustache.contextPartialId ) {
-				mustache.f = [ {
-					t: types.PARTIAL,
-					r: mustache.contextPartialId
-				} ];
+			if ( mustache.contextPartialExpression ) {
+				mustache.f = mustache.contextPartialExpression;
 				mustache.t = types.SECTION;
 				mustache.n = 'with';
-				delete mustache.contextPartialId;
+				delete mustache.contextPartialExpression;
 			} else if ( isSection( mustache ) ) {
 				parser.sectionDepth += 1;
 				children = [];
@@ -11067,30 +11076,20 @@
 	};
 
 	/* virtualdom/items/Partial/_Partial.js */
-	var Partial = function( types, getPartialDescriptor, applyIndent, circular ) {
+	var Partial = function( types, getPartialDescriptor, applyIndent, circular, runloop, Mustache, config, parser ) {
 
 		var Partial, Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
 		Partial = function( options ) {
-			var parentFragment = this.parentFragment = options.parentFragment,
-				template;
+			var parentFragment = this.parentFragment = options.parentFragment;
 			this.type = types.PARTIAL;
 			this.name = options.template.r;
 			this.index = options.index;
 			this.root = parentFragment.root;
-			if ( !options.template.r ) {
-				// TODO support dynamic partial switching
-				throw new Error( 'Partials must have a static reference (no expressions). This may change in a future version of Ractive.' );
-			}
-			template = getPartialDescriptor( parentFragment.root, options.template.r );
-			this.fragment = new Fragment( {
-				template: template,
-				root: parentFragment.root,
-				owner: this,
-				pElement: parentFragment.pElement
-			} );
+			Mustache.init( this, options );
+			this.update();
 		};
 		Partial.prototype = {
 			bubble: function() {
@@ -11106,16 +11105,23 @@
 				return this.fragment.detach();
 			},
 			render: function() {
+				this.update();
+				this.rendered = true;
 				return this.fragment.render();
 			},
 			unrender: function( shouldDestroy ) {
-				this.fragment.unrender( shouldDestroy );
+				if ( this.rendered ) {
+					this.fragment.unrender( shouldDestroy );
+					this.rendered = false;
+				}
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
 				return this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 			},
 			unbind: function() {
-				this.fragment.unbind();
+				if ( this.fragment ) {
+					this.fragment.unbind();
+				}
 			},
 			toString: function( toString ) {
 				var string, previousItem, lastLine, match;
@@ -11144,10 +11150,52 @@
 			},
 			getValue: function() {
 				return this.fragment.getValue();
+			},
+			resolve: Mustache.resolve,
+			setValue: function( value ) {
+				if ( this.value !== value ) {
+					if ( this.fragment && this.rendered ) {
+						this.fragment.unrender( true );
+					}
+					this.fragment = null;
+					this.value = value;
+					if ( this.rendered ) {
+						runloop.addView( this );
+					} else {
+						this.update();
+						this.bubble();
+					}
+				}
+			},
+			update: function() {
+				var template, docFrag, target, anchor;
+				if ( !this.fragment ) {
+					if ( this.name && ( config.registries.partials.findInstance( this.root, this.name ) || parser.fromId( this.name, {
+						noThrow: true
+					} ) ) ) {
+						template = getPartialDescriptor( this.root, this.name );
+					} else if ( this.value ) {
+						template = getPartialDescriptor( this.root, this.value );
+					} else {
+						template = [];
+					}
+					this.fragment = new Fragment( {
+						template: template,
+						root: this.root,
+						owner: this,
+						pElement: this.parentFragment.pElement
+					} );
+					if ( this.rendered ) {
+						target = this.parentFragment.getNode();
+						docFrag = this.fragment.render();
+						anchor = this.parentFragment.findNextNode( this );
+						target.insertBefore( docFrag, anchor );
+					}
+				}
 			}
 		};
 		return Partial;
-	}( types, getPartialDescriptor, applyIndent, circular );
+	}( types, getPartialDescriptor, applyIndent, circular, runloop, Mustache, config, parser );
 
 	/* virtualdom/items/Component/getComponent.js */
 	var getComponent = function( config, log, circular ) {
