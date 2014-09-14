@@ -33,6 +33,11 @@ function init ( Parent, ractive, options ) {
 		result = result.call( ractive, value ) || value;
 	}
 
+	// make sure things that can't have properties slip through
+	if ( typeof result !== 'object' && typeof result !== 'function' ) {
+		result = {};
+	}
+
 	return ractive.data = result || {};
 }
 

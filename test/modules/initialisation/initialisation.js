@@ -217,6 +217,20 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'barbizz' );
 		});
 
+		test( 'initing data with a primitive uses a fresh empty object instead', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{ test }}',
+				data: 1
+			});
+
+			t.equal( fixture.innerHTML, '' );
+
+			ractive.set( 'test', 'foo' );
+
+			t.equal( fixture.innerHTML, 'foo' );
+		});
+
 		test( 'Instantiated .extend() with data uses existing data instance', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
