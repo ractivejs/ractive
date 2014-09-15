@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.7
-	2014-09-15 - commit 936b119e 
+	2014-09-15 - commit 93c5e306 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5039,6 +5039,12 @@
 				if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
 					args[ i ] = {
 						keypath: keypath
+					};
+					return;
+				} else if ( reference === '.' ) {
+					// special case of context reference to root
+					args[ i ] = {
+						'': ''
 					};
 					return;
 				}
