@@ -1538,6 +1538,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( two.getAttribute( 'spellchecker' ), 'false' );
 		});
 
+		test( '. reference without any implicit or explicit context should resolve to root', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{JSON.stringify(.)}}',
+				data: { foo: 'bar' }
+			});
+
+			t.equal( fixture.innerHTML, JSON.stringify( ractive.data ) );
+		});
+
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting
 		// these out so it will build
