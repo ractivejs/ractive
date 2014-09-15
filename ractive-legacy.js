@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.7
-	2014-09-14 - commit c48f8d8e 
+	2014-09-15 - commit 936b119e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8179,7 +8179,8 @@
 		__export = function( html, node, docFrag ) {
 			var container, nodes = [],
 				wrapper, selectedOption, child, i;
-			if ( html ) {
+			// render 0 and false
+			if ( html != null && html !== '' ) {
 				if ( ieBug && ( wrapper = ieBlacklist[ node.tagName ] ) ) {
 					container = element( 'DIV' );
 					container.innerHTML = wrapper[ 0 ] + html + wrapper[ 1 ];
