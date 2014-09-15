@@ -157,6 +157,30 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, 'cayield' );
 		});
+
+		test( 'A component {{yield}} should be parented by the fragment holding the yield and not the fragment holding the component', t => {
+			let template, widget;
+
+			template = `<widget foo='{{foo}}'>
+				{{#if foo}}foo!{{/if}}
+				{{#if foo}}foo!{{/if}}
+			</widget>`;
+
+			widget = Ractive.extend({
+				template: '<div>{{yield}}</div>',
+				data: {
+					foo: true
+				}
+			});
+
+			new Ractive({
+				el: fixture,
+				template: template,
+				components: { widget }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<div>foo! foo!</div>' );
+		});
 	};
 
 });
