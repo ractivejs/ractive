@@ -814,6 +814,12 @@ var renderTests = [
 		result: '<img style="width: 100px;">',
 		new_data: { width: 200 },
 		new_result: '<img style="width: 100px;">'
+	},
+	{
+		name: 'Triples with falsy values',
+		template: '{{#each values}}{{{this}}}{{/each}}',
+		data: { values: [ 0, false, undefined, '', null ] },
+		result: '0false'
 	}
 ];
 
