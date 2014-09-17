@@ -842,8 +842,13 @@ var renderTests = [
 	},
 	{
 		name: '&amp; stays as &amp;',
-		template: '<span>&amp;#x2713</span>',
+		template: '<span>&amp;#x2713;</span>',
 		result: '<span>&amp;#x2713;</span>'
+	},
+	{
+		name: 'Hexadecimal entities',
+		template: '<span>&#x3F;</span>',
+		result: '<span>&#x3F;</span>'
 	}
 ];
 
