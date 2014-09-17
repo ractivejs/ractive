@@ -1,6 +1,6 @@
 import getLowestIndex from 'parse/converters/utils/getLowestIndex';
 import getMustache from 'parse/converters/mustache';
-import decodeCharacterReferences from 'parse/converters/utils/decodeCharacterReferences';
+import decodeCharacterReferences from 'shared/decodeCharacterReferences';
 
 var attributeNamePattern = /^[^\s"'>\/=]+/,
 	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
