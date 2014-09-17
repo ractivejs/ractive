@@ -1537,6 +1537,23 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive.findComponent( 'widget' ).teardown();
 		});
 
+		test( 'component.teardown() causes component to be removed from the DOM (#1223)', function ( t ) {
+			var Widget, ractive, _fixture;
+
+			Widget = Ractive.extend({
+				template: '<p>I am here!</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: { widget: Widget }
+			});
+
+			ractive.findComponent( 'widget' ).teardown();
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
 	};
 
 });

@@ -1,20 +1,26 @@
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
 import css from 'global/css';
+import log from 'utils/log';
+import Promise from 'utils/Promise';
 
 export default function Ractive$unrender () {
 	var promise, shouldDestroy;
 
 	if ( !this.rendered ) {
-		throw new Error( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
+		log.warn({
+			debug: this.debug,
+			message: 'ractive.unrender() was called on a Ractive instance that was not rendered'
+		});
+
+		return Promise.resolve();
 	}
 
 	promise = runloop.start( this, true );
 
 	// If this is a component, and the component isn't marked for destruction,
 	// don't detach nodes from the DOM unnecessarily
-	shouldDestroy = !this.component || this.component.shouldDestroy;
-	shouldDestroy = shouldDestroy || this.shouldDestroy;
+	shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
 
 	if ( this.constructor.css ) {
 		promise.then( () => {
