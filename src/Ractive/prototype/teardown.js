@@ -16,6 +16,7 @@ export default function Ractive$teardown ( callback ) {
 		removeFromArray( this.el.__ractive_instances__, this );
 	}
 
+	this.shouldDestroy = true;
 	promise = ( this.rendered ? this.unrender() : Promise.resolve() );
 
 	if ( callback ) {
