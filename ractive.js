@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.7
-	2014-09-17 - commit 96055636 
+	2014-09-17 - commit 42c0d16b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3098,11 +3098,71 @@
 		return lowest || -1;
 	};
 
-	/* parse/converters/utils/decodeCharacterReferences.js */
+	/* parse/converters/text.js */
+	var text = function( getLowestIndex ) {
+
+		return function( parser ) {
+			var index, remaining, disallowed, barrier;
+			remaining = parser.remaining();
+			barrier = parser.inside ? '</' + parser.inside : '<';
+			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
+				index = remaining.indexOf( barrier );
+			} else {
+				disallowed = [
+					barrier,
+					parser.delimiters[ 0 ],
+					parser.tripleDelimiters[ 0 ],
+					parser.staticDelimiters[ 0 ],
+					parser.staticTripleDelimiters[ 0 ]
+				];
+				// http://developers.whatwg.org/syntax.html#syntax-attributes
+				if ( parser.inAttribute === true ) {
+					// we're inside an unquoted attribute value
+					disallowed.push( '"', '\'', '=', '>', '`' );
+				} else if ( parser.inAttribute ) {
+					// quoted attribute value
+					disallowed.push( parser.inAttribute );
+				}
+				index = getLowestIndex( remaining, disallowed );
+			}
+			if ( !index ) {
+				return null;
+			}
+			if ( index === -1 ) {
+				index = remaining.length;
+			}
+			parser.pos += index;
+			return remaining.substr( 0, index );
+		};
+	}( getLowestIndex );
+
+	/* parse/converters/element/closingTag.js */
+	var closingTag = function( types ) {
+
+		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
+		return function( parser ) {
+			var tag;
+			// are we looking at a closing tag?
+			if ( !parser.matchString( '</' ) ) {
+				return null;
+			}
+			if ( tag = parser.matchPattern( closingTagPattern ) ) {
+				return {
+					t: types.CLOSING_TAG,
+					e: tag
+				};
+			}
+			// We have an illegal closing tag, report it
+			parser.pos -= 2;
+			parser.error( 'Illegal closing tag' );
+		};
+	}( types );
+
+	/* shared/decodeCharacterReferences.js */
 	var decodeCharacterReferences = function() {
 
 		var __export;
-		var htmlEntities, controlCharacters, namedEntityPattern, hexEntityPattern, decimalEntityPattern;
+		var htmlEntities, controlCharacters, entityPattern;
 		htmlEntities = {
 			quot: 34,
 			amp: 38,
@@ -3392,27 +3452,23 @@
 			382,
 			376
 		];
-		namedEntityPattern = new RegExp( '&(' + Object.keys( htmlEntities ).join( '|' ) + ');?', 'g' );
-		hexEntityPattern = /&#x([0-9]+);?/g;
-		decimalEntityPattern = /&#([0-9]+);?/g;
+		entityPattern = new RegExp( '&(#?(?:x[\\w\\d]+|\\d+|' + Object.keys( htmlEntities ).join( '|' ) + '));?', 'g' );
 		__export = function decodeCharacterReferences( html ) {
-			var result;
-			// named entities
-			result = html.replace( namedEntityPattern, function( match, name ) {
-				if ( htmlEntities[ name ] ) {
-					return String.fromCharCode( htmlEntities[ name ] );
+			return html.replace( entityPattern, function( match, entity ) {
+				var code;
+				// Handle named entities
+				if ( entity[ 0 ] !== '#' ) {
+					code = htmlEntities[ entity ];
+				} else if ( entity[ 1 ] === 'x' ) {
+					code = parseInt( entity.substring( 2 ), 16 );
+				} else {
+					code = parseInt( entity.substring( 1 ), 10 );
 				}
-				return match;
+				if ( !code ) {
+					return match;
+				}
+				return String.fromCharCode( validateCode( code ) );
 			} );
-			// hex references
-			result = result.replace( hexEntityPattern, function( match, hex ) {
-				return String.fromCharCode( validateCode( parseInt( hex, 16 ) ) );
-			} );
-			// decimal references
-			result = result.replace( decimalEntityPattern, function( match, charCode ) {
-				return String.fromCharCode( validateCode( charCode ) );
-			} );
-			return result;
 		};
 		// some code points are verboten. If we were inserting HTML, the browser would replace the illegal
 		// code points with alternatives in some cases - since we're bypassing that mechanism, we need
@@ -3453,68 +3509,8 @@
 		return __export;
 	}( legacy );
 
-	/* parse/converters/text.js */
-	var text = function( getLowestIndex, decodeCharacterReferences ) {
-
-		return function( parser ) {
-			var index, remaining, disallowed, barrier;
-			remaining = parser.remaining();
-			barrier = parser.inside ? '</' + parser.inside : '<';
-			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
-				index = remaining.indexOf( barrier );
-			} else {
-				disallowed = [
-					barrier,
-					parser.delimiters[ 0 ],
-					parser.tripleDelimiters[ 0 ],
-					parser.staticDelimiters[ 0 ],
-					parser.staticTripleDelimiters[ 0 ]
-				];
-				// http://developers.whatwg.org/syntax.html#syntax-attributes
-				if ( parser.inAttribute === true ) {
-					// we're inside an unquoted attribute value
-					disallowed.push( '"', '\'', '=', '>', '`' );
-				} else if ( parser.inAttribute ) {
-					// quoted attribute value
-					disallowed.push( parser.inAttribute );
-				}
-				index = getLowestIndex( remaining, disallowed );
-			}
-			if ( !index ) {
-				return null;
-			}
-			if ( index === -1 ) {
-				index = remaining.length;
-			}
-			parser.pos += index;
-			return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
-		};
-	}( getLowestIndex, decodeCharacterReferences );
-
-	/* parse/converters/element/closingTag.js */
-	var closingTag = function( types ) {
-
-		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
-		return function( parser ) {
-			var tag;
-			// are we looking at a closing tag?
-			if ( !parser.matchString( '</' ) ) {
-				return null;
-			}
-			if ( tag = parser.matchPattern( closingTagPattern ) ) {
-				return {
-					t: types.CLOSING_TAG,
-					e: tag
-				};
-			}
-			// We have an illegal closing tag, report it
-			parser.pos -= 2;
-			parser.error( 'Illegal closing tag' );
-		};
-	}( types );
-
 	/* parse/converters/element/attribute.js */
-	var attribute = function( getLowestIndex, getMustache ) {
+	var attribute = function( getLowestIndex, getMustache, decodeCharacterReferences ) {
 
 		var __export;
 		var attributeNamePattern = /^[^\s"'>\/=]+/,
@@ -3562,7 +3558,7 @@
 				return null;
 			}
 			if ( value.length === 1 && typeof value[ 0 ] === 'string' ) {
-				return value[ 0 ];
+				return decodeCharacterReferences( value[ 0 ] );
 			}
 			return value;
 		}
@@ -3647,7 +3643,7 @@
 			return haystack.substr( 0, index );
 		}
 		return __export;
-	}( getLowestIndex, mustache );
+	}( getLowestIndex, mustache, decodeCharacterReferences );
 
 	/* utils/parseJSON.js */
 	var parseJSON = function( Parser, getStringLiteral, getKey ) {
@@ -6318,7 +6314,7 @@
 	}( detachNode );
 
 	/* virtualdom/items/Text.js */
-	var Text = function( types, escapeHtml, detach ) {
+	var Text = function( types, escapeHtml, detach, decodeCharacterReferences ) {
 
 		var Text = function( options ) {
 			this.type = types.TEXT;
@@ -6331,7 +6327,7 @@
 			},
 			render: function() {
 				if ( !this.node ) {
-					this.node = document.createTextNode( this.text );
+					this.node = document.createTextNode( decodeCharacterReferences( this.text ) );
 				}
 				return this.node;
 			},
@@ -6345,7 +6341,7 @@
 			}
 		};
 		return Text;
-	}( types, escapeHtml, detach );
+	}( types, escapeHtml, detach, decodeCharacterReferences );
 
 	/* virtualdom/items/shared/unbind.js */
 	var unbind = function( runloop ) {
@@ -7906,9 +7902,12 @@
 	}( runloop );
 
 	/* virtualdom/items/Triple/prototype/toString.js */
-	var virtualdom_items_Triple$toString = function Triple$toString() {
-		return this.value != undefined ? this.value : '';
-	};
+	var virtualdom_items_Triple$toString = function( decodeCharacterReferences ) {
+
+		return function Triple$toString() {
+			return this.value != undefined ? decodeCharacterReferences( '' + this.value ) : '';
+		};
+	}( decodeCharacterReferences );
 
 	/* virtualdom/items/Triple/prototype/unrender.js */
 	var virtualdom_items_Triple$unrender = function( detachNode ) {
@@ -8520,10 +8519,10 @@
 	var virtualdom_items_Element_Attribute$update = function( namespaces, noop, updateSelectValue, updateMultipleSelectValue, updateRadioName, updateRadioValue, updateCheckboxName, updateClassName, updateIdAttribute, updateIEStyleAttribute, updateContentEditableValue, updateValue, updateBoolean, updateEverythingElse ) {
 
 		return function Attribute$update() {
-			var name, element, node, type, updateMethod;
-			name = this.name;
-			element = this.element;
-			node = this.node;
+			var name = ( node = this ).name,
+				element = node.element,
+				node = node.node,
+				type, updateMethod;
 			if ( name === 'id' ) {
 				updateMethod = updateIdAttribute;
 			} else if ( name === 'value' ) {
