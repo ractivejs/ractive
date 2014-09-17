@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.7
-	2014-09-17 - commit 9c67b01d 
+	2014-09-17 - commit 96055636 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10981,6 +10981,7 @@
 			if ( this.rendered && this.el.__ractive_instances__ ) {
 				removeFromArray( this.el.__ractive_instances__, this );
 			}
+			this.shouldDestroy = true;
 			promise = this.rendered ? this.unrender() : Promise.resolve();
 			if ( callback ) {
 				// TODO deprecate this?
@@ -11015,19 +11016,22 @@
 	};
 
 	/* Ractive/prototype/unrender.js */
-	var Ractive$unrender = function( removeFromArray, runloop, css ) {
+	var Ractive$unrender = function( removeFromArray, runloop, css, log, Promise ) {
 
 		return function Ractive$unrender() {
 			var this$0 = this;
 			var promise, shouldDestroy;
 			if ( !this.rendered ) {
-				throw new Error( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
+				log.warn( {
+					debug: this.debug,
+					message: 'ractive.unrender() was called on a Ractive instance that was not rendered'
+				} );
+				return Promise.resolve();
 			}
 			promise = runloop.start( this, true );
 			// If this is a component, and the component isn't marked for destruction,
 			// don't detach nodes from the DOM unnecessarily
-			shouldDestroy = !this.component || this.component.shouldDestroy;
-			shouldDestroy = shouldDestroy || this.shouldDestroy;
+			shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
 			if ( this.constructor.css ) {
 				promise.then( function() {
 					css.remove( this$0.constructor );
@@ -11043,7 +11047,7 @@
 			runloop.end();
 			return promise;
 		};
-	}( removeFromArray, runloop, global_css );
+	}( removeFromArray, runloop, global_css, log, Promise );
 
 	/* Ractive/prototype/unshift.js */
 	var Ractive$unshift = function( makeArrayMethod ) {
