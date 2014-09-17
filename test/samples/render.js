@@ -820,6 +820,30 @@ var renderTests = [
 		template: '{{#each values}}{{{this}}}{{/each}}',
 		data: { values: [ 0, false, undefined, '', null ] },
 		result: '0false'
+	},
+
+	// https://github.com/ractivejs/ractive/issues/1221
+	{
+		name: 'HTML entities in static attributes',
+		template: '<span data-foo="&#x2713;"></span>',
+		result: '<span data-foo="&#x2713;"></span>'
+	},
+	{
+		name: 'HTML entities in dynamic attributes',
+		template: '<span data-foo="{{foo}}"></span>',
+		data: { foo: '&#x2713;' },
+		result: '<span data-foo="&amp;#x2713;"></span>'
+	},
+	{
+		name: 'HTML entities in triples in attributes',
+		template: '<span data-foo="{{{foo}}}"></span>',
+		data: { foo: '&#x2713;' },
+		result: '<span data-foo="&#x2713;"></span>'
+	},
+	{
+		name: '&amp; stays as &amp;',
+		template: '<span>&amp;#x2713</span>',
+		result: '<span>&amp;#x2713;</span>'
 	}
 ];
 
