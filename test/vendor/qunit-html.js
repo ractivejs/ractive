@@ -18,11 +18,7 @@
 	}
 
 	function trim ( str ) {
-		if ( str.trim ) {
-			return str.trim();
-		}
-
-		return str.replace( /^s+/, '' ).replace( /\s+$/, '' );
+		return str.replace( /^( |\r?\n)+/, '' ).replace( /( |\r?\n)+$/, '' );
 	}
 
 	function stubNode ( node ) {
