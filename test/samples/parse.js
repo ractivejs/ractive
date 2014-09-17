@@ -228,31 +228,6 @@ var parseTests = [
 		parsed: {v:1,t:[{"a":{"class":"foo"},"e":"div","t":7}]}
 	},
 	{
-		name: 'HTML entities are treated correctly in pure string templates',
-		template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;',
-		parsed: {v:1,t:['Non\u00A0breaking\u00A0spaces\u00A0']}
-	},
-	{
-		name: 'HTML entities are treated correctly in regular templates',
-		template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;<div id="foo"></div>',
-		parsed: {v:1,t:['Non\u00A0breaking\u00A0spaces\u00A0',{t:7,e:'div',a:{id:'foo'}}]}
-	},
-	{
-		name: 'HTML entities are treated correctly in pure string templates if semi-colon is omitted',
-		template: 'Non&nbspbreaking&nbspspaces&nbsp',
-		parsed: {v:1,t:['Non\u00A0breaking\u00A0spaces\u00A0']}
-	},
-	{
-		name: 'HTML entities are treated correctly in regular templates if semi-colon is omitted',
-		template: 'Non&nbspbreaking&nbspspaces&nbsp<div id="foo"></div>',
-		parsed: {v:1,t:['Non\u00A0breaking\u00A0spaces\u00A0',{t:7,e:'div',a:{id:'foo'}}]}
-	},
-	{
-		name: 'Illegal code points between 128 and 159 are dealt with',
-		template: 'Euro sign: &#128; &#8364; {{foo}}',
-		parsed: {v:1,t:['Euro sign: \u20AC \u20AC ',{t:2,r:'foo'}]}
-	},
-	{
 		name: 'References can begin with browser globals',
 		template: '{{ DateRange }}',
 		parsed: {v:1,t:[{t:2,r:'DateRange'}]}

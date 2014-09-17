@@ -849,6 +849,31 @@ var renderTests = [
 		name: 'Hexadecimal entities',
 		template: '<span>&#x3F;</span>',
 		result: '<span>&#x3F;</span>'
+	},
+	{
+		name: 'HTML entities are treated correctly in pure string templates',
+		template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;',
+		result: 'Non\u00A0breaking\u00A0spaces\u00A0'
+	},
+	{
+		name: 'HTML entities are treated correctly in regular templates',
+		template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;<div id="foo"></div>',
+		result: 'Non\u00A0breaking\u00A0spaces\u00A0<div id="foo"></div>'
+	},
+	{
+		name: 'HTML entities are treated correctly in pure string templates if semi-colon is omitted',
+		template: 'Non&nbspbreaking&nbspspaces&nbsp',
+		result: 'Non\u00A0breaking\u00A0spaces\u00A0'
+	},
+	{
+		name: 'HTML entities are treated correctly in regular templates if semi-colon is omitted',
+		template: 'Non&nbspbreaking&nbspspaces&nbsp<div id="foo"></div>',
+		result: 'Non\u00A0breaking\u00A0spaces\u00A0<div id="foo"></div>'
+	},
+	{
+		name: 'Illegal code points between 128 and 159 are dealt with',
+		template: 'Euro sign: &#128; &#8364;',
+		result: 'Euro sign: &#128; &#8364;'
 	}
 ];
 
