@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.7
-	2014-09-17 - commit 957b073d 
+	2014-09-17 - commit 9c67b01d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12075,10 +12075,7 @@
 	var virtualdom_items_Component$unrender = function( fireEvent ) {
 
 		return function Component$unrender( shouldDestroy ) {
-			fireEvent( this.instance, 'teardown', {
-				reserved: true
-			} );
-			// TODO what's the meaning of reserved: true? not used anywhere AFAICT
+			fireEvent( this.instance, 'teardown' );
 			this.shouldDestroy = shouldDestroy;
 			this.instance.unrender();
 		};
