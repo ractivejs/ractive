@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.7
-	2014-09-15 - commit 93c5e306 
+	2014-09-17 - commit 957b073d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3456,7 +3456,7 @@
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
 		this.dirtyValue = this.dirtyArgs = true;
-		if ( this.inited && typeof this.owner.bubble === 'function' ) {
+		if ( this.bound && typeof this.owner.bubble === 'function' ) {
 			this.owner.bubble();
 		}
 	};
@@ -10072,6 +10072,7 @@
 			fireEvent( this.instance, 'teardown', {
 				reserved: true
 			} );
+			// TODO what's the meaning of reserved: true? not used anywhere AFAICT
 			this.shouldDestroy = shouldDestroy;
 			this.instance.unrender();
 		};
@@ -10287,7 +10288,7 @@
 			} );
 			this.value = this.argsList = null;
 			this.dirtyArgs = this.dirtyValue = true;
-			this.inited = true;
+			this.bound = true;
 		};
 	}( types, create, virtualdom_Fragment$init_createItem );
 
@@ -10338,7 +10339,11 @@
 
 		var __export;
 		__export = function Fragment$unbind() {
+			if ( !this.bound ) {
+				return;
+			}
 			this.items.forEach( unbindItem );
+			this.bound = false;
 		};
 
 		function unbindItem( item ) {
@@ -10357,6 +10362,7 @@
 		this.items.forEach( function( i ) {
 			return i.unrender( shouldDestroy );
 		} );
+		this.rendered = false;
 	};
 
 	/* virtualdom/Fragment.js */
