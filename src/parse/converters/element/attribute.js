@@ -1,5 +1,6 @@
 import getLowestIndex from 'parse/converters/utils/getLowestIndex';
 import getMustache from 'parse/converters/mustache';
+import decodeCharacterReferences from 'shared/decodeCharacterReferences';
 
 var attributeNamePattern = /^[^\s"'>\/=]+/,
 	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
@@ -64,7 +65,7 @@ function getAttributeValue ( parser ) {
 	}
 
 	if ( value.length === 1 && typeof value[0] === 'string' ) {
-		return value[0];
+		return decodeCharacterReferences( value[0] );
 	}
 
 	return value;

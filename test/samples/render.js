@@ -820,6 +820,60 @@ var renderTests = [
 		template: '{{#each values}}{{{this}}}{{/each}}',
 		data: { values: [ 0, false, undefined, '', null ] },
 		result: '0false'
+	},
+
+	// https://github.com/ractivejs/ractive/issues/1221
+	{
+		name: 'HTML entities in static attributes',
+		template: '<span data-foo="&#x2713;"></span>',
+		result: '<span data-foo="&#x2713;"></span>'
+	},
+	{
+		name: 'HTML entities in dynamic attributes',
+		template: '<span data-foo="{{foo}}"></span>',
+		data: { foo: '&#x2713;' },
+		result: '<span data-foo="&amp;#x2713;"></span>'
+	},
+	{
+		name: 'HTML entities in triples in attributes',
+		template: '<span data-foo="{{{foo}}}"></span>',
+		data: { foo: '&#x2713;' },
+		result: '<span data-foo="&#x2713;"></span>'
+	},
+	{
+		name: '&amp; stays as &amp;',
+		template: '<span>&amp;#x2713;</span>',
+		result: '<span>&amp;#x2713;</span>'
+	},
+	{
+		name: 'Hexadecimal entities',
+		template: '<span>&#x3F;</span>',
+		result: '<span>&#x3F;</span>'
+	},
+	{
+		name: 'HTML entities are treated correctly in pure string templates',
+		template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;',
+		result: 'Non\u00A0breaking\u00A0spaces\u00A0'
+	},
+	{
+		name: 'HTML entities are treated correctly in regular templates',
+		template: 'Non&nbsp;breaking&nbsp;spaces&nbsp;<div id="foo"></div>',
+		result: 'Non\u00A0breaking\u00A0spaces\u00A0<div id="foo"></div>'
+	},
+	{
+		name: 'HTML entities are treated correctly in pure string templates if semi-colon is omitted',
+		template: 'Non&nbspbreaking&nbspspaces&nbsp',
+		result: 'Non\u00A0breaking\u00A0spaces\u00A0'
+	},
+	{
+		name: 'HTML entities are treated correctly in regular templates if semi-colon is omitted',
+		template: 'Non&nbspbreaking&nbspspaces&nbsp<div id="foo"></div>',
+		result: 'Non\u00A0breaking\u00A0spaces\u00A0<div id="foo"></div>'
+	},
+	{
+		name: 'Illegal code points between 128 and 159 are dealt with',
+		template: 'Euro sign: &#128; &#8364;',
+		result: 'Euro sign: &#128; &#8364;'
 	}
 ];
 

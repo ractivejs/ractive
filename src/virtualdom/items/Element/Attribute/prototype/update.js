@@ -19,11 +19,7 @@ import updateEverythingElse from 'virtualdom/items/Element/Attribute/prototype/u
 // attribute has finished initialising, then replaces the prototype method with a more
 // suitable one. That way, we save ourselves doing a bunch of tests on each call
 export default function Attribute$update () {
-	var name, element, node, type, updateMethod;
-
-	name = this.name;
-	element = this.element;
-	node = this.node;
+	var { name, element, node } = this, type, updateMethod;
 
 	if ( name === 'id' ) {
 		updateMethod = updateIdAttribute;
