@@ -61,7 +61,6 @@ function getElement ( parser ) {
 		child;
 
 	start = parser.pos;
-	startPos = parser.getLinePos();
 
 	if ( parser.inside ) {
 		return null;
@@ -81,7 +80,7 @@ function getElement ( parser ) {
 	};
 
 	if ( parser.includeLinePositions ) {
-		element.p = startPos.toJSON();
+		element.p = parser.getLinePos( start );
 	}
 
 	if ( parser.matchString( '!' ) ) {

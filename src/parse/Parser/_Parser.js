@@ -19,11 +19,19 @@ ParseError = function ( message ) {
 ParseError.prototype = Error.prototype;
 
 Parser = function ( str, options ) {
-	var items, item;
+	var items, item, lineStart = 0;
 
 	this.str = str;
 	this.options = options || {};
 	this.pos = 0;
+
+	this.lines = this.str.split( '\n' );
+	this.lineEnds = this.lines.map( line => {
+		var lineEnd = lineStart + line.length + 1; // +1 for the newline
+
+		lineStart = lineEnd;
+		return lineEnd;
+	}, 0 );
 
 	// Custom init logic
 	if ( this.init ) this.init( str, options );
@@ -70,42 +78,32 @@ Parser.prototype = {
 
 	flattenExpression: flattenExpression,
 
-	getLinePos: function () {
-		var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, charNum, annotation;
+	getLinePos: function ( char ) {
+		var lineNum = 0, lineStart = 0, columnNum;
 
-		lines = this.str.split( '\n' );
+		while ( char >= this.lineEnds[ lineNum ] ) {
+			lineStart = this.lineEnds[ lineNum ];
+			lineNum += 1;
+		}
 
-		lineNum = 0;
-		nextLineEnd = 0;
-
-		do {
-			currentLineEnd = nextLineEnd;
-			lineNum ++;
-			currentLine = lines[ lineNum - 1 ];
-			nextLineEnd += currentLine.length + 1; // +1 for the newline
-		} while ( nextLineEnd <= this.pos );
-
-		charNum = ( this.pos - currentLineEnd ) + 1;
-		annotation = currentLine + '\n' + new Array( charNum ).join( ' ' ) + '^----';
-
-		return {
-			line: lineNum,
-			ch: charNum,
-			text: currentLine,
-			annotation: annotation,
-			toJSON: () => [ lineNum, charNum ],
-			toString: () => `line ${lineNum} character ${charNum}`
-		};
+		columnNum = char - lineStart;
+		return [ lineNum + 1, columnNum + 1 ]; // should be one-based, not zero-based!
 	},
 
 	error: function ( message ) {
-		var pos, error;
+		var pos, lineNum, columnNum, posStr, line, annotation, error;
 
-		pos = this.getLinePos();
-		error = new ParseError( message + ' at ' + pos + ':\n' + pos.annotation );
+		pos = this.getLinePos( this.pos );
+		lineNum = pos[0];
+		columnNum = pos[1];
 
-		error.line = pos.line;
-		error.character = pos.ch;
+		line = this.lines[ pos[0] - 1 ];
+		annotation = line + '\n' + new Array( pos[1] ).join( ' ' ) + '^----';
+
+		error = new ParseError( message + ' at line ' + lineNum + ' character ' + columnNum + ':\n' + annotation );
+
+		error.line = pos[0];
+		error.character = pos[1];
 		error.shortMessage = message;
 
 		throw error;

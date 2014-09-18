@@ -4,9 +4,9 @@ var OPEN_COMMENT = '<!--',
 	CLOSE_COMMENT = '-->';
 
 export default function ( parser ) {
-	var startPos, content, remaining, endIndex, comment;
+	var start, content, remaining, endIndex, comment;
 
-	startPos = parser.getLinePos();
+	start = parser.pos;
 
 	if ( !parser.matchString( OPEN_COMMENT ) ) {
 		return null;
@@ -28,7 +28,7 @@ export default function ( parser ) {
 	};
 
 	if ( parser.includeLinePositions ) {
-		comment.p = startPos.toJSON();
+		comment.p = parser.getLinePos( start );
 	}
 
 	return comment;
