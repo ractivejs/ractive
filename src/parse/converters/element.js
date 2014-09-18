@@ -48,7 +48,6 @@ export default getElement;
 
 function getElement ( parser ) {
 	var start,
-		startPos,
 		element,
 		lowerCaseName,
 		directiveName,

@@ -91,7 +91,7 @@ Parser.prototype = {
 	},
 
 	error: function ( message ) {
-		var pos, lineNum, columnNum, posStr, line, annotation, error;
+		var pos, lineNum, columnNum, line, annotation, error;
 
 		pos = this.getLinePos( this.pos );
 		lineNum = pos[0];
