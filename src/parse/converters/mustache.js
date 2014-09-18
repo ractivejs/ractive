@@ -34,10 +34,9 @@ function getMustache ( parser ) {
 }
 
 function getMustacheOfType ( parser, delimiterType ) {
-	var start, startPos, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
+	var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
 
 	start = parser.pos;
-	startPos = parser.getLinePos();
 
 	delimiters = parser[ delimiterType.delimiters ];
 
@@ -147,7 +146,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 	}
 
 	if ( parser.includeLinePositions ) {
-		mustache.p = startPos.toJSON();
+		mustache.p = parser.getLinePos( start );
 	}
 
 	// Replace block name with code
