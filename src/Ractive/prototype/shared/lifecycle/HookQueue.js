@@ -1,10 +1,10 @@
 
 function LifecycleHook ( event ) {
-	var upperCase = event[0].toUpperCase() + event.substring(1);
-	this.instanceEvent = event;
-	this.instanceMethod = 'on' + upperCase;
-	this.event = event + 'ed';
-	this.method = 'on' + upperCase + 'ed';
+	// var upperCase = event[0].toUpperCase() + event.substring(1);
+	this.instanceEvent = 'pre' + event;
+	this.instanceMethod = 'onpre' + event;
+	this.event = event;
+	this.method = 'on' + event;
 	this.inProcess = {};
 	this.queue = {};
 }
@@ -37,6 +37,10 @@ LifecycleHook.prototype = {
 
 			delete this.inProcess[ ractive._guid ];
 		}
+	},
+
+	fire: function ( ractive ) {
+		fireHook( ractive, this.method, this.event );
 	}
 };
 

@@ -1,3 +1,5 @@
+import decodeCharacterReferences from 'shared/decodeCharacterReferences';
+
 export default function Triple$toString () {
-	return ( this.value != undefined ? this.value : '' );
+	return ( this.value != undefined ? decodeCharacterReferences( '' + this.value ) : '' );
 }

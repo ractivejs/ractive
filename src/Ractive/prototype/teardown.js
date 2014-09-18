@@ -17,9 +17,10 @@ export default function Ractive$teardown ( callback ) {
 		removeFromArray( this.el.__ractive_instances__, this );
 	}
 
+	this.shouldDestroy = true;
 	promise = ( this.fragment.rendered ? this.unrender() : Promise.resolve() );
 
-	teardownHook.end( this );
+	teardownHook.fire( this );
 
 	if ( callback ) {
 		// TODO deprecate this?

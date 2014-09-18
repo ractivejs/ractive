@@ -1,5 +1,7 @@
 import css from 'global/css';
 import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
+import log from 'utils/log';
+import Promise from 'utils/Promise';
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
 
@@ -9,7 +11,12 @@ export default function Ractive$unrender () {
 	var promise, shouldDestroy;
 
 	if ( !this.fragment.rendered ) {
-		throw new Error( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
+		log.warn({
+			debug: this.debug,
+			message: 'ractive.unrender() was called on a Ractive instance that was not rendered'
+		});
+
+		return Promise.resolve();
 	}
 
 	unrenderHook.begin(this);
@@ -18,8 +25,7 @@ export default function Ractive$unrender () {
 
 	// If this is a component, and the component isn't marked for destruction,
 	// don't detach nodes from the DOM unnecessarily
-	shouldDestroy = !this.component || this.component.shouldDestroy;
-	shouldDestroy = shouldDestroy || this.shouldDestroy;
+	shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
 
 	if ( this.constructor.css ) {
 		promise.then( () => {

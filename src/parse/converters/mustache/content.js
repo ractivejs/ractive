@@ -11,7 +11,7 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
 
 export default function ( parser, delimiterType ) {
-	var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, referenceExpression;
+	var start, pos, mustache, type, block, expression, i, remaining, index, delimiters;
 
 	start = parser.pos;
 
@@ -95,12 +95,12 @@ export default function ( parser, delimiterType ) {
 		// If this is a partial, it may have a context (e.g. `{{>item foo}}`). These
 		// cases involve a bit of a hack - we want to turn it into the equivalent of
 		// `{{#with foo}}{{>item}}{{/with}}`, but to get there we temporarily append
-		// a 'contextPartialId' to the mustache, and process the context instead of
+		// a 'contextPartialExpression' to the mustache, and process the context instead of
 		// the reference
 		let temp;
-		if ( mustache.t === types.PARTIAL && ( expression.t === types.REFERENCE ) && ( temp = parser.readExpression() ) ) {
+		if ( mustache.t === types.PARTIAL && expression && ( temp = parser.readExpression() ) ) {
 			mustache = {
-				contextPartialId: expression.n
+				contextPartialExpression: expression
 			};
 
 			expression = temp;
@@ -136,6 +136,26 @@ export default function ( parser, delimiterType ) {
 		}
 	}
 
+	refineExpression( parser, expression, mustache );
+
+	// if there was context, process the expression now and save it for later
+	if ( mustache.contextPartialExpression ) {
+		mustache.contextPartialExpression = [
+			refineExpression( parser, mustache.contextPartialExpression, { t: types.PARTIAL } )
+		];
+	}
+
+	// optional index reference
+	if ( i = parser.matchPattern( indexRefPattern ) ) {
+		mustache.i = i;
+	}
+
+	return mustache;
+}
+
+function refineExpression ( parser, expression, mustache ) {
+	var referenceExpression;
+
 	if ( expression ) {
 		while ( expression.t === types.BRACKETED && expression.x ) {
 			expression = expression.x;
@@ -154,14 +174,9 @@ export default function ( parser, delimiterType ) {
 				mustache.x = parser.flattenExpression( expression );
 			}
 		}
-	}
 
-	// optional index reference
-	if ( i = parser.matchPattern( indexRefPattern ) ) {
-		mustache.i = i;
+		return mustache;
 	}
-
-	return mustache;
 }
 
 // TODO refactor this! it's bewildering

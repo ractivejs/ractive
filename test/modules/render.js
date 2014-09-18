@@ -69,15 +69,15 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 						magic: magic
 					});
 
-					t.htmlEqual( fixture.innerHTML, theTest.result );
-					t.htmlEqual( view.toHTML(), theTest.result );
+					t.htmlEqual( fixture.innerHTML, theTest.result, 'innerHTML should match result' );
+					t.htmlEqual( view.toHTML(), theTest.result, 'toHTML() should match result' );
 
 					if ( theTest.new_data ) {
 						data = typeof theTest.new_data === 'function' ? theTest.new_data() : deepClone( theTest.new_data );
 						view.set( data );
 
-						t.htmlEqual( fixture.innerHTML, theTest.new_result );
-						t.htmlEqual( view.toHTML(), theTest.new_result );
+						t.htmlEqual( fixture.innerHTML, theTest.new_result, 'innerHTML should match result' );
+						t.htmlEqual( view.toHTML(), theTest.new_result, 'toHTML() should match result' );
 					}
 
 					view.teardown();

@@ -1512,6 +1512,48 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			console.warn = warn;
 		});
 
+		test( 'Double teardown is handled gracefully (#1218)', function ( t ) {
+			var Widget, ractive;
+
+			expect( 0 );
+
+			Widget = Ractive.extend({
+				template: '<p>foo: {{foo}}</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#visible}}
+						<widget autoclose='1000' on-teardown='hideChild' />
+					{{/visible}}`,
+				data: {
+					visible: true
+				},
+				components: { widget: Widget }
+			});
+
+			ractive.on( 'hideChild', () => ractive.set( 'visible', false ) );
+			ractive.findComponent( 'widget' ).teardown();
+		});
+
+		test( 'component.teardown() causes component to be removed from the DOM (#1223)', function ( t ) {
+			var Widget, ractive, _fixture;
+
+			Widget = Ractive.extend({
+				template: '<p>I am here!</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: { widget: Widget }
+			});
+
+			ractive.findComponent( 'widget' ).teardown();
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
 	};
 
 });

@@ -20,7 +20,8 @@ try {
 export default function ( html, node, docFrag ) {
 	var container, nodes = [], wrapper, selectedOption, child, i;
 
-	if ( html ) {
+	// render 0 and false
+	if ( html != null && html !== '' ) {
 		if ( ieBug && ( wrapper = ieBlacklist[ node.tagName ] ) ) {
 			container = element( 'DIV' );
 			container.innerHTML = wrapper[0] + html + wrapper[1];

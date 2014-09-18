@@ -45,6 +45,9 @@ var ExpressionResolver = function ( owner, parentFragment, expression, callback 
 		if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
 			args[i] = { keypath: keypath };
 			return;
+		} else if ( reference === '.' ) { // special case of context reference to root
+			args[i] = { '': '' };
+			return;
 		}
 
 		// Couldn't resolve yet

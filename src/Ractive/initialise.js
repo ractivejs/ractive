@@ -5,23 +5,26 @@ import getElement from 'utils/getElement';
 import getNextNumber from 'utils/getNextNumber';
 import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
+import wrap from 'utils/wrapPrototypeMethod'
 
-var initHook = new HookQueue( 'init' );
+var constructHook = new HookQueue( 'construct' ),
+	configHook = new HookQueue( 'config' ),
+	initHook = new HookQueue( 'init' );
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	initialiseProperties( ractive, options );
 
-	if ( ractive.onConstruct ) {
-		ractive.onConstruct( options );
-	}
+	// make this option do what would be expected
+	// if someone did include it on a new View() call.
+	// Silly to do so (put a hook on the very options being used),
+	// but handle it correctly consistent with the intent.
+	fireConstructHook( ractive, options );
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
 
-	if ( ractive.onConfig ) {
-		ractive.onConfig();
-	}
+	configHook.fire( ractive );
 
 	initHook.begin( ractive );
 
@@ -48,6 +51,18 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 	// render automatically ( if `el` is specified )
 
 	tryRender( ractive );
+}
+
+function fireConstructHook( ractive, options ){
+	if( options.onconstruct ) {
+		// pretend this is the ractive instance
+		constructHook.fire({
+			onconstruct: wrap( ractive, 'onconstruct', options.onconstruct ).bind(ractive),
+			fire: ractive.fire.bind(ractive)
+		})
+	} else if ( ractive.onconstruct ){
+		constructHook.fire( ractive )
+	}
 }
 
 function tryRender ( ractive ) {

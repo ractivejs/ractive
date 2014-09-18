@@ -6,7 +6,6 @@ import template from 'config/options/template/template';
 import parseOptions from 'config/options/groups/parseOptions';
 import registries from 'config/options/groups/registries';
 
-import wrap from 'utils/wrapPrototypeMethod';
 import wrapPrototype from 'utils/wrapPrototypeMethod';
 import deprecate from 'config/deprecate';
 
@@ -88,7 +87,7 @@ function configure ( method, Parent, instance, options ) {
 		if ( key in defaults && !( key in config.parseOptions ) && !( key in custom ) ) {
 			let value = options[ key ];
 			instance[ key ] = typeof value === 'function'
-				? wrap( Parent.prototype, key, value )
+				? wrapPrototype( Parent.prototype, key, value )
 				: value;
 		}
 	}

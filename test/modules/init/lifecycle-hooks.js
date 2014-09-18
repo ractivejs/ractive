@@ -4,7 +4,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
-		var fixture, fired, firedSetup
+		var fixture, fired, firedSetup, hooks
 
 		fixture = document.getElementById( 'qunit-fixture' );
 
@@ -17,13 +17,13 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		};
 
-		module( 'onConstruct', firedSetup );
+		module( 'onconstruct', firedSetup );
 
 		test( 'extend', t => {
 			var View, ractive;
 
 			View = Ractive.extend({
-				onConstruct: function ( options ) {
+				onconstruct: function ( options ) {
 					fired.push( this );
 					options.template = '{{foo}}';
 					options.data = { foo: 'bar' };
@@ -46,7 +46,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<widget/>',
 				components: {
 					widget: Ractive.extend({
-						onConstruct: function ( options ) {
+						onconstruct: function ( options ) {
 							fired.push( this );
 							options.template = '{{foo}}';
 							options.data = { foo: 'bar' };
@@ -59,14 +59,14 @@ define([ 'ractive' ], function ( Ractive ) {
 			equal( fixture.innerHTML, 'bar' );
 		});
 
-		module( 'onConfig', firedSetup );
+		module( 'onconfig', firedSetup );
 
 		test( 'new', t => {
 			var ractive;
 
 			ractive = new Ractive({
 				el: fixture,
-				onConfig: function () {
+				onconfig: function () {
 					fired.push( this );
 					this.data.foo++;
 				},
@@ -82,7 +82,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			var View, ractive;
 
 			View = Ractive.extend({
-				onConfig: function () {
+				onconfig: function () {
 					fired.push( this );
 					this.data.foo++;
 				},
@@ -108,7 +108,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				components: {
 					widget: Ractive.extend({
 						template: '{{foo}}',
-						onConfig: function () {
+						onconfig: function () {
 							fired.push( this );
 							this.data.foo++;
 						},
@@ -124,7 +124,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			var View, ractive;
 
 			View = Ractive.extend({
-				onConfig: function () {
+				onconfig: function () {
 					fired.push( this );
 					this.data.foo++;
 				}
@@ -134,7 +134,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				el: fixture,
 				template: '{{foo}}',
 				data: { foo: 1 },
-				onConfig: function () {
+				onconfig: function () {
 					fired.push( this );
 					this.data = { foo: 12 };
 					this._super();
@@ -145,57 +145,79 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, '13' );
 		});
 
-		module( 'init', firedSetup );
+		module( 'hooks', firedSetup );
 
-		test( 'hooks', t => {
-			var ractive;
+		hooks = [
+			'onconstruct',
+			'onconfig',
+			'onpreinit',
+			'oninit',
+			'onprerender',
+			'onrender',
+			'onpreunrender',
+			'onunrender',
+			'onteardown'
+		];
 
-			ractive = new Ractive({
+		test( 'basic order', t => {
+			var ractive, options, Component;
+
+			options = {
 				el: fixture,
-				template: '{{foo}}',
-				data: { foo: 1 },
-				// onConstruct: function ( options ) {
-				// 	fired.push('onConstruct')
-				// },
-				onConfig: function () {
-					fired.push('onConfig')
-				},
-				onInit: function () {
-					fired.push('onInit')
-				},
-				onInited: function () {
-					fired.push('onInited')
-				},
-				onRender: function () {
-					fired.push('onRender')
-				},
-				onRendered: function () {
-					fired.push('onRendered')
-				},
-				onUnrender: function () {
-					fired.push('onUnrender')
-				},
-				onUnrendered: function () {
-					fired.push('onUnrendered')
-				},
-				onTeardown: function () {
-					fired.push('onTeardown')
+				template: 'foo'
+			};
+
+			hooks.forEach( hook => {
+				options[ hook ] = function () {
+					fired.push( hook );
 				}
 			});
 
+			ractive = new Ractive( options );
+			ractive.teardown();
+			t.deepEqual( fired, hooks );
+
+			fired = [];
+
+			Component = Ractive.extend( options );
+			ractive = new Component()
+			ractive.teardown();
+			t.deepEqual( fired, hooks );
+
+		});
+
+		test( 'hooks call _super', t => {
+			var ractive, Component, superOptions = {}, options = {};
+
+			hooks.forEach( hook => {
+				superOptions[ hook ] = function () {
+					fired.push( 'super' + hook );
+				}
+			});
+
+			Component = Ractive.extend(superOptions)
+
+			options = {
+				el: fixture,
+				template: 'foo'
+			};
+
+			hooks.forEach( hook => {
+				options[ hook ] = function( arg ){
+					this._super( arg );
+					fired.push( 'instance' + hook );
+				}
+			});
+
+			ractive = new Component( options );
 			ractive.teardown();
 
-			t.deepEqual( fired, [
-				// 'onConstruct',
-				'onConfig',
-				'onInit',
-				'onInited',
-				'onRender',
-				'onRendered',
-				'onUnrender',
-				'onUnrendered',
-				'onTeardown'
-			] );
+			hooks.forEach( hook => {
+				t.equal( fired.shift(), 'super' + hook );
+				t.equal( fired.shift(), 'instance' + hook );
+			});
+
+
 		});
 
 	}
