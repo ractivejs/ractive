@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.7
-	2014-09-17 - commit 42c0d16b 
+	2014-09-18 - commit 998ea628 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2451,10 +2451,17 @@
 		};
 		ParseError.prototype = Error.prototype;
 		Parser = function( str, options ) {
-			var items, item;
+			var items, item, lineStart = 0;
 			this.str = str;
 			this.options = options || {};
 			this.pos = 0;
+			this.lines = this.str.split( '\n' );
+			this.lineEnds = this.lines.map( function( line ) {
+				var lineEnd = lineStart + line.length + 1;
+				// +1 for the newline
+				lineStart = lineEnd;
+				return lineEnd;
+			}, 0 );
 			// Custom init logic
 			if ( this.init )
 				this.init( str, options );
@@ -2491,41 +2498,30 @@
 				return getConditional( this );
 			},
 			flattenExpression: flattenExpression,
-			getLinePos: function() {
-				var lines, currentLine, currentLineEnd, nextLineEnd, lineNum, charNum, annotation;
-				lines = this.str.split( '\n' );
-				lineNum = 0;
-				nextLineEnd = 0;
-				do {
-					currentLineEnd = nextLineEnd;
-					lineNum++;
-					currentLine = lines[ lineNum - 1 ];
-					nextLineEnd += currentLine.length + 1;
-				} while ( nextLineEnd <= this.pos );
-				charNum = this.pos - currentLineEnd + 1;
-				annotation = currentLine + '\n' + new Array( charNum ).join( ' ' ) + '^----';
-				return {
-					line: lineNum,
-					ch: charNum,
-					text: currentLine,
-					annotation: annotation,
-					toJSON: function() {
-						return [
-							lineNum,
-							charNum
-						];
-					},
-					toString: function() {
-						return 'line ' + lineNum + ( ' character ' + charNum ) + '';
-					}
-				};
+			getLinePos: function( char ) {
+				var lineNum = 0,
+					lineStart = 0,
+					columnNum;
+				while ( char >= this.lineEnds[ lineNum ] ) {
+					lineStart = this.lineEnds[ lineNum ];
+					lineNum += 1;
+				}
+				columnNum = char - lineStart;
+				return [
+					lineNum + 1,
+					columnNum + 1
+				];
 			},
 			error: function( message ) {
-				var pos, error;
-				pos = this.getLinePos();
-				error = new ParseError( message + ' at ' + pos + ':\n' + pos.annotation );
-				error.line = pos.line;
-				error.character = pos.ch;
+				var pos, lineNum, columnNum, line, annotation, error;
+				pos = this.getLinePos( this.pos );
+				lineNum = pos[ 0 ];
+				columnNum = pos[ 1 ];
+				line = this.lines[ pos[ 0 ] - 1 ];
+				annotation = line + '\n' + new Array( pos[ 1 ] ).join( ' ' ) + '^----';
+				error = new ParseError( message + ' at line ' + lineNum + ' character ' + columnNum + ':\n' + annotation );
+				error.line = pos[ 0 ];
+				error.character = pos[ 1 ];
 				error.shortMessage = message;
 				throw error;
 			},
@@ -2869,9 +2865,8 @@
 		}
 
 		function getMustacheOfType( parser, delimiterType ) {
-			var start, startPos, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
+			var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
 			start = parser.pos;
-			startPos = parser.getLinePos();
 			delimiters = parser[ delimiterType.delimiters ];
 			if ( !parser.matchString( delimiters[ 0 ] ) ) {
 				return null;
@@ -2954,7 +2949,7 @@
 				}
 			}
 			if ( parser.includeLinePositions ) {
-				mustache.p = startPos.toJSON();
+				mustache.p = parser.getLinePos( start );
 			}
 			// Replace block name with code
 			if ( mustache.n ) {
@@ -3048,8 +3043,8 @@
 		var OPEN_COMMENT = '<!--',
 			CLOSE_COMMENT = '-->';
 		return function( parser ) {
-			var startPos, content, remaining, endIndex, comment;
-			startPos = parser.getLinePos();
+			var start, content, remaining, endIndex, comment;
+			start = parser.pos;
 			if ( !parser.matchString( OPEN_COMMENT ) ) {
 				return null;
 			}
@@ -3065,7 +3060,7 @@
 				c: content
 			};
 			if ( parser.includeLinePositions ) {
-				comment.p = startPos.toJSON();
+				comment.p = parser.getLinePos( start );
 			}
 			return comment;
 		};
@@ -3951,9 +3946,8 @@
 		__export = getElement;
 
 		function getElement( parser ) {
-			var start, startPos, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
+			var start, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
 			start = parser.pos;
-			startPos = parser.getLinePos();
 			if ( parser.inside ) {
 				return null;
 			}
@@ -3968,7 +3962,7 @@
 				t: types.ELEMENT
 			};
 			if ( parser.includeLinePositions ) {
-				element.p = startPos.toJSON();
+				element.p = parser.getLinePos( start );
 			}
 			if ( parser.matchString( '!' ) ) {
 				element.y = 1;
