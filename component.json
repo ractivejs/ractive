@@ -7,13 +7,6 @@
   "license": "MIT",
   "main": "ractive.js",
   "scripts": [
-    "ractive.js",
-    "ractive.min.js",
-    "ractive.runtime.js",
-    "ractive.runtime.min.js",
-    "ractive-legacy.js",
-    "ractive-legacy.min.js",
-    "ractive-legacy.runtime.js",
-    "ractive-legacy.runtime.min.js"
+    "ractive.js"
   ]
 }
