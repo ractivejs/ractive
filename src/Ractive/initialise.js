@@ -1,24 +1,29 @@
 import config from 'config/config';
 import create from 'utils/create';
+import Fragment from 'virtualdom/Fragment';
 import getElement from 'utils/getElement';
 import getNextNumber from 'utils/getNextNumber';
+import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
-import Fragment from 'virtualdom/Fragment';
+
+var initHook = new HookQueue( 'init' );
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	initialiseProperties( ractive, options );
 
-	if ( ractive.construct ) {
-		ractive.construct( options );
+	if ( ractive.onConstruct ) {
+		ractive.onConstruct( options );
 	}
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
 
-	if ( ractive.config ) {
-		ractive.config()
+	if ( ractive.onConfig ) {
+		ractive.onConfig();
 	}
+
+	initHook.begin( ractive );
 
 	// TEMPORARY. This is so we can implement Viewmodel gradually
 	ractive.viewmodel = new Viewmodel( ractive );
@@ -38,7 +43,10 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 		});
 	}
 
+	initHook.end( ractive );
+
 	// render automatically ( if `el` is specified )
+
 	tryRender( ractive );
 }
 

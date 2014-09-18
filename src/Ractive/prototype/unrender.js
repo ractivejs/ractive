@@ -1,13 +1,18 @@
+import css from 'global/css';
+import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
-import css from 'global/css';
+
+var unrenderHook = new HookQueue( 'unrender' );
 
 export default function Ractive$unrender () {
 	var promise, shouldDestroy;
 
-	if ( !this.rendered ) {
+	if ( !this.fragment.rendered ) {
 		throw new Error( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
 	}
+
+	unrenderHook.begin(this);
 
 	promise = runloop.start( this, true );
 
@@ -28,9 +33,10 @@ export default function Ractive$unrender () {
 	}
 
 	this.fragment.unrender( shouldDestroy );
-	this.rendered = false;
 
 	removeFromArray( this.el.__ractive_instances__, this );
+
+	unrenderHook.end( this );
 
 	runloop.end();
 	return promise;

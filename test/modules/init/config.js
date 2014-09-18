@@ -80,25 +80,20 @@ define([
 			t.equal( config.registries.adaptors.find( ractive, 'bar' ), adaptor2 );
 		});
 
-		module( 'options' );
+		module( 'Additional extension' );
 
-		if ( Ractive.magic ) {
-			test( 'are passed to init with correct values ', t => {
-				expect( 2 );
+		test( 'are created on ractive instance', t => {
 
-				var Component = Ractive.extend({
-					init: function ( options ) {
-						t.equal( options.foo, 'bar' );
-						t.ok( options.magic );
-					}
-				});
-
-				var ractive = new Component({
-					el: fixture,
-					foo: 'bar',
-					magic: true
-				});
+			var ractive = new Ractive({
+				el: fixture,
+				foo: 'bar',
+				fumble: function () {
+					return true;
+				}
 			});
-		}
+
+			t.equal( ractive.foo, 'bar' );
+			t.ok( ractive.fumble() );
+		});
 	};
 });
