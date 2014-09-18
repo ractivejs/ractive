@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+* 0.5.8
+	* Huge parser speed boost (see #1227)
+	* Fixes for #1204, #1214, #1218, #1221, #1223
+
 * 0.5.7
 	* Release script got pooched; there was a tag mix-up of some sort with npm and 0.5.6 contained source files but not all the build files.
 	* Fixes for #1166, #1169, #1174, and #1183
