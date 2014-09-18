@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.8
-	2014-09-18 - commit cc07b0a3 
+	2014-09-18 - commit e429d083 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9837,6 +9837,9 @@
 			this.type = types.PARTIAL;
 			this.name = options.template.r;
 			this.index = options.index;
+			// keep track of when the partial name matches a partial (as opposed to an expression) to
+			// avoid unnecessary jitter when using an overlapping name/keypath
+			this.namedPartial = false;
 			this.root = parentFragment.root;
 			Mustache.init( this, options );
 			this.update();
@@ -9903,7 +9906,7 @@
 			},
 			resolve: Mustache.resolve,
 			setValue: function( value ) {
-				if ( this.value !== value ) {
+				if ( this.value !== value && !this.namedPartial ) {
 					if ( this.fragment && this.rendered ) {
 						this.fragment.unrender( true );
 					}
@@ -9924,10 +9927,13 @@
 						noThrow: true
 					} ) ) ) {
 						template = getPartialDescriptor( this.root, this.name );
+						this.namedPartial = true;
 					} else if ( this.value ) {
 						template = getPartialDescriptor( this.root, this.value );
+						this.namedPartial = false;
 					} else {
 						template = [];
+						this.namedPartial = false;
 					}
 					this.fragment = new Fragment( {
 						template: template,
