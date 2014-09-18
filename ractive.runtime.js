@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.8
-	2014-09-18 - commit e429d083 
+	2014-09-18 - commit 3ac25d13 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10504,7 +10504,8 @@
 			this.fragment = new Fragment( {
 				owner: this,
 				root: componentInstance.yield.instance,
-				template: componentInstance.yield.template
+				template: componentInstance.yield.template,
+				pElement: this.surrogateParent.pElement
 			} );
 			component.yielder = this;
 		};
