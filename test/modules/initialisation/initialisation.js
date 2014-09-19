@@ -217,18 +217,18 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'barbizz' );
 		});
 
-		test( 'initing data with a primitive uses a fresh empty object instead', t => {
-			var ractive = new Ractive({
-				el: fixture,
-				template: '{{ test }}',
-				data: 1
-			});
+		test( 'initing data with a primitive results in an error', t => {
+			expect( 1 );
 
-			t.equal( fixture.innerHTML, '' );
-
-			ractive.set( 'test', 'foo' );
-
-			t.equal( fixture.innerHTML, 'foo' );
+			try {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{ test }}',
+					data: 1
+				});
+			} catch ( ex ) {
+				t.equal( ex.message, 'data option must be an object or a function, "1" is not valid' );
+			}
 		});
 
 		test( 'Instantiated .extend() with data uses existing data instance', t => {

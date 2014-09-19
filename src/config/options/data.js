@@ -13,6 +13,10 @@ function combine( Parent, target, options ) {
 
 	var value = options.data || {},
 		parentValue = getAddedKeys( Parent.prototype.data );
+	
+	if ( typeof value !== 'object' && typeof value !== 'function') {
+		throw new TypeError( 'data option must be an object or a function, "' + value + '" is not valid' );
+	}
 
 	return dispatch( parentValue, value );
 }
@@ -31,11 +35,6 @@ function init ( Parent, ractive, options ) {
 	if ( typeof result === 'function' ) {
 
 		result = result.call( ractive, value ) || value;
-	}
-
-	// make sure things that can't have properties slip through
-	if ( typeof result !== 'object' && typeof result !== 'function' ) {
-		result = {};
 	}
 
 	return ractive.data = result || {};
