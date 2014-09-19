@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.8
-	2014-09-18 - commit 3ac25d13 
+	2014-09-19 - commit 3d12a8cf 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1515,6 +1515,9 @@
 		function combine( Parent, target, options ) {
 			var value = options.data || {},
 				parentValue = getAddedKeys( Parent.prototype.data );
+			if ( typeof value !== 'object' && typeof value !== 'function' ) {
+				throw new TypeError( 'data option must be an object or a function, "' + value + '" is not valid' );
+			}
 			return dispatch( parentValue, value );
 		}
 
