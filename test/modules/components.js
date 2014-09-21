@@ -971,12 +971,12 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.equal( fixture.innerHTML, 'bar' );
 		});
 
-		test( 'Set operations inside an inline component\'s onRender() method update the DOM synchronously', t => {
+		test( 'Set operations inside an inline component\'s onrender method update the DOM synchronously', t => {
 			var ListWidget, ractive, previousHeight = -1;
 
 			ListWidget = Ractive.extend({
 				template: '<ul>{{#visibleItems}}<li>{{this}}</li>{{/visibleItems}}</ul>',
-				onRender: function () {
+				onrender: function () {
 					var ul, lis, items, height, i;
 
 					ul = this.find( 'ul' );

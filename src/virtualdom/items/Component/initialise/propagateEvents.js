@@ -37,7 +37,7 @@ function propagateEvent ( childInstance, parentInstance, eventName, proxyEventNa
 		var event, args;
 
 		// semi-weak test, but what else? tag the event obj ._isEvent ?
-		if ( arguments.length && arguments[0].node ) {
+		if ( arguments.length && arguments[0] && arguments[0].node ) {
 			event = Array.prototype.shift.call( arguments );
 		}
 

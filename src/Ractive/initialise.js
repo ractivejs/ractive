@@ -5,7 +5,7 @@ import getElement from 'utils/getElement';
 import getNextNumber from 'utils/getNextNumber';
 import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
-import wrap from 'utils/wrapPrototypeMethod'
+import wrap from 'utils/wrapPrototypeMethod';
 
 var constructHook = new HookQueue( 'construct' ),
 	configHook = new HookQueue( 'config' ),
@@ -59,9 +59,9 @@ function fireConstructHook( ractive, options ){
 		constructHook.fire({
 			onconstruct: wrap( ractive, 'onconstruct', options.onconstruct ).bind(ractive),
 			fire: ractive.fire.bind(ractive)
-		})
+		}, options);
 	} else if ( ractive.onconstruct ){
-		constructHook.fire( ractive )
+		constructHook.fire( ractive, options );
 	}
 }
 

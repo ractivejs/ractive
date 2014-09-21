@@ -39,8 +39,8 @@ LifecycleHook.prototype = {
 		}
 	},
 
-	fire: function ( ractive ) {
-		fireHook( ractive, this.method, this.event );
+	fire: function ( ractive, arg ) {
+		fireHook( ractive, this.method, this.event, arg );
 	}
 };
 
@@ -58,12 +58,6 @@ function fireForQueue ( hook, ractive ) {
 
 	fireHook( ractive, hook.method, hook.event );
 
-	// depricate in future vesion
-	if ( hook.method === 'onInit' && ractive.init ) {
-		// TODO: log deprication warning
-		ractive.init();
-	}
-
 	// queue is "live" because components can end up being
 	// added while hooks fire on parents that modify data values.
 	while ( childQueue.length ) {
@@ -73,17 +67,18 @@ function fireForQueue ( hook, ractive ) {
 	delete hook.queue[ ractive._guid ];
 }
 
-function fireHook ( ractive, method, event ) {
+function fireHook ( ractive, method, event, arg ) {
 	if ( ractive[ method ] ) {
-		ractive[ method ]();
+		ractive[ method ]( arg );
 	}
 
 	//depricate in future release
-	if ( method === 'onInit' && ractive.init ) {
+	if ( method === 'oninit' && ractive.init ) {
+		// TODO: log deprication warning
 		ractive.init();
 	}
 
-	ractive.fire( event );
+	ractive.fire( event, arg );
 }
 
 export default LifecycleHook;
