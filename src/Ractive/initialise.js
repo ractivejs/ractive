@@ -3,12 +3,13 @@ import create from 'utils/create';
 import Fragment from 'virtualdom/Fragment';
 import getElement from 'utils/getElement';
 import getNextNumber from 'utils/getNextNumber';
-import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
 import wrap from 'utils/wrapPrototypeMethod';
 
-var constructHook = new HookQueue( 'construct' ),
-	configHook = new HookQueue( 'config' ),
+var constructHook = new Hook( 'construct' ),
+	configHook = new Hook( 'config' ),
 	initHook = new HookQueue( 'init' );
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {

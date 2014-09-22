@@ -36,5 +36,8 @@ export default {
 		'The <{name}/> component has a default `el` property; it has been disregarded',
 
 	noElementProxyEventWildcards:
-		'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.'
+		'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.',
+
+	methodDepricated:
+		'The method "{depricated}" has been depricated in favor of "{replacement}" and will likely be removed in a future release.'
 };

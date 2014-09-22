@@ -1,5 +1,5 @@
 import css from 'global/css';
-import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
+import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import log from 'utils/log';
 import Promise from 'utils/Promise';
 import removeFromArray from 'utils/removeFromArray';

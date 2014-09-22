@@ -1,8 +1,8 @@
-import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import Promise from 'utils/Promise';
 import removeFromArray from 'utils/removeFromArray';
 
-var teardownHook = new HookQueue( 'teardown' );
+var teardownHook = new Hook( 'teardown' );
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself

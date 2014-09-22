@@ -150,11 +150,8 @@ define([ 'ractive' ], function ( Ractive ) {
 		hooks = [
 			'onconstruct',
 			'onconfig',
-			'onpreinit',
 			'oninit',
-			'onprerender',
 			'onrender',
-			'onpreunrender',
 			'onunrender',
 			'onteardown'
 		];

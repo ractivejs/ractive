@@ -1,9 +1,11 @@
 import css from 'global/css';
-import HookQueue from 'Ractive/prototype/shared/lifecycle/HookQueue';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import getElement from 'utils/getElement';
 import runloop from 'global/runloop';
 
-var renderHook = new HookQueue( 'render' );
+var renderHook = new HookQueue( 'render' ),
+	completeHook = new Hook( 'complete' );
 
 export default function Ractive$render ( target, anchor ) {
 	var promise, instances, transitionsEnabled;
@@ -53,9 +55,12 @@ export default function Ractive$render ( target, anchor ) {
 
 	this.transitionsEnabled = transitionsEnabled;
 
-	if ( this.complete ) {
-		promise.then( () => this.complete() );
-	}
+	// It is now more problematic to know if the complete hook
+	// would fire. Method checking is straight-forward, but would
+	// also require preflighting event subscriptions. Which seems
+	// like more work then just letting the promise happen.
+	// But can be changed if I'm wrong about that...
+	promise.then( () => completeHook.fire( this ) );
 
 	return promise;
 }
