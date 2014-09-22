@@ -22,6 +22,10 @@ Partial = function ( options ) {
 	this.name = options.template.r;
 	this.index = options.index;
 
+	// keep track of when the partial name matches a partial (as opposed to an expression) to
+	// avoid unnecessary jitter when using an overlapping name/keypath
+	this.namedPartial = false;
+
 	this.root = parentFragment.root;
 
 	Mustache.init( this, options );
@@ -113,7 +117,7 @@ Partial.prototype = {
 	resolve: Mustache.resolve,
 
 	setValue: function( value ) {
-		if ( this.value !== value ) {
+		if ( this.value !== value && !this.namedPartial ) {
 			if ( this.fragment && this.rendered ) {
 				this.fragment.unrender( true );
 			}
@@ -136,10 +140,13 @@ Partial.prototype = {
 		if ( !this.fragment ) {
 			if ( this.name && ( config.registries.partials.findInstance( this.root, this.name ) || parser.fromId( this.name, { noThrow: true } ) ) ) {
 				template = getPartialDescriptor( this.root, this.name );
+				this.namedPartial = true;
 			} else if ( this.value ){
 				template = getPartialDescriptor( this.root, this.value );
+				this.namedPartial = false;
 			} else {
 				template = [];
+				this.namedPartial = false;
 			}
 
 			this.fragment = new Fragment({
