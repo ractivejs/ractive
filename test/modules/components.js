@@ -1414,6 +1414,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget/>',
+				data: { person: {} },
 				components: {
 					widget: Ractive.extend({
 						template: '<input value="{{person.first}}"/><input value="{{person.last}}"/>'
@@ -1552,6 +1553,22 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			ractive.findComponent( 'widget' ).teardown();
 			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
+		test( 'Data that does not exist in a parent context binds to the current instance on set (#1205)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<widget/><widget/>',
+				components: {
+					widget: Ractive.extend({
+						template: '<p>title:{{title}}</p>'
+					})
+				}
+			});
+
+			ractive.findComponent( 'widget' ).set( 'title', 'foo' );
+
+			t.htmlEqual( fixture.innerHTML, '<p>title:foo</p><p>title:</p>' );
 		});
 
 	};
