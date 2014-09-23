@@ -1,8 +1,6 @@
-/*global FileList */
-
-import isArray from 'utils/isArray';
+var pattern = /^\[object (?:Array|FileList)\]$/,
+	toString = Object.prototype.toString;
 
 export default function isArrayLike ( obj ) {
-	return isArray( obj ) ||
-		obj instanceof FileList;
+	return pattern.test( toString.call( obj ) );
 }
