@@ -28,7 +28,10 @@ var ConditionalAttribute = function ( element, template ) {
 
 ConditionalAttribute.prototype = {
 	bubble: function () {
-		this.update();
+		if ( this.node ) {
+			this.update();
+		}
+
 		this.element.bubble();
 	},
 
