@@ -72,6 +72,7 @@ export default function Element$render () {
 
 	// Render attributes
 	this.attributes.forEach( a => a.render( node ) );
+	this.conditionalAttributes.forEach( a => a.render( node ) );
 
 	// Render children
 	if ( this.fragment ) {

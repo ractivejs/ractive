@@ -13,8 +13,12 @@
 	};
 
 	function normalize ( html ) {
+		var stub;
+
 		testDiv.innerHTML = trim( html );
-		return stubNode( testDiv ).children || stubNode( testDiv ).text;
+		stub = stubNode( testDiv );
+
+		return stub.children || stub.text;
 	}
 
 	function trim ( str ) {
