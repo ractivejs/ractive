@@ -1,11 +1,11 @@
 import circular from 'circular';
-import fireEvent from 'Ractive/prototype/shared/fireEvent';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import removeFromArray from 'utils/removeFromArray';
 import Promise from 'utils/Promise';
 import resolveRef from 'shared/resolveRef';
 import TransitionManager from 'global/TransitionManager';
 
-var batch, runloop, unresolved = [];
+var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
 
 runloop = {
 	start: function ( instance, returnPromise ) {
@@ -89,7 +89,7 @@ function flushChanges () {
 		changeHash = thing.applyChanges();
 
 		if ( changeHash ) {
-			fireEvent( thing.ractive, 'change', { args: [ changeHash ] });
+			changeHook.fire( thing.ractive, changeHash );
 		}
 	}
 	batch.viewmodels.length = 0;
