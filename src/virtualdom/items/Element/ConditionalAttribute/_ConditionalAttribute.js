@@ -1,4 +1,5 @@
 import circular from 'circular';
+import namespaces from 'config/namespaces';
 import createElement from 'utils/createElement';
 import toArray from 'utils/toArray';
 
@@ -41,6 +42,8 @@ ConditionalAttribute.prototype = {
 
 	render: function ( node ) {
 		this.node = node;
+		this.isSvg = node.namespaceURI = namespaces.svg;
+
 		this.update();
 	},
 
@@ -52,7 +55,7 @@ ConditionalAttribute.prototype = {
 		var str, attrs;
 
 		str = this.fragment.toString();
-		attrs = parseAttributes( str );
+		attrs = parseAttributes( str, this.isSvg );
 
 		// any attributes that previously existed but no longer do
 		// must be removed
@@ -75,8 +78,10 @@ ConditionalAttribute.prototype = {
 export default ConditionalAttribute;
 
 
-function parseAttributes ( str ) {
-	div.innerHTML = '<div ' + str + '></div>';
+function parseAttributes ( str, isSvg ) {
+	var tag = isSvg ? 'svg' : 'div';
+	div.innerHTML = '<' + tag + ' ' + str + '></' + tag + '>';
+
 	return toArray( div.childNodes[0].attributes );
 }
 

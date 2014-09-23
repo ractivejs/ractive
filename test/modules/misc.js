@@ -1548,6 +1548,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, JSON.stringify( ractive.data ) );
 		});
 
+		test( 'Case-sensitive conditional SVG attribute', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<svg {{vb}}></svg>',
+				data: { vb: 'viewBox="0 0 100 100"' }
+			});
+
+			t.equal( ractive.find( 'svg' ).getAttribute( 'viewBox' ), '0 0 100 100' );
+		});
+
 		// Is there a way to artificially create a FileList? Leaving this commented
 		// out until someone smarter than me figures out how
 		// test( '{{#each}} iterates over a FileList (#1220)', t => {
