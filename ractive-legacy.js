@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.8
-	2014-09-23 - commit 9116e5ab 
+	2014-09-23 - commit 56850ef7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4388,23 +4388,32 @@
 				}
 				element.v[ name ] = directive;
 			};
+			parser.allowWhitespace();
 			// directives and attributes
-			while ( attribute = getAttribute( parser ) ) {
-				// intro, outro, decorator
-				if ( directiveName = directives[ attribute.name ] ) {
-					element[ directiveName ] = processDirective( attribute.value );
-				} else if ( match = proxyEventPattern.exec( attribute.name ) ) {
-					if ( !element.v )
-						element.v = {};
-					directive = processDirective( attribute.value );
-					addProxyEvent( match[ 1 ], directive );
-				} else {
-					if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
-						if ( !element.a )
-							element.a = {};
-						element.a[ attribute.name ] = attribute.value || 0;
+			while ( attribute = getMustache( parser ) || getAttribute( parser ) ) {
+				// regular attributes
+				if ( attribute.name ) {
+					// intro, outro, decorator
+					if ( directiveName = directives[ attribute.name ] ) {
+						element[ directiveName ] = processDirective( attribute.value );
+					} else if ( match = proxyEventPattern.exec( attribute.name ) ) {
+						if ( !element.v )
+							element.v = {};
+						directive = processDirective( attribute.value );
+						addProxyEvent( match[ 1 ], directive );
+					} else {
+						if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
+							if ( !element.a )
+								element.a = {};
+							element.a[ attribute.name ] = attribute.value || 0;
+						}
 					}
+				} else {
+					if ( !element.m )
+						element.m = [];
+					element.m.push( attribute );
 				}
+				parser.allowWhitespace();
 			}
 			// allow whitespace before closing solidus
 			parser.allowWhitespace();
@@ -9011,6 +9020,100 @@
 		};
 	}( Attribute );
 
+	/* virtualdom/items/Element/ConditionalAttribute/_ConditionalAttribute.js */
+	var ConditionalAttribute = function( circular, namespaces, createElement, toArray ) {
+
+		var __export;
+		var Fragment, div;
+		if ( typeof document !== 'undefined' ) {
+			div = createElement( 'div' );
+		}
+		circular.push( function() {
+			Fragment = circular.Fragment;
+		} );
+		var ConditionalAttribute = function( element, template ) {
+			this.element = element;
+			this.root = element.root;
+			this.parentFragment = element.parentFragment;
+			this.attributes = [];
+			this.fragment = new Fragment( {
+				root: element.root,
+				owner: this,
+				template: [ template ]
+			} );
+		};
+		ConditionalAttribute.prototype = {
+			bubble: function() {
+				if ( this.node ) {
+					this.update();
+				}
+				this.element.bubble();
+			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			},
+			render: function( node ) {
+				this.node = node;
+				this.isSvg = node.namespaceURI = namespaces.svg;
+				this.update();
+			},
+			unbind: function() {
+				this.fragment.unbind();
+			},
+			update: function() {
+				var this$0 = this;
+				var str, attrs;
+				str = this.fragment.toString();
+				attrs = parseAttributes( str, this.isSvg );
+				// any attributes that previously existed but no longer do
+				// must be removed
+				this.attributes.filter( function( a ) {
+					return notIn( attrs, a );
+				} ).forEach( function( a ) {
+					this$0.node.removeAttribute( a.name );
+				} );
+				attrs.forEach( function( a ) {
+					this$0.node.setAttribute( a.name, a.value );
+				} );
+				this.attributes = attrs;
+			},
+			toString: function() {
+				return this.fragment.toString();
+			}
+		};
+		__export = ConditionalAttribute;
+
+		function parseAttributes( str, isSvg ) {
+			var tag = isSvg ? 'svg' : 'div';
+			div.innerHTML = '<' + tag + ' ' + str + '></' + tag + '>';
+			return toArray( div.childNodes[ 0 ].attributes );
+		}
+
+		function notIn( haystack, needle ) {
+			var i = haystack.length;
+			while ( i-- ) {
+				if ( haystack[ i ].name === needle.name ) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return __export;
+	}( circular, namespaces, createElement, toArray );
+
+	/* virtualdom/items/Element/prototype/init/createConditionalAttributes.js */
+	var virtualdom_items_Element$init_createConditionalAttributes = function( ConditionalAttribute ) {
+
+		return function( element, attributes ) {
+			if ( !attributes ) {
+				return [];
+			}
+			return attributes.map( function( a ) {
+				return new ConditionalAttribute( element, a );
+			} );
+		};
+	}( ConditionalAttribute );
+
 	/* utils/extend.js */
 	var extend = function( target ) {
 		var SLICE$0 = Array.prototype.slice;
@@ -10210,7 +10313,7 @@
 	}( findParentSelect );
 
 	/* virtualdom/items/Element/prototype/init.js */
-	var virtualdom_items_Element$init = function( types, enforceCase, createAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
+	var virtualdom_items_Element$init = function( types, enforceCase, createAttributes, createConditionalAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
 
 		var Fragment;
 		circular.push( function() {
@@ -10237,6 +10340,7 @@
 			}
 			// create attributes
 			this.attributes = createAttributes( this, template.a );
+			this.conditionalAttributes = createConditionalAttributes( this, template.m );
 			// append children, if there are any
 			if ( template.f ) {
 				this.fragment = new Fragment( {
@@ -10265,7 +10369,7 @@
 			this.intro = template.t0 || template.t1;
 			this.outro = template.t0 || template.t2;
 		};
-	}( types, enforceCase, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
+	}( types, enforceCase, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createConditionalAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
 
 	/* virtualdom/items/shared/utils/startsWith.js */
 	var startsWith = function( startsWithKeypath ) {
@@ -10294,6 +10398,9 @@
 			var i, storage, liveQueries, ractive;
 			if ( this.attributes ) {
 				this.attributes.forEach( rebind );
+			}
+			if ( this.conditionalAttributes ) {
+				this.conditionalAttributes.forEach( rebind );
 			}
 			if ( this.eventHandlers ) {
 				this.eventHandlers.forEach( rebind );
@@ -11028,6 +11135,9 @@
 			this.attributes.forEach( function( a ) {
 				return a.render( node );
 			} );
+			this.conditionalAttributes.forEach( function( a ) {
+				return a.render( node );
+			} );
 			// Render children
 			if ( this.fragment ) {
 				// Special case - <script> element
@@ -11161,7 +11271,7 @@
 		__export = function() {
 			var str, escape;
 			str = '<' + ( this.template.y ? '!DOCTYPE' : this.template.e );
-			str += this.attributes.map( stringifyAttribute ).join( '' );
+			str += this.attributes.map( stringifyAttribute ).join( '' ) + this.conditionalAttributes.map( stringifyAttribute ).join( '' );
 			// Special case - selected options
 			if ( this.name === 'option' && optionIsSelected( this ) ) {
 				str += ' selected';
@@ -11258,6 +11368,7 @@
 				unbindOption( this );
 			}
 			this.attributes.forEach( unbind );
+			this.conditionalAttributes.forEach( unbind );
 		};
 
 		function unbind( x ) {
