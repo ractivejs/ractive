@@ -19,6 +19,7 @@ export default function Element$unbind () {
 	}
 
 	this.attributes.forEach( unbind );
+	this.conditionalAttributes.forEach( unbind );
 }
 
 function unbind ( x ) {

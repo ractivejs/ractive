@@ -874,6 +874,28 @@ var renderTests = [
 		name: 'Illegal code points between 128 and 159 are dealt with',
 		template: 'Euro sign: &#128; &#8364;',
 		result: 'Euro sign: &#128; &#8364;'
+	},
+
+	// CONDITIONAL ATTRIBUTES
+	{
+		name: 'Basic mustache attribute',
+		template: '<div {{foo}}></div>',
+		data: { foo: 'class="foo"' },
+		result: '<div class="foo"></div>'
+	},
+	{
+		name: 'Conditional mustache attribute',
+		template: '<div {{#if foo}}class="bar"{{/if}}></div>',
+		data: { foo: true },
+		result: '<div class="bar"></div>',
+		new_data: { foo: false },
+		new_result: '<div></div>'
+	},
+	{
+		name: 'Partial mustache attribute',
+		template: '<div {{>style}}></div>',
+		partials: { style: 'style="background-color: black; color: white"' },
+		result: '<div style="background-color: black; color: white"></div>'
 	}
 ];
 
