@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.8
-	2014-09-23 - commit 56850ef7 
+	2014-09-23 - commit 6806d3d5 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8530,6 +8530,7 @@
 					name = name.substring( colonIndex + 1 );
 					attribute.name = enforceCase( name );
 					attribute.namespace = namespaces[ namespacePrefix.toLowerCase() ];
+					attribute.namespacePrefix = namespacePrefix;
 					if ( !attribute.namespace ) {
 						throw 'Unknown namespace ("' + namespacePrefix + '")';
 					}
@@ -8695,6 +8696,7 @@
 		var __export;
 		__export = function Attribute$toString() {
 			var name = ( fragment = this ).name,
+				namespacePrefix = fragment.namespacePrefix,
 				value = fragment.value,
 				interpolator = fragment.interpolator,
 				fragment = fragment.fragment;
@@ -8716,6 +8718,9 @@
 			}
 			if ( fragment ) {
 				value = fragment.toString();
+			}
+			if ( namespacePrefix ) {
+				name = namespacePrefix + ':' + name;
 			}
 			return value ? name + '="' + escape( value ) + '"' : name;
 		};
