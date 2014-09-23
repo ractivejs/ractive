@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.8
-	2014-09-23 - commit ca00a3f7 
+	2014-09-23 - commit 9116e5ab 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10579,6 +10579,10 @@
 		updateCss = function() {
 			var node = this.node,
 				content = this.fragment.toString( false );
+			// IE8 has no styleSheet unless there's a type text/css
+			if ( window && window.appearsToBeIELessEqual8 ) {
+				node.type = 'text/css';
+			}
 			if ( node.styleSheet ) {
 				node.styleSheet.cssText = content;
 			} else {
