@@ -51,6 +51,16 @@ var renderTests = [
 		},
 		result: "<p class=\"it_works\">text</p>"
 	},
+	// ugh, this fails in PhantomJS, which doesn't return namespaced attributes from
+	// innerHTML correctly. Skipping. See https://github.com/ractivejs/ractive/pull/1184
+	/*{
+		name: "Element with namespaced attributes",
+		template: "<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#{{href}}'></use></svg>",
+		data: {
+			href: 'check'
+		},
+		result: "<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#check'></use></svg>"
+	},*/
 	{
 		name: "Section with descendant attributes",
 		template: "{{#todos}}<li><label>{{todo}}</label><span class='{{status}}'>{{todo}}</span></li>{{/todos}}",
