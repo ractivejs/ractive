@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.8
-	2014-09-23 - commit 37e8d033 
+	2014-09-23 - commit ca00a3f7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6003,8 +6003,18 @@
 		return docFrag;
 	};
 
+	/* utils/isArrayLike.js */
+	var isArrayLike = function() {
+
+		var pattern = /^\[object (?:Array|FileList)\]$/,
+			toString = Object.prototype.toString;
+		return function isArrayLike( obj ) {
+			return pattern.test( toString.call( obj ) );
+		};
+	}();
+
 	/* virtualdom/items/Section/prototype/setValue.js */
-	var virtualdom_items_Section$setValue = function( types, isArray, isObject, runloop, circular ) {
+	var virtualdom_items_Section$setValue = function( types, isArrayLike, isObject, runloop, circular ) {
 
 		var __export;
 		var Fragment;
@@ -6079,7 +6089,7 @@
 				}
 			}
 			// Otherwise we need to work out what sort of section we're dealing with
-			section.ordered = !!isArray( value );
+			section.ordered = !!isArrayLike( value );
 			// Ordered list section
 			if ( section.ordered ) {
 				return reevaluateListSection( section, value, fragmentOptions );
@@ -6179,7 +6189,7 @@
 
 		function reevaluateConditionalSection( section, value, inverted, fragmentOptions ) {
 			var doRender, emptyArray, fragment;
-			emptyArray = isArray( value ) && value.length === 0;
+			emptyArray = isArrayLike( value ) && value.length === 0;
 			if ( inverted ) {
 				doRender = emptyArray || !value;
 			} else {
@@ -6215,7 +6225,7 @@
 			return fragment.rendered;
 		}
 		return __export;
-	}( types, isArray, isObject, runloop, circular );
+	}( types, isArrayLike, isObject, runloop, circular );
 
 	/* virtualdom/items/Section/prototype/splice.js */
 	var virtualdom_items_Section$splice = function( runloop, circular ) {
