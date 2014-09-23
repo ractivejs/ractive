@@ -260,7 +260,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			Widget = Ractive.extend({
 				template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
-				init: function () {
+				oninit: function () {
 					widget = this;
 				}
 			});
@@ -732,14 +732,14 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			var ractive, Outer, Inner, outerInitCount = 0, innerInitCount = 0;
 
 			Inner = Ractive.extend({
-				init: function () {
+				oninit: function () {
 					innerInitCount += 1;
 				}
 			});
 
 			Outer = Ractive.extend({
 				template: '<inner/>',
-				init: function () {
+				oninit: function () {
 					outerInitCount += 1;
 				},
 				components: { inner: Inner }
@@ -755,8 +755,8 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive.set( 'foo', true );
 
 			// initCounts should have incremented synchronously
-			t.equal( outerInitCount, 1, '<outer/> component should call init()' );
-			t.equal( innerInitCount, 1, '<inner/> component should call init()' );
+			t.equal( outerInitCount, 1, '<outer/> component should call oninit()' );
+			t.equal( innerInitCount, 1, '<inner/> component should call oninit()' );
 		});
 
 		test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
@@ -1048,47 +1048,6 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, 'old - old' );
 		});
 
-		asyncTest( 'Component render methods called in consistent order (gh #589)', t => {
-			var Simpson, ractive, order = { beforeInit: [], init: [], complete: [] },
-				simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
-
-			Simpson = Ractive.extend({
-				template: "{{simpson}}",
-				beforeInit: function(o) {
-					order.beforeInit.push( o.data.simpson );
-				},
-				init: function() {
-					order.init.push( this.get("simpson") );
-				},
-				complete: function() {
-					order.complete.push( this.get("simpson") );
-				}
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{#simpsons}}<simpson simpson="{{this}}"/>{{/}}',
-				data: {
-					simpsons: simpsons
-				},
-				components: {
-					simpson: Simpson
-				},
-				complete: function(){
-					// TODO this doesn't work in PhantomJS, presumably because
-					// promises aren't guaranteed to fulfil in a particular order
-					// since they use setTimeout (perhaps they shouldn't?)
-					//t.deepEqual( order.complete, simpsons, 'complete order' );
-					start();
-				}
-			});
-
-			t.equal( fixture.innerHTML, simpsons.join('') );
-			t.deepEqual( order.beforeInit, simpsons, 'beforeInit order' );
-			t.deepEqual( order.init, simpsons, 'init order' );
-
-		});
-
 		test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
 			var List, ractive;
 
@@ -1342,19 +1301,23 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 		asyncTest( 'init only fires once on a component (#943 #927), complete fires each render', t => {
 
-			var Component, component, inited = false, completed = 0;
+			var Component, component, inited = false, completed = 0, rendered = 0;
 
-			expect( 3 );
+			expect( 5 );
 
 			Component = Ractive.extend({
-				init: function () {
+				oninit: function () {
 					t.ok( !inited, 'init should not be called second time' );
 					inited = true;
 				},
-				complete: function() {
+				onrender: function() {
+					rendered++;
+					t.ok( true );
+				},
+				oncomplete: function() {
 					completed++;
 					t.ok( true );
-					if( completed === 2 ) { start(); }
+					if( rendered === 2 && completed === 2 ) { start(); }
 				}
 			});
 

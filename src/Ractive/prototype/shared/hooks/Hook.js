@@ -9,31 +9,27 @@ var deprications = {
 	complete: {
 		depricated: 'complete',
 		replacement: 'oncomplete'
-	},
-	teardown: {
-		depricated: 'teardown',
-		replacement: 'onteardown'
 	}
-}
+};
 
 function Hook ( event ) {
 	this.event = event;
 	this.method = 'on' + event;
-	this.depricate = deprications[event]
+	this.depricate = deprications[ event ];
 }
 
 Hook.prototype.fire = function ( ractive, arg ) {
 
 	function call ( method ) {
-		if(method){
-			arg ? method( arg ) : method();
+		if( ractive[ method ] ){
+			arg ? ractive[ method ]( arg ) : ractive[ method ]();
 			return true;
 		}
 	}
 
-	call( ractive[ this.method ] );
+	call( this.method );
 
-	if ( this.depricate && call( ractive[ this.depricate.depricated ] ) ) {
+	if ( this.depricate && call( this.depricate.depricated ) ) {
 		log.warn({
 			debug: ractive.debug,
 			message: 'methodDepricated',
@@ -43,6 +39,6 @@ Hook.prototype.fire = function ( ractive, arg ) {
 
 	arg ? ractive.fire( this.event, arg ) : ractive.fire( this.event );
 
-}
+};
 
 export default Hook;

@@ -1,7 +1,7 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 
 function HookQueue ( event ) {
-	this.hook = new Hook( event )
+	this.hook = new Hook( event );
 	this.inProcess = {};
 	this.queue = {};
 }

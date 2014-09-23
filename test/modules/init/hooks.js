@@ -217,6 +217,57 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		asyncTest( 'Component render methods called in consistent order (gh #589)', t => {
+			var Simpson, ractive,
+				order = {
+					construct: [], config: [], init: [], render: [], complete: []
+				},
+				simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
+
+			Simpson = Ractive.extend({
+				template: "{{simpson}}",
+				onconstruct: function ( o ) {
+					order.construct.push( o.data.simpson );
+				},
+				onconfig: function () {
+					order.config.push( this.data.simpson );
+				},
+				oninit: function () {
+					order.init.push( this.get( "simpson" ) );
+				},
+				onrender: function () {
+					order.render.push( this.get( "simpson" ) );
+				},
+				oncomplete: function () {
+					order.complete.push( this.get( "simpson" ) );
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#simpsons}}<simpson simpson="{{this}}"/>{{/}}',
+				data: {
+					simpsons: simpsons
+				},
+				components: {
+					simpson: Simpson
+				},
+				complete: function(){
+					// TODO this doesn't work in PhantomJS, presumably because
+					// promises aren't guaranteed to fulfil in a particular order
+					// since they use setTimeout (perhaps they shouldn't?)
+					// t.deepEqual( order.complete, simpsons, 'complete order' );
+					start();
+				}
+			});
+
+			t.equal( fixture.innerHTML, simpsons.join('') );
+			Object.keys( order ).forEach( function ( hook ) {
+				if ( hook === 'complete' ) { return; }
+				t.deepEqual( order[ hook ], simpsons, hook + ' order' );
+			});
+
+		});
 	}
 
 });
