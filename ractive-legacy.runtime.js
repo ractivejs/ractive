@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.8
-	2014-09-23 - commit 6806d3d5 
+	2014-09-23 - commit 74c6dee9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -624,7 +624,7 @@
 		getOptions = {
 			evaluateWrapped: true
 		};
-		__export = function resolveRef( ractive, ref, fragment ) {
+		__export = function resolveRef( ractive, ref, fragment, isParentLookup ) {
 			var context, key, index, keypath, parentValue, hasContextChain, parentKeys, childKeys, parentKeypath, childKeypath;
 			ref = normaliseRef( ref );
 			// If a reference begins '~/', it's a top-level reference
@@ -656,6 +656,7 @@
 			// If this is an inline component, and it's not isolated, we
 			// can try going up the scope chain
 			if ( ractive._parent && !ractive.isolated ) {
+				hasContextChain = true;
 				fragment = ractive.component.parentFragment;
 				// Special case - index refs
 				if ( fragment.indexRefs && ( index = fragment.indexRefs[ ref ] ) !== undefined ) {
@@ -665,7 +666,7 @@
 					ractive.viewmodel.set( ref, index, true );
 					return;
 				}
-				keypath = resolveRef( ractive._parent, ref, fragment );
+				keypath = resolveRef( ractive._parent, ref, fragment, true );
 				if ( keypath ) {
 					// We need to create an inter-component binding
 					// If parent keypath is 'one.foo' and child is 'two.foo', we bind
@@ -685,7 +686,10 @@
 			}
 			// If there's no context chain, and the instance is either a) isolated or
 			// b) an orphan, then we know that the keypath is identical to the reference
-			if ( !hasContextChain ) {
+			if ( !isParentLookup && !hasContextChain ) {
+				// the data object needs to have a property by this name,
+				// to prevent future failed lookups
+				ractive.viewmodel.set( ref, undefined );
 				return ref;
 			}
 			if ( ractive.viewmodel.get( ref ) !== undefined ) {
