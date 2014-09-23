@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.8
-	2014-09-19 - commit 3d12a8cf 
+	2014-09-23 - commit 37e8d033 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9600,13 +9600,16 @@
 	}( legacy, isClient, warn, Promise, prefix, virtualdom_items_Element_Transition$animateStyle_createTransitions, virtualdom_items_Element_Transition$animateStyle_visibility );
 
 	/* utils/fillGaps.js */
-	var fillGaps = function( target, source ) {
-		var key;
-		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) && !( key in target ) ) {
-				target[ key ] = source[ key ];
+	var fillGaps = function( target ) {
+		var SLICE$0 = Array.prototype.slice;
+		var sources = SLICE$0.call( arguments, 1 );
+		sources.forEach( function( s ) {
+			for ( var key in s ) {
+				if ( s.hasOwnProperty( key ) && !( key in target ) ) {
+					target[ key ] = s[ key ];
+				}
 			}
-		}
+		} );
 		return target;
 	};
 
@@ -9635,7 +9638,7 @@
 			} else if ( !params ) {
 				params = {};
 			}
-			return fillGaps( params, defaults );
+			return fillGaps( {}, params, defaults );
 		};
 	}( fillGaps );
 
