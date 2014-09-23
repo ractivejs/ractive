@@ -1,4 +1,7 @@
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import getElement from 'utils/getElement';
+
+var insertHook = new Hook( 'insert' );
 
 export default function Ractive$insert ( target, anchor ) {
 	if ( !this.fragment.rendered ) {
@@ -18,4 +21,14 @@ export default function Ractive$insert ( target, anchor ) {
 
 	( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( this );
 	this.detached = null;
+
+	fireInsertHook( this );
+}
+
+function fireInsertHook( ractive ) {
+	insertHook.fire( ractive );
+
+	ractive.findAllComponents('*').forEach( child => {
+		fireInsertHook( child.instance );
+	});
 }

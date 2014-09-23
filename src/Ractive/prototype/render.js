@@ -59,7 +59,7 @@ export default function Ractive$render ( target, anchor ) {
 	// would fire. Method checking is straight-forward, but would
 	// also require preflighting event subscriptions. Which seems
 	// like more work then just letting the promise happen.
-	// But can be changed if I'm wrong about that...
+	// But perhaps I'm wrong about that...
 	promise.then( () => completeHook.fire( this ) );
 
 	return promise;

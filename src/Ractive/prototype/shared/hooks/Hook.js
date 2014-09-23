@@ -2,6 +2,10 @@ import log from 'utils/log';
 
 // TODO: depricate in future release
 var deprications = {
+	construct: {
+		depricated: 'beforeInit',
+		replacement: 'onconstruct'
+	},
 	render: {
 		depricated: 'init',
 		replacement: 'onrender'

@@ -1,11 +1,11 @@
 import css from 'global/css';
-import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import log from 'utils/log';
 import Promise from 'utils/Promise';
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
 
-var unrenderHook = new HookQueue( 'unrender' );
+var unrenderHook = new Hook( 'unrender' );
 
 export default function Ractive$unrender () {
 	var promise, shouldDestroy;
@@ -18,8 +18,6 @@ export default function Ractive$unrender () {
 
 		return Promise.resolve();
 	}
-
-	unrenderHook.begin(this);
 
 	promise = runloop.start( this, true );
 
@@ -42,7 +40,7 @@ export default function Ractive$unrender () {
 
 	removeFromArray( this.el.__ractive_instances__, this );
 
-	unrenderHook.end( this );
+	unrenderHook.fire( this );
 
 	runloop.end();
 	return promise;

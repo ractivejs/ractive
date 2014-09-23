@@ -19,6 +19,22 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		module( 'onconstruct', firedSetup );
 
+		test( 'new', t => {
+			var View, ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				onconstruct: function ( options ) {
+					fired.push( this );
+					options.template = '{{foo}}';
+					options.data = { foo: 'bar' };
+				}
+			});
+
+			t.deepEqual( fired, [ ractive ] );
+			equal( fixture.innerHTML, 'bar' );
+		});
+
 		test( 'extend', t => {
 			var View, ractive;
 
@@ -57,6 +73,30 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.deepEqual( fired, [ ractive.findComponent('widget') ] );
 			equal( fixture.innerHTML, 'bar' );
+		});
+
+		test( '_super', t => {
+			var View, ractive;
+
+			View = Ractive.extend({
+				onconstruct: function ( options ) {
+					fired.push( this );
+					options.template = '{{foo}}';
+					options.data = { foo: 'bar' };
+				}
+			});
+
+			ractive = new View({
+				el: fixture,
+				onconstruct: function ( options ) {
+					fired.push( this );
+					this._super( options );
+					options.data = { foo: 12 };
+				}
+			});
+
+			t.deepEqual( fired, [ ractive, ractive ] );
+			t.equal( fixture.innerHTML, '12' );
 		});
 
 		module( 'onconfig', firedSetup );
@@ -217,29 +257,61 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		asyncTest( 'Component render methods called in consistent order (gh #589)', t => {
+		asyncTest( 'Component hooks called in consistent order (gh #589)', t => {
 			var Simpson, ractive,
-				order = {
-					construct: [], config: [], init: [], render: [], complete: []
+				method = {
+					construct: [], config: [], init: [],
+					render: [], complete: [],
+					unrender: [], teardown: []
+				},
+				event = {
+					config: [], init: [],
+					render: [], complete: [],
+					unrender: [], teardown: []
 				},
 				simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
 
 			Simpson = Ractive.extend({
 				template: "{{simpson}}",
 				onconstruct: function ( o ) {
-					order.construct.push( o.data.simpson );
+					method.construct.push( o.data.simpson );
+
+					this.on('config', () => {
+						event.config.push( this.data.simpson );
+					})
+					this.on('init', () => {
+						event.init.push( this.get( "simpson" ) );
+					})
+					this.on('render', () => {
+						event.render.push( this.get( "simpson" ) );
+					})
+					this.on('complete', () => {
+						event.complete.push( this.get( "simpson" ) );
+					})
+					this.on('unrender', () => {
+						event.unrender.push( this.get( "simpson" ) );
+					})
+					this.on('teardown', () => {
+						event.teardown.push( this.get( "simpson" ) );
+					})
 				},
 				onconfig: function () {
-					order.config.push( this.data.simpson );
+					method.config.push( this.data.simpson );
 				},
 				oninit: function () {
-					order.init.push( this.get( "simpson" ) );
+					method.init.push( this.get( "simpson" ) );
 				},
 				onrender: function () {
-					order.render.push( this.get( "simpson" ) );
+					method.render.push( this.get( "simpson" ) );
 				},
 				oncomplete: function () {
-					order.complete.push( this.get( "simpson" ) );
+					method.complete.push( this.get( "simpson" ) );
+				},
+				onunrender: function () {
+					method.unrender.push( this.get( "simpson" ) );
+				},
+				onteardown: function () {
+					method.teardown.push( this.get( "simpson" ) );
 				}
 			});
 
@@ -251,22 +323,25 @@ define([ 'ractive' ], function ( Ractive ) {
 				},
 				components: {
 					simpson: Simpson
-				},
-				complete: function(){
-					// TODO this doesn't work in PhantomJS, presumably because
-					// promises aren't guaranteed to fulfil in a particular order
-					// since they use setTimeout (perhaps they shouldn't?)
-					// t.deepEqual( order.complete, simpsons, 'complete order' );
-					start();
 				}
 			});
 
 			t.equal( fixture.innerHTML, simpsons.join('') );
-			Object.keys( order ).forEach( function ( hook ) {
-				if ( hook === 'complete' ) { return; }
-				t.deepEqual( order[ hook ], simpsons, hook + ' order' );
-			});
 
+			ractive.teardown().then( () => {
+				function testHooks( name, order ) {
+					Object.keys( order ).forEach( function ( hook ) {
+						if( hook === 'complete' ){
+							t.equal( order.complete.length, simpsons.length );
+						} else {
+							t.deepEqual( order[ hook ], simpsons, hook + ' ' + name + ' order' );
+						}
+					});
+				}
+				testHooks( 'method', method );
+				testHooks( 'event', event );
+				start();
+			})
 		});
 	}
 
