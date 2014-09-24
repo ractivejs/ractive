@@ -262,6 +262,36 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '2' );
 		});
 
+		test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
+			var warn = console.warn;
+
+			console.warn = function () {
+				throw new Error('Console should not warn')
+			};
+
+			try {
+				let ractive = new Ractive({
+					template: '<component/>',
+					components: {
+						component: Ractive.extend({
+							debug: true,
+							computed: {
+								foo: '${bar}'
+							}
+						})
+					}
+				})
+			}
+			catch(err){
+				t.ok( false, err.message );
+			}
+			finally {
+				console.warn = warn;
+				t.ok( true );
+			}
+
+		});
+
 	};
 
 });
