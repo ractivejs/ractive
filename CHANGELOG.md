@@ -1,9 +1,15 @@
 Changelog
 ---------
 
+* 0.x.x
+	* BREAKING CHANGE: new Ractive() now inherits all options as methods/properties incuding event hooks.
+	* Safe to specify touch events for browsers that do not support them
+	* Added event hooks: onconstruct, onconfig, oninit, onrender, oncomplete, onunrender, onteardown - usable as methods or events
+	* BREAKING CHANGE: Depricated beforeInit, init, and complete. Depricated init is mapped to onrender and will fire more than once, and no longer contains options argument
 * 0.5.8
 	* Huge parser speed boost (see #1227)
 	* Fixes for #1204, #1214, #1218, #1221, #1223
+	* Partial names can be specified dynamically as references or expressions
 
 * 0.5.7
 	* Release script got pooched; there was a tag mix-up of some sort with npm and 0.5.6 contained source files but not all the build files.
