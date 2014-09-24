@@ -1,6 +1,8 @@
-import fireEvent from 'Ractive/prototype/shared/fireEvent';
-import removeFromArray from 'utils/removeFromArray';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import Promise from 'utils/Promise';
+import removeFromArray from 'utils/removeFromArray';
+
+var teardownHook = new Hook( 'teardown' );
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
@@ -8,16 +10,17 @@ import Promise from 'utils/Promise';
 export default function Ractive$teardown ( callback ) {
 	var promise;
 
-	fireEvent( this, 'teardown' );
 	this.fragment.unbind();
 	this.viewmodel.teardown();
 
-	if ( this.rendered && this.el.__ractive_instances__ ) {
+	if ( this.fragment.rendered && this.el.__ractive_instances__ ) {
 		removeFromArray( this.el.__ractive_instances__, this );
 	}
 
 	this.shouldDestroy = true;
-	promise = ( this.rendered ? this.unrender() : Promise.resolve() );
+	promise = ( this.fragment.rendered ? this.unrender() : Promise.resolve() );
+
+	teardownHook.fire( this );
 
 	if ( callback ) {
 		// TODO deprecate this?

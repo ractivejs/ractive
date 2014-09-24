@@ -1,16 +1,32 @@
 import config from 'config/config';
 import create from 'utils/create';
+import Fragment from 'virtualdom/Fragment';
 import getElement from 'utils/getElement';
 import getNextNumber from 'utils/getNextNumber';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
-import Fragment from 'virtualdom/Fragment';
+
+var constructHook = new Hook( 'construct' ),
+	configHook = new Hook( 'config' ),
+	initHook = new HookQueue( 'init' );
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	initialiseProperties( ractive, options );
 
+	// make this option do what would be expected if someone
+	// did include it on a new Ractive() or new Component() call.
+	// Silly to do so (put a hook on the very options being used),
+	// but handle it correctly, consistent with the intent.
+	constructHook.fire( config.getConstructTarget( ractive, options ), options );
+
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
+
+	configHook.fire( ractive );
+
+	initHook.begin( ractive );
 
 	// TEMPORARY. This is so we can implement Viewmodel gradually
 	ractive.viewmodel = new Viewmodel( ractive );
@@ -29,6 +45,8 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
 		});
 	}
+
+	initHook.end( ractive );
 
 	// render automatically ( if `el` is specified )
 	tryRender( ractive );

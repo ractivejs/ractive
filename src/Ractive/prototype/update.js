@@ -1,5 +1,7 @@
-import fireEvent from 'Ractive/prototype/shared/fireEvent';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import runloop from 'global/runloop';
+
+var updateHook = new Hook( 'update' );
 
 export default function Ractive$update ( keypath, callback ) {
 	var promise;
@@ -16,7 +18,7 @@ export default function Ractive$update ( keypath, callback ) {
 	this.viewmodel.mark( keypath );
 	runloop.end();
 
-	fireEvent( this, 'update', { args: [ keypath ] });
+	updateHook.fire( this, keypath );
 
 	if ( callback ) {
 		promise.then( callback.bind( this ) );
