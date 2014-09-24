@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.5.8
-	2014-09-24 - commit 81c596ec 
+	2014-09-24 - commit f8ce587b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5789,17 +5789,26 @@
 	}( Ractive$shared_fireEvent );
 
 	/* Ractive/prototype/get.js */
-	var Ractive$get = function( normaliseKeypath ) {
+	var Ractive$get = function( normaliseKeypath, resolveRef ) {
 
 		var options = {
 			capture: true
 		};
 		// top-level calls should be intercepted
 		return function Ractive$get( keypath ) {
+			var value;
 			keypath = normaliseKeypath( keypath );
-			return this.viewmodel.get( keypath, options );
+			value = this.viewmodel.get( keypath, options );
+			// Create inter-component binding, if necessary
+			if ( value === undefined && this._parent && !this.isolated ) {
+				if ( resolveRef( this, keypath, this.fragment ) ) {
+					// creates binding as side-effect, if appropriate
+					value = this.viewmodel.get( keypath );
+				}
+			}
+			return value;
 		};
-	}( normaliseKeypath );
+	}( normaliseKeypath, resolveRef );
 
 	/* utils/getElement.js */
 	var getElement = function getElement( input ) {
@@ -5894,7 +5903,7 @@
 		};
 		Observer.prototype = {
 			init: function( immediate ) {
-				this.value = this.root.viewmodel.get( this.keypath );
+				this.value = this.root.get( this.keypath );
 				if ( immediate !== false ) {
 					this.update();
 				} else {
