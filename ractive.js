@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.5.8
-	2014-09-24 - commit 2024f1c7 
+	2014-09-24 - commit 76ce3db9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5528,7 +5528,7 @@
 			keypath = normaliseKeypath( keypath );
 			value = this.viewmodel.get( keypath, options );
 			// Create inter-component binding, if necessary
-			if ( value === undefined && this._parent && !this.isolated ) {
+			if ( value === undefined && this._parent && !this.isolated && this.fragment ) {
 				if ( resolveRef( this, keypath, this.fragment ) ) {
 					// creates binding as side-effect, if appropriate
 					value = this.viewmodel.get( keypath );
