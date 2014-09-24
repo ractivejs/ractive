@@ -108,26 +108,39 @@ function getElement ( parser ) {
 		element.v[ name ] = directive;
 	};
 
+	parser.allowWhitespace();
+
 	// directives and attributes
-	while ( attribute = getAttribute( parser ) ) {
-		// intro, outro, decorator
-		if ( directiveName = directives[ attribute.name ] ) {
-			element[ directiveName ] = processDirective( attribute.value );
-		}
+	while ( attribute = getMustache( parser ) || getAttribute( parser ) ) {
+		// regular attributes
+		if ( attribute.name ) {
+			// intro, outro, decorator
+			if ( directiveName = directives[ attribute.name ] ) {
+				element[ directiveName ] = processDirective( attribute.value );
+			}
 
-		// on-click etc
-		else if ( match = proxyEventPattern.exec( attribute.name ) ) {
-			if ( !element.v ) element.v = {};
-			directive = processDirective( attribute.value );
-			addProxyEvent( match[1], directive );
-		}
+			// on-click etc
+			else if ( match = proxyEventPattern.exec( attribute.name ) ) {
+				if ( !element.v ) element.v = {};
+				directive = processDirective( attribute.value );
+				addProxyEvent( match[1], directive );
+			}
 
-		else {
-			if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
-				if ( !element.a ) element.a = {};
-				element.a[ attribute.name ] = attribute.value || 0;
+			else {
+				if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
+					if ( !element.a ) element.a = {};
+					element.a[ attribute.name ] = attribute.value || 0;
+				}
 			}
 		}
+
+		// {{#if foo}}class='foo'{{/if}}
+		else {
+			if ( !element.m ) element.m = [];
+			element.m.push( attribute );
+		}
+
+		parser.allowWhitespace();
 	}
 
 	// allow whitespace before closing solidus

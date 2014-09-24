@@ -7,6 +7,10 @@ export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeyp
 		this.attributes.forEach( rebind );
 	}
 
+	if ( this.conditionalAttributes ) {
+		this.conditionalAttributes.forEach( rebind );
+	}
+
 	if ( this.eventHandlers ) {
 		this.eventHandlers.forEach( rebind );
 	}

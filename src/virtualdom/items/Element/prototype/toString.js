@@ -7,7 +7,8 @@ export default function () {
 
 	str = '<' + ( this.template.y ? '!DOCTYPE' : this.template.e );
 
-	str += this.attributes.map( stringifyAttribute ).join( '' );
+	str += this.attributes.map( stringifyAttribute ).join( '' )
+	     + this.conditionalAttributes.map( stringifyAttribute ).join( '' );
 
 	// Special case - selected options
 	if ( this.name === 'option' && optionIsSelected( this ) ) {

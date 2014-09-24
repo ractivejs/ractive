@@ -261,6 +261,9 @@ if ( typeof window === 'undefined' ) {
 		((function(win, doc) {
 			var Event, addEventListener, removeEventListener, head, style, origCreateElement;
 
+			// because sometimes inquiring minds want to know
+			win.appearsToBeIELessEqual8 = true;
+
 			Event = function ( e, element ) {
 				var property, instance = this;
 

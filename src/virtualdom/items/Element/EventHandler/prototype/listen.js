@@ -2,7 +2,15 @@ import config from 'config/config';
 import genericHandler from 'virtualdom/items/Element/EventHandler/shared/genericHandler';
 import log from 'utils/log';
 
-var customHandlers = {};
+var customHandlers = {},
+	touchEvents = {
+		touchstart: true,
+		touchmove: true,
+		touchend: true,
+		touchcancel: true,
+		//not w3c, but supported in some browsers
+		touchleave: true
+	};
 
 export default function EventHandler$listen () {
 
@@ -15,14 +23,20 @@ export default function EventHandler$listen () {
 	} else {
 		// Looks like we're dealing with a standard DOM event... but let's check
 		if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
-			log.error({
-				debug: this.root.debug,
-				message: 'missingPlugin',
-				args: {
-					plugin: 'event',
-					name: name
-				}
-			});
+
+			// okay to use touch events if this browser doesn't support them
+			if ( !touchEvents[ name ] ) {
+				log.error({
+					debug: this.root.debug,
+					message: 'missingPlugin',
+					args: {
+						plugin: 'event',
+						name: name
+					}
+				});
+			}
+
+			return;
 		}
 
 		this.node.addEventListener( name, genericHandler, false );

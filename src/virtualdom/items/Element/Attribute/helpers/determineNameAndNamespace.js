@@ -18,6 +18,7 @@ export default function ( attribute, name ) {
 
 			attribute.name = enforceCase( name );
 			attribute.namespace = namespaces[ namespacePrefix.toLowerCase() ];
+			attribute.namespacePrefix = namespacePrefix;
 
 			if ( !attribute.namespace ) {
 				throw 'Unknown namespace ("' + namespacePrefix + '")';

@@ -210,5 +210,27 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 				}
 			});
 		});
+
+		test( 'Parameter objects are not polluted (#1239)', function ( t ) {
+			var ractive, uid = 0, objects = [];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#each list}}<p intro="foo:{}"></p>{{/each}}',
+				transitions: {
+					foo: function ( t, params ) {
+						params = t.processParams( params, {
+							uid: uid++
+						});
+
+						objects.push( params );
+					}
+				},
+				data: { list: [ 0, 0 ] }
+			});
+
+			t.equal( objects.length, 2 );
+			t.notEqual( objects[0], objects[1] );
+		});
 	};
 });

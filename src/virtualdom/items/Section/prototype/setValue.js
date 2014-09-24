@@ -1,5 +1,5 @@
 import types from 'config/types';
-import isArray from 'utils/isArray';
+import isArrayLike from 'utils/isArrayLike';
 import isObject from 'utils/isObject';
 import runloop from 'global/runloop';
 
@@ -98,7 +98,7 @@ function reevaluateSection ( section, value ) {
 	}
 
 	// Otherwise we need to work out what sort of section we're dealing with
-	section.ordered = !!isArray( value );
+	section.ordered = !!isArrayLike( value );
 
 	// Ordered list section
 	if ( section.ordered ) {
@@ -227,7 +227,7 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
 	var doRender, emptyArray, fragment;
 
-	emptyArray = ( isArray( value ) && value.length === 0 );
+	emptyArray = ( isArrayLike( value ) && value.length === 0 );
 
 	if ( inverted ) {
 		doRender = emptyArray || !value;
