@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.8
-	2014-09-23 - commit 74c6dee9 
+	2014-09-24 - commit 81c596ec 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8700,7 +8700,15 @@
 	var virtualdom_items_Element_EventHandler$listen = function( config, genericHandler, log ) {
 
 		var __export;
-		var customHandlers = {};
+		var customHandlers = {},
+			touchEvents = {
+				touchstart: true,
+				touchmove: true,
+				touchend: true,
+				touchcancel: true,
+				//not w3c, but supported in some browsers
+				touchleave: true
+			};
 		__export = function EventHandler$listen() {
 			var definition, name = this.name;
 			if ( this.invalid ) {
@@ -8711,14 +8719,18 @@
 			} else {
 				// Looks like we're dealing with a standard DOM event... but let's check
 				if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
-					log.error( {
-						debug: this.root.debug,
-						message: 'missingPlugin',
-						args: {
-							plugin: 'event',
-							name: name
-						}
-					} );
+					// okay to use touch events if this browser doesn't support them
+					if ( !touchEvents[ name ] ) {
+						log.error( {
+							debug: this.root.debug,
+							message: 'missingPlugin',
+							args: {
+								plugin: 'event',
+								name: name
+							}
+						} );
+					}
+					return;
 				}
 				this.node.addEventListener( name, genericHandler, false );
 			}
