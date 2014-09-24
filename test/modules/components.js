@@ -1571,6 +1571,38 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, '<p>title:foo</p><p>title:</p>' );
 		});
 
+		test( 'Inter-component bindings can be created via this.get() and this.observe(), not just through templates', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>message: {{proxy}}</p>',
+
+				init: function () {
+					this.observe( 'message', function ( message ) {
+						this.set( 'proxy', message );
+					});
+
+					t.equal( this.get( 'answer' ), 42 );
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				data: {
+					message: 'hello',
+					answer: 42
+				},
+				components: {
+					widget: Widget
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>message: hello</p>' );
+			ractive.set( 'message', 'goodbye' );
+			t.htmlEqual( fixture.innerHTML, '<p>message: goodbye</p>' );
+		});
+
 	};
 
 });
