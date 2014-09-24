@@ -1115,8 +1115,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			component.fire( 'bizz' );
 		});
 
+		test( 'touch events safe to include when they don\'t exist in browser', t => {
+			var ractive;
 
+			expect( 1 );
 
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test1" on-touchstart-touchend-touchleave-touchmove-touchcancel="foo"/>' +
+					'<span id="test2" on-touchstart-mousedown="foo"/>',
+				debug: true
+			});
+
+			ractive.on( 'foo', function () {
+				t.ok( true );
+			})
+
+			simulant.fire( ractive.nodes.test2, 'mousedown' );
+
+		});
 	};
 
 });
