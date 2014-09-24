@@ -10,7 +10,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		firedSetup = {
 			setup: function () {
-				fired = []
+				fired = [];
 			},
 			teardown: function () {
 				fired = void 0;
@@ -19,173 +19,20 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		module( 'onconstruct', firedSetup );
 
-		test( 'new', t => {
-			var View, ractive;
+		test( 'has access to options', t => {
+			var ractive
 
 			ractive = new Ractive({
 				el: fixture,
-				onconstruct: function ( options ) {
-					fired.push( this );
+				onconstruct: function ( options ){
 					options.template = '{{foo}}';
 					options.data = { foo: 'bar' };
 				}
 			});
 
-			t.deepEqual( fired, [ ractive ] );
-			equal( fixture.innerHTML, 'bar' );
+			t.equal( fixture.innerHTML, 'bar' );
+
 		});
-
-		test( 'extend', t => {
-			var View, ractive;
-
-			View = Ractive.extend({
-				onconstruct: function ( options ) {
-					fired.push( this );
-					options.template = '{{foo}}';
-					options.data = { foo: 'bar' };
-				}
-			});
-
-			ractive = new View({
-				el: fixture
-			});
-
-			t.deepEqual( fired, [ ractive ] );
-			equal( fixture.innerHTML, 'bar' );
-		});
-
-		test( 'with component', t => {
-			var ractive;
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<widget/>',
-				components: {
-					widget: Ractive.extend({
-						onconstruct: function ( options ) {
-							fired.push( this );
-							options.template = '{{foo}}';
-							options.data = { foo: 'bar' };
-						}
-					})
-				}
-			});
-
-			t.deepEqual( fired, [ ractive.findComponent('widget') ] );
-			equal( fixture.innerHTML, 'bar' );
-		});
-
-		test( '_super', t => {
-			var View, ractive;
-
-			View = Ractive.extend({
-				onconstruct: function ( options ) {
-					fired.push( this );
-					options.template = '{{foo}}';
-					options.data = { foo: 'bar' };
-				}
-			});
-
-			ractive = new View({
-				el: fixture,
-				onconstruct: function ( options ) {
-					fired.push( this );
-					this._super( options );
-					options.data = { foo: 12 };
-				}
-			});
-
-			t.deepEqual( fired, [ ractive, ractive ] );
-			t.equal( fixture.innerHTML, '12' );
-		});
-
-		module( 'onconfig', firedSetup );
-
-		test( 'new', t => {
-			var ractive;
-
-			ractive = new Ractive({
-				el: fixture,
-				onconfig: function () {
-					fired.push( this );
-					this.data.foo++;
-				},
-				template: '{{foo}}',
-				data: function () { return { foo: 1 } }
-			});
-
-			t.deepEqual( fired, [ ractive ] );
-			equal( fixture.innerHTML, '2' );
-		});
-
-		test( 'extend', t => {
-			var View, ractive;
-
-			View = Ractive.extend({
-				onconfig: function () {
-					fired.push( this );
-					this.data.foo++;
-				},
-			});
-
-			ractive = new View({
-				el: fixture,
-				template: '{{foo}}',
-				data: function () { return { foo: 1 } }
-			});
-
-			t.deepEqual( fired, [ ractive ] );
-			equal( fixture.innerHTML, '2' );
-		});
-
-		test( 'with component', t => {
-			var ractive;
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<widget foo="{{foo}}"/>',
-				data: function () { return { foo: 1 } },
-				components: {
-					widget: Ractive.extend({
-						template: '{{foo}}',
-						onconfig: function () {
-							fired.push( this );
-							this.data.foo++;
-						},
-					})
-				}
-			});
-
-			t.deepEqual( fired, [ ractive.findComponent('widget') ] );
-			equal( fixture.innerHTML, '2' );
-		});
-
-		test( '_super', t => {
-			var View, ractive;
-
-			View = Ractive.extend({
-				onconfig: function () {
-					fired.push( this );
-					this.data.foo++;
-				}
-			});
-
-			ractive = new View({
-				el: fixture,
-				template: '{{foo}}',
-				data: { foo: 1 },
-				onconfig: function () {
-					fired.push( this );
-					this.data = { foo: 12 };
-					this._super();
-				}
-			});
-
-			t.deepEqual( fired, [ ractive, ractive ] );
-			t.equal( fixture.innerHTML, '13' );
-		});
-
-		module( 'hooks', firedSetup );
 
 		hooks = [
 			'onconstruct',
@@ -195,6 +42,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			'onunrender',
 			'onteardown'
 		];
+
+		module( 'hooks', firedSetup );
 
 		test( 'basic order', t => {
 			var ractive, options, Component;
@@ -253,8 +102,6 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.equal( fired.shift(), 'super' + hook );
 				t.equal( fired.shift(), 'instance' + hook );
 			});
-
-
 		});
 
 		asyncTest( 'Component hooks called in consistent order (gh #589)', t => {
@@ -343,6 +190,89 @@ define([ 'ractive' ], function ( Ractive ) {
 				start();
 			})
 		});
+
+
+		module( 'hierarchy order', firedSetup);
+
+		function testHierarchy ( hook, expected ) {
+
+			asyncTest( hook, t => {
+
+				var ractive, options, Child, GrandChild, grandchild;
+
+				function getOptions ( level ) {
+					var options = {};
+					options[ hook ] = function () {
+						fired.push( level );
+					};
+					return options;
+				}
+
+				options = getOptions( 'grandchild' );
+				options.template = '{{foo}}';
+				GrandChild = Ractive.extend( options );
+
+
+				options = getOptions( 'child' );
+				options.template = '<grand-child/>';
+				options.components = {
+					'grand-child': GrandChild
+				}
+				Child = Ractive.extend( options );
+
+				options = getOptions( 'parent' );
+				options.el = fixture;
+				options.template = '<child/>';
+				options.data = { foo: 'bar' }
+				options.components = {
+					child: Child
+				};
+				ractive = new Ractive(options)
+
+				grandchild = ractive.findComponent( 'grand-child' );
+				grandchild.set( 'foo', 'fizz' );
+
+				ractive.teardown().then( () => {
+					t.deepEqual( fired, expected );
+					start()
+				});
+			})
+		}
+
+		var topDown = [ 'parent', 'child', 'grandchild' ];
+		var bottomUp = [ 'grandchild', 'child', 'parent' ];
+
+		testHierarchy( 'onconstruct', topDown );
+		testHierarchy( 'onconfig', topDown );
+		testHierarchy( 'oninit', topDown );
+		testHierarchy( 'onrender', topDown );
+		testHierarchy( 'onchange', bottomUp );
+		testHierarchy( 'oncomplete', bottomUp );
+		testHierarchy( 'onunrender', bottomUp );
+		testHierarchy( 'onteardown', bottomUp );
+
+		module( 'detach and insert', firedSetup);
+
+		test( 'fired', t => {
+			var ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: 'foo',
+				oninsert: function () {
+					fired.push( 'oninsert' );
+				},
+				ondetach: function () {
+					fired.push( 'ondetach' );
+				}
+			})
+
+			ractive.detach();
+			ractive.insert( fixture );
+
+			t.deepEqual( fired, [ 'ondetach', 'oninsert' ] );
+
+		})
 	}
 
 });
