@@ -56,7 +56,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			hooks.forEach( hook => {
 				options[ hook ] = function () {
 					fired.push( hook );
-				}
+				};
 			});
 
 			ractive = new Ractive( options );
@@ -66,7 +66,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			fired = [];
 
 			Component = Ractive.extend( options );
-			ractive = new Component()
+			ractive = new Component();
 			ractive.teardown();
 			t.deepEqual( fired, hooks );
 
@@ -78,10 +78,10 @@ define([ 'ractive' ], function ( Ractive ) {
 			hooks.forEach( hook => {
 				superOptions[ hook ] = function () {
 					fired.push( 'super' + hook );
-				}
+				};
 			});
 
-			Component = Ractive.extend(superOptions)
+			Component = Ractive.extend( superOptions );
 
 			options = {
 				el: fixture,
@@ -217,17 +217,17 @@ define([ 'ractive' ], function ( Ractive ) {
 				options.template = '<grand-child/>';
 				options.components = {
 					'grand-child': GrandChild
-				}
+				};
 				Child = Ractive.extend( options );
 
 				options = getOptions( 'parent' );
 				options.el = fixture;
 				options.template = '<child/>';
-				options.data = { foo: 'bar' }
+				options.data = { foo: 'bar' };
 				options.components = {
 					child: Child
 				};
-				ractive = new Ractive(options)
+				ractive = new Ractive(options);
 
 				grandchild = ractive.findComponent( 'grand-child' );
 				grandchild.set( 'foo', 'fizz' );
@@ -265,7 +265,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				ondetach: function () {
 					fired.push( 'ondetach' );
 				}
-			})
+			});
 
 			ractive.detach();
 			ractive.insert( fixture );
@@ -273,6 +273,58 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( fired, [ 'ondetach', 'oninsert' ] );
 
 		})
+
+		// Hold off on these until demand for them.
+		// also an issue is that reserve event checking
+		// currently happens at parse time, so that
+		// would need to change or something setup for it
+		// so maybe just YAGNI and we hold off on these.
+		/*
+		module( 'hooks option', firedSetup);
+
+		asyncTest( '"methodOnly" prevents events', t => {
+			var ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: 'foo',
+				hooks: 'methodOnly',
+				oninit: function () {
+					this.on( 'teardown', function () {
+						throw new Error( 'event hook should not fire' );
+					});
+				}
+			});
+
+			ractive.teardown().then(function(){
+				t.ok( true );
+				start();
+			});
+
+		})
+
+		test( '"eventOnly" prevents methods', t => {
+			var ractive;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: 'foo',
+				hooks: 'eventOnly',
+				oninit: function () {
+					throw new Error( 'method hook should not fire' );
+				}
+			});
+
+			ractive.on( 'teardown', function(){
+				t.ok( true );
+			})
+
+			ractive.teardown()
+
+		})
+		*/
 	}
 
 });

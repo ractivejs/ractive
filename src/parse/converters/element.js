@@ -102,7 +102,7 @@ function getElement ( parser ) {
 
 		if ( reservedEventNames.test( directiveName ) ) {
 			parser.pos -= directiveName.length;
-			parser.error( 'Cannot use reserved event names (change, reset, teardown, update)' );
+			parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
 		}
 
 		element.v[ name ] = directive;
