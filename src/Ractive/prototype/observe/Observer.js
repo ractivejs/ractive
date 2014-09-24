@@ -17,7 +17,7 @@ var Observer = function ( ractive, keypath, callback, options ) {
 
 Observer.prototype = {
 	init: function ( immediate ) {
-		this.value = this.root.viewmodel.get( this.keypath );
+		this.value = this.root.get( this.keypath );
 
 		if ( immediate !== false ) {
 			this.update();
