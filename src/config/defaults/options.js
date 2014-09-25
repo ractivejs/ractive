@@ -23,6 +23,9 @@ var defaultOptions = {
 	twoway:             true,
 	lazy:               false,
 
+	// event compatibility:
+	eventObject: 		false,
+
 	// transitions:
 	noIntro:            false,
 	transitionsEnabled: true,

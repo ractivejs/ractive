@@ -16,9 +16,9 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<span id="test" on-click="someEvent">click me</span>'
 			});
 
-			ractive.on( 'someEvent', function ( event ) {
-				t.ok( true );
-				t.equal( event.original.type, 'click' );
+			ractive.on( 'someEvent', function () {
+				t.ok( this.event );
+				t.equal( this.event.original.type, 'click' );
 			});
 
 			simulant.fire( ractive.nodes.test, 'click' );
@@ -34,7 +34,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<span id="test" on-click="someEvent">click me</span>'
 			});
 
-			ractive.on( 'someEvent', function ( event ) {
+			ractive.on( 'someEvent', function () {
 				throw new Error('Event handler called after unrender');
 			});
 
@@ -102,9 +102,9 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<span id="test" on-custom="someEvent">click me</span>'
 			});
 
-			ractive.on( 'someEvent', function ( event ) {
-				t.ok( true );
-				t.equal( event.original.type, 'click' );
+			ractive.on( 'someEvent', function () {
+				t.ok( this.event );
+				t.equal( this.event.original.type, 'click' );
 			});
 
 			node = ractive.nodes.test;
@@ -128,7 +128,8 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<span id="test" on-click="someEvent">click me</span>'
 			});
 
-			ractive.on( 'someEvent', function ( event ) {
+			ractive.on( 'someEvent', function () {
+				var event = this.event;
 				t.equal( event.node, ractive.nodes.test );
 				t.equal( event.name, 'someEvent' );
 				t.ok( event.original );
@@ -144,7 +145,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			var ractive = new Ractive();
 
 			expect( 1 );
-			ractive.on( '', function ( event ) {
+			ractive.on( '', function () {
 				throw new Error( 'Empty event name should not fire' );
 			});
 			ractive.fire( '' );
@@ -170,29 +171,29 @@ define([ 'ractive' ], function ( Ractive ) {
 				original.stopPropagation = function() { stoppedPropagation = true; }
 			}
 
-			ractive.on( 'returnFalse', function ( event ) {
-				t.ok( true );
-				mockOriginalEvent( event.original );
+			ractive.on( 'returnFalse', function () {
+				t.ok( this.event );
+				mockOriginalEvent( this.event.original );
 				return false;
 			});
-			ractive.on( 'returnUndefined', function ( event ) {
-				t.ok( true );
-				mockOriginalEvent( event.original );
+			ractive.on( 'returnUndefined', function () {
+				t.ok( this.event );
+				mockOriginalEvent( this.event.original );
 			});
-			ractive.on( 'returnZero', function ( event ) {
-				t.ok( true );
-				mockOriginalEvent( event.original );
+			ractive.on( 'returnZero', function () {
+				t.ok( this.event );
+				mockOriginalEvent( this.event.original );
 				return 0;
 			});
 
-			ractive.on( 'multiHandler', function ( event ) {
-				t.ok( true );
-				mockOriginalEvent( event.original );
+			ractive.on( 'multiHandler', function () {
+				t.ok( this.event );
+				mockOriginalEvent( this.event.original );
 				return false;
 			});
-			ractive.on( 'multiHandler', function ( event ) {
-				t.ok( true );
-				mockOriginalEvent( event.original );
+			ractive.on( 'multiHandler', function () {
+				t.ok( this.event );
+				mockOriginalEvent( this.event.original );
 				return 0;
 			});
 
@@ -223,9 +224,9 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			ractive.on( 'someEvent', function ( event ) {
-				t.equal( event.keypath, 'foo' );
-				t.equal( event.context.bar, 'test' );
+			ractive.on( 'someEvent', function () {
+				t.equal( this.event.keypath, 'foo' );
+				t.equal( this.event.context.bar, 'test' );
 			});
 
 			simulant.fire( ractive.nodes.test, 'click' );
@@ -244,7 +245,8 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			ractive.on( 'someEvent', function ( event ) {
+			ractive.on( 'someEvent', function () {
+				var event = this.event;
 				t.equal( event.node.innerHTML, '2: c' );
 				t.equal( event.keypath, 'array.2' );
 				t.equal( event.context, 'c' );
@@ -277,8 +279,8 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( ractive.nodes.test_001.innerHTML, '001' );
 
-			ractive.on( 'someEvent', function ( event ) {
-				t.deepEqual( event.index, { x: 0, y: 0, z: 1 })
+			ractive.on( 'someEvent', function () {
+				t.deepEqual( this.event.index, { x: 0, y: 0, z: 1 })
 			});
 
 			simulant.fire( ractive.nodes.test_001, 'click' );
@@ -296,10 +298,10 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.on({
-				do_foo: function ( event ) {
+				do_foo: function () {
 					last = 'foo';
 				},
-				do_bar: function ( event ) {
+				do_bar: function () {
 					last = 'bar';
 				}
 			});
@@ -324,7 +326,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.on({
-				log: function ( event, params ) {
+				log: function ( params ) {
 					last = params;
 				}
 			});
@@ -351,7 +353,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			expect( 1 );
 
 			ractive.on({
-				foo: function ( event, foo ) {
+				foo: function ( foo ) {
 					t.equal( foo, 'bar' );
 				}
 			});
@@ -371,16 +373,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			expect( 7 );
 
 			ractive.on({
-				one: function ( event, one, two, three ) {
+				one: function ( one, two, three ) {
 					t.equal( one, 1 );
 					t.equal( two, 2 );
 					t.equal( three, 3 );
 				},
-				two: function ( event, one, two ) {
+				two: function ( one, two ) {
 					t.equal( one.a, 1 );
 					t.equal( two.b, 2 );
 				},
-				three: function ( event, three, four ) {
+				three: function ( three, four ) {
 					t.equal( three.c, 3 );
 					t.equal( four.d, 'four' );
 				}
@@ -402,7 +404,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				data: { buttons: new Array(5) }
 			});
 
-			ractive.on( 'remove', function ( event, num ) {
+			ractive.on( 'remove', function ( num ) {
 				this.get( 'buttons' ).splice( num, 1 );
 			});
 
@@ -680,7 +682,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			expect( 1 );
 
-			ractive.on( 'select', function ( event, index ) {
+			ractive.on( 'select', function ( index ) {
 				t.equal( index, 1 );
 			});
 
@@ -746,8 +748,8 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			Widget = Ractive.extend({
 				template: `<button on-click='activate(event)'>{{foo}}</button>`,
-				activate: function ( event ) {
-					t.equal( event.original.type, 'click' );
+				activate: function () {
+					t.equal( this.event.original.type, 'click' );
 				}
 			});
 
@@ -827,16 +829,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		};
 
-		function fired ( event ) {
+		function fired () {
 			ok( true );
 		}
 
-		function goodEvent( event ) {
-			ok( event.context || event === 'foo' );
+		function goodEvent() {
+			ok( this.event.context || this.event === 'foo' );
 		}
 
-		function goodEventWithArg( event, arg ) {
-			equal( arg || event, 'foo' );
+		function goodEventWithArg( arg ) {
+			equal( arg || this.event, 'foo' );
 		}
 
 		function shouldNotFire () {
@@ -929,12 +931,14 @@ define([ 'ractive' ], function ( Ractive ) {
 				middle = ractive.findComponent( 'middle' );
 				component = ractive.findComponent( 'component' );
 
-				function hasComponentRef( event, arg ) {
-					event.original ? t.equal( event.component, component ) : t.ok( true );
+				function hasComponentRef( arg ) {
+					this.event.original
+						? t.equal( this.event.component, component )
+						: t.ok( true );
 				}
 
-				component.on( 'someEvent', function( event ) {
-					t.ok( !event.component );
+				component.on( 'someEvent', function() {
+					t.ok( !this.event.component );
 				});
 				middle.on( 'component.someEvent', hasComponentRef );
 				ractive.on( 'component.someEvent', hasComponentRef );
@@ -1139,24 +1143,6 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		module( 'this.events' );
 
-		test( 'set to current event object', t => {
-			var ractive;
-
-			expect( 1 );
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<span id="test" on-click="foo"/>'
-			});
-
-			ractive.on( 'foo', function ( event ) {
-				t.equal( this.event, event );
-			})
-
-			simulant.fire( ractive.nodes.test, 'click' );
-
-		});
-
 		test( 'exists on ractive.fire()', t => {
 			var ractive, data = { foo: 'bar' };
 
@@ -1195,6 +1181,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			events.forEach( ractive.fire.bind( ractive ) );
 
 			t.deepEqual( fired, events );
+		});
+
+		test( 'eventObject: true compatibility mode', t => {
+			var ractive;
+
+			expect( 2 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="foo"/>',
+				eventObject: true
+			});
+
+			ractive.on( 'foo', function ( event ) {
+				t.ok( event && event.original );
+				t.equal( event, this.event );
+				t.equal( event.original.type, 'click' );
+			})
+
+			simulant.fire( ractive.nodes.test, 'click' );
 		});
 	};
 

@@ -61,7 +61,7 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 
 	var originalEvent = null, stopEvent = false;
 
-	if ( event && !event._noArg ) {
+	if ( ractive.eventObject && event && !event._noArg ) {
 		args = [ event ].concat( args );
 	}
 
