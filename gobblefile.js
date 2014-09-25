@@ -1,5 +1,5 @@
 var gobble = require( 'gobble' ),
-	src, sandbox, tests, result = [];
+	src, test, result = [];
 
 var transpilerOptions = {
 	globals: 'define Promise QUnit _modules test start asyncTest ok equal notEqual deepEqual expect throws simulant HTMLDocument jQuery MouseEvent'.split( ' ' ).reduce( function ( globals, name ) {
