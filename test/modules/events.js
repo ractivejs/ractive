@@ -1206,6 +1206,27 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			simulant.fire( ractive.nodes.test, 'click' );
 		});
+
+		test( 'proxy events can optionally specify event object or .event property', t => {
+			var ractive;
+
+			expect( 2 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="foo:{{event}}, event"/>',
+				data: {
+					event: 'foo'
+				}
+			});
+
+			ractive.on( 'foo', function ( event, arg ) {
+				t.equal( event, this.event, 'event object passed' );
+				t.equal( arg, this.data.event, 'argument passed' );
+			})
+
+			simulant.fire( ractive.nodes.test, 'click' );
+		});
 	};
 
 });
