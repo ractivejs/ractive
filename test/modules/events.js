@@ -118,10 +118,10 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'Standard events have correct properties: node, original, keypath, context, index', t => {
-			var ractive, fakeEvent;
+		test( 'Standard events have correct properties: node, original, keypath, context, index, name', t => {
+			var ractive;
 
-			expect( 5 );
+			expect( 6 );
 
 			ractive = new Ractive({
 				el: fixture,
@@ -130,15 +130,14 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.on( 'someEvent', function ( event ) {
 				t.equal( event.node, ractive.nodes.test );
+				t.equal( event.name, 'someEvent' );
 				t.ok( event.original );
 				t.equal( event.keypath, '' );
 				t.equal( event.context, ractive.data );
 				t.equal( event.index, undefined );
 			});
 
-			fakeEvent = simulant( 'click' );
-
-			simulant.fire( ractive.nodes.test, fakeEvent );
+			simulant.fire( ractive.nodes.test, 'click' );
 		});
 
 		test( 'Empty event names are safe, though do not fire', t => {
@@ -1115,6 +1114,9 @@ define([ 'ractive' ], function ( Ractive ) {
 			component.fire( 'bizz' );
 		});
 
+
+		module( 'Touch events' );
+
 		test( 'touch events safe to include when they don\'t exist in browser', t => {
 			var ractive;
 
@@ -1132,6 +1134,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			})
 
 			simulant.fire( ractive.nodes.test2, 'mousedown' );
+
+		});
+
+		module( 'this.events' );
+
+		test( 'set to current event object', t => {
+			var ractive;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="foo"/>'
+			});
+
+			ractive.on( 'foo', function ( event ) {
+				t.equal( this.event, event )
+			})
+
+			simulant.fire( ractive.nodes.test, 'click' );
 
 		});
 	};
