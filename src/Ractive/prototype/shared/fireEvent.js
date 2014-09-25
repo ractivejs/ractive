@@ -3,7 +3,18 @@ import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 export default function fireEvent ( ractive, eventName, options = {} ) {
 	if ( !eventName ) { return; }
 
-	if ( options.event ) {
+	if ( !options.event ) {
+
+		options.event = {
+			name: eventName,
+			context: ractive.data,
+			keypath: '',
+			// until event not included as argument default
+			_noArg: true
+		};
+
+	}
+	else {
 		options.event.name = eventName;
 	}
 
@@ -50,7 +61,7 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 
 	var originalEvent = null, stopEvent = false;
 
-	if ( event ) {
+	if ( event && !event._noArg ) {
 		args = [ event ].concat( args );
 	}
 
@@ -60,7 +71,7 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 		}
 	}
 
-	if ( event && stopEvent && ( originalEvent = event.original ) ) {
+	if ( event && !event._noArg && stopEvent && ( originalEvent = event.original ) ) {
 		originalEvent.preventDefault && originalEvent.preventDefault();
 		originalEvent.stopPropagation && originalEvent.stopPropagation();
 	}

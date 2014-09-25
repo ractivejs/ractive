@@ -1150,11 +1150,33 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.on( 'foo', function ( event ) {
-				t.equal( this.event, event )
+				t.equal( this.event, event );
 			})
 
 			simulant.fire( ractive.nodes.test, 'click' );
 
+		});
+
+		test( 'exists on ractive.fire()', t => {
+			var ractive, data = { foo: 'bar' };
+
+			expect( 4 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="foo"/>',
+				data: data
+			});
+
+			ractive.on( 'foo', function () {
+				var e;
+				t.ok( e = this.event );
+				t.equal( e.name, 'foo' );
+				t.equal( e.keypath, '' );
+				t.equal( e.context, data );
+			})
+
+			ractive.fire( 'foo' );
 		});
 	};
 
