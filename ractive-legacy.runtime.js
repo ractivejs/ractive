@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.8
-	2014-09-25 - commit 8304e24d 
+	2014-09-25 - commit aa1faa1b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3194,6 +3194,17 @@
 			if ( !eventName ) {
 				return;
 			}
+			if ( !options.event ) {
+				options.event = {
+					name: eventName,
+					context: ractive.data,
+					keypath: '',
+					// until event not included as argument default
+					_noArg: true
+				};
+			} else {
+				options.event.name = eventName;
+			}
 			var eventNames = getPotentialWildcardMatches( eventName );
 			fireEventAs( ractive, eventNames, options.event, options.args, true );
 		};
@@ -3203,11 +3214,17 @@
 			if ( initialFire === void 0 )
 				initialFire = false;
 			var subscribers, i, bubble = true;
+			if ( event ) {
+				ractive.event = event;
+			}
 			for ( i = eventNames.length; i >= 0; i-- ) {
 				subscribers = ractive._subs[ eventNames[ i ] ];
 				if ( subscribers ) {
 					bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
 				}
+			}
+			if ( event ) {
+				delete ractive.event;
 			}
 			if ( ractive._parent && bubble ) {
 				if ( initialFire && ractive.component ) {
@@ -3224,7 +3241,7 @@
 		function notifySubscribers( ractive, subscribers, event, args ) {
 			var originalEvent = null,
 				stopEvent = false;
-			if ( event ) {
+			if ( event && !event._noArg ) {
 				args = [ event ].concat( args );
 			}
 			for ( var i = 0, len = subscribers.length; i < len; i += 1 ) {
@@ -3232,7 +3249,7 @@
 					stopEvent = true;
 				}
 			}
-			if ( event && stopEvent && ( originalEvent = event.original ) ) {
+			if ( event && !event._noArg && stopEvent && ( originalEvent = event.original ) ) {
 				originalEvent.preventDefault && originalEvent.preventDefault();
 				originalEvent.stopPropagation && originalEvent.stopPropagation();
 			}
