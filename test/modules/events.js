@@ -1178,6 +1178,24 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.fire( 'foo' );
 		});
+
+		test( 'wildcard and multi-part listeners have correct event name', t => {
+			var ractive, fired = [], events;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="foo"/>'
+			});
+
+			ractive.on( 'foo.* fuzzy *.bop', function () {
+				fired.push( this.event.name );
+			})
+
+			events = [ 'foo.bar', 'fuzzy', 'foo.fizz', 'bip.bop' ];
+			events.forEach( ractive.fire.bind( ractive ) );
+
+			t.deepEqual( fired, events );
+		});
 	};
 
 });
