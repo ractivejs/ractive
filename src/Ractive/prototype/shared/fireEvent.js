@@ -2,6 +2,22 @@ import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
 export default function fireEvent ( ractive, eventName, options = {} ) {
 	if ( !eventName ) { return; }
+
+	if ( !options.event ) {
+
+		options.event = {
+			name: eventName,
+			context: ractive.data,
+			keypath: '',
+			// until event not included as argument default
+			_noArg: true
+		};
+
+	}
+	else {
+		options.event.name = eventName;
+	}
+
 	var eventNames = getPotentialWildcardMatches( eventName );
 	fireEventAs( ractive, eventNames, options.event, options.args, true );
 }
@@ -10,12 +26,20 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 
 	var subscribers, i, bubble = true;
 
+	if ( event ) {
+		ractive.event = event;
+	}
+
 	for ( i = eventNames.length; i >= 0; i-- ) {
 		subscribers = ractive._subs[ eventNames[ i ] ];
 
 		if ( subscribers ) {
 			bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
 		}
+	}
+
+	if ( event ) {
+		delete ractive.event;
 	}
 
 	if ( ractive._parent && bubble ) {
@@ -37,7 +61,7 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 
 	var originalEvent = null, stopEvent = false;
 
-	if ( event ) {
+	if ( event && !event._noArg ) {
 		args = [ event ].concat( args );
 	}
 
@@ -47,7 +71,7 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 		}
 	}
 
-	if ( event && stopEvent && ( originalEvent = event.original ) ) {
+	if ( event && !event._noArg && stopEvent && ( originalEvent = event.original ) ) {
 		originalEvent.preventDefault && originalEvent.preventDefault();
 		originalEvent.stopPropagation && originalEvent.stopPropagation();
 	}
