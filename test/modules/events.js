@@ -748,8 +748,8 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			Widget = Ractive.extend({
 				template: `<button on-click='activate(event)'>{{foo}}</button>`,
-				activate: function () {
-					t.equal( this.event.original.type, 'click' );
+				activate: function ( event ) {
+					t.equal( event.original.type, 'click' );
 				}
 			});
 
@@ -1101,8 +1101,8 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			ractive.on( 'foo-reproxy', ( e, arg ) => {
-				t.equal( e.original.type, 'click' );
+			ractive.on( 'foo-reproxy', function ( arg ) {
+				t.equal( this.event.original.type, 'click' );
 				t.equal( arg, 'foo' );
 			});
 			ractive.on( 'bar-reproxy', ( arg ) => {
@@ -1143,10 +1143,10 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		module( 'this.events' );
 
-		test( 'exists on ractive.fire()', t => {
+		test( 'exists on ractive during ractive.fire() (but not before or after)', t => {
 			var ractive, data = { foo: 'bar' };
 
-			expect( 4 );
+			expect( 6 );
 
 			ractive = new Ractive({
 				el: fixture,
@@ -1162,7 +1162,11 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.equal( e.context, data );
 			})
 
+			t.ok( !ractive.hasOwnProperty('event') );
+
 			ractive.fire( 'foo' );
+
+			t.ok( !ractive.hasOwnProperty('event') );
 		});
 
 		test( 'wildcard and multi-part listeners have correct event name', t => {
@@ -1186,7 +1190,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'eventObject: true compatibility mode', t => {
 			var ractive;
 
-			expect( 2 );
+			expect( 3 );
 
 			ractive = new Ractive({
 				el: fixture,

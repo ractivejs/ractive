@@ -129,7 +129,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 
 			t.htmlEqual( fixture.innerHTML, '<button>bar</button>' );
 
-			ractive.on( 'select', function ( event, model ) {
+			ractive.on( 'select', function ( model ) {
 				t.ok( model instanceof Model );
 			});
 
