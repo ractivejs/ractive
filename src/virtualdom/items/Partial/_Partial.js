@@ -59,7 +59,9 @@ Partial.prototype = {
 
 	unrender: function ( shouldDestroy ) {
 		if ( this.rendered ) {
-			this.fragment.unrender( shouldDestroy );
+			if( this.fragment ) {
+				this.fragment.unrender( shouldDestroy );
+			}
 			this.rendered = false;
 		}
 	},
