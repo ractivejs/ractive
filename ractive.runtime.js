@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.5.8
-	2014-09-25 - commit aa1faa1b 
+	2014-09-27 - commit 0307dd8d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3798,7 +3798,8 @@
 		SECTION_IF: 50,
 		SECTION_UNLESS: 51,
 		SECTION_EACH: 52,
-		SECTION_WITH: 53
+		SECTION_WITH: 53,
+		SECTION_IF_WITH: 54
 	};
 
 	/* parse/Parser/expressions/shared/errors.js */
@@ -6224,6 +6225,8 @@
 						return reevaluateConditionalSection( section, value, true, fragmentOptions );
 					case types.SECTION_WITH:
 						return reevaluateContextSection( section, fragmentOptions );
+					case types.SECTION_IF_WITH:
+						return reevaluateConditionalContextSection( section, value, fragmentOptions );
 					case types.SECTION_EACH:
 						if ( isObject( value ) ) {
 							return reevaluateListObjectSection( section, value, fragmentOptions );
@@ -6313,6 +6316,14 @@
 			return changed;
 		}
 
+		function reevaluateConditionalContextSection( section, value, fragmentOptions ) {
+			if ( value ) {
+				return reevaluateContextSection( section, fragmentOptions );
+			} else {
+				return removeSectionFragments( section );
+			}
+		}
+
 		function reevaluateContextSection( section, fragmentOptions ) {
 			var fragment;
 			// ...then if it isn't rendered, render it, adding section.keypath to the context stack
@@ -6351,7 +6362,13 @@
 					section.fragmentsToUnrender.forEach( unbind );
 					return true;
 				}
-			} else if ( section.length ) {
+			} else {
+				return removeSectionFragments( section );
+			}
+		}
+
+		function removeSectionFragments( section ) {
+			if ( section.length ) {
 				section.fragmentsToUnrender = section.fragments.splice( 0, section.fragments.length ).filter( isRendered );
 				section.fragmentsToUnrender.forEach( unbind );
 				section.length = section.fragmentsToRender.length = 0;
