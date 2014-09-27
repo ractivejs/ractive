@@ -88,6 +88,9 @@ function reevaluateSection ( section, value ) {
 			case types.SECTION_WITH:
 			return reevaluateContextSection( section, fragmentOptions );
 
+			case types.SECTION_IF_WITH:
+			return reevaluateConditionalContextSection( section, value, fragmentOptions );
+
 			case types.SECTION_EACH:
 			if ( isObject( value ) ) {
 				return reevaluateListObjectSection( section, value, fragmentOptions );
@@ -204,6 +207,14 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 	return changed;
 }
 
+function reevaluateConditionalContextSection ( section, value, fragmentOptions ) {
+	if(value){
+		return reevaluateContextSection( section, fragmentOptions );
+	} else {
+		return removeSectionFragments( section );
+	}
+}
+
 function reevaluateContextSection ( section, fragmentOptions ) {
 	var fragment;
 
@@ -255,11 +266,16 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 		}
 	}
 
-	else if ( section.length ) {
+	else {
+		return removeSectionFragments( section );
+	}
+}
+
+function removeSectionFragments ( section ) {
+	if ( section.length ) {
 		section.fragmentsToUnrender = section.fragments.splice( 0, section.fragments.length ).filter( isRendered );
 		section.fragmentsToUnrender.forEach( unbind );
 		section.length = section.fragmentsToRender.length = 0;
-
 		return true;
 	}
 }
