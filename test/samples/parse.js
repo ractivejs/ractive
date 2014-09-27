@@ -484,12 +484,6 @@ var parseTests = [
 			'{{else}} not allowed in {{#unless}} at line 1 character 32:\n{{#unless foo}}not foo {{else}}foo?{{/unless}}\n                               ^----'
 	},
 	{
-		name: 'Else not allowed in #with',
-		template: '{{#with foo}}with foo {{else}}no foo?{{/with}}',
-		error:
-			'{{else}} not allowed in {{#with}} at line 1 character 31:\n{{#with foo}}with foo {{else}}no foo?{{/with}}\n                              ^----'
-	},
-	{
 		name: 'Mixed Handlebars-style and regular syntax',
 		template: '{{#foo}}normal{{/foo}}{{#if foo}}handlebars{{/if}}',
 		parsed: {v:1,t:[{t:4,r:'foo',f:['normal']},{t:4,r:'foo',n:50,f:['handlebars']}]}

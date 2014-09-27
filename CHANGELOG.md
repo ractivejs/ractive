@@ -6,6 +6,7 @@ Changelog
 	* Safe to specify touch events for browsers that do not support them
 	* Added event hooks: onconstruct, onconfig, oninit, onrender, oncomplete, onunrender, onteardown - usable as methods or events
 	* BREAKING CHANGE: Depricated beforeInit, init, and complete. Depricated init is mapped to onrender and will fire more than once, and no longer contains options argument
+	* Added support for `{{else}}` in `{{#with}}` block
 * 0.5.8
 	* Huge parser speed boost (see #1227)
 	* Fixes for #1204, #1214, #1218, #1221, #1223

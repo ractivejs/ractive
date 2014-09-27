@@ -38,5 +38,6 @@ export default {
 	SECTION_IF        : 50,
 	SECTION_UNLESS    : 51,
 	SECTION_EACH      : 52,
-	SECTION_WITH      : 53
+	SECTION_WITH      : 53,
+	SECTION_IF_WITH   : 54
 };

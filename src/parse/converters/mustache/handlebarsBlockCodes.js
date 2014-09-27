@@ -1,8 +1,9 @@
 import types from 'config/types';
 
 export default {
+	'each': types.SECTION_EACH,
 	'if': types.SECTION_IF,
-	'unless': types.SECTION_UNLESS,
+	'if-with': types.SECTION_IF_WITH,
 	'with': types.SECTION_WITH,
-	'each': types.SECTION_EACH
+	'unless': types.SECTION_UNLESS
 };
