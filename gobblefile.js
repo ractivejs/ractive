@@ -9,12 +9,12 @@ var transpilerOptions = {
 };
 
 src = gobble( 'src' )
-	.map( 'esperanto', { defaultOnly: true })
-	.map( 'es6-transpiler', transpilerOptions )
+	.transform( 'esperanto', { defaultOnly: true })
+	.transform( 'es6-transpiler', transpilerOptions )
 	.moveTo( 'src' );
 
 test = gobble( 'test' )
-	.map( 'es6-transpiler', transpilerOptions )
+	.transform( 'es6-transpiler', transpilerOptions )
 	.moveTo( 'test' );
 
 result = [ src, test ];
