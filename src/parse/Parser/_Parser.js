@@ -87,7 +87,7 @@ Parser.prototype = {
 		}
 
 		columnNum = char - lineStart;
-		return [ lineNum + 1, columnNum + 1 ]; // should be one-based, not zero-based!
+		return [ lineNum + 1, columnNum + 1, char ]; // should be one-based, not zero-based!
 	},
 
 	error: function ( message ) {
