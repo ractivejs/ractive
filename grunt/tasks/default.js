@@ -6,7 +6,8 @@ module.exports = function ( grunt ) {
 		'build',
 		'concurrent:test',
 		'concurrent:uglify',
-		'concat:banner'
+		'concat:banner',
+		'copy:main'
 	]);
 
 };
