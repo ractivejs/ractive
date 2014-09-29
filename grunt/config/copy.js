@@ -57,6 +57,10 @@ module.exports = function ( grunt) {
 					return grunt.template.process(src);
 				}
 			}
+		},
+		main: {
+			src: 'build/ractive.js',
+			dest: 'ractive.js'
 		}
 	};
 };
