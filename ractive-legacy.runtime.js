@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.5.8
-	2014-09-29 - commit 36527fb1 
+	2014-09-30 - commit 6b5ec724 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4999,7 +4999,8 @@
 				columnNum = char - lineStart;
 				return [
 					lineNum + 1,
-					columnNum + 1
+					columnNum + 1,
+					char
 				];
 			},
 			error: function( message ) {
