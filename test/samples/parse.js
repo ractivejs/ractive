@@ -500,7 +500,7 @@ var parseTests = [
 			"  <circle cx=\"{{x}}\" cy=\"{{y}}\" r=\"{{r}}\"/>\n" +
 			"</svg>",
 		options: {includeLinePositions:true},
-		parsed: {v:1,t:[{t:7,e:'svg',a:{xmlns:'http://www.w3.org/2000/svg'},f:[{t:7,e:'circle',a:{cx:[{t:2,r:'x',p:[2,15]}],cy:[{t:2,r:'y',p:[2,26]}],r:[{t:2,r:'r',p:[2,36]}]},p:[2,3]}],p:[1,1]}]}
+		parsed: {v:1,t:[{t:7,e:'svg',a:{xmlns:'http://www.w3.org/2000/svg'},f:[{t:7,e:'circle',a:{cx:[{t:2,r:'x',p:[2,15,55]}],cy:[{t:2,r:'y',p:[2,26,66]}],r:[{t:2,r:'r',p:[2,36,76]}]},p:[2,3,43]}],p:[1,1,0]}]}
 	},
 	{
 		name: 'Multiline trace',
@@ -512,13 +512,13 @@ var parseTests = [
 			'       </span>\n' +
 			'     {{/foo}}\n' +
 			'</div>',
-		parsed: {v:1,t:['hi',{t:2,p:[1,3],r:'name'},' ',{t:7,e:'div',p:[2,1],f:['blah ',{t:4,p:[3,6],r:'foo',f:['wew',{t:7,e:'span',p:[3,17],f:['Ain\'t that ',{t:2,p:[4,13],r:'grand'},'?']}]}]}]}
+		parsed: {v:1,t:['hi',{t:2,p:[1,3,2],r:'name'},' ',{t:7,e:'div',p:[2,1,11],f:['blah ',{t:4,p:[3,6,26],r:'foo',f:['wew',{t:7,e:'span',p:[3,17,37],f:['Ain\'t that ',{t:2,p:[4,13,62],r:'grand'},'?']}]}]}]}
 	},
 	{
 		name: "Mixture of HTML-able and non-HTML-able elements in template with Traces",
 		template: "<div><p>HTML</p><p>{{mustache}}</p></div>",
 		options: {includeLinePositions:true},
-		parsed: {v:1,t:[{t:7,e:'div',p:[1,1],f:[{t:7,e:'p',p:[1,6],f:['HTML']},{t:7,e:'p',p:[1,17],f:[{t:2,p:[1,20],r:'mustache'}]}]}]}
+		parsed: {v:1,t:[{t:7,e:'div',p:[1,1,0],f:[{t:7,e:'p',p:[1,6,5],f:['HTML']},{t:7,e:'p',p:[1,17,16],f:[{t:2,p:[1,20,19],r:'mustache'}]}]}]}
 	},
 	{
 		name: 'Reserved event names cannot be used for proxy events',
