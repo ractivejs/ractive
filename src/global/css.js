@@ -68,7 +68,7 @@ if ( !isClient ) {
 				componentsInPage[ Component._guid ] = 0;
 				styles.push( Component.css );
 
-				runloop.scheduleTask( update );
+				update(); // TODO can we only do this once for each runloop turn, but still ensure CSS is updated before onrender() methods are called?
 			}
 
 			componentsInPage[ Component._guid ] += 1;
