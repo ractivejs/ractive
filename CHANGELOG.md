@@ -1,12 +1,22 @@
 Changelog
 ---------
 
-* 0.x.x
-	* BREAKING CHANGE: new Ractive() now inherits all options as methods/properties incuding event hooks.
-	* Safe to specify touch events for browsers that do not support them
-	* Added event hooks: onconstruct, onconfig, oninit, onrender, oncomplete, onunrender, onteardown - usable as methods or events
-	* BREAKING CHANGE: Depricated beforeInit, init, and complete. Depricated init is mapped to onrender and will fire more than once, and no longer contains options argument
-	* Added support for `{{else}}` in `{{#with}}` block
+* 0.6.0
+	* Breaking changes:
+		* `new Ractive()` now inherits all options as methods/properties incuding event hooks.
+		* The deprecated `init()` function (see below) is mapped to `onrender()` and will fire more than once, and no longer contains options argument
+		* New reserved events (see below)
+		* Setting uninitialised data on a component will no longer cause it to leak out into the parent scope
+	* Deprecated:
+		* `beforeInit()`, `init()`, and `complete()` - replaced with `onconstruct()`, `onrender()` and `oncomplete()` methods
+	* New features
+		* Event hooks: `onconstruct()`, `onconfig()`, `oninit()`, `onrender()`, `oncomplete()`, `onunrender()`, `onteardown()`. These all have equivalent events, e.g. `this.on('render',...)`, which are reserved (i.e. you cannot use them as proxy events in templates)
+		* Conditional attributes, e.g. `<div {{#if selected}}class='selected'{{/if}}>...</div>`
+		* Safe to specify touch events for browsers that do not support them
+		* Added support for `{{else}}` in `{{#with}}` block
+		* Within event handlers, the `event` object is available as `this.event`, and has a `name` property (useful alongside `ractive.on('*',...)`).
+		* Character position is include alongside line and column information when parsing with `includeLinePositions: true`
+	* Fixes for #1184, #1206, #1208, #1220, #1228, #1232, #1239, plus a few IE8 bugs
 * 0.5.8
 	* Huge parser speed boost (see #1227)
 	* Fixes for #1204, #1214, #1218, #1221, #1223
