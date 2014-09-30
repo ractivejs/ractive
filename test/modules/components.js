@@ -1566,6 +1566,28 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, '<p>message: goodbye</p>' );
 		});
 
+		test( 'Component CSS is added to the page before components (#1046)', function ( t ) {
+			var Box, ractive;
+
+			Box = Ractive.extend({
+				template: '<div class="box"></div>',
+				css: '.box { width: 100px; height: 100px; }',
+				onrender: function () {
+					var div = this.find( '.box' );
+					t.equal( div.offsetHeight, 100 );
+					t.equal( div.offsetWidth, 100 );
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#if showBox}}<box/>{{/if}}',
+				components: { box: Box }
+			});
+
+			ractive.set( 'showBox', true );
+		});
+
 	};
 
 });
