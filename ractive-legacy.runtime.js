@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-09-30 - commit dab25a8b 
+	2014-09-30 - commit ce566470 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3929,7 +3929,7 @@
 						// removed, the style is too
 						componentsInPage[ Component._guid ] = 0;
 						styles.push( Component.css );
-						runloop.scheduleTask( update );
+						update();
 					}
 					componentsInPage[ Component._guid ] += 1;
 				},
