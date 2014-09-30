@@ -1,6 +1,6 @@
 /*
-	ractive.js v0.5.8
-	2014-09-18 - commit 2e726021 
+	ractive.js v0.6.0
+	2014-09-29 - commit 6b5ec724 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -203,124 +203,132 @@
 		return svg;
 	}();
 
-	/* utils/getPotentialWildcardMatches.js */
-	var getPotentialWildcardMatches = function() {
+	/* utils/warn.js */
+	var warn = function() {
 
-		var __export;
-		var starMaps = {};
-		// This function takes a keypath such as 'foo.bar.baz', and returns
-		// all the variants of that keypath that include a wildcard in place
-		// of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
-		// These are then checked against the dependants map (ractive.viewmodel.depsMap)
-		// to see if any pattern observers are downstream of one or more of
-		// these wildcard keypaths (e.g. 'foo.bar.*.status')
-		__export = function getPotentialWildcardMatches( keypath ) {
-			var keys, starMap, mapper, i, result, wildcardKeypath;
-			keys = keypath.split( '.' );
-			if ( !( starMap = starMaps[ keys.length ] ) ) {
-				starMap = getStarMap( keys.length );
-			}
-			result = [];
-			mapper = function( star, i ) {
-				return star ? '*' : keys[ i ];
-			};
-			i = starMap.length;
-			while ( i-- ) {
-				wildcardKeypath = starMap[ i ].map( mapper ).join( '.' );
-				if ( !result.hasOwnProperty( wildcardKeypath ) ) {
-					result.push( wildcardKeypath );
-					result[ wildcardKeypath ] = true;
-				}
-			}
-			return result;
-		};
-		// This function returns all the possible true/false combinations for
-		// a given number - e.g. for two, the possible combinations are
-		// [ true, true ], [ true, false ], [ false, true ], [ false, false ].
-		// It does so by getting all the binary values between 0 and e.g. 11
-		function getStarMap( num ) {
-			var ones = '',
-				max, binary, starMap, mapper, i;
-			if ( !starMaps[ num ] ) {
-				starMap = [];
-				while ( ones.length < num ) {
-					ones += 1;
-				}
-				max = parseInt( ones, 2 );
-				mapper = function( digit ) {
-					return digit === '1';
-				};
-				for ( i = 0; i <= max; i += 1 ) {
-					binary = i.toString( 2 );
-					while ( binary.length < num ) {
-						binary = '0' + binary;
+		/* global console */
+		var warn, warned = {};
+		if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
+			warn = function( message, allowDuplicates ) {
+				if ( !allowDuplicates ) {
+					if ( warned[ message ] ) {
+						return;
 					}
-					starMap[ i ] = Array.prototype.map.call( binary, mapper );
+					warned[ message ] = true;
 				}
-				starMaps[ num ] = starMap;
-			}
-			return starMaps[ num ];
+				console.warn( message );
+			};
+		} else {
+			warn = function() {};
 		}
-		return __export;
+		return warn;
 	}();
 
-	/* Ractive/prototype/shared/fireEvent.js */
-	var Ractive$shared_fireEvent = function( getPotentialWildcardMatches ) {
+	/* config/errors.js */
+	var errors = {
+		missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser',
+		mergeComparisonFail: 'Merge operation: comparison failed. Falling back to identity checking',
+		noComponentEventArguments: 'Components currently only support simple events - you cannot include arguments. Sorry!',
+		noTemplateForPartial: 'Could not find template for partial "{name}"',
+		noNestedPartials: 'Partials ({{>{name}}}) cannot contain nested inline partials',
+		evaluationError: 'Error evaluating "{uniqueString}": {err}',
+		badArguments: 'Bad arguments "{arguments}". I\'m not allowed to argue unless you\'ve paid.',
+		failedComputation: 'Failed to compute "{key}": {err}',
+		missingPlugin: 'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s',
+		badRadioInputBinding: 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both',
+		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned',
+		defaultElSpecified: 'The <{name}/> component has a default `el` property; it has been disregarded',
+		noElementProxyEventWildcards: 'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.',
+		methodDepricated: 'The method "{depricated}" has been depricated in favor of "{replacement}" and will likely be removed in a future release.'
+	};
 
-		var __export;
-		__export = function fireEvent( ractive, eventName ) {
-			var options = arguments[ 2 ];
-			if ( options === void 0 )
-				options = {};
-			if ( !eventName ) {
-				return;
+	/* utils/log.js */
+	var log = function( consolewarn, errors ) {
+
+		var log = {
+			warn: function( options, passthru ) {
+				if ( !options.debug && !passthru ) {
+					return;
+				}
+				this.logger( getMessage( options ), options.allowDuplicates );
+			},
+			error: function( options ) {
+				this.errorOnly( options );
+				if ( !options.debug ) {
+					this.warn( options, true );
+				}
+			},
+			errorOnly: function( options ) {
+				if ( options.debug ) {
+					this.critical( options );
+				}
+			},
+			critical: function( options ) {
+				var err = options.err || new Error( getMessage( options ) );
+				this.thrower( err );
+			},
+			logger: consolewarn,
+			thrower: function( err ) {
+				throw err;
 			}
-			var eventNames = getPotentialWildcardMatches( eventName );
-			fireEventAs( ractive, eventNames, options.event, options.args, true );
 		};
 
-		function fireEventAs( ractive, eventNames, event, args ) {
-			var initialFire = arguments[ 4 ];
-			if ( initialFire === void 0 )
-				initialFire = false;
-			var subscribers, i, bubble = true;
-			for ( i = eventNames.length; i >= 0; i-- ) {
-				subscribers = ractive._subs[ eventNames[ i ] ];
-				if ( subscribers ) {
-					bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
-				}
-			}
-			if ( ractive._parent && bubble ) {
-				if ( initialFire && ractive.component ) {
-					var fullName = ractive.component.name + '.' + eventNames[ eventNames.length - 1 ];
-					eventNames = getPotentialWildcardMatches( fullName );
-					if ( event ) {
-						event.component = ractive;
-					}
-				}
-				fireEventAs( ractive._parent, eventNames, event, args );
-			}
+		function getMessage( options ) {
+			var message = errors[ options.message ] || options.message || '';
+			return interpolate( message, options.args );
 		}
+		// simple interpolation. probably quicker (and better) out there,
+		// but log is not in golden path of execution, only exceptions
+		function interpolate( message, args ) {
+			return message.replace( /{([^{}]*)}/g, function( a, b ) {
+				return args[ b ];
+			} );
+		}
+		return log;
+	}( warn, errors );
 
-		function notifySubscribers( ractive, subscribers, event, args ) {
-			var originalEvent = null,
-				stopEvent = false;
-			if ( event ) {
-				args = [ event ].concat( args );
+	/* Ractive/prototype/shared/hooks/Hook.js */
+	var Ractive$shared_hooks_Hook = function( log ) {
+
+		var deprications = {
+			construct: {
+				depricated: 'beforeInit',
+				replacement: 'onconstruct'
+			},
+			render: {
+				depricated: 'init',
+				replacement: 'onrender'
+			},
+			complete: {
+				depricated: 'complete',
+				replacement: 'oncomplete'
 			}
-			for ( var i = 0, len = subscribers.length; i < len; i += 1 ) {
-				if ( subscribers[ i ].apply( ractive, args ) === false ) {
-					stopEvent = true;
+		};
+
+		function Hook( event ) {
+			this.event = event;
+			this.method = 'on' + event;
+			this.depricate = deprications[ event ];
+		}
+		Hook.prototype.fire = function( ractive, arg ) {
+			function call( method ) {
+				if ( ractive[ method ] ) {
+					arg ? ractive[ method ]( arg ) : ractive[ method ]();
+					return true;
 				}
 			}
-			if ( event && stopEvent && ( originalEvent = event.original ) ) {
-				originalEvent.preventDefault && originalEvent.preventDefault();
-				originalEvent.stopPropagation && originalEvent.stopPropagation();
+			call( this.method );
+			if ( this.depricate && call( this.depricate.depricated ) ) {
+				log.warn( {
+					debug: ractive.debug,
+					message: 'methodDepricated',
+					args: this.depricate
+				} );
 			}
-			return !stopEvent;
-		}
-		return __export;
-	}( getPotentialWildcardMatches );
+			arg ? ractive.fire( this.event, arg ) : ractive.fire( this.event );
+		};
+		return Hook;
+	}( log );
 
 	/* utils/removeFromArray.js */
 	var removeFromArray = function( array, member ) {
@@ -624,7 +632,7 @@
 		getOptions = {
 			evaluateWrapped: true
 		};
-		__export = function resolveRef( ractive, ref, fragment ) {
+		__export = function resolveRef( ractive, ref, fragment, isParentLookup ) {
 			var context, key, index, keypath, parentValue, hasContextChain, parentKeys, childKeys, parentKeypath, childKeypath;
 			ref = normaliseRef( ref );
 			// If a reference begins '~/', it's a top-level reference
@@ -656,6 +664,7 @@
 			// If this is an inline component, and it's not isolated, we
 			// can try going up the scope chain
 			if ( ractive._parent && !ractive.isolated ) {
+				hasContextChain = true;
 				fragment = ractive.component.parentFragment;
 				// Special case - index refs
 				if ( fragment.indexRefs && ( index = fragment.indexRefs[ ref ] ) !== undefined ) {
@@ -665,7 +674,7 @@
 					ractive.viewmodel.set( ref, index, true );
 					return;
 				}
-				keypath = resolveRef( ractive._parent, ref, fragment );
+				keypath = resolveRef( ractive._parent, ref, fragment, true );
 				if ( keypath ) {
 					// We need to create an inter-component binding
 					// If parent keypath is 'one.foo' and child is 'two.foo', we bind
@@ -685,7 +694,10 @@
 			}
 			// If there's no context chain, and the instance is either a) isolated or
 			// b) an orphan, then we know that the keypath is identical to the reference
-			if ( !hasContextChain ) {
+			if ( !isParentLookup && !hasContextChain ) {
+				// the data object needs to have a property by this name,
+				// to prevent future failed lookups
+				ractive.viewmodel.set( ref, undefined );
 				return ref;
 			}
 			if ( ractive.viewmodel.get( ref ) !== undefined ) {
@@ -806,10 +818,11 @@
 	}( removeFromArray );
 
 	/* global/runloop.js */
-	var runloop = function( circular, fireEvent, removeFromArray, Promise, resolveRef, TransitionManager ) {
+	var runloop = function( circular, Hook, removeFromArray, Promise, resolveRef, TransitionManager ) {
 
 		var __export;
-		var batch, runloop, unresolved = [];
+		var batch, runloop, unresolved = [],
+			changeHook = new Hook( 'change' );
 		runloop = {
 			start: function( instance, returnPromise ) {
 				var promise, fulfilPromise;
@@ -878,9 +891,7 @@
 				thing = batch.viewmodels[ i ];
 				changeHash = thing.applyChanges();
 				if ( changeHash ) {
-					fireEvent( thing.ractive, 'change', {
-						args: [ changeHash ]
-					} );
+					changeHook.fire( thing.ractive, changeHash );
 				}
 			}
 			batch.viewmodels.length = 0;
@@ -930,7 +941,7 @@
 			resolved.item.resolve( resolved.keypath );
 		}
 		return __export;
-	}( circular, Ractive$shared_fireEvent, removeFromArray, Promise, resolveRef, TransitionManager );
+	}( circular, Ractive$shared_hooks_Hook, removeFromArray, Promise, resolveRef, TransitionManager );
 
 	/* utils/createBranch.js */
 	var createBranch = function() {
@@ -1359,27 +1370,6 @@
 		return animations;
 	}( requestAnimationFrame, getTime, runloop );
 
-	/* utils/warn.js */
-	var warn = function() {
-
-		/* global console */
-		var warn, warned = {};
-		if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
-			warn = function( message, allowDuplicates ) {
-				if ( !allowDuplicates ) {
-					if ( warned[ message ] ) {
-						return;
-					}
-					warned[ message ] = true;
-				}
-				console.warn( message );
-			};
-		} else {
-			warn = function() {};
-		}
-		return warn;
-	}();
-
 	/* config/options/css/transform.js */
 	var transform = function() {
 
@@ -1515,6 +1505,9 @@
 		function combine( Parent, target, options ) {
 			var value = options.data || {},
 				parentValue = getAddedKeys( Parent.prototype.data );
+			if ( typeof value !== 'object' && typeof value !== 'function' ) {
+				throw new TypeError( 'data option must be an object or a function, "' + value + '" is not valid' );
+			}
 			return dispatch( parentValue, value );
 		}
 
@@ -1630,23 +1623,6 @@
 		return __export;
 	}( wrapMethod );
 
-	/* config/errors.js */
-	var errors = {
-		missingParser: 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser',
-		mergeComparisonFail: 'Merge operation: comparison failed. Falling back to identity checking',
-		noComponentEventArguments: 'Components currently only support simple events - you cannot include arguments. Sorry!',
-		noTemplateForPartial: 'Could not find template for partial "{name}"',
-		noNestedPartials: 'Partials ({{>{name}}}) cannot contain nested inline partials',
-		evaluationError: 'Error evaluating "{uniqueString}": {err}',
-		badArguments: 'Bad arguments "{arguments}". I\'m not allowed to argue unless you\'ve paid.',
-		failedComputation: 'Failed to compute "{key}": {err}',
-		missingPlugin: 'Missing "{name}" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s',
-		badRadioInputBinding: 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both',
-		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned',
-		defaultElSpecified: 'The <{name}/> component has a default `el` property; it has been disregarded',
-		noElementProxyEventWildcards: 'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.'
-	};
-
 	/* config/types.js */
 	var types = {
 		TEXT: 1,
@@ -1682,7 +1658,8 @@
 		SECTION_IF: 50,
 		SECTION_UNLESS: 51,
 		SECTION_EACH: 52,
-		SECTION_WITH: 53
+		SECTION_WITH: 53,
+		SECTION_IF_WITH: 54
 	};
 
 	/* utils/create.js */
@@ -2509,7 +2486,8 @@
 				columnNum = char - lineStart;
 				return [
 					lineNum + 1,
-					columnNum + 1
+					columnNum + 1,
+					char
 				];
 			},
 			error: function( message ) {
@@ -2651,10 +2629,11 @@
 	var handlebarsBlockCodes = function( types ) {
 
 		return {
+			'each': types.SECTION_EACH,
 			'if': types.SECTION_IF,
-			'unless': types.SECTION_UNLESS,
+			'if-with': types.SECTION_IF_WITH,
 			'with': types.SECTION_WITH,
-			'each': types.SECTION_EACH
+			'unless': types.SECTION_UNLESS
 		};
 	}( types );
 
@@ -2922,16 +2901,12 @@
 					}
 					// {{else}} tags require special treatment
 					if ( child.t === types.INTERPOLATOR && child.r === 'else' ) {
-						switch ( mustache.n ) {
-							case 'unless':
-								parser.error( '{{else}} not allowed in {{#unless}}' );
-								break;
-							case 'with':
-								parser.error( '{{else}} not allowed in {{#with}}' );
-								break;
-							default:
-								currentChildren = elseChildren = [];
-								continue;
+						// no {{else}} allowed in {{#unless}}
+						if ( mustache.n === 'unless' ) {
+							parser.error( '{{else}} not allowed in {{#unless}}' );
+						} else {
+							currentChildren = elseChildren = [];
+							continue;
 						}
 					}
 					currentChildren.push( child );
@@ -2946,6 +2921,9 @@
 				}
 				if ( elseChildren && elseChildren.length ) {
 					mustache.l = elseChildren;
+					if ( mustache.n === 'with' ) {
+						mustache.n = 'if-with';
+					}
 				}
 			}
 			if ( parser.includeLinePositions ) {
@@ -3875,7 +3853,7 @@
 			validTagNameFollower = /^[\s\n\/>]/,
 			onPattern = /^on/,
 			proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
-			reservedEventNames = /^(?:change|reset|teardown|update)$/,
+			reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
 			directives = {
 				'intro-outro': 't0',
 				intro: 't1',
@@ -3980,27 +3958,36 @@
 				var directiveName = directive.n || directive;
 				if ( reservedEventNames.test( directiveName ) ) {
 					parser.pos -= directiveName.length;
-					parser.error( 'Cannot use reserved event names (change, reset, teardown, update)' );
+					parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
 				}
 				element.v[ name ] = directive;
 			};
+			parser.allowWhitespace();
 			// directives and attributes
-			while ( attribute = getAttribute( parser ) ) {
-				// intro, outro, decorator
-				if ( directiveName = directives[ attribute.name ] ) {
-					element[ directiveName ] = processDirective( attribute.value );
-				} else if ( match = proxyEventPattern.exec( attribute.name ) ) {
-					if ( !element.v )
-						element.v = {};
-					directive = processDirective( attribute.value );
-					addProxyEvent( match[ 1 ], directive );
-				} else {
-					if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
-						if ( !element.a )
-							element.a = {};
-						element.a[ attribute.name ] = attribute.value || 0;
+			while ( attribute = getMustache( parser ) || getAttribute( parser ) ) {
+				// regular attributes
+				if ( attribute.name ) {
+					// intro, outro, decorator
+					if ( directiveName = directives[ attribute.name ] ) {
+						element[ directiveName ] = processDirective( attribute.value );
+					} else if ( match = proxyEventPattern.exec( attribute.name ) ) {
+						if ( !element.v )
+							element.v = {};
+						directive = processDirective( attribute.value );
+						addProxyEvent( match[ 1 ], directive );
+					} else {
+						if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
+							if ( !element.a )
+								element.a = {};
+							element.a[ attribute.name ] = attribute.value || 0;
+						}
 					}
+				} else {
+					if ( !element.m )
+						element.m = [];
+					element.m.push( attribute );
 				}
+				parser.allowWhitespace();
 			}
 			// allow whitespace before closing solidus
 			parser.allowWhitespace();
@@ -4725,9 +4712,18 @@
 	}( warn, isArray );
 
 	/* config/config.js */
-	var config = function( css, data, defaults, template, parseOptions, registries, wrap, deprecate ) {
+	var config = function( css, data, defaults, template, parseOptions, registries, wrapPrototype, deprecate ) {
 
-		var custom, options, config;
+		var custom, options, config, blacklisted;
+		// would be nice to not have these here,
+		// they get added during initialise, so for now we have
+		// to make sure not to try and extend them.
+		// Possibly, we could re-order and not add till later
+		// in process.
+		blacklisted = {
+			'_parent': true,
+			'_component': true
+		};
 		custom = {
 			data: data,
 			template: template,
@@ -4745,6 +4741,10 @@
 		config.keys = Object.keys( defaults ).concat( registries.map( function( r ) {
 			return r.name;
 		} ) ).concat( [ 'css' ] );
+		// add these to blacklisted key's that we don't double extend
+		config.keys.forEach( function( key ) {
+			return blacklisted[ key ] = true;
+		} );
 		config.parseOptions = parseOptions;
 		config.registries = registries;
 
@@ -4756,10 +4756,11 @@
 		};
 		config.init = function( Parent, ractive, options ) {
 			configure( 'init', Parent, ractive, options );
-			if ( ractive._config ) {
-				ractive._config.options = options;
-			}
 		};
+
+		function isStandardDefaultKey( key ) {
+			return key in defaults && !( key in config.parseOptions ) && !( key in custom );
+		}
 
 		function configure( method, Parent, instance, options ) {
 			deprecate( options );
@@ -4770,9 +4771,9 @@
 				}
 			} );
 			for ( var key in options ) {
-				if ( key in defaults && !( key in config.parseOptions ) && !( key in custom ) ) {
+				if ( isStandardDefaultKey( key ) ) {
 					var value = options[ key ];
-					instance[ key ] = typeof value === 'function' ? wrap( Parent.prototype, key, value ) : value;
+					instance[ key ] = typeof value === 'function' ? wrapPrototype( Parent.prototype, key, value ) : value;
 				}
 			}
 			config.registries.forEach( function( registry ) {
@@ -4780,6 +4781,20 @@
 			} );
 			customConfig( method, 'template', Parent, instance, options );
 			customConfig( method, 'css', Parent, instance, options );
+			extendOtherMethods( Parent.prototype, instance, options );
+		}
+
+		function extendOtherMethods( parent, instance, options ) {
+			for ( var key in options ) {
+				if ( !( key in blacklisted ) && options.hasOwnProperty( key ) ) {
+					var member = options[ key ];
+					// if this is a method that overwrites a method, wrap it:
+					if ( typeof member === 'function' ) {
+						member = wrapPrototype( parent, key, member );
+					}
+					instance[ key ] = member;
+				}
+			}
 		}
 		config.reset = function( ractive ) {
 			return config.filter( function( c ) {
@@ -4787,6 +4802,17 @@
 			} ).map( function( c ) {
 				return c.name;
 			} );
+		};
+		config.getConstructTarget = function( ractive, options ) {
+			if ( options.onconstruct ) {
+				// pretend this object literal is the ractive instance
+				return {
+					onconstruct: wrapPrototype( ractive, 'onconstruct', options.onconstruct ).bind( ractive ),
+					fire: ractive.fire.bind( ractive )
+				};
+			} else {
+				return ractive;
+			}
 		};
 		return config;
 	}( css, data, options, template, parseOptions, registries, wrapPrototypeMethod, deprecate );
@@ -5034,8 +5060,9 @@
 	}( isEqual, Promise, normaliseKeypath, animations, Ractive$animate_Animation );
 
 	/* Ractive/prototype/detach.js */
-	var Ractive$detach = function( removeFromArray ) {
+	var Ractive$detach = function( Hook, removeFromArray ) {
 
+		var detachHook = new Hook( 'detach' );
 		return function Ractive$detach() {
 			if ( this.detached ) {
 				return this.detached;
@@ -5044,9 +5071,10 @@
 				removeFromArray( this.el.__ractive_instances__, this );
 			}
 			this.detached = this.fragment.detach();
+			detachHook.fire( this );
 			return this.detached;
 		};
-	}( removeFromArray );
+	}( Ractive$shared_hooks_Hook, removeFromArray );
 
 	/* Ractive/prototype/find.js */
 	var Ractive$find = function Ractive$find( selector ) {
@@ -5360,6 +5388,142 @@
 		return this.fragment.findComponent( selector );
 	};
 
+	/* utils/getPotentialWildcardMatches.js */
+	var getPotentialWildcardMatches = function() {
+
+		var __export;
+		var starMaps = {};
+		// This function takes a keypath such as 'foo.bar.baz', and returns
+		// all the variants of that keypath that include a wildcard in place
+		// of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
+		// These are then checked against the dependants map (ractive.viewmodel.depsMap)
+		// to see if any pattern observers are downstream of one or more of
+		// these wildcard keypaths (e.g. 'foo.bar.*.status')
+		__export = function getPotentialWildcardMatches( keypath ) {
+			var keys, starMap, mapper, i, result, wildcardKeypath;
+			keys = keypath.split( '.' );
+			if ( !( starMap = starMaps[ keys.length ] ) ) {
+				starMap = getStarMap( keys.length );
+			}
+			result = [];
+			mapper = function( star, i ) {
+				return star ? '*' : keys[ i ];
+			};
+			i = starMap.length;
+			while ( i-- ) {
+				wildcardKeypath = starMap[ i ].map( mapper ).join( '.' );
+				if ( !result.hasOwnProperty( wildcardKeypath ) ) {
+					result.push( wildcardKeypath );
+					result[ wildcardKeypath ] = true;
+				}
+			}
+			return result;
+		};
+		// This function returns all the possible true/false combinations for
+		// a given number - e.g. for two, the possible combinations are
+		// [ true, true ], [ true, false ], [ false, true ], [ false, false ].
+		// It does so by getting all the binary values between 0 and e.g. 11
+		function getStarMap( num ) {
+			var ones = '',
+				max, binary, starMap, mapper, i;
+			if ( !starMaps[ num ] ) {
+				starMap = [];
+				while ( ones.length < num ) {
+					ones += 1;
+				}
+				max = parseInt( ones, 2 );
+				mapper = function( digit ) {
+					return digit === '1';
+				};
+				for ( i = 0; i <= max; i += 1 ) {
+					binary = i.toString( 2 );
+					while ( binary.length < num ) {
+						binary = '0' + binary;
+					}
+					starMap[ i ] = Array.prototype.map.call( binary, mapper );
+				}
+				starMaps[ num ] = starMap;
+			}
+			return starMaps[ num ];
+		}
+		return __export;
+	}();
+
+	/* Ractive/prototype/shared/fireEvent.js */
+	var Ractive$shared_fireEvent = function( getPotentialWildcardMatches ) {
+
+		var __export;
+		__export = function fireEvent( ractive, eventName ) {
+			var options = arguments[ 2 ];
+			if ( options === void 0 )
+				options = {};
+			if ( !eventName ) {
+				return;
+			}
+			if ( !options.event ) {
+				options.event = {
+					name: eventName,
+					context: ractive.data,
+					keypath: '',
+					// until event not included as argument default
+					_noArg: true
+				};
+			} else {
+				options.event.name = eventName;
+			}
+			var eventNames = getPotentialWildcardMatches( eventName );
+			fireEventAs( ractive, eventNames, options.event, options.args, true );
+		};
+
+		function fireEventAs( ractive, eventNames, event, args ) {
+			var initialFire = arguments[ 4 ];
+			if ( initialFire === void 0 )
+				initialFire = false;
+			var subscribers, i, bubble = true;
+			if ( event ) {
+				ractive.event = event;
+			}
+			for ( i = eventNames.length; i >= 0; i-- ) {
+				subscribers = ractive._subs[ eventNames[ i ] ];
+				if ( subscribers ) {
+					bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
+				}
+			}
+			if ( event ) {
+				delete ractive.event;
+			}
+			if ( ractive._parent && bubble ) {
+				if ( initialFire && ractive.component ) {
+					var fullName = ractive.component.name + '.' + eventNames[ eventNames.length - 1 ];
+					eventNames = getPotentialWildcardMatches( fullName );
+					if ( event ) {
+						event.component = ractive;
+					}
+				}
+				fireEventAs( ractive._parent, eventNames, event, args );
+			}
+		}
+
+		function notifySubscribers( ractive, subscribers, event, args ) {
+			var originalEvent = null,
+				stopEvent = false;
+			if ( event && !event._noArg ) {
+				args = [ event ].concat( args );
+			}
+			for ( var i = 0, len = subscribers.length; i < len; i += 1 ) {
+				if ( subscribers[ i ].apply( ractive, args ) === false ) {
+					stopEvent = true;
+				}
+			}
+			if ( event && !event._noArg && stopEvent && ( originalEvent = event.original ) ) {
+				originalEvent.preventDefault && originalEvent.preventDefault();
+				originalEvent.stopPropagation && originalEvent.stopPropagation();
+			}
+			return !stopEvent;
+		}
+		return __export;
+	}( getPotentialWildcardMatches );
+
 	/* Ractive/prototype/fire.js */
 	var Ractive$fire = function( fireEvent ) {
 
@@ -5372,17 +5536,26 @@
 	}( Ractive$shared_fireEvent );
 
 	/* Ractive/prototype/get.js */
-	var Ractive$get = function( normaliseKeypath ) {
+	var Ractive$get = function( normaliseKeypath, resolveRef ) {
 
 		var options = {
 			capture: true
 		};
 		// top-level calls should be intercepted
 		return function Ractive$get( keypath ) {
+			var value;
 			keypath = normaliseKeypath( keypath );
-			return this.viewmodel.get( keypath, options );
+			value = this.viewmodel.get( keypath, options );
+			// Create inter-component binding, if necessary
+			if ( value === undefined && this._parent && !this.isolated && this.fragment ) {
+				if ( resolveRef( this, keypath, this.fragment ) ) {
+					// creates binding as side-effect, if appropriate
+					value = this.viewmodel.get( keypath );
+				}
+			}
+			return value;
 		};
-	}( normaliseKeypath );
+	}( normaliseKeypath, resolveRef );
 
 	/* utils/getElement.js */
 	var getElement = function getElement( input ) {
@@ -5418,10 +5591,12 @@
 	};
 
 	/* Ractive/prototype/insert.js */
-	var Ractive$insert = function( getElement ) {
+	var Ractive$insert = function( Hook, getElement ) {
 
-		return function Ractive$insert( target, anchor ) {
-			if ( !this.rendered ) {
+		var __export;
+		var insertHook = new Hook( 'insert' );
+		__export = function Ractive$insert( target, anchor ) {
+			if ( !this.fragment.rendered ) {
 				// TODO create, and link to, documentation explaining this
 				throw new Error( 'The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.' );
 			}
@@ -5434,8 +5609,17 @@
 			this.el = target;
 			( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( this );
 			this.detached = null;
+			fireInsertHook( this );
 		};
-	}( getElement );
+
+		function fireInsertHook( ractive ) {
+			insertHook.fire( ractive );
+			ractive.findAllComponents( '*' ).forEach( function( child ) {
+				fireInsertHook( child.instance );
+			} );
+		}
+		return __export;
+	}( Ractive$shared_hooks_Hook, getElement );
 
 	/* Ractive/prototype/merge.js */
 	var Ractive$merge = function( runloop, isArray, normaliseKeypath ) {
@@ -5477,7 +5661,7 @@
 		};
 		Observer.prototype = {
 			init: function( immediate ) {
-				this.value = this.root.viewmodel.get( this.keypath );
+				this.value = this.root.get( this.keypath );
 				if ( immediate !== false ) {
 					this.update();
 				} else {
@@ -6030,23 +6214,65 @@
 		return css;
 	}( circular, isClient, removeFromArray );
 
-	/* Ractive/prototype/render.js */
-	var Ractive$render = function( runloop, css, getElement ) {
+	/* Ractive/prototype/shared/hooks/HookQueue.js */
+	var Ractive$shared_hooks_HookQueue = function( Hook ) {
 
-		var __export;
-		var queues = {},
-			rendering = {};
-		__export = function Ractive$render( target, anchor ) {
+		function HookQueue( event ) {
+			this.hook = new Hook( event );
+			this.inProcess = {};
+			this.queue = {};
+		}
+		HookQueue.prototype = {
+			constructor: HookQueue,
+			begin: function( ractive ) {
+				this.inProcess[ ractive._guid ] = true;
+			},
+			end: function( ractive ) {
+				var parent = ractive._parent;
+				// If this is *isn't* a child of a component that's in process,
+				// it should call methods or fire at this point
+				if ( !parent || !this.inProcess[ parent._guid ] ) {
+					fire( this, ractive );
+				} else {
+					getChildQueue( this.queue, parent ).push( ractive );
+				}
+				delete this.inProcess[ ractive._guid ];
+			}
+		};
+
+		function getChildQueue( queue, ractive ) {
+			return queue[ ractive._guid ] || ( queue[ ractive._guid ] = [] );
+		}
+
+		function fire( hookQueue, ractive ) {
+			var childQueue = getChildQueue( hookQueue.queue, ractive );
+			hookQueue.hook.fire( ractive );
+			// queue is "live" because components can end up being
+			// added while hooks fire on parents that modify data values.
+			while ( childQueue.length ) {
+				fire( hookQueue, childQueue.shift() );
+			}
+			delete hookQueue.queue[ ractive._guid ];
+		}
+		return HookQueue;
+	}( Ractive$shared_hooks_Hook );
+
+	/* Ractive/prototype/render.js */
+	var Ractive$render = function( css, Hook, HookQueue, getElement, runloop ) {
+
+		var renderHook = new HookQueue( 'render' ),
+			completeHook = new Hook( 'complete' );
+		return function Ractive$render( target, anchor ) {
 			var this$0 = this;
 			var promise, instances, transitionsEnabled;
-			rendering[ this._guid ] = true;
+			renderHook.begin( this );
 			// if `noIntro` is `true`, temporarily disable transitions
 			transitionsEnabled = this.transitionsEnabled;
 			if ( this.noIntro ) {
 				this.transitionsEnabled = false;
 			}
 			promise = runloop.start( this, true );
-			if ( this.rendered ) {
+			if ( this.fragment.rendered ) {
 				throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 			}
 			target = getElement( target ) || this.el;
@@ -6069,45 +6295,20 @@
 					target.appendChild( this.fragment.render() );
 				}
 			}
-			// Only init once, until we rework lifecycle events
-			if ( !this._hasInited ) {
-				this._hasInited = true;
-				// If this is *isn't* a child of a component that's in the process of rendering,
-				// it should call any `init()` methods at this point
-				if ( !this._parent || !rendering[ this._parent._guid ] ) {
-					init( this );
-				} else {
-					getChildInitQueue( this._parent ).push( this );
-				}
-			}
-			rendering[ this._guid ] = false;
+			renderHook.end( this );
 			runloop.end();
-			this.rendered = true;
 			this.transitionsEnabled = transitionsEnabled;
-			if ( this.complete ) {
-				promise.then( function() {
-					return this$0.complete();
-				} );
-			}
+			// It is now more problematic to know if the complete hook
+			// would fire. Method checking is straight-forward, but would
+			// also require preflighting event subscriptions. Which seems
+			// like more work then just letting the promise happen.
+			// But perhaps I'm wrong about that...
+			promise.then( function() {
+				return completeHook.fire( this$0 );
+			} );
 			return promise;
 		};
-
-		function init( instance ) {
-			var childQueue = getChildInitQueue( instance );
-			if ( instance.init ) {
-				instance.init( instance._config.options );
-			}
-			while ( childQueue.length ) {
-				init( childQueue.shift() );
-			}
-			queues[ instance._guid ] = null;
-		}
-
-		function getChildInitQueue( instance ) {
-			return queues[ instance._guid ] || ( queues[ instance._guid ] = [] );
-		}
-		return __export;
-	}( runloop, global_css, getElement );
+	}( global_css, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, getElement, runloop );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
@@ -6396,51 +6597,6 @@
 			}
 		};
 	}( startsWithKeypath );
-
-	/* utils/log.js */
-	var log = function( consolewarn, errors ) {
-
-		var log = {
-			warn: function( options, passthru ) {
-				if ( !options.debug && !passthru ) {
-					return;
-				}
-				this.logger( getMessage( options ), options.allowDuplicates );
-			},
-			error: function( options ) {
-				this.errorOnly( options );
-				if ( !options.debug ) {
-					this.warn( options, true );
-				}
-			},
-			errorOnly: function( options ) {
-				if ( options.debug ) {
-					this.critical( options );
-				}
-			},
-			critical: function( options ) {
-				var err = options.err || new Error( getMessage( options ) );
-				this.thrower( err );
-			},
-			logger: consolewarn,
-			thrower: function( err ) {
-				throw err;
-			}
-		};
-
-		function getMessage( options ) {
-			var message = errors[ options.message ] || options.message || '';
-			return interpolate( message, options.args );
-		}
-		// simple interpolation. probably quicker (and better) out there,
-		// but log is not in golden path of execution, only exceptions
-		function interpolate( message, args ) {
-			return message.replace( /{([^{}]*)}/g, function( a, b ) {
-				return args[ b ];
-			} );
-		}
-		return log;
-	}( warn, errors );
 
 	/* shared/getFunctionFromString.js */
 	var getFunctionFromString = function() {
@@ -7257,8 +7413,18 @@
 		return docFrag;
 	};
 
+	/* utils/isArrayLike.js */
+	var isArrayLike = function() {
+
+		var pattern = /^\[object (?:Array|FileList)\]$/,
+			toString = Object.prototype.toString;
+		return function isArrayLike( obj ) {
+			return pattern.test( toString.call( obj ) );
+		};
+	}();
+
 	/* virtualdom/items/Section/prototype/setValue.js */
-	var virtualdom_items_Section$setValue = function( types, isArray, isObject, runloop, circular ) {
+	var virtualdom_items_Section$setValue = function( types, isArrayLike, isObject, runloop, circular ) {
 
 		var __export;
 		var Fragment;
@@ -7326,6 +7492,8 @@
 						return reevaluateConditionalSection( section, value, true, fragmentOptions );
 					case types.SECTION_WITH:
 						return reevaluateContextSection( section, fragmentOptions );
+					case types.SECTION_IF_WITH:
+						return reevaluateConditionalContextSection( section, value, fragmentOptions );
 					case types.SECTION_EACH:
 						if ( isObject( value ) ) {
 							return reevaluateListObjectSection( section, value, fragmentOptions );
@@ -7333,7 +7501,7 @@
 				}
 			}
 			// Otherwise we need to work out what sort of section we're dealing with
-			section.ordered = !!isArray( value );
+			section.ordered = !!isArrayLike( value );
 			// Ordered list section
 			if ( section.ordered ) {
 				return reevaluateListSection( section, value, fragmentOptions );
@@ -7415,6 +7583,14 @@
 			return changed;
 		}
 
+		function reevaluateConditionalContextSection( section, value, fragmentOptions ) {
+			if ( value ) {
+				return reevaluateContextSection( section, fragmentOptions );
+			} else {
+				return removeSectionFragments( section );
+			}
+		}
+
 		function reevaluateContextSection( section, fragmentOptions ) {
 			var fragment;
 			// ...then if it isn't rendered, render it, adding section.keypath to the context stack
@@ -7433,7 +7609,7 @@
 
 		function reevaluateConditionalSection( section, value, inverted, fragmentOptions ) {
 			var doRender, emptyArray, fragment;
-			emptyArray = isArray( value ) && value.length === 0;
+			emptyArray = isArrayLike( value ) && value.length === 0;
 			if ( inverted ) {
 				doRender = emptyArray || !value;
 			} else {
@@ -7453,7 +7629,13 @@
 					section.fragmentsToUnrender.forEach( unbind );
 					return true;
 				}
-			} else if ( section.length ) {
+			} else {
+				return removeSectionFragments( section );
+			}
+		}
+
+		function removeSectionFragments( section ) {
+			if ( section.length ) {
 				section.fragmentsToUnrender = section.fragments.splice( 0, section.fragments.length ).filter( isRendered );
 				section.fragmentsToUnrender.forEach( unbind );
 				section.length = section.fragmentsToRender.length = 0;
@@ -7469,7 +7651,7 @@
 			return fragment.rendered;
 		}
 		return __export;
-	}( types, isArray, isObject, runloop, circular );
+	}( types, isArrayLike, isObject, runloop, circular );
 
 	/* virtualdom/items/Section/prototype/splice.js */
 	var virtualdom_items_Section$splice = function( runloop, circular ) {
@@ -8107,6 +8289,7 @@
 					name = name.substring( colonIndex + 1 );
 					attribute.name = enforceCase( name );
 					attribute.namespace = namespaces[ namespacePrefix.toLowerCase() ];
+					attribute.namespacePrefix = namespacePrefix;
 					if ( !attribute.namespace ) {
 						throw 'Unknown namespace ("' + namespacePrefix + '")';
 					}
@@ -8272,6 +8455,7 @@
 		var __export;
 		__export = function Attribute$toString() {
 			var name = ( fragment = this ).name,
+				namespacePrefix = fragment.namespacePrefix,
 				value = fragment.value,
 				interpolator = fragment.interpolator,
 				fragment = fragment.fragment;
@@ -8293,6 +8477,9 @@
 			}
 			if ( fragment ) {
 				value = fragment.toString();
+			}
+			if ( namespacePrefix ) {
+				name = namespacePrefix + ':' + name;
 			}
 			return value ? name + '="' + escape( value ) + '"' : name;
 		};
@@ -8596,6 +8783,100 @@
 			return result;
 		};
 	}( Attribute );
+
+	/* virtualdom/items/Element/ConditionalAttribute/_ConditionalAttribute.js */
+	var ConditionalAttribute = function( circular, namespaces, createElement, toArray ) {
+
+		var __export;
+		var Fragment, div;
+		if ( typeof document !== 'undefined' ) {
+			div = createElement( 'div' );
+		}
+		circular.push( function() {
+			Fragment = circular.Fragment;
+		} );
+		var ConditionalAttribute = function( element, template ) {
+			this.element = element;
+			this.root = element.root;
+			this.parentFragment = element.parentFragment;
+			this.attributes = [];
+			this.fragment = new Fragment( {
+				root: element.root,
+				owner: this,
+				template: [ template ]
+			} );
+		};
+		ConditionalAttribute.prototype = {
+			bubble: function() {
+				if ( this.node ) {
+					this.update();
+				}
+				this.element.bubble();
+			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			},
+			render: function( node ) {
+				this.node = node;
+				this.isSvg = node.namespaceURI = namespaces.svg;
+				this.update();
+			},
+			unbind: function() {
+				this.fragment.unbind();
+			},
+			update: function() {
+				var this$0 = this;
+				var str, attrs;
+				str = this.fragment.toString();
+				attrs = parseAttributes( str, this.isSvg );
+				// any attributes that previously existed but no longer do
+				// must be removed
+				this.attributes.filter( function( a ) {
+					return notIn( attrs, a );
+				} ).forEach( function( a ) {
+					this$0.node.removeAttribute( a.name );
+				} );
+				attrs.forEach( function( a ) {
+					this$0.node.setAttribute( a.name, a.value );
+				} );
+				this.attributes = attrs;
+			},
+			toString: function() {
+				return this.fragment.toString();
+			}
+		};
+		__export = ConditionalAttribute;
+
+		function parseAttributes( str, isSvg ) {
+			var tag = isSvg ? 'svg' : 'div';
+			div.innerHTML = '<' + tag + ' ' + str + '></' + tag + '>';
+			return toArray( div.childNodes[ 0 ].attributes );
+		}
+
+		function notIn( haystack, needle ) {
+			var i = haystack.length;
+			while ( i-- ) {
+				if ( haystack[ i ].name === needle.name ) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return __export;
+	}( circular, namespaces, createElement, toArray );
+
+	/* virtualdom/items/Element/prototype/init/createConditionalAttributes.js */
+	var virtualdom_items_Element$init_createConditionalAttributes = function( ConditionalAttribute ) {
+
+		return function( element, attributes ) {
+			if ( !attributes ) {
+				return [];
+			}
+			return attributes.map( function( a ) {
+				return new ConditionalAttribute( element, a );
+			} );
+		};
+	}( ConditionalAttribute );
 
 	/* utils/extend.js */
 	var extend = function( target ) {
@@ -9440,7 +9721,15 @@
 	var virtualdom_items_Element_EventHandler$listen = function( config, genericHandler, log ) {
 
 		var __export;
-		var customHandlers = {};
+		var customHandlers = {},
+			touchEvents = {
+				touchstart: true,
+				touchmove: true,
+				touchend: true,
+				touchcancel: true,
+				//not w3c, but supported in some browsers
+				touchleave: true
+			};
 		__export = function EventHandler$listen() {
 			var definition, name = this.name;
 			if ( this.invalid ) {
@@ -9451,14 +9740,18 @@
 			} else {
 				// Looks like we're dealing with a standard DOM event... but let's check
 				if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
-					log.error( {
-						debug: this.root.debug,
-						message: 'missingPlugin',
-						args: {
-							plugin: 'event',
-							name: name
-						}
-					} );
+					// okay to use touch events if this browser doesn't support them
+					if ( !touchEvents[ name ] ) {
+						log.error( {
+							debug: this.root.debug,
+							message: 'missingPlugin',
+							args: {
+								plugin: 'event',
+								name: name
+							}
+						} );
+					}
+					return;
 				}
 				this.node.addEventListener( name, genericHandler, false );
 			}
@@ -9796,7 +10089,7 @@
 	}( findParentSelect );
 
 	/* virtualdom/items/Element/prototype/init.js */
-	var virtualdom_items_Element$init = function( types, enforceCase, createAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
+	var virtualdom_items_Element$init = function( types, enforceCase, createAttributes, createConditionalAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
 
 		var Fragment;
 		circular.push( function() {
@@ -9823,6 +10116,7 @@
 			}
 			// create attributes
 			this.attributes = createAttributes( this, template.a );
+			this.conditionalAttributes = createConditionalAttributes( this, template.m );
 			// append children, if there are any
 			if ( template.f ) {
 				this.fragment = new Fragment( {
@@ -9851,7 +10145,7 @@
 			this.intro = template.t0 || template.t1;
 			this.outro = template.t0 || template.t2;
 		};
-	}( types, enforceCase, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
+	}( types, enforceCase, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createConditionalAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
 
 	/* virtualdom/items/shared/utils/startsWith.js */
 	var startsWith = function( startsWithKeypath ) {
@@ -9880,6 +10174,9 @@
 			var i, storage, liveQueries, ractive;
 			if ( this.attributes ) {
 				this.attributes.forEach( rebind );
+			}
+			if ( this.conditionalAttributes ) {
+				this.conditionalAttributes.forEach( rebind );
 			}
 			if ( this.eventHandlers ) {
 				this.eventHandlers.forEach( rebind );
@@ -10455,13 +10752,16 @@
 	}( legacy, isClient, warn, Promise, prefix, virtualdom_items_Element_Transition$animateStyle_createTransitions, virtualdom_items_Element_Transition$animateStyle_visibility );
 
 	/* utils/fillGaps.js */
-	var fillGaps = function( target, source ) {
-		var key;
-		for ( key in source ) {
-			if ( source.hasOwnProperty( key ) && !( key in target ) ) {
-				target[ key ] = source[ key ];
+	var fillGaps = function( target ) {
+		var SLICE$0 = Array.prototype.slice;
+		var sources = SLICE$0.call( arguments, 1 );
+		sources.forEach( function( s ) {
+			for ( var key in s ) {
+				if ( s.hasOwnProperty( key ) && !( key in target ) ) {
+					target[ key ] = s[ key ];
+				}
 			}
-		}
+		} );
 		return target;
 	};
 
@@ -10490,7 +10790,7 @@
 			} else if ( !params ) {
 				params = {};
 			}
-			return fillGaps( params, defaults );
+			return fillGaps( {}, params, defaults );
 		};
 	}( fillGaps );
 
@@ -10563,6 +10863,10 @@
 		updateCss = function() {
 			var node = this.node,
 				content = this.fragment.toString( false );
+			// IE8 has no styleSheet unless there's a type text/css
+			if ( window && window.appearsToBeIELessEqual8 ) {
+				node.type = 'text/css';
+			}
 			if ( node.styleSheet ) {
 				node.styleSheet.cssText = content;
 			} else {
@@ -10605,6 +10909,9 @@
 			} );
 			// Render attributes
 			this.attributes.forEach( function( a ) {
+				return a.render( node );
+			} );
+			this.conditionalAttributes.forEach( function( a ) {
 				return a.render( node );
 			} );
 			// Render children
@@ -10740,7 +11047,7 @@
 		__export = function() {
 			var str, escape;
 			str = '<' + ( this.template.y ? '!DOCTYPE' : this.template.e );
-			str += this.attributes.map( stringifyAttribute ).join( '' );
+			str += this.attributes.map( stringifyAttribute ).join( '' ) + this.conditionalAttributes.map( stringifyAttribute ).join( '' );
 			// Special case - selected options
 			if ( this.name === 'option' && optionIsSelected( this ) ) {
 				str += ' selected';
@@ -10837,6 +11144,7 @@
 				unbindOption( this );
 			}
 			this.attributes.forEach( unbind );
+			this.conditionalAttributes.forEach( unbind );
 		};
 
 		function unbind( x ) {
@@ -11087,6 +11395,9 @@
 			this.type = types.PARTIAL;
 			this.name = options.template.r;
 			this.index = options.index;
+			// keep track of when the partial name matches a partial (as opposed to an expression) to
+			// avoid unnecessary jitter when using an overlapping name/keypath
+			this.namedPartial = false;
 			this.root = parentFragment.root;
 			Mustache.init( this, options );
 			this.update();
@@ -11153,7 +11464,7 @@
 			},
 			resolve: Mustache.resolve,
 			setValue: function( value ) {
-				if ( this.value !== value ) {
+				if ( this.value !== value && !this.namedPartial ) {
 					if ( this.fragment && this.rendered ) {
 						this.fragment.unrender( true );
 					}
@@ -11174,10 +11485,13 @@
 						noThrow: true
 					} ) ) ) {
 						template = getPartialDescriptor( this.root, this.name );
+						this.namedPartial = true;
 					} else if ( this.value ) {
 						template = getPartialDescriptor( this.root, this.value );
+						this.namedPartial = false;
 					} else {
 						template = [];
+						this.namedPartial = false;
 					}
 					this.fragment = new Fragment( {
 						template: template,
@@ -11239,9 +11553,15 @@
 	}( config, log, circular );
 
 	/* virtualdom/items/Component/prototype/detach.js */
-	var virtualdom_items_Component$detach = function Component$detach() {
-		return this.instance.fragment.detach();
-	};
+	var virtualdom_items_Component$detach = function( Hook ) {
+
+		var detachHook = new Hook( 'detach' );
+		return function Component$detach() {
+			var detached = this.instance.fragment.detach();
+			detachHook.fire( this.instance );
+			return detached;
+		};
+	}( Ractive$shared_hooks_Hook );
 
 	/* virtualdom/items/Component/prototype/find.js */
 	var virtualdom_items_Component$find = function Component$find( selector ) {
@@ -11527,7 +11847,7 @@
 			childInstance.on( eventName, function() {
 				var event, args;
 				// semi-weak test, but what else? tag the event obj ._isEvent ?
-				if ( arguments.length && arguments[ 0 ].node ) {
+				if ( arguments.length && arguments[ 0 ] && arguments[ 0 ].node ) {
 					event = Array.prototype.shift.call( arguments );
 				}
 				args = Array.prototype.slice.call( arguments );
@@ -11666,14 +11986,17 @@
 	}();
 
 	/* virtualdom/items/Component/prototype/unrender.js */
-	var virtualdom_items_Component$unrender = function( fireEvent ) {
+	var virtualdom_items_Component$unrender = function( Hook ) {
 
+		var teardownHook = new Hook( 'teardown' );
 		return function Component$unrender( shouldDestroy ) {
-			fireEvent( this.instance, 'teardown' );
 			this.shouldDestroy = shouldDestroy;
 			this.instance.unrender();
+			if ( shouldDestroy ) {
+				teardownHook.fire( this.instance );
+			}
 		};
-	}( Ractive$shared_fireEvent );
+	}( Ractive$shared_hooks_Hook );
 
 	/* virtualdom/items/Component/_Component.js */
 	var Component = function( detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, init, rebind, render, toString, unbind, unrender ) {
@@ -11748,7 +12071,8 @@
 			this.fragment = new Fragment( {
 				owner: this,
 				root: componentInstance.yield.instance,
-				template: componentInstance.yield.template
+				template: componentInstance.yield.template,
+				pElement: this.surrogateParent.pElement
 			} );
 			component.yielder = this;
 		};
@@ -11991,15 +12315,16 @@
 	}( virtualdom_Fragment$bubble, virtualdom_Fragment$detach, virtualdom_Fragment$find, virtualdom_Fragment$findAll, virtualdom_Fragment$findAllComponents, virtualdom_Fragment$findComponent, virtualdom_Fragment$findNextNode, virtualdom_Fragment$firstNode, virtualdom_Fragment$getNode, virtualdom_Fragment$getValue, virtualdom_Fragment$init, virtualdom_Fragment$rebind, virtualdom_Fragment$render, virtualdom_Fragment$toString, virtualdom_Fragment$unbind, virtualdom_Fragment$unrender, circular );
 
 	/* Ractive/prototype/reset.js */
-	var Ractive$reset = function( fireEvent, runloop, Fragment, config ) {
+	var Ractive$reset = function( Hook, runloop, Fragment, config ) {
 
 		var shouldRerender = [
-			'template',
-			'partials',
-			'components',
-			'decorators',
-			'events'
-		];
+				'template',
+				'partials',
+				'components',
+				'decorators',
+				'events'
+			],
+			resetHook = new Hook( 'reset' );
 		return function Ractive$reset( data, callback ) {
 			var promise, wrapper, changes, i, rerender;
 			if ( typeof data === 'function' && !callback ) {
@@ -12059,15 +12384,13 @@
 				this.viewmodel.mark( '' );
 				runloop.end();
 			}
-			fireEvent( this, 'reset', {
-				args: [ data ]
-			} );
+			resetHook.fire( this, data );
 			if ( callback ) {
 				promise.then( callback );
 			}
 			return promise;
 		};
-	}( Ractive$shared_fireEvent, runloop, Fragment, config );
+	}( Ractive$shared_hooks_Hook, runloop, Fragment, config );
 
 	/* Ractive/prototype/resetTemplate.js */
 	var Ractive$resetTemplate = function( config, Fragment ) {
@@ -12172,25 +12495,28 @@
 	}( Ractive$shared_add );
 
 	/* Ractive/prototype/teardown.js */
-	var Ractive$teardown = function( fireEvent, removeFromArray, Promise ) {
+	var Ractive$teardown = function( Hook, Promise, removeFromArray ) {
 
+		var teardownHook = new Hook( 'teardown' );
+		// Teardown. This goes through the root fragment and all its children, removing observers
+		// and generally cleaning up after itself
 		return function Ractive$teardown( callback ) {
 			var promise;
-			fireEvent( this, 'teardown' );
 			this.fragment.unbind();
 			this.viewmodel.teardown();
-			if ( this.rendered && this.el.__ractive_instances__ ) {
+			if ( this.fragment.rendered && this.el.__ractive_instances__ ) {
 				removeFromArray( this.el.__ractive_instances__, this );
 			}
 			this.shouldDestroy = true;
-			promise = this.rendered ? this.unrender() : Promise.resolve();
+			promise = this.fragment.rendered ? this.unrender() : Promise.resolve();
+			teardownHook.fire( this );
 			if ( callback ) {
 				// TODO deprecate this?
 				promise.then( callback.bind( this ) );
 			}
 			return promise;
 		};
-	}( Ractive$shared_fireEvent, removeFromArray, Promise );
+	}( Ractive$shared_hooks_Hook, Promise, removeFromArray );
 
 	/* Ractive/prototype/toggle.js */
 	var Ractive$toggle = function( log ) {
@@ -12217,12 +12543,13 @@
 	};
 
 	/* Ractive/prototype/unrender.js */
-	var Ractive$unrender = function( removeFromArray, runloop, css, log, Promise ) {
+	var Ractive$unrender = function( css, Hook, log, Promise, removeFromArray, runloop ) {
 
+		var unrenderHook = new Hook( 'unrender' );
 		return function Ractive$unrender() {
 			var this$0 = this;
 			var promise, shouldDestroy;
-			if ( !this.rendered ) {
+			if ( !this.fragment.rendered ) {
 				log.warn( {
 					debug: this.debug,
 					message: 'ractive.unrender() was called on a Ractive instance that was not rendered'
@@ -12243,12 +12570,12 @@
 				this._animations[ 0 ].stop();
 			}
 			this.fragment.unrender( shouldDestroy );
-			this.rendered = false;
 			removeFromArray( this.el.__ractive_instances__, this );
+			unrenderHook.fire( this );
 			runloop.end();
 			return promise;
 		};
-	}( removeFromArray, runloop, global_css, log, Promise );
+	}( global_css, Ractive$shared_hooks_Hook, log, Promise, removeFromArray, runloop );
 
 	/* Ractive/prototype/unshift.js */
 	var Ractive$unshift = function( makeArrayMethod ) {
@@ -12257,8 +12584,9 @@
 	}( Ractive$shared_makeArrayMethod );
 
 	/* Ractive/prototype/update.js */
-	var Ractive$update = function( fireEvent, runloop ) {
+	var Ractive$update = function( Hook, runloop ) {
 
+		var updateHook = new Hook( 'update' );
 		return function Ractive$update( keypath, callback ) {
 			var promise;
 			if ( typeof keypath === 'function' ) {
@@ -12270,15 +12598,13 @@
 			promise = runloop.start( this, true );
 			this.viewmodel.mark( keypath );
 			runloop.end();
-			fireEvent( this, 'update', {
-				args: [ keypath ]
-			} );
+			updateHook.fire( this, keypath );
 			if ( callback ) {
 				promise.then( callback.bind( this ) );
 			}
 			return promise;
 		};
-	}( Ractive$shared_fireEvent, runloop );
+	}( Ractive$shared_hooks_Hook, runloop );
 
 	/* Ractive/prototype/updateModel.js */
 	var Ractive$updateModel = function( arrayContentsMatch, isEqual ) {
@@ -13652,16 +13978,26 @@
 	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$get, viewmodel$mark, viewmodel$merge, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$splice, viewmodel$teardown, viewmodel$unregister, createComputations, adaptConfig );
 
 	/* Ractive/initialise.js */
-	var Ractive_initialise = function( config, create, getElement, getNextNumber, Viewmodel, Fragment ) {
+	var Ractive_initialise = function( config, create, Fragment, getElement, getNextNumber, Hook, HookQueue, Viewmodel ) {
 
 		var __export;
+		var constructHook = new Hook( 'construct' ),
+			configHook = new Hook( 'config' ),
+			initHook = new HookQueue( 'init' );
 		__export = function initialiseRactiveInstance( ractive ) {
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = {};
 			initialiseProperties( ractive, options );
+			// make this option do what would be expected if someone
+			// did include it on a new Ractive() or new Component() call.
+			// Silly to do so (put a hook on the very options being used),
+			// but handle it correctly, consistent with the intent.
+			constructHook.fire( config.getConstructTarget( ractive, options ), options );
 			// init config from Parent and options
 			config.init( ractive.constructor, ractive, options );
+			configHook.fire( ractive );
+			initHook.begin( ractive );
 			// TEMPORARY. This is so we can implement Viewmodel gradually
 			ractive.viewmodel = new Viewmodel( ractive );
 			// hacky circular problem until we get this sorted out
@@ -13677,6 +14013,7 @@
 					owner: ractive
 				} );
 			}
+			initHook.end( ractive );
 			// render automatically ( if `el` is specified )
 			tryRender( ractive );
 		};
@@ -13727,7 +14064,7 @@
 			}
 		}
 		return __export;
-	}( config, create, getElement, getNextNumber, Viewmodel, Fragment );
+	}( config, create, Fragment, getElement, getNextNumber, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, Viewmodel );
 
 	/* extend/initChildInstance.js */
 	var initChildInstance = function( initialise ) {
@@ -13740,53 +14077,21 @@
 		};
 	}( Ractive_initialise );
 
-	/* extend/childOptions.js */
-	var childOptions = function( wrapPrototype, wrap, config, circular ) {
+	/* extend/unwrapExtended.js */
+	var unwrapExtended = function( wrap, config, circular ) {
 
 		var __export;
-		var Ractive,
-			// would be nice to not have these here,
-			// they get added during initialise, so for now we have
-			// to make sure not to try and extend them.
-			// Possibly, we could re-order and not add till later
-			// in process.
-			blacklisted = {
-				'_parent': true,
-				'_component': true
-			},
-			childOptions = {
-				toPrototype: toPrototype,
-				toOptions: toOptions
-			},
-			registries = config.registries;
-		config.keys.forEach( function( key ) {
-			return blacklisted[ key ] = true;
-		} );
+		var Ractive;
 		circular.push( function() {
 			Ractive = circular.Ractive;
 		} );
-		__export = childOptions;
-
-		function toPrototype( parent, proto, options ) {
-			for ( var key in options ) {
-				if ( !( key in blacklisted ) && options.hasOwnProperty( key ) ) {
-					var member = options[ key ];
-					// if this is a method that overwrites a method, wrap it:
-					if ( typeof member === 'function' ) {
-						member = wrapPrototype( parent, key, member );
-					}
-					proto[ key ] = member;
-				}
-			}
-		}
-
-		function toOptions( Child ) {
+		__export = function unwrapExtended( Child ) {
 			if ( !( Child.prototype instanceof Ractive ) ) {
 				return Child;
 			}
 			var options = {};
 			while ( Child ) {
-				registries.forEach( function( r ) {
+				config.registries.forEach( function( r ) {
 					addRegistry( r.useDefaults ? Child.prototype : Child, options, r.name );
 				} );
 				Object.keys( Child.prototype ).forEach( function( key ) {
@@ -13816,7 +14121,7 @@
 				}
 			}
 			return options;
-		}
+		};
 
 		function addRegistry( target, options, name ) {
 			var registry, keys = Object.keys( target[ name ] );
@@ -13833,10 +14138,10 @@
 			} );
 		}
 		return __export;
-	}( wrapPrototypeMethod, wrapMethod, config, circular );
+	}( wrapMethod, config, circular );
 
 	/* extend/_extend.js */
-	var Ractive_extend = function( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, childOptions ) {
+	var Ractive_extend = function( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, unwrap ) {
 
 		return function extend() {
 			var options = arguments[ 0 ];
@@ -13846,7 +14151,7 @@
 				Child, proto, staticProperties;
 			// if we're extending with another Ractive instance, inherit its
 			// prototype methods and default options as well
-			options = childOptions.toOptions( options );
+			options = unwrap( options );
 			// create Child constructor
 			Child = function( options ) {
 				initChildInstance( this, Child, options );
@@ -13877,12 +14182,10 @@
 			// extend configuration
 			config.extend( Parent, proto, options );
 			Viewmodel.extend( Parent, proto );
-			// and any other properties or methods on options...
-			childOptions.toPrototype( Parent.prototype, proto, options );
 			Child.prototype = proto;
 			return Child;
 		};
-	}( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, childOptions );
+	}( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, unwrapExtended );
 
 	/* Ractive.js */
 	var Ractive = function( defaults, easing, interpolators, svg, magic, defineProperties, proto, Promise, extendObj, extend, parse, initialise, circular ) {
@@ -13914,7 +14217,7 @@
 			},
 			// version
 			VERSION: {
-				value: '0.5.8'
+				value: '0.6.0'
 			},
 			// Plugins
 			adaptors: {
