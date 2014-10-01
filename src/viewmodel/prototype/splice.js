@@ -1,15 +1,23 @@
 import types from 'config/types';
 
+var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
+
 export default function Viewmodel$splice ( keypath, spliceSummary ) {
-	var viewmodel = this, i, dependants;
+	var viewmodel = this, i, dependants, end, changeEnd;
 
 	// Mark changed keypaths
-	for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
-		viewmodel.mark( keypath + '.' + i );
+	end = spliceSummary.rangeEnd;
+	if ( spliceSummary.balance < 0 ) {
+		changeEnd = end + spliceSummary.balance;
+	}
+
+	for ( i = spliceSummary.rangeStart; i < end; i += 1 ) {
+		let options = ( i >= changeEnd ) ? noCascadeOption : void 0;
+		viewmodel.mark( keypath + '.' + i, options );
 	}
 
 	if ( spliceSummary.balance ) {
-		viewmodel.mark( keypath + '.length', true );
+		viewmodel.mark( keypath + '.length', implicitOption );
 	}
 
 	// Trigger splice operations

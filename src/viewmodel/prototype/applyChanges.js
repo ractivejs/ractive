@@ -29,6 +29,10 @@ export default function Viewmodel$applyChanges () {
 	cascade = function ( keypath ) {
 		var map;
 
+		if ( self.noCascade.hasOwnProperty( keypath ) ) {
+			return;
+		}
+
 		addComputations( keypath );
 
 		if ( map = self.depsMap.computed[ keypath ] ) {
@@ -53,6 +57,7 @@ export default function Viewmodel$applyChanges () {
 		changes.forEach( cascade );
 
 		computations.forEach( updateComputation );
+
 	} while ( this.changes.length );
 
 	upstreamChanges = getUpstreamChanges( allChanges );
@@ -78,6 +83,7 @@ export default function Viewmodel$applyChanges () {
 	});
 
 	this.implicitChanges = {};
+	this.noCascade = {};
 
 	return hash;
 }
