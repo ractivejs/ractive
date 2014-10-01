@@ -213,7 +213,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', function ( t ) {
 				var warn = console.warn, observed = false;
 
-				expect(2)
+				expect( 4 );
 
 				console.warn = function (err) {
 					throw err
@@ -233,7 +233,9 @@ define([ 'ractive' ], function ( Ractive ) {
 						}
 					});
 
-					ractive.observe( 'options.2', function () {
+					ractive.observe( 'options.2', function ( n, o ) {
+						t.ok( !n );
+						t.equal( o, 'c' );
 						observed = true;
 					}, { init: false } );
 
