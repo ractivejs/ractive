@@ -6,6 +6,9 @@ export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
 		if ( wrapper = this.wrapped[ keypath ] ) {
 			// Did we unwrap it?
 			if ( wrapper.teardown() !== false ) {
+				// Is this right?
+				// What's the meaning of returning false from teardown?
+				// Could there be a GC ramification if this is a "real" ractive.teardown()?
 				this.wrapped[ keypath ] = null;
 			}
 		}
