@@ -63,7 +63,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 
 		this.mark( keypath + '.length', implicitOption );
 
-		// don't allow removed indexes to trigger recomputations
+		// don't allow removed indexes beyond end of new array to trigger recomputations
 		for ( let i = array.length; i < currentArray.length; i++ ) {
 			this.mark( keypath + '.' + i, noCascadeOption );
 		}
