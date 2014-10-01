@@ -1,6 +1,6 @@
 import types from 'config/types';
 
-var noDownstreamOption = { noDownstream: true };
+var implicitOption = { implicit: true }, noDownstreamOption = { noDownstream: true };
 
 export default function Viewmodel$splice ( keypath, spliceSummary ) {
 	var viewmodel = this, i, dependants, end, changeEnd;
@@ -17,7 +17,7 @@ export default function Viewmodel$splice ( keypath, spliceSummary ) {
 	}
 
 	if ( spliceSummary.balance ) {
-		viewmodel.mark( keypath + '.length', { implicit: true } );
+		viewmodel.mark( keypath + '.length', implicitOption );
 	}
 
 	// Trigger splice operations
