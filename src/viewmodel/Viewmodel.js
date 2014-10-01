@@ -57,7 +57,7 @@ var Viewmodel = function ( ractive ) {
 
 	this.changes = [];
 	this.implicitChanges = {};
-	this.noDownstreamChanges = {};
+	this.noCascade = {};
 };
 
 Viewmodel.extend = function ( Parent, instance ) {

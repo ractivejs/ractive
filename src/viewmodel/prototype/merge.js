@@ -2,7 +2,7 @@ import types from 'config/types';
 import warn from 'utils/warn';
 import mapOldToNewIndex from 'viewmodel/prototype/merge/mapOldToNewIndex';
 
-var comparators = {}, implicitOption = { implicit: true }, noDownstreamOption = { noDownstream: true };
+var comparators = {}, implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
 
 export default function Viewmodel$merge ( keypath, currentArray, array, options ) {
 
@@ -65,7 +65,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 
 		// don't allow removed indexes to trigger recomputations
 		for ( let i = array.length; i < currentArray.length; i++ ) {
-			this.mark( keypath + '.' + i, noDownstreamOption );
+			this.mark( keypath + '.' + i, noCascadeOption );
 		}
 	}
 }

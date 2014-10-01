@@ -1,6 +1,6 @@
 import types from 'config/types';
 
-var implicitOption = { implicit: true }, noDownstreamOption = { noDownstream: true };
+var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
 
 export default function Viewmodel$splice ( keypath, spliceSummary ) {
 	var viewmodel = this, i, dependants, end, changeEnd;
@@ -12,7 +12,7 @@ export default function Viewmodel$splice ( keypath, spliceSummary ) {
 	}
 
 	for ( i = spliceSummary.rangeStart; i < end; i += 1 ) {
-		let options = ( i >= changeEnd ) ? noDownstreamOption : void 0;
+		let options = ( i >= changeEnd ) ? noCascadeOption : void 0;
 		viewmodel.mark( keypath + '.' + i, options );
 	}
 

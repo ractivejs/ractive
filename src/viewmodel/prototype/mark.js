@@ -5,8 +5,8 @@ export default function Viewmodel$mark ( keypath, options ) {
 		if ( options.implicit ) {
 			this.implicitChanges[ keypath ] = true;
 		}
-		if ( options.noDownstream ) {
-			this.noDownstreamChanges[ keypath ] = true;
+		if ( options.noCascade ) {
+			this.noCascade[ keypath ] = true;
 		}
 	}
 
