@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-01 - commit 6f6edc34 
+	2014-10-01 - commit 4f3488f9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14028,10 +14028,15 @@
 	/* viewmodel/prototype/set.js */
 	var viewmodel$set = function( isEqual, createBranch ) {
 
-		return function Viewmodel$set( keypath, value, silent ) {
-			var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
+		var __export;
+		__export = function Viewmodel$set( keypath, value, silent ) {
+			var computation, wrapper, evaluator, dontTeardownWrapper;
 			computation = this.computations[ keypath ];
-			if ( computation && !computation.setting ) {
+			if ( computation ) {
+				if ( computation.setting ) {
+					// let the other computation set() handle things...
+					return;
+				}
 				computation.set( value );
 				value = computation.get();
 			}
@@ -14056,20 +14061,7 @@
 				evaluator.value = value;
 			}
 			if ( !computation && !evaluator && !dontTeardownWrapper ) {
-				keys = keypath.split( '.' );
-				lastKey = keys.pop();
-				parentKeypath = keys.join( '.' );
-				wrapper = this.wrapped[ parentKeypath ];
-				if ( wrapper && wrapper.set ) {
-					wrapper.set( lastKey, value );
-				} else {
-					parentValue = wrapper ? wrapper.get() : this.get( parentKeypath );
-					if ( !parentValue ) {
-						parentValue = createBranch( lastKey );
-						this.set( parentKeypath, parentValue, true );
-					}
-					parentValue[ lastKey ] = value;
-				}
+				resolveSet( this, keypath, value );
 			}
 			if ( !silent ) {
 				this.mark( keypath );
@@ -14080,6 +14072,42 @@
 				this.clearCache( keypath );
 			}
 		};
+
+		function resolveSet( viewmodel, keypath, value ) {
+			var keys, lastKey, parentKeypath, wrapper, parentValue, wrapperSet, valueSet;
+			wrapperSet = function() {
+				if ( wrapper.set ) {
+					wrapper.set( lastKey, value );
+				} else {
+					parentValue = wrapper.get();
+					valueSet();
+				}
+			};
+			valueSet = function() {
+				if ( !parentValue ) {
+					parentValue = createBranch( lastKey );
+					viewmodel.set( parentKeypath, parentValue, true );
+				}
+				parentValue[ lastKey ] = value;
+			};
+			keys = keypath.split( '.' );
+			lastKey = keys.pop();
+			parentKeypath = keys.join( '.' );
+			wrapper = viewmodel.wrapped[ parentKeypath ];
+			if ( wrapper ) {
+				wrapperSet();
+			} else {
+				parentValue = viewmodel.get( parentKeypath );
+				// may have been wrapped via the above .get()
+				// call on viewmodel if this is first access via .set()!
+				if ( wrapper = viewmodel.wrapped[ parentKeypath ] ) {
+					wrapperSet();
+				} else {
+					valueSet();
+				}
+			}
+		}
+		return __export;
 	}( isEqual, createBranch );
 
 	/* viewmodel/prototype/splice.js */
