@@ -2,10 +2,14 @@ import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
-	var keys, lastKey, parentKeypath, parentValue, computation, wrapper, evaluator, dontTeardownWrapper;
+	var computation, wrapper, evaluator, dontTeardownWrapper;
 
 	computation = this.computations[ keypath ];
-	if ( computation && !computation.setting ) {
+	if ( computation ) {
+		if ( computation.setting ) {
+			// let the other computation set() handle things...
+			return;
+		}
 		computation.set( value );
 		value = computation.get();
 	}
@@ -36,25 +40,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 	}
 
 	if ( !computation && !evaluator && !dontTeardownWrapper ) {
-		keys = keypath.split( '.' );
-		lastKey = keys.pop();
-
-		parentKeypath = keys.join( '.' );
-
-		wrapper = this.wrapped[ parentKeypath ];
-
-		if ( wrapper && wrapper.set ) {
-			wrapper.set( lastKey, value );
-		} else {
-			parentValue = wrapper ? wrapper.get() : this.get( parentKeypath );
-
-			if ( !parentValue ) {
-				parentValue = createBranch( lastKey );
-				this.set( parentKeypath, parentValue, true );
-			}
-
-			parentValue[ lastKey ] = value;
-		}
+		resolveSet( this, keypath, value );
 	}
 
 	if ( !silent ) {
@@ -64,5 +50,47 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 		// creating a fresh branch) - we need to clear the cache, but
 		// not mark it as a change
 		this.clearCache( keypath );
+	}
+}
+
+function resolveSet ( viewmodel, keypath, value ) {
+
+	var keys, lastKey, parentKeypath, wrapper, parentValue, wrapperSet, valueSet;
+
+	wrapperSet = function() {
+		if ( wrapper.set ) {
+			wrapper.set( lastKey, value );
+		} else {
+			parentValue = wrapper.get();
+			valueSet();
+		}
+	};
+
+	valueSet = function(){
+		if ( !parentValue ) {
+			parentValue = createBranch( lastKey );
+			viewmodel.set( parentKeypath, parentValue, true );
+		}
+		parentValue[ lastKey ] = value;
+	};
+
+	keys = keypath.split( '.' );
+	lastKey = keys.pop();
+	parentKeypath = keys.join( '.' );
+
+	wrapper = viewmodel.wrapped[ parentKeypath ];
+
+	if ( wrapper ) {
+		wrapperSet();
+	} else {
+		parentValue = viewmodel.get( parentKeypath );
+
+		// may have been wrapped via the above .get()
+		// call on viewmodel if this is first access via .set()!
+		if( wrapper = viewmodel.wrapped[ parentKeypath ] ) {
+			wrapperSet();
+		} else {
+			valueSet();
+		}
 	}
 }
