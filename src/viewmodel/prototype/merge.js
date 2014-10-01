@@ -60,7 +60,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 	}
 
 	if ( currentArray.length !== array.length ) {
-		this.mark( keypath + '.length', true );
+		this.mark( keypath + '.length', { implicit: true } );
 	}
 }
 

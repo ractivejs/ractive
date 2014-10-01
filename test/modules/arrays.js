@@ -209,6 +209,41 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option><option value="d">d</option></select>' );
 		});
 
+		test( 'Removed array elements do not trigger updates in removed sections', function ( t ) {
+			var warn = console.warn;
+
+			expect(1)
+
+			console.warn = function (err) {
+				throw err
+			};
+
+			try {
+				let ractive = new Ractive({
+					debug: true,
+					el: fixture,
+					template: '{{#options}}{{get(this)}}{{/options}}',
+					data: {
+						options: [ 'a', 'b', 'c' ],
+						get: function ( item ){
+							if(!item) { throw new Error('item should not be undefined'); }
+							return item
+						}
+					}
+				});
+
+				ractive.splice( 'options', 1, 1 );
+			}
+			catch(err){
+				t.ok( false, err );
+			}
+			finally {
+				console.warn = warn;
+				t.ok( true );
+			}
+
+		});
+
 	};
 
 });

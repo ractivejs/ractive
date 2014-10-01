@@ -11,6 +11,7 @@ export default function Viewmodel$applyChanges () {
 		computations,
 		addComputations,
 		cascade,
+		noDownstreamFilter,
 		hash = {};
 
 	if ( !this.changes.length ) {
@@ -36,6 +37,10 @@ export default function Viewmodel$applyChanges () {
 		}
 	};
 
+	noDownstreamFilter = function ( keypath ) {
+		return !self.noDownstreamChanges.hasOwnProperty( keypath );
+	};
+
 	// Find computations and evaluators that are invalidated by
 	// these changes. If they have changed, add them to the
 	// list of changes. Lather, rinse and repeat until the
@@ -50,9 +55,14 @@ export default function Viewmodel$applyChanges () {
 		upstreamChanges = getUpstreamChanges( changes );
 		upstreamChanges.forEach( addComputations );
 
-		changes.forEach( cascade );
+		changes
+			.filter(noDownstreamFilter)
+			.forEach( cascade );
 
-		computations.forEach( updateComputation );
+		computations
+			.filter( c => noDownstreamFilter( c.keypath ) )
+			.forEach( updateComputation );
+
 	} while ( this.changes.length );
 
 	upstreamChanges = getUpstreamChanges( allChanges );
@@ -78,6 +88,7 @@ export default function Viewmodel$applyChanges () {
 	});
 
 	this.implicitChanges = {};
+	this.noDownstreamChanges = {};
 
 	return hash;
 }
