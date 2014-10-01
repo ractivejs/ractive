@@ -1,5 +1,6 @@
 import config from 'config/config';
 import arrayAdaptor from 'viewmodel/prototype/get/arrayAdaptor';
+import log from 'utils/log';
 import magicAdaptor from 'viewmodel/prototype/get/magicAdaptor';
 import magicArrayAdaptor from 'viewmodel/prototype/get/magicArrayAdaptor';
 
@@ -19,7 +20,15 @@ export default function Viewmodel$adapt ( keypath, value ) {
 			let found = config.registries.adaptors.find( ractive, adaptor );
 
 			if ( !found ) {
-				throw new Error( 'Missing adaptor "' + adaptor + '"' );
+				// will throw. "return" for safety, if we downgrade :)
+				return log.critical({
+					debug: ractive.debug,
+					message: 'missingPlugin',
+					args: {
+						plugin: 'adaptor',
+						name: adaptor
+					}
+				});
 			}
 
 			adaptor = ractive.adapt[i] = found;

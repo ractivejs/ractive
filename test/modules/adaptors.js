@@ -136,6 +136,41 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			simulant.fire( ractive.find( 'button' ), 'click' );
 		});
 
+		test( 'Adaptor teardown is called when used in a component (#1190)', function ( t ) {
+			var ractive, adaptor, Component, torndown = 0;
+
+			function Wrapped(){}
+
+			adaptor = {
+				filter: obj => obj instanceof Wrapped,
+				wrap: () => {
+					return {
+						get: () => ({ foo: 'bar' }),
+						reset: () => false,
+						teardown: () => torndown++
+					}
+				}
+			}
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<component/>',
+				components: {
+					component: Ractive.extend({
+						template: '{{wrapped.foo}}',
+						data: {
+							wrapped: new Wrapped()
+						},
+						adapt: [ adaptor ]
+					})
+				}
+
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bar' );
+			ractive.teardown();
+			t.equal( torndown, 1 );
+		});
 	};
 
 });
