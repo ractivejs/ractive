@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-01 - commit ff015e40 
+	2014-10-01 - commit 6f6edc34 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10728,17 +10728,13 @@
 	}();
 
 	/* virtualdom/items/Component/prototype/unrender.js */
-	var virtualdom_items_Component$unrender = function( Hook ) {
-
-		var teardownHook = new Hook( 'teardown' );
-		return function Component$unrender( shouldDestroy ) {
-			this.shouldDestroy = shouldDestroy;
-			this.instance.unrender();
-			if ( shouldDestroy ) {
-				teardownHook.fire( this.instance );
-			}
-		};
-	}( Ractive$shared_hooks_Hook );
+	var virtualdom_items_Component$unrender = function Component$unrender( shouldDestroy ) {
+		this.shouldDestroy = shouldDestroy;
+		this.instance.unrender();
+		if ( shouldDestroy ) {
+			this.instance.teardown();
+		}
+	};
 
 	/* virtualdom/items/Component/_Component.js */
 	var Component = function( detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, init, rebind, render, toString, unbind, unrender ) {
@@ -11690,7 +11686,7 @@
 	}( viewmodel$get_magicAdaptor, viewmodel$get_arrayAdaptor );
 
 	/* viewmodel/prototype/adapt.js */
-	var viewmodel$adapt = function( config, arrayAdaptor, magicAdaptor, magicArrayAdaptor ) {
+	var viewmodel$adapt = function( config, arrayAdaptor, log, magicAdaptor, magicArrayAdaptor ) {
 
 		var __export;
 		var prefixers = {};
@@ -11706,7 +11702,15 @@
 				if ( typeof adaptor === 'string' ) {
 					var found = config.registries.adaptors.find( ractive, adaptor );
 					if ( !found ) {
-						throw new Error( 'Missing adaptor "' + adaptor + '"' );
+						// will throw. "return" for safety, if we downgrade :)
+						return log.critical( {
+							debug: ractive.debug,
+							message: 'missingPlugin',
+							args: {
+								plugin: 'adaptor',
+								name: adaptor
+							}
+						} );
 					}
 					adaptor = ractive.adapt[ i ] = found;
 				}
@@ -11763,7 +11767,7 @@
 			return prefixers[ rootKeypath ];
 		}
 		return __export;
-	}( config, viewmodel$get_arrayAdaptor, viewmodel$get_magicAdaptor, viewmodel$get_magicArrayAdaptor );
+	}( config, viewmodel$get_arrayAdaptor, log, viewmodel$get_magicAdaptor, viewmodel$get_magicArrayAdaptor );
 
 	/* viewmodel/helpers/getUpstreamChanges.js */
 	var getUpstreamChanges = function getUpstreamChanges( changes ) {
@@ -12035,6 +12039,9 @@
 			if ( wrapper = this.wrapped[ keypath ] ) {
 				// Did we unwrap it?
 				if ( wrapper.teardown() !== false ) {
+					// Is this right?
+					// What's the meaning of returning false from teardown?
+					// Could there be a GC ramification if this is a "real" ractive.teardown()?
 					this.wrapped[ keypath ] = null;
 				}
 			}
