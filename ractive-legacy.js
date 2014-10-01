@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-09-30 - commit ce566470 
+	2014-10-01 - commit bdf01e09 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -274,11 +274,11 @@
 		};
 
 		function getMessage( options ) {
-			var message = errors[ options.message ] || options.message || '';
-			return interpolate( message, options.args );
-		}
-		// simple interpolation. probably quicker (and better) out there,
-		// but log is not in golden path of execution, only exceptions
+				var message = errors[ options.message ] || options.message || '';
+				return interpolate( message, options.args );
+			}
+			// simple interpolation. probably quicker (and better) out there,
+			// but log is not in golden path of execution, only exceptions
 		function interpolate( message, args ) {
 			return message.replace( /{([^{}]*)}/g, function( a, b ) {
 				return args[ b ];
@@ -1100,21 +1100,21 @@
 			};
 
 			function updateWrapper( wrapper ) {
-				var keypath, ractive;
-				wrapper.value = value;
-				if ( wrapper.updating ) {
-					return;
+					var keypath, ractive;
+					wrapper.value = value;
+					if ( wrapper.updating ) {
+						return;
+					}
+					ractive = wrapper.ractive;
+					keypath = wrapper.keypath;
+					wrapper.updating = true;
+					runloop.start( ractive );
+					ractive.viewmodel.mark( keypath );
+					runloop.end();
+					wrapper.updating = false;
 				}
-				ractive = wrapper.ractive;
-				keypath = wrapper.keypath;
-				wrapper.updating = true;
-				runloop.start( ractive );
-				ractive.viewmodel.mark( keypath );
-				runloop.end();
-				wrapper.updating = false;
-			}
-			// Create an array of wrappers, in case other keypaths/ractives depend on this property.
-			// Handily, we can store them as a property of the set function. Yay JavaScript.
+				// Create an array of wrappers, in case other keypaths/ractives depend on this property.
+				// Handily, we can store them as a property of the set function. Yay JavaScript.
 			set._ractiveWrappers = [ originalWrapper ];
 			Object.defineProperty( object, property, {
 				get: get,
@@ -2341,9 +2341,9 @@
 		};
 
 		function quoteStringLiteral( str ) {
-			return JSON.stringify( String( str ) );
-		}
-		// TODO maybe refactor this?
+				return JSON.stringify( String( str ) );
+			}
+			// TODO maybe refactor this?
 		function extractRefs( node, refs ) {
 			var i, list;
 			if ( node.t === types.REFERENCE ) {
@@ -2812,32 +2812,32 @@
 				};
 			}
 			/*
-        		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
-        		if (!Array.prototype.find) {
-        			Array.prototype.find = function(predicate) {
-        				if (this == null) {
-        				throw new TypeError('Array.prototype.find called on null or undefined');
-        				}
-        				if (typeof predicate !== 'function') {
-        				throw new TypeError('predicate must be a function');
-        				}
-        				var list = Object(this);
-        				var length = list.length >>> 0;
-        				var thisArg = arguments[1];
-        				var value;
-        	
-        				for (var i = 0; i < length; i++) {
-        					if (i in list) {
-        						value = list[i];
-        						if (predicate.call(thisArg, value, i, list)) {
-        						return value;
-        						}
-        					}
-        				}
-        				return undefined;
-        			}
-        		}
-        		*/
+					// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
+					if (!Array.prototype.find) {
+						Array.prototype.find = function(predicate) {
+							if (this == null) {
+							throw new TypeError('Array.prototype.find called on null or undefined');
+							}
+							if (typeof predicate !== 'function') {
+							throw new TypeError('predicate must be a function');
+							}
+							var list = Object(this);
+							var length = list.length >>> 0;
+							var thisArg = arguments[1];
+							var value;
+				
+							for (var i = 0; i < length; i++) {
+								if (i in list) {
+									value = list[i];
+									if (predicate.call(thisArg, value, i, list)) {
+									return value;
+									}
+								}
+							}
+							return undefined;
+						}
+					}
+					*/
 			if ( typeof Function.prototype.bind !== 'function' ) {
 				Function.prototype.bind = function( context ) {
 					var args, fn, Empty, bound, slice = [].slice;
@@ -3163,28 +3163,28 @@
 		};
 
 		function refineExpression( parser, expression, mustache ) {
-			var referenceExpression;
-			if ( expression ) {
-				while ( expression.t === types.BRACKETED && expression.x ) {
-					expression = expression.x;
-				}
-				// special case - integers should be treated as array members references,
-				// rather than as expressions in their own right
-				if ( expression.t === types.REFERENCE ) {
-					mustache.r = expression.n;
-				} else {
-					if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
-						mustache.r = expression.v;
-					} else if ( referenceExpression = getReferenceExpression( parser, expression ) ) {
-						mustache.rx = referenceExpression;
-					} else {
-						mustache.x = parser.flattenExpression( expression );
+				var referenceExpression;
+				if ( expression ) {
+					while ( expression.t === types.BRACKETED && expression.x ) {
+						expression = expression.x;
 					}
+					// special case - integers should be treated as array members references,
+					// rather than as expressions in their own right
+					if ( expression.t === types.REFERENCE ) {
+						mustache.r = expression.n;
+					} else {
+						if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
+							mustache.r = expression.v;
+						} else if ( referenceExpression = getReferenceExpression( parser, expression ) ) {
+							mustache.rx = referenceExpression;
+						} else {
+							mustache.x = parser.flattenExpression( expression );
+						}
+					}
+					return mustache;
 				}
-				return mustache;
 			}
-		}
-		// TODO refactor this! it's bewildering
+			// TODO refactor this! it's bewildering
 		function getReferenceExpression( parser, expression ) {
 			var members = [],
 				refinement;
@@ -4048,7 +4048,6 @@
 				};
 			},
 			converters: [
-
 				function getPlaceholder( parser ) {
 					var placeholder;
 					if ( !parser.values ) {
@@ -11823,7 +11822,9 @@
 			},
 			unrender: function( shouldDestroy ) {
 				if ( this.rendered ) {
-					this.fragment.unrender( shouldDestroy );
+					if ( this.fragment ) {
+						this.fragment.unrender( shouldDestroy );
+					}
 					this.rendered = false;
 				}
 			},
@@ -13566,6 +13567,9 @@
 			};
 			cascade = function( keypath ) {
 				var map;
+				if ( self.noCascade.hasOwnProperty( keypath ) ) {
+					return;
+				}
 				addComputations( keypath );
 				if ( map = self.depsMap.computed[ keypath ] ) {
 					map.forEach( cascade );
@@ -13609,6 +13613,7 @@
 				hash[ keypath ] = this$0.get( keypath );
 			} );
 			this.implicitChanges = {};
+			this.noCascade = {};
 			return hash;
 		};
 
@@ -13819,11 +13824,16 @@
 	}( viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
 
 	/* viewmodel/prototype/mark.js */
-	var viewmodel$mark = function Viewmodel$mark( keypath, isImplicitChange ) {
+	var viewmodel$mark = function Viewmodel$mark( keypath, options ) {
 		// implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)
 		// should not be picked up by pattern observers
-		if ( isImplicitChange ) {
-			this.implicitChanges[ keypath ] = true;
+		if ( options ) {
+			if ( options.implicit ) {
+				this.implicitChanges[ keypath ] = true;
+			}
+			if ( options.noCascade ) {
+				this.noCascade[ keypath ] = true;
+			}
 		}
 		if ( this.changes.indexOf( keypath ) === -1 ) {
 			this.changes.push( keypath );
@@ -13867,7 +13877,13 @@
 	var viewmodel$merge = function( types, warn, mapOldToNewIndex ) {
 
 		var __export;
-		var comparators = {};
+		var comparators = {},
+			implicitOption = {
+				implicit: true
+			},
+			noCascadeOption = {
+				noCascade: true
+			};
 		__export = function Viewmodel$merge( keypath, currentArray, array, options ) {
 			var this$0 = this;
 			var oldArray, newArray, comparator, newIndices, dependants;
@@ -13910,7 +13926,11 @@
 				} );
 			}
 			if ( currentArray.length !== array.length ) {
-				this.mark( keypath + '.length', true );
+				this.mark( keypath + '.length', implicitOption );
+				// don't allow removed indexes beyond end of new array to trigger recomputations
+				for ( var i = array.length; i < currentArray.length; i++ ) {
+					this.mark( keypath + '.' + i, noCascadeOption );
+				}
 			}
 		};
 
@@ -14059,15 +14079,26 @@
 	var viewmodel$splice = function( types ) {
 
 		var __export;
+		var implicitOption = {
+				implicit: true
+			},
+			noCascadeOption = {
+				noCascade: true
+			};
 		__export = function Viewmodel$splice( keypath, spliceSummary ) {
 			var viewmodel = this,
-				i, dependants;
+				i, dependants, end, changeEnd;
 			// Mark changed keypaths
-			for ( i = spliceSummary.rangeStart; i < spliceSummary.rangeEnd; i += 1 ) {
-				viewmodel.mark( keypath + '.' + i );
+			end = spliceSummary.rangeEnd;
+			if ( spliceSummary.balance < 0 ) {
+				changeEnd = end + spliceSummary.balance;
+			}
+			for ( i = spliceSummary.rangeStart; i < end; i += 1 ) {
+				var options = i >= changeEnd ? noCascadeOption : void 0;
+				viewmodel.mark( keypath + '.' + i, options );
 			}
 			if ( spliceSummary.balance ) {
-				viewmodel.mark( keypath + '.length', true );
+				viewmodel.mark( keypath + '.length', implicitOption );
 			}
 			// Trigger splice operations
 			if ( dependants = viewmodel.deps[ 'default' ][ keypath ] ) {
@@ -14346,6 +14377,7 @@
 			this.unresolvedImplicitDependencies = [];
 			this.changes = [];
 			this.implicitChanges = {};
+			this.noCascade = {};
 		};
 		Viewmodel.extend = function( Parent, instance ) {
 			if ( instance.magic && noMagic ) {
