@@ -21,7 +21,10 @@ mutatorMethods.forEach( function ( methodName ) {
 		// push, pop, shift and unshift can all be represented as a splice operation.
 		// this makes life easier later
 		spliceEquivalent = getSpliceEquivalent( this, methodName, Array.prototype.slice.call( arguments ) );
-		newIndices = summariseSpliceOperation( this.length, spliceEquivalent[0] );
+
+		if ( spliceEquivalent ) {
+			newIndices = summariseSpliceOperation( this.length, spliceEquivalent[0] );
+		}
 
 		// apply the underlying method
 		result = Array.prototype[ methodName ].apply( this, arguments );
