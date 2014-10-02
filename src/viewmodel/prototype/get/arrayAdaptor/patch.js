@@ -23,7 +23,7 @@ mutatorMethods.forEach( function ( methodName ) {
 		spliceEquivalent = getSpliceEquivalent( this, methodName, Array.prototype.slice.call( arguments ) );
 
 		if ( spliceEquivalent ) {
-			newIndices = summariseSpliceOperation( this.length, spliceEquivalent[0] );
+			newIndices = summariseSpliceOperation( this.length, spliceEquivalent );
 		}
 
 		// apply the underlying method

@@ -16,11 +16,13 @@ export default function ( methodName ) {
 			throw new Error( 'Called ractive.' + methodName + '(\'' + keypath + '\'), but \'' + keypath + '\' does not refer to an array' );
 		}
 
+		spliceEquivalent = getSpliceEquivalent( array, methodName, args );
+
 		result = arrayProto[ methodName ].apply( array, args );
 		promise = runloop.start( this, true ).then( () => result );
 
-		if ( spliceEquivalent = getSpliceEquivalent( array, methodName, args ) ) {
-			newIndices = summariseSpliceOperation( len, spliceEquivalent[0] );
+		if ( spliceEquivalent ) {
+			newIndices = summariseSpliceOperation( len, spliceEquivalent );
 			this.viewmodel.smartUpdate( keypath, array, newIndices );
 		} else {
 			this.viewmodel.mark( keypath );

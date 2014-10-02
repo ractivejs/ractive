@@ -12,6 +12,9 @@ export default function ( array, methodName, args ) {
 				args.push( 0 );
 			}
 
+			// ensure we only remove elements that exist
+			args[1] = Math.min( args[1], array.length - args[0] );
+
 			return args;
 
 		case 'sort':
