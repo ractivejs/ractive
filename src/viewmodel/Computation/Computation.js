@@ -14,14 +14,15 @@ var Computation = function ( ractive, key, signature ) {
 
 	this.dependencies = [];
 
-	if ( initial = ractive.viewmodel.get( key ) ) {
+	if ( this.setter && ( initial = ractive.viewmodel.get( key ) ) ) {
 		this.set( initial );
 	}
-
-	this.update();
 };
 
 Computation.prototype = {
+
+	constructor: Computation,
+
 	get: function () {
 		this.compute();
 		return this.value;
