@@ -321,7 +321,63 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'Computations are not order dependent', function ( t ) {
 
+			var ractive, Component;
+
+			Component = Ractive.extend({
+			    template: '{{foo}}',
+			    data: {
+			        count: 1
+			    },
+			    computed: {
+			        foo: '${bar} + 1',
+			        bar: '${count} + 1'
+			    }
+			})
+
+			ractive = new Ractive({
+		        el: fixture,
+		        template: '<component/>',
+		        data: {
+		            bar: 20
+		        },
+		        components: {
+		            component: Component
+		        }
+		    })
+			t.equal( fixture.innerHTML, '3' );
+
+		});
+
+		test( 'Parent extend instance computations are resolved before child computations', function ( t ) {
+
+			var ractive, Base, Component;
+
+			Base = Ractive.extend({
+			    computed: {
+			        base: () => 1
+			    }
+			});
+
+			Component = Base.extend({
+				template: '{{foo}}',
+			    computed: {
+			        foo: '${base} + 1'
+			    }
+			});
+
+			ractive = new Ractive({
+			    el: fixture,
+			    template: '<component/>',
+			    components: {
+			    	component: Component
+			    }
+			});
+
+			t.equal( fixture.innerHTML, '2' );
+
+		});
 
 	};
 
