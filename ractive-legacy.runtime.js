@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-02 - commit b1a9e1a6 
+	2014-10-02 - commit 926031ed 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13003,12 +13003,12 @@
 			this.getter = signature.get;
 			this.setter = signature.set;
 			this.dependencies = [];
-			if ( initial = ractive.viewmodel.get( key ) ) {
+			if ( this.setter && ( initial = ractive.viewmodel.get( key ) ) ) {
 				this.set( initial );
 			}
-			this.update();
 		};
 		Computation.prototype = {
+			constructor: Computation,
 			get: function() {
 				this.compute();
 				return this.value;
@@ -13059,10 +13059,13 @@
 	var createComputations = function( getComputationSignature, Computation ) {
 
 		return function createComputations( ractive, computed ) {
-			var key, signature;
+			var key, signature, computations = ractive.viewmodel.computations;
 			for ( key in computed ) {
 				signature = getComputationSignature( computed[ key ] );
-				ractive.viewmodel.computations[ key ] = new Computation( ractive, key, signature );
+				computations[ key ] = new Computation( ractive, key, signature );
+			}
+			for ( key in computations ) {
+				computations[ key ].update();
 			}
 		};
 	}( getComputationSignature, Computation );
