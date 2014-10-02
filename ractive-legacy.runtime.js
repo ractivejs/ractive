@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-01 - commit 4f3488f9 
+	2014-10-02 - commit b1a9e1a6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -646,6 +646,8 @@
 			}
 			// ...otherwise we need to find the keypath
 			key = ref.split( '.' )[ 0 ];
+			// get() in viewmodel creation means no fragment (yet)
+			fragment = fragment || {};
 			do {
 				context = fragment.context;
 				if ( !context ) {
@@ -3281,7 +3283,7 @@
 			keypath = normaliseKeypath( keypath );
 			value = this.viewmodel.get( keypath, options );
 			// Create inter-component binding, if necessary
-			if ( value === undefined && this._parent && !this.isolated && this.fragment ) {
+			if ( value === undefined && this._parent && !this.isolated ) {
 				if ( resolveRef( this, keypath, this.fragment ) ) {
 					// creates binding as side-effect, if appropriate
 					value = this.viewmodel.get( keypath );
@@ -10625,8 +10627,8 @@
 				var template, docFrag, target, anchor;
 				if ( !this.fragment ) {
 					if ( this.name && ( config.registries.partials.findInstance( this.root, this.name ) || parser.fromId( this.name, {
-						noThrow: true
-					} ) ) ) {
+							noThrow: true
+						} ) ) ) {
 						template = getPartialDescriptor( this.root, this.name );
 						this.namedPartial = true;
 					} else if ( this.value ) {
