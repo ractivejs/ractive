@@ -57,6 +57,7 @@ export default function Section$merge ( newIndices ) {
 		newKeypath = section.keypath + '.' + newIndex;
 
 		fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
+		fragment.index = newIndex;
 		reboundFragments[ newIndex ] = fragment;
 	});
 
