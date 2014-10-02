@@ -13,7 +13,7 @@ var patchedArrayProto = [],
 mutatorMethods.forEach( function ( methodName ) {
 	var method = function () {
 		var spliceEquivalent,
-			spliceSummary,
+			newIndices,
 			result,
 			wrapper,
 			i;
@@ -21,7 +21,7 @@ mutatorMethods.forEach( function ( methodName ) {
 		// push, pop, shift and unshift can all be represented as a splice operation.
 		// this makes life easier later
 		spliceEquivalent = getSpliceEquivalent( this, methodName, Array.prototype.slice.call( arguments ) );
-		spliceSummary = summariseSpliceOperation( this, spliceEquivalent );
+		newIndices = summariseSpliceOperation( this.length, spliceEquivalent[0] );
 
 		// apply the underlying method
 		result = Array.prototype[ methodName ].apply( this, arguments );
@@ -33,7 +33,7 @@ mutatorMethods.forEach( function ( methodName ) {
 			wrapper = this._ractive.wrappers[i];
 
 			runloop.start( wrapper.root );
-			processWrapper( wrapper, this, methodName, spliceSummary );
+			processWrapper( wrapper, this, methodName, newIndices );
 			runloop.end();
 		}
 

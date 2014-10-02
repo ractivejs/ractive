@@ -12,7 +12,6 @@ import firstNode from 'virtualdom/items/Section/prototype/firstNode';
 import merge from 'virtualdom/items/Section/prototype/merge';
 import render from 'virtualdom/items/Section/prototype/render';
 import setValue from 'virtualdom/items/Section/prototype/setValue';
-import splice from 'virtualdom/items/Section/prototype/splice';
 import toString from 'virtualdom/items/Section/prototype/toString';
 import unbind from 'virtualdom/items/Section/prototype/unbind';
 import unrender from 'virtualdom/items/Section/prototype/unrender';
@@ -51,7 +50,6 @@ Section.prototype = {
 	render: render,
 	resolve: Mustache.resolve,
 	setValue: setValue,
-	splice: splice,
 	toString: toString,
 	unbind: unbind,
 	unrender: unrender,

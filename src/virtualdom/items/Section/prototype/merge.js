@@ -1,3 +1,4 @@
+import types from 'config/types';
 import runloop from 'global/runloop';
 import circular from 'circular';
 
@@ -18,7 +19,9 @@ export default function Section$merge ( newIndices ) {
 		fragment,
 		nextNode;
 
-	if ( this.unbound ) {
+	// short circuit any double-updates, and ensure that this isn't applied to
+	// non-list sections
+	if ( this.unbound || ( this.subtype && this.subtype !== types.SECTION_EACH ) ) {
 		return;
 	}
 
