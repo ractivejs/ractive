@@ -664,6 +664,15 @@ var renderTests = [
 		new_result: '<p>no foo!</p>'
 	},
 	{
+		name: '{{#each foo}}...{{else}}...{{/each}}',
+		handlebars: true,
+		template: '{{#each foo}}<p>{{@key}}:{{.}}</p>{{else}}<p>empty foo!</p>{{/with}}',
+		data: { foo: {bar : 'qux'} },
+		result: '<p>bar:qux</p>',
+		new_data: { foo: {} },
+		new_result: '<p>empty foo!</p>'
+	},
+	{
 		name: '#if/else with true static expression',
 		handlebars: true,
 		template: '{{#if true}}yes{{else}}no{{/if}}',
