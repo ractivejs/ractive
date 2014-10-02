@@ -45,8 +45,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				});
 
 				ractive.pop( 'items' ).then( function(v) {
-					console.log( 'v', v );
-					t.deepEqual( v, 'charles' ); // not t.equal, BECAUSE QUNIT IS TERRIBLE https://github.com/jquery/qunit/issues/676
+					t.strictEqual( v, 'charles' );
 					QUnit.start();
 				} );
 				t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li></ul>' );
@@ -64,7 +63,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				});
 
 				ractive.shift( 'items' ).then( function(v) {
-					t.deepEqual( v, 'alice' );
+					t.strictEqual( v, 'alice' );
 					QUnit.start();
 				} );
 				t.htmlEqual( fixture.innerHTML, '<ul><li>bob</li><li>charles</li></ul>' );
@@ -88,7 +87,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				var items, ractive;
 
 				items = baseItems.slice();
-				expect(6);
+				expect(5);
 
 				ractive = new List({
 					el: fixture,
