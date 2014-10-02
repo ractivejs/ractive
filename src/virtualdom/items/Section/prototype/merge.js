@@ -16,8 +16,7 @@ export default function Section$merge ( newIndices ) {
 		newLength,
 		reboundFragments,
 		fragmentOptions,
-		fragment,
-		nextNode;
+		fragment;
 
 	// short circuit any double-updates, and ensure that this isn't applied to
 	// non-list sections
@@ -92,22 +91,12 @@ export default function Section$merge ( newIndices ) {
 	// Add as many new fragments as we need to, or add back existing
 	// (detached) fragments
 	for ( i = firstChange; i < newLength; i += 1 ) {
+		fragment = reboundFragments[i];
 
-		// is this an existing fragment?
-		if ( fragment = reboundFragments[i] ) {
-			this.docFrag.appendChild( fragment.detach( false ) );
-		}
-
-		else {
-			// Fragment will be created when changes are applied
-			// by the runloop
+		if ( !fragment ) {
 			this.fragmentsToCreate.push( i );
 		}
 
 		this.fragments[i] = fragment;
 	}
-
-	// reinsert fragment
-	nextNode = parentFragment.findNextNode( this );
-	this.parentFragment.getNode().insertBefore( this.docFrag, nextNode );
 }
