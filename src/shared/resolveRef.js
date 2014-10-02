@@ -36,6 +36,9 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	// ...otherwise we need to find the keypath
 	key = ref.split( '.' )[0];
 
+	// get() in viewmodel creation means no fragment (yet)
+	fragment = fragment || {};
+
 	do {
 		context = fragment.context;
 

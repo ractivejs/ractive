@@ -292,6 +292,37 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'Unresolved computations resolve when parent component data exists', function ( t ) {
+			var ractive, Component;
+
+			Component = Ractive.extend({
+			    template: '{{FOO}} {{BAR}}',
+			    computed: {
+			        FOO: '${foo}.toUpperCase()',
+			        BAR: function () {
+			            return this.get( 'bar' ).toUpperCase();
+			        }
+			    }
+			});
+
+			ractive = new Ractive({
+			    el: fixture,
+			    template: '<component/>',
+			    data: {
+			        foo: 'fee fi',
+			        bar: 'fo fum'
+			    },
+			    components: {
+			    	component: Component
+			    }
+			});
+
+			t.equal( fixture.innerHTML, 'FEE FI FO FUM' );
+
+		});
+
+
+
 	};
 
 });
