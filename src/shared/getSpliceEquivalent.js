@@ -4,6 +4,9 @@
 export default function ( array, methodName, args ) {
 	switch ( methodName ) {
 		case 'splice':
+			if ( args[0] !== undefined && args[0] < 0 ) {
+				args[0] = array.length + Math.max( args[0], -array.length );
+			}
 			return args;
 
 		case 'sort':
@@ -12,7 +15,7 @@ export default function ( array, methodName, args ) {
 
 		case 'pop':
 			if ( array.length ) {
-				return [ -1 ];
+				return [ array.length - 1 ];
 			}
 			return null;
 
