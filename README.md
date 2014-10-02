@@ -1,5 +1,6 @@
 Ractive.js - Next-generation DOM manipulation
 =============================================
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/ractivejs/ractive?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 *Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
