@@ -7,6 +7,11 @@ export default function ( array, methodName, args ) {
 			if ( args[0] !== undefined && args[0] < 0 ) {
 				args[0] = array.length + Math.max( args[0], -array.length );
 			}
+
+			while ( args.length < 2 ) {
+				args.push( 0 );
+			}
+
 			return args;
 
 		case 'sort':
@@ -15,7 +20,7 @@ export default function ( array, methodName, args ) {
 
 		case 'pop':
 			if ( array.length ) {
-				return [ array.length - 1 ];
+				return [ array.length - 1, 0 ];
 			}
 			return null;
 
