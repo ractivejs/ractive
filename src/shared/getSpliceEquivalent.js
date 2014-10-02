@@ -20,7 +20,7 @@ export default function ( array, methodName, args ) {
 
 		case 'pop':
 			if ( array.length ) {
-				return [ array.length - 1, 0 ];
+				return [ array.length - 1, 1 ];
 			}
 			return null;
 
