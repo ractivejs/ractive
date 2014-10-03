@@ -1597,12 +1597,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 					log: function ( t ) {
 						var x = t.node.innerHTML, count = t.isIntro ? intros : outros;
 
-						console.log( 'x, count', x, count );
-
-						if ( !count[x] ) {
-							count[x] = 0;
-						}
-
+						if ( !count[x] ) count[x] = 0;
 						count[x] += 1;
 
 						t.complete();
