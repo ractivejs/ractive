@@ -236,11 +236,11 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 }
 
 function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
-	var doRender, emptyArray, fragment, name;
+	var doRender, emptyArray, emptyObject, fragment, name;
 
 	emptyArray = ( isArrayLike( value ) && value.length === 0 );
 	emptyObject = false;
-	if( !isArray( value ) && isObject( value ) ) {
+	if( !isArrayLike( value ) && isObject( value ) ) {
 		emptyObject = true;
 		for( name in value ) {
 			emptyObject = false;
