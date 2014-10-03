@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-03 - commit 894bb915 
+	2014-10-03 - commit 121c7420 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -546,32 +546,36 @@
 	};
 
 	/* shared/createComponentBinding.js */
-	var createComponentBinding = function( circular, isArray, isEqual ) {
+	var createComponentBinding = function( circular, isEqual ) {
 
 		var runloop;
 		circular.push( function() {
 			return runloop = circular.runloop;
 		} );
 		var Binding = function( ractive, keypath, otherInstance, otherKeypath, priority ) {
+			var this$0 = this;
 			this.root = ractive;
 			this.keypath = keypath;
 			this.priority = priority;
 			this.otherInstance = otherInstance;
 			this.otherKeypath = otherKeypath;
+			this.unlock = function() {
+				return this$0.updating = false;
+			};
 			this.bind();
 			this.value = this.root.viewmodel.get( this.keypath );
 		};
 		Binding.prototype = {
+			shuffle: function( newIndices, value ) {
+				this.propagateChange( value, newIndices );
+			},
 			setValue: function( value ) {
-				var this$0 = this;
+				this.propagateChange( value );
+			},
+			propagateChange: function( value, newIndices ) {
 				// Only *you* can prevent infinite loops
 				if ( this.updating || this.counterpart && this.counterpart.updating ) {
 					this.value = value;
-					return;
-				}
-				// Is this a smart array update? If so, it'll update on its
-				// own, we shouldn't do anything
-				if ( isArray( value ) && value._ractive && value._ractive.setting ) {
 					return;
 				}
 				if ( !isEqual( value, this.value ) ) {
@@ -579,13 +583,15 @@
 					// TODO maybe the case that `value === this.value` - should that result
 					// in an update rather than a set?
 					runloop.addViewmodel( this.otherInstance.viewmodel );
-					this.otherInstance.viewmodel.set( this.otherKeypath, value );
+					if ( newIndices ) {
+						this.otherInstance.viewmodel.smartUpdate( this.otherKeypath, value, newIndices );
+					} else {
+						this.otherInstance.viewmodel.set( this.otherKeypath, value );
+					}
 					this.value = value;
 					// TODO will the counterpart update after this line, during
 					// the runloop end cycle? may be a problem...
-					runloop.scheduleTask( function() {
-						return this$0.updating = false;
-					} );
+					runloop.scheduleTask( this.unlock );
 				}
 			},
 			bind: function() {
@@ -621,7 +627,7 @@
 			}
 			bindings[ hash ] = parentToChildBinding;
 		};
-	}( circular, isArray, isEqual );
+	}( circular, isEqual );
 
 	/* shared/resolveRef.js */
 	var resolveRef = function( normaliseRef, getInnerContext, createComponentBinding ) {
@@ -3764,112 +3770,130 @@
 		};
 	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
 
-	/* shared/getSpliceEquivalent.js */
-	var getSpliceEquivalent = function( array, methodName, args ) {
-		switch ( methodName ) {
-			case 'splice':
-				return args;
-			case 'sort':
-			case 'reverse':
-				return null;
-			case 'pop':
-				if ( array.length ) {
-					return [ -1 ];
-				}
-				return null;
-			case 'push':
-				return [
-					array.length,
-					0
-				].concat( args );
-			case 'shift':
-				return [
-					0,
-					1
-				];
-			case 'unshift':
-				return [
-					0,
-					0
-				].concat( args );
-		}
-	};
+	/* shared/getNewIndices.js */
+	var getNewIndices = function() {
 
-	/* shared/summariseSpliceOperation.js */
-	var summariseSpliceOperation = function( array, args ) {
-		var rangeStart, rangeEnd, newLength, addedItems, removedItems, balance;
-		if ( !args ) {
-			return null;
-		}
-		// figure out where the changes started...
-		rangeStart = +( args[ 0 ] < 0 ? array.length + args[ 0 ] : args[ 0 ] );
-		// make sure we don't get out of bounds...
-		if ( rangeStart < 0 ) {
-			rangeStart = 0;
-		} else if ( rangeStart > array.length ) {
-			rangeStart = array.length;
-		}
-		// ...and how many items were added to or removed from the array
-		addedItems = Math.max( 0, args.length - 2 );
-		removedItems = args[ 1 ] !== undefined ? args[ 1 ] : array.length - rangeStart;
-		// It's possible to do e.g. [ 1, 2, 3 ].splice( 2, 2 ) - i.e. the second argument
-		// means removing more items from the end of the array than there are. In these
-		// cases we need to curb JavaScript's enthusiasm or we'll get out of sync
-		removedItems = Math.min( removedItems, array.length - rangeStart );
-		balance = addedItems - removedItems;
-		newLength = array.length + balance;
-		// We need to find the end of the range affected by the splice
-		if ( !balance ) {
-			rangeEnd = rangeStart + addedItems;
-		} else {
-			rangeEnd = Math.max( array.length, newLength );
-		}
-		return {
-			rangeStart: rangeStart,
-			rangeEnd: rangeEnd,
-			balance: balance,
-			added: addedItems,
-			removed: removedItems
+		var __export;
+		// This function takes an array, the name of a mutator method, and the
+		// arguments to call that mutator method with, and returns an array that
+		// maps the old indices to their new indices.
+		// So if you had something like this...
+		//
+		//     array = [ 'a', 'b', 'c', 'd' ];
+		//     array.push( 'e' );
+		//
+		// ...you'd get `[ 0, 1, 2, 3 ]` - in other words, none of the old indices
+		// have changed. If you then did this...
+		//
+		//     array.unshift( 'z' );
+		//
+		// ...the indices would be `[ 1, 2, 3, 4, 5 ]` - every item has been moved
+		// one higher to make room for the 'z'. If you removed an item, the new index
+		// would be -1...
+		//
+		//     array.splice( 2, 2 );
+		//
+		// ...this would result in [ 0, 1, -1, -1, 2, 3 ].
+		//
+		// This information is used to enable fast, non-destructive shuffling of list
+		// sections when you do e.g. `ractive.splice( 'items', 2, 2 );
+		__export = function getNewIndices( array, methodName, args ) {
+			var spliceArguments, len, newIndices = [],
+				removeStart, removeEnd, balance, i;
+			spliceArguments = getSpliceEquivalent( array, methodName, args );
+			if ( !spliceArguments ) {
+				return null;
+			}
+			len = array.length;
+			balance = spliceArguments.length - 2 - spliceArguments[ 1 ];
+			removeStart = Math.min( len, spliceArguments[ 0 ] );
+			removeEnd = removeStart + spliceArguments[ 1 ];
+			for ( i = 0; i < removeStart; i += 1 ) {
+				newIndices.push( i );
+			}
+			for ( ; i < removeEnd; i += 1 ) {
+				newIndices.push( -1 );
+			}
+			for ( ; i < len; i += 1 ) {
+				newIndices.push( i + balance );
+			}
+			return newIndices;
 		};
-	};
+		// The pop, push, shift an unshift methods can all be represented
+		// as an equivalent splice
+		function getSpliceEquivalent( array, methodName, args ) {
+			switch ( methodName ) {
+				case 'splice':
+					if ( args[ 0 ] !== undefined && args[ 0 ] < 0 ) {
+						args[ 0 ] = array.length + Math.max( args[ 0 ], -array.length );
+					}
+					while ( args.length < 2 ) {
+						args.push( 0 );
+					}
+					// ensure we only remove elements that exist
+					args[ 1 ] = Math.min( args[ 1 ], array.length - args[ 0 ] );
+					return args;
+				case 'sort':
+				case 'reverse':
+					return null;
+				case 'pop':
+					if ( array.length ) {
+						return [
+							array.length - 1,
+							1
+						];
+					}
+					return null;
+				case 'push':
+					return [
+						array.length,
+						0
+					].concat( args );
+				case 'shift':
+					return [
+						0,
+						1
+					];
+				case 'unshift':
+					return [
+						0,
+						0
+					].concat( args );
+			}
+		}
+		return __export;
+	}();
 
 	/* Ractive/prototype/shared/makeArrayMethod.js */
-	var Ractive$shared_makeArrayMethod = function( isArray, runloop, getSpliceEquivalent, summariseSpliceOperation ) {
+	var Ractive$shared_makeArrayMethod = function( isArray, runloop, getNewIndices ) {
 
 		var arrayProto = Array.prototype;
 		return function( methodName ) {
 			return function( keypath ) {
 				var SLICE$0 = Array.prototype.slice;
 				var args = SLICE$0.call( arguments, 1 );
-				var array, spliceEquivalent, spliceSummary, promise, change;
+				var array, newIndices = [],
+					len, promise, result;
 				array = this.get( keypath );
+				len = array.length;
 				if ( !isArray( array ) ) {
 					throw new Error( 'Called ractive.' + methodName + '(\'' + keypath + '\'), but \'' + keypath + '\' does not refer to an array' );
 				}
-				spliceEquivalent = getSpliceEquivalent( array, methodName, args );
-				spliceSummary = summariseSpliceOperation( array, spliceEquivalent );
-				if ( spliceSummary ) {
-					change = arrayProto.splice.apply( array, spliceEquivalent );
-				} else {
-					change = arrayProto[ methodName ].apply( array, args );
-				}
-				promise = runloop.start( this, true );
-				if ( spliceSummary ) {
-					this.viewmodel.splice( keypath, spliceSummary );
+				newIndices = getNewIndices( array, methodName, args );
+				result = arrayProto[ methodName ].apply( array, args );
+				promise = runloop.start( this, true ).then( function() {
+					return result;
+				} );
+				if ( !!newIndices ) {
+					this.viewmodel.smartUpdate( keypath, array, newIndices );
 				} else {
 					this.viewmodel.mark( keypath );
 				}
 				runloop.end();
-				// resolve the promise with removals if applicable
-				if ( methodName === 'splice' || methodName === 'pop' || methodName === 'shift' ) {
-					promise = promise.then( function() {
-						return change;
-					} );
-				}
 				return promise;
 			};
 		};
-	}( isArray, runloop, getSpliceEquivalent, summariseSpliceOperation );
+	}( isArray, runloop, getNewIndices );
 
 	/* Ractive/prototype/pop.js */
 	var Ractive$pop = function( makeArrayMethod ) {
@@ -4062,7 +4086,15 @@
 		}
 		docFrag = document.createDocumentFragment();
 		this.items.forEach( function( item ) {
-			docFrag.appendChild( item.detach() );
+			var node = item.detach();
+			// TODO The if {...} wasn't previously required - it is now, because we're
+			// forcibly detaching everything to reorder sections after an update. That's
+			// a non-ideal brute force approach, implemented to get all the tests to pass
+			// - as soon as it's replaced with something more elegant, this should
+			// revert to `docFrag.appendChild( item.detach() )`
+			if ( node ) {
+				docFrag.appendChild( node );
+			}
 		} );
 		return docFrag;
 	};
@@ -6461,19 +6493,26 @@
 		return this.parentFragment.findNextNode( this );
 	};
 
-	/* virtualdom/items/Section/prototype/merge.js */
-	var virtualdom_items_Section$merge = function( runloop, circular ) {
+	/* virtualdom/items/Section/prototype/shuffle.js */
+	var virtualdom_items_Section$shuffle = function( types, runloop, circular ) {
 
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function Section$merge( newIndices ) {
+		return function Section$shuffle( newIndices ) {
+			var this$0 = this;
 			var section = this,
-				parentFragment, firstChange, i, newLength, reboundFragments, fragmentOptions, fragment, nextNode;
-			if ( this.unbound ) {
+				parentFragment, firstChange, i, newLength, reboundFragments, fragmentOptions, fragment;
+			// short circuit any double-updates, and ensure that this isn't applied to
+			// non-list sections
+			if ( this.shuffling || this.unbound || this.subtype && this.subtype !== types.SECTION_EACH ) {
 				return;
 			}
+			this.shuffling = true;
+			runloop.scheduleTask( function() {
+				return this$0.shuffling = false;
+			} );
 			parentFragment = this.parentFragment;
 			reboundFragments = [];
 			// first, rebind existing fragments
@@ -6498,6 +6537,7 @@
 				oldKeypath = section.keypath + '.' + oldIndex;
 				newKeypath = section.keypath + '.' + newIndex;
 				fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
+				fragment.index = newIndex;
 				reboundFragments[ newIndex ] = fragment;
 			} );
 			newLength = this.root.get( this.keypath ).length;
@@ -6524,21 +6564,14 @@
 			// Add as many new fragments as we need to, or add back existing
 			// (detached) fragments
 			for ( i = firstChange; i < newLength; i += 1 ) {
-				// is this an existing fragment?
-				if ( fragment = reboundFragments[ i ] ) {
-					this.docFrag.appendChild( fragment.detach( false ) );
-				} else {
-					// Fragment will be created when changes are applied
-					// by the runloop
+				fragment = reboundFragments[ i ];
+				if ( !fragment ) {
 					this.fragmentsToCreate.push( i );
 				}
 				this.fragments[ i ] = fragment;
 			}
-			// reinsert fragment
-			nextNode = parentFragment.findNextNode( this );
-			this.parentFragment.getNode().insertBefore( this.docFrag, nextNode );
 		};
-	}( runloop, circular );
+	}( types, runloop, circular );
 
 	/* virtualdom/items/Section/prototype/render.js */
 	var virtualdom_items_Section$render = function Section$render() {
@@ -6797,88 +6830,6 @@
 		return __export;
 	}( types, isArrayLike, isObject, runloop, circular );
 
-	/* virtualdom/items/Section/prototype/splice.js */
-	var virtualdom_items_Section$splice = function( runloop, circular ) {
-
-		var __export;
-		var Fragment;
-		circular.push( function() {
-			Fragment = circular.Fragment;
-		} );
-		__export = function Section$splice( spliceSummary ) {
-			var section = this,
-				balance, start, insertStart, insertEnd, spliceArgs;
-			// In rare cases, a section will receive a splice instruction after it has
-			// been unbound (see https://github.com/ractivejs/ractive/issues/967). This
-			// prevents errors arising from those situations
-			if ( this.unbound ) {
-				return;
-			}
-			balance = spliceSummary.balance;
-			if ( !balance ) {
-				// The array length hasn't changed - we don't need to add or remove anything
-				return;
-			}
-			// Register with the runloop, so we can (un)render with the
-			// next batch of DOM changes
-			runloop.addView( section );
-			start = spliceSummary.rangeStart;
-			section.length += balance;
-			// If more items were removed from the array than added, we tear down
-			// the excess fragments and remove them...
-			if ( balance < 0 ) {
-				section.fragmentsToUnrender = section.fragments.splice( start, -balance );
-				section.fragmentsToUnrender.forEach( unbind );
-				// Reassign fragments after the ones we've just removed
-				rebindFragments( section, start, section.length, balance );
-				// Nothing more to do
-				return;
-			}
-			// ...otherwise we need to add some things to the DOM.
-			insertStart = start + spliceSummary.removed;
-			insertEnd = start + spliceSummary.added;
-			// Make room for the new fragments by doing a splice that simulates
-			// what happened to the data array
-			spliceArgs = [
-				insertStart,
-				0
-			];
-			spliceArgs.length += balance;
-			section.fragments.splice.apply( section.fragments, spliceArgs );
-			// Rebind existing fragments at the end of the array
-			rebindFragments( section, insertEnd, section.length, balance );
-			// Schedule new fragments to be created
-			section.fragmentsToCreate = range( insertStart, insertEnd );
-		};
-
-		function unbind( fragment ) {
-			fragment.unbind();
-		}
-
-		function range( start, end ) {
-			var array = [],
-				i;
-			for ( i = start; i < end; i += 1 ) {
-				array.push( i );
-			}
-			return array;
-		}
-
-		function rebindFragments( section, start, end, by ) {
-			var i, fragment, indexRef, oldKeypath, newKeypath;
-			indexRef = section.template.i;
-			for ( i = start; i < end; i += 1 ) {
-				fragment = section.fragments[ i ];
-				oldKeypath = section.keypath + '.' + ( i - by );
-				newKeypath = section.keypath + '.' + i;
-				// change the fragment index
-				fragment.index = i;
-				fragment.rebind( indexRef, i, oldKeypath, newKeypath );
-			}
-		}
-		return __export;
-	}( runloop, circular );
-
 	/* virtualdom/items/Section/prototype/toString.js */
 	var virtualdom_items_Section$toString = function Section$toString( escape ) {
 		var str, i, len;
@@ -6928,40 +6879,53 @@
 
 	/* virtualdom/items/Section/prototype/update.js */
 	var virtualdom_items_Section$update = function Section$update() {
-		var fragment, rendered, nextFragment, anchor, target;
+		var fragment, renderIndex, renderedFragments, anchor, target, i, len;
+		// `this.renderedFragments` is in the order of the previous render.
+		// If fragments have shuffled about, this allows us to quickly
+		// reinsert them in the correct place
+		renderedFragments = this.renderedFragments;
+		// Remove fragments that have been marked for destruction
 		while ( fragment = this.fragmentsToUnrender.pop() ) {
 			fragment.unrender( true );
+			renderedFragments.splice( renderedFragments.indexOf( fragment ), 1 );
 		}
-		// If we have no new nodes to insert (i.e. the section length stayed the
-		// same, or shrank), we don't need to go any further
-		if ( !this.fragmentsToRender.length ) {
-			return;
+		// Render new fragments (but don't insert them yet)
+		while ( fragment = this.fragmentsToRender.shift() ) {
+			fragment.render();
 		}
 		if ( this.rendered ) {
 			target = this.parentFragment.getNode();
 		}
-		// Render new fragments to our docFrag
-		while ( fragment = this.fragmentsToRender.shift() ) {
-			rendered = fragment.render();
-			this.docFrag.appendChild( rendered );
-			// If this is an ordered list, and it's already rendered, we may
-			// need to insert content into the appropriate place
-			if ( this.rendered && this.ordered ) {
-				// If the next fragment is already rendered, use it as an anchor...
-				nextFragment = this.fragments[ fragment.index + 1 ];
-				if ( nextFragment && nextFragment.rendered ) {
-					target.insertBefore( this.docFrag, nextFragment.firstNode() || null );
+		len = this.fragments.length;
+		for ( i = 0; i < len; i += 1 ) {
+			fragment = this.fragments[ i ];
+			renderIndex = renderedFragments.indexOf( fragment, i );
+			// search from current index - it's guaranteed to be the same or higher
+			if ( renderIndex === i ) {
+				// already in the right place. insert accumulated nodes (if any) and carry on
+				if ( this.docFrag.childNodes.length ) {
+					anchor = fragment.firstNode();
+					target.insertBefore( this.docFrag, anchor );
 				}
+				continue;
 			}
+			this.docFrag.appendChild( fragment.detach() );
+			// update renderedFragments
+			if ( renderIndex !== -1 ) {
+				renderedFragments.splice( renderIndex, 1 );
+			}
+			renderedFragments.splice( i, 0, fragment );
 		}
 		if ( this.rendered && this.docFrag.childNodes.length ) {
 			anchor = this.parentFragment.findNextNode( this );
 			target.insertBefore( this.docFrag, anchor );
 		}
+		// Save the rendering order for next time
+		this.renderedFragments = this.fragments.slice();
 	};
 
 	/* virtualdom/items/Section/_Section.js */
-	var Section = function( types, Mustache, bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, merge, render, setValue, splice, toString, unbind, unrender, update ) {
+	var Section = function( types, Mustache, bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, shuffle, render, setValue, toString, unbind, unrender, update ) {
 
 		var Section = function( options ) {
 			this.type = types.SECTION;
@@ -6972,6 +6936,7 @@
 			this.fragmentsToCreate = [];
 			this.fragmentsToRender = [];
 			this.fragmentsToUnrender = [];
+			this.renderedFragments = [];
 			this.length = 0;
 			// number of times this section is rendered
 			Mustache.init( this, options );
@@ -6986,19 +6951,18 @@
 			findNextNode: findNextNode,
 			firstNode: firstNode,
 			getValue: Mustache.getValue,
-			merge: merge,
+			shuffle: shuffle,
 			rebind: Mustache.rebind,
 			render: render,
 			resolve: Mustache.resolve,
 			setValue: setValue,
-			splice: splice,
 			toString: toString,
 			unbind: unbind,
 			unrender: unrender,
 			update: update
 		};
 		return Section;
-	}( types, Mustache, virtualdom_items_Section$bubble, virtualdom_items_Section$detach, virtualdom_items_Section$find, virtualdom_items_Section$findAll, virtualdom_items_Section$findAllComponents, virtualdom_items_Section$findComponent, virtualdom_items_Section$findNextNode, virtualdom_items_Section$firstNode, virtualdom_items_Section$merge, virtualdom_items_Section$render, virtualdom_items_Section$setValue, virtualdom_items_Section$splice, virtualdom_items_Section$toString, virtualdom_items_Section$unbind, virtualdom_items_Section$unrender, virtualdom_items_Section$update );
+	}( types, Mustache, virtualdom_items_Section$bubble, virtualdom_items_Section$detach, virtualdom_items_Section$find, virtualdom_items_Section$findAll, virtualdom_items_Section$findAllComponents, virtualdom_items_Section$findComponent, virtualdom_items_Section$findNextNode, virtualdom_items_Section$firstNode, virtualdom_items_Section$shuffle, virtualdom_items_Section$render, virtualdom_items_Section$setValue, virtualdom_items_Section$toString, virtualdom_items_Section$unbind, virtualdom_items_Section$unrender, virtualdom_items_Section$update );
 
 	/* virtualdom/items/Triple/prototype/detach.js */
 	var virtualdom_items_Triple$detach = function Triple$detach() {
@@ -7640,6 +7604,9 @@
 		if ( this.fragment ) {
 			this.fragment.unbind();
 		}
+		if ( this.name === 'id' ) {
+			delete this.root.nodes[ this.value ];
+		}
 	};
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateSelectValue.js */
@@ -7763,12 +7730,8 @@
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateIdAttribute.js */
 	var virtualdom_items_Element_Attribute$update_updateIdAttribute = function Attribute$updateIdAttribute() {
-		var node, value;
-		node = this.node;
-		value = this.value;
-		if ( value !== undefined ) {
-			this.root.nodes[ value ] = undefined;
-		}
+		var node = ( value = this ).node,
+			value = value.value;
 		this.root.nodes[ value ] = node;
 		node.id = value;
 	};
@@ -10351,10 +10314,6 @@
 			if ( this.liveQueries ) {
 				removeFromLiveQueries( this );
 			}
-			// Remove from nodes
-			if ( this.node.id ) {
-				delete this.root.nodes[ this.node.id ];
-			}
 		};
 
 		function removeFromLiveQueries( element ) {
@@ -11041,7 +11000,10 @@
 			this.index = options.index;
 			this.indexRefBindings = {};
 			this.bindings = [];
-			this.yielder = null;
+			// even though only one yielder is allowed, we need to have an array of them
+			// as it's possible to cause a yielder to be created before the last one
+			// was destroyed in the same turn of the runloop
+			this.yielders = [];
 			if ( !Component ) {
 				throw new Error( 'Component "' + this.name + '" not found' );
 			}
@@ -11081,8 +11043,8 @@
 				}
 			} );
 			this.complexParameters.forEach( rebind );
-			if ( this.yielder ) {
-				rebind( this.yielder );
+			if ( this.yielders[ 0 ] ) {
+				rebind( this.yielders[ 0 ] );
 			}
 			if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
 				runloop.addViewmodel( childInstance.viewmodel );
@@ -11202,7 +11164,7 @@
 	}( types, detach );
 
 	/* virtualdom/items/Yielder.js */
-	var Yielder = function( circular ) {
+	var Yielder = function( runloop, removeFromArray, circular ) {
 
 		var Fragment;
 		circular.push( function() {
@@ -11214,16 +11176,18 @@
 			this.component = component = componentInstance.component;
 			this.surrogateParent = options.parentFragment;
 			this.parentFragment = component.parentFragment;
-			if ( component.yielder ) {
-				throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
-			}
 			this.fragment = new Fragment( {
 				owner: this,
 				root: componentInstance.yield.instance,
 				template: componentInstance.yield.template,
 				pElement: this.surrogateParent.pElement
 			} );
-			component.yielder = this;
+			component.yielders.push( this );
+			runloop.scheduleTask( function() {
+				if ( component.yielders.length > 1 ) {
+					throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
+				}
+			} );
 		};
 		Yielder.prototype = {
 			detach: function() {
@@ -11258,7 +11222,7 @@
 			},
 			unrender: function( shouldDestroy ) {
 				this.fragment.unrender( shouldDestroy );
-				this.component.yielder = void 0;
+				removeFromArray( this.component.yielders, this );
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
 				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
@@ -11268,7 +11232,7 @@
 			}
 		};
 		return Yielder;
-	}( circular );
+	}( runloop, removeFromArray, circular );
 
 	/* virtualdom/Fragment/prototype/init/createItem.js */
 	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder ) {
@@ -11885,7 +11849,7 @@
 	}();
 
 	/* viewmodel/prototype/get/arrayAdaptor/processWrapper.js */
-	var viewmodel$get_arrayAdaptor_processWrapper = function( wrapper, array, methodName, spliceSummary ) {
+	var viewmodel$get_arrayAdaptor_processWrapper = function( wrapper, array, methodName, newIndices ) {
 		var root = wrapper.root,
 			keypath = wrapper.keypath;
 		// If this is a sort or reverse, we just do root.set()...
@@ -11894,16 +11858,11 @@
 			root.viewmodel.set( keypath, array );
 			return;
 		}
-		if ( !spliceSummary ) {
-			// (presumably we tried to pop from an array of zero length.
-			// in which case there's nothing to do)
-			return;
-		}
-		root.viewmodel.splice( keypath, spliceSummary );
+		root.viewmodel.smartUpdate( keypath, array, newIndices );
 	};
 
 	/* viewmodel/prototype/get/arrayAdaptor/patch.js */
-	var viewmodel$get_arrayAdaptor_patch = function( runloop, defineProperty, getSpliceEquivalent, summariseSpliceOperation, processWrapper ) {
+	var viewmodel$get_arrayAdaptor_patch = function( runloop, defineProperty, getNewIndices, processWrapper ) {
 
 		var patchedArrayProto = [],
 			mutatorMethods = [
@@ -11918,22 +11877,22 @@
 			testObj, patchArrayMethods, unpatchArrayMethods;
 		mutatorMethods.forEach( function( methodName ) {
 			var method = function() {
-				var spliceEquivalent, spliceSummary, result, wrapper, i;
-				// push, pop, shift and unshift can all be represented as a splice operation.
-				// this makes life easier later
-				spliceEquivalent = getSpliceEquivalent( this, methodName, Array.prototype.slice.call( arguments ) );
-				spliceSummary = summariseSpliceOperation( this, spliceEquivalent );
+				var SLICE$0 = Array.prototype.slice;
+				var args = SLICE$0.call( arguments, 0 );
+				var newIndices, result, wrapper, i;
+				newIndices = getNewIndices( this, methodName, args );
 				// apply the underlying method
 				result = Array.prototype[ methodName ].apply( this, arguments );
 				// trigger changes
+				runloop.start();
 				this._ractive.setting = true;
 				i = this._ractive.wrappers.length;
 				while ( i-- ) {
 					wrapper = this._ractive.wrappers[ i ];
-					runloop.start( wrapper.root );
-					processWrapper( wrapper, this, methodName, spliceSummary );
-					runloop.end();
+					runloop.addViewmodel( wrapper.root.viewmodel );
+					processWrapper( wrapper, this, methodName, newIndices );
 				}
+				runloop.end();
 				this._ractive.setting = false;
 				return result;
 			};
@@ -11975,7 +11934,7 @@
 		}
 		patchArrayMethods.unpatch = unpatchArrayMethods;
 		return patchArrayMethods;
-	}( runloop, defineProperty, getSpliceEquivalent, summariseSpliceOperation, viewmodel$get_arrayAdaptor_processWrapper );
+	}( runloop, defineProperty, getNewIndices, viewmodel$get_arrayAdaptor_processWrapper );
 
 	/* viewmodel/prototype/get/arrayAdaptor.js */
 	var viewmodel$get_arrayAdaptor = function( defineProperty, isArray, patch ) {
@@ -12627,24 +12586,16 @@
 			usedIndices[ index ] = true;
 			return index;
 		} );
-		newIndices.unchanged = !changed;
 		return newIndices;
 	};
 
 	/* viewmodel/prototype/merge.js */
-	var viewmodel$merge = function( types, warn, mapOldToNewIndex ) {
+	var viewmodel$merge = function( warn, mapOldToNewIndex ) {
 
 		var __export;
-		var comparators = {},
-			implicitOption = {
-				implicit: true
-			},
-			noCascadeOption = {
-				noCascade: true
-			};
+		var comparators = {};
 		__export = function Viewmodel$merge( keypath, currentArray, array, options ) {
-			var this$0 = this;
-			var oldArray, newArray, comparator, newIndices, dependants;
+			var oldArray, newArray, comparator, newIndices;
 			this.mark( keypath );
 			if ( options && options.compare ) {
 				comparator = getComparatorFunction( options.compare );
@@ -12669,32 +12620,8 @@
 			}
 			// find new indices for members of oldArray
 			newIndices = mapOldToNewIndex( oldArray, newArray );
-			// Indices that are being removed should be marked as dirty
-			newIndices.forEach( function( newIndex, oldIndex ) {
-				if ( newIndex === -1 ) {
-					this$0.mark( keypath + '.' + oldIndex );
-				}
-			} );
-			// Update the model
-			// TODO allow existing array to be updated in place, rather than replaced?
-			this.set( keypath, array, true );
-			if ( dependants = this.deps[ 'default' ][ keypath ] ) {
-				dependants.filter( canMerge ).forEach( function( dependant ) {
-					return dependant.merge( newIndices );
-				} );
-			}
-			if ( currentArray.length !== array.length ) {
-				this.mark( keypath + '.length', implicitOption );
-				// don't allow removed indexes beyond end of new array to trigger recomputations
-				for ( var i = array.length; i < currentArray.length; i++ ) {
-					this.mark( keypath + '.' + i, noCascadeOption );
-				}
-			}
+			this.smartUpdate( keypath, array, newIndices, currentArray.length !== array.length );
 		};
-
-		function canMerge( dependant ) {
-			return typeof dependant.merge === 'function' && ( !dependant.subtype || dependant.subtype === types.SECTION_EACH );
-		}
 
 		function stringify( item ) {
 			return JSON.stringify( item );
@@ -12721,7 +12648,7 @@
 			throw new Error( 'The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)' );
 		}
 		return __export;
-	}( types, warn, viewmodel$merge_mapOldToNewIndex );
+	}( warn, viewmodel$merge_mapOldToNewIndex );
 
 	/* viewmodel/prototype/register.js */
 	var viewmodel$register = function() {
@@ -12861,8 +12788,8 @@
 		return __export;
 	}( isEqual, createBranch );
 
-	/* viewmodel/prototype/splice.js */
-	var viewmodel$splice = function( types ) {
+	/* viewmodel/prototype/smartUpdate.js */
+	var viewmodel$smartUpdate = function() {
 
 		var __export;
 		var implicitOption = {
@@ -12871,34 +12798,41 @@
 			noCascadeOption = {
 				noCascade: true
 			};
-		__export = function Viewmodel$splice( keypath, spliceSummary ) {
-			var viewmodel = this,
-				i, dependants, end, changeEnd;
-			// Mark changed keypaths
-			end = spliceSummary.rangeEnd;
-			if ( spliceSummary.balance < 0 ) {
-				changeEnd = end + spliceSummary.balance;
-			}
-			for ( i = spliceSummary.rangeStart; i < end; i += 1 ) {
-				var options = i >= changeEnd ? noCascadeOption : void 0;
-				viewmodel.mark( keypath + '.' + i, options );
-			}
-			if ( spliceSummary.balance ) {
-				viewmodel.mark( keypath + '.length', implicitOption );
-			}
-			// Trigger splice operations
-			if ( dependants = viewmodel.deps[ 'default' ][ keypath ] ) {
-				dependants.filter( canSplice ).forEach( function( dependant ) {
-					return dependant.splice( spliceSummary );
+		__export = function Viewmodel$smartUpdate( keypath, array, newIndices ) {
+			var this$0 = this;
+			var dependants, oldLength;
+			oldLength = newIndices.length;
+			// Indices that are being removed should be marked as dirty
+			newIndices.forEach( function( newIndex, oldIndex ) {
+				if ( newIndex === -1 ) {
+					this$0.mark( keypath + '.' + oldIndex, noCascadeOption );
+				}
+			} );
+			// Update the model
+			// TODO allow existing array to be updated in place, rather than replaced?
+			this.set( keypath, array, true );
+			if ( dependants = this.deps[ 'default' ][ keypath ] ) {
+				dependants.filter( canShuffle ).forEach( function( d ) {
+					return d.shuffle( newIndices, array );
 				} );
+			}
+			if ( oldLength !== array.length ) {
+				this.mark( keypath + '.length', implicitOption );
+				for ( var i = oldLength; i < array.length; i += 1 ) {
+					this.mark( keypath + '.' + i );
+				}
+				// don't allow removed indexes beyond end of new array to trigger recomputations
+				for ( var i$0 = array.length; i$0 < oldLength; i$0 += 1 ) {
+					this.mark( keypath + '.' + i$0, noCascadeOption );
+				}
 			}
 		};
 
-		function canSplice( dependant ) {
-			return dependant.type === types.SECTION && ( !dependant.subtype || dependant.subtype === types.SECTION_EACH ) && dependant.rendered;
+		function canShuffle( dependant ) {
+			return typeof dependant.shuffle === 'function';
 		}
 		return __export;
-	}( types );
+	}();
 
 	/* viewmodel/prototype/teardown.js */
 	var viewmodel$teardown = function Viewmodel$teardown() {
@@ -13131,7 +13065,7 @@
 	}();
 
 	/* viewmodel/Viewmodel.js */
-	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, get, mark, merge, register, release, set, splice, teardown, unregister, createComputations, adaptConfig ) {
+	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, get, mark, merge, register, release, set, smartUpdate, teardown, unregister, createComputations, adaptConfig ) {
 
 		var noMagic;
 		try {
@@ -13186,7 +13120,7 @@
 			register: register,
 			release: release,
 			set: set,
-			splice: splice,
+			smartUpdate: smartUpdate,
 			teardown: teardown,
 			unregister: unregister,
 			// createComputations, in the computations, may call back through get or set
@@ -13197,7 +13131,7 @@
 			}
 		};
 		return Viewmodel;
-	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$get, viewmodel$mark, viewmodel$merge, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$splice, viewmodel$teardown, viewmodel$unregister, createComputations, adaptConfig );
+	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$get, viewmodel$mark, viewmodel$merge, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$smartUpdate, viewmodel$teardown, viewmodel$unregister, createComputations, adaptConfig );
 
 	/* Ractive/initialise.js */
 	var Ractive_initialise = function( config, create, Fragment, getElement, getNextNumber, Hook, HookQueue, Viewmodel ) {
