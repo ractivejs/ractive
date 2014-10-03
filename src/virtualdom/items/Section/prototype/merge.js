@@ -20,9 +20,12 @@ export default function Section$merge ( newIndices ) {
 
 	// short circuit any double-updates, and ensure that this isn't applied to
 	// non-list sections
-	if ( this.unbound || ( this.subtype && this.subtype !== types.SECTION_EACH ) ) {
+	if ( this.merging || this.unbound || ( this.subtype && this.subtype !== types.SECTION_EACH ) ) {
 		return;
 	}
+
+	this.merging = true;
+	runloop.scheduleTask( () => this.merging = false );
 
 	parentFragment = this.parentFragment;
 
