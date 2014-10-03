@@ -204,6 +204,28 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			t.ok( obj.sekrit, 'adaptor set should have been used to set sekrit property' );
 			t.ok( !obj.enabled, 'object property should not have been set, adaptor should have been used'  );
 		});
+
+		test( 'Components inherit modifyArrays option from environment (#1297)', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '{{#each items}}{{this}}{{/each}}'
+			});
+
+			// YOUR CODE GOES HERE
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				data: {
+					items: [ 'a', 'b', 'c' ]
+				},
+				modifyArrays: false,
+				components: { widget: Widget }
+			});
+
+			ractive.findComponent( 'widget' ).get( 'items' ).push( 'd' );
+			t.htmlEqual( fixture.innerHTML, 'abc' );
+		});
 	};
 
 });
