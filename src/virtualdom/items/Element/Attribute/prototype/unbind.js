@@ -3,4 +3,8 @@ export default function Attribute$unbind () {
 	if ( this.fragment ) {
 		this.fragment.unbind();
 	}
+
+	if ( this.name === 'id' ) {
+		delete this.root.nodes[ this.value ];
+	}
 }

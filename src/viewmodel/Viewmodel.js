@@ -9,7 +9,7 @@ import merge from 'viewmodel/prototype/merge';
 import register from 'viewmodel/prototype/register';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
-import splice from 'viewmodel/prototype/splice';
+import smartUpdate from 'viewmodel/prototype/smartUpdate';
 import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
 import createComputations from 'viewmodel/Computation/createComputations';
@@ -84,7 +84,7 @@ Viewmodel.prototype = {
 	register: register,
 	release: release,
 	set: set,
-	splice: splice,
+	smartUpdate: smartUpdate,
 	teardown: teardown,
 	unregister: unregister,
 	// createComputations, in the computations, may call back through get or set

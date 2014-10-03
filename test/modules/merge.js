@@ -310,6 +310,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>a: ac</li><li>c: ac</li></ul>' );
 		});
 
+		test( 'Shuffling the order of array members', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<ul>{{#each items}}<li>{{this}}</li>{{/each}}</ul>',
+				data: {
+					items: [ 'a', 'b', 'c', 'd' ]
+				}
+			});
+
+			ractive.merge( 'items', [ 'c', 'b', 'd', 'a' ]);
+			t.htmlEqual( fixture.innerHTML, '<ul><li>c</li><li>b</li><li>d</li><li>a</li></ul>' );
+		});
+
 	};
 
 	function isOrphan ( node ) {

@@ -45,7 +45,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				});
 
 				ractive.pop( 'items' ).then( function(v) {
-					t.equal( v, 'charles' );
+					t.strictEqual( v, 'charles' );
 					QUnit.start();
 				} );
 				t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li></ul>' );
@@ -63,7 +63,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				});
 
 				ractive.shift( 'items' ).then( function(v) {
-					t.equal( v, 'alice' );
+					t.strictEqual( v, 'alice' );
 					QUnit.start();
 				} );
 				t.htmlEqual( fixture.innerHTML, '<ul><li>bob</li><li>charles</li></ul>' );
@@ -87,7 +87,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				var items, ractive;
 
 				items = baseItems.slice();
-				expect(6);
+				expect(5);
 
 				ractive = new List({
 					el: fixture,
@@ -95,8 +95,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				});
 
 				ractive.splice( 'items', 1, 1, 'dave', 'eric' ).then( function(v) {
-					t.equal( v[0], 'bob' );
-					t.equal( v.length, 1 );
+					t.deepEqual( v, [ 'bob' ] );
 					QUnit.start();
 				} );
 				t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>dave</li><li>eric</li><li>charles</li></ul>' );

@@ -35,6 +35,5 @@ export default function ( oldArray, newArray ) {
 		return index;
 	});
 
-	newIndices.unchanged = !changed;
 	return newIndices;
 }

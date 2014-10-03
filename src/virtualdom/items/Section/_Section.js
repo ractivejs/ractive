@@ -9,10 +9,9 @@ import findAllComponents from 'virtualdom/items/Section/prototype/findAllCompone
 import findComponent from 'virtualdom/items/Section/prototype/findComponent';
 import findNextNode from 'virtualdom/items/Section/prototype/findNextNode';
 import firstNode from 'virtualdom/items/Section/prototype/firstNode';
-import merge from 'virtualdom/items/Section/prototype/merge';
+import shuffle from 'virtualdom/items/Section/prototype/shuffle';
 import render from 'virtualdom/items/Section/prototype/render';
 import setValue from 'virtualdom/items/Section/prototype/setValue';
-import splice from 'virtualdom/items/Section/prototype/splice';
 import toString from 'virtualdom/items/Section/prototype/toString';
 import unbind from 'virtualdom/items/Section/prototype/unbind';
 import unrender from 'virtualdom/items/Section/prototype/unrender';
@@ -31,6 +30,8 @@ var Section = function ( options ) {
 	this.fragmentsToRender = [];
 	this.fragmentsToUnrender = [];
 
+	this.renderedFragments = [];
+
 	this.length = 0; // number of times this section is rendered
 
 	Mustache.init( this, options );
@@ -46,12 +47,11 @@ Section.prototype = {
 	findNextNode: findNextNode,
 	firstNode: firstNode,
 	getValue: Mustache.getValue,
-	merge: merge,
+	shuffle: shuffle,
 	rebind: Mustache.rebind,
 	render: render,
 	resolve: Mustache.resolve,
 	setValue: setValue,
-	splice: splice,
 	toString: toString,
 	unbind: unbind,
 	unrender: unrender,

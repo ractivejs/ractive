@@ -1,3 +1,5 @@
+import runloop from 'global/runloop';
+import removeFromArray from 'utils/removeFromArray';
 import circular from 'circular';
 
 var Fragment;
@@ -15,10 +17,6 @@ var Yielder = function ( options ) {
 	this.surrogateParent = options.parentFragment;
 	this.parentFragment = component.parentFragment;
 
-	if ( component.yielder ) {
-		throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
-	}
-
 	this.fragment = new Fragment({
 		owner: this,
 		root: componentInstance.yield.instance,
@@ -26,7 +24,13 @@ var Yielder = function ( options ) {
 		pElement: this.surrogateParent.pElement
 	});
 
-	component.yielder = this;
+	component.yielders.push( this );
+
+	runloop.scheduleTask( () => {
+		if ( component.yielders.length > 1 ) {
+			throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
+		}
+	});
 };
 
 Yielder.prototype = {
@@ -72,7 +76,7 @@ Yielder.prototype = {
 
 	unrender: function ( shouldDestroy ) {
 		this.fragment.unrender( shouldDestroy );
-		this.component.yielder = void 0;
+		removeFromArray( this.component.yielders, this );
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {

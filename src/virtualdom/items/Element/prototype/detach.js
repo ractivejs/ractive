@@ -7,6 +7,7 @@ export default function Element$detach () {
 		if ( parentNode = node.parentNode ) {
 			parentNode.removeChild( node );
 		}
+
 		return node;
 	}
 }

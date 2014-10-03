@@ -1588,6 +1588,39 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive.set( 'showBox', true );
 		});
 
+		test( 'Component bindings respect smart updates (#1209)', function ( t ) {
+			var Widget, ractive, intros = {}, outros = {};
+
+			Widget = Ractive.extend({
+				template: '{{#each items}}<p intro-outro="log">{{this}}</p>{{/each}}',
+				transitions: {
+					log: function ( t ) {
+						var x = t.node.innerHTML, count = t.isIntro ? intros : outros;
+
+						if ( !count[x] ) count[x] = 0;
+						count[x] += 1;
+
+						t.complete();
+					}
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: { widget: Widget },
+				data: { items: [ 'a', 'b', 'c' ]}
+			});
+
+			t.deepEqual( intros, { a: 1, b: 1, c: 1 });
+
+			ractive.merge( 'items', [ 'a', 'c' ]);
+			t.deepEqual( outros, { b: 1 });
+
+			ractive.shift( 'items' );
+			t.deepEqual( outros, { a: 1, b: 1 });
+		});
+
 	};
 
 });
