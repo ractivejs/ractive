@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-02 - commit 926031ed 
+	2014-10-03 - commit 894bb915 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8010,12 +8010,20 @@
 		}
 
 		function reevaluateConditionalSection( section, value, inverted, fragmentOptions ) {
-			var doRender, emptyArray, fragment;
+			var doRender, emptyArray, emptyObject, fragment, name;
 			emptyArray = isArrayLike( value ) && value.length === 0;
+			emptyObject = false;
+			if ( !isArrayLike( value ) && isObject( value ) ) {
+				emptyObject = true;
+				for ( name in value ) {
+					emptyObject = false;
+					break;
+				}
+			}
 			if ( inverted ) {
-				doRender = emptyArray || !value;
+				doRender = emptyArray || emptyObject || !value;
 			} else {
-				doRender = value && !emptyArray;
+				doRender = value && !emptyArray && !emptyObject;
 			}
 			if ( doRender ) {
 				if ( !section.length ) {
