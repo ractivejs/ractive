@@ -21,7 +21,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 };
 
 Binding.prototype = {
-	merge: function ( newIndices, value ) {
+	shuffle: function ( newIndices, value ) {
 		this.propagateChange( value, newIndices );
 	},
 

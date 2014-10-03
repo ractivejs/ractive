@@ -17,7 +17,7 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	this.set( keypath, array, true );
 
 	if ( dependants = this.deps[ 'default' ][ keypath ] ) {
-		dependants.filter( canSmartUpdate ).forEach( dependant => dependant.merge( newIndices, array ) );
+		dependants.filter( canShuffle ).forEach( d => d.shuffle( newIndices, array ) );
 	}
 
 	if ( oldLength !== array.length ) {
@@ -34,6 +34,6 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	}
 }
 
-function canSmartUpdate ( dependant ) {
-	return typeof dependant.merge === 'function';
+function canShuffle ( dependant ) {
+	return typeof dependant.shuffle === 'function';
 }

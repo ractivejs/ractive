@@ -8,7 +8,7 @@ circular.push( function () {
 	Fragment = circular.Fragment;
 });
 
-export default function Section$merge ( newIndices ) {
+export default function Section$shuffle ( newIndices ) {
 	var section = this,
 		parentFragment,
 		firstChange,
@@ -20,12 +20,12 @@ export default function Section$merge ( newIndices ) {
 
 	// short circuit any double-updates, and ensure that this isn't applied to
 	// non-list sections
-	if ( this.merging || this.unbound || ( this.subtype && this.subtype !== types.SECTION_EACH ) ) {
+	if ( this.shuffling || this.unbound || ( this.subtype && this.subtype !== types.SECTION_EACH ) ) {
 		return;
 	}
 
-	this.merging = true;
-	runloop.scheduleTask( () => this.merging = false );
+	this.shuffling = true;
+	runloop.scheduleTask( () => this.shuffling = false );
 
 	parentFragment = this.parentFragment;
 
