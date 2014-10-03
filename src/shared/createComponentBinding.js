@@ -24,12 +24,14 @@ Binding.prototype = {
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
 			this.value = value;
+			console.log('updating')
 			return;
 		}
 
 		// Is this a smart array update? If so, it'll update on its
 		// own, we shouldn't do anything
 		if ( isArray( value ) && value._ractive && value._ractive.setting ) {
+			console.log('smart array')
 			return;
 		}
 
@@ -38,14 +40,53 @@ Binding.prototype = {
 
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
+
 			runloop.addViewmodel( this.otherInstance.viewmodel );
-			this.otherInstance.viewmodel.set( this.otherKeypath, value );
-			this.value = value;
+			// if( value === this.value ) {
+			// 	this.otherInstance.viewmodel.mark( this.otherKeypath );
+			// } else {
+				this.otherInstance.viewmodel.set( this.otherKeypath, value );
+				this.value = value;
+			// }
 
 			// TODO will the counterpart update after this line, during
 			// the runloop end cycle? may be a problem...
 			runloop.scheduleTask( () => this.updating = false );
 		}
+	},
+
+	refinedValue: function ( bindingKeypath, keypath ) {
+
+		var value, refinedKeypath, refinedValue, currentValue;
+
+		// Only *you* can prevent infinite loops
+		if ( this.updating || this.counterpart && this.counterpart.updating ) {
+			// this.value = value;
+			console.log('updating')
+			return;
+		}
+
+		value = this.root.viewmodel.get( bindingKeypath );
+
+		// Is this a smart array update? If so, it'll update on its
+		// own, we shouldn't do anything
+		if ( isArray( value ) && value._ractive && value._ractive.setting ) {
+			console.log('smart array')
+			return;
+		}
+
+		refinedKeypath = keypath.replace( bindingKeypath + '.', this.otherKeypath + '.' );
+		refinedValue = this.root.viewmodel.get( keypath );
+		// currentValue = this.otherInstance.viewmodel.get( refinedKeypath );
+
+		// if ( !isEqual( currentValue, refinedValue ) ) {
+			this.updating = true;
+
+			runloop.addViewmodel( this.otherInstance.viewmodel );
+			this.otherInstance.viewmodel.set( refinedKeypath, refinedValue );
+
+			runloop.scheduleTask( () => this.updating = false );
+		// }
 	},
 
 	bind: function () {

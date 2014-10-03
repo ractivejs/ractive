@@ -276,19 +276,23 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			items = ractive.get( 'items' );
 
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
-
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
+console.group('push e')
 			items.push( 'e' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
-
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
+console.groupEnd('push e')
+console.group('slice(2, 1)')
 			items.splice( 2, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
 
+console.groupEnd('slice(2, 1)')
+console.group('pop e')
 			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
+console.groupEnd('pop e')
 
 			ractive.set( 'items[0]', 'f' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
 
 
 			// reset items from within widget
@@ -296,16 +300,16 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			items = ractive.get( 'items' );
 
 			items.push( 'g' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li><li>3: g</li></ul><p>f b d g</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li><li>3: g</li></ul><p>f b d g</p>' );
 
 			items.splice( 1, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>' );
 
 			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>' );
 
 			widget.set( 'items[0]', 'h' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
 		asyncTest( 'Component complete() methods are called', t => {
@@ -1587,6 +1591,55 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			ractive.set( 'showBox', true );
 		});
+
+
+
+		test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', function ( t ) {
+			var ractive, Widget, noCall = false, warn = console.warn;
+
+			expect( 3 );
+
+			console.warn = function (err) { throw err };
+
+			try {
+				Widget = Ractive.extend({
+					debug: true,
+					template: '{{data.foo}}{{bar}}',
+					computed: {
+						bar: function () {
+							if( noCall ) { throw new Error('"bar" should not be recalculated!')}
+							return this.get('data.bar')
+						}
+					}
+				});
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{data.foo}}<widget data="{{data}}"/><widget data="{{data}}"/>',
+					data: {
+						data: {
+							foo: 'foo',
+							bar: 'bar'
+						}
+					},
+					components: { widget: Widget }
+				});
+
+				t.htmlEqual( fixture.innerHTML, 'foofoobarfoobar' );
+				noCall = true;
+				ractive.findComponent('widget').set( 'data.foo', 'update' );
+				t.htmlEqual( fixture.innerHTML, 'updateupdatebarupdatebar' );
+
+				t.ok( true );
+
+			} catch(err){
+				t.ok( false, err );
+			} finally {
+				console.warn = warn;
+			}
+
+		});
+
 
 	};
 
