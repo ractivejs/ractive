@@ -1,5 +1,4 @@
 import circular from 'circular';
-import isArray from 'utils/isArray';
 import isEqual from 'utils/isEqual';
 
 var runloop;
@@ -14,22 +13,26 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
+	this.unlock = () => this.updating = false;
+
 	this.bind();
 
 	this.value = this.root.viewmodel.get( this.keypath );
 };
 
 Binding.prototype = {
+	merge: function ( newIndices, value ) {
+		this.propagateChange( value, newIndices );
+	},
+
 	setValue: function ( value ) {
+		this.propagateChange( value );
+	},
+
+	propagateChange: function ( value, newIndices ) {
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
 			this.value = value;
-			return;
-		}
-
-		// Is this a smart array update? If so, it'll update on its
-		// own, we shouldn't do anything
-		if ( isArray( value ) && value._ractive && value._ractive.setting ) {
 			return;
 		}
 
@@ -39,12 +42,18 @@ Binding.prototype = {
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
 			runloop.addViewmodel( this.otherInstance.viewmodel );
-			this.otherInstance.viewmodel.set( this.otherKeypath, value );
+
+			if ( newIndices ) {
+				this.otherInstance.viewmodel.smartUpdate( this.otherKeypath, value, newIndices );
+			} else {
+				this.otherInstance.viewmodel.set( this.otherKeypath, value );
+			}
+
 			this.value = value;
 
 			// TODO will the counterpart update after this line, during
 			// the runloop end cycle? may be a problem...
-			runloop.scheduleTask( () => this.updating = false );
+			runloop.scheduleTask( this.unlock );
 		}
 	},
 
