@@ -30,15 +30,18 @@ mutatorMethods.forEach( function ( methodName ) {
 		result = Array.prototype[ methodName ].apply( this, arguments );
 
 		// trigger changes
+		runloop.start();
+
 		this._ractive.setting = true;
 		i = this._ractive.wrappers.length;
 		while ( i-- ) {
 			wrapper = this._ractive.wrappers[i];
 
-			runloop.start( wrapper.root );
+			runloop.addViewmodel( wrapper.root.viewmodel );
 			processWrapper( wrapper, this, methodName, newIndices );
-			runloop.end();
 		}
+
+		runloop.end();
 
 		this._ractive.setting = false;
 		return result;
