@@ -1,13 +1,12 @@
 import isArray from 'utils/isArray';
 import runloop from 'global/runloop';
-import getSpliceEquivalent from 'shared/getSpliceEquivalent';
-import summariseSpliceOperation from 'shared/summariseSpliceOperation';
+import getNewIndices from 'shared/getNewIndices';
 
 var arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		var array, spliceEquivalent, newIndices = [], len, promise, result;
+		var array, newIndices = [], len, promise, result;
 
 		array = this.get( keypath );
 		len = array.length;
@@ -16,13 +15,12 @@ export default function ( methodName ) {
 			throw new Error( 'Called ractive.' + methodName + '(\'' + keypath + '\'), but \'' + keypath + '\' does not refer to an array' );
 		}
 
-		spliceEquivalent = getSpliceEquivalent( array, methodName, args );
+		newIndices = getNewIndices( array, methodName, args );
 
 		result = arrayProto[ methodName ].apply( array, args );
 		promise = runloop.start( this, true ).then( () => result );
 
-		if ( spliceEquivalent ) {
-			newIndices = summariseSpliceOperation( len, spliceEquivalent );
+		if ( !!newIndices ) {
 			this.viewmodel.smartUpdate( keypath, array, newIndices );
 		} else {
 			this.viewmodel.mark( keypath );
