@@ -666,7 +666,7 @@ var renderTests = [
 	{
 		name: '{{#each foo}}...{{else}}...{{/each}}',
 		handlebars: true,
-		template: '{{#each foo}}<p>{{@key}}:{{.}}</p>{{else}}<p>empty foo!</p>{{/with}}',
+		template: '{{#each foo}}<p>{{@key}}:{{.}}</p>{{else}}<p>empty foo!</p>{{/each}}',
 		data: { foo: {bar : 'qux'} },
 		result: '<p>bar:qux</p>',
 		new_data: { foo: {} },
