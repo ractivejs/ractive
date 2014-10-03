@@ -30,6 +30,8 @@ var Section = function ( options ) {
 	this.fragmentsToRender = [];
 	this.fragmentsToUnrender = [];
 
+	this.renderedFragments = [];
+
 	this.length = 0; // number of times this section is rendered
 
 	Mustache.init( this, options );
