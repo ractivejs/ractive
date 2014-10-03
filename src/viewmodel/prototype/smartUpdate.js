@@ -1,6 +1,6 @@
 var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
 
-export default function smartUpdate ( keypath, array, newIndices ) {
+export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	var dependants, oldLength;
 
 	oldLength = newIndices.length;
