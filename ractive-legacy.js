@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-03 - commit bbea2aeb 
+	2014-10-04 - commit 253b33fa 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8972,9 +8972,8 @@
 	var virtualdom_items_Element_Attribute$update_updateCheckboxName = function( isArray ) {
 
 		return function Attribute$updateCheckboxName() {
-			var node, value;
-			node = this.node;
-			value = this.value;
+			var node = ( value = this ).node,
+				value = value.value;
 			if ( !isArray( value ) ) {
 				node.checked = value == node._ractive.value;
 			} else {
@@ -9515,6 +9514,8 @@
 				var existingValue, bindingValue, noInitialValue;
 				this.checkboxName = true;
 				// so that ractive.updateModel() knows what to do with this
+				this.attribute.twoway = true;
+				// we set this property so that the attribute gets the correct update method
 				// Each input has a reference to an array containing it and its
 				// siblings, as two-way binding depends on being able to ascertain
 				// the status of all inputs within the group
