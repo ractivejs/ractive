@@ -20,8 +20,8 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 
 	this.complexParameters.forEach( rebind );
 
-	if ( this.yielder ) {
-		rebind( this.yielder );
+	if ( this.yielders[0] ) {
+		rebind( this.yielders[0] );
 	}
 
 	if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {

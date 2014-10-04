@@ -1,5 +1,4 @@
 import circular from 'circular';
-import isArray from 'utils/isArray';
 import isEqual from 'utils/isEqual';
 
 var runloop;
@@ -14,24 +13,26 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
+	this.unlock = () => this.updating = false;
+
 	this.bind();
 
 	this.value = this.root.viewmodel.get( this.keypath );
 };
 
 Binding.prototype = {
+	shuffle: function ( newIndices, value ) {
+		this.propagateChange( value, newIndices );
+	},
+
 	setValue: function ( value ) {
+		this.propagateChange( value );
+	},
+
+	propagateChange: function ( value, newIndices ) {
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
 			this.value = value;
-			console.log('updating')
-			return;
-		}
-
-		// Is this a smart array update? If so, it'll update on its
-		// own, we shouldn't do anything
-		if ( isArray( value ) && value._ractive && value._ractive.setting ) {
-			console.log('smart array')
 			return;
 		}
 
@@ -42,27 +43,29 @@ Binding.prototype = {
 			// in an update rather than a set?
 
 			runloop.addViewmodel( this.otherInstance.viewmodel );
-			// if( value === this.value ) {
-			// 	this.otherInstance.viewmodel.mark( this.otherKeypath );
-			// } else {
+
+
+			if ( newIndices ) {
+				this.otherInstance.viewmodel.smartUpdate( this.otherKeypath, value, newIndices );
+			} else {
 				this.otherInstance.viewmodel.set( this.otherKeypath, value );
-				this.value = value;
-			// }
+			}
+
+			this.value = value;
 
 			// TODO will the counterpart update after this line, during
 			// the runloop end cycle? may be a problem...
-			runloop.scheduleTask( () => this.updating = false );
+			runloop.scheduleTask( this.unlock );
 		}
 	},
 
-	refinedValue: function ( bindingKeypath, keypath ) {
+	refineValue: function ( bindingKeypath, keypath ) {
 
-		var value, refinedKeypath, refinedValue, currentValue;
+		var value, refinedKeypath, refinedValue;
 
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
 			// this.value = value;
-			console.log('updating')
 			return;
 		}
 
@@ -70,8 +73,7 @@ Binding.prototype = {
 
 		// Is this a smart array update? If so, it'll update on its
 		// own, we shouldn't do anything
-		if ( isArray( value ) && value._ractive && value._ractive.setting ) {
-			console.log('smart array')
+		if ( /*isArray( value ) && */ value._ractive && value._ractive.setting ) {
 			return;
 		}
 

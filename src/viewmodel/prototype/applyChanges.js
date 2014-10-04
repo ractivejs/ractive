@@ -8,7 +8,6 @@ export default function Viewmodel$applyChanges () {
 		changes,
 		upstreamChanges,
 		upstreamHash = {},
-		upstreamKeys,
 		allChanges = [],
 		computations,
 		addComputations,
@@ -62,7 +61,7 @@ export default function Viewmodel$applyChanges () {
 
 	} while ( this.changes.length );
 
-	upstreamChanges = getUpstreamChanges( allChanges )
+	upstreamChanges = getUpstreamChanges( allChanges );
 
 	// Pattern observers are a weird special case
 	if ( this.patternObservers.length ) {
@@ -71,14 +70,13 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	var sortedKeys = allChanges.slice();
-	var length = sortedKeys.length;
 	var current, next, keep = [], index = 0;
 	sortedKeys.sort();
 
 	keep.push( current = sortedKeys[0] );
 	while( next = sortedKeys[++index] ){
 		if( next.slice(0, current.length) ){
-			keep.push( current = next)
+			keep.push( current = next);
 		}
 	}
 
@@ -87,7 +85,7 @@ export default function Viewmodel$applyChanges () {
 		if ( upstream.length ) {
 			upstreamHash[ change ] = upstream;
 		}
-	})
+	});
 
 	dependantGroups.forEach( group => {
 		if ( !this.deps[ group ] ) {
@@ -124,16 +122,12 @@ function notifyUpstreamDependants ( viewmodel, keypath, originalKeypath, groupNa
 	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
 		value = viewmodel.get( keypath );
 		dependants.forEach( d => {
-			if( !d.setRefinedValue ) {
-
-				console.log('non-binding', keypath, d)
+			if( !d.refineValue ) {
 
 				d.setValue( value );
 			 } else
 			 {
-
-				console.log('binding', keypath, originalKeypath)
-				d.refinedValue( keypath, originalKeypath );
+				d.refineValue( keypath, originalKeypath );
 			 }
 
 				// d.setValue( value );
@@ -141,19 +135,18 @@ function notifyUpstreamDependants ( viewmodel, keypath, originalKeypath, groupNa
 	}
 }
 
-function notifyUpstreamBindings ( viewmodel, keypath, originalKeypath, groupName ) {
-	var dependants, value;
+// function notifyUpstreamBindings ( viewmodel, keypath, originalKeypath, groupName ) {
+// 	var dependants, value;
 
-	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
-		value = viewmodel.get( keypath );
-		dependants.forEach( d => {
-			if( d.setRefinedValue ) {
-				console.log('binding', keypath, originalKeypath)
-				d.setRefinedValue( keypath, originalKeypath );
-			}
-		});
-	}
-}
+// 	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
+// 		value = viewmodel.get( keypath );
+// 		dependants.forEach( d => {
+// 			if( d.setRefinedValue ) {
+// 				d.setRefinedValue( keypath, originalKeypath );
+// 			}
+// 		});
+// 	}
+// }
 
 function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 	var queue = [];

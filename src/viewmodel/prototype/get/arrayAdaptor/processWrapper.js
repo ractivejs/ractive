@@ -1,4 +1,4 @@
-export default function ( wrapper, array, methodName, spliceSummary ) {
+export default function ( wrapper, array, methodName, newIndices ) {
 	var { root, keypath } = wrapper;
 
 	// If this is a sort or reverse, we just do root.set()...
@@ -8,11 +8,5 @@ export default function ( wrapper, array, methodName, spliceSummary ) {
 		return;
 	}
 
-	if ( !spliceSummary ) {
-		// (presumably we tried to pop from an array of zero length.
-		// in which case there's nothing to do)
-		return;
-	}
-
-	root.viewmodel.splice( keypath, spliceSummary );
+	root.viewmodel.smartUpdate( keypath, array, newIndices );
 }

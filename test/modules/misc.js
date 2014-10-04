@@ -477,19 +477,15 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 
-			try {
-				items.push({});
-				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
-				items.push({});
-				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
+			items.push({});
+			t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
+			items.push({});
+			t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
 
-				items.splice( 1, 1 );
-				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
-				items.splice( 1, 1 );
-				t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
-			} catch ( err ) {
-				t.ok( false );
-			}
+			items.splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
+			items.splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 		});
 
 		test( 'Regression test for #297', function ( t ) {

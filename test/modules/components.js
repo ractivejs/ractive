@@ -277,19 +277,15 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			items = ractive.get( 'items' );
 
 			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
-console.group('push e')
+
 			items.push( 'e' );
 			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
-console.groupEnd('push e')
-console.group('slice(2, 1)')
+
 			items.splice( 2, 1 );
 			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
 
-console.groupEnd('slice(2, 1)')
-console.group('pop e')
 			items.pop();
 			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
-console.groupEnd('pop e')
 
 			ractive.set( 'items[0]', 'f' );
 			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
@@ -1592,8 +1588,6 @@ console.groupEnd('pop e')
 			ractive.set( 'showBox', true );
 		});
 
-
-
 		test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', function ( t ) {
 			var ractive, Widget, noCall = false, warn = console.warn;
 
@@ -1640,6 +1634,38 @@ console.groupEnd('pop e')
 
 		});
 
+		test( 'Component bindings respect smart updates (#1209)', function ( t ) {
+			var Widget, ractive, intros = {}, outros = {};
+
+			Widget = Ractive.extend({
+				template: '{{#each items}}<p intro-outro="log">{{this}}</p>{{/each}}',
+				transitions: {
+					log: function ( t ) {
+						var x = t.node.innerHTML, count = t.isIntro ? intros : outros;
+
+						if ( !count[x] ) count[x] = 0;
+						count[x] += 1;
+
+						t.complete();
+					}
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: { widget: Widget },
+				data: { items: [ 'a', 'b', 'c' ]}
+			});
+
+			t.deepEqual( intros, { a: 1, b: 1, c: 1 });
+
+			ractive.merge( 'items', [ 'a', 'c' ]);
+			t.deepEqual( outros, { b: 1 });
+
+			ractive.shift( 'items' );
+			t.deepEqual( outros, { a: 1, b: 1 });
+		});
 
 	};
 

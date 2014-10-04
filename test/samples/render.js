@@ -787,10 +787,8 @@ var renderTests = [
 			foo: [
 				[ 2, 1, 4, 3 ]
 			],
-			f: function (x) {
-				return x.sort(function (a, b) { // ... or this (sort) and it will work
-					return b - a;
-				});
+			f: function ( x ) {
+				return x.sort( ( a, b ) => b - a );
 			}
 		},
 		result: '4321'

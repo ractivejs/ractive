@@ -1,42 +1,55 @@
 export default function Section$update () {
-	var fragment, rendered, nextFragment, anchor, target;
+	var fragment, renderIndex, renderedFragments, anchor, target, i, len;
 
+	// `this.renderedFragments` is in the order of the previous render.
+	// If fragments have shuffled about, this allows us to quickly
+	// reinsert them in the correct place
+	renderedFragments = this.renderedFragments;
+
+	// Remove fragments that have been marked for destruction
 	while ( fragment = this.fragmentsToUnrender.pop() ) {
 		fragment.unrender( true );
+		renderedFragments.splice( renderedFragments.indexOf( fragment ), 1 );
 	}
 
-	// If we have no new nodes to insert (i.e. the section length stayed the
-	// same, or shrank), we don't need to go any further
-	if ( !this.fragmentsToRender.length ) {
-		return;
+	// Render new fragments (but don't insert them yet)
+	while ( fragment = this.fragmentsToRender.shift() ) {
+		fragment.render();
 	}
 
 	if ( this.rendered ) {
 		target = this.parentFragment.getNode();
 	}
 
-	// Render new fragments to our docFrag
-	while ( fragment = this.fragmentsToRender.shift() ) {
-		rendered = fragment.render();
-		this.docFrag.appendChild( rendered );
+	len = this.fragments.length;
+	for ( i = 0; i < len; i += 1 ) {
+		fragment = this.fragments[i];
+		renderIndex = renderedFragments.indexOf( fragment, i ); // search from current index - it's guaranteed to be the same or higher
 
-		// If this is an ordered list, and it's already rendered, we may
-		// need to insert content into the appropriate place
-		if ( this.rendered && this.ordered ) {
-
-			// If the next fragment is already rendered, use it as an anchor...
-			nextFragment = this.fragments[ fragment.index + 1 ];
-			if ( nextFragment && nextFragment.rendered ) {
-				target.insertBefore( this.docFrag, nextFragment.firstNode() || null );
+		if ( renderIndex === i ) {
+			// already in the right place. insert accumulated nodes (if any) and carry on
+			if ( this.docFrag.childNodes.length ) {
+				anchor = fragment.firstNode();
+				target.insertBefore( this.docFrag, anchor );
 			}
 
-			// ...otherwise continue appending to the document fragment for
-			// a later batch append
+			continue;
 		}
+
+		this.docFrag.appendChild( fragment.detach() );
+
+		// update renderedFragments
+		if ( renderIndex !== -1 ) {
+			renderedFragments.splice( renderIndex, 1 );
+		}
+		renderedFragments.splice( i, 0, fragment );
 	}
 
 	if ( this.rendered && this.docFrag.childNodes.length ) {
 		anchor = this.parentFragment.findNextNode( this );
 		target.insertBefore( this.docFrag, anchor );
 	}
+
+	// Save the rendering order for next time
+	this.renderedFragments = this.fragments.slice();
 }

@@ -48,11 +48,6 @@ export default function Element$unrender ( shouldDestroy ) {
 	if ( this.liveQueries ) {
 		removeFromLiveQueries( this );
 	}
-
-	// Remove from nodes
-	if ( this.node.id ) {
-		delete this.root.nodes[ this.node.id ];
-	}
 }
 
 function removeFromLiveQueries ( element ) {
