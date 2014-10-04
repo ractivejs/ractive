@@ -486,6 +486,17 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<input>static' );
 		});
 
+		test( 'input[type="checkbox"] with bound name updates as expected (#1305)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input type="checkbox" name="{{ch}}" value="foo">',
+				data: { ch: 'bar' }
+			});
+
+			ractive.set( 'ch', 'foo' );
+			t.ok( ractive.find( 'input' ).checked );
+		});
+
 	};
 
 });

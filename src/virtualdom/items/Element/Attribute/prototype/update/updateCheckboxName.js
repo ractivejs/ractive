@@ -1,10 +1,7 @@
 import isArray from 'utils/isArray';
 
 export default function Attribute$updateCheckboxName () {
-	var node, value;
-
-	node = this.node;
-	value = this.value;
+	var { node, value } = this;
 
 	if ( !isArray( value ) ) {
 		node.checked = ( value == node._ractive.value );

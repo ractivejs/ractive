@@ -23,6 +23,7 @@ var CheckboxNameBinding = Binding.extend({
 		var existingValue, bindingValue, noInitialValue;
 
 		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
+		this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
 
 		// Each input has a reference to an array containing it and its
 		// siblings, as two-way binding depends on being able to ascertain
