@@ -13,6 +13,8 @@ var constructHook = new Hook( 'construct' ),
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
+	var el;
+
 	initialiseProperties( ractive, options );
 
 	// make this option do what would be expected if someone
@@ -25,6 +27,25 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 	config.init( ractive.constructor, ractive, options );
 
 	configHook.fire( ractive );
+
+	// Teardown any existing instances *before* trying to set up the new one -
+	// avoids certain weird bugs
+	if ( el = getElement( ractive.el ) ) {
+		if ( !ractive.append ) {
+			if ( el.__ractive_instances__ ) {
+				try {
+					el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( r => r.teardown() );
+				} catch ( err ) {
+					// this can happen with IE8, because it is unbelievably shit. Somehow, in
+					// certain very specific situations, trying to access node.parentNode (which
+					// we need to do in order to detach elements) causes an 'Invalid argument'
+					// error to be thrown. I don't even.
+				}
+			}
+
+			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+		}
+	}
 
 	initHook.begin( ractive );
 
@@ -49,30 +70,7 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 	initHook.end( ractive );
 
 	// render automatically ( if `el` is specified )
-	tryRender( ractive );
-}
-
-function tryRender ( ractive ) {
-	var el;
-
-	if ( el = getElement( ractive.el ) ) {
-		// If the target contains content, and `append` is falsy, clear it
-		if ( el && !ractive.append ) {
-			// Tear down any existing instances on this element
-			if ( el.__ractive_instances__ ) {
-				try {
-					el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( r => r.teardown() );
-				} catch ( err ) {
-					// this can happen with IE8, because it is unbelievably shit. Somehow, in
-					// certain very specific situations, trying to access node.parentNode (which
-					// we need to do in order to detach elements) causes an 'Invalid argument'
-					// error to be thrown. I don't even.
-				}
-			}
-
-			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
-		}
-
+	if ( el ) {
 		ractive.render( el, ractive.append );
 	}
 }
