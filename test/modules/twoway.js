@@ -497,6 +497,32 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( ractive.find( 'input' ).checked );
 		});
 
+		test( 'input[type="checkbox"] with bound name updates as expected, with array mutations (#1305)', function ( t ) {
+			var ractive, checkboxes;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					<input type="checkbox" name="{{array}}" value="foo">
+					<input type="checkbox" name="{{array}}" value="bar">
+					<input type="checkbox" name="{{array}}" value="baz">`,
+				data: {
+					array: [ 'foo', 'bar' ]
+				}
+			});
+
+			checkboxes = ractive.findAll( 'input' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+
+			ractive.push( 'array', 'baz' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+			t.ok( checkboxes[2].checked );
+		});
+
 	};
 
 });
