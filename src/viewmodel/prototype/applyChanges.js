@@ -7,10 +7,6 @@ export default function Viewmodel$applyChanges () {
 	var self = this,
 		changes,
 		upstreamChanges,
-		allChanges = [],
-		computations,
-		addComputations,
-		cascade,
 		hash = {};
 
 	changes = this.changes;
@@ -20,7 +16,7 @@ export default function Viewmodel$applyChanges () {
 		return;
 	}
 
-	cascade = function ( keypath ) {
+	function cascade ( keypath ) {
 		var map, dependants, keys;
 
 		if ( self.noCascade.hasOwnProperty( keypath ) ) {
@@ -39,7 +35,11 @@ export default function Viewmodel$applyChanges () {
 		if ( map = self.depsMap.computed[ keypath ] ) {
 			map.forEach( cascade );
 		}
-	};
+	}
+
+	function mark ( keypath ) {
+		self.mark( keypath );
+	}
 
 	changes.forEach( cascade );
 	upstreamChanges = getUpstreamChanges( changes );
@@ -47,7 +47,7 @@ export default function Viewmodel$applyChanges () {
 	// Pattern observers are a weird special case
 	if ( this.patternObservers.length ) {
 		upstreamChanges.forEach( keypath => notifyPatternObservers( this, keypath, true ) );
-		allChanges.forEach( keypath => notifyPatternObservers( this, keypath ) );
+		changes.forEach( keypath => notifyPatternObservers( this, keypath ) );
 	}
 
 	dependantGroups.forEach( group => {
@@ -60,7 +60,7 @@ export default function Viewmodel$applyChanges () {
 	});
 
 	// Return a hash of keypaths to updated values
-	allChanges.forEach( keypath => {
+	changes.forEach( keypath => {
 		hash[ keypath ] = this.get( keypath );
 	});
 
@@ -69,15 +69,14 @@ export default function Viewmodel$applyChanges () {
 	this.changes = [];
 
 	return hash;
-
-
-	function mark ( keypath ) {
-		self.mark( keypath );
-	}
 }
 
 function invalidate ( computation ) {
 	computation.invalidate();
+}
+
+function getKey ( computation ) {
+	return computation.key;
 }
 
 function notifyUpstreamDependants ( viewmodel, keypath, groupName ) {
@@ -127,17 +126,5 @@ function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 
 function findDependants ( viewmodel, keypath, groupName ) {
 	var group = viewmodel.deps[ groupName ];
-	return group ?  group[ keypath ] : null;
-}
-
-function addNewItems ( arr, items ) {
-	items.forEach( item => {
-		if ( arr.indexOf( item ) === -1 ) {
-			arr.push( item );
-		}
-	});
-}
-
-function getKey ( computation ) {
-	return computation.key;
+	return group ? group[ keypath ] : null;
 }
