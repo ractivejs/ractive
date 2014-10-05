@@ -20,7 +20,7 @@ var CheckboxNameBinding = Binding.extend({
 	},
 
 	init: function () {
-		var existingValue, bindingValue, noInitialValue, i;
+		var existingValue, bindingValue, noInitialValue;
 
 		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
 		this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
@@ -47,6 +47,21 @@ var CheckboxNameBinding = Binding.extend({
 				existingValue.push( bindingValue );
 			}
 		} else {
+			this.shouldOverride = true;
+		}
+	},
+
+	unbind: function () {
+		removeFromArray( this.siblings, this );
+	},
+
+	render: function () {
+		var node = this.element.node, existingValue, bindingValue, i;
+
+		if ( this.shouldOverride ) {
+			existingValue = this.root.viewmodel.get( this.keypath );
+			bindingValue = this.element.getAttribute( 'value' );
+
 			if ( isArray( existingValue ) ) {
 				i = existingValue.length;
 				while ( i-- ) {
@@ -59,14 +74,6 @@ var CheckboxNameBinding = Binding.extend({
 				this.isChecked = existingValue == bindingValue;
 			}
 		}
-	},
-
-	unbind: function () {
-		removeFromArray( this.siblings, this );
-	},
-
-	render: function () {
-		var node = this.element.node;
 
 		node.name = '{{' + this.keypath + '}}';
 		node.checked = this.isChecked;
