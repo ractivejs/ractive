@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-05 - commit e11154eb 
+	2014-10-05 - commit ec2fd609 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7706,12 +7706,21 @@
 	var virtualdom_items_Element_Attribute$update_updateCheckboxName = function( isArray ) {
 
 		return function Attribute$updateCheckboxName() {
-			var node = ( value = this ).node,
-				value = value.value;
+			var element = ( value = this ).element,
+				node = value.node,
+				value = value.value,
+				valueAttribute, i;
+			valueAttribute = element.getAttribute( 'value' );
 			if ( !isArray( value ) ) {
-				node.checked = value == node._ractive.value;
+				node.checked = value == valueAttribute;
 			} else {
-				node.checked = value.indexOf( node._ractive.value ) !== -1;
+				i = value.length;
+				while ( i-- ) {
+					if ( valueAttribute == value[ i ] ) {
+						node.checked = true;
+						return;
+					}
+				}
 			}
 		};
 	}( isArray );
@@ -8245,7 +8254,7 @@
 				return [];
 			},
 			init: function() {
-				var existingValue, bindingValue, noInitialValue;
+				var existingValue, bindingValue, noInitialValue, i;
 				this.checkboxName = true;
 				// so that ractive.updateModel() knows what to do with this
 				this.attribute.twoway = true;
@@ -8267,7 +8276,17 @@
 						existingValue.push( bindingValue );
 					}
 				} else {
-					this.isChecked = isArray( existingValue ) ? existingValue.indexOf( bindingValue ) !== -1 : existingValue === bindingValue;
+					if ( isArray( existingValue ) ) {
+						i = existingValue.length;
+						while ( i-- ) {
+							if ( existingValue[ i ] == bindingValue ) {
+								this.isChecked = true;
+								break;
+							}
+						}
+					} else {
+						this.isChecked = existingValue == bindingValue;
+					}
 				}
 			},
 			unbind: function() {
