@@ -14,8 +14,8 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 	if ( cache[ keypath ] === undefined ) {
 
 		// Is this a computed property?
-		if ( computation = this.computations[ keypath ] ) {
-			value = computation.value;
+		if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
+			value = computation.get();
 		}
 
 		// Is this a wrapped property?

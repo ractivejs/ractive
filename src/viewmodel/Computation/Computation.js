@@ -14,17 +14,60 @@ var Computation = function ( ractive, key, signature ) {
 
 	this.dependencies = [];
 
-	if ( this.setter && ( initial = ractive.viewmodel.get( key ) ) ) {
-		this.set( initial );
-	}
+	this._dirty = true;
 };
 
 Computation.prototype = {
 
 	constructor: Computation,
 
+	init: function () {
+		var initial;
+
+		this.bypass = true;
+
+		initial = this.ractive.viewmodel.get( this.key );
+		this.ractive.viewmodel.mark( this.key ); // re-clear the cache
+
+		this.bypass = false;
+
+		if ( this.setter && initial !== undefined ) {
+			this.set( initial );
+		}
+	},
+
+	invalidate: function () {
+		this._dirty = true;
+	},
+
 	get: function () {
-		this.compute();
+		var ractive, newDependencies;
+
+		if ( this._dirty ) {
+			ractive = this.ractive;
+			ractive.viewmodel.capture();
+
+			try {
+				this.value = this.getter.call( ractive );
+			} catch ( err ) {
+				log.warn({
+					debug: ractive.debug,
+					message: 'failedComputation',
+					args: {
+						key: this.key,
+						err: err.message || err
+					}
+				});
+
+				this.value = void 0;
+			}
+
+			newDependencies = ractive.viewmodel.release();
+			diff( this, this.dependencies, newDependencies );
+
+			this._dirty = false;
+		}
+
 		return this.value;
 	},
 
@@ -39,43 +82,6 @@ Computation.prototype = {
 		}
 
 		this.setter.call( this.ractive, value );
-	},
-
-	// returns `false` if the computation errors
-	compute: function () {
-		var ractive, errored, newDependencies;
-
-		ractive = this.ractive;
-		ractive.viewmodel.capture();
-
-		try {
-			this.value = this.getter.call( ractive );
-		} catch ( err ) {
-
-			log.warn({
-				debug: ractive.debug,
-				message: 'failedComputation',
-				args: {
-					key: this.key,
-					err: err.message || err
-				}
-			});
-
-			errored = true;
-		}
-
-		newDependencies = ractive.viewmodel.release();
-		diff( this, this.dependencies, newDependencies );
-
-		return errored ? false : true;
-	},
-
-	update: function () {
-		var oldValue = this.value;
-
-		if ( this.compute() && !isEqual( this.value, oldValue ) ) {
-			this.ractive.viewmodel.mark( this.key );
-		}
 	}
 };
 

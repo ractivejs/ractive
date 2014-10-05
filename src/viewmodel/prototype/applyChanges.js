@@ -13,54 +13,36 @@ export default function Viewmodel$applyChanges () {
 		cascade,
 		hash = {};
 
-	if ( !this.changes.length ) {
+	changes = this.changes;
+
+	if ( !changes.length ) {
 		// TODO we end up here on initial render. Perhaps we shouldn't?
 		return;
 	}
 
-	addComputations = function ( keypath ) {
-		var newComputations;
-
-		if ( newComputations = self.deps.computed[ keypath ] ) {
-			addNewItems( computations, newComputations );
-		}
-	};
-
 	cascade = function ( keypath ) {
-		var map;
+		var map, dependants, keys;
 
 		if ( self.noCascade.hasOwnProperty( keypath ) ) {
 			return;
 		}
 
-		addComputations( keypath );
+		if ( dependants = self.deps.computed[ keypath ] ) {
+			dependants.forEach( invalidate );
+
+			keys = dependants.map( getKey );
+
+			keys.forEach( mark );
+			keys.forEach( cascade );
+		}
 
 		if ( map = self.depsMap.computed[ keypath ] ) {
 			map.forEach( cascade );
 		}
 	};
 
-	// Find computations and evaluators that are invalidated by
-	// these changes. If they have changed, add them to the
-	// list of changes. Lather, rinse and repeat until the
-	// system is settled
-	do {
-		changes = this.changes;
-		addNewItems( allChanges, changes );
-
-		this.changes = [];
-		computations = [];
-
-		upstreamChanges = getUpstreamChanges( changes );
-		upstreamChanges.forEach( addComputations );
-
-		changes.forEach( cascade );
-
-		computations.forEach( updateComputation );
-
-	} while ( this.changes.length );
-
-	upstreamChanges = getUpstreamChanges( allChanges );
+	changes.forEach( cascade );
+	upstreamChanges = getUpstreamChanges( changes );
 
 	// Pattern observers are a weird special case
 	if ( this.patternObservers.length ) {
@@ -74,7 +56,7 @@ export default function Viewmodel$applyChanges () {
 		}
 
 		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, group ) );
-		notifyAllDependants( this, allChanges, group );
+		notifyAllDependants( this, changes, group );
 	});
 
 	// Return a hash of keypaths to updated values
@@ -84,12 +66,18 @@ export default function Viewmodel$applyChanges () {
 
 	this.implicitChanges = {};
 	this.noCascade = {};
+	this.changes = [];
 
 	return hash;
+
+
+	function mark ( keypath ) {
+		self.mark( keypath );
+	}
 }
 
-function updateComputation ( computation ) {
-	computation.update();
+function invalidate ( computation ) {
+	computation.invalidate();
 }
 
 function notifyUpstreamDependants ( viewmodel, keypath, groupName ) {
@@ -148,4 +136,8 @@ function addNewItems ( arr, items ) {
 			arr.push( item );
 		}
 	});
+}
+
+function getKey ( computation ) {
+	return computation.key;
 }
