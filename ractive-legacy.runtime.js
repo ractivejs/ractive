@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-04 - commit 238bd437 
+	2014-10-05 - commit e11154eb 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7349,13 +7349,13 @@
 	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/bubble.js */
-	var virtualdom_items_Element_Attribute$bubble = function( runloop ) {
+	var virtualdom_items_Element_Attribute$bubble = function( runloop, isEqual ) {
 
 		return function Attribute$bubble() {
 			var value = this.fragment.getValue();
 			// TODO this can register the attribute multiple times (see render test
 			// 'Attribute with nested mustaches')
-			if ( value !== this.value ) {
+			if ( !isEqual( value, this.value ) ) {
 				// Need to clear old id from ractive.nodes
 				if ( this.name === 'id' && this.value ) {
 					delete this.root.nodes[ this.value ];
@@ -7371,7 +7371,7 @@
 				}
 			}
 		};
-	}( runloop );
+	}( runloop, isEqual );
 
 	/* config/booleanAttributes.js */
 	var booleanAttributes = function() {
