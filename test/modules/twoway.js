@@ -552,6 +552,30 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( checkboxes[2].checked );
 		});
 
+		test( 'input[type="checkbox"] works with array mutated on init (#1305)', function ( t ) {
+			var ractive, checkboxes;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					<input type="checkbox" name="{{array}}" value="a">
+					<input type="checkbox" name="{{array}}" value="b">
+					<input type="checkbox" name="{{array}}" value="c">`,
+				data: {
+					array: [ 'a', 'b']
+				},
+				oninit: function () {
+					this.push( 'array', 'c' );
+				}
+			});
+
+			checkboxes = ractive.findAll( 'input' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+			t.ok( checkboxes[2].checked );
+		});
+
 	};
 
 });
