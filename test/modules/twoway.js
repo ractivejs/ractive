@@ -215,7 +215,10 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<input id="red" type="checkbox" name="{{colors}}" value="red"><input id="blue" type="checkbox" name="{{colors}}" value="blue" checked><input id="green" type="checkbox" name="{{colors}}" value="green" checked>',
+				template: `
+					<input id="red" type="checkbox" name="{{colors}}" value="red">
+					<input id="blue" type="checkbox" name="{{colors}}" value="blue" checked>
+					<input id="green" type="checkbox" name="{{colors}}" value="green" checked>`,
 				data: { colors: [ 'red', 'blue' ] }
 			});
 
@@ -517,6 +520,32 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( checkboxes[1].checked );
 
 			ractive.push( 'array', 'baz' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+			t.ok( checkboxes[2].checked );
+		});
+
+		test( 'input[type="checkbox"] works with array of numeric values (#1305)', function ( t ) {
+			var ractive, checkboxes;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					<input type="checkbox" name="{{array}}" value="1">
+					<input type="checkbox" name="{{array}}" value="2">
+					<input type="checkbox" name="{{array}}" value="3">`,
+				data: {
+					array: [ 1, 2 ]
+				}
+			});
+
+			checkboxes = ractive.findAll( 'input' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+
+			ractive.push( 'array', 3 );
 
 			t.ok( checkboxes[0].checked );
 			t.ok( checkboxes[1].checked );
