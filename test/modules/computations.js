@@ -379,6 +379,45 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'Computed values are only computed as necessary', function ( t ) {
+			var ractive, count = { foo: 0, bar: 0, baz: 0, qux: 0 };
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{foo}}',
+				data: {
+					str: 'this is a string'
+				},
+				computed: {
+					foo: function () {
+						count.foo += 1;
+						return this.get( 'bar' ).toUpperCase();
+					},
+					baz: function () {
+						count.baz += 1;
+						return this.get( 'str' ).replace( 'string', 'computation' );
+					},
+					bar: function () {
+						count.bar += 1;
+						return this.get( 'baz' ) + '//' + this.get( 'baz' );
+					},
+					qux: function () {
+						count.qux += 1;
+						return 'whatever';
+					}
+				}
+			});
+
+			t.deepEqual( count, { foo: 1, bar: 1, baz: 1, qux: 0 });
+
+			ractive.get( 'qux' );
+			t.deepEqual( count, { foo: 1, bar: 1, baz: 1, qux: 1 });
+
+			ractive.set( 'str', 'how long is a piece of string' );
+			t.equal( fixture.innerHTML, 'HOW LONG IS A PIECE OF COMPUTATION//HOW LONG IS A PIECE OF COMPUTATION' );
+			t.deepEqual( count, { foo: 2, bar: 2, baz: 2, qux: 1 });
+		});
+
 	};
 
 });
