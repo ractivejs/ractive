@@ -3,7 +3,7 @@ Changelog
 
 * 0.6.0
 	* Breaking changes:
-		* `new Ractive()` now inherits all options as methods/properties incuding event hooks.
+		* `new Ractive()` now inherits all options as methods/properties including event hooks.
 		* The deprecated `init()` function (see below) is mapped to `onrender()` and will fire more than once, and no longer contains options argument
 		* New reserved events (see below)
 		* Setting uninitialised data on a component will no longer cause it to leak out into the parent scope
