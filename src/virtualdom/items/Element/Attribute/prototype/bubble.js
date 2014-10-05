@@ -1,11 +1,12 @@
 import runloop from 'global/runloop';
+import isEqual from 'utils/isEqual';
 
 export default function Attribute$bubble () {
 	var value = this.fragment.getValue();
 
 	// TODO this can register the attribute multiple times (see render test
 	// 'Attribute with nested mustaches')
-	if ( value !== this.value ) {
+	if ( !isEqual( value, this.value ) ) {
 
 		// Need to clear old id from ractive.nodes
 		if ( this.name === 'id' && this.value ) {
