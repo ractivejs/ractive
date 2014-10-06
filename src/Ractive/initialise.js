@@ -56,7 +56,7 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 	// if viewmodel immediately processes computed properties,
 	// they may call ractive.get, which calls ractive.viewmodel,
 	// which hasn't been set till line above finishes.
-	ractive.viewmodel.compute();
+	ractive.viewmodel.init();
 
 	// Render our *root fragment*
 	if ( ractive.template ) {
