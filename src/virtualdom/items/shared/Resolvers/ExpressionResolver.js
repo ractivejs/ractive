@@ -79,10 +79,7 @@ ExpressionResolver.prototype = {
 		this.uniqueString = getUniqueString( this.str, this.args );
 		this.keypath = getKeypath( this.uniqueString );
 
-		console.group( 'createEvaluator' );
 		this.createEvaluator();
-		console.log( 'this.keypath', this.keypath );
-		console.groupEnd();
 		this.callback( this.keypath );
 	},
 
@@ -152,20 +149,13 @@ ExpressionResolver.prototype = {
 			};
 
 			computation = this.root.viewmodel.compute( this.keypath, signature );
+		} else {
+			this.root.viewmodel.mark( this.keypath );
 		}
-
-		else {
-			console.log( 'pre-existing' );
-		}
-
-		// TODO is this necessary?
-		this.root.viewmodel.mark( this.keypath );
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 		var changed;
-
-		console.group( 'rebind' );
 
 		this.args.forEach( function ( arg ) {
 			var changedKeypath;
@@ -186,8 +176,6 @@ ExpressionResolver.prototype = {
 		if ( changed ) {
 			this.bubble();
 		}
-
-		console.groupEnd();
 	}
 };
 
