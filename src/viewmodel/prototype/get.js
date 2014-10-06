@@ -8,8 +8,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		cache = this.cache,
 		value,
 		computation,
-		wrapped,
-		evaluator;
+		wrapped;
 
 	if ( cache[ keypath ] === undefined ) {
 
@@ -29,11 +28,6 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 			value = ractive.data;
 		}
 
-		// Is this an uncached evaluator value?
-		else if ( evaluator = this.evaluators[ keypath ] ) {
-			value = evaluator.value;
-		}
-
 		// No? Then we need to retrieve the value one key at a time
 		else {
 			value = retrieve( this, keypath );
@@ -48,12 +42,12 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		value = wrapped.get();
 	}
 
-	// capture the keypath, if we're inside a computation or evaluator
+	// capture the keypath, if we're inside a computation
 	if ( options.capture && this.capturing && this.captured.indexOf( keypath ) === -1 ) {
 		this.captured.push( keypath );
 
 		// if we couldn't resolve the keypath, we need to make it as a failed
-		// lookup, so that the evaluator updates correctly once we CAN
+		// lookup, so that the computation updates correctly once we CAN
 		// resolve the keypath
 		if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
 			new UnresolvedImplicitDependency( this, keypath );

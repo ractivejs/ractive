@@ -1,5 +1,5 @@
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
-	var deps, index, evaluator;
+	var deps, index;
 
 	if ( dependant.isStatic ) {
 		return;
@@ -16,14 +16,6 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 
 	if ( !keypath ) {
 		return;
-	}
-
-	if ( evaluator = this.evaluators[ keypath ] ) {
-		evaluator.dependants -= 1;
-
-		if ( !evaluator.dependants ) {
-			evaluator.sleep();
-		}
 	}
 
 	updateDependantsMap( this, keypath, group );

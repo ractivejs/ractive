@@ -46,9 +46,6 @@ var Viewmodel = function ( ractive ) {
 	this.patternObservers = [];
 
 	this.wrapped = create( null );
-
-	// TODO these are conceptually very similar. Can they be merged somehow?
-	this.evaluators = create( null );
 	this.computations = create( null );
 
 	this.captured = null;

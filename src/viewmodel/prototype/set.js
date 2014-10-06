@@ -2,7 +2,7 @@ import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
-	var computation, wrapper, evaluator, dontTeardownWrapper;
+	var computation, wrapper, dontTeardownWrapper;
 
 	computation = this.computations[ keypath ];
 	if ( computation ) {
@@ -19,7 +19,6 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 	}
 
 	wrapper = this.wrapped[ keypath ];
-	evaluator = this.evaluators[ keypath ];
 
 	// If we have a wrapper with a `reset()` method, we try and use it. If the
 	// `reset()` method returns false, the wrapper should be torn down, and
@@ -32,14 +31,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 		}
 	}
 
-	// Update evaluator value. This may be from the evaluator itself, or
-	// it may be from the wrapper that wraps an evaluator's result - it
-	// doesn't matter
-	if ( evaluator ) {
-		evaluator.value = value;
-	}
-
-	if ( !computation && !evaluator && !dontTeardownWrapper ) {
+	if ( !computation && !dontTeardownWrapper ) {
 		resolveSet( this, keypath, value );
 	}
 
