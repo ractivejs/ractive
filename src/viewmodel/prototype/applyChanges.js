@@ -55,6 +55,8 @@ export default function Viewmodel$applyChanges () {
 		}
 	});
 
+	this.changes = [];
+
 	// Pattern observers are a weird special case
 	if ( this.patternObservers.length ) {
 		upstreamChanges.forEach( keypath => notifyPatternObservers( this, keypath, true ) );
@@ -78,7 +80,6 @@ export default function Viewmodel$applyChanges () {
 
 	this.implicitChanges = {};
 	this.noCascade = {};
-	this.changes = [];
 
 	return hash;
 }
