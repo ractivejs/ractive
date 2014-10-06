@@ -2,7 +2,6 @@ import removeFromArray from 'utils/removeFromArray';
 import defineProperty from 'utils/defineProperty';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
-import Evaluator from 'virtualdom/items/shared/Evaluator/Evaluator';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 import 'legacy'; // for fn.bind()
@@ -80,7 +79,10 @@ ExpressionResolver.prototype = {
 		this.uniqueString = getUniqueString( this.str, this.args );
 		this.keypath = getKeypath( this.uniqueString );
 
+		console.group( 'createEvaluator' );
 		this.createEvaluator();
+		console.log( 'this.keypath', this.keypath );
+		console.groupEnd();
 		this.callback( this.keypath );
 	},
 
@@ -102,7 +104,7 @@ ExpressionResolver.prototype = {
 	},
 
 	createEvaluator: function () {
-		var self = this, computation, signature, keypaths = [], i, args, arg, fn;
+		var self = this, computation, valueGetters, signature, keypaths = [], i, arg, fn;
 
 		computation = this.root.viewmodel.computations[ this.keypath ];
 
@@ -119,33 +121,41 @@ ExpressionResolver.prototype = {
 
 			fn = getFunctionFromString( this.str, this.args.length );
 
+			valueGetters = this.args.map( arg => {
+				var keypath, value;
+
+				if ( !arg ) {
+					return () => undefined;
+				}
+
+				if ( arg.indexRef ) {
+					value = arg.value;
+					return () => value;
+				}
+
+				keypath = arg.keypath;
+				return () => {
+					var value = this.root.viewmodel.get( keypath );
+					if ( typeof value === 'function' ) {
+						value = wrapFunction( value, self.root );
+					}
+					return value;
+				};
+			});
+
 			signature = {
 				deps: keypaths,
 				get: function () {
-					args = self.args.map( arg => {
-						var value;
-
-						if ( !arg ) {
-							console.log( 'TODO no arg' );
-							return undefined;
-						} else if ( arg.indexRef ) {
-							value = arg.value;
-						} else {
-							value = self.root.viewmodel.get( arg.keypath );
-
-							if ( typeof value === 'function' ) {
-								value = wrapFunction( value, self.root );
-							}
-						}
-
-						return value;
-					});
-
+					var args = valueGetters.map( call );
 					return fn.apply( null, args );
 				}
 			};
 
 			computation = this.root.viewmodel.compute( this.keypath, signature );
+		}
+
+		else {
+			console.log( 'pre-existing' );
 		}
 
 		// TODO is this necessary?
@@ -154,6 +164,8 @@ ExpressionResolver.prototype = {
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 		var changed;
+
+		console.group( 'rebind' );
 
 		this.args.forEach( function ( arg ) {
 			var changedKeypath;
@@ -174,10 +186,16 @@ ExpressionResolver.prototype = {
 		if ( changed ) {
 			this.bubble();
 		}
+
+		console.groupEnd();
 	}
 };
 
 export default ExpressionResolver;
+
+function call ( value ) {
+	return value.call();
+}
 
 function getUniqueString ( str, args ) {
 	// get string that is unique to this expression

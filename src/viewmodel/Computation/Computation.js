@@ -49,6 +49,8 @@ Computation.prototype = {
 			return;
 		}
 
+		console.log( 'getting', this.key );
+
 		this.getting = true;
 
 		if ( this._dirty ) {
