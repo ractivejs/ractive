@@ -28,7 +28,7 @@ Computation.prototype = {
 		this.bypass = true;
 
 		initial = this.ractive.viewmodel.get( this.key );
-		this.ractive.viewmodel.mark( this.key ); // re-clear the cache
+		this.ractive.viewmodel.clearCache( this.key );
 
 		this.bypass = false;
 
@@ -48,8 +48,6 @@ Computation.prototype = {
 			// prevent double-computation (e.g. caused by array mutation inside computation)
 			return;
 		}
-
-		console.log( 'getting', this.key );
 
 		this.getting = true;
 
