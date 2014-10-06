@@ -1,10 +1,7 @@
 import log from 'utils/log';
-import isEqual from 'utils/isEqual';
 import diff from 'viewmodel/Computation/diff';
 
 var Computation = function ( ractive, key, signature ) {
-	var initial;
-
 	this.ractive = ractive;
 	this.viewmodel = ractive.viewmodel;
 	this.key = key;
@@ -12,13 +9,17 @@ var Computation = function ( ractive, key, signature ) {
 	this.getter = signature.get;
 	this.setter = signature.set;
 
-	this.dependencies = [];
+	this.hardDeps = signature.deps;
+	this.softDeps = [];
+
+	if ( this.hardDeps ) {
+		this.hardDeps.forEach( d => ractive.viewmodel.register( d, this, 'computed' ) );
+	}
 
 	this._dirty = true;
 };
 
 Computation.prototype = {
-
 	constructor: Computation,
 
 	init: function () {
@@ -41,14 +42,26 @@ Computation.prototype = {
 	},
 
 	get: function () {
-		var ractive, newDependencies;
+		var ractive, newDeps, args;
+
+		if ( this.getting ) {
+			// prevent double-computation (e.g. caused by array mutation inside computation)
+			return;
+		}
+
+		this.getting = true;
 
 		if ( this._dirty ) {
 			ractive = this.ractive;
 			ractive.viewmodel.capture();
 
 			try {
-				this.value = this.getter.call( ractive );
+				if ( this.hardDeps ) {
+					args = this.hardDeps.map( keypath => this.viewmodel.get( keypath ) );
+					this.value = this.getter.apply( ractive, args );
+				} else {
+					this.value = this.getter.call( ractive );
+				}
 			} catch ( err ) {
 				log.warn({
 					debug: ractive.debug,
@@ -62,12 +75,13 @@ Computation.prototype = {
 				this.value = void 0;
 			}
 
-			newDependencies = ractive.viewmodel.release();
-			diff( this, this.dependencies, newDependencies );
+			newDeps = ractive.viewmodel.release();
+			this.updateDependencies( newDeps );
 
 			this._dirty = false;
 		}
 
+		this.getting = false;
 		return this.value;
 	},
 
@@ -82,6 +96,34 @@ Computation.prototype = {
 		}
 
 		this.setter.call( this.ractive, value );
+	},
+
+	updateDependencies: function ( newDeps ) {
+		var i, oldDeps, keypath;
+
+		oldDeps = this.softDeps;
+
+		// remove dependencies that are no longer used
+		i = oldDeps.length;
+		while ( i-- ) {
+			keypath = oldDeps[i];
+
+			if ( newDeps.indexOf( keypath ) === -1 ) {
+				this.viewmodel.unregister( keypath, this, 'computed' );
+			}
+		}
+
+		// create references for any new dependencies
+		i = newDeps.length;
+		while ( i-- ) {
+			keypath = newDeps[i];
+
+			if ( oldDeps.indexOf( keypath ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( keypath ) === -1 ) ) {
+				this.viewmodel.register( keypath, this, 'computed' );
+			}
+		}
+
+		this.softDeps = newDeps.slice();
 	}
 };
 

@@ -195,20 +195,14 @@ var renderTests = [
 		result: 'TEST'
 	},
 	{
-		name: 'Expression with a single reference',
-		template: '{{( ref )}}',
-		data: { ref: 'success' },
-		result: 'success'
-	},
-	{
 		name: 'Arithmetic expression',
-		template: '{{( number * 2 )}}',
+		template: '{{ number * 2 }}',
 		data: { number: 10 },
 		result: '20'
 	},
 	{
 		name: 'Arithmetic expression with update',
-		template: '{{( number * 2 )}}',
+		template: '{{ number * 2 }}',
 		data: { number: 10 },
 		new_data: { number: 20 },
 		result: '20',
@@ -216,12 +210,12 @@ var renderTests = [
 	},
 	{
 		name: 'Arithmetic expression with missing data',
-		template: '{{( number * 2 )}}',
+		template: '{{ number * 2 }}',
 		result: 'NaN'
 	},
 	{
 		name: 'Arithmetic expression with missing data and update',
-		template: '{{( number * 2 )}}',
+		template: '{{ number * 2 }}',
 		new_data: { number: 20 },
 		result: 'NaN',
 		new_result: '40'

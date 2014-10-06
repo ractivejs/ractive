@@ -42,7 +42,18 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	changes.forEach( cascade );
+
 	upstreamChanges = getUpstreamChanges( changes );
+	upstreamChanges.forEach( keypath => {
+		var dependants, keys;
+
+		if ( dependants = self.deps.computed[ keypath ] ) {
+			dependants.forEach( invalidate );
+
+			keys = dependants.map( getKey );
+			keys.forEach( mark );
+		}
+	});
 
 	// Pattern observers are a weird special case
 	if ( this.patternObservers.length ) {
@@ -56,6 +67,7 @@ export default function Viewmodel$applyChanges () {
 		}
 
 		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, group ) );
+
 		notifyAllDependants( this, changes, group );
 	});
 
