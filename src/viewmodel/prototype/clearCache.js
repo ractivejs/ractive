@@ -1,5 +1,5 @@
 export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
-	var cacheMap, wrapper, computation;
+	var cacheMap, wrapper;
 
 	if ( !dontTeardownWrapper ) {
 		// Is there a wrapped property at this keypath?
