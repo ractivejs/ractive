@@ -35,9 +35,6 @@ export default function Fragment$init ( options ) {
 		}
 	}
 
-	// inherit priority
-	this.priority = ( parentFragment ? parentFragment.priority + 1 : 1 );
-
 	if ( options.indexRef ) {
 		if ( !this.indexRefs ) {
 			this.indexRefs = {};
