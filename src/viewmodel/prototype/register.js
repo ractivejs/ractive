@@ -1,5 +1,5 @@
 export default function Viewmodel$register ( keypath, dependant, group = 'default' ) {
-	var depsByKeypath, deps, evaluator;
+	var depsByKeypath, deps;
 
 	if ( dependant.isStatic ) {
 		return;
@@ -12,14 +12,6 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 
 	if ( !keypath ) {
 		return;
-	}
-
-	if ( evaluator = this.evaluators[ keypath ] ) {
-		if ( !evaluator.dependants ) {
-			evaluator.wake();
-		}
-
-		evaluator.dependants += 1;
 	}
 
 	updateDependantsMap( this, keypath, group );

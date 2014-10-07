@@ -1,10 +1,14 @@
 import removeFromArray from 'utils/removeFromArray';
+import defineProperty from 'utils/defineProperty';
 import resolveRef from 'shared/resolveRef';
 import Unresolved from 'shared/Unresolved';
-import Evaluator from 'virtualdom/items/shared/Evaluator/Evaluator';
+import getFunctionFromString from 'shared/getFunctionFromString';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
+import 'legacy'; // for fn.bind()
 
-var ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
+var ExpressionResolver, bind = Function.prototype.bind;
+
+ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 
 	var expressionResolver = this, ractive, indexRefs, args;
 
@@ -97,15 +101,57 @@ ExpressionResolver.prototype = {
 	},
 
 	createEvaluator: function () {
-		var evaluator = this.root.viewmodel.evaluators[ this.keypath ];
+		var self = this, computation, valueGetters, signature, keypaths = [], i, arg, fn;
+
+		computation = this.root.viewmodel.computations[ this.keypath ];
 
 		// only if it doesn't exist yet!
-		if ( !evaluator ) {
-			evaluator = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.owner.priority );
-			this.root.viewmodel.evaluators[ this.keypath ] = evaluator;
-		}
+		if ( !computation ) {
+			i = this.args.length;
+			while ( i-- ) {
+				arg = this.args[i];
 
-		evaluator.update();
+				if ( arg && arg.keypath ) {
+					keypaths.push( arg.keypath );
+				}
+			}
+
+			fn = getFunctionFromString( this.str, this.args.length );
+
+			valueGetters = this.args.map( arg => {
+				var keypath, value;
+
+				if ( !arg ) {
+					return () => undefined;
+				}
+
+				if ( arg.indexRef ) {
+					value = arg.value;
+					return () => value;
+				}
+
+				keypath = arg.keypath;
+				return () => {
+					var value = this.root.viewmodel.get( keypath );
+					if ( typeof value === 'function' ) {
+						value = wrapFunction( value, self.root );
+					}
+					return value;
+				};
+			});
+
+			signature = {
+				deps: keypaths,
+				get: function () {
+					var args = valueGetters.map( call );
+					return fn.apply( null, args );
+				}
+			};
+
+			computation = this.root.viewmodel.compute( this.keypath, signature );
+		} else {
+			this.root.viewmodel.mark( this.keypath );
+		}
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -135,6 +181,10 @@ ExpressionResolver.prototype = {
 
 export default ExpressionResolver;
 
+function call ( value ) {
+	return value.call();
+}
+
 function getUniqueString ( str, args ) {
 	// get string that is unique to this expression
 	return str.replace( /_([0-9]+)/g, function ( match, $1 ) {
@@ -150,4 +200,40 @@ function getKeypath ( uniqueString ) {
 	// Sanitize by removing any periods or square brackets. Otherwise
 	// we can't split the keypath into keys!
 	return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
+}
+
+function wrapFunction ( fn, ractive ) {
+	var wrapped, prop, key;
+
+	if ( fn._noWrap ) {
+		return fn;
+	}
+
+	prop = '__ractive_' + ractive._guid;
+	wrapped = fn[ prop ];
+
+	if ( wrapped ) {
+		return wrapped;
+	}
+
+	else if ( /this/.test( fn.toString() ) ) {
+		defineProperty( fn, prop, {
+			value: bind.call( fn, ractive )
+		});
+
+		// Add properties/methods to wrapped function
+		for ( key in fn ) {
+			if ( fn.hasOwnProperty( key ) ) {
+				fn[ prop ][ key ] = fn[ key ];
+			}
+		}
+
+		return fn[ prop ];
+	}
+
+	defineProperty( fn, '__ractive_nowrap', {
+		value: fn
+	});
+
+	return fn.__ractive_nowrap;
 }

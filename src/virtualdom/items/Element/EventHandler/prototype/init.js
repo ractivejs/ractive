@@ -37,7 +37,7 @@ export default function EventHandler$init ( element, name, template ) {
 		handler.method = template.m;
 		handler.args = args = [];
 		handler.unresolved = [];
-		handler.refs = template.a.r; // TODO need to resolve these!
+		handler.refs = template.a.r;
 		handler.fn = getFunctionFromString( template.a.s, handler.refs.length );
 
 		parentFragment = element.parentFragment;

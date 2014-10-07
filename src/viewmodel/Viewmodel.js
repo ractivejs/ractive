@@ -3,7 +3,9 @@ import adapt from 'viewmodel/prototype/adapt';
 import applyChanges from 'viewmodel/prototype/applyChanges';
 import capture from 'viewmodel/prototype/capture';
 import clearCache from 'viewmodel/prototype/clearCache';
+import compute from 'viewmodel/prototype/compute';
 import get from 'viewmodel/prototype/get';
+import init from 'viewmodel/prototype/init';
 import mark from 'viewmodel/prototype/mark';
 import merge from 'viewmodel/prototype/merge';
 import register from 'viewmodel/prototype/register';
@@ -12,7 +14,6 @@ import set from 'viewmodel/prototype/set';
 import smartUpdate from 'viewmodel/prototype/smartUpdate';
 import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
-import createComputations from 'viewmodel/Computation/createComputations';
 import adaptConfig from 'viewmodel/adaptConfig';
 
 // TODO: fix our ES6 modules so we can have multiple exports
@@ -31,8 +32,6 @@ var Viewmodel = function ( ractive ) {
 
 	Viewmodel.extend( ractive.constructor, ractive );
 
-	//this.ractive.data
-
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
 
@@ -47,12 +46,9 @@ var Viewmodel = function ( ractive ) {
 	this.patternObservers = [];
 
 	this.wrapped = create( null );
-
-	// TODO these are conceptually very similar. Can they be merged somehow?
-	this.evaluators = create( null );
 	this.computations = create( null );
 
-	this.captured = null;
+	this.captureGroups = [];
 	this.unresolvedImplicitDependencies = [];
 
 	this.changes = [];
@@ -78,7 +74,9 @@ Viewmodel.prototype = {
 	applyChanges: applyChanges,
 	capture: capture,
 	clearCache: clearCache,
+	compute: compute,
 	get: get,
+	init: init,
 	mark: mark,
 	merge: merge,
 	register: register,
@@ -86,13 +84,7 @@ Viewmodel.prototype = {
 	set: set,
 	smartUpdate: smartUpdate,
 	teardown: teardown,
-	unregister: unregister,
-	// createComputations, in the computations, may call back through get or set
-	// of ractive. So, for now, we delay creation of computed from constructor.
-	// on option would be to have the Computed class be lazy about using .update()
-	compute: function () {
-		createComputations( this.ractive, this.ractive.computed );
-	}
+	unregister: unregister
 };
 
 export default Viewmodel;

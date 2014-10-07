@@ -1,5 +1,5 @@
 export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
-	var cacheMap, wrapper, computation;
+	var cacheMap, wrapper;
 
 	if ( !dontTeardownWrapper ) {
 		// Is there a wrapped property at this keypath?
@@ -12,10 +12,6 @@ export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
 				this.wrapped[ keypath ] = null;
 			}
 		}
-	}
-
-	if ( computation = this.computations[ keypath ] ) {
-		computation.compute(); // TODO this can't be right?
 	}
 
 	this.cache[ keypath ] = undefined;

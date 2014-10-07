@@ -18,10 +18,6 @@ PatternObserver = function ( ractive, keypath, callback, options ) {
 		this.proxies = [];
 	}
 
-	// Observers are notified before any DOM changes take place (though
-	// they can defer execution until afterwards)
-	this.priority = 'pattern';
-
 	// default to root as context, but allow it to be overridden
 	this.context = ( options && options.context ? options.context : ractive );
 };

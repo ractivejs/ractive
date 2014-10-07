@@ -5,10 +5,9 @@ var runloop;
 
 circular.push( () => runloop = circular.runloop );
 
-var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
+var Binding = function ( ractive, keypath, otherInstance, otherKeypath ) {
 	this.root = ractive;
 	this.keypath = keypath;
-	this.priority = priority;
 
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
@@ -76,7 +75,7 @@ Binding.prototype = {
 };
 
 export default function createComponentBinding ( component, parentInstance, parentKeypath, childKeypath ) {
-	var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
+	var hash, childInstance, bindings, parentToChildBinding, childToParentBinding;
 
 	hash = parentKeypath + '=' + childKeypath;
 	bindings = component.bindings;
@@ -87,13 +86,12 @@ export default function createComponentBinding ( component, parentInstance, pare
 	}
 
 	childInstance = component.instance;
-	priority = component.parentFragment.priority;
 
-	parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath, priority );
+	parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath );
 	bindings.push( parentToChildBinding );
 
 	if ( childInstance.twoway ) {
-		childToParentBinding = new Binding( childInstance, childKeypath, parentInstance, parentKeypath, 1 );
+		childToParentBinding = new Binding( childInstance, childKeypath, parentInstance, parentKeypath );
 		bindings.push( childToParentBinding );
 
 		parentToChildBinding.counterpart = childToParentBinding;

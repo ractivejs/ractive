@@ -13,6 +13,8 @@ var constructHook = new Hook( 'construct' ),
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
+	var el;
+
 	initialiseProperties( ractive, options );
 
 	// make this option do what would be expected if someone
@@ -26,39 +28,10 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	configHook.fire( ractive );
 
-	initHook.begin( ractive );
-
-	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive );
-
-	// hacky circular problem until we get this sorted out
-	// if viewmodel immediately processes computed properties,
-	// they may call ractive.get, which calls ractive.viewmodel,
-	// which hasn't been set till line above finishes.
-	ractive.viewmodel.compute();
-
-	// Render our *root fragment*
-	if ( ractive.template ) {
-		ractive.fragment = new Fragment({
-			template: ractive.template,
-			root: ractive,
-			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
-		});
-	}
-
-	initHook.end( ractive );
-
-	// render automatically ( if `el` is specified )
-	tryRender( ractive );
-}
-
-function tryRender ( ractive ) {
-	var el;
-
+	// Teardown any existing instances *before* trying to set up the new one -
+	// avoids certain weird bugs
 	if ( el = getElement( ractive.el ) ) {
-		// If the target contains content, and `append` is falsy, clear it
-		if ( el && !ractive.append ) {
-			// Tear down any existing instances on this element
+		if ( !ractive.append ) {
 			if ( el.__ractive_instances__ ) {
 				try {
 					el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( r => r.teardown() );
@@ -72,7 +45,32 @@ function tryRender ( ractive ) {
 
 			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 		}
+	}
 
+	initHook.begin( ractive );
+
+	// TEMPORARY. This is so we can implement Viewmodel gradually
+	ractive.viewmodel = new Viewmodel( ractive );
+
+	// hacky circular problem until we get this sorted out
+	// if viewmodel immediately processes computed properties,
+	// they may call ractive.get, which calls ractive.viewmodel,
+	// which hasn't been set till line above finishes.
+	ractive.viewmodel.init();
+
+	// Render our *root fragment*
+	if ( ractive.template ) {
+		ractive.fragment = new Fragment({
+			template: ractive.template,
+			root: ractive,
+			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+		});
+	}
+
+	initHook.end( ractive );
+
+	// render automatically ( if `el` is specified )
+	if ( el ) {
 		ractive.render( el, ractive.append );
 	}
 }
