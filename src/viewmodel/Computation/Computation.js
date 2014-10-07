@@ -1,5 +1,4 @@
 import log from 'utils/log';
-import diff from 'viewmodel/Computation/diff';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;
