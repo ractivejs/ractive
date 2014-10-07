@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-05 - commit 5a7cf5f7 
+	2014-10-07 - commit 665c4fb2 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -552,11 +552,10 @@
 		circular.push( function() {
 			return runloop = circular.runloop;
 		} );
-		var Binding = function( ractive, keypath, otherInstance, otherKeypath, priority ) {
+		var Binding = function( ractive, keypath, otherInstance, otherKeypath ) {
 			var this$0 = this;
 			this.root = ractive;
 			this.keypath = keypath;
-			this.priority = priority;
 			this.otherInstance = otherInstance;
 			this.otherKeypath = otherKeypath;
 			this.unlock = function() {
@@ -608,7 +607,7 @@
 			}
 		};
 		return function createComponentBinding( component, parentInstance, parentKeypath, childKeypath ) {
-			var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
+			var hash, childInstance, bindings, parentToChildBinding, childToParentBinding;
 			hash = parentKeypath + '=' + childKeypath;
 			bindings = component.bindings;
 			if ( bindings[ hash ] ) {
@@ -616,11 +615,10 @@
 				return;
 			}
 			childInstance = component.instance;
-			priority = component.parentFragment.priority;
-			parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath, priority );
+			parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath );
 			bindings.push( parentToChildBinding );
 			if ( childInstance.twoway ) {
-				childToParentBinding = new Binding( childInstance, childKeypath, parentInstance, parentKeypath, 1 );
+				childToParentBinding = new Binding( childInstance, childKeypath, parentInstance, parentKeypath );
 				bindings.push( childToParentBinding );
 				parentToChildBinding.counterpart = childToParentBinding;
 				childToParentBinding.counterpart = parentToChildBinding;
@@ -6061,9 +6059,6 @@
 			this.keypath = keypath;
 			this.callback = callback;
 			this.defer = options.defer;
-			// Observers are notified before any DOM changes take place (though
-			// they can defer execution until afterwards)
-			this.priority = 0;
 			// default to root as context, but allow it to be overridden
 			this.context = options && options.context ? options.context : ractive;
 		};
@@ -6175,9 +6170,6 @@
 			if ( this.defer ) {
 				this.proxies = [];
 			}
-			// Observers are notified before any DOM changes take place (though
-			// they can defer execution until afterwards)
-			this.priority = 'pattern';
 			// default to root as context, but allow it to be overridden
 			this.context = options && options.context ? options.context : ractive;
 		};
@@ -7051,156 +7043,12 @@
 		};
 	}();
 
-	/* viewmodel/Computation/diff.js */
-	var diff = function diff( computation, dependencies, newDependencies ) {
-		var i, keypath;
-		// remove dependencies that are no longer used
-		i = dependencies.length;
-		while ( i-- ) {
-			keypath = dependencies[ i ];
-			if ( newDependencies.indexOf( keypath ) === -1 ) {
-				computation.viewmodel.unregister( keypath, computation, 'computed' );
-			}
-		}
-		// create references for any new dependencies
-		i = newDependencies.length;
-		while ( i-- ) {
-			keypath = newDependencies[ i ];
-			if ( dependencies.indexOf( keypath ) === -1 ) {
-				computation.viewmodel.register( keypath, computation, 'computed' );
-			}
-		}
-		computation.dependencies = newDependencies.slice();
-	};
-
-	/* virtualdom/items/shared/Evaluator/Evaluator.js */
-	var Evaluator = function( log, isEqual, defineProperty, getFunctionFromString, diff ) {
-
-		var __export;
-		var Evaluator, bind = Function.prototype.bind;
-		Evaluator = function( root, keypath, uniqueString, functionStr, args, priority ) {
-			var evaluator = this,
-				viewmodel = root.viewmodel;
-			evaluator.root = root;
-			evaluator.viewmodel = viewmodel;
-			evaluator.uniqueString = uniqueString;
-			evaluator.keypath = keypath;
-			evaluator.priority = priority;
-			evaluator.fn = getFunctionFromString( functionStr, args.length );
-			evaluator.explicitDependencies = [];
-			evaluator.dependencies = [];
-			// created by `this.get()` within functions
-			evaluator.argumentGetters = args.map( function( arg ) {
-				var keypath, index;
-				if ( !arg ) {
-					return void 0;
-				}
-				if ( arg.indexRef ) {
-					index = arg.value;
-					return index;
-				}
-				keypath = arg.keypath;
-				evaluator.explicitDependencies.push( keypath );
-				viewmodel.register( keypath, evaluator, 'computed' );
-				return function() {
-					var value = viewmodel.get( keypath );
-					return typeof value === 'function' ? wrap( value, root ) : value;
-				};
-			} );
-		};
-		Evaluator.prototype = {
-			wake: function() {
-				this.awake = true;
-			},
-			sleep: function() {
-				this.awake = false;
-			},
-			getValue: function() {
-				var args, value, newImplicitDependencies;
-				args = this.argumentGetters.map( call );
-				if ( this.updating ) {
-					// Prevent infinite loops caused by e.g. in-place array mutations
-					return;
-				}
-				this.updating = true;
-				this.viewmodel.capture();
-				try {
-					value = this.fn.apply( null, args );
-				} catch ( err ) {
-					if ( this.root.debug ) {
-						log.warn( {
-							debug: this.root.debug,
-							message: 'evaluationError',
-							args: {
-								uniqueString: this.uniqueString,
-								err: err.message || err
-							}
-						} );
-					}
-					value = undefined;
-				}
-				newImplicitDependencies = this.viewmodel.release();
-				diff( this, this.dependencies, newImplicitDependencies );
-				this.updating = false;
-				return value;
-			},
-			update: function() {
-				var value = this.getValue();
-				if ( !isEqual( value, this.value ) ) {
-					this.value = value;
-					this.root.viewmodel.mark( this.keypath );
-				}
-				return this;
-			},
-			// TODO should evaluators ever get torn down? At present, they don't...
-			teardown: function() {
-				var this$0 = this;
-				this.explicitDependencies.concat( this.dependencies ).forEach( function( keypath ) {
-					return this$0.viewmodel.unregister( keypath, this$0, 'computed' );
-				} );
-				this.root.viewmodel.evaluators[ this.keypath ] = null;
-			}
-		};
-		__export = Evaluator;
-
-		function wrap( fn, ractive ) {
-			var wrapped, prop, key;
-			if ( fn._noWrap ) {
-				return fn;
-			}
-			prop = '__ractive_' + ractive._guid;
-			wrapped = fn[ prop ];
-			if ( wrapped ) {
-				return wrapped;
-			} else if ( /this/.test( fn.toString() ) ) {
-				defineProperty( fn, prop, {
-					value: bind.call( fn, ractive )
-				} );
-				// Add properties/methods to wrapped function
-				for ( key in fn ) {
-					if ( fn.hasOwnProperty( key ) ) {
-						fn[ prop ][ key ] = fn[ key ];
-					}
-				}
-				return fn[ prop ];
-			}
-			defineProperty( fn, '__ractive_nowrap', {
-				value: fn
-			} );
-			return fn.__ractive_nowrap;
-		}
-
-		function call( arg ) {
-			return typeof arg === 'function' ? arg() : arg;
-		}
-		return __export;
-	}( log, isEqual, defineProperty, getFunctionFromString, diff, legacy );
-
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
-	var ExpressionResolver = function( removeFromArray, resolveRef, Unresolved, Evaluator, getNewKeypath ) {
+	var ExpressionResolver = function( removeFromArray, defineProperty, resolveRef, Unresolved, getFunctionFromString, getNewKeypath ) {
 
 		var __export;
-		var ExpressionResolver = function( owner, parentFragment, expression, callback ) {
+		var ExpressionResolver, bind = Function.prototype.bind;
+		ExpressionResolver = function( owner, parentFragment, expression, callback ) {
 			var expressionResolver = this,
 				ractive, indexRefs, args;
 			ractive = owner.root;
@@ -7280,13 +7128,54 @@
 				this.resolved = !--this.pending;
 			},
 			createEvaluator: function() {
-				var evaluator = this.root.viewmodel.evaluators[ this.keypath ];
+				var this$0 = this;
+				var self = this,
+					computation, valueGetters, signature, keypaths = [],
+					i, arg, fn;
+				computation = this.root.viewmodel.computations[ this.keypath ];
 				// only if it doesn't exist yet!
-				if ( !evaluator ) {
-					evaluator = new Evaluator( this.root, this.keypath, this.uniqueString, this.str, this.args, this.owner.priority );
-					this.root.viewmodel.evaluators[ this.keypath ] = evaluator;
+				if ( !computation ) {
+					i = this.args.length;
+					while ( i-- ) {
+						arg = this.args[ i ];
+						if ( arg && arg.keypath ) {
+							keypaths.push( arg.keypath );
+						}
+					}
+					fn = getFunctionFromString( this.str, this.args.length );
+					valueGetters = this.args.map( function( arg ) {
+						var keypath, value;
+						if ( !arg ) {
+							return function() {
+								return undefined;
+							};
+						}
+						if ( arg.indexRef ) {
+							value = arg.value;
+							return function() {
+								return value;
+							};
+						}
+						keypath = arg.keypath;
+						return function() {
+							var value = this$0.root.viewmodel.get( keypath );
+							if ( typeof value === 'function' ) {
+								value = wrapFunction( value, self.root );
+							}
+							return value;
+						};
+					} );
+					signature = {
+						deps: keypaths,
+						get: function() {
+							var args = valueGetters.map( call );
+							return fn.apply( null, args );
+						}
+					};
+					computation = this.root.viewmodel.compute( this.keypath, signature );
+				} else {
+					this.root.viewmodel.mark( this.keypath );
 				}
-				evaluator.update();
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
 				var changed;
@@ -7309,6 +7198,10 @@
 		};
 		__export = ExpressionResolver;
 
+		function call( value ) {
+			return value.call();
+		}
+
 		function getUniqueString( str, args ) {
 			// get string that is unique to this expression
 			return str.replace( /_([0-9]+)/g, function( match, $1 ) {
@@ -7326,8 +7219,35 @@
 			// we can't split the keypath into keys!
 			return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
 		}
+
+		function wrapFunction( fn, ractive ) {
+			var wrapped, prop, key;
+			if ( fn._noWrap ) {
+				return fn;
+			}
+			prop = '__ractive_' + ractive._guid;
+			wrapped = fn[ prop ];
+			if ( wrapped ) {
+				return wrapped;
+			} else if ( /this/.test( fn.toString() ) ) {
+				defineProperty( fn, prop, {
+					value: bind.call( fn, ractive )
+				} );
+				// Add properties/methods to wrapped function
+				for ( key in fn ) {
+					if ( fn.hasOwnProperty( key ) ) {
+						fn[ prop ][ key ] = fn[ key ];
+					}
+				}
+				return fn[ prop ];
+			}
+			defineProperty( fn, '__ractive_nowrap', {
+				value: fn
+			} );
+			return fn.__ractive_nowrap;
+		}
 		return __export;
-	}( removeFromArray, resolveRef, Unresolved, Evaluator, getNewKeypath );
+	}( removeFromArray, defineProperty, resolveRef, Unresolved, getFunctionFromString, getNewKeypath, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js */
 	var MemberResolver = function( types, resolveRef, Unresolved, getNewKeypath, ExpressionResolver ) {
@@ -7425,7 +7345,6 @@
 			parentFragment = mustache.parentFragment;
 			resolver.root = ractive = mustache.root;
 			resolver.mustache = mustache;
-			resolver.priority = mustache.priority;
 			resolver.ref = ref = template.r;
 			resolver.callback = callback;
 			resolver.unresolved = [];
@@ -7513,7 +7432,6 @@
 			mustache.pElement = parentFragment.pElement;
 			mustache.template = options.template;
 			mustache.index = options.index || 0;
-			mustache.priority = parentFragment.priority;
 			mustache.isStatic = options.template.s;
 			mustache.type = options.template.t;
 			// if this is a simple mustache, with a reference, we just need to resolve
@@ -9984,7 +9902,6 @@
 				handler.args = args = [];
 				handler.unresolved = [];
 				handler.refs = template.a.r;
-				// TODO need to resolve these!
 				handler.fn = getFunctionFromString( template.a.s, handler.refs.length );
 				parentFragment = element.parentFragment;
 				indexRefs = parentFragment.indexRefs;
@@ -12582,8 +12499,6 @@
 					}
 				}
 			}
-			// inherit priority
-			this.priority = parentFragment ? parentFragment.priority + 1 : 1;
 			if ( options.indexRef ) {
 				if ( !this.indexRefs ) {
 					this.indexRefs = {};
@@ -13552,49 +13467,49 @@
 		__export = function Viewmodel$applyChanges() {
 			var this$0 = this;
 			var self = this,
-				changes, upstreamChanges, allChanges = [],
-				computations, addComputations, cascade, hash = {};
-			if ( !this.changes.length ) {
+				changes, upstreamChanges, hash = {};
+			changes = this.changes;
+			if ( !changes.length ) {
 				// TODO we end up here on initial render. Perhaps we shouldn't?
 				return;
 			}
-			addComputations = function( keypath ) {
-				var newComputations;
-				if ( newComputations = self.deps.computed[ keypath ] ) {
-					addNewItems( computations, newComputations );
-				}
-			};
-			cascade = function( keypath ) {
-				var map;
+
+			function cascade( keypath ) {
+				var map, dependants, keys;
 				if ( self.noCascade.hasOwnProperty( keypath ) ) {
 					return;
 				}
-				addComputations( keypath );
+				if ( dependants = self.deps.computed[ keypath ] ) {
+					dependants.forEach( invalidate );
+					keys = dependants.map( getKey );
+					keys.forEach( mark );
+					keys.forEach( cascade );
+				}
 				if ( map = self.depsMap.computed[ keypath ] ) {
 					map.forEach( cascade );
 				}
-			};
-			// Find computations and evaluators that are invalidated by
-			// these changes. If they have changed, add them to the
-			// list of changes. Lather, rinse and repeat until the
-			// system is settled
-			do {
-				changes = this.changes;
-				addNewItems( allChanges, changes );
-				this.changes = [];
-				computations = [];
-				upstreamChanges = getUpstreamChanges( changes );
-				upstreamChanges.forEach( addComputations );
-				changes.forEach( cascade );
-				computations.forEach( updateComputation );
-			} while ( this.changes.length );
-			upstreamChanges = getUpstreamChanges( allChanges );
+			}
+
+			function mark( keypath ) {
+				self.mark( keypath );
+			}
+			changes.forEach( cascade );
+			upstreamChanges = getUpstreamChanges( changes );
+			upstreamChanges.forEach( function( keypath ) {
+				var dependants, keys;
+				if ( dependants = self.deps.computed[ keypath ] ) {
+					dependants.forEach( invalidate );
+					keys = dependants.map( getKey );
+					keys.forEach( mark );
+				}
+			} );
+			this.changes = [];
 			// Pattern observers are a weird special case
 			if ( this.patternObservers.length ) {
 				upstreamChanges.forEach( function( keypath ) {
 					return notifyPatternObservers( this$0, keypath, true );
 				} );
-				allChanges.forEach( function( keypath ) {
+				changes.forEach( function( keypath ) {
 					return notifyPatternObservers( this$0, keypath );
 				} );
 			}
@@ -13605,10 +13520,10 @@
 				upstreamChanges.forEach( function( keypath ) {
 					return notifyUpstreamDependants( this$0, keypath, group );
 				} );
-				notifyAllDependants( this$0, allChanges, group );
+				notifyAllDependants( this$0, changes, group );
 			} );
 			// Return a hash of keypaths to updated values
-			allChanges.forEach( function( keypath ) {
+			changes.forEach( function( keypath ) {
 				hash[ keypath ] = this$0.get( keypath );
 			} );
 			this.implicitChanges = {};
@@ -13616,8 +13531,12 @@
 			return hash;
 		};
 
-		function updateComputation( computation ) {
-			computation.update();
+		function invalidate( computation ) {
+			computation.invalidate();
+		}
+
+		function getKey( computation ) {
+			return computation.key;
 		}
 
 		function notifyUpstreamDependants( viewmodel, keypath, groupName ) {
@@ -13669,26 +13588,17 @@
 			var group = viewmodel.deps[ groupName ];
 			return group ? group[ keypath ] : null;
 		}
-
-		function addNewItems( arr, items ) {
-			items.forEach( function( item ) {
-				if ( arr.indexOf( item ) === -1 ) {
-					arr.push( item );
-				}
-			} );
-		}
 		return __export;
 	}( getUpstreamChanges, viewmodel$applyChanges_notifyPatternObservers );
 
 	/* viewmodel/prototype/capture.js */
 	var viewmodel$capture = function Viewmodel$capture() {
-		this.capturing = true;
-		this.captured = [];
+		this.captureGroups.push( [] );
 	};
 
 	/* viewmodel/prototype/clearCache.js */
 	var viewmodel$clearCache = function Viewmodel$clearCache( keypath, dontTeardownWrapper ) {
-		var cacheMap, wrapper, computation;
+		var cacheMap, wrapper;
 		if ( !dontTeardownWrapper ) {
 			// Is there a wrapped property at this keypath?
 			if ( wrapper = this.wrapped[ keypath ] ) {
@@ -13701,9 +13611,6 @@
 				}
 			}
 		}
-		if ( computation = this.computations[ keypath ] ) {
-			computation.compute();
-		}
 		this.cache[ keypath ] = undefined;
 		if ( cacheMap = this.cacheMap[ keypath ] ) {
 			while ( cacheMap.length ) {
@@ -13711,6 +13618,199 @@
 			}
 		}
 	};
+
+	/* viewmodel/Computation/getComputationSignature.js */
+	var getComputationSignature = function() {
+
+		var __export;
+		var pattern = /\$\{([^\}]+)\}/g;
+		__export = function( signature ) {
+			if ( typeof signature === 'function' ) {
+				return {
+					get: signature
+				};
+			}
+			if ( typeof signature === 'string' ) {
+				return {
+					get: createFunctionFromString( signature )
+				};
+			}
+			if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
+				signature = {
+					get: createFunctionFromString( signature.get ),
+					set: signature.set
+				};
+			}
+			return signature;
+		};
+
+		function createFunctionFromString( signature ) {
+			var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function( match, keypath ) {
+				return '__ractive.get("' + keypath + '")';
+			} ) + ')';
+			return new Function( functionBody );
+		}
+		return __export;
+	}();
+
+	/* viewmodel/Computation/Computation.js */
+	var Computation = function( log, isEqual ) {
+
+		var Computation = function( ractive, key, signature ) {
+			var this$0 = this;
+			this.ractive = ractive;
+			this.viewmodel = ractive.viewmodel;
+			this.key = key;
+			this.getter = signature.get;
+			this.setter = signature.set;
+			this.hardDeps = signature.deps || [];
+			this.softDeps = [];
+			this.depValues = {};
+			if ( this.hardDeps ) {
+				this.hardDeps.forEach( function( d ) {
+					return ractive.viewmodel.register( d, this$0, 'computed' );
+				} );
+			}
+			this._dirty = this._firstRun = true;
+		};
+		Computation.prototype = {
+			constructor: Computation,
+			init: function() {
+				var initial;
+				this.bypass = true;
+				initial = this.ractive.viewmodel.get( this.key );
+				this.ractive.viewmodel.clearCache( this.key );
+				this.bypass = false;
+				if ( this.setter && initial !== undefined ) {
+					this.set( initial );
+				}
+			},
+			invalidate: function() {
+				this._dirty = true;
+			},
+			get: function() {
+				var this$0 = this;
+				var ractive, newDeps, args, dependenciesChanged, dependencyValuesChanged = false;
+				if ( this.getting ) {
+					// prevent double-computation (e.g. caused by array mutation inside computation)
+					return;
+				}
+				this.getting = true;
+				if ( this._dirty ) {
+					ractive = this.ractive;
+					// determine whether the inputs have changed, in case this depends on
+					// other computed values
+					if ( this._firstRun || !this.hardDeps.length && !this.softDeps.length ) {
+						dependencyValuesChanged = true;
+					} else {
+						[
+							this.hardDeps,
+							this.softDeps
+						].forEach( function( deps ) {
+							var keypath, value, i;
+							if ( dependencyValuesChanged ) {
+								return;
+							}
+							i = deps.length;
+							while ( i-- ) {
+								keypath = deps[ i ];
+								value = ractive.viewmodel.get( keypath );
+								if ( !isEqual( value, this$0.depValues[ keypath ] ) ) {
+									this$0.depValues[ keypath ] = value;
+									dependencyValuesChanged = true;
+									return;
+								}
+							}
+						} );
+					}
+					if ( dependencyValuesChanged ) {
+						ractive.viewmodel.capture();
+						try {
+							if ( this.hardDeps.length ) {
+								args = this.hardDeps.map( function( keypath ) {
+									return this$0.viewmodel.get( keypath );
+								} );
+								this.value = this.getter.apply( ractive, args );
+							} else {
+								this.value = this.getter.call( ractive );
+							}
+						} catch ( err ) {
+							log.warn( {
+								debug: ractive.debug,
+								message: 'failedComputation',
+								args: {
+									key: this.key,
+									err: err.message || err
+								}
+							} );
+							this.value = void 0;
+						}
+						newDeps = ractive.viewmodel.release();
+						dependenciesChanged = this.updateDependencies( newDeps );
+						if ( dependenciesChanged ) {
+							[
+								this.hardDeps,
+								this.softDeps
+							].forEach( function( deps ) {
+								deps.forEach( function( keypath ) {
+									this$0.depValues[ keypath ] = ractive.viewmodel.get( keypath );
+								} );
+							} );
+						}
+					}
+					this._dirty = false;
+				}
+				this.getting = this._firstRun = false;
+				return this.value;
+			},
+			set: function( value ) {
+				if ( this.setting ) {
+					this.value = value;
+					return;
+				}
+				if ( !this.setter ) {
+					throw new Error( 'Computed properties without setters are read-only. (This may change in a future version of Ractive!)' );
+				}
+				this.setter.call( this.ractive, value );
+			},
+			updateDependencies: function( newDeps ) {
+				var i, oldDeps, keypath, dependenciesChanged;
+				oldDeps = this.softDeps;
+				// remove dependencies that are no longer used
+				i = oldDeps.length;
+				while ( i-- ) {
+					keypath = oldDeps[ i ];
+					if ( newDeps.indexOf( keypath ) === -1 ) {
+						dependenciesChanged = true;
+						this.viewmodel.unregister( keypath, this, 'computed' );
+					}
+				}
+				// create references for any new dependencies
+				i = newDeps.length;
+				while ( i-- ) {
+					keypath = newDeps[ i ];
+					if ( oldDeps.indexOf( keypath ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( keypath ) === -1 ) ) {
+						dependenciesChanged = true;
+						this.viewmodel.register( keypath, this, 'computed' );
+					}
+				}
+				if ( dependenciesChanged ) {
+					this.softDeps = newDeps.slice();
+				}
+				return dependenciesChanged;
+			}
+		};
+		return Computation;
+	}( log, isEqual );
+
+	/* viewmodel/prototype/compute.js */
+	var viewmodel$compute = function( getComputationSignature, Computation ) {
+
+		return function Viewmodel$compute( key, signature ) {
+			signature = getComputationSignature( signature );
+			return this.computations[ key ] = new Computation( this.ractive, key, signature );
+		};
+	}( getComputationSignature, Computation );
 
 	/* viewmodel/prototype/get/FAILED_LOOKUP.js */
 	var viewmodel$get_FAILED_LOOKUP = {
@@ -13755,18 +13855,16 @@
 				options = empty;
 			var ractive = this.ractive,
 				cache = this.cache,
-				value, computation, wrapped, evaluator;
+				value, computation, wrapped, captureGroup;
 			if ( cache[ keypath ] === undefined ) {
 				// Is this a computed property?
-				if ( computation = this.computations[ keypath ] ) {
-					value = computation.value;
+				if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
+					value = computation.get();
 				} else if ( wrapped = this.wrapped[ keypath ] ) {
 					value = wrapped.value;
 				} else if ( !keypath ) {
 					this.adapt( '', ractive.data );
 					value = ractive.data;
-				} else if ( evaluator = this.evaluators[ keypath ] ) {
-					value = evaluator.value;
 				} else {
 					value = retrieve( this, keypath );
 				}
@@ -13777,14 +13875,16 @@
 			if ( options.evaluateWrapped && ( wrapped = this.wrapped[ keypath ] ) ) {
 				value = wrapped.get();
 			}
-			// capture the keypath, if we're inside a computation or evaluator
-			if ( options.capture && this.capturing && this.captured.indexOf( keypath ) === -1 ) {
-				this.captured.push( keypath );
-				// if we couldn't resolve the keypath, we need to make it as a failed
-				// lookup, so that the evaluator updates correctly once we CAN
-				// resolve the keypath
-				if ( value === FAILED_LOOKUP && this.unresolvedImplicitDependencies[ keypath ] !== true ) {
-					new UnresolvedImplicitDependency( this, keypath );
+			// capture the keypath, if we're inside a computation
+			if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
+				if ( !~captureGroup.indexOf( keypath ) ) {
+					captureGroup.push( keypath );
+					// if we couldn't resolve the keypath, we need to make it as a failed
+					// lookup, so that the computation updates correctly once we CAN
+					// resolve the keypath
+					if ( value === FAILED_LOOKUP && this.unresolvedImplicitDependencies[ keypath ] !== true ) {
+						new UnresolvedImplicitDependency( this, keypath );
+					}
 				}
 			}
 			return value === FAILED_LOOKUP ? void 0 : value;
@@ -13825,8 +13925,28 @@
 		return __export;
 	}( viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
 
+	/* viewmodel/prototype/init.js */
+	var viewmodel$init = function() {
+
+		var __export;
+		__export = function Viewmodel$init() {
+			var key, computation, computations = [];
+			for ( key in this.ractive.computed ) {
+				computation = this.compute( key, this.ractive.computed[ key ] );
+				computations.push( computation );
+			}
+			computations.forEach( init );
+		};
+
+		function init( computation ) {
+			computation.init();
+		}
+		return __export;
+	}();
+
 	/* viewmodel/prototype/mark.js */
 	var viewmodel$mark = function Viewmodel$mark( keypath, options ) {
+		var computation;
 		// implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)
 		// should not be picked up by pattern observers
 		if ( options ) {
@@ -13836,6 +13956,9 @@
 			if ( options.noCascade ) {
 				this.noCascade[ keypath ] = true;
 			}
+		}
+		if ( computation = this.computations[ keypath ] ) {
+			computation.invalidate();
 		}
 		if ( this.changes.indexOf( keypath ) === -1 ) {
 			this.changes.push( keypath );
@@ -13943,7 +14066,7 @@
 			var group = arguments[ 2 ];
 			if ( group === void 0 )
 				group = 'default';
-			var depsByKeypath, deps, evaluator;
+			var depsByKeypath, deps;
 			if ( dependant.isStatic ) {
 				return;
 			}
@@ -13952,12 +14075,6 @@
 			deps.push( dependant );
 			if ( !keypath ) {
 				return;
-			}
-			if ( evaluator = this.evaluators[ keypath ] ) {
-				if ( !evaluator.dependants ) {
-					evaluator.wake();
-				}
-				evaluator.dependants += 1;
 			}
 			updateDependantsMap( this, keypath, group );
 		};
@@ -13984,8 +14101,7 @@
 
 	/* viewmodel/prototype/release.js */
 	var viewmodel$release = function Viewmodel$release() {
-		this.capturing = false;
-		return this.captured;
+		return this.captureGroups.pop();
 	};
 
 	/* viewmodel/prototype/set.js */
@@ -13993,7 +14109,7 @@
 
 		var __export;
 		__export = function Viewmodel$set( keypath, value, silent ) {
-			var computation, wrapper, evaluator, dontTeardownWrapper;
+			var computation, wrapper, dontTeardownWrapper;
 			computation = this.computations[ keypath ];
 			if ( computation ) {
 				if ( computation.setting ) {
@@ -14007,7 +14123,6 @@
 				return;
 			}
 			wrapper = this.wrapped[ keypath ];
-			evaluator = this.evaluators[ keypath ];
 			// If we have a wrapper with a `reset()` method, we try and use it. If the
 			// `reset()` method returns false, the wrapper should be torn down, and
 			// (most likely) a new one should be created later
@@ -14017,13 +14132,7 @@
 					value = wrapper.get();
 				}
 			}
-			// Update evaluator value. This may be from the evaluator itself, or
-			// it may be from the wrapper that wraps an evaluator's result - it
-			// doesn't matter
-			if ( evaluator ) {
-				evaluator.value = value;
-			}
-			if ( !computation && !evaluator && !dontTeardownWrapper ) {
+			if ( !computation && !dontTeardownWrapper ) {
 				resolveSet( this, keypath, value );
 			}
 			if ( !silent ) {
@@ -14142,7 +14251,7 @@
 			var group = arguments[ 2 ];
 			if ( group === void 0 )
 				group = 'default';
-			var deps, index, evaluator;
+			var deps, index;
 			if ( dependant.isStatic ) {
 				return;
 			}
@@ -14154,12 +14263,6 @@
 			deps.splice( index, 1 );
 			if ( !keypath ) {
 				return;
-			}
-			if ( evaluator = this.evaluators[ keypath ] ) {
-				evaluator.dependants -= 1;
-				if ( !evaluator.dependants ) {
-					evaluator.sleep();
-				}
 			}
 			updateDependantsMap( this, keypath, group );
 		};
@@ -14184,118 +14287,6 @@
 		}
 		return __export;
 	}();
-
-	/* viewmodel/Computation/getComputationSignature.js */
-	var getComputationSignature = function() {
-
-		var __export;
-		var pattern = /\$\{([^\}]+)\}/g;
-		__export = function( signature ) {
-			if ( typeof signature === 'function' ) {
-				return {
-					get: signature
-				};
-			}
-			if ( typeof signature === 'string' ) {
-				return {
-					get: createFunctionFromString( signature )
-				};
-			}
-			if ( typeof signature === 'object' && typeof signature.get === 'string' ) {
-				signature = {
-					get: createFunctionFromString( signature.get ),
-					set: signature.set
-				};
-			}
-			return signature;
-		};
-
-		function createFunctionFromString( signature ) {
-			var functionBody = 'var __ractive=this;return(' + signature.replace( pattern, function( match, keypath ) {
-				return '__ractive.get("' + keypath + '")';
-			} ) + ')';
-			return new Function( functionBody );
-		}
-		return __export;
-	}();
-
-	/* viewmodel/Computation/Computation.js */
-	var Computation = function( log, isEqual, diff ) {
-
-		var Computation = function( ractive, key, signature ) {
-			var initial;
-			this.ractive = ractive;
-			this.viewmodel = ractive.viewmodel;
-			this.key = key;
-			this.getter = signature.get;
-			this.setter = signature.set;
-			this.dependencies = [];
-			if ( this.setter && ( initial = ractive.viewmodel.get( key ) ) ) {
-				this.set( initial );
-			}
-		};
-		Computation.prototype = {
-			constructor: Computation,
-			get: function() {
-				this.compute();
-				return this.value;
-			},
-			set: function( value ) {
-				if ( this.setting ) {
-					this.value = value;
-					return;
-				}
-				if ( !this.setter ) {
-					throw new Error( 'Computed properties without setters are read-only. (This may change in a future version of Ractive!)' );
-				}
-				this.setter.call( this.ractive, value );
-			},
-			// returns `false` if the computation errors
-			compute: function() {
-				var ractive, errored, newDependencies;
-				ractive = this.ractive;
-				ractive.viewmodel.capture();
-				try {
-					this.value = this.getter.call( ractive );
-				} catch ( err ) {
-					log.warn( {
-						debug: ractive.debug,
-						message: 'failedComputation',
-						args: {
-							key: this.key,
-							err: err.message || err
-						}
-					} );
-					errored = true;
-				}
-				newDependencies = ractive.viewmodel.release();
-				diff( this, this.dependencies, newDependencies );
-				return errored ? false : true;
-			},
-			update: function() {
-				var oldValue = this.value;
-				if ( this.compute() && !isEqual( this.value, oldValue ) ) {
-					this.ractive.viewmodel.mark( this.key );
-				}
-			}
-		};
-		return Computation;
-	}( log, isEqual, diff );
-
-	/* viewmodel/Computation/createComputations.js */
-	var createComputations = function( getComputationSignature, Computation ) {
-
-		return function createComputations( ractive, computed ) {
-			var key, signature, computations = ractive.viewmodel.computations;
-			for ( key in computed ) {
-				signature = getComputationSignature( computed[ key ] );
-				computations[ key ] = new Computation( ractive, key, signature );
-			}
-			for ( key in computations ) {
-				computations[ key ].update();
-			}
-		};
-	}( getComputationSignature, Computation );
 
 	/* viewmodel/adaptConfig.js */
 	var adaptConfig = function() {
@@ -14350,7 +14341,7 @@
 	}();
 
 	/* viewmodel/Viewmodel.js */
-	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, get, mark, merge, register, release, set, smartUpdate, teardown, unregister, createComputations, adaptConfig ) {
+	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, compute, get, init, mark, merge, register, release, set, smartUpdate, teardown, unregister, adaptConfig ) {
 
 		var noMagic;
 		try {
@@ -14364,7 +14355,6 @@
 			this.ractive = ractive;
 			// TODO eventually, we shouldn't need this reference
 			Viewmodel.extend( ractive.constructor, ractive );
-			//this.ractive.data
 			this.cache = {};
 			// we need to be able to use hasOwnProperty, so can't inherit from null
 			this.cacheMap = create( null );
@@ -14378,10 +14368,8 @@
 			};
 			this.patternObservers = [];
 			this.wrapped = create( null );
-			// TODO these are conceptually very similar. Can they be merged somehow?
-			this.evaluators = create( null );
 			this.computations = create( null );
-			this.captured = null;
+			this.captureGroups = [];
 			this.unresolvedImplicitDependencies = [];
 			this.changes = [];
 			this.implicitChanges = {};
@@ -14399,7 +14387,9 @@
 			applyChanges: applyChanges,
 			capture: capture,
 			clearCache: clearCache,
+			compute: compute,
 			get: get,
+			init: init,
 			mark: mark,
 			merge: merge,
 			register: register,
@@ -14407,16 +14397,10 @@
 			set: set,
 			smartUpdate: smartUpdate,
 			teardown: teardown,
-			unregister: unregister,
-			// createComputations, in the computations, may call back through get or set
-			// of ractive. So, for now, we delay creation of computed from constructor.
-			// on option would be to have the Computed class be lazy about using .update()
-			compute: function() {
-				createComputations( this.ractive, this.ractive.computed );
-			}
+			unregister: unregister
 		};
 		return Viewmodel;
-	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$get, viewmodel$mark, viewmodel$merge, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$smartUpdate, viewmodel$teardown, viewmodel$unregister, createComputations, adaptConfig );
+	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$compute, viewmodel$get, viewmodel$init, viewmodel$mark, viewmodel$merge, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$smartUpdate, viewmodel$teardown, viewmodel$unregister, adaptConfig );
 
 	/* Ractive/initialise.js */
 	var Ractive_initialise = function( config, create, Fragment, getElement, getNextNumber, Hook, HookQueue, Viewmodel ) {
@@ -14429,6 +14413,7 @@
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = {};
+			var el;
 			initialiseProperties( ractive, options );
 			// make this option do what would be expected if someone
 			// did include it on a new Ractive() or new Component() call.
@@ -14438,6 +14423,20 @@
 			// init config from Parent and options
 			config.init( ractive.constructor, ractive, options );
 			configHook.fire( ractive );
+			// Teardown any existing instances *before* trying to set up the new one -
+			// avoids certain weird bugs
+			if ( el = getElement( ractive.el ) ) {
+				if ( !ractive.append ) {
+					if ( el.__ractive_instances__ ) {
+						try {
+							el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( function( r ) {
+								return r.teardown();
+							} );
+						} catch ( err ) {}
+					}
+					el.innerHTML = '';
+				}
+			}
 			initHook.begin( ractive );
 			// TEMPORARY. This is so we can implement Viewmodel gradually
 			ractive.viewmodel = new Viewmodel( ractive );
@@ -14445,7 +14444,7 @@
 			// if viewmodel immediately processes computed properties,
 			// they may call ractive.get, which calls ractive.viewmodel,
 			// which hasn't been set till line above finishes.
-			ractive.viewmodel.compute();
+			ractive.viewmodel.init();
 			// Render our *root fragment*
 			if ( ractive.template ) {
 				ractive.fragment = new Fragment( {
@@ -14456,27 +14455,10 @@
 			}
 			initHook.end( ractive );
 			// render automatically ( if `el` is specified )
-			tryRender( ractive );
-		};
-
-		function tryRender( ractive ) {
-			var el;
-			if ( el = getElement( ractive.el ) ) {
-				// If the target contains content, and `append` is falsy, clear it
-				if ( el && !ractive.append ) {
-					// Tear down any existing instances on this element
-					if ( el.__ractive_instances__ ) {
-						try {
-							el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( function( r ) {
-								return r.teardown();
-							} );
-						} catch ( err ) {}
-					}
-					el.innerHTML = '';
-				}
+			if ( el ) {
 				ractive.render( el, ractive.append );
 			}
-		}
+		};
 
 		function initialiseProperties( ractive, options ) {
 			// Generate a unique identifier, for places where you'd use a weak map if it
