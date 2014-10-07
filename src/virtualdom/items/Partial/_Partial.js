@@ -47,7 +47,9 @@ Partial.prototype = {
 	},
 
 	detach: function () {
-		return this.fragment.detach();
+		//if( this.fragment ) {
+			return this.fragment.detach();
+		//}
 	},
 
 	render: function () {
