@@ -48,7 +48,7 @@ var Viewmodel = function ( ractive ) {
 	this.wrapped = create( null );
 	this.computations = create( null );
 
-	this.captured = null;
+	this.captureGroups = [];
 	this.unresolvedImplicitDependencies = [];
 
 	this.changes = [];

@@ -8,7 +8,8 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		cache = this.cache,
 		value,
 		computation,
-		wrapped;
+		wrapped,
+		captureGroup;
 
 	if ( cache[ keypath ] === undefined ) {
 
@@ -43,14 +44,16 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 	}
 
 	// capture the keypath, if we're inside a computation
-	if ( options.capture && this.capturing && this.captured.indexOf( keypath ) === -1 ) {
-		this.captured.push( keypath );
+	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
+		if ( !~captureGroup.indexOf( keypath ) ) {
+			captureGroup.push( keypath );
 
-		// if we couldn't resolve the keypath, we need to make it as a failed
-		// lookup, so that the computation updates correctly once we CAN
-		// resolve the keypath
-		if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
-			new UnresolvedImplicitDependency( this, keypath );
+			// if we couldn't resolve the keypath, we need to make it as a failed
+			// lookup, so that the computation updates correctly once we CAN
+			// resolve the keypath
+			if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
+				new UnresolvedImplicitDependency( this, keypath );
+			}
 		}
 	}
 
