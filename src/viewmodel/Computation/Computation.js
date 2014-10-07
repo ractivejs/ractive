@@ -1,4 +1,5 @@
 import log from 'utils/log';
+import isEqual from 'utils/isEqual';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;
@@ -8,14 +9,16 @@ var Computation = function ( ractive, key, signature ) {
 	this.getter = signature.get;
 	this.setter = signature.set;
 
-	this.hardDeps = signature.deps;
+	this.hardDeps = signature.deps || [];
 	this.softDeps = [];
+
+	this.depValues = {};
 
 	if ( this.hardDeps ) {
 		this.hardDeps.forEach( d => ractive.viewmodel.register( d, this, 'computed' ) );
 	}
 
-	this._dirty = true;
+	this._dirty = this._firstRun = true;
 };
 
 Computation.prototype = {
@@ -41,7 +44,7 @@ Computation.prototype = {
 	},
 
 	get: function () {
-		var ractive, newDeps, args;
+		var ractive, newDeps, args, dependenciesChanged, dependencyValuesChanged = false;
 
 		if ( this.getting ) {
 			// prevent double-computation (e.g. caused by array mutation inside computation)
@@ -52,35 +55,73 @@ Computation.prototype = {
 
 		if ( this._dirty ) {
 			ractive = this.ractive;
-			ractive.viewmodel.capture();
 
-			try {
-				if ( this.hardDeps ) {
-					args = this.hardDeps.map( keypath => this.viewmodel.get( keypath ) );
-					this.value = this.getter.apply( ractive, args );
-				} else {
-					this.value = this.getter.call( ractive );
-				}
-			} catch ( err ) {
-				log.warn({
-					debug: ractive.debug,
-					message: 'failedComputation',
-					args: {
-						key: this.key,
-						err: err.message || err
+			// determine whether the inputs have changed, in case this depends on
+			// other computed values
+			if ( this._firstRun || ( !this.hardDeps.length && !this.softDeps.length ) ) {
+				dependencyValuesChanged = true;
+			} else {
+				[ this.hardDeps, this.softDeps ].forEach( deps => {
+					var keypath, value, i;
+
+					if ( dependencyValuesChanged ) {
+						return;
+					}
+
+					i = deps.length;
+					while ( i-- ) {
+						keypath = deps[i];
+						value = ractive.viewmodel.get( keypath );
+
+						if ( !isEqual( value, this.depValues[ keypath ] ) ) {
+							this.depValues[ keypath ] = value;
+							dependencyValuesChanged = true;
+
+							return;
+						}
 					}
 				});
-
-				this.value = void 0;
 			}
 
-			newDeps = ractive.viewmodel.release();
-			this.updateDependencies( newDeps );
+			if ( dependencyValuesChanged ) {
+				ractive.viewmodel.capture();
+
+				try {
+					if ( this.hardDeps.length ) {
+						args = this.hardDeps.map( keypath => this.viewmodel.get( keypath ) );
+						this.value = this.getter.apply( ractive, args );
+					} else {
+						this.value = this.getter.call( ractive );
+					}
+				} catch ( err ) {
+					log.warn({
+						debug: ractive.debug,
+						message: 'failedComputation',
+						args: {
+							key: this.key,
+							err: err.message || err
+						}
+					});
+
+					this.value = void 0;
+				}
+
+				newDeps = ractive.viewmodel.release();
+				dependenciesChanged = this.updateDependencies( newDeps );
+
+				if ( dependenciesChanged ) {
+					[ this.hardDeps, this.softDeps ].forEach( deps => {
+						deps.forEach( keypath => {
+							this.depValues[ keypath ] = ractive.viewmodel.get( keypath );
+						});
+					});
+				}
+			}
 
 			this._dirty = false;
 		}
 
-		this.getting = false;
+		this.getting = this._firstRun = false;
 		return this.value;
 	},
 
@@ -98,7 +139,7 @@ Computation.prototype = {
 	},
 
 	updateDependencies: function ( newDeps ) {
-		var i, oldDeps, keypath;
+		var i, oldDeps, keypath, dependenciesChanged;
 
 		oldDeps = this.softDeps;
 
@@ -108,6 +149,7 @@ Computation.prototype = {
 			keypath = oldDeps[i];
 
 			if ( newDeps.indexOf( keypath ) === -1 ) {
+				dependenciesChanged = true;
 				this.viewmodel.unregister( keypath, this, 'computed' );
 			}
 		}
@@ -118,11 +160,16 @@ Computation.prototype = {
 			keypath = newDeps[i];
 
 			if ( oldDeps.indexOf( keypath ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( keypath ) === -1 ) ) {
+				dependenciesChanged = true;
 				this.viewmodel.register( keypath, this, 'computed' );
 			}
 		}
 
-		this.softDeps = newDeps.slice();
+		if ( dependenciesChanged ) {
+			this.softDeps = newDeps.slice();
+		}
+
+		return dependenciesChanged;
 	}
 };
 

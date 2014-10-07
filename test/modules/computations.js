@@ -384,22 +384,22 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '{{foo}}',
+				template: '{{bar}}',
 				data: {
 					str: 'this is a string'
 				},
 				computed: {
 					foo: function () {
 						count.foo += 1;
-						return this.get( 'bar' ).toUpperCase();
+						return this.get( 'baz' ).toUpperCase();
 					},
 					baz: function () {
 						count.baz += 1;
-						return this.get( 'str' ).replace( 'string', 'computation' );
+						return this.get( 'str' ).replace( /string/i, 'computation' );
 					},
 					bar: function () {
 						count.bar += 1;
-						return this.get( 'baz' ) + '//' + this.get( 'baz' );
+						return this.get( 'foo' ) + '//' + this.get( 'foo' );
 					},
 					qux: function () {
 						count.qux += 1;
@@ -416,6 +416,9 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'str', 'how long is a piece of string' );
 			t.equal( fixture.innerHTML, 'HOW LONG IS A PIECE OF COMPUTATION//HOW LONG IS A PIECE OF COMPUTATION' );
 			t.deepEqual( count, { foo: 2, bar: 2, baz: 2, qux: 1 });
+
+			ractive.set( 'str', 'How Long Is A Piece Of String' );
+			t.deepEqual( count, { foo: 3, bar: 2, baz: 3, qux: 1 });
 		});
 
 	};
