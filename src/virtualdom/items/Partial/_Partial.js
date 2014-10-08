@@ -1,6 +1,6 @@
 import log from 'utils/log';
 import types from 'config/types';
-import getPartialDescriptor from 'virtualdom/items/Partial/getPartialDescriptor';
+import getPartialTemplate from 'virtualdom/items/Partial/getPartialTemplate';
 import applyIndent from 'virtualdom/items/Partial/applyIndent';
 import circular from 'circular';
 import runloop from 'global/runloop';
@@ -31,7 +31,7 @@ Partial = function ( options ) {
 	// If this didn't resolve, it most likely means we have a named partial
 	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
 	// whose name is the value of `foo`')
-	if ( !this.keypath && ( template = getPartialDescriptor( this.root, this.name ) ) ) {
+	if ( !this.keypath && ( template = getPartialTemplate( this.root, this.name ) ) ) {
 		unbind.call( this ); // prevent any further changes
 		this.isNamed = true;
 
@@ -99,12 +99,12 @@ Partial.prototype = {
 			return;
 		}
 
-		template = getPartialDescriptor( this.root, '' + value );
+		template = getPartialTemplate( this.root, '' + value );
 
 		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 		// name of both a data property (whose value ISN'T the name of a partial)
 		// and a partial. In those cases, this becomes a named partial
-		if ( !template && ( template = getPartialDescriptor( this.root, this.name ) ) ) {
+		if ( !template && ( template = getPartialTemplate( this.root, this.name ) ) ) {
 			unbind.call( this );
 			this.isNamed = true;
 		}

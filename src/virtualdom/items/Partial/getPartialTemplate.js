@@ -3,7 +3,7 @@ import config from 'config/config';
 import parser from 'config/options/template/parser';
 import deIndent from 'virtualdom/items/Partial/deIndent';
 
-export default function getPartialDescriptor ( ractive, name ) {
+export default function getPartialTemplate ( ractive, name ) {
 	var partial;
 
 	// If the partial in instance or view heirarchy instances, great
@@ -21,21 +21,12 @@ export default function getPartialDescriptor ( ractive, name ) {
 		// parse and register to this ractive instance
 		let parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
 
-
-
 		// register (and return main partial if there are others in the template)
 		return ractive.partials[ name ] = parsed.t;
 	}
-
-	/*log.error({
-		debug: ractive.debug,
-		message: 'noTemplateForPartial',
-		args: { name: name }
-	});*/
 }
 
 function getPartialFromRegistry ( ractive, name ) {
-
 	var partials = config.registries.partials;
 
 	// find first instance in the ractive or view hierarchy that has this partial
@@ -92,5 +83,4 @@ function getPartialFromRegistry ( ractive, name ) {
 	}
 
 	return partial.v ? partial.t : partial;
-
 }
