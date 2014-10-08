@@ -5,6 +5,7 @@ import applyIndent from 'virtualdom/items/Partial/applyIndent';
 import circular from 'circular';
 import runloop from 'global/runloop';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
+import rebind from 'virtualdom/items/shared/Mustache/rebind';
 import unbind from 'virtualdom/items/shared/unbind';
 
 var Partial, Fragment;
@@ -32,6 +33,8 @@ Partial = function ( options ) {
 	// whose name is the value of `foo`')
 	if ( !this.keypath && ( template = getPartialDescriptor( this.root, this.name ) ) ) {
 		unbind.call( this ); // prevent any further changes
+		this.isNamed = true;
+
 		this.setTemplate( template );
 	}
 };
@@ -74,7 +77,7 @@ Partial.prototype = {
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		// TODO rebind self, as well as fragment?
+		rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
 		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	},
 
@@ -103,6 +106,7 @@ Partial.prototype = {
 		// and a partial. In those cases, this becomes a named partial
 		if ( !template && ( template = getPartialDescriptor( this.root, this.name ) ) ) {
 			unbind.call( this );
+			this.isNamed = true;
 		}
 
 		if ( !template ) {
@@ -160,7 +164,9 @@ Partial.prototype = {
 	},
 
 	unbind: function () {
-		// TODO unbind self, as well as fragment?
+		if ( !this.isNamed ) { // dynamic partial - need to unbind self
+			unbind.call( this );
+		}
 
 		if ( this.fragment ) {
 			this.fragment.unbind();

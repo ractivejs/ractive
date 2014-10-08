@@ -324,66 +324,28 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 			t.htmlEqual( ractive.toHTML(), '<div>Foo ...</div>' );
 		});
 
-		test( 'Merging dynamic partials (#1313)', function ( t ) {
-			var ractive, fields, inputs;
+		test( 'Dynamic partial works with merge (#1313)', function ( t ) {
+			var ractive, fields;
 
 			fields = [
-				{ label: 'greeting', type: 'text', value: 'hello' },
-				{ label: 'due date', type: 'date', value: '2014-10-08' }
+				{ type: 'text', value: 'hello' },
+				{ type: 'number', value: 123 }
 			];
 
 			ractive = new Ractive({
 				el: fixture,
-				template: `
-					{{#each fields}}
-						<label>{{label}}: {{> type + 'Field' }}</label>
-					{{/each}}`,
-				data: {
-					fields: fields
-				},
-				partials: {
-					textField: '<input value="{{value}}">',
-					dateField: '<input type="date" value="{{value}}">'
-				}
-			});
-
-			fields = [ fields[1], fields[0] ];
-			ractive.merge( 'fields', fields );
-			t.htmlEqual( fixture.innerHTML, '<label>due date: <input type="date"></label><label>greeting: <input></label>' );
-
-			inputs = ractive.findAll( 'input' );
-
-			t.equal( inputs[0].value, '2014-10-08' );
-			t.equal( inputs[1].value, 'hello' );
-		});
-
-		test( 'Dynamic partial works with merge (#1313)', function ( t ) {
-			var ractive, copy, move;
-
-			ractive = new Ractive({
-				el: fixture,
-				// template: "{{#fields}}{{type}}{{value}}{{/}}",
 				template: "{{#fields}}{{> .type + 'Field' }}{{/}}",
 				partials: {
 					textField: "text{{value}}",
 					numberField: "number{{value}}",
 				},
-				data: {
-			        fields: [
-			            { type: 'text', value: 'hello' },
-			            { type: 'number', value: 123 }
-			        ]
-			    }
-
+				data: { fields: fields }
 			});
 
 			t.htmlEqual( ractive.toHTML(), 'texthellonumber123' );
 
-
-			copy = ractive.get('fields').slice();
-			move = copy.splice( 1, 1 )[0];
-			copy.splice(0, 0, move);
-			ractive.merge('fields', copy);
+			fields = [ fields[1], fields[0] ];
+			ractive.merge( 'fields', fields );
 
 			t.htmlEqual( ractive.toHTML(), 'number123texthello' );
 		});
