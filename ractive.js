@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.0
-	2014-10-08 - commit 9dfbc228 
+	2014-10-08 - commit f559933a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10717,18 +10717,22 @@
 		var __export;
 		__export = function Transition$start() {
 			var t = this,
-				node, originalStyle;
+				node, originalStyle, completed;
 			node = t.node = t.element.node;
 			originalStyle = node.getAttribute( 'style' );
 			// create t.complete() - we don't want this on the prototype,
 			// because we don't want `this` silliness when passing it as
 			// an argument
 			t.complete = function( noReset ) {
+				if ( completed ) {
+					return;
+				}
 				if ( !noReset && t.isIntro ) {
 					resetStyle( node, originalStyle );
 				}
 				node._ractive.transition = null;
 				t._manager.remove( t );
+				completed = true;
 			};
 			// If the transition function doesn't exist, abort
 			if ( !t._fn ) {
@@ -10878,6 +10882,7 @@
 				runloop.scheduleTask( function() {
 					return transition.start();
 				} );
+				this.transition = transition;
 			}
 			if ( this.name === 'option' ) {
 				processOption( this );
@@ -11076,6 +11081,9 @@
 		var __export;
 		__export = function Element$unrender( shouldDestroy ) {
 			var binding, bindings;
+			if ( this.transition ) {
+				this.transition.complete();
+			}
 			// Detach as soon as we can
 			if ( this.name === 'option' ) {
 				// <option> elements detach immediately, so that
