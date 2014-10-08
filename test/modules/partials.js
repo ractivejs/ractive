@@ -323,6 +323,32 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( ractive.toHTML(), '<div>Foo ...</div>' );
 		});
+
+		test( 'Dynamic partial works with merge (#1313)', function ( t ) {
+			var ractive, fields;
+
+			fields = [
+				{ type: 'text', value: 'hello' },
+				{ type: 'number', value: 123 }
+			];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: "{{#fields}}{{> .type + 'Field' }}{{/}}",
+				partials: {
+					textField: "text{{value}}",
+					numberField: "number{{value}}",
+				},
+				data: { fields: fields }
+			});
+
+			t.htmlEqual( ractive.toHTML(), 'texthellonumber123' );
+
+			fields = [ fields[1], fields[0] ];
+			ractive.merge( 'fields', fields );
+
+			t.htmlEqual( ractive.toHTML(), 'number123texthello' );
+		});
 	};
 
 });

@@ -1,13 +1,12 @@
+import log from 'utils/log';
 import types from 'config/types';
-import getPartialDescriptor from 'virtualdom/items/Partial/getPartialDescriptor';
+import getPartialTemplate from 'virtualdom/items/Partial/getPartialTemplate';
 import applyIndent from 'virtualdom/items/Partial/applyIndent';
 import circular from 'circular';
-
 import runloop from 'global/runloop';
-
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
-import config from 'config/config';
-import parser from 'config/options/template/parser';
+import rebind from 'virtualdom/items/shared/Mustache/rebind';
+import unbind from 'virtualdom/items/shared/unbind';
 
 var Partial, Fragment;
 
@@ -16,26 +15,53 @@ circular.push( function () {
 });
 
 Partial = function ( options ) {
-	var parentFragment = this.parentFragment = options.parentFragment;
+	var parentFragment, template;
 
-	this.type = types.PARTIAL;
-	this.name = options.template.r;
-	this.index = options.index;
-
-	// keep track of when the partial name matches a partial (as opposed to an expression) to
-	// avoid unnecessary jitter when using an overlapping name/keypath
-	this.namedPartial = false;
+	parentFragment = this.parentFragment = options.parentFragment;
 
 	this.root = parentFragment.root;
+	this.type = types.PARTIAL;
+	this.index = options.index;
+	this.name = options.template.r;
+
+	this.fragment = this.fragmentToRender = this.fragmentToUnrender = null;
 
 	Mustache.init( this, options );
 
-	this.update();
+	// If this didn't resolve, it most likely means we have a named partial
+	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
+	// whose name is the value of `foo`')
+	if ( !this.keypath && ( template = getPartialTemplate( this.root, this.name ) ) ) {
+		unbind.call( this ); // prevent any further changes
+		this.isNamed = true;
+
+		this.setTemplate( template );
+	}
 };
 
 Partial.prototype = {
 	bubble: function () {
 		this.parentFragment.bubble();
+	},
+
+	detach: function () {
+		return this.fragment.detach();
+	},
+
+	find: function ( selector ) {
+		return this.fragment.find( selector );
+	},
+
+	findAll: function ( selector, query ) {
+		return this.fragment.findAll( selector, query );
+	},
+
+	findComponent: function ( selector ) {
+		return this.fragment.findComponent( selector );
+	},
+
+	findAllComponents: function ( selector, query ) {
+		return this.fragment.findAllComponents( selector, query );
 	},
 
 	firstNode: function () {
@@ -46,34 +72,75 @@ Partial.prototype = {
 		return this.parentFragment.findNextNode( this );
 	},
 
-	detach: function () {
-		return this.fragment.detach();
-	},
-
-	render: function () {
-		this.update();
-
-		this.rendered = true;
-		return this.fragment.render();
-	},
-
-	unrender: function ( shouldDestroy ) {
-		if ( this.rendered ) {
-			if( this.fragment ) {
-				this.fragment.unrender( shouldDestroy );
-			}
-			this.rendered = false;
-		}
+	getValue: function () {
+		return this.fragment.getValue();
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		return this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	},
 
-	unbind: function () {
+	render: function () {
+		this.docFrag = document.createDocumentFragment();
+		this.update();
+
+		this.rendered = true;
+		return this.docFrag;
+	},
+
+	resolve: Mustache.resolve,
+
+	setValue: function ( value ) {
+		var template;
+
+		if ( value !== undefined && value === this.value ) {
+			// nothing has changed, so no work to be done
+			return;
+		}
+
+		template = getPartialTemplate( this.root, '' + value );
+
+		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
+		// name of both a data property (whose value ISN'T the name of a partial)
+		// and a partial. In those cases, this becomes a named partial
+		if ( !template && ( template = getPartialTemplate( this.root, this.name ) ) ) {
+			unbind.call( this );
+			this.isNamed = true;
+		}
+
+		if ( !template ) {
+			log.error({
+				debug: this.root.debug,
+				message: 'noTemplateForPartial',
+				args: { name: this.name }
+			});
+		}
+
+		this.setTemplate( template || [] );
+
+		this.value = value;
+		this.bubble();
+
+		if ( this.rendered ) {
+			runloop.addView( this );
+		}
+	},
+
+	setTemplate: function ( template ) {
 		if ( this.fragment ) {
 			this.fragment.unbind();
+			this.fragmentToUnrender = this.fragment;
 		}
+
+		this.fragment = new Fragment({
+			template: template,
+			root: this.root,
+			owner: this,
+			pElement: this.parentFragment.pElement
+		});
+
+		this.fragmentToRender = this.fragment;
 	},
 
 	toString: function ( toString ) {
@@ -96,74 +163,42 @@ Partial.prototype = {
 		return string;
 	},
 
-	find: function ( selector ) {
-		return this.fragment.find( selector );
+	unbind: function () {
+		if ( !this.isNamed ) { // dynamic partial - need to unbind self
+			unbind.call( this );
+		}
+
+		if ( this.fragment ) {
+			this.fragment.unbind();
+		}
 	},
 
-	findAll: function ( selector, query ) {
-		return this.fragment.findAll( selector, query );
-	},
-
-	findComponent: function ( selector ) {
-		return this.fragment.findComponent( selector );
-	},
-
-	findAllComponents: function ( selector, query ) {
-		return this.fragment.findAllComponents( selector, query );
-	},
-
-	getValue: function () {
-		return this.fragment.getValue();
-	},
-
-	resolve: Mustache.resolve,
-
-	setValue: function( value ) {
-		if ( this.value !== value && !this.namedPartial ) {
-			if ( this.fragment && this.rendered ) {
-				this.fragment.unrender( true );
+	unrender: function ( shouldDestroy ) {
+		if ( this.rendered ) {
+			if( this.fragment ) {
+				this.fragment.unrender( shouldDestroy );
 			}
-
-			this.fragment = null;
-			this.value = value;
-
-			if ( this.rendered ) {
-				runloop.addView( this );
-			} else {
-				this.update();
-				this.bubble();
-			}
+			this.rendered = false;
 		}
 	},
 
 	update: function() {
-		var template, docFrag, target, anchor;
+		var target, anchor;
 
-		if ( !this.fragment ) {
-			if ( this.name && ( config.registries.partials.findInstance( this.root, this.name ) || parser.fromId( this.name, { noThrow: true } ) ) ) {
-				template = getPartialDescriptor( this.root, this.name );
-				this.namedPartial = true;
-			} else if ( this.value ){
-				template = getPartialDescriptor( this.root, this.value );
-				this.namedPartial = false;
-			} else {
-				template = [];
-				this.namedPartial = false;
-			}
+		if ( this.fragmentToUnrender ) {
+			this.fragmentToUnrender.unrender( true );
+			this.fragmentToUnrender = null;
+		}
 
-			this.fragment = new Fragment({
-				template: template,
-				root: this.root,
-				owner: this,
-				pElement: this.parentFragment.pElement
-			});
+		if ( this.fragmentToRender ) {
+			this.docFrag.appendChild( this.fragmentToRender.render() );
+			this.fragmentToRender = null;
+		}
 
-			if ( this.rendered ) {
-				target = this.parentFragment.getNode();
-				docFrag = this.fragment.render();
-				anchor = this.parentFragment.findNextNode( this );
-				target.insertBefore( docFrag, anchor );
-			}
+		if ( this.rendered ) {
+			target = this.parentFragment.getNode();
+			anchor = this.parentFragment.findNextNode( this );
+			target.insertBefore( this.docFrag, anchor );
 		}
 	}
 };
