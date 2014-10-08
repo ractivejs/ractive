@@ -3,13 +3,8 @@ import types from 'config/types';
 import getPartialDescriptor from 'virtualdom/items/Partial/getPartialDescriptor';
 import applyIndent from 'virtualdom/items/Partial/applyIndent';
 import circular from 'circular';
-
 import runloop from 'global/runloop';
-
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
-import config from 'config/config';
-import parser from 'config/options/template/parser';
-
 import unbind from 'virtualdom/items/shared/unbind';
 
 var Partial, Fragment;
@@ -35,11 +30,9 @@ Partial = function ( options ) {
 	// If this didn't resolve, it most likely means we have a named partial
 	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
 	// whose name is the value of `foo`')
-	if ( !this.keypath ) {
-		if ( template = getPartialDescriptor( this.root, options.template.r ) ) {
-			unbind.call( this ); // prevent any further changes
-			this.setTemplate( template );
-		}
+	if ( !this.keypath && ( template = getPartialDescriptor( this.root, this.name ) ) ) {
+		unbind.call( this ); // prevent any further changes
+		this.setTemplate( template );
 	}
 };
 
@@ -81,7 +74,8 @@ Partial.prototype = {
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		return this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		// TODO rebind self, as well as fragment?
+		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	},
 
 	render: function () {
@@ -166,6 +160,8 @@ Partial.prototype = {
 	},
 
 	unbind: function () {
+		// TODO unbind self, as well as fragment?
+
 		if ( this.fragment ) {
 			this.fragment.unbind();
 		}
