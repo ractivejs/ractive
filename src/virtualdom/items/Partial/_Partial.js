@@ -38,6 +38,26 @@ Partial.prototype = {
 		this.parentFragment.bubble();
 	},
 
+	detach: function () {
+		return this.fragment.detach();
+	},
+
+	find: function ( selector ) {
+		return this.fragment.find( selector );
+	},
+
+	findAll: function ( selector, query ) {
+		return this.fragment.findAll( selector, query );
+	},
+
+	findComponent: function ( selector ) {
+		return this.fragment.findComponent( selector );
+	},
+
+	findAllComponents: function ( selector, query ) {
+		return this.fragment.findAllComponents( selector, query );
+	},
+
 	firstNode: function () {
 		return this.fragment.firstNode();
 	},
@@ -46,8 +66,12 @@ Partial.prototype = {
 		return this.parentFragment.findNextNode( this );
 	},
 
-	detach: function () {
-		return this.fragment.detach();
+	getValue: function () {
+		return this.fragment.getValue();
+	},
+
+	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		return this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	},
 
 	render: function () {
@@ -57,22 +81,23 @@ Partial.prototype = {
 		return this.fragment.render();
 	},
 
-	unrender: function ( shouldDestroy ) {
-		if ( this.rendered ) {
-			if( this.fragment ) {
-				this.fragment.unrender( shouldDestroy );
+	resolve: Mustache.resolve,
+
+	setValue: function( value ) {
+		if ( this.value !== value && !this.namedPartial ) {
+			if ( this.fragment && this.rendered ) {
+				this.fragment.unrender( true );
 			}
-			this.rendered = false;
-		}
-	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		return this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-	},
+			this.fragment = null;
+			this.value = value;
 
-	unbind: function () {
-		if ( this.fragment ) {
-			this.fragment.unbind();
+			if ( this.rendered ) {
+				runloop.addView( this );
+			} else {
+				this.update();
+				this.bubble();
+			}
 		}
 	},
 
@@ -96,43 +121,18 @@ Partial.prototype = {
 		return string;
 	},
 
-	find: function ( selector ) {
-		return this.fragment.find( selector );
+	unbind: function () {
+		if ( this.fragment ) {
+			this.fragment.unbind();
+		}
 	},
 
-	findAll: function ( selector, query ) {
-		return this.fragment.findAll( selector, query );
-	},
-
-	findComponent: function ( selector ) {
-		return this.fragment.findComponent( selector );
-	},
-
-	findAllComponents: function ( selector, query ) {
-		return this.fragment.findAllComponents( selector, query );
-	},
-
-	getValue: function () {
-		return this.fragment.getValue();
-	},
-
-	resolve: Mustache.resolve,
-
-	setValue: function( value ) {
-		if ( this.value !== value && !this.namedPartial ) {
-			if ( this.fragment && this.rendered ) {
-				this.fragment.unrender( true );
+	unrender: function ( shouldDestroy ) {
+		if ( this.rendered ) {
+			if( this.fragment ) {
+				this.fragment.unrender( shouldDestroy );
 			}
-
-			this.fragment = null;
-			this.value = value;
-
-			if ( this.rendered ) {
-				runloop.addView( this );
-			} else {
-				this.update();
-				this.bubble();
-			}
+			this.rendered = false;
 		}
 	},
 
