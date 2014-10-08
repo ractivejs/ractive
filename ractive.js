@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.0
-	2014-10-08 - commit 50c2168d 
+	2014-10-08 - commit 71f8f2d5 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8718,7 +8718,7 @@
 			},
 			render: function( node ) {
 				this.node = node;
-				this.isSvg = node.namespaceURI = namespaces.svg;
+				this.isSvg = node.namespaceURI === namespaces.svg;
 				this.update();
 			},
 			unbind: function() {
