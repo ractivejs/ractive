@@ -1,3 +1,4 @@
+import log from 'utils/log';
 import types from 'config/types';
 import getPartialDescriptor from 'virtualdom/items/Partial/getPartialDescriptor';
 import applyIndent from 'virtualdom/items/Partial/applyIndent';
@@ -16,21 +17,26 @@ circular.push( function () {
 });
 
 Partial = function ( options ) {
-	var parentFragment = this.parentFragment = options.parentFragment;
+	var parentFragment, template;
 
-	this.type = types.PARTIAL;
-	this.name = options.template.r;
-	this.index = options.index;
-
-	// keep track of when the partial name matches a partial (as opposed to an expression) to
-	// avoid unnecessary jitter when using an overlapping name/keypath
-	this.namedPartial = false;
+	parentFragment = this.parentFragment = options.parentFragment;
 
 	this.root = parentFragment.root;
+	this.type = types.PARTIAL;
+	this.index = options.index;
+	this.name = options.template.r;
 
 	Mustache.init( this, options );
 
-	this.update();
+	// If this didn't resolve, it most likely means we have a named partial
+	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
+	// whose name is the value of `foo`')
+	if ( !this.keypath ) {
+		if ( template = getPartialDescriptor( this.root, options.template.r ) ) {
+			this.isNamed = true;
+			this.setTemplate( template );
+		}
+	}
 };
 
 Partial.prototype = {
@@ -75,30 +81,76 @@ Partial.prototype = {
 	},
 
 	render: function () {
+		this.docFrag = document.createDocumentFragment();
 		this.update();
 
 		this.rendered = true;
-		return this.fragment.render();
+		return this.docFrag;
 	},
 
 	resolve: Mustache.resolve,
 
-	setValue: function( value ) {
-		if ( this.value !== value && !this.namedPartial ) {
-			if ( this.fragment && this.rendered ) {
-				this.fragment.unrender( true );
-			}
+	setValue: function ( value ) {
+		var template;
 
-			this.fragment = null;
-			this.value = value;
-
-			if ( this.rendered ) {
-				runloop.addView( this );
-			} else {
-				this.update();
-				this.bubble();
-			}
+		if ( this.isNamed ) {
+			// TODO unbind, so this never happens
+			console.log( 'already got a name' );
+			return;
 		}
+
+		if ( value !== undefined && value === this.value ) {
+			// nothing has changed. TODO can this happen?
+			console.log( '%cyes it can happen', 'color:green', value );
+			return;
+		}
+
+		template = getPartialDescriptor( this.root, '' + value );
+
+		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
+		// name of both a data property (whose value ISN'T the name of a partial)
+		// and a partial. In those cases, this becomes a named partial
+		if ( !template ) {
+
+		}
+
+		if ( template = getPartialDescriptor( this.root, '' + value ) ) {
+			console.log( 'template', template );
+		} else if ( template = getPartialDescriptor( this.root, this.name ) ) {
+			// TODO should only happen once. Put it in init sequence somehow?
+			this.isNamed = true;
+			console.log( 'isNamed', this.name );
+		} else {
+			log.error({
+				debug: this.root.debug,
+				message: 'noTemplateForPartial',
+				args: { name: value }
+			});
+		}
+
+		this.setTemplate( template || [] );
+
+		this.value = value;
+		this.bubble();
+
+		if ( this.rendered ) {
+			runloop.addView( this );
+		}
+	},
+
+	setTemplate: function ( template ) {
+		if ( this.fragment ) {
+			this.fragment.unbind();
+			this.fragmentToUnrender = this.fragment;
+		}
+
+		this.fragment = new Fragment({
+			template: template,
+			root: this.root,
+			owner: this,
+			pElement: this.parentFragment.pElement
+		});
+		this.fragmentToRender = this.fragment;
 	},
 
 	toString: function ( toString ) {
@@ -137,33 +189,22 @@ Partial.prototype = {
 	},
 
 	update: function() {
-		var template, docFrag, target, anchor;
+		var target, anchor;
 
-		if ( !this.fragment ) {
-			if ( this.name && ( config.registries.partials.findInstance( this.root, this.name ) || parser.fromId( this.name, { noThrow: true } ) ) ) {
-				template = getPartialDescriptor( this.root, this.name );
-				this.namedPartial = true;
-			} else if ( this.value ){
-				template = getPartialDescriptor( this.root, this.value );
-				this.namedPartial = false;
-			} else {
-				template = [];
-				this.namedPartial = false;
-			}
+		if ( this.fragmentToUnrender ) {
+			this.fragmentToUnrender.unrender( true );
+			this.fragmentToUnrender = null;
+		}
 
-			this.fragment = new Fragment({
-				template: template,
-				root: this.root,
-				owner: this,
-				pElement: this.parentFragment.pElement
-			});
+		if ( this.fragmentToRender ) {
+			this.docFrag.appendChild( this.fragmentToRender.render() );
+			this.fragmentToRender = null;
+		}
 
-			if ( this.rendered ) {
-				target = this.parentFragment.getNode();
-				docFrag = this.fragment.render();
-				anchor = this.parentFragment.findNextNode( this );
-				target.insertBefore( docFrag, anchor );
-			}
+		if ( this.rendered ) {
+			target = this.parentFragment.getNode();
+			anchor = this.parentFragment.findNextNode( this );
+			target.insertBefore( this.docFrag, anchor );
 		}
 	}
 };

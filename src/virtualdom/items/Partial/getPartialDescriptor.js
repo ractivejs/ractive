@@ -27,15 +27,11 @@ export default function getPartialDescriptor ( ractive, name ) {
 		return ractive.partials[ name ] = parsed.t;
 	}
 
-	log.error({
+	/*log.error({
 		debug: ractive.debug,
 		message: 'noTemplateForPartial',
 		args: { name: name }
-	});
-
-	// No match? Return an empty array
-	return [];
-
+	});*/
 }
 
 function getPartialFromRegistry ( ractive, name ) {
