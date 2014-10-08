@@ -42,7 +42,7 @@ ConditionalAttribute.prototype = {
 
 	render: function ( node ) {
 		this.node = node;
-		this.isSvg = node.namespaceURI = namespaces.svg;
+		this.isSvg = node.namespaceURI === namespaces.svg;
 
 		this.update();
 	},
