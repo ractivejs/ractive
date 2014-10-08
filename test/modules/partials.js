@@ -323,6 +323,39 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( ractive.toHTML(), '<div>Foo ...</div>' );
 		});
+
+		test( 'Merging dynamic partials (#1313)', function ( t ) {
+			var ractive, fields, inputs;
+
+			fields = [
+				{ label: 'greeting', type: 'text', value: 'hello' },
+				{ label: 'due date', type: 'date', value: '2014-10-08' }
+			];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#each fields}}
+						<label>{{label}}: {{> type + 'Field' }}</label>
+					{{/each}}`,
+				data: {
+					fields: fields
+				},
+				partials: {
+					textField: '<input value="{{value}}">',
+					dateField: '<input type="date" value="{{value}}">'
+				}
+			});
+
+			fields = [ fields[1], fields[0] ];
+			ractive.merge( 'fields', fields );
+			t.htmlEqual( fixture.innerHTML, '<label>due date: <input type="date"></label><label>greeting: <input></label>' );
+
+			inputs = ractive.findAll( 'input' );
+
+			t.equal( inputs[0].value, '2014-10-08' );
+			t.equal( inputs[1].value, 'hello' );
+		});
 	};
 
 });
