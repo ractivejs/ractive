@@ -323,6 +323,18 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<ul><li>c</li><li>b</li><li>d</li><li>a</li></ul>' );
 		});
 
+		test( 'Merging works with unrendered instances (#1314)', function ( t ) {
+			var ractive = new Ractive({
+				template: "{{#items}}{{.}}{{/}}",
+				data: {
+					items: [ 'a','b' ]
+				}
+			});
+
+			ractive.merge( 'items', [ 'b', 'a' ]);
+			t.htmlEqual( ractive.toHTML(), 'ba' );
+		});
+
 	};
 
 	function isOrphan ( node ) {
