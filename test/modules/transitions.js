@@ -232,5 +232,35 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			t.equal( objects.length, 2 );
 			t.notEqual( objects[0], objects[1] );
 		});
+
+		asyncTest( 'An intro will be aborted if a corresponding outro begins before it completes', function ( t ) {
+			var ractive, tooLate;
+
+			expect( 0 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#showBox}}<div intro="wait:2000" outro="wait:1"></div>{{/showBox}}',
+				transitions: {
+					wait: function ( t, ms ) {
+						setTimeout( t.complete, ms );
+					}
+				}
+			});
+
+			ractive.set( 'showBox', true ).then( function ( t ) {
+				if ( !tooLate ) {
+					QUnit.start();
+				}
+			});
+
+			setTimeout( function () {
+				ractive.set( 'showBox', false );
+			}, 0 );
+
+			setTimeout( function () {
+				tooLate = true;
+			}, 200 );
+		});
 	};
 });

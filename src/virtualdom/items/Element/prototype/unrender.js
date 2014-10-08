@@ -4,6 +4,10 @@ import Transition from 'virtualdom/items/Element/Transition/_Transition';
 export default function Element$unrender ( shouldDestroy ) {
 	var binding, bindings;
 
+	if ( this.transition ) {
+		this.transition.complete();
+	}
+
 	// Detach as soon as we can
 	if ( this.name === 'option' ) {
 		// <option> elements detach immediately, so that

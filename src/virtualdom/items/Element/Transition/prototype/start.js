@@ -1,5 +1,5 @@
 export default function Transition$start () {
-	var t = this, node, originalStyle;
+	var t = this, node, originalStyle, completed;
 
 	node = t.node = t.element.node;
 	originalStyle = node.getAttribute( 'style' );
@@ -8,12 +8,18 @@ export default function Transition$start () {
 	// because we don't want `this` silliness when passing it as
 	// an argument
 	t.complete = function ( noReset ) {
+		if ( completed ) {
+			return;
+		}
+
 		if ( !noReset && t.isIntro ) {
 			resetStyle( node, originalStyle);
 		}
 
 		node._ractive.transition = null;
 		t._manager.remove( t );
+
+		completed = true;
 	};
 
 	// If the transition function doesn't exist, abort
