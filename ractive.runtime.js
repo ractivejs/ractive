@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-07 - commit 1b4b9da5 
+	2014-10-08 - commit 11227854 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6068,7 +6068,9 @@
 				firstChange = this.length;
 			}
 			this.length = this.fragments.length = newLength;
-			runloop.addView( this );
+			if ( this.rendered ) {
+				runloop.addView( this );
+			}
 			// Prepare new fragment options
 			fragmentOptions = {
 				template: this.template.f,
