@@ -10,6 +10,8 @@ import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 import config from 'config/config';
 import parser from 'config/options/template/parser';
 
+import unbind from 'virtualdom/items/shared/unbind';
+
 var Partial, Fragment;
 
 circular.push( function () {
@@ -26,6 +28,8 @@ Partial = function ( options ) {
 	this.index = options.index;
 	this.name = options.template.r;
 
+	this.fragment = this.fragmentToRender = this.fragmentToUnrender = null;
+
 	Mustache.init( this, options );
 
 	// If this didn't resolve, it most likely means we have a named partial
@@ -33,7 +37,7 @@ Partial = function ( options ) {
 	// whose name is the value of `foo`')
 	if ( !this.keypath ) {
 		if ( template = getPartialDescriptor( this.root, options.template.r ) ) {
-			this.isNamed = true;
+			unbind.call( this ); // prevent any further changes
 			this.setTemplate( template );
 		}
 	}
@@ -93,15 +97,8 @@ Partial.prototype = {
 	setValue: function ( value ) {
 		var template;
 
-		if ( this.isNamed ) {
-			// TODO unbind, so this never happens
-			console.log( 'already got a name' );
-			return;
-		}
-
 		if ( value !== undefined && value === this.value ) {
-			// nothing has changed. TODO can this happen?
-			console.log( '%cyes it can happen', 'color:green', value );
+			// nothing has changed, so no work to be done
 			return;
 		}
 
@@ -110,21 +107,15 @@ Partial.prototype = {
 		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 		// name of both a data property (whose value ISN'T the name of a partial)
 		// and a partial. In those cases, this becomes a named partial
-		if ( !template ) {
-
+		if ( !template && ( template = getPartialDescriptor( this.root, this.name ) ) ) {
+			unbind.call( this );
 		}
 
-		if ( template = getPartialDescriptor( this.root, '' + value ) ) {
-			console.log( 'template', template );
-		} else if ( template = getPartialDescriptor( this.root, this.name ) ) {
-			// TODO should only happen once. Put it in init sequence somehow?
-			this.isNamed = true;
-			console.log( 'isNamed', this.name );
-		} else {
+		if ( !template ) {
 			log.error({
 				debug: this.root.debug,
 				message: 'noTemplateForPartial',
-				args: { name: value }
+				args: { name: this.name }
 			});
 		}
 
@@ -150,6 +141,7 @@ Partial.prototype = {
 			owner: this,
 			pElement: this.parentFragment.pElement
 		});
+
 		this.fragmentToRender = this.fragment;
 	},
 
