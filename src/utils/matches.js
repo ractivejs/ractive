@@ -1,17 +1,14 @@
-define([ 'config/isClient' ], function ( isClient ) {
-	
-	'use strict';
+import isClient from 'config/isClient';
+import vendors from 'config/vendors';
+import createElement from 'utils/createElement';
 
-	var div, methodNames, unprefixed, prefixed, vendors, i, j, makeFunction;
+var matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 
-	if ( !isClient ) {
-		return;
-	}
-
-	div = document.createElement( 'div' );
-
+if ( !isClient ) {
+	matches = null;
+} else {
+	div = createElement( 'div' );
 	methodNames = [ 'matches', 'matchesSelector' ];
-	vendors = [ 'o', 'ms', 'moz', 'webkit' ];
 
 	makeFunction = function ( methodName ) {
 		return function ( node, selector ) {
@@ -20,37 +17,54 @@ define([ 'config/isClient' ], function ( isClient ) {
 	};
 
 	i = methodNames.length;
-	while ( i-- ) {
+
+	while ( i-- && !matches ) {
 		unprefixed = methodNames[i];
 
 		if ( div[ unprefixed ] ) {
-			return makeFunction( unprefixed );
-		}
+			matches = makeFunction( unprefixed );
+		} else {
+			j = vendors.length;
+			while ( j-- ) {
+				prefixed = vendors[i] + unprefixed.substr( 0, 1 ).toUpperCase() + unprefixed.substring( 1 );
 
-		j = vendors.length;
-		while ( j-- ) {
-			prefixed = vendors[i] + unprefixed.substr( 0, 1 ).toUpperCase() + unprefixed.substring( 1 );
-
-			if ( div[ prefixed ] ) {
-				return makeFunction( prefixed );
+				if ( div[ prefixed ] ) {
+					matches = makeFunction( prefixed );
+					break;
+				}
 			}
 		}
 	}
 
 	// IE8...
-	return function ( node, selector ) {
-		var nodes, i;
+	if ( !matches ) {
+		matches = function ( node, selector ) {
+			var nodes, parentNode, i;
 
-		nodes = ( node.parentNode || node.document ).querySelectorAll( selector );
+			parentNode = node.parentNode;
 
-		i = nodes.length;
-		while ( i-- ) {
-			if ( nodes[i] === node ) {
-				return true;
+			if ( !parentNode ) {
+				// empty dummy <div>
+				div.innerHTML = '';
+
+				parentNode = div;
+				node = node.cloneNode();
+
+				div.appendChild( node );
 			}
-		}
 
-		return false;
-	};
+			nodes = parentNode.querySelectorAll( selector );
 
-});
+			i = nodes.length;
+			while ( i-- ) {
+				if ( nodes[i] === node ) {
+					return true;
+				}
+			}
+
+			return false;
+		};
+	}
+}
+
+export default matches;

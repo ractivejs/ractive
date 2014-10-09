@@ -1,51 +1,14 @@
-define( function () {
-	
-	'use strict';
+import getMatchingKeypaths from 'shared/getMatchingKeypaths';
 
-	return function ( ractive, pattern ) {
-		var keys, key, values, toGet, newToGet, expand, concatenate;
+export default function getPattern ( ractive, pattern ) {
+	var matchingKeypaths, values;
 
-		keys = pattern.split( '.' );
-		toGet = [];
+	matchingKeypaths = getMatchingKeypaths( ractive, pattern );
 
-		expand = function ( keypath ) {
-			var value, key;
+	values = {};
+	matchingKeypaths.forEach( keypath => {
+		values[ keypath ] = ractive.get( keypath );
+	});
 
-			value = ( ractive._wrapped[ keypath ] ? ractive._wrapped[ keypath ].get() : ractive.get( keypath ) );
-
-			for ( key in value ) {
-				newToGet.push( keypath + '.' + key );
-			}
-		};
-
-		concatenate = function ( keypath ) {
-			return keypath + '.' + key;
-		};
-
-		while ( key = keys.shift() ) {
-			if ( key === '*' ) {
-				newToGet = [];
-
-				toGet.forEach( expand );
-				toGet = newToGet;
-			}
-
-			else {
-				if ( !toGet[0] ) {
-					toGet[0] = key;
-				} else {
-					toGet = toGet.map( concatenate );
-				}
-			}
-		}
-
-		values = {};
-
-		toGet.forEach( function ( keypath ) {
-			values[ keypath ] = ractive.get( keypath );
-		});
-
-		return values;
-	};
-
-});
+	return values;
+}

@@ -1,38 +1,31 @@
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import Promise from 'utils/Promise';
+import removeFromArray from 'utils/removeFromArray';
+
+var teardownHook = new Hook( 'teardown' );
+
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
-define([
-	'shared/makeTransitionManager',
-	'shared/clearCache'
-], function (
-	makeTransitionManager,
-	clearCache
-) {
-	
-	'use strict';
 
-	return function ( complete ) {
-		var keypath, transitionManager, previousTransitionManager;
+export default function Ractive$teardown ( callback ) {
+	var promise;
 
-		this.fire( 'teardown' );
+	this.fragment.unbind();
+	this.viewmodel.teardown();
 
-		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+	if ( this.fragment.rendered && this.el.__ractive_instances__ ) {
+		removeFromArray( this.el.__ractive_instances__, this );
+	}
 
-		this.fragment.teardown( true );
+	this.shouldDestroy = true;
+	promise = ( this.fragment.rendered ? this.unrender() : Promise.resolve() );
 
-		// Cancel any animations in progress
-		while ( this._animations[0] ) {
-			this._animations[0].stop(); // it will remove itself from the index
-		}
+	teardownHook.fire( this );
 
-		// Clear cache - this has the side-effect of unregistering keypaths from modified arrays.
-		for ( keypath in this._cache ) {
-			clearCache( this, keypath );
-		}
+	if ( callback ) {
+		// TODO deprecate this?
+		promise.then( callback.bind( this ) );
+	}
 
-		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
-		transitionManager.ready();
-	};
-
-});
+	return promise;
+}

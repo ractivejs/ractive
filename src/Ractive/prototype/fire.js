@@ -1,19 +1,10 @@
-define( function () {
-	
-	'use strict';
+import fireEvent from 'Ractive/prototype/shared/fireEvent';
 
-	return function ( eventName ) {
-		var args, i, len, subscribers = this._subs[ eventName ];
+export default function Ractive$fire ( eventName ) {
 
-		if ( !subscribers ) {
-			return;
-		}
-
-		args = Array.prototype.slice.call( arguments, 1 );
-
-		for ( i=0, len=subscribers.length; i<len; i+=1 ) {
-			subscribers[i].apply( this, args );
-		}
+	var options = {
+		args: Array.prototype.slice.call( arguments, 1 )
 	};
 
-}); 
+	fireEvent( this, eventName, options );
+}

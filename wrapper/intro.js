@@ -1,3 +1,6 @@
 (function ( global ) {
 
-'use strict';
+	'use strict';
+
+	var noConflict = global.Ractive;
+

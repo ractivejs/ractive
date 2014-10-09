@@ -1,51 +1,28 @@
-define([
-	'shared/makeTransitionManager',
-	'shared/attemptKeypathResolution',
-	'shared/clearCache',
-	'shared/notifyDependants',
-	'shared/processDeferredUpdates'
-], function (
-	makeTransitionManager,
-	attemptKeypathResolution,
-	clearCache,
-	notifyDependants,
-	processDeferredUpdates
-) {
-	
-	'use strict';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import runloop from 'global/runloop';
 
-	return function ( keypath, complete ) {
-		var transitionManager, previousTransitionManager;
+var updateHook = new Hook( 'update' );
 
-		if ( typeof keypath === 'function' ) {
-			complete = keypath;
-			keypath = '';
-		}
+export default function Ractive$update ( keypath, callback ) {
+	var promise;
 
-		// manage transitions
-		previousTransitionManager = this._transitionManager;
-		this._transitionManager = transitionManager = makeTransitionManager( this, complete );
+	if ( typeof keypath === 'function' ) {
+		callback = keypath;
+		keypath = '';
+	} else {
+		keypath = keypath || '';
+	}
 
-		// if we're using update, it's possible that we've introduced new values, and
-		// some unresolved references can be dealt with
-		attemptKeypathResolution( this );
+	promise = runloop.start( this, true );
 
-		clearCache( this, keypath || '' );
-		notifyDependants( this, keypath || '' );
+	this.viewmodel.mark( keypath );
+	runloop.end();
 
-		processDeferredUpdates( this );
+	updateHook.fire( this, keypath );
 
-		// transition manager has finished its work
-		this._transitionManager = previousTransitionManager;
-		transitionManager.ready();
+	if ( callback ) {
+		promise.then( callback.bind( this ) );
+	}
 
-		if ( typeof keypath === 'string' ) {
-			this.fire( 'update', keypath );
-		} else {
-			this.fire( 'update' );
-		}
-
-		return this;
-	};
-
-});
+	return promise;
+}

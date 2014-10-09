@@ -1,9 +1,5 @@
-define([ 'Ractive/prototype/shared/add' ], function ( add ) {
-	
-	'use strict';
+import add from 'Ractive/prototype/shared/add';
 
-	return function ( keypath, d ) {
-		add( this, keypath, ( d === undefined ? 1 : d ) );
-	};
-
-});
+export default function Ractive$add ( keypath, d ) {
+	return add( this, keypath, ( d === undefined ? 1 : +d ) );
+}

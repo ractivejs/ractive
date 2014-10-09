@@ -1,11 +1,194 @@
 Changelog
 ---------
 
+* 0.6.0
+	* Breaking changes:
+		* `new Ractive()` now inherits all options as methods/properties including event hooks.
+		* The deprecated `init()` function (see below) is mapped to `onrender()` and will fire more than once, and no longer contains options argument
+		* New reserved events (see below)
+		* Setting uninitialised data on a component will no longer cause it to leak out into the parent scope
+		* 'Smart updates', via `ractive.merge()` and `ractive.shift()` etc, work across component boundaries
+	* Deprecated:
+		* `beforeInit()`, `init()`, and `complete()` - replaced with `onconstruct()`, `onrender()` and `oncomplete()` methods
+	* New features
+		* Event hooks: `onconstruct()`, `onconfig()`, `oninit()`, `onrender()`, `oncomplete()`, `onunrender()`, `onteardown()`. These all have equivalent events, e.g. `this.on('render',...)`, which are reserved (i.e. you cannot use them as proxy events in templates)
+		* Conditional attributes, e.g. `<div {{#if selected}}class='selected'{{/if}}>...</div>`
+		* Safe to specify touch events for browsers that do not support them
+		* Added support for `{{else}}` in `{{#with}}` block
+		* Added support for `{{#each...}}...{{else}}...{{/each}}` with empty objects (#1299)
+		* Within event handlers, the `event` object is available as `this.event`, and has a `name` property (useful alongside `ractive.on('*',...)`).
+		* Character position is include alongside line and column information when parsing with `includeLinePositions: true`
+		* Computed values and expressions are more efficient, and will not recompute unnecessarily
+	* Fixes for #868, #871, #1046, #1184, #1206, #1208, #1209, #1220, #1228, #1232, #1239, #1275, #1278, #1294, #1295, #1305, #1313, #1314, #1320 plus a few IE8 bugs
+
+* 0.5.8
+	* Huge parser speed boost (see #1227)
+	* Fixes for #1204, #1214, #1218, #1221, #1223
+	* Partial names can be specified dynamically as references or expressions
+
+* 0.5.7
+	* Release script got pooched; there was a tag mix-up of some sort with npm and 0.5.6 contained source files but not all the build files.
+	* Fixes for #1166, #1169, #1174, and #1183
+
+* 0.5.6
+	* Breaking changes:
+		* Use of other elements besides `<script>` for templates is an error
+		* Removed CSS length interpolator
+	* New features
+		* `{{yield}}` operator - see https://github.com/ractivejs/ractive/pull/1141
+		* Event bubbling - see https://github.com/ractivejs/ractive/pull/1117
+		* Method calls from templates - see https://github.com/ractivejs/ractive/pull/1146
+		* Parse errors contain `line` and `character` data for debugging inside live editors
+		* Partials have an optional context, e.g. `{{>item foo}}`
+	* Fixes for #618, #837, #983, #990, #995, #996, #1003, #1007, #1009, #1011, #1014, #1019, #1024, #1033, #1035, #1036, #1038, #1055, #1053, #1057, #1072, #1074, #1078, #1079, #1082, #1094, #1104, #1106, #1109, #1121, #1124, #1128, #1133, #1134, #1137, #1147, #1149, #1155, #1157
+	* Other changes
+		* Initial changes from `ractive.animate()` are applied immediately, not on the next frame
+
+* 0.5.5
+	* Fixes for #713, #941, #942, #943, #945, #950, #951, #952, #953, #960, #965, #967 and #974
+* 0.5.2, 0.5.3, 0.5.4
+	* No actual changes, just wrestling with npm and bower!
+* 0.5.1
+	* Fix for #939
+* 0.5.0
+	* Code organisation
+		* Codebase is now structured as ES6 modules, which can use new ES6 features such as arrow functions
+		* Simpler, more efficient runloop
+		* Encapsulated viewmodel logic
+
+	* Breaking changes:
+		* errors in observers and evaluators are no longer caught
+		* Nodes are detached as soon as any outro transitions are complete (if any), rather than when *all* transitions are complete
+		* The options argument of `init: function(options)` is now strictly what was passed into the constructor, use `this.option` to access configured value.
+		* `data` with properties on prototype are no longer cloned when accessed. `data` from "baseClass" is no longer deconstructed and copied.
+		* Use of a `<script>` tag for specifying inline templates is not enforced.
+		* Options specified on component constructors will not be picked up as defaults. `debug` now on `defaults`, not constructor
+		* Select bindings follow general browser rules for choosing options. Disabled options have no value.
+		* Input values are not coerced to numbers, unless input type is `number` or `range`
+		* `{{this.foo}}` in templates now means same thing as `{{.foo}}`
+		* Rendering to an element already render by Ractive causes that element to be torn down (unless appending).
+		* Illegal javascript no longer allowed by parser in expressions and will throw
+		* Parsed template format changed to specify template spec version.
+			* Proxy-event representation
+			* Non-dynamic (bound) fragments of html are no longer stored as single string
+			* See https://github.com/ractivejs/template-spec for current spec.
+		* Arrays being observed via `array.*` no longer send `item.length` event on mutation changes
+		* Reserved event names in templates ('change', 'reset', 'teardown', 'update') will cause the parser to throw an error
+		* `{{else}}` support in both handlebars-style blocks and regular mustache conditional blocks, but is now a restricted keyword that cannot be used as a regular reference
+		* Child components are created in data order
+		* Keypath expressions resolve left to right and follow same logic as regular mustache references (bind to root, not context, if left-most part is unresolved).
+		* Improved attribute parsing and handling:
+			* character escaping and whitespace handling in attribute directive arguments
+			* boolean and empty string attributes
+
+	* Other new features
+		* Better errors and debugging info
+			* Duplicate, repetitive console.warn messages are not repeated.
+			* Improved error handling and line numbers for parsing
+			* Warn on bad two-way radio bindings
+	    * Support for handlebars style blocks: `#if`, `#with`, `#each`, `#unless` and corresponding `@index` and `@key`
+		* Array mutation methods are now also available as methods on `Ractive.prototype` - e.g. `ractive.push('items', newItem)`. The return value is a Promise that fulfils when any transitions complete
+		* Support for static mustache delimiters that do one-time binding
+		* `{{./foo}}` added as alias for `{{.foo}}`
+		* Leading `~/` keypath specifier, eg `{{~/foo}}`, for accessing root data context in keypaths
+		* Observers with wildcards now receive actual wildcard values as additional arguments
+		* The following plugins: adaptors, components, decorators, easing, events, interpolators, partials, transitions, when used in components will be looked up in the view hierarchy if they cannot be found in the inheritance chain.
+		* `ractive.set` supports pattern observers, eg `ractive.set('foo.*.bar')`
+		* Support for specifying multiple events in single `on`, eg `ractive.on( 'foo bar baz', handleFooBarOrBaz )`
+		* Unnecessary leading and trailing whitespace in templates is removed
+		* Better support for post-init render/insert
+		* Computed properties can be updated with `ractive.update(property)`
+		* `updateModel` returns a `Promise`
+		* Media queries work correctly in encapsulated component CSS
+		* `Component.extend` is writable (can be extended)
+		* `append` option can now take a target element, behavior same as `ractive.insert`
+		* All configuration options, except plugin registries, can be specified on `Ractive.defaults` and `Component.defaults`
+		* Any configuration option except registries and computed properties can be specfied using a function that returns a value
+		* `ractive.reset()` will re-render if template or partial specified by a function changes its value
+		* New `ractive.resetTemplate()` method that re-renders with new template
+		* Value of key/value pair for partials and components can be specified using a function
+		* `ractive.off()` returns instance making it chainable
+		* Improved support for extending Components with Components
+
+	* Bug fixes:
+	    * Component names not restricted by array method name conflicts
+	    * Ensure all change operations update DOM synchronously
+	    * Unrooted and unresolved keypath expression work correctly
+	    * Uppercase tag names bind correctly
+	    * Falsey values in directives (`0`,`''`, `false`, etc)
+	    * IE8 fixes and working test suite
+	    * Keypath expressions in binding attributes
+	    * Edge case for keypath expression that include regular expression
+	    * Input blur correctly updates model AND view
+	    * Component parameters data correctly sync with parents
+	    * Correct components.json format
+	    * Variety of edge cases with rebindings caused by array mutations
+	    * Partials aware of parent context
+	    * `foreignObject` correctly defaults to HTML namespace
+	    * Edge cases with bind, rebind, unrender in Triples
+	    * Sections (blocks) in attributes
+	    * Remove unncessary evaluator function calls
+	    * Incorrect "Computed properties without setters are read-only in the current version" error
+	    * Handle emulated touch events for nodes that are defined on `window` in the browser
+	    * Never initialiased decorators being torndown
+	    * File inputs without mustache refs are not bound
+	    * Pattern observers with empty array
+	    * Callbacks that throw cause promise reject
+	    * Clean-up `input` and `option` binding edge cases
+	    * Using `this._super` safe if baseclass or it's method doesn't actually exist.
+	    * Leading `.` on keypaths do not throw errors and are removed for purposes of processing
+	    * Post-blur validation via observer works correctly
+	    * Radio buttons with static attributes work correctly
+	    * DOCTYPE declarations are uppercased
+	    * Transitioned elements not detaching if window is not active
+	    * CSS transitions apply correctly
+	    * wildcard `*` can be used as first part of observer keypath
+
+* 0.4.0
+	* BREAKING: Filenames are now lowercase. May affect you if you use Browserify etc.
+	* BREAKING: `set()`, `update()`, `teardown()`, `animate()`, `merge()`, `add()`, `subtract()`, and `toggle()` methods return a Promise that fulfils asynchronously when any resulting transitions have completed
+	* BREAKING: Elements are detached when *all* transitions are complete for a given instance, not just transitions on descendant nodes
+	* BREAKING: Default options are placed on `Ractive.defaults` (and `Component.defaults`, where `Component = Ractive.extend(...)`)
+	* BREAKING: The `adaptors` option is now `adapt`. It can be a string rather than an array if you're only using one adaptor
+	* Reactive computed properties
+	* Two-way binding works with 'keypath expressions' such as `{{foo[bar]}}`
+	* Support for single-file component imports via loader plugins such as http://ractivejs.github.io/ractive-load/
+	* A global runloop handles change propagation and other batchable operations, resulting in performance improvements across the board
+	* Promises are used internally, and exposed as `Ractive.Promise` (Promises/A+ compliant, a la ES6 Promises)
+	* Components can have encapsulated styles, passed in as the `css` option (disable with `noCssTransform: true`)
+	* `ractive.reset()` method allows you to replace an instance's `data` object
+	* Decorators are updated when their arguments change (with specified `update()` method if possible, otherwise by tearing down and reinitialising)
+	* Inline components inherit surrounding data context, unless defined with `isolated: true`
+	* Transitions will use JavaScript timers if CSS transitions are unavailable
+	* A global variable (`window.Ractive`) is always exported, but `Ractive.noConflict()` is provided to prevent clobbering existing `Ractive` variable
+	* Inline component `init()` methods are only called once the component has entered the DOM
+	* Any section can be closed with `{{/...}}`, where `...` can be any string other than the closing delimiter
+	* Evaluators that throw exceptions will print an error to the console in debug mode
+	* `ractive.observe(callback)` - i.e. with no keypath - observes everything
+	* `ractive.observe('foo bar baz', callback)` will observe all three keypaths (passed to callback as third argument)
+	* Better whitespace preservation and indenting when using `ractive.toHTML()`
+	* Calling `ractive.off()` with no arguments removes all event listeners
+	* Triples work inside SVG elements
+	* `<option>{{foo}}</option>` works the same as `<option value='{{foo}}'>{{foo}}</option>`
+	* More robust data/event propagation between components
+	* More robust magic mode
+	* Fixed a host of edge case bugs relating to array mutations
+	* Many minor fixes and tweaks: #349, #351, #353, #369, #370, #376, #377, #390, #391, #393, #398, #401, #406, #412, #425, #433, #434, #439, #441, #442, #446, #451, #460, #462, #464, #465, #467, #479, #480, #483, #486, #520, #530, #536, #553, #556
+* 0.3.9
+    * `ractive.findComponent()` and `ractive.findAllComponents()` methods, for getting references to components
+	* Expression results are wrapped if necessary (e.g. `{{getJSON(url)}}` wrapped by [@lluchs](https://github.com/lluchs)' [Promise adaptor](lluchs.github.io/Ractive-adaptors-Promise/))
+    * Mustaches referring to wrapped values render the facade, not the value
+    * Directive arguments are parsed more reliably
+    * Components inherit adaptors from their parents
+    * Adapto
+    * Changes to [transitions API](http://docs.ractivejs.org/latest/transitions)
+    * SVG support is detected and exposed as `Ractive.svg`
+	* If subclass has data, it is used as prototype for instance data
 * 0.3.8
     * Reorganised project into AMD modules, using [amdclean](https://github.com/gfranko/amdclean) during build
-    * Decorators - decorate elements with functionality, e.g. tooltips, jQuery UI widgets, etc ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Decorators))
-    * Moved plugins (adaptors, decorators, custom events, transitions) out of the main codebase and into [separate repositories](https://github.com/RactiveJS/Ractive/wiki/Plugins). Note: [plugin APIs](https://github.com/RactiveJS/Ractive/wiki/Plugin-APIs) have changed!
-    * `ractive.merge()` - merge items from one array into another (e.g. updating with data from a server) ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/ractive.merge%28%29))
+    * [Decorators](http://docs.ractivejs.org/latest/decorators) - decorate elements with functionality, e.g. tooltips, jQuery UI widgets, etc
+    * Moved plugins (adaptors, decorators, custom events, transitions) out of the main codebase and into [separate repositories](https://github.com/RactiveJS/Ractive/wiki/Plugins). Note: [plugin APIs](http://docs.ractivejs.org/latest/plugin-apis) have changed!
+    * [`ractive.merge()`](http://docs.ractivejs.org/latest/ractive-merge) - merge items from one array into another (e.g. updating with data from a server)
     * Pattern observers - observe e.g. `items[*].status`
     * Contenteditable support (thanks [@aphitiel](https://github.com/aphitiel) and [@Nijikokun](https://github.com/Nijikokun))
     * `ractive.insert()` and `ractive.detach()` methods for moving a Ractive instance in and out of the DOM without destroying it
@@ -13,10 +196,10 @@ Changelog
     * `ractive.findAll( selector, { live: true })` maintains a live list of elements matching any CSS selector
     * Various bugfixes
 * 0.3.7
-    * Adaptors - use external libraries like Backbone seamlessly with Ractive ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/Adaptors))
+    * [Adaptors](http://docs.ractivejs.org/latest/adaptors) - use external libraries like Backbone seamlessly with Ractive
     * Dependency tracking within functions, by monitoring `ractive.get()`)
-    * Create live nodelists with the `findAll()` method ([docs on the wiki](https://github.com/RactiveJS/Ractive/wiki/ractive.findAll%28%29)
-    * Observers are guaranteed to fire before DOM updates, unless `{defer:true}` is passed as an option to `ractive.observe()` ([docs](https://github.com/RactiveJS/Ractive/wiki/ractive.observe%28%29))
+    * Create live nodelists with the [`findAll()`](http://docs.ractivejs.org/latest/ractive-findall) method
+    * Observers are guaranteed to fire before DOM updates, unless `{defer:true}` is passed as an option to [`ractive.observe()`](http://docs.ractivejs.org/latest/ractive-observe)
     * Triples behave correctly inside table elements etc (issue #167)
     * Delimiters ('{{' and '}}') can be overridden globally with `Ractive.delimiters` and `Ractive.tripleDelimiters`
     * Fix #130 (event handler parameters and array modification)

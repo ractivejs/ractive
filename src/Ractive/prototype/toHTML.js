@@ -1,9 +1,3 @@
-define( function () {
-	
-	'use strict';
-
-	return function () {
-		return this.fragment.toString();
-	};
-
-});
+export default function Ractive$toHTML () {
+	return this.fragment.toString( true );
+}

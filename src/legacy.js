@@ -1,11 +1,14 @@
-(function ( win ) {
+var win, doc, exportedShims;
 
-	'use strict';
-
-	var doc = win.document;
+if ( typeof window === 'undefined' ) {
+	exportedShims = null;
+} else {
+	win = window;
+	doc = win.document;
+	exportedShims = {};
 
 	if ( !doc ) {
-		return;
+		exportedShims = null;
 	}
 
 	// Shims for older browsers
@@ -14,22 +17,11 @@
 		Date.now = function () { return +new Date(); };
 	}
 
-	if ( !doc.createElementNS ) {
-		doc.createElementNS = function ( ns, type ) {
-			if ( ns && ns !== 'http://www.w3.org/1999/xhtml' ) {
-				throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See https://github.com/RactiveJS/Ractive/wiki/SVG-and-older-browsers for more information';
-			}
-
-			return doc.createElement( type );
-		};
-	}
-
 	if ( !String.prototype.trim ) {
 		String.prototype.trim = function () {
 			return this.replace(/^\s+/, '').replace(/\s+$/, '');
 		};
 	}
-
 
 	// Polyfill for Object.keys
 	// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/keys
@@ -73,7 +65,8 @@
 		}());
 	}
 
-	
+	// TODO: use defineProperty to make these non-enumerable
+
 	// Array extras
 	if ( !Array.prototype.indexOf ) {
 		Array.prototype.indexOf = function ( needle, i ) {
@@ -115,15 +108,59 @@
 
 	if ( !Array.prototype.map ) {
 		Array.prototype.map = function ( mapper, context ) {
-			var i, len, mapped = [];
+			var array = this, i, len, mapped = [], isActuallyString;
 
-			for ( i=0, len=this.length; i<len; i+=1 ) {
-				if ( this.hasOwnProperty( i ) ) {
-					mapped[i] = mapper.call( context, this[i], i, this );
+			// incredibly, if you do something like
+			// Array.prototype.map.call( someString, iterator )
+			// then `this` will become an instance of String in IE8.
+			// And in IE8, you then can't do string[i]. Facepalm.
+			if ( array instanceof String ) {
+				array = array.toString();
+				isActuallyString = true;
+			}
+
+			for ( i=0, len=array.length; i<len; i+=1 ) {
+				if ( array.hasOwnProperty( i ) || isActuallyString ) {
+					mapped[i] = mapper.call( context, array[i], i, array );
 				}
 			}
 
 			return mapped;
+		};
+	}
+
+	if ( typeof Array.prototype.reduce !== 'function' ) {
+		Array.prototype.reduce = function(callback, opt_initialValue){
+			var i, value, len, valueIsSet;
+
+			if ('function' !== typeof callback) {
+				throw new TypeError(callback + ' is not a function');
+			}
+
+			len = this.length;
+			valueIsSet = false;
+
+			if ( arguments.length > 1 ) {
+				value = opt_initialValue;
+				valueIsSet = true;
+			}
+
+			for ( i = 0; i < len; i += 1) {
+				if ( this.hasOwnProperty( i ) ) {
+					if ( valueIsSet ) {
+						value = callback(value, this[i], i, this);
+					}
+				} else {
+					value = this[i];
+					valueIsSet = true;
+				}
+			}
+
+			if ( !valueIsSet ) {
+				throw new TypeError( 'Reduce of empty array with no initial value' );
+			}
+
+			return value;
 		};
 	}
 
@@ -141,13 +178,91 @@
 		};
 	}
 
+	if ( !Array.prototype.every ) {
+		Array.prototype.every = function ( iterator, context ) {
+			var t, len, i;
 
+			if ( this == null ) {
+				throw new TypeError();
+			}
+
+			t = Object( this );
+			len = t.length >>> 0;
+
+			if ( typeof iterator !== 'function' ) {
+				throw new TypeError();
+			}
+
+			for ( i = 0; i < len; i += 1 ) {
+				if ( i in t && !iterator.call( context, t[i], i, t) ) {
+					return false;
+				}
+			}
+
+			return true;
+		};
+	}
+
+	/*
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
+	if (!Array.prototype.find) {
+		Array.prototype.find = function(predicate) {
+			if (this == null) {
+			throw new TypeError('Array.prototype.find called on null or undefined');
+			}
+			if (typeof predicate !== 'function') {
+			throw new TypeError('predicate must be a function');
+			}
+			var list = Object(this);
+			var length = list.length >>> 0;
+			var thisArg = arguments[1];
+			var value;
+
+			for (var i = 0; i < length; i++) {
+				if (i in list) {
+					value = list[i];
+					if (predicate.call(thisArg, value, i, list)) {
+					return value;
+					}
+				}
+			}
+			return undefined;
+		}
+	}
+	*/
+
+	if ( typeof Function.prototype.bind !== 'function' ) {
+		Function.prototype.bind = function ( context ) {
+			var args, fn, Empty, bound, slice = [].slice;
+
+			if ( typeof this !== 'function' ) {
+				throw new TypeError( 'Function.prototype.bind called on non-function' );
+			}
+
+			args = slice.call( arguments, 1 );
+			fn = this;
+			Empty = function () {};
+
+			bound = function () {
+				var ctx = this instanceof Empty && context ? this : context;
+				return fn.apply( ctx, args.concat( slice.call( arguments ) ) );
+			};
+
+			Empty.prototype = this.prototype;
+			bound.prototype = new Empty();
+
+			return bound;
+		};
+	}
 
 	// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
 	// addEventListener polyfill IE6+
 	if ( !win.addEventListener ) {
-		(function ( win, doc ) {
+		((function(win, doc) {
 			var Event, addEventListener, removeEventListener, head, style, origCreateElement;
+
+			// because sometimes inquiring minds want to know
+			win.appearsToBeIELessEqual8 = true;
 
 			Event = function ( e, element ) {
 				var property, instance = this;
@@ -174,7 +289,7 @@
 
 				listeners = element.listeners || ( element.listeners = [] );
 				i = listeners.length;
-				
+
 				listeners[i] = [ listener, function (e) {
 					listener.call( element, new Event( e, element ) );
 				}];
@@ -203,8 +318,8 @@
 			win.removeEventListener = doc.removeEventListener = removeEventListener;
 
 			if ( 'Element' in win ) {
-				Element.prototype.addEventListener = addEventListener;
-				Element.prototype.removeEventListener = removeEventListener;
+				win.Element.prototype.addEventListener = addEventListener;
+				win.Element.prototype.removeEventListener = removeEventListener;
 			} else {
 				// First, intercept any calls to document.createElement - this is necessary
 				// because the CSS hack (see below) doesn't come into play until after a
@@ -227,13 +342,17 @@
 
 				//style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
 			}
-		}( win, doc ));
+		})( win, doc ));
 	}
 
+	// The getComputedStyle polyfill interacts badly with jQuery, so we don't attach
+	// it to window. Instead, we export it for other modules to use as needed
 
 	// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
 	if ( !win.getComputedStyle ) {
-		win.getComputedStyle = (function () {
+		exportedShims.getComputedStyle = (function () {
+			var borderSizes = {};
+
 			function getPixelSize(element, style, property, fontSize) {
 				var
 				sizeWithSuffix = style[property],
@@ -241,10 +360,41 @@
 				suffix = sizeWithSuffix.split(/\d/)[0],
 				rootSize;
 
+				if ( isNaN( size ) ) {
+					if ( /^thin|medium|thick$/.test( sizeWithSuffix ) ) {
+						size = getBorderPixelSize( sizeWithSuffix );
+						suffix = '';
+					}
+
+					else {
+						// TODO...
+					}
+				}
+
 				fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
 				rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
 
 				return (suffix == 'em') ? size * fontSize : (suffix == 'in') ? size * 96 : (suffix == 'pt') ? size * 96 / 72 : (suffix == '%') ? size / 100 * rootSize : size;
+			}
+
+			function getBorderPixelSize ( size ) {
+				var div, bcr;
+
+				// `thin`, `medium` and `thick` vary between browsers. (Don't ever use them.)
+				if ( !borderSizes[ size ] ) {
+					div = document.createElement( 'div' );
+					div.style.display = 'block';
+					div.style.position = 'fixed';
+					div.style.width = div.style.height = '0';
+					div.style.borderRight = size + ' solid black';
+
+					document.getElementsByTagName( 'body' )[0].appendChild( div );
+					bcr = div.getBoundingClientRect();
+
+					borderSizes[ size ] = bcr.right - bcr.left;
+				}
+
+				return borderSizes[ size ];
 			}
 
 			function setShortStyleProperty(style, property) {
@@ -268,9 +418,23 @@
 				style = this;
 				fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
 
+				// TODO tidy this up, test it, send PR to jonathantneal!
 				for (property in currentStyle) {
-					if (/width|height|margin.|padding.|border.+W/.test(property) && style[property] !== 'auto') {
-						style[property] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
+					if ( /width|height|margin.|padding.|border.+W/.test(property) ) {
+						if ( currentStyle[ property ] === 'auto' ) {
+							if ( /^width|height/.test( property ) ) {
+								// just use clientWidth/clientHeight...
+								style[ property ] = ( property === 'width' ? element.clientWidth : element.clientHeight ) + 'px';
+							}
+
+							else if ( /(?:padding)?Top|Bottom$/.test( property ) ) {
+								style[ property ] = '0px';
+							}
+						}
+
+						else {
+							style[ property ] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
+						}
 					} else if (property === 'styleFloat') {
 						style.float = currentStyle[property];
 					} else {
@@ -306,5 +470,6 @@
 			return getComputedStyle;
 		}());
 	}
+}
 
-}( typeof window !== 'undefined' ? window : this ));
+export default exportedShims;

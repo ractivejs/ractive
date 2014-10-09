@@ -1,26 +1,22 @@
-define([ 'utils/isArray' ], function ( isArray ) {
-	
-	'use strict';
+import isArray from 'utils/isArray';
 
-	return function ( a, b ) {
-		var i;
+export default function ( a, b ) {
+	var i;
 
-		if ( !isArray( a ) || !isArray( b ) ) {
+	if ( !isArray( a ) || !isArray( b ) ) {
+		return false;
+	}
+
+	if ( a.length !== b.length ) {
+		return false;
+	}
+
+	i = a.length;
+	while ( i-- ) {
+		if ( a[i] !== b[i] ) {
 			return false;
 		}
+	}
 
-		if ( a.length !== b.length ) {
-			return false;
-		}
-
-		i = a.length;
-		while ( i-- ) {
-			if ( a[i] !== b[i] ) {
-				return false;
-			}
-		}
-
-		return true;
-	};
-
-});
+	return true;
+}

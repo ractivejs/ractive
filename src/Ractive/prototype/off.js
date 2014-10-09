@@ -1,28 +1,44 @@
-define( function () {
-	
-	'use strict';
+import trim from 'Ractive/prototype/shared/trim';
+import notEmptyString from 'Ractive/prototype/shared/notEmptyString';
 
-	return function ( eventName, callback ) {
-		var subscribers, index;
+export default function Ractive$off ( eventName, callback ) {
+	var eventNames;
 
-		// if no callback specified, remove all callbacks
-		if ( !callback ) {
-			// if no event name specified, remove all callbacks for all events
-			if ( !eventName ) {
-				this._subs = {};
-			} else {
-				this._subs[ eventName ] = [];
-			}
+	// if no arguments specified, remove all callbacks
+	if ( !eventName ) {
+		// TODO use this code instead, once the following issue has been resolved
+		// in PhantomJS (tests are unpassable otherwise!)
+		// https://github.com/ariya/phantomjs/issues/11856
+		// defineProperty( this, '_subs', { value: create( null ), configurable: true });
+		for ( eventName in this._subs ) {
+			delete this._subs[ eventName ];
 		}
+	}
 
-		subscribers = this._subs[ eventName ];
+	else {
+		// Handle multiple space-separated event names
+		eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
 
-		if ( subscribers ) {
-			index = subscribers.indexOf( callback );
-			if ( index !== -1 ) {
-				subscribers.splice( index, 1 );
+		eventNames.forEach( eventName => {
+			var subscribers, index;
+
+			// If we have subscribers for this event...
+			if ( subscribers = this._subs[ eventName ] ) {
+				// ...if a callback was specified, only remove that
+				if ( callback ) {
+					index = subscribers.indexOf( callback );
+					if ( index !== -1 ) {
+						subscribers.splice( index, 1 );
+					}
+				}
+
+				// ...otherwise remove all callbacks
+				else {
+					this._subs[ eventName ] = [];
+				}
 			}
-		}
-	};
+		});
+	}
 
-});
+	return this;
+}

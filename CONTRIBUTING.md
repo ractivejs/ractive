@@ -10,7 +10,7 @@ Got a question or need help?
 If you're having trouble getting Ractive to do what you want, there are a couple of places to get help before submitting an issue:
 
 * [Stack Overflow questions tagged ractivejs](http://stackoverflow.com/questions/tagged/ractivejs)
-* [The Ractive wiki](https://github.com/RactiveJS/Ractive/wiki)
+* [The Ractive Documentation](http://docs.ractivejs.org/latest)
 * [@RactiveJS on Twitter](http://twitter.com/RactiveJS)
 
 Of course, if you've encountered a bug, then the best course of action is to raise an issue (if no-one else has!).
@@ -19,13 +19,11 @@ Of course, if you've encountered a bug, then the best course of action is to rai
 Raising issues
 --------------
 
-Before submitting an issue, please make sure you're using the [latest released version](https://raw.github.com/RactiveJS/Ractive/master/Ractive.js).
+Before submitting an issue, please make sure you're using the latest released version - http://cdn.ractivejs.org/latest/ractive.js.
 
-If the bug persists, it may have been fixed in the latest development version. New versions are developed in branches, named for the version number (e.g. at the time of writing, the development branch is [0.3.9](https://github.com/RactiveJS/Ractive/tree/0.3.9)). You can get the most recent builds from the `build` folder of this branch.
+If the bug persists, it may have been fixed in the latest development version. You can always get the most recent successful build from http://cdn.ractivejs.org/edge/Ractive.js.
 
-See the [branches page](https://github.com/RactiveJS/Ractive/branches) to find the newest development branch.
-
-The best issues contain a reproducible demonstration of the bug in the form of a [JSFiddle](http://jsfiddle.net/WE5Ga/) or similar. A good tip when using these tools is to import Ractive via [rawgithub.com](https://rawgithub.com/), e.g. https://rawgithub.com/RactiveJS/Ractive/master/Ractive.js.
+The best issues contain a reproducible demonstration of the bug in the form of a JSFiddle or similar. [This JSFiddle](http://jsfiddle.net/rich_harris/va6jU/) has a basic setup to get started with - even better, you could create a failing test using [this fiddle](http://jsfiddle.net/rich_harris/UG7Eq/) as a base.
 
 
 Pull requests
@@ -34,7 +32,7 @@ Pull requests
 
 **Pull requests against the master branch will not be merged!**
 
-All pull requests are welcome. You should create a new branch, based on the newest development branch (see above), and submit the PR against the dev branch.
+All pull requests are welcome. You should create a new branch, based on the [dev branch](https://github.com/RactiveJS/Ractive/tree/dev), and submit the PR against the dev branch.
 
 *Caveat for what follows: If in doubt, submit the request - a PR that needs tweaking is infinitely more valuable than a request that wasn't made because you were worrying about meeting these requirements.*
 

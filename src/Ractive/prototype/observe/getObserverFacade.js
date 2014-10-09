@@ -1,57 +1,47 @@
-define([
-	'utils/normaliseKeypath',
-	'shared/registerDependant',
-	'shared/unregisterDependant',
-	'Ractive/prototype/observe/Observer',
-	'Ractive/prototype/observe/PatternObserver'
-], function (
-	normaliseKeypath,
-	registerDependant,
-	unregisterDependant,
-	Observer,
-	PatternObserver
-) {
-	
-	'use strict';
+import normaliseKeypath from 'utils/normaliseKeypath';
+import Observer from 'Ractive/prototype/observe/Observer';
+import PatternObserver from 'Ractive/prototype/observe/PatternObserver';
 
-	var wildcard = /\*/, emptyObject = {};
+var wildcard = /\*/, emptyObject = {};
 
-	return function getObserverFacade ( ractive, keypath, callback, options ) {
-		var observer, isPatternObserver;
+export default function getObserverFacade ( ractive, keypath, callback, options ) {
+	var observer, isPatternObserver, cancelled;
 
-		keypath = normaliseKeypath( keypath );
-		options = options || emptyObject;
+	keypath = normaliseKeypath( keypath );
+	options = options || emptyObject;
 
-		// pattern observers are treated differently
-		if ( wildcard.test( keypath ) ) {
-			observer = new PatternObserver( ractive, keypath, callback, options );
-			ractive._patternObservers.push( observer );
-			isPatternObserver = true;
-		} else {
-			observer = new Observer( ractive, keypath, callback, options );
-		}
-		
-		registerDependant( observer );
-		observer.init( options.init );
+	// pattern observers are treated differently
+	if ( wildcard.test( keypath ) ) {
+		observer = new PatternObserver( ractive, keypath, callback, options );
+		ractive.viewmodel.patternObservers.push( observer );
+		isPatternObserver = true;
+	} else {
+		observer = new Observer( ractive, keypath, callback, options );
+	}
 
-		// This flag allows observers to initialise even with undefined values
-		observer.ready = true;
+	ractive.viewmodel.register( keypath, observer, isPatternObserver ? 'patternObservers' : 'observers' );
+	observer.init( options.init );
 
-		return {
-			cancel: function () {
-				var index;
+	// This flag allows observers to initialise even with undefined values
+	observer.ready = true;
 
-				if ( isPatternObserver ) {
-					index = ractive._patternObservers.indexOf( observer );
+	return {
+		cancel: function () {
+			var index;
 
-					if ( index !== -1 ) {
-						ractive._patternObservers.splice( index, 1 );
-					}
-				}
-
-				unregisterDependant( observer );
+			if ( cancelled ) {
+				return;
 			}
-		};
-	};
 
-});
+			if ( isPatternObserver ) {
+				index = ractive.viewmodel.patternObservers.indexOf( observer );
+
+				ractive.viewmodel.patternObservers.splice( index, 1 );
+				ractive.viewmodel.unregister( keypath, observer, 'patternObservers' );
+			} else {
+				ractive.viewmodel.unregister( keypath, observer, 'observers' );
+			}
+			cancelled = true;
+		}
+	};
+}

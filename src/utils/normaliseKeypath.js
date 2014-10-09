@@ -1,11 +1,7 @@
-define( function () {
-	
-	'use strict';
+import normaliseRef from 'utils/normaliseRef';
 
-	var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+var leadingDot = /^\.+/;
 
-	return function ( keypath ) {
-		return keypath.replace( regex, '.$1' );
-	};
-
-});
+export default function normaliseKeypath ( keypath ) {
+	return normaliseRef( keypath ).replace( leadingDot, '' );
+}

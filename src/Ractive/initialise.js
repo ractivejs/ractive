@@ -1,246 +1,112 @@
-define([
-	'config/isClient',
-	'config/errors',
-	'utils/warn',
-	'utils/create',
-	'utils/extend',
-	'utils/defineProperties',
-	'utils/getElement',
-	'utils/isObject',
-	'Ractive/prototype/get/magicAdaptor',
-	'parse/_parse'
-], function (
-	isClient,
-	errors,
-	warn,
-	create,
-	extend,
-	defineProperties,
-	getElement,
-	isObject,
-	magicAdaptor,
-	parse
-) {
-	
-	'use strict';
+import config from 'config/config';
+import create from 'utils/create';
+import Fragment from 'virtualdom/Fragment';
+import getElement from 'utils/getElement';
+import getNextNumber from 'utils/getNextNumber';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
+import Viewmodel from 'viewmodel/Viewmodel';
 
-	var getObject, getArray, defaultOptions, extendable;
+var constructHook = new Hook( 'construct' ),
+	configHook = new Hook( 'config' ),
+	initHook = new HookQueue( 'init' );
 
-	getObject = function () { return {}; };
-	getArray = function () { return []; };
+export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
-	defaultOptions = create( null );
+	var el;
 
-	defineProperties( defaultOptions, {
-		preserveWhitespace: { enumerable: true, value: false     },
-		append:             { enumerable: true, value: false     },
-		twoway:             { enumerable: true, value: true      },
-		modifyArrays:       { enumerable: true, value: true      },
-		data:               { enumerable: true, value: getObject },
-		lazy:               { enumerable: true, value: false     },
-		debug:              { enumerable: true, value: false     },
-		transitions:        { enumerable: true, value: getObject },
-		decorators:         { enumerable: true, value: getObject },
-		events:             { enumerable: true, value: getObject },
-		noIntro:            { enumerable: true, value: false     },
-		transitionsEnabled: { enumerable: true, value: true      },
-		magic:              { enumerable: true, value: false     },
-		adaptors:           { enumerable: true, value: getArray  }
-	});
+	initialiseProperties( ractive, options );
 
-	extendable = [ 'components', 'decorators', 'events', 'partials', 'transitions' ];
+	// make this option do what would be expected if someone
+	// did include it on a new Ractive() or new Component() call.
+	// Silly to do so (put a hook on the very options being used),
+	// but handle it correctly, consistent with the intent.
+	constructHook.fire( config.getConstructTarget( ractive, options ), options );
 
-	return function ( ractive, options ) {
+	// init config from Parent and options
+	config.init( ractive.constructor, ractive, options );
 
-		var key, template, templateEl, parsedTemplate;
+	configHook.fire( ractive );
 
-		// Options
-		// -------
-		for ( key in defaultOptions ) {
-			if ( options[ key ] === undefined ) {
-				options[ key ] = ( typeof defaultOptions[ key ] === 'function' ? defaultOptions[ key ]() : defaultOptions[ key ] );
-			}
-		}
-
-
-		// Initialisation
-		// --------------
-
-		// We use Object.defineProperties (where possible) as these should be read-only
-		defineProperties( ractive, {
-			_initing: { value: true, writable: true },
-
-			// Generate a unique identifier, for places where you'd use a weak map if it
-			// existed
-			_guid: {
-				value: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-					var r, v;
-
-					r = Math.random()*16|0;
-					v = ( c == 'x' ? r : (r&0x3|0x8) );
-					return v.toString(16);
-				})
-			},
-
-			// events
-			_subs: { value: create( null ) },
-
-			// cache
-			_cache: { value: {} }, // we need to be able to use hasOwnProperty, so can't inherit from null
-			_cacheMap: { value: create( null ) },
-
-			// dependency graph
-			_deps: { value: [] },
-			_depsMap: { value: create( null ) },
-
-			_patternObservers: { value: [] },
-
-			// unresolved dependants
-			_pendingResolution: { value: [] },
-
-			// Create arrays for deferred attributes and evaluators etc
-			_deferred: { value: {} },
-
-			// Keep a list of used evaluators, so we don't duplicate them
-			_evaluators: { value: create( null ) },
-
-			// two-way bindings
-			_twowayBindings: { value: {} },
-
-			// transition manager
-			_transitionManager: { value: null, writable: true },
-
-			// animations (so we can stop any in progress at teardown)
-			_animations: { value: [] },
-
-			// nodes registry
-			nodes: { value: {} },
-
-			// property wrappers
-			_wrapped: { value: create( null ) },
-
-			// live queries
-			_liveQueries: { value: [] }
-		});
-
-		defineProperties( ractive._deferred, {
-			attrs: { value: [] },
-			evals: { value: [] },
-			selectValues: { value: [] },
-			checkboxes: { value: [] },
-			radios: { value: [] },
-			observers: { value: [] },
-			transitions: { value: [] },
-			liveQueries: { value: [] },
-			decorators: { value: [] },
-			focusable: { value: null, writable: true }
-		});
-
-		// options
-		ractive.data = options.data;
-
-		ractive.adaptors = options.adaptors;
-		ractive.modifyArrays = options.modifyArrays;
-		ractive.magic = options.magic;
-		ractive.twoway = options.twoway;
-		ractive.lazy = options.lazy;
-		ractive.debug = options.debug;
-
-		if ( ractive.magic && !magicAdaptor ) {
-			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-		}
-
-		if ( options.el ) {
-			ractive.el = getElement( options.el );
-			if ( !ractive.el && ractive.debug ) {
-				throw new Error( 'Could not find container element' );
-			}
-		}
-
-		// Create local registry objects, with the global registries as prototypes
-		if ( options.eventDefinitions ) {
-			// TODO remove support
-			warn( 'ractive.eventDefinitions has been deprecated in favour of ractive.events. Support will be removed in future versions' );
-			options.events = options.eventDefinitions;
-		}
-
-		extendable.forEach( function ( registry ) {
-			ractive[ registry ] = extend( create( ractive.constructor[ registry ] ), options[ registry ] );
-		});
-		
-
-
-		// Parse template, if necessary
-		template = options.template;
-		
-		if ( typeof template === 'string' ) {
-			if ( !parse ) {
-				throw new Error( errors.missingParser );
-			}
-
-			if ( template.charAt( 0 ) === '#' && isClient ) {
-				// assume this is an ID of a <script type='text/ractive'> tag
-				templateEl = document.getElementById( template.substring( 1 ) );
-				if ( templateEl ) {
-					parsedTemplate = parse( templateEl.innerHTML, options );
-				}
-
-				else {
-					throw new Error( 'Could not find template element (' + template + ')' );
+	// Teardown any existing instances *before* trying to set up the new one -
+	// avoids certain weird bugs
+	if ( el = getElement( ractive.el ) ) {
+		if ( !ractive.append ) {
+			if ( el.__ractive_instances__ ) {
+				try {
+					el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( r => r.teardown() );
+				} catch ( err ) {
+					// this can happen with IE8, because it is unbelievably shit. Somehow, in
+					// certain very specific situations, trying to access node.parentNode (which
+					// we need to do in order to detach elements) causes an 'Invalid argument'
+					// error to be thrown. I don't even.
 				}
 			}
 
-			else {
-				parsedTemplate = parse( template, options );
-			}
-		} else {
-			parsedTemplate = template;
+			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 		}
+	}
 
-		// deal with compound template
-		if ( isObject( parsedTemplate ) ) {
-			extend( ractive.partials, parsedTemplate.partials );
-			parsedTemplate = parsedTemplate.main;
-		}
+	initHook.begin( ractive );
 
-		// If the template was an array with a single string member, that means
-		// we can use innerHTML - we just need to unpack it
-		if ( parsedTemplate && ( parsedTemplate.length === 1 ) && ( typeof parsedTemplate[0] === 'string' ) ) {
-			parsedTemplate = parsedTemplate[0];
-		}
+	// TEMPORARY. This is so we can implement Viewmodel gradually
+	ractive.viewmodel = new Viewmodel( ractive );
 
-		ractive.template = parsedTemplate;
+	// hacky circular problem until we get this sorted out
+	// if viewmodel immediately processes computed properties,
+	// they may call ractive.get, which calls ractive.viewmodel,
+	// which hasn't been set till line above finishes.
+	ractive.viewmodel.init();
 
-		// Add partials to our registry
-		extend( ractive.partials, options.partials );
+	// Render our *root fragment*
+	if ( ractive.template ) {
+		ractive.fragment = new Fragment({
+			template: ractive.template,
+			root: ractive,
+			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+		});
+	}
 
-		ractive.parseOptions = {
-			preserveWhitespace: options.preserveWhitespace,
-			sanitize: options.sanitize,
-			stripComments: options.stripComments
-		};
-		
-		// Temporarily disable transitions, if noIntro flag is set
-		ractive.transitionsEnabled = ( options.noIntro ? false : options.transitionsEnabled );
+	initHook.end( ractive );
 
-		// If we're in a browser, and no element has been specified, create
-		// a document fragment to use instead
-		if ( isClient && !ractive.el ) {
-			ractive.el = document.createDocumentFragment();
-		}
+	// render automatically ( if `el` is specified )
+	if ( el ) {
+		ractive.render( el, ractive.append );
+	}
+}
 
-		// If the target contains content, and `append` is falsy, clear it
-		if ( ractive.el && !options.append ) {
-			ractive.el.innerHTML = '';
-		}
+function initialiseProperties ( ractive, options ) {
+	// Generate a unique identifier, for places where you'd use a weak map if it
+	// existed
+	ractive._guid = getNextNumber();
 
-		ractive.render( ractive.el, options.complete );
+	// events
+	ractive._subs = create( null );
 
-		// reset transitionsEnabled
-		ractive.transitionsEnabled = options.transitionsEnabled;
+	// storage for item configuration from instantiation to reset,
+	// like dynamic functions or original values
+	ractive._config = {};
 
-		// end init sequence
-		ractive._initing = false;
-	};
+	// two-way bindings
+	ractive._twowayBindings = create( null );
 
-});
+	// animations (so we can stop any in progress at teardown)
+	ractive._animations = [];
+
+	// nodes registry
+	ractive.nodes = {};
+
+	// live queries
+	ractive._liveQueries = [];
+	ractive._liveComponentQueries = [];
+
+	// If this is a component, store a reference to the parent
+	if ( options._parent && options._component ) {
+
+		ractive._parent = options._parent;
+		ractive.component = options._component;
+
+		// And store a reference to the instance on the component
+		options._component.instance = ractive;
+	}
+}

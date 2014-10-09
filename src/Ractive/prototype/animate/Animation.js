@@ -1,98 +1,94 @@
-define([
-	'utils/warn',
-	'shared/interpolate'
-], function (
-	warn,
-	interpolate
-) {
-	
-	'use strict';
+import warn from 'utils/warn';
+import runloop from 'global/runloop';
+import interpolate from 'shared/interpolate';
 
-	var Animation = function ( options ) {
-		var key;
+var Animation = function ( options ) {
+	var key;
 
-		this.startTime = Date.now();
+	this.startTime = Date.now();
 
-		// from and to
-		for ( key in options ) {
-			if ( options.hasOwnProperty( key ) ) {
-				this[ key ] = options[ key ];
-			}
+	// from and to
+	for ( key in options ) {
+		if ( options.hasOwnProperty( key ) ) {
+			this[ key ] = options[ key ];
 		}
+	}
 
-		this.interpolator = interpolate( this.from, this.to );
-		this.running = true;
-	};
+	this.interpolator = interpolate( this.from, this.to, this.root, this.interpolator );
+	this.running = true;
 
-	Animation.prototype = {
-		tick: function () {
-			var elapsed, t, value, timeNow, index, keypath;
+	this.tick();
+};
 
-			keypath = this.keypath;
+Animation.prototype = {
+	tick: function () {
+		var elapsed, t, value, timeNow, index, keypath;
 
-			if ( this.running ) {
-				timeNow = Date.now();
-				elapsed = timeNow - this.startTime;
+		keypath = this.keypath;
 
-				if ( elapsed >= this.duration ) {
-					if ( keypath !== null ) {
-						this.root.set( keypath, this.to );
-					}
+		if ( this.running ) {
+			timeNow = Date.now();
+			elapsed = timeNow - this.startTime;
 
-					if ( this.step ) {
-						this.step( 1, this.to );
-					}
-
-					if ( this.complete ) {
-						this.complete( 1, this.to );
-					}
-
-					index = this.root._animations.indexOf( this );
-
-					// TODO investigate why this happens
-					if ( index === -1 ) {
-						warn( 'Animation was not found' );
-					}
-
-					this.root._animations.splice( index, 1 );
-
-					this.running = false;
-					return false; // remove from the stack
-				}
-
-				t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
-
+			if ( elapsed >= this.duration ) {
 				if ( keypath !== null ) {
-					value = this.interpolator( t );
-					this.root.set( keypath, value );
+					runloop.start( this.root );
+					this.root.viewmodel.set( keypath, this.to );
+					runloop.end();
 				}
 
 				if ( this.step ) {
-					this.step( t, value );
+					this.step( 1, this.to );
 				}
 
-				return true; // keep in the stack
+				this.complete( this.to );
+
+				index = this.root._animations.indexOf( this );
+
+				// TODO investigate why this happens
+				if ( index === -1 ) {
+					warn( 'Animation was not found' );
+				}
+
+				this.root._animations.splice( index, 1 );
+
+				this.running = false;
+				return false; // remove from the stack
 			}
 
-			return false; // remove from the stack
-		},
+			t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
 
-		stop: function () {
-			var index;
-
-			this.running = false;
-
-			index = this.root._animations.indexOf( this );
-
-			// TODO investigate why this happens
-			if ( index === -1 ) {
-				warn( 'Animation was not found' );
+			if ( keypath !== null ) {
+				value = this.interpolator( t );
+				runloop.start( this.root );
+				this.root.viewmodel.set( keypath, value );
+				runloop.end();
 			}
 
-			this.root._animations.splice( index, 1 );
+			if ( this.step ) {
+				this.step( t, value );
+			}
+
+			return true; // keep in the stack
 		}
-	};
 
-	return Animation;
+		return false; // remove from the stack
+	},
 
-});
+	stop: function () {
+		var index;
+
+		this.running = false;
+
+		index = this.root._animations.indexOf( this );
+
+		// TODO investigate why this happens
+		if ( index === -1 ) {
+			warn( 'Animation was not found' );
+		}
+
+		this.root._animations.splice( index, 1 );
+	}
+};
+
+export default Animation;
