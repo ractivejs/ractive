@@ -44,6 +44,8 @@ Changelog
 		* Initial changes from `ractive.animate()` are applied immediately, not on the next frame
 
 * 0.5.5
+	* Breaking changes:
+		* Removed debug option from `ractive.observe()` (#970)
 	* Fixes for #713, #941, #942, #943, #945, #950, #951, #952, #953, #960, #965, #967 and #974
 * 0.5.2, 0.5.3, 0.5.4
 	* No actual changes, just wrestling with npm and bower!
