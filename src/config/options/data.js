@@ -13,6 +13,10 @@ function combine( Parent, target, options ) {
 
 	var value = options.data || {},
 		parentValue = getAddedKeys( Parent.prototype.data );
+	
+	if ( typeof value !== 'object' && typeof value !== 'function') {
+		throw new TypeError( 'data option must be an object or a function, "' + value + '" is not valid' );
+	}
 
 	return dispatch( parentValue, value );
 }

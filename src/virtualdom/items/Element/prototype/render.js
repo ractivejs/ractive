@@ -15,6 +15,11 @@ var updateCss, updateScript;
 updateCss = function () {
 	var node = this.node, content = this.fragment.toString( false );
 
+	// IE8 has no styleSheet unless there's a type text/css
+	if ( window && window.appearsToBeIELessEqual8 ) {
+		node.type = 'text/css';
+	}
+
 	if ( node.styleSheet ) {
 		node.styleSheet.cssText = content;
 	} else {
@@ -67,6 +72,7 @@ export default function Element$render () {
 
 	// Render attributes
 	this.attributes.forEach( a => a.render( node ) );
+	this.conditionalAttributes.forEach( a => a.render( node ) );
 
 	// Render children
 	if ( this.fragment ) {
@@ -123,6 +129,8 @@ export default function Element$render () {
 		let transition = new Transition ( this, this.intro, true );
 		runloop.registerTransition( transition );
 		runloop.scheduleTask( () => transition.start() );
+
+		this.transition = transition;
 	}
 
 	if ( this.name === 'option' ) {

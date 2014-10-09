@@ -112,18 +112,14 @@ function getMustacheOfType ( parser, delimiterType ) {
 
 			// {{else}} tags require special treatment
 			if ( child.t === types.INTERPOLATOR && child.r === 'else' ) {
-				switch ( mustache.n ) {
-					case 'unless':
-						parser.error( '{{else}} not allowed in {{#unless}}' );
-						break;
-
-					case 'with':
-						parser.error( '{{else}} not allowed in {{#with}}' );
-						break;
-
-					default:
-						currentChildren = elseChildren = [];
-						continue;
+				// no {{else}} allowed in {{#unless}}
+				if ( mustache.n === 'unless' ) {
+					parser.error( '{{else}} not allowed in {{#unless}}' );
+				}
+				// begin else children
+				else {
+					currentChildren = elseChildren = [];
+					continue;
 				}
 			}
 
@@ -142,6 +138,9 @@ function getMustacheOfType ( parser, delimiterType ) {
 
 		if ( elseChildren && elseChildren.length ) {
 			mustache.l = elseChildren;
+			if( mustache.n === 'with' ) {
+				mustache.n = 'if-with';
+			}
 		}
 	}
 

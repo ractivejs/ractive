@@ -17,7 +17,6 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.template       = options.template;
 	mustache.index          = options.index || 0;
-	mustache.priority       = parentFragment.priority;
 	mustache.isStatic       = options.template.s;
 
 	mustache.type = options.template.t;

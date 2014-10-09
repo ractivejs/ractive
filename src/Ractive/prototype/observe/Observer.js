@@ -7,17 +7,13 @@ var Observer = function ( ractive, keypath, callback, options ) {
 	this.callback = callback;
 	this.defer = options.defer;
 
-	// Observers are notified before any DOM changes take place (though
-	// they can defer execution until afterwards)
-	this.priority = 0;
-
 	// default to root as context, but allow it to be overridden
 	this.context = ( options && options.context ? options.context : ractive );
 };
 
 Observer.prototype = {
 	init: function ( immediate ) {
-		this.value = this.root.viewmodel.get( this.keypath );
+		this.value = this.root.get( this.keypath );
 
 		if ( immediate !== false ) {
 			this.update();

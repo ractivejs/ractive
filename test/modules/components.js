@@ -260,7 +260,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			Widget = Ractive.extend({
 				template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
-				init: function () {
+				oninit: function () {
 					widget = this;
 				}
 			});
@@ -732,14 +732,14 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			var ractive, Outer, Inner, outerInitCount = 0, innerInitCount = 0;
 
 			Inner = Ractive.extend({
-				init: function () {
+				oninit: function () {
 					innerInitCount += 1;
 				}
 			});
 
 			Outer = Ractive.extend({
 				template: '<inner/>',
-				init: function () {
+				oninit: function () {
 					outerInitCount += 1;
 				},
 				components: { inner: Inner }
@@ -755,8 +755,8 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive.set( 'foo', true );
 
 			// initCounts should have incremented synchronously
-			t.equal( outerInitCount, 1, '<outer/> component should call init()' );
-			t.equal( innerInitCount, 1, '<inner/> component should call init()' );
+			t.equal( outerInitCount, 1, '<outer/> component should call oninit()' );
+			t.equal( innerInitCount, 1, '<inner/> component should call oninit()' );
 		});
 
 		test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
@@ -971,12 +971,12 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.equal( fixture.innerHTML, 'bar' );
 		});
 
-		test( 'Set operations inside an inline component\'s init() method update the DOM synchronously', t => {
+		test( 'Set operations inside an inline component\'s onrender method update the DOM synchronously', t => {
 			var ListWidget, ractive, previousHeight = -1;
 
 			ListWidget = Ractive.extend({
 				template: '<ul>{{#visibleItems}}<li>{{this}}</li>{{/visibleItems}}</ul>',
-				init: function () {
+				onrender: function () {
 					var ul, lis, items, height, i;
 
 					ul = this.find( 'ul' );
@@ -1046,47 +1046,6 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			ractive.set( 'parentdata', 'old' );
 			t.htmlEqual( fixture.innerHTML, 'old - old' );
-		});
-
-		asyncTest( 'Component render methods called in consistent order (gh #589)', t => {
-			var Simpson, ractive, order = { beforeInit: [], init: [], complete: [] },
-				simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
-
-			Simpson = Ractive.extend({
-				template: "{{simpson}}",
-				beforeInit: function(o) {
-					order.beforeInit.push( o.data.simpson );
-				},
-				init: function() {
-					order.init.push( this.get("simpson") );
-				},
-				complete: function() {
-					order.complete.push( this.get("simpson") );
-				}
-			});
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{#simpsons}}<simpson simpson="{{this}}"/>{{/}}',
-				data: {
-					simpsons: simpsons
-				},
-				components: {
-					simpson: Simpson
-				},
-				complete: function(){
-					// TODO this doesn't work in PhantomJS, presumably because
-					// promises aren't guaranteed to fulfil in a particular order
-					// since they use setTimeout (perhaps they shouldn't?)
-					//t.deepEqual( order.complete, simpsons, 'complete order' );
-					start();
-				}
-			});
-
-			t.equal( fixture.innerHTML, simpsons.join('') );
-			t.deepEqual( order.beforeInit, simpsons, 'beforeInit order' );
-			t.deepEqual( order.init, simpsons, 'init order' );
-
 		});
 
 		test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
@@ -1342,19 +1301,23 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 		asyncTest( 'init only fires once on a component (#943 #927), complete fires each render', t => {
 
-			var Component, component, inited = false, completed = 0;
+			var Component, component, inited = false, completed = 0, rendered = 0;
 
-			expect( 3 );
+			expect( 5 );
 
 			Component = Ractive.extend({
-				init: function () {
+				oninit: function () {
 					t.ok( !inited, 'init should not be called second time' );
 					inited = true;
 				},
-				complete: function() {
+				onrender: function() {
+					rendered++;
+					t.ok( true );
+				},
+				oncomplete: function() {
 					completed++;
 					t.ok( true );
-					if( completed === 2 ) { start(); }
+					if( rendered === 2 && completed === 2 ) { start(); }
 				}
 			});
 
@@ -1414,6 +1377,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget/>',
+				data: { person: {} },
 				components: {
 					widget: Ractive.extend({
 						template: '<input value="{{person.first}}"/><input value="{{person.last}}"/>'
@@ -1552,6 +1516,109 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			ractive.findComponent( 'widget' ).teardown();
 			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
+		test( 'Data that does not exist in a parent context binds to the current instance on set (#1205)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<widget/><widget/>',
+				components: {
+					widget: Ractive.extend({
+						template: '<p>title:{{title}}</p>'
+					})
+				}
+			});
+
+			ractive.findComponent( 'widget' ).set( 'title', 'foo' );
+
+			t.htmlEqual( fixture.innerHTML, '<p>title:foo</p><p>title:</p>' );
+		});
+
+		test( 'Inter-component bindings can be created via this.get() and this.observe(), not just through templates', function ( t ) {
+			var Widget, ractive;
+
+			Widget = Ractive.extend({
+				template: '<p>message: {{proxy}}</p>',
+
+				init: function () {
+					this.observe( 'message', function ( message ) {
+						this.set( 'proxy', message );
+					});
+
+					t.equal( this.get( 'answer' ), 42 );
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				data: {
+					message: 'hello',
+					answer: 42
+				},
+				components: {
+					widget: Widget
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>message: hello</p>' );
+			ractive.set( 'message', 'goodbye' );
+			t.htmlEqual( fixture.innerHTML, '<p>message: goodbye</p>' );
+		});
+
+		test( 'Component CSS is added to the page before components (#1046)', function ( t ) {
+			var Box, ractive;
+
+			Box = Ractive.extend({
+				template: '<div class="box"></div>',
+				css: '.box { width: 100px; height: 100px; }',
+				onrender: function () {
+					var div = this.find( '.box' );
+					t.equal( div.offsetHeight, 100 );
+					t.equal( div.offsetWidth, 100 );
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#if showBox}}<box/>{{/if}}',
+				components: { box: Box }
+			});
+
+			ractive.set( 'showBox', true );
+		});
+
+		test( 'Component bindings respect smart updates (#1209)', function ( t ) {
+			var Widget, ractive, intros = {}, outros = {};
+
+			Widget = Ractive.extend({
+				template: '{{#each items}}<p intro-outro="log">{{this}}</p>{{/each}}',
+				transitions: {
+					log: function ( t ) {
+						var x = t.node.innerHTML, count = t.isIntro ? intros : outros;
+
+						if ( !count[x] ) count[x] = 0;
+						count[x] += 1;
+
+						t.complete();
+					}
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget/>',
+				components: { widget: Widget },
+				data: { items: [ 'a', 'b', 'c' ]}
+			});
+
+			t.deepEqual( intros, { a: 1, b: 1, c: 1 });
+
+			ractive.merge( 'items', [ 'a', 'c' ]);
+			t.deepEqual( outros, { b: 1 });
+
+			ractive.shift( 'items' );
+			t.deepEqual( outros, { a: 1, b: 1 });
 		});
 
 	};

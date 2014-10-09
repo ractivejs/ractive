@@ -4,14 +4,14 @@ import getGuid from 'utils/getGuid';
 import config from 'config/config';
 import initChildInstance from 'extend/initChildInstance';
 import Viewmodel from 'viewmodel/Viewmodel';
-import childOptions from 'extend/childOptions';
+import unwrap from 'extend/unwrapExtended';
 
 export default function extend ( options = {} ) {
 	var Parent = this, Child, proto, staticProperties;
 
 	// if we're extending with another Ractive instance, inherit its
 	// prototype methods and default options as well
-	options = childOptions.toOptions( options );
+	options = unwrap( options );
 
 	// create Child constructor
 	Child = function ( options ) {
@@ -41,9 +41,6 @@ export default function extend ( options = {} ) {
 	config.extend( Parent, proto, options );
 
 	Viewmodel.extend( Parent, proto );
-
-	// and any other properties or methods on options...
-	childOptions.toPrototype( Parent.prototype, proto, options );
 
 	Child.prototype = proto;
 

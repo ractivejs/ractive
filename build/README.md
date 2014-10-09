@@ -14,7 +14,7 @@ The easiest way to download the latest released version of Ractive is to grab it
 
 If you'd like to get the most recent version, substitute 'edge' for 'latest' in the URL, e.g. http://cdn.ractivejs.org/edge/ractive.js. These builds have passed the tests but may include experimental features, so should not be used in production.
 
-For specific stable releases, replace 'latest' with e.g. 'release/0.4.0'.
+For specific stable releases, replace 'latest' with e.g. '0.5.0'.
 
 
 Installing with bower

@@ -17,5 +17,5 @@ export default function ( params, defaults ) {
 		params = {};
 	}
 
-	return fillGaps( params, defaults );
+	return fillGaps( {}, params, defaults );
 }

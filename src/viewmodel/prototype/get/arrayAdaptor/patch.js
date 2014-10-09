@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import defineProperty from 'utils/defineProperty';
-import getSpliceEquivalent from 'shared/getSpliceEquivalent';
-import summariseSpliceOperation from 'shared/summariseSpliceOperation';
+import getNewIndices from 'shared/getNewIndices';
 import processWrapper from 'viewmodel/prototype/get/arrayAdaptor/processWrapper';
 
 var patchedArrayProto = [],
@@ -11,31 +10,30 @@ var patchedArrayProto = [],
 	unpatchArrayMethods;
 
 mutatorMethods.forEach( function ( methodName ) {
-	var method = function () {
-		var spliceEquivalent,
-			spliceSummary,
+	var method = function ( ...args ) {
+		var newIndices,
 			result,
 			wrapper,
 			i;
 
-		// push, pop, shift and unshift can all be represented as a splice operation.
-		// this makes life easier later
-		spliceEquivalent = getSpliceEquivalent( this, methodName, Array.prototype.slice.call( arguments ) );
-		spliceSummary = summariseSpliceOperation( this, spliceEquivalent );
+		newIndices = getNewIndices( this, methodName, args );
 
 		// apply the underlying method
 		result = Array.prototype[ methodName ].apply( this, arguments );
 
 		// trigger changes
+		runloop.start();
+
 		this._ractive.setting = true;
 		i = this._ractive.wrappers.length;
 		while ( i-- ) {
 			wrapper = this._ractive.wrappers[i];
 
-			runloop.start( wrapper.root );
-			processWrapper( wrapper, this, methodName, spliceSummary );
-			runloop.end();
+			runloop.addViewmodel( wrapper.root.viewmodel );
+			processWrapper( wrapper, this, methodName, newIndices );
 		}
+
+		runloop.end();
 
 		this._ractive.setting = false;
 		return result;

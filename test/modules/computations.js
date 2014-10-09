@@ -262,6 +262,165 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '2' );
 		});
 
+		test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
+			var warn = console.warn;
+
+			console.warn = function () {
+				throw new Error('Console should not warn')
+			};
+
+			try {
+				let ractive = new Ractive({
+					template: '<component/>',
+					components: {
+						component: Ractive.extend({
+							debug: true,
+							computed: {
+								foo: '${bar}'
+							}
+						})
+					}
+				})
+			}
+			catch(err){
+				t.ok( false, err.message );
+			}
+			finally {
+				console.warn = warn;
+				t.ok( true );
+			}
+
+		});
+
+		test( 'Unresolved computations resolve when parent component data exists', function ( t ) {
+			var ractive, Component;
+
+			Component = Ractive.extend({
+			    template: '{{FOO}} {{BAR}}',
+			    computed: {
+			        FOO: '${foo}.toUpperCase()',
+			        BAR: function () {
+			            return this.get( 'bar' ).toUpperCase();
+			        }
+			    }
+			});
+
+			ractive = new Ractive({
+			    el: fixture,
+			    template: '<component/>',
+			    data: {
+			        foo: 'fee fi',
+			        bar: 'fo fum'
+			    },
+			    components: {
+			    	component: Component
+			    }
+			});
+
+			t.equal( fixture.innerHTML, 'FEE FI FO FUM' );
+
+		});
+
+		test( 'Computations are not order dependent', function ( t ) {
+
+			var ractive, Component;
+
+			Component = Ractive.extend({
+			    template: '{{foo}}',
+			    data: {
+			        count: 1
+			    },
+			    computed: {
+			        foo: '${bar} + 1',
+			        bar: '${count} + 1'
+			    }
+			})
+
+			ractive = new Ractive({
+		        el: fixture,
+		        template: '<component/>',
+		        data: {
+		            bar: 20
+		        },
+		        components: {
+		            component: Component
+		        }
+		    })
+			t.equal( fixture.innerHTML, '3' );
+
+		});
+
+		test( 'Parent extend instance computations are resolved before child computations', function ( t ) {
+
+			var ractive, Base, Component;
+
+			Base = Ractive.extend({
+			    computed: {
+			        base: () => 1
+			    }
+			});
+
+			Component = Base.extend({
+				template: '{{foo}}',
+			    computed: {
+			        foo: '${base} + 1'
+			    }
+			});
+
+			ractive = new Ractive({
+			    el: fixture,
+			    template: '<component/>',
+			    components: {
+			    	component: Component
+			    }
+			});
+
+			t.equal( fixture.innerHTML, '2' );
+
+		});
+
+		test( 'Computed values are only computed as necessary', function ( t ) {
+			var ractive, count = { foo: 0, bar: 0, baz: 0, qux: 0 };
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{bar}}',
+				data: {
+					str: 'this is a string'
+				},
+				computed: {
+					foo: function () {
+						count.foo += 1;
+						return this.get( 'baz' ).toUpperCase();
+					},
+					baz: function () {
+						count.baz += 1;
+						return this.get( 'str' ).replace( /string/i, 'computation' );
+					},
+					bar: function () {
+						count.bar += 1;
+						return this.get( 'foo' ) + '//' + this.get( 'foo' );
+					},
+					qux: function () {
+						count.qux += 1;
+						return 'whatever';
+					}
+				}
+			});
+
+			t.deepEqual( count, { foo: 1, bar: 1, baz: 1, qux: 0 });
+
+			ractive.get( 'qux' );
+			t.deepEqual( count, { foo: 1, bar: 1, baz: 1, qux: 1 });
+
+			ractive.set( 'str', 'how long is a piece of string' );
+			t.equal( fixture.innerHTML, 'HOW LONG IS A PIECE OF COMPUTATION//HOW LONG IS A PIECE OF COMPUTATION' );
+			t.deepEqual( count, { foo: 2, bar: 2, baz: 2, qux: 1 });
+
+			ractive.set( 'str', 'How Long Is A Piece Of String' );
+			t.deepEqual( count, { foo: 3, bar: 2, baz: 3, qux: 1 });
+		});
+
 	};
 
 });

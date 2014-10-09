@@ -1,54 +1,20 @@
-import wrapPrototype from 'utils/wrapPrototypeMethod';
 import wrap from 'utils/wrapMethod';
 import config from 'config/config';
 import circular from 'circular';
 
-var Ractive,
-	// would be nice to not have these here,
-	// they get added during initialise, so for now we have
-	// to make sure not to try and extend them.
-	// Possibly, we could re-order and not add till later
-	// in process.
-	blacklisted = {
-		'_parent' : true,
-		'_component' : true
-	},
-	childOptions = {
-		toPrototype: toPrototype,
-		toOptions: toOptions
-	},
-	registries = config.registries;
-
-config.keys.forEach( key => blacklisted[ key ] = true );
+var Ractive;
 
 circular.push( function () {
 	Ractive = circular.Ractive;
 });
 
-export default childOptions;
-
-function toPrototype ( parent, proto, options ) {
-	for ( let key in options ) {
-		if ( !( key in blacklisted ) && options.hasOwnProperty( key ) ) {
-			let member = options[ key ];
-
-			// if this is a method that overwrites a method, wrap it:
-			if ( typeof member === 'function' ) {
-				member = wrapPrototype( parent, key, member );
-			}
-
-			proto[ key ] = member;
-		}
-	}
-}
-
-function toOptions ( Child ) {
+export default function unwrapExtended ( Child ) {
 	if ( !( Child.prototype instanceof Ractive ) ) { return Child; }
 
 	let options = {};
 
 	while ( Child ) {
-		registries.forEach( r => {
+		config.registries.forEach( r => {
 			addRegistry(
 				r.useDefaults ? Child.prototype : Child,
 				options, r.name );

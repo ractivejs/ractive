@@ -1,5 +1,5 @@
 import types from 'config/types';
-import isArray from 'utils/isArray';
+import isArrayLike from 'utils/isArrayLike';
 import isObject from 'utils/isObject';
 import runloop from 'global/runloop';
 
@@ -88,6 +88,9 @@ function reevaluateSection ( section, value ) {
 			case types.SECTION_WITH:
 			return reevaluateContextSection( section, fragmentOptions );
 
+			case types.SECTION_IF_WITH:
+			return reevaluateConditionalContextSection( section, value, fragmentOptions );
+
 			case types.SECTION_EACH:
 			if ( isObject( value ) ) {
 				return reevaluateListObjectSection( section, value, fragmentOptions );
@@ -98,7 +101,7 @@ function reevaluateSection ( section, value ) {
 	}
 
 	// Otherwise we need to work out what sort of section we're dealing with
-	section.ordered = !!isArray( value );
+	section.ordered = !!isArrayLike( value );
 
 	// Ordered list section
 	if ( section.ordered ) {
@@ -204,6 +207,14 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 	return changed;
 }
 
+function reevaluateConditionalContextSection ( section, value, fragmentOptions ) {
+	if(value){
+		return reevaluateContextSection( section, fragmentOptions );
+	} else {
+		return removeSectionFragments( section );
+	}
+}
+
 function reevaluateContextSection ( section, fragmentOptions ) {
 	var fragment;
 
@@ -225,14 +236,22 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 }
 
 function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
-	var doRender, emptyArray, fragment;
+	var doRender, emptyArray, emptyObject, fragment, name;
 
-	emptyArray = ( isArray( value ) && value.length === 0 );
+	emptyArray = ( isArrayLike( value ) && value.length === 0 );
+	emptyObject = false;
+	if( !isArrayLike( value ) && isObject( value ) ) {
+		emptyObject = true;
+		for( name in value ) {
+			emptyObject = false;
+			break;
+		}
+	}
 
 	if ( inverted ) {
-		doRender = emptyArray || !value;
+		doRender = emptyArray || emptyObject || !value;
 	} else {
-		doRender = value && !emptyArray;
+		doRender = value && !emptyArray && !emptyObject;
 	}
 
 	if ( doRender ) {
@@ -255,11 +274,16 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 		}
 	}
 
-	else if ( section.length ) {
+	else {
+		return removeSectionFragments( section );
+	}
+}
+
+function removeSectionFragments ( section ) {
+	if ( section.length ) {
 		section.fragmentsToUnrender = section.fragments.splice( 0, section.fragments.length ).filter( isRendered );
 		section.fragmentsToUnrender.forEach( unbind );
 		section.length = section.fragmentsToRender.length = 0;
-
 		return true;
 	}
 }

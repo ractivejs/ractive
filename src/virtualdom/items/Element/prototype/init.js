@@ -1,6 +1,7 @@
 import types from 'config/types';
 import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
 import createAttributes from 'virtualdom/items/Element/prototype/init/createAttributes';
+import createConditionalAttributes from 'virtualdom/items/Element/prototype/init/createConditionalAttributes';
 import createTwowayBinding from 'virtualdom/items/Element/prototype/init/createTwowayBinding';
 import createEventHandlers from 'virtualdom/items/Element/prototype/init/createEventHandlers';
 import Decorator from 'virtualdom/items/Element/Decorator/_Decorator';
@@ -48,6 +49,7 @@ export default function Element$init ( options ) {
 
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
+	this.conditionalAttributes = createConditionalAttributes( this, template.m );
 
 	// append children, if there are any
 	if ( template.f ) {

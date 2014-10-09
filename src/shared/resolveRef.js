@@ -8,7 +8,7 @@ ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
 
 getOptions = { evaluateWrapped: true };
 
-export default function resolveRef ( ractive, ref, fragment ) {
+export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	var context,
 		key,
 		index,
@@ -36,6 +36,9 @@ export default function resolveRef ( ractive, ref, fragment ) {
 	// ...otherwise we need to find the keypath
 	key = ref.split( '.' )[0];
 
+	// get() in viewmodel creation means no fragment (yet)
+	fragment = fragment || {};
+
 	do {
 		context = fragment.context;
 
@@ -59,6 +62,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 	// If this is an inline component, and it's not isolated, we
 	// can try going up the scope chain
 	if ( ractive._parent && !ractive.isolated ) {
+		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
 
 		// Special case - index refs
@@ -70,7 +74,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 			return;
 		}
 
-		keypath = resolveRef( ractive._parent, ref, fragment );
+		keypath = resolveRef( ractive._parent, ref, fragment, true );
 
 		if ( keypath ) {
 			// We need to create an inter-component binding
@@ -97,7 +101,10 @@ export default function resolveRef ( ractive, ref, fragment ) {
 
 	// If there's no context chain, and the instance is either a) isolated or
 	// b) an orphan, then we know that the keypath is identical to the reference
-	if ( !hasContextChain ) {
+	if ( !isParentLookup && !hasContextChain ) {
+		// the data object needs to have a property by this name,
+		// to prevent future failed lookups
+		ractive.viewmodel.set( ref, undefined );
 		return ref;
 	}
 

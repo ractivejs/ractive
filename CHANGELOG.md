@@ -1,9 +1,29 @@
 Changelog
 ---------
 
+* 0.6.0
+	* Breaking changes:
+		* `new Ractive()` now inherits all options as methods/properties including event hooks.
+		* The deprecated `init()` function (see below) is mapped to `onrender()` and will fire more than once, and no longer contains options argument
+		* New reserved events (see below)
+		* Setting uninitialised data on a component will no longer cause it to leak out into the parent scope
+		* 'Smart updates', via `ractive.merge()` and `ractive.shift()` etc, work across component boundaries
+	* Deprecated:
+		* `beforeInit()`, `init()`, and `complete()` - replaced with `onconstruct()`, `onrender()` and `oncomplete()` methods
+	* New features
+		* Event hooks: `onconstruct()`, `onconfig()`, `oninit()`, `onrender()`, `oncomplete()`, `onunrender()`, `onteardown()`. These all have equivalent events, e.g. `this.on('render',...)`, which are reserved (i.e. you cannot use them as proxy events in templates)
+		* Conditional attributes, e.g. `<div {{#if selected}}class='selected'{{/if}}>...</div>`
+		* Safe to specify touch events for browsers that do not support them
+		* Added support for `{{else}}` in `{{#with}}` block
+		* Added support for `{{#each...}}...{{else}}...{{/each}}` with empty objects (#1299)
+		* Within event handlers, the `event` object is available as `this.event`, and has a `name` property (useful alongside `ractive.on('*',...)`).
+		* Character position is include alongside line and column information when parsing with `includeLinePositions: true`
+	* Fixes for #868, #871, #1046, #1184, #1206, #1208, #1209, #1220, #1228, #1232, #1239, #1275, #1278, #1294, #1295, #1305 plus a few IE8 bugs
+
 * 0.5.8
 	* Huge parser speed boost (see #1227)
 	* Fixes for #1204, #1214, #1218, #1221, #1223
+	* Partial names can be specified dynamically as references or expressions
 
 * 0.5.7
 	* Release script got pooched; there was a tag mix-up of some sort with npm and 0.5.6 contained source files but not all the build files.

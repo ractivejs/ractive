@@ -4,6 +4,10 @@ import Transition from 'virtualdom/items/Element/Transition/_Transition';
 export default function Element$unrender ( shouldDestroy ) {
 	var binding, bindings;
 
+	if ( this.transition ) {
+		this.transition.complete();
+	}
+
 	// Detach as soon as we can
 	if ( this.name === 'option' ) {
 		// <option> elements detach immediately, so that
@@ -47,11 +51,6 @@ export default function Element$unrender ( shouldDestroy ) {
 	// Remove this node from any live queries
 	if ( this.liveQueries ) {
 		removeFromLiveQueries( this );
-	}
-
-	// Remove from nodes
-	if ( this.node.id ) {
-		delete this.root.nodes[ this.node.id ];
 	}
 }
 

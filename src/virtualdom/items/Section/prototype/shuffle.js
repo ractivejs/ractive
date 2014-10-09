@@ -1,3 +1,4 @@
+import types from 'config/types';
 import runloop from 'global/runloop';
 import circular from 'circular';
 
@@ -7,7 +8,7 @@ circular.push( function () {
 	Fragment = circular.Fragment;
 });
 
-export default function Section$merge ( newIndices ) {
+export default function Section$shuffle ( newIndices ) {
 	var section = this,
 		parentFragment,
 		firstChange,
@@ -15,12 +16,16 @@ export default function Section$merge ( newIndices ) {
 		newLength,
 		reboundFragments,
 		fragmentOptions,
-		fragment,
-		nextNode;
+		fragment;
 
-	if ( this.unbound ) {
+	// short circuit any double-updates, and ensure that this isn't applied to
+	// non-list sections
+	if ( this.shuffling || this.unbound || ( this.subtype && this.subtype !== types.SECTION_EACH ) ) {
 		return;
 	}
+
+	this.shuffling = true;
+	runloop.scheduleTask( () => this.shuffling = false );
 
 	parentFragment = this.parentFragment;
 
@@ -54,6 +59,7 @@ export default function Section$merge ( newIndices ) {
 		newKeypath = section.keypath + '.' + newIndex;
 
 		fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
+		fragment.index = newIndex;
 		reboundFragments[ newIndex ] = fragment;
 	});
 
@@ -72,7 +78,9 @@ export default function Section$merge ( newIndices ) {
 
 	this.length = this.fragments.length = newLength;
 
-	runloop.addView( this );
+	if ( this.rendered ) {
+		runloop.addView( this );
+	}
 
 	// Prepare new fragment options
 	fragmentOptions = {
@@ -88,22 +96,12 @@ export default function Section$merge ( newIndices ) {
 	// Add as many new fragments as we need to, or add back existing
 	// (detached) fragments
 	for ( i = firstChange; i < newLength; i += 1 ) {
+		fragment = reboundFragments[i];
 
-		// is this an existing fragment?
-		if ( fragment = reboundFragments[i] ) {
-			this.docFrag.appendChild( fragment.detach( false ) );
-		}
-
-		else {
-			// Fragment will be created when changes are applied
-			// by the runloop
+		if ( !fragment ) {
 			this.fragmentsToCreate.push( i );
 		}
 
 		this.fragments[i] = fragment;
 	}
-
-	// reinsert fragment
-	nextNode = parentFragment.findNextNode( this );
-	this.parentFragment.getNode().insertBefore( this.docFrag, nextNode );
 }

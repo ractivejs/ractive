@@ -9,7 +9,6 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 
 	resolver.root = ractive = mustache.root;
 	resolver.mustache = mustache;
-	resolver.priority = mustache.priority;
 
 	resolver.ref = ref = template.r;
 	resolver.callback = callback;

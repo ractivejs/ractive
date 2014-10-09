@@ -1,18 +1,18 @@
 import circular from 'circular';
-import isArray from 'utils/isArray';
 import isEqual from 'utils/isEqual';
 
 var runloop;
 
 circular.push( () => runloop = circular.runloop );
 
-var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority ) {
+var Binding = function ( ractive, keypath, otherInstance, otherKeypath ) {
 	this.root = ractive;
 	this.keypath = keypath;
-	this.priority = priority;
 
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
+
+	this.unlock = () => this.updating = false;
 
 	this.bind();
 
@@ -20,16 +20,18 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath, priority
 };
 
 Binding.prototype = {
+	shuffle: function ( newIndices, value ) {
+		this.propagateChange( value, newIndices );
+	},
+
 	setValue: function ( value ) {
+		this.propagateChange( value );
+	},
+
+	propagateChange: function ( value, newIndices ) {
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
 			this.value = value;
-			return;
-		}
-
-		// Is this a smart array update? If so, it'll update on its
-		// own, we shouldn't do anything
-		if ( isArray( value ) && value._ractive && value._ractive.setting ) {
 			return;
 		}
 
@@ -39,12 +41,18 @@ Binding.prototype = {
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
 			runloop.addViewmodel( this.otherInstance.viewmodel );
-			this.otherInstance.viewmodel.set( this.otherKeypath, value );
+
+			if ( newIndices ) {
+				this.otherInstance.viewmodel.smartUpdate( this.otherKeypath, value, newIndices );
+			} else {
+				this.otherInstance.viewmodel.set( this.otherKeypath, value );
+			}
+
 			this.value = value;
 
 			// TODO will the counterpart update after this line, during
 			// the runloop end cycle? may be a problem...
-			runloop.scheduleTask( () => this.updating = false );
+			runloop.scheduleTask( this.unlock );
 		}
 	},
 
@@ -67,7 +75,7 @@ Binding.prototype = {
 };
 
 export default function createComponentBinding ( component, parentInstance, parentKeypath, childKeypath ) {
-	var hash, childInstance, bindings, priority, parentToChildBinding, childToParentBinding;
+	var hash, childInstance, bindings, parentToChildBinding, childToParentBinding;
 
 	hash = parentKeypath + '=' + childKeypath;
 	bindings = component.bindings;
@@ -78,13 +86,12 @@ export default function createComponentBinding ( component, parentInstance, pare
 	}
 
 	childInstance = component.instance;
-	priority = component.parentFragment.priority;
 
-	parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath, priority );
+	parentToChildBinding = new Binding( parentInstance, parentKeypath, childInstance, childKeypath );
 	bindings.push( parentToChildBinding );
 
 	if ( childInstance.twoway ) {
-		childToParentBinding = new Binding( childInstance, childKeypath, parentInstance, parentKeypath, 1 );
+		childToParentBinding = new Binding( childInstance, childKeypath, parentInstance, parentKeypath );
 		bindings.push( childToParentBinding );
 
 		parentToChildBinding.counterpart = childToParentBinding;

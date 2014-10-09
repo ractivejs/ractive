@@ -1,9 +1,10 @@
-import fireEvent from 'Ractive/prototype/shared/fireEvent';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
 import config from 'config/config';
 
-var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ];
+var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],
+	resetHook = new Hook( 'reset' );
 
 export default function Ractive$reset ( data, callback ) {
 
@@ -79,7 +80,7 @@ export default function Ractive$reset ( data, callback ) {
 		runloop.end();
 	}
 
-	fireEvent( this, 'reset', { args: [ data ] });
+	resetHook.fire( this, data );
 
 	if ( callback ) {
 		promise.then( callback );

@@ -24,8 +24,9 @@ import escapeRegExp from 'utils/escapeRegExp';
 // * l - eLse fragment. Contains a template's children in the else case
 // * e - Element name
 // * a - map of element Attributes, or proxy event/transition Arguments
+// * m - Mustache attributes (as in <div {{#if selected}}class="selected"{{/if}}>...</div>)
 // * d - Dynamic proxy event/transition arguments
-// * n - indicates an iNverted section
+// * n - indicates section type
 // * i - Index reference, e.g. 'num' in {{#section:num}}content{{/section}}
 // * v - eVent proxies (i.e. when user e.g. clicks on a node, fire proxy event)
 // * x - eXpressions

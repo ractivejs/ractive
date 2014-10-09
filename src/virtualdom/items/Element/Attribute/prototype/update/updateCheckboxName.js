@@ -1,14 +1,19 @@
 import isArray from 'utils/isArray';
 
 export default function Attribute$updateCheckboxName () {
-	var node, value;
+	var { element, node, value } = this, valueAttribute, i;
 
-	node = this.node;
-	value = this.value;
+	valueAttribute = element.getAttribute( 'value' );
 
 	if ( !isArray( value ) ) {
-		node.checked = ( value == node._ractive.value );
+		node.checked = ( value == valueAttribute );
 	} else {
-		node.checked = ( value.indexOf( node._ractive.value ) !== -1 );
+		i = value.length;
+		while ( i-- ) {
+			if ( valueAttribute == value[i] ) {
+				node.checked = true;
+				return;
+			}
+		}
 	}
 }

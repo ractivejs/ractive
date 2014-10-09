@@ -118,10 +118,10 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
-		test( 'Standard events have correct properties: node, original, keypath, context, index', t => {
-			var ractive, fakeEvent;
+		test( 'Standard events have correct properties: node, original, keypath, context, index, name', t => {
+			var ractive;
 
-			expect( 5 );
+			expect( 6 );
 
 			ractive = new Ractive({
 				el: fixture,
@@ -130,15 +130,14 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.on( 'someEvent', function ( event ) {
 				t.equal( event.node, ractive.nodes.test );
+				t.equal( event.name, 'someEvent' );
 				t.ok( event.original );
 				t.equal( event.keypath, '' );
 				t.equal( event.context, ractive.data );
 				t.equal( event.index, undefined );
 			});
 
-			fakeEvent = simulant( 'click' );
-
-			simulant.fire( ractive.nodes.test, fakeEvent );
+			simulant.fire( ractive.nodes.test, 'click' );
 		});
 
 		test( 'Empty event names are safe, though do not fire', t => {
@@ -1116,7 +1115,87 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 
+		module( 'Touch events' );
 
+		test( 'touch events safe to include when they don\'t exist in browser', t => {
+			var ractive;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test1" on-touchstart-touchend-touchleave-touchmove-touchcancel="foo"/>' +
+					'<span id="test2" on-touchstart-mousedown="foo"/>',
+				debug: true
+			});
+
+			ractive.on( 'foo', function () {
+				t.ok( true );
+			})
+
+			simulant.fire( ractive.nodes.test2, 'mousedown' );
+
+		});
+
+		module( 'this.events' );
+
+		test( 'set to current event object', t => {
+			var ractive;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="foo"/>'
+			});
+
+			ractive.on( 'foo', function ( event ) {
+				t.equal( this.event, event );
+			})
+
+			simulant.fire( ractive.nodes.test, 'click' );
+
+		});
+
+		test( 'exists on ractive.fire()', t => {
+			var ractive, data = { foo: 'bar' };
+
+			expect( 4 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="foo"/>',
+				data: data
+			});
+
+			ractive.on( 'foo', function () {
+				var e;
+				t.ok( e = this.event );
+				t.equal( e.name, 'foo' );
+				t.equal( e.keypath, '' );
+				t.equal( e.context, data );
+			})
+
+			ractive.fire( 'foo' );
+		});
+
+		test( 'wildcard and multi-part listeners have correct event name', t => {
+			var ractive, fired = [], events;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="foo"/>'
+			});
+
+			ractive.on( 'foo.* fuzzy *.bop', function () {
+				fired.push( this.event.name );
+			})
+
+			events = [ 'foo.bar', 'fuzzy', 'foo.fizz', 'bip.bop' ];
+			events.forEach( ractive.fire.bind( ractive ) );
+
+			t.deepEqual( fired, events );
+		});
 	};
 
 });

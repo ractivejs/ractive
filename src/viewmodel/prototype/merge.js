@@ -1,4 +1,3 @@
-import types from 'config/types';
 import warn from 'utils/warn';
 import mapOldToNewIndex from 'viewmodel/prototype/merge/mapOldToNewIndex';
 
@@ -9,8 +8,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 	var oldArray,
 		newArray,
 		comparator,
-		newIndices,
-		dependants;
+		newIndices;
 
 	this.mark( keypath );
 
@@ -44,28 +42,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 	// find new indices for members of oldArray
 	newIndices = mapOldToNewIndex( oldArray, newArray );
 
-	// Indices that are being removed should be marked as dirty
-	newIndices.forEach( ( newIndex, oldIndex ) => {
-		if ( newIndex === -1 ) {
-			this.mark( keypath + '.' + oldIndex );
-		}
-	});
-
-	// Update the model
-	// TODO allow existing array to be updated in place, rather than replaced?
-	this.set( keypath, array, true );
-
-	if ( dependants = this.deps[ 'default' ][ keypath ] ) {
-		dependants.filter( canMerge ).forEach( dependant => dependant.merge( newIndices ) );
-	}
-
-	if ( currentArray.length !== array.length ) {
-		this.mark( keypath + '.length', true );
-	}
-}
-
-function canMerge ( dependant ) {
-	return typeof dependant.merge === 'function' && ( !dependant.subtype || dependant.subtype === types.SECTION_EACH );
+	this.smartUpdate( keypath, array, newIndices, currentArray.length !== array.length );
 }
 
 function stringify ( item ) {

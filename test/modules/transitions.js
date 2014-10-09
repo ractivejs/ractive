@@ -210,5 +210,57 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 				}
 			});
 		});
+
+		test( 'Parameter objects are not polluted (#1239)', function ( t ) {
+			var ractive, uid = 0, objects = [];
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#each list}}<p intro="foo:{}"></p>{{/each}}',
+				transitions: {
+					foo: function ( t, params ) {
+						params = t.processParams( params, {
+							uid: uid++
+						});
+
+						objects.push( params );
+					}
+				},
+				data: { list: [ 0, 0 ] }
+			});
+
+			t.equal( objects.length, 2 );
+			t.notEqual( objects[0], objects[1] );
+		});
+
+		asyncTest( 'An intro will be aborted if a corresponding outro begins before it completes', function ( t ) {
+			var ractive, tooLate;
+
+			expect( 0 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#showBox}}<div intro="wait:2000" outro="wait:1"></div>{{/showBox}}',
+				transitions: {
+					wait: function ( t, ms ) {
+						setTimeout( t.complete, ms );
+					}
+				}
+			});
+
+			ractive.set( 'showBox', true ).then( function ( t ) {
+				if ( !tooLate ) {
+					QUnit.start();
+				}
+			});
+
+			setTimeout( function () {
+				ractive.set( 'showBox', false );
+			}, 0 );
+
+			setTimeout( function () {
+				tooLate = true;
+			}, 200 );
+		});
 	};
 });

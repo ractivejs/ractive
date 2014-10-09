@@ -1,46 +1,37 @@
 import config from 'config/config';
 import create from 'utils/create';
+import Fragment from 'virtualdom/Fragment';
 import getElement from 'utils/getElement';
 import getNextNumber from 'utils/getNextNumber';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
-import Fragment from 'virtualdom/Fragment';
+
+var constructHook = new Hook( 'construct' ),
+	configHook = new Hook( 'config' ),
+	initHook = new HookQueue( 'init' );
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
+	var el;
+
 	initialiseProperties( ractive, options );
+
+	// make this option do what would be expected if someone
+	// did include it on a new Ractive() or new Component() call.
+	// Silly to do so (put a hook on the very options being used),
+	// but handle it correctly, consistent with the intent.
+	constructHook.fire( config.getConstructTarget( ractive, options ), options );
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, options );
 
-	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive );
+	configHook.fire( ractive );
 
-	// hacky circular problem until we get this sorted out
-	// if viewmodel immediately processes computed properties,
-	// they may call ractive.get, which calls ractive.viewmodel,
-	// which hasn't been set till line above finishes.
-	ractive.viewmodel.compute();
-
-	// Render our *root fragment*
-	if ( ractive.template ) {
-		ractive.fragment = new Fragment({
-			template: ractive.template,
-			root: ractive,
-			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
-		});
-	}
-
-	// render automatically ( if `el` is specified )
-	tryRender( ractive );
-}
-
-function tryRender ( ractive ) {
-	var el;
-
+	// Teardown any existing instances *before* trying to set up the new one -
+	// avoids certain weird bugs
 	if ( el = getElement( ractive.el ) ) {
-		// If the target contains content, and `append` is falsy, clear it
-		if ( el && !ractive.append ) {
-			// Tear down any existing instances on this element
+		if ( !ractive.append ) {
 			if ( el.__ractive_instances__ ) {
 				try {
 					el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( r => r.teardown() );
@@ -54,7 +45,32 @@ function tryRender ( ractive ) {
 
 			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 		}
+	}
 
+	initHook.begin( ractive );
+
+	// TEMPORARY. This is so we can implement Viewmodel gradually
+	ractive.viewmodel = new Viewmodel( ractive );
+
+	// hacky circular problem until we get this sorted out
+	// if viewmodel immediately processes computed properties,
+	// they may call ractive.get, which calls ractive.viewmodel,
+	// which hasn't been set till line above finishes.
+	ractive.viewmodel.init();
+
+	// Render our *root fragment*
+	if ( ractive.template ) {
+		ractive.fragment = new Fragment({
+			template: ractive.template,
+			root: ractive,
+			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+		});
+	}
+
+	initHook.end( ractive );
+
+	// render automatically ( if `el` is specified )
+	if ( el ) {
 		ractive.render( el, ractive.append );
 	}
 }

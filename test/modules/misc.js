@@ -477,19 +477,15 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 
-			try {
-				items.push({});
-				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
-				items.push({});
-				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
+			items.push({});
+			t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
+			items.push({});
+			t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
 
-				items.splice( 1, 1 );
-				t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
-				items.splice( 1, 1 );
-				t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
-			} catch ( err ) {
-				t.ok( false );
-			}
+			items.splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
+			items.splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 		});
 
 		test( 'Regression test for #297', function ( t ) {
@@ -1547,6 +1543,38 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.equal( fixture.innerHTML, JSON.stringify( ractive.data ) );
 		});
+
+		test( 'Case-sensitive conditional SVG attribute', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<svg {{vb}}></svg>',
+				data: { vb: 'viewBox="0 0 100 100"' }
+			});
+
+			t.equal( ractive.find( 'svg' ).getAttribute( 'viewBox' ), '0 0 100 100' );
+		});
+
+		// Is there a way to artificially create a FileList? Leaving this commented
+		// out until someone smarter than me figures out how
+		// test( '{{#each}} iterates over a FileList (#1220)', t => {
+		// 	var input, files, ractive;
+
+		// 	input = document.createElement( 'input' );
+		// 	input.type = 'file';
+		// 	files = input.files;
+
+		// 	files[0] = { name: 'one.txt' };
+		// 	files[1] = { name: 'two.txt' };
+		// 	files[2] = { name: 'three.txt' };
+
+		// 	ractive = new Ractive({
+		// 		el: fixture,
+		// 		template: '{{#each files}}<p>{{name}}</p>{{/each}}',
+		// 		data: { files: files }
+		// 	});
+
+		// 	t.htmlEqual( fixture.innerHTML, '<p>one.txt</p><p>two.txt</p><p>three.txt</p>' );
+		// });
 
 		// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
 		// Anyway I can't be bothered to figure it out right now so I'm just commenting

@@ -51,6 +51,16 @@ var renderTests = [
 		},
 		result: "<p class=\"it_works\">text</p>"
 	},
+	// ugh, this fails in PhantomJS, which doesn't return namespaced attributes from
+	// innerHTML correctly. Skipping. See https://github.com/ractivejs/ractive/pull/1184
+	/*{
+		name: "Element with namespaced attributes",
+		template: "<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#{{href}}'></use></svg>",
+		data: {
+			href: 'check'
+		},
+		result: "<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#check'></use></svg>"
+	},*/
 	{
 		name: "Section with descendant attributes",
 		template: "{{#todos}}<li><label>{{todo}}</label><span class='{{status}}'>{{todo}}</span></li>{{/todos}}",
@@ -185,20 +195,14 @@ var renderTests = [
 		result: 'TEST'
 	},
 	{
-		name: 'Expression with a single reference',
-		template: '{{( ref )}}',
-		data: { ref: 'success' },
-		result: 'success'
-	},
-	{
 		name: 'Arithmetic expression',
-		template: '{{( number * 2 )}}',
+		template: '{{ number * 2 }}',
 		data: { number: 10 },
 		result: '20'
 	},
 	{
 		name: 'Arithmetic expression with update',
-		template: '{{( number * 2 )}}',
+		template: '{{ number * 2 }}',
 		data: { number: 10 },
 		new_data: { number: 20 },
 		result: '20',
@@ -206,12 +210,12 @@ var renderTests = [
 	},
 	{
 		name: 'Arithmetic expression with missing data',
-		template: '{{( number * 2 )}}',
+		template: '{{ number * 2 }}',
 		result: 'NaN'
 	},
 	{
 		name: 'Arithmetic expression with missing data and update',
-		template: '{{( number * 2 )}}',
+		template: '{{ number * 2 }}',
 		new_data: { number: 20 },
 		result: 'NaN',
 		new_result: '40'
@@ -645,6 +649,24 @@ var renderTests = [
 		new_result: '<p>no items!</p>'
 	},
 	{
+		name: '{{#with foo}}...{{else}}...{{/with}}',
+		handlebars: true,
+		template: '{{#with foo}}<p>{{this}}</p>{{else}}<p>no foo!</p>{{/with}}',
+		data: { foo: 'bar' },
+		result: '<p>bar</p>',
+		new_data: { foo: null },
+		new_result: '<p>no foo!</p>'
+	},
+	{
+		name: '{{#each foo}}...{{else}}...{{/each}}',
+		handlebars: true,
+		template: '{{#each foo}}<p>{{@key}}:{{.}}</p>{{else}}<p>empty foo!</p>{{/each}}',
+		data: { foo: {bar : 'qux'} },
+		result: '<p>bar:qux</p>',
+		new_data: { foo: {} },
+		new_result: '<p>empty foo!</p>'
+	},
+	{
 		name: '#if/else with true static expression',
 		handlebars: true,
 		template: '{{#if true}}yes{{else}}no{{/if}}',
@@ -759,10 +781,8 @@ var renderTests = [
 			foo: [
 				[ 2, 1, 4, 3 ]
 			],
-			f: function (x) {
-				return x.sort(function (a, b) { // ... or this (sort) and it will work
-					return b - a;
-				});
+			f: function ( x ) {
+				return x.sort( ( a, b ) => b - a );
 			}
 		},
 		result: '4321'
@@ -874,6 +894,28 @@ var renderTests = [
 		name: 'Illegal code points between 128 and 159 are dealt with',
 		template: 'Euro sign: &#128; &#8364;',
 		result: 'Euro sign: &#128; &#8364;'
+	},
+
+	// CONDITIONAL ATTRIBUTES
+	{
+		name: 'Basic mustache attribute',
+		template: '<div {{foo}}></div>',
+		data: { foo: 'class="foo"' },
+		result: '<div class="foo"></div>'
+	},
+	{
+		name: 'Conditional mustache attribute',
+		template: '<div {{#if foo}}class="bar"{{/if}}></div>',
+		data: { foo: true },
+		result: '<div class="bar"></div>',
+		new_data: { foo: false },
+		new_result: '<div></div>'
+	},
+	{
+		name: 'Partial mustache attribute',
+		template: '<div {{>style}}></div>',
+		partials: { style: 'style="background-color: black; color: white"' },
+		result: '<div style="background-color: black; color: white"></div>'
 	}
 ];
 
