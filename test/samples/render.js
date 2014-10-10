@@ -916,6 +916,11 @@ var renderTests = [
 		template: '<div {{>style}}></div>',
 		partials: { style: 'style="background-color: black; color: white"' },
 		result: '<div style="background-color: black; color: white"></div>'
+	},
+	{
+		name: '<option> with empty value attribute (docs #138)',
+		template: '<select><option value="">Option 0</option><option value="1">Option 1</option></select>',
+		result: '<select><option value="">Option 0</option><option value="1">Option 1</option></select>'
 	}
 ];
 

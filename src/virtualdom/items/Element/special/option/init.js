@@ -16,7 +16,7 @@ export default function initOption ( option, template ) {
 	}
 
 	// ...as long as it isn't disabled
-	if ( !template.a.value && !template.a.hasOwnProperty( 'disabled' ) ) {
+	if ( template.a.value === undefined && !template.a.hasOwnProperty( 'disabled' ) ) {
 		template.a.value = template.f;
 	}
 
