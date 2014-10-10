@@ -50,7 +50,7 @@ ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 			args[i] = { keypath: keypath };
 			return;
 		} else if ( reference === '.' ) { // special case of context reference to root
-			args[i] = { '': '' };
+			args[i] = { keypath: '' };
 			return;
 		}
 
@@ -111,7 +111,7 @@ ExpressionResolver.prototype = {
 			while ( i-- ) {
 				arg = this.args[i];
 
-				if ( arg && arg.keypath ) {
+				if ( arg && arg.keypath !== undefined && arg.keypath !== null ) {
 					keypaths.push( arg.keypath );
 				}
 			}
