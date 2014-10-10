@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-10 - commit 050ba3bb 
+	2014-10-10 - commit bef027b9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6604,6 +6604,9 @@
 				} else {
 					container = element( node.tagName );
 					container.innerHTML = html;
+					if ( container.tagName === 'SELECT' ) {
+						selectedOption = container.options[ container.selectedIndex ];
+					}
 				}
 				while ( child = container.firstChild ) {
 					nodes.push( child );
@@ -6613,7 +6616,8 @@
 				// temporary container <select> causes the remaining ones to
 				// become selected. So now we have to deselect them. IE8, you
 				// amaze me. You really do
-				if ( ieBug && node.tagName === 'SELECT' ) {
+				// ...and now Chrome too
+				if ( node.tagName === 'SELECT' ) {
 					i = nodes.length;
 					while ( i-- ) {
 						if ( nodes[ i ] !== selectedOption ) {
