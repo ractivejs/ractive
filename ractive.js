@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.0
-	2014-10-10 - commit ec61b2a0 
+	2014-10-10 - commit e877bc93 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13491,6 +13491,7 @@
 				// Is this a computed property?
 				if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
 					value = computation.get();
+					this.adapt( keypath, value );
 				} else if ( wrapped = this.wrapped[ keypath ] ) {
 					value = wrapped.value;
 				} else if ( !keypath ) {
