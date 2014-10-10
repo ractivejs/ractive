@@ -229,32 +229,35 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 
 		test( 'display a collection from a model', function ( t ) {
 			var Classes = (function () {
-				var extend = function (parent, child) {
-					var Surrogate = function(){ this.constructor = child; };
+				var Model, Collection, Items, Store;
+				function extend ( parent, child ) {
+					var Surrogate = function () {
+						this.constructor = child;
+					};
 					Surrogate.prototype = parent.prototype;
 					child.prototype = new Surrogate();
-				};
+				}
 
-				var Model = function (attrs) {
+				Model = function ( attrs ) {
 					this.attrs = attrs || {};
 					return this;
 				};
-				var Collection = function (attrs) {
+				Collection = function ( attrs ) {
 					this.attrs = attrs || [];
 					return this;
 				};
 
-				var Items = function (attrs) {
+				Items = function ( attrs ) {
 					Collection.call(this, attrs);
 					return this;
 				};
-				extend(Collection, Items);
+				extend( Collection, Items );
 
-				var Store = function (attrs) {
-					Model.call(this, attrs);
+				Store = function ( attrs ) {
+					Model.call( this, attrs );
 					return this;
 				};
-				extend(Model, Store);
+				extend( Model, Store );
 				Store.prototype.getItems = function () {
 					return this.attrs.items;
 				};
@@ -265,20 +268,20 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 					Items: Items,
 					Store: Store
 				};
-			})();
+			})( 'Classes' );
 			
-			var Adaptors = (function () {
-				var ModelAdaptor = {
-					filter: function (obj, keypath, ractive) {
+			(function () {
+				Ractive.adaptors.ModelAdaptor = {
+					filter: function ( obj, keypath, ractive ) {
 						return obj instanceof Classes.Model;
 					},
-					wrap: function (ractive, obj, keypath, prefix) {
+					wrap: function ( ractive, obj, keypath, prefix ) {
 						return {
 							get: function () {
 								return obj.attrs;
 							},
 							set: function (prop, val) {
-								obj.attrs[prop] = val;
+								obj.attrs[ prop ] = val;
 							},
 							reset: function () {
 								return false;
@@ -289,11 +292,11 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 						};
 					}
 				};
-				var CollectionAdaptor = {
-					filter: function (obj, keypath, ractive) {
+				Ractive.adaptors.CollectionAdaptor = {
+					filter: function ( obj, keypath, ractive ) {
 						return obj instanceof Classes.Collection;
 					},
-					wrap: function (ractive, obj, keypath, prefix) {
+					wrap: function ( ractive, obj, keypath, prefix ) {
 						return {
 							get: function () {
 								return obj.attrs;
@@ -307,19 +310,17 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 						};
 					}
 				};
-				Ractive.adaptors.ModelAdaptor = ModelAdaptor;
-				Ractive.adaptors.CollectionAdaptor = CollectionAdaptor;
-				return Ractive.adaptors;
-			})();
+			})( 'Adaptors' );
 
 			(function () {
-				var template = [
+				var template, store, app;
+				template = [
 					'{{# store.getItems() }}',
 					'-{{ this.name }}',
 					'{{/}}',
-				].join('');
+				].join( '' );
 				
-				var store = new Classes.Store({
+				store = new Classes.Store({
 					items: new Classes.Items([
 						{
 							name: 'duck'
@@ -330,17 +331,17 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 					])
 				});
 				
-				var app = new Ractive({
+				app = new Ractive({
 					el: fixture,
 					template: template,
 					data: {
 						store: store
 					},
-					adapt: ['ModelAdaptor', 'CollectionAdaptor'],
+					adapt: [ 'ModelAdaptor', 'CollectionAdaptor' ],
 					debug: true
 				});
 
-			})('initialize');
+			})( 'initialize' );
 			t.htmlEqual( fixture.innerHTML, '-duck-chicken' );
 		});
 
