@@ -11,7 +11,7 @@ if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typ
 			warned[ message ] = true;
 		}
 
-		console.warn( message );
+		console.warn( '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' );
 	};
 } else {
 	warn = function () {};
