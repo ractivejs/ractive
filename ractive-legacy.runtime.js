@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-10 - commit 7ed60be7 
+	2014-10-10 - commit ec61b2a0 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -216,7 +216,7 @@
 					}
 					warned[ message ] = true;
 				}
-				console.warn( message );
+				console.warn( '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' );
 			};
 		} else {
 			warn = function() {};
@@ -239,7 +239,7 @@
 		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned',
 		defaultElSpecified: 'The <{name}/> component has a default `el` property; it has been disregarded',
 		noElementProxyEventWildcards: 'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.',
-		methodDepricated: 'The method "{depricated}" has been depricated in favor of "{replacement}" and will likely be removed in a future release.'
+		methodDeprecated: 'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.'
 	};
 
 	/* utils/log.js */
@@ -250,6 +250,9 @@
 				if ( !options.debug && !passthru ) {
 					return;
 				}
+				this.warnAlways( options );
+			},
+			warnAlways: function( options ) {
 				this.logger( getMessage( options ), options.allowDuplicates );
 			},
 			error: function( options ) {
@@ -290,17 +293,17 @@
 	/* Ractive/prototype/shared/hooks/Hook.js */
 	var Ractive$shared_hooks_Hook = function( log ) {
 
-		var deprications = {
+		var deprecations = {
 			construct: {
-				depricated: 'beforeInit',
+				deprecated: 'beforeInit',
 				replacement: 'onconstruct'
 			},
 			render: {
-				depricated: 'init',
-				replacement: 'onrender'
+				deprecated: 'init',
+				message: 'The "init" method has been deprecated ' + 'and will likely be removed in a future release. ' + 'You can either use the "oninit" method which will fire ' + 'only once prior to, and regardless of, any eventual ractive ' + 'instance being rendered, or if you need to access the ' + 'rendered DOM, use "onrender" instead. ' + 'See http://docs.ractivejs.org/latest/migrating for more information.'
 			},
 			complete: {
-				depricated: 'complete',
+				deprecated: 'complete',
 				replacement: 'oncomplete'
 			}
 		};
@@ -308,7 +311,7 @@
 		function Hook( event ) {
 			this.event = event;
 			this.method = 'on' + event;
-			this.depricate = deprications[ event ];
+			this.deprecate = deprecations[ event ];
 		}
 		Hook.prototype.fire = function( ractive, arg ) {
 			function call( method ) {
@@ -318,11 +321,11 @@
 				}
 			}
 			call( this.method );
-			if ( this.depricate && call( this.depricate.depricated ) ) {
-				log.warn( {
+			if ( this.deprecate && call( this.deprecate.deprecated ) ) {
+				log.warnAlways( {
 					debug: ractive.debug,
-					message: 'methodDepricated',
-					args: this.depricate
+					message: this.deprecate.message || 'methodDeprecated',
+					args: this.deprecate
 				} );
 			}
 			arg ? ractive.fire( this.event, arg ) : ractive.fire( this.event );
