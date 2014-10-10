@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-10 - commit e877bc93 
+	2014-10-10 - commit f799df2d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9132,7 +9132,7 @@
 				template.a = {};
 			}
 			// ...as long as it isn't disabled
-			if ( !template.a.value && !template.a.hasOwnProperty( 'disabled' ) ) {
+			if ( template.a.value === undefined && !template.a.hasOwnProperty( 'disabled' ) ) {
 				template.a.value = template.f;
 			}
 			// If there is a `selected` attribute, but the <select>
