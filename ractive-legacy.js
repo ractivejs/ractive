@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-10 - commit f799df2d 
+	2014-10-10 - commit 050ba3bb 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3492,7 +3492,6 @@
 				index = remaining.indexOf( barrier );
 			} else {
 				disallowed = [
-					barrier,
 					parser.delimiters[ 0 ],
 					parser.tripleDelimiters[ 0 ],
 					parser.staticDelimiters[ 0 ],
@@ -3501,10 +3500,12 @@
 				// http://developers.whatwg.org/syntax.html#syntax-attributes
 				if ( parser.inAttribute === true ) {
 					// we're inside an unquoted attribute value
-					disallowed.push( '"', '\'', '=', '>', '`' );
+					disallowed.push( '"', '\'', '=', '<', '>', '`' );
 				} else if ( parser.inAttribute ) {
 					// quoted attribute value
 					disallowed.push( parser.inAttribute );
+				} else {
+					disallowed.push( barrier );
 				}
 				index = getLowestIndex( remaining, disallowed );
 			}
@@ -4335,7 +4336,7 @@
 		function getElement( parser ) {
 			var start, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
 			start = parser.pos;
-			if ( parser.inside ) {
+			if ( parser.inside || parser.inAttribute ) {
 				return null;
 			}
 			if ( !parser.matchString( '<' ) ) {
