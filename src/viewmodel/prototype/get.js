@@ -16,6 +16,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		// Is this a computed property?
 		if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
 			value = computation.get();
+			this.adapt( keypath, value );
 		}
 
 		// Is this a wrapped property?
