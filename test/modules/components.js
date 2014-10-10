@@ -308,7 +308,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
-		asyncTest( 'Component complete() methods are called', t => {
+		asyncTest( 'Component oncomplete() methods are called', t => {
 			var ractive, Widget, counter, done;
 
 			expect( 2 );
@@ -317,8 +317,8 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			done = function () { --counter || start(); };
 
 			Widget = Ractive.extend({
-				complete: function () {
-					t.ok( true, 'complete in component' );
+				oncomplete: function () {
+					t.ok( true, 'oncomplete in component' );
 					done();
 				}
 			});
@@ -326,8 +326,8 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget/>',
-				complete: function () {
-					t.ok( true, 'complete in ractive' );
+				oncomplete: function () {
+					t.ok( true, 'oncomplete in ractive' );
 					done();
 				},
 				components: {
@@ -420,7 +420,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				Widget = Ractive.extend({
 					template: '{{world}}',
 					magic: true,
-					complete: function(){
+					oncomplete: function(){
 						this.data.world = 'venus'
 						t.htmlEqual( fixture.innerHTML, 'venusvenus' );
 						start();
@@ -651,12 +651,12 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, 'bar-bar' );
 		});
 
-		asyncTest( 'Instances with multiple components still fire complete() handlers (#486 regression)', t => {
+		asyncTest( 'Instances with multiple components still fire oncomplete() handlers (#486 regression)', t => {
 			var Widget, ractive, counter, done;
 
 			Widget = Ractive.extend({
 				template: 'foo',
-				complete: function () {
+				oncomplete: function () {
 					t.ok( true );
 					done();
 				}
@@ -671,7 +671,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				el: fixture,
 				template: '<widget/><widget/>',
 				components: { widget: Widget },
-				complete: function () {
+				oncomplete: function () {
 					t.ok( true );
 					done();
 				}
@@ -728,7 +728,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
 		});
 
-		test( 'Nested components fire the init() event correctly (#511)', t => {
+		test( 'Nested components fire the oninit() event correctly (#511)', t => {
 			var ractive, Outer, Inner, outerInitCount = 0, innerInitCount = 0;
 
 			Inner = Ractive.extend({
@@ -1158,7 +1158,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				components: {
 					widget: Ractive.extend({
 						template: 'widget',
-						init: function () {
+						oninit: function () {
 							this.on( 'teardown', function () {
 								t.ok( true );
 							})
@@ -1299,7 +1299,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 		});
 
-		asyncTest( 'init only fires once on a component (#943 #927), complete fires each render', t => {
+		asyncTest( 'oninit() only fires once on a component (#943 #927), oncomplete fires each render', t => {
 
 			var Component, component, inited = false, completed = 0, rendered = 0;
 
@@ -1307,7 +1307,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			Component = Ractive.extend({
 				oninit: function () {
-					t.ok( !inited, 'init should not be called second time' );
+					t.ok( !inited, 'oninit should not be called second time' );
 					inited = true;
 				},
 				onrender: function() {
@@ -1540,7 +1540,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			Widget = Ractive.extend({
 				template: '<p>message: {{proxy}}</p>',
 
-				init: function () {
+				oninit: function () {
 					this.observe( 'message', function ( message ) {
 						this.set( 'proxy', message );
 					});

@@ -680,20 +680,20 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( ractive.findComponent('widget').data.attr instanceof ClassB );
 		});
 
-		asyncTest( 'Subclass instance complete() handlers can call _super', function ( t ) {
+		asyncTest( 'Subclass instance oncomplete() handlers can call _super', function ( t ) {
 			var Subclass, instance;
 
 			expect( 1 );
 
 			Subclass = Ractive.extend({
-				complete: function () {
+				oncomplete: function () {
 					return 42;
 				}
 			});
 
 			instance = new Subclass({
 				el: fixture,
-				complete: function () {
+				oncomplete: function () {
 					t.equal( this._super(), 42 );
 					start();
 				}
@@ -1093,12 +1093,12 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		asyncTest( 'Complete handlers are called for lazily-rendered instances (#749)', function ( t ) {
+		asyncTest( 'oncomplete handlers are called for lazily-rendered instances (#749)', function ( t ) {
 			expect( 1 );
 
 			var ractive = new Ractive({
 				template: '<p>foo</p>',
-				complete: function () {
+				oncomplete: function () {
 					t.ok( true );
 					ractive.teardown();
 					QUnit.start();
