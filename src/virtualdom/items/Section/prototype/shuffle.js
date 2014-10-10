@@ -78,7 +78,9 @@ export default function Section$shuffle ( newIndices ) {
 
 	this.length = this.fragments.length = newLength;
 
-	runloop.addView( this );
+	if ( this.rendered ) {
+		runloop.addView( this );
+	}
 
 	// Prepare new fragment options
 	fragmentOptions = {

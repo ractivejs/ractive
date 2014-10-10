@@ -129,6 +129,8 @@ export default function Element$render () {
 		let transition = new Transition ( this, this.intro, true );
 		runloop.registerTransition( transition );
 		runloop.scheduleTask( () => transition.start() );
+
+		this.transition = transition;
 	}
 
 	if ( this.name === 'option' ) {

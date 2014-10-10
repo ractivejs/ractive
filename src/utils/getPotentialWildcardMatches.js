@@ -6,7 +6,7 @@ var starMaps = {};
 // These are then checked against the dependants map (ractive.viewmodel.depsMap)
 // to see if any pattern observers are downstream of one or more of
 // these wildcard keypaths (e.g. 'foo.bar.*.status')
-export function getPotentialWildcardMatches ( keypath ) {
+export default function getPotentialWildcardMatches ( keypath ) {
 	var keys, starMap, mapper, i, result, wildcardKeypath;
 
 	keys = keypath.split( '.' );

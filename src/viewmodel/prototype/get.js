@@ -9,13 +9,13 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		value,
 		computation,
 		wrapped,
-		evaluator;
+		captureGroup;
 
 	if ( cache[ keypath ] === undefined ) {
 
 		// Is this a computed property?
-		if ( computation = this.computations[ keypath ] ) {
-			value = computation.value;
+		if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
+			value = computation.get();
 		}
 
 		// Is this a wrapped property?
@@ -27,11 +27,6 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		else if ( !keypath ) {
 			this.adapt( '', ractive.data );
 			value = ractive.data;
-		}
-
-		// Is this an uncached evaluator value?
-		else if ( evaluator = this.evaluators[ keypath ] ) {
-			value = evaluator.value;
 		}
 
 		// No? Then we need to retrieve the value one key at a time
@@ -48,15 +43,17 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		value = wrapped.get();
 	}
 
-	// capture the keypath, if we're inside a computation or evaluator
-	if ( options.capture && this.capturing && this.captured.indexOf( keypath ) === -1 ) {
-		this.captured.push( keypath );
+	// capture the keypath, if we're inside a computation
+	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
+		if ( !~captureGroup.indexOf( keypath ) ) {
+			captureGroup.push( keypath );
 
-		// if we couldn't resolve the keypath, we need to make it as a failed
-		// lookup, so that the evaluator updates correctly once we CAN
-		// resolve the keypath
-		if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
-			new UnresolvedImplicitDependency( this, keypath );
+			// if we couldn't resolve the keypath, we need to make it as a failed
+			// lookup, so that the computation updates correctly once we CAN
+			// resolve the keypath
+			if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
+				new UnresolvedImplicitDependency( this, keypath );
+			}
 		}
 	}
 

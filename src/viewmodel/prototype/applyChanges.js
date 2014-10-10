@@ -7,102 +7,74 @@ export default function Viewmodel$applyChanges () {
 	var self = this,
 		changes,
 		upstreamChanges,
-		upstreamHash = {},
-		allChanges = [],
-		computations,
-		addComputations,
-		cascade,
 		hash = {};
 
-	if ( !this.changes.length ) {
+	changes = this.changes;
+
+	if ( !changes.length ) {
 		// TODO we end up here on initial render. Perhaps we shouldn't?
 		return;
 	}
 
-	addComputations = function ( keypath ) {
-		var newComputations;
-
-		if ( newComputations = self.deps.computed[ keypath ] ) {
-			addNewItems( computations, newComputations );
-		}
-	};
-
-	cascade = function ( keypath ) {
-		var map;
+	function cascade ( keypath ) {
+		var map, dependants, keys;
 
 		if ( self.noCascade.hasOwnProperty( keypath ) ) {
 			return;
 		}
 
-		addComputations( keypath );
+		if ( dependants = self.deps.computed[ keypath ] ) {
+			dependants.forEach( invalidate );
+
+			keys = dependants.map( getKey );
+
+			keys.forEach( mark );
+			keys.forEach( cascade );
+		}
 
 		if ( map = self.depsMap.computed[ keypath ] ) {
 			map.forEach( cascade );
 		}
-	};
+	}
 
-	// Find computations and evaluators that are invalidated by
-	// these changes. If they have changed, add them to the
-	// list of changes. Lather, rinse and repeat until the
-	// system is settled
-	do {
-		changes = this.changes;
-		addNewItems( allChanges, changes );
+	function mark ( keypath ) {
+		self.mark( keypath );
+	}
 
-		this.changes = [];
-		computations = [];
+	changes.forEach( cascade );
 
-		upstreamChanges = getUpstreamChanges( changes );
-		upstreamChanges.forEach( addComputations );
+	upstreamChanges = getUpstreamChanges( changes );
+	upstreamChanges.forEach( keypath => {
+		var dependants, keys;
 
-		changes.forEach( cascade );
+		if ( dependants = self.deps.computed[ keypath ] ) {
+			dependants.forEach( invalidate );
 
-		computations.forEach( updateComputation );
+			keys = dependants.map( getKey );
+			keys.forEach( mark );
+		}
+	});
 
-	} while ( this.changes.length );
-
-	upstreamChanges = getUpstreamChanges( allChanges );
+	this.changes = [];
 
 	// Pattern observers are a weird special case
 	if ( this.patternObservers.length ) {
 		upstreamChanges.forEach( keypath => notifyPatternObservers( this, keypath, true ) );
-		allChanges.forEach( keypath => notifyPatternObservers( this, keypath ) );
+		changes.forEach( keypath => notifyPatternObservers( this, keypath ) );
 	}
-
-	var sortedKeys = allChanges.slice();
-	var current, next, keep = [], index = 0;
-	sortedKeys.sort();
-
-	keep.push( current = sortedKeys[0] );
-	while( next = sortedKeys[++index] ){
-		if( next.slice(0, current.length) ){
-			keep.push( current = next);
-		}
-	}
-
-	keep.forEach( change => {
-		let upstream = getUpstreamChanges( [ change ] );
-		if ( upstream.length ) {
-			upstreamHash[ change ] = upstream;
-		}
-	});
 
 	dependantGroups.forEach( group => {
 		if ( !this.deps[ group ] ) {
 			return;
 		}
-		//upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, group ) );
-		// upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, null, group ) );
 
-		Object.keys(upstreamHash).forEach( originalKeypath => {
-			upstreamHash[ originalKeypath ].forEach( keypath =>
-			 notifyUpstreamDependants( this, keypath, originalKeypath, group ) );
-		});
-		notifyAllDependants( this, allChanges, group );
+		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, group ) );
+
+		notifyAllDependants( this, changes, group );
 	});
 
 	// Return a hash of keypaths to updated values
-	allChanges.forEach( keypath => {
+	changes.forEach( keypath => {
 		hash[ keypath ] = this.get( keypath );
 	});
 
@@ -112,41 +84,22 @@ export default function Viewmodel$applyChanges () {
 	return hash;
 }
 
-function updateComputation ( computation ) {
-	computation.update();
+function invalidate ( computation ) {
+	computation.invalidate();
 }
 
-function notifyUpstreamDependants ( viewmodel, keypath, originalKeypath, groupName ) {
+function getKey ( computation ) {
+	return computation.key;
+}
+
+function notifyUpstreamDependants ( viewmodel, keypath, groupName ) {
 	var dependants, value;
 
 	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
 		value = viewmodel.get( keypath );
-		dependants.forEach( d => {
-			if( !d.refineValue ) {
-
-				d.setValue( value );
-			 } else
-			 {
-				d.refineValue( keypath, originalKeypath );
-			 }
-
-				// d.setValue( value );
-		});
+		dependants.forEach( d => d.setValue( value ) );
 	}
 }
-
-// function notifyUpstreamBindings ( viewmodel, keypath, originalKeypath, groupName ) {
-// 	var dependants, value;
-
-// 	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
-// 		value = viewmodel.get( keypath );
-// 		dependants.forEach( d => {
-// 			if( d.setRefinedValue ) {
-// 				d.setRefinedValue( keypath, originalKeypath );
-// 			}
-// 		});
-// 	}
-// }
 
 function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 	var queue = [];
@@ -186,13 +139,5 @@ function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 
 function findDependants ( viewmodel, keypath, groupName ) {
 	var group = viewmodel.deps[ groupName ];
-	return group ?  group[ keypath ] : null;
-}
-
-function addNewItems ( arr, items ) {
-	items.forEach( item => {
-		if ( arr.indexOf( item ) === -1 ) {
-			arr.push( item );
-		}
-	});
+	return group ? group[ keypath ] : null;
 }

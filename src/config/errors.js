@@ -38,6 +38,6 @@ export default {
 	noElementProxyEventWildcards:
 		'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.',
 
-	methodDepricated:
-		'The method "{depricated}" has been depricated in favor of "{replacement}" and will likely be removed in a future release.'
+	methodDeprecated:
+		'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.'
 };

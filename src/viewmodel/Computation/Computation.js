@@ -1,10 +1,7 @@
 import log from 'utils/log';
 import isEqual from 'utils/isEqual';
-import diff from 'viewmodel/Computation/diff';
 
 var Computation = function ( ractive, key, signature ) {
-	var initial;
-
 	this.ractive = ractive;
 	this.viewmodel = ractive.viewmodel;
 	this.key = key;
@@ -12,19 +9,119 @@ var Computation = function ( ractive, key, signature ) {
 	this.getter = signature.get;
 	this.setter = signature.set;
 
-	this.dependencies = [];
+	this.hardDeps = signature.deps || [];
+	this.softDeps = [];
 
-	if ( this.setter && ( initial = ractive.viewmodel.get( key ) ) ) {
-		this.set( initial );
+	this.depValues = {};
+
+	if ( this.hardDeps ) {
+		this.hardDeps.forEach( d => ractive.viewmodel.register( d, this, 'computed' ) );
 	}
+
+	this._dirty = this._firstRun = true;
 };
 
 Computation.prototype = {
-
 	constructor: Computation,
 
+	init: function () {
+		var initial;
+
+		this.bypass = true;
+
+		initial = this.ractive.viewmodel.get( this.key );
+		this.ractive.viewmodel.clearCache( this.key );
+
+		this.bypass = false;
+
+		if ( this.setter && initial !== undefined ) {
+			this.set( initial );
+		}
+	},
+
+	invalidate: function () {
+		this._dirty = true;
+	},
+
 	get: function () {
-		this.compute();
+		var ractive, newDeps, args, dependenciesChanged, dependencyValuesChanged = false;
+
+		if ( this.getting ) {
+			// prevent double-computation (e.g. caused by array mutation inside computation)
+			return;
+		}
+
+		this.getting = true;
+
+		if ( this._dirty ) {
+			ractive = this.ractive;
+
+			// determine whether the inputs have changed, in case this depends on
+			// other computed values
+			if ( this._firstRun || ( !this.hardDeps.length && !this.softDeps.length ) ) {
+				dependencyValuesChanged = true;
+			} else {
+				[ this.hardDeps, this.softDeps ].forEach( deps => {
+					var keypath, value, i;
+
+					if ( dependencyValuesChanged ) {
+						return;
+					}
+
+					i = deps.length;
+					while ( i-- ) {
+						keypath = deps[i];
+						value = ractive.viewmodel.get( keypath );
+
+						if ( !isEqual( value, this.depValues[ keypath ] ) ) {
+							this.depValues[ keypath ] = value;
+							dependencyValuesChanged = true;
+
+							return;
+						}
+					}
+				});
+			}
+
+			if ( dependencyValuesChanged ) {
+				ractive.viewmodel.capture();
+
+				try {
+					if ( this.hardDeps.length ) {
+						args = this.hardDeps.map( keypath => this.viewmodel.get( keypath ) );
+						this.value = this.getter.apply( ractive, args );
+					} else {
+						this.value = this.getter.call( ractive );
+					}
+				} catch ( err ) {
+					log.warn({
+						debug: ractive.debug,
+						message: 'failedComputation',
+						args: {
+							key: this.key,
+							err: err.message || err
+						}
+					});
+
+					this.value = void 0;
+				}
+
+				newDeps = ractive.viewmodel.release();
+				dependenciesChanged = this.updateDependencies( newDeps );
+
+				if ( dependenciesChanged ) {
+					[ this.hardDeps, this.softDeps ].forEach( deps => {
+						deps.forEach( keypath => {
+							this.depValues[ keypath ] = ractive.viewmodel.get( keypath );
+						});
+					});
+				}
+			}
+
+			this._dirty = false;
+		}
+
+		this.getting = this._firstRun = false;
 		return this.value;
 	},
 
@@ -41,41 +138,38 @@ Computation.prototype = {
 		this.setter.call( this.ractive, value );
 	},
 
-	// returns `false` if the computation errors
-	compute: function () {
-		var ractive, errored, newDependencies;
+	updateDependencies: function ( newDeps ) {
+		var i, oldDeps, keypath, dependenciesChanged;
 
-		ractive = this.ractive;
-		ractive.viewmodel.capture();
+		oldDeps = this.softDeps;
 
-		try {
-			this.value = this.getter.call( ractive );
-		} catch ( err ) {
+		// remove dependencies that are no longer used
+		i = oldDeps.length;
+		while ( i-- ) {
+			keypath = oldDeps[i];
 
-			log.warn({
-				debug: ractive.debug,
-				message: 'failedComputation',
-				args: {
-					key: this.key,
-					err: err.message || err
-				}
-			});
-
-			errored = true;
+			if ( newDeps.indexOf( keypath ) === -1 ) {
+				dependenciesChanged = true;
+				this.viewmodel.unregister( keypath, this, 'computed' );
+			}
 		}
 
-		newDependencies = ractive.viewmodel.release();
-		diff( this, this.dependencies, newDependencies );
+		// create references for any new dependencies
+		i = newDeps.length;
+		while ( i-- ) {
+			keypath = newDeps[i];
 
-		return errored ? false : true;
-	},
-
-	update: function () {
-		var oldValue = this.value;
-
-		if ( this.compute() && !isEqual( this.value, oldValue ) ) {
-			this.ractive.viewmodel.mark( this.key );
+			if ( oldDeps.indexOf( keypath ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( keypath ) === -1 ) ) {
+				dependenciesChanged = true;
+				this.viewmodel.register( keypath, this, 'computed' );
+			}
 		}
+
+		if ( dependenciesChanged ) {
+			this.softDeps = newDeps.slice();
+		}
+
+		return dependenciesChanged;
 	}
 };
 

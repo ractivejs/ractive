@@ -215,7 +215,10 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '<input id="red" type="checkbox" name="{{colors}}" value="red"><input id="blue" type="checkbox" name="{{colors}}" value="blue" checked><input id="green" type="checkbox" name="{{colors}}" value="green" checked>',
+				template: `
+					<input id="red" type="checkbox" name="{{colors}}" value="red">
+					<input id="blue" type="checkbox" name="{{colors}}" value="blue" checked>
+					<input id="green" type="checkbox" name="{{colors}}" value="green" checked>`,
 				data: { colors: [ 'red', 'blue' ] }
 			});
 
@@ -484,6 +487,93 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.updateModel();
 			t.equal( ractive.get( 'foo' ), 'static' );
 			t.htmlEqual( fixture.innerHTML, '<input>static' );
+		});
+
+		test( 'input[type="checkbox"] with bound name updates as expected (#1305)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input type="checkbox" name="{{ch}}" value="foo">',
+				data: { ch: 'bar' }
+			});
+
+			ractive.set( 'ch', 'foo' );
+			t.ok( ractive.find( 'input' ).checked );
+		});
+
+		test( 'input[type="checkbox"] with bound name updates as expected, with array mutations (#1305)', function ( t ) {
+			var ractive, checkboxes;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					<input type="checkbox" name="{{array}}" value="foo">
+					<input type="checkbox" name="{{array}}" value="bar">
+					<input type="checkbox" name="{{array}}" value="baz">`,
+				data: {
+					array: [ 'foo', 'bar' ]
+				}
+			});
+
+			checkboxes = ractive.findAll( 'input' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+
+			ractive.push( 'array', 'baz' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+			t.ok( checkboxes[2].checked );
+		});
+
+		test( 'input[type="checkbox"] works with array of numeric values (#1305)', function ( t ) {
+			var ractive, checkboxes;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					<input type="checkbox" name="{{array}}" value="1">
+					<input type="checkbox" name="{{array}}" value="2">
+					<input type="checkbox" name="{{array}}" value="3">`,
+				data: {
+					array: [ 1, 2 ]
+				}
+			});
+
+			checkboxes = ractive.findAll( 'input' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+
+			ractive.push( 'array', 3 );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+			t.ok( checkboxes[2].checked );
+		});
+
+		test( 'input[type="checkbox"] works with array mutated on init (#1305)', function ( t ) {
+			var ractive, checkboxes;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					<input type="checkbox" name="{{array}}" value="a">
+					<input type="checkbox" name="{{array}}" value="b">
+					<input type="checkbox" name="{{array}}" value="c">`,
+				data: {
+					array: [ 'a', 'b']
+				},
+				oninit: function () {
+					this.push( 'array', 'c' );
+				}
+			});
+
+			checkboxes = ractive.findAll( 'input' );
+
+			t.ok( checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
+			t.ok( checkboxes[2].checked );
 		});
 
 	};

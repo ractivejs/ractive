@@ -1,4 +1,3 @@
 export default function Viewmodel$capture () {
-	this.capturing = true;
-	this.captured = [];
+	this.captureGroups.push([]);
 }
