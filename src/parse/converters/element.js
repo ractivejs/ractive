@@ -61,7 +61,7 @@ function getElement ( parser ) {
 
 	start = parser.pos;
 
-	if ( parser.inside ) {
+	if ( parser.inside || parser.inAttribute ) {
 		return null;
 	}
 
