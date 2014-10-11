@@ -202,7 +202,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			t.ok( !obj.enabled );
 			ractive.set('wrapped.enabled', true);
 			t.ok( obj.sekrit, 'adaptor set should have been used to set sekrit property' );
-			t.ok( !obj.enabled, 'object property should not have been set, adaptor should have been used'  );
+			t.ok( !obj.enabled, 'object property should not have been set, adaptor should have been used'	);
 		});
 
 		test( 'Components inherit modifyArrays option from environment (#1297)', function ( t ) {
@@ -226,6 +226,125 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			ractive.findComponent( 'widget' ).get( 'items' ).push( 'd' );
 			t.htmlEqual( fixture.innerHTML, 'abc' );
 		});
+
+		test( 'display a collection from a model', function ( t ) {
+			var Classes = (function () {
+				var Model, Collection, Items, Store;
+				function extend ( parent, child ) {
+					var Surrogate = function () {
+						this.constructor = child;
+					};
+					Surrogate.prototype = parent.prototype;
+					child.prototype = new Surrogate();
+				}
+
+				Model = function ( attrs ) {
+					this.attrs = attrs || {};
+					return this;
+				};
+				Collection = function ( attrs ) {
+					this.attrs = attrs || [];
+					return this;
+				};
+
+				Items = function ( attrs ) {
+					Collection.call(this, attrs);
+					return this;
+				};
+				extend( Collection, Items );
+
+				Store = function ( attrs ) {
+					Model.call( this, attrs );
+					return this;
+				};
+				extend( Model, Store );
+				Store.prototype.getItems = function () {
+					return this.attrs.items;
+				};
+
+				return {
+					Model: Model,
+					Collection: Collection,
+					Items: Items,
+					Store: Store
+				};
+			})( 'Classes' );
+			
+			(function () {
+				Ractive.adaptors.ModelAdaptor = {
+					filter: function ( obj, keypath, ractive ) {
+						return obj instanceof Classes.Model;
+					},
+					wrap: function ( ractive, obj, keypath, prefix ) {
+						return {
+							get: function () {
+								return obj.attrs;
+							},
+							set: function (prop, val) {
+								obj.attrs[ prop ] = val;
+							},
+							reset: function () {
+								return false;
+							},
+							teardown: function () {
+								return true;
+							}
+						};
+					}
+				};
+				Ractive.adaptors.CollectionAdaptor = {
+					filter: function ( obj, keypath, ractive ) {
+						return obj instanceof Classes.Collection;
+					},
+					wrap: function ( ractive, obj, keypath, prefix ) {
+						return {
+							get: function () {
+								return obj.attrs;
+							},
+							reset: function () {
+								return false;
+							},
+							teardown: function () {
+								return true;
+							}
+						};
+					}
+				};
+			})( 'Adaptors' );
+
+			(function () {
+				var template, store, app;
+				template = [
+					'{{# store.getItems() }}',
+					'-{{ this.name }}',
+					'{{/}}',
+				].join( '' );
+				
+				store = new Classes.Store({
+					items: new Classes.Items([
+						{
+							name: 'duck'
+						},
+						{
+							name: 'chicken'
+						}
+					])
+				});
+				
+				app = new Ractive({
+					el: fixture,
+					template: template,
+					data: {
+						store: store
+					},
+					adapt: [ 'ModelAdaptor', 'CollectionAdaptor' ],
+					debug: true
+				});
+
+			})( 'initialize' );
+			t.htmlEqual( fixture.innerHTML, '-duck-chicken' );
+		});
+
 	};
 
 });
