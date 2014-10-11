@@ -1542,6 +1542,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( fixture.innerHTML, JSON.stringify( ractive.data ) );
+			ractive.set( 'foo', 'test' );
+			t.equal( fixture.innerHTML, JSON.stringify( ractive.data ) );
 		});
 
 		test( 'Case-sensitive conditional SVG attribute', t => {
