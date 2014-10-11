@@ -349,6 +349,15 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( ractive.toHTML(), 'number123texthello' );
 		});
+
+		test( 'Nameless expressions with no matching partial don\'t throw', ( t ) => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: "{{> 'miss' + 'ing' }}"
+			});
+
+			t.htmlEqual( ractive.toHTML(), '' );
+		});
 	};
 
 });
