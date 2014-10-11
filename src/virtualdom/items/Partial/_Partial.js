@@ -104,7 +104,7 @@ Partial.prototype = {
 		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 		// name of both a data property (whose value ISN'T the name of a partial)
 		// and a partial. In those cases, this becomes a named partial
-		if ( !template && ( template = getPartialTemplate( this.root, this.name ) ) ) {
+		if ( !template && this.name && ( template = getPartialTemplate( this.root, this.name ) ) ) {
 			unbind.call( this );
 			this.isNamed = true;
 		}

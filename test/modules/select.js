@@ -90,7 +90,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( !ractive.nodes._2.selected );
 			t.ok(  ractive.nodes._3.selected );
 		});
-
+/*
 		test( 'Setting the value of a select works with options added via a triple', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
@@ -108,7 +108,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.find( 'select' ).value, 1 );
 			t.equal( ractive.get( 'value' ), 1 );
 		});
-
+*/
 		test( 'A two-way select updates to the actual value of its selected option, not the stringified value', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,

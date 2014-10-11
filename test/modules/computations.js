@@ -199,7 +199,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			Widget = Ractive.extend({
 				template: '{{# foo <= bar }}yes{{/}}',
 				computed: { foo: '[]' },
-				init: function () {
+				oninit: function () {
 					this.set({ bar: 10 });
 				}
 			});

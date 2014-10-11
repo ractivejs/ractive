@@ -194,7 +194,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				changeMagician: function () {
 					this.data.magician = 'David Copperfield'
 				},
-				init: function () {
+				oninit: function () {
 					t.ok( this.magic );
 				}
 			});

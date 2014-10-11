@@ -204,7 +204,7 @@ define([ 'ractive' ], function ( Ractive ) {
 						template: function ( data ) {
 							return data.type === 1 ? 'ONE' : 'TWO';
 						},
-						init: function () {
+						oninit: function () {
 							this.observe( 'type', function ( type ) {
 								this.resetTemplate( type === 1 ? 'ONE' : 'TWO' );
 							}, { init: false });
@@ -292,7 +292,7 @@ define([ 'ractive' ], function ( Ractive ) {
 						template: function ( data ) {
 							return data.type === 1 ? 'ONE' : 'TWO';
 						},
-						init: function () {
+						oninit: function () {
 							this.observe( 'type', function ( type ) {
 								this.reset( { type: type } );
 							}, { init: false });
