@@ -10,7 +10,7 @@ Got a question or need help?
 If you're having trouble getting Ractive to do what you want, there are a couple of places to get help before submitting an issue:
 
 * [Stack Overflow questions tagged ractivejs](http://stackoverflow.com/questions/tagged/ractivejs)
-* [The Ractive Documentation](http://docs.ractivejs.org/latest)
+* [The Ractive Documentation](http://docs.ractivejs.org)
 * [@RactiveJS on Twitter](http://twitter.com/RactiveJS)
 
 Of course, if you've encountered a bug, then the best course of action is to raise an issue (if no-one else has!).
@@ -21,7 +21,7 @@ Raising issues
 
 Before submitting an issue, please make sure you're using the latest released version - http://cdn.ractivejs.org/latest/ractive.js.
 
-If the bug persists, it may have been fixed in the latest development version. You can always get the most recent successful build from http://cdn.ractivejs.org/edge/Ractive.js.
+If the bug persists, it may have been fixed in the latest development version. You can always get the most recent successful build from http://cdn.ractivejs.org/edge/ractive.js.
 
 The best issues contain a reproducible demonstration of the bug in the form of a JSFiddle or similar. [This JSFiddle](http://jsfiddle.net/rich_harris/va6jU/) has a basic setup to get started with - even better, you could create a failing test using [this fiddle](http://jsfiddle.net/rich_harris/UG7Eq/) as a base.
 
