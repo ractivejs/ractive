@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-11 - commit 1c0f960d 
+	2014-10-11 - commit e02153d1 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5422,7 +5422,7 @@
 				} else if ( reference === '.' ) {
 					// special case of context reference to root
 					args[ i ] = {
-						'': ''
+						keypath: ''
 					};
 					return;
 				}
@@ -5474,7 +5474,7 @@
 					i = this.args.length;
 					while ( i-- ) {
 						arg = this.args[ i ];
-						if ( arg && arg.keypath ) {
+						if ( arg && arg.keypath !== undefined && arg.keypath !== null ) {
 							keypaths.push( arg.keypath );
 						}
 					}
