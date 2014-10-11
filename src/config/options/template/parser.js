@@ -58,7 +58,7 @@ function fromId ( id, options ) {
 }
 
 function isHashedId ( id ) {
-	return ( id.charAt( 0 ) === '#' ); // TODO what about `id[0]`, does that work everywhere?
+	return ( id && id.charAt( 0 ) === '#' ); // TODO what about `id[0]`, does that work everywhere?
 }
 
 function isParsed ( template) {
