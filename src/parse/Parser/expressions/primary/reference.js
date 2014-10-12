@@ -42,7 +42,7 @@ export default function ( parser ) {
 
 	if ( !ancestor ) {
 		// we might have an implicit iterator or a restricted reference
-		dot = parser.matchString( '.' ) || '';
+		dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 	}
 
 	name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
