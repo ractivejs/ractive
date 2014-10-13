@@ -333,6 +333,12 @@ var renderTests = [
 		result: '<p>baz</p><p>bar</p><p>foo</p>'
 	},
 	{
+		name: 'Restricted references',
+		template: '<pre>{{#foo}}{{bar}} {{.bar}} {{./bar}} {{baz}} {{.baz}} {{./baz}}{{/foo}}</pre>',
+		data: { bar: 'bartop', baz: 'baztop', foo: { bar: 'barfoo' } },
+		result: '<pre>barfoo barfoo barfoo baztop  </pre>'
+	},
+	{
 		name: 'Conditional expression with unresolved condition',
 		template: '{{ foobar ? "YES" : "NO"}}',
 		data: {},
