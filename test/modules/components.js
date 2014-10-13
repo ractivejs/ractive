@@ -1621,6 +1621,28 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.deepEqual( outros, { a: 1, b: 1 });
 		});
 
+		test( 'Decorators and transitions are only initialised post-render, when components are inside elements (#1346)', function ( t ) {
+			var ractive, inDom = {};
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div decorator="check:div"><widget><p decorator="check:p"></p></div>',
+				components: {
+					widget: Ractive.extend({
+						template: '<div decorator="check:widget">{{yield}}</div>'
+					})
+				},
+				decorators: {
+					check: function ( node, id ) {
+						inDom[ id ] = fixture.contains( node );
+						return { teardown: function () {} };
+					}
+				}
+			});
+
+			t.deepEqual( inDom, { div: true, widget: true, p: true });
+		});
+
 	};
 
 });

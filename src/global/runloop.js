@@ -69,11 +69,18 @@ runloop = {
 		batch.transitionManager.detachQueue.push( thing );
 	},
 
-	scheduleTask: function ( task ) {
+	scheduleTask: function ( task, postRender ) {
 		if ( !batch ) {
 			task();
 		} else {
-			batch.tasks.push( task );
+			if ( postRender && batch.previousBatch ) {
+				// this can't happen until the DOM has been fully updated
+				// otherwise in some situations (with components inside elements)
+				// transitions and decorators will initialise prematurely
+				batch.previousBatch.tasks.push( task );
+			} else {
+				batch.tasks.push( task );
+			}
 		}
 	}
 };
