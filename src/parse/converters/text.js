@@ -1,4 +1,5 @@
 import getLowestIndex from 'parse/converters/utils/getLowestIndex';
+import decodeCharacterReferences from 'shared/decodeCharacterReferences';
 
 export default function ( parser ) {
 	var index, remaining, disallowed, barrier;
@@ -41,5 +42,5 @@ export default function ( parser ) {
 
 	parser.pos += index;
 
-	return remaining.substr( 0, index );
+	return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
 }
