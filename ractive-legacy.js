@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-11 - commit 21fe8b90 
+	2014-10-13 - commit c3dc32e2 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3481,67 +3481,6 @@
 		return lowest || -1;
 	};
 
-	/* parse/converters/text.js */
-	var text = function( getLowestIndex ) {
-
-		return function( parser ) {
-			var index, remaining, disallowed, barrier;
-			remaining = parser.remaining();
-			barrier = parser.inside ? '</' + parser.inside : '<';
-			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
-				index = remaining.indexOf( barrier );
-			} else {
-				disallowed = [
-					parser.delimiters[ 0 ],
-					parser.tripleDelimiters[ 0 ],
-					parser.staticDelimiters[ 0 ],
-					parser.staticTripleDelimiters[ 0 ]
-				];
-				// http://developers.whatwg.org/syntax.html#syntax-attributes
-				if ( parser.inAttribute === true ) {
-					// we're inside an unquoted attribute value
-					disallowed.push( '"', '\'', '=', '<', '>', '`' );
-				} else if ( parser.inAttribute ) {
-					// quoted attribute value
-					disallowed.push( parser.inAttribute );
-				} else {
-					disallowed.push( barrier );
-				}
-				index = getLowestIndex( remaining, disallowed );
-			}
-			if ( !index ) {
-				return null;
-			}
-			if ( index === -1 ) {
-				index = remaining.length;
-			}
-			parser.pos += index;
-			return remaining.substr( 0, index );
-		};
-	}( getLowestIndex );
-
-	/* parse/converters/element/closingTag.js */
-	var closingTag = function( types ) {
-
-		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
-		return function( parser ) {
-			var tag;
-			// are we looking at a closing tag?
-			if ( !parser.matchString( '</' ) ) {
-				return null;
-			}
-			if ( tag = parser.matchPattern( closingTagPattern ) ) {
-				return {
-					t: types.CLOSING_TAG,
-					e: tag
-				};
-			}
-			// We have an illegal closing tag, report it
-			parser.pos -= 2;
-			parser.error( 'Illegal closing tag' );
-		};
-	}( types );
-
 	/* shared/decodeCharacterReferences.js */
 	var decodeCharacterReferences = function() {
 
@@ -3892,6 +3831,67 @@
 		}
 		return __export;
 	}( legacy );
+
+	/* parse/converters/text.js */
+	var text = function( getLowestIndex, decodeCharacterReferences ) {
+
+		return function( parser ) {
+			var index, remaining, disallowed, barrier;
+			remaining = parser.remaining();
+			barrier = parser.inside ? '</' + parser.inside : '<';
+			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
+				index = remaining.indexOf( barrier );
+			} else {
+				disallowed = [
+					parser.delimiters[ 0 ],
+					parser.tripleDelimiters[ 0 ],
+					parser.staticDelimiters[ 0 ],
+					parser.staticTripleDelimiters[ 0 ]
+				];
+				// http://developers.whatwg.org/syntax.html#syntax-attributes
+				if ( parser.inAttribute === true ) {
+					// we're inside an unquoted attribute value
+					disallowed.push( '"', '\'', '=', '<', '>', '`' );
+				} else if ( parser.inAttribute ) {
+					// quoted attribute value
+					disallowed.push( parser.inAttribute );
+				} else {
+					disallowed.push( barrier );
+				}
+				index = getLowestIndex( remaining, disallowed );
+			}
+			if ( !index ) {
+				return null;
+			}
+			if ( index === -1 ) {
+				index = remaining.length;
+			}
+			parser.pos += index;
+			return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
+		};
+	}( getLowestIndex, decodeCharacterReferences );
+
+	/* parse/converters/element/closingTag.js */
+	var closingTag = function( types ) {
+
+		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
+		return function( parser ) {
+			var tag;
+			// are we looking at a closing tag?
+			if ( !parser.matchString( '</' ) ) {
+				return null;
+			}
+			if ( tag = parser.matchPattern( closingTagPattern ) ) {
+				return {
+					t: types.CLOSING_TAG,
+					e: tag
+				};
+			}
+			// We have an illegal closing tag, report it
+			parser.pos -= 2;
+			parser.error( 'Illegal closing tag' );
+		};
+	}( types );
 
 	/* parse/converters/element/attribute.js */
 	var attribute = function( getLowestIndex, getMustache, decodeCharacterReferences ) {
@@ -6915,10 +6915,11 @@
 	/* utils/escapeHtml.js */
 	var escapeHtml = function() {
 
-		var lessThan = /</g,
-			greaterThan = />/g;
+		var lessThan = /</g;
+		var greaterThan = />/g;
+		var amp = /&/g;
 		return function escapeHtml( str ) {
-			return str.replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
+			return str.replace( amp, '&amp;' ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
 		};
 	}();
 
@@ -6939,7 +6940,7 @@
 	}( detachNode );
 
 	/* virtualdom/items/Text.js */
-	var Text = function( types, escapeHtml, detach, decodeCharacterReferences ) {
+	var Text = function( types, escapeHtml, detach ) {
 
 		var Text = function( options ) {
 			this.type = types.TEXT;
@@ -6952,7 +6953,7 @@
 			},
 			render: function() {
 				if ( !this.node ) {
-					this.node = document.createTextNode( decodeCharacterReferences( this.text ) );
+					this.node = document.createTextNode( this.text );
 				}
 				return this.node;
 			},
@@ -6966,7 +6967,7 @@
 			}
 		};
 		return Text;
-	}( types, escapeHtml, detach, decodeCharacterReferences );
+	}( types, escapeHtml, detach );
 
 	/* virtualdom/items/shared/unbind.js */
 	var unbind = function( runloop ) {
