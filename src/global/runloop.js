@@ -70,17 +70,20 @@ runloop = {
 	},
 
 	scheduleTask: function ( task, postRender ) {
+		var _batch;
+
 		if ( !batch ) {
 			task();
 		} else {
-			if ( postRender && batch.previousBatch ) {
+			_batch = batch;
+			while ( postRender && _batch.previousBatch ) {
 				// this can't happen until the DOM has been fully updated
 				// otherwise in some situations (with components inside elements)
 				// transitions and decorators will initialise prematurely
-				batch.previousBatch.tasks.push( task );
-			} else {
-				batch.tasks.push( task );
+				_batch = _batch.previousBatch;
 			}
+
+			_batch.tasks.push( task );
 		}
 	}
 };
