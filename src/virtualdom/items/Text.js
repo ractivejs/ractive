@@ -1,7 +1,6 @@
 import types from 'config/types';
 import escapeHtml from 'utils/escapeHtml';
 import detach from 'virtualdom/items/shared/detach';
-import decodeCharacterReferences from 'shared/decodeCharacterReferences';
 
 var Text = function ( options ) {
 	this.type = types.TEXT;
@@ -17,7 +16,7 @@ Text.prototype = {
 
 	render: function () {
 		if ( !this.node ) {
-			this.node = document.createTextNode( decodeCharacterReferences( this.text ) );
+			this.node = document.createTextNode( this.text );
 		}
 
 		return this.node;
