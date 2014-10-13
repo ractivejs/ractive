@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-13 - commit c3dc32e2 
+	2014-10-13 - commit 3657e562 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -883,11 +883,19 @@
 			detachWhenReady: function( thing ) {
 				batch.transitionManager.detachQueue.push( thing );
 			},
-			scheduleTask: function( task ) {
+			scheduleTask: function( task, postRender ) {
+				var _batch;
 				if ( !batch ) {
 					task();
 				} else {
-					batch.tasks.push( task );
+					_batch = batch;
+					while ( postRender && _batch.previousBatch ) {
+						// this can't happen until the DOM has been fully updated
+						// otherwise in some situations (with components inside elements)
+						// transitions and decorators will initialise prematurely
+						_batch = _batch.previousBatch;
+					}
+					_batch.tasks.push( task );
 				}
 			}
 		};
@@ -9614,8 +9622,8 @@
 			// apply decorator(s)
 			if ( this.decorator && this.decorator.fn ) {
 				runloop.scheduleTask( function() {
-					this$0.decorator.init();
-				} );
+					return this$0.decorator.init();
+				}, true );
 			}
 			// trigger intro transition
 			if ( root.transitionsEnabled && this.intro ) {
@@ -9623,7 +9631,7 @@
 				runloop.registerTransition( transition );
 				runloop.scheduleTask( function() {
 					return transition.start();
-				} );
+				}, true );
 				this.transition = transition;
 			}
 			if ( this.name === 'option' ) {
@@ -9635,7 +9643,7 @@
 				// allow you to programmatically focus the element until it's in the DOM
 				runloop.scheduleTask( function() {
 					return this$0.node.focus();
-				} );
+				}, true );
 			}
 			updateLiveQueries( this );
 			return this.node;
