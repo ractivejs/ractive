@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.0
-	2014-10-13 - commit 3657e562 
+	2014-10-13 - commit 40f14ec5 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2045,7 +2045,7 @@
 			}
 			if ( !ancestor ) {
 				// we might have an implicit iterator or a restricted reference
-				dot = parser.matchString( '.' ) || '';
+				dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 			}
 			name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
 			// bug out if it's a keyword
