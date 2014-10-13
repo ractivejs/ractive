@@ -119,16 +119,14 @@ export default function Element$render () {
 
 	// apply decorator(s)
 	if ( this.decorator && this.decorator.fn ) {
-		runloop.scheduleTask( () => {
-			this.decorator.init();
-		});
+		runloop.scheduleTask( () => this.decorator.init(), true );
 	}
 
 	// trigger intro transition
 	if ( root.transitionsEnabled && this.intro ) {
 		let transition = new Transition ( this, this.intro, true );
 		runloop.registerTransition( transition );
-		runloop.scheduleTask( () => transition.start() );
+		runloop.scheduleTask( () => transition.start(), true );
 
 		this.transition = transition;
 	}
@@ -141,7 +139,7 @@ export default function Element$render () {
 		// Special case. Some browsers (*cough* Firefix *cough*) have a problem
 		// with dynamically-generated elements having autofocus, and they won't
 		// allow you to programmatically focus the element until it's in the DOM
-		runloop.scheduleTask( () => this.node.focus() );
+		runloop.scheduleTask( () => this.node.focus(), true );
 	}
 
 	updateLiveQueries( this );
