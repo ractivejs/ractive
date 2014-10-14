@@ -59,11 +59,14 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 
 function notifySubscribers ( ractive, subscribers, event, args ) {
 
-	var originalEvent = null, stopEvent = false;
+	var originalEvent = null, stopEvent = false, base = [];
 
-	if ( event && !event._noArg ) {
-		args = [ event ].concat( args );
+	if ( ractive.eventObject && event && !event._noArg ) {
+		base = [ event ];
 	}
+
+	// args can be single value or array, so we normalize to array
+	args = base.concat( args );
 
 	for ( let i = 0, len = subscribers.length; i < len; i += 1 ) {
 		if ( subscribers[ i ].apply( ractive, args ) === false ) {

@@ -100,6 +100,7 @@ export default function EventHandler$init ( element, name, template ) {
 
 		// Get parameters
 		if ( template.d ) {
+
 			this.dynamicParams = new Fragment({
 				template: template.d,
 				root: this.root,

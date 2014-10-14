@@ -537,7 +537,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '<button on-click=\'test:{{ ["just a string"] }}\'>test 1</button><button on-click=\'test:{{ {bar: 3} }}\'>test 2</button>'
 			});
 
-			ractive.on( 'test', function ( event, arg ) {
+			ractive.on( 'test', function ( arg ) {
 				t.deepEqual( arg, expected );
 			});
 

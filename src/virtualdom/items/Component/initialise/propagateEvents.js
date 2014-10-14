@@ -34,16 +34,9 @@ function propagateEvent ( childInstance, parentInstance, eventName, proxyEventNa
 	}
 
 	childInstance.on( eventName, function () {
-		var event, args;
+		var args = Array.prototype.slice.call( arguments );
 
-		// semi-weak test, but what else? tag the event obj ._isEvent ?
-		if ( arguments.length && arguments[0] && arguments[0].node ) {
-			event = Array.prototype.shift.call( arguments );
-		}
-
-		args = Array.prototype.slice.call( arguments );
-
-		fireEvent( parentInstance, proxyEventName, { event: event, args: args } );
+		fireEvent( parentInstance, proxyEventName, { event: this.event, args: args } );
 
 		// cancel bubbling
 		return false;
