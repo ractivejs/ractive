@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-14 - commit e99c5aa7 
+	2014-10-14 - commit 306133c6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -561,6 +561,9 @@
 			this.keypath = keypath;
 			this.otherInstance = otherInstance;
 			this.otherKeypath = otherKeypath;
+			this.lock = function() {
+				return this$0.updating = true;
+			};
 			this.unlock = function() {
 				return this$0.updating = false;
 			};
@@ -581,7 +584,7 @@
 					return;
 				}
 				if ( !isEqual( value, this.value ) ) {
-					this.updating = true;
+					this.lock();
 					// TODO maybe the case that `value === this.value` - should that result
 					// in an update rather than a set?
 					runloop.addViewmodel( this.otherInstance.viewmodel );
@@ -595,6 +598,20 @@
 					// the runloop end cycle? may be a problem...
 					runloop.scheduleTask( this.unlock );
 				}
+			},
+			refineValue: function( bindingKeypath, keypath ) {
+				var value, refinedKeypath, refinedValue;
+				// Only *you* can prevent infinite loops
+				if ( this.updating || this.counterpart && this.counterpart.updating ) {
+					return;
+				}
+				value = this.root.viewmodel.get( bindingKeypath );
+				refinedKeypath = keypath.replace( bindingKeypath + '.', this.otherKeypath + '.' );
+				refinedValue = this.root.viewmodel.get( keypath );
+				this.lock();
+				runloop.addViewmodel( this.otherInstance.viewmodel );
+				this.otherInstance.viewmodel.set( refinedKeypath, refinedValue );
+				runloop.scheduleTask( this.unlock );
 			},
 			bind: function() {
 				this.root.viewmodel.register( this.keypath, this );
@@ -12291,7 +12308,7 @@
 		__export = function Viewmodel$applyChanges() {
 			var this$0 = this;
 			var self = this,
-				changes, upstreamChanges, hash = {};
+				changes, upstreamChanges, upstreamHash, hash = {};
 			changes = this.changes;
 			if ( !changes.length ) {
 				// TODO we end up here on initial render. Perhaps we shouldn't?
@@ -12337,13 +12354,16 @@
 					return notifyPatternObservers( this$0, keypath );
 				} );
 			}
+			upstreamHash = getUpstreamChangeHash( changes );
 			dependantGroups.forEach( function( group ) {
 				if ( !this$0.deps[ group ] ) {
 					return;
 				}
-				upstreamChanges.forEach( function( keypath ) {
-					return notifyUpstreamDependants( this$0, keypath, group );
-				} );
+				for ( var changeKeypath in upstreamHash ) {
+					upstreamHash[ changeKeypath ].forEach( function( keypath ) {
+						notifyUpstreamDependants( this$0, keypath, changeKeypath, group );
+					} );
+				}
 				notifyAllDependants( this$0, changes, group );
 			} );
 			// Return a hash of keypaths to updated values
@@ -12355,6 +12375,29 @@
 			return hash;
 		};
 
+		function getUpstreamChangeHash( changes ) {
+			var sortedKeys, current, next, keep = [],
+				index = 0,
+				upstreamHash = {};
+			sortedKeys = changes.slice().sort();
+			// keep "top-most" keypath changes,
+			// i.e. data, data.foo, data.bar => data
+			keep.push( current = sortedKeys[ 0 ] );
+			while ( next = sortedKeys[ ++index ] ) {
+				if ( next.slice( 0, current.length ) ) {
+					keep.push( current = next );
+				}
+			}
+			// map upstream changes
+			keep.forEach( function( change ) {
+				var upstream = getUpstreamChanges( [ change ] );
+				if ( upstream.length ) {
+					upstreamHash[ change ] = upstream;
+				}
+			} );
+			return upstreamHash;
+		}
+
 		function invalidate( computation ) {
 			computation.invalidate();
 		}
@@ -12363,12 +12406,18 @@
 			return computation.key;
 		}
 
-		function notifyUpstreamDependants( viewmodel, keypath, groupName ) {
+		function notifyUpstreamDependants( viewmodel, keypath, originalKeypath, groupName ) {
 			var dependants, value;
 			if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
 				value = viewmodel.get( keypath );
 				dependants.forEach( function( d ) {
-					return d.setValue( value );
+					// don't "set" the parent value, refine it
+					// i.e. not data = value, but data[foo] = fooValue
+					if ( d.refineValue && keypath !== originalKeypath ) {
+						d.refineValue( keypath, originalKeypath );
+					} else {
+						d.setValue( value );
+					}
 				} );
 			}
 		}
