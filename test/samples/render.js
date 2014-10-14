@@ -928,6 +928,13 @@ var renderTests = [
 		name: '<option> with empty value attribute (docs #138)',
 		template: '<select><option value="">Option 0</option><option value="1">Option 1</option></select>',
 		result: '<select><option value="">Option 0</option><option value="1">Option 1</option></select>'
+	},
+
+	{
+		name: '@keypath may be used to refer to the current context',
+		template: `<ul>{{#items}}{{#some}}<li>{{@keypath}} - {{path}}</li>{{/}}{{/}}</ul>`,
+		data: { items: [ { some: { path: 'a' } }, { notsome: { path: 'b' } }, { some: { path: 'c' } } ] },
+		result: `<ul><li>items.0.some - a</li><li>items.2.some - c</li></ul>`
 	}
 ];
 
