@@ -640,6 +640,13 @@ var renderTests = [
 		result: '<p>a - b</p><p>b - c</p><p>c - </p>'
 	},
 	{
+		name: '@index can be used within an each in an if',
+		handlebars: true,
+		template: '{{#each items}}{{#if . === \'a\' }}{{.}}-{{@index}}{{/if}}{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: 'a-0'
+	},
+	{
 		name: '{{#each items}}...{{else}}...{{/each}}',
 		handlebars: true,
 		template: '{{#each items}}<p>{{this}}</p>{{else}}<p>no items!</p>{{/each}}',
