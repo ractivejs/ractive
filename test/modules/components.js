@@ -276,19 +276,19 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			items = ractive.get( 'items' );
 
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
 
 			items.push( 'e' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
 
 			items.splice( 2, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
 
 			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
 
 			ractive.set( 'items[0]', 'f' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
 
 
 			// reset items from within widget
@@ -296,16 +296,16 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			items = ractive.get( 'items' );
 
 			items.push( 'g' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li><li>3: g</li></ul><p>f b d g</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li><li>3: g</li></ul><p>f b d g</p>' );
 
 			items.splice( 1, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>' );
 
 			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>' );
 
 			widget.set( 'items[0]', 'h' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
 		asyncTest( 'Component oncomplete() methods are called', t => {
@@ -1586,6 +1586,70 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			});
 
 			ractive.set( 'showBox', true );
+		});
+
+		test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', function ( t ) {
+			var ractive, Widget1, Widget2, noCall = false, warn = console.warn;
+
+			expect( 3 );
+
+			console.warn = function (err) { throw err };
+
+			try {
+				Widget1 = Ractive.extend({
+					debug: true,
+					template: 'w1:{{tata.foo}}{{tata.bar}}'
+				});
+
+				Widget2 = Ractive.extend({
+					debug: true,
+					template: 'w2:{{schmata.foo}}{{calc}}',
+					computed: {
+						calc: function () {
+							if( noCall ) { throw new Error('"calc" should not be recalculated!')}
+							return this.get('schmata.bar')
+						}
+					},
+					oninit: function () {
+						this.observe('schmata.bar', function (n,o,k) {
+							throw new Error('observe on schmata.bar should not fire')
+						}, { init: false } )
+					}
+				});
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{data.foo}}{{data.bar}}<widget1 tata="{{data}}"/><widget2 schmata="{{data}}"/>',
+					data: {
+						data: {
+							foo: 'foo',
+							bar: 'bar'
+						}
+					},
+					components: {
+						widget1: Widget1,
+						widget2: Widget2
+					},
+					oninit: function () {
+						this.observe('data.bar', function (n,o,k) {
+							throw new Error('observe on data.bar should not fire')
+						}, { init: false } )
+					}
+				});
+
+				t.htmlEqual( fixture.innerHTML, 'foobarw1:foobarw2:foobar' );
+				noCall = true;
+				ractive.findComponent('widget1').set( 'tata.foo', 'update' );
+				t.htmlEqual( fixture.innerHTML, 'updatebarw1:updatebarw2:updatebar' );
+
+				t.ok( true );
+
+			} catch(err){
+				t.ok( false, err );
+			} finally {
+				console.warn = warn;
+			}
+
 		});
 
 		test( 'Component bindings respect smart updates (#1209)', function ( t ) {

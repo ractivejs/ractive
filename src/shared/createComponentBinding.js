@@ -12,6 +12,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath ) {
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
+	this.lock = () => this.updating = true;
 	this.unlock = () => this.updating = false;
 
 	this.bind();
@@ -36,11 +37,13 @@ Binding.prototype = {
 		}
 
 		if ( !isEqual( value, this.value ) ) {
-			this.updating = true;
+			this.lock();
 
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
+
 			runloop.addViewmodel( this.otherInstance.viewmodel );
+
 
 			if ( newIndices ) {
 				this.otherInstance.viewmodel.smartUpdate( this.otherKeypath, value, newIndices );
@@ -54,6 +57,28 @@ Binding.prototype = {
 			// the runloop end cycle? may be a problem...
 			runloop.scheduleTask( this.unlock );
 		}
+	},
+
+	refineValue: function ( bindingKeypath, keypath ) {
+
+		var value, refinedKeypath, refinedValue;
+
+		// Only *you* can prevent infinite loops
+		if ( this.updating || this.counterpart && this.counterpart.updating ) {
+			return;
+		}
+
+		value = this.root.viewmodel.get( bindingKeypath );
+
+		refinedKeypath = keypath.replace( bindingKeypath + '.', this.otherKeypath + '.' );
+		refinedValue = this.root.viewmodel.get( keypath );
+
+		this.lock();
+
+		runloop.addViewmodel( this.otherInstance.viewmodel );
+		this.otherInstance.viewmodel.set( refinedKeypath, refinedValue );
+
+		runloop.scheduleTask( this.unlock );
 	},
 
 	bind: function () {

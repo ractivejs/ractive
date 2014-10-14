@@ -180,6 +180,39 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'foo', { bar: { baz: 2 } });
 		});
 
+		test( 'Pattern observers fire on changes to keypaths upstream of their pattern only if their value has changed', function ( t ) {
+			var ractive, expected, foo = { bar: { baz: 1 } };
+
+			ractive = new Ractive({
+				el: fixture,
+				template: 'blah',
+				data: { foo: foo }
+			});
+
+			expect( 7 );
+
+			ractive.observe( 'foo', function ( n, o, keypath ) {
+				t.equal( n, foo, 'foo observer' );
+			});
+
+			expected = 1
+
+			ractive.observe( 'foo.*.baz', function ( n, o, keypath ) {
+				t.deepEqual( n, expected, 'foo.*.baz observer' );
+				t.equal( keypath, 'foo.bar.baz', 'keypath' );
+			});
+
+			foo = { bar: { baz: 1 } };
+			// this won't fire 'foo.*.baz' because baz === 1
+			ractive.set( 'foo', foo );
+
+			expected = 2
+
+			foo = { bar: { baz: 2 } };
+			ractive.set( 'foo', foo );
+
+		});
+
 		test( 'Pattern observers can have multiple wildcards', function ( t ) {
 			var ractive, expected;
 
@@ -523,6 +556,9 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			observer.cancel();
 		});
+
+
+
 	};
 
 });
