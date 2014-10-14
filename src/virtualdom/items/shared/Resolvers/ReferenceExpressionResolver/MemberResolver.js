@@ -1,5 +1,6 @@
 import types from 'config/types';
 import resolveRef from 'shared/resolveRef';
+import resolveSpecialRef from 'shared/resolveSpecialRef';
 import Unresolved from 'shared/Unresolved';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
@@ -23,6 +24,12 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 		if ( ( indexRefs = parentFragment.indexRefs ) && ( index = indexRefs[ ref ] ) !== undefined ) {
 			member.indexRef = ref;
 			member.value = index;
+		}
+
+		// ...or a special reference, our job is simple
+		else if ( ref.charAt( 0 ) === '@' ) {
+			member.specialRef = ref;
+			member.value = resolveSpecialRef( parentFragment, ref );
 		}
 
 		// Otherwise we need to resolve the reference, and observe the keypath

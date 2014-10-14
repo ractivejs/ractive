@@ -1,6 +1,7 @@
 import removeFromArray from 'utils/removeFromArray';
 import defineProperty from 'utils/defineProperty';
 import resolveRef from 'shared/resolveRef';
+import resolveSpecialRef from 'shared/resolveSpecialRef';
 import Unresolved from 'shared/Unresolved';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
@@ -41,6 +42,15 @@ ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 			args[i] = {
 				indexRef: reference,
 				value: index
+			};
+			return;
+		}
+
+		// Is this a special reference?
+		if ( reference.charAt( 0 ) === '@' ) {
+			args[i] = {
+				specialRef: reference,
+				value: resolveSpecialRef( parentFragment, reference )
 			};
 			return;
 		}
@@ -125,7 +135,7 @@ ExpressionResolver.prototype = {
 					return () => undefined;
 				}
 
-				if ( arg.indexRef ) {
+				if ( arg.indexRef || arg.specialRef ) {
 					value = arg.value;
 					return () => value;
 				}
@@ -192,6 +202,7 @@ function getUniqueString ( str, args ) {
 
 		if ( !arg ) return 'undefined';
 		if ( arg.indexRef ) return arg.value;
+		if ( arg.specialRef ) return arg.value;
 		return arg.keypath;
 	});
 }

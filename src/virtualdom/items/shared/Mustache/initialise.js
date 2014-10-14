@@ -3,6 +3,7 @@ import runloop from 'global/runloop';
 import resolveRef from 'shared/resolveRef';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
+import resolveSpecialRef from 'shared/resolveSpecialRef';
 
 export default function Mustache$init ( mustache, options ) {
 
@@ -25,6 +26,12 @@ export default function Mustache$init ( mustache, options ) {
 	// the reference to a keypath
 	if ( ref = template.r ) {
 		indexRefs = parentFragment.indexRefs;
+
+		if ( ref.charAt( 0 ) === '@' ) {
+			mustache.specialRef = ref;
+			mustache.setValue( resolveSpecialRef( parentFragment, ref ) );
+			return;
+		}
 
 		if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
 			mustache.indexRef = ref;

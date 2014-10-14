@@ -45,7 +45,7 @@ export default function ( parser ) {
 		dot = parser.matchString( '.' ) || '';
 	}
 
-	name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
+	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( patterns.name ) || '';
 
 	// bug out if it's a keyword
 	if ( keywords.test( name ) ) {
