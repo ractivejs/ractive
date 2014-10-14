@@ -30,6 +30,8 @@ Binding.prototype = {
 	},
 
 	propagateChange: function ( value, newIndices ) {
+		var other;
+
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
 			this.value = value;
@@ -42,13 +44,15 @@ Binding.prototype = {
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
 
-			runloop.addViewmodel( this.otherInstance.viewmodel );
+			runloop.addViewmodel( other = this.otherInstance.viewmodel );
 
 
 			if ( newIndices ) {
-				this.otherInstance.viewmodel.smartUpdate( this.otherKeypath, value, newIndices );
+				other.smartUpdate( this.otherKeypath, value, newIndices );
 			} else {
-				this.otherInstance.viewmodel.set( this.otherKeypath, value );
+				if( isSettable( other, this.otherKeypath ) ) {
+					other.set( this.otherKeypath, value );
+				}
 			}
 
 			this.value = value;
@@ -61,7 +65,7 @@ Binding.prototype = {
 
 	refineValue: function ( bindingKeypath, keypath ) {
 
-		var value, refinedKeypath, refinedValue;
+		var value, refinedKeypath, refinedValue, other;
 
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
@@ -75,8 +79,11 @@ Binding.prototype = {
 
 		this.lock();
 
-		runloop.addViewmodel( this.otherInstance.viewmodel );
-		this.otherInstance.viewmodel.set( refinedKeypath, refinedValue );
+		runloop.addViewmodel( other = this.otherInstance.viewmodel );
+
+		if( isSettable( other, refinedKeypath ) ) {
+			other.set( refinedKeypath, refinedValue );
+		}
 
 		runloop.scheduleTask( this.unlock );
 	},
@@ -98,6 +105,11 @@ Binding.prototype = {
 		this.root.viewmodel.unregister( this.keypath, this );
 	}
 };
+
+function isSettable ( viewmodel, keypath ) {
+	var computed = viewmodel.computations[ keypath ];
+	return !computed || computed.setter;
+}
 
 export default function createComponentBinding ( component, parentInstance, parentKeypath, childKeypath ) {
 	var hash, childInstance, bindings, parentToChildBinding, childToParentBinding;

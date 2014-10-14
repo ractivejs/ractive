@@ -421,6 +421,33 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( count, { foo: 3, bar: 2, baz: 3, qux: 1 });
 		});
 
+		test( 'Computations don\'t mistakenly set when used in components (#1357)', function ( t ) {
+			var ractive, Component;
+
+			Component = Ractive.extend({
+				template: "{{ a }}:{{ b }}",
+			    computed: {
+			        b: function() {
+			            var a = this.get("a");
+			            return a + "bar";
+			        }
+			    }
+			});
+
+			ractive = new Ractive({
+			    el: fixture,
+			    template: '{{ a }}:{{ b }}-<component a="{{ a }}" b="{{ b }}" />',
+				components: {
+			        component: Component
+			    },
+			    data: {
+			        a: "foo"
+			    }
+			});
+
+			t.equal( fixture.innerHTML, 'foo:foobar-foo:foobar' );
+		})
+
 	};
 
 });
