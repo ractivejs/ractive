@@ -674,17 +674,25 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( '@index can be used in proxy event directives', t => {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{#each letters}}<button on-click="select:{{@index}}"></button>{{/each}}',
+				template: `{{#each letters}}
+				             <button class="proxy" on-click="select:{{@index}}"></button>
+				             <button class="method" on-click="select(@index)"></button>
+				           {{/each}}`,
 				data: { letters: [ 'a', 'b', 'c' ] }
 			});
 
-			expect( 1 );
+			expect( 3 );
 
-			ractive.on( 'select', function ( event, index ) {
-				t.equal( index, 1 );
-			});
+			ractive.select = ( idx ) => t.equal( idx, 1 );
 
-			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
+			ractive.on( 'select', ( event, index ) => t.equal( index, 1 ) );
+
+			simulant.fire( ractive.findAll( 'button[class=proxy]' )[1], 'click' );
+			simulant.fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
+
+			ractive.splice( 'letters', 0, 1 );
+			ractive.splice( 'letters', 1, 0, 'a' );
+			simulant.fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
 		});
 
 		test( 'Calling a builtin method', function ( t ) {

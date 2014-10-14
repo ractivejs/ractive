@@ -653,6 +653,13 @@ var renderTests = [
 		result: 'a-0'
 	},
 	{
+		name: '@index can be used within an attribute',
+		handlebars: true,
+		template: '{{#each items}}<p id="p{{@index}}">{{.}}</p>{{/each}}',
+		data: { items: [ 'a', 'b', 'c' ] },
+		result: '<p id="p0">a</p><p id="p1">b</p><p id="p2">c</p>'
+	},
+	{
 		name: '{{#each items}}...{{else}}...{{/each}}',
 		handlebars: true,
 		template: '{{#each items}}<p>{{this}}</p>{{else}}<p>no items!</p>{{/each}}',

@@ -1,6 +1,7 @@
 import removeFromArray from 'utils/removeFromArray';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import resolveRef from 'shared/resolveRef';
+import resolveSpecialRef from 'shared/resolveSpecialRef';
 import Unresolved from 'shared/Unresolved';
 import circular from 'circular';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
@@ -53,6 +54,14 @@ export default function EventHandler$init ( element, name, template ) {
 				args[i] = {
 					indexRef: reference,
 					value: index
+				};
+				return;
+			}
+
+			if ( reference.charAt( 0 ) === '@' ) {
+				args[i] = {
+					specialRef: reference,
+					value: resolveSpecialRef( parentFragment, reference )
 				};
 				return;
 			}
@@ -132,7 +141,7 @@ function fireMethodCall ( event ) {
 			return undefined;
 		}
 
-		if ( arg.indexRef ) {
+		if ( arg.indexRef || arg.specialRef ) {
 			return arg.value;
 		}
 
