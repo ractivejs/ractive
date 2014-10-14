@@ -1,4 +1,5 @@
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
+import resolveSpecialRef from 'shared/resolveSpecialRef';
 
 export default function Mustache$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	var keypath;
@@ -26,5 +27,10 @@ export default function Mustache$rebind ( indexRef, newIndex, oldKeypath, newKey
 	// index ref mustache?
 	else if ( indexRef !== undefined && this.indexRef === indexRef ) {
 		this.setValue( newIndex );
+	}
+
+	// special ref mustache?
+	else if ( this.specialRef ) {
+		this.setValue( resolveSpecialRef( this.parentFragment, this.specialRef ) );
 	}
 }

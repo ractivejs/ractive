@@ -4,8 +4,7 @@ import delimiterTypes from 'parse/converters/mustache/delimiterTypes';
 import mustacheContent from 'parse/converters/mustache/content';
 import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
 
-var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true },
-	handlebarsIndexRefPattern = /^@(?:index|key)$/;
+var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true };
 
 export default getMustache;
 
@@ -34,7 +33,7 @@ function getMustache ( parser ) {
 }
 
 function getMustacheOfType ( parser, delimiterType ) {
-	var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
+	var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child;
 
 	start = parser.pos;
 
@@ -128,12 +127,6 @@ function getMustacheOfType ( parser, delimiterType ) {
 
 		if ( children.length ) {
 			mustache.f = children;
-
-			// If this is an 'each' section, and it contains an {{@index}} or {{@key}},
-			// we need to set the index reference accordingly
-			if ( !mustache.i && mustache.n === 'each' && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
-				mustache.i = indexRef;
-			}
 		}
 
 		if ( elseChildren && elseChildren.length ) {
@@ -157,96 +150,6 @@ function getMustacheOfType ( parser, delimiterType ) {
 	}
 
 	return mustache;
-}
-
-function handlebarsIndexRef ( fragment ) {
-	var i, child, indexRef, name;
-
-	if ( !fragment ) {
-		return;
-	}
-
-	i = fragment.length;
-	while ( i-- ) {
-		child = fragment[i];
-
-		// Recurse into elements (but not sections)
-		if ( child.t === types.ELEMENT ) {
-
-			if ( indexRef =
-				// directive arguments
-				handlebarsIndexRef( child.o  && child.o.d ) ||
-				handlebarsIndexRef( child.t0 && child.t0.d ) ||
-				handlebarsIndexRef( child.t1 && child.t1.d ) ||
-				handlebarsIndexRef( child.t2 && child.t2.d ) ||
-
-				// children
-				handlebarsIndexRef( child.f )
-			) {
-				return indexRef;
-			}
-
-			// proxy events
-			for ( name in child.v ) {
-				if ( child.v.hasOwnProperty( name ) && child.v[ name ].d && ( indexRef = handlebarsIndexRef( child.v[ name ].d ) ) ) {
-					return indexRef;
-				}
-			}
-
-			// attributes
-			for ( name in child.a ) {
-				if ( child.a.hasOwnProperty( name ) && ( indexRef = handlebarsIndexRef( child.a[ name ] ) ) ) {
-					return indexRef;
-				}
-			}
-		}
-
-		// Mustache?
-		if ( child.t === types.INTERPOLATOR || child.t === types.TRIPLE || child.t === types.SECTION ) {
-			// Normal reference?
-			if ( child.r && handlebarsIndexRefPattern.test( child.r ) ) {
-				return child.r;
-			}
-
-			// Expression?
-			if ( child.x && ( indexRef = indexRefContainedInExpression( child.x ) ) ) {
-				return indexRef;
-			}
-
-			// Reference expression?
-			if ( child.rx && ( indexRef = indexRefContainedInReferenceExpression( child.rx ) ) ) {
-				return indexRef;
-			}
-		}
-	}
-}
-
-function indexRefContainedInExpression ( expression ) {
-	var i;
-
-	i = expression.r.length;
-	while ( i-- ) {
-		if ( handlebarsIndexRefPattern.test( expression.r[i] ) ) {
-			return expression.r[i];
-		}
-	}
-}
-
-function indexRefContainedInReferenceExpression ( referenceExpression ) {
-	var i, indexRef, member;
-
-	i = referenceExpression.m.length;
-	while ( i-- ) {
-		member = referenceExpression.m[i];
-
-		if ( member.r && ( indexRef = indexRefContainedInExpression( member ) ) ) {
-			return indexRef;
-		}
-
-		if ( member.t === types.REFERENCE && handlebarsIndexRefPattern.test( member.n ) ) {
-			return member.n;
-		}
-	}
 }
 
 function isSection ( mustache ) {
