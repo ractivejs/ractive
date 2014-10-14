@@ -1589,40 +1589,58 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 		});
 
 		test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', function ( t ) {
-			var ractive, Widget, noCall = false, warn = console.warn;
+			var ractive, Widget1, Widget2, noCall = false, warn = console.warn;
 
 			expect( 3 );
 
 			console.warn = function (err) { throw err };
 
 			try {
-				Widget = Ractive.extend({
+				Widget1 = Ractive.extend({
 					debug: true,
-					template: '{{data.foo}}{{bar}}',
+					template: 'w1:{{tata.foo}}{{tata.bar}}'
+				});
+
+				Widget2 = Ractive.extend({
+					debug: true,
+					template: 'w2:{{schmata.foo}}{{calc}}',
 					computed: {
-						bar: function () {
-							if( noCall ) { throw new Error('"bar" should not be recalculated!')}
-							return this.get('data.bar')
+						calc: function () {
+							if( noCall ) { throw new Error('"calc" should not be recalculated!')}
+							return this.get('schmata.bar')
 						}
+					},
+					oninit: function () {
+						this.observe('schmata.bar', function (n,o,k) {
+							throw new Error('observe on schmata.bar should not fire')
+						}, { init: false } )
 					}
 				});
 
 				ractive = new Ractive({
 					el: fixture,
-					template: '{{data.foo}}<widget data="{{data}}"/><widget data="{{data}}"/>',
+					template: '{{data.foo}}{{data.bar}}<widget1 tata="{{data}}"/><widget2 schmata="{{data}}"/>',
 					data: {
 						data: {
 							foo: 'foo',
 							bar: 'bar'
 						}
 					},
-					components: { widget: Widget }
+					components: {
+						widget1: Widget1,
+						widget2: Widget2
+					},
+					oninit: function () {
+						this.observe('data.bar', function (n,o,k) {
+							throw new Error('observe on data.bar should not fire')
+						}, { init: false } )
+					}
 				});
 
-				t.htmlEqual( fixture.innerHTML, 'foofoobarfoobar' );
+				t.htmlEqual( fixture.innerHTML, 'foobarw1:foobarw2:foobar' );
 				noCall = true;
-				ractive.findComponent('widget').set( 'data.foo', 'update' );
-				t.htmlEqual( fixture.innerHTML, 'updateupdatebarupdatebar' );
+				ractive.findComponent('widget1').set( 'tata.foo', 'update' );
+				t.htmlEqual( fixture.innerHTML, 'updatebarw1:updatebarw2:updatebar' );
 
 				t.ok( true );
 

@@ -7,6 +7,7 @@ export default function Viewmodel$applyChanges () {
 	var self = this,
 		changes,
 		upstreamChanges,
+		upstreamHash,
 		hash = {};
 
 	changes = this.changes;
@@ -63,12 +64,18 @@ export default function Viewmodel$applyChanges () {
 		changes.forEach( keypath => notifyPatternObservers( this, keypath ) );
 	}
 
+	upstreamHash = getUpstreamChangeHash( changes );
+
 	dependantGroups.forEach( group => {
 		if ( !this.deps[ group ] ) {
 			return;
 		}
 
-		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, group ) );
+		for( var changeKeypath in upstreamHash) {
+			upstreamHash[ changeKeypath ].forEach( keypath => {
+				notifyUpstreamDependants( this, keypath, changeKeypath, group );
+			});
+		}
 
 		notifyAllDependants( this, changes, group );
 	});
@@ -84,6 +91,32 @@ export default function Viewmodel$applyChanges () {
 	return hash;
 }
 
+function getUpstreamChangeHash ( changes ) {
+
+	var sortedKeys, current, next, keep = [], index = 0, upstreamHash = {};
+
+	sortedKeys = changes.slice().sort();
+
+	// keep "top-most" keypath changes,
+	// i.e. data, data.foo, data.bar => data
+	keep.push( current = sortedKeys[0] );
+	while( next = sortedKeys[++index] ){
+		if( next.slice(0, current.length) ){
+			keep.push( current = next);
+		}
+	}
+
+	// map upstream changes
+	keep.forEach( change => {
+		let upstream = getUpstreamChanges( [ change ] );
+		if ( upstream.length ) {
+			upstreamHash[ change ] = upstream;
+		}
+	});
+
+	return upstreamHash;
+}
+
 function invalidate ( computation ) {
 	computation.invalidate();
 }
@@ -92,12 +125,22 @@ function getKey ( computation ) {
 	return computation.key;
 }
 
-function notifyUpstreamDependants ( viewmodel, keypath, groupName ) {
+function notifyUpstreamDependants ( viewmodel, keypath, originalKeypath, groupName ) {
 	var dependants, value;
 
 	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
 		value = viewmodel.get( keypath );
-		dependants.forEach( d => d.setValue( value ) );
+
+		dependants.forEach( d => {
+			// don't "set" the parent value, refine it
+			// i.e. not data = value, but data[foo] = fooValue
+			if( d.refineValue && keypath !== originalKeypath ) {
+				d.refineValue( keypath, originalKeypath );
+			}
+			else {
+				d.setValue( value );
+			}
+		});
 	}
 }
 

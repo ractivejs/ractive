@@ -12,6 +12,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath ) {
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
+	this.lock = () => this.updating = true;
 	this.unlock = () => this.updating = false;
 
 	this.bind();
@@ -36,7 +37,7 @@ Binding.prototype = {
 		}
 
 		if ( !isEqual( value, this.value ) ) {
-			this.updating = true;
+			this.lock();
 
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
@@ -64,30 +65,20 @@ Binding.prototype = {
 
 		// Only *you* can prevent infinite loops
 		if ( this.updating || this.counterpart && this.counterpart.updating ) {
-			// this.value = value;
 			return;
 		}
 
 		value = this.root.viewmodel.get( bindingKeypath );
 
-		// Is this a smart array update? If so, it'll update on its
-		// own, we shouldn't do anything
-		if ( /*isArray( value ) && */ value._ractive && value._ractive.setting ) {
-			return;
-		}
-
 		refinedKeypath = keypath.replace( bindingKeypath + '.', this.otherKeypath + '.' );
 		refinedValue = this.root.viewmodel.get( keypath );
-		// currentValue = this.otherInstance.viewmodel.get( refinedKeypath );
 
-		// if ( !isEqual( currentValue, refinedValue ) ) {
-			this.updating = true;
+		this.lock();
 
-			runloop.addViewmodel( this.otherInstance.viewmodel );
-			this.otherInstance.viewmodel.set( refinedKeypath, refinedValue );
+		runloop.addViewmodel( this.otherInstance.viewmodel );
+		this.otherInstance.viewmodel.set( refinedKeypath, refinedValue );
 
-			runloop.scheduleTask( () => this.updating = false );
-		// }
+		runloop.scheduleTask( this.unlock );
 	},
 
 	bind: function () {
