@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-14 - commit 306133c6 
+	2014-10-14 - commit 170bf328 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8275,7 +8275,7 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
-	var virtualdom_items_Element_EventHandler$init = function( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular, fireEvent, log ) {
+	var virtualdom_items_Element_EventHandler$init = function( removeFromArray, getFunctionFromString, resolveRef, resolveSpecialRef, Unresolved, circular, fireEvent, log ) {
 
 		var __export;
 		var Fragment, getValueOptions = {
@@ -8320,6 +8320,13 @@
 						args[ i ] = {
 							indexRef: reference,
 							value: index
+						};
+						return;
+					}
+					if ( reference.charAt( 0 ) === '@' ) {
+						args[ i ] = {
+							specialRef: reference,
+							value: resolveSpecialRef( parentFragment, reference )
 						};
 						return;
 					}
@@ -8384,7 +8391,7 @@
 					// not yet resolved
 					return undefined;
 				}
-				if ( arg.indexRef ) {
+				if ( arg.indexRef || arg.specialRef ) {
 					return arg.value;
 				}
 				// TODO the refinements stuff would be better handled at parse time
@@ -8423,7 +8430,7 @@
 			} );
 		}
 		return __export;
-	}( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular, Ractive$shared_fireEvent, log );
+	}( removeFromArray, getFunctionFromString, resolveRef, resolveSpecialRef, Unresolved, circular, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
 	var genericHandler = function genericHandler( event ) {
@@ -8496,13 +8503,18 @@
 	}( config, genericHandler, log );
 
 	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
-	var virtualdom_items_Element_EventHandler$rebind = function( getNewKeypath ) {
+	var virtualdom_items_Element_EventHandler$rebind = function( getNewKeypath, resolveSpecialRef ) {
 
 		return function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+			var fragment;
 			if ( this.method ) {
+				fragment = this.element.parentFragment;
 				this.args.forEach( function( arg ) {
 					if ( arg.indexRef && arg.indexRef === indexRef ) {
 						arg.value = newIndex;
+					}
+					if ( arg.specialRef ) {
+						arg.value = resolveSpecialRef( fragment, arg.specialRef );
 					}
 					if ( arg.keypath && ( newKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
 						arg.keypath = newKeypath;
@@ -8517,7 +8529,7 @@
 				this.dynamicParams.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 			}
 		};
-	}( getNewKeypath );
+	}( getNewKeypath, resolveSpecialRef );
 
 	/* virtualdom/items/Element/EventHandler/prototype/render.js */
 	var virtualdom_items_Element_EventHandler$render = function EventHandler$render() {
