@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-13 - commit 40f14ec5 
+	2014-10-14 - commit e99c5aa7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4179,7 +4179,7 @@
 				// we might have an implicit iterator or a restricted reference
 				dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 			}
-			name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
+			name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( patterns.name ) || '';
 			// bug out if it's a keyword
 			if ( keywords.test( name ) ) {
 				parser.pos = startPos;
@@ -4998,6 +4998,24 @@
 		return Unresolved;
 	}( runloop );
 
+	/* shared/resolveSpecialRef.js */
+	var resolveSpecialRef = function resolveSpecialReference( fragment, ref ) {
+		var frag = fragment;
+		if ( ref === '@keypath' ) {
+			while ( frag ) {
+				if ( !!frag.context )
+					return frag.context;
+				frag = frag.parent;
+			}
+		} else if ( ref === '@index' || ref === '@key' ) {
+			while ( frag ) {
+				if ( frag.index !== undefined )
+					return frag.index;
+				frag = frag.parent;
+			}
+		}
+	};
+
 	/* virtualdom/items/shared/utils/startsWithKeypath.js */
 	var startsWithKeypath = function startsWithKeypath( target, keypath ) {
 		return target && keypath && target.substr( 0, keypath.length + 1 ) === keypath + '.';
@@ -5038,7 +5056,7 @@
 	}();
 
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
-	var ExpressionResolver = function( removeFromArray, defineProperty, resolveRef, Unresolved, getFunctionFromString, getNewKeypath ) {
+	var ExpressionResolver = function( removeFromArray, defineProperty, resolveRef, resolveSpecialRef, Unresolved, getFunctionFromString, getNewKeypath ) {
 
 		var __export;
 		var ExpressionResolver, bind = Function.prototype.bind;
@@ -5068,6 +5086,14 @@
 					args[ i ] = {
 						indexRef: reference,
 						value: index
+					};
+					return;
+				}
+				// Is this a special reference?
+				if ( reference.charAt( 0 ) === '@' ) {
+					args[ i ] = {
+						specialRef: reference,
+						value: resolveSpecialRef( parentFragment, reference )
 					};
 					return;
 				}
@@ -5144,7 +5170,7 @@
 								return undefined;
 							};
 						}
-						if ( arg.indexRef ) {
+						if ( arg.indexRef || arg.specialRef ) {
 							value = arg.value;
 							return function() {
 								return value;
@@ -5204,6 +5230,8 @@
 					return 'undefined';
 				if ( arg.indexRef )
 					return arg.value;
+				if ( arg.specialRef )
+					return arg.value;
 				return arg.keypath;
 			} );
 		}
@@ -5241,10 +5269,10 @@
 			return fn.__ractive_nowrap;
 		}
 		return __export;
-	}( removeFromArray, defineProperty, resolveRef, Unresolved, getFunctionFromString, getNewKeypath, legacy );
+	}( removeFromArray, defineProperty, resolveRef, resolveSpecialRef, Unresolved, getFunctionFromString, getNewKeypath, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js */
-	var MemberResolver = function( types, resolveRef, Unresolved, getNewKeypath, ExpressionResolver ) {
+	var MemberResolver = function( types, resolveRef, resolveSpecialRef, Unresolved, getNewKeypath, ExpressionResolver ) {
 
 		var MemberResolver = function( template, resolver, parentFragment ) {
 			var member = this,
@@ -5260,6 +5288,9 @@
 				if ( ( indexRefs = parentFragment.indexRefs ) && ( index = indexRefs[ ref ] ) !== undefined ) {
 					member.indexRef = ref;
 					member.value = index;
+				} else if ( ref.charAt( 0 ) === '@' ) {
+					member.specialRef = ref;
+					member.value = resolveSpecialRef( parentFragment, ref );
 				} else {
 					ractive = resolver.root;
 					// Can we resolve the reference immediately?
@@ -5327,7 +5358,7 @@
 			}
 		};
 		return MemberResolver;
-	}( types, resolveRef, Unresolved, getNewKeypath, ExpressionResolver );
+	}( types, resolveRef, resolveSpecialRef, Unresolved, getNewKeypath, ExpressionResolver );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver.js */
 	var ReferenceExpressionResolver = function( resolveRef, Unresolved, MemberResolver ) {
@@ -5415,7 +5446,7 @@
 	}( resolveRef, Unresolved, MemberResolver );
 
 	/* virtualdom/items/shared/Mustache/initialise.js */
-	var initialise = function( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver ) {
+	var initialise = function( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver, resolveSpecialRef ) {
 
 		return function Mustache$init( mustache, options ) {
 			var ref, keypath, indexRefs, index, parentFragment, template;
@@ -5432,6 +5463,11 @@
 			// the reference to a keypath
 			if ( ref = template.r ) {
 				indexRefs = parentFragment.indexRefs;
+				if ( ref.charAt( 0 ) === '@' ) {
+					mustache.specialRef = ref;
+					mustache.setValue( resolveSpecialRef( parentFragment, ref ) );
+					return;
+				}
 				if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
 					mustache.indexRef = ref;
 					mustache.setValue( index );
@@ -5469,7 +5505,7 @@
 				}
 			}
 		};
-	}( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver );
+	}( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver, resolveSpecialRef );
 
 	/* virtualdom/items/shared/Mustache/resolve.js */
 	var resolve = function Mustache$resolve( keypath ) {
@@ -5498,7 +5534,7 @@
 	};
 
 	/* virtualdom/items/shared/Mustache/rebind.js */
-	var rebind = function( getNewKeypath ) {
+	var rebind = function( getNewKeypath, resolveSpecialRef ) {
 
 		return function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
 			var keypath;
@@ -5522,9 +5558,11 @@
 				}
 			} else if ( indexRef !== undefined && this.indexRef === indexRef ) {
 				this.setValue( newIndex );
+			} else if ( this.specialRef ) {
+				this.setValue( resolveSpecialRef( this.parentFragment, this.specialRef ) );
 			}
 		};
-	}( getNewKeypath );
+	}( getNewKeypath, resolveSpecialRef );
 
 	/* virtualdom/items/shared/Mustache/_Mustache.js */
 	var Mustache = function( getValue, init, resolve, rebind ) {
