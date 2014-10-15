@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.0
-	2014-10-14 - commit 8f7c4732 
+	2014-10-15 - commit a40fd38a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13189,7 +13189,7 @@
 			// i.e. data, data.foo, data.bar => data
 			keep.push( current = sortedKeys[ 0 ] );
 			while ( next = sortedKeys[ ++index ] ) {
-				if ( next.slice( 0, current.length ) ) {
+				if ( next.slice( 0, current.length ) !== current ) {
 					keep.push( current = next );
 				}
 			}
