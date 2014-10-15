@@ -101,7 +101,7 @@ function getUpstreamChangeHash ( changes ) {
 	// i.e. data, data.foo, data.bar => data
 	keep.push( current = sortedKeys[0] );
 	while( next = sortedKeys[++index] ){
-		if( next.slice(0, current.length) ){
+		if( next.slice(0, current.length) !== current ){
 			keep.push( current = next);
 		}
 	}
