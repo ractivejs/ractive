@@ -521,6 +521,11 @@ var parseTests = [
 		parsed: {v:1,t:[{t:7,e:'div',p:[1,1,0],f:[{t:7,e:'p',p:[1,6,5],f:['HTML']},{t:7,e:'p',p:[1,17,16],f:[{t:2,p:[1,20,19],r:'mustache'}]}]}]}
 	},
 	{
+		name: "Empty event attribute",
+		template: "<p on-click=''></p>",
+		parsed: {v:1,t:[{t:7,e:'p',v:{click:''}}]}
+	},
+	{
 		name: 'Reserved event names cannot be used for proxy events',
 		template: '<div on-foo="change"></div>',
 		error: 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert) at line 1 character 15:\n' +
