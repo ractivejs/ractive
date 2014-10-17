@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-17 - commit 505a0bed 
+	2014-10-17 - commit fdb9b374 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4172,31 +4172,35 @@
 			result = {};
 			directiveName = [];
 			directiveArgs = [];
-			while ( tokens.length ) {
-				token = tokens.shift();
-				if ( typeof token === 'string' ) {
-					colonIndex = token.indexOf( ':' );
-					if ( colonIndex === -1 ) {
-						directiveName.push( token );
+			if ( tokens ) {
+				while ( tokens.length ) {
+					token = tokens.shift();
+					if ( typeof token === 'string' ) {
+						colonIndex = token.indexOf( ':' );
+						if ( colonIndex === -1 ) {
+							directiveName.push( token );
+						} else {
+							// is the colon the first character?
+							if ( colonIndex ) {
+								// no
+								directiveName.push( token.substr( 0, colonIndex ) );
+							}
+							// if there is anything after the colon in this token, treat
+							// it as the first token of the directiveArgs fragment
+							if ( token.length > colonIndex + 1 ) {
+								directiveArgs[ 0 ] = token.substring( colonIndex + 1 );
+							}
+							break;
+						}
 					} else {
-						// is the colon the first character?
-						if ( colonIndex ) {
-							// no
-							directiveName.push( token.substr( 0, colonIndex ) );
-						}
-						// if there is anything after the colon in this token, treat
-						// it as the first token of the directiveArgs fragment
-						if ( token.length > colonIndex + 1 ) {
-							directiveArgs[ 0 ] = token.substring( colonIndex + 1 );
-						}
-						break;
+						directiveName.push( token );
 					}
-				} else {
-					directiveName.push( token );
 				}
+				directiveArgs = directiveArgs.concat( tokens );
 			}
-			directiveArgs = directiveArgs.concat( tokens );
-			if ( directiveArgs.length || typeof directiveName !== 'string' ) {
+			if ( !directiveName.length ) {
+				result = '';
+			} else if ( directiveArgs.length || typeof directiveName !== 'string' ) {
 				result = {
 					// TODO is this really necessary? just use the array
 					n: directiveName.length === 1 && typeof directiveName[ 0 ] === 'string' ? directiveName[ 0 ] : directiveName
