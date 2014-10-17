@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-17 - commit 8069a44f 
+	2014-10-17 - commit 5c4fea94 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8579,7 +8579,8 @@
 				element.binding = null;
 			}
 			// contenteditable
-			if ( element.getAttribute( 'contenteditable' ) && isBindable( attributes.value ) ) {
+			if ( // if the contenteditable attribute is true or is bindable and may thus become true
+				( element.getAttribute( 'contenteditable' ) || !!attributes.contenteditable && isBindable( attributes.contenteditable ) ) && isBindable( attributes.value ) ) {
 				Binding = ContentEditableBinding;
 			} else if ( element.name === 'input' ) {
 				type = element.getAttribute( 'type' );
