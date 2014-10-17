@@ -24,6 +24,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, 'click' );
 		});
 
+		test( 'empty event on-click="" ok', t => {
+			var ractive;
+
+			expect( 0 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="">click me</span>'
+			});
+
+			simulant.fire( ractive.nodes.test, 'click' );
+		})
+
 		test( 'on-click="someEvent" does not fire event when unrendered', t => {
 			var ractive, node;
 
