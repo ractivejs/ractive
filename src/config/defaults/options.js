@@ -23,6 +23,8 @@ var defaultOptions = {
 	twoway:             true,
 	lazy:               false,
 
+	lightweight: 		false,
+
 	// transitions:
 	noIntro:            false,
 	transitionsEnabled: true,
