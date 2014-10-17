@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-15 - commit a40fd38a 
+	2014-10-17 - commit 505a0bed 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6595,64 +6595,23 @@
 		return css;
 	}( circular, isClient, removeFromArray );
 
-	/* Ractive/prototype/shared/hooks/HookQueue.js */
-	var Ractive$shared_hooks_HookQueue = function( Hook ) {
-
-		function HookQueue( event ) {
-			this.hook = new Hook( event );
-			this.inProcess = {};
-			this.queue = {};
-		}
-		HookQueue.prototype = {
-			constructor: HookQueue,
-			begin: function( ractive ) {
-				this.inProcess[ ractive._guid ] = true;
-			},
-			end: function( ractive ) {
-				var parent = ractive._parent;
-				// If this is *isn't* a child of a component that's in process,
-				// it should call methods or fire at this point
-				if ( !parent || !this.inProcess[ parent._guid ] ) {
-					fire( this, ractive );
-				} else {
-					getChildQueue( this.queue, parent ).push( ractive );
-				}
-				delete this.inProcess[ ractive._guid ];
-			}
-		};
-
-		function getChildQueue( queue, ractive ) {
-			return queue[ ractive._guid ] || ( queue[ ractive._guid ] = [] );
-		}
-
-		function fire( hookQueue, ractive ) {
-			var childQueue = getChildQueue( hookQueue.queue, ractive );
-			hookQueue.hook.fire( ractive );
-			// queue is "live" because components can end up being
-			// added while hooks fire on parents that modify data values.
-			while ( childQueue.length ) {
-				fire( hookQueue, childQueue.shift() );
-			}
-			delete hookQueue.queue[ ractive._guid ];
-		}
-		return HookQueue;
-	}( Ractive$shared_hooks_Hook );
-
 	/* Ractive/prototype/render.js */
-	var Ractive$render = function( css, Hook, HookQueue, getElement, runloop ) {
+	var Ractive$render = function( css, Hook, getElement, runloop ) {
 
-		var renderHook = new HookQueue( 'render' ),
+		var renderHook = new Hook( 'render' ),
 			completeHook = new Hook( 'complete' );
 		return function Ractive$render( target, anchor ) {
 			var this$0 = this;
 			var promise, instances, transitionsEnabled;
-			renderHook.begin( this );
 			// if `noIntro` is `true`, temporarily disable transitions
 			transitionsEnabled = this.transitionsEnabled;
 			if ( this.noIntro ) {
 				this.transitionsEnabled = false;
 			}
 			promise = runloop.start( this, true );
+			runloop.scheduleTask( function() {
+				return renderHook.fire( this$0 );
+			}, true );
 			if ( this.fragment.rendered ) {
 				throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 			}
@@ -6676,7 +6635,6 @@
 					target.appendChild( this.fragment.render() );
 				}
 			}
-			renderHook.end( this );
 			runloop.end();
 			this.transitionsEnabled = transitionsEnabled;
 			// It is now more problematic to know if the complete hook
@@ -6689,7 +6647,7 @@
 			} );
 			return promise;
 		};
-	}( global_css, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, getElement, runloop );
+	}( global_css, Ractive$shared_hooks_Hook, getElement, runloop );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
@@ -13094,6 +13052,49 @@
 			return 'r-' + i++;
 		};
 	}();
+
+	/* Ractive/prototype/shared/hooks/HookQueue.js */
+	var Ractive$shared_hooks_HookQueue = function( Hook ) {
+
+		function HookQueue( event ) {
+			this.hook = new Hook( event );
+			this.inProcess = {};
+			this.queue = {};
+		}
+		HookQueue.prototype = {
+			constructor: HookQueue,
+			begin: function( ractive ) {
+				this.inProcess[ ractive._guid ] = true;
+			},
+			end: function( ractive ) {
+				var parent = ractive._parent;
+				// If this is *isn't* a child of a component that's in process,
+				// it should call methods or fire at this point
+				if ( !parent || !this.inProcess[ parent._guid ] ) {
+					fire( this, ractive );
+				} else {
+					getChildQueue( this.queue, parent ).push( ractive );
+				}
+				delete this.inProcess[ ractive._guid ];
+			}
+		};
+
+		function getChildQueue( queue, ractive ) {
+			return queue[ ractive._guid ] || ( queue[ ractive._guid ] = [] );
+		}
+
+		function fire( hookQueue, ractive ) {
+			var childQueue = getChildQueue( hookQueue.queue, ractive );
+			hookQueue.hook.fire( ractive );
+			// queue is "live" because components can end up being
+			// added while hooks fire on parents that modify data values.
+			while ( childQueue.length ) {
+				fire( hookQueue, childQueue.shift() );
+			}
+			delete hookQueue.queue[ ractive._guid ];
+		}
+		return HookQueue;
+	}( Ractive$shared_hooks_Hook );
 
 	/* viewmodel/prototype/get/arrayAdaptor/processWrapper.js */
 	var viewmodel$get_arrayAdaptor_processWrapper = function( wrapper, array, methodName, newIndices ) {
