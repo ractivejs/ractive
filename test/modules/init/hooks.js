@@ -304,6 +304,36 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+		test( 'render hooks are not fired until after DOM updates (#1367)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<one/>',
+				components: {
+					one: Ractive.extend({
+						template: `
+							{{#if bool}}
+								<p></p>
+							{{/if}}
+
+							{{#if bool}}
+								<two/>
+							{{/if}}`
+					}),
+					two: Ractive.extend({
+						onrender: function () {
+							this._parent.find( 'whatever' );
+						}
+					})
+				}
+			});
+
+			expect( 0 );
+
+			// If the `<one>` component is not rendered, the `<two>` component's
+			// render handler will cause an error
+			ractive.set( 'bool', true );
+		});
+
 		// Hold off on these until demand for them.
 		// also an issue is that reserve event checking
 		// currently happens at parse time, so that
