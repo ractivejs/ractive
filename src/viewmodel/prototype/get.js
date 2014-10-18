@@ -1,3 +1,4 @@
+import isNumeric from 'utils/isNumeric';
 import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
 import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
 
@@ -14,6 +15,11 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 
 	if ( binding = this.bindings[ keypath ] ) {
 		return binding.origin.get( binding.keypath );
+	}
+
+	if ( keypath[0] === '@' ) {
+		value = keypath.slice( 1 );
+		return isNumeric( value ) ? +value : value;
 	}
 
 	if ( cache[ keypath ] === undefined ) {

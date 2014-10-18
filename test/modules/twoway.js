@@ -140,6 +140,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true"><p>some different content</p></div>' );
 		});
 
+		test( 'Contenteditable elements can be bound with a bindable contenteditable attribute.', ( t ) => {
+			var div, ractive = new Ractive({
+				el: fixture,
+				template: '<div contenteditable="{{editable}}" value="{{content}}"><strong>some content</strong></div>',
+				data: { editable: false }
+			});
+
+			div = ractive.find( 'div' );
+			div.innerHTML = 'foo';
+			simulant.fire( div, 'change' );
+
+			t.equal( div.innerHTML, ractive.get( 'content' ) );
+			t.equal( ractive.get( 'content' ), 'foo' );
+		});
+
 		test( 'Existing model data overrides contents of contenteditable elements', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,

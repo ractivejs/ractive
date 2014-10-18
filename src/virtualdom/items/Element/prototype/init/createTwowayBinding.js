@@ -21,7 +21,12 @@ export default function createTwowayBinding ( element ) {
 	}
 
 	// contenteditable
-	if ( element.getAttribute( 'contenteditable' ) && isBindable( attributes.value ) ) {
+	if (
+		// if the contenteditable attribute is true or is bindable and may thus become true
+		( element.getAttribute( 'contenteditable' ) || ( !!attributes.contenteditable && isBindable( attributes.contenteditable ) ) )
+		// and this element also has a value attribute to bind
+		&& isBindable( attributes.value )
+	) {
 		Binding = ContentEditableBinding;
 	}
 

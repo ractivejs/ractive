@@ -1,13 +1,10 @@
 import getUpstreamChanges from 'viewmodel/helpers/getUpstreamChanges';
 import notifyPatternObservers from 'viewmodel/prototype/applyChanges/notifyPatternObservers';
 
-var dependantGroups = [ 'observers', 'default' ];
-
 export default function Viewmodel$applyChanges () {
 	var self = this,
 		changes,
 		upstreamChanges,
-		upstreamHash,
 		hash = {};
 
 	changes = this.changes;
@@ -64,21 +61,21 @@ export default function Viewmodel$applyChanges () {
 		changes.forEach( keypath => notifyPatternObservers( this, keypath ) );
 	}
 
-	upstreamHash = getUpstreamChangeHash( changes );
+	if ( this.deps.observers ) {
+		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, 'observers' ) );
+		notifyAllDependants( this, changes, 'observers' );
+	}
 
-	dependantGroups.forEach( group => {
-		if ( !this.deps[ group ] ) {
-			return;
+	if ( this.deps['default'] ) {
+		let bindings = [];
+		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, bindings, keypath, 'default' ) );
+
+		if( bindings.length ) {
+			notifyBindings( this, bindings, changes );
 		}
 
-		for( var changeKeypath in upstreamHash) {
-			upstreamHash[ changeKeypath ].forEach( keypath => {
-				notifyUpstreamDependants( this, keypath, changeKeypath, group );
-			});
-		}
-
-		notifyAllDependants( this, changes, group );
-	});
+		notifyAllDependants( this, changes, 'default' );
+	}
 
 	// Return a hash of keypaths to updated values
 	changes.forEach( keypath => {
@@ -91,32 +88,6 @@ export default function Viewmodel$applyChanges () {
 	return hash;
 }
 
-function getUpstreamChangeHash ( changes ) {
-
-	var sortedKeys, current, next, keep = [], index = 0, upstreamHash = {};
-
-	sortedKeys = changes.slice().sort();
-
-	// keep "top-most" keypath changes,
-	// i.e. data, data.foo, data.bar => data
-	keep.push( current = sortedKeys[0] );
-	while( next = sortedKeys[++index] ){
-		if( next.slice(0, current.length) !== current ){
-			keep.push( current = next);
-		}
-	}
-
-	// map upstream changes
-	keep.forEach( change => {
-		let upstream = getUpstreamChanges( [ change ] );
-		if ( upstream.length ) {
-			upstreamHash[ change ] = upstream;
-		}
-	});
-
-	return upstreamHash;
-}
-
 function invalidate ( computation ) {
 	computation.invalidate();
 }
@@ -125,7 +96,7 @@ function getKey ( computation ) {
 	return computation.key;
 }
 
-function notifyUpstreamDependants ( viewmodel, keypath, originalKeypath, groupName ) {
+function notifyUpstreamDependants ( viewmodel, bindings, keypath, groupName ) {
 	var dependants, value;
 
 	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
@@ -134,8 +105,8 @@ function notifyUpstreamDependants ( viewmodel, keypath, originalKeypath, groupNa
 		dependants.forEach( d => {
 			// don't "set" the parent value, refine it
 			// i.e. not data = value, but data[foo] = fooValue
-			if( d.refineValue && keypath !== originalKeypath ) {
-				d.refineValue( keypath, originalKeypath );
+			if( d.refineValue /*&& keypath !== d.keypath*/ ) {
+				bindings.push( d );
 			}
 			else {
 				d.setValue( value );
@@ -143,6 +114,37 @@ function notifyUpstreamDependants ( viewmodel, keypath, originalKeypath, groupNa
 		});
 	}
 }
+
+function notifyBindings ( viewmodel, bindings, changes ) {
+
+	bindings.forEach( binding => {
+		let useSet = false, i = 0, length = changes.length, refinements = [];
+
+		while( i < length ) {
+			let keypath = changes[i];
+
+			if ( keypath === binding.keypath ) {
+				useSet = true;
+				break;
+			}
+
+			if ( keypath.slice(0, binding.keypath.length) === binding.keypath ) {
+				refinements.push( keypath );
+			}
+
+			i++;
+		}
+
+		if ( useSet ) {
+			binding.setValue( viewmodel.get( binding.keypath ) );
+		}
+
+		if( refinements.length ) {
+			binding.refineValue( refinements );
+		}
+	});
+}
+
 
 function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 	var queue = [];

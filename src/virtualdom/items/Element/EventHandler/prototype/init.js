@@ -1,8 +1,5 @@
-import removeFromArray from 'utils/removeFromArray';
 import getFunctionFromString from 'shared/getFunctionFromString';
-import resolveRef from 'shared/resolveRef';
-import resolveSpecialRef from 'shared/resolveSpecialRef';
-import Unresolved from 'shared/Unresolved';
+import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import circular from 'circular';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import log from 'utils/log';
@@ -14,7 +11,7 @@ circular.push( function () {
 });
 
 export default function EventHandler$init ( element, name, template ) {
-	var handler = this, action, args, indexRefs, ractive, parentFragment;
+	var handler = this, action, refs, ractive;
 
 	handler.element = element;
 	handler.root = element.root;
@@ -34,61 +31,33 @@ export default function EventHandler$init ( element, name, template ) {
 	}
 
 	if ( template.m ) {
+		refs = template.a.r;
+
 		// This is a method call
 		handler.method = template.m;
-		handler.args = args = [];
-		handler.unresolved = [];
-		handler.refs = template.a.r;
-		handler.fn = getFunctionFromString( template.a.s, handler.refs.length );
+		handler.keypaths = [];
+		handler.fn = getFunctionFromString( template.a.s, refs.length );
 
-		parentFragment = element.parentFragment;
-		indexRefs = parentFragment.indexRefs;
+		handler.parentFragment = element.parentFragment;
 		ractive = handler.root;
 
 		// Create resolvers for each reference
-		template.a.r.forEach( function ( reference, i ) {
-			var index, keypath, match, unresolved;
+		handler.refResolvers = refs.map( ( ref, i ) => {
+			var match;
 
-			// Is this an index reference?
-			if ( indexRefs && ( index = indexRefs[ reference ] ) !== undefined ) {
-				args[i] = {
-					indexRef: reference,
-					value: index
-				};
-				return;
-			}
-
-			if ( reference.charAt( 0 ) === '@' ) {
-				args[i] = {
-					specialRef: reference,
-					value: resolveSpecialRef( parentFragment, reference )
-				};
-				return;
-			}
-
-			if ( match = eventPattern.exec( reference ) ) {
-				args[i] = {
+			// special case - the `event` object
+			if ( match = eventPattern.exec( ref ) ) {
+				handler.keypaths[i] = {
 					eventObject: true,
 					refinements: match[1] ? match[1].split( '.' ) : []
 				};
-				return;
+
+				return null;
 			}
 
-			// Can we resolve it immediately?
-			if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
-				args[i] = { keypath: keypath };
-				return;
-			}
-
-			// Couldn't resolve yet
-			args[i] = null;
-
-			unresolved = new Unresolved( ractive, reference, parentFragment, function ( keypath ) {
+			return createReferenceResolver( handler, ref, keypath => {
 				handler.resolve( i, keypath );
-				removeFromArray( handler.unresolved, unresolved );
 			});
-
-			handler.unresolved.push( unresolved );
 		});
 
 		this.fire = fireMethodCall;
@@ -133,29 +102,25 @@ function fireMethodCall ( event ) {
 		throw new Error( 'Attempted to call a non-existent method ("' + this.method + '")' );
 	}
 
-	values = this.args.map( function ( arg ) {
+	values = this.keypaths.map( function ( keypath ) {
 		var value, len, i;
 
-		if ( !arg ) {
+		if ( keypath === undefined ) {
 			// not yet resolved
 			return undefined;
 		}
 
-		if ( arg.indexRef || arg.specialRef ) {
-			return arg.value;
-		}
-
 		// TODO the refinements stuff would be better handled at parse time
-		if ( arg.eventObject ) {
+		if ( keypath.eventObject ) {
 			value = event;
 
-			if ( len = arg.refinements.length ) {
+			if ( len = keypath.refinements.length ) {
 				for ( i = 0; i < len; i += 1 ) {
-					value = value[ arg.refinements[i] ];
+					value = value[ keypath.refinements[i] ];
 				}
 			}
 		} else {
-			value = ractive.get( arg.keypath );
+			value = ractive.viewmodel.get( keypath );
 		}
 
 		return value;
