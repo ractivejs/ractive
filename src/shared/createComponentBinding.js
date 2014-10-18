@@ -21,6 +21,10 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath ) {
 };
 
 Binding.prototype = {
+	isLocked: function () {
+		return this.updating || ( this.counterpart && this.counterpart.updating );
+	},
+
 	shuffle: function ( newIndices, value ) {
 		this.propagateChange( value, newIndices );
 	},
@@ -33,7 +37,7 @@ Binding.prototype = {
 		var other;
 
 		// Only *you* can prevent infinite loops
-		if ( this.updating || this.counterpart && this.counterpart.updating ) {
+		if ( this.isLocked() ) {
 			this.value = value;
 			return;
 		}
@@ -63,27 +67,20 @@ Binding.prototype = {
 		}
 	},
 
-	refineValue: function ( bindingKeypath, keypath ) {
+	refineValue: function ( keypaths ) {
 
-		var value, refinedKeypath, refinedValue, other;
+		var other;
 
-		// Only *you* can prevent infinite loops
-		if ( this.updating || this.counterpart && this.counterpart.updating ) {
+		if ( this.isLocked() ) {
 			return;
 		}
 
-		value = this.root.viewmodel.get( bindingKeypath );
-
-		refinedKeypath = keypath.replace( bindingKeypath + '.', this.otherKeypath + '.' );
-		refinedValue = this.root.viewmodel.get( keypath );
-
 		this.lock();
-
 		runloop.addViewmodel( other = this.otherInstance.viewmodel );
 
-		if( isSettable( other, refinedKeypath ) ) {
-			other.set( refinedKeypath, refinedValue );
-		}
+		keypaths
+			.map( keypath => this.otherKeypath + keypath.substr( this.keypath.length ) )
+			.forEach( keypath => other.mark( keypath ) );
 
 		runloop.scheduleTask( this.unlock );
 	},
