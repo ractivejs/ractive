@@ -11,13 +11,16 @@ export default function Mustache$resolve ( keypath ) {
 			value = +value;
 		}
 
+		this.keypath = keypath;
 		this.setValue( value );
 		return;
 	}
 
 	// If we resolved previously, we need to unregister
-	if ( this.keypath != undefined ) { // undefined or null
+	if ( this.registered ) { // undefined or null
 		this.root.viewmodel.unregister( this.keypath, this );
+		this.registered = false;
+
 		wasResolved = true;
 	}
 
@@ -28,6 +31,8 @@ export default function Mustache$resolve ( keypath ) {
 	if ( keypath != undefined ) { // undefined or null
 		value = this.root.viewmodel.get( keypath );
 		this.root.viewmodel.register( keypath, this );
+
+		this.registered = true;
 	}
 
 	// Either way we need to queue up a render (`value`

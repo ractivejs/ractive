@@ -30,7 +30,7 @@ SpecialResolver.prototype = {
 			}
 		}
 
-		throw new Error( 'Unknown special reference - valid references are @index, @key and @keypath' );
+		throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
 	},
 
 	unbind: function () {} // noop
