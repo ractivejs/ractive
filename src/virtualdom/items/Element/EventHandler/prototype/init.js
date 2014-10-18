@@ -1,9 +1,5 @@
-import removeFromArray from 'utils/removeFromArray';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import resolveRef from 'shared/resolveRef';
-import resolveSpecialRef from 'shared/resolveSpecialRef';
-import Unresolved from 'shared/Unresolved';
 import circular from 'circular';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import log from 'utils/log';
@@ -15,7 +11,7 @@ circular.push( function () {
 });
 
 export default function EventHandler$init ( element, name, template ) {
-	var handler = this, action, refs, indexRefs, ractive, parentFragment;
+	var handler = this, action, refs, ractive;
 
 	handler.element = element;
 	handler.root = element.root;
