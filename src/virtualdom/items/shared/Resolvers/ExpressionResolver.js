@@ -66,7 +66,7 @@ ExpressionResolver.prototype = {
 
 		// only if it doesn't exist yet!
 		if ( !computation ) {
-			fn = getFunctionFromString( this.str, this.keypaths.length );
+			fn = getFunctionFromString( this.str, this.refResolvers.length );
 
 			valueGetters = this.keypaths.map( keypath => {
 				var value;
