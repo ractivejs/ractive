@@ -391,6 +391,17 @@ define([
 			t.htmlEqual( fixture.innerHTML, '<div class></div><div class>[ Z ]</div>' );
 		});
 
+		test( '@index rebinds correctly', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#each items}}<p>{{@index}}:{{this}}</p>{{/each}}',
+				data: { items: [ 'a', 'b', 'd' ] }
+			});
+
+			ractive.splice( 'items', 2, 0, 'c' );
+			t.htmlEqual( fixture.innerHTML, '<p>0:a</p><p>1:b</p><p>2:c</p><p>3:d</p>' );
+		});
+
 	};
 
 });
