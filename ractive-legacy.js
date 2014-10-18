@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-18 - commit 5be14db1 
+	2014-10-18 - commit b5dfc496 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6893,61 +6893,19 @@
 	}( types, escapeHtml, detach );
 
 	/* virtualdom/items/shared/unbind.js */
-	var unbind = function( runloop ) {
-
-		return function unbind() {
-			if ( !this.keypath ) {
-				// this was on the 'unresolved' list, we need to remove it
-				runloop.removeUnresolved( this );
-			} else {
-				// this was registered as a dependant
-				this.root.viewmodel.unregister( this.keypath, this );
-			}
-			if ( this.resolver ) {
-				this.resolver.unbind();
-			}
-		};
-	}( runloop );
+	var unbind = function unbind() {
+		if ( this.registered ) {
+			// this was registered as a dependant
+			this.root.viewmodel.unregister( this.keypath, this );
+		}
+		if ( this.resolver ) {
+			this.resolver.unbind();
+		}
+	};
 
 	/* virtualdom/items/shared/Mustache/getValue.js */
 	var getValue = function Mustache$getValue() {
 		return this.value;
-	};
-
-	/* shared/Unresolved.js */
-	var Unresolved = function( runloop ) {
-
-		var Unresolved = function( ractive, ref, parentFragment, callback ) {
-			this.root = ractive;
-			this.ref = ref;
-			this.parentFragment = parentFragment;
-			this.resolve = callback;
-			runloop.addUnresolved( this );
-		};
-		Unresolved.prototype = {
-			unbind: function() {
-				runloop.removeUnresolved( this );
-			}
-		};
-		return Unresolved;
-	}( runloop );
-
-	/* shared/resolveSpecialRef.js */
-	var resolveSpecialRef = function resolveSpecialReference( fragment, ref ) {
-		var frag = fragment;
-		if ( ref === '@keypath' ) {
-			while ( frag ) {
-				if ( !!frag.context )
-					return frag.context;
-				frag = frag.parent;
-			}
-		} else if ( ref === '@index' || ref === '@key' ) {
-			while ( frag ) {
-				if ( frag.index !== undefined )
-					return frag.index;
-				frag = frag.parent;
-			}
-		}
 	};
 
 	/* virtualdom/items/shared/utils/startsWithKeypath.js */
@@ -6970,6 +6928,127 @@
 		};
 	}( startsWithKeypath );
 
+	/* virtualdom/items/shared/Resolvers/ReferenceResolver.js */
+	var ReferenceResolver = function( runloop, resolveRef, getNewKeypath ) {
+
+		var ReferenceResolver = function( owner, ref, callback ) {
+			var keypath;
+			this.ref = ref;
+			this.resolved = false;
+			this.root = owner.root;
+			this.parentFragment = owner.parentFragment;
+			this.callback = callback;
+			keypath = resolveRef( owner.root, ref, owner.parentFragment );
+			if ( keypath !== undefined ) {
+				this.resolve( keypath );
+			} else {
+				runloop.addUnresolved( this );
+			}
+		};
+		ReferenceResolver.prototype = {
+			resolve: function( keypath ) {
+				this.resolved = true;
+				this.keypath = keypath;
+				this.callback( keypath );
+			},
+			forceResolution: function() {
+				this.resolve( this.ref );
+			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				var keypath;
+				if ( this.keypath !== undefined ) {
+					keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
+					// was a new keypath created?
+					if ( keypath !== undefined ) {
+						// resolve it
+						this.resolve( keypath );
+					}
+				}
+			},
+			unbind: function() {
+				if ( !this.resolved ) {
+					runloop.removeUnresolved( this );
+				}
+			}
+		};
+		return ReferenceResolver;
+	}( runloop, resolveRef, getNewKeypath );
+
+	/* virtualdom/items/shared/Resolvers/SpecialResolver.js */
+	var SpecialResolver = function() {
+
+		var SpecialResolver = function( owner, ref, callback ) {
+			this.parentFragment = owner.parentFragment;
+			this.ref = ref;
+			this.callback = callback;
+			this.rebind();
+		};
+		SpecialResolver.prototype = {
+			rebind: function() {
+				var ref = this.ref,
+					fragment = this.parentFragment;
+				if ( ref === '@keypath' ) {
+					while ( fragment ) {
+						if ( !!fragment.context ) {
+							return this.callback( '@' + fragment.context );
+						}
+						fragment = fragment.parent;
+					}
+				}
+				if ( ref === '@index' || ref === '@key' ) {
+					while ( fragment ) {
+						if ( fragment.index !== undefined ) {
+							return this.callback( '@' + fragment.index );
+						}
+						fragment = fragment.parent;
+					}
+				}
+				throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
+			},
+			unbind: function() {}
+		};
+		return SpecialResolver;
+	}();
+
+	/* virtualdom/items/shared/Resolvers/IndexResolver.js */
+	var IndexResolver = function() {
+
+		var IndexResolver = function( owner, ref, callback ) {
+			this.parentFragment = owner.parentFragment;
+			this.ref = ref;
+			this.callback = callback;
+			this.rebind();
+		};
+		IndexResolver.prototype = {
+			rebind: function() {
+				var ref = this.ref,
+					indexRefs = this.parentFragment.indexRefs,
+					index = indexRefs[ ref ];
+				if ( index !== undefined ) {
+					this.callback( '@' + index );
+				}
+			},
+			unbind: function() {}
+		};
+		return IndexResolver;
+	}();
+
+	/* virtualdom/items/shared/Resolvers/createReferenceResolver.js */
+	var createReferenceResolver = function( ReferenceResolver, SpecialResolver, IndexResolver ) {
+
+		return function createReferenceResolver( owner, ref, callback ) {
+			var indexRefs, index;
+			if ( ref.charAt( 0 ) === '@' ) {
+				return new SpecialResolver( owner, ref, callback );
+			}
+			indexRefs = owner.parentFragment.indexRefs;
+			if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
+				return new IndexResolver( owner, ref, callback );
+			}
+			return new ReferenceResolver( owner, ref, callback );
+		};
+	}( ReferenceResolver, SpecialResolver, IndexResolver );
+
 	/* shared/getFunctionFromString.js */
 	var getFunctionFromString = function() {
 
@@ -6990,127 +7069,75 @@
 	}();
 
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
-	var ExpressionResolver = function( removeFromArray, defineProperty, resolveRef, resolveSpecialRef, Unresolved, getFunctionFromString, getNewKeypath ) {
+	var ExpressionResolver = function( defineProperty, isNumeric, createReferenceResolver, getFunctionFromString ) {
 
 		var __export;
 		var ExpressionResolver, bind = Function.prototype.bind;
 		ExpressionResolver = function( owner, parentFragment, expression, callback ) {
-			var expressionResolver = this,
-				ractive, indexRefs, args;
+			var resolver = this,
+				ractive, indexRefs;
 			ractive = owner.root;
-			this.root = ractive;
-			this.callback = callback;
-			this.owner = owner;
-			this.str = expression.s;
-			this.args = args = [];
-			this.unresolved = [];
-			this.pending = 0;
+			resolver.root = ractive;
+			resolver.parentFragment = parentFragment;
+			resolver.callback = callback;
+			resolver.owner = owner;
+			resolver.str = expression.s;
+			resolver.keypaths = [];
 			indexRefs = parentFragment.indexRefs;
-			// some expressions don't have references. edge case, but, yeah.
-			if ( !expression.r || !expression.r.length ) {
-				this.resolved = this.ready = true;
-				this.bubble();
-				return;
-			}
 			// Create resolvers for each reference
-			expression.r.forEach( function( reference, i ) {
-				var index, keypath, unresolved;
-				// Is this an index reference?
-				if ( indexRefs && ( index = indexRefs[ reference ] ) !== undefined ) {
-					args[ i ] = {
-						indexRef: reference,
-						value: index
-					};
-					return;
-				}
-				// Is this a special reference?
-				if ( reference.charAt( 0 ) === '@' ) {
-					args[ i ] = {
-						specialRef: reference,
-						value: resolveSpecialRef( parentFragment, reference )
-					};
-					return;
-				}
-				// Can we resolve it immediately?
-				if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
-					args[ i ] = {
-						keypath: keypath
-					};
-					return;
-				} else if ( reference === '.' ) {
-					// special case of context reference to root
-					args[ i ] = {
-						keypath: ''
-					};
-					return;
-				}
-				// Couldn't resolve yet
-				args[ i ] = null;
-				expressionResolver.pending += 1;
-				unresolved = new Unresolved( ractive, reference, parentFragment, function( keypath ) {
-					expressionResolver.resolve( i, keypath );
-					removeFromArray( expressionResolver.unresolved, unresolved );
+			resolver.pending = expression.r.length;
+			resolver.refResolvers = expression.r.map( function( ref, i ) {
+				return createReferenceResolver( resolver, ref, function( keypath ) {
+					resolver.resolve( i, keypath );
 				} );
-				expressionResolver.unresolved.push( unresolved );
 			} );
-			this.ready = true;
-			this.bubble();
+			resolver.ready = true;
+			resolver.bubble();
 		};
 		ExpressionResolver.prototype = {
 			bubble: function() {
 				if ( !this.ready ) {
 					return;
 				}
-				this.uniqueString = getUniqueString( this.str, this.args );
+				this.uniqueString = getUniqueString( this.str, this.keypaths );
 				this.keypath = getKeypath( this.uniqueString );
 				this.createEvaluator();
 				this.callback( this.keypath );
 			},
 			unbind: function() {
-				var unresolved;
-				while ( unresolved = this.unresolved.pop() ) {
-					unresolved.unbind();
+				var resolver;
+				while ( resolver = this.refResolvers.pop() ) {
+					resolver.unbind();
 				}
 			},
 			resolve: function( index, keypath ) {
-				this.args[ index ] = {
-					keypath: keypath
-				};
+				this.keypaths[ index ] = keypath;
 				this.bubble();
-				// when all references have been resolved, we can flag the entire expression
-				// as having been resolved
-				this.resolved = !--this.pending;
 			},
 			createEvaluator: function() {
 				var this$0 = this;
 				var self = this,
-					computation, valueGetters, signature, keypaths = [],
-					i, arg, fn;
+					computation, valueGetters, signature, keypath, fn;
 				computation = this.root.viewmodel.computations[ this.keypath ];
 				// only if it doesn't exist yet!
 				if ( !computation ) {
-					i = this.args.length;
-					while ( i-- ) {
-						arg = this.args[ i ];
-						if ( arg && arg.keypath !== undefined && arg.keypath !== null ) {
-							keypaths.push( arg.keypath );
-						}
-					}
-					fn = getFunctionFromString( this.str, this.args.length );
-					valueGetters = this.args.map( function( arg ) {
-						var keypath, value;
-						if ( !arg ) {
+					fn = getFunctionFromString( this.str, this.refResolvers.length );
+					valueGetters = this.keypaths.map( function( keypath ) {
+						var value;
+						if ( keypath === 'undefined' ) {
 							return function() {
 								return undefined;
 							};
 						}
-						if ( arg.indexRef || arg.specialRef ) {
-							value = arg.value;
-							return function() {
+						// 'special' keypaths encode a value
+						if ( keypath[ 0 ] === '@' ) {
+							value = keypath.slice( 1 );
+							return isNumeric( value ) ? function() {
+								return +value;
+							} : function() {
 								return value;
 							};
 						}
-						keypath = arg.keypath;
 						return function() {
 							var value = this$0.root.viewmodel.get( keypath );
 							if ( typeof value === 'function' ) {
@@ -7120,7 +7147,7 @@
 						};
 					} );
 					signature = {
-						deps: keypaths,
+						deps: this.keypaths.filter( isValidDependency ),
 						get: function() {
 							var args = valueGetters.map( call );
 							return fn.apply( null, args );
@@ -7132,22 +7159,10 @@
 				}
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				var changed;
-				this.args.forEach( function( arg ) {
-					var changedKeypath;
-					if ( !arg )
-						return;
-					if ( arg.keypath && ( changedKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
-						arg.keypath = changedKeypath;
-						changed = true;
-					} else if ( arg.indexRef && arg.indexRef === indexRef ) {
-						arg.value = newIndex;
-						changed = true;
-					}
+				// TODO only bubble once, no matter how many references are affected by the rebind
+				this.refResolvers.forEach( function( r ) {
+					return r.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 				} );
-				if ( changed ) {
-					this.bubble();
-				}
 			}
 		};
 		__export = ExpressionResolver;
@@ -7156,17 +7171,19 @@
 			return value.call();
 		}
 
-		function getUniqueString( str, args ) {
+		function getUniqueString( str, keypaths ) {
 			// get string that is unique to this expression
 			return str.replace( /_([0-9]+)/g, function( match, $1 ) {
-				var arg = args[ $1 ];
-				if ( !arg )
+				var keypath, value;
+				keypath = keypaths[ $1 ];
+				if ( keypath === undefined ) {
 					return 'undefined';
-				if ( arg.indexRef )
-					return arg.value;
-				if ( arg.specialRef )
-					return arg.value;
-				return arg.keypath;
+				}
+				if ( keypath[ 0 ] === '@' ) {
+					value = keypath.slice( 1 );
+					return isNumeric( value ) ? value : '"' + value + '"';
+				}
+				return keypath;
 			} );
 		}
 
@@ -7174,6 +7191,10 @@
 			// Sanitize by removing any periods or square brackets. Otherwise
 			// we can't split the keypath into keys!
 			return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
+		}
+
+		function isValidDependency( keypath ) {
+			return keypath !== undefined && keypath[ 0 ] !== '@';
 		}
 
 		function wrapFunction( fn, ractive ) {
@@ -7203,41 +7224,24 @@
 			return fn.__ractive_nowrap;
 		}
 		return __export;
-	}( removeFromArray, defineProperty, resolveRef, resolveSpecialRef, Unresolved, getFunctionFromString, getNewKeypath, legacy );
+	}( defineProperty, isNumeric, createReferenceResolver, getFunctionFromString, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js */
-	var MemberResolver = function( types, resolveRef, resolveSpecialRef, Unresolved, getNewKeypath, ExpressionResolver ) {
+	var MemberResolver = function( types, createReferenceResolver, ExpressionResolver ) {
 
 		var MemberResolver = function( template, resolver, parentFragment ) {
 			var member = this,
-				ref, indexRefs, index, ractive, keypath;
+				keypath;
 			member.resolver = resolver;
 			member.root = resolver.root;
+			member.parentFragment = parentFragment;
 			member.viewmodel = resolver.root.viewmodel;
 			if ( typeof template === 'string' ) {
 				member.value = template;
 			} else if ( template.t === types.REFERENCE ) {
-				ref = member.ref = template.n;
-				// If it's an index reference, our job is simple
-				if ( ( indexRefs = parentFragment.indexRefs ) && ( index = indexRefs[ ref ] ) !== undefined ) {
-					member.indexRef = ref;
-					member.value = index;
-				} else if ( ref.charAt( 0 ) === '@' ) {
-					member.specialRef = ref;
-					member.value = resolveSpecialRef( parentFragment, ref );
-				} else {
-					ractive = resolver.root;
-					// Can we resolve the reference immediately?
-					if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-						member.resolve( keypath );
-					} else {
-						// Couldn't resolve yet
-						member.unresolved = new Unresolved( ractive, ref, parentFragment, function( keypath ) {
-							member.unresolved = null;
-							member.resolve( keypath );
-						} );
-					}
-				}
+				member.refResolver = createReferenceResolver( this, template.n, function( keypath ) {
+					member.resolve( keypath );
+				} );
 			} else {
 				new ExpressionResolver( resolver, parentFragment, template, function( keypath ) {
 					member.resolve( keypath );
@@ -7246,6 +7250,9 @@
 		};
 		MemberResolver.prototype = {
 			resolve: function( keypath ) {
+				if ( this.keypath ) {
+					this.viewmodel.unregister( this.keypath, this );
+				}
 				this.keypath = keypath;
 				this.value = this.viewmodel.get( keypath );
 				this.bind();
@@ -7255,18 +7262,8 @@
 				this.viewmodel.register( this.keypath, this );
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				var keypath;
-				if ( indexRef && this.indexRef === indexRef ) {
-					if ( newIndex !== this.value ) {
-						this.value = newIndex;
-						return true;
-					}
-				} else if ( this.keypath && ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) ) {
-					this.unbind();
-					this.keypath = keypath;
-					this.value = this.root.viewmodel.get( keypath );
-					this.bind();
-					return true;
+				if ( this.refResolver ) {
+					this.refResolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 				}
 			},
 			setValue: function( value ) {
@@ -7275,33 +7272,29 @@
 			},
 			unbind: function() {
 				if ( this.keypath ) {
-					this.root.viewmodel.unregister( this.keypath, this );
+					this.viewmodel.unregister( this.keypath, this );
 				}
 				if ( this.unresolved ) {
 					this.unresolved.unbind();
 				}
 			},
 			forceResolution: function() {
-				if ( this.unresolved ) {
-					this.unresolved.unbind();
-					this.unresolved = null;
-					this.keypath = this.ref;
-					this.value = this.viewmodel.get( this.ref );
-					this.bind();
+				if ( this.refResolver ) {
+					this.refResolver.forceResolution();
 				}
 			}
 		};
 		return MemberResolver;
-	}( types, resolveRef, resolveSpecialRef, Unresolved, getNewKeypath, ExpressionResolver );
+	}( types, createReferenceResolver, ExpressionResolver );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver.js */
-	var ReferenceExpressionResolver = function( resolveRef, Unresolved, MemberResolver ) {
+	var ReferenceExpressionResolver = function( resolveRef, ReferenceResolver, MemberResolver ) {
 
 		var ReferenceExpressionResolver = function( mustache, template, callback ) {
 			var this$0 = this;
 			var resolver = this,
 				ractive, ref, keypath, parentFragment;
-			parentFragment = mustache.parentFragment;
+			resolver.parentFragment = parentFragment = mustache.parentFragment;
 			resolver.root = ractive = mustache.root;
 			resolver.mustache = mustache;
 			resolver.ref = ref = template.r;
@@ -7311,7 +7304,7 @@
 			if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
 				resolver.base = keypath;
 			} else {
-				resolver.baseResolver = new Unresolved( ractive, ref, parentFragment, function( keypath ) {
+				resolver.baseResolver = new ReferenceResolver( this, ref, function( keypath ) {
 					resolver.base = keypath;
 					resolver.baseResolver = null;
 					resolver.bubble();
@@ -7377,13 +7370,13 @@
 			member.unbind();
 		}
 		return ReferenceExpressionResolver;
-	}( resolveRef, Unresolved, MemberResolver );
+	}( resolveRef, ReferenceResolver, MemberResolver );
 
 	/* virtualdom/items/shared/Mustache/initialise.js */
-	var initialise = function( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver, resolveSpecialRef ) {
+	var initialise = function( types, createReferenceResolver, ReferenceExpressionResolver, ExpressionResolver ) {
 
 		return function Mustache$init( mustache, options ) {
-			var ref, keypath, indexRefs, index, parentFragment, template;
+			var ref, parentFragment, template;
 			parentFragment = options.parentFragment;
 			template = options.template;
 			mustache.root = parentFragment.root;
@@ -7393,27 +7386,11 @@
 			mustache.index = options.index || 0;
 			mustache.isStatic = options.template.s;
 			mustache.type = options.template.t;
+			mustache.registered = false;
 			// if this is a simple mustache, with a reference, we just need to resolve
 			// the reference to a keypath
 			if ( ref = template.r ) {
-				indexRefs = parentFragment.indexRefs;
-				if ( ref.charAt( 0 ) === '@' ) {
-					mustache.specialRef = ref;
-					mustache.setValue( resolveSpecialRef( parentFragment, ref ) );
-					return;
-				}
-				if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
-					mustache.indexRef = ref;
-					mustache.setValue( index );
-					return;
-				}
-				keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
-				if ( keypath !== undefined ) {
-					mustache.resolve( keypath );
-				} else {
-					mustache.ref = ref;
-					runloop.addUnresolved( mustache );
-				}
+				mustache.resolver = new createReferenceResolver( mustache, ref, resolve );
 			}
 			// if it's an expression, we have a bit more work to do
 			if ( options.template.x ) {
@@ -7425,6 +7402,10 @@
 			// Special case - inverted sections
 			if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 				mustache.setValue( undefined );
+			}
+
+			function resolve( keypath ) {
+				mustache.resolve( keypath );
 			}
 
 			function resolveAndRebindChildren( newKeypath ) {
@@ -7439,64 +7420,62 @@
 				}
 			}
 		};
-	}( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver, resolveSpecialRef );
+	}( types, createReferenceResolver, ReferenceExpressionResolver, ExpressionResolver );
 
 	/* virtualdom/items/shared/Mustache/resolve.js */
-	var resolve = function Mustache$resolve( keypath ) {
-		var wasResolved, value, twowayBinding;
-		// If we resolved previously, we need to unregister
-		if ( this.keypath != undefined ) {
-			// undefined or null
-			this.root.viewmodel.unregister( this.keypath, this );
-			wasResolved = true;
-		}
-		this.keypath = keypath;
-		// If the new keypath exists, we need to register
-		// with the viewmodel
-		if ( keypath != undefined ) {
-			// undefined or null
-			value = this.root.viewmodel.get( keypath );
-			this.root.viewmodel.register( keypath, this );
-		}
-		// Either way we need to queue up a render (`value`
-		// will be `undefined` if there's no keypath)
-		this.setValue( value );
-		// Two-way bindings need to point to their new target keypath
-		if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
-			twowayBinding.rebound();
-		}
-	};
+	var resolve = function( isNumeric ) {
 
-	/* virtualdom/items/shared/Mustache/rebind.js */
-	var rebind = function( getNewKeypath, resolveSpecialRef ) {
-
-		return function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var keypath;
-			// Children first
-			if ( this.fragments ) {
-				this.fragments.forEach( function( f ) {
-					return f.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-				} );
-			}
-			// Expression mustache?
-			if ( this.resolver ) {
-				this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			}
-			// Normal keypath mustache or reference expression?
-			if ( this.keypath !== undefined ) {
-				keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
-				// was a new keypath created?
-				if ( keypath !== undefined ) {
-					// resolve it
-					this.resolve( keypath );
+		return function Mustache$resolve( keypath ) {
+			var wasResolved, value, twowayBinding;
+			// 'Special' keypaths, e.g. @foo or @7, encode a value
+			if ( keypath && keypath[ 0 ] === '@' ) {
+				value = keypath.slice( 1 );
+				if ( isNumeric( value ) ) {
+					value = +value;
 				}
-			} else if ( indexRef !== undefined && this.indexRef === indexRef ) {
-				this.setValue( newIndex );
-			} else if ( this.specialRef ) {
-				this.setValue( resolveSpecialRef( this.parentFragment, this.specialRef ) );
+				this.keypath = keypath;
+				this.setValue( value );
+				return;
+			}
+			// If we resolved previously, we need to unregister
+			if ( this.registered ) {
+				// undefined or null
+				this.root.viewmodel.unregister( this.keypath, this );
+				this.registered = false;
+				wasResolved = true;
+			}
+			this.keypath = keypath;
+			// If the new keypath exists, we need to register
+			// with the viewmodel
+			if ( keypath != undefined ) {
+				// undefined or null
+				value = this.root.viewmodel.get( keypath );
+				this.root.viewmodel.register( keypath, this );
+				this.registered = true;
+			}
+			// Either way we need to queue up a render (`value`
+			// will be `undefined` if there's no keypath)
+			this.setValue( value );
+			// Two-way bindings need to point to their new target keypath
+			if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
+				twowayBinding.rebound();
 			}
 		};
-	}( getNewKeypath, resolveSpecialRef );
+	}( isNumeric );
+
+	/* virtualdom/items/shared/Mustache/rebind.js */
+	var rebind = function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+		// Children first
+		if ( this.fragments ) {
+			this.fragments.forEach( function( f ) {
+				return f.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			} );
+		}
+		// Expression mustache?
+		if ( this.resolver ) {
+			this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		}
+	};
 
 	/* virtualdom/items/shared/Mustache/_Mustache.js */
 	var Mustache = function( getValue, init, resolve, rebind ) {
@@ -9193,14 +9172,7 @@
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
 			if ( !interpolator.keypath ) {
-				if ( interpolator.ref ) {
-					interpolator.resolve( interpolator.ref );
-				}
-				// If we have a reference expression resolver, we have to force
-				// members to attach themselves to the root
-				if ( interpolator.resolver ) {
-					interpolator.resolver.forceResolution();
-				}
+				interpolator.resolver.forceResolution();
 			}
 			this.keypath = keypath = interpolator.keypath;
 			// initialise value, if it's undefined
@@ -9842,7 +9814,7 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
-	var virtualdom_items_Element_EventHandler$init = function( removeFromArray, getFunctionFromString, resolveRef, resolveSpecialRef, Unresolved, circular, fireEvent, log ) {
+	var virtualdom_items_Element_EventHandler$init = function( getFunctionFromString, createReferenceResolver, circular, fireEvent, log ) {
 
 		var __export;
 		var Fragment, getValueOptions = {
@@ -9854,7 +9826,7 @@
 		} );
 		__export = function EventHandler$init( element, name, template ) {
 			var handler = this,
-				action, args, indexRefs, ractive, parentFragment;
+				action, refs, ractive;
 			handler.element = element;
 			handler.root = element.root;
 			handler.name = name;
@@ -9870,54 +9842,27 @@
 				this.invalid = true;
 			}
 			if ( template.m ) {
+				refs = template.a.r;
 				// This is a method call
 				handler.method = template.m;
-				handler.args = args = [];
-				handler.unresolved = [];
-				handler.refs = template.a.r;
-				handler.fn = getFunctionFromString( template.a.s, handler.refs.length );
-				parentFragment = element.parentFragment;
-				indexRefs = parentFragment.indexRefs;
+				handler.keypaths = [];
+				handler.fn = getFunctionFromString( template.a.s, refs.length );
+				handler.parentFragment = element.parentFragment;
 				ractive = handler.root;
 				// Create resolvers for each reference
-				template.a.r.forEach( function( reference, i ) {
-					var index, keypath, match, unresolved;
-					// Is this an index reference?
-					if ( indexRefs && ( index = indexRefs[ reference ] ) !== undefined ) {
-						args[ i ] = {
-							indexRef: reference,
-							value: index
-						};
-						return;
-					}
-					if ( reference.charAt( 0 ) === '@' ) {
-						args[ i ] = {
-							specialRef: reference,
-							value: resolveSpecialRef( parentFragment, reference )
-						};
-						return;
-					}
-					if ( match = eventPattern.exec( reference ) ) {
-						args[ i ] = {
+				handler.refResolvers = refs.map( function( ref, i ) {
+					var match;
+					// special case - the `event` object
+					if ( match = eventPattern.exec( ref ) ) {
+						handler.keypaths[ i ] = {
 							eventObject: true,
 							refinements: match[ 1 ] ? match[ 1 ].split( '.' ) : []
 						};
-						return;
+						return null;
 					}
-					// Can we resolve it immediately?
-					if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
-						args[ i ] = {
-							keypath: keypath
-						};
-						return;
-					}
-					// Couldn't resolve yet
-					args[ i ] = null;
-					unresolved = new Unresolved( ractive, reference, parentFragment, function( keypath ) {
+					return createReferenceResolver( handler, ref, function( keypath ) {
 						handler.resolve( i, keypath );
-						removeFromArray( handler.unresolved, unresolved );
 					} );
-					handler.unresolved.push( unresolved );
 				} );
 				this.fire = fireMethodCall;
 			} else {
@@ -9952,25 +9897,22 @@
 			if ( typeof ractive[ this.method ] !== 'function' ) {
 				throw new Error( 'Attempted to call a non-existent method ("' + this.method + '")' );
 			}
-			values = this.args.map( function( arg ) {
+			values = this.keypaths.map( function( keypath ) {
 				var value, len, i;
-				if ( !arg ) {
+				if ( keypath === undefined ) {
 					// not yet resolved
 					return undefined;
 				}
-				if ( arg.indexRef || arg.specialRef ) {
-					return arg.value;
-				}
 				// TODO the refinements stuff would be better handled at parse time
-				if ( arg.eventObject ) {
+				if ( keypath.eventObject ) {
 					value = event;
-					if ( len = arg.refinements.length ) {
+					if ( len = keypath.refinements.length ) {
 						for ( i = 0; i < len; i += 1 ) {
-							value = value[ arg.refinements[ i ] ];
+							value = value[ keypath.refinements[ i ] ];
 						}
 					}
 				} else {
-					value = ractive.get( arg.keypath );
+					value = ractive.viewmodel.get( keypath );
 				}
 				return value;
 			} );
@@ -9997,7 +9939,7 @@
 			} );
 		}
 		return __export;
-	}( removeFromArray, getFunctionFromString, resolveRef, resolveSpecialRef, Unresolved, circular, Ractive$shared_fireEvent, log );
+	}( getFunctionFromString, createReferenceResolver, circular, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
 	var genericHandler = function genericHandler( event ) {
@@ -10070,33 +10012,24 @@
 	}( config, genericHandler, log );
 
 	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
-	var virtualdom_items_Element_EventHandler$rebind = function( getNewKeypath, resolveSpecialRef ) {
+	var virtualdom_items_Element_EventHandler$rebind = function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+		var fragment;
+		if ( this.method ) {
+			fragment = this.element.parentFragment;
+			this.refResolvers.forEach( rebind );
+			return;
+		}
+		if ( typeof this.action !== 'string' ) {
+			rebind( this.action );
+		}
+		if ( this.dynamicParams ) {
+			rebind( this.dynamicParams );
+		}
 
-		return function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var fragment;
-			if ( this.method ) {
-				fragment = this.element.parentFragment;
-				this.args.forEach( function( arg ) {
-					if ( arg.indexRef && arg.indexRef === indexRef ) {
-						arg.value = newIndex;
-					}
-					if ( arg.specialRef ) {
-						arg.value = resolveSpecialRef( fragment, arg.specialRef );
-					}
-					if ( arg.keypath && ( newKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
-						arg.keypath = newKeypath;
-					}
-				} );
-				return;
-			}
-			if ( typeof this.action !== 'string' ) {
-				this.action.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			}
-			if ( this.dynamicParams ) {
-				this.dynamicParams.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			}
-		};
-	}( getNewKeypath, resolveSpecialRef );
+		function rebind( thing ) {
+			thing && thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		}
+	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/render.js */
 	var virtualdom_items_Element_EventHandler$render = function EventHandler$render() {
@@ -10111,9 +10044,7 @@
 
 	/* virtualdom/items/Element/EventHandler/prototype/resolve.js */
 	var virtualdom_items_Element_EventHandler$resolve = function EventHandler$resolve( index, keypath ) {
-		this.args[ index ] = {
-			keypath: keypath
-		};
+		this.keypaths[ index ] = keypath;
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/unbind.js */
@@ -10122,7 +10053,7 @@
 		var __export;
 		__export = function EventHandler$unbind() {
 			if ( this.method ) {
-				this.unresolved.forEach( teardown );
+				this.refResolvers.forEach( unbind );
 				return;
 			}
 			// Tear down dynamic name
@@ -10135,8 +10066,8 @@
 			}
 		};
 
-		function teardown( x ) {
-			x.teardown();
+		function unbind( x ) {
+			x.unbind();
 		}
 		return __export;
 	}();
@@ -13781,7 +13712,7 @@
 			},
 			get: function() {
 				var this$0 = this;
-				var ractive, newDeps, args, dependenciesChanged, dependencyValuesChanged = false;
+				var ractive, newDeps, dependenciesChanged, dependencyValuesChanged = false;
 				if ( this.getting ) {
 					// prevent double-computation (e.g. caused by array mutation inside computation)
 					return;
@@ -13817,14 +13748,7 @@
 					if ( dependencyValuesChanged ) {
 						ractive.viewmodel.capture();
 						try {
-							if ( this.hardDeps.length ) {
-								args = this.hardDeps.map( function( keypath ) {
-									return this$0.viewmodel.get( keypath );
-								} );
-								this.value = this.getter.apply( ractive, args );
-							} else {
-								this.value = this.getter.call( ractive );
-							}
+							this.value = this.getter.call( ractive );
 						} catch ( err ) {
 							log.warn( {
 								debug: ractive.debug,
@@ -13936,7 +13860,7 @@
 	}( removeFromArray, runloop );
 
 	/* viewmodel/prototype/get.js */
-	var viewmodel$get = function( FAILED_LOOKUP, UnresolvedImplicitDependency ) {
+	var viewmodel$get = function( isNumeric, FAILED_LOOKUP, UnresolvedImplicitDependency ) {
 
 		var __export;
 		var empty = {};
@@ -13947,6 +13871,10 @@
 			var ractive = this.ractive,
 				cache = this.cache,
 				value, computation, wrapped, captureGroup;
+			if ( keypath[ 0 ] === '@' ) {
+				value = keypath.slice( 1 );
+				return isNumeric( value ) ? +value : value;
+			}
 			if ( cache[ keypath ] === undefined ) {
 				// Is this a computed property?
 				if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
@@ -14015,7 +13943,7 @@
 			return value;
 		}
 		return __export;
-	}( viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
+	}( isNumeric, viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
 
 	/* viewmodel/prototype/init.js */
 	var viewmodel$init = function() {
