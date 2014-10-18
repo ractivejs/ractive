@@ -30,6 +30,10 @@ ReferenceResolver.prototype = {
 		this.callback( keypath );
 	},
 
+	forceResolution: function () {
+		this.resolve( this.ref );
+	},
+
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 		var keypath;
 
