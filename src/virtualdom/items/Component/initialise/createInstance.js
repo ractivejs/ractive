@@ -1,6 +1,6 @@
 import log from 'utils/log';
 
-export default function ( component, Component, data, contentDescriptor ) {
+export default function ( component, Component, data, mappings, contentDescriptor ) {
 	var instance, parentFragment, partials, ractive;
 
 	parentFragment = component.parentFragment;
@@ -22,7 +22,7 @@ export default function ( component, Component, data, contentDescriptor ) {
 	instance = new Component({
 		el: null,
 		append: true,
-		data: data,
+		mappings: mappings,
 		partials: partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,

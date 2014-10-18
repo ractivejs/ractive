@@ -59,6 +59,11 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		return ref;
 	}
 
+	if ( key in ractive.mappings ) {
+		// need to create inter-component binding
+		return createBinding( ractive, key, ref, ractive.mappings[ key ] );
+	}
+
 	// If this is an inline component, and it's not isolated, we
 	// can try going up the scope chain
 	if ( ractive._parent && !ractive.isolated ) {
@@ -142,4 +147,24 @@ function resolveAncestorReference ( baseContext, ref ) {
 	}
 
 	return baseContext + ref.replace( /^\.\//, '.' );
+}
+
+function createBinding ( ractive, key, childKeypath, mapping ) {
+	var parentKeypath, parentKeys, childKeys;
+
+	parentKeypath = mapping.keypath.replace( key, childKeypath );
+
+	childKeys = childKeypath.split( '.' );
+	parentKeys = parentKeypath.split( '.' );
+
+	while ( parentKeys.length > 1 && childKeys.length > 1 && parentKeys[ parentKeys.length - 1 ] === childKeys[ childKeys.length - 1 ] ) {
+		parentKeys.pop();
+		childKeys.pop();
+	}
+
+	parentKeypath = parentKeys.join( '.' );
+	childKeypath = childKeys.join( '.' );
+
+	ractive.viewmodel.bind( mapping.source.viewmodel, mapping.keypath.replace( key, childKeypath ), childKeypath );
+	return childKeypath;
 }

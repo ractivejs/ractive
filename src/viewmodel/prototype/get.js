@@ -6,10 +6,15 @@ var empty = {};
 export default function Viewmodel$get ( keypath, options = empty ) {
 	var ractive = this.ractive,
 		cache = this.cache,
+		binding,
 		value,
 		computation,
 		wrapped,
 		captureGroup;
+
+	if ( binding = this.bindings[ keypath ] ) {
+		return binding.origin.get( binding.keypath );
+	}
 
 	if ( cache[ keypath ] === undefined ) {
 

@@ -1,6 +1,7 @@
 import create from 'utils/create';
 import adapt from 'viewmodel/prototype/adapt';
 import applyChanges from 'viewmodel/prototype/applyChanges';
+import bind from 'viewmodel/prototype/bind';
 import capture from 'viewmodel/prototype/capture';
 import clearCache from 'viewmodel/prototype/clearCache';
 import compute from 'viewmodel/prototype/compute';
@@ -31,6 +32,8 @@ var Viewmodel = function ( ractive ) {
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
 
 	Viewmodel.extend( ractive.constructor, ractive );
+
+	this.bindings = {};
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
@@ -72,6 +75,7 @@ Viewmodel.extend = function ( Parent, instance ) {
 Viewmodel.prototype = {
 	adapt: adapt,
 	applyChanges: applyChanges,
+	bind: bind,
 	capture: capture,
 	clearCache: clearCache,
 	compute: compute,

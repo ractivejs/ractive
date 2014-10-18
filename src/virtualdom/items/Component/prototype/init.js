@@ -1,13 +1,13 @@
 import types from 'config/types';
 import warn from 'utils/warn';
-import createModel from 'virtualdom/items/Component/initialise/createModel/_createModel';
+import createMappings from 'virtualdom/items/Component/initialise/createMappings';
 import createInstance from 'virtualdom/items/Component/initialise/createInstance';
-import createBindings from 'virtualdom/items/Component/initialise/createBindings';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
 
 export default function Component$init ( options, Component ) {
 	var parentFragment,
+		mappings,
 		root,
 		data,
 		toBind;
@@ -31,17 +31,9 @@ export default function Component$init ( options, Component ) {
 		throw new Error( 'Component "' + this.name + '" not found' );
 	}
 
-	// First, we need to create a model for the component - e.g. if we
-	// encounter <widget foo='bar'/> then we need to create a widget
-	// with `data: { foo: 'bar' }`.
-	//
-	// This may involve setting up some bindings, but we can't do it
-	// yet so we take some notes instead
-	toBind = [];
-	data = createModel( this, Component.defaults.data || {}, options.template.a, toBind );
+	mappings = createMappings( root, options.template.a );
 
-	createInstance( this, Component, data, options.template.f );
-	createBindings( this, toBind );
+	createInstance( this, Component, {}, mappings, options.template.f );
 	propagateEvents( this, options.template.v );
 
 	// intro, outro and decorator directives have no effect
