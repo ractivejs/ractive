@@ -1727,7 +1727,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				dum: 'quarrel'
 			});
 
-			t.htmlEqual( fixture.innerHTML, 'forget quarrell' );
+			t.htmlEqual( fixture.innerHTML, 'forget quarrel' );
 		});
 
 	};
