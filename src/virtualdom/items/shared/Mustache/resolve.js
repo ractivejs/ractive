@@ -1,5 +1,19 @@
+import isNumeric from 'utils/isNumeric';
+
 export default function Mustache$resolve ( keypath ) {
 	var wasResolved, value, twowayBinding;
+
+	// 'Special' keypaths, e.g. @foo or @7, encode a value
+	if ( keypath && keypath[0] === '@' ) {
+		value = keypath.slice( 1 );
+
+		if ( isNumeric( value ) ) {
+			value = +value;
+		}
+
+		this.setValue( value );
+		return;
+	}
 
 	// If we resolved previously, we need to unregister
 	if ( this.keypath != undefined ) { // undefined or null

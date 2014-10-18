@@ -1,6 +1,8 @@
 import types from 'config/types';
 import runloop from 'global/runloop';
 import resolveRef from 'shared/resolveRef';
+import SpecialResolver from 'virtualdom/items/shared/Resolvers/SpecialResolver';
+import IndexResolver from 'virtualdom/items/shared/Resolvers/IndexResolver';
 import ReferenceResolver from 'virtualdom/items/shared/Resolvers/ReferenceResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
@@ -29,18 +31,22 @@ export default function Mustache$init ( mustache, options ) {
 		indexRefs = parentFragment.indexRefs;
 
 		if ( ref.charAt( 0 ) === '@' ) {
-			mustache.specialRef = ref;
-			mustache.setValue( resolveSpecialRef( parentFragment, ref ) );
+			mustache.resolver = new SpecialResolver( mustache, ref, resolve );
+
+			// mustache.specialRef = ref;
+			// mustache.setValue( resolveSpecialRef( parentFragment, ref ) );
 			return;
 		}
 
 		if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
-			mustache.indexRef = ref;
-			mustache.setValue( index );
+			mustache.resolver = new IndexResolver( mustache, ref, resolve );
+
+			// mustache.indexRef = ref;
+			// mustache.setValue( index );
 			return;
 		}
 
-		mustache.resolver = new ReferenceResolver( mustache, ref, keypath => mustache.resolve( keypath ) );
+		mustache.resolver = new ReferenceResolver( mustache, ref, resolve );
 	}
 
 	// if it's an expression, we have a bit more work to do
@@ -55,6 +61,10 @@ export default function Mustache$init ( mustache, options ) {
 	// Special case - inverted sections
 	if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 		mustache.setValue( undefined );
+	}
+
+	function resolve ( keypath ) {
+		mustache.resolve( keypath );
 	}
 
 	function resolveAndRebindChildren ( newKeypath ) {
