@@ -51,7 +51,7 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	lightweight = ractive.lightweight && ractive._parent;
 	if ( lightweight ) {
-		ractive.viewmodel = ractive._parent.viewmodel
+		ractive.viewmodel = ractive._parent.viewmodel;
 	}
 	else {
 		// TEMPORARY. This is so we can implement Viewmodel gradually
@@ -66,15 +66,21 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	// Render our *root fragment*
 	if ( ractive.template ) {
-		// if ( lightweight ) {
+		if ( lightweight ) {
+			ractive.fragment = new Fragment({
+				indexRefs: ractive.component.parentFragment.indexRefs,
+				context: ractive.component.parentFragment.context,
+				template: ractive.template,
+				root: ractive,
+				owner: ractive //._parent, // saves doing `if ( this.parent ) { /*...*/ }` later on
+			});
+		} else {
 			ractive.fragment = new Fragment({
 				template: ractive.template,
 				root: ractive,
 				owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
 			});
-		// } else {
-		// 	ractive.fragment =
-		// }
+		}
 	}
 
 	initHook.end( ractive );
