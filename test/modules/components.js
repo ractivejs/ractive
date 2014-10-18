@@ -1717,7 +1717,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				},
 				components: {
 					tweedle: Ractive.extend({
-						template: '{{ dee ? dee : "lewis"}} {{dum ? dee : "carroll"}}'
+						template: '{{ dee ? dee : "lewis"}} {{dum ? dum : "carroll"}}'
 					})
 				}
 			});
