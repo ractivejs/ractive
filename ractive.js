@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.0
-	2014-10-18 - commit 3b650575 
+	2014-10-18 - commit 927c295f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -571,6 +571,9 @@
 			this.value = this.root.viewmodel.get( this.keypath );
 		};
 		Binding.prototype = {
+			isLocked: function() {
+				return this.updating || this.counterpart && this.counterpart.updating;
+			},
 			shuffle: function( newIndices, value ) {
 				this.propagateChange( value, newIndices );
 			},
@@ -580,7 +583,7 @@
 			propagateChange: function( value, newIndices ) {
 				var other;
 				// Only *you* can prevent infinite loops
-				if ( this.updating || this.counterpart && this.counterpart.updating ) {
+				if ( this.isLocked() ) {
 					this.value = value;
 					return;
 				}
@@ -602,20 +605,19 @@
 					runloop.scheduleTask( this.unlock );
 				}
 			},
-			refineValue: function( bindingKeypath, keypath ) {
-				var value, refinedKeypath, refinedValue, other;
-				// Only *you* can prevent infinite loops
-				if ( this.updating || this.counterpart && this.counterpart.updating ) {
+			refineValue: function( keypaths ) {
+				var this$0 = this;
+				var other;
+				if ( this.isLocked() ) {
 					return;
 				}
-				value = this.root.viewmodel.get( bindingKeypath );
-				refinedKeypath = keypath.replace( bindingKeypath + '.', this.otherKeypath + '.' );
-				refinedValue = this.root.viewmodel.get( keypath );
 				this.lock();
 				runloop.addViewmodel( other = this.otherInstance.viewmodel );
-				if ( isSettable( other, refinedKeypath ) ) {
-					other.set( refinedKeypath, refinedValue );
-				}
+				keypaths.map( function( keypath ) {
+					return this$0.otherKeypath + keypath.substr( this$0.keypath.length );
+				} ).forEach( function( keypath ) {
+					return other.mark( keypath );
+				} );
 				runloop.scheduleTask( this.unlock );
 			},
 			bind: function() {
@@ -13113,14 +13115,10 @@
 	var viewmodel$applyChanges = function( getUpstreamChanges, notifyPatternObservers ) {
 
 		var __export;
-		var dependantGroups = [
-			'observers',
-			'default'
-		];
 		__export = function Viewmodel$applyChanges() {
 			var this$0 = this;
 			var self = this,
-				changes, upstreamChanges, upstreamHash, hash = {};
+				changes, upstreamChanges, hash = {};
 			changes = this.changes;
 			if ( !changes.length ) {
 				// TODO we end up here on initial render. Perhaps we shouldn't?
@@ -13166,18 +13164,22 @@
 					return notifyPatternObservers( this$0, keypath );
 				} );
 			}
-			upstreamHash = getUpstreamChangeHash( changes );
-			dependantGroups.forEach( function( group ) {
-				if ( !this$0.deps[ group ] ) {
-					return;
+			if ( this.deps.observers ) {
+				upstreamChanges.forEach( function( keypath ) {
+					return notifyUpstreamDependants( this$0, keypath, 'observers' );
+				} );
+				notifyAllDependants( this, changes, 'observers' );
+			}
+			if ( this.deps[ 'default' ] ) {
+				var bindings = [];
+				upstreamChanges.forEach( function( keypath ) {
+					return notifyUpstreamDependants( this$0, bindings, keypath, 'default' );
+				} );
+				if ( bindings.length ) {
+					notifyBindings( this, bindings, changes );
 				}
-				for ( var changeKeypath in upstreamHash ) {
-					upstreamHash[ changeKeypath ].forEach( function( keypath ) {
-						notifyUpstreamDependants( this$0, keypath, changeKeypath, group );
-					} );
-				}
-				notifyAllDependants( this$0, changes, group );
-			} );
+				notifyAllDependants( this, changes, 'default' );
+			}
 			// Return a hash of keypaths to updated values
 			changes.forEach( function( keypath ) {
 				hash[ keypath ] = this$0.get( keypath );
@@ -13187,29 +13189,6 @@
 			return hash;
 		};
 
-		function getUpstreamChangeHash( changes ) {
-			var sortedKeys, current, next, keep = [],
-				index = 0,
-				upstreamHash = {};
-			sortedKeys = changes.slice().sort();
-			// keep "top-most" keypath changes,
-			// i.e. data, data.foo, data.bar => data
-			keep.push( current = sortedKeys[ 0 ] );
-			while ( next = sortedKeys[ ++index ] ) {
-				if ( next.slice( 0, current.length ) !== current ) {
-					keep.push( current = next );
-				}
-			}
-			// map upstream changes
-			keep.forEach( function( change ) {
-				var upstream = getUpstreamChanges( [ change ] );
-				if ( upstream.length ) {
-					upstreamHash[ change ] = upstream;
-				}
-			} );
-			return upstreamHash;
-		}
-
 		function invalidate( computation ) {
 			computation.invalidate();
 		}
@@ -13218,20 +13197,46 @@
 			return computation.key;
 		}
 
-		function notifyUpstreamDependants( viewmodel, keypath, originalKeypath, groupName ) {
+		function notifyUpstreamDependants( viewmodel, bindings, keypath, groupName ) {
 			var dependants, value;
 			if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
 				value = viewmodel.get( keypath );
 				dependants.forEach( function( d ) {
 					// don't "set" the parent value, refine it
 					// i.e. not data = value, but data[foo] = fooValue
-					if ( d.refineValue && keypath !== originalKeypath ) {
-						d.refineValue( keypath, originalKeypath );
+					if ( d.refineValue ) {
+						bindings.push( d );
 					} else {
 						d.setValue( value );
 					}
 				} );
 			}
+		}
+
+		function notifyBindings( viewmodel, bindings, changes ) {
+			bindings.forEach( function( binding ) {
+				var useSet = false,
+					i = 0,
+					length = changes.length,
+					refinements = [];
+				while ( i < length ) {
+					var keypath = changes[ i ];
+					if ( keypath === binding.keypath ) {
+						useSet = true;
+						break;
+					}
+					if ( keypath.slice( 0, binding.keypath.length ) === binding.keypath ) {
+						refinements.push( keypath );
+					}
+					i++;
+				}
+				if ( useSet ) {
+					binding.setValue( viewmodel.get( binding.keypath ) );
+				}
+				if ( refinements.length ) {
+					binding.refineValue( refinements );
+				}
+			} );
 		}
 
 		function notifyAllDependants( viewmodel, keypaths, groupName ) {
