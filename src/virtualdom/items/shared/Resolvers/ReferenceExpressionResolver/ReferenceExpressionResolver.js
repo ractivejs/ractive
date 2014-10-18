@@ -1,12 +1,11 @@
 import resolveRef from 'shared/resolveRef';
-import Unresolved from 'shared/Unresolved';
+import ReferenceResolver from 'virtualdom/items/shared/Resolvers/ReferenceResolver';
 import MemberResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	var resolver = this, ractive, ref, keypath, parentFragment;
 
-	parentFragment = mustache.parentFragment;
-
+	resolver.parentFragment = parentFragment = mustache.parentFragment;
 	resolver.root = ractive = mustache.root;
 	resolver.mustache = mustache;
 
@@ -19,7 +18,7 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
 		resolver.base = keypath;
 	} else {
-		resolver.baseResolver = new Unresolved( ractive, ref, parentFragment, function ( keypath ) {
+		resolver.baseResolver = new ReferenceResolver( this, ref, function ( keypath ) {
 			resolver.base = keypath;
 			resolver.baseResolver = null;
 			resolver.bubble();
