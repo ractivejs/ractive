@@ -1,13 +1,11 @@
 import types from 'config/types';
-import runloop from 'global/runloop';
-import resolveRef from 'shared/resolveRef';
+import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
-import resolveSpecialRef from 'shared/resolveSpecialRef';
 
 export default function Mustache$init ( mustache, options ) {
 
-	var ref, keypath, indexRefs, index, parentFragment, template;
+	var ref, parentFragment, template;
 
 	parentFragment = options.parentFragment;
 	template = options.template;
@@ -22,32 +20,12 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.type = options.template.t;
 
+	mustache.registered = false;
+
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( ref = template.r ) {
-		indexRefs = parentFragment.indexRefs;
-
-		if ( ref.charAt( 0 ) === '@' ) {
-			mustache.specialRef = ref;
-			mustache.setValue( resolveSpecialRef( parentFragment, ref ) );
-			return;
-		}
-
-		if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
-			mustache.indexRef = ref;
-			mustache.setValue( index );
-			return;
-		}
-
-		keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
-		if ( keypath !== undefined ) {
-			mustache.resolve( keypath );
-		}
-
-		else {
-			mustache.ref = ref;
-			runloop.addUnresolved( mustache );
-		}
+		mustache.resolver = new createReferenceResolver( mustache, ref, resolve );
 	}
 
 	// if it's an expression, we have a bit more work to do
@@ -62,6 +40,10 @@ export default function Mustache$init ( mustache, options ) {
 	// Special case - inverted sections
 	if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 		mustache.setValue( undefined );
+	}
+
+	function resolve ( keypath ) {
+		mustache.resolve( keypath );
 	}
 
 	function resolveAndRebindChildren ( newKeypath ) {

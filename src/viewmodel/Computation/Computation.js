@@ -44,7 +44,7 @@ Computation.prototype = {
 	},
 
 	get: function () {
-		var ractive, newDeps, args, dependenciesChanged, dependencyValuesChanged = false;
+		var ractive, newDeps, dependenciesChanged, dependencyValuesChanged = false;
 
 		if ( this.getting ) {
 			// prevent double-computation (e.g. caused by array mutation inside computation)
@@ -87,12 +87,7 @@ Computation.prototype = {
 				ractive.viewmodel.capture();
 
 				try {
-					if ( this.hardDeps.length ) {
-						args = this.hardDeps.map( keypath => this.viewmodel.get( keypath ) );
-						this.value = this.getter.apply( ractive, args );
-					} else {
-						this.value = this.getter.call( ractive );
-					}
+					this.value = this.getter.call( ractive );
 				} catch ( err ) {
 					log.warn({
 						debug: ractive.debug,

@@ -1,83 +1,36 @@
-import removeFromArray from 'utils/removeFromArray';
 import defineProperty from 'utils/defineProperty';
-import resolveRef from 'shared/resolveRef';
-import resolveSpecialRef from 'shared/resolveSpecialRef';
-import Unresolved from 'shared/Unresolved';
+import isNumeric from 'utils/isNumeric';
+import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import getFunctionFromString from 'shared/getFunctionFromString';
-import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 import 'legacy'; // for fn.bind()
 
 var ExpressionResolver, bind = Function.prototype.bind;
 
 ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 
-	var expressionResolver = this, ractive, indexRefs, args;
+	var resolver = this, ractive, indexRefs;
 
 	ractive = owner.root;
 
-	this.root = ractive;
-	this.callback = callback;
-	this.owner = owner;
-	this.str = expression.s;
-	this.args = args = [];
-
-	this.unresolved = [];
-	this.pending = 0;
+	resolver.root = ractive;
+	resolver.parentFragment = parentFragment;
+	resolver.callback = callback;
+	resolver.owner = owner;
+	resolver.str = expression.s;
+	resolver.keypaths = [];
 
 	indexRefs = parentFragment.indexRefs;
 
-	// some expressions don't have references. edge case, but, yeah.
-	if ( !expression.r || !expression.r.length ) {
-		this.resolved = this.ready = true;
-		this.bubble();
-		return;
-	}
-
 	// Create resolvers for each reference
-	expression.r.forEach( function ( reference, i ) {
-		var index, keypath, unresolved;
-
-		// Is this an index reference?
-		if ( indexRefs && ( index = indexRefs[ reference ] ) !== undefined ) {
-			args[i] = {
-				indexRef: reference,
-				value: index
-			};
-			return;
-		}
-
-		// Is this a special reference?
-		if ( reference.charAt( 0 ) === '@' ) {
-			args[i] = {
-				specialRef: reference,
-				value: resolveSpecialRef( parentFragment, reference )
-			};
-			return;
-		}
-
-		// Can we resolve it immediately?
-		if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
-			args[i] = { keypath: keypath };
-			return;
-		} else if ( reference === '.' ) { // special case of context reference to root
-			args[i] = { keypath: '' };
-			return;
-		}
-
-		// Couldn't resolve yet
-		args[i] = null;
-		expressionResolver.pending += 1;
-
-		unresolved = new Unresolved( ractive, reference, parentFragment, function ( keypath ) {
-			expressionResolver.resolve( i, keypath );
-			removeFromArray( expressionResolver.unresolved, unresolved );
+	resolver.pending = expression.r.length;
+	resolver.refResolvers = expression.r.map( ( ref, i ) => {
+		return createReferenceResolver( resolver, ref, function ( keypath ) {
+			resolver.resolve( i, keypath );
 		});
-
-		expressionResolver.unresolved.push( unresolved );
 	});
 
-	this.ready = true;
-	this.bubble();
+	resolver.ready = true;
+	resolver.bubble();
 };
 
 ExpressionResolver.prototype = {
@@ -86,7 +39,7 @@ ExpressionResolver.prototype = {
 			return;
 		}
 
-		this.uniqueString = getUniqueString( this.str, this.args );
+		this.uniqueString = getUniqueString( this.str, this.keypaths );
 		this.keypath = getKeypath( this.uniqueString );
 
 		this.createEvaluator();
@@ -94,53 +47,40 @@ ExpressionResolver.prototype = {
 	},
 
 	unbind: function () {
-		var unresolved;
+		var resolver;
 
-		while ( unresolved = this.unresolved.pop() ) {
-			unresolved.unbind();
+		while ( resolver = this.refResolvers.pop() ) {
+			resolver.unbind();
 		}
 	},
 
 	resolve: function ( index, keypath ) {
-		this.args[ index ] = { keypath: keypath };
+		this.keypaths[ index ] = keypath;
 		this.bubble();
-
-		// when all references have been resolved, we can flag the entire expression
-		// as having been resolved
-		this.resolved = !( --this.pending );
 	},
 
 	createEvaluator: function () {
-		var self = this, computation, valueGetters, signature, keypaths = [], i, arg, fn;
+		var self = this, computation, valueGetters, signature, keypath, fn;
 
 		computation = this.root.viewmodel.computations[ this.keypath ];
 
 		// only if it doesn't exist yet!
 		if ( !computation ) {
-			i = this.args.length;
-			while ( i-- ) {
-				arg = this.args[i];
+			fn = getFunctionFromString( this.str, this.refResolvers.length );
 
-				if ( arg && arg.keypath !== undefined && arg.keypath !== null ) {
-					keypaths.push( arg.keypath );
-				}
-			}
+			valueGetters = this.keypaths.map( keypath => {
+				var value;
 
-			fn = getFunctionFromString( this.str, this.args.length );
-
-			valueGetters = this.args.map( arg => {
-				var keypath, value;
-
-				if ( !arg ) {
+				if ( keypath === 'undefined' ) {
 					return () => undefined;
 				}
 
-				if ( arg.indexRef || arg.specialRef ) {
-					value = arg.value;
-					return () => value;
+				// 'special' keypaths encode a value
+				if ( keypath[0] === '@' ) {
+					value = keypath.slice( 1 );
+					return isNumeric( value ) ? () => +value : () => value;
 				}
 
-				keypath = arg.keypath;
 				return () => {
 					var value = this.root.viewmodel.get( keypath );
 					if ( typeof value === 'function' ) {
@@ -151,7 +91,7 @@ ExpressionResolver.prototype = {
 			});
 
 			signature = {
-				deps: keypaths,
+				deps: this.keypaths.filter( isValidDependency ),
 				get: function () {
 					var args = valueGetters.map( call );
 					return fn.apply( null, args );
@@ -165,27 +105,8 @@ ExpressionResolver.prototype = {
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		var changed;
-
-		this.args.forEach( function ( arg ) {
-			var changedKeypath;
-
-			if ( !arg ) return;
-
-			if ( arg.keypath && ( changedKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
-				arg.keypath = changedKeypath;
-				changed = true;
-			}
-
-			else if ( arg.indexRef && ( arg.indexRef === indexRef ) ) {
-				arg.value = newIndex;
-				changed = true;
-			}
-		});
-
-		if ( changed ) {
-			this.bubble();
-		}
+		// TODO only bubble once, no matter how many references are affected by the rebind
+		this.refResolvers.forEach( r => r.rebind( indexRef, newIndex, oldKeypath, newKeypath ) );
 	}
 };
 
@@ -195,15 +116,23 @@ function call ( value ) {
 	return value.call();
 }
 
-function getUniqueString ( str, args ) {
+function getUniqueString ( str, keypaths ) {
 	// get string that is unique to this expression
 	return str.replace( /_([0-9]+)/g, function ( match, $1 ) {
-		var arg = args[ $1 ];
+		var keypath, value;
 
-		if ( !arg ) return 'undefined';
-		if ( arg.indexRef ) return arg.value;
-		if ( arg.specialRef ) return arg.value;
-		return arg.keypath;
+		keypath = keypaths[ $1 ];
+
+		if ( keypath === undefined ) {
+			return 'undefined';
+		}
+
+		if ( keypath[0] === '@' ) {
+			value = keypath.slice( 1 );
+			return isNumeric( value ) ? value : '"' + value + '"';
+		}
+
+		return keypath;
 	});
 }
 
@@ -211,6 +140,10 @@ function getKeypath ( uniqueString ) {
 	// Sanitize by removing any periods or square brackets. Otherwise
 	// we can't split the keypath into keys!
 	return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
+}
+
+function isValidDependency ( keypath ) {
+	return keypath !== undefined && keypath[0] !== '@';
 }
 
 function wrapFunction ( fn, ractive ) {
