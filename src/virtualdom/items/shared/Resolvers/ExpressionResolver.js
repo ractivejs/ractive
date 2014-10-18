@@ -60,21 +60,12 @@ ExpressionResolver.prototype = {
 	},
 
 	createEvaluator: function () {
-		var self = this, computation, valueGetters, signature, keypaths = [], i, keypath, fn;
+		var self = this, computation, valueGetters, signature, keypath, fn;
 
 		computation = this.root.viewmodel.computations[ this.keypath ];
 
 		// only if it doesn't exist yet!
 		if ( !computation ) {
-			i = this.keypaths.length;
-			while ( i-- ) {
-				keypath = this.keypaths[i];
-
-				if ( keypath != null ) {
-					keypaths.push( keypath );
-				}
-			}
-
 			fn = getFunctionFromString( this.str, this.keypaths.length );
 
 			valueGetters = this.keypaths.map( keypath => {
@@ -100,7 +91,7 @@ ExpressionResolver.prototype = {
 			});
 
 			signature = {
-				deps: keypaths,
+				deps: this.keypaths.filter( isValidDependency ),
 				get: function () {
 					var args = valueGetters.map( call );
 					return fn.apply( null, args );
@@ -149,6 +140,10 @@ function getKeypath ( uniqueString ) {
 	// Sanitize by removing any periods or square brackets. Otherwise
 	// we can't split the keypath into keys!
 	return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
+}
+
+function isValidDependency ( keypath ) {
+	return keypath !== undefined && keypath[0] !== '@';
 }
 
 function wrapFunction ( fn, ractive ) {
