@@ -1,16 +1,13 @@
 import css from 'global/css';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import getElement from 'utils/getElement';
 import runloop from 'global/runloop';
 
-var renderHook = new HookQueue( 'render' ),
+var renderHook = new Hook( 'render' ),
 	completeHook = new Hook( 'complete' );
 
 export default function Ractive$render ( target, anchor ) {
 	var promise, instances, transitionsEnabled;
-
-	renderHook.begin( this );
 
 	// if `noIntro` is `true`, temporarily disable transitions
 	transitionsEnabled = this.transitionsEnabled;
@@ -19,6 +16,7 @@ export default function Ractive$render ( target, anchor ) {
 	}
 
 	promise = runloop.start( this, true );
+	runloop.scheduleTask( () => renderHook.fire( this ), true );
 
 	if ( this.fragment.rendered ) {
 		throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
@@ -48,8 +46,6 @@ export default function Ractive$render ( target, anchor ) {
 			target.appendChild( this.fragment.render() );
 		}
 	}
-
-	renderHook.end( this );
 
 	runloop.end();
 
