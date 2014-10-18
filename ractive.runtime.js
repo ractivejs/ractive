@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-17 - commit 5c4fea94 
+	2014-10-18 - commit 3b650575 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10951,6 +10951,7 @@
 	var virtualdom_Fragment$rebind = function( assignNewKeypath ) {
 
 		return function Fragment$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+			this.index = newIndex;
 			// assign new context keypath if needed
 			assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 			if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined ) {
