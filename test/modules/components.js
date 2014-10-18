@@ -1707,6 +1707,29 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.deepEqual( inDom, { div: true, widget: true, p: true });
 		});
 
+		test( 'Multiple related values propagate across component boundaries (#1373)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<tweedle dee="{{dee}}" dum="{{dum}}"/>',
+				data: {
+					dee: 'spoiled',
+					dum: 'rattle'
+				},
+				components: {
+					tweedle: Ractive.extend({
+						template: '{{ dee ? dee : "lewis"}} {{dum ? dee : "carroll"}}'
+					})
+				}
+			});
+
+			ractive.set({
+				dee: 'forget',
+				dum: 'quarrel'
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'forget quarrell' );
+		});
+
 	};
 
 });
