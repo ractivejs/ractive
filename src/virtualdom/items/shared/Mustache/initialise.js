@@ -1,6 +1,7 @@
 import types from 'config/types';
 import runloop from 'global/runloop';
 import resolveRef from 'shared/resolveRef';
+import ReferenceResolver from 'virtualdom/items/shared/Resolvers/ReferenceResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 import resolveSpecialRef from 'shared/resolveSpecialRef';
@@ -39,15 +40,7 @@ export default function Mustache$init ( mustache, options ) {
 			return;
 		}
 
-		keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
-		if ( keypath !== undefined ) {
-			mustache.resolve( keypath );
-		}
-
-		else {
-			mustache.ref = ref;
-			runloop.addUnresolved( mustache );
-		}
+		mustache.resolver = new ReferenceResolver( mustache, ref, keypath => mustache.resolve( keypath ) );
 	}
 
 	// if it's an expression, we have a bit more work to do
