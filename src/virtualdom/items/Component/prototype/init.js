@@ -4,7 +4,7 @@ import parseJSON from 'utils/parseJSON';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
-import ComponentParameter from 'virtualdom/items/Component/initialise/createModel/ComponentParameter';
+import ComponentParameter from 'virtualdom/items/Component/initialise/ComponentParameter';
 import createInstance from 'virtualdom/items/Component/initialise/createInstance';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
