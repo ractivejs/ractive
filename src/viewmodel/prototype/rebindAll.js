@@ -13,19 +13,27 @@ export default function Viewmodel$rebindAll ( keypath, newIndices ) {
 		oldKeypath = keypath + '.' + oldIndex;
 		newKeypath = keypath + '.' + newIndex;
 
-		[ 'computed', 'default' ].forEach( group => {
-			var deps;
+		rebind( oldKeypath );
 
-			if ( deps = viewmodel.deps[ group ][ oldKeypath ] ) {
-				deps.forEach( d => {
-					toRebind.push({
-						oldKeypath: oldKeypath,
-						newKeypath: newKeypath,
-						dep: d
+		function rebind ( keypath ) {
+			[ 'computed', 'default' ].forEach( group => {
+				var deps, childKeypaths;
+
+				if ( deps = viewmodel.deps[ group ][ keypath ] ) {
+					deps.forEach( d => {
+						toRebind.push({
+							oldKeypath: keypath,
+							newKeypath: keypath.replace( oldKeypath, newKeypath ),
+							dep: d
+						});
 					});
-				});
-			}
-		});
+				}
+
+				if ( childKeypaths = viewmodel.depsMap[ group ][ keypath ] ) {
+					childKeypaths.forEach( rebind );
+				}
+			});
+		}
 	});
 
 	toRebind.forEach( item => {
