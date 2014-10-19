@@ -24,13 +24,23 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
-		return ref.substring( 2 );
+		keypath = ref.substring( 2 );
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
 	if ( ref.charAt( 0 ) === '.' ) {
-		return resolveAncestorReference( getInnerContext( fragment ), ref );
+		keypath = resolveAncestorReference( getInnerContext( fragment ), ref );
+	}
+
+	if ( keypath !== undefined ) {
+		key = keypath.split( '.' )[0];
+
+		if ( key in ractive.mappings ) {
+			createBinding( ractive, key, keypath, ractive.mappings[ key ] );
+		}
+
+		return keypath;
 	}
 
 	// ...otherwise we need to find the keypath
