@@ -33,20 +33,7 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 		}
 	}
 
-	// Rebind dependants
-	newIndices.forEach( ( newIndex, oldIndex ) => {
-		var oldKeypath, newKeypath;
-
-		oldKeypath = keypath + '.' + oldIndex;
-
-		if ( newIndex === -1 ) {
-			// these will unbind themselves
-		} else if ( newIndex !== oldIndex ) {
-			newKeypath = keypath + '.' + newIndex;
-			this.rebindAll( oldKeypath, newKeypath );
-		}
-	});
-
+	this.rebindAll( keypath, newIndices );
 	this.updateSpecials( keypath, newIndices );
 }
 

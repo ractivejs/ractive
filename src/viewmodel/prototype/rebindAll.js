@@ -1,34 +1,34 @@
-export default function Viewmodel$rebindAll ( oldKeypath, newKeypath ) {
-	var viewmodel = this, toRegister = [];
+export default function Viewmodel$rebindAll ( keypath, newIndices ) {
+	var viewmodel = this, toRebind = [];
 
-	rebindDeps( oldKeypath );
+	newIndices.forEach( ( newIndex, oldIndex ) => {
+		var oldKeypath, newKeypath;
 
-	toRegister.forEach( item => {
-		this.register( item.keypath, item.dep, item.group );
-	});
+		// if newIndex is -1, it'll unbind itself. if
+		// newIndex === oldIndex, nothing needs to happen
+		if ( newIndex === -1 || newIndex === oldIndex ) {
+			return;
+		}
 
-	function rebindDeps ( keypath ) {
+		oldKeypath = keypath + '.' + oldIndex;
+		newKeypath = keypath + '.' + newIndex;
+
 		[ 'computed', 'default' ].forEach( group => {
-			var deps,
-				childKeypaths;
+			var deps;
 
-			deps = viewmodel.deps[ group ][ keypath ];
-
-			if ( deps ) {
-				deps.slice().forEach( d => {
-					viewmodel.unregister( keypath, d, group );
-
-					toRegister.push({
-						keypath: keypath.replace( oldKeypath, newKeypath ),
-						dep: d,
-						group: group
+			if ( deps = viewmodel.deps[ group ][ oldKeypath ] ) {
+				deps.forEach( d => {
+					toRebind.push({
+						oldKeypath: oldKeypath,
+						newKeypath: newKeypath,
+						dep: d
 					});
 				});
 			}
-
-			if ( childKeypaths = viewmodel.depsMap[ group ][ keypath ] ) {
-				childKeypaths.forEach( rebindDeps );
-			}
 		});
-	}
+	});
+
+	toRebind.forEach( item => {
+		item.dep.rebind( null, null, item.oldKeypath, item.newKeypath );
+	});
 }

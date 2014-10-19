@@ -10,13 +10,15 @@ export default function Viewmodel$updateSpecials ( keypath, newIndices ) {
 	newIndices.forEach( ( newIndex, oldIndex ) => {
 		var dependants;
 
-		if ( ~newIndex === -1 ) {
-			// going to be unbound anyway... disregard
-		} else {
-			dependants = specials[ oldIndex ];
-
-			dependants.forEach( d => d.setValue( newIndex ) );
-			updatedSpecials[ newIndex ] = dependants;
+		// if newIndex is -1, it'll unbind itself. if
+		// newIndex === oldIndex, nothing needs to happen
+		if ( newIndex === -1 || newIndex === oldIndex ) {
+			return;
 		}
+
+		dependants = specials[ oldIndex ];
+
+		dependants.forEach( d => d.setValue( newIndex ) );
+		updatedSpecials[ newIndex ] = dependants;
 	});
 }
