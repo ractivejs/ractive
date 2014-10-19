@@ -1,8 +1,15 @@
+import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
-	var computation, wrapper, dontTeardownWrapper;
+	var binding, computation, wrapper, dontTeardownWrapper;
+
+	if ( binding = this.bindings[ keypath ] ) {
+		return binding.origin.set( binding.keypath, value );
+	}
+
+	runloop.addViewmodel( this ); // TODO remove other instances of this call
 
 	computation = this.computations[ keypath ];
 	if ( computation ) {
