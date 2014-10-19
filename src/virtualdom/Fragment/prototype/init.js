@@ -4,7 +4,7 @@ import createItem from 'virtualdom/Fragment/prototype/init/createItem';
 
 export default function Fragment$init ( options ) {
 
-	var parentFragment, parentRefs, ref;
+	var parentFragment;
 
 	// The item that owns this fragment - an element, section, partial, or attribute
 	this.owner = options.owner;
@@ -23,29 +23,14 @@ export default function Fragment$init ( options ) {
 
 	// index references (the 'i' in {{#section:i}}...{{/section}}) need to cascade
 	// down the tree
-	if ( parentFragment ) {
-		parentRefs = parentFragment.indexRefs;
-
-		if ( parentRefs ) {
-			this.indexRefs = create( null ); // avoids need for hasOwnProperty
-
-			for ( ref in parentRefs ) {
-				this.indexRefs[ ref ] = parentRefs[ ref ];
-			}
-		}
-	}
-
+	this.indexRefs = create( parentFragment ? parentFragment.indexRefs : null );
 	if ( options.indexRef ) {
-		if ( !this.indexRefs ) {
-			this.indexRefs = {};
-		}
-
 		this.indexRefs[ options.indexRef ] = options.index;
 	}
 
 	// Time to create this fragment's child items
 
-	// TEMP should this be happening?
+	// TODO should this be happening?
 	if ( typeof options.template === 'string' ) {
 		options.template = [ options.template ];
 	} else if ( !options.template ) {
