@@ -1217,6 +1217,58 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.deepEqual( fired, events );
 		});
+
+		module( 'Issues' );
+
+		asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => {
+			var ractive, Child, Grandchild, torndown = [];
+
+			Child = Ractive.extend({
+				template:  `<div>
+								{{#each model.grandChildTitles}}
+	    							<grandchild item="{{.}}" />
+	    						{{/each}}
+	    					</div>`,
+	    		onteardown: function() {
+					torndown.push( this );
+				}
+			});
+
+			Grandchild = Ractive.extend({
+				template: '{{title}}',
+	    		onteardown: function() {
+					torndown.push( this );
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#if model.childTitle}}<child model="{{model}}"/>{{/if}}',
+				data: {
+					model : {
+						title : 'parent',
+						childTitle : 'child',
+						grandChildTitles : [
+							{ title : 'one' },
+							{ title : 'two' },
+							{ title : 'three' }
+						]
+					}
+				},
+				components: {
+					child: Child,
+					grandchild: Grandchild
+				}
+			});
+
+			setTimeout(function() {
+				ractive.set('model', {});
+				t.equal( torndown.length, 4 );
+				QUnit.start()
+			});
+
+
+		});
 	};
 
 });
