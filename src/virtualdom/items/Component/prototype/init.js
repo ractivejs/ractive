@@ -96,6 +96,23 @@ export default function Component$init ( options, Component ) {
 	createInstance( this, Component, data, options.template.f );
 	propagateEvents( this, options.template.v );
 
+	Object.keys( component.mappings ).forEach( key => {
+		var mapping, parentValue, childValue;
+
+		mapping = component.mappings[ key ];
+
+		parentValue = mapping.source.viewmodel.get( mapping.keypath );
+
+		if ( parentValue === undefined ) {
+			childValue = component.instance.viewmodel.get( key );
+
+			if ( childValue !== undefined ) {
+				mapping.source.viewmodel.set( mapping.keypath, childValue );
+			}
+		}
+	});
+
+
 	// intro, outro and decorator directives have no effect
 	if ( options.template.t1 || options.template.t2 || options.template.o ) {
 		warn( 'The "intro", "outro" and "decorator" directives have no effect on components' );
