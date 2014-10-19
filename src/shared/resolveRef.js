@@ -152,19 +152,18 @@ function resolveAncestorReference ( baseContext, ref ) {
 function createBinding ( ractive, key, childKeypath, mapping ) {
 	var parentKeypath, parentKeys, childKeys;
 
-	parentKeypath = mapping.keypath.replace( key, childKeypath );
+	parentKeypath = childKeypath.replace( key, mapping.keypath );
 
 	childKeys = childKeypath.split( '.' );
 	parentKeys = parentKeypath.split( '.' );
 
+	// Remove identical keys from the end, so that we bind
+	// at the highest level possible
 	while ( parentKeys.length > 1 && childKeys.length > 1 && parentKeys[ parentKeys.length - 1 ] === childKeys[ childKeys.length - 1 ] ) {
 		parentKeys.pop();
 		childKeys.pop();
 	}
 
-	parentKeypath = parentKeys.join( '.' );
-	childKeypath = childKeys.join( '.' );
-
-	ractive.viewmodel.bind( mapping.source.viewmodel, mapping.keypath.replace( key, childKeypath ), childKeypath );
+	ractive.viewmodel.bind( mapping.source.viewmodel, parentKeys.join( '.' ), childKeys.join( '.' ) );
 	return childKeypath;
 }

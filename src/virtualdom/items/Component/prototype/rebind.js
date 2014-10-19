@@ -6,17 +6,19 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 		parentInstance = childInstance._parent,
 		indexRefAlias, query;
 
-	this.bindings.forEach( binding => {
-		var updated;
+	// this.bindings.forEach( binding => {
+	// 	var updated;
 
-		if ( binding.root !== parentInstance ) {
-			return; // we only want parent -> child bindings for this
-		}
+	// 	if ( binding.root !== parentInstance ) {
+	// 		return; // we only want parent -> child bindings for this
+	// 	}
 
-		if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
-			binding.rebind( updated );
-		}
-	});
+	// 	if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
+	// 		binding.rebind( updated );
+	// 	}
+	// });
+
+	this.resolvers.forEach( rebind );
 
 	this.complexParameters.forEach( rebind );
 
