@@ -61,7 +61,8 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 
 	if ( key in ractive.mappings ) {
 		// need to create inter-component binding
-		return createBinding( ractive, key, ref, ractive.mappings[ key ] );
+		createBinding( ractive, key, ref, ractive.mappings[ key ] );
+		return ref;
 	}
 
 	// If this is an inline component, and it's not isolated, we
@@ -150,20 +151,6 @@ function resolveAncestorReference ( baseContext, ref ) {
 }
 
 function createBinding ( ractive, key, childKeypath, mapping ) {
-	var parentKeypath, parentKeys, childKeys;
-
-	parentKeypath = childKeypath.replace( key, mapping.keypath );
-
-	childKeys = childKeypath.split( '.' );
-	parentKeys = parentKeypath.split( '.' );
-
-	// Remove identical keys from the end, so that we bind
-	// at the highest level possible
-	while ( parentKeys.length > 1 && childKeys.length > 1 && parentKeys[ parentKeys.length - 1 ] === childKeys[ childKeys.length - 1 ] ) {
-		parentKeys.pop();
-		childKeys.pop();
-	}
-
-	ractive.viewmodel.bind( mapping.source.viewmodel, parentKeys.join( '.' ), childKeys.join( '.' ) );
-	return childKeypath;
+	var parentKeypath = childKeypath.replace( key, mapping.keypath );
+	ractive.viewmodel.bind( mapping.source.viewmodel, parentKeypath, childKeypath );
 }
