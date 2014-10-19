@@ -34,7 +34,7 @@ export default function Mustache$init ( mustache, options ) {
 			fragment = parentFragment;
 
 			while ( fragment ) {
-				if ( fragment.owner.template.i === ref ) {
+				if ( fragment.owner.template && fragment.owner.template.i === ref ) {
 					// TODO make it possible to unregister
 					mustache.root.viewmodel.registerSpecial( fragment.owner.keypath, value, mustache );
 					mustache.setValue( parentFragment.indexRefs[ ref ] );
