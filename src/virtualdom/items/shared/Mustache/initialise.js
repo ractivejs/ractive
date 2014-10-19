@@ -5,7 +5,7 @@ import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionReso
 
 export default function Mustache$init ( mustache, options ) {
 
-	var ref, parentFragment, template;
+	var ref, value, parentFragment, fragment, indexRefs, template;
 
 	parentFragment = options.parentFragment;
 	template = options.template;
@@ -25,6 +25,27 @@ export default function Mustache$init ( mustache, options ) {
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( ref = template.r ) {
+		// special/index ref?
+		if ( ref in parentFragment.indexRefs ) {
+			value = parentFragment.indexRefs[ ref ];
+
+			// Need to find the list section the index refers to, for rebinding
+			// TODO there must be a better way
+			fragment = parentFragment;
+
+			while ( fragment ) {
+				if ( fragment.owner.template.i === ref ) {
+					// TODO make it possible to unregister
+					mustache.root.viewmodel.registerSpecial( fragment.owner.keypath, value, mustache );
+					mustache.setValue( parentFragment.indexRefs[ ref ] );
+					return;
+				}
+
+				fragment = fragment.parent;
+			}
+		}
+
+		// TODO remove SpecialResolver and IndexResolver
 		mustache.resolver = new createReferenceResolver( mustache, ref, resolve );
 	}
 

@@ -58,7 +58,6 @@ export default function Section$shuffle ( newIndices ) {
 		oldKeypath = section.keypath + '.' + oldIndex;
 		newKeypath = section.keypath + '.' + newIndex;
 
-		fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
 		fragment.index = newIndex;
 		reboundFragments[ newIndex ] = fragment;
 	});

@@ -9,12 +9,15 @@ import get from 'viewmodel/prototype/get';
 import init from 'viewmodel/prototype/init';
 import mark from 'viewmodel/prototype/mark';
 import merge from 'viewmodel/prototype/merge';
+import rebindAll from 'viewmodel/prototype/rebindAll';
 import register from 'viewmodel/prototype/register';
+import registerSpecial from 'viewmodel/prototype/registerSpecial';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
 import smartUpdate from 'viewmodel/prototype/smartUpdate';
 import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
+import updateSpecials from 'viewmodel/prototype/updateSpecials';
 import adaptConfig from 'viewmodel/adaptConfig';
 
 // TODO: fix our ES6 modules so we can have multiple exports
@@ -47,6 +50,8 @@ var Viewmodel = function ( ractive ) {
 		'default': {}
 	};
 	this.patternObservers = [];
+
+	this.specials = create( null );
 
 	this.wrapped = create( null );
 	this.computations = create( null );
@@ -83,12 +88,15 @@ Viewmodel.prototype = {
 	init: init,
 	mark: mark,
 	merge: merge,
+	rebindAll: rebindAll,
 	register: register,
+	registerSpecial: registerSpecial,
 	release: release,
 	set: set,
 	smartUpdate: smartUpdate,
 	teardown: teardown,
-	unregister: unregister
+	unregister: unregister,
+	updateSpecials: updateSpecials
 };
 
 export default Viewmodel;

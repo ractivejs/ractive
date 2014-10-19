@@ -44,7 +44,7 @@ export default function Component$init ( options, Component ) {
 
 	if ( mappingTemplates ) {
 		Object.keys( mappingTemplates ).forEach( key => {
-			var template, parsed, ref, resolver, resolve;
+			var template, parsed, ref, resolver, resolve, fragment, value;
 
 			template = mappingTemplates[ key ];
 
@@ -74,6 +74,28 @@ export default function Component$init ( options, Component ) {
 					};
 
 					if ( ref = template[0].r ) {
+						if ( ref in parentFragment.indexRefs ) {
+							value = parentFragment.indexRefs[ ref ];
+
+							// Need to find the list section the index refers to, for rebinding
+							// TODO there must be a better way
+							fragment = parentFragment;
+
+							while ( fragment ) {
+								if ( fragment.owner.template.i === ref ) {
+									// TODO make it possible to unregister
+									// TODO create class to do this work, rather than anon function
+									component.root.viewmodel.registerSpecial( fragment.owner.keypath, value, {
+										setValue: value => component.instance.viewmodel.set( key, value )
+									});
+									data[ key ] = value;
+									return;
+								}
+
+								fragment = fragment.parent;
+							}
+						}
+
 						resolver = createReferenceResolver( component, template[0].r, resolve );
 					} else if ( template[0].x ) {
 						resolver = new ExpressionResolver( component, parentFragment, template[0].x, resolve );
