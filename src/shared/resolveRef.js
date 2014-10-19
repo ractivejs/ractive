@@ -18,7 +18,8 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		parentKeys,
 		childKeys,
 		parentKeypath,
-		childKeypath;
+		childKeypath,
+		mapping;
 
 	ref = normaliseRef( ref );
 
@@ -33,11 +34,13 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		keypath = resolveAncestorReference( getInnerContext( fragment ), ref );
 	}
 
-	if ( keypath !== undefined ) {
-		key = keypath.split( '.' )[0];
+	if ( keypath != undefined ) {
+		if ( ractive.mappings ) {
+			key = keypath.split( '.' )[0];
 
-		if ( key in ractive.mappings ) {
-			createBinding( ractive, key, keypath, ractive.mappings[ key ] );
+			if ( key in ractive.mappings ) {
+				createBinding( ractive, key, keypath, ractive.mappings[ key ] );
+			}
 		}
 
 		return keypath;
@@ -108,8 +111,11 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 			parentKeypath = parentKeys.join( '.' );
 			childKeypath = childKeys.join( '.' );
 
-			ractive.viewmodel.set( childKeypath, ractive._parent.viewmodel.get( parentKeypath ), true );
-			createComponentBinding( ractive.component, ractive._parent, parentKeypath, childKeypath );
+			mapping = ractive.component.createMapping( ractive._parent, parentKeypath, childKeypath );
+			createBinding( ractive, key, ref, mapping );
+
+			// ractive.viewmodel.set( childKeypath, ractive._parent.viewmodel.get( parentKeypath ), true );
+			// createComponentBinding( ractive.component, ractive._parent, parentKeypath, childKeypath );
 
 			return ref;
 		}
@@ -162,5 +168,5 @@ function resolveAncestorReference ( baseContext, ref ) {
 
 function createBinding ( ractive, key, childKeypath, mapping ) {
 	var parentKeypath = childKeypath.replace( key, mapping.keypath );
-	ractive.viewmodel.bind( mapping.source.viewmodel, parentKeypath, childKeypath );
+	ractive.viewmodel.bind( mapping.origin.viewmodel, parentKeypath, childKeypath );
 }

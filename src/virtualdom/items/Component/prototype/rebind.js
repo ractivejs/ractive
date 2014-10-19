@@ -6,6 +6,8 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 		parentInstance = childInstance._parent,
 		indexRefAlias, query;
 
+	console.group( 'rebind component', arguments );
+
 	// this.bindings.forEach( binding => {
 	// 	var updated;
 
@@ -38,4 +40,6 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 	function rebind ( x ) {
 		x.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	}
+
+	console.groupEnd();
 }

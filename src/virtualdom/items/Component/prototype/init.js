@@ -12,7 +12,6 @@ import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQ
 export default function Component$init ( options, Component ) {
 	var component = this,
 		parentFragment,
-		keys,
 		root,
 		data = {},
 		mappingTemplates;
@@ -66,8 +65,10 @@ export default function Component$init ( options, Component ) {
 			else {
 				if ( template.length === 1 && template[0].t === types.INTERPOLATOR ) {
 					resolve = keypath => {
+						console.log( 'resolved', key, keypath );
+
 						component.mappings[ key ] = {
-							source: component.root, // TODO trace back to source
+							origin: component.root, // TODO trace back to origin, not parent
 							keypath: keypath
 						};
 					};
@@ -101,13 +102,13 @@ export default function Component$init ( options, Component ) {
 
 		mapping = component.mappings[ key ];
 
-		parentValue = mapping.source.viewmodel.get( mapping.keypath );
+		parentValue = mapping.origin.viewmodel.get( mapping.keypath );
 
 		if ( parentValue === undefined ) {
 			childValue = component.instance.viewmodel.get( key );
 
 			if ( childValue !== undefined ) {
-				mapping.source.viewmodel.set( mapping.keypath, childValue );
+				mapping.origin.viewmodel.set( mapping.keypath, childValue );
 			}
 		}
 	});
