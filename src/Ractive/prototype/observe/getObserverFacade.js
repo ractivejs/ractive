@@ -19,8 +19,8 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 		observer = new Observer( ractive, keypath, callback, options );
 	}
 
-	ractive.viewmodel.register( keypath, observer, isPatternObserver ? 'patternObservers' : 'observers' );
 	observer.init( options.init );
+	ractive.viewmodel.register( keypath, observer, isPatternObserver ? 'patternObservers' : 'observers' );
 
 	// This flag allows observers to initialise even with undefined values
 	observer.ready = true;
