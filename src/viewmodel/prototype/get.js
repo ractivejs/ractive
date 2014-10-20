@@ -7,15 +7,15 @@ var empty = {};
 export default function Viewmodel$get ( keypath, options = empty ) {
 	var ractive = this.ractive,
 		cache = this.cache,
-		binding,
+		mapping,
 		value,
 		computation,
 		wrapped,
 		captureGroup;
 
-	if ( binding = this.bindings[ keypath ] ) {
-		var originKeypath = keypath.replace( binding.mapping.localKeypath, binding.mapping.keypath );
-		return binding.origin.get( originKeypath );
+	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+		var originKeypath = keypath.replace( mapping.localKey, mapping.originKeypath );
+		return mapping.origin.get( originKeypath );
 	}
 
 	if ( keypath[0] === '@' ) {

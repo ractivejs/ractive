@@ -14,6 +14,7 @@ export default function Component$init ( options, Component ) {
 		parentFragment,
 		root,
 		data = {},
+		mappings = {},
 		mappingTemplates;
 
 	parentFragment = component.parentFragment = options.parentFragment;
@@ -24,9 +25,6 @@ export default function Component$init ( options, Component ) {
 	component.name = options.template.e;
 	component.index = options.index;
 	component.indexRefBindings = {};
-	component.bindings = [];
-
-	component.mappings = {};
 
 	// even though only one yielder is allowed, we need to have an array of them
 	// as it's possible to cause a yielder to be created before the last one
@@ -65,7 +63,18 @@ export default function Component$init ( options, Component ) {
 			else {
 				if ( template.length === 1 && template[0].t === types.INTERPOLATOR ) {
 					resolve = keypath => {
-						component.createMapping( component.root, keypath, key ); // TODO trace back to origin, not parent
+						// TODO trace back to origin, not parent - may not be
+						// component.root.viewmodel
+						if ( !!component.instance ) {
+							// late mapping
+							component.instance.viewmodel.map( component.root.viewmodel, keypath, key );
+						} else {
+							mappings[ key ] = {
+								localKey: key,
+								origin: component.root.viewmodel,
+								originKeypath: keypath
+							};
+						}
 					};
 
 					if ( ref = template[0].r ) {
@@ -111,10 +120,10 @@ export default function Component$init ( options, Component ) {
 	}
 
 
-	createInstance( this, Component, data, options.template.f );
+	createInstance( this, Component, data, mappings, options.template.f );
 	propagateEvents( this, options.template.v );
 
-	Object.keys( component.mappings ).forEach( key => {
+	/*Object.keys( component.mappings ).forEach( key => {
 		var mapping, parentValue, childValue;
 
 		mapping = component.mappings[ key ];
@@ -128,7 +137,7 @@ export default function Component$init ( options, Component ) {
 				mapping.origin.viewmodel.set( mapping.keypath, childValue );
 			}
 		}
-	});
+	});*/
 
 
 	// intro, outro and decorator directives have no effect

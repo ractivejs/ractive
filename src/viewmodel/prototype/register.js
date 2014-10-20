@@ -1,13 +1,13 @@
 export default function Viewmodel$register ( keypath, dependant, group = 'default' ) {
-	var binding, depsByKeypath, deps;
+	var mapping, depsByKeypath, deps;
 
 	if ( dependant.isStatic ) {
 		return;
 	}
 
-	if ( binding = this.bindings[ keypath ] ) {
-		var originKeypath = keypath.replace( binding.mapping.localKeypath, binding.mapping.keypath );
-		return binding.origin.register( originKeypath, dependant, group );
+	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+		var originKeypath = keypath.replace( mapping.localKey, mapping.originKeypath );
+		return mapping.origin.register( originKeypath, dependant, group );
 	}
 
 	depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );

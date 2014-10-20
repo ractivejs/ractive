@@ -1,6 +1,5 @@
 export default function Component$unbind () {
 	this.complexParameters.forEach( unbind );
-	this.bindings.forEach( unbind );
 
 	removeFromLiveComponentQueries( this );
 

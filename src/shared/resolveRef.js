@@ -21,25 +21,13 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
-		keypath = ref.substring( 2 );
+		return ref.substring( 2 );
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
 	if ( ref.charAt( 0 ) === '.' ) {
-		keypath = resolveAncestorRef( getInnerContext( fragment ), ref );
-	}
-
-	if ( keypath != undefined ) {
-		if ( ractive.mappings ) {
-			key = keypath.split( '.' )[0];
-
-			if ( key in ractive.mappings ) {
-				createBinding( ractive, key, keypath, ractive.mappings[ key ] );
-			}
-		}
-
-		return keypath;
+		return resolveAncestorRef( getInnerContext( fragment ), ref );
 	}
 
 	// ...otherwise we need to find the keypath
@@ -68,9 +56,8 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		return ref;
 	}
 
-	if ( key in ractive.mappings ) {
-		// need to create inter-component binding
-		createBinding( ractive, key, ref, ractive.mappings[ key ] );
+	if ( key in ractive.viewmodel.mappings ) {
+		console.error( 'what does this mean?' );
 		return ref;
 	}
 
@@ -107,8 +94,8 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 			parentKeypath = parentKeys.join( '.' );
 			childKeypath = childKeys.join( '.' );
 
-			mapping = ractive.component.createMapping( ractive._parent, parentKeypath, childKeypath );
-			createBinding( ractive, key, ref, mapping );
+			// TODO trace back to origin
+			ractive.viewmodel.map( ractive._parent.viewmodel, parentKeypath, childKeypath );
 
 			// ractive.viewmodel.set( childKeypath, ractive._parent.viewmodel.get( parentKeypath ), true );
 			// createComponentBinding( ractive.component, ractive._parent, parentKeypath, childKeypath );

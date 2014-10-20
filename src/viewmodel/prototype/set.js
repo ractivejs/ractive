@@ -3,14 +3,13 @@ import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
-	var key, binding, computation, wrapper, dontTeardownWrapper;
+	var mapping, computation, wrapper, dontTeardownWrapper;
 
 	// If this data belongs to a different viewmodel,
 	// pass the change along
-	key = keypath.split( '.' )[0];
-	if ( binding = this.bindings[ key ] ) {
-		var originKeypath = keypath.replace( binding.mapping.localKeypath, binding.mapping.keypath );
-		return binding.origin.set( originKeypath, value );
+	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+		var originKeypath = keypath.replace( mapping.localKey, mapping.originKeypath );
+		return mapping.origin.set( originKeypath, value );
 	}
 
 	runloop.addViewmodel( this ); // TODO remove other instances of this call

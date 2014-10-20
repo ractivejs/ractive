@@ -1,18 +1,18 @@
-export default function Component$createMapping ( origin, originKeypath, localKeypath ) {
-	var mapping = new Mapping( this.root, origin, localKeypath, originKeypath );
+export default function Viewmodel$map ( origin, originKeypath, localKey ) {
+	var mapping = new Mapping( this, origin, localKey, originKeypath );
 
 	// register with origin
-	origin.viewmodel.register( originKeypath, mapping, 'mappings' );
+	origin.register( originKeypath, mapping, 'mappings' );
 
-	this.mappings[ localKeypath ] = mapping;
+	this.mappings[ localKey ] = mapping;
 	return mapping;
 }
 
-var Mapping = function ( local, origin, localKeypath, originKeypath ) {
-	this.root = local;
+var Mapping = function ( local, origin, localKey, originKeypath ) {
+	this.local = local;
 	this.origin = origin;
-	this.localKeypath = localKeypath;
-	this.keypath = originKeypath; // TODO consistent names
+	this.localKey = localKey;
+	this.originKeypath = originKeypath; // TODO consistent names
 };
 
 Mapping.prototype = {

@@ -1,4 +1,3 @@
-import createMapping from 'virtualdom/items/Component/prototype/createMapping';
 import detach from 'virtualdom/items/Component/prototype/detach';
 import find from 'virtualdom/items/Component/prototype/find';
 import findAll from 'virtualdom/items/Component/prototype/findAll';
@@ -18,7 +17,6 @@ var Component = function ( options, Constructor ) {
 };
 
 Component.prototype = {
-	createMapping: createMapping,
 	detach: detach,
 	find: find,
 	findAll: findAll,
