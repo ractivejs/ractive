@@ -15,19 +15,16 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	function cascade ( keypath ) {
-		var map, dependants, keys;
+		var map, computations, keys;
 
 		if ( self.noCascade.hasOwnProperty( keypath ) ) {
 			return;
 		}
 
-		if ( dependants = self.deps.computed[ keypath ] ) {
-			dependants.forEach( invalidate );
-
-			keys = dependants.map( getKey );
-
-			keys.forEach( mark );
-			keys.forEach( cascade );
+		if ( computations = self.deps.computed[ keypath ] ) {
+			computations.forEach( c => {
+				c.viewmodel.mark( c.key );
+			});
 		}
 
 		if ( map = self.depsMap.computed[ keypath ] ) {
@@ -43,13 +40,12 @@ export default function Viewmodel$applyChanges () {
 
 	upstreamChanges = getUpstreamChanges( changes );
 	upstreamChanges.forEach( keypath => {
-		var dependants, keys;
+		var computations, keys;
 
-		if ( dependants = self.deps.computed[ keypath ] ) {
-			dependants.forEach( invalidate );
-
-			keys = dependants.map( getKey );
-			keys.forEach( mark );
+		if ( computations = self.deps.computed[ keypath ] ) {
+			computations.forEach( c => {
+				c.viewmodel.mark( c.key );
+			});
 		}
 	});
 

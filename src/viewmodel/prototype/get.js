@@ -13,6 +13,20 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		wrapped,
 		captureGroup;
 
+	// capture the keypath, if we're inside a computation
+	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
+		if ( !~captureGroup.indexOf( keypath ) ) {
+			captureGroup.push( keypath );
+
+			// if we couldn't resolve the keypath, we need to make it as a failed
+			// lookup, so that the computation updates correctly once we CAN
+			// resolve the keypath
+			// if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
+			// 	new UnresolvedImplicitDependency( this, keypath );
+			// }
+		}
+	}
+
 	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
 		return mapping.origin.get( mapping.resolve( keypath ) );
 	}
@@ -53,20 +67,6 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 
 	if ( options.evaluateWrapped && ( wrapped = this.wrapped[ keypath ] ) ) {
 		value = wrapped.get();
-	}
-
-	// capture the keypath, if we're inside a computation
-	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
-		if ( !~captureGroup.indexOf( keypath ) ) {
-			captureGroup.push( keypath );
-
-			// if we couldn't resolve the keypath, we need to make it as a failed
-			// lookup, so that the computation updates correctly once we CAN
-			// resolve the keypath
-			if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
-				new UnresolvedImplicitDependency( this, keypath );
-			}
-		}
 	}
 
 	return value === FAILED_LOOKUP ? void 0 : value;

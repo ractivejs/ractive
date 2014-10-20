@@ -1,4 +1,3 @@
-import runloop from 'global/runloop';
 import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
 
@@ -10,8 +9,6 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
 		return mapping.origin.set( mapping.resolve( keypath ), value );
 	}
-
-	runloop.addViewmodel( this ); // TODO remove other instances of this call
 
 	computation = this.computations[ keypath ];
 	if ( computation ) {

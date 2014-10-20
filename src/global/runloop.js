@@ -94,15 +94,24 @@ export default runloop;
 function flushChanges () {
 	var i, thing, changeHash;
 
-	for ( i = 0; i < batch.viewmodels.length; i += 1 ) {
-		thing = batch.viewmodels[i];
+	while ( batch.viewmodels.length ) {
+		thing = batch.viewmodels.pop();
 		changeHash = thing.applyChanges();
 
 		if ( changeHash ) {
 			changeHook.fire( thing.ractive, changeHash );
 		}
 	}
-	batch.viewmodels.length = 0;
+
+	// for ( i = 0; i < batch.viewmodels.length; i += 1 ) {
+	// 	thing = batch.viewmodels[i];
+	// 	changeHash = thing.applyChanges();
+
+	// 	if ( changeHash ) {
+	// 		changeHook.fire( thing.ractive, changeHash );
+	// 	}
+	// }
+	// batch.viewmodels.length = 0;
 
 	attemptKeypathResolution();
 
