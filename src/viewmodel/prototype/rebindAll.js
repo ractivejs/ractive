@@ -1,5 +1,3 @@
-import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
-
 export default function Viewmodel$rebindAll ( keypath, newIndices ) {
 	var viewmodel = this, toRebind = [];
 
@@ -46,7 +44,7 @@ export default function Viewmodel$rebindAll ( keypath, newIndices ) {
 		if ( item.dep.keypath === item.oldKeypath ) {
 			item.dep.keypath = item.newKeypath;
 		} else {
-			console.error( 'TODO' ); // TODO what about bindings...
+			console.error( 'TODO' ); // TODO what about bindings, is this a problem?
 		}
 	});
 }

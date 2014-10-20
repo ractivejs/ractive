@@ -14,7 +14,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		captureGroup;
 
 	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
-		var originKeypath = keypath.replace( mapping.localKey, mapping.originKeypath );
+		var originKeypath = keypath.replace( mapping.localKey, mapping.keypath );
 		return mapping.origin.get( originKeypath );
 	}
 

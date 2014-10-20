@@ -57,7 +57,6 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	}
 
 	if ( key in ractive.viewmodel.mappings ) {
-		console.error( 'what does this mean?' );
 		return ref;
 	}
 

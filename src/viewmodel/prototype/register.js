@@ -6,7 +6,7 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 	}
 
 	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
-		var originKeypath = keypath.replace( mapping.localKey, mapping.originKeypath );
+		var originKeypath = keypath.replace( mapping.localKey, mapping.keypath );
 		return mapping.origin.register( originKeypath, dependant, group );
 	}
 
