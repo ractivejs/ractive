@@ -9,7 +9,8 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 	// pass the change along
 	key = keypath.split( '.' )[0];
 	if ( binding = this.bindings[ key ] ) {
-		return binding.origin.set( binding.keypath + keypath.slice( key.length ), value );
+		var originKeypath = keypath.replace( binding.mapping.localKeypath, binding.mapping.keypath );
+		return binding.origin.set( originKeypath, value );
 	}
 
 	runloop.addViewmodel( this ); // TODO remove other instances of this call

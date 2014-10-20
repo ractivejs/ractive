@@ -14,7 +14,8 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		captureGroup;
 
 	if ( binding = this.bindings[ keypath ] ) {
-		return binding.origin.get( binding.keypath );
+		var originKeypath = keypath.replace( binding.mapping.localKeypath, binding.mapping.keypath );
+		return binding.origin.get( originKeypath );
 	}
 
 	if ( keypath[0] === '@' ) {

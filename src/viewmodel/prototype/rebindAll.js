@@ -1,3 +1,5 @@
+import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
+
 export default function Viewmodel$rebindAll ( keypath, newIndices ) {
 	var viewmodel = this, toRebind = [];
 
@@ -16,7 +18,7 @@ export default function Viewmodel$rebindAll ( keypath, newIndices ) {
 		rebind( oldKeypath );
 
 		function rebind ( keypath ) {
-			[ 'computed', 'default' ].forEach( group => {
+			[ 'mappings', 'computed', 'default' ].forEach( group => {
 				var deps, childKeypaths;
 
 				if ( deps = viewmodel.deps[ group ][ keypath ] ) {
@@ -24,7 +26,8 @@ export default function Viewmodel$rebindAll ( keypath, newIndices ) {
 						toRebind.push({
 							oldKeypath: keypath,
 							newKeypath: keypath.replace( oldKeypath, newKeypath ),
-							dep: d
+							dep: d,
+							group: group
 						});
 					});
 				}
@@ -37,6 +40,13 @@ export default function Viewmodel$rebindAll ( keypath, newIndices ) {
 	});
 
 	toRebind.forEach( item => {
-		item.dep.rebind( null, null, item.oldKeypath, item.newKeypath );
+		viewmodel.unregister( item.oldKeypath, item.dep, item.group );
+		viewmodel.register( item.newKeypath, item.dep, item.group );
+
+		if ( item.dep.keypath === item.oldKeypath ) {
+			item.dep.keypath = item.newKeypath;
+		} else {
+			console.error( 'TODO' ); // TODO what about bindings...
+		}
 	});
 }

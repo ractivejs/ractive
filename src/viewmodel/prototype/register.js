@@ -6,7 +6,8 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 	}
 
 	if ( binding = this.bindings[ keypath ] ) {
-		return binding.origin.register( binding.keypath, dependant, group );
+		var originKeypath = keypath.replace( binding.mapping.localKeypath, binding.mapping.keypath );
+		return binding.origin.register( originKeypath, dependant, group );
 	}
 
 	depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );

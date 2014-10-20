@@ -17,6 +17,7 @@ import set from 'viewmodel/prototype/set';
 import smartUpdate from 'viewmodel/prototype/smartUpdate';
 import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
+import unregisterSpecial from 'viewmodel/prototype/unregisterSpecial';
 import updateSpecials from 'viewmodel/prototype/updateSpecials';
 import adaptConfig from 'viewmodel/adaptConfig';
 
@@ -42,10 +43,12 @@ var Viewmodel = function ( ractive ) {
 	this.cacheMap = create( null );
 
 	this.deps = {
+		mappings: {},
 		computed: {},
 		'default': {}
 	};
 	this.depsMap = {
+		mappings: {},
 		computed: {},
 		'default': {}
 	};
@@ -96,6 +99,7 @@ Viewmodel.prototype = {
 	smartUpdate: smartUpdate,
 	teardown: teardown,
 	unregister: unregister,
+	unregisterSpecial: unregisterSpecial,
 	updateSpecials: updateSpecials
 };
 

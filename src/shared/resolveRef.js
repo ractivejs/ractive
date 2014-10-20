@@ -133,5 +133,5 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 
 function createBinding ( ractive, key, childKeypath, mapping ) {
 	var parentKeypath = childKeypath.replace( key, mapping.keypath );
-	ractive.viewmodel.bind( mapping.origin.viewmodel, parentKeypath, childKeypath );
+	ractive.viewmodel.bind( mapping.origin.viewmodel, parentKeypath, childKeypath, mapping );
 }

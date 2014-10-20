@@ -165,6 +165,10 @@ Computation.prototype = {
 		}
 
 		return dependenciesChanged;
+	},
+
+	rebind: function () {
+		console.error( 'TODO: rebind computation dependencies' );
 	}
 };
 

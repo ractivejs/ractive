@@ -65,10 +65,7 @@ export default function Component$init ( options, Component ) {
 			else {
 				if ( template.length === 1 && template[0].t === types.INTERPOLATOR ) {
 					resolve = keypath => {
-						component.mappings[ key ] = {
-							origin: component.root, // TODO trace back to origin, not parent
-							keypath: keypath
-						};
+						component.createMapping( component.root, keypath, key ); // TODO trace back to origin, not parent
 					};
 
 					if ( ref = template[0].r ) {
