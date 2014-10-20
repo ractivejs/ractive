@@ -1,5 +1,7 @@
 export default function Viewmodel$registerSpecial ( keypath, index, dependant ) {
-	if ( let mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+	var mapping, specials;
+
+	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
 		return mapping.origin.registerSpecial( mapping.resolve( keypath ), index, dependant );
 	}
 
