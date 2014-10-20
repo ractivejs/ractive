@@ -14,3 +14,9 @@ var Mapping = function ( local, origin, localKey, keypath ) {
 	this.localKey = localKey;
 	this.keypath = keypath;
 };
+
+Mapping.prototype = {
+	resolve: function ( keypath ) {
+		return keypath.replace( this.localKey, this.keypath );
+	}
+}

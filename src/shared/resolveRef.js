@@ -33,11 +33,9 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	// ...otherwise we need to find the keypath
 	key = ref.split( '.' )[0];
 
-	// get() in viewmodel creation means no fragment (yet)
-	fragment = fragment || {};
-
-	do {
+	while ( fragment ) {
 		context = fragment.context;
+		fragment = fragment.parent;
 
 		if ( !context ) {
 			continue;
@@ -49,7 +47,7 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
 			return context + '.' + ref;
 		}
-	} while ( fragment = fragment.parent );
+	}
 
 	// Root/computed property?
 	if ( key in ractive.data || key in ractive.viewmodel.computations ) {

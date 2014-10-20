@@ -8,8 +8,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 	// If this data belongs to a different viewmodel,
 	// pass the change along
 	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
-		var originKeypath = keypath.replace( mapping.localKey, mapping.keypath );
-		return mapping.origin.set( originKeypath, value );
+		return mapping.origin.set( mapping.resolve( keypath ), value );
 	}
 
 	runloop.addViewmodel( this ); // TODO remove other instances of this call
