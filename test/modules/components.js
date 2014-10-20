@@ -487,8 +487,9 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				blocker.set( 'foo.bar.baz', 42 );
 				t.equal( blocker.get( 'foo.bar.baz' ), 42 );
 
-				blocker.data.foo.bar.baz = 1337;
-				t.equal( blocker.data.foo.bar.baz, 1337 );
+				//blocker.data.foo.bar.baz = 1337;
+				blocker.set( 'foo.bar.baz', 1337 ); // TODO necessary since #1373. Might need to review some of these tests
+				//t.equal( blocker.data.foo.bar.baz, 1337 );
 				t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
 			});
 		}

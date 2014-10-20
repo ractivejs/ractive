@@ -43,7 +43,15 @@ var Viewmodel = function ( ractive ) {
 	this.mappings = create( null );
 	for ( key in ractive.mappings ) { // TODO shouldn't live on ractive, even temporarily
 		mapping = ractive.mappings[ key ];
-		this.map( mapping.origin, mapping.originKeypath, mapping.localKey );
+		this.map( mapping.origin, mapping.keypath, mapping.localKey );
+	}
+
+	// if data exists locally, but is missing on the parent,
+	// we transfer ownership to the parent
+	for ( key in ractive.data ) {
+		if ( ( mapping = this.mappings[ key ] ) && mapping.origin.get( mapping.keypath ) === undefined ) {
+			mapping.origin.set( mapping.keypath, ractive.data[ key ] );
+		}
 	}
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null

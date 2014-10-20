@@ -72,7 +72,7 @@ export default function Component$init ( options, Component ) {
 							mappings[ key ] = {
 								localKey: key,
 								origin: component.root.viewmodel,
-								originKeypath: keypath
+								keypath: keypath
 							};
 						}
 					};
@@ -119,25 +119,8 @@ export default function Component$init ( options, Component ) {
 		});
 	}
 
-
 	createInstance( this, Component, data, mappings, options.template.f );
 	propagateEvents( this, options.template.v );
-
-	/*Object.keys( component.mappings ).forEach( key => {
-		var mapping, parentValue, childValue;
-
-		mapping = component.mappings[ key ];
-
-		parentValue = mapping.origin.viewmodel.get( mapping.keypath );
-
-		if ( parentValue === undefined ) {
-			childValue = component.instance.viewmodel.get( key );
-
-			if ( childValue !== undefined ) {
-				mapping.origin.viewmodel.set( mapping.keypath, childValue );
-			}
-		}
-	});*/
 
 
 	// intro, outro and decorator directives have no effect

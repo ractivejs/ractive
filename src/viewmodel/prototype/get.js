@@ -7,13 +7,15 @@ var empty = {};
 export default function Viewmodel$get ( keypath, options = empty ) {
 	var ractive = this.ractive,
 		cache = this.cache,
+		key,
 		mapping,
 		value,
 		computation,
 		wrapped,
 		captureGroup;
 
-	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+	key = keypath.split( '.' )[0];
+	if ( mapping = this.mappings[ key ] ) {
 		var originKeypath = keypath.replace( mapping.localKey, mapping.keypath );
 		return mapping.origin.get( originKeypath );
 	}
