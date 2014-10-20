@@ -53,6 +53,7 @@ export default function Viewmodel$applyChanges () {
 
 			keys = dependants.map( getKey );
 			keys.forEach( mark );
+			keys.forEach( cascade );
 		}
 	});
 
