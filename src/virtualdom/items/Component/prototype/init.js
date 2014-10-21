@@ -8,6 +8,7 @@ import ComponentParameter from 'virtualdom/items/Component/initialise/ComponentP
 import createInstance from 'virtualdom/items/Component/initialise/createInstance';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
+import decodeKeypath from 'shared/decodeKeypath';
 
 export default function Component$init ( options, Component ) {
 	var component = this,
@@ -63,43 +64,36 @@ export default function Component$init ( options, Component ) {
 			else {
 				if ( template.length === 1 && template[0].t === types.INTERPOLATOR ) {
 					resolve = keypath => {
+						var isSpecial, value;
+
+						if ( keypath[0] === '@' ) {
+							isSpecial = true;
+							value = decodeKeypath( keypath );
+						}
+
 						// TODO trace back to origin, not parent - may not be
 						// component.root.viewmodel
 						if ( !!component.instance ) {
 							// late mapping
-							component.instance.viewmodel.map( component.root.viewmodel, keypath, key );
+							if ( isSpecial ) {
+								component.instance.viewmodel.set( key, value );
+							} else {
+								component.instance.viewmodel.map( component.root.viewmodel, keypath, key );
+							}
 						} else {
-							mappings[ key ] = {
-								localKey: key,
-								origin: component.root.viewmodel,
-								keypath: keypath
-							};
+							if ( isSpecial ) {
+								data[ key ] = value;
+							} else {
+								mappings[ key ] = {
+									localKey: key,
+									origin: component.root.viewmodel,
+									keypath: keypath
+								};
+							}
 						}
 					};
 
 					if ( ref = template[0].r ) {
-						if ( ref in parentFragment.indexRefs ) {
-							value = parentFragment.indexRefs[ ref ];
-
-							// Need to find the list section the index refers to, for rebinding
-							// TODO there must be a better way
-							fragment = parentFragment;
-
-							while ( fragment ) {
-								if ( fragment.owner.template.i === ref ) {
-									// TODO make it possible to unregister
-									// TODO create class to do this work, rather than anon function
-									component.root.viewmodel.registerSpecial( fragment.owner.keypath, value, {
-										setValue: value => component.instance.viewmodel.set( key, value )
-									});
-									data[ key ] = value;
-									return;
-								}
-
-								fragment = fragment.parent;
-							}
-						}
-
 						resolver = createReferenceResolver( component, template[0].r, resolve );
 					} else if ( template[0].x ) {
 						resolver = new ExpressionResolver( component, parentFragment, template[0].x, resolve );
