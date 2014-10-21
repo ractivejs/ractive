@@ -33,10 +33,6 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 			this.mark( keypath + '.' + i, noCascadeOption );
 		}
 	}
-
-
-	// this.rebindAll( keypath, newIndices );
-	// this.updateSpecials( keypath, newIndices );
 }
 
 function canShuffle ( dependant ) {

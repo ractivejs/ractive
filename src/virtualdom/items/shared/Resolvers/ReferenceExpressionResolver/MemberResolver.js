@@ -16,47 +16,6 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 
 	// Simple reference?
 	else if ( template.t === types.REFERENCE ) {
-		var ref = template.n, value, fragment;
-
-		// special/index ref?
-		if ( ref in parentFragment.indexRefs ) {
-			value = parentFragment.indexRefs[ ref ];
-
-			// Need to find the list section the index refers to, for rebinding
-			// TODO there must be a better way
-			fragment = parentFragment;
-
-			while ( fragment ) {
-				if ( fragment.owner.template && fragment.owner.template.i === ref ) {
-					// TODO this needs a dedicated class
-					var indexRefResolver = {
-						value: value,
-						rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-							if ( indexRef === ref ) {
-								this.value = newIndex;
-								member.setValue( newIndex );
-							}
-						},
-						setValue: function ( value ) {
-							this.value = value;
-							member.setValue( value );
-						},
-						unbind: function () {
-							member.root.viewmodel.unregisterSpecial( fragment.owner.keypath, this.value, this );
-						}
-					};
-
-					member.refResolver = indexRefResolver;
-
-					member.root.viewmodel.registerSpecial( fragment.owner.keypath, value, indexRefResolver );
-					member.setValue( parentFragment.indexRefs[ ref ] );
-					return;
-				}
-
-				fragment = fragment.parent;
-			}
-		}
-
 		member.refResolver = createReferenceResolver( this, template.n, keypath => {
 			member.resolve( keypath );
 		});
