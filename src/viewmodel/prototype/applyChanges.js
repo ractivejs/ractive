@@ -23,7 +23,15 @@ export default function Viewmodel$applyChanges () {
 
 		if ( computations = self.deps.computed[ keypath ] ) {
 			computations.forEach( c => {
-				c.viewmodel.mark( c.key );
+				if ( c.viewmodel === self ) {
+					self.clearCache( c.key );
+					c.invalidate();
+
+					changes.push( c.key );
+					cascade( c.key );
+				} else {
+					c.viewmodel.mark( c.key );
+				}
 			});
 		}
 
@@ -36,7 +44,7 @@ export default function Viewmodel$applyChanges () {
 		self.mark( keypath );
 	}
 
-	changes.forEach( cascade );
+	changes.slice().forEach( cascade );
 
 	upstreamChanges = getUpstreamChanges( changes );
 	upstreamChanges.forEach( keypath => {
