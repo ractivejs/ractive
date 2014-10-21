@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.0
-	2014-10-21 - commit c2c683c2 
+	2014-10-21 - commit 12f2fa8b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13086,6 +13086,7 @@
 					dependants.forEach( invalidate );
 					keys = dependants.map( getKey );
 					keys.forEach( mark );
+					keys.forEach( cascade );
 				}
 			} );
 			this.changes = [];
