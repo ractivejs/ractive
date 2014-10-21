@@ -147,7 +147,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.ok( event.original );
 				t.equal( event.keypath, '' );
 				t.equal( event.context, ractive.data );
-				t.equal( event.index, undefined );
+				t.ok( typeof event.index === 'object' && Object.keys( event.index ).length === 0 );
 			});
 
 			simulant.fire( ractive.nodes.test, 'click' );
