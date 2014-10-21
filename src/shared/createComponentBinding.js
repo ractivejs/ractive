@@ -48,7 +48,10 @@ Binding.prototype = {
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
 
-			runloop.addViewmodel( other = this.otherInstance.viewmodel );
+			// if the other viewmodel is already locked up, need to do a deferred update
+			if ( !runloop.addViewmodel( other = this.otherInstance.viewmodel ) && this.counterpart.value !== value ) {
+				runloop.scheduleTask( () => runloop.addViewmodel( other ) );
+			}
 
 
 			if ( newIndices ) {

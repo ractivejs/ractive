@@ -1730,6 +1730,26 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, 'forget quarrel' );
 		});
 
+		test( 'Binding from parent to computation on child that is bound to parent should update properly (#1357)', ( t ) => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{b}} <component a="{{a}}" b="{{b}}" />',
+				data: { a: 'a' },
+				components: {
+					component: Ractive.extend({
+						template: '{{a}} {{b}}',
+						computed: {
+							b: function() { return 'foo' + this.get('a'); }
+						}
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'fooa a fooa' );
+			ractive.set( 'a', 'bar' );
+			t.htmlEqual( fixture.innerHTML, 'foobar bar foobar' );
+		});
+
 	};
 
 });
