@@ -8,7 +8,7 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 	}
 
 	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
-		return mapping.origin.unregister( mapping.resolve( keypath ), dependant, group );
+		return mapping.unregister( keypath, dependant, group );
 	}
 
 	deps = this.deps[ group ][ keypath ];

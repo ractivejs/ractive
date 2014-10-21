@@ -1,22 +1,18 @@
 import runloop from 'global/runloop';
-import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
+import startsWith from 'virtualdom/items/shared/utils/startsWith';
+import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
 
 export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	var childInstance = this.instance,
 		parentInstance = childInstance._parent,
+		key,
+		mapping,
 		indexRefAlias, query;
 
-	// this.bindings.forEach( binding => {
-	// 	var updated;
-
-	// 	if ( binding.root !== parentInstance ) {
-	// 		return; // we only want parent -> child bindings for this
-	// 	}
-
-	// 	if ( updated = getNewKeypath( binding.keypath, oldKeypath, newKeypath ) ) {
-	// 		binding.rebind( updated );
-	// 	}
-	// });
+	// TODO shouldn't this be handled by resolvers?
+	for ( key in this.instance.viewmodel.mappings ) {
+		this.instance.viewmodel.mappings[ key ].rebind( indexRef, newIndex, oldKeypath, newKeypath );
+	}
 
 	this.resolvers.forEach( rebind );
 

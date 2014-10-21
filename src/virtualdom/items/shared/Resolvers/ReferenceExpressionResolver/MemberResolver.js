@@ -31,6 +31,12 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 					// TODO this needs a dedicated class
 					var indexRefResolver = {
 						value: value,
+						rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+							if ( indexRef === ref ) {
+								this.value = newIndex;
+								member.setValue( newIndex );
+							}
+						},
 						setValue: function ( value ) {
 							this.value = value;
 							member.setValue( value );
