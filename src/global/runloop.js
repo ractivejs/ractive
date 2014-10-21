@@ -103,16 +103,6 @@ function flushChanges () {
 		}
 	}
 
-	// for ( i = 0; i < batch.viewmodels.length; i += 1 ) {
-	// 	thing = batch.viewmodels[i];
-	// 	changeHash = thing.applyChanges();
-
-	// 	if ( changeHash ) {
-	// 		changeHook.fire( thing.ractive, changeHash );
-	// 	}
-	// }
-	// batch.viewmodels.length = 0;
-
 	attemptKeypathResolution();
 
 	// Now that changes have been fully propagated, we can update the DOM

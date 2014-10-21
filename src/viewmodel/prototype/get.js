@@ -1,6 +1,6 @@
 import decodeKeypath from 'shared/decodeKeypath';
 import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
-import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
+
 
 var empty = {};
 
@@ -17,13 +17,6 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
 		if ( !~captureGroup.indexOf( keypath ) ) {
 			captureGroup.push( keypath );
-
-			// if we couldn't resolve the keypath, we need to make it as a failed
-			// lookup, so that the computation updates correctly once we CAN
-			// resolve the keypath
-			// if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
-			// 	new UnresolvedImplicitDependency( this, keypath );
-			// }
 		}
 	}
 

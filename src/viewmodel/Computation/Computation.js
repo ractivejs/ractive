@@ -1,5 +1,7 @@
+import runloop from 'global/runloop';
 import log from 'utils/log';
 import isEqual from 'utils/isEqual';
+import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;
@@ -11,6 +13,7 @@ var Computation = function ( ractive, key, signature ) {
 
 	this.hardDeps = signature.deps || [];
 	this.softDeps = [];
+	this.unresolvedDeps = {};
 
 	this.depValues = {};
 
@@ -134,7 +137,7 @@ Computation.prototype = {
 	},
 
 	updateDependencies: function ( newDeps ) {
-		var i, oldDeps, keypath, dependenciesChanged;
+		var self = this, i, oldDeps, keypath, dependenciesChanged, unresolved;
 
 		oldDeps = this.softDeps;
 
@@ -156,7 +159,28 @@ Computation.prototype = {
 
 			if ( oldDeps.indexOf( keypath ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( keypath ) === -1 ) ) {
 				dependenciesChanged = true;
-				this.viewmodel.register( keypath, this, 'computed' );
+
+				// if this keypath is currently unresolved, we need to mark
+				// it as such. TODO this is a bit muddy...
+				if ( isUnresolved( this.viewmodel, keypath ) && ( !this.unresolvedDeps[ keypath ] ) ) {
+					unresolved = {
+						ref: keypath,
+						root: this.viewmodel.ractive,
+						parentFragment: this.viewmodel.ractive.component && this.viewmodel.ractive.component.parentFragment,
+						resolve: function () {
+							self.softDeps.push( keypath );
+							self.unresolvedDeps[ keypath ] = null;
+							self.viewmodel.register( keypath, self, 'computed' );
+						}
+					};
+
+					newDeps.splice( i, 1 );
+
+					this.unresolvedDeps[ keypath ] = unresolved;
+					runloop.addUnresolved( unresolved );
+				} else {
+					this.viewmodel.register( keypath, this, 'computed' );
+				}
 			}
 		}
 
@@ -165,11 +189,15 @@ Computation.prototype = {
 		}
 
 		return dependenciesChanged;
-	},
-
-	rebind: function () {
-		console.error( 'TODO: rebind computation dependencies' );
 	}
 };
+
+function isUnresolved( viewmodel, keypath ) {
+	var key = keypath.split( '.' )[0];
+
+	return !( key in viewmodel.ractive.data ) &&
+	       !( key in viewmodel.computations ) &&
+	       !( key in viewmodel.mappings );
+}
 
 export default Computation;
