@@ -1556,6 +1556,20 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.find( 'svg' ).getAttribute( 'viewBox' ), '0 0 100 100' );
 		});
 
+		test( 'Nested conditional computations should survive unrendering and rerendering (#1364)', ( t ) => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#cond}}{{# i === 1 }}1{{/}}{{# i === 2 }}2{{/}}{{/}}',
+				data: { i: 1, cond: true }
+			});
+
+			t.equal( fixture.innerHTML, '1' );
+			ractive.set( 'cond', false );
+			ractive.set( 'cond', true );
+			ractive.set( 'i', 2 );
+			t.equal( fixture.innerHTML, '2' );
+		});
+
 		// Is there a way to artificially create a FileList? Leaving this commented
 		// out until someone smarter than me figures out how
 		// test( '{{#each}} iterates over a FileList (#1220)', t => {
