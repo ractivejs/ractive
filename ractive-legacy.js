@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-18 - commit b5dfc496 
+	2014-10-21 - commit c2c683c2 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -874,7 +874,8 @@
 					transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 					views: [],
 					tasks: [],
-					viewmodels: []
+					viewmodels: [],
+					instance: instance
 				};
 				if ( instance ) {
 					batch.viewmodels.push( instance.viewmodel );
@@ -884,6 +885,8 @@
 			end: function() {
 				flushChanges();
 				batch.transitionManager.init();
+				if ( !batch.previousBatch && !!batch.instance )
+					batch.instance.viewmodel.changes = [];
 				batch = batch.previousBatch;
 			},
 			addViewmodel: function( viewmodel ) {
