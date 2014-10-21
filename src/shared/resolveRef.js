@@ -2,8 +2,6 @@ import normaliseRef from 'utils/normaliseRef';
 import getInnerContext from 'shared/getInnerContext';
 import resolveAncestorRef from 'shared/resolveAncestorRef';
 
-var getOptions = { evaluateWrapped: true };
-
 export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	var context,
 		key,
@@ -42,7 +40,7 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		}
 
 		hasContextChain = true;
-		parentValue = ractive.viewmodel.get( context, getOptions );
+		parentValue = ractive.viewmodel.get( context );
 
 		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
 			return context + '.' + ref;

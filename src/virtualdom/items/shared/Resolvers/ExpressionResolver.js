@@ -83,7 +83,7 @@ ExpressionResolver.prototype = {
 				}
 
 				return () => {
-					var value = this.root.viewmodel.get( keypath );
+					var value = this.root.viewmodel.get( keypath, { noUnwrap: true });
 					if ( typeof value === 'function' ) {
 						value = wrapFunction( value, self.root );
 					}
@@ -150,7 +150,7 @@ function isValidDependency ( keypath ) {
 function wrapFunction ( fn, ractive ) {
 	var wrapped, prop, key;
 
-	if ( fn._noWrap ) {
+	if ( fn.__ractive_nowrap ) {
 		return fn;
 	}
 
