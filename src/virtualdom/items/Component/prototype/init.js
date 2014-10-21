@@ -42,7 +42,7 @@ export default function Component$init ( options, Component ) {
 
 	if ( mappingTemplates ) {
 		Object.keys( mappingTemplates ).forEach( key => {
-			var template, parsed, ref, resolver, resolve, fragment, value;
+			var template, parsed, ref, resolver, resolve, fragment, value, param;
 
 			template = mappingTemplates[ key ];
 
@@ -113,7 +113,9 @@ export default function Component$init ( options, Component ) {
 				else {
 					// We have a 'complex' parameter, e.g.
 					// `<widget foo='{{bar}} {{baz}}'/>`
-					component.complexParameters.push( new ComponentParameter( component, key, template ) );
+					param = new ComponentParameter( component, key, template );
+					data[ key ] = param.value;
+					component.complexParameters.push( param );
 				}
 			}
 		});
