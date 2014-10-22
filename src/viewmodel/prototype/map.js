@@ -103,10 +103,6 @@ Mapping.prototype = {
 		this.origin.set( this.map( keypath ), value );
 	},
 
-	setValue: function ( value ) {
-		console.log( 'TODO should this happen? setValue', value );
-	},
-
 	unbind: function () {
 		var dep;
 

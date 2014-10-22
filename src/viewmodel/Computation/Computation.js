@@ -1,7 +1,6 @@
 import runloop from 'global/runloop';
 import log from 'utils/log';
 import isEqual from 'utils/isEqual';
-import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;

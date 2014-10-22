@@ -1,5 +1,4 @@
 import types from 'config/types';
-import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import parseJSON from 'utils/parseJSON';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';

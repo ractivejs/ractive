@@ -5,7 +5,7 @@ import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionReso
 
 export default function Mustache$init ( mustache, options ) {
 
-	var ref, value, parentFragment, fragment, indexRefs, template;
+	var ref, parentFragment, template;
 
 	parentFragment = options.parentFragment;
 	template = options.template;

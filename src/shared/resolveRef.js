@@ -12,8 +12,7 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		parentKeys,
 		childKeys,
 		parentKeypath,
-		childKeypath,
-		mapping;
+		childKeypath;
 
 	ref = normaliseRef( ref );
 
@@ -94,9 +93,6 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 				origin: ractive._parent.viewmodel,
 				keypath: parentKeypath
 			});
-
-			// ractive.viewmodel.set( childKeypath, ractive._parent.viewmodel.get( parentKeypath ), true );
-			// createComponentBinding( ractive.component, ractive._parent, parentKeypath, childKeypath );
 
 			return ref;
 		}
