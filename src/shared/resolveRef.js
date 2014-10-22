@@ -90,7 +90,10 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 			childKeypath = childKeys.join( '.' );
 
 			// TODO trace back to origin
-			ractive.viewmodel.map( ractive._parent.viewmodel, parentKeypath, childKeypath );
+			ractive.viewmodel.map( childKeypath, {
+				origin: ractive._parent.viewmodel,
+				keypath: parentKeypath
+			});
 
 			// ractive.viewmodel.set( childKeypath, ractive._parent.viewmodel.get( parentKeypath ), true );
 			// createComponentBinding( ractive.component, ractive._parent, parentKeypath, childKeypath );
@@ -111,9 +114,4 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	if ( ractive.viewmodel.get( ref ) !== undefined ) {
 		return ref;
 	}
-}
-
-function createBinding ( ractive, key, childKeypath, mapping ) {
-	var parentKeypath = childKeypath.replace( key, mapping.keypath );
-	ractive.viewmodel.bind( mapping.origin.viewmodel, parentKeypath, childKeypath, mapping );
 }

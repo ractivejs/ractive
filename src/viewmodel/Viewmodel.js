@@ -39,8 +39,7 @@ var Viewmodel = function ( ractive ) {
 	// set up explicit mappings
 	this.mappings = create( null );
 	for ( key in ractive.mappings ) { // TODO shouldn't live on ractive, even temporarily
-		mapping = ractive.mappings[ key ];
-		this.map( mapping.origin, mapping.keypath, mapping.localKey );
+		this.map( key, ractive.mappings[ key ] );
 	}
 
 	// if data exists locally, but is missing on the parent,

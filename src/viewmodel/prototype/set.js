@@ -7,7 +7,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 	// If this data belongs to a different viewmodel,
 	// pass the change along
 	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
-		return mapping.origin.set( mapping.map( keypath ), value );
+		return mapping.set( keypath, value );
 	}
 
 	computation = this.computations[ keypath ];

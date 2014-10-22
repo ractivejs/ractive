@@ -21,7 +21,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 	}
 
 	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
-		return mapping.origin.get( mapping.map( keypath ), options );
+		return mapping.get( keypath, options );
 	}
 
 	if ( keypath[0] === '@' ) {

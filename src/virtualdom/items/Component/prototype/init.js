@@ -1,4 +1,5 @@
 import types from 'config/types';
+import runloop from 'global/runloop';
 import warn from 'utils/warn';
 import parseJSON from 'utils/parseJSON';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
@@ -43,7 +44,7 @@ export default function Component$init ( options, Component ) {
 
 	if ( mappingTemplates ) {
 		Object.keys( mappingTemplates ).forEach( key => {
-			var template, parsed, ref, resolver, resolve, fragment, value, param;
+			var template, parsed, ref, resolver, resolve, ready, resolved, param, mapping;
 
 			template = mappingTemplates[ key ];
 
@@ -66,15 +67,34 @@ export default function Component$init ( options, Component ) {
 					resolve = keypath => {
 						var isSpecial, value;
 
+						resolved = true;
+
 						if ( keypath[0] === '@' ) {
 							isSpecial = true;
 							value = decodeKeypath( keypath );
+
+							if ( ready ) {
+								component.instance.viewmodel.set( key, value );
+							} else {
+								data[ key ] = value;
+							}
+						}
+
+						else {
+							if ( ready ) {
+								mapping = component.instance.viewmodel.mappings[ key ];
+								mapping.resolve( keypath );
+							} else {
+								mappings[ key ] = {
+									origin: component.root.viewmodel,
+									keypath: keypath
+								};
+							}
 						}
 
 						// TODO trace back to origin, not parent - may not be
 						// component.root.viewmodel
-						if ( !!component.instance ) {
-							// late mapping
+						/*if ( ready ) {
 							if ( isSpecial ) {
 								component.instance.viewmodel.set( key, value );
 							} else {
@@ -84,13 +104,9 @@ export default function Component$init ( options, Component ) {
 							if ( isSpecial ) {
 								data[ key ] = value;
 							} else {
-								mappings[ key ] = {
-									localKey: key,
-									origin: component.root.viewmodel,
-									keypath: keypath
-								};
+
 							}
-						}
+						}*/
 					};
 
 					if ( ref = template[0].r ) {
@@ -101,7 +117,15 @@ export default function Component$init ( options, Component ) {
 						resolver = new ReferenceExpressionResolver( component, template[0].rx, resolve );
 					}
 
+					ready = true;
+
 					component.resolvers.push( resolver );
+
+					if ( !resolved ) {
+						// note the mapping anyway, for the benefit of child
+						// components
+						mappings[ key ] = { origin: component.root.viewmodel };
+					}
 				}
 
 				else {
