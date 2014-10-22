@@ -158,6 +158,28 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'foo.bar.baz', 2 );
 		});
 
+		test( 'Observers fire on downstream changes (#1393)', function ( t ) {
+			var ractive, expected;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: 'blah',
+				data: { config: { foo: 'bar' } }
+			});
+
+			expect( 4 );
+
+			expected = { foo: 'bar' };
+
+			ractive.observe( 'config', function ( n, o, keypath ) {
+				t.deepEqual( n, expected );
+				t.equal( keypath, 'config' );
+			});
+
+			expected = { foo: 'baz' };
+			ractive.set( 'config.foo', 'baz' );
+		});
+
 		test( 'Pattern observers fire on changes to keypaths upstream of their pattern', function ( t ) {
 			var ractive, expected;
 
