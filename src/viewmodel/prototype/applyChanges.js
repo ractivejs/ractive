@@ -62,7 +62,7 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	if ( this.deps.observers ) {
-		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, keypath, 'observers' ) );
+		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, null, keypath, 'observers' ) );
 		notifyAllDependants( this, changes, 'observers' );
 	}
 
@@ -97,7 +97,7 @@ function notifyUpstreamDependants ( viewmodel, bindings, keypath, groupName ) {
 		dependants.forEach( d => {
 			// don't "set" the parent value, refine it
 			// i.e. not data = value, but data[foo] = fooValue
-			if( d.refineValue /*&& keypath !== d.keypath*/ ) {
+			if( bindings && d.refineValue ) {
 				bindings.push( d );
 			}
 			else {

@@ -448,6 +448,23 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, 'foo:foobar-foo:foobar' );
 		})
 
+		test( 'Computations depending up computed values cascade while updating (#1383)', ( t ) => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if a < 10}}less{{else}}more{{/if}}',
+				data: {
+					b: { c: 0 }
+				},
+				computed: {
+					a: function() { return this.get('b').c; }
+				}
+			});
+
+			t.equal( fixture.innerHTML, 'less' );
+			ractive.set( 'b.c', 100 );
+			t.equal( fixture.innerHTML, 'more' );
+		});
+
 	};
 
 });

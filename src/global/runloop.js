@@ -20,7 +20,8 @@ runloop = {
 			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 			views: [],
 			tasks: [],
-			viewmodels: []
+			viewmodels: [],
+			instance: instance
 		};
 
 		if ( instance ) {
@@ -34,6 +35,7 @@ runloop = {
 		flushChanges();
 
 		batch.transitionManager.init();
+		if ( !batch.previousBatch && !!batch.instance ) batch.instance.viewmodel.changes = [];
 		batch = batch.previousBatch;
 	},
 
@@ -41,9 +43,13 @@ runloop = {
 		if ( batch ) {
 			if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
 				batch.viewmodels.push( viewmodel );
+				return true;
+			} else {
+				return false;
 			}
 		} else {
 			viewmodel.applyChanges();
+			return false;
 		}
 	},
 
