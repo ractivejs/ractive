@@ -9,7 +9,6 @@ import init from 'viewmodel/prototype/init';
 import map from 'viewmodel/prototype/map';
 import mark from 'viewmodel/prototype/mark';
 import merge from 'viewmodel/prototype/merge';
-import rebindAll from 'viewmodel/prototype/rebindAll';
 import register from 'viewmodel/prototype/register';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
@@ -102,7 +101,6 @@ Viewmodel.prototype = {
 	map: map,
 	mark: mark,
 	merge: merge,
-	rebindAll: rebindAll,
 	register: register,
 	release: release,
 	set: set,
