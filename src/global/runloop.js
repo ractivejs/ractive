@@ -43,9 +43,13 @@ runloop = {
 		if ( batch ) {
 			if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
 				batch.viewmodels.push( viewmodel );
+				return true;
+			} else {
+				return false;
 			}
 		} else {
 			viewmodel.applyChanges();
+			return false;
 		}
 	},
 
