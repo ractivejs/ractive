@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-22 - commit c31febb4 
+	2014-10-22 - commit 058a3b08 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12323,7 +12323,7 @@
 			}
 			if ( this.deps.observers ) {
 				upstreamChanges.forEach( function( keypath ) {
-					return notifyUpstreamDependants( this$0, keypath, 'observers' );
+					return notifyUpstreamDependants( this$0, null, keypath, 'observers' );
 				} );
 				notifyAllDependants( this, changes, 'observers' );
 			}
@@ -12361,7 +12361,7 @@
 				dependants.forEach( function( d ) {
 					// don't "set" the parent value, refine it
 					// i.e. not data = value, but data[foo] = fooValue
-					if ( d.refineValue ) {
+					if ( bindings && d.refineValue ) {
 						bindings.push( d );
 					} else {
 						d.setValue( value );
