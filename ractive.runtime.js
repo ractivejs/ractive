@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.0
-	2014-10-21 - commit 12f2fa8b 
+	2014-10-22 - commit c31febb4 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -591,7 +591,12 @@
 					this.lock();
 					// TODO maybe the case that `value === this.value` - should that result
 					// in an update rather than a set?
-					runloop.addViewmodel( other = this.otherInstance.viewmodel );
+					// if the other viewmodel is already locked up, need to do a deferred update
+					if ( !runloop.addViewmodel( other = this.otherInstance.viewmodel ) && this.counterpart.value !== value ) {
+						runloop.scheduleTask( function() {
+							return runloop.addViewmodel( other );
+						} );
+					}
 					if ( newIndices ) {
 						other.smartUpdate( this.otherKeypath, value, newIndices );
 					} else {
@@ -893,9 +898,13 @@
 				if ( batch ) {
 					if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
 						batch.viewmodels.push( viewmodel );
+						return true;
+					} else {
+						return false;
 					}
 				} else {
 					viewmodel.applyChanges();
+					return false;
 				}
 			},
 			registerTransition: function( transition ) {
