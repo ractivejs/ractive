@@ -539,6 +539,11 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( checkboxes[0].checked );
 			t.ok( checkboxes[1].checked );
 			t.ok( checkboxes[2].checked );
+
+			ractive.shift( 'array' );
+
+			t.ok( !checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
 		});
 
 		test( 'input[type="checkbox"] works with array of numeric values (#1305)', function ( t ) {
