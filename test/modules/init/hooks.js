@@ -334,6 +334,40 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'bool', true );
 		});
 
+		test( 'deprecated beforeInit hook is fired once, regardless of presence/absence of onconstruct (#1395)', function ( t ) {
+			var Subclass, count, reset;
+
+			reset = () => count = { construct: 0, beforeInit: 0 };
+
+			reset();
+			new Ractive({
+				onconstruct: () => count.construct += 1,
+				beforeInit: () => count.beforeInit += 1
+			});
+			t.deepEqual( count, { construct: 1, beforeInit: 1 });
+
+			reset();
+			new Ractive({
+				beforeInit: () => count.beforeInit += 1
+			});
+			t.deepEqual( count, { construct: 0, beforeInit: 1 });
+
+			reset();
+			Subclass = Ractive.extend({
+				onconstruct: () => count.construct += 1,
+				beforeInit: () => count.beforeInit += 1
+			});
+			new Subclass();
+			t.deepEqual( count, { construct: 1, beforeInit: 1 });
+
+			reset();
+			Subclass = Ractive.extend({
+				beforeInit: () => count.beforeInit += 1
+			});
+			new Subclass();
+			t.deepEqual( count, { construct: 0, beforeInit: 1 });
+		});
+
 		// Hold off on these until demand for them.
 		// also an issue is that reserve event checking
 		// currently happens at parse time, so that
