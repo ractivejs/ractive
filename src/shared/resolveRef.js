@@ -55,7 +55,7 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	} while ( fragment = fragment.parent );
 
 	// Root/computed property?
-	if ( key in ractive.data || key in ractive.viewmodel.computations ) {
+	if ( key in ractive.viewmodel.ractive.data || key in ractive.viewmodel.computations ) {
 		return ref;
 	}
 

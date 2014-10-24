@@ -13,7 +13,7 @@ var constructHook = new Hook( 'construct' ),
 
 export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
-	var el;
+	var lightweight, el;
 
 	initialiseProperties( ractive, options );
 
@@ -49,22 +49,38 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 
 	initHook.begin( ractive );
 
-	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive );
+	lightweight = ractive.lightweight && ractive._parent;
+	if ( lightweight ) {
+		ractive.viewmodel = ractive._parent.viewmodel;
+	}
+	else {
+		// TEMPORARY. This is so we can implement Viewmodel gradually
+		ractive.viewmodel = new Viewmodel( ractive );
 
-	// hacky circular problem until we get this sorted out
-	// if viewmodel immediately processes computed properties,
-	// they may call ractive.get, which calls ractive.viewmodel,
-	// which hasn't been set till line above finishes.
-	ractive.viewmodel.init();
+		// hacky circular problem until we get this sorted out
+		// if viewmodel immediately processes computed properties,
+		// they may call ractive.get, which calls ractive.viewmodel,
+		// which hasn't been set till line above finishes.
+		ractive.viewmodel.init();
+	}
 
 	// Render our *root fragment*
 	if ( ractive.template ) {
-		ractive.fragment = new Fragment({
-			template: ractive.template,
-			root: ractive,
-			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
-		});
+		if ( lightweight ) {
+			ractive.fragment = new Fragment({
+				indexRefs: ractive.component.parentFragment.indexRefs,
+				context: ractive.component.parentFragment.context,
+				template: ractive.template,
+				root: ractive,
+				owner: ractive //._parent, // saves doing `if ( this.parent ) { /*...*/ }` later on
+			});
+		} else {
+			ractive.fragment = new Fragment({
+				template: ractive.template,
+				root: ractive,
+				owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+			});
+		}
 	}
 
 	initHook.end( ractive );
