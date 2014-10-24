@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-22 - commit 058a3b08 
+	2014-10-24 - commit 7bb74f3f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8868,6 +8868,7 @@
 						return;
 					}
 				}
+				node.checked = false;
 			}
 		};
 	}( isArray );
