@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-24 - commit 7bb74f3f 
+	2014-10-24 - commit 26c04e62 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9929,8 +9929,10 @@
 				}
 				return value;
 			} );
+			ractive.event = event;
 			args = this.fn.apply( null, values );
 			ractive[ this.method ].apply( ractive, args );
+			delete ractive.event;
 		}
 
 		function fireEventWithParams( event ) {
