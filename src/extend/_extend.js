@@ -2,7 +2,7 @@ import create from 'utils/create';
 import defineProperties from 'utils/defineProperties';
 import getGuid from 'utils/getGuid';
 import config from 'config/config';
-import initChildInstance from 'extend/initChildInstance';
+import initialise from 'Ractive/initialise';
 import Viewmodel from 'viewmodel/Viewmodel';
 import unwrap from 'extend/unwrapExtended';
 
@@ -15,7 +15,7 @@ export default function extend ( options = {} ) {
 
 	// create Child constructor
 	Child = function ( options ) {
-		initChildInstance( this, Child, options );
+		initialise( this, options );
 	};
 
 	proto = create( Parent.prototype );
