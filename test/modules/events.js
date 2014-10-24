@@ -820,6 +820,20 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.find( 'button' ), 'click' );
 		});
 
+		test( 'Current event is available to method handler as this.event (#1403)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<button on-click="test(event)"></button>',
+				test: function( event ) {
+					t.equal( event, this.event );
+					t.equal( ractive, this );
+				}
+			});
+
+			expect( 2 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
 
 		var Component, Middle, View, setup;
 

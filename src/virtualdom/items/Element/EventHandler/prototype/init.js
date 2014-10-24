@@ -126,8 +126,12 @@ function fireMethodCall ( event ) {
 		return value;
 	});
 
+	ractive.event = event;
+
 	args = this.fn.apply( null, values );
 	ractive[ this.method ].apply( ractive, args );
+
+	delete ractive.event;
 }
 
 function fireEventWithParams ( event ) {
