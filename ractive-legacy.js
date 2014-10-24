@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-24 - commit 26c04e62 
+	2014-10-24 - commit 79c0d67a 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9166,8 +9166,8 @@
 			this.attribute = element.attributes[ this.name || 'value' ];
 			interpolator = this.attribute.interpolator;
 			interpolator.twowayBinding = this;
-			if ( interpolator.keypath && interpolator.keypath.substr === '${' ) {
-				warn( 'Two-way binding does not work with expressions: ' + interpolator.keypath );
+			if ( interpolator.keypath && interpolator.keypath.substr( 0, 2 ) === '${' ) {
+				warn( 'Two-way binding does not work with expressions (`' + interpolator.keypath.slice( 2, -1 ) + '`)' );
 				return false;
 			}
 			// A mustache may be *ambiguous*. Let's say we were given
