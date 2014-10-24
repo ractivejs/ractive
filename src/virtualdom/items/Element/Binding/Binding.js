@@ -14,8 +14,8 @@ var Binding = function ( element ) {
 	interpolator = this.attribute.interpolator;
 	interpolator.twowayBinding = this;
 
-	if ( interpolator.keypath && interpolator.keypath.substr === '${' ) {
-		warn( 'Two-way binding does not work with expressions: ' + interpolator.keypath );
+	if ( interpolator.keypath && interpolator.keypath.substr( 0, 2 ) === '${' ) {
+		warn( 'Two-way binding does not work with expressions (`' + interpolator.keypath.slice( 2, -1 ) + '`)' );
 		return false;
 	}
 

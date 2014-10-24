@@ -596,6 +596,22 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( checkboxes[2].checked );
 		});
 
+		test( 'Using expressions in two-way bindings triggers a warning (#1399)', function ( t ) {
+			var console_warn = console.warn;
+
+			console.warn = function ( message ) {
+				t.ok( ~message.indexOf( 'Two-way binding does not work with expressions (`foo()`)' ) );
+			};
+
+			new Ractive({
+				el: fixture,
+				template: '<input value="{{foo()}}">',
+				data: { foo: () => 'bar' }
+			});
+
+			console.warn = console_warn;
+		});
+
 	};
 
 });
