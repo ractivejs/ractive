@@ -346,11 +346,13 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 			t.deepEqual( count, { construct: 1, beforeInit: 1 });
 
+			// hooks-without-extend were introduced at the same time as beforeInit was
+			// deprecated, so this should not fire
 			reset();
 			new Ractive({
 				beforeInit: () => count.beforeInit += 1
 			});
-			t.deepEqual( count, { construct: 0, beforeInit: 1 });
+			t.deepEqual( count, { construct: 0, beforeInit: 0 });
 
 			reset();
 			Subclass = Ractive.extend({
