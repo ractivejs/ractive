@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+* 0.6.1
+	* `ractive.parent`, `ractive.root` and `ractive.findParent(name)` now API supported references to component parent, view hierarchy root, and find method for parent component.
+	* `this.event` available in method calls
+
 * 0.6.0
 	* Breaking changes:
 		* `new Ractive()` now inherits all options as methods/properties including event hooks.
