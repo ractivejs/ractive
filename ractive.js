@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-10-25 - commit 8e7fee42 
+	2014-10-25 - commit 6681cdca 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5701,11 +5701,11 @@
 				this.updating = false;
 			},
 			getProxy: function( keypath ) {
-				var self = this;
+				var this$0 = this;
 				if ( !this.proxies[ keypath ] ) {
 					this.proxies[ keypath ] = {
 						update: function() {
-							self.reallyUpdate( keypath );
+							return this$0.reallyUpdate( keypath );
 						}
 					};
 				}
@@ -5863,8 +5863,7 @@
 
 		return function Ractive$on( eventName, callback ) {
 			var this$0 = this;
-			var self = this,
-				listeners, n, eventNames;
+			var listeners, n, eventNames;
 			// allow mutliple listeners to be bound in one go
 			if ( typeof eventName === 'object' ) {
 				listeners = [];
@@ -5889,7 +5888,7 @@
 			} );
 			return {
 				cancel: function() {
-					self.off( eventName, callback );
+					return this$0.off( eventName, callback );
 				}
 			};
 		};
@@ -6581,25 +6580,25 @@
 		var __export;
 		var ExpressionResolver, bind = Function.prototype.bind;
 		ExpressionResolver = function( owner, parentFragment, expression, callback ) {
-			var resolver = this,
-				ractive, indexRefs;
+			var this$0 = this;
+			var ractive, indexRefs;
 			ractive = owner.root;
-			resolver.root = ractive;
-			resolver.parentFragment = parentFragment;
-			resolver.callback = callback;
-			resolver.owner = owner;
-			resolver.str = expression.s;
-			resolver.keypaths = [];
+			this.root = ractive;
+			this.parentFragment = parentFragment;
+			this.callback = callback;
+			this.owner = owner;
+			this.str = expression.s;
+			this.keypaths = [];
 			indexRefs = parentFragment.indexRefs;
 			// Create resolvers for each reference
-			resolver.pending = expression.r.length;
-			resolver.refResolvers = expression.r.map( function( ref, i ) {
-				return createReferenceResolver( resolver, ref, function( keypath ) {
-					resolver.resolve( i, keypath );
+			this.pending = expression.r.length;
+			this.refResolvers = expression.r.map( function( ref, i ) {
+				return createReferenceResolver( this$0, ref, function( keypath ) {
+					this$0.resolve( i, keypath );
 				} );
 			} );
-			resolver.ready = true;
-			resolver.bubble();
+			this.ready = true;
+			this.bubble();
 		};
 		ExpressionResolver.prototype = {
 			bubble: function() {
@@ -6623,8 +6622,7 @@
 			},
 			createEvaluator: function() {
 				var this$0 = this;
-				var self = this,
-					computation, valueGetters, signature, keypath, fn;
+				var computation, valueGetters, signature, keypath, fn;
 				computation = this.root.viewmodel.computations[ this.keypath ];
 				// only if it doesn't exist yet!
 				if ( !computation ) {
@@ -6648,7 +6646,7 @@
 								noUnwrap: true
 							} );
 							if ( typeof value === 'function' ) {
-								value = wrapFunction( value, self.root );
+								value = wrapFunction( value, this$0.root );
 							}
 							return value;
 						};
@@ -6737,21 +6735,21 @@
 	var MemberResolver = function( types, createReferenceResolver, ExpressionResolver ) {
 
 		var MemberResolver = function( template, resolver, parentFragment ) {
-			var member = this,
-				keypath;
-			member.resolver = resolver;
-			member.root = resolver.root;
-			member.parentFragment = parentFragment;
-			member.viewmodel = resolver.root.viewmodel;
+			var this$0 = this;
+			var keypath;
+			this.resolver = resolver;
+			this.root = resolver.root;
+			this.parentFragment = parentFragment;
+			this.viewmodel = resolver.root.viewmodel;
 			if ( typeof template === 'string' ) {
-				member.value = template;
+				this.value = template;
 			} else if ( template.t === types.REFERENCE ) {
-				member.refResolver = createReferenceResolver( this, template.n, function( keypath ) {
-					member.resolve( keypath );
+				this.refResolver = createReferenceResolver( this, template.n, function( keypath ) {
+					this$0.resolve( keypath );
 				} );
 			} else {
 				new ExpressionResolver( resolver, parentFragment, template, function( keypath ) {
-					member.resolve( keypath );
+					this$0.resolve( keypath );
 				} );
 			}
 		};
@@ -6799,30 +6797,29 @@
 
 		var ReferenceExpressionResolver = function( mustache, template, callback ) {
 			var this$0 = this;
-			var resolver = this,
-				ractive, ref, keypath, parentFragment;
-			resolver.parentFragment = parentFragment = mustache.parentFragment;
-			resolver.root = ractive = mustache.root;
-			resolver.mustache = mustache;
-			resolver.ref = ref = template.r;
-			resolver.callback = callback;
-			resolver.unresolved = [];
+			var ractive, ref, keypath, parentFragment;
+			this.parentFragment = parentFragment = mustache.parentFragment;
+			this.root = ractive = mustache.root;
+			this.mustache = mustache;
+			this.ref = ref = template.r;
+			this.callback = callback;
+			this.unresolved = [];
 			// Find base keypath
 			if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-				resolver.base = keypath;
+				this.base = keypath;
 			} else {
-				resolver.baseResolver = new ReferenceResolver( this, ref, function( keypath ) {
-					resolver.base = keypath;
-					resolver.baseResolver = null;
-					resolver.bubble();
+				this.baseResolver = new ReferenceResolver( this, ref, function( keypath ) {
+					this$0.base = keypath;
+					this$0.baseResolver = null;
+					this$0.bubble();
 				} );
 			}
 			// Find values for members, or mark them as unresolved
-			resolver.members = template.m.map( function( template ) {
+			this.members = template.m.map( function( template ) {
 				return new MemberResolver( template, this$0, parentFragment );
 			} );
-			resolver.ready = true;
-			resolver.bubble();
+			this.ready = true;
+			this.bubble();
 		};
 		ReferenceExpressionResolver.prototype = {
 			getKeypath: function() {
@@ -7134,8 +7131,7 @@
 		} );
 		return function Section$shuffle( newIndices ) {
 			var this$0 = this;
-			var section = this,
-				parentFragment, firstChange, i, newLength, reboundFragments, fragmentOptions, fragment;
+			var parentFragment, firstChange, i, newLength, reboundFragments, fragmentOptions, fragment;
 			// short circuit any double-updates, and ensure that this isn't applied to
 			// non-list sections
 			if ( this.shuffling || this.unbound || this.subtype && this.subtype !== types.SECTION_EACH ) {
@@ -7148,27 +7144,27 @@
 			parentFragment = this.parentFragment;
 			reboundFragments = [];
 			// first, rebind existing fragments
-			newIndices.forEach( function rebindIfNecessary( newIndex, oldIndex ) {
+			newIndices.forEach( function( newIndex, oldIndex ) {
 				var fragment, by, oldKeypath, newKeypath;
 				if ( newIndex === oldIndex ) {
-					reboundFragments[ newIndex ] = section.fragments[ oldIndex ];
+					reboundFragments[ newIndex ] = this$0.fragments[ oldIndex ];
 					return;
 				}
-				fragment = section.fragments[ oldIndex ];
+				fragment = this$0.fragments[ oldIndex ];
 				if ( firstChange === undefined ) {
 					firstChange = oldIndex;
 				}
 				// does this fragment need to be torn down?
 				if ( newIndex === -1 ) {
-					section.fragmentsToUnrender.push( fragment );
+					this$0.fragmentsToUnrender.push( fragment );
 					fragment.unbind();
 					return;
 				}
 				// Otherwise, it needs to be rebound to a new index
 				by = newIndex - oldIndex;
-				oldKeypath = section.keypath + '.' + oldIndex;
-				newKeypath = section.keypath + '.' + newIndex;
-				fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
+				oldKeypath = this$0.keypath + '.' + oldIndex;
+				newKeypath = this$0.keypath + '.' + newIndex;
+				fragment.rebind( this$0.template.i, newIndex, oldKeypath, newKeypath );
 				reboundFragments[ newIndex ] = fragment;
 			} );
 			newLength = this.root.get( this.keypath ).length;
@@ -9309,11 +9305,11 @@
 			Fragment = circular.Fragment;
 		} );
 		__export = function EventHandler$init( element, name, template ) {
-			var handler = this,
-				action, refs, ractive;
-			handler.element = element;
-			handler.root = element.root;
-			handler.name = name;
+			var this$0 = this;
+			var action, refs, ractive;
+			this.element = element;
+			this.root = element.root;
+			this.name = name;
 			if ( name.indexOf( '*' ) !== -1 ) {
 				log.error( {
 					debug: this.root.debug,
@@ -9328,24 +9324,24 @@
 			if ( template.m ) {
 				refs = template.a.r;
 				// This is a method call
-				handler.method = template.m;
-				handler.keypaths = [];
-				handler.fn = getFunctionFromString( template.a.s, refs.length );
-				handler.parentFragment = element.parentFragment;
-				ractive = handler.root;
+				this.method = template.m;
+				this.keypaths = [];
+				this.fn = getFunctionFromString( template.a.s, refs.length );
+				this.parentFragment = element.parentFragment;
+				ractive = this.root;
 				// Create resolvers for each reference
-				handler.refResolvers = refs.map( function( ref, i ) {
+				this.refResolvers = refs.map( function( ref, i ) {
 					var match;
 					// special case - the `event` object
 					if ( match = eventPattern.exec( ref ) ) {
-						handler.keypaths[ i ] = {
+						this$0.keypaths[ i ] = {
 							eventObject: true,
 							refinements: match[ 1 ] ? match[ 1 ].split( '.' ) : []
 						};
 						return null;
 					}
-					return createReferenceResolver( handler, ref, function( keypath ) {
-						handler.resolve( i, keypath );
+					return createReferenceResolver( this$0, ref, function( keypath ) {
+						this$0.resolve( i, keypath );
 					} );
 				} );
 				this.fire = fireMethodCall;
@@ -9622,10 +9618,10 @@
 			args: true
 		};
 		Decorator = function( element, template ) {
-			var decorator = this,
+			var self = this,
 				ractive, name, fragment;
-			decorator.element = element;
-			decorator.root = ractive = element.root;
+			this.element = element;
+			this.root = ractive = element.root;
 			name = template.n || template;
 			if ( typeof name !== 'string' ) {
 				fragment = new Fragment( {
@@ -9637,24 +9633,24 @@
 				fragment.unbind();
 			}
 			if ( template.a ) {
-				decorator.params = template.a;
+				this.params = template.a;
 			} else if ( template.d ) {
-				decorator.fragment = new Fragment( {
+				this.fragment = new Fragment( {
 					template: template.d,
 					root: ractive,
 					owner: element
 				} );
-				decorator.params = decorator.fragment.getValue( getValueOptions );
-				decorator.fragment.bubble = function() {
+				this.params = this.fragment.getValue( getValueOptions );
+				this.fragment.bubble = function() {
 					this.dirtyArgs = this.dirtyValue = true;
-					decorator.params = this.getValue( getValueOptions );
-					if ( decorator.ready ) {
-						decorator.update();
+					self.params = this.getValue( getValueOptions );
+					if ( self.ready ) {
+						self.update();
 					}
 				};
 			}
-			decorator.fn = config.registries.decorators.find( ractive, name );
-			if ( !decorator.fn ) {
+			this.fn = config.registries.decorators.find( ractive, name );
+			if ( !this.fn ) {
 				log.error( {
 					debug: ractive.debug,
 					message: 'missingPlugin',
@@ -9667,21 +9663,20 @@
 		};
 		Decorator.prototype = {
 			init: function() {
-				var decorator = this,
-					node, result, args;
-				node = decorator.element.node;
-				if ( decorator.params ) {
-					args = [ node ].concat( decorator.params );
-					result = decorator.fn.apply( decorator.root, args );
+				var node, result, args;
+				node = this.element.node;
+				if ( this.params ) {
+					args = [ node ].concat( this.params );
+					result = this.fn.apply( this.root, args );
 				} else {
-					result = decorator.fn.call( decorator.root, node );
+					result = this.fn.call( this.root, node );
 				}
 				if ( !result || !result.teardown ) {
 					throw new Error( 'Decorator definition must return an object with a teardown method' );
 				}
 				// TODO does this make sense?
-				decorator.actual = result;
-				decorator.ready = true;
+				this.actual = result;
+				this.ready = true;
 			},
 			update: function() {
 				if ( this.actual.update ) {
@@ -9958,11 +9953,10 @@
 			Fragment = circular.Fragment;
 		} );
 		return function Transition$init( element, template, isIntro ) {
-			var t = this,
-				ractive, name, fragment;
-			t.element = element;
-			t.root = ractive = element.root;
-			t.isIntro = isIntro;
+			var ractive, name, fragment;
+			this.element = element;
+			this.root = ractive = element.root;
+			this.isIntro = isIntro;
 			name = template.n || template;
 			if ( typeof name !== 'string' ) {
 				fragment = new Fragment( {
@@ -9973,9 +9967,9 @@
 				name = fragment.toString();
 				fragment.unbind();
 			}
-			t.name = name;
+			this.name = name;
 			if ( template.a ) {
-				t.params = template.a;
+				this.params = template.a;
 			} else if ( template.d ) {
 				// TODO is there a way to interpret dynamic arguments without all the
 				// 'dependency thrashing'?
@@ -9984,11 +9978,11 @@
 					root: ractive,
 					owner: element
 				} );
-				t.params = fragment.getValue( getValueOptions );
+				this.params = fragment.getValue( getValueOptions );
 				fragment.unbind();
 			}
-			t._fn = config.registries.transitions.find( ractive, name );
-			if ( !t._fn ) {
+			this._fn = config.registries.transitions.find( ractive, name );
+			if ( !this._fn ) {
 				log.error( {
 					debug: ractive.debug,
 					message: 'missingPlugin',
@@ -9997,7 +9991,6 @@
 						name: name
 					}
 				} );
-				return;
 			}
 		};
 	}( log, config, circular );
@@ -10394,8 +10387,8 @@
 		} else {
 			getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 			animateStyle = function( style, value, options, complete ) {
-				var t = this,
-					to;
+				var this$0 = this;
+				var to;
 				// Special case - page isn't visible. Don't animate anything, because
 				// that way you'll never get CSS transitionend events
 				if ( visibility.hidden ) {
@@ -10416,15 +10409,15 @@
 				// callback function that gets called after the animation completes
 				// TODO remove this check in a future version
 				if ( !options ) {
-					warn( 'The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
-					options = t;
-					complete = t.complete;
+					warn( 'The "' + this.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
+					options = this;
+					complete = this.complete;
 				}
 				var promise = new Promise( function( resolve ) {
 					var propertyNames, changedProperties, computedStyle, current, from, i, prop;
 					// Edge case - if duration is zero, set style synchronously and complete
 					if ( !options.duration ) {
-						t.setStyle( to );
+						this$0.setStyle( to );
 						resolve();
 						return;
 					}
@@ -10432,7 +10425,7 @@
 					propertyNames = Object.keys( to );
 					changedProperties = [];
 					// Store the current styles
-					computedStyle = getComputedStyle( t.node );
+					computedStyle = getComputedStyle( this$0.node );
 					from = {};
 					i = propertyNames.length;
 					while ( i-- ) {
@@ -10447,7 +10440,7 @@
 							changedProperties.push( prop );
 							// make the computed style explicit, so we can animate where
 							// e.g. height='auto'
-							t.node.style[ prefix( prop ) ] = current;
+							this$0.node.style[ prefix( prop ) ] = current;
 						}
 					}
 					// If we're not actually changing anything, the transitionend event
@@ -10456,7 +10449,7 @@
 						resolve();
 						return;
 					}
-					createTransitions( t, to, options, changedProperties, resolve );
+					createTransitions( this$0, to, options, changedProperties, resolve );
 				} );
 				// If a callback was supplied, do the honours
 				// TODO remove this check in future
@@ -10518,30 +10511,30 @@
 
 		var __export;
 		__export = function Transition$start() {
-			var t = this,
-				node, originalStyle, completed;
-			node = t.node = t.element.node;
+			var this$0 = this;
+			var node, originalStyle, completed;
+			node = this.node = this.element.node;
 			originalStyle = node.getAttribute( 'style' );
 			// create t.complete() - we don't want this on the prototype,
 			// because we don't want `this` silliness when passing it as
 			// an argument
-			t.complete = function( noReset ) {
+			this.complete = function( noReset ) {
 				if ( completed ) {
 					return;
 				}
-				if ( !noReset && t.isIntro ) {
+				if ( !noReset && this$0.isIntro ) {
 					resetStyle( node, originalStyle );
 				}
 				node._ractive.transition = null;
-				t._manager.remove( t );
+				this$0._manager.remove( this$0 );
 				completed = true;
 			};
 			// If the transition function doesn't exist, abort
-			if ( !t._fn ) {
-				t.complete();
+			if ( !this._fn ) {
+				this.complete();
 				return;
 			}
-			t._fn.apply( t.root, [ t ].concat( t.params ) );
+			this._fn.apply( this.root, [ this ].concat( this.params ) );
 		};
 
 		function resetStyle( node, style ) {
@@ -11490,26 +11483,26 @@
 	var virtualdom_items_Component$init = function( types, warn, parseJSON, createReferenceResolver, ExpressionResolver, ReferenceExpressionResolver, ComponentParameter, createInstance, propagateEvents, updateLiveQueries, decodeKeypath ) {
 
 		return function Component$init( options, Component ) {
-			var component = this,
-				parentFragment, root, data = {},
+			var this$0 = this;
+			var parentFragment, root, data = {},
 				mappings = {},
 				mappingTemplates;
-			parentFragment = component.parentFragment = options.parentFragment;
+			parentFragment = this.parentFragment = options.parentFragment;
 			root = parentFragment.root;
-			component.root = root;
-			component.type = types.COMPONENT;
-			component.name = options.template.e;
-			component.index = options.index;
-			component.indexRefBindings = {};
+			this.root = root;
+			this.type = types.COMPONENT;
+			this.name = options.template.e;
+			this.index = options.index;
+			this.indexRefBindings = {};
 			// even though only one yielder is allowed, we need to have an array of them
 			// as it's possible to cause a yielder to be created before the last one
 			// was destroyed in the same turn of the runloop
-			component.yielders = [];
+			this.yielders = [];
 			if ( !Component ) {
-				throw new Error( 'Component "' + component.name + '" not found' );
+				throw new Error( 'Component "' + this.name + '" not found' );
 			}
-			component.resolvers = [];
-			component.complexParameters = [];
+			this.resolvers = [];
+			this.complexParameters = [];
 			mappingTemplates = options.template.a;
 			if ( mappingTemplates ) {
 				Object.keys( mappingTemplates ).forEach( function( key ) {
@@ -11534,44 +11527,44 @@
 									isSpecial = true;
 									value = decodeKeypath( keypath );
 									if ( ready ) {
-										component.instance.viewmodel.set( key, value );
+										this$0.instance.viewmodel.set( key, value );
 									} else {
 										data[ key ] = value;
 									}
 								} else {
 									if ( ready ) {
-										mapping = component.instance.viewmodel.mappings[ key ];
+										mapping = this$0.instance.viewmodel.mappings[ key ];
 										mapping.resolve( keypath );
 									} else {
 										mappings[ key ] = {
-											origin: component.root.viewmodel,
+											origin: this$0.root.viewmodel,
 											keypath: keypath
 										};
 									}
 								}
 							};
 							if ( ref = template[ 0 ].r ) {
-								resolver = createReferenceResolver( component, template[ 0 ].r, resolve );
+								resolver = createReferenceResolver( this$0, template[ 0 ].r, resolve );
 							} else if ( template[ 0 ].x ) {
-								resolver = new ExpressionResolver( component, parentFragment, template[ 0 ].x, resolve );
+								resolver = new ExpressionResolver( this$0, parentFragment, template[ 0 ].x, resolve );
 							} else if ( template[ 0 ].rx ) {
-								resolver = new ReferenceExpressionResolver( component, template[ 0 ].rx, resolve );
+								resolver = new ReferenceExpressionResolver( this$0, template[ 0 ].rx, resolve );
 							}
 							ready = true;
-							component.resolvers.push( resolver );
+							this$0.resolvers.push( resolver );
 							if ( !resolved ) {
 								// note the mapping anyway, for the benefit of child
 								// components
 								mappings[ key ] = {
-									origin: component.root.viewmodel
+									origin: this$0.root.viewmodel
 								};
 							}
 						} else {
 							// We have a 'complex' parameter, e.g.
 							// `<widget foo='{{bar}} {{baz}}'/>`
-							param = new ComponentParameter( component, key, template );
+							param = new ComponentParameter( this$0, key, template );
 							data[ key ] = param.value;
-							component.complexParameters.push( param );
+							this$0.complexParameters.push( param );
 						}
 					}
 				} );
