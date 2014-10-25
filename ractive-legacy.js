@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-10-25 - commit 6681cdca 
+	2014-10-25 - commit 9df785f3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -602,7 +602,7 @@
 			}
 			// If this is an inline component, and it's not isolated, we
 			// can try going up the scope chain
-			if ( ractive._parent && !ractive.isolated ) {
+			if ( ractive.parent && !ractive.isolated ) {
 				hasContextChain = true;
 				fragment = ractive.component.parentFragment;
 				// Special case - index refs
@@ -613,7 +613,7 @@
 					ractive.viewmodel.set( ref, index, true );
 					return;
 				}
-				keypath = resolveRef( ractive._parent, ref, fragment, true );
+				keypath = resolveRef( ractive.parent, ref, fragment, true );
 				if ( keypath ) {
 					// We need to create an inter-component binding
 					// If parent keypath is 'one.foo' and child is 'two.foo', we bind
@@ -628,7 +628,7 @@
 					childKeypath = childKeys.join( '.' );
 					// TODO trace back to origin
 					ractive.viewmodel.map( childKeypath, {
-						origin: ractive._parent.viewmodel,
+						origin: ractive.parent.viewmodel,
 						keypath: parentKeypath
 					} );
 					return ref;
@@ -4848,7 +4848,7 @@
 				if ( !constructor ) {
 					return;
 				}
-				return constructor[ this.name ].hasOwnProperty( key ) ? constructor : this.findConstructor( constructor._parent, key );
+				return constructor[ this.name ].hasOwnProperty( key ) ? constructor : this.findConstructor( constructor._Parent, key );
 			},
 			find: function( ractive, key ) {
 				var this$0 = this;
@@ -4869,7 +4869,7 @@
 			if ( find = fn( ractive ) ) {
 				return find;
 			}
-			if ( !ractive.isolated && ( parent = ractive._parent ) ) {
+			if ( !ractive.isolated && ( parent = ractive.parent ) ) {
 				return recurseFind( parent, fn );
 			}
 		}
@@ -4988,15 +4988,6 @@
 	var config = function( css, data, defaults, template, parseOptions, registries, wrapPrototype, deprecate ) {
 
 		var custom, options, config, blacklisted;
-		// would be nice to not have these here,
-		// they get added during initialise, so for now we have
-		// to make sure not to try and extend them.
-		// Possibly, we could re-order and not add till later
-		// in process.
-		blacklisted = {
-			'_parent': true,
-			'_component': true
-		};
 		custom = {
 			data: data,
 			template: template,
@@ -5014,10 +5005,10 @@
 		config.keys = Object.keys( defaults ).concat( registries.map( function( r ) {
 			return r.name;
 		} ) ).concat( [ 'css' ] );
-		// add these to blacklisted key's that we don't double extend
-		config.keys.forEach( function( key ) {
-			return blacklisted[ key ] = true;
-		} );
+		// blacklisted key's that we don't double extend
+		blacklisted = config.keys.reduce( function( list, key ) {
+			return list[ key ] = true, list;
+		}, {} );
 		config.parseOptions = parseOptions;
 		config.registries = registries;
 
@@ -5661,6 +5652,18 @@
 		return this.fragment.findComponent( selector );
 	};
 
+	/* Ractive/prototype/findParent.js */
+	var Ractive$findParent = function Ractive$findParent( selector ) {
+		if ( this.parent ) {
+			if ( this.parent.component && this.parent.component.name === selector ) {
+				return this.parent;
+			} else {
+				return this.parent.findParent( selector );
+			}
+		}
+		return null;
+	};
+
 	/* utils/getPotentialWildcardMatches.js */
 	var getPotentialWildcardMatches = function() {
 
@@ -5765,7 +5768,7 @@
 			if ( event ) {
 				delete ractive.event;
 			}
-			if ( ractive._parent && bubble ) {
+			if ( ractive.parent && bubble ) {
 				if ( initialFire && ractive.component ) {
 					var fullName = ractive.component.name + '.' + eventNames[ eventNames.length - 1 ];
 					eventNames = getPotentialWildcardMatches( fullName );
@@ -5773,7 +5776,7 @@
 						event.component = ractive;
 					}
 				}
-				fireEventAs( ractive._parent, eventNames, event, args );
+				fireEventAs( ractive.parent, eventNames, event, args );
 			}
 		}
 
@@ -5821,7 +5824,7 @@
 			keypath = normaliseKeypath( keypath );
 			value = this.viewmodel.get( keypath, options );
 			// Create inter-component binding, if necessary
-			if ( value === undefined && this._parent && !this.isolated ) {
+			if ( value === undefined && this.parent && !this.isolated ) {
 				if ( resolveRef( this, keypath, this.fragment ) ) {
 					// creates binding as side-effect, if appropriate
 					value = this.viewmodel.get( keypath );
@@ -11153,7 +11156,7 @@
 						( element.liveQueries || ( element.liveQueries = [] ) ).push( query );
 					}
 				}
-			} while ( instance = instance._parent );
+			} while ( instance = instance.parent );
 		}
 		return __export;
 	}( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render, Transition );
@@ -11658,16 +11661,16 @@
 		} );
 		// finds the component constructor in the registry or view hierarchy registries
 		return function getComponent( ractive, name ) {
-			var component, instance = config.registries.components.findInstance( ractive, name );
+			var Component, instance = config.registries.components.findInstance( ractive, name );
 			if ( instance ) {
-				component = instance.components[ name ];
+				Component = instance.components[ name ];
 				// best test we have for not Ractive.extend
-				if ( !component._parent ) {
+				if ( !Component._Parent ) {
 					// function option, execute and store for reset
-					var fn = component.bind( instance );
+					var fn = Component.bind( instance );
 					fn.isOwner = instance.components.hasOwnProperty( name );
-					component = fn( instance.data );
-					if ( !component ) {
+					Component = fn( instance.data );
+					if ( !Component ) {
 						log.warn( {
 							debug: ractive.debug,
 							message: 'noRegistryFunctionReturn',
@@ -11678,15 +11681,15 @@
 						} );
 						return;
 					}
-					if ( typeof component === 'string' ) {
+					if ( typeof Component === 'string' ) {
 						//allow string lookup
-						component = getComponent( ractive, component );
+						Component = getComponent( ractive, Component );
 					}
-					component._fn = fn;
-					instance.components[ name ] = component;
+					Component._fn = fn;
+					instance.components[ name ] = Component;
 				}
 			}
-			return component;
+			return Component;
 		};
 	}( config, log, circular );
 
@@ -11812,14 +11815,15 @@
 				partials: partials,
 				magic: ractive.magic || Component.defaults.magic,
 				modifyArrays: ractive.modifyArrays,
-				_parent: ractive,
-				_component: component,
 				// need to inherit runtime parent adaptors
 				adapt: ractive.adapt,
 				yield: {
 					template: contentDescriptor,
 					instance: ractive
 				}
+			}, {
+				parent: ractive,
+				_component: component
 			} );
 			return instance;
 		};
@@ -11876,7 +11880,7 @@
 			if ( query = ancestor._liveComponentQueries[ '_' + component.name ] ) {
 				query.push( component.instance );
 			}
-			ancestor = ancestor._parent;
+			ancestor = ancestor.parent;
 		}
 	};
 
@@ -12047,7 +12051,7 @@
 				if ( query = instance._liveComponentQueries[ '_' + component.name ] ) {
 					query._remove( component );
 				}
-			} while ( instance = instance._parent );
+			} while ( instance = instance.parent );
 		}
 		return __export;
 	}( Ractive$shared_hooks_Hook, removeFromArray );
@@ -12721,7 +12725,7 @@
 	}( arrayContentsMatch, startsWith, isEqual );
 
 	/* Ractive/prototype.js */
-	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
+	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, findParent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
 
 		return {
 			add: add,
@@ -12731,6 +12735,7 @@
 			findAll: findAll,
 			findAllComponents: findAllComponents,
 			findComponent: findComponent,
+			findParent: findParent,
 			fire: fire,
 			get: get,
 			insert: insert,
@@ -12757,7 +12762,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$findParent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
 
 	/* utils/getGuid.js */
 	var getGuid = function() {
@@ -12792,7 +12797,7 @@
 				this.inProcess[ ractive._guid ] = true;
 			},
 			end: function( ractive ) {
-				var parent = ractive._parent;
+				var parent = ractive.parent;
 				// If this is *isn't* a child of a component that's in process,
 				// it should call methods or fire at this point
 				if ( !parent || !this.inProcess[ parent._guid ] ) {
@@ -14384,8 +14389,11 @@
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = {};
+			var _options = arguments[ 2 ];
+			if ( _options === void 0 )
+				_options = {};
 			var el;
-			initialiseProperties( ractive, options );
+			initialiseProperties( ractive, _options );
 			// make this option do what would be expected if someone
 			// did include it on a new Ractive() or new Component() call.
 			// Silly to do so (put a hook on the very options being used),
@@ -14449,9 +14457,15 @@
 			// live queries
 			ractive._liveQueries = [];
 			ractive._liveComponentQueries = [];
-			// If this is a component, store a reference to the parent
-			if ( options._parent && options._component ) {
-				ractive._parent = options._parent;
+			// No parent? This is the root
+			if ( !options.parent ) {
+				ractive.root = ractive;
+			} else {
+				ractive.parent = options.parent;
+				ractive.root = ractive.parent.root;
+			}
+			// component references
+			if ( options._component ) {
 				ractive.component = options._component;
 				// And store a reference to the instance on the component
 				options._component.instance = ractive;
@@ -14497,8 +14511,8 @@
 						options[ key ] = result;
 					}
 				} );
-				if ( Child._parent !== Ractive ) {
-					Child = Child._parent;
+				if ( Child._Parent !== Ractive ) {
+					Child = Child._Parent;
 				} else {
 					Child = false;
 				}
@@ -14536,8 +14550,8 @@
 			// prototype methods and default options as well
 			options = unwrap( options );
 			// create Child constructor
-			Child = function( options ) {
-				initialise( this, options );
+			Child = function( options, _options ) {
+				initialise( this, options, _options );
 			};
 			proto = create( Parent.prototype );
 			proto.constructor = Child;
@@ -14557,7 +14571,7 @@
 					configurable: true
 				},
 				// Parent - for IE8, can't use Object.getPrototypeOf
-				_parent: {
+				_Parent: {
 					value: Parent
 				}
 			};
