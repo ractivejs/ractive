@@ -1,6 +1,7 @@
 import runloop from 'global/runloop';
 import log from 'utils/log';
 import isEqual from 'utils/isEqual';
+import UnresolvedDependency from 'viewmodel/Computation/UnresolvedDependency';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;
@@ -136,7 +137,7 @@ Computation.prototype = {
 	},
 
 	updateDependencies: function ( newDeps ) {
-		var self = this, i, oldDeps, keypath, dependenciesChanged, unresolved;
+		var i, oldDeps, keypath, dependenciesChanged, unresolved;
 
 		oldDeps = this.softDeps;
 
@@ -162,17 +163,7 @@ Computation.prototype = {
 				// if this keypath is currently unresolved, we need to mark
 				// it as such. TODO this is a bit muddy...
 				if ( isUnresolved( this.viewmodel, keypath ) && ( !this.unresolvedDeps[ keypath ] ) ) {
-					unresolved = {
-						ref: keypath,
-						root: this.viewmodel.ractive,
-						parentFragment: this.viewmodel.ractive.component && this.viewmodel.ractive.component.parentFragment,
-						resolve: function () {
-							self.softDeps.push( keypath );
-							self.unresolvedDeps[ keypath ] = null;
-							self.viewmodel.register( keypath, self, 'computed' );
-						}
-					};
-
+					unresolved = new UnresolvedDependency( this, keypath );
 					newDeps.splice( i, 1 );
 
 					this.unresolvedDeps[ keypath ] = unresolved;
