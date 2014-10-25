@@ -2,8 +2,18 @@ Changelog
 ---------
 
 * 0.6.1
-	* `ractive.parent`, `ractive.root` and `ractive.findParent(name)` now API supported references to component parent, view hierarchy root, and find method for parent component.
-	* `this.event` available in method calls
+	* Breaking changes
+		* If `obj` has no keys, then the `else` half of `{{#each obj}}...{{else}}...{{/each}}` will render
+	* Other changes
+		* `ractive.parent`, `ractive.root` and `ractive.findParent(name)` now API supported references to component parent, view hierarchy root, and find method for parent component.
+		* `this.event` available in method calls
+		* Deprecation warnings are printed regardless of whether `debug` is true
+		* HTML entity decoding is done at parse time, not render time
+		* Special `@keypath` reference resolves to the current context
+		* `@index`, `@key` and `@keypath` references are resolved at render time, not parse time (fixes #1303)
+		* Centralised reference resolution logic
+		* `console` is a supported global in expression - e.g. `{{console.log('debugging',foo)}}`
+	* Fixes for #1046, #1175, #1190, #1209, #1255, #1273, #1278, #1285, #1293, #1295, #1303, #1305, #1313, #1314, #1320, #1322, #1326, #1337, #1340, #1346, #1357, #1360, #1364, #1365, #1369, #1373, #1383, #1390, #1393, #1395, and #1399
 
 * 0.6.0
 	* Breaking changes:
