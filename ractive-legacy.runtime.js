@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-25 - commit bd38cd61 
+	2014-10-25 - commit c7aefb81 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11035,14 +11035,22 @@
 	};
 
 	/* virtualdom/items/Component/prototype/unbind.js */
-	var virtualdom_items_Component$unbind = function() {
+	var virtualdom_items_Component$unbind = function( Hook, removeFromArray ) {
 
 		var __export;
+		var teardownHook = new Hook( 'teardown' );
 		__export = function Component$unbind() {
+			var instance = this.instance;
 			this.complexParameters.forEach( unbind );
 			this.bindings.forEach( unbind );
 			removeFromLiveComponentQueries( this );
-			this.instance.fragment.unbind();
+			// teardown the instance
+			instance.fragment.unbind();
+			instance.viewmodel.teardown();
+			if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
+				removeFromArray( instance.el.__ractive_instances__, instance );
+			}
+			teardownHook.fire( instance );
 		};
 
 		function unbind( thing ) {
@@ -11059,15 +11067,12 @@
 			} while ( instance = instance._parent );
 		}
 		return __export;
-	}();
+	}( Ractive$shared_hooks_Hook, removeFromArray );
 
 	/* virtualdom/items/Component/prototype/unrender.js */
 	var virtualdom_items_Component$unrender = function Component$unrender( shouldDestroy ) {
 		this.shouldDestroy = shouldDestroy;
 		this.instance.unrender();
-		if ( shouldDestroy ) {
-			this.instance.teardown();
-		}
 	};
 
 	/* virtualdom/items/Component/_Component.js */
