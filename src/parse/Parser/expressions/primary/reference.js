@@ -17,7 +17,7 @@ getArrayRefinement = function ( parser ) {
 arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
-globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
 
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
@@ -42,10 +42,10 @@ export default function ( parser ) {
 
 	if ( !ancestor ) {
 		// we might have an implicit iterator or a restricted reference
-		dot = parser.matchString( '.' ) || '';
+		dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 	}
 
-	name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
+	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( patterns.name ) || '';
 
 	// bug out if it's a keyword
 	if ( keywords.test( name ) ) {

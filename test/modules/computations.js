@@ -199,7 +199,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			Widget = Ractive.extend({
 				template: '{{# foo <= bar }}yes{{/}}',
 				computed: { foo: '[]' },
-				init: function () {
+				oninit: function () {
 					this.set({ bar: 10 });
 				}
 			});
@@ -419,6 +419,50 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.set( 'str', 'How Long Is A Piece Of String' );
 			t.deepEqual( count, { foo: 3, bar: 2, baz: 3, qux: 1 });
+		});
+
+		test( 'Computations don\'t mistakenly set when used in components (#1357)', function ( t ) {
+			var ractive, Component;
+
+			Component = Ractive.extend({
+				template: "{{ a }}:{{ b }}",
+			    computed: {
+			        b: function() {
+			            var a = this.get("a");
+			            return a + "bar";
+			        }
+			    }
+			});
+
+			ractive = new Ractive({
+			    el: fixture,
+			    template: '{{ a }}:{{ b }}-<component a="{{ a }}" b="{{ b }}" />',
+				components: {
+			        component: Component
+			    },
+			    data: {
+			        a: "foo"
+			    }
+			});
+
+			t.equal( fixture.innerHTML, 'foo:foobar-foo:foobar' );
+		})
+
+		test( 'Computations depending up computed values cascade while updating (#1383)', ( t ) => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#if a < 10}}less{{else}}more{{/if}}',
+				data: {
+					b: { c: 0 }
+				},
+				computed: {
+					a: function() { return this.get('b').c; }
+				}
+			});
+
+			t.equal( fixture.innerHTML, 'less' );
+			ractive.set( 'b.c', 100 );
+			t.equal( fixture.innerHTML, 'more' );
 		});
 
 	};

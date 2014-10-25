@@ -1,25 +1,21 @@
-import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
-
 export default function EventHandler$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	var fragment;
 	if ( this.method ) {
-		this.args.forEach( function ( arg ) {
-			if ( arg.indexRef && arg.indexRef === indexRef ) {
-				arg.value = newIndex;
-			}
-
-			if ( arg.keypath && ( newKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
-				arg.keypath = newKeypath;
-			}
-		});
+		fragment = this.element.parentFragment;
+		this.refResolvers.forEach( rebind );
 
 		return;
 	}
 
 	if ( typeof this.action !== 'string' ) {
-		this.action.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		rebind( this.action );
 	}
 
 	if ( this.dynamicParams ) {
-		this.dynamicParams.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		rebind( this.dynamicParams );
+	}
+
+	function rebind ( thing ) {
+		thing && thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	}
 }

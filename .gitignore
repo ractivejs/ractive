@@ -15,3 +15,4 @@ build/*
 .amd/
 .transpiled/
 .gobble
+ractive.js

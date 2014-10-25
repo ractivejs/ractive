@@ -1,4 +1,5 @@
 import getLowestIndex from 'parse/converters/utils/getLowestIndex';
+import decodeCharacterReferences from 'shared/decodeCharacterReferences';
 
 export default function ( parser ) {
 	var index, remaining, disallowed, barrier;
@@ -11,7 +12,6 @@ export default function ( parser ) {
 		index = remaining.indexOf( barrier );
 	} else {
 		disallowed = [
-			barrier,
 			parser.delimiters[0],
 			parser.tripleDelimiters[0],
 			parser.staticDelimiters[0],
@@ -21,10 +21,12 @@ export default function ( parser ) {
 		// http://developers.whatwg.org/syntax.html#syntax-attributes
 		if ( parser.inAttribute === true ) {
 			// we're inside an unquoted attribute value
-			disallowed.push( '"', "'", '=', '>', '`' );
+			disallowed.push( '"', "'", '=', '<', '>', '`' );
 		} else if ( parser.inAttribute ) {
 			// quoted attribute value
 			disallowed.push( parser.inAttribute );
+		} else {
+			disallowed.push( barrier );
 		}
 
 		index = getLowestIndex( remaining, disallowed );
@@ -40,5 +42,5 @@ export default function ( parser ) {
 
 	parser.pos += index;
 
-	return remaining.substr( 0, index );
+	return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
 }

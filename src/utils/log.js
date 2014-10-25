@@ -4,6 +4,9 @@ import errors from 'config/errors';
 var log = {
 	warn: function ( options, passthru ) {
 		if ( !options.debug && !passthru ) { return; }
+		this.warnAlways( options );
+	},
+	warnAlways: function ( options ) {
 		this.logger( getMessage( options), options.allowDuplicates );
 	},
 	error: function ( options ) {

@@ -29,7 +29,7 @@
 		<a href='http://twitter.com/RactiveJS'>Get help on Twitter @RactiveJS</a>
 	</footer>
 
-	<script id='template' type='text/ractive'>
+	<script id='template' type='text/html'>
 		<!-- template goes here -->
 	</script>
 
@@ -42,7 +42,10 @@
 		fixture = document.getElementsByTagName( 'main' )[0]; // so we can copy and paste into test suite more easily
 
 		// Configure RequireJS to load Ractive from the src/ folder
-		require.config({ baseUrl: '../../src/' });
+		require.config({
+			baseUrl: '../../src/',
+			paths: { ractive: 'Ractive' }
+		});
 
 		require([ 'ractive' ], function ( Ractive ) {
 			window.Ractive = Ractive;

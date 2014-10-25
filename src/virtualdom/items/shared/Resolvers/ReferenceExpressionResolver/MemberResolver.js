@@ -1,14 +1,13 @@
 import types from 'config/types';
-import resolveRef from 'shared/resolveRef';
-import Unresolved from 'shared/Unresolved';
-import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
+import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 var MemberResolver = function ( template, resolver, parentFragment ) {
-	var member = this, ref, indexRefs, index, ractive, keypath;
+	var member = this, keypath;
 
 	member.resolver = resolver;
 	member.root = resolver.root;
+	member.parentFragment = parentFragment;
 	member.viewmodel = resolver.root.viewmodel;
 
 	if ( typeof template === 'string' ) {
@@ -17,31 +16,9 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 
 	// Simple reference?
 	else if ( template.t === types.REFERENCE ) {
-		ref = member.ref = template.n;
-
-		// If it's an index reference, our job is simple
-		if ( ( indexRefs = parentFragment.indexRefs ) && ( index = indexRefs[ ref ] ) !== undefined ) {
-			member.indexRef = ref;
-			member.value = index;
-		}
-
-		// Otherwise we need to resolve the reference, and observe the keypath
-		else {
-			ractive = resolver.root;
-
-			// Can we resolve the reference immediately?
-			if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-				member.resolve( keypath );
-			}
-
-			else {
-				// Couldn't resolve yet
-				member.unresolved = new Unresolved( ractive, ref, parentFragment, function ( keypath ) {
-					member.unresolved = null;
-					member.resolve( keypath );
-				});
-			}
-		}
+		member.refResolver = createReferenceResolver( this, template.n, keypath => {
+			member.resolve( keypath );
+		});
 	}
 
 	// Otherwise we have an expression in its own right
@@ -54,6 +31,10 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 
 MemberResolver.prototype = {
 	resolve: function ( keypath ) {
+		if ( this.keypath ) {
+			this.viewmodel.unregister( this.keypath, this );
+		}
+
 		this.keypath = keypath;
 		this.value = this.viewmodel.get( keypath );
 
@@ -67,24 +48,8 @@ MemberResolver.prototype = {
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		var keypath;
-
-		if ( indexRef && this.indexRef === indexRef ) {
-			if ( newIndex !== this.value ) {
-				this.value = newIndex;
-				return true;
-			}
-		}
-
-		else if ( this.keypath && ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) ) {
-			this.unbind();
-
-			this.keypath = keypath;
-			this.value = this.root.viewmodel.get( keypath );
-
-			this.bind();
-
-			return true;
+		if ( this.refResolver ) {
+			this.refResolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 		}
 	},
 
@@ -95,7 +60,7 @@ MemberResolver.prototype = {
 
 	unbind: function () {
 		if ( this.keypath ) {
-			this.root.viewmodel.unregister( this.keypath, this );
+			this.viewmodel.unregister( this.keypath, this );
 		}
 
 		if ( this.unresolved ) {
@@ -104,14 +69,8 @@ MemberResolver.prototype = {
 	},
 
 	forceResolution: function () {
-		if ( this.unresolved ) {
-			this.unresolved.unbind();
-			this.unresolved = null;
-
-			this.keypath = this.ref;
-			this.value = this.viewmodel.get( this.ref );
-
-			this.bind();
+		if ( this.refResolver ) {
+			this.refResolver.forceResolution();
 		}
 	}
 };

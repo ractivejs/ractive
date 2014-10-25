@@ -1,6 +1,6 @@
 export default function EventHandler$unbind () {
 	if ( this.method ) {
-		this.unresolved.forEach( teardown );
+		this.refResolvers.forEach( unbind );
 		return;
 	}
 
@@ -15,6 +15,6 @@ export default function EventHandler$unbind () {
 	}
 }
 
-function teardown ( x ) {
-	x.teardown();
+function unbind ( x ) {
+	x.unbind();
 }

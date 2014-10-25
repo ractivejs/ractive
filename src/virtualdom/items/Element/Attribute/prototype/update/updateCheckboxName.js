@@ -15,5 +15,6 @@ export default function Attribute$updateCheckboxName () {
 				return;
 			}
 		}
+		node.checked = false;
 	}
 }

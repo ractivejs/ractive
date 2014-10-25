@@ -11,7 +11,7 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 				// augment base Ractive object slightly
 				Ractive_original = Ractive;
 				Ractive = Ractive.extend({
-					beforeInit: function ( options ) {
+					onconstruct: function ( options ) {
 						// if a beforeComplete method is given as an initialisation option,
 						// add it to the instance (unless it already exists on a component prototype)
 						!this.beforeComplete && ( this.beforeComplete = options.beforeComplete );
@@ -89,7 +89,7 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 				beforeComplete: function(){
 					transitioned = true;
 				},
-				complete: function(){
+				oncomplete: function(){
 					t.ok( !transitioned, 'transition happened');
 					start()
 				}
@@ -107,7 +107,7 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 				beforeComplete: function(){
 					transitioned = true;
 				},
-				complete: function(){
+				oncomplete: function(){
 					t.ok( !transitioned, 'transition happened');
 					start()
 				}
@@ -124,7 +124,7 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 
 			Component = Ractive.extend({
 				template: '{{#foo}}<div intro-outro="test"></div>{{/foo}}',
-				beforeInit: function ( options ) {
+				onconstruct: function ( options ) {
 					this._super( options );
 					this.transitionsEnabled = false;
 				},
@@ -136,7 +136,7 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			ractive = new Component({
 				el: fixture,
 				data: { foo: true },
-				complete: function () {
+				oncomplete: function () {
 					this.set( 'foo', false ).then( function(){
 						t.ok( !transitioned, 'outro transition happened');
 						start()
@@ -158,7 +158,7 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 				ractive = new Ractive({
 					el: fixture,
 					template: '<div intro="foo"></div>',
-					complete: function () {
+					oncomplete: function () {
 						console.warn = warn;
 						start();
 					}
@@ -172,7 +172,7 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			ractive = new Ractive({
 				el: fixture,
 				template: '<div intro="fade"></div>',
-				complete: function () {
+				oncomplete: function () {
 					t.equal( div.style.opacity, '' );
 					QUnit.start();
 				}

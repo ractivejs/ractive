@@ -1,4 +1,5 @@
 import isArray from 'utils/isArray';
+import arrayContains from 'utils/arrayContains';
 import removeFromArray from 'utils/removeFromArray';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
@@ -20,7 +21,7 @@ var CheckboxNameBinding = Binding.extend({
 	},
 
 	init: function () {
-		var existingValue, bindingValue, noInitialValue;
+		var existingValue, bindingValue;
 
 		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
 		this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
@@ -35,19 +36,13 @@ var CheckboxNameBinding = Binding.extend({
 			this.siblings.noInitialValue = true;
 		}
 
-		noInitialValue = this.siblings.noInitialValue;
+		// If no initial value was set, and this input is checked, we
+		// update the model
+		if ( this.siblings.noInitialValue && this.element.getAttribute( 'checked' ) ) {
+			existingValue = this.root.viewmodel.get( this.keypath );
+			bindingValue = this.element.getAttribute( 'value' );
 
-		existingValue = this.root.viewmodel.get( this.keypath );
-		bindingValue = this.element.getAttribute( 'value' );
-
-		if ( noInitialValue ) {
-			this.isChecked = this.element.getAttribute( 'checked' );
-
-			if ( this.isChecked ) {
-				existingValue.push( bindingValue );
-			}
-		} else {
-			this.shouldOverride = true;
+			existingValue.push( bindingValue );
 		}
 	},
 
@@ -56,23 +51,15 @@ var CheckboxNameBinding = Binding.extend({
 	},
 
 	render: function () {
-		var node = this.element.node, existingValue, bindingValue, i;
+		var node = this.element.node, existingValue, bindingValue;
 
-		if ( this.shouldOverride ) {
-			existingValue = this.root.viewmodel.get( this.keypath );
-			bindingValue = this.element.getAttribute( 'value' );
+		existingValue = this.root.viewmodel.get( this.keypath );
+		bindingValue = this.element.getAttribute( 'value' );
 
-			if ( isArray( existingValue ) ) {
-				i = existingValue.length;
-				while ( i-- ) {
-					if ( existingValue[i] == bindingValue ) {
-						this.isChecked = true;
-						break;
-					}
-				}
-			} else {
-				this.isChecked = existingValue == bindingValue;
-			}
+		if ( isArray( existingValue ) ) {
+			this.isChecked = arrayContains( existingValue, bindingValue );
+		} else {
+			this.isChecked = existingValue == bindingValue;
 		}
 
 		node.name = '{{' + this.keypath + '}}';

@@ -12,6 +12,7 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath ) {
 	this.otherInstance = otherInstance;
 	this.otherKeypath = otherKeypath;
 
+	this.lock = () => this.updating = true;
 	this.unlock = () => this.updating = false;
 
 	this.bind();
@@ -20,6 +21,10 @@ var Binding = function ( ractive, keypath, otherInstance, otherKeypath ) {
 };
 
 Binding.prototype = {
+	isLocked: function () {
+		return this.updating || ( this.counterpart && this.counterpart.updating );
+	},
+
 	shuffle: function ( newIndices, value ) {
 		this.propagateChange( value, newIndices );
 	},
@@ -29,23 +34,32 @@ Binding.prototype = {
 	},
 
 	propagateChange: function ( value, newIndices ) {
+		var other;
+
 		// Only *you* can prevent infinite loops
-		if ( this.updating || this.counterpart && this.counterpart.updating ) {
+		if ( this.isLocked() ) {
 			this.value = value;
 			return;
 		}
 
 		if ( !isEqual( value, this.value ) ) {
-			this.updating = true;
+			this.lock();
 
 			// TODO maybe the case that `value === this.value` - should that result
 			// in an update rather than a set?
-			runloop.addViewmodel( this.otherInstance.viewmodel );
+
+			// if the other viewmodel is already locked up, need to do a deferred update
+			if ( !runloop.addViewmodel( other = this.otherInstance.viewmodel ) && this.counterpart.value !== value ) {
+				runloop.scheduleTask( () => runloop.addViewmodel( other ) );
+			}
+
 
 			if ( newIndices ) {
-				this.otherInstance.viewmodel.smartUpdate( this.otherKeypath, value, newIndices );
+				other.smartUpdate( this.otherKeypath, value, newIndices );
 			} else {
-				this.otherInstance.viewmodel.set( this.otherKeypath, value );
+				if( isSettable( other, this.otherKeypath ) ) {
+					other.set( this.otherKeypath, value );
+				}
 			}
 
 			this.value = value;
@@ -54,6 +68,24 @@ Binding.prototype = {
 			// the runloop end cycle? may be a problem...
 			runloop.scheduleTask( this.unlock );
 		}
+	},
+
+	refineValue: function ( keypaths ) {
+
+		var other;
+
+		if ( this.isLocked() ) {
+			return;
+		}
+
+		this.lock();
+		runloop.addViewmodel( other = this.otherInstance.viewmodel );
+
+		keypaths
+			.map( keypath => this.otherKeypath + keypath.substr( this.keypath.length ) )
+			.forEach( keypath => other.mark( keypath ) );
+
+		runloop.scheduleTask( this.unlock );
 	},
 
 	bind: function () {
@@ -73,6 +105,11 @@ Binding.prototype = {
 		this.root.viewmodel.unregister( this.keypath, this );
 	}
 };
+
+function isSettable ( viewmodel, keypath ) {
+	var computed = viewmodel.computations[ keypath ];
+	return !computed || computed.setter;
+}
 
 export default function createComponentBinding ( component, parentInstance, parentKeypath, childKeypath ) {
 	var hash, childInstance, bindings, parentToChildBinding, childToParentBinding;

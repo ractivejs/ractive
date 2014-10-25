@@ -24,6 +24,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.nodes.test, 'click' );
 		});
 
+		test( 'empty event on-click="" ok', t => {
+			var ractive;
+
+			expect( 0 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<span id="test" on-click="">click me</span>'
+			});
+
+			simulant.fire( ractive.nodes.test, 'click' );
+		})
+
 		test( 'on-click="someEvent" does not fire event when unrendered', t => {
 			var ractive, node;
 
@@ -674,17 +687,25 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( '@index can be used in proxy event directives', t => {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{#each letters}}<button on-click="select:{{@index}}"></button>{{/each}}',
+				template: `{{#each letters}}
+				             <button class="proxy" on-click="select:{{@index}}"></button>
+				             <button class="method" on-click="select(@index)"></button>
+				           {{/each}}`,
 				data: { letters: [ 'a', 'b', 'c' ] }
 			});
 
-			expect( 1 );
+			expect( 3 );
 
-			ractive.on( 'select', function ( event, index ) {
-				t.equal( index, 1 );
-			});
+			ractive.select = ( idx ) => t.equal( idx, 1 );
 
-			simulant.fire( ractive.findAll( 'button' )[1], 'click' );
+			ractive.on( 'select', ( event, index ) => t.equal( index, 1 ) );
+
+			simulant.fire( ractive.findAll( 'button[class=proxy]' )[1], 'click' );
+			simulant.fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
+
+			ractive.splice( 'letters', 0, 1 );
+			ractive.splice( 'letters', 1, 0, 'a' );
+			simulant.fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
 		});
 
 		test( 'Calling a builtin method', function ( t ) {
@@ -796,6 +817,20 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			expect( 1 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
+		test( 'Current event is available to method handler as this.event (#1403)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<button on-click="test(event)"></button>',
+				test: function( event ) {
+					t.equal( event, this.event );
+					t.equal( ractive, this );
+				}
+			});
+
+			expect( 2 );
 			simulant.fire( ractive.find( 'button' ), 'click' );
 		});
 
@@ -1195,6 +1230,58 @@ define([ 'ractive' ], function ( Ractive ) {
 			events.forEach( ractive.fire.bind( ractive ) );
 
 			t.deepEqual( fired, events );
+		});
+
+		module( 'Issues' );
+
+		asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => {
+			var ractive, Child, Grandchild, torndown = [];
+
+			Child = Ractive.extend({
+				template:  `<div>
+								{{#each model.grandChildTitles}}
+	    							<grandchild item="{{.}}" />
+	    						{{/each}}
+	    					</div>`,
+	    		onteardown: function() {
+					torndown.push( this );
+				}
+			});
+
+			Grandchild = Ractive.extend({
+				template: '{{title}}',
+	    		onteardown: function() {
+					torndown.push( this );
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#if model.childTitle}}<child model="{{model}}"/>{{/if}}',
+				data: {
+					model : {
+						title : 'parent',
+						childTitle : 'child',
+						grandChildTitles : [
+							{ title : 'one' },
+							{ title : 'two' },
+							{ title : 'three' }
+						]
+					}
+				},
+				components: {
+					child: Child,
+					grandchild: Grandchild
+				}
+			});
+
+			setTimeout(function() {
+				ractive.set('model', {});
+				t.equal( torndown.length, 4 );
+				QUnit.start()
+			});
+
+
 		});
 	};
 

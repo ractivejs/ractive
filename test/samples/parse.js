@@ -521,6 +521,11 @@ var parseTests = [
 		parsed: {v:1,t:[{t:7,e:'div',p:[1,1,0],f:[{t:7,e:'p',p:[1,6,5],f:['HTML']},{t:7,e:'p',p:[1,17,16],f:[{t:2,p:[1,20,19],r:'mustache'}]}]}]}
 	},
 	{
+		name: "Empty event attribute",
+		template: "<p on-click=''></p>",
+		parsed: {v:1,t:[{t:7,e:'p',v:{click:''}}]}
+	},
+	{
 		name: 'Reserved event names cannot be used for proxy events',
 		template: '<div on-foo="change"></div>',
 		error: 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert) at line 1 character 15:\n' +
@@ -695,6 +700,16 @@ var parseTests = [
 		name: '{{else}} block in attribute',
 		template: '<img src="{{#if mobile}}small{{else}}big{{/if}}.png">',
 		parsed: {v:1,t:[{t:7,e:'img',a:{src:[{t:4,r:'mobile',n:50,f:['small']},{t:4,r:'mobile',n:51,f:['big']},'.png']}}]}
+	},
+	{
+		name: 'Attributes can contain HTML (#1322)',
+		template: '<div data-attr="{{#each array}}<div>{{this}}</div>{{/each}}"></div>',
+		parsed: {v:1,t:[{t:7,e:'div',a:{'data-attr':[{t:4,n:52,r:'array',f:['<div>',{t:2,r:'.'},'</div>']}]}}]}
+	},
+	{
+		name: 'Attributes can contain HTML (#1322)',
+		template: '<div data-attr=\'{{#each array}}<div>{{this}}</div>{{/each}}\'></div>',
+		parsed: {v:1,t:[{t:7,e:'div',a:{'data-attr':[{t:4,n:52,r:'array',f:['<div>',{t:2,r:'.'},'</div>']}]}}]}
 	}
 ];
 

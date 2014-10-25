@@ -140,6 +140,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div contenteditable="true"><p>some different content</p></div>' );
 		});
 
+		test( 'Contenteditable elements can be bound with a bindable contenteditable attribute.', ( t ) => {
+			var div, ractive = new Ractive({
+				el: fixture,
+				template: '<div contenteditable="{{editable}}" value="{{content}}"><strong>some content</strong></div>',
+				data: { editable: false }
+			});
+
+			div = ractive.find( 'div' );
+			div.innerHTML = 'foo';
+			simulant.fire( div, 'change' );
+
+			t.equal( div.innerHTML, ractive.get( 'content' ) );
+			t.equal( ractive.get( 'content' ), 'foo' );
+		});
+
 		test( 'Existing model data overrides contents of contenteditable elements', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
@@ -524,6 +539,11 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( checkboxes[0].checked );
 			t.ok( checkboxes[1].checked );
 			t.ok( checkboxes[2].checked );
+
+			ractive.shift( 'array' );
+
+			t.ok( !checkboxes[0].checked );
+			t.ok( checkboxes[1].checked );
 		});
 
 		test( 'input[type="checkbox"] works with array of numeric values (#1305)', function ( t ) {
@@ -574,6 +594,42 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( checkboxes[0].checked );
 			t.ok( checkboxes[1].checked );
 			t.ok( checkboxes[2].checked );
+		});
+
+		test( 'Using expressions in two-way bindings triggers a warning (#1399)', function ( t ) {
+			var console_warn = console.warn;
+
+			console.warn = function ( message ) {
+				t.ok( ~message.indexOf( 'Two-way binding does not work with expressions (`foo()`)' ) );
+			};
+
+			new Ractive({
+				el: fixture,
+				template: '<input value="{{foo()}}">',
+				data: { foo: () => 'bar' }
+			});
+
+			console.warn = console_warn;
+		});
+
+		test( 'Changes made in oninit are reflected on render (#1390)', function ( t ) {
+			var ractive, inputs;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#each items}}<input type="checkbox" name="{{selected}}" value="{{this}}">{{/each}}',
+				data: { items: [ 'a', 'b', 'c' ] },
+				oninit: function () {
+					this.set( 'selected', [ 'b' ]);
+				},
+				onrender: function () {
+					inputs = this.findAll( 'input' );
+				}
+			});
+
+			t.ok( !inputs[0].checked );
+			t.ok(  inputs[1].checked );
+			t.ok( !inputs[2].checked );
 		});
 
 	};

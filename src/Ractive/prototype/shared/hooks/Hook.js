@@ -1,17 +1,23 @@
 import log from 'utils/log';
 
-// TODO: depricate in future release
-var deprications = {
+// TODO: deprecate in future release
+var deprecations = {
 	construct: {
-		depricated: 'beforeInit',
+		deprecated: 'beforeInit',
 		replacement: 'onconstruct'
 	},
 	render: {
-		depricated: 'init',
-		replacement: 'onrender'
+		deprecated: 'init',
+		message: 'The "init" method has been deprecated ' +
+			'and will likely be removed in a future release. ' +
+			'You can either use the "oninit" method which will fire ' +
+			'only once prior to, and regardless of, any eventual ractive ' +
+			'instance being rendered, or if you need to access the ' +
+			'rendered DOM, use "onrender" instead. ' +
+			'See http://docs.ractivejs.org/latest/migrating for more information.'
 	},
 	complete: {
-		depricated: 'complete',
+		deprecated: 'complete',
 		replacement: 'oncomplete'
 	}
 };
@@ -19,7 +25,7 @@ var deprications = {
 function Hook ( event ) {
 	this.event = event;
 	this.method = 'on' + event;
-	this.depricate = deprications[ event ];
+	this.deprecate = deprecations[ event ];
 }
 
 Hook.prototype.fire = function ( ractive, arg ) {
@@ -33,11 +39,11 @@ Hook.prototype.fire = function ( ractive, arg ) {
 
 	call( this.method );
 
-	if ( this.depricate && call( this.depricate.depricated ) ) {
-		log.warn({
+	if ( !ractive[ this.method ] && this.deprecate && call( this.deprecate.deprecated ) ) {
+		log.warnAlways({
 			debug: ractive.debug,
-			message: 'methodDepricated',
-			args: this.depricate
+			message: this.deprecate.message || 'methodDeprecated',
+			args: this.deprecate
 		});
 	}
 

@@ -276,19 +276,19 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			items = ractive.get( 'items' );
 
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
 
 			items.push( 'e' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
 
 			items.splice( 2, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
 
 			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
 
 			ractive.set( 'items[0]', 'f' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
 
 
 			// reset items from within widget
@@ -296,19 +296,19 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			items = ractive.get( 'items' );
 
 			items.push( 'g' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li><li>3: g</li></ul><p>f b d g</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li><li>3: g</li></ul><p>f b d g</p>' );
 
 			items.splice( 1, 1 );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>' );
 
 			items.pop();
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>' );
 
 			widget.set( 'items[0]', 'h' );
-			t.htmlEqual( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
+			t.equal( fixture.innerHTML, '<ul><li>0: h</li><li>1: d</li></ul><p>h d</p>' );
 		});
 
-		asyncTest( 'Component complete() methods are called', t => {
+		asyncTest( 'Component oncomplete() methods are called', t => {
 			var ractive, Widget, counter, done;
 
 			expect( 2 );
@@ -317,8 +317,8 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			done = function () { --counter || start(); };
 
 			Widget = Ractive.extend({
-				complete: function () {
-					t.ok( true, 'complete in component' );
+				oncomplete: function () {
+					t.ok( true, 'oncomplete in component' );
 					done();
 				}
 			});
@@ -326,8 +326,8 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive = new Ractive({
 				el: fixture,
 				template: '<widget/>',
-				complete: function () {
-					t.ok( true, 'complete in ractive' );
+				oncomplete: function () {
+					t.ok( true, 'oncomplete in ractive' );
 					done();
 				},
 				components: {
@@ -420,7 +420,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				Widget = Ractive.extend({
 					template: '{{world}}',
 					magic: true,
-					complete: function(){
+					oncomplete: function(){
 						this.data.world = 'venus'
 						t.htmlEqual( fixture.innerHTML, 'venusvenus' );
 						start();
@@ -651,12 +651,12 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, 'bar-bar' );
 		});
 
-		asyncTest( 'Instances with multiple components still fire complete() handlers (#486 regression)', t => {
+		asyncTest( 'Instances with multiple components still fire oncomplete() handlers (#486 regression)', t => {
 			var Widget, ractive, counter, done;
 
 			Widget = Ractive.extend({
 				template: 'foo',
-				complete: function () {
+				oncomplete: function () {
 					t.ok( true );
 					done();
 				}
@@ -671,7 +671,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				el: fixture,
 				template: '<widget/><widget/>',
 				components: { widget: Widget },
-				complete: function () {
+				oncomplete: function () {
 					t.ok( true );
 					done();
 				}
@@ -728,7 +728,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
 		});
 
-		test( 'Nested components fire the init() event correctly (#511)', t => {
+		test( 'Nested components fire the oninit() event correctly (#511)', t => {
 			var ractive, Outer, Inner, outerInitCount = 0, innerInitCount = 0;
 
 			Inner = Ractive.extend({
@@ -1158,7 +1158,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 				components: {
 					widget: Ractive.extend({
 						template: 'widget',
-						init: function () {
+						oninit: function () {
 							this.on( 'teardown', function () {
 								t.ok( true );
 							})
@@ -1299,7 +1299,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 		});
 
-		asyncTest( 'init only fires once on a component (#943 #927), complete fires each render', t => {
+		asyncTest( 'oninit() only fires once on a component (#943 #927), oncomplete fires each render', t => {
 
 			var Component, component, inited = false, completed = 0, rendered = 0;
 
@@ -1307,7 +1307,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			Component = Ractive.extend({
 				oninit: function () {
-					t.ok( !inited, 'init should not be called second time' );
+					t.ok( !inited, 'oninit should not be called second time' );
 					inited = true;
 				},
 				onrender: function() {
@@ -1540,7 +1540,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			Widget = Ractive.extend({
 				template: '<p>message: {{proxy}}</p>',
 
-				init: function () {
+				oninit: function () {
 					this.observe( 'message', function ( message ) {
 						this.set( 'proxy', message );
 					});
@@ -1588,6 +1588,70 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			ractive.set( 'showBox', true );
 		});
 
+		test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', function ( t ) {
+			var ractive, Widget1, Widget2, noCall = false, warn = console.warn;
+
+			expect( 3 );
+
+			console.warn = function (err) { throw err };
+
+			try {
+				Widget1 = Ractive.extend({
+					debug: true,
+					template: 'w1:{{tata.foo}}{{tata.bar}}'
+				});
+
+				Widget2 = Ractive.extend({
+					debug: true,
+					template: 'w2:{{schmata.foo}}{{calc}}',
+					computed: {
+						calc: function () {
+							if( noCall ) { throw new Error('"calc" should not be recalculated!')}
+							return this.get('schmata.bar')
+						}
+					},
+					oninit: function () {
+						this.observe('schmata.bar', function (n,o,k) {
+							throw new Error('observe on schmata.bar should not fire')
+						}, { init: false } )
+					}
+				});
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{data.foo}}{{data.bar}}<widget1 tata="{{data}}"/><widget2 schmata="{{data}}"/>',
+					data: {
+						data: {
+							foo: 'foo',
+							bar: 'bar'
+						}
+					},
+					components: {
+						widget1: Widget1,
+						widget2: Widget2
+					},
+					oninit: function () {
+						this.observe('data.bar', function (n,o,k) {
+							throw new Error('observe on data.bar should not fire')
+						}, { init: false } )
+					}
+				});
+
+				t.htmlEqual( fixture.innerHTML, 'foobarw1:foobarw2:foobar' );
+				noCall = true;
+				ractive.findComponent('widget1').set( 'tata.foo', 'update' );
+				t.htmlEqual( fixture.innerHTML, 'updatebarw1:updatebarw2:updatebar' );
+
+				t.ok( true );
+
+			} catch(err){
+				t.ok( false, err );
+			} finally {
+				console.warn = warn;
+			}
+
+		});
+
 		test( 'Component bindings respect smart updates (#1209)', function ( t ) {
 			var Widget, ractive, intros = {}, outros = {};
 
@@ -1619,6 +1683,71 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			ractive.shift( 'items' );
 			t.deepEqual( outros, { a: 1, b: 1 });
+		});
+
+		test( 'Decorators and transitions are only initialised post-render, when components are inside elements (#1346)', function ( t ) {
+			var ractive, inDom = {};
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<div decorator="check:div"><widget><p decorator="check:p"></p></div>',
+				components: {
+					widget: Ractive.extend({
+						template: '<div decorator="check:widget">{{yield}}</div>'
+					})
+				},
+				decorators: {
+					check: function ( node, id ) {
+						inDom[ id ] = fixture.contains( node );
+						return { teardown: function () {} };
+					}
+				}
+			});
+
+			t.deepEqual( inDom, { div: true, widget: true, p: true });
+		});
+
+		test( 'Multiple related values propagate across component boundaries (#1373)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<tweedle dee="{{dee}}" dum="{{dum}}"/>',
+				data: {
+					dee: 'spoiled',
+					dum: 'rattle'
+				},
+				components: {
+					tweedle: Ractive.extend({
+						template: '{{ dee ? dee : "lewis"}} {{dum ? dum : "carroll"}}'
+					})
+				}
+			});
+
+			ractive.set({
+				dee: 'forget',
+				dum: 'quarrel'
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'forget quarrel' );
+		});
+
+		test( 'Binding from parent to computation on child that is bound to parent should update properly (#1357)', ( t ) => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{b}} <component a="{{a}}" b="{{b}}" />',
+				data: { a: 'a' },
+				components: {
+					component: Ractive.extend({
+						template: '{{a}} {{b}}',
+						computed: {
+							b: function() { return 'foo' + this.get('a'); }
+						}
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'fooa a fooa' );
+			ractive.set( 'a', 'bar' );
+			t.htmlEqual( fixture.innerHTML, 'foobar bar foobar' );
 		});
 
 	};

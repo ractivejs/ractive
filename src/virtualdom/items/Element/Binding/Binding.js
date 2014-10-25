@@ -14,8 +14,8 @@ var Binding = function ( element ) {
 	interpolator = this.attribute.interpolator;
 	interpolator.twowayBinding = this;
 
-	if ( interpolator.keypath && interpolator.keypath.substr === '${' ) {
-		warn( 'Two-way binding does not work with expressions: ' + interpolator.keypath );
+	if ( interpolator.keypath && interpolator.keypath.substr( 0, 2 ) === '${' ) {
+		warn( 'Two-way binding does not work with expressions (`' + interpolator.keypath.slice( 2, -1 ) + '`)' );
 		return false;
 	}
 
@@ -34,15 +34,7 @@ var Binding = function ( element ) {
 	// be explicit when using two-way data-binding about what keypath you're
 	// updating. Using it in lists is probably a recipe for confusion...
 	if ( !interpolator.keypath ) {
-		if ( interpolator.ref ) {
-			interpolator.resolve( interpolator.ref );
-		}
-
-		// If we have a reference expression resolver, we have to force
-		// members to attach themselves to the root
-		if ( interpolator.resolver ) {
-			interpolator.resolver.forceResolution();
-		}
+		interpolator.resolver.forceResolution();
 	}
 
 	this.keypath = keypath = interpolator.keypath;

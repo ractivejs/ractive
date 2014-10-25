@@ -1,3 +1,4 @@
+import isNumeric from 'utils/isNumeric';
 import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
 import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
 
@@ -11,11 +12,17 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		wrapped,
 		captureGroup;
 
+	if ( keypath[0] === '@' ) {
+		value = keypath.slice( 1 );
+		return isNumeric( value ) ? +value : value;
+	}
+
 	if ( cache[ keypath ] === undefined ) {
 
 		// Is this a computed property?
 		if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
 			value = computation.get();
+			this.adapt( keypath, value );
 		}
 
 		// Is this a wrapped property?
