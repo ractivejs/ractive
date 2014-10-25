@@ -334,17 +334,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'bool', true );
 		});
 
-		test( 'deprecated beforeInit hook is fired once, regardless of presence/absence of onconstruct (#1395)', function ( t ) {
+		test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) {
 			var Subclass, count, reset;
 
 			reset = () => count = { construct: 0, beforeInit: 0 };
-
 			reset();
-			new Ractive({
-				onconstruct: () => count.construct += 1,
-				beforeInit: () => count.beforeInit += 1
-			});
-			t.deepEqual( count, { construct: 1, beforeInit: 1 });
+
+			// specifying both options is an error
+			t.throws( function () {
+				new Ractive({
+					onconstruct: () => count.construct += 1,
+					beforeInit: () => count.beforeInit += 1
+				});
+			}, /cannot specify both options/ );
 
 			// hooks-without-extend were introduced at the same time as beforeInit was
 			// deprecated, so this should not fire
@@ -354,13 +356,13 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 			t.deepEqual( count, { construct: 0, beforeInit: 0 });
 
-			reset();
-			Subclass = Ractive.extend({
-				onconstruct: () => count.construct += 1,
-				beforeInit: () => count.beforeInit += 1
-			});
-			new Subclass();
-			t.deepEqual( count, { construct: 1, beforeInit: 1 });
+			t.throws( function () {
+				Subclass = Ractive.extend({
+					onconstruct: () => count.construct += 1,
+					beforeInit: () => count.beforeInit += 1
+				});
+				new Subclass();
+			}, /cannot specify both options/ );
 
 			reset();
 			Subclass = Ractive.extend({
