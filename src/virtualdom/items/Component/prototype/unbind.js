@@ -34,5 +34,5 @@ function removeFromLiveComponentQueries ( component ) {
 		if ( query = instance._liveComponentQueries[ '_' + component.name ] ) {
 			query._remove( component );
 		}
-	} while ( instance = instance._parent );
+	} while ( instance = instance.parent );
 }

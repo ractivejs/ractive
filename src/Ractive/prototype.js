@@ -5,6 +5,7 @@ import find from 'Ractive/prototype/find';
 import findAll from 'Ractive/prototype/findAll';
 import findAllComponents from 'Ractive/prototype/findAllComponents';
 import findComponent from 'Ractive/prototype/findComponent';
+import findParent from 'Ractive/prototype/findParent';
 import fire from 'Ractive/prototype/fire';
 import get from 'Ractive/prototype/get';
 import insert from 'Ractive/prototype/insert';
@@ -39,6 +40,7 @@ export default {
 	findAll: findAll,
 	findAllComponents: findAllComponents,
 	findComponent: findComponent,
+	findParent: findParent,
 	fire: fire,
 	get: get,
 	insert: insert,

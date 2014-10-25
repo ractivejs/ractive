@@ -11,19 +11,19 @@ circular.push( function () {
 
 export default function getComponent ( ractive, name ) {
 
-	var component, instance = config.registries.components.findInstance( ractive, name );
+	var Component, instance = config.registries.components.findInstance( ractive, name );
 
 	if ( instance ) {
-		component = instance.components[ name ];
+		Component = instance.components[ name ];
 
 		// best test we have for not Ractive.extend
-		if ( !component._parent ) {
+		if ( !Component._Parent ) {
 			// function option, execute and store for reset
-			let fn = component.bind( instance );
+			let fn = Component.bind( instance );
 			fn.isOwner = instance.components.hasOwnProperty( name );
-			component = fn( instance.data );
+			Component = fn( instance.data );
 
-			if ( !component ) {
+			if ( !Component ) {
 				log.warn({
 					debug: ractive.debug,
 					message: 'noRegistryFunctionReturn',
@@ -32,15 +32,15 @@ export default function getComponent ( ractive, name ) {
 				return;
 			}
 
-			if ( typeof component === 'string' ) {
+			if ( typeof Component === 'string' ) {
 				//allow string lookup
-				component = getComponent ( ractive, component );
+				Component = getComponent ( ractive, Component );
 			}
 
-			component._fn = fn;
-			instance.components[ name ] = component;
+			Component._fn = fn;
+			instance.components[ name ] = Component;
 		}
 	}
 
-	return component;
+	return Component;
 }

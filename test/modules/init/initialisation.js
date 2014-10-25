@@ -417,6 +417,86 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
+
+		test( '"parent" and "root" properties are correctly set', t => {
+			var ViewChild, ViewGrandChild, ractive, child, grandchild;
+
+
+			ViewGrandChild = Ractive.extend({
+				template: 'this space for rent'
+			});
+
+			ViewChild = Ractive.extend({
+				template: '<grandchild/>',
+				components: { grandchild: ViewGrandChild }
+			});
+
+			ractive = new Ractive( {
+				el: fixture,
+				template: '<child/>',
+				components: { child: ViewChild }
+			});
+
+			child = ractive.findComponent( 'child' );
+			grandchild = ractive.findComponent( 'grandchild' );
+
+			t.equal( ractive.root, ractive );
+			t.ok( !ractive.parent );
+
+			t.equal( child.root, ractive );
+			t.equal( child.parent, ractive );
+
+			t.equal( grandchild.root, ractive );
+			t.equal( grandchild.parent, child );
+		});
+
+		test( '.findParent() finds parent', t => {
+			var C1, C2, C3, C4, ractive, c1, c2, c3, c4;
+
+
+			C4 = Ractive.extend({
+				template: 'this space for rent'
+			});
+
+			C3 = Ractive.extend({
+				template: '<c4/>',
+				components: { c4: C4 }
+			});
+
+			C2 = Ractive.extend({
+				template: '<c3/>',
+				components: { c3: C3 }
+			});
+
+			C1 = Ractive.extend({
+				template: '<c2/>',
+				components: { c2: C2 }
+			});
+
+			ractive = new Ractive( {
+				el: fixture,
+				template: '<c1/>',
+				components: { c1: C1 }
+			});
+
+			c1 = ractive.findComponent( 'c1' );
+			c2 = ractive.findComponent( 'c2' );
+			c3 = ractive.findComponent( 'c3' );
+			c4 = ractive.findComponent( 'c4' );
+
+			t.equal( c4.findParent( 'foo' ), null );
+			t.equal( c4.findParent( 'c3' ), c3 );
+			t.equal( c4.findParent( 'c2' ), c2 );
+			t.equal( c4.findParent( 'c1' ), c1 );
+
+			t.equal( c3.findParent( 'c4' ), null );
+			t.equal( c3.findParent( 'c3' ), null );
+			t.equal( c3.findParent( 'c2' ), c2 );
+			t.equal( c3.findParent( 'c1' ), c1 );
+
+			t.equal( c2.findParent( 'c1' ), c1 );
+		});
+
 		/* Not supported, do we need it?
 		test( 'Instantiated component with template function plus instantiation template', t => {
 			var Component, ractive;

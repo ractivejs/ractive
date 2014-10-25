@@ -48,8 +48,8 @@ export default function unwrapExtended ( Child ) {
 			}
 		});
 
-		if( Child._parent !== Ractive ) {
-			Child = Child._parent;
+		if( Child._Parent !== Ractive ) {
+			Child = Child._Parent;
 		} else {
 			Child = false;
 		}

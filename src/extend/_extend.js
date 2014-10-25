@@ -14,8 +14,8 @@ export default function extend ( options = {} ) {
 	options = unwrap( options );
 
 	// create Child constructor
-	Child = function ( options ) {
-		initialise( this, options );
+	Child = function ( options, _options ) {
+		initialise( this, options, _options );
 	};
 
 	proto = create( Parent.prototype );
@@ -32,7 +32,7 @@ export default function extend ( options = {} ) {
 		extend: { value: extend, writable: true, configurable: true },
 
 		// Parent - for IE8, can't use Object.getPrototypeOf
-		_parent: { value: Parent }
+		_Parent: { value: Parent }
 	};
 
 	defineProperties( Child, staticProperties );

@@ -11,11 +11,11 @@ var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
 	initHook = new HookQueue( 'init' );
 
-export default function initialiseRactiveInstance ( ractive, options = {} ) {
+export default function initialiseRactiveInstance ( ractive, options = {}, _options = {} ) {
 
 	var el;
 
-	initialiseProperties( ractive, options );
+	initialiseProperties( ractive, _options );
 
 	// make this option do what would be expected if someone
 	// did include it on a new Ractive() or new Component() call.
@@ -100,10 +100,18 @@ function initialiseProperties ( ractive, options ) {
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];
 
-	// If this is a component, store a reference to the parent
-	if ( options._parent && options._component ) {
+	// No parent? This is the root
+	if ( !options.parent ) {
+		ractive.root = ractive;
+	}
+	// Else store a reference to the parent and root
+	else {
+		ractive.parent = options.parent;
+		ractive.root = ractive.parent.root;
+	}
 
-		ractive._parent = options._parent;
+	// component references
+	if ( options._component ) {
 		ractive.component = options._component;
 
 		// And store a reference to the instance on the component

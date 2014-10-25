@@ -64,7 +64,7 @@ Registry.prototype = {
 		if ( !constructor ) { return; }
 		return constructor[ this.name ].hasOwnProperty( key )
 			? constructor
-			: this.findConstructor( constructor._parent, key );
+			: this.findConstructor( constructor._Parent, key );
 	},
 
 	find: function ( ractive, key ) {
@@ -86,7 +86,7 @@ function recurseFind ( ractive, fn ) {
 		return find;
 	}
 
-	if ( !ractive.isolated && ( parent = ractive._parent ) ) {
+	if ( !ractive.isolated && ( parent = ractive.parent ) ) {
 		return recurseFind( parent, fn );
 	}
 

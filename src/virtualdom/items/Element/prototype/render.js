@@ -224,5 +224,5 @@ function updateLiveQueries ( element ) {
 				( element.liveQueries || ( element.liveQueries = [] ) ).push( query );
 			}
 		}
-	} while ( instance = instance._parent );
+	} while ( instance = instance.parent );
 }

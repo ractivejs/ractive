@@ -1,10 +1,13 @@
 Changelog
 ---------
 
+* 0.x.x
+	* `ractive.parent`, `ractive.root` and `ractive.findParent(name)` now API supported references to component parent, view hierarchy root, and find method for parent component.
 * 0.6.1
 	* Breaking changes
 		* If `obj` has no keys, then the `else` half of `{{#each obj}}...{{else}}...{{/each}}` will render
 	* Other changes
+		* `this.event` available in method calls
 		* Deprecation warnings are printed regardless of whether `debug` is true
 		* HTML entity decoding is done at parse time, not render time
 		* Special `@keypath` reference resolves to the current context

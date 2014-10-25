@@ -27,14 +27,15 @@ export default function ( component, Component, data, mappings, contentDescripto
 		partials: partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,
-		_parent: ractive,
-		_component: component,
 		// need to inherit runtime parent adaptors
 		adapt: ractive.adapt,
 		yield: {
 			template: contentDescriptor,
 			instance: ractive
 		}
+	}, {
+		parent: ractive,
+		_component: component,
 	});
 
 	return instance;
