@@ -15,7 +15,7 @@ if ( !isClient ) {
 
 	animateStyle = function ( style, value, options, complete ) {
 
-		var t = this, to;
+		var to;
 
 		// Special case - page isn't visible. Don't animate anything, because
 		// that way you'll never get CSS transitionend events
@@ -41,18 +41,18 @@ if ( !isClient ) {
 
 		// TODO remove this check in a future version
 		if ( !options ) {
-			warn( 'The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
+			warn( 'The "' + this.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
 
-			options = t;
-			complete = t.complete;
+			options = this;
+			complete = this.complete;
 		}
 
-		var promise = new Promise( function ( resolve ) {
+		var promise = new Promise( resolve => {
 			var propertyNames, changedProperties, computedStyle, current, from, i, prop;
 
 			// Edge case - if duration is zero, set style synchronously and complete
 			if ( !options.duration ) {
-				t.setStyle( to );
+				this.setStyle( to );
 				resolve();
 				return;
 			}
@@ -62,7 +62,7 @@ if ( !isClient ) {
 			changedProperties = [];
 
 			// Store the current styles
-			computedStyle = getComputedStyle( t.node );
+			computedStyle = getComputedStyle( this.node );
 
 			from = {};
 			i = propertyNames.length;
@@ -80,7 +80,7 @@ if ( !isClient ) {
 
 					// make the computed style explicit, so we can animate where
 					// e.g. height='auto'
-					t.node.style[ prefix( prop ) ] = current;
+					this.node.style[ prefix( prop ) ] = current;
 				}
 			}
 
@@ -91,7 +91,7 @@ if ( !isClient ) {
 				return;
 			}
 
-			createTransitions( t, to, options, changedProperties, resolve );
+			createTransitions( this, to, options, changedProperties, resolve );
 		});
 
 		// If a callback was supplied, do the honours

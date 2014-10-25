@@ -9,11 +9,11 @@ circular.push( function () {
 });
 
 export default function Transition$init ( element, template, isIntro ) {
-	var t = this, ractive, name, fragment;
+	var ractive, name, fragment;
 
-	t.element = element;
-	t.root = ractive = element.root;
-	t.isIntro = isIntro;
+	this.element = element;
+	this.root = ractive = element.root;
+	this.isIntro = isIntro;
 
 	name = template.n || template;
 
@@ -28,10 +28,10 @@ export default function Transition$init ( element, template, isIntro ) {
 		fragment.unbind();
 	}
 
-	t.name = name;
+	this.name = name;
 
 	if ( template.a ) {
-		t.params = template.a;
+		this.params = template.a;
 	}
 
 	else if ( template.d ) {
@@ -43,14 +43,13 @@ export default function Transition$init ( element, template, isIntro ) {
 			owner:    element
 		});
 
-		t.params = fragment.getValue( getValueOptions );
+		this.params = fragment.getValue( getValueOptions );
 		fragment.unbind();
 	}
 
-	t._fn = config.registries.transitions.find( ractive, name );
+	this._fn = config.registries.transitions.find( ractive, name );
 
-	if ( !t._fn ) {
-
+	if ( !this._fn ) {
 		log.error({
 			debug: ractive.debug,
 			message: 'missingPlugin',
@@ -59,7 +58,5 @@ export default function Transition$init ( element, template, isIntro ) {
 				name: name
 			}
 		});
-
-		return;
 	}
 }

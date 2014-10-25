@@ -11,11 +11,11 @@ circular.push( function () {
 });
 
 export default function EventHandler$init ( element, name, template ) {
-	var handler = this, action, refs, ractive;
+	var action, refs, ractive;
 
-	handler.element = element;
-	handler.root = element.root;
-	handler.name = name;
+	this.element = element;
+	this.root = element.root;
+	this.name = name;
 
 	if( name.indexOf( '*' ) !== -1 ) {
 		log.error({
@@ -34,20 +34,20 @@ export default function EventHandler$init ( element, name, template ) {
 		refs = template.a.r;
 
 		// This is a method call
-		handler.method = template.m;
-		handler.keypaths = [];
-		handler.fn = getFunctionFromString( template.a.s, refs.length );
+		this.method = template.m;
+		this.keypaths = [];
+		this.fn = getFunctionFromString( template.a.s, refs.length );
 
-		handler.parentFragment = element.parentFragment;
-		ractive = handler.root;
+		this.parentFragment = element.parentFragment;
+		ractive = this.root;
 
 		// Create resolvers for each reference
-		handler.refResolvers = refs.map( ( ref, i ) => {
+		this.refResolvers = refs.map( ( ref, i ) => {
 			var match;
 
 			// special case - the `event` object
 			if ( match = eventPattern.exec( ref ) ) {
-				handler.keypaths[i] = {
+				this.keypaths[i] = {
 					eventObject: true,
 					refinements: match[1] ? match[1].split( '.' ) : []
 				};
@@ -55,8 +55,8 @@ export default function EventHandler$init ( element, name, template ) {
 				return null;
 			}
 
-			return createReferenceResolver( handler, ref, keypath => {
-				handler.resolve( i, keypath );
+			return createReferenceResolver( this, ref, keypath => {
+				this.resolve( i, keypath );
 			});
 		});
 

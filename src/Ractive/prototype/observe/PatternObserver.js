@@ -94,13 +94,9 @@ PatternObserver.prototype = {
 	},
 
 	getProxy: function ( keypath ) {
-		var self = this;
-
 		if ( !this.proxies[ keypath ] ) {
 			this.proxies[ keypath ] = {
-				update: function () {
-					self.reallyUpdate( keypath );
-				}
+				update: () => this.reallyUpdate( keypath )
 			};
 		}
 

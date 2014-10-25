@@ -9,29 +9,29 @@ var ExpressionResolver, bind = Function.prototype.bind;
 
 ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 
-	var resolver = this, ractive, indexRefs;
+	var ractive, indexRefs;
 
 	ractive = owner.root;
 
-	resolver.root = ractive;
-	resolver.parentFragment = parentFragment;
-	resolver.callback = callback;
-	resolver.owner = owner;
-	resolver.str = expression.s;
-	resolver.keypaths = [];
+	this.root = ractive;
+	this.parentFragment = parentFragment;
+	this.callback = callback;
+	this.owner = owner;
+	this.str = expression.s;
+	this.keypaths = [];
 
 	indexRefs = parentFragment.indexRefs;
 
 	// Create resolvers for each reference
-	resolver.pending = expression.r.length;
-	resolver.refResolvers = expression.r.map( ( ref, i ) => {
-		return createReferenceResolver( resolver, ref, function ( keypath ) {
-			resolver.resolve( i, keypath );
+	this.pending = expression.r.length;
+	this.refResolvers = expression.r.map( ( ref, i ) => {
+		return createReferenceResolver( this, ref, keypath => {
+			this.resolve( i, keypath );
 		});
 	});
 
-	resolver.ready = true;
-	resolver.bubble();
+	this.ready = true;
+	this.bubble();
 };
 
 ExpressionResolver.prototype = {
@@ -61,7 +61,7 @@ ExpressionResolver.prototype = {
 	},
 
 	createEvaluator: function () {
-		var self = this, computation, valueGetters, signature, keypath, fn;
+		var computation, valueGetters, signature, keypath, fn;
 
 		computation = this.root.viewmodel.computations[ this.keypath ];
 
@@ -85,7 +85,7 @@ ExpressionResolver.prototype = {
 				return () => {
 					var value = this.root.viewmodel.get( keypath, { noUnwrap: true });
 					if ( typeof value === 'function' ) {
-						value = wrapFunction( value, self.root );
+						value = wrapFunction( value, this.root );
 					}
 					return value;
 				};

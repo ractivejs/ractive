@@ -1,34 +1,34 @@
 export default function Transition$start () {
-	var t = this, node, originalStyle, completed;
+	var node, originalStyle, completed;
 
-	node = t.node = t.element.node;
+	node = this.node = this.element.node;
 	originalStyle = node.getAttribute( 'style' );
 
 	// create t.complete() - we don't want this on the prototype,
 	// because we don't want `this` silliness when passing it as
 	// an argument
-	t.complete = function ( noReset ) {
+	this.complete = noReset => {
 		if ( completed ) {
 			return;
 		}
 
-		if ( !noReset && t.isIntro ) {
+		if ( !noReset && this.isIntro ) {
 			resetStyle( node, originalStyle);
 		}
 
 		node._ractive.transition = null;
-		t._manager.remove( t );
+		this._manager.remove( this );
 
 		completed = true;
 	};
 
 	// If the transition function doesn't exist, abort
-	if ( !t._fn ) {
-		t.complete();
+	if ( !this._fn ) {
+		this.complete();
 		return;
 	}
 
-	t._fn.apply( t.root, [ t ].concat( t.params ) );
+	this._fn.apply( this.root, [ this ].concat( this.params ) );
 }
 
 function resetStyle ( node, style ) {

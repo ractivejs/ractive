@@ -11,33 +11,32 @@ import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQ
 import decodeKeypath from 'shared/decodeKeypath';
 
 export default function Component$init ( options, Component ) {
-	var component = this,
-		parentFragment,
+	var parentFragment,
 		root,
 		data = {},
 		mappings = {},
 		mappingTemplates;
 
-	parentFragment = component.parentFragment = options.parentFragment;
+	parentFragment = this.parentFragment = options.parentFragment;
 	root = parentFragment.root;
 
-	component.root = root;
-	component.type = types.COMPONENT;
-	component.name = options.template.e;
-	component.index = options.index;
-	component.indexRefBindings = {};
+	this.root = root;
+	this.type = types.COMPONENT;
+	this.name = options.template.e;
+	this.index = options.index;
+	this.indexRefBindings = {};
 
 	// even though only one yielder is allowed, we need to have an array of them
 	// as it's possible to cause a yielder to be created before the last one
 	// was destroyed in the same turn of the runloop
-	component.yielders = [];
+	this.yielders = [];
 
 	if ( !Component ) {
-		throw new Error( 'Component "' + component.name + '" not found' );
+		throw new Error( 'Component "' + this.name + '" not found' );
 	}
 
-	component.resolvers = [];
-	component.complexParameters = [];
+	this.resolvers = [];
+	this.complexParameters = [];
 
 	mappingTemplates = options.template.a;
 
@@ -73,7 +72,7 @@ export default function Component$init ( options, Component ) {
 							value = decodeKeypath( keypath );
 
 							if ( ready ) {
-								component.instance.viewmodel.set( key, value );
+								this.instance.viewmodel.set( key, value );
 							} else {
 								data[ key ] = value;
 							}
@@ -81,23 +80,23 @@ export default function Component$init ( options, Component ) {
 
 						else {
 							if ( ready ) {
-								mapping = component.instance.viewmodel.mappings[ key ];
+								mapping = this.instance.viewmodel.mappings[ key ];
 								mapping.resolve( keypath );
 							} else {
 								mappings[ key ] = {
-									origin: component.root.viewmodel,
+									origin: this.root.viewmodel,
 									keypath: keypath
 								};
 							}
 						}
 
 						// TODO trace back to origin, not parent - may not be
-						// component.root.viewmodel
+						// this.root.viewmodel
 						/*if ( ready ) {
 							if ( isSpecial ) {
-								component.instance.viewmodel.set( key, value );
+								this.instance.viewmodel.set( key, value );
 							} else {
-								component.instance.viewmodel.map( component.root.viewmodel, keypath, key );
+								this.instance.viewmodel.map( this.root.viewmodel, keypath, key );
 							}
 						} else {
 							if ( isSpecial ) {
@@ -109,30 +108,30 @@ export default function Component$init ( options, Component ) {
 					};
 
 					if ( ref = template[0].r ) {
-						resolver = createReferenceResolver( component, template[0].r, resolve );
+						resolver = createReferenceResolver( this, template[0].r, resolve );
 					} else if ( template[0].x ) {
-						resolver = new ExpressionResolver( component, parentFragment, template[0].x, resolve );
+						resolver = new ExpressionResolver( this, parentFragment, template[0].x, resolve );
 					} else if ( template[0].rx ) {
-						resolver = new ReferenceExpressionResolver( component, template[0].rx, resolve );
+						resolver = new ReferenceExpressionResolver( this, template[0].rx, resolve );
 					}
 
 					ready = true;
 
-					component.resolvers.push( resolver );
+					this.resolvers.push( resolver );
 
 					if ( !resolved ) {
 						// note the mapping anyway, for the benefit of child
 						// components
-						mappings[ key ] = { origin: component.root.viewmodel };
+						mappings[ key ] = { origin: this.root.viewmodel };
 					}
 				}
 
 				else {
 					// We have a 'complex' parameter, e.g.
 					// `<widget foo='{{bar}} {{baz}}'/>`
-					param = new ComponentParameter( component, key, template );
+					param = new ComponentParameter( this, key, template );
 					data[ key ] = param.value;
-					component.complexParameters.push( param );
+					this.complexParameters.push( param );
 				}
 			}
 		});
