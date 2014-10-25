@@ -46,6 +46,9 @@ function deprecateAdaptors ( options ) {
 }
 
 export default function deprecateOptions ( options ) {
+	deprecate( options, 'beforeInit', 'onconstruct' );
+	deprecate( options, 'init', 'onrender' );
+	deprecate( options, 'complete', 'oncomplete' );
 	deprecateEventDefinitions( options );
 	deprecateAdaptors( options );
 }

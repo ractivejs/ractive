@@ -39,7 +39,7 @@ Hook.prototype.fire = function ( ractive, arg ) {
 
 	call( this.method );
 
-	if ( this.deprecate && call( this.deprecate.deprecated ) ) {
+	if ( !ractive[ this.method ] && this.deprecate && call( this.deprecate.deprecated ) ) {
 		log.warnAlways({
 			debug: ractive.debug,
 			message: this.deprecate.message || 'methodDeprecated',

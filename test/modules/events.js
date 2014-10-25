@@ -822,6 +822,20 @@ define([ 'ractive' ], function ( Ractive ) {
 			simulant.fire( ractive.find( 'button' ), 'click' );
 		});
 
+		test( 'Current event is available to method handler as this.event (#1403)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<button on-click="test(event)"></button>',
+				test: function( event ) {
+					t.equal( event, this.event );
+					t.equal( ractive, this );
+				}
+			});
+
+			expect( 2 );
+			simulant.fire( ractive.find( 'button' ), 'click' );
+		});
+
 
 		var Component, Middle, View, setup;
 
@@ -1218,6 +1232,58 @@ define([ 'ractive' ], function ( Ractive ) {
 			events.forEach( ractive.fire.bind( ractive ) );
 
 			t.deepEqual( fired, events );
+		});
+
+		module( 'Issues' );
+
+		asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => {
+			var ractive, Child, Grandchild, torndown = [];
+
+			Child = Ractive.extend({
+				template:  `<div>
+								{{#each model.grandChildTitles}}
+	    							<grandchild item="{{.}}" />
+	    						{{/each}}
+	    					</div>`,
+	    		onteardown: function() {
+					torndown.push( this );
+				}
+			});
+
+			Grandchild = Ractive.extend({
+				template: '{{title}}',
+	    		onteardown: function() {
+					torndown.push( this );
+				}
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#if model.childTitle}}<child model="{{model}}"/>{{/if}}',
+				data: {
+					model : {
+						title : 'parent',
+						childTitle : 'child',
+						grandChildTitles : [
+							{ title : 'one' },
+							{ title : 'two' },
+							{ title : 'three' }
+						]
+					}
+				},
+				components: {
+					child: Child,
+					grandchild: Grandchild
+				}
+			});
+
+			setTimeout(function() {
+				ractive.set('model', {});
+				t.equal( torndown.length, 4 );
+				QUnit.start()
+			});
+
+
 		});
 	};
 
