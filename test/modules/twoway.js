@@ -612,6 +612,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			console.warn = console_warn;
 		});
 
+		test( 'Changes made in oninit are reflected on render (#1390)', function ( t ) {
+			var ractive, inputs;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#each items}}<input type="checkbox" name="{{selected}}" value="{{this}}">{{/each}}',
+				data: { items: [ 'a', 'b', 'c' ] },
+				oninit: function () {
+					this.set( 'selected', [ 'b' ]);
+				},
+				onrender: function () {
+					inputs = this.findAll( 'input' );
+				}
+			});
+
+			t.ok( !inputs[0].checked );
+			t.ok(  inputs[1].checked );
+			t.ok( !inputs[2].checked );
+		});
+
 	};
 
 });
