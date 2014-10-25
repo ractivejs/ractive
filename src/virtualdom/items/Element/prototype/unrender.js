@@ -21,7 +21,7 @@ export default function Element$unrender ( shouldDestroy ) {
 	// Children first. that way, any transitions on child elements will be
 	// handled by the current transitionManager
 	if ( this.fragment ) {
-		this.fragment.unrender( shouldDestroy );
+		this.fragment.unrender( false );
 	}
 
 	if ( binding = this.binding ) {
