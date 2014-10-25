@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.0
-	2014-10-25 - commit c7aefb81 
+	2014-10-25 - commit bc6b58aa 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2499,6 +2499,8 @@
 		}
 		return function deprecateOptions( options ) {
 			deprecate( options, 'beforeInit', 'onconstruct' );
+			deprecate( options, 'init', 'onrender' );
+			deprecate( options, 'complete', 'oncomplete' );
 			deprecateEventDefinitions( options );
 			deprecateAdaptors( options );
 		};
