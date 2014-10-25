@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.0
-	2014-10-25 - commit ce90c761 
+	2014-10-25 - commit bd38cd61 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9380,7 +9380,7 @@
 	}( removeFromArray, Binding, handleDomEvent, getSiblings );
 
 	/* virtualdom/items/Element/Binding/CheckboxNameBinding.js */
-	var CheckboxNameBinding = function( isArray, removeFromArray, Binding, getSiblings, handleDomEvent ) {
+	var CheckboxNameBinding = function( isArray, arrayContains, removeFromArray, Binding, getSiblings, handleDomEvent ) {
 
 		var CheckboxNameBinding = Binding.extend( {
 			name: 'name',
@@ -9396,7 +9396,7 @@
 				return [];
 			},
 			init: function() {
-				var existingValue, bindingValue, noInitialValue;
+				var existingValue, bindingValue;
 				this.checkboxName = true;
 				// so that ractive.updateModel() knows what to do with this
 				this.attribute.twoway = true;
@@ -9409,16 +9409,12 @@
 				if ( this.noInitialValue ) {
 					this.siblings.noInitialValue = true;
 				}
-				noInitialValue = this.siblings.noInitialValue;
-				existingValue = this.root.viewmodel.get( this.keypath );
-				bindingValue = this.element.getAttribute( 'value' );
-				if ( noInitialValue ) {
-					this.isChecked = this.element.getAttribute( 'checked' );
-					if ( this.isChecked ) {
-						existingValue.push( bindingValue );
-					}
-				} else {
-					this.shouldOverride = true;
+				// If no initial value was set, and this input is checked, we
+				// update the model
+				if ( this.siblings.noInitialValue && this.element.getAttribute( 'checked' ) ) {
+					existingValue = this.root.viewmodel.get( this.keypath );
+					bindingValue = this.element.getAttribute( 'value' );
+					existingValue.push( bindingValue );
 				}
 			},
 			unbind: function() {
@@ -9426,21 +9422,13 @@
 			},
 			render: function() {
 				var node = this.element.node,
-					existingValue, bindingValue, i;
-				if ( this.shouldOverride ) {
-					existingValue = this.root.viewmodel.get( this.keypath );
-					bindingValue = this.element.getAttribute( 'value' );
-					if ( isArray( existingValue ) ) {
-						i = existingValue.length;
-						while ( i-- ) {
-							if ( existingValue[ i ] == bindingValue ) {
-								this.isChecked = true;
-								break;
-							}
-						}
-					} else {
-						this.isChecked = existingValue == bindingValue;
-					}
+					existingValue, bindingValue;
+				existingValue = this.root.viewmodel.get( this.keypath );
+				bindingValue = this.element.getAttribute( 'value' );
+				if ( isArray( existingValue ) ) {
+					this.isChecked = arrayContains( existingValue, bindingValue );
+				} else {
+					this.isChecked = existingValue == bindingValue;
 				}
 				node.name = '{{' + this.keypath + '}}';
 				node.checked = this.isChecked;
@@ -9477,7 +9465,7 @@
 			return binding.element.getAttribute( 'value' );
 		}
 		return CheckboxNameBinding;
-	}( isArray, removeFromArray, Binding, getSiblings, handleDomEvent );
+	}( isArray, arrayContains, removeFromArray, Binding, getSiblings, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/CheckboxBinding.js */
 	var CheckboxBinding = function( Binding, handleDomEvent ) {
@@ -13999,8 +13987,8 @@
 		}
 		if ( this.changes.indexOf( keypath ) === -1 ) {
 			this.changes.push( keypath );
-			this.clearCache( keypath );
 		}
+		this.clearCache( keypath );
 	};
 
 	/* viewmodel/prototype/merge/mapOldToNewIndex.js */
