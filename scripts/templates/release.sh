@@ -88,7 +88,6 @@ rm ractive.js
 rm component.json
 
 cp tmp-rel/component.json component.json
-cp build/ractive.js ractive.js
 
 git checkout master
 git add -A
