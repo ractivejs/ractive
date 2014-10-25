@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.0
-	2014-10-24 - commit 79c0d67a 
+	2014-10-25 - commit ce90c761 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -321,7 +321,7 @@
 				}
 			}
 			call( this.method );
-			if ( this.deprecate && call( this.deprecate.deprecated ) ) {
+			if ( !ractive[ this.method ] && this.deprecate && call( this.deprecate.deprecated ) ) {
 				log.warnAlways( {
 					debug: ractive.debug,
 					message: this.deprecate.message || 'methodDeprecated',
@@ -4692,6 +4692,7 @@
 			}
 		}
 		return function deprecateOptions( options ) {
+			deprecate( options, 'beforeInit', 'onconstruct' );
 			deprecateEventDefinitions( options );
 			deprecateAdaptors( options );
 		};
@@ -14124,17 +14125,6 @@
 		return __export;
 	}( config, create, Fragment, getElement, getNextNumber, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, Viewmodel );
 
-	/* extend/initChildInstance.js */
-	var initChildInstance = function( initialise ) {
-
-		return function initChildInstance( child, Child, options ) {
-			if ( child.beforeInit ) {
-				child.beforeInit( options );
-			}
-			initialise( child, options );
-		};
-	}( Ractive_initialise );
-
 	/* extend/unwrapExtended.js */
 	var unwrapExtended = function( wrap, config, circular ) {
 
@@ -14199,7 +14189,7 @@
 	}( wrapMethod, config, circular );
 
 	/* extend/_extend.js */
-	var Ractive_extend = function( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, unwrap ) {
+	var Ractive_extend = function( create, defineProperties, getGuid, config, initialise, Viewmodel, unwrap ) {
 
 		return function extend() {
 			var options = arguments[ 0 ];
@@ -14212,7 +14202,7 @@
 			options = unwrap( options );
 			// create Child constructor
 			Child = function( options ) {
-				initChildInstance( this, Child, options );
+				initialise( this, options );
 			};
 			proto = create( Parent.prototype );
 			proto.constructor = Child;
@@ -14243,7 +14233,7 @@
 			Child.prototype = proto;
 			return Child;
 		};
-	}( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, unwrapExtended );
+	}( create, defineProperties, getGuid, config, Ractive_initialise, Viewmodel, unwrapExtended );
 
 	/* Ractive.js */
 	var Ractive = function( defaults, easing, interpolators, svg, magic, defineProperties, proto, Promise, extendObj, extend, parse, initialise, circular ) {
