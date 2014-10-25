@@ -1,6 +1,6 @@
 /*
-	ractive.js v0.6.0
-	2014-10-08 - commit 150e82d0 
+	ractive.js v0.6.1
+	2014-10-25 - commit 3a576eb3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -216,7 +216,7 @@
 					}
 					warned[ message ] = true;
 				}
-				console.warn( message );
+				console.warn( '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' );
 			};
 		} else {
 			warn = function() {};
@@ -239,7 +239,7 @@
 		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned',
 		defaultElSpecified: 'The <{name}/> component has a default `el` property; it has been disregarded',
 		noElementProxyEventWildcards: 'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.',
-		methodDepricated: 'The method "{depricated}" has been depricated in favor of "{replacement}" and will likely be removed in a future release.'
+		methodDeprecated: 'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.'
 	};
 
 	/* utils/log.js */
@@ -250,6 +250,9 @@
 				if ( !options.debug && !passthru ) {
 					return;
 				}
+				this.warnAlways( options );
+			},
+			warnAlways: function( options ) {
 				this.logger( getMessage( options ), options.allowDuplicates );
 			},
 			error: function( options ) {
@@ -290,17 +293,17 @@
 	/* Ractive/prototype/shared/hooks/Hook.js */
 	var Ractive$shared_hooks_Hook = function( log ) {
 
-		var deprications = {
+		var deprecations = {
 			construct: {
-				depricated: 'beforeInit',
+				deprecated: 'beforeInit',
 				replacement: 'onconstruct'
 			},
 			render: {
-				depricated: 'init',
-				replacement: 'onrender'
+				deprecated: 'init',
+				message: 'The "init" method has been deprecated ' + 'and will likely be removed in a future release. ' + 'You can either use the "oninit" method which will fire ' + 'only once prior to, and regardless of, any eventual ractive ' + 'instance being rendered, or if you need to access the ' + 'rendered DOM, use "onrender" instead. ' + 'See http://docs.ractivejs.org/latest/migrating for more information.'
 			},
 			complete: {
-				depricated: 'complete',
+				deprecated: 'complete',
 				replacement: 'oncomplete'
 			}
 		};
@@ -308,7 +311,7 @@
 		function Hook( event ) {
 			this.event = event;
 			this.method = 'on' + event;
-			this.depricate = deprications[ event ];
+			this.deprecate = deprecations[ event ];
 		}
 		Hook.prototype.fire = function( ractive, arg ) {
 			function call( method ) {
@@ -318,11 +321,11 @@
 				}
 			}
 			call( this.method );
-			if ( this.depricate && call( this.depricate.depricated ) ) {
-				log.warn( {
+			if ( !ractive[ this.method ] && this.deprecate && call( this.deprecate.deprecated ) ) {
+				log.warnAlways( {
 					debug: ractive.debug,
-					message: 'methodDepricated',
-					args: this.depricate
+					message: this.deprecate.message || 'methodDeprecated',
+					args: this.deprecate
 				} );
 			}
 			arg ? ractive.fire( this.event, arg ) : ractive.fire( this.event );
@@ -558,6 +561,9 @@
 			this.keypath = keypath;
 			this.otherInstance = otherInstance;
 			this.otherKeypath = otherKeypath;
+			this.lock = function() {
+				return this$0.updating = true;
+			};
 			this.unlock = function() {
 				return this$0.updating = false;
 			};
@@ -565,6 +571,9 @@
 			this.value = this.root.viewmodel.get( this.keypath );
 		};
 		Binding.prototype = {
+			isLocked: function() {
+				return this.updating || this.counterpart && this.counterpart.updating;
+			},
 			shuffle: function( newIndices, value ) {
 				this.propagateChange( value, newIndices );
 			},
@@ -572,26 +581,49 @@
 				this.propagateChange( value );
 			},
 			propagateChange: function( value, newIndices ) {
+				var other;
 				// Only *you* can prevent infinite loops
-				if ( this.updating || this.counterpart && this.counterpart.updating ) {
+				if ( this.isLocked() ) {
 					this.value = value;
 					return;
 				}
 				if ( !isEqual( value, this.value ) ) {
-					this.updating = true;
+					this.lock();
 					// TODO maybe the case that `value === this.value` - should that result
 					// in an update rather than a set?
-					runloop.addViewmodel( this.otherInstance.viewmodel );
+					// if the other viewmodel is already locked up, need to do a deferred update
+					if ( !runloop.addViewmodel( other = this.otherInstance.viewmodel ) && this.counterpart.value !== value ) {
+						runloop.scheduleTask( function() {
+							return runloop.addViewmodel( other );
+						} );
+					}
 					if ( newIndices ) {
-						this.otherInstance.viewmodel.smartUpdate( this.otherKeypath, value, newIndices );
+						other.smartUpdate( this.otherKeypath, value, newIndices );
 					} else {
-						this.otherInstance.viewmodel.set( this.otherKeypath, value );
+						if ( isSettable( other, this.otherKeypath ) ) {
+							other.set( this.otherKeypath, value );
+						}
 					}
 					this.value = value;
 					// TODO will the counterpart update after this line, during
 					// the runloop end cycle? may be a problem...
 					runloop.scheduleTask( this.unlock );
 				}
+			},
+			refineValue: function( keypaths ) {
+				var this$0 = this;
+				var other;
+				if ( this.isLocked() ) {
+					return;
+				}
+				this.lock();
+				runloop.addViewmodel( other = this.otherInstance.viewmodel );
+				keypaths.map( function( keypath ) {
+					return this$0.otherKeypath + keypath.substr( this$0.keypath.length );
+				} ).forEach( function( keypath ) {
+					return other.mark( keypath );
+				} );
+				runloop.scheduleTask( this.unlock );
 			},
 			bind: function() {
 				this.root.viewmodel.register( this.keypath, this );
@@ -606,6 +638,11 @@
 				this.root.viewmodel.unregister( this.keypath, this );
 			}
 		};
+
+		function isSettable( viewmodel, keypath ) {
+			var computed = viewmodel.computations[ keypath ];
+			return !computed || computed.setter;
+		}
 		return function createComponentBinding( component, parentInstance, parentKeypath, childKeypath ) {
 			var hash, childInstance, bindings, parentToChildBinding, childToParentBinding;
 			hash = parentKeypath + '=' + childKeypath;
@@ -842,7 +879,8 @@
 					transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 					views: [],
 					tasks: [],
-					viewmodels: []
+					viewmodels: [],
+					instance: instance
 				};
 				if ( instance ) {
 					batch.viewmodels.push( instance.viewmodel );
@@ -852,15 +890,21 @@
 			end: function() {
 				flushChanges();
 				batch.transitionManager.init();
+				if ( !batch.previousBatch && !!batch.instance )
+					batch.instance.viewmodel.changes = [];
 				batch = batch.previousBatch;
 			},
 			addViewmodel: function( viewmodel ) {
 				if ( batch ) {
 					if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
 						batch.viewmodels.push( viewmodel );
+						return true;
+					} else {
+						return false;
 					}
 				} else {
 					viewmodel.applyChanges();
+					return false;
 				}
 			},
 			registerTransition: function( transition ) {
@@ -880,11 +924,19 @@
 			detachWhenReady: function( thing ) {
 				batch.transitionManager.detachQueue.push( thing );
 			},
-			scheduleTask: function( task ) {
+			scheduleTask: function( task, postRender ) {
+				var _batch;
 				if ( !batch ) {
 					task();
 				} else {
-					batch.tasks.push( task );
+					_batch = batch;
+					while ( postRender && _batch.previousBatch ) {
+						// this can't happen until the DOM has been fully updated
+						// otherwise in some situations (with components inside elements)
+						// transitions and decorators will initialise prematurely
+						_batch = _batch.previousBatch;
+					}
+					_batch.tasks.push( task );
 				}
 			}
 		};
@@ -2016,7 +2068,7 @@
 		};
 		arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
 		// if a reference is a browser global, we don't deference it later, so it needs special treatment
-		globals = /^(?:Array|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+		globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
 		// keywords are not valid references, with the exception of `this`
 		keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 		return function( parser ) {
@@ -2034,9 +2086,9 @@
 			}
 			if ( !ancestor ) {
 				// we might have an implicit iterator or a restricted reference
-				dot = parser.matchString( '.' ) || '';
+				dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 			}
-			name = parser.matchPattern( /^@(?:index|key)/ ) || parser.matchPattern( patterns.name ) || '';
+			name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( patterns.name ) || '';
 			// bug out if it's a keyword
 			if ( keywords.test( name ) ) {
 				parser.pos = startPos;
@@ -2822,10 +2874,9 @@
 
 		var __export;
 		var delimiterChangeToken = {
-				t: types.DELIMCHANGE,
-				exclude: true
-			},
-			handlebarsIndexRefPattern = /^@(?:index|key)$/;
+			t: types.DELIMCHANGE,
+			exclude: true
+		};
 		__export = getMustache;
 
 		function getMustache( parser ) {
@@ -2850,7 +2901,7 @@
 		}
 
 		function getMustacheOfType( parser, delimiterType ) {
-			var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child, indexRef;
+			var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child;
 			start = parser.pos;
 			delimiters = parser[ delimiterType.delimiters ];
 			if ( !parser.matchString( delimiters[ 0 ] ) ) {
@@ -2919,11 +2970,6 @@
 				}
 				if ( children.length ) {
 					mustache.f = children;
-					// If this is an 'each' section, and it contains an {{@index}} or {{@key}},
-					// we need to set the index reference accordingly
-					if ( !mustache.i && mustache.n === 'each' && ( indexRef = handlebarsIndexRef( mustache.f ) ) ) {
-						mustache.i = indexRef;
-					}
 				}
 				if ( elseChildren && elseChildren.length ) {
 					mustache.l = elseChildren;
@@ -2943,76 +2989,6 @@
 				mustache.n = types.SECTION_UNLESS;
 			}
 			return mustache;
-		}
-
-		function handlebarsIndexRef( fragment ) {
-			var i, child, indexRef, name;
-			if ( !fragment ) {
-				return;
-			}
-			i = fragment.length;
-			while ( i-- ) {
-				child = fragment[ i ];
-				// Recurse into elements (but not sections)
-				if ( child.t === types.ELEMENT ) {
-					if ( indexRef = // directive arguments
-						handlebarsIndexRef( child.o && child.o.d ) || handlebarsIndexRef( child.t0 && child.t0.d ) || handlebarsIndexRef( child.t1 && child.t1.d ) || handlebarsIndexRef( child.t2 && child.t2.d ) || // children
-						handlebarsIndexRef( child.f ) ) {
-						return indexRef;
-					}
-					// proxy events
-					for ( name in child.v ) {
-						if ( child.v.hasOwnProperty( name ) && child.v[ name ].d && ( indexRef = handlebarsIndexRef( child.v[ name ].d ) ) ) {
-							return indexRef;
-						}
-					}
-					// attributes
-					for ( name in child.a ) {
-						if ( child.a.hasOwnProperty( name ) && ( indexRef = handlebarsIndexRef( child.a[ name ] ) ) ) {
-							return indexRef;
-						}
-					}
-				}
-				// Mustache?
-				if ( child.t === types.INTERPOLATOR || child.t === types.TRIPLE || child.t === types.SECTION ) {
-					// Normal reference?
-					if ( child.r && handlebarsIndexRefPattern.test( child.r ) ) {
-						return child.r;
-					}
-					// Expression?
-					if ( child.x && ( indexRef = indexRefContainedInExpression( child.x ) ) ) {
-						return indexRef;
-					}
-					// Reference expression?
-					if ( child.rx && ( indexRef = indexRefContainedInReferenceExpression( child.rx ) ) ) {
-						return indexRef;
-					}
-				}
-			}
-		}
-
-		function indexRefContainedInExpression( expression ) {
-			var i;
-			i = expression.r.length;
-			while ( i-- ) {
-				if ( handlebarsIndexRefPattern.test( expression.r[ i ] ) ) {
-					return expression.r[ i ];
-				}
-			}
-		}
-
-		function indexRefContainedInReferenceExpression( referenceExpression ) {
-			var i, indexRef, member;
-			i = referenceExpression.m.length;
-			while ( i-- ) {
-				member = referenceExpression.m[ i ];
-				if ( member.r && ( indexRef = indexRefContainedInExpression( member ) ) ) {
-					return indexRef;
-				}
-				if ( member.t === types.REFERENCE && handlebarsIndexRefPattern.test( member.n ) ) {
-					return member.n;
-				}
-			}
 		}
 
 		function isSection( mustache ) {
@@ -3076,66 +3052,6 @@
 		}
 		return lowest || -1;
 	};
-
-	/* parse/converters/text.js */
-	var text = function( getLowestIndex ) {
-
-		return function( parser ) {
-			var index, remaining, disallowed, barrier;
-			remaining = parser.remaining();
-			barrier = parser.inside ? '</' + parser.inside : '<';
-			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
-				index = remaining.indexOf( barrier );
-			} else {
-				disallowed = [
-					barrier,
-					parser.delimiters[ 0 ],
-					parser.tripleDelimiters[ 0 ],
-					parser.staticDelimiters[ 0 ],
-					parser.staticTripleDelimiters[ 0 ]
-				];
-				// http://developers.whatwg.org/syntax.html#syntax-attributes
-				if ( parser.inAttribute === true ) {
-					// we're inside an unquoted attribute value
-					disallowed.push( '"', '\'', '=', '>', '`' );
-				} else if ( parser.inAttribute ) {
-					// quoted attribute value
-					disallowed.push( parser.inAttribute );
-				}
-				index = getLowestIndex( remaining, disallowed );
-			}
-			if ( !index ) {
-				return null;
-			}
-			if ( index === -1 ) {
-				index = remaining.length;
-			}
-			parser.pos += index;
-			return remaining.substr( 0, index );
-		};
-	}( getLowestIndex );
-
-	/* parse/converters/element/closingTag.js */
-	var closingTag = function( types ) {
-
-		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
-		return function( parser ) {
-			var tag;
-			// are we looking at a closing tag?
-			if ( !parser.matchString( '</' ) ) {
-				return null;
-			}
-			if ( tag = parser.matchPattern( closingTagPattern ) ) {
-				return {
-					t: types.CLOSING_TAG,
-					e: tag
-				};
-			}
-			// We have an illegal closing tag, report it
-			parser.pos -= 2;
-			parser.error( 'Illegal closing tag' );
-		};
-	}( types );
 
 	/* shared/decodeCharacterReferences.js */
 	var decodeCharacterReferences = function() {
@@ -3488,6 +3404,67 @@
 		return __export;
 	}( legacy );
 
+	/* parse/converters/text.js */
+	var text = function( getLowestIndex, decodeCharacterReferences ) {
+
+		return function( parser ) {
+			var index, remaining, disallowed, barrier;
+			remaining = parser.remaining();
+			barrier = parser.inside ? '</' + parser.inside : '<';
+			if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
+				index = remaining.indexOf( barrier );
+			} else {
+				disallowed = [
+					parser.delimiters[ 0 ],
+					parser.tripleDelimiters[ 0 ],
+					parser.staticDelimiters[ 0 ],
+					parser.staticTripleDelimiters[ 0 ]
+				];
+				// http://developers.whatwg.org/syntax.html#syntax-attributes
+				if ( parser.inAttribute === true ) {
+					// we're inside an unquoted attribute value
+					disallowed.push( '"', '\'', '=', '<', '>', '`' );
+				} else if ( parser.inAttribute ) {
+					// quoted attribute value
+					disallowed.push( parser.inAttribute );
+				} else {
+					disallowed.push( barrier );
+				}
+				index = getLowestIndex( remaining, disallowed );
+			}
+			if ( !index ) {
+				return null;
+			}
+			if ( index === -1 ) {
+				index = remaining.length;
+			}
+			parser.pos += index;
+			return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
+		};
+	}( getLowestIndex, decodeCharacterReferences );
+
+	/* parse/converters/element/closingTag.js */
+	var closingTag = function( types ) {
+
+		var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
+		return function( parser ) {
+			var tag;
+			// are we looking at a closing tag?
+			if ( !parser.matchString( '</' ) ) {
+				return null;
+			}
+			if ( tag = parser.matchPattern( closingTagPattern ) ) {
+				return {
+					t: types.CLOSING_TAG,
+					e: tag
+				};
+			}
+			// We have an illegal closing tag, report it
+			parser.pos -= 2;
+			parser.error( 'Illegal closing tag' );
+		};
+	}( types );
+
 	/* parse/converters/element/attribute.js */
 	var attribute = function( getLowestIndex, getMustache, decodeCharacterReferences ) {
 
@@ -3809,31 +3786,35 @@
 			result = {};
 			directiveName = [];
 			directiveArgs = [];
-			while ( tokens.length ) {
-				token = tokens.shift();
-				if ( typeof token === 'string' ) {
-					colonIndex = token.indexOf( ':' );
-					if ( colonIndex === -1 ) {
-						directiveName.push( token );
+			if ( tokens ) {
+				while ( tokens.length ) {
+					token = tokens.shift();
+					if ( typeof token === 'string' ) {
+						colonIndex = token.indexOf( ':' );
+						if ( colonIndex === -1 ) {
+							directiveName.push( token );
+						} else {
+							// is the colon the first character?
+							if ( colonIndex ) {
+								// no
+								directiveName.push( token.substr( 0, colonIndex ) );
+							}
+							// if there is anything after the colon in this token, treat
+							// it as the first token of the directiveArgs fragment
+							if ( token.length > colonIndex + 1 ) {
+								directiveArgs[ 0 ] = token.substring( colonIndex + 1 );
+							}
+							break;
+						}
 					} else {
-						// is the colon the first character?
-						if ( colonIndex ) {
-							// no
-							directiveName.push( token.substr( 0, colonIndex ) );
-						}
-						// if there is anything after the colon in this token, treat
-						// it as the first token of the directiveArgs fragment
-						if ( token.length > colonIndex + 1 ) {
-							directiveArgs[ 0 ] = token.substring( colonIndex + 1 );
-						}
-						break;
+						directiveName.push( token );
 					}
-				} else {
-					directiveName.push( token );
 				}
+				directiveArgs = directiveArgs.concat( tokens );
 			}
-			directiveArgs = directiveArgs.concat( tokens );
-			if ( directiveArgs.length || typeof directiveName !== 'string' ) {
+			if ( !directiveName.length ) {
+				result = '';
+			} else if ( directiveArgs.length || typeof directiveName !== 'string' ) {
 				result = {
 					// TODO is this really necessary? just use the array
 					n: directiveName.length === 1 && typeof directiveName[ 0 ] === 'string' ? directiveName[ 0 ] : directiveName
@@ -3932,7 +3913,7 @@
 		function getElement( parser ) {
 			var start, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
 			start = parser.pos;
-			if ( parser.inside ) {
+			if ( parser.inside || parser.inAttribute ) {
 				return null;
 			}
 			if ( !parser.matchString( '<' ) ) {
@@ -4414,7 +4395,7 @@
 		}
 
 		function isHashedId( id ) {
-			return id.charAt( 0 ) === '#';
+			return id && id.charAt( 0 ) === '#';
 		}
 
 		function isParsed( template ) {
@@ -4712,6 +4693,9 @@
 			}
 		}
 		return function deprecateOptions( options ) {
+			deprecate( options, 'beforeInit', 'onconstruct' );
+			deprecate( options, 'init', 'onrender' );
+			deprecate( options, 'complete', 'oncomplete' );
 			deprecateEventDefinitions( options );
 			deprecateAdaptors( options );
 		};
@@ -6232,64 +6216,23 @@
 		return css;
 	}( circular, isClient, removeFromArray );
 
-	/* Ractive/prototype/shared/hooks/HookQueue.js */
-	var Ractive$shared_hooks_HookQueue = function( Hook ) {
-
-		function HookQueue( event ) {
-			this.hook = new Hook( event );
-			this.inProcess = {};
-			this.queue = {};
-		}
-		HookQueue.prototype = {
-			constructor: HookQueue,
-			begin: function( ractive ) {
-				this.inProcess[ ractive._guid ] = true;
-			},
-			end: function( ractive ) {
-				var parent = ractive._parent;
-				// If this is *isn't* a child of a component that's in process,
-				// it should call methods or fire at this point
-				if ( !parent || !this.inProcess[ parent._guid ] ) {
-					fire( this, ractive );
-				} else {
-					getChildQueue( this.queue, parent ).push( ractive );
-				}
-				delete this.inProcess[ ractive._guid ];
-			}
-		};
-
-		function getChildQueue( queue, ractive ) {
-			return queue[ ractive._guid ] || ( queue[ ractive._guid ] = [] );
-		}
-
-		function fire( hookQueue, ractive ) {
-			var childQueue = getChildQueue( hookQueue.queue, ractive );
-			hookQueue.hook.fire( ractive );
-			// queue is "live" because components can end up being
-			// added while hooks fire on parents that modify data values.
-			while ( childQueue.length ) {
-				fire( hookQueue, childQueue.shift() );
-			}
-			delete hookQueue.queue[ ractive._guid ];
-		}
-		return HookQueue;
-	}( Ractive$shared_hooks_Hook );
-
 	/* Ractive/prototype/render.js */
-	var Ractive$render = function( css, Hook, HookQueue, getElement, runloop ) {
+	var Ractive$render = function( css, Hook, getElement, runloop ) {
 
-		var renderHook = new HookQueue( 'render' ),
+		var renderHook = new Hook( 'render' ),
 			completeHook = new Hook( 'complete' );
 		return function Ractive$render( target, anchor ) {
 			var this$0 = this;
 			var promise, instances, transitionsEnabled;
-			renderHook.begin( this );
 			// if `noIntro` is `true`, temporarily disable transitions
 			transitionsEnabled = this.transitionsEnabled;
 			if ( this.noIntro ) {
 				this.transitionsEnabled = false;
 			}
 			promise = runloop.start( this, true );
+			runloop.scheduleTask( function() {
+				return renderHook.fire( this$0 );
+			}, true );
 			if ( this.fragment.rendered ) {
 				throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 			}
@@ -6313,7 +6256,6 @@
 					target.appendChild( this.fragment.render() );
 				}
 			}
-			renderHook.end( this );
 			runloop.end();
 			this.transitionsEnabled = transitionsEnabled;
 			// It is now more problematic to know if the complete hook
@@ -6326,7 +6268,7 @@
 			} );
 			return promise;
 		};
-	}( global_css, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, getElement, runloop );
+	}( global_css, Ractive$shared_hooks_Hook, getElement, runloop );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
@@ -6511,10 +6453,11 @@
 	/* utils/escapeHtml.js */
 	var escapeHtml = function() {
 
-		var lessThan = /</g,
-			greaterThan = />/g;
+		var lessThan = /</g;
+		var greaterThan = />/g;
+		var amp = /&/g;
 		return function escapeHtml( str ) {
-			return str.replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
+			return str.replace( amp, '&amp;' ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
 		};
 	}();
 
@@ -6535,7 +6478,7 @@
 	}( detachNode );
 
 	/* virtualdom/items/Text.js */
-	var Text = function( types, escapeHtml, detach, decodeCharacterReferences ) {
+	var Text = function( types, escapeHtml, detach ) {
 
 		var Text = function( options ) {
 			this.type = types.TEXT;
@@ -6548,7 +6491,7 @@
 			},
 			render: function() {
 				if ( !this.node ) {
-					this.node = document.createTextNode( decodeCharacterReferences( this.text ) );
+					this.node = document.createTextNode( this.text );
 				}
 				return this.node;
 			},
@@ -6562,47 +6505,23 @@
 			}
 		};
 		return Text;
-	}( types, escapeHtml, detach, decodeCharacterReferences );
+	}( types, escapeHtml, detach );
 
 	/* virtualdom/items/shared/unbind.js */
-	var unbind = function( runloop ) {
-
-		return function unbind() {
-			if ( !this.keypath ) {
-				// this was on the 'unresolved' list, we need to remove it
-				runloop.removeUnresolved( this );
-			} else {
-				// this was registered as a dependant
-				this.root.viewmodel.unregister( this.keypath, this );
-			}
-			if ( this.resolver ) {
-				this.resolver.unbind();
-			}
-		};
-	}( runloop );
+	var unbind = function unbind() {
+		if ( this.registered ) {
+			// this was registered as a dependant
+			this.root.viewmodel.unregister( this.keypath, this );
+		}
+		if ( this.resolver ) {
+			this.resolver.unbind();
+		}
+	};
 
 	/* virtualdom/items/shared/Mustache/getValue.js */
 	var getValue = function Mustache$getValue() {
 		return this.value;
 	};
-
-	/* shared/Unresolved.js */
-	var Unresolved = function( runloop ) {
-
-		var Unresolved = function( ractive, ref, parentFragment, callback ) {
-			this.root = ractive;
-			this.ref = ref;
-			this.parentFragment = parentFragment;
-			this.resolve = callback;
-			runloop.addUnresolved( this );
-		};
-		Unresolved.prototype = {
-			unbind: function() {
-				runloop.removeUnresolved( this );
-			}
-		};
-		return Unresolved;
-	}( runloop );
 
 	/* virtualdom/items/shared/utils/startsWithKeypath.js */
 	var startsWithKeypath = function startsWithKeypath( target, keypath ) {
@@ -6624,6 +6543,127 @@
 		};
 	}( startsWithKeypath );
 
+	/* virtualdom/items/shared/Resolvers/ReferenceResolver.js */
+	var ReferenceResolver = function( runloop, resolveRef, getNewKeypath ) {
+
+		var ReferenceResolver = function( owner, ref, callback ) {
+			var keypath;
+			this.ref = ref;
+			this.resolved = false;
+			this.root = owner.root;
+			this.parentFragment = owner.parentFragment;
+			this.callback = callback;
+			keypath = resolveRef( owner.root, ref, owner.parentFragment );
+			if ( keypath !== undefined ) {
+				this.resolve( keypath );
+			} else {
+				runloop.addUnresolved( this );
+			}
+		};
+		ReferenceResolver.prototype = {
+			resolve: function( keypath ) {
+				this.resolved = true;
+				this.keypath = keypath;
+				this.callback( keypath );
+			},
+			forceResolution: function() {
+				this.resolve( this.ref );
+			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				var keypath;
+				if ( this.keypath !== undefined ) {
+					keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
+					// was a new keypath created?
+					if ( keypath !== undefined ) {
+						// resolve it
+						this.resolve( keypath );
+					}
+				}
+			},
+			unbind: function() {
+				if ( !this.resolved ) {
+					runloop.removeUnresolved( this );
+				}
+			}
+		};
+		return ReferenceResolver;
+	}( runloop, resolveRef, getNewKeypath );
+
+	/* virtualdom/items/shared/Resolvers/SpecialResolver.js */
+	var SpecialResolver = function() {
+
+		var SpecialResolver = function( owner, ref, callback ) {
+			this.parentFragment = owner.parentFragment;
+			this.ref = ref;
+			this.callback = callback;
+			this.rebind();
+		};
+		SpecialResolver.prototype = {
+			rebind: function() {
+				var ref = this.ref,
+					fragment = this.parentFragment;
+				if ( ref === '@keypath' ) {
+					while ( fragment ) {
+						if ( !!fragment.context ) {
+							return this.callback( '@' + fragment.context );
+						}
+						fragment = fragment.parent;
+					}
+				}
+				if ( ref === '@index' || ref === '@key' ) {
+					while ( fragment ) {
+						if ( fragment.index !== undefined ) {
+							return this.callback( '@' + fragment.index );
+						}
+						fragment = fragment.parent;
+					}
+				}
+				throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
+			},
+			unbind: function() {}
+		};
+		return SpecialResolver;
+	}();
+
+	/* virtualdom/items/shared/Resolvers/IndexResolver.js */
+	var IndexResolver = function() {
+
+		var IndexResolver = function( owner, ref, callback ) {
+			this.parentFragment = owner.parentFragment;
+			this.ref = ref;
+			this.callback = callback;
+			this.rebind();
+		};
+		IndexResolver.prototype = {
+			rebind: function() {
+				var ref = this.ref,
+					indexRefs = this.parentFragment.indexRefs,
+					index = indexRefs[ ref ];
+				if ( index !== undefined ) {
+					this.callback( '@' + index );
+				}
+			},
+			unbind: function() {}
+		};
+		return IndexResolver;
+	}();
+
+	/* virtualdom/items/shared/Resolvers/createReferenceResolver.js */
+	var createReferenceResolver = function( ReferenceResolver, SpecialResolver, IndexResolver ) {
+
+		return function createReferenceResolver( owner, ref, callback ) {
+			var indexRefs, index;
+			if ( ref.charAt( 0 ) === '@' ) {
+				return new SpecialResolver( owner, ref, callback );
+			}
+			indexRefs = owner.parentFragment.indexRefs;
+			if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
+				return new IndexResolver( owner, ref, callback );
+			}
+			return new ReferenceResolver( owner, ref, callback );
+		};
+	}( ReferenceResolver, SpecialResolver, IndexResolver );
+
 	/* shared/getFunctionFromString.js */
 	var getFunctionFromString = function() {
 
@@ -6644,119 +6684,75 @@
 	}();
 
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
-	var ExpressionResolver = function( removeFromArray, defineProperty, resolveRef, Unresolved, getFunctionFromString, getNewKeypath ) {
+	var ExpressionResolver = function( defineProperty, isNumeric, createReferenceResolver, getFunctionFromString ) {
 
 		var __export;
 		var ExpressionResolver, bind = Function.prototype.bind;
 		ExpressionResolver = function( owner, parentFragment, expression, callback ) {
-			var expressionResolver = this,
-				ractive, indexRefs, args;
+			var resolver = this,
+				ractive, indexRefs;
 			ractive = owner.root;
-			this.root = ractive;
-			this.callback = callback;
-			this.owner = owner;
-			this.str = expression.s;
-			this.args = args = [];
-			this.unresolved = [];
-			this.pending = 0;
+			resolver.root = ractive;
+			resolver.parentFragment = parentFragment;
+			resolver.callback = callback;
+			resolver.owner = owner;
+			resolver.str = expression.s;
+			resolver.keypaths = [];
 			indexRefs = parentFragment.indexRefs;
-			// some expressions don't have references. edge case, but, yeah.
-			if ( !expression.r || !expression.r.length ) {
-				this.resolved = this.ready = true;
-				this.bubble();
-				return;
-			}
 			// Create resolvers for each reference
-			expression.r.forEach( function( reference, i ) {
-				var index, keypath, unresolved;
-				// Is this an index reference?
-				if ( indexRefs && ( index = indexRefs[ reference ] ) !== undefined ) {
-					args[ i ] = {
-						indexRef: reference,
-						value: index
-					};
-					return;
-				}
-				// Can we resolve it immediately?
-				if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
-					args[ i ] = {
-						keypath: keypath
-					};
-					return;
-				} else if ( reference === '.' ) {
-					// special case of context reference to root
-					args[ i ] = {
-						'': ''
-					};
-					return;
-				}
-				// Couldn't resolve yet
-				args[ i ] = null;
-				expressionResolver.pending += 1;
-				unresolved = new Unresolved( ractive, reference, parentFragment, function( keypath ) {
-					expressionResolver.resolve( i, keypath );
-					removeFromArray( expressionResolver.unresolved, unresolved );
+			resolver.pending = expression.r.length;
+			resolver.refResolvers = expression.r.map( function( ref, i ) {
+				return createReferenceResolver( resolver, ref, function( keypath ) {
+					resolver.resolve( i, keypath );
 				} );
-				expressionResolver.unresolved.push( unresolved );
 			} );
-			this.ready = true;
-			this.bubble();
+			resolver.ready = true;
+			resolver.bubble();
 		};
 		ExpressionResolver.prototype = {
 			bubble: function() {
 				if ( !this.ready ) {
 					return;
 				}
-				this.uniqueString = getUniqueString( this.str, this.args );
+				this.uniqueString = getUniqueString( this.str, this.keypaths );
 				this.keypath = getKeypath( this.uniqueString );
 				this.createEvaluator();
 				this.callback( this.keypath );
 			},
 			unbind: function() {
-				var unresolved;
-				while ( unresolved = this.unresolved.pop() ) {
-					unresolved.unbind();
+				var resolver;
+				while ( resolver = this.refResolvers.pop() ) {
+					resolver.unbind();
 				}
 			},
 			resolve: function( index, keypath ) {
-				this.args[ index ] = {
-					keypath: keypath
-				};
+				this.keypaths[ index ] = keypath;
 				this.bubble();
-				// when all references have been resolved, we can flag the entire expression
-				// as having been resolved
-				this.resolved = !--this.pending;
 			},
 			createEvaluator: function() {
 				var this$0 = this;
 				var self = this,
-					computation, valueGetters, signature, keypaths = [],
-					i, arg, fn;
+					computation, valueGetters, signature, keypath, fn;
 				computation = this.root.viewmodel.computations[ this.keypath ];
 				// only if it doesn't exist yet!
 				if ( !computation ) {
-					i = this.args.length;
-					while ( i-- ) {
-						arg = this.args[ i ];
-						if ( arg && arg.keypath ) {
-							keypaths.push( arg.keypath );
-						}
-					}
-					fn = getFunctionFromString( this.str, this.args.length );
-					valueGetters = this.args.map( function( arg ) {
-						var keypath, value;
-						if ( !arg ) {
+					fn = getFunctionFromString( this.str, this.refResolvers.length );
+					valueGetters = this.keypaths.map( function( keypath ) {
+						var value;
+						if ( keypath === 'undefined' ) {
 							return function() {
 								return undefined;
 							};
 						}
-						if ( arg.indexRef ) {
-							value = arg.value;
-							return function() {
+						// 'special' keypaths encode a value
+						if ( keypath[ 0 ] === '@' ) {
+							value = keypath.slice( 1 );
+							return isNumeric( value ) ? function() {
+								return +value;
+							} : function() {
 								return value;
 							};
 						}
-						keypath = arg.keypath;
 						return function() {
 							var value = this$0.root.viewmodel.get( keypath );
 							if ( typeof value === 'function' ) {
@@ -6766,7 +6762,7 @@
 						};
 					} );
 					signature = {
-						deps: keypaths,
+						deps: this.keypaths.filter( isValidDependency ),
 						get: function() {
 							var args = valueGetters.map( call );
 							return fn.apply( null, args );
@@ -6778,22 +6774,10 @@
 				}
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				var changed;
-				this.args.forEach( function( arg ) {
-					var changedKeypath;
-					if ( !arg )
-						return;
-					if ( arg.keypath && ( changedKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
-						arg.keypath = changedKeypath;
-						changed = true;
-					} else if ( arg.indexRef && arg.indexRef === indexRef ) {
-						arg.value = newIndex;
-						changed = true;
-					}
+				// TODO only bubble once, no matter how many references are affected by the rebind
+				this.refResolvers.forEach( function( r ) {
+					return r.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 				} );
-				if ( changed ) {
-					this.bubble();
-				}
 			}
 		};
 		__export = ExpressionResolver;
@@ -6802,15 +6786,19 @@
 			return value.call();
 		}
 
-		function getUniqueString( str, args ) {
+		function getUniqueString( str, keypaths ) {
 			// get string that is unique to this expression
 			return str.replace( /_([0-9]+)/g, function( match, $1 ) {
-				var arg = args[ $1 ];
-				if ( !arg )
+				var keypath, value;
+				keypath = keypaths[ $1 ];
+				if ( keypath === undefined ) {
 					return 'undefined';
-				if ( arg.indexRef )
-					return arg.value;
-				return arg.keypath;
+				}
+				if ( keypath[ 0 ] === '@' ) {
+					value = keypath.slice( 1 );
+					return isNumeric( value ) ? value : '"' + value + '"';
+				}
+				return keypath;
 			} );
 		}
 
@@ -6818,6 +6806,10 @@
 			// Sanitize by removing any periods or square brackets. Otherwise
 			// we can't split the keypath into keys!
 			return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
+		}
+
+		function isValidDependency( keypath ) {
+			return keypath !== undefined && keypath[ 0 ] !== '@';
 		}
 
 		function wrapFunction( fn, ractive ) {
@@ -6847,38 +6839,24 @@
 			return fn.__ractive_nowrap;
 		}
 		return __export;
-	}( removeFromArray, defineProperty, resolveRef, Unresolved, getFunctionFromString, getNewKeypath, legacy );
+	}( defineProperty, isNumeric, createReferenceResolver, getFunctionFromString, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js */
-	var MemberResolver = function( types, resolveRef, Unresolved, getNewKeypath, ExpressionResolver ) {
+	var MemberResolver = function( types, createReferenceResolver, ExpressionResolver ) {
 
 		var MemberResolver = function( template, resolver, parentFragment ) {
 			var member = this,
-				ref, indexRefs, index, ractive, keypath;
+				keypath;
 			member.resolver = resolver;
 			member.root = resolver.root;
+			member.parentFragment = parentFragment;
 			member.viewmodel = resolver.root.viewmodel;
 			if ( typeof template === 'string' ) {
 				member.value = template;
 			} else if ( template.t === types.REFERENCE ) {
-				ref = member.ref = template.n;
-				// If it's an index reference, our job is simple
-				if ( ( indexRefs = parentFragment.indexRefs ) && ( index = indexRefs[ ref ] ) !== undefined ) {
-					member.indexRef = ref;
-					member.value = index;
-				} else {
-					ractive = resolver.root;
-					// Can we resolve the reference immediately?
-					if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-						member.resolve( keypath );
-					} else {
-						// Couldn't resolve yet
-						member.unresolved = new Unresolved( ractive, ref, parentFragment, function( keypath ) {
-							member.unresolved = null;
-							member.resolve( keypath );
-						} );
-					}
-				}
+				member.refResolver = createReferenceResolver( this, template.n, function( keypath ) {
+					member.resolve( keypath );
+				} );
 			} else {
 				new ExpressionResolver( resolver, parentFragment, template, function( keypath ) {
 					member.resolve( keypath );
@@ -6887,6 +6865,9 @@
 		};
 		MemberResolver.prototype = {
 			resolve: function( keypath ) {
+				if ( this.keypath ) {
+					this.viewmodel.unregister( this.keypath, this );
+				}
 				this.keypath = keypath;
 				this.value = this.viewmodel.get( keypath );
 				this.bind();
@@ -6896,18 +6877,8 @@
 				this.viewmodel.register( this.keypath, this );
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				var keypath;
-				if ( indexRef && this.indexRef === indexRef ) {
-					if ( newIndex !== this.value ) {
-						this.value = newIndex;
-						return true;
-					}
-				} else if ( this.keypath && ( keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath ) ) ) {
-					this.unbind();
-					this.keypath = keypath;
-					this.value = this.root.viewmodel.get( keypath );
-					this.bind();
-					return true;
+				if ( this.refResolver ) {
+					this.refResolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 				}
 			},
 			setValue: function( value ) {
@@ -6916,33 +6887,29 @@
 			},
 			unbind: function() {
 				if ( this.keypath ) {
-					this.root.viewmodel.unregister( this.keypath, this );
+					this.viewmodel.unregister( this.keypath, this );
 				}
 				if ( this.unresolved ) {
 					this.unresolved.unbind();
 				}
 			},
 			forceResolution: function() {
-				if ( this.unresolved ) {
-					this.unresolved.unbind();
-					this.unresolved = null;
-					this.keypath = this.ref;
-					this.value = this.viewmodel.get( this.ref );
-					this.bind();
+				if ( this.refResolver ) {
+					this.refResolver.forceResolution();
 				}
 			}
 		};
 		return MemberResolver;
-	}( types, resolveRef, Unresolved, getNewKeypath, ExpressionResolver );
+	}( types, createReferenceResolver, ExpressionResolver );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver.js */
-	var ReferenceExpressionResolver = function( resolveRef, Unresolved, MemberResolver ) {
+	var ReferenceExpressionResolver = function( resolveRef, ReferenceResolver, MemberResolver ) {
 
 		var ReferenceExpressionResolver = function( mustache, template, callback ) {
 			var this$0 = this;
 			var resolver = this,
 				ractive, ref, keypath, parentFragment;
-			parentFragment = mustache.parentFragment;
+			resolver.parentFragment = parentFragment = mustache.parentFragment;
 			resolver.root = ractive = mustache.root;
 			resolver.mustache = mustache;
 			resolver.ref = ref = template.r;
@@ -6952,7 +6919,7 @@
 			if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
 				resolver.base = keypath;
 			} else {
-				resolver.baseResolver = new Unresolved( ractive, ref, parentFragment, function( keypath ) {
+				resolver.baseResolver = new ReferenceResolver( this, ref, function( keypath ) {
 					resolver.base = keypath;
 					resolver.baseResolver = null;
 					resolver.bubble();
@@ -7018,13 +6985,13 @@
 			member.unbind();
 		}
 		return ReferenceExpressionResolver;
-	}( resolveRef, Unresolved, MemberResolver );
+	}( resolveRef, ReferenceResolver, MemberResolver );
 
 	/* virtualdom/items/shared/Mustache/initialise.js */
-	var initialise = function( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver ) {
+	var initialise = function( types, createReferenceResolver, ReferenceExpressionResolver, ExpressionResolver ) {
 
 		return function Mustache$init( mustache, options ) {
-			var ref, keypath, indexRefs, index, parentFragment, template;
+			var ref, parentFragment, template;
 			parentFragment = options.parentFragment;
 			template = options.template;
 			mustache.root = parentFragment.root;
@@ -7034,22 +7001,11 @@
 			mustache.index = options.index || 0;
 			mustache.isStatic = options.template.s;
 			mustache.type = options.template.t;
+			mustache.registered = false;
 			// if this is a simple mustache, with a reference, we just need to resolve
 			// the reference to a keypath
 			if ( ref = template.r ) {
-				indexRefs = parentFragment.indexRefs;
-				if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
-					mustache.indexRef = ref;
-					mustache.setValue( index );
-					return;
-				}
-				keypath = resolveRef( mustache.root, ref, mustache.parentFragment );
-				if ( keypath !== undefined ) {
-					mustache.resolve( keypath );
-				} else {
-					mustache.ref = ref;
-					runloop.addUnresolved( mustache );
-				}
+				mustache.resolver = new createReferenceResolver( mustache, ref, resolve );
 			}
 			// if it's an expression, we have a bit more work to do
 			if ( options.template.x ) {
@@ -7061,6 +7017,10 @@
 			// Special case - inverted sections
 			if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 				mustache.setValue( undefined );
+			}
+
+			function resolve( keypath ) {
+				mustache.resolve( keypath );
 			}
 
 			function resolveAndRebindChildren( newKeypath ) {
@@ -7075,62 +7035,62 @@
 				}
 			}
 		};
-	}( types, runloop, resolveRef, ReferenceExpressionResolver, ExpressionResolver );
+	}( types, createReferenceResolver, ReferenceExpressionResolver, ExpressionResolver );
 
 	/* virtualdom/items/shared/Mustache/resolve.js */
-	var resolve = function Mustache$resolve( keypath ) {
-		var wasResolved, value, twowayBinding;
-		// If we resolved previously, we need to unregister
-		if ( this.keypath != undefined ) {
-			// undefined or null
-			this.root.viewmodel.unregister( this.keypath, this );
-			wasResolved = true;
-		}
-		this.keypath = keypath;
-		// If the new keypath exists, we need to register
-		// with the viewmodel
-		if ( keypath != undefined ) {
-			// undefined or null
-			value = this.root.viewmodel.get( keypath );
-			this.root.viewmodel.register( keypath, this );
-		}
-		// Either way we need to queue up a render (`value`
-		// will be `undefined` if there's no keypath)
-		this.setValue( value );
-		// Two-way bindings need to point to their new target keypath
-		if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
-			twowayBinding.rebound();
-		}
-	};
+	var resolve = function( isNumeric ) {
 
-	/* virtualdom/items/shared/Mustache/rebind.js */
-	var rebind = function( getNewKeypath ) {
-
-		return function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var keypath;
-			// Children first
-			if ( this.fragments ) {
-				this.fragments.forEach( function( f ) {
-					return f.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-				} );
-			}
-			// Expression mustache?
-			if ( this.resolver ) {
-				this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			}
-			// Normal keypath mustache or reference expression?
-			if ( this.keypath !== undefined ) {
-				keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
-				// was a new keypath created?
-				if ( keypath !== undefined ) {
-					// resolve it
-					this.resolve( keypath );
+		return function Mustache$resolve( keypath ) {
+			var wasResolved, value, twowayBinding;
+			// 'Special' keypaths, e.g. @foo or @7, encode a value
+			if ( keypath && keypath[ 0 ] === '@' ) {
+				value = keypath.slice( 1 );
+				if ( isNumeric( value ) ) {
+					value = +value;
 				}
-			} else if ( indexRef !== undefined && this.indexRef === indexRef ) {
-				this.setValue( newIndex );
+				this.keypath = keypath;
+				this.setValue( value );
+				return;
+			}
+			// If we resolved previously, we need to unregister
+			if ( this.registered ) {
+				// undefined or null
+				this.root.viewmodel.unregister( this.keypath, this );
+				this.registered = false;
+				wasResolved = true;
+			}
+			this.keypath = keypath;
+			// If the new keypath exists, we need to register
+			// with the viewmodel
+			if ( keypath != undefined ) {
+				// undefined or null
+				value = this.root.viewmodel.get( keypath );
+				this.root.viewmodel.register( keypath, this );
+				this.registered = true;
+			}
+			// Either way we need to queue up a render (`value`
+			// will be `undefined` if there's no keypath)
+			this.setValue( value );
+			// Two-way bindings need to point to their new target keypath
+			if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
+				twowayBinding.rebound();
 			}
 		};
-	}( getNewKeypath );
+	}( isNumeric );
+
+	/* virtualdom/items/shared/Mustache/rebind.js */
+	var rebind = function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+		// Children first
+		if ( this.fragments ) {
+			this.fragments.forEach( function( f ) {
+				return f.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			} );
+		}
+		// Expression mustache?
+		if ( this.resolver ) {
+			this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		}
+	};
 
 	/* virtualdom/items/shared/Mustache/_Mustache.js */
 	var Mustache = function( getValue, init, resolve, rebind ) {
@@ -7868,6 +7828,9 @@
 				} else {
 					container = element( node.tagName );
 					container.innerHTML = html;
+					if ( container.tagName === 'SELECT' ) {
+						selectedOption = container.options[ container.selectedIndex ];
+					}
 				}
 				while ( child = container.firstChild ) {
 					nodes.push( child );
@@ -7877,7 +7840,8 @@
 				// temporary container <select> causes the remaining ones to
 				// become selected. So now we have to deselect them. IE8, you
 				// amaze me. You really do
-				if ( ieBug && node.tagName === 'SELECT' ) {
+				// ...and now Chrome too
+				if ( node.tagName === 'SELECT' ) {
 					i = nodes.length;
 					while ( i-- ) {
 						if ( nodes[ i ] !== selectedOption ) {
@@ -8507,6 +8471,7 @@
 						return;
 					}
 				}
+				node.checked = false;
 			}
 		};
 	}( isArray );
@@ -8804,8 +8769,8 @@
 			this.attribute = element.attributes[ this.name || 'value' ];
 			interpolator = this.attribute.interpolator;
 			interpolator.twowayBinding = this;
-			if ( interpolator.keypath && interpolator.keypath.substr === '${' ) {
-				warn( 'Two-way binding does not work with expressions: ' + interpolator.keypath );
+			if ( interpolator.keypath && interpolator.keypath.substr( 0, 2 ) === '${' ) {
+				warn( 'Two-way binding does not work with expressions (`' + interpolator.keypath.slice( 2, -1 ) + '`)' );
 				return false;
 			}
 			// A mustache may be *ambiguous*. Let's say we were given
@@ -8823,14 +8788,7 @@
 			// be explicit when using two-way data-binding about what keypath you're
 			// updating. Using it in lists is probably a recipe for confusion...
 			if ( !interpolator.keypath ) {
-				if ( interpolator.ref ) {
-					interpolator.resolve( interpolator.ref );
-				}
-				// If we have a reference expression resolver, we have to force
-				// members to attach themselves to the root
-				if ( interpolator.resolver ) {
-					interpolator.resolver.forceResolution();
-				}
+				interpolator.resolver.forceResolution();
 			}
 			this.keypath = keypath = interpolator.keypath;
 			// initialise value, if it's undefined
@@ -9024,7 +8982,7 @@
 	}( removeFromArray, Binding, handleDomEvent, getSiblings );
 
 	/* virtualdom/items/Element/Binding/CheckboxNameBinding.js */
-	var CheckboxNameBinding = function( isArray, removeFromArray, Binding, getSiblings, handleDomEvent ) {
+	var CheckboxNameBinding = function( isArray, arrayContains, removeFromArray, Binding, getSiblings, handleDomEvent ) {
 
 		var CheckboxNameBinding = Binding.extend( {
 			name: 'name',
@@ -9040,7 +8998,7 @@
 				return [];
 			},
 			init: function() {
-				var existingValue, bindingValue, noInitialValue;
+				var existingValue, bindingValue;
 				this.checkboxName = true;
 				// so that ractive.updateModel() knows what to do with this
 				this.attribute.twoway = true;
@@ -9053,16 +9011,12 @@
 				if ( this.noInitialValue ) {
 					this.siblings.noInitialValue = true;
 				}
-				noInitialValue = this.siblings.noInitialValue;
-				existingValue = this.root.viewmodel.get( this.keypath );
-				bindingValue = this.element.getAttribute( 'value' );
-				if ( noInitialValue ) {
-					this.isChecked = this.element.getAttribute( 'checked' );
-					if ( this.isChecked ) {
-						existingValue.push( bindingValue );
-					}
-				} else {
-					this.shouldOverride = true;
+				// If no initial value was set, and this input is checked, we
+				// update the model
+				if ( this.siblings.noInitialValue && this.element.getAttribute( 'checked' ) ) {
+					existingValue = this.root.viewmodel.get( this.keypath );
+					bindingValue = this.element.getAttribute( 'value' );
+					existingValue.push( bindingValue );
 				}
 			},
 			unbind: function() {
@@ -9070,21 +9024,13 @@
 			},
 			render: function() {
 				var node = this.element.node,
-					existingValue, bindingValue, i;
-				if ( this.shouldOverride ) {
-					existingValue = this.root.viewmodel.get( this.keypath );
-					bindingValue = this.element.getAttribute( 'value' );
-					if ( isArray( existingValue ) ) {
-						i = existingValue.length;
-						while ( i-- ) {
-							if ( existingValue[ i ] == bindingValue ) {
-								this.isChecked = true;
-								break;
-							}
-						}
-					} else {
-						this.isChecked = existingValue == bindingValue;
-					}
+					existingValue, bindingValue;
+				existingValue = this.root.viewmodel.get( this.keypath );
+				bindingValue = this.element.getAttribute( 'value' );
+				if ( isArray( existingValue ) ) {
+					this.isChecked = arrayContains( existingValue, bindingValue );
+				} else {
+					this.isChecked = existingValue == bindingValue;
 				}
 				node.name = '{{' + this.keypath + '}}';
 				node.checked = this.isChecked;
@@ -9121,7 +9067,7 @@
 			return binding.element.getAttribute( 'value' );
 		}
 		return CheckboxNameBinding;
-	}( isArray, removeFromArray, Binding, getSiblings, handleDomEvent );
+	}( isArray, arrayContains, removeFromArray, Binding, getSiblings, handleDomEvent );
 
 	/* virtualdom/items/Element/Binding/CheckboxBinding.js */
 	var CheckboxBinding = function( Binding, handleDomEvent ) {
@@ -9406,7 +9352,8 @@
 				element.binding = null;
 			}
 			// contenteditable
-			if ( element.getAttribute( 'contenteditable' ) && isBindable( attributes.value ) ) {
+			if ( // if the contenteditable attribute is true or is bindable and may thus become true
+				( element.getAttribute( 'contenteditable' ) || !!attributes.contenteditable && isBindable( attributes.contenteditable ) ) && isBindable( attributes.value ) ) {
 				Binding = ContentEditableBinding;
 			} else if ( element.name === 'input' ) {
 				type = element.getAttribute( 'type' );
@@ -9471,7 +9418,7 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
-	var virtualdom_items_Element_EventHandler$init = function( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular, fireEvent, log ) {
+	var virtualdom_items_Element_EventHandler$init = function( getFunctionFromString, createReferenceResolver, circular, fireEvent, log ) {
 
 		var __export;
 		var Fragment, getValueOptions = {
@@ -9483,7 +9430,7 @@
 		} );
 		__export = function EventHandler$init( element, name, template ) {
 			var handler = this,
-				action, args, indexRefs, ractive, parentFragment;
+				action, refs, ractive;
 			handler.element = element;
 			handler.root = element.root;
 			handler.name = name;
@@ -9499,47 +9446,27 @@
 				this.invalid = true;
 			}
 			if ( template.m ) {
+				refs = template.a.r;
 				// This is a method call
 				handler.method = template.m;
-				handler.args = args = [];
-				handler.unresolved = [];
-				handler.refs = template.a.r;
-				handler.fn = getFunctionFromString( template.a.s, handler.refs.length );
-				parentFragment = element.parentFragment;
-				indexRefs = parentFragment.indexRefs;
+				handler.keypaths = [];
+				handler.fn = getFunctionFromString( template.a.s, refs.length );
+				handler.parentFragment = element.parentFragment;
 				ractive = handler.root;
 				// Create resolvers for each reference
-				template.a.r.forEach( function( reference, i ) {
-					var index, keypath, match, unresolved;
-					// Is this an index reference?
-					if ( indexRefs && ( index = indexRefs[ reference ] ) !== undefined ) {
-						args[ i ] = {
-							indexRef: reference,
-							value: index
-						};
-						return;
-					}
-					if ( match = eventPattern.exec( reference ) ) {
-						args[ i ] = {
+				handler.refResolvers = refs.map( function( ref, i ) {
+					var match;
+					// special case - the `event` object
+					if ( match = eventPattern.exec( ref ) ) {
+						handler.keypaths[ i ] = {
 							eventObject: true,
 							refinements: match[ 1 ] ? match[ 1 ].split( '.' ) : []
 						};
-						return;
+						return null;
 					}
-					// Can we resolve it immediately?
-					if ( keypath = resolveRef( ractive, reference, parentFragment ) ) {
-						args[ i ] = {
-							keypath: keypath
-						};
-						return;
-					}
-					// Couldn't resolve yet
-					args[ i ] = null;
-					unresolved = new Unresolved( ractive, reference, parentFragment, function( keypath ) {
+					return createReferenceResolver( handler, ref, function( keypath ) {
 						handler.resolve( i, keypath );
-						removeFromArray( handler.unresolved, unresolved );
 					} );
-					handler.unresolved.push( unresolved );
 				} );
 				this.fire = fireMethodCall;
 			} else {
@@ -9574,30 +9501,29 @@
 			if ( typeof ractive[ this.method ] !== 'function' ) {
 				throw new Error( 'Attempted to call a non-existent method ("' + this.method + '")' );
 			}
-			values = this.args.map( function( arg ) {
+			values = this.keypaths.map( function( keypath ) {
 				var value, len, i;
-				if ( !arg ) {
+				if ( keypath === undefined ) {
 					// not yet resolved
 					return undefined;
 				}
-				if ( arg.indexRef ) {
-					return arg.value;
-				}
 				// TODO the refinements stuff would be better handled at parse time
-				if ( arg.eventObject ) {
+				if ( keypath.eventObject ) {
 					value = event;
-					if ( len = arg.refinements.length ) {
+					if ( len = keypath.refinements.length ) {
 						for ( i = 0; i < len; i += 1 ) {
-							value = value[ arg.refinements[ i ] ];
+							value = value[ keypath.refinements[ i ] ];
 						}
 					}
 				} else {
-					value = ractive.get( arg.keypath );
+					value = ractive.viewmodel.get( keypath );
 				}
 				return value;
 			} );
+			ractive.event = event;
 			args = this.fn.apply( null, values );
 			ractive[ this.method ].apply( ractive, args );
+			delete ractive.event;
 		}
 
 		function fireEventWithParams( event ) {
@@ -9619,7 +9545,7 @@
 			} );
 		}
 		return __export;
-	}( removeFromArray, getFunctionFromString, resolveRef, Unresolved, circular, Ractive$shared_fireEvent, log );
+	}( getFunctionFromString, createReferenceResolver, circular, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
 	var genericHandler = function genericHandler( event ) {
@@ -9692,28 +9618,24 @@
 	}( config, genericHandler, log );
 
 	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
-	var virtualdom_items_Element_EventHandler$rebind = function( getNewKeypath ) {
+	var virtualdom_items_Element_EventHandler$rebind = function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+		var fragment;
+		if ( this.method ) {
+			fragment = this.element.parentFragment;
+			this.refResolvers.forEach( rebind );
+			return;
+		}
+		if ( typeof this.action !== 'string' ) {
+			rebind( this.action );
+		}
+		if ( this.dynamicParams ) {
+			rebind( this.dynamicParams );
+		}
 
-		return function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			if ( this.method ) {
-				this.args.forEach( function( arg ) {
-					if ( arg.indexRef && arg.indexRef === indexRef ) {
-						arg.value = newIndex;
-					}
-					if ( arg.keypath && ( newKeypath = getNewKeypath( arg.keypath, oldKeypath, newKeypath ) ) ) {
-						arg.keypath = newKeypath;
-					}
-				} );
-				return;
-			}
-			if ( typeof this.action !== 'string' ) {
-				this.action.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			}
-			if ( this.dynamicParams ) {
-				this.dynamicParams.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			}
-		};
-	}( getNewKeypath );
+		function rebind( thing ) {
+			thing && thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		}
+	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/render.js */
 	var virtualdom_items_Element_EventHandler$render = function EventHandler$render() {
@@ -9728,9 +9650,7 @@
 
 	/* virtualdom/items/Element/EventHandler/prototype/resolve.js */
 	var virtualdom_items_Element_EventHandler$resolve = function EventHandler$resolve( index, keypath ) {
-		this.args[ index ] = {
-			keypath: keypath
-		};
+		this.keypaths[ index ] = keypath;
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/unbind.js */
@@ -9739,7 +9659,7 @@
 		var __export;
 		__export = function EventHandler$unbind() {
 			if ( this.method ) {
-				this.unresolved.forEach( teardown );
+				this.refResolvers.forEach( unbind );
 				return;
 			}
 			// Tear down dynamic name
@@ -9752,8 +9672,8 @@
 			}
 		};
 
-		function teardown( x ) {
-			x.teardown();
+		function unbind( x ) {
+			x.unbind();
 		}
 		return __export;
 	}();
@@ -9995,7 +9915,7 @@
 				template.a = {};
 			}
 			// ...as long as it isn't disabled
-			if ( !template.a.value && !template.a.hasOwnProperty( 'disabled' ) ) {
+			if ( template.a.value === undefined && !template.a.hasOwnProperty( 'disabled' ) ) {
 				template.a.value = template.f;
 			}
 			// If there is a `selected` attribute, but the <select>
@@ -10873,8 +10793,8 @@
 			// apply decorator(s)
 			if ( this.decorator && this.decorator.fn ) {
 				runloop.scheduleTask( function() {
-					this$0.decorator.init();
-				} );
+					return this$0.decorator.init();
+				}, true );
 			}
 			// trigger intro transition
 			if ( root.transitionsEnabled && this.intro ) {
@@ -10882,7 +10802,7 @@
 				runloop.registerTransition( transition );
 				runloop.scheduleTask( function() {
 					return transition.start();
-				} );
+				}, true );
 				this.transition = transition;
 			}
 			if ( this.name === 'option' ) {
@@ -10894,7 +10814,7 @@
 				// allow you to programmatically focus the element until it's in the DOM
 				runloop.scheduleTask( function() {
 					return this$0.node.focus();
-				} );
+				}, true );
 			}
 			updateLiveQueries( this );
 			return this.node;
@@ -11371,7 +11291,7 @@
 				// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 				// name of both a data property (whose value ISN'T the name of a partial)
 				// and a partial. In those cases, this becomes a named partial
-				if ( !template && ( template = getPartialTemplate( this.root, this.name ) ) ) {
+				if ( !template && this.name && ( template = getPartialTemplate( this.root, this.name ) ) ) {
 					unbind.call( this );
 					this.isNamed = true;
 				}
@@ -11905,14 +11825,22 @@
 	};
 
 	/* virtualdom/items/Component/prototype/unbind.js */
-	var virtualdom_items_Component$unbind = function() {
+	var virtualdom_items_Component$unbind = function( Hook, removeFromArray ) {
 
 		var __export;
+		var teardownHook = new Hook( 'teardown' );
 		__export = function Component$unbind() {
+			var instance = this.instance;
 			this.complexParameters.forEach( unbind );
 			this.bindings.forEach( unbind );
 			removeFromLiveComponentQueries( this );
-			this.instance.fragment.unbind();
+			// teardown the instance
+			instance.fragment.unbind();
+			instance.viewmodel.teardown();
+			if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
+				removeFromArray( instance.el.__ractive_instances__, instance );
+			}
+			teardownHook.fire( instance );
 		};
 
 		function unbind( thing ) {
@@ -11929,15 +11857,12 @@
 			} while ( instance = instance._parent );
 		}
 		return __export;
-	}();
+	}( Ractive$shared_hooks_Hook, removeFromArray );
 
 	/* virtualdom/items/Component/prototype/unrender.js */
 	var virtualdom_items_Component$unrender = function Component$unrender( shouldDestroy ) {
 		this.shouldDestroy = shouldDestroy;
 		this.instance.unrender();
-		if ( shouldDestroy ) {
-			this.instance.teardown();
-		}
 	};
 
 	/* virtualdom/items/Component/_Component.js */
@@ -12159,6 +12084,7 @@
 	var virtualdom_Fragment$rebind = function( assignNewKeypath ) {
 
 		return function Fragment$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+			this.index = newIndex;
 			// assign new context keypath if needed
 			assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 			if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined ) {
@@ -12677,6 +12603,49 @@
 		};
 	}();
 
+	/* Ractive/prototype/shared/hooks/HookQueue.js */
+	var Ractive$shared_hooks_HookQueue = function( Hook ) {
+
+		function HookQueue( event ) {
+			this.hook = new Hook( event );
+			this.inProcess = {};
+			this.queue = {};
+		}
+		HookQueue.prototype = {
+			constructor: HookQueue,
+			begin: function( ractive ) {
+				this.inProcess[ ractive._guid ] = true;
+			},
+			end: function( ractive ) {
+				var parent = ractive._parent;
+				// If this is *isn't* a child of a component that's in process,
+				// it should call methods or fire at this point
+				if ( !parent || !this.inProcess[ parent._guid ] ) {
+					fire( this, ractive );
+				} else {
+					getChildQueue( this.queue, parent ).push( ractive );
+				}
+				delete this.inProcess[ ractive._guid ];
+			}
+		};
+
+		function getChildQueue( queue, ractive ) {
+			return queue[ ractive._guid ] || ( queue[ ractive._guid ] = [] );
+		}
+
+		function fire( hookQueue, ractive ) {
+			var childQueue = getChildQueue( hookQueue.queue, ractive );
+			hookQueue.hook.fire( ractive );
+			// queue is "live" because components can end up being
+			// added while hooks fire on parents that modify data values.
+			while ( childQueue.length ) {
+				fire( hookQueue, childQueue.shift() );
+			}
+			delete hookQueue.queue[ ractive._guid ];
+		}
+		return HookQueue;
+	}( Ractive$shared_hooks_Hook );
+
 	/* viewmodel/prototype/get/arrayAdaptor/processWrapper.js */
 	var viewmodel$get_arrayAdaptor_processWrapper = function( wrapper, array, methodName, newIndices ) {
 		var root = wrapper.root,
@@ -13089,10 +13058,6 @@
 	var viewmodel$applyChanges = function( getUpstreamChanges, notifyPatternObservers ) {
 
 		var __export;
-		var dependantGroups = [
-			'observers',
-			'default'
-		];
 		__export = function Viewmodel$applyChanges() {
 			var this$0 = this;
 			var self = this,
@@ -13130,6 +13095,7 @@
 					dependants.forEach( invalidate );
 					keys = dependants.map( getKey );
 					keys.forEach( mark );
+					keys.forEach( cascade );
 				}
 			} );
 			this.changes = [];
@@ -13142,15 +13108,22 @@
 					return notifyPatternObservers( this$0, keypath );
 				} );
 			}
-			dependantGroups.forEach( function( group ) {
-				if ( !this$0.deps[ group ] ) {
-					return;
-				}
+			if ( this.deps.observers ) {
 				upstreamChanges.forEach( function( keypath ) {
-					return notifyUpstreamDependants( this$0, keypath, group );
+					return notifyUpstreamDependants( this$0, null, keypath, 'observers' );
 				} );
-				notifyAllDependants( this$0, changes, group );
-			} );
+				notifyAllDependants( this, changes, 'observers' );
+			}
+			if ( this.deps[ 'default' ] ) {
+				var bindings = [];
+				upstreamChanges.forEach( function( keypath ) {
+					return notifyUpstreamDependants( this$0, bindings, keypath, 'default' );
+				} );
+				if ( bindings.length ) {
+					notifyBindings( this, bindings, changes );
+				}
+				notifyAllDependants( this, changes, 'default' );
+			}
 			// Return a hash of keypaths to updated values
 			changes.forEach( function( keypath ) {
 				hash[ keypath ] = this$0.get( keypath );
@@ -13168,14 +13141,46 @@
 			return computation.key;
 		}
 
-		function notifyUpstreamDependants( viewmodel, keypath, groupName ) {
+		function notifyUpstreamDependants( viewmodel, bindings, keypath, groupName ) {
 			var dependants, value;
 			if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
 				value = viewmodel.get( keypath );
 				dependants.forEach( function( d ) {
-					return d.setValue( value );
+					// don't "set" the parent value, refine it
+					// i.e. not data = value, but data[foo] = fooValue
+					if ( bindings && d.refineValue ) {
+						bindings.push( d );
+					} else {
+						d.setValue( value );
+					}
 				} );
 			}
+		}
+
+		function notifyBindings( viewmodel, bindings, changes ) {
+			bindings.forEach( function( binding ) {
+				var useSet = false,
+					i = 0,
+					length = changes.length,
+					refinements = [];
+				while ( i < length ) {
+					var keypath = changes[ i ];
+					if ( keypath === binding.keypath ) {
+						useSet = true;
+						break;
+					}
+					if ( keypath.slice( 0, binding.keypath.length ) === binding.keypath ) {
+						refinements.push( keypath );
+					}
+					i++;
+				}
+				if ( useSet ) {
+					binding.setValue( viewmodel.get( binding.keypath ) );
+				}
+				if ( refinements.length ) {
+					binding.refineValue( refinements );
+				}
+			} );
 		}
 
 		function notifyAllDependants( viewmodel, keypaths, groupName ) {
@@ -13319,7 +13324,7 @@
 			},
 			get: function() {
 				var this$0 = this;
-				var ractive, newDeps, args, dependenciesChanged, dependencyValuesChanged = false;
+				var ractive, newDeps, dependenciesChanged, dependencyValuesChanged = false;
 				if ( this.getting ) {
 					// prevent double-computation (e.g. caused by array mutation inside computation)
 					return;
@@ -13355,14 +13360,7 @@
 					if ( dependencyValuesChanged ) {
 						ractive.viewmodel.capture();
 						try {
-							if ( this.hardDeps.length ) {
-								args = this.hardDeps.map( function( keypath ) {
-									return this$0.viewmodel.get( keypath );
-								} );
-								this.value = this.getter.apply( ractive, args );
-							} else {
-								this.value = this.getter.call( ractive );
-							}
+							this.value = this.getter.call( ractive );
 						} catch ( err ) {
 							log.warn( {
 								debug: ractive.debug,
@@ -13474,7 +13472,7 @@
 	}( removeFromArray, runloop );
 
 	/* viewmodel/prototype/get.js */
-	var viewmodel$get = function( FAILED_LOOKUP, UnresolvedImplicitDependency ) {
+	var viewmodel$get = function( isNumeric, FAILED_LOOKUP, UnresolvedImplicitDependency ) {
 
 		var __export;
 		var empty = {};
@@ -13485,10 +13483,15 @@
 			var ractive = this.ractive,
 				cache = this.cache,
 				value, computation, wrapped, captureGroup;
+			if ( keypath[ 0 ] === '@' ) {
+				value = keypath.slice( 1 );
+				return isNumeric( value ) ? +value : value;
+			}
 			if ( cache[ keypath ] === undefined ) {
 				// Is this a computed property?
 				if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
 					value = computation.get();
+					this.adapt( keypath, value );
 				} else if ( wrapped = this.wrapped[ keypath ] ) {
 					value = wrapped.value;
 				} else if ( !keypath ) {
@@ -13552,7 +13555,7 @@
 			return value;
 		}
 		return __export;
-	}( viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
+	}( isNumeric, viewmodel$get_FAILED_LOOKUP, viewmodel$get_UnresolvedImplicitDependency );
 
 	/* viewmodel/prototype/init.js */
 	var viewmodel$init = function() {
@@ -13591,8 +13594,8 @@
 		}
 		if ( this.changes.indexOf( keypath ) === -1 ) {
 			this.changes.push( keypath );
-			this.clearCache( keypath );
 		}
+		this.clearCache( keypath );
 	};
 
 	/* viewmodel/prototype/merge/mapOldToNewIndex.js */
@@ -14118,17 +14121,6 @@
 		return __export;
 	}( config, create, Fragment, getElement, getNextNumber, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, Viewmodel );
 
-	/* extend/initChildInstance.js */
-	var initChildInstance = function( initialise ) {
-
-		return function initChildInstance( child, Child, options ) {
-			if ( child.beforeInit ) {
-				child.beforeInit( options );
-			}
-			initialise( child, options );
-		};
-	}( Ractive_initialise );
-
 	/* extend/unwrapExtended.js */
 	var unwrapExtended = function( wrap, config, circular ) {
 
@@ -14193,7 +14185,7 @@
 	}( wrapMethod, config, circular );
 
 	/* extend/_extend.js */
-	var Ractive_extend = function( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, unwrap ) {
+	var Ractive_extend = function( create, defineProperties, getGuid, config, initialise, Viewmodel, unwrap ) {
 
 		return function extend() {
 			var options = arguments[ 0 ];
@@ -14206,7 +14198,7 @@
 			options = unwrap( options );
 			// create Child constructor
 			Child = function( options ) {
-				initChildInstance( this, Child, options );
+				initialise( this, options );
 			};
 			proto = create( Parent.prototype );
 			proto.constructor = Child;
@@ -14237,7 +14229,7 @@
 			Child.prototype = proto;
 			return Child;
 		};
-	}( create, defineProperties, getGuid, config, initChildInstance, Viewmodel, unwrapExtended );
+	}( create, defineProperties, getGuid, config, Ractive_initialise, Viewmodel, unwrapExtended );
 
 	/* Ractive.js */
 	var Ractive = function( defaults, easing, interpolators, svg, magic, defineProperties, proto, Promise, extendObj, extend, parse, initialise, circular ) {
@@ -14269,7 +14261,7 @@
 			},
 			// version
 			VERSION: {
-				value: '0.6.0'
+				value: '0.6.1'
 			},
 			// Plugins
 			adaptors: {
