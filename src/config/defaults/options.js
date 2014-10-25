@@ -6,7 +6,6 @@ var defaultOptions = {
 
 	// template:
 	template:           {v:1,t:[]},
-	yield:              null,
 
 	// parse:
 	preserveWhitespace: false,
@@ -15,7 +14,6 @@ var defaultOptions = {
 
 	// data & binding:
 	data:               {},
-	mappings:           {},
 	computed:           {},
 	magic:              false,
 	modifyArrays:       true,

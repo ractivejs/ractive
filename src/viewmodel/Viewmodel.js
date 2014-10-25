@@ -28,7 +28,7 @@ catch ( err ) {
 	noMagic = true; // no magic in this environment :(
 }
 
-var Viewmodel = function ( ractive ) {
+var Viewmodel = function ( ractive, mappings ) {
 	var key, mapping;
 
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
@@ -37,8 +37,8 @@ var Viewmodel = function ( ractive ) {
 
 	// set up explicit mappings
 	this.mappings = create( null );
-	for ( key in ractive.mappings ) { // TODO shouldn't live on ractive, even temporarily
-		this.map( key, ractive.mappings[ key ] );
+	for ( key in mappings ) {
+		this.map( key, mappings[ key ] );
 	}
 
 	// if data exists locally, but is missing on the parent,

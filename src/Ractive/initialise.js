@@ -6,25 +6,29 @@ import getNextNumber from 'utils/getNextNumber';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
+import circular from 'circular';
 
 var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
 	initHook = new HookQueue( 'init' );
 
-export default function initialiseRactiveInstance ( ractive, options = {} ) {
+circular.initialise = initialiseRactiveInstance;
+export default initialiseRactiveInstance;
+
+function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	var el;
 
-	initialiseProperties( ractive, options );
+	initialiseProperties( ractive );
 
 	// make this option do what would be expected if someone
 	// did include it on a new Ractive() or new Component() call.
 	// Silly to do so (put a hook on the very options being used),
 	// but handle it correctly, consistent with the intent.
-	constructHook.fire( config.getConstructTarget( ractive, options ), options );
+	constructHook.fire( config.getConstructTarget( ractive, userOptions ), userOptions );
 
 	// init config from Parent and options
-	config.init( ractive.constructor, ractive, options );
+	config.init( ractive.constructor, ractive, userOptions );
 
 	configHook.fire( ractive );
 
@@ -50,7 +54,7 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 	initHook.begin( ractive );
 
 	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive );
+	ractive.viewmodel = new Viewmodel( ractive, options.mappings );
 
 	// hacky circular problem until we get this sorted out
 	// if viewmodel immediately processes computed properties,
@@ -75,7 +79,7 @@ export default function initialiseRactiveInstance ( ractive, options = {} ) {
 	}
 }
 
-function initialiseProperties ( ractive, options ) {
+function initialiseProperties ( ractive ) {
 	// Generate a unique identifier, for places where you'd use a weak map if it
 	// existed
 	ractive._guid = getNextNumber();
@@ -99,14 +103,4 @@ function initialiseProperties ( ractive, options ) {
 	// live queries
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];
-
-	// If this is a component, store a reference to the parent
-	if ( options._parent && options._component ) {
-
-		ractive._parent = options._parent;
-		ractive.component = options._component;
-
-		// And store a reference to the instance on the component
-		options._component.instance = ractive;
-	}
 }

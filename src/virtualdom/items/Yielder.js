@@ -19,8 +19,8 @@ var Yielder = function ( options ) {
 
 	this.fragment = new Fragment({
 		owner: this,
-		root: componentInstance.yield.instance,
-		template: componentInstance.yield.template,
+		root: componentInstance._parent,
+		template: componentInstance._yield,
 		pElement: this.surrogateParent.pElement
 	});
 
