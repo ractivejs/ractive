@@ -42,7 +42,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 		delete ractive.event;
 	}
 
-	if ( ractive._parent && bubble ) {
+	if ( ractive.parent && bubble ) {
 
 		if ( initialFire && ractive.component ) {
 			let fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ];
@@ -53,7 +53,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 			}
 		}
 
-		fireEventAs( ractive._parent, eventNames, event, args );
+		fireEventAs( ractive.parent, eventNames, event, args );
 	}
 }
 

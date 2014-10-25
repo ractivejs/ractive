@@ -12,16 +12,6 @@ import deprecate from 'config/deprecate';
 
 var custom, options, config, blacklisted;
 
-// would be nice to not have these here,
-// they get added during initialise, so for now we have
-// to make sure not to try and extend them.
-// Possibly, we could re-order and not add till later
-// in process.
-blacklisted = {
-	'_parent' : true,
-	'_component' : true
-};
-
 custom = {
 	data: data,
 	template: template,
@@ -51,8 +41,8 @@ config.keys = Object.keys( defaults )
 	.concat( registries.map( r => r.name ) )
 	.concat( [ 'css' ] );
 
-// add these to blacklisted key's that we don't double extend
-config.keys.forEach( key => blacklisted[ key ] = true );
+// blacklisted key's that we don't double extend
+blacklisted = config.keys.reduce( (list, key) => ( list[ key ] = true, list ), {} );
 
 config.parseOptions = parseOptions;
 config.registries = registries;

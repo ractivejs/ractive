@@ -61,7 +61,7 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 
 	// If this is an inline component, and it's not isolated, we
 	// can try going up the scope chain
-	if ( ractive._parent && !ractive.isolated ) {
+	if ( ractive.parent && !ractive.isolated ) {
 		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
 
@@ -74,7 +74,7 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 			return;
 		}
 
-		keypath = resolveRef( ractive._parent, ref, fragment, true );
+		keypath = resolveRef( ractive.parent, ref, fragment, true );
 
 		if ( keypath ) {
 			// We need to create an inter-component binding
@@ -92,8 +92,8 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 			parentKeypath = parentKeys.join( '.' );
 			childKeypath = childKeys.join( '.' );
 
-			ractive.viewmodel.set( childKeypath, ractive._parent.viewmodel.get( parentKeypath ), true );
-			createComponentBinding( ractive.component, ractive._parent, parentKeypath, childKeypath );
+			ractive.viewmodel.set( childKeypath, ractive.parent.viewmodel.get( parentKeypath ), true );
+			createComponentBinding( ractive.component, ractive.parent, parentKeypath, childKeypath );
 
 			return ref;
 		}

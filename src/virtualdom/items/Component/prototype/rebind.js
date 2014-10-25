@@ -3,7 +3,7 @@ import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 
 export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 	var childInstance = this.instance,
-		parentInstance = childInstance._parent,
+		parentInstance = childInstance.parent,
 		indexRefAlias, query;
 
 	this.bindings.forEach( binding => {

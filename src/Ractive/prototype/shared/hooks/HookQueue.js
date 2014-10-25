@@ -16,7 +16,7 @@ HookQueue.prototype = {
 
 	end: function ( ractive ) {
 
-		var parent = ractive._parent;
+		var parent = ractive.parent;
 
 		// If this is *isn't* a child of a component that's in process,
 		// it should call methods or fire at this point
