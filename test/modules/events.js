@@ -147,7 +147,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.ok( event.original );
 				t.equal( event.keypath, '' );
 				t.equal( event.context, ractive.data );
-				t.equal( event.index, undefined );
+				t.ok( typeof event.index === 'object' && Object.keys( event.index ).length === 0 );
 			});
 
 			simulant.fire( ractive.nodes.test, 'click' );
@@ -261,7 +261,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				t.equal( event.node.innerHTML, '2: c' );
 				t.equal( event.keypath, 'array.2' );
 				t.equal( event.context, 'c' );
-				t.deepEqual( event.index, { i: 2 })
+				t.equal( event.index.i, 2 );
 			});
 
 			simulant.fire( ractive.nodes.item_2, 'click' );
@@ -270,7 +270,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'event.index reports nested indices correctly', t => {
 			var ractive;
 
-			expect( 2 );
+			expect( 4 );
 
 			ractive = new Ractive({
 				el: fixture,
@@ -291,7 +291,9 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.nodes.test_001.innerHTML, '001' );
 
 			ractive.on( 'someEvent', function ( event ) {
-				t.deepEqual( event.index, { x: 0, y: 0, z: 1 })
+				t.equal( event.index.x, 0 );
+				t.equal( event.index.y, 0 );
+				t.equal( event.index.z, 1 );
 			});
 
 			simulant.fire( ractive.nodes.test_001, 'click' );

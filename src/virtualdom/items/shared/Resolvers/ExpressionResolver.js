@@ -1,5 +1,6 @@
 import defineProperty from 'utils/defineProperty';
 import isNumeric from 'utils/isNumeric';
+import decodeKeypath from 'shared/decodeKeypath';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import 'legacy'; // for fn.bind()
@@ -77,12 +78,12 @@ ExpressionResolver.prototype = {
 
 				// 'special' keypaths encode a value
 				if ( keypath[0] === '@' ) {
-					value = keypath.slice( 1 );
-					return isNumeric( value ) ? () => +value : () => value;
+					value = decodeKeypath( keypath );
+					return () => value;
 				}
 
 				return () => {
-					var value = this.root.viewmodel.get( keypath );
+					var value = this.root.viewmodel.get( keypath, { noUnwrap: true });
 					if ( typeof value === 'function' ) {
 						value = wrapFunction( value, self.root );
 					}
@@ -149,7 +150,7 @@ function isValidDependency ( keypath ) {
 function wrapFunction ( fn, ractive ) {
 	var wrapped, prop, key;
 
-	if ( fn._noWrap ) {
+	if ( fn.__ractive_nowrap ) {
 		return fn;
 	}
 

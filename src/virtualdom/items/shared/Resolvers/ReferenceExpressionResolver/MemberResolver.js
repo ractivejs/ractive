@@ -63,8 +63,8 @@ MemberResolver.prototype = {
 			this.viewmodel.unregister( this.keypath, this );
 		}
 
-		if ( this.unresolved ) {
-			this.unresolved.unbind();
+		if ( this.refResolver ) {
+			this.refResolver.unbind();
 		}
 	},
 

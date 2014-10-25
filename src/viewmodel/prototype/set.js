@@ -2,7 +2,13 @@ import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, silent ) {
-	var computation, wrapper, dontTeardownWrapper;
+	var mapping, computation, wrapper, dontTeardownWrapper;
+
+	// If this data belongs to a different viewmodel,
+	// pass the change along
+	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+		return mapping.set( keypath, value );
+	}
 
 	computation = this.computations[ keypath ];
 	if ( computation ) {

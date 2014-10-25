@@ -6,6 +6,7 @@ import clearCache from 'viewmodel/prototype/clearCache';
 import compute from 'viewmodel/prototype/compute';
 import get from 'viewmodel/prototype/get';
 import init from 'viewmodel/prototype/init';
+import map from 'viewmodel/prototype/map';
 import mark from 'viewmodel/prototype/mark';
 import merge from 'viewmodel/prototype/merge';
 import register from 'viewmodel/prototype/register';
@@ -28,22 +29,42 @@ catch ( err ) {
 }
 
 var Viewmodel = function ( ractive ) {
+	var key, mapping;
+
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
 
 	Viewmodel.extend( ractive.constructor, ractive );
+
+	// set up explicit mappings
+	this.mappings = create( null );
+	for ( key in ractive.mappings ) { // TODO shouldn't live on ractive, even temporarily
+		this.map( key, ractive.mappings[ key ] );
+	}
+
+	// if data exists locally, but is missing on the parent,
+	// we transfer ownership to the parent
+	for ( key in ractive.data ) {
+		if ( ( mapping = this.mappings[ key ] ) && mapping.origin.get( mapping.keypath ) === undefined ) {
+			mapping.origin.set( mapping.keypath, ractive.data[ key ] );
+		}
+	}
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
 
 	this.deps = {
+		mappings: {},
 		computed: {},
 		'default': {}
 	};
 	this.depsMap = {
+		mappings: {},
 		computed: {},
 		'default': {}
 	};
 	this.patternObservers = [];
+
+	this.specials = create( null );
 
 	this.wrapped = create( null );
 	this.computations = create( null );
@@ -77,6 +98,7 @@ Viewmodel.prototype = {
 	compute: compute,
 	get: get,
 	init: init,
+	map: map,
 	mark: mark,
 	merge: merge,
 	register: register,

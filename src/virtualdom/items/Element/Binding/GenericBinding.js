@@ -1,9 +1,7 @@
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 
-var GenericBinding, getOptions;
-
-getOptions = { evaluateWrapped: true };
+var GenericBinding;
 
 GenericBinding = Binding.extend({
 	getInitialValue: () => '',
@@ -46,6 +44,6 @@ function handleBlur () {
 
 	handleDomEvent.call( this );
 
-	value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath, getOptions );
+	value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath );
 	this.value = value == undefined ? '' : value;
 }

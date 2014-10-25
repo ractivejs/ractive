@@ -47,6 +47,7 @@ ReferenceExpressionResolver.prototype = {
 		if ( !this.ready || this.baseResolver ) {
 			return;
 		}
+
 		this.callback( this.getKeypath() );
 	},
 

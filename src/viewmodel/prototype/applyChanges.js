@@ -15,19 +15,24 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	function cascade ( keypath ) {
-		var map, dependants, keys;
+		var map, computations;
 
 		if ( self.noCascade.hasOwnProperty( keypath ) ) {
 			return;
 		}
 
-		if ( dependants = self.deps.computed[ keypath ] ) {
-			dependants.forEach( invalidate );
+		if ( computations = self.deps.computed[ keypath ] ) {
+			computations.forEach( c => {
+				if ( c.viewmodel === self ) {
+					self.clearCache( c.key );
+					c.invalidate();
 
-			keys = dependants.map( getKey );
-
-			keys.forEach( mark );
-			keys.forEach( cascade );
+					changes.push( c.key );
+					cascade( c.key );
+				} else {
+					c.viewmodel.mark( c.key );
+				}
+			});
 		}
 
 		if ( map = self.depsMap.computed[ keypath ] ) {
@@ -35,22 +40,16 @@ export default function Viewmodel$applyChanges () {
 		}
 	}
 
-	function mark ( keypath ) {
-		self.mark( keypath );
-	}
-
-	changes.forEach( cascade );
+	changes.slice().forEach( cascade );
 
 	upstreamChanges = getUpstreamChanges( changes );
 	upstreamChanges.forEach( keypath => {
-		var dependants, keys;
+		var computations;
 
-		if ( dependants = self.deps.computed[ keypath ] ) {
-			dependants.forEach( invalidate );
-
-			keys = dependants.map( getKey );
-			keys.forEach( mark );
-			keys.forEach( cascade );
+		if ( computations = self.deps.computed[ keypath ] ) {
+			computations.forEach( c => {
+				c.viewmodel.mark( c.key );
+			});
 		}
 	});
 
@@ -87,14 +86,6 @@ export default function Viewmodel$applyChanges () {
 	this.noCascade = {};
 
 	return hash;
-}
-
-function invalidate ( computation ) {
-	computation.invalidate();
-}
-
-function getKey ( computation ) {
-	return computation.key;
 }
 
 function notifyUpstreamDependants ( viewmodel, bindings, keypath, groupName ) {
