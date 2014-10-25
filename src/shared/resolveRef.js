@@ -1,12 +1,6 @@
 import normaliseRef from 'utils/normaliseRef';
 import getInnerContext from 'shared/getInnerContext';
-import createComponentBinding from 'shared/createComponentBinding';
-
-var ancestorErrorMessage, getOptions;
-
-ancestorErrorMessage = 'Could not resolve reference - too many "../" prefixes';
-
-getOptions = { evaluateWrapped: true };
+import resolveAncestorRef from 'shared/resolveAncestorRef';
 
 export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	var context,
@@ -30,32 +24,34 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
 	if ( ref.charAt( 0 ) === '.' ) {
-		return resolveAncestorReference( getInnerContext( fragment ), ref );
+		return resolveAncestorRef( getInnerContext( fragment ), ref );
 	}
 
 	// ...otherwise we need to find the keypath
 	key = ref.split( '.' )[0];
 
-	// get() in viewmodel creation means no fragment (yet)
-	fragment = fragment || {};
-
-	do {
+	while ( fragment ) {
 		context = fragment.context;
+		fragment = fragment.parent;
 
 		if ( !context ) {
 			continue;
 		}
 
 		hasContextChain = true;
-		parentValue = ractive.viewmodel.get( context, getOptions );
+		parentValue = ractive.viewmodel.get( context );
 
 		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
 			return context + '.' + ref;
 		}
-	} while ( fragment = fragment.parent );
+	}
 
 	// Root/computed property?
 	if ( key in ractive.data || key in ractive.viewmodel.computations ) {
+		return ref;
+	}
+
+	if ( key in ractive.viewmodel.mappings ) {
 		return ref;
 	}
 
@@ -92,8 +88,11 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 			parentKeypath = parentKeys.join( '.' );
 			childKeypath = childKeys.join( '.' );
 
-			ractive.viewmodel.set( childKeypath, ractive.parent.viewmodel.get( parentKeypath ), true );
-			createComponentBinding( ractive.component, ractive.parent, parentKeypath, childKeypath );
+			// TODO trace back to origin
+			ractive.viewmodel.map( childKeypath, {
+				origin: ractive.parent.viewmodel,
+				keypath: parentKeypath
+			});
 
 			return ref;
 		}
@@ -111,35 +110,4 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	if ( ractive.viewmodel.get( ref ) !== undefined ) {
 		return ref;
 	}
-}
-
-function resolveAncestorReference ( baseContext, ref ) {
-	var contextKeys;
-
-	// {{.}} means 'current context'
-	if ( ref === '.' ) return baseContext;
-
-	contextKeys = baseContext ? baseContext.split( '.' ) : [];
-
-	// ancestor references (starting "../") go up the tree
-	if ( ref.substr( 0, 3 ) === '../' ) {
-		while ( ref.substr( 0, 3 ) === '../' ) {
-			if ( !contextKeys.length ) {
-				throw new Error( ancestorErrorMessage );
-			}
-
-			contextKeys.pop();
-			ref = ref.substring( 3 );
-		}
-
-		contextKeys.push( ref );
-		return contextKeys.join( '.' );
-	}
-
-	// not an ancestor reference - must be a restricted reference (prepended with "." or "./")
-	if ( !baseContext ) {
-		return ref.replace( /^\.\/?/, '' );
-	}
-
-	return baseContext + ref.replace( /^\.\//, '.' );
 }

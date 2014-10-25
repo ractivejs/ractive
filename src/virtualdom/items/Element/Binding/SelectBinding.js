@@ -54,7 +54,6 @@ var SelectBinding = Binding.extend({
 
 	// TODO this method is an anomaly... is it necessary?
 	setValue: function ( value ) {
-		runloop.addViewmodel( this.root.viewmodel );
 		this.root.viewmodel.set( this.keypath, value );
 	},
 
@@ -79,7 +78,6 @@ var SelectBinding = Binding.extend({
 
 		if ( value !== undefined ) {
 			this.attribute.locked = true;
-			runloop.addViewmodel( this.root.viewmodel );
 			runloop.scheduleTask( () => this.attribute.locked = false );
 			this.root.viewmodel.set( this.keypath, value );
 		}

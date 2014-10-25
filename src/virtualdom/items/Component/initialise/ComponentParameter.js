@@ -33,7 +33,6 @@ ComponentParameter.prototype = {
 		var value = this.fragment.getValue();
 
 		this.component.instance.viewmodel.set( this.key, value );
-		runloop.addViewmodel( this.component.instance.viewmodel );
 		this.value = value;
 
 		this.dirty = false;

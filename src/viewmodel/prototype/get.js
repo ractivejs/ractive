@@ -1,20 +1,31 @@
-import isNumeric from 'utils/isNumeric';
+import decodeKeypath from 'shared/decodeKeypath';
 import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
-import UnresolvedImplicitDependency from 'viewmodel/prototype/get/UnresolvedImplicitDependency';
+
 
 var empty = {};
 
 export default function Viewmodel$get ( keypath, options = empty ) {
 	var ractive = this.ractive,
 		cache = this.cache,
+		mapping,
 		value,
 		computation,
 		wrapped,
 		captureGroup;
 
+	// capture the keypath, if we're inside a computation
+	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
+		if ( !~captureGroup.indexOf( keypath ) ) {
+			captureGroup.push( keypath );
+		}
+	}
+
+	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+		return mapping.get( keypath, options );
+	}
+
 	if ( keypath[0] === '@' ) {
-		value = keypath.slice( 1 );
-		return isNumeric( value ) ? +value : value;
+		return decodeKeypath( keypath );
 	}
 
 	if ( cache[ keypath ] === undefined ) {
@@ -46,22 +57,8 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		value = cache[ keypath ];
 	}
 
-	if ( options.evaluateWrapped && ( wrapped = this.wrapped[ keypath ] ) ) {
+	if ( !options.noUnwrap && ( wrapped = this.wrapped[ keypath ] ) ) {
 		value = wrapped.get();
-	}
-
-	// capture the keypath, if we're inside a computation
-	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
-		if ( !~captureGroup.indexOf( keypath ) ) {
-			captureGroup.push( keypath );
-
-			// if we couldn't resolve the keypath, we need to make it as a failed
-			// lookup, so that the computation updates correctly once we CAN
-			// resolve the keypath
-			if ( value === FAILED_LOOKUP && ( this.unresolvedImplicitDependencies[ keypath ] !== true ) ) {
-				new UnresolvedImplicitDependency( this, keypath );
-			}
-		}
 	}
 
 	return value === FAILED_LOOKUP ? void 0 : value;

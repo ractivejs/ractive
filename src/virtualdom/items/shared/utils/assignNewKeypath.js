@@ -9,4 +9,5 @@ export default function assignNewKeypath ( target, property, oldKeypath, newKeyp
 	}
 
 	target[ property ] = getNewKeypath( existingKeypath, oldKeypath, newKeypath );
+	return true;
 }

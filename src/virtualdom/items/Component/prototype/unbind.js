@@ -7,7 +7,6 @@ export default function Component$unbind () {
 	var instance = this.instance;
 
 	this.complexParameters.forEach( unbind );
-	this.bindings.forEach( unbind );
 
 	removeFromLiveComponentQueries( this );
 

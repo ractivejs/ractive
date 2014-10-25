@@ -11,10 +11,10 @@ circular.push( function () {
 getValueOptions = { args: true };
 
 Decorator = function ( element, template ) {
-	var decorator = this, ractive, name, fragment;
+	var self = this, ractive, name, fragment;
 
-	decorator.element = element;
-	decorator.root = ractive = element.root;
+	this.element = element;
+	this.root = ractive = element.root;
 
 	name = template.n || template;
 
@@ -30,32 +30,31 @@ Decorator = function ( element, template ) {
 	}
 
 	if ( template.a ) {
-		decorator.params = template.a;
+		this.params = template.a;
 	}
 
 	else if ( template.d ) {
-		decorator.fragment = new Fragment({
+		this.fragment = new Fragment({
 			template: template.d,
 			root:     ractive,
 			owner:    element
 		});
 
-		decorator.params = decorator.fragment.getValue( getValueOptions );
+		this.params = this.fragment.getValue( getValueOptions );
 
-		decorator.fragment.bubble = function () {
+		this.fragment.bubble = function () {
 			this.dirtyArgs = this.dirtyValue = true;
-			decorator.params = this.getValue( getValueOptions );
+			self.params = this.getValue( getValueOptions );
 
-			if ( decorator.ready ) {
-				decorator.update();
+			if ( self.ready ) {
+				self.update();
 			}
 		};
 	}
 
-	decorator.fn = config.registries.decorators.find( ractive, name );
+	this.fn = config.registries.decorators.find( ractive, name );
 
-	if ( !decorator.fn ) {
-
+	if ( !this.fn ) {
 		log.error({
 			debug: ractive.debug,
 			message: 'missingPlugin',
@@ -69,15 +68,15 @@ Decorator = function ( element, template ) {
 
 Decorator.prototype = {
 	init: function () {
-		var decorator = this, node, result, args;
+		var node, result, args;
 
-		node = decorator.element.node;
+		node = this.element.node;
 
-		if ( decorator.params ) {
-			args = [ node ].concat( decorator.params );
-			result = decorator.fn.apply( decorator.root, args );
+		if ( this.params ) {
+			args = [ node ].concat( this.params );
+			result = this.fn.apply( this.root, args );
 		} else {
-			result = decorator.fn.call( decorator.root, node );
+			result = this.fn.call( this.root, node );
 		}
 
 		if ( !result || !result.teardown ) {
@@ -85,8 +84,8 @@ Decorator.prototype = {
 		}
 
 		// TODO does this make sense?
-		decorator.actual = result;
-		decorator.ready = true;
+		this.actual = result;
+		this.ready = true;
 	},
 
 	update: function () {

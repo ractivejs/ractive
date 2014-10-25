@@ -1,8 +1,14 @@
+import removeFromArray from 'utils/removeFromArray';
+
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
-	var deps, index;
+	var mapping, deps, index;
 
 	if ( dependant.isStatic ) {
 		return;
+	}
+
+	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+		return mapping.unregister( keypath, dependant, group );
 	}
 
 	deps = this.deps[ group ][ keypath ];
@@ -38,7 +44,7 @@ function updateDependantsMap ( viewmodel, keypath, group ) {
 
 		if ( !parent[ keypath ] ) {
 			// remove from parent deps map
-			parent.splice( parent.indexOf( keypath ), 1 );
+			removeFromArray( parent, keypath );
 			parent[ keypath ] = undefined;
 		}
 

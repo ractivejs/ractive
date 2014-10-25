@@ -28,6 +28,7 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 		}
 
 		// don't allow removed indexes beyond end of new array to trigger recomputations
+		// TODO is this still necessary, now that computations are lazy?
 		for ( let i = array.length; i < oldLength; i += 1 ) {
 			this.mark( keypath + '.' + i, noCascadeOption );
 		}

@@ -33,7 +33,8 @@ Changelog
 		* Added support for `{{#each...}}...{{else}}...{{/each}}` with empty objects (#1299)
 		* Within event handlers, the `event` object is available as `this.event`, and has a `name` property (useful alongside `ractive.on('*',...)`).
 		* Character position is include alongside line and column information when parsing with `includeLinePositions: true`
-	* Fixes for #868, #871, #1046, #1184, #1206, #1208, #1209, #1220, #1228, #1232, #1239, #1275, #1278, #1294, #1295, #1305 plus a few IE8 bugs
+		* Computed values and expressions are more efficient, and will not recompute unnecessarily
+	* Fixes for #868, #871, #1046, #1184, #1206, #1208, #1209, #1220, #1228, #1232, #1239, #1275, #1278, #1294, #1295, #1305, #1313, #1314, #1320 plus a few IE8 bugs
 
 * 0.5.8
 	* Huge parser speed boost (see #1227)

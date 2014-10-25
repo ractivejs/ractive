@@ -9,8 +9,7 @@ circular.push( function () {
 });
 
 export default function Section$shuffle ( newIndices ) {
-	var section = this,
-		parentFragment,
+	var parentFragment,
 		firstChange,
 		i,
 		newLength,
@@ -32,15 +31,15 @@ export default function Section$shuffle ( newIndices ) {
 	reboundFragments = [];
 
 	// first, rebind existing fragments
-	newIndices.forEach( function rebindIfNecessary ( newIndex, oldIndex ) {
+	newIndices.forEach( ( newIndex, oldIndex ) => {
 		var fragment, by, oldKeypath, newKeypath;
 
 		if ( newIndex === oldIndex ) {
-			reboundFragments[ newIndex ] = section.fragments[ oldIndex ];
+			reboundFragments[ newIndex ] = this.fragments[ oldIndex ];
 			return;
 		}
 
-		fragment = section.fragments[ oldIndex ];
+		fragment = this.fragments[ oldIndex ];
 
 		if ( firstChange === undefined ) {
 			firstChange = oldIndex;
@@ -48,18 +47,17 @@ export default function Section$shuffle ( newIndices ) {
 
 		// does this fragment need to be torn down?
 		if ( newIndex === -1 ) {
-			section.fragmentsToUnrender.push( fragment );
+			this.fragmentsToUnrender.push( fragment );
 			fragment.unbind();
 			return;
 		}
 
 		// Otherwise, it needs to be rebound to a new index
 		by = newIndex - oldIndex;
-		oldKeypath = section.keypath + '.' + oldIndex;
-		newKeypath = section.keypath + '.' + newIndex;
+		oldKeypath = this.keypath + '.' + oldIndex;
+		newKeypath = this.keypath + '.' + newIndex;
 
-		fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
-		fragment.index = newIndex;
+		fragment.rebind( this.template.i, newIndex, oldKeypath, newKeypath );
 		reboundFragments[ newIndex ] = fragment;
 	});
 

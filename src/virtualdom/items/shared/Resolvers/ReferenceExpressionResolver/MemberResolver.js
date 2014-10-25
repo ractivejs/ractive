@@ -3,28 +3,28 @@ import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createRef
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 var MemberResolver = function ( template, resolver, parentFragment ) {
-	var member = this, keypath;
+	var keypath;
 
-	member.resolver = resolver;
-	member.root = resolver.root;
-	member.parentFragment = parentFragment;
-	member.viewmodel = resolver.root.viewmodel;
+	this.resolver = resolver;
+	this.root = resolver.root;
+	this.parentFragment = parentFragment;
+	this.viewmodel = resolver.root.viewmodel;
 
 	if ( typeof template === 'string' ) {
-		member.value = template;
+		this.value = template;
 	}
 
 	// Simple reference?
 	else if ( template.t === types.REFERENCE ) {
-		member.refResolver = createReferenceResolver( this, template.n, keypath => {
-			member.resolve( keypath );
+		this.refResolver = createReferenceResolver( this, template.n, keypath => {
+			this.resolve( keypath );
 		});
 	}
 
 	// Otherwise we have an expression in its own right
 	else {
-		new ExpressionResolver( resolver, parentFragment, template, function ( keypath ) {
-			member.resolve( keypath );
+		new ExpressionResolver( resolver, parentFragment, template, keypath => {
+			this.resolve( keypath );
 		});
 	}
 };
@@ -63,8 +63,8 @@ MemberResolver.prototype = {
 			this.viewmodel.unregister( this.keypath, this );
 		}
 
-		if ( this.unresolved ) {
-			this.unresolved.unbind();
+		if ( this.refResolver ) {
+			this.refResolver.unbind();
 		}
 	},
 

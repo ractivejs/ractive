@@ -15,6 +15,7 @@ var defaultOptions = {
 
 	// data & binding:
 	data:               {},
+	mappings:           {},
 	computed:           {},
 	magic:              false,
 	modifyArrays:       true,

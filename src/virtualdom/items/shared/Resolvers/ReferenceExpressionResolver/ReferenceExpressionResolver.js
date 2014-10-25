@@ -3,33 +3,33 @@ import ReferenceResolver from 'virtualdom/items/shared/Resolvers/ReferenceResolv
 import MemberResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
-	var resolver = this, ractive, ref, keypath, parentFragment;
+	var ractive, ref, keypath, parentFragment;
 
-	resolver.parentFragment = parentFragment = mustache.parentFragment;
-	resolver.root = ractive = mustache.root;
-	resolver.mustache = mustache;
+	this.parentFragment = parentFragment = mustache.parentFragment;
+	this.root = ractive = mustache.root;
+	this.mustache = mustache;
 
-	resolver.ref = ref = template.r;
-	resolver.callback = callback;
+	this.ref = ref = template.r;
+	this.callback = callback;
 
-	resolver.unresolved = [];
+	this.unresolved = [];
 
 	// Find base keypath
 	if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
-		resolver.base = keypath;
+		this.base = keypath;
 	} else {
-		resolver.baseResolver = new ReferenceResolver( this, ref, function ( keypath ) {
-			resolver.base = keypath;
-			resolver.baseResolver = null;
-			resolver.bubble();
+		this.baseResolver = new ReferenceResolver( this, ref, keypath => {
+			this.base = keypath;
+			this.baseResolver = null;
+			this.bubble();
 		});
 	}
 
 	// Find values for members, or mark them as unresolved
-	resolver.members = template.m.map( template => new MemberResolver( template, this, parentFragment ) );
+	this.members = template.m.map( template => new MemberResolver( template, this, parentFragment ) );
 
-	resolver.ready = true;
-	resolver.bubble(); // trigger initial resolution if possible
+	this.ready = true;
+	this.bubble(); // trigger initial resolution if possible
 };
 
 ReferenceExpressionResolver.prototype = {
@@ -47,6 +47,7 @@ ReferenceExpressionResolver.prototype = {
 		if ( !this.ready || this.baseResolver ) {
 			return;
 		}
+
 		this.callback( this.getKeypath() );
 	},
 
