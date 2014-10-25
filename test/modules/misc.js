@@ -677,7 +677,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			t.ok( ractive.findComponent('widget').data.attr instanceof ClassB );
+			t.ok( ractive.findComponent('widget').get( 'attr' ) instanceof ClassB );
 		});
 
 		asyncTest( 'Subclass instance oncomplete() handlers can call _super', function ( t ) {
