@@ -1,10 +1,25 @@
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import removeFromArray from 'utils/removeFromArray';
+
+var teardownHook = new Hook( 'teardown' );
+
 export default function Component$unbind () {
+	var instance = this.instance;
+
 	this.complexParameters.forEach( unbind );
 	this.bindings.forEach( unbind );
 
 	removeFromLiveComponentQueries( this );
 
-	this.instance.fragment.unbind();
+	// teardown the instance
+	instance.fragment.unbind();
+	instance.viewmodel.teardown();
+
+	if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
+		removeFromArray( instance.el.__ractive_instances__, instance );
+	}
+
+	teardownHook.fire( instance );
 }
 
 function unbind ( thing ) {
