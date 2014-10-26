@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-10-25 - commit 9df785f3 
+	2014-10-26 - commit 585b23ed 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -26,14 +26,12 @@
 				v: 1,
 				t: []
 			},
-			yield: null,
 			// parse:
 			preserveWhitespace: false,
 			sanitize: false,
 			stripComments: true,
 			// data & binding:
 			data: {},
-			mappings: {},
 			computed: {},
 			magic: false,
 			modifyArrays: true,
@@ -1581,6 +1579,7 @@
 		ATTRIBUTE: 13,
 		CLOSING_TAG: 14,
 		COMPONENT: 15,
+		YIELDER: 16,
 		NUMBER_LITERAL: 20,
 		STRING_LITERAL: 21,
 		ARRAY_LITERAL: 22,
@@ -5650,6 +5649,18 @@
 	/* Ractive/prototype/findComponent.js */
 	var Ractive$findComponent = function Ractive$findComponent( selector ) {
 		return this.fragment.findComponent( selector );
+	};
+
+	/* Ractive/prototype/findContainer.js */
+	var Ractive$findContainer = function Ractive$findContainer( selector ) {
+		if ( this.container ) {
+			if ( this.container.component && this.container.component.name === selector ) {
+				return this.container;
+			} else {
+				return this.container.findContainer( selector );
+			}
+		}
+		return null;
 	};
 
 	/* Ractive/prototype/findParent.js */
@@ -11788,15 +11799,19 @@
 	}( runloop, circular );
 
 	/* virtualdom/items/Component/initialise/createInstance.js */
-	var createInstance = function( log ) {
+	var createInstance = function( types, log, create, circular ) {
 
-		return function( component, Component, data, mappings, contentDescriptor ) {
-			var instance, parentFragment, partials, ractive;
+		var initialise;
+		circular.push( function() {
+			initialise = circular.initialise;
+		} );
+		return function( component, Component, data, mappings, yieldTemplate ) {
+			var instance, parentFragment, partials, ractive, fragment, container;
 			parentFragment = component.parentFragment;
 			ractive = component.root;
 			// Make contents available as a {{>content}} partial
 			partials = {
-				content: contentDescriptor || []
+				content: yieldTemplate || []
 			};
 			if ( Component.defaults.el ) {
 				log.warn( {
@@ -11807,27 +11822,35 @@
 					}
 				} );
 			}
-			instance = new Component( {
+			// find container
+			fragment = parentFragment;
+			while ( fragment ) {
+				if ( fragment.owner.type === types.YIELDER ) {
+					container = fragment.owner.container;
+					break;
+				}
+				fragment = fragment.parent;
+			}
+			instance = create( Component.prototype );
+			initialise( instance, {
 				el: null,
 				append: true,
-				mappings: mappings,
 				data: data,
 				partials: partials,
 				magic: ractive.magic || Component.defaults.magic,
 				modifyArrays: ractive.modifyArrays,
 				// need to inherit runtime parent adaptors
-				adapt: ractive.adapt,
-				yield: {
-					template: contentDescriptor,
-					instance: ractive
-				}
+				adapt: ractive.adapt
 			}, {
 				parent: ractive,
-				_component: component
+				component: component,
+				mappings: mappings,
+				yieldTemplate: yieldTemplate,
+				container: container
 			} );
 			return instance;
 		};
-	}( log );
+	}( types, log, create, circular );
 
 	/* virtualdom/items/Component/initialise/propagateEvents.js */
 	var propagateEvents = function( circular, fireEvent, log ) {
@@ -12117,23 +12140,25 @@
 	}( types, detach );
 
 	/* virtualdom/items/Yielder.js */
-	var Yielder = function( runloop, removeFromArray, circular ) {
+	var Yielder = function( types, runloop, removeFromArray, circular ) {
 
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
 		var Yielder = function( options ) {
-			var componentInstance, component;
-			componentInstance = options.parentFragment.root;
-			this.component = component = componentInstance.component;
-			this.surrogateParent = options.parentFragment;
+			var container, component;
+			this.type = types.YIELDER;
+			this.container = container = options.parentFragment.root;
+			this.component = component = container.component;
+			this.container = container;
+			this.containerFragment = options.parentFragment;
 			this.parentFragment = component.parentFragment;
 			this.fragment = new Fragment( {
 				owner: this,
-				root: componentInstance.yield.instance,
-				template: componentInstance.yield.template,
-				pElement: this.surrogateParent.pElement
+				root: container.parent,
+				template: container._yield,
+				pElement: this.containerFragment.pElement
 			} );
 			component.yielders.push( this );
 			runloop.scheduleTask( function() {
@@ -12159,7 +12184,7 @@
 				return this.fragment.findAllComponents( selector, query );
 			},
 			findNextNode: function() {
-				return this.surrogateParent.findNextNode( this );
+				return this.containerFragment.findNextNode( this );
 			},
 			firstNode: function() {
 				return this.fragment.firstNode();
@@ -12185,7 +12210,7 @@
 			}
 		};
 		return Yielder;
-	}( runloop, removeFromArray, circular );
+	}( types, runloop, removeFromArray, circular );
 
 	/* virtualdom/Fragment/prototype/init/createItem.js */
 	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder ) {
@@ -12725,7 +12750,7 @@
 	}( arrayContentsMatch, startsWith, isEqual );
 
 	/* Ractive/prototype.js */
-	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, findParent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
+	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, findContainer, findParent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
 
 		return {
 			add: add,
@@ -12735,6 +12760,7 @@
 			findAll: findAll,
 			findAllComponents: findAllComponents,
 			findComponent: findComponent,
+			findContainer: findContainer,
 			findParent: findParent,
 			fire: fire,
 			get: get,
@@ -12762,7 +12788,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$findParent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$findContainer, Ractive$findParent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
 
 	/* utils/getGuid.js */
 	var getGuid = function() {
@@ -14309,16 +14335,15 @@
 		} catch ( err ) {
 			noMagic = true;
 		}
-		var Viewmodel = function( ractive ) {
+		var Viewmodel = function( ractive, mappings ) {
 			var key, mapping;
 			this.ractive = ractive;
 			// TODO eventually, we shouldn't need this reference
 			Viewmodel.extend( ractive.constructor, ractive );
 			// set up explicit mappings
 			this.mappings = create( null );
-			for ( key in ractive.mappings ) {
-				// TODO shouldn't live on ractive, even temporarily
-				this.map( key, ractive.mappings[ key ] );
+			for ( key in mappings ) {
+				this.map( key, mappings[ key ] );
 			}
 			// if data exists locally, but is missing on the parent,
 			// we transfer ownership to the parent
@@ -14379,28 +14404,31 @@
 	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$compute, viewmodel$get, viewmodel$init, viewmodel$map, viewmodel$mark, viewmodel$merge, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$smartUpdate, viewmodel$teardown, viewmodel$unregister, adaptConfig );
 
 	/* Ractive/initialise.js */
-	var Ractive_initialise = function( config, create, Fragment, getElement, getNextNumber, Hook, HookQueue, Viewmodel ) {
+	var Ractive_initialise = function( config, create, Fragment, getElement, getNextNumber, Hook, HookQueue, Viewmodel, circular ) {
 
 		var __export;
 		var constructHook = new Hook( 'construct' ),
 			configHook = new Hook( 'config' ),
 			initHook = new HookQueue( 'init' );
-		__export = function initialiseRactiveInstance( ractive ) {
-			var options = arguments[ 1 ];
+		circular.initialise = initialiseRactiveInstance;
+		__export = initialiseRactiveInstance;
+
+		function initialiseRactiveInstance( ractive ) {
+			var userOptions = arguments[ 1 ];
+			if ( userOptions === void 0 )
+				userOptions = {};
+			var options = arguments[ 2 ];
 			if ( options === void 0 )
 				options = {};
-			var _options = arguments[ 2 ];
-			if ( _options === void 0 )
-				_options = {};
 			var el;
-			initialiseProperties( ractive, _options );
+			initialiseProperties( ractive, options );
 			// make this option do what would be expected if someone
 			// did include it on a new Ractive() or new Component() call.
 			// Silly to do so (put a hook on the very options being used),
 			// but handle it correctly, consistent with the intent.
-			constructHook.fire( config.getConstructTarget( ractive, options ), options );
+			constructHook.fire( config.getConstructTarget( ractive, userOptions ), userOptions );
 			// init config from Parent and options
-			config.init( ractive.constructor, ractive, options );
+			config.init( ractive.constructor, ractive, userOptions );
 			configHook.fire( ractive );
 			// Teardown any existing instances *before* trying to set up the new one -
 			// avoids certain weird bugs
@@ -14418,7 +14446,7 @@
 			}
 			initHook.begin( ractive );
 			// TEMPORARY. This is so we can implement Viewmodel gradually
-			ractive.viewmodel = new Viewmodel( ractive );
+			ractive.viewmodel = new Viewmodel( ractive, options.mappings );
 			// hacky circular problem until we get this sorted out
 			// if viewmodel immediately processes computed properties,
 			// they may call ractive.get, which calls ractive.viewmodel,
@@ -14437,7 +14465,7 @@
 			if ( el ) {
 				ractive.render( el, ractive.append );
 			}
-		};
+		}
 
 		function initialiseProperties( ractive, options ) {
 			// Generate a unique identifier, for places where you'd use a weak map if it
@@ -14457,22 +14485,21 @@
 			// live queries
 			ractive._liveQueries = [];
 			ractive._liveComponentQueries = [];
-			// No parent? This is the root
-			if ( !options.parent ) {
-				ractive.root = ractive;
-			} else {
+			// properties specific to inline components
+			if ( options.component ) {
 				ractive.parent = options.parent;
+				ractive.container = options.container || null;
 				ractive.root = ractive.parent.root;
-			}
-			// component references
-			if ( options._component ) {
-				ractive.component = options._component;
-				// And store a reference to the instance on the component
-				options._component.instance = ractive;
+				ractive._yield = options.yieldTemplate;
+				ractive.component = options.component;
+				options.component.instance = ractive;
+			} else {
+				ractive.root = ractive;
+				ractive.parent = ractive.container = null;
 			}
 		}
 		return __export;
-	}( config, create, Fragment, getElement, getNextNumber, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, Viewmodel );
+	}( config, create, Fragment, getElement, getNextNumber, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, Viewmodel, circular );
 
 	/* extend/unwrapExtended.js */
 	var unwrapExtended = function( wrap, config, circular ) {
