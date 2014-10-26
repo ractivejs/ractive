@@ -497,6 +497,33 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( c2.findParent( 'c1' ), c1 );
 		});
 
+		test( 'Inline components have a `container` property', function ( t ) {
+			var ractive = new Ractive({
+				template: '<outer><inner/></outer>',
+				components: {
+					outer: Ractive.extend({ template: '{{yield}}' }),
+					inner: Ractive.extend()
+				}
+			});
+
+			t.strictEqual( ractive.findComponent( 'inner' ).container, ractive.findComponent( 'outer' ) );
+			t.strictEqual( ractive.container, null );
+		});
+
+		test( '.findContainer() finds container component', function ( t ) {
+			var ractive = new Ractive({
+				template: '<outer><mid><inner/></mid></outer>',
+				components: {
+					outer: Ractive.extend({ template: '{{yield}}' }),
+					inner: Ractive.extend()
+				}
+			});
+
+			t.strictEqual( ractive.findComponent( 'inner' ).findContainer( 'mid' ), ractive.findComponent( 'mid' ) );
+			t.strictEqual( ractive.findComponent( 'inner' ).findContainer( 'outer' ), ractive.findComponent( 'outer' ) );
+			t.strictEqual( ractive.findComponent( 'inner' ).findContainer( 'nope' ), null );
+		});
+
 		/* Not supported, do we need it?
 		test( 'Instantiated component with template function plus instantiation template', t => {
 			var Component, ractive;

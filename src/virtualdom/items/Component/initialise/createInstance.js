@@ -1,13 +1,22 @@
+import types from 'config/types';
 import log from 'utils/log';
+import create from 'utils/create';
+import circular from 'circular';
 
-export default function ( component, Component, data, mappings, contentDescriptor ) {
-	var instance, parentFragment, partials, ractive;
+var initialise;
+
+circular.push( () => {
+	initialise = circular.initialise;
+});
+
+export default function ( component, Component, data, mappings, yieldTemplate ) {
+	var instance, parentFragment, partials, ractive, fragment, container;
 
 	parentFragment = component.parentFragment;
 	ractive = component.root;
 
 	// Make contents available as a {{>content}} partial
-	partials = { content: contentDescriptor || [] };
+	partials = { content: yieldTemplate || [] };
 
 	if ( Component.defaults.el ) {
 		log.warn({
@@ -19,23 +28,34 @@ export default function ( component, Component, data, mappings, contentDescripto
 		});
 	}
 
-	instance = new Component({
+	// find container
+	fragment = parentFragment;
+	while ( fragment ) {
+		if ( fragment.owner.type === types.YIELDER ) {
+			container = fragment.owner.container;
+			break;
+		}
+
+		fragment = fragment.parent;
+	}
+
+	instance = create( Component.prototype );
+
+	initialise( instance, {
 		el: null,
 		append: true,
-		mappings: mappings,
 		data: data,
 		partials: partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,
 		// need to inherit runtime parent adaptors
-		adapt: ractive.adapt,
-		yield: {
-			template: contentDescriptor,
-			instance: ractive
-		}
+		adapt: ractive.adapt
 	}, {
 		parent: ractive,
-		_component: component,
+		component: component,
+		mappings: mappings,
+		yieldTemplate: yieldTemplate,
+		container: container
 	});
 
 	return instance;

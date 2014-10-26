@@ -1,3 +1,4 @@
+import types from 'config/types';
 import runloop from 'global/runloop';
 import removeFromArray from 'utils/removeFromArray';
 import circular from 'circular';
@@ -9,19 +10,22 @@ circular.push( function () {
 });
 
 var Yielder = function ( options ) {
-	var componentInstance, component;
+	var container, component;
 
-	componentInstance = options.parentFragment.root;
-	this.component = component = componentInstance.component;
+	this.type = types.YIELDER;
 
-	this.surrogateParent = options.parentFragment;
+	this.container = container = options.parentFragment.root;
+	this.component = component = container.component;
+
+	this.container = container;
+	this.containerFragment = options.parentFragment;
 	this.parentFragment = component.parentFragment;
 
 	this.fragment = new Fragment({
 		owner: this,
-		root: componentInstance.yield.instance,
-		template: componentInstance.yield.template,
-		pElement: this.surrogateParent.pElement
+		root: container.parent,
+		template: container._yield,
+		pElement: this.containerFragment.pElement
 	});
 
 	component.yielders.push( this );
@@ -55,7 +59,7 @@ Yielder.prototype = {
 	},
 
 	findNextNode: function () {
-		return this.surrogateParent.findNextNode( this );
+		return this.containerFragment.findNextNode( this );
 	},
 
 	firstNode: function () {

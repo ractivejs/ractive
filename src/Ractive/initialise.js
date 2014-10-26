@@ -6,25 +6,29 @@ import getNextNumber from 'utils/getNextNumber';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
+import circular from 'circular';
 
 var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
 	initHook = new HookQueue( 'init' );
 
-export default function initialiseRactiveInstance ( ractive, options = {}, _options = {} ) {
+circular.initialise = initialiseRactiveInstance;
+export default initialiseRactiveInstance;
+
+function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	var el;
 
-	initialiseProperties( ractive, _options );
+	initialiseProperties( ractive, options );
 
 	// make this option do what would be expected if someone
 	// did include it on a new Ractive() or new Component() call.
 	// Silly to do so (put a hook on the very options being used),
 	// but handle it correctly, consistent with the intent.
-	constructHook.fire( config.getConstructTarget( ractive, options ), options );
+	constructHook.fire( config.getConstructTarget( ractive, userOptions ), userOptions );
 
 	// init config from Parent and options
-	config.init( ractive.constructor, ractive, options );
+	config.init( ractive.constructor, ractive, userOptions );
 
 	configHook.fire( ractive );
 
@@ -50,7 +54,7 @@ export default function initialiseRactiveInstance ( ractive, options = {}, _opti
 	initHook.begin( ractive );
 
 	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive );
+	ractive.viewmodel = new Viewmodel( ractive, options.mappings );
 
 	// hacky circular problem until we get this sorted out
 	// if viewmodel immediately processes computed properties,
@@ -100,21 +104,18 @@ function initialiseProperties ( ractive, options ) {
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];
 
-	// No parent? This is the root
-	if ( !options.parent ) {
-		ractive.root = ractive;
-	}
-	// Else store a reference to the parent and root
-	else {
+	// properties specific to inline components
+	if ( options.component ) {
 		ractive.parent = options.parent;
+		ractive.container = options.container || null;
 		ractive.root = ractive.parent.root;
-	}
 
-	// component references
-	if ( options._component ) {
-		ractive.component = options._component;
+		ractive._yield = options.yieldTemplate;
 
-		// And store a reference to the instance on the component
-		options._component.instance = ractive;
+		ractive.component = options.component;
+		options.component.instance = ractive;
+	} else {
+		ractive.root = ractive;
+		ractive.parent = ractive.container = null;
 	}
 }
