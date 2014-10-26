@@ -14,6 +14,7 @@ export default {
 	ATTRIBUTE         : 13,
 	CLOSING_TAG       : 14,
 	COMPONENT         : 15,
+	YIELDER           : 16,
 
 	NUMBER_LITERAL    : 20,
 	STRING_LITERAL    : 21,

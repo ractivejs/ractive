@@ -1,3 +1,4 @@
+import types from 'config/types';
 import log from 'utils/log';
 import create from 'utils/create';
 import circular from 'circular';
@@ -9,7 +10,7 @@ circular.push( () => {
 });
 
 export default function ( component, Component, data, mappings, yieldTemplate ) {
-	var instance, parentFragment, partials, ractive;
+	var instance, parentFragment, partials, ractive, fragment, container;
 
 	parentFragment = component.parentFragment;
 	ractive = component.root;
@@ -27,6 +28,17 @@ export default function ( component, Component, data, mappings, yieldTemplate ) 
 		});
 	}
 
+	// find container
+	fragment = parentFragment;
+	while ( fragment ) {
+		if ( fragment.owner.type === types.YIELDER ) {
+			container = fragment.owner.container;
+			break;
+		}
+
+		fragment = fragment.parent;
+	}
+
 	instance = create( Component.prototype );
 
 	initialise( instance, {
@@ -42,7 +54,8 @@ export default function ( component, Component, data, mappings, yieldTemplate ) 
 		parent: ractive,
 		component: component,
 		mappings: mappings,
-		yield: yieldTemplate
+		yieldTemplate: yieldTemplate,
+		container: container
 	});
 
 	return instance;
