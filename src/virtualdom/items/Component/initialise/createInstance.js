@@ -28,12 +28,6 @@ export default function ( component, Component, data, mappings, yieldTemplate ) 
 	}
 
 	instance = create( Component.prototype );
-	component.instance = instance;
-
-	// Add component-specific properties
-	instance.component = component;
-	instance._parent = ractive;
-	instance._yield = yieldTemplate;
 
 	initialise( instance, {
 		el: null,
@@ -45,7 +39,10 @@ export default function ( component, Component, data, mappings, yieldTemplate ) 
 		// need to inherit runtime parent adaptors
 		adapt: ractive.adapt
 	}, {
-		mappings: mappings
+		parent: ractive,
+		component: component,
+		mappings: mappings,
+		yield: yieldTemplate
 	});
 
 	return instance;

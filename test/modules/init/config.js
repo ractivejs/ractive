@@ -48,7 +48,7 @@ define([
 				parent = new Ractive( { adaptors: { foo: adaptor1 } } ),
 				ractive = new Ractive( { adaptors: { bar: adaptor2 } } );
 
-			ractive._parent = parent;
+			ractive.parent = parent;
 
 			t.equal( config.registries.adaptors.find( ractive, 'foo' ), adaptor1 );
 			t.equal( config.registries.adaptors.find( ractive, 'bar' ), adaptor2 );

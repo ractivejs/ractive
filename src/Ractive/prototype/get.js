@@ -13,7 +13,7 @@ export default function Ractive$get ( keypath ) {
 	value = this.viewmodel.get( keypath, options );
 
 	// Create inter-component binding, if necessary
-	if ( value === undefined && this._parent && !this.isolated ) {
+	if ( value === undefined && this.parent && !this.isolated ) {
 		if ( resolveRef( this, keypath, this.fragment ) ) { // creates binding as side-effect, if appropriate
 			value = this.viewmodel.get( keypath );
 		}

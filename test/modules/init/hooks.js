@@ -322,7 +322,7 @@ define([ 'ractive' ], function ( Ractive ) {
 					}),
 					two: Ractive.extend({
 						onrender: function () {
-							this._parent.find( 'whatever' );
+							this.parent.find( 'whatever' );
 						}
 					})
 				}

@@ -19,7 +19,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	var el;
 
-	initialiseProperties( ractive );
+	initialiseProperties( ractive, options );
 
 	// make this option do what would be expected if someone
 	// did include it on a new Ractive() or new Component() call.
@@ -79,7 +79,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	}
 }
 
-function initialiseProperties ( ractive ) {
+function initialiseProperties ( ractive, options ) {
 	// Generate a unique identifier, for places where you'd use a weak map if it
 	// existed
 	ractive._guid = getNextNumber();
@@ -103,4 +103,17 @@ function initialiseProperties ( ractive ) {
 	// live queries
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];
+
+	// properties specific to inline components
+	if ( options.component ) {
+		ractive.parent = options.parent;
+		ractive.root = ractive.parent.root;
+
+		ractive.component = options.component;
+		options.component.instance = ractive;
+
+		ractive._yield = options.yield;
+	} else {
+		ractive.root = ractive;
+	}
 }
