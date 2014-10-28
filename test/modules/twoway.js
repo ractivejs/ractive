@@ -612,6 +612,18 @@ define([ 'ractive' ], function ( Ractive ) {
 			console.warn = console_warn;
 		});
 
+		test( 'Downstream expression objects in two-way bindings do not trigger a warning (#1421)', function ( t ) {
+			var ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#foo()}}<input value="{{.}}">{{/}}',
+				data: { foo: () => ['bar'] }
+			});
+
+			t.equal( ractive.find('input').value, 'bar' );
+		});
+
 		test( 'Changes made in oninit are reflected on render (#1390)', function ( t ) {
 			var ractive, inputs;
 
