@@ -21,6 +21,7 @@ import reset from 'Ractive/prototype/reset';
 import resetTemplate from 'Ractive/prototype/resetTemplate';
 import reverse from 'Ractive/prototype/reverse';
 import set from 'Ractive/prototype/set';
+import setPartial from 'Ractive/prototype/setPartial';
 import shift from 'Ractive/prototype/shift';
 import sort from 'Ractive/prototype/sort';
 import splice from 'Ractive/prototype/splice';
@@ -57,6 +58,7 @@ export default {
 	resetTemplate: resetTemplate,
 	reverse: reverse,
 	set: set,
+	setPartial: setPartial,
 	shift: shift,
 	sort: sort,
 	splice: splice,
