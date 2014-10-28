@@ -358,6 +358,90 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( ractive.toHTML(), '' );
 		});
+
+		test( 'Throw on unknown partial', function ( t ) {
+
+			var ractive;
+
+			expect( 1 ); //throws counts as an assertion
+
+			throws( () => {
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{>unknown}}',
+					debug: true,
+					partials: {
+					}
+				});
+			});
+		});
+
+		if ( console && console.warn ) {
+
+			test( 'Warn on unknown partial', function ( t ) {
+
+				var ractive, warn = console.warn;
+
+				expect( 1 );
+
+				console.warn = function( msg ) {
+					t.ok( true );
+				}
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{>unknown}}',
+					partials: {
+					}
+				});
+
+				console.warn = warn;
+			});
+		}
+
+		test( 'Don\'t throw on empty partial', function ( t ) {
+
+			var ractive;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{>empty}}',
+				debug: true,
+				partials: {
+					empty: ''
+				}
+			});
+
+			t.ok( true );
+		});
+
+		if ( console && console.warn ) {
+
+			test( 'Don\'t warn on empty partial', function ( t ) {
+
+				var ractive, warn = console.warn;
+
+				expect( 1 );
+
+				console.warn = function( msg ) {
+					t.ok( false );
+				}
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{>empty}}',
+					partials: {
+						empty: ''
+					}
+				});
+
+				t.ok( true );
+
+				console.warn = warn;
+			});
+		}
 	};
 
 });
