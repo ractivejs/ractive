@@ -358,6 +358,76 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( ractive.toHTML(), '' );
 		});
+
+		test( 'Partials may be changed with setPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{>foo}}
+					{{>'bar'}}
+					{{>''+'expr'}}
+					{{#cond}}{{>cond}}{{/}}
+					<component />
+					{{#list}}
+						{{>.type}}
+					{{/}}
+					{{>outer}}
+					{{#with { ctx: 'foo' }}}{{>ctx}}{{/with}}
+				`,
+				components: {
+					component: Ractive.extend({
+						template: '{{>foo}} {{>bar}}',
+						partials: { bar: 'cbar' }
+					})
+				},
+				partials: {
+					foo: 'rfoo',
+					bar: 'rbar',
+					outer: 'outer({{>inner}})',
+					inner: 'inner',
+					t1: 't1',
+					t2: 't2',
+					cond: 'cond',
+					expr: 'expr'
+				},
+				data: {
+					list: [ { type: 't1' }, { type: 't1' }, { type: 't2' } ],
+					cond: true
+				}
+			});
+
+			t.htmlEqual( ractive.toHTML(), 'rfoo rbar expr cond rfoo cbar t1t1t2 outer(inner) rfoo' );
+
+			ractive.setPartial( 'foo', 'nfoo' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo rbar expr cond nfoo cbar t1t1t2 outer(inner) nfoo' );
+
+			ractive.setPartial( 'bar', 'nbar' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar expr cond nfoo cbar t1t1t2 outer(inner) nfoo' );
+
+			ractive.setPartial( 't1', 'nt1' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar expr cond nfoo cbar nt1nt1t2 outer(inner) nfoo' );
+
+			ractive.setPartial( 't2', '' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar expr cond nfoo cbar nt1nt1 outer(inner) nfoo' );
+
+			ractive.setPartial( 'inner', 'ninner' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar expr cond nfoo cbar nt1nt1 outer(ninner) nfoo' );
+
+			ractive.setPartial( 'outer', '{{>foo}}' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar expr cond nfoo cbar nt1nt1 nfoo nfoo' );
+
+			ractive.setPartial( 'outer', '' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar expr cond nfoo cbar nt1nt1  nfoo' );
+
+			ractive.findComponent( 'component' ).setPartial( 'bar', 'ncbar' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar expr cond nfoo ncbar nt1nt1  nfoo' );
+
+			ractive.setPartial( 'expr', 'nexpr' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar nexpr cond nfoo ncbar nt1nt1  nfoo' );
+
+			ractive.setPartial( 'cond', 'ncond' );
+			t.htmlEqual( ractive.toHTML(), 'nfoo nbar nexpr ncond nfoo ncbar nt1nt1  nfoo' );
+		});
 	};
 
 });
