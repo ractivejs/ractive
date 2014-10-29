@@ -358,6 +358,23 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( ractive.toHTML(), '' );
 		});
-	};
 
+		test( 'Partial naming requirements are relaxed', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `{{>a-partial}}{{>10-2}}{{>a - partial}}{{>delete}}`,
+				partials: {
+					'a-partial': 'a',
+					'8': 'b',
+					'delete': 'c'
+				},
+				data: {
+					a: 10,
+					partial: 2
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'abbc' );
+		});
+	};
 });
