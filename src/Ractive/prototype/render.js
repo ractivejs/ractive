@@ -1,6 +1,7 @@
 import css from 'global/css';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import getElement from 'utils/getElement';
+import log from 'utils/log/log';
 import runloop from 'global/runloop';
 
 var renderHook = new Hook( 'render' ),
@@ -56,7 +57,14 @@ export default function Ractive$render ( target, anchor ) {
 	// also require preflighting event subscriptions. Which seems
 	// like more work then just letting the promise happen.
 	// But perhaps I'm wrong about that...
-	promise.then( () => completeHook.fire( this ) );
+	promise
+		.then( () => completeHook.fire( this ) )
+		.then( null, err => {
+			log.consoleError({
+				debug: this.debug,
+				err: err,
+			});
+		});
 
 	return promise;
 }

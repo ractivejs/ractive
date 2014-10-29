@@ -1,6 +1,6 @@
 import legacy from 'legacy';
 import isClient from 'config/isClient';
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import Promise from 'utils/Promise';
 import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
 import createTransitions from 'virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions';

@@ -1,6 +1,6 @@
 import circular from 'circular';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
-import log from 'utils/log';
+import log from 'utils/log/log';
 
 // TODO how should event arguments be handled? e.g.
 // <widget on-foo='bar:1,2,3'/>

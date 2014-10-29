@@ -1,5 +1,5 @@
 import types from 'config/types';
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import parseJSON from 'utils/parseJSON';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';

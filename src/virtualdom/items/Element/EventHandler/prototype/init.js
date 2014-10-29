@@ -2,7 +2,7 @@ import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import circular from 'circular';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
-import log from 'utils/log';
+import log from 'utils/log/log';
 
 var Fragment, getValueOptions = { args: true }, eventPattern = /^event(?:\.(.+))?/;
 

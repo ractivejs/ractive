@@ -1,5 +1,5 @@
 import types from 'config/types';
-import log from 'utils/log';
+import log from 'utils/log/log';
 import create from 'utils/create';
 import circular from 'circular';
 

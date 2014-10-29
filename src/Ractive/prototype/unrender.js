@@ -1,6 +1,6 @@
 import css from 'global/css';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import log from 'utils/log';
+import log from 'utils/log/log';
 import Promise from 'utils/Promise';
 import removeFromArray from 'utils/removeFromArray';
 import runloop from 'global/runloop';
