@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-10-28 - commit 399369dc 
+	2014-10-29 - commit 13c7dc2d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9971,6 +9971,14 @@
 			findNextNode: function() {
 				return this.parentFragment.findNextNode( this );
 			},
+			getPartialName: function() {
+				if ( this.isNamed && this.name )
+					return this.name;
+				else if ( this.value === undefined )
+					return this.name;
+				else
+					return this.value;
+			},
 			getValue: function() {
 				return this.fragment.getValue();
 			},
@@ -10885,6 +10893,99 @@
 		};
 	}( Ractive$shared_hooks_Hook, runloop, Fragment, config );
 
+	/* Ractive/prototype/resetPartial.js */
+	var Ractive$resetPartial = function( runloop, types, isArray ) {
+
+		var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
+		var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
+
+		function GET_ITER$0( v ) {
+			if ( v ) {
+				if ( Array.isArray( v ) )
+					return 0;
+				var f;
+				if ( S_MARK$0 )
+					S_MARK$0( v );
+				if ( typeof v === 'object' && typeof( f = v[ S_ITER$0 ] ) === 'function' ) {
+					if ( S_MARK$0 )
+						S_MARK$0( void 0 );
+					return f.call( v );
+				}
+				if ( S_MARK$0 )
+					S_MARK$0( void 0 );
+				if ( v + '' === '[object Generator]' )
+					return v;
+			}
+			throw new Error( v + ' is not iterable' );
+		}
+		return function( name, partial, callback ) {
+			var $D$3;
+			var $D$4;
+			var $D$5;
+			var promise, collection = [];
+
+			function collect( source, dest, ractive ) {
+				var $D$0;
+				var $D$1;
+				var $D$2;
+				// if this is a component and it has its own partial, bail
+				if ( ractive && ractive.partials[ name ] ) {
+					return;
+				}
+				$D$0 = GET_ITER$0( source );
+				$D$2 = $D$0 === 0;
+				$D$1 = $D$2 ? source.length : void 0;
+				for ( var item; $D$2 ? $D$0 < $D$1 : !( $D$1 = $D$0[ 'next' ]() )[ 'done' ]; ) {
+					item = $D$2 ? source[ $D$0++ ] : $D$1[ 'value' ];
+					// queue to rerender if the item is a partial and the current name matches
+					if ( item.type === types.PARTIAL && item.getPartialName() === name ) {
+						dest.push( item );
+					}
+					// if it has a fragment, process its items
+					if ( item.fragment ) {
+						collect( item.fragment.items, dest, ractive );
+					}
+					// or if it has fragments
+					if ( isArray( item.fragments ) ) {
+						collect( item.fragments, dest, ractive );
+					} else if ( isArray( item.items ) ) {
+						collect( item.items, dest, ractive );
+					} else if ( item.type === types.COMPONENT && item.instance ) {
+						collect( item.instance.fragment.items, dest, item.instance );
+					}
+					// if the item is an element, process its attributes too
+					if ( item.type === types.ELEMENT ) {
+						if ( isArray( item.attributes ) ) {
+							collect( item.attributes, dest, ractive );
+						}
+						if ( isArray( item.conditionalAttributes ) ) {
+							collect( item.conditionalAttributes, dest, ractive );
+						}
+					}
+				}
+				$D$0 = $D$1 = $D$2 = void 0;
+			}
+			collect( this.fragment.items, collection );
+			this.partials[ name ] = partial;
+			promise = runloop.start( this, true );
+			// force each item to rerender
+			$D$3 = GET_ITER$0( collection );
+			$D$5 = $D$3 === 0;
+			$D$4 = $D$5 ? collection.length : void 0;
+			for ( var item; $D$5 ? $D$3 < $D$4 : !( $D$4 = $D$3[ 'next' ]() )[ 'done' ]; ) {
+				item = $D$5 ? collection[ $D$3++ ] : $D$4[ 'value' ];
+				item.value = undefined;
+				item.setValue( name );
+			}
+			$D$3 = $D$4 = $D$5 = void 0;
+			runloop.end();
+			if ( callback ) {
+				promise.then( callback.bind( this ) );
+			}
+			return promise;
+		};
+	}( runloop, types, isArray );
+
 	/* Ractive/prototype/resetTemplate.js */
 	var Ractive$resetTemplate = function( config, Fragment ) {
 
@@ -11165,7 +11266,7 @@
 	}( arrayContentsMatch, startsWith, isEqual );
 
 	/* Ractive/prototype.js */
-	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, findContainer, findParent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
+	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, findContainer, findParent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetPartial, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
 
 		return {
 			add: add,
@@ -11188,6 +11289,7 @@
 			push: push,
 			render: render,
 			reset: reset,
+			resetPartial: resetPartial,
 			resetTemplate: resetTemplate,
 			reverse: reverse,
 			set: set,
@@ -11203,7 +11305,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$findContainer, Ractive$findParent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$findContainer, Ractive$findParent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetPartial, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
 
 	/* utils/getGuid.js */
 	var getGuid = function() {
