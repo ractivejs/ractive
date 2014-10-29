@@ -34,6 +34,17 @@ export default function( name, partial, callback ) {
 			else if ( item.type === types.COMPONENT && item.instance ) {
 				collect( item.instance.fragment.items, dest, item.instance );
 			}
+
+			// if the item is an element, process its attributes too
+			if ( item.type === types.ELEMENT ) {
+				if ( isArray( item.attributes ) ) {
+					collect( item.attributes, dest, ractive );
+				}
+
+				if ( isArray( item.conditionalAttributes ) ) {
+					collect( item.conditionalAttributes, dest, ractive );
+				}
+			}
 		}
 	}
 
