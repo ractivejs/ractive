@@ -18,10 +18,10 @@ import pop from 'Ractive/prototype/pop';
 import push from 'Ractive/prototype/push';
 import render from 'Ractive/prototype/render';
 import reset from 'Ractive/prototype/reset';
+import resetPartial from 'Ractive/prototype/resetPartial';
 import resetTemplate from 'Ractive/prototype/resetTemplate';
 import reverse from 'Ractive/prototype/reverse';
 import set from 'Ractive/prototype/set';
-import setPartial from 'Ractive/prototype/setPartial';
 import shift from 'Ractive/prototype/shift';
 import sort from 'Ractive/prototype/sort';
 import splice from 'Ractive/prototype/splice';
@@ -55,10 +55,10 @@ export default {
 	push: push,
 	render: render,
 	reset: reset,
+	resetPartial: resetPartial,
 	resetTemplate: resetTemplate,
 	reverse: reverse,
 	set: set,
-	setPartial: setPartial,
 	shift: shift,
 	sort: sort,
 	splice: splice,
