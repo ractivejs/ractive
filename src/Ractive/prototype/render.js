@@ -9,17 +9,14 @@ var renderHook = new Hook( 'render' ),
 export default function Ractive$render ( target, anchor ) {
 	var promise, instances, transitionsEnabled;
 
-	// Teardown any existing instances *before* trying to set up the new one -
-	// avoids certain weird bugs
-	if ( !this.append && target && target.__ractive_instances__ && target.__ractive_instances__.length > 0 ) {
-		try {
-			target.__ractive_instances__.splice( 0, target.__ractive_instances__.length ).forEach( r => r.teardown() );
-		} catch ( err ) {
-			// this can happen with IE8, because it is unbelievably shit. Somehow, in
-			// certain very specific situations, trying to access node.parentNode (which
-			// we need to do in order to detach elements) causes an 'Invalid argument'
-			// error to be thrown. I don't even.
+	if ( !this.append && target ) {
+		// Teardown any existing instances *before* trying to set up the new one -
+		// avoids certain weird bugs
+		if ( target.__ractive_instances__ && target.__ractive_instances__.length > 0 ) {
+			removeOtherInstances( target );
 		}
+
+		// make sure we are the only occupants
 		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 	}
 
@@ -75,4 +72,13 @@ export default function Ractive$render ( target, anchor ) {
 	return promise;
 }
 
-
+function removeOtherInstances( target ) {
+	try {
+		target.__ractive_instances__.splice( 0, target.__ractive_instances__.length ).forEach( r => r.teardown() );
+	} catch ( err ) {
+		// this can happen with IE8, because it is unbelievably shit. Somehow, in
+		// certain very specific situations, trying to access node.parentNode (which
+		// we need to do in order to detach elements) causes an 'Invalid argument'
+		// error to be thrown. I don't even.
+	}
+}

@@ -54,6 +54,8 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	initHook.end( ractive );
 
+	el = getElement( ractive.el );
+  
 	// render automatically ( if `el` is specified )
 	if ( el ) {
 		ractive.render( el, ractive.append );
