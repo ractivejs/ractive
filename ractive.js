@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-10-29 - commit 13c7dc2d 
+	2014-10-31 - commit e826306c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6115,11 +6115,22 @@
 	/* Ractive/prototype/render.js */
 	var Ractive$render = function( css, Hook, getElement, runloop ) {
 
+		var __export;
 		var renderHook = new Hook( 'render' ),
 			completeHook = new Hook( 'complete' );
-		return function Ractive$render( target, anchor ) {
+		__export = function Ractive$render( target, anchor ) {
 			var this$0 = this;
 			var promise, instances, transitionsEnabled;
+			if ( !this.append && target ) {
+				// Teardown any existing instances *before* trying to set up the new one -
+				// avoids certain weird bugs
+				var others = target.__ractive_instances__;
+				if ( others && others.length ) {
+					removeOtherInstances( others );
+				}
+				// make sure we are the only occupants
+				target.innerHTML = '';
+			}
 			// if `noIntro` is `true`, temporarily disable transitions
 			transitionsEnabled = this.transitionsEnabled;
 			if ( this.noIntro ) {
@@ -6164,6 +6175,15 @@
 			} );
 			return promise;
 		};
+
+		function removeOtherInstances( others ) {
+			try {
+				others.splice( 0, others.length ).forEach( function( r ) {
+					return r.teardown();
+				} );
+			} catch ( err ) {}
+		}
+		return __export;
 	}( global_css, Ractive$shared_hooks_Hook, getElement, runloop );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
@@ -14135,20 +14155,6 @@
 			// init config from Parent and options
 			config.init( ractive.constructor, ractive, userOptions );
 			configHook.fire( ractive );
-			// Teardown any existing instances *before* trying to set up the new one -
-			// avoids certain weird bugs
-			if ( el = getElement( ractive.el ) ) {
-				if ( !ractive.append ) {
-					if ( el.__ractive_instances__ ) {
-						try {
-							el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( function( r ) {
-								return r.teardown();
-							} );
-						} catch ( err ) {}
-					}
-					el.innerHTML = '';
-				}
-			}
 			initHook.begin( ractive );
 			// TEMPORARY. This is so we can implement Viewmodel gradually
 			ractive.viewmodel = new Viewmodel( ractive, options.mappings );
@@ -14167,7 +14173,7 @@
 			}
 			initHook.end( ractive );
 			// render automatically ( if `el` is specified )
-			if ( el ) {
+			if ( el = getElement( ractive.el ) ) {
 				ractive.render( el, ractive.append );
 			}
 		}
