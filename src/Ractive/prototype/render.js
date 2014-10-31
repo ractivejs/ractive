@@ -12,8 +12,9 @@ export default function Ractive$render ( target, anchor ) {
 	if ( !this.append && target ) {
 		// Teardown any existing instances *before* trying to set up the new one -
 		// avoids certain weird bugs
-		if ( target.__ractive_instances__ && target.__ractive_instances__.length > 0 ) {
-			removeOtherInstances( target );
+		let others = target.__ractive_instances__;
+		if ( others && others.length ) {
+			removeOtherInstances( others );
 		}
 
 		// make sure we are the only occupants
@@ -72,9 +73,9 @@ export default function Ractive$render ( target, anchor ) {
 	return promise;
 }
 
-function removeOtherInstances( target ) {
+function removeOtherInstances( others ) {
 	try {
-		target.__ractive_instances__.splice( 0, target.__ractive_instances__.length ).forEach( r => r.teardown() );
+		others.splice( 0, others.length ).forEach( r => r.teardown() );
 	} catch ( err ) {
 		// this can happen with IE8, because it is unbelievably shit. Somehow, in
 		// certain very specific situations, trying to access node.parentNode (which
