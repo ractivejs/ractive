@@ -32,25 +32,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	configHook.fire( ractive );
 
-	// Teardown any existing instances *before* trying to set up the new one -
-	// avoids certain weird bugs
-	if ( el = getElement( ractive.el ) ) {
-		if ( !ractive.append ) {
-			if ( el.__ractive_instances__ ) {
-				try {
-					el.__ractive_instances__.splice( 0, el.__ractive_instances__.length ).forEach( r => r.teardown() );
-				} catch ( err ) {
-					// this can happen with IE8, because it is unbelievably shit. Somehow, in
-					// certain very specific situations, trying to access node.parentNode (which
-					// we need to do in order to detach elements) causes an 'Invalid argument'
-					// error to be thrown. I don't even.
-				}
-			}
-
-			el.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
-		}
-	}
-
 	initHook.begin( ractive );
 
 	// TEMPORARY. This is so we can implement Viewmodel gradually
