@@ -9,18 +9,6 @@ var renderHook = new Hook( 'render' ),
 export default function Ractive$render ( target, anchor ) {
 	var promise, instances, transitionsEnabled;
 
-	if ( !this.append && target ) {
-		// Teardown any existing instances *before* trying to set up the new one -
-		// avoids certain weird bugs
-		let others = target.__ractive_instances__;
-		if ( others && others.length ) {
-			removeOtherInstances( others );
-		}
-
-		// make sure we are the only occupants
-		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
-	}
-
 	// if `noIntro` is `true`, temporarily disable transitions
 	transitionsEnabled = this.transitionsEnabled;
 	if ( this.noIntro ) {
@@ -39,6 +27,18 @@ export default function Ractive$render ( target, anchor ) {
 
 	this.el = target;
 	this.anchor = anchor;
+
+	if ( !this.append && target ) {
+		// Teardown any existing instances *before* trying to set up the new one -
+		// avoids certain weird bugs
+		let others = target.__ractive_instances__;
+		if ( others && others.length ) {
+			removeOtherInstances( others );
+		}
+
+		// make sure we are the only occupants
+		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+	}
 
 	// Add CSS, if applicable
 	if ( this.constructor.css ) {
