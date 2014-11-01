@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-10-31 - commit e826306c 
+	2014-11-01 - commit 678831de 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3926,16 +3926,6 @@
 		__export = function Ractive$render( target, anchor ) {
 			var this$0 = this;
 			var promise, instances, transitionsEnabled;
-			if ( !this.append && target ) {
-				// Teardown any existing instances *before* trying to set up the new one -
-				// avoids certain weird bugs
-				var others = target.__ractive_instances__;
-				if ( others && others.length ) {
-					removeOtherInstances( others );
-				}
-				// make sure we are the only occupants
-				target.innerHTML = '';
-			}
 			// if `noIntro` is `true`, temporarily disable transitions
 			transitionsEnabled = this.transitionsEnabled;
 			if ( this.noIntro ) {
@@ -3952,6 +3942,16 @@
 			anchor = getElement( anchor ) || this.anchor;
 			this.el = target;
 			this.anchor = anchor;
+			if ( !this.append && target ) {
+				// Teardown any existing instances *before* trying to set up the new one -
+				// avoids certain weird bugs
+				var others = target.__ractive_instances__;
+				if ( others && others.length ) {
+					removeOtherInstances( others );
+				}
+				// make sure we are the only occupants
+				target.innerHTML = '';
+			}
 			// Add CSS, if applicable
 			if ( this.constructor.css ) {
 				css.add( this.constructor );
