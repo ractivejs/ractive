@@ -213,6 +213,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<p>David Copperfield</p>' );
 		});
 
+		test( "Magic adapters shouldn't tear themselves down while resetting (#1342)", t => {
+			let list = 'abcde'.split('');
+			let ractive = new Ractive({
+				el: fixture,
+				template: '{{#list}}{{.}}{{/}}',
+				data: { list: list },
+				magic: true
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'abcde' );
+			// if the wrapper causes itself to be recreated, this is where it happens
+			// during reset
+			list.pop();
+			t.htmlEqual( fixture.innerHTML, 'abcd' );
+			// since the wrapper now has two magic adapters, two fragments get popped
+			list.pop();
+			t.htmlEqual( fixture.innerHTML, 'abc' );
+		});
+
 	};
 
 });
