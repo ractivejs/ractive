@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-01 - commit 678831de 
+	2014-11-04 - commit fa353f26 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10897,6 +10897,7 @@
 		__export = function Component$unbind() {
 			var instance = this.instance;
 			this.complexParameters.forEach( unbind );
+			this.resolvers.forEach( unbind );
 			removeFromLiveComponentQueries( this );
 			// teardown the instance
 			instance.fragment.unbind();
