@@ -29,6 +29,18 @@ export default function Ractive$render ( target, anchor ) {
 	this.el = target;
 	this.anchor = anchor;
 
+	if ( !this.append && target ) {
+		// Teardown any existing instances *before* trying to set up the new one -
+		// avoids certain weird bugs
+		let others = target.__ractive_instances__;
+		if ( others && others.length ) {
+			removeOtherInstances( others );
+		}
+
+		// make sure we are the only occupants
+		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+	}
+
 	// Add CSS, if applicable
 	if ( this.constructor.css ) {
 		css.add( this.constructor );
@@ -69,4 +81,13 @@ export default function Ractive$render ( target, anchor ) {
 	return promise;
 }
 
-
+function removeOtherInstances( others ) {
+	try {
+		others.splice( 0, others.length ).forEach( r => r.teardown() );
+	} catch ( err ) {
+		// this can happen with IE8, because it is unbelievably shit. Somehow, in
+		// certain very specific situations, trying to access node.parentNode (which
+		// we need to do in order to detach elements) causes an 'Invalid argument'
+		// error to be thrown. I don't even.
+	}
+}
