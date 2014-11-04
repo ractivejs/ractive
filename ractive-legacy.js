@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-11-04 - commit fa353f26 
+	2014-11-04 - commit 4719e03c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -949,8 +949,11 @@
 					this.obj[ this.prop ] = value;
 					// trigger set() accessor
 					runloop.addViewmodel( this.ractive.viewmodel );
-					this.ractive.viewmodel.mark( this.keypath );
+					this.ractive.viewmodel.mark( this.keypath, {
+						dontTeardownWrapper: true
+					} );
 					this.updating = false;
+					return true;
 				},
 				set: function( key, value ) {
 					if ( this.updating ) {
@@ -14056,7 +14059,9 @@
 			if ( this.changes.indexOf( keypath ) === -1 ) {
 				this.changes.push( keypath );
 			}
-			this.clearCache( keypath );
+			// pass on dontTeardownWrapper, if we can
+			var dontTeardownWrapper = options ? options.dontTeardownWrapper : false;
+			this.clearCache( keypath, dontTeardownWrapper );
 		};
 	}( runloop );
 
