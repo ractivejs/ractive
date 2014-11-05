@@ -1,8 +1,9 @@
-import isEqual from 'utils/isEqual';
-import Promise from 'utils/Promise';
-import normaliseKeypath from 'utils/normaliseKeypath';
 import animations from 'shared/animations';
 import Animation from 'Ractive/prototype/animate/Animation';
+import isEqual from 'utils/isEqual';
+import log from 'utils/log/log';
+import normaliseKeypath from 'utils/normaliseKeypath';
+import Promise from 'utils/Promise';
 
 var noop = function () {}, noAnimation = {
 	stop: noop
@@ -88,9 +89,16 @@ export default function Ractive$animate ( keypath, to, options ) {
 		}
 
 		if ( complete ) {
-			promise.then( function ( t ) {
-				complete( t, currentValues );
-			});
+			promise
+				.then( function ( t ) {
+					complete( t, currentValues );
+				})
+				.then( null, err => {
+					log.consoleError({
+						debug: this.debug,
+						err: err
+					});
+				});
 		}
 
 		dummyOptions.complete = fulfilPromise;
@@ -117,7 +125,14 @@ export default function Ractive$animate ( keypath, to, options ) {
 	options = options || {};
 
 	if ( options.complete ) {
-		promise.then( options.complete );
+		promise
+			.then( options.complete )
+			.then( null, err => {
+				log.consoleError({
+					debug: this.debug,
+					err: err
+				});
+			});
 	}
 
 	options.complete = fulfilPromise;

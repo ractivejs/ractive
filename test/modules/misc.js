@@ -1024,27 +1024,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		asyncTest( 'Error Promise in callback properly raised', function ( t ) {
-			var ractive, error = console.error;
-
-			expect( 1 )
-			console.error = function ( err ) {
-				t.equal( err, 'evil observer' );
-				QUnit.start();
-			}
-
-			ractive = new Ractive({
-				el: fixture,
-				template: 'foo',
-				data: { a: 'b' },
-				oncomplete: function(){
-					this.observe('a', function(val){
-        				throw 'evil observer';
-    				});
-				}
-			});
-		});
-
 		test( 'Keypaths in ractive.set() can contain wildcards (#784)', function ( t ) {
 			var ractive = new Ractive({
 				data: {

@@ -1,6 +1,7 @@
-import runloop from 'global/runloop';
 import isArray from 'utils/isArray';
+import log from 'utils/log/log';
 import normaliseKeypath from 'utils/normaliseKeypath';
+import runloop from 'global/runloop';
 
 export default function Ractive$merge ( keypath, array, options ) {
 
@@ -23,7 +24,14 @@ export default function Ractive$merge ( keypath, array, options ) {
 
 	// attach callback as fulfilment handler, if specified
 	if ( options && options.complete ) {
-		promise.then( options.complete );
+		promise
+			.then( options.complete )
+			.then( null, err => {
+				log.consoleError({
+					debug: this.debug,
+					err: err
+				});
+			});
 	}
 
 	return promise;
