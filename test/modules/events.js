@@ -1295,9 +1295,9 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.set( 'foo', true );
 
-			try {
-				ractive.set( 'foo', false );
-			} catch (ex) {}
+			// NOTE: if this throws and you're testing in browser, it will probably cause a half-ton of
+			// other unrelated tests to fail as well
+			ractive.set( 'foo', false );
 
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
