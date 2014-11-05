@@ -359,6 +359,187 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 			t.htmlEqual( ractive.toHTML(), '' );
 		});
 
+		test( 'Partials can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `wrapped {{>'partial'}} around`,
+				partials: {
+					partial: 'inner'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'wrapped inner around' );
+			ractive.resetPartial( 'partial', 'ninner' );
+			t.htmlEqual( fixture.innerHTML, 'wrapped ninner around' );
+		});
+
+		test( 'Partials with variable names can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: 'wrapped {{>partial}} around',
+				partials: {
+					foo: 'foo',
+					bar: 'bar'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'wrapped  around' );
+			ractive.set( 'partial', 'foo' );
+			t.htmlEqual( fixture.innerHTML, 'wrapped foo around' );
+			ractive.resetPartial( 'foo', 'nfoo' );
+			t.htmlEqual( fixture.innerHTML, 'wrapped nfoo around' );
+			ractive.set( 'partial', 'bar' );
+			t.htmlEqual( fixture.innerHTML, 'wrapped bar around' );
+			ractive.resetPartial( 'bar', 'nbar' );
+			t.htmlEqual( fixture.innerHTML, 'wrapped nbar around' );
+		});
+
+		test( 'Partials with expression names can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `wrapped {{>foo + 'Partial'}} around`,
+				partials: {
+					fooPartial: 'foo'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'wrapped  around' );
+			ractive.set( 'foo', 'foo' );
+			t.htmlEqual( fixture.innerHTML, 'wrapped foo around' );
+			ractive.resetPartial( 'fooPartial', 'nfoo' );
+			t.htmlEqual( fixture.innerHTML, 'wrapped nfoo around' );
+		});
+
+		test( 'Partials inside conditionals can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `{{#cond}}{{>partial}}{{/}}`,
+				partials: {
+					partial: 'foo'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '' );
+			ractive.set( 'cond', true );
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+			ractive.resetPartial( 'partial', 'nfoo' );
+			t.htmlEqual( fixture.innerHTML, 'nfoo' );
+		});
+
+		test( 'Partials (only) borrowed by components can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{>foo}} {{>bar}} <component />',
+				partials: {
+					foo: 'rfoo',
+					bar: 'rbar'
+				},
+				components: {
+					component: Ractive.extend({
+						template: '{{>foo}} {{>bar}}',
+						partials: {
+							bar: 'cbar'
+						}
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'rfoo rbar rfoo cbar' );
+			ractive.resetPartial( 'foo', 'nrfoo' );
+			t.htmlEqual( fixture.innerHTML, 'nrfoo rbar nrfoo cbar' );
+			ractive.resetPartial( 'bar', 'nrbar' );
+			t.htmlEqual( fixture.innerHTML, 'nrfoo nrbar nrfoo cbar' );
+			ractive.findComponent('component').resetPartial('bar', 'ncbar');
+			t.htmlEqual( fixture.innerHTML, 'nrfoo nrbar nrfoo ncbar' );
+		});
+
+		test( 'Partials inside iteratives can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#list}}{{>.type}}{{/}}',
+				partials: {
+					t1: 't1',
+					t2: 't2'
+				},
+				data: {
+					list: [ { type: 't1' }, { type: 't2' }, { type: 't1' } ]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 't1t2t1' );
+			ractive.resetPartial( 't1', 'nt1' );
+			t.htmlEqual( fixture.innerHTML, 'nt1t2nt1' );
+			ractive.resetPartial( 't2', 'nt2' );
+			ractive.resetPartial( 't1', '' );
+			t.htmlEqual( fixture.innerHTML, 'nt2' );
+		});
+
+		test( 'Nested partials can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{>outer}}',
+				partials: {
+					outer: 'outer({{>inner}})',
+					inner: 'inner'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'outer(inner)' );
+			ractive.resetPartial( 'inner', 'ninner' );
+			t.htmlEqual( fixture.innerHTML, 'outer(ninner)' );
+			ractive.resetPartial( 'outer', '({{>inner}})outer' );
+			t.htmlEqual( fixture.innerHTML, '(ninner)outer' );
+			ractive.resetPartial( 'outer', 'outer' );
+			t.htmlEqual( fixture.innerHTML, 'outer' );
+		});
+
+		test( 'Partials in context blocks can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `{{#with { ctx: 'foo' } }}{{>ctx}}{{/with}}`,
+				partials: {
+					foo: 'foo'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+			ractive.resetPartial( 'foo', 'nfoo' );
+			t.htmlEqual( fixture.innerHTML, 'nfoo' );
+		});
+
+		test( 'Partials in attributes can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div class="wrapped {{>foo}} around" id="{{>foo}}"></div>',
+				partials: {
+					foo: 'foo'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<div class="wrapped foo around" id="foo"></div>' );
+			ractive.resetPartial( 'foo', 'nfoo' );
+			t.htmlEqual( fixture.innerHTML, '<div class="wrapped nfoo around" id="nfoo"></div>' );
+		});
+
+		test( 'Partials in attribute blocks can be changed with resetPartial', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `<div {{#cond}}class="wrapped {{>foo}} around" id="{{>foo}}" {{>attr}}{{/}}></div>`,
+				partials: {
+					foo: 'foo',
+					attr: 'title="{{>foo}}"'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<div></div>' );
+			ractive.set( 'cond', true );
+			t.htmlEqual( fixture.innerHTML, '<div class="wrapped foo around" id="foo" title="foo"></div>' );
+			ractive.resetPartial( 'foo', 'nfoo' );
+			t.htmlEqual( fixture.innerHTML, '<div class="wrapped nfoo around" id="nfoo" title="nfoo"></div>' );
+			ractive.resetPartial( 'attr', 'alt="bar"' );
+			t.htmlEqual( fixture.innerHTML, '<div class="wrapped nfoo around" id="nfoo" alt="bar"></div>' );
+		});
+
 		test( 'Partial naming requirements are relaxed', t => {
 			var ractive = new Ractive({
 				el: fixture,

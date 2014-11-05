@@ -195,6 +195,36 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 
 		});
 
+		test( 'Rendering a non-append instance into an already-occupied element removes the other instance (#1430)', t => {
+			var ractive;
+
+			ractive = new Ractive({
+				template: 'instance1'
+			});
+			ractive.render( fixture );
+
+			t.htmlEqual( fixture.innerHTML, 'instance1' );
+
+			ractive = new Ractive({
+				template: 'instance2'
+			});
+			ractive.render( fixture );
+
+			t.htmlEqual( fixture.innerHTML, 'instance2' );
+		});
+
+		test( 'Render may be called with a selector (#1430)', t => {
+			let ractive = new Ractive({
+				template: 'foo'
+			});
+
+			fixture.innerHTML = '<div id="foo">bar</div>';
+
+			ractive.render( '#foo' );
+
+			t.htmlEqual( fixture.innerHTML, '<div id="foo">foo</div>' );
+		});
+
 	};
 
 	function deepClone ( source ) {
