@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-05 - commit 058373a8 
+	2014-11-05 - commit 2cefd74b 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8559,7 +8559,7 @@
 		} );
 		__export = function EventHandler$init( element, name, template ) {
 			var this$0 = this;
-			var action, refs, ractive;
+			var action, refs, ractive, i;
 			this.element = element;
 			this.root = element.root;
 			this.name = name;
@@ -8583,20 +8583,21 @@
 				this.parentFragment = element.parentFragment;
 				ractive = this.root;
 				// Create resolvers for each reference
-				this.refResolvers = refs.map( function( ref, i ) {
-					var match;
+				this.refResolvers = [];
+				for ( i = 0; i < refs.length; i++ ) {
+					var match, ref = refs[ i ];
 					// special case - the `event` object
 					if ( match = eventPattern.exec( ref ) ) {
-						this$0.keypaths[ i ] = {
+						this.keypaths[ i ] = {
 							eventObject: true,
 							refinements: match[ 1 ] ? match[ 1 ].split( '.' ) : []
 						};
-						return null;
+					} else {
+						this.refResolvers.push( createReferenceResolver( this, ref, function( keypath ) {
+							this$0.resolve( i, keypath );
+						} ) );
 					}
-					return createReferenceResolver( this$0, ref, function( keypath ) {
-						this$0.resolve( i, keypath );
-					} );
-				} );
+				}
 				this.fire = fireMethodCall;
 			} else {
 				// Get action ('foo' in 'on-click='foo')
