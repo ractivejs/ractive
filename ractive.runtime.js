@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-04 - commit 4719e03c 
+	2014-11-05 - commit 058373a8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3897,7 +3897,8 @@
 
 	/* parse/Parser/expressions/shared/patterns.js */
 	var patterns = {
-		name: /^[a-zA-Z_$][a-zA-Z_$0-9]*/
+		name: /^[a-zA-Z_$][a-zA-Z_$0-9]*/,
+		relaxedName: /^[a-zA-Z_$][-a-zA-Z_$0-9]*/
 	};
 
 	/* parse/Parser/expressions/shared/key.js */
@@ -4085,7 +4086,7 @@
 		// keywords are not valid references, with the exception of `this`
 		keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 		return function( parser ) {
-			var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
+			var startPos, ancestor, name, dot, combo, refinement, lastDotIndex, pattern;
 			startPos = parser.pos;
 			// we might have a root-level reference
 			if ( parser.matchString( '~/' ) ) {
@@ -4101,14 +4102,19 @@
 				// we might have an implicit iterator or a restricted reference
 				dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 			}
-			name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( patterns.name ) || '';
+			if ( parser.relaxedNames ) {
+				pattern = patterns.relaxedName;
+			} else {
+				pattern = patterns.name;
+			}
+			name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( pattern ) || '';
 			// bug out if it's a keyword
-			if ( keywords.test( name ) ) {
+			if ( !parser.relaxedNames && keywords.test( name ) ) {
 				parser.pos = startPos;
 				return null;
 			}
 			// if this is a browser global, stop here
-			if ( !ancestor && !dot && globals.test( name ) ) {
+			if ( !ancestor && !dot && !parser.relaxedNames && globals.test( name ) ) {
 				return {
 					t: types.GLOBAL,
 					v: name
