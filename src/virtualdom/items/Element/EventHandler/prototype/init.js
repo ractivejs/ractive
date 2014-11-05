@@ -11,7 +11,7 @@ circular.push( function () {
 });
 
 export default function EventHandler$init ( element, name, template ) {
-	var action, refs, ractive;
+	var action, refs, ractive, i;
 
 	this.element = element;
 	this.root = element.root;
@@ -42,8 +42,9 @@ export default function EventHandler$init ( element, name, template ) {
 		ractive = this.root;
 
 		// Create resolvers for each reference
-		this.refResolvers = refs.map( ( ref, i ) => {
-			var match;
+		this.refResolvers = [];
+		for ( i = 0; i < refs.length; i++ ) {
+			let match, ref = refs[i];
 
 			// special case - the `event` object
 			if ( match = eventPattern.exec( ref ) ) {
@@ -51,14 +52,14 @@ export default function EventHandler$init ( element, name, template ) {
 					eventObject: true,
 					refinements: match[1] ? match[1].split( '.' ) : []
 				};
-
-				return null;
 			}
 
-			return createReferenceResolver( this, ref, keypath => {
-				this.resolve( i, keypath );
-			});
-		});
+			else {
+				this.refResolvers.push( createReferenceResolver( this, ref, keypath => {
+					this.resolve( i, keypath );
+				}) );
+			}
+		}
 
 		this.fire = fireMethodCall;
 	}
