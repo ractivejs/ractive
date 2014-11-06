@@ -1,5 +1,6 @@
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
+import isNumber from 'utils/isNumber';
 
 var GenericBinding;
 
@@ -17,9 +18,11 @@ GenericBinding = Binding.extend({
 		// any lazy setting for this element overrides the root
 		// if the value is a number, it's a timeout
 		lazy = this.root.lazy;
-		if ( this.element.lazy === true ) lazy = true;
-		else if ( this.element.lazy === false ) lazy = false;
-		else if ( typeof this.element.lazy === 'number' ) {
+		if ( this.element.lazy === true ) {
+			lazy = true;
+		} else if ( this.element.lazy === false ) {
+			lazy = false;
+		} else if ( isNumber( this.element.lazy ) ) {
 			lazy = false;
 			timeout = this.element.lazy;
 		}
