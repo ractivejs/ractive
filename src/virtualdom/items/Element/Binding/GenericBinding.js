@@ -67,5 +67,6 @@ function handleDelay () {
 
 	binding._timeout = setTimeout( () => {
 		if ( binding.rendered ) handleDomEvent.call( el );
+		binding._timeout = undefined;
 	}, binding.element.lazy );
 }
