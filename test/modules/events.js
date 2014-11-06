@@ -1328,55 +1328,57 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.get( 'foo' ), 'test' );
 		});
 
-		test( 'lazy may be overriden on a per-element basis', t => {
-			let ractive = new Ractive({
-				el: fixture,
-				template: '<input value="{{foo}}" lazy="true" />',
-				data: { foo: 'test' },
-				lazy: false
-			});
+		if ( !/phantomjs/i.test( window.navigator.userAgent ) ) {
+			test( 'lazy may be overriden on a per-element basis', t => {
+				let ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{foo}}" lazy="true" />',
+					data: { foo: 'test' },
+					lazy: false
+				});
 
-			let node = ractive.find( 'input' );
-			node.value = 'bar';
-			simulant.fire( node, 'input' );
-			t.equal( ractive.get( 'foo' ), 'test' );
-			simulant.fire( node, 'blur' );
-			t.equal( ractive.get( 'foo' ), 'bar' );
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '<input value="{{foo}}" lazy="false" />',
-				data: { foo: 'test' },
-				lazy: true
-			});
-
-			node = ractive.find( 'input' );
-			node.value = 'bar';
-			simulant.fire( node, 'input' );
-			t.equal( ractive.get( 'foo' ), 'bar' );
-		});
-
-		asyncTest( 'lazy may be set to a number to trigger on a timeout', t => {
-			let ractive = new Ractive({
-				el: fixture,
-				template: '<input value="{{foo}}" lazy="50" />',
-				data: { foo: 'test' }
-			});
-
-			let node = ractive.find( 'input' );
-			node.value = 'bar';
-			simulant.fire( node, 'input' );
-			t.equal( ractive.get( 'foo' ), 'test' );
-
-			setTimeout( () => {
+				let node = ractive.find( 'input' );
+				node.value = 'bar';
+				simulant.fire( node, 'input' );
 				t.equal( ractive.get( 'foo' ), 'test' );
-			}, 5 );
-
-			setTimeout( () => {
+				simulant.fire( node, 'blur' );
 				t.equal( ractive.get( 'foo' ), 'bar' );
-				QUnit.start();
-			}, 60 );
-		});
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{foo}}" lazy="false" />',
+					data: { foo: 'test' },
+					lazy: true
+				});
+
+				node = ractive.find( 'input' );
+				node.value = 'bar';
+				simulant.fire( node, 'input' );
+				t.equal( ractive.get( 'foo' ), 'bar' );
+			});
+
+			asyncTest( 'lazy may be set to a number to trigger on a timeout', t => {
+				let ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{foo}}" lazy="50" />',
+					data: { foo: 'test' }
+				});
+
+				let node = ractive.find( 'input' );
+				node.value = 'bar';
+				simulant.fire( node, 'input' );
+				t.equal( ractive.get( 'foo' ), 'test' );
+
+				setTimeout( () => {
+					t.equal( ractive.get( 'foo' ), 'test' );
+				}, 5 );
+
+				setTimeout( () => {
+					t.equal( ractive.get( 'foo' ), 'bar' );
+					QUnit.start();
+				}, 60 );
+			});
+		}
 	};
 
 });
