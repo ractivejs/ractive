@@ -935,7 +935,9 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 		});
 
 		// Commented out temporarily, see #1381
-		/*test( 'Component in template passed parameters with data function', t => {
+
+
+		test( 'Component in template passed parameters with data function', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
 			Component = Ractive.extend({
@@ -953,7 +955,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			});
 
 			t.equal( fixture.innerHTML, 'barbar' );
-		});*/
+		});
 
 		test( 'Component in template with dynamic template function', t => {
 			var Component, ractive;
