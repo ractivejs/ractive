@@ -15,6 +15,7 @@ export default {
 	CLOSING_TAG       : 14,
 	COMPONENT         : 15,
 	YIELDER           : 16,
+	INLINE_PARTIAL    : 17,
 
 	NUMBER_LITERAL    : 20,
 	STRING_LITERAL    : 21,

@@ -137,7 +137,7 @@ export default function Component$init ( options, Component ) {
 		});
 	}
 
-	createInstance( this, Component, data, mappings, options.template.f );
+	createInstance( this, Component, data, mappings, options.template.f, options.template.p );
 	propagateEvents( this, options.template.v );
 
 
