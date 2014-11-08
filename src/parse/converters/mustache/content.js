@@ -114,6 +114,14 @@ export default function ( parser, delimiterType ) {
 			}
 		}
 
+		// relax naming for inline partial section
+		else if ( mustache.t === types.SECTION && mustache.n === 'partial' ) {
+			relaxed = parser.relaxedNames;
+			parser.relaxedNames = true;
+			expression = parser.readExpression();
+			parser.relaxedNames = false;
+		}
+
 		// otherwise, just get an expression
 		else {
 			// get expression
