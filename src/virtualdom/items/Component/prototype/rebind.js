@@ -8,8 +8,10 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 	this.resolvers.forEach( rebind );
 	this.complexParameters.forEach( rebind );
 
-	if ( this.yielders[0] ) {
-		rebind( this.yielders[0] );
+	for ( let k in this.yielders ) {
+		if ( this.yielders[k][0] ) {
+			rebind( this.yielders[k][0] );
+		}
 	}
 
 	if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {

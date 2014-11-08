@@ -19,6 +19,7 @@ export default function ( component, Component, data, mappings, yieldTemplate, p
 	partials = partials || {};
 	// Make contents available as a {{>content}} partial
 	partials.content = yieldTemplate || [];
+	partials[''] = partials.content;
 
 	if ( Component.defaults.el ) {
 		log.warn({
@@ -56,7 +57,6 @@ export default function ( component, Component, data, mappings, yieldTemplate, p
 		parent: ractive,
 		component: component,
 		mappings: mappings,
-		yieldTemplate: yieldTemplate,
 		container: container
 	});
 

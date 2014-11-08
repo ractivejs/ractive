@@ -95,7 +95,27 @@ export default function ( parser, delimiterType ) {
 			parser.relaxedNames = true;
 			expression = parser.readExpression();
 			parser.relaxedNames = relaxed;
-		} else {
+		}
+
+		// look for named yields
+		else if ( mustache.t === types.INTERPOLATOR && parser.matchString( 'yield ' ) ) {
+			parser.allowWhitespace();
+			mustache.r = 'yield';
+			relaxed = parser.relaxedNames;
+			parser.relaxedNames = true;
+			expression = parser.readExpression();
+			parser.relaxedNames = false;
+
+			if ( expression && expression.t === types.REFERENCE ) {
+				mustache.yn = expression.n;
+				expression = null;
+			} else if ( expression ) {
+				parser.error( 'Only names are supported with yield.' );
+			}
+		}
+
+		// otherwise, just get an expression
+		else {
 			// get expression
 			expression = parser.readExpression();
 		}
