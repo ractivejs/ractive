@@ -119,7 +119,9 @@ export default function Element$render () {
 
 	// apply decorator(s)
 	if ( this.decorator && this.decorator.fn ) {
-		runloop.scheduleTask( () => this.decorator.init(), true );
+		runloop.scheduleTask( () => { 
+			if (!this.decorator.torndown) this.decorator.init();
+		}, true );
 	}
 
 	// trigger intro transition

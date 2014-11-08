@@ -106,7 +106,9 @@ Decorator.prototype = {
 	},
 
 	teardown: function ( updating ) {
-		this.actual.teardown();
+		this.torndown = true;
+		if (this.ready)
+			this.actual.teardown();
 
 		if ( !updating && this.fragment ) {
 			this.fragment.unbind();
