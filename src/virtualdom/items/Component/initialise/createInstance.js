@@ -2,7 +2,6 @@ import types from 'config/types';
 import log from 'utils/log';
 import create from 'utils/create';
 import circular from 'circular';
-import isArray from 'utils/isArray';
 
 var initialise;
 
