@@ -1,20 +1,31 @@
 import types from 'config/types';
+import escapeRegExp from 'utils/escapeRegExp';
 
 export default getPartial;
 
-var start = /^<!--\s*(?:\{\{|\[\[)\s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*(?:\}\}|\]\])\s*-->/;
+var startPattern = /^<!--\s*/,
+    namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
+    finishPattern = /\s*-->/;
 
 function getPartial( parser ) {
-	let template = parser.remaining();
-	let startMatch = start.exec( template );
+	let template = parser.remaining(),
+	    firstPos = parser.pos,
+	    startMatch = parser.matchPattern( startPattern ),
+	    open = parser.options.delimiters[0],
+	    close = parser.options.delimiters[1];
 
-	if ( startMatch ) {
-		let name = startMatch[1];
-		let offset = startMatch[0].length;
+	if ( startMatch && parser.matchString( open ) ) {
+		let name = parser.matchPattern( namePattern );
+
+		// make sure the rest of the comment is in the correct place
+		if ( !parser.matchString( close ) || !parser.matchPattern( finishPattern ) ) {
+			parser.pos = firstPos;
+			return null;
+		}
 
 		// look for the closing partial for name
-		let end = new RegExp('<!--\\s*(?:\\{\\{|\\[\\[)\\s*\\/\\s*' + name + '\\s*(?:\\}\\}|\\]\\])\\s*-->');
-		template = template.substr( offset );
+		let end = new RegExp('<!--\\s*' + escapeRegExp( open ) + '\\s*\\/\\s*' + name + '\\s*' + escapeRegExp( close ) + '\\s*-->');
+		template = parser.remaining();
 		let endMatch = end.exec( template );
 
 		if ( !endMatch ) {
@@ -28,12 +39,11 @@ function getPartial( parser ) {
 			n: name
 		};
 
-		parser.pos += offset + endMatch.index + endMatch[0].length;
+		parser.pos += endMatch.index + endMatch[0].length;
 
 		return partial;
 	}
 
-	else {
-		return null;
-	}
+	parser.pos = firstPos;
+	return null;
 }
