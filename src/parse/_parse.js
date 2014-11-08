@@ -106,14 +106,13 @@ parse = function ( template, options = {} ) {
 
 	result.t = new StandardParser( template, options ).result;
 
-	// there's not much point processing partials if there is no available ractive to install them on
-	if ( options.ractive ) {
-		let partials = {};
-		processPartials( [options.ractive], partials, result.t );
+	// collect all of the partials and stick them on the appropriate instances
+	let partials = {};
+	// without a ractive instance, no components will be found
+	processPartials( options.ractive ? [options.ractive] : [], partials, result.t );
 
-		if ( !isEmptyObject( partials ) ) {
-			result.p = partials;
-		}
+	if ( !isEmptyObject( partials ) ) {
+		result.p = partials;
 	}
 
 	return result;

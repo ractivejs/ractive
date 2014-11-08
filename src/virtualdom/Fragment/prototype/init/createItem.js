@@ -31,10 +31,6 @@ export default function createItem ( options ) {
 			return new Element( options );
 		case types.PARTIAL:      return new Partial( options );
 		case types.COMMENT:      return new Comment( options );
-		case types.INLINE_PARTIAL:
-			// this should only happen if the ractive instance wasn't passed to the parser
-			options.parentFragment.root.partials[ options.template.n ] = options.template.f;
-			return null;
 
 		default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 	}
