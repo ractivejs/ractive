@@ -2,6 +2,7 @@ import types from 'config/types';
 import log from 'utils/log';
 import create from 'utils/create';
 import circular from 'circular';
+import extend from 'utils/extend';
 
 var initialise;
 
@@ -10,15 +11,19 @@ circular.push( () => {
 });
 
 export default function ( component, Component, data, mappings, yieldTemplate, partials ) {
-	var instance, parentFragment, ractive, fragment, container;
+	var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
 
 	parentFragment = component.parentFragment;
 	ractive = component.root;
 
 	partials = partials || {};
+	extend( inlinePartials, partials || {} );
+
 	// Make contents available as a {{>content}} partial
 	partials.content = yieldTemplate || [];
-	partials[''] = partials.content;
+
+	// set a default partial for yields with no name
+	inlinePartials[''] = partials.content;
 
 	if ( Component.defaults.el ) {
 		log.warn({
@@ -47,6 +52,7 @@ export default function ( component, Component, data, mappings, yieldTemplate, p
 		el: null,
 		append: true,
 		data: data,
+		inlinePartials: inlinePartials,
 		partials: partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,

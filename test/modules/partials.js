@@ -557,5 +557,56 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( fixture.innerHTML, 'abbc' );
 		});
+
+		test( 'Inline partials can override component partials', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					<cmp>
+					<!-- {{>part}} -->
+					inline
+					<!-- {{/part}} -->
+					</cmp>
+					<cmp/>
+				`,
+				components: {
+					cmp: Ractive.extend({
+						template: '{{>part}}',
+						partials: { part: 'component' }
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'inline component' );
+		});
+
+		test( 'Inline partials may be defined with a partial section', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#partial foo}}foo{{/partial}}{{>foo}}<cmp /><cmp>{{#partial foo}}bar{{/partial}}<cmp>',
+				components: {
+					cmp: Ractive.extend({
+						template: '{{>foo}}'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foofoobar' );
+		});
+
+		test( '(Only) inline partials can be yielded', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<cmp /><cmp>{{#partial foo}}foo{{/partial}}',
+				components: {
+					cmp: Ractive.extend({
+						template: '{{yield foo}}',
+						partials: { foo: 'bar' }
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foo' );
+		});
 	};
 });
