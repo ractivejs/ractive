@@ -402,6 +402,24 @@ define([
 			t.htmlEqual( fixture.innerHTML, '<p>0:a</p><p>1:b</p><p>2:c</p><p>3:d</p>' );
 		});
 
+		test( 'index rebinds do not go past new index providers (#1457)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#each foo}}{{@index}}{{#each .bar}}{{@index}}{{/each}}{{/each}}',
+				data: {
+					foo: [
+						{ bar: [ 1, 2 ] },
+						{ bar: [ 1 ] },
+						{ bar: [ 1, 2, 3, 4 ] }
+					]
+				}
+			});
+
+			ractive.splice( 'foo', 1, 1 );
+
+			t.htmlEqual( fixture.innerHTML, '00110123' );
+		});
+
 	};
 
 });
