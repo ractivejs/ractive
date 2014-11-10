@@ -415,9 +415,32 @@ define([
 				}
 			});
 
+			t.htmlEqual( fixture.innerHTML, '0011020123' );
+
 			ractive.splice( 'foo', 1, 1 );
 
 			t.htmlEqual( fixture.innerHTML, '00110123' );
+		});
+
+		test( 'index rebinds get passed through conditional sections correctly', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#each foo}}{{@index}}{{#.bar}}{{@index}}{{/}}{{/each}}',
+				data: {
+					foo: [
+						{ bar: true },
+						{ bar: true },
+						{ bar: false },
+						{ bar: true }
+					]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '0011233' );
+
+			ractive.splice( 'foo', 1, 1 );
+
+			t.htmlEqual( fixture.innerHTML, '00122' );
 		});
 
 	};
