@@ -10,6 +10,7 @@ import findComponent from 'virtualdom/items/Section/prototype/findComponent';
 import findNextNode from 'virtualdom/items/Section/prototype/findNextNode';
 import firstNode from 'virtualdom/items/Section/prototype/firstNode';
 import shuffle from 'virtualdom/items/Section/prototype/shuffle';
+import rebind from 'virtualdom/items/Section/prototype/rebind';
 import render from 'virtualdom/items/Section/prototype/render';
 import setValue from 'virtualdom/items/Section/prototype/setValue';
 import toString from 'virtualdom/items/Section/prototype/toString';
@@ -48,7 +49,7 @@ Section.prototype = {
 	firstNode: firstNode,
 	getValue: Mustache.getValue,
 	shuffle: shuffle,
-	rebind: Mustache.rebind,
+	rebind: rebind,
 	render: render,
 	resolve: Mustache.resolve,
 	setValue: setValue,
