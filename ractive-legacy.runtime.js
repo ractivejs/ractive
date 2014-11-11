@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-11 - commit 5a87c6f6 
+	2014-11-11 - commit 72570dd8 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12762,7 +12762,7 @@
 			this.localKey = localKey;
 			this.origin = options.origin;
 			this.resolved = false;
-			if ( options.keypath ) {
+			if ( options.keypath !== undefined ) {
 				this.resolve( options.keypath );
 			}
 			this.deps = [];
@@ -12814,15 +12814,15 @@
 			},
 			resolve: function( keypath ) {
 				var this$0 = this;
-				if ( this.keypath ) {
+				if ( this.keypath !== undefined ) {
 					this.origin.unregister( this.keypath, this, 'mappings' );
 					this.deps.forEach( function( d ) {
 						return this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
 					} );
 				}
 				this.keypath = keypath;
-				this.resolved = !!keypath;
-				if ( keypath ) {
+				this.resolved = keypath !== undefined;
+				if ( keypath !== undefined ) {
 					this.origin.register( keypath, this, 'mappings' );
 					if ( this.ready ) {
 						this.unresolved.forEach( function( u ) {
