@@ -14,7 +14,7 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 
 	deps.push( dependant );
 
-	if ( keypath === undefined ) {
+	if ( !keypath ) {
 		return;
 	}
 
