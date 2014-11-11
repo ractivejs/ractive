@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-11-05 - commit 2cefd74b 
+	2014-11-11 - commit 5a87c6f6 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6531,27 +6531,25 @@
 			this.callback = callback;
 			this.rebind();
 		};
+		var props = {
+			'@keypath': 'context',
+			'@index': 'index',
+			'@key': 'index'
+		};
 		SpecialResolver.prototype = {
 			rebind: function() {
 				var ref = this.ref,
-					fragment = this.parentFragment;
-				if ( ref === '@keypath' ) {
-					while ( fragment ) {
-						if ( !!fragment.context ) {
-							return this.callback( '@' + fragment.context );
-						}
-						fragment = fragment.parent;
-					}
+					fragment = this.parentFragment,
+					prop = props[ ref ];
+				if ( !prop ) {
+					throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
 				}
-				if ( ref === '@index' || ref === '@key' ) {
-					while ( fragment ) {
-						if ( fragment.index !== undefined ) {
-							return this.callback( '@' + fragment.index );
-						}
-						fragment = fragment.parent;
+				while ( fragment ) {
+					if ( fragment[ prop ] !== undefined ) {
+						return this.callback( '@' + fragment[ prop ] );
 					}
+					fragment = fragment.parent;
 				}
-				throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
 			},
 			unbind: function() {}
 		};
@@ -7253,6 +7251,20 @@
 		};
 	}( types, runloop, circular );
 
+	/* virtualdom/items/Section/prototype/rebind.js */
+	var virtualdom_items_Section$rebind = function( Mustache, types ) {
+
+		return function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			var ref, idx;
+			if ( indexRef !== undefined || this.currentSubtype !== types.SECTION_EACH ) {
+				ref = indexRef;
+				idx = newIndex;
+			}
+			// If the new index belonged to us, we'd be shuffling instead
+			Mustache.rebind.call( this, ref, idx, oldKeypath, newKeypath );
+		};
+	}( Mustache, types );
+
 	/* virtualdom/items/Section/prototype/render.js */
 	var virtualdom_items_Section$render = function Section$render() {
 		var docFrag;
@@ -7334,6 +7346,7 @@
 			// TODO can this be optimised? i.e. pick an reevaluateSection function during init
 			// and avoid doing this each time?
 			if ( section.subtype ) {
+				section.currentSubtype = section.subtype;
 				switch ( section.subtype ) {
 					case types.SECTION_IF:
 						return reevaluateConditionalSection( section, value, false, fragmentOptions );
@@ -7353,18 +7366,22 @@
 			section.ordered = !!isArrayLike( value );
 			// Ordered list section
 			if ( section.ordered ) {
+				section.currentSubtype = types.SECTION_EACH;
 				return reevaluateListSection( section, value, fragmentOptions );
 			}
 			// Unordered list, or context
 			if ( isObject( value ) || typeof value === 'function' ) {
 				// Index reference indicates section should be treated as a list
 				if ( section.template.i ) {
+					section.currentSubtype = types.SECTION_EACH;
 					return reevaluateListObjectSection( section, value, fragmentOptions );
 				}
 				// Otherwise, object provides context for contents
+				section.currentSubtype = types.SECTION_WITH;
 				return reevaluateContextSection( section, fragmentOptions );
 			}
 			// Conditional section
+			section.currentSubtype = types.SECTION_IF;
 			return reevaluateConditionalSection( section, value, false, fragmentOptions );
 		}
 
@@ -7475,7 +7492,7 @@
 			if ( doRender ) {
 				if ( !section.length ) {
 					// no change to context stack
-					fragmentOptions.index = 0;
+					fragmentOptions.index = undefined;
 					fragment = new Fragment( fragmentOptions );
 					section.fragmentsToRender.push( section.fragments[ 0 ] = fragment );
 					section.length = 1;
@@ -7605,7 +7622,7 @@
 	};
 
 	/* virtualdom/items/Section/_Section.js */
-	var Section = function( types, Mustache, bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, shuffle, render, setValue, toString, unbind, unrender, update ) {
+	var Section = function( types, Mustache, bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, shuffle, rebind, render, setValue, toString, unbind, unrender, update ) {
 
 		var Section = function( options ) {
 			this.type = types.SECTION;
@@ -7632,7 +7649,7 @@
 			firstNode: firstNode,
 			getValue: Mustache.getValue,
 			shuffle: shuffle,
-			rebind: Mustache.rebind,
+			rebind: rebind,
 			render: render,
 			resolve: Mustache.resolve,
 			setValue: setValue,
@@ -7642,7 +7659,7 @@
 			update: update
 		};
 		return Section;
-	}( types, Mustache, virtualdom_items_Section$bubble, virtualdom_items_Section$detach, virtualdom_items_Section$find, virtualdom_items_Section$findAll, virtualdom_items_Section$findAllComponents, virtualdom_items_Section$findComponent, virtualdom_items_Section$findNextNode, virtualdom_items_Section$firstNode, virtualdom_items_Section$shuffle, virtualdom_items_Section$render, virtualdom_items_Section$setValue, virtualdom_items_Section$toString, virtualdom_items_Section$unbind, virtualdom_items_Section$unrender, virtualdom_items_Section$update );
+	}( types, Mustache, virtualdom_items_Section$bubble, virtualdom_items_Section$detach, virtualdom_items_Section$find, virtualdom_items_Section$findAll, virtualdom_items_Section$findAllComponents, virtualdom_items_Section$findComponent, virtualdom_items_Section$findNextNode, virtualdom_items_Section$firstNode, virtualdom_items_Section$shuffle, virtualdom_items_Section$rebind, virtualdom_items_Section$render, virtualdom_items_Section$setValue, virtualdom_items_Section$toString, virtualdom_items_Section$unbind, virtualdom_items_Section$unrender, virtualdom_items_Section$update );
 
 	/* virtualdom/items/Triple/prototype/detach.js */
 	var virtualdom_items_Triple$detach = function Triple$detach() {
@@ -11944,7 +11961,9 @@
 	var virtualdom_Fragment$rebind = function( assignNewKeypath ) {
 
 		return function Fragment$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			this.index = newIndex;
+			if ( newIndex !== undefined ) {
+				this.index = newIndex;
+			}
 			// assign new context keypath if needed
 			assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 			if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined ) {
