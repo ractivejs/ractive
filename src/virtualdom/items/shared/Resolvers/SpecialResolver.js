@@ -13,7 +13,7 @@ SpecialResolver.prototype = {
 		if ( ref === '@keypath' ) {
 			while ( fragment ) {
 				if ( !!fragment.context ) {
-					return this.callback( '@' + fragment.context );
+					return this.callback( '@p' + fragment.context );
 				}
 
 				fragment = fragment.parent;
@@ -23,7 +23,7 @@ SpecialResolver.prototype = {
 		if ( ref === '@index' || ref === '@key' ) {
 			while ( fragment ) {
 				if ( fragment.index !== undefined ) {
-					return this.callback( '@' + fragment.index );
+					return this.callback( '@' + ( ref === '@key' ? 'k' : 'i' ) + fragment.index );
 				}
 
 				fragment = fragment.parent;
