@@ -45,7 +45,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.animate({ foo: 100 }, { duration: 10 }).then( function () {
-				// t.equal( this, ractive );
 				t.htmlEqual( fixture.innerHTML, '100' );
 				QUnit.start();
 			});
