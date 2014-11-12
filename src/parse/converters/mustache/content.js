@@ -11,7 +11,7 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
 
 export default function ( parser, delimiterType ) {
-	var start, pos, mustache, type, block, expression, i, remaining, index, delimiters;
+	var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, relaxed;
 
 	start = parser.pos;
 
@@ -89,8 +89,16 @@ export default function ( parser, delimiterType ) {
 		// allow whitespace
 		parser.allowWhitespace();
 
-		// get expression
-		expression = parser.readExpression();
+		// if this is a partial, we can relax the naming requirements for the expression
+		if ( type === types.PARTIAL ) {
+			relaxed = parser.relaxedNames;
+			parser.relaxedNames = true;
+			expression = parser.readExpression();
+			parser.relaxedNames = relaxed;
+		} else {
+			// get expression
+			expression = parser.readExpression();
+		}
 
 		// If this is a partial, it may have a context (e.g. `{{>item foo}}`). These
 		// cases involve a bit of a hack - we want to turn it into the equivalent of

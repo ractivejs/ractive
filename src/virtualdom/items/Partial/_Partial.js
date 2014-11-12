@@ -72,6 +72,12 @@ Partial.prototype = {
 		return this.parentFragment.findNextNode( this );
 	},
 
+	getPartialName: function () {
+		if ( this.isNamed && this.name ) return this.name;
+		else if ( this.value === undefined ) return this.name;
+		else return this.value;
+	},
+
 	getValue: function () {
 		return this.fragment.getValue();
 	},

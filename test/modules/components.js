@@ -1734,6 +1734,46 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, 'forget quarrel' );
 		});
 
+		test( 'Components unbind their resolvers while they are unbinding (#1428)', t => {
+			let ractive = new Ractive({
+				el: fixture,
+				template: '{{#list}}<cmp item="{{foo[.]}}" />{{/}}',
+				components: {
+					cmp: Ractive.extend({
+						template: '{{item}}'
+					})
+				},
+				data: {
+					list: [ 'a', 'b', 'c', 'd' ],
+					foo: {
+						a: 'rich',
+						b: 'john ',
+						c: 'jacob ',
+						d: 'jingleheimerschmidt'
+					}
+				}
+			});
+
+			ractive.splice('list', 0, 1);
+
+			t.htmlEqual( fixture.innerHTML, 'john jacob jingleheimerschmidt' );
+		});
+
+		test( 'Components may bind to the parent root (#1442)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<foo data="{{.}}" />',
+				components: {
+					foo: Ractive.extend({
+						template: '{{data.foo}}'
+					})
+				},
+				data: { foo: 'foo!' }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'foo!' );
+		});
+
 		// Commented out temporarily, see #1381
 		/*test( 'Binding from parent to computation on child that is bound to parent should update properly (#1357)', ( t ) => {
 			var ractive = new Ractive({

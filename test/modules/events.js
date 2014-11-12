@@ -1285,6 +1285,22 @@ define([ 'ractive' ], function ( Ractive ) {
 
 
 		});
+
+		test( 'event references in method call handler should not create a null resolver (#1438)', t => {
+			let ractive = new Ractive({
+				el: fixture,
+				template: `{{#foo}}<button on-click="test(event.keypath + '.foo')">Click</button>{{/}}`,
+				test: function() { }
+			});
+
+			ractive.set( 'foo', true );
+
+			// NOTE: if this throws and you're testing in browser, it will probably cause a half-ton of
+			// other unrelated tests to fail as well
+			ractive.set( 'foo', false );
+
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
 	};
 
 });

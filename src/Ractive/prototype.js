@@ -18,6 +18,7 @@ import pop from 'Ractive/prototype/pop';
 import push from 'Ractive/prototype/push';
 import render from 'Ractive/prototype/render';
 import reset from 'Ractive/prototype/reset';
+import resetPartial from 'Ractive/prototype/resetPartial';
 import resetTemplate from 'Ractive/prototype/resetTemplate';
 import reverse from 'Ractive/prototype/reverse';
 import set from 'Ractive/prototype/set';
@@ -54,6 +55,7 @@ export default {
 	push: push,
 	render: render,
 	reset: reset,
+	resetPartial: resetPartial,
 	resetTemplate: resetTemplate,
 	reverse: reverse,
 	set: set,
