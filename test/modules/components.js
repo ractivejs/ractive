@@ -800,6 +800,42 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 		});
 
+		test( 'Index references passed via @index propagate down to non-isolated components', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<widget number="{{@index}}" letter="{{.}}"/>{{/items}}',
+				data: { items: [ 'a', 'b', 'c' ] },
+				components: {
+					widget: Ractive.extend({
+						template: '<p>{{number}}: {{letter}}</p>'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: b</p><p>2: c</p>' );
+
+			ractive.get( 'items' ).splice( 1, 1 );
+			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
+		});
+
+		test( 'Reference based fragment paramters update components', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<widget answer="{{foo}} and {{bar}}"/>',
+				data: { foo: 'rice', bar: 'beans' },
+				components: {
+					widget: Ractive.extend({
+						template: '{{answer}}'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'rice and beans' );
+
+			ractive.set( 'bar', 'more rice' );
+			t.htmlEqual( fixture.innerHTML, 'rice and more rice' );
+		});
+
 		test( 'Component removed from DOM on tear-down with teardown override that calls _super', t => {
 
 			var Widget = Ractive.extend({
@@ -936,7 +972,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 		// Commented out temporarily, see #1381
 
-
+/*
 		test( 'Component in template passed parameters with data function', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
@@ -956,7 +992,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			t.equal( fixture.innerHTML, 'barbar' );
 		});
-
+*/
 		test( 'Component in template with dynamic template function', t => {
 			var Component, ractive;
 
@@ -1132,7 +1168,7 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.equal( fixture.innerHTML, '<foo></foo>' );
 		});
 
-		test( 'Evaluator in against in component more than once (gh-844)', t => {
+		test( 'Evaluator used in component more than once (gh-844)', t => {
 			var Component, BarComponent, ractive;
 
 
