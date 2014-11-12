@@ -120,7 +120,9 @@ export default function Element$render () {
 	// apply decorator(s)
 	if ( this.decorator && this.decorator.fn ) {
 		runloop.scheduleTask( () => { 
-			if (!this.decorator.torndown) this.decorator.init();
+			if ( !this.decorator.torndown ) {
+				this.decorator.init();
+			}
 		}, true );
 	}
 

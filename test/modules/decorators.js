@@ -241,6 +241,28 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.shift( 'letters' );
 		});
 
+		test( 'Teardown before init should work', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{# count > 0}}<span decorator="whatever">foo</span>{{/0}}',
+				data: {
+					count: 0
+				},
+				decorators: {
+					whatever: function ( node ) {
+						return { teardown: Function.prototype }
+					}
+				}
+			});
+
+			ractive.observe( 'boo', function( newval, oldval ) {
+			    ractive.set( 'count', 1 );
+			    ractive.set( 'count', 0 );
+			});
+			ractive.set( 'boo', 1) ;
+			t.ok( true );
+		});
+
 	};
 
 });

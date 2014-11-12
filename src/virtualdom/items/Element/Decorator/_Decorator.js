@@ -107,7 +107,7 @@ Decorator.prototype = {
 
 	teardown: function ( updating ) {
 		this.torndown = true;
-		if (this.ready) {
+		if ( this.ready ) {
 			this.actual.teardown();
 		}
 
