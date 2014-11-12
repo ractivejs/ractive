@@ -1,5 +1,5 @@
 import isClient from 'config/isClient';
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import createElement from 'utils/createElement';
 import camelCase from 'utils/camelCase';
 import interpolate from 'shared/interpolate';

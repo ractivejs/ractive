@@ -1,4 +1,4 @@
-import log from 'utils/log';
+import log from 'utils/log/log';
 import circular from 'circular';
 import config from 'config/config';
 

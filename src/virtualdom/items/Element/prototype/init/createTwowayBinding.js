@@ -1,4 +1,4 @@
-import log from 'utils/log';
+import log from 'utils/log/log';
 import ContentEditableBinding from 'virtualdom/items/Element/Binding/ContentEditableBinding';
 import RadioBinding from 'virtualdom/items/Element/Binding/RadioBinding';
 import RadioNameBinding from 'virtualdom/items/Element/Binding/RadioNameBinding';

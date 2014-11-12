@@ -1,4 +1,4 @@
-import log from 'utils/log';
+import log from 'utils/log/log';
 import config from 'config/config';
 import parser from 'config/options/template/parser';
 import deIndent from 'virtualdom/items/Partial/deIndent';

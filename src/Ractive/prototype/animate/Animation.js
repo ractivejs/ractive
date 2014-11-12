@@ -1,4 +1,4 @@
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import runloop from 'global/runloop';
 import interpolate from 'shared/interpolate';
 
