@@ -1301,6 +1301,32 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
+
+		test( 'event action references have context', t => {
+			var ractive, data = { foo: 'bar' };
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<span id="test{{i}}" on-click="{{eventName}}"/>{{/}}',
+				data: {
+					items: [
+						{ eventName: 'foo' },
+						{ eventName: 'bar' },
+						{ eventName: 'biz' }
+					]
+				}
+			});
+
+			ractive.on( 'bar', function () {
+				t.ok( true );
+			})
+
+			simulant.fire( ractive.nodes.test1, 'click' );
+		});
+
+
 	};
 
 });
