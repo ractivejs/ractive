@@ -78,6 +78,8 @@ function reevaluateSection ( section, value ) {
 	// TODO can this be optimised? i.e. pick an reevaluateSection function during init
 	// and avoid doing this each time?
 	if ( section.subtype ) {
+		section.currentSubtype = section.subtype;
+
 		switch ( section.subtype ) {
 			case types.SECTION_IF:
 			return reevaluateConditionalSection( section, value, false, fragmentOptions );
@@ -105,6 +107,7 @@ function reevaluateSection ( section, value ) {
 
 	// Ordered list section
 	if ( section.ordered ) {
+		section.currentSubtype = types.SECTION_EACH;
 		return reevaluateListSection( section, value, fragmentOptions );
 	}
 
@@ -112,14 +115,17 @@ function reevaluateSection ( section, value ) {
 	if ( isObject( value ) || typeof value === 'function' ) {
 		// Index reference indicates section should be treated as a list
 		if ( section.template.i ) {
+			section.currentSubtype = types.SECTION_EACH;
 			return reevaluateListObjectSection( section, value, fragmentOptions );
 		}
 
 		// Otherwise, object provides context for contents
+		section.currentSubtype = types.SECTION_WITH;
 		return reevaluateContextSection( section, fragmentOptions );
 	}
 
 	// Conditional section
+	section.currentSubtype = types.SECTION_IF;
 	return reevaluateConditionalSection( section, value, false, fragmentOptions );
 }
 
@@ -257,7 +263,7 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 	if ( doRender ) {
 		if ( !section.length ) {
 			// no change to context stack
-			fragmentOptions.index = 0;
+			fragmentOptions.index = undefined;
 
 			fragment = new Fragment( fragmentOptions );
 			section.fragmentsToRender.push( section.fragments[0] = fragment );

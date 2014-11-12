@@ -23,7 +23,7 @@ globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIC
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
 export default function ( parser ) {
-	var startPos, ancestor, name, dot, combo, refinement, lastDotIndex;
+	var startPos, ancestor, name, dot, combo, refinement, lastDotIndex, pattern;
 
 	startPos = parser.pos;
 
@@ -45,16 +45,21 @@ export default function ( parser ) {
 		dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 	}
 
-	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( patterns.name ) || '';
+	if ( parser.relaxedNames ) {
+		pattern = patterns.relaxedName;
+	} else {
+		pattern = patterns.name;
+	}
+	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( pattern ) || '';
 
 	// bug out if it's a keyword
-	if ( keywords.test( name ) ) {
+	if ( !parser.relaxedNames && keywords.test( name ) ) {
 		parser.pos = startPos;
 		return null;
 	}
 
 	// if this is a browser global, stop here
-	if ( !ancestor && !dot && globals.test( name ) ) {
+	if ( !ancestor && !dot && !parser.relaxedNames && globals.test( name ) ) {
 		return {
 			t: types.GLOBAL,
 			v: name

@@ -6,31 +6,27 @@ var SpecialResolver = function ( owner, ref, callback ) {
 	this.rebind();
 };
 
+var props = {
+	'@keypath': 'context',
+	'@index': 'index',
+	'@key': 'index'
+};
+
 SpecialResolver.prototype = {
 	rebind: function () {
-		var ref = this.ref, fragment = this.parentFragment;
+		var ref = this.ref, fragment = this.parentFragment, prop = props[ref];
 
-		if ( ref === '@keypath' ) {
-			while ( fragment ) {
-				if ( !!fragment.context ) {
-					return this.callback( '@' + fragment.context );
-				}
-
-				fragment = fragment.parent;
-			}
+		if ( !prop ) {
+			throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
 		}
 
-		if ( ref === '@index' || ref === '@key' ) {
-			while ( fragment ) {
-				if ( fragment.index !== undefined ) {
-					return this.callback( '@' + fragment.index );
-				}
-
-				fragment = fragment.parent;
+		while ( fragment ) {
+			if ( fragment[prop] !== undefined ) {
+				return this.callback( '@' + fragment[prop] );
 			}
-		}
 
-		throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
+			fragment = fragment.parent;
+		}
 	},
 
 	unbind: function () {} // noop
