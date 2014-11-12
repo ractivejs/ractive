@@ -1,4 +1,5 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import log from 'utils/log/log';
 import runloop from 'global/runloop';
 
 var updateHook = new Hook( 'update' );
@@ -21,7 +22,23 @@ export default function Ractive$update ( keypath, callback ) {
 	updateHook.fire( this, keypath );
 
 	if ( callback ) {
-		promise.then( callback.bind( this ) );
+
+		log.warn({
+			debug: this.debug,
+			message: 'usePromise',
+			args: {
+				method: 'ractive.teardown'
+			}
+		});
+
+		promise
+			.then( callback.bind( this ) )
+			.then( null, err => {
+				log.consoleError({
+					debug: this.debug,
+					err: err
+				});
+			});
 	}
 
 	return promise;

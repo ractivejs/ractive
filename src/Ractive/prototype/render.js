@@ -74,7 +74,7 @@ export default function Ractive$render ( target, anchor ) {
 		.then( null, err => {
 			log.consoleError({
 				debug: this.debug,
-				err: err,
+				err: err
 			});
 		});
 

@@ -1,7 +1,8 @@
-import runloop from 'global/runloop';
 import isObject from 'utils/isObject';
-import normaliseKeypath from 'utils/normaliseKeypath';
 import getMatchingKeypaths from 'shared/getMatchingKeypaths';
+import log from 'utils/log/log';
+import normaliseKeypath from 'utils/normaliseKeypath';
+import runloop from 'global/runloop';
 
 var wildcard = /\*/;
 
@@ -41,7 +42,23 @@ export default function Ractive$set ( keypath, value, callback ) {
 	runloop.end();
 
 	if ( callback ) {
-		promise.then( callback.bind( this ) );
+
+		log.warn({
+			debug: this.debug,
+			message: 'usePromise',
+			args: {
+				method: 'ractive.set'
+			}
+		});
+
+		promise
+			.then( callback.bind( this ) )
+			.then( null, err => {
+				log.consoleError({
+					debug: this.debug,
+					err: err
+				});
+			});
 	}
 
 	return promise;

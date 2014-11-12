@@ -1,7 +1,7 @@
 import hasConsole from 'utils/log/hasConsole';
 import consolewarn from 'utils/log/warn';
 import errors from 'config/errors';
-
+/* global console */
 var log = {
 	warn: function ( options, passthru ) {
 		if ( !options.debug && !passthru ) { return; }
