@@ -44,6 +44,9 @@ export default {
 	usePromise:
 		'{method} now returns a Promise, use {method}(...).then(callback) instead.',
 
+	noTwowayExpressions:
+		'Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.',
+
 	notUsed:
 		'prevents forgetting trailing "," in cut and paste of previous line :)'
 };
