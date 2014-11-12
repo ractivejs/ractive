@@ -1,4 +1,4 @@
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import mapOldToNewIndex from 'viewmodel/prototype/merge/mapOldToNewIndex';
 
 var comparators = {};

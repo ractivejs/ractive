@@ -600,13 +600,29 @@ define([ 'ractive' ], function ( Ractive ) {
 			var console_warn = console.warn;
 
 			console.warn = function ( message ) {
-				t.ok( ~message.indexOf( 'Two-way binding does not work with expressions (`foo()`)' ) );
+				t.ok( /Two-way binding does not work with expressions/.test(message) );
 			};
 
 			new Ractive({
 				el: fixture,
 				template: '<input value="{{foo()}}">',
 				data: { foo: () => 'bar' }
+			});
+
+			console.warn = console_warn;
+		});
+
+		test( 'Using expressions with keypath in two-way bindings triggers a warning (#1399/#1421)', function ( t ) {
+			var console_warn = console.warn;
+
+			console.warn = function ( message ) {
+				t.ok( true );
+			};
+
+			new Ractive({
+				el: fixture,
+				template: '<input value="{{foo.bar()[\'biz.bop\']}}">',
+				data: { foo: { bar: () => 'bar' } }
 			});
 
 			console.warn = console_warn;

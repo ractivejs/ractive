@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import log from 'utils/log';
+import log from 'utils/log/log';
 import isEqual from 'utils/isEqual';
 import UnresolvedDependency from 'viewmodel/Computation/UnresolvedDependency';
 

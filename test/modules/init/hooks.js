@@ -373,57 +373,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( count, { construct: 0, beforeInit: 1 });
 		});
 
-		// Hold off on these until demand for them.
-		// also an issue is that reserve event checking
-		// currently happens at parse time, so that
-		// would need to change or something setup for it
-		// so maybe just YAGNI and we hold off on these.
-		/*
-		module( 'hooks option', firedSetup);
+		asyncTest( 'error in oncomplete sent to console', function ( t ) {
+			var ractive, error = console.error;
 
-		asyncTest( '"methodOnly" prevents events', t => {
-			var ractive;
-
-			ractive = new Ractive({
-				el: fixture,
-				template: 'foo',
-				hooks: 'methodOnly',
-				oninit: function () {
-					this.on( 'teardown', function () {
-						throw new Error( 'event hook should not fire' );
-					});
-				}
-			});
-
-			ractive.teardown().then(function(){
-				t.ok( true );
-				start();
-			});
-
-		})
-
-		test( '"eventOnly" prevents methods', t => {
-			var ractive;
-
-			expect( 1 );
+			expect( 1 )
+			console.error = function ( err ) {
+				t.equal( err, 'evil handler' );
+				console.error = error;
+				QUnit.start();
+			}
 
 			ractive = new Ractive({
 				el: fixture,
 				template: 'foo',
-				hooks: 'eventOnly',
-				oninit: function () {
-					throw new Error( 'method hook should not fire' );
+				data: { a: 'b' },
+				oncomplete: function(){
+					throw 'evil handler';
 				}
 			});
-
-			ractive.on( 'teardown', function(){
-				t.ok( true );
-			})
-
-			ractive.teardown()
-
-		})
-		*/
+		});
 	}
 
 });

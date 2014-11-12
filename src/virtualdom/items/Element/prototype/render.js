@@ -1,6 +1,6 @@
 import namespaces from 'config/namespaces';
 import isArray from 'utils/isArray';
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import create from 'utils/create';
 import createElement from 'utils/createElement';
 import defineProperty from 'utils/defineProperty';

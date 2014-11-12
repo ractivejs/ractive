@@ -1,4 +1,4 @@
-import log from 'utils/log';
+import log from 'utils/log/log';
 
 // TODO: deprecate in future release
 var deprecations = {

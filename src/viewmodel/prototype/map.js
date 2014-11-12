@@ -16,7 +16,7 @@ var Mapping = function ( local, localKey, options ) {
 	this.origin = options.origin;
 
 	this.resolved = false;
-	if ( options.keypath ) {
+	if ( options.keypath !== undefined ) {
 		this.resolve( options.keypath );
 	}
 
@@ -67,16 +67,16 @@ Mapping.prototype = {
 	},
 
 	resolve: function ( keypath ) {
-		if ( this.keypath ) {
+		if ( this.keypath !== undefined ) {
 			this.origin.unregister( this.keypath, this, 'mappings' );
 
 			this.deps.forEach( d => this.origin.unregister( this.map( d.keypath ), d.dep, d.group ) );
 		}
 
 		this.keypath = keypath;
-		this.resolved = !!keypath;
+		this.resolved = keypath !== undefined;
 
-		if ( keypath ) {
+		if ( keypath !== undefined ) {
 			this.origin.register( keypath, this, 'mappings' );
 
 			// keep local data in sync, will be ie8 only...

@@ -1,6 +1,6 @@
 import config from 'config/config';
 import genericHandler from 'virtualdom/items/Element/EventHandler/shared/genericHandler';
-import log from 'utils/log';
+import log from 'utils/log/log';
 
 var customHandlers = {},
 	touchEvents = {

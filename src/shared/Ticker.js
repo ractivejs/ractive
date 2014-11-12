@@ -1,4 +1,4 @@
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import getTime from 'utils/getTime';
 import animations from 'shared/animations';
 
