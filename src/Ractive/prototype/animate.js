@@ -89,6 +89,7 @@ export default function Ractive$animate ( keypath, to, options ) {
 		}
 
 		if ( complete ) {
+
 			promise
 				.then( function ( t ) {
 					complete( t, currentValues );

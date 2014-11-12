@@ -1,4 +1,5 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import log from 'utils/log/log';
 import Promise from 'utils/Promise';
 import removeFromArray from 'utils/removeFromArray';
 
@@ -23,8 +24,23 @@ export default function Ractive$teardown ( callback ) {
 	teardownHook.fire( this );
 
 	if ( callback ) {
-		// TODO deprecate this?
-		promise.then( callback.bind( this ) );
+
+		log.warn({
+			debug: this.debug,
+			message: 'usePromise',
+			args: {
+				method: 'ractive.teardown'
+			}
+		});
+
+		promise
+			.then( callback.bind( this ) )
+			.then( null, err => {
+				log.consoleError({
+					debug: this.debug,
+					err: err
+				});
+			});
 	}
 
 	return promise;

@@ -24,6 +24,15 @@ export default function Ractive$merge ( keypath, array, options ) {
 
 	// attach callback as fulfilment handler, if specified
 	if ( options && options.complete ) {
+
+		log.warn({
+			debug: this.debug,
+			message: 'usePromise',
+			args: {
+				method: 'ractive.merge'
+			}
+		});
+
 		promise
 			.then( options.complete )
 			.then( null, err => {

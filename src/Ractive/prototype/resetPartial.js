@@ -1,6 +1,7 @@
+import isArray from 'utils/isArray';
+import log from 'utils/log/log';
 import runloop from 'global/runloop';
 import types from 'config/types';
-import isArray from 'utils/isArray';
 
 export default function( name, partial, callback ) {
 	var promise, collection = [];
@@ -62,7 +63,23 @@ export default function( name, partial, callback ) {
 	runloop.end();
 
 	if ( callback ) {
-		promise.then( callback.bind( this ) );
+
+		log.warn({
+			debug: this.debug,
+			message: 'usePromise',
+			args: {
+				method: 'ractive.resetPartial'
+			}
+		});
+
+		promise
+			.then( callback.bind( this ) )
+			.then( null, err => {
+				log.consoleError({
+					debug: this.debug,
+					err: err
+				});
+			});
 	}
 
 	return promise;
