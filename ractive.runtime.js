@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-11 - commit 72570dd8 
+	2014-11-12 - commit ed9985db 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -202,7 +202,10 @@
 		return svg;
 	}();
 
-	/* utils/warn.js */
+	/* utils/log/hasConsole.js */
+	var hasConsole = typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function';
+
+	/* utils/log/warn.js */
 	var warn = function() {
 
 		/* global console */
@@ -238,11 +241,13 @@
 		noRegistryFunctionReturn: 'A function was specified for "{name}" {registry}, but no {registry} was returned',
 		defaultElSpecified: 'The <{name}/> component has a default `el` property; it has been disregarded',
 		noElementProxyEventWildcards: 'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.',
-		methodDeprecated: 'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.'
+		methodDeprecated: 'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.',
+		usePromise: '{method} now returns a Promise, use {method}(...).then(callback) instead.',
+		notUsed: 'prevents forgetting trailing "," in cut and paste of previous line :)'
 	};
 
-	/* utils/log.js */
-	var log = function( consolewarn, errors ) {
+	/* utils/log/log.js */
+	var log = function( hasConsole, consolewarn, errors ) {
 
 		var log = {
 			warn: function( options, passthru ) {
@@ -272,6 +277,13 @@
 			logger: consolewarn,
 			thrower: function( err ) {
 				throw err;
+			},
+			consoleError: function( options ) {
+				if ( hasConsole ) {
+					console.error( options.err );
+				} else {
+					this.thrower( options.err );
+				}
 			}
 		};
 
@@ -287,7 +299,7 @@
 			} );
 		}
 		return log;
-	}( warn, errors );
+	}( hasConsole, warn, errors );
 
 	/* Ractive/prototype/shared/hooks/Hook.js */
 	var Ractive$shared_hooks_Hook = function( log ) {
@@ -1186,26 +1198,6 @@
 			return add( this, keypath, d === undefined ? 1 : +d );
 		};
 	}( Ractive$shared_add );
-
-	/* utils/isEqual.js */
-	var isEqual = function( a, b ) {
-		if ( a === null && b === null ) {
-			return true;
-		}
-		if ( typeof a === 'object' || typeof b === 'object' ) {
-			return false;
-		}
-		return a === b;
-	};
-
-	/* utils/normaliseKeypath.js */
-	var normaliseKeypath = function( normaliseRef ) {
-
-		var leadingDot = /^\.+/;
-		return function normaliseKeypath( keypath ) {
-			return normaliseRef( keypath ).replace( leadingDot, '' );
-		};
-	}( normaliseRef );
 
 	/* config/vendors.js */
 	var vendors = [
@@ -2184,8 +2176,28 @@
 		return Animation;
 	}( warn, runloop, interpolate );
 
+	/* utils/isEqual.js */
+	var isEqual = function( a, b ) {
+		if ( a === null && b === null ) {
+			return true;
+		}
+		if ( typeof a === 'object' || typeof b === 'object' ) {
+			return false;
+		}
+		return a === b;
+	};
+
+	/* utils/normaliseKeypath.js */
+	var normaliseKeypath = function( normaliseRef ) {
+
+		var leadingDot = /^\.+/;
+		return function normaliseKeypath( keypath ) {
+			return normaliseRef( keypath ).replace( leadingDot, '' );
+		};
+	}( normaliseRef );
+
 	/* Ractive/prototype/animate.js */
-	var Ractive$animate = function( isEqual, Promise, normaliseKeypath, animations, Animation ) {
+	var Ractive$animate = function( animations, Animation, isEqual, log, normaliseKeypath, Promise ) {
 
 		var __export;
 		var noop = function() {},
@@ -2193,6 +2205,7 @@
 				stop: noop
 			};
 		__export = function Ractive$animate( keypath, to, options ) {
+			var this$0 = this;
 			var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
 			promise = new Promise( function( fulfil ) {
 				fulfilPromise = fulfil;
@@ -2248,6 +2261,11 @@
 				if ( complete ) {
 					promise.then( function( t ) {
 						complete( t, currentValues );
+					} ).then( null, function( err ) {
+						log.consoleError( {
+							debug: this$0.debug,
+							err: err
+						} );
 					} );
 				}
 				dummyOptions.complete = fulfilPromise;
@@ -2267,7 +2285,12 @@
 			// animate a single keypath
 			options = options || {};
 			if ( options.complete ) {
-				promise.then( options.complete );
+				promise.then( options.complete ).then( null, function( err ) {
+					log.consoleError( {
+						debug: this$0.debug,
+						err: err
+					} );
+				} );
 			}
 			options.complete = fulfilPromise;
 			animation = animate( this, keypath, to, options );
@@ -2326,7 +2349,7 @@
 			return animation;
 		}
 		return __export;
-	}( isEqual, Promise, normaliseKeypath, animations, Ractive$animate_Animation );
+	}( animations, Ractive$animate_Animation, isEqual, log, normaliseKeypath, Promise );
 
 	/* Ractive/prototype/detach.js */
 	var Ractive$detach = function( Hook, removeFromArray ) {
@@ -2916,9 +2939,10 @@
 	}( Ractive$shared_hooks_Hook, getElement );
 
 	/* Ractive/prototype/merge.js */
-	var Ractive$merge = function( runloop, isArray, normaliseKeypath ) {
+	var Ractive$merge = function( isArray, log, normaliseKeypath, runloop ) {
 
 		return function Ractive$merge( keypath, array, options ) {
+			var this$0 = this;
 			var currentArray, promise;
 			keypath = normaliseKeypath( keypath );
 			currentArray = this.viewmodel.get( keypath );
@@ -2933,11 +2957,23 @@
 			runloop.end();
 			// attach callback as fulfilment handler, if specified
 			if ( options && options.complete ) {
-				promise.then( options.complete );
+				log.warn( {
+					debug: this.debug,
+					message: 'usePromise',
+					args: {
+						method: 'ractive.merge'
+					}
+				} );
+				promise.then( options.complete ).then( null, function( err ) {
+					log.consoleError( {
+						debug: this$0.debug,
+						err: err
+					} );
+				} );
 			}
 			return promise;
 		};
-	}( runloop, isArray, normaliseKeypath );
+	}( isArray, log, normaliseKeypath, runloop );
 
 	/* Ractive/prototype/observe/Observer.js */
 	var Ractive$observe_Observer = function( runloop, isEqual ) {
@@ -3520,7 +3556,7 @@
 	}( circular, isClient, removeFromArray );
 
 	/* Ractive/prototype/render.js */
-	var Ractive$render = function( css, Hook, getElement, runloop ) {
+	var Ractive$render = function( css, Hook, getElement, log, runloop ) {
 
 		var __export;
 		var renderHook = new Hook( 'render' ),
@@ -3579,6 +3615,11 @@
 			// But perhaps I'm wrong about that...
 			promise.then( function() {
 				return completeHook.fire( this$0 );
+			} ).then( null, function( err ) {
+				log.consoleError( {
+					debug: this$0.debug,
+					err: err
+				} );
 			} );
 			return promise;
 		};
@@ -3591,7 +3632,7 @@
 			} catch ( err ) {}
 		}
 		return __export;
-	}( global_css, Ractive$shared_hooks_Hook, getElement, runloop );
+	}( global_css, Ractive$shared_hooks_Hook, getElement, log, runloop );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
 	var virtualdom_Fragment$bubble = function Fragment$bubble() {
@@ -7491,6 +7532,26 @@
 		};
 	}( ConditionalAttribute );
 
+	/* utils/warn.js */
+	var utils_warn = function( hasConsole ) {
+
+		var warn, warned = {};
+		if ( hasConsole ) {
+			warn = function( message, allowDuplicates ) {
+				if ( !allowDuplicates ) {
+					if ( warned[ message ] ) {
+						return;
+					}
+					warned[ message ] = true;
+				}
+				console.warn( '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' );
+			};
+		} else {
+			warn = function() {};
+		}
+		return warn;
+	}( hasConsole );
+
 	/* utils/extend.js */
 	var extend = function( target ) {
 		var SLICE$0 = Array.prototype.slice;
@@ -7591,7 +7652,7 @@
 			return SpecialisedBinding;
 		};
 		return Binding;
-	}( runloop, warn, create, extend, removeFromArray );
+	}( runloop, utils_warn, create, extend, removeFromArray );
 
 	/* virtualdom/items/Element/Binding/shared/handleDomEvent.js */
 	var handleDomEvent = function handleChange() {
@@ -9249,7 +9310,7 @@
 	}( vendors );
 
 	/* virtualdom/items/Element/Transition/prototype/animateStyle/_animateStyle.js */
-	var virtualdom_items_Element_Transition$animateStyle__animateStyle = function( legacy, isClient, warn, Promise, prefix, createTransitions, visibility ) {
+	var virtualdom_items_Element_Transition$animateStyle__animateStyle = function( createTransitions, isClient, legacy, log, prefix, Promise, visibility, warn ) {
 
 		var animateStyle, getComputedStyle, resolved;
 		if ( !isClient ) {
@@ -9324,14 +9385,26 @@
 				// If a callback was supplied, do the honours
 				// TODO remove this check in future
 				if ( complete ) {
-					warn( 't.animateStyle returns a Promise as of 0.4.0. Transition authors should do t.animateStyle(...).then(callback)' );
-					promise.then( complete );
+					log.warn( {
+						debug: true,
+						// no ractive instance to govern this
+						message: 'usePromise',
+						args: {
+							method: 't.animateStyle'
+						}
+					} );
+					promise.then( complete ).then( null, function( err ) {
+						log.consoleError( {
+							debug: true,
+							err: err
+						} );
+					} );
 				}
 				return promise;
 			};
 		}
 		return animateStyle;
-	}( legacy, isClient, warn, Promise, prefix, virtualdom_items_Element_Transition$animateStyle_createTransitions, virtualdom_items_Element_Transition$animateStyle_visibility );
+	}( virtualdom_items_Element_Transition$animateStyle_createTransitions, isClient, legacy, log, prefix, Promise, virtualdom_items_Element_Transition$animateStyle_visibility, warn );
 
 	/* utils/fillGaps.js */
 	var fillGaps = function( target ) {
@@ -10866,7 +10939,7 @@
 	}( virtualdom_Fragment$bubble, virtualdom_Fragment$detach, virtualdom_Fragment$find, virtualdom_Fragment$findAll, virtualdom_Fragment$findAllComponents, virtualdom_Fragment$findComponent, virtualdom_Fragment$findNextNode, virtualdom_Fragment$firstNode, virtualdom_Fragment$getNode, virtualdom_Fragment$getValue, virtualdom_Fragment$init, virtualdom_Fragment$rebind, virtualdom_Fragment$render, virtualdom_Fragment$toString, virtualdom_Fragment$unbind, virtualdom_Fragment$unrender, circular );
 
 	/* Ractive/prototype/reset.js */
-	var Ractive$reset = function( Hook, runloop, Fragment, config ) {
+	var Ractive$reset = function( config, Fragment, Hook, log, runloop ) {
 
 		var shouldRerender = [
 				'template',
@@ -10877,6 +10950,7 @@
 			],
 			resetHook = new Hook( 'reset' );
 		return function Ractive$reset( data, callback ) {
+			var this$0 = this;
 			var promise, wrapper, changes, i, rerender;
 			if ( typeof data === 'function' && !callback ) {
 				callback = data;
@@ -10937,14 +11011,26 @@
 			}
 			resetHook.fire( this, data );
 			if ( callback ) {
-				promise.then( callback );
+				log.warn( {
+					debug: this.debug,
+					message: 'usePromise',
+					args: {
+						method: 'ractive.reset'
+					}
+				} );
+				promise.then( callback ).then( null, function( err ) {
+					log.consoleError( {
+						debug: this$0.debug,
+						err: err
+					} );
+				} );
 			}
 			return promise;
 		};
-	}( Ractive$shared_hooks_Hook, runloop, Fragment, config );
+	}( config, Fragment, Ractive$shared_hooks_Hook, log, runloop );
 
 	/* Ractive/prototype/resetPartial.js */
-	var Ractive$resetPartial = function( runloop, types, isArray ) {
+	var Ractive$resetPartial = function( isArray, log, runloop, types ) {
 
 		var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
 		var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
@@ -10972,6 +11058,7 @@
 			var $D$3;
 			var $D$4;
 			var $D$5;
+			var this$0 = this;
 			var promise, collection = [];
 
 			function collect( source, dest, ractive ) {
@@ -11030,11 +11117,23 @@
 			$D$3 = $D$4 = $D$5 = void 0;
 			runloop.end();
 			if ( callback ) {
-				promise.then( callback.bind( this ) );
+				log.warn( {
+					debug: this.debug,
+					message: 'usePromise',
+					args: {
+						method: 'ractive.resetPartial'
+					}
+				} );
+				promise.then( callback.bind( this ) ).then( null, function( err ) {
+					log.consoleError( {
+						debug: this$0.debug,
+						err: err
+					} );
+				} );
 			}
 			return promise;
 		};
-	}( runloop, types, isArray );
+	}( isArray, log, runloop, types );
 
 	/* Ractive/prototype/resetTemplate.js */
 	var Ractive$resetTemplate = function( config, Fragment ) {
@@ -11076,7 +11175,7 @@
 	}( Ractive$shared_makeArrayMethod );
 
 	/* Ractive/prototype/set.js */
-	var Ractive$set = function( runloop, isObject, normaliseKeypath, getMatchingKeypaths ) {
+	var Ractive$set = function( isObject, getMatchingKeypaths, log, normaliseKeypath, runloop ) {
 
 		var wildcard = /\*/;
 		return function Ractive$set( keypath, value, callback ) {
@@ -11106,11 +11205,23 @@
 			}
 			runloop.end();
 			if ( callback ) {
-				promise.then( callback.bind( this ) );
+				log.warn( {
+					debug: this.debug,
+					message: 'usePromise',
+					args: {
+						method: 'ractive.set'
+					}
+				} );
+				promise.then( callback.bind( this ) ).then( null, function( err ) {
+					log.consoleError( {
+						debug: this$0.debug,
+						err: err
+					} );
+				} );
 			}
 			return promise;
 		};
-	}( runloop, isObject, normaliseKeypath, getMatchingKeypaths );
+	}( isObject, getMatchingKeypaths, log, normaliseKeypath, runloop );
 
 	/* Ractive/prototype/shift.js */
 	var Ractive$shift = function( makeArrayMethod ) {
@@ -11139,12 +11250,13 @@
 	}( Ractive$shared_add );
 
 	/* Ractive/prototype/teardown.js */
-	var Ractive$teardown = function( Hook, Promise, removeFromArray ) {
+	var Ractive$teardown = function( Hook, log, Promise, removeFromArray ) {
 
 		var teardownHook = new Hook( 'teardown' );
 		// Teardown. This goes through the root fragment and all its children, removing observers
 		// and generally cleaning up after itself
 		return function Ractive$teardown( callback ) {
+			var this$0 = this;
 			var promise;
 			this.fragment.unbind();
 			this.viewmodel.teardown();
@@ -11155,12 +11267,23 @@
 			promise = this.fragment.rendered ? this.unrender() : Promise.resolve();
 			teardownHook.fire( this );
 			if ( callback ) {
-				// TODO deprecate this?
-				promise.then( callback.bind( this ) );
+				log.warn( {
+					debug: this.debug,
+					message: 'usePromise',
+					args: {
+						method: 'ractive.teardown'
+					}
+				} );
+				promise.then( callback.bind( this ) ).then( null, function( err ) {
+					log.consoleError( {
+						debug: this$0.debug,
+						err: err
+					} );
+				} );
 			}
 			return promise;
 		};
-	}( Ractive$shared_hooks_Hook, Promise, removeFromArray );
+	}( Ractive$shared_hooks_Hook, log, Promise, removeFromArray );
 
 	/* Ractive/prototype/toggle.js */
 	var Ractive$toggle = function( log ) {
@@ -11228,10 +11351,11 @@
 	}( Ractive$shared_makeArrayMethod );
 
 	/* Ractive/prototype/update.js */
-	var Ractive$update = function( Hook, runloop ) {
+	var Ractive$update = function( Hook, log, runloop ) {
 
 		var updateHook = new Hook( 'update' );
 		return function Ractive$update( keypath, callback ) {
+			var this$0 = this;
 			var promise;
 			if ( typeof keypath === 'function' ) {
 				callback = keypath;
@@ -11244,11 +11368,23 @@
 			runloop.end();
 			updateHook.fire( this, keypath );
 			if ( callback ) {
-				promise.then( callback.bind( this ) );
+				log.warn( {
+					debug: this.debug,
+					message: 'usePromise',
+					args: {
+						method: 'ractive.teardown'
+					}
+				} );
+				promise.then( callback.bind( this ) ).then( null, function( err ) {
+					log.consoleError( {
+						debug: this$0.debug,
+						err: err
+					} );
+				} );
 			}
 			return promise;
 		};
-	}( Ractive$shared_hooks_Hook, runloop );
+	}( Ractive$shared_hooks_Hook, log, runloop );
 
 	/* Ractive/prototype/updateModel.js */
 	var Ractive$updateModel = function( arrayContentsMatch, startsWith, isEqual ) {
