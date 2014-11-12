@@ -26,6 +26,7 @@ var Mapping = function ( local, localKey, options ) {
 	this.links = [];
 
 	this.ready = true;
+
 };
 
 Mapping.prototype = {
@@ -42,6 +43,7 @@ Mapping.prototype = {
 	},
 
 	map: function ( keypath ) {
+		// TODO: should this be cached and only run when keypath changes?
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
@@ -76,6 +78,13 @@ Mapping.prototype = {
 
 		if ( keypath ) {
 			this.origin.register( keypath, this, 'mappings' );
+
+			// keep local data in sync, will be ie8 only...
+			this.origin.register( keypath, {
+				setValue: value => {
+					this.local.ractive.data[ this.localKey ] = value;
+				}
+			}, 'default' );
 
 			if ( this.ready ) {
 				this.unresolved.forEach( u => {

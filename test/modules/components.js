@@ -1,4 +1,14 @@
-define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, log ) {
+define([
+	'ractive',
+	'helpers/Model',
+	'utils/defineProperty',
+	'utils/log'
+], function (
+	Ractive,
+	Model,
+	defineProperty,
+	log
+) {
 
 	'use strict';
 
@@ -970,9 +980,13 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.equal( fixture.innerHTML, 'barbam' );
 		});
 
-		// Commented out temporarily, see #1381
+		/* -- component data tests -- */
 
-/*
+		// next couple of tests originally created and tested using "legacy"
+		// but don't know good way to fake Ractive.magic.
+		// Suppose it is same as any other test that needs
+		// to be actually run on IE8.
+
 		test( 'Component in template passed parameters with data function', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
@@ -992,7 +1006,37 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 
 			t.equal( fixture.innerHTML, 'barbar' );
 		});
-*/
+
+		test( 'Component data in sync with mapped property', t => {
+			var Component, component, ractive, data = { foo: 'bar' } ;
+
+			Component = Ractive.extend({
+				template: '<input value="{{foo}}">'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{{outer}}"/>',
+				components: { widget: Component },
+				data: { outer: 'bar' }
+			});
+
+			component = ractive.findComponent( 'widget' );
+			t.equal( component.data.foo, 'bar' );
+
+			ractive.set( 'outer', 'space' );
+			t.equal( component.data.foo, 'space' );
+
+			component.find('input').value = 'limits';
+			component.updateModel();
+
+			t.equal( component.data.foo, 'limits' );
+			t.equal( ractive.data.outer, 'limits' );
+
+		});
+
+		/* -- end component data -- */
+
 		test( 'Component in template with dynamic template function', t => {
 			var Component, ractive;
 

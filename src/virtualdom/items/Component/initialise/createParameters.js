@@ -18,6 +18,8 @@ export default function createParameters ( component, attributes) {
 
 function create( component, attributes, data, mappings ) {
 
+	var origin = component.root;
+
 	Object.keys( attributes ).forEach( key => {
 		var template, parsed, ref, resolver, resolve, ready, resolved, param, mapping;
 
@@ -61,11 +63,16 @@ function create( component, attributes, data, mappings ) {
 							mapping.resolve( keypath );
 						} else {
 							mappings[ key ] = {
-								origin: component.root.viewmodel,
+								origin: origin.viewmodel,
 								keypath: keypath
 							};
 						}
-						//data[ key ] = component.root.viewmodel.get(keypath)
+
+						value = origin.get( keypath );
+
+						if( value !== undefined ){
+							data[ key ] = value;
+						}
 					}
 
 					// TODO trace back to origin, not parent - may not be
@@ -100,7 +107,7 @@ function create( component, attributes, data, mappings ) {
 				if ( !resolved ) {
 					// note the mapping anyway, for the benefit of child
 					// components
-					mappings[ key ] = { origin: component.root.viewmodel };
+					mappings[ key ] = { origin: origin.viewmodel };
 				}
 			}
 
