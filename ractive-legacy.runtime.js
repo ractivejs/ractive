@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-12 - commit ed9985db 
+	2014-11-12 - commit a101feea 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -243,6 +243,7 @@
 		noElementProxyEventWildcards: 'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.',
 		methodDeprecated: 'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.',
 		usePromise: '{method} now returns a Promise, use {method}(...).then(callback) instead.',
+		noTwowayExpressions: 'Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.',
 		notUsed: 'prevents forgetting trailing "," in cut and paste of previous line :)'
 	};
 
@@ -7933,26 +7934,6 @@
 		};
 	}( ConditionalAttribute );
 
-	/* utils/warn.js */
-	var utils_warn = function( hasConsole ) {
-
-		var warn, warned = {};
-		if ( hasConsole ) {
-			warn = function( message, allowDuplicates ) {
-				if ( !allowDuplicates ) {
-					if ( warned[ message ] ) {
-						return;
-					}
-					warned[ message ] = true;
-				}
-				console.warn( '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' );
-			};
-		} else {
-			warn = function() {};
-		}
-		return warn;
-	}( hasConsole );
-
 	/* utils/extend.js */
 	var extend = function( target ) {
 		var SLICE$0 = Array.prototype.slice;
@@ -7969,7 +7950,7 @@
 	};
 
 	/* virtualdom/items/Element/Binding/Binding.js */
-	var Binding = function( runloop, warn, create, extend, removeFromArray ) {
+	var Binding = function( runloop, log, create, extend, removeFromArray ) {
 
 		var Binding = function( element ) {
 			var interpolator, keypath, value;
@@ -7979,10 +7960,16 @@
 			interpolator = this.attribute.interpolator;
 			interpolator.twowayBinding = this;
 			if ( keypath = interpolator.keypath ) {
-				var lastDot = keypath.lastIndexOf( '.' ),
-					test = lastDot === -1 ? keypath : keypath.substring( lastDot + 1 );
-				if ( test.substr( 0, 2 ) === '${' ) {
-					warn( 'Two-way binding does not work with expressions (`' + keypath.substr( 0, lastDot ) + test.slice( 2, -1 ) + '`)' );
+				if ( keypath[ keypath.length - 1 ] === '}' ) {
+					log.error( {
+						debug: this.root.debug,
+						message: 'noTwowayExpressions',
+						args: {
+							// won't fix brackets [foo] changed to -foo-
+							expression: keypath.slice( 2, -1 ).replace( '-', '.' ),
+							element: element.tagName
+						}
+					} );
 					return false;
 				}
 			} else {
@@ -8053,7 +8040,7 @@
 			return SpecialisedBinding;
 		};
 		return Binding;
-	}( runloop, utils_warn, create, extend, removeFromArray );
+	}( runloop, log, create, extend, removeFromArray );
 
 	/* virtualdom/items/Element/Binding/shared/handleDomEvent.js */
 	var handleDomEvent = function handleChange() {
