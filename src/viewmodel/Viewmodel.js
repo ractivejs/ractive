@@ -10,6 +10,7 @@ import magic from 'config/magic';
 import map from 'viewmodel/prototype/map';
 import mark from 'viewmodel/prototype/mark';
 import merge from 'viewmodel/prototype/merge';
+import origin from 'viewmodel/prototype/origin';
 import register from 'viewmodel/prototype/register';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
@@ -87,6 +88,7 @@ Viewmodel.prototype = {
 	clearCache: clearCache,
 	compute: compute,
 	get: get,
+	origin: origin,
 	init: init,
 	map: map,
 	mark: mark,
