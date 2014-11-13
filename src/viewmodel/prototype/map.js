@@ -17,7 +17,7 @@ var Mapping = function ( local, localKey, options ) {
 	this.resolved = false;
 
 	if ( options.keypath !== undefined ) {
-		this.resolve( options.keypath, options.initialValue );
+		this.resolve( options.keypath );
 	}
 
 	this.deps = [];
@@ -60,7 +60,7 @@ Mapping.prototype = {
 		}
 	},
 
-	resolve: function ( keypath, initialValue ) {
+	resolve: function ( keypath ) {
 		if ( this.keypath !== undefined ) {
 			this.origin.unregister( this.keypath, this, 'mappings' );
 
@@ -71,10 +71,6 @@ Mapping.prototype = {
 		this.resolved = keypath !== undefined;
 
 		if ( keypath !== undefined ) {
-
-			if ( initialValue !== undefined && this.origin.get( keypath ) === undefined ) {
-				this.origin.set( keypath, initialValue );
-			}
 
 			this.origin.register( keypath, this, 'mappings' );
 
