@@ -98,10 +98,6 @@ export default function Section$shuffle ( newIndices ) {
 		owner:      this
 	};
 
-	if ( this.template.i ) {
-		fragmentOptions.indexRef = this.template.i;
-	}
-
 	// Add as many new fragments as we need to, or add back existing
 	// (detached) fragments
 	for ( i = firstChange; i < newLength; i += 1 ) {

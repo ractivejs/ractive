@@ -62,7 +62,12 @@ var parseTests = [
 	{
 		name: "Named index",
 		template: "{{#items:i}}{{i}}: {{name}}{{/items}}",
-		parsed: {v:1,t:[{"f":[{r:"i",t:2},": ",{r:"name",t:2}],"i":[{"n":"i","t":"i"}],r:"items",t:4}]}
+		parsed: {v:1,t:[{"f":[{r:"i",t:2},": ",{r:"name",t:2}],"i":"i",r:"items",t:4}]}
+	},
+	{
+		name: "Named key and index",
+		template: "{{#items:k,i}}{{i}}: {{name}}{{/items}}",
+		parsed: {v:1,t:[{"f":[{r:"i",t:2},": ",{r:"name",t:2}],"i":"k,i",r:"items",t:4}]}
 	},
 	{
 		name: "Element with unquoted attributes",
@@ -351,23 +356,23 @@ var parseTests = [
 	{
 		name: 'List section with index ref and full closing',
 		template: '{{#foo:i}}{{.}}{{/foo:i}}',
-		parsed: {v:1,t:[{"t":4,"r":"foo","i":[{"n":"i","t":"i"}],"f":[{"t":2,"r":"."}]}]}
+		parsed: {v:1,t:[{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}]}
 	},
 	{
 		name: 'List section with index ref and ref only closing',
 		template: '{{#foo:i}}{{.}}{{/foo}}',
-		parsed: {v:1,t:[{"t":4,"r":"foo","i":[{"n":"i","t":"i"}],"f":[{"t":2,"r":"."}]}]}
+		parsed: {v:1,t:[{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}]}
 	},
 	{
 		name: 'List section with index ref and empty closing',
 		template: '{{#foo:i}}{{.}}{{/}}',
-		parsed: {v:1,t:[{"t":4,"r":"foo","i":[{"n":"i","t":"i"}],"f":[{"t":2,"r":"."}]}]}
+		parsed: {v:1,t:[{"t":4,"r":"foo","i":"i","f":[{"t":2,"r":"."}]}]}
 	},
 	//From GH#541:
 	{
 		name: 'Inverted list section closing',
 		template: '{{#steps:stepIndex}}{{^ hiddenSteps[stepIndex]}}<p>{{hiddenSteps[stepIndex]}}</p>{{/ hiddenSteps[stepIndex]}}{{/steps}}',
-		parsed: {v:1,t:[{"t":4,"r":"steps","i":[{"n":"stepIndex","t":"i"}],"f":[{"t":4,"n":51,"rx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"rx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}]}
+		parsed: {v:1,t:[{"t":4,"r":"steps","i":"stepIndex","f":[{"t":4,"n":51,"rx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]},"f":[{"t":7,"e":"p","f":[{"t":2,"rx":{"r":"hiddenSteps","m":[{"t":30,"n":"stepIndex"}]}}]}]}]}]}
 	},
 	{
 		name: 'Illegal closing tag 1',
@@ -475,7 +480,7 @@ var parseTests = [
 	{
 		name: 'Each else syntax',
 		template: '{{#each foo:i}}foo #{{i+1}}{{else}}no foos{{/each}}',
-		parsed: {v:1,t:[{t:4,n:52,r:'foo',i:[{n:'i',t:'i'}],f:['foo #',{ t:2,x:{r:['i'],s:'_0+1'}}]},{t:4,n:51,r:'foo',f:['no foos']}]}
+		parsed: {v:1,t:[{t:4,n:52,r:'foo',i:'i',f:['foo #',{ t:2,x:{r:['i'],s:'_0+1'}}]},{t:4,n:51,r:'foo',f:['no foos']}]}
 	},
 	{
 		name: 'Else not allowed in #unless',

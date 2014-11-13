@@ -30,7 +30,12 @@ var Section = function ( options ) {
 	this.fragmentsToCreate = [];
 	this.fragmentsToRender = [];
 	this.fragmentsToUnrender = [];
-	this.indexRefs = options.template.i;
+
+	if ( options.template.i ) {
+		this.indexRefs = options.template.i.split(',').map( ( k, i ) => {
+			return { n: k, t: i === 0 ? 'k' : 'i' };
+		});
+	}
 
 	this.renderedFragments = [];
 
@@ -49,9 +54,11 @@ Section.prototype = {
 	findNextNode: findNextNode,
 	firstNode: firstNode,
 	getIndexRef: function( name ) {
-		for ( let ref of this.indexRefs ) {
-			if ( ref.n === name ) {
-				return ref;
+		if ( this.indexRefs ) {
+			for ( let ref of this.indexRefs ) {
+				if ( ref.n === name ) {
+					return ref;
+				}
 			}
 		}
 	},

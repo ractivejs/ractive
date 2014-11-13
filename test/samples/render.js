@@ -650,11 +650,18 @@ var renderTests = [
 		result: '<p>0: a</p><p>1: b</p><p>2: c</p>'
 	},
 	{
-		name: '@key can be used as an key reference',
+		name: '@key can be used as a key reference',
 		handlebars: true,
 		template: '{{#each object}}<p>{{@key}}: {{this}}</p>{{/each}}',
 		data: { object: { foo: 1, bar: 2, baz: 3 } },
 		result: '<p>foo: 1</p><p>bar: 2</p><p>baz: 3</p>'
+	},
+	{
+		name: '@key can be used as an index reference for arrays',
+		handlebars: true,
+		template: '{{#each array}}<p>{{@key}}: {{this}}</p>{{/each}}',
+		data: { array: [ 'foo', 'bar', 'baz' ] },
+		result: '<p>0: foo</p><p>1: bar</p><p>2: baz</p>'
 	},
 	{
 		name: '@index can be used as an index reference with object sections',

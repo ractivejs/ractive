@@ -156,15 +156,13 @@ export default function ( parser, delimiterType ) {
 
 	// optional index and key references
 	if ( i = parser.matchPattern( indexRefPattern ) ) {
-		let extra, indices = [];
-		mustache.i = indices;
+		let extra;
 
 		if ( extra = parser.matchPattern( keyIndexRefPattern ) ) {
-			indices.push( { n: i, t: 'k' } );
-			i = extra;
+			mustache.i = i + ',' + extra;
+		} else {
+			mustache.i = i;
 		}
-
-		indices.push( { n: i, t: 'i' } );
 	}
 
 	return mustache;

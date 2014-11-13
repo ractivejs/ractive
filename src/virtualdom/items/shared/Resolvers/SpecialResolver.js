@@ -9,14 +9,23 @@ var SpecialResolver = function ( owner, ref, callback ) {
 };
 
 var props = {
-	'@keypath': { prefix: 'c', prop: 'context' },
-	'@index': { prefix: 'i', prop: 'index' },
-	'@key': { prefix: 'k', prop: 'key' }
+	'@keypath': { prefix: 'c', prop: [ 'context' ] },
+	'@index': { prefix: 'i', prop: [ 'index' ] },
+	'@key': { prefix: 'k', prop: [ 'key', 'index' ] }
 };
+
+function getProp( target, prop ) {
+	var value;
+	for ( let i = 0; i < prop.prop.length; i++ ) {
+		if ( ( value = target[prop.prop[i]] ) !== undefined ) {
+			return value;
+		}
+	}
+}
 
 SpecialResolver.prototype = {
 	rebind: function () {
-		var ref = this.ref, fragment = this.parentFragment, prop = props[ref];
+		var ref = this.ref, fragment = this.parentFragment, prop = props[ref], value;
 
 		if ( !prop ) {
 			throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
@@ -24,20 +33,18 @@ SpecialResolver.prototype = {
 
 		// have we already found the nearest parent?
 		if ( this.cached ) {
-			return this.callback( '@' + prop.prefix + this.cached.fragment[prop.prop] );
+			return this.callback( '@' + prop.prefix + getProp( this.cached, prop ) );
 		}
 
 		// special case for indices, which may cross component boundaries
-		if ( prop.prop === 'index' || prop.prop === 'key' ) {
+		if ( prop.prop.indexOf( 'index' ) !== -1 || prop.prop.indexOf( 'key' ) !== -1 ) {
 			while ( fragment ) {
-				if ( fragment.owner.currentSubtype === types.SECTION_EACH && fragment[prop.prop] !== undefined ) {
-					this.cached = {
-						fragment: fragment
-					};
+				if ( fragment.owner.currentSubtype === types.SECTION_EACH && ( value = getProp( fragment, prop ) ) !== undefined ) {
+					this.cached = fragment;
 
 					fragment.registerIndexRef( this );
 
-					return this.callback( '@' + prop.prefix + fragment[prop.prop] );
+					return this.callback( '@' + prop.prefix + value );
 				}
 
 				// watch for component boundaries
@@ -53,8 +60,8 @@ SpecialResolver.prototype = {
 
 		else {
 			while ( fragment ) {
-				if ( fragment[prop.prop] !== undefined ) {
-					return this.callback( '@' + prop.prefix + fragment[prop.prop] );
+				if ( ( value = getProp( fragment, prop ) ) !== undefined ) {
+					return this.callback( '@' + prop.prefix + value );
 				}
 
 				fragment = fragment.parent;
@@ -64,7 +71,7 @@ SpecialResolver.prototype = {
 
 	unbind: function () {
 		if ( this.cached ) {
-			this.cached.fragment.unregisterIndexRef( this );
+			this.cached.unregisterIndexRef( this );
 		}
 	}
 };
