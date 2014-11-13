@@ -23,8 +23,6 @@ var Mapping = function ( local, localKey, options ) {
 	this.deps = [];
 	this.unresolved = [];
 
-	this.links = [];
-
 	this.ready = true;
 
 };
@@ -36,10 +34,6 @@ Mapping.prototype = {
 		}
 
 		return this.origin.get( this.map( keypath ), options );
-	},
-
-	link: function ( child ) {
-		this.links.push( child );
 	},
 
 	map: function ( keypath ) {
@@ -118,10 +112,6 @@ Mapping.prototype = {
 		while ( dep = this.deps.pop() ) {
 			this.origin.unregister( this.map( dep.keypath, dep.dep, dep.group ) );
 		}
-	},
-
-	unlink: function ( child ) {
-		removeFromArray( this.links, child );
 	},
 
 	unregister: function ( keypath, dependant, group ) {
