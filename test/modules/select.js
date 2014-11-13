@@ -396,6 +396,22 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok(  ractive.nodes._3.selected );
 		});
 
+		test( 'safe to render options into select outside of ractive', t => {
+			var ractive, select = document.createElement( 'SELECT' );
+			fixture.appendChild( select );
+
+			ractive = new Ractive({
+				el: select,
+				template: '{{#items}}<option>{{.}}</option>{{/}}',
+				data: {
+					items: [ 'a' ]
+				}
+			})
+
+			t.equal( select.innerHTML, '<option>a</option>' );
+
+		});
+
 	};
 
 });
