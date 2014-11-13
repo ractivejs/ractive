@@ -660,6 +660,17 @@ var renderTests = [
 		result: '<p id="p0">a</p><p id="p1">b</p><p id="p2">c</p>'
 	},
 	{
+		name: '@key can be used with keys that look like numbers (#1462)',
+		template: '{{#each numbers}}<p>{{.}}: {{@key}}</p>{{/each}}',
+		data: {
+			numbers: {
+				'8675309': 'Jenny',
+				'01189998819991197253': 'Emergency Services'
+			}
+		},
+		result: '<p>Jenny: 8675309</p><p>Emergency Services: 01189998819991197253</p>'
+	},
+	{
 		name: '{{#each items}}...{{else}}...{{/each}}',
 		handlebars: true,
 		template: '{{#each items}}<p>{{this}}</p>{{else}}<p>no items!</p>{{/each}}',

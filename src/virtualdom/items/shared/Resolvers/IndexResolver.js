@@ -13,7 +13,7 @@ IndexResolver.prototype = {
 			index = indexRefs[ ref ];
 
 		if ( index !== undefined ) {
-			this.callback( '@' + index );
+			this.callback( '@i' + index );
 		}
 	},
 

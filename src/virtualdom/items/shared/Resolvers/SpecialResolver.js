@@ -7,9 +7,9 @@ var SpecialResolver = function ( owner, ref, callback ) {
 };
 
 var props = {
-	'@keypath': 'context',
-	'@index': 'index',
-	'@key': 'index'
+	'@keypath': { prefix: 'p', name: 'context' },
+	'@index': { prefix: 'i', name: 'index' },
+	'@key': { prefix: 'k', name: 'index' }
 };
 
 SpecialResolver.prototype = {
@@ -21,8 +21,8 @@ SpecialResolver.prototype = {
 		}
 
 		while ( fragment ) {
-			if ( fragment[prop] !== undefined ) {
-				return this.callback( '@' + fragment[prop] );
+			if ( fragment[prop.name] !== undefined ) {
+				return this.callback( '@' + prop.prefix + fragment[prop.name] );
 			}
 
 			fragment = fragment.parent;
