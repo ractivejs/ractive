@@ -1,4 +1,3 @@
-import removeFromArray from 'utils/removeFromArray';
 import startsWith from 'virtualdom/items/shared/utils/startsWith';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 
@@ -11,13 +10,14 @@ export default function Viewmodel$map ( key, options ) {
 }
 
 var Mapping = function ( local, localKey, options ) {
+
 	this.local = local;
 	this.localKey = localKey;
 	this.origin = options.origin;
-
 	this.resolved = false;
+
 	if ( options.keypath !== undefined ) {
-		this.resolve( options.keypath );
+		this.resolve( options.keypath, options.initialValue );
 	}
 
 	this.deps = [];
@@ -60,7 +60,7 @@ Mapping.prototype = {
 		}
 	},
 
-	resolve: function ( keypath ) {
+	resolve: function ( keypath, initialValue ) {
 		if ( this.keypath !== undefined ) {
 			this.origin.unregister( this.keypath, this, 'mappings' );
 
@@ -71,14 +71,21 @@ Mapping.prototype = {
 		this.resolved = keypath !== undefined;
 
 		if ( keypath !== undefined ) {
+
+			if ( initialValue !== undefined && this.origin.get( keypath ) === undefined ) {
+				this.origin.set( keypath, initialValue );
+			}
+
 			this.origin.register( keypath, this, 'mappings' );
 
-			// keep local data in sync, will be ie8 only...
+
+			// keep local data in sync, hopefully will be ie8 only if we get wrappers going...
 			this.origin.register( keypath, {
 				setValue: value => {
 					this.local.ractive.data[ this.localKey ] = value;
 				}
 			}, 'default' );
+
 
 			if ( this.ready ) {
 				this.unresolved.forEach( u => {
@@ -95,6 +102,7 @@ Mapping.prototype = {
 				this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
 				this.local.mark( this.localKey );
 			}
+
 		}
 	},
 

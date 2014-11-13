@@ -13,26 +13,68 @@ export default function createParameters ( component, attributes) {
 		return { data: {}, mappings: null };
 	}
 
-	parameters = new Parameters( component, attributes );
+	parameters = new ParameterMapper( component, attributes );
+
+	/*
+	var properties = parameters.keys.reduce( ( definition, key ) => {
+
+		if ( parameters.mappings[key] ) {
+			definition[ key ] = {
+				get: function () {
+					var mapping = this._mappings[ key ];
+					return mapping.origin.get( mapping.keypath );
+				},
+				set: function ( value ) {
+					var mapping = this._mappings[ key ];
+					mapping.origin.set( mapping.keypath, value );
+				},
+				enumerable: true
+			}
+		}
+		else {
+			definition[ key ] = {
+				get: function () {
+					return this._data[ key ];
+				}
+			}
+		}
+
+		return definition;
+	}, {});
+
+	var proto = {};
+	Object.defineProperties( proto, properties );
+	function F ( options ) {
+		this._mappings = options.mappings;
+		this._data = options.data || {};
+	}
+	F.prototype = proto
+
+	var d = new F( parameters );
+	*/
 
 	return { data: parameters.data, mappings: parameters.mappings };
 }
 
-function Parameters ( component, attributes ) {
+function ParameterMapper ( component, attributes ) {
 	this.component = component;
-	this.source = component.root.viewmodel;
+	this.parentViewmodel = component.root.viewmodel;
 	this.data = {};
 	this.mappings = {};
 	this.keys = Object.keys( attributes );
 
 	this.keys.forEach( key => {
-		var template = attributes[ key ];
+		this.add( key, attributes[ key ] );
+	});
+}
 
+ParameterMapper.prototype = {
+
+	add: function ( key, template ) {
 		// We have static data
 		if ( typeof template === 'string' ) {
 			this.addStatic( key, template );
 		}
-
 		// Empty string
 		// TODO valueless attributes also end up here currently
 		// (i.e. `<widget bool>` === `<widget bool=''>`) - this
@@ -40,36 +82,25 @@ function Parameters ( component, attributes ) {
 		else if ( template === 0 ) {
 			this.addData( key );
 		}
-
 		// Single interpolator
 		else if ( template.length === 1 && template[0].t === types.INTERPOLATOR ) {
 			this.addReference( key, template[0] );
 		}
-
 		// We have a 'complex' parameter, e.g.
 		// `<widget foo='{{bar}} {{baz}}'/>`
 		else {
 			this.addComplex( key, template );
 		}
+	},
 
-	});
-}
-
-Parameters.prototype = {
 	addData: function ( key, value ) {
 		this.data[ key ] = value;
 	},
 
 	addMapping: function ( key, keypath ) {
 		this.mappings[ key ] = {
-			origin: this.source.origin( keypath ),
+			origin: this.parentViewmodel.origin( keypath ),
 			keypath: keypath
-		};
-	},
-
-	addUnresolvedMapping: function ( key ) {
-		this.mappings[ key ] = {
-			origin: this.source
 		};
 	},
 
@@ -87,7 +118,7 @@ Parameters.prototype = {
 	addReference: function ( key, template ) {
 		var ref, resolver, resolve, target;
 
-		target = new NotReadyResolver( this, key);
+		target = new ParameterResolve( this, key);
 		resolve = target.resolve.bind( target );
 
 		if ( ref = template.r ) {
@@ -99,60 +130,62 @@ Parameters.prototype = {
 		}
 
 		if ( !target.resolved ) {
-			// note the mapping anyway, for the benefit of child
-			// components
-			this.addUnresolvedMapping( key );
+			// note the mapping anyway, for the benefit of child components
+			this.addMapping( key );
 		}
 
-		// TODO: If resolved, assuming may have additional callbacks.
-		// But is that always true? Can we short-circuit this?
-		target = new ReadyResolver( this, key );
-		resolver.callback = target.resolve.bind(target);
+		target.ready = true;
 
 		this.component.resolvers.push( resolver );
 	}
-}
+};
 
-function NotReadyResolver ( parameters, key ) {
+function ParameterResolve ( parameters, key ) {
 	this.parameters = parameters;
-	this.source = this.parameters.component.root.viewmodel;
 	this.key = key;
-	this.resolved = false;
+	this.resolved = this.ready = false;
 }
 
-NotReadyResolver.prototype.resolve = function ( keypath ) {
-	this.resolved = true;
+ParameterResolve.prototype = {
+	resolve: function ( keypath ) {
+		this.resolved = true;
 
-	if ( keypath[0] === '@' ) {
-		this.parameters.addData( this.key, decodeKeypath( keypath ) );
-	}
-	else {
-		let value = this.source.get( keypath );
-		this.parameters.addMapping( this.key, keypath );
+		if ( this.ready ) {
+			this.readyResolve( keypath );
+		}
+		else {
+			this.notReadyResolve( keypath );
+		}
+	},
 
-		if( value !== undefined ){
-			this.parameters.addData( this.key, value );
+	isSpecial: function ( keypath ) {
+		return keypath[0] === '@';
+	},
+
+	notReadyResolve: function ( keypath ) {
+		this.resolved = true;
+
+		if ( this.isSpecial( keypath ) ) {
+			this.parameters.addData( this.key, decodeKeypath( keypath ) );
+		}
+		else {
+			let value = this.parameters.component.root.viewmodel.get( keypath );
+			this.parameters.addMapping( this.key, keypath );
+
+			if( value !== undefined ){
+				this.parameters.addData( this.key, value );
+			}
+		}
+	},
+
+	readyResolve: function ( keypath ) {
+		var viewmodel = this.parameters.component.instance.viewmodel;
+
+		if ( this.isSpecial( keypath ) ) {
+			viewmodel.set( this.key, decodeKeypath( keypath ) );
+		}
+		else {
+			viewmodel.mappings[ this.key ].resolve( keypath );
 		}
 	}
-}
-
-function ReadyResolver ( parameters, key ) {
-	this.parameters = parameters;
-	this.key = key;
-}
-
-ReadyResolver.prototype.resolve = function ( keypath ) {
-	var viewmodel = this.parameters.component.instance.viewmodel;
-
-	if ( keypath[0] === '@' ) {
-		viewmodel.set( this.key, decodeKeypath( keypath ) );
-	}
-	else {
-		viewmodel.mappings[ this.key ].resolve( keypath );
-
-		// TODO don't think this is necessary, need to test...
-		// if( value !== undefined ){
-		// 	this.parameters.addData( key, value );
-		// }
-	}
-}
+};
