@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-13 - commit 3a722e38 
+	2014-11-13 - commit 8c1a3e02 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9090,6 +9090,9 @@
 
 	/* virtualdom/items/Element/special/option/findParentSelect.js */
 	var findParentSelect = function findParentSelect( element ) {
+		if ( !element ) {
+			return;
+		}
 		do {
 			if ( element.name === 'select' ) {
 				return element;
