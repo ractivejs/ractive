@@ -618,6 +618,31 @@ var renderTests = [
 		new_result: '<p>2</p><p>4</p><p>5</p>'
 	},
 	{
+		name: 'two indices in an #each with object give access to the key and index',
+		handlebars: true,
+		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
+	},
+	{
+		name: 'the key ref in an #each switches to index if the value turns into an array',
+		handlebars: true,
+		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>',
+		new_data: { object: [ 1, 2, 3 ] },
+		new_result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>'
+	},
+	{
+		name: 'the key ref in an #each switches to key if the value turns into an object',
+		handlebars: true,
+		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
+		data: { object: [ 1, 2, 3 ] },
+		result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>',
+		new_data: { object: { foo: 1, bar: 2, baz: 3 } },
+		new_result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
+	},
+	{
 		name: '@index can be used as an index reference',
 		handlebars: true,
 		template: '{{#each items}}<p>{{@index}}: {{this}}</p>{{/each}}',
@@ -630,6 +655,24 @@ var renderTests = [
 		template: '{{#each object}}<p>{{@key}}: {{this}}</p>{{/each}}',
 		data: { object: { foo: 1, bar: 2, baz: 3 } },
 		result: '<p>foo: 1</p><p>bar: 2</p><p>baz: 3</p>'
+	},
+	{
+		name: '@index can be used as an index reference with object sections',
+		template: '{{#each object}}<p>{{@key}} {{@index}} {{.}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
+	},
+	{
+		name: '@key and @index can be used in an expression with object sections',
+		template: '{{#each object}}<p>{{@key + "!"}} {{@index + 1}} {{.}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>foo! 1 1</p><p>bar! 2 2</p><p>baz! 3 3</p>'
+	},
+	{
+		name: 'key and index refs can be used in an expression with object sections',
+		template: '{{#each object: k, i }}<p>{{k + "!"}} {{i + 1}} {{.}}</p>{{/each}}',
+		data: { object: { foo: 1, bar: 2, baz: 3 } },
+		result: '<p>foo! 1 1</p><p>bar! 2 2</p><p>baz! 3 3</p>'
 	},
 	{
 		name: '@index can be used in an expression',
@@ -942,12 +985,17 @@ var renderTests = [
 		template: '<select><option value="">Option 0</option><option value="1">Option 1</option></select>',
 		result: '<select><option value="">Option 0</option><option value="1">Option 1</option></select>'
 	},
-
 	{
 		name: '@keypath may be used to refer to the current context',
 		template: `<ul>{{#items}}{{#some}}<li>{{@keypath}} - {{path}}</li>{{/}}{{/}}</ul>`,
 		data: { items: [ { some: { path: 'a' } }, { notsome: { path: 'b' } }, { some: { path: 'c' } } ] },
 		result: `<ul><li>items.0.some - a</li><li>items.2.some - c</li></ul>`
+	},
+	{
+		name: '@key references can be strings that look like numbers',
+		template: '{{#each object:k}}{{@key}} {{k}}{{/each}}',
+		data: { object: { '0001': 1 } },
+		result: '0001 0001'
 	}
 ];
 

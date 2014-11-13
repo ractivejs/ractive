@@ -34,7 +34,7 @@ ReferenceResolver.prototype = {
 		this.resolve( this.ref );
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath ) {
 		var keypath;
 
 		if ( this.keypath !== undefined ) {

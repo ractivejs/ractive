@@ -19,7 +19,7 @@ export default function Section$shuffle ( newIndices ) {
 
 	// short circuit any double-updates, and ensure that this isn't applied to
 	// non-list sections
-	if ( this.shuffling || this.unbound || ( this.subtype && this.subtype !== types.SECTION_EACH ) ) {
+	if ( this.shuffling || this.unbound || ( this.currentSubtype !== types.SECTION_EACH ) ) {
 		return;
 	}
 
@@ -30,9 +30,10 @@ export default function Section$shuffle ( newIndices ) {
 
 	reboundFragments = [];
 
+	// TODO: need to update this
 	// first, rebind existing fragments
 	newIndices.forEach( ( newIndex, oldIndex ) => {
-		var fragment, by, oldKeypath, newKeypath;
+		var fragment, by, oldKeypath, newKeypath, deps;
 
 		if ( newIndex === oldIndex ) {
 			reboundFragments[ newIndex ] = this.fragments[ oldIndex ];
@@ -57,7 +58,17 @@ export default function Section$shuffle ( newIndices ) {
 		oldKeypath = this.keypath + '.' + oldIndex;
 		newKeypath = this.keypath + '.' + newIndex;
 
-		fragment.rebind( this.template.i, newIndex, oldKeypath, newKeypath );
+		fragment.index = newIndex;
+
+		// notify any registered index refs directly
+		if ( deps = fragment.registeredIndexRefs ) {
+			for ( let d of deps ) {
+				// the keypath doesn't actually matter here
+				d.rebind( '', '' );
+			}
+		}
+
+		fragment.rebind( oldKeypath, newKeypath );
 		reboundFragments[ newIndex ] = fragment;
 	});
 

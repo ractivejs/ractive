@@ -24,7 +24,7 @@ export default function Component$init ( options, Component ) {
 	this.type = types.COMPONENT;
 	this.name = options.template.e;
 	this.index = options.index;
-	this.indexRefBindings = {};
+	this.key = options.key;
 
 	// even though only one yielder is allowed, we need to have an array of them
 	// as it's possible to cause a yielder to be created before the last one

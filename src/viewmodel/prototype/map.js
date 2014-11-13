@@ -45,7 +45,7 @@ Mapping.prototype = {
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath ) {
 		if ( startsWith( this.keypath, oldKeypath ) ) {
 			this.deps.forEach( d => this.origin.unregister( this.map( d.keypath ), d.dep, d.group ) );
 			this.keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );

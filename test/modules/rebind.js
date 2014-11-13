@@ -74,7 +74,8 @@ define([
 				fragment.findNextNode = function () { return null; };
 
 				fragment.render();
-				fragment.rebind( 'i', opt.newKeypath.replace('items.',''), opt.oldKeypath, opt.newKeypath);
+				fragment.index = opt.newKeypath.replace( 'items.', '' );
+				fragment.rebind( opt.oldKeypath, opt.newKeypath );
 
 				t.equal( fragment.context, opt.expected );
 				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );
