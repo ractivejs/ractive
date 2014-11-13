@@ -1774,6 +1774,38 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 			t.htmlEqual( fixture.innerHTML, 'foo!' );
 		});
 
+		test( 'Isolated components do not get outside index refs', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#list:i}}<cmp />{{/}}',
+				data: { list: [1, 2, 3] },
+				components: {
+					cmp: Ractive.extend({
+						template: '{{i}} {{@index}}',
+						isolated: true
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
+		test( 'Isolated components may have index references mapped in', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#list:i}}<cmp i="{{i}}" />{{/}}',
+				data: { list: [1, 2, 3] },
+				components: {
+					cmp: Ractive.extend({
+						template: '{{i}} {{@index}}',
+						isolated: true
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '0 1 2 ' );
+		});
+
 		// Commented out temporarily, see #1381
 		/*test( 'Binding from parent to computation on child that is bound to parent should update properly (#1357)', ( t ) => {
 			var ractive = new Ractive({

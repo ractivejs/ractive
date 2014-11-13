@@ -41,7 +41,9 @@ SpecialResolver.prototype = {
 				}
 
 				// watch for component boundaries
-				if ( !fragment.parent && fragment.owner && fragment.owner.component && fragment.owner.component.parentFragment ) {
+				if ( !fragment.parent && fragment.owner &&
+				     fragment.owner.component && fragment.owner.component.parentFragment &&
+				     !fragment.owner.component.instance.isolated ) {
 					fragment = fragment.owner.component.parentFragment;
 				} else {
 					fragment = fragment.parent;

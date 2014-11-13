@@ -35,7 +35,9 @@ export default function findIndexRefs( fragment, refName ) {
 		}
 
 		// watch for component boundaries
-		if ( !fragment.parent && fragment.owner && fragment.owner.component && fragment.owner.component.parentFragment ) {
+		if ( !fragment.parent && fragment.owner &&
+		     fragment.owner.component && fragment.owner.component.parentFragment &&
+		     !fragment.owner.component.instance.isolated ) {
 			result.componentBoundary = true;
 			fragment = fragment.owner.component.parentFragment;
 		} else {
