@@ -1777,33 +1777,49 @@ define([ 'ractive', 'helpers/Model', 'utils/log' ], function ( Ractive, Model, l
 		test( 'Isolated components do not get outside index refs', t => {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{#list:i}}<cmp />{{/}}',
+				template: '{{#list:i,ii}}<cmp />{{/}}',
 				data: { list: [1, 2, 3] },
 				components: {
 					cmp: Ractive.extend({
-						template: '{{i}} {{@index}}',
+						template: '{{i}} {{ii}} {{(ii || "") + "1"}} {{@index}} {{@key}} ',
 						isolated: true
 					})
 				}
 			});
 
-			t.htmlEqual( fixture.innerHTML, '' );
+			t.htmlEqual( fixture.innerHTML, '1    1    1' );
+
+			ractive.splice( 'list', 1, 1 );
+
+			t.htmlEqual( fixture.innerHTML, '1    1' );
+
+			ractive.set( 'list', { foo: 1, bar: 2, baz: 3 } );
+
+			t.htmlEqual( fixture.innerHTML, '1    1    1' );
 		});
 
 		test( 'Isolated components may have index references mapped in', t => {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{#list:i}}<cmp i="{{i}}" />{{/}}',
+				template: '{{#list:i,ii}}<cmp i="{{i}}" ii="{{ii}}" />{{/}}',
 				data: { list: [1, 2, 3] },
 				components: {
 					cmp: Ractive.extend({
-						template: '{{i}} {{@index}}',
+						template: '{{i}} {{ii}} {{(ii || "0") + "1 "}} ',
 						isolated: true
 					})
 				}
 			});
 
-			t.htmlEqual( fixture.innerHTML, '0 1 2 ' );
+			t.htmlEqual( fixture.innerHTML, '0 0 01 1 1 11 2 2 21 ' );
+
+			ractive.splice( 'list', 1, 1 );
+
+			t.htmlEqual( fixture.innerHTML, '0 0 01 1 1 11 ' );
+
+			ractive.set( 'list', { foo: 1, bar: 2, baz: 3 } );
+
+			t.htmlEqual( fixture.innerHTML, 'foo 0 01 bar 1 11 baz 2 21 ' );
 		});
 
 		// Commented out temporarily, see #1381
