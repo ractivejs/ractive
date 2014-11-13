@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-12 - commit a101feea 
+	2014-11-13 - commit 3a722e38 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9011,7 +9011,10 @@
 				}
 			},
 			teardown: function( updating ) {
-				this.actual.teardown();
+				this.torndown = true;
+				if ( this.ready ) {
+					this.actual.teardown();
+				}
 				if ( !updating && this.fragment ) {
 					this.fragment.unbind();
 				}
@@ -9998,7 +10001,9 @@
 			// apply decorator(s)
 			if ( this.decorator && this.decorator.fn ) {
 				runloop.scheduleTask( function() {
-					return this$0.decorator.init();
+					if ( !this$0.decorator.torndown ) {
+						this$0.decorator.init();
+					}
 				}, true );
 			}
 			// trigger intro transition
