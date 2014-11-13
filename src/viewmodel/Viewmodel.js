@@ -6,6 +6,7 @@ import clearCache from 'viewmodel/prototype/clearCache';
 import compute from 'viewmodel/prototype/compute';
 import get from 'viewmodel/prototype/get';
 import init from 'viewmodel/prototype/init';
+import magic from 'config/magic';
 import map from 'viewmodel/prototype/map';
 import mark from 'viewmodel/prototype/mark';
 import merge from 'viewmodel/prototype/merge';
@@ -16,17 +17,6 @@ import smartUpdate from 'viewmodel/prototype/smartUpdate';
 import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
 import adaptConfig from 'viewmodel/adaptConfig';
-
-// TODO: fix our ES6 modules so we can have multiple exports
-// then this magic check can be reused by magicAdaptor
-var noMagic;
-
-try {
-	Object.defineProperty({}, 'test', { value: 0 });
-}
-catch ( err ) {
-	noMagic = true; // no magic in this environment :(
-}
 
 var Viewmodel = function ( ractive, mappings ) {
 	var key, mapping;
@@ -79,7 +69,7 @@ var Viewmodel = function ( ractive, mappings ) {
 
 Viewmodel.extend = function ( Parent, instance ) {
 
-	if ( instance.magic && noMagic ) {
+	if ( instance.magic && !magic ) {
 		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 	}
 
