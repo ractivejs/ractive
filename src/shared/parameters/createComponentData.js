@@ -52,38 +52,34 @@ function makeConstructor ( parameters, defined ) {
 
 	properties = parameters.keys.reduce( ( definition, key ) => {
 
-		if ( parameters.mappings[key] ) {
-			definition[ key ] = {
-				get: function () {
-					let mapping = this._mappings[ key ];
+		definition[ key ] = {
+			get: function () {
+				let mapping = this._mappings[ key ];
 
-					// TODO: track this explicitly?
-					// also , what about the reverse? or set?
-					if ( !mapping ) {
-						return this._data[ key ];
-					}
-
-					return mapping.origin.get( mapping.keypath );
-				},
-				set: function ( value ) {
-					let mapping = this._mappings[ key ];
-					runloop.start();
-					mapping.origin.set( mapping.keypath, value );
-					runloop.end();
-				},
-				enumerable: true
-			};
-		}
-		else {
-			definition[ key ] = {
-				get: function () {
+				if ( mapping ) {
+					return mapping.getValue();
+				} else {
 					return this._data[ key ];
-				},
-				enumerable: true
-			};
-		}
+				}
+
+			},
+			set: function ( value ) {
+				let mapping = this._mappings[ key ];
+
+				if ( mapping ) {
+					runloop.start();
+					mapping.setValue( value );
+					runloop.end();
+				}
+				else {
+					this._data[ key ] = value;
+				}
+			},
+			enumerable: true
+		};
 
 		return definition;
+
 	}, defined);
 
 	function ComponentData ( options ) {

@@ -104,29 +104,6 @@ define([
 				t.htmlEqual( fixture.innerHTML, '<p>shmup</p>' );
 			});
 
-			// Commenting out this test for the moment - is this a desirable feature?
-			// It prevents JavaScript closure-like behaviour with data contexts
-			/*test( 'Missing data on the parent is not propagated', t => {
-				var Widget, ractive, widget;
-
-				Widget = Ractive.extend({
-					template: '<p>{{foo}}</p>'
-				});
-
-				ractive = new Ractive({
-					el: fixture,
-					template: '<widget foo="{{missing}}"/>',
-					components: {
-						widget: Widget
-					}
-				});
-
-				widget = ractive.findComponent( 'widget' );
-
-				t.ok( !( widget.data.hasOwnProperty( 'foo' ) ) );
-				t.htmlEqual( fixture.innerHTML, '<p></p>' );
-			});*/
-
 			test( 'Missing data on the parent is added when set', t => {
 				var Widget, ractive, widget;
 
@@ -351,6 +328,61 @@ define([
 				delete Ractive.components.grandwidget
 			});
 
+			test( 'mixed use of same component parameters across different instances', t => {
+				var ractive, Widget, widgets;
+
+				Widget = Ractive.extend({
+					template: '{{foo}}',
+					parameters: parameters
+				});
+
+				ractive = new Ractive({
+					el: fixture,
+					template:  `{{obj.bar}}
+								{{#with obj}}
+									<widget foo="{{bar}}"/>
+									<widget foo="{{@keypath}}"/>
+								{{/with}}
+								<widget foo="static"/>
+								<widget foo="{{prop}}-{{obj.bar}}"/>
+								<widget foo="{{obj[prop]}}"/>`,
+					components: { widget: Widget },
+					data: {
+						obj: { bar: 'qux' },
+						prop: 'bar'
+					}
+				});
+
+				t.equal( fixture.innerHTML, 'qux qux obj static bar-qux qux' );
+
+				widgets = ractive.findAllComponents( 'widget' );
+				widgets[0].set('foo', 'one')
+				t.equal( fixture.innerHTML, 'one one obj static bar-one one' );
+				widgets[1].set('foo', 'two')
+				t.equal( fixture.innerHTML, 'one one two static bar-one one' );
+				widgets[2].set('foo', 'notstatic')
+				t.equal( fixture.innerHTML, 'one one two notstatic bar-one one' );
+				widgets[3].set('foo', 'notcomplex')
+				t.equal( fixture.innerHTML, 'one one two notstatic notcomplex one' );
+				// keypath expressions ARE bound!
+				widgets[4].set('foo', 'bound')
+				t.equal( fixture.innerHTML, 'bound bound two notstatic bar-bound bound' );
+
+				if ( parameters === true ) {
+					widgets[0].data.foo = 'un'
+					t.equal( fixture.innerHTML, 'un un two notstatic bar-un un' );
+					widgets[1].set('foo', 'duex')
+					t.equal( fixture.innerHTML, 'un un duex notstatic bar-un un' );
+					widgets[2].set('foo', 'pas-de-static')
+					t.equal( fixture.innerHTML, 'un un duex pas-de-static bar-un un' );
+					widgets[3].set('foo', 'pas-de-complex')
+					t.equal( fixture.innerHTML, 'un un duex pas-de-static pas-de-complex un' );
+					// keypath expressions ARE bound!
+					widgets[4].set('foo', 'lié')
+					t.equal( fixture.innerHTML, 'lié lié duex pas-de-static bar-lié lié' );
+				}
+			});
+
 			if ( Ractive.magic ) {
 
 				// only for ES5 prototype data params
@@ -555,7 +587,6 @@ define([
 					components: { widget: Widget }
 				});
 
-				// YOUR CODE GOES HERE
 				ractive = new Ractive({
 					el: fixture,
 					template: '<block/>',
@@ -804,6 +835,11 @@ define([
 
 					t.equal( component.data.foo, 'limits' );
 					t.equal( ractive.data.outer, 'limits' );
+
+					component.set( 'foo', 'bar' );
+
+					t.equal( component.data.foo, 'bar' );
+					t.equal( ractive.data.outer, 'bar' );
 
 				});
 
@@ -1258,16 +1294,10 @@ define([
 		testDataPropagation( 'Default', true );
 
 		// runs legacy, tracks data
-		// Ractive.defaults.parameters = 'legacy';
 		testDataPropagation( 'Legacy', 'legacy' );
-		// Ractive.defaults.parameters = true;
 
 		// // just mapping, no .data help
-		// Ractive.defaults.parameters = false;
 		testDataPropagation( 'None', false );
-		// Ractive.defaults.parameters = true;
-
-
 	};
 
 });
