@@ -1328,6 +1328,29 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( ractive.get( 'foo' ), 'test' );
 		});
 
+		test( 'Presence of lazy or twoway without value is considered true', t => {
+			let ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}" twoway lazy />',
+				twoway: false
+			});
+
+			let el = ractive.fragment.items[0];
+			t.ok( el.lazy );
+			t.ok( el.twoway );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}" twoway="0" lazy="0" />',
+				lazy: true
+			});
+
+			el = ractive.fragment.items[0];
+			t.ok( !el.lazy );
+			t.ok( !el.twoway );
+		});
+
+		// phantom doesn't like these tests, but browsers are ok with them
 		if ( !/phantomjs/i.test( window.navigator.userAgent ) ) {
 			test( 'lazy may be overriden on a per-element basis', t => {
 				let ractive = new Ractive({
