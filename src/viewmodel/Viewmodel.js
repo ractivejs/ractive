@@ -32,12 +32,13 @@ var Viewmodel = function ( ractive, mappings ) {
 		this.map( key, mappings[ key ] );
 	}
 
-	// if data exists locally, but is missing on the parent,
-	// we transfer ownership to the parent
-	for ( key in ractive.data ) {
-		// if( key === '_mappings' || key === '_data' || ractive.data._data[ key ] ) { continue; }
-		if ( ( mapping = this.mappings[ key ] ) && mapping.origin.get( mapping.keypath ) === undefined ) {
-			mapping.origin.set( mapping.keypath, ractive.data[ key ] );
+	if( ractive.data && !ractive.data._data ) {
+		// if data exists locally, but is missing on the parent,
+		// we transfer ownership to the parent
+		for ( key in ractive.data ) {
+			if ( ( mapping = this.mappings[ key ] ) && mapping.getValue() === undefined ) {
+				mapping.setValue( ractive.data[ key ] );
+			}
 		}
 	}
 

@@ -1,66 +1,28 @@
-import ComponentParameter from 'virtualdom/items/Component/initialise/ComponentParameter';
-import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import decodeKeypath from 'shared/decodeKeypath';
-import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
+import ComplexParameter from 'virtualdom/items/Component/initialise/ComplexParameter';
+import createComponentData from 'virtualdom/items/Component/initialise/createComponentData';
 import parseJSON from 'utils/parseJSON';
-import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
+import ParameterResolver from 'virtualdom/items/Component/initialise/ParameterResolver';
 import types from 'config/types';
 
 export default function createParameters ( component, attributes) {
-	var parameters;
+	var parameters, data;
 
 	if( !attributes ) {
 		return { data: {}, mappings: null };
 	}
 
-	parameters = new ParameterMapper( component, attributes );
+	parameters = new ComponentParameters( component, attributes );
+	data = createComponentData( parameters );
 
-	/*
-	var properties = parameters.keys.reduce( ( definition, key ) => {
-
-		if ( parameters.mappings[key] ) {
-			definition[ key ] = {
-				get: function () {
-					var mapping = this._mappings[ key ];
-					return mapping.origin.get( mapping.keypath );
-				},
-				set: function ( value ) {
-					var mapping = this._mappings[ key ];
-					mapping.origin.set( mapping.keypath, value );
-				},
-				enumerable: true
-			}
-		}
-		else {
-			definition[ key ] = {
-				get: function () {
-					return this._data[ key ];
-				}
-			}
-		}
-
-		return definition;
-	}, {});
-
-	var proto = {};
-	Object.defineProperties( proto, properties );
-	function F ( options ) {
-		this._mappings = options.mappings;
-		this._data = options.data || {};
-	}
-	F.prototype = proto
-
-	var d = new F( parameters );
-	*/
-
-	return { data: parameters.data, mappings: parameters.mappings };
+	return { data: data, mappings: parameters.mappings };
 }
 
-function ParameterMapper ( component, attributes ) {
+function ComponentParameters ( component, attributes ) {
 	this.component = component;
 	this.parentViewmodel = component.root.viewmodel;
 	this.data = {};
 	this.mappings = {};
+	this.writable = {};
 	this.keys = Object.keys( attributes );
 
 	this.keys.forEach( key => {
@@ -68,7 +30,7 @@ function ParameterMapper ( component, attributes ) {
 	});
 }
 
-ParameterMapper.prototype = {
+ComponentParameters.prototype = {
 
 	add: function ( key, template ) {
 		// We have static data
@@ -97,11 +59,21 @@ ParameterMapper.prototype = {
 		this.data[ key ] = value;
 	},
 
+	addWritable: function ( key ) {
+		this.writable[ key ] = true;
+	},
+
 	addMapping: function ( key, keypath ) {
-		this.mappings[ key ] = {
-			origin: this.parentViewmodel.origin( keypath ),
+		return this.mappings[ key ] = {
+			origin: this.parentViewmodel,
 			keypath: keypath
 		};
+		// TODO: not sure about reference expressions and such
+		// if this would actually work...  need to test
+		// return this.mappings[ key ] = {
+		// 	origin: this.parentViewmodel.origin( keypath ),
+		// 	keypath: keypath
+		// };
 	},
 
 	addStatic: function ( key, template ) {
@@ -110,82 +82,12 @@ ParameterMapper.prototype = {
 	},
 
 	addComplex: function ( key, template ) {
-		var param = new ComponentParameter( this.component, key, template );
-		this.addData( key , param.value );
-		this.component.complexParameters.push( param );
+		var complex = new ComplexParameter( this, key, template );
+		this.component.resolvers.push( complex );
 	},
 
 	addReference: function ( key, template ) {
-		var ref, resolver, resolve, target;
-
-		target = new ParameterResolve( this, key);
-		resolve = target.resolve.bind( target );
-
-		if ( ref = template.r ) {
-			resolver = createReferenceResolver( this.component, template.r, resolve );
-		} else if ( template.x ) {
-			resolver = new ExpressionResolver( this.component, this.component.parentFragment, template.x, resolve );
-		} else if ( template.rx ) {
-			resolver = new ReferenceExpressionResolver( this.component, template.rx, resolve );
-		}
-
-		if ( !target.resolved ) {
-			// note the mapping anyway, for the benefit of child components
-			this.addMapping( key );
-		}
-
-		target.ready = true;
-
-		this.component.resolvers.push( resolver );
-	}
-};
-
-function ParameterResolve ( parameters, key ) {
-	this.parameters = parameters;
-	this.key = key;
-	this.resolved = this.ready = false;
-}
-
-ParameterResolve.prototype = {
-	resolve: function ( keypath ) {
-		this.resolved = true;
-
-		if ( this.ready ) {
-			this.readyResolve( keypath );
-		}
-		else {
-			this.notReadyResolve( keypath );
-		}
-	},
-
-	isSpecial: function ( keypath ) {
-		return keypath[0] === '@';
-	},
-
-	notReadyResolve: function ( keypath ) {
-		this.resolved = true;
-
-		if ( this.isSpecial( keypath ) ) {
-			this.parameters.addData( this.key, decodeKeypath( keypath ) );
-		}
-		else {
-			let value = this.parameters.component.root.viewmodel.get( keypath );
-			this.parameters.addMapping( this.key, keypath );
-
-			if( value !== undefined ){
-				this.parameters.addData( this.key, value );
-			}
-		}
-	},
-
-	readyResolve: function ( keypath ) {
-		var viewmodel = this.parameters.component.instance.viewmodel;
-
-		if ( this.isSpecial( keypath ) ) {
-			viewmodel.set( this.key, decodeKeypath( keypath ) );
-		}
-		else {
-			viewmodel.mappings[ this.key ].resolve( keypath );
-		}
+		var parameter = new ParameterResolver( this, key, template);
+		this.component.resolvers.push( parameter.resolver );
 	}
 };

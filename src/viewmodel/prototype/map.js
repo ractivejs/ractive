@@ -15,6 +15,7 @@ var Mapping = function ( local, localKey, options ) {
 	this.localKey = localKey;
 	this.origin = options.origin;
 	this.resolved = false;
+	this.legacy = options.legacy;
 
 	if ( options.keypath !== undefined ) {
 		this.resolve( options.keypath );
@@ -34,6 +35,14 @@ Mapping.prototype = {
 		}
 
 		return this.origin.get( this.map( keypath ), options );
+	},
+
+	getValue: function () {
+		if ( !this.resolved ) {
+			return undefined;
+		}
+
+		return this.origin.get( this.keypath );
 	},
 
 	map: function ( keypath ) {
@@ -63,7 +72,6 @@ Mapping.prototype = {
 	resolve: function ( keypath ) {
 		if ( this.keypath !== undefined ) {
 			this.origin.unregister( this.keypath, this, 'mappings' );
-
 			this.deps.forEach( d => this.origin.unregister( this.map( d.keypath ), d.dep, d.group ) );
 		}
 
@@ -75,13 +83,14 @@ Mapping.prototype = {
 			this.origin.register( keypath, this, 'mappings' );
 
 
-			// keep local data in sync, hopefully will be ie8 only if we get wrappers going...
-			this.origin.register( keypath, {
-				setValue: value => {
-					this.local.ractive.data[ this.localKey ] = value;
-				}
-			}, 'default' );
-
+			if( this.legacy ) {
+				// keep local data in sync, for browsers w/ no defineProperty
+				this.origin.register( keypath, {
+					setValue: value => {
+						this.local.ractive.data[ this.localKey ] = value;
+					}
+				}, 'default' );
+			}
 
 			if ( this.ready ) {
 				this.unresolved.forEach( u => {
@@ -108,6 +117,14 @@ Mapping.prototype = {
 		}
 
 		this.origin.set( this.map( keypath ), value );
+	},
+
+	setValue: function ( value ) {
+		if ( !this.resolved ) {
+			throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+		}
+
+		this.origin.set( this.keypath, value );
 	},
 
 	unbind: function () {

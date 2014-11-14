@@ -1,27 +1,29 @@
 import runloop from 'global/runloop';
 import circular from 'circular';
 
-var Fragment, ComponentParameter;
+var Fragment;
 
 circular.push( function () {
 	Fragment = circular.Fragment;
 });
 
-ComponentParameter = function ( component, key, value ) {
-	this.parentFragment = component.parentFragment;
-	this.component = component;
+function ComplexParameter ( parameters, key, value ) {
+	this.parameters = parameters;
+	this.parentFragment = parameters.component.parentFragment;
 	this.key = key;
 
 	this.fragment = new Fragment({
 		template: value,
-		root:     component.root,
+		root:     parameters.component.root,
 		owner:    this
 	});
 
-	this.value = this.fragment.getValue();
-};
+	this.parameters.addData( this.key, this.fragment.getValue() );
+}
 
-ComponentParameter.prototype = {
+export default ComplexParameter;
+
+ComplexParameter.prototype = {
 	bubble: function () {
 		if ( !this.dirty ) {
 			this.dirty = true;
@@ -30,10 +32,10 @@ ComponentParameter.prototype = {
 	},
 
 	update: function () {
-		var value = this.fragment.getValue();
+		var viewmodel = this.parameters.component.instance.viewmodel;
 
-		this.component.instance.viewmodel.set( this.key, value );
-		this.value = value;
+		this.parameters.addData( this.key, this.fragment.getValue() );
+		viewmodel.mark( this.key );
 
 		this.dirty = false;
 	},
@@ -47,4 +49,3 @@ ComponentParameter.prototype = {
 	}
 };
 
-export default ComponentParameter;

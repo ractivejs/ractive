@@ -828,7 +828,7 @@ define([
 			t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 		});
 
-		test( 'Reference based fragment paramters update components', t => {
+		test( 'Reference based fragment parameters update components', t => {
 			var ractive = new Ractive({
 				el: fixture,
 				template: '<widget answer="{{foo}} and {{bar}}"/>',
