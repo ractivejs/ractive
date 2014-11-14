@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-13 - commit 8c1a3e02 
+	2014-11-14 - commit dde5d241 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11882,6 +11882,7 @@
 			teardown: teardown,
 			toggle: toggle,
 			toHTML: toHTML,
+			toHtml: toHTML,
 			unrender: unrender,
 			unshift: unshift,
 			update: update,
