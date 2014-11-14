@@ -14,7 +14,7 @@ export default function createComponentData ( parameters, proto ) {
 	}
 	// ES5 ftw!
 	return createDataFromPrototype( parameters, proto );
-};
+}
 
 function createLegacyData( parameters ) {
 	var mappings = parameters.mappings, key;
