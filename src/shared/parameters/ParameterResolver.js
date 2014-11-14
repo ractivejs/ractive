@@ -1,5 +1,5 @@
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import decodeKeypath from 'shared/decodeKeypath';
+import decodeKeypath from 'shared/keypaths/decode';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 
@@ -50,11 +50,10 @@ ParameterResolver.prototype = {
 			this.parameters.addData( this.key, decodeKeypath( keypath ) );
 		}
 		else {
-			let mapping = this.parameters.addMapping( this.key, keypath ),
-				value = mapping.origin.get( mapping.keypath );
+			let mapping = this.parameters.addMapping( this.key, keypath );
 
-			if( value === undefined ){
-				this.parameters.addWritable( this.key );
+			if( mapping.getValue() === undefined ){
+				mapping.updatable = true;
 			}
 		}
 	},

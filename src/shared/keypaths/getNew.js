@@ -1,4 +1,4 @@
-import startsWithKeypath from 'virtualdom/items/shared/utils/startsWithKeypath';
+import startsWithKeypath from 'shared/keypaths/startsWith';
 
 export default function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
 	// exact match

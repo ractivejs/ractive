@@ -19,7 +19,7 @@ import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
 import adaptConfig from 'viewmodel/adaptConfig';
 
-var Viewmodel = function ( ractive, mappings ) {
+var Viewmodel = function ( ractive, mappings = create(null) ) {
 	var key, mapping;
 
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
@@ -27,9 +27,9 @@ var Viewmodel = function ( ractive, mappings ) {
 	Viewmodel.extend( ractive.constructor, ractive );
 
 	// set up explicit mappings
-	this.mappings = create( null );
+	this.mappings = mappings;
 	for ( key in mappings ) {
-		this.map( key, mappings[ key ] );
+		mappings[ key ].setViewmodel( this );
 	}
 
 	if( ractive.data && !ractive.data._data ) {

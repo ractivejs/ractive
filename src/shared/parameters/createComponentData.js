@@ -2,51 +2,48 @@ import defineProperties from 'utils/defineProperties';
 import magic from 'config/magic';
 import runloop from 'global/runloop';
 
-function createComponentData( parameters, proto ) {
-	var ComponentData = getConstructor( parameters, proto );
-	return new ComponentData( parameters );
-}
+
+export default function createComponentData ( parameters, proto ) {
+	// Don't do anything with data at all..
+	if ( !proto.parameters ) {
+		return parameters.data;
+	}
+	// No magic or legacy requested
+	else if ( !magic || proto.parameters === 'legacy' ) {
+		return createLegacyData( parameters );
+	}
+	// ES5 ftw!
+	return createDataFromPrototype( parameters, proto );
+};
 
 function createLegacyData( parameters ) {
-	copyMappings( parameters );
-	return parameters.data;
-}
-
-var create = magic ? createComponentData : createLegacyData;
-
-export default create;
-
-function copyMappings ( parameters ) {
 	var mappings = parameters.mappings, key;
 
 	for ( key in mappings ) {
 		let mapping = mappings[ key ];
 		mapping.trackData = true;
 
-		if( !parameters.writable[ key ] ) {
-			parameters.addData( key, mapping.origin.get( mapping.keypath ) );
+		if( !mapping.updatable ) {
+			parameters.addData( key, mapping.getValue() );
 		}
 	}
+
+	return parameters.data;
+}
+
+function createDataFromPrototype( parameters, proto ) {
+	var ComponentData = getConstructor( parameters, proto );
+	return new ComponentData( parameters );
 }
 
 function getConstructor ( parameters, proto ) {
-	var protoparams = getParams( proto );
+	var protoparams = proto._parameters;
 
 	if ( !protoparams.Constructor || parameters.newKeys.length ) {
 		protoparams.Constructor = makeConstructor( parameters, protoparams.defined );
 	}
 
 	return protoparams.Constructor;
-}
-
-function getParams( proto ) {
-	if ( !proto._parameters ) {
-		proto._parameters = { defined: {} };
-	}
-	else if( !proto._parameters.defined ) {
-		proto._parameters.defined = {};
-	}
-	return proto._parameters;
 }
 
 function makeConstructor ( parameters, defined ) {
@@ -92,7 +89,6 @@ function makeConstructor ( parameters, defined ) {
 	function ComponentData ( options ) {
 		this._mappings = options.mappings;
 		this._data = options.data || {};
-		this._writable = options.writable;
 	}
 
 	defineProperties( proto = {}, properties );

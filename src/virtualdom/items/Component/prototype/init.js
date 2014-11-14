@@ -1,5 +1,5 @@
 import createInstance from 'virtualdom/items/Component/initialise/createInstance';
-import createParameters from 'virtualdom/items/Component/initialise/createParameters';
+import createParameters from 'shared/parameters/createParameters';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import types from 'config/types';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';

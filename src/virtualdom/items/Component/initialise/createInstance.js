@@ -52,7 +52,6 @@ export default function ( component, Component, parameters, yieldTemplate, parti
 		el: null,
 		append: true,
 		data: parameters.data,
-		inlinePartials: inlinePartials,
 		partials: partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,
@@ -61,8 +60,9 @@ export default function ( component, Component, parameters, yieldTemplate, parti
 	}, {
 		parent: ractive,
 		component: component,
+		container: container,
 		mappings: parameters.mappings,
-		container: container
+		inlinePartials: inlinePartials
 	});
 
 	return instance;
