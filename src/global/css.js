@@ -1,4 +1,4 @@
-import circular from 'circular';
+import runloop from 'global/runloop';
 import isClient from 'config/isClient';
 import removeFromArray from 'utils/removeFromArray';
 
@@ -16,10 +16,6 @@ var css,
 if ( !isClient ) {
 	css = null;
 } else {
-	circular.push( function () {
-		runloop = circular.runloop;
-	});
-
 	styleElement = document.createElement( 'style' );
 	styleElement.type = 'text/css';
 

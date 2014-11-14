@@ -1,12 +1,8 @@
 import log from 'utils/log/log';
 import config from 'config/config';
-import circular from 'circular';
+import Fragment from 'virtualdom/Fragment';
 
-var Fragment, getValueOptions = {}; // TODO what are the options?
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+var getValueOptions = {}; // TODO what are the options?
 
 export default function Transition$init ( element, template, isIntro ) {
 	var ractive, name, fragment;

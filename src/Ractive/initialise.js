@@ -6,13 +6,11 @@ import getNextNumber from 'utils/getNextNumber';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
-import circular from 'circular';
 
 var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
 	initHook = new HookQueue( 'init' );
 
-circular.initialise = initialiseRactiveInstance;
 export default initialiseRactiveInstance;
 
 function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {

@@ -1,14 +1,10 @@
-import circular from 'circular';
 import hasOwnProperty from 'utils/hasOwnProperty';
 import isArray from 'utils/isArray';
 import isObject from 'utils/isObject';
 import isNumeric from 'utils/isNumeric';
+import interpolate from 'shared/interpolate';
 
-var interpolators, interpolate, cssLengthPattern;
-
-circular.push( function () {
-	interpolate = circular.interpolate;
-});
+var interpolators, cssLengthPattern;
 
 cssLengthPattern = /^([+-]?[0-9]+\.?(?:[0-9]+)?)(px|em|ex|%|in|cm|mm|pt|pc)$/;
 

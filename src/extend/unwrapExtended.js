@@ -1,12 +1,6 @@
 import wrap from 'utils/wrapMethod';
 import config from 'config/config';
-import circular from 'circular';
-
-var Ractive;
-
-circular.push( function () {
-	Ractive = circular.Ractive;
-});
+import Ractive from 'Ractive';
 
 export default function unwrapExtended ( Child ) {
 	if ( !( Child.prototype instanceof Ractive ) ) { return Child; }

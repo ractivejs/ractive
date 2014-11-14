@@ -1,4 +1,3 @@
-import circular from 'circular';
 import create from 'utils/create';
 import hasOwnProperty from 'utils/hasOwnProperty';
 import getConditional from 'parse/Parser/expressions/conditional';
@@ -157,5 +156,4 @@ Parser.extend = function ( proto ) {
 	return Child;
 };
 
-circular.Parser = Parser;
 export default Parser;

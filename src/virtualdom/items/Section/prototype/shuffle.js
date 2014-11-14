@@ -1,12 +1,5 @@
 import types from 'config/types';
 import runloop from 'global/runloop';
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
 
 export default function Section$shuffle ( newIndices ) {
 	var parentFragment,

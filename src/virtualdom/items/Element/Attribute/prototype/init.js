@@ -3,14 +3,7 @@ import booleanAttributes from 'config/booleanAttributes';
 import determineNameAndNamespace from 'virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace';
 import getInterpolator from 'virtualdom/items/Element/Attribute/helpers/getInterpolator';
 import determinePropertyName from 'virtualdom/items/Element/Attribute/helpers/determinePropertyName';
-
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import Fragment from 'virtualdom/Fragment';
 
 export default function Attribute$init ( options ) {
 	this.type = types.ATTRIBUTE;

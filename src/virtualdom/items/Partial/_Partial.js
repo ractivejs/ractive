@@ -2,19 +2,13 @@ import log from 'utils/log/log';
 import types from 'config/types';
 import getPartialTemplate from 'virtualdom/items/Partial/getPartialTemplate';
 import applyIndent from 'virtualdom/items/Partial/applyIndent';
-import circular from 'circular';
 import runloop from 'global/runloop';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 import rebind from 'virtualdom/items/shared/Mustache/rebind';
 import unbind from 'virtualdom/items/shared/unbind';
+import Fragment from 'virtualdom/Fragment';
 
-var Partial, Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
-
-Partial = function ( options ) {
+var Partial = function ( options ) {
 	var parentFragment, template;
 
 	parentFragment = this.parentFragment = options.parentFragment;

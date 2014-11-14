@@ -1,13 +1,7 @@
 import runloop from 'global/runloop';
-import circular from 'circular';
+import Fragment from 'virtualdom/Fragment';
 
-var Fragment, ComponentParameter;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
-
-ComponentParameter = function ( component, key, value ) {
+var ComponentParameter = function ( component, key, value ) {
 	this.parentFragment = component.parentFragment;
 	this.component = component;
 	this.key = key;
