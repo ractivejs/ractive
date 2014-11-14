@@ -91,8 +91,6 @@ function initialiseProperties ( ractive, options ) {
 		ractive.container = options.container || null;
 		ractive.root = ractive.parent.root;
 
-		ractive._yield = options.yieldTemplate;
-
 		ractive.component = options.component;
 		options.component.instance = ractive;
 	} else {

@@ -5,5 +5,6 @@ export default {
 	'if': types.SECTION_IF,
 	'if-with': types.SECTION_IF_WITH,
 	'with': types.SECTION_WITH,
-	'unless': types.SECTION_UNLESS
+	'unless': types.SECTION_UNLESS,
+	'partial': types.SECTION_PARTIAL
 };
