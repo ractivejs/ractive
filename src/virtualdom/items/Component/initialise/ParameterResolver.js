@@ -34,6 +34,7 @@ export default ParameterResolver;
 ParameterResolver.prototype = {
 	resolve: function ( keypath ) {
 		this.resolved = true;
+		this.specialRef = keypath[0] === '@';
 
 		if ( this.ready ) {
 			this.readyResolve( keypath );
@@ -43,13 +44,9 @@ ParameterResolver.prototype = {
 		}
 	},
 
-	isSpecial: function ( keypath ) {
-		return keypath[0] === '@';
-	},
-
 	notReadyResolve: function ( keypath ) {
 
-		if ( this.isSpecial( keypath ) ) {
+		if ( this.specialRef ) {
 			this.parameters.addData( this.key, decodeKeypath( keypath ) );
 		}
 		else {
@@ -65,7 +62,7 @@ ParameterResolver.prototype = {
 	readyResolve: function ( keypath ) {
 		var viewmodel = this.parameters.component.instance.viewmodel;
 
-		if ( this.isSpecial( keypath ) ) {
+		if ( this.specialRef ) {
 			this.parameters.addData( this.key, decodeKeypath( keypath ) );
 			viewmodel.mark( this.key );
 		}
