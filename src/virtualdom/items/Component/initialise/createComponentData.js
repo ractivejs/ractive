@@ -21,7 +21,7 @@ function copyMappings ( parameters ) {
 
 	for ( key in mappings ) {
 		let mapping = mappings[ key ];
-		mapping.legacy = true;
+		mapping.trackData = true;
 
 		if( !parameters.writable[ key ] ) {
 			parameters.addData( key, mapping.origin.get( mapping.keypath ) );

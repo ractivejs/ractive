@@ -2,6 +2,7 @@ import types from 'config/types';
 import runloop from 'global/runloop';
 import removeFromArray from 'utils/removeFromArray';
 import circular from 'circular';
+import isArray from 'utils/isArray';
 
 var Fragment;
 
@@ -21,18 +22,27 @@ var Yielder = function ( options ) {
 	this.containerFragment = options.parentFragment;
 	this.parentFragment = component.parentFragment;
 
+	let name = this.name = options.template.yn || '';
+
 	this.fragment = new Fragment({
 		owner: this,
 		root: container.parent,
-		template: container._yield,
+		template: container.inlinePartials[ name ] || [],
 		pElement: this.containerFragment.pElement
 	});
 
-	component.yielders.push( this );
+	// even though only one yielder is allowed, we need to have an array of them
+	// as it's possible to cause a yielder to be created before the last one
+	// was destroyed in the same turn of the runloop
+	if ( !isArray( component.yielders[ name ] ) ) {
+		component.yielders[ name ] = [ this ];
+	} else {
+		component.yielders[ name ].push( this );
+	}
 
 	runloop.scheduleTask( () => {
-		if ( component.yielders.length > 1 ) {
-			throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
+		if ( component.yielders[ name ].length > 1 ) {
+			throw new Error( 'A component template can only have one {{yield' + (name ? ' ' + name : '') + '}} declaration at a time' );
 		}
 	});
 };
@@ -80,7 +90,7 @@ Yielder.prototype = {
 
 	unrender: function ( shouldDestroy ) {
 		this.fragment.unrender( shouldDestroy );
-		removeFromArray( this.component.yielders, this );
+		removeFromArray( this.component.yielders[ this.name ], this );
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {

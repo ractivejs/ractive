@@ -20,15 +20,11 @@ export default function Component$init ( options, Component ) {
 	this.name = options.template.e;
 	this.index = options.index;
 	this.indexRefBindings = {};
-
-	// even though only one yielder is allowed, we need to have an array of them
-	// as it's possible to cause a yielder to be created before the last one
-	// was destroyed in the same turn of the runloop
-	this.yielders = [];
+	this.yielders = {};
 	this.resolvers = [];
 
 	parameters = createParameters( this, Component.prototype, options.template.a );
-	createInstance( this, Component, parameters, options.template.f );
+	createInstance( this, Component, parameters, options.template.f, options.template.p );
 	propagateEvents( this, options.template.v );
 
 	// intro, outro and decorator directives have no effect

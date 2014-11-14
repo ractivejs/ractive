@@ -2,33 +2,32 @@ import startsWith from 'virtualdom/items/shared/utils/startsWith';
 import getNewKeypath from 'virtualdom/items/shared/utils/getNewKeypath';
 
 export default function Viewmodel$map ( key, options ) {
-	var mapping = new Mapping( this, key, options );
+	var mapping = new Mapping( key, options );
+	mapping.setViewmodel( this );
 
 	this.mappings[ mapping.localKey ] = mapping;
 
 	return mapping;
 }
 
-var Mapping = function ( local, localKey, options ) {
-
-	this.local = local;
+var Mapping = function ( localKey, options ) {
 	this.localKey = localKey;
+	this.keypath = options.keypath;
 	this.origin = options.origin;
-	this.resolved = false;
-	this.legacy = options.legacy;
-
-	if ( options.keypath !== undefined ) {
-		this.resolve( options.keypath );
-	}
-
-	this.deps = [];
-	this.unresolved = [];
-
-	this.ready = true;
-
+	this.trackData = options.trackData;
+	this.resolved = this.ready = false;
 };
 
 Mapping.prototype = {
+
+	setViewmodel: function ( viewmodel ){
+		this.local = viewmodel;
+		this.deps = [];
+		this.unresolved = [];
+		this.setup();
+		this.ready = true;
+	},
+
 	get: function ( keypath, options ) {
 		if ( !this.resolved ) {
 			return undefined;
@@ -74,40 +73,40 @@ Mapping.prototype = {
 			this.origin.unregister( this.keypath, this, 'mappings' );
 			this.deps.forEach( d => this.origin.unregister( this.map( d.keypath ), d.dep, d.group ) );
 		}
-
 		this.keypath = keypath;
-		this.resolved = keypath !== undefined;
+		this.setup();
+	},
 
-		if ( keypath !== undefined ) {
+	setup: function () {
+		if ( this.keypath === undefined ) { return; }
 
-			this.origin.register( keypath, this, 'mappings' );
+		this.resolved = true;
 
+		this.origin.register( this.keypath, this, 'mappings' );
 
-			if( this.legacy ) {
-				// keep local data in sync, for browsers w/ no defineProperty
-				this.origin.register( keypath, {
-					setValue: value => {
-						this.local.ractive.data[ this.localKey ] = value;
-					}
-				}, 'default' );
-			}
+		if( this.trackData ) {
+			// keep local data in sync, for browsers w/ no defineProperty
+			this.origin.register( this.keypath, {
+				setValue: value => {
+					this.local.ractive.data[ this.localKey ] = value;
+				}
+			}, 'default' );
+		}
 
-			if ( this.ready ) {
-				this.unresolved.forEach( u => {
-					if ( u.group === 'mappings' ) { // TODO should these be treated w/ separate process?
-						u.dep.local.mark( u.dep.localKey );
-						u.dep.origin = this.origin;
-						u.dep.keypath = keypath;
-					} else {
-						this.register( u.keypath, u.dep, u.group );
-						u.dep.setValue( this.get( u.keypath ) );
-					}
-				});
+		if ( this.ready ) {
+			this.unresolved.forEach( u => {
+				if ( u.group === 'mappings' ) { // TODO should these be treated w/ separate process?
+					u.dep.local.mark( u.dep.localKey );
+					u.dep.origin = this.origin;
+					u.dep.keypath = this.keypath;
+				} else {
+					this.register( u.keypath, u.dep, u.group );
+					u.dep.setValue( this.get( u.keypath ) );
+				}
+			});
 
-				this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
-				this.local.mark( this.localKey );
-			}
-
+			this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
+			this.local.mark( this.localKey );
 		}
 	},
 
