@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-11-14 - commit dde5d241 
+	2014-11-14 - commit 9d059616 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1576,6 +1576,7 @@
 		CLOSING_TAG: 14,
 		COMPONENT: 15,
 		YIELDER: 16,
+		INLINE_PARTIAL: 17,
 		NUMBER_LITERAL: 20,
 		STRING_LITERAL: 21,
 		ARRAY_LITERAL: 22,
@@ -1595,7 +1596,8 @@
 		SECTION_UNLESS: 51,
 		SECTION_EACH: 52,
 		SECTION_WITH: 53,
-		SECTION_IF_WITH: 54
+		SECTION_IF_WITH: 54,
+		SECTION_PARTIAL: 55
 	};
 
 	/* utils/create.js */
@@ -2575,7 +2577,8 @@
 			'if': types.SECTION_IF,
 			'if-with': types.SECTION_IF_WITH,
 			'with': types.SECTION_WITH,
-			'unless': types.SECTION_UNLESS
+			'unless': types.SECTION_UNLESS,
+			'partial': types.SECTION_PARTIAL
 		};
 	}( types );
 
@@ -2658,6 +2661,24 @@
 					parser.relaxedNames = true;
 					expression = parser.readExpression();
 					parser.relaxedNames = relaxed;
+				} else if ( mustache.t === types.INTERPOLATOR && parser.matchString( 'yield ' ) ) {
+					parser.allowWhitespace();
+					mustache.r = 'yield';
+					relaxed = parser.relaxedNames;
+					parser.relaxedNames = true;
+					expression = parser.readExpression();
+					parser.relaxedNames = false;
+					if ( expression && expression.t === types.REFERENCE ) {
+						mustache.yn = expression.n;
+						expression = null;
+					} else if ( expression ) {
+						parser.error( 'Only names are supported with yield.' );
+					}
+				} else if ( mustache.t === types.SECTION && mustache.n === 'partial' ) {
+					relaxed = parser.relaxedNames;
+					parser.relaxedNames = true;
+					expression = parser.readExpression();
+					parser.relaxedNames = false;
 				} else {
 					// get expression
 					expression = parser.readExpression();
@@ -2880,6 +2901,17 @@
 				mustache.t = types.SECTION;
 				mustache.n = types.SECTION_UNLESS;
 			}
+			// special case inline partial section
+			if ( mustache.n === types.SECTION_PARTIAL ) {
+				if ( !mustache.r || mustache.r.indexOf( '.' ) !== -1 ) {
+					parser.error( 'Invalid partial name ' + mustache.r + '.' );
+				}
+				return {
+					n: mustache.r,
+					f: mustache.f,
+					t: types.INLINE_PARTIAL
+				};
+			}
 			return mustache;
 		}
 
@@ -2924,6 +2956,58 @@
 		var voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
 		return voidElementNames;
 	}();
+
+	/* utils/escapeRegExp.js */
+	var escapeRegExp = function() {
+
+		var pattern = /[-/\\^$*+?.()|[\]{}]/g;
+		return function escapeRegExp( str ) {
+			return str.replace( pattern, '\\$&' );
+		};
+	}();
+
+	/* parse/converters/partial.js */
+	var partial = function( types, escapeRegExp ) {
+
+		var __export;
+		__export = getPartial;
+		var startPattern = /^<!--\s*/,
+			namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
+			finishPattern = /\s*-->/;
+
+		function getPartial( parser ) {
+			var template = parser.remaining(),
+				firstPos = parser.pos,
+				startMatch = parser.matchPattern( startPattern ),
+				open = parser.options.delimiters[ 0 ],
+				close = parser.options.delimiters[ 1 ];
+			if ( startMatch && parser.matchString( open ) ) {
+				var name = parser.matchPattern( namePattern );
+				// make sure the rest of the comment is in the correct place
+				if ( !parser.matchString( close ) || !parser.matchPattern( finishPattern ) ) {
+					parser.pos = firstPos;
+					return null;
+				}
+				// look for the closing partial for name
+				var end = new RegExp( '<!--\\s*' + escapeRegExp( open ) + '\\s*\\/\\s*' + name + '\\s*' + escapeRegExp( close ) + '\\s*-->' );
+				template = parser.remaining();
+				var endMatch = end.exec( template );
+				if ( !endMatch ) {
+					throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested. Expected closing for "' + name + '", but ' + ( endMatch ? 'instead found "' + endMatch[ 1 ] + '"' : ' no closing found' ) );
+				}
+				var partial = {
+					t: types.INLINE_PARTIAL,
+					f: new parser.StandardParser( template.substr( 0, endMatch.index ), parser.options ).result,
+					n: name
+				};
+				parser.pos += endMatch.index + endMatch[ 0 ].length;
+				return partial;
+			}
+			parser.pos = firstPos;
+			return null;
+		}
+		return __export;
+	}( types, escapeRegExp );
 
 	/* parse/converters/utils/getLowestIndex.js */
 	var getLowestIndex = function( haystack, needles ) {
@@ -3724,7 +3808,7 @@
 	}( Parser, conditional, flattenExpression, parseJSON );
 
 	/* parse/converters/element.js */
-	var element = function( types, voidElementNames, getMustache, getComment, getText, getClosingTag, getAttribute, processDirective ) {
+	var element = function( types, voidElementNames, getMustache, getComment, getPartial, getText, getClosingTag, getAttribute, processDirective ) {
 
 		var __export;
 		var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
@@ -3744,6 +3828,7 @@
 			converters, disallowedContents;
 		// Different set of converters, because this time we're looking for closing tags
 		converters = [
+			getPartial,
 			getMustache,
 			getComment,
 			getElement,
@@ -3916,7 +4001,7 @@
 			return !~disallowed.indexOf( match[ 1 ].toLowerCase() );
 		}
 		return __export;
-	}( types, voidElementNames, mustache, comment, text, closingTag, attribute, processDirective );
+	}( types, voidElementNames, mustache, comment, partial, text, closingTag, attribute, processDirective );
 
 	/* parse/utils/trimWhitespace.js */
 	var trimWhitespace = function() {
@@ -4007,17 +4092,67 @@
 		return __export;
 	}( types );
 
-	/* utils/escapeRegExp.js */
-	var escapeRegExp = function() {
+	/* parse/converters/partial/processPartials.js */
+	var processPartials = function( types, isArray ) {
 
-		var pattern = /[-/\\^$*+?.()|[\]{}]/g;
-		return function escapeRegExp( str ) {
-			return str.replace( pattern, '\\$&' );
+		var __export;
+		__export = process;
+
+		function process( path, target, items ) {
+			var i = items.length,
+				item, cmp;
+			while ( i-- ) {
+				item = items[ i ];
+				if ( isPartial( item ) ) {
+					target[ item.n ] = item.f;
+					items.splice( i, 1 );
+				} else if ( isArray( item.f ) ) {
+					if ( cmp = getComponent( path, item ) ) {
+						path.push( cmp );
+						process( path, item.p = {}, item.f );
+						path.pop();
+					} else if ( isArray( item.f ) ) {
+						process( path, target, item.f );
+					}
+				}
+			}
+		}
+
+		function isPartial( item ) {
+			return item.t === types.INLINE_PARTIAL;
+		}
+
+		function getComponent( path, item ) {
+			var i, cmp, name = item.e;
+			if ( item.e ) {
+				for ( i = 0; i < path.length; i++ ) {
+					if ( cmp = ( path[ i ].components || {} )[ name ] ) {
+						return cmp;
+					}
+				}
+			}
+		}
+		return __export;
+	}( types, isArray );
+
+	/* utils/isEmptyObject.js */
+	var isEmptyObject = function( isObject ) {
+
+		return function( obj ) {
+			// if it's not an object, it's not an empty object
+			if ( !isObject( obj ) ) {
+				return false;
+			}
+			for ( var k in obj ) {
+				if ( obj.hasOwnProperty( k ) )
+					return false;
+			}
+			return true;
 		};
-	}();
+	}( isObject );
 
 	/* parse/_parse.js */
-	var parse = function( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones, escapeRegExp ) {
+	var parse = function( types, Parser, mustache, comment, element, partial, text, trimWhitespace, stripStandalones, processPartials, isEmptyObject ) {
 
 		var __export;
 		var StandardParser, parse, contiguousWhitespace = /[ \t\f\r\n]+/g,
@@ -4043,6 +4178,7 @@
 				this.sanitizeElements = options.sanitize && options.sanitize.elements;
 				this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
 				this.includeLinePositions = options.includeLinePositions;
+				this.StandardParser = StandardParser;
 			},
 			postProcess: function( items, options ) {
 				if ( this.sectionDepth > 0 ) {
@@ -4052,6 +4188,7 @@
 				return items;
 			},
 			converters: [
+				partial,
 				mustache,
 				comment,
 				element,
@@ -4062,31 +4199,19 @@
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = {};
-			var result, remaining, partials, name, startMatch, endMatch, inlinePartialStart, inlinePartialEnd;
+			var result;
 			setDelimiters( options );
-			inlinePartialStart = new RegExp( '<!--\\s*' + escapeRegExp( options.delimiters[ 0 ] ) + '\\s*>\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*' + escapeRegExp( options.delimiters[ 1 ] ) + '\\s*-->' );
-			inlinePartialEnd = new RegExp( '<!--\\s*' + escapeRegExp( options.delimiters[ 0 ] ) + '\\s*\\/\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*' + escapeRegExp( options.delimiters[ 1 ] ) + '\\s*-->' );
 			result = {
 				v: 1
 			};
-			if ( inlinePartialStart.test( template ) ) {
-				remaining = template;
-				template = '';
-				while ( startMatch = inlinePartialStart.exec( remaining ) ) {
-					name = startMatch[ 1 ];
-					template += remaining.substr( 0, startMatch.index );
-					remaining = remaining.substring( startMatch.index + startMatch[ 0 ].length );
-					endMatch = inlinePartialEnd.exec( remaining );
-					if ( !endMatch || endMatch[ 1 ] !== name ) {
-						throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested. Expected closing for "' + name + '", but ' + ( endMatch ? 'instead found "' + endMatch[ 1 ] + '"' : ' no closing found' ) );
-					}
-					( partials || ( partials = {} ) )[ name ] = new StandardParser( remaining.substr( 0, endMatch.index ), options ).result;
-					remaining = remaining.substring( endMatch.index + endMatch[ 0 ].length );
-				}
-				template += remaining;
+			result.t = new StandardParser( template, options ).result;
+			// collect all of the partials and stick them on the appropriate instances
+			var partials = {};
+			// without a ractive instance, no components will be found
+			processPartials( options.ractive ? [ options.ractive ] : [], partials, result.t );
+			if ( !isEmptyObject( partials ) ) {
 				result.p = partials;
 			}
-			result.t = new StandardParser( template, options ).result;
 			return result;
 		};
 		__export = parse;
@@ -4200,7 +4325,7 @@
 			];
 		}
 		return __export;
-	}( types, Parser, mustache, comment, element, text, trimWhitespace, stripStandalones, escapeRegExp );
+	}( types, Parser, mustache, comment, element, partial, text, trimWhitespace, stripStandalones, processPartials, isEmptyObject );
 
 	/* config/options/groups/optionGroup.js */
 	var optionGroup = function() {
@@ -4301,7 +4426,9 @@
 			return parseOptions.reduce( function( val, key ) {
 				val[ key ] = ractive[ key ];
 				return val;
-			}, {} );
+			}, {
+				ractive: ractive
+			} );
 		}
 		return parser;
 	}( errors, isClient, parse, create, parseOptions );
@@ -11533,20 +11660,22 @@
 	}( runloop, circular );
 
 	/* virtualdom/items/Component/initialise/createInstance.js */
-	var createInstance = function( types, log, create, circular ) {
+	var createInstance = function( types, log, create, circular, extend ) {
 
 		var initialise;
 		circular.push( function() {
 			initialise = circular.initialise;
 		} );
-		return function( component, Component, data, mappings, yieldTemplate ) {
-			var instance, parentFragment, partials, ractive, fragment, container;
+		return function( component, Component, data, mappings, yieldTemplate, partials ) {
+			var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
 			parentFragment = component.parentFragment;
 			ractive = component.root;
+			partials = partials || {};
+			extend( inlinePartials, partials || {} );
 			// Make contents available as a {{>content}} partial
-			partials = {
-				content: yieldTemplate || []
-			};
+			partials.content = yieldTemplate || [];
+			// set a default partial for yields with no name
+			inlinePartials[ '' ] = partials.content;
 			if ( Component.defaults.el ) {
 				log.warn( {
 					debug: ractive.debug,
@@ -11570,6 +11699,7 @@
 				el: null,
 				append: true,
 				data: data,
+				inlinePartials: inlinePartials,
 				partials: partials,
 				magic: ractive.magic || Component.defaults.magic,
 				modifyArrays: ractive.modifyArrays,
@@ -11579,12 +11709,11 @@
 				parent: ractive,
 				component: component,
 				mappings: mappings,
-				yieldTemplate: yieldTemplate,
 				container: container
 			} );
 			return instance;
 		};
-	}( types, log, create, circular );
+	}( types, log, create, circular, extend );
 
 	/* virtualdom/items/Component/initialise/propagateEvents.js */
 	var propagateEvents = function( circular, fireEvent, log ) {
@@ -11656,10 +11785,7 @@
 			this.name = options.template.e;
 			this.index = options.index;
 			this.indexRefBindings = {};
-			// even though only one yielder is allowed, we need to have an array of them
-			// as it's possible to cause a yielder to be created before the last one
-			// was destroyed in the same turn of the runloop
-			this.yielders = [];
+			this.yielders = {};
 			if ( !Component ) {
 				throw new Error( 'Component "' + this.name + '" not found' );
 			}
@@ -11731,7 +11857,7 @@
 					}
 				} );
 			}
-			createInstance( this, Component, data, mappings, options.template.f );
+			createInstance( this, Component, data, mappings, options.template.f, options.template.p );
 			propagateEvents( this, options.template.v );
 			// intro, outro and decorator directives have no effect
 			if ( options.template.t1 || options.template.t2 || options.template.o ) {
@@ -11749,8 +11875,10 @@
 				indexRefAlias, query;
 			this.resolvers.forEach( rebind );
 			this.complexParameters.forEach( rebind );
-			if ( this.yielders[ 0 ] ) {
-				rebind( this.yielders[ 0 ] );
+			for ( var k in this.yielders ) {
+				if ( this.yielders[ k ][ 0 ] ) {
+					rebind( this.yielders[ k ][ 0 ] );
+				}
 			}
 			if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
 				runloop.addViewmodel( childInstance.viewmodel );
@@ -11875,7 +12003,7 @@
 	}( types, detach );
 
 	/* virtualdom/items/Yielder.js */
-	var Yielder = function( types, runloop, removeFromArray, circular ) {
+	var Yielder = function( types, runloop, removeFromArray, circular, isArray ) {
 
 		var Fragment;
 		circular.push( function() {
@@ -11889,16 +12017,24 @@
 			this.container = container;
 			this.containerFragment = options.parentFragment;
 			this.parentFragment = component.parentFragment;
+			var name = this.name = options.template.yn || '';
 			this.fragment = new Fragment( {
 				owner: this,
 				root: container.parent,
-				template: container._yield,
+				template: container.inlinePartials[ name ] || [],
 				pElement: this.containerFragment.pElement
 			} );
-			component.yielders.push( this );
+			// even though only one yielder is allowed, we need to have an array of them
+			// as it's possible to cause a yielder to be created before the last one
+			// was destroyed in the same turn of the runloop
+			if ( !isArray( component.yielders[ name ] ) ) {
+				component.yielders[ name ] = [ this ];
+			} else {
+				component.yielders[ name ].push( this );
+			}
 			runloop.scheduleTask( function() {
-				if ( component.yielders.length > 1 ) {
-					throw new Error( 'A component template can only have one {{yield}} declaration at a time' );
+				if ( component.yielders[ name ].length > 1 ) {
+					throw new Error( 'A component template can only have one {{yield' + ( name ? ' ' + name : '' ) + '}} declaration at a time' );
 				}
 			} );
 		};
@@ -11935,7 +12071,7 @@
 			},
 			unrender: function( shouldDestroy ) {
 				this.fragment.unrender( shouldDestroy );
-				removeFromArray( this.component.yielders, this );
+				removeFromArray( this.component.yielders[ this.name ], this );
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
 				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
@@ -11945,7 +12081,7 @@
 			}
 		};
 		return Yielder;
-	}( types, runloop, removeFromArray, circular );
+	}( types, runloop, removeFromArray, circular, isArray );
 
 	/* virtualdom/Fragment/prototype/init/createItem.js */
 	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder ) {
@@ -12018,6 +12154,8 @@
 					template: template,
 					index: i
 				} );
+			} ).filter( function( i ) {
+				return i !== null;
 			} );
 			this.value = this.argsList = null;
 			this.dirtyArgs = this.dirtyValue = true;
@@ -14373,7 +14511,6 @@
 				ractive.parent = options.parent;
 				ractive.container = options.container || null;
 				ractive.root = ractive.parent.root;
-				ractive._yield = options.yieldTemplate;
 				ractive.component = options.component;
 				options.component.instance = ractive;
 			} else {
