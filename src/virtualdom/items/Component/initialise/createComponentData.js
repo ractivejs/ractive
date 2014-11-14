@@ -1,8 +1,9 @@
 import defineProperties from 'utils/defineProperties';
 import magic from 'config/magic';
+import runloop from 'global/runloop';
 
-function createComponentData( parameters ) {
-	var ComponentData = makeConstructor( parameters );
+function createComponentData( parameters, proto ) {
+	var ComponentData = getConstructor( parameters, proto );
 	return new ComponentData( parameters );
 }
 
@@ -28,7 +29,27 @@ function copyMappings ( parameters ) {
 	}
 }
 
-function makeConstructor ( parameters ) {
+function getConstructor ( parameters, proto ) {
+	var protoparams = getParams( proto );
+
+	if ( !protoparams.Constructor || parameters.newKeys.length ) {
+		protoparams.Constructor = makeConstructor( parameters, protoparams.defined );
+	}
+
+	return protoparams.Constructor;
+}
+
+function getParams( proto ) {
+	if ( !proto._parameters ) {
+		proto._parameters = { defined: {} };
+	}
+	else if( !proto._parameters.defined ) {
+		proto._parameters.defined = {};
+	}
+	return proto._parameters;
+}
+
+function makeConstructor ( parameters, defined ) {
 
 	var properties, proto;
 
@@ -38,11 +59,20 @@ function makeConstructor ( parameters ) {
 			definition[ key ] = {
 				get: function () {
 					let mapping = this._mappings[ key ];
+
+					// TODO: track this explicitly?
+					// also , what about the reverse? or set?
+					if ( !mapping ) {
+						return this._data[ key ];
+					}
+
 					return mapping.origin.get( mapping.keypath );
 				},
 				set: function ( value ) {
 					let mapping = this._mappings[ key ];
+					runloop.start();
 					mapping.origin.set( mapping.keypath, value );
+					runloop.end();
 				},
 				enumerable: true
 			};
@@ -57,7 +87,7 @@ function makeConstructor ( parameters ) {
 		}
 
 		return definition;
-	}, {});
+	}, defined);
 
 	function ComponentData ( options ) {
 		this._mappings = options.mappings;

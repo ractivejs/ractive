@@ -4,28 +4,36 @@ import parseJSON from 'utils/parseJSON';
 import ParameterResolver from 'virtualdom/items/Component/initialise/ParameterResolver';
 import types from 'config/types';
 
-export default function createParameters ( component, attributes) {
-	var parameters, data;
+export default function createParameters ( component, proto, attributes) {
+	var parameters, data, defined;
 
 	if( !attributes ) {
 		return { data: {}, mappings: null };
 	}
 
-	parameters = new ComponentParameters( component, attributes );
-	data = createComponentData( parameters );
+	if( proto._parameters ) {
+		defined = proto._parameters.defined;
+	}
+
+	parameters = new ComponentParameters( component, attributes, defined );
+	data = createComponentData( parameters, proto );
 
 	return { data: data, mappings: parameters.mappings };
 }
 
-function ComponentParameters ( component, attributes ) {
+function ComponentParameters ( component, attributes, defined ) {
 	this.component = component;
 	this.parentViewmodel = component.root.viewmodel;
 	this.data = {};
 	this.mappings = {};
 	this.writable = {};
+	this.newKeys = [];
 	this.keys = Object.keys( attributes );
 
 	this.keys.forEach( key => {
+		if( !defined || !defined[ key ] ) {
+			this.newKeys.push( key );
+		}
 		this.add( key, attributes[ key ] );
 	});
 }

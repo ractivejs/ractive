@@ -421,10 +421,29 @@ define([
 		});
 
 		if ( Ractive.magic ) {
-			// As of 0.7.0, the `data` object only contains properties that
-			// are owned by a given instance. Commenting out for now, but
-			// this test probably needs to be deleted
-			/*asyncTest( 'Data passed into component updates inside component in magic mode', t => {
+
+			test( 'component data prototype if reused if parameters are the same and reset if not', t => {
+				var ractive, Widget;
+
+				Widget = Ractive.extend({
+					template: '{{foo}}'
+				});
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{#items}}<widget foo="{{.}}"/>{{/}}<widget bar="{{items}}"/>',
+					components: { widget: Widget },
+					data: { items: ['a', 'b', 'c'] }
+				});
+
+				var widgets = ractive.findAllComponents( 'widget' );
+
+				t.equal( widgets[0].data.__proto__, widgets[1].data.__proto__);
+				t.equal( widgets[0].data.__proto__, widgets[2].data.__proto__);
+				t.notEqual( widgets[0].data.__proto__, widgets[3].data.__proto__);
+			});
+
+			asyncTest( 'Data passed into component updates inside component in magic mode', t => {
 				var ractive, Widget;
 
 				expect( 1 );
@@ -439,16 +458,14 @@ define([
 					}
 				});
 
-				var data = { world: 'mars' }
-
 				ractive = new Ractive({
 					el: fixture,
 					template: '{{world}}<widget world="{{world}}"/>',
 					magic: true,
 					components: { widget: Widget },
-					data: data
+					data: { world: 'mars' }
 				});
-			});*/
+			});
 
 			test( 'Data passed into component updates from outside component in magic mode', t => {
 				var ractive, Widget;

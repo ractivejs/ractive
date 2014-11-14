@@ -26,9 +26,8 @@ export default function Component$init ( options, Component ) {
 	// was destroyed in the same turn of the runloop
 	this.yielders = [];
 	this.resolvers = [];
-	this.complexParameters = [];
 
-	parameters = createParameters( this, options.template.a );
+	parameters = createParameters( this, Component.prototype, options.template.a );
 	createInstance( this, Component, parameters, options.template.f );
 	propagateEvents( this, options.template.v );
 
