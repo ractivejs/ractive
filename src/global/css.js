@@ -4,7 +4,6 @@ import removeFromArray from 'utils/removeFromArray';
 
 var css,
 	update,
-	runloop,
 	styleElement,
 	head,
 	styleSheet,
