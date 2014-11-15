@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-11-14 - commit 9d059616 
+	2014-11-15 - commit 4c0b668e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -37,6 +37,7 @@
 			modifyArrays: true,
 			adapt: [],
 			isolated: false,
+			parameters: true,
 			twoway: true,
 			lazy: false,
 			// transitions:
@@ -1492,7 +1493,7 @@
 
 		function copy( from, to, fillOnly ) {
 			for ( var key in from ) {
-				if ( fillOnly && key in to ) {
+				if ( !( to._mappings && to._mappings[ key ].updatable ) && fillOnly && key in to ) {
 					continue;
 				}
 				to[ key ] = from[ key ];
@@ -6161,8 +6162,8 @@
 		return Observer;
 	}( runloop, isEqual );
 
-	/* shared/getMatchingKeypaths.js */
-	var getMatchingKeypaths = function( isArray ) {
+	/* shared/keypaths/getMatching.js */
+	var getMatching = function( isArray ) {
 
 		return function getMatchingKeypaths( ractive, pattern ) {
 			var keys, key, matchingKeypaths;
@@ -6216,7 +6217,7 @@
 			} );
 			return values;
 		};
-	}( getMatchingKeypaths );
+	}( getMatching );
 
 	/* Ractive/prototype/observe/PatternObserver.js */
 	var Ractive$observe_PatternObserver = function( runloop, isEqual, getPattern ) {
@@ -7026,13 +7027,13 @@
 		return this.value;
 	};
 
-	/* virtualdom/items/shared/utils/startsWithKeypath.js */
-	var startsWithKeypath = function startsWithKeypath( target, keypath ) {
+	/* shared/keypaths/startsWith.js */
+	var startsWith = function startsWithKeypath( target, keypath ) {
 		return target && keypath && target.substr( 0, keypath.length + 1 ) === keypath + '.';
 	};
 
-	/* virtualdom/items/shared/utils/getNewKeypath.js */
-	var getNewKeypath = function( startsWithKeypath ) {
+	/* shared/keypaths/getNew.js */
+	var getNew = function( startsWithKeypath ) {
 
 		return function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
 			// exact match
@@ -7044,7 +7045,7 @@
 				return newKeypath === null ? newKeypath : targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
 			}
 		};
-	}( startsWithKeypath );
+	}( startsWith );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceResolver.js */
 	var ReferenceResolver = function( runloop, resolveRef, getNewKeypath ) {
@@ -7090,7 +7091,7 @@
 			}
 		};
 		return ReferenceResolver;
-	}( runloop, resolveRef, getNewKeypath );
+	}( runloop, resolveRef, getNew );
 
 	/* virtualdom/items/shared/Resolvers/SpecialResolver.js */
 	var SpecialResolver = function() {
@@ -7165,8 +7166,8 @@
 		};
 	}( ReferenceResolver, SpecialResolver, IndexResolver );
 
-	/* shared/decodeKeypath.js */
-	var decodeKeypath = function( isNumeric ) {
+	/* shared/keypaths/decode.js */
+	var decode = function( isNumeric ) {
 
 		return function decodeKeypath( keypath ) {
 			var value = keypath.slice( 1 );
@@ -7348,7 +7349,7 @@
 			return fn.__ractive_nowrap;
 		}
 		return __export;
-	}( defineProperty, isNumeric, decodeKeypath, createReferenceResolver, getFunctionFromString, legacy );
+	}( defineProperty, isNumeric, decode, createReferenceResolver, getFunctionFromString, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js */
 	var MemberResolver = function( types, createReferenceResolver, ExpressionResolver ) {
@@ -7580,7 +7581,7 @@
 				twowayBinding.rebound();
 			}
 		};
-	}( decodeKeypath );
+	}( decode );
 
 	/* virtualdom/items/shared/Mustache/rebind.js */
 	var rebind = function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
@@ -10515,26 +10516,26 @@
 		};
 	}( types, enforceCase, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createConditionalAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
 
-	/* virtualdom/items/shared/utils/startsWith.js */
-	var startsWith = function( startsWithKeypath ) {
+	/* shared/keypaths/equalsOrStartsWith.js */
+	var equalsOrStartsWith = function( startsWithKeypath ) {
 
-		return function startsWith( target, keypath ) {
+		return function equalsOrStartsWith( target, keypath ) {
 			return target === keypath || startsWithKeypath( target, keypath );
 		};
-	}( startsWithKeypath );
+	}( startsWith );
 
-	/* virtualdom/items/shared/utils/assignNewKeypath.js */
-	var assignNewKeypath = function( startsWith, getNewKeypath ) {
+	/* shared/keypaths/assignNew.js */
+	var assignNew = function( equalsOrStartsWith, getNewKeypath ) {
 
 		return function assignNewKeypath( target, property, oldKeypath, newKeypath ) {
 			var existingKeypath = target[ property ];
-			if ( !existingKeypath || startsWith( existingKeypath, newKeypath ) || !startsWith( existingKeypath, oldKeypath ) ) {
+			if ( !existingKeypath || equalsOrStartsWith( existingKeypath, newKeypath ) || !equalsOrStartsWith( existingKeypath, oldKeypath ) ) {
 				return;
 			}
 			target[ property ] = getNewKeypath( existingKeypath, oldKeypath, newKeypath );
 			return true;
 		};
-	}( startsWith, getNewKeypath );
+	}( equalsOrStartsWith, getNew );
 
 	/* virtualdom/items/Element/prototype/rebind.js */
 	var virtualdom_items_Element$rebind = function( assignNewKeypath ) {
@@ -10577,7 +10578,7 @@
 				thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 			}
 		};
-	}( assignNewKeypath );
+	}( assignNew );
 
 	/* virtualdom/items/Element/special/img/render.js */
 	var render = function renderImage( img ) {
@@ -12019,47 +12020,6 @@
 		return null;
 	};
 
-	/* virtualdom/items/Component/initialise/ComponentParameter.js */
-	var ComponentParameter = function( runloop, circular ) {
-
-		var Fragment, ComponentParameter;
-		circular.push( function() {
-			Fragment = circular.Fragment;
-		} );
-		ComponentParameter = function( component, key, value ) {
-			this.parentFragment = component.parentFragment;
-			this.component = component;
-			this.key = key;
-			this.fragment = new Fragment( {
-				template: value,
-				root: component.root,
-				owner: this
-			} );
-			this.value = this.fragment.getValue();
-		};
-		ComponentParameter.prototype = {
-			bubble: function() {
-				if ( !this.dirty ) {
-					this.dirty = true;
-					runloop.addView( this );
-				}
-			},
-			update: function() {
-				var value = this.fragment.getValue();
-				this.component.instance.viewmodel.set( this.key, value );
-				this.value = value;
-				this.dirty = false;
-			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			},
-			unbind: function() {
-				this.fragment.unbind();
-			}
-		};
-		return ComponentParameter;
-	}( runloop, circular );
-
 	/* virtualdom/items/Component/initialise/createInstance.js */
 	var createInstance = function( types, log, create, circular, extend ) {
 
@@ -12067,7 +12027,7 @@
 		circular.push( function() {
 			initialise = circular.initialise;
 		} );
-		return function( component, Component, data, mappings, yieldTemplate, partials ) {
+		return function( component, Component, parameters, yieldTemplate, partials ) {
 			var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
 			parentFragment = component.parentFragment;
 			ractive = component.root;
@@ -12099,8 +12059,7 @@
 			initialise( instance, {
 				el: null,
 				append: true,
-				data: data,
-				inlinePartials: inlinePartials,
+				data: parameters.data,
 				partials: partials,
 				magic: ractive.magic || Component.defaults.magic,
 				modifyArrays: ractive.modifyArrays,
@@ -12109,12 +12068,424 @@
 			}, {
 				parent: ractive,
 				component: component,
-				mappings: mappings,
-				container: container
+				container: container,
+				mappings: parameters.mappings,
+				inlinePartials: inlinePartials
 			} );
 			return instance;
 		};
 	}( types, log, create, circular, extend );
+
+	/* shared/parameters/ComplexParameter.js */
+	var ComplexParameter = function( runloop, circular ) {
+
+		var __export;
+		var Fragment;
+		circular.push( function() {
+			Fragment = circular.Fragment;
+		} );
+
+		function ComplexParameter( parameters, key, value ) {
+			this.parameters = parameters;
+			this.parentFragment = parameters.component.parentFragment;
+			this.key = key;
+			this.fragment = new Fragment( {
+				template: value,
+				root: parameters.component.root,
+				owner: this
+			} );
+			this.parameters.addData( this.key, this.fragment.getValue() );
+		}
+		__export = ComplexParameter;
+		ComplexParameter.prototype = {
+			bubble: function() {
+				if ( !this.dirty ) {
+					this.dirty = true;
+					runloop.addView( this );
+				}
+			},
+			update: function() {
+				var viewmodel = this.parameters.component.instance.viewmodel;
+				this.parameters.addData( this.key, this.fragment.getValue() );
+				viewmodel.mark( this.key );
+				this.dirty = false;
+			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			},
+			unbind: function() {
+				this.fragment.unbind();
+			}
+		};
+		return __export;
+	}( runloop, circular );
+
+	/* shared/parameters/createComponentData.js */
+	var createComponentData = function( defineProperties, magic, runloop ) {
+
+		var __export;
+		__export = function createComponentData( parameters, proto ) {
+			// Don't do anything with data at all..
+			if ( !proto.parameters ) {
+				return parameters.data;
+			} else if ( !magic || proto.parameters === 'legacy' ) {
+				return createLegacyData( parameters );
+			}
+			// ES5 ftw!
+			return createDataFromPrototype( parameters, proto );
+		};
+
+		function createLegacyData( parameters ) {
+			var mappings = parameters.mappings,
+				key;
+			for ( key in mappings ) {
+				var mapping = mappings[ key ];
+				mapping.trackData = true;
+				if ( !mapping.updatable ) {
+					parameters.addData( key, mapping.getValue() );
+				}
+			}
+			return parameters.data;
+		}
+
+		function createDataFromPrototype( parameters, proto ) {
+			var ComponentData = getConstructor( parameters, proto );
+			return new ComponentData( parameters );
+		}
+
+		function getConstructor( parameters, proto ) {
+			var protoparams = proto._parameters;
+			if ( !protoparams.Constructor || parameters.newKeys.length ) {
+				protoparams.Constructor = makeConstructor( parameters, protoparams.defined );
+			}
+			return protoparams.Constructor;
+		}
+
+		function makeConstructor( parameters, defined ) {
+			var properties, proto;
+			properties = parameters.keys.reduce( function( definition, key ) {
+				definition[ key ] = {
+					get: function() {
+						var mapping = this._mappings[ key ];
+						if ( mapping ) {
+							return mapping.getValue();
+						} else {
+							return this._data[ key ];
+						}
+					},
+					set: function( value ) {
+						var mapping = this._mappings[ key ];
+						if ( mapping ) {
+							runloop.start();
+							mapping.setValue( value );
+							runloop.end();
+						} else {
+							this._data[ key ] = value;
+						}
+					},
+					enumerable: true
+				};
+				return definition;
+			}, defined );
+
+			function ComponentData( options ) {
+				this._mappings = options.mappings;
+				this._data = options.data || {};
+			}
+			defineProperties( proto = {}, properties );
+			proto.constructor = ComponentData;
+			ComponentData.prototype = proto;
+			return ComponentData;
+		}
+		return __export;
+	}( defineProperties, magic, runloop );
+
+	/* shared/parameters/Mapping.js */
+	var Mapping = function( equalsOrStartsWith, getNewKeypath ) {
+
+		var __export;
+
+		function Mapping( localKey, options ) {
+			this.localKey = localKey;
+			this.keypath = options.keypath;
+			this.origin = options.origin;
+			this.trackData = options.trackData;
+			this.resolved = this.ready = false;
+		}
+		__export = Mapping;
+		Mapping.prototype = {
+			setViewmodel: function( viewmodel ) {
+				this.local = viewmodel;
+				this.deps = [];
+				this.unresolved = [];
+				this.setup();
+				this.ready = true;
+			},
+			get: function( keypath, options ) {
+				if ( !this.resolved ) {
+					return undefined;
+				}
+				return this.origin.get( this.map( keypath ), options );
+			},
+			getValue: function() {
+				if ( !this.keypath ) {
+					return undefined;
+				}
+				return this.origin.get( this.keypath );
+			},
+			map: function( keypath ) {
+				// TODO: should this be cached and only run when keypath changes?
+				return keypath.replace( this.localKey, this.keypath );
+			},
+			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+				var this$0 = this;
+				if ( equalsOrStartsWith( this.keypath, oldKeypath ) ) {
+					this.deps.forEach( function( d ) {
+						return this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
+					} );
+					this.keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
+					this.deps.forEach( function( d ) {
+						return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
+					} );
+				}
+			},
+			register: function( keypath, dependant, group ) {
+				var dep = {
+					keypath: keypath,
+					dep: dependant,
+					group: group
+				};
+				if ( !this.resolved ) {
+					this.unresolved.push( dep );
+				} else {
+					this.deps.push( {
+						keypath: keypath,
+						dep: dependant,
+						group: group
+					} );
+					this.origin.register( this.map( keypath ), dependant, group );
+				}
+			},
+			resolve: function( keypath ) {
+				var this$0 = this;
+				if ( this.keypath !== undefined ) {
+					this.origin.unregister( this.keypath, this, 'mappings' );
+					this.deps.forEach( function( d ) {
+						return this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
+					} );
+				}
+				this.keypath = keypath;
+				this.setup();
+			},
+			setup: function() {
+				var this$0 = this;
+				if ( this.keypath === undefined ) {
+					return;
+				}
+				this.resolved = true;
+				this.origin.register( this.keypath, this, 'mappings' );
+				if ( this.trackData ) {
+					// keep local data in sync, for browsers w/ no defineProperty
+					this.origin.register( this.keypath, {
+						setValue: function( value ) {
+							this$0.local.ractive.data[ this$0.localKey ] = value;
+						}
+					}, 'default' );
+				}
+				if ( this.ready ) {
+					this.unresolved.forEach( function( u ) {
+						if ( u.group === 'mappings' ) {
+							// TODO should these be treated w/ separate process?
+							u.dep.local.mark( u.dep.localKey );
+							u.dep.origin = this$0.origin;
+							u.dep.keypath = this$0.keypath;
+						} else {
+							this$0.register( u.keypath, u.dep, u.group );
+							u.dep.setValue( this$0.get( u.keypath ) );
+						}
+					} );
+					this.deps.forEach( function( d ) {
+						return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
+					} );
+					this.local.mark( this.localKey );
+				}
+			},
+			set: function( keypath, value ) {
+				if ( !this.resolved ) {
+					throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+				}
+				this.origin.set( this.map( keypath ), value );
+			},
+			setValue: function( value ) {
+				if ( !this.keypath ) {
+					throw new Error( 'Mapping does not have keypath, cannot set value. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+				}
+				this.origin.set( this.keypath, value );
+			},
+			unbind: function() {
+				var dep;
+				while ( dep = this.deps.pop() ) {
+					this.origin.unregister( this.map( dep.keypath, dep.dep, dep.group ) );
+				}
+			},
+			unregister: function( keypath, dependant, group ) {
+				var deps, i;
+				deps = this.resolved ? this.deps : this.unresolved;
+				i = deps.length;
+				while ( i-- ) {
+					if ( deps[ i ].dep === dependant ) {
+						deps.splice( i, 1 );
+						break;
+					}
+				}
+				this.origin.unregister( this.map( keypath ), dependant, group );
+			}
+		};
+		return __export;
+	}( equalsOrStartsWith, getNew );
+
+	/* shared/parameters/ParameterResolver.js */
+	var ParameterResolver = function( createReferenceResolver, decodeKeypath, ExpressionResolver, ReferenceExpressionResolver ) {
+
+		var __export;
+
+		function ParameterResolver( parameters, key, template ) {
+			var component, resolve;
+			this.parameters = parameters;
+			this.key = key;
+			this.resolved = this.ready = false;
+			component = parameters.component;
+			resolve = this.resolve.bind( this );
+			if ( template.r ) {
+				this.resolver = createReferenceResolver( component, template.r, resolve );
+			} else if ( template.x ) {
+				this.resolver = new ExpressionResolver( component, component.parentFragment, template.x, resolve );
+			} else if ( template.rx ) {
+				this.resolver = new ReferenceExpressionResolver( component, template.rx, resolve );
+			}
+			if ( !this.resolved ) {
+				// note the mapping anyway, for the benefit of child components
+				parameters.addMapping( key );
+			}
+			this.ready = true;
+		}
+		__export = ParameterResolver;
+		ParameterResolver.prototype = {
+			resolve: function( keypath ) {
+				this.resolved = true;
+				this.specialRef = keypath[ 0 ] === '@';
+				if ( this.ready ) {
+					this.readyResolve( keypath );
+				} else {
+					this.notReadyResolve( keypath );
+				}
+			},
+			notReadyResolve: function( keypath ) {
+				if ( this.specialRef ) {
+					this.parameters.addData( this.key, decodeKeypath( keypath ) );
+				} else {
+					var mapping = this.parameters.addMapping( this.key, keypath );
+					if ( mapping.getValue() === undefined ) {
+						mapping.updatable = true;
+					}
+				}
+			},
+			readyResolve: function( keypath ) {
+				var viewmodel = this.parameters.component.instance.viewmodel;
+				if ( this.specialRef ) {
+					this.parameters.addData( this.key, decodeKeypath( keypath ) );
+					viewmodel.mark( this.key );
+				} else {
+					viewmodel.mappings[ this.key ].resolve( keypath );
+				}
+			}
+		};
+		return __export;
+	}( createReferenceResolver, decode, ExpressionResolver, ReferenceExpressionResolver );
+
+	/* shared/parameters/createParameters.js */
+	var createParameters = function( ComplexParameter, create, createComponentData, Mapping, parseJSON, ParameterResolver, types ) {
+
+		var __export;
+		__export = function createParameters( component, proto, attributes ) {
+			var parameters, data, defined;
+			if ( !attributes ) {
+				return {
+					data: {}
+				};
+			}
+			if ( proto.parameters ) {
+				defined = getParamsDefinition( proto );
+			}
+			parameters = new ComponentParameters( component, attributes, defined );
+			data = createComponentData( parameters, proto );
+			return {
+				data: data,
+				mappings: parameters.mappings
+			};
+		};
+
+		function getParamsDefinition( proto ) {
+			if ( !proto._parameters ) {
+				proto._parameters = {
+					defined: {}
+				};
+			} else if ( !proto._parameters.defined ) {
+				proto._parameters.defined = {};
+			}
+			return proto._parameters.defined;
+		}
+
+		function ComponentParameters( component, attributes, defined ) {
+			var this$0 = this;
+			this.component = component;
+			this.parentViewmodel = component.root.viewmodel;
+			this.data = {};
+			this.mappings = create( null );
+			this.newKeys = [];
+			this.keys = Object.keys( attributes );
+			this.keys.forEach( function( key ) {
+				if ( defined && !defined[ key ] ) {
+					this$0.newKeys.push( key );
+				}
+				this$0.add( key, attributes[ key ] );
+			} );
+		}
+		ComponentParameters.prototype = {
+			add: function( key, template ) {
+				// We have static data
+				if ( typeof template === 'string' ) {
+					var parsed = parseJSON( template );
+					this.addData( key, parsed ? parsed.value : template );
+				} else if ( template === 0 ) {
+					this.addData( key );
+				} else {
+					var resolver;
+					// Single interpolator
+					if ( isSingleInterpolator( template ) ) {
+						resolver = new ParameterResolver( this, key, template[ 0 ] ).resolver;
+					} else {
+						resolver = new ComplexParameter( this, key, template );
+					}
+					this.component.resolvers.push( resolver );
+				}
+			},
+			addData: function( key, value ) {
+				this.data[ key ] = value;
+			},
+			addMapping: function( key, keypath ) {
+				return this.mappings[ key ] = new Mapping( key, {
+					origin: this.parentViewmodel,
+					keypath: keypath
+				} );
+			}
+		};
+
+		function isSingleInterpolator( template ) {
+			return template.length === 1 && template[ 0 ].t === types.INTERPOLATOR;
+		}
+		return __export;
+	}( ComplexParameter, create, createComponentData, Mapping, parseJSON, ParameterResolver, types );
 
 	/* virtualdom/items/Component/initialise/propagateEvents.js */
 	var propagateEvents = function( circular, fireEvent, log ) {
@@ -12171,14 +12542,34 @@
 		}
 	};
 
+	/* utils/warn.js */
+	var utils_warn = function( hasConsole ) {
+
+		var warn, warned = {};
+		if ( hasConsole ) {
+			warn = function( message, allowDuplicates ) {
+				if ( !allowDuplicates ) {
+					if ( warned[ message ] ) {
+						return;
+					}
+					warned[ message ] = true;
+				}
+				console.warn( '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' );
+			};
+		} else {
+			warn = function() {};
+		}
+		return warn;
+	}( hasConsole );
+
 	/* virtualdom/items/Component/prototype/init.js */
-	var virtualdom_items_Component$init = function( types, warn, parseJSON, createReferenceResolver, ExpressionResolver, ReferenceExpressionResolver, ComponentParameter, createInstance, propagateEvents, updateLiveQueries, decodeKeypath ) {
+	var virtualdom_items_Component$init = function( createInstance, createParameters, propagateEvents, types, updateLiveQueries, warn ) {
 
 		return function Component$init( options, Component ) {
-			var this$0 = this;
-			var parentFragment, root, data = {},
-				mappings = {},
-				mappingTemplates;
+			var parentFragment, root, parameters;
+			if ( !Component ) {
+				throw new Error( 'Component "' + this.name + '" not found' );
+			}
 			parentFragment = this.parentFragment = options.parentFragment;
 			root = parentFragment.root;
 			this.root = root;
@@ -12187,78 +12578,9 @@
 			this.index = options.index;
 			this.indexRefBindings = {};
 			this.yielders = {};
-			if ( !Component ) {
-				throw new Error( 'Component "' + this.name + '" not found' );
-			}
 			this.resolvers = [];
-			this.complexParameters = [];
-			mappingTemplates = options.template.a;
-			if ( mappingTemplates ) {
-				Object.keys( mappingTemplates ).forEach( function( key ) {
-					var template, parsed, ref, resolver, resolve, ready, resolved, param, mapping;
-					template = mappingTemplates[ key ];
-					if ( typeof template === 'string' ) {
-						// We have static data
-						parsed = parseJSON( template );
-						data[ key ] = parsed ? parsed.value : template;
-					} else if ( template === 0 ) {
-						// Empty string
-						// TODO valueless attributes also end up here currently
-						// (i.e. `<widget bool>` === `<widget bool=''>`) - this
-						// is probably incorrect
-						data[ key ] = undefined;
-					} else {
-						if ( template.length === 1 && template[ 0 ].t === types.INTERPOLATOR ) {
-							resolve = function( keypath ) {
-								var isSpecial, value;
-								resolved = true;
-								if ( keypath[ 0 ] === '@' ) {
-									isSpecial = true;
-									value = decodeKeypath( keypath );
-									if ( ready ) {
-										this$0.instance.viewmodel.set( key, value );
-									} else {
-										data[ key ] = value;
-									}
-								} else {
-									if ( ready ) {
-										mapping = this$0.instance.viewmodel.mappings[ key ];
-										mapping.resolve( keypath );
-									} else {
-										mappings[ key ] = {
-											origin: this$0.root.viewmodel,
-											keypath: keypath
-										};
-									}
-								}
-							};
-							if ( ref = template[ 0 ].r ) {
-								resolver = createReferenceResolver( this$0, template[ 0 ].r, resolve );
-							} else if ( template[ 0 ].x ) {
-								resolver = new ExpressionResolver( this$0, parentFragment, template[ 0 ].x, resolve );
-							} else if ( template[ 0 ].rx ) {
-								resolver = new ReferenceExpressionResolver( this$0, template[ 0 ].rx, resolve );
-							}
-							ready = true;
-							this$0.resolvers.push( resolver );
-							if ( !resolved ) {
-								// note the mapping anyway, for the benefit of child
-								// components
-								mappings[ key ] = {
-									origin: this$0.root.viewmodel
-								};
-							}
-						} else {
-							// We have a 'complex' parameter, e.g.
-							// `<widget foo='{{bar}} {{baz}}'/>`
-							param = new ComponentParameter( this$0, key, template );
-							data[ key ] = param.value;
-							this$0.complexParameters.push( param );
-						}
-					}
-				} );
-			}
-			createInstance( this, Component, data, mappings, options.template.f, options.template.p );
+			parameters = createParameters( this, Component.prototype, options.template.a );
+			createInstance( this, Component, parameters, options.template.f, options.template.p );
 			propagateEvents( this, options.template.v );
 			// intro, outro and decorator directives have no effect
 			if ( options.template.t1 || options.template.t2 || options.template.o ) {
@@ -12266,7 +12588,7 @@
 			}
 			updateLiveQueries( this );
 		};
-	}( types, warn, parseJSON, createReferenceResolver, ExpressionResolver, ReferenceExpressionResolver, ComponentParameter, createInstance, propagateEvents, updateLiveQueries, decodeKeypath );
+	}( createInstance, createParameters, propagateEvents, types, updateLiveQueries, utils_warn );
 
 	/* virtualdom/items/Component/prototype/rebind.js */
 	var virtualdom_items_Component$rebind = function( runloop ) {
@@ -12275,7 +12597,6 @@
 			var childInstance = this.instance,
 				indexRefAlias, query;
 			this.resolvers.forEach( rebind );
-			this.complexParameters.forEach( rebind );
 			for ( var k in this.yielders ) {
 				if ( this.yielders[ k ][ 0 ] ) {
 					rebind( this.yielders[ k ][ 0 ] );
@@ -12315,7 +12636,6 @@
 		var teardownHook = new Hook( 'teardown' );
 		__export = function Component$unbind() {
 			var instance = this.instance;
-			this.complexParameters.forEach( unbind );
 			this.resolvers.forEach( unbind );
 			removeFromLiveComponentQueries( this );
 			// teardown the instance
@@ -12422,7 +12742,7 @@
 			this.fragment = new Fragment( {
 				owner: this,
 				root: container.parent,
-				template: container.inlinePartials[ name ] || [],
+				template: container._inlinePartials[ name ] || [],
 				pElement: this.containerFragment.pElement
 			} );
 			// even though only one yielder is allowed, we need to have an array of them
@@ -12582,7 +12902,7 @@
 				}
 			} );
 		};
-	}( assignNewKeypath );
+	}( assignNew );
 
 	/* virtualdom/Fragment/prototype/render.js */
 	var virtualdom_Fragment$render = function Fragment$render() {
@@ -12951,7 +13271,7 @@
 			}
 			return promise;
 		};
-	}( isObject, getMatchingKeypaths, log, normaliseKeypath, runloop );
+	}( isObject, getMatching, log, normaliseKeypath, runloop );
 
 	/* Ractive/prototype/shift.js */
 	var Ractive$shift = function( makeArrayMethod ) {
@@ -13179,7 +13499,7 @@
 			return values;
 		}
 		return __export;
-	}( arrayContentsMatch, startsWith, isEqual );
+	}( arrayContentsMatch, equalsOrStartsWith, isEqual );
 
 	/* Ractive/prototype.js */
 	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, findContainer, findParent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetPartial, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
@@ -14193,7 +14513,7 @@
 			return value;
 		}
 		return __export;
-	}( decodeKeypath, viewmodel$get_FAILED_LOOKUP );
+	}( decode, viewmodel$get_FAILED_LOOKUP );
 
 	/* viewmodel/prototype/init.js */
 	var viewmodel$init = function() {
@@ -14215,130 +14535,15 @@
 	}();
 
 	/* viewmodel/prototype/map.js */
-	var viewmodel$map = function( removeFromArray, startsWith, getNewKeypath ) {
+	var viewmodel$map = function( Mapping ) {
 
-		var __export;
-		__export = function Viewmodel$map( key, options ) {
-			var mapping = new Mapping( this, key, options );
+		return function Viewmodel$map( key, options ) {
+			var mapping = new Mapping( key, options );
+			mapping.setViewmodel( this );
 			this.mappings[ mapping.localKey ] = mapping;
 			return mapping;
 		};
-		var Mapping = function( local, localKey, options ) {
-			this.local = local;
-			this.localKey = localKey;
-			this.origin = options.origin;
-			this.resolved = false;
-			if ( options.keypath !== undefined ) {
-				this.resolve( options.keypath );
-			}
-			this.deps = [];
-			this.unresolved = [];
-			this.links = [];
-			this.ready = true;
-		};
-		Mapping.prototype = {
-			get: function( keypath, options ) {
-				if ( !this.resolved ) {
-					return undefined;
-				}
-				return this.origin.get( this.map( keypath ), options );
-			},
-			link: function( child ) {
-				this.links.push( child );
-			},
-			map: function( keypath ) {
-				return keypath.replace( this.localKey, this.keypath );
-			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				var this$0 = this;
-				if ( startsWith( this.keypath, oldKeypath ) ) {
-					this.deps.forEach( function( d ) {
-						return this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
-					} );
-					this.keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
-					this.deps.forEach( function( d ) {
-						return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
-					} );
-				}
-			},
-			register: function( keypath, dependant, group ) {
-				var dep = {
-					keypath: keypath,
-					dep: dependant,
-					group: group
-				};
-				if ( !this.resolved ) {
-					this.unresolved.push( dep );
-				} else {
-					this.deps.push( {
-						keypath: keypath,
-						dep: dependant,
-						group: group
-					} );
-					this.origin.register( this.map( keypath ), dependant, group );
-				}
-			},
-			resolve: function( keypath ) {
-				var this$0 = this;
-				if ( this.keypath !== undefined ) {
-					this.origin.unregister( this.keypath, this, 'mappings' );
-					this.deps.forEach( function( d ) {
-						return this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
-					} );
-				}
-				this.keypath = keypath;
-				this.resolved = keypath !== undefined;
-				if ( keypath !== undefined ) {
-					this.origin.register( keypath, this, 'mappings' );
-					if ( this.ready ) {
-						this.unresolved.forEach( function( u ) {
-							if ( u.group === 'mappings' ) {
-								// TODO should these be treated w/ separate process?
-								u.dep.local.mark( u.dep.localKey );
-								u.dep.origin = this$0.origin;
-								u.dep.keypath = keypath;
-							} else {
-								this$0.register( u.keypath, u.dep, u.group );
-								u.dep.setValue( this$0.get( u.keypath ) );
-							}
-						} );
-						this.deps.forEach( function( d ) {
-							return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
-						} );
-						this.local.mark( this.localKey );
-					}
-				}
-			},
-			set: function( keypath, value ) {
-				if ( !this.resolved ) {
-					throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
-				}
-				this.origin.set( this.map( keypath ), value );
-			},
-			unbind: function() {
-				var dep;
-				while ( dep = this.deps.pop() ) {
-					this.origin.unregister( this.map( dep.keypath, dep.dep, dep.group ) );
-				}
-			},
-			unlink: function( child ) {
-				removeFromArray( this.links, child );
-			},
-			unregister: function( keypath, dependant, group ) {
-				var deps, i;
-				deps = this.resolved ? this.deps : this.unresolved;
-				i = deps.length;
-				while ( i-- ) {
-					if ( deps[ i ].dep === dependant ) {
-						deps.splice( i, 1 );
-						break;
-					}
-				}
-				this.origin.unregister( this.map( keypath ), dependant, group );
-			}
-		};
-		return __export;
-	}( removeFromArray, startsWith, getNewKeypath );
+	}( Mapping );
 
 	/* viewmodel/prototype/mark.js */
 	var viewmodel$mark = function( runloop ) {
@@ -14460,6 +14665,12 @@
 		}
 		return __export;
 	}( warn, viewmodel$merge_mapOldToNewIndex );
+
+	/* viewmodel/prototype/origin.js */
+	var viewmodel$origin = function Viewmodel$origin( key ) {
+		var map = this.mappings[ key ];
+		return map ? map.origin : this;
+	};
 
 	/* viewmodel/prototype/register.js */
 	var viewmodel$register = function() {
@@ -14761,31 +14972,28 @@
 	}();
 
 	/* viewmodel/Viewmodel.js */
-	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, compute, get, init, map, mark, merge, register, release, set, smartUpdate, teardown, unregister, adaptConfig ) {
+	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, compute, get, init, magic, map, mark, merge, origin, register, release, set, smartUpdate, teardown, unregister, adaptConfig ) {
 
-		var noMagic;
-		try {
-			Object.defineProperty( {}, 'test', {
-				value: 0
-			} );
-		} catch ( err ) {
-			noMagic = true;
-		}
-		var Viewmodel = function( ractive, mappings ) {
+		var Viewmodel = function( ractive ) {
+			var mappings = arguments[ 1 ];
+			if ( mappings === void 0 )
+				mappings = create( null );
 			var key, mapping;
 			this.ractive = ractive;
 			// TODO eventually, we shouldn't need this reference
 			Viewmodel.extend( ractive.constructor, ractive );
 			// set up explicit mappings
-			this.mappings = create( null );
+			this.mappings = mappings;
 			for ( key in mappings ) {
-				this.map( key, mappings[ key ] );
+				mappings[ key ].setViewmodel( this );
 			}
-			// if data exists locally, but is missing on the parent,
-			// we transfer ownership to the parent
-			for ( key in ractive.data ) {
-				if ( ( mapping = this.mappings[ key ] ) && mapping.origin.get( mapping.keypath ) === undefined ) {
-					mapping.origin.set( mapping.keypath, ractive.data[ key ] );
+			if ( ractive.data && !ractive.data._data ) {
+				// if data exists locally, but is missing on the parent,
+				// we transfer ownership to the parent
+				for ( key in ractive.data ) {
+					if ( ( mapping = this.mappings[ key ] ) && mapping.getValue() === undefined ) {
+						mapping.setValue( ractive.data[ key ] );
+					}
 				}
 			}
 			this.cache = {};
@@ -14812,7 +15020,7 @@
 			this.noCascade = {};
 		};
 		Viewmodel.extend = function( Parent, instance ) {
-			if ( instance.magic && noMagic ) {
+			if ( instance.magic && !magic ) {
 				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 			}
 			instance.adapt = adaptConfig.combine( Parent.prototype.adapt, instance.adapt ) || [];
@@ -14825,6 +15033,7 @@
 			clearCache: clearCache,
 			compute: compute,
 			get: get,
+			origin: origin,
 			init: init,
 			map: map,
 			mark: mark,
@@ -14837,7 +15046,7 @@
 			unregister: unregister
 		};
 		return Viewmodel;
-	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$compute, viewmodel$get, viewmodel$init, viewmodel$map, viewmodel$mark, viewmodel$merge, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$smartUpdate, viewmodel$teardown, viewmodel$unregister, adaptConfig );
+	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$compute, viewmodel$get, viewmodel$init, magic, viewmodel$map, viewmodel$mark, viewmodel$merge, viewmodel$origin, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$smartUpdate, viewmodel$teardown, viewmodel$unregister, adaptConfig );
 
 	/* Ractive/initialise.js */
 	var Ractive_initialise = function( config, create, Fragment, getElement, getNextNumber, Hook, HookQueue, Viewmodel, circular ) {
@@ -14914,6 +15123,10 @@
 				ractive.root = ractive.parent.root;
 				ractive.component = options.component;
 				options.component.instance = ractive;
+				// for hackability, this could be an open option
+				// for any ractive instance, but for now, just
+				// for components and just for ractive...
+				ractive._inlinePartials = options.inlinePartials;
 			} else {
 				ractive.root = ractive;
 				ractive.parent = ractive.container = null;
