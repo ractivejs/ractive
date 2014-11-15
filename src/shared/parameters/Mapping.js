@@ -79,11 +79,13 @@ Mapping.prototype = {
 
 		if( this.trackData ) {
 			// keep local data in sync, for browsers w/ no defineProperty
-			this.origin.register( this.keypath, {
+			this.tracker = {
 				setValue: value => {
 					this.local.ractive.data[ this.localKey ] = value;
 				}
-			}, 'default' );
+			};
+
+			this.origin.register( this.keypath, this.tracker );
 		}
 
 		if ( this.ready ) {
@@ -119,11 +121,19 @@ Mapping.prototype = {
 		this.origin.set( this.keypath, value );
 	},
 
+	teardown: function () {
+		this.unbind();
+		this.origin.unregister( this.keypath, this, 'mappings' );
+		if ( this.tracker ) {
+			this.origin.unregister( this.keypath, this.tracker );
+		}
+	},
+
 	unbind: function () {
 		var dep;
 
 		while ( dep = this.deps.pop() ) {
-			this.origin.unregister( this.map( dep.keypath, dep.dep, dep.group ) );
+			this.origin.unregister( this.map( dep.keypath ), dep.dep, dep.group );
 		}
 	},
 

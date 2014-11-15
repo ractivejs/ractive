@@ -32,7 +32,7 @@ var Viewmodel = function ( ractive, mappings = create(null) ) {
 		mappings[ key ].setViewmodel( this );
 	}
 
-	if( ractive.data && !ractive.data._data ) {
+	if ( ractive.data && ractive.parameters !== true ) {
 		// if data exists locally, but is missing on the parent,
 		// we transfer ownership to the parent
 		for ( key in ractive.data ) {
