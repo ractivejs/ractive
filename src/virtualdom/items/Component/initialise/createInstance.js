@@ -10,7 +10,7 @@ circular.push( () => {
 	initialise = circular.initialise;
 });
 
-export default function ( component, Component, data, mappings, yieldTemplate, partials ) {
+export default function ( component, Component, parameters, yieldTemplate, partials ) {
 	var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
 
 	parentFragment = component.parentFragment;
@@ -51,8 +51,7 @@ export default function ( component, Component, data, mappings, yieldTemplate, p
 	initialise( instance, {
 		el: null,
 		append: true,
-		data: data,
-		inlinePartials: inlinePartials,
+		data: parameters.data,
 		partials: partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,
@@ -61,8 +60,9 @@ export default function ( component, Component, data, mappings, yieldTemplate, p
 	}, {
 		parent: ractive,
 		component: component,
-		mappings: mappings,
-		container: container
+		container: container,
+		mappings: parameters.mappings,
+		inlinePartials: inlinePartials
 	});
 
 	return instance;

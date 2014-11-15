@@ -6,7 +6,6 @@ export default function Component$rebind ( indexRef, newIndex, oldKeypath, newKe
 		query;
 
 	this.resolvers.forEach( rebind );
-	this.complexParameters.forEach( rebind );
 
 	for ( let k in this.yielders ) {
 		if ( this.yielders[k][0] ) {

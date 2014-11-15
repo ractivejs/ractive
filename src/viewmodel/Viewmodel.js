@@ -6,9 +6,11 @@ import clearCache from 'viewmodel/prototype/clearCache';
 import compute from 'viewmodel/prototype/compute';
 import get from 'viewmodel/prototype/get';
 import init from 'viewmodel/prototype/init';
+import magic from 'config/magic';
 import map from 'viewmodel/prototype/map';
 import mark from 'viewmodel/prototype/mark';
 import merge from 'viewmodel/prototype/merge';
+import origin from 'viewmodel/prototype/origin';
 import register from 'viewmodel/prototype/register';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
@@ -17,18 +19,7 @@ import teardown from 'viewmodel/prototype/teardown';
 import unregister from 'viewmodel/prototype/unregister';
 import adaptConfig from 'viewmodel/adaptConfig';
 
-// TODO: fix our ES6 modules so we can have multiple exports
-// then this magic check can be reused by magicAdaptor
-var noMagic;
-
-try {
-	Object.defineProperty({}, 'test', { value: 0 });
-}
-catch ( err ) {
-	noMagic = true; // no magic in this environment :(
-}
-
-var Viewmodel = function ( ractive, mappings ) {
+var Viewmodel = function ( ractive, mappings = create(null) ) {
 	var key, mapping;
 
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
@@ -36,16 +27,18 @@ var Viewmodel = function ( ractive, mappings ) {
 	Viewmodel.extend( ractive.constructor, ractive );
 
 	// set up explicit mappings
-	this.mappings = create( null );
+	this.mappings = mappings;
 	for ( key in mappings ) {
-		this.map( key, mappings[ key ] );
+		mappings[ key ].setViewmodel( this );
 	}
 
-	// if data exists locally, but is missing on the parent,
-	// we transfer ownership to the parent
-	for ( key in ractive.data ) {
-		if ( ( mapping = this.mappings[ key ] ) && mapping.origin.get( mapping.keypath ) === undefined ) {
-			mapping.origin.set( mapping.keypath, ractive.data[ key ] );
+	if( ractive.data && !ractive.data._data ) {
+		// if data exists locally, but is missing on the parent,
+		// we transfer ownership to the parent
+		for ( key in ractive.data ) {
+			if ( ( mapping = this.mappings[ key ] ) && mapping.getValue() === undefined ) {
+				mapping.setValue( ractive.data[ key ] );
+			}
 		}
 	}
 
@@ -79,7 +72,7 @@ var Viewmodel = function ( ractive, mappings ) {
 
 Viewmodel.extend = function ( Parent, instance ) {
 
-	if ( instance.magic && noMagic ) {
+	if ( instance.magic && !magic ) {
 		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 	}
 
@@ -97,6 +90,7 @@ Viewmodel.prototype = {
 	clearCache: clearCache,
 	compute: compute,
 	get: get,
+	origin: origin,
 	init: init,
 	map: map,
 	mark: mark,

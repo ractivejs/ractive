@@ -1,5 +1,5 @@
 import isObject from 'utils/isObject';
-import getMatchingKeypaths from 'shared/getMatchingKeypaths';
+import getMatchingKeypaths from 'shared/keypaths/getMatching';
 import log from 'utils/log/log';
 import normaliseKeypath from 'utils/normaliseKeypath';
 import runloop from 'global/runloop';

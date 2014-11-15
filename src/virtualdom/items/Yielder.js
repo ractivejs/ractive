@@ -27,7 +27,7 @@ var Yielder = function ( options ) {
 	this.fragment = new Fragment({
 		owner: this,
 		root: container.parent,
-		template: container.inlinePartials[ name ] || [],
+		template: container._inlinePartials[ name ] || [],
 		pElement: this.containerFragment.pElement
 	});
 

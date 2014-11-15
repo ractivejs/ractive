@@ -13,7 +13,7 @@ function combine( Parent, target, options ) {
 
 	var value = options.data || {},
 		parentValue = getAddedKeys( Parent.prototype.data );
-	
+
 	if ( typeof value !== 'object' && typeof value !== 'function') {
 		throw new TypeError( 'data option must be an object or a function, "' + value + '" is not valid' );
 	}
@@ -82,10 +82,9 @@ function dispatch ( parent, child ) {
 }
 
 function copy ( from, to, fillOnly ) {
-
 	for ( let key in from ) {
 
-		if ( fillOnly && key in to ) { continue; }
+		if ( !(to._mappings && to._mappings[key].updatable) &&  fillOnly && key in to ) { continue; }
 
 		to[ key ] = from[ key ];
 	}
