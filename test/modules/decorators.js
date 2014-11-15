@@ -263,6 +263,31 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( true );
 		});
 
+
+		test( 'Dynamic and empty dynamic decorator and empty', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				debug: true,
+				template: '{{#if x}}<div decorator="{{foo}}">not this</div>{{/if}}',
+				data: {
+					foo: '',
+					x: true
+				},
+				decorators: {
+					test: function ( node ) {
+						node.innerHTML = 'pass';
+						return { teardown: function () {} }
+					}
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<div>not this</div>' );
+			ractive.set( 'x', false );
+			ractive.set( 'foo', 'test' );
+			ractive.set( 'x', true );
+			t.htmlEqual( fixture.innerHTML, '<div>pass</div>' );
+		});
+
 	};
 
 });
