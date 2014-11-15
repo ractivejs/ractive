@@ -123,7 +123,7 @@ Mapping.prototype = {
 		var dep;
 
 		while ( dep = this.deps.pop() ) {
-			this.origin.unregister( this.map( dep.keypath, dep.dep, dep.group ) );
+			this.origin.unregister( this.map( dep.keypath ), dep.dep, dep.group );
 		}
 	},
 
