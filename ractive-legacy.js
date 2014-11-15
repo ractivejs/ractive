@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-11-15 - commit 31a39a61 
+	2014-11-15 - commit 5b5774db 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8620,6 +8620,34 @@
 		};
 	}();
 
+	/* virtualdom/items/Element/prototype/init/processBindingAttributes.js */
+	var virtualdom_items_Element$init_processBindingAttributes = function() {
+
+		var truthy = /^true|on|yes|1$/i;
+		var isNumeric = /^[0-9]+$/;
+		return function( element, attributes ) {
+			var val;
+			// attributes that are present but don't have a value (=)
+			// will be set to the number 0, which we condider to be true
+			// the string '0', however is false
+			val = attributes.twoway;
+			if ( val !== undefined ) {
+				element.twoway = val === 0 || truthy.test( val );
+				delete attributes.twoway;
+			}
+			val = attributes.lazy;
+			if ( val !== undefined ) {
+				// check for timeout value
+				if ( val !== 0 && isNumeric.test( val ) ) {
+					element.lazy = parseInt( val );
+				} else {
+					element.lazy = val === 0 || truthy.test( val );
+				}
+				delete attributes.lazy;
+			}
+		};
+	}();
+
 	/* virtualdom/items/Element/Attribute/prototype/bubble.js */
 	var virtualdom_items_Element_Attribute$bubble = function( runloop, isEqual ) {
 
@@ -9807,8 +9835,17 @@
 		return FileListBinding;
 	}( Binding, handleDomEvent );
 
+	/* utils/isNumber.js */
+	var isNumber = function() {
+
+		var toString = Object.prototype.toString;
+		return function( thing ) {
+			return typeof thing === 'number' || typeof thing === 'object' && toString.call( thing ) === '[object Number]';
+		};
+	}();
+
 	/* virtualdom/items/Element/Binding/GenericBinding.js */
-	var GenericBinding = function( Binding, handleDomEvent ) {
+	var GenericBinding = function( Binding, handleDomEvent, isNumber ) {
 
 		var __export;
 		var GenericBinding;
@@ -9820,18 +9857,32 @@
 				return this.element.node.value;
 			},
 			render: function() {
-				var node = this.element.node;
+				var node = this.element.node,
+					lazy, timeout = false;
+				this.rendered = true;
+				// any lazy setting for this element overrides the root
+				// if the value is a number, it's a timeout
+				lazy = this.root.lazy;
+				if ( this.element.lazy === true ) {
+					lazy = true;
+				} else if ( this.element.lazy === false ) {
+					lazy = false;
+				} else if ( isNumber( this.element.lazy ) ) {
+					lazy = false;
+					timeout = this.element.lazy;
+				}
 				node.addEventListener( 'change', handleDomEvent, false );
-				if ( !this.root.lazy ) {
-					node.addEventListener( 'input', handleDomEvent, false );
+				if ( !lazy ) {
+					node.addEventListener( 'input', timeout ? handleDelay : handleDomEvent, false );
 					if ( node.attachEvent ) {
-						node.addEventListener( 'keyup', handleDomEvent, false );
+						node.addEventListener( 'keyup', timeout ? handleDelay : handleDomEvent, false );
 					}
 				}
 				node.addEventListener( 'blur', handleBlur, false );
 			},
 			unrender: function() {
 				var node = this.element.node;
+				this.rendered = false;
 				node.removeEventListener( 'change', handleDomEvent, false );
 				node.removeEventListener( 'input', handleDomEvent, false );
 				node.removeEventListener( 'keyup', handleDomEvent, false );
@@ -9846,8 +9897,20 @@
 			value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath );
 			this.value = value == undefined ? '' : value;
 		}
+
+		function handleDelay() {
+			var binding = this._ractive.binding,
+				el = this;
+			if ( !!binding._timeout )
+				clearTimeout( binding._timeout );
+			binding._timeout = setTimeout( function() {
+				if ( binding.rendered )
+					handleDomEvent.call( el );
+				binding._timeout = undefined;
+			}, binding.element.lazy );
+		}
 		return __export;
-	}( Binding, handleDomEvent );
+	}( Binding, handleDomEvent, isNumber );
 
 	/* virtualdom/items/Element/Binding/NumericBinding.js */
 	var NumericBinding = function( GenericBinding ) {
@@ -10458,14 +10521,14 @@
 	}( findParentSelect );
 
 	/* virtualdom/items/Element/prototype/init.js */
-	var virtualdom_items_Element$init = function( types, enforceCase, createAttributes, createConditionalAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
+	var virtualdom_items_Element$init = function( types, enforceCase, processBindingAttributes, createAttributes, createConditionalAttributes, createTwowayBinding, createEventHandlers, Decorator, bubbleSelect, initOption, circular ) {
 
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
 		return function Element$init( options ) {
-			var parentFragment, template, ractive, binding, bindings;
+			var parentFragment, template, ractive, binding, bindings, twoway;
 			this.type = types.ELEMENT;
 			// stuff we'll need later
 			parentFragment = this.parentFragment = options.parentFragment;
@@ -10483,6 +10546,8 @@
 				this.options = [];
 				this.bubble = bubbleSelect;
 			}
+			// handle binding attributes first (twoway, lazy)
+			processBindingAttributes( this, template.a || {} );
 			// create attributes
 			this.attributes = createAttributes( this, template.a );
 			this.conditionalAttributes = createConditionalAttributes( this, template.m );
@@ -10495,8 +10560,14 @@
 					pElement: this
 				} );
 			}
+			// the element setting should override the ractive setting
+			twoway = ractive.twoway;
+			if ( this.twoway === false )
+				twoway = false;
+			else if ( this.twoway === true )
+				twoway = true;
 			// create twoway binding
-			if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
+			if ( twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
 				this.binding = binding;
 				// register this with the root, so that we can do ractive.updateModel()
 				bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
@@ -10514,7 +10585,7 @@
 			this.intro = template.t0 || template.t1;
 			this.outro = template.t0 || template.t2;
 		};
-	}( types, enforceCase, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createConditionalAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
+	}( types, enforceCase, virtualdom_items_Element$init_processBindingAttributes, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createConditionalAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
 
 	/* shared/keypaths/equalsOrStartsWith.js */
 	var equalsOrStartsWith = function( startsWithKeypath ) {
