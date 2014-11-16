@@ -20,6 +20,11 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 
 	deps.splice( index, 1 );
 
+	// added clean-up for mappings, how does it impact other use-cases?
+	if ( !deps.length ) {
+		delete this.deps[ group ][ keypath ];
+	}
+
 	if ( !keypath ) {
 		return;
 	}

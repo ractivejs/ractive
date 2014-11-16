@@ -1266,37 +1266,34 @@ define([
 				t.htmlEqual( fixture.innerHTML, 'foo!' );
 			});
 
-			// Commented out temporarily, see #1381
 			test( 'Binding from parent to computation on child that is bound to parent should update properly (#1357)', ( t ) => {
 				var ractive = new Ractive({
 					el: fixture,
 					template: '{{b}} <component c="{{a}}" d="{{b}}" />',
-					data: { a: 'a' },
+					data: { a: 'a'  },
 					components: {
 						component: Ractive.extend({
 							template: '{{c}} {{d}}',
 							computed: {
-								d: function() { return 'foo' + this.get('c'); }
+								d: function() { return 'foo-' + this.get('c'); }
 							}
 						})
 					}
 				});
 
-				t.htmlEqual( fixture.innerHTML, 'fooa a fooa' );
+				t.htmlEqual( fixture.innerHTML, 'foo-a a foo-a' );
 				ractive.set( 'a', 'bar' );
-				t.htmlEqual( fixture.innerHTML, 'foobar bar foobar' );
+				t.htmlEqual( fixture.innerHTML, 'foo-bar bar foo-bar' );
 			});
-
-
 		}
 
 		// should be ES5 prototypes
 		testDataPropagation( 'Default', true );
 
-		// runs legacy, tracks data
+		// // runs legacy, tracks data
 		testDataPropagation( 'Legacy', 'legacy' );
 
-		// // just mapping, no .data help
+		// // // just mapping, no .data help
 		testDataPropagation( 'None', false );
 
 	};

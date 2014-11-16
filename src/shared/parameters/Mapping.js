@@ -38,7 +38,6 @@ Mapping.prototype = {
 	},
 
 	map: function ( keypath ) {
-		// TODO: should this be cached and only run when keypath changes?
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
@@ -131,7 +130,6 @@ Mapping.prototype = {
 
 	unbind: function () {
 		var dep;
-
 		while ( dep = this.deps.pop() ) {
 			this.origin.unregister( this.map( dep.keypath ), dep.dep, dep.group );
 		}
