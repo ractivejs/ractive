@@ -46,7 +46,7 @@ export default {
 	},
 	unregisterEventHandlers: function( element, events ) {
 		// if events is an array of named events to remove
-		if ( isArray( events ) ) {
+		if ( isArray( events ) && element.eventHandlers ) {
 			let event;
 			
 			for ( event of events ) {
