@@ -1,9 +1,8 @@
 import runloop from 'global/runloop';
 import Transition from 'virtualdom/items/Element/Transition/_Transition';
+import bindingHelpers from 'virtualdom/items/Element/prototype/bindingHelpers';
 
 export default function Element$unrender ( shouldDestroy ) {
-	var binding, bindings;
-
 	if ( this.transition ) {
 		this.transition.complete();
 	}
@@ -24,22 +23,13 @@ export default function Element$unrender ( shouldDestroy ) {
 		this.fragment.unrender( false );
 	}
 
-	if ( binding = this.binding ) {
-		this.binding.unrender();
-
-		this.node._ractive.binding = null;
-		bindings = this.root._twowayBindings[ binding.keypath ];
-		bindings.splice( bindings.indexOf( binding ), 1 );
-	}
+	// remove binding if there is one
+	bindingHelpers.unregisterTwowayBinding( this );
 
 	// Remove event handlers
-	if ( this.eventHandlers ) {
-		this.eventHandlers.forEach( h => h.unrender() );
-	}
+	bindingHelpers.unregisterEventHandlers( this );
 
-	if ( this.decorator ) {
-		this.decorator.teardown();
-	}
+	bindingHelpers.unregisterDecorator( this );
 
 	// trigger outro transition if necessary
 	if ( this.root.transitionsEnabled && this.outro ) {

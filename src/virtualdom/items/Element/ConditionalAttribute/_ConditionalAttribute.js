@@ -2,6 +2,9 @@ import circular from 'circular';
 import namespaces from 'config/namespaces';
 import createElement from 'utils/createElement';
 import toArray from 'utils/toArray';
+import getEvent from 'parse/converters/element/processDirective';
+import bindingHelpers from 'virtualdom/items/Element/prototype/bindingHelpers';
+import processBindingAttributes from 'virtualdom/items/Element/prototype/init/processBindingAttributes';
 
 var Fragment, div;
 
@@ -25,6 +28,14 @@ var ConditionalAttribute = function ( element, template ) {
 		owner: this,
 		template: [ template ]
 	});
+
+	this.baseDirectives = {
+		decorator: element.template.o,
+		twoway: element.twoway,
+		lazy: element.lazy
+	};
+	this.directives = {};
+	this.eventCache = {};
 };
 
 ConditionalAttribute.prototype = {
@@ -38,6 +49,7 @@ ConditionalAttribute.prototype = {
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
 		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		this.items.forEach( i => i.rebind( indexRef, newIndex, oldKeypath, newKeypath ) );
 	},
 
 	render: function ( node ) {
@@ -56,6 +68,8 @@ ConditionalAttribute.prototype = {
 
 		str = this.fragment.toString();
 		attrs = parseAttributes( str, this.isSvg );
+
+		processDirectives( this, attrs );
 
 		// any attributes that previously existed but no longer do
 		// must be removed
@@ -95,4 +109,84 @@ function notIn ( haystack, needle ) {
 	}
 
 	return true;
+}
+
+var eventDirective = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/;
+function processDirectives( cond, attrs ) {
+	let k, attr, events = {}, event, attrEvents = [], newDirectives;
+
+	// turn attributes into a map and process for binding directives
+	newDirectives = processBindingAttributes( undefined, attrs.reduce( ( a, c ) => { a[c.name] = c.value; return a; }, {} ) );
+
+	// find new directives
+	k = attrs.length;
+	while ( k-- ) {
+		attr = attrs[k];
+		if ( attr.name === 'decorator' ) {
+			newDirectives.decorator = attr.value;
+			attrs.splice( k, 1 );
+		} else if ( attr.name === 'twoway' || attr.name === 'lazy' ) {
+			attrs.splice( k, 1 );
+		} else if ( event = eventDirective.exec( attr.name ) ) {
+			let names = event[1].split( '-' );
+			attrEvents = attrEvents.concat( names );
+
+			if ( event = getEvent( attr.value ) ) {
+				attrs.splice( k, 1 );
+				for ( k of names ) {
+					if ( !cond.eventCache[k] !== attr.value ) {
+						cond.eventCache[k] = attr.value;
+						events[k] = event;
+					}
+				}
+			}
+		}
+	}
+
+	// set up events to reset
+	let eventsToRemove = [];
+	for ( k in events ) {
+		eventsToRemove.push( k );
+	}
+
+	// check for events that were registered here but no longer here
+	for ( k in cond.eventCache ) {
+		if ( attrEvents.indexOf( k ) === -1 ) {
+			eventsToRemove.push( k );
+			delete cond.eventCache[k];
+		}
+	}
+
+	bindingHelpers.unregisterEventHandlers( cond.element, eventsToRemove );
+	bindingHelpers.registerEventHandlers( cond.element, events ).forEach( e => e.render() );
+
+	if ( newDirectives.twoway !== cond.directives.twoway ) {
+		if ( newDirectives.twoway === undefined ) {
+			// removed twoway directive, so reset to base
+			cond.element.twoway = cond.baseDirectives.twoway;
+		} else {
+			cond.element.twoway = newDirectives.twoway;
+		}
+
+		cond.directives.twoway = newDirectives.twoway;
+		bindingHelpers.registerTwowayBinding( cond.element );
+	}
+
+	if ( newDirectives.lazy !== cond.directives.lazy ) {
+		if ( newDirectives.lazy === undefined ) {
+			// removerd lazy directive, so reset to base
+			cond.element.lazy = cond.baseDirectives.lazy;
+		} else {
+			cond.element.lazy = newDirectives.lazy;
+		}
+
+		cond.directives.lazy = newDirectives.lazy;
+		bindingHelpers.updateLaziness( cond.element );
+	}
+
+	if ( newDirectives.decorator !== cond.directives.decorator ) {
+		// decorator changed
+		cond.directives.decorator = newDirectives.decorator;
+		bindingHelpers.registerDecorator( cond.element, newDirectives.decorator );
+	}
 }

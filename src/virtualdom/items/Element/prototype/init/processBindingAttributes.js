@@ -4,13 +4,15 @@ var isNumeric = /^[0-9]+$/;
 export default function( element, attributes ) {
 	var val;
 
+	element = element || {};
+
 	// attributes that are present but don't have a value (=)
 	// will be set to the number 0, which we condider to be true
 	// the string '0', however is false
 
 	val = attributes.twoway;
 	if ( val !== undefined ) {
-		element.twoway = val === 0 || truthy.test( val );
+		element.twoway = val === 'twoway' || val === '' || val === 0 || truthy.test( val );
 		delete attributes.twoway;
 	}
 
@@ -20,8 +22,10 @@ export default function( element, attributes ) {
 		if ( val !== 0 && isNumeric.test( val ) ) {
 			element.lazy = parseInt( val );
 		} else {
-			element.lazy = val === 0 || truthy.test( val );
+			element.lazy = val === 'lazy' || val === '' || val === 0 || truthy.test( val );
 		}
 		delete attributes.lazy;
 	}
+
+	return element;
 }

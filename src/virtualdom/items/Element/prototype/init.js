@@ -3,9 +3,7 @@ import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
 import processBindingAttributes from 'virtualdom/items/Element/prototype/init/processBindingAttributes';
 import createAttributes from 'virtualdom/items/Element/prototype/init/createAttributes';
 import createConditionalAttributes from 'virtualdom/items/Element/prototype/init/createConditionalAttributes';
-import createTwowayBinding from 'virtualdom/items/Element/prototype/init/createTwowayBinding';
-import createEventHandlers from 'virtualdom/items/Element/prototype/init/createEventHandlers';
-import Decorator from 'virtualdom/items/Element/Decorator/_Decorator';
+import bindingHelpers from 'virtualdom/items/Element/prototype/bindingHelpers';
 import bubbleSelect from 'virtualdom/items/Element/special/select/bubble';
 import initOption from 'virtualdom/items/Element/special/option/init';
 
@@ -20,10 +18,7 @@ circular.push( function () {
 export default function Element$init ( options ) {
 	var parentFragment,
 		template,
-		ractive,
-		binding,
-		bindings,
-		twoway;
+		ractive;
 
 	this.type = types.ELEMENT;
 
@@ -49,6 +44,8 @@ export default function Element$init ( options ) {
 		this.bubble = bubbleSelect; // TODO this is a kludge
 	}
 
+	this.twoway = ractive.twoway;
+	this.lazy = ractive.lazy;
 	// handle binding attributes first (twoway, lazy)
 	processBindingAttributes( this, template.a || {} );
 
@@ -66,28 +63,17 @@ export default function Element$init ( options ) {
 		});
 	}
 
-	// the element setting should override the ractive setting
-	twoway = ractive.twoway;
-	if ( this.twoway === false ) twoway = false;
-	else if ( this.twoway === true ) twoway = true;
-
 	// create twoway binding
-	if ( twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
-		this.binding = binding;
-
-		// register this with the root, so that we can do ractive.updateModel()
-		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
-		bindings.push( binding );
-	}
+	bindingHelpers.registerTwowayBinding( this );
 
 	// create event proxies
 	if ( template.v ) {
-		this.eventHandlers = createEventHandlers( this, template.v );
+		bindingHelpers.registerEventHandlers( this );
 	}
 
 	// create decorator
 	if ( template.o ) {
-		this.decorator = new Decorator( this, template.o );
+		bindingHelpers.registerDecorator( this );
 	}
 
 	// create transitions
