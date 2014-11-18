@@ -1,4 +1,4 @@
-import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
+import assignNewKeypath from 'shared/keypaths/assignNew';
 
 export default function Element$rebind ( oldKeypath, newKeypath ) {
 	var i, storage, liveQueries, ractive;

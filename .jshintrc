@@ -13,6 +13,7 @@
 	"esnext": true,
 	"globals": {
 		"clearInterval": true,
+		"clearTimeout": true,
 		"define": true,
 		"document": true,
 		"Element": true,

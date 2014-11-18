@@ -1011,6 +1011,19 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
+		asyncTest( 'A Promise will be chained and rejected if its callback throws ', function ( t ) {
+			var p = new Ractive.Promise( function (resolve, reject) {
+				resolve();
+			});
+
+			p.then(function () {
+				throw 'ruh-roh';
+			}).then( null, function ( err ) {
+				t.equal( err, 'ruh-roh' );
+				QUnit.start();
+			});
+		});
+
 		test( 'Keypaths in ractive.set() can contain wildcards (#784)', function ( t ) {
 			var ractive = new Ractive({
 				data: {

@@ -2,10 +2,11 @@ export default function Component$rebind ( oldKeypath, newKeypath ) {
 	var query;
 
 	this.resolvers.forEach( rebind );
-	this.complexParameters.forEach( rebind );
 
-	if ( this.yielders[0] ) {
-		rebind( this.yielders[0] );
+	for ( let k in this.yielders ) {
+		if ( this.yielders[k][0] ) {
+			rebind( this.yielders[k][0] );
+		}
 	}
 
 	if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {

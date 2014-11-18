@@ -1,7 +1,8 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import runloop from 'global/runloop';
-import Fragment from 'virtualdom/Fragment';
 import config from 'config/config';
+import Fragment from 'virtualdom/Fragment';
+import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import log from 'utils/log/log';
+import runloop from 'global/runloop';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],
 	resetHook = new Hook( 'reset' );
@@ -83,7 +84,23 @@ export default function Ractive$reset ( data, callback ) {
 	resetHook.fire( this, data );
 
 	if ( callback ) {
-		promise.then( callback );
+
+		log.warn({
+			debug: this.debug,
+			message: 'usePromise',
+			args: {
+				method: 'ractive.reset'
+			}
+		});
+
+		promise
+			.then( callback )
+			.then( null, err => {
+				log.consoleError({
+					debug: this.debug,
+					err: err
+				});
+			});
 	}
 
 	return promise;

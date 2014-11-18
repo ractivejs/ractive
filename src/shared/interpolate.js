@@ -1,5 +1,5 @@
 import circular from 'circular';
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import interpolators from 'config/defaults/interpolators';
 import config from 'config/config';
 

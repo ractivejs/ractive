@@ -30,7 +30,7 @@ export default function Fragment$init ( options ) {
 		pElement: options.pElement,
 		template: template,
 		index: i
-	}) );
+	}) ).filter( i => i !== null );
 
 	this.value = this.argsList = null;
 	this.dirtyArgs = this.dirtyValue = true;

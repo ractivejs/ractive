@@ -1,7 +1,9 @@
+import hasConsole from 'utils/log/hasConsole';
+
 /* global console */
 var warn, warned = {};
 
-if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
+if ( hasConsole ) {
 	warn = function ( message, allowDuplicates ) {
 		if ( !allowDuplicates ) {
 			if ( warned[ message ] ) {

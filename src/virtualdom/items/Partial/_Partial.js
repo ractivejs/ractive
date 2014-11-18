@@ -1,4 +1,4 @@
-import log from 'utils/log';
+import log from 'utils/log/log';
 import types from 'config/types';
 import getPartialTemplate from 'virtualdom/items/Partial/getPartialTemplate';
 import applyIndent from 'virtualdom/items/Partial/applyIndent';

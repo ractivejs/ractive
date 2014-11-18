@@ -1,5 +1,5 @@
 import arrayContentsMatch from 'utils/arrayContentsMatch';
-import startsWith from 'virtualdom/items/shared/utils/startsWith'; // TODO move this helper
+import startsWith from 'shared/keypaths/equalsOrStartsWith';
 import isEqual from 'utils/isEqual';
 
 export default function Ractive$updateModel ( keypath, cascade ) {

@@ -66,6 +66,7 @@ export default {
 	teardown: teardown,
 	toggle: toggle,
 	toHTML: toHTML,
+	toHtml: toHTML,
 	unrender: unrender,
 	unshift: unshift,
 	update: update,

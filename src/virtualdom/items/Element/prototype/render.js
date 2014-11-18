@@ -1,6 +1,6 @@
 import namespaces from 'config/namespaces';
 import isArray from 'utils/isArray';
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 import create from 'utils/create';
 import createElement from 'utils/createElement';
 import defineProperty from 'utils/defineProperty';
@@ -118,7 +118,11 @@ export default function Element$render () {
 
 	// apply decorator(s)
 	if ( this.decorator && this.decorator.fn ) {
-		runloop.scheduleTask( () => this.decorator.init(), true );
+		runloop.scheduleTask( () => { 
+			if ( !this.decorator.torndown ) {
+				this.decorator.init();
+			}
+		}, true );
 	}
 
 	// trigger intro transition
