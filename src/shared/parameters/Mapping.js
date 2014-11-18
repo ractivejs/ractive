@@ -121,15 +121,3 @@ Mapping.prototype = {
 		this.origin.unregister( this.map( keypath ), dependant, group );
 	}
 };
-
-// function bulkRegister ( mapping, deps ) {
-// 	var group, depsGroup;
-
-// 	for( group in deps ){
-// 		if ( depsGroup = deps[ group ] ) {
-// 			depsGroup.forEach( d => {
-// 				mapping.register( d.keypath, d, group );
-// 			});
-// 		}
-// 	}
-// }
