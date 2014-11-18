@@ -1266,6 +1266,49 @@ define([
 				t.htmlEqual( fixture.innerHTML, 'foo!' );
 			});
 
+			test( 'Mappings with reference expressions that change bind correctly', t => {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '<widget foo="{{a[p]}}"/>',
+					data: {
+						a: { b: 'b', c: 'c' },
+						p: 'b'
+					},
+					components: {
+						widget: Ractive.extend({
+							template: '{{foo}}'
+						})
+					}
+				})
+
+				t.equal( fixture.innerHTML, 'b' );
+				ractive.set( 'p', 'c' );
+				t.equal( fixture.innerHTML, 'c' );
+			})
+
+			test( 'Mappings with upstream reference expressions that change bind correctly', t => {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{#a[p]}}<widget foo="{{bar}}"/>{{/a}}',
+					data: {
+						a: {
+							b: { bar: 'of b' },
+							c: { bar: 'of c' }
+						},
+						p: 'b'
+					},
+					components: {
+						widget: Ractive.extend({
+							template: '{{foo}}'
+						})
+					}
+				})
+
+				t.equal( fixture.innerHTML, 'of b' );
+				ractive.set( 'p', 'c' );
+				t.equal( fixture.innerHTML, 'of c' );
+			})
+
 			test( 'Binding from parent to computation on child that is bound to parent should update properly (#1357)', ( t ) => {
 				var ractive = new Ractive({
 					el: fixture,
@@ -1285,15 +1328,40 @@ define([
 				ractive.set( 'a', 'bar' );
 				t.htmlEqual( fixture.innerHTML, 'foo-bar bar foo-bar' );
 			});
+
+
+			test( 'Computation cannot take ownership if already owned by computation', ( t ) => {
+
+				expect( 1 );
+
+				t.throws( () => {
+					var ractive = new Ractive({
+						el: fixture,
+						template: '{{b}} <component c="{{a}}" d="{{b}}" />',
+						data: { a: 2 },
+						computed: {
+							b: '${a} * 2'
+						},
+						components: {
+							component: Ractive.extend({
+								template: '{{c}} {{d}}',
+								computed: {
+									d: '${c} * 3'
+								}
+							})
+						}
+					});
+				}, /\"d\" cannot be mapped to \"b\"/ );
+			});
 		}
 
 		// should be ES5 prototypes
 		testDataPropagation( 'Default', true );
 
-		// // runs legacy, tracks data
+		// runs legacy, tracks data
 		testDataPropagation( 'Legacy', 'legacy' );
 
-		// // // just mapping, no .data help
+		// just mapping, no .data help
 		testDataPropagation( 'None', false );
 
 	};

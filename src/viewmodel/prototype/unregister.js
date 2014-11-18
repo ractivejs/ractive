@@ -3,6 +3,10 @@ import removeFromArray from 'utils/removeFromArray';
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
 	var mapping, deps, index;
 
+	if ( !dependant ) {
+		return bulkUnregister( this, keypath );
+	}
+
 	if ( dependant.isStatic ) {
 		return;
 	}
@@ -30,6 +34,40 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 	}
 
 	updateDependantsMap( this, keypath, group );
+}
+
+function bulkUnregister ( viewmodel, keypath ) {
+	var result, match;
+
+	match = removeMatching( viewmodel, keypath, 'default' );
+	if ( match.length ) {
+		result = match;
+	}
+
+	match = removeMatching( viewmodel, keypath, 'observers' );
+	if ( match.legnth ) {
+		result = result ? result.concat(match) : match;
+	}
+
+	return result;
+}
+
+function removeMatching( viewmodel, keypath, group ) {
+	var depsGroup = viewmodel.deps[ group ], match = [], key, deps;
+
+	for ( key in depsGroup ) {
+		if ( key.indexOf( keypath ) != 0 ) { continue; }
+
+		deps = depsGroup[ key ];
+		deps.forEach( d => {
+			updateDependantsMap( viewmodel, key, group);
+			match.push( { keypath: key, dep: d, group: group });
+		});
+
+		delete depsGroup[ key ];
+	}
+
+	return match;
 }
 
 function updateDependantsMap ( viewmodel, keypath, group ) {

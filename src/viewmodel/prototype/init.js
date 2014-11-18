@@ -1,3 +1,5 @@
+import log from 'utils/log/log';
+
 export default function Viewmodel$init () {
 	var key, computation, computations = [];
 
@@ -20,36 +22,30 @@ function reverseMapping ( viewmodel, key ) {
 	origin = mapping.origin;
 	keypath = mapping.keypath;
 
-	if ( origin.deps.computed[ keypath ] ) {
-		// err
+	if ( origin.computations[ keypath ] ) {
+		return log.critical({
+			debug: viewmodel.ractive.debug,
+			message: 'computedCannotMapToComputed',
+			args: {
+				key: key,
+				otherKey: keypath
+			}
+		});
 	}
 
-	// what if there are mappings?
-
-	// observers?
-
-	// need starts with, or does .depsMap help?
-	if ( deps = origin.deps.default[ keypath ] ) {
-		deps = deps.slice();
-		deps.forEach( d => origin.unregister( keypath, d ) );
-	}
-
-	mapping.teardown();
+	// unbind which will unregister dependants
+	mapping.unbind();
 	delete viewmodel.mappings[ key ];
 
-	mapping = origin.map( keypath, {
+	// need to move existing dependants that belong to this key
+	deps = origin.unregister( keypath );
+
+	// create a new mapping in the other viewmodel
+	origin.map( keypath, {
 		origin: viewmodel,
-		keypath: key
+		keypath: key,
+		deps: deps
 	});
-
-	if ( deps ) {
-		deps.forEach( d => {
-			mapping.register( d.keypath, d, 'default' );
-		});
-		viewmodel.mark( key );
-	}
-
-
 }
 
 function init ( computation ) {

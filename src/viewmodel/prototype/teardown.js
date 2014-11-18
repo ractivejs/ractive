@@ -1,11 +1,5 @@
 export default function Viewmodel$teardown () {
-	var key, mapping, unresolvedImplicitDependency;
-
-	// Unregister mappings
-	for ( key in this.mappings ) {
-		mapping = this.mappings[ key ];
-		mapping.origin.unregister( mapping.keypath, mapping, 'mappings' );
-	}
+	var unresolvedImplicitDependency;
 
 	// Clear entire cache - this has the desired side-effect
 	// of unwrapping adapted values (e.g. arrays)

@@ -92,9 +92,11 @@ ComponentParameters.prototype = {
 		});
 
 		// TODO: not sure about reference expressions and such
-		// if this would actually work...  need to test
+		// if this would actually work (what about keypath?)...
+		// need to test
+
 		// return this.mappings[ key ] = {
-		// 		get the "owner" of the data:
+		// 		// get the "owner" of the data:
 		// 		origin: this.parentViewmodel.origin( keypath ),
 		// 		keypath: keypath
 		// };
