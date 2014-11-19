@@ -608,5 +608,22 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( fixture.innerHTML, 'foo' );
 		});
+
+		test( 'Partials with expressions in recursive structures should not blow the stack', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}{{>\'item\'}}{{/}}',
+				partials: {
+					item: '{{.foo}}{{#.items}}{{>\'item\'}}{{/}}'
+				},
+				data: {
+					items: [
+						{ items: [{ foo: 'a', items: [{ foo: 'b' }] }] }
+					]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'ab' );
+		});
 	};
 });
