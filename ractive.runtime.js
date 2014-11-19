@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-15 - commit 5b5774db 
+	2014-11-19 - commit 06506630 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10207,8 +10207,8 @@
 						}
 					} );
 				}
-				this.setTemplate( template || [] );
 				this.value = value;
+				this.setTemplate( template || [] );
 				this.bubble();
 				if ( this.rendered ) {
 					runloop.addView( this );
