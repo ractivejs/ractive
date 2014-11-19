@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-19 - commit 06506630 
+	2014-11-19 - commit 07ea397f 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2254,25 +2254,35 @@
 			},
 			find: function( ractive, key ) {
 				var this$0 = this;
-				return recurseFind( ractive, function( r ) {
-					return r[ this$0.name ][ key ];
+				return recurseFind( ractive, {
+					test: function( r ) {
+						return key in r[ this$0.name ];
+					},
+					getValue: function( r ) {
+						return r[ this$0.name ][ key ];
+					}
 				} );
 			},
 			findInstance: function( ractive, key ) {
 				var this$0 = this;
-				return recurseFind( ractive, function( r ) {
-					return r[ this$0.name ][ key ] ? r : void 0;
+				return recurseFind( ractive, {
+					test: function( r ) {
+						return key in r[ this$0.name ];
+					},
+					getValue: function( r ) {
+						return r;
+					}
 				} );
 			}
 		};
 
-		function recurseFind( ractive, fn ) {
-			var find, parent;
-			if ( find = fn( ractive ) ) {
-				return find;
+		function recurseFind( ractive, finder ) {
+			var parent;
+			if ( finder.test( ractive ) ) {
+				return finder.getValue( ractive );
 			}
 			if ( !ractive.isolated && ( parent = ractive.parent ) ) {
-				return recurseFind( parent, fn );
+				return recurseFind( parent, finder );
 			}
 		}
 		return Registry;
@@ -9018,6 +9028,10 @@
 				} );
 				name = fragment.toString();
 				fragment.unbind();
+				if ( name === '' ) {
+					// empty string okay, just no decorator
+					return;
+				}
 			}
 			if ( template.a ) {
 				this.params = template.a;
@@ -9367,6 +9381,10 @@
 				} );
 				name = fragment.toString();
 				fragment.unbind();
+				if ( name === '' ) {
+					// empty string okay, just no transition
+					return;
+				}
 			}
 			this.name = name;
 			if ( template.a ) {
@@ -10458,7 +10476,7 @@
 				fn.isOwner = instance.partials.hasOwnProperty( name );
 				partial = fn( instance.data, parser );
 			}
-			if ( !partial ) {
+			if ( !partial && partial !== '' ) {
 				log.warn( {
 					debug: ractive.debug,
 					message: 'noRegistryFunctionReturn',
@@ -10591,7 +10609,9 @@
 					// nothing has changed, so no work to be done
 					return;
 				}
-				template = getPartialTemplate( this.root, '' + value );
+				if ( value !== undefined ) {
+					template = getPartialTemplate( this.root, '' + value );
+				}
 				// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 				// name of both a data property (whose value ISN'T the name of a partial)
 				// and a partial. In those cases, this becomes a named partial
