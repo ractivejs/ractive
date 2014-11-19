@@ -1,10 +1,6 @@
 export default function Viewmodel$register ( keypath, dependant, group = 'default' ) {
 	var mapping, depsByKeypath, deps;
 
-	if ( group === 'mappings' ) {
-
-	}
-
 	if ( dependant.isStatic ) {
 		return;
 	}

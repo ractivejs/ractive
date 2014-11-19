@@ -1276,7 +1276,8 @@ define([
 					},
 					components: {
 						widget: Ractive.extend({
-							template: '{{foo}}'
+							template: '{{foo}}',
+							parameters: parameters
 						})
 					}
 				})
@@ -1299,7 +1300,8 @@ define([
 					},
 					components: {
 						widget: Ractive.extend({
-							template: '{{foo}}'
+							template: '{{foo}}',
+							parameters: parameters
 						})
 					}
 				})
@@ -1309,7 +1311,7 @@ define([
 				t.equal( fixture.innerHTML, 'of c' );
 			})
 
-			test( 'Binding from parent to computation on child that is bound to parent should update properly (#1357)', ( t ) => {
+			test( 'Computation on child takes ownership of property (#1357)', ( t ) => {
 				var ractive = new Ractive({
 					el: fixture,
 					template: '{{b}} <component c="{{a}}" d="{{b}}" />',
@@ -1317,6 +1319,7 @@ define([
 					components: {
 						component: Ractive.extend({
 							template: '{{c}} {{d}}',
+							parameters: parameters,
 							computed: {
 								d: function() { return 'foo-' + this.get('c'); }
 							}
@@ -1345,6 +1348,7 @@ define([
 						components: {
 							component: Ractive.extend({
 								template: '{{c}} {{d}}',
+								parameters: parameters,
 								computed: {
 									d: '${c} * 3'
 								}
@@ -1353,6 +1357,41 @@ define([
 					});
 				}, /\"d\" cannot be mapped to \"b\"/ );
 			});
+
+
+			test( 'Computation that takes over ownership reverts when component is torndown: ' + mode, t => {
+
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{a}}{{#if foo}}<cmp b="{{a}}"/>{{/if}}',
+					data: { a: 1, foo: true  },
+					components: {
+						cmp: Ractive.extend({
+							template: '{{b}}',
+							parameters: parameters,
+							computed: {
+								b: function() { return 2; }
+							}
+						})
+					}
+				});
+
+
+				t.htmlEqual( fixture.innerHTML, '2 2' );
+
+				// qunit fails with this and the three-run approach :(
+				// try {
+				// 	ractive.set( 'a', 99 );
+				// } catch ( err ) {
+				// 	t.ok( true );
+				// }
+
+				ractive.set( 'foo', false );
+				ractive.update()
+
+				t.htmlEqual( fixture.innerHTML, '2' );
+			});
+
 		}
 
 		// should be ES5 prototypes
