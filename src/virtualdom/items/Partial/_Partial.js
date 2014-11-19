@@ -125,9 +125,10 @@ Partial.prototype = {
 			});
 		}
 
+		this.value = value;
+
 		this.setTemplate( template || [] );
 
-		this.value = value;
 		this.bubble();
 
 		if ( this.rendered ) {

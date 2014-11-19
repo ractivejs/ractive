@@ -1301,6 +1301,107 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
+
+		test( 'twoway may be overridden on a per-element basis', t => {
+			let ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}" twoway="true" />',
+				data: { foo: 'test' },
+				twoway: false
+			});
+
+			let node = ractive.find( 'input' );
+			node.value = 'bar';
+			simulant.fire( node, 'change' );
+			t.equal( ractive.get( 'foo' ), 'bar' );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}" twoway="false" />',
+				data: { foo: 'test' },
+				twoway: true
+			});
+
+			node = ractive.find( 'input' );
+			node.value = 'bar';
+			simulant.fire( node, 'change' );
+			t.equal( ractive.get( 'foo' ), 'test' );
+		});
+
+		test( 'Presence of lazy or twoway without value is considered true', t => {
+			let ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}" twoway lazy />',
+				twoway: false
+			});
+
+			let el = ractive.fragment.items[0];
+			t.ok( el.lazy );
+			t.ok( el.twoway );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}" twoway="0" lazy="0" />',
+				lazy: true
+			});
+
+			el = ractive.fragment.items[0];
+			t.ok( !el.lazy );
+			t.ok( !el.twoway );
+		});
+
+		// phantom doesn't like these tests, but browsers are ok with them
+		if ( !/phantomjs/i.test( window.navigator.userAgent ) ) {
+			test( 'lazy may be overriden on a per-element basis', t => {
+				let ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{foo}}" lazy="true" />',
+					data: { foo: 'test' },
+					lazy: false
+				});
+
+				let node = ractive.find( 'input' );
+				node.value = 'bar';
+				simulant.fire( node, 'input' );
+				t.equal( ractive.get( 'foo' ), 'test' );
+				simulant.fire( node, 'blur' );
+				t.equal( ractive.get( 'foo' ), 'bar' );
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{foo}}" lazy="false" />',
+					data: { foo: 'test' },
+					lazy: true
+				});
+
+				node = ractive.find( 'input' );
+				node.value = 'bar';
+				simulant.fire( node, 'input' );
+				t.equal( ractive.get( 'foo' ), 'bar' );
+			});
+
+			asyncTest( 'lazy may be set to a number to trigger on a timeout', t => {
+				let ractive = new Ractive({
+					el: fixture,
+					template: '<input value="{{foo}}" lazy="50" />',
+					data: { foo: 'test' }
+				});
+
+				let node = ractive.find( 'input' );
+				node.value = 'bar';
+				simulant.fire( node, 'input' );
+				t.equal( ractive.get( 'foo' ), 'test' );
+
+				setTimeout( () => {
+					t.equal( ractive.get( 'foo' ), 'test' );
+				}, 5 );
+
+				setTimeout( () => {
+					t.equal( ractive.get( 'foo' ), 'bar' );
+					QUnit.start();
+				}, 60 );
+			});
+		}
 	};
 
 });
