@@ -105,7 +105,9 @@ Partial.prototype = {
 			return;
 		}
 
-		template = getPartialTemplate( this.root, '' + value );
+		if ( value !== undefined ) {
+			template = getPartialTemplate( this.root, '' + value );
+		}
 
 		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 		// name of both a data property (whose value ISN'T the name of a partial)

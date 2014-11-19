@@ -27,6 +27,11 @@ Decorator = function ( element, template ) {
 
 		name = fragment.toString();
 		fragment.unbind();
+
+		if ( name === '' ) {
+			// empty string okay, just no decorator
+			return;
+		}
 	}
 
 	if ( template.a ) {
