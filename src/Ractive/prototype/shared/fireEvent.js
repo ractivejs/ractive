@@ -65,6 +65,10 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 		args = [ event ].concat( args );
 	}
 
+	// subscribers can be modified inflight, e.g. "once" functionality
+	// so we need to copy to make sure everyone gets called
+	subscribers = subscribers.slice();
+
 	for ( let i = 0, len = subscribers.length; i < len; i += 1 ) {
 		if ( subscribers[ i ].apply( ractive, args ) === false ) {
 			stopEvent = true;
