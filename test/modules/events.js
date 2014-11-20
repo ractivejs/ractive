@@ -1234,6 +1234,40 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.deepEqual( fired, events );
 		});
 
+
+		test( 'Inflight unsubscribe works (#1504)', t => {
+			let ractive = new Ractive( {} );
+
+			expect( 3 );
+
+			ractive.on( 'foo', function first () {
+				t.ok( true );
+				ractive.off( 'foo', first );
+			});
+
+			ractive.on( 'foo', function second () {
+				t.ok( true );
+			});
+
+			ractive.fire( 'foo' );
+			ractive.fire( 'foo' );
+		});
+
+		test( '.once() event functionality', t => {
+			let ractive = new Ractive( {} );
+
+			expect( 1 );
+
+			ractive.once( 'foo bar', function () {
+				t.ok( true );
+			});
+
+			ractive.fire( 'foo' );
+			ractive.fire( 'foo' );
+			ractive.fire( 'bar' );
+		})
+
+
 		module( 'Issues' );
 
 		asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => {
