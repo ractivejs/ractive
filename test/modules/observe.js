@@ -579,6 +579,18 @@ define([ 'ractive' ], function ( Ractive ) {
 			observer.cancel();
 		});
 
+		test( '.observeOnce() functionality', t => {
+			let ractive = new Ractive( { data: { foo: 'bar' } } );
+
+			expect( 1 );
+
+			ractive.observeOnce( 'foo', function () {
+				t.ok( true );
+			});
+
+			ractive.set( 'foo', 'fizz' );
+			ractive.set( 'foo', 'qux' );
+		})
 
 
 	};
