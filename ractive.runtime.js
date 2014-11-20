@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-19 - commit 07ea397f 
+	2014-11-20 - commit 1f7ae1b7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2840,6 +2840,9 @@
 			if ( event && !event._noArg ) {
 				args = [ event ].concat( args );
 			}
+			// subscribers can be modified inflight, e.g. "once" functionality
+			// so we need to copy to make sure everyone gets called
+			subscribers = subscribers.slice();
 			for ( var i = 0, len = subscribers.length; i < len; i += 1 ) {
 				if ( subscribers[ i ].apply( ractive, args ) === false ) {
 					stopEvent = true;
@@ -3281,6 +3284,18 @@
 		};
 	}( isObject, Ractive$observe_getObserverFacade );
 
+	/* Ractive/prototype/observeOnce.js */
+	var Ractive$observeOnce = function Ractive$observeOnce( property, callback, options ) {
+		var observer = this.observe( property, function() {
+			callback.apply( this, arguments );
+			observer.cancel();
+		}, {
+			init: false,
+			defer: options && options.defer
+		} );
+		return observer;
+	};
+
 	/* Ractive/prototype/shared/trim.js */
 	var Ractive$shared_trim = function( str ) {
 		return str.trim();
@@ -3364,6 +3379,16 @@
 			};
 		};
 	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
+
+	/* Ractive/prototype/once.js */
+	var Ractive$once = function Ractive$once( eventName, handler ) {
+		var listener = this.on( eventName, function() {
+			handler.apply( this, arguments );
+			listener.cancel();
+		} );
+		// so we can still do listener.cancel() manually
+		return listener;
+	};
 
 	/* shared/getNewIndices.js */
 	var getNewIndices = function() {
@@ -11873,7 +11898,7 @@
 	}( arrayContentsMatch, equalsOrStartsWith, isEqual );
 
 	/* Ractive/prototype.js */
-	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, findContainer, findParent, fire, get, insert, merge, observe, off, on, pop, push, render, reset, resetPartial, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
+	var prototype = function( add, animate, detach, find, findAll, findAllComponents, findComponent, findContainer, findParent, fire, get, insert, merge, observe, observeOnce, off, on, once, pop, push, render, reset, resetPartial, resetTemplate, reverse, set, shift, sort, splice, subtract, teardown, toggle, toHTML, unrender, unshift, update, updateModel ) {
 
 		return {
 			add: add,
@@ -11890,8 +11915,10 @@
 			insert: insert,
 			merge: merge,
 			observe: observe,
+			observeOnce: observeOnce,
 			off: off,
 			on: on,
+			once: once,
 			pop: pop,
 			push: push,
 			render: render,
@@ -11913,7 +11940,7 @@
 			update: update,
 			updateModel: updateModel
 		};
-	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$findContainer, Ractive$findParent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$off, Ractive$on, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetPartial, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
+	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$findContainer, Ractive$findParent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$observeOnce, Ractive$off, Ractive$on, Ractive$once, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetPartial, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
 
 	/* utils/getGuid.js */
 	var getGuid = function() {
