@@ -1,5 +1,5 @@
-// import equalsOrStartsWith from 'shared/keypaths/equalsOrStartsWith';
-// import getNewKeypath from 'shared/keypaths/getNew';
+import equalsOrStartsWith from 'shared/keypaths/equalsOrStartsWith';
+import getNewKeypath from 'shared/keypaths/getNew';
 
 function Mapping ( localKey, options ) {
 	this.localKey = localKey;
@@ -13,9 +13,9 @@ export default Mapping;
 
 Mapping.prototype = {
 
-	setViewmodel: function ( viewmodel, deps ){
+	setViewmodel: function ( viewmodel ){
 		this.local = viewmodel;
-		this.deps = deps || [];
+		this.deps = [];
 		this.setup();
 	},
 
@@ -39,13 +39,14 @@ Mapping.prototype = {
 
 	// Test has shown this is never called. True? Or are we missing a test case?
 
-	// rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-	// 	if ( equalsOrStartsWith( this.keypath, oldKeypath ) ) {
-	// 		this.deps.forEach( d => this.origin.unregister( this.map( d.keypath ), d.dep, d.group ) );
-	// 		this.keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
-	// 		this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
-	// 	}
-	// },
+	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+		debugger;
+		if ( equalsOrStartsWith( this.keypath, oldKeypath ) ) {
+			this.deps.forEach( d => this.origin.unregister( this.map( d.keypath ), d.dep, d.group ) );
+			this.keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
+			this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
+		}
+	},
 
 	register: function ( keypath, dependant, group ) {
 		this.deps.push({ keypath: keypath, dep: dependant, group: group });
@@ -54,7 +55,7 @@ Mapping.prototype = {
 
 	resolve: function ( keypath ) {
 		if ( this.keypath !== undefined ) {
-			this.unbind();
+			this.unbind( true );
 		}
 		this.keypath = keypath;
 		this.setup();
@@ -64,6 +65,18 @@ Mapping.prototype = {
 		if ( this.keypath === undefined ) { return; }
 
 		this.resolved = true;
+
+		// _if_ the local viewmodel isn't intializing, check
+		// for existing dependants that were registered and
+		// move them as they now belong to this key
+		if ( this.local.deps && this.keypath ) {
+			this.transfers = this.local.unregister( this.localKey );
+
+			if( this.transfers ) {
+				this.transfers.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
+				this.origin.mark( this.keypath );
+			}
+		}
 
 		// keep local data in sync, for browsers w/ no defineProperty
 		if( this.trackData ) {
@@ -81,6 +94,7 @@ Mapping.prototype = {
 			this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
 			this.origin.mark( this.keypath );
 		}
+
 	},
 
 	set: function ( keypath, value ) {
@@ -99,10 +113,19 @@ Mapping.prototype = {
 		this.origin.set( this.keypath, value );
 	},
 
-	unbind: function () {
+	unbind: function ( keepTransfers ) {
+
 		this.deps.forEach( d => {
 			this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
 		});
+
+
+		if ( this.transfers ) {
+			this.transfers.forEach( d => {
+				this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
+				this.local.forEach( d.keypath , d.dep, d.group );
+			});
+		}
 
 		if ( this.tracker ) {
 			this.origin.unregister( this.keypath, this.tracker );

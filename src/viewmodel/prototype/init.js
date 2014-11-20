@@ -45,17 +45,16 @@ function reverseMapping ( viewmodel, key ) {
 	// on _this_ viewmodel because it is the data owner
 	mapping.deps.forEach( d => viewmodel.register( d.keypath, d.dep, d.group ) );
 
-	// TODO: this can be part of mapping.setViewmodel:
 	// need to move any existing dependants that were registered on the
 	// other viewmodel that now belong to this key. this call removes them
-	deps = origin.unregister( keypath );
+	// deps = origin.unregister( keypath );
 
 	// create a new mapping in the other viewmodel
 	origin.map( keypath, {
 		origin: viewmodel,
 		keypath: key,
 		// and this will register them under the new mapping
-		deps: deps
+		// transfers: transfers
 	});
 }
 
