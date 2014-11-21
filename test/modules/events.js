@@ -1172,7 +1172,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		module( 'this.events' );
+		module( 'this.event' );
 
 		test( 'set to current event object', t => {
 			var ractive;
@@ -1231,6 +1231,61 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.deepEqual( fired, events );
 		});
+
+		test( 'Inflight unsubscribe works (#1504)', t => {
+			let ractive = new Ractive( {} );
+
+			expect( 3 );
+
+			ractive.on( 'foo', function first () {
+				t.ok( true );
+				ractive.off( 'foo', first );
+			});
+
+			ractive.on( 'foo', function second () {
+				t.ok( true );
+			});
+
+			ractive.fire( 'foo' );
+			ractive.fire( 'foo' );
+		});
+
+		test( '.once() event functionality', t => {
+			let ractive = new Ractive( {} );
+
+			expect( 1 );
+
+			ractive.once( 'foo bar', function () {
+				t.ok( true );
+			});
+
+			ractive.fire( 'foo' );
+			ractive.fire( 'foo' );
+			ractive.fire( 'bar' );
+		})
+
+		test( 'method calls that fire events do not clobber this.events', t => {
+			var methodEvent, ractive;
+
+			expect( 4 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `<span id='test' on-click='inTheater()'></span>`,
+				inTheater: function () {
+					t.ok ( methodEvent = this.event, 'method call has event' );
+					this.fire( 'yell' );
+					t.equal( this.event, methodEvent, 'method event is same after firing event' );
+				}
+			});
+
+			ractive.on( 'yell', function(){
+				t.notEqual( this.event, methodEvent, 'handler does not have method event' );
+				t.equal ( this.event.name, 'yell', 'handler as own event name' );
+			})
+
+			simulant.fire( ractive.nodes.test, 'click' );
+		})
 
 		module( 'Issues' );
 
