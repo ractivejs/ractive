@@ -1358,7 +1358,7 @@ define([
 				}, /\"d\" cannot be mapped to \"b\"/ );
 			});
 
-
+/*
 			test( 'Computation that takes over ownership reverts when component is torndown: ' + mode, t => {
 
 				var ractive = new Ractive({
@@ -1391,6 +1391,7 @@ define([
 
 				t.htmlEqual( fixture.innerHTML, '2' );
 			});
+*/
 
 		}
 
