@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-20 - commit 1f7ae1b7 
+	2014-11-21 - commit 046bdb4e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10217,7 +10217,10 @@
 				return this.fragment.getValue();
 			},
 			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+				// named partials aren't bound, so don't rebind
+				if ( !this.isNamed ) {
+					rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+				}
 				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 			},
 			render: function() {
