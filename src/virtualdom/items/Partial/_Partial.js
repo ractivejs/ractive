@@ -83,7 +83,11 @@ Partial.prototype = {
 	},
 
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+		// named partials aren't bound, so don't rebind
+		if ( !this.isNamed ) {
+			rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+		}
+
 		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
 	},
 
