@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-25 - commit 47662fc3 
+	2014-11-25 - commit a3d65667 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12410,17 +12410,17 @@
 		function cascade( viewmodel, upstreamPattern, keypath ) {
 			var group, map, actualChildKeypath;
 			group = viewmodel.depsMap.patternObservers;
-			map = group[ upstreamPattern ];
-			if ( map ) {
-				map.forEach( function( childKeypath ) {
-					var key = lastKey.exec( childKeypath )[ 0 ];
-					// 'baz'
-					actualChildKeypath = keypath ? keypath + '.' + key : key;
-					// 'foo.bar.baz'
-					updateMatchingPatternObservers( viewmodel, actualChildKeypath );
-					cascade( viewmodel, childKeypath, actualChildKeypath );
-				} );
+			if ( !( group && ( map = group[ upstreamPattern ] ) ) ) {
+				return;
 			}
+			map.forEach( function( childKeypath ) {
+				var key = lastKey.exec( childKeypath )[ 0 ];
+				// 'baz'
+				actualChildKeypath = keypath ? keypath + '.' + key : key;
+				// 'foo.bar.baz'
+				updateMatchingPatternObservers( viewmodel, actualChildKeypath );
+				cascade( viewmodel, childKeypath, actualChildKeypath );
+			} );
 		}
 
 		function updateMatchingPatternObservers( viewmodel, keypath ) {
