@@ -1174,7 +1174,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		module( 'this.events' );
+		module( 'this.event' );
 
 		test( 'set to current event object', t => {
 			var ractive;
@@ -1265,6 +1265,29 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.fire( 'foo' );
 			ractive.fire( 'foo' );
 			ractive.fire( 'bar' );
+		})
+
+		test( 'method calls that fire events do not clobber this.events', t => {
+			var methodEvent, ractive;
+
+			expect( 4 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `<span id='test' on-click='inTheater()'></span>`,
+				inTheater: function () {
+					t.ok ( methodEvent = this.event, 'method call has event' );
+					this.fire( 'yell' );
+					t.equal( this.event, methodEvent, 'method event is same after firing event' );
+				}
+			});
+
+			ractive.on( 'yell', function(){
+				t.notEqual( this.event, methodEvent, 'handler does not have method event' );
+				t.equal ( this.event.name, 'yell', 'handler as own event name' );
+			})
+
+			simulant.fire( ractive.nodes.test, 'click' );
 		})
 
 
