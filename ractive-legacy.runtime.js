@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-25 - commit a3d65667 
+	2014-11-25 - commit 55d99dc1 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5691,7 +5691,8 @@
 		function getKeypath( uniqueString ) {
 			// Sanitize by removing any periods or square brackets. Otherwise
 			// we can't split the keypath into keys!
-			return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
+			// Remove asterisks too, since they mess with pattern observers
+			return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ).replace( /\*/, '#MUL#' ) + '}';
 		}
 
 		function isValidDependency( keypath ) {
