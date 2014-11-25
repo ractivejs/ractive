@@ -1250,20 +1250,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.fire( 'foo' );
 		});
 
-		test( '.once() event functionality', t => {
-			let ractive = new Ractive( {} );
-
-			expect( 1 );
-
-			ractive.once( 'foo bar', function () {
-				t.ok( true );
-			});
-
-			ractive.fire( 'foo' );
-			ractive.fire( 'foo' );
-			ractive.fire( 'bar' );
-		})
-
 		test( 'method calls that fire events do not clobber this.events', t => {
 			var methodEvent, ractive;
 

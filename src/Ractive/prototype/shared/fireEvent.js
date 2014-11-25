@@ -62,6 +62,8 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 		args = [ event ].concat( args );
 	}
 
+	subscribers = subscribers.slice();
+
 	for ( let i = 0, len = subscribers.length; i < len; i += 1 ) {
 		if ( subscribers[ i ].apply( ractive, args ) === false ) {
 			stopEvent = true;
