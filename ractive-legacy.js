@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-11-21 - commit 046bdb4e 
+	2014-11-25 - commit 47662fc3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5854,6 +5854,28 @@
 		return null;
 	};
 
+	/* Ractive/prototype/shared/eventStack.js */
+	var Ractive$shared_eventStack = function() {
+
+		var eventStack = {
+			enqueue: function( ractive, event ) {
+				if ( ractive.event ) {
+					ractive._eventQueue = ractive._eventQueue || [];
+					ractive._eventQueue.push( ractive.event );
+				}
+				ractive.event = event;
+			},
+			dequeue: function( ractive ) {
+				if ( ractive._eventQueue && ractive._eventQueue.length ) {
+					ractive.event = ractive._eventQueue.pop();
+				} else {
+					delete ractive.event;
+				}
+			}
+		};
+		return eventStack;
+	}();
+
 	/* utils/getPotentialWildcardMatches.js */
 	var getPotentialWildcardMatches = function() {
 
@@ -5916,7 +5938,7 @@
 	}();
 
 	/* Ractive/prototype/shared/fireEvent.js */
-	var Ractive$shared_fireEvent = function( getPotentialWildcardMatches ) {
+	var Ractive$shared_fireEvent = function( eventStack, getPotentialWildcardMatches ) {
 
 		var __export;
 		__export = function fireEvent( ractive, eventName ) {
@@ -5946,18 +5968,14 @@
 			if ( initialFire === void 0 )
 				initialFire = false;
 			var subscribers, i, bubble = true;
-			if ( event ) {
-				ractive.event = event;
-			}
+			eventStack.enqueue( ractive, event );
 			for ( i = eventNames.length; i >= 0; i-- ) {
 				subscribers = ractive._subs[ eventNames[ i ] ];
 				if ( subscribers ) {
 					bubble = notifySubscribers( ractive, subscribers, event, args ) && bubble;
 				}
 			}
-			if ( event ) {
-				delete ractive.event;
-			}
+			eventStack.dequeue( ractive );
 			if ( ractive.parent && bubble ) {
 				if ( initialFire && ractive.component ) {
 					var fullName = ractive.component.name + '.' + eventNames[ eventNames.length - 1 ];
@@ -5991,7 +6009,7 @@
 			return !stopEvent;
 		}
 		return __export;
-	}( getPotentialWildcardMatches );
+	}( Ractive$shared_eventStack, getPotentialWildcardMatches );
 
 	/* Ractive/prototype/fire.js */
 	var Ractive$fire = function( fireEvent ) {
@@ -10041,7 +10059,7 @@
 	};
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
-	var virtualdom_items_Element_EventHandler$init = function( getFunctionFromString, createReferenceResolver, circular, fireEvent, log ) {
+	var virtualdom_items_Element_EventHandler$init = function( getFunctionFromString, createReferenceResolver, circular, eventStack, fireEvent, log ) {
 
 		var __export;
 		var Fragment, getValueOptions = {
@@ -10144,10 +10162,10 @@
 				}
 				return value;
 			} );
-			ractive.event = event;
+			eventStack.enqueue( ractive, event );
 			args = this.fn.apply( null, values );
 			ractive[ this.method ].apply( ractive, args );
-			delete ractive.event;
+			eventStack.dequeue( ractive );
 		}
 
 		function fireEventWithParams( event ) {
@@ -10169,7 +10187,7 @@
 			} );
 		}
 		return __export;
-	}( getFunctionFromString, createReferenceResolver, circular, Ractive$shared_fireEvent, log );
+	}( getFunctionFromString, createReferenceResolver, circular, Ractive$shared_eventStack, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
 	var genericHandler = function genericHandler( event ) {
