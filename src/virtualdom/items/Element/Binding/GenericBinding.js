@@ -11,9 +11,14 @@ GenericBinding = Binding.extend({
 		return this.element.node.value;
 	},
 
-	render: function () {
+	updateLaziness: function() {
 		var node = this.element.node, lazy, timeout = false;
-		this.rendered = true;
+
+		// drop the lazy handlers
+		if ( this.handler ) {
+			node.removeEventListener( 'input', this.handler, false );
+			node.removeEventListener( 'keyup', this.handler, false );
+		}
 
 		// any lazy setting for this element overrides the root
 		// if the value is a number, it's a timeout
@@ -27,15 +32,24 @@ GenericBinding = Binding.extend({
 			timeout = this.element.lazy;
 		}
 
-		node.addEventListener( 'change', handleDomEvent, false );
+		this.handler = timeout ? handleDelay : handleDomEvent;
 
 		if ( !lazy ) {
-			node.addEventListener( 'input', timeout ? handleDelay : handleDomEvent, false );
+			node.addEventListener( 'input', this.handler, false );
 
 			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', timeout ? handleDelay : handleDomEvent, false );
+				node.addEventListener( 'keyup', this.handler, false );
 			}
 		}
+	},
+
+	render: function () {
+		var node = this.element.node;
+		this.rendered = true;
+
+		this.updateLaziness();
+
+		node.addEventListener( 'change', handleDomEvent, false );
 
 		node.addEventListener( 'blur', handleBlur, false );
 	},
@@ -45,8 +59,8 @@ GenericBinding = Binding.extend({
 		this.rendered = false;
 
 		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'input', handleDomEvent, false );
-		node.removeEventListener( 'keyup', handleDomEvent, false );
+		node.removeEventListener( 'input', this.handler, false );
+		node.removeEventListener( 'keyup', this.handler, false );
 		node.removeEventListener( 'blur', handleBlur, false );
 	}
 });
