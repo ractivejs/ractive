@@ -1358,12 +1358,12 @@ define([
 				}, /\"d\" cannot be mapped to \"b\"/ );
 			});
 
-/*
+
 			test( 'Computation that takes over ownership reverts when component is torndown: ' + mode, t => {
 
 				var ractive = new Ractive({
 					el: fixture,
-					template: '{{a}}{{#if foo}}<cmp b="{{a}}"/>{{/if}}',
+					template: '{{a}}-{{#if foo}}<cmp b="{{a}}"/>{{/if}}',
 					data: { a: 1, foo: true  },
 					components: {
 						cmp: Ractive.extend({
@@ -1377,9 +1377,9 @@ define([
 				});
 
 
-				t.htmlEqual( fixture.innerHTML, '2 2' );
+				t.htmlEqual( fixture.innerHTML, '2-2' );
 
-				// qunit fails with this and the three-run approach :(
+				// qunit fails with this combined with the three-run functional call approach :(
 				// try {
 				// 	ractive.set( 'a', 99 );
 				// } catch ( err ) {
@@ -1387,11 +1387,16 @@ define([
 				// }
 
 				ractive.set( 'foo', false );
-				ractive.update()
+				t.htmlEqual( fixture.innerHTML, '2-' );
 
-				t.htmlEqual( fixture.innerHTML, '2' );
+				ractive.set( 'a', 3)
+				t.htmlEqual( fixture.innerHTML, '3-' );
+
+				ractive.set( 'foo', true );
+				t.htmlEqual( fixture.innerHTML, '2-2' );
+
 			});
-*/
+
 
 		}
 

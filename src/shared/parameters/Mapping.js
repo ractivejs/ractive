@@ -15,6 +15,7 @@ Mapping.prototype = {
 
 	setViewmodel: function ( viewmodel ){
 		this.local = viewmodel;
+		viewmodel.mappings[ this.localKey ] = this;
 		this.deps = [];
 		this.setup();
 	},
@@ -37,10 +38,10 @@ Mapping.prototype = {
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
-	// Test has shown this is never called. True? Or are we missing a test case?
-
+	// Testing with "debugger;" has shown this is never called.
+	// True? Or are we missing a test case?
 	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		debugger;
+		//debugger;
 		if ( equalsOrStartsWith( this.keypath, oldKeypath ) ) {
 			this.deps.forEach( d => this.origin.unregister( this.map( d.keypath ), d.dep, d.group ) );
 			this.keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
@@ -98,6 +99,7 @@ Mapping.prototype = {
 	},
 
 	set: function ( keypath, value ) {
+		// TODO: force resolution
 		if ( !this.resolved ) {
 			throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
 		}
@@ -113,17 +115,23 @@ Mapping.prototype = {
 		this.origin.set( this.keypath, value );
 	},
 
-	unbind: function ( keepTransfers ) {
+	teardown: function () {
+		delete this.local.mappings[ this.localKey ];
+		this.unbind();
+	},
+
+	unbind: function () {
 
 		this.deps.forEach( d => {
 			this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
 		});
 
 
+		// revert transfers back to original viewmodel owener
 		if ( this.transfers ) {
 			this.transfers.forEach( d => {
 				this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
-				this.local.forEach( d.keypath , d.dep, d.group );
+				this.local.register( d.keypath , d.dep, d.group );
 			});
 		}
 

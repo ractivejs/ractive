@@ -21,6 +21,7 @@ function reverseMapping ( viewmodel, key ) {
 
 	origin = mapping.origin;
 	keypath = mapping.keypath;
+	deps = mapping.deps;
 
 	// computation to computation is a no-go
 	if ( origin.computations[ keypath ] ) {
@@ -35,27 +36,22 @@ function reverseMapping ( viewmodel, key ) {
 	}
 
 	// unbind which will unregister dependants on the other viewmodel
-	mapping.unbind();
+	mapping.teardown();
 
-	// remove the mapping key on this viewmodel so next
-	// line doesn't send them back to this old mapping!
-	delete viewmodel.mappings[ key ];
-
-	// these dependants can now be directly registered
-	// on _this_ viewmodel because it is the data owner
-	mapping.deps.forEach( d => viewmodel.register( d.keypath, d.dep, d.group ) );
-
-	// need to move any existing dependants that were registered on the
-	// other viewmodel that now belong to this key. this call removes them
-	// deps = origin.unregister( keypath );
+	// the dependants of the torndown mapping can now be
+	// directly registered on _this_ viewmodel because
+	// it is the data owner
+	deps.forEach( d => viewmodel.register( d.keypath, d.dep, d.group ) );
 
 	// create a new mapping in the other viewmodel
-	origin.map( keypath, {
+	mapping = origin.map( keypath, {
 		origin: viewmodel,
-		keypath: key,
-		// and this will register them under the new mapping
-		// transfers: transfers
+		keypath: key
 	});
+
+	// store a ref so it can be reverted if needed
+	viewmodel.reversedMappings = viewmodel.reversedMappings || [];
+	viewmodel.reversedMappings.push( mapping );
 }
 
 function init ( computation ) {
