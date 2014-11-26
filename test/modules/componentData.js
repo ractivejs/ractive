@@ -1333,6 +1333,25 @@ define([
 			});
 
 
+			test( 'Computation cannot take ownership of an expression', ( t ) => {
+
+				expect( 1 );
+
+				t.throws( () => {
+					var ractive = new Ractive({
+						el: fixture,
+						template: `<component b="{{ 1+2 }}"/>`,
+						components: {
+							component: Ractive.extend({
+								template: '{{b}}',
+								parameters: parameters,
+								computed: { b: '"b"' }
+							})
+						}
+					});
+				}, /\"b\" cannot be mapped to \"\$\{1\+2\}\"/ );
+			});
+
 			test( 'Computation cannot take ownership if already owned by computation', ( t ) => {
 
 				expect( 1 );
@@ -1358,7 +1377,6 @@ define([
 				}, /\"d\" cannot be mapped to \"b\"/ );
 			});
 
-
 			test( 'Computation that takes over ownership reverts when component is torndown: ' + mode, t => {
 
 				var ractive = new Ractive({
@@ -1378,6 +1396,7 @@ define([
 
 
 				t.htmlEqual( fixture.innerHTML, '2-2' );
+				t.equal( ractive.data.a, 2 );
 
 				// qunit fails with this combined with the three-run functional call approach :(
 				// try {
@@ -1388,15 +1407,86 @@ define([
 
 				ractive.set( 'foo', false );
 				t.htmlEqual( fixture.innerHTML, '2-' );
+				t.equal( ractive.data.a, 2 );
 
 				ractive.set( 'a', 3)
 				t.htmlEqual( fixture.innerHTML, '3-' );
+				t.equal( ractive.data.a, 3 );
 
 				ractive.set( 'foo', true );
 				t.htmlEqual( fixture.innerHTML, '2-2' );
+				t.equal( ractive.data.a, 2 );
 
 			});
 
+			test( 'Computation changes if mapping is keypath expression and it changes', ( t ) => {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{a.one}}-{{a.two}}-<component b="{{a[prop]}}"/>',
+					data: {
+						a: {
+							one: 1,
+							two: 2
+						},
+						prop: 'one'
+					},
+					components: {
+						component: Ractive.extend({
+							template: '{{b}}',
+							parameters: parameters,
+							computed: {
+								b: function() { return 42; }
+							}
+						})
+					}
+				});
+
+				t.htmlEqual( fixture.innerHTML, '42-2-42' );
+				t.equal( ractive.data.a.one, 42 );
+				t.equal( ractive.data.a.two, 2 );
+
+				ractive.set( 'prop', 'two' );
+				t.htmlEqual( fixture.innerHTML, '42-42-42' );
+				t.equal( ractive.data.a.one, 42 );
+				t.equal( ractive.data.a.two, 42 );
+
+				ractive.set( 'a.one', 11 );
+				t.htmlEqual( fixture.innerHTML, '11-42-42' );
+				t.equal( ractive.data.a.one, 11 );
+				t.equal( ractive.data.a.two, 42 );
+			});
+
+			test( 'Multiple levels of mappings work', ( t ) => {
+
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{a}}-{{b}}-{{c}}:<c1 d="{{a}}" e="{{b}}" f="{{c}}"/>',
+					data: {
+						a: 'foo',
+					 	b: 'computed'
+					},
+					components: {
+						c1: Ractive.extend({
+							template: '{{d}}-{{e}}-{{f}}:<c2 g="{{d}}" h="{{e}}" i="{{f}}"/>',
+							parameters: parameters,
+							components: {
+								c2: Ractive.extend({
+									template: '{{g}}-{{h}}-{{i}}',
+									parameters: parameters,
+									computed: {
+										h: '"bar"'
+									}
+								})
+							}
+						})
+					}
+				});
+
+				t.htmlEqual( fixture.innerHTML, 'foo-bar-:foo-bar-:foo-bar-' );
+				ractive.set( 'c', 'qux' );
+				t.htmlEqual( fixture.innerHTML, 'foo-bar-qux:foo-bar-qux:foo-bar-qux' );
+
+			});
 
 		}
 

@@ -7,7 +7,7 @@ export default function Viewmodel$teardown () {
 
 	// Unbind reversed mappings, which will revert ownership of the data
 	if ( reversedMappings = this.reversedMappings ) {
-		reversedMappings.forEach( mapping => mapping.teardown() );
+		Object.keys( reversedMappings ).forEach( key => reversedMappings[ key ].unbind() );
 	}
 
 	// Teardown any failed lookups - we don't need them to resolve any more

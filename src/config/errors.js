@@ -47,8 +47,8 @@ export default {
 	noTwowayExpressions:
 		'Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.',
 
-	computedCannotMapToComputed:
-		'Computed property "{key}" cannot be mapped to "{otherKey}" because it is also a computation.',
+	computedCannotMapTo:
+		'Computed property "{key}" cannot be mapped to "{other}" because {reason}.',
 
 	notUsed:
 		'prevents forgetting trailing "," in cut and paste of previous line :)'

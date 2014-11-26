@@ -1,24 +1,17 @@
-import equalsOrStartsWith from 'shared/keypaths/equalsOrStartsWith';
-import getNewKeypath from 'shared/keypaths/getNew';
+import DataTracker from 'shared/parameters/DataTracker';
 
 function Mapping ( localKey, options ) {
 	this.localKey = localKey;
 	this.keypath = options.keypath;
 	this.origin = options.origin;
-	this.trackData = options.trackData;
+	this.trackData = options.trackData || options.reversed;
+	this.reversed = options.reversed;
 	this.resolved = false;
 }
 
 export default Mapping;
 
 Mapping.prototype = {
-
-	setViewmodel: function ( viewmodel ){
-		this.local = viewmodel;
-		viewmodel.mappings[ this.localKey ] = this;
-		this.deps = [];
-		this.setup();
-	},
 
 	get: function ( keypath, options ) {
 		if ( !this.resolved ) {
@@ -34,19 +27,22 @@ Mapping.prototype = {
 		return this.origin.get( this.keypath );
 	},
 
+	initViewmodel: function ( viewmodel ){
+		this.local = viewmodel;
+		this.deps = [];
+		this.local.mappings[ this.localKey ] = this;
+		this.setup();
+	},
+
 	map: function ( keypath ) {
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
-	// Testing with "debugger;" has shown this is never called.
-	// True? Or are we missing a test case?
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		//debugger;
-		if ( equalsOrStartsWith( this.keypath, oldKeypath ) ) {
-			this.deps.forEach( d => this.origin.unregister( this.map( d.keypath ), d.dep, d.group ) );
-			this.keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
-			this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
-		}
+	rebind: function ( localKey ) {
+		this.unbind( true );
+		this.localKey = localKey;
+		this.local.mappings[ this.localKey ] = this;
+		this.setup();
 	},
 
 	register: function ( keypath, dependant, group ) {
@@ -55,14 +51,26 @@ Mapping.prototype = {
 	},
 
 	resolve: function ( keypath ) {
+
 		if ( this.keypath !== undefined ) {
 			this.unbind( true );
 		}
+
 		this.keypath = keypath;
 		this.setup();
 	},
 
+	set: function ( keypath, value ) {
+		// TODO: force resolution
+		if ( !this.resolved ) {
+			throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+		}
+
+		this.origin.set( this.map( keypath ), value );
+	},
+
 	setup: function () {
+
 		if ( this.keypath === undefined ) { return; }
 
 		this.resolved = true;
@@ -79,32 +87,20 @@ Mapping.prototype = {
 			}
 		}
 
-		// keep local data in sync, for browsers w/ no defineProperty
+		// keep local data in sync, for
+		// a) browsers w/ no defineProperty
+		// b) reversed mappings
 		if( this.trackData ) {
-			this.tracker = {
-				keypath: this.localKey,
-				setValue: value => {
-					var data = this.local.ractive.data;
-					data[ this.localKey ] = value;
-				}
-			};
+			this.tracker = new DataTracker( this.localKey, this.local );
 			this.origin.register( this.keypath, this.tracker );
 		}
 
+		// accumulated dependants can now be registered
 		if ( this.deps.length ) {
 			this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
 			this.origin.mark( this.keypath );
 		}
 
-	},
-
-	set: function ( keypath, value ) {
-		// TODO: force resolution
-		if ( !this.resolved ) {
-			throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
-		}
-
-		this.origin.set( this.map( keypath ), value );
 	},
 
 	setValue: function ( value ) {
@@ -115,17 +111,14 @@ Mapping.prototype = {
 		this.origin.set( this.keypath, value );
 	},
 
-	teardown: function () {
-		delete this.local.mappings[ this.localKey ];
-		this.unbind();
-	},
-
-	unbind: function () {
+	unbind: function ( keepLocal ) {
+		if ( !keepLocal ) {
+			delete this.local.mappings[ this.localKey ];
+		}
 
 		this.deps.forEach( d => {
 			this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
 		});
-
 
 		// revert transfers back to original viewmodel owener
 		if ( this.transfers ) {

@@ -37,16 +37,13 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 }
 
 function bulkUnregister ( viewmodel, keypath ) {
-	var result, match;
+	var group, result, match;
 
-	match = removeMatching( viewmodel, keypath, 'default' );
-	if ( match.length ) {
-		result = match;
-	}
-
-	match = removeMatching( viewmodel, keypath, 'observers' );
-	if ( match.legnth ) {
-		result = result ? result.concat(match) : match;
+	for ( group in viewmodel.deps ) {
+		match = removeMatching( viewmodel, keypath, group );
+		if ( match.length ) {
+			result = result ? result.concat(match) : match;
+		}
 	}
 
 	return result;

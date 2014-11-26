@@ -10,7 +10,6 @@ import magic from 'config/magic';
 import map from 'viewmodel/prototype/map';
 import mark from 'viewmodel/prototype/mark';
 import merge from 'viewmodel/prototype/merge';
-import origin from 'viewmodel/prototype/origin';
 import register from 'viewmodel/prototype/register';
 import release from 'viewmodel/prototype/release';
 import set from 'viewmodel/prototype/set';
@@ -29,7 +28,7 @@ var Viewmodel = function ( ractive, mappings = create(null) ) {
 	// set up explicit mappings
 	this.mappings = mappings;
 	for ( key in mappings ) {
-		mappings[ key ].setViewmodel( this );
+		mappings[ key ].initViewmodel( this );
 	}
 
 	if ( ractive.data && ractive.parameters !== true ) {
@@ -46,15 +45,14 @@ var Viewmodel = function ( ractive, mappings = create(null) ) {
 	this.cacheMap = create( null );
 
 	this.deps = {
-		mappings: {},
-		computed: {},
-		'default': {}
+		computed: create( null ),
+		'default': create( null )
 	};
 	this.depsMap = {
-		mappings: {},
-		computed: {},
-		'default': {}
+		computed: create( null ),
+		'default': create( null )
 	};
+
 	this.patternObservers = [];
 
 	this.specials = create( null );
@@ -90,7 +88,6 @@ Viewmodel.prototype = {
 	clearCache: clearCache,
 	compute: compute,
 	get: get,
-	origin: origin,
 	init: init,
 	map: map,
 	mark: mark,

@@ -1,3 +1,4 @@
+import create from 'utils/create';
 import log from 'utils/log/log';
 
 export default function Viewmodel$init () {
@@ -23,20 +24,20 @@ function reverseMapping ( viewmodel, key ) {
 	keypath = mapping.keypath;
 	deps = mapping.deps;
 
-	// computation to computation is a no-go
 	if ( origin.computations[ keypath ] ) {
 		return log.critical({
 			debug: viewmodel.ractive.debug,
-			message: 'computedCannotMapToComputed',
+			message: 'computedCannotMapTo',
 			args: {
 				key: key,
-				otherKey: keypath
+				other: keypath,
+				reason: 'it is a computated property or expression'
 			}
 		});
 	}
 
 	// unbind which will unregister dependants on the other viewmodel
-	mapping.teardown();
+	mapping.unbind();
 
 	// the dependants of the torndown mapping can now be
 	// directly registered on _this_ viewmodel because
@@ -46,15 +47,15 @@ function reverseMapping ( viewmodel, key ) {
 	// create a new mapping in the other viewmodel
 	mapping = origin.map( keypath, {
 		origin: viewmodel,
-		keypath: key
+		keypath: key,
+		reversed: true
 	});
 
 	// store a ref so it can be reverted if needed
-	viewmodel.reversedMappings = viewmodel.reversedMappings || [];
-	viewmodel.reversedMappings.push( mapping );
+	viewmodel.reversedMappings = viewmodel.reversedMappings || create( null );
+	viewmodel.reversedMappings[ key ] = mapping;
 }
 
 function init ( computation ) {
 	computation.init();
 }
-
