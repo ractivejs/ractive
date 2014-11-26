@@ -39,7 +39,7 @@ function reverseMapping ( viewmodel, key ) {
 	// unbind which will unregister dependants on the other viewmodel
 	mapping.unbind();
 
-	// the dependants of the torndown mapping can now be
+	// the dependants of the unbound mapping can now be
 	// directly registered on _this_ viewmodel because
 	// it is the data owner
 	deps.forEach( d => viewmodel.register( d.keypath, d.dep, d.group ) );

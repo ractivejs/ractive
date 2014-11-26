@@ -86,6 +86,7 @@ ComponentParameters.prototype = {
 	},
 
 	addMapping: function ( key, keypath ) {
+		// map directly to the source if possible...
 		var mapping = this.parentViewmodel.mappings[ keypath ];
 		return this.mappings[ key ] = new Mapping( key, {
 			origin: mapping ? mapping.origin : this.parentViewmodel,

@@ -120,7 +120,7 @@ Mapping.prototype = {
 			this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
 		});
 
-		// revert transfers back to original viewmodel owener
+		// revert transfers back to original viewmodel owner
 		if ( this.transfers ) {
 			this.transfers.forEach( d => {
 				this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
