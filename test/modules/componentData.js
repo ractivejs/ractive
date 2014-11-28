@@ -1266,27 +1266,227 @@ define([
 				t.htmlEqual( fixture.innerHTML, 'foo!' );
 			});
 
-			// Commented out temporarily, see #1381
-			/*test( 'Binding from parent to computation on child that is bound to parent should update properly (#1357)', ( t ) => {
+			test( 'Mappings with reference expressions that change bind correctly', t => {
 				var ractive = new Ractive({
 					el: fixture,
-					template: '{{b}} <component a="{{a}}" b="{{b}}" />',
-					data: { a: 'a' },
+					template: '<widget foo="{{a[p]}}"/>',
+					data: {
+						a: { b: 'b', c: 'c' },
+						p: 'b'
+					},
+					components: {
+						widget: Ractive.extend({
+							template: '{{foo}}',
+							parameters: parameters
+						})
+					}
+				})
+
+				t.equal( fixture.innerHTML, 'b' );
+				ractive.set( 'p', 'c' );
+				t.equal( fixture.innerHTML, 'c' );
+			})
+
+			test( 'Mappings with upstream reference expressions that change bind correctly', t => {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{#a[p]}}<widget foo="{{bar}}"/>{{/a}}',
+					data: {
+						a: {
+							b: { bar: 'of b' },
+							c: { bar: 'of c' }
+						},
+						p: 'b'
+					},
+					components: {
+						widget: Ractive.extend({
+							template: '{{foo}}',
+							parameters: parameters
+						})
+					}
+				})
+
+				t.equal( fixture.innerHTML, 'of b' );
+				ractive.set( 'p', 'c' );
+				t.equal( fixture.innerHTML, 'of c' );
+			})
+
+			test( 'Computation on child takes ownership of property (#1357)', ( t ) => {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{b}} <component c="{{a}}" d="{{b}}" />',
+					data: { a: 'a'  },
 					components: {
 						component: Ractive.extend({
-							template: '{{a}} {{b}}',
+							template: '{{c}} {{d}}',
+							parameters: parameters,
 							computed: {
-								b: function() { return 'foo' + this.get('a'); }
+								d: function() { return 'foo-' + this.get('c'); }
 							}
 						})
 					}
 				});
 
-				t.htmlEqual( fixture.innerHTML, 'fooa a fooa' );
+				t.htmlEqual( fixture.innerHTML, 'foo-a a foo-a' );
 				ractive.set( 'a', 'bar' );
-				t.htmlEqual( fixture.innerHTML, 'foobar bar foobar' );
-			});*/
+				t.htmlEqual( fixture.innerHTML, 'foo-bar bar foo-bar' );
+			});
 
+
+			test( 'Computation cannot take ownership of an expression', ( t ) => {
+
+				expect( 1 );
+
+				t.throws( () => {
+					var ractive = new Ractive({
+						el: fixture,
+						template: `<component b="{{ 1+2 }}"/>`,
+						components: {
+							component: Ractive.extend({
+								template: '{{b}}',
+								parameters: parameters,
+								computed: { b: '"b"' }
+							})
+						}
+					});
+				}, /\"b\" cannot be mapped to \"\$\{1\+2\}\"/ );
+			});
+
+			test( 'Computation cannot take ownership if already owned by computation', ( t ) => {
+
+				expect( 1 );
+
+				t.throws( () => {
+					var ractive = new Ractive({
+						el: fixture,
+						template: '{{b}} <component c="{{a}}" d="{{b}}" />',
+						data: { a: 2 },
+						computed: {
+							b: '${a} * 2'
+						},
+						components: {
+							component: Ractive.extend({
+								template: '{{c}} {{d}}',
+								parameters: parameters,
+								computed: {
+									d: '${c} * 3'
+								}
+							})
+						}
+					});
+				}, /\"d\" cannot be mapped to \"b\"/ );
+			});
+
+			test( 'Computation that takes over ownership reverts when component is torndown: ' + mode, t => {
+
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{a}}-{{#if foo}}<cmp b="{{a}}"/>{{/if}}',
+					data: { a: 1, foo: true  },
+					components: {
+						cmp: Ractive.extend({
+							template: '{{b}}',
+							parameters: parameters,
+							computed: {
+								b: function() { return 2; }
+							}
+						})
+					}
+				});
+
+
+				t.htmlEqual( fixture.innerHTML, '2-2' );
+				t.equal( ractive.data.a, 2 );
+
+				// qunit fails with this combined with the three-run functional call approach :(
+				// try {
+				// 	ractive.set( 'a', 99 );
+				// } catch ( err ) {
+				// 	t.ok( true );
+				// }
+
+				ractive.set( 'foo', false );
+				t.htmlEqual( fixture.innerHTML, '2-' );
+				t.equal( ractive.data.a, 2 );
+
+				ractive.set( 'a', 3)
+				t.htmlEqual( fixture.innerHTML, '3-' );
+				t.equal( ractive.data.a, 3 );
+
+				ractive.set( 'foo', true );
+				t.htmlEqual( fixture.innerHTML, '2-2' );
+				t.equal( ractive.data.a, 2 );
+
+			});
+
+			test( 'Computation changes if mapping is keypath expression and it changes', ( t ) => {
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{a.one}}-{{a.two}}-<component b="{{a[prop]}}"/>',
+					data: {
+						a: {
+							one: 1,
+							two: 2
+						},
+						prop: 'one'
+					},
+					components: {
+						component: Ractive.extend({
+							template: '{{b}}',
+							parameters: parameters,
+							computed: {
+								b: function() { return 42; }
+							}
+						})
+					}
+				});
+
+				t.htmlEqual( fixture.innerHTML, '42-2-42' );
+				t.equal( ractive.data.a.one, 42 );
+				t.equal( ractive.data.a.two, 2 );
+
+				ractive.set( 'prop', 'two' );
+				t.htmlEqual( fixture.innerHTML, '42-42-42' );
+				t.equal( ractive.data.a.one, 42 );
+				t.equal( ractive.data.a.two, 42 );
+
+				ractive.set( 'a.one', 11 );
+				t.htmlEqual( fixture.innerHTML, '11-42-42' );
+				t.equal( ractive.data.a.one, 11 );
+				t.equal( ractive.data.a.two, 42 );
+			});
+
+			test( 'Multiple levels of mappings work', ( t ) => {
+
+				var ractive = new Ractive({
+					el: fixture,
+					template: '{{a}}-{{b}}-{{c}}:<c1 d="{{a}}" e="{{b}}" f="{{c}}"/>',
+					data: {
+						a: 'foo',
+					 	b: 'computed'
+					},
+					components: {
+						c1: Ractive.extend({
+							template: '{{d}}-{{e}}-{{f}}:<c2 g="{{d}}" h="{{e}}" i="{{f}}"/>',
+							parameters: parameters,
+							components: {
+								c2: Ractive.extend({
+									template: '{{g}}-{{h}}-{{i}}',
+									parameters: parameters,
+									computed: {
+										h: '"bar"'
+									}
+								})
+							}
+						})
+					}
+				});
+
+				t.htmlEqual( fixture.innerHTML, 'foo-bar-:foo-bar-:foo-bar-' );
+				ractive.set( 'c', 'qux' );
+				t.htmlEqual( fixture.innerHTML, 'foo-bar-qux:foo-bar-qux:foo-bar-qux' );
+
+			});
 
 		}
 
@@ -1296,8 +1496,9 @@ define([
 		// runs legacy, tracks data
 		testDataPropagation( 'Legacy', 'legacy' );
 
-		// // just mapping, no .data help
+		// just mapping, no .data help
 		testDataPropagation( 'None', false );
+
 	};
 
 });

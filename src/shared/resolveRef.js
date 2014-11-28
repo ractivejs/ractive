@@ -66,7 +66,7 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 			// Create an index ref binding, so that it can be rebound letter if necessary.
 			// It doesn't have an alias since it's an implicit binding, hence `...[ ref ] = ref`
 			ractive.component.indexRefBindings[ ref ] = ref;
-			ractive.viewmodel.set( ref, index, true );
+			ractive.viewmodel.set( ref, index, { silent: true } );
 			return;
 		}
 

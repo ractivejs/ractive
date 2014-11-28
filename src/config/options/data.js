@@ -84,7 +84,7 @@ function dispatch ( parent, child ) {
 function copy ( from, to, fillOnly ) {
 	for ( let key in from ) {
 
-		if ( !(to._mappings && to._mappings[key].updatable) &&  fillOnly && key in to ) { continue; }
+		if ( !( to._mappings && to._mappings[ key ] && to._mappings[ key ].updatable ) &&  fillOnly && key in to ) { continue; }
 
 		to[ key ] = from[ key ];
 	}
