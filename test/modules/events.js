@@ -1359,6 +1359,30 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
 
+		test( 'event actions and parameter references have context', t => {
+			var ractive;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<span id="test{{i}}" on-click="{{eventName}}:{{eventName}}"/>{{/}}',
+				data: {
+					items: [
+						{ eventName: 'foo' },
+						{ eventName: 'bar' },
+						{ eventName: 'biz' }
+					]
+				}
+			});
+
+			ractive.on( 'bar', function ( event, parameter ) {
+				t.equal( parameter, 'bar' );
+			})
+
+			simulant.fire( ractive.nodes.test1, 'click' );
+		});
+
 		test( 'twoway may be overridden on a per-element basis', t => {
 			let ractive = new Ractive({
 				el: fixture,
