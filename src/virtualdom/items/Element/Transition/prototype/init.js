@@ -26,6 +26,11 @@ export default function Transition$init ( element, template, isIntro ) {
 
 		name = fragment.toString();
 		fragment.unbind();
+
+		if ( name === '' ) {
+			// empty string okay, just no transition
+			return;
+		}
 	}
 
 	this.name = name;

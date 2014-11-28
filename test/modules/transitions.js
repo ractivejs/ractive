@@ -116,6 +116,33 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			ractive.render( fixture );
 		});
 
+		asyncTest( 'Empty transitions on refs okay', function ( t ) {
+
+			expect( 1 );
+
+			var ractive = new Ractive({
+				el: fixture,
+				debug: true,
+				template: '{{#if x}}<div intro="{{foo}}"></div>{{/if}}',
+				transitions: {
+					test: function ( transition ) {
+						t.ok( true );
+						transition.complete();
+						QUnit.start();
+					}
+				},
+				data: {
+					x: true,
+					foo: ''
+				}
+			});
+
+			ractive.set( 'x', false );
+			ractive.set( 'foo', 'test' );
+			ractive.set( 'x', true );
+
+		});
+
 		asyncTest( 'ractive.transitionsEnabled false prevents all transitions', function ( t ) {
 
 			var ractive, Component, transitioned;
