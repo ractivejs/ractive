@@ -4,6 +4,7 @@ import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes
 import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
+	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	arrayMemberPattern = /^[0-9][1-9]*$/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
 	legalReference;
@@ -181,9 +182,15 @@ export default function ( parser, delimiterType ) {
 		];
 	}
 
-	// optional index reference
+	// optional index and key references
 	if ( i = parser.matchPattern( indexRefPattern ) ) {
-		mustache.i = i;
+		let extra;
+
+		if ( extra = parser.matchPattern( keyIndexRefPattern ) ) {
+			mustache.i = i + ',' + extra;
+		} else {
+			mustache.i = i;
+		}
 	}
 
 	return mustache;

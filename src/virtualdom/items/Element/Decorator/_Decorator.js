@@ -104,9 +104,9 @@ Decorator.prototype = {
 		}
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath ) {
 		if ( this.fragment ) {
-			this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			this.fragment.rebind( oldKeypath, newKeypath );
 		}
 	},
 
