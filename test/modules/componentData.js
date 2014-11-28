@@ -1377,6 +1377,31 @@ define([
 				}, /\"d\" cannot be mapped to \"b\"/ );
 			});
 
+
+			test( 'Computation cannot take ownership if already owned by computation in a sibling component', ( t ) => {
+
+				expect( 1 );
+
+				t.throws( () => {
+					var ractive = new Ractive({
+						el: fixture,
+						template: `{{out}}
+								   <component in="2" out="{{out}}" />
+								   <component in="3" out="{{out}}" />`,
+						data: { a: 2 },
+						components: {
+							component: Ractive.extend({
+								template: '{{in}}-{{out}}',
+								parameters: parameters,
+								computed: {
+									out: '${in} * 2'
+								}
+							})
+						}
+					});
+				}, /\"out\" cannot be mapped to \"out\"/ );
+			});
+
 			test( 'Computation that takes over ownership reverts when component is torndown: ' + mode, t => {
 
 				var ractive = new Ractive({
