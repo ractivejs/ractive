@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-11-28 - commit b4f42df9 
+	2014-11-28 - commit f1758799 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -581,7 +581,7 @@
 	var resolveRef = function( normaliseRef, getInnerContext, resolveAncestorRef ) {
 
 		return function resolveRef( ractive, ref, fragment, isParentLookup ) {
-			var context, key, index, keypath, parentValue, hasContextChain, parentKeys, childKeys, parentKeypath, childKeypath;
+			var context, key, keypath, parentValue, hasContextChain, parentKeys, childKeys, parentKeypath, childKeypath;
 			ref = normaliseRef( ref );
 			// If a reference begins '~/', it's a top-level reference
 			if ( ref.substr( 0, 2 ) === '~/' ) {
@@ -618,16 +618,6 @@
 			if ( ractive.parent && !ractive.isolated ) {
 				hasContextChain = true;
 				fragment = ractive.component.parentFragment;
-				// Special case - index refs
-				if ( fragment.indexRefs && ( index = fragment.indexRefs[ ref ] ) !== undefined ) {
-					// Create an index ref binding, so that it can be rebound letter if necessary.
-					// It doesn't have an alias since it's an implicit binding, hence `...[ ref ] = ref`
-					ractive.component.indexRefBindings[ ref ] = ref;
-					ractive.viewmodel.set( ref, index, {
-						silent: true
-					} );
-					return;
-				}
 				keypath = resolveRef( ractive.parent, ref, fragment, true );
 				if ( keypath ) {
 					// We need to create an inter-component binding
@@ -5452,7 +5442,7 @@
 			forceResolution: function() {
 				this.resolve( this.ref );
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			rebind: function( oldKeypath, newKeypath ) {
 				var keypath;
 				if ( this.keypath !== undefined ) {
 					keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
@@ -5473,7 +5463,7 @@
 	}( runloop, resolveRef, getNew );
 
 	/* virtualdom/items/shared/Resolvers/SpecialResolver.js */
-	var SpecialResolver = function() {
+	var SpecialResolver = function( types ) {
 
 		var SpecialResolver = function( owner, ref, callback ) {
 			this.parentFragment = owner.parentFragment;
@@ -5482,29 +5472,76 @@
 			this.rebind();
 		};
 		var props = {
-			'@keypath': 'context',
-			'@index': 'index',
-			'@key': 'index'
+			'@keypath': {
+				prefix: 'c',
+				prop: [ 'context' ]
+			},
+			'@index': {
+				prefix: 'i',
+				prop: [ 'index' ]
+			},
+			'@key': {
+				prefix: 'k',
+				prop: [
+					'key',
+					'index'
+				]
+			}
 		};
+
+		function getProp( target, prop ) {
+			var value;
+			for ( var i = 0; i < prop.prop.length; i++ ) {
+				if ( ( value = target[ prop.prop[ i ] ] ) !== undefined ) {
+					return value;
+				}
+			}
+		}
 		SpecialResolver.prototype = {
 			rebind: function() {
 				var ref = this.ref,
 					fragment = this.parentFragment,
-					prop = props[ ref ];
+					prop = props[ ref ],
+					value;
 				if ( !prop ) {
 					throw new Error( 'Unknown special reference "' + ref + '" - valid references are @index, @key and @keypath' );
 				}
-				while ( fragment ) {
-					if ( fragment[ prop ] !== undefined ) {
-						return this.callback( '@' + fragment[ prop ] );
+				// have we already found the nearest parent?
+				if ( this.cached ) {
+					return this.callback( '@' + prop.prefix + getProp( this.cached, prop ) );
+				}
+				// special case for indices, which may cross component boundaries
+				if ( prop.prop.indexOf( 'index' ) !== -1 || prop.prop.indexOf( 'key' ) !== -1 ) {
+					while ( fragment ) {
+						if ( fragment.owner.currentSubtype === types.SECTION_EACH && ( value = getProp( fragment, prop ) ) !== undefined ) {
+							this.cached = fragment;
+							fragment.registerIndexRef( this );
+							return this.callback( '@' + prop.prefix + value );
+						}
+						// watch for component boundaries
+						if ( !fragment.parent && fragment.owner && fragment.owner.component && fragment.owner.component.parentFragment && !fragment.owner.component.instance.isolated ) {
+							fragment = fragment.owner.component.parentFragment;
+						} else {
+							fragment = fragment.parent;
+						}
 					}
-					fragment = fragment.parent;
+				} else {
+					while ( fragment ) {
+						if ( ( value = getProp( fragment, prop ) ) !== undefined ) {
+							return this.callback( '@' + prop.prefix + value );
+						}
+						fragment = fragment.parent;
+					}
 				}
 			},
-			unbind: function() {}
+			unbind: function() {
+				if ( this.cached ) {
+					this.cached.unregisterIndexRef( this );
+				}
+			}
 		};
 		return SpecialResolver;
-	}();
+	}( types );
 
 	/* virtualdom/items/shared/Resolvers/IndexResolver.js */
 	var IndexResolver = function() {
@@ -5513,44 +5550,98 @@
 			this.parentFragment = owner.parentFragment;
 			this.ref = ref;
 			this.callback = callback;
+			ref.ref.fragment.registerIndexRef( this );
 			this.rebind();
 		};
 		IndexResolver.prototype = {
 			rebind: function() {
-				var ref = this.ref,
-					indexRefs = this.parentFragment.indexRefs,
-					index = indexRefs[ ref ];
+				var index, ref = this.ref.ref;
+				if ( ref.ref.t === 'k' ) {
+					index = 'k' + ref.fragment.key;
+				} else {
+					index = 'i' + ref.fragment.index;
+				}
 				if ( index !== undefined ) {
 					this.callback( '@' + index );
 				}
 			},
-			unbind: function() {}
+			unbind: function() {
+				this.ref.ref.fragment.unregisterIndexRef( this );
+			}
 		};
 		return IndexResolver;
 	}();
 
+	/* virtualdom/items/shared/Resolvers/findIndexRefs.js */
+	var findIndexRefs = function findIndexRefs( fragment, refName ) {
+		var result = {},
+			refs, fragRefs, ref, i, owner, hit = false;
+		if ( !refName ) {
+			result.refs = refs = {};
+		}
+		while ( fragment ) {
+			if ( ( owner = fragment.owner ) && ( fragRefs = owner.indexRefs ) ) {
+				// we're looking for a particular ref, and it's here
+				if ( refName && ( ref = owner.getIndexRef( refName ) ) ) {
+					result.ref = {
+						fragment: fragment,
+						ref: ref
+					};
+					return result;
+				} else if ( !refName ) {
+					for ( i in fragRefs ) {
+						ref = fragRefs[ i ];
+						// don't overwrite existing refs - they should shadow parents
+						if ( !refs[ ref.n ] ) {
+							hit = true;
+							refs[ ref.n ] = {
+								fragment: fragment,
+								ref: ref
+							};
+						}
+					}
+				}
+			}
+			// watch for component boundaries
+			if ( !fragment.parent && fragment.owner && fragment.owner.component && fragment.owner.component.parentFragment && !fragment.owner.component.instance.isolated ) {
+				result.componentBoundary = true;
+				fragment = fragment.owner.component.parentFragment;
+			} else {
+				fragment = fragment.parent;
+			}
+		}
+		if ( !hit ) {
+			return undefined;
+		} else {
+			return result;
+		}
+	};
+
 	/* virtualdom/items/shared/Resolvers/createReferenceResolver.js */
-	var createReferenceResolver = function( ReferenceResolver, SpecialResolver, IndexResolver ) {
+	var createReferenceResolver = function( ReferenceResolver, SpecialResolver, IndexResolver, findIndexRefs ) {
 
 		return function createReferenceResolver( owner, ref, callback ) {
-			var indexRefs, index;
+			var indexRef;
 			if ( ref.charAt( 0 ) === '@' ) {
 				return new SpecialResolver( owner, ref, callback );
 			}
-			indexRefs = owner.parentFragment.indexRefs;
-			if ( indexRefs && ( index = indexRefs[ ref ] ) !== undefined ) {
-				return new IndexResolver( owner, ref, callback );
+			if ( indexRef = findIndexRefs( owner.parentFragment, ref ) ) {
+				return new IndexResolver( owner, indexRef, callback );
 			}
 			return new ReferenceResolver( owner, ref, callback );
 		};
-	}( ReferenceResolver, SpecialResolver, IndexResolver );
+	}( ReferenceResolver, SpecialResolver, IndexResolver, findIndexRefs );
 
 	/* shared/keypaths/decode.js */
 	var decode = function( isNumeric ) {
 
 		return function decodeKeypath( keypath ) {
-			var value = keypath.slice( 1 );
-			return isNumeric( value ) ? +value : value;
+			var value = keypath.slice( 2 );
+			if ( keypath[ 1 ] === 'i' ) {
+				return isNumeric( value ) ? +value : value;
+			} else {
+				return value;
+			}
 		};
 	}( isNumeric );
 
@@ -5580,7 +5671,7 @@
 		var ExpressionResolver, bind = Function.prototype.bind;
 		ExpressionResolver = function( owner, parentFragment, expression, callback ) {
 			var this$0 = this;
-			var ractive, indexRefs;
+			var ractive;
 			ractive = owner.root;
 			this.root = ractive;
 			this.parentFragment = parentFragment;
@@ -5588,7 +5679,6 @@
 			this.owner = owner;
 			this.str = expression.s;
 			this.keypaths = [];
-			indexRefs = parentFragment.indexRefs;
 			// Create resolvers for each reference
 			this.pending = expression.r.length;
 			this.refResolvers = expression.r.map( function( ref, i ) {
@@ -5662,10 +5752,10 @@
 					this.root.viewmodel.mark( this.keypath );
 				}
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			rebind: function( oldKeypath, newKeypath ) {
 				// TODO only bubble once, no matter how many references are affected by the rebind
 				this.refResolvers.forEach( function( r ) {
-					return r.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+					return r.rebind( oldKeypath, newKeypath );
 				} );
 			}
 		};
@@ -5766,9 +5856,9 @@
 			bind: function() {
 				this.viewmodel.register( this.keypath, this );
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			rebind: function( oldKeypath, newKeypath ) {
 				if ( this.refResolver ) {
-					this.refResolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+					this.refResolver.rebind( oldKeypath, newKeypath );
 				}
 			},
 			setValue: function( value ) {
@@ -5838,10 +5928,10 @@
 			unbind: function() {
 				this.members.forEach( unbind );
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			rebind: function( oldKeypath, newKeypath ) {
 				var changed;
 				this.members.forEach( function( members ) {
-					if ( members.rebind( indexRef, newIndex, oldKeypath, newKeypath ) ) {
+					if ( members.rebind( oldKeypath, newKeypath ) ) {
 						changed = true;
 					}
 				} );
@@ -5888,6 +5978,7 @@
 			mustache.pElement = parentFragment.pElement;
 			mustache.template = options.template;
 			mustache.index = options.index || 0;
+			mustache.key = options.key;
 			mustache.isStatic = options.template.s;
 			mustache.type = options.template.t;
 			mustache.registered = false;
@@ -5918,7 +6009,7 @@
 					mustache.resolve( newKeypath );
 					if ( oldKeypath !== undefined ) {
 						mustache.fragments && mustache.fragments.forEach( function( f ) {
-							f.rebind( null, null, oldKeypath, newKeypath );
+							f.rebind( oldKeypath, newKeypath );
 						} );
 					}
 				}
@@ -5964,16 +6055,16 @@
 	}( decode );
 
 	/* virtualdom/items/shared/Mustache/rebind.js */
-	var rebind = function Mustache$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+	var rebind = function Mustache$rebind( oldKeypath, newKeypath ) {
 		// Children first
 		if ( this.fragments ) {
 			this.fragments.forEach( function( f ) {
-				return f.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+				return f.rebind( oldKeypath, newKeypath );
 			} );
 		}
 		// Expression mustache?
 		if ( this.resolver ) {
-			this.resolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			this.resolver.rebind( oldKeypath, newKeypath );
 		}
 	};
 
@@ -6134,7 +6225,7 @@
 			var parentFragment, firstChange, i, newLength, reboundFragments, fragmentOptions, fragment;
 			// short circuit any double-updates, and ensure that this isn't applied to
 			// non-list sections
-			if ( this.shuffling || this.unbound || this.subtype && this.subtype !== types.SECTION_EACH ) {
+			if ( this.shuffling || this.unbound || this.currentSubtype !== types.SECTION_EACH ) {
 				return;
 			}
 			this.shuffling = true;
@@ -6143,9 +6234,35 @@
 			} );
 			parentFragment = this.parentFragment;
 			reboundFragments = [];
+			// TODO: need to update this
 			// first, rebind existing fragments
 			newIndices.forEach( function( newIndex, oldIndex ) {
-				var fragment, by, oldKeypath, newKeypath;
+				var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
+				var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
+
+				function GET_ITER$0( v ) {
+					if ( v ) {
+						if ( Array.isArray( v ) )
+							return 0;
+						var f;
+						if ( S_MARK$0 )
+							S_MARK$0( v );
+						if ( typeof v === 'object' && typeof( f = v[ S_ITER$0 ] ) === 'function' ) {
+							if ( S_MARK$0 )
+								S_MARK$0( void 0 );
+							return f.call( v );
+						}
+						if ( S_MARK$0 )
+							S_MARK$0( void 0 );
+						if ( v + '' === '[object Generator]' )
+							return v;
+					}
+					throw new Error( v + ' is not iterable' );
+				}
+				var $D$0;
+				var $D$1;
+				var $D$2;
+				var fragment, by, oldKeypath, newKeypath, deps;
 				if ( newIndex === oldIndex ) {
 					reboundFragments[ newIndex ] = this$0.fragments[ oldIndex ];
 					return;
@@ -6164,7 +6281,20 @@
 				by = newIndex - oldIndex;
 				oldKeypath = this$0.keypath + '.' + oldIndex;
 				newKeypath = this$0.keypath + '.' + newIndex;
-				fragment.rebind( this$0.template.i, newIndex, oldKeypath, newKeypath );
+				fragment.index = newIndex;
+				// notify any registered index refs directly
+				if ( deps = fragment.registeredIndexRefs ) {
+					$D$0 = GET_ITER$0( deps );
+					$D$2 = $D$0 === 0;
+					$D$1 = $D$2 ? deps.length : void 0;
+					for ( var d; $D$2 ? $D$0 < $D$1 : !( $D$1 = $D$0[ 'next' ]() )[ 'done' ]; ) {
+						d = $D$2 ? deps[ $D$0++ ] : $D$1[ 'value' ];
+						// the keypath doesn't actually matter here
+						d.rebind( '', '' );
+					}
+					$D$0 = $D$1 = $D$2 = void 0;
+				}
+				fragment.rebind( oldKeypath, newKeypath );
 				reboundFragments[ newIndex ] = fragment;
 			} );
 			newLength = this.root.get( this.keypath ).length;
@@ -6187,9 +6317,6 @@
 				root: this.root,
 				owner: this
 			};
-			if ( this.template.i ) {
-				fragmentOptions.indexRef = this.template.i;
-			}
 			// Add as many new fragments as we need to, or add back existing
 			// (detached) fragments
 			for ( i = firstChange; i < newLength; i += 1 ) {
@@ -6203,18 +6330,12 @@
 	}( types, runloop, circular );
 
 	/* virtualdom/items/Section/prototype/rebind.js */
-	var virtualdom_items_Section$rebind = function( Mustache, types ) {
+	var virtualdom_items_Section$rebind = function( Mustache ) {
 
-		return function( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var ref, idx;
-			if ( indexRef !== undefined || this.currentSubtype !== types.SECTION_EACH ) {
-				ref = indexRef;
-				idx = newIndex;
-			}
-			// If the new index belonged to us, we'd be shuffling instead
-			Mustache.rebind.call( this, ref, idx, oldKeypath, newKeypath );
+		return function( oldKeypath, newKeypath ) {
+			Mustache.rebind.call( this, oldKeypath, newKeypath );
 		};
-	}( Mustache, types );
+	}( Mustache );
 
 	/* virtualdom/items/Section/prototype/render.js */
 	var virtualdom_items_Section$render = function Section$render() {
@@ -6265,8 +6386,7 @@
 					template: this.template.f,
 					root: this.root,
 					pElement: this.pElement,
-					owner: this,
-					indexRef: this.template.i
+					owner: this
 				};
 				this.fragmentsToCreate.forEach( function( index ) {
 					var fragment;
@@ -6286,6 +6406,28 @@
 			this.updating = false;
 		};
 
+		function changeCurrentSubtype( section, value, obj ) {
+			if ( value === types.SECTION_EACH ) {
+				// make sure ref type is up to date for key or value indices
+				if ( section.indexRefs && section.indexRefs[ 0 ] ) {
+					var ref = section.indexRefs[ 0 ];
+					// when switching flavors, make sure the section gets updated
+					if ( obj && ref.t === 'i' || !obj && ref.t === 'k' ) {
+						// if switching from object to list, unbind all of the old fragments
+						if ( !obj ) {
+							section.length = 0;
+							section.fragmentsToUnrender = section.fragments.slice( 0 );
+							section.fragmentsToUnrender.forEach( function( f ) {
+								return f.unbind();
+							} );
+						}
+					}
+					ref.t = obj ? 'k' : 'i';
+				}
+			}
+			section.currentSubtype = value;
+		}
+
 		function reevaluateSection( section, value ) {
 			var fragmentOptions = {
 				template: section.template.f,
@@ -6297,7 +6439,6 @@
 			// TODO can this be optimised? i.e. pick an reevaluateSection function during init
 			// and avoid doing this each time?
 			if ( section.subtype ) {
-				section.currentSubtype = section.subtype;
 				switch ( section.subtype ) {
 					case types.SECTION_IF:
 						return reevaluateConditionalSection( section, value, false, fragmentOptions );
@@ -6309,6 +6450,7 @@
 						return reevaluateConditionalContextSection( section, value, fragmentOptions );
 					case types.SECTION_EACH:
 						if ( isObject( value ) ) {
+							changeCurrentSubtype( section, section.subtype, true );
 							return reevaluateListObjectSection( section, value, fragmentOptions );
 						}
 				}
@@ -6317,22 +6459,22 @@
 			section.ordered = !!isArrayLike( value );
 			// Ordered list section
 			if ( section.ordered ) {
-				section.currentSubtype = types.SECTION_EACH;
+				changeCurrentSubtype( section, types.SECTION_EACH, false );
 				return reevaluateListSection( section, value, fragmentOptions );
 			}
 			// Unordered list, or context
 			if ( isObject( value ) || typeof value === 'function' ) {
 				// Index reference indicates section should be treated as a list
 				if ( section.template.i ) {
-					section.currentSubtype = types.SECTION_EACH;
+					changeCurrentSubtype( section, types.SECTION_EACH, true );
 					return reevaluateListObjectSection( section, value, fragmentOptions );
 				}
 				// Otherwise, object provides context for contents
-				section.currentSubtype = types.SECTION_WITH;
+				changeCurrentSubtype( section, types.SECTION_WITH, false );
 				return reevaluateContextSection( section, fragmentOptions );
 			}
 			// Conditional section
-			section.currentSubtype = types.SECTION_IF;
+			changeCurrentSubtype( section, types.SECTION_IF, false );
 			return reevaluateConditionalSection( section, value, false, fragmentOptions );
 		}
 
@@ -6354,9 +6496,6 @@
 						// append list item to context stack
 						fragmentOptions.context = section.keypath + '.' + i;
 						fragmentOptions.index = i;
-						if ( section.template.i ) {
-							fragmentOptions.indexRef = section.template.i;
-						}
 						fragment = new Fragment( fragmentOptions );
 						section.fragmentsToRender.push( section.fragments[ i ] = fragment );
 					}
@@ -6367,29 +6506,72 @@
 		}
 
 		function reevaluateListObjectSection( section, value, fragmentOptions ) {
-			var id, i, hasKey, fragment, changed;
+			var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
+			var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
+
+			function GET_ITER$0( v ) {
+				if ( v ) {
+					if ( Array.isArray( v ) )
+						return 0;
+					var f;
+					if ( S_MARK$0 )
+						S_MARK$0( v );
+					if ( typeof v === 'object' && typeof( f = v[ S_ITER$0 ] ) === 'function' ) {
+						if ( S_MARK$0 )
+							S_MARK$0( void 0 );
+						return f.call( v );
+					}
+					if ( S_MARK$0 )
+						S_MARK$0( void 0 );
+					if ( v + '' === '[object Generator]' )
+						return v;
+				}
+				throw new Error( v + ' is not iterable' );
+			}
+			var $D$0;
+			var $D$1;
+			var $D$2;
+			var id, i, hasKey, fragment, changed, deps;
 			hasKey = section.hasKey || ( section.hasKey = {} );
 			// remove any fragments that should no longer exist
 			i = section.fragments.length;
 			while ( i-- ) {
 				fragment = section.fragments[ i ];
-				if ( !( fragment.index in value ) ) {
+				if ( !( fragment.key in value ) ) {
 					changed = true;
 					fragment.unbind();
 					section.fragmentsToUnrender.push( fragment );
 					section.fragments.splice( i, 1 );
-					hasKey[ fragment.index ] = false;
+					hasKey[ fragment.key ] = false;
+				}
+			}
+			// notify any dependents about changed indices
+			i = section.fragments.length;
+			while ( i-- ) {
+				fragment = section.fragments[ i ];
+				if ( fragment.index !== i ) {
+					fragment.index = i;
+					if ( deps = fragment.registeredIndexRefs ) {
+						$D$0 = GET_ITER$0( deps );
+						$D$2 = $D$0 === 0;
+						$D$1 = $D$2 ? deps.length : void 0;
+						for ( var d; $D$2 ? $D$0 < $D$1 : !( $D$1 = $D$0[ 'next' ]() )[ 'done' ]; ) {
+							d = $D$2 ? deps[ $D$0++ ] : $D$1[ 'value' ];
+							// the keypath doesn't actually matter here as it won't have changed
+							d.rebind( '', '' );
+						}
+						$D$0 = $D$1 = $D$2 = void 0;
+					}
 				}
 			}
 			// add any that haven't been created yet
+			i = section.fragments.length;
 			for ( id in value ) {
 				if ( !hasKey[ id ] ) {
 					changed = true;
 					fragmentOptions.context = section.keypath + '.' + id;
-					fragmentOptions.index = id;
-					if ( section.template.i ) {
-						fragmentOptions.indexRef = section.template.i;
-					}
+					fragmentOptions.key = id;
+					fragmentOptions.index = i++;
 					fragment = new Fragment( fragmentOptions );
 					section.fragmentsToRender.push( fragment );
 					section.fragments.push( fragment );
@@ -6443,7 +6625,7 @@
 			if ( doRender ) {
 				if ( !section.length ) {
 					// no change to context stack
-					fragmentOptions.index = undefined;
+					fragmentOptions.index = 0;
 					fragment = new Fragment( fragmentOptions );
 					section.fragmentsToRender.push( section.fragments[ 0 ] = fragment );
 					section.length = 1;
@@ -6577,13 +6759,21 @@
 
 		var Section = function( options ) {
 			this.type = types.SECTION;
-			this.subtype = options.template.n;
+			this.subtype = this.currentSubtype = options.template.n;
 			this.inverted = this.subtype === types.SECTION_UNLESS;
 			this.pElement = options.pElement;
 			this.fragments = [];
 			this.fragmentsToCreate = [];
 			this.fragmentsToRender = [];
 			this.fragmentsToUnrender = [];
+			if ( options.template.i ) {
+				this.indexRefs = options.template.i.split( ',' ).map( function( k, i ) {
+					return {
+						n: k,
+						t: i === 0 ? 'k' : 'i'
+					};
+				} );
+			}
 			this.renderedFragments = [];
 			this.length = 0;
 			// number of times this section is rendered
@@ -6598,6 +6788,47 @@
 			findComponent: findComponent,
 			findNextNode: findNextNode,
 			firstNode: firstNode,
+			getIndexRef: function( name ) {
+				var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
+				var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
+
+				function GET_ITER$0( v ) {
+					if ( v ) {
+						if ( Array.isArray( v ) )
+							return 0;
+						var f;
+						if ( S_MARK$0 )
+							S_MARK$0( v );
+						if ( typeof v === 'object' && typeof( f = v[ S_ITER$0 ] ) === 'function' ) {
+							if ( S_MARK$0 )
+								S_MARK$0( void 0 );
+							return f.call( v );
+						}
+						if ( S_MARK$0 )
+							S_MARK$0( void 0 );
+						if ( v + '' === '[object Generator]' )
+							return v;
+					}
+					throw new Error( v + ' is not iterable' );
+				}
+				var $D$0;
+				var $D$1;
+				var $D$2;
+				var $D$3;
+				if ( this.indexRefs ) {
+					$D$3 = this.indexRefs;
+					$D$0 = GET_ITER$0( $D$3 );
+					$D$2 = $D$0 === 0;
+					$D$1 = $D$2 ? $D$3.length : void 0;
+					for ( var ref; $D$2 ? $D$0 < $D$1 : !( $D$1 = $D$0[ 'next' ]() )[ 'done' ]; ) {
+						ref = $D$2 ? $D$3[ $D$0++ ] : $D$1[ 'value' ];
+						if ( ref.n === name ) {
+							return ref;
+						}
+					}
+					$D$0 = $D$1 = $D$2 = $D$3 = void 0;
+				}
+			},
 			getValue: Mustache.getValue,
 			shuffle: shuffle,
 			rebind: rebind,
@@ -7534,9 +7765,9 @@
 	}( types, booleanAttributes, determineNameAndNamespace, getInterpolator, determinePropertyName, circular );
 
 	/* virtualdom/items/Element/Attribute/prototype/rebind.js */
-	var virtualdom_items_Element_Attribute$rebind = function Attribute$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+	var virtualdom_items_Element_Attribute$rebind = function Attribute$rebind( oldKeypath, newKeypath ) {
 		if ( this.fragment ) {
-			this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			this.fragment.rebind( oldKeypath, newKeypath );
 		}
 	};
 
@@ -7959,8 +8190,8 @@
 				}
 				this.element.bubble();
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			rebind: function( oldKeypath, newKeypath ) {
+				this.fragment.rebind( oldKeypath, newKeypath );
 			},
 			render: function( node ) {
 				this.node = node;
@@ -8257,9 +8488,9 @@
 					Binding.prototype.handleChange.call( this );
 				}
 			},
-			rebound: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			rebound: function( oldKeypath, newKeypath ) {
 				var node;
-				Binding.prototype.rebound.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+				Binding.prototype.rebound.call( this, oldKeypath, newKeypath );
 				if ( node = this.element.node ) {
 					node.name = '{{' + this.keypath + '}}';
 				}
@@ -8869,18 +9100,28 @@
 	}( getFunctionFromString, createReferenceResolver, circular, Ractive$shared_eventStack, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
-	var genericHandler = function genericHandler( event ) {
-		var storage, handler;
-		storage = this._ractive;
-		handler = storage.events[ event.type ];
-		handler.fire( {
-			node: this,
-			original: event,
-			index: storage.index,
-			keypath: storage.keypath,
-			context: storage.root.get( storage.keypath )
-		} );
-	};
+	var genericHandler = function( findIndexRefs ) {
+
+		return function genericHandler( event ) {
+			var storage, handler, indices, index = {};
+			storage = this._ractive;
+			handler = storage.events[ event.type ];
+			if ( indices = findIndexRefs( handler.element.parentFragment ) ) {
+				var k, ref;
+				for ( k in indices.refs ) {
+					ref = indices.refs[ k ];
+					index[ ref.ref.n ] = ref.ref.t === 'k' ? ref.fragment.key : ref.fragment.index;
+				}
+			}
+			handler.fire( {
+				node: this,
+				original: event,
+				index: index,
+				keypath: storage.keypath,
+				context: storage.root.get( storage.keypath )
+			} );
+		};
+	}( findIndexRefs );
 
 	/* virtualdom/items/Element/EventHandler/prototype/listen.js */
 	var virtualdom_items_Element_EventHandler$listen = function( config, genericHandler, log ) {
@@ -8939,7 +9180,7 @@
 	}( config, genericHandler, log );
 
 	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
-	var virtualdom_items_Element_EventHandler$rebind = function EventHandler$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+	var virtualdom_items_Element_EventHandler$rebind = function EventHandler$rebind( oldKeypath, newKeypath ) {
 		var fragment;
 		if ( this.method ) {
 			fragment = this.element.parentFragment;
@@ -8954,7 +9195,7 @@
 		}
 
 		function rebind( thing ) {
-			thing && thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			thing && thing.rebind( oldKeypath, newKeypath );
 		}
 	};
 
@@ -9135,9 +9376,9 @@
 					this.init();
 				}
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			rebind: function( oldKeypath, newKeypath ) {
 				if ( this.fragment ) {
-					this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+					this.fragment.rebind( oldKeypath, newKeypath );
 				}
 			},
 			teardown: function( updating ) {
@@ -9272,6 +9513,7 @@
 			this.parent = options.pElement || parentFragment.pElement;
 			this.root = ractive = parentFragment.root;
 			this.index = options.index;
+			this.key = options.key;
 			this.name = enforceCase( template.e );
 			// Special case - <option> elements
 			if ( this.name === 'option' ) {
@@ -9347,7 +9589,7 @@
 	/* virtualdom/items/Element/prototype/rebind.js */
 	var virtualdom_items_Element$rebind = function( assignNewKeypath ) {
 
-		return function Element$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
+		return function Element$rebind( oldKeypath, newKeypath ) {
 			var i, storage, liveQueries, ractive;
 			if ( this.attributes ) {
 				this.attributes.forEach( rebind );
@@ -9376,13 +9618,10 @@
 			if ( this.node && ( storage = this.node._ractive ) ) {
 				// adjust keypath if needed
 				assignNewKeypath( storage, 'keypath', oldKeypath, newKeypath );
-				if ( indexRef != undefined ) {
-					storage.index[ indexRef ] = newIndex;
-				}
 			}
 
 			function rebind( thing ) {
-				thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+				thing.rebind( oldKeypath, newKeypath );
 			}
 		};
 	}( assignNew );
@@ -10097,7 +10336,6 @@
 				value: {
 					proxy: this,
 					keypath: getInnerContext( this.parentFragment ),
-					index: create( this.parentFragment.indexRefs ),
 					events: create( null ),
 					root: root
 				}
@@ -10640,12 +10878,12 @@
 			getValue: function() {
 				return this.fragment.getValue();
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
+			rebind: function( oldKeypath, newKeypath ) {
 				// named partials aren't bound, so don't rebind
 				if ( !this.isNamed ) {
-					rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
+					rebind.call( this, oldKeypath, newKeypath );
 				}
-				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+				this.fragment.rebind( oldKeypath, newKeypath );
 			},
 			render: function() {
 				this.docFrag = document.createDocumentFragment();
@@ -10933,8 +11171,8 @@
 				viewmodel.mark( this.key );
 				this.dirty = false;
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			rebind: function( oldKeypath, newKeypath ) {
+				this.fragment.rebind( oldKeypath, newKeypath );
 			},
 			unbind: function() {
 				this.fragment.unbind();
@@ -11429,30 +11667,22 @@
 	}( createInstance, createParameters, propagateEvents, types, updateLiveQueries, utils_warn );
 
 	/* virtualdom/items/Component/prototype/rebind.js */
-	var virtualdom_items_Component$rebind = function( runloop ) {
+	var virtualdom_items_Component$rebind = function Component$rebind( oldKeypath, newKeypath ) {
+		var query;
+		this.resolvers.forEach( rebind );
+		for ( var k in this.yielders ) {
+			if ( this.yielders[ k ][ 0 ] ) {
+				rebind( this.yielders[ k ][ 0 ] );
+			}
+		}
+		if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
+			query._makeDirty();
+		}
 
-		return function Component$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			var childInstance = this.instance,
-				indexRefAlias, query;
-			this.resolvers.forEach( rebind );
-			for ( var k in this.yielders ) {
-				if ( this.yielders[ k ][ 0 ] ) {
-					rebind( this.yielders[ k ][ 0 ] );
-				}
-			}
-			if ( indexRefAlias = this.indexRefBindings[ indexRef ] ) {
-				runloop.addViewmodel( childInstance.viewmodel );
-				childInstance.viewmodel.set( indexRefAlias, newIndex );
-			}
-			if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
-				query._makeDirty();
-			}
-
-			function rebind( x ) {
-				x.rebind( indexRef, newIndex, oldKeypath, newKeypath );
-			}
-		};
-	}( runloop );
+		function rebind( x ) {
+			x.rebind( oldKeypath, newKeypath );
+		}
+	};
 
 	/* virtualdom/items/Component/prototype/render.js */
 	var virtualdom_items_Component$render = function Component$render() {
@@ -11632,8 +11862,8 @@
 				this.fragment.unrender( shouldDestroy );
 				removeFromArray( this.component.yielders[ this.name ], this );
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			rebind: function( oldKeypath, newKeypath ) {
+				this.fragment.rebind( oldKeypath, newKeypath );
 			},
 			toString: function() {
 				return this.fragment.toString();
@@ -11676,7 +11906,7 @@
 	}( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder );
 
 	/* virtualdom/Fragment/prototype/init.js */
-	var virtualdom_Fragment$init = function( types, create, createItem ) {
+	var virtualdom_Fragment$init = function( createItem ) {
 
 		return function Fragment$init( options ) {
 			var this$0 = this;
@@ -11688,17 +11918,9 @@
 			this.root = options.root;
 			this.pElement = options.pElement;
 			this.context = options.context;
-			// If parent item is a section, this may not be the only fragment
-			// that belongs to it - we need to make a note of the index
-			if ( this.owner.type === types.SECTION ) {
-				this.index = options.index;
-			}
-			// index references (the 'i' in {{#section:i}}...{{/section}}) need to cascade
-			// down the tree
-			this.indexRefs = create( parentFragment ? parentFragment.indexRefs : null );
-			if ( options.indexRef ) {
-				this.indexRefs[ options.indexRef ] = options.index;
-			}
+			this.index = options.index;
+			this.key = options.key;
+			this.registeredIndexRefs = [];
 			// Time to create this fragment's child items
 			// TODO should this be happening?
 			if ( typeof options.template === 'string' ) {
@@ -11720,23 +11942,17 @@
 			this.dirtyArgs = this.dirtyValue = true;
 			this.bound = true;
 		};
-	}( types, create, virtualdom_Fragment$init_createItem );
+	}( virtualdom_Fragment$init_createItem );
 
 	/* virtualdom/Fragment/prototype/rebind.js */
 	var virtualdom_Fragment$rebind = function( assignNewKeypath ) {
 
-		return function Fragment$rebind( indexRef, newIndex, oldKeypath, newKeypath ) {
-			if ( newIndex !== undefined ) {
-				this.index = newIndex;
-			}
+		return function Fragment$rebind( oldKeypath, newKeypath ) {
 			// assign new context keypath if needed
 			assignNewKeypath( this, 'context', oldKeypath, newKeypath );
-			if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined ) {
-				this.indexRefs[ indexRef ] = newIndex;
-			}
 			this.items.forEach( function( item ) {
 				if ( item.rebind ) {
-					item.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+					item.rebind( oldKeypath, newKeypath );
 				}
 			} );
 		};
@@ -11817,9 +12033,19 @@
 			getValue: getValue,
 			init: init,
 			rebind: rebind,
+			registerIndexRef: function( idx ) {
+				var idxs = this.registeredIndexRefs;
+				if ( idxs.indexOf( idx ) === -1 ) {
+					idxs.push( idx );
+				}
+			},
 			render: render,
 			toString: toString,
 			unbind: unbind,
+			unregisterIndexRef: function( idx ) {
+				var idxs = this.registeredIndexRefs;
+				idxs.splice( idxs.indexOf( idx ), 1 );
+			},
 			unrender: unrender
 		};
 		circular.Fragment = Fragment;
