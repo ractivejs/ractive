@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-11-25 - commit 55d99dc1 
+	2014-11-28 - commit 6ec4c5e3 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -245,6 +245,7 @@
 		methodDeprecated: 'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.',
 		usePromise: '{method} now returns a Promise, use {method}(...).then(callback) instead.',
 		noTwowayExpressions: 'Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.',
+		computedCannotMapTo: 'Computed property "{key}" cannot be mapped to "{other}" because {reason}.',
 		notUsed: 'prevents forgetting trailing "," in cut and paste of previous line :)'
 	};
 
@@ -622,7 +623,9 @@
 					// Create an index ref binding, so that it can be rebound letter if necessary.
 					// It doesn't have an alias since it's an implicit binding, hence `...[ ref ] = ref`
 					ractive.component.indexRefBindings[ ref ] = ref;
-					ractive.viewmodel.set( ref, index, true );
+					ractive.viewmodel.set( ref, index, {
+						silent: true
+					} );
 					return;
 				}
 				keypath = resolveRef( ractive.parent, ref, fragment, true );
@@ -1493,7 +1496,7 @@
 
 		function copy( from, to, fillOnly ) {
 			for ( var key in from ) {
-				if ( !( to._mappings && to._mappings[ key ].updatable ) && fillOnly && key in to ) {
+				if ( !( to._mappings && to._mappings[ key ] && to._mappings[ key ].updatable ) && fillOnly && key in to ) {
 					continue;
 				}
 				to[ key ] = from[ key ];
@@ -12338,8 +12341,26 @@
 		return __export;
 	}( defineProperties, magic, runloop );
 
+	/* shared/parameters/DataTracker.js */
+	var DataTracker = function() {
+
+		var __export;
+
+		function DataTracker( key, viewmodel ) {
+			this.keypath = key;
+			this.viewmodel = viewmodel;
+		}
+		__export = DataTracker;
+		DataTracker.prototype.setValue = function( value ) {
+			this.viewmodel.set( this.keypath, value, {
+				noMapping: true
+			} );
+		};
+		return __export;
+	}();
+
 	/* shared/parameters/Mapping.js */
-	var Mapping = function( equalsOrStartsWith, getNewKeypath ) {
+	var Mapping = function( DataTracker ) {
 
 		var __export;
 
@@ -12347,18 +12368,12 @@
 			this.localKey = localKey;
 			this.keypath = options.keypath;
 			this.origin = options.origin;
-			this.trackData = options.trackData;
-			this.resolved = this.ready = false;
+			this.trackData = options.trackData || options.reversed;
+			this.reversed = options.reversed;
+			this.resolved = false;
 		}
 		__export = Mapping;
 		Mapping.prototype = {
-			setViewmodel: function( viewmodel ) {
-				this.local = viewmodel;
-				this.deps = [];
-				this.unresolved = [];
-				this.setup();
-				this.ready = true;
-			},
 			get: function( keypath, options ) {
 				if ( !this.resolved ) {
 					return undefined;
@@ -12371,49 +12386,42 @@
 				}
 				return this.origin.get( this.keypath );
 			},
+			initViewmodel: function( viewmodel ) {
+				this.local = viewmodel;
+				this.deps = [];
+				this.local.mappings[ this.localKey ] = this;
+				this.setup();
+			},
 			map: function( keypath ) {
-				// TODO: should this be cached and only run when keypath changes?
 				return keypath.replace( this.localKey, this.keypath );
 			},
-			rebind: function( indexRef, newIndex, oldKeypath, newKeypath ) {
-				var this$0 = this;
-				if ( equalsOrStartsWith( this.keypath, oldKeypath ) ) {
-					this.deps.forEach( function( d ) {
-						return this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
-					} );
-					this.keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
-					this.deps.forEach( function( d ) {
-						return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
-					} );
-				}
+			rebind: function( localKey ) {
+				this.unbind( true );
+				this.localKey = localKey;
+				this.local.mappings[ this.localKey ] = this;
+				this.setup();
 			},
 			register: function( keypath, dependant, group ) {
-				var dep = {
+				this.deps.push( {
 					keypath: keypath,
 					dep: dependant,
 					group: group
-				};
-				if ( !this.resolved ) {
-					this.unresolved.push( dep );
-				} else {
-					this.deps.push( {
-						keypath: keypath,
-						dep: dependant,
-						group: group
-					} );
-					this.origin.register( this.map( keypath ), dependant, group );
-				}
+				} );
+				this.origin.register( this.map( keypath ), dependant, group );
 			},
 			resolve: function( keypath ) {
-				var this$0 = this;
 				if ( this.keypath !== undefined ) {
-					this.origin.unregister( this.keypath, this, 'mappings' );
-					this.deps.forEach( function( d ) {
-						return this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
-					} );
+					this.unbind( true );
 				}
 				this.keypath = keypath;
 				this.setup();
+			},
+			set: function( keypath, value ) {
+				// TODO: force resolution
+				if ( !this.resolved ) {
+					throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+				}
+				this.origin.set( this.map( keypath ), value );
 			},
 			setup: function() {
 				var this$0 = this;
@@ -12421,38 +12429,32 @@
 					return;
 				}
 				this.resolved = true;
-				this.origin.register( this.keypath, this, 'mappings' );
-				if ( this.trackData ) {
-					// keep local data in sync, for browsers w/ no defineProperty
-					this.origin.register( this.keypath, {
-						setValue: function( value ) {
-							this$0.local.ractive.data[ this$0.localKey ] = value;
-						}
-					}, 'default' );
+				// _if_ the local viewmodel isn't intializing, check
+				// for existing dependants that were registered and
+				// move them as they now belong to this key
+				if ( this.local.deps && this.keypath ) {
+					this.transfers = this.local.unregister( this.localKey );
+					if ( this.transfers ) {
+						this.transfers.forEach( function( d ) {
+							return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
+						} );
+						this.origin.mark( this.keypath );
+					}
 				}
-				if ( this.ready ) {
-					this.unresolved.forEach( function( u ) {
-						if ( u.group === 'mappings' ) {
-							// TODO should these be treated w/ separate process?
-							u.dep.local.mark( u.dep.localKey );
-							u.dep.origin = this$0.origin;
-							u.dep.keypath = this$0.keypath;
-						} else {
-							this$0.register( u.keypath, u.dep, u.group );
-							u.dep.setValue( this$0.get( u.keypath ) );
-						}
-					} );
+				// keep local data in sync, for
+				// a) browsers w/ no defineProperty
+				// b) reversed mappings
+				if ( this.trackData ) {
+					this.tracker = new DataTracker( this.localKey, this.local );
+					this.origin.register( this.keypath, this.tracker );
+				}
+				// accumulated dependants can now be registered
+				if ( this.deps.length ) {
 					this.deps.forEach( function( d ) {
 						return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
 					} );
-					this.local.mark( this.localKey );
+					this.origin.mark( this.keypath );
 				}
-			},
-			set: function( keypath, value ) {
-				if ( !this.resolved ) {
-					throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
-				}
-				this.origin.set( this.map( keypath ), value );
 			},
 			setValue: function( value ) {
 				if ( !this.keypath ) {
@@ -12460,16 +12462,28 @@
 				}
 				this.origin.set( this.keypath, value );
 			},
-			unbind: function() {
-				var dep;
-				while ( dep = this.deps.pop() ) {
-					this.origin.unregister( this.map( dep.keypath ), dep.dep, dep.group );
+			unbind: function( keepLocal ) {
+				var this$0 = this;
+				if ( !keepLocal ) {
+					delete this.local.mappings[ this.localKey ];
+				}
+				this.deps.forEach( function( d ) {
+					this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
+				} );
+				// revert transfers back to original viewmodel owner
+				if ( this.transfers ) {
+					this.transfers.forEach( function( d ) {
+						this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
+						this$0.local.register( d.keypath, d.dep, d.group );
+					} );
+				}
+				if ( this.tracker ) {
+					this.origin.unregister( this.keypath, this.tracker );
 				}
 			},
 			unregister: function( keypath, dependant, group ) {
-				var deps, i;
-				deps = this.resolved ? this.deps : this.unresolved;
-				i = deps.length;
+				var deps = this.deps,
+					i = deps.length;
 				while ( i-- ) {
 					if ( deps[ i ].dep === dependant ) {
 						deps.splice( i, 1 );
@@ -12480,7 +12494,7 @@
 			}
 		};
 		return __export;
-	}( equalsOrStartsWith, getNew );
+	}( DataTracker );
 
 	/* shared/parameters/ParameterResolver.js */
 	var ParameterResolver = function( createReferenceResolver, decodeKeypath, ExpressionResolver, ReferenceExpressionResolver ) {
@@ -12533,6 +12547,8 @@
 				if ( this.specialRef ) {
 					this.parameters.addData( this.key, decodeKeypath( keypath ) );
 					viewmodel.mark( this.key );
+				} else if ( viewmodel.reversedMappings && viewmodel.reversedMappings[ this.key ] ) {
+					viewmodel.reversedMappings[ this.key ].rebind( keypath );
 				} else {
 					viewmodel.mappings[ this.key ].resolve( keypath );
 				}
@@ -12612,9 +12628,11 @@
 				this.data[ key ] = value;
 			},
 			addMapping: function( key, keypath ) {
+				// map directly to the source if possible...
+				var mapping = this.parentViewmodel.mappings[ keypath ];
 				return this.mappings[ key ] = new Mapping( key, {
-					origin: this.parentViewmodel,
-					keypath: keypath
+					origin: mapping ? mapping.origin : this.parentViewmodel,
+					keypath: mapping ? mapping.keypath : keypath
 				} );
 			}
 		};
@@ -14656,7 +14674,7 @@
 	}( decode, viewmodel$get_FAILED_LOOKUP );
 
 	/* viewmodel/prototype/init.js */
-	var viewmodel$init = function() {
+	var viewmodel$init = function( create, log ) {
 
 		var __export;
 		__export = function Viewmodel$init() {
@@ -14664,23 +14682,62 @@
 			for ( key in this.ractive.computed ) {
 				computation = this.compute( key, this.ractive.computed[ key ] );
 				computations.push( computation );
+				reverseMapping( this, key );
 			}
 			computations.forEach( init );
 		};
+
+		function reverseMapping( viewmodel, key ) {
+			var mapping, origin, keypath, deps;
+			mapping = viewmodel.mappings[ key ];
+			if ( !mapping ) {
+				return;
+			}
+			origin = mapping.origin;
+			keypath = mapping.keypath;
+			deps = mapping.deps;
+			if ( origin.computations[ keypath ] ) {
+				return log.critical( {
+					debug: viewmodel.ractive.debug,
+					message: 'computedCannotMapTo',
+					args: {
+						key: key,
+						other: keypath,
+						reason: 'it is a computated property or expression'
+					}
+				} );
+			}
+			// unbind which will unregister dependants on the other viewmodel
+			mapping.unbind();
+			// the dependants of the unbound mapping can now be
+			// directly registered on _this_ viewmodel because
+			// it is the data owner
+			deps.forEach( function( d ) {
+				return viewmodel.register( d.keypath, d.dep, d.group );
+			} );
+			// create a new mapping in the other viewmodel
+			mapping = origin.map( keypath, {
+				origin: viewmodel,
+				keypath: key,
+				reversed: true
+			} );
+			// store a ref so it can be reverted if needed
+			viewmodel.reversedMappings = viewmodel.reversedMappings || create( null );
+			viewmodel.reversedMappings[ key ] = mapping;
+		}
 
 		function init( computation ) {
 			computation.init();
 		}
 		return __export;
-	}();
+	}( create, log );
 
 	/* viewmodel/prototype/map.js */
 	var viewmodel$map = function( Mapping ) {
 
 		return function Viewmodel$map( key, options ) {
 			var mapping = new Mapping( key, options );
-			mapping.setViewmodel( this );
-			this.mappings[ mapping.localKey ] = mapping;
+			mapping.initViewmodel( this );
 			return mapping;
 		};
 	}( Mapping );
@@ -14806,12 +14863,6 @@
 		return __export;
 	}( warn, viewmodel$merge_mapOldToNewIndex );
 
-	/* viewmodel/prototype/origin.js */
-	var viewmodel$origin = function Viewmodel$origin( key ) {
-		var map = this.mappings[ key ];
-		return map ? map.origin : this;
-	};
-
 	/* viewmodel/prototype/register.js */
 	var viewmodel$register = function() {
 
@@ -14865,12 +14916,18 @@
 	var viewmodel$set = function( isEqual, createBranch ) {
 
 		var __export;
-		__export = function Viewmodel$set( keypath, value, silent ) {
+		__export = function Viewmodel$set( keypath, value ) {
+			var options = arguments[ 2 ];
+			if ( options === void 0 )
+				options = {};
 			var mapping, computation, wrapper, dontTeardownWrapper;
-			// If this data belongs to a different viewmodel,
-			// pass the change along
-			if ( mapping = this.mappings[ keypath.split( '.' )[ 0 ] ] ) {
-				return mapping.set( keypath, value );
+			// unless data is being set for data tracking purposes
+			if ( !options.noMapping ) {
+				// If this data belongs to a different viewmodel,
+				// pass the change along
+				if ( mapping = this.mappings[ keypath.split( '.' )[ 0 ] ] ) {
+					return mapping.set( keypath, value );
+				}
 			}
 			computation = this.computations[ keypath ];
 			if ( computation ) {
@@ -14897,7 +14954,7 @@
 			if ( !computation && !dontTeardownWrapper ) {
 				resolveSet( this, keypath, value );
 			}
-			if ( !silent ) {
+			if ( !options.silent ) {
 				this.mark( keypath );
 			} else {
 				// We're setting a parent of the original target keypath (i.e.
@@ -14920,7 +14977,9 @@
 			valueSet = function() {
 				if ( !parentValue ) {
 					parentValue = createBranch( lastKey );
-					viewmodel.set( parentKeypath, parentValue, true );
+					viewmodel.set( parentKeypath, parentValue, {
+						silent: true
+					} );
 				}
 				parentValue[ lastKey ] = value;
 			};
@@ -14966,7 +15025,9 @@
 			} );
 			// Update the model
 			// TODO allow existing array to be updated in place, rather than replaced?
-			this.set( keypath, array, true );
+			this.set( keypath, array, {
+				silent: true
+			} );
 			if ( dependants = this.deps[ 'default' ][ keypath ] ) {
 				dependants.filter( canShuffle ).forEach( function( d ) {
 					return d.shuffle( newIndices, array );
@@ -14994,17 +15055,18 @@
 	/* viewmodel/prototype/teardown.js */
 	var viewmodel$teardown = function Viewmodel$teardown() {
 		var this$0 = this;
-		var key, mapping, unresolvedImplicitDependency;
-		// Unregister mappings
-		for ( key in this.mappings ) {
-			mapping = this.mappings[ key ];
-			mapping.origin.unregister( mapping.keypath, mapping, 'mappings' );
-		}
+		var unresolvedImplicitDependency, reversedMappings;
 		// Clear entire cache - this has the desired side-effect
 		// of unwrapping adapted values (e.g. arrays)
 		Object.keys( this.cache ).forEach( function( keypath ) {
 			return this$0.clearCache( keypath );
 		} );
+		// Unbind reversed mappings, which will revert ownership of the data
+		if ( reversedMappings = this.reversedMappings ) {
+			Object.keys( reversedMappings ).forEach( function( key ) {
+				return reversedMappings[ key ].unbind();
+			} );
+		}
 		// Teardown any failed lookups - we don't need them to resolve any more
 		while ( unresolvedImplicitDependency = this.unresolvedImplicitDependencies.pop() ) {
 			unresolvedImplicitDependency.teardown();
@@ -15020,6 +15082,9 @@
 			if ( group === void 0 )
 				group = 'default';
 			var mapping, deps, index;
+			if ( !dependant ) {
+				return bulkUnregister( this, keypath );
+			}
 			if ( dependant.isStatic ) {
 				return;
 			}
@@ -15032,11 +15097,48 @@
 				throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
 			}
 			deps.splice( index, 1 );
+			// added clean-up for mappings, how does it impact other use-cases?
+			if ( !deps.length ) {
+				delete this.deps[ group ][ keypath ];
+			}
 			if ( !keypath ) {
 				return;
 			}
 			updateDependantsMap( this, keypath, group );
 		};
+
+		function bulkUnregister( viewmodel, keypath ) {
+			var group, result, match;
+			for ( group in viewmodel.deps ) {
+				match = removeMatching( viewmodel, keypath, group );
+				if ( match.length ) {
+					result = result ? result.concat( match ) : match;
+				}
+			}
+			return result;
+		}
+
+		function removeMatching( viewmodel, keypath, group ) {
+			var depsGroup = viewmodel.deps[ group ],
+				match = [],
+				key, deps;
+			for ( key in depsGroup ) {
+				if ( key.indexOf( keypath ) != 0 ) {
+					continue;
+				}
+				deps = depsGroup[ key ];
+				deps.forEach( function( d ) {
+					updateDependantsMap( viewmodel, key, group );
+					match.push( {
+						keypath: key,
+						dep: d,
+						group: group
+					} );
+				} );
+				delete depsGroup[ key ];
+			}
+			return match;
+		}
 
 		function updateDependantsMap( viewmodel, keypath, group ) {
 			var keys, parentKeypath, map, parent;
@@ -15112,7 +15214,7 @@
 	}();
 
 	/* viewmodel/Viewmodel.js */
-	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, compute, get, init, magic, map, mark, merge, origin, register, release, set, smartUpdate, teardown, unregister, adaptConfig ) {
+	var Viewmodel = function( create, adapt, applyChanges, capture, clearCache, compute, get, init, magic, map, mark, merge, register, release, set, smartUpdate, teardown, unregister, adaptConfig ) {
 
 		var Viewmodel = function( ractive ) {
 			var mappings = arguments[ 1 ];
@@ -15125,9 +15227,9 @@
 			// set up explicit mappings
 			this.mappings = mappings;
 			for ( key in mappings ) {
-				mappings[ key ].setViewmodel( this );
+				mappings[ key ].initViewmodel( this );
 			}
-			if ( ractive.data && !ractive.data._data ) {
+			if ( ractive.data && ractive.parameters !== true ) {
 				// if data exists locally, but is missing on the parent,
 				// we transfer ownership to the parent
 				for ( key in ractive.data ) {
@@ -15140,14 +15242,12 @@
 			// we need to be able to use hasOwnProperty, so can't inherit from null
 			this.cacheMap = create( null );
 			this.deps = {
-				mappings: {},
-				computed: {},
-				'default': {}
+				computed: create( null ),
+				'default': create( null )
 			};
 			this.depsMap = {
-				mappings: {},
-				computed: {},
-				'default': {}
+				computed: create( null ),
+				'default': create( null )
 			};
 			this.patternObservers = [];
 			this.specials = create( null );
@@ -15173,7 +15273,6 @@
 			clearCache: clearCache,
 			compute: compute,
 			get: get,
-			origin: origin,
 			init: init,
 			map: map,
 			mark: mark,
@@ -15186,7 +15285,7 @@
 			unregister: unregister
 		};
 		return Viewmodel;
-	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$compute, viewmodel$get, viewmodel$init, magic, viewmodel$map, viewmodel$mark, viewmodel$merge, viewmodel$origin, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$smartUpdate, viewmodel$teardown, viewmodel$unregister, adaptConfig );
+	}( create, viewmodel$adapt, viewmodel$applyChanges, viewmodel$capture, viewmodel$clearCache, viewmodel$compute, viewmodel$get, viewmodel$init, magic, viewmodel$map, viewmodel$mark, viewmodel$merge, viewmodel$register, viewmodel$release, viewmodel$set, viewmodel$smartUpdate, viewmodel$teardown, viewmodel$unregister, adaptConfig );
 
 	/* Ractive/initialise.js */
 	var Ractive_initialise = function( config, create, Fragment, getElement, getNextNumber, Hook, HookQueue, Viewmodel, circular ) {
