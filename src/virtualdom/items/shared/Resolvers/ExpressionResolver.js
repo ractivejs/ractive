@@ -1,6 +1,6 @@
 import defineProperty from 'utils/defineProperty';
 import isNumeric from 'utils/isNumeric';
-import decodeKeypath from 'shared/decodeKeypath';
+import decodeKeypath from 'shared/keypaths/decode';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import 'legacy'; // for fn.bind()
@@ -140,7 +140,8 @@ function getUniqueString ( str, keypaths ) {
 function getKeypath ( uniqueString ) {
 	// Sanitize by removing any periods or square brackets. Otherwise
 	// we can't split the keypath into keys!
-	return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
+	// Remove asterisks too, since they mess with pattern observers
+	return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ).replace( /\*/, '#MUL#' ) + '}';
 }
 
 function isValidDependency ( keypath ) {

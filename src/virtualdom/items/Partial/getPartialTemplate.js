@@ -1,4 +1,4 @@
-import log from 'utils/log';
+import log from 'utils/log/log';
 import config from 'config/config';
 import parser from 'config/options/template/parser';
 import deIndent from 'virtualdom/items/Partial/deIndent';
@@ -43,7 +43,7 @@ function getPartialFromRegistry ( ractive, name ) {
 		partial = fn( instance.data, parser );
 	}
 
-	if ( !partial ) {
+	if ( !partial && partial !== '' ) {
 		log.warn({
 			debug: ractive.debug,
 			message: 'noRegistryFunctionReturn',

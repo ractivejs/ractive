@@ -241,6 +241,53 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.shift( 'letters' );
 		});
 
+		test( 'Teardown before init should work', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{# count > 0}}<span decorator="whatever">foo</span>{{/0}}',
+				data: {
+					count: 0
+				},
+				decorators: {
+					whatever: function ( node ) {
+						return { teardown: Function.prototype }
+					}
+				}
+			});
+
+			ractive.observe( 'boo', function( newval, oldval ) {
+			    ractive.set( 'count', 1 );
+			    ractive.set( 'count', 0 );
+			});
+			ractive.set( 'boo', 1) ;
+			t.ok( true );
+		});
+
+
+		test( 'Dynamic and empty dynamic decorator and empty', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				debug: true,
+				template: '{{#if x}}<div decorator="{{foo}}">not this</div>{{/if}}',
+				data: {
+					foo: '',
+					x: true
+				},
+				decorators: {
+					test: function ( node ) {
+						node.innerHTML = 'pass';
+						return { teardown: function () {} }
+					}
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<div>not this</div>' );
+			ractive.set( 'x', false );
+			ractive.set( 'foo', 'test' );
+			ractive.set( 'x', true );
+			t.htmlEqual( fixture.innerHTML, '<div>pass</div>' );
+		});
+
 	};
 
 });

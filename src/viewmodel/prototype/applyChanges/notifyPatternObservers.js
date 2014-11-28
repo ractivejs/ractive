@@ -24,18 +24,17 @@ function cascade ( viewmodel, upstreamPattern, keypath ) {
 	var group, map, actualChildKeypath;
 
 	group = viewmodel.depsMap.patternObservers;
-	map = group[ upstreamPattern ];
 
-	if ( map ) {
-		map.forEach( childKeypath => {
-			var key = lastKey.exec( childKeypath )[0]; // 'baz'
-			actualChildKeypath = keypath ? keypath + '.' + key : key; // 'foo.bar.baz'
+	if ( !( group && (map = group[ upstreamPattern ]) ) ) { return; }
 
-			updateMatchingPatternObservers( viewmodel, actualChildKeypath );
+	map.forEach( childKeypath => {
+		var key = lastKey.exec( childKeypath )[0]; // 'baz'
+		actualChildKeypath = keypath ? keypath + '.' + key : key; // 'foo.bar.baz'
 
-			cascade( viewmodel, childKeypath, actualChildKeypath );
-		});
-	}
+		updateMatchingPatternObservers( viewmodel, actualChildKeypath );
+
+		cascade( viewmodel, childKeypath, actualChildKeypath );
+	});
 }
 
 function updateMatchingPatternObservers ( viewmodel, keypath ) {

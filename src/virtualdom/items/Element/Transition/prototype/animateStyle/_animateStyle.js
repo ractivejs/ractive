@@ -1,10 +1,11 @@
-import legacy from 'legacy';
-import isClient from 'config/isClient';
-import warn from 'utils/warn';
-import Promise from 'utils/Promise';
-import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
 import createTransitions from 'virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions';
+import isClient from 'config/isClient';
+import legacy from 'legacy';
+import log from 'utils/log/log';
+import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
+import Promise from 'utils/Promise';
 import visibility from 'virtualdom/items/Element/Transition/prototype/animateStyle/visibility';
+import warn from 'utils/log/warn';
 
 var animateStyle, getComputedStyle, resolved;
 
@@ -97,8 +98,23 @@ if ( !isClient ) {
 		// If a callback was supplied, do the honours
 		// TODO remove this check in future
 		if ( complete ) {
-			warn( 't.animateStyle returns a Promise as of 0.4.0. Transition authors should do t.animateStyle(...).then(callback)' );
-			promise.then( complete );
+
+			log.warn({
+				debug: true, // no ractive instance to govern this
+				message: 'usePromise',
+				args: {
+					method: 't.animateStyle'
+				}
+			});
+
+			promise
+				.then( complete )
+				.then( null, err => {
+					log.consoleError({
+						debug: true,
+						err: err
+					});
+				});
 		}
 
 		return promise;

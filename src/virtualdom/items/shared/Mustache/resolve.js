@@ -1,4 +1,4 @@
-import decodeKeypath from 'shared/decodeKeypath';
+import decodeKeypath from 'shared/keypaths/decode';
 
 export default function Mustache$resolve ( keypath ) {
 	var wasResolved, value, twowayBinding;

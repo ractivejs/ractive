@@ -1,4 +1,4 @@
-import log from 'utils/log';
+import log from 'utils/log/log';
 import config from 'config/config';
 import circular from 'circular';
 
@@ -26,6 +26,11 @@ export default function Transition$init ( element, template, isIntro ) {
 
 		name = fragment.toString();
 		fragment.unbind();
+
+		if ( name === '' ) {
+			// empty string okay, just no transition
+			return;
+		}
 	}
 
 	this.name = name;

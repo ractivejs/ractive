@@ -39,5 +39,17 @@ export default {
 		'Only component proxy-events may contain "*" wildcards, <{element} on-{event}/> is not valid.',
 
 	methodDeprecated:
-		'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.'
+		'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.',
+
+	usePromise:
+		'{method} now returns a Promise, use {method}(...).then(callback) instead.',
+
+	noTwowayExpressions:
+		'Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.',
+
+	computedCannotMapTo:
+		'Computed property "{key}" cannot be mapped to "{other}" because {reason}.',
+
+	notUsed:
+		'prevents forgetting trailing "," in cut and paste of previous line :)'
 };

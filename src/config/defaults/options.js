@@ -19,6 +19,7 @@ var defaultOptions = {
 	modifyArrays:       true,
 	adapt:              [],
 	isolated:           false,
+	parameters: 		true,
 	twoway:             true,
 	lazy:               false,
 

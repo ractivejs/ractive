@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import warn from 'utils/warn';
+import log from 'utils/log/log';
 import create from 'utils/create';
 import extend from 'utils/extend';
 import removeFromArray from 'utils/removeFromArray';
@@ -15,11 +15,19 @@ var Binding = function ( element ) {
 	interpolator.twowayBinding = this;
 
 	if ( keypath = interpolator.keypath ) {
-		let lastDot = keypath.lastIndexOf('.'),
-			test = ( lastDot === -1 ) ? keypath : keypath.substring( lastDot + 1 );
 
-		if ( test.substr( 0, 2 ) === '${' ) {
-			warn( 'Two-way binding does not work with expressions (`' + keypath.substr( 0, lastDot ) + test.slice( 2, -1 ) + '`)' );
+		if ( keypath[ keypath.length - 1 ] === '}' ) {
+
+			log.error({
+				debug: this.root.debug,
+				message: 'noTwowayExpressions',
+				args: {
+					// won't fix brackets [foo] changed to -foo-
+					expression: keypath.slice( 2, -1 ).replace('-','.'),
+					element: element.tagName
+				}
+			});
+
 			return false;
 		}
 	}

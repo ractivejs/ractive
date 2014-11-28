@@ -1,3 +1,4 @@
+import eventStack from 'Ractive/prototype/shared/eventStack';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
 export default function fireEvent ( ractive, eventName, options = {} ) {
@@ -26,9 +27,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 
 	var subscribers, i, bubble = true;
 
-	if ( event ) {
-		ractive.event = event;
-	}
+	eventStack.enqueue( ractive, event );
 
 	for ( i = eventNames.length; i >= 0; i-- ) {
 		subscribers = ractive._subs[ eventNames[ i ] ];
@@ -38,9 +37,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 		}
 	}
 
-	if ( event ) {
-		delete ractive.event;
-	}
+	eventStack.dequeue( ractive );
 
 	if ( ractive.parent && bubble ) {
 
@@ -64,6 +61,10 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 	if ( event && !event._noArg ) {
 		args = [ event ].concat( args );
 	}
+
+	// subscribers can be modified inflight, e.g. "once" functionality
+	// so we need to copy to make sure everyone gets called
+	subscribers = subscribers.slice();
 
 	for ( let i = 0, len = subscribers.length; i < len; i += 1 ) {
 		if ( subscribers[ i ].apply( ractive, args ) === false ) {

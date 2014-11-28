@@ -1,8 +1,10 @@
-import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
+import assignNewKeypath from 'shared/keypaths/assignNew';
 
 export default function Fragment$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
 
-	this.index = newIndex;
+	if ( newIndex !== undefined ) {
+		this.index = newIndex;
+	}
 
 	// assign new context keypath if needed
 	assignNewKeypath( this, 'context', oldKeypath, newKeypath );

@@ -1,7 +1,8 @@
 import types from 'config/types';
-import log from 'utils/log';
+import log from 'utils/log/log';
 import create from 'utils/create';
 import circular from 'circular';
+import extend from 'utils/extend';
 
 var initialise;
 
@@ -9,14 +10,20 @@ circular.push( () => {
 	initialise = circular.initialise;
 });
 
-export default function ( component, Component, data, mappings, yieldTemplate ) {
-	var instance, parentFragment, partials, ractive, fragment, container;
+export default function ( component, Component, parameters, yieldTemplate, partials ) {
+	var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
 
 	parentFragment = component.parentFragment;
 	ractive = component.root;
 
+	partials = partials || {};
+	extend( inlinePartials, partials || {} );
+
 	// Make contents available as a {{>content}} partial
-	partials = { content: yieldTemplate || [] };
+	partials.content = yieldTemplate || [];
+
+	// set a default partial for yields with no name
+	inlinePartials[''] = partials.content;
 
 	if ( Component.defaults.el ) {
 		log.warn({
@@ -44,7 +51,7 @@ export default function ( component, Component, data, mappings, yieldTemplate ) 
 	initialise( instance, {
 		el: null,
 		append: true,
-		data: data,
+		data: parameters.data,
 		partials: partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,
@@ -53,9 +60,9 @@ export default function ( component, Component, data, mappings, yieldTemplate ) 
 	}, {
 		parent: ractive,
 		component: component,
-		mappings: mappings,
-		yieldTemplate: yieldTemplate,
-		container: container
+		container: container,
+		mappings: parameters.mappings,
+		inlinePartials: inlinePartials
 	});
 
 	return instance;
