@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-11-28 - commit f9c1d67c 
+	2014-11-28 - commit b4f42df9 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9677,6 +9677,7 @@
 			var action, refs, ractive, i;
 			this.element = element;
 			this.root = element.root;
+			this.parentFragment = element.parentFragment;
 			this.name = name;
 			if ( name.indexOf( '*' ) !== -1 ) {
 				log.error( {
