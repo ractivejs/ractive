@@ -1359,14 +1359,14 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
 
-		test( 'event action references have context', t => {
-			var ractive, data = { foo: 'bar' };
+		test( 'event actions and parameter references have context', t => {
+			var ractive;
 
 			expect( 1 );
 
 			ractive = new Ractive({
 				el: fixture,
-				template: '{{#items:i}}<span id="test{{i}}" on-click="{{eventName}}"/>{{/}}',
+				template: '{{#items:i}}<span id="test{{i}}" on-click="{{eventName}}:{{eventName}}"/>{{/}}',
 				data: {
 					items: [
 						{ eventName: 'foo' },
@@ -1376,8 +1376,8 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			ractive.on( 'bar', function () {
-				t.ok( true );
+			ractive.on( 'bar', function ( event, parameter ) {
+				t.equal( parameter, 'bar' );
 			})
 
 			simulant.fire( ractive.nodes.test1, 'click' );

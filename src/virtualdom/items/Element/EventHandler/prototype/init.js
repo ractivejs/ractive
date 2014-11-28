@@ -16,6 +16,7 @@ export default function EventHandler$init ( element, name, template ) {
 
 	this.element = element;
 	this.root = element.root;
+	this.parentFragment = element.parentFragment;
 	this.name = name;
 
 	if( name.indexOf( '*' ) !== -1 ) {
