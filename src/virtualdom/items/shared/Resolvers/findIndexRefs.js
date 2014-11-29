@@ -1,4 +1,6 @@
-export default function findIndexRefs( fragment, refName ) {
+export default findIndexRefs;
+
+function findIndexRefs( fragment, refName ) {
 	var result = {}, refs, fragRefs, ref, i, owner, hit = false;
 
 	if ( !refName ) {
@@ -51,3 +53,14 @@ export default function findIndexRefs( fragment, refName ) {
 		return result;
 	}
 }
+
+findIndexRefs.resolve = function resolve( indices ) {
+	var refs = {}, k, ref;
+
+	for ( k in indices.refs ) {
+		ref = indices.refs[k];
+		refs[ ref.ref.n ] = ref.ref.t === 'k' ? ref.fragment.key : ref.fragment.index;
+	}
+
+	return refs;
+};

@@ -1616,10 +1616,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( b2.keypath, 'bars.1' );
 
 			t.equal( span1.index.i, undefined );
-			// indices do not currently propagate nicely beyond component bounds
-			// TODO: #1474 should make this possible
-			//t.equal( span2.index.i, 0 );
-			//t.equal( span3.index.i, 1 );
+			t.equal( span2.index.i, 0 );
+			t.equal( span3.index.i, 1 );
 			t.equal( b1.index.i, 0 );
 			t.equal( b2.index.i, 1 );
 
