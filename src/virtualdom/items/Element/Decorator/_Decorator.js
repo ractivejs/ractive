@@ -27,6 +27,11 @@ Decorator = function ( element, template ) {
 
 		name = fragment.toString();
 		fragment.unbind();
+
+		if ( name === '' ) {
+			// empty string okay, just no decorator
+			return;
+		}
 	}
 
 	if ( template.a ) {
@@ -99,9 +104,9 @@ Decorator.prototype = {
 		}
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath ) {
 		if ( this.fragment ) {
-			this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			this.fragment.rebind( oldKeypath, newKeypath );
 		}
 	},
 

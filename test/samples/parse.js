@@ -65,6 +65,11 @@ var parseTests = [
 		parsed: {v:1,t:[{"f":[{r:"i",t:2},": ",{r:"name",t:2}],"i":"i",r:"items",t:4}]}
 	},
 	{
+		name: "Named key and index",
+		template: "{{#items:k,i}}{{i}}: {{name}}{{/items}}",
+		parsed: {v:1,t:[{"f":[{r:"i",t:2},": ",{r:"name",t:2}],"i":"k,i",r:"items",t:4}]}
+	},
+	{
 		name: "Element with unquoted attributes",
 		template: "<div class=test></div>",
 		parsed: {v:1,t:[{"a":{"class":"test"},"e":"div","t":7}]}

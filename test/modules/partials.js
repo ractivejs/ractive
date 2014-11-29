@@ -608,5 +608,129 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 			t.htmlEqual( fixture.innerHTML, 'foo' );
 		});
+
+		if ( console && console.warn ) {
+
+			test( 'Warn on unknown partial', function ( t ) {
+
+				var ractive, warn = console.warn;
+
+				expect( 1 );
+
+				console.warn = function( msg ) {
+					t.ok( true );
+				}
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{>unknown}}',
+					partials: {
+					}
+				});
+
+				console.warn = warn;
+			});
+		}
+
+		test( 'Don\'t throw on empty partial', function ( t ) {
+
+			var ractive;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{>empty}}',
+				debug: true,
+				partials: {
+					empty: ''
+				}
+			});
+
+			t.ok( true );
+		});
+
+		test( 'Dynamic empty partial ok', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{>foo}}',
+				debug: true,
+				partials: {
+					empty: '',
+					'not-empty': 'bar'
+				},
+				data: { foo: 'not-empty' }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bar' );
+			ractive.set( 'foo', 'empty' );
+			t.htmlEqual( fixture.innerHTML, '' );
+			ractive.set( 'foo', 'not-empty' );
+			t.htmlEqual( fixture.innerHTML, 'bar' );
+
+		});
+
+		if ( console && console.warn ) {
+
+			test( 'Don\'t warn on empty partial', function ( t ) {
+
+				var ractive, warn = console.warn;
+
+				expect( 1 );
+
+				console.warn = function( msg ) {
+					t.ok( false );
+				}
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '{{>empty}}',
+					partials: {
+						empty: ''
+					}
+				});
+
+				t.ok( true );
+
+				console.warn = warn;
+			});
+		}
+
+		test( 'Partials with expressions in recursive structures should not blow the stack', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#items}}{{>\'item\'}}{{/}}',
+				partials: {
+					item: '{{.foo}}{{#.items}}{{>\'item\'}}{{/}}'
+				},
+				data: {
+					items: [
+						{ items: [{ foo: 'a', items: [{ foo: 'b' }] }] }
+					]
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'ab' );
+		});
+
+		test( 'Named partials should not get rebound if they happen to have the same name as a reference (#1507)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#each items}}{{>item}}{{/each}}{{#if items.length > 1}}{{#with items[items.length-1]}}{{>item}}{{/with}}{{/if}}',
+				partials: {
+					item: '{{item}}'
+				},
+				data: {
+					items: []
+				}
+			});
+
+			ractive.push( 'items', { item: 'a' } );
+			ractive.push( 'items', { item: 'b' } );
+			ractive.push( 'items', { item: 'c' } );
+
+			t.htmlEqual( fixture.innerHTML, 'abcc' );
+		});
+
 	};
 });

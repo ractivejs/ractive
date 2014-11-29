@@ -237,6 +237,32 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			t.equal( fixture.innerHTML, 'zbc' );
 		});
 
+		test( 'Value changes in object iteration should cause updates (#1476)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#obj[sel]:sk}}{{sk}} {{@key}} {{.}}{{/}}',
+				data: {
+					obj: {
+						key1: { a: 'a1', b: 'b1' },
+						key2: { a: 'a2', b: 'b2', c: 'c2' },
+						key3: { c: 'c3' }
+					},
+					sel: 'key1'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'a a a1b b b1' );
+
+			ractive.set( 'sel', 'key2' );
+			t.htmlEqual( fixture.innerHTML, 'a a a2b b b2c c c2' );
+
+			ractive.set( 'sel', 'key3' );
+			t.htmlEqual( fixture.innerHTML, 'c c c3' );
+
+			ractive.set( 'sel', 'key1' );
+			t.htmlEqual( fixture.innerHTML, 'a a a1b b b1' );
+		});
+
 	};
 
 	function deepClone ( source ) {

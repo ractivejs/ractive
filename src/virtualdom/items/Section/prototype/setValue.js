@@ -36,8 +36,7 @@ export default function Section$setValue ( value ) {
 			template: this.template.f,
 			root:     this.root,
 			pElement: this.pElement,
-			owner:    this,
-			indexRef: this.template.i
+			owner:    this
 		};
 
 		this.fragmentsToCreate.forEach( index => {
@@ -65,6 +64,28 @@ export default function Section$setValue ( value ) {
 	this.updating = false;
 }
 
+function changeCurrentSubtype ( section, value, obj ) {
+	if ( value === types.SECTION_EACH ) {
+		// make sure ref type is up to date for key or value indices
+		if ( section.indexRefs && section.indexRefs[0] ) {
+			let ref = section.indexRefs[0];
+
+			// when switching flavors, make sure the section gets updated
+			if ( ( obj && ref.t === 'i' ) || ( !obj && ref.t === 'k' ) ) {
+				// if switching from object to list, unbind all of the old fragments
+				if ( !obj ) {
+					section.length = 0;
+				  section.fragmentsToUnrender = section.fragments.slice( 0 );
+					section.fragmentsToUnrender.forEach( f => f.unbind() );
+				}
+			}
+
+			ref.t = obj ? 'k' : 'i';
+		}
+	}
+
+	section.currentSubtype = value;
+}
 
 function reevaluateSection ( section, value ) {
 	var fragmentOptions = {
@@ -78,8 +99,6 @@ function reevaluateSection ( section, value ) {
 	// TODO can this be optimised? i.e. pick an reevaluateSection function during init
 	// and avoid doing this each time?
 	if ( section.subtype ) {
-		section.currentSubtype = section.subtype;
-
 		switch ( section.subtype ) {
 			case types.SECTION_IF:
 			return reevaluateConditionalSection( section, value, false, fragmentOptions );
@@ -95,6 +114,7 @@ function reevaluateSection ( section, value ) {
 
 			case types.SECTION_EACH:
 			if ( isObject( value ) ) {
+				changeCurrentSubtype( section, section.subtype, true );
 				return reevaluateListObjectSection( section, value, fragmentOptions );
 			}
 
@@ -107,7 +127,7 @@ function reevaluateSection ( section, value ) {
 
 	// Ordered list section
 	if ( section.ordered ) {
-		section.currentSubtype = types.SECTION_EACH;
+		changeCurrentSubtype( section, types.SECTION_EACH, false );
 		return reevaluateListSection( section, value, fragmentOptions );
 	}
 
@@ -115,17 +135,17 @@ function reevaluateSection ( section, value ) {
 	if ( isObject( value ) || typeof value === 'function' ) {
 		// Index reference indicates section should be treated as a list
 		if ( section.template.i ) {
-			section.currentSubtype = types.SECTION_EACH;
+			changeCurrentSubtype( section, types.SECTION_EACH, true );
 			return reevaluateListObjectSection( section, value, fragmentOptions );
 		}
 
 		// Otherwise, object provides context for contents
-		section.currentSubtype = types.SECTION_WITH;
+		changeCurrentSubtype( section, types.SECTION_WITH, false );
 		return reevaluateContextSection( section, fragmentOptions );
 	}
 
 	// Conditional section
-	section.currentSubtype = types.SECTION_IF;
+	changeCurrentSubtype( section, types.SECTION_IF, false );
 	return reevaluateConditionalSection( section, value, false, fragmentOptions );
 }
 
@@ -154,10 +174,6 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 				fragmentOptions.context = section.keypath + '.' + i;
 				fragmentOptions.index = i;
 
-				if ( section.template.i ) {
-					fragmentOptions.indexRef = section.template.i;
-				}
-
 				fragment = new Fragment( fragmentOptions );
 				section.fragmentsToRender.push( section.fragments[i] = fragment );
 			}
@@ -169,7 +185,7 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 }
 
 function reevaluateListObjectSection ( section, value, fragmentOptions ) {
-	var id, i, hasKey, fragment, changed;
+	var id, i, hasKey, fragment, changed, deps;
 
 	hasKey = section.hasKey || ( section.hasKey = {} );
 
@@ -178,28 +194,42 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 	while ( i-- ) {
 		fragment = section.fragments[i];
 
-		if ( !( fragment.index in value ) ) {
+		if ( !( fragment.key in value ) ) {
 			changed = true;
 
 			fragment.unbind();
 			section.fragmentsToUnrender.push( fragment );
 			section.fragments.splice( i, 1 );
 
-			hasKey[ fragment.index ] = false;
+			hasKey[ fragment.key ] = false;
+		}
+	}
+
+	// notify any dependents about changed indices
+	i = section.fragments.length;
+	while ( i-- ) {
+		fragment = section.fragments[i];
+
+		if ( fragment.index !== i ){
+			fragment.index = i;
+			if ( deps = fragment.registeredIndexRefs ) {
+				for ( let d of deps ) {
+					// the keypath doesn't actually matter here as it won't have changed
+					d.rebind( '', '' );
+				}
+			}
 		}
 	}
 
 	// add any that haven't been created yet
+	i = section.fragments.length;
 	for ( id in value ) {
 		if ( !hasKey[ id ] ) {
 			changed = true;
 
 			fragmentOptions.context = section.keypath + '.' + id;
-			fragmentOptions.index = id;
-
-			if ( section.template.i ) {
-				fragmentOptions.indexRef = section.template.i;
-			}
+			fragmentOptions.key = id;
+			fragmentOptions.index = i++;
 
 			fragment = new Fragment( fragmentOptions );
 
@@ -214,7 +244,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 }
 
 function reevaluateConditionalContextSection ( section, value, fragmentOptions ) {
-	if(value){
+	if ( value ) {
 		return reevaluateContextSection( section, fragmentOptions );
 	} else {
 		return removeSectionFragments( section );
@@ -263,7 +293,7 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 	if ( doRender ) {
 		if ( !section.length ) {
 			// no change to context stack
-			fragmentOptions.index = undefined;
+			fragmentOptions.index = 0;
 
 			fragment = new Fragment( fragmentOptions );
 			section.fragmentsToRender.push( section.fragments[0] = fragment );

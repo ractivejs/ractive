@@ -47,9 +47,9 @@ MemberResolver.prototype = {
 		this.viewmodel.register( this.keypath, this );
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath ) {
 		if ( this.refResolver ) {
-			this.refResolver.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			this.refResolver.rebind( oldKeypath, newKeypath );
 		}
 	},
 
