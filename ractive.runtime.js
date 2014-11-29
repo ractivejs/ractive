@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-28 - commit f1758799 
+	2014-11-29 - commit 76571086 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12718,7 +12718,9 @@
 			upstreamChanges = getUpstreamChanges( changes );
 			upstreamChanges.forEach( function( keypath ) {
 				var computations;
-				if ( computations = self.deps.computed[ keypath ] ) {
+				// make sure we haven't already been down this particular keypath in this turn
+				if ( changes.indexOf( keypath ) === -1 && ( computations = self.deps.computed[ keypath ] ) ) {
+					this$0.changes.push( keypath );
 					computations.forEach( function( c ) {
 						c.viewmodel.mark( c.key );
 					} );
