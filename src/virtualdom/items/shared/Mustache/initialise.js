@@ -16,6 +16,7 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.template       = options.template;
 	mustache.index          = options.index || 0;
+	mustache.key            = options.key;
 	mustache.isStatic       = options.template.s;
 
 	mustache.type = options.template.t;
@@ -54,7 +55,7 @@ export default function Mustache$init ( mustache, options ) {
 
 			if ( oldKeypath !== undefined ) {
 				mustache.fragments && mustache.fragments.forEach( f => {
-					f.rebind( null, null, oldKeypath, newKeypath );
+					f.rebind( oldKeypath, newKeypath );
 				});
 			}
 		}

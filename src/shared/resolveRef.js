@@ -5,7 +5,6 @@ import resolveAncestorRef from 'shared/resolveAncestorRef';
 export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	var context,
 		key,
-		index,
 		keypath,
 		parentValue,
 		hasContextChain,
@@ -60,15 +59,6 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	if ( ractive.parent && !ractive.isolated ) {
 		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
-
-		// Special case - index refs
-		if ( fragment.indexRefs && ( index = fragment.indexRefs[ ref ] ) !== undefined ) {
-			// Create an index ref binding, so that it can be rebound letter if necessary.
-			// It doesn't have an alias since it's an implicit binding, hence `...[ ref ] = ref`
-			ractive.component.indexRefBindings[ ref ] = ref;
-			ractive.viewmodel.set( ref, index, true );
-			return;
-		}
 
 		keypath = resolveRef( ractive.parent, ref, fragment, true );
 

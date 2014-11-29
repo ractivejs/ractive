@@ -590,8 +590,26 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			ractive.set( 'foo', 'fizz' );
 			ractive.set( 'foo', 'qux' );
-		})
+		});
 
+		test( 'Asterisks should not be left in computation keypaths (#1472)', t => {
+			let ractive = new Ractive({
+				el: fixture,
+				template: '{{foo * 2}}',
+				data: { foo: 3 }
+			});
+
+			ractive.observe( '*', () => {} );
+
+			// this will blow the stack if the bug is present
+			// qunit doesn't like it when your tests straight-up overflow
+			// the try helps, but it will still cascade to other tests
+			try {
+				ractive.set( 'foo', 10 );
+			} catch (e) {}
+
+			t.htmlEqual( fixture.innerHTML, '20' );
+		});
 
 	};
 

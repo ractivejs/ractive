@@ -64,7 +64,6 @@ export default function Element$render () {
 		value: {
 			proxy: this,
 			keypath: getInnerContext( this.parentFragment ),
-			index: create( this.parentFragment.indexRefs ),
 			events: create( null ),
 			root: root
 		}

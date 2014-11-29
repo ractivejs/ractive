@@ -1,6 +1,7 @@
 import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import circular from 'circular';
+import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import log from 'utils/log/log';
 
@@ -15,6 +16,7 @@ export default function EventHandler$init ( element, name, template ) {
 
 	this.element = element;
 	this.root = element.root;
+	this.parentFragment = element.parentFragment;
 	this.name = name;
 
 	if( name.indexOf( '*' ) !== -1 ) {
@@ -127,12 +129,12 @@ function fireMethodCall ( event ) {
 		return value;
 	});
 
-	ractive.event = event;
+	eventStack.enqueue( ractive, event );
 
 	args = this.fn.apply( null, values );
 	ractive[ this.method ].apply( ractive, args );
 
-	delete ractive.event;
+	eventStack.dequeue( ractive );
 }
 
 function fireEventWithParams ( event ) {

@@ -1174,7 +1174,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		module( 'this.events' );
+		module( 'this.event' );
 
 		test( 'set to current event object', t => {
 			var ractive;
@@ -1267,6 +1267,29 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.fire( 'bar' );
 		})
 
+		test( 'method calls that fire events do not clobber this.events', t => {
+			var methodEvent, ractive;
+
+			expect( 4 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `<span id='test' on-click='inTheater()'></span>`,
+				inTheater: function () {
+					t.ok ( methodEvent = this.event, 'method call has event' );
+					this.fire( 'yell' );
+					t.equal( this.event, methodEvent, 'method event is same after firing event' );
+				}
+			});
+
+			ractive.on( 'yell', function(){
+				t.notEqual( this.event, methodEvent, 'handler does not have method event' );
+				t.equal ( this.event.name, 'yell', 'handler as own event name' );
+			})
+
+			simulant.fire( ractive.nodes.test, 'click' );
+		})
+
 
 		module( 'Issues' );
 
@@ -1334,6 +1357,30 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.set( 'foo', false );
 
 			t.htmlEqual( fixture.innerHTML, '' );
+		});
+
+		test( 'event actions and parameter references have context', t => {
+			var ractive;
+
+			expect( 1 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '{{#items:i}}<span id="test{{i}}" on-click="{{eventName}}:{{eventName}}"/>{{/}}',
+				data: {
+					items: [
+						{ eventName: 'foo' },
+						{ eventName: 'bar' },
+						{ eventName: 'biz' }
+					]
+				}
+			});
+
+			ractive.on( 'bar', function ( event, parameter ) {
+				t.equal( parameter, 'bar' );
+			})
+
+			simulant.fire( ractive.nodes.test1, 'click' );
 		});
 
 		test( 'twoway may be overridden on a per-element basis', t => {

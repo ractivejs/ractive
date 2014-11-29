@@ -55,11 +55,11 @@ ReferenceExpressionResolver.prototype = {
 		this.members.forEach( unbind );
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath ) {
 		var changed;
 
 		this.members.forEach( members => {
-			if ( members.rebind( indexRef, newIndex, oldKeypath, newKeypath ) ) {
+			if ( members.rebind( oldKeypath, newKeypath ) ) {
 				changed = true;
 			}
 		});

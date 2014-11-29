@@ -1,5 +1,3 @@
-import types from 'config/types';
-import create from 'utils/create';
 import createItem from 'virtualdom/Fragment/prototype/init/createItem';
 
 export default function Fragment$init ( options ) {
@@ -14,19 +12,9 @@ export default function Fragment$init ( options ) {
 	this.root = options.root;
 	this.pElement = options.pElement;
 	this.context = options.context;
-
-	// If parent item is a section, this may not be the only fragment
-	// that belongs to it - we need to make a note of the index
-	if ( this.owner.type === types.SECTION ) {
-		this.index = options.index;
-	}
-
-	// index references (the 'i' in {{#section:i}}...{{/section}}) need to cascade
-	// down the tree
-	this.indexRefs = create( parentFragment ? parentFragment.indexRefs : null );
-	if ( options.indexRef ) {
-		this.indexRefs[ options.indexRef ] = options.index;
-	}
+	this.index = options.index;
+	this.key = options.key;
+	this.registeredIndexRefs = [];
 
 	// Time to create this fragment's child items
 

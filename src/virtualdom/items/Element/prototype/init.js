@@ -35,6 +35,7 @@ export default function Element$init ( options ) {
 
 	this.root = ractive = parentFragment.root;
 	this.index = options.index;
+	this.key = options.key;
 
 	this.name = enforceCase( template.e );
 
