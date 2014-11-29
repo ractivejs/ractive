@@ -1583,6 +1583,11 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, '2' );
 		});
 
+		test( 'DOCTYPE declarations are stringified correctly', function ( t ) {
+			var template = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html></html>';
+			t.equal( new Ractive({ template: template }).toHTML(), template );
+		});
+
 		test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t => {
 			var ractive = new Ractive({
 				el: fixture,

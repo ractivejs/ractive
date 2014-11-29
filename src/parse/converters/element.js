@@ -76,17 +76,22 @@ function getElement ( parser ) {
 		return null;
 	}
 
-	element = {
-		t: types.ELEMENT
-	};
-
+	element = {};
 	if ( parser.includeLinePositions ) {
 		element.p = parser.getLinePos( start );
 	}
 
 	if ( parser.matchString( '!' ) ) {
-		element.y = 1;
+		element.t = types.DOCTYPE;
+		if ( !parser.matchPattern( /^doctype/i ) ) {
+			parser.error( 'Expected DOCTYPE declaration' );
+		}
+
+		element.a = parser.matchPattern( /^(.+?)>/ );
+		return element;
 	}
+
+	element.t = types.ELEMENT;
 
 	// element name
 	element.e = parser.matchPattern( tagNamePattern );

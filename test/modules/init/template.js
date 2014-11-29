@@ -25,7 +25,7 @@ function (
 
 					// bootstrap mock Ractive
 					Ractive = function () {};
-					Ractive.prototype = { template: {v:1,t:[]} };
+					Ractive.prototype = { template: {v:2,t:[]} };
 					Ractive.defaults = Ractive.prototype;
 
 					Component = function() {};
@@ -63,11 +63,11 @@ function (
 		}
 
 		function testComponentTemplate1( template ) {
-			deepEqual( template, {v:1,t:[ { r: 'foo', t: 2 } ]} );
+			deepEqual( template, {v:2,t:[ { r: 'foo', t: 2 } ]} );
 		}
 
 		function testComponentTemplate2( template ) {
-			deepEqual( template, {v:1,t:[ { r: 'bar', t: 2 } ]} );
+			deepEqual( template, {v:2,t:[ { r: 'bar', t: 2 } ]} );
 		}
 
 		test( 'Default create', t => {
@@ -192,7 +192,7 @@ function (
 			Component.partials = {};
 			config.extend( Ractive, Component.prototype, options );
 
-			deepEqual( Component.defaults.template, { v: 1, t: [{r: "foo", t: 2 } ], p: {bar: [{r: "bar", t: 2 } ] } });
+			deepEqual( Component.defaults.template, { v: 2, t: [{r: "foo", t: 2 } ], p: {bar: [{r: "bar", t: 2 } ] } });
 
 		});
 

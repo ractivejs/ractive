@@ -37,7 +37,6 @@ import isEmptyObject from 'utils/isEmptyObject';
 // * t1 - intro Transition
 // * t2 - outro Transition
 // * o - decOrator
-// * y - is doctYpe
 // * c - is Content (e.g. of a comment node)
 // * p - line Position information - array with line number and character position of each node
 
@@ -101,7 +100,7 @@ parse = function ( template, options = {} ) {
 	setDelimiters(options);
 
 	result = {
-		v: 1 // template spec version, defined in https://github.com/ractivejs/template-spec
+		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
 	};
 
 	result.t = new StandardParser( template, options ).result;

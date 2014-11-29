@@ -16,6 +16,7 @@ export default {
 	COMPONENT         : 15,
 	YIELDER           : 16,
 	INLINE_PARTIAL    : 17,
+	DOCTYPE           : 18,
 
 	NUMBER_LITERAL    : 20,
 	STRING_LITERAL    : 21,

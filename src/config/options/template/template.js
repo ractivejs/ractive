@@ -99,7 +99,7 @@ function parseIfString ( template, ractive ) {
 	}
 
 	// Check we're using the correct version
-	else if ( template.v !== 1 ) {
+	else if ( template.v !== 2 ) {
 		throw new Error( 'Mismatched template version! Please ensure you are using the latest version of Ractive.js in your build process as well as in your app' );
 	}
 
