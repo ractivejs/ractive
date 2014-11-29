@@ -10,6 +10,12 @@ export default function Mustache$resolve ( keypath ) {
 		return;
 	}
 
+	// keep accidental '.' from slipping in at head of the keypath
+	if ( keypath && keypath[0] === '.' ) {
+		keypath = keypath.replace( /^\.+/, '' );
+		this.keypath = keypath;
+	}
+
 	// If we resolved previously, we need to unregister
 	if ( this.registered ) { // undefined or null
 		this.root.viewmodel.unregister( this.keypath, this );
