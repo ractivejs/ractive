@@ -52,8 +52,8 @@ export default function ( parser ) {
 	}
 	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( pattern ) || '';
 
-	// bug out if it's a keyword
-	if ( !parser.relaxedNames && keywords.test( name ) ) {
+	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
+	if ( !parser.relaxedNames && !dot && !ancestor && keywords.test( name ) ) {
 		parser.pos = startPos;
 		return null;
 	}

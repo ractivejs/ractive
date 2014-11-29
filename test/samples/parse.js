@@ -720,6 +720,11 @@ var parseTests = [
 		name: 'DOCTYPE declarations are handled correctly',
 		template: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html></html>',
 		parsed: {v:2,t:[{t:18,a:' html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"'},{t:7,e:'html'}]}
+	},
+	{
+		name: 'Keywords work as restricted references',
+		template: '{{.if}}',
+		parsed: {v:2,t:[{t:2,r:'.if'}]}
 	}
 ];
 
