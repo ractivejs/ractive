@@ -86,6 +86,12 @@ function getElement ( parser ) {
 
 	if ( parser.matchString( '!' ) ) {
 		element.y = 1;
+		if ( !parser.matchPattern( /^doctype/i ) ) {
+			parser.error( 'Expected DOCTYPE declaration' );
+		}
+
+		element.dd = parser.matchPattern( /^(.+?)>/ );
+		return element;
 	}
 
 	// element name

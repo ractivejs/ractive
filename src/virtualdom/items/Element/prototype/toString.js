@@ -5,7 +5,12 @@ import escapeHtml from 'utils/escapeHtml';
 export default function () {
 	var str, escape;
 
-	str = '<' + ( this.template.y ? '!DOCTYPE' : this.template.e );
+	if ( this.template.y ) {
+		// DOCTYPE declaration
+		return '<!DOCTYPE' + this.template.dd + '>';
+	}
+
+	str = '<' + this.template.e;
 
 	str += this.attributes.map( stringifyAttribute ).join( '' )
 	     + this.conditionalAttributes.map( stringifyAttribute ).join( '' );

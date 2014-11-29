@@ -9,6 +9,7 @@ import getComponent from 'virtualdom/items/Component/getComponent';
 import Component from 'virtualdom/items/Component/_Component';
 import Comment from 'virtualdom/items/Comment';
 import Yielder from 'virtualdom/items/Yielder';
+import Doctype from 'virtualdom/items/Doctype';
 
 export default function createItem ( options ) {
 	if ( typeof options.template === 'string' ) {
@@ -24,6 +25,10 @@ export default function createItem ( options ) {
 		case types.SECTION:      return new Section( options );
 		case types.TRIPLE:       return new Triple( options );
 		case types.ELEMENT:
+			if ( options.template.y ) {
+				return new Doctype( options ); // DOCTYPE declaration - we can't render these
+			}
+
 			let constructor;
 			if ( constructor = getComponent( options.parentFragment.root, options.template.e ) ) {
 				return new Component( options, constructor );

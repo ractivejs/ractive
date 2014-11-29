@@ -275,7 +275,7 @@ var parseTests = [
 	{
 		name: 'Doctype declarations are handled',
 		template: '<!doctype html><html><head></head><body></body></html>',
-		parsed: {v:1,t:[{t:7,e:'doctype',y:1,a:{html:0}},{t:7,e:'html',f:[{t:7,e:'head'},{t:7,e:'body'}]}]}
+		parsed: {v:1,t:[{t:7,y:1,dd:' html'},{t:7,e:'html',f:[{t:7,e:'head'},{t:7,e:'body'}]}]}
 	},
 	{
 		name: 'Comments are stripped by default',
@@ -715,6 +715,11 @@ var parseTests = [
 		name: 'Attributes can contain HTML (#1322)',
 		template: '<div data-attr=\'{{#each array}}<div>{{this}}</div>{{/each}}\'></div>',
 		parsed: {v:1,t:[{t:7,e:'div',a:{'data-attr':[{t:4,n:52,r:'array',f:['<div>',{t:2,r:'.'},'</div>']}]}}]}
+	},
+	{
+		name: 'DOCTYPE declarations are handled correctly',
+		template: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html></html>',
+		parsed: {v:1,t:[{t:7,y:1,dd:' html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"'},{t:7,e:'html'}]}
 	}
 ];
 

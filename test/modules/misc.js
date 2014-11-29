@@ -1583,6 +1583,11 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( fixture.innerHTML, '2' );
 		});
 
+		test( 'DOCTYPE declarations are stringified correctly', function ( t ) {
+			var template = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html></html>';
+			t.equal( new Ractive({ template: template }).toHTML(), template );
+		});
+
 		// Is there a way to artificially create a FileList? Leaving this commented
 		// out until someone smarter than me figures out how
 		// test( '{{#each}} iterates over a FileList (#1220)', t => {

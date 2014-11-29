@@ -38,6 +38,7 @@ import isEmptyObject from 'utils/isEmptyObject';
 // * t2 - outro Transition
 // * o - decOrator
 // * y - is doctYpe
+// * dd - is Doctype Declaration
 // * c - is Content (e.g. of a comment node)
 // * p - line Position information - array with line number and character position of each node
 
