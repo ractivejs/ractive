@@ -225,6 +225,18 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			t.htmlEqual( fixture.innerHTML, '<div id="foo">foo</div>' );
 		});
 
+		test( 'Array roots should not get confused deps in sections (#1494)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#.}}{{.foo}}{{/}}',
+				data: [{ foo: 'a' }, { foo: 'b' }, { foo: 'c' }]
+			});
+
+			t.equal( fixture.innerHTML, 'abc' );
+			ractive.set('0.foo', 'z');
+			t.equal( fixture.innerHTML, 'zbc' );
+		});
+
 		test( 'Value changes in object iteration should cause updates (#1476)', t => {
 			var ractive = new Ractive({
 				el: fixture,
