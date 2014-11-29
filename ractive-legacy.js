@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-11-29 - commit 76571086 
+	2014-11-29 - commit f814dd4e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7256,49 +7256,65 @@
 	}();
 
 	/* virtualdom/items/shared/Resolvers/findIndexRefs.js */
-	var findIndexRefs = function findIndexRefs( fragment, refName ) {
-		var result = {},
-			refs, fragRefs, ref, i, owner, hit = false;
-		if ( !refName ) {
-			result.refs = refs = {};
-		}
-		while ( fragment ) {
-			if ( ( owner = fragment.owner ) && ( fragRefs = owner.indexRefs ) ) {
-				// we're looking for a particular ref, and it's here
-				if ( refName && ( ref = owner.getIndexRef( refName ) ) ) {
-					result.ref = {
-						fragment: fragment,
-						ref: ref
-					};
-					return result;
-				} else if ( !refName ) {
-					for ( i in fragRefs ) {
-						ref = fragRefs[ i ];
-						// don't overwrite existing refs - they should shadow parents
-						if ( !refs[ ref.n ] ) {
-							hit = true;
-							refs[ ref.n ] = {
-								fragment: fragment,
-								ref: ref
-							};
+	var findIndexRefs = function() {
+
+		var __export;
+		__export = findIndexRefs;
+
+		function findIndexRefs( fragment, refName ) {
+			var result = {},
+				refs, fragRefs, ref, i, owner, hit = false;
+			if ( !refName ) {
+				result.refs = refs = {};
+			}
+			while ( fragment ) {
+				if ( ( owner = fragment.owner ) && ( fragRefs = owner.indexRefs ) ) {
+					// we're looking for a particular ref, and it's here
+					if ( refName && ( ref = owner.getIndexRef( refName ) ) ) {
+						result.ref = {
+							fragment: fragment,
+							ref: ref
+						};
+						return result;
+					} else if ( !refName ) {
+						for ( i in fragRefs ) {
+							ref = fragRefs[ i ];
+							// don't overwrite existing refs - they should shadow parents
+							if ( !refs[ ref.n ] ) {
+								hit = true;
+								refs[ ref.n ] = {
+									fragment: fragment,
+									ref: ref
+								};
+							}
 						}
 					}
 				}
+				// watch for component boundaries
+				if ( !fragment.parent && fragment.owner && fragment.owner.component && fragment.owner.component.parentFragment && !fragment.owner.component.instance.isolated ) {
+					result.componentBoundary = true;
+					fragment = fragment.owner.component.parentFragment;
+				} else {
+					fragment = fragment.parent;
+				}
 			}
-			// watch for component boundaries
-			if ( !fragment.parent && fragment.owner && fragment.owner.component && fragment.owner.component.parentFragment && !fragment.owner.component.instance.isolated ) {
-				result.componentBoundary = true;
-				fragment = fragment.owner.component.parentFragment;
+			if ( !hit ) {
+				return undefined;
 			} else {
-				fragment = fragment.parent;
+				return result;
 			}
 		}
-		if ( !hit ) {
-			return undefined;
-		} else {
-			return result;
-		}
-	};
+		findIndexRefs.resolve = function resolve( indices ) {
+			var refs = {},
+				k, ref;
+			for ( k in indices.refs ) {
+				ref = indices.refs[ k ];
+				refs[ ref.ref.n ] = ref.ref.t === 'k' ? ref.fragment.key : ref.fragment.index;
+			}
+			return refs;
+		};
+		return __export;
+	}();
 
 	/* virtualdom/items/shared/Resolvers/createReferenceResolver.js */
 	var createReferenceResolver = function( ReferenceResolver, SpecialResolver, IndexResolver, findIndexRefs ) {
@@ -10439,11 +10455,7 @@
 			storage = this._ractive;
 			handler = storage.events[ event.type ];
 			if ( indices = findIndexRefs( handler.element.parentFragment ) ) {
-				var k, ref;
-				for ( k in indices.refs ) {
-					ref = indices.refs[ k ];
-					index[ ref.ref.n ] = ref.ref.t === 'k' ? ref.fragment.key : ref.fragment.index;
-				}
+				index = findIndexRefs.resolve( indices );
 			}
 			handler.fire( {
 				node: this,
@@ -15719,8 +15731,28 @@
 		};
 	}( create, defineProperties, getGuid, config, Ractive_initialise, Viewmodel, unwrapExtended );
 
+	/* utils/getNodeInfo.js */
+	var getNodeInfo = function( findIndexRefs ) {
+
+		return function( node ) {
+			var info = {},
+				priv, indices;
+			if ( !node || !( priv = node._ractive ) ) {
+				return info;
+			}
+			info.ractive = priv.root;
+			info.keypath = priv.keypath;
+			info.index = {};
+			// find all index references and resolve them
+			if ( indices = findIndexRefs( priv.proxy.parentFragment ) ) {
+				info.index = findIndexRefs.resolve( indices );
+			}
+			return info;
+		};
+	}( findIndexRefs );
+
 	/* Ractive.js */
-	var Ractive = function( defaults, easing, interpolators, svg, magic, defineProperties, proto, Promise, extendObj, extend, parse, initialise, circular ) {
+	var Ractive = function( defaults, easing, interpolators, svg, magic, defineProperties, proto, Promise, extendObj, extend, parse, getNodeInfo, initialise, circular ) {
 
 		var Ractive, properties;
 		// Main Ractive required object
@@ -15732,6 +15764,9 @@
 			// static methods:
 			extend: {
 				value: extend
+			},
+			getNodeInfo: {
+				value: getNodeInfo
 			},
 			parse: {
 				value: parse
@@ -15809,7 +15844,7 @@
 			throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
 		}
 		return Ractive;
-	}( options, easing, interpolators, svg, magic, defineProperties, prototype, Promise, extend, Ractive_extend, parse, Ractive_initialise, circular );
+	}( options, easing, interpolators, svg, magic, defineProperties, prototype, Promise, extend, Ractive_extend, parse, getNodeInfo, Ractive_initialise, circular );
 
 
 	// export as Common JS module...
