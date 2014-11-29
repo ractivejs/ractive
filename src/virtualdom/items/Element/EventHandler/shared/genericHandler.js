@@ -7,11 +7,7 @@ export default function genericHandler ( event ) {
 	handler = storage.events[ event.type ];
 
 	if ( indices = findIndexRefs( handler.element.parentFragment ) ) {
-		let k, ref;
-		for ( k in indices.refs ) {
-			ref = indices.refs[k];
-			index[ ref.ref.n ] = ref.ref.t === 'k' ? ref.fragment.key : ref.fragment.index;
-		}
+		index = findIndexRefs.resolve( indices );
 	}
 
 	handler.fire({

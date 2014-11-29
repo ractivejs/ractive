@@ -1588,6 +1588,47 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( new Ractive({ template: template }).toHTML(), template );
 		});
 
+		test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<div><foo /></div>{{#bars:i}}<b>b</b><foo />{{/}}{{#baz}}{{#bat}}<p>hello</p>{{/}}{{/}}',
+				components: {
+					foo: Ractive.extend({
+						template: '<span>foo</span>'
+					})
+				},
+				data: {
+					bars: [1, 2],
+					baz: { bat: {} }
+				}
+			});
+
+			let div = Ractive.getNodeInfo( ractive.find( 'div' ) );
+			let p = Ractive.getNodeInfo( ractive.find( 'p' ) );
+			let [b1, b2] = ractive.findAll( 'b' ).map( n => Ractive.getNodeInfo( n ) );
+			let [span1, span2, span3] = ractive.findAll( 'span' ).map( n => Ractive.getNodeInfo( n ) );
+			let [foo1, foo2, foo3] = ractive.findAllComponents( 'foo' );
+
+			t.equal( div.ractive, ractive );
+			t.equal( span1.ractive, foo1 );
+			t.equal( span2.ractive, foo2 );
+			t.equal( span3.ractive, foo3 );
+
+			t.equal( span1.keypath, '' );
+			t.equal( span2.keypath, '' );
+			t.equal( span3.keypath, '' );
+			t.equal( b1.keypath, 'bars.0' );
+			t.equal( b2.keypath, 'bars.1' );
+
+			t.equal( span1.index.i, undefined );
+			t.equal( span2.index.i, 0 );
+			t.equal( span3.index.i, 1 );
+			t.equal( b1.index.i, 0 );
+			t.equal( b2.index.i, 1 );
+
+			t.equal( p.keypath, 'baz.bat' );
+		});
+
 		// Is there a way to artificially create a FileList? Leaving this commented
 		// out until someone smarter than me figures out how
 		// test( '{{#each}} iterates over a FileList (#1220)', t => {
