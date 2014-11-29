@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-29 - commit f814dd4e 
+	2014-11-29 - commit aea28ff7 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6005,7 +6005,7 @@
 				};
 				this.fragmentsToCreate.forEach( function( index ) {
 					var fragment;
-					fragmentOptions.context = this$0.keypath + '.' + index;
+					fragmentOptions.context = getContext( this$0.keypath, index );
 					fragmentOptions.index = index;
 					fragment = new Fragment( fragmentOptions );
 					this$0.fragmentsToRender.push( this$0.fragments[ index ] = fragment );
@@ -6109,7 +6109,7 @@
 					// add any new ones
 					for ( i = section.length; i < length; i += 1 ) {
 						// append list item to context stack
-						fragmentOptions.context = section.keypath + '.' + i;
+						fragmentOptions.context = getContext( section.keypath, i );
 						fragmentOptions.index = i;
 						fragment = new Fragment( fragmentOptions );
 						section.fragmentsToRender.push( section.fragments[ i ] = fragment );
@@ -6184,7 +6184,7 @@
 			for ( id in value ) {
 				if ( !hasKey[ id ] ) {
 					changed = true;
-					fragmentOptions.context = section.keypath + '.' + id;
+					fragmentOptions.context = getContext( section.keypath, id );
 					fragmentOptions.key = id;
 					fragmentOptions.index = i++;
 					fragment = new Fragment( fragmentOptions );
@@ -6271,6 +6271,10 @@
 
 		function isRendered( fragment ) {
 			return fragment.rendered;
+		}
+
+		function getContext( base, index ) {
+			return ( base ? base + '.' : '' ) + index;
 		}
 		return __export;
 	}( types, isArrayLike, isObject, runloop, circular );
