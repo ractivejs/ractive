@@ -524,6 +524,16 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.strictEqual( ractive.findComponent( 'inner' ).findContainer( 'nope' ), null );
 		});
 
+		test( 'Bindings, mappings, and upstream computations should not cause infinite mark recursion (#1526)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{JSON.stringify(.)}}<widget foo="{{bar}}" /><input value="{{bar}}" />',
+				components: { widget: Ractive.extend({ template: '{{foo}}' }) }
+			});
+
+			t.htmlEqual( fixture.innerHTML, '{"bar":""}<input />' );
+		});
+
 		/* Not supported, do we need it?
 		test( 'Instantiated component with template function plus instantiation template', t => {
 			var Component, ractive;

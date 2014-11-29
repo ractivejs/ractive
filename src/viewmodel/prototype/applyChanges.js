@@ -46,7 +46,10 @@ export default function Viewmodel$applyChanges () {
 	upstreamChanges.forEach( keypath => {
 		var computations;
 
-		if ( computations = self.deps.computed[ keypath ] ) {
+		// make sure we haven't already been down this particular keypath in this turn
+		if ( changes.indexOf( keypath ) === -1 && ( computations = self.deps.computed[ keypath ] ) ) {
+			this.changes.push( keypath );
+
 			computations.forEach( c => {
 				c.viewmodel.mark( c.key );
 			});
