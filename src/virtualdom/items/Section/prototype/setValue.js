@@ -42,7 +42,7 @@ export default function Section$setValue ( value ) {
 		this.fragmentsToCreate.forEach( index => {
 			var fragment;
 
-			fragmentOptions.context = this.keypath + '.' + index;
+			fragmentOptions.context = getContext( this.keypath, index );
 			fragmentOptions.index = index;
 
 			fragment = new Fragment( fragmentOptions );
@@ -171,7 +171,7 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 			// add any new ones
 			for ( i = section.length; i < length; i += 1 ) {
 				// append list item to context stack
-				fragmentOptions.context = section.keypath + '.' + i;
+				fragmentOptions.context = getContext( section.keypath, i );
 				fragmentOptions.index = i;
 
 				fragment = new Fragment( fragmentOptions );
@@ -227,7 +227,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 		if ( !hasKey[ id ] ) {
 			changed = true;
 
-			fragmentOptions.context = section.keypath + '.' + id;
+			fragmentOptions.context = getContext( section.keypath, id );
 			fragmentOptions.key = id;
 			fragmentOptions.index = i++;
 
@@ -330,4 +330,8 @@ function unbind ( fragment ) {
 
 function isRendered ( fragment ) {
 	return fragment.rendered;
+}
+
+function getContext ( base, index ) {
+	return ( base ? base + '.' : '' ) + index;
 }

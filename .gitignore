@@ -16,3 +16,4 @@ build/*
 .transpiled/
 .gobble
 ractive.js
+.gobble-build
