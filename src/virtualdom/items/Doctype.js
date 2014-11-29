@@ -1,7 +1,7 @@
 import noop from 'utils/noop';
 
 var Doctype = function ( options ) {
-	this.declaration = options.template.dd;
+	this.declaration = options.template.a;
 };
 
 Doctype.prototype = {

@@ -25,10 +25,6 @@ export default function createItem ( options ) {
 		case types.SECTION:      return new Section( options );
 		case types.TRIPLE:       return new Triple( options );
 		case types.ELEMENT:
-			if ( options.template.y ) {
-				return new Doctype( options ); // DOCTYPE declaration - we can't render these
-			}
-
 			let constructor;
 			if ( constructor = getComponent( options.parentFragment.root, options.template.e ) ) {
 				return new Component( options, constructor );
@@ -36,6 +32,7 @@ export default function createItem ( options ) {
 			return new Element( options );
 		case types.PARTIAL:      return new Partial( options );
 		case types.COMMENT:      return new Comment( options );
+		case types.DOCTYPE:      return new Doctype( options );
 
 		default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 	}

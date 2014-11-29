@@ -12,7 +12,7 @@ define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
 		test( 'Mismatched template version causes error', function ( t ) {
 			t.throws( function () {
 				var ractive = new Ractive({
-					template: {v:2,t:[]}
+					template: {v:'nope',t:[]}
 				});
 			});
 		});

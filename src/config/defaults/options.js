@@ -5,7 +5,7 @@ var defaultOptions = {
 	append:				false,
 
 	// template:
-	template:           {v:1,t:[]},
+	template:           {v:2,t:[]},
 
 	// parse:
 	preserveWhitespace: false,
