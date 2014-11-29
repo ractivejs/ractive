@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-11-29 - commit aea28ff7 
+	2014-11-29 - commit deb1b710 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -23,7 +23,7 @@
 			append: false,
 			// template:
 			template: {
-				v: 1,
+				v: 2,
 				t: []
 			},
 			// parse:
@@ -1774,7 +1774,7 @@
 					template = parser.fromId( template );
 				}
 				template = parse( template, parser.getParseOptions( ractive ) );
-			} else if ( template.v !== 1 ) {
+			} else if ( template.v !== 2 ) {
 				throw new Error( 'Mismatched template version! Please ensure you are using the latest version of Ractive.js in your build process as well as in your app' );
 			}
 			return template;
@@ -3831,6 +3831,7 @@
 		COMPONENT: 15,
 		YIELDER: 16,
 		INLINE_PARTIAL: 17,
+		DOCTYPE: 18,
 		NUMBER_LITERAL: 20,
 		STRING_LITERAL: 21,
 		ARRAY_LITERAL: 22,
@@ -10104,7 +10105,11 @@
 		var __export;
 		__export = function() {
 			var str, escape;
-			str = '<' + ( this.template.y ? '!DOCTYPE' : this.template.e );
+			if ( this.template.y ) {
+				// DOCTYPE declaration
+				return '<!DOCTYPE' + this.template.dd + '>';
+			}
+			str = '<' + this.template.e;
 			str += this.attributes.map( stringifyAttribute ).join( '' ) + this.conditionalAttributes.map( stringifyAttribute ).join( '' );
 			// Special case - selected options
 			if ( this.name === 'option' && optionIsSelected( this ) ) {
@@ -11487,8 +11492,26 @@
 		return Yielder;
 	}( types, runloop, removeFromArray, circular, isArray );
 
+	/* virtualdom/items/Doctype.js */
+	var Doctype = function( noop ) {
+
+		var Doctype = function( options ) {
+			this.declaration = options.template.a;
+		};
+		Doctype.prototype = {
+			init: noop,
+			render: noop,
+			unrender: noop,
+			teardown: noop,
+			toString: function() {
+				return '<!DOCTYPE' + this.declaration + '>';
+			}
+		};
+		return Doctype;
+	}( noop );
+
 	/* virtualdom/Fragment/prototype/init/createItem.js */
-	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder ) {
+	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder, Doctype ) {
 
 		return function createItem( options ) {
 			if ( typeof options.template === 'string' ) {
@@ -11514,11 +11537,13 @@
 					return new Partial( options );
 				case types.COMMENT:
 					return new Comment( options );
+				case types.DOCTYPE:
+					return new Doctype( options );
 				default:
 					throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 			}
 		};
-	}( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder );
+	}( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder, Doctype );
 
 	/* virtualdom/Fragment/prototype/init.js */
 	var virtualdom_Fragment$init = function( createItem ) {
