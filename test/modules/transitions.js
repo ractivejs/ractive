@@ -289,5 +289,34 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 				tooLate = true;
 			}, 200 );
 		});
+
+		test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', function ( t ) {
+			var ractive, transitionRan = false;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#if foo.length || bar.length}}
+						{{#if foo === bar}}
+							<span intro-outro='x'></span>
+						{{/if}}
+					{{/if}}`,
+				transitions: {
+					x: function ( t ) {
+						transitionRan = true;
+						setTimeout( t.complete, 0 );
+					}
+				},
+				data: {
+					foo: '',
+					bar: ''
+				}
+			});
+
+			ractive.set( 'foo', 'x' );
+			ractive.set( 'foo', '' );
+
+			t.ok( !transitionRan );
+		});
 	};
 });
