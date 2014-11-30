@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-11-29 - commit 20076d2e 
+	2014-11-30 - commit 67294735 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8381,11 +8381,16 @@
 	};
 
 	/* virtualdom/items/Section/prototype/unbind.js */
-	var virtualdom_items_Section$unbind = function( unbind ) {
+	var virtualdom_items_Section$unbind = function( removeFromArray, unbind ) {
 
 		var __export;
 		__export = function Section$unbind() {
+			var this$0 = this;
 			this.fragments.forEach( unbindFragment );
+			this.fragmentsToRender.forEach( function( f ) {
+				return removeFromArray( this$0.fragments, f );
+			} );
+			this.fragmentsToRender = [];
 			unbind.call( this );
 			this.length = 0;
 			this.unbound = true;
@@ -8395,7 +8400,7 @@
 			fragment.unbind();
 		}
 		return __export;
-	}( unbind );
+	}( removeFromArray, unbind );
 
 	/* virtualdom/items/Section/prototype/unrender.js */
 	var virtualdom_items_Section$unrender = function() {
