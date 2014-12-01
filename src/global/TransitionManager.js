@@ -11,6 +11,7 @@ var TransitionManager = function ( callback, parent ) {
 	this.totalChildren = this.outroChildren = 0;
 
 	this.detachQueue = [];
+	this.decoratorQueue = [];
 	this.outrosComplete = false;
 
 	if ( parent ) {
@@ -41,6 +42,10 @@ TransitionManager.prototype = {
 		list.push( transition );
 	},
 
+	addDecorator: function ( decorator ) {
+		this.decoratorQueue.push( decorator );
+	},
+
 	remove: function ( transition ) {
 		var list = transition.isIntro ? this.intros : this.outros;
 		removeFromArray( list, transition );
@@ -53,10 +58,15 @@ TransitionManager.prototype = {
 	},
 
 	detachNodes: function () {
+		this.decoratorQueue.forEach( teardown );
 		this.detachQueue.forEach( detach );
 		this.children.forEach( detachNodes );
 	}
 };
+
+function teardown ( decorator ) {
+	decorator.teardown();
+}
 
 function detach ( element ) {
 	element.detach();

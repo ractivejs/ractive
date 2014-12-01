@@ -58,6 +58,10 @@ runloop = {
 		batch.transitionManager.add( transition );
 	},
 
+	registerDecorator: function ( decorator ) {
+		batch.transitionManager.addDecorator( decorator );
+	},
+
 	addView: function ( view ) {
 		batch.views.push( view );
 	},
