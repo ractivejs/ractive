@@ -38,7 +38,7 @@ export default function Element$unrender ( shouldDestroy ) {
 	}
 
 	if ( this.decorator ) {
-		this.decorator.teardown();
+		runloop.registerDecorator( this.decorator );
 	}
 
 	// trigger outro transition if necessary

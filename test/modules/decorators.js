@@ -288,6 +288,53 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( fixture.innerHTML, '<div>pass</div>' );
 		});
 
+		asyncTest( 'Decorator teardown should happen after outros have completed (#1481)', function ( t ) {
+			var ractive, div, decoratorTorndown;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#if foo}}
+						<div outro='wait' decorator='red'>red</div>
+					{{/if}}`,
+				data: {
+					foo: true
+				},
+				decorators: {
+					red: function ( node ) {
+						var originalColor = node.style.color;
+						node.style.color = 'red';
+
+						return {
+							teardown: () => {
+								node.style.color = originalColor;
+								decoratorTorndown = true;
+							}
+						};
+					}
+				},
+				transitions: {
+					wait: function ( tr ) {
+						setTimeout( () => {
+							t.ok( !decoratorTorndown );
+							t.equal( div.style.color, 'red' );
+
+							tr.complete();
+						});
+					}
+				}
+			});
+
+			div = ractive.find( 'div' );
+
+			ractive.set( 'foo', false ).then( function () {
+				t.ok( decoratorTorndown );
+				QUnit.start();
+			});
+
+			t.equal( div.style.color, 'red' );
+		});
+
 	};
 
 });
