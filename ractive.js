@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-11-30 - commit 67294735 
+	2014-12-01 - commit 2aea9d1e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -664,6 +664,7 @@
 			this.children = [];
 			this.totalChildren = this.outroChildren = 0;
 			this.detachQueue = [];
+			this.decoratorQueue = [];
 			this.outrosComplete = false;
 			if ( parent ) {
 				parent.addChild( this );
@@ -687,6 +688,9 @@
 				var list = transition.isIntro ? this.intros : this.outros;
 				list.push( transition );
 			},
+			addDecorator: function( decorator ) {
+				this.decoratorQueue.push( decorator );
+			},
 			remove: function( transition ) {
 				var list = transition.isIntro ? this.intros : this.outros;
 				removeFromArray( list, transition );
@@ -697,10 +701,15 @@
 				check( this );
 			},
 			detachNodes: function() {
+				this.decoratorQueue.forEach( teardown );
 				this.detachQueue.forEach( detach );
 				this.children.forEach( detachNodes );
 			}
 		};
+
+		function teardown( decorator ) {
+			decorator.teardown();
+		}
 
 		function detach( element ) {
 			element.detach();
@@ -788,6 +797,9 @@
 			registerTransition: function( transition ) {
 				transition._manager = batch.transitionManager;
 				batch.transitionManager.add( transition );
+			},
+			registerDecorator: function( decorator ) {
+				batch.transitionManager.addDecorator( decorator );
 			},
 			addView: function( view ) {
 				batch.views.push( view );
@@ -11586,7 +11598,7 @@
 				} );
 			}
 			if ( this.decorator ) {
-				this.decorator.teardown();
+				runloop.registerDecorator( this.decorator );
 			}
 			// trigger outro transition if necessary
 			if ( this.root.transitionsEnabled && this.outro ) {
