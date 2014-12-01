@@ -26,7 +26,7 @@ export default function Mustache$init ( mustache, options ) {
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( ref = template.r ) {
-		mustache.resolver = new createReferenceResolver( mustache, ref, resolve );
+		mustache.resolver = createReferenceResolver( mustache, ref, resolve );
 	}
 
 	// if it's an expression, we have a bit more work to do

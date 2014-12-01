@@ -70,12 +70,11 @@ Mapping.prototype = {
 	},
 
 	setup: function () {
-
 		if ( this.keypath === undefined ) { return; }
 
 		this.resolved = true;
 
-		// _if_ the local viewmodel isn't intializing, check
+		// _if_ the local viewmodel isn't initializing, check
 		// for existing dependants that were registered and
 		// move them as they now belong to this key
 		if ( this.local.deps && this.keypath ) {
@@ -90,17 +89,21 @@ Mapping.prototype = {
 		// keep local data in sync, for
 		// a) browsers w/ no defineProperty
 		// b) reversed mappings
-		if( this.trackData ) {
+		if ( this.trackData ) {
 			this.tracker = new DataTracker( this.localKey, this.local );
 			this.origin.register( this.keypath, this.tracker );
 		}
 
 		// accumulated dependants can now be registered
 		if ( this.deps.length ) {
-			this.deps.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
+			this.deps.forEach( d => {
+				var keypath = this.map( d.keypath );
+				this.origin.register( keypath, d.dep, d.group );
+				d.dep.setValue( this.origin.get( keypath ) );
+			});
+
 			this.origin.mark( this.keypath );
 		}
-
 	},
 
 	setValue: function ( value ) {

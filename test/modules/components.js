@@ -720,6 +720,34 @@ define([
 			t.deepEqual( inDom, { div: true, widget: true, p: true });
 		});
 
+		test( 'Data is synced as soon as an unresolved mapping is resolved', function ( t ) {
+			var ractive;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<outer/>',
+				data: {
+					item: {}
+				},
+				components: {
+					outer: Ractive.extend({
+						template: '{{#with item}}<inner foo="{{foo}}"/>{{/with}}'
+					}),
+					inner: Ractive.extend({
+						template: '<p>foo: {{foo}}</p>'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>foo: </p>' );
+
+			ractive.toggle( 'item.foo' );
+			t.htmlEqual( fixture.innerHTML, '<p>foo: true</p>' );
+
+			ractive.toggle( 'item.foo' );
+			t.htmlEqual( fixture.innerHTML, '<p>foo: false</p>' );
+		});
+
 	};
 
 });
