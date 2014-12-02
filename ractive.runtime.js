@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-12-01 - commit 2aea9d1e 
+	2014-12-02 - commit bfff7196 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3192,8 +3192,8 @@
 						this.values[ keypath ],
 						keypath
 					].concat( keys );
-					this.callback.apply( this.context, args );
 					this.values[ keypath ] = value;
+					this.callback.apply( this.context, args );
 				}
 				this.updating = false;
 			},
@@ -5613,7 +5613,7 @@
 			// if this is a simple mustache, with a reference, we just need to resolve
 			// the reference to a keypath
 			if ( ref = template.r ) {
-				mustache.resolver = new createReferenceResolver( mustache, ref, resolve );
+				mustache.resolver = createReferenceResolver( mustache, ref, resolve );
 			}
 			// if it's an expression, we have a bit more work to do
 			if ( options.template.x ) {
@@ -10986,7 +10986,7 @@
 					return;
 				}
 				this.resolved = true;
-				// _if_ the local viewmodel isn't intializing, check
+				// _if_ the local viewmodel isn't initializing, check
 				// for existing dependants that were registered and
 				// move them as they now belong to this key
 				if ( this.local.deps && this.keypath ) {
@@ -11008,7 +11008,9 @@
 				// accumulated dependants can now be registered
 				if ( this.deps.length ) {
 					this.deps.forEach( function( d ) {
-						return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
+						var keypath = this$0.map( d.keypath );
+						this$0.origin.register( keypath, d.dep, d.group );
+						d.dep.setValue( this$0.origin.get( keypath ) );
 					} );
 					this.origin.mark( this.keypath );
 				}
