@@ -50,6 +50,11 @@ export default function Element$init ( options ) {
 		this.bubble = bubbleSelect; // TODO this is a kludge
 	}
 
+	// Special case - <form> elements
+	if ( this.name === 'form' ) {
+		this.formBindings = [];
+	}
+
 	// handle binding attributes first (twoway, lazy)
 	processBindingAttributes( this, template.a || {} );
 

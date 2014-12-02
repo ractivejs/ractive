@@ -8,6 +8,7 @@ import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
 import renderImage from 'virtualdom/items/Element/special/img/render';
+import renderForm from 'virtualdom/items/Element/special/form/render';
 import Transition from 'virtualdom/items/Element/Transition/_Transition';
 
 var updateCss, updateScript;
@@ -44,7 +45,7 @@ updateScript = function () {
 };
 
 export default function Element$render () {
-	var root = this.root, namespace, node;
+	var root = this.root, namespace, node, special;
 
 	namespace = getNamespace( this );
 	node = this.node = createElement( this.name, namespace );
@@ -114,6 +115,8 @@ export default function Element$render () {
 	// need to prevent it from overriding width and height when it loads the src
 	if ( this.name === 'img' ) {
 		renderImage( this );
+	} else if ( this.name === 'form' ) {
+		renderForm( this );
 	}
 
 	// apply decorator(s)
