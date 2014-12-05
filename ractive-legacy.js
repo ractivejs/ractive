@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-12-02 - commit bfff7196 
+	2014-12-05 - commit a89d5d0c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10380,20 +10380,20 @@
 				ractive = this.root;
 				// Create resolvers for each reference
 				this.refResolvers = [];
-				for ( i = 0; i < refs.length; i++ ) {
-					var match, ref = refs[ i ];
+				refs.forEach( function( ref, i ) {
+					var match;
 					// special case - the `event` object
 					if ( match = eventPattern.exec( ref ) ) {
-						this.keypaths[ i ] = {
+						this$0.keypaths[ i ] = {
 							eventObject: true,
 							refinements: match[ 1 ] ? match[ 1 ].split( '.' ) : []
 						};
 					} else {
-						this.refResolvers.push( createReferenceResolver( this, ref, function( keypath ) {
-							this$0.resolve( i, keypath );
+						this$0.refResolvers.push( createReferenceResolver( this$0, ref, function( keypath ) {
+							return this$0.resolve( i, keypath );
 						} ) );
 					}
-				}
+				} );
 				this.fire = fireMethodCall;
 			} else {
 				// Get action ('foo' in 'on-click='foo')
