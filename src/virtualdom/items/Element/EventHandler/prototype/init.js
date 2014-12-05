@@ -57,9 +57,13 @@ export default function EventHandler$init ( element, name, template ) {
 			}
 
 			else {
-				this.refResolvers.push( createReferenceResolver( this, ref, keypath => {
-					this.resolve( i, keypath );
-				}) );
+				// the callback here references i, which will change at the end of this iteration
+				// so this funky nested IIFE captures it safely for later use
+				this.refResolvers.push( createReferenceResolver( this, ref, ( ( ( i, me ) => {
+					return keypath => {
+						me.resolve( i, keypath );
+					};
+				} ) ( i, this ) ) ) );
 			}
 		}
 
