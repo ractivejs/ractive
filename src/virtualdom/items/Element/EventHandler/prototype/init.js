@@ -45,8 +45,8 @@ export default function EventHandler$init ( element, name, template ) {
 
 		// Create resolvers for each reference
 		this.refResolvers = [];
-		for ( i = 0; i < refs.length; i++ ) {
-			let match, ref = refs[i];
+		refs.forEach(( ref, i ) => {
+			let match;
 
 			// special case - the `event` object
 			if ( match = eventPattern.exec( ref ) ) {
@@ -57,11 +57,9 @@ export default function EventHandler$init ( element, name, template ) {
 			}
 
 			else {
-				this.refResolvers.push( createReferenceResolver( this, ref, keypath => {
-					this.resolve( i, keypath );
-				}) );
+				this.refResolvers.push( createReferenceResolver( this, ref, keypath => this.resolve( i, keypath ) ) );
 			}
-		}
+		});
 
 		this.fire = fireMethodCall;
 	}
