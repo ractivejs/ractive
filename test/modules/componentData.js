@@ -1332,6 +1332,23 @@ define([
 				t.htmlEqual( fixture.innerHTML, 'foo-bar bar foo-bar' );
 			});
 
+			test( 'ComponentData supports JSON.stringify', (t) => {
+				new Ractive({
+					el: fixture,
+					template: `<cmp foo="bar" baz="{{.}}" />`,
+					components: {
+						cmp: Ractive.extend({
+							template: `{{JSON.stringify(.)}} {{foo}} {{baz.bippy}} {{bat}}`,
+							onconstruct: function() {
+								this.data.bat = 1;
+							}
+						})
+					},
+					data: { bippy: 'boppy' }
+				});
+
+				t.htmlEqual( JSON.stringify({foo:'bar',baz:{bippy:'boppy'},bat:1}) + ' bar boppy 1', fixture.innerHTML );
+			});
 
 			test( 'Computation cannot take ownership of an expression', ( t ) => {
 
