@@ -57,13 +57,7 @@ export default function EventHandler$init ( element, name, template ) {
 			}
 
 			else {
-				// the callback here references i, which will change at the end of this iteration
-				// so this funky nested IIFE captures it safely for later use
-				this.refResolvers.push( createReferenceResolver( this, ref, ( ( ( i, me ) => {
-					return keypath => {
-						me.resolve( i, keypath );
-					};
-				} ) ( i, this ) ) ) );
+				this.refResolvers.push( createReferenceResolver( this, ref, getCallback( this, i ) ) );
 			}
 		}
 
@@ -154,4 +148,8 @@ function fireEventWithDynamicParams ( event ) {
 	}
 
 	fireEvent( this.root, this.getAction(), { event: event, args: args } );
+}
+
+function getCallback( handler, index ) {
+	return keypath => handler.resolve( index, keypath );
 }
