@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-12-08 - commit 27bada05 
+	2014-12-08 - commit 9cdf86bc 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2465,7 +2465,12 @@
 	var Ractive$shared_makeQuery_test = function( matches ) {
 
 		return function( item, noDirty ) {
-			var itemMatches = this._isComponentQuery ? !this.selector || item.name === this.selector : matches( item.node, this.selector );
+			var itemMatches;
+			if ( this._isComponentQuery ) {
+				itemMatches = !this.selector || item.name === this.selector;
+			} else {
+				itemMatches = item.node ? matches( item.node, this.selector ) : null;
+			}
 			if ( itemMatches ) {
 				this.push( item.node || item.instance );
 				if ( !noDirty ) {
@@ -7229,6 +7234,10 @@
 	var virtualdom_items_Element$find = function( matches ) {
 
 		return function( selector ) {
+			if ( !this.node ) {
+				// this element hasn't been rendered yet
+				return null;
+			}
 			if ( matches( this.node, selector ) ) {
 				return this.node;
 			}
