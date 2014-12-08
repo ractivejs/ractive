@@ -85,6 +85,9 @@ function initialiseProperties ( ractive, options ) {
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];
 
+	// bound data functions
+	ractive._boundFunctions = [];
+
 
 	// properties specific to inline components
 	if ( options.component ) {

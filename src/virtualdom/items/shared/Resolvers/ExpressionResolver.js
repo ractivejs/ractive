@@ -162,7 +162,8 @@ function wrapFunction ( fn, ractive ) {
 
 	else if ( /this/.test( fn.toString() ) ) {
 		defineProperty( fn, prop, {
-			value: bind.call( fn, ractive )
+			value: bind.call( fn, ractive ),
+			configurable: true
 		});
 
 		// Add properties/methods to wrapped function
@@ -171,6 +172,11 @@ function wrapFunction ( fn, ractive ) {
 				fn[ prop ][ key ] = fn[ key ];
 			}
 		}
+
+		ractive._boundFunctions.push({
+			fn: fn,
+			prop: prop
+		});
 
 		return fn[ prop ];
 	}
