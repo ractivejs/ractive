@@ -1,10 +1,11 @@
 import create from 'utils/create';
 import defineProperties from 'utils/defineProperties';
-import getGuid from 'utils/getGuid';
 import config from 'config/config';
 import initialise from 'Ractive/initialise';
 import Viewmodel from 'viewmodel/Viewmodel';
 import unwrap from 'extend/unwrapExtended';
+
+var uid = 1;
 
 export default function extend ( options = {} ) {
 	var Parent = this, Child, proto, staticProperties;
@@ -22,8 +23,8 @@ export default function extend ( options = {} ) {
 	proto.constructor = Child;
 
 	staticProperties = {
-		// each component needs a guid, for managing CSS etc
-		_guid: { value: getGuid() },
+		// each component needs a unique ID, for managing CSS
+		_guid: { value: uid++ },
 
 		// alias prototype as defaults
 		defaults: { value: proto },
