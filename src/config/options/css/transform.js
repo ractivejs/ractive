@@ -1,14 +1,16 @@
 var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
 	commentsPattern = /\/\*.*?\*\//g,
-	selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g,
+	selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g,
 	mediaQueryPattern = /^@media/,
-	dataRvcGuidPattern = /\[data-rvcguid="[a-z0-9-]+"]/g;
+	dataRvcGuidPattern = /\[data-ractive-css="[a-z0-9-]+"]/g;
 
-export default function transformCss( css, guid ) {
-	var transformed, addGuid;
+export default function transformCss( css, id ) {
+	var transformed, dataAttr, addGuid;
+
+	dataAttr = `[data-ractive-css="${id}"]`;
 
 	addGuid = function ( selector ) {
-		var selectorUnits, match, unit, dataAttr, base, prepended, appended, i, transformed = [];
+		var selectorUnits, match, unit, base, prepended, appended, i, transformed = [];
 
 		selectorUnits = [];
 
@@ -21,8 +23,7 @@ export default function transformCss( css, guid ) {
 		}
 
 		// For each simple selector within the selector, we need to create a version
-		// that a) combines with the guid, and b) is inside the guid
-		dataAttr = '[data-rvcguid="' + guid + '"]';
+		// that a) combines with the id, and b) is inside the id
 		base = selectorUnits.map( extractString );
 
 		i = selectorUnits.length;
@@ -43,7 +44,7 @@ export default function transformCss( css, guid ) {
 	};
 
 	if ( dataRvcGuidPattern.test( css ) ) {
-		transformed = css.replace( dataRvcGuidPattern, '[data-rvcguid="' + guid +'"]' );
+		transformed = css.replace( dataRvcGuidPattern, dataAttr );
 	} else {
 		transformed = css
 		.replace( commentsPattern, '' )

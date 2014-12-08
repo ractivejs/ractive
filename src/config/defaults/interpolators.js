@@ -4,13 +4,11 @@ import isArray from 'utils/isArray';
 import isObject from 'utils/isObject';
 import isNumeric from 'utils/isNumeric';
 
-var interpolators, interpolate, cssLengthPattern;
+var interpolators, interpolate;
 
 circular.push( function () {
 	interpolate = circular.interpolate;
 });
-
-cssLengthPattern = /^([+-]?[0-9]+\.?(?:[0-9]+)?)(px|em|ex|%|in|cm|mm|pt|pc)$/;
 
 interpolators = {
 	number: function ( from, to ) {
