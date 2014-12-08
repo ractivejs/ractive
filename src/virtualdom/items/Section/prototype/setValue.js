@@ -213,10 +213,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 		if ( fragment.index !== i ){
 			fragment.index = i;
 			if ( deps = fragment.registeredIndexRefs ) {
-				for ( let d of deps ) {
-					// the keypath doesn't actually matter here as it won't have changed
-					d.rebind( '', '' );
-				}
+				deps.forEach( blindRebind );
 			}
 		}
 	}
@@ -334,4 +331,9 @@ function isRendered ( fragment ) {
 
 function getContext ( base, index ) {
 	return ( base ? base + '.' : '' ) + index;
+}
+
+function blindRebind ( dep ) {
+	// the keypath doesn't actually matter here as it won't have changed
+	dep.rebind( '', '' );
 }

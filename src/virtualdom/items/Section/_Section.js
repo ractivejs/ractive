@@ -55,7 +55,9 @@ Section.prototype = {
 	firstNode: firstNode,
 	getIndexRef: function( name ) {
 		if ( this.indexRefs ) {
-			for ( let ref of this.indexRefs ) {
+			let i = this.indexRefs.length;
+			while ( i-- ) {
+				let ref = this.indexRefs[i];
 				if ( ref.n === name ) {
 					return ref;
 				}

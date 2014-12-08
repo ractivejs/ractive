@@ -62,10 +62,7 @@ export default function Section$shuffle ( newIndices ) {
 
 		// notify any registered index refs directly
 		if ( deps = fragment.registeredIndexRefs ) {
-			for ( let d of deps ) {
-				// the keypath doesn't actually matter here
-				d.rebind( '', '' );
-			}
+			deps.forEach( blindRebind );
 		}
 
 		fragment.rebind( oldKeypath, newKeypath );
@@ -109,4 +106,9 @@ export default function Section$shuffle ( newIndices ) {
 
 		this.fragments[i] = fragment;
 	}
+}
+
+function blindRebind ( dep ) {
+	// the keypath doesn't actually matter here as it won't have changed
+	dep.rebind( '', '' );
 }

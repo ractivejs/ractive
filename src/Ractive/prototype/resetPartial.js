@@ -10,7 +10,7 @@ export default function( name, partial, callback ) {
 		// if this is a component and it has its own partial, bail
 		if ( ractive && ractive.partials[name] ) return;
 
-		for ( let item of source ) {
+		source.forEach( item => {
 			// queue to rerender if the item is a partial and the current name matches
 			if ( item.type === types.PARTIAL && item.getPartialName() === name ) {
 				dest.push( item );
@@ -46,7 +46,7 @@ export default function( name, partial, callback ) {
 					collect( item.conditionalAttributes, dest, ractive );
 				}
 			}
-		}
+		});
 	}
 
 	collect( this.fragment.items, collection );
@@ -54,11 +54,10 @@ export default function( name, partial, callback ) {
 
 	promise = runloop.start( this, true );
 
-	// force each item to rerender
-	for ( let item of collection ) {
+	collection.forEach( item => {
 		item.value = undefined;
 		item.setValue( name );
-	}
+	});
 
 	runloop.end();
 
