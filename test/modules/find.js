@@ -267,7 +267,26 @@ define([ 'ractive' ], function ( Ractive ) {
 				ractive.set( 'widgets', new Array( length ) );
 				t.equal( divs.length, length );
 			});
-		})
+		});
+
+		test( 'ractive.findComponent() takes an optional filter function', function ( t ) {
+			var Widget, ractive, widget;
+
+			Widget = Ractive.extend({
+				template: '<p>widget</p>'
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget ref="foo" test="a"/><widget ref="bar" test="b"/><widget ref="baz" test="c"/>'
+			});
+
+			widget = ractive.findComponent( 'widget', {
+				where: c => c.get( 'ref' ) === 'bar'
+			});
+
+			t.equal( widget.get( 'test' ), 'b' );
+		});
 
 
 		// TODO add tests (and add the functionality)...

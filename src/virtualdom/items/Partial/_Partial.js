@@ -56,8 +56,8 @@ Partial.prototype = {
 		return this.fragment.findAll( selector, query );
 	},
 
-	findComponent: function ( selector ) {
-		return this.fragment.findComponent( selector );
+	findComponent: function ( selector, options ) {
+		return this.fragment.findComponent( selector, options );
 	},
 
 	findAllComponents: function ( selector, query ) {
@@ -87,7 +87,7 @@ Partial.prototype = {
 		if ( !this.isNamed ) {
 			rebind.call( this, oldKeypath, newKeypath );
 		}
-		
+
 		this.fragment.rebind( oldKeypath, newKeypath );
 	},
 
