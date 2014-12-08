@@ -1,3 +1,3 @@
-export default function Ractive$findComponent ( selector ) {
-	return this.fragment.findComponent( selector );
+export default function Ractive$findComponent ( selector, options = {} ) {
+	return this.fragment.findComponent( selector, options );
 }

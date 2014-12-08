@@ -60,8 +60,8 @@ Yielder.prototype = {
 		return this.fragment.findAll( selector, query );
 	},
 
-	findComponent: function ( selector ) {
-		return this.fragment.findComponent( selector );
+	findComponent: function ( selector, options ) {
+		return this.fragment.findComponent( selector, options );
 	},
 
 	findAllComponents: function ( selector, query ) {
