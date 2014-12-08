@@ -1630,7 +1630,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		});
 
 		test( 'Data functions do not retain instance-bound copies of themselves (#1538)', function ( t ) {
-			var foo, Widget, widgets;
+			var foo, Widget, widgets, keys;
 
 			foo = function () {
 				this; // so that it gets wrapped
@@ -1643,19 +1643,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			widgets = [ new Widget(), new Widget(), new Widget() ];
+			keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
 
-			t.ok( foo[ '__ractive_r-0' ] ); // in case we change the format in future...
-			t.ok( foo[ '__ractive_r-1' ] );
-			t.ok( foo[ '__ractive_r-2' ] );
-
-			widgets.pop().teardown();
-			t.ok( !foo[ '__ractive_r-2' ] );
+			t.equal( keys.length, 3 );
 
 			widgets.pop().teardown();
-			t.ok( !foo[ '__ractive_r-1' ] );
+			keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+			t.equal( keys.length, 2 );
 
 			widgets.pop().teardown();
-			t.ok( !foo[ '__ractive_r-0' ] );
+			keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+			t.equal( keys.length, 1 );
+
+			widgets.pop().teardown();
+			keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+			t.equal( keys.length, 0 );
 		});
 
 		// Is there a way to artificially create a FileList? Leaving this commented

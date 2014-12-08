@@ -43,5 +43,11 @@ export default function Ractive$teardown ( callback ) {
 			});
 	}
 
+	this._boundFunctions.forEach( deleteFunctionCopy );
+
 	return promise;
+}
+
+function deleteFunctionCopy ( bound ) {
+	delete bound.fn[ bound.prop ];
 }
