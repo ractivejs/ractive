@@ -71,7 +71,7 @@
     "exec-sync": "~0.1.6",
     "gobble": "^0.6.10",
     "gobble-es6-transpiler": "~0.1.0",
-    "gobble-esperanto": "~0.1.0",
+    "gobble-esperanto": "~0.2.1",
     "grunt": "~0.4.4",
     "grunt-concurrent": "~0.5.0",
     "grunt-contrib-clean": "~0.6.0",
