@@ -1,6 +1,6 @@
 /*
 	ractive.runtime.js v0.6.1
-	2014-12-05 - commit a89d5d0c 
+	2014-12-08 - commit 2e3f6bfe 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5844,11 +5844,12 @@
 	/* virtualdom/items/Section/prototype/shuffle.js */
 	var virtualdom_items_Section$shuffle = function( types, runloop, circular ) {
 
+		var __export;
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function Section$shuffle( newIndices ) {
+		__export = function Section$shuffle( newIndices ) {
 			var this$0 = this;
 			var parentFragment, firstChange, i, newLength, reboundFragments, fragmentOptions, fragment;
 			// short circuit any double-updates, and ensure that this isn't applied to
@@ -5865,31 +5866,6 @@
 			// TODO: need to update this
 			// first, rebind existing fragments
 			newIndices.forEach( function( newIndex, oldIndex ) {
-				var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
-				var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
-
-				function GET_ITER$0( v ) {
-					if ( v ) {
-						if ( Array.isArray( v ) )
-							return 0;
-						var f;
-						if ( S_MARK$0 )
-							S_MARK$0( v );
-						if ( typeof v === 'object' && typeof( f = v[ S_ITER$0 ] ) === 'function' ) {
-							if ( S_MARK$0 )
-								S_MARK$0( void 0 );
-							return f.call( v );
-						}
-						if ( S_MARK$0 )
-							S_MARK$0( void 0 );
-						if ( v + '' === '[object Generator]' )
-							return v;
-					}
-					throw new Error( v + ' is not iterable' );
-				}
-				var $D$0;
-				var $D$1;
-				var $D$2;
 				var fragment, by, oldKeypath, newKeypath, deps;
 				if ( newIndex === oldIndex ) {
 					reboundFragments[ newIndex ] = this$0.fragments[ oldIndex ];
@@ -5912,15 +5888,7 @@
 				fragment.index = newIndex;
 				// notify any registered index refs directly
 				if ( deps = fragment.registeredIndexRefs ) {
-					$D$0 = GET_ITER$0( deps );
-					$D$2 = $D$0 === 0;
-					$D$1 = $D$2 ? deps.length : void 0;
-					for ( var d; $D$2 ? $D$0 < $D$1 : !( $D$1 = $D$0[ 'next' ]() )[ 'done' ]; ) {
-						d = $D$2 ? deps[ $D$0++ ] : $D$1[ 'value' ];
-						// the keypath doesn't actually matter here
-						d.rebind( '', '' );
-					}
-					$D$0 = $D$1 = $D$2 = void 0;
+					deps.forEach( blindRebind );
 				}
 				fragment.rebind( oldKeypath, newKeypath );
 				reboundFragments[ newIndex ] = fragment;
@@ -5955,6 +5923,12 @@
 				this.fragments[ i ] = fragment;
 			}
 		};
+
+		function blindRebind( dep ) {
+			// the keypath doesn't actually matter here as it won't have changed
+			dep.rebind( '', '' );
+		}
+		return __export;
 	}( types, runloop, circular );
 
 	/* virtualdom/items/Section/prototype/rebind.js */
@@ -6134,31 +6108,6 @@
 		}
 
 		function reevaluateListObjectSection( section, value, fragmentOptions ) {
-			var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
-			var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
-
-			function GET_ITER$0( v ) {
-				if ( v ) {
-					if ( Array.isArray( v ) )
-						return 0;
-					var f;
-					if ( S_MARK$0 )
-						S_MARK$0( v );
-					if ( typeof v === 'object' && typeof( f = v[ S_ITER$0 ] ) === 'function' ) {
-						if ( S_MARK$0 )
-							S_MARK$0( void 0 );
-						return f.call( v );
-					}
-					if ( S_MARK$0 )
-						S_MARK$0( void 0 );
-					if ( v + '' === '[object Generator]' )
-						return v;
-				}
-				throw new Error( v + ' is not iterable' );
-			}
-			var $D$0;
-			var $D$1;
-			var $D$2;
 			var id, i, hasKey, fragment, changed, deps;
 			hasKey = section.hasKey || ( section.hasKey = {} );
 			// remove any fragments that should no longer exist
@@ -6180,15 +6129,7 @@
 				if ( fragment.index !== i ) {
 					fragment.index = i;
 					if ( deps = fragment.registeredIndexRefs ) {
-						$D$0 = GET_ITER$0( deps );
-						$D$2 = $D$0 === 0;
-						$D$1 = $D$2 ? deps.length : void 0;
-						for ( var d; $D$2 ? $D$0 < $D$1 : !( $D$1 = $D$0[ 'next' ]() )[ 'done' ]; ) {
-							d = $D$2 ? deps[ $D$0++ ] : $D$1[ 'value' ];
-							// the keypath doesn't actually matter here as it won't have changed
-							d.rebind( '', '' );
-						}
-						$D$0 = $D$1 = $D$2 = void 0;
+						deps.forEach( blindRebind );
 					}
 				}
 			}
@@ -6288,6 +6229,11 @@
 
 		function getContext( base, index ) {
 			return ( base ? base + '.' : '' ) + index;
+		}
+
+		function blindRebind( dep ) {
+			// the keypath doesn't actually matter here as it won't have changed
+			dep.rebind( '', '' );
 		}
 		return __export;
 	}( types, isArrayLike, isObject, runloop, circular );
@@ -6426,44 +6372,14 @@
 			findNextNode: findNextNode,
 			firstNode: firstNode,
 			getIndexRef: function( name ) {
-				var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
-				var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
-
-				function GET_ITER$0( v ) {
-					if ( v ) {
-						if ( Array.isArray( v ) )
-							return 0;
-						var f;
-						if ( S_MARK$0 )
-							S_MARK$0( v );
-						if ( typeof v === 'object' && typeof( f = v[ S_ITER$0 ] ) === 'function' ) {
-							if ( S_MARK$0 )
-								S_MARK$0( void 0 );
-							return f.call( v );
-						}
-						if ( S_MARK$0 )
-							S_MARK$0( void 0 );
-						if ( v + '' === '[object Generator]' )
-							return v;
-					}
-					throw new Error( v + ' is not iterable' );
-				}
-				var $D$0;
-				var $D$1;
-				var $D$2;
-				var $D$3;
 				if ( this.indexRefs ) {
-					$D$3 = this.indexRefs;
-					$D$0 = GET_ITER$0( $D$3 );
-					$D$2 = $D$0 === 0;
-					$D$1 = $D$2 ? $D$3.length : void 0;
-					for ( var ref; $D$2 ? $D$0 < $D$1 : !( $D$1 = $D$0[ 'next' ]() )[ 'done' ]; ) {
-						ref = $D$2 ? $D$3[ $D$0++ ] : $D$1[ 'value' ];
+					var i = this.indexRefs.length;
+					while ( i-- ) {
+						var ref = this.indexRefs[ i ];
 						if ( ref.n === name ) {
 							return ref;
 						}
 					}
-					$D$0 = $D$1 = $D$2 = $D$3 = void 0;
 				}
 			},
 			getValue: Mustache.getValue,
@@ -11805,48 +11721,15 @@
 	/* Ractive/prototype/resetPartial.js */
 	var Ractive$resetPartial = function( isArray, log, runloop, types ) {
 
-		var S_ITER$0 = typeof Symbol !== 'undefined' && Symbol && Symbol.iterator || '@@iterator';
-		var S_MARK$0 = typeof Symbol !== 'undefined' && Symbol && Symbol[ '__setObjectSetter__' ];
-
-		function GET_ITER$0( v ) {
-			if ( v ) {
-				if ( Array.isArray( v ) )
-					return 0;
-				var f;
-				if ( S_MARK$0 )
-					S_MARK$0( v );
-				if ( typeof v === 'object' && typeof( f = v[ S_ITER$0 ] ) === 'function' ) {
-					if ( S_MARK$0 )
-						S_MARK$0( void 0 );
-					return f.call( v );
-				}
-				if ( S_MARK$0 )
-					S_MARK$0( void 0 );
-				if ( v + '' === '[object Generator]' )
-					return v;
-			}
-			throw new Error( v + ' is not iterable' );
-		}
 		return function( name, partial, callback ) {
-			var $D$3;
-			var $D$4;
-			var $D$5;
 			var this$0 = this;
 			var promise, collection = [];
 
 			function collect( source, dest, ractive ) {
-				var $D$0;
-				var $D$1;
-				var $D$2;
 				// if this is a component and it has its own partial, bail
-				if ( ractive && ractive.partials[ name ] ) {
+				if ( ractive && ractive.partials[ name ] )
 					return;
-				}
-				$D$0 = GET_ITER$0( source );
-				$D$2 = $D$0 === 0;
-				$D$1 = $D$2 ? source.length : void 0;
-				for ( var item; $D$2 ? $D$0 < $D$1 : !( $D$1 = $D$0[ 'next' ]() )[ 'done' ]; ) {
-					item = $D$2 ? source[ $D$0++ ] : $D$1[ 'value' ];
+				source.forEach( function( item ) {
 					// queue to rerender if the item is a partial and the current name matches
 					if ( item.type === types.PARTIAL && item.getPartialName() === name ) {
 						dest.push( item );
@@ -11872,22 +11755,15 @@
 							collect( item.conditionalAttributes, dest, ractive );
 						}
 					}
-				}
-				$D$0 = $D$1 = $D$2 = void 0;
+				} );
 			}
 			collect( this.fragment.items, collection );
 			this.partials[ name ] = partial;
 			promise = runloop.start( this, true );
-			// force each item to rerender
-			$D$3 = GET_ITER$0( collection );
-			$D$5 = $D$3 === 0;
-			$D$4 = $D$5 ? collection.length : void 0;
-			for ( var item; $D$5 ? $D$3 < $D$4 : !( $D$4 = $D$3[ 'next' ]() )[ 'done' ]; ) {
-				item = $D$5 ? collection[ $D$3++ ] : $D$4[ 'value' ];
+			collection.forEach( function( item ) {
 				item.value = undefined;
 				item.setValue( name );
-			}
-			$D$3 = $D$4 = $D$5 = void 0;
+			} );
 			runloop.end();
 			if ( callback ) {
 				log.warn( {
