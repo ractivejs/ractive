@@ -1629,6 +1629,35 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( p.keypath, 'baz.bat' );
 		});
 
+		test( 'Data functions do not retain instance-bound copies of themselves (#1538)', function ( t ) {
+			var foo, Widget, widgets;
+
+			foo = function () {
+				this; // so that it gets wrapped
+				return 'bar';
+			};
+
+			Widget = Ractive.extend({
+				template: '{{foo()}}',
+				data: { foo: foo }
+			});
+
+			widgets = [ new Widget(), new Widget(), new Widget() ];
+
+			t.ok( foo[ '__ractive_r-0' ] ); // in case we change the format in future...
+			t.ok( foo[ '__ractive_r-1' ] );
+			t.ok( foo[ '__ractive_r-2' ] );
+
+			widgets.pop().teardown();
+			t.ok( !foo[ '__ractive_r-2' ] );
+
+			widgets.pop().teardown();
+			t.ok( !foo[ '__ractive_r-1' ] );
+
+			widgets.pop().teardown();
+			t.ok( !foo[ '__ractive_r-0' ] );
+		});
+
 		// Is there a way to artificially create a FileList? Leaving this commented
 		// out until someone smarter than me figures out how
 		// test( '{{#each}} iterates over a FileList (#1220)', t => {
