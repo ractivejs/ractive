@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-12-08 - commit acbac79e 
+	2014-12-08 - commit 3fb9635e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5934,7 +5934,8 @@
 				return wrapped;
 			} else if ( /this/.test( fn.toString() ) ) {
 				defineProperty( fn, prop, {
-					value: bind.call( fn, ractive )
+					value: bind.call( fn, ractive ),
+					configurable: true
 				} );
 				// Add properties/methods to wrapped function
 				for ( key in fn ) {
@@ -5942,6 +5943,10 @@
 						fn[ prop ][ key ] = fn[ key ];
 					}
 				}
+				ractive._boundFunctions.push( {
+					fn: fn,
+					prop: prop
+				} );
 				return fn[ prop ];
 			}
 			defineProperty( fn, '__ractive_nowrap', {
@@ -12665,7 +12670,12 @@
 					} );
 				} );
 			}
+			this._boundFunctions.forEach( deleteFunctionCopy );
 			return promise;
+		}
+
+		function deleteFunctionCopy( bound ) {
+			delete bound.fn[ bound.prop ];
 		}
 		return Ractive$teardown;
 	}( Ractive$shared_hooks_Hook, log, Promise, removeFromArray );
@@ -14546,6 +14556,8 @@
 			// live queries
 			ractive._liveQueries = [];
 			ractive._liveComponentQueries = [];
+			// bound data functions
+			ractive._boundFunctions = [];
 			// properties specific to inline components
 			if ( options.component ) {
 				ractive.parent = options.parent;
