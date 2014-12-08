@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-12-08 - commit 9cdf86bc 
+	2014-12-08 - commit acbac79e 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7757,11 +7757,15 @@
 	var virtualdom_items_Section$render = function() {
 
 		function Section$render() {
-			var docFrag;
-			docFrag = this.docFrag = document.createDocumentFragment();
-			this.update();
+			var this$0 = this;
+			this.docFrag = document.createDocumentFragment();
+			this.fragments.forEach( function( f ) {
+				return this$0.docFrag.appendChild( f.render() );
+			} );
+			this.renderedFragments = this.fragments.slice();
+			this.fragmentsToRender = [];
 			this.rendered = true;
-			return docFrag;
+			return this.docFrag;
 		}
 		return Section$render;
 	}();
@@ -8100,6 +8104,8 @@
 
 		function Section$unrender( shouldDestroy ) {
 			this.fragments.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
+			this.renderedFragments = [];
+			this.rendered = false;
 		}
 
 		function unrenderAndDestroy( fragment ) {
