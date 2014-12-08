@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.runtime.js v0.6.1
-	2014-12-08 - commit 2e3f6bfe 
+	2014-12-08 - commit 27bada05 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -104,11 +104,10 @@
 	/* config/defaults/interpolators.js */
 	var interpolators = function( circular, hasOwnProperty, isArray, isObject, isNumeric ) {
 
-		var interpolators, interpolate, cssLengthPattern;
+		var interpolators, interpolate;
 		circular.push( function() {
 			interpolate = circular.interpolate;
 		} );
-		cssLengthPattern = /^([+-]?[0-9]+\.?(?:[0-9]+)?)(px|em|ex|%|in|cm|mm|pt|pc)$/;
 		interpolators = {
 			number: function( from, to ) {
 				var delta;
@@ -358,7 +357,6 @@
 	/* utils/Promise.js */
 	var Promise = function() {
 
-		var __export;
 		var _Promise, PENDING = {},
 			FULFILLED = {},
 			REJECTED = {};
@@ -461,8 +459,7 @@
 				} );
 			};
 		}
-		__export = _Promise;
-		// TODO use MutationObservers or something to simulate setImmediate
+
 		function wait( callback ) {
 			setTimeout( callback, 0 );
 		}
@@ -529,16 +526,18 @@
 				fulfil( x );
 			}
 		}
-		return __export;
+		return _Promise;
 	}();
 
 	/* utils/normaliseRef.js */
 	var normaliseRef = function() {
 
 		var regex = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-		return function normaliseRef( ref ) {
+
+		function normaliseRef( ref ) {
 			return ( ref || '' ).replace( regex, '.$1' );
-		};
+		}
+		return normaliseRef;
 	}();
 
 	/* shared/getInnerContext.js */
@@ -552,35 +551,39 @@
 	};
 
 	/* shared/resolveAncestorRef.js */
-	var resolveAncestorRef = function resolveAncestorRef( baseContext, ref ) {
-		var contextKeys;
-		// {{.}} means 'current context'
-		if ( ref === '.' )
-			return baseContext;
-		contextKeys = baseContext ? baseContext.split( '.' ) : [];
-		// ancestor references (starting "../") go up the tree
-		if ( ref.substr( 0, 3 ) === '../' ) {
-			while ( ref.substr( 0, 3 ) === '../' ) {
-				if ( !contextKeys.length ) {
-					throw new Error( 'Could not resolve reference - too many "../" prefixes' );
+	var resolveAncestorRef = function() {
+
+		function resolveAncestorRef( baseContext, ref ) {
+			var contextKeys;
+			// {{.}} means 'current context'
+			if ( ref === '.' )
+				return baseContext;
+			contextKeys = baseContext ? baseContext.split( '.' ) : [];
+			// ancestor references (starting "../") go up the tree
+			if ( ref.substr( 0, 3 ) === '../' ) {
+				while ( ref.substr( 0, 3 ) === '../' ) {
+					if ( !contextKeys.length ) {
+						throw new Error( 'Could not resolve reference - too many "../" prefixes' );
+					}
+					contextKeys.pop();
+					ref = ref.substring( 3 );
 				}
-				contextKeys.pop();
-				ref = ref.substring( 3 );
+				contextKeys.push( ref );
+				return contextKeys.join( '.' );
 			}
-			contextKeys.push( ref );
-			return contextKeys.join( '.' );
+			// not an ancestor reference - must be a restricted reference (prepended with "." or "./")
+			if ( !baseContext ) {
+				return ref.replace( /^\.\/?/, '' );
+			}
+			return baseContext + ref.replace( /^\.\//, '.' );
 		}
-		// not an ancestor reference - must be a restricted reference (prepended with "." or "./")
-		if ( !baseContext ) {
-			return ref.replace( /^\.\/?/, '' );
-		}
-		return baseContext + ref.replace( /^\.\//, '.' );
-	};
+		return resolveAncestorRef;
+	}();
 
 	/* shared/resolveRef.js */
 	var resolveRef = function( normaliseRef, getInnerContext, resolveAncestorRef ) {
 
-		return function resolveRef( ractive, ref, fragment, isParentLookup ) {
+		function resolveRef( ractive, ref, fragment, isParentLookup ) {
 			var context, key, keypath, parentValue, hasContextChain, parentKeys, childKeys, parentKeypath, childKeypath;
 			ref = normaliseRef( ref );
 			// If a reference begins '~/', it's a top-level reference
@@ -650,7 +653,8 @@
 			if ( ractive.viewmodel.get( ref ) !== undefined ) {
 				return ref;
 			}
-		};
+		}
+		return resolveRef;
 	}( normaliseRef, getInnerContext, resolveAncestorRef );
 
 	/* global/TransitionManager.js */
@@ -750,7 +754,6 @@
 	/* global/runloop.js */
 	var runloop = function( circular, Hook, removeFromArray, Promise, resolveRef, TransitionManager ) {
 
-		var __export;
 		var batch, runloop, unresolved = [],
 			changeHook = new Hook( 'change' );
 		runloop = {
@@ -831,7 +834,6 @@
 			}
 		};
 		circular.runloop = runloop;
-		__export = runloop;
 
 		function flushChanges() {
 			var i, thing, changeHash;
@@ -887,7 +889,7 @@
 		function resolve( resolved ) {
 			resolved.item.resolve( resolved.keypath );
 		}
-		return __export;
+		return runloop;
 	}( circular, Ractive$shared_hooks_Hook, removeFromArray, Promise, resolveRef, TransitionManager );
 
 	/* utils/createBranch.js */
@@ -902,7 +904,6 @@
 	/* viewmodel/prototype/get/magicAdaptor.js */
 	var viewmodel$get_magicAdaptor = function( runloop, createBranch, isArray ) {
 
-		var __export;
 		var magicAdaptor, MagicWrapper;
 		try {
 			Object.defineProperty( {}, 'test', {
@@ -1019,7 +1020,6 @@
 		} catch ( err ) {
 			magicAdaptor = false;
 		}
-		__export = magicAdaptor;
 
 		function createAccessors( originalWrapper, value, template ) {
 			var object, property, oldGet, oldSet, get, set;
@@ -1073,7 +1073,7 @@
 				configurable: true
 			} );
 		}
-		return __export;
+		return magicAdaptor;
 	}( runloop, createBranch, isArray );
 
 	/* config/magic.js */
@@ -1185,7 +1185,7 @@
 	/* Ractive/prototype/shared/add.js */
 	var Ractive$shared_add = function( isNumeric ) {
 
-		return function add( root, keypath, d ) {
+		function add( root, keypath, d ) {
 			var value;
 			if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
 				throw new Error( 'Bad arguments' );
@@ -1195,15 +1195,17 @@
 				throw new Error( 'Cannot add to a non-numeric value' );
 			}
 			return root.set( keypath, value + d );
-		};
+		}
+		return add;
 	}( isNumeric );
 
 	/* Ractive/prototype/add.js */
 	var Ractive$add = function( add ) {
 
-		return function Ractive$add( keypath, d ) {
+		function Ractive$add( keypath, d ) {
 			return add( this, keypath, d === undefined ? 1 : +d );
-		};
+		}
+		return Ractive$add;
 	}( Ractive$shared_add );
 
 	/* config/vendors.js */
@@ -1314,16 +1316,17 @@
 	/* config/options/css/transform.js */
 	var transform = function() {
 
-		var __export;
 		var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
 			commentsPattern = /\/\*.*?\*\//g,
-			selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~]+)?\s*[\s\+\>\~]?)\s*/g,
+			selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g,
 			mediaQueryPattern = /^@media/,
-			dataRvcGuidPattern = /\[data-rvcguid="[a-z0-9-]+"]/g;
-		__export = function transformCss( css, guid ) {
-			var transformed, addGuid;
+			dataRvcGuidPattern = /\[data-ractive-css="[a-z0-9-]+"]/g;
+
+		function transformCss( css, id ) {
+			var transformed, dataAttr, addGuid;
+			dataAttr = '[data-ractive-css="' + id + '"]';
 			addGuid = function( selector ) {
-				var selectorUnits, match, unit, dataAttr, base, prepended, appended, i, transformed = [];
+				var selectorUnits, match, unit, base, prepended, appended, i, transformed = [];
 				selectorUnits = [];
 				while ( match = selectorUnitPattern.exec( selector ) ) {
 					selectorUnits.push( {
@@ -1333,8 +1336,7 @@
 					} );
 				}
 				// For each simple selector within the selector, we need to create a version
-				// that a) combines with the guid, and b) is inside the guid
-				dataAttr = '[data-rvcguid="' + guid + '"]';
+				// that a) combines with the id, and b) is inside the id
 				base = selectorUnits.map( extractString );
 				i = selectorUnits.length;
 				while ( i-- ) {
@@ -1349,7 +1351,7 @@
 				return transformed.join( ', ' );
 			};
 			if ( dataRvcGuidPattern.test( css ) ) {
-				transformed = css.replace( dataRvcGuidPattern, '[data-rvcguid="' + guid + '"]' );
+				transformed = css.replace( dataRvcGuidPattern, dataAttr );
 			} else {
 				transformed = css.replace( commentsPattern, '' ).replace( selectorsPattern, function( match, $1 ) {
 					var selectors, transformed;
@@ -1362,7 +1364,7 @@
 				} );
 			}
 			return transformed;
-		};
+		}
 
 		function trim( str ) {
 			if ( str.trim ) {
@@ -1374,7 +1376,7 @@
 		function extractString( unit ) {
 			return unit.str;
 		}
-		return __export;
+		return transformCss;
 	}();
 
 	/* config/options/css/css.js */
@@ -1406,8 +1408,7 @@
 	/* utils/wrapMethod.js */
 	var wrapMethod = function() {
 
-		var __export;
-		__export = function( method, superMethod, force ) {
+		var __export = function( method, superMethod, force ) {
 			if ( force || needsSuper( method, superMethod ) ) {
 				return function() {
 					var hasSuper = '_super' in this,
@@ -1434,14 +1435,12 @@
 	/* config/options/data.js */
 	var data = function( wrap ) {
 
-		var __export;
 		var dataConfig = {
 			name: 'data',
 			extend: extend,
 			init: init,
 			reset: reset
 		};
-		__export = dataConfig;
 
 		function combine( Parent, target, options ) {
 			var value = options.data || {},
@@ -1561,7 +1560,7 @@
 			}
 			return wrap( childFn, parentFn );
 		}
-		return __export;
+		return dataConfig;
 	}( wrapMethod );
 
 	/* empty/parse.js */
@@ -2002,13 +2001,14 @@
 	/* config/options/groups/optionGroup.js */
 	var optionGroup = function() {
 
-		return function createOptionGroup( keys, config ) {
+		function createOptionGroup( keys, config ) {
 			var group = keys.map( config );
 			keys.forEach( function( key, i ) {
 				group[ key ] = group[ i ];
 			} );
 			return group;
-		};
+		}
+		return createOptionGroup;
 	}( legacy );
 
 	/* config/options/groups/parseOptions.js */
@@ -2319,8 +2319,7 @@
 	/* utils/wrapPrototypeMethod.js */
 	var wrapPrototypeMethod = function( noop ) {
 
-		var __export;
-		__export = function wrap( parent, name, method ) {
+		function wrap( parent, name, method ) {
 			if ( !/_super/.test( method ) ) {
 				return method;
 			}
@@ -2341,7 +2340,7 @@
 			wrapper._parent = parent;
 			wrapper._method = method;
 			return wrapper;
-		};
+		}
 
 		function getSuperMethod( parent, name ) {
 			var method;
@@ -2359,7 +2358,7 @@
 			}
 			return method;
 		}
-		return __export;
+		return wrap;
 	}( noop );
 
 	/* config/deprecate.js */
@@ -2392,13 +2391,15 @@
 				deprecate( options, 'adaptors', 'adapt' );
 			}
 		}
-		return function deprecateOptions( options ) {
+
+		function deprecateOptions( options ) {
 			deprecate( options, 'beforeInit', 'onconstruct' );
 			deprecate( options, 'init', 'onrender' );
 			deprecate( options, 'complete', 'oncomplete' );
 			deprecateEventDefinitions( options );
 			deprecateAdaptors( options );
-		};
+		}
+		return deprecateOptions;
 	}( warn, isArray );
 
 	/* config/config.js */
@@ -2501,7 +2502,6 @@
 	/* shared/interpolate.js */
 	var interpolate = function( circular, warn, interpolators, config ) {
 
-		var __export;
 		var interpolate = function( from, to, ractive, type ) {
 			if ( from === to ) {
 				return snap( to );
@@ -2516,14 +2516,13 @@
 			return interpolators.number( from, to ) || interpolators.array( from, to ) || interpolators.object( from, to ) || snap( to );
 		};
 		circular.interpolate = interpolate;
-		__export = interpolate;
 
 		function snap( to ) {
 			return function() {
 				return to;
 			};
 		}
-		return __export;
+		return interpolate;
 	}( circular, warn, interpolators, config );
 
 	/* Ractive/prototype/animate/Animation.js */
@@ -2611,20 +2610,22 @@
 	var normaliseKeypath = function( normaliseRef ) {
 
 		var leadingDot = /^\.+/;
-		return function normaliseKeypath( keypath ) {
+
+		function normaliseKeypath( keypath ) {
 			return normaliseRef( keypath ).replace( leadingDot, '' );
-		};
+		}
+		return normaliseKeypath;
 	}( normaliseRef );
 
 	/* Ractive/prototype/animate.js */
 	var Ractive$animate = function( animations, Animation, isEqual, log, normaliseKeypath, Promise ) {
 
-		var __export;
 		var noop = function() {},
 			noAnimation = {
 				stop: noop
 			};
-		__export = function Ractive$animate( keypath, to, options ) {
+
+		function Ractive$animate( keypath, to, options ) {
 			var this$0 = this;
 			var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
 			promise = new Promise( function( fulfil ) {
@@ -2718,7 +2719,7 @@
 				animation.stop();
 			};
 			return promise;
-		};
+		}
 
 		function animate( root, keypath, to, options ) {
 			var easing, duration, animation, from;
@@ -2768,14 +2769,15 @@
 			root._animations.push( animation );
 			return animation;
 		}
-		return __export;
+		return Ractive$animate;
 	}( animations, Ractive$animate_Animation, isEqual, log, normaliseKeypath, Promise );
 
 	/* Ractive/prototype/detach.js */
 	var Ractive$detach = function( Hook, removeFromArray ) {
 
 		var detachHook = new Hook( 'detach' );
-		return function Ractive$detach() {
+
+		function Ractive$detach() {
 			if ( this.detached ) {
 				return this.detached;
 			}
@@ -2785,16 +2787,21 @@
 			this.detached = this.fragment.detach();
 			detachHook.fire( this );
 			return this.detached;
-		};
+		}
+		return Ractive$detach;
 	}( Ractive$shared_hooks_Hook, removeFromArray );
 
 	/* Ractive/prototype/find.js */
-	var Ractive$find = function Ractive$find( selector ) {
-		if ( !this.el ) {
-			return null;
+	var Ractive$find = function() {
+
+		function Ractive$find( selector ) {
+			if ( !this.el ) {
+				return null;
+			}
+			return this.fragment.find( selector );
 		}
-		return this.fragment.find( selector );
-	};
+		return Ractive$find;
+	}();
 
 	/* utils/matches.js */
 	var matches = function( isClient, vendors, createElement ) {
@@ -2885,8 +2892,7 @@
 	/* Ractive/prototype/shared/makeQuery/sortByItemPosition.js */
 	var Ractive$shared_makeQuery_sortByItemPosition = function() {
 
-		var __export;
-		__export = function( a, b ) {
+		var __export = function( a, b ) {
 			var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
 			ancestryA = getAncestry( a.component || a._ractive.proxy );
 			ancestryB = getAncestry( b.component || b._ractive.proxy );
@@ -2998,7 +3004,7 @@
 	/* Ractive/prototype/shared/makeQuery/_makeQuery.js */
 	var Ractive$shared_makeQuery__makeQuery = function( defineProperties, test, cancel, sort, dirty, remove ) {
 
-		return function makeQuery( ractive, selector, live, isComponentQuery ) {
+		function makeQuery( ractive, selector, live, isComponentQuery ) {
 			var query = [];
 			defineProperties( query, {
 				selector: {
@@ -3039,13 +3045,14 @@
 				}
 			} );
 			return query;
-		};
+		}
+		return makeQuery;
 	}( defineProperties, Ractive$shared_makeQuery_test, Ractive$shared_makeQuery_cancel, Ractive$shared_makeQuery_sort, Ractive$shared_makeQuery_dirty, Ractive$shared_makeQuery_remove );
 
 	/* Ractive/prototype/findAll.js */
 	var Ractive$findAll = function( makeQuery ) {
 
-		return function Ractive$findAll( selector, options ) {
+		function Ractive$findAll( selector, options ) {
 			var liveQueries, query;
 			if ( !this.el ) {
 				return [];
@@ -3067,13 +3074,14 @@
 			}
 			this.fragment.findAll( selector, query );
 			return query;
-		};
+		}
+		return Ractive$findAll;
 	}( Ractive$shared_makeQuery__makeQuery );
 
 	/* Ractive/prototype/findAllComponents.js */
 	var Ractive$findAllComponents = function( makeQuery ) {
 
-		return function Ractive$findAllComponents( selector, options ) {
+		function Ractive$findAllComponents( selector, options ) {
 			var liveQueries, query;
 			options = options || {};
 			liveQueries = this._liveComponentQueries;
@@ -3092,37 +3100,50 @@
 			}
 			this.fragment.findAllComponents( selector, query );
 			return query;
-		};
+		}
+		return Ractive$findAllComponents;
 	}( Ractive$shared_makeQuery__makeQuery );
 
 	/* Ractive/prototype/findComponent.js */
-	var Ractive$findComponent = function Ractive$findComponent( selector ) {
-		return this.fragment.findComponent( selector );
-	};
+	var Ractive$findComponent = function() {
+
+		function Ractive$findComponent( selector ) {
+			return this.fragment.findComponent( selector );
+		}
+		return Ractive$findComponent;
+	}();
 
 	/* Ractive/prototype/findContainer.js */
-	var Ractive$findContainer = function Ractive$findContainer( selector ) {
-		if ( this.container ) {
-			if ( this.container.component && this.container.component.name === selector ) {
-				return this.container;
-			} else {
-				return this.container.findContainer( selector );
+	var Ractive$findContainer = function() {
+
+		function Ractive$findContainer( selector ) {
+			if ( this.container ) {
+				if ( this.container.component && this.container.component.name === selector ) {
+					return this.container;
+				} else {
+					return this.container.findContainer( selector );
+				}
 			}
+			return null;
 		}
-		return null;
-	};
+		return Ractive$findContainer;
+	}();
 
 	/* Ractive/prototype/findParent.js */
-	var Ractive$findParent = function Ractive$findParent( selector ) {
-		if ( this.parent ) {
-			if ( this.parent.component && this.parent.component.name === selector ) {
-				return this.parent;
-			} else {
-				return this.parent.findParent( selector );
+	var Ractive$findParent = function() {
+
+		function Ractive$findParent( selector ) {
+			if ( this.parent ) {
+				if ( this.parent.component && this.parent.component.name === selector ) {
+					return this.parent;
+				} else {
+					return this.parent.findParent( selector );
+				}
 			}
+			return null;
 		}
-		return null;
-	};
+		return Ractive$findParent;
+	}();
 
 	/* Ractive/prototype/shared/eventStack.js */
 	var Ractive$shared_eventStack = function() {
@@ -3149,7 +3170,6 @@
 	/* utils/getPotentialWildcardMatches.js */
 	var getPotentialWildcardMatches = function() {
 
-		var __export;
 		var starMaps = {};
 		// This function takes a keypath such as 'foo.bar.baz', and returns
 		// all the variants of that keypath that include a wildcard in place
@@ -3157,30 +3177,30 @@
 		// These are then checked against the dependants map (ractive.viewmodel.depsMap)
 		// to see if any pattern observers are downstream of one or more of
 		// these wildcard keypaths (e.g. 'foo.bar.*.status')
-		__export = function getPotentialWildcardMatches( keypath ) {
-			var keys, starMap, mapper, i, result, wildcardKeypath;
-			keys = keypath.split( '.' );
-			if ( !( starMap = starMaps[ keys.length ] ) ) {
-				starMap = getStarMap( keys.length );
-			}
-			result = [];
-			mapper = function( star, i ) {
-				return star ? '*' : keys[ i ];
-			};
-			i = starMap.length;
-			while ( i-- ) {
-				wildcardKeypath = starMap[ i ].map( mapper ).join( '.' );
-				if ( !result.hasOwnProperty( wildcardKeypath ) ) {
-					result.push( wildcardKeypath );
-					result[ wildcardKeypath ] = true;
+		function getPotentialWildcardMatches( keypath ) {
+				var keys, starMap, mapper, i, result, wildcardKeypath;
+				keys = keypath.split( '.' );
+				if ( !( starMap = starMaps[ keys.length ] ) ) {
+					starMap = getStarMap( keys.length );
 				}
+				result = [];
+				mapper = function( star, i ) {
+					return star ? '*' : keys[ i ];
+				};
+				i = starMap.length;
+				while ( i-- ) {
+					wildcardKeypath = starMap[ i ].map( mapper ).join( '.' );
+					if ( !result.hasOwnProperty( wildcardKeypath ) ) {
+						result.push( wildcardKeypath );
+						result[ wildcardKeypath ] = true;
+					}
+				}
+				return result;
 			}
-			return result;
-		};
-		// This function returns all the possible true/false combinations for
-		// a given number - e.g. for two, the possible combinations are
-		// [ true, true ], [ true, false ], [ false, true ], [ false, false ].
-		// It does so by getting all the binary values between 0 and e.g. 11
+			// This function returns all the possible true/false combinations for
+			// a given number - e.g. for two, the possible combinations are
+			// [ true, true ], [ true, false ], [ false, true ], [ false, false ].
+			// It does so by getting all the binary values between 0 and e.g. 11
 		function getStarMap( num ) {
 			var ones = '',
 				max, binary, starMap, mapper, i;
@@ -3204,14 +3224,13 @@
 			}
 			return starMaps[ num ];
 		}
-		return __export;
+		return getPotentialWildcardMatches;
 	}();
 
 	/* Ractive/prototype/shared/fireEvent.js */
 	var Ractive$shared_fireEvent = function( eventStack, getPotentialWildcardMatches ) {
 
-		var __export;
-		__export = function fireEvent( ractive, eventName ) {
+		function fireEvent( ractive, eventName ) {
 			var options = arguments[ 2 ];
 			if ( options === void 0 )
 				options = {};
@@ -3231,7 +3250,7 @@
 			}
 			var eventNames = getPotentialWildcardMatches( eventName );
 			fireEventAs( ractive, eventNames, options.event, options.args, true );
-		};
+		}
 
 		function fireEventAs( ractive, eventNames, event, args ) {
 			var initialFire = arguments[ 4 ];
@@ -3278,18 +3297,19 @@
 			}
 			return !stopEvent;
 		}
-		return __export;
+		return fireEvent;
 	}( Ractive$shared_eventStack, getPotentialWildcardMatches );
 
 	/* Ractive/prototype/fire.js */
 	var Ractive$fire = function( fireEvent ) {
 
-		return function Ractive$fire( eventName ) {
+		function Ractive$fire( eventName ) {
 			var options = {
 				args: Array.prototype.slice.call( arguments, 1 )
 			};
 			fireEvent( this, eventName, options );
-		};
+		}
+		return Ractive$fire;
 	}( Ractive$shared_fireEvent );
 
 	/* Ractive/prototype/get.js */
@@ -3300,7 +3320,8 @@
 			// top-level calls should be intercepted
 			noUnwrap: true
 		};
-		return function Ractive$get( keypath ) {
+
+		function Ractive$get( keypath ) {
 			var value;
 			keypath = normaliseKeypath( keypath );
 			value = this.viewmodel.get( keypath, options );
@@ -3312,48 +3333,53 @@
 				}
 			}
 			return value;
-		};
+		}
+		return Ractive$get;
 	}( normaliseKeypath, resolveRef );
 
 	/* utils/getElement.js */
-	var getElement = function getElement( input ) {
-		var output;
-		if ( !input || typeof input === 'boolean' ) {
-			return;
-		}
-		if ( typeof window === 'undefined' || !document || !input ) {
+	var getElement = function() {
+
+		function getElement( input ) {
+			var output;
+			if ( !input || typeof input === 'boolean' ) {
+				return;
+			}
+			if ( typeof window === 'undefined' || !document || !input ) {
+				return null;
+			}
+			// We already have a DOM node - no work to do. (Duck typing alert!)
+			if ( input.nodeType ) {
+				return input;
+			}
+			// Get node from string
+			if ( typeof input === 'string' ) {
+				// try ID first
+				output = document.getElementById( input );
+				// then as selector, if possible
+				if ( !output && document.querySelector ) {
+					output = document.querySelector( input );
+				}
+				// did it work?
+				if ( output && output.nodeType ) {
+					return output;
+				}
+			}
+			// If we've been given a collection (jQuery, Zepto etc), extract the first item
+			if ( input[ 0 ] && input[ 0 ].nodeType ) {
+				return input[ 0 ];
+			}
 			return null;
 		}
-		// We already have a DOM node - no work to do. (Duck typing alert!)
-		if ( input.nodeType ) {
-			return input;
-		}
-		// Get node from string
-		if ( typeof input === 'string' ) {
-			// try ID first
-			output = document.getElementById( input );
-			// then as selector, if possible
-			if ( !output && document.querySelector ) {
-				output = document.querySelector( input );
-			}
-			// did it work?
-			if ( output && output.nodeType ) {
-				return output;
-			}
-		}
-		// If we've been given a collection (jQuery, Zepto etc), extract the first item
-		if ( input[ 0 ] && input[ 0 ].nodeType ) {
-			return input[ 0 ];
-		}
-		return null;
-	};
+		return getElement;
+	}();
 
 	/* Ractive/prototype/insert.js */
 	var Ractive$insert = function( Hook, getElement ) {
 
-		var __export;
 		var insertHook = new Hook( 'insert' );
-		__export = function Ractive$insert( target, anchor ) {
+
+		function Ractive$insert( target, anchor ) {
 			if ( !this.fragment.rendered ) {
 				// TODO create, and link to, documentation explaining this
 				throw new Error( 'The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.' );
@@ -3368,7 +3394,7 @@
 			( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( this );
 			this.detached = null;
 			fireInsertHook( this );
-		};
+		}
 
 		function fireInsertHook( ractive ) {
 			insertHook.fire( ractive );
@@ -3376,13 +3402,13 @@
 				fireInsertHook( child.instance );
 			} );
 		}
-		return __export;
+		return Ractive$insert;
 	}( Ractive$shared_hooks_Hook, getElement );
 
 	/* Ractive/prototype/merge.js */
 	var Ractive$merge = function( isArray, log, normaliseKeypath, runloop ) {
 
-		return function Ractive$merge( keypath, array, options ) {
+		function Ractive$merge( keypath, array, options ) {
 			var this$0 = this;
 			var currentArray, promise;
 			keypath = normaliseKeypath( keypath );
@@ -3413,7 +3439,8 @@
 				} );
 			}
 			return promise;
-		};
+		}
+		return Ractive$merge;
 	}( isArray, log, normaliseKeypath, runloop );
 
 	/* Ractive/prototype/observe/Observer.js */
@@ -3466,7 +3493,7 @@
 	/* shared/keypaths/getMatching.js */
 	var getMatching = function( isArray ) {
 
-		return function getMatchingKeypaths( ractive, pattern ) {
+		function getMatchingKeypaths( ractive, pattern ) {
 			var keys, key, matchingKeypaths;
 			keys = pattern.split( '.' );
 			matchingKeypaths = [ '' ];
@@ -3503,13 +3530,14 @@
 					return keypath ? keypath + '.' + key : key;
 				};
 			}
-		};
+		}
+		return getMatchingKeypaths;
 	}( isArray );
 
 	/* Ractive/prototype/observe/getPattern.js */
 	var Ractive$observe_getPattern = function( getMatchingKeypaths ) {
 
-		return function getPattern( ractive, pattern ) {
+		function getPattern( ractive, pattern ) {
 			var matchingKeypaths, values;
 			matchingKeypaths = getMatchingKeypaths( ractive, pattern );
 			values = {};
@@ -3517,7 +3545,8 @@
 				values[ keypath ] = ractive.get( keypath );
 			} );
 			return values;
-		};
+		}
+		return getPattern;
 	}( getMatching );
 
 	/* Ractive/prototype/observe/PatternObserver.js */
@@ -3618,7 +3647,8 @@
 
 		var wildcard = /\*/,
 			emptyObject = {};
-		return function getObserverFacade( ractive, keypath, callback, options ) {
+
+		function getObserverFacade( ractive, keypath, callback, options ) {
 			var observer, isPatternObserver, cancelled;
 			keypath = normaliseKeypath( keypath );
 			options = options || emptyObject;
@@ -3650,13 +3680,14 @@
 					cancelled = true;
 				}
 			};
-		};
+		}
+		return getObserverFacade;
 	}( normaliseKeypath, Ractive$observe_Observer, Ractive$observe_PatternObserver );
 
 	/* Ractive/prototype/observe.js */
 	var Ractive$observe = function( isObject, getObserverFacade ) {
 
-		return function Ractive$observe( keypath, callback, options ) {
+		function Ractive$observe( keypath, callback, options ) {
 			var observers, map, keypaths, i;
 			// Allow a map of keypaths to handlers
 			if ( isObject( keypath ) ) {
@@ -3705,20 +3736,25 @@
 					}
 				}
 			};
-		};
+		}
+		return Ractive$observe;
 	}( isObject, Ractive$observe_getObserverFacade );
 
 	/* Ractive/prototype/observeOnce.js */
-	var Ractive$observeOnce = function Ractive$observeOnce( property, callback, options ) {
-		var observer = this.observe( property, function() {
-			callback.apply( this, arguments );
-			observer.cancel();
-		}, {
-			init: false,
-			defer: options && options.defer
-		} );
-		return observer;
-	};
+	var Ractive$observeOnce = function() {
+
+		function Ractive$observeOnce( property, callback, options ) {
+			var observer = this.observe( property, function() {
+				callback.apply( this, arguments );
+				observer.cancel();
+			}, {
+				init: false,
+				defer: options && options.defer
+			} );
+			return observer;
+		}
+		return Ractive$observeOnce;
+	}();
 
 	/* Ractive/prototype/shared/trim.js */
 	var Ractive$shared_trim = function( str ) {
@@ -3733,7 +3769,7 @@
 	/* Ractive/prototype/off.js */
 	var Ractive$off = function( trim, notEmptyString ) {
 
-		return function Ractive$off( eventName, callback ) {
+		function Ractive$off( eventName, callback ) {
 			var this$0 = this;
 			var eventNames;
 			// if no arguments specified, remove all callbacks
@@ -3765,13 +3801,14 @@
 				} );
 			}
 			return this;
-		};
+		}
+		return Ractive$off;
 	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
 
 	/* Ractive/prototype/on.js */
 	var Ractive$on = function( trim, notEmptyString ) {
 
-		return function Ractive$on( eventName, callback ) {
+		function Ractive$on( eventName, callback ) {
 			var this$0 = this;
 			var listeners, n, eventNames;
 			// allow mutliple listeners to be bound in one go
@@ -3801,23 +3838,27 @@
 					return this$0.off( eventName, callback );
 				}
 			};
-		};
+		}
+		return Ractive$on;
 	}( Ractive$shared_trim, Ractive$shared_notEmptyString );
 
 	/* Ractive/prototype/once.js */
-	var Ractive$once = function Ractive$once( eventName, handler ) {
-		var listener = this.on( eventName, function() {
-			handler.apply( this, arguments );
-			listener.cancel();
-		} );
-		// so we can still do listener.cancel() manually
-		return listener;
-	};
+	var Ractive$once = function() {
+
+		function Ractive$once( eventName, handler ) {
+			var listener = this.on( eventName, function() {
+				handler.apply( this, arguments );
+				listener.cancel();
+			} );
+			// so we can still do listener.cancel() manually
+			return listener;
+		}
+		return Ractive$once;
+	}();
 
 	/* shared/getNewIndices.js */
 	var getNewIndices = function() {
 
-		var __export;
 		// This function takes an array, the name of a mutator method, and the
 		// arguments to call that mutator method with, and returns an array that
 		// maps the old indices to their new indices.
@@ -3841,30 +3882,30 @@
 		//
 		// This information is used to enable fast, non-destructive shuffling of list
 		// sections when you do e.g. `ractive.splice( 'items', 2, 2 );
-		__export = function getNewIndices( array, methodName, args ) {
-			var spliceArguments, len, newIndices = [],
-				removeStart, removeEnd, balance, i;
-			spliceArguments = getSpliceEquivalent( array, methodName, args );
-			if ( !spliceArguments ) {
-				return null;
+		function getNewIndices( array, methodName, args ) {
+				var spliceArguments, len, newIndices = [],
+					removeStart, removeEnd, balance, i;
+				spliceArguments = getSpliceEquivalent( array, methodName, args );
+				if ( !spliceArguments ) {
+					return null;
+				}
+				len = array.length;
+				balance = spliceArguments.length - 2 - spliceArguments[ 1 ];
+				removeStart = Math.min( len, spliceArguments[ 0 ] );
+				removeEnd = removeStart + spliceArguments[ 1 ];
+				for ( i = 0; i < removeStart; i += 1 ) {
+					newIndices.push( i );
+				}
+				for ( ; i < removeEnd; i += 1 ) {
+					newIndices.push( -1 );
+				}
+				for ( ; i < len; i += 1 ) {
+					newIndices.push( i + balance );
+				}
+				return newIndices;
 			}
-			len = array.length;
-			balance = spliceArguments.length - 2 - spliceArguments[ 1 ];
-			removeStart = Math.min( len, spliceArguments[ 0 ] );
-			removeEnd = removeStart + spliceArguments[ 1 ];
-			for ( i = 0; i < removeStart; i += 1 ) {
-				newIndices.push( i );
-			}
-			for ( ; i < removeEnd; i += 1 ) {
-				newIndices.push( -1 );
-			}
-			for ( ; i < len; i += 1 ) {
-				newIndices.push( i + balance );
-			}
-			return newIndices;
-		};
-		// The pop, push, shift an unshift methods can all be represented
-		// as an equivalent splice
+			// The pop, push, shift an unshift methods can all be represented
+			// as an equivalent splice
 		function getSpliceEquivalent( array, methodName, args ) {
 			switch ( methodName ) {
 				case 'splice':
@@ -3905,7 +3946,7 @@
 					].concat( args );
 			}
 		}
-		return __export;
+		return getNewIndices;
 	}();
 
 	/* Ractive/prototype/shared/makeArrayMethod.js */
@@ -4021,10 +4062,10 @@
 	/* Ractive/prototype/render.js */
 	var Ractive$render = function( css, Hook, getElement, log, runloop ) {
 
-		var __export;
 		var renderHook = new Hook( 'render' ),
 			completeHook = new Hook( 'complete' );
-		__export = function Ractive$render( target, anchor ) {
+
+		function Ractive$render( target, anchor ) {
 			var this$0 = this;
 			var promise, instances, transitionsEnabled;
 			// if `noIntro` is `true`, temporarily disable transitions
@@ -4085,7 +4126,7 @@
 				} );
 			} );
 			return promise;
-		};
+		}
 
 		function removeOtherInstances( others ) {
 			try {
@@ -4094,136 +4135,172 @@
 				} );
 			} catch ( err ) {}
 		}
-		return __export;
+		return Ractive$render;
 	}( global_css, Ractive$shared_hooks_Hook, getElement, log, runloop );
 
 	/* virtualdom/Fragment/prototype/bubble.js */
-	var virtualdom_Fragment$bubble = function Fragment$bubble() {
-		this.dirtyValue = this.dirtyArgs = true;
-		if ( this.bound && typeof this.owner.bubble === 'function' ) {
-			this.owner.bubble();
+	var virtualdom_Fragment$bubble = function() {
+
+		function Fragment$bubble() {
+			this.dirtyValue = this.dirtyArgs = true;
+			if ( this.bound && typeof this.owner.bubble === 'function' ) {
+				this.owner.bubble();
+			}
 		}
-	};
+		return Fragment$bubble;
+	}();
 
 	/* virtualdom/Fragment/prototype/detach.js */
-	var virtualdom_Fragment$detach = function Fragment$detach() {
-		var docFrag;
-		if ( this.items.length === 1 ) {
-			return this.items[ 0 ].detach();
-		}
-		docFrag = document.createDocumentFragment();
-		this.items.forEach( function( item ) {
-			var node = item.detach();
-			// TODO The if {...} wasn't previously required - it is now, because we're
-			// forcibly detaching everything to reorder sections after an update. That's
-			// a non-ideal brute force approach, implemented to get all the tests to pass
-			// - as soon as it's replaced with something more elegant, this should
-			// revert to `docFrag.appendChild( item.detach() )`
-			if ( node ) {
-				docFrag.appendChild( node );
+	var virtualdom_Fragment$detach = function() {
+
+		function Fragment$detach() {
+			var docFrag;
+			if ( this.items.length === 1 ) {
+				return this.items[ 0 ].detach();
 			}
-		} );
-		return docFrag;
-	};
+			docFrag = document.createDocumentFragment();
+			this.items.forEach( function( item ) {
+				var node = item.detach();
+				// TODO The if {...} wasn't previously required - it is now, because we're
+				// forcibly detaching everything to reorder sections after an update. That's
+				// a non-ideal brute force approach, implemented to get all the tests to pass
+				// - as soon as it's replaced with something more elegant, this should
+				// revert to `docFrag.appendChild( item.detach() )`
+				if ( node ) {
+					docFrag.appendChild( node );
+				}
+			} );
+			return docFrag;
+		}
+		return Fragment$detach;
+	}();
 
 	/* virtualdom/Fragment/prototype/find.js */
-	var virtualdom_Fragment$find = function Fragment$find( selector ) {
-		var i, len, item, queryResult;
-		if ( this.items ) {
-			len = this.items.length;
-			for ( i = 0; i < len; i += 1 ) {
-				item = this.items[ i ];
-				if ( item.find && ( queryResult = item.find( selector ) ) ) {
-					return queryResult;
+	var virtualdom_Fragment$find = function() {
+
+		function Fragment$find( selector ) {
+			var i, len, item, queryResult;
+			if ( this.items ) {
+				len = this.items.length;
+				for ( i = 0; i < len; i += 1 ) {
+					item = this.items[ i ];
+					if ( item.find && ( queryResult = item.find( selector ) ) ) {
+						return queryResult;
+					}
 				}
+				return null;
 			}
-			return null;
 		}
-	};
+		return Fragment$find;
+	}();
 
 	/* virtualdom/Fragment/prototype/findAll.js */
-	var virtualdom_Fragment$findAll = function Fragment$findAll( selector, query ) {
-		var i, len, item;
-		if ( this.items ) {
-			len = this.items.length;
-			for ( i = 0; i < len; i += 1 ) {
-				item = this.items[ i ];
-				if ( item.findAll ) {
-					item.findAll( selector, query );
+	var virtualdom_Fragment$findAll = function() {
+
+		function Fragment$findAll( selector, query ) {
+			var i, len, item;
+			if ( this.items ) {
+				len = this.items.length;
+				for ( i = 0; i < len; i += 1 ) {
+					item = this.items[ i ];
+					if ( item.findAll ) {
+						item.findAll( selector, query );
+					}
 				}
 			}
+			return query;
 		}
-		return query;
-	};
+		return Fragment$findAll;
+	}();
 
 	/* virtualdom/Fragment/prototype/findAllComponents.js */
-	var virtualdom_Fragment$findAllComponents = function Fragment$findAllComponents( selector, query ) {
-		var i, len, item;
-		if ( this.items ) {
-			len = this.items.length;
-			for ( i = 0; i < len; i += 1 ) {
-				item = this.items[ i ];
-				if ( item.findAllComponents ) {
-					item.findAllComponents( selector, query );
+	var virtualdom_Fragment$findAllComponents = function() {
+
+		function Fragment$findAllComponents( selector, query ) {
+			var i, len, item;
+			if ( this.items ) {
+				len = this.items.length;
+				for ( i = 0; i < len; i += 1 ) {
+					item = this.items[ i ];
+					if ( item.findAllComponents ) {
+						item.findAllComponents( selector, query );
+					}
 				}
 			}
+			return query;
 		}
-		return query;
-	};
+		return Fragment$findAllComponents;
+	}();
 
 	/* virtualdom/Fragment/prototype/findComponent.js */
-	var virtualdom_Fragment$findComponent = function Fragment$findComponent( selector ) {
-		var len, i, item, queryResult;
-		if ( this.items ) {
-			len = this.items.length;
-			for ( i = 0; i < len; i += 1 ) {
-				item = this.items[ i ];
-				if ( item.findComponent && ( queryResult = item.findComponent( selector ) ) ) {
-					return queryResult;
+	var virtualdom_Fragment$findComponent = function() {
+
+		function Fragment$findComponent( selector ) {
+			var len, i, item, queryResult;
+			if ( this.items ) {
+				len = this.items.length;
+				for ( i = 0; i < len; i += 1 ) {
+					item = this.items[ i ];
+					if ( item.findComponent && ( queryResult = item.findComponent( selector ) ) ) {
+						return queryResult;
+					}
 				}
+				return null;
+			}
+		}
+		return Fragment$findComponent;
+	}();
+
+	/* virtualdom/Fragment/prototype/findNextNode.js */
+	var virtualdom_Fragment$findNextNode = function() {
+
+		function Fragment$findNextNode( item ) {
+			var index = item.index,
+				node;
+			if ( this.items[ index + 1 ] ) {
+				node = this.items[ index + 1 ].firstNode();
+			} else if ( this.owner === this.root ) {
+				if ( !this.owner.component ) {
+					// TODO but something else could have been appended to
+					// this.root.el, no?
+					node = null;
+				} else {
+					node = this.owner.component.findNextNode();
+				}
+			} else {
+				node = this.owner.findNextNode( this );
+			}
+			return node;
+		}
+		return Fragment$findNextNode;
+	}();
+
+	/* virtualdom/Fragment/prototype/firstNode.js */
+	var virtualdom_Fragment$firstNode = function() {
+
+		function Fragment$firstNode() {
+			if ( this.items && this.items[ 0 ] ) {
+				return this.items[ 0 ].firstNode();
 			}
 			return null;
 		}
-	};
-
-	/* virtualdom/Fragment/prototype/findNextNode.js */
-	var virtualdom_Fragment$findNextNode = function Fragment$findNextNode( item ) {
-		var index = item.index,
-			node;
-		if ( this.items[ index + 1 ] ) {
-			node = this.items[ index + 1 ].firstNode();
-		} else if ( this.owner === this.root ) {
-			if ( !this.owner.component ) {
-				// TODO but something else could have been appended to
-				// this.root.el, no?
-				node = null;
-			} else {
-				node = this.owner.component.findNextNode();
-			}
-		} else {
-			node = this.owner.findNextNode( this );
-		}
-		return node;
-	};
-
-	/* virtualdom/Fragment/prototype/firstNode.js */
-	var virtualdom_Fragment$firstNode = function Fragment$firstNode() {
-		if ( this.items && this.items[ 0 ] ) {
-			return this.items[ 0 ].firstNode();
-		}
-		return null;
-	};
+		return Fragment$firstNode;
+	}();
 
 	/* virtualdom/Fragment/prototype/getNode.js */
-	var virtualdom_Fragment$getNode = function Fragment$getNode() {
-		var fragment = this;
-		do {
-			if ( fragment.pElement ) {
-				return fragment.pElement.node;
-			}
-		} while ( fragment = fragment.parent );
-		return this.root.detached || this.root.el;
-	};
+	var virtualdom_Fragment$getNode = function() {
+
+		function Fragment$getNode() {
+			var fragment = this;
+			do {
+				if ( fragment.pElement ) {
+					return fragment.pElement.node;
+				}
+			} while ( fragment = fragment.parent );
+			return this.root.detached || this.root.el;
+		}
+		return Fragment$getNode;
+	}();
 
 	/* config/types.js */
 	var types = {
@@ -4467,7 +4544,7 @@
 	/* parse/Parser/expressions/primary/literal/objectLiteral/keyValuePairs.js */
 	var keyValuePairs = function( getKeyValuePair ) {
 
-		return function getKeyValuePairs( parser ) {
+		function getKeyValuePairs( parser ) {
 			var start, pairs, pair, keyValuePairs;
 			start = parser.pos;
 			pair = getKeyValuePair( parser );
@@ -4484,7 +4561,8 @@
 				return pairs.concat( keyValuePairs );
 			}
 			return pairs;
-		};
+		}
+		return getKeyValuePairs;
 	}( keyValuePair );
 
 	/* parse/Parser/expressions/primary/literal/objectLiteral/_objectLiteral.js */
@@ -4516,7 +4594,7 @@
 	/* parse/Parser/expressions/shared/expressionList.js */
 	var expressionList = function( errors ) {
 
-		return function getExpressionList( parser ) {
+		function getExpressionList( parser ) {
 			var start, expressions, expr, next;
 			start = parser.pos;
 			parser.allowWhitespace();
@@ -4539,7 +4617,8 @@
 				expressions.push( expression );
 			}
 			return expressions;
-		};
+		}
+		return getExpressionList;
 	}( parse_Parser_expressions_shared_errors );
 
 	/* parse/Parser/expressions/primary/literal/arrayLiteral.js */
@@ -4689,7 +4768,7 @@
 	/* parse/Parser/expressions/shared/refinement.js */
 	var refinement = function( types, errors, patterns ) {
 
-		return function getRefinement( parser ) {
+		function getRefinement( parser ) {
 			var start, name, expr;
 			start = parser.pos;
 			parser.allowWhitespace();
@@ -4721,7 +4800,8 @@
 				};
 			}
 			return null;
-		};
+		}
+		return getRefinement;
 	}( types, parse_Parser_expressions_shared_errors, patterns );
 
 	/* parse/Parser/expressions/memberOrInvocation.js */
@@ -4912,8 +4992,7 @@
 	/* parse/Parser/utils/flattenExpression.js */
 	var flattenExpression = function( types, isObject ) {
 
-		var __export;
-		__export = function( expression ) {
+		var __export = function( expression ) {
 			var refs = [],
 				flattened;
 			extractRefs( expression, refs );
@@ -5287,9 +5366,9 @@
 	/* virtualdom/Fragment/prototype/getValue.js */
 	var virtualdom_Fragment$getValue = function( parseJSON ) {
 
-		var __export;
 		var empty = {};
-		__export = function Fragment$getValue() {
+
+		function Fragment$getValue() {
 			var options = arguments[ 0 ];
 			if ( options === void 0 )
 				options = empty;
@@ -5309,7 +5388,7 @@
 				this[ dirtyFlag ] = false;
 			}
 			return this[ cachedResult ];
-		};
+		}
 
 		function processItems( items, values, guid, counter ) {
 			counter = counter || 0;
@@ -5333,7 +5412,7 @@
 				return '${' + placeholderId + '}';
 			} ).join( '' );
 		}
-		return __export;
+		return Fragment$getValue;
 	}( parseJSON );
 
 	/* utils/escapeHtml.js */
@@ -5342,18 +5421,24 @@
 		var lessThan = /</g;
 		var greaterThan = />/g;
 		var amp = /&/g;
-		return function escapeHtml( str ) {
+
+		function escapeHtml( str ) {
 			return str.replace( amp, '&amp;' ).replace( lessThan, '&lt;' ).replace( greaterThan, '&gt;' );
-		};
+		}
+		return escapeHtml;
 	}();
 
 	/* utils/detachNode.js */
-	var detachNode = function detachNode( node ) {
-		if ( node && node.parentNode ) {
-			node.parentNode.removeChild( node );
+	var detachNode = function() {
+
+		function detachNode( node ) {
+			if ( node && node.parentNode ) {
+				node.parentNode.removeChild( node );
+			}
+			return node;
 		}
-		return node;
-	};
+		return detachNode;
+	}();
 
 	/* virtualdom/items/shared/detach.js */
 	var detach = function( detachNode ) {
@@ -5394,30 +5479,42 @@
 	}( types, escapeHtml, detach );
 
 	/* virtualdom/items/shared/unbind.js */
-	var unbind = function unbind() {
-		if ( this.registered ) {
-			// this was registered as a dependant
-			this.root.viewmodel.unregister( this.keypath, this );
+	var unbind = function() {
+
+		function unbind() {
+			if ( this.registered ) {
+				// this was registered as a dependant
+				this.root.viewmodel.unregister( this.keypath, this );
+			}
+			if ( this.resolver ) {
+				this.resolver.unbind();
+			}
 		}
-		if ( this.resolver ) {
-			this.resolver.unbind();
-		}
-	};
+		return unbind;
+	}();
 
 	/* virtualdom/items/shared/Mustache/getValue.js */
-	var getValue = function Mustache$getValue() {
-		return this.value;
-	};
+	var getValue = function() {
+
+		function Mustache$getValue() {
+			return this.value;
+		}
+		return Mustache$getValue;
+	}();
 
 	/* shared/keypaths/startsWith.js */
-	var startsWith = function startsWithKeypath( target, keypath ) {
-		return target && keypath && target.substr( 0, keypath.length + 1 ) === keypath + '.';
-	};
+	var startsWith = function() {
+
+		function startsWithKeypath( target, keypath ) {
+			return target && keypath && target.substr( 0, keypath.length + 1 ) === keypath + '.';
+		}
+		return startsWithKeypath;
+	}();
 
 	/* shared/keypaths/getNew.js */
 	var getNew = function( startsWithKeypath ) {
 
-		return function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
+		function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
 			// exact match
 			if ( targetKeypath === oldKeypath ) {
 				return newKeypath !== undefined ? newKeypath : null;
@@ -5426,7 +5523,8 @@
 			if ( startsWithKeypath( targetKeypath, oldKeypath ) ) {
 				return newKeypath === null ? newKeypath : targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
 			}
-		};
+		}
+		return getNewKeypath;
 	}( startsWith );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceResolver.js */
@@ -5588,9 +5686,6 @@
 	/* virtualdom/items/shared/Resolvers/findIndexRefs.js */
 	var findIndexRefs = function() {
 
-		var __export;
-		__export = findIndexRefs;
-
 		function findIndexRefs( fragment, refName ) {
 			var result = {},
 				refs, fragRefs, ref, i, owner, hit = false;
@@ -5643,13 +5738,13 @@
 			}
 			return refs;
 		};
-		return __export;
+		return findIndexRefs;
 	}();
 
 	/* virtualdom/items/shared/Resolvers/createReferenceResolver.js */
 	var createReferenceResolver = function( ReferenceResolver, SpecialResolver, IndexResolver, findIndexRefs ) {
 
-		return function createReferenceResolver( owner, ref, callback ) {
+		function createReferenceResolver( owner, ref, callback ) {
 			var indexRef;
 			if ( ref.charAt( 0 ) === '@' ) {
 				return new SpecialResolver( owner, ref, callback );
@@ -5658,27 +5753,30 @@
 				return new IndexResolver( owner, indexRef, callback );
 			}
 			return new ReferenceResolver( owner, ref, callback );
-		};
+		}
+		return createReferenceResolver;
 	}( ReferenceResolver, SpecialResolver, IndexResolver, findIndexRefs );
 
 	/* shared/keypaths/decode.js */
 	var decode = function( isNumeric ) {
 
-		return function decodeKeypath( keypath ) {
+		function decodeKeypath( keypath ) {
 			var value = keypath.slice( 2 );
 			if ( keypath[ 1 ] === 'i' ) {
 				return isNumeric( value ) ? +value : value;
 			} else {
 				return value;
 			}
-		};
+		}
+		return decodeKeypath;
 	}( isNumeric );
 
 	/* shared/getFunctionFromString.js */
 	var getFunctionFromString = function() {
 
 		var cache = {};
-		return function getFunctionFromString( str, i ) {
+
+		function getFunctionFromString( str, i ) {
 			var fn, args;
 			if ( cache[ str ] ) {
 				return cache[ str ];
@@ -5690,13 +5788,13 @@
 			fn = new Function( args.join( ',' ), 'return(' + str + ')' );
 			cache[ str ] = fn;
 			return fn;
-		};
+		}
+		return getFunctionFromString;
 	}();
 
 	/* virtualdom/items/shared/Resolvers/ExpressionResolver.js */
 	var ExpressionResolver = function( defineProperty, isNumeric, decodeKeypath, createReferenceResolver, getFunctionFromString ) {
 
-		var __export;
 		var ExpressionResolver, bind = Function.prototype.bind;
 		ExpressionResolver = function( owner, parentFragment, expression, callback ) {
 			var this$0 = this;
@@ -5788,7 +5886,6 @@
 				} );
 			}
 		};
-		__export = ExpressionResolver;
 
 		function call( value ) {
 			return value.call();
@@ -5847,7 +5944,7 @@
 			} );
 			return fn.__ractive_nowrap;
 		}
-		return __export;
+		return ExpressionResolver;
 	}( defineProperty, isNumeric, decode, createReferenceResolver, getFunctionFromString, legacy );
 
 	/* virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js */
@@ -5998,7 +6095,7 @@
 	/* virtualdom/items/shared/Mustache/initialise.js */
 	var initialise = function( types, createReferenceResolver, ReferenceExpressionResolver, ExpressionResolver ) {
 
-		return function Mustache$init( mustache, options ) {
+		function Mustache$init( mustache, options ) {
 			var ref, parentFragment, template;
 			parentFragment = options.parentFragment;
 			template = options.template;
@@ -6043,13 +6140,14 @@
 					}
 				}
 			}
-		};
+		}
+		return Mustache$init;
 	}( types, createReferenceResolver, ReferenceExpressionResolver, ExpressionResolver );
 
 	/* virtualdom/items/shared/Mustache/resolve.js */
 	var resolve = function( decodeKeypath ) {
 
-		return function Mustache$resolve( keypath ) {
+		function Mustache$resolve( keypath ) {
 			var wasResolved, value, twowayBinding;
 			// 'Special' keypaths, e.g. @foo or @7, encode a value
 			if ( keypath && keypath[ 0 ] === '@' ) {
@@ -6080,22 +6178,27 @@
 			if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {
 				twowayBinding.rebound();
 			}
-		};
+		}
+		return Mustache$resolve;
 	}( decode );
 
 	/* virtualdom/items/shared/Mustache/rebind.js */
-	var rebind = function Mustache$rebind( oldKeypath, newKeypath ) {
-		// Children first
-		if ( this.fragments ) {
-			this.fragments.forEach( function( f ) {
-				return f.rebind( oldKeypath, newKeypath );
-			} );
+	var rebind = function() {
+
+		function Mustache$rebind( oldKeypath, newKeypath ) {
+			// Children first
+			if ( this.fragments ) {
+				this.fragments.forEach( function( f ) {
+					return f.rebind( oldKeypath, newKeypath );
+				} );
+			}
+			// Expression mustache?
+			if ( this.resolver ) {
+				this.resolver.rebind( oldKeypath, newKeypath );
+			}
 		}
-		// Expression mustache?
-		if ( this.resolver ) {
-			this.resolver.rebind( oldKeypath, newKeypath );
-		}
-	};
+		return Mustache$rebind;
+	}();
 
 	/* virtualdom/items/shared/Mustache/_Mustache.js */
 	var Mustache = function( getValue, init, resolve, rebind ) {
@@ -6162,95 +6265,127 @@
 	}( types, runloop, escapeHtml, detachNode, isEqual, unbind, Mustache, detach );
 
 	/* virtualdom/items/Section/prototype/bubble.js */
-	var virtualdom_items_Section$bubble = function Section$bubble() {
-		this.parentFragment.bubble();
-	};
+	var virtualdom_items_Section$bubble = function() {
+
+		function Section$bubble() {
+			this.parentFragment.bubble();
+		}
+		return Section$bubble;
+	}();
 
 	/* virtualdom/items/Section/prototype/detach.js */
-	var virtualdom_items_Section$detach = function Section$detach() {
-		var docFrag;
-		if ( this.fragments.length === 1 ) {
-			return this.fragments[ 0 ].detach();
+	var virtualdom_items_Section$detach = function() {
+
+		function Section$detach() {
+			var docFrag;
+			if ( this.fragments.length === 1 ) {
+				return this.fragments[ 0 ].detach();
+			}
+			docFrag = document.createDocumentFragment();
+			this.fragments.forEach( function( item ) {
+				docFrag.appendChild( item.detach() );
+			} );
+			return docFrag;
 		}
-		docFrag = document.createDocumentFragment();
-		this.fragments.forEach( function( item ) {
-			docFrag.appendChild( item.detach() );
-		} );
-		return docFrag;
-	};
+		return Section$detach;
+	}();
 
 	/* virtualdom/items/Section/prototype/find.js */
-	var virtualdom_items_Section$find = function Section$find( selector ) {
-		var i, len, queryResult;
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			if ( queryResult = this.fragments[ i ].find( selector ) ) {
-				return queryResult;
-			}
-		}
-		return null;
-	};
+	var virtualdom_items_Section$find = function() {
 
-	/* virtualdom/items/Section/prototype/findAll.js */
-	var virtualdom_items_Section$findAll = function Section$findAll( selector, query ) {
-		var i, len;
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			this.fragments[ i ].findAll( selector, query );
-		}
-	};
-
-	/* virtualdom/items/Section/prototype/findAllComponents.js */
-	var virtualdom_items_Section$findAllComponents = function Section$findAllComponents( selector, query ) {
-		var i, len;
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			this.fragments[ i ].findAllComponents( selector, query );
-		}
-	};
-
-	/* virtualdom/items/Section/prototype/findComponent.js */
-	var virtualdom_items_Section$findComponent = function Section$findComponent( selector ) {
-		var i, len, queryResult;
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			if ( queryResult = this.fragments[ i ].findComponent( selector ) ) {
-				return queryResult;
-			}
-		}
-		return null;
-	};
-
-	/* virtualdom/items/Section/prototype/findNextNode.js */
-	var virtualdom_items_Section$findNextNode = function Section$findNextNode( fragment ) {
-		if ( this.fragments[ fragment.index + 1 ] ) {
-			return this.fragments[ fragment.index + 1 ].firstNode();
-		}
-		return this.parentFragment.findNextNode( this );
-	};
-
-	/* virtualdom/items/Section/prototype/firstNode.js */
-	var virtualdom_items_Section$firstNode = function Section$firstNode() {
-		var len, i, node;
-		if ( len = this.fragments.length ) {
+		function Section$find( selector ) {
+			var i, len, queryResult;
+			len = this.fragments.length;
 			for ( i = 0; i < len; i += 1 ) {
-				if ( node = this.fragments[ i ].firstNode() ) {
-					return node;
+				if ( queryResult = this.fragments[ i ].find( selector ) ) {
+					return queryResult;
 				}
 			}
+			return null;
 		}
-		return this.parentFragment.findNextNode( this );
-	};
+		return Section$find;
+	}();
+
+	/* virtualdom/items/Section/prototype/findAll.js */
+	var virtualdom_items_Section$findAll = function() {
+
+		function Section$findAll( selector, query ) {
+			var i, len;
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				this.fragments[ i ].findAll( selector, query );
+			}
+		}
+		return Section$findAll;
+	}();
+
+	/* virtualdom/items/Section/prototype/findAllComponents.js */
+	var virtualdom_items_Section$findAllComponents = function() {
+
+		function Section$findAllComponents( selector, query ) {
+			var i, len;
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				this.fragments[ i ].findAllComponents( selector, query );
+			}
+		}
+		return Section$findAllComponents;
+	}();
+
+	/* virtualdom/items/Section/prototype/findComponent.js */
+	var virtualdom_items_Section$findComponent = function() {
+
+		function Section$findComponent( selector ) {
+			var i, len, queryResult;
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				if ( queryResult = this.fragments[ i ].findComponent( selector ) ) {
+					return queryResult;
+				}
+			}
+			return null;
+		}
+		return Section$findComponent;
+	}();
+
+	/* virtualdom/items/Section/prototype/findNextNode.js */
+	var virtualdom_items_Section$findNextNode = function() {
+
+		function Section$findNextNode( fragment ) {
+			if ( this.fragments[ fragment.index + 1 ] ) {
+				return this.fragments[ fragment.index + 1 ].firstNode();
+			}
+			return this.parentFragment.findNextNode( this );
+		}
+		return Section$findNextNode;
+	}();
+
+	/* virtualdom/items/Section/prototype/firstNode.js */
+	var virtualdom_items_Section$firstNode = function() {
+
+		function Section$firstNode() {
+			var len, i, node;
+			if ( len = this.fragments.length ) {
+				for ( i = 0; i < len; i += 1 ) {
+					if ( node = this.fragments[ i ].firstNode() ) {
+						return node;
+					}
+				}
+			}
+			return this.parentFragment.findNextNode( this );
+		}
+		return Section$firstNode;
+	}();
 
 	/* virtualdom/items/Section/prototype/shuffle.js */
 	var virtualdom_items_Section$shuffle = function( types, runloop, circular ) {
 
-		var __export;
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		__export = function Section$shuffle( newIndices ) {
+
+		function Section$shuffle( newIndices ) {
 			var this$0 = this;
 			var parentFragment, firstChange, i, newLength, reboundFragments, fragmentOptions, fragment;
 			// short circuit any double-updates, and ensure that this isn't applied to
@@ -6323,13 +6458,13 @@
 				}
 				this.fragments[ i ] = fragment;
 			}
-		};
+		}
 
 		function blindRebind( dep ) {
 			// the keypath doesn't actually matter here as it won't have changed
 			dep.rebind( '', '' );
 		}
-		return __export;
+		return Section$shuffle;
 	}( types, runloop, circular );
 
 	/* virtualdom/items/Section/prototype/rebind.js */
@@ -6341,33 +6476,39 @@
 	}( Mustache );
 
 	/* virtualdom/items/Section/prototype/render.js */
-	var virtualdom_items_Section$render = function Section$render() {
-		var docFrag;
-		docFrag = this.docFrag = document.createDocumentFragment();
-		this.update();
-		this.rendered = true;
-		return docFrag;
-	};
+	var virtualdom_items_Section$render = function() {
+
+		function Section$render() {
+			var docFrag;
+			docFrag = this.docFrag = document.createDocumentFragment();
+			this.update();
+			this.rendered = true;
+			return docFrag;
+		}
+		return Section$render;
+	}();
 
 	/* utils/isArrayLike.js */
 	var isArrayLike = function() {
 
 		var pattern = /^\[object (?:Array|FileList)\]$/,
 			toString = Object.prototype.toString;
-		return function isArrayLike( obj ) {
+
+		function isArrayLike( obj ) {
 			return pattern.test( toString.call( obj ) );
-		};
+		}
+		return isArrayLike;
 	}();
 
 	/* virtualdom/items/Section/prototype/setValue.js */
 	var virtualdom_items_Section$setValue = function( types, isArrayLike, isObject, runloop, circular ) {
 
-		var __export;
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		__export = function Section$setValue( value ) {
+
+		function Section$setValue( value ) {
 			var this$0 = this;
 			var wrapper, fragmentOptions;
 			if ( this.updating ) {
@@ -6407,7 +6548,7 @@
 			}
 			this.value = value;
 			this.updating = false;
-		};
+		}
 
 		function changeCurrentSubtype( section, value, obj ) {
 			if ( value === types.SECTION_EACH ) {
@@ -6636,26 +6777,29 @@
 			// the keypath doesn't actually matter here as it won't have changed
 			dep.rebind( '', '' );
 		}
-		return __export;
+		return Section$setValue;
 	}( types, isArrayLike, isObject, runloop, circular );
 
 	/* virtualdom/items/Section/prototype/toString.js */
-	var virtualdom_items_Section$toString = function Section$toString( escape ) {
-		var str, i, len;
-		str = '';
-		i = 0;
-		len = this.length;
-		for ( i = 0; i < len; i += 1 ) {
-			str += this.fragments[ i ].toString( escape );
+	var virtualdom_items_Section$toString = function() {
+
+		function Section$toString( escape ) {
+			var str, i, len;
+			str = '';
+			i = 0;
+			len = this.length;
+			for ( i = 0; i < len; i += 1 ) {
+				str += this.fragments[ i ].toString( escape );
+			}
+			return str;
 		}
-		return str;
-	};
+		return Section$toString;
+	}();
 
 	/* virtualdom/items/Section/prototype/unbind.js */
 	var virtualdom_items_Section$unbind = function( removeFromArray, unbind ) {
 
-		var __export;
-		__export = function Section$unbind() {
+		function Section$unbind() {
 			var this$0 = this;
 			this.fragments.forEach( unbindFragment );
 			this.fragmentsToRender.forEach( function( f ) {
@@ -6665,21 +6809,20 @@
 			unbind.call( this );
 			this.length = 0;
 			this.unbound = true;
-		};
+		}
 
 		function unbindFragment( fragment ) {
 			fragment.unbind();
 		}
-		return __export;
+		return Section$unbind;
 	}( removeFromArray, unbind );
 
 	/* virtualdom/items/Section/prototype/unrender.js */
 	var virtualdom_items_Section$unrender = function() {
 
-		var __export;
-		__export = function Section$unrender( shouldDestroy ) {
+		function Section$unrender( shouldDestroy ) {
 			this.fragments.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
-		};
+		}
 
 		function unrenderAndDestroy( fragment ) {
 			fragment.unrender( true );
@@ -6688,55 +6831,59 @@
 		function unrender( fragment ) {
 			fragment.unrender( false );
 		}
-		return __export;
+		return Section$unrender;
 	}();
 
 	/* virtualdom/items/Section/prototype/update.js */
-	var virtualdom_items_Section$update = function Section$update() {
-		var fragment, renderIndex, renderedFragments, anchor, target, i, len;
-		// `this.renderedFragments` is in the order of the previous render.
-		// If fragments have shuffled about, this allows us to quickly
-		// reinsert them in the correct place
-		renderedFragments = this.renderedFragments;
-		// Remove fragments that have been marked for destruction
-		while ( fragment = this.fragmentsToUnrender.pop() ) {
-			fragment.unrender( true );
-			renderedFragments.splice( renderedFragments.indexOf( fragment ), 1 );
-		}
-		// Render new fragments (but don't insert them yet)
-		while ( fragment = this.fragmentsToRender.shift() ) {
-			fragment.render();
-		}
-		if ( this.rendered ) {
-			target = this.parentFragment.getNode();
-		}
-		len = this.fragments.length;
-		for ( i = 0; i < len; i += 1 ) {
-			fragment = this.fragments[ i ];
-			renderIndex = renderedFragments.indexOf( fragment, i );
-			// search from current index - it's guaranteed to be the same or higher
-			if ( renderIndex === i ) {
-				// already in the right place. insert accumulated nodes (if any) and carry on
-				if ( this.docFrag.childNodes.length ) {
-					anchor = fragment.firstNode();
-					target.insertBefore( this.docFrag, anchor );
+	var virtualdom_items_Section$update = function() {
+
+		function Section$update() {
+			var fragment, renderIndex, renderedFragments, anchor, target, i, len;
+			// `this.renderedFragments` is in the order of the previous render.
+			// If fragments have shuffled about, this allows us to quickly
+			// reinsert them in the correct place
+			renderedFragments = this.renderedFragments;
+			// Remove fragments that have been marked for destruction
+			while ( fragment = this.fragmentsToUnrender.pop() ) {
+				fragment.unrender( true );
+				renderedFragments.splice( renderedFragments.indexOf( fragment ), 1 );
+			}
+			// Render new fragments (but don't insert them yet)
+			while ( fragment = this.fragmentsToRender.shift() ) {
+				fragment.render();
+			}
+			if ( this.rendered ) {
+				target = this.parentFragment.getNode();
+			}
+			len = this.fragments.length;
+			for ( i = 0; i < len; i += 1 ) {
+				fragment = this.fragments[ i ];
+				renderIndex = renderedFragments.indexOf( fragment, i );
+				// search from current index - it's guaranteed to be the same or higher
+				if ( renderIndex === i ) {
+					// already in the right place. insert accumulated nodes (if any) and carry on
+					if ( this.docFrag.childNodes.length ) {
+						anchor = fragment.firstNode();
+						target.insertBefore( this.docFrag, anchor );
+					}
+					continue;
 				}
-				continue;
+				this.docFrag.appendChild( fragment.detach() );
+				// update renderedFragments
+				if ( renderIndex !== -1 ) {
+					renderedFragments.splice( renderIndex, 1 );
+				}
+				renderedFragments.splice( i, 0, fragment );
 			}
-			this.docFrag.appendChild( fragment.detach() );
-			// update renderedFragments
-			if ( renderIndex !== -1 ) {
-				renderedFragments.splice( renderIndex, 1 );
+			if ( this.rendered && this.docFrag.childNodes.length ) {
+				anchor = this.parentFragment.findNextNode( this );
+				target.insertBefore( this.docFrag, anchor );
 			}
-			renderedFragments.splice( i, 0, fragment );
+			// Save the rendering order for next time
+			this.renderedFragments = this.fragments.slice();
 		}
-		if ( this.rendered && this.docFrag.childNodes.length ) {
-			anchor = this.parentFragment.findNextNode( this );
-			target.insertBefore( this.docFrag, anchor );
-		}
-		// Save the rendering order for next time
-		this.renderedFragments = this.fragments.slice();
-	};
+		return Section$update;
+	}();
 
 	/* virtualdom/items/Section/_Section.js */
 	var Section = function( types, Mustache, bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, shuffle, rebind, render, setValue, toString, unbind, unrender, update ) {
@@ -6798,21 +6945,25 @@
 	}( types, Mustache, virtualdom_items_Section$bubble, virtualdom_items_Section$detach, virtualdom_items_Section$find, virtualdom_items_Section$findAll, virtualdom_items_Section$findAllComponents, virtualdom_items_Section$findComponent, virtualdom_items_Section$findNextNode, virtualdom_items_Section$firstNode, virtualdom_items_Section$shuffle, virtualdom_items_Section$rebind, virtualdom_items_Section$render, virtualdom_items_Section$setValue, virtualdom_items_Section$toString, virtualdom_items_Section$unbind, virtualdom_items_Section$unrender, virtualdom_items_Section$update );
 
 	/* virtualdom/items/Triple/prototype/detach.js */
-	var virtualdom_items_Triple$detach = function Triple$detach() {
-		var len, i;
-		if ( this.docFrag ) {
-			len = this.nodes.length;
-			for ( i = 0; i < len; i += 1 ) {
-				this.docFrag.appendChild( this.nodes[ i ] );
+	var virtualdom_items_Triple$detach = function() {
+
+		function Triple$detach() {
+			var len, i;
+			if ( this.docFrag ) {
+				len = this.nodes.length;
+				for ( i = 0; i < len; i += 1 ) {
+					this.docFrag.appendChild( this.nodes[ i ] );
+				}
+				return this.docFrag;
 			}
-			return this.docFrag;
 		}
-	};
+		return Triple$detach;
+	}();
 
 	/* virtualdom/items/Triple/prototype/find.js */
 	var virtualdom_items_Triple$find = function( matches ) {
 
-		return function Triple$find( selector ) {
+		function Triple$find( selector ) {
 			var i, len, node, queryResult;
 			len = this.nodes.length;
 			for ( i = 0; i < len; i += 1 ) {
@@ -6828,13 +6979,14 @@
 				}
 			}
 			return null;
-		};
+		}
+		return Triple$find;
 	}( matches );
 
 	/* virtualdom/items/Triple/prototype/findAll.js */
 	var virtualdom_items_Triple$findAll = function( matches ) {
 
-		return function Triple$findAll( selector, queryResult ) {
+		function Triple$findAll( selector, queryResult ) {
 			var i, len, node, queryAllResult, numNodes, j;
 			len = this.nodes.length;
 			for ( i = 0; i < len; i += 1 ) {
@@ -6852,21 +7004,25 @@
 					}
 				}
 			}
-		};
+		}
+		return Triple$findAll;
 	}( matches );
 
 	/* virtualdom/items/Triple/prototype/firstNode.js */
-	var virtualdom_items_Triple$firstNode = function Triple$firstNode() {
-		if ( this.rendered && this.nodes[ 0 ] ) {
-			return this.nodes[ 0 ];
+	var virtualdom_items_Triple$firstNode = function() {
+
+		function Triple$firstNode() {
+			if ( this.rendered && this.nodes[ 0 ] ) {
+				return this.nodes[ 0 ];
+			}
+			return this.parentFragment.findNextNode( this );
 		}
-		return this.parentFragment.findNextNode( this );
-	};
+		return Triple$firstNode;
+	}();
 
 	/* virtualdom/items/Triple/helpers/insertHtml.js */
 	var insertHtml = function( namespaces, createElement ) {
 
-		var __export;
 		var elementCache = {},
 			ieBug, ieBlacklist;
 		try {
@@ -6896,7 +7052,7 @@
 				]
 			};
 		}
-		__export = function( html, node, docFrag ) {
+		var __export = function( html, node, docFrag ) {
 			var container, nodes = [],
 				wrapper, selectedOption, child, i;
 			// render 0 and false
@@ -6947,20 +7103,23 @@
 	}( namespaces, createElement );
 
 	/* utils/toArray.js */
-	var toArray = function toArray( arrayLike ) {
-		var array = [],
-			i = arrayLike.length;
-		while ( i-- ) {
-			array[ i ] = arrayLike[ i ];
+	var toArray = function() {
+
+		function toArray( arrayLike ) {
+			var array = [],
+				i = arrayLike.length;
+			while ( i-- ) {
+				array[ i ] = arrayLike[ i ];
+			}
+			return array;
 		}
-		return array;
-	};
+		return toArray;
+	}();
 
 	/* virtualdom/items/Triple/helpers/updateSelect.js */
 	var updateSelect = function( toArray ) {
 
-		var __export;
-		__export = function updateSelect( parentElement ) {
+		function updateSelect( parentElement ) {
 			var selectedOptions, option, value;
 			if ( !parentElement || parentElement.name !== 'select' || !parentElement.binding ) {
 				return;
@@ -6979,18 +7138,18 @@
 				parentElement.binding.setValue( value );
 			}
 			parentElement.bubble();
-		};
+		}
 
 		function isSelected( option ) {
 			return option.selected;
 		}
-		return __export;
+		return updateSelect;
 	}( toArray );
 
 	/* virtualdom/items/Triple/prototype/render.js */
 	var virtualdom_items_Triple$render = function( insertHtml, updateSelect ) {
 
-		return function Triple$render() {
+		function Triple$render() {
 			if ( this.rendered ) {
 				throw new Error( 'Attempted to render an item that was already rendered' );
 			}
@@ -7000,13 +7159,14 @@
 			updateSelect( this.pElement );
 			this.rendered = true;
 			return this.docFrag;
-		};
+		}
+		return Triple$render;
 	}( insertHtml, updateSelect );
 
 	/* virtualdom/items/Triple/prototype/setValue.js */
 	var virtualdom_items_Triple$setValue = function( runloop ) {
 
-		return function Triple$setValue( value ) {
+		function Triple$setValue( value ) {
 			var wrapper;
 			// TODO is there a better way to approach this?
 			if ( wrapper = this.root.viewmodel.wrapped[ this.keypath ] ) {
@@ -7019,13 +7179,13 @@
 					runloop.addView( this );
 				}
 			}
-		};
+		}
+		return Triple$setValue;
 	}( runloop );
 
 	/* shared/decodeCharacterReferences.js */
 	var decodeCharacterReferences = function() {
 
-		var __export;
 		var htmlEntities, controlCharacters, entityPattern;
 		htmlEntities = {
 			quot: 34,
@@ -7317,28 +7477,29 @@
 			376
 		];
 		entityPattern = new RegExp( '&(#?(?:x[\\w\\d]+|\\d+|' + Object.keys( htmlEntities ).join( '|' ) + '));?', 'g' );
-		__export = function decodeCharacterReferences( html ) {
-			return html.replace( entityPattern, function( match, entity ) {
-				var code;
-				// Handle named entities
-				if ( entity[ 0 ] !== '#' ) {
-					code = htmlEntities[ entity ];
-				} else if ( entity[ 1 ] === 'x' ) {
-					code = parseInt( entity.substring( 2 ), 16 );
-				} else {
-					code = parseInt( entity.substring( 1 ), 10 );
-				}
-				if ( !code ) {
-					return match;
-				}
-				return String.fromCharCode( validateCode( code ) );
-			} );
-		};
-		// some code points are verboten. If we were inserting HTML, the browser would replace the illegal
-		// code points with alternatives in some cases - since we're bypassing that mechanism, we need
-		// to replace them ourselves
-		//
-		// Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
+
+		function decodeCharacterReferences( html ) {
+				return html.replace( entityPattern, function( match, entity ) {
+					var code;
+					// Handle named entities
+					if ( entity[ 0 ] !== '#' ) {
+						code = htmlEntities[ entity ];
+					} else if ( entity[ 1 ] === 'x' ) {
+						code = parseInt( entity.substring( 2 ), 16 );
+					} else {
+						code = parseInt( entity.substring( 1 ), 10 );
+					}
+					if ( !code ) {
+						return match;
+					}
+					return String.fromCharCode( validateCode( code ) );
+				} );
+			}
+			// some code points are verboten. If we were inserting HTML, the browser would replace the illegal
+			// code points with alternatives in some cases - since we're bypassing that mechanism, we need
+			// to replace them ourselves
+			//
+			// Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
 		function validateCode( code ) {
 			if ( !code ) {
 				return 65533;
@@ -7370,32 +7531,34 @@
 			}
 			return 65533;
 		}
-		return __export;
+		return decodeCharacterReferences;
 	}( legacy );
 
 	/* virtualdom/items/Triple/prototype/toString.js */
 	var virtualdom_items_Triple$toString = function( decodeCharacterReferences ) {
 
-		return function Triple$toString() {
+		function Triple$toString() {
 			return this.value != undefined ? decodeCharacterReferences( '' + this.value ) : '';
-		};
+		}
+		return Triple$toString;
 	}( decodeCharacterReferences );
 
 	/* virtualdom/items/Triple/prototype/unrender.js */
 	var virtualdom_items_Triple$unrender = function( detachNode ) {
 
-		return function Triple$unrender( shouldDestroy ) {
+		function Triple$unrender( shouldDestroy ) {
 			if ( this.rendered && shouldDestroy ) {
 				this.nodes.forEach( detachNode );
 				this.rendered = false;
 			}
-		};
+		}
+		return Triple$unrender;
 	}( detachNode );
 
 	/* virtualdom/items/Triple/prototype/update.js */
 	var virtualdom_items_Triple$update = function( insertHtml, updateSelect ) {
 
-		return function Triple$update() {
+		function Triple$update() {
 			var node, parentNode;
 			if ( !this.rendered ) {
 				return;
@@ -7411,7 +7574,8 @@
 			parentNode.insertBefore( this.docFrag, this.parentFragment.findNextNode( this ) );
 			// Special case - we're inserting the contents of a <select>
 			updateSelect( this.pElement );
-		};
+		}
+		return Triple$update;
 	}( insertHtml, updateSelect );
 
 	/* virtualdom/items/Triple/_Triple.js */
@@ -7445,18 +7609,22 @@
 	};
 
 	/* virtualdom/items/Element/prototype/detach.js */
-	var virtualdom_items_Element$detach = function Element$detach() {
-		var node = this.node,
-			parentNode;
-		if ( node ) {
-			// need to check for parent node - DOM may have been altered
-			// by something other than Ractive! e.g. jQuery UI...
-			if ( parentNode = node.parentNode ) {
-				parentNode.removeChild( node );
+	var virtualdom_items_Element$detach = function() {
+
+		function Element$detach() {
+			var node = this.node,
+				parentNode;
+			if ( node ) {
+				// need to check for parent node - DOM may have been altered
+				// by something other than Ractive! e.g. jQuery UI...
+				if ( parentNode = node.parentNode ) {
+					parentNode.removeChild( node );
+				}
+				return node;
 			}
-			return node;
 		}
-	};
+		return Element$detach;
+	}();
 
 	/* virtualdom/items/Element/prototype/find.js */
 	var virtualdom_items_Element$find = function( matches ) {
@@ -7498,22 +7666,34 @@
 	};
 
 	/* virtualdom/items/Element/prototype/findNextNode.js */
-	var virtualdom_items_Element$findNextNode = function Element$findNextNode() {
-		return null;
-	};
+	var virtualdom_items_Element$findNextNode = function() {
+
+		function Element$findNextNode() {
+			return null;
+		}
+		return Element$findNextNode;
+	}();
 
 	/* virtualdom/items/Element/prototype/firstNode.js */
-	var virtualdom_items_Element$firstNode = function Element$firstNode() {
-		return this.node;
-	};
+	var virtualdom_items_Element$firstNode = function() {
+
+		function Element$firstNode() {
+			return this.node;
+		}
+		return Element$firstNode;
+	}();
 
 	/* virtualdom/items/Element/prototype/getAttribute.js */
-	var virtualdom_items_Element$getAttribute = function Element$getAttribute( name ) {
-		if ( !this.attributes || !this.attributes[ name ] ) {
-			return;
+	var virtualdom_items_Element$getAttribute = function() {
+
+		function Element$getAttribute( name ) {
+			if ( !this.attributes || !this.attributes[ name ] ) {
+				return;
+			}
+			return this.attributes[ name ].value;
 		}
-		return this.attributes[ name ].value;
-	};
+		return Element$getAttribute;
+	}();
 
 	/* virtualdom/items/Element/shared/enforceCase.js */
 	var enforceCase = function() {
@@ -7567,7 +7747,7 @@
 	/* virtualdom/items/Element/Attribute/prototype/bubble.js */
 	var virtualdom_items_Element_Attribute$bubble = function( runloop, isEqual ) {
 
-		return function Attribute$bubble() {
+		function Attribute$bubble() {
 			var value = this.fragment.getValue();
 			// TODO this can register the attribute multiple times (see render test
 			// 'Attribute with nested mustaches')
@@ -7586,7 +7766,8 @@
 					runloop.addView( this );
 				}
 			}
-		};
+		}
+		return Attribute$bubble;
 	}( runloop, isEqual );
 
 	/* config/booleanAttributes.js */
@@ -7628,7 +7809,7 @@
 	/* virtualdom/items/Element/Attribute/helpers/getInterpolator.js */
 	var getInterpolator = function( types ) {
 
-		return function getInterpolator( attribute ) {
+		function getInterpolator( attribute ) {
 			var items = attribute.fragment.items;
 			if ( items.length !== 1 ) {
 				return;
@@ -7636,7 +7817,8 @@
 			if ( items[ 0 ].type === types.INTERPOLATOR ) {
 				return items[ 0 ];
 			}
-		};
+		}
+		return getInterpolator;
 	}( types );
 
 	/* virtualdom/items/Element/Attribute/helpers/determinePropertyName.js */
@@ -7686,7 +7868,8 @@
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function Attribute$init( options ) {
+
+		function Attribute$init( options ) {
 			this.type = types.ATTRIBUTE;
 			this.element = options.element;
 			this.root = options.root;
@@ -7715,15 +7898,20 @@
 			determinePropertyName( this, options );
 			// mark as ready
 			this.ready = true;
-		};
+		}
+		return Attribute$init;
 	}( types, booleanAttributes, determineNameAndNamespace, getInterpolator, determinePropertyName, circular );
 
 	/* virtualdom/items/Element/Attribute/prototype/rebind.js */
-	var virtualdom_items_Element_Attribute$rebind = function Attribute$rebind( oldKeypath, newKeypath ) {
-		if ( this.fragment ) {
-			this.fragment.rebind( oldKeypath, newKeypath );
+	var virtualdom_items_Element_Attribute$rebind = function() {
+
+		function Attribute$rebind( oldKeypath, newKeypath ) {
+			if ( this.fragment ) {
+				this.fragment.rebind( oldKeypath, newKeypath );
+			}
 		}
-	};
+		return Attribute$rebind;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/render.js */
 	var virtualdom_items_Element_Attribute$render = function( namespaces, booleanAttributes ) {
@@ -7749,7 +7937,8 @@
 			'tabindex': 'tabIndex',
 			'usemap': 'useMap'
 		};
-		return function Attribute$render( node ) {
+
+		function Attribute$render( node ) {
 			var propertyName;
 			this.node = node;
 			// should we use direct property access, or setAttribute?
@@ -7770,14 +7959,14 @@
 			}
 			this.rendered = true;
 			this.update();
-		};
+		}
+		return Attribute$render;
 	}( namespaces, booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/toString.js */
 	var virtualdom_items_Element_Attribute$toString = function( booleanAttributes ) {
 
-		var __export;
-		__export = function Attribute$toString() {
+		function Attribute$toString() {
 			var name = ( fragment = this ).name,
 				namespacePrefix = fragment.namespacePrefix,
 				value = fragment.value,
@@ -7806,60 +7995,72 @@
 				name = namespacePrefix + ':' + name;
 			}
 			return value ? name + '="' + escape( value ) + '"' : name;
-		};
+		}
 
 		function escape( value ) {
 			return value.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
 		}
-		return __export;
+		return Attribute$toString;
 	}( booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/unbind.js */
-	var virtualdom_items_Element_Attribute$unbind = function Attribute$unbind() {
-		// ignore non-dynamic attributes
-		if ( this.fragment ) {
-			this.fragment.unbind();
+	var virtualdom_items_Element_Attribute$unbind = function() {
+
+		function Attribute$unbind() {
+			// ignore non-dynamic attributes
+			if ( this.fragment ) {
+				this.fragment.unbind();
+			}
+			if ( this.name === 'id' ) {
+				delete this.root.nodes[ this.value ];
+			}
 		}
-		if ( this.name === 'id' ) {
-			delete this.root.nodes[ this.value ];
-		}
-	};
+		return Attribute$unbind;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateSelectValue.js */
-	var virtualdom_items_Element_Attribute$update_updateSelectValue = function Attribute$updateSelect() {
-		var value = this.value,
-			options, option, optionValue, i;
-		if ( !this.locked ) {
-			this.node._ractive.value = value;
-			options = this.node.options;
-			i = options.length;
-			while ( i-- ) {
-				option = options[ i ];
-				optionValue = option._ractive ? option._ractive.value : option.value;
-				// options inserted via a triple don't have _ractive
-				if ( optionValue == value ) {
-					// double equals as we may be comparing numbers with strings
-					option.selected = true;
-					break;
+	var virtualdom_items_Element_Attribute$update_updateSelectValue = function() {
+
+		function Attribute$updateSelect() {
+			var value = this.value,
+				options, option, optionValue, i;
+			if ( !this.locked ) {
+				this.node._ractive.value = value;
+				options = this.node.options;
+				i = options.length;
+				while ( i-- ) {
+					option = options[ i ];
+					optionValue = option._ractive ? option._ractive.value : option.value;
+					// options inserted via a triple don't have _ractive
+					if ( optionValue == value ) {
+						// double equals as we may be comparing numbers with strings
+						option.selected = true;
+						break;
+					}
 				}
 			}
 		}
-	};
+		return Attribute$updateSelect;
+	}();
 
 	/* utils/arrayContains.js */
-	var arrayContains = function arrayContains( array, value ) {
-		for ( var i = 0, c = array.length; i < c; i++ ) {
-			if ( array[ i ] == value ) {
-				return true;
+	var arrayContains = function() {
+
+		function arrayContains( array, value ) {
+			for ( var i = 0, c = array.length; i < c; i++ ) {
+				if ( array[ i ] == value ) {
+					return true;
+				}
 			}
+			return false;
 		}
-		return false;
-	};
+		return arrayContains;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateMultipleSelectValue.js */
 	var virtualdom_items_Element_Attribute$update_updateMultipleSelectValue = function( arrayContains, isArray ) {
 
-		return function Attribute$updateMultipleSelect() {
+		function Attribute$updateMultipleSelect() {
 			var value = this.value,
 				options, i, option, optionValue;
 			if ( !isArray( value ) ) {
@@ -7873,20 +8074,25 @@
 				// options inserted via a triple don't have _ractive
 				option.selected = arrayContains( value, optionValue );
 			}
-		};
+		}
+		return Attribute$updateMultipleSelect;
 	}( arrayContains, isArray );
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateRadioName.js */
-	var virtualdom_items_Element_Attribute$update_updateRadioName = function Attribute$updateRadioName() {
-		var node = ( value = this ).node,
-			value = value.value;
-		node.checked = value == node._ractive.value;
-	};
+	var virtualdom_items_Element_Attribute$update_updateRadioName = function() {
+
+		function Attribute$updateRadioName() {
+			var node = ( value = this ).node,
+				value = value.value;
+			node.checked = value == node._ractive.value;
+		}
+		return Attribute$updateRadioName;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateRadioValue.js */
 	var virtualdom_items_Element_Attribute$update_updateRadioValue = function( runloop ) {
 
-		return function Attribute$updateRadioValue() {
+		function Attribute$updateRadioValue() {
 			var wasChecked, node = this.node,
 				binding, bindings, i;
 			wasChecked = node.checked;
@@ -7914,13 +8120,14 @@
 					this.root.viewmodel.set( binding.keypath, undefined );
 				}
 			}
-		};
+		}
+		return Attribute$updateRadioValue;
 	}( runloop );
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateCheckboxName.js */
 	var virtualdom_items_Element_Attribute$update_updateCheckboxName = function( isArray ) {
 
-		return function Attribute$updateCheckboxName() {
+		function Attribute$updateCheckboxName() {
 			var element = ( value = this ).element,
 				node = value.node,
 				value = value.value,
@@ -7938,76 +8145,101 @@
 				}
 				node.checked = false;
 			}
-		};
+		}
+		return Attribute$updateCheckboxName;
 	}( isArray );
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateClassName.js */
-	var virtualdom_items_Element_Attribute$update_updateClassName = function Attribute$updateClassName() {
-		var node, value;
-		node = this.node;
-		value = this.value;
-		if ( value === undefined ) {
-			value = '';
+	var virtualdom_items_Element_Attribute$update_updateClassName = function() {
+
+		function Attribute$updateClassName() {
+			var node, value;
+			node = this.node;
+			value = this.value;
+			if ( value === undefined ) {
+				value = '';
+			}
+			node.className = value;
 		}
-		node.className = value;
-	};
+		return Attribute$updateClassName;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateIdAttribute.js */
-	var virtualdom_items_Element_Attribute$update_updateIdAttribute = function Attribute$updateIdAttribute() {
-		var node = ( value = this ).node,
-			value = value.value;
-		this.root.nodes[ value ] = node;
-		node.id = value;
-	};
+	var virtualdom_items_Element_Attribute$update_updateIdAttribute = function() {
+
+		function Attribute$updateIdAttribute() {
+			var node = ( value = this ).node,
+				value = value.value;
+			this.root.nodes[ value ] = node;
+			node.id = value;
+		}
+		return Attribute$updateIdAttribute;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateIEStyleAttribute.js */
-	var virtualdom_items_Element_Attribute$update_updateIEStyleAttribute = function Attribute$updateIEStyleAttribute() {
-		var node, value;
-		node = this.node;
-		value = this.value;
-		if ( value === undefined ) {
-			value = '';
+	var virtualdom_items_Element_Attribute$update_updateIEStyleAttribute = function() {
+
+		function Attribute$updateIEStyleAttribute() {
+			var node, value;
+			node = this.node;
+			value = this.value;
+			if ( value === undefined ) {
+				value = '';
+			}
+			node.style.setAttribute( 'cssText', value );
 		}
-		node.style.setAttribute( 'cssText', value );
-	};
+		return Attribute$updateIEStyleAttribute;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateContentEditableValue.js */
-	var virtualdom_items_Element_Attribute$update_updateContentEditableValue = function Attribute$updateContentEditableValue() {
-		var value = this.value;
-		if ( value === undefined ) {
-			value = '';
+	var virtualdom_items_Element_Attribute$update_updateContentEditableValue = function() {
+
+		function Attribute$updateContentEditableValue() {
+			var value = this.value;
+			if ( value === undefined ) {
+				value = '';
+			}
+			if ( !this.locked ) {
+				this.node.innerHTML = value;
+			}
 		}
-		if ( !this.locked ) {
-			this.node.innerHTML = value;
-		}
-	};
+		return Attribute$updateContentEditableValue;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateValue.js */
-	var virtualdom_items_Element_Attribute$update_updateValue = function Attribute$updateValue() {
-		var node = ( value = this ).node,
-			value = value.value;
-		// store actual value, so it doesn't get coerced to a string
-		node._ractive.value = value;
-		// with two-way binding, only update if the change wasn't initiated by the user
-		// otherwise the cursor will often be sent to the wrong place
-		if ( !this.locked ) {
-			node.value = value == undefined ? '' : value;
+	var virtualdom_items_Element_Attribute$update_updateValue = function() {
+
+		function Attribute$updateValue() {
+			var node = ( value = this ).node,
+				value = value.value;
+			// store actual value, so it doesn't get coerced to a string
+			node._ractive.value = value;
+			// with two-way binding, only update if the change wasn't initiated by the user
+			// otherwise the cursor will often be sent to the wrong place
+			if ( !this.locked ) {
+				node.value = value == undefined ? '' : value;
+			}
 		}
-	};
+		return Attribute$updateValue;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateBoolean.js */
-	var virtualdom_items_Element_Attribute$update_updateBoolean = function Attribute$updateBooleanAttribute() {
-		// with two-way binding, only update if the change wasn't initiated by the user
-		// otherwise the cursor will often be sent to the wrong place
-		if ( !this.locked ) {
-			this.node[ this.propertyName ] = this.value;
+	var virtualdom_items_Element_Attribute$update_updateBoolean = function() {
+
+		function Attribute$updateBooleanAttribute() {
+			// with two-way binding, only update if the change wasn't initiated by the user
+			// otherwise the cursor will often be sent to the wrong place
+			if ( !this.locked ) {
+				this.node[ this.propertyName ] = this.value;
+			}
 		}
-	};
+		return Attribute$updateBooleanAttribute;
+	}();
 
 	/* virtualdom/items/Element/Attribute/prototype/update/updateEverythingElse.js */
 	var virtualdom_items_Element_Attribute$update_updateEverythingElse = function( booleanAttributes ) {
 
-		return function Attribute$updateEverythingElse() {
+		function Attribute$updateEverythingElse() {
 			var node = ( fragment = this ).node,
 				namespace = fragment.namespace,
 				name = fragment.name,
@@ -8024,13 +8256,14 @@
 					node.removeAttribute( name );
 				}
 			}
-		};
+		}
+		return Attribute$updateEverythingElse;
 	}( booleanAttributes );
 
 	/* virtualdom/items/Element/Attribute/prototype/update.js */
 	var virtualdom_items_Element_Attribute$update = function( namespaces, noop, updateSelectValue, updateMultipleSelectValue, updateRadioName, updateRadioValue, updateCheckboxName, updateClassName, updateIdAttribute, updateIEStyleAttribute, updateContentEditableValue, updateValue, updateBoolean, updateEverythingElse ) {
 
-		return function Attribute$update() {
+		function Attribute$update() {
 			var name = ( node = this ).name,
 				element = node.element,
 				node = node.node,
@@ -8074,7 +8307,8 @@
 			}
 			this.update = updateMethod;
 			this.update();
-		};
+		}
+		return Attribute$update;
 	}( namespaces, noop, virtualdom_items_Element_Attribute$update_updateSelectValue, virtualdom_items_Element_Attribute$update_updateMultipleSelectValue, virtualdom_items_Element_Attribute$update_updateRadioName, virtualdom_items_Element_Attribute$update_updateRadioValue, virtualdom_items_Element_Attribute$update_updateCheckboxName, virtualdom_items_Element_Attribute$update_updateClassName, virtualdom_items_Element_Attribute$update_updateIdAttribute, virtualdom_items_Element_Attribute$update_updateIEStyleAttribute, virtualdom_items_Element_Attribute$update_updateContentEditableValue, virtualdom_items_Element_Attribute$update_updateValue, virtualdom_items_Element_Attribute$update_updateBoolean, virtualdom_items_Element_Attribute$update_updateEverythingElse );
 
 	/* virtualdom/items/Element/Attribute/_Attribute.js */
@@ -8118,7 +8352,6 @@
 	/* virtualdom/items/Element/ConditionalAttribute/_ConditionalAttribute.js */
 	var ConditionalAttribute = function( circular, namespaces, createElement, toArray ) {
 
-		var __export;
 		var Fragment, div;
 		if ( typeof document !== 'undefined' ) {
 			div = createElement( 'div' );
@@ -8176,7 +8409,6 @@
 				return this.fragment.toString();
 			}
 		};
-		__export = ConditionalAttribute;
 
 		function parseAttributes( str, isSvg ) {
 			var tag = isSvg ? 'svg' : 'div';
@@ -8193,7 +8425,7 @@
 			}
 			return true;
 		}
-		return __export;
+		return ConditionalAttribute;
 	}( circular, namespaces, createElement, toArray );
 
 	/* virtualdom/items/Element/prototype/init/createConditionalAttributes.js */
@@ -8318,9 +8550,15 @@
 	}( runloop, log, create, extend, removeFromArray );
 
 	/* virtualdom/items/Element/Binding/shared/handleDomEvent.js */
-	var handleDomEvent = function handleChange() {
-		this._ractive.binding.handleChange();
-	};
+	var handleDomEvent = function() {
+
+		// This is the handler for DOM events that would lead to a change in the model
+		// (i.e. change, sometimes, input, and occasionally click and keyup)
+		function handleChange() {
+			this._ractive.binding.handleChange();
+		}
+		return handleChange;
+	}();
 
 	/* virtualdom/items/Element/Binding/ContentEditableBinding.js */
 	var ContentEditableBinding = function( Binding, handleDomEvent ) {
@@ -8356,10 +8594,12 @@
 	var getSiblings = function() {
 
 		var sets = {};
-		return function getSiblings( id, group, keypath ) {
+
+		function getSiblings( id, group, keypath ) {
 			var hash = id + group + keypath;
 			return sets[ hash ] || ( sets[ hash ] = [] );
-		};
+		}
+		return getSiblings;
 	}();
 
 	/* virtualdom/items/Element/Binding/RadioBinding.js */
@@ -8763,7 +9003,6 @@
 	/* virtualdom/items/Element/Binding/GenericBinding.js */
 	var GenericBinding = function( Binding, handleDomEvent, isNumber ) {
 
-		var __export;
 		var GenericBinding;
 		GenericBinding = Binding.extend( {
 			getInitialValue: function() {
@@ -8805,7 +9044,6 @@
 				node.removeEventListener( 'blur', handleBlur, false );
 			}
 		} );
-		__export = GenericBinding;
 
 		function handleBlur() {
 			var value;
@@ -8825,7 +9063,7 @@
 				binding._timeout = undefined;
 			}, binding.element.lazy );
 		}
-		return __export;
+		return GenericBinding;
 	}( Binding, handleDomEvent, isNumber );
 
 	/* virtualdom/items/Element/Binding/NumericBinding.js */
@@ -8845,8 +9083,7 @@
 	/* virtualdom/items/Element/prototype/init/createTwowayBinding.js */
 	var virtualdom_items_Element$init_createTwowayBinding = function( log, ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding ) {
 
-		var __export;
-		__export = function createTwowayBinding( element ) {
+		function createTwowayBinding( element ) {
 			var attributes = element.attributes,
 				type, Binding, bindName, bindChecked;
 			// if this is a late binding, and there's already one, it
@@ -8888,43 +9125,51 @@
 			if ( Binding ) {
 				return new Binding( element );
 			}
-		};
+		}
 
 		function isBindable( attribute ) {
 			return attribute && attribute.isBindable;
 		}
-		return __export;
+		return createTwowayBinding;
 	}( log, ContentEditableBinding, RadioBinding, RadioNameBinding, CheckboxNameBinding, CheckboxBinding, SelectBinding, MultipleSelectBinding, FileListBinding, NumericBinding, GenericBinding );
 
 	/* virtualdom/items/Element/EventHandler/prototype/bubble.js */
-	var virtualdom_items_Element_EventHandler$bubble = function EventHandler$bubble() {
-		var hasAction = this.getAction();
-		if ( hasAction && !this.hasListener ) {
-			this.listen();
-		} else if ( !hasAction && this.hasListener ) {
-			this.unrender();
+	var virtualdom_items_Element_EventHandler$bubble = function() {
+
+		function EventHandler$bubble() {
+			var hasAction = this.getAction();
+			if ( hasAction && !this.hasListener ) {
+				this.listen();
+			} else if ( !hasAction && this.hasListener ) {
+				this.unrender();
+			}
 		}
-	};
+		return EventHandler$bubble;
+	}();
 
 	/* virtualdom/items/Element/EventHandler/prototype/fire.js */
 	var virtualdom_items_Element_EventHandler$fire = function( fireEvent ) {
 
-		return function EventHandler$fire( event ) {
+		function EventHandler$fire( event ) {
 			fireEvent( this.root, this.getAction(), {
 				event: event
 			} );
-		};
+		}
+		return EventHandler$fire;
 	}( Ractive$shared_fireEvent );
 
 	/* virtualdom/items/Element/EventHandler/prototype/getAction.js */
-	var virtualdom_items_Element_EventHandler$getAction = function EventHandler$getAction() {
-		return this.action.toString().trim();
-	};
+	var virtualdom_items_Element_EventHandler$getAction = function() {
+
+		function EventHandler$getAction() {
+			return this.action.toString().trim();
+		}
+		return EventHandler$getAction;
+	}();
 
 	/* virtualdom/items/Element/EventHandler/prototype/init.js */
 	var virtualdom_items_Element_EventHandler$init = function( getFunctionFromString, createReferenceResolver, circular, eventStack, fireEvent, log ) {
 
-		var __export;
 		var Fragment, getValueOptions = {
 				args: true
 			},
@@ -8932,7 +9177,8 @@
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		__export = function EventHandler$init( element, name, template ) {
+
+		function EventHandler$init( element, name, template ) {
 			var this$0 = this;
 			var action, refs, ractive, i;
 			this.element = element;
@@ -8999,7 +9245,7 @@
 					this.fire = fireEventWithParams;
 				}
 			}
-		};
+		}
 
 		function fireMethodCall( event ) {
 			var ractive, values, args;
@@ -9050,13 +9296,13 @@
 				args: args
 			} );
 		}
-		return __export;
+		return EventHandler$init;
 	}( getFunctionFromString, createReferenceResolver, circular, Ractive$shared_eventStack, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Element/EventHandler/shared/genericHandler.js */
 	var genericHandler = function( findIndexRefs ) {
 
-		return function genericHandler( event ) {
+		function genericHandler( event ) {
 			var storage, handler, indices, index = {};
 			storage = this._ractive;
 			handler = storage.events[ event.type ];
@@ -9070,13 +9316,13 @@
 				keypath: storage.keypath,
 				context: storage.root.get( storage.keypath )
 			} );
-		};
+		}
+		return genericHandler;
 	}( findIndexRefs );
 
 	/* virtualdom/items/Element/EventHandler/prototype/listen.js */
 	var virtualdom_items_Element_EventHandler$listen = function( config, genericHandler, log ) {
 
-		var __export;
 		var customHandlers = {},
 			touchEvents = {
 				touchstart: true,
@@ -9086,7 +9332,8 @@
 				//not w3c, but supported in some browsers
 				touchleave: true
 			};
-		__export = function EventHandler$listen() {
+
+		function EventHandler$listen() {
 			var definition, name = this.name;
 			if ( this.invalid ) {
 				return;
@@ -9112,7 +9359,7 @@
 				this.node.addEventListener( name, genericHandler, false );
 			}
 			this.hasListener = true;
-		};
+		}
 
 		function getCustomHandler( name ) {
 			if ( !customHandlers[ name ] ) {
@@ -9126,50 +9373,61 @@
 			}
 			return customHandlers[ name ];
 		}
-		return __export;
+		return EventHandler$listen;
 	}( config, genericHandler, log );
 
 	/* virtualdom/items/Element/EventHandler/prototype/rebind.js */
-	var virtualdom_items_Element_EventHandler$rebind = function EventHandler$rebind( oldKeypath, newKeypath ) {
-		var fragment;
-		if ( this.method ) {
-			fragment = this.element.parentFragment;
-			this.refResolvers.forEach( rebind );
-			return;
-		}
-		if ( typeof this.action !== 'string' ) {
-			rebind( this.action );
-		}
-		if ( this.dynamicParams ) {
-			rebind( this.dynamicParams );
-		}
+	var virtualdom_items_Element_EventHandler$rebind = function() {
 
-		function rebind( thing ) {
-			thing && thing.rebind( oldKeypath, newKeypath );
+		function EventHandler$rebind( oldKeypath, newKeypath ) {
+			var fragment;
+			if ( this.method ) {
+				fragment = this.element.parentFragment;
+				this.refResolvers.forEach( rebind );
+				return;
+			}
+			if ( typeof this.action !== 'string' ) {
+				rebind( this.action );
+			}
+			if ( this.dynamicParams ) {
+				rebind( this.dynamicParams );
+			}
+
+			function rebind( thing ) {
+				thing && thing.rebind( oldKeypath, newKeypath );
+			}
 		}
-	};
+		return EventHandler$rebind;
+	}();
 
 	/* virtualdom/items/Element/EventHandler/prototype/render.js */
-	var virtualdom_items_Element_EventHandler$render = function EventHandler$render() {
-		this.node = this.element.node;
-		// store this on the node itself, so it can be retrieved by a
-		// universal handler
-		this.node._ractive.events[ this.name ] = this;
-		if ( this.method || this.getAction() ) {
-			this.listen();
+	var virtualdom_items_Element_EventHandler$render = function() {
+
+		function EventHandler$render() {
+			this.node = this.element.node;
+			// store this on the node itself, so it can be retrieved by a
+			// universal handler
+			this.node._ractive.events[ this.name ] = this;
+			if ( this.method || this.getAction() ) {
+				this.listen();
+			}
 		}
-	};
+		return EventHandler$render;
+	}();
 
 	/* virtualdom/items/Element/EventHandler/prototype/resolve.js */
-	var virtualdom_items_Element_EventHandler$resolve = function EventHandler$resolve( index, keypath ) {
-		this.keypaths[ index ] = keypath;
-	};
+	var virtualdom_items_Element_EventHandler$resolve = function() {
+
+		function EventHandler$resolve( index, keypath ) {
+			this.keypaths[ index ] = keypath;
+		}
+		return EventHandler$resolve;
+	}();
 
 	/* virtualdom/items/Element/EventHandler/prototype/unbind.js */
 	var virtualdom_items_Element_EventHandler$unbind = function() {
 
-		var __export;
-		__export = function EventHandler$unbind() {
+		function EventHandler$unbind() {
 			if ( this.method ) {
 				this.refResolvers.forEach( unbind );
 				return;
@@ -9182,25 +9440,26 @@
 			if ( this.dynamicParams ) {
 				this.dynamicParams.unbind();
 			}
-		};
+		}
 
 		function unbind( x ) {
 			x.unbind();
 		}
-		return __export;
+		return EventHandler$unbind;
 	}();
 
 	/* virtualdom/items/Element/EventHandler/prototype/unrender.js */
 	var virtualdom_items_Element_EventHandler$unrender = function( genericHandler ) {
 
-		return function EventHandler$unrender() {
+		function EventHandler$unrender() {
 			if ( this.custom ) {
 				this.custom.teardown();
 			} else {
 				this.node.removeEventListener( this.name, genericHandler, false );
 			}
 			this.hasListener = false;
-		};
+		}
+		return EventHandler$unrender;
 	}( genericHandler );
 
 	/* virtualdom/items/Element/EventHandler/_EventHandler.js */
@@ -9347,8 +9606,7 @@
 	/* virtualdom/items/Element/special/select/sync.js */
 	var sync = function( toArray ) {
 
-		var __export;
-		__export = function syncSelect( selectElement ) {
+		function syncSelect( selectElement ) {
 			var selectNode, selectValue, isMultiple, options, optionWasSelected;
 			selectNode = selectElement.node;
 			if ( !selectNode ) {
@@ -9380,7 +9638,7 @@
 			} else if ( selectElement.binding ) {
 				selectElement.binding.forceUpdate();
 			}
-		};
+		}
 
 		function valueContains( selectValue, optionValue ) {
 			var i = selectValue.length;
@@ -9390,13 +9648,13 @@
 				}
 			}
 		}
-		return __export;
+		return syncSelect;
 	}( toArray );
 
 	/* virtualdom/items/Element/special/select/bubble.js */
 	var bubble = function( runloop, syncSelect ) {
 
-		return function bubbleSelect() {
+		function bubbleSelect() {
 			var this$0 = this;
 			if ( !this.dirty ) {
 				this.dirty = true;
@@ -9406,25 +9664,30 @@
 				} );
 			}
 			this.parentFragment.bubble();
-		};
+		}
+		return bubbleSelect;
 	}( runloop, sync );
 
 	/* virtualdom/items/Element/special/option/findParentSelect.js */
-	var findParentSelect = function findParentSelect( element ) {
-		if ( !element ) {
-			return;
-		}
-		do {
-			if ( element.name === 'select' ) {
-				return element;
+	var findParentSelect = function() {
+
+		function findParentSelect( element ) {
+			if ( !element ) {
+				return;
 			}
-		} while ( element = element.parent );
-	};
+			do {
+				if ( element.name === 'select' ) {
+					return element;
+				}
+			} while ( element = element.parent );
+		}
+		return findParentSelect;
+	}();
 
 	/* virtualdom/items/Element/special/option/init.js */
 	var init = function( findParentSelect ) {
 
-		return function initOption( option, template ) {
+		function initOption( option, template ) {
 			option.select = findParentSelect( option.parent );
 			// we might be inside a <datalist> element
 			if ( !option.select ) {
@@ -9444,7 +9707,8 @@
 			if ( 'selected' in template.a && option.select.getAttribute( 'value' ) !== undefined ) {
 				delete template.a.selected;
 			}
-		};
+		}
+		return initOption;
 	}( findParentSelect );
 
 	/* virtualdom/items/Element/prototype/init.js */
@@ -9454,7 +9718,8 @@
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function Element$init( options ) {
+
+		function Element$init( options ) {
 			var parentFragment, template, ractive, binding, bindings, twoway;
 			this.type = types.ELEMENT;
 			// stuff we'll need later
@@ -9512,34 +9777,37 @@
 			// create transitions
 			this.intro = template.t0 || template.t1;
 			this.outro = template.t0 || template.t2;
-		};
+		}
+		return Element$init;
 	}( types, enforceCase, virtualdom_items_Element$init_processBindingAttributes, virtualdom_items_Element$init_createAttributes, virtualdom_items_Element$init_createConditionalAttributes, virtualdom_items_Element$init_createTwowayBinding, virtualdom_items_Element$init_createEventHandlers, Decorator, bubble, init, circular );
 
 	/* shared/keypaths/equalsOrStartsWith.js */
 	var equalsOrStartsWith = function( startsWithKeypath ) {
 
-		return function equalsOrStartsWith( target, keypath ) {
+		function equalsOrStartsWith( target, keypath ) {
 			return target === keypath || startsWithKeypath( target, keypath );
-		};
+		}
+		return equalsOrStartsWith;
 	}( startsWith );
 
 	/* shared/keypaths/assignNew.js */
 	var assignNew = function( equalsOrStartsWith, getNewKeypath ) {
 
-		return function assignNewKeypath( target, property, oldKeypath, newKeypath ) {
+		function assignNewKeypath( target, property, oldKeypath, newKeypath ) {
 			var existingKeypath = target[ property ];
 			if ( !existingKeypath || equalsOrStartsWith( existingKeypath, newKeypath ) || !equalsOrStartsWith( existingKeypath, oldKeypath ) ) {
 				return;
 			}
 			target[ property ] = getNewKeypath( existingKeypath, oldKeypath, newKeypath );
 			return true;
-		};
+		}
+		return assignNewKeypath;
 	}( equalsOrStartsWith, getNew );
 
 	/* virtualdom/items/Element/prototype/rebind.js */
 	var virtualdom_items_Element$rebind = function( assignNewKeypath ) {
 
-		return function Element$rebind( oldKeypath, newKeypath ) {
+		function Element$rebind( oldKeypath, newKeypath ) {
 			var i, storage, liveQueries, ractive;
 			if ( this.attributes ) {
 				this.attributes.forEach( rebind );
@@ -9573,28 +9841,33 @@
 			function rebind( thing ) {
 				thing.rebind( oldKeypath, newKeypath );
 			}
-		};
+		}
+		return Element$rebind;
 	}( assignNew );
 
 	/* virtualdom/items/Element/special/img/render.js */
-	var render = function renderImage( img ) {
-		var loadHandler;
-		// if this is an <img>, and we're in a crap browser, we may need to prevent it
-		// from overriding width and height when it loads the src
-		if ( img.attributes.width || img.attributes.height ) {
-			img.node.addEventListener( 'load', loadHandler = function() {
-				var width = img.getAttribute( 'width' ),
-					height = img.getAttribute( 'height' );
-				if ( width !== undefined ) {
-					img.node.setAttribute( 'width', width );
-				}
-				if ( height !== undefined ) {
-					img.node.setAttribute( 'height', height );
-				}
-				img.node.removeEventListener( 'load', loadHandler, false );
-			}, false );
+	var render = function() {
+
+		function renderImage( img ) {
+			var loadHandler;
+			// if this is an <img>, and we're in a crap browser, we may need to prevent it
+			// from overriding width and height when it loads the src
+			if ( img.attributes.width || img.attributes.height ) {
+				img.node.addEventListener( 'load', loadHandler = function() {
+					var width = img.getAttribute( 'width' ),
+						height = img.getAttribute( 'height' );
+					if ( width !== undefined ) {
+						img.node.setAttribute( 'width', width );
+					}
+					if ( height !== undefined ) {
+						img.node.setAttribute( 'height', height );
+					}
+					img.node.removeEventListener( 'load', loadHandler, false );
+				}, false );
+			}
 		}
-	};
+		return renderImage;
+	}();
 
 	/* virtualdom/items/Element/Transition/prototype/init.js */
 	var virtualdom_items_Element_Transition$init = function( log, config, circular ) {
@@ -9604,7 +9877,8 @@
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		return function Transition$init( element, template, isIntro ) {
+
+		function Transition$init( element, template, isIntro ) {
 			var ractive, name, fragment;
 			this.element = element;
 			this.root = ractive = element.root;
@@ -9648,7 +9922,8 @@
 					}
 				} );
 			}
-		};
+		}
+		return Transition$init;
 	}( log, config, circular );
 
 	/* utils/camelCase.js */
@@ -9750,7 +10025,6 @@
 	/* shared/Ticker.js */
 	var Ticker = function( warn, getTime, animations ) {
 
-		var __export;
 		var Ticker = function( options ) {
 			var easing;
 			this.duration = options.duration;
@@ -9803,12 +10077,11 @@
 				this.running = false;
 			}
 		};
-		__export = Ticker;
 
 		function linear( t ) {
 			return t;
 		}
-		return __export;
+		return Ticker;
 	}( warn, getTime, animations );
 
 	/* virtualdom/items/Element/Transition/helpers/unprefix.js */
@@ -10177,8 +10450,7 @@
 	/* virtualdom/items/Element/Transition/prototype/start.js */
 	var virtualdom_items_Element_Transition$start = function() {
 
-		var __export;
-		__export = function Transition$start() {
+		function Transition$start() {
 			var this$0 = this;
 			var node, originalStyle, completed;
 			node = this.node = this.element.node;
@@ -10203,7 +10475,7 @@
 				return;
 			}
 			this._fn.apply( this.root, [ this ].concat( this.params ) );
-		};
+		}
 
 		function resetStyle( node, style ) {
 			if ( style ) {
@@ -10215,7 +10487,7 @@
 				node.removeAttribute( 'style' );
 			}
 		}
-		return __export;
+		return Transition$start;
 	}();
 
 	/* virtualdom/items/Element/Transition/_Transition.js */
@@ -10242,7 +10514,6 @@
 	/* virtualdom/items/Element/prototype/render.js */
 	var virtualdom_items_Element$render = function( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage, Transition ) {
 
-		var __export;
 		var updateCss, updateScript;
 		updateCss = function() {
 			var node = this.node,
@@ -10266,19 +10537,20 @@
 			}
 			this.node.text = this.fragment.toString( false );
 		};
-		__export = function Element$render() {
+
+		function Element$render() {
 			var this$0 = this;
 			var root = this.root,
 				namespace, node;
 			namespace = getNamespace( this );
 			node = this.node = createElement( this.name, namespace );
 			// Is this a top-level node of a component? If so, we may need to add
-			// a data-rvcguid attribute, for CSS encapsulation
+			// a data-ractive-css attribute, for CSS encapsulation
 			// NOTE: css no longer copied to instance, so we check constructor.css -
 			// we can enhance to handle instance, but this is more "correct" with current
 			// functionality
 			if ( root.constructor.css && this.parentFragment.getNode() === root.el ) {
-				this.node.setAttribute( 'data-rvcguid', root.constructor._guid );
+				this.node.setAttribute( 'data-ractive-css', root.constructor._guid );
 			}
 			// Add _ractive property to the node - we use this object to store stuff
 			// related to proxy events, two-way bindings etc
@@ -10361,7 +10633,7 @@
 			}
 			updateLiveQueries( this );
 			return this.node;
-		};
+		}
 
 		function getNamespace( element ) {
 			var namespace, xmlns, parent;
@@ -10423,7 +10695,7 @@
 				}
 			} while ( instance = instance.parent );
 		}
-		return __export;
+		return Element$render;
 	}( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render, Transition );
 
 	/* config/voidElementNames.js */
@@ -10436,8 +10708,7 @@
 	/* virtualdom/items/Element/prototype/toString.js */
 	var virtualdom_items_Element$toString = function( voidElementNames, isArray, escapeHtml ) {
 
-		var __export;
-		__export = function() {
+		var __export = function() {
 			var str, escape;
 			if ( this.template.y ) {
 				// DOCTYPE declaration
@@ -10515,18 +10786,18 @@
 	/* virtualdom/items/Element/special/option/unbind.js */
 	var virtualdom_items_Element_special_option_unbind = function( removeFromArray ) {
 
-		return function unbindOption( option ) {
+		function unbindOption( option ) {
 			if ( option.select ) {
 				removeFromArray( option.select.options, option );
 			}
-		};
+		}
+		return unbindOption;
 	}( removeFromArray );
 
 	/* virtualdom/items/Element/prototype/unbind.js */
 	var virtualdom_items_Element$unbind = function( unbindOption ) {
 
-		var __export;
-		__export = function Element$unbind() {
+		function Element$unbind() {
 			if ( this.fragment ) {
 				this.fragment.unbind();
 			}
@@ -10542,19 +10813,18 @@
 			}
 			this.attributes.forEach( unbind );
 			this.conditionalAttributes.forEach( unbind );
-		};
+		}
 
 		function unbind( x ) {
 			x.unbind();
 		}
-		return __export;
+		return Element$unbind;
 	}( virtualdom_items_Element_special_option_unbind );
 
 	/* virtualdom/items/Element/prototype/unrender.js */
 	var virtualdom_items_Element$unrender = function( runloop, Transition ) {
 
-		var __export;
-		__export = function Element$unrender( shouldDestroy ) {
+		function Element$unrender( shouldDestroy ) {
 			var binding, bindings;
 			if ( this.transition ) {
 				this.transition.complete();
@@ -10600,7 +10870,7 @@
 			if ( this.liveQueries ) {
 				removeFromLiveQueries( this );
 			}
-		};
+		}
 
 		function removeFromLiveQueries( element ) {
 			var query, selector, i;
@@ -10611,7 +10881,7 @@
 				query._remove( element.node );
 			}
 		}
-		return __export;
+		return Element$unrender;
 	}( runloop, Transition );
 
 	/* virtualdom/items/Element/_Element.js */
@@ -10643,10 +10913,9 @@
 	/* virtualdom/items/Partial/deIndent.js */
 	var deIndent = function() {
 
-		var __export;
 		var empty = /^\s*$/,
 			leadingWhitespace = /^\s*/;
-		__export = function( str ) {
+		var __export = function( str ) {
 			var lines, firstLine, lastLine, minIndent;
 			lines = str.split( '\n' );
 			// remove first and last line, if they only contain whitespace
@@ -10680,8 +10949,7 @@
 	/* virtualdom/items/Partial/getPartialTemplate.js */
 	var getPartialTemplate = function( log, config, parser, deIndent ) {
 
-		var __export;
-		__export = function getPartialTemplate( ractive, name ) {
+		function getPartialTemplate( ractive, name ) {
 			var partial;
 			// If the partial in instance or view heirarchy instances, great
 			if ( partial = getPartialFromRegistry( ractive, name ) ) {
@@ -10699,7 +10967,7 @@
 				// register (and return main partial if there are others in the template)
 				return ractive.partials[ name ] = parsed.t;
 			}
-		};
+		}
 
 		function getPartialFromRegistry( ractive, name ) {
 			var partials = config.registries.partials;
@@ -10755,7 +11023,7 @@
 			}
 			return partial.v ? partial.t : partial;
 		}
-		return __export;
+		return getPartialTemplate;
 	}( log, config, parser, deIndent );
 
 	/* virtualdom/items/Partial/applyIndent.js */
@@ -10949,7 +11217,7 @@
 			Ractive = circular.Ractive;
 		} );
 		// finds the component constructor in the registry or view hierarchy registries
-		return function getComponent( ractive, name ) {
+		function getComponent( ractive, name ) {
 			var Component, instance = config.registries.components.findInstance( ractive, name );
 			if ( instance ) {
 				Component = instance.components[ name ];
@@ -10979,61 +11247,88 @@
 				}
 			}
 			return Component;
-		};
+		}
+		return getComponent;
 	}( config, log, circular );
 
 	/* virtualdom/items/Component/prototype/detach.js */
 	var virtualdom_items_Component$detach = function( Hook ) {
 
 		var detachHook = new Hook( 'detach' );
-		return function Component$detach() {
+
+		function Component$detach() {
 			var detached = this.instance.fragment.detach();
 			detachHook.fire( this.instance );
 			return detached;
-		};
+		}
+		return Component$detach;
 	}( Ractive$shared_hooks_Hook );
 
 	/* virtualdom/items/Component/prototype/find.js */
-	var virtualdom_items_Component$find = function Component$find( selector ) {
-		return this.instance.fragment.find( selector );
-	};
+	var virtualdom_items_Component$find = function() {
+
+		function Component$find( selector ) {
+			return this.instance.fragment.find( selector );
+		}
+		return Component$find;
+	}();
 
 	/* virtualdom/items/Component/prototype/findAll.js */
-	var virtualdom_items_Component$findAll = function Component$findAll( selector, query ) {
-		return this.instance.fragment.findAll( selector, query );
-	};
+	var virtualdom_items_Component$findAll = function() {
+
+		function Component$findAll( selector, query ) {
+			return this.instance.fragment.findAll( selector, query );
+		}
+		return Component$findAll;
+	}();
 
 	/* virtualdom/items/Component/prototype/findAllComponents.js */
-	var virtualdom_items_Component$findAllComponents = function Component$findAllComponents( selector, query ) {
-		query._test( this, true );
-		if ( this.instance.fragment ) {
-			this.instance.fragment.findAllComponents( selector, query );
+	var virtualdom_items_Component$findAllComponents = function() {
+
+		function Component$findAllComponents( selector, query ) {
+			query._test( this, true );
+			if ( this.instance.fragment ) {
+				this.instance.fragment.findAllComponents( selector, query );
+			}
 		}
-	};
+		return Component$findAllComponents;
+	}();
 
 	/* virtualdom/items/Component/prototype/findComponent.js */
-	var virtualdom_items_Component$findComponent = function Component$findComponent( selector ) {
-		if ( !selector || selector === this.name ) {
-			return this.instance;
+	var virtualdom_items_Component$findComponent = function() {
+
+		function Component$findComponent( selector ) {
+			if ( !selector || selector === this.name ) {
+				return this.instance;
+			}
+			if ( this.instance.fragment ) {
+				return this.instance.fragment.findComponent( selector );
+			}
+			return null;
 		}
-		if ( this.instance.fragment ) {
-			return this.instance.fragment.findComponent( selector );
-		}
-		return null;
-	};
+		return Component$findComponent;
+	}();
 
 	/* virtualdom/items/Component/prototype/findNextNode.js */
-	var virtualdom_items_Component$findNextNode = function Component$findNextNode() {
-		return this.parentFragment.findNextNode( this );
-	};
+	var virtualdom_items_Component$findNextNode = function() {
+
+		function Component$findNextNode() {
+			return this.parentFragment.findNextNode( this );
+		}
+		return Component$findNextNode;
+	}();
 
 	/* virtualdom/items/Component/prototype/firstNode.js */
-	var virtualdom_items_Component$firstNode = function Component$firstNode() {
-		if ( this.rendered ) {
-			return this.instance.fragment.firstNode();
+	var virtualdom_items_Component$firstNode = function() {
+
+		function Component$firstNode() {
+			if ( this.rendered ) {
+				return this.instance.fragment.firstNode();
+			}
+			return null;
 		}
-		return null;
-	};
+		return Component$firstNode;
+	}();
 
 	/* virtualdom/items/Component/initialise/createInstance.js */
 	var createInstance = function( types, log, create, circular, extend ) {
@@ -11094,7 +11389,6 @@
 	/* shared/parameters/ComplexParameter.js */
 	var ComplexParameter = function( runloop, circular ) {
 
-		var __export;
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
@@ -11111,7 +11405,6 @@
 			} );
 			this.parameters.addData( this.key, this.fragment.getValue() );
 		}
-		__export = ComplexParameter;
 		ComplexParameter.prototype = {
 			bubble: function() {
 				if ( !this.dirty ) {
@@ -11132,14 +11425,13 @@
 				this.fragment.unbind();
 			}
 		};
-		return __export;
+		return ComplexParameter;
 	}( runloop, circular );
 
 	/* shared/parameters/createComponentData.js */
 	var createComponentData = function( defineProperties, magic, runloop ) {
 
-		var __export;
-		__export = function createComponentData( parameters, proto ) {
+		function createComponentData( parameters, proto ) {
 			// Don't do anything with data at all..
 			if ( !proto.parameters ) {
 				return parameters.data;
@@ -11148,7 +11440,7 @@
 			}
 			// ES5 ftw!
 			return createDataFromPrototype( parameters, proto );
-		};
+		}
 
 		function createLegacyData( parameters ) {
 			var mappings = parameters.mappings,
@@ -11212,31 +11504,26 @@
 			ComponentData.prototype = proto;
 			return ComponentData;
 		}
-		return __export;
+		return createComponentData;
 	}( defineProperties, magic, runloop );
 
 	/* shared/parameters/DataTracker.js */
 	var DataTracker = function() {
 
-		var __export;
-
 		function DataTracker( key, viewmodel ) {
 			this.keypath = key;
 			this.viewmodel = viewmodel;
 		}
-		__export = DataTracker;
 		DataTracker.prototype.setValue = function( value ) {
 			this.viewmodel.set( this.keypath, value, {
 				noMapping: true
 			} );
 		};
-		return __export;
+		return DataTracker;
 	}();
 
 	/* shared/parameters/Mapping.js */
 	var Mapping = function( DataTracker ) {
-
-		var __export;
 
 		function Mapping( localKey, options ) {
 			this.localKey = localKey;
@@ -11246,7 +11533,6 @@
 			this.reversed = options.reversed;
 			this.resolved = false;
 		}
-		__export = Mapping;
 		Mapping.prototype = {
 			get: function( keypath, options ) {
 				if ( !this.resolved ) {
@@ -11369,13 +11655,11 @@
 				this.origin.unregister( this.map( keypath ), dependant, group );
 			}
 		};
-		return __export;
+		return Mapping;
 	}( DataTracker );
 
 	/* shared/parameters/ParameterResolver.js */
 	var ParameterResolver = function( createReferenceResolver, decodeKeypath, ExpressionResolver, ReferenceExpressionResolver ) {
-
-		var __export;
 
 		function ParameterResolver( parameters, key, template ) {
 			var component, resolve;
@@ -11397,7 +11681,6 @@
 			}
 			this.ready = true;
 		}
-		__export = ParameterResolver;
 		ParameterResolver.prototype = {
 			resolve: function( keypath ) {
 				this.resolved = true;
@@ -11430,14 +11713,13 @@
 				}
 			}
 		};
-		return __export;
+		return ParameterResolver;
 	}( createReferenceResolver, decode, ExpressionResolver, ReferenceExpressionResolver );
 
 	/* shared/parameters/createParameters.js */
 	var createParameters = function( ComplexParameter, create, createComponentData, Mapping, parseJSON, ParameterResolver, types ) {
 
-		var __export;
-		__export = function createParameters( component, proto, attributes ) {
+		function createParameters( component, proto, attributes ) {
 			var parameters, data, defined;
 			if ( !attributes ) {
 				return {
@@ -11453,7 +11735,7 @@
 				data: data,
 				mappings: parameters.mappings
 			};
-		};
+		}
 
 		function getParamsDefinition( proto ) {
 			if ( !proto._parameters ) {
@@ -11516,25 +11798,25 @@
 		function isSingleInterpolator( template ) {
 			return template.length === 1 && template[ 0 ].t === types.INTERPOLATOR;
 		}
-		return __export;
+		return createParameters;
 	}( ComplexParameter, create, createComponentData, Mapping, parseJSON, ParameterResolver, types );
 
 	/* virtualdom/items/Component/initialise/propagateEvents.js */
 	var propagateEvents = function( circular, fireEvent, log ) {
 
-		var __export;
 		var Fragment;
 		circular.push( function() {
 			Fragment = circular.Fragment;
 		} );
-		__export = function propagateEvents( component, eventsDescriptor ) {
+
+		function propagateEvents( component, eventsDescriptor ) {
 			var eventName;
 			for ( eventName in eventsDescriptor ) {
 				if ( eventsDescriptor.hasOwnProperty( eventName ) ) {
 					propagateEvent( component.instance, component.root, eventName, eventsDescriptor[ eventName ] );
 				}
 			}
-		};
+		}
 
 		function propagateEvent( childInstance, parentInstance, eventName, proxyEventName ) {
 			if ( typeof proxyEventName !== 'string' ) {
@@ -11558,7 +11840,7 @@
 				return false;
 			} );
 		}
-		return __export;
+		return propagateEvents;
 	}( circular, Ractive$shared_fireEvent, log );
 
 	/* virtualdom/items/Component/initialise/updateLiveQueries.js */
@@ -11597,7 +11879,7 @@
 	/* virtualdom/items/Component/prototype/init.js */
 	var virtualdom_items_Component$init = function( createInstance, createParameters, propagateEvents, types, updateLiveQueries, warn ) {
 
-		return function Component$init( options, Component ) {
+		function Component$init( options, Component ) {
 			var parentFragment, root, parameters;
 			if ( !Component ) {
 				throw new Error( 'Component "' + this.name + '" not found' );
@@ -11619,46 +11901,59 @@
 				warn( 'The "intro", "outro" and "decorator" directives have no effect on components' );
 			}
 			updateLiveQueries( this );
-		};
+		}
+		return Component$init;
 	}( createInstance, createParameters, propagateEvents, types, updateLiveQueries, utils_warn );
 
 	/* virtualdom/items/Component/prototype/rebind.js */
-	var virtualdom_items_Component$rebind = function Component$rebind( oldKeypath, newKeypath ) {
-		var query;
-		this.resolvers.forEach( rebind );
-		for ( var k in this.yielders ) {
-			if ( this.yielders[ k ][ 0 ] ) {
-				rebind( this.yielders[ k ][ 0 ] );
+	var virtualdom_items_Component$rebind = function() {
+
+		function Component$rebind( oldKeypath, newKeypath ) {
+			var query;
+			this.resolvers.forEach( rebind );
+			for ( var k in this.yielders ) {
+				if ( this.yielders[ k ][ 0 ] ) {
+					rebind( this.yielders[ k ][ 0 ] );
+				}
+			}
+			if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
+				query._makeDirty();
+			}
+
+			function rebind( x ) {
+				x.rebind( oldKeypath, newKeypath );
 			}
 		}
-		if ( query = this.root._liveComponentQueries[ '_' + this.name ] ) {
-			query._makeDirty();
-		}
-
-		function rebind( x ) {
-			x.rebind( oldKeypath, newKeypath );
-		}
-	};
+		return Component$rebind;
+	}();
 
 	/* virtualdom/items/Component/prototype/render.js */
-	var virtualdom_items_Component$render = function Component$render() {
-		var instance = this.instance;
-		instance.render( this.parentFragment.getNode() );
-		this.rendered = true;
-		return instance.fragment.detach();
-	};
+	var virtualdom_items_Component$render = function() {
+
+		function Component$render() {
+			var instance = this.instance;
+			instance.render( this.parentFragment.getNode() );
+			this.rendered = true;
+			return instance.fragment.detach();
+		}
+		return Component$render;
+	}();
 
 	/* virtualdom/items/Component/prototype/toString.js */
-	var virtualdom_items_Component$toString = function Component$toString() {
-		return this.instance.fragment.toString();
-	};
+	var virtualdom_items_Component$toString = function() {
+
+		function Component$toString() {
+			return this.instance.fragment.toString();
+		}
+		return Component$toString;
+	}();
 
 	/* virtualdom/items/Component/prototype/unbind.js */
 	var virtualdom_items_Component$unbind = function( Hook, removeFromArray ) {
 
-		var __export;
 		var teardownHook = new Hook( 'teardown' );
-		__export = function Component$unbind() {
+
+		function Component$unbind() {
 			var instance = this.instance;
 			this.resolvers.forEach( unbind );
 			removeFromLiveComponentQueries( this );
@@ -11669,7 +11964,7 @@
 				removeFromArray( instance.el.__ractive_instances__, instance );
 			}
 			teardownHook.fire( instance );
-		};
+		}
 
 		function unbind( thing ) {
 			thing.unbind();
@@ -11684,14 +11979,18 @@
 				}
 			} while ( instance = instance.parent );
 		}
-		return __export;
+		return Component$unbind;
 	}( Ractive$shared_hooks_Hook, removeFromArray );
 
 	/* virtualdom/items/Component/prototype/unrender.js */
-	var virtualdom_items_Component$unrender = function Component$unrender( shouldDestroy ) {
-		this.shouldDestroy = shouldDestroy;
-		this.instance.unrender();
-	};
+	var virtualdom_items_Component$unrender = function() {
+
+		function Component$unrender( shouldDestroy ) {
+			this.shouldDestroy = shouldDestroy;
+			this.instance.unrender();
+		}
+		return Component$unrender;
+	}();
 
 	/* virtualdom/items/Component/_Component.js */
 	var Component = function( detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, init, rebind, render, toString, unbind, unrender ) {
@@ -11849,7 +12148,7 @@
 	/* virtualdom/Fragment/prototype/init/createItem.js */
 	var virtualdom_Fragment$init_createItem = function( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder, Doctype ) {
 
-		return function createItem( options ) {
+		function createItem( options ) {
 			if ( typeof options.template === 'string' ) {
 				return new Text( options );
 			}
@@ -11878,13 +12177,14 @@
 				default:
 					throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 			}
-		};
+		}
+		return createItem;
 	}( types, Text, Interpolator, Section, Triple, Element, Partial, getComponent, Component, Comment, Yielder, Doctype );
 
 	/* virtualdom/Fragment/prototype/init.js */
 	var virtualdom_Fragment$init = function( createItem ) {
 
-		return function Fragment$init( options ) {
+		function Fragment$init( options ) {
 			var this$0 = this;
 			var parentFragment;
 			// The item that owns this fragment - an element, section, partial, or attribute
@@ -11917,13 +12217,14 @@
 			this.value = this.argsList = null;
 			this.dirtyArgs = this.dirtyValue = true;
 			this.bound = true;
-		};
+		}
+		return Fragment$init;
 	}( virtualdom_Fragment$init_createItem );
 
 	/* virtualdom/Fragment/prototype/rebind.js */
 	var virtualdom_Fragment$rebind = function( assignNewKeypath ) {
 
-		return function Fragment$rebind( oldKeypath, newKeypath ) {
+		function Fragment$rebind( oldKeypath, newKeypath ) {
 			// assign new context keypath if needed
 			assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 			this.items.forEach( function( item ) {
@@ -11931,64 +12232,76 @@
 					item.rebind( oldKeypath, newKeypath );
 				}
 			} );
-		};
+		}
+		return Fragment$rebind;
 	}( assignNew );
 
 	/* virtualdom/Fragment/prototype/render.js */
-	var virtualdom_Fragment$render = function Fragment$render() {
-		var result;
-		if ( this.items.length === 1 ) {
-			result = this.items[ 0 ].render();
-		} else {
-			result = document.createDocumentFragment();
-			this.items.forEach( function( item ) {
-				result.appendChild( item.render() );
-			} );
+	var virtualdom_Fragment$render = function() {
+
+		function Fragment$render() {
+			var result;
+			if ( this.items.length === 1 ) {
+				result = this.items[ 0 ].render();
+			} else {
+				result = document.createDocumentFragment();
+				this.items.forEach( function( item ) {
+					result.appendChild( item.render() );
+				} );
+			}
+			this.rendered = true;
+			return result;
 		}
-		this.rendered = true;
-		return result;
-	};
+		return Fragment$render;
+	}();
 
 	/* virtualdom/Fragment/prototype/toString.js */
-	var virtualdom_Fragment$toString = function Fragment$toString( escape ) {
-		if ( !this.items ) {
-			return '';
+	var virtualdom_Fragment$toString = function() {
+
+		function Fragment$toString( escape ) {
+			if ( !this.items ) {
+				return '';
+			}
+			return this.items.map( function( item ) {
+				return item.toString( escape );
+			} ).join( '' );
 		}
-		return this.items.map( function( item ) {
-			return item.toString( escape );
-		} ).join( '' );
-	};
+		return Fragment$toString;
+	}();
 
 	/* virtualdom/Fragment/prototype/unbind.js */
 	var virtualdom_Fragment$unbind = function() {
 
-		var __export;
-		__export = function Fragment$unbind() {
+		function Fragment$unbind() {
 			if ( !this.bound ) {
 				return;
 			}
 			this.items.forEach( unbindItem );
 			this.bound = false;
-		};
+		}
 
 		function unbindItem( item ) {
 			if ( item.unbind ) {
 				item.unbind();
 			}
 		}
-		return __export;
+		return Fragment$unbind;
 	}();
 
 	/* virtualdom/Fragment/prototype/unrender.js */
-	var virtualdom_Fragment$unrender = function Fragment$unrender( shouldDestroy ) {
-		if ( !this.rendered ) {
-			throw new Error( 'Attempted to unrender a fragment that was not rendered' );
+	var virtualdom_Fragment$unrender = function() {
+
+		function Fragment$unrender( shouldDestroy ) {
+			if ( !this.rendered ) {
+				throw new Error( 'Attempted to unrender a fragment that was not rendered' );
+			}
+			this.items.forEach( function( i ) {
+				return i.unrender( shouldDestroy );
+			} );
+			this.rendered = false;
 		}
-		this.items.forEach( function( i ) {
-			return i.unrender( shouldDestroy );
-		} );
-		this.rendered = false;
-	};
+		return Fragment$unrender;
+	}();
 
 	/* virtualdom/Fragment.js */
 	var Fragment = function( bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, getNode, getValue, init, rebind, render, toString, unbind, unrender, circular ) {
@@ -12039,7 +12352,8 @@
 				'events'
 			],
 			resetHook = new Hook( 'reset' );
-		return function Ractive$reset( data, callback ) {
+
+		function Ractive$reset( data, callback ) {
 			var this$0 = this;
 			var promise, wrapper, changes, i, rerender;
 			if ( typeof data === 'function' && !callback ) {
@@ -12116,7 +12430,8 @@
 				} );
 			}
 			return promise;
-		};
+		}
+		return Ractive$reset;
 	}( config, Fragment, Ractive$shared_hooks_Hook, log, runloop );
 
 	/* Ractive/prototype/resetPartial.js */
@@ -12188,7 +12503,7 @@
 	/* Ractive/prototype/resetTemplate.js */
 	var Ractive$resetTemplate = function( config, Fragment ) {
 
-		return function Ractive$resetTemplate( template ) {
+		function Ractive$resetTemplate( template ) {
 			var transitionsEnabled, component;
 			config.template.init( null, this, {
 				template: template
@@ -12215,7 +12530,8 @@
 			} );
 			this.render( this.el, this.anchor );
 			this.transitionsEnabled = transitionsEnabled;
-		};
+		}
+		return Ractive$resetTemplate;
 	}( config, Fragment );
 
 	/* Ractive/prototype/reverse.js */
@@ -12228,7 +12544,8 @@
 	var Ractive$set = function( isObject, getMatchingKeypaths, log, normaliseKeypath, runloop ) {
 
 		var wildcard = /\*/;
-		return function Ractive$set( keypath, value, callback ) {
+
+		function Ractive$set( keypath, value, callback ) {
 			var this$0 = this;
 			var map, promise;
 			promise = runloop.start( this, true );
@@ -12270,7 +12587,8 @@
 				} );
 			}
 			return promise;
-		};
+		}
+		return Ractive$set;
 	}( isObject, getMatching, log, normaliseKeypath, runloop );
 
 	/* Ractive/prototype/shift.js */
@@ -12294,9 +12612,10 @@
 	/* Ractive/prototype/subtract.js */
 	var Ractive$subtract = function( add ) {
 
-		return function Ractive$subtract( keypath, d ) {
+		function Ractive$subtract( keypath, d ) {
 			return add( this, keypath, d === undefined ? -1 : -d );
-		};
+		}
+		return Ractive$subtract;
 	}( Ractive$shared_add );
 
 	/* Ractive/prototype/teardown.js */
@@ -12305,7 +12624,7 @@
 		var teardownHook = new Hook( 'teardown' );
 		// Teardown. This goes through the root fragment and all its children, removing observers
 		// and generally cleaning up after itself
-		return function Ractive$teardown( callback ) {
+		function Ractive$teardown( callback ) {
 			var this$0 = this;
 			var promise;
 			this.fragment.unbind();
@@ -12332,13 +12651,14 @@
 				} );
 			}
 			return promise;
-		};
+		}
+		return Ractive$teardown;
 	}( Ractive$shared_hooks_Hook, log, Promise, removeFromArray );
 
 	/* Ractive/prototype/toggle.js */
 	var Ractive$toggle = function( log ) {
 
-		return function Ractive$toggle( keypath, callback ) {
+		function Ractive$toggle( keypath, callback ) {
 			var value;
 			if ( typeof keypath !== 'string' ) {
 				log.errorOnly( {
@@ -12351,19 +12671,25 @@
 			}
 			value = this.get( keypath );
 			return this.set( keypath, !value, callback );
-		};
+		}
+		return Ractive$toggle;
 	}( log );
 
 	/* Ractive/prototype/toHTML.js */
-	var Ractive$toHTML = function Ractive$toHTML() {
-		return this.fragment.toString( true );
-	};
+	var Ractive$toHTML = function() {
+
+		function Ractive$toHTML() {
+			return this.fragment.toString( true );
+		}
+		return Ractive$toHTML;
+	}();
 
 	/* Ractive/prototype/unrender.js */
 	var Ractive$unrender = function( css, Hook, log, Promise, removeFromArray, runloop ) {
 
 		var unrenderHook = new Hook( 'unrender' );
-		return function Ractive$unrender() {
+
+		function Ractive$unrender() {
 			var this$0 = this;
 			var promise, shouldDestroy;
 			if ( !this.fragment.rendered ) {
@@ -12391,7 +12717,8 @@
 			unrenderHook.fire( this );
 			runloop.end();
 			return promise;
-		};
+		}
+		return Ractive$unrender;
 	}( global_css, Ractive$shared_hooks_Hook, log, Promise, removeFromArray, runloop );
 
 	/* Ractive/prototype/unshift.js */
@@ -12404,7 +12731,8 @@
 	var Ractive$update = function( Hook, log, runloop ) {
 
 		var updateHook = new Hook( 'update' );
-		return function Ractive$update( keypath, callback ) {
+
+		function Ractive$update( keypath, callback ) {
 			var this$0 = this;
 			var promise;
 			if ( typeof keypath === 'function' ) {
@@ -12433,14 +12761,14 @@
 				} );
 			}
 			return promise;
-		};
+		}
+		return Ractive$update;
 	}( Ractive$shared_hooks_Hook, log, runloop );
 
 	/* Ractive/prototype/updateModel.js */
 	var Ractive$updateModel = function( arrayContentsMatch, startsWith, isEqual ) {
 
-		var __export;
-		__export = function Ractive$updateModel( keypath, cascade ) {
+		function Ractive$updateModel( keypath, cascade ) {
 			var values, key, bindings;
 			if ( typeof keypath === 'string' && !cascade ) {
 				bindings = this._twowayBindings[ keypath ];
@@ -12454,7 +12782,7 @@
 			}
 			values = consolidate( this, bindings );
 			return this.set( values );
-		};
+		}
 
 		function consolidate( ractive, bindings ) {
 			var values = {},
@@ -12498,7 +12826,7 @@
 			}
 			return values;
 		}
-		return __export;
+		return Ractive$updateModel;
 	}( arrayContentsMatch, equalsOrStartsWith, isEqual );
 
 	/* Ractive/prototype.js */
@@ -12545,16 +12873,6 @@
 			updateModel: updateModel
 		};
 	}( Ractive$add, Ractive$animate, Ractive$detach, Ractive$find, Ractive$findAll, Ractive$findAllComponents, Ractive$findComponent, Ractive$findContainer, Ractive$findParent, Ractive$fire, Ractive$get, Ractive$insert, Ractive$merge, Ractive$observe, Ractive$observeOnce, Ractive$off, Ractive$on, Ractive$once, Ractive$pop, Ractive$push, Ractive$render, Ractive$reset, Ractive$resetPartial, Ractive$resetTemplate, Ractive$reverse, Ractive$set, Ractive$shift, Ractive$sort, Ractive$splice, Ractive$subtract, Ractive$teardown, Ractive$toggle, Ractive$toHTML, Ractive$unrender, Ractive$unshift, Ractive$update, Ractive$updateModel );
-
-	/* utils/getGuid.js */
-	var getGuid = function() {
-		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g, function( c ) {
-			var r, v;
-			r = Math.random() * 16 | 0;
-			v = c == 'x' ? r : r & 3 | 8;
-			return v.toString( 16 );
-		} );
-	};
 
 	/* utils/getNextNumber.js */
 	var getNextNumber = function() {
@@ -12818,9 +13136,9 @@
 	/* viewmodel/prototype/adapt.js */
 	var viewmodel$adapt = function( config, arrayAdaptor, log, magicAdaptor, magicArrayAdaptor ) {
 
-		var __export;
 		var prefixers = {};
-		__export = function Viewmodel$adapt( keypath, value ) {
+
+		function Viewmodel$adapt( keypath, value ) {
 			var ractive = this.ractive,
 				len, i, adaptor, wrapped;
 			// Do we have an adaptor for this value?
@@ -12860,7 +13178,7 @@
 				this.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 			}
 			return value;
-		};
+		}
 
 		function prefixKeypath( obj, prefix ) {
 			var prefixed = {},
@@ -12896,32 +13214,35 @@
 			}
 			return prefixers[ rootKeypath ];
 		}
-		return __export;
+		return Viewmodel$adapt;
 	}( config, viewmodel$get_arrayAdaptor, log, viewmodel$get_magicAdaptor, viewmodel$get_magicArrayAdaptor );
 
 	/* viewmodel/helpers/getUpstreamChanges.js */
-	var getUpstreamChanges = function getUpstreamChanges( changes ) {
-		var upstreamChanges = [ '' ],
-			i, keypath, keys, upstreamKeypath;
-		i = changes.length;
-		while ( i-- ) {
-			keypath = changes[ i ];
-			keys = keypath.split( '.' );
-			while ( keys.length > 1 ) {
-				keys.pop();
-				upstreamKeypath = keys.join( '.' );
-				if ( upstreamChanges.indexOf( upstreamKeypath ) === -1 ) {
-					upstreamChanges.push( upstreamKeypath );
+	var getUpstreamChanges = function() {
+
+		function getUpstreamChanges( changes ) {
+			var upstreamChanges = [ '' ],
+				i, keypath, keys, upstreamKeypath;
+			i = changes.length;
+			while ( i-- ) {
+				keypath = changes[ i ];
+				keys = keypath.split( '.' );
+				while ( keys.length > 1 ) {
+					keys.pop();
+					upstreamKeypath = keys.join( '.' );
+					if ( upstreamChanges.indexOf( upstreamKeypath ) === -1 ) {
+						upstreamChanges.push( upstreamKeypath );
+					}
 				}
 			}
+			return upstreamChanges;
 		}
-		return upstreamChanges;
-	};
+		return getUpstreamChanges;
+	}();
 
 	/* viewmodel/prototype/applyChanges/getPotentialWildcardMatches.js */
 	var viewmodel$applyChanges_getPotentialWildcardMatches = function() {
 
-		var __export;
 		var starMaps = {};
 		// This function takes a keypath such as 'foo.bar.baz', and returns
 		// all the variants of that keypath that include a wildcard in place
@@ -12929,22 +13250,22 @@
 		// These are then checked against the dependants map (ractive.viewmodel.depsMap)
 		// to see if any pattern observers are downstream of one or more of
 		// these wildcard keypaths (e.g. 'foo.bar.*.status')
-		__export = function getPotentialWildcardMatches( keypath ) {
-			var keys, starMap, mapper, result;
-			keys = keypath.split( '.' );
-			starMap = getStarMap( keys.length );
-			mapper = function( star, i ) {
-				return star ? '*' : keys[ i ];
-			};
-			result = starMap.map( function( mask ) {
-				return mask.map( mapper ).join( '.' );
-			} );
-			return result;
-		};
-		// This function returns all the possible true/false combinations for
-		// a given number - e.g. for two, the possible combinations are
-		// [ true, true ], [ true, false ], [ false, true ], [ false, false ].
-		// It does so by getting all the binary values between 0 and e.g. 11
+		function getPotentialWildcardMatches( keypath ) {
+				var keys, starMap, mapper, result;
+				keys = keypath.split( '.' );
+				starMap = getStarMap( keys.length );
+				mapper = function( star, i ) {
+					return star ? '*' : keys[ i ];
+				};
+				result = starMap.map( function( mask ) {
+					return mask.map( mapper ).join( '.' );
+				} );
+				return result;
+			}
+			// This function returns all the possible true/false combinations for
+			// a given number - e.g. for two, the possible combinations are
+			// [ true, true ], [ true, false ], [ false, true ], [ false, false ].
+			// It does so by getting all the binary values between 0 and e.g. 11
 		function getStarMap( length ) {
 			var ones = '',
 				max, binary, starMap, mapper, i;
@@ -12968,15 +13289,13 @@
 			}
 			return starMaps[ length ];
 		}
-		return __export;
+		return getPotentialWildcardMatches;
 	}();
 
 	/* viewmodel/prototype/applyChanges/notifyPatternObservers.js */
 	var viewmodel$applyChanges_notifyPatternObservers = function( getPotentialWildcardMatches ) {
 
-		var __export;
 		var lastKey = /[^\.]+$/;
-		__export = notifyPatternObservers;
 
 		function notifyPatternObservers( viewmodel, keypath, onlyDirect ) {
 			var potentialWildcardMatches;
@@ -13013,14 +13332,13 @@
 				}
 			} );
 		}
-		return __export;
+		return notifyPatternObservers;
 	}( viewmodel$applyChanges_getPotentialWildcardMatches );
 
 	/* viewmodel/prototype/applyChanges.js */
 	var viewmodel$applyChanges = function( getUpstreamChanges, notifyPatternObservers ) {
 
-		var __export;
-		__export = function Viewmodel$applyChanges() {
+		function Viewmodel$applyChanges() {
 			var this$0 = this;
 			var self = this,
 				changes, upstreamChanges, hash = {};
@@ -13096,7 +13414,7 @@
 			this.implicitChanges = {};
 			this.noCascade = {};
 			return hash;
-		};
+		}
 
 		function notifyUpstreamDependants( viewmodel, bindings, keypath, groupName ) {
 			var dependants, value;
@@ -13179,43 +13497,50 @@
 			var group = viewmodel.deps[ groupName ];
 			return group ? group[ keypath ] : null;
 		}
-		return __export;
+		return Viewmodel$applyChanges;
 	}( getUpstreamChanges, viewmodel$applyChanges_notifyPatternObservers );
 
 	/* viewmodel/prototype/capture.js */
-	var viewmodel$capture = function Viewmodel$capture() {
-		this.captureGroups.push( [] );
-	};
+	var viewmodel$capture = function() {
+
+		function Viewmodel$capture() {
+			this.captureGroups.push( [] );
+		}
+		return Viewmodel$capture;
+	}();
 
 	/* viewmodel/prototype/clearCache.js */
-	var viewmodel$clearCache = function Viewmodel$clearCache( keypath, dontTeardownWrapper ) {
-		var cacheMap, wrapper;
-		if ( !dontTeardownWrapper ) {
-			// Is there a wrapped property at this keypath?
-			if ( wrapper = this.wrapped[ keypath ] ) {
-				// Did we unwrap it?
-				if ( wrapper.teardown() !== false ) {
-					// Is this right?
-					// What's the meaning of returning false from teardown?
-					// Could there be a GC ramification if this is a "real" ractive.teardown()?
-					this.wrapped[ keypath ] = null;
+	var viewmodel$clearCache = function() {
+
+		function Viewmodel$clearCache( keypath, dontTeardownWrapper ) {
+			var cacheMap, wrapper;
+			if ( !dontTeardownWrapper ) {
+				// Is there a wrapped property at this keypath?
+				if ( wrapper = this.wrapped[ keypath ] ) {
+					// Did we unwrap it?
+					if ( wrapper.teardown() !== false ) {
+						// Is this right?
+						// What's the meaning of returning false from teardown?
+						// Could there be a GC ramification if this is a "real" ractive.teardown()?
+						this.wrapped[ keypath ] = null;
+					}
+				}
+			}
+			this.cache[ keypath ] = undefined;
+			if ( cacheMap = this.cacheMap[ keypath ] ) {
+				while ( cacheMap.length ) {
+					this.clearCache( cacheMap.pop() );
 				}
 			}
 		}
-		this.cache[ keypath ] = undefined;
-		if ( cacheMap = this.cacheMap[ keypath ] ) {
-			while ( cacheMap.length ) {
-				this.clearCache( cacheMap.pop() );
-			}
-		}
-	};
+		return Viewmodel$clearCache;
+	}();
 
 	/* viewmodel/Computation/getComputationSignature.js */
 	var getComputationSignature = function() {
 
-		var __export;
 		var pattern = /\$\{([^\}]+)\}/g;
-		__export = function( signature ) {
+		var __export = function( signature ) {
 			if ( typeof signature === 'function' ) {
 				return {
 					get: signature
@@ -13426,10 +13751,11 @@
 	/* viewmodel/prototype/compute.js */
 	var viewmodel$compute = function( getComputationSignature, Computation ) {
 
-		return function Viewmodel$compute( key, signature ) {
+		function Viewmodel$compute( key, signature ) {
 			signature = getComputationSignature( signature );
 			return this.computations[ key ] = new Computation( this.ractive, key, signature );
-		};
+		}
+		return Viewmodel$compute;
 	}( getComputationSignature, Computation );
 
 	/* viewmodel/prototype/get/FAILED_LOOKUP.js */
@@ -13440,9 +13766,9 @@
 	/* viewmodel/prototype/get.js */
 	var viewmodel$get = function( decodeKeypath, FAILED_LOOKUP ) {
 
-		var __export;
 		var empty = {};
-		__export = function Viewmodel$get( keypath ) {
+
+		function Viewmodel$get( keypath ) {
 			var options = arguments[ 1 ];
 			if ( options === void 0 )
 				options = empty;
@@ -13482,7 +13808,7 @@
 				value = wrapped.get();
 			}
 			return value === FAILED_LOOKUP ? void 0 : value;
-		};
+		}
 
 		function retrieve( viewmodel, keypath ) {
 			var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
@@ -13516,14 +13842,13 @@
 			viewmodel.cache[ keypath ] = value;
 			return value;
 		}
-		return __export;
+		return Viewmodel$get;
 	}( decode, viewmodel$get_FAILED_LOOKUP );
 
 	/* viewmodel/prototype/init.js */
 	var viewmodel$init = function( create, log ) {
 
-		var __export;
-		__export = function Viewmodel$init() {
+		function Viewmodel$init() {
 			var key, computation, computations = [];
 			for ( key in this.ractive.computed ) {
 				computation = this.compute( key, this.ractive.computed[ key ] );
@@ -13531,7 +13856,7 @@
 				reverseMapping( this, key );
 			}
 			computations.forEach( init );
-		};
+		}
 
 		function reverseMapping( viewmodel, key ) {
 			var mapping, origin, keypath, deps;
@@ -13575,23 +13900,24 @@
 		function init( computation ) {
 			computation.init();
 		}
-		return __export;
+		return Viewmodel$init;
 	}( create, log );
 
 	/* viewmodel/prototype/map.js */
 	var viewmodel$map = function( Mapping ) {
 
-		return function Viewmodel$map( key, options ) {
+		function Viewmodel$map( key, options ) {
 			var mapping = new Mapping( key, options );
 			mapping.initViewmodel( this );
 			return mapping;
-		};
+		}
+		return Viewmodel$map;
 	}( Mapping );
 
 	/* viewmodel/prototype/mark.js */
 	var viewmodel$mark = function( runloop ) {
 
-		return function Viewmodel$mark( keypath, options ) {
+		function Viewmodel$mark( keypath, options ) {
 			var computation;
 			runloop.addViewmodel( this );
 			// TODO remove other instances of this call
@@ -13614,7 +13940,8 @@
 			// pass on dontTeardownWrapper, if we can
 			var dontTeardownWrapper = options ? options.dontTeardownWrapper : false;
 			this.clearCache( keypath, dontTeardownWrapper );
-		};
+		}
+		return Viewmodel$mark;
 	}( runloop );
 
 	/* viewmodel/prototype/merge/mapOldToNewIndex.js */
@@ -13651,9 +13978,9 @@
 	/* viewmodel/prototype/merge.js */
 	var viewmodel$merge = function( warn, mapOldToNewIndex ) {
 
-		var __export;
 		var comparators = {};
-		__export = function Viewmodel$merge( keypath, currentArray, array, options ) {
+
+		function Viewmodel$merge( keypath, currentArray, array, options ) {
 			var oldArray, newArray, comparator, newIndices;
 			this.mark( keypath );
 			if ( options && options.compare ) {
@@ -13680,7 +14007,7 @@
 			// find new indices for members of oldArray
 			newIndices = mapOldToNewIndex( oldArray, newArray );
 			this.smartUpdate( keypath, array, newIndices, currentArray.length !== array.length );
-		};
+		}
 
 		function stringify( item ) {
 			return JSON.stringify( item );
@@ -13706,14 +14033,13 @@
 			}
 			throw new Error( 'The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)' );
 		}
-		return __export;
+		return Viewmodel$merge;
 	}( warn, viewmodel$merge_mapOldToNewIndex );
 
 	/* viewmodel/prototype/register.js */
 	var viewmodel$register = function() {
 
-		var __export;
-		__export = function Viewmodel$register( keypath, dependant ) {
+		function Viewmodel$register( keypath, dependant ) {
 			var group = arguments[ 2 ];
 			if ( group === void 0 )
 				group = 'default';
@@ -13731,7 +14057,7 @@
 				return;
 			}
 			updateDependantsMap( this, keypath, group );
-		};
+		}
 
 		function updateDependantsMap( viewmodel, keypath, group ) {
 			var keys, parentKeypath, map, parent;
@@ -13750,19 +14076,22 @@
 				keypath = parentKeypath;
 			}
 		}
-		return __export;
+		return Viewmodel$register;
 	}();
 
 	/* viewmodel/prototype/release.js */
-	var viewmodel$release = function Viewmodel$release() {
-		return this.captureGroups.pop();
-	};
+	var viewmodel$release = function() {
+
+		function Viewmodel$release() {
+			return this.captureGroups.pop();
+		}
+		return Viewmodel$release;
+	}();
 
 	/* viewmodel/prototype/set.js */
 	var viewmodel$set = function( isEqual, createBranch ) {
 
-		var __export;
-		__export = function Viewmodel$set( keypath, value ) {
+		function Viewmodel$set( keypath, value ) {
 			var options = arguments[ 2 ];
 			if ( options === void 0 )
 				options = {};
@@ -13808,7 +14137,7 @@
 				// not mark it as a change
 				this.clearCache( keypath );
 			}
-		};
+		}
 
 		function resolveSet( viewmodel, keypath, value ) {
 			var keys, lastKey, parentKeypath, wrapper, parentValue, wrapperSet, valueSet;
@@ -13846,20 +14175,20 @@
 				}
 			}
 		}
-		return __export;
+		return Viewmodel$set;
 	}( isEqual, createBranch );
 
 	/* viewmodel/prototype/smartUpdate.js */
 	var viewmodel$smartUpdate = function() {
 
-		var __export;
 		var implicitOption = {
 				implicit: true
 			},
 			noCascadeOption = {
 				noCascade: true
 			};
-		__export = function Viewmodel$smartUpdate( keypath, array, newIndices ) {
+
+		function Viewmodel$smartUpdate( keypath, array, newIndices ) {
 			var this$0 = this;
 			var dependants, oldLength;
 			oldLength = newIndices.length;
@@ -13890,40 +14219,43 @@
 					this.mark( keypath + '.' + i$0, noCascadeOption );
 				}
 			}
-		};
+		}
 
 		function canShuffle( dependant ) {
 			return typeof dependant.shuffle === 'function';
 		}
-		return __export;
+		return Viewmodel$smartUpdate;
 	}();
 
 	/* viewmodel/prototype/teardown.js */
-	var viewmodel$teardown = function Viewmodel$teardown() {
-		var this$0 = this;
-		var unresolvedImplicitDependency, reversedMappings;
-		// Clear entire cache - this has the desired side-effect
-		// of unwrapping adapted values (e.g. arrays)
-		Object.keys( this.cache ).forEach( function( keypath ) {
-			return this$0.clearCache( keypath );
-		} );
-		// Unbind reversed mappings, which will revert ownership of the data
-		if ( reversedMappings = this.reversedMappings ) {
-			Object.keys( reversedMappings ).forEach( function( key ) {
-				return reversedMappings[ key ].unbind();
+	var viewmodel$teardown = function() {
+
+		function Viewmodel$teardown() {
+			var this$0 = this;
+			var unresolvedImplicitDependency, reversedMappings;
+			// Clear entire cache - this has the desired side-effect
+			// of unwrapping adapted values (e.g. arrays)
+			Object.keys( this.cache ).forEach( function( keypath ) {
+				return this$0.clearCache( keypath );
 			} );
+			// Unbind reversed mappings, which will revert ownership of the data
+			if ( reversedMappings = this.reversedMappings ) {
+				Object.keys( reversedMappings ).forEach( function( key ) {
+					return reversedMappings[ key ].unbind();
+				} );
+			}
+			// Teardown any failed lookups - we don't need them to resolve any more
+			while ( unresolvedImplicitDependency = this.unresolvedImplicitDependencies.pop() ) {
+				unresolvedImplicitDependency.teardown();
+			}
 		}
-		// Teardown any failed lookups - we don't need them to resolve any more
-		while ( unresolvedImplicitDependency = this.unresolvedImplicitDependencies.pop() ) {
-			unresolvedImplicitDependency.teardown();
-		}
-	};
+		return Viewmodel$teardown;
+	}();
 
 	/* viewmodel/prototype/unregister.js */
 	var viewmodel$unregister = function( removeFromArray ) {
 
-		var __export;
-		__export = function Viewmodel$unregister( keypath, dependant ) {
+		function Viewmodel$unregister( keypath, dependant ) {
 			var group = arguments[ 2 ];
 			if ( group === void 0 )
 				group = 'default';
@@ -13951,7 +14283,7 @@
 				return;
 			}
 			updateDependantsMap( this, keypath, group );
-		};
+		}
 
 		function bulkUnregister( viewmodel, keypath ) {
 			var group, result, match;
@@ -14004,7 +14336,7 @@
 				keypath = parentKeypath;
 			}
 		}
-		return __export;
+		return Viewmodel$unregister;
 	}( removeFromArray );
 
 	/* viewmodel/adaptConfig.js */
@@ -14136,12 +14468,10 @@
 	/* Ractive/initialise.js */
 	var Ractive_initialise = function( config, create, Fragment, getElement, getNextNumber, Hook, HookQueue, Viewmodel, circular ) {
 
-		var __export;
 		var constructHook = new Hook( 'construct' ),
 			configHook = new Hook( 'config' ),
 			initHook = new HookQueue( 'init' );
 		circular.initialise = initialiseRactiveInstance;
-		__export = initialiseRactiveInstance;
 
 		function initialiseRactiveInstance( ractive ) {
 			var userOptions = arguments[ 1 ];
@@ -14217,18 +14547,18 @@
 				ractive.parent = ractive.container = null;
 			}
 		}
-		return __export;
+		return initialiseRactiveInstance;
 	}( config, create, Fragment, getElement, getNextNumber, Ractive$shared_hooks_Hook, Ractive$shared_hooks_HookQueue, Viewmodel, circular );
 
 	/* extend/unwrapExtended.js */
 	var unwrapExtended = function( wrap, config, circular ) {
 
-		var __export;
 		var Ractive;
 		circular.push( function() {
 			Ractive = circular.Ractive;
 		} );
-		__export = function unwrapExtended( Child ) {
+
+		function unwrapExtended( Child ) {
 			if ( !( Child.prototype instanceof Ractive ) ) {
 				return Child;
 			}
@@ -14264,7 +14594,7 @@
 				}
 			}
 			return options;
-		};
+		}
 
 		function addRegistry( target, options, name ) {
 			var registry, keys = Object.keys( target[ name ] );
@@ -14280,13 +14610,15 @@
 				return registry[ key ] = target[ name ][ key ];
 			} );
 		}
-		return __export;
+		return unwrapExtended;
 	}( wrapMethod, config, circular );
 
 	/* extend/_extend.js */
-	var Ractive_extend = function( create, defineProperties, getGuid, config, initialise, Viewmodel, unwrap ) {
+	var Ractive_extend = function( create, defineProperties, config, initialise, Viewmodel, unwrap ) {
 
-		return function extend() {
+		var uid = 1;
+
+		function extend() {
 			var options = arguments[ 0 ];
 			if ( options === void 0 )
 				options = {};
@@ -14302,9 +14634,9 @@
 			proto = create( Parent.prototype );
 			proto.constructor = Child;
 			staticProperties = {
-				// each component needs a guid, for managing CSS etc
+				// each component needs a unique ID, for managing CSS
 				_guid: {
-					value: getGuid()
+					value: uid++
 				},
 				// alias prototype as defaults
 				defaults: {
@@ -14327,8 +14659,9 @@
 			Viewmodel.extend( Parent, proto );
 			Child.prototype = proto;
 			return Child;
-		};
-	}( create, defineProperties, getGuid, config, Ractive_initialise, Viewmodel, unwrapExtended );
+		}
+		return extend;
+	}( create, defineProperties, config, Ractive_initialise, Viewmodel, unwrapExtended );
 
 	/* utils/getNodeInfo.js */
 	var getNodeInfo = function( findIndexRefs ) {
