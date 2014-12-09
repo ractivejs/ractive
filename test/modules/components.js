@@ -748,6 +748,29 @@ define([
 			t.htmlEqual( fixture.innerHTML, '<p>foo: false</p>' );
 		});
 
+		test( 'Implicit mappings are created by restricted references (#1465)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<p>a: {{foo}}</p><b/><c/>',
+				data: {
+					foo: 'bar'
+				},
+				components: {
+					b: Ractive.extend({
+						template: '<p>b: {{./foo}}</p>',
+						oninit: function () {
+							this.get( 'foo' ) // triggers mapping creation; should be unnecessary
+						}
+					}),
+					c: Ractive.extend({
+						template: '<p>c: {{./foo}}</p>'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>a: bar</p><p>b: bar</p><p>c: bar</p>' );
+		});
+
 	};
 
 });
