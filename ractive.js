@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-12-09 - commit b345165c 
+	2014-12-09 - commit 6c92bf5d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9402,7 +9402,7 @@
 	var Binding = function( runloop, log, create, extend, removeFromArray ) {
 
 		var Binding = function( element ) {
-			var interpolator, keypath, value;
+			var interpolator, keypath, value, parentForm;
 			this.element = element;
 			this.root = element.root;
 			this.attribute = element.attributes[ this.name || 'value' ];
@@ -9441,11 +9441,16 @@
 			}
 			this.keypath = keypath;
 			// initialise value, if it's undefined
-			if ( this.root.viewmodel.get( keypath ) === undefined && this.getInitialValue ) {
+			value = this.root.viewmodel.get( keypath );
+			if ( value === undefined && this.getInitialValue ) {
 				value = this.getInitialValue();
 				if ( value !== undefined ) {
 					this.root.viewmodel.set( keypath, value );
 				}
+			}
+			if ( parentForm = findParentForm( element ) ) {
+				this.resetValue = value;
+				parentForm.formBindings.push( this );
 			}
 		};
 		Binding.prototype = {
@@ -9488,6 +9493,14 @@
 			SpecialisedBinding.extend = Binding.extend;
 			return SpecialisedBinding;
 		};
+
+		function findParentForm( element ) {
+			while ( element = element.parent ) {
+				if ( element.name === 'form' ) {
+					return element;
+				}
+			}
+		}
 		return Binding;
 	}( runloop, log, create, extend, removeFromArray );
 
@@ -10681,6 +10694,10 @@
 				this.options = [];
 				this.bubble = bubbleSelect;
 			}
+			// Special case - <form> elements
+			if ( this.name === 'form' ) {
+				this.formBindings = [];
+			}
 			// handle binding attributes first (twoway, lazy)
 			processBindingAttributes( this, template.a || {} );
 			// create attributes
@@ -10810,6 +10827,31 @@
 		}
 		return renderImage;
 	}();
+
+	/* virtualdom/items/Element/special/form/handleReset.js */
+	var handleReset = function( runloop ) {
+
+		function handleReset() {
+			var element = this._ractive.proxy;
+			runloop.start();
+			element.formBindings.forEach( updateModel );
+			runloop.end();
+		}
+
+		function updateModel( binding ) {
+			binding.root.viewmodel.set( binding.keypath, binding.resetValue );
+		}
+		return handleReset;
+	}( runloop );
+
+	/* virtualdom/items/Element/special/form/render.js */
+	var virtualdom_items_Element_special_form_render = function( handleReset ) {
+
+		function renderForm( element ) {
+			element.node.addEventListener( 'reset', handleReset, false );
+		}
+		return renderForm;
+	}( handleReset );
 
 	/* virtualdom/items/Element/Transition/prototype/init.js */
 	var virtualdom_items_Element_Transition$init = function( log, config, circular ) {
@@ -11454,7 +11496,7 @@
 	}( virtualdom_items_Element_Transition$init, virtualdom_items_Element_Transition$getStyle, virtualdom_items_Element_Transition$setStyle, virtualdom_items_Element_Transition$animateStyle__animateStyle, virtualdom_items_Element_Transition$processParams, virtualdom_items_Element_Transition$start, circular );
 
 	/* virtualdom/items/Element/prototype/render.js */
-	var virtualdom_items_Element$render = function( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage, Transition ) {
+	var virtualdom_items_Element$render = function( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, renderImage, renderForm, Transition ) {
 
 		var updateCss, updateScript;
 		updateCss = function() {
@@ -11540,10 +11582,25 @@
 				this.binding.render();
 				this.node._ractive.binding = this.binding;
 			}
-			// Special case: if this is an <img>, and we're in a crap browser, we may
-			// need to prevent it from overriding width and height when it loads the src
+			if ( this.name === 'option' ) {
+				processOption( this );
+			}
+			// Special cases
 			if ( this.name === 'img' ) {
+				// if this is an <img>, and we're in a crap browser, we may
+				// need to prevent it from overriding width and height when
+				// it loads the src
 				renderImage( this );
+			} else if ( this.name === 'form' ) {
+				// forms need to keep track of their bindings, in case of reset
+				renderForm( this );
+			} else if ( this.name === 'input' || this.name === 'textarea' ) {
+				// inputs and textareas should store their initial value as
+				// `defaultValue` in case of reset
+				this.node.defaultValue = this.node.value;
+			} else if ( this.name === 'option' ) {
+				// similarly for option nodes
+				this.node.defaultSelected = this.node.selected;
 			}
 			// apply decorator(s)
 			if ( this.decorator && this.decorator.fn ) {
@@ -11561,9 +11618,6 @@
 					return transition.start();
 				}, true );
 				this.transition = transition;
-			}
-			if ( this.name === 'option' ) {
-				processOption( this );
 			}
 			if ( this.node.autofocus ) {
 				// Special case. Some browsers (*cough* Firefix *cough*) have a problem
@@ -11638,7 +11692,7 @@
 			} while ( instance = instance.parent );
 		}
 		return Element$render;
-	}( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render, Transition );
+	}( namespaces, isArray, warn, create, createElement, defineProperty, noop, runloop, getInnerContext, render, virtualdom_items_Element_special_form_render, Transition );
 
 	/* virtualdom/items/Element/prototype/toString.js */
 	var virtualdom_items_Element$toString = function( voidElementNames, isArray, escapeHtml ) {
@@ -11756,8 +11810,17 @@
 		return Element$unbind;
 	}( virtualdom_items_Element_special_option_unbind );
 
+	/* virtualdom/items/Element/special/form/unrender.js */
+	var unrender = function( handleReset ) {
+
+		function unrenderForm( element ) {
+			element.node.removeEventListener( 'reset', handleReset, false );
+		}
+		return unrenderForm;
+	}( handleReset );
+
 	/* virtualdom/items/Element/prototype/unrender.js */
-	var virtualdom_items_Element$unrender = function( runloop, Transition ) {
+	var virtualdom_items_Element$unrender = function( runloop, Transition, unrenderForm ) {
 
 		function Element$unrender( shouldDestroy ) {
 			var binding, bindings;
@@ -11805,6 +11868,9 @@
 			if ( this.liveQueries ) {
 				removeFromLiveQueries( this );
 			}
+			if ( this.name === 'form' ) {
+				unrenderForm( this );
+			}
 		}
 
 		function removeFromLiveQueries( element ) {
@@ -11817,7 +11883,7 @@
 			}
 		}
 		return Element$unrender;
-	}( runloop, Transition );
+	}( runloop, Transition, unrender );
 
 	/* virtualdom/items/Element/_Element.js */
 	var Element = function( bubble, detach, find, findAll, findAllComponents, findComponent, findNextNode, firstNode, getAttribute, init, rebind, render, toString, unbind, unrender ) {
