@@ -8,6 +8,7 @@ import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
 import renderImage from 'virtualdom/items/Element/special/img/render';
+import renderForm from 'virtualdom/items/Element/special/form/render';
 import Transition from 'virtualdom/items/Element/Transition/_Transition';
 
 var updateCss, updateScript;
@@ -110,10 +111,26 @@ export default function Element$render () {
 		this.node._ractive.binding = this.binding;
 	}
 
-	// Special case: if this is an <img>, and we're in a crap browser, we may
-	// need to prevent it from overriding width and height when it loads the src
+	if ( this.name === 'option' ) {
+		processOption( this );
+	}
+
+	// Special cases
 	if ( this.name === 'img' ) {
+		// if this is an <img>, and we're in a crap browser, we may
+		// need to prevent it from overriding width and height when
+		// it loads the src
 		renderImage( this );
+	} else if ( this.name === 'form' ) {
+		// forms need to keep track of their bindings, in case of reset
+		renderForm( this );
+	} else if ( this.name === 'input' || this.name === 'textarea' ) {
+		// inputs and textareas should store their initial value as
+		// `defaultValue` in case of reset
+		this.node.defaultValue = this.node.value;
+	} else if ( this.name === 'option' ) {
+		// similarly for option nodes
+		this.node.defaultSelected = this.node.selected;
 	}
 
 	// apply decorator(s)
@@ -132,10 +149,6 @@ export default function Element$render () {
 		runloop.scheduleTask( () => transition.start(), true );
 
 		this.transition = transition;
-	}
-
-	if ( this.name === 'option' ) {
-		processOption( this );
 	}
 
 	if ( this.node.autofocus ) {
