@@ -85,7 +85,8 @@
     "grunt-es6-module-transpiler": "~0.6.0",
     "grunt-gobble": "~0.1.1",
     "grunt-jsbeautifier": "~0.2.7",
-    "promises-aplus-tests": "*"
+    "promises-aplus-tests": "*",
+    "sander": "^0.2.1"
   },
   "testling": {
     "html": "test/testling.html",
