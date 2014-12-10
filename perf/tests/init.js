@@ -15,7 +15,6 @@ var tests = [
 			});
 		},
 		test: () => {
-			console.log( 'test 1 start' );
 			var ractive = new Ractive({
 				el: 'body',
 				template: `
@@ -23,14 +22,12 @@ var tests = [
 						<foo/>
 					{{/each}}`
 			});
-			console.log( 'test 1 end' );
 		}
 	},
 
 	{
 		name: 'update implicit mappings',
 		setup: () => {
-			console.log( 'setting up' );
 			Ractive.components.foo = Ractive.extend({
 				template: '<bar/>'
 			});
@@ -43,7 +40,6 @@ var tests = [
 				template: '{{message}}'
 			});
 
-			console.group( 'init' );
 			var ractive = new Ractive({
 				el: 'body',
 				template: `
@@ -51,7 +47,6 @@ var tests = [
 						<foo/>
 					{{/each}}`
 			});
-			console.groupEnd();
 
 			return ractive;
 		},
@@ -76,7 +71,6 @@ var tests = [
 			});
 		},
 		test: () => {
-			console.log( 'test 1 start' );
 			var ractive = new Ractive({
 				el: 'body',
 				template: `
@@ -84,14 +78,12 @@ var tests = [
 						<foo/>
 					{{/each}}`
 			});
-			console.log( 'test 1 end' );
 		}
 	},
 
 	{
 		name: 'update explicit mappings',
 		setup: () => {
-			console.log( 'setting up' );
 			Ractive.components.foo = Ractive.extend({
 				template: '<bar message="{{message}}"/>'
 			});
@@ -104,7 +96,6 @@ var tests = [
 				template: '{{message}}'
 			});
 
-			console.group( 'init' );
 			var ractive = new Ractive({
 				el: 'body',
 				template: `
@@ -112,7 +103,6 @@ var tests = [
 						<foo/>
 					{{/each}}`
 			});
-			console.groupEnd();
 
 			return ractive;
 		},
