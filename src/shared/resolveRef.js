@@ -2,42 +2,37 @@ import normaliseRef from 'utils/normaliseRef';
 import getInnerContext from 'shared/getInnerContext';
 import resolveAncestorRef from 'shared/resolveAncestorRef';
 
-export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
-	var restricted,
-		context,
-		key,
-		keypath,
-		parentValue,
-		hasContextChain,
-		parentKeys,
-		childKeys,
-		parentKeypath,
-		childKeypath;
-
+export default function resolveRef ( ractive, ref, fragment ) {
 	ref = normaliseRef( ref );
 
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
 		ref = ref.substring( 2 );
-		restricted = true;
-		//return ref;
+		createMappingIfNecessary( ractive, getKey( ref ), fragment );
+		return ref;
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
-	else if ( ref.charAt( 0 ) === '.' ) {
+	if ( ref[0] === '.' ) {
 		ref = resolveAncestorRef( getInnerContext( fragment ), ref );
-		restricted = true;
-		//return ref;
-	}
 
-	if ( ref === null ) {
+		if ( ref ) {
+			createMappingIfNecessary( ractive, getKey( ref ), fragment );
+		}
+
 		return ref;
 	}
 
-	if ( restricted && rootProperty( ractive, ref.split( '.' )[0] ) ) {
-		return ref;
-	}
+	return resolveAmbiguousReference( ractive, ref, fragment );
+}
+
+function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
+	var context,
+		key,
+		parentValue,
+		hasContextChain,
+		parentKeypath;
 
 	// ...otherwise we need to find the keypath
 	key = ref.split( '.' )[0];
@@ -59,7 +54,7 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 	}
 
 	// Root/computed/mapped property?
-	if ( rootProperty( ractive, key ) ) {
+	if ( isRootProperty( ractive, key ) ) {
 		return ref;
 	}
 
@@ -69,36 +64,15 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
 
-		keypath = resolveRef( ractive.parent, ref, fragment, true );
-
-		if ( keypath ) {
+		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true ) ) {
 			// We need to create an inter-component binding
-
-			// If parent keypath is 'one.foo' and child is 'two.foo', we bind
-			// 'one' to 'two' as it's more efficient and avoids edge cases
-			parentKeys = keypath.split( '.' );
-			childKeys = ref.split( '.' );
-
-			while ( parentKeys.length > 1 && childKeys.length > 1 && parentKeys[ parentKeys.length - 1 ] === childKeys[ childKeys.length - 1 ] ) {
-				parentKeys.pop();
-				childKeys.pop();
-			}
-
-			parentKeypath = parentKeys.join( '.' );
-			childKeypath = childKeys.join( '.' );
-
-			// TODO trace back to origin
-			ractive.viewmodel.map( childKeypath, {
+			ractive.viewmodel.map( key, {
 				origin: ractive.parent.viewmodel,
 				keypath: parentKeypath
 			});
 
 			return ref;
 		}
-	}
-
-	if ( restricted ) {
-		return ref;
 	}
 
 	// If there's no context chain, and the instance is either a) isolated or
@@ -110,11 +84,30 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		return ref;
 	}
 
-	if ( restricted || ractive.viewmodel.get( ref ) !== undefined ) {
+	if ( ractive.viewmodel.get( ref ) !== undefined ) {
 		return ref;
 	}
 }
 
-function rootProperty ( ractive, key ) {
+function createMappingIfNecessary ( ractive, key ) {
+	var parentKeypath;
+
+	if ( !ractive.parent || ractive.isolated || isRootProperty( ractive, key ) ) {
+		return;
+	}
+
+	if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, ractive.component.parentFragment, true ) ) {
+		ractive.viewmodel.map( key, {
+			origin: ractive.parent.viewmodel,
+			keypath: parentKeypath
+		});
+	}
+}
+
+function isRootProperty ( ractive, key ) {
 	return key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
+}
+
+function getKey ( ref ) {
+	return ref.split( '.' )[0];
 }
