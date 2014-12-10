@@ -33,6 +33,7 @@ define([
 					context: opt.target,
 					items: [],
 					root: {
+						'data': {},
 						'_liveQueries': [],
 						'_deps': [] ,
 						'_depsMap': [],
