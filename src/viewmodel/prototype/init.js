@@ -1,6 +1,3 @@
-import create from 'utils/create';
-import log from 'utils/log/log';
-
 export default function Viewmodel$init () {
 	var key, computation, computations = [];
 
