@@ -105,5 +105,6 @@ function isRootProperty ( ractive, key ) {
 }
 
 function getKey ( ref ) {
-	return ref.split( '.' )[0];
+	var index = ref.indexOf( '.' );
+	return ~index ? ref.slice( 0, index ) : ref;
 }
