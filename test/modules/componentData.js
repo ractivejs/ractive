@@ -1311,7 +1311,8 @@ define([
 				t.equal( fixture.innerHTML, 'of c' );
 			})
 
-			test( 'Computation on child takes ownership of property (#1357)', ( t ) => {
+			// see #1542
+			/*test( 'Computation on child takes ownership of property (#1357)', ( t ) => {
 				var ractive = new Ractive({
 					el: fixture,
 					template: '{{b}} <component c="{{a}}" d="{{b}}" />',
@@ -1479,9 +1480,13 @@ define([
 				t.htmlEqual( fixture.innerHTML, '11-42-42' );
 				t.equal( ractive.data.a.one, 11 );
 				t.equal( ractive.data.a.two, 42 );
-			});
+			});*/
 
-			test( 'Multiple levels of mappings work', ( t ) => {
+
+
+			// Commenting this out for now (see above), but really we just
+			// need to remove the reverse mappings stuff
+			/*test( 'Multiple levels of mappings work', ( t ) => {
 
 				var ractive = new Ractive({
 					el: fixture,
@@ -1511,7 +1516,7 @@ define([
 				ractive.set( 'c', 'qux' );
 				t.htmlEqual( fixture.innerHTML, 'foo-bar-qux:foo-bar-qux:foo-bar-qux' );
 
-			});
+			});*/
 
 		}
 

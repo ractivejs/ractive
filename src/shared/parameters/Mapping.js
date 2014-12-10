@@ -4,8 +4,8 @@ function Mapping ( localKey, options ) {
 	this.localKey = localKey;
 	this.keypath = options.keypath;
 	this.origin = options.origin;
-	this.trackData = options.trackData || options.reversed;
-	this.reversed = options.reversed;
+
+	this.trackData = options.trackData;
 	this.resolved = false;
 }
 
@@ -38,13 +38,6 @@ Mapping.prototype = {
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
-	rebind: function ( localKey ) {
-		this.unbind( true );
-		this.localKey = localKey;
-		this.local.mappings[ this.localKey ] = this;
-		this.setup();
-	},
-
 	register: function ( keypath, dependant, group ) {
 		this.deps.push({ keypath: keypath, dep: dependant, group: group });
 		this.origin.register( this.map( keypath ), dependant, group );
@@ -74,21 +67,7 @@ Mapping.prototype = {
 
 		this.resolved = true;
 
-		// _if_ the local viewmodel isn't initializing, check
-		// for existing dependants that were registered and
-		// move them as they now belong to this key
-		if ( this.local.deps && this.keypath ) {
-			this.transfers = this.local.unregister( this.localKey );
-
-			if( this.transfers ) {
-				this.transfers.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
-				this.origin.mark( this.keypath );
-			}
-		}
-
-		// keep local data in sync, for
-		// a) browsers w/ no defineProperty
-		// b) reversed mappings
+		// keep local data in sync, for browsers w/ no defineProperty
 		if ( this.trackData ) {
 			this.tracker = new DataTracker( this.localKey, this.local );
 			this.origin.register( this.keypath, this.tracker );
@@ -122,14 +101,6 @@ Mapping.prototype = {
 		this.deps.forEach( d => {
 			this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
 		});
-
-		// revert transfers back to original viewmodel owner
-		if ( this.transfers ) {
-			this.transfers.forEach( d => {
-				this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
-				this.local.register( d.keypath , d.dep, d.group );
-			});
-		}
 
 		if ( this.tracker ) {
 			this.origin.unregister( this.keypath, this.tracker );
