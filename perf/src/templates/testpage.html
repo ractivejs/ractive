@@ -104,7 +104,7 @@
 
 					<tbody>
 						{{#each tests}}
-							<tr><td>{{name}}</td><td>{{formatTime(duration)}}</td></tr>
+							<tr><td on-click='runInNewWindow(test,version,ractiveUrl)'>{{name}}</td><td>{{formatTime(duration)}}</td></tr>
 						{{/each}}
 					</tbody>
 				</table>
@@ -143,9 +143,7 @@
 
 				this.set( 'running', true );
 
-				runSuite( tests, '<%= srcPrefix %>/builds/' + version + '/ractive-legacy.js', function ( err, result ) {
-					console.log( 'here' );
-
+				runSuite( tests, version, '<%= srcPrefix %>/builds/' + version + '/ractive-legacy.js', function ( err, result ) {
 					if ( err ) {
 						result = {
 							errored: true,
@@ -160,6 +158,29 @@
 					ractive.set( 'running', false );
 
 					if ( err ) throw err;
+				});
+			},
+			runInNewWindow: function ( test, version, ractiveUrl ) {
+				var win, pathParts, ractiveUrlParts;
+
+				pathParts = window.location.pathname.split( '/' );
+				ractiveUrlParts = ractiveUrl.split( '/' );
+
+				while ( ractiveUrlParts[0] === '..' ) {
+					pathParts.pop();
+					ractiveUrlParts.shift();
+				}
+
+				ractiveUrl = window.location.origin + pathParts.concat( ractiveUrlParts ).join( '/' );
+
+				win = window.open( '', '' );
+
+				runTest( win, test, version, ractiveUrl, function ( err ) {
+					if ( err ) {
+						throw err;
+					} else {
+						console.log( 're-ran test in new window' );
+					}
 				});
 			}
 		});
