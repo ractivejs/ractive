@@ -3,7 +3,8 @@ import getInnerContext from 'shared/getInnerContext';
 import resolveAncestorRef from 'shared/resolveAncestorRef';
 
 export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
-	var context,
+	var restricted,
+		context,
 		key,
 		keypath,
 		parentValue,
@@ -17,13 +18,25 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
-		return ref.substring( 2 );
+		ref = ref.substring( 2 );
+		restricted = true;
+		//return ref;
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
-	if ( ref.charAt( 0 ) === '.' ) {
-		return resolveAncestorRef( getInnerContext( fragment ), ref );
+	else if ( ref.charAt( 0 ) === '.' ) {
+		ref = resolveAncestorRef( getInnerContext( fragment ), ref );
+		restricted = true;
+		//return ref;
+	}
+
+	if ( ref === null ) {
+		return ref;
+	}
+
+	if ( restricted && rootProperty( ractive, ref.split( '.' )[0] ) ) {
+		return ref;
 	}
 
 	// ...otherwise we need to find the keypath
@@ -45,12 +58,8 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		}
 	}
 
-	// Root/computed property?
-	if ( key in ractive.data || key in ractive.viewmodel.computations ) {
-		return ref;
-	}
-
-	if ( key in ractive.viewmodel.mappings ) {
+	// Root/computed/mapped property?
+	if ( rootProperty( ractive, key ) ) {
 		return ref;
 	}
 
@@ -88,6 +97,10 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		}
 	}
 
+	if ( restricted ) {
+		return ref;
+	}
+
 	// If there's no context chain, and the instance is either a) isolated or
 	// b) an orphan, then we know that the keypath is identical to the reference
 	if ( !isParentLookup && !hasContextChain ) {
@@ -97,7 +110,11 @@ export default function resolveRef ( ractive, ref, fragment, isParentLookup ) {
 		return ref;
 	}
 
-	if ( ractive.viewmodel.get( ref ) !== undefined ) {
+	if ( restricted || ractive.viewmodel.get( ref ) !== undefined ) {
 		return ref;
 	}
+}
+
+function rootProperty ( ractive, key ) {
+	return key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
 }
