@@ -24,6 +24,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 		return ref;
 	}
 
+	// ...otherwise we need to figure out the keypath based on context
 	return resolveAmbiguousReference( ractive, ref, fragment );
 }
 
@@ -34,8 +35,7 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 		hasContextChain,
 		parentKeypath;
 
-	// ...otherwise we need to find the keypath
-	key = ref.split( '.' )[0];
+	key = getKey( ref );
 
 	while ( fragment ) {
 		context = fragment.context;
@@ -81,10 +81,6 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 		// the data object needs to have a property by this name,
 		// to prevent future failed lookups
 		ractive.viewmodel.set( ref, undefined );
-		return ref;
-	}
-
-	if ( ractive.viewmodel.get( ref ) !== undefined ) {
 		return ref;
 	}
 }
