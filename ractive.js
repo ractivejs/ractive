@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-12-10 - commit 44574264 
+	2014-12-10 - commit 656a244d 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -583,20 +583,30 @@
 	/* shared/resolveRef.js */
 	var resolveRef = function( normaliseRef, getInnerContext, resolveAncestorRef ) {
 
-		function resolveRef( ractive, ref, fragment, isParentLookup ) {
-			var context, key, keypath, parentValue, hasContextChain, parentKeys, childKeys, parentKeypath, childKeypath;
+		function resolveRef( ractive, ref, fragment ) {
 			ref = normaliseRef( ref );
 			// If a reference begins '~/', it's a top-level reference
 			if ( ref.substr( 0, 2 ) === '~/' ) {
-				return ref.substring( 2 );
+				ref = ref.substring( 2 );
+				createMappingIfNecessary( ractive, getKey( ref ), fragment );
+				return ref;
 			}
 			// If a reference begins with '.', it's either a restricted reference or
 			// an ancestor reference...
-			if ( ref.charAt( 0 ) === '.' ) {
-				return resolveAncestorRef( getInnerContext( fragment ), ref );
+			if ( ref[ 0 ] === '.' ) {
+				ref = resolveAncestorRef( getInnerContext( fragment ), ref );
+				if ( ref ) {
+					createMappingIfNecessary( ractive, getKey( ref ), fragment );
+				}
+				return ref;
 			}
-			// ...otherwise we need to find the keypath
-			key = ref.split( '.' )[ 0 ];
+			// ...otherwise we need to figure out the keypath based on context
+			return resolveAmbiguousReference( ractive, ref, fragment );
+		}
+
+		function resolveAmbiguousReference( ractive, ref, fragment, isParentLookup ) {
+			var context, key, parentValue, hasContextChain, parentKeypath;
+			key = getKey( ref );
 			while ( fragment ) {
 				context = fragment.context;
 				fragment = fragment.parent;
@@ -609,11 +619,8 @@
 					return context + '.' + ref;
 				}
 			}
-			// Root/computed property?
-			if ( key in ractive.data || key in ractive.viewmodel.computations ) {
-				return ref;
-			}
-			if ( key in ractive.viewmodel.mappings ) {
+			// Root/computed/mapped property?
+			if ( isRootProperty( ractive, key ) ) {
 				return ref;
 			}
 			// If this is an inline component, and it's not isolated, we
@@ -621,21 +628,9 @@
 			if ( ractive.parent && !ractive.isolated ) {
 				hasContextChain = true;
 				fragment = ractive.component.parentFragment;
-				keypath = resolveRef( ractive.parent, ref, fragment, true );
-				if ( keypath ) {
+				if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true ) ) {
 					// We need to create an inter-component binding
-					// If parent keypath is 'one.foo' and child is 'two.foo', we bind
-					// 'one' to 'two' as it's more efficient and avoids edge cases
-					parentKeys = keypath.split( '.' );
-					childKeys = ref.split( '.' );
-					while ( parentKeys.length > 1 && childKeys.length > 1 && parentKeys[ parentKeys.length - 1 ] === childKeys[ childKeys.length - 1 ] ) {
-						parentKeys.pop();
-						childKeys.pop();
-					}
-					parentKeypath = parentKeys.join( '.' );
-					childKeypath = childKeys.join( '.' );
-					// TODO trace back to origin
-					ractive.viewmodel.map( childKeypath, {
+					ractive.viewmodel.map( key, {
 						origin: ractive.parent.viewmodel,
 						keypath: parentKeypath
 					} );
@@ -650,9 +645,28 @@
 				ractive.viewmodel.set( ref, undefined );
 				return ref;
 			}
-			if ( ractive.viewmodel.get( ref ) !== undefined ) {
-				return ref;
+		}
+
+		function createMappingIfNecessary( ractive, key ) {
+			var parentKeypath;
+			if ( !ractive.parent || ractive.isolated || isRootProperty( ractive, key ) ) {
+				return;
 			}
+			if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, ractive.component.parentFragment, true ) ) {
+				ractive.viewmodel.map( key, {
+					origin: ractive.parent.viewmodel,
+					keypath: parentKeypath
+				} );
+			}
+		}
+
+		function isRootProperty( ractive, key ) {
+			return key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
+		}
+
+		function getKey( ref ) {
+			var index = ref.indexOf( '.' );
+			return ~index ? ref.slice( 0, index ) : ref;
 		}
 		return resolveRef;
 	}( normaliseRef, getInnerContext, resolveAncestorRef );
