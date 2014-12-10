@@ -748,6 +748,24 @@ define([
 			t.htmlEqual( fixture.innerHTML, '<p>foo: false</p>' );
 		});
 
+		test( 'Mapping to a computed property is an error', function ( t ) {
+			t.throws( function () {
+				var ractive = new Ractive({
+					template: '<widget foo="{{bar}}"/>',
+					data: { bar: 'irrelevant' },
+					components: {
+						widget: Ractive.extend({
+							computed: {
+								foo: function () {
+									return 42;
+								}
+							}
+						})
+					}
+				});
+			}, /Cannot map to a computed property \('foo'\)/ );
+		});
+
 	};
 
 });
