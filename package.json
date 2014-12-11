@@ -85,7 +85,7 @@
     "grunt-contrib-requirejs": "~0.4.3",
     "grunt-contrib-uglify": "~0.5.0",
     "grunt-es6-module-transpiler": "~0.6.0",
-    "grunt-gobble": "~0.1.1",
+    "grunt-gobble": "^0.2.0",
     "grunt-jsbeautifier": "~0.2.7",
     "promises-aplus-tests": "*",
     "sander": "^0.2.1"
