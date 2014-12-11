@@ -1,8 +1,8 @@
-import types from 'config/types';
+import { COMMENT } from 'config/types';
 import detach from 'virtualdom/items/shared/detach';
 
 var Comment = function ( options ) {
-	this.type = types.COMMENT;
+	this.type = COMMENT;
 	this.value = options.template.c;
 };
 

@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { SECTION, SECTION_UNLESS } from 'config/types';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 
 import bubble from 'virtualdom/items/Section/prototype/bubble';
@@ -19,9 +19,9 @@ import unrender from 'virtualdom/items/Section/prototype/unrender';
 import update from 'virtualdom/items/Section/prototype/update';
 
 var Section = function ( options ) {
-	this.type = types.SECTION;
+	this.type = SECTION;
 	this.subtype = this.currentSubtype = options.template.n;
-	this.inverted = this.subtype === types.SECTION_UNLESS;
+	this.inverted = this.subtype === SECTION_UNLESS;
 
 
 	this.pElement = options.pElement;

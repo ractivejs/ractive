@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { SECTION_EACH, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH } from 'config/types';
 import { isArrayLike, isObject } from 'utils/is';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
@@ -57,7 +57,7 @@ export default function Section$setValue ( value ) {
 }
 
 function changeCurrentSubtype ( section, value, obj ) {
-	if ( value === types.SECTION_EACH ) {
+	if ( value === SECTION_EACH ) {
 		// make sure ref type is up to date for key or value indices
 		if ( section.indexRefs && section.indexRefs[0] ) {
 			let ref = section.indexRefs[0];
@@ -92,19 +92,19 @@ function reevaluateSection ( section, value ) {
 	// and avoid doing this each time?
 	if ( section.subtype ) {
 		switch ( section.subtype ) {
-			case types.SECTION_IF:
+			case SECTION_IF:
 			return reevaluateConditionalSection( section, value, false, fragmentOptions );
 
-			case types.SECTION_UNLESS:
+			case SECTION_UNLESS:
 			return reevaluateConditionalSection( section, value, true, fragmentOptions );
 
-			case types.SECTION_WITH:
+			case SECTION_WITH:
 			return reevaluateContextSection( section, fragmentOptions );
 
-			case types.SECTION_IF_WITH:
+			case SECTION_IF_WITH:
 			return reevaluateConditionalContextSection( section, value, fragmentOptions );
 
-			case types.SECTION_EACH:
+			case SECTION_EACH:
 			if ( isObject( value ) ) {
 				changeCurrentSubtype( section, section.subtype, true );
 				return reevaluateListObjectSection( section, value, fragmentOptions );
@@ -119,7 +119,7 @@ function reevaluateSection ( section, value ) {
 
 	// Ordered list section
 	if ( section.ordered ) {
-		changeCurrentSubtype( section, types.SECTION_EACH, false );
+		changeCurrentSubtype( section, SECTION_EACH, false );
 		return reevaluateListSection( section, value, fragmentOptions );
 	}
 
@@ -127,17 +127,17 @@ function reevaluateSection ( section, value ) {
 	if ( isObject( value ) || typeof value === 'function' ) {
 		// Index reference indicates section should be treated as a list
 		if ( section.template.i ) {
-			changeCurrentSubtype( section, types.SECTION_EACH, true );
+			changeCurrentSubtype( section, SECTION_EACH, true );
 			return reevaluateListObjectSection( section, value, fragmentOptions );
 		}
 
 		// Otherwise, object provides context for contents
-		changeCurrentSubtype( section, types.SECTION_WITH, false );
+		changeCurrentSubtype( section, SECTION_WITH, false );
 		return reevaluateContextSection( section, fragmentOptions );
 	}
 
 	// Conditional section
-	changeCurrentSubtype( section, types.SECTION_IF, false );
+	changeCurrentSubtype( section, SECTION_IF, false );
 	return reevaluateConditionalSection( section, value, false, fragmentOptions );
 }
 

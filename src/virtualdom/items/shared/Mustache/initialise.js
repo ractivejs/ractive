@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { SECTION_UNLESS } from 'config/types';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
@@ -39,7 +39,7 @@ export default function Mustache$init ( mustache, options ) {
 	}
 
 	// Special case - inverted sections
-	if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
+	if ( mustache.template.n === SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 		mustache.setValue( undefined );
 	}
 

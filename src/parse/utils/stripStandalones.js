@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from 'config/types';
 
 var leadingLinebreak = /^\s*\r?\n/,
 	trailingLinebreak = /\r?\n\s*$/;
@@ -54,9 +54,9 @@ function isString ( item ) {
 }
 
 function isComment ( item ) {
-	return item.t === types.COMMENT || item.t === types.DELIMCHANGE;
+	return item.t === COMMENT || item.t === DELIMCHANGE;
 }
 
 function isSection ( item ) {
-	return ( item.t === types.SECTION || item.t === types.INVERTED ) && item.f;
+	return ( item.t === SECTION || item.t === INVERTED ) && item.f;
 }

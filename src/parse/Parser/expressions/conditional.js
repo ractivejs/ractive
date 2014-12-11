@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { CONDITIONAL } from 'config/types';
 import getLogicalOr from 'parse/Parser/expressions/logicalOr';
 import errors from 'parse/Parser/expressions/shared/errors';
 
@@ -41,7 +41,7 @@ export default function ( parser ) {
 	}
 
 	return {
-		t: types.CONDITIONAL,
+		t: CONDITIONAL,
 		o: [ expression, ifTrue, ifFalse ]
 	};
 }

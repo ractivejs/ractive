@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { DOCTYPE, ELEMENT, CLOSING, CLOSING_TAG } from 'config/types';
 import { voidElementNames } from 'config/html';
 import getMustache from 'parse/converters/mustache';
 import getComment from 'parse/converters/comment';
@@ -82,7 +82,7 @@ function getElement ( parser ) {
 	}
 
 	if ( parser.matchString( '!' ) ) {
-		element.t = types.DOCTYPE;
+		element.t = DOCTYPE;
 		if ( !parser.matchPattern( /^doctype/i ) ) {
 			parser.error( 'Expected DOCTYPE declaration' );
 		}
@@ -91,7 +91,7 @@ function getElement ( parser ) {
 		return element;
 	}
 
-	element.t = types.ELEMENT;
+	element.t = ELEMENT;
 
 	// element name
 	element.e = parser.matchPattern( tagNamePattern );
@@ -175,11 +175,11 @@ function getElement ( parser ) {
 		children = [];
 		while ( canContain( lowerCaseName, parser.remaining() ) && ( child = parser.read( converters ) ) ) {
 			// Special case - closing section tag
-			if ( child.t === types.CLOSING ) {
+			if ( child.t === CLOSING ) {
 				break;
 			}
 
-			if ( child.t === types.CLOSING_TAG ) {
+			if ( child.t === CLOSING_TAG ) {
 				break;
 
 				// TODO verify that this tag can close this element (is either the same, or

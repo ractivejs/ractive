@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { ELEMENT } from 'config/types';
 import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
 import processBindingAttributes from 'virtualdom/items/Element/prototype/init/processBindingAttributes';
 import createAttributes from 'virtualdom/items/Element/prototype/init/createAttributes';
@@ -18,7 +18,7 @@ export default function Element$init ( options ) {
 		bindings,
 		twoway;
 
-	this.type = types.ELEMENT;
+	this.type = ELEMENT;
 
 	// stuff we'll need later
 	parentFragment = this.parentFragment = options.parentFragment;

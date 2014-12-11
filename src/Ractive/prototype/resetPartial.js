@@ -1,7 +1,7 @@
 import { isArray } from 'utils/is';
 import log from 'utils/log/log';
 import runloop from 'global/runloop';
-import types from 'config/types';
+import { PARTIAL, COMPONENT, ELEMENT } from 'config/types';
 
 export default function( name, partial, callback ) {
 	var promise, collection = [];
@@ -12,7 +12,7 @@ export default function( name, partial, callback ) {
 
 		source.forEach( item => {
 			// queue to rerender if the item is a partial and the current name matches
-			if ( item.type === types.PARTIAL && item.getPartialName() === name ) {
+			if ( item.type === PARTIAL && item.getPartialName() === name ) {
 				dest.push( item );
 			}
 
@@ -32,12 +32,12 @@ export default function( name, partial, callback ) {
 			}
 
 			// or if it is a component, step in and process its items
-			else if ( item.type === types.COMPONENT && item.instance ) {
+			else if ( item.type === COMPONENT && item.instance ) {
 				collect( item.instance.fragment.items, dest, item.instance );
 			}
 
 			// if the item is an element, process its attributes too
-			if ( item.type === types.ELEMENT ) {
+			if ( item.type === ELEMENT ) {
 				if ( isArray( item.attributes ) ) {
 					collect( item.attributes, dest, ractive );
 				}

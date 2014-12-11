@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { YIELDER } from 'config/types';
 import log from 'utils/log/log';
 import create from 'utils/create';
 import initialise from 'Ractive/initialise';
@@ -32,7 +32,7 @@ export default function ( component, Component, parameters, yieldTemplate, parti
 	// find container
 	fragment = parentFragment;
 	while ( fragment ) {
-		if ( fragment.owner.type === types.YIELDER ) {
+		if ( fragment.owner.type === YIELDER ) {
 			container = fragment.owner.container;
 			break;
 		}

@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { MEMBER, INVOCATION } from 'config/types';
 import getPrimary from 'parse/Parser/expressions/primary/_primary';
 import getExpressionList from 'parse/Parser/expressions/shared/expressionList';
 import getRefinement from 'parse/Parser/expressions/shared/refinement';
@@ -18,7 +18,7 @@ export default function ( parser ) {
 
 		if ( refinement = getRefinement( parser ) ) {
 			expression = {
-				t: types.MEMBER,
+				t: MEMBER,
 				x: expression,
 				r: refinement
 			};
@@ -35,7 +35,7 @@ export default function ( parser ) {
 			}
 
 			expression = {
-				t: types.INVOCATION,
+				t: INVOCATION,
 				x: expression
 			};
 

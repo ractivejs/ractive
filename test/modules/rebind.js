@@ -16,12 +16,13 @@ define([
 
 	'use strict';
 
+	var TRIPLE = types.TRIPLE;
+
 	Ractive = Ractive.default || Ractive;
 	Viewmodel = Viewmodel.default || Viewmodel;
 	Fragment = Fragment.default || Fragment;
 	Element = Element.default || Element;
 	Triple = Triple.default || Triple;
-	types = types.default || types;
 
 	return function () {
 
@@ -64,7 +65,7 @@ define([
 				triple = new Triple({
 					parentFragment: fragment,
 					template: {
-						t: types.TRIPLE,
+						t: TRIPLE,
 						r: '.'
 					}
 				});

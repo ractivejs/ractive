@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { INFIX_OPERATOR } from 'config/types';
 import getTypeof from 'parse/Parser/expressions/typeof';
 
 var getLogicalOr, makeInfixSequenceMatcher;
@@ -41,7 +41,7 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 			}
 
 			left = {
-				t: types.INFIX_OPERATOR,
+				t: INFIX_OPERATOR,
 				s: symbol,
 				o: [ left, right ]
 			};

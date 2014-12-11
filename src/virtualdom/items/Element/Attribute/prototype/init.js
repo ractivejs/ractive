@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { ATTRIBUTE } from 'config/types';
 import { booleanAttributes } from 'config/html';
 import determineNameAndNamespace from 'virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace';
 import getInterpolator from 'virtualdom/items/Element/Attribute/helpers/getInterpolator';
@@ -6,7 +6,7 @@ import determinePropertyName from 'virtualdom/items/Element/Attribute/helpers/de
 import Fragment from 'virtualdom/Fragment';
 
 export default function Attribute$init ( options ) {
-	this.type = types.ATTRIBUTE;
+	this.type = ATTRIBUTE;
 	this.element = options.element;
 	this.root = options.root;
 

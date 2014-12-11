@@ -4,7 +4,7 @@ import createComponentData from 'shared/parameters/createComponentData';
 import Mapping from 'shared/parameters/Mapping';
 import parseJSON from 'utils/parseJSON';
 import ParameterResolver from 'shared/parameters/ParameterResolver';
-import types from 'config/types';
+import { INTERPOLATOR } from 'config/types';
 
 export default function createParameters ( component, proto, attributes) {
 	var parameters, data, defined;
@@ -96,6 +96,6 @@ ComponentParameters.prototype = {
 };
 
 function isSingleInterpolator( template ){
-	return template.length === 1 && template[0].t === types.INTERPOLATOR;
+	return template.length === 1 && template[0].t === INTERPOLATOR;
 }
 

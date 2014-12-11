@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { REFERENCE, BOOLEAN_LITERAL, GLOBAL, NUMBER_LITERAL, STRING_LITERAL, ARRAY_LITERAL, OBJECT_LITERAL, KEY_VALUE_PAIR, PREFIX_OPERATOR, INFIX_OPERATOR, INVOCATION, BRACKETED, MEMBER, REFINEMENT, CONDITIONAL } from 'config/types';
 import { isObject } from 'utils/is';
 
 export default function ( expression ) {
@@ -22,7 +22,7 @@ function quoteStringLiteral ( str ) {
 function extractRefs ( node, refs ) {
 	var i, list;
 
-	if ( node.t === types.REFERENCE ) {
+	if ( node.t === REFERENCE ) {
 		if ( refs.indexOf( node.n ) === -1 ) {
 			refs.unshift( node.n );
 		}
@@ -59,45 +59,45 @@ function stringify ( parser, node, refs ) {
 	};
 
 	switch ( node.t ) {
-		case types.BOOLEAN_LITERAL:
-		case types.GLOBAL:
-		case types.NUMBER_LITERAL:
+		case BOOLEAN_LITERAL:
+		case GLOBAL:
+		case NUMBER_LITERAL:
 		return node.v;
 
-		case types.STRING_LITERAL:
+		case STRING_LITERAL:
 		return quoteStringLiteral(node.v);
 
-		case types.ARRAY_LITERAL:
+		case ARRAY_LITERAL:
 		return '[' + ( node.m ? node.m.map( stringifyAll ).join( ',' ) : '' ) + ']';
 
-		case types.OBJECT_LITERAL:
+		case OBJECT_LITERAL:
 		return '{' + ( node.m ? node.m.map( stringifyAll ).join( ',' ) : '' ) + '}';
 
-		case types.KEY_VALUE_PAIR:
+		case KEY_VALUE_PAIR:
 		return node.k + ':' + stringify( parser, node.v, refs );
 
-		case types.PREFIX_OPERATOR:
+		case PREFIX_OPERATOR:
 		return ( node.s === 'typeof' ? 'typeof ' : node.s ) + stringify( parser, node.o, refs );
 
-		case types.INFIX_OPERATOR:
+		case INFIX_OPERATOR:
 		return stringify( parser, node.o[0], refs ) + ( node.s.substr( 0, 2 ) === 'in' ? ' ' + node.s + ' ' : node.s ) + stringify( parser, node.o[1], refs );
 
-		case types.INVOCATION:
+		case INVOCATION:
 		return stringify( parser, node.x, refs ) + '(' + ( node.o ? node.o.map( stringifyAll ).join( ',' ) : '' ) + ')';
 
-		case types.BRACKETED:
+		case BRACKETED:
 		return '(' + stringify( parser, node.x, refs ) + ')';
 
-		case types.MEMBER:
+		case MEMBER:
 		return stringify( parser, node.x, refs ) + stringify( parser, node.r, refs );
 
-		case types.REFINEMENT:
+		case REFINEMENT:
 		return ( node.n ? '.' + node.n : '[' + stringify( parser, node.x, refs ) + ']' );
 
-		case types.CONDITIONAL:
+		case CONDITIONAL:
 		return stringify( parser, node.o[0], refs ) + '?' + stringify( parser, node.o[1], refs ) + ':' + stringify( parser, node.o[2], refs );
 
-		case types.REFERENCE:
+		case REFERENCE:
 		return '_' + refs.indexOf( node.n );
 
 		default:

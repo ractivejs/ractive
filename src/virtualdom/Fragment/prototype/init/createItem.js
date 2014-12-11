@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { INTERPOLATOR, SECTION, TRIPLE, ELEMENT, PARTIAL, COMMENT, DOCTYPE } from 'config/types';
 import Text from 'virtualdom/items/Text';
 import Interpolator from 'virtualdom/items/Interpolator';
 import Section from 'virtualdom/items/Section/_Section';
@@ -17,22 +17,22 @@ export default function createItem ( options ) {
 	}
 
 	switch ( options.template.t ) {
-		case types.INTERPOLATOR:
+		case INTERPOLATOR:
 			if ( options.template.r === 'yield' ) {
 				return new Yielder( options );
 			}
 			return new Interpolator( options );
-		case types.SECTION:      return new Section( options );
-		case types.TRIPLE:       return new Triple( options );
-		case types.ELEMENT:
+		case SECTION:      return new Section( options );
+		case TRIPLE:       return new Triple( options );
+		case ELEMENT:
 			let constructor;
 			if ( constructor = getComponent( options.parentFragment.root, options.template.e ) ) {
 				return new Component( options, constructor );
 			}
 			return new Element( options );
-		case types.PARTIAL:      return new Partial( options );
-		case types.COMMENT:      return new Comment( options );
-		case types.DOCTYPE:      return new Doctype( options );
+		case PARTIAL:      return new Partial( options );
+		case COMMENT:      return new Comment( options );
+		case DOCTYPE:      return new Doctype( options );
 
 		default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 	}

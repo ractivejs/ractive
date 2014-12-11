@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { INTERPOLATOR } from 'config/types';
 
 export default function getInterpolator ( attribute ) {
 	var items = attribute.fragment.items;
@@ -7,7 +7,7 @@ export default function getInterpolator ( attribute ) {
 		return;
 	}
 
-	if ( items[0].type === types.INTERPOLATOR ) {
+	if ( items[0].type === INTERPOLATOR ) {
 		return items[0];
 	}
 }
