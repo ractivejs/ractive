@@ -1,11 +1,5 @@
 import runloop from 'global/runloop';
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import Fragment from 'virtualdom/Fragment';
 
 function ComplexParameter ( parameters, key, value ) {
 	this.parameters = parameters;

@@ -1,4 +1,3 @@
-import circular from 'circular';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import removeFromArray from 'utils/removeFromArray';
 import Promise from 'utils/Promise';
@@ -98,7 +97,6 @@ runloop = {
 	}
 };
 
-circular.runloop = runloop;
 export default runloop;
 
 function flushChanges () {

@@ -1,4 +1,3 @@
-import circular from 'circular';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import log from 'utils/log/log';
 
@@ -7,12 +6,6 @@ import log from 'utils/log/log';
 // The event 'bar' will be fired on the parent instance
 // when 'foo' fires on the child, but the 1,2,3 arguments
 // will be lost
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
 
 export default function propagateEvents ( component, eventsDescriptor ) {
 	var eventName;

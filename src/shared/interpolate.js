@@ -1,4 +1,3 @@
-import circular from 'circular';
 import warn from 'utils/log/warn';
 import interpolators from 'config/defaults/interpolators';
 import config from 'config/config';
@@ -24,7 +23,6 @@ var interpolate = function ( from, to, ractive, type ) {
 	       snap( to );
 };
 
-circular.interpolate = interpolate;
 export default interpolate;
 
 function snap ( to ) {

@@ -15,8 +15,6 @@ import toString from 'virtualdom/Fragment/prototype/toString';
 import unbind from 'virtualdom/Fragment/prototype/unbind';
 import unrender from 'virtualdom/Fragment/prototype/unrender';
 
-import circular from 'circular';
-
 var Fragment = function ( options ) {
 	this.init( options );
 };
@@ -49,7 +47,5 @@ Fragment.prototype = {
 	},
 	unrender: unrender
 };
-
-circular.Fragment = Fragment;
 
 export default Fragment;

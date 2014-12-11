@@ -1,12 +1,8 @@
 import log from 'utils/log/log';
-import circular from 'circular';
+import Fragment from 'virtualdom/Fragment';
 import config from 'config/config';
 
-var Fragment, getValueOptions, Decorator;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+var getValueOptions, Decorator;
 
 getValueOptions = { args: true };
 

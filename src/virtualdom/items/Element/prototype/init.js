@@ -8,14 +8,7 @@ import createEventHandlers from 'virtualdom/items/Element/prototype/init/createE
 import Decorator from 'virtualdom/items/Element/Decorator/_Decorator';
 import bubbleSelect from 'virtualdom/items/Element/special/select/bubble';
 import initOption from 'virtualdom/items/Element/special/option/init';
-
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import Fragment from 'virtualdom/Fragment';
 
 export default function Element$init ( options ) {
 	var parentFragment,

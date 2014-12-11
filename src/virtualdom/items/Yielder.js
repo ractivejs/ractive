@@ -1,14 +1,8 @@
 import types from 'config/types';
 import runloop from 'global/runloop';
 import removeFromArray from 'utils/removeFromArray';
-import circular from 'circular';
+import Fragment from 'virtualdom/Fragment';
 import isArray from 'utils/isArray';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
 
 var Yielder = function ( options ) {
 	var container, component;

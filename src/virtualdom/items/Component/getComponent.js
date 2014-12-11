@@ -1,11 +1,5 @@
 import config from 'config/config';
 import log from 'utils/log/log';
-import circular from 'circular';
-
-var Ractive;
-circular.push( function () {
-	Ractive = circular.Ractive;
-});
 
 // finds the component constructor in the registry or view hierarchy registries
 

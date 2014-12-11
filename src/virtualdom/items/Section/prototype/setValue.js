@@ -2,14 +2,7 @@ import types from 'config/types';
 import isArrayLike from 'utils/isArrayLike';
 import isObject from 'utils/isObject';
 import runloop from 'global/runloop';
-
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import Fragment from 'virtualdom/Fragment';
 
 export default function Section$setValue ( value ) {
 	var wrapper, fragmentOptions;

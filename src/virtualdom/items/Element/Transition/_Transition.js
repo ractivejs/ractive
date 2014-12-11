@@ -5,15 +5,7 @@ import animateStyle from 'virtualdom/items/Element/Transition/prototype/animateS
 import processParams from 'virtualdom/items/Element/Transition/prototype/processParams';
 import start from 'virtualdom/items/Element/Transition/prototype/start';
 
-import circular from 'circular';
-
-var Fragment, Transition;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
-
-Transition = function ( owner, template, isIntro ) {
+var Transition = function ( owner, template, isIntro ) {
 	this.init( owner, template, isIntro );
 };
 

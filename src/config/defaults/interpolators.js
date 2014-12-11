@@ -1,16 +1,10 @@
-import circular from 'circular';
 import hasOwnProperty from 'utils/hasOwnProperty';
 import isArray from 'utils/isArray';
 import isObject from 'utils/isObject';
 import isNumeric from 'utils/isNumeric';
+import interpolate from 'shared/interpolate';
 
-var interpolators, interpolate;
-
-circular.push( function () {
-	interpolate = circular.interpolate;
-});
-
-interpolators = {
+var interpolators = {
 	number: function ( from, to ) {
 		var delta;
 

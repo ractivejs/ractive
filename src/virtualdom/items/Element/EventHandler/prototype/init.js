@@ -1,15 +1,11 @@
 import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import circular from 'circular';
+import Fragment from 'virtualdom/Fragment';
 import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import log from 'utils/log/log';
 
-var Fragment, getValueOptions = { args: true }, eventPattern = /^event(?:\.(.+))?/;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+var getValueOptions = { args: true }, eventPattern = /^event(?:\.(.+))?/;
 
 export default function EventHandler$init ( element, name, template ) {
 	var action, refs, ractive, i;

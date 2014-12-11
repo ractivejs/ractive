@@ -1,14 +1,8 @@
 import types from 'config/types';
 import log from 'utils/log/log';
 import create from 'utils/create';
-import circular from 'circular';
+import initialise from 'Ractive/initialise';
 import extend from 'utils/extend';
-
-var initialise;
-
-circular.push( () => {
-	initialise = circular.initialise;
-});
 
 export default function ( component, Component, parameters, yieldTemplate, partials ) {
 	var instance, parentFragment, ractive, fragment, container, inlinePartials = {};

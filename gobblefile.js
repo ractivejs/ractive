@@ -1,5 +1,5 @@
 var gobble = require( 'gobble' ),
-	src, test, result = [];
+	es5, amd, bundle, src, test, result = [];
 
 var transpilerOptions = {
 	globals: 'define Promise QUnit _modules test start asyncTest ok equal notEqual deepEqual expect throws simulant HTMLDocument jQuery MouseEvent'.split( ' ' ).reduce( function ( globals, name ) {
@@ -8,10 +8,17 @@ var transpilerOptions = {
 	}, {})
 };
 
-src = gobble( 'src' )
-	.transform( 'esperanto', { defaultOnly: true })
-	.transform( 'es6-transpiler', transpilerOptions )
-	.moveTo( 'src' );
+es5 = gobble( 'src' ).transform( '6to5', { blacklist: [ 'modules' ]});
+amd = es5.transform( 'esperanto' );
+
+bundle = es5.transform( 'esperanto-bundle', {
+	type: 'umd',
+	entry: 'Ractive.js',
+	name: 'Ractive',
+	dest: 'ractive.js'
+});
+
+src = gobble([ amd, bundle ]).moveTo( 'src' );
 
 test = gobble( 'test' )
 	.transform( 'es6-transpiler', transpilerOptions )
