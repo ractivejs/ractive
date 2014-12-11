@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-12-10 - commit 656a244d 
+	2014-12-11 - commit f7d50625 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12544,8 +12544,7 @@
 			this.localKey = localKey;
 			this.keypath = options.keypath;
 			this.origin = options.origin;
-			this.trackData = options.trackData || options.reversed;
-			this.reversed = options.reversed;
+			this.trackData = options.trackData;
 			this.resolved = false;
 		}
 		Mapping.prototype = {
@@ -12569,12 +12568,6 @@
 			},
 			map: function( keypath ) {
 				return keypath.replace( this.localKey, this.keypath );
-			},
-			rebind: function( localKey ) {
-				this.unbind( true );
-				this.localKey = localKey;
-				this.local.mappings[ this.localKey ] = this;
-				this.setup();
 			},
 			register: function( keypath, dependant, group ) {
 				this.deps.push( {
@@ -12604,21 +12597,7 @@
 					return;
 				}
 				this.resolved = true;
-				// _if_ the local viewmodel isn't initializing, check
-				// for existing dependants that were registered and
-				// move them as they now belong to this key
-				if ( this.local.deps && this.keypath ) {
-					this.transfers = this.local.unregister( this.localKey );
-					if ( this.transfers ) {
-						this.transfers.forEach( function( d ) {
-							return this$0.origin.register( this$0.map( d.keypath ), d.dep, d.group );
-						} );
-						this.origin.mark( this.keypath );
-					}
-				}
-				// keep local data in sync, for
-				// a) browsers w/ no defineProperty
-				// b) reversed mappings
+				// keep local data in sync, for browsers w/ no defineProperty
 				if ( this.trackData ) {
 					this.tracker = new DataTracker( this.localKey, this.local );
 					this.origin.register( this.keypath, this.tracker );
@@ -12647,13 +12626,6 @@
 				this.deps.forEach( function( d ) {
 					this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
 				} );
-				// revert transfers back to original viewmodel owner
-				if ( this.transfers ) {
-					this.transfers.forEach( function( d ) {
-						this$0.origin.unregister( this$0.map( d.keypath ), d.dep, d.group );
-						this$0.local.register( d.keypath, d.dep, d.group );
-					} );
-				}
 				if ( this.tracker ) {
 					this.origin.unregister( this.keypath, this.tracker );
 				}
@@ -14865,63 +14837,76 @@
 		return Viewmodel$get;
 	}( decode, viewmodel$get_FAILED_LOOKUP );
 
+	/* utils/log.js */
+	var utils_log = function( consolewarn, errors ) {
+
+		var log = {
+			warn: function( options, passthru ) {
+				if ( !options.debug && !passthru ) {
+					return;
+				}
+				this.warnAlways( options );
+			},
+			warnAlways: function( options ) {
+				this.logger( getMessage( options ), options.allowDuplicates );
+			},
+			error: function( options ) {
+				this.errorOnly( options );
+				if ( !options.debug ) {
+					this.warn( options, true );
+				}
+			},
+			errorOnly: function( options ) {
+				if ( options.debug ) {
+					this.critical( options );
+				}
+			},
+			critical: function( options ) {
+				var err = options.err || new Error( getMessage( options ) );
+				this.thrower( err );
+			},
+			logger: consolewarn,
+			thrower: function( err ) {
+				throw err;
+			}
+		};
+
+		function getMessage( options ) {
+				var message = errors[ options.message ] || options.message || '';
+				return interpolate( message, options.args );
+			}
+			// simple interpolation. probably quicker (and better) out there,
+			// but log is not in golden path of execution, only exceptions
+		function interpolate( message, args ) {
+			return message.replace( /{([^{}]*)}/g, function( a, b ) {
+				return args[ b ];
+			} );
+		}
+		return log;
+	}( utils_warn, errors );
+
 	/* viewmodel/prototype/init.js */
-	var viewmodel$init = function( create, log ) {
+	var viewmodel$init = function( log ) {
 
 		function Viewmodel$init() {
 			var key, computation, computations = [];
 			for ( key in this.ractive.computed ) {
 				computation = this.compute( key, this.ractive.computed[ key ] );
 				computations.push( computation );
-				reverseMapping( this, key );
+				if ( key in this.mappings ) {
+					log.critical( {
+						message: 'Cannot map to a computed property (\'' + key + '\')'
+					} );
+				}
 			}
 			computations.forEach( init );
-		}
-
-		function reverseMapping( viewmodel, key ) {
-			var mapping, origin, keypath, deps;
-			mapping = viewmodel.mappings[ key ];
-			if ( !mapping ) {
-				return;
-			}
-			origin = mapping.origin;
-			keypath = mapping.keypath;
-			deps = mapping.deps;
-			if ( origin.computations[ keypath ] ) {
-				return log.critical( {
-					debug: viewmodel.ractive.debug,
-					message: 'computedCannotMapTo',
-					args: {
-						key: key,
-						other: keypath,
-						reason: 'it is a computated property or expression'
-					}
-				} );
-			}
-			// unbind which will unregister dependants on the other viewmodel
-			mapping.unbind();
-			// the dependants of the unbound mapping can now be
-			// directly registered on _this_ viewmodel because
-			// it is the data owner
-			deps.forEach( function( d ) {
-				return viewmodel.register( d.keypath, d.dep, d.group );
-			} );
-			// create a new mapping in the other viewmodel
-			mapping = origin.map( keypath, {
-				origin: viewmodel,
-				keypath: key,
-				reversed: true
-			} );
-			// store a ref so it can be reverted if needed
-			viewmodel.reversedMappings = viewmodel.reversedMappings || create( null );
-			viewmodel.reversedMappings[ key ] = mapping;
 		}
 
 		function init( computation ) {
 			computation.init();
 		}
 		return Viewmodel$init;
-	}( create, log );
+	}( utils_log );
 
 	/* viewmodel/prototype/map.js */
 	var viewmodel$map = function( Mapping ) {
@@ -15252,18 +15237,12 @@
 
 		function Viewmodel$teardown() {
 			var this$0 = this;
-			var unresolvedImplicitDependency, reversedMappings;
+			var unresolvedImplicitDependency;
 			// Clear entire cache - this has the desired side-effect
 			// of unwrapping adapted values (e.g. arrays)
 			Object.keys( this.cache ).forEach( function( keypath ) {
 				return this$0.clearCache( keypath );
 			} );
-			// Unbind reversed mappings, which will revert ownership of the data
-			if ( reversedMappings = this.reversedMappings ) {
-				Object.keys( reversedMappings ).forEach( function( key ) {
-					return reversedMappings[ key ].unbind();
-				} );
-			}
 			// Teardown any failed lookups - we don't need them to resolve any more
 			while ( unresolvedImplicitDependency = this.unresolvedImplicitDependencies.pop() ) {
 				unresolvedImplicitDependency.teardown();
@@ -15280,9 +15259,6 @@
 			if ( group === void 0 )
 				group = 'default';
 			var mapping, deps, index;
-			if ( !dependant ) {
-				return bulkUnregister( this, keypath );
-			}
 			if ( dependant.isStatic ) {
 				return;
 			}
@@ -15295,47 +15271,10 @@
 				throw new Error( 'Attempted to remove a dependant that was no longer registered! This should not happen. If you are seeing this bug in development please raise an issue at https://github.com/RactiveJS/Ractive/issues - thanks' );
 			}
 			deps.splice( index, 1 );
-			// added clean-up for mappings, how does it impact other use-cases?
-			if ( !deps.length ) {
-				delete this.deps[ group ][ keypath ];
-			}
 			if ( !keypath ) {
 				return;
 			}
 			updateDependantsMap( this, keypath, group );
-		}
-
-		function bulkUnregister( viewmodel, keypath ) {
-			var group, result, match;
-			for ( group in viewmodel.deps ) {
-				match = removeMatching( viewmodel, keypath, group );
-				if ( match.length ) {
-					result = result ? result.concat( match ) : match;
-				}
-			}
-			return result;
-		}
-
-		function removeMatching( viewmodel, keypath, group ) {
-			var depsGroup = viewmodel.deps[ group ],
-				match = [],
-				key, deps;
-			for ( key in depsGroup ) {
-				if ( key.indexOf( keypath ) != 0 ) {
-					continue;
-				}
-				deps = depsGroup[ key ];
-				deps.forEach( function( d ) {
-					updateDependantsMap( viewmodel, key, group );
-					match.push( {
-						keypath: key,
-						dep: d,
-						group: group
-					} );
-				} );
-				delete depsGroup[ key ];
-			}
-			return match;
 		}
 
 		function updateDependantsMap( viewmodel, keypath, group ) {
