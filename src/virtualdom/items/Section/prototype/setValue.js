@@ -1,6 +1,5 @@
 import types from 'config/types';
-import isArrayLike from 'utils/isArrayLike';
-import isObject from 'utils/isObject';
+import { isArrayLike, isObject } from 'utils/is';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
 

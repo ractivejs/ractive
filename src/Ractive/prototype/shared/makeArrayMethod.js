@@ -1,4 +1,4 @@
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 import runloop from 'global/runloop';
 import getNewIndices from 'shared/getNewIndices';
 

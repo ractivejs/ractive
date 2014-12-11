@@ -1,4 +1,4 @@
-import isObject from 'utils/isObject';
+import { isObject } from 'utils/is';
 import 'legacy';
 
 export default function hashmapContentsMatch ( a, b ) {

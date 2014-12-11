@@ -1,4 +1,4 @@
-import svg from 'config/svg';
+import { svg } from 'config/environment';
 import namespaces from 'config/namespaces';
 
 var createElement;

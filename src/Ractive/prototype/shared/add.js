@@ -1,4 +1,4 @@
-import isNumeric from 'utils/isNumeric';
+import { isNumeric } from 'utils/is';
 
 export default function add ( root, keypath, d ) {
 	var value;

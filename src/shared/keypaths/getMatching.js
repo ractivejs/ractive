@@ -1,4 +1,4 @@
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 
 export default function getMatchingKeypaths ( ractive, pattern ) {
 	var keys, key, matchingKeypaths;

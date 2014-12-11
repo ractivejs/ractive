@@ -1,4 +1,4 @@
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 import arrayContains from 'utils/arrayContains';
 import removeFromArray from 'utils/removeFromArray';
 import Binding from 'virtualdom/items/Element/Binding/Binding';

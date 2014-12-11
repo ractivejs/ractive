@@ -72,7 +72,7 @@
     "gobble": "^0.7.1",
     "gobble-6to5": "^0.1.0",
     "gobble-es6-transpiler": "~0.1.0",
-    "gobble-esperanto": "~0.2.1",
+    "gobble-esperanto": "^0.2.1",
     "gobble-esperanto-bundle": "^0.1.2",
     "grunt": "~0.4.4",
     "grunt-concurrent": "~0.5.0",

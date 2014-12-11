@@ -1,4 +1,4 @@
-var svg;
+var svg, isClient;
 
 if ( typeof document === 'undefined' ) {
 	svg = false;
@@ -6,4 +6,6 @@ if ( typeof document === 'undefined' ) {
 	svg = document && document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
 }
 
-export default svg;
+isClient = ( typeof document === 'object' );
+
+export { svg, isClient };

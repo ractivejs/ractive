@@ -1,4 +1,4 @@
-import isClient from 'config/isClient';
+import { isClient } from 'config/environment';
 import warn from 'utils/log/warn';
 import createElement from 'utils/createElement';
 import camelCase from 'utils/camelCase';

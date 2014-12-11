@@ -1,5 +1,5 @@
 import defineProperty from 'utils/defineProperty';
-import isNumeric from 'utils/isNumeric';
+import { isNumeric } from 'utils/is';
 import decodeKeypath from 'shared/keypaths/decode';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import getFunctionFromString from 'shared/getFunctionFromString';

@@ -1,6 +1,6 @@
 import arrayContentsMatch from 'utils/arrayContentsMatch';
 import startsWith from 'shared/keypaths/equalsOrStartsWith';
-import isEqual from 'utils/isEqual';
+import { isEqual } from 'utils/is';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
 	var values, key, bindings;

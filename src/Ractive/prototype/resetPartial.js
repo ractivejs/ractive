@@ -1,4 +1,4 @@
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 import log from 'utils/log/log';
 import runloop from 'global/runloop';
 import types from 'config/types';

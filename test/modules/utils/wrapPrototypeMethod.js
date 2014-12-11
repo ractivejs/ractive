@@ -8,6 +8,9 @@ define([
 
 	'use strict';
 
+	wrap = wrap.default || wrap;
+	create = create.default || create;
+
 	return function () {
 
 		module( 'Wrap Method', {

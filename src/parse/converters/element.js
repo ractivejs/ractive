@@ -1,5 +1,5 @@
 import types from 'config/types';
-import voidElementNames from 'config/voidElementNames';
+import { voidElementNames } from 'config/html';
 import getMustache from 'parse/converters/mustache';
 import getComment from 'parse/converters/comment';
 import getPartial from 'parse/converters/partial';

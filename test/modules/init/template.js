@@ -1,13 +1,18 @@
 define([
 	'config/options/template/template',
-	'utils/isObject',
+	'utils/is',
 	'utils/create'
 ],
 function (
 	config,
-	isObject,
+	is,
 	create
  ) {
+
+ 	var isObject = is.isObject;
+
+ 	config = config.default || config;
+ 	create = create.default || create;
 
 	'use strict';
 

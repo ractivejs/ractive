@@ -1,6 +1,6 @@
 import animations from 'shared/animations';
 import Animation from 'Ractive/prototype/animate/Animation';
-import isEqual from 'utils/isEqual';
+import { isEqual } from 'utils/is';
 import log from 'utils/log/log';
 import normaliseKeypath from 'utils/normaliseKeypath';
 import Promise from 'utils/Promise';

@@ -2,6 +2,8 @@ define([ 'utils/hashmapContentsMatch' ], function ( match ) {
 
 	'use strict';
 
+	match = match.default || match;
+
 	return function () {
 
 		module( 'Hashmap Contents Match');

@@ -1,5 +1,5 @@
 import arrayContains from 'utils/arrayContains';
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 
 export default function Attribute$updateMultipleSelect () {
 	var value = this.value, options, i, option, optionValue;

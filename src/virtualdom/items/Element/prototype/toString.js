@@ -1,5 +1,5 @@
-import voidElementNames from 'config/voidElementNames';
-import isArray from 'utils/isArray';
+import { voidElementNames } from 'config/html';
+import { isArray } from 'utils/is';
 import escapeHtml from 'utils/escapeHtml';
 
 export default function () {

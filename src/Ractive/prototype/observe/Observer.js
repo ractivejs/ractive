@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import isEqual from 'utils/isEqual';
+import { isEqual } from 'utils/is';
 
 var Observer = function ( ractive, keypath, callback, options ) {
 	this.root = ractive;

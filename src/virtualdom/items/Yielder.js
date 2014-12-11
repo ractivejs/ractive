@@ -2,7 +2,7 @@ import types from 'config/types';
 import runloop from 'global/runloop';
 import removeFromArray from 'utils/removeFromArray';
 import Fragment from 'virtualdom/Fragment';
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 
 var Yielder = function ( options ) {
 	var container, component;

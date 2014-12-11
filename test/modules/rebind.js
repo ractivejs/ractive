@@ -16,6 +16,13 @@ define([
 
 	'use strict';
 
+	Ractive = Ractive.default || Ractive;
+	Viewmodel = Viewmodel.default || Viewmodel;
+	Fragment = Fragment.default || Fragment;
+	Element = Element.default || Element;
+	Triple = Triple.default || Triple;
+	types = types.default || types;
+
 	return function () {
 
 		var fixture;

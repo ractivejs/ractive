@@ -1,4 +1,4 @@
-import isNumeric from 'utils/isNumeric';
+import { isNumeric } from 'utils/is';
 
 export default function decodeKeypath ( keypath ) {
 	var value = keypath.slice( 2 );

@@ -1,6 +1,6 @@
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
-import isNumber from 'utils/isNumber';
+import { isNumber } from 'utils/is';
 
 var GenericBinding;
 

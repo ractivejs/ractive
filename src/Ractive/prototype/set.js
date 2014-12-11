@@ -1,4 +1,4 @@
-import isObject from 'utils/isObject';
+import { isObject } from 'utils/is';
 import getMatchingKeypaths from 'shared/keypaths/getMatching';
 import log from 'utils/log/log';
 import normaliseKeypath from 'utils/normaliseKeypath';

@@ -1,4 +1,4 @@
-import isClient from 'config/isClient';
+import { isClient } from 'config/environment';
 
 var defineProperty;
 

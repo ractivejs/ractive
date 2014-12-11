@@ -8,7 +8,7 @@ import text from 'parse/converters/text';
 import trimWhitespace from 'parse/utils/trimWhitespace';
 import stripStandalones from 'parse/utils/stripStandalones';
 import processPartials from 'parse/converters/partial/processPartials';
-import isEmptyObject from 'utils/isEmptyObject';
+import { isEmptyObject } from 'utils/is';
 
 // Ractive.parse
 // ===============

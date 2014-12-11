@@ -1,4 +1,4 @@
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 import log from 'utils/log/log';
 import normaliseKeypath from 'utils/normaliseKeypath';
 import runloop from 'global/runloop';

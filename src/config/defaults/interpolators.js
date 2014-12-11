@@ -1,7 +1,5 @@
 import hasOwnProperty from 'utils/hasOwnProperty';
-import isArray from 'utils/isArray';
-import isObject from 'utils/isObject';
-import isNumeric from 'utils/isNumeric';
+import { isArray, isObject, isNumeric } from 'utils/is';
 import interpolate from 'shared/interpolate';
 
 var interpolators = {

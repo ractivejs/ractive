@@ -2,6 +2,8 @@ define([ 'utils/normaliseKeypath' ], function ( normaliseKeypath ) {
 
 	'use strict';
 
+	normaliseKeypath = normaliseKeypath.default || normaliseKeypath;
+
 	return function () {
 
 		module( 'normaliseKeypath.js');

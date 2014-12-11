@@ -1,6 +1,6 @@
 import createElement from 'utils/createElement';
 import defineProperty from 'utils/defineProperty';
-import isClient from 'config/isClient';
+import { isClient } from 'config/environment';
 
 var defineProperties;
 

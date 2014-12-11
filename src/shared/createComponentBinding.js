@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import isEqual from 'utils/isEqual';
+import { isEqual } from 'utils/is';
 
 var Binding = function ( ractive, keypath, otherInstance, otherKeypath ) {
 	this.root = ractive;

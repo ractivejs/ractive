@@ -1,7 +1,7 @@
 import defaults from 'config/defaults/options';
 import easing from 'config/defaults/easing';
 import interpolators from 'config/defaults/interpolators';
-import svg from 'config/svg';
+import { svg } from 'config/environment';
 import magic from 'config/magic';
 import defineProperties from 'utils/defineProperties';
 import proto from 'Ractive/prototype';

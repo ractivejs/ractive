@@ -1,5 +1,5 @@
 import types from 'config/types';
-import isObject from 'utils/isObject';
+import { isObject } from 'utils/is';
 
 export default function ( expression ) {
 	var refs = [], flattened;
