@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<title><%= name %> | Ractive.js performance tests</title>
+
+	<style>
+		body {
+			font-family: 'Helvetica Neue', arial, sans-serif;
+			font-weight: 200;
+			color: #333;
+		}
+
+		p, h1, h2, h3, h4, h5, h6 {
+			margin: 0 0 1em 0;
+			font-weight: 200;
+		}
+
+		select {
+			margin: 0 0 1em 0;
+		}
+
+		button {
+			display: block;
+			margin: 0 0 1em 0;
+			font-family: inherit;
+			font-size: inherit;
+			padding: 1em;
+			border-radius: 0.2em;
+			background-color: rgba(50,250,50,0.3);
+			border: 1px solid rgba(0,0,0,0.1);
+		}
+
+		button:hover {
+			background-color: rgba(50,250,50,0.5);
+		}
+
+		button:active, button:focus {
+			outline: none;
+		}
+
+		table {
+			width: 100%;
+			text-align: left;
+			border-spacing: 0;
+		}
+
+		th, td {
+			padding: 0.5em;
+			border-bottom: 1px solid #eee;
+		}
+
+		.results {
+			margin: 0 0 1em 0;
+		}
+
+		.results-header {
+			background-color: #eee;
+			padding: 0.5em;
+		}
+
+		iframe {
+			position: fixed;
+			right: 0;
+			bottom: 0;
+		}
+
+		.error {
+			color: rgb(220,0,0);
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Ractive.js performance tests</h1>
+	<p>Open your devtools to see profiles, where applicable</p>
+
+	<div class='log'></div>
+	<div class='iframe-container'></div>
+
+	<script id='template' type='text/html'>
+		<p>version: <select value='{{selectedVersion}}'>
+			{{#each versions}}
+				<option>{{this}}</options>
+			{{/each}}
+		</select></p>
+
+		<button disabled='{{running}}' on-click='run()'>{{running ? "running" : "run" }} benchmark suite</button>
+
+		{{#each results}}
+			{{>results}}
+		{{/each}}
+	</script>
+
+	<script id='results' type='text/html'>
+		<article class='results' intro='slide'>
+			<p class='results-header'><strong>{{version}}</strong> - total time {{formatTime(total)}}ms</p>
+
+			{{#if errored}}
+				<p class='error'>{{message}}</p>
+			{{else}}
+				<table>
+					<thead><tr><th>test name</th><th>duration</th></tr></thead>
+
+					<tbody>
+						{{#each tests}}
+							<tr><td on-click='runInNewWindow(test,version,ractiveUrl)'>{{name}}</td><td>{{formatTime(duration)}}</td></tr>
+						{{/each}}
+					</tbody>
+				</table>
+			{{/if}}
+		</article>
+	</script>
+
+	<script src='<%= srcPrefix %>/builds/edge/ractive-legacy.min.js'></script>
+	<script src='<%= srcPrefix %>/ractive-transitions-slide.js'></script>
+	<script src='<%= srcPrefix %>/runSuite.js'></script>
+	<script>
+		<%= suite %>
+
+		if ( typeof Ractive === 'undefined' ) {
+			document.body.innerHTML = 'Could not find Ractive. You may need to build the project by running <code>grunt</code>';
+			throw new Error( 'Could not find Ractive' );
+		}
+
+		var ractive = new Ractive({
+			el: '.log',
+			template: '#template',
+			data: {
+				running: false,
+				versions: [ '0.4.0', '0.5.0', '0.5.4', '0.5.5', '0.5.6', '0.5.7', '0.5.8', '0.6.0', '0.6.1', 'control', 'edge' ],
+				selectedVersion: 'edge',
+				results: [],
+				formatTime: function ( ms ) {
+					return ms.toFixed( 1 );
+				}
+			},
+			run: function () {
+				var version, start;
+
+				version = this.get( 'selectedVersion' );
+				start = Date.now();
+
+				this.set( 'running', true );
+
+				runSuite( tests, version, '<%= srcPrefix %>/builds/' + version + '/ractive-legacy.js', function ( err, result ) {
+					if ( err ) {
+						result = {
+							errored: true,
+							message: err.message || err
+						};
+					}
+
+					result.version = version;
+					result.total = Date.now() - start;
+
+					ractive.unshift( 'results', result );
+					ractive.set( 'running', false );
+
+					if ( err ) throw err;
+				});
+			},
+			runInNewWindow: function ( test, version, ractiveUrl ) {
+				var win, pathParts, ractiveUrlParts;
+
+				pathParts = window.location.pathname.split( '/' );
+				ractiveUrlParts = ractiveUrl.split( '/' );
+
+				while ( ractiveUrlParts[0] === '..' ) {
+					pathParts.pop();
+					ractiveUrlParts.shift();
+				}
+
+				ractiveUrl = window.location.origin + pathParts.concat( ractiveUrlParts ).join( '/' );
+
+				win = window.open( '', '' );
+
+				runTest( win, test, version, ractiveUrl, function ( err ) {
+					if ( err ) {
+						throw err;
+					} else {
+						console.log( 're-ran test in new window' );
+					}
+				});
+			}
+		});
+	</script>
+</body>
+</html>

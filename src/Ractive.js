@@ -9,6 +9,7 @@ import Promise from 'utils/Promise';
 import extendObj from 'utils/extend';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
+import getNodeInfo from 'utils/getNodeInfo';
 import initialise from 'Ractive/initialise';
 
 var Ractive, properties;
@@ -24,6 +25,7 @@ properties = {
 
 	// static methods:
 	extend:        { value: extend },
+	getNodeInfo:   { value: getNodeInfo },
 	parse:         { value: parse },
 
 	// Namespaced constructors

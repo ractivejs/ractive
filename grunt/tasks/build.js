@@ -7,8 +7,7 @@ module.exports = function ( grunt ) {
 		'clean:tmpDir',
 		'buildTests',
 		'gobble:toTmpDir',
-		'concurrent:requirejs',
-		'concat:closure',
+		//'concat:closure',
 		'revision',
 		'jsbeautifier',
 		'clean:tmp'

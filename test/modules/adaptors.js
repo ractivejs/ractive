@@ -269,7 +269,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 					Store: Store
 				};
 			})( 'Classes' );
-			
+
 			(function () {
 				Ractive.adaptors.ModelAdaptor = {
 					filter: function ( obj, keypath, ractive ) {
@@ -319,7 +319,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 					'-{{ this.name }}',
 					'{{/}}',
 				].join( '' );
-				
+
 				store = new Classes.Store({
 					items: new Classes.Items([
 						{
@@ -330,7 +330,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 						}
 					])
 				});
-				
+
 				app = new Ractive({
 					el: fixture,
 					template: template,

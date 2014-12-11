@@ -83,16 +83,23 @@ function initialiseProperties ( ractive, options ) {
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];
 
+	// bound data functions
+	ractive._boundFunctions = [];
+
+
 	// properties specific to inline components
 	if ( options.component ) {
 		ractive.parent = options.parent;
 		ractive.container = options.container || null;
 		ractive.root = ractive.parent.root;
 
-		ractive._yield = options.yieldTemplate;
-
 		ractive.component = options.component;
 		options.component.instance = ractive;
+
+		// for hackability, this could be an open option
+		// for any ractive instance, but for now, just
+		// for components and just for ractive...
+		ractive._inlinePartials = options.inlinePartials;
 	} else {
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null;

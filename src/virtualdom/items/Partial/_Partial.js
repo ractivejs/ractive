@@ -76,9 +76,13 @@ Partial.prototype = {
 		return this.fragment.getValue();
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
-		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+	rebind: function ( oldKeypath, newKeypath ) {
+		// named partials aren't bound, so don't rebind
+		if ( !this.isNamed ) {
+			rebind.call( this, oldKeypath, newKeypath );
+		}
+		
+		this.fragment.rebind( oldKeypath, newKeypath );
 	},
 
 	render: function () {
@@ -99,7 +103,9 @@ Partial.prototype = {
 			return;
 		}
 
-		template = getPartialTemplate( this.root, '' + value );
+		if ( value !== undefined ) {
+			template = getPartialTemplate( this.root, '' + value );
+		}
 
 		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 		// name of both a data property (whose value ISN'T the name of a partial)
@@ -117,9 +123,10 @@ Partial.prototype = {
 			});
 		}
 
+		this.value = value;
+
 		this.setTemplate( template || [] );
 
-		this.value = value;
 		this.bubble();
 
 		if ( this.rendered ) {

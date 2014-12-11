@@ -1,5 +1,6 @@
 import runloop from 'global/runloop';
 import Transition from 'virtualdom/items/Element/Transition/_Transition';
+import unrenderForm from 'virtualdom/items/Element/special/form/unrender';
 
 export default function Element$unrender ( shouldDestroy ) {
 	var binding, bindings;
@@ -38,7 +39,7 @@ export default function Element$unrender ( shouldDestroy ) {
 	}
 
 	if ( this.decorator ) {
-		this.decorator.teardown();
+		runloop.registerDecorator( this.decorator );
 	}
 
 	// trigger outro transition if necessary
@@ -51,6 +52,10 @@ export default function Element$unrender ( shouldDestroy ) {
 	// Remove this node from any live queries
 	if ( this.liveQueries ) {
 		removeFromLiveQueries( this );
+	}
+
+	if ( this.name === 'form' ) {
+		unrenderForm( this );
 	}
 }
 

@@ -4,6 +4,7 @@ import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes
 import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
+	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	arrayMemberPattern = /^[0-9][1-9]*$/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
 	legalReference;
@@ -95,7 +96,35 @@ export default function ( parser, delimiterType ) {
 			parser.relaxedNames = true;
 			expression = parser.readExpression();
 			parser.relaxedNames = relaxed;
-		} else {
+		}
+
+		// look for named yields
+		else if ( mustache.t === types.INTERPOLATOR && parser.matchString( 'yield ' ) ) {
+			parser.allowWhitespace();
+			mustache.r = 'yield';
+			relaxed = parser.relaxedNames;
+			parser.relaxedNames = true;
+			expression = parser.readExpression();
+			parser.relaxedNames = false;
+
+			if ( expression && expression.t === types.REFERENCE ) {
+				mustache.yn = expression.n;
+				expression = null;
+			} else if ( expression ) {
+				parser.error( 'Only names are supported with yield.' );
+			}
+		}
+
+		// relax naming for inline partial section
+		else if ( mustache.t === types.SECTION && mustache.n === 'partial' ) {
+			relaxed = parser.relaxedNames;
+			parser.relaxedNames = true;
+			expression = parser.readExpression();
+			parser.relaxedNames = false;
+		}
+
+		// otherwise, just get an expression
+		else {
 			// get expression
 			expression = parser.readExpression();
 		}
@@ -153,9 +182,15 @@ export default function ( parser, delimiterType ) {
 		];
 	}
 
-	// optional index reference
+	// optional index and key references
 	if ( i = parser.matchPattern( indexRefPattern ) ) {
-		mustache.i = i;
+		let extra;
+
+		if ( extra = parser.matchPattern( keyIndexRefPattern ) ) {
+			mustache.i = i + ',' + extra;
+		} else {
+			mustache.i = i;
+		}
 	}
 
 	return mustache;

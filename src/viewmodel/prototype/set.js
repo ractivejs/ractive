@@ -1,13 +1,16 @@
 import isEqual from 'utils/isEqual';
 import createBranch from 'utils/createBranch';
 
-export default function Viewmodel$set ( keypath, value, silent ) {
+export default function Viewmodel$set ( keypath, value, options = {} ) {
 	var mapping, computation, wrapper, dontTeardownWrapper;
 
-	// If this data belongs to a different viewmodel,
-	// pass the change along
-	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
-		return mapping.set( keypath, value );
+	// unless data is being set for data tracking purposes
+	if ( !options.noMapping ) {
+		// If this data belongs to a different viewmodel,
+		// pass the change along
+		if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+			return mapping.set( keypath, value );
+		}
 	}
 
 	computation = this.computations[ keypath ];
@@ -41,7 +44,7 @@ export default function Viewmodel$set ( keypath, value, silent ) {
 		resolveSet( this, keypath, value );
 	}
 
-	if ( !silent ) {
+	if ( !options.silent ) {
 		this.mark( keypath );
 	} else {
 		// We're setting a parent of the original target keypath (i.e.
@@ -67,7 +70,7 @@ function resolveSet ( viewmodel, keypath, value ) {
 	valueSet = function(){
 		if ( !parentValue ) {
 			parentValue = createBranch( lastKey );
-			viewmodel.set( parentKeypath, parentValue, true );
+			viewmodel.set( parentKeypath, parentValue, { silent: true } );
 		}
 		parentValue[ lastKey ] = value;
 	};

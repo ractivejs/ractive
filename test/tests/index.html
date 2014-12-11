@@ -21,6 +21,7 @@
 			'animate',
 			'arrayMethods',
 			'arrays',
+			'componentData',
 			'components',
 			'computations',
 			'css',
@@ -28,6 +29,7 @@
 			'elements',
 			'events',
 			'find',
+			'forms',
 			'init/config',
 			'init/hooks',
 			'init/initialisation',
@@ -74,7 +76,7 @@
 		};
 
 	if ( /build=true/.test( window.location.search ) || /phantomjs/i.test( window.navigator.userAgent ) ) {
-		config.paths.ractive = '../ractive-legacy';
+		config.paths.ractive = 'ractive-legacy';
 	}
 
 	// required for asyncTest and module('',{setup}) to work

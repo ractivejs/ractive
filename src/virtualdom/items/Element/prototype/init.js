@@ -1,5 +1,6 @@
 import types from 'config/types';
 import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
+import processBindingAttributes from 'virtualdom/items/Element/prototype/init/processBindingAttributes';
 import createAttributes from 'virtualdom/items/Element/prototype/init/createAttributes';
 import createConditionalAttributes from 'virtualdom/items/Element/prototype/init/createConditionalAttributes';
 import createTwowayBinding from 'virtualdom/items/Element/prototype/init/createTwowayBinding';
@@ -14,7 +15,8 @@ export default function Element$init ( options ) {
 		template,
 		ractive,
 		binding,
-		bindings;
+		bindings,
+		twoway;
 
 	this.type = types.ELEMENT;
 
@@ -26,6 +28,7 @@ export default function Element$init ( options ) {
 
 	this.root = ractive = parentFragment.root;
 	this.index = options.index;
+	this.key = options.key;
 
 	this.name = enforceCase( template.e );
 
@@ -39,6 +42,14 @@ export default function Element$init ( options ) {
 		this.options = [];
 		this.bubble = bubbleSelect; // TODO this is a kludge
 	}
+
+	// Special case - <form> elements
+	if ( this.name === 'form' ) {
+		this.formBindings = [];
+	}
+
+	// handle binding attributes first (twoway, lazy)
+	processBindingAttributes( this, template.a || {} );
 
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
@@ -54,8 +65,13 @@ export default function Element$init ( options ) {
 		});
 	}
 
+	// the element setting should override the ractive setting
+	twoway = ractive.twoway;
+	if ( this.twoway === false ) twoway = false;
+	else if ( this.twoway === true ) twoway = true;
+
 	// create twoway binding
-	if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
+	if ( twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
 		this.binding = binding;
 
 		// register this with the root, so that we can do ractive.updateModel()

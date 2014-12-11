@@ -9,6 +9,7 @@ import getComponent from 'virtualdom/items/Component/getComponent';
 import Component from 'virtualdom/items/Component/_Component';
 import Comment from 'virtualdom/items/Comment';
 import Yielder from 'virtualdom/items/Yielder';
+import Doctype from 'virtualdom/items/Doctype';
 
 export default function createItem ( options ) {
 	if ( typeof options.template === 'string' ) {
@@ -31,6 +32,7 @@ export default function createItem ( options ) {
 			return new Element( options );
 		case types.PARTIAL:      return new Partial( options );
 		case types.COMMENT:      return new Comment( options );
+		case types.DOCTYPE:      return new Doctype( options );
 
 		default: throw new Error( 'Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!' );
 	}

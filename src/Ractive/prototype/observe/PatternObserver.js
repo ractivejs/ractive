@@ -85,9 +85,8 @@ PatternObserver.prototype = {
 			keys = slice.call( this.regex.exec( keypath ), 1 );
 			args = [ value, this.values[ keypath ], keypath ].concat( keys );
 
-			this.callback.apply( this.context, args );
-
 			this.values[ keypath ] = value;
+			this.callback.apply( this.context, args );
 		}
 
 		this.updating = false;

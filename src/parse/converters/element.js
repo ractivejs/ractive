@@ -2,6 +2,7 @@ import types from 'config/types';
 import voidElementNames from 'config/voidElementNames';
 import getMustache from 'parse/converters/mustache';
 import getComment from 'parse/converters/comment';
+import getPartial from 'parse/converters/partial';
 import getText from 'parse/converters/text';
 import getClosingTag from 'parse/converters/element/closingTag';
 import getAttribute from 'parse/converters/element/attribute';
@@ -19,6 +20,7 @@ var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 
 // Different set of converters, because this time we're looking for closing tags
 converters = [
+	getPartial,
 	getMustache,
 	getComment,
 	getElement,
@@ -74,17 +76,22 @@ function getElement ( parser ) {
 		return null;
 	}
 
-	element = {
-		t: types.ELEMENT
-	};
-
+	element = {};
 	if ( parser.includeLinePositions ) {
 		element.p = parser.getLinePos( start );
 	}
 
 	if ( parser.matchString( '!' ) ) {
-		element.y = 1;
+		element.t = types.DOCTYPE;
+		if ( !parser.matchPattern( /^doctype/i ) ) {
+			parser.error( 'Expected DOCTYPE declaration' );
+		}
+
+		element.a = parser.matchPattern( /^(.+?)>/ );
+		return element;
 	}
+
+	element.t = types.ELEMENT;
 
 	// element name
 	element.e = parser.matchPattern( tagNamePattern );

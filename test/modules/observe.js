@@ -579,7 +579,80 @@ define([ 'ractive' ], function ( Ractive ) {
 			observer.cancel();
 		});
 
+		test( '.observeOnce() functionality', t => {
+			let ractive = new Ractive( { data: { foo: 'bar' } } );
 
+			expect( 1 );
+
+			ractive.observeOnce( 'foo', function () {
+				t.ok( true );
+			});
+
+			ractive.set( 'foo', 'fizz' );
+			ractive.set( 'foo', 'qux' );
+		});
+
+		test( 'Asterisks should not be left in computation keypaths (#1472)', t => {
+			let ractive = new Ractive({
+				el: fixture,
+				template: '{{foo * 2}}',
+				data: { foo: 3 }
+			});
+
+			ractive.observe( '*', () => {} );
+
+			// this will blow the stack if the bug is present
+			// qunit doesn't like it when your tests straight-up overflow
+			// the try helps, but it will still cascade to other tests
+			try {
+				ractive.set( 'foo', 10 );
+			} catch (e) {}
+
+			t.htmlEqual( fixture.innerHTML, '20' );
+		});
+
+		test( 'Pattern observers used as validators behave correctly on blur (#1475)', t => {
+			let ractive, inputs;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#each items}}
+						<input value='{{value}}'>{{value}}
+					{{/each}}`,
+				data: {
+					items: [
+						{ min: 10, max: 90, value: 0 },
+						{ min: 10, max: 90, value: 100 }
+					]
+				}
+			});
+
+			ractive.observe( 'items.*.value', function ( n, o, k, i ) {
+				var min = this.get( 'items[' + i + '].min' ),
+					max = this.get( 'items[' + i + '].max' );
+
+				if ( n < min ) this.set( k, min );
+				if ( n > max ) this.set( k, max );
+			});
+
+			t.equal( ractive.get( 'items[0].value' ), 10 );
+			t.equal( ractive.get( 'items[1].value' ), 90 );
+
+			inputs = ractive.findAll( 'input' );
+
+			inputs[0].value = 200;
+			inputs[1].value = -200;
+
+			simulant.fire( inputs[0], 'input' );
+			simulant.fire( inputs[1], 'input' );
+			// HAVE TO COMMENT THESE LINES OUT BECAUSE PHANTOMJS. SIGH
+			// simulant.fire( inputs[0], 'blur' );
+			// simulant.fire( inputs[1], 'blur' );
+
+			t.equal( ractive.get( 'items[0].value' ), 90 );
+			t.equal( ractive.get( 'items[1].value' ), 10 );
+		});
 
 	};
 

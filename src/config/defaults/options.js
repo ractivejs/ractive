@@ -5,7 +5,7 @@ var defaultOptions = {
 	append:				false,
 
 	// template:
-	template:           {v:1,t:[]},
+	template:           {v:2,t:[]},
 
 	// parse:
 	preserveWhitespace: false,
@@ -19,6 +19,7 @@ var defaultOptions = {
 	modifyArrays:       true,
 	adapt:              [],
 	isolated:           false,
+	parameters: 		true,
 	twoway:             true,
 	lazy:               false,
 

@@ -225,6 +225,59 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			t.htmlEqual( fixture.innerHTML, '<div id="foo">foo</div>' );
 		});
 
+		test( 'Array roots should not get confused deps in sections (#1494)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#.}}{{.foo}}{{/}}',
+				data: [{ foo: 'a' }, { foo: 'b' }, { foo: 'c' }]
+			});
+
+			t.equal( fixture.innerHTML, 'abc' );
+			ractive.set('0.foo', 'z');
+			t.equal( fixture.innerHTML, 'zbc' );
+		});
+
+		test( 'Value changes in object iteration should cause updates (#1476)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#obj[sel]:sk}}{{sk}} {{@key}} {{.}}{{/}}',
+				data: {
+					obj: {
+						key1: { a: 'a1', b: 'b1' },
+						key2: { a: 'a2', b: 'b2', c: 'c2' },
+						key3: { c: 'c3' }
+					},
+					sel: 'key1'
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'a a a1b b b1' );
+
+			ractive.set( 'sel', 'key2' );
+			t.htmlEqual( fixture.innerHTML, 'a a a2b b b2c c c2' );
+
+			ractive.set( 'sel', 'key3' );
+			t.htmlEqual( fixture.innerHTML, 'c c c3' );
+
+			ractive.set( 'sel', 'key1' );
+			t.htmlEqual( fixture.innerHTML, 'a a a1b b b1' );
+		});
+
+		test( 'Sections survive unrender-render (#1553)', t => {
+			window.renderedFragments = 0;
+
+			var ractive = new Ractive({
+				template: '{{#each items}}<p>{{this}}</p>{{/each}}',
+				data: { items: [ 1, 2, 3 ] }
+			});
+
+			ractive.render( fixture );
+			ractive.unrender();
+			ractive.render( fixture );
+
+			t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p><p>3</p>' );
+		});
+
 	};
 
 	function deepClone ( source ) {

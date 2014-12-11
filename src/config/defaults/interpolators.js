@@ -4,11 +4,7 @@ import isObject from 'utils/isObject';
 import isNumeric from 'utils/isNumeric';
 import interpolate from 'shared/interpolate';
 
-var interpolators, cssLengthPattern;
-
-cssLengthPattern = /^([+-]?[0-9]+\.?(?:[0-9]+)?)(px|em|ex|%|in|cm|mm|pt|pc)$/;
-
-interpolators = {
+var interpolators = {
 	number: function ( from, to ) {
 		var delta;
 

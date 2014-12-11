@@ -68,26 +68,30 @@ Registry.prototype = {
 	},
 
 	find: function ( ractive, key ) {
-
-		return recurseFind( ractive, r => r[ this.name ][ key ] );
+		return recurseFind( ractive, {
+			test: r => key in r[ this.name ],
+			getValue: r => r[ this.name ][ key ]
+		});
 	},
 
 	findInstance: function ( ractive, key ) {
-
-		return recurseFind( ractive, r => r[ this.name ][ key ] ? r : void 0 );
+		return recurseFind( ractive, {
+			test: r => key in r[ this.name ],
+			getValue: r => r
+		});
 	}
 };
 
-function recurseFind ( ractive, fn ) {
+function recurseFind ( ractive, finder ) {
 
-	var find, parent;
+	var parent;
 
-	if ( find = fn( ractive ) ) {
-		return find;
+	if ( finder.test( ractive ) ) {
+		return finder.getValue( ractive );
 	}
 
 	if ( !ractive.isolated && ( parent = ractive.parent ) ) {
-		return recurseFind( parent, fn );
+		return recurseFind( parent, finder );
 	}
 
 }

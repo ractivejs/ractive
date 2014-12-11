@@ -33,6 +33,7 @@ define([
 					context: opt.target,
 					items: [],
 					root: {
+						'data': {},
 						'_liveQueries': [],
 						'_deps': [] ,
 						'_depsMap': [],
@@ -74,7 +75,8 @@ define([
 				fragment.findNextNode = function () { return null; };
 
 				fragment.render();
-				fragment.rebind( 'i', opt.newKeypath.replace('items.',''), opt.oldKeypath, opt.newKeypath);
+				fragment.index = opt.newKeypath.replace( 'items.', '' );
+				fragment.rebind( opt.oldKeypath, opt.newKeypath );
 
 				t.equal( fragment.context, opt.expected );
 				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );
@@ -405,7 +407,7 @@ define([
 		test( 'index rebinds do not go past new index providers (#1457)', function ( t ) {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{#each foo}}{{@index}}{{#each .bar}}{{@index}}{{/each}}{{/each}}',
+				template: '{{#each foo}}{{@index}}{{#each .bar}}{{@index}}{{/each}}<br/>{{/each}}',
 				data: {
 					foo: [
 						{ bar: [ 1, 2 ] },
@@ -415,17 +417,17 @@ define([
 				}
 			});
 
-			t.htmlEqual( fixture.innerHTML, '0011020123' );
+			t.htmlEqual( fixture.innerHTML, '001<br/>10<br/>20123<br/>' );
 
 			ractive.splice( 'foo', 1, 1 );
 
-			t.htmlEqual( fixture.innerHTML, '00110123' );
+			t.htmlEqual( fixture.innerHTML, '001<br/>10123<br/>' );
 		});
 
 		test( 'index rebinds get passed through conditional sections correctly', t => {
 			var ractive = new Ractive({
 				el: fixture,
-				template: '{{#each foo}}{{@index}}{{#.bar}}{{@index}}{{/}}{{/each}}',
+				template: '{{#each foo}}{{@index}}{{#.bar}}{{@index}}{{/}}<br/>{{/each}}',
 				data: {
 					foo: [
 						{ bar: true },
@@ -436,11 +438,11 @@ define([
 				}
 			});
 
-			t.htmlEqual( fixture.innerHTML, '0011233' );
+			t.htmlEqual( fixture.innerHTML, '00<br/>11<br/>2<br/>33<br/>' );
 
 			ractive.splice( 'foo', 1, 1 );
 
-			t.htmlEqual( fixture.innerHTML, '00122' );
+			t.htmlEqual( fixture.innerHTML, '00<br/>1<br/>22<br/>' );
 		});
 
 	};

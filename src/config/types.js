@@ -15,6 +15,8 @@ export default {
 	CLOSING_TAG       : 14,
 	COMPONENT         : 15,
 	YIELDER           : 16,
+	INLINE_PARTIAL    : 17,
+	DOCTYPE           : 18,
 
 	NUMBER_LITERAL    : 20,
 	STRING_LITERAL    : 21,
@@ -40,5 +42,6 @@ export default {
 	SECTION_UNLESS    : 51,
 	SECTION_EACH      : 52,
 	SECTION_WITH      : 53,
-	SECTION_IF_WITH   : 54
+	SECTION_IF_WITH   : 54,
+	SECTION_PARTIAL   : 55
 };

@@ -149,6 +149,19 @@ function getMustacheOfType ( parser, delimiterType ) {
 		mustache.n = types.SECTION_UNLESS;
 	}
 
+	// special case inline partial section
+	if ( mustache.n === types.SECTION_PARTIAL ) {
+		if ( !mustache.r || mustache.r.indexOf( '.' ) !== -1 ) {
+			parser.error( 'Invalid partial name ' + mustache.r + '.' );
+		}
+
+		return {
+			n: mustache.r,
+			f: mustache.f,
+			t: types.INLINE_PARTIAL
+		};
+	}
+
 	return mustache;
 }
 

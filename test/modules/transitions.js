@@ -116,6 +116,33 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			ractive.render( fixture );
 		});
 
+		asyncTest( 'Empty transitions on refs okay', function ( t ) {
+
+			expect( 1 );
+
+			var ractive = new Ractive({
+				el: fixture,
+				debug: true,
+				template: '{{#if x}}<div intro="{{foo}}"></div>{{/if}}',
+				transitions: {
+					test: function ( transition ) {
+						t.ok( true );
+						transition.complete();
+						QUnit.start();
+					}
+				},
+				data: {
+					x: true,
+					foo: ''
+				}
+			});
+
+			ractive.set( 'x', false );
+			ractive.set( 'foo', 'test' );
+			ractive.set( 'x', true );
+
+		});
+
 		asyncTest( 'ractive.transitionsEnabled false prevents all transitions', function ( t ) {
 
 			var ractive, Component, transitioned;
@@ -261,6 +288,35 @@ define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
 			setTimeout( function () {
 				tooLate = true;
 			}, 200 );
+		});
+
+		test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', function ( t ) {
+			var ractive, transitionRan = false;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#if foo.length || bar.length}}
+						{{#if foo === bar}}
+							<span intro-outro='x'></span>
+						{{/if}}
+					{{/if}}`,
+				transitions: {
+					x: function ( t ) {
+						transitionRan = true;
+						setTimeout( t.complete, 0 );
+					}
+				},
+				data: {
+					foo: '',
+					bar: ''
+				}
+			});
+
+			ractive.set( 'foo', 'x' );
+			ractive.set( 'foo', '' );
+
+			t.ok( !transitionRan );
 		});
 	};
 });

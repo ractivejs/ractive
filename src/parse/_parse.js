@@ -3,10 +3,12 @@ import Parser from 'parse/Parser/_Parser';
 import mustache from 'parse/converters/mustache';
 import comment from 'parse/converters/comment';
 import element from 'parse/converters/element';
+import partial from 'parse/converters/partial';
 import text from 'parse/converters/text';
 import trimWhitespace from 'parse/utils/trimWhitespace';
 import stripStandalones from 'parse/utils/stripStandalones';
-import escapeRegExp from 'utils/escapeRegExp';
+import processPartials from 'parse/converters/partial/processPartials';
+import isEmptyObject from 'utils/isEmptyObject';
 
 // Ractive.parse
 // ===============
@@ -35,7 +37,6 @@ import escapeRegExp from 'utils/escapeRegExp';
 // * t1 - intro Transition
 // * t2 - outro Transition
 // * o - decOrator
-// * y - is doctYpe
 // * c - is Content (e.g. of a comment node)
 // * p - line Position information - array with line number and character position of each node
 
@@ -70,6 +71,8 @@ StandardParser = Parser.extend({
 		this.sanitizeElements = options.sanitize && options.sanitize.elements;
 		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
 		this.includeLinePositions = options.includeLinePositions;
+
+		this.StandardParser = StandardParser;
 	},
 
 	postProcess: function ( items, options ) {
@@ -78,10 +81,12 @@ StandardParser = Parser.extend({
 		}
 
 		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
+
 		return items;
 	},
 
 	converters: [
+		partial,
 		mustache,
 		comment,
 		element,
@@ -90,43 +95,25 @@ StandardParser = Parser.extend({
 });
 
 parse = function ( template, options = {} ) {
-	var result, remaining, partials, name, startMatch, endMatch, inlinePartialStart, inlinePartialEnd;
+	var result;
 
 	setDelimiters(options);
 
-	inlinePartialStart = new RegExp('<!--\\s*' + escapeRegExp(options.delimiters[0]) + '\\s*>\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*' + escapeRegExp(options.delimiters[1]) + '\\s*-->');
-	inlinePartialEnd = new RegExp('<!--\\s*' + escapeRegExp(options.delimiters[0]) + '\\s*\\/\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*' + escapeRegExp(options.delimiters[1]) + '\\s*-->');
-
 	result = {
-		v: 1 // template spec version, defined in https://github.com/ractivejs/template-spec
+		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
 	};
 
-	if ( inlinePartialStart.test( template ) ) {
-		remaining = template;
-		template = '';
+	result.t = new StandardParser( template, options ).result;
 
-		while ( startMatch = inlinePartialStart.exec( remaining ) ) {
-			name = startMatch[1];
+	// collect all of the partials and stick them on the appropriate instances
+	let partials = {};
+	// without a ractive instance, no components will be found
+	processPartials( options.ractive ? [options.ractive] : [], partials, result.t );
 
-			template += remaining.substr( 0, startMatch.index );
-			remaining = remaining.substring( startMatch.index + startMatch[0].length );
-
-			endMatch = inlinePartialEnd.exec( remaining );
-
-			if ( !endMatch || endMatch[1] !== name ) {
-				throw new Error( 'Inline partials must have a closing delimiter, and cannot be nested. Expected closing for "' + name +
-					'", but ' + ( endMatch ? 'instead found "' + endMatch[1] + '"' : ' no closing found' ) );
-			}
-
-			( partials || ( partials = {} ) )[ name ] = new StandardParser( remaining.substr( 0, endMatch.index ), options ).result;
-			remaining = remaining.substring( endMatch.index + endMatch[0].length );
-		}
-
-		template += remaining;
+	if ( !isEmptyObject( partials ) ) {
 		result.p = partials;
 	}
 
-	result.t = new StandardParser( template, options ).result;
 	return result;
 };
 

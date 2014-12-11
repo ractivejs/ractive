@@ -16,6 +16,7 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.template       = options.template;
 	mustache.index          = options.index || 0;
+	mustache.key            = options.key;
 	mustache.isStatic       = options.template.s;
 
 	mustache.type = options.template.t;
@@ -25,7 +26,7 @@ export default function Mustache$init ( mustache, options ) {
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( ref = template.r ) {
-		mustache.resolver = new createReferenceResolver( mustache, ref, resolve );
+		mustache.resolver = createReferenceResolver( mustache, ref, resolve );
 	}
 
 	// if it's an expression, we have a bit more work to do
@@ -54,7 +55,7 @@ export default function Mustache$init ( mustache, options ) {
 
 			if ( oldKeypath !== undefined ) {
 				mustache.fragments && mustache.fragments.forEach( f => {
-					f.rebind( null, null, oldKeypath, newKeypath );
+					f.rebind( oldKeypath, newKeypath );
 				});
 			}
 		}

@@ -20,8 +20,8 @@ module.exports = function ( grunt) {
 		banner: {
 			files: [{
 				expand: true,
-				cwd: '<%= tmpDir %>/',
-				src: '*.js',
+				cwd: '<%= tmpDir %>/src/',
+				src: 'ractive*.js',
 				dest: 'build/'
 			}],
 			options: {

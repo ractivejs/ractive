@@ -1,6 +1,6 @@
 import defineProperty from 'utils/defineProperty';
 import isNumeric from 'utils/isNumeric';
-import decodeKeypath from 'shared/decodeKeypath';
+import decodeKeypath from 'shared/keypaths/decode';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import 'legacy'; // for fn.bind()
@@ -9,7 +9,7 @@ var ExpressionResolver, bind = Function.prototype.bind;
 
 ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 
-	var ractive, indexRefs;
+	var ractive;
 
 	ractive = owner.root;
 
@@ -19,8 +19,6 @@ ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 	this.owner = owner;
 	this.str = expression.s;
 	this.keypaths = [];
-
-	indexRefs = parentFragment.indexRefs;
 
 	// Create resolvers for each reference
 	this.pending = expression.r.length;
@@ -105,9 +103,9 @@ ExpressionResolver.prototype = {
 		}
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath ) {
 		// TODO only bubble once, no matter how many references are affected by the rebind
-		this.refResolvers.forEach( r => r.rebind( indexRef, newIndex, oldKeypath, newKeypath ) );
+		this.refResolvers.forEach( r => r.rebind( oldKeypath, newKeypath ) );
 	}
 };
 
@@ -140,7 +138,8 @@ function getUniqueString ( str, keypaths ) {
 function getKeypath ( uniqueString ) {
 	// Sanitize by removing any periods or square brackets. Otherwise
 	// we can't split the keypath into keys!
-	return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ) + '}';
+	// Remove asterisks too, since they mess with pattern observers
+	return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ).replace( /\*/, '#MUL#' ) + '}';
 }
 
 function isValidDependency ( keypath ) {
@@ -163,7 +162,8 @@ function wrapFunction ( fn, ractive ) {
 
 	else if ( /this/.test( fn.toString() ) ) {
 		defineProperty( fn, prop, {
-			value: bind.call( fn, ractive )
+			value: bind.call( fn, ractive ),
+			configurable: true
 		});
 
 		// Add properties/methods to wrapped function
@@ -172,6 +172,11 @@ function wrapFunction ( fn, ractive ) {
 				fn[ prop ][ key ] = fn[ key ];
 			}
 		}
+
+		ractive._boundFunctions.push({
+			fn: fn,
+			prop: prop
+		});
 
 		return fn[ prop ];
 	}

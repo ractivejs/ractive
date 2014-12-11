@@ -32,9 +32,19 @@ Fragment.prototype = {
 	getValue: getValue,
 	init: init,
 	rebind: rebind,
+	registerIndexRef: function( idx ) {
+		var idxs = this.registeredIndexRefs;
+		if ( idxs.indexOf( idx ) === -1 ) {
+			idxs.push( idx );
+		}
+	},
 	render: render,
 	toString: toString,
 	unbind: unbind,
+	unregisterIndexRef: function( idx ) {
+		var idxs = this.registeredIndexRefs;
+		idxs.splice( idxs.indexOf( idx ), 1 );
+	},
 	unrender: unrender
 };
 

@@ -210,6 +210,32 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 			t.equal( getHexColor( paragraph ), hexCodes.red );
 		});
 
+		test( 'nth-child selectors work', function ( t ) {
+			var ZebraList, ractive, lis;
+
+			ZebraList = Ractive.extend({
+				css: 'li { color: green; } li:nth-child(2n+1) { color: red; }',
+				template: `
+					<ul>
+						{{#each items}}
+							<li>{{this}}</li>
+						{{/each}}
+					</ul>`
+			});
+
+			ractive = new ZebraList({
+				el: fixture,
+				data: { items: [ 'a', 'b', 'c', 'd', 'e' ] }
+			});
+
+			lis = ractive.findAll( 'li' );
+			t.equal( getHexColor( lis[0] ), hexCodes.red );
+			t.equal( getHexColor( lis[1] ), hexCodes.green );
+			t.equal( getHexColor( lis[2] ), hexCodes.red );
+			t.equal( getHexColor( lis[3] ), hexCodes.green );
+			t.equal( getHexColor( lis[4] ), hexCodes.red );
+		});
+
 	};
 
 });

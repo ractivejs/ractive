@@ -5,7 +5,7 @@ import extend from 'utils/extend';
 import removeFromArray from 'utils/removeFromArray';
 
 var Binding = function ( element ) {
-	var interpolator, keypath, value;
+	var interpolator, keypath, value, parentForm;
 
 	this.element = element;
 	this.root = element.root;
@@ -53,12 +53,19 @@ var Binding = function ( element ) {
 	this.keypath = keypath;
 
 	// initialise value, if it's undefined
-	if ( this.root.viewmodel.get( keypath ) === undefined && this.getInitialValue ) {
+	value = this.root.viewmodel.get( keypath );
+
+	if ( value === undefined && this.getInitialValue ) {
 		value = this.getInitialValue();
 
 		if ( value !== undefined ) {
 			this.root.viewmodel.set( keypath, value );
 		}
+	}
+
+	if ( parentForm = findParentForm( element ) ) {
+		this.resetValue = value;
+		parentForm.formBindings.push( this );
 	}
 };
 
@@ -116,3 +123,11 @@ Binding.extend = function ( properties ) {
 };
 
 export default Binding;
+
+function findParentForm ( element ) {
+	while ( element = element.parent ) {
+		if ( element.name === 'form' ) {
+			return element;
+		}
+	}
+}
