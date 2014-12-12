@@ -1,7 +1,7 @@
 import { isObject } from 'utils/is';
-import getMatchingKeypaths from 'shared/keypaths/getMatching';
+import { getMatchingKeypaths } from 'shared/keypaths';
 import log from 'utils/log/log';
-import normaliseKeypath from 'utils/normaliseKeypath';
+import { normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 var wildcard = /\*/;
@@ -19,7 +19,7 @@ export default function Ractive$set ( keypath, value, callback ) {
 		for ( keypath in map ) {
 			if ( map.hasOwnProperty( keypath) ) {
 				value = map[ keypath ];
-				keypath = normaliseKeypath( keypath );
+				keypath = normalise( keypath );
 
 				this.viewmodel.set( keypath, value );
 			}
@@ -28,7 +28,7 @@ export default function Ractive$set ( keypath, value, callback ) {
 
 	// Set a single keypath
 	else {
-		keypath = normaliseKeypath( keypath );
+		keypath = normalise( keypath );
 
 		if ( wildcard.test( keypath ) ) {
 			getMatchingKeypaths( this, keypath ).forEach( keypath => {

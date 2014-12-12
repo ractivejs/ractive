@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
 import resolveRef from 'shared/resolveRef';
-import getNewKeypath from 'shared/keypaths/getNew';
+import { getNewKeypath } from 'shared/keypaths';
 
 var ReferenceResolver = function ( owner, ref, callback ) {
 	var keypath;

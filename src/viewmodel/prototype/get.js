@@ -1,4 +1,4 @@
-import decodeKeypath from 'shared/keypaths/decode';
+import { decodeKeypath } from 'shared/keypaths';
 import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
 
 

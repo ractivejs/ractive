@@ -1,7 +1,7 @@
 import { INTERPOLATOR } from 'config/types';
 import runloop from 'global/runloop';
 import escapeHtml from 'utils/escapeHtml';
-import detachNode from 'utils/detachNode';
+import { detachNode } from 'utils/dom';
 import { isEqual } from 'utils/is';
 import unbind from 'virtualdom/items/shared/unbind';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';

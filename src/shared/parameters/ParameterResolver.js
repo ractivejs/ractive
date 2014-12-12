@@ -1,5 +1,5 @@
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import decodeKeypath from 'shared/keypaths/decode';
+import { decodeKeypath } from 'shared/keypaths';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 

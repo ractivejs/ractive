@@ -1,6 +1,6 @@
 import { defineProperty } from 'utils/object';
 import { isNumeric } from 'utils/is';
-import decodeKeypath from 'shared/keypaths/decode';
+import { decodeKeypath } from 'shared/keypaths';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import 'legacy'; // for fn.bind()

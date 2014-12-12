@@ -124,4 +124,12 @@ if ( !isClient ) {
 	}
 }
 
-export { createElement, getElement, matches };
+function detachNode ( node ) {
+	if ( node && node.parentNode ) {
+		node.parentNode.removeChild( node );
+	}
+
+	return node;
+}
+
+export { createElement, detachNode, getElement, matches };
