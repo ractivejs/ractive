@@ -2,7 +2,7 @@ import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import { removeFromArray } from 'utils/array';
 import Promise from 'utils/Promise';
 import resolveRef from 'shared/resolveRef';
-import TransitionManager from 'global/TransitionManager';
+import TransitionManager from './TransitionManager';
 
 var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
 

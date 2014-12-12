@@ -1,5 +1,5 @@
-import getUpstreamChanges from 'viewmodel/helpers/getUpstreamChanges';
-import notifyPatternObservers from 'viewmodel/prototype/applyChanges/notifyPatternObservers';
+import getUpstreamChanges from '../helpers/getUpstreamChanges';
+import notifyPatternObservers from './applyChanges/notifyPatternObservers';
 
 export default function Viewmodel$applyChanges () {
 	var self = this,

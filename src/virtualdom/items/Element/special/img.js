@@ -1,4 +1,4 @@
-export default function renderImage ( img ) {
+export function render ( img ) {
 	var loadHandler;
 
 	// if this is an <img>, and we're in a crap browser, we may need to prevent it

@@ -1,5 +1,5 @@
 import { ARRAY_LITERAL } from 'config/types';
-import getExpressionList from 'parse/Parser/expressions/shared/expressionList';
+import getExpressionList from '../../shared/expressionList';
 
 export default function ( parser ) {
 	var start, expressionList;

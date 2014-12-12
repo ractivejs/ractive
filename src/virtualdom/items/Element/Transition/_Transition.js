@@ -1,9 +1,9 @@
-import init from 'virtualdom/items/Element/Transition/prototype/init';
-import getStyle from 'virtualdom/items/Element/Transition/prototype/getStyle';
-import setStyle from 'virtualdom/items/Element/Transition/prototype/setStyle';
-import animateStyle from 'virtualdom/items/Element/Transition/prototype/animateStyle/_animateStyle';
-import processParams from 'virtualdom/items/Element/Transition/prototype/processParams';
-import start from 'virtualdom/items/Element/Transition/prototype/start';
+import init from './prototype/init';
+import getStyle from './prototype/getStyle';
+import setStyle from './prototype/setStyle';
+import animateStyle from './prototype/animateStyle/_animateStyle';
+import processParams from './prototype/processParams';
+import start from './prototype/start';
 
 var Transition = function ( owner, template, isIntro ) {
 	this.init( owner, template, isIntro );

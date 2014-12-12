@@ -1,4 +1,4 @@
-import genericHandler from 'virtualdom/items/Element/EventHandler/shared/genericHandler';
+import genericHandler from '../shared/genericHandler';
 
 export default function EventHandler$unrender () {
 

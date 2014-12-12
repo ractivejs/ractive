@@ -1,4 +1,4 @@
-import unbindOption from 'virtualdom/items/Element/special/option/unbind';
+import { unbind as unbindOption } from 'virtualdom/items/Element/special/option';
 import { unbind } from 'shared/methodCallers';
 
 export default function Element$unbind () {

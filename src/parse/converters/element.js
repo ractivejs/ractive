@@ -1,12 +1,12 @@
 import { DOCTYPE, ELEMENT, CLOSING, CLOSING_TAG } from 'config/types';
 import { voidElementNames } from 'utils/html';
-import getMustache from 'parse/converters/mustache';
-import getComment from 'parse/converters/comment';
-import getPartial from 'parse/converters/partial';
-import getText from 'parse/converters/text';
-import getClosingTag from 'parse/converters/element/closingTag';
-import getAttribute from 'parse/converters/element/attribute';
-import processDirective from 'parse/converters/element/processDirective';
+import getMustache from './mustache';
+import getComment from './comment';
+import getPartial from './partial';
+import getText from './text';
+import getClosingTag from './element/closingTag';
+import getAttribute from './element/attribute';
+import processDirective from './element/processDirective';
 
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,

@@ -1,12 +1,12 @@
 import log from 'utils/log/log';
 import { PARTIAL, TEXT } from 'config/types';
-import getPartialTemplate from 'virtualdom/items/Partial/getPartialTemplate';
-import applyIndent from 'virtualdom/items/Partial/applyIndent';
 import runloop from 'global/runloop';
-import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
-import rebind from 'virtualdom/items/shared/Mustache/rebind';
-import unbind from 'virtualdom/items/shared/unbind';
 import Fragment from 'virtualdom/Fragment';
+import Mustache from '../shared/Mustache/_Mustache';
+import rebind from '../shared/Mustache/rebind';
+import unbind from '../shared/unbind';
+import getPartialTemplate from './getPartialTemplate';
+import applyIndent from './applyIndent';
 
 var Partial = function ( options ) {
 	var parentFragment, template;
@@ -81,7 +81,7 @@ Partial.prototype = {
 		if ( !this.isNamed ) {
 			rebind.call( this, oldKeypath, newKeypath );
 		}
-		
+
 		this.fragment.rebind( oldKeypath, newKeypath );
 	},
 

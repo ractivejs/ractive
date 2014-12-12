@@ -1,6 +1,6 @@
-import findParentSelect from 'virtualdom/items/Element/special/option/findParentSelect';
+import { removeFromArray } from 'utils/array';
 
-export default function initOption ( option, template ) {
+export function init ( option, template ) {
 	option.select = findParentSelect( option.parent );
 
 	// we might be inside a <datalist> element
@@ -25,4 +25,20 @@ export default function initOption ( option, template ) {
 	if ( 'selected' in template.a && option.select.getAttribute( 'value' ) !== undefined ) {
 		delete template.a.selected;
 	}
+}
+
+export function unbind ( option ) {
+	if ( option.select ) {
+		removeFromArray( option.select.options, option );
+	}
+}
+
+function findParentSelect ( element ) {
+	if ( !element ) { return; }
+
+	do {
+		if ( element.name === 'select' ) {
+			return element;
+		}
+	} while ( element = element.parent );
 }

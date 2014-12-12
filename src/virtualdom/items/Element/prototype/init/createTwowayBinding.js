@@ -1,14 +1,14 @@
 import log from 'utils/log/log';
-import ContentEditableBinding from 'virtualdom/items/Element/Binding/ContentEditableBinding';
-import RadioBinding from 'virtualdom/items/Element/Binding/RadioBinding';
-import RadioNameBinding from 'virtualdom/items/Element/Binding/RadioNameBinding';
-import CheckboxNameBinding from 'virtualdom/items/Element/Binding/CheckboxNameBinding';
-import CheckboxBinding from 'virtualdom/items/Element/Binding/CheckboxBinding';
-import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
-import MultipleSelectBinding from 'virtualdom/items/Element/Binding/MultipleSelectBinding';
-import FileListBinding from 'virtualdom/items/Element/Binding/FileListBinding';
-import NumericBinding from 'virtualdom/items/Element/Binding/NumericBinding';
-import GenericBinding from 'virtualdom/items/Element/Binding/GenericBinding';
+import ContentEditableBinding from '../../Binding/ContentEditableBinding';
+import RadioBinding from '../../Binding/RadioBinding';
+import RadioNameBinding from '../../Binding/RadioNameBinding';
+import CheckboxNameBinding from '../../Binding/CheckboxNameBinding';
+import CheckboxBinding from '../../Binding/CheckboxBinding';
+import SelectBinding from '../../Binding/SelectBinding';
+import MultipleSelectBinding from '../../Binding/MultipleSelectBinding';
+import FileListBinding from '../../Binding/FileListBinding';
+import NumericBinding from '../../Binding/NumericBinding';
+import GenericBinding from '../../Binding/GenericBinding';
 
 export default function createTwowayBinding ( element ) {
 	var attributes = element.attributes, type, Binding, bindName, bindChecked;

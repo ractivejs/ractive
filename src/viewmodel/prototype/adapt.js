@@ -1,8 +1,8 @@
 import config from 'config/config';
-import arrayAdaptor from 'viewmodel/prototype/get/arrayAdaptor';
+import arrayAdaptor from './get/arrayAdaptor';
 import log from 'utils/log/log';
-import magicAdaptor from 'viewmodel/prototype/get/magicAdaptor';
-import magicArrayAdaptor from 'viewmodel/prototype/get/magicArrayAdaptor';
+import magicAdaptor from './get/magicAdaptor';
+import magicArrayAdaptor from './get/magicArrayAdaptor';
 
 var prefixers = {};
 

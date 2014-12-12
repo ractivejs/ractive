@@ -1,8 +1,8 @@
 import { defineProperty } from 'utils/object';
 import { isNumeric } from 'utils/is';
 import { decodeKeypath } from 'shared/keypaths';
-import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import getFunctionFromString from 'shared/getFunctionFromString';
+import createReferenceResolver from './createReferenceResolver';
 import 'legacy'; // for fn.bind()
 
 var ExpressionResolver, bind = Function.prototype.bind;

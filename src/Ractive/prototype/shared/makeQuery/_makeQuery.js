@@ -1,9 +1,9 @@
 import { defineProperties } from 'utils/object';
-import test from 'Ractive/prototype/shared/makeQuery/test';
-import cancel from 'Ractive/prototype/shared/makeQuery/cancel';
-import sort from 'Ractive/prototype/shared/makeQuery/sort';
-import dirty from 'Ractive/prototype/shared/makeQuery/dirty';
-import remove from 'Ractive/prototype/shared/makeQuery/remove';
+import test from './test';
+import cancel from './cancel';
+import sort from './sort';
+import dirty from './dirty';
+import remove from './remove';
 
 export default function makeQuery ( ractive, selector, live, isComponentQuery ) {
 	var query = [];

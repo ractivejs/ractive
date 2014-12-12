@@ -1,4 +1,4 @@
-import errors from 'parse/Parser/expressions/shared/errors';
+import { expectedExpression } from './errors';
 
 export default function getExpressionList ( parser ) {
 	var start, expressions, expr, next;
@@ -21,7 +21,7 @@ export default function getExpressionList ( parser ) {
 	if ( parser.matchString( ',' ) ) {
 		next = getExpressionList( parser );
 		if ( next === null ) {
-			parser.error( errors.expectedExpression );
+			parser.error( expectedExpression );
 		}
 
 		next.forEach( append );

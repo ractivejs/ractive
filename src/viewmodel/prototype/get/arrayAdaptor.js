@@ -1,6 +1,6 @@
 import { defineProperty } from 'utils/object';
 import { isArray } from 'utils/is';
-import patch from 'viewmodel/prototype/get/arrayAdaptor/patch';
+import patch from './arrayAdaptor/patch';
 
 var arrayAdaptor,
 

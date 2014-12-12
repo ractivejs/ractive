@@ -1,4 +1,4 @@
-import getKeyValuePair from 'parse/Parser/expressions/primary/literal/objectLiteral/keyValuePair';
+import getKeyValuePair from './keyValuePair';
 
 export default function getKeyValuePairs ( parser ) {
 	var start, pairs, pair, keyValuePairs;

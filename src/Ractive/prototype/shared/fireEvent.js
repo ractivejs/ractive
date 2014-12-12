@@ -1,4 +1,4 @@
-import eventStack from 'Ractive/prototype/shared/eventStack';
+import eventStack from './eventStack';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
 export default function fireEvent ( ractive, eventName, options = {} ) {

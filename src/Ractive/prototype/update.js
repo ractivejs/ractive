@@ -1,4 +1,4 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import Hook from './shared/hooks/Hook';
 import log from 'utils/log/log';
 import runloop from 'global/runloop';
 

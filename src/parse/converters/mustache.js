@@ -1,8 +1,8 @@
 import { DELIMCHANGE, COMMENT, CLOSING, SECTION, INTERPOLATOR, INVERTED, SECTION_UNLESS, SECTION_PARTIAL, INLINE_PARTIAL } from 'config/types';
-import delimiterChange from 'parse/converters/mustache/delimiterChange';
-import delimiterTypes from 'parse/converters/mustache/delimiterTypes';
-import mustacheContent from 'parse/converters/mustache/content';
-import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
+import delimiterChange from './mustache/delimiterChange';
+import delimiterTypes from './mustache/delimiterTypes';
+import mustacheContent from './mustache/content';
+import handlebarsBlockCodes from './mustache/handlebarsBlockCodes';
 
 var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 

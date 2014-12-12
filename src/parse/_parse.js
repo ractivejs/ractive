@@ -1,13 +1,13 @@
 import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
-import Parser from 'parse/Parser/_Parser';
-import mustache from 'parse/converters/mustache';
-import comment from 'parse/converters/comment';
-import element from 'parse/converters/element';
-import partial from 'parse/converters/partial';
-import text from 'parse/converters/text';
-import trimWhitespace from 'parse/utils/trimWhitespace';
-import stripStandalones from 'parse/utils/stripStandalones';
-import processPartials from 'parse/converters/partial/processPartials';
+import Parser from './Parser/_Parser';
+import mustache from './converters/mustache';
+import comment from './converters/comment';
+import element from './converters/element';
+import partial from './converters/partial';
+import text from './converters/text';
+import trimWhitespace from './utils/trimWhitespace';
+import stripStandalones from './utils/stripStandalones';
+import processPartials from './converters/partial/processPartials';
 import { isEmptyObject } from 'utils/is';
 
 // Ractive.parse

@@ -1,7 +1,7 @@
 import { SECTION_UNLESS } from 'config/types';
-import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
-import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
+import createReferenceResolver from '../Resolvers/createReferenceResolver';
+import ReferenceExpressionResolver from '../Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
+import ExpressionResolver from '../Resolvers/ExpressionResolver';
 
 export default function Mustache$init ( mustache, options ) {
 

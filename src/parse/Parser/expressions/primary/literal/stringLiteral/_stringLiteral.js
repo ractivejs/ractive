@@ -1,6 +1,8 @@
 import { STRING_LITERAL } from 'config/types';
-import getSingleQuotedString from 'parse/Parser/expressions/primary/literal/stringLiteral/singleQuotedString';
-import getDoubleQuotedString from 'parse/Parser/expressions/primary/literal/stringLiteral/doubleQuotedString';
+import makeQuotedStringMatcher from './makeQuotedStringMatcher';
+
+var getSingleQuotedString = makeQuotedStringMatcher( '"' );
+var getDoubleQuotedString = makeQuotedStringMatcher( "'" );
 
 export default function ( parser ) {
 	var start, string;

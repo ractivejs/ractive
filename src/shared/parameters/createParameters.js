@@ -1,10 +1,10 @@
-import ComplexParameter from 'shared/parameters/ComplexParameter';
-import { create } from 'utils/object';
-import createComponentData from 'shared/parameters/createComponentData';
-import Mapping from 'shared/parameters/Mapping';
-import parseJSON from 'utils/parseJSON';
-import ParameterResolver from 'shared/parameters/ParameterResolver';
 import { INTERPOLATOR } from 'config/types';
+import { create } from 'utils/object';
+import parseJSON from 'utils/parseJSON';
+import ComplexParameter from './ComplexParameter';
+import createComponentData from './createComponentData';
+import Mapping from './Mapping';
+import ParameterResolver from './ParameterResolver';
 
 export default function createParameters ( component, proto, attributes) {
 	var parameters, data, defined;

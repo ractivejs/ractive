@@ -1,6 +1,6 @@
 import { TEXT } from 'config/types';
 import { escapeHtml } from 'utils/html';
-import detach from 'virtualdom/items/shared/detach';
+import detach from './shared/detach';
 
 var Text = function ( options ) {
 	this.type = TEXT;

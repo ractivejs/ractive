@@ -1,5 +1,5 @@
 import { GLOBAL, REFERENCE } from 'config/types';
-import patterns from 'parse/Parser/expressions/shared/patterns';
+import { name as namePattern, relaxedName } from '../shared/patterns';
 
 var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals, keywords;
 dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
@@ -45,11 +45,7 @@ export default function ( parser ) {
 		dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 	}
 
-	if ( parser.relaxedNames ) {
-		pattern = patterns.relaxedName;
-	} else {
-		pattern = patterns.name;
-	}
+	pattern = parser.relaxedNames ? relaxedName : namePattern;
 	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( pattern ) || '';
 
 	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)

@@ -1,18 +1,18 @@
 import namespaces from 'config/namespaces';
 import noop from 'utils/noop';
 
-import updateSelectValue from 'virtualdom/items/Element/Attribute/prototype/update/updateSelectValue';
-import updateMultipleSelectValue from 'virtualdom/items/Element/Attribute/prototype/update/updateMultipleSelectValue';
-import updateRadioName from 'virtualdom/items/Element/Attribute/prototype/update/updateRadioName';
-import updateRadioValue from 'virtualdom/items/Element/Attribute/prototype/update/updateRadioValue';
-import updateCheckboxName from 'virtualdom/items/Element/Attribute/prototype/update/updateCheckboxName';
-import updateClassName from 'virtualdom/items/Element/Attribute/prototype/update/updateClassName';
-import updateIdAttribute from 'virtualdom/items/Element/Attribute/prototype/update/updateIdAttribute';
-import updateIEStyleAttribute from 'virtualdom/items/Element/Attribute/prototype/update/updateIEStyleAttribute';
-import updateContentEditableValue from 'virtualdom/items/Element/Attribute/prototype/update/updateContentEditableValue';
-import updateValue from 'virtualdom/items/Element/Attribute/prototype/update/updateValue';
-import updateBoolean from 'virtualdom/items/Element/Attribute/prototype/update/updateBoolean';
-import updateEverythingElse from 'virtualdom/items/Element/Attribute/prototype/update/updateEverythingElse';
+import updateSelectValue from './update/updateSelectValue';
+import updateMultipleSelectValue from './update/updateMultipleSelectValue';
+import updateRadioName from './update/updateRadioName';
+import updateRadioValue from './update/updateRadioValue';
+import updateCheckboxName from './update/updateCheckboxName';
+import updateClassName from './update/updateClassName';
+import updateIdAttribute from './update/updateIdAttribute';
+import updateIEStyleAttribute from './update/updateIEStyleAttribute';
+import updateContentEditableValue from './update/updateContentEditableValue';
+import updateValue from './update/updateValue';
+import updateBoolean from './update/updateBoolean';
+import updateEverythingElse from './update/updateEverythingElse';
 
 // There are a few special cases when it comes to updating attributes. For this reason,
 // the prototype .update() method points to this method, which waits until the

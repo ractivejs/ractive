@@ -1,5 +1,5 @@
 import { INFIX_OPERATOR } from 'config/types';
-import getTypeof from 'parse/Parser/expressions/typeof';
+import getTypeof from './typeof';
 
 var getLogicalOr, makeInfixSequenceMatcher;
 

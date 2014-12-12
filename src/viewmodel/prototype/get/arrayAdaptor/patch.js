@@ -1,7 +1,7 @@
 import runloop from 'global/runloop';
 import { defineProperty } from 'utils/object';
 import getNewIndices from 'shared/getNewIndices';
-import processWrapper from 'viewmodel/prototype/get/arrayAdaptor/processWrapper';
+import processWrapper from './processWrapper';
 
 var patchedArrayProto = [],
 	mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ],

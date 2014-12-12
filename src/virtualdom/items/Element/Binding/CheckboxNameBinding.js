@@ -1,8 +1,8 @@
 import { isArray } from 'utils/is';
 import { arrayContains, removeFromArray } from 'utils/array';
-import Binding from 'virtualdom/items/Element/Binding/Binding';
-import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
-import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
+import Binding from './Binding';
+import getSiblings from './shared/getSiblings';
+import handleDomEvent from './shared/handleDomEvent';
 
 var CheckboxNameBinding = Binding.extend({
 	name: 'name',

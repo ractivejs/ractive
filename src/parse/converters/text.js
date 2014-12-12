@@ -1,4 +1,4 @@
-import getLowestIndex from 'parse/converters/utils/getLowestIndex';
+import getLowestIndex from './utils/getLowestIndex';
 import { decodeCharacterReferences } from 'utils/html';
 
 export default function ( parser ) {
