@@ -15,7 +15,7 @@ module.exports = {
 			};
 
 			src = gobble( 'src' );
-			es5 = src.transform( '6to5', { blacklist: [ 'modules' ]});
+			es5 = src.transform( '6to5', { blacklist: [ 'modules', 'useStrict' ]});
 			amd = es5.transform( 'esperanto', { strict: true });
 
 			bundles = gobble([

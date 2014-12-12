@@ -8,7 +8,7 @@ var transpilerOptions = {
 	}, {})
 };
 
-es5 = gobble( 'src' ).transform( '6to5', { blacklist: [ 'modules' ]});
+es5 = gobble( 'src' ).transform( '6to5', { blacklist: [ 'modules', 'useStrict' ]});
 amd = es5.transform( 'esperanto', { strict: true });
 
 bundle = es5.transform( 'esperanto-bundle', {
