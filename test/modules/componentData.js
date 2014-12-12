@@ -2,7 +2,7 @@ define([
 	'ractive',
 	'helpers/Model',
 	'utils/object',
-	'utils/log'
+	'utils/log/log'
 ], function (
 	Ractive,
 	Model,

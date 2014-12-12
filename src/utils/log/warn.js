@@ -1,7 +1,9 @@
 /* global console */
+import { hasConsole } from 'config/environment';
+
 var warn, warned = {};
 
-if ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' ) {
+if ( hasConsole ) {
 	warn = function ( message, allowDuplicates ) {
 		if ( !allowDuplicates ) {
 			if ( warned[ message ] ) {

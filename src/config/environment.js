@@ -1,4 +1,5 @@
-var svg, isClient;
+/*global console */
+var svg, isClient, hasConsole;
 
 if ( typeof document === 'undefined' ) {
 	svg = false;
@@ -8,4 +9,6 @@ if ( typeof document === 'undefined' ) {
 
 isClient = ( typeof document === 'object' );
 
-export { svg, isClient };
+hasConsole = ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' );
+
+export { hasConsole, isClient, svg };
