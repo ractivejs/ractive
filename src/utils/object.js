@@ -1,4 +1,3 @@
-import { isObject } from 'utils/is';
 import { isClient } from 'config/environment';
 import { createElement } from 'utils/dom';
 import 'legacy';
