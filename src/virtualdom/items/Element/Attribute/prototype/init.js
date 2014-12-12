@@ -1,5 +1,5 @@
 import { ATTRIBUTE } from 'config/types';
-import { booleanAttributes } from 'config/html';
+import { booleanAttributes } from 'utils/html';
 import determineNameAndNamespace from 'virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace';
 import getInterpolator from 'virtualdom/items/Element/Attribute/helpers/getInterpolator';
 import determinePropertyName from 'virtualdom/items/Element/Attribute/helpers/determinePropertyName';

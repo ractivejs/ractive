@@ -1,4 +1,4 @@
-import { booleanAttributes } from 'config/html';
+import { booleanAttributes } from 'utils/html';
 
 export default function Attribute$updateEverythingElse () {
 	var { node, namespace, name, value, fragment } = this;

@@ -1,5 +1,5 @@
 import { DOCTYPE, ELEMENT, CLOSING, CLOSING_TAG } from 'config/types';
-import { voidElementNames } from 'config/html';
+import { voidElementNames } from 'utils/html';
 import getMustache from 'parse/converters/mustache';
 import getComment from 'parse/converters/comment';
 import getPartial from 'parse/converters/partial';

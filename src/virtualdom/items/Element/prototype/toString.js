@@ -1,6 +1,5 @@
-import { voidElementNames } from 'config/html';
+import { escapeHtml, voidElementNames } from 'utils/html';
 import { isArray } from 'utils/is';
-import escapeHtml from 'utils/escapeHtml';
 
 export default function () {
 	var str, escape;

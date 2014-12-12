@@ -1,5 +1,5 @@
 import getLowestIndex from 'parse/converters/utils/getLowestIndex';
-import decodeCharacterReferences from 'shared/decodeCharacterReferences';
+import { decodeCharacterReferences } from 'utils/html';
 
 export default function ( parser ) {
 	var index, remaining, disallowed, barrier;

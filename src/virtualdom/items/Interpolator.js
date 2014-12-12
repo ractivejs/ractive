@@ -1,6 +1,6 @@
 import { INTERPOLATOR } from 'config/types';
 import runloop from 'global/runloop';
-import escapeHtml from 'utils/escapeHtml';
+import { escapeHtml } from 'utils/html';
 import { detachNode } from 'utils/dom';
 import { isEqual } from 'utils/is';
 import unbind from 'virtualdom/items/shared/unbind';

@@ -1,5 +1,5 @@
 import { TEXT } from 'config/types';
-import escapeHtml from 'utils/escapeHtml';
+import { escapeHtml } from 'utils/html';
 import detach from 'virtualdom/items/shared/detach';
 
 var Text = function ( options ) {
