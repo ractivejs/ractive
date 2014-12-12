@@ -1,6 +1,7 @@
 import resolveRef from 'shared/resolveRef';
 import ReferenceResolver from 'virtualdom/items/shared/Resolvers/ReferenceResolver';
 import MemberResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver';
+import { unbind } from 'shared/methodCallers';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	var ractive, ref, keypath, parentFragment;
@@ -88,10 +89,6 @@ function getValue ( member ) {
 
 function isDefined ( value ) {
 	return value != undefined;
-}
-
-function unbind ( member ) {
-	member.unbind();
 }
 
 export default ReferenceExpressionResolver;

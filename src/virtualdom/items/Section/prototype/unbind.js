@@ -1,4 +1,5 @@
 import { removeFromArray } from 'utils/array';
+import { unbind as unbindFragment } from 'shared/methodCallers';
 import unbind from 'virtualdom/items/shared/unbind';
 
 export default function Section$unbind () {
@@ -9,8 +10,4 @@ export default function Section$unbind () {
 
 	this.length = 0;
 	this.unbound = true;
-}
-
-function unbindFragment ( fragment ) {
-	fragment.unbind();
 }

@@ -1,5 +1,6 @@
 import { SECTION_EACH, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH } from 'config/types';
 import { isArrayLike, isObject } from 'utils/is';
+import { unbind } from 'shared/methodCallers';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
 
@@ -311,10 +312,6 @@ function removeSectionFragments ( section ) {
 		section.length = section.fragmentsToRender.length = 0;
 		return true;
 	}
-}
-
-function unbind ( fragment ) {
-	fragment.unbind();
 }
 
 function isRendered ( fragment ) {
