@@ -1,6 +1,6 @@
-import getStringLiteral from 'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral';
-import getNumberLiteral from 'parse/Parser/expressions/primary/literal/numberLiteral';
-import patterns from 'parse/Parser/expressions/shared/patterns';
+import getStringLiteral from '../primary/literal/stringLiteral/_stringLiteral';
+import getNumberLiteral from '../primary/literal/numberLiteral';
+import { name as namePattern } from './patterns';
 
 var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -17,7 +17,7 @@ export default function ( parser ) {
 		return token.v;
 	}
 
-	if ( token = parser.matchPattern( patterns.name ) ) {
+	if ( token = parser.matchPattern( namePattern ) ) {
 		return token;
 	}
 }

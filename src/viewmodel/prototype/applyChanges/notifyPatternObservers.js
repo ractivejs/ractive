@@ -1,4 +1,4 @@
-import getPotentialWildcardMatches from 'viewmodel/prototype/applyChanges/getPotentialWildcardMatches';
+import getPotentialWildcardMatches from './getPotentialWildcardMatches';
 
 var lastKey = /[^\.]+$/;
 

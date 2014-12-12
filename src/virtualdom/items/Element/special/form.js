@@ -1,6 +1,14 @@
 import runloop from 'global/runloop';
 
-export default function handleReset () {
+export function render ( element ) {
+	element.node.addEventListener( 'reset', handleReset, false);
+}
+
+export function unrender ( element ) {
+	element.node.removeEventListener( 'reset', handleReset, false);
+}
+
+function handleReset () {
 	var element = this._ractive.proxy;
 
 	runloop.start();

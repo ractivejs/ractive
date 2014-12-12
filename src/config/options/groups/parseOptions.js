@@ -1,4 +1,4 @@
-import optionGroup from 'config/options/groups/optionGroup';
+import optionGroup from './optionGroup';
 
 var keys, parseOptions;
 

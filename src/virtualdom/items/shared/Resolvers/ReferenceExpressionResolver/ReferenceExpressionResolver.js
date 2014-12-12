@@ -1,7 +1,7 @@
 import resolveRef from 'shared/resolveRef';
-import ReferenceResolver from 'virtualdom/items/shared/Resolvers/ReferenceResolver';
-import MemberResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver';
 import { unbind } from 'shared/methodCallers';
+import ReferenceResolver from '../ReferenceResolver';
+import MemberResolver from './MemberResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	var ractive, ref, keypath, parentFragment;

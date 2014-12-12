@@ -1,13 +1,13 @@
 import { ELEMENT } from 'config/types';
-import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
-import processBindingAttributes from 'virtualdom/items/Element/prototype/init/processBindingAttributes';
-import createAttributes from 'virtualdom/items/Element/prototype/init/createAttributes';
-import createConditionalAttributes from 'virtualdom/items/Element/prototype/init/createConditionalAttributes';
-import createTwowayBinding from 'virtualdom/items/Element/prototype/init/createTwowayBinding';
-import createEventHandlers from 'virtualdom/items/Element/prototype/init/createEventHandlers';
-import Decorator from 'virtualdom/items/Element/Decorator/_Decorator';
-import bubbleSelect from 'virtualdom/items/Element/special/select/bubble';
-import initOption from 'virtualdom/items/Element/special/option/init';
+import processBindingAttributes from './init/processBindingAttributes';
+import createAttributes from './init/createAttributes';
+import createConditionalAttributes from './init/createConditionalAttributes';
+import createTwowayBinding from './init/createTwowayBinding';
+import createEventHandlers from './init/createEventHandlers';
+import enforceCase from '../shared/enforceCase';
+import Decorator from '../Decorator/_Decorator';
+import { bubble as bubbleSelect } from '../special/select';
+import { init as initOption } from '../special/option';
 import Fragment from 'virtualdom/Fragment';
 
 export default function Element$init ( options ) {

@@ -1,4 +1,4 @@
-import ConditionalAttribute from 'virtualdom/items/Element/ConditionalAttribute/_ConditionalAttribute';
+import ConditionalAttribute from '../../ConditionalAttribute/_ConditionalAttribute';
 
 export default function ( element, attributes ) {
 	if ( !attributes ) {

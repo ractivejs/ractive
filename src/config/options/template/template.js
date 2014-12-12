@@ -1,4 +1,4 @@
-import parser from 'config/options/template/parser';
+import parser from './parser';
 import parse from 'parse/_parse';
 
 var templateConfig = {

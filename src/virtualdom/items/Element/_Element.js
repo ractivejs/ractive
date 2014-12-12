@@ -1,18 +1,18 @@
-import bubble from 'virtualdom/items/Element/prototype/bubble';
-import detach from 'virtualdom/items/Element/prototype/detach';
-import find from 'virtualdom/items/Element/prototype/find';
-import findAll from 'virtualdom/items/Element/prototype/findAll';
-import findAllComponents from 'virtualdom/items/Element/prototype/findAllComponents';
-import findComponent from 'virtualdom/items/Element/prototype/findComponent';
-import findNextNode from 'virtualdom/items/Element/prototype/findNextNode';
-import firstNode from 'virtualdom/items/Element/prototype/firstNode';
-import getAttribute from 'virtualdom/items/Element/prototype/getAttribute';
-import init from 'virtualdom/items/Element/prototype/init';
-import rebind from 'virtualdom/items/Element/prototype/rebind';
-import render from 'virtualdom/items/Element/prototype/render';
-import toString from 'virtualdom/items/Element/prototype/toString';
-import unbind from 'virtualdom/items/Element/prototype/unbind';
-import unrender from 'virtualdom/items/Element/prototype/unrender';
+import bubble from './prototype/bubble';
+import detach from './prototype/detach';
+import find from './prototype/find';
+import findAll from './prototype/findAll';
+import findAllComponents from './prototype/findAllComponents';
+import findComponent from './prototype/findComponent';
+import findNextNode from './prototype/findNextNode';
+import firstNode from './prototype/firstNode';
+import getAttribute from './prototype/getAttribute';
+import init from './prototype/init';
+import rebind from './prototype/rebind';
+import render from './prototype/render';
+import toString from './prototype/toString';
+import unbind from './prototype/unbind';
+import unrender from './prototype/unrender';
 
 var Element = function ( options ) {
 	this.init( options );

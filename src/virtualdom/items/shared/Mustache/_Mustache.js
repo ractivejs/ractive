@@ -1,7 +1,7 @@
-import getValue from 'virtualdom/items/shared/Mustache/getValue';
-import init from 'virtualdom/items/shared/Mustache/initialise';
-import resolve from 'virtualdom/items/shared/Mustache/resolve';
-import rebind from 'virtualdom/items/shared/Mustache/rebind';
+import getValue from './getValue';
+import init from './initialise';
+import resolve from './resolve';
+import rebind from './rebind';
 
 export default {
 	getValue: getValue,

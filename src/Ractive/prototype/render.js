@@ -1,5 +1,5 @@
 import css from 'global/css';
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import Hook from './shared/hooks/Hook';
 import { getElement } from 'utils/dom';
 import log from 'utils/log/log';
 import runloop from 'global/runloop';

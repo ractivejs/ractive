@@ -1,6 +1,6 @@
 import { create, hasOwn } from 'utils/object';
-import getConditional from 'parse/Parser/expressions/conditional';
-import flattenExpression from 'parse/Parser/utils/flattenExpression';
+import getConditional from './expressions/conditional';
+import flattenExpression from './utils/flattenExpression';
 
 var Parser, ParseError, leadingWhitespace = /^\s+/;
 

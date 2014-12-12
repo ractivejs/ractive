@@ -1,5 +1,5 @@
 import { COMMENT } from 'config/types';
-import detach from 'virtualdom/items/shared/detach';
+import detach from './shared/detach';
 
 var Comment = function ( options ) {
 	this.type = COMMENT;

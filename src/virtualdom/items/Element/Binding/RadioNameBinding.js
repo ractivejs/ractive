@@ -1,7 +1,7 @@
 import { removeFromArray } from 'utils/array';
-import Binding from 'virtualdom/items/Element/Binding/Binding';
-import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
-import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
+import Binding from './Binding';
+import handleDomEvent from './shared/handleDomEvent';
+import getSiblings from './shared/getSiblings';
 
 var RadioNameBinding = Binding.extend({
 	name: 'name',

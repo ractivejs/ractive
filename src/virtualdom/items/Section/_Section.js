@@ -1,22 +1,22 @@
 import { SECTION, SECTION_UNLESS } from 'config/types';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 
-import bubble from 'virtualdom/items/Section/prototype/bubble';
-import detach from 'virtualdom/items/Section/prototype/detach';
-import find from 'virtualdom/items/Section/prototype/find';
-import findAll from 'virtualdom/items/Section/prototype/findAll';
-import findAllComponents from 'virtualdom/items/Section/prototype/findAllComponents';
-import findComponent from 'virtualdom/items/Section/prototype/findComponent';
-import findNextNode from 'virtualdom/items/Section/prototype/findNextNode';
-import firstNode from 'virtualdom/items/Section/prototype/firstNode';
-import shuffle from 'virtualdom/items/Section/prototype/shuffle';
-import rebind from 'virtualdom/items/Section/prototype/rebind';
-import render from 'virtualdom/items/Section/prototype/render';
-import setValue from 'virtualdom/items/Section/prototype/setValue';
-import toString from 'virtualdom/items/Section/prototype/toString';
-import unbind from 'virtualdom/items/Section/prototype/unbind';
-import unrender from 'virtualdom/items/Section/prototype/unrender';
-import update from 'virtualdom/items/Section/prototype/update';
+import bubble from './prototype/bubble';
+import detach from './prototype/detach';
+import find from './prototype/find';
+import findAll from './prototype/findAll';
+import findAllComponents from './prototype/findAllComponents';
+import findComponent from './prototype/findComponent';
+import findNextNode from './prototype/findNextNode';
+import firstNode from './prototype/firstNode';
+import shuffle from './prototype/shuffle';
+import rebind from './prototype/rebind';
+import render from './prototype/render';
+import setValue from './prototype/setValue';
+import toString from './prototype/toString';
+import unbind from './prototype/unbind';
+import unrender from './prototype/unrender';
+import update from './prototype/update';
 
 var Section = function ( options ) {
 	this.type = SECTION;

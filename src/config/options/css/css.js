@@ -1,4 +1,4 @@
-import transformCss from 'config/options/css/transform';
+import transformCss from './transform';
 
 var cssConfig = {
 	name: 'css',

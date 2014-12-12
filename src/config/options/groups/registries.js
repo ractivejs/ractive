@@ -1,5 +1,5 @@
-import optionGroup from 'config/options/groups/optionGroup';
-import Registry from 'config/options/Registry';
+import optionGroup from './optionGroup';
+import Registry from '../Registry';
 
 var keys = [
 		'adaptors',

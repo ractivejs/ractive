@@ -2,7 +2,7 @@ import { create, defineProperties } from 'utils/object';
 import config from 'config/config';
 import initialise from 'Ractive/initialise';
 import Viewmodel from 'viewmodel/Viewmodel';
-import unwrap from 'extend/unwrapExtended';
+import unwrap from './unwrapExtended';
 
 var uid = 1;
 

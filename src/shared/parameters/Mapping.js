@@ -1,4 +1,4 @@
-import DataTracker from 'shared/parameters/DataTracker';
+import DataTracker from './DataTracker';
 
 function Mapping ( localKey, options ) {
 	this.localKey = localKey;

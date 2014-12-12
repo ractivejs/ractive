@@ -1,6 +1,6 @@
 import { TRIPLE, INTERPOLATOR, COMMENT, SECTION, CLOSING, PARTIAL, REFERENCE, BRACKETED, NUMBER_LITERAL, MEMBER, REFINEMENT } from 'config/types';
-import mustacheType from 'parse/converters/mustache/type';
-import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
+import mustacheType from './type';
+import handlebarsBlockCodes from './handlebarsBlockCodes';
 import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,

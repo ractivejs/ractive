@@ -1,6 +1,6 @@
 import { normalise } from 'shared/keypaths';
-import Observer from 'Ractive/prototype/observe/Observer';
-import PatternObserver from 'Ractive/prototype/observe/PatternObserver';
+import Observer from './Observer';
+import PatternObserver from './PatternObserver';
 
 var wildcard = /\*/, emptyObject = {};
 

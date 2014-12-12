@@ -1,6 +1,20 @@
 import { toArray } from 'utils/array';
+import runloop from 'global/runloop';
 
-export default function syncSelect ( selectElement ) {
+export function bubble () {
+	if ( !this.dirty ) {
+		this.dirty = true;
+
+		runloop.scheduleTask( () => {
+			sync( this );
+			this.dirty = false;
+		});
+	}
+
+	this.parentFragment.bubble(); // default behaviour
+}
+
+function sync ( selectElement ) {
 	var selectNode, selectValue, isMultiple, options, optionWasSelected;
 
 	selectNode = selectElement.node;

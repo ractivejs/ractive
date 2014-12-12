@@ -1,19 +1,19 @@
-import bubble from 'virtualdom/Fragment/prototype/bubble';
-import detach from 'virtualdom/Fragment/prototype/detach';
-import find from 'virtualdom/Fragment/prototype/find';
-import findAll from 'virtualdom/Fragment/prototype/findAll';
-import findAllComponents from 'virtualdom/Fragment/prototype/findAllComponents';
-import findComponent from 'virtualdom/Fragment/prototype/findComponent';
-import findNextNode from 'virtualdom/Fragment/prototype/findNextNode';
-import firstNode from 'virtualdom/Fragment/prototype/firstNode';
-import getNode from 'virtualdom/Fragment/prototype/getNode';
-import getValue from 'virtualdom/Fragment/prototype/getValue';
-import init from 'virtualdom/Fragment/prototype/init';
-import rebind from 'virtualdom/Fragment/prototype/rebind';
-import render from 'virtualdom/Fragment/prototype/render';
-import toString from 'virtualdom/Fragment/prototype/toString';
-import unbind from 'virtualdom/Fragment/prototype/unbind';
-import unrender from 'virtualdom/Fragment/prototype/unrender';
+import bubble from './Fragment/prototype/bubble';
+import detach from './Fragment/prototype/detach';
+import find from './Fragment/prototype/find';
+import findAll from './Fragment/prototype/findAll';
+import findAllComponents from './Fragment/prototype/findAllComponents';
+import findComponent from './Fragment/prototype/findComponent';
+import findNextNode from './Fragment/prototype/findNextNode';
+import firstNode from './Fragment/prototype/firstNode';
+import getNode from './Fragment/prototype/getNode';
+import getValue from './Fragment/prototype/getValue';
+import init from './Fragment/prototype/init';
+import rebind from './Fragment/prototype/rebind';
+import render from './Fragment/prototype/render';
+import toString from './Fragment/prototype/toString';
+import unbind from './Fragment/prototype/unbind';
+import unrender from './Fragment/prototype/unrender';
 
 var Fragment = function ( options ) {
 	this.init( options );

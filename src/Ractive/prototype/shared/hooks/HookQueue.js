@@ -1,4 +1,4 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import Hook from './Hook';
 
 function HookQueue ( event ) {
 	this.hook = new Hook( event );

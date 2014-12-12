@@ -1,7 +1,7 @@
-import ReferenceResolver from 'virtualdom/items/shared/Resolvers/ReferenceResolver';
-import SpecialResolver from 'virtualdom/items/shared/Resolvers/SpecialResolver';
-import IndexResolver from 'virtualdom/items/shared/Resolvers/IndexResolver';
-import findIndexRefs from 'virtualdom/items/shared/Resolvers/findIndexRefs';
+import ReferenceResolver from './ReferenceResolver';
+import SpecialResolver from './SpecialResolver';
+import IndexResolver from './IndexResolver';
+import findIndexRefs from './findIndexRefs';
 
 export default function createReferenceResolver ( owner, ref, callback ) {
 	var indexRef;

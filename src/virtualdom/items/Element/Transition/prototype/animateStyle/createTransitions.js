@@ -4,9 +4,9 @@ import { createElement } from 'utils/dom';
 import camelCase from 'utils/camelCase';
 import interpolate from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
-import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
-import unprefix from 'virtualdom/items/Element/Transition/helpers/unprefix';
-import hyphenate from 'virtualdom/items/Element/Transition/helpers/hyphenate';
+import prefix from '../../helpers/prefix';
+import unprefix from '../../helpers/unprefix';
+import hyphenate from '../../helpers/hyphenate';
 
 var createTransitions,
 	testStyle,

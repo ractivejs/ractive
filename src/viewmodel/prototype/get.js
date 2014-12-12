@@ -1,5 +1,5 @@
 import { decodeKeypath } from 'shared/keypaths';
-import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
+import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 
 
 var empty = {};

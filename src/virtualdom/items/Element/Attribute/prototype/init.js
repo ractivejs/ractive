@@ -1,8 +1,8 @@
 import { ATTRIBUTE } from 'config/types';
 import { booleanAttributes } from 'utils/html';
-import determineNameAndNamespace from 'virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace';
-import getInterpolator from 'virtualdom/items/Element/Attribute/helpers/getInterpolator';
-import determinePropertyName from 'virtualdom/items/Element/Attribute/helpers/determinePropertyName';
+import determineNameAndNamespace from '../helpers/determineNameAndNamespace';
+import getInterpolator from '../helpers/getInterpolator';
+import determinePropertyName from '../helpers/determinePropertyName';
 import Fragment from 'virtualdom/Fragment';
 
 export default function Attribute$init ( options ) {

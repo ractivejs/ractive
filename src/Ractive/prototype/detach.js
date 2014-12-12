@@ -1,4 +1,4 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import Hook from './shared/hooks/Hook';
 import { removeFromArray } from 'utils/array';
 
 var detachHook = new Hook( 'detach' );

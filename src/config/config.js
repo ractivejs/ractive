@@ -1,13 +1,13 @@
-import css from 'config/options/css/css';
-import data from 'config/options/data';
-import defaults from 'config/defaults/options';
-import template from 'config/options/template/template';
+import css from './options/css/css';
+import data from './options/data';
+import defaults from './defaults/options';
+import template from './options/template/template';
 
-import parseOptions from 'config/options/groups/parseOptions';
-import registries from 'config/options/groups/registries';
+import parseOptions from './options/groups/parseOptions';
+import registries from './options/groups/registries';
 
 import wrapPrototype from 'utils/wrapPrototypeMethod';
-import deprecate from 'config/deprecate';
+import deprecate from './deprecate';
 
 
 var custom, options, config, blacklisted;

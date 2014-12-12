@@ -1,5 +1,5 @@
 import animations from 'shared/animations';
-import Animation from 'Ractive/prototype/animate/Animation';
+import Animation from './animate/Animation';
 import { isEqual } from 'utils/is';
 import log from 'utils/log/log';
 import { normalise } from 'shared/keypaths';

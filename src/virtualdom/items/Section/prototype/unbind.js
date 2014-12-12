@@ -1,6 +1,6 @@
 import { removeFromArray } from 'utils/array';
 import { unbind as unbindFragment } from 'shared/methodCallers';
-import unbind from 'virtualdom/items/shared/unbind';
+import unbind from '../../shared/unbind';
 
 export default function Section$unbind () {
 	this.fragments.forEach( unbindFragment );

@@ -1,6 +1,7 @@
 import runloop from 'global/runloop';
-import Transition from 'virtualdom/items/Element/Transition/_Transition';
-import unrenderForm from 'virtualdom/items/Element/special/form/unrender';
+import Transition from '../Transition/_Transition';
+import { unrender as unrenderForm } from '../special/form';
+import { unrender } from 'shared/methodCallers';
 
 export default function Element$unrender ( shouldDestroy ) {
 	var binding, bindings;
@@ -35,7 +36,7 @@ export default function Element$unrender ( shouldDestroy ) {
 
 	// Remove event handlers
 	if ( this.eventHandlers ) {
-		this.eventHandlers.forEach( h => h.unrender() );
+		this.eventHandlers.forEach( unrender );
 	}
 
 	if ( this.decorator ) {

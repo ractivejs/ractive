@@ -1,5 +1,5 @@
 import config from 'config/config';
-import genericHandler from 'virtualdom/items/Element/EventHandler/shared/genericHandler';
+import genericHandler from '../shared/genericHandler';
 import log from 'utils/log/log';
 
 var customHandlers = {},

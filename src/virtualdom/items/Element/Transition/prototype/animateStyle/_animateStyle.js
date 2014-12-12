@@ -1,11 +1,11 @@
-import createTransitions from 'virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions';
+import warn from 'utils/log/warn';
 import { isClient } from 'config/environment';
 import legacy from 'legacy';
 import log from 'utils/log/log';
 import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
 import Promise from 'utils/Promise';
-import visibility from 'virtualdom/items/Element/Transition/prototype/animateStyle/visibility';
-import warn from 'utils/log/warn';
+import createTransitions from './createTransitions';
+import visibility from './visibility';
 
 var animateStyle, getComputedStyle, resolved;
 

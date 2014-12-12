@@ -1,5 +1,5 @@
 import { OBJECT_LITERAL } from 'config/types';
-import getKeyValuePairs from 'parse/Parser/expressions/primary/literal/objectLiteral/keyValuePairs';
+import getKeyValuePairs from './keyValuePairs';
 
 export default function ( parser ) {
 	var start, keyValuePairs;

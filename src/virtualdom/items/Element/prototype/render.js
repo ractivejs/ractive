@@ -6,9 +6,9 @@ import { createElement } from 'utils/dom';
 import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
-import renderImage from 'virtualdom/items/Element/special/img/render';
-import renderForm from 'virtualdom/items/Element/special/form/render';
-import Transition from 'virtualdom/items/Element/Transition/_Transition';
+import { render as renderImage } from '../special/img';
+import { render as renderForm } from '../special/form';
+import Transition from '../Transition/_Transition';
 
 var updateCss, updateScript;
 

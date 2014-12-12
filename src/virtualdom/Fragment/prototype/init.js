@@ -1,4 +1,4 @@
-import createItem from 'virtualdom/Fragment/prototype/init/createItem';
+import createItem from './init/createItem';
 
 export default function Fragment$init ( options ) {
 

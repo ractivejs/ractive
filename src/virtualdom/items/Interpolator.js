@@ -3,9 +3,9 @@ import runloop from 'global/runloop';
 import { escapeHtml } from 'utils/html';
 import { detachNode } from 'utils/dom';
 import { isEqual } from 'utils/is';
-import unbind from 'virtualdom/items/shared/unbind';
-import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
-import detach from 'virtualdom/items/shared/detach';
+import unbind from './shared/unbind';
+import Mustache from './shared/Mustache/_Mustache';
+import detach from './shared/detach';
 
 var Interpolator = function ( options ) {
 	this.type = INTERPOLATOR;
