@@ -1,4 +1,4 @@
-import defineProperties from 'utils/defineProperties';
+import { defineProperties } from 'utils/object';
 import magic from 'config/magic';
 import runloop from 'global/runloop';
 

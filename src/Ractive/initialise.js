@@ -1,15 +1,15 @@
 import config from 'config/config';
-import create from 'utils/create';
+import { create } from 'utils/object';
 import Fragment from 'virtualdom/Fragment';
-import getElement from 'utils/getElement';
-import getNextNumber from 'utils/getNextNumber';
+import { getElement } from 'utils/dom';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
 
 var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
-	initHook = new HookQueue( 'init' );
+	initHook = new HookQueue( 'init' ),
+	uid = 0;
 
 export default initialiseRactiveInstance;
 
@@ -61,7 +61,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 function initialiseProperties ( ractive, options ) {
 	// Generate a unique identifier, for places where you'd use a weak map if it
 	// existed
-	ractive._guid = getNextNumber();
+	ractive._guid = 'r-' + uid++;
 
 	// events
 	ractive._subs = create( null );

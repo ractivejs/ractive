@@ -1,6 +1,6 @@
-import isClient from 'config/isClient';
+import { isClient } from 'config/environment';
 import warn from 'utils/log/warn';
-import createElement from 'utils/createElement';
+import { createElement } from 'utils/dom';
 import camelCase from 'utils/camelCase';
 import interpolate from 'shared/interpolate';
 import Ticker from 'shared/Ticker';

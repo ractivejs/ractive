@@ -1,4 +1,5 @@
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
+import { teardown } from 'shared/methodCallers';
 
 var TransitionManager = function ( callback, parent ) {
 	this.callback = callback;
@@ -63,10 +64,6 @@ TransitionManager.prototype = {
 		this.children.forEach( detachNodes );
 	}
 };
-
-function teardown ( decorator ) {
-	decorator.teardown();
-}
 
 function detach ( element ) {
 	element.detach();

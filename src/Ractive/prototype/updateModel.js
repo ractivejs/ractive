@@ -1,6 +1,6 @@
-import arrayContentsMatch from 'utils/arrayContentsMatch';
-import startsWith from 'shared/keypaths/equalsOrStartsWith';
-import isEqual from 'utils/isEqual';
+import { arrayContentsMatch } from 'utils/array';
+import { equalsOrStartsWith } from 'shared/keypaths';
+import { isEqual } from 'utils/is';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
 	var values, key, bindings;
@@ -11,7 +11,7 @@ export default function Ractive$updateModel ( keypath, cascade ) {
 		bindings = [];
 
 		for ( key in this._twowayBindings ) {
-			if ( !keypath || startsWith( key, keypath ) ) {
+			if ( !keypath || equalsOrStartsWith( key, keypath ) ) {
 				bindings.push.apply( bindings, this._twowayBindings[ key ]);
 			}
 		}

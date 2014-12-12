@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
 import createBranch from 'utils/createBranch';
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 
 var magicAdaptor, MagicWrapper;
 

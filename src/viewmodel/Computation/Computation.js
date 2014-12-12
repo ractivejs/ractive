@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
 import log from 'utils/log/log';
-import isEqual from 'utils/isEqual';
+import { isEqual } from 'utils/is';
 import UnresolvedDependency from 'viewmodel/Computation/UnresolvedDependency';
 
 var Computation = function ( ractive, key, signature ) {

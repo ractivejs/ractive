@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { PREFIX_OPERATOR } from 'config/types';
 import errors from 'parse/Parser/expressions/shared/errors';
 import getMemberOrInvocation from 'parse/Parser/expressions/memberOrInvocation';
 
@@ -26,7 +26,7 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 		return {
 			s: symbol,
 			o: expression,
-			t: types.PREFIX_OPERATOR
+			t: PREFIX_OPERATOR
 		};
 	};
 };

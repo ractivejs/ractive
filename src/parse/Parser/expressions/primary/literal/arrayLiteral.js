@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { ARRAY_LITERAL } from 'config/types';
 import getExpressionList from 'parse/Parser/expressions/shared/expressionList';
 
 export default function ( parser ) {
@@ -22,7 +22,7 @@ export default function ( parser ) {
 	}
 
 	return {
-		t: types.ARRAY_LITERAL,
+		t: ARRAY_LITERAL,
 		m: expressionList
 	};
 }

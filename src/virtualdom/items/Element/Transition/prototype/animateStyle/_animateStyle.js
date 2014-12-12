@@ -1,5 +1,5 @@
 import createTransitions from 'virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions';
-import isClient from 'config/isClient';
+import { isClient } from 'config/environment';
 import legacy from 'legacy';
 import log from 'utils/log/log';
 import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';

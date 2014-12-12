@@ -1,5 +1,5 @@
 import warn from 'utils/log/warn';
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 
 function deprecate ( options, deprecated, correct ) {
 

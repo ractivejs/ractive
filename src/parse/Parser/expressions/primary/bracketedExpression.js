@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { BRACKETED } from 'config/types';
 import errors from 'parse/Parser/expressions/shared/errors';
 
 export default function ( parser ) {
@@ -24,7 +24,7 @@ export default function ( parser ) {
 	}
 
 	return {
-		t: types.BRACKETED,
+		t: BRACKETED,
 		x: expr
 	};
 }

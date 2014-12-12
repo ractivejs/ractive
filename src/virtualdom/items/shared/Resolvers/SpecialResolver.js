@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { SECTION_EACH } from 'config/types';
 
 var SpecialResolver = function ( owner, ref, callback ) {
 	this.parentFragment = owner.parentFragment;
@@ -39,7 +39,7 @@ SpecialResolver.prototype = {
 		// special case for indices, which may cross component boundaries
 		if ( prop.prop.indexOf( 'index' ) !== -1 || prop.prop.indexOf( 'key' ) !== -1 ) {
 			while ( fragment ) {
-				if ( fragment.owner.currentSubtype === types.SECTION_EACH && ( value = getProp( fragment, prop ) ) !== undefined ) {
+				if ( fragment.owner.currentSubtype === SECTION_EACH && ( value = getProp( fragment, prop ) ) !== undefined ) {
 					this.cached = fragment;
 
 					fragment.registerIndexRef( this );

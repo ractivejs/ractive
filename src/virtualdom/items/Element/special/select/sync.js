@@ -1,4 +1,4 @@
-import toArray from 'utils/toArray';
+import { toArray } from 'utils/array';
 
 export default function syncSelect ( selectElement ) {
 	var selectNode, selectValue, isMultiple, options, optionWasSelected;

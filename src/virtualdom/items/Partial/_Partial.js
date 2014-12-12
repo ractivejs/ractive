@@ -1,5 +1,5 @@
 import log from 'utils/log/log';
-import types from 'config/types';
+import { PARTIAL, TEXT } from 'config/types';
 import getPartialTemplate from 'virtualdom/items/Partial/getPartialTemplate';
 import applyIndent from 'virtualdom/items/Partial/applyIndent';
 import runloop from 'global/runloop';
@@ -14,7 +14,7 @@ var Partial = function ( options ) {
 	parentFragment = this.parentFragment = options.parentFragment;
 
 	this.root = parentFragment.root;
-	this.type = types.PARTIAL;
+	this.type = PARTIAL;
 	this.index = options.index;
 	this.name = options.template.r;
 
@@ -157,7 +157,7 @@ Partial.prototype = {
 
 		previousItem = this.parentFragment.items[ this.index - 1 ];
 
-		if ( !previousItem || ( previousItem.type !== types.TEXT ) ) {
+		if ( !previousItem || ( previousItem.type !== TEXT ) ) {
 			return string;
 		}
 

@@ -1,4 +1,4 @@
-import getMatchingKeypaths from 'shared/keypaths/getMatching';
+import { getMatchingKeypaths } from 'shared/keypaths';
 
 export default function getPattern ( ractive, pattern ) {
 	var matchingKeypaths, values;

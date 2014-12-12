@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import isEqual from 'utils/isEqual';
+import { isEqual } from 'utils/is';
 
 export default function Attribute$bubble () {
 	var value = this.fragment.getValue();

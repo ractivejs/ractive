@@ -1,9 +1,9 @@
-import types from 'config/types';
-import escapeHtml from 'utils/escapeHtml';
+import { TEXT } from 'config/types';
+import { escapeHtml } from 'utils/html';
 import detach from 'virtualdom/items/shared/detach';
 
 var Text = function ( options ) {
-	this.type = types.TEXT;
+	this.type = TEXT;
 	this.text = options.template;
 };
 

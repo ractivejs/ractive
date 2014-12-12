@@ -1,4 +1,4 @@
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
 	var mapping, deps, index;

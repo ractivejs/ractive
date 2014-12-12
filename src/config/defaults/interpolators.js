@@ -1,7 +1,5 @@
-import hasOwnProperty from 'utils/hasOwnProperty';
-import isArray from 'utils/isArray';
-import isObject from 'utils/isObject';
-import isNumeric from 'utils/isNumeric';
+import { hasOwn } from 'utils/object';
+import { isArray, isObject, isNumeric } from 'utils/is';
 import interpolate from 'shared/interpolate';
 
 var interpolators = {
@@ -73,8 +71,8 @@ var interpolators = {
 		interpolators = {};
 
 		for ( prop in from ) {
-			if ( hasOwnProperty.call( from, prop ) ) {
-				if ( hasOwnProperty.call( to, prop ) ) {
+			if ( hasOwn.call( from, prop ) ) {
+				if ( hasOwn.call( to, prop ) ) {
 					properties.push( prop );
 					interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] );
 				}
@@ -86,7 +84,7 @@ var interpolators = {
 		}
 
 		for ( prop in to ) {
-			if ( hasOwnProperty.call( to, prop ) && !hasOwnProperty.call( from, prop ) ) {
+			if ( hasOwn.call( to, prop ) && !hasOwn.call( from, prop ) ) {
 				intermediate[ prop ] = to[ prop ];
 			}
 		}

@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { TRIPLE } from 'config/types';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 
 import detach from 'virtualdom/items/Triple/prototype/detach';
@@ -14,7 +14,7 @@ import update from 'virtualdom/items/Triple/prototype/update';
 import unbind from 'virtualdom/items/shared/unbind';
 
 var Triple = function ( options ) {
-	this.type = types.TRIPLE;
+	this.type = TRIPLE;
 	Mustache.init( this, options );
 };
 

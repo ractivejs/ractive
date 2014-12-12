@@ -1,8 +1,7 @@
 import runloop from 'global/runloop';
 import log from 'utils/log/log';
-import create from 'utils/create';
-import extend from 'utils/extend';
-import removeFromArray from 'utils/removeFromArray';
+import { create, extend } from 'utils/object';
+import { removeFromArray } from 'utils/array';
 
 var Binding = function ( element ) {
 	var interpolator, keypath, value, parentForm;

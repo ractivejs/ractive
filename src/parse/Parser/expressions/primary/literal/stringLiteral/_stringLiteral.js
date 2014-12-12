@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { STRING_LITERAL } from 'config/types';
 import getSingleQuotedString from 'parse/Parser/expressions/primary/literal/stringLiteral/singleQuotedString';
 import getDoubleQuotedString from 'parse/Parser/expressions/primary/literal/stringLiteral/doubleQuotedString';
 
@@ -16,7 +16,7 @@ export default function ( parser ) {
 		}
 
 		return {
-			t: types.STRING_LITERAL,
+			t: STRING_LITERAL,
 			v: string
 		};
 	}
@@ -30,7 +30,7 @@ export default function ( parser ) {
 		}
 
 		return {
-			t: types.STRING_LITERAL,
+			t: STRING_LITERAL,
 			v: string
 		};
 	}

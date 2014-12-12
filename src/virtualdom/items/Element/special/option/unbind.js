@@ -1,4 +1,4 @@
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 
 export default function unbindOption ( option ) {
 	if ( option.select ) {

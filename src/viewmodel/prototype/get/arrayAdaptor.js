@@ -1,5 +1,5 @@
-import defineProperty from 'utils/defineProperty';
-import isArray from 'utils/isArray';
+import { defineProperty } from 'utils/object';
+import { isArray } from 'utils/is';
 import patch from 'viewmodel/prototype/get/arrayAdaptor/patch';
 
 var arrayAdaptor,

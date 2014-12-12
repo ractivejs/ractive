@@ -1,4 +1,4 @@
-import isObject from 'utils/isObject';
+import { isObject } from 'utils/is';
 import getObserverFacade from 'Ractive/prototype/observe/getObserverFacade';
 
 export default function Ractive$observe ( keypath, callback, options ) {

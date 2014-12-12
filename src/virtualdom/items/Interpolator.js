@@ -1,14 +1,14 @@
-import types from 'config/types';
+import { INTERPOLATOR } from 'config/types';
 import runloop from 'global/runloop';
-import escapeHtml from 'utils/escapeHtml';
-import detachNode from 'utils/detachNode';
-import isEqual from 'utils/isEqual';
+import { escapeHtml } from 'utils/html';
+import { detachNode } from 'utils/dom';
+import { isEqual } from 'utils/is';
 import unbind from 'virtualdom/items/shared/unbind';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 import detach from 'virtualdom/items/shared/detach';
 
 var Interpolator = function ( options ) {
-	this.type = types.INTERPOLATOR;
+	this.type = INTERPOLATOR;
 	Mustache.init( this, options );
 };
 

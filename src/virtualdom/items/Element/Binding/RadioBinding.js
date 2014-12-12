@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';

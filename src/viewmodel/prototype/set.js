@@ -1,4 +1,4 @@
-import isEqual from 'utils/isEqual';
+import { isEqual } from 'utils/is';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, options = {} ) {

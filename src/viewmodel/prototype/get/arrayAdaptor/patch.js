@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import defineProperty from 'utils/defineProperty';
+import { defineProperty } from 'utils/object';
 import getNewIndices from 'shared/getNewIndices';
 import processWrapper from 'viewmodel/prototype/get/arrayAdaptor/processWrapper';
 

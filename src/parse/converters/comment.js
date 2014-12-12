@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { COMMENT } from 'config/types';
 
 var OPEN_COMMENT = '<!--',
 	CLOSE_COMMENT = '-->';
@@ -23,7 +23,7 @@ export default function ( parser ) {
 	parser.pos += endIndex + 3;
 
 	comment = {
-		t: types.COMMENT,
+		t: COMMENT,
 		c: content
 	};
 

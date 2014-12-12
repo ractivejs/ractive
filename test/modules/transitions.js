@@ -1,4 +1,4 @@
-define([ 'ractive', 'utils/log' ], function ( Ractive, log ) {
+define([ 'ractive', 'utils/log/log' ], function ( Ractive, log ) {
 
 	'use strict';
 

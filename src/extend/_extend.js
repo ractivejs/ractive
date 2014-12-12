@@ -1,5 +1,4 @@
-import create from 'utils/create';
-import defineProperties from 'utils/defineProperties';
+import { create, defineProperties } from 'utils/object';
 import config from 'config/config';
 import initialise from 'Ractive/initialise';
 import Viewmodel from 'viewmodel/Viewmodel';

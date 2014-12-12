@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
 import Parser from 'parse/Parser/_Parser';
 import mustache from 'parse/converters/mustache';
 import comment from 'parse/converters/comment';
@@ -8,7 +8,7 @@ import text from 'parse/converters/text';
 import trimWhitespace from 'parse/utils/trimWhitespace';
 import stripStandalones from 'parse/utils/stripStandalones';
 import processPartials from 'parse/converters/partial/processPartials';
-import isEmptyObject from 'utils/isEmptyObject';
+import { isEmptyObject } from 'utils/is';
 
 // Ractive.parse
 // ===============
@@ -143,7 +143,7 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 		}
 
 		// Remove comments, unless we want to keep them
-		else if ( stripComments && item.t === types.COMMENT ) {
+		else if ( stripComments && item.t === COMMENT ) {
 			items.splice( i, 1 );
 		}
 	}
@@ -157,7 +157,7 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 
 		// Recurse
 		if ( item.f ) {
-			preserveWhitespaceInsideFragment = preserveWhitespace || ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
+			preserveWhitespaceInsideFragment = preserveWhitespace || ( item.t === ELEMENT && preserveWhitespaceElements.test( item.e ) );
 
 			if ( !preserveWhitespaceInsideFragment ) {
 				previousItem = items[ i - 1 ];
@@ -185,7 +185,7 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			if ( rewriteElse ) {
 				unlessBlock = {
 					t: 4,
-					n: types.SECTION_UNLESS,
+					n: SECTION_UNLESS,
 					f: item.l
 				};
 				// copy the conditional based on its type

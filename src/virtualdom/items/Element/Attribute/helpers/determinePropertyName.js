@@ -1,5 +1,5 @@
 import namespaces from 'config/namespaces';
-import booleanAttributes from 'config/booleanAttributes';
+import { booleanAttributes } from 'utils/html';
 
 // the property name equivalents for element attributes, where they differ
 // from the lowercased attribute name

@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { SECTION_EACH } from 'config/types';
 import runloop from 'global/runloop';
 
 export default function Section$shuffle ( newIndices ) {
@@ -12,7 +12,7 @@ export default function Section$shuffle ( newIndices ) {
 
 	// short circuit any double-updates, and ensure that this isn't applied to
 	// non-list sections
-	if ( this.shuffling || this.unbound || ( this.currentSubtype !== types.SECTION_EACH ) ) {
+	if ( this.shuffling || this.unbound || ( this.currentSubtype !== SECTION_EACH ) ) {
 		return;
 	}
 

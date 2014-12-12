@@ -1,6 +1,6 @@
 import namespaces from 'config/namespaces';
-import createElement from 'utils/createElement';
-import toArray from 'utils/toArray';
+import { createElement } from 'utils/dom';
+import { toArray } from 'utils/array';
 import Fragment from 'virtualdom/Fragment';
 
 var div;

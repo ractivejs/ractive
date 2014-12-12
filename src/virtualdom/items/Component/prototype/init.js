@@ -1,9 +1,9 @@
 import createInstance from 'virtualdom/items/Component/initialise/createInstance';
 import createParameters from 'shared/parameters/createParameters';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
-import types from 'config/types';
+import { COMPONENT } from 'config/types';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
-import warn from 'utils/warn';
+import warn from 'utils/log/warn';
 
 export default function Component$init ( options, Component ) {
 	var parentFragment, root, parameters;
@@ -16,7 +16,7 @@ export default function Component$init ( options, Component ) {
 	root = parentFragment.root;
 
 	this.root = root;
-	this.type = types.COMPONENT;
+	this.type = COMPONENT;
 	this.name = options.template.e;
 	this.index = options.index;
 	this.indexRefBindings = {};

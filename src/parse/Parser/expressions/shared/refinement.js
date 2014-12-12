@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { REFINEMENT } from 'config/types';
 import errors from 'parse/Parser/expressions/shared/errors';
 import patterns from 'parse/Parser/expressions/shared/patterns';
 
@@ -15,7 +15,7 @@ export default function getRefinement ( parser ) {
 
 		if ( name = parser.matchPattern( patterns.name ) ) {
 			return {
-				t: types.REFINEMENT,
+				t: REFINEMENT,
 				n: name
 			};
 		}
@@ -39,7 +39,7 @@ export default function getRefinement ( parser ) {
 		}
 
 		return {
-			t: types.REFINEMENT,
+			t: REFINEMENT,
 			x: expr
 		};
 	}

@@ -8,6 +8,9 @@ define([
 
 	'use strict';
 
+	Ractive = Ractive.default || Ractive;
+	registries = registries.default || registries;
+
 	return function () {
 
 		module( 'Registries Config' );

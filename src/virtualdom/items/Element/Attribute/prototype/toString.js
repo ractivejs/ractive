@@ -1,4 +1,4 @@
-import booleanAttributes from 'config/booleanAttributes';
+import { booleanAttributes } from 'utils/html';
 
 export default function Attribute$toString () {
 	var { name, namespacePrefix, value, interpolator, fragment } = this;

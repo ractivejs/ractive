@@ -1,13 +1,13 @@
-import types from 'config/types';
+import { YIELDER } from 'config/types';
 import runloop from 'global/runloop';
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 import Fragment from 'virtualdom/Fragment';
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 
 var Yielder = function ( options ) {
 	var container, component;
 
-	this.type = types.YIELDER;
+	this.type = YIELDER;
 
 	this.container = container = options.parentFragment.root;
 	this.component = component = container.component;

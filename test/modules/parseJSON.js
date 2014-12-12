@@ -2,6 +2,8 @@ define([ 'utils/parseJSON' ], function ( parseJSON ) {
 
 	'use strict';
 
+	parseJSON = parseJSON.default || parseJSON;
+
 	return function () {
 
 		module( 'parseJSON' );

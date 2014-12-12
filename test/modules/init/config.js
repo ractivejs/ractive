@@ -10,6 +10,11 @@ define([
 
 	'use strict';
 
+	// TEMPORARY, until we switch to ES6
+	Ractive = Ractive.default || Ractive;
+	defaults = defaults.default || defaults;
+	config = config.default || config;
+
 	return function () {
 
 		module( 'Configuration' );

@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { GLOBAL, REFERENCE } from 'config/types';
 import patterns from 'parse/Parser/expressions/shared/patterns';
 
 var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals, keywords;
@@ -61,7 +61,7 @@ export default function ( parser ) {
 	// if this is a browser global, stop here
 	if ( !ancestor && !dot && !parser.relaxedNames && globals.test( name ) ) {
 		return {
-			t: types.GLOBAL,
+			t: GLOBAL,
 			v: name
 		};
 	}
@@ -91,7 +91,7 @@ export default function ( parser ) {
 	}
 
 	return {
-		t: types.REFERENCE,
+		t: REFERENCE,
 		n: combo.replace( /^this\./, './' ).replace( /^this$/, '.' )
 	};
 }
