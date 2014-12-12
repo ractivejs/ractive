@@ -1,16 +1,18 @@
 define([
 	'ractive',
 	'helpers/Model',
-	'utils/defineProperty',
+	'utils/object',
 	'utils/log'
 ], function (
 	Ractive,
 	Model,
-	defineProperty,
+	object,
 	log
 ) {
 
 	'use strict';
+
+	var defineProperty = object.defineProperty;
 
 	return function () {
 

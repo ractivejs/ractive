@@ -1,4 +1,4 @@
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 import unbind from 'virtualdom/items/shared/unbind';
 
 export default function Section$unbind () {

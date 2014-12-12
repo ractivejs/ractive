@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import arrayContentsMatch from 'utils/arrayContentsMatch';
+import { arrayContentsMatch } from 'utils/array';
 import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
 

@@ -1,6 +1,5 @@
 import { isArray } from 'utils/is';
-import arrayContains from 'utils/arrayContains';
-import removeFromArray from 'utils/removeFromArray';
+import { arrayContains, removeFromArray } from 'utils/array';
 import Binding from 'virtualdom/items/Element/Binding/Binding';
 import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
 import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';

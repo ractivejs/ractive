@@ -1,4 +1,4 @@
-import arrayContains from 'utils/arrayContains';
+import { arrayContains } from 'utils/array';
 import { isArray } from 'utils/is';
 
 export default function Attribute$updateMultipleSelect () {

@@ -1,4 +1,4 @@
-import create from 'utils/create';
+import { create } from 'utils/object';
 import 'legacy';
 
 function Registry ( name, useDefaults ) {

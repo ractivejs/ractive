@@ -1,9 +1,8 @@
 import namespaces from 'config/namespaces';
 import { isArray } from 'utils/is';
 import warn from 'utils/log/warn';
-import create from 'utils/create';
-import createElement from 'utils/createElement';
-import defineProperty from 'utils/defineProperty';
+import { create, defineProperty } from 'utils/object';
+import { createElement } from 'utils/dom';
 import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';

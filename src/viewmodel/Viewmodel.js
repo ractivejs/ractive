@@ -1,4 +1,4 @@
-import create from 'utils/create';
+import { create } from 'utils/object';
 import adapt from 'viewmodel/prototype/adapt';
 import applyChanges from 'viewmodel/prototype/applyChanges';
 import capture from 'viewmodel/prototype/capture';

@@ -1,4 +1,4 @@
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 
 var TransitionManager = function ( callback, parent ) {
 	this.callback = callback;

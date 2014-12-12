@@ -1,5 +1,5 @@
 import namespaces from 'config/namespaces';
-import createElement from 'utils/createElement';
+import { createElement } from 'utils/dom';
 import toArray from 'utils/toArray';
 import Fragment from 'virtualdom/Fragment';
 

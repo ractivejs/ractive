@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
 import { isClient } from 'config/environment';
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 
 var css,
 	update,

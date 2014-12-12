@@ -1,15 +1,16 @@
 define([
 	'utils/wrapPrototypeMethod',
-	'utils/create'
+	'utils/object'
 ], function (
 	wrap,
-	create
+	object
 ) {
 
 	'use strict';
 
+	var create = object.create;
+
 	wrap = wrap.default || wrap;
-	create = create.default || create;
 
 	return function () {
 

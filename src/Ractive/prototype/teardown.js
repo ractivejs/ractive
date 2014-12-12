@@ -1,7 +1,7 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import log from 'utils/log/log';
 import Promise from 'utils/Promise';
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 
 var teardownHook = new Hook( 'teardown' );
 

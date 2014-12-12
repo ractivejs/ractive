@@ -1,6 +1,6 @@
 import { YIELDER } from 'config/types';
 import runloop from 'global/runloop';
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 import Fragment from 'virtualdom/Fragment';
 import { isArray } from 'utils/is';
 

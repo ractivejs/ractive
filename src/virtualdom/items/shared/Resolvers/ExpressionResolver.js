@@ -1,4 +1,4 @@
-import defineProperty from 'utils/defineProperty';
+import { defineProperty } from 'utils/object';
 import { isNumeric } from 'utils/is';
 import decodeKeypath from 'shared/keypaths/decode';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';

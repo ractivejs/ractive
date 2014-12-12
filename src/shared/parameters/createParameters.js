@@ -1,5 +1,5 @@
 import ComplexParameter from 'shared/parameters/ComplexParameter';
-import create from 'utils/create';
+import { create } from 'utils/object';
 import createComponentData from 'shared/parameters/createComponentData';
 import Mapping from 'shared/parameters/Mapping';
 import parseJSON from 'utils/parseJSON';

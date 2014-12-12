@@ -1,4 +1,4 @@
-import defineProperty from 'utils/defineProperty';
+import { defineProperty } from 'utils/object';
 import { isArray } from 'utils/is';
 import patch from 'viewmodel/prototype/get/arrayAdaptor/patch';
 

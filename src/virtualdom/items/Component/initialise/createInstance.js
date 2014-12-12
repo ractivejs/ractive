@@ -1,8 +1,7 @@
 import { YIELDER } from 'config/types';
 import log from 'utils/log/log';
-import create from 'utils/create';
+import { create, extend } from 'utils/object';
 import initialise from 'Ractive/initialise';
-import extend from 'utils/extend';
 
 export default function ( component, Component, parameters, yieldTemplate, partials ) {
 	var instance, parentFragment, ractive, fragment, container, inlinePartials = {};

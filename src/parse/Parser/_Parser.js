@@ -1,5 +1,4 @@
-import create from 'utils/create';
-import hasOwnProperty from 'utils/hasOwnProperty';
+import { create, hasOwn } from 'utils/object';
 import getConditional from 'parse/Parser/expressions/conditional';
 import flattenExpression from 'parse/Parser/utils/flattenExpression';
 
@@ -147,7 +146,7 @@ Parser.extend = function ( proto ) {
 	Child.prototype = create( Parent.prototype );
 
 	for ( key in proto ) {
-		if ( hasOwnProperty.call( proto, key ) ) {
+		if ( hasOwn.call( proto, key ) ) {
 			Child.prototype[ key ] = proto[ key ];
 		}
 	}

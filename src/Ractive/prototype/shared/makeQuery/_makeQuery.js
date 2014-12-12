@@ -1,4 +1,4 @@
-import defineProperties from 'utils/defineProperties';
+import { defineProperties } from 'utils/object';
 import test from 'Ractive/prototype/shared/makeQuery/test';
 import cancel from 'Ractive/prototype/shared/makeQuery/cancel';
 import sort from 'Ractive/prototype/shared/makeQuery/sort';

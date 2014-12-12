@@ -1,4 +1,4 @@
-import arrayContentsMatch from 'utils/arrayContentsMatch';
+import { arrayContentsMatch } from 'utils/array';
 import startsWith from 'shared/keypaths/equalsOrStartsWith';
 import { isEqual } from 'utils/is';
 

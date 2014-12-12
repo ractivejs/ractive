@@ -1,7 +1,7 @@
 import config from 'config/config';
-import create from 'utils/create';
+import { create } from 'utils/object';
 import Fragment from 'virtualdom/Fragment';
-import getElement from 'utils/getElement';
+import { getElement } from 'utils/dom';
 import getNextNumber from 'utils/getNextNumber';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
