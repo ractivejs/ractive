@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-12-12 - commit 8f304b07 
+	2014-12-12 - commit 8c0ccc80 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -26,8 +26,6 @@
 }(typeof window !== 'undefined' ? window : this, function () {
 
 	'use strict';
-
-  "use strict";
 
   var defaults__defaultOptions = {
     // render placement:
@@ -67,8 +65,6 @@
 
   var defaults__default = defaults__defaultOptions;
   //# sourceMappingURL=01-_6to5-options.js.map
-
-  "use strict";
 
   // These are a subset of the easing equations found at
   // https://raw.github.com/danro/easing-js - license info
@@ -113,8 +109,6 @@
   };
   //# sourceMappingURL=01-_6to5-easing.js.map
 
-  "use strict";
-
   /*global console */
   var environment__svg, environment__isClient, environment__hasConsole;
 
@@ -128,8 +122,6 @@
 
   environment__hasConsole = (typeof console !== "undefined" && typeof console.warn === "function" && typeof console.warn.apply === "function");
 
-  "use strict";
-
   var namespaces__default = {
     html: "http://www.w3.org/1999/xhtml",
     mathml: "http://www.w3.org/1998/Math/MathML",
@@ -140,12 +132,8 @@
   };
   //# sourceMappingURL=01-_6to5-namespaces.js.map
 
-	"use strict";
-
 	var vendors__default = ["o", "ms", "moz", "webkit"];
 	//# sourceMappingURL=01-_6to5-vendors.js.map
-
-  "use strict";
 
   var dom__createElement, dom__matches, dom__div, dom__methodNames, dom__unprefixed, dom__prefixed, dom__i, dom__j, dom__makeFunction;
 
@@ -279,8 +267,6 @@
     return node;
   }
 
-  "use strict";
-
   var object___slice = Array.prototype.slice;
   var object__create, object__defineProperty, object__defineProperties;
 
@@ -386,8 +372,6 @@
   var object__hasOwn = Object.prototype.hasOwnProperty;
   //# sourceMappingURL=01-_6to5-object.js.map
 
-  "use strict";
-
   var is__toString = Object.prototype.toString, is__arrayLikePattern = /^\[object (?:Array|FileList)\]$/;
 
   // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
@@ -438,8 +422,6 @@
   }
   //# sourceMappingURL=01-_6to5-is.js.map
 
-  "use strict";
-
   /* global console */
   var warn__warn, warn__warned = {};
 
@@ -461,8 +443,6 @@
 
   var warn__default = warn__warn;
   //# sourceMappingURL=01-_6to5-warn.js.map
-
-  "use strict";
 
   var transformCss__selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g, transformCss__commentsPattern = /\/\*.*?\*\//g, transformCss__selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g, transformCss__mediaQueryPattern = /^@media/, transformCss__dataRvcGuidPattern = /\[data-ractive-css="[a-z0-9-]+"]/g;
 
@@ -538,8 +518,6 @@
   }
   //# sourceMappingURL=01-_6to5-transform.js.map
 
-  "use strict";
-
   var css__cssConfig = {
     name: "css",
     extend: css__extend,
@@ -565,8 +543,6 @@
   var css__default = css__cssConfig;
   //# sourceMappingURL=01-_6to5-css.js.map
 
-  "use strict";
-
   var wrap__default = function (method, superMethod, force) {
     if (force || wrap__needsSuper(method, superMethod)) {
       return function () {
@@ -591,8 +567,6 @@
     return typeof superMethod === "function" && /_super/.test(method);
   }
   //# sourceMappingURL=01-_6to5-wrapMethod.js.map
-
-  "use strict";
 
   var data__dataConfig = {
     name: "data",
@@ -743,8 +717,6 @@
   }
   //# sourceMappingURL=01-_6to5-data.js.map
 
-  "use strict";
-
   var errors__default = {
     missingParser: "Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser",
 
@@ -783,8 +755,6 @@
     notUsed: "prevents forgetting trailing \",\" in cut and paste of previous line :)"
   };
   //# sourceMappingURL=01-_6to5-errors.js.map
-
-	"use strict";
 
 	var types__TEXT = 1;
 	var types__INTERPOLATOR = 2;
@@ -833,13 +803,9 @@
 	var types__SECTION_PARTIAL = 55;
 	//# sourceMappingURL=01-_6to5-types.js.map
 
-	"use strict";
-
 	var shared_errors__expectedExpression = "Expected a JavaScript expression";
 	var shared_errors__expectedParen = "Expected closing paren";
 	//# sourceMappingURL=01-_6to5-errors.js.map
-
-  "use strict";
 
   var getNumberLiteral__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 
@@ -856,8 +822,6 @@
     return null;
   };
   //# sourceMappingURL=01-_6to5-numberLiteral.js.map
-
-  "use strict";
 
   var getBooleanLiteral__default = function (parser) {
     var remaining = parser.remaining();
@@ -881,8 +845,6 @@
     return null;
   };
   //# sourceMappingURL=01-_6to5-booleanLiteral.js.map
-
-  "use strict";
 
   var makeQuotedStringMatcher__stringMiddlePattern, makeQuotedStringMatcher__escapeSequencePattern, makeQuotedStringMatcher__lineContinuationPattern;
 
@@ -934,8 +896,6 @@
   };
   //# sourceMappingURL=01-_6to5-makeQuotedStringMatcher.js.map
 
-  "use strict";
-
   var getStringLiteral__getSingleQuotedString = makeQuotedStringMatcher__default("\"");
   var getStringLiteral__getDoubleQuotedString = makeQuotedStringMatcher__default("'");
 
@@ -976,13 +936,9 @@
   };
   //# sourceMappingURL=01-_6to5-_stringLiteral.js.map
 
-	"use strict";
-
 	var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
 	var patterns__relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
 	//# sourceMappingURL=01-_6to5-patterns.js.map
-
-  "use strict";
 
   var getKey__identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -1004,8 +960,6 @@
     }
   };
   //# sourceMappingURL=01-_6to5-key.js.map
-
-  "use strict";
 
   var getKeyValuePair__default = function (parser) {
     var start, key, value;
@@ -1048,8 +1002,6 @@
   };
   //# sourceMappingURL=01-_6to5-keyValuePair.js.map
 
-  "use strict";
-
   function getKeyValuePairs__getKeyValuePairs(parser) {
     var start, pairs, pair, keyValuePairs;
 
@@ -1077,8 +1029,6 @@
   };
   var getKeyValuePairs__default = getKeyValuePairs__getKeyValuePairs;
   //# sourceMappingURL=01-_6to5-keyValuePairs.js.map
-
-  "use strict";
 
   var getObjectLiteral__default = function (parser) {
     var start, keyValuePairs;
@@ -1109,8 +1059,6 @@
     };
   };
   //# sourceMappingURL=01-_6to5-_objectLiteral.js.map
-
-  "use strict";
 
   function getExpressionList__getExpressionList(parser) {
     var start, expressions, expr, next;
@@ -1148,8 +1096,6 @@
   var getExpressionList__default = getExpressionList__getExpressionList;
   //# sourceMappingURL=01-_6to5-expressionList.js.map
 
-  "use strict";
-
   var getArrayLiteral__default = function (parser) {
     var start, expressionList;
 
@@ -1177,16 +1123,12 @@
   };
   //# sourceMappingURL=01-_6to5-arrayLiteral.js.map
 
-  "use strict";
-
   var getLiteral__default = function (parser) {
     var literal = getNumberLiteral__default(parser) || getBooleanLiteral__default(parser) || getStringLiteral__default(parser) || getObjectLiteral__default(parser) || getArrayLiteral__default(parser);
 
     return literal;
   };
   //# sourceMappingURL=01-_6to5-_literal.js.map
-
-  "use strict";
 
   var getReference__dotRefinementPattern, getReference__arrayMemberPattern, getReference__getArrayRefinement, getReference__globals, getReference__keywords;
   getReference__dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
@@ -1277,8 +1219,6 @@
   };
   //# sourceMappingURL=01-_6to5-reference.js.map
 
-  "use strict";
-
   var getBracketedExpression__default = function (parser) {
     var start, expr;
 
@@ -1308,14 +1248,10 @@
   };
   //# sourceMappingURL=01-_6to5-bracketedExpression.js.map
 
-  "use strict";
-
   var getPrimary__default = function (parser) {
     return getLiteral__default(parser) || getReference__default(parser) || getBracketedExpression__default(parser);
   };
   //# sourceMappingURL=01-_6to5-_primary.js.map
-
-  "use strict";
 
   function getRefinement__getRefinement(parser) {
     var start, name, expr;
@@ -1364,8 +1300,6 @@
   var getRefinement__default = getRefinement__getRefinement;
   //# sourceMappingURL=01-_6to5-refinement.js.map
 
-  "use strict";
-
   var getMemberOrInvocation__default = function (parser) {
     var current, expression, refinement, expressionList;
 
@@ -1410,8 +1344,6 @@
     return expression;
   };
   //# sourceMappingURL=01-_6to5-memberOrInvocation.js.map
-
-  "use strict";
 
   var getTypeof__getTypeof, getTypeof__makePrefixSequenceMatcher;
 
@@ -1462,8 +1394,6 @@
 
   var getTypeof__default = getTypeof__getTypeof;
   //# sourceMappingURL=01-_6to5-typeof.js.map
-
-  "use strict";
 
   var getLogicalOr__getLogicalOr, getLogicalOr__makeInfixSequenceMatcher;
 
@@ -1540,8 +1470,6 @@
   var getLogicalOr__default = getLogicalOr__getLogicalOr;
   //# sourceMappingURL=01-_6to5-logicalOr.js.map
 
-  "use strict";
-
   var getConditional__default = function (parser) {
     var start, expression, ifTrue, ifFalse;
 
@@ -1585,8 +1513,6 @@
     };
   };
   //# sourceMappingURL=01-_6to5-conditional.js.map
-
-  "use strict";
 
   var flattenExpression__default = function (expression) {
     var refs = [], flattened;
@@ -1692,8 +1618,6 @@
     }
   }
   //# sourceMappingURL=01-_6to5-flattenExpression.js.map
-
-  "use strict";
 
   var Parser__Parser, Parser__ParseError, Parser__leadingWhitespace = /^\s+/;
 
@@ -1851,8 +1775,6 @@
   var Parser__default = Parser__Parser;
   //# sourceMappingURL=01-_6to5-_Parser.js.map
 
-  "use strict";
-
   var delimiterChange__delimiterChangePattern = /^[^\s=]+/, delimiterChange__whitespacePattern = /^\s+/;
 
   var delimiterChange__default = function (parser) {
@@ -1896,8 +1818,6 @@
   };
   //# sourceMappingURL=01-_6to5-delimiterChange.js.map
 
-  "use strict";
-
   var delimiterTypes__default = [{
     delimiters: "delimiters",
     isTriple: false,
@@ -1916,8 +1836,6 @@
     isStatic: true
   }];
   //# sourceMappingURL=01-_6to5-delimiterTypes.js.map
-
-  "use strict";
 
   var mustacheType__mustacheTypes = {
     "#": types__SECTION,
@@ -1940,8 +1858,6 @@
   };
   //# sourceMappingURL=01-_6to5-type.js.map
 
-  "use strict";
-
   var handlebarsBlockCodes__default = {
     each: types__SECTION_EACH,
     "if": types__SECTION_IF,
@@ -1951,8 +1867,6 @@
     partial: types__SECTION_PARTIAL
   };
   //# sourceMappingURL=01-_6to5-handlebarsBlockCodes.js.map
-
-  "use strict";
 
   var mustacheContent__indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/, mustacheContent__keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/, mustacheContent__arrayMemberPattern = /^[0-9][1-9]*$/, mustacheContent__handlebarsBlockPattern = new RegExp("^(" + Object.keys(handlebarsBlockCodes__default).join("|") + ")\\b"), mustacheContent__legalReference;
 
@@ -2198,8 +2112,6 @@
   }
   //# sourceMappingURL=01-_6to5-content.js.map
 
-  "use strict";
-
   var getMustache__delimiterChangeToken = { t: types__DELIMCHANGE, exclude: true };
 
   var getMustache__default = getMustache__getMustache;
@@ -2366,8 +2278,6 @@
   }
   //# sourceMappingURL=01-_6to5-mustache.js.map
 
-  "use strict";
-
   var getComment__OPEN_COMMENT = "<!--", getComment__CLOSE_COMMENT = "-->";
 
   var getComment__default = function (parser) {
@@ -2401,8 +2311,6 @@
     return comment;
   };
   //# sourceMappingURL=01-_6to5-comment.js.map
-
-  "use strict";
 
   var html__booleanAttributes, html__voidElementNames, html__htmlEntities, html__controlCharacters, html__entityPattern, html__lessThan, html__greaterThan, html__amp;
 
@@ -2487,8 +2395,6 @@
     return str.replace(html__amp, "&amp;").replace(html__lessThan, "&lt;").replace(html__greaterThan, "&gt;");
   }
 
-  "use strict";
-
   var escapeRegExp__pattern = /[-/\\^$*+?.()|[\]{}]/g;
 
   function escapeRegExp__escapeRegExp(str) {
@@ -2496,8 +2402,6 @@
   };
   var escapeRegExp__default = escapeRegExp__escapeRegExp;
   //# sourceMappingURL=01-_6to5-escapeRegExp.js.map
-
-  "use strict";
 
   var getPartial__default = getPartial__getPartial;
 
@@ -2540,8 +2444,6 @@
   }
   //# sourceMappingURL=01-_6to5-partial.js.map
 
-  "use strict";
-
   var getLowestIndex__default = function (haystack, needles) {
     var i, index, lowest;
 
@@ -2566,8 +2468,6 @@
     return lowest || -1;
   };
   //# sourceMappingURL=01-_6to5-getLowestIndex.js.map
-
-  "use strict";
 
   var getText__default = function (parser) {
     var index, remaining, disallowed, barrier;
@@ -2609,8 +2509,6 @@
   };
   //# sourceMappingURL=01-_6to5-text.js.map
 
-  "use strict";
-
   var getClosingTag__closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
   var getClosingTag__default = function (parser) {
@@ -2633,8 +2531,6 @@
     parser.error("Illegal closing tag");
   };
   //# sourceMappingURL=01-_6to5-closingTag.js.map
-
-  "use strict";
 
   var getAttribute__attributeNamePattern = /^[^\s"'>\/=]+/, getAttribute__unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
 
@@ -2796,8 +2692,6 @@
     return haystack.substr(0, index);
   }
   //# sourceMappingURL=01-_6to5-attribute.js.map
-
-  "use strict";
 
   var parseJSON__JsonParser, parseJSON__specials, parseJSON__specialsPattern, parseJSON__numberPattern, parseJSON__placeholderPattern, parseJSON__placeholderAtStartPattern, parseJSON__onlyWhitespace;
 
@@ -2967,8 +2861,6 @@
   };
   //# sourceMappingURL=01-_6to5-parseJSON.js.map
 
-  "use strict";
-
   var processDirective__methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/, processDirective__ExpressionParser;
 
   processDirective__ExpressionParser = Parser__default.extend({
@@ -3055,8 +2947,6 @@
     return result;
   };
   //# sourceMappingURL=01-_6to5-processDirective.js.map
-
-  "use strict";
 
   var element__tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/, element__validTagNameFollower = /^[\s\n\/>]/, element__onPattern = /^on/, element__proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/, element__reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/, element__directives = { "intro-outro": "t0", intro: "t1", outro: "t2", decorator: "o" }, element__exclude = { exclude: true }, element__converters, element__disallowedContents;
 
@@ -3242,8 +3132,6 @@
   }
   //# sourceMappingURL=01-_6to5-element.js.map
 
-  "use strict";
-
   var trimWhitespace__leadingWhitespace = /^[ \t\f\r\n]+/, trimWhitespace__trailingWhitespace = /[ \t\f\r\n]+$/;
 
   var trimWhitespace__default = function (items, leading, trailing) {
@@ -3276,8 +3164,6 @@
     }
   };
   //# sourceMappingURL=01-_6to5-trimWhitespace.js.map
-
-  "use strict";
 
   var stripStandalones__leadingLinebreak = /^\s*\r?\n/, stripStandalones__trailingLinebreak = /\r?\n\s*$/;
 
@@ -3338,8 +3224,6 @@
   }
   //# sourceMappingURL=01-_6to5-stripStandalones.js.map
 
-  "use strict";
-
   var processPartials__default = processPartials__process;
 
   function processPartials__process(path, target, items) {
@@ -3379,8 +3263,6 @@
     }
   }
   //# sourceMappingURL=01-_6to5-processPartials.js.map
-
-  "use strict";
 
   var parse__StandardParser, parse__parse, parse__contiguousWhitespace = /[ \t\f\r\n]+/g, parse__preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i, parse__leadingWhitespace = /^\s+/, parse__trailingWhitespace = /\s+$/;
 
@@ -3569,8 +3451,6 @@
   }
   //# sourceMappingURL=01-_6to5-_parse.js.map
 
-  "use strict";
-
   function optionGroup__createOptionGroup(keys, config) {
     var group = keys.map(config);
 
@@ -3583,8 +3463,6 @@
   var optionGroup__default = optionGroup__createOptionGroup;
   //# sourceMappingURL=01-_6to5-optionGroup.js.map
 
-  "use strict";
-
   var parseOptions__keys, parseOptions__parseOptions;
 
   parseOptions__keys = ["preserveWhitespace", "sanitize", "stripComments", "delimiters", "tripleDelimiters", "interpolate"];
@@ -3595,8 +3473,6 @@
 
   var parseOptions__default = parseOptions__parseOptions;
   //# sourceMappingURL=01-_6to5-parseOptions.js.map
-
-  "use strict";
 
   var parser__parser = {
     parse: parser__doParse,
@@ -3678,8 +3554,6 @@
 
   var parser__default = parser__parser;
   //# sourceMappingURL=01-_6to5-parser.js.map
-
-  "use strict";
 
   var template__templateConfig = {
     name: "template",
@@ -3802,8 +3676,6 @@
   var template__default = template__templateConfig;
   //# sourceMappingURL=01-_6to5-template.js.map
 
-  "use strict";
-
   function Registry__Registry(name, useDefaults) {
     this.name = name;
     this.useDefaults = useDefaults;
@@ -3900,8 +3772,6 @@
   var Registry__default = Registry__Registry;
   //# sourceMappingURL=01-_6to5-Registry.js.map
 
-  "use strict";
-
   var registries__keys = ["adaptors", "components", "computed", "decorators", "easing", "events", "interpolators", "partials", "transitions"], registries__registries = optionGroup__default(registries__keys, function (key) {
     return new Registry__default(key, key === "computed");
   });
@@ -3909,12 +3779,8 @@
   var registries__default = registries__registries;
   //# sourceMappingURL=01-_6to5-registries.js.map
 
-	"use strict";
-
 	var noop__default = function () {};
 	//# sourceMappingURL=01-_6to5-noop.js.map
-
-  "use strict";
 
   function wrapPrototype__wrap(parent, name, method) {
     if (!(/_super/.test(method))) {
@@ -3967,8 +3833,6 @@
   }
   //# sourceMappingURL=01-_6to5-wrapPrototypeMethod.js.map
 
-  "use strict";
-
   function deprecate__deprecate(options, deprecated, correct) {
     if (deprecated in options) {
       if (!(correct in options)) {
@@ -4008,8 +3872,6 @@
   };
   var deprecate__default = deprecate__deprecateOptions;
   //# sourceMappingURL=01-_6to5-deprecate.js.map
-
-  "use strict";
 
   var config__custom, config__options, config__config, config__blacklisted;
 
@@ -4125,8 +3987,6 @@
   var config__default = config__config;
   //# sourceMappingURL=01-_6to5-config.js.map
 
-  "use strict";
-
   var interpolate__interpolate = function (from, to, ractive, type) {
     if (from === to) {
       return interpolate__snap(to);
@@ -4152,8 +4012,6 @@
     };
   }
   //# sourceMappingURL=01-_6to5-interpolate.js.map
-
-  "use strict";
 
   var interpolators__interpolators = {
     number: function (from, to) {
@@ -4261,8 +4119,6 @@
   var interpolators__default = interpolators__interpolators;
   //# sourceMappingURL=01-_6to5-interpolators.js.map
 
-  "use strict";
-
   /* global console */
   var log__log = {
     warn: function (options, passthru) {
@@ -4319,8 +4175,6 @@
   var log__default = log__log;
   //# sourceMappingURL=01-_6to5-log.js.map
 
-  "use strict";
-
   var Hook__deprecations = {
     construct: {
       deprecated: "beforeInit",
@@ -4365,8 +4219,6 @@
 
   var Hook__default = Hook__Hook;
   //# sourceMappingURL=01-_6to5-Hook.js.map
-
-  "use strict";
 
   function array__arrayContains(array, value) {
     for (var i = 0, c = array.length; i < c; i++) {
@@ -4416,8 +4268,6 @@
     return array;
   }
   //# sourceMappingURL=01-_6to5-array.js.map
-
-  "use strict";
 
   var Promise___Promise, Promise__PENDING = {}, Promise__FULFILLED = {}, Promise__REJECTED = {};
 
@@ -4616,8 +4466,6 @@
   }
   //# sourceMappingURL=01-_6to5-Promise.js.map
 
-  "use strict";
-
   var keypaths__refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
   function keypaths__assignNewKeypath(target, property, oldKeypath, newKeypath) {
@@ -4711,8 +4559,6 @@
   }
   //# sourceMappingURL=01-_6to5-keypaths.js.map
 
-  "use strict";
-
   var getInnerContext__default = function (fragment) {
     do {
       if (fragment.context !== undefined) {
@@ -4723,8 +4569,6 @@
     return "";
   };
   //# sourceMappingURL=01-_6to5-getInnerContext.js.map
-
-  "use strict";
 
   function resolveRef__resolveRef(ractive, ref, fragment) {
     ref = keypaths__normalise(ref);
@@ -4862,8 +4706,6 @@
   }
   //# sourceMappingURL=01-_6to5-resolveRef.js.map
 
-  "use strict";
-
   function methodCallers__teardown(x) {
     x.teardown();
   }
@@ -4874,8 +4716,6 @@
     x.unrender();
   }
   //# sourceMappingURL=01-_6to5-methodCallers.js.map
-
-  "use strict";
 
   var TransitionManager__TransitionManager = function (callback, parent) {
     this.callback = callback;
@@ -4980,8 +4820,6 @@
 
   var TransitionManager__default = TransitionManager__TransitionManager;
   //# sourceMappingURL=01-_6to5-TransitionManager.js.map
-
-  "use strict";
 
   var runloop__batch, runloop__runloop, runloop__unresolved = [], runloop__changeHook = new Hook__default("change");
 
@@ -5147,16 +4985,12 @@
   }
   //# sourceMappingURL=01-_6to5-runloop.js.map
 
-  "use strict";
-
   var createBranch__numeric = /^\s*[0-9]+\s*$/;
 
   var createBranch__default = function (key) {
     return createBranch__numeric.test(key) ? [] : {};
   };
   //# sourceMappingURL=01-_6to5-createBranch.js.map
-
-  "use strict";
 
   var magicAdaptor__magicAdaptor, magicAdaptor__MagicWrapper;
 
@@ -5366,12 +5200,8 @@
   }
   //# sourceMappingURL=01-_6to5-magicAdaptor.js.map
 
-	"use strict";
-
 	var magic__default = !!magicAdaptor__default;
 	//# sourceMappingURL=01-_6to5-magic.js.map
-
-  "use strict";
 
   function add__add(root, keypath, d) {
     var value;
@@ -5391,15 +5221,11 @@
   var add__default = add__add;
   //# sourceMappingURL=01-_6to5-add.js.map
 
-  "use strict";
-
   function prototype_add__Ractive$add(keypath, d) {
     return add__default(this, keypath, (d === undefined ? 1 : +d));
   };
   var prototype_add__default = prototype_add__Ractive$add;
   //# sourceMappingURL=01-_6to5-add.js.map
-
-  "use strict";
 
   var rAF__requestAnimationFrame;
 
@@ -5443,8 +5269,6 @@
   var rAF__default = rAF__requestAnimationFrame;
   //# sourceMappingURL=01-_6to5-requestAnimationFrame.js.map
 
-  "use strict";
-
   var getTime__getTime;
 
   if (typeof window !== "undefined" && window.performance && typeof window.performance.now === "function") {
@@ -5459,8 +5283,6 @@
 
   var getTime__default = getTime__getTime;
   //# sourceMappingURL=01-_6to5-getTime.js.map
-
-  "use strict";
 
   var animations__queue = [];
 
@@ -5515,8 +5337,6 @@
 
   var animations__default = animations__animations;
   //# sourceMappingURL=01-_6to5-animations.js.map
-
-  "use strict";
 
   var Animation__Animation = function (options) {
     var key;
@@ -5609,8 +5429,6 @@
 
   var Animation__default = Animation__Animation;
   //# sourceMappingURL=01-_6to5-Animation.js.map
-
-  "use strict";
 
   var animate__noop = function () {}, animate__noAnimation = {
     stop: animate__noop
@@ -5801,8 +5619,6 @@
   }
   //# sourceMappingURL=01-_6to5-animate.js.map
 
-  "use strict";
-
   var prototype_detach__detachHook = new Hook__default("detach");
 
   function prototype_detach__Ractive$detach() {
@@ -5820,8 +5636,6 @@
   var prototype_detach__default = prototype_detach__Ractive$detach;
   //# sourceMappingURL=01-_6to5-detach.js.map
 
-  "use strict";
-
   function prototype_find__Ractive$find(selector) {
     if (!this.el) {
       return null;
@@ -5831,8 +5645,6 @@
   };
   var prototype_find__default = prototype_find__Ractive$find;
   //# sourceMappingURL=01-_6to5-find.js.map
-
-  "use strict";
 
   var test__default = function (item, noDirty) {
     var itemMatches;
@@ -5855,8 +5667,6 @@
   };
   //# sourceMappingURL=01-_6to5-test.js.map
 
-  "use strict";
-
   var cancel__default = function () {
     var liveQueries, selector, index;
 
@@ -5871,8 +5681,6 @@
     }
   };
   //# sourceMappingURL=01-_6to5-cancel.js.map
-
-  "use strict";
 
   var sortByItemPosition__default = function (a, b) {
     var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
@@ -5952,8 +5760,6 @@
   }
   //# sourceMappingURL=01-_6to5-sortByItemPosition.js.map
 
-  "use strict";
-
   var sortByDocumentPosition__default = function (node, otherNode) {
     var bitmask;
 
@@ -5968,15 +5774,11 @@
   };
   //# sourceMappingURL=01-_6to5-sortByDocumentPosition.js.map
 
-  "use strict";
-
   var sort__default = function () {
     this.sort(this._isComponentQuery ? sortByItemPosition__default : sortByDocumentPosition__default);
     this._dirty = false;
   };
   //# sourceMappingURL=01-_6to5-sort.js.map
-
-  "use strict";
 
   var dirty__default = function () {
     var _this = this;
@@ -5992,8 +5794,6 @@
   };
   //# sourceMappingURL=01-_6to5-dirty.js.map
 
-  "use strict";
-
   var remove__default = function (nodeOrComponent) {
     var index = this.indexOf(this._isComponentQuery ? nodeOrComponent.instance : nodeOrComponent);
 
@@ -6002,8 +5802,6 @@
     }
   };
   //# sourceMappingURL=01-_6to5-remove.js.map
-
-  "use strict";
 
   function makeQuery__makeQuery(ractive, selector, live, isComponentQuery) {
     var query = [];
@@ -6035,8 +5833,6 @@
   };
   var makeQuery__default = makeQuery__makeQuery;
   //# sourceMappingURL=01-_6to5-_makeQuery.js.map
-
-  "use strict";
 
   function prototype_findAll__Ractive$findAll(selector, options) {
     var liveQueries, query;
@@ -6070,8 +5866,6 @@
   var prototype_findAll__default = prototype_findAll__Ractive$findAll;
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
-  "use strict";
-
   function prototype_findAllComponents__Ractive$findAllComponents(selector, options) {
     var liveQueries, query;
 
@@ -6100,15 +5894,11 @@
   var prototype_findAllComponents__default = prototype_findAllComponents__Ractive$findAllComponents;
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
 
-  "use strict";
-
   function prototype_findComponent__Ractive$findComponent(selector) {
     return this.fragment.findComponent(selector);
   };
   var prototype_findComponent__default = prototype_findComponent__Ractive$findComponent;
   //# sourceMappingURL=01-_6to5-findComponent.js.map
-
-  "use strict";
 
   function findContainer__Ractive$findContainer(selector) {
     if (this.container) {
@@ -6124,8 +5914,6 @@
   var findContainer__default = findContainer__Ractive$findContainer;
   //# sourceMappingURL=01-_6to5-findContainer.js.map
 
-  "use strict";
-
   function findParent__Ractive$findParent(selector) {
     if (this.parent) {
       if (this.parent.component && this.parent.component.name === selector) {
@@ -6139,8 +5927,6 @@
   };
   var findParent__default = findParent__Ractive$findParent;
   //# sourceMappingURL=01-_6to5-findParent.js.map
-
-  "use strict";
 
   var eventStack__eventStack = {
     enqueue: function (ractive, event) {
@@ -6161,8 +5947,6 @@
 
   var eventStack__default = eventStack__eventStack;
   //# sourceMappingURL=01-_6to5-eventStack.js.map
-
-  "use strict";
 
   var getPotentialWildcardMatches__starMaps = {};
 
@@ -6235,8 +6019,6 @@
     return getPotentialWildcardMatches__starMaps[num];
   }
   //# sourceMappingURL=01-_6to5-getPotentialWildcardMatches.js.map
-
-  "use strict";
 
   function fireEvent__fireEvent(ractive, eventName, options) {
     if (options === undefined) options = {};
@@ -6319,8 +6101,6 @@
   }
   //# sourceMappingURL=01-_6to5-fireEvent.js.map
 
-  "use strict";
-
   function prototype_fire__Ractive$fire(eventName) {
     var options = {
       args: Array.prototype.slice.call(arguments, 1)
@@ -6330,8 +6110,6 @@
   };
   var prototype_fire__default = prototype_fire__Ractive$fire;
   //# sourceMappingURL=01-_6to5-fire.js.map
-
-  "use strict";
 
   var prototype_get__options = {
     capture: true, // top-level calls should be intercepted
@@ -6356,8 +6134,6 @@
   };
   var prototype_get__default = prototype_get__Ractive$get;
   //# sourceMappingURL=01-_6to5-get.js.map
-
-  "use strict";
 
   var insert__insertHook = new Hook__default("insert");
 
@@ -6392,8 +6168,6 @@
     });
   }
   //# sourceMappingURL=01-_6to5-insert.js.map
-
-  "use strict";
 
   function prototype_merge__Ractive$merge(keypath, array, options) {
     var _this = this;
@@ -6437,8 +6211,6 @@
   };
   var prototype_merge__default = prototype_merge__Ractive$merge;
   //# sourceMappingURL=01-_6to5-merge.js.map
-
-  "use strict";
 
   var Observer__Observer = function (ractive, keypath, callback, options) {
     this.root = ractive;
@@ -6494,8 +6266,6 @@
   var Observer__default = Observer__Observer;
   //# sourceMappingURL=01-_6to5-Observer.js.map
 
-  "use strict";
-
   function getPattern__getPattern(ractive, pattern) {
     var matchingKeypaths, values;
 
@@ -6510,8 +6280,6 @@
   };
   var getPattern__default = getPattern__getPattern;
   //# sourceMappingURL=01-_6to5-getPattern.js.map
-
-  "use strict";
 
   var PatternObserver__PatternObserver, PatternObserver__wildcard = /\*/, PatternObserver__slice = Array.prototype.slice;
 
@@ -6623,8 +6391,6 @@
   var PatternObserver__default = PatternObserver__PatternObserver;
   //# sourceMappingURL=01-_6to5-PatternObserver.js.map
 
-  "use strict";
-
   var getObserverFacade__wildcard = /\*/, getObserverFacade__emptyObject = {};
 
   function getObserverFacade__getObserverFacade(ractive, keypath, callback, options) {
@@ -6670,8 +6436,6 @@
   };
   var getObserverFacade__default = getObserverFacade__getObserverFacade;
   //# sourceMappingURL=01-_6to5-getObserverFacade.js.map
-
-  "use strict";
 
   function observe__Ractive$observe(keypath, callback, options) {
     var observers, map, keypaths, i;
@@ -6738,8 +6502,6 @@
   var observe__default = observe__Ractive$observe;
   //# sourceMappingURL=01-_6to5-observe.js.map
 
-  "use strict";
-
   function observeOnce__Ractive$observeOnce(property, callback, options) {
     var observer = this.observe(property, function () {
       callback.apply(this, arguments);
@@ -6751,21 +6513,15 @@
   var observeOnce__default = observeOnce__Ractive$observeOnce;
   //# sourceMappingURL=01-_6to5-observeOnce.js.map
 
-  "use strict";
-
   var trim__default = function (str) {
     return str.trim();
   };
   //# sourceMappingURL=01-_6to5-trim.js.map
 
-  "use strict";
-
   var notEmptyString__default = function (str) {
     return str !== "";
   };
   //# sourceMappingURL=01-_6to5-notEmptyString.js.map
-
-  "use strict";
 
   function off__Ractive$off(eventName, callback) {
     var _this = this;
@@ -6810,8 +6566,6 @@
   var off__default = off__Ractive$off;
   //# sourceMappingURL=01-_6to5-off.js.map
 
-  "use strict";
-
   function on__Ractive$on(eventName, callback) {
     var _this = this;
     var listeners, n, eventNames;
@@ -6853,8 +6607,6 @@
   var on__default = on__Ractive$on;
   //# sourceMappingURL=01-_6to5-on.js.map
 
-  "use strict";
-
   function once__Ractive$once(eventName, handler) {
     var listener = this.on(eventName, function () {
       handler.apply(this, arguments);
@@ -6866,8 +6618,6 @@
   };
   var once__default = once__Ractive$once;
   //# sourceMappingURL=01-_6to5-once.js.map
-
-  "use strict";
 
   // This function takes an array, the name of a mutator method, and the
   // arguments to call that mutator method with, and returns an array that
@@ -6966,8 +6716,6 @@
   }
   //# sourceMappingURL=01-_6to5-getNewIndices.js.map
 
-  "use strict";
-
   var makeArrayMethod___slice = Array.prototype.slice;
   var makeArrayMethod__arrayProto = Array.prototype;
 
@@ -7004,17 +6752,11 @@
   };
   //# sourceMappingURL=01-_6to5-makeArrayMethod.js.map
 
-	"use strict";
-
 	var pop__default = makeArrayMethod__default("pop");
 	//# sourceMappingURL=01-_6to5-pop.js.map
 
-	"use strict";
-
 	var push__default = makeArrayMethod__default("push");
 	//# sourceMappingURL=01-_6to5-push.js.map
-
-  "use strict";
 
   var global_css__css, global_css__update, global_css__styleElement, global_css__head, global_css__styleSheet, global_css__inDom, global_css__prefix = "/* Ractive.js component styles */\n", global_css__componentsInPage = {}, global_css__styles = [];
 
@@ -7090,8 +6832,6 @@
 
   var global_css__default = global_css__css;
   //# sourceMappingURL=01-_6to5-css.js.map
-
-  "use strict";
 
   var prototype_render__renderHook = new Hook__default("render"), prototype_render__completeHook = new Hook__default("complete");
 
@@ -7182,8 +6922,6 @@
   }
   //# sourceMappingURL=01-_6to5-render.js.map
 
-  "use strict";
-
   function prototype_bubble__Fragment$bubble() {
     this.dirtyValue = this.dirtyArgs = true;
 
@@ -7193,8 +6931,6 @@
   };
   var prototype_bubble__default = prototype_bubble__Fragment$bubble;
   //# sourceMappingURL=01-_6to5-bubble.js.map
-
-  "use strict";
 
   function Fragment_prototype_detach__Fragment$detach() {
     var docFrag;
@@ -7223,8 +6959,6 @@
   var Fragment_prototype_detach__default = Fragment_prototype_detach__Fragment$detach;
   //# sourceMappingURL=01-_6to5-detach.js.map
 
-  "use strict";
-
   function Fragment_prototype_find__Fragment$find(selector) {
     var i, len, item, queryResult;
 
@@ -7243,8 +6977,6 @@
   };
   var Fragment_prototype_find__default = Fragment_prototype_find__Fragment$find;
   //# sourceMappingURL=01-_6to5-find.js.map
-
-  "use strict";
 
   function Fragment_prototype_findAll__Fragment$findAll(selector, query) {
     var i, len, item;
@@ -7265,8 +6997,6 @@
   var Fragment_prototype_findAll__default = Fragment_prototype_findAll__Fragment$findAll;
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
-  "use strict";
-
   function Fragment_prototype_findAllComponents__Fragment$findAllComponents(selector, query) {
     var i, len, item;
 
@@ -7286,8 +7016,6 @@
   var Fragment_prototype_findAllComponents__default = Fragment_prototype_findAllComponents__Fragment$findAllComponents;
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
 
-  "use strict";
-
   function Fragment_prototype_findComponent__Fragment$findComponent(selector) {
     var len, i, item, queryResult;
 
@@ -7306,8 +7034,6 @@
   };
   var Fragment_prototype_findComponent__default = Fragment_prototype_findComponent__Fragment$findComponent;
   //# sourceMappingURL=01-_6to5-findComponent.js.map
-
-  "use strict";
 
   function prototype_findNextNode__Fragment$findNextNode(item) {
     var index = item.index, node;
@@ -7338,8 +7064,6 @@
   var prototype_findNextNode__default = prototype_findNextNode__Fragment$findNextNode;
   //# sourceMappingURL=01-_6to5-findNextNode.js.map
 
-  "use strict";
-
   function prototype_firstNode__Fragment$firstNode() {
     if (this.items && this.items[0]) {
       return this.items[0].firstNode();
@@ -7349,8 +7073,6 @@
   };
   var prototype_firstNode__default = prototype_firstNode__Fragment$firstNode;
   //# sourceMappingURL=01-_6to5-firstNode.js.map
-
-  "use strict";
 
   function getNode__Fragment$getNode() {
     var fragment = this;
@@ -7365,8 +7087,6 @@
   };
   var getNode__default = getNode__Fragment$getNode;
   //# sourceMappingURL=01-_6to5-getNode.js.map
-
-  "use strict";
 
   var prototype_getValue__empty = {};
 
@@ -7431,14 +7151,10 @@
   }
   //# sourceMappingURL=01-_6to5-getValue.js.map
 
-  "use strict";
-
   var detach__default = function () {
     return dom__detachNode(this.node);
   };
   //# sourceMappingURL=01-_6to5-detach.js.map
-
-  "use strict";
 
   var Text__Text = function (options) {
     this.type = types__TEXT;
@@ -7474,8 +7190,6 @@
   var Text__default = Text__Text;
   //# sourceMappingURL=01-_6to5-Text.js.map
 
-  "use strict";
-
   function unbind__unbind() {
     if (this.registered) {
       // this was registered as a dependant
@@ -7489,15 +7203,11 @@
   var unbind__default = unbind__unbind;
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
-  "use strict";
-
   function getValue__Mustache$getValue() {
     return this.value;
   };
   var getValue__default = getValue__Mustache$getValue;
   //# sourceMappingURL=01-_6to5-getValue.js.map
-
-  "use strict";
 
   var ReferenceResolver__ReferenceResolver = function (owner, ref, callback) {
     var keypath;
@@ -7552,8 +7262,6 @@
 
   var ReferenceResolver__default = ReferenceResolver__ReferenceResolver;
   //# sourceMappingURL=01-_6to5-ReferenceResolver.js.map
-
-  "use strict";
 
   var SpecialResolver__SpecialResolver = function (owner, ref, callback) {
     this.parentFragment = owner.parentFragment;
@@ -7630,8 +7338,6 @@
   var SpecialResolver__default = SpecialResolver__SpecialResolver;
   //# sourceMappingURL=01-_6to5-SpecialResolver.js.map
 
-  "use strict";
-
   var IndexResolver__IndexResolver = function (owner, ref, callback) {
     this.parentFragment = owner.parentFragment;
     this.ref = ref;
@@ -7664,8 +7370,6 @@
 
   var IndexResolver__default = IndexResolver__IndexResolver;
   //# sourceMappingURL=01-_6to5-IndexResolver.js.map
-
-  "use strict";
 
   var findIndexRefs__default = findIndexRefs__findIndexRefs;
 
@@ -7732,8 +7436,6 @@
   };
   //# sourceMappingURL=01-_6to5-findIndexRefs.js.map
 
-  "use strict";
-
   function createReferenceResolver__createReferenceResolver(owner, ref, callback) {
     var indexRef;
 
@@ -7749,8 +7451,6 @@
   };
   var createReferenceResolver__default = createReferenceResolver__createReferenceResolver;
   //# sourceMappingURL=01-_6to5-createReferenceResolver.js.map
-
-  "use strict";
 
   var getFunctionFromString__cache = {};
 
@@ -7773,8 +7473,6 @@
   };
   var getFunctionFromString__default = getFunctionFromString__getFunctionFromString;
   //# sourceMappingURL=01-_6to5-getFunctionFromString.js.map
-
-  "use strict";
 
   var ExpressionResolver__ExpressionResolver, ExpressionResolver__bind = Function.prototype.bind;
 
@@ -7967,8 +7665,6 @@
   }
   //# sourceMappingURL=01-_6to5-ExpressionResolver.js.map
 
-  "use strict";
-
   var MemberResolver__MemberResolver = function (template, resolver, parentFragment) {
     var _this = this;
     var keypath;
@@ -8045,8 +7741,6 @@
 
   var MemberResolver__default = MemberResolver__MemberResolver;
   //# sourceMappingURL=01-_6to5-MemberResolver.js.map
-
-  "use strict";
 
   var ReferenceExpressionResolver__ReferenceExpressionResolver = function (mustache, template, callback) {
     var _this = this;
@@ -8144,8 +7838,6 @@
   var ReferenceExpressionResolver__default = ReferenceExpressionResolver__ReferenceExpressionResolver;
   //# sourceMappingURL=01-_6to5-ReferenceExpressionResolver.js.map
 
-  "use strict";
-
   function init__Mustache$init(mustache, options) {
     var ref, parentFragment, template;
 
@@ -8206,8 +7898,6 @@
   var init__default = init__Mustache$init;
   //# sourceMappingURL=01-_6to5-initialise.js.map
 
-  "use strict";
-
   function resolve__Mustache$resolve(keypath) {
     var wasResolved, value, twowayBinding;
 
@@ -8251,8 +7941,6 @@
   var resolve__default = resolve__Mustache$resolve;
   //# sourceMappingURL=01-_6to5-resolve.js.map
 
-  "use strict";
-
   function rebind__Mustache$rebind(oldKeypath, newKeypath) {
     // Children first
     if (this.fragments) {
@@ -8269,8 +7957,6 @@
   var rebind__default = rebind__Mustache$rebind;
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
-  "use strict";
-
   var Mustache__default = {
     getValue: getValue__default,
     init: init__default,
@@ -8278,8 +7964,6 @@
     rebind: rebind__default
   };
   //# sourceMappingURL=01-_6to5-_Mustache.js.map
-
-  "use strict";
 
   var Interpolator__Interpolator = function (options) {
     this.type = types__INTERPOLATOR;
@@ -8344,15 +8028,11 @@
   var Interpolator__default = Interpolator__Interpolator;
   //# sourceMappingURL=01-_6to5-Interpolator.js.map
 
-  "use strict";
-
   function bubble__Section$bubble() {
     this.parentFragment.bubble();
   };
   var bubble__default = bubble__Section$bubble;
   //# sourceMappingURL=01-_6to5-bubble.js.map
-
-  "use strict";
 
   function Section_prototype_detach__Section$detach() {
     var docFrag;
@@ -8372,8 +8052,6 @@
   var Section_prototype_detach__default = Section_prototype_detach__Section$detach;
   //# sourceMappingURL=01-_6to5-detach.js.map
 
-  "use strict";
-
   function find__Section$find(selector) {
     var i, len, queryResult;
 
@@ -8389,8 +8067,6 @@
   var find__default = find__Section$find;
   //# sourceMappingURL=01-_6to5-find.js.map
 
-  "use strict";
-
   function findAll__Section$findAll(selector, query) {
     var i, len;
 
@@ -8402,8 +8078,6 @@
   var findAll__default = findAll__Section$findAll;
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
-  "use strict";
-
   function findAllComponents__Section$findAllComponents(selector, query) {
     var i, len;
 
@@ -8414,8 +8088,6 @@
   };
   var findAllComponents__default = findAllComponents__Section$findAllComponents;
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
-
-  "use strict";
 
   function findComponent__Section$findComponent(selector) {
     var i, len, queryResult;
@@ -8432,8 +8104,6 @@
   var findComponent__default = findComponent__Section$findComponent;
   //# sourceMappingURL=01-_6to5-findComponent.js.map
 
-  "use strict";
-
   function findNextNode__Section$findNextNode(fragment) {
     if (this.fragments[fragment.index + 1]) {
       return this.fragments[fragment.index + 1].firstNode();
@@ -8443,8 +8113,6 @@
   };
   var findNextNode__default = findNextNode__Section$findNextNode;
   //# sourceMappingURL=01-_6to5-findNextNode.js.map
-
-  "use strict";
 
   function firstNode__Section$firstNode() {
     var len, i, node;
@@ -8461,8 +8129,6 @@
   };
   var firstNode__default = firstNode__Section$firstNode;
   //# sourceMappingURL=01-_6to5-firstNode.js.map
-
-  "use strict";
 
   function shuffle__Section$shuffle(newIndices) {
     var _this = this;
@@ -8568,14 +8234,10 @@
   }
   //# sourceMappingURL=01-_6to5-shuffle.js.map
 
-  "use strict";
-
   var prototype_rebind__default = function (oldKeypath, newKeypath) {
     Mustache__default.rebind.call(this, oldKeypath, newKeypath);
   };
   //# sourceMappingURL=01-_6to5-rebind.js.map
-
-  "use strict";
 
   function render__Section$render() {
     var _this = this;
@@ -8593,8 +8255,6 @@
   };
   var render__default = render__Section$render;
   //# sourceMappingURL=01-_6to5-render.js.map
-
-  "use strict";
 
   function setValue__Section$setValue(value) {
     var _this = this;
@@ -8920,8 +8580,6 @@
   }
   //# sourceMappingURL=01-_6to5-setValue.js.map
 
-  "use strict";
-
   function prototype_toString__Section$toString(escape) {
     var str, i, len;
 
@@ -8939,8 +8597,6 @@
   var prototype_toString__default = prototype_toString__Section$toString;
   //# sourceMappingURL=01-_6to5-toString.js.map
 
-  "use strict";
-
   function prototype_unbind__Section$unbind() {
     var _this = this;
     this.fragments.forEach(methodCallers__unbind);
@@ -8955,8 +8611,6 @@
   };
   var prototype_unbind__default = prototype_unbind__Section$unbind;
   //# sourceMappingURL=01-_6to5-unbind.js.map
-
-  "use strict";
 
   function unrender__Section$unrender(shouldDestroy) {
     this.fragments.forEach(shouldDestroy ? unrender__unrenderAndDestroy : unrender__unrender);
@@ -8973,8 +8627,6 @@
     fragment.unrender(false);
   }
   //# sourceMappingURL=01-_6to5-unrender.js.map
-
-  "use strict";
 
   function update__Section$update() {
     var fragment, renderIndex, renderedFragments, anchor, target, i, len;
@@ -9033,8 +8685,6 @@
   };
   var update__default = update__Section$update;
   //# sourceMappingURL=01-_6to5-update.js.map
-
-  "use strict";
 
   var Section__Section = function (options) {
     this.type = types__SECTION;
@@ -9097,8 +8747,6 @@
   var Section__default = Section__Section;
   //# sourceMappingURL=01-_6to5-_Section.js.map
 
-  "use strict";
-
   function Triple_prototype_detach__Triple$detach() {
     var len, i;
 
@@ -9113,8 +8761,6 @@
   };
   var Triple_prototype_detach__default = Triple_prototype_detach__Triple$detach;
   //# sourceMappingURL=01-_6to5-detach.js.map
-
-  "use strict";
 
   function Triple_prototype_find__Triple$find(selector) {
     var i, len, node, queryResult;
@@ -9140,8 +8786,6 @@
   };
   var Triple_prototype_find__default = Triple_prototype_find__Triple$find;
   //# sourceMappingURL=01-_6to5-find.js.map
-
-  "use strict";
 
   function Triple_prototype_findAll__Triple$findAll(selector, queryResult) {
     var i, len, node, queryAllResult, numNodes, j;
@@ -9169,8 +8813,6 @@
   var Triple_prototype_findAll__default = Triple_prototype_findAll__Triple$findAll;
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
-  "use strict";
-
   function Triple_prototype_firstNode__Triple$firstNode() {
     if (this.rendered && this.nodes[0]) {
       return this.nodes[0];
@@ -9180,8 +8822,6 @@
   };
   var Triple_prototype_firstNode__default = Triple_prototype_firstNode__Triple$firstNode;
   //# sourceMappingURL=01-_6to5-firstNode.js.map
-
-  "use strict";
 
   var insertHtml__elementCache = {}, insertHtml__ieBug, insertHtml__ieBlacklist;
 
@@ -9253,8 +8893,6 @@
   }
   //# sourceMappingURL=01-_6to5-insertHtml.js.map
 
-  "use strict";
-
   function updateSelect__updateSelect(parentElement) {
     var selectedOptions, option, value;
 
@@ -9287,8 +8925,6 @@
   }
   //# sourceMappingURL=01-_6to5-updateSelect.js.map
 
-  "use strict";
-
   function Triple_prototype_render__Triple$render() {
     if (this.rendered) {
       throw new Error("Attempted to render an item that was already rendered");
@@ -9305,8 +8941,6 @@
   };
   var Triple_prototype_render__default = Triple_prototype_render__Triple$render;
   //# sourceMappingURL=01-_6to5-render.js.map
-
-  "use strict";
 
   function prototype_setValue__Triple$setValue(value) {
     var wrapper;
@@ -9328,15 +8962,11 @@
   var prototype_setValue__default = prototype_setValue__Triple$setValue;
   //# sourceMappingURL=01-_6to5-setValue.js.map
 
-  "use strict";
-
   function Triple_prototype_toString__Triple$toString() {
     return (this.value != undefined ? html__decodeCharacterReferences("" + this.value) : "");
   };
   var Triple_prototype_toString__default = Triple_prototype_toString__Triple$toString;
   //# sourceMappingURL=01-_6to5-toString.js.map
-
-  "use strict";
 
   function prototype_unrender__Triple$unrender(shouldDestroy) {
     if (this.rendered && shouldDestroy) {
@@ -9348,8 +8978,6 @@
   };
   var prototype_unrender__default = prototype_unrender__Triple$unrender;
   //# sourceMappingURL=01-_6to5-unrender.js.map
-
-  "use strict";
 
   function prototype_update__Triple$update() {
     var node, parentNode;
@@ -9376,8 +9004,6 @@
   var prototype_update__default = prototype_update__Triple$update;
   //# sourceMappingURL=01-_6to5-update.js.map
 
-  "use strict";
-
   var Triple__Triple = function (options) {
     this.type = types__TRIPLE;
     Mustache__default.init(this, options);
@@ -9402,14 +9028,10 @@
   var Triple__default = Triple__Triple;
   //# sourceMappingURL=01-_6to5-_Triple.js.map
 
-  "use strict";
-
   var Element_prototype_bubble__default = function () {
     this.parentFragment.bubble();
   };
   //# sourceMappingURL=01-_6to5-bubble.js.map
-
-  "use strict";
 
   function Element_prototype_detach__Element$detach() {
     var node = this.node, parentNode;
@@ -9427,8 +9049,6 @@
   var Element_prototype_detach__default = Element_prototype_detach__Element$detach;
   //# sourceMappingURL=01-_6to5-detach.js.map
 
-  "use strict";
-
   var Element_prototype_find__default = function (selector) {
     if (!this.node) {
       // this element hasn't been rendered yet
@@ -9445,8 +9065,6 @@
   };
   //# sourceMappingURL=01-_6to5-find.js.map
 
-  "use strict";
-
   var Element_prototype_findAll__default = function (selector, query) {
     // Add this node to the query, if applicable, and register the
     // query on this element
@@ -9460,16 +9078,12 @@
   };
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
-  "use strict";
-
   var Element_prototype_findAllComponents__default = function (selector, query) {
     if (this.fragment) {
       this.fragment.findAllComponents(selector, query);
     }
   };
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
-
-  "use strict";
 
   var Element_prototype_findComponent__default = function (selector) {
     if (this.fragment) {
@@ -9478,23 +9092,17 @@
   };
   //# sourceMappingURL=01-_6to5-findComponent.js.map
 
-  "use strict";
-
   function Element_prototype_findNextNode__Element$findNextNode() {
     return null;
   };
   var Element_prototype_findNextNode__default = Element_prototype_findNextNode__Element$findNextNode;
   //# sourceMappingURL=01-_6to5-findNextNode.js.map
 
-  "use strict";
-
   function Element_prototype_firstNode__Element$firstNode() {
     return this.node;
   };
   var Element_prototype_firstNode__default = Element_prototype_firstNode__Element$firstNode;
   //# sourceMappingURL=01-_6to5-firstNode.js.map
-
-  "use strict";
 
   function prototype_getAttribute__Element$getAttribute(name) {
     if (!this.attributes || !this.attributes[name]) {
@@ -9505,8 +9113,6 @@
   };
   var prototype_getAttribute__default = prototype_getAttribute__Element$getAttribute;
   //# sourceMappingURL=01-_6to5-getAttribute.js.map
-
-  "use strict";
 
   var processBindingAttributes__truthy = /^true|on|yes|1$/i;
   var processBindingAttributes__isNumeric = /^[0-9]+$/;
@@ -9537,8 +9143,6 @@
   };
   //# sourceMappingURL=01-_6to5-processBindingAttributes.js.map
 
-  "use strict";
-
   function Attribute_prototype_bubble__Attribute$bubble() {
     var value = this.fragment.getValue();
 
@@ -9566,8 +9170,6 @@
   var Attribute_prototype_bubble__default = Attribute_prototype_bubble__Attribute$bubble;
   //# sourceMappingURL=01-_6to5-bubble.js.map
 
-  "use strict";
-
   var enforceCase__svgCamelCaseElements, enforceCase__svgCamelCaseAttributes, enforceCase__createMap, enforceCase__map;
   enforceCase__svgCamelCaseElements = "altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern".split(" ");
   enforceCase__svgCamelCaseAttributes = "attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef gradientTransform gradientUnits kernelMatrix kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent spreadMethod startOffset stdDeviation stitchTiles surfaceScale systemLanguage tableValues targetX targetY textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan".split(" ");
@@ -9587,8 +9189,6 @@
     return enforceCase__map[lowerCaseElementName] || lowerCaseElementName;
   };
   //# sourceMappingURL=01-_6to5-enforceCase.js.map
-
-  "use strict";
 
   var determineNameAndNamespace__default = function (attribute, name) {
     var colonIndex, namespacePrefix;
@@ -9621,8 +9221,6 @@
   };
   //# sourceMappingURL=01-_6to5-determineNameAndNamespace.js.map
 
-  "use strict";
-
   function getInterpolator__getInterpolator(attribute) {
     var items = attribute.fragment.items;
 
@@ -9636,8 +9234,6 @@
   };
   var getInterpolator__default = getInterpolator__getInterpolator;
   //# sourceMappingURL=01-_6to5-getInterpolator.js.map
-
-  "use strict";
 
   var determinePropertyName__propertyNames = {
     "accept-charset": "acceptCharset",
@@ -9679,8 +9275,6 @@
     }
   };
   //# sourceMappingURL=01-_6to5-determinePropertyName.js.map
-
-  "use strict";
 
   function prototype_init__Attribute$init(options) {
     this.type = types__ATTRIBUTE;
@@ -9726,8 +9320,6 @@
   var prototype_init__default = prototype_init__Attribute$init;
   //# sourceMappingURL=01-_6to5-init.js.map
 
-  "use strict";
-
   function Attribute_prototype_rebind__Attribute$rebind(oldKeypath, newKeypath) {
     if (this.fragment) {
       this.fragment.rebind(oldKeypath, newKeypath);
@@ -9735,8 +9327,6 @@
   };
   var Attribute_prototype_rebind__default = Attribute_prototype_rebind__Attribute$rebind;
   //# sourceMappingURL=01-_6to5-rebind.js.map
-
-  "use strict";
 
   var Attribute_prototype_render__propertyNames = {
     "accept-charset": "acceptCharset",
@@ -9791,8 +9381,6 @@
   var Attribute_prototype_render__default = Attribute_prototype_render__Attribute$render;
   //# sourceMappingURL=01-_6to5-render.js.map
 
-  "use strict";
-
   function Attribute_prototype_toString__Attribute$toString() {
     var _ref = this;
     var name = _ref.name;
@@ -9839,8 +9427,6 @@
   }
   //# sourceMappingURL=01-_6to5-toString.js.map
 
-  "use strict";
-
   function Attribute_prototype_unbind__Attribute$unbind() {
     // ignore non-dynamic attributes
     if (this.fragment) {
@@ -9853,8 +9439,6 @@
   };
   var Attribute_prototype_unbind__default = Attribute_prototype_unbind__Attribute$unbind;
   //# sourceMappingURL=01-_6to5-unbind.js.map
-
-  "use strict";
 
   function updateSelectValue__Attribute$updateSelect() {
     var value = this.value, options, option, optionValue, i;
@@ -9883,8 +9467,6 @@
   var updateSelectValue__default = updateSelectValue__Attribute$updateSelect;
   //# sourceMappingURL=01-_6to5-updateSelectValue.js.map
 
-  "use strict";
-
   function updateMultipleSelectValue__Attribute$updateMultipleSelect() {
     var value = this.value, options, i, option, optionValue;
 
@@ -9904,8 +9486,6 @@
   var updateMultipleSelectValue__default = updateMultipleSelectValue__Attribute$updateMultipleSelect;
   //# sourceMappingURL=01-_6to5-updateMultipleSelectValue.js.map
 
-  "use strict";
-
   function updateRadioName__Attribute$updateRadioName() {
     var _ref = this;
     var node = _ref.node;
@@ -9914,8 +9494,6 @@
   };
   var updateRadioName__default = updateRadioName__Attribute$updateRadioName;
   //# sourceMappingURL=01-_6to5-updateRadioName.js.map
-
-  "use strict";
 
   function updateRadioValue__Attribute$updateRadioValue() {
     var wasChecked, node = this.node, binding, bindings, i;
@@ -9955,8 +9533,6 @@
   var updateRadioValue__default = updateRadioValue__Attribute$updateRadioValue;
   //# sourceMappingURL=01-_6to5-updateRadioValue.js.map
 
-  "use strict";
-
   function updateCheckboxName__Attribute$updateCheckboxName() {
     var _ref = this;
     var element = _ref.element;
@@ -9984,8 +9560,6 @@
   var updateCheckboxName__default = updateCheckboxName__Attribute$updateCheckboxName;
   //# sourceMappingURL=01-_6to5-updateCheckboxName.js.map
 
-  "use strict";
-
   function updateClassName__Attribute$updateClassName() {
     var node, value;
 
@@ -10001,8 +9575,6 @@
   var updateClassName__default = updateClassName__Attribute$updateClassName;
   //# sourceMappingURL=01-_6to5-updateClassName.js.map
 
-  "use strict";
-
   function updateIdAttribute__Attribute$updateIdAttribute() {
     var _ref = this;
     var node = _ref.node;
@@ -10014,8 +9586,6 @@
   };
   var updateIdAttribute__default = updateIdAttribute__Attribute$updateIdAttribute;
   //# sourceMappingURL=01-_6to5-updateIdAttribute.js.map
-
-  "use strict";
 
   function updateIEStyleAttribute__Attribute$updateIEStyleAttribute() {
     var node, value;
@@ -10032,8 +9602,6 @@
   var updateIEStyleAttribute__default = updateIEStyleAttribute__Attribute$updateIEStyleAttribute;
   //# sourceMappingURL=01-_6to5-updateIEStyleAttribute.js.map
 
-  "use strict";
-
   function updateContentEditableValue__Attribute$updateContentEditableValue() {
     var value = this.value;
 
@@ -10047,8 +9615,6 @@
   };
   var updateContentEditableValue__default = updateContentEditableValue__Attribute$updateContentEditableValue;
   //# sourceMappingURL=01-_6to5-updateContentEditableValue.js.map
-
-  "use strict";
 
   function updateValue__Attribute$updateValue() {
     var _ref = this;
@@ -10068,8 +9634,6 @@
   var updateValue__default = updateValue__Attribute$updateValue;
   //# sourceMappingURL=01-_6to5-updateValue.js.map
 
-  "use strict";
-
   function updateBoolean__Attribute$updateBooleanAttribute() {
     // with two-way binding, only update if the change wasn't initiated by the user
     // otherwise the cursor will often be sent to the wrong place
@@ -10079,8 +9643,6 @@
   };
   var updateBoolean__default = updateBoolean__Attribute$updateBooleanAttribute;
   //# sourceMappingURL=01-_6to5-updateBoolean.js.map
-
-  "use strict";
 
   function updateEverythingElse__Attribute$updateEverythingElse() {
     var _ref = this;
@@ -10108,8 +9670,6 @@
   };
   var updateEverythingElse__default = updateEverythingElse__Attribute$updateEverythingElse;
   //# sourceMappingURL=01-_6to5-updateEverythingElse.js.map
-
-  "use strict";
 
   function Attribute_prototype_update__Attribute$update() {
     var _ref = this;
@@ -10184,8 +9744,6 @@
   var Attribute_prototype_update__default = Attribute_prototype_update__Attribute$update;
   //# sourceMappingURL=01-_6to5-update.js.map
 
-  "use strict";
-
   var Attribute__Attribute = function (options) {
     this.init(options);
   };
@@ -10202,8 +9760,6 @@
 
   var Attribute__default = Attribute__Attribute;
   //# sourceMappingURL=01-_6to5-_Attribute.js.map
-
-  "use strict";
 
   var createAttributes__default = function (element, attributes) {
     var name, attribute, result = [];
@@ -10224,8 +9780,6 @@
     return result;
   };
   //# sourceMappingURL=01-_6to5-createAttributes.js.map
-
-  "use strict";
 
   var ConditionalAttribute__div;
 
@@ -10321,8 +9875,6 @@
   }
   //# sourceMappingURL=01-_6to5-_ConditionalAttribute.js.map
 
-  "use strict";
-
   var createConditionalAttributes__default = function (element, attributes) {
     if (!attributes) {
       return [];
@@ -10333,8 +9885,6 @@
     });
   };
   //# sourceMappingURL=01-_6to5-createConditionalAttributes.js.map
-
-  "use strict";
 
   var Binding__Binding = function (element) {
     var interpolator, keypath, value, parentForm;
@@ -10462,8 +10012,6 @@
   }
   //# sourceMappingURL=01-_6to5-Binding.js.map
 
-  "use strict";
-
   // This is the handler for DOM events that would lead to a change in the model
   // (i.e. change, sometimes, input, and occasionally click and keyup)
   function handleDomEvent__handleChange() {
@@ -10471,8 +10019,6 @@
   };
   var handleDomEvent__default = handleDomEvent__handleChange;
   //# sourceMappingURL=01-_6to5-handleDomEvent.js.map
-
-  "use strict";
 
   var ContentEditableBinding__ContentEditableBinding = Binding__default.extend({
     getInitialValue: function () {
@@ -10509,8 +10055,6 @@
   var ContentEditableBinding__default = ContentEditableBinding__ContentEditableBinding;
   //# sourceMappingURL=01-_6to5-ContentEditableBinding.js.map
 
-  "use strict";
-
   var getSiblings__sets = {};
 
   function getSiblings__getSiblings(id, group, keypath) {
@@ -10519,8 +10063,6 @@
   };
   var getSiblings__default = getSiblings__getSiblings;
   //# sourceMappingURL=01-_6to5-getSiblings.js.map
-
-  "use strict";
 
   var RadioBinding__RadioBinding = Binding__default.extend({
     name: "checked",
@@ -10568,8 +10110,6 @@
 
   var RadioBinding__default = RadioBinding__RadioBinding;
   //# sourceMappingURL=01-_6to5-RadioBinding.js.map
-
-  "use strict";
 
   var RadioNameBinding__RadioNameBinding = Binding__default.extend({
     name: "name",
@@ -10638,8 +10178,6 @@
 
   var RadioNameBinding__default = RadioNameBinding__RadioNameBinding;
   //# sourceMappingURL=01-_6to5-RadioNameBinding.js.map
-
-  "use strict";
 
   var CheckboxNameBinding__CheckboxNameBinding = Binding__default.extend({
     name: "name",
@@ -10743,8 +10281,6 @@
   var CheckboxNameBinding__default = CheckboxNameBinding__CheckboxNameBinding;
   //# sourceMappingURL=01-_6to5-CheckboxNameBinding.js.map
 
-  "use strict";
-
   var CheckboxBinding__CheckboxBinding = Binding__default.extend({
     name: "checked",
 
@@ -10772,8 +10308,6 @@
 
   var CheckboxBinding__default = CheckboxBinding__CheckboxBinding;
   //# sourceMappingURL=01-_6to5-CheckboxBinding.js.map
-
-  "use strict";
 
   var SelectBinding__SelectBinding = Binding__default.extend({
     getInitialValue: function () {
@@ -10863,8 +10397,6 @@
   var SelectBinding__default = SelectBinding__SelectBinding;
   //# sourceMappingURL=01-_6to5-SelectBinding.js.map
 
-  "use strict";
-
   var MultipleSelectBinding__MultipleSelectBinding = SelectBinding__default.extend({
     getInitialValue: function () {
       return this.element.options.filter(function (option) {
@@ -10952,8 +10484,6 @@
   var MultipleSelectBinding__default = MultipleSelectBinding__MultipleSelectBinding;
   //# sourceMappingURL=01-_6to5-MultipleSelectBinding.js.map
 
-  "use strict";
-
   var FileListBinding__FileListBinding = Binding__default.extend({
     render: function () {
       this.element.node.addEventListener("change", handleDomEvent__default, false);
@@ -10970,8 +10500,6 @@
 
   var FileListBinding__default = FileListBinding__FileListBinding;
   //# sourceMappingURL=01-_6to5-FileListBinding.js.map
-
-  "use strict";
 
   var GenericBinding__GenericBinding;
 
@@ -11048,8 +10576,6 @@
   }
   //# sourceMappingURL=01-_6to5-GenericBinding.js.map
 
-  "use strict";
-
   var NumericBinding__default = GenericBinding__default.extend({
     getInitialValue: function () {
       return undefined;
@@ -11061,8 +10587,6 @@
     }
   });
   //# sourceMappingURL=01-_6to5-NumericBinding.js.map
-
-  "use strict";
 
   function createTwowayBinding__createTwowayBinding(element) {
     var attributes = element.attributes, type, Binding, bindName, bindChecked;
@@ -11129,8 +10653,6 @@
   }
   //# sourceMappingURL=01-_6to5-createTwowayBinding.js.map
 
-  "use strict";
-
   function EventHandler_prototype_bubble__EventHandler$bubble() {
     var hasAction = this.getAction();
 
@@ -11143,23 +10665,17 @@
   var EventHandler_prototype_bubble__default = EventHandler_prototype_bubble__EventHandler$bubble;
   //# sourceMappingURL=01-_6to5-bubble.js.map
 
-  "use strict";
-
   function fire__EventHandler$fire(event) {
     fireEvent__default(this.root, this.getAction(), { event: event });
   };
   var fire__default = fire__EventHandler$fire;
   //# sourceMappingURL=01-_6to5-fire.js.map
 
-  "use strict";
-
   function getAction__EventHandler$getAction() {
     return this.action.toString().trim();
   };
   var getAction__default = getAction__EventHandler$getAction;
   //# sourceMappingURL=01-_6to5-getAction.js.map
-
-  "use strict";
 
   var EventHandler_prototype_init__getValueOptions = { args: true }, EventHandler_prototype_init__eventPattern = /^event(?:\.(.+))?/;
 
@@ -11303,8 +10819,6 @@
   }
   //# sourceMappingURL=01-_6to5-init.js.map
 
-  "use strict";
-
   function genericHandler__genericHandler(event) {
     var storage, handler, indices, index = {};
 
@@ -11325,8 +10839,6 @@
   };
   var genericHandler__default = genericHandler__genericHandler;
   //# sourceMappingURL=01-_6to5-genericHandler.js.map
-
-  "use strict";
 
   var listen__customHandlers = {}, listen__touchEvents = {
     touchstart: true,
@@ -11388,8 +10900,6 @@
   }
   //# sourceMappingURL=01-_6to5-listen.js.map
 
-  "use strict";
-
   function EventHandler_prototype_rebind__EventHandler$rebind(oldKeypath, newKeypath) {
     var fragment;
     if (this.method) {
@@ -11414,8 +10924,6 @@
   var EventHandler_prototype_rebind__default = EventHandler_prototype_rebind__EventHandler$rebind;
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
-  "use strict";
-
   function EventHandler_prototype_render__EventHandler$render() {
     this.node = this.element.node;
     // store this on the node itself, so it can be retrieved by a
@@ -11429,15 +10937,11 @@
   var EventHandler_prototype_render__default = EventHandler_prototype_render__EventHandler$render;
   //# sourceMappingURL=01-_6to5-render.js.map
 
-  "use strict";
-
   function prototype_resolve__EventHandler$resolve(index, keypath) {
     this.keypaths[index] = keypath;
   };
   var prototype_resolve__default = prototype_resolve__EventHandler$resolve;
   //# sourceMappingURL=01-_6to5-resolve.js.map
-
-  "use strict";
 
   function EventHandler_prototype_unbind__EventHandler$unbind() {
     if (this.method) {
@@ -11458,8 +10962,6 @@
   var EventHandler_prototype_unbind__default = EventHandler_prototype_unbind__EventHandler$unbind;
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
-  "use strict";
-
   function EventHandler_prototype_unrender__EventHandler$unrender() {
     if (this.custom) {
       this.custom.teardown();
@@ -11471,8 +10973,6 @@
   };
   var EventHandler_prototype_unrender__default = EventHandler_prototype_unrender__EventHandler$unrender;
   //# sourceMappingURL=01-_6to5-unrender.js.map
-
-  "use strict";
 
   var EventHandler__EventHandler = function (element, name, template) {
     this.init(element, name, template);
@@ -11494,8 +10994,6 @@
   var EventHandler__default = EventHandler__EventHandler;
   //# sourceMappingURL=01-_6to5-_EventHandler.js.map
 
-  "use strict";
-
   var createEventHandlers__default = function (element, template) {
     var i, name, names, handler, result = [];
 
@@ -11514,8 +11012,6 @@
     return result;
   };
   //# sourceMappingURL=01-_6to5-createEventHandlers.js.map
-
-  "use strict";
 
   var Decorator__getValueOptions, Decorator__Decorator;
 
@@ -11632,8 +11128,6 @@
   var Decorator__default = Decorator__Decorator;
   //# sourceMappingURL=01-_6to5-_Decorator.js.map
 
-  "use strict";
-
   function select__bubble() {
     var _this = this;
     if (!this.dirty) {
@@ -11706,8 +11200,6 @@
   }
   //# sourceMappingURL=01-_6to5-select.js.map
 
-  "use strict";
-
   function option__init(option, template) {
     option.select = option__findParentSelect(option.parent);
 
@@ -11753,8 +11245,6 @@
     } while (element = element.parent);
   }
   //# sourceMappingURL=01-_6to5-option.js.map
-
-  "use strict";
 
   function Element_prototype_init__Element$init(options) {
     var parentFragment, template, ractive, binding, bindings, twoway;
@@ -11835,8 +11325,6 @@
   var Element_prototype_init__default = Element_prototype_init__Element$init;
   //# sourceMappingURL=01-_6to5-init.js.map
 
-  "use strict";
-
   function Element_prototype_rebind__Element$rebind(oldKeypath, newKeypath) {
     var i, storage, liveQueries, ractive;
 
@@ -11883,8 +11371,6 @@
   var Element_prototype_rebind__default = Element_prototype_rebind__Element$rebind;
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
-  "use strict";
-
   function img__render(img) {
     var loadHandler;
 
@@ -11908,8 +11394,6 @@
   }
   //# sourceMappingURL=01-_6to5-img.js.map
 
-  "use strict";
-
   function form__render(element) {
     element.node.addEventListener("reset", form__handleReset, false);
   }
@@ -11930,8 +11414,6 @@
     binding.root.viewmodel.set(binding.keypath, binding.resetValue);
   }
   //# sourceMappingURL=01-_6to5-form.js.map
-
-  "use strict";
 
   var Transition_prototype_init__getValueOptions = {}; // TODO what are the options?
 
@@ -11993,16 +11475,12 @@
   var Transition_prototype_init__default = Transition_prototype_init__Transition$init;
   //# sourceMappingURL=01-_6to5-init.js.map
 
-  "use strict";
-
   var camelCase__default = function (hyphenatedStr) {
     return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
       return $1.toUpperCase();
     });
   };
   //# sourceMappingURL=01-_6to5-camelCase.js.map
-
-  "use strict";
 
   var prefix__prefix, prefix__prefixCache, prefix__testStyle;
 
@@ -12041,8 +11519,6 @@
 
   var prefix__default = prefix__prefix;
   //# sourceMappingURL=01-_6to5-prefix.js.map
-
-  "use strict";
 
   var getStyle__getStyle, getStyle__getComputedStyle;
 
@@ -12087,8 +11563,6 @@
   var getStyle__default = getStyle__getStyle;
   //# sourceMappingURL=01-_6to5-getStyle.js.map
 
-  "use strict";
-
   var setStyle__default = function (style, value) {
     var prop;
 
@@ -12105,8 +11579,6 @@
     return this;
   };
   //# sourceMappingURL=01-_6to5-setStyle.js.map
-
-  "use strict";
 
   var Ticker__Ticker = function (options) {
     var easing;
@@ -12183,16 +11655,12 @@
   }
   //# sourceMappingURL=01-_6to5-Ticker.js.map
 
-  "use strict";
-
   var unprefix__unprefixPattern = new RegExp("^-(?:" + vendors__default.join("|") + ")-");
 
   var unprefix__default = function (prop) {
     return prop.replace(unprefix__unprefixPattern, "");
   };
   //# sourceMappingURL=01-_6to5-unprefix.js.map
-
-  "use strict";
 
   var hyphenate__vendorPattern = new RegExp("^(?:" + vendors__default.join("|") + ")([A-Z])");
 
@@ -12214,8 +11682,6 @@
     return hyphenated;
   };
   //# sourceMappingURL=01-_6to5-hyphenate.js.map
-
-  "use strict";
 
   var createTransitions__createTransitions, createTransitions__testStyle, createTransitions__TRANSITION, createTransitions__TRANSITIONEND, createTransitions__CSS_TRANSITIONS_ENABLED, createTransitions__TRANSITION_DURATION, createTransitions__TRANSITION_PROPERTY, createTransitions__TRANSITION_TIMING_FUNCTION, createTransitions__canUseCssTransitions = {}, createTransitions__cannotUseCssTransitions = {};
 
@@ -12384,8 +11850,6 @@
   var createTransitions__default = createTransitions__createTransitions;
   //# sourceMappingURL=01-_6to5-createTransitions.js.map
 
-  "use strict";
-
   var visibility__hidden, visibility__vendor, visibility__prefix, visibility__i, visibility__visibility;
 
   if (typeof document !== "undefined") {
@@ -12443,8 +11907,6 @@
 
   var visibility__default = visibility__visibility;
   //# sourceMappingURL=01-_6to5-visibility.js.map
-
-  "use strict";
 
   var animateStyle__animateStyle, animateStyle__getComputedStyle, animateStyle__resolved;
 
@@ -12563,8 +12025,6 @@
   var animateStyle__default = animateStyle__animateStyle;
   //# sourceMappingURL=01-_6to5-_animateStyle.js.map
 
-  "use strict";
-
   var processParams__default = function (params, defaults) {
     if (typeof params === "number") {
       params = { duration: params };
@@ -12583,8 +12043,6 @@
     return object__fillGaps({}, params, defaults);
   };
   //# sourceMappingURL=01-_6to5-processParams.js.map
-
-  "use strict";
 
   function start__Transition$start() {
     var _this = this;
@@ -12633,8 +12091,6 @@
   }
   //# sourceMappingURL=01-_6to5-start.js.map
 
-  "use strict";
-
   var Transition__Transition = function (owner, template, isIntro) {
     this.init(owner, template, isIntro);
   };
@@ -12650,8 +12106,6 @@
 
   var Transition__default = Transition__Transition;
   //# sourceMappingURL=01-_6to5-_Transition.js.map
-
-  "use strict";
 
   var Element_prototype_render__updateCss, Element_prototype_render__updateScript;
 
@@ -12893,8 +12347,6 @@
   }
   //# sourceMappingURL=01-_6to5-render.js.map
 
-  "use strict";
-
   var Element_prototype_toString__default = function () {
     var str, escape;
 
@@ -12991,8 +12443,6 @@
   }
   //# sourceMappingURL=01-_6to5-toString.js.map
 
-  "use strict";
-
   function Element_prototype_unbind__Element$unbind() {
     if (this.fragment) {
       this.fragment.unbind();
@@ -13016,8 +12466,6 @@
   };
   var Element_prototype_unbind__default = Element_prototype_unbind__Element$unbind;
   //# sourceMappingURL=01-_6to5-unbind.js.map
-
-  "use strict";
 
   function Element_prototype_unrender__Element$unrender(shouldDestroy) {
     var _this = this;
@@ -13095,8 +12543,6 @@
   }
   //# sourceMappingURL=01-_6to5-unrender.js.map
 
-  "use strict";
-
   var Element__Element = function (options) {
     this.init(options);
   };
@@ -13121,8 +12567,6 @@
 
   var Element__default = Element__Element;
   //# sourceMappingURL=01-_6to5-_Element.js.map
-
-  "use strict";
 
   var deIndent__empty = /^\s*$/, deIndent__leadingWhitespace = /^\s*/;
 
@@ -13163,8 +12607,6 @@
     return previous;
   }
   //# sourceMappingURL=01-_6to5-deIndent.js.map
-
-  "use strict";
 
   function getPartialTemplate__getPartialTemplate(ractive, name) {
     var partial;
@@ -13251,8 +12693,6 @@
   }
   //# sourceMappingURL=01-_6to5-getPartialTemplate.js.map
 
-  "use strict";
-
   var applyIndent__default = function (string, indent) {
     var indented;
 
@@ -13267,8 +12707,6 @@
     return indented;
   };
   //# sourceMappingURL=01-_6to5-applyIndent.js.map
-
-  "use strict";
 
   var Partial__Partial = function (options) {
     var parentFragment, template;
@@ -13474,8 +12912,6 @@
   var Partial__default = Partial__Partial;
   //# sourceMappingURL=01-_6to5-_Partial.js.map
 
-  "use strict";
-
   function getComponent__getComponent(ractive, name) {
     var Component, instance = config__default.registries.components.findInstance(ractive, name);
 
@@ -13513,8 +12949,6 @@
   var getComponent__default = getComponent__getComponent;
   //# sourceMappingURL=01-_6to5-getComponent.js.map
 
-  "use strict";
-
   var Component_prototype_detach__detachHook = new Hook__default("detach");
 
   function Component_prototype_detach__Component$detach() {
@@ -13525,23 +12959,17 @@
   var Component_prototype_detach__default = Component_prototype_detach__Component$detach;
   //# sourceMappingURL=01-_6to5-detach.js.map
 
-  "use strict";
-
   function Component_prototype_find__Component$find(selector) {
     return this.instance.fragment.find(selector);
   };
   var Component_prototype_find__default = Component_prototype_find__Component$find;
   //# sourceMappingURL=01-_6to5-find.js.map
 
-  "use strict";
-
   function Component_prototype_findAll__Component$findAll(selector, query) {
     return this.instance.fragment.findAll(selector, query);
   };
   var Component_prototype_findAll__default = Component_prototype_findAll__Component$findAll;
   //# sourceMappingURL=01-_6to5-findAll.js.map
-
-  "use strict";
 
   function Component_prototype_findAllComponents__Component$findAllComponents(selector, query) {
     query._test(this, true);
@@ -13552,8 +12980,6 @@
   };
   var Component_prototype_findAllComponents__default = Component_prototype_findAllComponents__Component$findAllComponents;
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
-
-  "use strict";
 
   function Component_prototype_findComponent__Component$findComponent(selector) {
     if (!selector || (selector === this.name)) {
@@ -13569,15 +12995,11 @@
   var Component_prototype_findComponent__default = Component_prototype_findComponent__Component$findComponent;
   //# sourceMappingURL=01-_6to5-findComponent.js.map
 
-  "use strict";
-
   function Component_prototype_findNextNode__Component$findNextNode() {
     return this.parentFragment.findNextNode(this);
   };
   var Component_prototype_findNextNode__default = Component_prototype_findNextNode__Component$findNextNode;
   //# sourceMappingURL=01-_6to5-findNextNode.js.map
-
-  "use strict";
 
   function Component_prototype_firstNode__Component$firstNode() {
     if (this.rendered) {
@@ -13588,8 +13010,6 @@
   };
   var Component_prototype_firstNode__default = Component_prototype_firstNode__Component$firstNode;
   //# sourceMappingURL=01-_6to5-firstNode.js.map
-
-  "use strict";
 
   function HookQueue__HookQueue(event) {
     this.hook = new Hook__default(event);
@@ -13643,8 +13063,6 @@
   var HookQueue__default = HookQueue__HookQueue;
   //# sourceMappingURL=01-_6to5-HookQueue.js.map
 
-  "use strict";
-
   var processWrapper__default = function (wrapper, array, methodName, newIndices) {
     var root = wrapper.root;
     var keypath = wrapper.keypath;
@@ -13660,8 +13078,6 @@
     root.viewmodel.smartUpdate(keypath, array, newIndices);
   };
   //# sourceMappingURL=01-_6to5-processWrapper.js.map
-
-  "use strict";
 
   var patch___slice = Array.prototype.slice;
   var patch__patchedArrayProto = [], patch__mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"], patch__testObj, patch__patchArrayMethods, patch__unpatchArrayMethods;
@@ -13741,8 +13157,6 @@
   patch__patchArrayMethods.unpatch = patch__unpatchArrayMethods;
   var patch__default = patch__patchArrayMethods;
   //# sourceMappingURL=01-_6to5-patch.js.map
-
-  "use strict";
 
   var arrayAdaptor__arrayAdaptor,
 
@@ -13841,8 +13255,6 @@
   var arrayAdaptor__default = arrayAdaptor__arrayAdaptor;
   //# sourceMappingURL=01-_6to5-arrayAdaptor.js.map
 
-  "use strict";
-
   var magicArrayAdaptor__magicArrayAdaptor, magicArrayAdaptor__MagicArrayWrapper;
 
   if (magicAdaptor__default) {
@@ -13881,8 +13293,6 @@
 
   var magicArrayAdaptor__default = magicArrayAdaptor__magicArrayAdaptor;
   //# sourceMappingURL=01-_6to5-magicArrayAdaptor.js.map
-
-  "use strict";
 
   var adapt__prefixers = {};
 
@@ -13979,8 +13389,6 @@
   }
   //# sourceMappingURL=01-_6to5-adapt.js.map
 
-  "use strict";
-
   function getUpstreamChanges__getUpstreamChanges(changes) {
     var upstreamChanges = [""], i, keypath, keys, upstreamKeypath;
 
@@ -14003,8 +13411,6 @@
   };
   var getUpstreamChanges__default = getUpstreamChanges__getUpstreamChanges;
   //# sourceMappingURL=01-_6to5-getUpstreamChanges.js.map
-
-  "use strict";
 
   var applyChanges_getPotentialWildcardMatches__starMaps = {};
 
@@ -14067,8 +13473,6 @@
   }
   //# sourceMappingURL=01-_6to5-getPotentialWildcardMatches.js.map
 
-  "use strict";
-
   var notifyPatternObservers__lastKey = /[^\.]+$/;
 
   var notifyPatternObservers__default = notifyPatternObservers__notifyPatternObservers;
@@ -14116,8 +13520,6 @@
     });
   }
   //# sourceMappingURL=01-_6to5-notifyPatternObservers.js.map
-
-  "use strict";
 
   function applyChanges__Viewmodel$applyChanges() {
     var _this = this;
@@ -14310,15 +13712,11 @@
   }
   //# sourceMappingURL=01-_6to5-applyChanges.js.map
 
-  "use strict";
-
   function capture__Viewmodel$capture() {
     this.captureGroups.push([]);
   };
   var capture__default = capture__Viewmodel$capture;
   //# sourceMappingURL=01-_6to5-capture.js.map
-
-  "use strict";
 
   function clearCache__Viewmodel$clearCache(keypath, dontTeardownWrapper) {
     var cacheMap, wrapper;
@@ -14346,8 +13744,6 @@
   };
   var clearCache__default = clearCache__Viewmodel$clearCache;
   //# sourceMappingURL=01-_6to5-clearCache.js.map
-
-  "use strict";
 
   var getComputationSignature__pattern = /\$\{([^\}]+)\}/g;
 
@@ -14381,8 +13777,6 @@
   }
   //# sourceMappingURL=01-_6to5-getComputationSignature.js.map
 
-  "use strict";
-
   var UnresolvedDependency__UnresolvedDependency = function (computation, ref) {
     this.computation = computation;
     this.viewmodel = computation.viewmodel;
@@ -14403,8 +13797,6 @@
 
   var UnresolvedDependency__default = UnresolvedDependency__UnresolvedDependency;
   //# sourceMappingURL=01-_6to5-UnresolvedDependency.js.map
-
-  "use strict";
 
   var Computation__Computation = function (ractive, key, signature) {
     var _this = this;
@@ -14598,8 +13990,6 @@
   var Computation__default = Computation__Computation;
   //# sourceMappingURL=01-_6to5-Computation.js.map
 
-  "use strict";
-
   function compute__Viewmodel$compute(key, signature) {
     signature = getComputationSignature__default(signature);
     return (this.computations[key] = new Computation__default(this.ractive, key, signature));
@@ -14607,12 +13997,8 @@
   var compute__default = compute__Viewmodel$compute;
   //# sourceMappingURL=01-_6to5-compute.js.map
 
-	"use strict";
-
 	var FAILED_LOOKUP__default = { FAILED_LOOKUP: true };
 	//# sourceMappingURL=01-_6to5-FAILED_LOOKUP.js.map
-
-  "use strict";
 
   var get__empty = {};
 
@@ -14717,8 +14103,6 @@
   }
   //# sourceMappingURL=01-_6to5-get.js.map
 
-  "use strict";
-
   function viewmodel_prototype_init__Viewmodel$init() {
     var key, computation, computations = [];
 
@@ -14742,8 +14126,6 @@
   }
   //# sourceMappingURL=01-_6to5-init.js.map
 
-  "use strict";
-
   function DataTracker__DataTracker(key, viewmodel) {
     this.keypath = key;
     this.viewmodel = viewmodel;
@@ -14755,8 +14137,6 @@
     this.viewmodel.set(this.keypath, value, { noMapping: true });
   };
   //# sourceMappingURL=01-_6to5-DataTracker.js.map
-
-  "use strict";
 
   function Mapping__Mapping(localKey, options) {
     this.localKey = localKey;
@@ -14881,8 +14261,6 @@
   };
   //# sourceMappingURL=01-_6to5-Mapping.js.map
 
-  "use strict";
-
   function map__Viewmodel$map(key, options) {
     var mapping = new Mapping__default(key, options);
     mapping.initViewmodel(this);
@@ -14890,8 +14268,6 @@
   };
   var map__default = map__Viewmodel$map;
   //# sourceMappingURL=01-_6to5-map.js.map
-
-  "use strict";
 
   function mark__Viewmodel$mark(keypath, options) {
     var computation;
@@ -14924,8 +14300,6 @@
   };
   var mark__default = mark__Viewmodel$mark;
   //# sourceMappingURL=01-_6to5-mark.js.map
-
-  "use strict";
 
   var mapOldToNewIndex__default = function (oldArray, newArray) {
     var usedIndices, firstUnusedIndex, newIndices, changed;
@@ -14967,8 +14341,6 @@
     return newIndices;
   };
   //# sourceMappingURL=01-_6to5-mapOldToNewIndex.js.map
-
-  "use strict";
 
   var merge__comparators = {};
 
@@ -15039,8 +14411,6 @@
   }
   //# sourceMappingURL=01-_6to5-merge.js.map
 
-  "use strict";
-
   function register__Viewmodel$register(keypath, dependant, group) {
     if (group === undefined) group = "default";
     var mapping, depsByKeypath, deps;
@@ -15091,15 +14461,11 @@
   }
   //# sourceMappingURL=01-_6to5-register.js.map
 
-  "use strict";
-
   function release__Viewmodel$release() {
     return this.captureGroups.pop();
   };
   var release__default = release__Viewmodel$release;
   //# sourceMappingURL=01-_6to5-release.js.map
-
-  "use strict";
 
   function set__Viewmodel$set(keypath, value, options) {
     if (options === undefined) options = {};
@@ -15198,8 +14564,6 @@
   }
   //# sourceMappingURL=01-_6to5-set.js.map
 
-  "use strict";
-
   var smartUpdate__implicitOption = { implicit: true }, smartUpdate__noCascadeOption = { noCascade: true };
 
   function smartUpdate__Viewmodel$smartUpdate(keypath, array, newIndices) {
@@ -15246,8 +14610,6 @@
   }
   //# sourceMappingURL=01-_6to5-smartUpdate.js.map
 
-  "use strict";
-
   function teardown__Viewmodel$teardown() {
     var _this = this;
     var unresolvedImplicitDependency;
@@ -15265,8 +14627,6 @@
   };
   var teardown__default = teardown__Viewmodel$teardown;
   //# sourceMappingURL=01-_6to5-teardown.js.map
-
-  "use strict";
 
   function unregister__Viewmodel$unregister(keypath, dependant, group) {
     if (group === undefined) group = "default";
@@ -15322,8 +14682,6 @@
     }
   }
   //# sourceMappingURL=01-_6to5-unregister.js.map
-
-  "use strict";
 
   // should this be combined with prototype/adapt.js?
 
@@ -15386,8 +14744,6 @@
 
   var adaptConfig__default = adaptConfig__configure;
   //# sourceMappingURL=01-_6to5-adaptConfig.js.map
-
-  "use strict";
 
   var Viewmodel__Viewmodel = function (ractive, mappings) {
     var _this = this;
@@ -15474,8 +14830,6 @@
 
   var Viewmodel__default = Viewmodel__Viewmodel;
   //# sourceMappingURL=01-_6to5-Viewmodel.js.map
-
-  "use strict";
 
   var initialise__constructHook = new Hook__default("construct"), initialise__configHook = new Hook__default("config"), initialise__initHook = new HookQueue__default("init"), initialise__uid = 0;
 
@@ -15577,8 +14931,6 @@
   }
   //# sourceMappingURL=01-_6to5-initialise.js.map
 
-  "use strict";
-
   var createInstance__default = function (component, Component, parameters, yieldTemplate, partials) {
     var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
 
@@ -15638,8 +14990,6 @@
   };
   //# sourceMappingURL=01-_6to5-createInstance.js.map
 
-  "use strict";
-
   function ComplexParameter__ComplexParameter(parameters, key, value) {
     this.parameters = parameters;
     this.parentFragment = parameters.component.parentFragment;
@@ -15682,8 +15032,6 @@
     }
   };
   //# sourceMappingURL=01-_6to5-ComplexParameter.js.map
-
-  "use strict";
 
   function createComponentData__createComponentData(parameters, proto) {
     // Don't do anything with data at all..
@@ -15773,8 +15121,6 @@
   }
   //# sourceMappingURL=01-_6to5-createComponentData.js.map
 
-  "use strict";
-
   function ParameterResolver__ParameterResolver(parameters, key, template) {
     var component, resolve;
 
@@ -15841,8 +15187,6 @@
     }
   };
   //# sourceMappingURL=01-_6to5-ParameterResolver.js.map
-
-  "use strict";
 
   function createParameters__createParameters(component, proto, attributes) {
     var parameters, data, defined;
@@ -15938,8 +15282,6 @@
   }
   //# sourceMappingURL=01-_6to5-createParameters.js.map
 
-  "use strict";
-
   function propagateEvents__propagateEvents(component, eventsDescriptor) {
     var eventName;
 
@@ -15977,8 +15319,6 @@
   }
   //# sourceMappingURL=01-_6to5-propagateEvents.js.map
 
-  "use strict";
-
   var updateLiveQueries__default = function (component) {
     var ancestor, query;
 
@@ -15993,8 +15333,6 @@
     }
   };
   //# sourceMappingURL=01-_6to5-updateLiveQueries.js.map
-
-  "use strict";
 
   function Component_prototype_init__Component$init(options, Component) {
     var parentFragment, root, parameters;
@@ -16028,8 +15366,6 @@
   var Component_prototype_init__default = Component_prototype_init__Component$init;
   //# sourceMappingURL=01-_6to5-init.js.map
 
-  "use strict";
-
   function Component_prototype_rebind__Component$rebind(oldKeypath, newKeypath) {
     var query;
 
@@ -16052,8 +15388,6 @@
   var Component_prototype_rebind__default = Component_prototype_rebind__Component$rebind;
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
-  "use strict";
-
   function Component_prototype_render__Component$render() {
     var instance = this.instance;
 
@@ -16065,15 +15399,11 @@
   var Component_prototype_render__default = Component_prototype_render__Component$render;
   //# sourceMappingURL=01-_6to5-render.js.map
 
-  "use strict";
-
   function Component_prototype_toString__Component$toString() {
     return this.instance.fragment.toString();
   };
   var Component_prototype_toString__default = Component_prototype_toString__Component$toString;
   //# sourceMappingURL=01-_6to5-toString.js.map
-
-  "use strict";
 
   var Component_prototype_unbind__teardownHook = new Hook__default("teardown");
 
@@ -16109,16 +15439,12 @@
   }
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
-  "use strict";
-
   function Component_prototype_unrender__Component$unrender(shouldDestroy) {
     this.shouldDestroy = shouldDestroy;
     this.instance.unrender();
   };
   var Component_prototype_unrender__default = Component_prototype_unrender__Component$unrender;
   //# sourceMappingURL=01-_6to5-unrender.js.map
-
-  "use strict";
 
   var Component__Component = function (options, Constructor) {
     this.init(options, Constructor);
@@ -16142,8 +15468,6 @@
 
   var Component__default = Component__Component;
   //# sourceMappingURL=01-_6to5-_Component.js.map
-
-  "use strict";
 
   var Comment__Comment = function (options) {
     this.type = types__COMMENT;
@@ -16178,8 +15502,6 @@
 
   var Comment__default = Comment__Comment;
   //# sourceMappingURL=01-_6to5-Comment.js.map
-
-  "use strict";
 
   var Yielder__Yielder = function (options) {
     var container, component;
@@ -16276,8 +15598,6 @@
   var Yielder__default = Yielder__Yielder;
   //# sourceMappingURL=01-_6to5-Yielder.js.map
 
-  "use strict";
-
   var Doctype__Doctype = function (options) {
     this.declaration = options.template.a;
   };
@@ -16294,8 +15614,6 @@
 
   var Doctype__default = Doctype__Doctype;
   //# sourceMappingURL=01-_6to5-Doctype.js.map
-
-  "use strict";
 
   function createItem__createItem(options) {
     if (typeof options.template === "string") {
@@ -16325,8 +15643,6 @@
   };
   var createItem__default = createItem__createItem;
   //# sourceMappingURL=01-_6to5-createItem.js.map
-
-  "use strict";
 
   function Fragment_prototype_init__Fragment$init(options) {
     var _this = this;
@@ -16374,8 +15690,6 @@
   var Fragment_prototype_init__default = Fragment_prototype_init__Fragment$init;
   //# sourceMappingURL=01-_6to5-init.js.map
 
-  "use strict";
-
   function Fragment_prototype_rebind__Fragment$rebind(oldKeypath, newKeypath) {
     // assign new context keypath if needed
     keypaths__assignNewKeypath(this, "context", oldKeypath, newKeypath);
@@ -16388,8 +15702,6 @@
   };
   var Fragment_prototype_rebind__default = Fragment_prototype_rebind__Fragment$rebind;
   //# sourceMappingURL=01-_6to5-rebind.js.map
-
-  "use strict";
 
   function Fragment_prototype_render__Fragment$render() {
     var result;
@@ -16410,8 +15722,6 @@
   var Fragment_prototype_render__default = Fragment_prototype_render__Fragment$render;
   //# sourceMappingURL=01-_6to5-render.js.map
 
-  "use strict";
-
   function Fragment_prototype_toString__Fragment$toString(escape) {
     if (!this.items) {
       return "";
@@ -16423,8 +15733,6 @@
   };
   var Fragment_prototype_toString__default = Fragment_prototype_toString__Fragment$toString;
   //# sourceMappingURL=01-_6to5-toString.js.map
-
-  "use strict";
 
   function Fragment_prototype_unbind__Fragment$unbind() {
     if (!this.bound) {
@@ -16443,8 +15751,6 @@
   }
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
-  "use strict";
-
   function Fragment_prototype_unrender__Fragment$unrender(shouldDestroy) {
     if (!this.rendered) {
       throw new Error("Attempted to unrender a fragment that was not rendered");
@@ -16457,8 +15763,6 @@
   };
   var Fragment_prototype_unrender__default = Fragment_prototype_unrender__Fragment$unrender;
   //# sourceMappingURL=01-_6to5-unrender.js.map
-
-  "use strict";
 
   var Fragment__Fragment = function (options) {
     this.init(options);
@@ -16495,8 +15799,6 @@
 
   var Fragment__default = Fragment__Fragment;
   //# sourceMappingURL=01-_6to5-Fragment.js.map
-
-  "use strict";
 
   var reset__shouldRerender = ["template", "partials", "components", "decorators", "events"], reset__resetHook = new Hook__default("reset");
 
@@ -16600,8 +15902,6 @@
   var reset__default = reset__Ractive$reset;
   //# sourceMappingURL=01-_6to5-reset.js.map
 
-  "use strict";
-
   var resetPartial__default = function (name, partial, callback) {
     var _this = this;
     var promise, collection = [];
@@ -16682,8 +15982,6 @@
   };
   //# sourceMappingURL=01-_6to5-resetPartial.js.map
 
-  "use strict";
-
   function resetTemplate__Ractive$resetTemplate(template) {
     var transitionsEnabled, component;
 
@@ -16721,12 +16019,8 @@
   var resetTemplate__default = resetTemplate__Ractive$resetTemplate;
   //# sourceMappingURL=01-_6to5-resetTemplate.js.map
 
-	"use strict";
-
 	var reverse__default = makeArrayMethod__default("reverse");
 	//# sourceMappingURL=01-_6to5-reverse.js.map
-
-  "use strict";
 
   var prototype_set__wildcard = /\*/;
 
@@ -16788,30 +16082,20 @@
   var prototype_set__default = prototype_set__Ractive$set;
   //# sourceMappingURL=01-_6to5-set.js.map
 
-	"use strict";
-
 	var shift__default = makeArrayMethod__default("shift");
 	//# sourceMappingURL=01-_6to5-shift.js.map
-
-	"use strict";
 
 	var prototype_sort__default = makeArrayMethod__default("sort");
 	//# sourceMappingURL=01-_6to5-sort.js.map
 
-	"use strict";
-
 	var splice__default = makeArrayMethod__default("splice");
 	//# sourceMappingURL=01-_6to5-splice.js.map
-
-  "use strict";
 
   function subtract__Ractive$subtract(keypath, d) {
     return add__default(this, keypath, (d === undefined ? -1 : -d));
   };
   var subtract__default = subtract__Ractive$subtract;
   //# sourceMappingURL=01-_6to5-subtract.js.map
-
-  "use strict";
 
   var prototype_teardown__teardownHook = new Hook__default("teardown");
 
@@ -16862,8 +16146,6 @@
   }
   //# sourceMappingURL=01-_6to5-teardown.js.map
 
-  "use strict";
-
   function toggle__Ractive$toggle(keypath, callback) {
     var value;
 
@@ -16881,15 +16163,11 @@
   var toggle__default = toggle__Ractive$toggle;
   //# sourceMappingURL=01-_6to5-toggle.js.map
 
-  "use strict";
-
   function toHTML__Ractive$toHTML() {
     return this.fragment.toString(true);
   };
   var toHTML__default = toHTML__Ractive$toHTML;
   //# sourceMappingURL=01-_6to5-toHTML.js.map
-
-  "use strict";
 
   var Ractive_prototype_unrender__unrenderHook = new Hook__default("unrender");
 
@@ -16935,12 +16213,8 @@
   var Ractive_prototype_unrender__default = Ractive_prototype_unrender__Ractive$unrender;
   //# sourceMappingURL=01-_6to5-unrender.js.map
 
-	"use strict";
-
 	var unshift__default = makeArrayMethod__default("unshift");
 	//# sourceMappingURL=01-_6to5-unshift.js.map
-
-  "use strict";
 
   var Ractive_prototype_update__updateHook = new Hook__default("update");
 
@@ -16983,8 +16257,6 @@
   };
   var Ractive_prototype_update__default = Ractive_prototype_update__Ractive$update;
   //# sourceMappingURL=01-_6to5-update.js.map
-
-  "use strict";
 
   function updateModel__Ractive$updateModel(keypath, cascade) {
     var values, key, bindings;
@@ -17059,8 +16331,6 @@
   }
   //# sourceMappingURL=01-_6to5-updateModel.js.map
 
-  "use strict";
-
   var proto__default = {
     add: prototype_add__default,
     animate: animate__default,
@@ -17102,8 +16372,6 @@
     updateModel: updateModel__default
   };
   //# sourceMappingURL=01-_6to5-prototype.js.map
-
-  "use strict";
 
   function unwrap__unwrapExtended(Child) {
     if (!(Child.prototype instanceof Ractive__default)) {
@@ -17178,8 +16446,6 @@
   }
   //# sourceMappingURL=01-_6to5-unwrapExtended.js.map
 
-  "use strict";
-
   var extend__uid = 1;
 
   function extend__extend(options) {
@@ -17226,8 +16492,6 @@
   var extend__default = extend__extend;
   //# sourceMappingURL=01-_6to5-_extend.js.map
 
-  "use strict";
-
   var getNodeInfo__default = function (node) {
     var info = {}, priv, indices;
 
@@ -17247,8 +16511,6 @@
     return info;
   };
   //# sourceMappingURL=01-_6to5-getNodeInfo.js.map
-
-  "use strict";
 
   var Ractive__Ractive, Ractive__properties;
 
