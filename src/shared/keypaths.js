@@ -1,7 +1,6 @@
 import { isArray, isNumeric } from 'utils/is';
 
-var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g,
-	leadingDot = /^\.+/;
+var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
 export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
 	var existingKeypath = target[ property ];
@@ -65,12 +64,12 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 
 		return matchingKeypaths;
 	}
+}
 
-	function concatenate ( key ) {
-		return function ( keypath ) {
-			return keypath ? keypath + '.' + key : key;
-		};
-	}
+function concatenate ( key ) {
+	return function ( keypath ) {
+		return keypath ? keypath + '.' + key : key;
+	};
 }
 
 export function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
