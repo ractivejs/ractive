@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-12-12 - commit 722e6871 
+	2014-12-12 - commit 8f304b07 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1194,7 +1194,7 @@
 
   "use strict";
 
-  var config_errors__default = {
+  var errors__default = {
     missingParser: "Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser",
 
     mergeComparisonFail: "Merge operation: comparison failed. Falling back to identity checking",
@@ -1282,13 +1282,11 @@
 	var types__SECTION_PARTIAL = 55;
 	//# sourceMappingURL=01-_6to5-types.js.map
 
-  "use strict";
+	"use strict";
 
-  var errors__default = {
-    expectedExpression: "Expected a JavaScript expression",
-    expectedParen: "Expected closing paren"
-  };
-  //# sourceMappingURL=01-_6to5-errors.js.map
+	var shared_errors__expectedExpression = "Expected a JavaScript expression";
+	var shared_errors__expectedParen = "Expected closing paren";
+	//# sourceMappingURL=01-_6to5-errors.js.map
 
   "use strict";
 
@@ -1385,17 +1383,10 @@
   };
   //# sourceMappingURL=01-_6to5-makeQuotedStringMatcher.js.map
 
-	"use strict";
-
-	var getSingleQuotedString__default = makeQuotedStringMatcher__default("\"");
-	//# sourceMappingURL=01-_6to5-singleQuotedString.js.map
-
-	"use strict";
-
-	var getDoubleQuotedString__default = makeQuotedStringMatcher__default("'");
-	//# sourceMappingURL=01-_6to5-doubleQuotedString.js.map
-
   "use strict";
+
+  var getStringLiteral__getSingleQuotedString = makeQuotedStringMatcher__default("\"");
+  var getStringLiteral__getDoubleQuotedString = makeQuotedStringMatcher__default("'");
 
   var getStringLiteral__default = function (parser) {
     var start, string;
@@ -1403,7 +1394,7 @@
     start = parser.pos;
 
     if (parser.matchString("\"")) {
-      string = getDoubleQuotedString__default(parser);
+      string = getStringLiteral__getDoubleQuotedString(parser);
 
       if (!parser.matchString("\"")) {
         parser.pos = start;
@@ -1417,7 +1408,7 @@
     }
 
     if (parser.matchString("'")) {
-      string = getSingleQuotedString__default(parser);
+      string = getStringLiteral__getSingleQuotedString(parser);
 
       if (!parser.matchString("'")) {
         parser.pos = start;
@@ -1434,13 +1425,11 @@
   };
   //# sourceMappingURL=01-_6to5-_stringLiteral.js.map
 
-  "use strict";
+	"use strict";
 
-  var patterns__default = {
-    name: /^[a-zA-Z_$][a-zA-Z_$0-9]*/,
-    relaxedName: /^[a-zA-Z_$][-a-zA-Z_$0-9]*/
-  };
-  //# sourceMappingURL=01-_6to5-patterns.js.map
+	var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
+	var patterns__relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
+	//# sourceMappingURL=01-_6to5-patterns.js.map
 
   "use strict";
 
@@ -1459,7 +1448,7 @@
       return token.v;
     }
 
-    if (token = parser.matchPattern(patterns__default.name)) {
+    if (token = parser.matchPattern(patterns__name)) {
       return token;
     }
   };
@@ -1593,7 +1582,7 @@
     if (parser.matchString(",")) {
       next = getExpressionList__getExpressionList(parser);
       if (next === null) {
-        parser.error(errors__default.expectedExpression);
+        parser.error(shared_errors__expectedExpression);
       }
 
       next.forEach(append);
@@ -1690,11 +1679,7 @@
       dot = parser.matchString("./") || parser.matchString(".") || "";
     }
 
-    if (parser.relaxedNames) {
-      pattern = patterns__default.relaxedName;
-    } else {
-      pattern = patterns__default.name;
-    }
+    pattern = parser.relaxedNames ? patterns__relaxedName : patterns__name;
     name = parser.matchPattern(/^@(?:keypath|index|key)/) || parser.matchPattern(pattern) || "";
 
     // bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
@@ -1756,13 +1741,13 @@
 
     expr = parser.readExpression();
     if (!expr) {
-      parser.error(errors__default.expectedExpression);
+      parser.error(shared_errors__expectedExpression);
     }
 
     parser.allowWhitespace();
 
     if (!parser.matchString(")")) {
-      parser.error(errors__default.expectedParen);
+      parser.error(shared_errors__expectedParen);
     }
 
     return {
@@ -1792,7 +1777,7 @@
     if (parser.matchString(".")) {
       parser.allowWhitespace();
 
-      if (name = parser.matchPattern(patterns__default.name)) {
+      if (name = parser.matchPattern(patterns__name)) {
         return {
           t: types__REFINEMENT,
           n: name
@@ -1808,7 +1793,7 @@
 
       expr = parser.readExpression();
       if (!expr) {
-        parser.error(errors__default.expectedExpression);
+        parser.error(shared_errors__expectedExpression);
       }
 
       parser.allowWhitespace();
@@ -1855,7 +1840,7 @@
         parser.allowWhitespace();
 
         if (!parser.matchString(")")) {
-          parser.error(errors__default.expectedParen);
+          parser.error(shared_errors__expectedParen);
         }
 
         expression = {
@@ -1895,7 +1880,7 @@
 
       expression = parser.readExpression();
       if (!expression) {
-        parser.error(errors__default.expectedExpression);
+        parser.error(shared_errors__expectedExpression);
       }
 
       return {
@@ -2027,7 +2012,7 @@
 
     ifTrue = parser.readExpression();
     if (!ifTrue) {
-      parser.error(errors__default.expectedExpression);
+      parser.error(shared_errors__expectedExpression);
     }
 
     parser.allowWhitespace();
@@ -2040,7 +2025,7 @@
 
     ifFalse = parser.readExpression();
     if (!ifFalse) {
-      parser.error(errors__default.expectedExpression);
+      parser.error(shared_errors__expectedExpression);
     }
 
     return {
@@ -4081,7 +4066,7 @@
 
   function parser__doParse(template, parseOptions) {
     if (!parse__default) {
-      throw new Error(config_errors__default.missingParser);
+      throw new Error(errors__default.missingParser);
     }
 
     return parse__default(template, parseOptions || this.options);
@@ -4768,7 +4753,7 @@
   };
 
   function log__getMessage(options) {
-    var message = config_errors__default[options.message] || options.message || "";
+    var message = errors__default[options.message] || options.message || "";
     return log__interpolate(message, options.args);
   }
 
@@ -5333,6 +5318,9 @@
   }
   function methodCallers__unbind(x) {
     x.unbind();
+  }
+  function methodCallers__unrender(x) {
+    x.unrender();
   }
   //# sourceMappingURL=01-_6to5-methodCallers.js.map
 
@@ -9969,28 +9957,6 @@
 
   "use strict";
 
-  var enforceCase__svgCamelCaseElements, enforceCase__svgCamelCaseAttributes, enforceCase__createMap, enforceCase__map;
-  enforceCase__svgCamelCaseElements = "altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern".split(" ");
-  enforceCase__svgCamelCaseAttributes = "attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef gradientTransform gradientUnits kernelMatrix kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent spreadMethod startOffset stdDeviation stitchTiles surfaceScale systemLanguage tableValues targetX targetY textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan".split(" ");
-
-  enforceCase__createMap = function (items) {
-    var map = {}, i = items.length;
-    while (i--) {
-      map[items[i].toLowerCase()] = items[i];
-    }
-    return map;
-  };
-
-  enforceCase__map = enforceCase__createMap(enforceCase__svgCamelCaseElements.concat(enforceCase__svgCamelCaseAttributes));
-
-  var enforceCase__default = function (elementName) {
-    var lowerCaseElementName = elementName.toLowerCase();
-    return enforceCase__map[lowerCaseElementName] || lowerCaseElementName;
-  };
-  //# sourceMappingURL=01-_6to5-enforceCase.js.map
-
-  "use strict";
-
   var processBindingAttributes__truthy = /^true|on|yes|1$/i;
   var processBindingAttributes__isNumeric = /^[0-9]+$/;
 
@@ -10048,6 +10014,28 @@
   };
   var Attribute_prototype_bubble__default = Attribute_prototype_bubble__Attribute$bubble;
   //# sourceMappingURL=01-_6to5-bubble.js.map
+
+  "use strict";
+
+  var enforceCase__svgCamelCaseElements, enforceCase__svgCamelCaseAttributes, enforceCase__createMap, enforceCase__map;
+  enforceCase__svgCamelCaseElements = "altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern".split(" ");
+  enforceCase__svgCamelCaseAttributes = "attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef gradientTransform gradientUnits kernelMatrix kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent spreadMethod startOffset stdDeviation stitchTiles surfaceScale systemLanguage tableValues targetX targetY textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan".split(" ");
+
+  enforceCase__createMap = function (items) {
+    var map = {}, i = items.length;
+    while (i--) {
+      map[items[i].toLowerCase()] = items[i];
+    }
+    return map;
+  };
+
+  enforceCase__map = enforceCase__createMap(enforceCase__svgCamelCaseElements.concat(enforceCase__svgCamelCaseAttributes));
+
+  var enforceCase__default = function (elementName) {
+    var lowerCaseElementName = elementName.toLowerCase();
+    return enforceCase__map[lowerCaseElementName] || lowerCaseElementName;
+  };
+  //# sourceMappingURL=01-_6to5-enforceCase.js.map
 
   "use strict";
 
@@ -12095,7 +12083,21 @@
 
   "use strict";
 
-  function syncSelect__syncSelect(selectElement) {
+  function select__bubble() {
+    var _this = this;
+    if (!this.dirty) {
+      this.dirty = true;
+
+      runloop__default.scheduleTask(function () {
+        select__sync(_this);
+        _this.dirty = false;
+      });
+    }
+
+    this.parentFragment.bubble(); // default behaviour
+  }
+
+  function select__sync(selectElement) {
     var selectNode, selectValue, isMultiple, options, optionWasSelected;
 
     selectNode = selectElement.node;
@@ -12116,7 +12118,7 @@
         var optionValue, shouldSelect;
 
         optionValue = o._ractive ? o._ractive.value : o.value;
-        shouldSelect = isMultiple ? syncSelect__valueContains(selectValue, optionValue) : selectValue == optionValue;
+        shouldSelect = isMultiple ? select__valueContains(selectValue, optionValue) : selectValue == optionValue;
 
         if (shouldSelect) {
           optionWasSelected = true;
@@ -12141,10 +12143,9 @@
     else if (selectElement.binding) {
       selectElement.binding.forceUpdate();
     }
-  };
-  var syncSelect__default = syncSelect__syncSelect;
+  }
 
-  function syncSelect__valueContains(selectValue, optionValue) {
+  function select__valueContains(selectValue, optionValue) {
     var i = selectValue.length;
     while (i--) {
       if (selectValue[i] == optionValue) {
@@ -12152,46 +12153,12 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-sync.js.map
+  //# sourceMappingURL=01-_6to5-select.js.map
 
   "use strict";
 
-  function bubbleSelect__bubbleSelect() {
-    var _this = this;
-    if (!this.dirty) {
-      this.dirty = true;
-
-      runloop__default.scheduleTask(function () {
-        syncSelect__default(_this);
-        _this.dirty = false;
-      });
-    }
-
-    this.parentFragment.bubble(); // default behaviour
-  };
-  var bubbleSelect__default = bubbleSelect__bubbleSelect;
-  //# sourceMappingURL=01-_6to5-bubble.js.map
-
-  "use strict";
-
-  function findParentSelect__findParentSelect(element) {
-    if (!element) {
-      return;
-    }
-
-    do {
-      if (element.name === "select") {
-        return element;
-      }
-    } while (element = element.parent);
-  };
-  var findParentSelect__default = findParentSelect__findParentSelect;
-  //# sourceMappingURL=01-_6to5-findParentSelect.js.map
-
-  "use strict";
-
-  function initOption__initOption(option, template) {
-    option.select = findParentSelect__default(option.parent);
+  function option__init(option, template) {
+    option.select = option__findParentSelect(option.parent);
 
     // we might be inside a <datalist> element
     if (!option.select) {
@@ -12215,9 +12182,26 @@
     if ("selected" in template.a && option.select.getAttribute("value") !== undefined) {
       delete template.a.selected;
     }
-  };
-  var initOption__default = initOption__initOption;
-  //# sourceMappingURL=01-_6to5-init.js.map
+  }
+
+  function option__unbind(option) {
+    if (option.select) {
+      array__removeFromArray(option.select.options, option);
+    }
+  }
+
+  function option__findParentSelect(element) {
+    if (!element) {
+      return;
+    }
+
+    do {
+      if (element.name === "select") {
+        return element;
+      }
+    } while (element = element.parent);
+  }
+  //# sourceMappingURL=01-_6to5-option.js.map
 
   "use strict";
 
@@ -12240,13 +12224,13 @@
 
     // Special case - <option> elements
     if (this.name === "option") {
-      initOption__default(this, template);
+      option__init(this, template);
     }
 
     // Special case - <select> elements
     if (this.name === "select") {
       this.options = [];
-      this.bubble = bubbleSelect__default; // TODO this is a kludge
+      this.bubble = select__bubble; // TODO this is a kludge
     }
 
     // Special case - <form> elements
@@ -12350,7 +12334,7 @@
 
   "use strict";
 
-  function renderImage__renderImage(img) {
+  function img__render(img) {
     var loadHandler;
 
     // if this is an <img>, and we're in a crap browser, we may need to prevent it
@@ -12370,33 +12354,31 @@
         img.node.removeEventListener("load", loadHandler, false);
       }, false);
     }
-  };
-  var renderImage__default = renderImage__renderImage;
-  //# sourceMappingURL=01-_6to5-render.js.map
+  }
+  //# sourceMappingURL=01-_6to5-img.js.map
 
   "use strict";
 
-  function handleReset__handleReset() {
+  function form__render(element) {
+    element.node.addEventListener("reset", form__handleReset, false);
+  }
+
+  function form__unrender(element) {
+    element.node.removeEventListener("reset", form__handleReset, false);
+  }
+
+  function form__handleReset() {
     var element = this._ractive.proxy;
 
     runloop__default.start();
-    element.formBindings.forEach(handleReset__updateModel);
+    element.formBindings.forEach(form__updateModel);
     runloop__default.end();
-  };
-  var handleReset__default = handleReset__handleReset;
+  }
 
-  function handleReset__updateModel(binding) {
+  function form__updateModel(binding) {
     binding.root.viewmodel.set(binding.keypath, binding.resetValue);
   }
-  //# sourceMappingURL=01-_6to5-handleReset.js.map
-
-  "use strict";
-
-  function renderForm__renderForm(element) {
-    element.node.addEventListener("reset", handleReset__default, false);
-  };
-  var renderForm__default = renderForm__renderForm;
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=01-_6to5-form.js.map
 
   "use strict";
 
@@ -13233,10 +13215,10 @@
       // if this is an <img>, and we're in a crap browser, we may
       // need to prevent it from overriding width and height when
       // it loads the src
-      renderImage__default(this);
+      img__render(this);
     } else if (this.name === "form") {
       // forms need to keep track of their bindings, in case of reset
-      renderForm__default(this);
+      form__render(this);
     } else if (this.name === "input" || this.name === "textarea") {
       // inputs and textareas should store their initial value as
       // `defaultValue` in case of reset
@@ -13460,16 +13442,6 @@
 
   "use strict";
 
-  function unbindOption__unbindOption(option) {
-    if (option.select) {
-      array__removeFromArray(option.select.options, option);
-    }
-  };
-  var unbindOption__default = unbindOption__unbindOption;
-  //# sourceMappingURL=01-_6to5-unbind.js.map
-
-  "use strict";
-
   function Element_prototype_unbind__Element$unbind() {
     if (this.fragment) {
       this.fragment.unbind();
@@ -13485,7 +13457,7 @@
 
     // Special case - <option>
     if (this.name === "option") {
-      unbindOption__default(this);
+      option__unbind(this);
     }
 
     this.attributes.forEach(methodCallers__unbind);
@@ -13493,14 +13465,6 @@
   };
   var Element_prototype_unbind__default = Element_prototype_unbind__Element$unbind;
   //# sourceMappingURL=01-_6to5-unbind.js.map
-
-  "use strict";
-
-  function unrenderForm__unrenderForm(element) {
-    element.node.removeEventListener("reset", handleReset__default, false);
-  };
-  var unrenderForm__default = unrenderForm__unrenderForm;
-  //# sourceMappingURL=01-_6to5-unrender.js.map
 
   "use strict";
 
@@ -13538,9 +13502,7 @@
 
     // Remove event handlers
     if (this.eventHandlers) {
-      this.eventHandlers.forEach(function (h) {
-        return h.unrender();
-      });
+      this.eventHandlers.forEach(methodCallers__unrender);
     }
 
     if (this.decorator) {
@@ -13564,7 +13526,7 @@
     }
 
     if (this.name === "form") {
-      unrenderForm__default(this);
+      form__unrender(this);
     }
   };
   var Element_prototype_unrender__default = Element_prototype_unrender__Element$unrender;
