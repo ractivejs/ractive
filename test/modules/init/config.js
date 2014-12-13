@@ -39,19 +39,14 @@ define([
 				registryNames = registries.map( r => r.name );
 
 			config.order.forEach( itemConfig => {
+				var name = itemConfig.name || itemConfig;
 
-				var name = itemConfig.name || itemConfig,
-					actual = ractive,
-					expected = Ractive.prototype;
-
-				if ( expected && ( name in expected ) ) {
-					ok( name in actual, 'has ' + name);
+				if ( name in Ractive.prototype ) {
+					ok( name in ractive, 'has ' + name);
 				}
 
-				if ( expected ) {
-					if ( !~registryNames.indexOf( name ) && name !== 'template' ) { // TODO template is a special case... this should probably be handled differently
-						deepEqual( actual[ name ], expected[ name ], 'compare ' + name );
-					}
+				if ( !~registryNames.indexOf( name ) && name !== 'template' ) { // TODO template is a special case... this should probably be handled differently
+					deepEqual( ractive[ name ], Ractive.prototype[ name ], 'compare ' + name );
 				}
 			});
 		});

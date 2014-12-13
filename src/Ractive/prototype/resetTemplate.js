@@ -1,4 +1,4 @@
-import config from 'Ractive/config/config';
+import { default as templateConfigurator } from 'Ractive/config/custom/template/template';
 import Fragment from 'virtualdom/Fragment';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case
@@ -9,7 +9,7 @@ import Fragment from 'virtualdom/Fragment';
 export default function Ractive$resetTemplate ( template ) {
 	var transitionsEnabled, component;
 
-	config.template.init( null, this, { template: template } );
+	templateConfigurator.init( null, this, { template: template });
 
 	transitionsEnabled = this.transitionsEnabled;
 	this.transitionsEnabled = false;

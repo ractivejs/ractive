@@ -1,19 +1,13 @@
 import css from './custom/css/css';
 import data from './custom/data';
 import template from './custom/template/template';
-
 import defaults from './defaults';
-
 import parseOptions from './parseOptions';
 import registries from './registries';
-
 import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
 
-
-var config, defaultKeys, custom, isBlacklisted, isStandardKey;
-
-config = {};
+var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
 
 custom = {
 	data: data,
@@ -28,8 +22,7 @@ isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] && !~parseOpt
 // blacklisted keys that we don't double extend
 isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
 
-// this defines the order:
-config.order = [].concat(
+order = [].concat(
 	custom.data,
 	parseOptions,
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] && !~parseOptions.indexOf( key ) ),
@@ -38,12 +31,34 @@ config.order = [].concat(
 	custom.css
 );
 
-for ( let key in custom ) {
-	config[ key ] = custom[ key ];
-}
+config = {
+	extend: ( Parent, proto, options ) => configure( 'extend', Parent, proto, options ),
 
-config.extend = ( Parent, proto, options ) => configure( 'extend', Parent, proto, options );
-config.init = ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options );
+	init: ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options ),
+
+	reset: ractive => {
+		return order.filter( c => {
+			return c.reset && c.reset( ractive );
+		}).map( c => c.name );
+	},
+
+	// this defines the order. TODO this isn't used anywhere in the codebase,
+	// only in the test suite - should get rid of it
+	order: order,
+
+	// TODO kill this off
+	getConstructTarget: ( ractive, options ) => {
+		if ( options.onconstruct ) {
+			// pretend this object literal is the ractive instance
+			return {
+				onconstruct: wrapPrototype( ractive, 'onconstruct', options.onconstruct ).bind(ractive),
+				fire: ractive.fire.bind(ractive)
+			};
+		} else {
+			return ractive;
+		}
+	}
+};
 
 function configure ( method, Parent, instance, options ) {
 	deprecate( options );
@@ -95,24 +110,5 @@ function makeObj ( array ) {
 	array.forEach( x => obj[x] = true );
 	return obj;
 }
-
-config.reset = function ( ractive ) {
-	return config.order.filter( c => {
-		return c.reset && c.reset( ractive );
-	}).map( c => c.name );
-};
-
-config.getConstructTarget = function ( ractive, options ) {
-	if( options.onconstruct ) {
-		// pretend this object literal is the ractive instance
-		return {
-			onconstruct: wrapPrototype( ractive, 'onconstruct', options.onconstruct ).bind(ractive),
-			fire: ractive.fire.bind(ractive)
-		};
-	}
-	else {
-		return ractive;
-	}
-};
 
 export default config;
