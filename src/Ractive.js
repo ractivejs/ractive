@@ -1,6 +1,6 @@
 import defaults from 'Ractive/config/defaults';
-import easing from 'Ractive/easing';
-import interpolators from 'Ractive/interpolators';
+import easing from 'Ractive/static/easing';
+import interpolators from 'Ractive/static/interpolators';
 import { magic, svg } from 'config/environment';
 import { defineProperties } from 'utils/object';
 import proto from 'Ractive/prototype';
@@ -8,7 +8,7 @@ import Promise from 'utils/Promise';
 import { extend as extendObj } from 'utils/object';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
-import getNodeInfo from 'utils/getNodeInfo';
+import getNodeInfo from 'Ractive/static/getNodeInfo';
 import initialise from 'Ractive/initialise';
 
 var Ractive, properties;

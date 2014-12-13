@@ -1,5 +1,5 @@
 import warn from 'utils/log/warn';
-import interpolators from 'Ractive/interpolators';
+import interpolators from 'Ractive/static/interpolators';
 import { findInViewHierarchy } from 'shared/registry';
 
 var interpolate = function ( from, to, ractive, type ) {
