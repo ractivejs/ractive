@@ -16,14 +16,11 @@ import set from './prototype/set';
 import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 import unregister from './prototype/unregister';
-import adaptConfig from './adaptConfig';
 
 var Viewmodel = function ( ractive, mappings = create(null) ) {
 	var key, mapping;
 
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
-
-	Viewmodel.extend( ractive.constructor, ractive );
 
 	// set up explicit mappings
 	this.mappings = mappings;
@@ -66,19 +63,6 @@ var Viewmodel = function ( ractive, mappings = create(null) ) {
 	this.changes = [];
 	this.implicitChanges = {};
 	this.noCascade = {};
-};
-
-Viewmodel.extend = function ( Parent, instance ) {
-
-	if ( instance.magic && !magic ) {
-		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-	}
-
-	instance.adapt = adaptConfig.combine(
-		Parent.prototype.adapt,
-		instance.adapt) || [];
-
-	instance.adapt = adaptConfig.lookup( instance, instance.adaptors );
 };
 
 Viewmodel.prototype = {
