@@ -1,3 +1,4 @@
+import { create } from 'utils/object';
 import parser from './parser';
 import parse from 'parse/_parse';
 
@@ -84,8 +85,16 @@ function resetValue ( ractive ) {
 }
 
 function getDynamicTemplate ( ractive, fn ) {
-	var helper = parser.createHelper( parser.getParseOptions( ractive ) );
+	var helper = createHelper( parser.getParseOptions( ractive ) );
 	return fn.call( ractive, ractive.data, helper );
+}
+
+function createHelper ( parseOptions ) {
+	var helper = create( parser );
+	helper.parse = function ( template, options ){
+		return parser.parse( template, options || parseOptions );
+	};
+	return helper;
 }
 
 function parseIfString ( template, ractive ) {

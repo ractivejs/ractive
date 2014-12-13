@@ -51,10 +51,7 @@ function fromId ( id, options ) {
 		throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
 	}
 
-
-
 	return template.innerHTML;
-
 }
 
 function isHashedId ( id ) {
@@ -66,7 +63,6 @@ function isParsed ( template) {
 }
 
 function getParseOptions ( ractive ) {
-
 	// Could be Ractive or a Component
 	if ( ractive.defaults ) { ractive = ractive.defaults; }
 
@@ -74,7 +70,6 @@ function getParseOptions ( ractive ) {
 		val[ key ] = ractive[ key ];
 		return val;
 	}, { ractive: ractive } );
-
 }
 
 export default parser;

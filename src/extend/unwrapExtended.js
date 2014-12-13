@@ -1,5 +1,5 @@
 import wrap from 'utils/wrapMethod';
-import config from 'Ractive/config/config';
+import registries from 'Ractive/config/registries';
 import Ractive from 'Ractive';
 
 export default function unwrapExtended ( Child ) {
@@ -8,7 +8,7 @@ export default function unwrapExtended ( Child ) {
 	let options = {};
 
 	while ( Child ) {
-		config.registries.forEach( r => {
+		registries.forEach( r => {
 			addRegistry(
 				r.useDefaults ? Child.prototype : Child,
 				options, r.name );

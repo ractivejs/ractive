@@ -5,13 +5,13 @@ import template from './custom/template/template';
 import defaults from './defaults/options';
 
 import parseOptions from './options/groups/parseOptions';
-import registries from './options/groups/registries';
+import registries from './registries';
 
 import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
 
 
-var config, defaultKeys, custom, options, blacklisted, isStandardKey;
+var config, defaultKeys, custom, isBlacklisted, isStandardKey;
 
 config = {};
 
@@ -23,16 +23,16 @@ custom = {
 
 defaultKeys = Object.keys( defaults );
 
-options = defaultKeys.filter( key => !registries[ key ] && !custom[ key ] && !~parseOptions.indexOf( key ) );
+isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] && !~parseOptions.indexOf( key ) ) );
 
-isStandardKey = {};
-defaultKeys.filter( key => !custom[ key ] && !~parseOptions.indexOf( key ) ).forEach( key => isStandardKey[ key ] = true );
+// blacklisted keys that we don't double extend
+isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
 
 // this defines the order:
 config.order = [].concat(
 	custom.data,
 	parseOptions,
-	options,
+	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] && !~parseOptions.indexOf( key ) ),
 	registries,
 	custom.template,
 	custom.css
@@ -42,30 +42,15 @@ for ( let key in custom ) {
 	config[ key ] = custom[ key ];
 }
 
-// for iteration
-config.keys = defaultKeys
-	.concat( registries.map( r => r.name ) )
-	.concat( [ 'css' ] );
-
-// blacklisted key's that we don't double extend
-blacklisted = config.keys.reduce( (list, key) => ( list[ key ] = true, list ), {} );
-
-config.parseOptions = parseOptions;
-config.registries = registries;
-
-function customConfig ( method, key, Parent, instance, options ) {
-	custom[ key ][ method ]( Parent, instance, options );
-}
-
 config.extend = ( Parent, proto, options ) => configure( 'extend', Parent, proto, options );
 config.init = ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options );
 
 function configure ( method, Parent, instance, options ) {
 	deprecate( options );
 
-	customConfig( method, 'data', Parent, instance, options );
+	data[ method ]( Parent, instance, options );
 
-	config.parseOptions.forEach( key => {
+	parseOptions.forEach( key => {
 		if ( key in options ) {
 			instance[ key ] = options[ key ];
 		}
@@ -80,19 +65,19 @@ function configure ( method, Parent, instance, options ) {
 		}
 	}
 
-	config.registries.forEach( registry => {
+	registries.forEach( registry => {
 		registry[ method ]( Parent, instance, options );
 	});
 
-	customConfig( method, 'template', Parent, instance, options );
-	customConfig( method, 'css', Parent, instance, options );
+	template[ method ]( Parent, instance, options );
+	css[ method ]( Parent, instance, options );
 
 	extendOtherMethods( Parent.prototype, instance, options );
 }
 
 function extendOtherMethods ( parent, instance, options ) {
 	for ( let key in options ) {
-		if ( !( key in blacklisted ) && options.hasOwnProperty( key ) ) {
+		if ( !isBlacklisted[ key ] && options.hasOwnProperty( key ) ) {
 			let member = options[ key ];
 
 			// if this is a method that overwrites a method, wrap it:
@@ -103,6 +88,12 @@ function extendOtherMethods ( parent, instance, options ) {
 			instance[ key ] = member;
 		}
 	}
+}
+
+function makeObj ( array ) {
+	var obj = {};
+	array.forEach( x => obj[x] = true );
+	return obj;
 }
 
 config.reset = function ( ractive ) {

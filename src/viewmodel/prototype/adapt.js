@@ -1,4 +1,4 @@
-import config from 'Ractive/config/config';
+import { findInViewHierarchy } from 'shared/registry';
 import arrayAdaptor from './get/arrayAdaptor';
 import log from 'utils/log/log';
 import magicAdaptor from './get/magicAdaptor';
@@ -17,7 +17,7 @@ export default function Viewmodel$adapt ( keypath, value ) {
 		// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
 		// we need to get the actual adaptor if that's the case
 		if ( typeof adaptor === 'string' ) {
-			let found = config.registries.adaptors.find( ractive, adaptor );
+			let found = findInViewHierarchy( 'adaptors', ractive, adaptor );
 
 			if ( !found ) {
 				// will throw. "return" for safety, if we downgrade :)

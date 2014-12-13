@@ -29,6 +29,7 @@ var defaultOptions = {
 	complete:           void 0,
 
 	// css:
+	css:                null,
 	noCssTransform:     false,
 
 	// debug:

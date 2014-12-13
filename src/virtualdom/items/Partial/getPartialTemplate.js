@@ -1,6 +1,7 @@
 import log from 'utils/log/log';
 import config from 'Ractive/config/config';
 import parser from 'Ractive/config/custom/template/parser';
+import { findInstance } from 'shared/registry';
 import deIndent from './deIndent';
 
 export default function getPartialTemplate ( ractive, name ) {
@@ -27,10 +28,8 @@ export default function getPartialTemplate ( ractive, name ) {
 }
 
 function getPartialFromRegistry ( ractive, name ) {
-	var partials = config.registries.partials;
-
 	// find first instance in the ractive or view hierarchy that has this partial
-	var instance = partials.findInstance( ractive, name );
+	var instance = findInstance( 'partials', ractive, name );
 
 	if ( !instance ) { return; }
 
@@ -71,7 +70,7 @@ function getPartialFromRegistry ( ractive, name ) {
 
 		// if fn, use instance to store result, otherwise needs to go
 		// in the correct point in prototype chain on instance or constructor
-		let target = fn ? instance : partials.findOwner( instance, name );
+		let target = fn ? instance : findOwner( instance, name );
 
 		// may be a template with partials, which need to be registered and main template extracted
 		target.partials[ name ] = partial = parsed.t;
@@ -83,4 +82,17 @@ function getPartialFromRegistry ( ractive, name ) {
 	}
 
 	return partial.v ? partial.t : partial;
+}
+
+function findOwner ( ractive, key ) {
+	return ractive.partials.hasOwnProperty( key )
+		? ractive
+		: findConstructor( ractive.constructor, key);
+}
+
+function findConstructor ( constructor, key ) {
+	if ( !constructor ) { return; }
+	return constructor.partials.hasOwnProperty( key )
+		? constructor
+		: findConstructor( constructor._Parent, key );
 }
