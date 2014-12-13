@@ -30,7 +30,7 @@ define([
 		test( 'instance has config options', t => {
 			var ractive = new Ractive();
 
-			config.forEach( itemConfig => {
+			config.order.forEach( itemConfig => {
 
 				var name = itemConfig.name || itemConfig,
 					actual = ractive,

@@ -11,7 +11,9 @@ import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
 
 
-var defaultKeys, custom, options, config, blacklisted, isStandardKey;
+var config, defaultKeys, custom, options, blacklisted, isStandardKey;
+
+config = {};
 
 custom = {
 	data: data,
@@ -27,7 +29,7 @@ isStandardKey = {};
 defaultKeys.filter( key => !custom[ key ] && !~parseOptions.indexOf( key ) ).forEach( key => isStandardKey[ key ] = true );
 
 // this defines the order:
-config = [].concat(
+config.order = [].concat(
 	custom.data,
 	parseOptions,
 	options,
@@ -104,7 +106,7 @@ function extendOtherMethods ( parent, instance, options ) {
 }
 
 config.reset = function ( ractive ) {
-	return config.filter( c => {
+	return config.order.filter( c => {
 		return c.reset && c.reset( ractive );
 	}).map( c => c.name );
 };
