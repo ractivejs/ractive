@@ -31,6 +31,18 @@ export function arrayContentsMatch ( a, b ) {
 	return true;
 }
 
+export function ensureArray ( x ) {
+	if ( typeof x === 'string' ) {
+		return [ x ];
+	}
+
+	if ( x === undefined ) {
+		return [];
+	}
+
+	return x;
+}
+
 export function removeFromArray ( array, member ) {
 	var index = array.indexOf( member );
 

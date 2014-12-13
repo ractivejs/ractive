@@ -1,14 +1,12 @@
+import { ensureArray } from 'utils/array';
 
 // should this be combined with prototype/adapt.js?
 
 var configure = {
-
 	lookup: function ( target, adaptors ) {
-
 		var i, adapt = target.adapt;
 
 		if ( !adapt || !adapt.length ) { return adapt; }
-
 
 		if ( adaptors && Object.keys( adaptors ).length && ( i = adapt.length ) ) {
 			while ( i-- ) {
@@ -24,16 +22,15 @@ var configure = {
 	},
 
 	combine: function ( parent, adapt ) {
-
 		// normalize 'Foo' to [ 'Foo' ]
-		parent = arrayIfString( parent );
-		adapt = arrayIfString( adapt );
+		parent = ensureArray( parent );
+		adapt = ensureArray( adapt );
 
 		// no parent? return adapt
-		if ( !parent || !parent.length) { return adapt; }
+		if ( !parent.length ) { return adapt; }
 
 		// no adapt? return 'copy' of parent
-		if ( !adapt || !adapt.length ) { return parent.slice(); }
+		if ( !adapt.length ) { return parent.slice(); }
 
 		// add parent adaptors to options
 		parent.forEach( a => {
@@ -46,13 +43,5 @@ var configure = {
 		return adapt;
 	}
 };
-
-function arrayIfString ( adapt ) {
-	if ( typeof adapt === 'string' ) {
-		adapt = [ adapt ];
-	}
-
-	return adapt;
-}
 
 export default configure;

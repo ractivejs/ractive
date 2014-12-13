@@ -16,7 +16,6 @@ var constructHook = new Hook( 'construct' ),
 export default initialiseRactiveInstance;
 
 function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
-
 	var el;
 
 	initialiseProperties( ractive, options );

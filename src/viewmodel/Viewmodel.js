@@ -1,5 +1,4 @@
 import { create } from 'utils/object';
-import { magic } from 'config/environment';
 import adapt from './prototype/adapt';
 import applyChanges from './prototype/applyChanges';
 import capture from './prototype/capture';
@@ -17,7 +16,7 @@ import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 import unregister from './prototype/unregister';
 
-var Viewmodel = function ( ractive, mappings = create(null) ) {
+var Viewmodel = function ( ractive, mappings = create( null ) ) {
 	var key, mapping;
 
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
