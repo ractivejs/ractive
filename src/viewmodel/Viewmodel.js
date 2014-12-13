@@ -1,4 +1,5 @@
 import { create } from 'utils/object';
+import { magic } from 'config/environment';
 import adapt from './prototype/adapt';
 import applyChanges from './prototype/applyChanges';
 import capture from './prototype/capture';
@@ -6,7 +7,6 @@ import clearCache from './prototype/clearCache';
 import compute from './prototype/compute';
 import get from './prototype/get';
 import init from './prototype/init';
-import magic from 'config/magic';
 import map from './prototype/map';
 import mark from './prototype/mark';
 import merge from './prototype/merge';

@@ -1,5 +1,5 @@
 import { defineProperties } from 'utils/object';
-import magic from 'config/magic';
+import { magic } from 'config/environment';
 import runloop from 'global/runloop';
 
 
