@@ -7,11 +7,11 @@ import defaults from './defaults/options';
 import parseOptions from './options/groups/parseOptions';
 import registries from './options/groups/registries';
 
-import wrapPrototype from 'utils/wrapPrototypeMethod';
+import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
 
 
-var custom, options, config, blacklisted;
+var defaultKeys, custom, options, config, blacklisted, isStandardKey;
 
 custom = {
 	data: data,
@@ -19,9 +19,12 @@ custom = {
 	css: css
 };
 
-options = Object.keys( defaults ).filter( key => {
-	return !registries[ key ] && !custom[ key ] && !parseOptions[ key ];
-});
+defaultKeys = Object.keys( defaults );
+
+options = defaultKeys.filter( key => !registries[ key ] && !custom[ key ] && !~parseOptions.indexOf( key ) );
+
+isStandardKey = {};
+defaultKeys.filter( key => !custom[ key ] && !~parseOptions.indexOf( key ) ).forEach( key => isStandardKey[ key ] = true );
 
 // this defines the order:
 config = [].concat(
@@ -38,7 +41,7 @@ for ( let key in custom ) {
 }
 
 // for iteration
-config.keys = Object.keys( defaults )
+config.keys = defaultKeys
 	.concat( registries.map( r => r.name ) )
 	.concat( [ 'css' ] );
 
@@ -52,21 +55,8 @@ function customConfig ( method, key, Parent, instance, options ) {
 	custom[ key ][ method ]( Parent, instance, options );
 }
 
-config.extend = function ( Parent, proto, options ) {
-	configure( 'extend', Parent, proto, options );
-};
-
-config.init = function ( Parent, ractive, options ) {
-	configure( 'init', Parent, ractive, options );
-};
-
-function isStandardDefaultKey ( key ) {
-	return (
-		key in defaults &&
-		!( key in config.parseOptions ) &&
-		!( key in custom )
-	);
-}
+config.extend = ( Parent, proto, options ) => configure( 'extend', Parent, proto, options );
+config.init = ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options );
 
 function configure ( method, Parent, instance, options ) {
 	deprecate( options );
@@ -80,7 +70,7 @@ function configure ( method, Parent, instance, options ) {
 	});
 
 	for ( let key in options ) {
-		if ( isStandardDefaultKey( key ) ) {
+		if ( isStandardKey[ key ] ) {
 			let value = options[ key ];
 			instance[ key ] = ( typeof value === 'function' )
 				? wrapPrototype( Parent.prototype, key, value )
