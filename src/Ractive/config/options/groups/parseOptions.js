@@ -1,8 +1,4 @@
-import optionGroup from './optionGroup';
-
-var keys, parseOptions;
-
-keys = [
+var keys = [
  	'preserveWhitespace',
 	'sanitize',
 	'stripComments',
@@ -11,6 +7,4 @@ keys = [
 	'interpolate'
 ];
 
-parseOptions = optionGroup( keys, key => key );
-
-export default parseOptions;
+export default keys;
