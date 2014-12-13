@@ -345,6 +345,37 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 			t.htmlEqual( fixture.innerHTML, '-duck-chicken' );
 		});
 
+		test( 'A component inherits adaptor config from its parent class', function ( t ) {
+			var Sub, SubSub, ractive;
+
+			function Wrapped(){}
+
+			adaptor = {
+				filter: obj => obj instanceof Wrapped,
+				wrap: () => {
+					return {
+						get: () => ({ foo: 'bar' }),
+						teardown: () => null
+					};
+				}
+			};
+
+			Sub = Ractive.extend({
+				adapt: [ adaptor ]
+			});
+
+			SubSub = Sub.extend({
+				template: '{{wrapped.foo}}'
+			});
+
+			ractive = new SubSub({
+				el: fixture,
+				data: { wrapped: new Wrapped() }
+			});
+
+			t.htmlEqual( fixture.innerHTML, 'bar' );
+		});
+
 	};
 
 });

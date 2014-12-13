@@ -1,13 +1,12 @@
 import { create, defineProperties } from 'utils/object';
 import config from 'config/config';
 import initialise from 'Ractive/initialise';
-import Viewmodel from 'viewmodel/Viewmodel';
 import unwrap from './unwrapExtended';
 
 var uid = 1;
 
 export default function extend ( options = {} ) {
-	var Parent = this, Child, proto, staticProperties;
+	var Parent = this, Child, proto;
 
 	// if we're extending with another Ractive instance, inherit its
 	// prototype methods and default options as well
@@ -21,7 +20,8 @@ export default function extend ( options = {} ) {
 	proto = create( Parent.prototype );
 	proto.constructor = Child;
 
-	staticProperties = {
+	// Static properties
+	defineProperties( Child, {
 		// each component needs a unique ID, for managing CSS
 		_guid: { value: uid++ },
 
@@ -33,14 +33,10 @@ export default function extend ( options = {} ) {
 
 		// Parent - for IE8, can't use Object.getPrototypeOf
 		_Parent: { value: Parent }
-	};
-
-	defineProperties( Child, staticProperties );
+	});
 
 	// extend configuration
 	config.extend( Parent, proto, options );
-
-	Viewmodel.extend( Parent, proto );
 
 	Child.prototype = proto;
 
