@@ -1,5 +1,5 @@
 import warn from 'utils/log/warn';
-import interpolators from 'Ractive/config/defaults/interpolators';
+import interpolators from 'Ractive/interpolators';
 import config from 'Ractive/config/config';
 
 var interpolate = function ( from, to, ractive, type ) {

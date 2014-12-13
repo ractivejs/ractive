@@ -1,6 +1,6 @@
 import defaults from 'Ractive/config/defaults/options';
-import easing from 'Ractive/config/defaults/easing';
-import interpolators from 'Ractive/config/defaults/interpolators';
+import easing from 'Ractive/easing';
+import interpolators from 'Ractive/interpolators';
 import { magic, svg } from 'config/environment';
 import { defineProperties } from 'utils/object';
 import proto from 'Ractive/prototype';
