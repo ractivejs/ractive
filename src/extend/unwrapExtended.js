@@ -2,9 +2,7 @@ import wrap from 'utils/wrapMethod';
 import registries from 'Ractive/config/registries';
 import Ractive from 'Ractive';
 
-export default function unwrapExtended ( Child ) {
-	if ( !( Child.prototype instanceof Ractive ) ) { return Child; }
-
+export default function unwrap ( Child ) {
 	let options = {};
 
 	while ( Child ) {
@@ -30,19 +28,18 @@ export default function unwrapExtended ( Child ) {
 
 				let result, needsSuper = value._method;
 
-				if( needsSuper ) { value = value._method; }
+				if ( needsSuper ) { value = value._method; }
 
 				// rewrap bound directly to parent fn
 				result = wrap( options[ key ]._method, value );
 
-
-				if( needsSuper ) { result._method = result; }
+				if ( needsSuper ) { result._method = result; }
 
 				options[ key ] = result;
 			}
 		});
 
-		if( Child._Parent !== Ractive ) {
+		if ( Child._Parent !== Ractive ) {
 			Child = Child._Parent;
 		} else {
 			Child = false;

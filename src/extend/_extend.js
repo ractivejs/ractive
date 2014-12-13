@@ -1,20 +1,26 @@
 import { create, defineProperties } from 'utils/object';
 import config from 'Ractive/config/config';
 import initialise from 'Ractive/initialise';
-import unwrap from './unwrapExtended';
+import Ractive from 'Ractive';
+import unwrapExtended from './unwrapExtended';
 
 var uid = 1;
 
 export default function extend ( options = {} ) {
 	var Parent = this, Child, proto;
 
-	// if we're extending with another Ractive instance, inherit its
-	// prototype methods and default options as well
-	options = unwrap( options );
+	// if we're extending with another Ractive instance...
+	//
+	//   var Human = Ractive.extend(...), Spider = Ractive.extend(...);
+	//   var Spiderman = Human.extend( Spider );
+	//
+	// ...inherit prototype methods and default options as well
+	if ( options.prototype instanceof Ractive ) {
+		options = unwrapExtended( options );
+	}
 
-	// create Child constructor
-	Child = function ( options, _options ) {
-		initialise( this, options, _options );
+	Child = function ( options ) {
+		initialise( this, options );
 	};
 
 	proto = create( Parent.prototype );

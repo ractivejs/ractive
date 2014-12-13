@@ -60,37 +60,37 @@ config = {
 	}
 };
 
-function configure ( method, Parent, instance, options ) {
+function configure ( method, Parent, target, options ) {
 	deprecate( options );
 
-	data[ method ]( Parent, instance, options );
+	data[ method ]( Parent, target, options );
 
 	parseOptions.forEach( key => {
 		if ( key in options ) {
-			instance[ key ] = options[ key ];
+			target[ key ] = options[ key ];
 		}
 	});
 
 	for ( let key in options ) {
 		if ( isStandardKey[ key ] ) {
 			let value = options[ key ];
-			instance[ key ] = ( typeof value === 'function' )
+			target[ key ] = ( typeof value === 'function' )
 				? wrapPrototype( Parent.prototype, key, value )
 				: value;
 		}
 	}
 
 	registries.forEach( registry => {
-		registry[ method ]( Parent, instance, options );
+		registry[ method ]( Parent, target, options );
 	});
 
-	template[ method ]( Parent, instance, options );
-	css[ method ]( Parent, instance, options );
+	template[ method ]( Parent, target, options );
+	css[ method ]( Parent, target, options );
 
-	extendOtherMethods( Parent.prototype, instance, options );
+	extendOtherMethods( Parent.prototype, target, options );
 }
 
-function extendOtherMethods ( parent, instance, options ) {
+function extendOtherMethods ( parent, target, options ) {
 	for ( let key in options ) {
 		if ( !isBlacklisted[ key ] && options.hasOwnProperty( key ) ) {
 			let member = options[ key ];
@@ -100,7 +100,7 @@ function extendOtherMethods ( parent, instance, options ) {
 				member = wrapPrototype( parent, key, member );
 			}
 
-			instance[ key ] = member;
+			target[ key ] = member;
 		}
 	}
 }
