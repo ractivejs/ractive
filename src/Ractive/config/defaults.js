@@ -7,10 +7,13 @@ var defaultOptions = {
 	// template:
 	template:           {v:2,t:[]},
 
-	// parse:
+	// parse:     // TODO static delimiters?
 	preserveWhitespace: false,
 	sanitize:           false,
 	stripComments:      true,
+	delimiters:         [ '{{', '}}' ],
+	tripleDelimiters:   [ '{{{', '}}}' ],
+	interpolate:        false,
 
 	// data & binding:
 	data:               {},

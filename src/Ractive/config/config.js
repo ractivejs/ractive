@@ -2,7 +2,6 @@ import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
 import templateConfigurator from './custom/template/template';
 import defaults from './defaults';
-import parseOptions from './parseOptions';
 import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
@@ -17,16 +16,15 @@ custom = {
 
 defaultKeys = Object.keys( defaults );
 
-isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] && !~parseOptions.indexOf( key ) ) );
+isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
 
 // blacklisted keys that we don't double extend
 isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
 
 order = [].concat(
-	custom.data,
-	parseOptions,
-	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] && !~parseOptions.indexOf( key ) ),
+	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
 	registries,
+	custom.data,
 	custom.template,
 	custom.css
 );
@@ -63,20 +61,15 @@ config = {
 function configure ( method, Parent, target, options ) {
 	deprecate( options );
 
-	dataConfigurator[ method ]( Parent, target, options );
-
-	parseOptions.forEach( key => {
-		if ( key in options ) {
-			target[ key ] = options[ key ];
-		}
-	});
-
 	for ( let key in options ) {
 		if ( isStandardKey[ key ] ) {
 			let value = options[ key ];
-			target[ key ] = ( typeof value === 'function' )
-				? wrapPrototype( Parent.prototype, key, value )
-				: value;
+
+			if ( typeof value === 'function' ) {
+				value = wrapPrototype( Parent.prototype, key, value );
+			}
+
+			target[ key ] = value;
 		}
 	}
 
@@ -84,6 +77,7 @@ function configure ( method, Parent, target, options ) {
 		registry[ method ]( Parent, target, options );
 	});
 
+	dataConfigurator[ method ]( Parent, target, options );
 	templateConfigurator[ method ]( Parent, target, options );
 	cssConfigurator[ method ]( Parent, target, options );
 

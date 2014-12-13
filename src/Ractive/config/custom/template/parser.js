@@ -2,7 +2,15 @@ import errors from 'config/errors';
 import { isClient } from 'config/environment';
 import parse from 'parse/_parse';
 import { create } from 'utils/object';
-import parseOptions from '../../parseOptions';
+
+var parseOptions = [
+ 	'preserveWhitespace',
+	'sanitize',
+	'stripComments',
+	'delimiters',
+	'tripleDelimiters',
+	'interpolate'
+];
 
 var parser = {
 	parse: doParse,
