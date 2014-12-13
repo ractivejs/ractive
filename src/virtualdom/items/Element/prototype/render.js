@@ -1,4 +1,4 @@
-import namespaces from 'config/namespaces';
+import { namespaces } from 'config/environment';
 import { isArray } from 'utils/is';
 import warn from 'utils/log/warn';
 import { create, defineProperty } from 'utils/object';

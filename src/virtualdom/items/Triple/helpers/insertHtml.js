@@ -1,4 +1,4 @@
-import namespaces from 'config/namespaces';
+import { namespaces } from 'config/environment';
 import { createElement } from 'utils/dom';
 
 var elementCache = {}, ieBug, ieBlacklist;
