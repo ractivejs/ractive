@@ -1,6 +1,6 @@
 import wrap from 'utils/wrapMethod';
 
-var dataConfig = {
+var dataConfigurator = {
 	name: 'data',
 
 	extend: ( Parent, proto, options ) => {
@@ -28,7 +28,7 @@ var dataConfig = {
 	}
 };
 
-export default dataConfig;
+export default dataConfigurator;
 
 function combine ( Parent, target, options ) {
 	var value = options.data || {},
@@ -125,7 +125,7 @@ function extendFn ( childFn, parent ) {
 	if ( typeof parent !== 'function' ) {
 		// copy props to data
 		parentFn = function ( data ) {
-			fromProperties ( data, parent );
+			fromProperties( data, parent );
 		};
 	} else {
 		parentFn = function ( data ) {

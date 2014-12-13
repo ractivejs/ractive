@@ -1,6 +1,6 @@
-import css from './custom/css/css';
-import data from './custom/data';
-import template from './custom/template/template';
+import cssConfigurator from './custom/css/css';
+import dataConfigurator from './custom/data';
+import templateConfigurator from './custom/template/template';
 import defaults from './defaults';
 import parseOptions from './parseOptions';
 import registries from './registries';
@@ -10,9 +10,9 @@ import deprecate from './deprecate';
 var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
 
 custom = {
-	data: data,
-	template: template,
-	css: css
+	data: dataConfigurator,
+	template: templateConfigurator,
+	css: cssConfigurator
 };
 
 defaultKeys = Object.keys( defaults );
@@ -63,7 +63,7 @@ config = {
 function configure ( method, Parent, target, options ) {
 	deprecate( options );
 
-	data[ method ]( Parent, target, options );
+	dataConfigurator[ method ]( Parent, target, options );
 
 	parseOptions.forEach( key => {
 		if ( key in options ) {
@@ -84,8 +84,8 @@ function configure ( method, Parent, target, options ) {
 		registry[ method ]( Parent, target, options );
 	});
 
-	template[ method ]( Parent, target, options );
-	css[ method ]( Parent, target, options );
+	templateConfigurator[ method ]( Parent, target, options );
+	cssConfigurator[ method ]( Parent, target, options );
 
 	extendOtherMethods( Parent.prototype, target, options );
 }

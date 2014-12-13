@@ -1,6 +1,6 @@
 import transformCss from './transform';
 
-var cssConfig = {
+var cssConfigurator = {
 	name: 'css',
 
 	extend: ( Parent, proto, options ) => {
@@ -22,4 +22,4 @@ function getCss ( css, target, guid ) {
 		: transformCss( css, guid );
 }
 
-export default cssConfig;
+export default cssConfigurator;

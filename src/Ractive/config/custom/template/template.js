@@ -2,7 +2,7 @@ import { create } from 'utils/object';
 import parser from './parser';
 import parse from 'parse/_parse';
 
-var templateConfig = {
+var templateConfigurator = {
 	name: 'template',
 
 	extend: function extend ( Parent, proto, options ) {
@@ -128,4 +128,4 @@ function extendPartials ( existingPartials, newPartials, overwrite ) {
 	}
 }
 
-export default templateConfig;
+export default templateConfigurator;

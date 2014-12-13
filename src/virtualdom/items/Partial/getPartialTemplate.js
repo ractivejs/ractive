@@ -1,5 +1,4 @@
 import log from 'utils/log/log';
-import config from 'Ractive/config/config';
 import parser from 'Ractive/config/custom/template/parser';
 import { findInstance } from 'shared/registry';
 import deIndent from './deIndent';
