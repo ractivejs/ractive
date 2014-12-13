@@ -1,6 +1,6 @@
 import log from 'utils/log/log';
 import Fragment from 'virtualdom/Fragment';
-import config from 'config/config';
+import config from 'Ractive/config/config';
 
 var getValueOptions, Decorator;
 

@@ -1,5 +1,5 @@
 import log from 'utils/log/log';
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
 
 var getValueOptions = {}; // TODO what are the options?

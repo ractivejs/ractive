@@ -1,4 +1,4 @@
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import genericHandler from '../shared/genericHandler';
 import log from 'utils/log/log';
 

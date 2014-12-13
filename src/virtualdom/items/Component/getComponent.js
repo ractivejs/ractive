@@ -1,4 +1,4 @@
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import log from 'utils/log/log';
 
 // finds the component constructor in the registry or view hierarchy registries

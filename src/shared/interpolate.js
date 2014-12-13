@@ -1,6 +1,6 @@
 import warn from 'utils/log/warn';
-import interpolators from 'config/defaults/interpolators';
-import config from 'config/config';
+import interpolators from 'Ractive/config/defaults/interpolators';
+import config from 'Ractive/config/config';
 
 var interpolate = function ( from, to, ractive, type ) {
 	if ( from === to ) {

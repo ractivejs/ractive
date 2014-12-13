@@ -1,7 +1,7 @@
 define([
 	'ractive',
-	'config/defaults/options',
-	'config/config'
+	'Ractive/config/defaults/options',
+	'Ractive/config/config'
 ], function (
 	Ractive,
 	defaults,

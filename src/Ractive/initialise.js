@@ -1,4 +1,4 @@
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import { create } from 'utils/object';
 import { magic } from 'config/environment';
 import Fragment from 'virtualdom/Fragment';

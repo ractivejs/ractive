@@ -1,4 +1,4 @@
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import arrayAdaptor from './get/arrayAdaptor';
 import log from 'utils/log/log';
 import magicAdaptor from './get/magicAdaptor';

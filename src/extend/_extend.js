@@ -1,5 +1,5 @@
 import { create, defineProperties } from 'utils/object';
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import initialise from 'Ractive/initialise';
 import unwrap from './unwrapExtended';
 

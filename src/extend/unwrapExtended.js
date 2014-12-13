@@ -1,5 +1,5 @@
 import wrap from 'utils/wrapMethod';
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import Ractive from 'Ractive';
 
 export default function unwrapExtended ( Child ) {

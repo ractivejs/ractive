@@ -1,4 +1,4 @@
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case
