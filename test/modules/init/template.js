@@ -1,5 +1,5 @@
 define([
-	'Ractive/config/options/template/template',
+	'Ractive/config/custom/template/template',
 	'utils/is',
 	'utils/object'
 ],

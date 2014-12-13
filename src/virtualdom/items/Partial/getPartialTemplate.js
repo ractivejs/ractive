@@ -1,6 +1,6 @@
 import log from 'utils/log/log';
 import config from 'Ractive/config/config';
-import parser from 'Ractive/config/options/template/parser';
+import parser from 'Ractive/config/custom/template/parser';
 import deIndent from './deIndent';
 
 export default function getPartialTemplate ( ractive, name ) {

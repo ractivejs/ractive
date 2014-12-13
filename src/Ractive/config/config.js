@@ -1,7 +1,8 @@
-import css from './options/css/css';
-import data from './options/data';
+import css from './custom/css/css';
+import data from './custom/data';
+import template from './custom/template/template';
+
 import defaults from './defaults/options';
-import template from './options/template/template';
 
 import parseOptions from './options/groups/parseOptions';
 import registries from './options/groups/registries';
@@ -32,7 +33,7 @@ config = [].concat(
 	custom.css
 );
 
-for( let key in custom ) {
+for ( let key in custom ) {
 	config[ key ] = custom[ key ];
 }
 

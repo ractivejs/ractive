@@ -1,12 +1,12 @@
-import config from 'Ractive/config/config';
+import { getElement } from 'utils/dom';
 import { create } from 'utils/object';
 import { magic } from 'config/environment';
+import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
-import { getElement } from 'utils/dom';
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
 import Viewmodel from 'viewmodel/Viewmodel';
 import adaptConfig from 'viewmodel/adaptConfig';
+import Hook from './prototype/shared/hooks/Hook';
+import HookQueue from './prototype/shared/hooks/HookQueue';
 
 var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
