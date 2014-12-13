@@ -1,5 +1,5 @@
 define([
-	'utils/wrapPrototypeMethod',
+	'Ractive/config/wrapPrototypeMethod',
 	'utils/object'
 ], function (
 	wrap,
