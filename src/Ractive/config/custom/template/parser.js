@@ -2,7 +2,7 @@ import errors from 'config/errors';
 import { isClient } from 'config/environment';
 import parse from 'parse/_parse';
 import { create } from 'utils/object';
-import parseOptions from '../../options/groups/parseOptions';
+import parseOptions from '../../parseOptions';
 
 var parser = {
 	parse: doParse,

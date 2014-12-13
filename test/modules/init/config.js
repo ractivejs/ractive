@@ -1,6 +1,6 @@
 define([
 	'ractive',
-	'Ractive/config/defaults/options',
+	'Ractive/config/defaults',
 	'Ractive/config/config',
 	'Ractive/config/registries',
 	'shared/registry'

@@ -2,9 +2,9 @@ import css from './custom/css/css';
 import data from './custom/data';
 import template from './custom/template/template';
 
-import defaults from './defaults/options';
+import defaults from './defaults';
 
-import parseOptions from './options/groups/parseOptions';
+import parseOptions from './parseOptions';
 import registries from './registries';
 
 import wrapPrototype from './wrapPrototypeMethod';

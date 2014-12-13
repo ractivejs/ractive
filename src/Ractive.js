@@ -1,4 +1,4 @@
-import defaults from 'Ractive/config/defaults/options';
+import defaults from 'Ractive/config/defaults';
 import easing from 'Ractive/easing';
 import interpolators from 'Ractive/interpolators';
 import { magic, svg } from 'config/environment';
