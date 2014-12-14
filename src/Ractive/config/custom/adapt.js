@@ -1,6 +1,11 @@
 import log from 'utils/log/log';
+import { magic } from 'config/environment';
 import { ensureArray } from 'utils/array';
 import { findInViewHierarchy } from 'shared/registry';
+// TODO move these
+import arrayAdaptor from 'viewmodel/prototype/get/arrayAdaptor';
+import magicAdaptor from 'viewmodel/prototype/get/magicAdaptor';
+import magicArrayAdaptor from 'viewmodel/prototype/get/magicArrayAdaptor';
 
 var adaptConfigurator = {
 	extend: ( Parent, proto, options ) => {
@@ -32,6 +37,22 @@ var adaptConfigurator = {
 		}
 
 		ractive.adapt = combine( protoAdapt, adapt );
+
+		if ( ractive.magic ) {
+			if ( !magic ) {
+				throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+			}
+
+			if ( ractive.modifyArrays ) {
+				ractive.adapt.push( magicArrayAdaptor );
+			}
+
+			ractive.adapt.push( magicAdaptor );
+		}
+
+		if ( ractive.modifyArrays ) {
+			ractive.adapt.push( arrayAdaptor );
+		}
 	}
 };
 

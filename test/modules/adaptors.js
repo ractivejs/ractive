@@ -109,7 +109,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 		test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', function ( t ) {
 			var Subclass, instance, FooAdaptor = {};
 
-			Subclass = Ractive.extend({ adapt: 'Foo', adaptors: { Foo: FooAdaptor } });
+			Subclass = Ractive.extend({ adapt: 'Foo', adaptors: { Foo: FooAdaptor }, modifyArrays: false });
 			instance = new Subclass();
 
 			t.deepEqual( instance.adapt, [FooAdaptor] );

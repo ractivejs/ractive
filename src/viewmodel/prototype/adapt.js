@@ -1,7 +1,3 @@
-import arrayAdaptor from './get/arrayAdaptor';
-import magicAdaptor from './get/magicAdaptor';
-import magicArrayAdaptor from './get/magicArrayAdaptor';
-
 var prefixers = {};
 
 export default function Viewmodel$adapt ( keypath, value ) {
@@ -17,20 +13,6 @@ export default function Viewmodel$adapt ( keypath, value ) {
 			wrapped.value = value;
 			return value;
 		}
-	}
-
-	if ( ractive.magic ) {
-		if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
-			this.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
-		}
-
-		else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-			this.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
-		}
-	}
-
-	else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
-		this.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
 	}
 
 	return value;
