@@ -1,5 +1,4 @@
-import { isClient } from 'config/environment';
-import vendors from 'config/vendors';
+import { isClient, vendors } from 'config/environment';
 import { createElement } from 'utils/dom';
 import camelCase from 'utils/camelCase';
 

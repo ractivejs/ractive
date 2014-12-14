@@ -1,6 +1,6 @@
 import warn from 'utils/log/warn';
-import interpolators from 'config/defaults/interpolators';
-import config from 'config/config';
+import interpolators from 'Ractive/static/interpolators';
+import { findInViewHierarchy } from 'shared/registry';
 
 var interpolate = function ( from, to, ractive, type ) {
 	if ( from === to ) {
@@ -9,7 +9,7 @@ var interpolate = function ( from, to, ractive, type ) {
 
 	if ( type ) {
 
-		let interpol = config.registries.interpolators.find( ractive, type );
+		let interpol = findInViewHierarchy( 'interpolators', ractive, type );
 		if ( interpol ) {
 			return interpol( from, to ) || snap( to );
 		}

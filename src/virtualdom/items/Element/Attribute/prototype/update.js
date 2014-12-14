@@ -1,4 +1,4 @@
-import namespaces from 'config/namespaces';
+import { namespaces } from 'config/environment';
 import noop from 'utils/noop';
 
 import updateSelectValue from './update/updateSelectValue';

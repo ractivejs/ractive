@@ -1,16 +1,36 @@
 import wrap from 'utils/wrapMethod';
 
-var dataConfig = {
+var dataConfigurator = {
 	name: 'data',
-	extend: extend,
-	init: init,
-	reset: reset
+
+	extend: ( Parent, proto, options ) => {
+		proto.data = combine( Parent, proto, options );
+	},
+
+	init: ( Parent, ractive, options ) => {
+		var value = options.data,
+			result = combine( Parent, ractive, options );
+
+		if ( typeof result === 'function' ) {
+			result = result.call( ractive, value ) || value;
+		}
+
+		return ractive.data = result || {};
+	},
+
+	reset: function ( ractive ) {
+		var result = this.init( ractive.constructor, ractive, ractive );
+
+		if ( result ) {
+			ractive.data = result;
+			return true;
+		}
+	}
 };
 
-export default dataConfig;
+export default dataConfigurator;
 
-function combine( Parent, target, options ) {
-
+function combine ( Parent, target, options ) {
 	var value = options.data || {},
 		parentValue = getAddedKeys( Parent.prototype.data );
 
@@ -21,38 +41,7 @@ function combine( Parent, target, options ) {
 	return dispatch( parentValue, value );
 }
 
-
-function extend( Parent, proto, options ) {
-
-	proto.data = combine( Parent, proto, options );
-}
-
-function init ( Parent, ractive, options ) {
-
-	var value = options.data,
-		result = combine( Parent, ractive, options );
-
-	if ( typeof result === 'function' ) {
-
-		result = result.call( ractive, value ) || value;
-	}
-
-	return ractive.data = result || {};
-}
-
-function reset ( ractive ) {
-
-	var result = this.init( ractive.constructor, ractive, ractive );
-
-	if ( result ) {
-		ractive.data = result;
-		return true;
-	}
-
-}
-
-function getAddedKeys( parent ) {
-
+function getAddedKeys ( parent ) {
 	// only for functions that had keys added
 	if ( typeof parent !== 'function' || !Object.keys( parent ).length ) { return parent; }
 
@@ -66,32 +55,26 @@ function getAddedKeys( parent ) {
 }
 
 function dispatch ( parent, child ) {
-
 	if ( typeof child === 'function' ) {
-
 		return extendFn( child, parent );
-
 	} else if ( typeof parent === 'function' ){
-
 		return fromFn( child, parent );
-
 	} else {
-
 		return fromProperties( child, parent );
 	}
 }
 
 function copy ( from, to, fillOnly ) {
 	for ( let key in from ) {
-
-		if ( !( to._mappings && to._mappings[ key ] && to._mappings[ key ].updatable ) &&  fillOnly && key in to ) { continue; }
+		if ( !( to._mappings && to._mappings[ key ] && to._mappings[ key ].updatable ) && fillOnly && key in to ) {
+			continue;
+		}
 
 		to[ key ] = from[ key ];
 	}
 }
 
 function fromProperties ( child, parent ) {
-
 	child = child || {};
 
 	if ( !parent ) { return child; }
@@ -101,15 +84,11 @@ function fromProperties ( child, parent ) {
 	return child;
 }
 
-
 function fromFn ( child, parentFn ) {
-
-	return function( data ){
-
+	return function ( data ) {
 		var keys;
 
 		if ( child ) {
-
 			// Track the keys that our on the child,
 			// but not on the data. We'll need to apply these
 			// after the parent function returns.
@@ -129,7 +108,6 @@ function fromFn ( child, parentFn ) {
 		// should take precedence over whatever the
 		// parent did with the data.
 		if ( keys && keys.length ) {
-
 			data = data || {};
 
 			keys.forEach( key => {
@@ -142,18 +120,14 @@ function fromFn ( child, parentFn ) {
 }
 
 function extendFn ( childFn, parent ) {
-
 	var parentFn;
 
-	if( typeof parent !== 'function' ) {
-
+	if ( typeof parent !== 'function' ) {
 		// copy props to data
 		parentFn = function ( data ) {
-			fromProperties ( data, parent );
+			fromProperties( data, parent );
 		};
-
 	} else {
-
 		parentFn = function ( data ) {
 			// give parent function it's own this._super context,
 			// otherwise this._super is from child and
@@ -162,7 +136,6 @@ function extendFn ( childFn, parent ) {
 
 			return parent.call( this, data ) || data;
 		};
-
 	}
 
 	return wrap( childFn, parentFn );

@@ -1,3 +1,4 @@
+import { ensureArray } from 'utils/array';
 import createItem from './init/createItem';
 
 export default function Fragment$init ( options ) {
@@ -19,11 +20,7 @@ export default function Fragment$init ( options ) {
 	// Time to create this fragment's child items
 
 	// TODO should this be happening?
-	if ( typeof options.template === 'string' ) {
-		options.template = [ options.template ];
-	} else if ( !options.template ) {
-		options.template = [];
-	}
+	options.template = ensureArray( options.template );
 
 	this.items = options.template.map( ( template, i ) => createItem({
 		parentFragment: this,

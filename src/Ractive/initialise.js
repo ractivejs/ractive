@@ -1,10 +1,11 @@
-import config from 'config/config';
-import { create } from 'utils/object';
-import Fragment from 'virtualdom/Fragment';
 import { getElement } from 'utils/dom';
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import HookQueue from 'Ractive/prototype/shared/hooks/HookQueue';
+import { create } from 'utils/object';
+import { magic } from 'config/environment';
+import config from 'Ractive/config/config';
+import Fragment from 'virtualdom/Fragment';
 import Viewmodel from 'viewmodel/Viewmodel';
+import Hook from './prototype/shared/hooks/Hook';
+import HookQueue from './prototype/shared/hooks/HookQueue';
 
 var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
@@ -14,7 +15,6 @@ var constructHook = new Hook( 'construct' ),
 export default initialiseRactiveInstance;
 
 function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
-
 	var el;
 
 	initialiseProperties( ractive, options );
@@ -28,8 +28,13 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
-	configHook.fire( ractive );
+	// TODO this was moved from Viewmodel.extend - should be
+	// rolled in with other config stuff
+	if ( ractive.magic && !magic ) {
+		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+	}
 
+	configHook.fire( ractive );
 	initHook.begin( ractive );
 
 	// TEMPORARY. This is so we can implement Viewmodel gradually

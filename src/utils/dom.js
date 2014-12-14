@@ -1,6 +1,4 @@
-import { isClient, svg } from 'config/environment';
-import namespaces from 'config/namespaces';
-import vendors from 'config/vendors';
+import { isClient, namespaces, svg, vendors } from 'config/environment';
 
 var createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 

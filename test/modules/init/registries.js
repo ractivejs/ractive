@@ -1,6 +1,6 @@
 define([
 	'ractive',
-	'config/options/groups/registries'
+	'Ractive/config/registries'
 ], function (
 	Ractive,
 	registries

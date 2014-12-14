@@ -1,4 +1,4 @@
-import config from 'config/config';
+import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
 import Hook from './shared/hooks/Hook';
 import log from 'utils/log/log';

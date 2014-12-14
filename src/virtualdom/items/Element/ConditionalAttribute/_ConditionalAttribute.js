@@ -1,4 +1,4 @@
-import namespaces from 'config/namespaces';
+import { namespaces } from 'config/environment';
 import { createElement } from 'utils/dom';
 import { toArray } from 'utils/array';
 import Fragment from 'virtualdom/Fragment';

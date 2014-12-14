@@ -1,6 +1,6 @@
 import log from 'utils/log/log';
-import config from 'config/config';
 import Fragment from 'virtualdom/Fragment';
+import { findInViewHierarchy } from 'shared/registry';
 
 var getValueOptions = {}; // TODO what are the options?
 
@@ -48,7 +48,7 @@ export default function Transition$init ( element, template, isIntro ) {
 		fragment.unbind();
 	}
 
-	this._fn = config.registries.transitions.find( ractive, name );
+	this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
 	if ( !this._fn ) {
 		log.error({

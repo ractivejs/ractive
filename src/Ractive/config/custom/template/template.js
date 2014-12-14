@@ -1,7 +1,8 @@
+import { create } from 'utils/object';
 import parser from './parser';
 import parse from 'parse/_parse';
 
-var templateConfig = {
+var templateConfigurator = {
 	name: 'template',
 
 	extend: function extend ( Parent, proto, options ) {
@@ -84,8 +85,16 @@ function resetValue ( ractive ) {
 }
 
 function getDynamicTemplate ( ractive, fn ) {
-	var helper = parser.createHelper( parser.getParseOptions( ractive ) );
+	var helper = createHelper( parser.getParseOptions( ractive ) );
 	return fn.call( ractive, ractive.data, helper );
+}
+
+function createHelper ( parseOptions ) {
+	var helper = create( parser );
+	helper.parse = function ( template, options ){
+		return parser.parse( template, options || parseOptions );
+	};
+	return helper;
 }
 
 function parseIfString ( template, ractive ) {
@@ -119,4 +128,4 @@ function extendPartials ( existingPartials, newPartials, overwrite ) {
 	}
 }
 
-export default templateConfig;
+export default templateConfigurator;

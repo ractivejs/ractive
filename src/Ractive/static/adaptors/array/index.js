@@ -1,6 +1,6 @@
 import { defineProperty } from 'utils/object';
 import { isArray } from 'utils/is';
-import patch from './arrayAdaptor/patch';
+import patch from './patch';
 
 var arrayAdaptor,
 

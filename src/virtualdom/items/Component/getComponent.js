@@ -1,11 +1,11 @@
-import config from 'config/config';
 import log from 'utils/log/log';
+import { findInstance } from 'shared/registry';
 
 // finds the component constructor in the registry or view hierarchy registries
 
 export default function getComponent ( ractive, name ) {
 
-	var Component, instance = config.registries.components.findInstance( ractive, name );
+	var Component, instance = findInstance( 'components', ractive, name );
 
 	if ( instance ) {
 		Component = instance.components[ name ];

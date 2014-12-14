@@ -1,13 +1,26 @@
 import { create } from 'utils/object';
 import 'legacy';
 
-function Registry ( name, useDefaults ) {
+var registryNames, Registry, registries;
+
+registryNames = [
+	'adaptors',
+	'components',
+	'computed',
+	'decorators',
+	'easing',
+	'events',
+	'interpolators',
+	'partials',
+	'transitions'
+];
+
+Registry = function ( name, useDefaults ) {
 	this.name = name;
 	this.useDefaults = useDefaults;
-}
+};
 
 Registry.prototype = {
-
 	constructor: Registry,
 
  	extend: function ( Parent, proto, options ) {
@@ -37,7 +50,6 @@ Registry.prototype = {
 	},
 
 	reset: function ( ractive ) {
-
 		var registry = ractive[ this.name ];
 		var changed = false;
 		Object.keys( registry ).forEach( key => {
@@ -52,48 +64,9 @@ Registry.prototype = {
 			}
 		});
 		return changed;
-	},
-
-	findOwner: function ( ractive, key ) {
-		return ractive[ this.name ].hasOwnProperty( key )
-			? ractive
-			: this.findConstructor( ractive.constructor, key);
-	},
-
-	findConstructor: function ( constructor, key ) {
-		if ( !constructor ) { return; }
-		return constructor[ this.name ].hasOwnProperty( key )
-			? constructor
-			: this.findConstructor( constructor._Parent, key );
-	},
-
-	find: function ( ractive, key ) {
-		return recurseFind( ractive, {
-			test: r => key in r[ this.name ],
-			getValue: r => r[ this.name ][ key ]
-		});
-	},
-
-	findInstance: function ( ractive, key ) {
-		return recurseFind( ractive, {
-			test: r => key in r[ this.name ],
-			getValue: r => r
-		});
 	}
 };
 
-function recurseFind ( ractive, finder ) {
+registries = registryNames.map( name => new Registry( name, name === 'computed' ) );
 
-	var parent;
-
-	if ( finder.test( ractive ) ) {
-		return finder.getValue( ractive );
-	}
-
-	if ( !ractive.isolated && ( parent = ractive.parent ) ) {
-		return recurseFind( parent, finder );
-	}
-
-}
-
-export default Registry;
+export default registries;

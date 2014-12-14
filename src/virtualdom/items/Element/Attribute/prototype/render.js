@@ -1,4 +1,4 @@
-import namespaces from 'config/namespaces';
+import { namespaces } from 'config/environment';
 import { booleanAttributes } from 'utils/html';
 
 // the property name equivalents for element attributes, where they differ

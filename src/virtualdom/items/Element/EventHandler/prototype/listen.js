@@ -1,6 +1,6 @@
-import config from 'config/config';
-import genericHandler from '../shared/genericHandler';
 import log from 'utils/log/log';
+import genericHandler from '../shared/genericHandler';
+import { findInViewHierarchy } from 'shared/registry';
 
 var customHandlers = {},
 	touchEvents = {
@@ -18,7 +18,7 @@ export default function EventHandler$listen () {
 
 	if ( this.invalid ) { return; }
 
-	if ( definition = config.registries.events.find( this.root, name ) ) {
+	if ( definition = findInViewHierarchy( 'events', this.root, name ) ) {
 		this.custom = definition( this.node, getCustomHandler( name ) );
 	} else {
 		// Looks like we're dealing with a standard DOM event... but let's check

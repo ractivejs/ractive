@@ -1,6 +1,6 @@
 import log from 'utils/log/log';
 import Fragment from 'virtualdom/Fragment';
-import config from 'config/config';
+import { findInViewHierarchy } from 'shared/registry';
 
 var getValueOptions, Decorator;
 
@@ -53,7 +53,7 @@ Decorator = function ( element, template ) {
 		};
 	}
 
-	this.fn = config.registries.decorators.find( ractive, name );
+	this.fn = findInViewHierarchy( 'decorators', ractive, name );
 
 	if ( !this.fn ) {
 		log.error({

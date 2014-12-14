@@ -590,7 +590,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({
-				adapt: [ 'foo' ]
+				adapt: [ 'foo' ],
+				modifyArrays: false
 			});
 
 			ractive = new Widget({
