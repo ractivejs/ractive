@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-12-12 - commit 8c0ccc80 
+	2014-12-14 - commit 75556a58 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -35,10 +35,13 @@
     // template:
     template: { v: 2, t: [] },
 
-    // parse:
+    // parse:     // TODO static delimiters?
     preserveWhitespace: false,
     sanitize: false,
     stripComments: true,
+    delimiters: ["{{", "}}"],
+    tripleDelimiters: ["{{{", "}}}"],
+    interpolate: false,
 
     // data & binding:
     data: {},
@@ -57,6 +60,7 @@
     complete: void 0,
 
     // css:
+    css: null,
     noCssTransform: false,
 
     // debug:
@@ -64,7 +68,7 @@
   };
 
   var defaults__default = defaults__defaultOptions;
-  //# sourceMappingURL=01-_6to5-options.js.map
+  //# sourceMappingURL=01-_6to5-defaults.js.map
 
   // These are a subset of the easing equations found at
   // https://raw.github.com/danro/easing-js - license info
@@ -110,19 +114,20 @@
   //# sourceMappingURL=01-_6to5-easing.js.map
 
   /*global console */
-  var environment__svg, environment__isClient, environment__hasConsole;
-
-  if (typeof document === "undefined") {
-    environment__svg = false;
-  } else {
-    environment__svg = document && document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
-  }
+  var environment__isClient, environment__hasConsole, environment__magic, environment__namespaces, environment__svg, environment__vendors;
 
   environment__isClient = (typeof document === "object");
 
   environment__hasConsole = (typeof console !== "undefined" && typeof console.warn === "function" && typeof console.warn.apply === "function");
 
-  var namespaces__default = {
+  try {
+    Object.defineProperty({}, "test", { value: 0 });
+    environment__magic = true;
+  } catch (e) {
+    environment__magic = false;
+  }
+
+  environment__namespaces = {
     html: "http://www.w3.org/1999/xhtml",
     mathml: "http://www.w3.org/1998/Math/MathML",
     svg: "http://www.w3.org/2000/svg",
@@ -130,17 +135,21 @@
     xml: "http://www.w3.org/XML/1998/namespace",
     xmlns: "http://www.w3.org/2000/xmlns/"
   };
-  //# sourceMappingURL=01-_6to5-namespaces.js.map
 
-	var vendors__default = ["o", "ms", "moz", "webkit"];
-	//# sourceMappingURL=01-_6to5-vendors.js.map
+  if (typeof document === "undefined") {
+    environment__svg = false;
+  } else {
+    environment__svg = document && document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
+  }
+
+  environment__vendors = ["o", "ms", "moz", "webkit"];
 
   var dom__createElement, dom__matches, dom__div, dom__methodNames, dom__unprefixed, dom__prefixed, dom__i, dom__j, dom__makeFunction;
 
   // Test for SVG support
   if (!environment__svg) {
     dom__createElement = function (type, ns) {
-      if (ns && ns !== namespaces__default.html) {
+      if (ns && ns !== environment__namespaces.html) {
         throw "This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you're trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information";
       }
 
@@ -148,7 +157,7 @@
     };
   } else {
     dom__createElement = function (type, ns) {
-      if (!ns || ns === namespaces__default.html) {
+      if (!ns || ns === environment__namespaces.html) {
         return document.createElement(type);
       }
 
@@ -216,9 +225,9 @@
       if (dom__div[dom__unprefixed]) {
         dom__matches = dom__makeFunction(dom__unprefixed);
       } else {
-        dom__j = vendors__default.length;
+        dom__j = environment__vendors.length;
         while (dom__j--) {
-          dom__prefixed = vendors__default[dom__i] + dom__unprefixed.substr(0, 1).toUpperCase() + dom__unprefixed.substring(1);
+          dom__prefixed = environment__vendors[dom__i] + dom__unprefixed.substr(0, 1).toUpperCase() + dom__unprefixed.substring(1);
 
           if (dom__div[dom__prefixed]) {
             dom__matches = dom__makeFunction(dom__prefixed);
@@ -869,6 +878,9 @@
   }
   //# sourceMappingURL=01-_6to5-is.js.map
 
+	var noop__default = function () {};
+	//# sourceMappingURL=01-_6to5-noop.js.map
+
   /* global console */
   var warn__warn, warn__warned = {};
 
@@ -885,11 +897,3307 @@
       console.warn("%cRactive.js: %c" + message, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);");
     };
   } else {
-    warn__warn = function () {};
+    warn__warn = noop__default;
   }
 
   var warn__default = warn__warn;
   //# sourceMappingURL=01-_6to5-warn.js.map
+
+  function registry__findInViewHierarchy(registryName, ractive, name) {
+    var instance = registry__findInstance(registryName, ractive, name);
+    return instance ? instance[registryName][name] : null;
+  }
+
+  function registry__findInstance(registryName, ractive, name) {
+    while (ractive) {
+      if (name in ractive[registryName]) {
+        return ractive;
+      }
+
+      if (ractive.isolated) {
+        return null;
+      }
+
+      ractive = ractive.parent;
+    }
+  }
+  //# sourceMappingURL=01-_6to5-registry.js.map
+
+  var interpolate__interpolate = function (from, to, ractive, type) {
+    if (from === to) {
+      return interpolate__snap(to);
+    }
+
+    if (type) {
+      var interpol = registry__findInViewHierarchy("interpolators", ractive, type);
+      if (interpol) {
+        return interpol(from, to) || interpolate__snap(to);
+      }
+
+      warn__default("Missing \"" + type + "\" interpolator. You may need to download a plugin from [TODO]");
+    }
+
+    return interpolators__default.number(from, to) || interpolators__default.array(from, to) || interpolators__default.object(from, to) || interpolate__snap(to);
+  };
+
+  var interpolate__default = interpolate__interpolate;
+
+  function interpolate__snap(to) {
+    return function () {
+      return to;
+    };
+  }
+  //# sourceMappingURL=01-_6to5-interpolate.js.map
+
+  var interpolators__interpolators = {
+    number: function (from, to) {
+      var delta;
+
+      if (!is__isNumeric(from) || !is__isNumeric(to)) {
+        return null;
+      }
+
+      from = +from;
+      to = +to;
+
+      delta = to - from;
+
+      if (!delta) {
+        return function () {
+          return from;
+        };
+      }
+
+      return function (t) {
+        return from + (t * delta);
+      };
+    },
+
+    array: function (from, to) {
+      var intermediate, interpolators, len, i;
+
+      if (!is__isArray(from) || !is__isArray(to)) {
+        return null;
+      }
+
+      intermediate = [];
+      interpolators = [];
+
+      i = len = Math.min(from.length, to.length);
+      while (i--) {
+        interpolators[i] = interpolate__default(from[i], to[i]);
+      }
+
+      // surplus values - don't interpolate, but don't exclude them either
+      for (i = len; i < from.length; i += 1) {
+        intermediate[i] = from[i];
+      }
+
+      for (i = len; i < to.length; i += 1) {
+        intermediate[i] = to[i];
+      }
+
+      return function (t) {
+        var i = len;
+
+        while (i--) {
+          intermediate[i] = interpolators[i](t);
+        }
+
+        return intermediate;
+      };
+    },
+
+    object: function (from, to) {
+      var properties, len, interpolators, intermediate, prop;
+
+      if (!is__isObject(from) || !is__isObject(to)) {
+        return null;
+      }
+
+      properties = [];
+      intermediate = {};
+      interpolators = {};
+
+      for (prop in from) {
+        if (object__hasOwn.call(from, prop)) {
+          if (object__hasOwn.call(to, prop)) {
+            properties.push(prop);
+            interpolators[prop] = interpolate__default(from[prop], to[prop]);
+          } else {
+            intermediate[prop] = from[prop];
+          }
+        }
+      }
+
+      for (prop in to) {
+        if (object__hasOwn.call(to, prop) && !object__hasOwn.call(from, prop)) {
+          intermediate[prop] = to[prop];
+        }
+      }
+
+      len = properties.length;
+
+      return function (t) {
+        var i = len, prop;
+
+        while (i--) {
+          prop = properties[i];
+
+          intermediate[prop] = interpolators[prop](t);
+        }
+
+        return intermediate;
+      };
+    }
+  };
+
+  var interpolators__default = interpolators__interpolators;
+  //# sourceMappingURL=01-_6to5-interpolators.js.map
+
+  function add__add(root, keypath, d) {
+    var value;
+
+    if (typeof keypath !== "string" || !is__isNumeric(d)) {
+      throw new Error("Bad arguments");
+    }
+
+    value = +root.get(keypath) || 0;
+
+    if (!is__isNumeric(value)) {
+      throw new Error("Cannot add to a non-numeric value");
+    }
+
+    return root.set(keypath, value + d);
+  };
+  var add__default = add__add;
+  //# sourceMappingURL=01-_6to5-add.js.map
+
+  function prototype_add__Ractive$add(keypath, d) {
+    return add__default(this, keypath, (d === undefined ? 1 : +d));
+  };
+  var prototype_add__default = prototype_add__Ractive$add;
+  //# sourceMappingURL=01-_6to5-add.js.map
+
+  var rAF__requestAnimationFrame;
+
+  // If window doesn't exist, we don't need requestAnimationFrame
+  if (typeof window === "undefined") {
+    rAF__requestAnimationFrame = null;
+  } else {
+    // https://gist.github.com/paulirish/1579671
+    (function (vendors, lastTime, window) {
+      var x, setTimeout;
+
+      if (window.requestAnimationFrame) {
+        return;
+      }
+
+      for (x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x] + "RequestAnimationFrame"];
+      }
+
+      if (!window.requestAnimationFrame) {
+        setTimeout = window.setTimeout;
+
+        window.requestAnimationFrame = function (callback) {
+          var currTime, timeToCall, id;
+
+          currTime = Date.now();
+          timeToCall = Math.max(0, 16 - (currTime - lastTime));
+          id = setTimeout(function () {
+            callback(currTime + timeToCall);
+          }, timeToCall);
+
+          lastTime = currTime + timeToCall;
+          return id;
+        };
+      }
+    }(environment__vendors, 0, window));
+
+    rAF__requestAnimationFrame = window.requestAnimationFrame;
+  }
+
+  var rAF__default = rAF__requestAnimationFrame;
+  //# sourceMappingURL=01-_6to5-requestAnimationFrame.js.map
+
+  var getTime__getTime;
+
+  if (typeof window !== "undefined" && window.performance && typeof window.performance.now === "function") {
+    getTime__getTime = function () {
+      return window.performance.now();
+    };
+  } else {
+    getTime__getTime = function () {
+      return Date.now();
+    };
+  }
+
+  var getTime__default = getTime__getTime;
+  //# sourceMappingURL=01-_6to5-getTime.js.map
+
+  var errors__default = {
+    missingParser: "Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser",
+
+    mergeComparisonFail: "Merge operation: comparison failed. Falling back to identity checking",
+
+    noComponentEventArguments: "Components currently only support simple events - you cannot include arguments. Sorry!",
+
+    noTemplateForPartial: "Could not find template for partial \"{name}\"",
+
+    noNestedPartials: "Partials ({{>{name}}}) cannot contain nested inline partials",
+
+    evaluationError: "Error evaluating \"{uniqueString}\": {err}",
+
+    badArguments: "Bad arguments \"{arguments}\". I'm not allowed to argue unless you've paid.",
+
+    failedComputation: "Failed to compute \"{key}\": {err}",
+
+    missingPlugin: "Missing \"{name}\" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s",
+
+    badRadioInputBinding: "A radio input can have two-way binding on its name attribute, or its checked attribute - not both",
+
+    noRegistryFunctionReturn: "A function was specified for \"{name}\" {registry}, but no {registry} was returned",
+
+    defaultElSpecified: "The <{name}/> component has a default `el` property; it has been disregarded",
+
+    noElementProxyEventWildcards: "Only component proxy-events may contain \"*\" wildcards, <{element} on-{event}/> is not valid.",
+
+    methodDeprecated: "The method \"{deprecated}\" has been deprecated in favor of \"{replacement}\" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.",
+
+    usePromise: "{method} now returns a Promise, use {method}(...).then(callback) instead.",
+
+    noTwowayExpressions: "Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.",
+
+    computedCannotMapTo: "Computed property \"{key}\" cannot be mapped to \"{other}\" because {reason}.",
+
+    notUsed: "prevents forgetting trailing \",\" in cut and paste of previous line :)"
+  };
+  //# sourceMappingURL=01-_6to5-errors.js.map
+
+  /* global console */
+  var log__log = {
+    warn: function (options, passthru) {
+      if (!options.debug && !passthru) {
+        return;
+      }
+      this.warnAlways(options);
+    },
+    warnAlways: function (options) {
+      this.logger(log__getMessage(options), options.allowDuplicates);
+    },
+    error: function (options) {
+      this.errorOnly(options);
+
+      if (!options.debug) {
+        this.warn(options, true);
+      }
+    },
+    errorOnly: function (options) {
+      if (options.debug) {
+        this.critical(options);
+      }
+    },
+    critical: function (options) {
+      var err = options.err || new Error(log__getMessage(options));
+      this.thrower(err);
+    },
+    logger: warn__default,
+    thrower: function (err) {
+      throw err;
+    },
+    consoleError: function (options) {
+      if (environment__hasConsole) {
+        console.error(options.err);
+      } else {
+        this.thrower(options.err);
+      }
+    }
+  };
+
+  function log__getMessage(options) {
+    var message = errors__default[options.message] || options.message || "";
+    return log__interpolate(message, options.args);
+  }
+
+  // simple interpolation. probably quicker (and better) out there,
+  // but log is not in golden path of execution, only exceptions
+  function log__interpolate(message, args) {
+    return message.replace(/{([^{}]*)}/g, function (a, b) {
+      return args[b];
+    });
+  }
+
+  var log__default = log__log;
+  //# sourceMappingURL=01-_6to5-log.js.map
+
+  var Hook__deprecations = {
+    construct: {
+      deprecated: "beforeInit",
+      replacement: "onconstruct"
+    },
+    render: {
+      deprecated: "init",
+      message: "The \"init\" method has been deprecated " + "and will likely be removed in a future release. " + "You can either use the \"oninit\" method which will fire " + "only once prior to, and regardless of, any eventual ractive " + "instance being rendered, or if you need to access the " + "rendered DOM, use \"onrender\" instead. " + "See http://docs.ractivejs.org/latest/migrating for more information."
+    },
+    complete: {
+      deprecated: "complete",
+      replacement: "oncomplete"
+    }
+  };
+
+  function Hook__Hook(event) {
+    this.event = event;
+    this.method = "on" + event;
+    this.deprecate = Hook__deprecations[event];
+  }
+
+  Hook__Hook.prototype.fire = function (ractive, arg) {
+    function call(method) {
+      if (ractive[method]) {
+        arg ? ractive[method](arg) : ractive[method]();
+        return true;
+      }
+    }
+
+    call(this.method);
+
+    if (!ractive[this.method] && this.deprecate && call(this.deprecate.deprecated)) {
+      log__default.warnAlways({
+        debug: ractive.debug,
+        message: this.deprecate.message || "methodDeprecated",
+        args: this.deprecate
+      });
+    }
+
+    arg ? ractive.fire(this.event, arg) : ractive.fire(this.event);
+  };
+
+  var Hook__default = Hook__Hook;
+  //# sourceMappingURL=01-_6to5-Hook.js.map
+
+  function array__arrayContains(array, value) {
+    for (var i = 0, c = array.length; i < c; i++) {
+      if (array[i] == value) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function array__arrayContentsMatch(a, b) {
+    var i;
+
+    if (!is__isArray(a) || !is__isArray(b)) {
+      return false;
+    }
+
+    if (a.length !== b.length) {
+      return false;
+    }
+
+    i = a.length;
+    while (i--) {
+      if (a[i] !== b[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function array__ensureArray(x) {
+    if (typeof x === "string") {
+      return [x];
+    }
+
+    if (x === undefined) {
+      return [];
+    }
+
+    return x;
+  }
+
+  function array__removeFromArray(array, member) {
+    var index = array.indexOf(member);
+
+    if (index !== -1) {
+      array.splice(index, 1);
+    }
+  }
+
+  function array__toArray(arrayLike) {
+    var array = [], i = arrayLike.length;
+    while (i--) {
+      array[i] = arrayLike[i];
+    }
+
+    return array;
+  }
+  //# sourceMappingURL=01-_6to5-array.js.map
+
+  var Promise___Promise, Promise__PENDING = {}, Promise__FULFILLED = {}, Promise__REJECTED = {};
+
+  if (typeof Promise === "function") {
+    // use native Promise
+    Promise___Promise = Promise;
+  } else {
+    Promise___Promise = function (callback) {
+      var fulfilledHandlers = [], rejectedHandlers = [], state = Promise__PENDING, result, dispatchHandlers, makeResolver, fulfil, reject, promise;
+
+      makeResolver = function (newState) {
+        return function (value) {
+          if (state !== Promise__PENDING) {
+            return;
+          }
+
+          result = value;
+          state = newState;
+
+          dispatchHandlers = Promise__makeDispatcher((state === Promise__FULFILLED ? fulfilledHandlers : rejectedHandlers), result);
+
+          // dispatch onFulfilled and onRejected handlers asynchronously
+          Promise__wait(dispatchHandlers);
+        };
+      };
+
+      fulfil = makeResolver(Promise__FULFILLED);
+      reject = makeResolver(Promise__REJECTED);
+
+      try {
+        callback(fulfil, reject);
+      } catch (err) {
+        reject(err);
+      }
+
+      promise = {
+        // `then()` returns a Promise - 2.2.7
+        then: function (onFulfilled, onRejected) {
+          var promise2 = new Promise___Promise(function (fulfil, reject) {
+            var processResolutionHandler = function (handler, handlers, forward) {
+              // 2.2.1.1
+              if (typeof handler === "function") {
+                handlers.push(function (p1result) {
+                  var x;
+
+                  try {
+                    x = handler(p1result);
+                    Promise__resolve(promise2, x, fulfil, reject);
+                  } catch (err) {
+                    reject(err);
+                  }
+                });
+              } else {
+                // Forward the result of promise1 to promise2, if resolution handlers
+                // are not given
+                handlers.push(forward);
+              }
+            };
+
+            // 2.2
+            processResolutionHandler(onFulfilled, fulfilledHandlers, fulfil);
+            processResolutionHandler(onRejected, rejectedHandlers, reject);
+
+            if (state !== Promise__PENDING) {
+              // If the promise has resolved already, dispatch the appropriate handlers asynchronously
+              Promise__wait(dispatchHandlers);
+            }
+          });
+
+          return promise2;
+        }
+      };
+
+      promise["catch"] = function (onRejected) {
+        return this.then(null, onRejected);
+      };
+
+      return promise;
+    };
+
+    Promise___Promise.all = function (promises) {
+      return new Promise___Promise(function (fulfil, reject) {
+        var result = [], pending, i, processPromise;
+
+        if (!promises.length) {
+          fulfil(result);
+          return;
+        }
+
+        processPromise = function (i) {
+          promises[i].then(function (value) {
+            result[i] = value;
+
+            if (! --pending) {
+              fulfil(result);
+            }
+          }, reject);
+        };
+
+        pending = i = promises.length;
+        while (i--) {
+          processPromise(i);
+        }
+      });
+    };
+
+    Promise___Promise.resolve = function (value) {
+      return new Promise___Promise(function (fulfil) {
+        fulfil(value);
+      });
+    };
+
+    Promise___Promise.reject = function (reason) {
+      return new Promise___Promise(function (fulfil, reject) {
+        reject(reason);
+      });
+    };
+  }
+
+  var Promise__default = Promise___Promise;
+
+  // TODO use MutationObservers or something to simulate setImmediate
+  function Promise__wait(callback) {
+    setTimeout(callback, 0);
+  }
+
+  function Promise__makeDispatcher(handlers, result) {
+    return function () {
+      var handler;
+
+      while (handler = handlers.shift()) {
+        handler(result);
+      }
+    };
+  }
+
+  function Promise__resolve(promise, x, fulfil, reject) {
+    // Promise Resolution Procedure
+    var then;
+
+    // 2.3.1
+    if (x === promise) {
+      throw new TypeError("A promise's fulfillment handler cannot return the same promise");
+    }
+
+    // 2.3.2
+    if (x instanceof Promise___Promise) {
+      x.then(fulfil, reject);
+    }
+
+    // 2.3.3
+    else if (x && (typeof x === "object" || typeof x === "function")) {
+      try {
+        then = x.then; // 2.3.3.1
+      } catch (e) {
+        reject(e); // 2.3.3.2
+        return;
+      }
+
+      // 2.3.3.3
+      if (typeof then === "function") {
+        var called, resolvePromise, rejectPromise;
+
+        resolvePromise = function (y) {
+          if (called) {
+            return;
+          }
+          called = true;
+          Promise__resolve(promise, y, fulfil, reject);
+        };
+
+        rejectPromise = function (r) {
+          if (called) {
+            return;
+          }
+          called = true;
+          reject(r);
+        };
+
+        try {
+          then.call(x, resolvePromise, rejectPromise);
+        } catch (e) {
+          if (!called) {
+            // 2.3.3.3.4.1
+            reject(e); // 2.3.3.3.4.2
+            called = true;
+            return;
+          }
+        }
+      } else {
+        fulfil(x);
+      }
+    } else {
+      fulfil(x);
+    }
+  }
+  //# sourceMappingURL=01-_6to5-Promise.js.map
+
+  var keypaths__refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+
+  function keypaths__assignNewKeypath(target, property, oldKeypath, newKeypath) {
+    var existingKeypath = target[property];
+
+    if (!existingKeypath || keypaths__equalsOrStartsWith(existingKeypath, newKeypath) || !keypaths__equalsOrStartsWith(existingKeypath, oldKeypath)) {
+      return;
+    }
+
+    target[property] = keypaths__getNewKeypath(existingKeypath, oldKeypath, newKeypath);
+    return true;
+  }
+
+  function keypaths__decodeKeypath(keypath) {
+    var value = keypath.slice(2);
+
+    if (keypath[1] === "i") {
+      return is__isNumeric(value) ? +value : value;
+    } else {
+      return value;
+    }
+  }
+
+  function keypaths__equalsOrStartsWith(target, keypath) {
+    return target === keypath || keypaths__startsWithKeypath(target, keypath);
+  }
+
+  function keypaths__getMatchingKeypaths(ractive, pattern) {
+    var keys, key, matchingKeypaths;
+
+    keys = pattern.split(".");
+    matchingKeypaths = [""];
+
+    while (key = keys.shift()) {
+      if (key === "*") {
+        // expand to find all valid child keypaths
+        matchingKeypaths = matchingKeypaths.reduce(expand, []);
+      } else {
+        if (matchingKeypaths[0] === "") {
+          // first key
+          matchingKeypaths[0] = key;
+        } else {
+          matchingKeypaths = matchingKeypaths.map(keypaths__concatenate(key));
+        }
+      }
+    }
+
+    return matchingKeypaths;
+
+    function expand(matchingKeypaths, keypath) {
+      var value, key, childKeypath;
+
+      value = (ractive.viewmodel.wrapped[keypath] ? ractive.viewmodel.wrapped[keypath].get() : ractive.get(keypath));
+
+      for (key in value) {
+        if (value.hasOwnProperty(key) && (key !== "_ractive" || !is__isArray(value))) {
+          // for benefit of IE8
+          childKeypath = keypath ? keypath + "." + key : key;
+          matchingKeypaths.push(childKeypath);
+        }
+      }
+
+      return matchingKeypaths;
+    }
+  }
+
+  function keypaths__concatenate(key) {
+    return function (keypath) {
+      return keypath ? keypath + "." + key : key;
+    };
+  }
+
+  function keypaths__getNewKeypath(targetKeypath, oldKeypath, newKeypath) {
+    // exact match
+    if (targetKeypath === oldKeypath) {
+      return newKeypath !== undefined ? newKeypath : null;
+    }
+
+    // partial match based on leading keypath segments
+    if (keypaths__startsWithKeypath(targetKeypath, oldKeypath)) {
+      return newKeypath === null ? newKeypath : targetKeypath.replace(oldKeypath + ".", newKeypath + ".");
+    }
+  }
+
+  function keypaths__normalise(ref) {
+    return ref ? ref.replace(keypaths__refPattern, ".$1") : "";
+  }
+
+  function keypaths__startsWithKeypath(target, keypath) {
+    return target && keypath && target.substr(0, keypath.length + 1) === keypath + ".";
+  }
+  //# sourceMappingURL=01-_6to5-keypaths.js.map
+
+  var getInnerContext__default = function (fragment) {
+    do {
+      if (fragment.context !== undefined) {
+        return fragment.context;
+      }
+    } while (fragment = fragment.parent);
+
+    return "";
+  };
+  //# sourceMappingURL=01-_6to5-getInnerContext.js.map
+
+  function resolveRef__resolveRef(ractive, ref, fragment) {
+    ref = keypaths__normalise(ref);
+
+    // If a reference begins '~/', it's a top-level reference
+    if (ref.substr(0, 2) === "~/") {
+      ref = ref.substring(2);
+      resolveRef__createMappingIfNecessary(ractive, resolveRef__getKey(ref), fragment);
+      return ref;
+    }
+
+    // If a reference begins with '.', it's either a restricted reference or
+    // an ancestor reference...
+    if (ref[0] === ".") {
+      ref = resolveRef__resolveAncestorRef(getInnerContext__default(fragment), ref);
+
+      if (ref) {
+        resolveRef__createMappingIfNecessary(ractive, resolveRef__getKey(ref), fragment);
+      }
+
+      return ref;
+    }
+
+    // ...otherwise we need to figure out the keypath based on context
+    return resolveRef__resolveAmbiguousReference(ractive, ref, fragment);
+  };
+  var resolveRef__default = resolveRef__resolveRef;
+
+  function resolveRef__resolveAncestorRef(baseContext, ref) {
+    var contextKeys;
+
+    // {{.}} means 'current context'
+    if (ref === ".") return baseContext;
+
+    contextKeys = baseContext ? baseContext.split(".") : [];
+
+    // ancestor references (starting "../") go up the tree
+    if (ref.substr(0, 3) === "../") {
+      while (ref.substr(0, 3) === "../") {
+        if (!contextKeys.length) {
+          throw new Error("Could not resolve reference - too many \"../\" prefixes");
+        }
+
+        contextKeys.pop();
+        ref = ref.substring(3);
+      }
+
+      contextKeys.push(ref);
+      return contextKeys.join(".");
+    }
+
+    // not an ancestor reference - must be a restricted reference (prepended with "." or "./")
+    if (!baseContext) {
+      return ref.replace(/^\.\/?/, "");
+    }
+
+    return baseContext + ref.replace(/^\.\//, ".");
+  }
+
+  function resolveRef__resolveAmbiguousReference(ractive, ref, fragment, isParentLookup) {
+    var context, key, parentValue, hasContextChain, parentKeypath;
+
+    key = resolveRef__getKey(ref);
+
+    while (fragment) {
+      context = fragment.context;
+      fragment = fragment.parent;
+
+      if (!context) {
+        continue;
+      }
+
+      hasContextChain = true;
+      parentValue = ractive.viewmodel.get(context);
+
+      if (parentValue && (typeof parentValue === "object" || typeof parentValue === "function") && key in parentValue) {
+        return context + "." + ref;
+      }
+    }
+
+    // Root/computed/mapped property?
+    if (resolveRef__isRootProperty(ractive, key)) {
+      return ref;
+    }
+
+    // If this is an inline component, and it's not isolated, we
+    // can try going up the scope chain
+    if (ractive.parent && !ractive.isolated) {
+      hasContextChain = true;
+      fragment = ractive.component.parentFragment;
+
+      if (parentKeypath = resolveRef__resolveAmbiguousReference(ractive.parent, key, fragment, true)) {
+        // We need to create an inter-component binding
+        ractive.viewmodel.map(key, {
+          origin: ractive.parent.viewmodel,
+          keypath: parentKeypath
+        });
+
+        return ref;
+      }
+    }
+
+    // If there's no context chain, and the instance is either a) isolated or
+    // b) an orphan, then we know that the keypath is identical to the reference
+    if (!isParentLookup && !hasContextChain) {
+      // the data object needs to have a property by this name,
+      // to prevent future failed lookups
+      ractive.viewmodel.set(ref, undefined);
+      return ref;
+    }
+  }
+
+  function resolveRef__createMappingIfNecessary(ractive, key) {
+    var parentKeypath;
+
+    if (!ractive.parent || ractive.isolated || resolveRef__isRootProperty(ractive, key)) {
+      return;
+    }
+
+    if (parentKeypath = resolveRef__resolveAmbiguousReference(ractive.parent, key, ractive.component.parentFragment, true)) {
+      ractive.viewmodel.map(key, {
+        origin: ractive.parent.viewmodel,
+        keypath: parentKeypath
+      });
+    }
+  }
+
+  function resolveRef__isRootProperty(ractive, key) {
+    return key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
+  }
+
+  function resolveRef__getKey(ref) {
+    var index = ref.indexOf(".");
+    return ~index ? ref.slice(0, index) : ref;
+  }
+  //# sourceMappingURL=01-_6to5-resolveRef.js.map
+
+  function methodCallers__teardown(x) {
+    x.teardown();
+  }
+  function methodCallers__unbind(x) {
+    x.unbind();
+  }
+  function methodCallers__unrender(x) {
+    x.unrender();
+  }
+  //# sourceMappingURL=01-_6to5-methodCallers.js.map
+
+  var TransitionManager__TransitionManager = function (callback, parent) {
+    this.callback = callback;
+    this.parent = parent;
+
+    this.intros = [];
+    this.outros = [];
+
+    this.children = [];
+    this.totalChildren = this.outroChildren = 0;
+
+    this.detachQueue = [];
+    this.decoratorQueue = [];
+    this.outrosComplete = false;
+
+    if (parent) {
+      parent.addChild(this);
+    }
+  };
+
+  TransitionManager__TransitionManager.prototype = {
+    addChild: function (child) {
+      this.children.push(child);
+
+      this.totalChildren += 1;
+      this.outroChildren += 1;
+    },
+
+    decrementOutros: function () {
+      this.outroChildren -= 1;
+      TransitionManager__check(this);
+    },
+
+    decrementTotal: function () {
+      this.totalChildren -= 1;
+      TransitionManager__check(this);
+    },
+
+    add: function (transition) {
+      var list = transition.isIntro ? this.intros : this.outros;
+      list.push(transition);
+    },
+
+    addDecorator: function (decorator) {
+      this.decoratorQueue.push(decorator);
+    },
+
+    remove: function (transition) {
+      var list = transition.isIntro ? this.intros : this.outros;
+      array__removeFromArray(list, transition);
+      TransitionManager__check(this);
+    },
+
+    init: function () {
+      this.ready = true;
+      TransitionManager__check(this);
+    },
+
+    detachNodes: function () {
+      this.decoratorQueue.forEach(methodCallers__teardown);
+      this.detachQueue.forEach(TransitionManager__detach);
+      this.children.forEach(TransitionManager__detachNodes);
+    }
+  };
+
+  function TransitionManager__detach(element) {
+    element.detach();
+  }
+
+  function TransitionManager__detachNodes(tm) {
+    tm.detachNodes();
+  }
+
+  function TransitionManager__check(tm) {
+    if (!tm.ready || tm.outros.length || tm.outroChildren) return;
+
+    // If all outros are complete, and we haven't already done this,
+    // we notify the parent if there is one, otherwise
+    // start detaching nodes
+    if (!tm.outrosComplete) {
+      if (tm.parent) {
+        tm.parent.decrementOutros(tm);
+      } else {
+        tm.detachNodes();
+      }
+
+      tm.outrosComplete = true;
+    }
+
+    // Once everything is done, we can notify parent transition
+    // manager and call the callback
+    if (!tm.intros.length && !tm.totalChildren) {
+      if (typeof tm.callback === "function") {
+        tm.callback();
+      }
+
+      if (tm.parent) {
+        tm.parent.decrementTotal();
+      }
+    }
+  }
+
+  var TransitionManager__default = TransitionManager__TransitionManager;
+  //# sourceMappingURL=01-_6to5-TransitionManager.js.map
+
+  var runloop__batch, runloop__runloop, runloop__unresolved = [], runloop__changeHook = new Hook__default("change");
+
+  runloop__runloop = {
+    start: function (instance, returnPromise) {
+      var promise, fulfilPromise;
+
+      if (returnPromise) {
+        promise = new Promise__default(function (f) {
+          return (fulfilPromise = f);
+        });
+      }
+
+      runloop__batch = {
+        previousBatch: runloop__batch,
+        transitionManager: new TransitionManager__default(fulfilPromise, runloop__batch && runloop__batch.transitionManager),
+        views: [],
+        tasks: [],
+        viewmodels: [],
+        instance: instance
+      };
+
+      if (instance) {
+        runloop__batch.viewmodels.push(instance.viewmodel);
+      }
+
+      return promise;
+    },
+
+    end: function () {
+      runloop__flushChanges();
+
+      runloop__batch.transitionManager.init();
+      if (!runloop__batch.previousBatch && !!runloop__batch.instance) runloop__batch.instance.viewmodel.changes = [];
+      runloop__batch = runloop__batch.previousBatch;
+    },
+
+    addViewmodel: function (viewmodel) {
+      if (runloop__batch) {
+        if (runloop__batch.viewmodels.indexOf(viewmodel) === -1) {
+          runloop__batch.viewmodels.push(viewmodel);
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        viewmodel.applyChanges();
+        return false;
+      }
+    },
+
+    registerTransition: function (transition) {
+      transition._manager = runloop__batch.transitionManager;
+      runloop__batch.transitionManager.add(transition);
+    },
+
+    registerDecorator: function (decorator) {
+      runloop__batch.transitionManager.addDecorator(decorator);
+    },
+
+    addView: function (view) {
+      runloop__batch.views.push(view);
+    },
+
+    addUnresolved: function (thing) {
+      runloop__unresolved.push(thing);
+    },
+
+    removeUnresolved: function (thing) {
+      array__removeFromArray(runloop__unresolved, thing);
+    },
+
+    // synchronise node detachments with transition ends
+    detachWhenReady: function (thing) {
+      runloop__batch.transitionManager.detachQueue.push(thing);
+    },
+
+    scheduleTask: function (task, postRender) {
+      var _batch;
+
+      if (!runloop__batch) {
+        task();
+      } else {
+        _batch = runloop__batch;
+        while (postRender && _batch.previousBatch) {
+          // this can't happen until the DOM has been fully updated
+          // otherwise in some situations (with components inside elements)
+          // transitions and decorators will initialise prematurely
+          _batch = _batch.previousBatch;
+        }
+
+        _batch.tasks.push(task);
+      }
+    }
+  };
+
+  var runloop__default = runloop__runloop;
+
+  function runloop__flushChanges() {
+    var i, thing, changeHash;
+
+    while (runloop__batch.viewmodels.length) {
+      thing = runloop__batch.viewmodels.pop();
+      changeHash = thing.applyChanges();
+
+      if (changeHash) {
+        runloop__changeHook.fire(thing.ractive, changeHash);
+      }
+    }
+
+    runloop__attemptKeypathResolution();
+
+    // Now that changes have been fully propagated, we can update the DOM
+    // and complete other tasks
+    for (i = 0; i < runloop__batch.views.length; i += 1) {
+      runloop__batch.views[i].update();
+    }
+    runloop__batch.views.length = 0;
+
+    for (i = 0; i < runloop__batch.tasks.length; i += 1) {
+      runloop__batch.tasks[i]();
+    }
+    runloop__batch.tasks.length = 0;
+
+    // If updating the view caused some model blowback - e.g. a triple
+    // containing <option> elements caused the binding on the <select>
+    // to update - then we start over
+    if (runloop__batch.viewmodels.length) return runloop__flushChanges();
+  }
+
+  function runloop__attemptKeypathResolution() {
+    var i, item, keypath, resolved;
+
+    i = runloop__unresolved.length;
+
+    // see if we can resolve any unresolved references
+    while (i--) {
+      item = runloop__unresolved[i];
+
+      if (item.keypath) {
+        // it resolved some other way. TODO how? two-way binding? Seems
+        // weird that we'd still end up here
+        runloop__unresolved.splice(i, 1);
+      }
+
+      if (keypath = resolveRef__default(item.root, item.ref, item.parentFragment)) {
+        (resolved || (resolved = [])).push({
+          item: item,
+          keypath: keypath
+        });
+
+        runloop__unresolved.splice(i, 1);
+      }
+    }
+
+    if (resolved) {
+      resolved.forEach(runloop__resolve);
+    }
+  }
+
+  function runloop__resolve(resolved) {
+    resolved.item.resolve(resolved.keypath);
+  }
+  //# sourceMappingURL=01-_6to5-runloop.js.map
+
+  var animations__queue = [];
+
+  var animations__animations = {
+    tick: function () {
+      var i, animation, now;
+
+      now = getTime__default();
+
+      runloop__default.start();
+
+      for (i = 0; i < animations__queue.length; i += 1) {
+        animation = animations__queue[i];
+
+        if (!animation.tick(now)) {
+          // animation is complete, remove it from the stack, and decrement i so we don't miss one
+          animations__queue.splice(i--, 1);
+        }
+      }
+
+      runloop__default.end();
+
+      if (animations__queue.length) {
+        rAF__default(animations__animations.tick);
+      } else {
+        animations__animations.running = false;
+      }
+    },
+
+    add: function (animation) {
+      animations__queue.push(animation);
+
+      if (!animations__animations.running) {
+        animations__animations.running = true;
+        rAF__default(animations__animations.tick);
+      }
+    },
+
+    // TODO optimise this
+    abort: function (keypath, root) {
+      var i = animations__queue.length, animation;
+
+      while (i--) {
+        animation = animations__queue[i];
+
+        if (animation.root === root && animation.keypath === keypath) {
+          animation.stop();
+        }
+      }
+    }
+  };
+
+  var animations__default = animations__animations;
+  //# sourceMappingURL=01-_6to5-animations.js.map
+
+  var Animation__Animation = function (options) {
+    var key;
+
+    this.startTime = Date.now();
+
+    // from and to
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
+
+    this.interpolator = interpolate__default(this.from, this.to, this.root, this.interpolator);
+    this.running = true;
+
+    this.tick();
+  };
+
+  Animation__Animation.prototype = {
+    tick: function () {
+      var elapsed, t, value, timeNow, index, keypath;
+
+      keypath = this.keypath;
+
+      if (this.running) {
+        timeNow = Date.now();
+        elapsed = timeNow - this.startTime;
+
+        if (elapsed >= this.duration) {
+          if (keypath !== null) {
+            runloop__default.start(this.root);
+            this.root.viewmodel.set(keypath, this.to);
+            runloop__default.end();
+          }
+
+          if (this.step) {
+            this.step(1, this.to);
+          }
+
+          this.complete(this.to);
+
+          index = this.root._animations.indexOf(this);
+
+          // TODO investigate why this happens
+          if (index === -1) {
+            warn__default("Animation was not found");
+          }
+
+          this.root._animations.splice(index, 1);
+
+          this.running = false;
+          return false; // remove from the stack
+        }
+
+        t = this.easing ? this.easing(elapsed / this.duration) : (elapsed / this.duration);
+
+        if (keypath !== null) {
+          value = this.interpolator(t);
+          runloop__default.start(this.root);
+          this.root.viewmodel.set(keypath, value);
+          runloop__default.end();
+        }
+
+        if (this.step) {
+          this.step(t, value);
+        }
+
+        return true; // keep in the stack
+      }
+
+      return false; // remove from the stack
+    },
+
+    stop: function () {
+      var index;
+
+      this.running = false;
+
+      index = this.root._animations.indexOf(this);
+
+      // TODO investigate why this happens
+      if (index === -1) {
+        warn__default("Animation was not found");
+      }
+
+      this.root._animations.splice(index, 1);
+    }
+  };
+
+  var Animation__default = Animation__Animation;
+  //# sourceMappingURL=01-_6to5-Animation.js.map
+
+  var animate__noAnimation = { stop: noop__default };
+
+  function animate__Ractive$animate(keypath, to, options) {
+    var _this = this;
+
+
+    var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
+
+    promise = new Promise__default(function (fulfil) {
+      fulfilPromise = fulfil;
+    });
+
+    // animate multiple keypaths
+    if (typeof keypath === "object") {
+      options = to || {};
+      easing = options.easing;
+      duration = options.duration;
+
+      animations = [];
+
+      // we don't want to pass the `step` and `complete` handlers, as they will
+      // run for each animation! So instead we'll store the handlers and create
+      // our own...
+      step = options.step;
+      complete = options.complete;
+
+      if (step || complete) {
+        currentValues = {};
+
+        options.step = null;
+        options.complete = null;
+
+        makeValueCollector = function (keypath) {
+          return function (t, value) {
+            currentValues[keypath] = value;
+          };
+        };
+      }
+
+
+      for (k in keypath) {
+        if (keypath.hasOwnProperty(k)) {
+          if (step || complete) {
+            collectValue = makeValueCollector(k);
+            options = {
+              easing: easing,
+              duration: duration
+            };
+
+            if (step) {
+              options.step = collectValue;
+            }
+          }
+
+          options.complete = complete ? collectValue : noop__default;
+          animations.push(animate__animate(this, k, keypath[k], options));
+        }
+      }
+
+      // Create a dummy animation, to facilitate step/complete
+      // callbacks, and Promise fulfilment
+      dummyOptions = {
+        easing: easing,
+        duration: duration
+      };
+
+      if (step) {
+        dummyOptions.step = function (t) {
+          step(t, currentValues);
+        };
+      }
+
+      if (complete) {
+        promise.then(function (t) {
+          complete(t, currentValues);
+        }).then(null, function (err) {
+          log__default.consoleError({
+            debug: _this.debug,
+            err: err
+          });
+        });
+      }
+
+      dummyOptions.complete = fulfilPromise;
+
+      dummy = animate__animate(this, null, null, dummyOptions);
+      animations.push(dummy);
+
+      promise.stop = function () {
+        var animation;
+
+        while (animation = animations.pop()) {
+          animation.stop();
+        }
+
+        if (dummy) {
+          dummy.stop();
+        }
+      };
+
+      return promise;
+    }
+
+    // animate a single keypath
+    options = options || {};
+
+    if (options.complete) {
+      promise.then(options.complete).then(null, function (err) {
+        log__default.consoleError({
+          debug: _this.debug,
+          err: err
+        });
+      });
+    }
+
+    options.complete = fulfilPromise;
+    animation = animate__animate(this, keypath, to, options);
+
+    promise.stop = function () {
+      animation.stop();
+    };
+    return promise;
+  };
+  var animate__default = animate__Ractive$animate;
+
+  function animate__animate(root, keypath, to, options) {
+    var easing, duration, animation, from;
+
+    if (keypath) {
+      keypath = keypaths__normalise(keypath);
+    }
+
+    if (keypath !== null) {
+      from = root.viewmodel.get(keypath);
+    }
+
+    // cancel any existing animation
+    // TODO what about upstream/downstream keypaths?
+    animations__default.abort(keypath, root);
+
+    // don't bother animating values that stay the same
+    if (is__isEqual(from, to)) {
+      if (options.complete) {
+        options.complete(options.to);
+      }
+
+      return animate__noAnimation;
+    }
+
+    // easing function
+    if (options.easing) {
+      if (typeof options.easing === "function") {
+        easing = options.easing;
+      } else {
+        easing = root.easing[options.easing];
+      }
+
+      if (typeof easing !== "function") {
+        easing = null;
+      }
+    }
+
+    // duration
+    duration = (options.duration === undefined ? 400 : options.duration);
+
+    // TODO store keys, use an internal set method
+    animation = new Animation__default({
+      keypath: keypath,
+      from: from,
+      to: to,
+      root: root,
+      duration: duration,
+      easing: easing,
+      interpolator: options.interpolator,
+
+      // TODO wrap callbacks if necessary, to use instance as context
+      step: options.step,
+      complete: options.complete
+    });
+
+    animations__default.add(animation);
+    root._animations.push(animation);
+
+    return animation;
+  }
+  //# sourceMappingURL=01-_6to5-animate.js.map
+
+  var prototype_detach__detachHook = new Hook__default("detach");
+
+  function prototype_detach__Ractive$detach() {
+    if (this.detached) {
+      return this.detached;
+    }
+
+    if (this.el) {
+      array__removeFromArray(this.el.__ractive_instances__, this);
+    }
+    this.detached = this.fragment.detach();
+    prototype_detach__detachHook.fire(this);
+    return this.detached;
+  };
+  var prototype_detach__default = prototype_detach__Ractive$detach;
+  //# sourceMappingURL=01-_6to5-detach.js.map
+
+  function prototype_find__Ractive$find(selector) {
+    if (!this.el) {
+      return null;
+    }
+
+    return this.fragment.find(selector);
+  };
+  var prototype_find__default = prototype_find__Ractive$find;
+  //# sourceMappingURL=01-_6to5-find.js.map
+
+  var test__default = function (item, noDirty) {
+    var itemMatches;
+
+    if (this._isComponentQuery) {
+      itemMatches = !this.selector || item.name === this.selector;
+    } else {
+      itemMatches = item.node ? dom__matches(item.node, this.selector) : null;
+    }
+
+    if (itemMatches) {
+      this.push(item.node || item.instance);
+
+      if (!noDirty) {
+        this._makeDirty();
+      }
+
+      return true;
+    }
+  };
+  //# sourceMappingURL=01-_6to5-test.js.map
+
+  var cancel__default = function () {
+    var liveQueries, selector, index;
+
+    liveQueries = this._root[this._isComponentQuery ? "liveComponentQueries" : "liveQueries"];
+    selector = this.selector;
+
+    index = liveQueries.indexOf(selector);
+
+    if (index !== -1) {
+      liveQueries.splice(index, 1);
+      liveQueries[selector] = null;
+    }
+  };
+  //# sourceMappingURL=01-_6to5-cancel.js.map
+
+  var sortByItemPosition__default = function (a, b) {
+    var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
+
+    ancestryA = sortByItemPosition__getAncestry(a.component || a._ractive.proxy);
+    ancestryB = sortByItemPosition__getAncestry(b.component || b._ractive.proxy);
+
+    oldestA = ancestryA[ancestryA.length - 1];
+    oldestB = ancestryB[ancestryB.length - 1];
+
+    // remove items from the end of both ancestries as long as they are identical
+    // - the final one removed is the closest mutual ancestor
+    while (oldestA && (oldestA === oldestB)) {
+      ancestryA.pop();
+      ancestryB.pop();
+
+      mutualAncestor = oldestA;
+
+      oldestA = ancestryA[ancestryA.length - 1];
+      oldestB = ancestryB[ancestryB.length - 1];
+    }
+
+    // now that we have the mutual ancestor, we can find which is earliest
+    oldestA = oldestA.component || oldestA;
+    oldestB = oldestB.component || oldestB;
+
+    fragmentA = oldestA.parentFragment;
+    fragmentB = oldestB.parentFragment;
+
+    // if both items share a parent fragment, our job is easy
+    if (fragmentA === fragmentB) {
+      indexA = fragmentA.items.indexOf(oldestA);
+      indexB = fragmentB.items.indexOf(oldestB);
+
+      // if it's the same index, it means one contains the other,
+      // so we see which has the longest ancestry
+      return (indexA - indexB) || ancestryA.length - ancestryB.length;
+    }
+
+    // if mutual ancestor is a section, we first test to see which section
+    // fragment comes first
+    if (fragments = mutualAncestor.fragments) {
+      indexA = fragments.indexOf(fragmentA);
+      indexB = fragments.indexOf(fragmentB);
+
+      return (indexA - indexB) || ancestryA.length - ancestryB.length;
+    }
+
+    throw new Error("An unexpected condition was met while comparing the position of two components. Please file an issue at https://github.com/RactiveJS/Ractive/issues - thanks!");
+  };
+
+  function sortByItemPosition__getParent(item) {
+    var parentFragment;
+
+    if (parentFragment = item.parentFragment) {
+      return parentFragment.owner;
+    }
+
+    if (item.component && (parentFragment = item.component.parentFragment)) {
+      return parentFragment.owner;
+    }
+  }
+
+  function sortByItemPosition__getAncestry(item) {
+    var ancestry, ancestor;
+
+    ancestry = [item];
+
+    ancestor = sortByItemPosition__getParent(item);
+
+    while (ancestor) {
+      ancestry.push(ancestor);
+      ancestor = sortByItemPosition__getParent(ancestor);
+    }
+
+    return ancestry;
+  }
+  //# sourceMappingURL=01-_6to5-sortByItemPosition.js.map
+
+  var sortByDocumentPosition__default = function (node, otherNode) {
+    var bitmask;
+
+    if (node.compareDocumentPosition) {
+      bitmask = node.compareDocumentPosition(otherNode);
+      return (bitmask & 2) ? 1 : -1;
+    }
+
+    // In old IE, we can piggy back on the mechanism for
+    // comparing component positions
+    return sortByItemPosition__default(node, otherNode);
+  };
+  //# sourceMappingURL=01-_6to5-sortByDocumentPosition.js.map
+
+  var sort__default = function () {
+    this.sort(this._isComponentQuery ? sortByItemPosition__default : sortByDocumentPosition__default);
+    this._dirty = false;
+  };
+  //# sourceMappingURL=01-_6to5-sort.js.map
+
+  var dirty__default = function () {
+    var _this = this;
+    if (!this._dirty) {
+      this._dirty = true;
+
+      // Once the DOM has been updated, ensure the query
+      // is correctly ordered
+      runloop__default.scheduleTask(function () {
+        _this._sort();
+      });
+    }
+  };
+  //# sourceMappingURL=01-_6to5-dirty.js.map
+
+  var remove__default = function (nodeOrComponent) {
+    var index = this.indexOf(this._isComponentQuery ? nodeOrComponent.instance : nodeOrComponent);
+
+    if (index !== -1) {
+      this.splice(index, 1);
+    }
+  };
+  //# sourceMappingURL=01-_6to5-remove.js.map
+
+  function makeQuery__makeQuery(ractive, selector, live, isComponentQuery) {
+    var query = [];
+
+    object__defineProperties(query, {
+      selector: { value: selector },
+      live: { value: live },
+
+      _isComponentQuery: { value: isComponentQuery },
+      _test: { value: test__default }
+    });
+
+    if (!live) {
+      return query;
+    }
+
+    object__defineProperties(query, {
+      cancel: { value: cancel__default },
+
+      _root: { value: ractive },
+      _sort: { value: sort__default },
+      _makeDirty: { value: dirty__default },
+      _remove: { value: remove__default },
+
+      _dirty: { value: false, writable: true }
+    });
+
+    return query;
+  };
+  var makeQuery__default = makeQuery__makeQuery;
+  //# sourceMappingURL=01-_6to5-_makeQuery.js.map
+
+  function prototype_findAll__Ractive$findAll(selector, options) {
+    var liveQueries, query;
+
+    if (!this.el) {
+      return [];
+    }
+
+    options = options || {};
+    liveQueries = this._liveQueries;
+
+    // Shortcut: if we're maintaining a live query with this
+    // selector, we don't need to traverse the parallel DOM
+    if (query = liveQueries[selector]) {
+      // Either return the exact same query, or (if not live) a snapshot
+      return (options && options.live) ? query : query.slice();
+    }
+
+    query = makeQuery__default(this, selector, !!options.live, false);
+
+    // Add this to the list of live queries Ractive needs to maintain,
+    // if applicable
+    if (query.live) {
+      liveQueries.push(selector);
+      liveQueries["_" + selector] = query;
+    }
+
+    this.fragment.findAll(selector, query);
+    return query;
+  };
+  var prototype_findAll__default = prototype_findAll__Ractive$findAll;
+  //# sourceMappingURL=01-_6to5-findAll.js.map
+
+  function prototype_findAllComponents__Ractive$findAllComponents(selector, options) {
+    var liveQueries, query;
+
+    options = options || {};
+    liveQueries = this._liveComponentQueries;
+
+    // Shortcut: if we're maintaining a live query with this
+    // selector, we don't need to traverse the parallel DOM
+    if (query = liveQueries[selector]) {
+      // Either return the exact same query, or (if not live) a snapshot
+      return (options && options.live) ? query : query.slice();
+    }
+
+    query = makeQuery__default(this, selector, !!options.live, true);
+
+    // Add this to the list of live queries Ractive needs to maintain,
+    // if applicable
+    if (query.live) {
+      liveQueries.push(selector);
+      liveQueries["_" + selector] = query;
+    }
+
+    this.fragment.findAllComponents(selector, query);
+    return query;
+  };
+  var prototype_findAllComponents__default = prototype_findAllComponents__Ractive$findAllComponents;
+  //# sourceMappingURL=01-_6to5-findAllComponents.js.map
+
+  function prototype_findComponent__Ractive$findComponent(selector) {
+    return this.fragment.findComponent(selector);
+  };
+  var prototype_findComponent__default = prototype_findComponent__Ractive$findComponent;
+  //# sourceMappingURL=01-_6to5-findComponent.js.map
+
+  function findContainer__Ractive$findContainer(selector) {
+    if (this.container) {
+      if (this.container.component && this.container.component.name === selector) {
+        return this.container;
+      } else {
+        return this.container.findContainer(selector);
+      }
+    }
+
+    return null;
+  };
+  var findContainer__default = findContainer__Ractive$findContainer;
+  //# sourceMappingURL=01-_6to5-findContainer.js.map
+
+  function findParent__Ractive$findParent(selector) {
+    if (this.parent) {
+      if (this.parent.component && this.parent.component.name === selector) {
+        return this.parent;
+      } else {
+        return this.parent.findParent(selector);
+      }
+    }
+
+    return null;
+  };
+  var findParent__default = findParent__Ractive$findParent;
+  //# sourceMappingURL=01-_6to5-findParent.js.map
+
+  var eventStack__eventStack = {
+    enqueue: function (ractive, event) {
+      if (ractive.event) {
+        ractive._eventQueue = ractive._eventQueue || [];
+        ractive._eventQueue.push(ractive.event);
+      }
+      ractive.event = event;
+    },
+    dequeue: function (ractive) {
+      if (ractive._eventQueue && ractive._eventQueue.length) {
+        ractive.event = ractive._eventQueue.pop();
+      } else {
+        delete ractive.event;
+      }
+    }
+  };
+
+  var eventStack__default = eventStack__eventStack;
+  //# sourceMappingURL=01-_6to5-eventStack.js.map
+
+  var getPotentialWildcardMatches__starMaps = {};
+
+  // This function takes a keypath such as 'foo.bar.baz', and returns
+  // all the variants of that keypath that include a wildcard in place
+  // of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
+  // These are then checked against the dependants map (ractive.viewmodel.depsMap)
+  // to see if any pattern observers are downstream of one or more of
+  // these wildcard keypaths (e.g. 'foo.bar.*.status')
+  function getPotentialWildcardMatches__getPotentialWildcardMatches(keypath) {
+    var keys, starMap, mapper, i, result, wildcardKeypath;
+
+    keys = keypath.split(".");
+    if (!(starMap = getPotentialWildcardMatches__starMaps[keys.length])) {
+      starMap = getPotentialWildcardMatches__getStarMap(keys.length);
+    }
+
+    result = [];
+
+    mapper = function (star, i) {
+      return star ? "*" : keys[i];
+    };
+
+    i = starMap.length;
+    while (i--) {
+      wildcardKeypath = starMap[i].map(mapper).join(".");
+
+      if (!result.hasOwnProperty(wildcardKeypath)) {
+        result.push(wildcardKeypath);
+        result[wildcardKeypath] = true;
+      }
+    }
+
+    return result;
+  };
+  var getPotentialWildcardMatches__default = getPotentialWildcardMatches__getPotentialWildcardMatches;
+
+  // This function returns all the possible true/false combinations for
+  // a given number - e.g. for two, the possible combinations are
+  // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
+  // It does so by getting all the binary values between 0 and e.g. 11
+  function getPotentialWildcardMatches__getStarMap(num) {
+    var ones = "", max, binary, starMap, mapper, i;
+
+    if (!getPotentialWildcardMatches__starMaps[num]) {
+      starMap = [];
+
+      while (ones.length < num) {
+        ones += 1;
+      }
+
+      max = parseInt(ones, 2);
+
+      mapper = function (digit) {
+        return digit === "1";
+      };
+
+      for (i = 0; i <= max; i += 1) {
+        binary = i.toString(2);
+        while (binary.length < num) {
+          binary = "0" + binary;
+        }
+
+        starMap[i] = Array.prototype.map.call(binary, mapper);
+      }
+
+      getPotentialWildcardMatches__starMaps[num] = starMap;
+    }
+
+    return getPotentialWildcardMatches__starMaps[num];
+  }
+  //# sourceMappingURL=01-_6to5-getPotentialWildcardMatches.js.map
+
+  function fireEvent__fireEvent(ractive, eventName, options) {
+    if (options === undefined) options = {};
+    if (!eventName) {
+      return;
+    }
+
+    if (!options.event) {
+      options.event = {
+        name: eventName,
+        context: ractive.data,
+        keypath: "",
+        // until event not included as argument default
+        _noArg: true
+      };
+    } else {
+      options.event.name = eventName;
+    }
+
+    var eventNames = getPotentialWildcardMatches__default(eventName);
+    fireEvent__fireEventAs(ractive, eventNames, options.event, options.args, true);
+  };
+  var fireEvent__default = fireEvent__fireEvent;
+
+  function fireEvent__fireEventAs(ractive, eventNames, event, args, initialFire) {
+    if (initialFire === undefined) initialFire = false;
+
+
+    var subscribers, i, bubble = true;
+
+    eventStack__default.enqueue(ractive, event);
+
+    for (i = eventNames.length; i >= 0; i--) {
+      subscribers = ractive._subs[eventNames[i]];
+
+      if (subscribers) {
+        bubble = fireEvent__notifySubscribers(ractive, subscribers, event, args) && bubble;
+      }
+    }
+
+    eventStack__default.dequeue(ractive);
+
+    if (ractive.parent && bubble) {
+      if (initialFire && ractive.component) {
+        var fullName = ractive.component.name + "." + eventNames[eventNames.length - 1];
+        eventNames = getPotentialWildcardMatches__default(fullName);
+
+        if (event) {
+          event.component = ractive;
+        }
+      }
+
+      fireEvent__fireEventAs(ractive.parent, eventNames, event, args);
+    }
+  }
+
+  function fireEvent__notifySubscribers(ractive, subscribers, event, args) {
+    var originalEvent = null, stopEvent = false;
+
+    if (event && !event._noArg) {
+      args = [event].concat(args);
+    }
+
+    // subscribers can be modified inflight, e.g. "once" functionality
+    // so we need to copy to make sure everyone gets called
+    subscribers = subscribers.slice();
+
+    for (var i = 0, len = subscribers.length; i < len; i += 1) {
+      if (subscribers[i].apply(ractive, args) === false) {
+        stopEvent = true;
+      }
+    }
+
+    if (event && !event._noArg && stopEvent && (originalEvent = event.original)) {
+      originalEvent.preventDefault && originalEvent.preventDefault();
+      originalEvent.stopPropagation && originalEvent.stopPropagation();
+    }
+
+    return !stopEvent;
+  }
+  //# sourceMappingURL=01-_6to5-fireEvent.js.map
+
+  function prototype_fire__Ractive$fire(eventName) {
+    var options = {
+      args: Array.prototype.slice.call(arguments, 1)
+    };
+
+    fireEvent__default(this, eventName, options);
+  };
+  var prototype_fire__default = prototype_fire__Ractive$fire;
+  //# sourceMappingURL=01-_6to5-fire.js.map
+
+  var prototype_get__options = {
+    capture: true, // top-level calls should be intercepted
+    noUnwrap: true // wrapped values should NOT be unwrapped
+  };
+
+  function prototype_get__Ractive$get(keypath) {
+    var value;
+
+    keypath = keypaths__normalise(keypath);
+    value = this.viewmodel.get(keypath, prototype_get__options);
+
+    // Create inter-component binding, if necessary
+    if (value === undefined && this.parent && !this.isolated) {
+      if (resolveRef__default(this, keypath, this.fragment)) {
+        // creates binding as side-effect, if appropriate
+        value = this.viewmodel.get(keypath);
+      }
+    }
+
+    return value;
+  };
+  var prototype_get__default = prototype_get__Ractive$get;
+  //# sourceMappingURL=01-_6to5-get.js.map
+
+  var insert__insertHook = new Hook__default("insert");
+
+  function insert__Ractive$insert(target, anchor) {
+    if (!this.fragment.rendered) {
+      // TODO create, and link to, documentation explaining this
+      throw new Error("The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.");
+    }
+
+    target = dom__getElement(target);
+    anchor = dom__getElement(anchor) || null;
+
+    if (!target) {
+      throw new Error("You must specify a valid target to insert into");
+    }
+
+    target.insertBefore(this.detach(), anchor);
+    this.el = target;
+
+    (target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(this);
+    this.detached = null;
+
+    insert__fireInsertHook(this);
+  };
+  var insert__default = insert__Ractive$insert;
+
+  function insert__fireInsertHook(ractive) {
+    insert__insertHook.fire(ractive);
+
+    ractive.findAllComponents("*").forEach(function (child) {
+      insert__fireInsertHook(child.instance);
+    });
+  }
+  //# sourceMappingURL=01-_6to5-insert.js.map
+
+  function prototype_merge__Ractive$merge(keypath, array, options) {
+    var _this = this;
+
+
+    var currentArray, promise;
+
+    keypath = keypaths__normalise(keypath);
+    currentArray = this.viewmodel.get(keypath);
+
+    // If either the existing value or the new value isn't an
+    // array, just do a regular set
+    if (!is__isArray(currentArray) || !is__isArray(array)) {
+      return this.set(keypath, array, options && options.complete);
+    }
+
+    // Manage transitions
+    promise = runloop__default.start(this, true);
+    this.viewmodel.merge(keypath, currentArray, array, options);
+    runloop__default.end();
+
+    // attach callback as fulfilment handler, if specified
+    if (options && options.complete) {
+      log__default.warn({
+        debug: this.debug,
+        message: "usePromise",
+        args: {
+          method: "ractive.merge"
+        }
+      });
+
+      promise.then(options.complete).then(null, function (err) {
+        log__default.consoleError({
+          debug: _this.debug,
+          err: err
+        });
+      });
+    }
+
+    return promise;
+  };
+  var prototype_merge__default = prototype_merge__Ractive$merge;
+  //# sourceMappingURL=01-_6to5-merge.js.map
+
+  var Observer__Observer = function (ractive, keypath, callback, options) {
+    this.root = ractive;
+    this.keypath = keypath;
+    this.callback = callback;
+    this.defer = options.defer;
+
+    // default to root as context, but allow it to be overridden
+    this.context = (options && options.context ? options.context : ractive);
+  };
+
+  Observer__Observer.prototype = {
+    init: function (immediate) {
+      this.value = this.root.get(this.keypath);
+
+      if (immediate !== false) {
+        this.update();
+      } else {
+        this.oldValue = this.value;
+      }
+    },
+
+    setValue: function (value) {
+      var _this = this;
+      if (!is__isEqual(value, this.value)) {
+        this.value = value;
+
+        if (this.defer && this.ready) {
+          runloop__default.scheduleTask(function () {
+            return _this.update();
+          });
+        } else {
+          this.update();
+        }
+      }
+    },
+
+    update: function () {
+      // Prevent infinite loops
+      if (this.updating) {
+        return;
+      }
+
+      this.updating = true;
+
+      this.callback.call(this.context, this.value, this.oldValue, this.keypath);
+      this.oldValue = this.value;
+
+      this.updating = false;
+    }
+  };
+
+  var Observer__default = Observer__Observer;
+  //# sourceMappingURL=01-_6to5-Observer.js.map
+
+  function getPattern__getPattern(ractive, pattern) {
+    var matchingKeypaths, values;
+
+    matchingKeypaths = keypaths__getMatchingKeypaths(ractive, pattern);
+
+    values = {};
+    matchingKeypaths.forEach(function (keypath) {
+      values[keypath] = ractive.get(keypath);
+    });
+
+    return values;
+  };
+  var getPattern__default = getPattern__getPattern;
+  //# sourceMappingURL=01-_6to5-getPattern.js.map
+
+  var PatternObserver__PatternObserver, PatternObserver__wildcard = /\*/, PatternObserver__slice = Array.prototype.slice;
+
+  PatternObserver__PatternObserver = function (ractive, keypath, callback, options) {
+    this.root = ractive;
+
+    this.callback = callback;
+    this.defer = options.defer;
+
+    this.keypath = keypath;
+    this.regex = new RegExp("^" + keypath.replace(/\./g, "\\.").replace(/\*/g, "([^\\.]+)") + "$");
+    this.values = {};
+
+    if (this.defer) {
+      this.proxies = [];
+    }
+
+    // default to root as context, but allow it to be overridden
+    this.context = (options && options.context ? options.context : ractive);
+  };
+
+  PatternObserver__PatternObserver.prototype = {
+    init: function (immediate) {
+      var values, keypath;
+
+      values = getPattern__default(this.root, this.keypath);
+
+      if (immediate !== false) {
+        for (keypath in values) {
+          if (values.hasOwnProperty(keypath)) {
+            this.update(keypath);
+          }
+        }
+      } else {
+        this.values = values;
+      }
+    },
+
+    update: function (keypath) {
+      var _this = this;
+      var values;
+
+      if (PatternObserver__wildcard.test(keypath)) {
+        values = getPattern__default(this.root, keypath);
+
+        for (keypath in values) {
+          if (values.hasOwnProperty(keypath)) {
+            this.update(keypath);
+          }
+        }
+
+        return;
+      }
+
+      // special case - array mutation should not trigger `array.*`
+      // pattern observer with `array.length`
+      if (this.root.viewmodel.implicitChanges[keypath]) {
+        return;
+      }
+
+      if (this.defer && this.ready) {
+        runloop__default.scheduleTask(function () {
+          return _this.getProxy(keypath).update();
+        });
+        return;
+      }
+
+      this.reallyUpdate(keypath);
+    },
+
+    reallyUpdate: function (keypath) {
+      var value, keys, args;
+
+      value = this.root.viewmodel.get(keypath);
+
+      // Prevent infinite loops
+      if (this.updating) {
+        this.values[keypath] = value;
+        return;
+      }
+
+      this.updating = true;
+
+      if (!is__isEqual(value, this.values[keypath]) || !this.ready) {
+        keys = PatternObserver__slice.call(this.regex.exec(keypath), 1);
+        args = [value, this.values[keypath], keypath].concat(keys);
+
+        this.values[keypath] = value;
+        this.callback.apply(this.context, args);
+      }
+
+      this.updating = false;
+    },
+
+    getProxy: function (keypath) {
+      var _this2 = this;
+      if (!this.proxies[keypath]) {
+        this.proxies[keypath] = {
+          update: function () {
+            return _this2.reallyUpdate(keypath);
+          }
+        };
+      }
+
+      return this.proxies[keypath];
+    }
+  };
+
+  var PatternObserver__default = PatternObserver__PatternObserver;
+  //# sourceMappingURL=01-_6to5-PatternObserver.js.map
+
+  var getObserverFacade__wildcard = /\*/, getObserverFacade__emptyObject = {};
+
+  function getObserverFacade__getObserverFacade(ractive, keypath, callback, options) {
+    var observer, isPatternObserver, cancelled;
+
+    keypath = keypaths__normalise(keypath);
+    options = options || getObserverFacade__emptyObject;
+
+    // pattern observers are treated differently
+    if (getObserverFacade__wildcard.test(keypath)) {
+      observer = new PatternObserver__default(ractive, keypath, callback, options);
+      ractive.viewmodel.patternObservers.push(observer);
+      isPatternObserver = true;
+    } else {
+      observer = new Observer__default(ractive, keypath, callback, options);
+    }
+
+    observer.init(options.init);
+    ractive.viewmodel.register(keypath, observer, isPatternObserver ? "patternObservers" : "observers");
+
+    // This flag allows observers to initialise even with undefined values
+    observer.ready = true;
+
+    return {
+      cancel: function () {
+        var index;
+
+        if (cancelled) {
+          return;
+        }
+
+        if (isPatternObserver) {
+          index = ractive.viewmodel.patternObservers.indexOf(observer);
+
+          ractive.viewmodel.patternObservers.splice(index, 1);
+          ractive.viewmodel.unregister(keypath, observer, "patternObservers");
+        } else {
+          ractive.viewmodel.unregister(keypath, observer, "observers");
+        }
+        cancelled = true;
+      }
+    };
+  };
+  var getObserverFacade__default = getObserverFacade__getObserverFacade;
+  //# sourceMappingURL=01-_6to5-getObserverFacade.js.map
+
+  function observe__Ractive$observe(keypath, callback, options) {
+    var observers, map, keypaths, i;
+
+    // Allow a map of keypaths to handlers
+    if (is__isObject(keypath)) {
+      options = callback;
+      map = keypath;
+
+      observers = [];
+
+      for (keypath in map) {
+        if (map.hasOwnProperty(keypath)) {
+          callback = map[keypath];
+          observers.push(this.observe(keypath, callback, options));
+        }
+      }
+
+      return {
+        cancel: function () {
+          while (observers.length) {
+            observers.pop().cancel();
+          }
+        }
+      };
+    }
+
+    // Allow `ractive.observe( callback )` - i.e. observe entire model
+    if (typeof keypath === "function") {
+      options = callback;
+      callback = keypath;
+      keypath = "";
+
+      return getObserverFacade__default(this, keypath, callback, options);
+    }
+
+    keypaths = keypath.split(" ");
+
+    // Single keypath
+    if (keypaths.length === 1) {
+      return getObserverFacade__default(this, keypath, callback, options);
+    }
+
+    // Multiple space-separated keypaths
+    observers = [];
+
+    i = keypaths.length;
+    while (i--) {
+      keypath = keypaths[i];
+
+      if (keypath) {
+        observers.push(getObserverFacade__default(this, keypath, callback, options));
+      }
+    }
+
+    return {
+      cancel: function () {
+        while (observers.length) {
+          observers.pop().cancel();
+        }
+      }
+    };
+  };
+  var observe__default = observe__Ractive$observe;
+  //# sourceMappingURL=01-_6to5-observe.js.map
+
+  function observeOnce__Ractive$observeOnce(property, callback, options) {
+    var observer = this.observe(property, function () {
+      callback.apply(this, arguments);
+      observer.cancel();
+    }, { init: false, defer: options && options.defer });
+
+    return observer;
+  };
+  var observeOnce__default = observeOnce__Ractive$observeOnce;
+  //# sourceMappingURL=01-_6to5-observeOnce.js.map
+
+  var trim__default = function (str) {
+    return str.trim();
+  };
+  //# sourceMappingURL=01-_6to5-trim.js.map
+
+  var notEmptyString__default = function (str) {
+    return str !== "";
+  };
+  //# sourceMappingURL=01-_6to5-notEmptyString.js.map
+
+  function off__Ractive$off(eventName, callback) {
+    var _this = this;
+    var eventNames;
+
+    // if no arguments specified, remove all callbacks
+    if (!eventName) {
+      // TODO use this code instead, once the following issue has been resolved
+      // in PhantomJS (tests are unpassable otherwise!)
+      // https://github.com/ariya/phantomjs/issues/11856
+      // defineProperty( this, '_subs', { value: create( null ), configurable: true });
+      for (eventName in this._subs) {
+        delete this._subs[eventName];
+      }
+    } else {
+      // Handle multiple space-separated event names
+      eventNames = eventName.split(" ").map(trim__default).filter(notEmptyString__default);
+
+      eventNames.forEach(function (eventName) {
+        var subscribers, index;
+
+        // If we have subscribers for this event...
+        if (subscribers = _this._subs[eventName]) {
+          // ...if a callback was specified, only remove that
+          if (callback) {
+            index = subscribers.indexOf(callback);
+            if (index !== -1) {
+              subscribers.splice(index, 1);
+            }
+          }
+
+          // ...otherwise remove all callbacks
+          else {
+            _this._subs[eventName] = [];
+          }
+        }
+      });
+    }
+
+    return this;
+  };
+  var off__default = off__Ractive$off;
+  //# sourceMappingURL=01-_6to5-off.js.map
+
+  function on__Ractive$on(eventName, callback) {
+    var _this = this;
+    var listeners, n, eventNames;
+
+    // allow mutliple listeners to be bound in one go
+    if (typeof eventName === "object") {
+      listeners = [];
+
+      for (n in eventName) {
+        if (eventName.hasOwnProperty(n)) {
+          listeners.push(this.on(n, eventName[n]));
+        }
+      }
+
+      return {
+        cancel: function () {
+          var listener;
+
+          while (listener = listeners.pop()) {
+            listener.cancel();
+          }
+        }
+      };
+    }
+
+    // Handle multiple space-separated event names
+    eventNames = eventName.split(" ").map(trim__default).filter(notEmptyString__default);
+
+    eventNames.forEach(function (eventName) {
+      (_this._subs[eventName] || (_this._subs[eventName] = [])).push(callback);
+    });
+
+    return {
+      cancel: function () {
+        return _this.off(eventName, callback);
+      }
+    };
+  };
+  var on__default = on__Ractive$on;
+  //# sourceMappingURL=01-_6to5-on.js.map
+
+  function once__Ractive$once(eventName, handler) {
+    var listener = this.on(eventName, function () {
+      handler.apply(this, arguments);
+      listener.cancel();
+    });
+
+    // so we can still do listener.cancel() manually
+    return listener;
+  };
+  var once__default = once__Ractive$once;
+  //# sourceMappingURL=01-_6to5-once.js.map
+
+  // This function takes an array, the name of a mutator method, and the
+  // arguments to call that mutator method with, and returns an array that
+  // maps the old indices to their new indices.
+
+  // So if you had something like this...
+  //
+  //     array = [ 'a', 'b', 'c', 'd' ];
+  //     array.push( 'e' );
+  //
+  // ...you'd get `[ 0, 1, 2, 3 ]` - in other words, none of the old indices
+  // have changed. If you then did this...
+  //
+  //     array.unshift( 'z' );
+  //
+  // ...the indices would be `[ 1, 2, 3, 4, 5 ]` - every item has been moved
+  // one higher to make room for the 'z'. If you removed an item, the new index
+  // would be -1...
+  //
+  //     array.splice( 2, 2 );
+  //
+  // ...this would result in [ 0, 1, -1, -1, 2, 3 ].
+  //
+  // This information is used to enable fast, non-destructive shuffling of list
+  // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
+
+  function getNewIndices__getNewIndices(array, methodName, args) {
+    var spliceArguments, len, newIndices = [], removeStart, removeEnd, balance, i;
+
+    spliceArguments = getNewIndices__getSpliceEquivalent(array, methodName, args);
+
+    if (!spliceArguments) {
+      return null; // TODO support reverse and sort?
+    }
+
+    len = array.length;
+    balance = (spliceArguments.length - 2) - spliceArguments[1];
+
+    removeStart = Math.min(len, spliceArguments[0]);
+    removeEnd = removeStart + spliceArguments[1];
+
+    for (i = 0; i < removeStart; i += 1) {
+      newIndices.push(i);
+    }
+
+    for (; i < removeEnd; i += 1) {
+      newIndices.push(-1);
+    }
+
+    for (; i < len; i += 1) {
+      newIndices.push(i + balance);
+    }
+
+    return newIndices;
+  };
+  var getNewIndices__default = getNewIndices__getNewIndices;
+
+
+  // The pop, push, shift an unshift methods can all be represented
+  // as an equivalent splice
+  function getNewIndices__getSpliceEquivalent(array, methodName, args) {
+    switch (methodName) {
+      case "splice":
+        if (args[0] !== undefined && args[0] < 0) {
+          args[0] = array.length + Math.max(args[0], -array.length);
+        }
+
+        while (args.length < 2) {
+          args.push(0);
+        }
+
+        // ensure we only remove elements that exist
+        args[1] = Math.min(args[1], array.length - args[0]);
+
+        return args;
+
+      case "sort":
+      case "reverse":
+        return null;
+
+      case "pop":
+        if (array.length) {
+          return [array.length - 1, 1];
+        }
+        return null;
+
+      case "push":
+        return [array.length, 0].concat(args);
+
+      case "shift":
+        return [0, 1];
+
+      case "unshift":
+        return [0, 0].concat(args);
+    }
+  }
+  //# sourceMappingURL=01-_6to5-getNewIndices.js.map
+
+  var makeArrayMethod___slice = Array.prototype.slice;
+  var makeArrayMethod__arrayProto = Array.prototype;
+
+  var makeArrayMethod__default = function (methodName) {
+    return function (keypath) {
+      var args = makeArrayMethod___slice.call(arguments, 1);
+
+      var array, newIndices = [], len, promise, result;
+
+      array = this.get(keypath);
+      len = array.length;
+
+      if (!is__isArray(array)) {
+        throw new Error("Called ractive." + methodName + "('" + keypath + "'), but '" + keypath + "' does not refer to an array");
+      }
+
+      newIndices = getNewIndices__default(array, methodName, args);
+
+      result = makeArrayMethod__arrayProto[methodName].apply(array, args);
+      promise = runloop__default.start(this, true).then(function () {
+        return result;
+      });
+
+      if (!!newIndices) {
+        this.viewmodel.smartUpdate(keypath, array, newIndices);
+      } else {
+        this.viewmodel.mark(keypath);
+      }
+
+      runloop__default.end();
+
+      return promise;
+    };
+  };
+  //# sourceMappingURL=01-_6to5-makeArrayMethod.js.map
+
+	var pop__default = makeArrayMethod__default("pop");
+	//# sourceMappingURL=01-_6to5-pop.js.map
+
+	var push__default = makeArrayMethod__default("push");
+	//# sourceMappingURL=01-_6to5-push.js.map
+
+  var css__css, css__update, css__styleElement, css__head, css__styleSheet, css__inDom, css__prefix = "/* Ractive.js component styles */\n", css__componentsInPage = {}, css__styles = [];
+
+  if (!environment__isClient) {
+    css__css = null;
+  } else {
+    css__styleElement = document.createElement("style");
+    css__styleElement.type = "text/css";
+
+    css__head = document.getElementsByTagName("head")[0];
+
+    css__inDom = false;
+
+    // Internet Exploder won't let you use styleSheet.innerHTML - we have to
+    // use styleSheet.cssText instead
+    css__styleSheet = css__styleElement.styleSheet;
+
+    css__update = function () {
+      var css;
+
+      if (css__styles.length) {
+        css = css__prefix + css__styles.join(" ");
+
+        if (css__styleSheet) {
+          css__styleSheet.cssText = css;
+        } else {
+          css__styleElement.innerHTML = css;
+        }
+
+        if (!css__inDom) {
+          css__head.appendChild(css__styleElement);
+          css__inDom = true;
+        }
+      } else if (css__inDom) {
+        css__head.removeChild(css__styleElement);
+        css__inDom = false;
+      }
+    };
+
+    css__css = {
+      add: function (Component) {
+        if (!Component.css) {
+          return;
+        }
+
+        if (!css__componentsInPage[Component._guid]) {
+          // we create this counter so that we can in/decrement it as
+          // instances are added and removed. When all components are
+          // removed, the style is too
+          css__componentsInPage[Component._guid] = 0;
+          css__styles.push(Component.css);
+
+          css__update(); // TODO can we only do this once for each runloop turn, but still ensure CSS is updated before onrender() methods are called?
+        }
+
+        css__componentsInPage[Component._guid] += 1;
+      },
+
+      remove: function (Component) {
+        if (!Component.css) {
+          return;
+        }
+
+        css__componentsInPage[Component._guid] -= 1;
+
+        if (!css__componentsInPage[Component._guid]) {
+          array__removeFromArray(css__styles, Component.css);
+          runloop__default.scheduleTask(css__update);
+        }
+      }
+    };
+  }
+
+  var css__default = css__css;
+  //# sourceMappingURL=01-_6to5-css.js.map
+
+  var prototype_render__renderHook = new Hook__default("render"), prototype_render__completeHook = new Hook__default("complete");
+
+  function prototype_render__Ractive$render(target, anchor) {
+    var _this = this;
+    var promise, instances, transitionsEnabled;
+
+    // if `noIntro` is `true`, temporarily disable transitions
+    transitionsEnabled = this.transitionsEnabled;
+    if (this.noIntro) {
+      this.transitionsEnabled = false;
+    }
+
+    promise = runloop__default.start(this, true);
+    runloop__default.scheduleTask(function () {
+      return prototype_render__renderHook.fire(_this);
+    }, true);
+
+    if (this.fragment.rendered) {
+      throw new Error("You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first");
+    }
+
+    target = dom__getElement(target) || this.el;
+    anchor = dom__getElement(anchor) || this.anchor;
+
+    this.el = target;
+    this.anchor = anchor;
+
+    if (!this.append && target) {
+      // Teardown any existing instances *before* trying to set up the new one -
+      // avoids certain weird bugs
+      var others = target.__ractive_instances__;
+      if (others && others.length) {
+        prototype_render__removeOtherInstances(others);
+      }
+
+      // make sure we are the only occupants
+      target.innerHTML = ""; // TODO is this quicker than removeChild? Initial research inconclusive
+    }
+
+    // Add CSS, if applicable
+    if (this.constructor.css) {
+      css__default.add(this.constructor);
+    }
+
+    if (target) {
+      if (!(instances = target.__ractive_instances__)) {
+        target.__ractive_instances__ = [this];
+      } else {
+        instances.push(this);
+      }
+
+      if (anchor) {
+        target.insertBefore(this.fragment.render(), anchor);
+      } else {
+        target.appendChild(this.fragment.render());
+      }
+    }
+
+    runloop__default.end();
+
+    this.transitionsEnabled = transitionsEnabled;
+
+    // It is now more problematic to know if the complete hook
+    // would fire. Method checking is straight-forward, but would
+    // also require preflighting event subscriptions. Which seems
+    // like more work then just letting the promise happen.
+    // But perhaps I'm wrong about that...
+    promise.then(function () {
+      return prototype_render__completeHook.fire(_this);
+    }).then(null, function (err) {
+      log__default.consoleError({
+        debug: _this.debug,
+        err: err
+      });
+    });
+
+    return promise;
+  };
+  var prototype_render__default = prototype_render__Ractive$render;
+
+  function prototype_render__removeOtherInstances(others) {
+    try {
+      others.splice(0, others.length).forEach(function (r) {
+        return r.teardown();
+      });
+    } catch (err) {}
+  }
+  //# sourceMappingURL=01-_6to5-render.js.map
+
+  var processWrapper__default = function (wrapper, array, methodName, newIndices) {
+    var root = wrapper.root;
+    var keypath = wrapper.keypath;
+
+
+    // If this is a sort or reverse, we just do root.set()...
+    // TODO use merge logic?
+    if (methodName === "sort" || methodName === "reverse") {
+      root.viewmodel.set(keypath, array);
+      return;
+    }
+
+    root.viewmodel.smartUpdate(keypath, array, newIndices);
+  };
+  //# sourceMappingURL=01-_6to5-processWrapper.js.map
+
+  var patch___slice = Array.prototype.slice;
+  var patch__patchedArrayProto = [], patch__mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"], patch__testObj, patch__patchArrayMethods, patch__unpatchArrayMethods;
+
+  patch__mutatorMethods.forEach(function (methodName) {
+    var method = function () {
+      var args = patch___slice.call(arguments);
+
+      var newIndices, result, wrapper, i;
+
+      newIndices = getNewIndices__default(this, methodName, args);
+
+      // apply the underlying method
+      result = Array.prototype[methodName].apply(this, arguments);
+
+      // trigger changes
+      runloop__default.start();
+
+      this._ractive.setting = true;
+      i = this._ractive.wrappers.length;
+      while (i--) {
+        wrapper = this._ractive.wrappers[i];
+
+        runloop__default.addViewmodel(wrapper.root.viewmodel);
+        processWrapper__default(wrapper, this, methodName, newIndices);
+      }
+
+      runloop__default.end();
+
+      this._ractive.setting = false;
+      return result;
+    };
+
+    object__defineProperty(patch__patchedArrayProto, methodName, {
+      value: method
+    });
+  });
+
+  // can we use prototype chain injection?
+  // http://perfectionkills.com/how-ecmascript-5-still-does-not-allow-to-subclass-an-array/#wrappers_prototype_chain_injection
+  patch__testObj = {};
+
+  if (patch__testObj.__proto__) {
+    // yes, we can
+    patch__patchArrayMethods = function (array) {
+      array.__proto__ = patch__patchedArrayProto;
+    };
+
+    patch__unpatchArrayMethods = function (array) {
+      array.__proto__ = Array.prototype;
+    };
+  } else {
+    // no, we can't
+    patch__patchArrayMethods = function (array) {
+      var i, methodName;
+
+      i = patch__mutatorMethods.length;
+      while (i--) {
+        methodName = patch__mutatorMethods[i];
+        object__defineProperty(array, methodName, {
+          value: patch__patchedArrayProto[methodName],
+          configurable: true
+        });
+      }
+    };
+
+    patch__unpatchArrayMethods = function (array) {
+      var i;
+
+      i = patch__mutatorMethods.length;
+      while (i--) {
+        delete array[patch__mutatorMethods[i]];
+      }
+    };
+  }
+
+  patch__patchArrayMethods.unpatch = patch__unpatchArrayMethods;
+  var patch__default = patch__patchArrayMethods;
+  //# sourceMappingURL=01-_6to5-patch.js.map
+
+  var arrayAdaptor__arrayAdaptor,
+
+  // helpers
+  arrayAdaptor__ArrayWrapper, arrayAdaptor__errorMessage;
+
+  arrayAdaptor__arrayAdaptor = {
+    filter: function (object) {
+      // wrap the array if a) b) it's an array, and b) either it hasn't been wrapped already,
+      // or the array didn't trigger the get() itself
+      return is__isArray(object) && (!object._ractive || !object._ractive.setting);
+    },
+    wrap: function (ractive, array, keypath) {
+      return new arrayAdaptor__ArrayWrapper(ractive, array, keypath);
+    }
+  };
+
+  arrayAdaptor__ArrayWrapper = function (ractive, array, keypath) {
+    this.root = ractive;
+    this.value = array;
+    this.keypath = keypath;
+
+    // if this array hasn't already been ractified, ractify it
+    if (!array._ractive) {
+      // define a non-enumerable _ractive property to store the wrappers
+      object__defineProperty(array, "_ractive", {
+        value: {
+          wrappers: [],
+          instances: [],
+          setting: false
+        },
+        configurable: true
+      });
+
+      patch__default(array);
+    }
+
+    // store the ractive instance, so we can handle transitions later
+    if (!array._ractive.instances[ractive._guid]) {
+      array._ractive.instances[ractive._guid] = 0;
+      array._ractive.instances.push(ractive);
+    }
+
+    array._ractive.instances[ractive._guid] += 1;
+    array._ractive.wrappers.push(this);
+  };
+
+  arrayAdaptor__ArrayWrapper.prototype = {
+    get: function () {
+      return this.value;
+    },
+    teardown: function () {
+      var array, storage, wrappers, instances, index;
+
+      array = this.value;
+      storage = array._ractive;
+      wrappers = storage.wrappers;
+      instances = storage.instances;
+
+      // if teardown() was invoked because we're clearing the cache as a result of
+      // a change that the array itself triggered, we can save ourselves the teardown
+      // and immediate setup
+      if (storage.setting) {
+        return false; // so that we don't remove it from this.root.viewmodel.wrapped
+      }
+
+      index = wrappers.indexOf(this);
+      if (index === -1) {
+        throw new Error(arrayAdaptor__errorMessage);
+      }
+
+      wrappers.splice(index, 1);
+
+      // if nothing else depends on this array, we can revert it to its
+      // natural state
+      if (!wrappers.length) {
+        delete array._ractive;
+        patch__default.unpatch(this.value);
+      } else {
+        // remove ractive instance if possible
+        instances[this.root._guid] -= 1;
+        if (!instances[this.root._guid]) {
+          index = instances.indexOf(this.root);
+
+          if (index === -1) {
+            throw new Error(arrayAdaptor__errorMessage);
+          }
+
+          instances.splice(index, 1);
+        }
+      }
+    }
+  };
+
+  arrayAdaptor__errorMessage = "Something went wrong in a rather interesting way";
+  var arrayAdaptor__default = arrayAdaptor__arrayAdaptor;
+  //# sourceMappingURL=01-_6to5-index.js.map
+
+  var createBranch__numeric = /^\s*[0-9]+\s*$/;
+
+  var createBranch__default = function (key) {
+    return createBranch__numeric.test(key) ? [] : {};
+  };
+  //# sourceMappingURL=01-_6to5-createBranch.js.map
+
+  var magicAdaptor__magicAdaptor, magicAdaptor__MagicWrapper;
+
+  try {
+    Object.defineProperty({}, "test", { value: 0 });
+
+    magicAdaptor__magicAdaptor = {
+      filter: function (object, keypath, ractive) {
+        var keys, key, parentKeypath, parentWrapper, parentValue;
+
+        if (!keypath) {
+          return false;
+        }
+
+        keys = keypath.split(".");
+        key = keys.pop();
+        parentKeypath = keys.join(".");
+
+        // If the parent value is a wrapper, other than a magic wrapper,
+        // we shouldn't wrap this property
+        if ((parentWrapper = ractive.viewmodel.wrapped[parentKeypath]) && !parentWrapper.magic) {
+          return false;
+        }
+
+        parentValue = ractive.get(parentKeypath);
+
+        // if parentValue is an array that doesn't include this member,
+        // we should return false otherwise lengths will get messed up
+        if (is__isArray(parentValue) && /^[0-9]+$/.test(key)) {
+          return false;
+        }
+
+        return (parentValue && (typeof parentValue === "object" || typeof parentValue === "function"));
+      },
+      wrap: function (ractive, property, keypath) {
+        return new magicAdaptor__MagicWrapper(ractive, property, keypath);
+      }
+    };
+
+    magicAdaptor__MagicWrapper = function (ractive, value, keypath) {
+      var keys, objKeypath, template, siblings;
+
+      this.magic = true;
+
+      this.ractive = ractive;
+      this.keypath = keypath;
+      this.value = value;
+
+      keys = keypath.split(".");
+
+      this.prop = keys.pop();
+
+      objKeypath = keys.join(".");
+      this.obj = objKeypath ? ractive.get(objKeypath) : ractive.data;
+
+      template = this.originalDescriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
+
+      // Has this property already been wrapped?
+      if (template && template.set && (siblings = template.set._ractiveWrappers)) {
+        // Yes. Register this wrapper to this property, if it hasn't been already
+        if (siblings.indexOf(this) === -1) {
+          siblings.push(this);
+        }
+
+        return; // already wrapped
+      }
+
+      // No, it hasn't been wrapped
+      magicAdaptor__createAccessors(this, value, template);
+    };
+
+    magicAdaptor__MagicWrapper.prototype = {
+      get: function () {
+        return this.value;
+      },
+      reset: function (value) {
+        if (this.updating) {
+          return;
+        }
+
+        this.updating = true;
+        this.obj[this.prop] = value; // trigger set() accessor
+        runloop__default.addViewmodel(this.ractive.viewmodel);
+        this.ractive.viewmodel.mark(this.keypath, { dontTeardownWrapper: true });
+        this.updating = false;
+        return true;
+      },
+      set: function (key, value) {
+        if (this.updating) {
+          return;
+        }
+
+        if (!this.obj[this.prop]) {
+          this.updating = true;
+          this.obj[this.prop] = createBranch__default(key);
+          this.updating = false;
+        }
+
+        this.obj[this.prop][key] = value;
+      },
+      teardown: function () {
+        var template, set, value, wrappers, index;
+
+        // If this method was called because the cache was being cleared as a
+        // result of a set()/update() call made by this wrapper, we return false
+        // so that it doesn't get torn down
+        if (this.updating) {
+          return false;
+        }
+
+        template = Object.getOwnPropertyDescriptor(this.obj, this.prop);
+        set = template && template.set;
+
+        if (!set) {
+          // most likely, this was an array member that was spliced out
+          return;
+        }
+
+        wrappers = set._ractiveWrappers;
+
+        index = wrappers.indexOf(this);
+        if (index !== -1) {
+          wrappers.splice(index, 1);
+        }
+
+        // Last one out, turn off the lights
+        if (!wrappers.length) {
+          value = this.obj[this.prop];
+
+          Object.defineProperty(this.obj, this.prop, this.originalDescriptor || {
+            writable: true,
+            enumerable: true,
+            configurable: true
+          });
+
+          this.obj[this.prop] = value;
+        }
+      }
+    };
+  } catch (err) {
+    magicAdaptor__magicAdaptor = false; // no magic in this browser
+  }
+
+  var magicAdaptor__default = magicAdaptor__magicAdaptor;
+
+  function magicAdaptor__createAccessors(originalWrapper, value, template) {
+    var object, property, oldGet, oldSet, get, set;
+
+    object = originalWrapper.obj;
+    property = originalWrapper.prop;
+
+    // Is this template configurable?
+    if (template && !template.configurable) {
+      // Special case - array length
+      if (property === "length") {
+        return;
+      }
+
+      throw new Error("Cannot use magic mode with property \"" + property + "\" - object is not configurable");
+    }
+
+
+    // Time to wrap this property
+    if (template) {
+      oldGet = template.get;
+      oldSet = template.set;
+    }
+
+    get = oldGet || function () {
+      return value;
+    };
+
+    set = function (v) {
+      if (oldSet) {
+        oldSet(v);
+      }
+
+      value = oldGet ? oldGet() : v;
+      set._ractiveWrappers.forEach(updateWrapper);
+    };
+
+    function updateWrapper(wrapper) {
+      var keypath, ractive;
+
+      wrapper.value = value;
+
+      if (wrapper.updating) {
+        return;
+      }
+
+      ractive = wrapper.ractive;
+      keypath = wrapper.keypath;
+
+      wrapper.updating = true;
+      runloop__default.start(ractive);
+
+      ractive.viewmodel.mark(keypath);
+
+      runloop__default.end();
+      wrapper.updating = false;
+    }
+
+    // Create an array of wrappers, in case other keypaths/ractives depend on this property.
+    // Handily, we can store them as a property of the set function. Yay JavaScript.
+    set._ractiveWrappers = [originalWrapper];
+    Object.defineProperty(object, property, { get: get, set: set, enumerable: true, configurable: true });
+  }
+  //# sourceMappingURL=01-_6to5-magic.js.map
+
+  var magicArrayAdaptor__magicArrayAdaptor, magicArrayAdaptor__MagicArrayWrapper;
+
+  if (magicAdaptor__default) {
+    magicArrayAdaptor__magicArrayAdaptor = {
+      filter: function (object, keypath, ractive) {
+        return magicAdaptor__default.filter(object, keypath, ractive) && arrayAdaptor__default.filter(object);
+      },
+
+      wrap: function (ractive, array, keypath) {
+        return new magicArrayAdaptor__MagicArrayWrapper(ractive, array, keypath);
+      }
+    };
+
+    magicArrayAdaptor__MagicArrayWrapper = function (ractive, array, keypath) {
+      this.value = array;
+
+      this.magic = true;
+
+      this.magicWrapper = magicAdaptor__default.wrap(ractive, array, keypath);
+      this.arrayWrapper = arrayAdaptor__default.wrap(ractive, array, keypath);
+    };
+
+    magicArrayAdaptor__MagicArrayWrapper.prototype = {
+      get: function () {
+        return this.value;
+      },
+      teardown: function () {
+        this.arrayWrapper.teardown();
+        this.magicWrapper.teardown();
+      },
+      reset: function (value) {
+        return this.magicWrapper.reset(value);
+      }
+    };
+  }
+
+  var magicArrayAdaptor__default = magicArrayAdaptor__magicArrayAdaptor;
+  //# sourceMappingURL=01-_6to5-magicArray.js.map
+
+  var adaptConfigurator__adaptConfigurator = {
+    extend: function (Parent, proto, options) {
+      proto.adapt = adaptConfigurator__combine(proto.adapt, array__ensureArray(options.adapt));
+    },
+
+    init: function (Parent, ractive, options) {
+      var protoAdapt, adapt;
+
+      protoAdapt = ractive.adapt.map(lookup);
+      adapt = array__ensureArray(options.adapt).map(lookup);
+
+      function lookup(adaptor) {
+        if (typeof adaptor === "string") {
+          adaptor = registry__findInViewHierarchy("adaptors", ractive, adaptor);
+
+          if (!adaptor) {
+            log__default.critical({
+              message: "missingPlugin",
+              args: {
+                plugin: "adaptor",
+                name: adaptor
+              }
+            });
+          }
+        }
+
+        return adaptor;
+      }
+
+      ractive.adapt = adaptConfigurator__combine(protoAdapt, adapt);
+
+      if (ractive.magic) {
+        if (!environment__magic) {
+          throw new Error("Getters and setters (magic mode) are not supported in this browser");
+        }
+
+        if (ractive.modifyArrays) {
+          ractive.adapt.push(magicArrayAdaptor__default);
+        }
+
+        ractive.adapt.push(magicAdaptor__default);
+      }
+
+      if (ractive.modifyArrays) {
+        ractive.adapt.push(arrayAdaptor__default);
+      }
+    }
+  };
+
+  var adaptConfigurator__default = adaptConfigurator__adaptConfigurator;
+
+  function adaptConfigurator__combine(a, b) {
+    var c = a.slice(), i = b.length;
+
+    while (i--) {
+      if (! ~c.indexOf(b[i])) {
+        c.push(b[i]);
+      }
+    }
+
+    return c;
+  }
+  //# sourceMappingURL=01-_6to5-adapt.js.map
 
   var transformCss__selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g, transformCss__commentsPattern = /\/\*.*?\*\//g, transformCss__selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g, transformCss__mediaQueryPattern = /^@media/, transformCss__dataRvcGuidPattern = /\[data-ractive-css="[a-z0-9-]+"]/g;
 
@@ -965,21 +4273,21 @@
   }
   //# sourceMappingURL=01-_6to5-transform.js.map
 
-  var css__cssConfig = {
+  var cssConfigurator__cssConfigurator = {
     name: "css",
-    extend: css__extend,
+
+    extend: function (Parent, proto, options) {
+      var guid = proto.constructor._guid, css;
+
+      if (css = cssConfigurator__getCss(options.css, options, guid) || cssConfigurator__getCss(Parent.css, Parent, guid)) {
+        proto.constructor.css = css;
+      }
+    },
+
     init: function () {}
   };
 
-  function css__extend(Parent, proto, options) {
-    var guid = proto.constructor._guid, css;
-
-    if (css = css__getCss(options.css, options, guid) || css__getCss(Parent.css, Parent, guid)) {
-      proto.constructor.css = css;
-    }
-  }
-
-  function css__getCss(css, target, guid) {
+  function cssConfigurator__getCss(css, target, guid) {
     if (!css) {
       return;
     }
@@ -987,7 +4295,7 @@
     return target.noCssTransform ? css : transformCss__default(css, guid);
   }
 
-  var css__default = css__cssConfig;
+  var cssConfigurator__default = cssConfigurator__cssConfigurator;
   //# sourceMappingURL=01-_6to5-css.js.map
 
   var wrap__default = function (method, superMethod, force) {
@@ -1015,50 +4323,46 @@
   }
   //# sourceMappingURL=01-_6to5-wrapMethod.js.map
 
-  var data__dataConfig = {
+  var dataConfigurator__dataConfigurator = {
     name: "data",
-    extend: data__extend,
-    init: data__init,
-    reset: data__reset
+
+    extend: function (Parent, proto, options) {
+      proto.data = dataConfigurator__combine(Parent, proto, options);
+    },
+
+    init: function (Parent, ractive, options) {
+      var value = options.data, result = dataConfigurator__combine(Parent, ractive, options);
+
+      if (typeof result === "function") {
+        result = result.call(ractive, value) || value;
+      }
+
+      return ractive.data = result || {};
+    },
+
+    reset: function (ractive) {
+      var result = this.init(ractive.constructor, ractive, ractive);
+
+      if (result) {
+        ractive.data = result;
+        return true;
+      }
+    }
   };
 
-  var data__default = data__dataConfig;
+  var dataConfigurator__default = dataConfigurator__dataConfigurator;
 
-  function data__combine(Parent, target, options) {
-    var value = options.data || {}, parentValue = data__getAddedKeys(Parent.prototype.data);
+  function dataConfigurator__combine(Parent, target, options) {
+    var value = options.data || {}, parentValue = dataConfigurator__getAddedKeys(Parent.prototype.data);
 
     if (typeof value !== "object" && typeof value !== "function") {
       throw new TypeError("data option must be an object or a function, \"" + value + "\" is not valid");
     }
 
-    return data__dispatch(parentValue, value);
+    return dataConfigurator__dispatch(parentValue, value);
   }
 
-
-  function data__extend(Parent, proto, options) {
-    proto.data = data__combine(Parent, proto, options);
-  }
-
-  function data__init(Parent, ractive, options) {
-    var value = options.data, result = data__combine(Parent, ractive, options);
-
-    if (typeof result === "function") {
-      result = result.call(ractive, value) || value;
-    }
-
-    return ractive.data = result || {};
-  }
-
-  function data__reset(ractive) {
-    var result = this.init(ractive.constructor, ractive, ractive);
-
-    if (result) {
-      ractive.data = result;
-      return true;
-    }
-  }
-
-  function data__getAddedKeys(parent) {
+  function dataConfigurator__getAddedKeys(parent) {
     // only for functions that had keys added
     if (typeof parent !== "function" || !Object.keys(parent).length) {
       return parent;
@@ -1067,23 +4371,23 @@
     // copy the added keys to temp 'object', otherwise
     // parent would be interpreted as 'function' by dispatch
     var temp = {};
-    data__copy(parent, temp);
+    dataConfigurator__copy(parent, temp);
 
     // roll in added keys
-    return data__dispatch(parent, temp);
+    return dataConfigurator__dispatch(parent, temp);
   }
 
-  function data__dispatch(parent, child) {
+  function dataConfigurator__dispatch(parent, child) {
     if (typeof child === "function") {
-      return data__extendFn(child, parent);
+      return dataConfigurator__extendFn(child, parent);
     } else if (typeof parent === "function") {
-      return data__fromFn(child, parent);
+      return dataConfigurator__fromFn(child, parent);
     } else {
-      return data__fromProperties(child, parent);
+      return dataConfigurator__fromProperties(child, parent);
     }
   }
 
-  function data__copy(from, to, fillOnly) {
+  function dataConfigurator__copy(from, to, fillOnly) {
     for (var key in from) {
       if (!(to._mappings && to._mappings[key] && to._mappings[key].updatable) && fillOnly && key in to) {
         continue;
@@ -1093,20 +4397,19 @@
     }
   }
 
-  function data__fromProperties(child, parent) {
+  function dataConfigurator__fromProperties(child, parent) {
     child = child || {};
 
     if (!parent) {
       return child;
     }
 
-    data__copy(parent, child, true);
+    dataConfigurator__copy(parent, child, true);
 
     return child;
   }
 
-
-  function data__fromFn(child, parentFn) {
+  function dataConfigurator__fromFn(child, parentFn) {
     return function (data) {
       var keys;
 
@@ -1141,13 +4444,13 @@
     };
   }
 
-  function data__extendFn(childFn, parent) {
+  function dataConfigurator__extendFn(childFn, parent) {
     var parentFn;
 
     if (typeof parent !== "function") {
       // copy props to data
       parentFn = function (data) {
-        data__fromProperties(data, parent);
+        dataConfigurator__fromProperties(data, parent);
       };
     } else {
       parentFn = function (data) {
@@ -1163,45 +4466,6 @@
     return wrap__default(childFn, parentFn);
   }
   //# sourceMappingURL=01-_6to5-data.js.map
-
-  var errors__default = {
-    missingParser: "Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser",
-
-    mergeComparisonFail: "Merge operation: comparison failed. Falling back to identity checking",
-
-    noComponentEventArguments: "Components currently only support simple events - you cannot include arguments. Sorry!",
-
-    noTemplateForPartial: "Could not find template for partial \"{name}\"",
-
-    noNestedPartials: "Partials ({{>{name}}}) cannot contain nested inline partials",
-
-    evaluationError: "Error evaluating \"{uniqueString}\": {err}",
-
-    badArguments: "Bad arguments \"{arguments}\". I'm not allowed to argue unless you've paid.",
-
-    failedComputation: "Failed to compute \"{key}\": {err}",
-
-    missingPlugin: "Missing \"{name}\" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s",
-
-    badRadioInputBinding: "A radio input can have two-way binding on its name attribute, or its checked attribute - not both",
-
-    noRegistryFunctionReturn: "A function was specified for \"{name}\" {registry}, but no {registry} was returned",
-
-    defaultElSpecified: "The <{name}/> component has a default `el` property; it has been disregarded",
-
-    noElementProxyEventWildcards: "Only component proxy-events may contain \"*\" wildcards, <{element} on-{event}/> is not valid.",
-
-    methodDeprecated: "The method \"{deprecated}\" has been deprecated in favor of \"{replacement}\" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.",
-
-    usePromise: "{method} now returns a Promise, use {method}(...).then(callback) instead.",
-
-    noTwowayExpressions: "Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.",
-
-    computedCannotMapTo: "Computed property \"{key}\" cannot be mapped to \"{other}\" because {reason}.",
-
-    notUsed: "prevents forgetting trailing \",\" in cut and paste of previous line :)"
-  };
-  //# sourceMappingURL=01-_6to5-errors.js.map
 
 	var types__TEXT = 1;
 	var types__INTERPOLATOR = 2;
@@ -3898,28 +7162,7 @@
   }
   //# sourceMappingURL=01-_6to5-_parse.js.map
 
-  function optionGroup__createOptionGroup(keys, config) {
-    var group = keys.map(config);
-
-    keys.forEach(function (key, i) {
-      group[key] = group[i];
-    });
-
-    return group;
-  };
-  var optionGroup__default = optionGroup__createOptionGroup;
-  //# sourceMappingURL=01-_6to5-optionGroup.js.map
-
-  var parseOptions__keys, parseOptions__parseOptions;
-
-  parseOptions__keys = ["preserveWhitespace", "sanitize", "stripComments", "delimiters", "tripleDelimiters", "interpolate"];
-
-  parseOptions__parseOptions = optionGroup__default(parseOptions__keys, function (key) {
-    return key;
-  });
-
-  var parseOptions__default = parseOptions__parseOptions;
-  //# sourceMappingURL=01-_6to5-parseOptions.js.map
+  var parser__parseOptions = ["preserveWhitespace", "sanitize", "stripComments", "delimiters", "tripleDelimiters", "interpolate"];
 
   var parser__parser = {
     parse: parser__doParse,
@@ -3974,8 +7217,6 @@
       throw new Error("Template element with id #" + id + ", must be a <script> element");
     }
 
-
-
     return template.innerHTML;
   }
 
@@ -3993,7 +7234,7 @@
       ractive = ractive.defaults;
     }
 
-    return parseOptions__default.reduce(function (val, key) {
+    return parser__parseOptions.reduce(function (val, key) {
       val[key] = ractive[key];
       return val;
     }, { ractive: ractive });
@@ -4002,10 +7243,10 @@
   var parser__default = parser__parser;
   //# sourceMappingURL=01-_6to5-parser.js.map
 
-  var template__templateConfig = {
+  var templateConfigurator__templateConfigurator = {
     name: "template",
 
-    extend: function template__extend(Parent, proto, options) {
+    extend: function templateConfigurator__extend(Parent, proto, options) {
       var template;
 
       // only assign if exists
@@ -4015,12 +7256,12 @@
         if (typeof template === "function") {
           proto.template = template;
         } else {
-          proto.template = template__parseIfString(template, proto);
+          proto.template = templateConfigurator__parseIfString(template, proto);
         }
       }
     },
 
-    init: function template__init(Parent, ractive, options) {
+    init: function templateConfigurator__init(Parent, ractive, options) {
       var template, fn;
 
       // TODO because of prototypal inheritance, we might just be able to use
@@ -4030,7 +7271,7 @@
 
       if (typeof template === "function") {
         fn = template;
-        template = template__getDynamicTemplate(ractive, fn);
+        template = templateConfigurator__getDynamicTemplate(ractive, fn);
 
         ractive._config.template = {
           fn: fn,
@@ -4038,7 +7279,7 @@
         };
       }
 
-      template = template__parseIfString(template, ractive);
+      template = templateConfigurator__parseIfString(template, ractive);
 
       // TODO the naming of this is confusing - ractive.template refers to [...],
       // but Component.prototype.template refers to {v:1,t:[],p:[]}...
@@ -4047,25 +7288,25 @@
       ractive.template = template.t;
 
       if (template.p) {
-        template__extendPartials(ractive.partials, template.p);
+        templateConfigurator__extendPartials(ractive.partials, template.p);
       }
     },
 
     reset: function (ractive) {
-      var result = template__resetValue(ractive), parsed;
+      var result = templateConfigurator__resetValue(ractive), parsed;
 
       if (result) {
-        parsed = template__parseIfString(result, ractive);
+        parsed = templateConfigurator__parseIfString(result, ractive);
 
         ractive.template = parsed.t;
-        template__extendPartials(ractive.partials, parsed.p, true);
+        templateConfigurator__extendPartials(ractive.partials, parsed.p, true);
 
         return true;
       }
     }
   };
 
-  function template__resetValue(ractive) {
+  function templateConfigurator__resetValue(ractive) {
     var initial = ractive._config.template, result;
 
     // If this isn't a dynamic template, there's nothing to do
@@ -4073,23 +7314,31 @@
       return;
     }
 
-    result = template__getDynamicTemplate(ractive, initial.fn);
+    result = templateConfigurator__getDynamicTemplate(ractive, initial.fn);
 
     // TODO deep equality check to prevent unnecessary re-rendering
     // in the case of already-parsed templates
     if (result !== initial.result) {
       initial.result = result;
-      result = template__parseIfString(result, ractive);
+      result = templateConfigurator__parseIfString(result, ractive);
       return result;
     }
   }
 
-  function template__getDynamicTemplate(ractive, fn) {
-    var helper = parser__default.createHelper(parser__default.getParseOptions(ractive));
+  function templateConfigurator__getDynamicTemplate(ractive, fn) {
+    var helper = templateConfigurator__createHelper(parser__default.getParseOptions(ractive));
     return fn.call(ractive, ractive.data, helper);
   }
 
-  function template__parseIfString(template, ractive) {
+  function templateConfigurator__createHelper(parseOptions) {
+    var helper = object__create(parser__default);
+    helper.parse = function (template, options) {
+      return parser__default.parse(template, options || parseOptions);
+    };
+    return helper;
+  }
+
+  function templateConfigurator__parseIfString(template, ractive) {
     if (typeof template === "string") {
       // ID of an element containing the template?
       if (template[0] === "#") {
@@ -4107,7 +7356,7 @@
     return template;
   }
 
-  function template__extendPartials(existingPartials, newPartials, overwrite) {
+  function templateConfigurator__extendPartials(existingPartials, newPartials, overwrite) {
     if (!newPartials) return;
 
     // TODO there's an ambiguity here - we need to overwrite in the `reset()`
@@ -4120,16 +7369,20 @@
     }
   }
 
-  var template__default = template__templateConfig;
+  var templateConfigurator__default = templateConfigurator__templateConfigurator;
   //# sourceMappingURL=01-_6to5-template.js.map
 
-  function Registry__Registry(name, useDefaults) {
+  var registries__registryNames, registries__Registry, registries__registries;
+
+  registries__registryNames = ["adaptors", "components", "computed", "decorators", "easing", "events", "interpolators", "partials", "transitions"];
+
+  registries__Registry = function (name, useDefaults) {
     this.name = name;
     this.useDefaults = useDefaults;
-  }
+  };
 
-  Registry__Registry.prototype = {
-    constructor: Registry__Registry,
+  registries__Registry.prototype = {
+    constructor: registries__Registry,
 
     extend: function (Parent, proto, options) {
       this.configure(this.useDefaults ? Parent.defaults : Parent, this.useDefaults ? proto : proto.constructor, options);
@@ -4166,71 +7419,18 @@
         }
       });
       return changed;
-    },
-
-    findOwner: function (ractive, key) {
-      return ractive[this.name].hasOwnProperty(key) ? ractive : this.findConstructor(ractive.constructor, key);
-    },
-
-    findConstructor: function (constructor, key) {
-      if (!constructor) {
-        return;
-      }
-      return constructor[this.name].hasOwnProperty(key) ? constructor : this.findConstructor(constructor._Parent, key);
-    },
-
-    find: function (ractive, key) {
-      var _this = this;
-      return Registry__recurseFind(ractive, {
-        test: function (r) {
-          return key in r[_this.name];
-        },
-        getValue: function (r) {
-          return r[_this.name][key];
-        }
-      });
-    },
-
-    findInstance: function (ractive, key) {
-      var _this2 = this;
-      return Registry__recurseFind(ractive, {
-        test: function (r) {
-          return key in r[_this2.name];
-        },
-        getValue: function (r) {
-          return r;
-        }
-      });
     }
   };
 
-  function Registry__recurseFind(ractive, finder) {
-    var parent;
-
-    if (finder.test(ractive)) {
-      return finder.getValue(ractive);
-    }
-
-    if (!ractive.isolated && (parent = ractive.parent)) {
-      return Registry__recurseFind(parent, finder);
-    }
-  }
-
-  var Registry__default = Registry__Registry;
-  //# sourceMappingURL=01-_6to5-Registry.js.map
-
-  var registries__keys = ["adaptors", "components", "computed", "decorators", "easing", "events", "interpolators", "partials", "transitions"], registries__registries = optionGroup__default(registries__keys, function (key) {
-    return new Registry__default(key, key === "computed");
+  registries__registries = registries__registryNames.map(function (name) {
+    return new registries__Registry(name, name === "computed");
   });
 
   var registries__default = registries__registries;
   //# sourceMappingURL=01-_6to5-registries.js.map
 
-	var noop__default = function () {};
-	//# sourceMappingURL=01-_6to5-noop.js.map
-
   function wrapPrototype__wrap(parent, name, method) {
-    if (!(/_super/.test(method))) {
+    if (!/_super/.test(method)) {
       return method;
     }
 
@@ -4280,125 +7480,126 @@
   }
   //# sourceMappingURL=01-_6to5-wrapPrototypeMethod.js.map
 
-  function deprecate__deprecate(options, deprecated, correct) {
-    if (deprecated in options) {
-      if (!(correct in options)) {
-        warn__default(deprecate__getMessage(deprecated, correct));
-
-        options[correct] = options[deprecated];
-      } else {
-        throw new Error(deprecate__getMessage(deprecated, correct, true));
-      }
-    }
-  }
-
   function deprecate__getMessage(deprecated, correct, isError) {
     return "options." + deprecated + " has been deprecated in favour of options." + correct + "." + (isError ? " You cannot specify both options, please use options." + correct + "." : "");
   }
 
-
-  function deprecate__deprecateEventDefinitions(options) {
-    deprecate__deprecate(options, "eventDefinitions", "events");
+  function deprecate__deprecateOption(options, deprecatedOption, correct) {
+    if (deprecatedOption in options) {
+      if (!(correct in options)) {
+        warn__default(deprecate__getMessage(deprecatedOption, correct));
+        options[correct] = options[deprecatedOption];
+      } else {
+        throw new Error(deprecate__getMessage(deprecatedOption, correct, true));
+      }
+    }
   }
 
-  function deprecate__deprecateAdaptors(options) {
+  function deprecate__deprecate(options) {
+    deprecate__deprecateOption(options, "beforeInit", "onconstruct");
+    deprecate__deprecateOption(options, "init", "onrender");
+    deprecate__deprecateOption(options, "complete", "oncomplete");
+    deprecate__deprecateOption(options, "eventDefinitions", "events");
+
     // Using extend with Component instead of options,
     // like Human.extend( Spider ) means adaptors as a registry
     // gets copied to options. So we have to check if actually an array
     if (is__isArray(options.adaptors)) {
-      deprecate__deprecate(options, "adaptors", "adapt");
+      deprecate__deprecateOption(options, "adaptors", "adapt");
     }
-  }
-
-  function deprecate__deprecateOptions(options) {
-    deprecate__deprecate(options, "beforeInit", "onconstruct");
-    deprecate__deprecate(options, "init", "onrender");
-    deprecate__deprecate(options, "complete", "oncomplete");
-    deprecate__deprecateEventDefinitions(options);
-    deprecate__deprecateAdaptors(options);
   };
-  var deprecate__default = deprecate__deprecateOptions;
+  var deprecate__default = deprecate__deprecate;
   //# sourceMappingURL=01-_6to5-deprecate.js.map
 
-  var config__custom, config__options, config__config, config__blacklisted;
+  var config__config, config__order, config__defaultKeys, config__custom, config__isBlacklisted, config__isStandardKey;
 
   config__custom = {
-    data: data__default,
-    template: template__default,
-    css: css__default
+    adapt: adaptConfigurator__default,
+    css: cssConfigurator__default,
+    data: dataConfigurator__default,
+    template: templateConfigurator__default
   };
 
-  config__options = Object.keys(defaults__default).filter(function (key) {
-    return !registries__default[key] && !config__custom[key] && !parseOptions__default[key];
-  });
+  config__defaultKeys = Object.keys(defaults__default);
 
-  // this defines the order:
-  config__config = [].concat(config__custom.data, parseOptions__default, config__options, registries__default, config__custom.template, config__custom.css);
+  config__isStandardKey = config__makeObj(config__defaultKeys.filter(function (key) {
+    return !config__custom[key];
+  }));
 
-  for (var config__key in config__custom) {
-    config__config[config__key] = config__custom[config__key];
-  }
-
-  // for iteration
-  config__config.keys = Object.keys(defaults__default).concat(registries__default.map(function (r) {
+  // blacklisted keys that we don't double extend
+  config__isBlacklisted = config__makeObj(config__defaultKeys.concat(registries__default.map(function (r) {
     return r.name;
-  })).concat(["css"]);
+  })));
 
-  // blacklisted key's that we don't double extend
-  config__blacklisted = config__config.keys.reduce(function (list, key) {
-    return (list[key] = true, list);
-  }, {});
+  config__order = [].concat(config__defaultKeys.filter(function (key) {
+    return !registries__default[key] && !config__custom[key];
+  }), registries__default, config__custom.data, config__custom.template, config__custom.css);
 
-  config__config.parseOptions = parseOptions__default;
-  config__config.registries = registries__default;
+  config__config = {
+    extend: function (Parent, proto, options) {
+      return config__configure("extend", Parent, proto, options);
+    },
 
-  function config__customConfig(method, key, Parent, instance, options) {
-    config__custom[key][method](Parent, instance, options);
-  }
+    init: function (Parent, ractive, options) {
+      return config__configure("init", Parent, ractive, options);
+    },
 
-  config__config.extend = function (Parent, proto, options) {
-    config__configure("extend", Parent, proto, options);
+    reset: function (ractive) {
+      return config__order.filter(function (c) {
+        return c.reset && c.reset(ractive);
+      }).map(function (c) {
+        return c.name;
+      });
+    },
+
+    // this defines the order. TODO this isn't used anywhere in the codebase,
+    // only in the test suite - should get rid of it
+    order: config__order,
+
+    // TODO kill this off
+    getConstructTarget: function (ractive, options) {
+      if (options.onconstruct) {
+        // pretend this object literal is the ractive instance
+        return {
+          onconstruct: wrapPrototype__default(ractive, "onconstruct", options.onconstruct).bind(ractive),
+          fire: ractive.fire.bind(ractive)
+        };
+      } else {
+        return ractive;
+      }
+    }
   };
 
-  config__config.init = function (Parent, ractive, options) {
-    config__configure("init", Parent, ractive, options);
-  };
-
-  function config__isStandardDefaultKey(key) {
-    return (key in defaults__default && !(key in config__config.parseOptions) && !(key in config__custom));
-  }
-
-  function config__configure(method, Parent, instance, options) {
+  function config__configure(method, Parent, target, options) {
     deprecate__default(options);
 
-    config__customConfig(method, "data", Parent, instance, options);
-
-    config__config.parseOptions.forEach(function (key) {
-      if (key in options) {
-        instance[key] = options[key];
-      }
-    });
-
     for (var key in options) {
-      if (config__isStandardDefaultKey(key)) {
+      if (config__isStandardKey[key]) {
         var value = options[key];
-        instance[key] = (typeof value === "function") ? wrapPrototype__default(Parent.prototype, key, value) : value;
+
+        if (typeof value === "function") {
+          value = wrapPrototype__default(Parent.prototype, key, value);
+        }
+
+        target[key] = value;
       }
     }
 
-    config__config.registries.forEach(function (registry) {
-      registry[method](Parent, instance, options);
+    registries__default.forEach(function (registry) {
+      registry[method](Parent, target, options);
     });
 
-    config__customConfig(method, "template", Parent, instance, options);
-    config__customConfig(method, "css", Parent, instance, options);
+    adaptConfigurator__default[method](Parent, target, options);
+    dataConfigurator__default[method](Parent, target, options);
+    templateConfigurator__default[method](Parent, target, options);
+    cssConfigurator__default[method](Parent, target, options);
 
-    config__extendOtherMethods(Parent.prototype, instance, options);
+    config__extendOtherMethods(Parent.prototype, target, options);
   }
 
-  function config__extendOtherMethods(parent, instance, options) {
+  function config__extendOtherMethods(parent, target, options) {
     for (var key in options) {
-      if (!(key in config__blacklisted) && options.hasOwnProperty(key)) {
+      if (!config__isBlacklisted[key] && options.hasOwnProperty(key)) {
         var member = options[key];
 
         // if this is a method that overwrites a method, wrap it:
@@ -4406,2968 +7607,21 @@
           member = wrapPrototype__default(parent, key, member);
         }
 
-        instance[key] = member;
+        target[key] = member;
       }
     }
   }
 
-  config__config.reset = function (ractive) {
-    return config__config.filter(function (c) {
-      return c.reset && c.reset(ractive);
-    }).map(function (c) {
-      return c.name;
+  function config__makeObj(array) {
+    var obj = {};
+    array.forEach(function (x) {
+      return obj[x] = true;
     });
-  };
-
-  config__config.getConstructTarget = function (ractive, options) {
-    if (options.onconstruct) {
-      // pretend this object literal is the ractive instance
-      return {
-        onconstruct: wrapPrototype__default(ractive, "onconstruct", options.onconstruct).bind(ractive),
-        fire: ractive.fire.bind(ractive)
-      };
-    } else {
-      return ractive;
-    }
-  };
+    return obj;
+  }
 
   var config__default = config__config;
   //# sourceMappingURL=01-_6to5-config.js.map
-
-  var interpolate__interpolate = function (from, to, ractive, type) {
-    if (from === to) {
-      return interpolate__snap(to);
-    }
-
-    if (type) {
-      var interpol = config__default.registries.interpolators.find(ractive, type);
-      if (interpol) {
-        return interpol(from, to) || interpolate__snap(to);
-      }
-
-      warn__default("Missing \"" + type + "\" interpolator. You may need to download a plugin from [TODO]");
-    }
-
-    return interpolators__default.number(from, to) || interpolators__default.array(from, to) || interpolators__default.object(from, to) || interpolate__snap(to);
-  };
-
-  var interpolate__default = interpolate__interpolate;
-
-  function interpolate__snap(to) {
-    return function () {
-      return to;
-    };
-  }
-  //# sourceMappingURL=01-_6to5-interpolate.js.map
-
-  var interpolators__interpolators = {
-    number: function (from, to) {
-      var delta;
-
-      if (!is__isNumeric(from) || !is__isNumeric(to)) {
-        return null;
-      }
-
-      from = +from;
-      to = +to;
-
-      delta = to - from;
-
-      if (!delta) {
-        return function () {
-          return from;
-        };
-      }
-
-      return function (t) {
-        return from + (t * delta);
-      };
-    },
-
-    array: function (from, to) {
-      var intermediate, interpolators, len, i;
-
-      if (!is__isArray(from) || !is__isArray(to)) {
-        return null;
-      }
-
-      intermediate = [];
-      interpolators = [];
-
-      i = len = Math.min(from.length, to.length);
-      while (i--) {
-        interpolators[i] = interpolate__default(from[i], to[i]);
-      }
-
-      // surplus values - don't interpolate, but don't exclude them either
-      for (i = len; i < from.length; i += 1) {
-        intermediate[i] = from[i];
-      }
-
-      for (i = len; i < to.length; i += 1) {
-        intermediate[i] = to[i];
-      }
-
-      return function (t) {
-        var i = len;
-
-        while (i--) {
-          intermediate[i] = interpolators[i](t);
-        }
-
-        return intermediate;
-      };
-    },
-
-    object: function (from, to) {
-      var properties, len, interpolators, intermediate, prop;
-
-      if (!is__isObject(from) || !is__isObject(to)) {
-        return null;
-      }
-
-      properties = [];
-      intermediate = {};
-      interpolators = {};
-
-      for (prop in from) {
-        if (object__hasOwn.call(from, prop)) {
-          if (object__hasOwn.call(to, prop)) {
-            properties.push(prop);
-            interpolators[prop] = interpolate__default(from[prop], to[prop]);
-          } else {
-            intermediate[prop] = from[prop];
-          }
-        }
-      }
-
-      for (prop in to) {
-        if (object__hasOwn.call(to, prop) && !object__hasOwn.call(from, prop)) {
-          intermediate[prop] = to[prop];
-        }
-      }
-
-      len = properties.length;
-
-      return function (t) {
-        var i = len, prop;
-
-        while (i--) {
-          prop = properties[i];
-
-          intermediate[prop] = interpolators[prop](t);
-        }
-
-        return intermediate;
-      };
-    }
-  };
-
-  var interpolators__default = interpolators__interpolators;
-  //# sourceMappingURL=01-_6to5-interpolators.js.map
-
-  /* global console */
-  var log__log = {
-    warn: function (options, passthru) {
-      if (!options.debug && !passthru) {
-        return;
-      }
-      this.warnAlways(options);
-    },
-    warnAlways: function (options) {
-      this.logger(log__getMessage(options), options.allowDuplicates);
-    },
-    error: function (options) {
-      this.errorOnly(options);
-
-      if (!options.debug) {
-        this.warn(options, true);
-      }
-    },
-    errorOnly: function (options) {
-      if (options.debug) {
-        this.critical(options);
-      }
-    },
-    critical: function (options) {
-      var err = options.err || new Error(log__getMessage(options));
-      this.thrower(err);
-    },
-    logger: warn__default,
-    thrower: function (err) {
-      throw err;
-    },
-    consoleError: function (options) {
-      if (environment__hasConsole) {
-        console.error(options.err);
-      } else {
-        this.thrower(options.err);
-      }
-    }
-  };
-
-  function log__getMessage(options) {
-    var message = errors__default[options.message] || options.message || "";
-    return log__interpolate(message, options.args);
-  }
-
-  // simple interpolation. probably quicker (and better) out there,
-  // but log is not in golden path of execution, only exceptions
-  function log__interpolate(message, args) {
-    return message.replace(/{([^{}]*)}/g, function (a, b) {
-      return args[b];
-    });
-  }
-
-  var log__default = log__log;
-  //# sourceMappingURL=01-_6to5-log.js.map
-
-  var Hook__deprecations = {
-    construct: {
-      deprecated: "beforeInit",
-      replacement: "onconstruct"
-    },
-    render: {
-      deprecated: "init",
-      message: "The \"init\" method has been deprecated " + "and will likely be removed in a future release. " + "You can either use the \"oninit\" method which will fire " + "only once prior to, and regardless of, any eventual ractive " + "instance being rendered, or if you need to access the " + "rendered DOM, use \"onrender\" instead. " + "See http://docs.ractivejs.org/latest/migrating for more information."
-    },
-    complete: {
-      deprecated: "complete",
-      replacement: "oncomplete"
-    }
-  };
-
-  function Hook__Hook(event) {
-    this.event = event;
-    this.method = "on" + event;
-    this.deprecate = Hook__deprecations[event];
-  }
-
-  Hook__Hook.prototype.fire = function (ractive, arg) {
-    function call(method) {
-      if (ractive[method]) {
-        arg ? ractive[method](arg) : ractive[method]();
-        return true;
-      }
-    }
-
-    call(this.method);
-
-    if (!ractive[this.method] && this.deprecate && call(this.deprecate.deprecated)) {
-      log__default.warnAlways({
-        debug: ractive.debug,
-        message: this.deprecate.message || "methodDeprecated",
-        args: this.deprecate
-      });
-    }
-
-    arg ? ractive.fire(this.event, arg) : ractive.fire(this.event);
-  };
-
-  var Hook__default = Hook__Hook;
-  //# sourceMappingURL=01-_6to5-Hook.js.map
-
-  function array__arrayContains(array, value) {
-    for (var i = 0, c = array.length; i < c; i++) {
-      if (array[i] == value) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  function array__arrayContentsMatch(a, b) {
-    var i;
-
-    if (!is__isArray(a) || !is__isArray(b)) {
-      return false;
-    }
-
-    if (a.length !== b.length) {
-      return false;
-    }
-
-    i = a.length;
-    while (i--) {
-      if (a[i] !== b[i]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  function array__removeFromArray(array, member) {
-    var index = array.indexOf(member);
-
-    if (index !== -1) {
-      array.splice(index, 1);
-    }
-  }
-
-  function array__toArray(arrayLike) {
-    var array = [], i = arrayLike.length;
-    while (i--) {
-      array[i] = arrayLike[i];
-    }
-
-    return array;
-  }
-  //# sourceMappingURL=01-_6to5-array.js.map
-
-  var Promise___Promise, Promise__PENDING = {}, Promise__FULFILLED = {}, Promise__REJECTED = {};
-
-  if (typeof Promise === "function") {
-    // use native Promise
-    Promise___Promise = Promise;
-  } else {
-    Promise___Promise = function (callback) {
-      var fulfilledHandlers = [], rejectedHandlers = [], state = Promise__PENDING, result, dispatchHandlers, makeResolver, fulfil, reject, promise;
-
-      makeResolver = function (newState) {
-        return function (value) {
-          if (state !== Promise__PENDING) {
-            return;
-          }
-
-          result = value;
-          state = newState;
-
-          dispatchHandlers = Promise__makeDispatcher((state === Promise__FULFILLED ? fulfilledHandlers : rejectedHandlers), result);
-
-          // dispatch onFulfilled and onRejected handlers asynchronously
-          Promise__wait(dispatchHandlers);
-        };
-      };
-
-      fulfil = makeResolver(Promise__FULFILLED);
-      reject = makeResolver(Promise__REJECTED);
-
-      try {
-        callback(fulfil, reject);
-      } catch (err) {
-        reject(err);
-      }
-
-      promise = {
-        // `then()` returns a Promise - 2.2.7
-        then: function (onFulfilled, onRejected) {
-          var promise2 = new Promise___Promise(function (fulfil, reject) {
-            var processResolutionHandler = function (handler, handlers, forward) {
-              // 2.2.1.1
-              if (typeof handler === "function") {
-                handlers.push(function (p1result) {
-                  var x;
-
-                  try {
-                    x = handler(p1result);
-                    Promise__resolve(promise2, x, fulfil, reject);
-                  } catch (err) {
-                    reject(err);
-                  }
-                });
-              } else {
-                // Forward the result of promise1 to promise2, if resolution handlers
-                // are not given
-                handlers.push(forward);
-              }
-            };
-
-            // 2.2
-            processResolutionHandler(onFulfilled, fulfilledHandlers, fulfil);
-            processResolutionHandler(onRejected, rejectedHandlers, reject);
-
-            if (state !== Promise__PENDING) {
-              // If the promise has resolved already, dispatch the appropriate handlers asynchronously
-              Promise__wait(dispatchHandlers);
-            }
-          });
-
-          return promise2;
-        }
-      };
-
-      promise["catch"] = function (onRejected) {
-        return this.then(null, onRejected);
-      };
-
-      return promise;
-    };
-
-    Promise___Promise.all = function (promises) {
-      return new Promise___Promise(function (fulfil, reject) {
-        var result = [], pending, i, processPromise;
-
-        if (!promises.length) {
-          fulfil(result);
-          return;
-        }
-
-        processPromise = function (i) {
-          promises[i].then(function (value) {
-            result[i] = value;
-
-            if (! --pending) {
-              fulfil(result);
-            }
-          }, reject);
-        };
-
-        pending = i = promises.length;
-        while (i--) {
-          processPromise(i);
-        }
-      });
-    };
-
-    Promise___Promise.resolve = function (value) {
-      return new Promise___Promise(function (fulfil) {
-        fulfil(value);
-      });
-    };
-
-    Promise___Promise.reject = function (reason) {
-      return new Promise___Promise(function (fulfil, reject) {
-        reject(reason);
-      });
-    };
-  }
-
-  var Promise__default = Promise___Promise;
-
-  // TODO use MutationObservers or something to simulate setImmediate
-  function Promise__wait(callback) {
-    setTimeout(callback, 0);
-  }
-
-  function Promise__makeDispatcher(handlers, result) {
-    return function () {
-      var handler;
-
-      while (handler = handlers.shift()) {
-        handler(result);
-      }
-    };
-  }
-
-  function Promise__resolve(promise, x, fulfil, reject) {
-    // Promise Resolution Procedure
-    var then;
-
-    // 2.3.1
-    if (x === promise) {
-      throw new TypeError("A promise's fulfillment handler cannot return the same promise");
-    }
-
-    // 2.3.2
-    if (x instanceof Promise___Promise) {
-      x.then(fulfil, reject);
-    }
-
-    // 2.3.3
-    else if (x && (typeof x === "object" || typeof x === "function")) {
-      try {
-        then = x.then; // 2.3.3.1
-      } catch (e) {
-        reject(e); // 2.3.3.2
-        return;
-      }
-
-      // 2.3.3.3
-      if (typeof then === "function") {
-        var called, resolvePromise, rejectPromise;
-
-        resolvePromise = function (y) {
-          if (called) {
-            return;
-          }
-          called = true;
-          Promise__resolve(promise, y, fulfil, reject);
-        };
-
-        rejectPromise = function (r) {
-          if (called) {
-            return;
-          }
-          called = true;
-          reject(r);
-        };
-
-        try {
-          then.call(x, resolvePromise, rejectPromise);
-        } catch (e) {
-          if (!called) {
-            // 2.3.3.3.4.1
-            reject(e); // 2.3.3.3.4.2
-            called = true;
-            return;
-          }
-        }
-      } else {
-        fulfil(x);
-      }
-    } else {
-      fulfil(x);
-    }
-  }
-  //# sourceMappingURL=01-_6to5-Promise.js.map
-
-  var keypaths__refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-
-  function keypaths__assignNewKeypath(target, property, oldKeypath, newKeypath) {
-    var existingKeypath = target[property];
-
-    if (!existingKeypath || keypaths__equalsOrStartsWith(existingKeypath, newKeypath) || !keypaths__equalsOrStartsWith(existingKeypath, oldKeypath)) {
-      return;
-    }
-
-    target[property] = keypaths__getNewKeypath(existingKeypath, oldKeypath, newKeypath);
-    return true;
-  }
-
-  function keypaths__decodeKeypath(keypath) {
-    var value = keypath.slice(2);
-
-    if (keypath[1] === "i") {
-      return is__isNumeric(value) ? +value : value;
-    } else {
-      return value;
-    }
-  }
-
-  function keypaths__equalsOrStartsWith(target, keypath) {
-    return target === keypath || keypaths__startsWithKeypath(target, keypath);
-  }
-
-  function keypaths__getMatchingKeypaths(ractive, pattern) {
-    var keys, key, matchingKeypaths;
-
-    keys = pattern.split(".");
-    matchingKeypaths = [""];
-
-    while (key = keys.shift()) {
-      if (key === "*") {
-        // expand to find all valid child keypaths
-        matchingKeypaths = matchingKeypaths.reduce(expand, []);
-      } else {
-        if (matchingKeypaths[0] === "") {
-          // first key
-          matchingKeypaths[0] = key;
-        } else {
-          matchingKeypaths = matchingKeypaths.map(keypaths__concatenate(key));
-        }
-      }
-    }
-
-    return matchingKeypaths;
-
-    function expand(matchingKeypaths, keypath) {
-      var value, key, childKeypath;
-
-      value = (ractive.viewmodel.wrapped[keypath] ? ractive.viewmodel.wrapped[keypath].get() : ractive.get(keypath));
-
-      for (key in value) {
-        if (value.hasOwnProperty(key) && (key !== "_ractive" || !is__isArray(value))) {
-          // for benefit of IE8
-          childKeypath = keypath ? keypath + "." + key : key;
-          matchingKeypaths.push(childKeypath);
-        }
-      }
-
-      return matchingKeypaths;
-    }
-  }
-
-  function keypaths__concatenate(key) {
-    return function (keypath) {
-      return keypath ? keypath + "." + key : key;
-    };
-  }
-
-  function keypaths__getNewKeypath(targetKeypath, oldKeypath, newKeypath) {
-    // exact match
-    if (targetKeypath === oldKeypath) {
-      return newKeypath !== undefined ? newKeypath : null;
-    }
-
-    // partial match based on leading keypath segments
-    if (keypaths__startsWithKeypath(targetKeypath, oldKeypath)) {
-      return newKeypath === null ? newKeypath : targetKeypath.replace(oldKeypath + ".", newKeypath + ".");
-    }
-  }
-
-  function keypaths__normalise(ref) {
-    return ref ? ref.replace(keypaths__refPattern, ".$1") : "";
-  }
-
-  function keypaths__startsWithKeypath(target, keypath) {
-    return target && keypath && target.substr(0, keypath.length + 1) === keypath + ".";
-  }
-  //# sourceMappingURL=01-_6to5-keypaths.js.map
-
-  var getInnerContext__default = function (fragment) {
-    do {
-      if (fragment.context !== undefined) {
-        return fragment.context;
-      }
-    } while (fragment = fragment.parent);
-
-    return "";
-  };
-  //# sourceMappingURL=01-_6to5-getInnerContext.js.map
-
-  function resolveRef__resolveRef(ractive, ref, fragment) {
-    ref = keypaths__normalise(ref);
-
-    // If a reference begins '~/', it's a top-level reference
-    if (ref.substr(0, 2) === "~/") {
-      ref = ref.substring(2);
-      resolveRef__createMappingIfNecessary(ractive, resolveRef__getKey(ref), fragment);
-      return ref;
-    }
-
-    // If a reference begins with '.', it's either a restricted reference or
-    // an ancestor reference...
-    if (ref[0] === ".") {
-      ref = resolveRef__resolveAncestorRef(getInnerContext__default(fragment), ref);
-
-      if (ref) {
-        resolveRef__createMappingIfNecessary(ractive, resolveRef__getKey(ref), fragment);
-      }
-
-      return ref;
-    }
-
-    // ...otherwise we need to figure out the keypath based on context
-    return resolveRef__resolveAmbiguousReference(ractive, ref, fragment);
-  };
-  var resolveRef__default = resolveRef__resolveRef;
-
-  function resolveRef__resolveAncestorRef(baseContext, ref) {
-    var contextKeys;
-
-    // {{.}} means 'current context'
-    if (ref === ".") return baseContext;
-
-    contextKeys = baseContext ? baseContext.split(".") : [];
-
-    // ancestor references (starting "../") go up the tree
-    if (ref.substr(0, 3) === "../") {
-      while (ref.substr(0, 3) === "../") {
-        if (!contextKeys.length) {
-          throw new Error("Could not resolve reference - too many \"../\" prefixes");
-        }
-
-        contextKeys.pop();
-        ref = ref.substring(3);
-      }
-
-      contextKeys.push(ref);
-      return contextKeys.join(".");
-    }
-
-    // not an ancestor reference - must be a restricted reference (prepended with "." or "./")
-    if (!baseContext) {
-      return ref.replace(/^\.\/?/, "");
-    }
-
-    return baseContext + ref.replace(/^\.\//, ".");
-  }
-
-  function resolveRef__resolveAmbiguousReference(ractive, ref, fragment, isParentLookup) {
-    var context, key, parentValue, hasContextChain, parentKeypath;
-
-    key = resolveRef__getKey(ref);
-
-    while (fragment) {
-      context = fragment.context;
-      fragment = fragment.parent;
-
-      if (!context) {
-        continue;
-      }
-
-      hasContextChain = true;
-      parentValue = ractive.viewmodel.get(context);
-
-      if (parentValue && (typeof parentValue === "object" || typeof parentValue === "function") && key in parentValue) {
-        return context + "." + ref;
-      }
-    }
-
-    // Root/computed/mapped property?
-    if (resolveRef__isRootProperty(ractive, key)) {
-      return ref;
-    }
-
-    // If this is an inline component, and it's not isolated, we
-    // can try going up the scope chain
-    if (ractive.parent && !ractive.isolated) {
-      hasContextChain = true;
-      fragment = ractive.component.parentFragment;
-
-      if (parentKeypath = resolveRef__resolveAmbiguousReference(ractive.parent, key, fragment, true)) {
-        // We need to create an inter-component binding
-        ractive.viewmodel.map(key, {
-          origin: ractive.parent.viewmodel,
-          keypath: parentKeypath
-        });
-
-        return ref;
-      }
-    }
-
-    // If there's no context chain, and the instance is either a) isolated or
-    // b) an orphan, then we know that the keypath is identical to the reference
-    if (!isParentLookup && !hasContextChain) {
-      // the data object needs to have a property by this name,
-      // to prevent future failed lookups
-      ractive.viewmodel.set(ref, undefined);
-      return ref;
-    }
-  }
-
-  function resolveRef__createMappingIfNecessary(ractive, key) {
-    var parentKeypath;
-
-    if (!ractive.parent || ractive.isolated || resolveRef__isRootProperty(ractive, key)) {
-      return;
-    }
-
-    if (parentKeypath = resolveRef__resolveAmbiguousReference(ractive.parent, key, ractive.component.parentFragment, true)) {
-      ractive.viewmodel.map(key, {
-        origin: ractive.parent.viewmodel,
-        keypath: parentKeypath
-      });
-    }
-  }
-
-  function resolveRef__isRootProperty(ractive, key) {
-    return key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
-  }
-
-  function resolveRef__getKey(ref) {
-    var index = ref.indexOf(".");
-    return ~index ? ref.slice(0, index) : ref;
-  }
-  //# sourceMappingURL=01-_6to5-resolveRef.js.map
-
-  function methodCallers__teardown(x) {
-    x.teardown();
-  }
-  function methodCallers__unbind(x) {
-    x.unbind();
-  }
-  function methodCallers__unrender(x) {
-    x.unrender();
-  }
-  //# sourceMappingURL=01-_6to5-methodCallers.js.map
-
-  var TransitionManager__TransitionManager = function (callback, parent) {
-    this.callback = callback;
-    this.parent = parent;
-
-    this.intros = [];
-    this.outros = [];
-
-    this.children = [];
-    this.totalChildren = this.outroChildren = 0;
-
-    this.detachQueue = [];
-    this.decoratorQueue = [];
-    this.outrosComplete = false;
-
-    if (parent) {
-      parent.addChild(this);
-    }
-  };
-
-  TransitionManager__TransitionManager.prototype = {
-    addChild: function (child) {
-      this.children.push(child);
-
-      this.totalChildren += 1;
-      this.outroChildren += 1;
-    },
-
-    decrementOutros: function () {
-      this.outroChildren -= 1;
-      TransitionManager__check(this);
-    },
-
-    decrementTotal: function () {
-      this.totalChildren -= 1;
-      TransitionManager__check(this);
-    },
-
-    add: function (transition) {
-      var list = transition.isIntro ? this.intros : this.outros;
-      list.push(transition);
-    },
-
-    addDecorator: function (decorator) {
-      this.decoratorQueue.push(decorator);
-    },
-
-    remove: function (transition) {
-      var list = transition.isIntro ? this.intros : this.outros;
-      array__removeFromArray(list, transition);
-      TransitionManager__check(this);
-    },
-
-    init: function () {
-      this.ready = true;
-      TransitionManager__check(this);
-    },
-
-    detachNodes: function () {
-      this.decoratorQueue.forEach(methodCallers__teardown);
-      this.detachQueue.forEach(TransitionManager__detach);
-      this.children.forEach(TransitionManager__detachNodes);
-    }
-  };
-
-  function TransitionManager__detach(element) {
-    element.detach();
-  }
-
-  function TransitionManager__detachNodes(tm) {
-    tm.detachNodes();
-  }
-
-  function TransitionManager__check(tm) {
-    if (!tm.ready || tm.outros.length || tm.outroChildren) return;
-
-    // If all outros are complete, and we haven't already done this,
-    // we notify the parent if there is one, otherwise
-    // start detaching nodes
-    if (!tm.outrosComplete) {
-      if (tm.parent) {
-        tm.parent.decrementOutros(tm);
-      } else {
-        tm.detachNodes();
-      }
-
-      tm.outrosComplete = true;
-    }
-
-    // Once everything is done, we can notify parent transition
-    // manager and call the callback
-    if (!tm.intros.length && !tm.totalChildren) {
-      if (typeof tm.callback === "function") {
-        tm.callback();
-      }
-
-      if (tm.parent) {
-        tm.parent.decrementTotal();
-      }
-    }
-  }
-
-  var TransitionManager__default = TransitionManager__TransitionManager;
-  //# sourceMappingURL=01-_6to5-TransitionManager.js.map
-
-  var runloop__batch, runloop__runloop, runloop__unresolved = [], runloop__changeHook = new Hook__default("change");
-
-  runloop__runloop = {
-    start: function (instance, returnPromise) {
-      var promise, fulfilPromise;
-
-      if (returnPromise) {
-        promise = new Promise__default(function (f) {
-          return (fulfilPromise = f);
-        });
-      }
-
-      runloop__batch = {
-        previousBatch: runloop__batch,
-        transitionManager: new TransitionManager__default(fulfilPromise, runloop__batch && runloop__batch.transitionManager),
-        views: [],
-        tasks: [],
-        viewmodels: [],
-        instance: instance
-      };
-
-      if (instance) {
-        runloop__batch.viewmodels.push(instance.viewmodel);
-      }
-
-      return promise;
-    },
-
-    end: function () {
-      runloop__flushChanges();
-
-      runloop__batch.transitionManager.init();
-      if (!runloop__batch.previousBatch && !!runloop__batch.instance) runloop__batch.instance.viewmodel.changes = [];
-      runloop__batch = runloop__batch.previousBatch;
-    },
-
-    addViewmodel: function (viewmodel) {
-      if (runloop__batch) {
-        if (runloop__batch.viewmodels.indexOf(viewmodel) === -1) {
-          runloop__batch.viewmodels.push(viewmodel);
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        viewmodel.applyChanges();
-        return false;
-      }
-    },
-
-    registerTransition: function (transition) {
-      transition._manager = runloop__batch.transitionManager;
-      runloop__batch.transitionManager.add(transition);
-    },
-
-    registerDecorator: function (decorator) {
-      runloop__batch.transitionManager.addDecorator(decorator);
-    },
-
-    addView: function (view) {
-      runloop__batch.views.push(view);
-    },
-
-    addUnresolved: function (thing) {
-      runloop__unresolved.push(thing);
-    },
-
-    removeUnresolved: function (thing) {
-      array__removeFromArray(runloop__unresolved, thing);
-    },
-
-    // synchronise node detachments with transition ends
-    detachWhenReady: function (thing) {
-      runloop__batch.transitionManager.detachQueue.push(thing);
-    },
-
-    scheduleTask: function (task, postRender) {
-      var _batch;
-
-      if (!runloop__batch) {
-        task();
-      } else {
-        _batch = runloop__batch;
-        while (postRender && _batch.previousBatch) {
-          // this can't happen until the DOM has been fully updated
-          // otherwise in some situations (with components inside elements)
-          // transitions and decorators will initialise prematurely
-          _batch = _batch.previousBatch;
-        }
-
-        _batch.tasks.push(task);
-      }
-    }
-  };
-
-  var runloop__default = runloop__runloop;
-
-  function runloop__flushChanges() {
-    var i, thing, changeHash;
-
-    while (runloop__batch.viewmodels.length) {
-      thing = runloop__batch.viewmodels.pop();
-      changeHash = thing.applyChanges();
-
-      if (changeHash) {
-        runloop__changeHook.fire(thing.ractive, changeHash);
-      }
-    }
-
-    runloop__attemptKeypathResolution();
-
-    // Now that changes have been fully propagated, we can update the DOM
-    // and complete other tasks
-    for (i = 0; i < runloop__batch.views.length; i += 1) {
-      runloop__batch.views[i].update();
-    }
-    runloop__batch.views.length = 0;
-
-    for (i = 0; i < runloop__batch.tasks.length; i += 1) {
-      runloop__batch.tasks[i]();
-    }
-    runloop__batch.tasks.length = 0;
-
-    // If updating the view caused some model blowback - e.g. a triple
-    // containing <option> elements caused the binding on the <select>
-    // to update - then we start over
-    if (runloop__batch.viewmodels.length) return runloop__flushChanges();
-  }
-
-  function runloop__attemptKeypathResolution() {
-    var i, item, keypath, resolved;
-
-    i = runloop__unresolved.length;
-
-    // see if we can resolve any unresolved references
-    while (i--) {
-      item = runloop__unresolved[i];
-
-      if (item.keypath) {
-        // it resolved some other way. TODO how? two-way binding? Seems
-        // weird that we'd still end up here
-        runloop__unresolved.splice(i, 1);
-      }
-
-      if (keypath = resolveRef__default(item.root, item.ref, item.parentFragment)) {
-        (resolved || (resolved = [])).push({
-          item: item,
-          keypath: keypath
-        });
-
-        runloop__unresolved.splice(i, 1);
-      }
-    }
-
-    if (resolved) {
-      resolved.forEach(runloop__resolve);
-    }
-  }
-
-  function runloop__resolve(resolved) {
-    resolved.item.resolve(resolved.keypath);
-  }
-  //# sourceMappingURL=01-_6to5-runloop.js.map
-
-  var createBranch__numeric = /^\s*[0-9]+\s*$/;
-
-  var createBranch__default = function (key) {
-    return createBranch__numeric.test(key) ? [] : {};
-  };
-  //# sourceMappingURL=01-_6to5-createBranch.js.map
-
-  var magicAdaptor__magicAdaptor, magicAdaptor__MagicWrapper;
-
-  try {
-    Object.defineProperty({}, "test", { value: 0 });
-
-    magicAdaptor__magicAdaptor = {
-      filter: function (object, keypath, ractive) {
-        var keys, key, parentKeypath, parentWrapper, parentValue;
-
-        if (!keypath) {
-          return false;
-        }
-
-        keys = keypath.split(".");
-        key = keys.pop();
-        parentKeypath = keys.join(".");
-
-        // If the parent value is a wrapper, other than a magic wrapper,
-        // we shouldn't wrap this property
-        if ((parentWrapper = ractive.viewmodel.wrapped[parentKeypath]) && !parentWrapper.magic) {
-          return false;
-        }
-
-        parentValue = ractive.get(parentKeypath);
-
-        // if parentValue is an array that doesn't include this member,
-        // we should return false otherwise lengths will get messed up
-        if (is__isArray(parentValue) && /^[0-9]+$/.test(key)) {
-          return false;
-        }
-
-        return (parentValue && (typeof parentValue === "object" || typeof parentValue === "function"));
-      },
-      wrap: function (ractive, property, keypath) {
-        return new magicAdaptor__MagicWrapper(ractive, property, keypath);
-      }
-    };
-
-    magicAdaptor__MagicWrapper = function (ractive, value, keypath) {
-      var keys, objKeypath, template, siblings;
-
-      this.magic = true;
-
-      this.ractive = ractive;
-      this.keypath = keypath;
-      this.value = value;
-
-      keys = keypath.split(".");
-
-      this.prop = keys.pop();
-
-      objKeypath = keys.join(".");
-      this.obj = objKeypath ? ractive.get(objKeypath) : ractive.data;
-
-      template = this.originalDescriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
-
-      // Has this property already been wrapped?
-      if (template && template.set && (siblings = template.set._ractiveWrappers)) {
-        // Yes. Register this wrapper to this property, if it hasn't been already
-        if (siblings.indexOf(this) === -1) {
-          siblings.push(this);
-        }
-
-        return; // already wrapped
-      }
-
-      // No, it hasn't been wrapped
-      magicAdaptor__createAccessors(this, value, template);
-    };
-
-    magicAdaptor__MagicWrapper.prototype = {
-      get: function () {
-        return this.value;
-      },
-      reset: function (value) {
-        if (this.updating) {
-          return;
-        }
-
-        this.updating = true;
-        this.obj[this.prop] = value; // trigger set() accessor
-        runloop__default.addViewmodel(this.ractive.viewmodel);
-        this.ractive.viewmodel.mark(this.keypath, { dontTeardownWrapper: true });
-        this.updating = false;
-        return true;
-      },
-      set: function (key, value) {
-        if (this.updating) {
-          return;
-        }
-
-        if (!this.obj[this.prop]) {
-          this.updating = true;
-          this.obj[this.prop] = createBranch__default(key);
-          this.updating = false;
-        }
-
-        this.obj[this.prop][key] = value;
-      },
-      teardown: function () {
-        var template, set, value, wrappers, index;
-
-        // If this method was called because the cache was being cleared as a
-        // result of a set()/update() call made by this wrapper, we return false
-        // so that it doesn't get torn down
-        if (this.updating) {
-          return false;
-        }
-
-        template = Object.getOwnPropertyDescriptor(this.obj, this.prop);
-        set = template && template.set;
-
-        if (!set) {
-          // most likely, this was an array member that was spliced out
-          return;
-        }
-
-        wrappers = set._ractiveWrappers;
-
-        index = wrappers.indexOf(this);
-        if (index !== -1) {
-          wrappers.splice(index, 1);
-        }
-
-        // Last one out, turn off the lights
-        if (!wrappers.length) {
-          value = this.obj[this.prop];
-
-          Object.defineProperty(this.obj, this.prop, this.originalDescriptor || {
-            writable: true,
-            enumerable: true,
-            configurable: true
-          });
-
-          this.obj[this.prop] = value;
-        }
-      }
-    };
-  } catch (err) {
-    magicAdaptor__magicAdaptor = false; // no magic in this browser
-  }
-
-  var magicAdaptor__default = magicAdaptor__magicAdaptor;
-
-  function magicAdaptor__createAccessors(originalWrapper, value, template) {
-    var object, property, oldGet, oldSet, get, set;
-
-    object = originalWrapper.obj;
-    property = originalWrapper.prop;
-
-    // Is this template configurable?
-    if (template && !template.configurable) {
-      // Special case - array length
-      if (property === "length") {
-        return;
-      }
-
-      throw new Error("Cannot use magic mode with property \"" + property + "\" - object is not configurable");
-    }
-
-
-    // Time to wrap this property
-    if (template) {
-      oldGet = template.get;
-      oldSet = template.set;
-    }
-
-    get = oldGet || function () {
-      return value;
-    };
-
-    set = function (v) {
-      if (oldSet) {
-        oldSet(v);
-      }
-
-      value = oldGet ? oldGet() : v;
-      set._ractiveWrappers.forEach(updateWrapper);
-    };
-
-    function updateWrapper(wrapper) {
-      var keypath, ractive;
-
-      wrapper.value = value;
-
-      if (wrapper.updating) {
-        return;
-      }
-
-      ractive = wrapper.ractive;
-      keypath = wrapper.keypath;
-
-      wrapper.updating = true;
-      runloop__default.start(ractive);
-
-      ractive.viewmodel.mark(keypath);
-
-      runloop__default.end();
-      wrapper.updating = false;
-    }
-
-    // Create an array of wrappers, in case other keypaths/ractives depend on this property.
-    // Handily, we can store them as a property of the set function. Yay JavaScript.
-    set._ractiveWrappers = [originalWrapper];
-    Object.defineProperty(object, property, { get: get, set: set, enumerable: true, configurable: true });
-  }
-  //# sourceMappingURL=01-_6to5-magicAdaptor.js.map
-
-	var magic__default = !!magicAdaptor__default;
-	//# sourceMappingURL=01-_6to5-magic.js.map
-
-  function add__add(root, keypath, d) {
-    var value;
-
-    if (typeof keypath !== "string" || !is__isNumeric(d)) {
-      throw new Error("Bad arguments");
-    }
-
-    value = +root.get(keypath) || 0;
-
-    if (!is__isNumeric(value)) {
-      throw new Error("Cannot add to a non-numeric value");
-    }
-
-    return root.set(keypath, value + d);
-  };
-  var add__default = add__add;
-  //# sourceMappingURL=01-_6to5-add.js.map
-
-  function prototype_add__Ractive$add(keypath, d) {
-    return add__default(this, keypath, (d === undefined ? 1 : +d));
-  };
-  var prototype_add__default = prototype_add__Ractive$add;
-  //# sourceMappingURL=01-_6to5-add.js.map
-
-  var rAF__requestAnimationFrame;
-
-  // If window doesn't exist, we don't need requestAnimationFrame
-  if (typeof window === "undefined") {
-    rAF__requestAnimationFrame = null;
-  } else {
-    // https://gist.github.com/paulirish/1579671
-    (function (vendors, lastTime, window) {
-      var x, setTimeout;
-
-      if (window.requestAnimationFrame) {
-        return;
-      }
-
-      for (x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = window[vendors[x] + "RequestAnimationFrame"];
-      }
-
-      if (!window.requestAnimationFrame) {
-        setTimeout = window.setTimeout;
-
-        window.requestAnimationFrame = function (callback) {
-          var currTime, timeToCall, id;
-
-          currTime = Date.now();
-          timeToCall = Math.max(0, 16 - (currTime - lastTime));
-          id = setTimeout(function () {
-            callback(currTime + timeToCall);
-          }, timeToCall);
-
-          lastTime = currTime + timeToCall;
-          return id;
-        };
-      }
-    }(vendors__default, 0, window));
-
-    rAF__requestAnimationFrame = window.requestAnimationFrame;
-  }
-
-  var rAF__default = rAF__requestAnimationFrame;
-  //# sourceMappingURL=01-_6to5-requestAnimationFrame.js.map
-
-  var getTime__getTime;
-
-  if (typeof window !== "undefined" && window.performance && typeof window.performance.now === "function") {
-    getTime__getTime = function () {
-      return window.performance.now();
-    };
-  } else {
-    getTime__getTime = function () {
-      return Date.now();
-    };
-  }
-
-  var getTime__default = getTime__getTime;
-  //# sourceMappingURL=01-_6to5-getTime.js.map
-
-  var animations__queue = [];
-
-  var animations__animations = {
-    tick: function () {
-      var i, animation, now;
-
-      now = getTime__default();
-
-      runloop__default.start();
-
-      for (i = 0; i < animations__queue.length; i += 1) {
-        animation = animations__queue[i];
-
-        if (!animation.tick(now)) {
-          // animation is complete, remove it from the stack, and decrement i so we don't miss one
-          animations__queue.splice(i--, 1);
-        }
-      }
-
-      runloop__default.end();
-
-      if (animations__queue.length) {
-        rAF__default(animations__animations.tick);
-      } else {
-        animations__animations.running = false;
-      }
-    },
-
-    add: function (animation) {
-      animations__queue.push(animation);
-
-      if (!animations__animations.running) {
-        animations__animations.running = true;
-        rAF__default(animations__animations.tick);
-      }
-    },
-
-    // TODO optimise this
-    abort: function (keypath, root) {
-      var i = animations__queue.length, animation;
-
-      while (i--) {
-        animation = animations__queue[i];
-
-        if (animation.root === root && animation.keypath === keypath) {
-          animation.stop();
-        }
-      }
-    }
-  };
-
-  var animations__default = animations__animations;
-  //# sourceMappingURL=01-_6to5-animations.js.map
-
-  var Animation__Animation = function (options) {
-    var key;
-
-    this.startTime = Date.now();
-
-    // from and to
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-
-    this.interpolator = interpolate__default(this.from, this.to, this.root, this.interpolator);
-    this.running = true;
-
-    this.tick();
-  };
-
-  Animation__Animation.prototype = {
-    tick: function () {
-      var elapsed, t, value, timeNow, index, keypath;
-
-      keypath = this.keypath;
-
-      if (this.running) {
-        timeNow = Date.now();
-        elapsed = timeNow - this.startTime;
-
-        if (elapsed >= this.duration) {
-          if (keypath !== null) {
-            runloop__default.start(this.root);
-            this.root.viewmodel.set(keypath, this.to);
-            runloop__default.end();
-          }
-
-          if (this.step) {
-            this.step(1, this.to);
-          }
-
-          this.complete(this.to);
-
-          index = this.root._animations.indexOf(this);
-
-          // TODO investigate why this happens
-          if (index === -1) {
-            warn__default("Animation was not found");
-          }
-
-          this.root._animations.splice(index, 1);
-
-          this.running = false;
-          return false; // remove from the stack
-        }
-
-        t = this.easing ? this.easing(elapsed / this.duration) : (elapsed / this.duration);
-
-        if (keypath !== null) {
-          value = this.interpolator(t);
-          runloop__default.start(this.root);
-          this.root.viewmodel.set(keypath, value);
-          runloop__default.end();
-        }
-
-        if (this.step) {
-          this.step(t, value);
-        }
-
-        return true; // keep in the stack
-      }
-
-      return false; // remove from the stack
-    },
-
-    stop: function () {
-      var index;
-
-      this.running = false;
-
-      index = this.root._animations.indexOf(this);
-
-      // TODO investigate why this happens
-      if (index === -1) {
-        warn__default("Animation was not found");
-      }
-
-      this.root._animations.splice(index, 1);
-    }
-  };
-
-  var Animation__default = Animation__Animation;
-  //# sourceMappingURL=01-_6to5-Animation.js.map
-
-  var animate__noop = function () {}, animate__noAnimation = {
-    stop: animate__noop
-  };
-
-  function animate__Ractive$animate(keypath, to, options) {
-    var _this = this;
-
-
-    var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
-
-    promise = new Promise__default(function (fulfil) {
-      fulfilPromise = fulfil;
-    });
-
-    // animate multiple keypaths
-    if (typeof keypath === "object") {
-      options = to || {};
-      easing = options.easing;
-      duration = options.duration;
-
-      animations = [];
-
-      // we don't want to pass the `step` and `complete` handlers, as they will
-      // run for each animation! So instead we'll store the handlers and create
-      // our own...
-      step = options.step;
-      complete = options.complete;
-
-      if (step || complete) {
-        currentValues = {};
-
-        options.step = null;
-        options.complete = null;
-
-        makeValueCollector = function (keypath) {
-          return function (t, value) {
-            currentValues[keypath] = value;
-          };
-        };
-      }
-
-
-      for (k in keypath) {
-        if (keypath.hasOwnProperty(k)) {
-          if (step || complete) {
-            collectValue = makeValueCollector(k);
-            options = {
-              easing: easing,
-              duration: duration
-            };
-
-            if (step) {
-              options.step = collectValue;
-            }
-          }
-
-          options.complete = complete ? collectValue : animate__noop;
-          animations.push(animate__animate(this, k, keypath[k], options));
-        }
-      }
-
-      // Create a dummy animation, to facilitate step/complete
-      // callbacks, and Promise fulfilment
-      dummyOptions = {
-        easing: easing,
-        duration: duration
-      };
-
-      if (step) {
-        dummyOptions.step = function (t) {
-          step(t, currentValues);
-        };
-      }
-
-      if (complete) {
-        promise.then(function (t) {
-          complete(t, currentValues);
-        }).then(null, function (err) {
-          log__default.consoleError({
-            debug: _this.debug,
-            err: err
-          });
-        });
-      }
-
-      dummyOptions.complete = fulfilPromise;
-
-      dummy = animate__animate(this, null, null, dummyOptions);
-      animations.push(dummy);
-
-      promise.stop = function () {
-        var animation;
-
-        while (animation = animations.pop()) {
-          animation.stop();
-        }
-
-        if (dummy) {
-          dummy.stop();
-        }
-      };
-
-      return promise;
-    }
-
-    // animate a single keypath
-    options = options || {};
-
-    if (options.complete) {
-      promise.then(options.complete).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
-    }
-
-    options.complete = fulfilPromise;
-    animation = animate__animate(this, keypath, to, options);
-
-    promise.stop = function () {
-      animation.stop();
-    };
-    return promise;
-  };
-  var animate__default = animate__Ractive$animate;
-
-  function animate__animate(root, keypath, to, options) {
-    var easing, duration, animation, from;
-
-    if (keypath) {
-      keypath = keypaths__normalise(keypath);
-    }
-
-    if (keypath !== null) {
-      from = root.viewmodel.get(keypath);
-    }
-
-    // cancel any existing animation
-    // TODO what about upstream/downstream keypaths?
-    animations__default.abort(keypath, root);
-
-    // don't bother animating values that stay the same
-    if (is__isEqual(from, to)) {
-      if (options.complete) {
-        options.complete(options.to);
-      }
-
-      return animate__noAnimation;
-    }
-
-    // easing function
-    if (options.easing) {
-      if (typeof options.easing === "function") {
-        easing = options.easing;
-      } else {
-        easing = root.easing[options.easing];
-      }
-
-      if (typeof easing !== "function") {
-        easing = null;
-      }
-    }
-
-    // duration
-    duration = (options.duration === undefined ? 400 : options.duration);
-
-    // TODO store keys, use an internal set method
-    animation = new Animation__default({
-      keypath: keypath,
-      from: from,
-      to: to,
-      root: root,
-      duration: duration,
-      easing: easing,
-      interpolator: options.interpolator,
-
-      // TODO wrap callbacks if necessary, to use instance as context
-      step: options.step,
-      complete: options.complete
-    });
-
-    animations__default.add(animation);
-    root._animations.push(animation);
-
-    return animation;
-  }
-  //# sourceMappingURL=01-_6to5-animate.js.map
-
-  var prototype_detach__detachHook = new Hook__default("detach");
-
-  function prototype_detach__Ractive$detach() {
-    if (this.detached) {
-      return this.detached;
-    }
-
-    if (this.el) {
-      array__removeFromArray(this.el.__ractive_instances__, this);
-    }
-    this.detached = this.fragment.detach();
-    prototype_detach__detachHook.fire(this);
-    return this.detached;
-  };
-  var prototype_detach__default = prototype_detach__Ractive$detach;
-  //# sourceMappingURL=01-_6to5-detach.js.map
-
-  function prototype_find__Ractive$find(selector) {
-    if (!this.el) {
-      return null;
-    }
-
-    return this.fragment.find(selector);
-  };
-  var prototype_find__default = prototype_find__Ractive$find;
-  //# sourceMappingURL=01-_6to5-find.js.map
-
-  var test__default = function (item, noDirty) {
-    var itemMatches;
-
-    if (this._isComponentQuery) {
-      itemMatches = !this.selector || item.name === this.selector;
-    } else {
-      itemMatches = item.node ? dom__matches(item.node, this.selector) : null;
-    }
-
-    if (itemMatches) {
-      this.push(item.node || item.instance);
-
-      if (!noDirty) {
-        this._makeDirty();
-      }
-
-      return true;
-    }
-  };
-  //# sourceMappingURL=01-_6to5-test.js.map
-
-  var cancel__default = function () {
-    var liveQueries, selector, index;
-
-    liveQueries = this._root[this._isComponentQuery ? "liveComponentQueries" : "liveQueries"];
-    selector = this.selector;
-
-    index = liveQueries.indexOf(selector);
-
-    if (index !== -1) {
-      liveQueries.splice(index, 1);
-      liveQueries[selector] = null;
-    }
-  };
-  //# sourceMappingURL=01-_6to5-cancel.js.map
-
-  var sortByItemPosition__default = function (a, b) {
-    var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
-
-    ancestryA = sortByItemPosition__getAncestry(a.component || a._ractive.proxy);
-    ancestryB = sortByItemPosition__getAncestry(b.component || b._ractive.proxy);
-
-    oldestA = ancestryA[ancestryA.length - 1];
-    oldestB = ancestryB[ancestryB.length - 1];
-
-    // remove items from the end of both ancestries as long as they are identical
-    // - the final one removed is the closest mutual ancestor
-    while (oldestA && (oldestA === oldestB)) {
-      ancestryA.pop();
-      ancestryB.pop();
-
-      mutualAncestor = oldestA;
-
-      oldestA = ancestryA[ancestryA.length - 1];
-      oldestB = ancestryB[ancestryB.length - 1];
-    }
-
-    // now that we have the mutual ancestor, we can find which is earliest
-    oldestA = oldestA.component || oldestA;
-    oldestB = oldestB.component || oldestB;
-
-    fragmentA = oldestA.parentFragment;
-    fragmentB = oldestB.parentFragment;
-
-    // if both items share a parent fragment, our job is easy
-    if (fragmentA === fragmentB) {
-      indexA = fragmentA.items.indexOf(oldestA);
-      indexB = fragmentB.items.indexOf(oldestB);
-
-      // if it's the same index, it means one contains the other,
-      // so we see which has the longest ancestry
-      return (indexA - indexB) || ancestryA.length - ancestryB.length;
-    }
-
-    // if mutual ancestor is a section, we first test to see which section
-    // fragment comes first
-    if (fragments = mutualAncestor.fragments) {
-      indexA = fragments.indexOf(fragmentA);
-      indexB = fragments.indexOf(fragmentB);
-
-      return (indexA - indexB) || ancestryA.length - ancestryB.length;
-    }
-
-    throw new Error("An unexpected condition was met while comparing the position of two components. Please file an issue at https://github.com/RactiveJS/Ractive/issues - thanks!");
-  };
-
-  function sortByItemPosition__getParent(item) {
-    var parentFragment;
-
-    if (parentFragment = item.parentFragment) {
-      return parentFragment.owner;
-    }
-
-    if (item.component && (parentFragment = item.component.parentFragment)) {
-      return parentFragment.owner;
-    }
-  }
-
-  function sortByItemPosition__getAncestry(item) {
-    var ancestry, ancestor;
-
-    ancestry = [item];
-
-    ancestor = sortByItemPosition__getParent(item);
-
-    while (ancestor) {
-      ancestry.push(ancestor);
-      ancestor = sortByItemPosition__getParent(ancestor);
-    }
-
-    return ancestry;
-  }
-  //# sourceMappingURL=01-_6to5-sortByItemPosition.js.map
-
-  var sortByDocumentPosition__default = function (node, otherNode) {
-    var bitmask;
-
-    if (node.compareDocumentPosition) {
-      bitmask = node.compareDocumentPosition(otherNode);
-      return (bitmask & 2) ? 1 : -1;
-    }
-
-    // In old IE, we can piggy back on the mechanism for
-    // comparing component positions
-    return sortByItemPosition__default(node, otherNode);
-  };
-  //# sourceMappingURL=01-_6to5-sortByDocumentPosition.js.map
-
-  var sort__default = function () {
-    this.sort(this._isComponentQuery ? sortByItemPosition__default : sortByDocumentPosition__default);
-    this._dirty = false;
-  };
-  //# sourceMappingURL=01-_6to5-sort.js.map
-
-  var dirty__default = function () {
-    var _this = this;
-    if (!this._dirty) {
-      this._dirty = true;
-
-      // Once the DOM has been updated, ensure the query
-      // is correctly ordered
-      runloop__default.scheduleTask(function () {
-        _this._sort();
-      });
-    }
-  };
-  //# sourceMappingURL=01-_6to5-dirty.js.map
-
-  var remove__default = function (nodeOrComponent) {
-    var index = this.indexOf(this._isComponentQuery ? nodeOrComponent.instance : nodeOrComponent);
-
-    if (index !== -1) {
-      this.splice(index, 1);
-    }
-  };
-  //# sourceMappingURL=01-_6to5-remove.js.map
-
-  function makeQuery__makeQuery(ractive, selector, live, isComponentQuery) {
-    var query = [];
-
-    object__defineProperties(query, {
-      selector: { value: selector },
-      live: { value: live },
-
-      _isComponentQuery: { value: isComponentQuery },
-      _test: { value: test__default }
-    });
-
-    if (!live) {
-      return query;
-    }
-
-    object__defineProperties(query, {
-      cancel: { value: cancel__default },
-
-      _root: { value: ractive },
-      _sort: { value: sort__default },
-      _makeDirty: { value: dirty__default },
-      _remove: { value: remove__default },
-
-      _dirty: { value: false, writable: true }
-    });
-
-    return query;
-  };
-  var makeQuery__default = makeQuery__makeQuery;
-  //# sourceMappingURL=01-_6to5-_makeQuery.js.map
-
-  function prototype_findAll__Ractive$findAll(selector, options) {
-    var liveQueries, query;
-
-    if (!this.el) {
-      return [];
-    }
-
-    options = options || {};
-    liveQueries = this._liveQueries;
-
-    // Shortcut: if we're maintaining a live query with this
-    // selector, we don't need to traverse the parallel DOM
-    if (query = liveQueries[selector]) {
-      // Either return the exact same query, or (if not live) a snapshot
-      return (options && options.live) ? query : query.slice();
-    }
-
-    query = makeQuery__default(this, selector, !!options.live, false);
-
-    // Add this to the list of live queries Ractive needs to maintain,
-    // if applicable
-    if (query.live) {
-      liveQueries.push(selector);
-      liveQueries["_" + selector] = query;
-    }
-
-    this.fragment.findAll(selector, query);
-    return query;
-  };
-  var prototype_findAll__default = prototype_findAll__Ractive$findAll;
-  //# sourceMappingURL=01-_6to5-findAll.js.map
-
-  function prototype_findAllComponents__Ractive$findAllComponents(selector, options) {
-    var liveQueries, query;
-
-    options = options || {};
-    liveQueries = this._liveComponentQueries;
-
-    // Shortcut: if we're maintaining a live query with this
-    // selector, we don't need to traverse the parallel DOM
-    if (query = liveQueries[selector]) {
-      // Either return the exact same query, or (if not live) a snapshot
-      return (options && options.live) ? query : query.slice();
-    }
-
-    query = makeQuery__default(this, selector, !!options.live, true);
-
-    // Add this to the list of live queries Ractive needs to maintain,
-    // if applicable
-    if (query.live) {
-      liveQueries.push(selector);
-      liveQueries["_" + selector] = query;
-    }
-
-    this.fragment.findAllComponents(selector, query);
-    return query;
-  };
-  var prototype_findAllComponents__default = prototype_findAllComponents__Ractive$findAllComponents;
-  //# sourceMappingURL=01-_6to5-findAllComponents.js.map
-
-  function prototype_findComponent__Ractive$findComponent(selector) {
-    return this.fragment.findComponent(selector);
-  };
-  var prototype_findComponent__default = prototype_findComponent__Ractive$findComponent;
-  //# sourceMappingURL=01-_6to5-findComponent.js.map
-
-  function findContainer__Ractive$findContainer(selector) {
-    if (this.container) {
-      if (this.container.component && this.container.component.name === selector) {
-        return this.container;
-      } else {
-        return this.container.findContainer(selector);
-      }
-    }
-
-    return null;
-  };
-  var findContainer__default = findContainer__Ractive$findContainer;
-  //# sourceMappingURL=01-_6to5-findContainer.js.map
-
-  function findParent__Ractive$findParent(selector) {
-    if (this.parent) {
-      if (this.parent.component && this.parent.component.name === selector) {
-        return this.parent;
-      } else {
-        return this.parent.findParent(selector);
-      }
-    }
-
-    return null;
-  };
-  var findParent__default = findParent__Ractive$findParent;
-  //# sourceMappingURL=01-_6to5-findParent.js.map
-
-  var eventStack__eventStack = {
-    enqueue: function (ractive, event) {
-      if (ractive.event) {
-        ractive._eventQueue = ractive._eventQueue || [];
-        ractive._eventQueue.push(ractive.event);
-      }
-      ractive.event = event;
-    },
-    dequeue: function (ractive) {
-      if (ractive._eventQueue && ractive._eventQueue.length) {
-        ractive.event = ractive._eventQueue.pop();
-      } else {
-        delete ractive.event;
-      }
-    }
-  };
-
-  var eventStack__default = eventStack__eventStack;
-  //# sourceMappingURL=01-_6to5-eventStack.js.map
-
-  var getPotentialWildcardMatches__starMaps = {};
-
-  // This function takes a keypath such as 'foo.bar.baz', and returns
-  // all the variants of that keypath that include a wildcard in place
-  // of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
-  // These are then checked against the dependants map (ractive.viewmodel.depsMap)
-  // to see if any pattern observers are downstream of one or more of
-  // these wildcard keypaths (e.g. 'foo.bar.*.status')
-  function getPotentialWildcardMatches__getPotentialWildcardMatches(keypath) {
-    var keys, starMap, mapper, i, result, wildcardKeypath;
-
-    keys = keypath.split(".");
-    if (!(starMap = getPotentialWildcardMatches__starMaps[keys.length])) {
-      starMap = getPotentialWildcardMatches__getStarMap(keys.length);
-    }
-
-    result = [];
-
-    mapper = function (star, i) {
-      return star ? "*" : keys[i];
-    };
-
-    i = starMap.length;
-    while (i--) {
-      wildcardKeypath = starMap[i].map(mapper).join(".");
-
-      if (!result.hasOwnProperty(wildcardKeypath)) {
-        result.push(wildcardKeypath);
-        result[wildcardKeypath] = true;
-      }
-    }
-
-    return result;
-  };
-  var getPotentialWildcardMatches__default = getPotentialWildcardMatches__getPotentialWildcardMatches;
-
-  // This function returns all the possible true/false combinations for
-  // a given number - e.g. for two, the possible combinations are
-  // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
-  // It does so by getting all the binary values between 0 and e.g. 11
-  function getPotentialWildcardMatches__getStarMap(num) {
-    var ones = "", max, binary, starMap, mapper, i;
-
-    if (!getPotentialWildcardMatches__starMaps[num]) {
-      starMap = [];
-
-      while (ones.length < num) {
-        ones += 1;
-      }
-
-      max = parseInt(ones, 2);
-
-      mapper = function (digit) {
-        return digit === "1";
-      };
-
-      for (i = 0; i <= max; i += 1) {
-        binary = i.toString(2);
-        while (binary.length < num) {
-          binary = "0" + binary;
-        }
-
-        starMap[i] = Array.prototype.map.call(binary, mapper);
-      }
-
-      getPotentialWildcardMatches__starMaps[num] = starMap;
-    }
-
-    return getPotentialWildcardMatches__starMaps[num];
-  }
-  //# sourceMappingURL=01-_6to5-getPotentialWildcardMatches.js.map
-
-  function fireEvent__fireEvent(ractive, eventName, options) {
-    if (options === undefined) options = {};
-    if (!eventName) {
-      return;
-    }
-
-    if (!options.event) {
-      options.event = {
-        name: eventName,
-        context: ractive.data,
-        keypath: "",
-        // until event not included as argument default
-        _noArg: true
-      };
-    } else {
-      options.event.name = eventName;
-    }
-
-    var eventNames = getPotentialWildcardMatches__default(eventName);
-    fireEvent__fireEventAs(ractive, eventNames, options.event, options.args, true);
-  };
-  var fireEvent__default = fireEvent__fireEvent;
-
-  function fireEvent__fireEventAs(ractive, eventNames, event, args, initialFire) {
-    if (initialFire === undefined) initialFire = false;
-
-
-    var subscribers, i, bubble = true;
-
-    eventStack__default.enqueue(ractive, event);
-
-    for (i = eventNames.length; i >= 0; i--) {
-      subscribers = ractive._subs[eventNames[i]];
-
-      if (subscribers) {
-        bubble = fireEvent__notifySubscribers(ractive, subscribers, event, args) && bubble;
-      }
-    }
-
-    eventStack__default.dequeue(ractive);
-
-    if (ractive.parent && bubble) {
-      if (initialFire && ractive.component) {
-        var fullName = ractive.component.name + "." + eventNames[eventNames.length - 1];
-        eventNames = getPotentialWildcardMatches__default(fullName);
-
-        if (event) {
-          event.component = ractive;
-        }
-      }
-
-      fireEvent__fireEventAs(ractive.parent, eventNames, event, args);
-    }
-  }
-
-  function fireEvent__notifySubscribers(ractive, subscribers, event, args) {
-    var originalEvent = null, stopEvent = false;
-
-    if (event && !event._noArg) {
-      args = [event].concat(args);
-    }
-
-    // subscribers can be modified inflight, e.g. "once" functionality
-    // so we need to copy to make sure everyone gets called
-    subscribers = subscribers.slice();
-
-    for (var i = 0, len = subscribers.length; i < len; i += 1) {
-      if (subscribers[i].apply(ractive, args) === false) {
-        stopEvent = true;
-      }
-    }
-
-    if (event && !event._noArg && stopEvent && (originalEvent = event.original)) {
-      originalEvent.preventDefault && originalEvent.preventDefault();
-      originalEvent.stopPropagation && originalEvent.stopPropagation();
-    }
-
-    return !stopEvent;
-  }
-  //# sourceMappingURL=01-_6to5-fireEvent.js.map
-
-  function prototype_fire__Ractive$fire(eventName) {
-    var options = {
-      args: Array.prototype.slice.call(arguments, 1)
-    };
-
-    fireEvent__default(this, eventName, options);
-  };
-  var prototype_fire__default = prototype_fire__Ractive$fire;
-  //# sourceMappingURL=01-_6to5-fire.js.map
-
-  var prototype_get__options = {
-    capture: true, // top-level calls should be intercepted
-    noUnwrap: true // wrapped values should NOT be unwrapped
-  };
-
-  function prototype_get__Ractive$get(keypath) {
-    var value;
-
-    keypath = keypaths__normalise(keypath);
-    value = this.viewmodel.get(keypath, prototype_get__options);
-
-    // Create inter-component binding, if necessary
-    if (value === undefined && this.parent && !this.isolated) {
-      if (resolveRef__default(this, keypath, this.fragment)) {
-        // creates binding as side-effect, if appropriate
-        value = this.viewmodel.get(keypath);
-      }
-    }
-
-    return value;
-  };
-  var prototype_get__default = prototype_get__Ractive$get;
-  //# sourceMappingURL=01-_6to5-get.js.map
-
-  var insert__insertHook = new Hook__default("insert");
-
-  function insert__Ractive$insert(target, anchor) {
-    if (!this.fragment.rendered) {
-      // TODO create, and link to, documentation explaining this
-      throw new Error("The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.");
-    }
-
-    target = dom__getElement(target);
-    anchor = dom__getElement(anchor) || null;
-
-    if (!target) {
-      throw new Error("You must specify a valid target to insert into");
-    }
-
-    target.insertBefore(this.detach(), anchor);
-    this.el = target;
-
-    (target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(this);
-    this.detached = null;
-
-    insert__fireInsertHook(this);
-  };
-  var insert__default = insert__Ractive$insert;
-
-  function insert__fireInsertHook(ractive) {
-    insert__insertHook.fire(ractive);
-
-    ractive.findAllComponents("*").forEach(function (child) {
-      insert__fireInsertHook(child.instance);
-    });
-  }
-  //# sourceMappingURL=01-_6to5-insert.js.map
-
-  function prototype_merge__Ractive$merge(keypath, array, options) {
-    var _this = this;
-
-
-    var currentArray, promise;
-
-    keypath = keypaths__normalise(keypath);
-    currentArray = this.viewmodel.get(keypath);
-
-    // If either the existing value or the new value isn't an
-    // array, just do a regular set
-    if (!is__isArray(currentArray) || !is__isArray(array)) {
-      return this.set(keypath, array, options && options.complete);
-    }
-
-    // Manage transitions
-    promise = runloop__default.start(this, true);
-    this.viewmodel.merge(keypath, currentArray, array, options);
-    runloop__default.end();
-
-    // attach callback as fulfilment handler, if specified
-    if (options && options.complete) {
-      log__default.warn({
-        debug: this.debug,
-        message: "usePromise",
-        args: {
-          method: "ractive.merge"
-        }
-      });
-
-      promise.then(options.complete).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
-    }
-
-    return promise;
-  };
-  var prototype_merge__default = prototype_merge__Ractive$merge;
-  //# sourceMappingURL=01-_6to5-merge.js.map
-
-  var Observer__Observer = function (ractive, keypath, callback, options) {
-    this.root = ractive;
-    this.keypath = keypath;
-    this.callback = callback;
-    this.defer = options.defer;
-
-    // default to root as context, but allow it to be overridden
-    this.context = (options && options.context ? options.context : ractive);
-  };
-
-  Observer__Observer.prototype = {
-    init: function (immediate) {
-      this.value = this.root.get(this.keypath);
-
-      if (immediate !== false) {
-        this.update();
-      } else {
-        this.oldValue = this.value;
-      }
-    },
-
-    setValue: function (value) {
-      var _this = this;
-      if (!is__isEqual(value, this.value)) {
-        this.value = value;
-
-        if (this.defer && this.ready) {
-          runloop__default.scheduleTask(function () {
-            return _this.update();
-          });
-        } else {
-          this.update();
-        }
-      }
-    },
-
-    update: function () {
-      // Prevent infinite loops
-      if (this.updating) {
-        return;
-      }
-
-      this.updating = true;
-
-      this.callback.call(this.context, this.value, this.oldValue, this.keypath);
-      this.oldValue = this.value;
-
-      this.updating = false;
-    }
-  };
-
-  var Observer__default = Observer__Observer;
-  //# sourceMappingURL=01-_6to5-Observer.js.map
-
-  function getPattern__getPattern(ractive, pattern) {
-    var matchingKeypaths, values;
-
-    matchingKeypaths = keypaths__getMatchingKeypaths(ractive, pattern);
-
-    values = {};
-    matchingKeypaths.forEach(function (keypath) {
-      values[keypath] = ractive.get(keypath);
-    });
-
-    return values;
-  };
-  var getPattern__default = getPattern__getPattern;
-  //# sourceMappingURL=01-_6to5-getPattern.js.map
-
-  var PatternObserver__PatternObserver, PatternObserver__wildcard = /\*/, PatternObserver__slice = Array.prototype.slice;
-
-  PatternObserver__PatternObserver = function (ractive, keypath, callback, options) {
-    this.root = ractive;
-
-    this.callback = callback;
-    this.defer = options.defer;
-
-    this.keypath = keypath;
-    this.regex = new RegExp("^" + keypath.replace(/\./g, "\\.").replace(/\*/g, "([^\\.]+)") + "$");
-    this.values = {};
-
-    if (this.defer) {
-      this.proxies = [];
-    }
-
-    // default to root as context, but allow it to be overridden
-    this.context = (options && options.context ? options.context : ractive);
-  };
-
-  PatternObserver__PatternObserver.prototype = {
-    init: function (immediate) {
-      var values, keypath;
-
-      values = getPattern__default(this.root, this.keypath);
-
-      if (immediate !== false) {
-        for (keypath in values) {
-          if (values.hasOwnProperty(keypath)) {
-            this.update(keypath);
-          }
-        }
-      } else {
-        this.values = values;
-      }
-    },
-
-    update: function (keypath) {
-      var _this = this;
-      var values;
-
-      if (PatternObserver__wildcard.test(keypath)) {
-        values = getPattern__default(this.root, keypath);
-
-        for (keypath in values) {
-          if (values.hasOwnProperty(keypath)) {
-            this.update(keypath);
-          }
-        }
-
-        return;
-      }
-
-      // special case - array mutation should not trigger `array.*`
-      // pattern observer with `array.length`
-      if (this.root.viewmodel.implicitChanges[keypath]) {
-        return;
-      }
-
-      if (this.defer && this.ready) {
-        runloop__default.scheduleTask(function () {
-          return _this.getProxy(keypath).update();
-        });
-        return;
-      }
-
-      this.reallyUpdate(keypath);
-    },
-
-    reallyUpdate: function (keypath) {
-      var value, keys, args;
-
-      value = this.root.viewmodel.get(keypath);
-
-      // Prevent infinite loops
-      if (this.updating) {
-        this.values[keypath] = value;
-        return;
-      }
-
-      this.updating = true;
-
-      if (!is__isEqual(value, this.values[keypath]) || !this.ready) {
-        keys = PatternObserver__slice.call(this.regex.exec(keypath), 1);
-        args = [value, this.values[keypath], keypath].concat(keys);
-
-        this.values[keypath] = value;
-        this.callback.apply(this.context, args);
-      }
-
-      this.updating = false;
-    },
-
-    getProxy: function (keypath) {
-      var _this2 = this;
-      if (!this.proxies[keypath]) {
-        this.proxies[keypath] = {
-          update: function () {
-            return _this2.reallyUpdate(keypath);
-          }
-        };
-      }
-
-      return this.proxies[keypath];
-    }
-  };
-
-  var PatternObserver__default = PatternObserver__PatternObserver;
-  //# sourceMappingURL=01-_6to5-PatternObserver.js.map
-
-  var getObserverFacade__wildcard = /\*/, getObserverFacade__emptyObject = {};
-
-  function getObserverFacade__getObserverFacade(ractive, keypath, callback, options) {
-    var observer, isPatternObserver, cancelled;
-
-    keypath = keypaths__normalise(keypath);
-    options = options || getObserverFacade__emptyObject;
-
-    // pattern observers are treated differently
-    if (getObserverFacade__wildcard.test(keypath)) {
-      observer = new PatternObserver__default(ractive, keypath, callback, options);
-      ractive.viewmodel.patternObservers.push(observer);
-      isPatternObserver = true;
-    } else {
-      observer = new Observer__default(ractive, keypath, callback, options);
-    }
-
-    observer.init(options.init);
-    ractive.viewmodel.register(keypath, observer, isPatternObserver ? "patternObservers" : "observers");
-
-    // This flag allows observers to initialise even with undefined values
-    observer.ready = true;
-
-    return {
-      cancel: function () {
-        var index;
-
-        if (cancelled) {
-          return;
-        }
-
-        if (isPatternObserver) {
-          index = ractive.viewmodel.patternObservers.indexOf(observer);
-
-          ractive.viewmodel.patternObservers.splice(index, 1);
-          ractive.viewmodel.unregister(keypath, observer, "patternObservers");
-        } else {
-          ractive.viewmodel.unregister(keypath, observer, "observers");
-        }
-        cancelled = true;
-      }
-    };
-  };
-  var getObserverFacade__default = getObserverFacade__getObserverFacade;
-  //# sourceMappingURL=01-_6to5-getObserverFacade.js.map
-
-  function observe__Ractive$observe(keypath, callback, options) {
-    var observers, map, keypaths, i;
-
-    // Allow a map of keypaths to handlers
-    if (is__isObject(keypath)) {
-      options = callback;
-      map = keypath;
-
-      observers = [];
-
-      for (keypath in map) {
-        if (map.hasOwnProperty(keypath)) {
-          callback = map[keypath];
-          observers.push(this.observe(keypath, callback, options));
-        }
-      }
-
-      return {
-        cancel: function () {
-          while (observers.length) {
-            observers.pop().cancel();
-          }
-        }
-      };
-    }
-
-    // Allow `ractive.observe( callback )` - i.e. observe entire model
-    if (typeof keypath === "function") {
-      options = callback;
-      callback = keypath;
-      keypath = "";
-
-      return getObserverFacade__default(this, keypath, callback, options);
-    }
-
-    keypaths = keypath.split(" ");
-
-    // Single keypath
-    if (keypaths.length === 1) {
-      return getObserverFacade__default(this, keypath, callback, options);
-    }
-
-    // Multiple space-separated keypaths
-    observers = [];
-
-    i = keypaths.length;
-    while (i--) {
-      keypath = keypaths[i];
-
-      if (keypath) {
-        observers.push(getObserverFacade__default(this, keypath, callback, options));
-      }
-    }
-
-    return {
-      cancel: function () {
-        while (observers.length) {
-          observers.pop().cancel();
-        }
-      }
-    };
-  };
-  var observe__default = observe__Ractive$observe;
-  //# sourceMappingURL=01-_6to5-observe.js.map
-
-  function observeOnce__Ractive$observeOnce(property, callback, options) {
-    var observer = this.observe(property, function () {
-      callback.apply(this, arguments);
-      observer.cancel();
-    }, { init: false, defer: options && options.defer });
-
-    return observer;
-  };
-  var observeOnce__default = observeOnce__Ractive$observeOnce;
-  //# sourceMappingURL=01-_6to5-observeOnce.js.map
-
-  var trim__default = function (str) {
-    return str.trim();
-  };
-  //# sourceMappingURL=01-_6to5-trim.js.map
-
-  var notEmptyString__default = function (str) {
-    return str !== "";
-  };
-  //# sourceMappingURL=01-_6to5-notEmptyString.js.map
-
-  function off__Ractive$off(eventName, callback) {
-    var _this = this;
-    var eventNames;
-
-    // if no arguments specified, remove all callbacks
-    if (!eventName) {
-      // TODO use this code instead, once the following issue has been resolved
-      // in PhantomJS (tests are unpassable otherwise!)
-      // https://github.com/ariya/phantomjs/issues/11856
-      // defineProperty( this, '_subs', { value: create( null ), configurable: true });
-      for (eventName in this._subs) {
-        delete this._subs[eventName];
-      }
-    } else {
-      // Handle multiple space-separated event names
-      eventNames = eventName.split(" ").map(trim__default).filter(notEmptyString__default);
-
-      eventNames.forEach(function (eventName) {
-        var subscribers, index;
-
-        // If we have subscribers for this event...
-        if (subscribers = _this._subs[eventName]) {
-          // ...if a callback was specified, only remove that
-          if (callback) {
-            index = subscribers.indexOf(callback);
-            if (index !== -1) {
-              subscribers.splice(index, 1);
-            }
-          }
-
-          // ...otherwise remove all callbacks
-          else {
-            _this._subs[eventName] = [];
-          }
-        }
-      });
-    }
-
-    return this;
-  };
-  var off__default = off__Ractive$off;
-  //# sourceMappingURL=01-_6to5-off.js.map
-
-  function on__Ractive$on(eventName, callback) {
-    var _this = this;
-    var listeners, n, eventNames;
-
-    // allow mutliple listeners to be bound in one go
-    if (typeof eventName === "object") {
-      listeners = [];
-
-      for (n in eventName) {
-        if (eventName.hasOwnProperty(n)) {
-          listeners.push(this.on(n, eventName[n]));
-        }
-      }
-
-      return {
-        cancel: function () {
-          var listener;
-
-          while (listener = listeners.pop()) {
-            listener.cancel();
-          }
-        }
-      };
-    }
-
-    // Handle multiple space-separated event names
-    eventNames = eventName.split(" ").map(trim__default).filter(notEmptyString__default);
-
-    eventNames.forEach(function (eventName) {
-      (_this._subs[eventName] || (_this._subs[eventName] = [])).push(callback);
-    });
-
-    return {
-      cancel: function () {
-        return _this.off(eventName, callback);
-      }
-    };
-  };
-  var on__default = on__Ractive$on;
-  //# sourceMappingURL=01-_6to5-on.js.map
-
-  function once__Ractive$once(eventName, handler) {
-    var listener = this.on(eventName, function () {
-      handler.apply(this, arguments);
-      listener.cancel();
-    });
-
-    // so we can still do listener.cancel() manually
-    return listener;
-  };
-  var once__default = once__Ractive$once;
-  //# sourceMappingURL=01-_6to5-once.js.map
-
-  // This function takes an array, the name of a mutator method, and the
-  // arguments to call that mutator method with, and returns an array that
-  // maps the old indices to their new indices.
-
-  // So if you had something like this...
-  //
-  //     array = [ 'a', 'b', 'c', 'd' ];
-  //     array.push( 'e' );
-  //
-  // ...you'd get `[ 0, 1, 2, 3 ]` - in other words, none of the old indices
-  // have changed. If you then did this...
-  //
-  //     array.unshift( 'z' );
-  //
-  // ...the indices would be `[ 1, 2, 3, 4, 5 ]` - every item has been moved
-  // one higher to make room for the 'z'. If you removed an item, the new index
-  // would be -1...
-  //
-  //     array.splice( 2, 2 );
-  //
-  // ...this would result in [ 0, 1, -1, -1, 2, 3 ].
-  //
-  // This information is used to enable fast, non-destructive shuffling of list
-  // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
-
-  function getNewIndices__getNewIndices(array, methodName, args) {
-    var spliceArguments, len, newIndices = [], removeStart, removeEnd, balance, i;
-
-    spliceArguments = getNewIndices__getSpliceEquivalent(array, methodName, args);
-
-    if (!spliceArguments) {
-      return null; // TODO support reverse and sort?
-    }
-
-    len = array.length;
-    balance = (spliceArguments.length - 2) - spliceArguments[1];
-
-    removeStart = Math.min(len, spliceArguments[0]);
-    removeEnd = removeStart + spliceArguments[1];
-
-    for (i = 0; i < removeStart; i += 1) {
-      newIndices.push(i);
-    }
-
-    for (; i < removeEnd; i += 1) {
-      newIndices.push(-1);
-    }
-
-    for (; i < len; i += 1) {
-      newIndices.push(i + balance);
-    }
-
-    return newIndices;
-  };
-  var getNewIndices__default = getNewIndices__getNewIndices;
-
-
-  // The pop, push, shift an unshift methods can all be represented
-  // as an equivalent splice
-  function getNewIndices__getSpliceEquivalent(array, methodName, args) {
-    switch (methodName) {
-      case "splice":
-        if (args[0] !== undefined && args[0] < 0) {
-          args[0] = array.length + Math.max(args[0], -array.length);
-        }
-
-        while (args.length < 2) {
-          args.push(0);
-        }
-
-        // ensure we only remove elements that exist
-        args[1] = Math.min(args[1], array.length - args[0]);
-
-        return args;
-
-      case "sort":
-      case "reverse":
-        return null;
-
-      case "pop":
-        if (array.length) {
-          return [array.length - 1, 1];
-        }
-        return null;
-
-      case "push":
-        return [array.length, 0].concat(args);
-
-      case "shift":
-        return [0, 1];
-
-      case "unshift":
-        return [0, 0].concat(args);
-    }
-  }
-  //# sourceMappingURL=01-_6to5-getNewIndices.js.map
-
-  var makeArrayMethod___slice = Array.prototype.slice;
-  var makeArrayMethod__arrayProto = Array.prototype;
-
-  var makeArrayMethod__default = function (methodName) {
-    return function (keypath) {
-      var args = makeArrayMethod___slice.call(arguments, 1);
-
-      var array, newIndices = [], len, promise, result;
-
-      array = this.get(keypath);
-      len = array.length;
-
-      if (!is__isArray(array)) {
-        throw new Error("Called ractive." + methodName + "('" + keypath + "'), but '" + keypath + "' does not refer to an array");
-      }
-
-      newIndices = getNewIndices__default(array, methodName, args);
-
-      result = makeArrayMethod__arrayProto[methodName].apply(array, args);
-      promise = runloop__default.start(this, true).then(function () {
-        return result;
-      });
-
-      if (!!newIndices) {
-        this.viewmodel.smartUpdate(keypath, array, newIndices);
-      } else {
-        this.viewmodel.mark(keypath);
-      }
-
-      runloop__default.end();
-
-      return promise;
-    };
-  };
-  //# sourceMappingURL=01-_6to5-makeArrayMethod.js.map
-
-	var pop__default = makeArrayMethod__default("pop");
-	//# sourceMappingURL=01-_6to5-pop.js.map
-
-	var push__default = makeArrayMethod__default("push");
-	//# sourceMappingURL=01-_6to5-push.js.map
-
-  var global_css__css, global_css__update, global_css__styleElement, global_css__head, global_css__styleSheet, global_css__inDom, global_css__prefix = "/* Ractive.js component styles */\n", global_css__componentsInPage = {}, global_css__styles = [];
-
-  if (!environment__isClient) {
-    global_css__css = null;
-  } else {
-    global_css__styleElement = document.createElement("style");
-    global_css__styleElement.type = "text/css";
-
-    global_css__head = document.getElementsByTagName("head")[0];
-
-    global_css__inDom = false;
-
-    // Internet Exploder won't let you use styleSheet.innerHTML - we have to
-    // use styleSheet.cssText instead
-    global_css__styleSheet = global_css__styleElement.styleSheet;
-
-    global_css__update = function () {
-      var css;
-
-      if (global_css__styles.length) {
-        css = global_css__prefix + global_css__styles.join(" ");
-
-        if (global_css__styleSheet) {
-          global_css__styleSheet.cssText = css;
-        } else {
-          global_css__styleElement.innerHTML = css;
-        }
-
-        if (!global_css__inDom) {
-          global_css__head.appendChild(global_css__styleElement);
-          global_css__inDom = true;
-        }
-      } else if (global_css__inDom) {
-        global_css__head.removeChild(global_css__styleElement);
-        global_css__inDom = false;
-      }
-    };
-
-    global_css__css = {
-      add: function (Component) {
-        if (!Component.css) {
-          return;
-        }
-
-        if (!global_css__componentsInPage[Component._guid]) {
-          // we create this counter so that we can in/decrement it as
-          // instances are added and removed. When all components are
-          // removed, the style is too
-          global_css__componentsInPage[Component._guid] = 0;
-          global_css__styles.push(Component.css);
-
-          global_css__update(); // TODO can we only do this once for each runloop turn, but still ensure CSS is updated before onrender() methods are called?
-        }
-
-        global_css__componentsInPage[Component._guid] += 1;
-      },
-
-      remove: function (Component) {
-        if (!Component.css) {
-          return;
-        }
-
-        global_css__componentsInPage[Component._guid] -= 1;
-
-        if (!global_css__componentsInPage[Component._guid]) {
-          array__removeFromArray(global_css__styles, Component.css);
-          runloop__default.scheduleTask(global_css__update);
-        }
-      }
-    };
-  }
-
-  var global_css__default = global_css__css;
-  //# sourceMappingURL=01-_6to5-css.js.map
-
-  var prototype_render__renderHook = new Hook__default("render"), prototype_render__completeHook = new Hook__default("complete");
-
-  function prototype_render__Ractive$render(target, anchor) {
-    var _this = this;
-    var promise, instances, transitionsEnabled;
-
-    // if `noIntro` is `true`, temporarily disable transitions
-    transitionsEnabled = this.transitionsEnabled;
-    if (this.noIntro) {
-      this.transitionsEnabled = false;
-    }
-
-    promise = runloop__default.start(this, true);
-    runloop__default.scheduleTask(function () {
-      return prototype_render__renderHook.fire(_this);
-    }, true);
-
-    if (this.fragment.rendered) {
-      throw new Error("You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first");
-    }
-
-    target = dom__getElement(target) || this.el;
-    anchor = dom__getElement(anchor) || this.anchor;
-
-    this.el = target;
-    this.anchor = anchor;
-
-    if (!this.append && target) {
-      // Teardown any existing instances *before* trying to set up the new one -
-      // avoids certain weird bugs
-      var others = target.__ractive_instances__;
-      if (others && others.length) {
-        prototype_render__removeOtherInstances(others);
-      }
-
-      // make sure we are the only occupants
-      target.innerHTML = ""; // TODO is this quicker than removeChild? Initial research inconclusive
-    }
-
-    // Add CSS, if applicable
-    if (this.constructor.css) {
-      global_css__default.add(this.constructor);
-    }
-
-    if (target) {
-      if (!(instances = target.__ractive_instances__)) {
-        target.__ractive_instances__ = [this];
-      } else {
-        instances.push(this);
-      }
-
-      if (anchor) {
-        target.insertBefore(this.fragment.render(), anchor);
-      } else {
-        target.appendChild(this.fragment.render());
-      }
-    }
-
-    runloop__default.end();
-
-    this.transitionsEnabled = transitionsEnabled;
-
-    // It is now more problematic to know if the complete hook
-    // would fire. Method checking is straight-forward, but would
-    // also require preflighting event subscriptions. Which seems
-    // like more work then just letting the promise happen.
-    // But perhaps I'm wrong about that...
-    promise.then(function () {
-      return prototype_render__completeHook.fire(_this);
-    }).then(null, function (err) {
-      log__default.consoleError({
-        debug: _this.debug,
-        err: err
-      });
-    });
-
-    return promise;
-  };
-  var prototype_render__default = prototype_render__Ractive$render;
-
-  function prototype_render__removeOtherInstances(others) {
-    try {
-      others.splice(0, others.length).forEach(function (r) {
-        return r.teardown();
-      });
-    } catch (err) {}
-  }
-  //# sourceMappingURL=01-_6to5-render.js.map
 
   function prototype_bubble__Fragment$bubble() {
     this.dirtyValue = this.dirtyArgs = true;
@@ -9299,7 +9553,7 @@
         if (container.tagName === "SELECT") {
           selectedOption = container.options[container.selectedIndex];
         }
-      } else if (node.namespaceURI === namespaces__default.svg) {
+      } else if (node.namespaceURI === environment__namespaces.svg) {
         container = insertHtml__element("DIV");
         container.innerHTML = "<svg class=\"x\">" + html + "</svg>";
         container = container.querySelector(".x");
@@ -9652,7 +9906,7 @@
         name = name.substring(colonIndex + 1);
 
         attribute.name = enforceCase__default(name);
-        attribute.namespace = namespaces__default[namespacePrefix.toLowerCase()];
+        attribute.namespace = environment__namespaces[namespacePrefix.toLowerCase()];
         attribute.namespacePrefix = namespacePrefix;
 
         if (!attribute.namespace) {
@@ -9664,7 +9918,7 @@
     }
 
     // SVG attribute names are case sensitive
-    attribute.name = (attribute.element.namespace !== namespaces__default.html ? enforceCase__default(name) : name);
+    attribute.name = (attribute.element.namespace !== environment__namespaces.html ? enforceCase__default(name) : name);
   };
   //# sourceMappingURL=01-_6to5-determineNameAndNamespace.js.map
 
@@ -9707,7 +9961,7 @@
   var determinePropertyName__default = function (attribute, options) {
     var propertyName;
 
-    if (attribute.pNode && !attribute.namespace && (!options.pNode.namespaceURI || options.pNode.namespaceURI === namespaces__default.html)) {
+    if (attribute.pNode && !attribute.namespace && (!options.pNode.namespaceURI || options.pNode.namespaceURI === environment__namespaces.html)) {
       propertyName = determinePropertyName__propertyNames[attribute.name] || attribute.name;
 
       if (options.pNode[propertyName] !== undefined) {
@@ -9803,7 +10057,7 @@
     this.node = node;
 
     // should we use direct property access, or setAttribute?
-    if (!node.namespaceURI || node.namespaceURI === namespaces__default.html) {
+    if (!node.namespaceURI || node.namespaceURI === environment__namespaces.html) {
       propertyName = Attribute_prototype_render__propertyNames[this.name] || this.name;
 
       if (node[propertyName] !== undefined) {
@@ -10175,7 +10429,7 @@
     }
 
     // special case - class names. IE fucks things up, again
-    else if (name === "class" && (!node.namespaceURI || node.namespaceURI === namespaces__default.html)) {
+    else if (name === "class" && (!node.namespaceURI || node.namespaceURI === environment__namespaces.html)) {
       updateMethod = updateClassName__default;
     } else if (this.useProperty) {
       updateMethod = updateBoolean__default;
@@ -10263,7 +10517,7 @@
 
     render: function (node) {
       this.node = node;
-      this.isSvg = node.namespaceURI === namespaces__default.svg;
+      this.isSvg = node.namespaceURI === environment__namespaces.svg;
 
       this.update();
     },
@@ -11303,7 +11557,7 @@
       return;
     }
 
-    if (definition = config__default.registries.events.find(this.root, name)) {
+    if (definition = registry__findInViewHierarchy("events", this.root, name)) {
       this.custom = definition(this.node, listen__getCustomHandler(name));
     } else {
       // Looks like we're dealing with a standard DOM event... but let's check
@@ -11509,7 +11763,7 @@
       };
     }
 
-    this.fn = config__default.registries.decorators.find(ractive, name);
+    this.fn = registry__findInViewHierarchy("decorators", ractive, name);
 
     if (!this.fn) {
       log__default.error({
@@ -11906,7 +12160,7 @@
       fragment.unbind();
     }
 
-    this._fn = config__default.registries.transitions.find(ractive, name);
+    this._fn = registry__findInViewHierarchy("transitions", ractive, name);
 
     if (!this._fn) {
       log__default.error({
@@ -11949,9 +12203,9 @@
           // test vendors...
           capped = prop.charAt(0).toUpperCase() + prop.substring(1);
 
-          i = vendors__default.length;
+          i = environment__vendors.length;
           while (i--) {
-            vendor = vendors__default[i];
+            vendor = environment__vendors[i];
             if (prefix__testStyle[vendor + capped] !== undefined) {
               prefix__prefixCache[prop] = vendor + capped;
               break;
@@ -12102,14 +12356,14 @@
   }
   //# sourceMappingURL=01-_6to5-Ticker.js.map
 
-  var unprefix__unprefixPattern = new RegExp("^-(?:" + vendors__default.join("|") + ")-");
+  var unprefix__unprefixPattern = new RegExp("^-(?:" + environment__vendors.join("|") + ")-");
 
   var unprefix__default = function (prop) {
     return prop.replace(unprefix__unprefixPattern, "");
   };
   //# sourceMappingURL=01-_6to5-unprefix.js.map
 
-  var hyphenate__vendorPattern = new RegExp("^(?:" + vendors__default.join("|") + ")([A-Z])");
+  var hyphenate__vendorPattern = new RegExp("^(?:" + environment__vendors.join("|") + ")([A-Z])");
 
   var hyphenate__default = function (str) {
     var hyphenated;
@@ -12307,9 +12561,9 @@
     if (visibility__hidden in document) {
       visibility__prefix = "";
     } else {
-      visibility__i = vendors__default.length;
+      visibility__i = environment__vendors.length;
       while (visibility__i--) {
-        visibility__vendor = vendors__default[visibility__i];
+        visibility__vendor = environment__vendors[visibility__i];
         visibility__hidden = visibility__vendor + "Hidden";
 
         if (visibility__hidden in document) {
@@ -12726,11 +12980,11 @@
 
     // ...or SVG namespace, if this is an <svg> element
     else if (element.name === "svg") {
-      namespace = namespaces__default.svg;
+      namespace = environment__namespaces.svg;
     } else if (parent = element.parent) {
       // ...or HTML, if the parent is a <foreignObject>
       if (parent.name === "foreignObject") {
-        namespace = namespaces__default.html;
+        namespace = environment__namespaces.html;
       }
 
       // ...or inherit from the parent node
@@ -13080,10 +13334,8 @@
   var getPartialTemplate__default = getPartialTemplate__getPartialTemplate;
 
   function getPartialTemplate__getPartialFromRegistry(ractive, name) {
-    var partials = config__default.registries.partials;
-
     // find first instance in the ractive or view hierarchy that has this partial
-    var instance = partials.findInstance(ractive, name);
+    var instance = registry__findInstance("partials", ractive, name);
 
     if (!instance) {
       return;
@@ -13125,7 +13377,7 @@
 
       // if fn, use instance to store result, otherwise needs to go
       // in the correct point in prototype chain on instance or constructor
-      var target = fn ? instance : partials.findOwner(instance, name);
+      var target = fn ? instance : getPartialTemplate__findOwner(instance, name);
 
       // may be a template with partials, which need to be registered and main template extracted
       target.partials[name] = partial = parsed.t;
@@ -13137,6 +13389,17 @@
     }
 
     return partial.v ? partial.t : partial;
+  }
+
+  function getPartialTemplate__findOwner(ractive, key) {
+    return ractive.partials.hasOwnProperty(key) ? ractive : getPartialTemplate__findConstructor(ractive.constructor, key);
+  }
+
+  function getPartialTemplate__findConstructor(constructor, key) {
+    if (!constructor) {
+      return;
+    }
+    return constructor.partials.hasOwnProperty(key) ? constructor : getPartialTemplate__findConstructor(constructor._Parent, key);
   }
   //# sourceMappingURL=01-_6to5-getPartialTemplate.js.map
 
@@ -13360,7 +13623,7 @@
   //# sourceMappingURL=01-_6to5-_Partial.js.map
 
   function getComponent__getComponent(ractive, name) {
-    var Component, instance = config__default.registries.components.findInstance(ractive, name);
+    var Component, instance = registry__findInstance("components", ractive, name);
 
     if (instance) {
       Component = instance.components[name];
@@ -13458,289 +13721,6 @@
   var Component_prototype_firstNode__default = Component_prototype_firstNode__Component$firstNode;
   //# sourceMappingURL=01-_6to5-firstNode.js.map
 
-  function HookQueue__HookQueue(event) {
-    this.hook = new Hook__default(event);
-    this.inProcess = {};
-    this.queue = {};
-  }
-
-  HookQueue__HookQueue.prototype = {
-    constructor: HookQueue__HookQueue,
-
-    begin: function (ractive) {
-      this.inProcess[ractive._guid] = true;
-    },
-
-    end: function (ractive) {
-      var parent = ractive.parent;
-
-      // If this is *isn't* a child of a component that's in process,
-      // it should call methods or fire at this point
-      if (!parent || !this.inProcess[parent._guid]) {
-        HookQueue__fire(this, ractive);
-      }
-      // elsewise, handoff to parent to fire when ready
-      else {
-        HookQueue__getChildQueue(this.queue, parent).push(ractive);
-      }
-
-      delete this.inProcess[ractive._guid];
-    }
-  };
-
-  function HookQueue__getChildQueue(queue, ractive) {
-    return queue[ractive._guid] || (queue[ractive._guid] = []);
-  }
-
-  function HookQueue__fire(hookQueue, ractive) {
-    var childQueue = HookQueue__getChildQueue(hookQueue.queue, ractive);
-
-    hookQueue.hook.fire(ractive);
-
-    // queue is "live" because components can end up being
-    // added while hooks fire on parents that modify data values.
-    while (childQueue.length) {
-      HookQueue__fire(hookQueue, childQueue.shift());
-    }
-
-    delete hookQueue.queue[ractive._guid];
-  }
-
-
-  var HookQueue__default = HookQueue__HookQueue;
-  //# sourceMappingURL=01-_6to5-HookQueue.js.map
-
-  var processWrapper__default = function (wrapper, array, methodName, newIndices) {
-    var root = wrapper.root;
-    var keypath = wrapper.keypath;
-
-
-    // If this is a sort or reverse, we just do root.set()...
-    // TODO use merge logic?
-    if (methodName === "sort" || methodName === "reverse") {
-      root.viewmodel.set(keypath, array);
-      return;
-    }
-
-    root.viewmodel.smartUpdate(keypath, array, newIndices);
-  };
-  //# sourceMappingURL=01-_6to5-processWrapper.js.map
-
-  var patch___slice = Array.prototype.slice;
-  var patch__patchedArrayProto = [], patch__mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"], patch__testObj, patch__patchArrayMethods, patch__unpatchArrayMethods;
-
-  patch__mutatorMethods.forEach(function (methodName) {
-    var method = function () {
-      var args = patch___slice.call(arguments);
-
-      var newIndices, result, wrapper, i;
-
-      newIndices = getNewIndices__default(this, methodName, args);
-
-      // apply the underlying method
-      result = Array.prototype[methodName].apply(this, arguments);
-
-      // trigger changes
-      runloop__default.start();
-
-      this._ractive.setting = true;
-      i = this._ractive.wrappers.length;
-      while (i--) {
-        wrapper = this._ractive.wrappers[i];
-
-        runloop__default.addViewmodel(wrapper.root.viewmodel);
-        processWrapper__default(wrapper, this, methodName, newIndices);
-      }
-
-      runloop__default.end();
-
-      this._ractive.setting = false;
-      return result;
-    };
-
-    object__defineProperty(patch__patchedArrayProto, methodName, {
-      value: method
-    });
-  });
-
-  // can we use prototype chain injection?
-  // http://perfectionkills.com/how-ecmascript-5-still-does-not-allow-to-subclass-an-array/#wrappers_prototype_chain_injection
-  patch__testObj = {};
-
-  if (patch__testObj.__proto__) {
-    // yes, we can
-    patch__patchArrayMethods = function (array) {
-      array.__proto__ = patch__patchedArrayProto;
-    };
-
-    patch__unpatchArrayMethods = function (array) {
-      array.__proto__ = Array.prototype;
-    };
-  } else {
-    // no, we can't
-    patch__patchArrayMethods = function (array) {
-      var i, methodName;
-
-      i = patch__mutatorMethods.length;
-      while (i--) {
-        methodName = patch__mutatorMethods[i];
-        object__defineProperty(array, methodName, {
-          value: patch__patchedArrayProto[methodName],
-          configurable: true
-        });
-      }
-    };
-
-    patch__unpatchArrayMethods = function (array) {
-      var i;
-
-      i = patch__mutatorMethods.length;
-      while (i--) {
-        delete array[patch__mutatorMethods[i]];
-      }
-    };
-  }
-
-  patch__patchArrayMethods.unpatch = patch__unpatchArrayMethods;
-  var patch__default = patch__patchArrayMethods;
-  //# sourceMappingURL=01-_6to5-patch.js.map
-
-  var arrayAdaptor__arrayAdaptor,
-
-  // helpers
-  arrayAdaptor__ArrayWrapper, arrayAdaptor__errorMessage;
-
-  arrayAdaptor__arrayAdaptor = {
-    filter: function (object) {
-      // wrap the array if a) b) it's an array, and b) either it hasn't been wrapped already,
-      // or the array didn't trigger the get() itself
-      return is__isArray(object) && (!object._ractive || !object._ractive.setting);
-    },
-    wrap: function (ractive, array, keypath) {
-      return new arrayAdaptor__ArrayWrapper(ractive, array, keypath);
-    }
-  };
-
-  arrayAdaptor__ArrayWrapper = function (ractive, array, keypath) {
-    this.root = ractive;
-    this.value = array;
-    this.keypath = keypath;
-
-    // if this array hasn't already been ractified, ractify it
-    if (!array._ractive) {
-      // define a non-enumerable _ractive property to store the wrappers
-      object__defineProperty(array, "_ractive", {
-        value: {
-          wrappers: [],
-          instances: [],
-          setting: false
-        },
-        configurable: true
-      });
-
-      patch__default(array);
-    }
-
-    // store the ractive instance, so we can handle transitions later
-    if (!array._ractive.instances[ractive._guid]) {
-      array._ractive.instances[ractive._guid] = 0;
-      array._ractive.instances.push(ractive);
-    }
-
-    array._ractive.instances[ractive._guid] += 1;
-    array._ractive.wrappers.push(this);
-  };
-
-  arrayAdaptor__ArrayWrapper.prototype = {
-    get: function () {
-      return this.value;
-    },
-    teardown: function () {
-      var array, storage, wrappers, instances, index;
-
-      array = this.value;
-      storage = array._ractive;
-      wrappers = storage.wrappers;
-      instances = storage.instances;
-
-      // if teardown() was invoked because we're clearing the cache as a result of
-      // a change that the array itself triggered, we can save ourselves the teardown
-      // and immediate setup
-      if (storage.setting) {
-        return false; // so that we don't remove it from this.root.viewmodel.wrapped
-      }
-
-      index = wrappers.indexOf(this);
-      if (index === -1) {
-        throw new Error(arrayAdaptor__errorMessage);
-      }
-
-      wrappers.splice(index, 1);
-
-      // if nothing else depends on this array, we can revert it to its
-      // natural state
-      if (!wrappers.length) {
-        delete array._ractive;
-        patch__default.unpatch(this.value);
-      } else {
-        // remove ractive instance if possible
-        instances[this.root._guid] -= 1;
-        if (!instances[this.root._guid]) {
-          index = instances.indexOf(this.root);
-
-          if (index === -1) {
-            throw new Error(arrayAdaptor__errorMessage);
-          }
-
-          instances.splice(index, 1);
-        }
-      }
-    }
-  };
-
-  arrayAdaptor__errorMessage = "Something went wrong in a rather interesting way";
-  var arrayAdaptor__default = arrayAdaptor__arrayAdaptor;
-  //# sourceMappingURL=01-_6to5-arrayAdaptor.js.map
-
-  var magicArrayAdaptor__magicArrayAdaptor, magicArrayAdaptor__MagicArrayWrapper;
-
-  if (magicAdaptor__default) {
-    magicArrayAdaptor__magicArrayAdaptor = {
-      filter: function (object, keypath, ractive) {
-        return magicAdaptor__default.filter(object, keypath, ractive) && arrayAdaptor__default.filter(object);
-      },
-
-      wrap: function (ractive, array, keypath) {
-        return new magicArrayAdaptor__MagicArrayWrapper(ractive, array, keypath);
-      }
-    };
-
-    magicArrayAdaptor__MagicArrayWrapper = function (ractive, array, keypath) {
-      this.value = array;
-
-      this.magic = true;
-
-      this.magicWrapper = magicAdaptor__default.wrap(ractive, array, keypath);
-      this.arrayWrapper = arrayAdaptor__default.wrap(ractive, array, keypath);
-    };
-
-    magicArrayAdaptor__MagicArrayWrapper.prototype = {
-      get: function () {
-        return this.value;
-      },
-      teardown: function () {
-        this.arrayWrapper.teardown();
-        this.magicWrapper.teardown();
-      },
-      reset: function (value) {
-        return this.magicWrapper.reset(value);
-      }
-    };
-  }
-
-  var magicArrayAdaptor__default = magicArrayAdaptor__magicArrayAdaptor;
-  //# sourceMappingURL=01-_6to5-magicArrayAdaptor.js.map
-
   var adapt__prefixers = {};
 
   function adapt__Viewmodel$adapt(keypath, value) {
@@ -13751,41 +13731,11 @@
     for (i = 0; i < len; i += 1) {
       adaptor = ractive.adapt[i];
 
-      // Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
-      // we need to get the actual adaptor if that's the case
-      if (typeof adaptor === "string") {
-        var found = config__default.registries.adaptors.find(ractive, adaptor);
-
-        if (!found) {
-          // will throw. "return" for safety, if we downgrade :)
-          return log__default.critical({
-            debug: ractive.debug,
-            message: "missingPlugin",
-            args: {
-              plugin: "adaptor",
-              name: adaptor
-            }
-          });
-        }
-
-        adaptor = ractive.adapt[i] = found;
-      }
-
       if (adaptor.filter(value, keypath, ractive)) {
         wrapped = this.wrapped[keypath] = adaptor.wrap(ractive, value, keypath, adapt__getPrefixer(keypath));
         wrapped.value = value;
         return value;
       }
-    }
-
-    if (ractive.magic) {
-      if (magicArrayAdaptor__default.filter(value, keypath, ractive)) {
-        this.wrapped[keypath] = magicArrayAdaptor__default.wrap(ractive, value, keypath);
-      } else if (magicAdaptor__default.filter(value, keypath, ractive)) {
-        this.wrapped[keypath] = magicAdaptor__default.wrap(ractive, value, keypath);
-      }
-    } else if (ractive.modifyArrays && arrayAdaptor__default.filter(value, keypath, ractive)) {
-      this.wrapped[keypath] = arrayAdaptor__default.wrap(ractive, value, keypath);
     }
 
     return value;
@@ -15130,68 +15080,6 @@
   }
   //# sourceMappingURL=01-_6to5-unregister.js.map
 
-  // should this be combined with prototype/adapt.js?
-
-  var adaptConfig__configure = {
-    lookup: function (target, adaptors) {
-      var i, adapt = target.adapt;
-
-      if (!adapt || !adapt.length) {
-        return adapt;
-      }
-
-
-      if (adaptors && Object.keys(adaptors).length && (i = adapt.length)) {
-        while (i--) {
-          var adaptor = adapt[i];
-
-          if (typeof adaptor === "string") {
-            adapt[i] = adaptors[adaptor] || adaptor;
-          }
-        }
-      }
-
-      return adapt;
-    },
-
-    combine: function (parent, adapt) {
-      // normalize 'Foo' to [ 'Foo' ]
-      parent = adaptConfig__arrayIfString(parent);
-      adapt = adaptConfig__arrayIfString(adapt);
-
-      // no parent? return adapt
-      if (!parent || !parent.length) {
-        return adapt;
-      }
-
-      // no adapt? return 'copy' of parent
-      if (!adapt || !adapt.length) {
-        return parent.slice();
-      }
-
-      // add parent adaptors to options
-      parent.forEach(function (a) {
-        // don't put in duplicates
-        if (adapt.indexOf(a) === -1) {
-          adapt.push(a);
-        }
-      });
-
-      return adapt;
-    }
-  };
-
-  function adaptConfig__arrayIfString(adapt) {
-    if (typeof adapt === "string") {
-      adapt = [adapt];
-    }
-
-    return adapt;
-  }
-
-  var adaptConfig__default = adaptConfig__configure;
-  //# sourceMappingURL=01-_6to5-adaptConfig.js.map
-
   var Viewmodel__Viewmodel = function (ractive, mappings) {
     var _this = this;
     if (mappings === undefined) mappings = object__create(null);
@@ -15199,8 +15087,6 @@
       var key, mapping;
 
       _this.ractive = ractive; // TODO eventually, we shouldn't need this reference
-
-      Viewmodel__Viewmodel.extend(ractive.constructor, ractive);
 
       // set up explicit mappings
       _this.mappings = mappings;
@@ -15246,16 +15132,6 @@
     })();
   };
 
-  Viewmodel__Viewmodel.extend = function (Parent, instance) {
-    if (instance.magic && !magic__default) {
-      throw new Error("Getters and setters (magic mode) are not supported in this browser");
-    }
-
-    instance.adapt = adaptConfig__default.combine(Parent.prototype.adapt, instance.adapt) || [];
-
-    instance.adapt = adaptConfig__default.lookup(instance, instance.adaptors);
-  };
-
   Viewmodel__Viewmodel.prototype = {
     adapt: adapt__default,
     applyChanges: applyChanges__default,
@@ -15278,6 +15154,58 @@
   var Viewmodel__default = Viewmodel__Viewmodel;
   //# sourceMappingURL=01-_6to5-Viewmodel.js.map
 
+  function HookQueue__HookQueue(event) {
+    this.hook = new Hook__default(event);
+    this.inProcess = {};
+    this.queue = {};
+  }
+
+  HookQueue__HookQueue.prototype = {
+    constructor: HookQueue__HookQueue,
+
+    begin: function (ractive) {
+      this.inProcess[ractive._guid] = true;
+    },
+
+    end: function (ractive) {
+      var parent = ractive.parent;
+
+      // If this is *isn't* a child of a component that's in process,
+      // it should call methods or fire at this point
+      if (!parent || !this.inProcess[parent._guid]) {
+        HookQueue__fire(this, ractive);
+      }
+      // elsewise, handoff to parent to fire when ready
+      else {
+        HookQueue__getChildQueue(this.queue, parent).push(ractive);
+      }
+
+      delete this.inProcess[ractive._guid];
+    }
+  };
+
+  function HookQueue__getChildQueue(queue, ractive) {
+    return queue[ractive._guid] || (queue[ractive._guid] = []);
+  }
+
+  function HookQueue__fire(hookQueue, ractive) {
+    var childQueue = HookQueue__getChildQueue(hookQueue.queue, ractive);
+
+    hookQueue.hook.fire(ractive);
+
+    // queue is "live" because components can end up being
+    // added while hooks fire on parents that modify data values.
+    while (childQueue.length) {
+      HookQueue__fire(hookQueue, childQueue.shift());
+    }
+
+    delete hookQueue.queue[ractive._guid];
+  }
+
+
+  var HookQueue__default = HookQueue__HookQueue;
+  //# sourceMappingURL=01-_6to5-HookQueue.js.map
+
   var initialise__constructHook = new Hook__default("construct"), initialise__configHook = new Hook__default("config"), initialise__initHook = new HookQueue__default("init"), initialise__uid = 0;
 
   var initialise__default = initialise__initialiseRactiveInstance;
@@ -15285,8 +15213,6 @@
   function initialise__initialiseRactiveInstance(ractive, userOptions, options) {
     if (userOptions === undefined) userOptions = {};
     if (options === undefined) options = {};
-
-
     var el;
 
     initialise__initialiseProperties(ractive, options);
@@ -15300,8 +15226,13 @@
     // init config from Parent and options
     config__default.init(ractive.constructor, ractive, userOptions);
 
-    initialise__configHook.fire(ractive);
+    // TODO this was moved from Viewmodel.extend - should be
+    // rolled in with other config stuff
+    if (ractive.magic && !environment__magic) {
+      throw new Error("Getters and setters (magic mode) are not supported in this browser");
+    }
 
+    initialise__configHook.fire(ractive);
     initialise__initHook.begin(ractive);
 
     // TEMPORARY. This is so we can implement Viewmodel gradually
@@ -15486,7 +15417,7 @@
       return parameters.data;
     }
     // No magic or legacy requested
-    else if (!magic__default || proto.parameters === "legacy") {
+    else if (!environment__magic || proto.parameters === "legacy") {
       return createComponentData__createLegacyData(parameters);
     }
     // ES5 ftw!
@@ -16112,11 +16043,7 @@
     // Time to create this fragment's child items
 
     // TODO should this be happening?
-    if (typeof options.template === "string") {
-      options.template = [options.template];
-    } else if (!options.template) {
-      options.template = [];
-    }
+    options.template = array__ensureArray(options.template);
 
     this.items = options.template.map(function (template, i) {
       return createItem__default({
@@ -16432,7 +16359,7 @@
   function resetTemplate__Ractive$resetTemplate(template) {
     var transitionsEnabled, component;
 
-    config__default.template.init(null, this, { template: template });
+    templateConfigurator__default.init(null, this, { template: template });
 
     transitionsEnabled = this.transitionsEnabled;
     this.transitionsEnabled = false;
@@ -16639,7 +16566,7 @@
 
     if (this.constructor.css) {
       promise.then(function () {
-        global_css__default.remove(_this.constructor);
+        css__default.remove(_this.constructor);
       });
     }
 
@@ -16820,16 +16747,12 @@
   };
   //# sourceMappingURL=01-_6to5-prototype.js.map
 
-  function unwrap__unwrapExtended(Child) {
-    if (!(Child.prototype instanceof Ractive__default)) {
-      return Child;
-    }
-
+  function unwrapExtended__unwrap(Child) {
     var options = {};
 
     while (Child) {
-      config__default.registries.forEach(function (r) {
-        unwrap__addRegistry(r.useDefaults ? Child.prototype : Child, options, r.name);
+      registries__default.forEach(function (r) {
+        unwrapExtended__addRegistry(r.useDefaults ? Child.prototype : Child, options, r.name);
       });
 
       Object.keys(Child.prototype).forEach(function (key) {
@@ -16854,7 +16777,6 @@
           // rewrap bound directly to parent fn
           result = wrap__default(options[key]._method, value);
 
-
           if (needsSuper) {
             result._method = result;
           }
@@ -16872,9 +16794,9 @@
 
     return options;
   };
-  var unwrap__default = unwrap__unwrapExtended;
+  var unwrapExtended__default = unwrapExtended__unwrap;
 
-  function unwrap__addRegistry(target, options, name) {
+  function unwrapExtended__addRegistry(target, options, name) {
     var registry, keys = Object.keys(target[name]);
 
     if (!keys.length) {
@@ -16897,21 +16819,27 @@
 
   function extend__extend(options) {
     if (options === undefined) options = {};
-    var Parent = this, Child, proto, staticProperties;
+    var Parent = this, Child, proto;
 
-    // if we're extending with another Ractive instance, inherit its
-    // prototype methods and default options as well
-    options = unwrap__default(options);
+    // if we're extending with another Ractive instance...
+    //
+    //   var Human = Ractive.extend(...), Spider = Ractive.extend(...);
+    //   var Spiderman = Human.extend( Spider );
+    //
+    // ...inherit prototype methods and default options as well
+    if (options.prototype instanceof Ractive__default) {
+      options = unwrapExtended__default(options);
+    }
 
-    // create Child constructor
-    Child = function (options, _options) {
-      initialise__default(this, options, _options);
+    Child = function (options) {
+      initialise__default(this, options);
     };
 
     proto = object__create(Parent.prototype);
     proto.constructor = Child;
 
-    staticProperties = {
+    // Static properties
+    object__defineProperties(Child, {
       // each component needs a unique ID, for managing CSS
       _guid: { value: extend__uid++ },
 
@@ -16923,14 +16851,10 @@
 
       // Parent - for IE8, can't use Object.getPrototypeOf
       _Parent: { value: Parent }
-    };
-
-    object__defineProperties(Child, staticProperties);
+    });
 
     // extend configuration
     config__default.extend(Parent, proto, options);
-
-    Viewmodel__default.extend(Parent, proto);
 
     Child.prototype = proto;
 
@@ -16979,7 +16903,7 @@
 
     // support
     svg: { value: environment__svg },
-    magic: { value: magic__default },
+    magic: { value: environment__magic },
 
     // version
     VERSION: { value: "0.6.1" },
