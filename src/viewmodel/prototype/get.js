@@ -1,4 +1,4 @@
-import { decodeKeypath } from 'shared/keypaths';
+import { decodeKeypath, getKey } from 'shared/keypaths';
 import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 
 
@@ -20,7 +20,7 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		}
 	}
 
-	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+	if ( mapping = this.mappings[ getKey( keypath ) ] ) {
 		return mapping.get( keypath, options );
 	}
 

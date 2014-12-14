@@ -1,3 +1,5 @@
+import { getKey } from 'shared/keypaths';
+
 export default function Viewmodel$register ( keypath, dependant, group = 'default' ) {
 	var mapping, depsByKeypath, deps;
 
@@ -5,7 +7,7 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 		return;
 	}
 
-	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+	if ( mapping = this.mappings[ getKey( keypath ) ] ) {
 		return mapping.register( keypath, dependant, group );
 	}
 

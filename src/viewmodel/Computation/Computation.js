@@ -1,6 +1,7 @@
 import runloop from 'global/runloop';
 import log from 'utils/log/log';
 import { isEqual } from 'utils/is';
+import { getKey } from 'shared/keypaths';
 import UnresolvedDependency from './UnresolvedDependency';
 
 var Computation = function ( ractive, key, signature ) {
@@ -183,7 +184,7 @@ Computation.prototype = {
 };
 
 function isUnresolved( viewmodel, keypath ) {
-	var key = keypath.split( '.' )[0];
+	var key = getKey( keypath );
 
 	return !( key in viewmodel.ractive.data ) &&
 	       !( key in viewmodel.computations ) &&

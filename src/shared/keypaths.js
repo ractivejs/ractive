@@ -23,8 +23,13 @@ export function decodeKeypath ( keypath ) {
 	}
 }
 
-export function equalsOrStartsWith( target, keypath) {
+export function equalsOrStartsWith ( target, keypath) {
 	return target === keypath || startsWithKeypath(target, keypath);
+}
+
+export function getKey ( keypath ) {
+	var index = keypath.indexOf( '.' );
+	return ~index ? keypath.slice( 0, index ) : keypath;
 }
 
 export function getMatchingKeypaths ( ractive, pattern ) {

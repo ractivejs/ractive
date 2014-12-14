@@ -1,4 +1,5 @@
 import { removeFromArray } from 'utils/array';
+import { getKey } from 'shared/keypaths';
 
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
 	var mapping, deps, index;
@@ -7,7 +8,7 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 		return;
 	}
 
-	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+	if ( mapping = this.mappings[ getKey( keypath ) ] ) {
 		return mapping.unregister( keypath, dependant, group );
 	}
 
