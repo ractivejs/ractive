@@ -100,11 +100,11 @@
 				<p class='error'>{{message}}</p>
 			{{else}}
 				<table>
-					<thead><tr><th>test name</th><th>duration</th></tr></thead>
+					<thead><tr><th>test name</th><th>iterations</th><th>avg. duration</th></tr></thead>
 
 					<tbody>
 						{{#each tests}}
-							<tr><td on-click='runInNewWindow(test,version,ractiveUrl)'>{{name}}</td><td>{{formatTime(duration)}}</td></tr>
+							<tr><td on-click='runInNewWindow(test,version,ractiveUrl)'>{{name}}</td><td>{{count}}</td><td>{{formatTime(average)}}</td></tr>
 						{{/each}}
 					</tbody>
 				</table>

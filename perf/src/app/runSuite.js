@@ -60,7 +60,7 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 
 		// setup test
 		context.setupComplete = function ( err, setupResult ) {
-			var start, duration, label = version + ': ' + test.name;
+			var start, runStart, duration, totalDuration, count = 0, label = version + ': ' + test.name;
 
 			if ( err ) {
 				return callback( err );
@@ -70,21 +70,30 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 			alreadySetup = true;
 
 			console.profile( label );
-			console.time( label );
 
 			start = now();
+			duration = totalDuration = 0;
 
 			context.setupResult = setupResult;
 
-			try {
-				context.eval( '(' + test.test.toString() + ')(setupResult)' );
-			} catch ( e ) {
-				return callback( e );
+			while ( duration < 1000 && totalDuration < 3000 ) {
+				if ( test.beforeEach ) {
+					context.eval( '(' + test.beforeEach.toString() + ')()' );
+				}
+
+				count += 1;
+				runStart = now();
+
+				try {
+					context.eval( '(' + test.test.toString() + ')(setupResult)' );
+				} catch ( e ) {
+					return callback( e );
+				}
+
+				duration += now() - runStart;
+				totalDuration = now() - start;
 			}
 
-			duration = now() - start;
-
-			console.timeEnd( label );
 			console.profileEnd( label );
 
 			console.groupEnd();
@@ -94,7 +103,9 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 				version: version,
 				ractiveUrl: ractiveUrl,
 				name: test.name,
-				duration: duration
+				count: count,
+				duration: duration,
+				average: duration / count
 			});
 		};
 
