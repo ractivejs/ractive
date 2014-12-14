@@ -2,10 +2,9 @@ import log from 'utils/log/log';
 import { magic } from 'config/environment';
 import { ensureArray } from 'utils/array';
 import { findInViewHierarchy } from 'shared/registry';
-// TODO move these
-import arrayAdaptor from 'viewmodel/prototype/get/arrayAdaptor';
-import magicAdaptor from 'viewmodel/prototype/get/magicAdaptor';
-import magicArrayAdaptor from 'viewmodel/prototype/get/magicArrayAdaptor';
+import arrayAdaptor from 'Ractive/static/adaptors/array/index';
+import magicAdaptor from 'Ractive/static/adaptors/magic';
+import magicArrayAdaptor from 'Ractive/static/adaptors/magicArray';
 
 var adaptConfigurator = {
 	extend: ( Parent, proto, options ) => {

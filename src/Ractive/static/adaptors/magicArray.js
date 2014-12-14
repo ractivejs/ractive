@@ -1,5 +1,5 @@
-import magicAdaptor from './magicAdaptor';
-import arrayAdaptor from './arrayAdaptor';
+import magicAdaptor from './magic';
+import arrayAdaptor from './array/index';
 
 var magicArrayAdaptor, MagicArrayWrapper;
 
