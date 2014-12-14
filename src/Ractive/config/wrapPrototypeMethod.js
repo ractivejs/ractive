@@ -31,10 +31,10 @@ export default function wrap ( parent, name, method ) {
 }
 
 function getSuperMethod ( parent, name ) {
-	var method;
+	var value, method;
 
 	if ( name in parent ) {
-		let value = parent[name];
+		value = parent[name];
 
 		if ( typeof value === 'function' ) {
 			method = value;

@@ -2,9 +2,10 @@ import parseJSON from 'utils/parseJSON';
 
 var empty = {};
 
-export default function Fragment$getValue ( options = empty ) {
+export default function Fragment$getValue ( options ) {
 	var asArgs, values, source, parsed, cachedResult, dirtyFlag, result;
 
+	options = options || empty;
 	asArgs = options.args;
 
 	cachedResult = asArgs ? 'argsList' : 'value';

@@ -16,13 +16,13 @@ import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 import unregister from './prototype/unregister';
 
-var Viewmodel = function ( ractive, mappings = create( null ) ) {
+var Viewmodel = function ( ractive, mappings ) {
 	var key, mapping;
 
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
 
 	// set up explicit mappings
-	this.mappings = mappings;
+	this.mappings = mappings || create( null );
 	for ( key in mappings ) {
 		mappings[ key ].initViewmodel( this );
 	}

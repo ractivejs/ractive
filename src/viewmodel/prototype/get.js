@@ -4,7 +4,7 @@ import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 
 var empty = {};
 
-export default function Viewmodel$get ( keypath, options = empty ) {
+export default function Viewmodel$get ( keypath, options ) {
 	var ractive = this.ractive,
 		cache = this.cache,
 		mapping,
@@ -12,6 +12,8 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		computation,
 		wrapped,
 		captureGroup;
+
+	options = options || empty;
 
 	// capture the keypath, if we're inside a computation
 	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
