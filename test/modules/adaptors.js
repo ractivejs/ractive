@@ -107,12 +107,12 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 		});
 
 		test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', function ( t ) {
-			var Subclass, instance;
+			var Subclass, instance, FooAdaptor = {};
 
-			Subclass = Ractive.extend({ adapt: 'Foo' });
+			Subclass = Ractive.extend({ adapt: 'Foo', adaptors: { Foo: FooAdaptor } });
 			instance = new Subclass();
 
-			t.deepEqual( instance.adapt, ['Foo'] );
+			t.deepEqual( instance.adapt, [FooAdaptor] );
 		});
 
 		test( 'Original values are passed to event handlers (#945)', function ( t ) {

@@ -4,10 +4,9 @@ import { isEqual } from 'utils/is';
 import log from 'utils/log/log';
 import { normalise } from 'shared/keypaths';
 import Promise from 'utils/Promise';
+import noop from 'utils/noop';
 
-var noop = function () {}, noAnimation = {
-	stop: noop
-};
+var noAnimation = { stop: noop };
 
 export default function Ractive$animate ( keypath, to, options ) {
 

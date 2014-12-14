@@ -4,7 +4,6 @@ import { magic } from 'config/environment';
 import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
 import Viewmodel from 'viewmodel/Viewmodel';
-import adaptConfig from 'viewmodel/adaptConfig';
 import Hook from './prototype/shared/hooks/Hook';
 import HookQueue from './prototype/shared/hooks/HookQueue';
 
@@ -34,10 +33,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	if ( ractive.magic && !magic ) {
 		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 	}
-
-	// TODO ditto
-	ractive.adapt = adaptConfig.combine( ractive.constructor.prototype.adapt, ractive.adapt ) || [];
-	ractive.adapt = adaptConfig.lookup( ractive, ractive.adaptors );
 
 	configHook.fire( ractive );
 	initHook.begin( ractive );

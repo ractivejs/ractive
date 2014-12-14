@@ -1,3 +1,4 @@
+import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
 import templateConfigurator from './custom/template/template';
@@ -9,9 +10,10 @@ import deprecate from './deprecate';
 var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
 
 custom = {
+	adapt: adaptConfigurator,
+	css: cssConfigurator,
 	data: dataConfigurator,
-	template: templateConfigurator,
-	css: cssConfigurator
+	template: templateConfigurator
 };
 
 defaultKeys = Object.keys( defaults );
@@ -77,6 +79,7 @@ function configure ( method, Parent, target, options ) {
 		registry[ method ]( Parent, target, options );
 	});
 
+	adaptConfigurator[ method ]( Parent, target, options );
 	dataConfigurator[ method ]( Parent, target, options );
 	templateConfigurator[ method ]( Parent, target, options );
 	cssConfigurator[ method ]( Parent, target, options );

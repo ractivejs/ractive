@@ -1,6 +1,4 @@
-import { findInViewHierarchy } from 'shared/registry';
 import arrayAdaptor from './get/arrayAdaptor';
-import log from 'utils/log/log';
 import magicAdaptor from './get/magicAdaptor';
 import magicArrayAdaptor from './get/magicArrayAdaptor';
 
@@ -13,26 +11,6 @@ export default function Viewmodel$adapt ( keypath, value ) {
 	len = ractive.adapt.length;
 	for ( i = 0; i < len; i += 1 ) {
 		adaptor = ractive.adapt[i];
-
-		// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
-		// we need to get the actual adaptor if that's the case
-		if ( typeof adaptor === 'string' ) {
-			let found = findInViewHierarchy( 'adaptors', ractive, adaptor );
-
-			if ( !found ) {
-				// will throw. "return" for safety, if we downgrade :)
-				return log.critical({
-					debug: ractive.debug,
-					message: 'missingPlugin',
-					args: {
-						plugin: 'adaptor',
-						name: adaptor
-					}
-				});
-			}
-
-			adaptor = ractive.adapt[i] = found;
-		}
 
 		if ( adaptor.filter( value, keypath, ractive ) ) {
 			wrapped = this.wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
