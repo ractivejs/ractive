@@ -1,6 +1,31 @@
 import { isArray, isNumeric } from 'utils/is';
 
-var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+var refPattern, keypathCache, Keypath;
+
+refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+
+keypathCache = {};
+
+var Keypath = function ( str ) {
+	var keys = str.split( '.' );
+
+	this.str = str;
+
+	if ( str[0] === '@' ) {
+		this.isSpecial = true;
+		this.value = decodeKeypath( str );
+	}
+
+	this.firstKey = keys[0];
+	this.lastKey = keys.pop();
+
+	this.parent = str === '' ? null : getKeypath( keys.join( '.' ) );
+	this.isRoot = !str;
+};
+
+Keypath.prototype.toString = function () {
+	return this.str;
+};
 
 export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
 	var existingKeypath = target[ property ];
@@ -30,6 +55,10 @@ export function equalsOrStartsWith ( target, keypath) {
 export function getKey ( keypath ) {
 	var index = keypath.indexOf( '.' );
 	return ~index ? keypath.slice( 0, index ) : keypath;
+}
+
+export function getKeypath ( str ) {
+	return keypathCache[ str ] || ( keypathCache[ str ] = new Keypath( str ) );
 }
 
 export function getMatchingKeypaths ( ractive, pattern ) {
