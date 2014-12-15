@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-12-14 - commit 9de8e422 
+	2014-12-15 - commit a87c8931 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1561,6 +1561,11 @@
     return target === keypath || keypaths__startsWithKeypath(target, keypath);
   }
 
+  function keypaths__getKey(keypath) {
+    var index = keypath.indexOf(".");
+    return ~index ? keypath.slice(0, index) : keypath;
+  }
+
   function keypaths__getMatchingKeypaths(ractive, pattern) {
     var keys, key, matchingKeypaths;
 
@@ -1644,7 +1649,7 @@
     // If a reference begins '~/', it's a top-level reference
     if (ref.substr(0, 2) === "~/") {
       ref = ref.substring(2);
-      resolveRef__createMappingIfNecessary(ractive, resolveRef__getKey(ref), fragment);
+      resolveRef__createMappingIfNecessary(ractive, keypaths__getKey(ref), fragment);
       return ref;
     }
 
@@ -1654,7 +1659,7 @@
       ref = resolveRef__resolveAncestorRef(getInnerContext__default(fragment), ref);
 
       if (ref) {
-        resolveRef__createMappingIfNecessary(ractive, resolveRef__getKey(ref), fragment);
+        resolveRef__createMappingIfNecessary(ractive, keypaths__getKey(ref), fragment);
       }
 
       return ref;
@@ -1699,7 +1704,7 @@
   function resolveRef__resolveAmbiguousReference(ractive, ref, fragment, isParentLookup) {
     var context, key, parentValue, hasContextChain, parentKeypath;
 
-    key = resolveRef__getKey(ref);
+    key = keypaths__getKey(ref);
 
     while (fragment) {
       context = fragment.context;
@@ -1766,11 +1771,6 @@
 
   function resolveRef__isRootProperty(ractive, key) {
     return key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
-  }
-
-  function resolveRef__getKey(ref) {
-    var index = ref.indexOf(".");
-    return ~index ? ref.slice(0, index) : ref;
   }
   //# sourceMappingURL=01-_6to5-resolveRef.js.map
 
@@ -7151,14 +7151,13 @@
   }
 
   function parse__setDelimiters(source, target) {
-    if (target === undefined) target = source;
-    return (function () {
-      target.delimiters = source.delimiters || ["{{", "}}"];
-      target.tripleDelimiters = source.tripleDelimiters || ["{{{", "}}}"];
+    target = target || source;
 
-      target.staticDelimiters = source.staticDelimiters || ["[[", "]]"];
-      target.staticTripleDelimiters = source.staticTripleDelimiters || ["[[[", "]]]"];
-    })();
+    target.delimiters = source.delimiters || ["{{", "}}"];
+    target.tripleDelimiters = source.tripleDelimiters || ["{{{", "}}}"];
+
+    target.staticDelimiters = source.staticDelimiters || ["[[", "]]"];
+    target.staticTripleDelimiters = source.staticTripleDelimiters || ["[[[", "]]]"];
   }
   //# sourceMappingURL=01-_6to5-_parse.js.map
 
@@ -7458,20 +7457,18 @@
   var wrapPrototype__default = wrapPrototype__wrap;
 
   function wrapPrototype__getSuperMethod(parent, name) {
-    var method;
+    var value, method;
 
     if (name in parent) {
-      (function () {
-        var value = parent[name];
+      value = parent[name];
 
-        if (typeof value === "function") {
-          method = value;
-        } else {
-          method = function returnValue() {
-            return value;
-          };
-        }
-      })();
+      if (typeof value === "function") {
+        method = value;
+      } else {
+        method = function returnValue() {
+          return value;
+        };
+      }
     } else {
       method = noop__default;
     }
@@ -7775,53 +7772,7 @@
   var prototype_firstNode__default = prototype_firstNode__Fragment$firstNode;
   //# sourceMappingURL=01-_6to5-firstNode.js.map
 
-  function getNode__Fragment$getNode() {
-    var fragment = this;
-
-    do {
-      if (fragment.pElement) {
-        return fragment.pElement.node;
-      }
-    } while (fragment = fragment.parent);
-
-    return this.root.detached || this.root.el;
-  };
-  var getNode__default = getNode__Fragment$getNode;
-  //# sourceMappingURL=01-_6to5-getNode.js.map
-
-  var prototype_getValue__empty = {};
-
-  function prototype_getValue__Fragment$getValue(options) {
-    var _this = this;
-    if (options === undefined) options = prototype_getValue__empty;
-    return (function () {
-      var asArgs, values, source, parsed, cachedResult, dirtyFlag, result;
-
-      asArgs = options.args;
-
-      cachedResult = asArgs ? "argsList" : "value";
-      dirtyFlag = asArgs ? "dirtyArgs" : "dirtyValue";
-
-      if (_this[dirtyFlag]) {
-        source = prototype_getValue__processItems(_this.items, values = {}, _this.root._guid);
-        parsed = parseJSON__default(asArgs ? "[" + source + "]" : source, values);
-
-        if (!parsed) {
-          result = asArgs ? [_this.toString()] : _this.toString();
-        } else {
-          result = parsed.value;
-        }
-
-        _this[cachedResult] = result;
-        _this[dirtyFlag] = false;
-      }
-
-      return _this[cachedResult];
-    })();
-  };
-  var prototype_getValue__default = prototype_getValue__Fragment$getValue;
-
-  function prototype_getValue__processItems(items, values, guid, counter) {
+  function processItems__processItems(items, values, guid, counter) {
     counter = counter || 0;
 
     return items.map(function (item) {
@@ -7833,7 +7784,7 @@
 
       if (item.fragments) {
         return item.fragments.map(function (fragment) {
-          return prototype_getValue__processItems(fragment.items, values, guid, counter);
+          return processItems__processItems(fragment.items, values, guid, counter);
         }).join("");
       }
 
@@ -7849,7 +7800,66 @@
 
       return "${" + placeholderId + "}";
     }).join("");
-  }
+  };
+  var processItems__default = processItems__processItems;
+  //# sourceMappingURL=01-_6to5-processItems.js.map
+
+  function getArgsList__Fragment$getArgsList() {
+    var values, source, parsed, result;
+
+    if (this.dirtyArgs) {
+      source = processItems__default(this.items, values = {}, this.root._guid);
+      parsed = parseJSON__default("[" + source + "]", values);
+
+      if (!parsed) {
+        result = [this.toString()];
+      } else {
+        result = parsed.value;
+      }
+
+      this.argsList = result;
+      this.dirtyArgs = false;
+    }
+
+    return this.argsList;
+  };
+  var getArgsList__default = getArgsList__Fragment$getArgsList;
+  //# sourceMappingURL=01-_6to5-getArgsList.js.map
+
+  function getNode__Fragment$getNode() {
+    var fragment = this;
+
+    do {
+      if (fragment.pElement) {
+        return fragment.pElement.node;
+      }
+    } while (fragment = fragment.parent);
+
+    return this.root.detached || this.root.el;
+  };
+  var getNode__default = getNode__Fragment$getNode;
+  //# sourceMappingURL=01-_6to5-getNode.js.map
+
+  function prototype_getValue__Fragment$getValue() {
+    var values, source, parsed, result;
+
+    if (this.dirtyValue) {
+      source = processItems__default(this.items, values = {}, this.root._guid);
+      parsed = parseJSON__default(source, values);
+
+      if (!parsed) {
+        result = this.toString();
+      } else {
+        result = parsed.value;
+      }
+
+      this.value = result;
+      this.dirtyValue = false;
+    }
+
+    return this.value;
+  };
+  var prototype_getValue__default = prototype_getValue__Fragment$getValue;
   //# sourceMappingURL=01-_6to5-getValue.js.map
 
   var detach__default = function () {
@@ -9845,7 +9855,7 @@
   //# sourceMappingURL=01-_6to5-processBindingAttributes.js.map
 
   function Attribute_prototype_bubble__Attribute$bubble() {
-    var value = this.fragment.getValue();
+    var value = this.useProperty || !this.rendered ? this.fragment.getValue() : this.fragment.toString();
 
     // TODO this can register the attribute multiple times (see render test
     // 'Attribute with nested mustaches')
@@ -9936,59 +9946,18 @@
   var getInterpolator__default = getInterpolator__getInterpolator;
   //# sourceMappingURL=01-_6to5-getInterpolator.js.map
 
-  var determinePropertyName__propertyNames = {
-    "accept-charset": "acceptCharset",
-    accesskey: "accessKey",
-    bgcolor: "bgColor",
-    "class": "className",
-    codebase: "codeBase",
-    colspan: "colSpan",
-    contenteditable: "contentEditable",
-    datetime: "dateTime",
-    dirname: "dirName",
-    "for": "htmlFor",
-    "http-equiv": "httpEquiv",
-    ismap: "isMap",
-    maxlength: "maxLength",
-    novalidate: "noValidate",
-    pubdate: "pubDate",
-    readonly: "readOnly",
-    rowspan: "rowSpan",
-    tabindex: "tabIndex",
-    usemap: "useMap"
-  };
-
-  var determinePropertyName__default = function (attribute, options) {
-    var propertyName;
-
-    if (attribute.pNode && !attribute.namespace && (!options.pNode.namespaceURI || options.pNode.namespaceURI === environment__namespaces.html)) {
-      propertyName = determinePropertyName__propertyNames[attribute.name] || attribute.name;
-
-      if (options.pNode[propertyName] !== undefined) {
-        attribute.propertyName = propertyName;
-      }
-
-      // is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
-      // node.selected = true rather than node.setAttribute( 'selected', '' )
-      if (html__booleanAttributes.test(propertyName) || propertyName === "value") {
-        attribute.useProperty = true;
-      }
-    }
-  };
-  //# sourceMappingURL=01-_6to5-determinePropertyName.js.map
-
   function prototype_init__Attribute$init(options) {
     this.type = types__ATTRIBUTE;
     this.element = options.element;
     this.root = options.root;
 
     determineNameAndNamespace__default(this, options.name);
+    this.isBoolean = html__booleanAttributes.test(this.name);
 
     // if it's an empty attribute, or just a straight key-value pair, with no
     // mustache shenanigans, set the attribute accordingly and go home
     if (!options.value || typeof options.value === "string") {
-      this.value = html__booleanAttributes.test(this.name) ? true : options.value || "";
-
+      this.value = this.isBoolean ? true : options.value || "";
       return;
     }
 
@@ -10003,17 +9972,14 @@
       owner: this
     });
 
+    // TODO can we use this.fragment.toString() in some cases? It's quicker
     this.value = this.fragment.getValue();
-
 
     // Store a reference to this attribute's interpolator, if its fragment
     // takes the form `{{foo}}`. This is necessary for two-way binding and
     // for correctly rendering HTML later
     this.interpolator = getInterpolator__default(this);
     this.isBindable = !!this.interpolator && !this.interpolator.isStatic;
-
-    // can we establish this attribute's property name equivalent?
-    determinePropertyName__default(this, options);
 
     // mark as ready
     this.ready = true;
@@ -10066,12 +10032,11 @@
 
       // is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
       // node.selected = true rather than node.setAttribute( 'selected', '' )
-      if (html__booleanAttributes.test(propertyName) || propertyName === "value") {
+      if (this.isBoolean || this.isTwoway) {
         this.useProperty = true;
       }
 
       if (propertyName === "value") {
-        this.useProperty = true;
         node._ractive.value = this.value;
       }
     }
@@ -10107,7 +10072,7 @@
     }
 
     // Boolean attributes
-    if (html__booleanAttributes.test(name)) {
+    if (this.isBoolean) {
       return value ? name : "";
     }
 
@@ -10356,7 +10321,7 @@
 
     if (namespace) {
       node.setAttributeNS(namespace, name, (fragment || value).toString());
-    } else if (!html__booleanAttributes.test(name)) {
+    } else if (!this.isBoolean) {
       node.setAttribute(name, (fragment || value).toString());
     }
 
@@ -10415,7 +10380,7 @@
     }
 
     // special case - <input type='radio' name='{{twoway}}' value='foo'>
-    else if (this.twoway && name === "name") {
+    else if (this.isTwoway && name === "name") {
       if (node.type === "radio") {
         updateMethod = updateRadioName__default;
       } else if (node.type === "checkbox") {
@@ -10630,6 +10595,7 @@
       keypath = interpolator.keypath;
     }
 
+    this.attribute.isTwoway = true;
     this.keypath = keypath;
 
     // initialise value, if it's undefined
@@ -10820,7 +10786,6 @@
       this.siblings.push(this);
 
       this.radioName = true; // so that ractive.updateModel() knows what to do with this
-      this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
     },
 
     getInitialValue: function () {
@@ -10899,7 +10864,6 @@
       var existingValue, bindingValue;
 
       this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
-      this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
 
       // Each input has a reference to an array containing it and its
       // siblings, as two-way binding depends on being able to ascertain
@@ -11378,7 +11342,7 @@
   var getAction__default = getAction__EventHandler$getAction;
   //# sourceMappingURL=01-_6to5-getAction.js.map
 
-  var EventHandler_prototype_init__getValueOptions = { args: true }, EventHandler_prototype_init__eventPattern = /^event(?:\.(.+))?/;
+  var EventHandler_prototype_init__eventPattern = /^event(?:\.(.+))?/;
 
   function EventHandler_prototype_init__EventHandler$init(element, name, template) {
     var _this = this;
@@ -11509,7 +11473,7 @@
   }
 
   function EventHandler_prototype_init__fireEventWithDynamicParams(event) {
-    var args = this.dynamicParams.getValue(EventHandler_prototype_init__getValueOptions);
+    var args = this.dynamicParams.getArgsList();
 
     // need to strip [] from ends if a string!
     if (typeof args === "string") {
@@ -11714,11 +11678,7 @@
   };
   //# sourceMappingURL=01-_6to5-createEventHandlers.js.map
 
-  var Decorator__getValueOptions, Decorator__Decorator;
-
-  Decorator__getValueOptions = { args: true };
-
-  Decorator__Decorator = function (element, template) {
+  var Decorator__Decorator = function (element, template) {
     var self = this, ractive, name, fragment;
 
     this.element = element;
@@ -11751,11 +11711,11 @@
         owner: element
       });
 
-      this.params = this.fragment.getValue(Decorator__getValueOptions);
+      this.params = this.fragment.getArgsList();
 
       this.fragment.bubble = function () {
         this.dirtyArgs = this.dirtyValue = true;
-        self.params = this.getValue(Decorator__getValueOptions);
+        self.params = this.getArgsList();
 
         if (self.ready) {
           self.update();
@@ -12116,8 +12076,6 @@
   }
   //# sourceMappingURL=01-_6to5-form.js.map
 
-  var Transition_prototype_init__getValueOptions = {}; // TODO what are the options?
-
   function Transition_prototype_init__Transition$init(element, template, isIntro) {
     var ractive, name, fragment;
 
@@ -12156,7 +12114,7 @@
         owner: element
       });
 
-      this.params = fragment.getValue(Transition_prototype_init__getValueOptions);
+      this.params = fragment.getArgsList();
       fragment.unbind();
     }
 
@@ -12842,7 +12800,7 @@
 
   function Element_prototype_render__Element$render() {
     var _this = this;
-    var root = this.root, namespace, node;
+    var root = this.root, namespace, node, transition;
 
     namespace = Element_prototype_render__getNamespace(this);
     node = this.node = dom__createElement(this.name, namespace);
@@ -12945,15 +12903,13 @@
 
     // trigger intro transition
     if (root.transitionsEnabled && this.intro) {
-      (function () {
-        var transition = new Transition__default(_this, _this.intro, true);
-        runloop__default.registerTransition(transition);
-        runloop__default.scheduleTask(function () {
-          return transition.start();
-        }, true);
+      transition = new Transition__default(this, this.intro, true);
+      runloop__default.registerTransition(transition);
+      runloop__default.scheduleTask(function () {
+        return transition.start();
+      }, true);
 
-        _this.transition = transition;
-      })();
+      this.transition = transition;
     }
 
     if (this.node.autofocus) {
@@ -13169,11 +13125,10 @@
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
   function Element_prototype_unrender__Element$unrender(shouldDestroy) {
-    var _this = this;
-    var binding, bindings;
+    var binding, bindings, transition;
 
-    if (this.transition) {
-      this.transition.complete();
+    if (transition = this.transition) {
+      transition.complete();
     }
 
     // Detach as soon as we can
@@ -13211,13 +13166,11 @@
 
     // trigger outro transition if necessary
     if (this.root.transitionsEnabled && this.outro) {
-      (function () {
-        var transition = new Transition__default(_this, _this.outro, false);
-        runloop__default.registerTransition(transition);
-        runloop__default.scheduleTask(function () {
-          return transition.start();
-        });
-      })();
+      transition = new Transition__default(this, this.outro, false);
+      runloop__default.registerTransition(transition);
+      runloop__default.scheduleTask(function () {
+        return transition.start();
+      });
     }
 
     // Remove this node from any live queries
@@ -13920,7 +13873,7 @@
 
   function applyChanges__Viewmodel$applyChanges() {
     var _this = this;
-    var self = this, changes, upstreamChanges, hash = {};
+    var self = this, changes, upstreamChanges, hash = {}, bindings;
 
     changes = this.changes;
 
@@ -13991,18 +13944,16 @@
     }
 
     if (this.deps["default"]) {
-      (function () {
-        var bindings = [];
-        upstreamChanges.forEach(function (keypath) {
-          return applyChanges__notifyUpstreamDependants(_this, bindings, keypath, "default");
-        });
+      bindings = [];
+      upstreamChanges.forEach(function (keypath) {
+        return applyChanges__notifyUpstreamDependants(_this, bindings, keypath, "default");
+      });
 
-        if (bindings.length) {
-          applyChanges__notifyBindings(_this, bindings, changes);
-        }
+      if (bindings.length) {
+        applyChanges__notifyBindings(this, bindings, changes);
+      }
 
-        applyChanges__notifyAllDependants(_this, changes, "default");
-      })();
+      applyChanges__notifyAllDependants(this, changes, "default");
     }
 
     // Return a hash of keypaths to updated values
@@ -14379,7 +14330,7 @@
   };
 
   function Computation__isUnresolved(viewmodel, keypath) {
-    var key = keypath.split(".")[0];
+    var key = keypaths__getKey(keypath);
 
     return !(key in viewmodel.ractive.data) && !(key in viewmodel.computations) && !(key in viewmodel.mappings);
   }
@@ -14400,60 +14351,58 @@
   var get__empty = {};
 
   function get__Viewmodel$get(keypath, options) {
-    var _this = this;
-    if (options === undefined) options = get__empty;
-    return (function () {
-      var ractive = _this.ractive, cache = _this.cache, mapping, value, computation, wrapped, captureGroup;
+    var ractive = this.ractive, cache = this.cache, mapping, value, computation, wrapped, captureGroup;
 
-      // capture the keypath, if we're inside a computation
-      if (options.capture && (captureGroup = _this.captureGroups[_this.captureGroups.length - 1])) {
-        if (! ~captureGroup.indexOf(keypath)) {
-          captureGroup.push(keypath);
-        }
+    options = options || get__empty;
+
+    // capture the keypath, if we're inside a computation
+    if (options.capture && (captureGroup = this.captureGroups[this.captureGroups.length - 1])) {
+      if (! ~captureGroup.indexOf(keypath)) {
+        captureGroup.push(keypath);
+      }
+    }
+
+    if (mapping = this.mappings[keypaths__getKey(keypath)]) {
+      return mapping.get(keypath, options);
+    }
+
+    if (keypath[0] === "@") {
+      return keypaths__decodeKeypath(keypath);
+    }
+
+    if (cache[keypath] === undefined) {
+      // Is this a computed property?
+      if ((computation = this.computations[keypath]) && !computation.bypass) {
+        value = computation.get();
+        this.adapt(keypath, value);
       }
 
-      if (mapping = _this.mappings[keypath.split(".")[0]]) {
-        return mapping.get(keypath, options);
+      // Is this a wrapped property?
+      else if (wrapped = this.wrapped[keypath]) {
+        value = wrapped.value;
       }
 
-      if (keypath[0] === "@") {
-        return keypaths__decodeKeypath(keypath);
+      // Is it the root?
+      else if (!keypath) {
+        this.adapt("", ractive.data);
+        value = ractive.data;
       }
 
-      if (cache[keypath] === undefined) {
-        // Is this a computed property?
-        if ((computation = _this.computations[keypath]) && !computation.bypass) {
-          value = computation.get();
-          _this.adapt(keypath, value);
-        }
-
-        // Is this a wrapped property?
-        else if (wrapped = _this.wrapped[keypath]) {
-          value = wrapped.value;
-        }
-
-        // Is it the root?
-        else if (!keypath) {
-          _this.adapt("", ractive.data);
-          value = ractive.data;
-        }
-
-        // No? Then we need to retrieve the value one key at a time
-        else {
-          value = get__retrieve(_this, keypath);
-        }
-
-        cache[keypath] = value;
-      } else {
-        value = cache[keypath];
+      // No? Then we need to retrieve the value one key at a time
+      else {
+        value = get__retrieve(this, keypath);
       }
 
-      if (!options.noUnwrap && (wrapped = _this.wrapped[keypath])) {
-        value = wrapped.get();
-      }
+      cache[keypath] = value;
+    } else {
+      value = cache[keypath];
+    }
 
-      return value === FAILED_LOOKUP__default ? void 0 : value;
-    })();
+    if (!options.noUnwrap && (wrapped = this.wrapped[keypath])) {
+      value = wrapped.get();
+    }
+
+    return value === FAILED_LOOKUP__default ? void 0 : value;
   };
   var get__default = get__Viewmodel$get;
 
@@ -14816,7 +14765,7 @@
       return;
     }
 
-    if (mapping = this.mappings[keypath.split(".")[0]]) {
+    if (mapping = this.mappings[keypaths__getKey(keypath)]) {
       return mapping.register(keypath, dependant, group);
     }
 
@@ -14872,7 +14821,7 @@
     if (!options.noMapping) {
       // If this data belongs to a different viewmodel,
       // pass the change along
-      if (mapping = this.mappings[keypath.split(".")[0]]) {
+      if (mapping = this.mappings[keypaths__getKey(keypath)]) {
         return mapping.set(keypath, value);
       }
     }
@@ -15033,7 +14982,7 @@
       return;
     }
 
-    if (mapping = this.mappings[keypath.split(".")[0]]) {
+    if (mapping = this.mappings[keypaths__getKey(keypath)]) {
       return mapping.unregister(keypath, dependant, group);
     }
 
@@ -15081,55 +15030,51 @@
   //# sourceMappingURL=01-_6to5-unregister.js.map
 
   var Viewmodel__Viewmodel = function (ractive, mappings) {
-    var _this = this;
-    if (mappings === undefined) mappings = object__create(null);
-    return (function () {
-      var key, mapping;
+    var key, mapping;
 
-      _this.ractive = ractive; // TODO eventually, we shouldn't need this reference
+    this.ractive = ractive; // TODO eventually, we shouldn't need this reference
 
-      // set up explicit mappings
-      _this.mappings = mappings;
-      for (key in mappings) {
-        mappings[key].initViewmodel(_this);
-      }
+    // set up explicit mappings
+    this.mappings = mappings || object__create(null);
+    for (key in mappings) {
+      mappings[key].initViewmodel(this);
+    }
 
-      if (ractive.data && ractive.parameters !== true) {
-        // if data exists locally, but is missing on the parent,
-        // we transfer ownership to the parent
-        for (key in ractive.data) {
-          if ((mapping = _this.mappings[key]) && mapping.getValue() === undefined) {
-            mapping.setValue(ractive.data[key]);
-          }
+    if (ractive.data && ractive.parameters !== true) {
+      // if data exists locally, but is missing on the parent,
+      // we transfer ownership to the parent
+      for (key in ractive.data) {
+        if ((mapping = this.mappings[key]) && mapping.getValue() === undefined) {
+          mapping.setValue(ractive.data[key]);
         }
       }
+    }
 
-      _this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
-      _this.cacheMap = object__create(null);
+    this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
+    this.cacheMap = object__create(null);
 
-      _this.deps = {
-        computed: object__create(null),
-        "default": object__create(null)
-      };
-      _this.depsMap = {
-        computed: object__create(null),
-        "default": object__create(null)
-      };
+    this.deps = {
+      computed: object__create(null),
+      "default": object__create(null)
+    };
+    this.depsMap = {
+      computed: object__create(null),
+      "default": object__create(null)
+    };
 
-      _this.patternObservers = [];
+    this.patternObservers = [];
 
-      _this.specials = object__create(null);
+    this.specials = object__create(null);
 
-      _this.wrapped = object__create(null);
-      _this.computations = object__create(null);
+    this.wrapped = object__create(null);
+    this.computations = object__create(null);
 
-      _this.captureGroups = [];
-      _this.unresolvedImplicitDependencies = [];
+    this.captureGroups = [];
+    this.unresolvedImplicitDependencies = [];
 
-      _this.changes = [];
-      _this.implicitChanges = {};
-      _this.noCascade = {};
-    })();
+    this.changes = [];
+    this.implicitChanges = {};
+    this.noCascade = {};
   };
 
   Viewmodel__Viewmodel.prototype = {
@@ -16101,11 +16046,17 @@
       return "";
     }
 
-    return this.items.map(function (item) {
-      return item.toString(escape);
-    }).join("");
+    return this.items.map(escape ? Fragment_prototype_toString__toEscapedString : Fragment_prototype_toString__toString).join("");
   };
   var Fragment_prototype_toString__default = Fragment_prototype_toString__Fragment$toString;
+
+  function Fragment_prototype_toString__toString(item) {
+    return item.toString();
+  }
+
+  function Fragment_prototype_toString__toEscapedString(item) {
+    return item.toString(true);
+  }
   //# sourceMappingURL=01-_6to5-toString.js.map
 
   function Fragment_prototype_unbind__Fragment$unbind() {
@@ -16151,6 +16102,7 @@
     findComponent: Fragment_prototype_findComponent__default,
     findNextNode: prototype_findNextNode__default,
     firstNode: prototype_firstNode__default,
+    getArgsList: getArgsList__default,
     getNode: getNode__default,
     getValue: prototype_getValue__default,
     init: Fragment_prototype_init__default,
