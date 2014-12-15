@@ -1,4 +1,4 @@
-import { decodeKeypath, getKey } from 'shared/keypaths';
+import { decodeKeypath, getKey, getKeypath } from 'shared/keypaths';
 import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 
 
@@ -15,19 +15,24 @@ export default function Viewmodel$get ( keypath, options ) {
 
 	options = options || empty;
 
+	// TODO this is temporary. Eventually we should only use Keypath objects
+	if ( typeof keypath === 'string' ) {
+		keypath = getKeypath( keypath );
+	}
+
 	// capture the keypath, if we're inside a computation
 	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
-		if ( !~captureGroup.indexOf( keypath ) ) {
-			captureGroup.push( keypath );
+		if ( !~captureGroup.indexOf( keypath.str ) ) {
+			captureGroup.push( keypath.str );
 		}
 	}
 
-	if ( mapping = this.mappings[ getKey( keypath ) ] ) {
-		return mapping.get( keypath, options );
+	if ( mapping = this.mappings[ keypath.firstKey ] ) {
+		return mapping.get( keypath.str, options );
 	}
 
-	if ( keypath[0] === '@' ) {
-		return decodeKeypath( keypath );
+	if ( keypath.isSpecial ) {
+		return keypath.value;
 	}
 
 	if ( cache[ keypath ] === undefined ) {
@@ -35,7 +40,7 @@ export default function Viewmodel$get ( keypath, options ) {
 		// Is this a computed property?
 		if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
 			value = computation.get();
-			this.adapt( keypath, value );
+			this.adapt( keypath.str, value );
 		}
 
 		// Is this a wrapped property?
@@ -44,7 +49,7 @@ export default function Viewmodel$get ( keypath, options ) {
 		}
 
 		// Is it the root?
-		else if ( !keypath ) {
+		else if ( keypath.isRoot ) {
 			this.adapt( '', ractive.data );
 			value = ractive.data;
 		}
@@ -68,15 +73,11 @@ export default function Viewmodel$get ( keypath, options ) {
 
 function retrieve ( viewmodel, keypath ) {
 
-	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
+	var parentValue, cacheMap, value, wrapped;
 
-	keys = keypath.split( '.' );
-	key = keys.pop();
-	parentKeypath = keys.join( '.' );
+	parentValue = viewmodel.get( keypath.parent );
 
-	parentValue = viewmodel.get( parentKeypath );
-
-	if ( wrapped = viewmodel.wrapped[ parentKeypath ] ) {
+	if ( wrapped = viewmodel.wrapped[ keypath.parent ] ) {
 		parentValue = wrapped.get();
 	}
 
@@ -85,24 +86,24 @@ function retrieve ( viewmodel, keypath ) {
 	}
 
 	// update cache map
-	if ( !( cacheMap = viewmodel.cacheMap[ parentKeypath ] ) ) {
-		viewmodel.cacheMap[ parentKeypath ] = [ keypath ];
+	if ( !( cacheMap = viewmodel.cacheMap[ keypath.parent.str ] ) ) {
+		viewmodel.cacheMap[ keypath.parent.str ] = [ keypath.str ];
 	} else {
-		if ( cacheMap.indexOf( keypath ) === -1 ) {
-			cacheMap.push( keypath );
+		if ( cacheMap.indexOf( keypath.str ) === -1 ) {
+			cacheMap.push( keypath.str );
 		}
 	}
 
 	// If this property doesn't exist, we return a sentinel value
 	// so that we know to query parent scope (if such there be)
-	if ( typeof parentValue === 'object' && !( key in parentValue ) ) {
+	if ( typeof parentValue === 'object' && !( keypath.lastKey in parentValue ) ) {
 		return viewmodel.cache[ keypath ] = FAILED_LOOKUP;
 	}
 
-	value = parentValue[ key ];
+	value = parentValue[ keypath.lastKey ];
 
 	// Do we have an adaptor for this value?
-	viewmodel.adapt( keypath, value, false );
+	viewmodel.adapt( keypath.str, value, false );
 
 	// Update cache
 	viewmodel.cache[ keypath ] = value;
