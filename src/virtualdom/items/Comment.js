@@ -9,11 +9,11 @@ var Comment = function ( options ) {
 Comment.prototype = {
 	detach: detach,
 
-	firstNode: function () {
+	firstNode () {
 		return this.node;
 	},
 
-	render: function () {
+	render () {
 		if ( !this.node ) {
 			this.node = document.createComment( this.value );
 		}
@@ -21,11 +21,11 @@ Comment.prototype = {
 		return this.node;
 	},
 
-	toString: function () {
+	toString () {
 		return '<!--' + this.value + '-->';
 	},
 
-	unrender: function ( shouldDestroy ) {
+	unrender ( shouldDestroy ) {
 		if ( shouldDestroy ) {
 			this.node.parentNode.removeChild( this.node );
 		}

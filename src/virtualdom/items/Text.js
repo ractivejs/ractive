@@ -10,11 +10,11 @@ var Text = function ( options ) {
 Text.prototype = {
 	detach: detach,
 
-	firstNode: function () {
+	firstNode () {
 		return this.node;
 	},
 
-	render: function () {
+	render () {
 		if ( !this.node ) {
 			this.node = document.createTextNode( this.text );
 		}
@@ -22,11 +22,11 @@ Text.prototype = {
 		return this.node;
 	},
 
-	toString: function ( escape ) {
+	toString ( escape ) {
 		return escape ? escapeHtml( this.text ) : this.text;
 	},
 
-	unrender: function ( shouldDestroy ) {
+	unrender ( shouldDestroy ) {
 		if ( shouldDestroy ) {
 			return this.detach();
 		}

@@ -13,7 +13,7 @@ var Interpolator = function ( options ) {
 };
 
 Interpolator.prototype = {
-	update: function () {
+	update () {
 		this.node.data = ( this.value == undefined ? '' : this.value );
 	},
 	resolve: Mustache.resolve,
@@ -22,7 +22,7 @@ Interpolator.prototype = {
 
 	unbind: unbind,
 
-	render: function () {
+	render () {
 		if ( !this.node ) {
 			this.node = document.createTextNode( this.value != undefined ? this.value : '' );
 		}
@@ -30,7 +30,7 @@ Interpolator.prototype = {
 		return this.node;
 	},
 
-	unrender: function ( shouldDestroy ) {
+	unrender ( shouldDestroy ) {
 		if ( shouldDestroy ) {
 			detachNode( this.node );
 		}
@@ -39,7 +39,7 @@ Interpolator.prototype = {
 	getValue: Mustache.getValue,
 
 	// TEMP
-	setValue: function ( value ) {
+	setValue ( value ) {
 		var wrapper;
 
 		// TODO is there a better way to approach this?
@@ -57,11 +57,11 @@ Interpolator.prototype = {
 		}
 	},
 
-	firstNode: function () {
+	firstNode () {
 		return this.node;
 	},
 
-	toString: function ( escape ) {
+	toString ( escape ) {
 		var string = ( this.value != undefined ? '' + this.value : '' );
 		return escape ? escapeHtml( string ) : string;
 	}

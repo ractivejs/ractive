@@ -42,56 +42,56 @@ var Yielder = function ( options ) {
 };
 
 Yielder.prototype = {
-	detach: function () {
+	detach () {
 		return this.fragment.detach();
 	},
 
-	find: function ( selector ) {
+	find ( selector ) {
 		return this.fragment.find( selector );
 	},
 
-	findAll: function ( selector, query ) {
+	findAll ( selector, query ) {
 		return this.fragment.findAll( selector, query );
 	},
 
-	findComponent: function ( selector ) {
+	findComponent ( selector ) {
 		return this.fragment.findComponent( selector );
 	},
 
-	findAllComponents: function ( selector, query ) {
+	findAllComponents ( selector, query ) {
 		return this.fragment.findAllComponents( selector, query );
 	},
 
-	findNextNode: function () {
+	findNextNode () {
 		return this.containerFragment.findNextNode( this );
 	},
 
-	firstNode: function () {
+	firstNode () {
 		return this.fragment.firstNode();
 	},
 
-	getValue: function ( options ) {
+	getValue ( options ) {
 		return this.fragment.getValue( options );
 	},
 
-	render: function () {
+	render () {
 		return this.fragment.render();
 	},
 
-	unbind: function () {
+	unbind () {
 		this.fragment.unbind();
 	},
 
-	unrender: function ( shouldDestroy ) {
+	unrender ( shouldDestroy ) {
 		this.fragment.unrender( shouldDestroy );
 		removeFromArray( this.component.yielders[ this.name ], this );
 	},
 
-	rebind: function ( oldKeypath, newKeypath ) {
+	rebind ( oldKeypath, newKeypath ) {
 		this.fragment.rebind( oldKeypath, newKeypath );
 	},
 
-	toString: function () {
+	toString () {
 		return this.fragment.toString();
 	}
 };
