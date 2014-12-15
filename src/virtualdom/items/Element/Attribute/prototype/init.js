@@ -11,14 +11,12 @@ export default function Attribute$init ( options ) {
 	this.root = options.root;
 
 	determineNameAndNamespace( this, options.name );
+	this.isBoolean = booleanAttributes.test( this.name );
 
 	// if it's an empty attribute, or just a straight key-value pair, with no
 	// mustache shenanigans, set the attribute accordingly and go home
 	if ( !options.value || typeof options.value === 'string' ) {
-		this.value = booleanAttributes.test( this.name )
-			? true
-			: options.value || '';
-
+		this.value = this.isBoolean ? true : options.value || '';
 		return;
 	}
 
@@ -33,6 +31,7 @@ export default function Attribute$init ( options ) {
 		owner:    this
 	});
 
+	// TODO can we use this.fragment.toString() in some cases? It's quicker
 	this.value = this.fragment.getValue();
 
 

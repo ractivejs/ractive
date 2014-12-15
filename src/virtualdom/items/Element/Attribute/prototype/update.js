@@ -61,7 +61,7 @@ export default function Attribute$update () {
 	}
 
 	// special case - <input type='radio' name='{{twoway}}' value='foo'>
-	else if ( this.twoway && name === 'name' ) {
+	else if ( this.isTwoway && name === 'name' ) {
 		if ( node.type === 'radio' ) {
 			updateMethod = updateRadioName;
 		}

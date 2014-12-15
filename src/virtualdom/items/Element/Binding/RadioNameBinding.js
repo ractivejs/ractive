@@ -11,7 +11,6 @@ var RadioNameBinding = Binding.extend({
 		this.siblings.push( this );
 
 		this.radioName = true; // so that ractive.updateModel() knows what to do with this
-		this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
 	},
 
 	getInitialValue: function () {

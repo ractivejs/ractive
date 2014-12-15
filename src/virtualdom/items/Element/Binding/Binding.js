@@ -49,6 +49,7 @@ var Binding = function ( element ) {
 		keypath = interpolator.keypath;
 	}
 
+	this.attribute.isTwoway = true;
 	this.keypath = keypath;
 
 	// initialise value, if it's undefined
