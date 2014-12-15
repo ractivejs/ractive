@@ -1,4 +1,4 @@
-import { getKey } from 'shared/keypaths';
+import { getKey, getKeypath } from 'shared/keypaths';
 
 export default function Viewmodel$register ( keypath, dependant, group = 'default' ) {
 	var mapping, depsByKeypath, deps;
@@ -7,8 +7,13 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 		return;
 	}
 
-	if ( mapping = this.mappings[ getKey( keypath ) ] ) {
-		return mapping.register( keypath, dependant, group );
+	// TODO temporary
+	if ( typeof keypath === 'string' ) {
+		keypath = getKeypath( keypath );
+	}
+
+	if ( mapping = this.mappings[ keypath.firstKey ] ) {
+		return mapping.register( keypath.str, dependant, group );
 	}
 
 	depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );
@@ -16,7 +21,7 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 
 	deps.push( dependant );
 
-	if ( !keypath ) {
+	if ( keypath.isRoot ) {
 		return;
 	}
 
@@ -24,25 +29,19 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 }
 
 function updateDependantsMap ( viewmodel, keypath, group ) {
-	var keys, parentKeypath, map, parent;
+	var map, parent;
 
 	// update dependants map
-	keys = keypath.split( '.' );
-
-	while ( keys.length ) {
-		keys.pop();
-		parentKeypath = keys.join( '.' );
-
+	while ( !keypath.isRoot ) {
 		map = viewmodel.depsMap[ group ] || ( viewmodel.depsMap[ group ] = {} );
-		parent = map[ parentKeypath ] || ( map[ parentKeypath ] = [] );
+		parent = map[ keypath.parent ] || ( map[ keypath.parent ] = [] );
 
 		if ( parent[ keypath ] === undefined ) {
 			parent[ keypath ] = 0;
-			parent.push( keypath );
+			parent.push( keypath.str );
 		}
 
 		parent[ keypath ] += 1;
-
-		keypath = parentKeypath;
+		keypath = keypath.parent;
 	}
 }
