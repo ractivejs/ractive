@@ -1,5 +1,3 @@
-import { booleanAttributes } from 'utils/html';
-
 export default function Attribute$toString () {
 	var { name, namespacePrefix, value, interpolator, fragment } = this;
 
@@ -19,7 +17,7 @@ export default function Attribute$toString () {
 	}
 
 	// Boolean attributes
-	if ( booleanAttributes.test( name ) ) {
+	if ( this.isBoolean ) {
 		return value ? name : '';
 	}
 
