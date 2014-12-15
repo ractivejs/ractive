@@ -1,4 +1,4 @@
-import { normalise } from 'shared/keypaths';
+import { getKey, normalise } from 'shared/keypaths';
 import getInnerContext from 'shared/getInnerContext';
 
 export default function resolveRef ( ractive, ref, fragment ) {
@@ -132,9 +132,4 @@ function createMappingIfNecessary ( ractive, key ) {
 
 function isRootProperty ( ractive, key ) {
 	return key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
-}
-
-function getKey ( ref ) {
-	var index = ref.indexOf( '.' );
-	return ~index ? ref.slice( 0, index ) : ref;
 }

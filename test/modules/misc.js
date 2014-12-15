@@ -1661,6 +1661,24 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( keys.length, 0 );
 		});
 
+		test( 'Boolean attributes are added/removed based on unstringified fragment value', function ( t ) {
+			var ractive, button;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<button disabled="{{foo}}"></button>',
+				data: {
+					foo: true
+				}
+			});
+
+			button = ractive.find( 'button' );
+			t.ok( button.disabled );
+
+			ractive.set( 'foo', false );
+			t.ok( !button.disabled );
+		});
+
 		// Is there a way to artificially create a FileList? Leaving this commented
 		// out until someone smarter than me figures out how
 		// test( '{{#each}} iterates over a FileList (#1220)', t => {

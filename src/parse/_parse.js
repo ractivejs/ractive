@@ -97,7 +97,7 @@ StandardParser = Parser.extend({
 parse = function ( template, options = {} ) {
 	var result;
 
-	setDelimiters(options);
+	setDelimiters( options );
 
 	result = {
 		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
@@ -228,7 +228,9 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 	}
 }
 
-function setDelimiters ( source, target = source ) {
+function setDelimiters ( source, target ) {
+	target = target || source;
+
 	target.delimiters = source.delimiters || [ '{{', '}}' ];
 	target.tripleDelimiters = source.tripleDelimiters || [ '{{{', '}}}' ];
 

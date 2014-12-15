@@ -2,7 +2,7 @@ import runloop from 'global/runloop';
 import { isEqual } from 'utils/is';
 
 export default function Attribute$bubble () {
-	var value = this.fragment.getValue();
+	var value = this.useProperty || !this.rendered ? this.fragment.getValue() : this.fragment.toString();
 
 	// TODO this can register the attribute multiple times (see render test
 	// 'Attribute with nested mustaches')

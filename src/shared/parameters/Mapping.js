@@ -12,7 +12,6 @@ function Mapping ( localKey, options ) {
 export default Mapping;
 
 Mapping.prototype = {
-
 	get: function ( keypath, options ) {
 		if ( !this.resolved ) {
 			return undefined;
@@ -27,7 +26,7 @@ Mapping.prototype = {
 		return this.origin.get( this.keypath );
 	},
 
-	initViewmodel: function ( viewmodel ){
+	initViewmodel: function ( viewmodel ) {
 		this.local = viewmodel;
 		this.deps = [];
 		this.local.mappings[ this.localKey ] = this;

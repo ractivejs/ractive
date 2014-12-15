@@ -5,7 +5,8 @@ export default function Viewmodel$applyChanges () {
 	var self = this,
 		changes,
 		upstreamChanges,
-		hash = {};
+		hash = {},
+		bindings;
 
 	changes = this.changes;
 
@@ -70,7 +71,7 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	if ( this.deps['default'] ) {
-		let bindings = [];
+		bindings = [];
 		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, bindings, keypath, 'default' ) );
 
 		if( bindings.length ) {

@@ -1,4 +1,5 @@
 import { isEqual } from 'utils/is';
+import { getKey } from 'shared/keypaths';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, options = {} ) {
@@ -8,7 +9,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 	if ( !options.noMapping ) {
 		// If this data belongs to a different viewmodel,
 		// pass the change along
-		if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+		if ( mapping = this.mappings[ getKey( keypath ) ] ) {
 			return mapping.set( keypath, value );
 		}
 	}

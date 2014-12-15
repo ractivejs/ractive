@@ -2,8 +2,6 @@ import log from 'utils/log/log';
 import Fragment from 'virtualdom/Fragment';
 import { findInViewHierarchy } from 'shared/registry';
 
-var getValueOptions = {}; // TODO what are the options?
-
 export default function Transition$init ( element, template, isIntro ) {
 	var ractive, name, fragment;
 
@@ -44,7 +42,7 @@ export default function Transition$init ( element, template, isIntro ) {
 			owner:    element
 		});
 
-		this.params = fragment.getValue( getValueOptions );
+		this.params = fragment.getArgsList();
 		fragment.unbind();
 	}
 

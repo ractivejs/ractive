@@ -5,7 +5,7 @@ import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import log from 'utils/log/log';
 
-var getValueOptions = { args: true }, eventPattern = /^event(?:\.(.+))?/;
+var eventPattern = /^event(?:\.(.+))?/;
 
 export default function EventHandler$init ( element, name, template ) {
 	var action, refs, ractive, i;
@@ -136,7 +136,7 @@ function fireEventWithParams ( event ) {
 }
 
 function fireEventWithDynamicParams ( event ) {
-	var args = this.dynamicParams.getValue( getValueOptions );
+	var args = this.dynamicParams.getArgsList();
 
 	// need to strip [] from ends if a string!
 	if ( typeof args === 'string' ) {
