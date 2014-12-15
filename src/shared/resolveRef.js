@@ -34,7 +34,7 @@ function resolveAncestorRef ( baseContext, ref ) {
 	var contextKeys;
 
 	// TODO...
-	if ( typeof baseContext !== 'string' ) {
+	if ( baseContext != undefined && typeof baseContext !== 'string' ) {
 		baseContext = baseContext.str;
 	}
 
