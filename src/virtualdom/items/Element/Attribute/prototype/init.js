@@ -2,7 +2,6 @@ import { ATTRIBUTE } from 'config/types';
 import { booleanAttributes } from 'utils/html';
 import determineNameAndNamespace from '../helpers/determineNameAndNamespace';
 import getInterpolator from '../helpers/getInterpolator';
-import determinePropertyName from '../helpers/determinePropertyName';
 import Fragment from 'virtualdom/Fragment';
 
 export default function Attribute$init ( options ) {
@@ -34,15 +33,11 @@ export default function Attribute$init ( options ) {
 	// TODO can we use this.fragment.toString() in some cases? It's quicker
 	this.value = this.fragment.getValue();
 
-
 	// Store a reference to this attribute's interpolator, if its fragment
 	// takes the form `{{foo}}`. This is necessary for two-way binding and
 	// for correctly rendering HTML later
 	this.interpolator = getInterpolator( this );
 	this.isBindable = !!this.interpolator && !this.interpolator.isStatic;
-
-	// can we establish this attribute's property name equivalent?
-	determinePropertyName( this, options );
 
 	// mark as ready
 	this.ready = true;
