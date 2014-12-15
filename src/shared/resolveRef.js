@@ -1,34 +1,42 @@
-import { getKey, normalise } from 'shared/keypaths';
+import { getKey, getKeypath, normalise } from 'shared/keypaths';
 import getInnerContext from 'shared/getInnerContext';
 
 export default function resolveRef ( ractive, ref, fragment ) {
+	var keypath;
+
 	ref = normalise( ref );
 
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
-		ref = ref.substring( 2 );
-		createMappingIfNecessary( ractive, getKey( ref ), fragment );
-		return ref;
+		keypath = ref.substring( 2 );
+		createMappingIfNecessary( ractive, getKey( keypath ), fragment );
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
-	if ( ref[0] === '.' ) {
-		ref = resolveAncestorRef( getInnerContext( fragment ), ref );
+	else if ( ref[0] === '.' ) {
+		keypath = resolveAncestorRef( getInnerContext( fragment ), ref );
 
-		if ( ref ) {
-			createMappingIfNecessary( ractive, getKey( ref ), fragment );
+		if ( keypath ) {
+			createMappingIfNecessary( ractive, getKey( keypath ), fragment );
 		}
-
-		return ref;
 	}
 
 	// ...otherwise we need to figure out the keypath based on context
-	return resolveAmbiguousReference( ractive, ref, fragment );
+	else {
+		keypath = resolveAmbiguousReference( ractive, ref, fragment );
+	}
+
+	return keypath;
 }
 
 function resolveAncestorRef ( baseContext, ref ) {
 	var contextKeys;
+
+	// TODO...
+	if ( typeof baseContext !== 'string' ) {
+		baseContext = baseContext.str;
+	}
 
 	// {{.}} means 'current context'
 	if ( ref === '.' ) return baseContext;
