@@ -2,11 +2,7 @@ import log from 'utils/log/log';
 import Fragment from 'virtualdom/Fragment';
 import { findInViewHierarchy } from 'shared/registry';
 
-var getValueOptions, Decorator;
-
-getValueOptions = { args: true };
-
-Decorator = function ( element, template ) {
+var Decorator = function ( element, template ) {
 	var self = this, ractive, name, fragment;
 
 	this.element = element;
@@ -41,11 +37,11 @@ Decorator = function ( element, template ) {
 			owner:    element
 		});
 
-		this.params = this.fragment.getValue( getValueOptions );
+		this.params = this.fragment.getArgsList();
 
 		this.fragment.bubble = function () {
 			this.dirtyArgs = this.dirtyValue = true;
-			self.params = this.getValue( getValueOptions );
+			self.params = this.getArgsList();
 
 			if ( self.ready ) {
 				self.update();

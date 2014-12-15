@@ -1,22 +1,22 @@
 import parseJSON from 'utils/parseJSON';
 import processItems from './shared/processItems';
 
-export default function Fragment$getValue () {
+export default function Fragment$getArgsList () {
 	var values, source, parsed, result;
 
-	if ( this.dirtyValue ) {
+	if ( this.dirtyArgs ) {
 		source = processItems( this.items, values = {}, this.root._guid );
-		parsed = parseJSON( source, values );
+		parsed = parseJSON( '[' + source + ']', values );
 
 		if ( !parsed ) {
-			result = this.toString();
+			result = [ this.toString() ];
 		} else {
 			result = parsed.value;
 		}
 
-		this.value = result;
-		this.dirtyValue = false;
+		this.argsList = result;
+		this.dirtyArgs = false;
 	}
 
-	return this.value;
+	return this.argsList;
 }

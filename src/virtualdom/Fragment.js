@@ -6,6 +6,7 @@ import findAllComponents from './Fragment/prototype/findAllComponents';
 import findComponent from './Fragment/prototype/findComponent';
 import findNextNode from './Fragment/prototype/findNextNode';
 import firstNode from './Fragment/prototype/firstNode';
+import getArgsList from './Fragment/prototype/getArgsList';
 import getNode from './Fragment/prototype/getNode';
 import getValue from './Fragment/prototype/getValue';
 import init from './Fragment/prototype/init';
@@ -28,6 +29,7 @@ Fragment.prototype = {
 	findComponent: findComponent,
 	findNextNode: findNextNode,
 	firstNode: firstNode,
+	getArgsList: getArgsList,
 	getNode: getNode,
 	getValue: getValue,
 	init: init,
