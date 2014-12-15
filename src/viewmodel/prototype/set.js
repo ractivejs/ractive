@@ -1,16 +1,21 @@
 import { isEqual } from 'utils/is';
-import { getKey } from 'shared/keypaths';
+import { getKey, getKeypath } from 'shared/keypaths';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, options = {} ) {
 	var mapping, computation, wrapper, dontTeardownWrapper;
 
+	// TODO this is temporary. Eventually we should only use Keypath objects
+	if ( typeof keypath === 'string' ) {
+		keypath = getKeypath( keypath );
+	}
+
 	// unless data is being set for data tracking purposes
 	if ( !options.noMapping ) {
 		// If this data belongs to a different viewmodel,
 		// pass the change along
-		if ( mapping = this.mappings[ getKey( keypath ) ] ) {
-			return mapping.set( keypath, value );
+		if ( mapping = this.mappings[ keypath.firstKey ] ) {
+			return mapping.set( keypath.str, value );
 		}
 	}
 
@@ -46,22 +51,21 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 	}
 
 	if ( !options.silent ) {
-		this.mark( keypath );
+		this.mark( keypath.str );
 	} else {
 		// We're setting a parent of the original target keypath (i.e.
 		// creating a fresh branch) - we need to clear the cache, but
 		// not mark it as a change
-		this.clearCache( keypath );
+		this.clearCache( keypath.str );
 	}
 }
 
 function resolveSet ( viewmodel, keypath, value ) {
-
-	var keys, lastKey, parentKeypath, wrapper, parentValue, wrapperSet, valueSet;
+	var keys, wrapper, parentValue, wrapperSet, valueSet;
 
 	wrapperSet = function() {
 		if ( wrapper.set ) {
-			wrapper.set( lastKey, value );
+			wrapper.set( keypath.lastKey, value );
 		} else {
 			parentValue = wrapper.get();
 			valueSet();
@@ -70,26 +74,22 @@ function resolveSet ( viewmodel, keypath, value ) {
 
 	valueSet = function(){
 		if ( !parentValue ) {
-			parentValue = createBranch( lastKey );
-			viewmodel.set( parentKeypath, parentValue, { silent: true } );
+			parentValue = createBranch( keypath.lastKey );
+			viewmodel.set( keypath.parent, parentValue, { silent: true } );
 		}
-		parentValue[ lastKey ] = value;
+		parentValue[ keypath.lastKey ] = value;
 	};
 
-	keys = keypath.split( '.' );
-	lastKey = keys.pop();
-	parentKeypath = keys.join( '.' );
-
-	wrapper = viewmodel.wrapped[ parentKeypath ];
+	wrapper = viewmodel.wrapped[ keypath.parent ];
 
 	if ( wrapper ) {
 		wrapperSet();
 	} else {
-		parentValue = viewmodel.get( parentKeypath );
+		parentValue = viewmodel.get( keypath.parent );
 
 		// may have been wrapped via the above .get()
 		// call on viewmodel if this is first access via .set()!
-		if( wrapper = viewmodel.wrapped[ parentKeypath ] ) {
+		if( wrapper = viewmodel.wrapped[ keypath.parent ] ) {
 			wrapperSet();
 		} else {
 			valueSet();

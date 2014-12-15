@@ -1,7 +1,6 @@
 import { decodeKeypath, getKey, getKeypath } from 'shared/keypaths';
 import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 
-
 var empty = {};
 
 export default function Viewmodel$get ( keypath, options ) {

@@ -65,6 +65,10 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 		hasContextChain,
 		parentKeypath;
 
+	if ( !ref ) {
+		return ref;
+	}
+
 	key = getKey( ref );
 
 	while ( fragment ) {
