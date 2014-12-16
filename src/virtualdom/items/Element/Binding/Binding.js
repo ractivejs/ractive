@@ -15,14 +15,14 @@ var Binding = function ( element ) {
 
 	if ( keypath = interpolator.keypath ) {
 
-		if ( keypath[ keypath.length - 1 ] === '}' ) {
+		if ( keypath.str.slice( - 1 ) === '}' ) {
 
 			log.error({
 				debug: this.root.debug,
 				message: 'noTwowayExpressions',
 				args: {
 					// won't fix brackets [foo] changed to -foo-
-					expression: keypath.slice( 2, -1 ).replace('-','.'),
+					expression: keypath.str.slice( 2, -1 ).replace('-','.'),
 					element: element.tagName
 				}
 			});

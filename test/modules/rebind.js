@@ -4,14 +4,16 @@ define([
 	'virtualdom/Fragment',
 	'virtualdom/items/Element/_Element',
 	'virtualdom/items/Triple/_Triple',
-	'config/types'
+	'config/types',
+	'shared/keypaths'
 ], function (
 	Ractive,
 	Viewmodel,
 	Fragment,
 	Element,
 	Triple,
-	types
+	types,
+	keypaths
 ) {
 
 	'use strict';
@@ -38,7 +40,7 @@ define([
 				var resolved, fragment, el, triple;
 
 				fragment = {
-					context: opt.target,
+					context: keypaths.getKeypath( opt.target ),
 					items: [],
 					root: {
 						'data': {},

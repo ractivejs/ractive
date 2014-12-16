@@ -156,7 +156,7 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 	function expand ( matchingKeypaths, keypath ) {
 		var value, key;
 
-		value = ( ractive.viewmodel.wrapped[ keypath ] ? ractive.viewmodel.wrapped[ keypath ].get() : ractive.get( keypath ) );
+		value = ( ractive.viewmodel.wrapped[ keypath ] ? ractive.viewmodel.wrapped[ keypath ].get() : ractive.viewmodel.get( keypath ) );
 
 		for ( key in value ) {
 			if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
