@@ -147,11 +147,6 @@ function attemptKeypathResolution () {
 			unresolved.splice( i, 1 );
 		}
 
-		if ( typeof item.ref === 'string' ) {
-			console.log( 'item', item );
-			throw new Error( 'string' );
-		}
-
 		if ( keypath = resolveAmbiguousReference( item.root, item.ref, item.parentFragment ) ) {
 			( resolved || ( resolved = [] ) ).push({
 				item: item,

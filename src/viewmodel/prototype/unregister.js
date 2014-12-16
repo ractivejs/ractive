@@ -7,11 +7,6 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 		return;
 	}
 
-	// TODO temporary
-	if ( typeof keypath === 'string' ) {
-		throw new Error( 'string' );
-	}
-
 	if ( mapping = this.mappings[ keypath.firstKey ] ) {
 		return mapping.unregister( keypath, dependant, group );
 	}

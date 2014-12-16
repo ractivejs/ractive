@@ -13,11 +13,6 @@ export default function Viewmodel$get ( keypath, options ) {
 
 	options = options || empty;
 
-	// TODO this is temporary. Eventually we should only use Keypath objects
-	if ( typeof keypath === 'string' ) {
-		throw new Error( 'string' );
-	}
-
 	// capture the keypath, if we're inside a computation
 	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
 		if ( !~captureGroup.indexOf( keypath ) ) {

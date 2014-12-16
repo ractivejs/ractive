@@ -34,16 +34,6 @@ Keypath.prototype = {
 	},
 
 	replace ( oldKeypath, newKeypath ) {
-		if ( typeof oldKeypath === 'string' ) {
-			console.error( 'string' );
-			oldKeypath = getKeypath( oldKeypath )
-		}
-
-		if ( typeof newKeypath === 'string' ) {
-			console.error( 'string' );
-			newKeypath = getKeypath( newKeypath )
-		}
-
 		if ( this === oldKeypath ) {
 			return newKeypath;
 		}
@@ -54,10 +44,6 @@ Keypath.prototype = {
 	},
 
 	startsWith ( keypath ) {
-		if ( typeof keypath === 'string' ) {
-			throw new Error( 'string' );
-		}
-
 		if ( !keypath ) {
 			// TODO under what circumstances does this happen?
 			return false;
@@ -77,21 +63,6 @@ Keypath.prototype = {
 
 export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
 	var existingKeypath = target[ property ];
-
-	// TODO...
-	if ( typeof existingKeypath === 'string' ) {
-		throw new Error( 'string' );
-	}
-
-	if ( typeof oldKeypath === 'string' ) {
-		console.error( 'string' );
-		oldKeypath = getKeypath( oldKeypath );
-	}
-
-	if ( typeof newKeypath === 'string' ) {
-		console.error( 'string' );
-		newKeypath = getKeypath( newKeypath );
-	}
 
 	if ( !existingKeypath || existingKeypath.equalsOrStartsWith( newKeypath ) || !existingKeypath.equalsOrStartsWith( oldKeypath ) ) {
 		return;
@@ -117,12 +88,6 @@ export function getKey ( keypath ) {
 }
 
 export function getKeypath ( str ) {
-	if ( str instanceof Keypath ) {
-		//console.log( 'TODO' );
-		throw new Error( 'already a Keypath' );
-		return str;
-	}
-
 	if ( str == null ) {
 		return str;
 	}
@@ -176,7 +141,7 @@ function concatenate ( key ) {
 
 export function normalise ( ref ) {
 	if ( typeof ref !== 'string' ) {
-		console.log( 'normalising non-string' );
+		throw new Error( 'normalising non-string' );
 		return ref || '';
 	}
 

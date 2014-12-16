@@ -48,8 +48,8 @@ export default function Section$shuffle ( newIndices ) {
 
 		// Otherwise, it needs to be rebound to a new index
 		by = newIndex - oldIndex;
-		oldKeypath = this.keypath + '.' + oldIndex;
-		newKeypath = this.keypath + '.' + newIndex;
+		oldKeypath = this.keypath.join( oldIndex );
+		newKeypath = this.keypath.join( newIndex );
 
 		fragment.index = newIndex;
 

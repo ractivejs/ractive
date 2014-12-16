@@ -3,10 +3,6 @@ import runloop from 'global/runloop';
 export default function Viewmodel$mark ( keypath, options ) {
 	var computation;
 
-	if ( typeof keypath === 'string' ) {
-		throw new Error( 'string' );
-	}
-
 	runloop.addViewmodel( this ); // TODO remove other instances of this call
 
 	// implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)

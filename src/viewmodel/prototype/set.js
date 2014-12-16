@@ -4,11 +4,6 @@ import createBranch from 'utils/createBranch';
 export default function Viewmodel$set ( keypath, value, options = {} ) {
 	var mapping, computation, wrapper, dontTeardownWrapper;
 
-	// TODO this is temporary. Eventually we should only use Keypath objects
-	if ( typeof keypath === 'string' ) {
-		throw new Error( 'string' );
-	}
-
 	// unless data is being set for data tracking purposes
 	if ( !options.noMapping ) {
 		// If this data belongs to a different viewmodel,

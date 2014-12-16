@@ -5,11 +5,6 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 		return;
 	}
 
-	// TODO temporary
-	if ( typeof keypath === 'string' ) {
-		throw new Error( 'string' );
-	}
-
 	if ( mapping = this.mappings[ keypath.firstKey ] ) {
 		return mapping.register( keypath, dependant, group );
 	}

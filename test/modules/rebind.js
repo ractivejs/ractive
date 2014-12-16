@@ -86,7 +86,7 @@ define([
 
 				fragment.render();
 				fragment.index = opt.newKeypath.replace( 'items.', '' );
-				fragment.rebind( opt.oldKeypath, opt.newKeypath );
+				fragment.rebind( keypaths.getKeypath( opt.oldKeypath ), keypaths.getKeypath( opt.newKeypath ) );
 
 				t.equal( fragment.context, opt.expected );
 				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );

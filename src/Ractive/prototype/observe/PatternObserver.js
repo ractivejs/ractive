@@ -43,10 +43,6 @@ PatternObserver.prototype = {
 	update: function ( keypath ) {
 		var values;
 
-		if ( typeof keypath === 'string' ) {
-			throw new Error( 'string' );
-		}
-
 		if ( wildcard.test( keypath ) ) {
 			values = getPattern( this.root, keypath );
 
@@ -75,10 +71,6 @@ PatternObserver.prototype = {
 
 	reallyUpdate: function ( keypath ) {
 		var value, keys, args;
-
-		if ( typeof keypath === 'string' ) {
-			throw new Error( 'string' );
-		}
 
 		value = this.root.viewmodel.get( keypath );
 

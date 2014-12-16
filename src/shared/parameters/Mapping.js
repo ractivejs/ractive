@@ -1,5 +1,4 @@
 import DataTracker from './DataTracker';
-import { getKeypath } from 'shared/keypaths';
 
 function Mapping ( localKey, options ) {
 	this.localKey = localKey;
@@ -39,18 +38,10 @@ Mapping.prototype = {
 			throw new Error( 'mapping is not resolved' );
 		}
 
-		if ( typeof keypath === 'string' ) {
-			throw new Error( 'string' );
-		}
-
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
 	register ( keypath, dependant, group ) {
-		if ( typeof keypath === 'string' ) {
-			throw new Error( 'string' );
-		}
-
 		this.deps.push({ keypath: keypath, dep: dependant, group: group });
 		this.origin.register( this.map( keypath ), dependant, group );
 	},
