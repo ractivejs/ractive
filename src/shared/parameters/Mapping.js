@@ -5,6 +5,8 @@ function Mapping ( localKey, options ) {
 	this.keypath = options.keypath;
 	this.origin = options.origin;
 
+	this.deps = [];
+
 	this.trackData = options.trackData;
 	this.resolved = false;
 }
@@ -28,8 +30,6 @@ Mapping.prototype = {
 
 	initViewmodel: function ( viewmodel ) {
 		this.local = viewmodel;
-		this.deps = [];
-		this.local.mappings[ this.localKey ] = this;
 		this.setup();
 	},
 
