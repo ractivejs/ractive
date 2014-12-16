@@ -1,6 +1,6 @@
 import { isArray } from 'utils/is';
 import log from 'utils/log/log';
-import { normalise } from 'shared/keypaths';
+import { getKeypath, normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 export default function Ractive$merge ( keypath, array, options ) {
@@ -8,7 +8,7 @@ export default function Ractive$merge ( keypath, array, options ) {
 	var currentArray,
 		promise;
 
-	keypath = normalise( keypath );
+	keypath = getKeypath( normalise( keypath ) );
 	currentArray = this.viewmodel.get( keypath );
 
 	// If either the existing value or the new value isn't an

@@ -1,4 +1,5 @@
 import runloop from 'global/runloop';
+import { getKeypath } from 'shared/keypaths';
 import { isEqual } from 'utils/is';
 import getPattern from './getPattern';
 
@@ -11,7 +12,7 @@ PatternObserver = function ( ractive, keypath, callback, options ) {
 	this.defer = options.defer;
 
 	this.keypath = keypath;
-	this.regex = new RegExp( '^' + keypath.replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
+	this.regex = new RegExp( '^' + keypath.str.replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
 	this.values = {};
 
 	if ( this.defer ) {
@@ -31,7 +32,7 @@ PatternObserver.prototype = {
 		if ( immediate !== false ) {
 			for ( keypath in values ) {
 				if ( values.hasOwnProperty( keypath ) ) {
-					this.update( keypath );
+					this.update( getKeypath( keypath ) );
 				}
 			}
 		} else {
@@ -42,12 +43,16 @@ PatternObserver.prototype = {
 	update: function ( keypath ) {
 		var values;
 
+		if ( typeof keypath === 'string' ) {
+			throw new Error( 'string' );
+		}
+
 		if ( wildcard.test( keypath ) ) {
 			values = getPattern( this.root, keypath );
 
 			for ( keypath in values ) {
 				if ( values.hasOwnProperty( keypath ) ) {
-					this.update( keypath );
+					this.update( getKeypath( keypath ) );
 				}
 			}
 
@@ -61,7 +66,7 @@ PatternObserver.prototype = {
 		}
 
 		if ( this.defer && this.ready ) {
-			runloop.scheduleTask( () => this.getProxy( keypath ).update() );
+			runloop.scheduleTask( () => this.getProxy( getKeypath( keypath ) ).update() );
 			return;
 		}
 
@@ -70,6 +75,10 @@ PatternObserver.prototype = {
 
 	reallyUpdate: function ( keypath ) {
 		var value, keys, args;
+
+		if ( typeof keypath === 'string' ) {
+			throw new Error( 'string' );
+		}
 
 		value = this.root.viewmodel.get( keypath );
 
@@ -83,7 +92,7 @@ PatternObserver.prototype = {
 
 		if ( !isEqual( value, this.values[ keypath ] ) || !this.ready ) {
 			keys = slice.call( this.regex.exec( keypath ), 1 );
-			args = [ value, this.values[ keypath ], keypath ].concat( keys );
+			args = [ value, this.values[ keypath ], keypath.str ].concat( keys );
 
 			this.values[ keypath ] = value;
 			this.callback.apply( this.context, args );

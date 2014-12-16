@@ -47,11 +47,9 @@ function getConstructor ( parameters, proto ) {
 }
 
 function makeConstructor ( parameters, defined ) {
-
 	var properties, proto;
 
 	properties = parameters.keys.reduce( ( definition, key ) => {
-
 		definition[ key ] = {
 			get: function () {
 				let mapping = this._mappings[ key ];

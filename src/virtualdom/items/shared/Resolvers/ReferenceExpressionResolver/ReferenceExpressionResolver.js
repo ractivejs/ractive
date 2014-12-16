@@ -1,5 +1,6 @@
 import resolveRef from 'shared/resolveRef';
 import { unbind } from 'shared/methodCallers';
+import { getKeypath } from 'shared/keypaths';
 import ReferenceResolver from '../ReferenceResolver';
 import MemberResolver from './MemberResolver';
 
@@ -41,7 +42,7 @@ ReferenceExpressionResolver.prototype = {
 			return null;
 		}
 
-		return this.base + '.' + values.join( '.' );
+		return getKeypath( this.base + '.' + values.join( '.' ) );
 	},
 
 	bubble: function () {

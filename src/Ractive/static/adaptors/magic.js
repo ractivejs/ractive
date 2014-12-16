@@ -1,5 +1,6 @@
 import runloop from 'global/runloop';
 import createBranch from 'utils/createBranch';
+import { getKeypath } from 'shared/keypaths';
 import { isArray } from 'utils/is';
 
 var magicAdaptor, MagicWrapper;
@@ -9,27 +10,25 @@ try {
 
 	magicAdaptor = {
 		filter: function ( object, keypath, ractive ) {
-			var keys, key, parentKeypath, parentWrapper, parentValue;
+			var parentWrapper, parentValue;
 
 			if ( !keypath ) {
 				return false;
 			}
 
-			keys = keypath.split( '.' );
-			key = keys.pop();
-			parentKeypath = keys.join( '.' );
+			keypath = getKeypath( keypath );
 
 			// If the parent value is a wrapper, other than a magic wrapper,
 			// we shouldn't wrap this property
-			if ( ( parentWrapper = ractive.viewmodel.wrapped[ parentKeypath ] ) && !parentWrapper.magic ) {
+			if ( ( parentWrapper = ractive.viewmodel.wrapped[ keypath.parent ] ) && !parentWrapper.magic ) {
 				return false;
 			}
 
-			parentValue = ractive.get( parentKeypath );
+			parentValue = ractive.viewmodel.get( keypath.parent );
 
 			// if parentValue is an array that doesn't include this member,
 			// we should return false otherwise lengths will get messed up
-			if ( isArray( parentValue ) && /^[0-9]+$/.test( key ) ) {
+			if ( isArray( parentValue ) && /^[0-9]+$/.test( keypath.lastKey ) ) {
 				return false;
 			}
 
@@ -41,7 +40,9 @@ try {
 	};
 
 	MagicWrapper = function ( ractive, value, keypath ) {
-		var keys, objKeypath, template, siblings;
+		var objKeypath, template, siblings;
+
+		keypath = getKeypath( keypath );
 
 		this.magic = true;
 
@@ -49,12 +50,10 @@ try {
 		this.keypath = keypath;
 		this.value = value;
 
-		keys = keypath.split( '.' );
+		this.prop = keypath.lastKey;
 
-		this.prop = keys.pop();
-
-		objKeypath = keys.join( '.' );
-		this.obj = objKeypath ? ractive.get( objKeypath ) : ractive.data;
+		objKeypath = keypath.parent;
+		this.obj = objKeypath.isRoot ? ractive.data : ractive.viewmodel.get( objKeypath );
 
 		template = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
 

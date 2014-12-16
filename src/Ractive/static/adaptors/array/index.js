@@ -1,5 +1,6 @@
 import { defineProperty } from 'utils/object';
 import { isArray } from 'utils/is';
+import { getKeypath } from 'shared/keypaths';
 import patch from './patch';
 
 var arrayAdaptor,
@@ -22,7 +23,7 @@ arrayAdaptor = {
 ArrayWrapper = function ( ractive, array, keypath ) {
 	this.root = ractive;
 	this.value = array;
-	this.keypath = keypath;
+	this.keypath = getKeypath( keypath );
 
 	// if this array hasn't already been ractified, ractify it
 	if ( !array._ractive ) {

@@ -1,11 +1,11 @@
 import runloop from 'global/runloop';
+import { getKeypath } from 'shared/keypaths';
 import resolveRef from 'shared/resolveRef';
-import { getNewKeypath } from 'shared/keypaths';
 
 var ReferenceResolver = function ( owner, ref, callback ) {
 	var keypath;
 
-	this.ref = ref;
+	this.ref = getKeypath( ref );
 	this.resolved = false;
 
 	this.root = owner.root;
@@ -37,8 +37,8 @@ ReferenceResolver.prototype = {
 	rebind: function ( oldKeypath, newKeypath ) {
 		var keypath;
 
-		if ( this.keypath !== undefined ) {
-			keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
+		if ( this.keypath != undefined ) {
+			keypath = this.keypath.replace( oldKeypath, newKeypath );
 			// was a new keypath created?
 			if ( keypath !== undefined ) {
 				// resolve it

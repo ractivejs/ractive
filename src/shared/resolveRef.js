@@ -1,4 +1,4 @@
-import { getKey, normalise } from 'shared/keypaths';
+import { getKey, getKeypath, normalise } from 'shared/keypaths';
 import getInnerContext from 'shared/getInnerContext';
 
 export default function resolveRef ( ractive, ref, fragment ) {
@@ -8,8 +8,8 @@ export default function resolveRef ( ractive, ref, fragment ) {
 
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
-		keypath = ref.substring( 2 );
-		createMappingIfNecessary( ractive, getKey( keypath ), fragment );
+		keypath = getKeypath( ref.substring( 2 ) );
+		createMappingIfNecessary( ractive, keypath.firstKey, fragment );
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
@@ -18,13 +18,13 @@ export default function resolveRef ( ractive, ref, fragment ) {
 		keypath = resolveAncestorRef( getInnerContext( fragment ), ref );
 
 		if ( keypath ) {
-			createMappingIfNecessary( ractive, getKey( keypath ), fragment );
+			createMappingIfNecessary( ractive, keypath.firstKey, fragment );
 		}
 	}
 
 	// ...otherwise we need to figure out the keypath based on context
 	else {
-		keypath = resolveAmbiguousReference( ractive, ref, fragment );
+		keypath = resolveAmbiguousReference( ractive, getKeypath( ref ), fragment );
 	}
 
 	return keypath;
@@ -39,7 +39,7 @@ function resolveAncestorRef ( baseContext, ref ) {
 	}
 
 	// {{.}} means 'current context'
-	if ( ref === '.' ) return baseContext;
+	if ( ref === '.' ) return getKeypath( baseContext );
 
 	contextKeys = baseContext ? baseContext.split( '.' ) : [];
 
@@ -55,32 +55,32 @@ function resolveAncestorRef ( baseContext, ref ) {
 		}
 
 		contextKeys.push( ref );
-		return contextKeys.join( '.' );
+		return getKeypath( contextKeys.join( '.' ) );
 	}
 
 	// not an ancestor reference - must be a restricted reference (prepended with "." or "./")
 	if ( !baseContext ) {
-		return ref.replace( /^\.\/?/, '' );
+		return getKeypath( ref.replace( /^\.\/?/, '' ) );
 	}
 
-	return baseContext + ref.replace( /^\.\//, '.' );
+	return getKeypath( baseContext + ref.replace( /^\.\//, '.' ) );
 }
 
-function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
+export function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 	var context,
 		key,
 		parentValue,
 		hasContextChain,
 		parentKeypath;
 
-	if ( !ref ) {
+	if ( ref.isRoot ) {
 		return ref;
 	}
 
-	key = getKey( ref );
+	key = ref.firstKey;
 
 	while ( fragment ) {
-		context = fragment.context;
+		context = fragment.context; // TODO context should be a Keypath object
 		fragment = fragment.parent;
 
 		if ( !context ) {
@@ -91,7 +91,7 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 		parentValue = ractive.viewmodel.get( context );
 
 		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
-			return context + '.' + ref;
+			return context.join( ref );
 		}
 	}
 
@@ -106,7 +106,7 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
 
-		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true ) ) {
+		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, getKeypath( key ), fragment, true ) ) {
 			// We need to create an inter-component binding
 			ractive.viewmodel.map( key, {
 				origin: ractive.parent.viewmodel,
@@ -134,7 +134,7 @@ function createMappingIfNecessary ( ractive, key ) {
 		return;
 	}
 
-	if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, ractive.component.parentFragment, true ) ) {
+	if ( parentKeypath = resolveAmbiguousReference( ractive.parent, getKeypath( key ), ractive.component.parentFragment, true ) ) {
 		ractive.viewmodel.map( key, {
 			origin: ractive.parent.viewmodel,
 			keypath: parentKeypath

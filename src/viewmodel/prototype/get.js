@@ -1,4 +1,3 @@
-import { getKeypath } from 'shared/keypaths';
 import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 
 var empty = {};
@@ -15,17 +14,19 @@ export default function Viewmodel$get ( keypath, options ) {
 	options = options || empty;
 
 	// TODO this is temporary. Eventually we should only use Keypath objects
-	keypath = getKeypath( keypath );
+	if ( typeof keypath === 'string' ) {
+		throw new Error( 'string' );
+	}
 
 	// capture the keypath, if we're inside a computation
 	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
-		if ( !~captureGroup.indexOf( keypath.str ) ) {
-			captureGroup.push( keypath.str );
+		if ( !~captureGroup.indexOf( keypath ) ) {
+			captureGroup.push( keypath );
 		}
 	}
 
 	if ( mapping = this.mappings[ keypath.firstKey ] ) {
-		return mapping.get( keypath.str, options );
+		return mapping.get( keypath, options );
 	}
 
 	if ( keypath.isSpecial ) {

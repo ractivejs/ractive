@@ -1,5 +1,6 @@
 import getUpstreamChanges from '../helpers/getUpstreamChanges';
 import notifyPatternObservers from './applyChanges/notifyPatternObservers';
+import { getKeypath } from 'shared/keypaths';
 
 export default function Viewmodel$applyChanges () {
 	var self = this,
@@ -24,14 +25,16 @@ export default function Viewmodel$applyChanges () {
 
 		if ( computations = self.deps.computed[ keypath ] ) {
 			computations.forEach( c => {
+				var key = c.key;
+
 				if ( c.viewmodel === self ) {
-					self.clearCache( c.key );
+					self.clearCache( key );
 					c.invalidate();
 
-					changes.push( c.key );
-					cascade( c.key );
+					changes.push( key );
+					cascade( key );
 				} else {
-					c.viewmodel.mark( c.key );
+					c.viewmodel.mark( key );
 				}
 			});
 		}

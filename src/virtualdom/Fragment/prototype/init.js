@@ -27,10 +27,18 @@ export default function Fragment$init ( options ) {
 		pElement: options.pElement,
 		template: template,
 		index: i
-	}) ).filter( i => i !== null );
+	}) ).filter( notNull );
 
 	this.value = this.argsList = null;
 	this.dirtyArgs = this.dirtyValue = true;
 
 	this.bound = true;
+}
+
+function notNull ( item ) {
+	if ( !item ) {
+		throw new Error( 'null item' );
+	}
+
+	return true;
 }

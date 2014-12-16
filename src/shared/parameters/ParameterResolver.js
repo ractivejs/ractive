@@ -1,5 +1,4 @@
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import { decodeKeypath } from 'shared/keypaths';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 
@@ -34,7 +33,6 @@ export default ParameterResolver;
 ParameterResolver.prototype = {
 	resolve: function ( keypath ) {
 		this.resolved = true;
-		this.specialRef = keypath[0] === '@';
 
 		if ( this.ready ) {
 			this.readyResolve( keypath );
@@ -46,8 +44,8 @@ ParameterResolver.prototype = {
 
 	notReadyResolve: function ( keypath ) {
 
-		if ( this.specialRef ) {
-			this.parameters.addData( this.key, decodeKeypath( keypath ) );
+		if ( keypath.isSpecial ) {
+			this.parameters.addData( this.key, keypath.value );
 		}
 		else {
 			let mapping = this.parameters.addMapping( this.key, keypath );
@@ -61,8 +59,8 @@ ParameterResolver.prototype = {
 	readyResolve: function ( keypath ) {
 		var viewmodel = this.parameters.component.instance.viewmodel;
 
-		if ( this.specialRef ) {
-			this.parameters.addData( this.key, decodeKeypath( keypath ) );
+		if ( keypath.isSpecial ) {
+			this.parameters.addData( this.key, keypath.value );
 			viewmodel.mark( this.key );
 		}
 		else if ( viewmodel.reversedMappings && viewmodel.reversedMappings[ this.key ] ) {

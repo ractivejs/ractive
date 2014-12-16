@@ -1,7 +1,3 @@
-import getPotentialWildcardMatches from './getPotentialWildcardMatches';
-
-var lastKey = /[^\.]+$/;
-
 export default notifyPatternObservers;
 
 function notifyPatternObservers ( viewmodel, keypath, onlyDirect ) {
@@ -13,7 +9,7 @@ function notifyPatternObservers ( viewmodel, keypath, onlyDirect ) {
 		return;
 	}
 
-	potentialWildcardMatches = getPotentialWildcardMatches( keypath );
+	potentialWildcardMatches = keypath.wildcardMatches();
 	potentialWildcardMatches.forEach( upstreamPattern => {
 		cascade( viewmodel, upstreamPattern, keypath );
 	});
@@ -28,11 +24,9 @@ function cascade ( viewmodel, upstreamPattern, keypath ) {
 	if ( !( group && (map = group[ upstreamPattern ]) ) ) { return; }
 
 	map.forEach( childKeypath => {
-		var key = lastKey.exec( childKeypath )[0]; // 'baz'
-		actualChildKeypath = keypath ? keypath + '.' + key : key; // 'foo.bar.baz'
+		actualChildKeypath = keypath.join( childKeypath.lastKey ); // 'foo.bar.baz'
 
 		updateMatchingPatternObservers( viewmodel, actualChildKeypath );
-
 		cascade( viewmodel, childKeypath, actualChildKeypath );
 	});
 }

@@ -1,12 +1,13 @@
 import { INTERPOLATOR } from 'config/types';
 import { create } from 'utils/object';
+import { getKeypath } from 'shared/keypaths';
 import parseJSON from 'utils/parseJSON';
 import ComplexParameter from './ComplexParameter';
 import createComponentData from './createComponentData';
 import Mapping from './Mapping';
 import ParameterResolver from './ParameterResolver';
 
-export default function createParameters ( component, proto, attributes) {
+export default function createParameters ( component, proto, attributes ) {
 	var parameters, data, defined;
 
 	if ( !attributes ) {
@@ -39,19 +40,18 @@ function ComponentParameters ( component, attributes, defined ) {
 	this.parentViewmodel = component.root.viewmodel;
 	this.data = {};
 	this.mappings = create( null );
-	this.newKeys = [];
+	this.newKeys = []; // TODO it's not obvious that this does anything?
 	this.keys = Object.keys( attributes );
 
 	this.keys.forEach( key => {
 		if( defined && !defined[ key ] ) {
 			this.newKeys.push( key );
 		}
-		this.add( key, attributes[ key ] );
+		this.add( getKeypath( key ), attributes[ key ] );
 	});
 }
 
 ComponentParameters.prototype = {
-
 	add: function ( key, template ) {
 		// We have static data
 		if ( typeof template === 'string' ) {

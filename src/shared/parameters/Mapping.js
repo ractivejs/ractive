@@ -1,4 +1,5 @@
 import DataTracker from './DataTracker';
+import { getKeypath } from 'shared/keypaths';
 
 function Mapping ( localKey, options ) {
 	this.localKey = localKey;
@@ -14,35 +15,47 @@ function Mapping ( localKey, options ) {
 export default Mapping;
 
 Mapping.prototype = {
-	get: function ( keypath, options ) {
+	get ( keypath, options ) {
 		if ( !this.resolved ) {
 			return undefined;
 		}
 		return this.origin.get( this.map( keypath ), options );
 	},
 
-	getValue: function () {
+	getValue () {
 		if ( !this.keypath ) {
 			return undefined;
 		}
 		return this.origin.get( this.keypath );
 	},
 
-	initViewmodel: function ( viewmodel ) {
+	initViewmodel ( viewmodel ) {
 		this.local = viewmodel;
 		this.setup();
 	},
 
-	map: function ( keypath ) {
+	map ( keypath ) {
+		if ( !this.keypath ) {
+			throw new Error( 'mapping is not resolved' );
+		}
+
+		if ( typeof keypath === 'string' ) {
+			throw new Error( 'string' );
+		}
+
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
-	register: function ( keypath, dependant, group ) {
+	register ( keypath, dependant, group ) {
+		if ( typeof keypath === 'string' ) {
+			throw new Error( 'string' );
+		}
+
 		this.deps.push({ keypath: keypath, dep: dependant, group: group });
 		this.origin.register( this.map( keypath ), dependant, group );
 	},
 
-	resolve: function ( keypath ) {
+	resolve ( keypath ) {
 
 		if ( this.keypath !== undefined ) {
 			this.unbind( true );
@@ -52,7 +65,7 @@ Mapping.prototype = {
 		this.setup();
 	},
 
-	set: function ( keypath, value ) {
+	set ( keypath, value ) {
 		// TODO: force resolution
 		if ( !this.resolved ) {
 			throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
@@ -61,7 +74,7 @@ Mapping.prototype = {
 		this.origin.set( this.map( keypath ), value );
 	},
 
-	setup: function () {
+	setup () {
 		if ( this.keypath === undefined ) { return; }
 
 		this.resolved = true;
@@ -84,7 +97,7 @@ Mapping.prototype = {
 		}
 	},
 
-	setValue: function ( value ) {
+	setValue ( value ) {
 		if ( !this.keypath ) {
 			throw new Error( 'Mapping does not have keypath, cannot set value. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
 		}
@@ -92,7 +105,7 @@ Mapping.prototype = {
 		this.origin.set( this.keypath, value );
 	},
 
-	unbind: function ( keepLocal ) {
+	unbind ( keepLocal ) {
 		if ( !keepLocal ) {
 			delete this.local.mappings[ this.localKey ];
 		}
@@ -106,7 +119,7 @@ Mapping.prototype = {
 		}
 	},
 
-	unregister: function ( keypath, dependant, group ) {
+	unregister ( keypath, dependant, group ) {
 		var deps = this.deps, i = deps.length;
 
 		while ( i-- ) {

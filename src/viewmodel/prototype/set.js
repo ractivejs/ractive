@@ -1,19 +1,20 @@
 import { isEqual } from 'utils/is';
-import { getKeypath } from 'shared/keypaths';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, options = {} ) {
 	var mapping, computation, wrapper, dontTeardownWrapper;
 
 	// TODO this is temporary. Eventually we should only use Keypath objects
-	keypath = getKeypath( keypath );
+	if ( typeof keypath === 'string' ) {
+		throw new Error( 'string' );
+	}
 
 	// unless data is being set for data tracking purposes
 	if ( !options.noMapping ) {
 		// If this data belongs to a different viewmodel,
 		// pass the change along
 		if ( mapping = this.mappings[ keypath.firstKey ] ) {
-			return mapping.set( keypath.str, value );
+			return mapping.set( keypath, value );
 		}
 	}
 
@@ -49,7 +50,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 	}
 
 	if ( !options.silent ) {
-		this.mark( keypath.str );
+		this.mark( keypath );
 	} else {
 		// We're setting a parent of the original target keypath (i.e.
 		// creating a fresh branch) - we need to clear the cache, but

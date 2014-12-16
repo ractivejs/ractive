@@ -1,6 +1,6 @@
 import { defineProperty } from 'utils/object';
 import { isNumeric } from 'utils/is';
-import { decodeKeypath } from 'shared/keypaths';
+import { decodeKeypath, getKeypath } from 'shared/keypaths';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from './createReferenceResolver';
 import 'legacy'; // for fn.bind()
@@ -39,7 +39,7 @@ ExpressionResolver.prototype = {
 		}
 
 		this.uniqueString = getUniqueString( this.str, this.keypaths );
-		this.keypath = getKeypath( this.uniqueString );
+		this.keypath = createExpressionKeypath( this.uniqueString );
 
 		this.createEvaluator();
 		this.callback( this.keypath );
@@ -135,11 +135,11 @@ function getUniqueString ( str, keypaths ) {
 	});
 }
 
-function getKeypath ( uniqueString ) {
+function createExpressionKeypath ( uniqueString ) {
 	// Sanitize by removing any periods or square brackets. Otherwise
 	// we can't split the keypath into keys!
 	// Remove asterisks too, since they mess with pattern observers
-	return '${' + uniqueString.replace( /[\.\[\]]/g, '-' ).replace( /\*/, '#MUL#' ) + '}';
+	return getKeypath( '${' + uniqueString.replace( /[\.\[\]]/g, '-' ).replace( /\*/, '#MUL#' ) + '}' );
 }
 
 function isValidDependency ( keypath ) {

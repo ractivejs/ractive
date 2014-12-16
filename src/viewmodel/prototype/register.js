@@ -1,5 +1,3 @@
-import { getKeypath } from 'shared/keypaths';
-
 export default function Viewmodel$register ( keypath, dependant, group = 'default' ) {
 	var mapping, depsByKeypath, deps;
 
@@ -8,10 +6,12 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 	}
 
 	// TODO temporary
-	keypath = getKeypath( keypath );
+	if ( typeof keypath === 'string' ) {
+		throw new Error( 'string' );
+	}
 
 	if ( mapping = this.mappings[ keypath.firstKey ] ) {
-		return mapping.register( keypath.str, dependant, group );
+		return mapping.register( keypath, dependant, group );
 	}
 
 	depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );
@@ -36,7 +36,7 @@ function updateDependantsMap ( viewmodel, keypath, group ) {
 
 		if ( parent[ keypath ] === undefined ) {
 			parent[ keypath ] = 0;
-			parent.push( keypath.str );
+			parent.push( keypath );
 		}
 
 		parent[ keypath ] += 1;
