@@ -6,6 +6,7 @@ function Mapping ( localKey, options ) {
 	this.origin = options.origin;
 
 	this.deps = [];
+	this.unresolved = [];
 
 	this.trackData = options.trackData;
 	this.resolved = false;
@@ -34,20 +35,18 @@ Mapping.prototype = {
 	},
 
 	map ( keypath ) {
-		if ( !this.keypath ) {
-			throw new Error( 'mapping is not resolved' );
-		}
-
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
 	register ( keypath, dependant, group ) {
 		this.deps.push({ keypath: keypath, dep: dependant, group: group });
-		this.origin.register( this.map( keypath ), dependant, group );
+
+		if ( this.resolved ) {
+			this.origin.register( this.map( keypath ), dependant, group );
+		}
 	},
 
 	resolve ( keypath ) {
-
 		if ( this.keypath !== undefined ) {
 			this.unbind( true );
 		}
@@ -66,7 +65,9 @@ Mapping.prototype = {
 	},
 
 	setup () {
-		if ( this.keypath === undefined ) { return; }
+		if ( this.keypath === undefined ) {
+			return;
+		}
 
 		this.resolved = true;
 

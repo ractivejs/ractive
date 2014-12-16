@@ -2,23 +2,23 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 	var mapping, depsByKeypath, deps;
 
 	if ( dependant.isStatic ) {
-		return;
+		return; // TODO we should never get here if a dependant is static...
 	}
 
 	if ( mapping = this.mappings[ keypath.firstKey ] ) {
-		return mapping.register( keypath, dependant, group );
+		mapping.register( keypath, dependant, group );
 	}
 
-	depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );
-	deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
+	else {
+		depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );
+		deps = depsByKeypath[ keypath ] || ( depsByKeypath[ keypath ] = [] );
 
-	deps.push( dependant );
+		deps.push( dependant );
 
-	if ( keypath.isRoot ) {
-		return;
+		if ( !keypath.isRoot ) {
+			updateDependantsMap( this, keypath, group );
+		}
 	}
-
-	updateDependantsMap( this, keypath, group );
 }
 
 function updateDependantsMap ( viewmodel, keypath, group ) {
