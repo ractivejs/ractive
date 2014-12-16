@@ -140,11 +140,6 @@ function concatenate ( key ) {
 }
 
 export function normalise ( ref ) {
-	if ( typeof ref !== 'string' ) {
-		throw new Error( 'normalising non-string' );
-		return ref || '';
-	}
-
 	return ref ? ref.replace( refPattern, '.$1' ) : '';
 }
 
