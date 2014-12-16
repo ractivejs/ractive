@@ -1,14 +1,12 @@
 import { isEqual } from 'utils/is';
-import { getKey, getKeypath } from 'shared/keypaths';
+import { getKeypath } from 'shared/keypaths';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, options = {} ) {
 	var mapping, computation, wrapper, dontTeardownWrapper;
 
 	// TODO this is temporary. Eventually we should only use Keypath objects
-	if ( typeof keypath === 'string' ) {
-		keypath = getKeypath( keypath );
-	}
+	keypath = getKeypath( keypath );
 
 	// unless data is being set for data tracking purposes
 	if ( !options.noMapping ) {
@@ -61,7 +59,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 }
 
 function resolveSet ( viewmodel, keypath, value ) {
-	var keys, wrapper, parentValue, wrapperSet, valueSet;
+	var wrapper, parentValue, wrapperSet, valueSet;
 
 	wrapperSet = function() {
 		if ( wrapper.set ) {

@@ -1,5 +1,5 @@
 import { removeFromArray } from 'utils/array';
-import { getKey, getKeypath } from 'shared/keypaths';
+import { getKeypath } from 'shared/keypaths';
 
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
 	var mapping, deps, index;
@@ -9,9 +9,7 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 	}
 
 	// TODO temporary
-	if ( typeof keypath === 'string' ) {
-		keypath = getKeypath( keypath );
-	}
+	keypath = getKeypath( keypath );
 
 	if ( mapping = this.mappings[ keypath.firstKey ] ) {
 		return mapping.unregister( keypath.str, dependant, group );
@@ -34,7 +32,7 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 }
 
 function updateDependantsMap ( viewmodel, keypath, group ) {
-	var keys, parentKeypath, map, parent;
+	var map, parent;
 
 	// update dependants map
 	while ( !keypath.isRoot ) {

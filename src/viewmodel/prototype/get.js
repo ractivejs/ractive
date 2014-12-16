@@ -1,4 +1,4 @@
-import { decodeKeypath, getKey, getKeypath } from 'shared/keypaths';
+import { getKeypath } from 'shared/keypaths';
 import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 
 var empty = {};
@@ -15,9 +15,7 @@ export default function Viewmodel$get ( keypath, options ) {
 	options = options || empty;
 
 	// TODO this is temporary. Eventually we should only use Keypath objects
-	if ( typeof keypath === 'string' ) {
-		keypath = getKeypath( keypath );
-	}
+	keypath = getKeypath( keypath );
 
 	// capture the keypath, if we're inside a computation
 	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
