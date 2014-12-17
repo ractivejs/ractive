@@ -1350,6 +1350,29 @@ define([
 				t.htmlEqual( JSON.stringify({foo:'bar',baz:{bippy:'boppy'},bat:1}) + ' bar boppy 1', fixture.innerHTML );
 			});
 
+			test( 'ComponentData supports in operator', (t) => {
+				let ractive = new Ractive({
+					el: fixture,
+					template: `<cmp flag foo="bar" baz="{{.}}" />`,
+					components: {
+						cmp: Ractive.extend({
+							template: `{{JSON.stringify(.)}} {{foo}} {{baz.bippy}} {{bat}}`,
+							onconstruct: function() {
+								this.data.bat = 1;
+							}
+						})
+					},
+					data: { bippy: 'boppy' }
+				});
+
+				let cmp = ractive.findComponent('cmp').data;
+
+				t.ok( 'flag' in cmp );
+				t.ok( 'foo' in cmp );
+				t.ok( 'baz' in cmp );
+				t.ok( 'bat' in cmp );
+			});
+
 			test( 'Computation cannot take ownership of an expression', ( t ) => {
 
 				expect( 1 );
