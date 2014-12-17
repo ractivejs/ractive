@@ -1,4 +1,5 @@
-import log from 'utils/log/log';
+import { warnOnce } from 'utils/log';
+import { missingPlugin } from 'config/errors';
 import Fragment from 'virtualdom/Fragment';
 import { findInViewHierarchy } from 'shared/registry';
 
@@ -49,13 +50,6 @@ export default function Transition$init ( element, template, isIntro ) {
 	this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
 	if ( !this._fn ) {
-		log.error({
-			debug: ractive.debug,
-			message: 'missingPlugin',
-			args: {
-				plugin: 'transition',
-				name: name
-			}
-		});
+		warnOnce( missingPlugin( name, 'transition' ) );
 	}
 }

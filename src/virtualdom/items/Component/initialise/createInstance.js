@@ -1,5 +1,5 @@
 import { YIELDER } from 'config/types';
-import log from 'utils/log/log';
+import { warn } from 'utils/log';
 import { create, extend } from 'utils/object';
 import initialise from 'Ractive/initialise';
 
@@ -19,13 +19,7 @@ export default function ( component, Component, parameters, yieldTemplate, parti
 	inlinePartials[''] = partials.content;
 
 	if ( Component.defaults.el ) {
-		log.warn({
-			debug: ractive.debug,
-			message: 'defaultElSpecified',
-			args: {
-				name: component.name
-			}
-		});
+		warn( 'The <%s/> component has a default `el` property; it has been disregarded', component.name );
 	}
 
 	// find container

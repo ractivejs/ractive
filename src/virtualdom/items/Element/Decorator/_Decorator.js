@@ -1,4 +1,5 @@
-import log from 'utils/log/log';
+import { warn } from 'utils/log';
+import { missingPlugin } from 'config/errors';
 import Fragment from 'virtualdom/Fragment';
 import { findInViewHierarchy } from 'shared/registry';
 
@@ -52,14 +53,7 @@ var Decorator = function ( element, template ) {
 	this.fn = findInViewHierarchy( 'decorators', ractive, name );
 
 	if ( !this.fn ) {
-		log.error({
-			debug: ractive.debug,
-			message: 'missingPlugin',
-			args: {
-				plugin: 'decorator',
-				name: name
-			}
-		});
+		warn( missingPlugin( name, 'decorator' ) );
 	}
 };
 

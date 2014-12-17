@@ -1,4 +1,5 @@
-import log from 'utils/log/log';
+import { warnOnce } from 'utils/log';
+import { missingPlugin } from 'config/errors';
 import genericHandler from '../shared/genericHandler';
 import { findInViewHierarchy } from 'shared/registry';
 
@@ -26,14 +27,7 @@ export default function EventHandler$listen () {
 
 			// okay to use touch events if this browser doesn't support them
 			if ( !touchEvents[ name ] ) {
-				log.error({
-					debug: this.root.debug,
-					message: 'missingPlugin',
-					args: {
-						plugin: 'event',
-						name: name
-					}
-				});
+				warnOnce( missingPlugin( name, 'event' ) );
 			}
 
 			return;

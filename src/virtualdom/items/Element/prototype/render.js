@@ -1,6 +1,6 @@
 import { namespaces } from 'config/environment';
 import { isArray } from 'utils/is';
-import warn from 'utils/log/warn';
+import { warn } from 'utils/log';
 import { create, defineProperty } from 'utils/object';
 import { createElement } from 'utils/dom';
 import noop from 'utils/noop';

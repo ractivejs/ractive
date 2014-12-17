@@ -1,13 +1,11 @@
 define([
 	'ractive',
 	'helpers/Model',
-	'utils/object',
-	'utils/log/log'
+	'utils/object'
 ], function (
 	Ractive,
 	Model,
-	object,
-	log
+	object
 ) {
 
 	'use strict';

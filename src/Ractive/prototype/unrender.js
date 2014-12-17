@@ -1,6 +1,6 @@
 import css from 'global/css';
 import Hook from './shared/hooks/Hook';
-import log from 'utils/log/log';
+import { warn } from 'utils/log';
 import Promise from 'utils/Promise';
 import { removeFromArray } from 'utils/array';
 import runloop from 'global/runloop';
@@ -11,11 +11,7 @@ export default function Ractive$unrender () {
 	var promise, shouldDestroy;
 
 	if ( !this.fragment.rendered ) {
-		log.warn({
-			debug: this.debug,
-			message: 'ractive.unrender() was called on a Ractive instance that was not rendered'
-		});
-
+		warn( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
 		return Promise.resolve();
 	}
 

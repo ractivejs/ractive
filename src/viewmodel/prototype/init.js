@@ -1,4 +1,4 @@
-import log from 'utils/log/log';
+import { fatal } from 'utils/log';
 import { getKeypath } from 'shared/keypaths';
 
 export default function Viewmodel$init () {
@@ -9,9 +9,7 @@ export default function Viewmodel$init () {
 		computations.push( computation );
 
 		if ( key in this.mappings ) {
-			log.critical({
-				message: 'Cannot map to a computed property (\'' + key + '\')'
-			});
+			fatal( 'Cannot map to a computed property (\'%s\')', key );
 		}
 	}
 

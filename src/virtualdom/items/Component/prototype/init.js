@@ -3,7 +3,7 @@ import createParameters from 'shared/parameters/createParameters';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import { COMPONENT } from 'config/types';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
-import warn from 'utils/log/warn';
+import { warn } from 'utils/log';
 
 export default function Component$init ( options, Component ) {
 	var parentFragment, root, parameters;
