@@ -53,9 +53,10 @@ module.exports = {
 
 			src = gobble([ amd, bundles ]).moveTo( 'src' );
 
-			test = gobble( 'test' )
-				.transform( 'es6-transpiler', transpilerOptions )
-				.moveTo( 'test' );
+			test = gobble([
+				gobble( 'test' ).exclude([ 'modules/**', 'samples/**' ]),
+				gobble( 'test' ).include([ 'modules/**', 'samples/**' ]).transform( 'es6-transpiler', transpilerOptions )
+			]).moveTo( 'test' );
 
 			result = [ src, test ];
 
