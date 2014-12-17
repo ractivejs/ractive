@@ -1,6 +1,6 @@
 /*
 	ractive.js v0.6.1
-	2014-12-17 - commit 689084cf 
+	2014-12-17 - commit 5ca8675c 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -829,6 +829,14 @@
   var Hook__default = Hook__Hook;
   //# sourceMappingURL=01-_6to5-Hook.js.map
 
+  function array__addToArray(array, value) {
+    var index = array.indexOf(value);
+
+    if (index === -1) {
+      array.push(value);
+    }
+  }
+
   function array__arrayContains(array, value) {
     for (var i = 0, c = array.length; i < c; i++) {
       if (array[i] == value) {
@@ -1087,16 +1095,150 @@
   }
   //# sourceMappingURL=01-_6to5-Promise.js.map
 
-  var keypaths__refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+  var getPotentialWildcardMatches__starMaps = {};
+
+  // This function takes a keypath such as 'foo.bar.baz', and returns
+  // all the variants of that keypath that include a wildcard in place
+  // of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
+  // These are then checked against the dependants map (ractive.viewmodel.depsMap)
+  // to see if any pattern observers are downstream of one or more of
+  // these wildcard keypaths (e.g. 'foo.bar.*.status')
+  function getPotentialWildcardMatches__getPotentialWildcardMatches(keypath) {
+    var keys, starMap, mapper, i, result, wildcardKeypath;
+
+    keys = keypath.split(".");
+    if (!(starMap = getPotentialWildcardMatches__starMaps[keys.length])) {
+      starMap = getPotentialWildcardMatches__getStarMap(keys.length);
+    }
+
+    result = [];
+
+    mapper = function (star, i) {
+      return star ? "*" : keys[i];
+    };
+
+    i = starMap.length;
+    while (i--) {
+      wildcardKeypath = starMap[i].map(mapper).join(".");
+
+      if (!result.hasOwnProperty(wildcardKeypath)) {
+        result.push(wildcardKeypath);
+        result[wildcardKeypath] = true;
+      }
+    }
+
+    return result;
+  };
+  var getPotentialWildcardMatches__default = getPotentialWildcardMatches__getPotentialWildcardMatches;
+
+  // This function returns all the possible true/false combinations for
+  // a given number - e.g. for two, the possible combinations are
+  // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
+  // It does so by getting all the binary values between 0 and e.g. 11
+  function getPotentialWildcardMatches__getStarMap(num) {
+    var ones = "", max, binary, starMap, mapper, i;
+
+    if (!getPotentialWildcardMatches__starMaps[num]) {
+      starMap = [];
+
+      while (ones.length < num) {
+        ones += 1;
+      }
+
+      max = parseInt(ones, 2);
+
+      mapper = function (digit) {
+        return digit === "1";
+      };
+
+      for (i = 0; i <= max; i += 1) {
+        binary = i.toString(2);
+        while (binary.length < num) {
+          binary = "0" + binary;
+        }
+
+        starMap[i] = Array.prototype.map.call(binary, mapper);
+      }
+
+      getPotentialWildcardMatches__starMaps[num] = starMap;
+    }
+
+    return getPotentialWildcardMatches__starMaps[num];
+  }
+  //# sourceMappingURL=01-_6to5-getPotentialWildcardMatches.js.map
+
+  var keypaths__refPattern, keypaths__keypathCache, keypaths__Keypath;
+
+  keypaths__refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+
+  keypaths__keypathCache = {};
+
+  keypaths__Keypath = function (str) {
+    var keys = str.split(".");
+
+    this.str = str;
+
+    if (str[0] === "@") {
+      this.isSpecial = true;
+      this.value = keypaths__decodeKeypath(str);
+    }
+
+    this.firstKey = keys[0];
+    this.lastKey = keys.pop();
+
+    this.parent = str === "" ? null : keypaths__getKeypath(keys.join("."));
+    this.isRoot = !str;
+  };
+
+  keypaths__Keypath.prototype = {
+    equalsOrStartsWith: function (keypath) {
+      return keypath === this || this.startsWith(keypath);
+    },
+
+    join: function (str) {
+      return keypaths__getKeypath(this.isRoot ? String(str) : this.str + "." + str);
+    },
+
+    replace: function (oldKeypath, newKeypath) {
+      if (this === oldKeypath) {
+        return newKeypath;
+      }
+
+      if (this.startsWith(oldKeypath)) {
+        return newKeypath === null ? newKeypath : keypaths__getKeypath(this.str.replace(oldKeypath.str + ".", newKeypath.str + "."));
+      }
+    },
+
+    startsWith: function (keypath) {
+      if (!keypath) {
+        // TODO under what circumstances does this happen?
+        return false;
+      }
+
+      return keypath && this.str.substr(0, keypath.str.length + 1) === keypath.str + ".";
+    },
+
+    toString: function () {
+      throw new Error("Bad coercion");
+    },
+
+    valueOf: function () {
+      throw new Error("Bad coercion");
+    },
+
+    wildcardMatches: function () {
+      return this._wildcardMatches || (this._wildcardMatches = getPotentialWildcardMatches__default(this.str));
+    }
+  };
 
   function keypaths__assignNewKeypath(target, property, oldKeypath, newKeypath) {
     var existingKeypath = target[property];
 
-    if (!existingKeypath || keypaths__equalsOrStartsWith(existingKeypath, newKeypath) || !keypaths__equalsOrStartsWith(existingKeypath, oldKeypath)) {
+    if (existingKeypath && (existingKeypath.equalsOrStartsWith(newKeypath) || !existingKeypath.equalsOrStartsWith(oldKeypath))) {
       return;
     }
 
-    target[property] = keypaths__getNewKeypath(existingKeypath, oldKeypath, newKeypath);
+    target[property] = existingKeypath ? existingKeypath.replace(oldKeypath, newKeypath) : newKeypath;
     return true;
   }
 
@@ -1110,29 +1252,28 @@
     }
   }
 
-  function keypaths__equalsOrStartsWith(target, keypath) {
-    return target === keypath || keypaths__startsWithKeypath(target, keypath);
-  }
+  function keypaths__getKeypath(str) {
+    if (str == null) {
+      return str;
+    }
 
-  function keypaths__getKey(keypath) {
-    var index = keypath.indexOf(".");
-    return ~index ? keypath.slice(0, index) : keypath;
+    return keypaths__keypathCache[str] || (keypaths__keypathCache[str] = new keypaths__Keypath(str));
   }
 
   function keypaths__getMatchingKeypaths(ractive, pattern) {
     var keys, key, matchingKeypaths;
 
     keys = pattern.split(".");
-    matchingKeypaths = [""];
+    matchingKeypaths = [keypaths__rootKeypath];
 
     while (key = keys.shift()) {
       if (key === "*") {
         // expand to find all valid child keypaths
         matchingKeypaths = matchingKeypaths.reduce(expand, []);
       } else {
-        if (matchingKeypaths[0] === "") {
+        if (matchingKeypaths[0] === keypaths__rootKeypath) {
           // first key
-          matchingKeypaths[0] = key;
+          matchingKeypaths[0] = keypaths__getKeypath(key);
         } else {
           matchingKeypaths = matchingKeypaths.map(keypaths__concatenate(key));
         }
@@ -1142,15 +1283,15 @@
     return matchingKeypaths;
 
     function expand(matchingKeypaths, keypath) {
-      var value, key, childKeypath;
+      var wrapper, value, key;
 
-      value = (ractive.viewmodel.wrapped[keypath] ? ractive.viewmodel.wrapped[keypath].get() : ractive.get(keypath));
+      wrapper = ractive.viewmodel.wrapped[keypath.str];
+      value = wrapper ? wrapper.get() : ractive.viewmodel.get(keypath);
 
       for (key in value) {
         if (value.hasOwnProperty(key) && (key !== "_ractive" || !is__isArray(value))) {
           // for benefit of IE8
-          childKeypath = keypath ? keypath + "." + key : key;
-          matchingKeypaths.push(childKeypath);
+          matchingKeypaths.push(keypath.join(key));
         }
       }
 
@@ -1160,29 +1301,15 @@
 
   function keypaths__concatenate(key) {
     return function (keypath) {
-      return keypath ? keypath + "." + key : key;
+      return keypath.join(key);
     };
-  }
-
-  function keypaths__getNewKeypath(targetKeypath, oldKeypath, newKeypath) {
-    // exact match
-    if (targetKeypath === oldKeypath) {
-      return newKeypath !== undefined ? newKeypath : null;
-    }
-
-    // partial match based on leading keypath segments
-    if (keypaths__startsWithKeypath(targetKeypath, oldKeypath)) {
-      return newKeypath === null ? newKeypath : targetKeypath.replace(oldKeypath + ".", newKeypath + ".");
-    }
   }
 
   function keypaths__normalise(ref) {
     return ref ? ref.replace(keypaths__refPattern, ".$1") : "";
   }
 
-  function keypaths__startsWithKeypath(target, keypath) {
-    return target && keypath && target.substr(0, keypath.length + 1) === keypath + ".";
-  }
+  var keypaths__rootKeypath = keypaths__getKeypath("");
   //# sourceMappingURL=01-_6to5-keypaths.js.map
 
   var getInnerContext__default = function (fragment) {
@@ -1192,42 +1319,50 @@
       }
     } while (fragment = fragment.parent);
 
-    return "";
+    return keypaths__rootKeypath;
   };
   //# sourceMappingURL=01-_6to5-getInnerContext.js.map
 
   function resolveRef__resolveRef(ractive, ref, fragment) {
+    var keypath;
+
     ref = keypaths__normalise(ref);
 
     // If a reference begins '~/', it's a top-level reference
     if (ref.substr(0, 2) === "~/") {
-      ref = ref.substring(2);
-      resolveRef__createMappingIfNecessary(ractive, keypaths__getKey(ref), fragment);
-      return ref;
+      keypath = keypaths__getKeypath(ref.substring(2));
+      resolveRef__createMappingIfNecessary(ractive, keypath.firstKey, fragment);
     }
 
     // If a reference begins with '.', it's either a restricted reference or
     // an ancestor reference...
-    if (ref[0] === ".") {
-      ref = resolveRef__resolveAncestorRef(getInnerContext__default(fragment), ref);
+    else if (ref[0] === ".") {
+      keypath = resolveRef__resolveAncestorRef(getInnerContext__default(fragment), ref);
 
-      if (ref) {
-        resolveRef__createMappingIfNecessary(ractive, keypaths__getKey(ref), fragment);
+      if (keypath) {
+        resolveRef__createMappingIfNecessary(ractive, keypath.firstKey, fragment);
       }
-
-      return ref;
     }
 
     // ...otherwise we need to figure out the keypath based on context
-    return resolveRef__resolveAmbiguousReference(ractive, ref, fragment);
+    else {
+      keypath = resolveRef__resolveAmbiguousReference(ractive, keypaths__getKeypath(ref), fragment);
+    }
+
+    return keypath;
   };
   var resolveRef__default = resolveRef__resolveRef;
 
   function resolveRef__resolveAncestorRef(baseContext, ref) {
     var contextKeys;
 
+    // TODO...
+    if (baseContext != undefined && typeof baseContext !== "string") {
+      baseContext = baseContext.str;
+    }
+
     // {{.}} means 'current context'
-    if (ref === ".") return baseContext;
+    if (ref === ".") return keypaths__getKeypath(baseContext);
 
     contextKeys = baseContext ? baseContext.split(".") : [];
 
@@ -1243,21 +1378,25 @@
       }
 
       contextKeys.push(ref);
-      return contextKeys.join(".");
+      return keypaths__getKeypath(contextKeys.join("."));
     }
 
     // not an ancestor reference - must be a restricted reference (prepended with "." or "./")
     if (!baseContext) {
-      return ref.replace(/^\.\/?/, "");
+      return keypaths__getKeypath(ref.replace(/^\.\/?/, ""));
     }
 
-    return baseContext + ref.replace(/^\.\//, ".");
+    return keypaths__getKeypath(baseContext + ref.replace(/^\.\//, "."));
   }
 
   function resolveRef__resolveAmbiguousReference(ractive, ref, fragment, isParentLookup) {
     var context, key, parentValue, hasContextChain, parentKeypath;
 
-    key = keypaths__getKey(ref);
+    if (ref.isRoot) {
+      return ref;
+    }
+
+    key = ref.firstKey;
 
     while (fragment) {
       context = fragment.context;
@@ -1271,7 +1410,7 @@
       parentValue = ractive.viewmodel.get(context);
 
       if (parentValue && (typeof parentValue === "object" || typeof parentValue === "function") && key in parentValue) {
-        return context + "." + ref;
+        return context.join(ref.str);
       }
     }
 
@@ -1285,6 +1424,8 @@
     if (ractive.parent && !ractive.isolated) {
       hasContextChain = true;
       fragment = ractive.component.parentFragment;
+
+      key = keypaths__getKeypath(key);
 
       if (parentKeypath = resolveRef__resolveAmbiguousReference(ractive.parent, key, fragment, true)) {
         // We need to create an inter-component binding
@@ -1313,6 +1454,8 @@
     if (!ractive.parent || ractive.isolated || resolveRef__isRootProperty(ractive, key)) {
       return;
     }
+
+    key = keypaths__getKeypath(key);
 
     if (parentKeypath = resolveRef__resolveAmbiguousReference(ractive.parent, key, ractive.component.parentFragment, true)) {
       ractive.viewmodel.map(key, {
@@ -1881,7 +2024,7 @@
     var easing, duration, animation, from;
 
     if (keypath) {
-      keypath = keypaths__normalise(keypath);
+      keypath = keypaths__getKeypath(keypaths__normalise(keypath));
     }
 
     if (keypath !== null) {
@@ -2268,78 +2411,6 @@
   var eventStack__default = eventStack__eventStack;
   //# sourceMappingURL=01-_6to5-eventStack.js.map
 
-  var getPotentialWildcardMatches__starMaps = {};
-
-  // This function takes a keypath such as 'foo.bar.baz', and returns
-  // all the variants of that keypath that include a wildcard in place
-  // of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
-  // These are then checked against the dependants map (ractive.viewmodel.depsMap)
-  // to see if any pattern observers are downstream of one or more of
-  // these wildcard keypaths (e.g. 'foo.bar.*.status')
-  function getPotentialWildcardMatches__getPotentialWildcardMatches(keypath) {
-    var keys, starMap, mapper, i, result, wildcardKeypath;
-
-    keys = keypath.split(".");
-    if (!(starMap = getPotentialWildcardMatches__starMaps[keys.length])) {
-      starMap = getPotentialWildcardMatches__getStarMap(keys.length);
-    }
-
-    result = [];
-
-    mapper = function (star, i) {
-      return star ? "*" : keys[i];
-    };
-
-    i = starMap.length;
-    while (i--) {
-      wildcardKeypath = starMap[i].map(mapper).join(".");
-
-      if (!result.hasOwnProperty(wildcardKeypath)) {
-        result.push(wildcardKeypath);
-        result[wildcardKeypath] = true;
-      }
-    }
-
-    return result;
-  };
-  var getPotentialWildcardMatches__default = getPotentialWildcardMatches__getPotentialWildcardMatches;
-
-  // This function returns all the possible true/false combinations for
-  // a given number - e.g. for two, the possible combinations are
-  // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
-  // It does so by getting all the binary values between 0 and e.g. 11
-  function getPotentialWildcardMatches__getStarMap(num) {
-    var ones = "", max, binary, starMap, mapper, i;
-
-    if (!getPotentialWildcardMatches__starMaps[num]) {
-      starMap = [];
-
-      while (ones.length < num) {
-        ones += 1;
-      }
-
-      max = parseInt(ones, 2);
-
-      mapper = function (digit) {
-        return digit === "1";
-      };
-
-      for (i = 0; i <= max; i += 1) {
-        binary = i.toString(2);
-        while (binary.length < num) {
-          binary = "0" + binary;
-        }
-
-        starMap[i] = Array.prototype.map.call(binary, mapper);
-      }
-
-      getPotentialWildcardMatches__starMaps[num] = starMap;
-    }
-
-    return getPotentialWildcardMatches__starMaps[num];
-  }
-  //# sourceMappingURL=01-_6to5-getPotentialWildcardMatches.js.map
-
   function fireEvent__fireEvent(ractive, eventName, options) {
     if (options === undefined) options = {};
     if (!eventName) {
@@ -2358,7 +2429,7 @@
       options.event.name = eventName;
     }
 
-    var eventNames = getPotentialWildcardMatches__default(eventName);
+    var eventNames = keypaths__getKeypath(eventName).wildcardMatches();
     fireEvent__fireEventAs(ractive, eventNames, options.event, options.args, true);
   };
   var fireEvent__default = fireEvent__fireEvent;
@@ -2384,7 +2455,7 @@
     if (ractive.parent && bubble) {
       if (initialFire && ractive.component) {
         var fullName = ractive.component.name + "." + eventNames[eventNames.length - 1];
-        eventNames = getPotentialWildcardMatches__default(fullName);
+        eventNames = keypaths__getKeypath(fullName).wildcardMatches();
 
         if (event) {
           event.component = ractive;
@@ -2439,12 +2510,12 @@
   function prototype_get__Ractive$get(keypath) {
     var value;
 
-    keypath = keypaths__normalise(keypath);
+    keypath = keypaths__getKeypath(keypaths__normalise(keypath));
     value = this.viewmodel.get(keypath, prototype_get__options);
 
     // Create inter-component binding, if necessary
     if (value === undefined && this.parent && !this.isolated) {
-      if (resolveRef__default(this, keypath, this.fragment)) {
+      if (resolveRef__default(this, keypath.str, this.component.parentFragment)) {
         // creates binding as side-effect, if appropriate
         value = this.viewmodel.get(keypath);
       }
@@ -2495,7 +2566,7 @@
 
     var currentArray, promise;
 
-    keypath = keypaths__normalise(keypath);
+    keypath = keypaths__getKeypath(keypaths__normalise(keypath));
     currentArray = this.viewmodel.get(keypath);
 
     // If either the existing value or the new value isn't an
@@ -2544,7 +2615,7 @@
 
   Observer__Observer.prototype = {
     init: function (immediate) {
-      this.value = this.root.get(this.keypath);
+      this.value = this.root.get(this.keypath.str);
 
       if (immediate !== false) {
         this.update();
@@ -2576,7 +2647,7 @@
 
       this.updating = true;
 
-      this.callback.call(this.context, this.value, this.oldValue, this.keypath);
+      this.callback.call(this.context, this.value, this.oldValue, this.keypath.str);
       this.oldValue = this.value;
 
       this.updating = false;
@@ -2589,11 +2660,11 @@
   function getPattern__getPattern(ractive, pattern) {
     var matchingKeypaths, values;
 
-    matchingKeypaths = keypaths__getMatchingKeypaths(ractive, pattern);
+    matchingKeypaths = keypaths__getMatchingKeypaths(ractive, pattern.str);
 
     values = {};
     matchingKeypaths.forEach(function (keypath) {
-      values[keypath] = ractive.get(keypath);
+      values[keypath.str] = ractive.get(keypath.str);
     });
 
     return values;
@@ -2610,7 +2681,7 @@
     this.defer = options.defer;
 
     this.keypath = keypath;
-    this.regex = new RegExp("^" + keypath.replace(/\./g, "\\.").replace(/\*/g, "([^\\.]+)") + "$");
+    this.regex = new RegExp("^" + keypath.str.replace(/\./g, "\\.").replace(/\*/g, "([^\\.]+)") + "$");
     this.values = {};
 
     if (this.defer) {
@@ -2630,7 +2701,7 @@
       if (immediate !== false) {
         for (keypath in values) {
           if (values.hasOwnProperty(keypath)) {
-            this.update(keypath);
+            this.update(keypaths__getKeypath(keypath));
           }
         }
       } else {
@@ -2642,12 +2713,12 @@
       var _this = this;
       var values;
 
-      if (PatternObserver__wildcard.test(keypath)) {
+      if (PatternObserver__wildcard.test(keypath.str)) {
         values = getPattern__default(this.root, keypath);
 
         for (keypath in values) {
           if (values.hasOwnProperty(keypath)) {
-            this.update(keypath);
+            this.update(keypaths__getKeypath(keypath));
           }
         }
 
@@ -2656,7 +2727,7 @@
 
       // special case - array mutation should not trigger `array.*`
       // pattern observer with `array.length`
-      if (this.root.viewmodel.implicitChanges[keypath]) {
+      if (this.root.viewmodel.implicitChanges[keypath.str]) {
         return;
       }
 
@@ -2671,23 +2742,24 @@
     },
 
     reallyUpdate: function (keypath) {
-      var value, keys, args;
+      var keypathStr, value, keys, args;
 
+      keypathStr = keypath.str;
       value = this.root.viewmodel.get(keypath);
 
       // Prevent infinite loops
       if (this.updating) {
-        this.values[keypath] = value;
+        this.values[keypathStr] = value;
         return;
       }
 
       this.updating = true;
 
-      if (!is__isEqual(value, this.values[keypath]) || !this.ready) {
-        keys = PatternObserver__slice.call(this.regex.exec(keypath), 1);
-        args = [value, this.values[keypath], keypath].concat(keys);
+      if (!is__isEqual(value, this.values[keypathStr]) || !this.ready) {
+        keys = PatternObserver__slice.call(this.regex.exec(keypathStr), 1);
+        args = [value, this.values[keypathStr], keypathStr].concat(keys);
 
-        this.values[keypath] = value;
+        this.values[keypathStr] = value;
         this.callback.apply(this.context, args);
       }
 
@@ -2696,15 +2768,15 @@
 
     getProxy: function (keypath) {
       var _this2 = this;
-      if (!this.proxies[keypath]) {
-        this.proxies[keypath] = {
+      if (!this.proxies[keypath.str]) {
+        this.proxies[keypath.str] = {
           update: function () {
             return _this2.reallyUpdate(keypath);
           }
         };
       }
 
-      return this.proxies[keypath];
+      return this.proxies[keypath.str];
     }
   };
 
@@ -2716,11 +2788,11 @@
   function getObserverFacade__getObserverFacade(ractive, keypath, callback, options) {
     var observer, isPatternObserver, cancelled;
 
-    keypath = keypaths__normalise(keypath);
+    keypath = keypaths__getKeypath(keypaths__normalise(keypath));
     options = options || getObserverFacade__emptyObject;
 
     // pattern observers are treated differently
-    if (getObserverFacade__wildcard.test(keypath)) {
+    if (getObserverFacade__wildcard.test(keypath.str)) {
       observer = new PatternObserver__default(ractive, keypath, callback, options);
       ractive.viewmodel.patternObservers.push(observer);
       isPatternObserver = true;
@@ -3045,7 +3117,9 @@
 
       var array, newIndices = [], len, promise, result;
 
-      array = this.get(keypath);
+      keypath = keypaths__getKeypath(keypaths__normalise(keypath));
+
+      array = this.viewmodel.get(keypath);
       len = array.length;
 
       if (!is__isArray(array)) {
@@ -3356,7 +3430,7 @@
   arrayAdaptor__ArrayWrapper = function (ractive, array, keypath) {
     this.root = ractive;
     this.value = array;
-    this.keypath = keypath;
+    this.keypath = keypaths__getKeypath(keypath);
 
     // if this array hasn't already been ractified, ractify it
     if (!array._ractive) {
@@ -3448,27 +3522,25 @@
 
     magicAdaptor__magicAdaptor = {
       filter: function (object, keypath, ractive) {
-        var keys, key, parentKeypath, parentWrapper, parentValue;
+        var parentWrapper, parentValue;
 
         if (!keypath) {
           return false;
         }
 
-        keys = keypath.split(".");
-        key = keys.pop();
-        parentKeypath = keys.join(".");
+        keypath = keypaths__getKeypath(keypath);
 
         // If the parent value is a wrapper, other than a magic wrapper,
         // we shouldn't wrap this property
-        if ((parentWrapper = ractive.viewmodel.wrapped[parentKeypath]) && !parentWrapper.magic) {
+        if ((parentWrapper = ractive.viewmodel.wrapped[keypath.parent.str]) && !parentWrapper.magic) {
           return false;
         }
 
-        parentValue = ractive.get(parentKeypath);
+        parentValue = ractive.viewmodel.get(keypath.parent);
 
         // if parentValue is an array that doesn't include this member,
         // we should return false otherwise lengths will get messed up
-        if (is__isArray(parentValue) && /^[0-9]+$/.test(key)) {
+        if (is__isArray(parentValue) && /^[0-9]+$/.test(keypath.lastKey)) {
           return false;
         }
 
@@ -3480,7 +3552,9 @@
     };
 
     magicAdaptor__MagicWrapper = function (ractive, value, keypath) {
-      var keys, objKeypath, template, siblings;
+      var objKeypath, template, siblings;
+
+      keypath = keypaths__getKeypath(keypath);
 
       this.magic = true;
 
@@ -3488,12 +3562,10 @@
       this.keypath = keypath;
       this.value = value;
 
-      keys = keypath.split(".");
+      this.prop = keypath.lastKey;
 
-      this.prop = keys.pop();
-
-      objKeypath = keys.join(".");
-      this.obj = objKeypath ? ractive.get(objKeypath) : ractive.data;
+      objKeypath = keypath.parent;
+      this.obj = objKeypath.isRoot ? ractive.data : ractive.viewmodel.get(objKeypath);
 
       template = this.originalDescriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
 
@@ -7343,7 +7415,7 @@
 
       placeholderId = guid + "-" + counter++;
 
-      if (wrapped = item.root.viewmodel.wrapped[item.keypath]) {
+      if (item.keypath && (wrapped = item.root.viewmodel.wrapped[item.keypath.str])) {
         value = wrapped.value;
       } else {
         value = item.getValue();
@@ -7484,7 +7556,7 @@
     this.callback = callback;
 
     keypath = resolveRef__default(owner.root, ref, owner.parentFragment);
-    if (keypath !== undefined) {
+    if (keypath != undefined) {
       this.resolve(keypath);
     } else {
       runloop__default.addUnresolved(this);
@@ -7493,6 +7565,12 @@
 
   ReferenceResolver__ReferenceResolver.prototype = {
     resolve: function (keypath) {
+      if (this.keypath && !keypath) {
+        // it was resolved, and now it's not. Can happen if e.g. `bar` in
+        // `{{foo[bar]}}` becomes undefined
+        runloop__default.addUnresolved(this);
+      }
+
       this.resolved = true;
 
       this.keypath = keypath;
@@ -7500,14 +7578,14 @@
     },
 
     forceResolution: function () {
-      this.resolve(this.ref);
+      this.resolve(keypaths__getKeypath(this.ref));
     },
 
     rebind: function (oldKeypath, newKeypath) {
       var keypath;
 
-      if (this.keypath !== undefined) {
-        keypath = keypaths__getNewKeypath(this.keypath, oldKeypath, newKeypath);
+      if (this.keypath != undefined) {
+        keypath = this.keypath.replace(oldKeypath, newKeypath);
         // was a new keypath created?
         if (keypath !== undefined) {
           // resolve it
@@ -7560,7 +7638,7 @@
 
       // have we already found the nearest parent?
       if (this.cached) {
-        return this.callback("@" + prop.prefix + SpecialResolver__getProp(this.cached, prop));
+        return this.callback(keypaths__getKeypath("@" + prop.prefix + SpecialResolver__getProp(this.cached, prop)));
       }
 
       // special case for indices, which may cross component boundaries
@@ -7571,7 +7649,7 @@
 
             fragment.registerIndexRef(this);
 
-            return this.callback("@" + prop.prefix + value);
+            return this.callback(keypaths__getKeypath("@" + prop.prefix + value));
           }
 
           // watch for component boundaries
@@ -7584,7 +7662,7 @@
       } else {
         while (fragment) {
           if ((value = SpecialResolver__getProp(fragment, prop)) !== undefined) {
-            return this.callback("@" + prop.prefix + value);
+            return this.callback(keypaths__getKeypath("@" + prop.prefix + value.str));
           }
 
           fragment = fragment.parent;
@@ -7623,7 +7701,7 @@
       }
 
       if (index !== undefined) {
-        this.callback("@" + index);
+        this.callback(keypaths__getKeypath("@" + index));
       }
     },
 
@@ -7742,8 +7820,6 @@
 
   ExpressionResolver__ExpressionResolver = function (owner, parentFragment, expression, callback) {
     var _this = this;
-
-
     var ractive;
 
     ractive = owner.root;
@@ -7774,7 +7850,7 @@
       }
 
       this.uniqueString = ExpressionResolver__getUniqueString(this.str, this.keypaths);
-      this.keypath = ExpressionResolver__getKeypath(this.uniqueString);
+      this.keypath = ExpressionResolver__createExpressionKeypath(this.uniqueString);
 
       this.createEvaluator();
       this.callback(this.keypath);
@@ -7797,7 +7873,8 @@
       var _this2 = this;
       var computation, valueGetters, signature, keypath, fn;
 
-      computation = this.root.viewmodel.computations[this.keypath];
+      keypath = this.keypath;
+      computation = this.root.viewmodel.computations[keypath.str];
 
       // only if it doesn't exist yet!
       if (!computation) {
@@ -7813,8 +7890,8 @@
           }
 
           // 'special' keypaths encode a value
-          if (keypath[0] === "@") {
-            value = keypaths__decodeKeypath(keypath);
+          if (keypath.isSpecial) {
+            value = keypath.value;
             return function () {
               return value;
             };
@@ -7837,9 +7914,9 @@
           }
         };
 
-        computation = this.root.viewmodel.compute(this.keypath, signature);
+        computation = this.root.viewmodel.compute(keypath, signature);
       } else {
-        this.root.viewmodel.mark(this.keypath);
+        this.root.viewmodel.mark(keypath);
       }
     },
 
@@ -7868,20 +7945,20 @@
         return "undefined";
       }
 
-      if (keypath[0] === "@") {
-        value = keypath.slice(1);
-        return is__isNumeric(value) ? value : "\"" + value + "\"";
+      if (keypath.isSpecial) {
+        value = keypath.value;
+        return typeof value === "number" ? value : "\"" + value + "\"";
       }
 
-      return keypath;
+      return keypath.str;
     });
   }
 
-  function ExpressionResolver__getKeypath(uniqueString) {
+  function ExpressionResolver__createExpressionKeypath(uniqueString) {
     // Sanitize by removing any periods or square brackets. Otherwise
     // we can't split the keypath into keys!
     // Remove asterisks too, since they mess with pattern observers
-    return "${" + uniqueString.replace(/[\.\[\]]/g, "-").replace(/\*/, "#MUL#") + "}";
+    return keypaths__getKeypath("${" + uniqueString.replace(/[\.\[\]]/g, "-").replace(/\*/, "#MUL#") + "}");
   }
 
   function ExpressionResolver__isValidDependency(keypath) {
@@ -7931,8 +8008,6 @@
 
   var MemberResolver__MemberResolver = function (template, resolver, parentFragment) {
     var _this = this;
-    var keypath;
-
     this.resolver = resolver;
     this.root = resolver.root;
     this.parentFragment = parentFragment;
@@ -8047,7 +8122,7 @@
         return null;
       }
 
-      return this.base + "." + values.join(".");
+      return this.base.join(values.join("."));
     },
 
     bubble: function () {
@@ -8078,15 +8153,13 @@
 
     forceResolution: function () {
       if (this.baseResolver) {
-        this.base = this.ref;
+        this.base = keypaths__getKeypath(this.ref);
 
         this.baseResolver.unbind();
         this.baseResolver = null;
       }
 
-      this.members.forEach(function (m) {
-        return m.forceResolution();
-      });
+      this.members.forEach(ReferenceExpressionResolver__forceResolution);
       this.bubble();
     }
   };
@@ -8097,6 +8170,10 @@
 
   function ReferenceExpressionResolver__isDefined(value) {
     return value != undefined;
+  }
+
+  function ReferenceExpressionResolver__forceResolution(member) {
+    member.forceResolution();
   }
 
   var ReferenceExpressionResolver__default = ReferenceExpressionResolver__ReferenceExpressionResolver;
@@ -8114,7 +8191,6 @@
 
     mustache.template = options.template;
     mustache.index = options.index || 0;
-    mustache.key = options.key;
     mustache.isStatic = options.template.s;
 
     mustache.type = options.template.t;
@@ -8148,7 +8224,7 @@
     function resolveAndRebindChildren(newKeypath) {
       var oldKeypath = mustache.keypath;
 
-      if (newKeypath !== oldKeypath) {
+      if (newKeypath != oldKeypath) {
         mustache.resolve(newKeypath);
 
         if (oldKeypath !== undefined) {
@@ -8166,9 +8242,9 @@
     var wasResolved, value, twowayBinding;
 
     // 'Special' keypaths, e.g. @foo or @7, encode a value
-    if (keypath && keypath[0] === "@") {
+    if (keypath && keypath.isSpecial) {
       this.keypath = keypath;
-      this.setValue(keypaths__decodeKeypath(keypath));
+      this.setValue(keypath.value);
       return;
     }
 
@@ -8265,7 +8341,7 @@
       var wrapper;
 
       // TODO is there a better way to approach this?
-      if (wrapper = this.root.viewmodel.wrapped[this.keypath]) {
+      if (this.keypath && (wrapper = this.root.viewmodel.wrapped[this.keypath.str])) {
         value = wrapper.get();
       }
 
@@ -8438,8 +8514,8 @@
 
       // Otherwise, it needs to be rebound to a new index
       by = newIndex - oldIndex;
-      oldKeypath = _this.keypath + "." + oldIndex;
-      newKeypath = _this.keypath + "." + newIndex;
+      oldKeypath = _this.keypath.join(oldIndex);
+      newKeypath = _this.keypath.join(newIndex);
 
       fragment.index = newIndex;
 
@@ -8452,7 +8528,7 @@
       reboundFragments[newIndex] = fragment;
     });
 
-    newLength = this.root.get(this.keypath).length;
+    newLength = this.root.viewmodel.get(this.keypath).length;
 
     // If nothing changed with the existing fragments, then we start adding
     // new fragments at the end...
@@ -8535,7 +8611,7 @@
     this.updating = true;
 
     // with sections, we need to get the fake value if we have a wrapped object
-    if (wrapper = this.root.viewmodel.wrapped[this.keypath]) {
+    if (this.keypath && (wrapper = this.root.viewmodel.wrapped[this.keypath.str])) {
       value = wrapper.get();
     }
 
@@ -8552,7 +8628,7 @@
       this.fragmentsToCreate.forEach(function (index) {
         var fragment;
 
-        fragmentOptions.context = setValue__getContext(_this.keypath, index);
+        fragmentOptions.context = _this.keypath.join(index);
         fragmentOptions.index = index;
 
         fragment = new Fragment__default(fragmentOptions);
@@ -8682,7 +8758,7 @@
         // add any new ones
         for (i = section.length; i < length; i += 1) {
           // append list item to context stack
-          fragmentOptions.context = setValue__getContext(section.keypath, i);
+          fragmentOptions.context = section.keypath.join(i);
           fragmentOptions.index = i;
 
           fragment = new Fragment__default(fragmentOptions);
@@ -8735,7 +8811,7 @@
       if (!hasKey[id]) {
         changed = true;
 
-        fragmentOptions.context = setValue__getContext(section.keypath, id);
+        fragmentOptions.context = section.keypath.join(id);
         fragmentOptions.key = id;
         fragmentOptions.index = i++;
 
@@ -8832,10 +8908,6 @@
 
   function setValue__isRendered(fragment) {
     return fragment.rendered;
-  }
-
-  function setValue__getContext(base, index) {
-    return (base ? base + "." : "") + index;
   }
 
   function setValue__blindRebind(dep) {
@@ -9210,7 +9282,7 @@
     var wrapper;
 
     // TODO is there a better way to approach this?
-    if (wrapper = this.root.viewmodel.wrapped[this.keypath]) {
+    if (wrapper = this.root.viewmodel.wrapped[this.keypath.str]) {
       value = wrapper.get();
     }
 
@@ -9621,7 +9693,7 @@
 
     // Special case - radio names
     if (name === "name" && this.element.name === "input" && interpolator) {
-      return "name={{" + (interpolator.keypath || interpolator.ref) + "}}";
+      return "name={{" + (interpolator.keypath.str || interpolator.ref) + "}}";
     }
 
     // Boolean attributes
@@ -10116,13 +10188,13 @@
     interpolator.twowayBinding = this;
 
     if (keypath = interpolator.keypath) {
-      if (keypath[keypath.length - 1] === "}") {
+      if (keypath.str.slice(-1) === "}") {
         log__default.error({
           debug: this.root.debug,
           message: "noTwowayExpressions",
           args: {
             // won't fix brackets [foo] changed to -foo-
-            expression: keypath.slice(2, -1).replace("-", "."),
+            expression: keypath.str.slice(2, -1).replace("-", "."),
             element: element.tagName
           }
         });
@@ -10191,11 +10263,11 @@
         return;
       }
 
-      array__removeFromArray(this.root._twowayBindings[oldKeypath], this);
+      array__removeFromArray(this.root._twowayBindings[oldKeypath.str], this);
 
       this.keypath = newKeypath;
 
-      bindings = this.root._twowayBindings[newKeypath] || (this.root._twowayBindings[newKeypath] = []);
+      bindings = this.root._twowayBindings[newKeypath.str] || (this.root._twowayBindings[newKeypath.str] = []);
       bindings.push(this);
     },
 
@@ -10335,7 +10407,7 @@
     name: "name",
 
     init: function () {
-      this.siblings = getSiblings__default(this.root._guid, "radioname", this.keypath);
+      this.siblings = getSiblings__default(this.root._guid, "radioname", this.keypath.str);
       this.siblings.push(this);
 
       this.radioName = true; // so that ractive.updateModel() knows what to do with this
@@ -10350,7 +10422,7 @@
     render: function () {
       var node = this.element.node;
 
-      node.name = "{{" + this.keypath + "}}";
+      node.name = "{{" + this.keypath.str + "}}";
       node.checked = this.root.viewmodel.get(this.keypath) == this.element.getAttribute("value");
 
       node.addEventListener("change", handleDomEvent__default, false);
@@ -10386,7 +10458,7 @@
       Binding__default.prototype.rebound.call(this, oldKeypath, newKeypath);
 
       if (node = this.element.node) {
-        node.name = "{{" + this.keypath + "}}";
+        node.name = "{{" + this.keypath.str + "}}";
       }
     },
 
@@ -10421,7 +10493,7 @@
       // Each input has a reference to an array containing it and its
       // siblings, as two-way binding depends on being able to ascertain
       // the status of all inputs within the group
-      this.siblings = getSiblings__default(this.root._guid, "checkboxes", this.keypath);
+      this.siblings = getSiblings__default(this.root._guid, "checkboxes", this.keypath.str);
       this.siblings.push(this);
 
       if (this.noInitialValue) {
@@ -10454,7 +10526,7 @@
         this.isChecked = existingValue == bindingValue;
       }
 
-      node.name = "{{" + this.keypath + "}}";
+      node.name = "{{" + this.keypath.str + "}}";
       node.checked = this.isChecked;
 
       node.addEventListener("change", handleDomEvent__default, false);
@@ -10807,7 +10879,7 @@
   //# sourceMappingURL=01-_6to5-NumericBinding.js.map
 
   function createTwowayBinding__createTwowayBinding(element) {
-    var attributes = element.attributes, type, Binding, bindName, bindChecked;
+    var attributes = element.attributes, type, Binding, bindName, bindChecked, binding;
 
     // if this is a late binding, and there's already one, it
     // needs to be torn down
@@ -10860,8 +10932,8 @@
       Binding = GenericBinding__default;
     }
 
-    if (Binding) {
-      return new Binding(element);
+    if (Binding && (binding = new Binding(element)) && binding.keypath) {
+      return binding;
     }
   };
   var createTwowayBinding__default = createTwowayBinding__createTwowayBinding;
@@ -10899,7 +10971,7 @@
 
   function EventHandler_prototype_init__EventHandler$init(element, name, template) {
     var _this = this;
-    var action, refs, ractive, i;
+    var action, refs, ractive;
 
     this.element = element;
     this.root = element.root;
@@ -11051,8 +11123,8 @@
       node: this,
       original: event,
       index: index,
-      keypath: storage.keypath,
-      context: storage.root.get(storage.keypath)
+      keypath: storage.keypath.str,
+      context: storage.root.viewmodel.get(storage.keypath)
     });
   };
   var genericHandler__default = genericHandler__genericHandler;
@@ -11107,8 +11179,8 @@
         var storage = event.node._ractive;
 
         event.index = storage.index;
-        event.keypath = storage.keypath;
-        event.context = storage.root.get(storage.keypath);
+        event.keypath = storage.keypath.str;
+        event.context = storage.root.viewmodel.get(storage.keypath);
 
         storage.events[name].fire(event);
       };
@@ -11518,7 +11590,7 @@
       this.binding = binding;
 
       // register this with the root, so that we can do ractive.updateModel()
-      bindings = this.root._twowayBindings[binding.keypath] || (this.root._twowayBindings[binding.keypath] = []);
+      bindings = this.root._twowayBindings[binding.keypath.str] || (this.root._twowayBindings[binding.keypath.str] = []);
       bindings.push(binding);
     }
 
@@ -12704,7 +12776,7 @@
       this.binding.unrender();
 
       this.node._ractive.binding = null;
-      bindings = this.root._twowayBindings[binding.keypath];
+      bindings = this.root._twowayBindings[binding.keypath.str];
       bindings.splice(bindings.indexOf(binding), 1);
     }
 
@@ -13293,20 +13365,15 @@
   //# sourceMappingURL=01-_6to5-adapt.js.map
 
   function getUpstreamChanges__getUpstreamChanges(changes) {
-    var upstreamChanges = [""], i, keypath, keys, upstreamKeypath;
+    var upstreamChanges = [keypaths__rootKeypath], i, keypath;
 
     i = changes.length;
     while (i--) {
-      keypath = changes[i];
-      keys = keypath.split(".");
+      keypath = changes[i].parent;
 
-      while (keys.length > 1) {
-        keys.pop();
-        upstreamKeypath = keys.join(".");
-
-        if (upstreamChanges.indexOf(upstreamKeypath) === -1) {
-          upstreamChanges.push(upstreamKeypath);
-        }
+      while (keypath && !keypath.isRoot) {
+        array__addToArray(upstreamChanges, keypath);
+        keypath = keypath.parent;
       }
     }
 
@@ -13314,69 +13381,6 @@
   };
   var getUpstreamChanges__default = getUpstreamChanges__getUpstreamChanges;
   //# sourceMappingURL=01-_6to5-getUpstreamChanges.js.map
-
-  var applyChanges_getPotentialWildcardMatches__starMaps = {};
-
-  // This function takes a keypath such as 'foo.bar.baz', and returns
-  // all the variants of that keypath that include a wildcard in place
-  // of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
-  // These are then checked against the dependants map (ractive.viewmodel.depsMap)
-  // to see if any pattern observers are downstream of one or more of
-  // these wildcard keypaths (e.g. 'foo.bar.*.status')
-  function applyChanges_getPotentialWildcardMatches__getPotentialWildcardMatches(keypath) {
-    var keys, starMap, mapper, result;
-
-    keys = keypath.split(".");
-    starMap = applyChanges_getPotentialWildcardMatches__getStarMap(keys.length);
-
-    mapper = function (star, i) {
-      return star ? "*" : keys[i];
-    };
-
-    result = starMap.map(function (mask) {
-      return mask.map(mapper).join(".");
-    });
-    return result;
-  };
-  var applyChanges_getPotentialWildcardMatches__default = applyChanges_getPotentialWildcardMatches__getPotentialWildcardMatches;
-
-  // This function returns all the possible true/false combinations for
-  // a given number - e.g. for two, the possible combinations are
-  // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
-  // It does so by getting all the binary values between 0 and e.g. 11
-  function applyChanges_getPotentialWildcardMatches__getStarMap(length) {
-    var ones = "", max, binary, starMap, mapper, i;
-
-    if (!applyChanges_getPotentialWildcardMatches__starMaps[length]) {
-      starMap = [];
-
-      while (ones.length < length) {
-        ones += 1;
-      }
-
-      max = parseInt(ones, 2);
-
-      mapper = function (digit) {
-        return digit === "1";
-      };
-
-      for (i = 0; i <= max; i += 1) {
-        binary = i.toString(2);
-        while (binary.length < length) {
-          binary = "0" + binary;
-        }
-
-        starMap[i] = Array.prototype.map.call(binary, mapper);
-      }
-
-      applyChanges_getPotentialWildcardMatches__starMaps[length] = starMap;
-    }
-
-    return applyChanges_getPotentialWildcardMatches__starMaps[length];
-  }
-  //# sourceMappingURL=01-_6to5-getPotentialWildcardMatches.js.map
-
-  var notifyPatternObservers__lastKey = /[^\.]+$/;
 
   var notifyPatternObservers__default = notifyPatternObservers__notifyPatternObservers;
 
@@ -13389,7 +13393,7 @@
       return;
     }
 
-    potentialWildcardMatches = applyChanges_getPotentialWildcardMatches__default(keypath);
+    potentialWildcardMatches = keypath.wildcardMatches();
     potentialWildcardMatches.forEach(function (upstreamPattern) {
       notifyPatternObservers__cascade(viewmodel, upstreamPattern, keypath);
     });
@@ -13399,25 +13403,27 @@
   function notifyPatternObservers__cascade(viewmodel, upstreamPattern, keypath) {
     var group, map, actualChildKeypath;
 
-    group = viewmodel.depsMap.patternObservers;
+    // TODO should be one or the other
+    upstreamPattern = (upstreamPattern.str || upstreamPattern);
 
-    if (!(group && (map = group[upstreamPattern]))) {
+    group = viewmodel.depsMap.patternObservers;
+    map = group && group[upstreamPattern];
+
+    if (!map) {
       return;
     }
 
     map.forEach(function (childKeypath) {
-      var key = notifyPatternObservers__lastKey.exec(childKeypath)[0]; // 'baz'
-      actualChildKeypath = keypath ? keypath + "." + key : key; // 'foo.bar.baz'
+      actualChildKeypath = keypath.join(childKeypath.lastKey); // 'foo.bar.baz'
 
       notifyPatternObservers__updateMatchingPatternObservers(viewmodel, actualChildKeypath);
-
       notifyPatternObservers__cascade(viewmodel, childKeypath, actualChildKeypath);
     });
   }
 
   function notifyPatternObservers__updateMatchingPatternObservers(viewmodel, keypath) {
     viewmodel.patternObservers.forEach(function (observer) {
-      if (observer.regex.test(keypath)) {
+      if (observer.regex.test(keypath.str)) {
         observer.update(keypath);
       }
     });
@@ -13438,25 +13444,27 @@
     function cascade(keypath) {
       var map, computations;
 
-      if (self.noCascade.hasOwnProperty(keypath)) {
+      if (self.noCascade.hasOwnProperty(keypath.str)) {
         return;
       }
 
-      if (computations = self.deps.computed[keypath]) {
+      if (computations = self.deps.computed[keypath.str]) {
         computations.forEach(function (c) {
+          var key = c.key;
+
           if (c.viewmodel === self) {
-            self.clearCache(c.key);
+            self.clearCache(key.str);
             c.invalidate();
 
-            changes.push(c.key);
-            cascade(c.key);
+            changes.push(key);
+            cascade(key);
           } else {
-            c.viewmodel.mark(c.key);
+            c.viewmodel.mark(key);
           }
         });
       }
 
-      if (map = self.depsMap.computed[keypath]) {
+      if (map = self.depsMap.computed[keypath.str]) {
         map.forEach(cascade);
       }
     }
@@ -13468,7 +13476,7 @@
       var computations;
 
       // make sure we haven't already been down this particular keypath in this turn
-      if (changes.indexOf(keypath) === -1 && (computations = self.deps.computed[keypath])) {
+      if (changes.indexOf(keypath) === -1 && (computations = self.deps.computed[keypath.str])) {
         _this.changes.push(keypath);
 
         computations.forEach(function (c) {
@@ -13511,7 +13519,7 @@
 
     // Return a hash of keypaths to updated values
     changes.forEach(function (keypath) {
-      hash[keypath] = _this.get(keypath);
+      hash[keypath.str] = _this.get(keypath);
     });
 
     this.implicitChanges = {};
@@ -13594,7 +13602,7 @@
     function cascade(keypath) {
       var childDeps;
 
-      if (childDeps = viewmodel.depsMap[groupName][keypath]) {
+      if (childDeps = viewmodel.depsMap[groupName][keypath.str]) {
         addKeypaths(childDeps);
       }
     }
@@ -13609,7 +13617,7 @@
 
   function applyChanges__findDependants(viewmodel, keypath, groupName) {
     var group = viewmodel.deps[groupName];
-    return group ? group[keypath] : null;
+    return group ? group[keypath.str] : null;
   }
   //# sourceMappingURL=01-_6to5-applyChanges.js.map
 
@@ -13691,7 +13699,7 @@
   UnresolvedDependency__UnresolvedDependency.prototype = {
     resolve: function (keypath) {
       this.computation.softDeps.push(keypath);
-      this.computation.unresolvedDeps[keypath] = null;
+      this.computation.unresolvedDeps[keypath.str] = null;
       this.viewmodel.register(keypath, this.computation, "computed");
     }
   };
@@ -13732,7 +13740,7 @@
       this.bypass = true;
 
       initial = this.ractive.viewmodel.get(this.key);
-      this.ractive.viewmodel.clearCache(this.key);
+      this.ractive.viewmodel.clearCache(this.key.str);
 
       this.bypass = false;
 
@@ -13776,8 +13784,8 @@
               keypath = deps[i];
               value = ractive.viewmodel.get(keypath);
 
-              if (!is__isEqual(value, _this2.depValues[keypath])) {
-                _this2.depValues[keypath] = value;
+              if (!is__isEqual(value, _this2.depValues[keypath.str])) {
+                _this2.depValues[keypath.str] = value;
                 dependencyValuesChanged = true;
 
                 return;
@@ -13810,7 +13818,7 @@
           if (dependenciesChanged) {
             [this.hardDeps, this.softDeps].forEach(function (deps) {
               deps.forEach(function (keypath) {
-                _this2.depValues[keypath] = ractive.viewmodel.get(keypath);
+                _this2.depValues[keypath.str] = ractive.viewmodel.get(keypath);
               });
             });
           }
@@ -13862,11 +13870,11 @@
 
           // if this keypath is currently unresolved, we need to mark
           // it as such. TODO this is a bit muddy...
-          if (Computation__isUnresolved(this.viewmodel, keypath) && (!this.unresolvedDeps[keypath])) {
-            unresolved = new UnresolvedDependency__default(this, keypath);
+          if (Computation__isUnresolved(this.viewmodel, keypath) && (!this.unresolvedDeps[keypath.str])) {
+            unresolved = new UnresolvedDependency__default(this, keypath.str);
             newDeps.splice(i, 1);
 
-            this.unresolvedDeps[keypath] = unresolved;
+            this.unresolvedDeps[keypath.str] = unresolved;
             runloop__default.addUnresolved(unresolved);
           } else {
             this.viewmodel.register(keypath, this, "computed");
@@ -13883,7 +13891,7 @@
   };
 
   function Computation__isUnresolved(viewmodel, keypath) {
-    var key = keypaths__getKey(keypath);
+    var key = keypath.firstKey;
 
     return !(key in viewmodel.ractive.data) && !(key in viewmodel.computations) && !(key in viewmodel.mappings);
   }
@@ -13893,7 +13901,7 @@
 
   function compute__Viewmodel$compute(key, signature) {
     signature = getComputationSignature__default(signature);
-    return (this.computations[key] = new Computation__default(this.ractive, key, signature));
+    return (this.computations[key.str] = new Computation__default(this.ractive, key, signature));
   };
   var compute__default = compute__Viewmodel$compute;
   //# sourceMappingURL=01-_6to5-compute.js.map
@@ -13904,7 +13912,7 @@
   var get__empty = {};
 
   function get__Viewmodel$get(keypath, options) {
-    var ractive = this.ractive, cache = this.cache, mapping, value, computation, wrapped, captureGroup;
+    var ractive = this.ractive, cache = this.cache, mapping, value, computation, wrapped, captureGroup, keypathStr = keypath.str;
 
     options = options || get__empty;
 
@@ -13915,28 +13923,28 @@
       }
     }
 
-    if (mapping = this.mappings[keypaths__getKey(keypath)]) {
+    if (mapping = this.mappings[keypath.firstKey]) {
       return mapping.get(keypath, options);
     }
 
-    if (keypath[0] === "@") {
-      return keypaths__decodeKeypath(keypath);
+    if (keypath.isSpecial) {
+      return keypath.value;
     }
 
-    if (cache[keypath] === undefined) {
+    if (cache[keypathStr] === undefined) {
       // Is this a computed property?
-      if ((computation = this.computations[keypath]) && !computation.bypass) {
+      if ((computation = this.computations[keypathStr]) && !computation.bypass) {
         value = computation.get();
-        this.adapt(keypath, value);
+        this.adapt(keypathStr, value);
       }
 
       // Is this a wrapped property?
-      else if (wrapped = this.wrapped[keypath]) {
+      else if (wrapped = this.wrapped[keypathStr]) {
         value = wrapped.value;
       }
 
       // Is it the root?
-      else if (!keypath) {
+      else if (keypath.isRoot) {
         this.adapt("", ractive.data);
         value = ractive.data;
       }
@@ -13946,12 +13954,12 @@
         value = get__retrieve(this, keypath);
       }
 
-      cache[keypath] = value;
+      cache[keypathStr] = value;
     } else {
-      value = cache[keypath];
+      value = cache[keypathStr];
     }
 
-    if (!options.noUnwrap && (wrapped = this.wrapped[keypath])) {
+    if (!options.noUnwrap && (wrapped = this.wrapped[keypathStr])) {
       value = wrapped.get();
     }
 
@@ -13960,15 +13968,11 @@
   var get__default = get__Viewmodel$get;
 
   function get__retrieve(viewmodel, keypath) {
-    var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
+    var parentValue, cacheMap, value, wrapped;
 
-    keys = keypath.split(".");
-    key = keys.pop();
-    parentKeypath = keys.join(".");
+    parentValue = viewmodel.get(keypath.parent);
 
-    parentValue = viewmodel.get(parentKeypath);
-
-    if (wrapped = viewmodel.wrapped[parentKeypath]) {
+    if (wrapped = viewmodel.wrapped[keypath.parent.str]) {
       parentValue = wrapped.get();
     }
 
@@ -13977,27 +13981,27 @@
     }
 
     // update cache map
-    if (!(cacheMap = viewmodel.cacheMap[parentKeypath])) {
-      viewmodel.cacheMap[parentKeypath] = [keypath];
+    if (!(cacheMap = viewmodel.cacheMap[keypath.parent.str])) {
+      viewmodel.cacheMap[keypath.parent.str] = [keypath.str];
     } else {
-      if (cacheMap.indexOf(keypath) === -1) {
-        cacheMap.push(keypath);
+      if (cacheMap.indexOf(keypath.str) === -1) {
+        cacheMap.push(keypath.str);
       }
     }
 
     // If this property doesn't exist, we return a sentinel value
     // so that we know to query parent scope (if such there be)
-    if (typeof parentValue === "object" && !(key in parentValue)) {
-      return viewmodel.cache[keypath] = FAILED_LOOKUP__default;
+    if (typeof parentValue === "object" && !(keypath.lastKey in parentValue)) {
+      return viewmodel.cache[keypath.str] = FAILED_LOOKUP__default;
     }
 
-    value = parentValue[key];
+    value = parentValue[keypath.lastKey];
 
     // Do we have an adaptor for this value?
-    viewmodel.adapt(keypath, value, false);
+    viewmodel.adapt(keypath.str, value, false);
 
     // Update cache
-    viewmodel.cache[keypath] = value;
+    viewmodel.cache[keypath.str] = value;
     return value;
   }
   //# sourceMappingURL=01-_6to5-get.js.map
@@ -14006,7 +14010,7 @@
     var key, computation, computations = [];
 
     for (key in this.ractive.computed) {
-      computation = this.compute(key, this.ractive.computed[key]);
+      computation = this.compute(keypaths__getKeypath(key), this.ractive.computed[key]);
       computations.push(computation);
 
       if (key in this.mappings) {
@@ -14042,6 +14046,9 @@
     this.keypath = options.keypath;
     this.origin = options.origin;
 
+    this.deps = [];
+    this.unresolved = [];
+
     this.trackData = options.trackData;
     this.resolved = false;
   }
@@ -14065,8 +14072,6 @@
 
     initViewmodel: function (viewmodel) {
       this.local = viewmodel;
-      this.deps = [];
-      this.local.mappings[this.localKey] = this;
       this.setup();
     },
 
@@ -14076,7 +14081,10 @@
 
     register: function (keypath, dependant, group) {
       this.deps.push({ keypath: keypath, dep: dependant, group: group });
-      this.origin.register(this.map(keypath), dependant, group);
+
+      if (this.resolved) {
+        this.origin.register(this.map(keypath), dependant, group);
+      }
     },
 
     resolve: function (keypath) {
@@ -14161,7 +14169,7 @@
   //# sourceMappingURL=01-_6to5-Mapping.js.map
 
   function map__Viewmodel$map(key, options) {
-    var mapping = new Mapping__default(key, options);
+    var mapping = this.mappings[key.str] = new Mapping__default(key, options);
     mapping.initViewmodel(this);
     return mapping;
   };
@@ -14169,7 +14177,7 @@
   //# sourceMappingURL=01-_6to5-map.js.map
 
   function mark__Viewmodel$mark(keypath, options) {
-    var computation;
+    var computation, keypathStr = keypath.str;
 
     runloop__default.addViewmodel(this); // TODO remove other instances of this call
 
@@ -14177,14 +14185,14 @@
     // should not be picked up by pattern observers
     if (options) {
       if (options.implicit) {
-        this.implicitChanges[keypath] = true;
+        this.implicitChanges[keypathStr] = true;
       }
       if (options.noCascade) {
-        this.noCascade[keypath] = true;
+        this.noCascade[keypathStr] = true;
       }
     }
 
-    if (computation = this.computations[keypath]) {
+    if (computation = this.computations[keypathStr]) {
       computation.invalidate();
     }
 
@@ -14195,7 +14203,7 @@
     // pass on dontTeardownWrapper, if we can
     var dontTeardownWrapper = options ? options.dontTeardownWrapper : false;
 
-    this.clearCache(keypath, dontTeardownWrapper);
+    this.clearCache(keypathStr, dontTeardownWrapper);
   };
   var mark__default = mark__Viewmodel$mark;
   //# sourceMappingURL=01-_6to5-mark.js.map
@@ -14315,47 +14323,42 @@
     var mapping, depsByKeypath, deps;
 
     if (dependant.isStatic) {
-      return;
+      return; // TODO we should never get here if a dependant is static...
     }
 
-    if (mapping = this.mappings[keypaths__getKey(keypath)]) {
-      return mapping.register(keypath, dependant, group);
+    if (mapping = this.mappings[keypath.firstKey]) {
+      mapping.register(keypath, dependant, group);
+    } else {
+      depsByKeypath = this.deps[group] || (this.deps[group] = {});
+      deps = depsByKeypath[keypath.str] || (depsByKeypath[keypath.str] = []);
+
+      deps.push(dependant);
+
+      if (!keypath.isRoot) {
+        register__updateDependantsMap(this, keypath, group);
+      }
     }
-
-    depsByKeypath = this.deps[group] || (this.deps[group] = {});
-    deps = depsByKeypath[keypath] || (depsByKeypath[keypath] = []);
-
-    deps.push(dependant);
-
-    if (!keypath) {
-      return;
-    }
-
-    register__updateDependantsMap(this, keypath, group);
   };
   var register__default = register__Viewmodel$register;
 
   function register__updateDependantsMap(viewmodel, keypath, group) {
-    var keys, parentKeypath, map, parent;
+    var map, parent, keypathStr;
 
     // update dependants map
-    keys = keypath.split(".");
-
-    while (keys.length) {
-      keys.pop();
-      parentKeypath = keys.join(".");
-
+    while (!keypath.isRoot) {
       map = viewmodel.depsMap[group] || (viewmodel.depsMap[group] = {});
-      parent = map[parentKeypath] || (map[parentKeypath] = []);
+      parent = map[keypath.parent.str] || (map[keypath.parent.str] = []);
 
-      if (parent[keypath] === undefined) {
-        parent[keypath] = 0;
+      keypathStr = keypath.str;
+
+      // TODO find an alternative to this nasty approach
+      if (parent["_" + keypathStr] === undefined) {
+        parent["_" + keypathStr] = 0;
         parent.push(keypath);
       }
 
-      parent[keypath] += 1;
-
-      keypath = parentKeypath;
+      parent["_" + keypathStr] += 1;
+      keypath = keypath.parent;
     }
   }
   //# sourceMappingURL=01-_6to5-register.js.map
@@ -14374,12 +14377,12 @@
     if (!options.noMapping) {
       // If this data belongs to a different viewmodel,
       // pass the change along
-      if (mapping = this.mappings[keypaths__getKey(keypath)]) {
+      if (mapping = this.mappings[keypath.firstKey]) {
         return mapping.set(keypath, value);
       }
     }
 
-    computation = this.computations[keypath];
+    computation = this.computations[keypath.str];
     if (computation) {
       if (computation.setting) {
         // let the other computation set() handle things...
@@ -14389,11 +14392,11 @@
       value = computation.get();
     }
 
-    if (is__isEqual(this.cache[keypath], value)) {
+    if (is__isEqual(this.cache[keypath.str], value)) {
       return;
     }
 
-    wrapper = this.wrapped[keypath];
+    wrapper = this.wrapped[keypath.str];
 
     // If we have a wrapper with a `reset()` method, we try and use it. If the
     // `reset()` method returns false, the wrapper should be torn down, and
@@ -14416,17 +14419,17 @@
       // We're setting a parent of the original target keypath (i.e.
       // creating a fresh branch) - we need to clear the cache, but
       // not mark it as a change
-      this.clearCache(keypath);
+      this.clearCache(keypath.str);
     }
   };
   var set__default = set__Viewmodel$set;
 
   function set__resolveSet(viewmodel, keypath, value) {
-    var keys, lastKey, parentKeypath, wrapper, parentValue, wrapperSet, valueSet;
+    var wrapper, parentValue, wrapperSet, valueSet;
 
     wrapperSet = function () {
       if (wrapper.set) {
-        wrapper.set(lastKey, value);
+        wrapper.set(keypath.lastKey, value);
       } else {
         parentValue = wrapper.get();
         valueSet();
@@ -14435,26 +14438,22 @@
 
     valueSet = function () {
       if (!parentValue) {
-        parentValue = createBranch__default(lastKey);
-        viewmodel.set(parentKeypath, parentValue, { silent: true });
+        parentValue = createBranch__default(keypath.lastKey);
+        viewmodel.set(keypath.parent, parentValue, { silent: true });
       }
-      parentValue[lastKey] = value;
+      parentValue[keypath.lastKey] = value;
     };
 
-    keys = keypath.split(".");
-    lastKey = keys.pop();
-    parentKeypath = keys.join(".");
-
-    wrapper = viewmodel.wrapped[parentKeypath];
+    wrapper = viewmodel.wrapped[keypath.parent.str];
 
     if (wrapper) {
       wrapperSet();
     } else {
-      parentValue = viewmodel.get(parentKeypath);
+      parentValue = viewmodel.get(keypath.parent);
 
       // may have been wrapped via the above .get()
       // call on viewmodel if this is first access via .set()!
-      if (wrapper = viewmodel.wrapped[parentKeypath]) {
+      if (wrapper = viewmodel.wrapped[keypath.parent.str]) {
         wrapperSet();
       } else {
         valueSet();
@@ -14467,14 +14466,14 @@
 
   function smartUpdate__Viewmodel$smartUpdate(keypath, array, newIndices) {
     var _this = this;
-    var dependants, oldLength;
+    var dependants, oldLength, i;
 
     oldLength = newIndices.length;
 
     // Indices that are being removed should be marked as dirty
     newIndices.forEach(function (newIndex, oldIndex) {
       if (newIndex === -1) {
-        _this.mark(keypath + "." + oldIndex, smartUpdate__noCascadeOption);
+        _this.mark(keypath.join(oldIndex), smartUpdate__noCascadeOption);
       }
     });
 
@@ -14482,23 +14481,23 @@
     // TODO allow existing array to be updated in place, rather than replaced?
     this.set(keypath, array, { silent: true });
 
-    if (dependants = this.deps["default"][keypath]) {
+    if (dependants = this.deps["default"][keypath.str]) {
       dependants.filter(smartUpdate__canShuffle).forEach(function (d) {
         return d.shuffle(newIndices, array);
       });
     }
 
     if (oldLength !== array.length) {
-      this.mark(keypath + ".length", smartUpdate__implicitOption);
+      this.mark(keypath.join("length"), smartUpdate__implicitOption);
 
-      for (var i = oldLength; i < array.length; i += 1) {
-        this.mark(keypath + "." + i);
+      for (i = oldLength; i < array.length; i += 1) {
+        this.mark(keypath.join(i));
       }
 
       // don't allow removed indexes beyond end of new array to trigger recomputations
       // TODO is this still necessary, now that computations are lazy?
-      for (var i = array.length; i < oldLength; i += 1) {
-        this.mark(keypath + "." + i, smartUpdate__noCascadeOption);
+      for (i = array.length; i < oldLength; i += 1) {
+        this.mark(keypath.join(i), smartUpdate__noCascadeOption);
       }
     }
   };
@@ -14535,11 +14534,11 @@
       return;
     }
 
-    if (mapping = this.mappings[keypaths__getKey(keypath)]) {
+    if (mapping = this.mappings[keypath.firstKey]) {
       return mapping.unregister(keypath, dependant, group);
     }
 
-    deps = this.deps[group][keypath];
+    deps = this.deps[group][keypath.str];
     index = deps.indexOf(dependant);
 
     if (index === -1) {
@@ -14548,7 +14547,7 @@
 
     deps.splice(index, 1);
 
-    if (!keypath) {
+    if (keypath.isRoot) {
       return;
     }
 
@@ -14557,27 +14556,22 @@
   var unregister__default = unregister__Viewmodel$unregister;
 
   function unregister__updateDependantsMap(viewmodel, keypath, group) {
-    var keys, parentKeypath, map, parent;
+    var map, parent;
 
     // update dependants map
-    keys = keypath.split(".");
-
-    while (keys.length) {
-      keys.pop();
-      parentKeypath = keys.join(".");
-
+    while (!keypath.isRoot) {
       map = viewmodel.depsMap[group];
-      parent = map[parentKeypath];
+      parent = map[keypath.parent.str];
 
-      parent[keypath] -= 1;
+      parent["_" + keypath.str] -= 1;
 
-      if (!parent[keypath]) {
+      if (!parent["_" + keypath.str]) {
         // remove from parent deps map
         array__removeFromArray(parent, keypath);
-        parent[keypath] = undefined;
+        parent["_" + keypath.str] = undefined;
       }
 
-      keypath = parentKeypath;
+      keypath = keypath.parent;
     }
   }
   //# sourceMappingURL=01-_6to5-unregister.js.map
@@ -14877,7 +14871,7 @@
       owner: this
     });
 
-    this.parameters.addData(this.key, this.fragment.getValue());
+    this.parameters.addData(this.key.str, this.fragment.getValue());
   }
 
   var ComplexParameter__default = ComplexParameter__ComplexParameter;
@@ -14893,7 +14887,7 @@
     update: function () {
       var viewmodel = this.parameters.component.instance.viewmodel;
 
-      this.parameters.addData(this.key, this.fragment.getValue());
+      this.parameters.addData(this.key.str, this.fragment.getValue());
       viewmodel.mark(this.key);
 
       this.dirty = false;
@@ -15028,7 +15022,6 @@
   ParameterResolver__ParameterResolver.prototype = {
     resolve: function (keypath) {
       this.resolved = true;
-      this.specialRef = keypath[0] === "@";
 
       if (this.ready) {
         this.readyResolve(keypath);
@@ -15038,8 +15031,8 @@
     },
 
     notReadyResolve: function (keypath) {
-      if (this.specialRef) {
-        this.parameters.addData(this.key, keypaths__decodeKeypath(keypath));
+      if (keypath.isSpecial) {
+        this.parameters.addData(this.key.str, keypath.value);
       } else {
         var mapping = this.parameters.addMapping(this.key, keypath);
 
@@ -15052,13 +15045,13 @@
     readyResolve: function (keypath) {
       var viewmodel = this.parameters.component.instance.viewmodel;
 
-      if (this.specialRef) {
-        this.parameters.addData(this.key, keypaths__decodeKeypath(keypath));
+      if (keypath.isSpecial) {
+        this.parameters.addData(this.key.str, keypath.value);
         viewmodel.mark(this.key);
-      } else if (viewmodel.reversedMappings && viewmodel.reversedMappings[this.key]) {
-        viewmodel.reversedMappings[this.key].rebind(keypath);
+      } else if (viewmodel.reversedMappings && viewmodel.reversedMappings[this.key.str]) {
+        viewmodel.reversedMappings[this.key.str].rebind(keypath);
       } else {
-        viewmodel.mappings[this.key].resolve(keypath);
+        viewmodel.mappings[this.key.str].resolve(keypath);
       }
     }
   };
@@ -15098,14 +15091,14 @@
     this.parentViewmodel = component.root.viewmodel;
     this.data = {};
     this.mappings = object__create(null);
-    this.newKeys = [];
+    this.newKeys = []; // TODO it's not obvious that this does anything?
     this.keys = Object.keys(attributes);
 
     this.keys.forEach(function (key) {
       if (defined && !defined[key]) {
         _this.newKeys.push(key);
       }
-      _this.add(key, attributes[key]);
+      _this.add(keypaths__getKeypath(key), attributes[key]);
     });
   }
 
@@ -15114,14 +15107,14 @@
       // We have static data
       if (typeof template === "string") {
         var parsed = parseJSON__default(template);
-        this.addData(key, parsed ? parsed.value : template);
+        this.addData(key.str, parsed ? parsed.value : template);
       }
       // Empty string
       // TODO valueless attributes also end up here currently
       // (i.e. `<widget bool>` === `<widget bool=''>`) - this
       // is probably incorrect
       else if (template === 0) {
-        this.addData(key);
+        this.addData(key.str);
       }
       // Interpolators
       else {
@@ -15144,9 +15137,14 @@
     },
 
     addMapping: function (key, keypath) {
+      var mapping;
+
       // map directly to the source if possible...
-      var mapping = this.parentViewmodel.mappings[keypath];
-      return this.mappings[key] = new Mapping__default(key, {
+      if (keypath) {
+        mapping = this.parentViewmodel.mappings[keypath.str];
+      }
+
+      return this.mappings[key.str] = new Mapping__default(key, {
         origin: mapping ? mapping.origin : this.parentViewmodel,
         keypath: mapping ? mapping.keypath : keypath
       });
@@ -15550,9 +15548,7 @@
         template: template,
         index: i
       });
-    }).filter(function (i) {
-      return i !== null;
-    });
+    }).filter(Fragment_prototype_init__notNull);
 
     this.value = this.argsList = null;
     this.dirtyArgs = this.dirtyValue = true;
@@ -15560,6 +15556,14 @@
     this.bound = true;
   };
   var Fragment_prototype_init__default = Fragment_prototype_init__Fragment$init;
+
+  function Fragment_prototype_init__notNull(item) {
+    if (!item) {
+      throw new Error("null item");
+    }
+
+    return true;
+  }
   //# sourceMappingURL=01-_6to5-init.js.map
 
   function Fragment_prototype_rebind__Fragment$rebind(oldKeypath, newKeypath) {
@@ -15722,7 +15726,7 @@
     if (rerender) {
       var component;
 
-      this.viewmodel.mark("");
+      this.viewmodel.mark(keypaths__rootKeypath);
 
       // Is this is a component, we need to set the `shouldDestroy`
       // flag, otherwise it will assume by default that a parent node
@@ -15753,7 +15757,7 @@
       promise = this.render(this.el, this.anchor);
     } else {
       promise = runloop__default.start(this, true);
-      this.viewmodel.mark("");
+      this.viewmodel.mark(keypaths__rootKeypath);
       runloop__default.end();
     }
 
@@ -15917,7 +15921,7 @@
       for (keypath in map) {
         if (map.hasOwnProperty(keypath)) {
           value = map[keypath];
-          keypath = keypaths__normalise(keypath);
+          keypath = keypaths__getKeypath(keypaths__normalise(keypath));
 
           this.viewmodel.set(keypath, value);
         }
@@ -15926,10 +15930,12 @@
 
     // Set a single keypath
     else {
-      keypath = keypaths__normalise(keypath);
+      keypath = keypaths__getKeypath(keypaths__normalise(keypath));
 
-      if (prototype_set__wildcard.test(keypath)) {
-        keypaths__getMatchingKeypaths(this, keypath).forEach(function (keypath) {
+      // TODO a) wildcard test should probably happen at viewmodel level,
+      // b) it should apply to multiple/single set operations
+      if (prototype_set__wildcard.test(keypath.str)) {
+        keypaths__getMatchingKeypaths(this, keypath.str).forEach(function (keypath) {
           _this.viewmodel.set(keypath, value);
         });
       } else {
@@ -16103,9 +16109,9 @@
 
     if (typeof keypath === "function") {
       callback = keypath;
-      keypath = "";
+      keypath = keypaths__rootKeypath;
     } else {
-      keypath = keypath || "";
+      keypath = keypaths__getKeypath(keypath) || keypaths__rootKeypath;
     }
 
     promise = runloop__default.start(this, true);
@@ -16146,7 +16152,8 @@
       bindings = [];
 
       for (key in this._twowayBindings) {
-        if (!keypath || keypaths__equalsOrStartsWith(key, keypath)) {
+        if (!keypath || keypaths__getKeypath(key).equalsOrStartsWith(keypath)) {
+          // TODO is this right?
           bindings.push.apply(bindings, this._twowayBindings[key]);
         }
       }
@@ -16171,9 +16178,9 @@
       // special case - checkbox name bindings come in groups, so
       // we want to get the value once at most
       if (b.checkboxName) {
-        if (!checkboxGroups[b.keypath] && !b.changed()) {
+        if (!checkboxGroups[b.keypath.str] && !b.changed()) {
           checkboxGroups.push(b.keypath);
-          checkboxGroups[b.keypath] = b;
+          checkboxGroups[b.keypath.str] = b;
         }
 
         return;
@@ -16187,7 +16194,7 @@
       }
 
       if (!is__isEqual(oldValue, newValue)) {
-        values[b.keypath] = newValue;
+        values[b.keypath.str] = newValue;
       }
     });
 
@@ -16196,12 +16203,12 @@
       checkboxGroups.forEach(function (keypath) {
         var binding, oldValue, newValue;
 
-        binding = checkboxGroups[keypath]; // one to represent the entire group
+        binding = checkboxGroups[keypath.str]; // one to represent the entire group
         oldValue = binding.attribute.value;
         newValue = binding.getValue();
 
         if (!array__arrayContentsMatch(oldValue, newValue)) {
-          values[keypath] = newValue;
+          values[keypath.str] = newValue;
         }
       });
     }
@@ -16256,39 +16263,8 @@
     var options = {};
 
     while (Child) {
-      registries__default.forEach(function (r) {
-        unwrapExtended__addRegistry(r.useDefaults ? Child.prototype : Child, options, r.name);
-      });
-
-      Object.keys(Child.prototype).forEach(function (key) {
-        if (key === "computed") {
-          return;
-        }
-
-        var value = Child.prototype[key];
-
-        if (!(key in options)) {
-          options[key] = value._method ? value._method : value;
-        }
-
-        // is it a wrapped function?
-        else if (typeof options[key] === "function" && typeof value === "function" && options[key]._method) {
-          var result, needsSuper = value._method;
-
-          if (needsSuper) {
-            value = value._method;
-          }
-
-          // rewrap bound directly to parent fn
-          result = wrap__default(options[key]._method, value);
-
-          if (needsSuper) {
-            result._method = result;
-          }
-
-          options[key] = result;
-        }
-      });
+      unwrapExtended__addRegistries(Child, options);
+      unwrapExtended__addOtherOptions(Child, options);
 
       if (Child._Parent !== Ractive__default) {
         Child = Child._Parent;
@@ -16300,6 +16276,12 @@
     return options;
   };
   var unwrapExtended__default = unwrapExtended__unwrap;
+
+  function unwrapExtended__addRegistries(Child, options) {
+    registries__default.forEach(function (r) {
+      unwrapExtended__addRegistry(r.useDefaults ? Child.prototype : Child, options, r.name);
+    });
+  }
 
   function unwrapExtended__addRegistry(target, options, name) {
     var registry, keys = Object.keys(target[name]);
@@ -16316,6 +16298,38 @@
       return !(key in registry);
     }).forEach(function (key) {
       return registry[key] = target[name][key];
+    });
+  }
+
+  function unwrapExtended__addOtherOptions(Child, options) {
+    Object.keys(Child.prototype).forEach(function (key) {
+      if (key === "computed") {
+        return;
+      }
+
+      var value = Child.prototype[key];
+
+      if (!(key in options)) {
+        options[key] = value._method ? value._method : value;
+      }
+
+      // is it a wrapped function?
+      else if (typeof options[key] === "function" && typeof value === "function" && options[key]._method) {
+        var result, needsSuper = value._method;
+
+        if (needsSuper) {
+          value = value._method;
+        }
+
+        // rewrap bound directly to parent fn
+        result = wrap__default(options[key]._method, value);
+
+        if (needsSuper) {
+          result._method = result;
+        }
+
+        options[key] = result;
+      }
     });
   }
   //# sourceMappingURL=01-_6to5-unwrapExtended.js.map
@@ -16376,7 +16390,7 @@
     }
 
     info.ractive = priv.root;
-    info.keypath = priv.keypath;
+    info.keypath = priv.keypath.str;
     info.index = {};
 
     // find all index references and resolve them
