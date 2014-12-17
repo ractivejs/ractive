@@ -25,7 +25,8 @@ var ReferenceResolver = function ( owner, ref, callback ) {
 ReferenceResolver.prototype = {
 	resolve: function ( keypath ) {
 		if ( this.keypath && !keypath ) {
-			console.log( 'adding back to unresolved pile', this );
+			// it was resolved, and now it's not. Can happen if e.g. `bar` in
+			// `{{foo[bar]}}` becomes undefined
 			runloop.addUnresolved( this );
 		}
 

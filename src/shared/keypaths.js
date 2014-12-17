@@ -64,11 +64,11 @@ Keypath.prototype = {
 export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
 	var existingKeypath = target[ property ];
 
-	if ( !existingKeypath || existingKeypath.equalsOrStartsWith( newKeypath ) || !existingKeypath.equalsOrStartsWith( oldKeypath ) ) {
+	if ( existingKeypath && ( existingKeypath.equalsOrStartsWith( newKeypath ) || !existingKeypath.equalsOrStartsWith( oldKeypath ) ) ) {
 		return;
 	}
 
-	target[ property ] = existingKeypath.replace( oldKeypath, newKeypath );
+	target[ property ] = existingKeypath ? existingKeypath.replace( oldKeypath, newKeypath ) : newKeypath;
 	return true;
 }
 
@@ -91,7 +91,7 @@ export function getKeypath ( str ) {
 	if ( str == null ) {
 		return str;
 	}
-	
+
 	return keypathCache[ str ] || ( keypathCache[ str ] = new Keypath( str ) );
 }
 

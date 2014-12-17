@@ -49,7 +49,7 @@ export default function Mustache$init ( mustache, options ) {
 	function resolveAndRebindChildren ( newKeypath ) {
 		var oldKeypath = mustache.keypath;
 
-		if ( newKeypath !== oldKeypath ) {
+		if ( newKeypath != oldKeypath ) {
 			mustache.resolve( newKeypath );
 
 			if ( oldKeypath !== undefined ) {

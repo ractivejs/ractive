@@ -79,7 +79,7 @@ ReferenceExpressionResolver.prototype = {
 			this.baseResolver = null;
 		}
 
-		this.members.forEach( m => m.forceResolution() );
+		this.members.forEach( forceResolution );
 		this.bubble();
 	}
 };
@@ -90,6 +90,10 @@ function getValue ( member ) {
 
 function isDefined ( value ) {
 	return value != undefined;
+}
+
+function forceResolution ( member ) {
+	member.forceResolution();
 }
 
 export default ReferenceExpressionResolver;
