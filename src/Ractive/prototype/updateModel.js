@@ -1,5 +1,5 @@
 import { arrayContentsMatch } from 'utils/array';
-import { equalsOrStartsWith } from 'shared/keypaths';
+import { getKeypath } from 'shared/keypaths';
 import { isEqual } from 'utils/is';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
@@ -11,7 +11,7 @@ export default function Ractive$updateModel ( keypath, cascade ) {
 		bindings = [];
 
 		for ( key in this._twowayBindings ) {
-			if ( !keypath || equalsOrStartsWith( key, keypath ) ) {
+			if ( !keypath || getKeypath( key ).equalsOrStartsWith( keypath ) ) { // TODO is this right?
 				bindings.push.apply( bindings, this._twowayBindings[ key ]);
 			}
 		}
@@ -35,9 +35,9 @@ function consolidate ( ractive, bindings ) {
 		// special case - checkbox name bindings come in groups, so
 		// we want to get the value once at most
 		if ( b.checkboxName ) {
-			if ( !checkboxGroups[ b.keypath ] && !b.changed() ) {
+			if ( !checkboxGroups[ b.keypath.str ] && !b.changed() ) {
 				checkboxGroups.push( b.keypath );
-				checkboxGroups[ b.keypath ] = b;
+				checkboxGroups[ b.keypath.str ] = b;
 			}
 
 			return;
@@ -51,7 +51,7 @@ function consolidate ( ractive, bindings ) {
 		}
 
 		if ( !isEqual( oldValue, newValue ) ) {
-			values[ b.keypath ] = newValue;
+			values[ b.keypath.str ] = newValue;
 		}
 	});
 
@@ -60,12 +60,12 @@ function consolidate ( ractive, bindings ) {
 		checkboxGroups.forEach( keypath => {
 			var binding, oldValue, newValue;
 
-			binding = checkboxGroups[ keypath ]; // one to represent the entire group
+			binding = checkboxGroups[ keypath.str ]; // one to represent the entire group
 			oldValue = binding.attribute.value;
 			newValue = binding.getValue();
 
 			if ( !arrayContentsMatch( oldValue, newValue ) ) {
-				values[ keypath ] = newValue;
+				values[ keypath.str ] = newValue;
 			}
 		});
 	}

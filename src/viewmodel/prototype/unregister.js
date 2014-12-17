@@ -1,5 +1,4 @@
 import { removeFromArray } from 'utils/array';
-import { getKey } from 'shared/keypaths';
 
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
 	var mapping, deps, index;
@@ -8,11 +7,11 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 		return;
 	}
 
-	if ( mapping = this.mappings[ getKey( keypath ) ] ) {
+	if ( mapping = this.mappings[ keypath.firstKey ] ) {
 		return mapping.unregister( keypath, dependant, group );
 	}
 
-	deps = this.deps[ group ][ keypath ];
+	deps = this.deps[ group ][ keypath.str ];
 	index = deps.indexOf( dependant );
 
 	if ( index === -1 ) {
@@ -21,7 +20,7 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 
 	deps.splice( index, 1 );
 
-	if ( !keypath ) {
+	if ( keypath.isRoot ) {
 		return;
 	}
 
@@ -29,26 +28,21 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 }
 
 function updateDependantsMap ( viewmodel, keypath, group ) {
-	var keys, parentKeypath, map, parent;
+	var map, parent;
 
 	// update dependants map
-	keys = keypath.split( '.' );
-
-	while ( keys.length ) {
-		keys.pop();
-		parentKeypath = keys.join( '.' );
-
+	while ( !keypath.isRoot ) {
 		map = viewmodel.depsMap[ group ];
-		parent = map[ parentKeypath ];
+		parent = map[ keypath.parent.str ];
 
-		parent[ keypath ] -= 1;
+		parent[ '_' + keypath.str ] -= 1;
 
-		if ( !parent[ keypath ] ) {
+		if ( !parent[ '_' + keypath.str ] ) {
 			// remove from parent deps map
 			removeFromArray( parent, keypath );
-			parent[ keypath ] = undefined;
+			parent[ '_' + keypath.str ] = undefined;
 		}
 
-		keypath = parentKeypath;
+		keypath = keypath.parent;
 	}
 }

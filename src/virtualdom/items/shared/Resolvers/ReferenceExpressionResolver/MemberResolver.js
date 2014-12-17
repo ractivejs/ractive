@@ -3,8 +3,6 @@ import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createRef
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 var MemberResolver = function ( template, resolver, parentFragment ) {
-	var keypath;
-
 	this.resolver = resolver;
 	this.root = resolver.root;
 	this.parentFragment = parentFragment;

@@ -11,11 +11,17 @@ if ( window.performance && window.performance.now ) {
 
 function runSuite ( tests, version, ractiveUrl, callback ) {
 	var testResults = { tests: [] },
-		container = document.querySelector( '.iframe-container' );
+		container = document.querySelector( '.iframe-container' ),
+		solo;
 
 	console.group( 'running performance tests (' + version + ')' );
 
-	tests = tests.slice();
+	tests = tests.filter( function ( t ) { return !t.skip; });
+
+	solo = tests.filter( function ( t ) { return t.solo; });
+	if ( solo.length ) {
+		tests = solo;
+	}
 
 	function runNextTest () {
 		var test, frame;

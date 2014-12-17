@@ -1,5 +1,13 @@
 import { isArray } from 'utils/is';
 
+export function addToArray ( array, value ) {
+	var index = array.indexOf( value );
+
+	if ( index === -1 ) {
+		array.push( value );
+	}
+}
+
 export function arrayContains ( array, value ) {
 	for ( let i = 0, c = array.length; i < c; i++ ) {
 		if ( array[i] == value ) {

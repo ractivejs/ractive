@@ -16,7 +16,6 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.template       = options.template;
 	mustache.index          = options.index || 0;
-	mustache.key            = options.key;
 	mustache.isStatic       = options.template.s;
 
 	mustache.type = options.template.t;
@@ -50,7 +49,7 @@ export default function Mustache$init ( mustache, options ) {
 	function resolveAndRebindChildren ( newKeypath ) {
 		var oldKeypath = mustache.keypath;
 
-		if ( newKeypath !== oldKeypath ) {
+		if ( newKeypath != oldKeypath ) {
 			mustache.resolve( newKeypath );
 
 			if ( oldKeypath !== undefined ) {

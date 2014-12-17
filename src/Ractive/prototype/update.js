@@ -1,6 +1,7 @@
 import Hook from './shared/hooks/Hook';
 import log from 'utils/log/log';
 import runloop from 'global/runloop';
+import { getKeypath, rootKeypath } from 'shared/keypaths';
 
 var updateHook = new Hook( 'update' );
 
@@ -9,9 +10,9 @@ export default function Ractive$update ( keypath, callback ) {
 
 	if ( typeof keypath === 'function' ) {
 		callback = keypath;
-		keypath = '';
+		keypath = rootKeypath;
 	} else {
-		keypath = keypath || '';
+		keypath = getKeypath( keypath ) || rootKeypath;
 	}
 
 	promise = runloop.start( this, true );

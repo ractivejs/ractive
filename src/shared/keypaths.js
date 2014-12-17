@@ -1,15 +1,78 @@
 import { isArray, isNumeric } from 'utils/is';
+import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
-var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+var refPattern, keypathCache, Keypath;
+
+refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+
+keypathCache = {};
+
+Keypath = function ( str ) {
+	var keys = str.split( '.' );
+
+	this.str = str;
+
+	if ( str[0] === '@' ) {
+		this.isSpecial = true;
+		this.value = decodeKeypath( str );
+	}
+
+	this.firstKey = keys[0];
+	this.lastKey = keys.pop();
+
+	this.parent = str === '' ? null : getKeypath( keys.join( '.' ) );
+	this.isRoot = !str;
+};
+
+Keypath.prototype = {
+	equalsOrStartsWith ( keypath ) {
+		return keypath === this || this.startsWith( keypath );
+	},
+
+	join ( str ) {
+		return getKeypath( this.isRoot ? String( str ) : this.str + '.' + str );
+	},
+
+	replace ( oldKeypath, newKeypath ) {
+		if ( this === oldKeypath ) {
+			return newKeypath;
+		}
+
+		if ( this.startsWith( oldKeypath ) ) {
+			return newKeypath === null ? newKeypath : getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
+		}
+	},
+
+	startsWith ( keypath ) {
+		if ( !keypath ) {
+			// TODO under what circumstances does this happen?
+			return false;
+		}
+
+		return keypath && this.str.substr( 0, keypath.str.length + 1 ) === keypath.str + '.';
+	},
+
+	toString () {
+		throw new Error( 'Bad coercion' );
+	},
+
+	valueOf () {
+		throw new Error( 'Bad coercion' );
+	},
+
+	wildcardMatches () {
+		return this._wildcardMatches || ( this._wildcardMatches = getPotentialWildcardMatches( this.str ) );
+	}
+};
 
 export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
 	var existingKeypath = target[ property ];
 
-	if ( !existingKeypath || equalsOrStartsWith( existingKeypath, newKeypath ) || !equalsOrStartsWith( existingKeypath, oldKeypath ) ) {
+	if ( existingKeypath && ( existingKeypath.equalsOrStartsWith( newKeypath ) || !existingKeypath.equalsOrStartsWith( oldKeypath ) ) ) {
 		return;
 	}
 
-	target[ property ] = getNewKeypath( existingKeypath, oldKeypath, newKeypath );
+	target[ property ] = existingKeypath ? existingKeypath.replace( oldKeypath, newKeypath ) : newKeypath;
 	return true;
 }
 
@@ -23,20 +86,19 @@ export function decodeKeypath ( keypath ) {
 	}
 }
 
-export function equalsOrStartsWith ( target, keypath) {
-	return target === keypath || startsWithKeypath(target, keypath);
-}
+export function getKeypath ( str ) {
+	if ( str == null ) {
+		return str;
+	}
 
-export function getKey ( keypath ) {
-	var index = keypath.indexOf( '.' );
-	return ~index ? keypath.slice( 0, index ) : keypath;
+	return keypathCache[ str ] || ( keypathCache[ str ] = new Keypath( str ) );
 }
 
 export function getMatchingKeypaths ( ractive, pattern ) {
 	var keys, key, matchingKeypaths;
 
 	keys = pattern.split( '.' );
-	matchingKeypaths = [ '' ];
+	matchingKeypaths = [ rootKeypath ];
 
 	while ( key = keys.shift() ) {
 		if ( key === '*' ) {
@@ -45,8 +107,8 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 		}
 
 		else {
-			if ( matchingKeypaths[0] === '' ) { // first key
-				matchingKeypaths[0] = key;
+			if ( matchingKeypaths[0] === rootKeypath ) { // first key
+				matchingKeypaths[0] = getKeypath( key );
 			} else {
 				matchingKeypaths = matchingKeypaths.map( concatenate( key ) );
 			}
@@ -56,14 +118,14 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 	return matchingKeypaths;
 
 	function expand ( matchingKeypaths, keypath ) {
-		var value, key, childKeypath;
+		var wrapper, value, key;
 
-		value = ( ractive.viewmodel.wrapped[ keypath ] ? ractive.viewmodel.wrapped[ keypath ].get() : ractive.get( keypath ) );
+		wrapper = ractive.viewmodel.wrapped[ keypath.str ];
+		value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
 
 		for ( key in value ) {
 			if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
-				childKeypath = keypath ? keypath + '.' + key : key;
-				matchingKeypaths.push( childKeypath );
+				matchingKeypaths.push( keypath.join( key ) );
 			}
 		}
 
@@ -73,26 +135,12 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 
 function concatenate ( key ) {
 	return function ( keypath ) {
-		return keypath ? keypath + '.' + key : key;
+		return keypath.join( key );
 	};
-}
-
-export function getNewKeypath( targetKeypath, oldKeypath, newKeypath ) {
-	// exact match
-	if ( targetKeypath === oldKeypath ) {
-		return newKeypath !== undefined ? newKeypath : null;
-	}
-
-	// partial match based on leading keypath segments
-	if ( startsWithKeypath( targetKeypath, oldKeypath ) ){
-		return newKeypath === null ? newKeypath : targetKeypath.replace( oldKeypath + '.', newKeypath + '.' );
-	}
 }
 
 export function normalise ( ref ) {
 	return ref ? ref.replace( refPattern, '.$1' ) : '';
 }
 
-export function startsWithKeypath( target, keypath) {
-	return target && keypath && target.substr( 0, keypath.length + 1 ) === keypath + '.';
-}
+export var rootKeypath = getKeypath( '' );

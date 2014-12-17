@@ -64,15 +64,12 @@ tests = [
   {
     name: 'example test',
     setup: () => {
-      var TestComponent = Ractive.extend({
+      window.TestComponent = Ractive.extend({
         /* ... */
       });
-
-      // we want to pass this value to the test function
-      return TestComponent;
     },
     test: TestComponent => {
-      var ractive = new TestComponent({ el: 'body' });
+      var ractive = new window.TestComponent({ el: 'body' });
     }
   }
 ];
@@ -85,20 +82,25 @@ tests = [
   {
     name: 'example test',
     setup: done => {
-      var TestComponent = Ractive.extend({
+      window.TestComponent = Ractive.extend({
         /* ... */
       });
 
       doSomethingAsync().then( function () {
-      	// first argument is error, second is data
-      	done( null, TestComponent );
+      	// if there's an error, pass it
+      	done( null );
       });
     },
-    test: TestComponent => {
-      var ractive = new TestComponent({ el: 'body' });
+    test: () => {
+      var ractive = new window.TestComponent({ el: 'body' });
     }
   }
 ];
 ```
 
 You can use ES6 syntax (as long as it's supported by [es6-transpiler](https://github.com/termi/es6-transpiler)), which means you can use multi-line template strings.
+
+
+## Skipping tests
+
+If you want to run specific tests, add `solo: true` to the definition. Conversely, use `skip: true` to skip a test.

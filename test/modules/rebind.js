@@ -4,14 +4,16 @@ define([
 	'virtualdom/Fragment',
 	'virtualdom/items/Element/_Element',
 	'virtualdom/items/Triple/_Triple',
-	'config/types'
+	'config/types',
+	'shared/keypaths'
 ], function (
 	Ractive,
 	Viewmodel,
 	Fragment,
 	Element,
 	Triple,
-	types
+	types,
+	keypaths
 ) {
 
 	'use strict';
@@ -38,7 +40,7 @@ define([
 				var resolved, fragment, el, triple;
 
 				fragment = {
-					context: opt.target,
+					context: keypaths.getKeypath( opt.target ),
 					items: [],
 					root: {
 						'data': {},
@@ -84,12 +86,12 @@ define([
 
 				fragment.render();
 				fragment.index = opt.newKeypath.replace( 'items.', '' );
-				fragment.rebind( opt.oldKeypath, opt.newKeypath );
+				fragment.rebind( keypaths.getKeypath( opt.oldKeypath ), keypaths.getKeypath( opt.newKeypath ) );
 
-				t.equal( fragment.context, opt.expected );
-				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );
+				t.equal( fragment.context, keypaths.getKeypath( opt.expected ) );
+				t.equal( fragment.items[0].node._ractive.keypath, keypaths.getKeypath( opt.expected ) );
 				if(opt.target!==opt.newKeypath){
-					t.equal( resolved, opt.expected );
+					t.equal( resolved, keypaths.getKeypath( opt.expected ) );
 				}
 
 				t.htmlEqual( fixture.innerHTML, '' );

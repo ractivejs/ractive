@@ -3,6 +3,7 @@ import Fragment from 'virtualdom/Fragment';
 import Hook from './shared/hooks/Hook';
 import log from 'utils/log/log';
 import runloop from 'global/runloop';
+import { rootKeypath } from 'shared/keypaths';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],
 	resetHook = new Hook( 'reset' );
@@ -46,7 +47,7 @@ export default function Ractive$reset ( data, callback ) {
 	if ( rerender ) {
 		let component;
 
-		this.viewmodel.mark( '' );
+		this.viewmodel.mark( rootKeypath );
 
 		// Is this is a component, we need to set the `shouldDestroy`
 	 	// flag, otherwise it will assume by default that a parent node
@@ -77,7 +78,7 @@ export default function Ractive$reset ( data, callback ) {
 		promise = this.render( this.el, this.anchor );
 	} else {
 		promise = runloop.start( this, true );
-		this.viewmodel.mark( '' );
+		this.viewmodel.mark( rootKeypath );
 		runloop.end();
 	}
 

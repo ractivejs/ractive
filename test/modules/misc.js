@@ -1487,8 +1487,13 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.set( 'i', 0 );
+			t.htmlEqual( fixture.innerHTML, 'a' );
+
 			ractive.set( 'i', 1 );
+			t.htmlEqual( fixture.innerHTML, 'b' );
+
 			ractive.set( 'i', null );
+			t.htmlEqual( fixture.innerHTML, '' );
 			ractive.set( 'i', 2 );
 
 			t.htmlEqual( fixture.innerHTML, 'c' );

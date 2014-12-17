@@ -12,7 +12,7 @@ function ComplexParameter ( parameters, key, value ) {
 		owner:    this
 	});
 
-	this.parameters.addData( this.key, this.fragment.getValue() );
+	this.parameters.addData( this.key.str, this.fragment.getValue() );
 }
 
 export default ComplexParameter;
@@ -28,7 +28,7 @@ ComplexParameter.prototype = {
 	update: function () {
 		var viewmodel = this.parameters.component.instance.viewmodel;
 
-		this.parameters.addData( this.key, this.fragment.getValue() );
+		this.parameters.addData( this.key.str, this.fragment.getValue() );
 		viewmodel.mark( this.key );
 
 		this.dirty = false;

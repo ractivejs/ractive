@@ -2,7 +2,7 @@ import animations from 'shared/animations';
 import Animation from './animate/Animation';
 import { isEqual } from 'utils/is';
 import log from 'utils/log/log';
-import { normalise } from 'shared/keypaths';
+import { getKeypath, normalise } from 'shared/keypaths';
 import Promise from 'utils/Promise';
 import noop from 'utils/noop';
 
@@ -148,7 +148,7 @@ function animate ( root, keypath, to, options ) {
 	var easing, duration, animation, from;
 
 	if ( keypath ) {
-		keypath = normalise( keypath );
+		keypath = getKeypath( normalise( keypath ) );
 	}
 
 	if ( keypath !== null ) {
