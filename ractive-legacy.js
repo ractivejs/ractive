@@ -1,6 +1,6 @@
 /*
 	ractive-legacy.js v0.6.1
-	2014-12-17 - commit 5ca8675c 
+	2014-12-17 - commit ed474173 
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1164,8 +1164,6 @@
     noElementProxyEventWildcards: "Only component proxy-events may contain \"*\" wildcards, <{element} on-{event}/> is not valid.",
 
     methodDeprecated: "The method \"{deprecated}\" has been deprecated in favor of \"{replacement}\" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.",
-
-    usePromise: "{method} now returns a Promise, use {method}(...).then(callback) instead.",
 
     noTwowayExpressions: "Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.",
 
@@ -3008,9 +3006,6 @@
   //# sourceMappingURL=01-_6to5-insert.js.map
 
   function prototype_merge__Ractive$merge(keypath, array, options) {
-    var _this = this;
-
-
     var currentArray, promise;
 
     keypath = keypaths__getKeypath(keypaths__normalise(keypath));
@@ -3026,24 +3021,6 @@
     promise = runloop__default.start(this, true);
     this.viewmodel.merge(keypath, currentArray, array, options);
     runloop__default.end();
-
-    // attach callback as fulfilment handler, if specified
-    if (options && options.complete) {
-      log__default.warn({
-        debug: this.debug,
-        message: "usePromise",
-        args: {
-          method: "ractive.merge"
-        }
-      });
-
-      promise.then(options.complete).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
-    }
 
     return promise;
   };
@@ -12646,11 +12623,13 @@
   } else {
     animateStyle__getComputedStyle = window.getComputedStyle || legacy__default.getComputedStyle;
 
-    animateStyle__animateStyle = function (style, value, options, complete) {
+    animateStyle__animateStyle = function (style, value, options) {
       var _this = this;
-
-
       var to;
+
+      if (arguments.length === 4) {
+        throw new Error("t.animateStyle() returns a promise - use .then() instead of passing a callback");
+      }
 
       // Special case - page isn't visible. Don't animate anything, because
       // that way you'll never get CSS transitionend events
@@ -12666,7 +12645,6 @@
         to = style;
 
         // shuffle arguments
-        complete = options;
         options = value;
       }
 
@@ -12677,9 +12655,7 @@
       // TODO remove this check in a future version
       if (!options) {
         warn__default("The \"" + this.name + "\" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340");
-
         options = this;
-        complete = this.complete;
       }
 
       var promise = new Promise__default(function (resolve) {
@@ -12729,25 +12705,6 @@
 
         createTransitions__default(_this, to, options, changedProperties, resolve);
       });
-
-      // If a callback was supplied, do the honours
-      // TODO remove this check in future
-      if (complete) {
-        log__default.warn({
-          debug: true, // no ractive instance to govern this
-          message: "usePromise",
-          args: {
-            method: "t.animateStyle"
-          }
-        });
-
-        promise.then(complete).then(null, function (err) {
-          log__default.consoleError({
-            debug: true,
-            err: err
-          });
-        });
-      }
 
       return promise;
     };
@@ -16132,18 +16089,10 @@
 
   var reset__shouldRerender = ["template", "partials", "components", "decorators", "events"], reset__resetHook = new Hook__default("reset");
 
-  function reset__Ractive$reset(data, callback) {
-    var _this = this;
-
-
+  function reset__Ractive$reset(data) {
     var promise, wrapper, changes, i, rerender;
 
-    if (typeof data === "function" && !callback) {
-      callback = data;
-      data = {};
-    } else {
-      data = data || {};
-    }
+    data = data || {};
 
     if (typeof data !== "object") {
       throw new Error("The reset method takes either no arguments, or an object containing new data");
@@ -16210,30 +16159,12 @@
 
     reset__resetHook.fire(this, data);
 
-    if (callback) {
-      log__default.warn({
-        debug: this.debug,
-        message: "usePromise",
-        args: {
-          method: "ractive.reset"
-        }
-      });
-
-      promise.then(callback).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
-    }
-
     return promise;
   };
   var reset__default = reset__Ractive$reset;
   //# sourceMappingURL=01-_6to5-reset.js.map
 
-  var resetPartial__default = function (name, partial, callback) {
-    var _this = this;
+  var resetPartial__default = function (name, partial) {
     var promise, collection = [];
 
     function collect(source, dest, ractive) {
@@ -16291,23 +16222,6 @@
 
     runloop__default.end();
 
-    if (callback) {
-      log__default.warn({
-        debug: this.debug,
-        message: "usePromise",
-        args: {
-          method: "ractive.resetPartial"
-        }
-      });
-
-      promise.then(callback.bind(this)).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
-    }
-
     return promise;
   };
   //# sourceMappingURL=01-_6to5-resetPartial.js.map
@@ -16354,7 +16268,7 @@
 
   var prototype_set__wildcard = /\*/;
 
-  function prototype_set__Ractive$set(keypath, value, callback) {
+  function prototype_set__Ractive$set(keypath, value) {
     var _this = this;
     var map, promise;
 
@@ -16363,7 +16277,6 @@
     // Set multiple keypaths in one go
     if (is__isObject(keypath)) {
       map = keypath;
-      callback = value;
 
       for (keypath in map) {
         if (map.hasOwnProperty(keypath)) {
@@ -16392,23 +16305,6 @@
 
     runloop__default.end();
 
-    if (callback) {
-      log__default.warn({
-        debug: this.debug,
-        message: "usePromise",
-        args: {
-          method: "ractive.set"
-        }
-      });
-
-      promise.then(callback.bind(this)).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
-    }
-
     return promise;
   };
   var prototype_set__default = prototype_set__Ractive$set;
@@ -16434,8 +16330,7 @@
   // Teardown. This goes through the root fragment and all its children, removing observers
   // and generally cleaning up after itself
 
-  function prototype_teardown__Ractive$teardown(callback) {
-    var _this = this;
+  function prototype_teardown__Ractive$teardown() {
     var promise;
 
     this.fragment.unbind();
@@ -16449,23 +16344,6 @@
     promise = (this.fragment.rendered ? this.unrender() : Promise__default.resolve());
 
     prototype_teardown__teardownHook.fire(this);
-
-    if (callback) {
-      log__default.warn({
-        debug: this.debug,
-        message: "usePromise",
-        args: {
-          method: "ractive.teardown"
-        }
-      });
-
-      promise.then(callback.bind(this)).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
-    }
 
     this._boundFunctions.forEach(prototype_teardown__deleteFunctionCopy);
 
@@ -16550,40 +16428,16 @@
 
   var Ractive_prototype_update__updateHook = new Hook__default("update");
 
-  function Ractive_prototype_update__Ractive$update(keypath, callback) {
-    var _this = this;
+  function Ractive_prototype_update__Ractive$update(keypath) {
     var promise;
 
-    if (typeof keypath === "function") {
-      callback = keypath;
-      keypath = keypaths__rootKeypath;
-    } else {
-      keypath = keypaths__getKeypath(keypath) || keypaths__rootKeypath;
-    }
+    keypath = keypaths__getKeypath(keypath) || keypaths__rootKeypath;
 
     promise = runloop__default.start(this, true);
-
     this.viewmodel.mark(keypath);
     runloop__default.end();
 
     Ractive_prototype_update__updateHook.fire(this, keypath);
-
-    if (callback) {
-      log__default.warn({
-        debug: this.debug,
-        message: "usePromise",
-        args: {
-          method: "ractive.teardown"
-        }
-      });
-
-      promise.then(callback.bind(this)).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
-    }
 
     return promise;
   };
