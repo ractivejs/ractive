@@ -335,29 +335,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.htmlEqual( ractive.toHTML(), 'ba' );
 		});
 
-
-		asyncTest( 'error in promise sent to console', function ( t ) {
-			var ractive, error = console.error;
-
-			expect( 1 )
-			console.error = function ( err ) {
-				t.equal( err, 'evil resolve' );
-				console.error = error;
-				QUnit.start();
-			}
-
-			ractive = new Ractive({
-				template: "{{#items}}{{.}}{{/}}",
-				data: {
-					items: [ 'a','b' ]
-				}
-			});
-
-			ractive.merge( 'items', [ 'b', 'a' ], { complete: () => {
-				throw 'evil resolve';
-			} });
-		});
-
 	};
 
 	function isOrphan ( node ) {

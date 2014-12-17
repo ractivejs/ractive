@@ -41,9 +41,6 @@ export default {
 	methodDeprecated:
 		'The method "{deprecated}" has been deprecated in favor of "{replacement}" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.',
 
-	usePromise:
-		'{method} now returns a Promise, use {method}(...).then(callback) instead.',
-
 	noTwowayExpressions:
 		'Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.',
 

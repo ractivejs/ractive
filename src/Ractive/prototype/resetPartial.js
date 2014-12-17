@@ -1,9 +1,8 @@
 import { isArray } from 'utils/is';
-import log from 'utils/log/log';
 import runloop from 'global/runloop';
 import { PARTIAL, COMPONENT, ELEMENT } from 'config/types';
 
-export default function( name, partial, callback ) {
+export default function ( name, partial ) {
 	var promise, collection = [];
 
 	function collect( source, dest, ractive ) {
@@ -60,26 +59,6 @@ export default function( name, partial, callback ) {
 	});
 
 	runloop.end();
-
-	if ( callback ) {
-
-		log.warn({
-			debug: this.debug,
-			message: 'usePromise',
-			args: {
-				method: 'ractive.resetPartial'
-			}
-		});
-
-		promise
-			.then( callback.bind( this ) )
-			.then( null, err => {
-				log.consoleError({
-					debug: this.debug,
-					err: err
-				});
-			});
-	}
 
 	return promise;
 }

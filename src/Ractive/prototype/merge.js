@@ -1,10 +1,8 @@
 import { isArray } from 'utils/is';
-import log from 'utils/log/log';
 import { getKeypath, normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 export default function Ractive$merge ( keypath, array, options ) {
-
 	var currentArray,
 		promise;
 
@@ -21,27 +19,6 @@ export default function Ractive$merge ( keypath, array, options ) {
 	promise = runloop.start( this, true );
 	this.viewmodel.merge( keypath, currentArray, array, options );
 	runloop.end();
-
-	// attach callback as fulfilment handler, if specified
-	if ( options && options.complete ) {
-
-		log.warn({
-			debug: this.debug,
-			message: 'usePromise',
-			args: {
-				method: 'ractive.merge'
-			}
-		});
-
-		promise
-			.then( options.complete )
-			.then( null, err => {
-				log.consoleError({
-					debug: this.debug,
-					err: err
-				});
-			});
-	}
 
 	return promise;
 }
