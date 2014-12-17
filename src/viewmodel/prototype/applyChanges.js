@@ -1,6 +1,5 @@
 import getUpstreamChanges from '../helpers/getUpstreamChanges';
 import notifyPatternObservers from './applyChanges/notifyPatternObservers';
-import { getKeypath } from 'shared/keypaths';
 
 export default function Viewmodel$applyChanges () {
 	var self = this,

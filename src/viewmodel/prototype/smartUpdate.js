@@ -1,7 +1,7 @@
 var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
 
 export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
-	var dependants, oldLength;
+	var dependants, oldLength, i;
 
 	oldLength = newIndices.length;
 
@@ -23,13 +23,13 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	if ( oldLength !== array.length ) {
 		this.mark( keypath.join( 'length' ), implicitOption );
 
-		for ( let i = oldLength; i < array.length; i += 1 ) {
+		for ( i = oldLength; i < array.length; i += 1 ) {
 			this.mark( keypath.join( i ) );
 		}
 
 		// don't allow removed indexes beyond end of new array to trigger recomputations
 		// TODO is this still necessary, now that computations are lazy?
-		for ( let i = array.length; i < oldLength; i += 1 ) {
+		for ( i = array.length; i < oldLength; i += 1 ) {
 			this.mark( keypath.join( i ), noCascadeOption );
 		}
 	}

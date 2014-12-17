@@ -8,14 +8,14 @@ import log from 'utils/log/log';
 var eventPattern = /^event(?:\.(.+))?/;
 
 export default function EventHandler$init ( element, name, template ) {
-	var action, refs, ractive, i;
+	var action, refs, ractive;
 
 	this.element = element;
 	this.root = element.root;
 	this.parentFragment = element.parentFragment;
 	this.name = name;
 
-	if( name.indexOf( '*' ) !== -1 ) {
+	if ( name.indexOf( '*' ) !== -1 ) {
 		log.error({
 			debug: this.root.debug,
 			message: 'noElementProxyEventWildcards',

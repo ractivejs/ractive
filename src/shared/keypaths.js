@@ -7,7 +7,7 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
 keypathCache = {};
 
-var Keypath = function ( str ) {
+Keypath = function ( str ) {
 	var keys = str.split( '.' );
 
 	this.str = str;
@@ -82,11 +82,6 @@ export function decodeKeypath ( keypath ) {
 	}
 }
 
-export function getKey ( keypath ) {
-	var index = keypath.indexOf( '.' );
-	return ~index ? keypath.slice( 0, index ) : keypath;
-}
-
 export function getKeypath ( str ) {
 	if ( str == null ) {
 		return str;
@@ -144,7 +139,3 @@ export function normalise ( ref ) {
 }
 
 export var rootKeypath = getKeypath( '' );
-
-export function startsWithKeypath( target, keypath) {
-	return target && keypath && target.substr( 0, keypath.length + 1 ) === keypath + '.';
-}

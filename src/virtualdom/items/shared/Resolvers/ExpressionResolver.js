@@ -61,7 +61,8 @@ ExpressionResolver.prototype = {
 	createEvaluator: function () {
 		var computation, valueGetters, signature, keypath, fn;
 
-		computation = this.root.viewmodel.computations[ this.keypath ];
+		keypath = this.keypath;
+		computation = this.root.viewmodel.computations[ keypath ];
 
 		// only if it doesn't exist yet!
 		if ( !computation ) {
@@ -97,9 +98,9 @@ ExpressionResolver.prototype = {
 				}
 			};
 
-			computation = this.root.viewmodel.compute( this.keypath, signature );
+			computation = this.root.viewmodel.compute( keypath, signature );
 		} else {
-			this.root.viewmodel.mark( this.keypath );
+			this.root.viewmodel.mark( keypath );
 		}
 	},
 
