@@ -1,7 +1,6 @@
 import warn from 'utils/log/warn';
 import { isClient } from 'config/environment';
 import legacy from 'legacy';
-import log from 'utils/log/log';
 import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
 import Promise from 'utils/Promise';
 import createTransitions from './createTransitions';
@@ -14,9 +13,12 @@ if ( !isClient ) {
 } else {
 	getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
-	animateStyle = function ( style, value, options, complete ) {
-
+	animateStyle = function ( style, value, options ) {
 		var to;
+
+		if ( arguments.length === 4 ) {
+			throw new Error( 't.animateStyle() returns a promise - use .then() instead of passing a callback' );
+		}
 
 		// Special case - page isn't visible. Don't animate anything, because
 		// that way you'll never get CSS transitionend events
@@ -32,7 +34,6 @@ if ( !isClient ) {
 			to = style;
 
 			// shuffle arguments
-			complete = options;
 			options = value;
 		}
 
@@ -43,9 +44,7 @@ if ( !isClient ) {
 		// TODO remove this check in a future version
 		if ( !options ) {
 			warn( 'The "' + this.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
-
 			options = this;
-			complete = this.complete;
 		}
 
 		var promise = new Promise( resolve => {
@@ -94,28 +93,6 @@ if ( !isClient ) {
 
 			createTransitions( this, to, options, changedProperties, resolve );
 		});
-
-		// If a callback was supplied, do the honours
-		// TODO remove this check in future
-		if ( complete ) {
-
-			log.warn({
-				debug: true, // no ractive instance to govern this
-				message: 'usePromise',
-				args: {
-					method: 't.animateStyle'
-				}
-			});
-
-			promise
-				.then( complete )
-				.then( null, err => {
-					log.consoleError({
-						debug: true,
-						err: err
-					});
-				});
-		}
 
 		return promise;
 	};

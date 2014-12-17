@@ -38,7 +38,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 		});
 
-		asyncTest( 'Callback and promise with reset', function ( t ) {
+		asyncTest( 'ractive.reset() returns a promise', function ( t ) {
 			var ractive, callback, counter, done;
 
 			ractive = new Ractive({
@@ -56,11 +56,11 @@ define([ 'ractive' ], function ( Ractive ) {
 			};
 
 			expect(6)
-			ractive.reset({ two: 4 }, callback);
+			ractive.reset({ two: 4 }).then(callback);
 			t.htmlEqual( fixture.innerHTML, '4' );
 			ractive.reset({ one: 9 }).then(callback);
 			t.htmlEqual( fixture.innerHTML, '9' );
-			ractive.reset(callback);
+			ractive.reset().then(callback);
 			t.htmlEqual( fixture.innerHTML, '' );
 		});
 
@@ -81,7 +81,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-		asyncTest( 'Callback and promise with dynamic template functions are recalled on reset', function ( t ) {
+		asyncTest( 'Promise with dynamic template functions are recalled on reset', function ( t ) {
 			var ractive, callback, counter, done;
 
 			ractive = new Ractive({
@@ -107,7 +107,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive.reset(ractive.data).then(callback);
 			t.htmlEqual( fixture.innerHTML, 'bizz' );
 			ractive.set('condition', true)
-			ractive.reset(ractive.data, callback);
+			ractive.reset(ractive.data).then(callback);
 			t.htmlEqual( fixture.innerHTML, 'fizz' );
 
 		});

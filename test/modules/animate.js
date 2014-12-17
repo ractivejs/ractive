@@ -50,29 +50,6 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 		});
 
-
-		asyncTest( 'error in callback sent to console', function ( t ) {
-			var ractive, error = console.error;
-
-			expect( 1 )
-
-			console.error = function ( err ) {
-				t.equal( err, 'evil animate' );
-				console.error = error;
-				QUnit.start();
-			}
-
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{~~foo}}',
-				data: { foo: 0 }
-			});
-
-			ractive.animate({ foo: 100 }, { duration: 10, complete: function () {
-				throw 'evil animate';
-			} });
-		});
-
 	};
 
 });

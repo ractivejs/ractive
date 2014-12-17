@@ -1,12 +1,11 @@
 import { isObject } from 'utils/is';
 import { getMatchingKeypaths } from 'shared/keypaths';
-import log from 'utils/log/log';
 import { getKeypath, normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 var wildcard = /\*/;
 
-export default function Ractive$set ( keypath, value, callback ) {
+export default function Ractive$set ( keypath, value ) {
 	var map, promise;
 
 	promise = runloop.start( this, true );
@@ -14,7 +13,6 @@ export default function Ractive$set ( keypath, value, callback ) {
 	// Set multiple keypaths in one go
 	if ( isObject( keypath ) ) {
 		map = keypath;
-		callback = value;
 
 		for ( keypath in map ) {
 			if ( map.hasOwnProperty( keypath) ) {
@@ -42,26 +40,6 @@ export default function Ractive$set ( keypath, value, callback ) {
 	}
 
 	runloop.end();
-
-	if ( callback ) {
-
-		log.warn({
-			debug: this.debug,
-			message: 'usePromise',
-			args: {
-				method: 'ractive.set'
-			}
-		});
-
-		promise
-			.then( callback.bind( this ) )
-			.then( null, err => {
-				log.consoleError({
-					debug: this.debug,
-					err: err
-				});
-			});
-	}
 
 	return promise;
 }

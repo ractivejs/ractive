@@ -1,23 +1,16 @@
 import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
 import Hook from './shared/hooks/Hook';
-import log from 'utils/log/log';
 import runloop from 'global/runloop';
 import { rootKeypath } from 'shared/keypaths';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],
 	resetHook = new Hook( 'reset' );
 
-export default function Ractive$reset ( data, callback ) {
-
+export default function Ractive$reset ( data ) {
 	var promise, wrapper, changes, i, rerender;
 
-	if ( typeof data === 'function' && !callback ) {
-		callback = data;
-		data = {};
-	} else {
-		data = data || {};
-	}
+	data = data || {};
 
 	if ( typeof data !== 'object' ) {
 		throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
@@ -83,26 +76,6 @@ export default function Ractive$reset ( data, callback ) {
 	}
 
 	resetHook.fire( this, data );
-
-	if ( callback ) {
-
-		log.warn({
-			debug: this.debug,
-			message: 'usePromise',
-			args: {
-				method: 'ractive.reset'
-			}
-		});
-
-		promise
-			.then( callback )
-			.then( null, err => {
-				log.consoleError({
-					debug: this.debug,
-					err: err
-				});
-			});
-	}
 
 	return promise;
 }
