@@ -80,7 +80,7 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 	key = ref.firstKey;
 
 	while ( fragment ) {
-		context = fragment.context; // TODO context should be a Keypath object
+		context = fragment.context;
 		fragment = fragment.parent;
 
 		if ( !context ) {
