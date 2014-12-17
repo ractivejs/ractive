@@ -2,14 +2,16 @@
 import { hasConsole } from 'config/environment';
 import noop from 'utils/noop';
 
-var alreadyWarned = {}, printWarning;
+var alreadyWarned = {}, log, printWarning;
 
 if ( hasConsole ) {
 	printWarning = ( message, args ) => {
 		console.warn.apply( console, [ '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' ].concat( args ) );
 	};
+
+	log = console.log.bind( console );
 } else {
-	printWarning = noop;
+	printWarning = log = noop;
 }
 
 function format ( message, args ) {
@@ -28,6 +30,8 @@ export function fatal ( message, ...args ) {
 	message = format( message, args );
 	throw new Error( message );
 }
+
+export { log };
 
 export function warn ( message, ...args ) {
 	message = format( message, args );

@@ -1,4 +1,3 @@
-import errors from 'config/errors';
 import { isClient } from 'config/environment';
 import parse from 'parse/_parse';
 import { create } from 'utils/object';
@@ -31,7 +30,7 @@ function createHelper ( parseOptions ) {
 
 function doParse ( template, parseOptions ) {
 	if ( !parse ) {
-		throw new Error( errors.missingParser );
+		throw new Error( 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' );
 	}
 
 	return parse( template, parseOptions || this.options );

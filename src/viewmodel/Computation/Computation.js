@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import { warn } from 'utils/log';
+import { log, warn } from 'utils/log';
 import { isEqual } from 'utils/is';
 import UnresolvedDependency from './UnresolvedDependency';
 
@@ -94,7 +94,7 @@ Computation.prototype = {
 				} catch ( err ) {
 					if ( ractive.debug ) {
 						warn( 'Failed to compute "%s"', this.key.str );
-						console.log( err.stack || err );
+						log( err.stack || err );
 					}
 
 					this.value = void 0;
