@@ -11,7 +11,7 @@ var UnresolvedDependency = function ( computation, ref ) {
 UnresolvedDependency.prototype = {
 	resolve: function ( keypath ) {
 		this.computation.softDeps.push( keypath );
-		this.computation.unresolvedDeps[ keypath ] = null;
+		this.computation.unresolvedDeps[ keypath.str ] = null;
 		this.viewmodel.register( keypath, this.computation, 'computed' );
 	}
 };

@@ -11,7 +11,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 	options = options || emptyObject;
 
 	// pattern observers are treated differently
-	if ( wildcard.test( keypath ) ) {
+	if ( wildcard.test( keypath.str ) ) {
 		observer = new PatternObserver( ractive, keypath, callback, options );
 		ractive.viewmodel.patternObservers.push( observer );
 		isPatternObserver = true;

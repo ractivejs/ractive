@@ -82,13 +82,18 @@ ComponentParameters.prototype = {
 	},
 
 	addData: function ( key, value ) {
-		this.data[ key ] = value;
+		this.data[ key.str ] = value;
 	},
 
 	addMapping: function ( key, keypath ) {
+		var mapping;
+
 		// map directly to the source if possible...
-		var mapping = this.parentViewmodel.mappings[ keypath ];
-		return this.mappings[ key ] = new Mapping( key, {
+		if ( keypath ) {
+			mapping = this.parentViewmodel.mappings[ keypath.str ];
+		}
+
+		return this.mappings[ key.str ] = new Mapping( key, {
 			origin: mapping ? mapping.origin : this.parentViewmodel,
 			keypath: mapping ? mapping.keypath : keypath
 		});

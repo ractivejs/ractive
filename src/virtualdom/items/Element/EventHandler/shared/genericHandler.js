@@ -14,7 +14,7 @@ export default function genericHandler ( event ) {
 		node: this,
 		original: event,
 		index: index,
-		keypath: storage.keypath,
+		keypath: storage.keypath.str,
 		context: storage.root.viewmodel.get( storage.keypath )
 	});
 }

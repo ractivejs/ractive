@@ -62,7 +62,7 @@ SpecialResolver.prototype = {
 		else {
 			while ( fragment ) {
 				if ( ( value = getProp( fragment, prop ) ) !== undefined ) {
-					return this.callback( getKeypath( '@' + prop.prefix + value ) );
+					return this.callback( getKeypath( '@' + prop.prefix + value.str ) );
 				}
 
 				fragment = fragment.parent;

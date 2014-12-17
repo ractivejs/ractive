@@ -91,7 +91,7 @@ export function resolveAmbiguousReference ( ractive, ref, fragment, isParentLook
 		parentValue = ractive.viewmodel.get( context );
 
 		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
-			return context.join( ref );
+			return context.join( ref.str );
 		}
 	}
 

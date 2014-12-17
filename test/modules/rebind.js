@@ -88,10 +88,10 @@ define([
 				fragment.index = opt.newKeypath.replace( 'items.', '' );
 				fragment.rebind( keypaths.getKeypath( opt.oldKeypath ), keypaths.getKeypath( opt.newKeypath ) );
 
-				t.equal( fragment.context, opt.expected );
-				t.equal( fragment.items[0].node._ractive.keypath, opt.expected );
+				t.equal( fragment.context, keypaths.getKeypath( opt.expected ) );
+				t.equal( fragment.items[0].node._ractive.keypath, keypaths.getKeypath( opt.expected ) );
 				if(opt.target!==opt.newKeypath){
-					t.equal( resolved, opt.expected );
+					t.equal( resolved, keypaths.getKeypath( opt.expected ) );
 				}
 
 				t.htmlEqual( fixture.innerHTML, '' );

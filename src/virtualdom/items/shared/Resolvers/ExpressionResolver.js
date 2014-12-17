@@ -1,6 +1,5 @@
 import { defineProperty } from 'utils/object';
-import { isNumeric } from 'utils/is';
-import { decodeKeypath, getKeypath } from 'shared/keypaths';
+import { getKeypath } from 'shared/keypaths';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from './createReferenceResolver';
 import 'legacy'; // for fn.bind()
@@ -8,7 +7,6 @@ import 'legacy'; // for fn.bind()
 var ExpressionResolver, bind = Function.prototype.bind;
 
 ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
-
 	var ractive;
 
 	ractive = owner.root;
@@ -33,7 +31,7 @@ ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 };
 
 ExpressionResolver.prototype = {
-	bubble: function () {
+	bubble () {
 		if ( !this.ready ) {
 			return;
 		}
@@ -45,7 +43,7 @@ ExpressionResolver.prototype = {
 		this.callback( this.keypath );
 	},
 
-	unbind: function () {
+	unbind () {
 		var resolver;
 
 		while ( resolver = this.refResolvers.pop() ) {
@@ -53,16 +51,16 @@ ExpressionResolver.prototype = {
 		}
 	},
 
-	resolve: function ( index, keypath ) {
+	resolve ( index, keypath ) {
 		this.keypaths[ index ] = keypath;
 		this.bubble();
 	},
 
-	createEvaluator: function () {
+	createEvaluator () {
 		var computation, valueGetters, signature, keypath, fn;
 
 		keypath = this.keypath;
-		computation = this.root.viewmodel.computations[ keypath ];
+		computation = this.root.viewmodel.computations[ keypath.str ];
 
 		// only if it doesn't exist yet!
 		if ( !computation ) {
@@ -92,7 +90,7 @@ ExpressionResolver.prototype = {
 
 			signature = {
 				deps: this.keypaths.filter( isValidDependency ),
-				get: function () {
+				get () {
 					var args = valueGetters.map( call );
 					return fn.apply( null, args );
 				}
@@ -104,7 +102,7 @@ ExpressionResolver.prototype = {
 		}
 	},
 
-	rebind: function ( oldKeypath, newKeypath ) {
+	rebind ( oldKeypath, newKeypath ) {
 		// TODO only bubble once, no matter how many references are affected by the rebind
 		this.refResolvers.forEach( r => r.rebind( oldKeypath, newKeypath ) );
 	}
@@ -127,12 +125,12 @@ function getUniqueString ( str, keypaths ) {
 			return 'undefined';
 		}
 
-		if ( keypath[0] === '@' ) {
-			value = keypath.slice( 1 );
-			return isNumeric( value ) ? value : '"' + value + '"';
+		if ( keypath.isSpecial ) {
+			value = keypath.value;
+			return typeof value === 'number' ? value : '"' + value + '"';
 		}
 
-		return keypath;
+		return keypath.str;
 	});
 }
 

@@ -14,9 +14,7 @@ var Binding = function ( element ) {
 	interpolator.twowayBinding = this;
 
 	if ( keypath = interpolator.keypath ) {
-
-		if ( keypath.str.slice( - 1 ) === '}' ) {
-
+		if ( keypath.str.slice( -1 ) === '}' ) {
 			log.error({
 				debug: this.root.debug,
 				message: 'noTwowayExpressions',
@@ -30,6 +28,7 @@ var Binding = function ( element ) {
 			return false;
 		}
 	}
+
 	else {
 		// A mustache may be *ambiguous*. Let's say we were given
 		// `value="{{bar}}"`. If the context was `foo`, and `foo.bar`
@@ -89,11 +88,11 @@ Binding.prototype = {
 			return;
 		}
 
-		removeFromArray( this.root._twowayBindings[ oldKeypath ], this );
+		removeFromArray( this.root._twowayBindings[ oldKeypath.str ], this );
 
 		this.keypath = newKeypath;
 
-		bindings = this.root._twowayBindings[ newKeypath ] || ( this.root._twowayBindings[ newKeypath ] = [] );
+		bindings = this.root._twowayBindings[ newKeypath.str ] || ( this.root._twowayBindings[ newKeypath.str ] = [] );
 		bindings.push( this );
 	},
 

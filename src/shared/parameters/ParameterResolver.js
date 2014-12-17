@@ -63,11 +63,11 @@ ParameterResolver.prototype = {
 			this.parameters.addData( this.key, keypath.value );
 			viewmodel.mark( this.key );
 		}
-		else if ( viewmodel.reversedMappings && viewmodel.reversedMappings[ this.key ] ) {
-			viewmodel.reversedMappings[ this.key ].rebind( keypath );
+		else if ( viewmodel.reversedMappings && viewmodel.reversedMappings[ this.key.str ] ) {
+			viewmodel.reversedMappings[ this.key.str ].rebind( keypath );
 		}
 		else {
-			viewmodel.mappings[ this.key ].resolve( keypath );
+			viewmodel.mappings[ this.key.str ].resolve( keypath );
 		}
 
 	}

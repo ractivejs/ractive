@@ -42,7 +42,7 @@ ReferenceExpressionResolver.prototype = {
 			return null;
 		}
 
-		return getKeypath( this.base + '.' + values.join( '.' ) );
+		return this.base.join( values.join( '.' ) );
 	},
 
 	bubble: function () {
@@ -73,7 +73,7 @@ ReferenceExpressionResolver.prototype = {
 
 	forceResolution: function () {
 		if ( this.baseResolver ) {
-			this.base = this.ref;
+			this.base = getKeypath( this.ref );
 
 			this.baseResolver.unbind();
 			this.baseResolver = null;

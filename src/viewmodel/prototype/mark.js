@@ -1,7 +1,7 @@
 import runloop from 'global/runloop';
 
 export default function Viewmodel$mark ( keypath, options ) {
-	var computation;
+	var computation, keypathStr = keypath.str;
 
 	runloop.addViewmodel( this ); // TODO remove other instances of this call
 
@@ -9,14 +9,14 @@ export default function Viewmodel$mark ( keypath, options ) {
 	// should not be picked up by pattern observers
 	if ( options ) {
 		if ( options.implicit ) {
-			this.implicitChanges[ keypath ] = true;
+			this.implicitChanges[ keypathStr ] = true;
 		}
 		if ( options.noCascade ) {
-			this.noCascade[ keypath ] = true;
+			this.noCascade[ keypathStr ] = true;
 		}
 	}
 
-	if ( computation = this.computations[ keypath ] ) {
+	if ( computation = this.computations[ keypathStr ] ) {
 		computation.invalidate();
 	}
 
@@ -27,5 +27,5 @@ export default function Viewmodel$mark ( keypath, options ) {
 	// pass on dontTeardownWrapper, if we can
 	let dontTeardownWrapper = options ? options.dontTeardownWrapper : false;
 
-	this.clearCache( keypath, dontTeardownWrapper );
+	this.clearCache( keypathStr, dontTeardownWrapper );
 }

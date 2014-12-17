@@ -43,7 +43,7 @@ PatternObserver.prototype = {
 	update: function ( keypath ) {
 		var values;
 
-		if ( wildcard.test( keypath ) ) {
+		if ( wildcard.test( keypath.str ) ) {
 			values = getPattern( this.root, keypath );
 
 			for ( keypath in values ) {
@@ -57,7 +57,7 @@ PatternObserver.prototype = {
 
 		// special case - array mutation should not trigger `array.*`
 		// pattern observer with `array.length`
-		if ( this.root.viewmodel.implicitChanges[ keypath ] ) {
+		if ( this.root.viewmodel.implicitChanges[ keypath.str ] ) {
 			return;
 		}
 
@@ -70,23 +70,24 @@ PatternObserver.prototype = {
 	},
 
 	reallyUpdate: function ( keypath ) {
-		var value, keys, args;
+		var keypathStr, value, keys, args;
 
+		keypathStr = keypath.str;
 		value = this.root.viewmodel.get( keypath );
 
 		// Prevent infinite loops
 		if ( this.updating ) {
-			this.values[ keypath ] = value;
+			this.values[ keypathStr ] = value;
 			return;
 		}
 
 		this.updating = true;
 
-		if ( !isEqual( value, this.values[ keypath ] ) || !this.ready ) {
-			keys = slice.call( this.regex.exec( keypath ), 1 );
-			args = [ value, this.values[ keypath ], keypath.str ].concat( keys );
+		if ( !isEqual( value, this.values[ keypathStr ] ) || !this.ready ) {
+			keys = slice.call( this.regex.exec( keypathStr ), 1 );
+			args = [ value, this.values[ keypathStr ], keypathStr ].concat( keys );
 
-			this.values[ keypath ] = value;
+			this.values[ keypathStr ] = value;
 			this.callback.apply( this.context, args );
 		}
 
@@ -94,13 +95,13 @@ PatternObserver.prototype = {
 	},
 
 	getProxy: function ( keypath ) {
-		if ( !this.proxies[ keypath ] ) {
-			this.proxies[ keypath ] = {
+		if ( !this.proxies[ keypath.str ] ) {
+			this.proxies[ keypath.str ] = {
 				update: () => this.reallyUpdate( keypath )
 			};
 		}
 
-		return this.proxies[ keypath ];
+		return this.proxies[ keypath.str ];
 	}
 };
 

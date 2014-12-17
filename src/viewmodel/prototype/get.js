@@ -9,7 +9,8 @@ export default function Viewmodel$get ( keypath, options ) {
 		value,
 		computation,
 		wrapped,
-		captureGroup;
+		captureGroup,
+		keypathStr = keypath.str;
 
 	options = options || empty;
 
@@ -28,16 +29,16 @@ export default function Viewmodel$get ( keypath, options ) {
 		return keypath.value;
 	}
 
-	if ( cache[ keypath ] === undefined ) {
+	if ( cache[ keypathStr ] === undefined ) {
 
 		// Is this a computed property?
-		if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
+		if ( ( computation = this.computations[ keypathStr ] ) && !computation.bypass ) {
 			value = computation.get();
-			this.adapt( keypath.str, value );
+			this.adapt( keypathStr, value );
 		}
 
 		// Is this a wrapped property?
-		else if ( wrapped = this.wrapped[ keypath ] ) {
+		else if ( wrapped = this.wrapped[ keypathStr ] ) {
 			value = wrapped.value;
 		}
 
@@ -52,12 +53,12 @@ export default function Viewmodel$get ( keypath, options ) {
 			value = retrieve( this, keypath );
 		}
 
-		cache[ keypath ] = value;
+		cache[ keypathStr ] = value;
 	} else {
-		value = cache[ keypath ];
+		value = cache[ keypathStr ];
 	}
 
-	if ( !options.noUnwrap && ( wrapped = this.wrapped[ keypath ] ) ) {
+	if ( !options.noUnwrap && ( wrapped = this.wrapped[ keypathStr ] ) ) {
 		value = wrapped.get();
 	}
 
@@ -70,7 +71,7 @@ function retrieve ( viewmodel, keypath ) {
 
 	parentValue = viewmodel.get( keypath.parent );
 
-	if ( wrapped = viewmodel.wrapped[ keypath.parent ] ) {
+	if ( wrapped = viewmodel.wrapped[ keypath.parent.str ] ) {
 		parentValue = wrapped.get();
 	}
 
@@ -90,7 +91,7 @@ function retrieve ( viewmodel, keypath ) {
 	// If this property doesn't exist, we return a sentinel value
 	// so that we know to query parent scope (if such there be)
 	if ( typeof parentValue === 'object' && !( keypath.lastKey in parentValue ) ) {
-		return viewmodel.cache[ keypath ] = FAILED_LOOKUP;
+		return viewmodel.cache[ keypath.str ] = FAILED_LOOKUP;
 	}
 
 	value = parentValue[ keypath.lastKey ];
@@ -99,6 +100,6 @@ function retrieve ( viewmodel, keypath ) {
 	viewmodel.adapt( keypath.str, value, false );
 
 	// Update cache
-	viewmodel.cache[ keypath ] = value;
+	viewmodel.cache[ keypath.str ] = value;
 	return value;
 }

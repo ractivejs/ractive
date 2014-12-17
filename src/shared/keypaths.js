@@ -53,7 +53,11 @@ Keypath.prototype = {
 	},
 
 	toString () {
-		return this.str;
+		throw new Error( 'Bad coercion' );
+	},
+
+	valueOf () {
+		throw new Error( 'Bad coercion' );
 	},
 
 	wildcardMatches () {
@@ -114,9 +118,10 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 	return matchingKeypaths;
 
 	function expand ( matchingKeypaths, keypath ) {
-		var value, key;
+		var wrapper, value, key;
 
-		value = ( ractive.viewmodel.wrapped[ keypath ] ? ractive.viewmodel.wrapped[ keypath ].get() : ractive.viewmodel.get( keypath ) );
+		wrapper = ractive.viewmodel.wrapped[ keypath.str ];
+		value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
 
 		for ( key in value ) {
 			if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8

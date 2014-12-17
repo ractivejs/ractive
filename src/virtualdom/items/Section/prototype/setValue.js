@@ -18,7 +18,7 @@ export default function Section$setValue ( value ) {
 	this.updating = true;
 
 	// with sections, we need to get the fake value if we have a wrapped object
-	if ( wrapper = this.root.viewmodel.wrapped[ this.keypath ] ) {
+	if ( this.keypath && ( wrapper = this.root.viewmodel.wrapped[ this.keypath.str ] ) ) {
 		value = wrapper.get();
 	}
 

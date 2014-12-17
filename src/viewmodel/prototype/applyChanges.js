@@ -18,16 +18,16 @@ export default function Viewmodel$applyChanges () {
 	function cascade ( keypath ) {
 		var map, computations;
 
-		if ( self.noCascade.hasOwnProperty( keypath ) ) {
+		if ( self.noCascade.hasOwnProperty( keypath.str ) ) {
 			return;
 		}
 
-		if ( computations = self.deps.computed[ keypath ] ) {
+		if ( computations = self.deps.computed[ keypath.str ] ) {
 			computations.forEach( c => {
 				var key = c.key;
 
 				if ( c.viewmodel === self ) {
-					self.clearCache( key );
+					self.clearCache( key.str );
 					c.invalidate();
 
 					changes.push( key );
@@ -38,7 +38,7 @@ export default function Viewmodel$applyChanges () {
 			});
 		}
 
-		if ( map = self.depsMap.computed[ keypath ] ) {
+		if ( map = self.depsMap.computed[ keypath.str ] ) {
 			map.forEach( cascade );
 		}
 	}
@@ -50,7 +50,7 @@ export default function Viewmodel$applyChanges () {
 		var computations;
 
 		// make sure we haven't already been down this particular keypath in this turn
-		if ( changes.indexOf( keypath ) === -1 && ( computations = self.deps.computed[ keypath ] ) ) {
+		if ( changes.indexOf( keypath ) === -1 && ( computations = self.deps.computed[ keypath.str ] ) ) {
 			this.changes.push( keypath );
 
 			computations.forEach( c => {
@@ -85,7 +85,7 @@ export default function Viewmodel$applyChanges () {
 
 	// Return a hash of keypaths to updated values
 	changes.forEach( keypath => {
-		hash[ keypath ] = this.get( keypath );
+		hash[ keypath.str ] = this.get( keypath );
 	});
 
 	this.implicitChanges = {};
@@ -169,7 +169,7 @@ function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 	function cascade ( keypath ) {
 		var childDeps;
 
-		if ( childDeps = viewmodel.depsMap[ groupName ][ keypath ] ) {
+		if ( childDeps = viewmodel.depsMap[ groupName ][ keypath.str ] ) {
 			addKeypaths( childDeps );
 		}
 	}
@@ -182,5 +182,5 @@ function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 
 function findDependants ( viewmodel, keypath, groupName ) {
 	var group = viewmodel.deps[ groupName ];
-	return group ? group[ keypath ] : null;
+	return group ? group[ keypath.str ] : null;
 }

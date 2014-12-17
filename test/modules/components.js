@@ -205,12 +205,12 @@ define([
 				}
 			});
 
-			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
+			t.equal( ractive.find( 'p' )._ractive.keypath.str, '' );
 
 			ractive.set( 'visible', false );
 			ractive.set( 'visible', true );
 
-			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
+			t.equal( ractive.find( 'p' )._ractive.keypath.str, '' );
 		});
 
 		test( 'Nested components fire the oninit() event correctly (#511)', t => {

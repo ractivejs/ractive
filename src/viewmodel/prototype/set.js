@@ -13,7 +13,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 		}
 	}
 
-	computation = this.computations[ keypath ];
+	computation = this.computations[ keypath.str ];
 	if ( computation ) {
 		if ( computation.setting ) {
 			// let the other computation set() handle things...
@@ -23,11 +23,11 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 		value = computation.get();
 	}
 
-	if ( isEqual( this.cache[ keypath ], value ) ) {
+	if ( isEqual( this.cache[ keypath.str ], value ) ) {
 		return;
 	}
 
-	wrapper = this.wrapped[ keypath ];
+	wrapper = this.wrapped[ keypath.str ];
 
 	// If we have a wrapper with a `reset()` method, we try and use it. If the
 	// `reset()` method returns false, the wrapper should be torn down, and
@@ -74,7 +74,7 @@ function resolveSet ( viewmodel, keypath, value ) {
 		parentValue[ keypath.lastKey ] = value;
 	};
 
-	wrapper = viewmodel.wrapped[ keypath.parent ];
+	wrapper = viewmodel.wrapped[ keypath.parent.str ];
 
 	if ( wrapper ) {
 		wrapperSet();
@@ -83,7 +83,7 @@ function resolveSet ( viewmodel, keypath, value ) {
 
 		// may have been wrapped via the above .get()
 		// call on viewmodel if this is first access via .set()!
-		if( wrapper = viewmodel.wrapped[ keypath.parent ] ) {
+		if( wrapper = viewmodel.wrapped[ keypath.parent.str ] ) {
 			wrapperSet();
 		} else {
 			valueSet();

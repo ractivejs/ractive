@@ -11,7 +11,7 @@ import NumericBinding from '../../Binding/NumericBinding';
 import GenericBinding from '../../Binding/GenericBinding';
 
 export default function createTwowayBinding ( element ) {
-	var attributes = element.attributes, type, Binding, bindName, bindChecked;
+	var attributes = element.attributes, type, Binding, bindName, bindChecked, binding;
 
 	// if this is a late binding, and there's already one, it
 	// needs to be torn down
@@ -71,8 +71,8 @@ export default function createTwowayBinding ( element ) {
 		Binding = GenericBinding;
 	}
 
-	if ( Binding ) {
-		return new Binding( element );
+	if ( Binding && ( binding = new Binding( element ) ) && binding.keypath ) {
+		return binding;
 	}
 }
 

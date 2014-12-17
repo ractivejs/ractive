@@ -7,7 +7,7 @@ export default function getPattern ( ractive, pattern ) {
 
 	values = {};
 	matchingKeypaths.forEach( keypath => {
-		values[ keypath ] = ractive.get( keypath.str );
+		values[ keypath.str ] = ractive.get( keypath.str );
 	});
 
 	return values;

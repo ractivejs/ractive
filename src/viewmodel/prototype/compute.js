@@ -3,5 +3,5 @@ import Computation from '../Computation/Computation';
 
 export default function Viewmodel$compute ( key, signature ) {
 	signature = getComputationSignature( signature );
-	return ( this.computations[ key ] = new Computation( this.ractive, key, signature ) );
+	return ( this.computations[ key.str ] = new Computation( this.ractive, key, signature ) );
 }

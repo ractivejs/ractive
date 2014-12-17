@@ -11,7 +11,7 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 		return mapping.unregister( keypath, dependant, group );
 	}
 
-	deps = this.deps[ group ][ keypath ];
+	deps = this.deps[ group ][ keypath.str ];
 	index = deps.indexOf( dependant );
 
 	if ( index === -1 ) {
@@ -33,14 +33,14 @@ function updateDependantsMap ( viewmodel, keypath, group ) {
 	// update dependants map
 	while ( !keypath.isRoot ) {
 		map = viewmodel.depsMap[ group ];
-		parent = map[ keypath.parent ];
+		parent = map[ keypath.parent.str ];
 
-		parent[ keypath ] -= 1;
+		parent[ '_' + keypath.str ] -= 1;
 
-		if ( !parent[ keypath ] ) {
+		if ( !parent[ '_' + keypath.str ] ) {
 			// remove from parent deps map
 			removeFromArray( parent, keypath );
-			parent[ keypath ] = undefined;
+			parent[ '_' + keypath.str ] = undefined;
 		}
 
 		keypath = keypath.parent;

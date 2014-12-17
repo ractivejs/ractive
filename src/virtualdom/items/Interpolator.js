@@ -43,7 +43,7 @@ Interpolator.prototype = {
 		var wrapper;
 
 		// TODO is there a better way to approach this?
-		if ( wrapper = this.root.viewmodel.wrapped[ this.keypath ] ) {
+		if ( this.keypath && ( wrapper = this.root.viewmodel.wrapped[ this.keypath.str ] ) ) {
 			value = wrapper.get();
 		}
 
