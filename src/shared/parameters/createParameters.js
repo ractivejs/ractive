@@ -56,14 +56,14 @@ ComponentParameters.prototype = {
 		// We have static data
 		if ( typeof template === 'string' ) {
 			let parsed = parseJSON( template );
-			this.addData( key, parsed ? parsed.value : template );
+			this.addData( key.str, parsed ? parsed.value : template );
 		}
 		// Empty string
 		// TODO valueless attributes also end up here currently
 		// (i.e. `<widget bool>` === `<widget bool=''>`) - this
 		// is probably incorrect
 		else if ( template === 0 ) {
-			this.addData( key );
+			this.addData( key.str );
 		}
 		// Interpolators
 		else {
@@ -82,7 +82,7 @@ ComponentParameters.prototype = {
 	},
 
 	addData: function ( key, value ) {
-		this.data[ key.str ] = value;
+		this.data[ key ] = value;
 	},
 
 	addMapping: function ( key, keypath ) {

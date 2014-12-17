@@ -45,7 +45,7 @@ ParameterResolver.prototype = {
 	notReadyResolve: function ( keypath ) {
 
 		if ( keypath.isSpecial ) {
-			this.parameters.addData( this.key, keypath.value );
+			this.parameters.addData( this.key.str, keypath.value );
 		}
 		else {
 			let mapping = this.parameters.addMapping( this.key, keypath );
@@ -60,7 +60,7 @@ ParameterResolver.prototype = {
 		var viewmodel = this.parameters.component.instance.viewmodel;
 
 		if ( keypath.isSpecial ) {
-			this.parameters.addData( this.key, keypath.value );
+			this.parameters.addData( this.key.str, keypath.value );
 			viewmodel.mark( this.key );
 		}
 		else if ( viewmodel.reversedMappings && viewmodel.reversedMappings[ this.key.str ] ) {
