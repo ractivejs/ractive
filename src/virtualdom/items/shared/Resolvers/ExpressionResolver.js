@@ -76,8 +76,8 @@ ExpressionResolver.prototype = {
 				}
 
 				// 'special' keypaths encode a value
-				if ( keypath[0] === '@' ) {
-					value = decodeKeypath( keypath );
+				if ( keypath.isSpecial ) {
+					value = keypath.value;
 					return () => value;
 				}
 
