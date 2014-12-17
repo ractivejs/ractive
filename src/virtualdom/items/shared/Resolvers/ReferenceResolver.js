@@ -5,7 +5,7 @@ import resolveRef from 'shared/resolveRef';
 var ReferenceResolver = function ( owner, ref, callback ) {
 	var keypath;
 
-	this.ref = getKeypath( ref );
+	this.ref = ref;
 	this.resolved = false;
 
 	this.root = owner.root;
@@ -13,7 +13,7 @@ var ReferenceResolver = function ( owner, ref, callback ) {
 	this.callback = callback;
 
 	keypath = resolveRef( owner.root, ref, owner.parentFragment );
-	if ( keypath !== undefined ) {
+	if ( keypath != undefined ) {
 		this.resolve( keypath );
 	}
 
@@ -24,6 +24,11 @@ var ReferenceResolver = function ( owner, ref, callback ) {
 
 ReferenceResolver.prototype = {
 	resolve: function ( keypath ) {
+		if ( this.keypath && !keypath ) {
+			console.log( 'adding back to unresolved pile', this );
+			runloop.addUnresolved( this );
+		}
+
 		this.resolved = true;
 
 		this.keypath = keypath;
@@ -31,7 +36,7 @@ ReferenceResolver.prototype = {
 	},
 
 	forceResolution: function () {
-		this.resolve( this.ref );
+		this.resolve( getKeypath( this.ref ) );
 	},
 
 	rebind: function ( oldKeypath, newKeypath ) {

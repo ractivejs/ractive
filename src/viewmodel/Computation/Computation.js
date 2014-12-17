@@ -163,7 +163,7 @@ Computation.prototype = {
 				// if this keypath is currently unresolved, we need to mark
 				// it as such. TODO this is a bit muddy...
 				if ( isUnresolved( this.viewmodel, keypath ) && ( !this.unresolvedDeps[ keypath ] ) ) {
-					unresolved = new UnresolvedDependency( this, keypath );
+					unresolved = new UnresolvedDependency( this, keypath.str );
 					newDeps.splice( i, 1 );
 
 					this.unresolvedDeps[ keypath ] = unresolved;

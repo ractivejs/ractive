@@ -1,8 +1,7 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import { removeFromArray } from 'utils/array';
 import Promise from 'utils/Promise';
-import { resolveAmbiguousReference } from 'shared/resolveRef';
-import { getKeypath } from 'shared/keypaths';
+import resolveRef from 'shared/resolveRef';
 import TransitionManager from './TransitionManager';
 
 var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
@@ -147,7 +146,7 @@ function attemptKeypathResolution () {
 			unresolved.splice( i, 1 );
 		}
 
-		if ( keypath = resolveAmbiguousReference( item.root, item.ref, item.parentFragment ) ) {
+		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment ) ) {
 			( resolved || ( resolved = [] ) ).push({
 				item: item,
 				keypath: keypath

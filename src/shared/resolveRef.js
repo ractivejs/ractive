@@ -1,4 +1,4 @@
-import { getKey, getKeypath, normalise } from 'shared/keypaths';
+import { getKeypath, normalise } from 'shared/keypaths';
 import getInnerContext from 'shared/getInnerContext';
 
 export default function resolveRef ( ractive, ref, fragment ) {
