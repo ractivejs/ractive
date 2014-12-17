@@ -66,7 +66,7 @@ function resolveAncestorRef ( baseContext, ref ) {
 	return getKeypath( baseContext + ref.replace( /^\.\//, '.' ) );
 }
 
-export function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
+function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 	var context,
 		key,
 		parentValue,
