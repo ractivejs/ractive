@@ -4,8 +4,7 @@ import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 var empty = {};
 
 export default function Viewmodel$get ( keypath, options ) {
-	var ractive = this.ractive,
-		cache = this.cache,
+	var cache = this.cache,
 		mapping,
 		value,
 		computation,
@@ -45,8 +44,8 @@ export default function Viewmodel$get ( keypath, options ) {
 
 		// Is it the root?
 		else if ( keypath.isRoot ) {
-			this.adapt( '', ractive.data );
-			value = ractive.data;
+			this.adapt( '', this.data );
+			value = this.data;
 		}
 
 		// No? Then we need to retrieve the value one key at a time

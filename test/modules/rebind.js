@@ -57,7 +57,7 @@ define([
 					indexRefs: { i: opt.oldKeypath.replace('items.','')}
 				};
 
-				fragment.root.viewmodel = new Viewmodel( fragment.root );
+				fragment.root.viewmodel = new Viewmodel({ context: fragment.root });
 
 				el = new Element({
 					parentFragment: fragment,

@@ -90,7 +90,7 @@ ExpressionResolver.prototype = {
 
 			signature = {
 				deps: this.keypaths.filter( isValidDependency ),
-				get () {
+				getter () {
 					var args = valueGetters.map( call );
 					return fn.apply( null, args );
 				}

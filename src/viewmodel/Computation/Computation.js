@@ -3,13 +3,11 @@ import { log, warn } from 'utils/log';
 import { isEqual } from 'utils/is';
 import UnresolvedDependency from './UnresolvedDependency';
 
-var Computation = function ( ractive, key, signature ) {
-	this.ractive = ractive;
-	this.viewmodel = ractive.viewmodel;
+var Computation = function ( key, signature ) {
 	this.key = key;
 
-	this.getter = signature.get;
-	this.setter = signature.set;
+	this.getter = signature.getter;
+	this.setter = signature.setter;
 
 	this.hardDeps = signature.deps || [];
 	this.softDeps = [];
@@ -17,28 +15,29 @@ var Computation = function ( ractive, key, signature ) {
 
 	this.depValues = {};
 
-	if ( this.hardDeps ) {
-		this.hardDeps.forEach( d => ractive.viewmodel.register( d, this, 'computed' ) );
-	}
-
 	this._dirty = this._firstRun = true;
 };
 
 Computation.prototype = {
 	constructor: Computation,
 
-	init: function () {
+	init: function ( viewmodel ) {
 		var initial;
 
+		this.viewmodel = viewmodel;
 		this.bypass = true;
 
-		initial = this.ractive.viewmodel.get( this.key );
-		this.ractive.viewmodel.clearCache( this.key.str );
+		initial = viewmodel.get( this.key );
+		viewmodel.clearCache( this.key.str );
 
 		this.bypass = false;
 
 		if ( this.setter && initial !== undefined ) {
 			this.set( initial );
+		}
+
+		if ( this.hardDeps ) {
+			this.hardDeps.forEach( d => viewmodel.register( d, this, 'computed' ) );
 		}
 	},
 
@@ -47,7 +46,7 @@ Computation.prototype = {
 	},
 
 	get: function () {
-		var ractive, newDeps, dependenciesChanged, dependencyValuesChanged = false;
+		var newDeps, dependenciesChanged, dependencyValuesChanged = false;
 
 		if ( this.getting ) {
 			// prevent double-computation (e.g. caused by array mutation inside computation)
@@ -57,8 +56,6 @@ Computation.prototype = {
 		this.getting = true;
 
 		if ( this._dirty ) {
-			ractive = this.ractive;
-
 			// determine whether the inputs have changed, in case this depends on
 			// other computed values
 			if ( this._firstRun || ( !this.hardDeps.length && !this.softDeps.length ) ) {
@@ -74,7 +71,7 @@ Computation.prototype = {
 					i = deps.length;
 					while ( i-- ) {
 						keypath = deps[i];
-						value = ractive.viewmodel.get( keypath );
+						value = this.viewmodel.get( keypath );
 
 						if ( !isEqual( value, this.depValues[ keypath.str ] ) ) {
 							this.depValues[ keypath.str ] = value;
@@ -87,12 +84,12 @@ Computation.prototype = {
 			}
 
 			if ( dependencyValuesChanged ) {
-				ractive.viewmodel.capture();
+				this.viewmodel.capture();
 
 				try {
-					this.value = this.getter.call( ractive );
+					this.value = this.getter();
 				} catch ( err ) {
-					if ( ractive.debug ) {
+					if ( this.viewmodel.debug ) {
 						warn( 'Failed to compute "%s"', this.key.str );
 						log( err.stack || err );
 					}
@@ -100,13 +97,13 @@ Computation.prototype = {
 					this.value = void 0;
 				}
 
-				newDeps = ractive.viewmodel.release();
+				newDeps = this.viewmodel.release();
 				dependenciesChanged = this.updateDependencies( newDeps );
 
 				if ( dependenciesChanged ) {
 					[ this.hardDeps, this.softDeps ].forEach( deps => {
 						deps.forEach( keypath => {
-							this.depValues[ keypath.str ] = ractive.viewmodel.get( keypath );
+							this.depValues[ keypath.str ] = this.viewmodel.get( keypath );
 						});
 					});
 				}
@@ -129,7 +126,7 @@ Computation.prototype = {
 			throw new Error( 'Computed properties without setters are read-only. (This may change in a future version of Ractive!)' );
 		}
 
-		this.setter.call( this.ractive, value );
+		this.setter( value );
 	},
 
 	updateDependencies: function ( newDeps ) {
@@ -181,7 +178,7 @@ Computation.prototype = {
 function isUnresolved( viewmodel, keypath ) {
 	var key = keypath.firstKey;
 
-	return !( key in viewmodel.ractive.data ) &&
+	return !( key in viewmodel.data ) &&
 	       !( key in viewmodel.computations ) &&
 	       !( key in viewmodel.mappings );
 }

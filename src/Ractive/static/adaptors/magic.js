@@ -83,7 +83,7 @@ try {
 
 			this.updating = true;
 			this.obj[ this.prop ] = value; // trigger set() accessor
-			runloop.addViewmodel( this.ractive.viewmodel );
+			runloop.addRactive( this.ractive );
 			this.ractive.viewmodel.mark( this.keypath, { dontTeardownWrapper: true } );
 			this.updating = false;
 			return true;

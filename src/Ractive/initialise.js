@@ -1,11 +1,13 @@
 import { getElement } from 'utils/dom';
 import { create } from 'utils/object';
 import { magic } from 'config/environment';
+import runloop from 'global/runloop';
 import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
 import Viewmodel from 'viewmodel/Viewmodel';
 import Hook from './prototype/shared/hooks/Hook';
 import HookQueue from './prototype/shared/hooks/HookQueue';
+import getComputationSignatures from './helpers/getComputationSignatures';
 
 var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
@@ -37,8 +39,17 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
-	// TEMPORARY. This is so we can implement Viewmodel gradually
-	ractive.viewmodel = new Viewmodel( ractive, options.mappings );
+	// TODO some of these properties probably shouldn't live on
+	// the ractive instance at all
+	ractive.viewmodel = new Viewmodel({
+		adapt: ractive.adapt,
+		data: ractive.data,
+		mappings: options.mappings,
+		computed: getComputationSignatures( ractive, ractive.computed ),
+		ractive: ractive,
+		debug: ractive.debug,
+		onchange: () => runloop.addRactive( ractive )
+	});
 
 	// hacky circular problem until we get this sorted out
 	// if viewmodel immediately processes computed properties,

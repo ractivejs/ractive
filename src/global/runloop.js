@@ -1,5 +1,5 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import { removeFromArray } from 'utils/array';
+import { addToArray, removeFromArray } from 'utils/array';
 import Promise from 'utils/Promise';
 import resolveRef from 'shared/resolveRef';
 import TransitionManager from './TransitionManager';
@@ -19,12 +19,12 @@ runloop = {
 			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 			views: [],
 			tasks: [],
-			viewmodels: [],
+			ractives: [],
 			instance: instance
 		};
 
 		if ( instance ) {
-			batch.viewmodels.push( instance.viewmodel );
+			batch.ractives.push( instance );
 		}
 
 		return promise;
@@ -38,17 +38,9 @@ runloop = {
 		batch = batch.previousBatch;
 	},
 
-	addViewmodel: function ( viewmodel ) {
+	addRactive: function ( ractive ) {
 		if ( batch ) {
-			if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
-				batch.viewmodels.push( viewmodel );
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			viewmodel.applyChanges();
-			return false;
+			addToArray( batch.ractives, ractive );
 		}
 	},
 
@@ -102,12 +94,12 @@ export default runloop;
 function flushChanges () {
 	var i, thing, changeHash;
 
-	while ( batch.viewmodels.length ) {
-		thing = batch.viewmodels.pop();
-		changeHash = thing.applyChanges();
+	while ( batch.ractives.length ) {
+		thing = batch.ractives.pop();
+		changeHash = thing.viewmodel.applyChanges();
 
 		if ( changeHash ) {
-			changeHook.fire( thing.ractive, changeHash );
+			changeHook.fire( thing, changeHash );
 		}
 	}
 
@@ -128,7 +120,7 @@ function flushChanges () {
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.viewmodels.length ) return flushChanges();
+	if ( batch.ractives.length ) return flushChanges();
 }
 
 function attemptKeypathResolution () {

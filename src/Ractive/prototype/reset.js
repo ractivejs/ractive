@@ -21,9 +21,11 @@ export default function Ractive$reset ( data ) {
 		if ( wrapper.reset( data ) === false ) {
 			// reset was rejected, we need to replace the object
 			this.data = data;
+			this.viewmodel.reset( data );
 		}
 	} else {
 		this.data = data;
+		this.viewmodel.reset( data );
 	}
 
 	// reset config items and track if need to rerender

@@ -29,7 +29,7 @@ mutatorMethods.forEach( function ( methodName ) {
 		while ( i-- ) {
 			wrapper = this._ractive.wrappers[i];
 
-			runloop.addViewmodel( wrapper.root.viewmodel );
+			runloop.addRactive( wrapper.root );
 			processWrapper( wrapper, this, methodName, newIndices );
 		}
 
