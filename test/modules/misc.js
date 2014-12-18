@@ -602,7 +602,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				}
 			});
 
-			t.deepEqual( ractive.adapt, [ Ractive.adaptors.foo ] );
+			t.deepEqual( ractive.viewmodel.adaptors, [ Ractive.adaptors.foo ] );
 			t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 		});
 
@@ -781,7 +781,7 @@ define([ 'ractive' ], function ( Ractive ) {
 
 				t.htmlEqual( fixture.innerHTML, 'onetwothree' );
 
-				ractive.data[2].name = 'threefourfive';
+				items[2].name = 'threefourfive';
 				t.htmlEqual( fixture.innerHTML, 'onetwothreefourfive' );
 			});
 

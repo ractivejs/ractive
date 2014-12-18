@@ -8,6 +8,7 @@ import magicAdaptor from 'Ractive/static/adaptors/magic';
 import magicArrayAdaptor from 'Ractive/static/adaptors/magicArray';
 import { getElement } from 'utils/dom';
 import { create, extend } from 'utils/object';
+import { isEmptyObject } from 'utils/is';
 import runloop from 'global/runloop';
 import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
@@ -58,7 +59,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	// Create a viewmodel
 	viewmodel = new Viewmodel({
-		adapt: getAdaptors( ractive, ractive.adapt, userOptions.adapt ),
+		adapt: getAdaptors( ractive, ractive.adapt, userOptions ),
 		data: combineData( ractive, ractive.constructor.prototype.data, userOptions.data ),
 		computed: getComputationSignatures( ractive, extend( {}, ractive.computed, userOptions.computed ) ),
 		mappings: options.mappings,
@@ -107,9 +108,35 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	}
 }
 
-function getAdaptors ( ractive, protoAdapt, adapt ) {
+function getAdaptors ( ractive, protoAdapt, userOptions ) {
+	var adapt, magic, modifyArrays;
+
 	protoAdapt = protoAdapt.map( lookup );
-	adapt = ensureArray( adapt ).map( lookup );
+	adapt = ensureArray( userOptions.adapt ).map( lookup );
+
+	adapt = combine( protoAdapt, adapt );
+
+	magic = 'magic' in userOptions ? userOptions.magic : ractive.magic;
+	modifyArrays = 'modifyArrays' in userOptions ? userOptions.modifyArrays : ractive.modifyArrays;
+
+	if ( magic ) {
+		if ( !magic ) {
+			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+		}
+
+		if ( modifyArrays ) {
+			adapt.push( magicArrayAdaptor );
+		}
+
+		adapt.push( magicAdaptor );
+	}
+
+	if ( modifyArrays ) {
+		adapt.push( arrayAdaptor );
+	}
+
+	return adapt;
+
 
 	function lookup ( adaptor ) {
 		if ( typeof adaptor === 'string' ) {
@@ -122,26 +149,6 @@ function getAdaptors ( ractive, protoAdapt, adapt ) {
 
 		return adaptor;
 	}
-
-	adapt = combine( protoAdapt, adapt );
-
-	if ( ractive.magic ) {
-		if ( !magic ) {
-			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-		}
-
-		if ( ractive.modifyArrays ) {
-			adapt.push( magicArrayAdaptor );
-		}
-
-		adapt.push( magicAdaptor );
-	}
-
-	if ( ractive.modifyArrays ) {
-		adapt.push( arrayAdaptor );
-	}
-
-	return adapt;
 }
 
 function combine ( a, b ) {
@@ -215,7 +222,7 @@ function combineData ( context, parent, child ) {
 		throw new Error( '`data` option must be an object' );
 	}
 
-	if ( typeof parent === 'object' ) {
+	if ( typeof parent === 'object' && !isEmptyObject( parent ) ) {
 		result = extend( {}, parent, child );
 	} else {
 		result = child;
