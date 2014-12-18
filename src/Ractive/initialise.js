@@ -59,7 +59,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	// Create a viewmodel
 	viewmodel = new Viewmodel({
 		adapt: getAdaptors( ractive, ractive.adapt, userOptions.adapt ),
-		data: combineData( ractive, ractive.data, userOptions.data ),
+		data: combineData( ractive, ractive.constructor.prototype.data, userOptions.data ),
 		computed: getComputationSignatures( ractive, extend( {}, ractive.computed, userOptions.computed ) ),
 		mappings: options.mappings,
 		ractive: ractive,
