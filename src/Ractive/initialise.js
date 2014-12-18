@@ -1,5 +1,5 @@
 import { getElement } from 'utils/dom';
-import { create } from 'utils/object';
+import { create, extend } from 'utils/object';
 import { magic } from 'config/environment';
 import runloop from 'global/runloop';
 import config from 'Ractive/config/config';
@@ -20,6 +20,14 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	var el;
 
 	initialiseProperties( ractive, options );
+
+	// TODO remove this - temporary, to help crossover to a data-less world
+	Object.defineProperty( ractive, 'data', {
+		get: () => {
+			//console.trace( 'getting data (%s)', !!ractive.viewmodel );
+			return ractive.viewmodel ? ractive.viewmodel.data : {};
+		}
+	});
 
 	// make this option do what would be expected if someone
 	// did include it on a new Ractive() or new Component() call.
@@ -43,7 +51,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	// the ractive instance at all
 	ractive.viewmodel = new Viewmodel({
 		adapt: ractive.adapt,
-		data: ractive.data,
+		data: combineData( ractive, ractive.constructor.prototype.data, userOptions.data ),
 		mappings: options.mappings,
 		computed: getComputationSignatures( ractive, ractive.computed ),
 		ractive: ractive,
@@ -120,4 +128,26 @@ function initialiseProperties ( ractive, options ) {
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null;
 	}
+}
+
+function combineData ( context, parent, child ) {
+	var result;
+
+	if ( !child ) {
+		child = create( null );
+	}
+
+	if ( typeof child !== 'object' ) {
+		throw new Error( '`data` option must be an object' );
+	}
+
+	if ( !parent ) {
+		result = child;
+	} else if ( typeof parent === 'function' ) {
+		result = parent.call( context, child ) || child; // TODO don't pass in a `data` object - force use of `this.get()`?
+	} else if ( typeof parent === 'object' ) {
+		result = extend( {}, parent, child );
+	}
+
+	return result;
 }

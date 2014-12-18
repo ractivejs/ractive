@@ -53,7 +53,7 @@ try {
 		this.prop = keypath.lastKey;
 
 		objKeypath = keypath.parent;
-		this.obj = objKeypath.isRoot ? ractive.data : ractive.viewmodel.get( objKeypath );
+		this.obj = objKeypath.isRoot ? ractive.viewmodel.data : ractive.viewmodel.get( objKeypath );
 
 		template = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
 

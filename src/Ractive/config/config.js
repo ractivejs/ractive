@@ -26,7 +26,7 @@ isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
 order = [].concat(
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
 	registries,
-	custom.data,
+	//custom.data,
 	custom.template,
 	custom.css
 );
@@ -80,7 +80,7 @@ function configure ( method, Parent, target, options ) {
 	});
 
 	adaptConfigurator[ method ]( Parent, target, options );
-	dataConfigurator[ method ]( Parent, target, options );
+	//dataConfigurator[ method ]( Parent, target, options );
 	templateConfigurator[ method ]( Parent, target, options );
 	cssConfigurator[ method ]( Parent, target, options );
 

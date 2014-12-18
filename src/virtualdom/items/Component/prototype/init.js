@@ -1,12 +1,11 @@
 import createInstance from 'virtualdom/items/Component/initialise/createInstance';
-import createParameters from 'shared/parameters/createParameters';
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import { COMPONENT } from 'config/types';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
 import { warn } from 'utils/log';
 
 export default function Component$init ( options, Component ) {
-	var parentFragment, root, parameters;
+	var parentFragment, root;
 
 	if ( !Component ) {
 		throw new Error( 'Component "' + this.name + '" not found' );
@@ -23,8 +22,7 @@ export default function Component$init ( options, Component ) {
 	this.yielders = {};
 	this.resolvers = [];
 
-	parameters = createParameters( this, Component.prototype, options.template.a );
-	createInstance( this, Component, parameters, options.template.f, options.template.p );
+	createInstance( this, Component, options.template.a, options.template.f, options.template.p );
 	propagateEvents( this, options.template.v );
 
 	// intro, outro and decorator directives have no effect

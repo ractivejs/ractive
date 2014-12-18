@@ -5,17 +5,12 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 	if ( !eventName ) { return; }
 
 	if ( !options.event ) {
-
 		options.event = {
 			name: eventName,
-			context: ractive.data,
-			keypath: '',
 			// until event not included as argument default
 			_noArg: true
 		};
-
-	}
-	else {
+	} else {
 		options.event.name = eventName;
 	}
 

@@ -60,12 +60,12 @@ var Viewmodel = function ( options ) {
 	this.data = data;
 
 	// set up explicit mappings
-	this.mappings = mappings || create( null );
+	this.mappings = create( null );
 	for ( key in mappings ) {
-		mappings[ key ].initViewmodel( this );
+		this.map( getKeypath( key ), mappings[ key ] );
 	}
 
-	if ( data && ractive.parameters !== true ) { // TODO ractive.parameters is awkward...
+	if ( data ) {
 		// if data exists locally, but is missing on the parent,
 		// we transfer ownership to the parent
 		for ( key in data ) {

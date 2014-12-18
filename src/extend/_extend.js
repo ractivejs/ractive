@@ -1,5 +1,6 @@
 import { create, defineProperties } from 'utils/object';
 import config from 'Ractive/config/config';
+import dataConfigurator from 'Ractive/config/custom/data';
 import initialise from 'Ractive/initialise';
 import Ractive from 'Ractive';
 import unwrapExtended from './unwrapExtended';
@@ -43,6 +44,8 @@ export default function extend ( options = {} ) {
 
 	// extend configuration
 	config.extend( Parent, proto, options );
+
+	dataConfigurator.extend( Parent, proto, options );
 
 	Child.prototype = proto;
 
