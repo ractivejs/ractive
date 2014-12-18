@@ -1,11 +1,13 @@
+import { lastItem } from 'utils/array';
+
 export default function ( a, b ) {
 	var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
 
 	ancestryA = getAncestry( a.component || a._ractive.proxy );
 	ancestryB = getAncestry( b.component || b._ractive.proxy );
 
-	oldestA = ancestryA[ ancestryA.length - 1 ];
-	oldestB = ancestryB[ ancestryB.length - 1 ];
+	oldestA = lastItem( ancestryA );
+	oldestB = lastItem( ancestryB );
 
 	// remove items from the end of both ancestries as long as they are identical
 	// - the final one removed is the closest mutual ancestor
@@ -15,8 +17,8 @@ export default function ( a, b ) {
 
 		mutualAncestor = oldestA;
 
-		oldestA = ancestryA[ ancestryA.length - 1 ];
-		oldestB = ancestryB[ ancestryB.length - 1 ];
+		oldestA = lastItem( ancestryA );
+		oldestB = lastItem( ancestryB );
 	}
 
 	// now that we have the mutual ancestor, we can find which is earliest
