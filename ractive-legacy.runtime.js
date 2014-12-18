@@ -1,13 +1,3 @@
-/*
-	ractive-legacy.runtime.js v0.6.1
-	2014-12-17 - commit ed474173 
-
-	http://ractivejs.org
-	http://twitter.com/RactiveJS
-
-	Released under the MIT License.
-*/
-
 (function (global, factory) {
 
 	'use strict';
@@ -881,27 +871,69 @@
 	var noop__default = function () {};
 	//# sourceMappingURL=01-_6to5-noop.js.map
 
+  var log___slice = Array.prototype.slice;
   /* global console */
-  var warn__warn, warn__warned = {};
+  var log__alreadyWarned = {}, log__log, log__printWarning;
 
   if (environment__hasConsole) {
-    warn__warn = function (message, allowDuplicates) {
-      if (!allowDuplicates) {
-        if (warn__warned[message]) {
-          return;
-        }
-
-        warn__warned[message] = true;
-      }
-
-      console.warn("%cRactive.js: %c" + message, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);");
+    log__printWarning = function (message, args) {
+      console.warn.apply(console, ["%cRactive.js: %c" + message, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);"].concat(args));
     };
+
+    log__log = console.log.bind(console);
   } else {
-    warn__warn = noop__default;
+    log__printWarning = log__log = noop__default;
   }
 
-  var warn__default = warn__warn;
-  //# sourceMappingURL=01-_6to5-warn.js.map
+  function log__format(message, args) {
+    return message.replace(/%s/g, function () {
+      return args.shift();
+    });
+  }
+
+  function log__consoleError(err) {
+    if (environment__hasConsole) {
+      console.error(err);
+    } else {
+      throw err;
+    }
+  }
+
+  function log__fatal(message) {
+    var args = log___slice.call(arguments, 1);
+
+    message = log__format(message, args);
+    throw new Error(message);
+  }
+
+  function log__warn(message) {
+    var args = log___slice.call(arguments, 1);
+
+    message = log__format(message, args);
+    log__printWarning(message, args);
+  }
+
+  function log__warnOnce(message) {
+    var args = log___slice.call(arguments, 1);
+
+    message = log__format(message, args);
+
+    if (log__alreadyWarned[message]) {
+      return;
+    }
+
+    log__alreadyWarned[message] = true;
+    log__printWarning(message, args);
+  }
+  //# sourceMappingURL=01-_6to5-log.js.map
+
+  // Error messages that are used (or could be) in multiple places
+  var errors__badArguments = "Bad arguments";
+  var errors__noRegistryFunctionReturn = "A function was specified for \"%s\" %s, but no %s was returned";
+  var errors__missingPlugin = function (name, type) {
+    return "Missing \"" + name + "\" " + type + " plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#" + type + "s";
+  };
+  //# sourceMappingURL=01-_6to5-errors.js.map
 
   function registry__findInViewHierarchy(registryName, ractive, name) {
     var instance = registry__findInstance(registryName, ractive, name);
@@ -934,7 +966,7 @@
         return interpol(from, to) || interpolate__snap(to);
       }
 
-      warn__default("Missing \"" + type + "\" interpolator. You may need to download a plugin from [TODO]");
+      log__warnOnce(errors__missingPlugin(type, "interpolator"));
     }
 
     return interpolators__default.number(from, to) || interpolators__default.array(from, to) || interpolators__default.object(from, to) || interpolate__snap(to);
@@ -1136,99 +1168,6 @@
   var getTime__default = getTime__getTime;
   //# sourceMappingURL=01-_6to5-getTime.js.map
 
-  var errors__default = {
-    missingParser: "Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser",
-
-    mergeComparisonFail: "Merge operation: comparison failed. Falling back to identity checking",
-
-    noComponentEventArguments: "Components currently only support simple events - you cannot include arguments. Sorry!",
-
-    noTemplateForPartial: "Could not find template for partial \"{name}\"",
-
-    noNestedPartials: "Partials ({{>{name}}}) cannot contain nested inline partials",
-
-    evaluationError: "Error evaluating \"{uniqueString}\": {err}",
-
-    badArguments: "Bad arguments \"{arguments}\". I'm not allowed to argue unless you've paid.",
-
-    failedComputation: "Failed to compute \"{key}\": {err}",
-
-    missingPlugin: "Missing \"{name}\" {plugin} plugin. You may need to download a {plugin} via http://docs.ractivejs.org/latest/plugins#{plugin}s",
-
-    badRadioInputBinding: "A radio input can have two-way binding on its name attribute, or its checked attribute - not both",
-
-    noRegistryFunctionReturn: "A function was specified for \"{name}\" {registry}, but no {registry} was returned",
-
-    defaultElSpecified: "The <{name}/> component has a default `el` property; it has been disregarded",
-
-    noElementProxyEventWildcards: "Only component proxy-events may contain \"*\" wildcards, <{element} on-{event}/> is not valid.",
-
-    methodDeprecated: "The method \"{deprecated}\" has been deprecated in favor of \"{replacement}\" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.",
-
-    noTwowayExpressions: "Two-way binding does not work with expressions. Encountered ( {expression} ) on element {element}.",
-
-    computedCannotMapTo: "Computed property \"{key}\" cannot be mapped to \"{other}\" because {reason}.",
-
-    notUsed: "prevents forgetting trailing \",\" in cut and paste of previous line :)"
-  };
-  //# sourceMappingURL=01-_6to5-errors.js.map
-
-  /* global console */
-  var log__log = {
-    warn: function (options, passthru) {
-      if (!options.debug && !passthru) {
-        return;
-      }
-      this.warnAlways(options);
-    },
-    warnAlways: function (options) {
-      this.logger(log__getMessage(options), options.allowDuplicates);
-    },
-    error: function (options) {
-      this.errorOnly(options);
-
-      if (!options.debug) {
-        this.warn(options, true);
-      }
-    },
-    errorOnly: function (options) {
-      if (options.debug) {
-        this.critical(options);
-      }
-    },
-    critical: function (options) {
-      var err = options.err || new Error(log__getMessage(options));
-      this.thrower(err);
-    },
-    logger: warn__default,
-    thrower: function (err) {
-      throw err;
-    },
-    consoleError: function (options) {
-      if (environment__hasConsole) {
-        console.error(options.err);
-      } else {
-        this.thrower(options.err);
-      }
-    }
-  };
-
-  function log__getMessage(options) {
-    var message = errors__default[options.message] || options.message || "";
-    return log__interpolate(message, options.args);
-  }
-
-  // simple interpolation. probably quicker (and better) out there,
-  // but log is not in golden path of execution, only exceptions
-  function log__interpolate(message, args) {
-    return message.replace(/{([^{}]*)}/g, function (a, b) {
-      return args[b];
-    });
-  }
-
-  var log__default = log__log;
-  //# sourceMappingURL=01-_6to5-log.js.map
-
   var Hook__deprecations = {
     construct: {
       deprecated: "beforeInit",
@@ -1261,11 +1200,11 @@
     call(this.method);
 
     if (!ractive[this.method] && this.deprecate && call(this.deprecate.deprecated)) {
-      log__default.warnAlways({
-        debug: ractive.debug,
-        message: this.deprecate.message || "methodDeprecated",
-        args: this.deprecate
-      });
+      if (this.deprecate.message) {
+        log__warn(this.deprecate.message);
+      } else {
+        log__warn("The method \"%s\" has been deprecated in favor of \"%s\" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.", this.deprecate.deprecated, this.deprecate.replacement);
+      }
     }
 
     arg ? ractive.fire(this.event, arg) : ractive.fire(this.event);
@@ -1323,6 +1262,10 @@
     }
 
     return x;
+  }
+
+  function array__lastItem(array) {
+    return array[array.length - 1];
   }
 
   function array__removeFromArray(array, member) {
@@ -2293,7 +2236,7 @@
 
           // TODO investigate why this happens
           if (index === -1) {
-            warn__default("Animation was not found");
+            log__warn("Animation was not found");
           }
 
           this.root._animations.splice(index, 1);
@@ -2330,7 +2273,7 @@
 
       // TODO investigate why this happens
       if (index === -1) {
-        warn__default("Animation was not found");
+        log__warn("Animation was not found");
       }
 
       this.root._animations.splice(index, 1);
@@ -2343,9 +2286,6 @@
   var animate__noAnimation = { stop: noop__default };
 
   function animate__Ractive$animate(keypath, to, options) {
-    var _this = this;
-
-
     var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
 
     promise = new Promise__default(function (fulfil) {
@@ -2415,12 +2355,7 @@
       if (complete) {
         promise.then(function (t) {
           complete(t, currentValues);
-        }).then(null, function (err) {
-          log__default.consoleError({
-            debug: _this.debug,
-            err: err
-          });
-        });
+        }).then(null, log__consoleError);
       }
 
       dummyOptions.complete = fulfilPromise;
@@ -2447,12 +2382,7 @@
     options = options || {};
 
     if (options.complete) {
-      promise.then(options.complete).then(null, function (err) {
-        log__default.consoleError({
-          debug: _this.debug,
-          err: err
-        });
-      });
+      promise.then(options.complete).then(null, log__consoleError);
     }
 
     options.complete = fulfilPromise;
@@ -2596,8 +2526,8 @@
     ancestryA = sortByItemPosition__getAncestry(a.component || a._ractive.proxy);
     ancestryB = sortByItemPosition__getAncestry(b.component || b._ractive.proxy);
 
-    oldestA = ancestryA[ancestryA.length - 1];
-    oldestB = ancestryB[ancestryB.length - 1];
+    oldestA = array__lastItem(ancestryA);
+    oldestB = array__lastItem(ancestryB);
 
     // remove items from the end of both ancestries as long as they are identical
     // - the final one removed is the closest mutual ancestor
@@ -2607,8 +2537,8 @@
 
       mutualAncestor = oldestA;
 
-      oldestA = ancestryA[ancestryA.length - 1];
-      oldestB = ancestryB[ancestryB.length - 1];
+      oldestA = array__lastItem(ancestryA);
+      oldestB = array__lastItem(ancestryB);
     }
 
     // now that we have the mutual ancestor, we can find which is earliest
@@ -3720,12 +3650,7 @@
     // But perhaps I'm wrong about that...
     promise.then(function () {
       return prototype_render__completeHook.fire(_this);
-    }).then(null, function (err) {
-      log__default.consoleError({
-        debug: _this.debug,
-        err: err
-      });
-    });
+    }).then(null, log__consoleError);
 
     return promise;
   };
@@ -4200,13 +4125,7 @@
           adaptor = registry__findInViewHierarchy("adaptors", ractive, adaptor);
 
           if (!adaptor) {
-            log__default.critical({
-              message: "missingPlugin",
-              args: {
-                plugin: "adaptor",
-                name: adaptor
-              }
-            });
+            log__fatal(errors__missingPlugin(adaptor, "adaptor"));
           }
         }
 
@@ -4537,7 +4456,7 @@
 
   function parser__doParse(template, parseOptions) {
     if (!parse__default) {
-      throw new Error(errors__default.missingParser);
+      throw new Error("Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser");
     }
 
     return parse__default(template, parseOptions || this.options);
@@ -4839,7 +4758,7 @@
   function deprecate__deprecateOption(options, deprecatedOption, correct) {
     if (deprecatedOption in options) {
       if (!(correct in options)) {
-        warn__default(deprecate__getMessage(deprecatedOption, correct));
+        log__warn(deprecate__getMessage(deprecatedOption, correct));
         options[correct] = options[deprecatedOption];
       } else {
         throw new Error(deprecate__getMessage(deprecatedOption, correct, true));
@@ -9189,16 +9108,7 @@
 
     if (keypath = interpolator.keypath) {
       if (keypath.str.slice(-1) === "}") {
-        log__default.error({
-          debug: this.root.debug,
-          message: "noTwowayExpressions",
-          args: {
-            // won't fix brackets [foo] changed to -foo-
-            expression: keypath.str.slice(2, -1).replace("-", "."),
-            element: element.tagName
-          }
-        });
-
+        log__warn("Two-way binding does not work with expressions (`%s` on <%s>)", interpolator.resolver.uniqueString, element.name);
         return false;
       }
     } else {
@@ -9907,7 +9817,7 @@
 
         // we can either bind the name attribute, or the checked attribute - not both
         if (bindName && bindChecked) {
-          log__default.error({ message: "badRadioInputBinding" });
+          log__warn("A radio input can have two-way binding on its name attribute, or its checked attribute - not both");
         }
 
         if (bindName) {
@@ -9979,15 +9889,7 @@
     this.name = name;
 
     if (name.indexOf("*") !== -1) {
-      log__default.error({
-        debug: this.root.debug,
-        message: "noElementProxyEventWildcards",
-        args: {
-          element: element.tagName,
-          event: name
-        }
-      });
-
+      (this.root.debug ? log__fatal : log__warn)("Only component proxy-events may contain \"*\" wildcards, <%s on-%s=\"...\"/> is not valid", element.name, name);
       this.invalid = true;
     }
 
@@ -10153,14 +10055,7 @@
       if (!("on" + name in this.node) && !(window && "on" + name in window)) {
         // okay to use touch events if this browser doesn't support them
         if (!listen__touchEvents[name]) {
-          log__default.error({
-            debug: this.root.debug,
-            message: "missingPlugin",
-            args: {
-              plugin: "event",
-              name: name
-            }
-          });
+          log__warnOnce(errors__missingPlugin(name, "event"));
         }
 
         return;
@@ -10351,14 +10246,7 @@
     this.fn = registry__findInViewHierarchy("decorators", ractive, name);
 
     if (!this.fn) {
-      log__default.error({
-        debug: ractive.debug,
-        message: "missingPlugin",
-        args: {
-          plugin: "decorator",
-          name: name
-        }
-      });
+      log__warn(errors__missingPlugin(name, "decorator"));
     }
   };
 
@@ -10746,14 +10634,7 @@
     this._fn = registry__findInViewHierarchy("transitions", ractive, name);
 
     if (!this._fn) {
-      log__default.error({
-        debug: ractive.debug,
-        message: "missingPlugin",
-        args: {
-          plugin: "transition",
-          name: name
-        }
-      });
+      log__warnOnce(errors__missingPlugin(name, "transition"));
     }
   };
   var Transition_prototype_init__default = Transition_prototype_init__Transition$init;
@@ -10876,7 +10757,7 @@
       easing = options.root.easing[options.easing];
 
       if (!easing) {
-        warn__default("Missing easing function (\"" + options.easing + "\"). You may need to download a plugin from [TODO]");
+        log__warnOnce(errors__missingPlugin(options.easing, "easing"));
         easing = Ticker__linear;
       }
     } else if (typeof options.easing === "function") {
@@ -11075,7 +10956,7 @@
               // will get confused
               index = changedProperties.indexOf(prop);
               if (index === -1) {
-                warn__default("Something very strange happened with transitions. If you see this message, please let @RactiveJS know. Thanks!");
+                log__warn("Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!");
               } else {
                 changedProperties.splice(index, 1);
               }
@@ -11230,7 +11111,7 @@
 
       // TODO remove this check in a future version
       if (!options) {
-        warn__default("The \"" + this.name + "\" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340");
+        log__warn("The \"%s\" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340", this.name);
         options = this;
       }
 
@@ -11394,7 +11275,7 @@
 
   Element_prototype_render__updateScript = function () {
     if (!this.node.type || this.node.type === "text/javascript") {
-      warn__default("Script tag was updated. This does not cause the code to be re-evaluated!");
+      log__warn("Script tag was updated. This does not cause the code to be re-evaluated!");
       // As it happens, we ARE in a position to re-evaluate the code if we wanted
       // to - we could eval() it, or insert it into a fresh (temporary) script tag.
       // But this would be a terrible idea with unpredictable results, so let's not.
@@ -11840,7 +11721,7 @@
       lines.shift();
     }
 
-    lastLine = lines[lines.length - 1];
+    lastLine = array__lastItem(lines);
     if (lastLine !== undefined && deIndent__empty.test(lastLine)) {
       lines.pop();
     }
@@ -11909,11 +11790,7 @@
     }
 
     if (!partial && partial !== "") {
-      log__default.warn({
-        debug: ractive.debug,
-        message: "noRegistryFunctionReturn",
-        args: { registry: "partial", name: name }
-      });
+      log__warn(errors__noRegistryFunctionReturn, name, "partial", "partial");
       return;
     }
 
@@ -11926,11 +11803,7 @@
       // Partials cannot contain nested partials!
       // TODO add a test for this
       if (parsed.p) {
-        log__default.warn({
-          debug: ractive.debug,
-          message: "noNestedPartials",
-          args: { rname: name }
-        });
+        log__warn("Partials ({{>%s}}) cannot contain nested inline partials", name);
       }
 
       // if fn, use instance to store result, otherwise needs to go
@@ -12082,11 +11955,7 @@
       }
 
       if (!template) {
-        log__default.error({
-          debug: this.root.debug,
-          message: "noTemplateForPartial",
-          args: { name: this.name }
-        });
+        (this.root.debug ? log__fatal : log__warnOnce)("Could not find template for partial \"%s\"", this.name);
       }
 
       this.value = value;
@@ -12194,16 +12063,15 @@
         Component = fn(instance.data);
 
         if (!Component) {
-          log__default.warn({
-            debug: ractive.debug,
-            message: "noRegistryFunctionReturn",
-            args: { registry: "component", name: name }
-          });
+          if (ractive.debug) {
+            log__warn(errors__noRegistryFunctionReturn, name, "component", "component");
+          }
+
           return;
         }
 
         if (typeof Component === "string") {
-          //allow string lookup
+          // allow string lookup
           Component = getComponent__getComponent(ractive, Component);
         }
 
@@ -12780,14 +12648,10 @@
           try {
             this.value = this.getter.call(ractive);
           } catch (err) {
-            log__default.warn({
-              debug: ractive.debug,
-              message: "failedComputation",
-              args: {
-                key: this.key,
-                err: err.message || err
-              }
-            });
+            if (ractive.debug) {
+              log__warn("Failed to compute \"%s\"", this.key.str);
+              log__log(err.stack || err);
+            }
 
             this.value = void 0;
           }
@@ -12897,7 +12761,7 @@
     options = options || get__empty;
 
     // capture the keypath, if we're inside a computation
-    if (options.capture && (captureGroup = this.captureGroups[this.captureGroups.length - 1])) {
+    if (options.capture && (captureGroup = array__lastItem(this.captureGroups))) {
       if (! ~captureGroup.indexOf(keypath)) {
         captureGroup.push(keypath);
       }
@@ -12994,9 +12858,7 @@
       computations.push(computation);
 
       if (key in this.mappings) {
-        log__default.critical({
-          message: "Cannot map to a computed property ('" + key + "')"
-        });
+        log__fatal("Cannot map to a computed property ('%s')", key);
       }
     }
 
@@ -13250,7 +13112,7 @@
         if (this.debug) {
           throw err;
         } else {
-          warn__default("Merge operation: comparison failed. Falling back to identity checking");
+          log__warn("Merge operation: comparison failed. Falling back to identity checking");
         }
 
         oldArray = currentArray;
@@ -13797,13 +13659,7 @@
     inlinePartials[""] = partials.content;
 
     if (Component.defaults.el) {
-      log__default.warn({
-        debug: ractive.debug,
-        message: "defaultElSpecified",
-        args: {
-          name: component.name
-        }
-      });
+      log__warn("The <%s/> component has a default `el` property; it has been disregarded", component.name);
     }
 
     // find container
@@ -14149,10 +14005,7 @@
 
   function propagateEvents__propagateEvent(childInstance, parentInstance, eventName, proxyEventName) {
     if (typeof proxyEventName !== "string") {
-      log__default.error({
-        debug: parentInstance.debug,
-        message: "noComponentEventArguments"
-      });
+      log__warn("Components currently only support simple events - you cannot include arguments. Sorry!");
     }
 
     childInstance.on(eventName, function () {
@@ -14212,7 +14065,7 @@
 
     // intro, outro and decorator directives have no effect
     if (options.template.t1 || options.template.t2 || options.template.o) {
-      warn__default("The \"intro\", \"outro\" and \"decorator\" directives have no effect on components");
+      log__warn("The \"intro\", \"outro\" and \"decorator\" directives have no effect on components");
     }
 
     updateLiveQueries__default(this);
@@ -14469,7 +14322,36 @@
   var Doctype__default = Doctype__Doctype;
   //# sourceMappingURL=01-_6to5-Doctype.js.map
 
-  function createItem__createItem(options) {
+  function Fragment_prototype_init__Fragment$init(options) {
+    var _this = this;
+    this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
+    this.parent = this.owner.parentFragment;
+
+    // inherited properties
+    this.root = options.root;
+    this.pElement = options.pElement;
+    this.context = options.context;
+    this.index = options.index;
+    this.key = options.key;
+    this.registeredIndexRefs = [];
+
+    this.items = options.template.map(function (template, i) {
+      return Fragment_prototype_init__createItem({
+        parentFragment: _this,
+        pElement: options.pElement,
+        template: template,
+        index: i
+      });
+    });
+
+    this.value = this.argsList = null;
+    this.dirtyArgs = this.dirtyValue = true;
+
+    this.bound = true;
+  };
+  var Fragment_prototype_init__default = Fragment_prototype_init__Fragment$init;
+
+  function Fragment_prototype_init__createItem(options) {
     if (typeof options.template === "string") {
       return new Text__default(options);
     }
@@ -14494,55 +14376,6 @@
 
       default: throw new Error("Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!");
     }
-  };
-  var createItem__default = createItem__createItem;
-  //# sourceMappingURL=01-_6to5-createItem.js.map
-
-  function Fragment_prototype_init__Fragment$init(options) {
-    var _this = this;
-
-
-    var parentFragment;
-
-    // The item that owns this fragment - an element, section, partial, or attribute
-    this.owner = options.owner;
-    parentFragment = this.parent = this.owner.parentFragment;
-
-    // inherited properties
-    this.root = options.root;
-    this.pElement = options.pElement;
-    this.context = options.context;
-    this.index = options.index;
-    this.key = options.key;
-    this.registeredIndexRefs = [];
-
-    // Time to create this fragment's child items
-
-    // TODO should this be happening?
-    options.template = array__ensureArray(options.template);
-
-    this.items = options.template.map(function (template, i) {
-      return createItem__default({
-        parentFragment: _this,
-        pElement: options.pElement,
-        template: template,
-        index: i
-      });
-    }).filter(Fragment_prototype_init__notNull);
-
-    this.value = this.argsList = null;
-    this.dirtyArgs = this.dirtyValue = true;
-
-    this.bound = true;
-  };
-  var Fragment_prototype_init__default = Fragment_prototype_init__Fragment$init;
-
-  function Fragment_prototype_init__notNull(item) {
-    if (!item) {
-      throw new Error("null item");
-    }
-
-    return true;
   }
   //# sourceMappingURL=01-_6to5-init.js.map
 
@@ -14932,19 +14765,12 @@
   }
   //# sourceMappingURL=01-_6to5-teardown.js.map
 
-  function toggle__Ractive$toggle(keypath, callback) {
-    var value;
-
+  function toggle__Ractive$toggle(keypath) {
     if (typeof keypath !== "string") {
-      log__default.errorOnly({
-        debug: this.debug,
-        messsage: "badArguments",
-        arg: { arguments: keypath }
-      });
+      throw new TypeError(errors__badArguments);
     }
 
-    value = this.get(keypath);
-    return this.set(keypath, !value, callback);
+    return this.set(keypath, !this.get(keypath));
   };
   var toggle__default = toggle__Ractive$toggle;
   //# sourceMappingURL=01-_6to5-toggle.js.map
@@ -14962,11 +14788,7 @@
     var promise, shouldDestroy;
 
     if (!this.fragment.rendered) {
-      log__default.warn({
-        debug: this.debug,
-        message: "ractive.unrender() was called on a Ractive instance that was not rendered"
-      });
-
+      log__warn("ractive.unrender() was called on a Ractive instance that was not rendered");
       return Promise__default.resolve();
     }
 
@@ -15302,7 +15124,7 @@
     magic: { value: environment__magic },
 
     // version
-    VERSION: { value: "0.6.1" },
+    VERSION: { value: "<%= pkg.version %>" },
 
     // Plugins
     adaptors: { writable: true, value: {} },
