@@ -1,3 +1,4 @@
+/*global test, expect, simulant */
 define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 
 	'use strict';
@@ -20,11 +21,11 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 				percent: 150
 			});
 
-			model.transform( 'foo', function ( newValue, oldValue ) {
+			model.transform( 'foo', function ( newValue ) {
 				return newValue.toLowerCase();
 			});
 
-			model.transform( 'percent', function ( newValue, oldValue ) {
+			model.transform( 'percent', function ( newValue ) {
 				return Math.min( 100, Math.max( 0, newValue ) );
 			});
 
@@ -58,7 +59,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 				unwanted: 'here'
 			});
 
-			model.transform( 'foo', function ( newValue, oldValue ) {
+			model.transform( 'foo', function ( newValue ) {
 				return newValue.toLowerCase();
 			});
 
@@ -74,7 +75,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 
 			model = new Model({ foo: 'QUX' });
 
-			model.transform( 'foo', function ( newValue, oldValue ) {
+			model.transform( 'foo', function ( newValue ) {
 				return newValue.toLowerCase();
 			});
 
@@ -137,7 +138,7 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 		});
 
 		test( 'Adaptor teardown is called when used in a component (#1190)', function ( t ) {
-			var ractive, adaptor, Component, torndown = 0;
+			var ractive, adaptor, torndown = 0;
 
 			function Wrapped(){}
 
@@ -148,9 +149,9 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 						get: () => ({ foo: 'bar' }),
 						reset: () => false,
 						teardown: () => torndown++
-					}
+					};
 				}
-			}
+			};
 
 			ractive = new Ractive({
 				el: fixture,
@@ -164,7 +165,6 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 						adapt: [ adaptor ]
 					})
 				}
-
 			});
 
 			t.htmlEqual( fixture.innerHTML, 'bar' );
@@ -188,9 +188,9 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 						reset: () => false,
 						set: (property, value) => obj.sekrit = value,
 						teardown: () => true
-					}
+					};
 				}
-			}
+			};
 
 			ractive = new Ractive({
 				el: fixture,
@@ -272,10 +272,10 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 
 			(function () {
 				Ractive.adaptors.ModelAdaptor = {
-					filter: function ( obj, keypath, ractive ) {
+					filter: function ( obj ) {
 						return obj instanceof Classes.Model;
 					},
-					wrap: function ( ractive, obj, keypath, prefix ) {
+					wrap: function ( ractive, obj ) {
 						return {
 							get: function () {
 								return obj.attrs;
@@ -293,10 +293,10 @@ define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 					}
 				};
 				Ractive.adaptors.CollectionAdaptor = {
-					filter: function ( obj, keypath, ractive ) {
+					filter: function ( obj ) {
 						return obj instanceof Classes.Collection;
 					},
-					wrap: function ( ractive, obj, keypath, prefix ) {
+					wrap: function ( ractive, obj ) {
 						return {
 							get: function () {
 								return obj.attrs;

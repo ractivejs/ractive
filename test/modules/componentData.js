@@ -1,16 +1,13 @@
+/*global test, asyncTest, expect, start */
 define([
 	'ractive',
-	'helpers/Model',
-	'utils/object'
+	'helpers/Model'
 ], function (
 	Ractive,
-	Model,
-	object
+	Model
 ) {
 
 	'use strict';
-
-	var defineProperty = object.defineProperty;
 
 	return function () {
 
@@ -66,7 +63,7 @@ define([
 				t.deepEqual( widget.get( 'foo' ), { bar: 'biz' } );
 				t.htmlEqual( fixture.innerHTML, '<p>biz</p>' );
 
-				widget.set('foo.bar', 'bah')
+				widget.set('foo.bar', 'bah');
 				t.deepEqual( widget.get( 'foo' ), { bar: 'bah' } );
 				t.htmlEqual( fixture.innerHTML, '<p>bah</p>' );
 			});
@@ -124,7 +121,7 @@ define([
 
 				t.htmlEqual( fixture.innerHTML, '<p></p>' );
 
-				ractive.set('missing', 'found')
+				ractive.set('missing', 'found');
 				t.htmlEqual( fixture.innerHTML, '<p>found</p>' );
 
 			});
@@ -151,7 +148,7 @@ define([
 				widget = ractive.findComponent( 'widget' );
 
 				t.equal( ractive.get( 'one' ), 'yes' );
-				t.ok( !( ractive.data.hasOwnProperty( 'two' ) ) );
+				t.ok( !( ractive.viewmodel.data.hasOwnProperty( 'two' ) ) );
 				t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 			});
 
@@ -277,7 +274,7 @@ define([
 
 
 			test( 'Nested components can access outer-most data context', t => {
-				var ractive, Widget;
+				var ractive;
 
 				ractive = new Ractive({
 					el: fixture,
@@ -303,7 +300,7 @@ define([
 			});
 
 			test( 'Nested components registered at global Ractive can access outer-most data context', t => {
-				var ractive, Widget;
+				var ractive;
 
 				Ractive.components.widget = Ractive.extend({
 					template: '<grandwidget/>',
@@ -324,8 +321,8 @@ define([
 				ractive.set('world', 'venus');
 				t.htmlEqual( fixture.innerHTML, 'hello venus' );
 
-				delete Ractive.components.widget
-				delete Ractive.components.grandwidget
+				delete Ractive.components.widget;
+				delete Ractive.components.grandwidget;
 			});
 
 			test( 'mixed use of same component parameters across different instances', t => {
@@ -356,29 +353,30 @@ define([
 				t.equal( fixture.innerHTML, 'qux qux obj static bar-qux qux' );
 
 				widgets = ractive.findAllComponents( 'widget' );
-				widgets[0].set('foo', 'one')
+				widgets[0].set('foo', 'one');
 				t.equal( fixture.innerHTML, 'one one obj static bar-one one' );
-				widgets[1].set('foo', 'two')
+				widgets[1].set('foo', 'two');
 				t.equal( fixture.innerHTML, 'one one two static bar-one one' );
-				widgets[2].set('foo', 'notstatic')
+				widgets[2].set('foo', 'notstatic');
 				t.equal( fixture.innerHTML, 'one one two notstatic bar-one one' );
-				widgets[3].set('foo', 'notcomplex')
+				widgets[3].set('foo', 'notcomplex');
 				t.equal( fixture.innerHTML, 'one one two notstatic notcomplex one' );
 				// keypath expressions ARE bound!
-				widgets[4].set('foo', 'bound')
+				widgets[4].set('foo', 'bound');
 				t.equal( fixture.innerHTML, 'bound bound two notstatic bar-bound bound' );
 
 				if ( parameters === true ) {
-					widgets[0].data.foo = 'un'
+					//widgets[0].viewmodel.data.foo = 'un'
+					widgets[0].set( 'foo', 'un' );
 					t.equal( fixture.innerHTML, 'un un two notstatic bar-un un' );
-					widgets[1].set('foo', 'duex')
+					widgets[1].set('foo', 'duex');
 					t.equal( fixture.innerHTML, 'un un duex notstatic bar-un un' );
-					widgets[2].set('foo', 'pas-de-static')
+					widgets[2].set('foo', 'pas-de-static');
 					t.equal( fixture.innerHTML, 'un un duex pas-de-static bar-un un' );
-					widgets[3].set('foo', 'pas-de-complex')
+					widgets[3].set('foo', 'pas-de-complex');
 					t.equal( fixture.innerHTML, 'un un duex pas-de-static pas-de-complex un' );
 					// keypath expressions ARE bound!
-					widgets[4].set('foo', 'lié')
+					widgets[4].set('foo', 'lié');
 					t.equal( fixture.innerHTML, 'lié lié duex pas-de-static bar-lié lié' );
 				}
 			});
@@ -387,7 +385,7 @@ define([
 
 				// only for ES5 prototype data params
 				if( parameters === true ) {
-					test( 'component data prototype if reused if parameters are the same and reset if not', t => {
+					test( 'component data prototype is reused if parameters are the same and reset if not', t => {
 						var ractive, Widget;
 
 						Widget = Ractive.extend({
@@ -419,7 +417,7 @@ define([
 							parameters: parameters,
 							magic: true,
 							oncomplete: function(){
-								this.data.world = 'venus'
+								this.data.world = 'venus';
 								t.htmlEqual( fixture.innerHTML, 'venusvenus' );
 								start();
 							}
@@ -444,7 +442,7 @@ define([
 						magic: true
 					});
 
-					var data = { world: 'mars' }
+					var data = { world: 'mars' };
 					ractive = new Ractive({
 						el: fixture,
 						template: '{{world}}<widget world="{{world}}"/>',
@@ -453,7 +451,7 @@ define([
 						data: data
 					});
 
-					data.world = 'venus'
+					data.world = 'venus';
 
 					t.htmlEqual( fixture.innerHTML, 'venusvenus' );
 				});
@@ -602,7 +600,7 @@ define([
 					}
 				});
 
-				t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } )
+				t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } );
 			});
 
 			test( 'Uninitialised implicit dependencies of evaluators that use inherited functions are handled', t => {
@@ -751,7 +749,7 @@ define([
 				Component = Ractive.extend({
 					template: '{{foo}}',
 					parameters: parameters,
-					data: function(){ return data }
+					data: function(){ return data; }
 				});
 
 				ractive = new Ractive({
@@ -766,13 +764,13 @@ define([
 			});
 
 			test( 'Component in template having data function with no return uses existing data instance', t => {
-				var Component, ractive, data = { foo: 'bar' } ;
+				var Component, ractive;
 
 				Component = Ractive.extend({
 					template: '{{foo}}{{bim}}',
 					parameters: parameters,
 					data: function(d){
-						d.bim = 'bam'
+						d.bim = 'bam';
 					}
 				});
 
@@ -789,13 +787,13 @@ define([
 			if ( parameters !== false ) {
 
 				test( 'Component in template passed parameters with data function', t => {
-					var Component, ractive, data = { foo: 'bar' } ;
+					var Component, ractive;
 
 					Component = Ractive.extend({
 						template: '{{foo}}{{bim}}',
 						parameters: parameters,
 						data: function(d){
-							d.bim = d.foo
+							d.bim = d.foo;
 						}
 					});
 
@@ -810,7 +808,7 @@ define([
 				});
 
 				test( 'Component data in sync with mapped property', t => {
-					var Component, component, ractive, data = { foo: 'bar' } ;
+					var Component, component, ractive;
 
 					Component = Ractive.extend({
 						template: '<input value="{{foo}}">',
@@ -849,8 +847,8 @@ define([
 				var Component, ractive;
 
 				Component = Ractive.extend({
-					template: function( data, parser ){
-						return data.useFoo ? '{{foo}}' : '{{fizz}}'
+					template: function ( data ){
+						return data.useFoo ? '{{foo}}' : '{{fizz}}';
 					},
 					parameters: parameters
 				});
