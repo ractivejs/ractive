@@ -1,4 +1,4 @@
-import { create } from 'utils/object';
+ import { create } from 'utils/object';
 import 'legacy';
 
 var registryNames, Registry, registries;
@@ -31,10 +31,10 @@ Registry.prototype = {
 	},
 
 	init: function ( Parent, ractive, options ) {
-		this.configure(
+		/*this.configure(
 			this.useDefaults ? Parent.defaults : Parent,
 			ractive,
-			options );
+			options );*/
 	},
 
 	configure: function ( Parent, target, options ) {

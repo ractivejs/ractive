@@ -1,6 +1,13 @@
+import { fatal } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import { magic } from 'config/environment';
+import { ensureArray } from 'utils/array';
+import { findInViewHierarchy } from 'shared/registry';
+import arrayAdaptor from 'Ractive/static/adaptors/array/index';
+import magicAdaptor from 'Ractive/static/adaptors/magic';
+import magicArrayAdaptor from 'Ractive/static/adaptors/magicArray';
 import { getElement } from 'utils/dom';
 import { create, extend } from 'utils/object';
-import { magic } from 'config/environment';
 import runloop from 'global/runloop';
 import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
@@ -12,12 +19,24 @@ import getComputationSignatures from './helpers/getComputationSignatures';
 var constructHook = new Hook( 'construct' ),
 	configHook = new Hook( 'config' ),
 	initHook = new HookQueue( 'init' ),
-	uid = 0;
+	uid = 0,
+	registryNames;
+
+registryNames = [
+	'adaptors',
+	'components',
+	'decorators',
+	'easing',
+	'events',
+	'interpolators',
+	'partials',
+	'transitions'
+];
 
 export default initialiseRactiveInstance;
 
 function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
-	var el;
+	var el, viewmodel;
 
 	initialiseProperties( ractive, options );
 
@@ -29,11 +48,23 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 		}
 	});
 
-	// make this option do what would be expected if someone
-	// did include it on a new Ractive() or new Component() call.
-	// Silly to do so (put a hook on the very options being used),
-	// but handle it correctly, consistent with the intent.
+	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
 	constructHook.fire( config.getConstructTarget( ractive, userOptions ), userOptions );
+
+	// Add registries
+	registryNames.forEach( name => {
+		ractive[ name ] = extend( create( ractive.constructor[ name ] || null ), userOptions[ name ] );
+	});
+
+	// Create a viewmodel
+	viewmodel = new Viewmodel({
+		adapt: getAdaptors( ractive, ractive.adapt, userOptions.adapt ),
+		data: combineData( ractive, ractive.data, userOptions.data ),
+		computed: getComputationSignatures( ractive, extend( {}, ractive.computed, userOptions.computed ) ),
+		mappings: options.mappings,
+		ractive: ractive,
+		onchange: () => runloop.addRactive( ractive )
+	});
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
@@ -47,25 +78,19 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
-	// TODO some of these properties probably shouldn't live on
-	// the ractive instance at all
-	ractive.viewmodel = new Viewmodel({
-		adapt: ractive.adapt,
-		data: combineData( ractive, ractive.constructor.prototype.data, userOptions.data ),
-		mappings: options.mappings,
-		computed: getComputationSignatures( ractive, ractive.computed ),
-		ractive: ractive,
-		debug: ractive.debug,
-		onchange: () => runloop.addRactive( ractive )
-	});
+	ractive.viewmodel = viewmodel;
+	viewmodel.debug = ractive.debug;
 
-	// hacky circular problem until we get this sorted out
-	// if viewmodel immediately processes computed properties,
-	// they may call ractive.get, which calls ractive.viewmodel,
-	// which hasn't been set till line above finishes.
-	ractive.viewmodel.init();
+	// If this is a component with a function `data` property, call the function
+	// with `ractive` as context
+	if ( typeof ractive.constructor.prototype.data === 'function' ) {
+		viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
+	}
 
-	// Render our *root fragment*
+	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
+	viewmodel.init();
+
+	// Render virtual DOM
 	if ( ractive.template ) {
 		ractive.fragment = new Fragment({
 			template: ractive.template,
@@ -80,6 +105,55 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	if ( el = getElement( ractive.el ) ) {
 		ractive.render( el, ractive.append );
 	}
+}
+
+function getAdaptors ( ractive, protoAdapt, adapt ) {
+	protoAdapt = protoAdapt.map( lookup );
+	adapt = ensureArray( adapt ).map( lookup );
+
+	function lookup ( adaptor ) {
+		if ( typeof adaptor === 'string' ) {
+			adaptor = findInViewHierarchy( 'adaptors', ractive, adaptor );
+
+			if ( !adaptor ) {
+				fatal( missingPlugin( adaptor, 'adaptor' ) );
+			}
+		}
+
+		return adaptor;
+	}
+
+	adapt = combine( protoAdapt, adapt );
+
+	if ( ractive.magic ) {
+		if ( !magic ) {
+			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+		}
+
+		if ( ractive.modifyArrays ) {
+			adapt.push( magicArrayAdaptor );
+		}
+
+		adapt.push( magicAdaptor );
+	}
+
+	if ( ractive.modifyArrays ) {
+		adapt.push( arrayAdaptor );
+	}
+
+	return adapt;
+}
+
+function combine ( a, b ) {
+	var c = a.slice(), i = b.length;
+
+	while ( i-- ) {
+		if ( !~c.indexOf( b[i] ) ) {
+			c.push( b[i] );
+		}
+	}
+
+	return c;
 }
 
 function initialiseProperties ( ractive, options ) {
@@ -141,12 +215,10 @@ function combineData ( context, parent, child ) {
 		throw new Error( '`data` option must be an object' );
 	}
 
-	if ( !parent ) {
-		result = child;
-	} else if ( typeof parent === 'function' ) {
-		result = parent.call( context, child ) || child; // TODO don't pass in a `data` object - force use of `this.get()`?
-	} else if ( typeof parent === 'object' ) {
+	if ( typeof parent === 'object' ) {
 		result = extend( {}, parent, child );
+	} else {
+		result = child;
 	}
 
 	return result;

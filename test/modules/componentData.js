@@ -793,7 +793,12 @@ define([
 						template: '{{foo}}{{bim}}',
 						parameters: parameters,
 						data: function(d){
-							d.bim = d.foo;
+							console.log( 'here' );
+
+							return {
+								bim: this.get( 'foo' )
+							};
+							//d.bim = d.foo;
 						}
 					});
 

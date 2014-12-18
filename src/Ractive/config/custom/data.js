@@ -8,14 +8,14 @@ var dataConfigurator = {
 	},
 
 	init: ( Parent, ractive, options ) => {
-		var value = options.data,
+		/*var value = options.data,
 			result = combine( Parent, ractive, options );
 
 		if ( typeof result === 'function' ) {
 			result = result.call( ractive, value ) || value;
 		}
 
-		return ractive.data = result || {};
+		return ractive.data = result || {};*/
 	},
 
 	reset: function ( ractive ) {

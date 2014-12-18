@@ -13,7 +13,7 @@ var adaptConfigurator = {
 	},
 
 	init: ( Parent, ractive, options ) => {
-		var protoAdapt, adapt;
+		/*var protoAdapt, adapt;
 
 		protoAdapt = ractive.adapt.map( lookup );
 		adapt = ensureArray( options.adapt ).map( lookup );
@@ -46,7 +46,7 @@ var adaptConfigurator = {
 
 		if ( ractive.modifyArrays ) {
 			ractive.adapt.push( arrayAdaptor );
-		}
+		}*/
 	}
 };
 
