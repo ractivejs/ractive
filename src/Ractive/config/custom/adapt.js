@@ -1,4 +1,5 @@
-import log from 'utils/log/log';
+import { fatal } from 'utils/log';
+import { missingPlugin } from 'config/errors';
 import { magic } from 'config/environment';
 import { ensureArray } from 'utils/array';
 import { findInViewHierarchy } from 'shared/registry';
@@ -22,13 +23,7 @@ var adaptConfigurator = {
 				adaptor = findInViewHierarchy( 'adaptors', ractive, adaptor );
 
 				if ( !adaptor ) {
-					log.critical({
-						message: 'missingPlugin',
-						args: {
-							plugin: 'adaptor',
-							name: adaptor
-						}
-					});
+					fatal( missingPlugin( adaptor, 'adaptor' ) );
 				}
 			}
 

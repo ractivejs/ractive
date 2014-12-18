@@ -1,5 +1,5 @@
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
-import log from 'utils/log/log';
+import { warn } from 'utils/log';
 
 // TODO how should event arguments be handled? e.g.
 // <widget on-foo='bar:1,2,3'/>
@@ -18,12 +18,8 @@ export default function propagateEvents ( component, eventsDescriptor ) {
 }
 
 function propagateEvent ( childInstance, parentInstance, eventName, proxyEventName ) {
-
 	if ( typeof proxyEventName !== 'string' ) {
-		log.error({
-			debug: parentInstance.debug,
-			message: 'noComponentEventArguments'
-		});
+		warn( 'Components currently only support simple events - you cannot include arguments. Sorry!' );
 	}
 
 	childInstance.on( eventName, function () {

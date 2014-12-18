@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import log from 'utils/log/log';
+import { warn } from 'utils/log';
 import { create, extend } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 
@@ -15,16 +15,7 @@ var Binding = function ( element ) {
 
 	if ( keypath = interpolator.keypath ) {
 		if ( keypath.str.slice( -1 ) === '}' ) {
-			log.error({
-				debug: this.root.debug,
-				message: 'noTwowayExpressions',
-				args: {
-					// won't fix brackets [foo] changed to -foo-
-					expression: keypath.str.slice( 2, -1 ).replace('-','.'),
-					element: element.tagName
-				}
-			});
-
+			warn( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name );
 			return false;
 		}
 	}

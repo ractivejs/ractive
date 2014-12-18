@@ -1,4 +1,4 @@
-import warn from 'utils/log/warn';
+import { warn } from 'utils/log';
 import { isArray } from 'utils/is';
 
 function getMessage( deprecated, correct, isError ) {

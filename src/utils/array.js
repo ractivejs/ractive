@@ -51,6 +51,10 @@ export function ensureArray ( x ) {
 	return x;
 }
 
+export function lastItem ( array ) {
+	return array[ array.length - 1 ];
+}
+
 export function removeFromArray ( array, member ) {
 	var index = array.indexOf( member );
 

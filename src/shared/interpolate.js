@@ -1,4 +1,5 @@
-import warn from 'utils/log/warn';
+import { warnOnce } from 'utils/log';
+import { missingPlugin } from 'config/errors';
 import interpolators from 'Ractive/static/interpolators';
 import { findInViewHierarchy } from 'shared/registry';
 
@@ -14,7 +15,7 @@ var interpolate = function ( from, to, ractive, type ) {
 			return interpol( from, to ) || snap( to );
 		}
 
-		warn( 'Missing "' + type + '" interpolator. You may need to download a plugin from [TODO]' );
+		warnOnce( missingPlugin( type, 'interpolator' ) );
 	}
 
 	return interpolators.number( from, to ) ||
