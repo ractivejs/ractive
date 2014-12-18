@@ -57,6 +57,14 @@ module.exports = function ( grunt) {
 					return grunt.template.process(src);
 				}
 			}
+		},
+		srcToBuild: {
+			files: [{
+				expand: true,
+				cwd: '<%= tmpDir %>/src',
+				src: 'ractive*.js',
+				dest: 'build'
+			}]
 		}
 	};
 };

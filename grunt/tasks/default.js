@@ -5,7 +5,8 @@ module.exports = function ( grunt ) {
 	grunt.registerTask( 'default', [
 		'build',
 		'concurrent:test',
-		'concurrent:uglify'
+		'concurrent:uglify',
+		'copy:srcToBuild'
 	]);
 
 };
