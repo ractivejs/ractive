@@ -5927,12 +5927,12 @@
 
   var parseJSON__JsonParser, parseJSON__specials, parseJSON__specialsPattern, parseJSON__numberPattern, parseJSON__placeholderPattern, parseJSON__placeholderAtStartPattern, parseJSON__onlyWhitespace;
 
-  parseJSON__specials = (function (o) {
-    o.true = true;
-    o.false = false;
-    o.undefined = undefined;
-    o.null = null;
-    return o;
+  parseJSON__specials = (function (_specials) {
+    _specials["true" + ""] = true;
+    _specials["false" + ""] = false;
+    _specials["undefined" + ""] = undefined;
+    _specials["null" + ""] = null;
+    return _specials;
   })({});
 
   parseJSON__specialsPattern = new RegExp("^(?:" + Object.keys(parseJSON__specials).join("|") + ")");
