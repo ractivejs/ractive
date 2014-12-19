@@ -6374,12 +6374,13 @@
 
   var parseJSON__JsonParser, parseJSON__specials, parseJSON__specialsPattern, parseJSON__numberPattern, parseJSON__placeholderPattern, parseJSON__placeholderAtStartPattern, parseJSON__onlyWhitespace;
 
-  parseJSON__specials = {
-    true: true,
-    false: false,
-    undefined: undefined,
-    null: null
-  };
+  parseJSON__specials = (function (o) {
+    o.true = true;
+    o.false = false;
+    o.undefined = undefined;
+    o.null = null;
+    return o;
+  })({});
 
   parseJSON__specialsPattern = new RegExp("^(?:" + Object.keys(parseJSON__specials).join("|") + ")");
   parseJSON__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
