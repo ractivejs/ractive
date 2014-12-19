@@ -1,3 +1,4 @@
+/*global test, expect */
 define([ 'ractive' ], function ( Ractive ) {
 
 	'use strict';
@@ -30,7 +31,7 @@ define([ 'ractive' ], function ( Ractive ) {
 		test( 'default data function called on initialize', t => {
 			var ractive, data = { foo: 'bar' } ;
 
-			Ractive.defaults.data = function() { return data };
+			Ractive.defaults.data = () => data;
 			ractive = new Ractive();
 			t.equal( ractive.data, data );
 
@@ -40,7 +41,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			var ractive, data = { foo: 'bar' } ;
 
 			ractive = new Ractive({
-				data: function() { return data }
+				data: () => data
 			});
 			t.equal( ractive.data, data );
 
@@ -72,19 +73,21 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.equal( fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD' );
-		})
+		});
 
-		test( 'instance data is used as data object', t => {
+		// For removal? (#1594)
+		/*test( 'instance data is used as data object', t => {
 
 			var ractive, data = { foo: 'bar' };
 
 			Ractive.defaults.data = { bar: 'bizz' };
 			ractive = new Ractive( { data: data } );
 
-			t.equal( ractive.data, data );
-		});
+			t.equal( ractive.get(), data );
+		});*/
 
-		test( 'default data function with no return uses existing data instance', t => {
+		// For removal (#1594)
+		/*test( 'default data function with no return uses existing data instance', t => {
 			var ractive;
 
 			Ractive.defaults.data = function ( d ) { d.bizz = 'bop' };
@@ -93,18 +96,18 @@ define([ 'ractive' ], function ( Ractive ) {
 
 			t.ok( ractive.data.foo );
 			t.ok( ractive.data.bizz );
-		});
+		});*/
 
 		test( 'instance data function takes precendence over default data function', t => {
 			var ractive;
 
 			Ractive.defaults.data = function () {
-				return { foo: 'fizz' }
+				return { foo: 'fizz' };
 			};
 
 			ractive = new Ractive({
 				data: function () {
-					return { bar: 'bizz' }
+					return { bar: 'bizz' };
 				}
 			});
 
@@ -123,7 +126,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive = new Ractive( {
 				data: {
 					foo: 'bar',
-					format: function () { return 'foo' }
+					format: function () { return 'foo'; }
 				}
 			});
 
@@ -138,7 +141,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			var Component, ractive, data = { foo: 'bar' };
 
 			Component = Ractive.extend({
-				data: function(){ return data }
+				data: function(){ return data; }
 			});
 
 			ractive = new Component();
@@ -169,7 +172,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( ractive.data.foo, 'has instance data' );
 			t.ok( ractive.data.componentOnly, 'has Component data' );
 			t.ok( ractive.data.defaultOnly, 'has Ractive.default data' );
-			t.equal( fixture.innerHTML, 'component' )
+			t.equal( fixture.innerHTML, 'component' );
 
 		});
 
@@ -178,9 +181,9 @@ define([ 'ractive' ], function ( Ractive ) {
 			var Component, ractive;
 
 			function Model ( data ) {
-				if ( !( this instanceof Model ) ) { return new Model( data ) }
+				if ( !( this instanceof Model ) ) { return new Model( data ); }
 				this.foo = ( data ? data.foo : 'bar' ) || 'bar';
-			};
+			}
 
 			// This would be an odd thing to do, unless you
 			// were returning a model instance...
@@ -194,7 +197,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			t.ok( ractive.data instanceof Model );
-			t.equal( fixture.innerHTML, 'bar' )
+			t.equal( fixture.innerHTML, 'bar' );
 
 			ractive = new Component( {
 				el: fixture,
@@ -202,7 +205,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				data: { foo: 'fizz' }
 			});
 
-			t.ok( ractive.data instanceof Model );
+			t.ok( ractive.viewmodel.data instanceof Model );
 			t.equal( fixture.innerHTML, 'fizz' );
 
 			ractive = new Component( {
@@ -210,7 +213,7 @@ define([ 'ractive' ], function ( Ractive ) {
 				template: '{{foo}}{{bar}}',
 				data: function ( data ) {
 					data = this._super( data );
-					data.bar = 'bizz'
+					data.bar = 'bizz';
 					return data;
 				}
 			});
@@ -233,7 +236,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			}
 		});
 
-		test( 'instantiated extend with data uses existing data instance', t => {
+		// For removal (#1594)
+		/*test( 'instantiated extend with data uses existing data instance', t => {
 			var Component, ractive, data = { foo: 'bar' } ;
 
 			Component = Ractive.extend({
@@ -243,7 +247,7 @@ define([ 'ractive' ], function ( Ractive ) {
 			ractive = new Component( { data: data } );
 			t.equal( ractive.data, data );
 			t.ok( ractive.data.bizz );
-		});
+		});*/
 
 
 		module( 'Template Initialisation', cleanupDefaults );
