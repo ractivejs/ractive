@@ -61,11 +61,14 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	viewmodel = new Viewmodel({
 		adapt: getAdaptors( ractive, ractive.adapt, userOptions ),
 		data: combineData( ractive, ractive.constructor.prototype.data, userOptions.data ),
-		computed: getComputationSignatures( ractive, extend( {}, ractive.computed, userOptions.computed ) ),
+		computed: getComputationSignatures( ractive, extend( create( ractive.constructor.prototype.computed ), userOptions.computed ) ),
 		mappings: options.mappings,
 		ractive: ractive,
 		onchange: () => runloop.addRactive( ractive )
 	});
+
+	ractive.viewmodel = viewmodel;
+	viewmodel.debug = ractive.debug;
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
@@ -78,9 +81,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	configHook.fire( ractive );
 	initHook.begin( ractive );
-
-	ractive.viewmodel = viewmodel;
-	viewmodel.debug = ractive.debug;
 
 	// If this is a component with a function `data` property, call the function
 	// with `ractive` as context
@@ -218,8 +218,14 @@ function combineData ( context, parent, child ) {
 		child = create( null );
 	}
 
+	if ( typeof child === 'function' ) {
+		// TODO this seems like a mythical use case. Should we continue to support it?
+		// Makes sense with `Ractive.extend(...)`, but less so with `new Ractive(...)`
+		child = child.call( context );
+	}
+
 	if ( typeof child !== 'object' ) {
-		throw new Error( '`data` option must be an object' );
+		throw new Error( 'data option must be an object or a function, "' + child + '" is not valid' );
 	}
 
 	if ( typeof parent === 'object' && !isEmptyObject( parent ) ) {
