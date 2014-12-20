@@ -1,5 +1,6 @@
 import { isObject } from 'utils/is';
-import { getMatchingKeypaths, getKeypath, normalise } from 'shared/keypaths';
+import { getMatchingKeypaths } from 'shared/keypaths';
+import { getKeypath, normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 var wildcard = /\*/;
