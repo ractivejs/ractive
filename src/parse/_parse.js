@@ -8,7 +8,7 @@ import text from './converters/text';
 import trimWhitespace from './utils/trimWhitespace';
 import stripStandalones from './utils/stripStandalones';
 import processPartials from './converters/partial/processPartials';
-import { isEmptyObject } from 'utils/is';
+import { isEmptyObject, isArray } from 'utils/is';
 
 // Ractive.parse
 // ===============
@@ -203,6 +203,23 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			for ( key in item.a ) {
 				if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
 					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+				}
+			}
+		}
+
+		// Clean up event handlers
+		if ( item.v ) {
+			for ( key in item.v ) {
+				if ( item.v.hasOwnProperty( key ) ) {
+					// clean up names
+					if ( isArray( item.v[ key ].n ) ) {
+						cleanup( item.v[ key ].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					}
+
+					// clean up params
+					if ( isArray( item.v[ key ].d ) ) {
+						cleanup( item.v[ key ].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					}
 				}
 			}
 		}
