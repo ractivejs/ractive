@@ -7097,6 +7097,23 @@
           }
         }
       }
+
+      // Clean up event handlers
+      if (item.v) {
+        for (key in item.v) {
+          if (item.v.hasOwnProperty(key)) {
+            // clean up names
+            if (is__isArray(item.v[key].n)) {
+              parse__cleanup(item.v[key].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
+            }
+
+            // clean up params
+            if (is__isArray(item.v[key].d)) {
+              parse__cleanup(item.v[key].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
+            }
+          }
+        }
+      }
     }
 
     // final pass - fuse text nodes together
