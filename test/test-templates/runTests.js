@@ -9,8 +9,7 @@
 				modules: '../test/modules',
 				samples: '../test/samples',
 				helpers: '../test/helpers',
-				vendor: '../test/vendor',
-				ractive: 'Ractive'
+				vendor: '../test/vendor'
 			}
 		};
 
@@ -31,7 +30,8 @@
 		prefixedModules[i] = 'modules/' + _modules[i];
 	}
 
-	require( [ 'ractive' ].concat( prefixedModules ), function ( Ractive ) {
+	require( [ 'Ractive' ].concat( prefixedModules ), function ( Ractive ) {
+		Ractive = Ractive['default'];
 		window.Ractive = Ractive;
 
 		Ractive.defaults.magic = /magic=true/.test( window.location.search );
