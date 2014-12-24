@@ -1431,6 +1431,26 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( !el.twoway );
 		});
 
+		test( 'Attribute directives on fragments that get re-used (partials) should stick around for re-use', t => {
+			let ractive = new Ractive({
+				el: fixture,
+				template: '{{#list}}{{>partial}}{{/}}',
+				partials: { partial: '<input value="{{.foo}}" twoway="false" />' },
+				data: { list: [ { foo: 'a' }, { foo: 'b' } ] },
+				twoway: true
+			}), els;
+
+			// this should have no effect
+			els = ractive.findAll('input');
+			els[0].value = 'c';
+			els[1].value = 'c';
+			simulant.fire( els[0], 'change' );
+			simulant.fire( els[1], 'change' );
+
+			t.equal( ractive.get( 'list.0.foo' ), 'a' );
+			t.equal( ractive.get( 'list.1.foo' ), 'b' );
+		});
+
 		// phantom doesn't like these tests, but browsers are ok with them
 		if ( !/phantomjs/i.test( window.navigator.userAgent ) ) {
 			test( 'lazy may be overriden on a per-element basis', t => {

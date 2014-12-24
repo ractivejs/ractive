@@ -16,7 +16,8 @@ export default function Element$init ( options ) {
 		ractive,
 		binding,
 		bindings,
-		twoway;
+		twoway,
+		bindingAttrs;
 
 	this.type = ELEMENT;
 
@@ -49,7 +50,7 @@ export default function Element$init ( options ) {
 	}
 
 	// handle binding attributes first (twoway, lazy)
-	processBindingAttributes( this, template.a || {} );
+	bindingAttrs = template.bindingAttributes || processBindingAttributes( this, template );
 
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
@@ -67,8 +68,11 @@ export default function Element$init ( options ) {
 
 	// the element setting should override the ractive setting
 	twoway = ractive.twoway;
-	if ( this.twoway === false ) twoway = false;
-	else if ( this.twoway === true ) twoway = true;
+	if ( bindingAttrs.twoway === false ) twoway = false;
+	else if ( bindingAttrs.twoway === true ) twoway = true;
+
+	this.twoway = twoway;
+	this.lazy = bindingAttrs.lazy;
 
 	// create twoway binding
 	if ( twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {

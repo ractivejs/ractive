@@ -27,13 +27,15 @@ GenericBinding = Binding.extend({
 			timeout = this.element.lazy;
 		}
 
+		this.handler = timeout ? handleDelay : handleDomEvent;
+
 		node.addEventListener( 'change', handleDomEvent, false );
 
 		if ( !lazy ) {
-			node.addEventListener( 'input', timeout ? handleDelay : handleDomEvent, false );
+			node.addEventListener( 'input', this.handler, false );
 
 			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', timeout ? handleDelay : handleDomEvent, false );
+				node.addEventListener( 'keyup', this.handler, false );
 			}
 		}
 
@@ -45,8 +47,8 @@ GenericBinding = Binding.extend({
 		this.rendered = false;
 
 		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'input', handleDomEvent, false );
-		node.removeEventListener( 'keyup', handleDomEvent, false );
+		node.removeEventListener( 'input', this.handler, false );
+		node.removeEventListener( 'keyup', this.handler, false );
 		node.removeEventListener( 'blur', handleBlur, false );
 	}
 });

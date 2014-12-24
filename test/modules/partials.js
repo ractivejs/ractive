@@ -222,7 +222,7 @@ define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 			});
 
 			t.ok( !ractive.partials.hasOwnProperty( 'foo' ) );
-			t.deepEqual( Component.partials.foo, [{"t":7,"e":"p","f":[{"t":2,"r":"foo"}]}] );
+			t.deepEqual( Component.partials.foo, [{"t":7,"e":"p","f":[{"t":2,"r":"foo"}],"bindingAttributes":{}}] );
 		});
 
 		test( 'Partials work in attributes (#917)', function ( t ) {
