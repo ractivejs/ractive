@@ -1312,7 +1312,7 @@ define([
 			})
 
 			test( 'ComponentData supports JSON.stringify', (t) => {
-				new Ractive({
+				var ractive = new Ractive({
 					el: fixture,
 					template: `<cmp foo="bar" baz="{{.}}" />`,
 					components: {
@@ -1326,7 +1326,9 @@ define([
 					data: { bippy: 'boppy' }
 				});
 
-				t.htmlEqual( JSON.stringify({foo:'bar',baz:{bippy:'boppy'},bat:1}) + ' bar boppy 1', fixture.innerHTML );
+				t.ok( ractive.findComponent('cmp').data.toJSON );
+
+				t.htmlEqual( fixture.innerHTML, JSON.stringify( { bat:1, foo:'bar', baz:{ bippy:'boppy' } } ) + ' bar boppy 1' );
 			});
 
 			test( 'ComponentData supports in operator', (t) => {

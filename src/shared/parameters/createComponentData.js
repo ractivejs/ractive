@@ -94,18 +94,10 @@ function makeConstructor ( parameters, defined ) {
 var reservedKeys = [ '_data', '_mappings' ];
 
 function toJSON() {
-	let json = {}, mappings = this._mappings;
+	var json = {}, k;
 
-	for ( let k in this._data ) {
-		json[k] = this[k];
-	}
-
-	for ( let k in mappings ) {
-		json[k] = mappings[k].origin.get( mappings[k].keypath );
-	}
-
-	for ( let k in this ) {
-		if ( this.hasOwnProperty( k ) && reservedKeys.indexOf( k ) === -1 ) {
+	for ( k in this ) {
+		if ( reservedKeys.indexOf( k ) === -1 ) {
 			json[k] = this[k];
 		}
 	}
