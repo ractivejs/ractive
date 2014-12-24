@@ -9277,7 +9277,7 @@
   }
   //# sourceMappingURL=01-_6to5-setValue.js.map
 
-  function prototype_toString__Section$toString(escape) {
+  function toString__Section$toString(escape) {
     var str, i, len;
 
     str = "";
@@ -9291,7 +9291,7 @@
 
     return str;
   };
-  var prototype_toString__default = prototype_toString__Section$toString;
+  var toString__default = toString__Section$toString;
   //# sourceMappingURL=01-_6to5-toString.js.map
 
   function prototype_unbind__Section$unbind() {
@@ -9435,7 +9435,7 @@
     render: render__default,
     resolve: Mustache__default.resolve,
     setValue: setValue__default,
-    toString: prototype_toString__default,
+    toString: toString__default,
     unbind: prototype_unbind__default,
     unrender: unrender__default,
     update: update__default
@@ -9659,10 +9659,10 @@
   var prototype_setValue__default = prototype_setValue__Triple$setValue;
   //# sourceMappingURL=01-_6to5-setValue.js.map
 
-  function Triple_prototype_toString__Triple$toString() {
+  function prototype_toString__Triple$toString() {
     return (this.value != undefined ? html__decodeCharacterReferences("" + this.value) : "");
   };
-  var Triple_prototype_toString__default = Triple_prototype_toString__Triple$toString;
+  var prototype_toString__default = prototype_toString__Triple$toString;
   //# sourceMappingURL=01-_6to5-toString.js.map
 
   function prototype_unrender__Triple$unrender(shouldDestroy) {
@@ -9716,7 +9716,7 @@
     render: Triple_prototype_render__default,
     resolve: Mustache__default.resolve,
     setValue: prototype_setValue__default,
-    toString: Triple_prototype_toString__default,
+    toString: prototype_toString__default,
     unbind: unbind__default,
     unrender: prototype_unrender__default,
     update: prototype_update__default
