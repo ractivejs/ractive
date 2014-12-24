@@ -1,5 +1,5 @@
-import types from 'config/types';
-import getKey from 'parse/Parser/expressions/shared/key';
+import { KEY_VALUE_PAIR } from 'config/types';
+import getKey from '../../../shared/key';
 
 export default function ( parser ) {
 	var start, key, value;
@@ -35,7 +35,7 @@ export default function ( parser ) {
 	}
 
 	return {
-		t: types.KEY_VALUE_PAIR,
+		t: KEY_VALUE_PAIR,
 		k: key,
 		v: value
 	};

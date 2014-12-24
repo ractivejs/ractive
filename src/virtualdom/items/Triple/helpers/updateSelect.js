@@ -1,4 +1,4 @@
-import toArray from 'utils/toArray';
+import { toArray } from 'utils/array';
 
 export default function updateSelect ( parentElement ) {
 	var selectedOptions, option, value;

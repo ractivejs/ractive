@@ -1,17 +1,16 @@
-import removeFromArray from 'utils/removeFromArray';
-import Binding from 'virtualdom/items/Element/Binding/Binding';
-import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
-import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
+import { removeFromArray } from 'utils/array';
+import Binding from './Binding';
+import handleDomEvent from './shared/handleDomEvent';
+import getSiblings from './shared/getSiblings';
 
 var RadioNameBinding = Binding.extend({
 	name: 'name',
 
 	init: function () {
-		this.siblings = getSiblings( this.root._guid, 'radioname', this.keypath );
+		this.siblings = getSiblings( this.root._guid, 'radioname', this.keypath.str );
 		this.siblings.push( this );
 
 		this.radioName = true; // so that ractive.updateModel() knows what to do with this
-		this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
 	},
 
 	getInitialValue: function () {
@@ -23,7 +22,7 @@ var RadioNameBinding = Binding.extend({
 	render: function () {
 		var node = this.element.node;
 
-		node.name = '{{' + this.keypath + '}}';
+		node.name = '{{' + this.keypath.str + '}}';
 		node.checked = this.root.viewmodel.get( this.keypath ) == this.element.getAttribute( 'value' );
 
 		node.addEventListener( 'change', handleDomEvent, false );
@@ -59,7 +58,7 @@ var RadioNameBinding = Binding.extend({
 		Binding.prototype.rebound.call( this, oldKeypath, newKeypath );
 
 		if ( node = this.element.node ) {
-			node.name = '{{' + this.keypath + '}}';
+			node.name = '{{' + this.keypath.str + '}}';
 		}
 	},
 

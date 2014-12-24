@@ -1,11 +1,10 @@
 import runloop from 'global/runloop';
-import log from 'utils/log/log';
-import create from 'utils/create';
-import extend from 'utils/extend';
-import removeFromArray from 'utils/removeFromArray';
+import { warn } from 'utils/log';
+import { create, extend } from 'utils/object';
+import { removeFromArray } from 'utils/array';
 
 var Binding = function ( element ) {
-	var interpolator, keypath, value;
+	var interpolator, keypath, value, parentForm;
 
 	this.element = element;
 	this.root = element.root;
@@ -15,22 +14,12 @@ var Binding = function ( element ) {
 	interpolator.twowayBinding = this;
 
 	if ( keypath = interpolator.keypath ) {
-
-		if ( keypath[ keypath.length - 1 ] === '}' ) {
-
-			log.error({
-				debug: this.root.debug,
-				message: 'noTwowayExpressions',
-				args: {
-					// won't fix brackets [foo] changed to -foo-
-					expression: keypath.slice( 2, -1 ).replace('-','.'),
-					element: element.tagName
-				}
-			});
-
+		if ( keypath.str.slice( -1 ) === '}' ) {
+			warn( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name );
 			return false;
 		}
 	}
+
 	else {
 		// A mustache may be *ambiguous*. Let's say we were given
 		// `value="{{bar}}"`. If the context was `foo`, and `foo.bar`
@@ -50,15 +39,23 @@ var Binding = function ( element ) {
 		keypath = interpolator.keypath;
 	}
 
+	this.attribute.isTwoway = true;
 	this.keypath = keypath;
 
 	// initialise value, if it's undefined
-	if ( this.root.viewmodel.get( keypath ) === undefined && this.getInitialValue ) {
+	value = this.root.viewmodel.get( keypath );
+
+	if ( value === undefined && this.getInitialValue ) {
 		value = this.getInitialValue();
 
 		if ( value !== undefined ) {
 			this.root.viewmodel.set( keypath, value );
 		}
+	}
+
+	if ( parentForm = findParentForm( element ) ) {
+		this.resetValue = value;
+		parentForm.formBindings.push( this );
 	}
 };
 
@@ -82,11 +79,11 @@ Binding.prototype = {
 			return;
 		}
 
-		removeFromArray( this.root._twowayBindings[ oldKeypath ], this );
+		removeFromArray( this.root._twowayBindings[ oldKeypath.str ], this );
 
 		this.keypath = newKeypath;
 
-		bindings = this.root._twowayBindings[ newKeypath ] || ( this.root._twowayBindings[ newKeypath ] = [] );
+		bindings = this.root._twowayBindings[ newKeypath.str ] || ( this.root._twowayBindings[ newKeypath.str ] = [] );
 		bindings.push( this );
 	},
 
@@ -116,3 +113,11 @@ Binding.extend = function ( properties ) {
 };
 
 export default Binding;
+
+function findParentForm ( element ) {
+	while ( element = element.parent ) {
+		if ( element.name === 'form' ) {
+			return element;
+		}
+	}
+}

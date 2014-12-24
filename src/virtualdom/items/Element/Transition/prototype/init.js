@@ -1,12 +1,7 @@
-import log from 'utils/log/log';
-import config from 'config/config';
-import circular from 'circular';
-
-var Fragment, getValueOptions = {}; // TODO what are the options?
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import { warnOnce } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import Fragment from 'virtualdom/Fragment';
+import { findInViewHierarchy } from 'shared/registry';
 
 export default function Transition$init ( element, template, isIntro ) {
 	var ractive, name, fragment;
@@ -48,20 +43,13 @@ export default function Transition$init ( element, template, isIntro ) {
 			owner:    element
 		});
 
-		this.params = fragment.getValue( getValueOptions );
+		this.params = fragment.getArgsList();
 		fragment.unbind();
 	}
 
-	this._fn = config.registries.transitions.find( ractive, name );
+	this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
 	if ( !this._fn ) {
-		log.error({
-			debug: ractive.debug,
-			message: 'missingPlugin',
-			args: {
-				plugin: 'transition',
-				name: name
-			}
-		});
+		warnOnce( missingPlugin( name, 'transition' ) );
 	}
 }

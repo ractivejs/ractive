@@ -1,5 +1,5 @@
-import eventStack from 'Ractive/prototype/shared/eventStack';
-import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
+import { getKeypath } from 'shared/keypaths'; // TODO bit of a hack, using getKeypath - should maybe have dedicated utility for this
+import eventStack from './eventStack';
 
 export default function fireEvent ( ractive, eventName, options = {} ) {
 	if ( !eventName ) { return; }
@@ -19,7 +19,7 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 		options.event.name = eventName;
 	}
 
-	var eventNames = getPotentialWildcardMatches( eventName );
+	var eventNames = getKeypath( eventName ).wildcardMatches();
 	fireEventAs( ractive, eventNames, options.event, options.args, true );
 }
 
@@ -43,7 +43,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 
 		if ( initialFire && ractive.component ) {
 			let fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ];
-			eventNames = getPotentialWildcardMatches( fullName );
+			eventNames = getKeypath( fullName ).wildcardMatches();
 
 			if( event ) {
 				event.component = ractive;

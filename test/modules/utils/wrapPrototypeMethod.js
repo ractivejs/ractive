@@ -1,12 +1,16 @@
 define([
-	'utils/wrapPrototypeMethod',
-	'utils/create'
+	'Ractive/config/wrapPrototypeMethod',
+	'utils/object'
 ], function (
 	wrap,
-	create
+	object
 ) {
 
 	'use strict';
+
+	var create = object.create;
+
+	wrap = wrap.default || wrap;
 
 	return function () {
 

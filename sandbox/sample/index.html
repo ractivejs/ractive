@@ -48,11 +48,11 @@
 
 		// Configure RequireJS to load Ractive from the src/ folder
 		require.config({
-			baseUrl: '../../src/',
-			paths: { ractive: 'Ractive' }
+			baseUrl: '../../src/'
 		});
 
 		require([ 'Ractive' ], function ( Ractive ) {
+			Ractive = Ractive['default'];
 			window.Ractive = Ractive;
 
 			// YOUR CODE GOES HERE

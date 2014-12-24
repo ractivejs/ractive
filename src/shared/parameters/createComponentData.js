@@ -1,5 +1,5 @@
-import defineProperties from 'utils/defineProperties';
-import magic from 'config/magic';
+import { defineProperties } from 'utils/object';
+import { magic } from 'config/environment';
 import runloop from 'global/runloop';
 
 export default function createComponentData ( parameters, proto ) {
@@ -46,11 +46,9 @@ function getConstructor ( parameters, proto ) {
 }
 
 function makeConstructor ( parameters, defined ) {
-
 	var properties, proto;
 
 	properties = parameters.keys.reduce( ( definition, key ) => {
-
 		definition[ key ] = {
 			get: function () {
 				let mapping = this._mappings[ key ];

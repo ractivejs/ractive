@@ -1,8 +1,8 @@
-import getNumberLiteral from 'parse/Parser/expressions/primary/literal/numberLiteral';
-import getBooleanLiteral from 'parse/Parser/expressions/primary/literal/booleanLiteral';
-import getStringLiteral from 'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral';
-import getObjectLiteral from 'parse/Parser/expressions/primary/literal/objectLiteral/_objectLiteral';
-import getArrayLiteral from 'parse/Parser/expressions/primary/literal/arrayLiteral';
+import getNumberLiteral from './numberLiteral';
+import getBooleanLiteral from './booleanLiteral';
+import getStringLiteral from './stringLiteral/_stringLiteral';
+import getObjectLiteral from './objectLiteral/_objectLiteral';
+import getArrayLiteral from './arrayLiteral';
 
 export default function ( parser ) {
 	var literal = getNumberLiteral( parser )   ||

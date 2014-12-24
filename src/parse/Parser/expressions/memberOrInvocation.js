@@ -1,8 +1,8 @@
-import types from 'config/types';
-import getPrimary from 'parse/Parser/expressions/primary/_primary';
-import getExpressionList from 'parse/Parser/expressions/shared/expressionList';
-import getRefinement from 'parse/Parser/expressions/shared/refinement';
-import errors from 'parse/Parser/expressions/shared/errors';
+import { MEMBER, INVOCATION } from 'config/types';
+import getPrimary from './primary/_primary';
+import getExpressionList from './shared/expressionList';
+import getRefinement from './shared/refinement';
+import { expectedParen } from './shared/errors';
 
 export default function ( parser ) {
 	var current, expression, refinement, expressionList;
@@ -18,7 +18,7 @@ export default function ( parser ) {
 
 		if ( refinement = getRefinement( parser ) ) {
 			expression = {
-				t: types.MEMBER,
+				t: MEMBER,
 				x: expression,
 				r: refinement
 			};
@@ -31,11 +31,11 @@ export default function ( parser ) {
 			parser.allowWhitespace();
 
 			if ( !parser.matchString( ')' ) ) {
-				parser.error( errors.expectedParen );
+				parser.error( expectedParen );
 			}
 
 			expression = {
-				t: types.INVOCATION,
+				t: INVOCATION,
 				x: expression
 			};
 

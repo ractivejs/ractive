@@ -1,57 +1,52 @@
-import DataTracker from 'shared/parameters/DataTracker';
+import DataTracker from './DataTracker';
 
 function Mapping ( localKey, options ) {
 	this.localKey = localKey;
 	this.keypath = options.keypath;
 	this.origin = options.origin;
-	this.trackData = options.trackData || options.reversed;
-	this.reversed = options.reversed;
+
+	this.deps = [];
+	this.unresolved = [];
+
+	this.trackData = options.trackData;
 	this.resolved = false;
 }
 
 export default Mapping;
 
 Mapping.prototype = {
-
-	get: function ( keypath, options ) {
+	get ( keypath, options ) {
 		if ( !this.resolved ) {
 			return undefined;
 		}
 		return this.origin.get( this.map( keypath ), options );
 	},
 
-	getValue: function () {
+	getValue () {
 		if ( !this.keypath ) {
 			return undefined;
 		}
 		return this.origin.get( this.keypath );
 	},
 
-	initViewmodel: function ( viewmodel ){
+	initViewmodel ( viewmodel ) {
 		this.local = viewmodel;
-		this.deps = [];
-		this.local.mappings[ this.localKey ] = this;
 		this.setup();
 	},
 
-	map: function ( keypath ) {
+	map ( keypath ) {
 		return keypath.replace( this.localKey, this.keypath );
 	},
 
-	rebind: function ( localKey ) {
-		this.unbind( true );
-		this.localKey = localKey;
-		this.local.mappings[ this.localKey ] = this;
-		this.setup();
-	},
-
-	register: function ( keypath, dependant, group ) {
+	register ( keypath, dependant, group ) {
 		this.deps.push({ keypath: keypath, dep: dependant, group: group });
-		this.origin.register( this.map( keypath ), dependant, group );
+
+		if ( this.resolved ) {
+			this.origin.register( this.map( keypath ), dependant, group );
+		}
 	},
 
-	resolve: function ( keypath ) {
-
+	resolve ( keypath ) {
 		if ( this.keypath !== undefined ) {
 			this.unbind( true );
 		}
@@ -60,7 +55,7 @@ Mapping.prototype = {
 		this.setup();
 	},
 
-	set: function ( keypath, value ) {
+	set ( keypath, value ) {
 		// TODO: force resolution
 		if ( !this.resolved ) {
 			throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
@@ -69,26 +64,14 @@ Mapping.prototype = {
 		this.origin.set( this.map( keypath ), value );
 	},
 
-	setup: function () {
-		if ( this.keypath === undefined ) { return; }
+	setup () {
+		if ( this.keypath === undefined ) {
+			return;
+		}
 
 		this.resolved = true;
 
-		// _if_ the local viewmodel isn't initializing, check
-		// for existing dependants that were registered and
-		// move them as they now belong to this key
-		if ( this.local.deps && this.keypath ) {
-			this.transfers = this.local.unregister( this.localKey );
-
-			if( this.transfers ) {
-				this.transfers.forEach( d => this.origin.register( this.map( d.keypath ), d.dep, d.group ) );
-				this.origin.mark( this.keypath );
-			}
-		}
-
-		// keep local data in sync, for
-		// a) browsers w/ no defineProperty
-		// b) reversed mappings
+		// keep local data in sync, for browsers w/ no defineProperty
 		if ( this.trackData ) {
 			this.tracker = new DataTracker( this.localKey, this.local );
 			this.origin.register( this.keypath, this.tracker );
@@ -106,7 +89,7 @@ Mapping.prototype = {
 		}
 	},
 
-	setValue: function ( value ) {
+	setValue ( value ) {
 		if ( !this.keypath ) {
 			throw new Error( 'Mapping does not have keypath, cannot set value. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
 		}
@@ -114,7 +97,7 @@ Mapping.prototype = {
 		this.origin.set( this.keypath, value );
 	},
 
-	unbind: function ( keepLocal ) {
+	unbind ( keepLocal ) {
 		if ( !keepLocal ) {
 			delete this.local.mappings[ this.localKey ];
 		}
@@ -123,20 +106,12 @@ Mapping.prototype = {
 			this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
 		});
 
-		// revert transfers back to original viewmodel owner
-		if ( this.transfers ) {
-			this.transfers.forEach( d => {
-				this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
-				this.local.register( d.keypath , d.dep, d.group );
-			});
-		}
-
 		if ( this.tracker ) {
 			this.origin.unregister( this.keypath, this.tracker );
 		}
 	},
 
-	unregister: function ( keypath, dependant, group ) {
+	unregister ( keypath, dependant, group ) {
 		var deps = this.deps, i = deps.length;
 
 		while ( i-- ) {

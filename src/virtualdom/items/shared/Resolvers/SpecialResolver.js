@@ -1,4 +1,5 @@
-import types from 'config/types';
+import { SECTION_EACH } from 'config/types';
+import { getKeypath } from 'shared/keypaths'; // TODO maybe we don't need the @ construct now that we have Keypath objects?
 
 var SpecialResolver = function ( owner, ref, callback ) {
 	this.parentFragment = owner.parentFragment;
@@ -33,18 +34,18 @@ SpecialResolver.prototype = {
 
 		// have we already found the nearest parent?
 		if ( this.cached ) {
-			return this.callback( '@' + prop.prefix + getProp( this.cached, prop ) );
+			return this.callback( getKeypath( '@' + prop.prefix + getProp( this.cached, prop ) ) );
 		}
 
 		// special case for indices, which may cross component boundaries
 		if ( prop.prop.indexOf( 'index' ) !== -1 || prop.prop.indexOf( 'key' ) !== -1 ) {
 			while ( fragment ) {
-				if ( fragment.owner.currentSubtype === types.SECTION_EACH && ( value = getProp( fragment, prop ) ) !== undefined ) {
+				if ( fragment.owner.currentSubtype === SECTION_EACH && ( value = getProp( fragment, prop ) ) !== undefined ) {
 					this.cached = fragment;
 
 					fragment.registerIndexRef( this );
 
-					return this.callback( '@' + prop.prefix + value );
+					return this.callback( getKeypath( '@' + prop.prefix + value ) );
 				}
 
 				// watch for component boundaries
@@ -61,7 +62,7 @@ SpecialResolver.prototype = {
 		else {
 			while ( fragment ) {
 				if ( ( value = getProp( fragment, prop ) ) !== undefined ) {
-					return this.callback( '@' + prop.prefix + value );
+					return this.callback( getKeypath( '@' + prop.prefix + value.str ) );
 				}
 
 				fragment = fragment.parent;

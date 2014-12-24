@@ -1,20 +1,20 @@
-import types from 'config/types';
+import { TRIPLE } from 'config/types';
 import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
 
-import detach from 'virtualdom/items/Triple/prototype/detach';
-import find from 'virtualdom/items/Triple/prototype/find';
-import findAll from 'virtualdom/items/Triple/prototype/findAll';
-import firstNode from 'virtualdom/items/Triple/prototype/firstNode';
-import render from 'virtualdom/items/Triple/prototype/render';
-import setValue from 'virtualdom/items/Triple/prototype/setValue';
-import toString from 'virtualdom/items/Triple/prototype/toString';
-import unrender from 'virtualdom/items/Triple/prototype/unrender';
-import update from 'virtualdom/items/Triple/prototype/update';
+import detach from './prototype/detach';
+import find from './prototype/find';
+import findAll from './prototype/findAll';
+import firstNode from './prototype/firstNode';
+import render from './prototype/render';
+import setValue from './prototype/setValue';
+import toString from './prototype/toString';
+import unrender from './prototype/unrender';
+import update from './prototype/update';
 
-import unbind from 'virtualdom/items/shared/unbind';
+import unbind from '../shared/unbind';
 
 var Triple = function ( options ) {
-	this.type = types.TRIPLE;
+	this.type = TRIPLE;
 	Mustache.init( this, options );
 };
 

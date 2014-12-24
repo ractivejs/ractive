@@ -1,6 +1,6 @@
-import types from 'config/types';
-import mustacheType from 'parse/converters/mustache/type';
-import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
+import { TRIPLE, INTERPOLATOR, COMMENT, SECTION, CLOSING, PARTIAL, REFERENCE, BRACKETED, NUMBER_LITERAL, MEMBER, REFINEMENT } from 'config/types';
+import mustacheType from './type';
+import handlebarsBlockCodes from './handlebarsBlockCodes';
 import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
@@ -26,7 +26,7 @@ export default function ( parser, delimiterType ) {
 
 	// Determine mustache type
 	if ( delimiterType.isTriple ) {
-		mustache.t = types.TRIPLE;
+		mustache.t = TRIPLE;
 	} else {
 		// We need to test for expressions before we test for mustache type, because
 		// an expression that begins '!' looks a lot like a comment
@@ -39,7 +39,7 @@ export default function ( parser, delimiterType ) {
 				if ( parser.remaining().indexOf( delimiters[1] ) ) {
 					expression = null;
 				} else {
-					mustache.t = types.INTERPOLATOR;
+					mustache.t = INTERPOLATOR;
 				}
 			} catch ( err ) {}
 
@@ -53,7 +53,7 @@ export default function ( parser, delimiterType ) {
 				}
 
 				return {
-					t: types.COMMENT
+					t: COMMENT
 				};
 			}
 		}
@@ -61,10 +61,10 @@ export default function ( parser, delimiterType ) {
 		if ( !expression ) {
 			type = mustacheType( parser );
 
-			mustache.t = type || types.INTERPOLATOR; // default
+			mustache.t = type || INTERPOLATOR; // default
 
 			// See if there's an explicit section type e.g. {{#with}}...{{/with}}
-			if ( type === types.SECTION ) {
+			if ( type === SECTION ) {
 				if ( block = parser.matchPattern( handlebarsBlockPattern ) ) {
 					mustache.n = block;
 				}
@@ -73,7 +73,7 @@ export default function ( parser, delimiterType ) {
 			}
 
 			// if it's a comment or a section closer, allow any contents except '}}'
-			else if ( type === types.COMMENT || type === types.CLOSING ) {
+			else if ( type === COMMENT || type === CLOSING ) {
 				remaining = parser.remaining();
 				index = remaining.indexOf( delimiters[1] );
 
@@ -91,7 +91,7 @@ export default function ( parser, delimiterType ) {
 		parser.allowWhitespace();
 
 		// if this is a partial, we can relax the naming requirements for the expression
-		if ( type === types.PARTIAL ) {
+		if ( type === PARTIAL ) {
 			relaxed = parser.relaxedNames;
 			parser.relaxedNames = true;
 			expression = parser.readExpression();
@@ -99,7 +99,7 @@ export default function ( parser, delimiterType ) {
 		}
 
 		// look for named yields
-		else if ( mustache.t === types.INTERPOLATOR && parser.matchString( 'yield ' ) ) {
+		else if ( mustache.t === INTERPOLATOR && parser.matchString( 'yield ' ) ) {
 			parser.allowWhitespace();
 			mustache.r = 'yield';
 			relaxed = parser.relaxedNames;
@@ -107,7 +107,7 @@ export default function ( parser, delimiterType ) {
 			expression = parser.readExpression();
 			parser.relaxedNames = false;
 
-			if ( expression && expression.t === types.REFERENCE ) {
+			if ( expression && expression.t === REFERENCE ) {
 				mustache.yn = expression.n;
 				expression = null;
 			} else if ( expression ) {
@@ -116,7 +116,7 @@ export default function ( parser, delimiterType ) {
 		}
 
 		// relax naming for inline partial section
-		else if ( mustache.t === types.SECTION && mustache.n === 'partial' ) {
+		else if ( mustache.t === SECTION && mustache.n === 'partial' ) {
 			relaxed = parser.relaxedNames;
 			parser.relaxedNames = true;
 			expression = parser.readExpression();
@@ -135,7 +135,7 @@ export default function ( parser, delimiterType ) {
 		// a 'contextPartialExpression' to the mustache, and process the context instead of
 		// the reference
 		let temp;
-		if ( mustache.t === types.PARTIAL && expression && ( temp = parser.readExpression() ) ) {
+		if ( mustache.t === PARTIAL && expression && ( temp = parser.readExpression() ) ) {
 			mustache = {
 				contextPartialExpression: expression
 			};
@@ -178,7 +178,7 @@ export default function ( parser, delimiterType ) {
 	// if there was context, process the expression now and save it for later
 	if ( mustache.contextPartialExpression ) {
 		mustache.contextPartialExpression = [
-			refineExpression( parser, mustache.contextPartialExpression, { t: types.PARTIAL } )
+			refineExpression( parser, mustache.contextPartialExpression, { t: PARTIAL } )
 		];
 	}
 
@@ -200,16 +200,16 @@ function refineExpression ( parser, expression, mustache ) {
 	var referenceExpression;
 
 	if ( expression ) {
-		while ( expression.t === types.BRACKETED && expression.x ) {
+		while ( expression.t === BRACKETED && expression.x ) {
 			expression = expression.x;
 		}
 
 		// special case - integers should be treated as array members references,
 		// rather than as expressions in their own right
-		if ( expression.t === types.REFERENCE ) {
+		if ( expression.t === REFERENCE ) {
 			mustache.r = expression.n;
 		} else {
-			if ( expression.t === types.NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
+			if ( expression.t === NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
 				mustache.r = expression.v;
 			} else if ( referenceExpression = getReferenceExpression( parser, expression ) ) {
 				mustache.rx = referenceExpression;
@@ -226,11 +226,11 @@ function refineExpression ( parser, expression, mustache ) {
 function getReferenceExpression ( parser, expression ) {
 	var members = [], refinement;
 
-	while ( expression.t === types.MEMBER && expression.r.t === types.REFINEMENT ) {
+	while ( expression.t === MEMBER && expression.r.t === REFINEMENT ) {
 		refinement = expression.r;
 
 		if ( refinement.x ) {
-			if ( refinement.x.t === types.REFERENCE ) {
+			if ( refinement.x.t === REFERENCE ) {
 				members.unshift( refinement.x );
 			} else {
 				members.unshift( parser.flattenExpression( refinement.x ) );
@@ -242,7 +242,7 @@ function getReferenceExpression ( parser, expression ) {
 		expression = expression.x;
 	}
 
-	if ( expression.t !== types.REFERENCE ) {
+	if ( expression.t !== REFERENCE ) {
 		return null;
 	}
 

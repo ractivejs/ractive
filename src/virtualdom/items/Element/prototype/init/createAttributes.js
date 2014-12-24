@@ -1,4 +1,4 @@
-import Attribute from 'virtualdom/items/Element/Attribute/_Attribute';
+import Attribute from '../../Attribute/_Attribute';
 
 export default function ( element, attributes ) {
 	var name, attribute, result = [];

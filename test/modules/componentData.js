@@ -1,16 +1,16 @@
 define([
 	'ractive',
 	'helpers/Model',
-	'utils/defineProperty',
-	'utils/log'
+	'utils/object'
 ], function (
 	Ractive,
 	Model,
-	defineProperty,
-	log
+	object
 ) {
 
 	'use strict';
+
+	var defineProperty = object.defineProperty;
 
 	return function () {
 
@@ -1311,27 +1311,6 @@ define([
 				t.equal( fixture.innerHTML, 'of c' );
 			})
 
-			test( 'Computation on child takes ownership of property (#1357)', ( t ) => {
-				var ractive = new Ractive({
-					el: fixture,
-					template: '{{b}} <component c="{{a}}" d="{{b}}" />',
-					data: { a: 'a'  },
-					components: {
-						component: Ractive.extend({
-							template: '{{c}} {{d}}',
-							parameters: parameters,
-							computed: {
-								d: function() { return 'foo-' + this.get('c'); }
-							}
-						})
-					}
-				});
-
-				t.htmlEqual( fixture.innerHTML, 'foo-a a foo-a' );
-				ractive.set( 'a', 'bar' );
-				t.htmlEqual( fixture.innerHTML, 'foo-bar bar foo-bar' );
-			});
-
 			test( 'ComponentData supports JSON.stringify', (t) => {
 				new Ractive({
 					el: fixture,
@@ -1373,154 +1352,6 @@ define([
 				t.ok( 'bat' in cmp );
 			});
 
-			test( 'Computation cannot take ownership of an expression', ( t ) => {
-
-				expect( 1 );
-
-				t.throws( () => {
-					var ractive = new Ractive({
-						el: fixture,
-						template: `<component b="{{ 1+2 }}"/>`,
-						components: {
-							component: Ractive.extend({
-								template: '{{b}}',
-								parameters: parameters,
-								computed: { b: '"b"' }
-							})
-						}
-					});
-				}, /\"b\" cannot be mapped to \"\$\{1\+2\}\"/ );
-			});
-
-			test( 'Computation cannot take ownership if already owned by computation', ( t ) => {
-
-				expect( 1 );
-
-				t.throws( () => {
-					var ractive = new Ractive({
-						el: fixture,
-						template: '{{b}} <component c="{{a}}" d="{{b}}" />',
-						data: { a: 2 },
-						computed: {
-							b: '${a} * 2'
-						},
-						components: {
-							component: Ractive.extend({
-								template: '{{c}} {{d}}',
-								parameters: parameters,
-								computed: {
-									d: '${c} * 3'
-								}
-							})
-						}
-					});
-				}, /\"d\" cannot be mapped to \"b\"/ );
-			});
-
-
-			test( 'Computation cannot take ownership if already owned by computation in a sibling component', ( t ) => {
-
-				expect( 1 );
-
-				t.throws( () => {
-					var ractive = new Ractive({
-						el: fixture,
-						template: `{{out}}
-								   <component in="2" out="{{out}}" />
-								   <component in="3" out="{{out}}" />`,
-						data: { a: 2 },
-						components: {
-							component: Ractive.extend({
-								template: '{{in}}-{{out}}',
-								parameters: parameters,
-								computed: {
-									out: '${in} * 2'
-								}
-							})
-						}
-					});
-				}, /\"out\" cannot be mapped to \"out\"/ );
-			});
-
-			test( 'Computation that takes over ownership reverts when component is torndown: ' + mode, t => {
-
-				var ractive = new Ractive({
-					el: fixture,
-					template: '{{a}}-{{#if foo}}<cmp b="{{a}}"/>{{/if}}',
-					data: { a: 1, foo: true  },
-					components: {
-						cmp: Ractive.extend({
-							template: '{{b}}',
-							parameters: parameters,
-							computed: {
-								b: function() { return 2; }
-							}
-						})
-					}
-				});
-
-
-				t.htmlEqual( fixture.innerHTML, '2-2' );
-				t.equal( ractive.data.a, 2 );
-
-				// qunit fails with this combined with the three-run functional call approach :(
-				// try {
-				// 	ractive.set( 'a', 99 );
-				// } catch ( err ) {
-				// 	t.ok( true );
-				// }
-
-				ractive.set( 'foo', false );
-				t.htmlEqual( fixture.innerHTML, '2-' );
-				t.equal( ractive.data.a, 2 );
-
-				ractive.set( 'a', 3)
-				t.htmlEqual( fixture.innerHTML, '3-' );
-				t.equal( ractive.data.a, 3 );
-
-				ractive.set( 'foo', true );
-				t.htmlEqual( fixture.innerHTML, '2-2' );
-				t.equal( ractive.data.a, 2 );
-
-			});
-
-			test( 'Computation changes if mapping is keypath expression and it changes', ( t ) => {
-				var ractive = new Ractive({
-					el: fixture,
-					template: '{{a.one}}-{{a.two}}-<component b="{{a[prop]}}"/>',
-					data: {
-						a: {
-							one: 1,
-							two: 2
-						},
-						prop: 'one'
-					},
-					components: {
-						component: Ractive.extend({
-							template: '{{b}}',
-							parameters: parameters,
-							computed: {
-								b: function() { return 42; }
-							}
-						})
-					}
-				});
-
-				t.htmlEqual( fixture.innerHTML, '42-2-42' );
-				t.equal( ractive.data.a.one, 42 );
-				t.equal( ractive.data.a.two, 2 );
-
-				ractive.set( 'prop', 'two' );
-				t.htmlEqual( fixture.innerHTML, '42-42-42' );
-				t.equal( ractive.data.a.one, 42 );
-				t.equal( ractive.data.a.two, 42 );
-
-				ractive.set( 'a.one', 11 );
-				t.htmlEqual( fixture.innerHTML, '11-42-42' );
-				t.equal( ractive.data.a.one, 11 );
-				t.equal( ractive.data.a.two, 42 );
-			});
-
 			test( 'Multiple levels of mappings work', ( t ) => {
 
 				var ractive = new Ractive({
@@ -1528,7 +1359,7 @@ define([
 					template: '{{a}}-{{b}}-{{c}}:<c1 d="{{a}}" e="{{b}}" f="{{c}}"/>',
 					data: {
 						a: 'foo',
-					 	b: 'computed'
+					 	b: 'bar'
 					},
 					components: {
 						c1: Ractive.extend({
@@ -1537,10 +1368,7 @@ define([
 							components: {
 								c2: Ractive.extend({
 									template: '{{g}}-{{h}}-{{i}}',
-									parameters: parameters,
-									computed: {
-										h: '"bar"'
-									}
+									parameters: parameters
 								})
 							}
 						})

@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { CLOSING_TAG } from 'config/types';
 
 var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
@@ -12,7 +12,7 @@ export default function ( parser ) {
 
 	if ( tag = parser.matchPattern( closingTagPattern ) ) {
 		return {
-			t: types.CLOSING_TAG,
+			t: CLOSING_TAG,
 			e: tag
 		};
 	}

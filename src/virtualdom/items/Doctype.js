@@ -9,7 +9,7 @@ Doctype.prototype = {
 	render: noop,
 	unrender: noop,
 	teardown: noop,
-	toString: function () {
+	toString () {
 		return '<!DOCTYPE' + this.declaration + '>';
 	}
 };

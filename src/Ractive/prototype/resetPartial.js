@@ -1,18 +1,17 @@
-import isArray from 'utils/isArray';
-import log from 'utils/log/log';
+import { isArray } from 'utils/is';
 import runloop from 'global/runloop';
-import types from 'config/types';
+import { PARTIAL, COMPONENT, ELEMENT } from 'config/types';
 
-export default function( name, partial, callback ) {
+export default function ( name, partial ) {
 	var promise, collection = [];
 
 	function collect( source, dest, ractive ) {
 		// if this is a component and it has its own partial, bail
 		if ( ractive && ractive.partials[name] ) return;
 
-		for ( let item of source ) {
+		source.forEach( item => {
 			// queue to rerender if the item is a partial and the current name matches
-			if ( item.type === types.PARTIAL && item.getPartialName() === name ) {
+			if ( item.type === PARTIAL && item.getPartialName() === name ) {
 				dest.push( item );
 			}
 
@@ -32,12 +31,12 @@ export default function( name, partial, callback ) {
 			}
 
 			// or if it is a component, step in and process its items
-			else if ( item.type === types.COMPONENT && item.instance ) {
+			else if ( item.type === COMPONENT && item.instance ) {
 				collect( item.instance.fragment.items, dest, item.instance );
 			}
 
 			// if the item is an element, process its attributes too
-			if ( item.type === types.ELEMENT ) {
+			if ( item.type === ELEMENT ) {
 				if ( isArray( item.attributes ) ) {
 					collect( item.attributes, dest, ractive );
 				}
@@ -46,7 +45,7 @@ export default function( name, partial, callback ) {
 					collect( item.conditionalAttributes, dest, ractive );
 				}
 			}
-		}
+		});
 	}
 
 	collect( this.fragment.items, collection );
@@ -54,33 +53,12 @@ export default function( name, partial, callback ) {
 
 	promise = runloop.start( this, true );
 
-	// force each item to rerender
-	for ( let item of collection ) {
+	collection.forEach( item => {
 		item.value = undefined;
 		item.setValue( name );
-	}
+	});
 
 	runloop.end();
-
-	if ( callback ) {
-
-		log.warn({
-			debug: this.debug,
-			message: 'usePromise',
-			args: {
-				method: 'ractive.resetPartial'
-			}
-		});
-
-		promise
-			.then( callback.bind( this ) )
-			.then( null, err => {
-				log.consoleError({
-					debug: this.debug,
-					err: err
-				});
-			});
-	}
 
 	return promise;
 }

@@ -590,7 +590,8 @@ define([ 'ractive' ], function ( Ractive ) {
 			var Widget, ractive;
 
 			Widget = Ractive.extend({
-				adapt: [ 'foo' ]
+				adapt: [ 'foo' ],
+				modifyArrays: false
 			});
 
 			ractive = new Widget({
@@ -1486,8 +1487,13 @@ define([ 'ractive' ], function ( Ractive ) {
 			});
 
 			ractive.set( 'i', 0 );
+			t.htmlEqual( fixture.innerHTML, 'a' );
+
 			ractive.set( 'i', 1 );
+			t.htmlEqual( fixture.innerHTML, 'b' );
+
 			ractive.set( 'i', null );
+			t.htmlEqual( fixture.innerHTML, '' );
 			ractive.set( 'i', 2 );
 
 			t.htmlEqual( fixture.innerHTML, 'c' );
@@ -1627,6 +1633,55 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.equal( b2.index.i, 1 );
 
 			t.equal( p.keypath, 'baz.bat' );
+		});
+
+		test( 'Data functions do not retain instance-bound copies of themselves (#1538)', function ( t ) {
+			var foo, Widget, widgets, keys;
+
+			foo = function () {
+				this; // so that it gets wrapped
+				return 'bar';
+			};
+
+			Widget = Ractive.extend({
+				template: '{{foo()}}',
+				data: { foo: foo }
+			});
+
+			widgets = [ new Widget(), new Widget(), new Widget() ];
+			keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+
+			t.equal( keys.length, 3 );
+
+			widgets.pop().teardown();
+			keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+			t.equal( keys.length, 2 );
+
+			widgets.pop().teardown();
+			keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+			t.equal( keys.length, 1 );
+
+			widgets.pop().teardown();
+			keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+			t.equal( keys.length, 0 );
+		});
+
+		test( 'Boolean attributes are added/removed based on unstringified fragment value', function ( t ) {
+			var ractive, button;
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<button disabled="{{foo}}"></button>',
+				data: {
+					foo: true
+				}
+			});
+
+			button = ractive.find( 'button' );
+			t.ok( button.disabled );
+
+			ractive.set( 'foo', false );
+			t.ok( !button.disabled );
 		});
 
 		// Is there a way to artificially create a FileList? Leaving this commented

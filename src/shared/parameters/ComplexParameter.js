@@ -1,11 +1,5 @@
 import runloop from 'global/runloop';
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import Fragment from 'virtualdom/Fragment';
 
 function ComplexParameter ( parameters, key, value ) {
 	this.parameters = parameters;
@@ -18,7 +12,7 @@ function ComplexParameter ( parameters, key, value ) {
 		owner:    this
 	});
 
-	this.parameters.addData( this.key, this.fragment.getValue() );
+	this.parameters.addData( this.key.str, this.fragment.getValue() );
 }
 
 export default ComplexParameter;
@@ -34,7 +28,7 @@ ComplexParameter.prototype = {
 	update: function () {
 		var viewmodel = this.parameters.component.instance.viewmodel;
 
-		this.parameters.addData( this.key, this.fragment.getValue() );
+		this.parameters.addData( this.key.str, this.fragment.getValue() );
 		viewmodel.mark( this.key );
 
 		this.dirty = false;

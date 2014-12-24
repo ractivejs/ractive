@@ -1,17 +1,17 @@
-import log from 'utils/log/log';
-import ContentEditableBinding from 'virtualdom/items/Element/Binding/ContentEditableBinding';
-import RadioBinding from 'virtualdom/items/Element/Binding/RadioBinding';
-import RadioNameBinding from 'virtualdom/items/Element/Binding/RadioNameBinding';
-import CheckboxNameBinding from 'virtualdom/items/Element/Binding/CheckboxNameBinding';
-import CheckboxBinding from 'virtualdom/items/Element/Binding/CheckboxBinding';
-import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
-import MultipleSelectBinding from 'virtualdom/items/Element/Binding/MultipleSelectBinding';
-import FileListBinding from 'virtualdom/items/Element/Binding/FileListBinding';
-import NumericBinding from 'virtualdom/items/Element/Binding/NumericBinding';
-import GenericBinding from 'virtualdom/items/Element/Binding/GenericBinding';
+import { warn } from 'utils/log';
+import ContentEditableBinding from '../../Binding/ContentEditableBinding';
+import RadioBinding from '../../Binding/RadioBinding';
+import RadioNameBinding from '../../Binding/RadioNameBinding';
+import CheckboxNameBinding from '../../Binding/CheckboxNameBinding';
+import CheckboxBinding from '../../Binding/CheckboxBinding';
+import SelectBinding from '../../Binding/SelectBinding';
+import MultipleSelectBinding from '../../Binding/MultipleSelectBinding';
+import FileListBinding from '../../Binding/FileListBinding';
+import NumericBinding from '../../Binding/NumericBinding';
+import GenericBinding from '../../Binding/GenericBinding';
 
 export default function createTwowayBinding ( element ) {
-	var attributes = element.attributes, type, Binding, bindName, bindChecked;
+	var attributes = element.attributes, type, Binding, bindName, bindChecked, binding;
 
 	// if this is a late binding, and there's already one, it
 	// needs to be torn down
@@ -40,7 +40,7 @@ export default function createTwowayBinding ( element ) {
 
 			// we can either bind the name attribute, or the checked attribute - not both
 			if ( bindName && bindChecked ) {
-				log.error({ message: 'badRadioInputBinding' });
+				warn( 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both' );
 			}
 
 			if ( bindName ) {
@@ -71,8 +71,8 @@ export default function createTwowayBinding ( element ) {
 		Binding = GenericBinding;
 	}
 
-	if ( Binding ) {
-		return new Binding( element );
+	if ( Binding && ( binding = new Binding( element ) ) && binding.keypath ) {
+		return binding;
 	}
 }
 

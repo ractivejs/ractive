@@ -1,14 +1,13 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import log from 'utils/log/log';
+import Hook from './shared/hooks/Hook';
 import Promise from 'utils/Promise';
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 
 var teardownHook = new Hook( 'teardown' );
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
 
-export default function Ractive$teardown ( callback ) {
+export default function Ractive$teardown () {
 	var promise;
 
 	this.fragment.unbind();
@@ -23,25 +22,11 @@ export default function Ractive$teardown ( callback ) {
 
 	teardownHook.fire( this );
 
-	if ( callback ) {
-
-		log.warn({
-			debug: this.debug,
-			message: 'usePromise',
-			args: {
-				method: 'ractive.teardown'
-			}
-		});
-
-		promise
-			.then( callback.bind( this ) )
-			.then( null, err => {
-				log.consoleError({
-					debug: this.debug,
-					err: err
-				});
-			});
-	}
+	this._boundFunctions.forEach( deleteFunctionCopy );
 
 	return promise;
+}
+
+function deleteFunctionCopy ( bound ) {
+	delete bound.fn[ bound.prop ];
 }

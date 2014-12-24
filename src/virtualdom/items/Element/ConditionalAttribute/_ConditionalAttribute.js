@@ -1,17 +1,13 @@
-import circular from 'circular';
-import namespaces from 'config/namespaces';
-import createElement from 'utils/createElement';
-import toArray from 'utils/toArray';
+import { namespaces } from 'config/environment';
+import { createElement } from 'utils/dom';
+import { toArray } from 'utils/array';
+import Fragment from 'virtualdom/Fragment';
 
-var Fragment, div;
+var div;
 
 if ( typeof document !== 'undefined' ) {
 	div = createElement( 'div' );
 }
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
 
 var ConditionalAttribute = function ( element, template ) {
 	this.element = element;

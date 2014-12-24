@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import isEqual from 'utils/isEqual';
+import { isEqual } from 'utils/is';
 
 var Observer = function ( ractive, keypath, callback, options ) {
 	this.root = ractive;
@@ -13,7 +13,7 @@ var Observer = function ( ractive, keypath, callback, options ) {
 
 Observer.prototype = {
 	init: function ( immediate ) {
-		this.value = this.root.get( this.keypath );
+		this.value = this.root.get( this.keypath.str );
 
 		if ( immediate !== false ) {
 			this.update();
@@ -42,7 +42,7 @@ Observer.prototype = {
 
 		this.updating = true;
 
-		this.callback.call( this.context, this.value, this.oldValue, this.keypath );
+		this.callback.call( this.context, this.value, this.oldValue, this.keypath.str );
 		this.oldValue = this.value;
 
 		this.updating = false;

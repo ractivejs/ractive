@@ -1,45 +1,50 @@
-import consolewarn from 'utils/warn';
-import errors from 'config/errors';
+/* global console */
+import { hasConsole } from 'config/environment';
+import noop from 'utils/noop';
 
-var log = {
-	warn: function ( options, passthru ) {
-		if ( !options.debug && !passthru ) { return; }
-		this.warnAlways( options );
-	},
-	warnAlways: function ( options ) {
-		this.logger( getMessage( options), options.allowDuplicates );
-	},
-	error: function ( options ) {
-		this.errorOnly( options );
+var alreadyWarned = {}, log, printWarning;
 
-		if ( !options.debug ) {
-			this.warn( options, true );
-		}
-	},
-	errorOnly: function ( options ) {
-		if ( options.debug ) {
-			this.critical( options );
-		}
-	},
-	critical: function( options ){
-		var err = options.err || new Error( getMessage( options ) );
-		this.thrower( err );
-	},
-	logger: consolewarn,
-	thrower: function ( err ) {
+if ( hasConsole ) {
+	printWarning = ( message, args ) => {
+		console.warn.apply( console, [ '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' ].concat( args ) );
+	};
+
+	log = console.log.bind( console );
+} else {
+	printWarning = log = noop;
+}
+
+function format ( message, args ) {
+	return message.replace( /%s/g, () => args.shift() );
+}
+
+export function consoleError ( err ) {
+	if ( hasConsole ) {
+		console.error( err );
+	} else {
 		throw err;
 	}
-};
-
-function getMessage ( options ) {
-	var message = errors[options.message] || options.message || '';
-	return interpolate( message, options.args );
 }
 
-// simple interpolation. probably quicker (and better) out there,
-// but log is not in golden path of execution, only exceptions
-function interpolate ( message, args ) {
- 	return message.replace( /{([^{}]*)}/g, (a,b) => args[b] );
+export function fatal ( message, ...args ) {
+	message = format( message, args );
+	throw new Error( message );
 }
 
-export default log;
+export { log };
+
+export function warn ( message, ...args ) {
+	message = format( message, args );
+	printWarning( message, args );
+}
+
+export function warnOnce ( message, ...args ) {
+	message = format( message, args );
+
+	if ( alreadyWarned[ message ] ) {
+		return;
+	}
+
+	alreadyWarned[ message ] = true;
+	printWarning( message, args );
+}

@@ -1,26 +1,20 @@
-import log from 'utils/log/log';
-import types from 'config/types';
-import getPartialTemplate from 'virtualdom/items/Partial/getPartialTemplate';
-import applyIndent from 'virtualdom/items/Partial/applyIndent';
-import circular from 'circular';
+import { fatal, warnOnce } from 'utils/log';
+import { PARTIAL, TEXT } from 'config/types';
 import runloop from 'global/runloop';
-import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
-import rebind from 'virtualdom/items/shared/Mustache/rebind';
-import unbind from 'virtualdom/items/shared/unbind';
+import Fragment from 'virtualdom/Fragment';
+import Mustache from '../shared/Mustache/_Mustache';
+import rebind from '../shared/Mustache/rebind';
+import unbind from '../shared/unbind';
+import getPartialTemplate from './getPartialTemplate';
+import applyIndent from './applyIndent';
 
-var Partial, Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
-
-Partial = function ( options ) {
+var Partial = function ( options ) {
 	var parentFragment, template;
 
 	parentFragment = this.parentFragment = options.parentFragment;
 
 	this.root = parentFragment.root;
-	this.type = types.PARTIAL;
+	this.type = PARTIAL;
 	this.index = options.index;
 	this.name = options.template.r;
 
@@ -87,7 +81,7 @@ Partial.prototype = {
 		if ( !this.isNamed ) {
 			rebind.call( this, oldKeypath, newKeypath );
 		}
-		
+
 		this.fragment.rebind( oldKeypath, newKeypath );
 	},
 
@@ -122,11 +116,7 @@ Partial.prototype = {
 		}
 
 		if ( !template ) {
-			log.error({
-				debug: this.root.debug,
-				message: 'noTemplateForPartial',
-				args: { name: this.name }
-			});
+			( this.root.debug ? fatal : warnOnce )( 'Could not find template for partial "%s"', this.name );
 		}
 
 		this.value = value;
@@ -163,7 +153,7 @@ Partial.prototype = {
 
 		previousItem = this.parentFragment.items[ this.index - 1 ];
 
-		if ( !previousItem || ( previousItem.type !== types.TEXT ) ) {
+		if ( !previousItem || ( previousItem.type !== TEXT ) ) {
 			return string;
 		}
 

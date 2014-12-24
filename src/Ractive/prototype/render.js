@@ -1,7 +1,7 @@
 import css from 'global/css';
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import getElement from 'utils/getElement';
-import log from 'utils/log/log';
+import Hook from './shared/hooks/Hook';
+import { getElement } from 'utils/dom';
+import { consoleError } from 'utils/log';
 import runloop from 'global/runloop';
 
 var renderHook = new Hook( 'render' ),
@@ -71,12 +71,7 @@ export default function Ractive$render ( target, anchor ) {
 	// But perhaps I'm wrong about that...
 	promise
 		.then( () => completeHook.fire( this ) )
-		.then( null, err => {
-			log.consoleError({
-				debug: this.debug,
-				err: err
-			});
-		});
+		.then( null, consoleError );
 
 	return promise;
 }

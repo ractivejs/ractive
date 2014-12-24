@@ -1,10 +1,10 @@
-import types from 'config/types';
-import delimiterChange from 'parse/converters/mustache/delimiterChange';
-import delimiterTypes from 'parse/converters/mustache/delimiterTypes';
-import mustacheContent from 'parse/converters/mustache/content';
-import handlebarsBlockCodes from 'parse/converters/mustache/handlebarsBlockCodes';
+import { DELIMCHANGE, COMMENT, CLOSING, SECTION, INTERPOLATOR, INVERTED, SECTION_UNLESS, SECTION_PARTIAL, INLINE_PARTIAL } from 'config/types';
+import delimiterChange from './mustache/delimiterChange';
+import delimiterTypes from './mustache/delimiterTypes';
+import mustacheContent from './mustache/content';
+import handlebarsBlockCodes from './mustache/handlebarsBlockCodes';
 
-var delimiterChangeToken = { t: types.DELIMCHANGE, exclude: true };
+var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
 export default getMustache;
 
@@ -71,11 +71,11 @@ function getMustacheOfType ( parser, delimiterType ) {
 		parser.error( 'Expected closing delimiter \'' + delimiters[1] + '\' after reference' );
 	}
 
-	if ( mustache.t === types.COMMENT ) {
+	if ( mustache.t === COMMENT ) {
 		mustache.exclude = true;
 	}
 
-	if ( mustache.t === types.CLOSING ) {
+	if ( mustache.t === CLOSING ) {
 		parser.sectionDepth -= 1;
 
 		if ( parser.sectionDepth < 0 ) {
@@ -87,7 +87,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 	// partials with context
 	if ( mustache.contextPartialExpression ) {
 		mustache.f = mustache.contextPartialExpression;
-		mustache.t = types.SECTION;
+		mustache.t = SECTION;
 		mustache.n = 'with';
 
 		delete mustache.contextPartialExpression;
@@ -102,7 +102,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 		expectedClose = mustache.n;
 
 		while ( child = parser.read() ) {
-			if ( child.t === types.CLOSING ) {
+			if ( child.t === CLOSING ) {
 				if ( expectedClose && child.r !== expectedClose ) {
 					parser.error( 'Expected {{/' + expectedClose + '}}' );
 				}
@@ -110,7 +110,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 			}
 
 			// {{else}} tags require special treatment
-			if ( child.t === types.INTERPOLATOR && child.r === 'else' ) {
+			if ( child.t === INTERPOLATOR && child.r === 'else' ) {
 				// no {{else}} allowed in {{#unless}}
 				if ( mustache.n === 'unless' ) {
 					parser.error( '{{else}} not allowed in {{#unless}}' );
@@ -144,13 +144,13 @@ function getMustacheOfType ( parser, delimiterType ) {
 	// Replace block name with code
 	if ( mustache.n ) {
 		mustache.n = handlebarsBlockCodes[ mustache.n ];
-	} else if ( mustache.t === types.INVERTED ) {
-		mustache.t = types.SECTION;
-		mustache.n = types.SECTION_UNLESS;
+	} else if ( mustache.t === INVERTED ) {
+		mustache.t = SECTION;
+		mustache.n = SECTION_UNLESS;
 	}
 
 	// special case inline partial section
-	if ( mustache.n === types.SECTION_PARTIAL ) {
+	if ( mustache.n === SECTION_PARTIAL ) {
 		if ( !mustache.r || mustache.r.indexOf( '.' ) !== -1 ) {
 			parser.error( 'Invalid partial name ' + mustache.r + '.' );
 		}
@@ -158,7 +158,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 		return {
 			n: mustache.r,
 			f: mustache.f,
-			t: types.INLINE_PARTIAL
+			t: INLINE_PARTIAL
 		};
 	}
 
@@ -166,5 +166,5 @@ function getMustacheOfType ( parser, delimiterType ) {
 }
 
 function isSection ( mustache ) {
-	return mustache.t === types.SECTION || mustache.t === types.INVERTED;
+	return mustache.t === SECTION || mustache.t === INVERTED;
 }

@@ -1,4 +1,4 @@
-import matches from 'utils/matches';
+import { matches } from 'utils/dom';
 
 export default function Triple$findAll ( selector, queryResult ) {
 	var i, len, node, queryAllResult, numNodes, j;

@@ -1,6 +1,7 @@
-import config from 'config/config';
-import genericHandler from 'virtualdom/items/Element/EventHandler/shared/genericHandler';
-import log from 'utils/log/log';
+import { warnOnce } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import genericHandler from '../shared/genericHandler';
+import { findInViewHierarchy } from 'shared/registry';
 
 var customHandlers = {},
 	touchEvents = {
@@ -18,7 +19,7 @@ export default function EventHandler$listen () {
 
 	if ( this.invalid ) { return; }
 
-	if ( definition = config.registries.events.find( this.root, name ) ) {
+	if ( definition = findInViewHierarchy( 'events', this.root, name ) ) {
 		this.custom = definition( this.node, getCustomHandler( name ) );
 	} else {
 		// Looks like we're dealing with a standard DOM event... but let's check
@@ -26,14 +27,7 @@ export default function EventHandler$listen () {
 
 			// okay to use touch events if this browser doesn't support them
 			if ( !touchEvents[ name ] ) {
-				log.error({
-					debug: this.root.debug,
-					message: 'missingPlugin',
-					args: {
-						plugin: 'event',
-						name: name
-					}
-				});
+				warnOnce( missingPlugin( name, 'event' ) );
 			}
 
 			return;
@@ -52,8 +46,8 @@ function getCustomHandler ( name ) {
 			var storage = event.node._ractive;
 
 			event.index = storage.index;
-			event.keypath = storage.keypath;
-			event.context = storage.root.get( storage.keypath );
+			event.keypath = storage.keypath.str;
+			event.context = storage.root.viewmodel.get( storage.keypath );
 
 			storage.events[ name ].fire( event );
 		};

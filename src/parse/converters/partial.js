@@ -1,4 +1,4 @@
-import types from 'config/types';
+import { INLINE_PARTIAL } from 'config/types';
 import escapeRegExp from 'utils/escapeRegExp';
 
 export default getPartial;
@@ -34,7 +34,7 @@ function getPartial( parser ) {
 		}
 
 		let partial = {
-			t: types.INLINE_PARTIAL,
+			t: INLINE_PARTIAL,
 			f: new parser.StandardParser( template.substr( 0, endMatch.index ), parser.options ).result,
 			n: name
 		};

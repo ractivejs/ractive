@@ -1,14 +1,7 @@
-import types from 'config/types';
-import log from 'utils/log/log';
-import create from 'utils/create';
-import circular from 'circular';
-import extend from 'utils/extend';
-
-var initialise;
-
-circular.push( () => {
-	initialise = circular.initialise;
-});
+import { YIELDER } from 'config/types';
+import { warn } from 'utils/log';
+import { create, extend } from 'utils/object';
+import initialise from 'Ractive/initialise';
 
 export default function ( component, Component, parameters, yieldTemplate, partials ) {
 	var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
@@ -26,19 +19,13 @@ export default function ( component, Component, parameters, yieldTemplate, parti
 	inlinePartials[''] = partials.content;
 
 	if ( Component.defaults.el ) {
-		log.warn({
-			debug: ractive.debug,
-			message: 'defaultElSpecified',
-			args: {
-				name: component.name
-			}
-		});
+		warn( 'The <%s/> component has a default `el` property; it has been disregarded', component.name );
 	}
 
 	// find container
 	fragment = parentFragment;
 	while ( fragment ) {
-		if ( fragment.owner.type === types.YIELDER ) {
+		if ( fragment.owner.type === YIELDER ) {
 			container = fragment.owner.container;
 			break;
 		}

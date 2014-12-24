@@ -267,7 +267,34 @@ define([ 'ractive' ], function ( Ractive ) {
 				ractive.set( 'widgets', new Array( length ) );
 				t.equal( divs.length, length );
 			});
-		})
+		});
+
+		test( 'ractive.find() and ractive.findAll() work inside an onchange handler (#1541)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#each items}}
+						<p>{{this}}</p>
+					{{/each}}`,
+				data: {
+					items: []
+				}
+			});
+
+			expect( 2 );
+
+			ractive.on( 'change', function () {
+				var node, nodes;
+
+				node = ractive.find( 'p' );
+				nodes = ractive.findAll( 'p' );
+
+				t.equal( node, null );
+				t.equal( nodes.length, 0 );
+			});
+
+			ractive.set( 'items', [ 'foo', 'bar', 'baz' ] );
+		});
 
 
 		// TODO add tests (and add the functionality)...

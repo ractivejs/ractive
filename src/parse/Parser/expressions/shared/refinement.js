@@ -1,6 +1,6 @@
-import types from 'config/types';
-import errors from 'parse/Parser/expressions/shared/errors';
-import patterns from 'parse/Parser/expressions/shared/patterns';
+import { REFINEMENT } from 'config/types';
+import { expectedExpression } from './errors';
+import { name as namePattern } from './patterns';
 
 export default function getRefinement ( parser ) {
 	var start, name, expr;
@@ -13,9 +13,9 @@ export default function getRefinement ( parser ) {
 	if ( parser.matchString( '.' ) ) {
 		parser.allowWhitespace();
 
-		if ( name = parser.matchPattern( patterns.name ) ) {
+		if ( name = parser.matchPattern( namePattern ) ) {
 			return {
-				t: types.REFINEMENT,
+				t: REFINEMENT,
 				n: name
 			};
 		}
@@ -29,7 +29,7 @@ export default function getRefinement ( parser ) {
 
 		expr = parser.readExpression();
 		if ( !expr ) {
-			parser.error( errors.expectedExpression );
+			parser.error( expectedExpression );
 		}
 
 		parser.allowWhitespace();
@@ -39,7 +39,7 @@ export default function getRefinement ( parser ) {
 		}
 
 		return {
-			t: types.REFINEMENT,
+			t: REFINEMENT,
 			x: expr
 		};
 	}

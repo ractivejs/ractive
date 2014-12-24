@@ -1,7 +1,7 @@
-import circular from 'circular';
-import warn from 'utils/log/warn';
-import interpolators from 'config/defaults/interpolators';
-import config from 'config/config';
+import { warnOnce } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import interpolators from 'Ractive/static/interpolators';
+import { findInViewHierarchy } from 'shared/registry';
 
 var interpolate = function ( from, to, ractive, type ) {
 	if ( from === to ) {
@@ -10,12 +10,12 @@ var interpolate = function ( from, to, ractive, type ) {
 
 	if ( type ) {
 
-		let interpol = config.registries.interpolators.find( ractive, type );
+		let interpol = findInViewHierarchy( 'interpolators', ractive, type );
 		if ( interpol ) {
 			return interpol( from, to ) || snap( to );
 		}
 
-		warn( 'Missing "' + type + '" interpolator. You may need to download a plugin from [TODO]' );
+		warnOnce( missingPlugin( type, 'interpolator' ) );
 	}
 
 	return interpolators.number( from, to ) ||
@@ -24,7 +24,6 @@ var interpolate = function ( from, to, ractive, type ) {
 	       snap( to );
 };
 
-circular.interpolate = interpolate;
 export default interpolate;
 
 function snap ( to ) {

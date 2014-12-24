@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
+import { getKeypath } from 'shared/keypaths';
 import resolveRef from 'shared/resolveRef';
-import getNewKeypath from 'shared/keypaths/getNew';
 
 var ReferenceResolver = function ( owner, ref, callback ) {
 	var keypath;
@@ -13,7 +13,7 @@ var ReferenceResolver = function ( owner, ref, callback ) {
 	this.callback = callback;
 
 	keypath = resolveRef( owner.root, ref, owner.parentFragment );
-	if ( keypath !== undefined ) {
+	if ( keypath != undefined ) {
 		this.resolve( keypath );
 	}
 
@@ -24,6 +24,12 @@ var ReferenceResolver = function ( owner, ref, callback ) {
 
 ReferenceResolver.prototype = {
 	resolve: function ( keypath ) {
+		if ( this.keypath && !keypath ) {
+			// it was resolved, and now it's not. Can happen if e.g. `bar` in
+			// `{{foo[bar]}}` becomes undefined
+			runloop.addUnresolved( this );
+		}
+
 		this.resolved = true;
 
 		this.keypath = keypath;
@@ -31,14 +37,14 @@ ReferenceResolver.prototype = {
 	},
 
 	forceResolution: function () {
-		this.resolve( this.ref );
+		this.resolve( getKeypath( this.ref ) );
 	},
 
 	rebind: function ( oldKeypath, newKeypath ) {
 		var keypath;
 
-		if ( this.keypath !== undefined ) {
-			keypath = getNewKeypath( this.keypath, oldKeypath, newKeypath );
+		if ( this.keypath != undefined ) {
+			keypath = this.keypath.replace( oldKeypath, newKeypath );
 			// was a new keypath created?
 			if ( keypath !== undefined ) {
 				// resolve it

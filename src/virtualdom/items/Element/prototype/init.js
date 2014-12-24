@@ -1,21 +1,14 @@
-import types from 'config/types';
-import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
-import processBindingAttributes from 'virtualdom/items/Element/prototype/init/processBindingAttributes';
-import createAttributes from 'virtualdom/items/Element/prototype/init/createAttributes';
-import createConditionalAttributes from 'virtualdom/items/Element/prototype/init/createConditionalAttributes';
-import createTwowayBinding from 'virtualdom/items/Element/prototype/init/createTwowayBinding';
-import createEventHandlers from 'virtualdom/items/Element/prototype/init/createEventHandlers';
-import Decorator from 'virtualdom/items/Element/Decorator/_Decorator';
-import bubbleSelect from 'virtualdom/items/Element/special/select/bubble';
-import initOption from 'virtualdom/items/Element/special/option/init';
-
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import { ELEMENT } from 'config/types';
+import processBindingAttributes from './init/processBindingAttributes';
+import createAttributes from './init/createAttributes';
+import createConditionalAttributes from './init/createConditionalAttributes';
+import createTwowayBinding from './init/createTwowayBinding';
+import createEventHandlers from './init/createEventHandlers';
+import enforceCase from '../shared/enforceCase';
+import Decorator from '../Decorator/_Decorator';
+import { bubble as bubbleSelect } from '../special/select';
+import { init as initOption } from '../special/option';
+import Fragment from 'virtualdom/Fragment';
 
 export default function Element$init ( options ) {
 	var parentFragment,
@@ -25,7 +18,7 @@ export default function Element$init ( options ) {
 		bindings,
 		twoway;
 
-	this.type = types.ELEMENT;
+	this.type = ELEMENT;
 
 	// stuff we'll need later
 	parentFragment = this.parentFragment = options.parentFragment;
@@ -48,6 +41,11 @@ export default function Element$init ( options ) {
 	if ( this.name === 'select' ) {
 		this.options = [];
 		this.bubble = bubbleSelect; // TODO this is a kludge
+	}
+
+	// Special case - <form> elements
+	if ( this.name === 'form' ) {
+		this.formBindings = [];
 	}
 
 	// handle binding attributes first (twoway, lazy)
@@ -77,7 +75,7 @@ export default function Element$init ( options ) {
 		this.binding = binding;
 
 		// register this with the root, so that we can do ractive.updateModel()
-		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
+		bindings = this.root._twowayBindings[ binding.keypath.str ] || ( this.root._twowayBindings[ binding.keypath.str ] = [] );
 		bindings.push( binding );
 	}
 

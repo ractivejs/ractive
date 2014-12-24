@@ -1,4 +1,4 @@
-import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
+import prefix from '../helpers/prefix';
 
 export default function ( style, value ) {
 	var prop;

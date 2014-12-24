@@ -1,6 +1,8 @@
 import resolveRef from 'shared/resolveRef';
-import ReferenceResolver from 'virtualdom/items/shared/Resolvers/ReferenceResolver';
-import MemberResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver';
+import { unbind } from 'shared/methodCallers';
+import { getKeypath } from 'shared/keypaths';
+import ReferenceResolver from '../ReferenceResolver';
+import MemberResolver from './MemberResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	var ractive, ref, keypath, parentFragment;
@@ -40,7 +42,7 @@ ReferenceExpressionResolver.prototype = {
 			return null;
 		}
 
-		return this.base + '.' + values.join( '.' );
+		return this.base.join( values.join( '.' ) );
 	},
 
 	bubble: function () {
@@ -71,13 +73,13 @@ ReferenceExpressionResolver.prototype = {
 
 	forceResolution: function () {
 		if ( this.baseResolver ) {
-			this.base = this.ref;
+			this.base = getKeypath( this.ref );
 
 			this.baseResolver.unbind();
 			this.baseResolver = null;
 		}
 
-		this.members.forEach( m => m.forceResolution() );
+		this.members.forEach( forceResolution );
 		this.bubble();
 	}
 };
@@ -90,8 +92,8 @@ function isDefined ( value ) {
 	return value != undefined;
 }
 
-function unbind ( member ) {
-	member.unbind();
+function forceResolution ( member ) {
+	member.forceResolution();
 }
 
 export default ReferenceExpressionResolver;

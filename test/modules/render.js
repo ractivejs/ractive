@@ -263,6 +263,21 @@ define([ 'ractive', 'samples/render' ], function ( Ractive, tests ) {
 			t.htmlEqual( fixture.innerHTML, 'a a a1b b b1' );
 		});
 
+		test( 'Sections survive unrender-render (#1553)', t => {
+			window.renderedFragments = 0;
+
+			var ractive = new Ractive({
+				template: '{{#each items}}<p>{{this}}</p>{{/each}}',
+				data: { items: [ 1, 2, 3 ] }
+			});
+
+			ractive.render( fixture );
+			ractive.unrender();
+			ractive.render( fixture );
+
+			t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p><p>3</p>' );
+		});
+
 	};
 
 	function deepClone ( source ) {

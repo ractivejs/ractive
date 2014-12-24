@@ -1,14 +1,14 @@
-import types from 'config/types';
-import Parser from 'parse/Parser/_Parser';
-import mustache from 'parse/converters/mustache';
-import comment from 'parse/converters/comment';
-import element from 'parse/converters/element';
-import partial from 'parse/converters/partial';
-import text from 'parse/converters/text';
-import trimWhitespace from 'parse/utils/trimWhitespace';
-import stripStandalones from 'parse/utils/stripStandalones';
-import processPartials from 'parse/converters/partial/processPartials';
-import isEmptyObject from 'utils/isEmptyObject';
+import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
+import Parser from './Parser/_Parser';
+import mustache from './converters/mustache';
+import comment from './converters/comment';
+import element from './converters/element';
+import partial from './converters/partial';
+import text from './converters/text';
+import trimWhitespace from './utils/trimWhitespace';
+import stripStandalones from './utils/stripStandalones';
+import processPartials from './converters/partial/processPartials';
+import { isEmptyObject, isArray } from 'utils/is';
 
 // Ractive.parse
 // ===============
@@ -97,7 +97,7 @@ StandardParser = Parser.extend({
 parse = function ( template, options = {} ) {
 	var result;
 
-	setDelimiters(options);
+	setDelimiters( options );
 
 	result = {
 		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
@@ -143,7 +143,7 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 		}
 
 		// Remove comments, unless we want to keep them
-		else if ( stripComments && item.t === types.COMMENT ) {
+		else if ( stripComments && item.t === COMMENT ) {
 			items.splice( i, 1 );
 		}
 	}
@@ -157,7 +157,7 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 
 		// Recurse
 		if ( item.f ) {
-			preserveWhitespaceInsideFragment = preserveWhitespace || ( item.t === types.ELEMENT && preserveWhitespaceElements.test( item.e ) );
+			preserveWhitespaceInsideFragment = preserveWhitespace || ( item.t === ELEMENT && preserveWhitespaceElements.test( item.e ) );
 
 			if ( !preserveWhitespaceInsideFragment ) {
 				previousItem = items[ i - 1 ];
@@ -185,7 +185,7 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			if ( rewriteElse ) {
 				unlessBlock = {
 					t: 4,
-					n: types.SECTION_UNLESS,
+					n: SECTION_UNLESS,
 					f: item.l
 				};
 				// copy the conditional based on its type
@@ -203,6 +203,23 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			for ( key in item.a ) {
 				if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
 					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+				}
+			}
+		}
+
+		// Clean up event handlers
+		if ( item.v ) {
+			for ( key in item.v ) {
+				if ( item.v.hasOwnProperty( key ) ) {
+					// clean up names
+					if ( isArray( item.v[ key ].n ) ) {
+						cleanup( item.v[ key ].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					}
+
+					// clean up params
+					if ( isArray( item.v[ key ].d ) ) {
+						cleanup( item.v[ key ].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					}
 				}
 			}
 		}
@@ -228,7 +245,9 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 	}
 }
 
-function setDelimiters ( source, target = source ) {
+function setDelimiters ( source, target ) {
+	target = target || source;
+
 	target.delimiters = source.delimiters || [ '{{', '}}' ];
 	target.tripleDelimiters = source.tripleDelimiters || [ '{{{', '}}}' ];
 

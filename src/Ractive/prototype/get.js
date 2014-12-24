@@ -1,4 +1,4 @@
-import normaliseKeypath from 'utils/normaliseKeypath';
+import { getKeypath, normalise } from 'shared/keypaths';
 import resolveRef from 'shared/resolveRef';
 
 var options = {
@@ -9,12 +9,12 @@ var options = {
 export default function Ractive$get ( keypath ) {
 	var value;
 
-	keypath = normaliseKeypath( keypath );
+	keypath = getKeypath( normalise( keypath ) );
 	value = this.viewmodel.get( keypath, options );
 
 	// Create inter-component binding, if necessary
 	if ( value === undefined && this.parent && !this.isolated ) {
-		if ( resolveRef( this, keypath, this.fragment ) ) { // creates binding as side-effect, if appropriate
+		if ( resolveRef( this, keypath.str, this.component.parentFragment ) ) { // creates binding as side-effect, if appropriate
 			value = this.viewmodel.get( keypath );
 		}
 	}

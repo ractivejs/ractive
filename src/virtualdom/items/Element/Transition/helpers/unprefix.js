@@ -1,4 +1,4 @@
-import vendors from 'config/vendors';
+import { vendors } from 'config/environment';
 
 var unprefixPattern = new RegExp( '^-(?:' + vendors.join( '|' ) + ')-' );
 

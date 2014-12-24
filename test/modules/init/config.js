@@ -1,14 +1,26 @@
 define([
 	'ractive',
-	'config/defaults/options',
-	'config/config'
+	'Ractive/config/defaults',
+	'Ractive/config/config',
+	'Ractive/config/registries',
+	'shared/registry'
 ], function (
 	Ractive,
 	defaults,
-	config
+	config,
+	registries,
+	registry
 ) {
 
 	'use strict';
+
+	var findInViewHierarchy = registry.findInViewHierarchy;
+
+	// TEMPORARY, until we switch to ES6
+	Ractive = Ractive.default || Ractive;
+	defaults = defaults.default || defaults;
+	config = config.default || config;
+	registries = registries.default || registries;
 
 	return function () {
 
@@ -23,22 +35,18 @@ define([
 		});
 
 		test( 'instance has config options', t => {
-			var ractive = new Ractive();
+			var ractive = new Ractive(),
+				registryNames = registries.map( r => r.name );
 
-			config.forEach( itemConfig => {
+			config.order.forEach( itemConfig => {
+				var name = itemConfig.name || itemConfig;
 
-				var name = itemConfig.name || itemConfig,
-					actual = ractive,
-					expected = Ractive.prototype;
-
-				if ( expected && ( name in expected ) ) {
-					ok( name in actual, 'has ' + name);
+				if ( name in Ractive.prototype ) {
+					ok( name in ractive, 'has ' + name);
 				}
 
-				if ( expected ) {
-					if ( !config.registries[ name ] && name !== 'template' ) { // TODO template is a special case... this should probably be handled differently
-						deepEqual( actual[ name ], expected[ name ], 'compare ' + name );
-					}
+				if ( !~registryNames.indexOf( name ) && name !== 'template' ) { // TODO template is a special case... this should probably be handled differently
+					deepEqual( ractive[ name ], Ractive.prototype[ name ], 'compare ' + name );
 				}
 			});
 		});
@@ -50,8 +58,8 @@ define([
 
 			ractive.parent = parent;
 
-			t.equal( config.registries.adaptors.find( ractive, 'foo' ), adaptor1 );
-			t.equal( config.registries.adaptors.find( ractive, 'bar' ), adaptor2 );
+			t.equal( findInViewHierarchy( 'adaptors', ractive, 'foo' ), adaptor1 );
+			t.equal( findInViewHierarchy( 'adaptors', ractive, 'bar' ), adaptor2 );
 		});
 
 		test( 'non-configurations options are added to instance', t => {

@@ -1,34 +1,22 @@
 import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import circular from 'circular';
+import Fragment from 'virtualdom/Fragment';
 import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
-import log from 'utils/log/log';
+import { fatal, warn } from 'utils/log';
 
-var Fragment, getValueOptions = { args: true }, eventPattern = /^event(?:\.(.+))?/;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+var eventPattern = /^event(?:\.(.+))?/;
 
 export default function EventHandler$init ( element, name, template ) {
-	var action, refs, ractive, i;
+	var action, refs, ractive;
 
 	this.element = element;
 	this.root = element.root;
 	this.parentFragment = element.parentFragment;
 	this.name = name;
 
-	if( name.indexOf( '*' ) !== -1 ) {
-		log.error({
-			debug: this.root.debug,
-			message: 'noElementProxyEventWildcards',
-			args: {
-				element: element.tagName,
-				event: name
-			}
-		});
-
+	if ( name.indexOf( '*' ) !== -1 ) {
+		( this.root.debug ? fatal : warn )( 'Only component proxy-events may contain "*" wildcards, <%s on-%s="..."/> is not valid', element.name, name );
 		this.invalid = true;
 	}
 
@@ -140,7 +128,7 @@ function fireEventWithParams ( event ) {
 }
 
 function fireEventWithDynamicParams ( event ) {
-	var args = this.dynamicParams.getValue( getValueOptions );
+	var args = this.dynamicParams.getArgsList();
 
 	// need to strip [] from ends if a string!
 	if ( typeof args === 'string' ) {

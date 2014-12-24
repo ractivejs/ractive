@@ -1,3 +1,5 @@
+import { unbind } from 'shared/methodCallers';
+
 export default function EventHandler$unbind () {
 	if ( this.method ) {
 		this.refResolvers.forEach( unbind );
@@ -13,8 +15,4 @@ export default function EventHandler$unbind () {
 	if ( this.dynamicParams ) {
 		this.dynamicParams.unbind();
 	}
-}
-
-function unbind ( x ) {
-	x.unbind();
 }

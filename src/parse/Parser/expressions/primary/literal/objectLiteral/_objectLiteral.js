@@ -1,5 +1,5 @@
-import types from 'config/types';
-import getKeyValuePairs from 'parse/Parser/expressions/primary/literal/objectLiteral/keyValuePairs';
+import { OBJECT_LITERAL } from 'config/types';
+import getKeyValuePairs from './keyValuePairs';
 
 export default function ( parser ) {
 	var start, keyValuePairs;
@@ -25,7 +25,7 @@ export default function ( parser ) {
 	}
 
 	return {
-		t: types.OBJECT_LITERAL,
+		t: OBJECT_LITERAL,
 		m: keyValuePairs
 	};
 }

@@ -1,6 +1,6 @@
-import types from 'config/types';
-import errors from 'parse/Parser/expressions/shared/errors';
-import getMemberOrInvocation from 'parse/Parser/expressions/memberOrInvocation';
+import { PREFIX_OPERATOR } from 'config/types';
+import { expectedExpression } from './shared/errors';
+import getMemberOrInvocation from './memberOrInvocation';
 
 var getTypeof, makePrefixSequenceMatcher;
 
@@ -20,13 +20,13 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 
 		expression = parser.readExpression();
 		if ( !expression ) {
-			parser.error( errors.expectedExpression );
+			parser.error( expectedExpression );
 		}
 
 		return {
 			s: symbol,
 			o: expression,
-			t: types.PREFIX_OPERATOR
+			t: PREFIX_OPERATOR
 		};
 	};
 };

@@ -1,7 +1,7 @@
 import runloop from 'global/runloop';
-import log from 'utils/log/log';
-import isEqual from 'utils/isEqual';
-import UnresolvedDependency from 'viewmodel/Computation/UnresolvedDependency';
+import { log, warn } from 'utils/log';
+import { isEqual } from 'utils/is';
+import UnresolvedDependency from './UnresolvedDependency';
 
 var Computation = function ( ractive, key, signature ) {
 	this.ractive = ractive;
@@ -33,7 +33,7 @@ Computation.prototype = {
 		this.bypass = true;
 
 		initial = this.ractive.viewmodel.get( this.key );
-		this.ractive.viewmodel.clearCache( this.key );
+		this.ractive.viewmodel.clearCache( this.key.str );
 
 		this.bypass = false;
 
@@ -76,8 +76,8 @@ Computation.prototype = {
 						keypath = deps[i];
 						value = ractive.viewmodel.get( keypath );
 
-						if ( !isEqual( value, this.depValues[ keypath ] ) ) {
-							this.depValues[ keypath ] = value;
+						if ( !isEqual( value, this.depValues[ keypath.str ] ) ) {
+							this.depValues[ keypath.str ] = value;
 							dependencyValuesChanged = true;
 
 							return;
@@ -92,14 +92,10 @@ Computation.prototype = {
 				try {
 					this.value = this.getter.call( ractive );
 				} catch ( err ) {
-					log.warn({
-						debug: ractive.debug,
-						message: 'failedComputation',
-						args: {
-							key: this.key,
-							err: err.message || err
-						}
-					});
+					if ( ractive.debug ) {
+						warn( 'Failed to compute "%s"', this.key.str );
+						log( err.stack || err );
+					}
 
 					this.value = void 0;
 				}
@@ -110,7 +106,7 @@ Computation.prototype = {
 				if ( dependenciesChanged ) {
 					[ this.hardDeps, this.softDeps ].forEach( deps => {
 						deps.forEach( keypath => {
-							this.depValues[ keypath ] = ractive.viewmodel.get( keypath );
+							this.depValues[ keypath.str ] = ractive.viewmodel.get( keypath );
 						});
 					});
 				}
@@ -162,11 +158,11 @@ Computation.prototype = {
 
 				// if this keypath is currently unresolved, we need to mark
 				// it as such. TODO this is a bit muddy...
-				if ( isUnresolved( this.viewmodel, keypath ) && ( !this.unresolvedDeps[ keypath ] ) ) {
-					unresolved = new UnresolvedDependency( this, keypath );
+				if ( isUnresolved( this.viewmodel, keypath ) && ( !this.unresolvedDeps[ keypath.str ] ) ) {
+					unresolved = new UnresolvedDependency( this, keypath.str );
 					newDeps.splice( i, 1 );
 
-					this.unresolvedDeps[ keypath ] = unresolved;
+					this.unresolvedDeps[ keypath.str ] = unresolved;
 					runloop.addUnresolved( unresolved );
 				} else {
 					this.viewmodel.register( keypath, this, 'computed' );
@@ -183,7 +179,7 @@ Computation.prototype = {
 };
 
 function isUnresolved( viewmodel, keypath ) {
-	var key = keypath.split( '.' )[0];
+	var key = keypath.firstKey;
 
 	return !( key in viewmodel.ractive.data ) &&
 	       !( key in viewmodel.computations ) &&

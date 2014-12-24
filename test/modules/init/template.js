@@ -1,13 +1,18 @@
 define([
-	'config/options/template/template',
-	'utils/isObject',
-	'utils/create'
+	'Ractive/config/custom/template/template',
+	'utils/is',
+	'utils/object'
 ],
 function (
 	config,
-	isObject,
-	create
+	is,
+	object
  ) {
+
+ 	var isObject = is.isObject,
+ 		create = object.create;
+
+ 	config = config.default || config;
 
 	'use strict';
 

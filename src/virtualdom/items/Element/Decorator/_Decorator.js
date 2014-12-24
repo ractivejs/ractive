@@ -1,16 +1,9 @@
-import log from 'utils/log/log';
-import circular from 'circular';
-import config from 'config/config';
+import { warn } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import Fragment from 'virtualdom/Fragment';
+import { findInViewHierarchy } from 'shared/registry';
 
-var Fragment, getValueOptions, Decorator;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
-
-getValueOptions = { args: true };
-
-Decorator = function ( element, template ) {
+var Decorator = function ( element, template ) {
 	var self = this, ractive, name, fragment;
 
 	this.element = element;
@@ -45,11 +38,11 @@ Decorator = function ( element, template ) {
 			owner:    element
 		});
 
-		this.params = this.fragment.getValue( getValueOptions );
+		this.params = this.fragment.getArgsList();
 
 		this.fragment.bubble = function () {
 			this.dirtyArgs = this.dirtyValue = true;
-			self.params = this.getValue( getValueOptions );
+			self.params = this.getArgsList();
 
 			if ( self.ready ) {
 				self.update();
@@ -57,17 +50,10 @@ Decorator = function ( element, template ) {
 		};
 	}
 
-	this.fn = config.registries.decorators.find( ractive, name );
+	this.fn = findInViewHierarchy( 'decorators', ractive, name );
 
 	if ( !this.fn ) {
-		log.error({
-			debug: ractive.debug,
-			message: 'missingPlugin',
-			args: {
-				plugin: 'decorator',
-				name: name
-			}
-		});
+		warn( missingPlugin( name, 'decorator' ) );
 	}
 };
 

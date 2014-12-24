@@ -1,12 +1,10 @@
-import decodeKeypath from 'shared/keypaths/decode';
-
 export default function Mustache$resolve ( keypath ) {
 	var wasResolved, value, twowayBinding;
 
 	// 'Special' keypaths, e.g. @foo or @7, encode a value
-	if ( keypath && keypath[0] === '@' ) {
+	if ( keypath && keypath.isSpecial ) {
 		this.keypath = keypath;
-		this.setValue( decodeKeypath( keypath ) );
+		this.setValue( keypath.value );
 		return;
 	}
 

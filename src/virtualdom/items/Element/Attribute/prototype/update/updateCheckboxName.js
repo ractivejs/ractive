@@ -1,4 +1,4 @@
-import isArray from 'utils/isArray';
+import { isArray } from 'utils/is';
 
 export default function Attribute$updateCheckboxName () {
 	var { element, node, value } = this, valueAttribute, i;

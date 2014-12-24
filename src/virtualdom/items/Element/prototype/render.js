@@ -1,14 +1,14 @@
-import namespaces from 'config/namespaces';
-import isArray from 'utils/isArray';
-import warn from 'utils/log/warn';
-import create from 'utils/create';
-import createElement from 'utils/createElement';
-import defineProperty from 'utils/defineProperty';
+import { namespaces } from 'config/environment';
+import { isArray } from 'utils/is';
+import { warn } from 'utils/log';
+import { create, defineProperty } from 'utils/object';
+import { createElement } from 'utils/dom';
 import noop from 'utils/noop';
 import runloop from 'global/runloop';
 import getInnerContext from 'shared/getInnerContext';
-import renderImage from 'virtualdom/items/Element/special/img/render';
-import Transition from 'virtualdom/items/Element/Transition/_Transition';
+import { render as renderImage } from '../special/img';
+import { render as renderForm } from '../special/form';
+import Transition from '../Transition/_Transition';
 
 var updateCss, updateScript;
 
@@ -44,18 +44,18 @@ updateScript = function () {
 };
 
 export default function Element$render () {
-	var root = this.root, namespace, node;
+	var root = this.root, namespace, node, transition;
 
 	namespace = getNamespace( this );
 	node = this.node = createElement( this.name, namespace );
 
 	// Is this a top-level node of a component? If so, we may need to add
-	// a data-rvcguid attribute, for CSS encapsulation
+	// a data-ractive-css attribute, for CSS encapsulation
 	// NOTE: css no longer copied to instance, so we check constructor.css -
 	// we can enhance to handle instance, but this is more "correct" with current
 	// functionality
 	if ( root.constructor.css && this.parentFragment.getNode() === root.el ) {
-		this.node.setAttribute( 'data-rvcguid', root.constructor._guid /*|| root._guid*/ );
+		this.node.setAttribute( 'data-ractive-css', root.constructor._guid /*|| root._guid*/ );
 	}
 
 	// Add _ractive property to the node - we use this object to store stuff
@@ -110,10 +110,26 @@ export default function Element$render () {
 		this.node._ractive.binding = this.binding;
 	}
 
-	// Special case: if this is an <img>, and we're in a crap browser, we may
-	// need to prevent it from overriding width and height when it loads the src
+	if ( this.name === 'option' ) {
+		processOption( this );
+	}
+
+	// Special cases
 	if ( this.name === 'img' ) {
+		// if this is an <img>, and we're in a crap browser, we may
+		// need to prevent it from overriding width and height when
+		// it loads the src
 		renderImage( this );
+	} else if ( this.name === 'form' ) {
+		// forms need to keep track of their bindings, in case of reset
+		renderForm( this );
+	} else if ( this.name === 'input' || this.name === 'textarea' ) {
+		// inputs and textareas should store their initial value as
+		// `defaultValue` in case of reset
+		this.node.defaultValue = this.node.value;
+	} else if ( this.name === 'option' ) {
+		// similarly for option nodes
+		this.node.defaultSelected = this.node.selected;
 	}
 
 	// apply decorator(s)
@@ -127,15 +143,11 @@ export default function Element$render () {
 
 	// trigger intro transition
 	if ( root.transitionsEnabled && this.intro ) {
-		let transition = new Transition ( this, this.intro, true );
+		transition = new Transition ( this, this.intro, true );
 		runloop.registerTransition( transition );
 		runloop.scheduleTask( () => transition.start(), true );
 
 		this.transition = transition;
-	}
-
-	if ( this.name === 'option' ) {
-		processOption( this );
 	}
 
 	if ( this.node.autofocus ) {

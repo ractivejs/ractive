@@ -1,10 +1,10 @@
-import types from 'config/types';
+import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_WITH, SECTION_UNLESS, SECTION_PARTIAL } from 'config/types';
 
 export default {
-	'each': types.SECTION_EACH,
-	'if': types.SECTION_IF,
-	'if-with': types.SECTION_IF_WITH,
-	'with': types.SECTION_WITH,
-	'unless': types.SECTION_UNLESS,
-	'partial': types.SECTION_PARTIAL
+	'each':    SECTION_EACH,
+	'if':      SECTION_IF,
+	'if-with': SECTION_IF_WITH,
+	'with':    SECTION_WITH,
+	'unless':  SECTION_UNLESS,
+	'partial': SECTION_PARTIAL
 };

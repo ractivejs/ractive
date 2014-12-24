@@ -1,10 +1,9 @@
-import circular from 'circular';
-import isClient from 'config/isClient';
-import removeFromArray from 'utils/removeFromArray';
+import runloop from 'global/runloop';
+import { isClient } from 'config/environment';
+import { removeFromArray } from 'utils/array';
 
 var css,
 	update,
-	runloop,
 	styleElement,
 	head,
 	styleSheet,
@@ -16,10 +15,6 @@ var css,
 if ( !isClient ) {
 	css = null;
 } else {
-	circular.push( function () {
-		runloop = circular.runloop;
-	});
-
 	styleElement = document.createElement( 'style' );
 	styleElement.type = 'text/css';
 

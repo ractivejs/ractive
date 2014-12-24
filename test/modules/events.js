@@ -1482,6 +1482,35 @@ define([ 'ractive' ], function ( Ractive ) {
 					QUnit.start();
 				}, 60 );
 			});
+
+			test( '{{else}} blocks work in event names (#1598)', t => {
+				let ractive, button, event1Fired, event2Fired;
+
+				ractive = new Ractive({
+					el: fixture,
+					template: '<button on-click="{{#if foo}}event1{{else}}event2{{/if}}"></button>',
+					data: {
+						foo: true
+					}
+				});
+
+				ractive.on({
+					event1: () => event1Fired = true,
+					event2: () => event2Fired = true
+				});
+
+				button = ractive.find( 'button' );
+
+				simulant.fire( button, 'click' );
+				t.ok( event1Fired );
+				t.ok( !event2Fired );
+
+				event1Fired = false;
+				ractive.set( 'foo', false );
+				simulant.fire( button, 'click' );
+				t.ok( !event1Fired );
+				t.ok( event2Fired );
+			});
 		}
 	};
 

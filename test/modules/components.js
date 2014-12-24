@@ -1,16 +1,16 @@
 define([
 	'ractive',
 	'helpers/Model',
-	'utils/defineProperty',
-	'utils/log'
+	'utils/object'
 ], function (
 	Ractive,
 	Model,
-	defineProperty,
-	log
+	object
 ) {
 
 	'use strict';
+
+	var defineProperty = object.defineProperty;
 
 	return function () {
 
@@ -203,12 +203,12 @@ define([
 				}
 			});
 
-			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
+			t.equal( ractive.find( 'p' )._ractive.keypath.str, '' );
 
 			ractive.set( 'visible', false );
 			ractive.set( 'visible', true );
 
-			t.equal( ractive.find( 'p' )._ractive.keypath, '' );
+			t.equal( ractive.find( 'p' )._ractive.keypath.str, '' );
 		});
 
 		test( 'Nested components fire the oninit() event correctly (#511)', t => {
@@ -746,6 +746,47 @@ define([
 
 			ractive.toggle( 'item.foo' );
 			t.htmlEqual( fixture.innerHTML, '<p>foo: false</p>' );
+		});
+
+		test( 'Mapping to a computed property is an error', function ( t ) {
+			t.throws( function () {
+				var ractive = new Ractive({
+					template: '<widget foo="{{bar}}"/>',
+					data: { bar: 'irrelevant' },
+					components: {
+						widget: Ractive.extend({
+							computed: {
+								foo: function () {
+									return 42;
+								}
+							}
+						})
+					}
+				});
+			}, /Cannot map to a computed property \('foo'\)/ );
+		});
+
+		test( 'Implicit mappings are created by restricted references (#1465)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<p>a: {{foo}}</p><b/><c/>',
+				data: {
+					foo: 'bar'
+				},
+				components: {
+					b: Ractive.extend({
+						template: '<p>b: {{./foo}}</p>',
+						oninit: function () {
+							this.get( 'foo' ) // triggers mapping creation; should be unnecessary
+						}
+					}),
+					c: Ractive.extend({
+						template: '<p>c: {{./foo}}</p>'
+					})
+				}
+			});
+
+			t.htmlEqual( fixture.innerHTML, '<p>a: bar</p><p>b: bar</p><p>c: bar</p>' );
 		});
 
 	};

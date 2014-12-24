@@ -1,8 +1,6 @@
-import circular from 'circular';
-import create from 'utils/create';
-import hasOwnProperty from 'utils/hasOwnProperty';
-import getConditional from 'parse/Parser/expressions/conditional';
-import flattenExpression from 'parse/Parser/utils/flattenExpression';
+import { create, hasOwn } from 'utils/object';
+import getConditional from './expressions/conditional';
+import flattenExpression from './utils/flattenExpression';
 
 var Parser, ParseError, leadingWhitespace = /^\s+/;
 
@@ -148,7 +146,7 @@ Parser.extend = function ( proto ) {
 	Child.prototype = create( Parent.prototype );
 
 	for ( key in proto ) {
-		if ( hasOwnProperty.call( proto, key ) ) {
+		if ( hasOwn.call( proto, key ) ) {
 			Child.prototype[ key ] = proto[ key ];
 		}
 	}
@@ -157,5 +155,4 @@ Parser.extend = function ( proto ) {
 	return Child;
 };
 
-circular.Parser = Parser;
 export default Parser;

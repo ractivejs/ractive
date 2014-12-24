@@ -1,5 +1,5 @@
-import types from 'config/types';
-import isArray from 'utils/isArray';
+import { INLINE_PARTIAL } from 'config/types';
+import { isArray } from 'utils/is';
 
 export default process;
 
@@ -25,7 +25,7 @@ function process( path, target, items ) {
 }
 
 function isPartial( item ) {
-	return item.t === types.INLINE_PARTIAL;
+	return item.t === INLINE_PARTIAL;
 }
 
 function getComponent( path, item ) {

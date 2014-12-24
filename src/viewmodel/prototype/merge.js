@@ -1,10 +1,9 @@
-import warn from 'utils/log/warn';
-import mapOldToNewIndex from 'viewmodel/prototype/merge/mapOldToNewIndex';
+import { warn } from 'utils/log';
+import mapOldToNewIndex from './merge/mapOldToNewIndex';
 
 var comparators = {};
 
 export default function Viewmodel$merge ( keypath, currentArray, array, options ) {
-
 	var oldArray,
 		newArray,
 		comparator,

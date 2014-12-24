@@ -1,17 +1,12 @@
-import config from 'config/config';
-import log from 'utils/log/log';
-import circular from 'circular';
-
-var Ractive;
-circular.push( function () {
-	Ractive = circular.Ractive;
-});
+import { noRegistryFunctionReturn } from 'config/errors';
+import { warn } from 'utils/log';
+import { findInstance } from 'shared/registry';
 
 // finds the component constructor in the registry or view hierarchy registries
 
 export default function getComponent ( ractive, name ) {
 
-	var Component, instance = config.registries.components.findInstance( ractive, name );
+	var Component, instance = findInstance( 'components', ractive, name );
 
 	if ( instance ) {
 		Component = instance.components[ name ];
@@ -24,16 +19,15 @@ export default function getComponent ( ractive, name ) {
 			Component = fn( instance.data );
 
 			if ( !Component ) {
-				log.warn({
-					debug: ractive.debug,
-					message: 'noRegistryFunctionReturn',
-					args: { registry: 'component', name: name }
-				});
+				if ( ractive.debug ) {
+					warn( noRegistryFunctionReturn, name, 'component', 'component' );
+				}
+
 				return;
 			}
 
 			if ( typeof Component === 'string' ) {
-				//allow string lookup
+				// allow string lookup
 				Component = getComponent ( ractive, Component );
 			}
 

@@ -1,32 +1,28 @@
-import create from 'utils/create';
-import adapt from 'viewmodel/prototype/adapt';
-import applyChanges from 'viewmodel/prototype/applyChanges';
-import capture from 'viewmodel/prototype/capture';
-import clearCache from 'viewmodel/prototype/clearCache';
-import compute from 'viewmodel/prototype/compute';
-import get from 'viewmodel/prototype/get';
-import init from 'viewmodel/prototype/init';
-import magic from 'config/magic';
-import map from 'viewmodel/prototype/map';
-import mark from 'viewmodel/prototype/mark';
-import merge from 'viewmodel/prototype/merge';
-import register from 'viewmodel/prototype/register';
-import release from 'viewmodel/prototype/release';
-import set from 'viewmodel/prototype/set';
-import smartUpdate from 'viewmodel/prototype/smartUpdate';
-import teardown from 'viewmodel/prototype/teardown';
-import unregister from 'viewmodel/prototype/unregister';
-import adaptConfig from 'viewmodel/adaptConfig';
+import { create } from 'utils/object';
+import adapt from './prototype/adapt';
+import applyChanges from './prototype/applyChanges';
+import capture from './prototype/capture';
+import clearCache from './prototype/clearCache';
+import compute from './prototype/compute';
+import get from './prototype/get';
+import init from './prototype/init';
+import map from './prototype/map';
+import mark from './prototype/mark';
+import merge from './prototype/merge';
+import register from './prototype/register';
+import release from './prototype/release';
+import set from './prototype/set';
+import smartUpdate from './prototype/smartUpdate';
+import teardown from './prototype/teardown';
+import unregister from './prototype/unregister';
 
-var Viewmodel = function ( ractive, mappings = create(null) ) {
+var Viewmodel = function ( ractive, mappings ) {
 	var key, mapping;
 
 	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
 
-	Viewmodel.extend( ractive.constructor, ractive );
-
 	// set up explicit mappings
-	this.mappings = mappings;
+	this.mappings = mappings || create( null );
 	for ( key in mappings ) {
 		mappings[ key ].initViewmodel( this );
 	}
@@ -66,19 +62,6 @@ var Viewmodel = function ( ractive, mappings = create(null) ) {
 	this.changes = [];
 	this.implicitChanges = {};
 	this.noCascade = {};
-};
-
-Viewmodel.extend = function ( Parent, instance ) {
-
-	if ( instance.magic && !magic ) {
-		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-	}
-
-	instance.adapt = adaptConfig.combine(
-		Parent.prototype.adapt,
-		instance.adapt) || [];
-
-	instance.adapt = adaptConfig.lookup( instance, instance.adaptors );
 };
 
 Viewmodel.prototype = {

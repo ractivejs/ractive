@@ -69,9 +69,11 @@
     "amdclean": "~1.5.0",
     "cheerio": "~0.17.0",
     "exec-sync": "~0.1.6",
-    "gobble": "^0.6.10",
+    "gobble": "^0.7.1",
+    "gobble-6to5": "^0.1.0",
     "gobble-es6-transpiler": "~0.1.0",
-    "gobble-esperanto": "~0.1.0",
+    "gobble-esperanto": "^0.2.1",
+    "gobble-esperanto-bundle": "^0.1.2",
     "grunt": "~0.4.4",
     "grunt-concurrent": "~0.5.0",
     "grunt-contrib-clean": "~0.6.0",
@@ -83,9 +85,10 @@
     "grunt-contrib-requirejs": "~0.4.3",
     "grunt-contrib-uglify": "~0.5.0",
     "grunt-es6-module-transpiler": "~0.6.0",
-    "grunt-gobble": "~0.1.1",
+    "grunt-gobble": "^0.2.0",
     "grunt-jsbeautifier": "~0.2.7",
-    "promises-aplus-tests": "*"
+    "promises-aplus-tests": "*",
+    "sander": "^0.2.1"
   },
   "testling": {
     "html": "test/testling.html",

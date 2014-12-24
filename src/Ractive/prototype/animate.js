@@ -1,13 +1,12 @@
 import animations from 'shared/animations';
-import Animation from 'Ractive/prototype/animate/Animation';
-import isEqual from 'utils/isEqual';
-import log from 'utils/log/log';
-import normaliseKeypath from 'utils/normaliseKeypath';
+import Animation from './animate/Animation';
+import { isEqual } from 'utils/is';
+import { consoleError } from 'utils/log';
+import { getKeypath, normalise } from 'shared/keypaths';
 import Promise from 'utils/Promise';
+import noop from 'utils/noop';
 
-var noop = function () {}, noAnimation = {
-	stop: noop
-};
+var noAnimation = { stop: noop };
 
 export default function Ractive$animate ( keypath, to, options ) {
 
@@ -94,12 +93,7 @@ export default function Ractive$animate ( keypath, to, options ) {
 				.then( function ( t ) {
 					complete( t, currentValues );
 				})
-				.then( null, err => {
-					log.consoleError({
-						debug: this.debug,
-						err: err
-					});
-				});
+				.then( null, consoleError );
 		}
 
 		dummyOptions.complete = fulfilPromise;
@@ -128,12 +122,7 @@ export default function Ractive$animate ( keypath, to, options ) {
 	if ( options.complete ) {
 		promise
 			.then( options.complete )
-			.then( null, err => {
-				log.consoleError({
-					debug: this.debug,
-					err: err
-				});
-			});
+			.then( null, consoleError );
 	}
 
 	options.complete = fulfilPromise;
@@ -149,7 +138,7 @@ function animate ( root, keypath, to, options ) {
 	var easing, duration, animation, from;
 
 	if ( keypath ) {
-		keypath = normaliseKeypath( keypath );
+		keypath = getKeypath( normalise( keypath ) );
 	}
 
 	if ( keypath !== null ) {

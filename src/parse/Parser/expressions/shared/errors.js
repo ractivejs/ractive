@@ -1,4 +1,2 @@
-export default {
-	expectedExpression: 'Expected a JavaScript expression',
-	expectedParen: 'Expected closing paren'
-};
+export var expectedExpression = 'Expected a JavaScript expression';
+export var expectedParen = 'Expected closing paren';

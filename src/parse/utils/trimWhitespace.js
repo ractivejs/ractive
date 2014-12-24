@@ -1,3 +1,5 @@
+import { lastItem } from 'utils/array';
+
 var leadingWhitespace = /^[ \t\f\r\n]+/,
 	trailingWhitespace = /[ \t\f\r\n]+$/;
 
@@ -18,7 +20,7 @@ export default function ( items, leading, trailing ) {
 	}
 
 	if ( trailing ) {
-		item = items[ items.length - 1 ];
+		item = lastItem( items );
 		if ( typeof item === 'string' ) {
 			item = item.replace( trailingWhitespace, '' );
 

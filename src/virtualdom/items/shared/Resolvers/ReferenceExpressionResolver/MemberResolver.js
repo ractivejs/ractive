@@ -1,10 +1,8 @@
-import types from 'config/types';
+import { REFERENCE } from 'config/types';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 
 var MemberResolver = function ( template, resolver, parentFragment ) {
-	var keypath;
-
 	this.resolver = resolver;
 	this.root = resolver.root;
 	this.parentFragment = parentFragment;
@@ -15,7 +13,7 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 	}
 
 	// Simple reference?
-	else if ( template.t === types.REFERENCE ) {
+	else if ( template.t === REFERENCE ) {
 		this.refResolver = createReferenceResolver( this, template.n, keypath => {
 			this.resolve( keypath );
 		});

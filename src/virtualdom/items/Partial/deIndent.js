@@ -1,3 +1,5 @@
+import { lastItem } from 'utils/array';
+
 var empty = /^\s*$/, leadingWhitespace = /^\s*/;
 
 export default function ( str ) {
@@ -11,7 +13,7 @@ export default function ( str ) {
 		lines.shift();
 	}
 
-	lastLine = lines[ lines.length - 1 ];
+	lastLine = lastItem( lines );
 	if ( lastLine !== undefined && empty.test( lastLine ) ) {
 		lines.pop();
 	}

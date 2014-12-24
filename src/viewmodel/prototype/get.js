@@ -1,48 +1,50 @@
-import decodeKeypath from 'shared/keypaths/decode';
-import FAILED_LOOKUP from 'viewmodel/prototype/get/FAILED_LOOKUP';
-
+import { lastItem } from 'utils/array';
+import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 
 var empty = {};
 
-export default function Viewmodel$get ( keypath, options = empty ) {
+export default function Viewmodel$get ( keypath, options ) {
 	var ractive = this.ractive,
 		cache = this.cache,
 		mapping,
 		value,
 		computation,
 		wrapped,
-		captureGroup;
+		captureGroup,
+		keypathStr = keypath.str;
+
+	options = options || empty;
 
 	// capture the keypath, if we're inside a computation
-	if ( options.capture && ( captureGroup = this.captureGroups[ this.captureGroups.length - 1 ] ) ) {
+	if ( options.capture && ( captureGroup = lastItem( this.captureGroups ) ) ) {
 		if ( !~captureGroup.indexOf( keypath ) ) {
 			captureGroup.push( keypath );
 		}
 	}
 
-	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+	if ( mapping = this.mappings[ keypath.firstKey ] ) {
 		return mapping.get( keypath, options );
 	}
 
-	if ( keypath[0] === '@' ) {
-		return decodeKeypath( keypath );
+	if ( keypath.isSpecial ) {
+		return keypath.value;
 	}
 
-	if ( cache[ keypath ] === undefined ) {
+	if ( cache[ keypathStr ] === undefined ) {
 
 		// Is this a computed property?
-		if ( ( computation = this.computations[ keypath ] ) && !computation.bypass ) {
+		if ( ( computation = this.computations[ keypathStr ] ) && !computation.bypass ) {
 			value = computation.get();
-			this.adapt( keypath, value );
+			this.adapt( keypathStr, value );
 		}
 
 		// Is this a wrapped property?
-		else if ( wrapped = this.wrapped[ keypath ] ) {
+		else if ( wrapped = this.wrapped[ keypathStr ] ) {
 			value = wrapped.value;
 		}
 
 		// Is it the root?
-		else if ( !keypath ) {
+		else if ( keypath.isRoot ) {
 			this.adapt( '', ractive.data );
 			value = ractive.data;
 		}
@@ -52,12 +54,12 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 			value = retrieve( this, keypath );
 		}
 
-		cache[ keypath ] = value;
+		cache[ keypathStr ] = value;
 	} else {
-		value = cache[ keypath ];
+		value = cache[ keypathStr ];
 	}
 
-	if ( !options.noUnwrap && ( wrapped = this.wrapped[ keypath ] ) ) {
+	if ( !options.noUnwrap && ( wrapped = this.wrapped[ keypathStr ] ) ) {
 		value = wrapped.get();
 	}
 
@@ -66,15 +68,11 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 
 function retrieve ( viewmodel, keypath ) {
 
-	var keys, key, parentKeypath, parentValue, cacheMap, value, wrapped;
+	var parentValue, cacheMap, value, wrapped;
 
-	keys = keypath.split( '.' );
-	key = keys.pop();
-	parentKeypath = keys.join( '.' );
+	parentValue = viewmodel.get( keypath.parent );
 
-	parentValue = viewmodel.get( parentKeypath );
-
-	if ( wrapped = viewmodel.wrapped[ parentKeypath ] ) {
+	if ( wrapped = viewmodel.wrapped[ keypath.parent.str ] ) {
 		parentValue = wrapped.get();
 	}
 
@@ -83,26 +81,26 @@ function retrieve ( viewmodel, keypath ) {
 	}
 
 	// update cache map
-	if ( !( cacheMap = viewmodel.cacheMap[ parentKeypath ] ) ) {
-		viewmodel.cacheMap[ parentKeypath ] = [ keypath ];
+	if ( !( cacheMap = viewmodel.cacheMap[ keypath.parent.str ] ) ) {
+		viewmodel.cacheMap[ keypath.parent.str ] = [ keypath.str ];
 	} else {
-		if ( cacheMap.indexOf( keypath ) === -1 ) {
-			cacheMap.push( keypath );
+		if ( cacheMap.indexOf( keypath.str ) === -1 ) {
+			cacheMap.push( keypath.str );
 		}
 	}
 
 	// If this property doesn't exist, we return a sentinel value
 	// so that we know to query parent scope (if such there be)
-	if ( typeof parentValue === 'object' && !( key in parentValue ) ) {
-		return viewmodel.cache[ keypath ] = FAILED_LOOKUP;
+	if ( typeof parentValue === 'object' && !( keypath.lastKey in parentValue ) ) {
+		return viewmodel.cache[ keypath.str ] = FAILED_LOOKUP;
 	}
 
-	value = parentValue[ key ];
+	value = parentValue[ keypath.lastKey ];
 
 	// Do we have an adaptor for this value?
-	viewmodel.adapt( keypath, value, false );
+	viewmodel.adapt( keypath.str, value, false );
 
 	// Update cache
-	viewmodel.cache[ keypath ] = value;
+	viewmodel.cache[ keypath.str ] = value;
 	return value;
 }

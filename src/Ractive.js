@@ -1,17 +1,14 @@
-import defaults from 'config/defaults/options';
-import easing from 'config/defaults/easing';
-import interpolators from 'config/defaults/interpolators';
-import svg from 'config/svg';
-import magic from 'config/magic';
-import defineProperties from 'utils/defineProperties';
+import defaults from 'Ractive/config/defaults';
+import easing from 'Ractive/static/easing';
+import interpolators from 'Ractive/static/interpolators';
+import { magic, svg } from 'config/environment';
+import { defineProperties, extend as extendObj } from 'utils/object';
 import proto from 'Ractive/prototype';
 import Promise from 'utils/Promise';
-import extendObj from 'utils/extend';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
-import getNodeInfo from 'utils/getNodeInfo';
+import getNodeInfo from 'Ractive/static/getNodeInfo';
 import initialise from 'Ractive/initialise';
-import circular from 'circular';
 
 var Ractive, properties;
 
@@ -60,19 +57,6 @@ Ractive.prototype.constructor = Ractive;
 
 // alias prototype as defaults
 Ractive.defaults = Ractive.prototype;
-
-
-
-// Certain modules have circular dependencies. If we were bundling a
-// module loader, e.g. almond.js, this wouldn't be a problem, but we're
-// not - we're using amdclean as part of the build process. Because of
-// this, we need to wait until all modules have loaded before those
-// circular dependencies can be required.
-circular.Ractive = Ractive;
-
-while ( circular.length ) {
-	circular.pop()();
-}
 
 // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
 // older browsers, these are made available via a shim - here, we do a quick

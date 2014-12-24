@@ -1,11 +1,13 @@
 import runloop from 'global/runloop';
-import Transition from 'virtualdom/items/Element/Transition/_Transition';
+import Transition from '../Transition/_Transition';
+import { unrender as unrenderForm } from '../special/form';
+import { unrender } from 'shared/methodCallers';
 
 export default function Element$unrender ( shouldDestroy ) {
-	var binding, bindings;
+	var binding, bindings, transition;
 
-	if ( this.transition ) {
-		this.transition.complete();
+	if ( transition = this.transition ) {
+		transition.complete();
 	}
 
 	// Detach as soon as we can
@@ -28,13 +30,13 @@ export default function Element$unrender ( shouldDestroy ) {
 		this.binding.unrender();
 
 		this.node._ractive.binding = null;
-		bindings = this.root._twowayBindings[ binding.keypath ];
+		bindings = this.root._twowayBindings[ binding.keypath.str ];
 		bindings.splice( bindings.indexOf( binding ), 1 );
 	}
 
 	// Remove event handlers
 	if ( this.eventHandlers ) {
-		this.eventHandlers.forEach( h => h.unrender() );
+		this.eventHandlers.forEach( unrender );
 	}
 
 	if ( this.decorator ) {
@@ -43,7 +45,7 @@ export default function Element$unrender ( shouldDestroy ) {
 
 	// trigger outro transition if necessary
 	if ( this.root.transitionsEnabled && this.outro ) {
-		let transition = new Transition ( this, this.outro, false );
+		transition = new Transition( this, this.outro, false );
 		runloop.registerTransition( transition );
 		runloop.scheduleTask( () => transition.start() );
 	}
@@ -51,6 +53,10 @@ export default function Element$unrender ( shouldDestroy ) {
 	// Remove this node from any live queries
 	if ( this.liveQueries ) {
 		removeFromLiveQueries( this );
+	}
+
+	if ( this.name === 'form' ) {
+		unrenderForm( this );
 	}
 }
 

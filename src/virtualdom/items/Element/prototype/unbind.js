@@ -1,4 +1,5 @@
-import unbindOption from 'virtualdom/items/Element/special/option/unbind';
+import { unbind as unbindOption } from 'virtualdom/items/Element/special/option';
+import { unbind } from 'shared/methodCallers';
 
 export default function Element$unbind () {
 	if ( this.fragment ) {
@@ -20,8 +21,4 @@ export default function Element$unbind () {
 
 	this.attributes.forEach( unbind );
 	this.conditionalAttributes.forEach( unbind );
-}
-
-function unbind ( x ) {
-	x.unbind();
 }

@@ -1,21 +1,17 @@
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 
 export default function Viewmodel$unregister ( keypath, dependant, group = 'default' ) {
 	var mapping, deps, index;
-
-	if ( !dependant ) {
-		return bulkUnregister( this, keypath );
-	}
 
 	if ( dependant.isStatic ) {
 		return;
 	}
 
-	if ( mapping = this.mappings[ keypath.split( '.' )[0] ] ) {
+	if ( mapping = this.mappings[ keypath.firstKey ] ) {
 		return mapping.unregister( keypath, dependant, group );
 	}
 
-	deps = this.deps[ group ][ keypath ];
+	deps = this.deps[ group ][ keypath.str ];
 	index = deps.indexOf( dependant );
 
 	if ( index === -1 ) {
@@ -24,70 +20,29 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 
 	deps.splice( index, 1 );
 
-	// added clean-up for mappings, how does it impact other use-cases?
-	if ( !deps.length ) {
-		delete this.deps[ group ][ keypath ];
-	}
-
-	if ( !keypath ) {
+	if ( keypath.isRoot ) {
 		return;
 	}
 
 	updateDependantsMap( this, keypath, group );
 }
 
-function bulkUnregister ( viewmodel, keypath ) {
-	var group, result, match;
-
-	for ( group in viewmodel.deps ) {
-		match = removeMatching( viewmodel, keypath, group );
-		if ( match.length ) {
-			result = result ? result.concat(match) : match;
-		}
-	}
-
-	return result;
-}
-
-function removeMatching( viewmodel, keypath, group ) {
-	var depsGroup = viewmodel.deps[ group ], match = [], key, deps;
-
-	for ( key in depsGroup ) {
-		if ( key.indexOf( keypath ) != 0 ) { continue; }
-
-		deps = depsGroup[ key ];
-		deps.forEach( d => {
-			updateDependantsMap( viewmodel, key, group);
-			match.push( { keypath: key, dep: d, group: group });
-		});
-
-		delete depsGroup[ key ];
-	}
-
-	return match;
-}
-
 function updateDependantsMap ( viewmodel, keypath, group ) {
-	var keys, parentKeypath, map, parent;
+	var map, parent;
 
 	// update dependants map
-	keys = keypath.split( '.' );
-
-	while ( keys.length ) {
-		keys.pop();
-		parentKeypath = keys.join( '.' );
-
+	while ( !keypath.isRoot ) {
 		map = viewmodel.depsMap[ group ];
-		parent = map[ parentKeypath ];
+		parent = map[ keypath.parent.str ];
 
-		parent[ keypath ] -= 1;
+		parent[ '_' + keypath.str ] -= 1;
 
-		if ( !parent[ keypath ] ) {
+		if ( !parent[ '_' + keypath.str ] ) {
 			// remove from parent deps map
 			removeFromArray( parent, keypath );
-			parent[ keypath ] = undefined;
+			parent[ '_' + keypath.str ] = undefined;
 		}
 
-		keypath = parentKeypath;
+		keypath = keypath.parent;
 	}
 }

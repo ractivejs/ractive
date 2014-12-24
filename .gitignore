@@ -17,3 +17,5 @@ build/*
 .gobble
 ractive.js
 .gobble-build
+perf/control/*
+!perf/control/.empty

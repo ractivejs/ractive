@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
-import Binding from 'virtualdom/items/Element/Binding/Binding';
-import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
+import Binding from './Binding';
+import handleDomEvent from './shared/handleDomEvent';
 
 var SelectBinding = Binding.extend({
 	getInitialValue: function () {
