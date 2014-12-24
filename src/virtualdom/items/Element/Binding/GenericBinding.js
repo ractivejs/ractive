@@ -1,6 +1,6 @@
 import Binding from './Binding';
 import handleDomEvent from './shared/handleDomEvent';
-import { isNumber } from 'utils/is';
+import { isNumeric } from 'utils/is';
 
 var GenericBinding;
 
@@ -22,9 +22,12 @@ GenericBinding = Binding.extend({
 			lazy = true;
 		} else if ( this.element.lazy === false ) {
 			lazy = false;
-		} else if ( isNumber( this.element.lazy ) ) {
+		} else if ( isNumeric( this.element.lazy ) ) {
 			lazy = false;
-			timeout = this.element.lazy;
+			timeout = +this.element.lazy;
+		} else if ( isNumeric( ( lazy || '' ) ) ) {
+			lazy = false;
+			timeout = +lazy;
 		}
 
 		this.handler = timeout ? handleDelay : handleDomEvent;
