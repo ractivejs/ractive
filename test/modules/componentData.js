@@ -1311,6 +1311,49 @@ define([
 				t.equal( fixture.innerHTML, 'of c' );
 			})
 
+			test( 'ComponentData supports JSON.stringify', (t) => {
+				var ractive = new Ractive({
+					el: fixture,
+					template: `<cmp foo="bar" baz="{{.}}" />`,
+					components: {
+						cmp: Ractive.extend({
+							template: `{{JSON.stringify(.)}} {{foo}} {{baz.bippy}} {{bat}}`,
+							onconstruct: function() {
+								this.data.bat = 1;
+							}
+						})
+					},
+					data: { bippy: 'boppy' }
+				});
+
+				t.ok( ractive.findComponent('cmp').data.toJSON );
+
+				t.htmlEqual( fixture.innerHTML, JSON.stringify( { bat:1, foo:'bar', baz:{ bippy:'boppy' } } ) + ' bar boppy 1' );
+			});
+
+			test( 'ComponentData supports in operator', (t) => {
+				let ractive = new Ractive({
+					el: fixture,
+					template: `<cmp flag foo="bar" baz="{{.}}" />`,
+					components: {
+						cmp: Ractive.extend({
+							template: `{{JSON.stringify(.)}} {{foo}} {{baz.bippy}} {{bat}}`,
+							onconstruct: function() {
+								this.data.bat = 1;
+							}
+						})
+					},
+					data: { bippy: 'boppy' }
+				});
+
+				let cmp = ractive.findComponent('cmp').data;
+
+				t.ok( 'flag' in cmp );
+				t.ok( 'foo' in cmp );
+				t.ok( 'baz' in cmp );
+				t.ok( 'bat' in cmp );
+			});
+
 			test( 'Multiple levels of mappings work', ( t ) => {
 
 				var ractive = new Ractive({

@@ -2,7 +2,6 @@ import { defineProperties } from 'utils/object';
 import { magic } from 'config/environment';
 import runloop from 'global/runloop';
 
-
 export default function createComponentData ( parameters, proto ) {
 	// Don't do anything with data at all..
 	if ( !proto.parameters ) {
@@ -85,9 +84,23 @@ function makeConstructor ( parameters, defined ) {
 		this._data = options.data || {};
 	}
 
-	defineProperties( proto = {}, properties );
+	defineProperties( proto = { toJSON: toJSON }, properties );
 	proto.constructor = ComponentData;
 	ComponentData.prototype = proto;
 
 	return ComponentData;
+}
+
+var reservedKeys = [ '_data', '_mappings' ];
+
+function toJSON() {
+	var json = {}, k;
+
+	for ( k in this ) {
+		if ( reservedKeys.indexOf( k ) === -1 ) {
+			json[k] = this[k];
+		}
+	}
+
+	return json;
 }
