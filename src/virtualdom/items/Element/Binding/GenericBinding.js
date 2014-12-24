@@ -28,6 +28,9 @@ GenericBinding = Binding.extend({
 		} else if ( isNumeric( ( lazy || '' ) ) ) {
 			timeout = +lazy;
 			lazy = false;
+
+			// make sure the timeout is available to the handler
+			this.element.lazy = timeout;
 		}
 
 		this.handler = timeout ? handleDelay : handleDomEvent;
