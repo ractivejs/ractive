@@ -1854,7 +1854,8 @@
   }
 
   function resolveRef__isRootProperty(ractive, key) {
-    return key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
+    // special case for reference to root
+    return key === "" || key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
   }
   //# sourceMappingURL=01-_6to5-resolveRef.js.map
 
@@ -13820,11 +13821,25 @@
       this._data = options.data || {};
     }
 
-    object__defineProperties(proto = {}, properties);
+    object__defineProperties(proto = { toJSON: createComponentData__toJSON }, properties);
     proto.constructor = ComponentData;
     ComponentData.prototype = proto;
 
     return ComponentData;
+  }
+
+  var createComponentData__reservedKeys = ["_data", "_mappings"];
+
+  function createComponentData__toJSON() {
+    var json = {}, k;
+
+    for (k in this) {
+      if (createComponentData__reservedKeys.indexOf(k) === -1) {
+        json[k] = this[k];
+      }
+    }
+
+    return json;
   }
   //# sourceMappingURL=01-_6to5-createComponentData.js.map
 
