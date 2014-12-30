@@ -1669,6 +1669,7 @@
         // it resolved some other way. TODO how? two-way binding? Seems
         // weird that we'd still end up here
         runloop__unresolved.splice(i, 1);
+        continue; // avoid removing the wrong thing should the next condition be true
       }
 
       if (keypath = resolveRef__default(item.root, item.ref, item.parentFragment)) {
