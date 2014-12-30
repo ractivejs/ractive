@@ -243,6 +243,23 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( !ractive.nodes.green.checked );
 		});
 
+		test( 'Named checkbox bindings are kept in sync with data changes (#1610)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+				<input type="checkbox" name="{{colors}}" value="red" />
+				<input type="checkbox" name="{{colors}}" value="blue" />
+				<input type="checkbox" name="{{colors}}" value="green" /> `,
+				data: { colors: [ 'red', 'blue' ] }
+			});
+
+			ractive.set( 'colors', [ 'green' ] );
+			t.deepEqual( ractive.get( 'colors' ), [ 'green' ] );
+
+			simulant.fire( ractive.find( 'input' ), 'click' );
+			t.deepEqual( ractive.get( 'colors' ), [ 'red', 'green' ]);
+		});
+
 		test( 'The model updates to reflect which radio input is checked at render time', function ( t ) {
 			var ractive;
 
