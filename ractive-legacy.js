@@ -10191,6 +10191,7 @@
     var element = _ref.element;
     var node = _ref.node;
     var value = _ref.value;
+    var binding = element.binding;
     var valueAttribute;
     var i;
 
@@ -10198,16 +10199,16 @@
     valueAttribute = element.getAttribute("value");
 
     if (!is__isArray(value)) {
-      node.checked = (value == valueAttribute);
+      binding.isChecked = node.checked = (value == valueAttribute);
     } else {
       i = value.length;
       while (i--) {
         if (valueAttribute == value[i]) {
-          node.checked = true;
+          binding.isChecked = node.checked = true;
           return;
         }
       }
-      node.checked = false;
+      binding.isChecked = node.checked = false;
     }
   };
   var updateCheckboxName__default = updateCheckboxName__Attribute$updateCheckboxName;
