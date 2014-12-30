@@ -144,6 +144,7 @@ function attemptKeypathResolution () {
 			// it resolved some other way. TODO how? two-way binding? Seems
 			// weird that we'd still end up here
 			unresolved.splice( i, 1 );
+			continue; // avoid removing the wrong thing should the next condition be true
 		}
 
 		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment ) ) {

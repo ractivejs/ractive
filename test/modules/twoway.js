@@ -677,6 +677,25 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( !inputs[2].checked );
 		});
 
+		test( 'If there happen to be unresolved references next to binding resolved references, the unresolveds should not be evicted by mistake (#1608)', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: `
+					{{#context}}
+					  <select value="{{bar}}"><option>baz</option></select><input type="checkbox" checked="{{foo}}" />
+					  <div>{{#foo}}true{{else}}false{{/}}</div>
+					{{/}}`,
+				data: {
+					context: {}
+				}
+			});
+
+			var div = ractive.find( 'div' );
+			t.htmlEqual( div.innerHTML, 'false' );
+			simulant.fire( ractive.find( 'input' ), 'click' );
+			t.htmlEqual( div.innerHTML, 'true' );
+		});
+
 	};
 
 });
