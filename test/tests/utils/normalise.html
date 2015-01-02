@@ -65,7 +65,8 @@
 		QUnit.start();
 
 	}, function ( err ) {
-		console.log( 'err', err );
+		console.error( err.message );
+		console.error( err.stack );
 	});
 
 }());
