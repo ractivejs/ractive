@@ -31,7 +31,7 @@
 	}
 
 	require( [ 'Ractive' ].concat( prefixedModules ), function ( Ractive ) {
-		Ractive = Ractive['default'];
+		Ractive = Ractive['default'] || Ractive;
 		window.Ractive = Ractive;
 
 		Ractive.defaults.magic = /magic=true/.test( window.location.search );
@@ -42,6 +42,8 @@
 
 		QUnit.start();
 
+	}, function ( err ) {
+		console.log( 'err', err );
 	});
 
 }());

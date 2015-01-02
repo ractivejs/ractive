@@ -9,7 +9,9 @@ if ( hasConsole ) {
 		console.warn.apply( console, [ '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' ].concat( args ) );
 	};
 
-	log = console.log.bind( console );
+	log = function () {
+		console.log.apply( console, arguments );
+	};
 } else {
 	printWarning = log = noop;
 }
