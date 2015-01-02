@@ -43,7 +43,7 @@
 		QUnit.start();
 
 	}, function ( err ) {
-		console.log( 'err', err );
+		throw err;
 	});
 
 }());
