@@ -8,14 +8,24 @@ var transpilerOptions = {
 	}, {})
 };
 
-es5 = gobble( 'src' ).transform( '6to5', { blacklist: [ 'modules', 'useStrict' ]});
-amd = es5.transform( 'esperanto', { strict: true } );
+var to5Opts = { blacklist: [ 'modules', 'useStrict' ] };
+var amdOpts = { strict: true };
+
+// disable sourcemaps for dev mode for now, since it loads all the modules via AMD
+if ( gobble.env() === 'development' ) {
+	to5Opts.sourceMap = false;
+	amdOpts.sourceMap = false;
+}
+
+es5 = gobble( 'src' ).transform( '6to5', to5Opts );
+amd = es5.transform( 'esperanto', amdOpts );
 
 bundle = es5.transform( 'esperanto-bundle', {
 	type: 'umd',
 	entry: 'Ractive.js',
 	name: 'Ractive',
-	dest: 'ractive.js'
+	dest: '../ractive.js',
+	strict: true
 });
 
 src = gobble([ amd, bundle ]).moveTo( 'src' );

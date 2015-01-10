@@ -1,6 +1,8 @@
-define([ 'ractive', 'helpers/Model' ], function ( Ractive, Model ) {
+define([ 'Ractive', 'helpers/Model' ], function ( Ractive, Model ) {
 
 	'use strict';
+
+	Ractive = Ractive['default'] || Ractive;
 
 	return function () {
 
