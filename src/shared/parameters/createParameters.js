@@ -85,17 +85,11 @@ ComponentParameters.prototype = {
 		this.data[ key ] = value;
 	},
 
-	addMapping: function ( key, keypath ) {
-		var mapping;
-
-		// map directly to the source if possible...
-		if ( keypath ) {
-			mapping = this.parentViewmodel.mappings[ keypath.str ];
-		}
-
+	addMapping: function ( key, keypath, force ) {
 		return this.mappings[ key.str ] = new Mapping( key, {
-			origin: mapping ? mapping.origin : this.parentViewmodel,
-			keypath: mapping ? mapping.keypath : keypath
+			origin: this.parentViewmodel,
+			keypath: keypath,
+			force: force
 		});
 	}
 };
