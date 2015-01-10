@@ -883,8 +883,8 @@ var renderTests = [
 	},
 	{
 		name: 'Boolean attributes work correctly (#1078)',
-		template: '<input type="text" value="{{value}}" readOnly><input type="text" value="anything" readonly>',
-		result: '<input type="text" value="" readOnly><input type="text" value="anything" readonly>'
+		template: '<input type="text" readOnly value="{{value}}"><input type="text" readonly value="anything">',
+		result: '<input type="text" readOnly value=""><input type="text" readonly value="anything">'
 	},
 	{
 		name: 'ContentEditable works correctly (#1078)',
