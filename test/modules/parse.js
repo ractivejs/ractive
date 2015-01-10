@@ -3,7 +3,11 @@
 //
 // TODO: add moar samples
 
-define([ 'ractive', 'samples/parse' ], function ( Ractive, tests ) {
+define([ 'Ractive', 'samples/parse' ], function ( Ractive, tests ) {
+
+	'use strict';
+
+	Ractive = Ractive['default'] || Ractive;
 
 	return function () {
 

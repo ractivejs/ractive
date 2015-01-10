@@ -1,5 +1,5 @@
 define([
-	'ractive',
+	'Ractive',
 	'viewmodel/Viewmodel',
 	'virtualdom/Fragment',
 	'virtualdom/items/Element/_Element',
@@ -18,9 +18,10 @@ define([
 
 	'use strict';
 
+	Ractive = Ractive['default'] || Ractive;
+
 	var TRIPLE = types.TRIPLE;
 
-	Ractive = Ractive.default || Ractive;
 	Viewmodel = Viewmodel.default || Viewmodel;
 	Fragment = Fragment.default || Fragment;
 	Element = Element.default || Element;

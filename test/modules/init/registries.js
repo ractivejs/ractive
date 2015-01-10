@@ -1,5 +1,5 @@
 define([
-	'ractive',
+	'Ractive',
 	'Ractive/config/registries'
 ], function (
 	Ractive,
@@ -7,6 +7,8 @@ define([
 ) {
 
 	'use strict';
+
+	Ractive = Ractive['default'] || Ractive;
 
 	Ractive = Ractive.default || Ractive;
 	registries = registries.default || registries;

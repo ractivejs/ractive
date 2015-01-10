@@ -1,5 +1,5 @@
 define([
-	'ractive',
+	'Ractive',
 	'Ractive/config/defaults',
 	'Ractive/config/config',
 	'Ractive/config/registries',
@@ -13,6 +13,8 @@ define([
 ) {
 
 	'use strict';
+
+	Ractive = Ractive['default'] || Ractive;
 
 	var findInViewHierarchy = registry.findInViewHierarchy;
 
