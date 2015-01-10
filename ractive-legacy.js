@@ -1134,7 +1134,7 @@
       }
     }(vendors, 0, window));
 
-    requestAnimationFrame = window.requestAnimationFrame;
+    requestAnimationFrame = window.requestAnimationFrame.bind(window);
   }
 
   var rAF = requestAnimationFrame;
