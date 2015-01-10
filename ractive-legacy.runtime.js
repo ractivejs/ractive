@@ -853,6 +853,10 @@
   function isObject(thing) {
     return (thing && is__toString.call(thing) === "[object Object]");
   }
+
+  function isFunction(thing) {
+    return typeof thing === "function";
+  }
   //# sourceMappingURL=01-_6to5-is.js.map
 
   var noop = function () {};
@@ -12750,6 +12754,10 @@
     this.keypath = options.keypath;
     this.origin = options.origin;
 
+    if (options.force) {
+      this.force = options.force;
+    }
+
     this.deps = [];
     this.unresolved = [];
 
@@ -12760,6 +12768,18 @@
 
 
   Mapping.prototype = {
+    ensureKeypath: function () {
+      if (!this.keypath) {
+        if (isFunction(this.force)) {
+          this.force();
+        }
+
+        if (!this.keypath) {
+          throw new Error("Mapping \"" + this.localKey.str + "\" on component \"" + this.local.ractive.component.name + "\" does not have a keypath. This is usually caused by an ambiguous complex reference, which can usually be fixed by scoping your references.");
+        }
+      }
+    },
+
     get: function (keypath, options) {
       if (!this.resolved) {
         return undefined;
@@ -12801,11 +12821,7 @@
     },
 
     set: function (keypath, value) {
-      // TODO: force resolution
-      if (!this.resolved) {
-        throw new Error("Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!");
-      }
-
+      this.ensureKeypath();
       this.origin.set(this.map(keypath), value);
     },
 
@@ -12836,10 +12852,7 @@
     },
 
     setValue: function (value) {
-      if (!this.keypath) {
-        throw new Error("Mapping does not have keypath, cannot set value. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!");
-      }
-
+      this.ensureKeypath();
       this.origin.set(this.keypath, value);
     },
 
@@ -13694,7 +13707,7 @@
   //# sourceMappingURL=01-_6to5-createComponentData.js.map
 
   function ParameterResolver(parameters, key, template) {
-    var component, resolve;
+    var component, resolve, force;
 
     this.parameters = parameters;
     this.key = key;
@@ -13712,8 +13725,13 @@
     }
 
     if (!this.resolved) {
+      // if the resolver can force resolution, so can the mapping
+      if (this.resolver && isFunction(this.resolver.forceResolution)) {
+        force = this.resolver.forceResolution.bind(this.resolver);
+      }
+
       // note the mapping anyway, for the benefit of child components
-      parameters.addMapping(key);
+      parameters.addMapping(key, undefined, force);
     }
 
     this.ready = true;
@@ -13837,17 +13855,11 @@
       this.data[key] = value;
     },
 
-    addMapping: function (key, keypath) {
-      var mapping;
-
-      // map directly to the source if possible...
-      if (keypath) {
-        mapping = this.parentViewmodel.mappings[keypath.str];
-      }
-
+    addMapping: function (key, keypath, force) {
       return this.mappings[key.str] = new Mapping(key, {
-        origin: mapping ? mapping.origin : this.parentViewmodel,
-        keypath: mapping ? mapping.keypath : keypath
+        origin: this.parentViewmodel,
+        keypath: keypath,
+        force: force
       });
     }
   };
