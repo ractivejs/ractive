@@ -1,9 +1,10 @@
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
+import { isFunction } from 'utils/is';
 
 function ParameterResolver ( parameters, key, template ) {
-	var component, resolve;
+	var component, resolve, force;
 
 	this.parameters = parameters;
 	this.key = key;
@@ -21,8 +22,13 @@ function ParameterResolver ( parameters, key, template ) {
 	}
 
 	if ( !this.resolved ) {
+		// if the resolver can force resolution, so can the mapping
+		if ( this.resolver && isFunction( this.resolver.forceResolution ) ) {
+			force = this.resolver.forceResolution.bind( this.resolver );
+		}
+
 		// note the mapping anyway, for the benefit of child components
-		parameters.addMapping( key );
+		parameters.addMapping( key, undefined, force );
 	}
 
 	this.ready = true;

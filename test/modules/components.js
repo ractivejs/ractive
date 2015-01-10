@@ -791,6 +791,51 @@ define([
 			t.htmlEqual( fixture.innerHTML, '<p>a: bar</p><p>b: bar</p><p>c: bar</p>' );
 		});
 
+		test( 'Explicit mappings with uninitialised data', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<foo/>',
+				components: {
+					foo: Ractive.extend({ template: '<bar message="{{message}}"/>' }),
+					bar: Ractive.extend({ template: '<baz message="{{message}}"/>' }),
+					baz: Ractive.extend({ template: '{{message}}' })
+				}
+			});
+
+			ractive.set( 'message', 'hello' );
+			t.htmlEqual( fixture.innerHTML, 'hello' );
+		});
+
+		test( 'Implicit mappings with uninitialised data', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<foo message="{{message}}"/>',
+				components: {
+					foo: Ractive.extend({ template: '<bar/>' }),
+					bar: Ractive.extend({ template: '<baz/>' }),
+					baz: Ractive.extend({ template: '{{message}}' })
+				}
+			});
+
+			ractive.set( 'message', 'hello' );
+			t.htmlEqual( fixture.innerHTML, 'hello' );
+		});
+
+		test( 'Two-way bindings on an unresolved key can force resolution', t => {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '{{#context}}<foo value="{{value}}" />{{/}}',
+				components: {
+					foo: Ractive.extend({ template: '<input value="{{value}}" />' })
+				},
+				data: { context: {} }
+			});
+
+			ractive.set( 'value', 'hello' );
+
+			t.equal( ractive.find( 'input' ).value, 'hello' );
+		});
+
 	};
 
 });

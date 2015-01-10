@@ -1,9 +1,14 @@
 import DataTracker from './DataTracker';
+import { isFunction } from 'utils/is';
 
 function Mapping ( localKey, options ) {
 	this.localKey = localKey;
 	this.keypath = options.keypath;
 	this.origin = options.origin;
+
+	if ( options.force ) {
+		this.force = options.force;
+	}
 
 	this.deps = [];
 	this.unresolved = [];
@@ -15,6 +20,18 @@ function Mapping ( localKey, options ) {
 export default Mapping;
 
 Mapping.prototype = {
+	ensureKeypath () {
+		if ( !this.keypath ) {
+			if ( isFunction( this.force ) ) {
+				this.force();
+			}
+
+			if ( !this.keypath ) {
+				throw new Error( 'Mapping "' + this.localKey.str + '" on component "' + this.local.ractive.component.name + '" does not have a keypath. This is usually caused by an ambiguous complex reference, which can usually be fixed by scoping your references.' );
+			}
+		}
+	},
+
 	get ( keypath, options ) {
 		if ( !this.resolved ) {
 			return undefined;
@@ -56,11 +73,7 @@ Mapping.prototype = {
 	},
 
 	set ( keypath, value ) {
-		// TODO: force resolution
-		if ( !this.resolved ) {
-			throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
-		}
-
+		this.ensureKeypath();
 		this.origin.set( this.map( keypath ), value );
 	},
 
@@ -90,10 +103,7 @@ Mapping.prototype = {
 	},
 
 	setValue ( value ) {
-		if ( !this.keypath ) {
-			throw new Error( 'Mapping does not have keypath, cannot set value. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
-		}
-
+		this.ensureKeypath();
 		this.origin.set( this.keypath, value );
 	},
 
