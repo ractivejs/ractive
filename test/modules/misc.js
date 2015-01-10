@@ -1684,6 +1684,22 @@ define([ 'ractive' ], function ( Ractive ) {
 			t.ok( !button.disabled );
 		});
 
+		test( 'input[type=range] values are respected regardless of attribute order (#1621)', function ( t ) {
+			var ractive = new Ractive({
+				el: fixture,
+				template: '<input type="range" min="0" max="200" value="150"/>'
+			});
+
+			t.equal( ractive.find( 'input' ).value, 150 );
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input value="150" type="range" min="0" max="200"/>'
+			});
+
+			t.equal( ractive.find( 'input' ).value, 150 );
+		});
+
 		// Is there a way to artificially create a FileList? Leaving this commented
 		// out until someone smarter than me figures out how
 		// test( '{{#each}} iterates over a FileList (#1220)', t => {
