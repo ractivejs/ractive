@@ -68,8 +68,10 @@
   "devDependencies": {
     "amdclean": "~1.5.0",
     "cheerio": "~0.17.0",
+    "es6-transpiler": "^0.7.18",
+    "esperanto": "^0.6.2",
     "gobble": "^0.7.1",
-    "gobble-6to5": "^0.1.0",
+    "gobble-6to5": "^1.0.1",
     "gobble-es6-transpiler": "~0.1.0",
     "gobble-esperanto": "^0.2.3",
     "gobble-esperanto-bundle": "^0.1.3",
