@@ -1,4 +1,4 @@
-/*import Model from 'helpers/Model';
+import Model from 'helpers/Model';
 
 module( 'Adaptors' );
 
@@ -366,4 +366,4 @@ test( 'A component inherits adaptor config from its parent class', function ( t 
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'bar' );
-});*/
+});

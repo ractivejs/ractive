@@ -4,6 +4,5 @@
 echo "> running node.js-specific tests"
 mocha tmp/test/__nodetests/*.js --reporter progress
 
-# TODO run browser tests
-# echo "> running browser tests with phantomjs"
-# node-qunit-phantomjs tmp/test/index.html --verbose
+# run browser tests
+phantomjs scripts/phantom-runner.js
