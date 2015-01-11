@@ -1313,7 +1313,7 @@ asyncTest( 'Regression test for #1019', function ( t ) {
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<img src="/350x150.gif" width="{{350}}">'
+		template: '<img src="/test/350x150.gif" width="{{350}}">'
 	});
 
 	img = ractive.find( 'img' );
@@ -1333,7 +1333,7 @@ asyncTest( 'Another regression test for #1019', function ( t ) {
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<div style="width: 350px"><img src="/350x150.gif" width="100%"></div>'
+		template: '<div style="width: 350px"><img src="/test/350x150.gif" width="100%"></div>'
 	});
 
 	img = ractive.find( 'img' );

@@ -62,7 +62,8 @@
     "url": "https://github.com/ractivejs/ractive.git"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "./scripts/test.sh",
+    "build": "./scripts/build.sh"
   },
   "github": "https://github.com/ractivejs/ractive",
   "devDependencies": {
@@ -72,22 +73,12 @@
     "esperanto": "^0.6.2",
     "gobble": "^0.7.1",
     "gobble-6to5": "^1.0.1",
+    "gobble-cli": "^0.3.5",
     "gobble-es6-transpiler": "~0.1.0",
     "gobble-esperanto": "^0.2.3",
     "gobble-esperanto-bundle": "^0.1.3",
-    "grunt": "~0.4.4",
-    "grunt-concurrent": "~0.5.0",
-    "grunt-contrib-clean": "~0.6.0",
-    "grunt-contrib-concat": "~0.5.0",
-    "grunt-contrib-copy": "~0.5.0",
-    "grunt-contrib-jshint": "~0.10.0",
-    "grunt-contrib-nodeunit": "~0.4.1",
-    "grunt-contrib-qunit": "~0.5.1",
-    "grunt-contrib-requirejs": "~0.4.3",
-    "grunt-contrib-uglify": "~0.5.0",
-    "grunt-es6-module-transpiler": "~0.6.0",
-    "grunt-gobble": "^0.2.0",
-    "grunt-jsbeautifier": "~0.2.7",
+    "gobble-sorcery": "^0.2.2",
+    "node-qunit-phantomjs": "^1.2.0",
     "promises-aplus-tests": "*",
     "sander": "^0.2.1"
   },

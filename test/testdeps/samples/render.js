@@ -1006,8 +1006,4 @@ var renderTests = [
 	}
 ];
 
-if ( typeof module !== 'undefined' && module.exports ) {
-	module.exports = renderTests;
-}
-
 export default renderTests;

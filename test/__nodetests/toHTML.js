@@ -1,45 +1,43 @@
-var Ractive, renderTests, cheerio, normaliseHTML;
+/*global require, describe, it */
+var Ractive = require( '../../ractive' ),
+	assert = require( 'assert' ),
+	renderTests = require( './samples/render' ),
+	cheerio = require( 'cheerio' );
 
-
-Ractive = require( '../../src/ractive' );
-renderTests = require( '../samples/render' );
-cheerio = require( 'cheerio' );
-
-normaliseHTML = function ( html ) {
+function normaliseHTML ( html ) {
 	return cheerio.load( html ).html();
-};
+}
 
-renderTests.forEach( function ( theTest ) {
-	exports[ theTest.name ] = function ( test ) {
-		[ false, true ].forEach( function ( magic ) {
-			var data, ractive;
+describe( 'ractive.toHTML()', function () {
+	renderTests.forEach( function ( theTest ) {
+		it( theTest.name, function () {
+			[ false, true ].forEach( function ( magic ) {
+				var data, ractive;
 
-			data = typeof theTest.data === 'function' ? theTest.data() : deepClone( theTest.data );
+				data = typeof theTest.data === 'function' ? theTest.data() : deepClone( theTest.data );
 
-			ractive = new Ractive({
-				template: theTest.template,
-				data: data,
-				partials: theTest.partials,
-				handlebars: theTest.handlebars, // TODO remove this if handlebars becomes default
-				magic: magic
+				ractive = new Ractive({
+					template: theTest.template,
+					data: data,
+					partials: theTest.partials,
+					handlebars: theTest.handlebars, // TODO remove this if handlebars becomes default
+					magic: magic
+				});
+
+				assert.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.result ) );
+
+				if ( theTest.new_data ) {
+					data = typeof theTest.new_data === 'function' ? theTest.new_data() : deepClone( theTest.new_data );
+
+					ractive.set( data );
+					assert.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.new_result ) );
+				}
+
+				ractive.teardown();
 			});
-
-			test.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.result ) );
-
-			if ( theTest.new_data ) {
-				data = typeof theTest.new_data === 'function' ? theTest.new_data() : deepClone( theTest.new_data );
-
-				ractive.set( data );
-				test.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.new_result ) );
-			}
-
-			ractive.teardown();
 		});
-
-		test.done();
-	};
+	});
 });
-
 
 function deepClone ( source ) {
 	var target, key;

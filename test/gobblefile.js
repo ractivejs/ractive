@@ -79,8 +79,11 @@ testPages = testModules.transform( function () {
 module.exports = gobble([
 	testModules,
 	testPages,
-	gobble( 'root' )
-]);
-
-
-
+	gobble( 'root' ),
+	gobble( '__nodetests' ).moveTo( '__nodetests' ),
+	gobble( 'testdeps/samples' )
+		.include( '*.js' )
+		.transform( 'esperanto', { type: 'cjs', sourceMap: false })
+		.transform( 'es6-transpiler' )
+		.moveTo( '__nodetests/samples' )
+]).moveTo( 'test' );

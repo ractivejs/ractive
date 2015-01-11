@@ -1,26 +1,26 @@
-var Ractive, parseTests;
+/*global require, describe, it */
+var Ractive = require( '../../ractive' ),
+	assert = require( 'assert' ),
+	parseTests = require( './samples/parse' );
 
-Ractive = require( '../../src/ractive' );
-parseTests = require( '../samples/parse' );
+describe( 'Ractive.parse()', function () {
+	parseTests.forEach( function ( test ) {
+		it( test.name, function () {
+			if (test.error) {
+				assert.throws( function () {
+					Ractive.parse( test.template, test.options );
+				}, function ( error ) {
+					if (error.name !== 'ParseError') {
+						throw error;
+					}
+					assert.equal( error.message, test.error );
+					return true;
+				}, 'Expected ParseError');
+			} else {
+				var parsed = Ractive.parse( test.template, test.options );
+				assert.deepEqual( parsed, test.parsed );
+			}
+		});
+	});
 
-parseTests.forEach( function ( theTest ) {
-	exports[ theTest.name ] = function ( test ) {
-		if (theTest.error) {
-			test.throws( function () {
-				Ractive.parse( theTest.template, theTest.options );
-			}, function ( error ) {
-				if (error.name !== 'ParseError') {
-					throw error;
-				}
-				test.equal( error.message, theTest.error );
-				return true;
-			}, 'Expected ParseError');
-		} else {
-			var parsed = Ractive.parse(theTest.template, theTest.options);
-
-			test.deepEqual(parsed, theTest.parsed);
-		}
-
-		test.done();
-	};
 });

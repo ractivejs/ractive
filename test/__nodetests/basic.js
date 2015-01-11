@@ -1,7 +1,8 @@
-var Ractive = require( '../../src/ractive' );
+var Ractive = require( '../../ractive' ),
+	assert = require( 'assert' );
 
-exports[ 'Ractive loads in node.js' ] = function ( test ) {
-	test.ok( typeof Ractive === 'function' );
-
-	test.done();
-};
+describe( 'Ractive', function () {
+	it( 'should be a function', function () {
+		assert.equal( typeof Ractive, 'function' );
+	});
+});

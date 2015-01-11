@@ -728,8 +728,4 @@ var parseTests = [
 	}
 ];
 
-if ( typeof module !== 'undefined' && module.exports ) {
-	module.exports = parseTests;
-}
-
 export default parseTests;
