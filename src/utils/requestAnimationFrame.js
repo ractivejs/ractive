@@ -36,7 +36,7 @@ if ( typeof window === 'undefined' ) {
 
 	}( vendors, 0, window ));
 
-	requestAnimationFrame = window.requestAnimationFrame.bind( window );
+	requestAnimationFrame = window.requestAnimationFrame;
 }
 
 export default requestAnimationFrame;

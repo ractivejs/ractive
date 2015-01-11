@@ -1,9 +1,5 @@
 /*global test, module, simulant */
-define([ 'Ractive' ], function ( Ractive ) {
-
-	'use strict';
-
-	Ractive = Ractive['default'] || Ractive;
+define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 

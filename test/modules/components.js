@@ -1,5 +1,5 @@
 define([
-	'Ractive',
+	'ractive',
 	'helpers/Model',
 	'utils/object'
 ], function (
@@ -9,8 +9,6 @@ define([
 ) {
 
 	'use strict';
-
-	Ractive = Ractive['default'] || Ractive;
 
 	var defineProperty = object.defineProperty;
 

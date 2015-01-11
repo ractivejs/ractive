@@ -1,8 +1,6 @@
-define([ 'Ractive', 'legacy' ], function ( Ractive, legacy ) {
+define([ 'ractive', 'legacy' ], function ( Ractive, legacy ) {
 
 	'use strict';
-
-	Ractive = Ractive['default'] || Ractive;
 
 	return function () {
 

@@ -11,11 +11,7 @@
 // works fine, but IE8 gets all confused about whitespace when doing innerHTML.
 // For the sake of sanity, these tests are also marked.
 
-define([ 'Ractive' ], function ( Ractive ) {
-
-	'use strict';
-
-	Ractive = Ractive['default'] || Ractive;
+define([ 'ractive' ], function ( Ractive ) {
 
 	return function () {
 
