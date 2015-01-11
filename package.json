@@ -63,6 +63,7 @@
   },
   "scripts": {
     "test": "./scripts/test.sh",
+    "serve": "gobble",
     "build": "./scripts/build.sh"
   },
   "github": "https://github.com/ractivejs/ractive",

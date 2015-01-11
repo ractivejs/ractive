@@ -3,6 +3,9 @@
 # if the tests fail, abort (errexit)
 set -e
 
+echo "> linting..."
+jshint src
+
 # build library plus tests
 echo "> emptying tmp dir..."
 rm -rf tmp/*
