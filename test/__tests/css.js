@@ -2,7 +2,7 @@ import legacy from 'legacy';
 
 module( 'CSS encapsulation' );
 
-var fixture, hexCodes, getComputedStyle;
+var hexCodes, getComputedStyle;
 
 getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 

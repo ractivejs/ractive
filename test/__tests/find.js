@@ -1,6 +1,6 @@
 module( 'ractive.find()/findAll()/findComponent()/findAllComponents()' );
 
-var Widget, Decoy;
+var Widget, Decoy, MockRactive;
 
 Widget = Ractive.extend({
 	template: '<p>{{content}}</p>'
@@ -10,7 +10,7 @@ Decoy = Ractive.extend({
 	template: '<p>I am a decoy</p>'
 });
 
-Ractive = Ractive.extend({
+MockRactive = Ractive.extend({
 	components: {
 		widget: Widget,
 		decoy: Decoy
@@ -20,7 +20,7 @@ Ractive = Ractive.extend({
 test( 'find() works with a string-only template', function ( t ) {
 	var ractive;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<p>foo</p><p>bar</p>'
 	});
@@ -31,7 +31,7 @@ test( 'find() works with a string-only template', function ( t ) {
 test( 'find() works with a template containing mustaches', function ( t ) {
 	var ractive;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<p>{{foo}}</p><p>{{bar}}</p>',
 		data: { foo: 'one', bar: 'two' }
@@ -43,7 +43,7 @@ test( 'find() works with a template containing mustaches', function ( t ) {
 test( 'find() works with nested elements', function ( t ) {
 	var ractive;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<div class="outer"><div class="inner"><p>{{foo}}</p><p>{{bar}}</p></div></div>',
 		data: { foo: 'one', bar: 'two' }
@@ -55,7 +55,7 @@ test( 'find() works with nested elements', function ( t ) {
 test( 'findAll() gets an array of all nodes matching a selector', function ( t ) {
 	var ractive, divs;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<div><div><div>{{foo}}</div></div></div>'
 	});
@@ -67,7 +67,7 @@ test( 'findAll() gets an array of all nodes matching a selector', function ( t )
 test( 'findAll() works with a string-only template', function ( t ) {
 	var ractive, paragraphs;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<div><p>foo</p><p>bar</p></div>'
 	});
@@ -82,7 +82,7 @@ test( 'findAll() works with a string-only template', function ( t ) {
 test( 'findAll() with { live: true } gets an updating array of all nodes matching a selector', function ( t ) {
 	var ractive, lis;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
 		data: {
@@ -100,7 +100,7 @@ test( 'findAll() with { live: true } gets an updating array of all nodes matchin
 test( 'A live query maintains the correct sort order after a merge operation', function ( t ) {
 	var ractive, lis, getHtml;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
 		data: {
@@ -122,7 +122,7 @@ test( 'A live query maintains the correct sort order after a merge operation', f
 test( 'ractive.findComponent() finds the first component, of any type', function ( t ) {
 	var ractive, widget;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<widget/>'
 	});
@@ -135,7 +135,7 @@ test( 'ractive.findComponent() finds the first component, of any type', function
 test( 'ractive.findComponent(selector) finds the first component of type `selector`', function ( t ) {
 	var ractive, widget;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<decoy/><widget/>'
 	});
@@ -148,7 +148,7 @@ test( 'ractive.findComponent(selector) finds the first component of type `select
 test( 'ractive.findAllComponents() finds all components, of any type', function ( t ) {
 	var ractive, widgets;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<widget/><widget/><widget/>'
 	});
@@ -162,7 +162,7 @@ test( 'ractive.findAllComponents() finds all components, of any type', function 
 test( 'ractive.findAllComponents(selector) finds all components of type `selector`', function ( t ) {
 	var ractive, widgets;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '<widget/><decoy/><widget/>'
 	});
@@ -176,7 +176,7 @@ test( 'ractive.findAllComponents(selector) finds all components of type `selecto
 test( 'ractive.findAllComponents(selector, {live: true}) returns a live query that maintains sort order', function ( t ) {
 	var ractive, widgets, widgetA, widgetB, widgetC, widgetD;
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '{{#widgets}}<div><widget content="{{this}}"/></div>{{/widgets}}',
 		data: {
@@ -213,11 +213,11 @@ test( 'ractive.findAllComponents(selector, {live: true}) returns a live query th
 test( 'Components containing other components work as expected with ractive.findAllComponents()', function ( t ) {
 	var Compound, ractive, widgets;
 
-	Compound = Ractive.extend({
+	Compound = MockRactive.extend({
 		template: '<widget content="foo"/><div><widget content="bar"/></div>'
 	});
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '{{#shown}}<compound/><widget content="baz"/>{{/shown}}',
 		components: {
@@ -239,11 +239,11 @@ test( 'Components containing other components work as expected with ractive.find
 test( 'Nodes belonging to components are removed from live queries when those components are torn down', function ( t ) {
 	var Widget, ractive, divs;
 
-	Widget = Ractive.extend({
+	Widget = MockRactive.extend({
 		template: '<div>this should be removed</div>'
 	});
 
-	ractive = new Ractive({
+	ractive = new MockRactive({
 		el: fixture,
 		template: '{{#widgets}}<widget/>{{/widgets}}',
 		components: {
@@ -261,7 +261,7 @@ test( 'Nodes belonging to components are removed from live queries when those co
 });
 
 test( 'ractive.find() and ractive.findAll() work inside an onchange handler (#1541)', function ( t ) {
-	var ractive = new Ractive({
+	var ractive = new MockRactive({
 		el: fixture,
 		template: `
 			{{#each items}}
