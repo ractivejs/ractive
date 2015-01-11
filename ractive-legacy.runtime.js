@@ -5,6 +5,7 @@
 }(this, function () { 'use strict';
 
   var defaultOptions = {
+
     // render placement:
     el: void 0,
     append: false,
@@ -79,13 +80,13 @@
       return Math.pow(pos, 3);
     },
     easeOut: function (pos) {
-      return (Math.pow((pos - 1), 3) + 1);
+      return Math.pow(pos - 1, 3) + 1;
     },
     easeInOut: function (pos) {
       if ((pos /= 0.5) < 1) {
-        return (0.5 * Math.pow(pos, 3));
+        return 0.5 * Math.pow(pos, 3);
       }
-      return (0.5 * (Math.pow((pos - 2), 3) + 2));
+      return 0.5 * (Math.pow(pos - 2, 3) + 2);
     }
   };
   //# sourceMappingURL=01-_6to5-easing.js.map
@@ -93,9 +94,9 @@
   /*global console */
   var isClient, hasConsole, magic, namespaces, svg, vendors;
 
-  isClient = (typeof document === "object");
+  isClient = typeof document === "object";
 
-  hasConsole = (typeof console !== "undefined" && typeof console.warn === "function" && typeof console.warn.apply === "function");
+  hasConsole = typeof console !== "undefined" && typeof console.warn === "function" && typeof console.warn.apply === "function";
 
   try {
     Object.defineProperty({}, "test", { value: 0 });
@@ -284,7 +285,10 @@
     // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/keys
     if (!Object.keys) {
       Object.keys = (function () {
-        var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !({ toString: null }).propertyIsEnumerable("toString"), dontEnums = ["toString", "toLocaleString", "valueOf", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "constructor"], dontEnumsLength = dontEnums.length;
+        var hasOwnProperty = Object.prototype.hasOwnProperty,
+            hasDontEnumBug = !({ toString: null }).propertyIsEnumerable("toString"),
+            dontEnums = ["toString", "toLocaleString", "valueOf", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "constructor"],
+            dontEnumsLength = dontEnums.length;
 
         return function (obj) {
           if (typeof obj !== "object" && typeof obj !== "function" || obj === null) {
@@ -308,7 +312,7 @@
           }
           return result;
         };
-      }());
+      })();
     }
 
     // TODO: use defineProperty to make these non-enumerable
@@ -503,7 +507,7 @@
     // https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
     // addEventListener polyfill IE6+
     if (!win.addEventListener) {
-      ((function (win, doc) {
+      (function (win, doc) {
         var Event, addEventListener, removeEventListener, head, style, origCreateElement;
 
         // because sometimes inquiring minds want to know
@@ -587,7 +591,7 @@
 
           //style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
         }
-      })(win, doc));
+      })(win, doc);
     }
 
     // The getComputedStyle polyfill interacts badly with jQuery, so we don't attach
@@ -599,7 +603,10 @@
         var borderSizes = {};
 
         function getPixelSize(element, style, property, fontSize) {
-          var sizeWithSuffix = style[property], size = parseFloat(sizeWithSuffix), suffix = sizeWithSuffix.split(/\d/)[0], rootSize;
+          var sizeWithSuffix = style[property],
+              size = parseFloat(sizeWithSuffix),
+              suffix = sizeWithSuffix.split(/\d/)[0],
+              rootSize;
 
           if (isNaN(size)) {
             if (/^thin|medium|thick$/.test(sizeWithSuffix)) {
@@ -611,7 +618,7 @@
           fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, "fontSize", null) : 16;
           rootSize = property == "fontSize" ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
 
-          return (suffix == "em") ? size * fontSize : (suffix == "in") ? size * 96 : (suffix == "pt") ? size * 96 / 72 : (suffix == "%") ? size / 100 * rootSize : size;
+          return suffix == "em" ? size * fontSize : suffix == "in" ? size * 96 : suffix == "pt" ? size * 96 / 72 : suffix == "%" ? size / 100 * rootSize : size;
         }
 
         function getBorderPixelSize(size) {
@@ -635,7 +642,11 @@
         }
 
         function setShortStyleProperty(style, property) {
-          var borderSuffix = property == "border" ? "Width" : "", t = property + "Top" + borderSuffix, r = property + "Right" + borderSuffix, b = property + "Bottom" + borderSuffix, l = property + "Left" + borderSuffix;
+          var borderSuffix = property == "border" ? "Width" : "",
+              t = property + "Top" + borderSuffix,
+              r = property + "Right" + borderSuffix,
+              b = property + "Bottom" + borderSuffix,
+              l = property + "Left" + borderSuffix;
 
           style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]] : style[t] == style[b] && style[l] == style[r] ? [style[t], style[r]] : style[l] == style[r] ? [style[t], style[r], style[b]] : [style[t], style[r], style[b], style[l]]).join(" ");
         }
@@ -693,14 +704,14 @@
         }
 
         return getComputedStyle;
-      }());
+      })();
     }
   }
 
   var legacy = exportedShims;
+  // TODO...
   //# sourceMappingURL=01-_6to5-legacy.js.map
 
-  var object___slice = Array.prototype.slice;
   var create, defineProperty, defineProperties;
 
   try {
@@ -769,11 +780,15 @@
 
         return obj;
       };
-    }());
+    })();
   }
 
   function object__extend(target) {
-    var sources = object___slice.call(arguments, 1);
+    var sources = [];
+
+    for (var _key = 1; _key < arguments.length; _key++) {
+      sources[_key - 1] = arguments[_key];
+    }
 
     var prop, source;
 
@@ -789,7 +804,11 @@
   }
 
   function fillGaps(target) {
-    var sources = object___slice.call(arguments, 1);
+    var sources = [];
+
+    for (var _key2 = 1; _key2 < arguments.length; _key2++) {
+      sources[_key2 - 1] = arguments[_key2];
+    }
 
     sources.forEach(function (s) {
       for (var key in s) {
@@ -805,7 +824,8 @@
   var hasOwn = Object.prototype.hasOwnProperty;
   //# sourceMappingURL=01-_6to5-object.js.map
 
-  var is__toString = Object.prototype.toString, arrayLikePattern = /^\[object (?:Array|FileList)\]$/;
+  var is__toString = Object.prototype.toString,
+      arrayLikePattern = /^\[object (?:Array|FileList)\]$/;
 
   // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
   function isArray(thing) {
@@ -842,7 +862,7 @@
   }
 
   function isNumber(thing) {
-    return (typeof thing === "number" || (typeof thing === "object" && is__toString.call(thing) === "[object Number]"));
+    return typeof thing === "number" || typeof thing === "object" && is__toString.call(thing) === "[object Number]";
   }
 
   // http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
@@ -851,7 +871,7 @@
   }
 
   function isObject(thing) {
-    return (thing && is__toString.call(thing) === "[object Object]");
+    return thing && is__toString.call(thing) === "[object Object]";
   }
 
   function isFunction(thing) {
@@ -862,7 +882,6 @@
   var noop = function () {};
   //# sourceMappingURL=01-_6to5-noop.js.map
 
-  var log___slice = Array.prototype.slice;
   /* global console */
   var alreadyWarned = {}, log, printWarning;
 
@@ -893,21 +912,33 @@
   }
 
   function fatal(message) {
-    var args = log___slice.call(arguments, 1);
+    var args = [];
+
+    for (var _key = 1; _key < arguments.length; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
 
     message = format(message, args);
     throw new Error(message);
   }
 
   function warn(message) {
-    var args = log___slice.call(arguments, 1);
+    var args = [];
+
+    for (var _key2 = 1; _key2 < arguments.length; _key2++) {
+      args[_key2 - 1] = arguments[_key2];
+    }
 
     message = format(message, args);
     printWarning(message, args);
   }
 
   function warnOnce(message) {
-    var args = log___slice.call(arguments, 1);
+    var args = [];
+
+    for (var _key3 = 1; _key3 < arguments.length; _key3++) {
+      args[_key3 - 1] = arguments[_key3];
+    }
 
     message = format(message, args);
 
@@ -994,7 +1025,7 @@
       }
 
       return function (t) {
-        return from + (t * delta);
+        return from + t * delta;
       };
     },
 
@@ -1094,12 +1125,12 @@
     }
 
     return root.set(keypath, value + d);
-  };
+  }
   //# sourceMappingURL=01-_6to5-add.js.map
 
   function Ractive$add(keypath, d) {
-    return add(this, keypath, (d === undefined ? 1 : +d));
-  };
+    return add(this, keypath, d === undefined ? 1 : +d);
+  }
   //# sourceMappingURL=01-_6to5-add.js.map
 
   var requestAnimationFrame;
@@ -1136,7 +1167,7 @@
           return id;
         };
       }
-    }(vendors, 0, window));
+    })(vendors, 0, window);
 
     requestAnimationFrame = window.requestAnimationFrame.bind(window);
   }
@@ -1213,7 +1244,8 @@
   }
 
   function arrayContains(array, value) {
-    for (var i = 0, c = array.length; i < c; i++) {
+    for (var i = 0,
+        c = array.length; i < c; i++) {
       if (array[i] == value) {
         return true;
       }
@@ -1268,7 +1300,8 @@
   }
 
   function toArray(arrayLike) {
-    var array = [], i = arrayLike.length;
+    var array = [],
+        i = arrayLike.length;
     while (i--) {
       array[i] = arrayLike[i];
     }
@@ -1277,7 +1310,10 @@
   }
   //# sourceMappingURL=01-_6to5-array.js.map
 
-  var _Promise, PENDING = {}, FULFILLED = {}, REJECTED = {};
+  var _Promise,
+      PENDING = {},
+      FULFILLED = {},
+      REJECTED = {};
 
   if (typeof Promise === "function") {
     // use native Promise
@@ -1295,7 +1331,7 @@
           result = value;
           state = newState;
 
-          dispatchHandlers = makeDispatcher((state === FULFILLED ? fulfilledHandlers : rejectedHandlers), result);
+          dispatchHandlers = makeDispatcher(state === FULFILLED ? fulfilledHandlers : rejectedHandlers, result);
 
           // dispatch onFulfilled and onRejected handlers asynchronously
           wait(dispatchHandlers);
@@ -1507,7 +1543,7 @@
     }
 
     return result;
-  };
+  }
 
   // This function returns all the possible true/false combinations for
   // a given number - e.g. for two, the possible combinations are
@@ -1569,15 +1605,15 @@
   };
 
   Keypath.prototype = {
-    equalsOrStartsWith: function (keypath) {
+    equalsOrStartsWith: function equalsOrStartsWith(keypath) {
       return keypath === this || this.startsWith(keypath);
     },
 
-    join: function (str) {
+    join: function join(str) {
       return getKeypath(this.isRoot ? String(str) : this.str + "." + str);
     },
 
-    replace: function (oldKeypath, newKeypath) {
+    replace: function replace(oldKeypath, newKeypath) {
       if (this === oldKeypath) {
         return newKeypath;
       }
@@ -1587,7 +1623,7 @@
       }
     },
 
-    startsWith: function (keypath) {
+    startsWith: function startsWith(keypath) {
       if (!keypath) {
         // TODO under what circumstances does this happen?
         return false;
@@ -1596,15 +1632,15 @@
       return keypath && this.str.substr(0, keypath.str.length + 1) === keypath.str + ".";
     },
 
-    toString: function () {
+    toString: function keypaths__toString() {
       throw new Error("Bad coercion");
     },
 
-    valueOf: function () {
+    valueOf: function valueOf() {
       throw new Error("Bad coercion");
     },
 
-    wildcardMatches: function () {
+    wildcardMatches: function wildcardMatches() {
       return this._wildcardMatches || (this._wildcardMatches = getPotentialWildcardMatches(this.str));
     }
   };
@@ -1728,7 +1764,7 @@
     }
 
     return keypath;
-  };
+  }
 
   function resolveAncestorRef(baseContext, ref) {
     var contextKeys;
@@ -1918,12 +1954,12 @@
 
     detachNodes: function () {
       this.decoratorQueue.forEach(teardown);
-      this.detachQueue.forEach(detach);
+      this.detachQueue.forEach(TransitionManager__detach);
       this.children.forEach(detachNodes);
     }
   };
 
-  function detach(element) {
+  function TransitionManager__detach(element) {
     element.detach();
   }
 
@@ -1971,7 +2007,7 @@
 
       if (returnPromise) {
         promise = new Promise(function (f) {
-          return (fulfilPromise = f);
+          return fulfilPromise = f;
         });
       }
 
@@ -2236,7 +2272,7 @@
           return false; // remove from the stack
         }
 
-        t = this.easing ? this.easing(elapsed / this.duration) : (elapsed / this.duration);
+        t = this.easing ? this.easing(elapsed / this.duration) : elapsed / this.duration;
 
         if (keypath !== null) {
           value = this.interpolator(t);
@@ -2383,7 +2419,7 @@
       animation.stop();
     };
     return promise;
-  };
+  }
 
   function animate(root, keypath, to, options) {
     var easing, duration, animation, from;
@@ -2423,7 +2459,7 @@
     }
 
     // duration
-    duration = (options.duration === undefined ? 400 : options.duration);
+    duration = options.duration === undefined ? 400 : options.duration;
 
     // TODO store keys, use an internal set method
     animation = new Animation({
@@ -2460,7 +2496,7 @@
     this.detached = this.fragment.detach();
     prototype_detach__detachHook.fire(this);
     return this.detached;
-  };
+  }
   //# sourceMappingURL=01-_6to5-detach.js.map
 
   function Ractive$find(selector) {
@@ -2469,7 +2505,7 @@
     }
 
     return this.fragment.find(selector);
-  };
+  }
   //# sourceMappingURL=01-_6to5-find.js.map
 
   var test = function (item, noDirty) {
@@ -2519,7 +2555,7 @@
 
     // remove items from the end of both ancestries as long as they are identical
     // - the final one removed is the closest mutual ancestor
-    while (oldestA && (oldestA === oldestB)) {
+    while (oldestA && oldestA === oldestB) {
       ancestryA.pop();
       ancestryB.pop();
 
@@ -2543,7 +2579,7 @@
 
       // if it's the same index, it means one contains the other,
       // so we see which has the longest ancestry
-      return (indexA - indexB) || ancestryA.length - ancestryB.length;
+      return indexA - indexB || ancestryA.length - ancestryB.length;
     }
 
     // if mutual ancestor is a section, we first test to see which section
@@ -2552,7 +2588,7 @@
       indexA = fragments.indexOf(fragmentA);
       indexB = fragments.indexOf(fragmentB);
 
-      return (indexA - indexB) || ancestryA.length - ancestryB.length;
+      return indexA - indexB || ancestryA.length - ancestryB.length;
     }
 
     throw new Error("An unexpected condition was met while comparing the position of two components. Please file an issue at https://github.com/RactiveJS/Ractive/issues - thanks!");
@@ -2591,7 +2627,7 @@
 
     if (node.compareDocumentPosition) {
       bitmask = node.compareDocumentPosition(otherNode);
-      return (bitmask & 2) ? 1 : -1;
+      return bitmask & 2 ? 1 : -1;
     }
 
     // In old IE, we can piggy back on the mechanism for
@@ -2656,7 +2692,7 @@
     });
 
     return query;
-  };
+  }
   //# sourceMappingURL=01-_6to5-_makeQuery.js.map
 
   function Ractive$findAll(selector, options) {
@@ -2673,7 +2709,7 @@
     // selector, we don't need to traverse the parallel DOM
     if (query = liveQueries[selector]) {
       // Either return the exact same query, or (if not live) a snapshot
-      return (options && options.live) ? query : query.slice();
+      return options && options.live ? query : query.slice();
     }
 
     query = makeQuery(this, selector, !!options.live, false);
@@ -2687,7 +2723,7 @@
 
     this.fragment.findAll(selector, query);
     return query;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
   function Ractive$findAllComponents(selector, options) {
@@ -2700,7 +2736,7 @@
     // selector, we don't need to traverse the parallel DOM
     if (query = liveQueries[selector]) {
       // Either return the exact same query, or (if not live) a snapshot
-      return (options && options.live) ? query : query.slice();
+      return options && options.live ? query : query.slice();
     }
 
     query = makeQuery(this, selector, !!options.live, true);
@@ -2714,12 +2750,12 @@
 
     this.fragment.findAllComponents(selector, query);
     return query;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
 
   function Ractive$findComponent(selector) {
     return this.fragment.findComponent(selector);
-  };
+  }
   //# sourceMappingURL=01-_6to5-findComponent.js.map
 
   function Ractive$findContainer(selector) {
@@ -2732,7 +2768,7 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findContainer.js.map
 
   function Ractive$findParent(selector) {
@@ -2745,7 +2781,7 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findParent.js.map
 
   var eventStack = {
@@ -2768,8 +2804,8 @@
 
   //# sourceMappingURL=01-_6to5-eventStack.js.map
 
-  function fireEvent(ractive, eventName, options) {
-    if (options === undefined) options = {};
+  function fireEvent(ractive, eventName) {
+    var options = arguments[2] === undefined ? {} : arguments[2];
     if (!eventName) {
       return;
     }
@@ -2788,10 +2824,10 @@
 
     var eventNames = getKeypath(eventName).wildcardMatches();
     fireEventAs(ractive, eventNames, options.event, options.args, true);
-  };
+  }
 
-  function fireEventAs(ractive, eventNames, event, args, initialFire) {
-    if (initialFire === undefined) initialFire = false;
+  function fireEventAs(ractive, eventNames, event, args) {
+    var initialFire = arguments[4] === undefined ? false : arguments[4];
 
 
     var subscribers, i, bubble = true;
@@ -2823,7 +2859,8 @@
   }
 
   function notifySubscribers(ractive, subscribers, event, args) {
-    var originalEvent = null, stopEvent = false;
+    var originalEvent = null,
+        stopEvent = false;
 
     if (event && !event._noArg) {
       args = [event].concat(args);
@@ -2833,7 +2870,8 @@
     // so we need to copy to make sure everyone gets called
     subscribers = subscribers.slice();
 
-    for (var i = 0, len = subscribers.length; i < len; i += 1) {
+    for (var i = 0,
+        len = subscribers.length; i < len; i += 1) {
       if (subscribers[i].apply(ractive, args) === false) {
         stopEvent = true;
       }
@@ -2854,7 +2892,7 @@
     };
 
     fireEvent(this, eventName, options);
-  };
+  }
   //# sourceMappingURL=01-_6to5-fire.js.map
 
   var options = {
@@ -2877,7 +2915,7 @@
     }
 
     return value;
-  };
+  }
   //# sourceMappingURL=01-_6to5-get.js.map
 
   var insertHook = new Hook("insert");
@@ -2902,7 +2940,7 @@
     this.detached = null;
 
     fireInsertHook(this);
-  };
+  }
 
   function fireInsertHook(ractive) {
     insertHook.fire(ractive);
@@ -2931,7 +2969,7 @@
     runloop.end();
 
     return promise;
-  };
+  }
   //# sourceMappingURL=01-_6to5-merge.js.map
 
   var Observer = function (ractive, keypath, callback, options) {
@@ -2941,7 +2979,7 @@
     this.defer = options.defer;
 
     // default to root as context, but allow it to be overridden
-    this.context = (options && options.context ? options.context : ractive);
+    this.context = options && options.context ? options.context : ractive;
   };
 
   Observer.prototype = {
@@ -2999,10 +3037,12 @@
     });
 
     return values;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getPattern.js.map
 
-  var PatternObserver, PatternObserver__wildcard = /\*/, slice = Array.prototype.slice;
+  var PatternObserver,
+      PatternObserver__wildcard = /\*/,
+      slice = Array.prototype.slice;
 
   PatternObserver = function (ractive, keypath, callback, options) {
     this.root = ractive;
@@ -3019,7 +3059,7 @@
     }
 
     // default to root as context, but allow it to be overridden
-    this.context = (options && options.context ? options.context : ractive);
+    this.context = options && options.context ? options.context : ractive;
   };
 
   PatternObserver.prototype = {
@@ -3113,7 +3153,8 @@
 
   //# sourceMappingURL=01-_6to5-PatternObserver.js.map
 
-  var getObserverFacade__wildcard = /\*/, emptyObject = {};
+  var getObserverFacade__wildcard = /\*/,
+      emptyObject = {};
 
   function getObserverFacade(ractive, keypath, callback, options) {
     var observer, isPatternObserver, cancelled;
@@ -3155,7 +3196,7 @@
         cancelled = true;
       }
     };
-  };
+  }
   //# sourceMappingURL=01-_6to5-getObserverFacade.js.map
 
   function Ractive$observe(keypath, callback, options) {
@@ -3219,7 +3260,7 @@
         }
       }
     };
-  };
+  }
   //# sourceMappingURL=01-_6to5-observe.js.map
 
   function Ractive$observeOnce(property, callback, options) {
@@ -3229,7 +3270,7 @@
     }, { init: false, defer: options && options.defer });
 
     return observer;
-  };
+  }
   //# sourceMappingURL=01-_6to5-observeOnce.js.map
 
   var trim__default = function (str) {
@@ -3281,7 +3322,7 @@
     }
 
     return this;
-  };
+  }
   //# sourceMappingURL=01-_6to5-off.js.map
 
   function Ractive$on(eventName, callback) {
@@ -3321,7 +3362,7 @@
         return _this.off(eventName, callback);
       }
     };
-  };
+  }
   //# sourceMappingURL=01-_6to5-on.js.map
 
   function Ractive$once(eventName, handler) {
@@ -3332,7 +3373,7 @@
 
     // so we can still do listener.cancel() manually
     return listener;
-  };
+  }
   //# sourceMappingURL=01-_6to5-once.js.map
 
   // This function takes an array, the name of a mutator method, and the
@@ -3370,7 +3411,7 @@
     }
 
     len = array.length;
-    balance = (spliceArguments.length - 2) - spliceArguments[1];
+    balance = spliceArguments.length - 2 - spliceArguments[1];
 
     removeStart = Math.min(len, spliceArguments[0]);
     removeEnd = removeStart + spliceArguments[1];
@@ -3388,7 +3429,7 @@
     }
 
     return newIndices;
-  };
+  }
 
 
   // The pop, push, shift an unshift methods can all be represented
@@ -3431,12 +3472,15 @@
   }
   //# sourceMappingURL=01-_6to5-getNewIndices.js.map
 
-  var makeArrayMethod___slice = Array.prototype.slice;
   var arrayProto = Array.prototype;
 
   var makeArrayMethod = function (methodName) {
     return function (keypath) {
-      var args = makeArrayMethod___slice.call(arguments, 1);
+      var args = [];
+
+      for (var _key = 1; _key < arguments.length; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
       var array, newIndices = [], len, promise, result;
 
@@ -3475,7 +3519,7 @@
   var push = makeArrayMethod("push");
   //# sourceMappingURL=01-_6to5-push.js.map
 
-  var css, update, styleElement, head, styleSheet, inDom, css__prefix = "/* Ractive.js component styles */\n", componentsInPage = {}, styles = [];
+  var css, css__update, styleElement, head, styleSheet, inDom, css__prefix = "/* Ractive.js component styles */\n", componentsInPage = {}, styles = [];
 
   if (!isClient) {
     css = null;
@@ -3491,7 +3535,7 @@
     // use styleSheet.cssText instead
     styleSheet = styleElement.styleSheet;
 
-    update = function () {
+    css__update = function () {
       var css;
 
       if (styles.length) {
@@ -3526,7 +3570,7 @@
           componentsInPage[Component._guid] = 0;
           styles.push(Component.css);
 
-          update(); // TODO can we only do this once for each runloop turn, but still ensure CSS is updated before onrender() methods are called?
+          css__update(); // TODO can we only do this once for each runloop turn, but still ensure CSS is updated before onrender() methods are called?
         }
 
         componentsInPage[Component._guid] += 1;
@@ -3541,7 +3585,7 @@
 
         if (!componentsInPage[Component._guid]) {
           removeFromArray(styles, Component.css);
-          runloop.scheduleTask(update);
+          runloop.scheduleTask(css__update);
         }
       }
     };
@@ -3550,7 +3594,8 @@
   var css__default = css;
   //# sourceMappingURL=01-_6to5-css.js.map
 
-  var renderHook = new Hook("render"), completeHook = new Hook("complete");
+  var renderHook = new Hook("render"),
+      completeHook = new Hook("complete");
 
   function Ractive$render(target, anchor) {
     var _this = this;
@@ -3622,7 +3667,7 @@
     }).then(null, consoleError);
 
     return promise;
-  };
+  }
 
   function removeOtherInstances(others) {
     try {
@@ -3631,6 +3676,10 @@
       });
     } catch (err) {}
   }
+  // this can happen with IE8, because it is unbelievably shit. Somehow, in
+  // certain very specific situations, trying to access node.parentNode (which
+  // we need to do in order to detach elements) causes an 'Invalid argument'
+  // error to be thrown. I don't even.
   //# sourceMappingURL=01-_6to5-render.js.map
 
   var processWrapper = function (wrapper, array, methodName, newIndices) {
@@ -3649,12 +3698,15 @@
   };
   //# sourceMappingURL=01-_6to5-processWrapper.js.map
 
-  var patch___slice = Array.prototype.slice;
   var patchedArrayProto = [], mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"], testObj, patchArrayMethods, unpatchArrayMethods;
 
   mutatorMethods.forEach(function (methodName) {
     var method = function () {
-      var args = patch___slice.call(arguments);
+      var args = [];
+
+      for (var _key = 0; _key < arguments.length; _key++) {
+        args[_key] = arguments[_key];
+      }
 
       var newIndices, result, wrapper, i;
 
@@ -3861,7 +3913,7 @@
           return false;
         }
 
-        return (parentValue && (typeof parentValue === "object" || typeof parentValue === "function"));
+        return parentValue && (typeof parentValue === "object" || typeof parentValue === "function");
       },
       wrap: function (ractive, property, keypath) {
         return new MagicWrapper(ractive, property, keypath);
@@ -4123,7 +4175,8 @@
 
 
   function adaptConfigurator__combine(a, b) {
-    var c = a.slice(), i = b.length;
+    var c = a.slice(),
+        i = b.length;
 
     while (i--) {
       if (! ~c.indexOf(b[i])) {
@@ -4135,7 +4188,11 @@
   }
   //# sourceMappingURL=01-_6to5-adapt.js.map
 
-  var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g, commentsPattern = /\/\*.*?\*\//g, selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g, mediaQueryPattern = /^@media/, dataRvcGuidPattern = /\[data-ractive-css="[a-z0-9-]+"]/g;
+  var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
+      commentsPattern = /\/\*.*?\*\//g,
+      selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g,
+      mediaQueryPattern = /^@media/,
+      dataRvcGuidPattern = /\[data-ractive-css="[a-z0-9-]+"]/g;
 
   function transformCss(css, id) {
     var transformed, dataAttr, addGuid;
@@ -4193,7 +4250,7 @@
     }
 
     return transformed;
-  };
+  }
 
   function trim(str) {
     if (str.trim) {
@@ -4236,7 +4293,9 @@
   var wrap__default = function (method, superMethod, force) {
     if (force || needsSuper(method, superMethod)) {
       return function () {
-        var hasSuper = ("_super" in this), _super = this._super, result;
+        var hasSuper = ("_super" in this),
+            _super = this._super,
+            result;
 
         this._super = superMethod;
 
@@ -4266,7 +4325,8 @@
     },
 
     init: function (Parent, ractive, options) {
-      var value = options.data, result = dataConfigurator__combine(Parent, ractive, options);
+      var value = options.data,
+          result = dataConfigurator__combine(Parent, ractive, options);
 
       if (typeof result === "function") {
         result = result.call(ractive, value) || value;
@@ -4288,7 +4348,8 @@
 
 
   function dataConfigurator__combine(Parent, target, options) {
-    var value = options.data || {}, parentValue = getAddedKeys(Parent.prototype.data);
+    var value = options.data || {},
+        parentValue = getAddedKeys(Parent.prototype.data);
 
     if (typeof value !== "object" && typeof value !== "function") {
       throw new TypeError("data option must be an object or a function, \"" + value + "\" is not valid");
@@ -4461,7 +4522,7 @@
   }
 
   function isHashedId(id) {
-    return (id && id.charAt(0) === "#"); // TODO what about `id[0]`, does that work everywhere?
+    return id && id.charAt(0) === "#"; // TODO what about `id[0]`, does that work everywhere?
   }
 
   function isParsed(template) {
@@ -4633,7 +4694,9 @@
     },
 
     configure: function (Parent, target, options) {
-      var name = this.name, option = options[name], registry;
+      var name = this.name,
+          option = options[name],
+          registry;
 
       registry = create(Parent[name]);
 
@@ -4675,7 +4738,10 @@
     }
 
     var wrapper = function wrapSuper() {
-      var superMethod = getSuperMethod(wrapper._parent, name), hasSuper = ("_super" in this), oldSuper = this._super, result;
+      var superMethod = getSuperMethod(wrapper._parent, name),
+          hasSuper = ("_super" in this),
+          oldSuper = this._super,
+          result;
 
       this._super = superMethod;
 
@@ -4694,7 +4760,7 @@
     wrapper._method = method;
 
     return wrapper;
-  };
+  }
 
   function getSuperMethod(parent, name) {
     var value, method;
@@ -4744,7 +4810,7 @@
     if (isArray(options.adaptors)) {
       deprecateOption(options, "adaptors", "adapt");
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-deprecate.js.map
 
   var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
@@ -4865,7 +4931,7 @@
     if (this.bound && typeof this.owner.bubble === "function") {
       this.owner.bubble();
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-bubble.js.map
 
   function Fragment$detach() {
@@ -4891,7 +4957,7 @@
     });
 
     return docFrag;
-  };
+  }
   //# sourceMappingURL=01-_6to5-detach.js.map
 
   function Fragment$find(selector) {
@@ -4909,7 +4975,7 @@
 
       return null;
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-find.js.map
 
   function Fragment$findAll(selector, query) {
@@ -4927,7 +4993,7 @@
     }
 
     return query;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
   function Fragment$findAllComponents(selector, query) {
@@ -4945,7 +5011,7 @@
     }
 
     return query;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
 
   function Fragment$findComponent(selector) {
@@ -4963,7 +5029,7 @@
 
       return null;
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-findComponent.js.map
 
   function Fragment$findNextNode(item) {
@@ -4991,7 +5057,7 @@
     }
 
     return node;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findNextNode.js.map
 
   function Fragment$firstNode() {
@@ -5000,7 +5066,7 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-firstNode.js.map
 
   var TEXT = 1;
@@ -5115,7 +5181,7 @@
       done = false;
 
       while (!done) {
-        next = (parser.matchPattern(stringMiddlePattern) || parser.matchPattern(escapeSequencePattern) || parser.matchString(okQuote));
+        next = parser.matchPattern(stringMiddlePattern) || parser.matchPattern(escapeSequencePattern) || parser.matchString(okQuote);
         if (next) {
           if (next === "\"") {
             literal += "\\\"";
@@ -5273,7 +5339,7 @@
     }
 
     return pairs;
-  };
+  }
   //# sourceMappingURL=01-_6to5-keyValuePairs.js.map
 
   var getObjectLiteral = function (parser) {
@@ -5338,7 +5404,7 @@
     }
 
     return expressions;
-  };
+  }
   //# sourceMappingURL=01-_6to5-expressionList.js.map
 
   var getArrayLiteral = function (parser) {
@@ -5541,7 +5607,7 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-refinement.js.map
 
   var getMemberOrInvocation = function (parser) {
@@ -5634,7 +5700,7 @@
     // fallthrough for the multiplication sequence matcher we're about to create
     // (we're skipping void and delete)
     getTypeof = fallthrough;
-  }());
+  })();
 
 
   //# sourceMappingURL=01-_6to5-typeof.js.map
@@ -5709,7 +5775,7 @@
 
     // Logical OR is the fallthrough for the conditional matcher
     getLogicalOr = fallthrough;
-  }());
+  })();
 
 
   //# sourceMappingURL=01-_6to5-logicalOr.js.map
@@ -5849,7 +5915,7 @@
         return flattenExpression__stringify(parser, node.x, refs) + flattenExpression__stringify(parser, node.r, refs);
 
       case REFINEMENT:
-        return (node.n ? "." + node.n : "[" + flattenExpression__stringify(parser, node.x, refs) + "]");
+        return node.n ? "." + node.n : "[" + flattenExpression__stringify(parser, node.x, refs) + "]";
 
       case CONDITIONAL:
         return flattenExpression__stringify(parser, node.o[0], refs) + "?" + flattenExpression__stringify(parser, node.o[1], refs) + ":" + flattenExpression__stringify(parser, node.o[2], refs);
@@ -5897,7 +5963,7 @@
 
     items = [];
 
-    while ((this.pos < this.str.length) && (item = this.read())) {
+    while (this.pos < this.str.length && (item = this.read())) {
       items.push(item);
     }
 
@@ -5938,7 +6004,9 @@
     flattenExpression: flattenExpression,
 
     getLinePos: function (char) {
-      var lineNum = 0, lineStart = 0, columnNum;
+      var lineNum = 0,
+          lineStart = 0,
+          columnNum;
 
       while (char >= this.lineEnds[lineNum]) {
         lineStart = this.lineEnds[lineNum];
@@ -6019,15 +6087,30 @@
 
   //# sourceMappingURL=01-_6to5-_Parser.js.map
 
+  var _defineProperty = function (obj, key, value) {
+    return Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  };
+
   var JsonParser, specials, specialsPattern, parseJSON__numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
-  specials = (function (_specials) {
-    _specials["true" + ""] = true;
-    _specials["false" + ""] = false;
-    _specials["undefined" + ""] = undefined;
-    _specials["null" + ""] = null;
+  specials = (function () {
+    var _specials = {};
+
+    _defineProperty(_specials, "true" + "", true);
+
+    _defineProperty(_specials, "false" + "", false);
+
+    _defineProperty(_specials, "undefined" + "", undefined);
+
+    _defineProperty(_specials, "null" + "", null);
+
     return _specials;
-  })({});
+  })();
 
   specialsPattern = new RegExp("^(?:" + Object.keys(specials).join("|") + ")");
   parseJSON__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
@@ -6058,7 +6141,7 @@
 
       placeholder = parser.matchPattern(placeholderAtStartPattern);
 
-      if (placeholder && (parser.values.hasOwnProperty(placeholder))) {
+      if (placeholder && parser.values.hasOwnProperty(placeholder)) {
         return { v: parser.values[placeholder] };
       }
     }, function getSpecial(parser) {
@@ -6079,7 +6162,7 @@
       if (stringLiteral && (values = parser.values)) {
         return {
           v: stringLiteral.v.replace(placeholderPattern, function (match, $1) {
-            return ($1 in values ? values[$1] : $1);
+            return $1 in values ? values[$1] : $1;
           })
         };
       }
@@ -6216,7 +6299,7 @@
 
       return "${" + placeholderId + "}";
     }).join("");
-  };
+  }
   //# sourceMappingURL=01-_6to5-processItems.js.map
 
   function Fragment$getArgsList() {
@@ -6237,7 +6320,7 @@
     }
 
     return this.argsList;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getArgsList.js.map
 
   function Fragment$getNode() {
@@ -6250,7 +6333,7 @@
     } while (fragment = fragment.parent);
 
     return this.root.detached || this.root.el;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getNode.js.map
 
   function Fragment$getValue() {
@@ -6271,7 +6354,7 @@
     }
 
     return this.value;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getValue.js.map
 
   var booleanAttributes, voidElementNames, htmlEntities, controlCharacters, entityPattern, lessThan, greaterThan, amp;
@@ -6370,11 +6453,11 @@
   Text.prototype = {
     detach: detach__default,
 
-    firstNode: function () {
+    firstNode: function Text__firstNode() {
       return this.node;
     },
 
-    render: function () {
+    render: function Text__render() {
       if (!this.node) {
         this.node = document.createTextNode(this.text);
       }
@@ -6382,11 +6465,11 @@
       return this.node;
     },
 
-    toString: function (escape) {
+    toString: function Text__toString(escape) {
       return escape ? escapeHtml(this.text) : this.text;
     },
 
-    unrender: function (shouldDestroy) {
+    unrender: function Text__unrender(shouldDestroy) {
       if (shouldDestroy) {
         return this.detach();
       }
@@ -6405,12 +6488,12 @@
     if (this.resolver) {
       this.resolver.unbind();
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
   function Mustache$getValue() {
     return this.value;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getValue.js.map
 
   var ReferenceResolver = function (owner, ref, callback) {
@@ -6498,7 +6581,10 @@
 
   SpecialResolver.prototype = {
     rebind: function () {
-      var ref = this.ref, fragment = this.parentFragment, prop = props[ref], value;
+      var ref = this.ref,
+          fragment = this.parentFragment,
+          prop = props[ref],
+          value;
 
       if (!prop) {
         throw new Error("Unknown special reference \"" + ref + "\" - valid references are @index, @key and @keypath");
@@ -6656,7 +6742,7 @@
     }
 
     return new ReferenceResolver(owner, ref, callback);
-  };
+  }
   //# sourceMappingURL=01-_6to5-createReferenceResolver.js.map
 
   var cache = {};
@@ -6677,7 +6763,7 @@
 
     cache[str] = fn;
     return fn;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getFunctionFromString.js.map
 
   var ExpressionResolver, bind = Function.prototype.bind;
@@ -6708,7 +6794,7 @@
   };
 
   ExpressionResolver.prototype = {
-    bubble: function () {
+    bubble: function ExpressionResolver__bubble() {
       if (!this.ready) {
         return;
       }
@@ -6720,7 +6806,7 @@
       this.callback(this.keypath);
     },
 
-    unbind: function () {
+    unbind: function ExpressionResolver__unbind() {
       var resolver;
 
       while (resolver = this.refResolvers.pop()) {
@@ -6728,12 +6814,12 @@
       }
     },
 
-    resolve: function (index, keypath) {
+    resolve: function ExpressionResolver__resolve(index, keypath) {
       this.keypaths[index] = keypath;
       this.bubble();
     },
 
-    createEvaluator: function () {
+    createEvaluator: function createEvaluator() {
       var _this2 = this;
       var computation, valueGetters, signature, keypath, fn;
 
@@ -6772,7 +6858,7 @@
 
         signature = {
           deps: this.keypaths.filter(isValidDependency),
-          get: function () {
+          get: function get() {
             var args = valueGetters.map(call);
             return fn.apply(null, args);
           }
@@ -6784,7 +6870,7 @@
       }
     },
 
-    rebind: function (oldKeypath, newKeypath) {
+    rebind: function ExpressionResolver__rebind(oldKeypath, newKeypath) {
       // TODO only bubble once, no matter how many references are affected by the rebind
       this.refResolvers.forEach(function (r) {
         return r.rebind(oldKeypath, newKeypath);
@@ -7098,7 +7184,7 @@
         }
       }
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-initialise.js.map
 
   function Mustache$resolve(keypath) {
@@ -7140,7 +7226,7 @@
     if (wasResolved && (twowayBinding = this.twowayBinding)) {
       twowayBinding.rebound();
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-resolve.js.map
 
   function Mustache$rebind(oldKeypath, newKeypath) {
@@ -7155,7 +7241,7 @@
     if (this.resolver) {
       this.resolver.rebind(oldKeypath, newKeypath);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
   var Mustache = {
@@ -7172,8 +7258,8 @@
   };
 
   Interpolator.prototype = {
-    update: function () {
-      this.node.data = (this.value == undefined ? "" : this.value);
+    update: function Interpolator__update() {
+      this.node.data = this.value == undefined ? "" : this.value;
     },
     resolve: Mustache.resolve,
     rebind: Mustache.rebind,
@@ -7181,7 +7267,7 @@
 
     unbind: unbind__unbind,
 
-    render: function () {
+    render: function Interpolator__render() {
       if (!this.node) {
         this.node = document.createTextNode(this.value != undefined ? this.value : "");
       }
@@ -7189,7 +7275,7 @@
       return this.node;
     },
 
-    unrender: function (shouldDestroy) {
+    unrender: function Interpolator__unrender(shouldDestroy) {
       if (shouldDestroy) {
         detachNode(this.node);
       }
@@ -7198,7 +7284,7 @@
     getValue: Mustache.getValue,
 
     // TEMP
-    setValue: function (value) {
+    setValue: function Interpolator__setValue(value) {
       var wrapper;
 
       // TODO is there a better way to approach this?
@@ -7216,12 +7302,12 @@
       }
     },
 
-    firstNode: function () {
+    firstNode: function Interpolator__firstNode() {
       return this.node;
     },
 
-    toString: function (escape) {
-      var string = (this.value != undefined ? "" + this.value : "");
+    toString: function Interpolator__toString(escape) {
+      var string = this.value != undefined ? "" + this.value : "";
       return escape ? escapeHtml(string) : string;
     }
   };
@@ -7231,7 +7317,7 @@
 
   function Section$bubble() {
     this.parentFragment.bubble();
-  };
+  }
   //# sourceMappingURL=01-_6to5-bubble.js.map
 
   function Section$detach() {
@@ -7248,7 +7334,7 @@
     });
 
     return docFrag;
-  };
+  }
   //# sourceMappingURL=01-_6to5-detach.js.map
 
   function Section$find(selector) {
@@ -7262,7 +7348,7 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-find.js.map
 
   function Section$findAll(selector, query) {
@@ -7272,7 +7358,7 @@
     for (i = 0; i < len; i += 1) {
       this.fragments[i].findAll(selector, query);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
   function Section$findAllComponents(selector, query) {
@@ -7282,7 +7368,7 @@
     for (i = 0; i < len; i += 1) {
       this.fragments[i].findAllComponents(selector, query);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
 
   function Section$findComponent(selector) {
@@ -7296,7 +7382,7 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findComponent.js.map
 
   function Section$findNextNode(fragment) {
@@ -7305,7 +7391,7 @@
     }
 
     return this.parentFragment.findNextNode(this);
-  };
+  }
   //# sourceMappingURL=01-_6to5-findNextNode.js.map
 
   function Section$firstNode() {
@@ -7320,7 +7406,7 @@
     }
 
     return this.parentFragment.findNextNode(this);
-  };
+  }
   //# sourceMappingURL=01-_6to5-firstNode.js.map
 
   function Section$shuffle(newIndices) {
@@ -7329,7 +7415,7 @@
 
     // short circuit any double-updates, and ensure that this isn't applied to
     // non-list sections
-    if (this.shuffling || this.unbound || (this.currentSubtype !== SECTION_EACH)) {
+    if (this.shuffling || this.unbound || this.currentSubtype !== SECTION_EACH) {
       return;
     }
 
@@ -7418,7 +7504,7 @@
 
       this.fragments[i] = fragment;
     }
-  };
+  }
 
   function shuffle__blindRebind(dep) {
     // the keypath doesn't actually matter here as it won't have changed
@@ -7444,7 +7530,7 @@
 
     this.rendered = true;
     return this.docFrag;
-  };
+  }
   //# sourceMappingURL=01-_6to5-render.js.map
 
   function Section$setValue(value) {
@@ -7497,7 +7583,7 @@
 
     this.value = value;
     this.updating = false;
-  };
+  }
 
   function changeCurrentSubtype(section, value, obj) {
     if (value === SECTION_EACH) {
@@ -7506,7 +7592,7 @@
         var ref = section.indexRefs[0];
 
         // when switching flavors, make sure the section gets updated
-        if ((obj && ref.t === "i") || (!obj && ref.t === "k")) {
+        if (obj && ref.t === "i" || !obj && ref.t === "k") {
           // if switching from object to list, unbind all of the old fragments
           if (!obj) {
             section.length = 0;
@@ -7708,7 +7794,7 @@
   function reevaluateConditionalSection(section, value, inverted, fragmentOptions) {
     var doRender, emptyArray, emptyObject, fragment, name;
 
-    emptyArray = (isArrayLike(value) && value.length === 0);
+    emptyArray = isArrayLike(value) && value.length === 0;
     emptyObject = false;
     if (!isArrayLike(value) && isObject(value)) {
       emptyObject = true;
@@ -7779,7 +7865,7 @@
     }
 
     return str;
-  };
+  }
   //# sourceMappingURL=01-_6to5-toString.js.map
 
   function Section$unbind() {
@@ -7793,14 +7879,14 @@
 
     this.length = 0;
     this.unbound = true;
-  };
+  }
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
   function Section$unrender(shouldDestroy) {
     this.fragments.forEach(shouldDestroy ? unrenderAndDestroy : unrender__unrender);
     this.renderedFragments = [];
     this.rendered = false;
-  };
+  }
 
   function unrenderAndDestroy(fragment) {
     fragment.unrender(true);
@@ -7865,7 +7951,7 @@
 
     // Save the rendering order for next time
     this.renderedFragments = this.fragments.slice();
-  };
+  }
   //# sourceMappingURL=01-_6to5-update.js.map
 
   var Section = function (options) {
@@ -7940,7 +8026,7 @@
 
       return this.docFrag;
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-detach.js.map
 
   function Triple$find(selector) {
@@ -7964,7 +8050,7 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-find.js.map
 
   function Triple$findAll(selector, queryResult) {
@@ -7989,7 +8075,7 @@
         }
       }
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
   function Triple$firstNode() {
@@ -7998,7 +8084,7 @@
     }
 
     return this.parentFragment.findNextNode(this);
-  };
+  }
   //# sourceMappingURL=01-_6to5-firstNode.js.map
 
   var elementCache = {}, ieBug, ieBlacklist;
@@ -8095,7 +8181,7 @@
     }
 
     parentElement.bubble();
-  };
+  }
 
   function isSelected(option) {
     return option.selected;
@@ -8115,7 +8201,7 @@
 
     this.rendered = true;
     return this.docFrag;
-  };
+  }
   //# sourceMappingURL=01-_6to5-render.js.map
 
   function Triple$setValue(value) {
@@ -8134,12 +8220,12 @@
         runloop.addView(this);
       }
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-setValue.js.map
 
   function Triple$toString() {
-    return (this.value != undefined ? decodeCharacterReferences("" + this.value) : "");
-  };
+    return this.value != undefined ? decodeCharacterReferences("" + this.value) : "";
+  }
   //# sourceMappingURL=01-_6to5-toString.js.map
 
   function Triple$unrender(shouldDestroy) {
@@ -8149,7 +8235,7 @@
     }
 
     // TODO update live queries
-  };
+  }
   //# sourceMappingURL=01-_6to5-unrender.js.map
 
   function Triple$update() {
@@ -8173,7 +8259,7 @@
 
     // Special case - we're inserting the contents of a <select>
     updateSelect(this.pElement);
-  };
+  }
   //# sourceMappingURL=01-_6to5-update.js.map
 
   var Triple = function (options) {
@@ -8217,7 +8303,7 @@
 
       return node;
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-detach.js.map
 
   var Element_prototype_find = function (selector) {
@@ -8265,12 +8351,12 @@
 
   function Element$findNextNode() {
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findNextNode.js.map
 
   function Element$firstNode() {
     return this.node;
-  };
+  }
   //# sourceMappingURL=01-_6to5-firstNode.js.map
 
   function Element$getAttribute(name) {
@@ -8279,7 +8365,7 @@
     }
 
     return this.attributes[name].value;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getAttribute.js.map
 
   var truthy = /^true|on|yes|1$/i;
@@ -8334,26 +8420,27 @@
         runloop.addView(this);
       }
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-bubble.js.map
 
-  var svgCamelCaseElements, svgCamelCaseAttributes, createMap, map;
+  var svgCamelCaseElements, svgCamelCaseAttributes, createMap, enforceCase__map;
   svgCamelCaseElements = "altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern".split(" ");
   svgCamelCaseAttributes = "attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits contentScriptType contentStyleType diffuseConstant edgeMode externalResourcesRequired filterRes filterUnits glyphRef gradientTransform gradientUnits kernelMatrix kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent spreadMethod startOffset stdDeviation stitchTiles surfaceScale systemLanguage tableValues targetX targetY textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan".split(" ");
 
   createMap = function (items) {
-    var map = {}, i = items.length;
+    var map = {},
+        i = items.length;
     while (i--) {
       map[items[i].toLowerCase()] = items[i];
     }
     return map;
   };
 
-  map = createMap(svgCamelCaseElements.concat(svgCamelCaseAttributes));
+  enforceCase__map = createMap(svgCamelCaseElements.concat(svgCamelCaseAttributes));
 
   var enforceCase = function (elementName) {
     var lowerCaseElementName = elementName.toLowerCase();
-    return map[lowerCaseElementName] || lowerCaseElementName;
+    return enforceCase__map[lowerCaseElementName] || lowerCaseElementName;
   };
   //# sourceMappingURL=01-_6to5-enforceCase.js.map
 
@@ -8384,7 +8471,7 @@
     }
 
     // SVG attribute names are case sensitive
-    attribute.name = (attribute.element.namespace !== namespaces.html ? enforceCase(name) : name);
+    attribute.name = attribute.element.namespace !== namespaces.html ? enforceCase(name) : name;
   };
   //# sourceMappingURL=01-_6to5-determineNameAndNamespace.js.map
 
@@ -8398,7 +8485,7 @@
     if (items[0].type === INTERPOLATOR) {
       return items[0];
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-getInterpolator.js.map
 
   function Attribute$init(options) {
@@ -8438,14 +8525,14 @@
 
     // mark as ready
     this.ready = true;
-  };
+  }
   //# sourceMappingURL=01-_6to5-init.js.map
 
   function Attribute$rebind(oldKeypath, newKeypath) {
     if (this.fragment) {
       this.fragment.rebind(oldKeypath, newKeypath);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
   var propertyNames = {
@@ -8496,7 +8583,7 @@
 
     this.rendered = true;
     this.update();
-  };
+  }
   //# sourceMappingURL=01-_6to5-render.js.map
 
   function Attribute$toString() {
@@ -8537,7 +8624,7 @@
     }
 
     return value ? name + "=\"" + escape(value) + "\"" : name;
-  };
+  }
 
   function escape(value) {
     return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -8553,7 +8640,7 @@
     if (this.name === "id") {
       delete this.root.nodes[this.value];
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
   function Attribute$updateSelect() {
@@ -8579,7 +8666,7 @@
 
     // if we're still here, it means the new value didn't match any of the options...
     // TODO figure out what to do in this situation
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateSelectValue.js.map
 
   function Attribute$updateMultipleSelect() {
@@ -8597,15 +8684,15 @@
       optionValue = option._ractive ? option._ractive.value : option.value; // options inserted via a triple don't have _ractive
       option.selected = arrayContains(value, optionValue);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateMultipleSelectValue.js.map
 
   function Attribute$updateRadioName() {
     var _ref = this;
     var node = _ref.node;
     var value = _ref.value;
-    node.checked = (value == node._ractive.value);
-  };
+    node.checked = value == node._ractive.value;
+  }
   //# sourceMappingURL=01-_6to5-updateRadioName.js.map
 
   function Attribute$updateRadioValue() {
@@ -8642,23 +8729,19 @@
         this.root.viewmodel.set(binding.keypath, undefined);
       }
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateRadioValue.js.map
 
   function Attribute$updateCheckboxName() {
     var _ref = this;
     var element = _ref.element;
     var node = _ref.node;
-    var value = _ref.value;
-    var binding = element.binding;
-    var valueAttribute;
-    var i;
-
+    var value = _ref.value;var binding = element.binding;var valueAttribute;var i;
 
     valueAttribute = element.getAttribute("value");
 
     if (!isArray(value)) {
-      binding.isChecked = node.checked = (value == valueAttribute);
+      binding.isChecked = node.checked = value == valueAttribute;
     } else {
       i = value.length;
       while (i--) {
@@ -8669,7 +8752,7 @@
       }
       binding.isChecked = node.checked = false;
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateCheckboxName.js.map
 
   function Attribute$updateClassName() {
@@ -8683,7 +8766,7 @@
     }
 
     node.className = value;
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateClassName.js.map
 
   function Attribute$updateIdAttribute() {
@@ -8694,7 +8777,7 @@
 
     this.root.nodes[value] = node;
     node.id = value;
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateIdAttribute.js.map
 
   function Attribute$updateIEStyleAttribute() {
@@ -8708,7 +8791,7 @@
     }
 
     node.style.setAttribute("cssText", value);
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateIEStyleAttribute.js.map
 
   function Attribute$updateContentEditableValue() {
@@ -8721,7 +8804,7 @@
     if (!this.locked) {
       this.node.innerHTML = value;
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateContentEditableValue.js.map
 
   function Attribute$updateValue() {
@@ -8736,9 +8819,9 @@
     // with two-way binding, only update if the change wasn't initiated by the user
     // otherwise the cursor will often be sent to the wrong place
     if (!this.locked) {
-      node.value = (value == undefined ? "" : value);
+      node.value = value == undefined ? "" : value;
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateValue.js.map
 
   function Attribute$updateBooleanAttribute() {
@@ -8747,7 +8830,7 @@
     if (!this.locked) {
       this.node[this.propertyName] = this.value;
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateBoolean.js.map
 
   function Attribute$updateEverythingElse() {
@@ -8773,17 +8856,14 @@
         node.removeAttribute(name);
       }
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-updateEverythingElse.js.map
 
   function Attribute$update() {
     var _ref = this;
     var name = _ref.name;
     var element = _ref.element;
-    var node = _ref.node;
-    var type;
-    var updateMethod;
-
+    var node = _ref.node;var type;var updateMethod;
 
     if (name === "id") {
       updateMethod = Attribute$updateIdAttribute;
@@ -8845,7 +8925,7 @@
 
     this.update = updateMethod;
     this.update();
-  };
+  }
   //# sourceMappingURL=01-_6to5-update.js.map
 
   var Attribute = function (options) {
@@ -9118,13 +9198,15 @@
       }
     }
   }
+  // this is called when the element is unbound.
+  // Specialised bindings can override it
   //# sourceMappingURL=01-_6to5-Binding.js.map
 
   // This is the handler for DOM events that would lead to a change in the model
   // (i.e. change, sometimes, input, and occasionally click and keyup)
   function handleChange() {
     this._ractive.binding.handleChange();
-  };
+  }
   //# sourceMappingURL=01-_6to5-handleDomEvent.js.map
 
   var ContentEditableBinding = Binding__default.extend({
@@ -9167,7 +9249,7 @@
   function getSiblings(id, group, keypath) {
     var hash = id + group + keypath;
     return sets[hash] || (sets[hash] = []);
-  };
+  }
   //# sourceMappingURL=01-_6to5-getSiblings.js.map
 
   var RadioBinding = Binding__default.extend({
@@ -9617,7 +9699,9 @@
     },
 
     render: function () {
-      var node = this.element.node, lazy, timeout = false;
+      var node = this.element.node,
+          lazy,
+          timeout = false;
       this.rendered = true;
 
       // any lazy setting for this element overrides the root
@@ -9669,7 +9753,8 @@
   }
 
   function handleDelay() {
-    var binding = this._ractive.binding, el = this;
+    var binding = this._ractive.binding,
+        el = this;
 
     if (!!binding._timeout) clearTimeout(binding._timeout);
 
@@ -9705,9 +9790,7 @@
     // contenteditable
     if (
     // if the contenteditable attribute is true or is bindable and may thus become true
-    (element.getAttribute("contenteditable") || (!!attributes.contenteditable && isBindable(attributes.contenteditable)))
-    // and this element also has a value attribute to bind
-     && isBindable(attributes.value)) {
+    (element.getAttribute("contenteditable") || !!attributes.contenteditable && isBindable(attributes.contenteditable)) && isBindable(attributes.value)) {
       Binding = ContentEditableBinding;
     }
 
@@ -9725,20 +9808,20 @@
         }
 
         if (bindName) {
-          Binding = (type === "radio" ? RadioNameBinding : CheckboxNameBinding);
+          Binding = type === "radio" ? RadioNameBinding : CheckboxNameBinding;
         } else if (bindChecked) {
-          Binding = (type === "radio" ? RadioBinding : CheckboxBinding);
+          Binding = type === "radio" ? RadioBinding : CheckboxBinding;
         }
       } else if (type === "file" && isBindable(attributes.value)) {
         Binding = FileListBinding;
       } else if (isBindable(attributes.value)) {
-        Binding = (type === "number" || type === "range") ? NumericBinding : GenericBinding;
+        Binding = type === "number" || type === "range" ? NumericBinding : GenericBinding;
       }
     }
 
     // <select>
     else if (element.name === "select" && isBindable(attributes.value)) {
-      Binding = (element.getAttribute("multiple") ? MultipleSelectBinding : SelectBinding);
+      Binding = element.getAttribute("multiple") ? MultipleSelectBinding : SelectBinding;
     }
 
     // <textarea>
@@ -9749,11 +9832,12 @@
     if (Binding && (binding = new Binding(element)) && binding.keypath) {
       return binding;
     }
-  };
+  }
 
   function isBindable(attribute) {
     return attribute && attribute.isBindable;
   }
+  // and this element also has a value attribute to bind
   //# sourceMappingURL=01-_6to5-createTwowayBinding.js.map
 
   function EventHandler$bubble() {
@@ -9764,17 +9848,17 @@
     } else if (!hasAction && this.hasListener) {
       this.unrender();
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-bubble.js.map
 
   function EventHandler$fire(event) {
     fireEvent(this.root, this.getAction(), { event: event });
-  };
+  }
   //# sourceMappingURL=01-_6to5-fire.js.map
 
   function EventHandler$getAction() {
     return this.action.toString().trim();
-  };
+  }
   //# sourceMappingURL=01-_6to5-getAction.js.map
 
   var eventPattern = /^event(?:\.(.+))?/;
@@ -9807,7 +9891,7 @@
       // Create resolvers for each reference
       this.refResolvers = [];
       refs.forEach(function (ref, i) {
-        var match;
+        var match = undefined;
 
         // special case - the `event` object
         if (match = eventPattern.exec(ref)) {
@@ -9850,7 +9934,7 @@
         this.fire = fireEventWithParams;
       }
     }
-  };
+  }
 
 
   function fireMethodCall(event) {
@@ -9927,10 +10011,11 @@
       keypath: storage.keypath.str,
       context: storage.root.viewmodel.get(storage.keypath)
     });
-  };
+  }
   //# sourceMappingURL=01-_6to5-genericHandler.js.map
 
-  var customHandlers = {}, touchEvents = {
+  var customHandlers = {},
+      touchEvents = {
     touchstart: true,
     touchmove: true,
     touchend: true,
@@ -9963,7 +10048,7 @@
     }
 
     this.hasListener = true;
-  };
+  }
 
   function getCustomHandler(name) {
     if (!customHandlers[name]) {
@@ -10002,7 +10087,7 @@
     function rebind(thing) {
       thing && thing.rebind(oldKeypath, newKeypath);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
   function EventHandler$render() {
@@ -10014,12 +10099,12 @@
     if (this.method || this.getAction()) {
       this.listen();
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-render.js.map
 
   function EventHandler$resolve(index, keypath) {
     this.keypaths[index] = keypath;
-  };
+  }
   //# sourceMappingURL=01-_6to5-resolve.js.map
 
   function EventHandler$unbind() {
@@ -10037,7 +10122,7 @@
     if (this.dynamicParams) {
       this.dynamicParams.unbind();
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
   function EventHandler$unrender() {
@@ -10048,7 +10133,7 @@
     }
 
     this.hasListener = false;
-  };
+  }
   //# sourceMappingURL=01-_6to5-unrender.js.map
 
   var EventHandler = function (element, name, template) {
@@ -10387,7 +10472,7 @@
     // create transitions
     this.intro = template.t0 || template.t1;
     this.outro = template.t0 || template.t2;
-  };
+  }
   //# sourceMappingURL=01-_6to5-init.js.map
 
   function Element$rebind(oldKeypath, newKeypath) {
@@ -10432,7 +10517,7 @@
     function rebind(thing) {
       thing.rebind(oldKeypath, newKeypath);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
   function img__render(img) {
@@ -10442,7 +10527,8 @@
     // from overriding width and height when it loads the src
     if (img.attributes.width || img.attributes.height) {
       img.node.addEventListener("load", loadHandler = function () {
-        var width = img.getAttribute("width"), height = img.getAttribute("height");
+        var width = img.getAttribute("width"),
+            height = img.getAttribute("height");
 
         if (width !== undefined) {
           img.node.setAttribute("width", width);
@@ -10526,7 +10612,7 @@
     if (!this._fn) {
       warnOnce(missingPlugin(name, "transition"));
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-init.js.map
 
   var camelCase = function (hyphenatedStr) {
@@ -10757,7 +10843,7 @@
       } else {
         CSS_TRANSITIONS_ENABLED = false;
       }
-    }());
+    })();
 
     if (TRANSITION) {
       TRANSITION_DURATION = TRANSITION + "Duration";
@@ -10785,7 +10871,7 @@
 
         t.node.style[TRANSITION_PROPERTY] = changedProperties.map(prefix__default).map(hyphenate).join(",");
         t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || "linear");
-        t.node.style[TRANSITION_DURATION] = (options.duration / 1000) + "s";
+        t.node.style[TRANSITION_DURATION] = options.duration / 1000 + "s";
 
         transitionEndHandler = function (event) {
           var index;
@@ -10825,7 +10911,7 @@
 
                 // if this property is transitionable in this browser,
                 // the current style will be different from the target style
-                canUseCssTransitions[hash] = (t.getStyle(prop) != to[prop]);
+                canUseCssTransitions[hash] = t.getStyle(prop) != to[prop];
                 cannotUseCssTransitions[hash] = !canUseCssTransitions[hash];
 
                 // Reset, if we're going to use timers after all
@@ -11110,7 +11196,7 @@
     }
 
     this._fn.apply(this.root, [this].concat(this.params));
-  };
+  }
 
   function resetStyle(node, style) {
     if (style) {
@@ -11143,7 +11229,8 @@
   var updateCss, updateScript;
 
   updateCss = function () {
-    var node = this.node, content = this.fragment.toString(false);
+    var node = this.node,
+        content = this.fragment.toString(false);
 
     // IE8 has no styleSheet unless there's a type text/css
     if (window && window.appearsToBeIELessEqual8) {
@@ -11297,7 +11384,7 @@
 
     updateLiveQueries(this);
     return this.node;
-  };
+  }
 
   function getNamespace(element) {
     var namespace, xmlns, parent;
@@ -11350,7 +11437,7 @@
         }
       }
     } else {
-      option.node.selected = (optionValue == selectValue);
+      option.node.selected = optionValue == selectValue;
     }
   }
 
@@ -11412,7 +11499,7 @@
     }
 
     if (this.fragment) {
-      escape = (this.name !== "script" && this.name !== "style");
+      escape = this.name !== "script" && this.name !== "style";
       str += this.fragment.toString(escape);
     }
 
@@ -11458,7 +11545,7 @@
     valueAttribute = attributes.value;
     nameAttribute = attributes.name;
 
-    if (!typeAttribute || (typeAttribute.value !== "radio") || !valueAttribute || !nameAttribute.interpolator) {
+    if (!typeAttribute || typeAttribute.value !== "radio" || !valueAttribute || !nameAttribute.interpolator) {
       return;
     }
 
@@ -11493,7 +11580,7 @@
 
     this.attributes.forEach(methodCallers__unbind);
     this.conditionalAttributes.forEach(methodCallers__unbind);
-  };
+  }
   //# sourceMappingURL=01-_6to5-unbind.js.map
 
   function Element$unrender(shouldDestroy) {
@@ -11553,7 +11640,7 @@
     if (this.name === "form") {
       form__unrender(this);
     }
-  };
+  }
 
   function removeFromLiveQueries(element) {
     var query, selector, i;
@@ -11593,7 +11680,8 @@
 
   //# sourceMappingURL=01-_6to5-_Element.js.map
 
-  var deIndent__empty = /^\s*$/, deIndent__leadingWhitespace = /^\s*/;
+  var deIndent__empty = /^\s*$/,
+      deIndent__leadingWhitespace = /^\s*/;
 
   var deIndent = function (str) {
     var lines, firstLine, lastLine, minIndent;
@@ -11625,7 +11713,7 @@
   function reducer(previous, line) {
     var lineIndent = deIndent__leadingWhitespace.exec(line)[0];
 
-    if (previous === null || (lineIndent.length < previous.length)) {
+    if (previous === null || lineIndent.length < previous.length) {
       return lineIndent;
     }
 
@@ -11654,7 +11742,7 @@
       // register (and return main partial if there are others in the template)
       return ractive.partials[name] = parsed.t;
     }
-  };
+  }
 
   function getPartialFromRegistry(ractive, name) {
     // find first instance in the ractive or view hierarchy that has this partial
@@ -11664,7 +11752,8 @@
       return;
     }
 
-    var partial = instance.partials[name], fn;
+    var partial = instance.partials[name],
+        fn = undefined;
 
     // partial is a function?
     if (typeof partial === "function") {
@@ -11876,7 +11965,7 @@
 
       previousItem = this.parentFragment.items[this.index - 1];
 
-      if (!previousItem || (previousItem.type !== TEXT)) {
+      if (!previousItem || previousItem.type !== TEXT) {
         return string;
       }
 
@@ -11965,7 +12054,7 @@
     }
 
     return Component;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getComponent.js.map
 
   var Component_prototype_detach__detachHook = new Hook("detach");
@@ -11974,17 +12063,17 @@
     var detached = this.instance.fragment.detach();
     Component_prototype_detach__detachHook.fire(this.instance);
     return detached;
-  };
+  }
   //# sourceMappingURL=01-_6to5-detach.js.map
 
   function Component$find(selector) {
     return this.instance.fragment.find(selector);
-  };
+  }
   //# sourceMappingURL=01-_6to5-find.js.map
 
   function Component$findAll(selector, query) {
     return this.instance.fragment.findAll(selector, query);
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAll.js.map
 
   function Component$findAllComponents(selector, query) {
@@ -11993,11 +12082,11 @@
     if (this.instance.fragment) {
       this.instance.fragment.findAllComponents(selector, query);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-findAllComponents.js.map
 
   function Component$findComponent(selector) {
-    if (!selector || (selector === this.name)) {
+    if (!selector || selector === this.name) {
       return this.instance;
     }
 
@@ -12006,12 +12095,12 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-findComponent.js.map
 
   function Component$findNextNode() {
     return this.parentFragment.findNextNode(this);
-  };
+  }
   //# sourceMappingURL=01-_6to5-findNextNode.js.map
 
   function Component$firstNode() {
@@ -12020,7 +12109,7 @@
     }
 
     return null;
-  };
+  }
   //# sourceMappingURL=01-_6to5-firstNode.js.map
 
   var prefixers = {};
@@ -12041,7 +12130,7 @@
     }
 
     return value;
-  };
+  }
 
   function prefixKeypath(obj, prefix) {
     var prefixed = {}, key;
@@ -12101,7 +12190,7 @@
     }
 
     return upstreamChanges;
-  };
+  }
   //# sourceMappingURL=01-_6to5-getUpstreamChanges.js.map
 
   function notifyPatternObservers(viewmodel, keypath, onlyDirect) {
@@ -12124,7 +12213,7 @@
     var group, map, actualChildKeypath;
 
     // TODO should be one or the other
-    upstreamPattern = (upstreamPattern.str || upstreamPattern);
+    upstreamPattern = upstreamPattern.str || upstreamPattern;
 
     group = viewmodel.depsMap.patternObservers;
     map = group && group[upstreamPattern];
@@ -12246,7 +12335,7 @@
     this.noCascade = {};
 
     return hash;
-  };
+  }
 
   function notifyUpstreamDependants(viewmodel, bindings, keypath, groupName) {
     var dependants, value;
@@ -12268,7 +12357,10 @@
 
   function notifyBindings(viewmodel, bindings, changes) {
     bindings.forEach(function (binding) {
-      var useSet = false, i = 0, length = changes.length, refinements = [];
+      var useSet = false,
+          i = 0,
+          length = changes.length,
+          refinements = [];
 
       while (i < length) {
         var keypath = changes[i];
@@ -12342,7 +12434,7 @@
 
   function Viewmodel$capture() {
     this.captureGroups.push([]);
-  };
+  }
   //# sourceMappingURL=01-_6to5-capture.js.map
 
   function Viewmodel$clearCache(keypath, dontTeardownWrapper) {
@@ -12368,7 +12460,7 @@
         this.clearCache(cacheMap.pop());
       }
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-clearCache.js.map
 
   var pattern = /\$\{([^\}]+)\}/g;
@@ -12486,7 +12578,7 @@
 
         // determine whether the inputs have changed, in case this depends on
         // other computed values
-        if (this._firstRun || (!this.hardDeps.length && !this.softDeps.length)) {
+        if (this._firstRun || !this.hardDeps.length && !this.softDeps.length) {
           dependencyValuesChanged = true;
         } else {
           [this.hardDeps, this.softDeps].forEach(function (deps) {
@@ -12583,7 +12675,7 @@
 
           // if this keypath is currently unresolved, we need to mark
           // it as such. TODO this is a bit muddy...
-          if (isUnresolved(this.viewmodel, keypath) && (!this.unresolvedDeps[keypath.str])) {
+          if (isUnresolved(this.viewmodel, keypath) && !this.unresolvedDeps[keypath.str]) {
             unresolved = new UnresolvedDependency(this, keypath.str);
             newDeps.splice(i, 1);
 
@@ -12614,8 +12706,8 @@
 
   function Viewmodel$compute(key, signature) {
     signature = getComputationSignature(signature);
-    return (this.computations[key.str] = new Computation(this.ractive, key, signature));
-  };
+    return this.computations[key.str] = new Computation(this.ractive, key, signature);
+  }
   //# sourceMappingURL=01-_6to5-compute.js.map
 
   var FAILED_LOOKUP = { FAILED_LOOKUP: true };
@@ -12676,7 +12768,7 @@
     }
 
     return value === FAILED_LOOKUP ? void 0 : value;
-  };
+  }
 
   function retrieve(viewmodel, keypath) {
     var parentValue, cacheMap, value, wrapped;
@@ -12730,7 +12822,7 @@
     }
 
     computations.forEach(viewmodel_prototype_init__init);
-  };
+  }
 
   function viewmodel_prototype_init__init(computation) {
     computation.init();
@@ -12768,7 +12860,7 @@
 
 
   Mapping.prototype = {
-    ensureKeypath: function () {
+    ensureKeypath: function ensureKeypath() {
       if (!this.keypath) {
         if (isFunction(this.force)) {
           this.force();
@@ -12780,30 +12872,30 @@
       }
     },
 
-    get: function (keypath, options) {
+    get: function get(keypath, options) {
       if (!this.resolved) {
         return undefined;
       }
       return this.origin.get(this.map(keypath), options);
     },
 
-    getValue: function () {
+    getValue: function Mapping__getValue() {
       if (!this.keypath) {
         return undefined;
       }
       return this.origin.get(this.keypath);
     },
 
-    initViewmodel: function (viewmodel) {
+    initViewmodel: function initViewmodel(viewmodel) {
       this.local = viewmodel;
       this.setup();
     },
 
-    map: function (keypath) {
+    map: function Mapping__map(keypath) {
       return keypath.replace(this.localKey, this.keypath);
     },
 
-    register: function (keypath, dependant, group) {
+    register: function register(keypath, dependant, group) {
       this.deps.push({ keypath: keypath, dep: dependant, group: group });
 
       if (this.resolved) {
@@ -12811,7 +12903,7 @@
       }
     },
 
-    resolve: function (keypath) {
+    resolve: function Mapping__resolve(keypath) {
       if (this.keypath !== undefined) {
         this.unbind(true);
       }
@@ -12820,12 +12912,12 @@
       this.setup();
     },
 
-    set: function (keypath, value) {
+    set: function set(keypath, value) {
       this.ensureKeypath();
       this.origin.set(this.map(keypath), value);
     },
 
-    setup: function () {
+    setup: function setup() {
       var _this = this;
       if (this.keypath === undefined) {
         return;
@@ -12851,12 +12943,12 @@
       }
     },
 
-    setValue: function (value) {
+    setValue: function Mapping__setValue(value) {
       this.ensureKeypath();
       this.origin.set(this.keypath, value);
     },
 
-    unbind: function (keepLocal) {
+    unbind: function Mapping__unbind(keepLocal) {
       var _this2 = this;
       if (!keepLocal) {
         delete this.local.mappings[this.localKey];
@@ -12871,8 +12963,9 @@
       }
     },
 
-    unregister: function (keypath, dependant, group) {
-      var deps = this.deps, i = deps.length;
+    unregister: function unregister(keypath, dependant, group) {
+      var deps = this.deps,
+          i = deps.length;
 
       while (i--) {
         if (deps[i].dep === dependant) {
@@ -12889,7 +12982,7 @@
     var mapping = this.mappings[key.str] = new Mapping(key, options);
     mapping.initViewmodel(this);
     return mapping;
-  };
+  }
   //# sourceMappingURL=01-_6to5-map.js.map
 
   function Viewmodel$mark(keypath, options) {
@@ -12920,7 +13013,7 @@
     var dontTeardownWrapper = options ? options.dontTeardownWrapper : false;
 
     this.clearCache(keypathStr, dontTeardownWrapper);
-  };
+  }
   //# sourceMappingURL=01-_6to5-mark.js.map
 
   var mapOldToNewIndex = function (oldArray, newArray) {
@@ -13000,7 +13093,7 @@
     newIndices = mapOldToNewIndex(oldArray, newArray);
 
     this.smartUpdate(keypath, array, newIndices, currentArray.length !== array.length);
-  };
+  }
 
   function merge__stringify(item) {
     return JSON.stringify(item);
@@ -13032,8 +13125,8 @@
   }
   //# sourceMappingURL=01-_6to5-merge.js.map
 
-  function Viewmodel$register(keypath, dependant, group) {
-    if (group === undefined) group = "default";
+  function Viewmodel$register(keypath, dependant) {
+    var group = arguments[2] === undefined ? "default" : arguments[2];
     var mapping, depsByKeypath, deps;
 
     if (dependant.isStatic) {
@@ -13052,7 +13145,7 @@
         register__updateDependantsMap(this, keypath, group);
       }
     }
-  };
+  }
 
   function register__updateDependantsMap(viewmodel, keypath, group) {
     var map, parent, keypathStr;
@@ -13078,11 +13171,11 @@
 
   function Viewmodel$release() {
     return this.captureGroups.pop();
-  };
+  }
   //# sourceMappingURL=01-_6to5-release.js.map
 
-  function Viewmodel$set(keypath, value, options) {
-    if (options === undefined) options = {};
+  function Viewmodel$set(keypath, value) {
+    var options = arguments[2] === undefined ? {} : arguments[2];
     var mapping, computation, wrapper, dontTeardownWrapper;
 
     // unless data is being set for data tracking purposes
@@ -13114,7 +13207,7 @@
     // `reset()` method returns false, the wrapper should be torn down, and
     // (most likely) a new one should be created later
     if (wrapper && wrapper.reset) {
-      dontTeardownWrapper = (wrapper.reset(value) !== false);
+      dontTeardownWrapper = wrapper.reset(value) !== false;
 
       if (dontTeardownWrapper) {
         value = wrapper.get();
@@ -13133,7 +13226,7 @@
       // not mark it as a change
       this.clearCache(keypath.str);
     }
-  };
+  }
 
   function resolveSet(viewmodel, keypath, value) {
     var wrapper, parentValue, wrapperSet, valueSet;
@@ -13173,7 +13266,8 @@
   }
   //# sourceMappingURL=01-_6to5-set.js.map
 
-  var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
+  var implicitOption = { implicit: true },
+      noCascadeOption = { noCascade: true };
 
   function Viewmodel$smartUpdate(keypath, array, newIndices) {
     var _this = this;
@@ -13211,7 +13305,7 @@
         this.mark(keypath.join(i), noCascadeOption);
       }
     }
-  };
+  }
 
   function canShuffle(dependant) {
     return typeof dependant.shuffle === "function";
@@ -13232,11 +13326,11 @@
     while (unresolvedImplicitDependency = this.unresolvedImplicitDependencies.pop()) {
       unresolvedImplicitDependency.teardown();
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-teardown.js.map
 
-  function Viewmodel$unregister(keypath, dependant, group) {
-    if (group === undefined) group = "default";
+  function Viewmodel$unregister(keypath, dependant) {
+    var group = arguments[2] === undefined ? "default" : arguments[2];
     var mapping, deps, index;
 
     if (dependant.isStatic) {
@@ -13261,7 +13355,7 @@
     }
 
     unregister__updateDependantsMap(this, keypath, group);
-  };
+  }
 
   function unregister__updateDependantsMap(viewmodel, keypath, group) {
     var map, parent;
@@ -13361,6 +13455,7 @@
   }
 
   HookQueue.prototype = {
+
     constructor: HookQueue,
 
     begin: function (ractive) {
@@ -13406,13 +13501,16 @@
 
   //# sourceMappingURL=01-_6to5-HookQueue.js.map
 
-  var constructHook = new Hook("construct"), configHook = new Hook("config"), initHook = new HookQueue("init"), initialise__uid = 0;
+  var constructHook = new Hook("construct"),
+      configHook = new Hook("config"),
+      initHook = new HookQueue("init"),
+      initialise__uid = 0;
 
   var initialise = initialiseRactiveInstance;
 
-  function initialiseRactiveInstance(ractive, userOptions, options) {
-    if (userOptions === undefined) userOptions = {};
-    if (options === undefined) options = {};
+  function initialiseRactiveInstance(ractive) {
+    var userOptions = arguments[1] === undefined ? {} : arguments[1];
+    var options = arguments[2] === undefined ? {} : arguments[2];
     var el;
 
     initialiseProperties(ractive, options);
@@ -13507,6 +13605,7 @@
       ractive.parent = ractive.container = null;
     }
   }
+  // saves doing `if ( this.parent ) { /*...*/ }` later on
   //# sourceMappingURL=01-_6to5-initialise.js.map
 
   var createInstance = function (component, Component, parameters, yieldTemplate, partials) {
@@ -13616,7 +13715,7 @@
     }
     // ES5 ftw!
     return createDataFromPrototype(parameters, proto);
-  };
+  }
 
   function createLegacyData(parameters) {
     var mappings = parameters.mappings, key;
@@ -13792,7 +13891,7 @@
     data = createComponentData(parameters, proto);
 
     return { data: data, mappings: parameters.mappings };
-  };
+  }
 
   function getParamsDefinition(proto) {
     if (!proto._parameters) {
@@ -13837,7 +13936,7 @@
       }
       // Interpolators
       else {
-        var resolver;
+        var resolver = undefined;
         // Single interpolator
         if (isSingleInterpolator(template)) {
           resolver = new ParameterResolver(this, key, template[0]).resolver;
@@ -13877,7 +13976,7 @@
         propagateEvent(component.instance, component.root, eventName, eventsDescriptor[eventName]);
       }
     }
-  };
+  }
 
   function propagateEvent(childInstance, parentInstance, eventName, proxyEventName) {
     if (typeof proxyEventName !== "string") {
@@ -13945,7 +14044,7 @@
     }
 
     updateLiveQueries__default(this);
-  };
+  }
   //# sourceMappingURL=01-_6to5-init.js.map
 
   function Component$rebind(oldKeypath, newKeypath) {
@@ -13966,7 +14065,7 @@
     function rebind(x) {
       x.rebind(oldKeypath, newKeypath);
     }
-  };
+  }
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
   function Component$render() {
@@ -13976,12 +14075,12 @@
 
     this.rendered = true;
     return instance.fragment.detach();
-  };
+  }
   //# sourceMappingURL=01-_6to5-render.js.map
 
   function Component$toString() {
     return this.instance.fragment.toString();
-  };
+  }
   //# sourceMappingURL=01-_6to5-toString.js.map
 
   var Component_prototype_unbind__teardownHook = new Hook("teardown");
@@ -14002,7 +14101,7 @@
     }
 
     Component_prototype_unbind__teardownHook.fire(instance);
-  };
+  }
 
   function removeFromLiveComponentQueries(component) {
     var instance, query;
@@ -14020,7 +14119,7 @@
   function Component$unrender(shouldDestroy) {
     this.shouldDestroy = shouldDestroy;
     this.instance.unrender();
-  };
+  }
   //# sourceMappingURL=01-_6to5-unrender.js.map
 
   var Component = function (options, Constructor) {
@@ -14054,11 +14153,11 @@
   Comment.prototype = {
     detach: detach__default,
 
-    firstNode: function () {
+    firstNode: function Comment__firstNode() {
       return this.node;
     },
 
-    render: function () {
+    render: function Comment__render() {
       if (!this.node) {
         this.node = document.createComment(this.value);
       }
@@ -14066,11 +14165,11 @@
       return this.node;
     },
 
-    toString: function () {
+    toString: function Comment__toString() {
       return "<!--" + this.value + "-->";
     },
 
-    unrender: function (shouldDestroy) {
+    unrender: function Comment__unrender(shouldDestroy) {
       if (shouldDestroy) {
         this.node.parentNode.removeChild(this.node);
       }
@@ -14118,56 +14217,56 @@
   };
 
   Yielder.prototype = {
-    detach: function () {
+    detach: function Yielder__detach() {
       return this.fragment.detach();
     },
 
-    find: function (selector) {
+    find: function find(selector) {
       return this.fragment.find(selector);
     },
 
-    findAll: function (selector, query) {
+    findAll: function findAll(selector, query) {
       return this.fragment.findAll(selector, query);
     },
 
-    findComponent: function (selector) {
+    findComponent: function findComponent(selector) {
       return this.fragment.findComponent(selector);
     },
 
-    findAllComponents: function (selector, query) {
+    findAllComponents: function findAllComponents(selector, query) {
       return this.fragment.findAllComponents(selector, query);
     },
 
-    findNextNode: function () {
+    findNextNode: function findNextNode() {
       return this.containerFragment.findNextNode(this);
     },
 
-    firstNode: function () {
+    firstNode: function Yielder__firstNode() {
       return this.fragment.firstNode();
     },
 
-    getValue: function (options) {
+    getValue: function Yielder__getValue(options) {
       return this.fragment.getValue(options);
     },
 
-    render: function () {
+    render: function Yielder__render() {
       return this.fragment.render();
     },
 
-    unbind: function () {
+    unbind: function Yielder__unbind() {
       this.fragment.unbind();
     },
 
-    unrender: function (shouldDestroy) {
+    unrender: function Yielder__unrender(shouldDestroy) {
       this.fragment.unrender(shouldDestroy);
       removeFromArray(this.component.yielders[this.name], this);
     },
 
-    rebind: function (oldKeypath, newKeypath) {
+    rebind: function Yielder__rebind(oldKeypath, newKeypath) {
       this.fragment.rebind(oldKeypath, newKeypath);
     },
 
-    toString: function () {
+    toString: function Yielder__toString() {
       return this.fragment.toString();
     }
   };
@@ -14184,7 +14283,7 @@
     render: noop,
     unrender: noop,
     teardown: noop,
-    toString: function () {
+    toString: function Doctype__toString() {
       return "<!DOCTYPE" + this.declaration + ">";
     }
   };
@@ -14218,7 +14317,7 @@
     this.dirtyArgs = this.dirtyValue = true;
 
     this.bound = true;
-  };
+  }
 
   function createItem(options) {
     if (typeof options.template === "string") {
@@ -14231,19 +14330,25 @@
           return new Yielder(options);
         }
         return new Interpolator(options);
-      case SECTION: return new Section(options);
-      case TRIPLE: return new Triple(options);
+      case SECTION:
+        return new Section(options);
+      case TRIPLE:
+        return new Triple(options);
       case ELEMENT:
-        var constructor;
+        var constructor = undefined;
         if (constructor = getComponent(options.parentFragment.root, options.template.e)) {
           return new Component__default(options, constructor);
         }
         return new Element(options);
-      case PARTIAL: return new Partial(options);
-      case COMMENT: return new Comment(options);
-      case DOCTYPE: return new Doctype(options);
+      case PARTIAL:
+        return new Partial(options);
+      case COMMENT:
+        return new Comment(options);
+      case DOCTYPE:
+        return new Doctype(options);
 
-      default: throw new Error("Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!");
+      default:
+        throw new Error("Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!");
     }
   }
   //# sourceMappingURL=01-_6to5-init.js.map
@@ -14257,7 +14362,7 @@
         item.rebind(oldKeypath, newKeypath);
       }
     });
-  };
+  }
   //# sourceMappingURL=01-_6to5-rebind.js.map
 
   function Fragment$render() {
@@ -14275,7 +14380,7 @@
 
     this.rendered = true;
     return result;
-  };
+  }
   //# sourceMappingURL=01-_6to5-render.js.map
 
   function Fragment$toString(escape) {
@@ -14284,7 +14389,7 @@
     }
 
     return this.items.map(escape ? toEscapedString : Fragment_prototype_toString__toString).join("");
-  };
+  }
 
   function Fragment_prototype_toString__toString(item) {
     return item.toString();
@@ -14302,7 +14407,7 @@
 
     this.items.forEach(unbindItem);
     this.bound = false;
-  };
+  }
 
   function unbindItem(item) {
     if (item.unbind) {
@@ -14320,7 +14425,7 @@
       return i.unrender(shouldDestroy);
     });
     this.rendered = false;
-  };
+  }
   //# sourceMappingURL=01-_6to5-unrender.js.map
 
   var Fragment = function (options) {
@@ -14360,7 +14465,8 @@
 
   //# sourceMappingURL=01-_6to5-Fragment.js.map
 
-  var shouldRerender = ["template", "partials", "components", "decorators", "events"], resetHook = new Hook("reset");
+  var shouldRerender = ["template", "partials", "components", "decorators", "events"],
+      resetHook = new Hook("reset");
 
   function Ractive$reset(data) {
     var promise, wrapper, changes, i, rerender;
@@ -14393,7 +14499,7 @@
     }
 
     if (rerender) {
-      var component;
+      var component = undefined;
 
       this.viewmodel.mark(rootKeypath);
 
@@ -14433,7 +14539,7 @@
     resetHook.fire(this, data);
 
     return promise;
-  };
+  }
   //# sourceMappingURL=01-_6to5-reset.js.map
 
   var resetPartial = function (name, partial) {
@@ -14531,7 +14637,7 @@
     this.render(this.el, this.anchor);
 
     this.transitionsEnabled = transitionsEnabled;
-  };
+  }
   //# sourceMappingURL=01-_6to5-resetTemplate.js.map
 
   var reverse = makeArrayMethod("reverse");
@@ -14577,7 +14683,7 @@
     runloop.end();
 
     return promise;
-  };
+  }
   //# sourceMappingURL=01-_6to5-set.js.map
 
   var shift = makeArrayMethod("shift");
@@ -14590,8 +14696,8 @@
   //# sourceMappingURL=01-_6to5-splice.js.map
 
   function Ractive$subtract(keypath, d) {
-    return add(this, keypath, (d === undefined ? -1 : -d));
-  };
+    return add(this, keypath, d === undefined ? -1 : -d);
+  }
   //# sourceMappingURL=01-_6to5-subtract.js.map
 
   var prototype_teardown__teardownHook = new Hook("teardown");
@@ -14610,14 +14716,14 @@
     }
 
     this.shouldDestroy = true;
-    promise = (this.fragment.rendered ? this.unrender() : Promise.resolve());
+    promise = this.fragment.rendered ? this.unrender() : Promise.resolve();
 
     prototype_teardown__teardownHook.fire(this);
 
     this._boundFunctions.forEach(deleteFunctionCopy);
 
     return promise;
-  };
+  }
 
   function deleteFunctionCopy(bound) {
     delete bound.fn[bound.prop];
@@ -14630,12 +14736,12 @@
     }
 
     return this.set(keypath, !this.get(keypath));
-  };
+  }
   //# sourceMappingURL=01-_6to5-toggle.js.map
 
   function Ractive$toHTML() {
     return this.fragment.toString(true);
-  };
+  }
   //# sourceMappingURL=01-_6to5-toHTML.js.map
 
   var unrenderHook = new Hook("unrender");
@@ -14674,7 +14780,7 @@
 
     runloop.end();
     return promise;
-  };
+  }
   //# sourceMappingURL=01-_6to5-unrender.js.map
 
   var unshift = makeArrayMethod("unshift");
@@ -14694,7 +14800,7 @@
     updateHook.fire(this, keypath);
 
     return promise;
-  };
+  }
   //# sourceMappingURL=01-_6to5-update.js.map
 
   function Ractive$updateModel(keypath, cascade) {
@@ -14715,10 +14821,11 @@
 
     values = consolidate(this, bindings);
     return this.set(values);
-  };
+  }
 
   function consolidate(ractive, bindings) {
-    var values = {}, checkboxGroups = [];
+    var values = {},
+        checkboxGroups = [];
 
     bindings.forEach(function (b) {
       var oldValue, newValue;
@@ -14827,7 +14934,7 @@
     }
 
     return options;
-  };
+  }
 
   function addRegistries(Child, options) {
     registries.forEach(function (r) {
@@ -14867,7 +14974,8 @@
 
       // is it a wrapped function?
       else if (typeof options[key] === "function" && typeof value === "function" && options[key]._method) {
-        var result, needsSuper = value._method;
+        var result = undefined,
+            needsSuper = value._method;
 
         if (needsSuper) {
           value = value._method;
@@ -14888,8 +14996,8 @@
 
   var extend__uid = 1;
 
-  function extend__extend(options) {
-    if (options === undefined) options = {};
+  function extend__extend() {
+    var options = arguments[0] === undefined ? {} : arguments[0];
     var Parent = this, Child, proto;
 
     // if we're extending with another Ractive instance...
@@ -14930,7 +15038,7 @@
     Child.prototype = proto;
 
     return Child;
-  };
+  }
   //# sourceMappingURL=01-_6to5-_extend.js.map
 
   var getNodeInfo = function (node) {
@@ -14963,6 +15071,7 @@
 
   // Ractive properties
   properties = {
+
     // static methods:
     extend: { value: extend__extend },
     getNodeInfo: { value: getNodeInfo },
@@ -15006,7 +15115,7 @@
   // or b) we're using a Ractive-legacy.js build
   var FUNCTION = "function";
 
-  if (typeof Date.now !== FUNCTION || typeof String.prototype.trim !== FUNCTION || typeof Object.keys !== FUNCTION || typeof Array.prototype.indexOf !== FUNCTION || typeof Array.prototype.forEach !== FUNCTION || typeof Array.prototype.map !== FUNCTION || typeof Array.prototype.filter !== FUNCTION || (typeof window !== "undefined" && typeof window.addEventListener !== FUNCTION)) {
+  if (typeof Date.now !== FUNCTION || typeof String.prototype.trim !== FUNCTION || typeof Object.keys !== FUNCTION || typeof Array.prototype.indexOf !== FUNCTION || typeof Array.prototype.forEach !== FUNCTION || typeof Array.prototype.map !== FUNCTION || typeof Array.prototype.filter !== FUNCTION || typeof window !== "undefined" && typeof window.addEventListener !== FUNCTION) {
     throw new Error("It looks like you're attempting to use Ractive.js in an older browser. You'll need to use one of the 'legacy builds' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.");
   }
 
