@@ -1,13 +1,32 @@
 var gobble = require( 'gobble' ),
+	sander = require( 'sander' ),
 	src = gobble( 'src' ),
 	sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' ),
+	version = require( './package.json' ).version,
+	banner,
+	bundleTransform,
 	es5, result;
+
+banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
+	.replace( '${version}', version )
+	.replace( '${time}', new Date() )
+	.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
+
+bundleTransform = function ( src, path ) {
+	if ( /Ractive\.js$/.test( path ) ) {
+		return src.replace( '${version}', version );
+	}
+
+	return src;
+};
 
 es5 = src.transform( '6to5', { blacklist: [ 'modules', 'useStrict' ]});
 
 result = [
 	es5.transform( 'esperanto-bundle', {
 		type: 'umd',
+		transform: bundleTransform,
+		banner: banner,
 		entry: 'Ractive.js',
 		name: 'Ractive',
 		dest: 'ractive-legacy.js'
@@ -19,6 +38,8 @@ if ( gobble.env() === 'production' ) {
 	result.push(
 		es5.transform( 'esperanto-bundle', {
 			type: 'umd',
+			transform: bundleTransform,
+			banner: banner,
 			entry: 'Ractive.js',
 			name: 'Ractive',
 			dest: 'ractive.js',
@@ -27,6 +48,8 @@ if ( gobble.env() === 'production' ) {
 
 		es5.transform( 'esperanto-bundle', {
 			type: 'umd',
+			transform: bundleTransform,
+			banner: banner,
 			entry: 'Ractive.js',
 			name: 'Ractive',
 			dest: 'ractive.runtime.js',
@@ -35,6 +58,8 @@ if ( gobble.env() === 'production' ) {
 
 		es5.transform( 'esperanto-bundle', {
 			type: 'umd',
+			transform: bundleTransform,
+			banner: banner,
 			entry: 'Ractive.js',
 			name: 'Ractive',
 			dest: 'ractive-legacy.runtime.js',

@@ -11,6 +11,7 @@ echo "> emptying tmp dir..."
 rm -rf tmp/*
 
 echo "> building Ractive..."
+export COMMIT_HASH=`git rev-parse HEAD`
 gobble build tmp
 
 # run the tests
