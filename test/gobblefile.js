@@ -31,7 +31,7 @@ testModules = gobble([
 	gobble( '__tests' ).moveTo( '__tests' ),
 	gobble( 'testdeps' ),
 	gobble( '../src' )
-]).transform( function ( inputdir, outputdir, options ) {
+]).transform( function bundleTests ( inputdir, outputdir, options ) {
 	return sander.lsr( inputdir, '__tests' ).then( function ( testModules ) {
 		var promises = testModules.map( function ( mod ) {
 			return esperanto.bundle({
