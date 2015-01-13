@@ -1015,12 +1015,66 @@ var renderTests = [
 		new_result: 'other'
 	},
 	{
+		name: 'multiple elseif functions can be used within if',
+		template: '{{#if foo}}foo{{elseif bar}}bar{{else if baz}}baz{{else}}other{{/if}}',
+		data: { foo: true, baz: true },
+		result: 'foo',
+		new_data: { foo: false },
+		new_result: 'baz'
+	},
+	{
 		name: 'elseif functions can be used within each',
 		template: '{{#each foo}}foo{{elseif (bar)}}bar{{else}}other{{/each}}',
 		data: { foo: [], bar: true },
 		result: 'bar',
 		new_data: { bar: false },
 		new_result: 'other'
+	},
+	{
+		name: 'elseif functions can be used within a populated each',
+		template: '{{#each foo}}foo{{elseif (bar)}}bar{{else}}other{{/each}}',
+		data: { foo: [ 1, 2, 3 ], bar: true },
+		result: 'foofoofoo',
+		new_data: { foo: null },
+		new_result: 'bar'
+	},
+	{
+		name: 'elseif functions can be used within with',
+		template: '{{#with foo}}foo{{elseif (bar)}}bar{{else}}other{{/with}}',
+		data: { bar: true },
+		result: 'bar',
+		new_data: { foo: {} },
+		new_result: 'foo'
+	},
+	{
+		name: 'nested else if',
+		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
+		data: { foo: true, bar: true, baz: true },
+		result: 'foofoobar',
+		new_data: { foo: false },
+		new_result: 'bazbazbar'
+	},
+	{
+		name: 'nested else if - part 2',
+		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
+		data: { foo: true, bar: false, baz: false },
+		result: 'foofoofoo',
+		new_data: { foo: false },
+		new_result: ''
+	},
+	{
+		name: 'nested else if - part 3',
+		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
+		data: { foo: false, baz: true },
+		result: 'bazfin'
+	},
+	{
+		name: 'elseif in attribute',
+		template: '<p class="{{#if foo}}foo{{else if bar}}bar{{else}}other{{/if}}">result</p>',
+		data: { bar: true },
+		result: '<p class="bar">result</p>',
+		new_data: { bar: null },
+		new_result: '<p class="other">result</p>'
 	}
 ];
 

@@ -460,7 +460,7 @@ var parseTests = [
 	{
 		name: 'If else syntax',
 		template: '{{#if foo}}foo{{else}}not foo{{/if}}',
-		parsed: {v:2,t:[{t:4,n:50,r:'foo',f:['foo']},{t:4,n:51,r:'foo',f:['not foo']}]}
+		parsed: {v:2,t:[{t:4,b:1,n:50,r:'foo',f:['foo']},{t:4,n:50,x:{r:[],s:'true'},f:['not foo']}]}
 	},
 	{
 		name: 'Nested If else syntax',
@@ -475,12 +475,12 @@ var parseTests = [
 			'{{else}}' +
 			'	bar' +
 			'{{/if}}',
-		parsed: {v:2,t:[{t:4,n:50,r:'foo',f:['foo ',{t:4,n:50,r:'foo2',f:['foo2']},{t:4,n:51,r:'foo2',f:['not foo2']}]},{t:4,n:51,r:'foo',f:['bar']}]}
+		parsed: {v:2,t:[{t:4,b:1,n:50,r:'foo',f:['foo ',{t:4,b:1,n:50,r:'foo2',f:['foo2']},{t:4,n:50,x:{r:[],s:'true'},f:['not foo2']}]},{t:4,n:50,x:{r:[],s:'true'},f:['bar']}]}
 	},
 	{
 		name: 'Each else syntax',
 		template: '{{#each foo:i}}foo #{{i+1}}{{else}}no foos{{/each}}',
-		parsed: {v:2,t:[{t:4,n:52,r:'foo',i:'i',f:['foo #',{ t:2,x:{r:['i'],s:'_0+1'}}]},{t:4,n:51,r:'foo',f:['no foos']}]}
+		parsed: {v:2,t:[{t:4,b:1,n:52,r:'foo',i:'i',f:['foo #',{ t:2,x:{r:['i'],s:'_0+1'}}]},{t:4,n:50,x:{r:[],s:'true'},f:['no foos']}]}
 	},
 	{
 		name: 'Else not allowed in #unless',
@@ -704,7 +704,7 @@ var parseTests = [
 	{
 		name: '{{else}} block in attribute',
 		template: '<img src="{{#if mobile}}small{{else}}big{{/if}}.png">',
-		parsed: {v:2,t:[{t:7,e:'img',a:{src:[{t:4,r:'mobile',n:50,f:['small']},{t:4,r:'mobile',n:51,f:['big']},'.png']}}]}
+		parsed: {v:2,t:[{t:7,e:'img',a:{src:[{t:4,b:1,r:'mobile',n:50,f:['small']},{t:4,x:{r:[],s:'true'},n:50,f:['big']},'.png']}}]}
 	},
 	{
 		name: 'Attributes can contain HTML (#1322)',
