@@ -56,6 +56,7 @@ export default function Section$setValue ( value ) {
 	}
 
 	this.value = value;
+	this.valueChanged = true;
 	this.updating = false;
 }
 
@@ -86,6 +87,7 @@ export function scheduleSiblingHandler ( section ) {
 }
 
 function doReevaluation ( section, value ) {
+	section.valueChanged = false;
 	if ( reevaluateSection( section, value ) ) {
 		section.bubble();
 
@@ -96,14 +98,17 @@ function doReevaluation ( section, value ) {
 }
 
 function visitSiblings ( siblings ) {
-	var i, section;
+	var i, section, valued;
 
 	for ( i = 0; i < siblings.length; i++ ) {
 		section = siblings[i];
-		if ( hasValue( section ) ) {
+		valued = hasValue( section );
+		if ( ( section.currentSection !== true || section.valueChanged ) && valued ) {
+			section.currentSection = true;
 			doReevaluation( section, section.value );
 			break;
-		} else {
+		} else if ( section.currentSection === true && !valued ) {
+			section.currentSection = false;
 			doReevaluation( section, false );
 		}
 	}
@@ -111,7 +116,10 @@ function visitSiblings ( siblings ) {
 	if ( i < siblings.length ) {
 		for ( i++; i < siblings.length; i++ ) {
 			section = siblings[i];
-			doReevaluation( section, false );
+			if ( section.currentSection === true ) {
+				section.currentSection = false;
+				doReevaluation( section, false );
+			}
 		}
 	}
 }

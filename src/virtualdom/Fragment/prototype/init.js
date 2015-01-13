@@ -50,8 +50,8 @@ export default function Fragment$init ( options ) {
 			let siblings = this.items.slice( i, i + fragment.template.b + 1 );
 			siblings.unlocked = true;
 			siblings.forEach( s => s.siblings = siblings );
+			scheduleSiblingHandler( fragment );
 		}
-		scheduleSiblingHandler( fragment );
 	});
 
 	this.value = this.argsList = null;
