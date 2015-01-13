@@ -24,13 +24,13 @@ export default function ( parser ) {
 			};
 		}
 
-		else if ( parser.matchString( '(' ) ) {
+		else if ( parser.matchString( '(' ) || expression.n === 'elseif' ) {
 			parser.allowWhitespace();
 			expressionList = getExpressionList( parser );
 
 			parser.allowWhitespace();
 
-			if ( !parser.matchString( ')' ) ) {
+			if ( !parser.matchString( ')' ) && expression.n !== 'elseif' ) {
 				parser.error( expectedParen );
 			}
 
