@@ -1003,6 +1003,24 @@ var renderTests = [
 		template: '{{#each object:k}}{{@key}} {{k}}{{/each}}',
 		data: { object: { '0001': 1 } },
 		result: '0001 0001'
+	},
+
+	// elseif
+	{
+		name: 'elseif functions can be used within if',
+		template: '{{#if foo}}foo{{elseif (bar)}}bar{{else}}other{{/if}}',
+		data: { bar: true },
+		result: 'bar',
+		new_data: { bar: false },
+		new_result: 'other'
+	},
+	{
+		name: 'elseif functions can be used within each',
+		template: '{{#each foo}}foo{{elseif (bar)}}bar{{else}}other{{/each}}',
+		data: { foo: [], bar: true },
+		result: 'bar',
+		new_data: { bar: false },
+		new_result: 'other'
 	}
 ];
 

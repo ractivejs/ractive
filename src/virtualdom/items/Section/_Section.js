@@ -23,6 +23,9 @@ var Section = function ( options ) {
 	this.subtype = this.currentSubtype = options.template.n;
 	this.inverted = this.subtype === SECTION_UNLESS;
 
+	if ( options.siblings ) {
+		this.siblings = true;
+	}
 
 	this.pElement = options.pElement;
 
@@ -30,6 +33,7 @@ var Section = function ( options ) {
 	this.fragmentsToCreate = [];
 	this.fragmentsToRender = [];
 	this.fragmentsToUnrender = [];
+	this.template = options.template;
 
 	if ( options.template.i ) {
 		this.indexRefs = options.template.i.split(',').map( ( k, i ) => {
