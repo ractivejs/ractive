@@ -1,7 +1,7 @@
 language: node_js
 node_js:
 - '0.10'
-script: npm run build; ./scripts/deploy-edge-to-cdn.sh
+script: mkdir -p build; npm run build; ./scripts/deploy-edge-to-cdn.sh
 env:
   global:
   - GH_REF: github.com/ractivejs/ractive.git
