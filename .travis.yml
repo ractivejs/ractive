@@ -1,9 +1,7 @@
 language: node_js
 node_js:
 - '0.10'
-before_script:
-- npm install -g grunt-cli; chmod u+x scripts/deploy-edge-to-cdn.sh; grunt
-script: ./scripts/deploy-edge-to-cdn.sh
+script: npm run build; ./scripts/deploy-edge-to-cdn.sh
 env:
   global:
   - GH_REF: github.com/ractivejs/ractive.git
