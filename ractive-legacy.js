@@ -1,3 +1,13 @@
+/*
+	Ractive.js v0.6.1
+	Wed Jan 14 2015 15:35:29 GMT+0000 (UTC) - commit 8ebc7c83bf5964c7a6e9fdb7739428935d77a674
+
+	http://ractivejs.org
+	http://twitter.com/RactiveJS
+
+	Released under the MIT License.
+*/
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -46,7 +56,7 @@
   };
 
   var defaults = defaultOptions;
-  //# sourceMappingURL=01-_6to5-defaults.js.map
+  //# sourceMappingURL=02-6to5-defaults.js.map
 
   // These are a subset of the easing equations found at
   // https://raw.github.com/danro/easing-js - license info
@@ -89,7 +99,7 @@
       return 0.5 * (Math.pow(pos - 2, 3) + 2);
     }
   };
-  //# sourceMappingURL=01-_6to5-easing.js.map
+  //# sourceMappingURL=02-6to5-easing.js.map
 
   /*global console */
   var isClient, hasConsole, magic, namespaces, svg, vendors;
@@ -710,7 +720,7 @@
 
   var legacy = exportedShims;
   // TODO...
-  //# sourceMappingURL=01-_6to5-legacy.js.map
+  //# sourceMappingURL=02-6to5-legacy.js.map
 
   var create, defineProperty, defineProperties;
 
@@ -822,7 +832,7 @@
   }
 
   var hasOwn = Object.prototype.hasOwnProperty;
-  //# sourceMappingURL=01-_6to5-object.js.map
+  //# sourceMappingURL=02-6to5-object.js.map
 
   var is__toString = Object.prototype.toString,
       arrayLikePattern = /^\[object (?:Array|FileList)\]$/;
@@ -877,10 +887,10 @@
   function isFunction(thing) {
     return typeof thing === "function";
   }
-  //# sourceMappingURL=01-_6to5-is.js.map
+  //# sourceMappingURL=02-6to5-is.js.map
 
   var noop = function () {};
-  //# sourceMappingURL=01-_6to5-noop.js.map
+  //# sourceMappingURL=02-6to5-noop.js.map
 
   /* global console */
   var alreadyWarned = {}, log, printWarning;
@@ -949,7 +959,7 @@
     alreadyWarned[message] = true;
     printWarning(message, args);
   }
-  //# sourceMappingURL=01-_6to5-log.js.map
+  //# sourceMappingURL=02-6to5-log.js.map
 
   // Error messages that are used (or could be) in multiple places
   var badArguments = "Bad arguments";
@@ -957,7 +967,7 @@
   var missingPlugin = function (name, type) {
     return "Missing \"" + name + "\" " + type + " plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#" + type + "s";
   };
-  //# sourceMappingURL=01-_6to5-errors.js.map
+  //# sourceMappingURL=02-6to5-errors.js.map
 
   function findInViewHierarchy(registryName, ractive, name) {
     var instance = findInstance(registryName, ractive, name);
@@ -977,7 +987,7 @@
       ractive = ractive.parent;
     }
   }
-  //# sourceMappingURL=01-_6to5-registry.js.map
+  //# sourceMappingURL=02-6to5-registry.js.map
 
   var interpolate = function (from, to, ractive, type) {
     if (from === to) {
@@ -1003,7 +1013,7 @@
       return to;
     };
   }
-  //# sourceMappingURL=01-_6to5-interpolate.js.map
+  //# sourceMappingURL=02-6to5-interpolate.js.map
 
   var interpolators = {
     number: function (from, to) {
@@ -1109,7 +1119,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-interpolators.js.map
+  //# sourceMappingURL=02-6to5-interpolators.js.map
 
   function add(root, keypath, d) {
     var value;
@@ -1126,12 +1136,12 @@
 
     return root.set(keypath, value + d);
   }
-  //# sourceMappingURL=01-_6to5-add.js.map
+  //# sourceMappingURL=02-6to5-add.js.map
 
   function Ractive$add(keypath, d) {
     return add(this, keypath, d === undefined ? 1 : +d);
   }
-  //# sourceMappingURL=01-_6to5-add.js.map
+  //# sourceMappingURL=02-6to5-add.js.map
 
   var requestAnimationFrame;
 
@@ -1169,11 +1179,11 @@
       }
     })(vendors, 0, window);
 
-    requestAnimationFrame = window.requestAnimationFrame.bind(window);
+    requestAnimationFrame = window.requestAnimationFrame;
   }
 
   var rAF = requestAnimationFrame;
-  //# sourceMappingURL=01-_6to5-requestAnimationFrame.js.map
+  //# sourceMappingURL=02-6to5-requestAnimationFrame.js.map
 
   var getTime;
 
@@ -1188,7 +1198,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-getTime.js.map
+  //# sourceMappingURL=02-6to5-getTime.js.map
 
   var deprecations = {
     construct: {
@@ -1233,7 +1243,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Hook.js.map
+  //# sourceMappingURL=02-6to5-Hook.js.map
 
   function addToArray(array, value) {
     var index = array.indexOf(value);
@@ -1308,7 +1318,7 @@
 
     return array;
   }
-  //# sourceMappingURL=01-_6to5-array.js.map
+  //# sourceMappingURL=02-6to5-array.js.map
 
   var _Promise,
       PENDING = {},
@@ -1508,7 +1518,7 @@
       fulfil(x);
     }
   }
-  //# sourceMappingURL=01-_6to5-Promise.js.map
+  //# sourceMappingURL=02-6to5-Promise.js.map
 
   var starMaps = {};
 
@@ -1579,7 +1589,7 @@
 
     return starMaps[num];
   }
-  //# sourceMappingURL=01-_6to5-getPotentialWildcardMatches.js.map
+  //# sourceMappingURL=02-6to5-getPotentialWildcardMatches.js.map
 
   var refPattern, keypathCache, Keypath;
 
@@ -1724,7 +1734,7 @@
   }
 
   var rootKeypath = getKeypath("");
-  //# sourceMappingURL=01-_6to5-keypaths.js.map
+  //# sourceMappingURL=02-6to5-keypaths.js.map
 
   var getInnerContext = function (fragment) {
     do {
@@ -1735,7 +1745,7 @@
 
     return rootKeypath;
   };
-  //# sourceMappingURL=01-_6to5-getInnerContext.js.map
+  //# sourceMappingURL=02-6to5-getInnerContext.js.map
 
   function resolveRef(ractive, ref, fragment) {
     var keypath;
@@ -1882,7 +1892,7 @@
     // special case for reference to root
     return key === "" || key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
   }
-  //# sourceMappingURL=01-_6to5-resolveRef.js.map
+  //# sourceMappingURL=02-6to5-resolveRef.js.map
 
   function teardown(x) {
     x.teardown();
@@ -1893,7 +1903,7 @@
   function methodCallers__unrender(x) {
     x.unrender();
   }
-  //# sourceMappingURL=01-_6to5-methodCallers.js.map
+  //# sourceMappingURL=02-6to5-methodCallers.js.map
 
   var TransitionManager = function (callback, parent) {
     this.callback = callback;
@@ -1997,7 +2007,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-TransitionManager.js.map
+  //# sourceMappingURL=02-6to5-TransitionManager.js.map
 
   var batch, runloop, unresolved = [], changeHook = new Hook("change");
 
@@ -2162,7 +2172,7 @@
   function runloop__resolve(resolved) {
     resolved.item.resolve(resolved.keypath);
   }
-  //# sourceMappingURL=01-_6to5-runloop.js.map
+  //# sourceMappingURL=02-6to5-runloop.js.map
 
   var queue = [];
 
@@ -2216,7 +2226,7 @@
   };
 
   var animations__default = animations;
-  //# sourceMappingURL=01-_6to5-animations.js.map
+  //# sourceMappingURL=02-6to5-animations.js.map
 
   var Animation = function (options) {
     var key;
@@ -2308,7 +2318,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Animation.js.map
+  //# sourceMappingURL=02-6to5-Animation.js.map
 
   var noAnimation = { stop: noop };
 
@@ -2481,7 +2491,7 @@
 
     return animation;
   }
-  //# sourceMappingURL=01-_6to5-animate.js.map
+  //# sourceMappingURL=02-6to5-animate.js.map
 
   var prototype_detach__detachHook = new Hook("detach");
 
@@ -2497,7 +2507,7 @@
     prototype_detach__detachHook.fire(this);
     return this.detached;
   }
-  //# sourceMappingURL=01-_6to5-detach.js.map
+  //# sourceMappingURL=02-6to5-detach.js.map
 
   function Ractive$find(selector) {
     if (!this.el) {
@@ -2506,7 +2516,7 @@
 
     return this.fragment.find(selector);
   }
-  //# sourceMappingURL=01-_6to5-find.js.map
+  //# sourceMappingURL=02-6to5-find.js.map
 
   var test = function (item, noDirty) {
     var itemMatches;
@@ -2527,7 +2537,7 @@
       return true;
     }
   };
-  //# sourceMappingURL=01-_6to5-test.js.map
+  //# sourceMappingURL=02-6to5-test.js.map
 
   var cancel = function () {
     var liveQueries, selector, index;
@@ -2542,7 +2552,7 @@
       liveQueries[selector] = null;
     }
   };
-  //# sourceMappingURL=01-_6to5-cancel.js.map
+  //# sourceMappingURL=02-6to5-cancel.js.map
 
   var sortByItemPosition = function (a, b) {
     var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
@@ -2620,7 +2630,7 @@
 
     return ancestry;
   }
-  //# sourceMappingURL=01-_6to5-sortByItemPosition.js.map
+  //# sourceMappingURL=02-6to5-sortByItemPosition.js.map
 
   var sortByDocumentPosition = function (node, otherNode) {
     var bitmask;
@@ -2634,13 +2644,13 @@
     // comparing component positions
     return sortByItemPosition(node, otherNode);
   };
-  //# sourceMappingURL=01-_6to5-sortByDocumentPosition.js.map
+  //# sourceMappingURL=02-6to5-sortByDocumentPosition.js.map
 
   var sort = function () {
     this.sort(this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition);
     this._dirty = false;
   };
-  //# sourceMappingURL=01-_6to5-sort.js.map
+  //# sourceMappingURL=02-6to5-sort.js.map
 
   var dirty = function () {
     var _this = this;
@@ -2654,7 +2664,7 @@
       });
     }
   };
-  //# sourceMappingURL=01-_6to5-dirty.js.map
+  //# sourceMappingURL=02-6to5-dirty.js.map
 
   var remove = function (nodeOrComponent) {
     var index = this.indexOf(this._isComponentQuery ? nodeOrComponent.instance : nodeOrComponent);
@@ -2663,7 +2673,7 @@
       this.splice(index, 1);
     }
   };
-  //# sourceMappingURL=01-_6to5-remove.js.map
+  //# sourceMappingURL=02-6to5-remove.js.map
 
   function makeQuery(ractive, selector, live, isComponentQuery) {
     var query = [];
@@ -2693,7 +2703,7 @@
 
     return query;
   }
-  //# sourceMappingURL=01-_6to5-_makeQuery.js.map
+  //# sourceMappingURL=02-6to5-_makeQuery.js.map
 
   function Ractive$findAll(selector, options) {
     var liveQueries, query;
@@ -2724,7 +2734,7 @@
     this.fragment.findAll(selector, query);
     return query;
   }
-  //# sourceMappingURL=01-_6to5-findAll.js.map
+  //# sourceMappingURL=02-6to5-findAll.js.map
 
   function Ractive$findAllComponents(selector, options) {
     var liveQueries, query;
@@ -2751,12 +2761,12 @@
     this.fragment.findAllComponents(selector, query);
     return query;
   }
-  //# sourceMappingURL=01-_6to5-findAllComponents.js.map
+  //# sourceMappingURL=02-6to5-findAllComponents.js.map
 
   function Ractive$findComponent(selector) {
     return this.fragment.findComponent(selector);
   }
-  //# sourceMappingURL=01-_6to5-findComponent.js.map
+  //# sourceMappingURL=02-6to5-findComponent.js.map
 
   function Ractive$findContainer(selector) {
     if (this.container) {
@@ -2769,7 +2779,7 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-findContainer.js.map
+  //# sourceMappingURL=02-6to5-findContainer.js.map
 
   function Ractive$findParent(selector) {
     if (this.parent) {
@@ -2782,7 +2792,7 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-findParent.js.map
+  //# sourceMappingURL=02-6to5-findParent.js.map
 
   var eventStack = {
     enqueue: function (ractive, event) {
@@ -2802,7 +2812,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-eventStack.js.map
+  //# sourceMappingURL=02-6to5-eventStack.js.map
 
   function fireEvent(ractive, eventName) {
     var options = arguments[2] === undefined ? {} : arguments[2];
@@ -2884,7 +2894,7 @@
 
     return !stopEvent;
   }
-  //# sourceMappingURL=01-_6to5-fireEvent.js.map
+  //# sourceMappingURL=02-6to5-fireEvent.js.map
 
   function Ractive$fire(eventName) {
     var options = {
@@ -2893,7 +2903,7 @@
 
     fireEvent(this, eventName, options);
   }
-  //# sourceMappingURL=01-_6to5-fire.js.map
+  //# sourceMappingURL=02-6to5-fire.js.map
 
   var options = {
     capture: true, // top-level calls should be intercepted
@@ -2916,7 +2926,7 @@
 
     return value;
   }
-  //# sourceMappingURL=01-_6to5-get.js.map
+  //# sourceMappingURL=02-6to5-get.js.map
 
   var insertHook = new Hook("insert");
 
@@ -2949,7 +2959,7 @@
       fireInsertHook(child.instance);
     });
   }
-  //# sourceMappingURL=01-_6to5-insert.js.map
+  //# sourceMappingURL=02-6to5-insert.js.map
 
   function Ractive$merge(keypath, array, options) {
     var currentArray, promise;
@@ -2970,7 +2980,7 @@
 
     return promise;
   }
-  //# sourceMappingURL=01-_6to5-merge.js.map
+  //# sourceMappingURL=02-6to5-merge.js.map
 
   var Observer = function (ractive, keypath, callback, options) {
     this.root = ractive;
@@ -3024,7 +3034,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Observer.js.map
+  //# sourceMappingURL=02-6to5-Observer.js.map
 
   function getPattern(ractive, pattern) {
     var matchingKeypaths, values;
@@ -3038,7 +3048,7 @@
 
     return values;
   }
-  //# sourceMappingURL=01-_6to5-getPattern.js.map
+  //# sourceMappingURL=02-6to5-getPattern.js.map
 
   var PatternObserver,
       PatternObserver__wildcard = /\*/,
@@ -3151,7 +3161,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-PatternObserver.js.map
+  //# sourceMappingURL=02-6to5-PatternObserver.js.map
 
   var getObserverFacade__wildcard = /\*/,
       emptyObject = {};
@@ -3197,7 +3207,7 @@
       }
     };
   }
-  //# sourceMappingURL=01-_6to5-getObserverFacade.js.map
+  //# sourceMappingURL=02-6to5-getObserverFacade.js.map
 
   function Ractive$observe(keypath, callback, options) {
     var observers, map, keypaths, i;
@@ -3261,7 +3271,7 @@
       }
     };
   }
-  //# sourceMappingURL=01-_6to5-observe.js.map
+  //# sourceMappingURL=02-6to5-observe.js.map
 
   function Ractive$observeOnce(property, callback, options) {
     var observer = this.observe(property, function () {
@@ -3271,17 +3281,17 @@
 
     return observer;
   }
-  //# sourceMappingURL=01-_6to5-observeOnce.js.map
+  //# sourceMappingURL=02-6to5-observeOnce.js.map
 
   var trim__default = function (str) {
     return str.trim();
   };
-  //# sourceMappingURL=01-_6to5-trim.js.map
+  //# sourceMappingURL=02-6to5-trim.js.map
 
   var notEmptyString = function (str) {
     return str !== "";
   };
-  //# sourceMappingURL=01-_6to5-notEmptyString.js.map
+  //# sourceMappingURL=02-6to5-notEmptyString.js.map
 
   function Ractive$off(eventName, callback) {
     var _this = this;
@@ -3323,7 +3333,7 @@
 
     return this;
   }
-  //# sourceMappingURL=01-_6to5-off.js.map
+  //# sourceMappingURL=02-6to5-off.js.map
 
   function Ractive$on(eventName, callback) {
     var _this = this;
@@ -3363,7 +3373,7 @@
       }
     };
   }
-  //# sourceMappingURL=01-_6to5-on.js.map
+  //# sourceMappingURL=02-6to5-on.js.map
 
   function Ractive$once(eventName, handler) {
     var listener = this.on(eventName, function () {
@@ -3374,7 +3384,7 @@
     // so we can still do listener.cancel() manually
     return listener;
   }
-  //# sourceMappingURL=01-_6to5-once.js.map
+  //# sourceMappingURL=02-6to5-once.js.map
 
   // This function takes an array, the name of a mutator method, and the
   // arguments to call that mutator method with, and returns an array that
@@ -3470,7 +3480,7 @@
         return [0, 0].concat(args);
     }
   }
-  //# sourceMappingURL=01-_6to5-getNewIndices.js.map
+  //# sourceMappingURL=02-6to5-getNewIndices.js.map
 
   var arrayProto = Array.prototype;
 
@@ -3511,13 +3521,13 @@
       return promise;
     };
   };
-  //# sourceMappingURL=01-_6to5-makeArrayMethod.js.map
+  //# sourceMappingURL=02-6to5-makeArrayMethod.js.map
 
   var pop = makeArrayMethod("pop");
-  //# sourceMappingURL=01-_6to5-pop.js.map
+  //# sourceMappingURL=02-6to5-pop.js.map
 
   var push = makeArrayMethod("push");
-  //# sourceMappingURL=01-_6to5-push.js.map
+  //# sourceMappingURL=02-6to5-push.js.map
 
   var css, css__update, styleElement, head, styleSheet, inDom, css__prefix = "/* Ractive.js component styles */\n", componentsInPage = {}, styles = [];
 
@@ -3592,7 +3602,7 @@
   }
 
   var css__default = css;
-  //# sourceMappingURL=01-_6to5-css.js.map
+  //# sourceMappingURL=02-6to5-css.js.map
 
   var renderHook = new Hook("render"),
       completeHook = new Hook("complete");
@@ -3680,7 +3690,7 @@
   // certain very specific situations, trying to access node.parentNode (which
   // we need to do in order to detach elements) causes an 'Invalid argument'
   // error to be thrown. I don't even.
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=02-6to5-render.js.map
 
   var processWrapper = function (wrapper, array, methodName, newIndices) {
     var root = wrapper.root;
@@ -3696,7 +3706,7 @@
 
     root.viewmodel.smartUpdate(keypath, array, newIndices);
   };
-  //# sourceMappingURL=01-_6to5-processWrapper.js.map
+  //# sourceMappingURL=02-6to5-processWrapper.js.map
 
   var patchedArrayProto = [], mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"], testObj, patchArrayMethods, unpatchArrayMethods;
 
@@ -3778,7 +3788,7 @@
 
   patchArrayMethods.unpatch = unpatchArrayMethods;
   var patch = patchArrayMethods;
-  //# sourceMappingURL=01-_6to5-patch.js.map
+  //# sourceMappingURL=02-6to5-patch.js.map
 
   var arrayAdaptor,
 
@@ -3875,14 +3885,14 @@
 
   errorMessage = "Something went wrong in a rather interesting way";
 
-  //# sourceMappingURL=01-_6to5-index.js.map
+  //# sourceMappingURL=02-6to5-index.js.map
 
   var numeric = /^\s*[0-9]+\s*$/;
 
   var createBranch = function (key) {
     return numeric.test(key) ? [] : {};
   };
-  //# sourceMappingURL=01-_6to5-createBranch.js.map
+  //# sourceMappingURL=02-6to5-createBranch.js.map
 
   var magicAdaptor, MagicWrapper;
 
@@ -4088,7 +4098,7 @@
     set._ractiveWrappers = [originalWrapper];
     Object.defineProperty(object, property, { get: get, set: set, enumerable: true, configurable: true });
   }
-  //# sourceMappingURL=01-_6to5-magic.js.map
+  //# sourceMappingURL=02-6to5-magic.js.map
 
   var magicArrayAdaptor, MagicArrayWrapper;
 
@@ -4127,7 +4137,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-magicArray.js.map
+  //# sourceMappingURL=02-6to5-magicArray.js.map
 
   var adaptConfigurator = {
     extend: function (Parent, proto, options) {
@@ -4186,7 +4196,7 @@
 
     return c;
   }
-  //# sourceMappingURL=01-_6to5-adapt.js.map
+  //# sourceMappingURL=02-6to5-adapt.js.map
 
   var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
       commentsPattern = /\/\*.*?\*\//g,
@@ -4263,7 +4273,7 @@
   function extractString(unit) {
     return unit.str;
   }
-  //# sourceMappingURL=01-_6to5-transform.js.map
+  //# sourceMappingURL=02-6to5-transform.js.map
 
   var cssConfigurator = {
     name: "css",
@@ -4288,7 +4298,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-css.js.map
+  //# sourceMappingURL=02-6to5-css.js.map
 
   var wrap__default = function (method, superMethod, force) {
     if (force || needsSuper(method, superMethod)) {
@@ -4315,7 +4325,7 @@
   function needsSuper(method, superMethod) {
     return typeof superMethod === "function" && /_super/.test(method);
   }
-  //# sourceMappingURL=01-_6to5-wrapMethod.js.map
+  //# sourceMappingURL=02-6to5-wrapMethod.js.map
 
   var dataConfigurator = {
     name: "data",
@@ -4461,7 +4471,7 @@
 
     return wrap__default(childFn, parentFn);
   }
-  //# sourceMappingURL=01-_6to5-data.js.map
+  //# sourceMappingURL=02-6to5-data.js.map
 
   var TEXT = 1;
   var INTERPOLATOR = 2;
@@ -4508,11 +4518,11 @@
   var SECTION_WITH = 53;
   var SECTION_IF_WITH = 54;
   var SECTION_PARTIAL = 55;
-  //# sourceMappingURL=01-_6to5-types.js.map
+  //# sourceMappingURL=02-6to5-types.js.map
 
   var expectedExpression = "Expected a JavaScript expression";
   var expectedParen = "Expected closing paren";
-  //# sourceMappingURL=01-_6to5-errors.js.map
+  //# sourceMappingURL=02-6to5-errors.js.map
 
   var getNumberLiteral__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 
@@ -4528,7 +4538,7 @@
 
     return null;
   };
-  //# sourceMappingURL=01-_6to5-numberLiteral.js.map
+  //# sourceMappingURL=02-6to5-numberLiteral.js.map
 
   var getBooleanLiteral = function (parser) {
     var remaining = parser.remaining();
@@ -4551,7 +4561,7 @@
 
     return null;
   };
-  //# sourceMappingURL=01-_6to5-booleanLiteral.js.map
+  //# sourceMappingURL=02-6to5-booleanLiteral.js.map
 
   var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
 
@@ -4601,7 +4611,7 @@
       return JSON.parse(literal);
     };
   };
-  //# sourceMappingURL=01-_6to5-makeQuotedStringMatcher.js.map
+  //# sourceMappingURL=02-6to5-makeQuotedStringMatcher.js.map
 
   var getSingleQuotedString = makeQuotedStringMatcher("\"");
   var getDoubleQuotedString = makeQuotedStringMatcher("'");
@@ -4641,11 +4651,11 @@
 
     return null;
   };
-  //# sourceMappingURL=01-_6to5-_stringLiteral.js.map
+  //# sourceMappingURL=02-6to5-_stringLiteral.js.map
 
   var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
   var relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
-  //# sourceMappingURL=01-_6to5-patterns.js.map
+  //# sourceMappingURL=02-6to5-patterns.js.map
 
   var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -4666,7 +4676,7 @@
       return token;
     }
   };
-  //# sourceMappingURL=01-_6to5-key.js.map
+  //# sourceMappingURL=02-6to5-key.js.map
 
   var getKeyValuePair__default = function (parser) {
     var start, key, value;
@@ -4707,7 +4717,7 @@
       v: value
     };
   };
-  //# sourceMappingURL=01-_6to5-keyValuePair.js.map
+  //# sourceMappingURL=02-6to5-keyValuePair.js.map
 
   function getKeyValuePairs(parser) {
     var start, pairs, pair, keyValuePairs;
@@ -4734,7 +4744,7 @@
 
     return pairs;
   }
-  //# sourceMappingURL=01-_6to5-keyValuePairs.js.map
+  //# sourceMappingURL=02-6to5-keyValuePairs.js.map
 
   var getObjectLiteral = function (parser) {
     var start, keyValuePairs;
@@ -4764,7 +4774,7 @@
       m: keyValuePairs
     };
   };
-  //# sourceMappingURL=01-_6to5-_objectLiteral.js.map
+  //# sourceMappingURL=02-6to5-_objectLiteral.js.map
 
   function getExpressionList(parser) {
     var start, expressions, expr, next;
@@ -4799,7 +4809,7 @@
 
     return expressions;
   }
-  //# sourceMappingURL=01-_6to5-expressionList.js.map
+  //# sourceMappingURL=02-6to5-expressionList.js.map
 
   var getArrayLiteral = function (parser) {
     var start, expressionList;
@@ -4826,14 +4836,14 @@
       m: expressionList
     };
   };
-  //# sourceMappingURL=01-_6to5-arrayLiteral.js.map
+  //# sourceMappingURL=02-6to5-arrayLiteral.js.map
 
   var getLiteral = function (parser) {
     var literal = getNumberLiteral(parser) || getBooleanLiteral(parser) || getStringLiteral(parser) || getObjectLiteral(parser) || getArrayLiteral(parser);
 
     return literal;
   };
-  //# sourceMappingURL=01-_6to5-_literal.js.map
+  //# sourceMappingURL=02-6to5-_literal.js.map
 
   var dotRefinementPattern, getReference__arrayMemberPattern, getArrayRefinement, globals, keywords;
   dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
@@ -4922,7 +4932,7 @@
       n: combo.replace(/^this\./, "./").replace(/^this$/, ".")
     };
   };
-  //# sourceMappingURL=01-_6to5-reference.js.map
+  //# sourceMappingURL=02-6to5-reference.js.map
 
   var getBracketedExpression = function (parser) {
     var start, expr;
@@ -4951,12 +4961,12 @@
       x: expr
     };
   };
-  //# sourceMappingURL=01-_6to5-bracketedExpression.js.map
+  //# sourceMappingURL=02-6to5-bracketedExpression.js.map
 
   var getPrimary = function (parser) {
     return getLiteral(parser) || getReference(parser) || getBracketedExpression(parser);
   };
-  //# sourceMappingURL=01-_6to5-_primary.js.map
+  //# sourceMappingURL=02-6to5-_primary.js.map
 
   function getRefinement(parser) {
     var start, name, expr;
@@ -5002,7 +5012,7 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-refinement.js.map
+  //# sourceMappingURL=02-6to5-refinement.js.map
 
   var getMemberOrInvocation = function (parser) {
     var current, expression, refinement, expressionList;
@@ -5047,7 +5057,7 @@
 
     return expression;
   };
-  //# sourceMappingURL=01-_6to5-memberOrInvocation.js.map
+  //# sourceMappingURL=02-6to5-memberOrInvocation.js.map
 
   var getTypeof, makePrefixSequenceMatcher;
 
@@ -5097,7 +5107,7 @@
   })();
 
 
-  //# sourceMappingURL=01-_6to5-typeof.js.map
+  //# sourceMappingURL=02-6to5-typeof.js.map
 
   var getLogicalOr, makeInfixSequenceMatcher;
 
@@ -5172,7 +5182,7 @@
   })();
 
 
-  //# sourceMappingURL=01-_6to5-logicalOr.js.map
+  //# sourceMappingURL=02-6to5-logicalOr.js.map
 
   var getConditional = function (parser) {
     var start, expression, ifTrue, ifFalse;
@@ -5216,7 +5226,7 @@
       o: [expression, ifTrue, ifFalse]
     };
   };
-  //# sourceMappingURL=01-_6to5-conditional.js.map
+  //# sourceMappingURL=02-6to5-conditional.js.map
 
   var flattenExpression = function (expression) {
     var refs = [], flattened;
@@ -5321,7 +5331,7 @@
         parser.error("Expected legal JavaScript");
     }
   }
-  //# sourceMappingURL=01-_6to5-flattenExpression.js.map
+  //# sourceMappingURL=02-6to5-flattenExpression.js.map
 
   var Parser, ParseError, Parser__leadingWhitespace = /^\s+/;
 
@@ -5479,7 +5489,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_Parser.js.map
+  //# sourceMappingURL=02-6to5-_Parser.js.map
 
   var delimiterChangePattern = /^[^\s=]+/,
       whitespacePattern = /^\s+/;
@@ -5523,7 +5533,7 @@
 
     return [opening, closing];
   };
-  //# sourceMappingURL=01-_6to5-delimiterChange.js.map
+  //# sourceMappingURL=02-6to5-delimiterChange.js.map
 
   var delimiterTypes = [{
     delimiters: "delimiters",
@@ -5542,7 +5552,7 @@
     isTriple: true,
     isStatic: true
   }];
-  //# sourceMappingURL=01-_6to5-delimiterTypes.js.map
+  //# sourceMappingURL=02-6to5-delimiterTypes.js.map
 
   var mustacheTypes = {
     "#": SECTION,
@@ -5563,7 +5573,7 @@
     parser.pos += 1;
     return type;
   };
-  //# sourceMappingURL=01-_6to5-type.js.map
+  //# sourceMappingURL=02-6to5-type.js.map
 
   var handlebarsBlockCodes = {
     each: SECTION_EACH,
@@ -5573,7 +5583,7 @@
     unless: SECTION_UNLESS,
     partial: SECTION_PARTIAL
   };
-  //# sourceMappingURL=01-_6to5-handlebarsBlockCodes.js.map
+  //# sourceMappingURL=02-6to5-handlebarsBlockCodes.js.map
 
   var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
       keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
@@ -5821,7 +5831,7 @@
       m: members
     };
   }
-  //# sourceMappingURL=01-_6to5-content.js.map
+  //# sourceMappingURL=02-6to5-content.js.map
 
   var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
@@ -5987,7 +5997,7 @@
   function getMustache__isSection(mustache) {
     return mustache.t === SECTION || mustache.t === INVERTED;
   }
-  //# sourceMappingURL=01-_6to5-mustache.js.map
+  //# sourceMappingURL=02-6to5-mustache.js.map
 
   var OPEN_COMMENT = "<!--",
       CLOSE_COMMENT = "-->";
@@ -6022,7 +6032,7 @@
 
     return comment;
   };
-  //# sourceMappingURL=01-_6to5-comment.js.map
+  //# sourceMappingURL=02-6to5-comment.js.map
 
   var booleanAttributes, voidElementNames, htmlEntities, controlCharacters, entityPattern, lessThan, greaterThan, amp;
 
@@ -6112,7 +6122,7 @@
   function escapeRegExp(str) {
     return str.replace(escapeRegExp__pattern, "\\$&");
   }
-  //# sourceMappingURL=01-_6to5-escapeRegExp.js.map
+  //# sourceMappingURL=02-6to5-escapeRegExp.js.map
 
   var startPattern = /^<!--\s*/,
       namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
@@ -6157,7 +6167,7 @@
     parser.pos = firstPos;
     return null;
   }
-  //# sourceMappingURL=01-_6to5-partial.js.map
+  //# sourceMappingURL=02-6to5-partial.js.map
 
   var getLowestIndex = function (haystack, needles) {
     var i, index, lowest;
@@ -6182,7 +6192,7 @@
 
     return lowest || -1;
   };
-  //# sourceMappingURL=01-_6to5-getLowestIndex.js.map
+  //# sourceMappingURL=02-6to5-getLowestIndex.js.map
 
   var getText = function (parser) {
     var index, remaining, disallowed, barrier;
@@ -6222,7 +6232,7 @@
 
     return parser.inside ? remaining.substr(0, index) : decodeCharacterReferences(remaining.substr(0, index));
   };
-  //# sourceMappingURL=01-_6to5-text.js.map
+  //# sourceMappingURL=02-6to5-text.js.map
 
   var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
@@ -6245,7 +6255,7 @@
     parser.pos -= 2;
     parser.error("Illegal closing tag");
   };
-  //# sourceMappingURL=01-_6to5-closingTag.js.map
+  //# sourceMappingURL=02-6to5-closingTag.js.map
 
   var attributeNamePattern = /^[^\s"'>\/=]+/,
       unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
@@ -6407,7 +6417,7 @@
     parser.pos += index;
     return haystack.substr(0, index);
   }
-  //# sourceMappingURL=01-_6to5-attribute.js.map
+  //# sourceMappingURL=02-6to5-attribute.js.map
 
   var _defineProperty = function (obj, key, value) {
     return Object.defineProperty(obj, key, {
@@ -6591,7 +6601,7 @@
 
     return parser.result;
   };
-  //# sourceMappingURL=01-_6to5-parseJSON.js.map
+  //# sourceMappingURL=02-6to5-parseJSON.js.map
 
   var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/, ExpressionParser;
 
@@ -6678,7 +6688,7 @@
 
     return result;
   };
-  //# sourceMappingURL=01-_6to5-processDirective.js.map
+  //# sourceMappingURL=02-6to5-processDirective.js.map
 
   var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
       validTagNameFollower = /^[\s\n\/>]/,
@@ -6870,7 +6880,7 @@
 
     return ! ~disallowed.indexOf(match[1].toLowerCase());
   }
-  //# sourceMappingURL=01-_6to5-element.js.map
+  //# sourceMappingURL=02-6to5-element.js.map
 
   var trimWhitespace__leadingWhitespace = /^[ \t\f\r\n]+/,
       trimWhitespace__trailingWhitespace = /[ \t\f\r\n]+$/;
@@ -6904,7 +6914,7 @@
       }
     }
   };
-  //# sourceMappingURL=01-_6to5-trimWhitespace.js.map
+  //# sourceMappingURL=02-6to5-trimWhitespace.js.map
 
   var leadingLinebreak = /^\s*\r?\n/,
       trailingLinebreak = /\r?\n\s*$/;
@@ -6964,7 +6974,7 @@
   function stripStandalones__isSection(item) {
     return (item.t === SECTION || item.t === INVERTED) && item.f;
   }
-  //# sourceMappingURL=01-_6to5-stripStandalones.js.map
+  //# sourceMappingURL=02-6to5-stripStandalones.js.map
 
   var processPartials = process;
 
@@ -7006,7 +7016,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-processPartials.js.map
+  //# sourceMappingURL=02-6to5-processPartials.js.map
 
   var StandardParser,
       parse,
@@ -7214,7 +7224,7 @@
     target.staticDelimiters = source.staticDelimiters || ["[[", "]]"];
     target.staticTripleDelimiters = source.staticTripleDelimiters || ["[[[", "]]]"];
   }
-  //# sourceMappingURL=01-_6to5-_parse.js.map
+  //# sourceMappingURL=02-6to5-_parse.js.map
 
   var parseOptions = ["preserveWhitespace", "sanitize", "stripComments", "delimiters", "tripleDelimiters", "interpolate"];
 
@@ -7295,7 +7305,7 @@
   }
 
   var parser__default = parser;
-  //# sourceMappingURL=01-_6to5-parser.js.map
+  //# sourceMappingURL=02-6to5-parser.js.map
 
   var templateConfigurator = {
     name: "template",
@@ -7424,7 +7434,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-template.js.map
+  //# sourceMappingURL=02-6to5-template.js.map
 
   var registryNames, Registry, registries;
 
@@ -7483,7 +7493,7 @@
   });
 
 
-  //# sourceMappingURL=01-_6to5-registries.js.map
+  //# sourceMappingURL=02-6to5-registries.js.map
 
   function wrap(parent, name, method) {
     if (!/_super/.test(method)) {
@@ -7534,7 +7544,7 @@
 
     return method;
   }
-  //# sourceMappingURL=01-_6to5-wrapPrototypeMethod.js.map
+  //# sourceMappingURL=02-6to5-wrapPrototypeMethod.js.map
 
   function getMessage(deprecated, correct, isError) {
     return "options." + deprecated + " has been deprecated in favour of options." + correct + "." + (isError ? " You cannot specify both options, please use options." + correct + "." : "");
@@ -7564,7 +7574,7 @@
       deprecateOption(options, "adaptors", "adapt");
     }
   }
-  //# sourceMappingURL=01-_6to5-deprecate.js.map
+  //# sourceMappingURL=02-6to5-deprecate.js.map
 
   var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
 
@@ -7676,7 +7686,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-config.js.map
+  //# sourceMappingURL=02-6to5-config.js.map
 
   function Fragment$bubble() {
     this.dirtyValue = this.dirtyArgs = true;
@@ -7685,7 +7695,7 @@
       this.owner.bubble();
     }
   }
-  //# sourceMappingURL=01-_6to5-bubble.js.map
+  //# sourceMappingURL=02-6to5-bubble.js.map
 
   function Fragment$detach() {
     var docFrag;
@@ -7711,7 +7721,7 @@
 
     return docFrag;
   }
-  //# sourceMappingURL=01-_6to5-detach.js.map
+  //# sourceMappingURL=02-6to5-detach.js.map
 
   function Fragment$find(selector) {
     var i, len, item, queryResult;
@@ -7729,7 +7739,7 @@
       return null;
     }
   }
-  //# sourceMappingURL=01-_6to5-find.js.map
+  //# sourceMappingURL=02-6to5-find.js.map
 
   function Fragment$findAll(selector, query) {
     var i, len, item;
@@ -7747,7 +7757,7 @@
 
     return query;
   }
-  //# sourceMappingURL=01-_6to5-findAll.js.map
+  //# sourceMappingURL=02-6to5-findAll.js.map
 
   function Fragment$findAllComponents(selector, query) {
     var i, len, item;
@@ -7765,7 +7775,7 @@
 
     return query;
   }
-  //# sourceMappingURL=01-_6to5-findAllComponents.js.map
+  //# sourceMappingURL=02-6to5-findAllComponents.js.map
 
   function Fragment$findComponent(selector) {
     var len, i, item, queryResult;
@@ -7783,7 +7793,7 @@
       return null;
     }
   }
-  //# sourceMappingURL=01-_6to5-findComponent.js.map
+  //# sourceMappingURL=02-6to5-findComponent.js.map
 
   function Fragment$findNextNode(item) {
     var index = item.index, node;
@@ -7811,7 +7821,7 @@
 
     return node;
   }
-  //# sourceMappingURL=01-_6to5-findNextNode.js.map
+  //# sourceMappingURL=02-6to5-findNextNode.js.map
 
   function Fragment$firstNode() {
     if (this.items && this.items[0]) {
@@ -7820,7 +7830,7 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-firstNode.js.map
+  //# sourceMappingURL=02-6to5-firstNode.js.map
 
   function processItems(items, values, guid, counter) {
     counter = counter || 0;
@@ -7851,7 +7861,7 @@
       return "${" + placeholderId + "}";
     }).join("");
   }
-  //# sourceMappingURL=01-_6to5-processItems.js.map
+  //# sourceMappingURL=02-6to5-processItems.js.map
 
   function Fragment$getArgsList() {
     var values, source, parsed, result;
@@ -7872,7 +7882,7 @@
 
     return this.argsList;
   }
-  //# sourceMappingURL=01-_6to5-getArgsList.js.map
+  //# sourceMappingURL=02-6to5-getArgsList.js.map
 
   function Fragment$getNode() {
     var fragment = this;
@@ -7885,7 +7895,7 @@
 
     return this.root.detached || this.root.el;
   }
-  //# sourceMappingURL=01-_6to5-getNode.js.map
+  //# sourceMappingURL=02-6to5-getNode.js.map
 
   function Fragment$getValue() {
     var values, source, parsed, result;
@@ -7906,12 +7916,12 @@
 
     return this.value;
   }
-  //# sourceMappingURL=01-_6to5-getValue.js.map
+  //# sourceMappingURL=02-6to5-getValue.js.map
 
   var detach__default = function () {
     return detachNode(this.node);
   };
-  //# sourceMappingURL=01-_6to5-detach.js.map
+  //# sourceMappingURL=02-6to5-detach.js.map
 
   var Text = function (options) {
     this.type = TEXT;
@@ -7945,7 +7955,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Text.js.map
+  //# sourceMappingURL=02-6to5-Text.js.map
 
   function unbind__unbind() {
     if (this.registered) {
@@ -7957,12 +7967,12 @@
       this.resolver.unbind();
     }
   }
-  //# sourceMappingURL=01-_6to5-unbind.js.map
+  //# sourceMappingURL=02-6to5-unbind.js.map
 
   function Mustache$getValue() {
     return this.value;
   }
-  //# sourceMappingURL=01-_6to5-getValue.js.map
+  //# sourceMappingURL=02-6to5-getValue.js.map
 
   var ReferenceResolver = function (owner, ref, callback) {
     var keypath;
@@ -8022,7 +8032,7 @@
 
 
 
-  //# sourceMappingURL=01-_6to5-ReferenceResolver.js.map
+  //# sourceMappingURL=02-6to5-ReferenceResolver.js.map
 
   var SpecialResolver = function (owner, ref, callback) {
     this.parentFragment = owner.parentFragment;
@@ -8100,7 +8110,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-SpecialResolver.js.map
+  //# sourceMappingURL=02-6to5-SpecialResolver.js.map
 
   var IndexResolver = function (owner, ref, callback) {
     this.parentFragment = owner.parentFragment;
@@ -8133,7 +8143,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-IndexResolver.js.map
+  //# sourceMappingURL=02-6to5-IndexResolver.js.map
 
   function findIndexRefs(fragment, refName) {
     var result = {}, refs, fragRefs, ref, i, owner, hit = false;
@@ -8196,7 +8206,7 @@
 
     return refs;
   };
-  //# sourceMappingURL=01-_6to5-findIndexRefs.js.map
+  //# sourceMappingURL=02-6to5-findIndexRefs.js.map
 
   function createReferenceResolver(owner, ref, callback) {
     var indexRef;
@@ -8211,7 +8221,7 @@
 
     return new ReferenceResolver(owner, ref, callback);
   }
-  //# sourceMappingURL=01-_6to5-createReferenceResolver.js.map
+  //# sourceMappingURL=02-6to5-createReferenceResolver.js.map
 
   var cache = {};
 
@@ -8232,7 +8242,7 @@
     cache[str] = fn;
     return fn;
   }
-  //# sourceMappingURL=01-_6to5-getFunctionFromString.js.map
+  //# sourceMappingURL=02-6to5-getFunctionFromString.js.map
 
   var ExpressionResolver, bind = Function.prototype.bind;
 
@@ -8422,7 +8432,7 @@
 
     return fn.__ractive_nowrap;
   }
-  //# sourceMappingURL=01-_6to5-ExpressionResolver.js.map
+  //# sourceMappingURL=02-6to5-ExpressionResolver.js.map
 
   var MemberResolver = function (template, resolver, parentFragment) {
     var _this = this;
@@ -8497,7 +8507,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-MemberResolver.js.map
+  //# sourceMappingURL=02-6to5-MemberResolver.js.map
 
   var ReferenceExpressionResolver = function (mustache, template, callback) {
     var _this = this;
@@ -8595,7 +8605,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-ReferenceExpressionResolver.js.map
+  //# sourceMappingURL=02-6to5-ReferenceExpressionResolver.js.map
 
   function Mustache$init(mustache, options) {
     var ref, parentFragment, template;
@@ -8653,7 +8663,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-initialise.js.map
+  //# sourceMappingURL=02-6to5-initialise.js.map
 
   function Mustache$resolve(keypath) {
     var wasResolved, value, twowayBinding;
@@ -8695,7 +8705,7 @@
       twowayBinding.rebound();
     }
   }
-  //# sourceMappingURL=01-_6to5-resolve.js.map
+  //# sourceMappingURL=02-6to5-resolve.js.map
 
   function Mustache$rebind(oldKeypath, newKeypath) {
     // Children first
@@ -8710,7 +8720,7 @@
       this.resolver.rebind(oldKeypath, newKeypath);
     }
   }
-  //# sourceMappingURL=01-_6to5-rebind.js.map
+  //# sourceMappingURL=02-6to5-rebind.js.map
 
   var Mustache = {
     getValue: Mustache$getValue,
@@ -8718,7 +8728,7 @@
     resolve: Mustache$resolve,
     rebind: Mustache$rebind
   };
-  //# sourceMappingURL=01-_6to5-_Mustache.js.map
+  //# sourceMappingURL=02-6to5-_Mustache.js.map
 
   var Interpolator = function (options) {
     this.type = INTERPOLATOR;
@@ -8781,12 +8791,12 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Interpolator.js.map
+  //# sourceMappingURL=02-6to5-Interpolator.js.map
 
   function Section$bubble() {
     this.parentFragment.bubble();
   }
-  //# sourceMappingURL=01-_6to5-bubble.js.map
+  //# sourceMappingURL=02-6to5-bubble.js.map
 
   function Section$detach() {
     var docFrag;
@@ -8803,7 +8813,7 @@
 
     return docFrag;
   }
-  //# sourceMappingURL=01-_6to5-detach.js.map
+  //# sourceMappingURL=02-6to5-detach.js.map
 
   function Section$find(selector) {
     var i, len, queryResult;
@@ -8817,7 +8827,7 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-find.js.map
+  //# sourceMappingURL=02-6to5-find.js.map
 
   function Section$findAll(selector, query) {
     var i, len;
@@ -8827,7 +8837,7 @@
       this.fragments[i].findAll(selector, query);
     }
   }
-  //# sourceMappingURL=01-_6to5-findAll.js.map
+  //# sourceMappingURL=02-6to5-findAll.js.map
 
   function Section$findAllComponents(selector, query) {
     var i, len;
@@ -8837,7 +8847,7 @@
       this.fragments[i].findAllComponents(selector, query);
     }
   }
-  //# sourceMappingURL=01-_6to5-findAllComponents.js.map
+  //# sourceMappingURL=02-6to5-findAllComponents.js.map
 
   function Section$findComponent(selector) {
     var i, len, queryResult;
@@ -8851,7 +8861,7 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-findComponent.js.map
+  //# sourceMappingURL=02-6to5-findComponent.js.map
 
   function Section$findNextNode(fragment) {
     if (this.fragments[fragment.index + 1]) {
@@ -8860,7 +8870,7 @@
 
     return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=01-_6to5-findNextNode.js.map
+  //# sourceMappingURL=02-6to5-findNextNode.js.map
 
   function Section$firstNode() {
     var len, i, node;
@@ -8875,7 +8885,7 @@
 
     return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=01-_6to5-firstNode.js.map
+  //# sourceMappingURL=02-6to5-firstNode.js.map
 
   function Section$shuffle(newIndices) {
     var _this = this;
@@ -8978,12 +8988,12 @@
     // the keypath doesn't actually matter here as it won't have changed
     dep.rebind("", "");
   }
-  //# sourceMappingURL=01-_6to5-shuffle.js.map
+  //# sourceMappingURL=02-6to5-shuffle.js.map
 
   var prototype_rebind = function (oldKeypath, newKeypath) {
     Mustache.rebind.call(this, oldKeypath, newKeypath);
   };
-  //# sourceMappingURL=01-_6to5-rebind.js.map
+  //# sourceMappingURL=02-6to5-rebind.js.map
 
   function Section$render() {
     var _this = this;
@@ -8999,7 +9009,7 @@
     this.rendered = true;
     return this.docFrag;
   }
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=02-6to5-render.js.map
 
   function Section$setValue(value) {
     var _this = this;
@@ -9318,7 +9328,7 @@
     // the keypath doesn't actually matter here as it won't have changed
     dep.rebind("", "");
   }
-  //# sourceMappingURL=01-_6to5-setValue.js.map
+  //# sourceMappingURL=02-6to5-setValue.js.map
 
   function Section$toString(escape) {
     var str, i, len;
@@ -9334,7 +9344,7 @@
 
     return str;
   }
-  //# sourceMappingURL=01-_6to5-toString.js.map
+  //# sourceMappingURL=02-6to5-toString.js.map
 
   function Section$unbind() {
     var _this = this;
@@ -9348,7 +9358,7 @@
     this.length = 0;
     this.unbound = true;
   }
-  //# sourceMappingURL=01-_6to5-unbind.js.map
+  //# sourceMappingURL=02-6to5-unbind.js.map
 
   function Section$unrender(shouldDestroy) {
     this.fragments.forEach(shouldDestroy ? unrenderAndDestroy : unrender__unrender);
@@ -9363,7 +9373,7 @@
   function unrender__unrender(fragment) {
     fragment.unrender(false);
   }
-  //# sourceMappingURL=01-_6to5-unrender.js.map
+  //# sourceMappingURL=02-6to5-unrender.js.map
 
   function Section$update() {
     var fragment, renderIndex, renderedFragments, anchor, target, i, len;
@@ -9420,7 +9430,7 @@
     // Save the rendering order for next time
     this.renderedFragments = this.fragments.slice();
   }
-  //# sourceMappingURL=01-_6to5-update.js.map
+  //# sourceMappingURL=02-6to5-update.js.map
 
   var Section = function (options) {
     this.type = SECTION;
@@ -9481,7 +9491,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_Section.js.map
+  //# sourceMappingURL=02-6to5-_Section.js.map
 
   function Triple$detach() {
     var len, i;
@@ -9495,7 +9505,7 @@
       return this.docFrag;
     }
   }
-  //# sourceMappingURL=01-_6to5-detach.js.map
+  //# sourceMappingURL=02-6to5-detach.js.map
 
   function Triple$find(selector) {
     var i, len, node, queryResult;
@@ -9519,7 +9529,7 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-find.js.map
+  //# sourceMappingURL=02-6to5-find.js.map
 
   function Triple$findAll(selector, queryResult) {
     var i, len, node, queryAllResult, numNodes, j;
@@ -9544,7 +9554,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-findAll.js.map
+  //# sourceMappingURL=02-6to5-findAll.js.map
 
   function Triple$firstNode() {
     if (this.rendered && this.nodes[0]) {
@@ -9553,7 +9563,7 @@
 
     return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=01-_6to5-firstNode.js.map
+  //# sourceMappingURL=02-6to5-firstNode.js.map
 
   var elementCache = {}, ieBug, ieBlacklist;
 
@@ -9623,7 +9633,7 @@
   function element(tagName) {
     return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
   }
-  //# sourceMappingURL=01-_6to5-insertHtml.js.map
+  //# sourceMappingURL=02-6to5-insertHtml.js.map
 
   function updateSelect(parentElement) {
     var selectedOptions, option, value;
@@ -9654,7 +9664,7 @@
   function isSelected(option) {
     return option.selected;
   }
-  //# sourceMappingURL=01-_6to5-updateSelect.js.map
+  //# sourceMappingURL=02-6to5-updateSelect.js.map
 
   function Triple$render() {
     if (this.rendered) {
@@ -9670,7 +9680,7 @@
     this.rendered = true;
     return this.docFrag;
   }
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=02-6to5-render.js.map
 
   function Triple$setValue(value) {
     var wrapper;
@@ -9689,12 +9699,12 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-setValue.js.map
+  //# sourceMappingURL=02-6to5-setValue.js.map
 
   function Triple$toString() {
     return this.value != undefined ? decodeCharacterReferences("" + this.value) : "";
   }
-  //# sourceMappingURL=01-_6to5-toString.js.map
+  //# sourceMappingURL=02-6to5-toString.js.map
 
   function Triple$unrender(shouldDestroy) {
     if (this.rendered && shouldDestroy) {
@@ -9704,7 +9714,7 @@
 
     // TODO update live queries
   }
-  //# sourceMappingURL=01-_6to5-unrender.js.map
+  //# sourceMappingURL=02-6to5-unrender.js.map
 
   function Triple$update() {
     var node, parentNode;
@@ -9728,7 +9738,7 @@
     // Special case - we're inserting the contents of a <select>
     updateSelect(this.pElement);
   }
-  //# sourceMappingURL=01-_6to5-update.js.map
+  //# sourceMappingURL=02-6to5-update.js.map
 
   var Triple = function (options) {
     this.type = TRIPLE;
@@ -9752,12 +9762,12 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_Triple.js.map
+  //# sourceMappingURL=02-6to5-_Triple.js.map
 
   var Element_prototype_bubble = function () {
     this.parentFragment.bubble();
   };
-  //# sourceMappingURL=01-_6to5-bubble.js.map
+  //# sourceMappingURL=02-6to5-bubble.js.map
 
   function Element$detach() {
     var node = this.node, parentNode;
@@ -9772,7 +9782,7 @@
       return node;
     }
   }
-  //# sourceMappingURL=01-_6to5-detach.js.map
+  //# sourceMappingURL=02-6to5-detach.js.map
 
   var Element_prototype_find = function (selector) {
     if (!this.node) {
@@ -9788,7 +9798,7 @@
       return this.fragment.find(selector);
     }
   };
-  //# sourceMappingURL=01-_6to5-find.js.map
+  //# sourceMappingURL=02-6to5-find.js.map
 
   var Element_prototype_findAll = function (selector, query) {
     // Add this node to the query, if applicable, and register the
@@ -9801,31 +9811,31 @@
       this.fragment.findAll(selector, query);
     }
   };
-  //# sourceMappingURL=01-_6to5-findAll.js.map
+  //# sourceMappingURL=02-6to5-findAll.js.map
 
   var Element_prototype_findAllComponents = function (selector, query) {
     if (this.fragment) {
       this.fragment.findAllComponents(selector, query);
     }
   };
-  //# sourceMappingURL=01-_6to5-findAllComponents.js.map
+  //# sourceMappingURL=02-6to5-findAllComponents.js.map
 
   var Element_prototype_findComponent = function (selector) {
     if (this.fragment) {
       return this.fragment.findComponent(selector);
     }
   };
-  //# sourceMappingURL=01-_6to5-findComponent.js.map
+  //# sourceMappingURL=02-6to5-findComponent.js.map
 
   function Element$findNextNode() {
     return null;
   }
-  //# sourceMappingURL=01-_6to5-findNextNode.js.map
+  //# sourceMappingURL=02-6to5-findNextNode.js.map
 
   function Element$firstNode() {
     return this.node;
   }
-  //# sourceMappingURL=01-_6to5-firstNode.js.map
+  //# sourceMappingURL=02-6to5-firstNode.js.map
 
   function Element$getAttribute(name) {
     if (!this.attributes || !this.attributes[name]) {
@@ -9834,7 +9844,7 @@
 
     return this.attributes[name].value;
   }
-  //# sourceMappingURL=01-_6to5-getAttribute.js.map
+  //# sourceMappingURL=02-6to5-getAttribute.js.map
 
   var truthy = /^true|on|yes|1$/i;
   var processBindingAttributes__isNumeric = /^[0-9]+$/;
@@ -9863,7 +9873,7 @@
       delete attributes.lazy;
     }
   };
-  //# sourceMappingURL=01-_6to5-processBindingAttributes.js.map
+  //# sourceMappingURL=02-6to5-processBindingAttributes.js.map
 
   function Attribute$bubble() {
     var value = this.useProperty || !this.rendered ? this.fragment.getValue() : this.fragment.toString();
@@ -9889,7 +9899,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-bubble.js.map
+  //# sourceMappingURL=02-6to5-bubble.js.map
 
   var svgCamelCaseElements, svgCamelCaseAttributes, createMap, enforceCase__map;
   svgCamelCaseElements = "altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern".split(" ");
@@ -9910,7 +9920,7 @@
     var lowerCaseElementName = elementName.toLowerCase();
     return enforceCase__map[lowerCaseElementName] || lowerCaseElementName;
   };
-  //# sourceMappingURL=01-_6to5-enforceCase.js.map
+  //# sourceMappingURL=02-6to5-enforceCase.js.map
 
   var determineNameAndNamespace = function (attribute, name) {
     var colonIndex, namespacePrefix;
@@ -9941,7 +9951,7 @@
     // SVG attribute names are case sensitive
     attribute.name = attribute.element.namespace !== namespaces.html ? enforceCase(name) : name;
   };
-  //# sourceMappingURL=01-_6to5-determineNameAndNamespace.js.map
+  //# sourceMappingURL=02-6to5-determineNameAndNamespace.js.map
 
   function getInterpolator(attribute) {
     var items = attribute.fragment.items;
@@ -9954,7 +9964,7 @@
       return items[0];
     }
   }
-  //# sourceMappingURL=01-_6to5-getInterpolator.js.map
+  //# sourceMappingURL=02-6to5-getInterpolator.js.map
 
   function Attribute$init(options) {
     this.type = ATTRIBUTE;
@@ -9994,14 +10004,14 @@
     // mark as ready
     this.ready = true;
   }
-  //# sourceMappingURL=01-_6to5-init.js.map
+  //# sourceMappingURL=02-6to5-init.js.map
 
   function Attribute$rebind(oldKeypath, newKeypath) {
     if (this.fragment) {
       this.fragment.rebind(oldKeypath, newKeypath);
     }
   }
-  //# sourceMappingURL=01-_6to5-rebind.js.map
+  //# sourceMappingURL=02-6to5-rebind.js.map
 
   var propertyNames = {
     "accept-charset": "acceptCharset",
@@ -10052,7 +10062,7 @@
     this.rendered = true;
     this.update();
   }
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=02-6to5-render.js.map
 
   function Attribute$toString() {
     var _ref = this;
@@ -10097,7 +10107,7 @@
   function escape(value) {
     return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
-  //# sourceMappingURL=01-_6to5-toString.js.map
+  //# sourceMappingURL=02-6to5-toString.js.map
 
   function Attribute$unbind() {
     // ignore non-dynamic attributes
@@ -10109,7 +10119,7 @@
       delete this.root.nodes[this.value];
     }
   }
-  //# sourceMappingURL=01-_6to5-unbind.js.map
+  //# sourceMappingURL=02-6to5-unbind.js.map
 
   function Attribute$updateSelect() {
     var value = this.value, options, option, optionValue, i;
@@ -10135,7 +10145,7 @@
     // if we're still here, it means the new value didn't match any of the options...
     // TODO figure out what to do in this situation
   }
-  //# sourceMappingURL=01-_6to5-updateSelectValue.js.map
+  //# sourceMappingURL=02-6to5-updateSelectValue.js.map
 
   function Attribute$updateMultipleSelect() {
     var value = this.value, options, i, option, optionValue;
@@ -10153,7 +10163,7 @@
       option.selected = arrayContains(value, optionValue);
     }
   }
-  //# sourceMappingURL=01-_6to5-updateMultipleSelectValue.js.map
+  //# sourceMappingURL=02-6to5-updateMultipleSelectValue.js.map
 
   function Attribute$updateRadioName() {
     var _ref = this;
@@ -10161,7 +10171,7 @@
     var value = _ref.value;
     node.checked = value == node._ractive.value;
   }
-  //# sourceMappingURL=01-_6to5-updateRadioName.js.map
+  //# sourceMappingURL=02-6to5-updateRadioName.js.map
 
   function Attribute$updateRadioValue() {
     var wasChecked, node = this.node, binding, bindings, i;
@@ -10198,7 +10208,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-updateRadioValue.js.map
+  //# sourceMappingURL=02-6to5-updateRadioValue.js.map
 
   function Attribute$updateCheckboxName() {
     var _ref = this;
@@ -10221,7 +10231,7 @@
       binding.isChecked = node.checked = false;
     }
   }
-  //# sourceMappingURL=01-_6to5-updateCheckboxName.js.map
+  //# sourceMappingURL=02-6to5-updateCheckboxName.js.map
 
   function Attribute$updateClassName() {
     var node, value;
@@ -10235,7 +10245,7 @@
 
     node.className = value;
   }
-  //# sourceMappingURL=01-_6to5-updateClassName.js.map
+  //# sourceMappingURL=02-6to5-updateClassName.js.map
 
   function Attribute$updateIdAttribute() {
     var _ref = this;
@@ -10246,7 +10256,7 @@
     this.root.nodes[value] = node;
     node.id = value;
   }
-  //# sourceMappingURL=01-_6to5-updateIdAttribute.js.map
+  //# sourceMappingURL=02-6to5-updateIdAttribute.js.map
 
   function Attribute$updateIEStyleAttribute() {
     var node, value;
@@ -10260,7 +10270,7 @@
 
     node.style.setAttribute("cssText", value);
   }
-  //# sourceMappingURL=01-_6to5-updateIEStyleAttribute.js.map
+  //# sourceMappingURL=02-6to5-updateIEStyleAttribute.js.map
 
   function Attribute$updateContentEditableValue() {
     var value = this.value;
@@ -10273,7 +10283,7 @@
       this.node.innerHTML = value;
     }
   }
-  //# sourceMappingURL=01-_6to5-updateContentEditableValue.js.map
+  //# sourceMappingURL=02-6to5-updateContentEditableValue.js.map
 
   function Attribute$updateValue() {
     var _ref = this;
@@ -10290,7 +10300,7 @@
       node.value = value == undefined ? "" : value;
     }
   }
-  //# sourceMappingURL=01-_6to5-updateValue.js.map
+  //# sourceMappingURL=02-6to5-updateValue.js.map
 
   function Attribute$updateBooleanAttribute() {
     // with two-way binding, only update if the change wasn't initiated by the user
@@ -10299,7 +10309,7 @@
       this.node[this.propertyName] = this.value;
     }
   }
-  //# sourceMappingURL=01-_6to5-updateBoolean.js.map
+  //# sourceMappingURL=02-6to5-updateBoolean.js.map
 
   function Attribute$updateEverythingElse() {
     var _ref = this;
@@ -10325,7 +10335,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-updateEverythingElse.js.map
+  //# sourceMappingURL=02-6to5-updateEverythingElse.js.map
 
   function Attribute$update() {
     var _ref = this;
@@ -10394,7 +10404,7 @@
     this.update = updateMethod;
     this.update();
   }
-  //# sourceMappingURL=01-_6to5-update.js.map
+  //# sourceMappingURL=02-6to5-update.js.map
 
   var Attribute = function (options) {
     this.init(options);
@@ -10411,7 +10421,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_Attribute.js.map
+  //# sourceMappingURL=02-6to5-_Attribute.js.map
 
   var createAttributes = function (element, attributes) {
     var name, attribute, result = [];
@@ -10443,7 +10453,7 @@
 
     return result;
   };
-  //# sourceMappingURL=01-_6to5-createAttributes.js.map
+  //# sourceMappingURL=02-6to5-createAttributes.js.map
 
   var ConditionalAttribute__div;
 
@@ -10537,7 +10547,7 @@
 
     return true;
   }
-  //# sourceMappingURL=01-_6to5-_ConditionalAttribute.js.map
+  //# sourceMappingURL=02-6to5-_ConditionalAttribute.js.map
 
   var createConditionalAttributes = function (element, attributes) {
     if (!attributes) {
@@ -10548,7 +10558,7 @@
       return new ConditionalAttribute(element, a);
     });
   };
-  //# sourceMappingURL=01-_6to5-createConditionalAttributes.js.map
+  //# sourceMappingURL=02-6to5-createConditionalAttributes.js.map
 
   var Binding = function (element) {
     var interpolator, keypath, value, parentForm;
@@ -10668,14 +10678,14 @@
   }
   // this is called when the element is unbound.
   // Specialised bindings can override it
-  //# sourceMappingURL=01-_6to5-Binding.js.map
+  //# sourceMappingURL=02-6to5-Binding.js.map
 
   // This is the handler for DOM events that would lead to a change in the model
   // (i.e. change, sometimes, input, and occasionally click and keyup)
   function handleChange() {
     this._ractive.binding.handleChange();
   }
-  //# sourceMappingURL=01-_6to5-handleDomEvent.js.map
+  //# sourceMappingURL=02-6to5-handleDomEvent.js.map
 
   var ContentEditableBinding = Binding__default.extend({
     getInitialValue: function () {
@@ -10710,7 +10720,7 @@
   });
 
 
-  //# sourceMappingURL=01-_6to5-ContentEditableBinding.js.map
+  //# sourceMappingURL=02-6to5-ContentEditableBinding.js.map
 
   var sets = {};
 
@@ -10718,7 +10728,7 @@
     var hash = id + group + keypath;
     return sets[hash] || (sets[hash] = []);
   }
-  //# sourceMappingURL=01-_6to5-getSiblings.js.map
+  //# sourceMappingURL=02-6to5-getSiblings.js.map
 
   var RadioBinding = Binding__default.extend({
     name: "checked",
@@ -10765,7 +10775,7 @@
   });
 
 
-  //# sourceMappingURL=01-_6to5-RadioBinding.js.map
+  //# sourceMappingURL=02-6to5-RadioBinding.js.map
 
   var RadioNameBinding = Binding__default.extend({
     name: "name",
@@ -10832,7 +10842,7 @@
   });
 
 
-  //# sourceMappingURL=01-_6to5-RadioNameBinding.js.map
+  //# sourceMappingURL=02-6to5-RadioNameBinding.js.map
 
   var CheckboxNameBinding = Binding__default.extend({
     name: "name",
@@ -10933,7 +10943,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-CheckboxNameBinding.js.map
+  //# sourceMappingURL=02-6to5-CheckboxNameBinding.js.map
 
   var CheckboxBinding = Binding__default.extend({
     name: "checked",
@@ -10961,7 +10971,7 @@
   });
 
 
-  //# sourceMappingURL=01-_6to5-CheckboxBinding.js.map
+  //# sourceMappingURL=02-6to5-CheckboxBinding.js.map
 
   var SelectBinding = Binding__default.extend({
     getInitialValue: function () {
@@ -11049,7 +11059,7 @@
   });
 
 
-  //# sourceMappingURL=01-_6to5-SelectBinding.js.map
+  //# sourceMappingURL=02-6to5-SelectBinding.js.map
 
   var MultipleSelectBinding = SelectBinding.extend({
     getInitialValue: function () {
@@ -11136,7 +11146,7 @@
   });
 
 
-  //# sourceMappingURL=01-_6to5-MultipleSelectBinding.js.map
+  //# sourceMappingURL=02-6to5-MultipleSelectBinding.js.map
 
   var FileListBinding = Binding__default.extend({
     render: function () {
@@ -11153,7 +11163,7 @@
   });
 
 
-  //# sourceMappingURL=01-_6to5-FileListBinding.js.map
+  //# sourceMappingURL=02-6to5-FileListBinding.js.map
 
   var GenericBinding;
 
@@ -11231,7 +11241,7 @@
       binding._timeout = undefined;
     }, binding.element.lazy);
   }
-  //# sourceMappingURL=01-_6to5-GenericBinding.js.map
+  //# sourceMappingURL=02-6to5-GenericBinding.js.map
 
   var NumericBinding = GenericBinding.extend({
     getInitialValue: function () {
@@ -11243,7 +11253,7 @@
       return isNaN(value) ? undefined : value;
     }
   });
-  //# sourceMappingURL=01-_6to5-NumericBinding.js.map
+  //# sourceMappingURL=02-6to5-NumericBinding.js.map
 
   function createTwowayBinding(element) {
     var attributes = element.attributes, type, Binding, bindName, bindChecked, binding;
@@ -11306,7 +11316,7 @@
     return attribute && attribute.isBindable;
   }
   // and this element also has a value attribute to bind
-  //# sourceMappingURL=01-_6to5-createTwowayBinding.js.map
+  //# sourceMappingURL=02-6to5-createTwowayBinding.js.map
 
   function EventHandler$bubble() {
     var hasAction = this.getAction();
@@ -11317,17 +11327,17 @@
       this.unrender();
     }
   }
-  //# sourceMappingURL=01-_6to5-bubble.js.map
+  //# sourceMappingURL=02-6to5-bubble.js.map
 
   function EventHandler$fire(event) {
     fireEvent(this.root, this.getAction(), { event: event });
   }
-  //# sourceMappingURL=01-_6to5-fire.js.map
+  //# sourceMappingURL=02-6to5-fire.js.map
 
   function EventHandler$getAction() {
     return this.action.toString().trim();
   }
-  //# sourceMappingURL=01-_6to5-getAction.js.map
+  //# sourceMappingURL=02-6to5-getAction.js.map
 
   var eventPattern = /^event(?:\.(.+))?/;
 
@@ -11460,7 +11470,7 @@
 
     fireEvent(this.root, this.getAction(), { event: event, args: args });
   }
-  //# sourceMappingURL=01-_6to5-init.js.map
+  //# sourceMappingURL=02-6to5-init.js.map
 
   function genericHandler(event) {
     var storage, handler, indices, index = {};
@@ -11480,7 +11490,7 @@
       context: storage.root.viewmodel.get(storage.keypath)
     });
   }
-  //# sourceMappingURL=01-_6to5-genericHandler.js.map
+  //# sourceMappingURL=02-6to5-genericHandler.js.map
 
   var customHandlers = {},
       touchEvents = {
@@ -11533,7 +11543,7 @@
 
     return customHandlers[name];
   }
-  //# sourceMappingURL=01-_6to5-listen.js.map
+  //# sourceMappingURL=02-6to5-listen.js.map
 
   function EventHandler$rebind(oldKeypath, newKeypath) {
     var fragment;
@@ -11556,7 +11566,7 @@
       thing && thing.rebind(oldKeypath, newKeypath);
     }
   }
-  //# sourceMappingURL=01-_6to5-rebind.js.map
+  //# sourceMappingURL=02-6to5-rebind.js.map
 
   function EventHandler$render() {
     this.node = this.element.node;
@@ -11568,12 +11578,12 @@
       this.listen();
     }
   }
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=02-6to5-render.js.map
 
   function EventHandler$resolve(index, keypath) {
     this.keypaths[index] = keypath;
   }
-  //# sourceMappingURL=01-_6to5-resolve.js.map
+  //# sourceMappingURL=02-6to5-resolve.js.map
 
   function EventHandler$unbind() {
     if (this.method) {
@@ -11591,7 +11601,7 @@
       this.dynamicParams.unbind();
     }
   }
-  //# sourceMappingURL=01-_6to5-unbind.js.map
+  //# sourceMappingURL=02-6to5-unbind.js.map
 
   function EventHandler$unrender() {
     if (this.custom) {
@@ -11602,7 +11612,7 @@
 
     this.hasListener = false;
   }
-  //# sourceMappingURL=01-_6to5-unrender.js.map
+  //# sourceMappingURL=02-6to5-unrender.js.map
 
   var EventHandler = function (element, name, template) {
     this.init(element, name, template);
@@ -11622,7 +11632,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_EventHandler.js.map
+  //# sourceMappingURL=02-6to5-_EventHandler.js.map
 
   var createEventHandlers = function (element, template) {
     var i, name, names, handler, result = [];
@@ -11641,7 +11651,7 @@
 
     return result;
   };
-  //# sourceMappingURL=01-_6to5-createEventHandlers.js.map
+  //# sourceMappingURL=02-6to5-createEventHandlers.js.map
 
   var Decorator = function (element, template) {
     var self = this, ractive, name, fragment;
@@ -11745,7 +11755,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_Decorator.js.map
+  //# sourceMappingURL=02-6to5-_Decorator.js.map
 
   function select__bubble() {
     var _this = this;
@@ -11817,7 +11827,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-select.js.map
+  //# sourceMappingURL=02-6to5-select.js.map
 
   function option__init(option, template) {
     option.select = findParentSelect(option.parent);
@@ -11863,7 +11873,7 @@
       }
     } while (element = element.parent);
   }
-  //# sourceMappingURL=01-_6to5-option.js.map
+  //# sourceMappingURL=02-6to5-option.js.map
 
   function Element$init(options) {
     var parentFragment, template, ractive, binding, bindings, twoway;
@@ -11941,7 +11951,7 @@
     this.intro = template.t0 || template.t1;
     this.outro = template.t0 || template.t2;
   }
-  //# sourceMappingURL=01-_6to5-init.js.map
+  //# sourceMappingURL=02-6to5-init.js.map
 
   function Element$rebind(oldKeypath, newKeypath) {
     var i, storage, liveQueries, ractive;
@@ -11986,7 +11996,7 @@
       thing.rebind(oldKeypath, newKeypath);
     }
   }
-  //# sourceMappingURL=01-_6to5-rebind.js.map
+  //# sourceMappingURL=02-6to5-rebind.js.map
 
   function img__render(img) {
     var loadHandler;
@@ -12010,7 +12020,7 @@
       }, false);
     }
   }
-  //# sourceMappingURL=01-_6to5-img.js.map
+  //# sourceMappingURL=02-6to5-img.js.map
 
   function form__render(element) {
     element.node.addEventListener("reset", handleReset, false);
@@ -12031,7 +12041,7 @@
   function updateModel(binding) {
     binding.root.viewmodel.set(binding.keypath, binding.resetValue);
   }
-  //# sourceMappingURL=01-_6to5-form.js.map
+  //# sourceMappingURL=02-6to5-form.js.map
 
   function Transition$init(element, template, isIntro) {
     var ractive, name, fragment;
@@ -12081,14 +12091,14 @@
       warnOnce(missingPlugin(name, "transition"));
     }
   }
-  //# sourceMappingURL=01-_6to5-init.js.map
+  //# sourceMappingURL=02-6to5-init.js.map
 
   var camelCase = function (hyphenatedStr) {
     return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
       return $1.toUpperCase();
     });
   };
-  //# sourceMappingURL=01-_6to5-camelCase.js.map
+  //# sourceMappingURL=02-6to5-camelCase.js.map
 
   var prefix__prefix, prefixCache, prefix__testStyle;
 
@@ -12126,7 +12136,7 @@
   }
 
   var prefix__default = prefix__prefix;
-  //# sourceMappingURL=01-_6to5-prefix.js.map
+  //# sourceMappingURL=02-6to5-prefix.js.map
 
   var getStyle, getStyle__getComputedStyle;
 
@@ -12169,7 +12179,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-getStyle.js.map
+  //# sourceMappingURL=02-6to5-getStyle.js.map
 
   var setStyle = function (style, value) {
     var prop;
@@ -12186,7 +12196,7 @@
 
     return this;
   };
-  //# sourceMappingURL=01-_6to5-setStyle.js.map
+  //# sourceMappingURL=02-6to5-setStyle.js.map
 
   var Ticker = function (options) {
     var easing;
@@ -12261,14 +12271,14 @@
   function linear(t) {
     return t;
   }
-  //# sourceMappingURL=01-_6to5-Ticker.js.map
+  //# sourceMappingURL=02-6to5-Ticker.js.map
 
   var unprefixPattern = new RegExp("^-(?:" + vendors.join("|") + ")-");
 
   var unprefix = function (prop) {
     return prop.replace(unprefixPattern, "");
   };
-  //# sourceMappingURL=01-_6to5-unprefix.js.map
+  //# sourceMappingURL=02-6to5-unprefix.js.map
 
   var vendorPattern = new RegExp("^(?:" + vendors.join("|") + ")([A-Z])");
 
@@ -12289,7 +12299,7 @@
 
     return hyphenated;
   };
-  //# sourceMappingURL=01-_6to5-hyphenate.js.map
+  //# sourceMappingURL=02-6to5-hyphenate.js.map
 
   var createTransitions, createTransitions__testStyle, TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, canUseCssTransitions = {}, cannotUseCssTransitions = {};
 
@@ -12456,7 +12466,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-createTransitions.js.map
+  //# sourceMappingURL=02-6to5-createTransitions.js.map
 
   var hidden, vendor, visibility__prefix, visibility__i, visibility;
 
@@ -12514,7 +12524,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-visibility.js.map
+  //# sourceMappingURL=02-6to5-visibility.js.map
 
   var animateStyle, animateStyle__getComputedStyle, resolved;
 
@@ -12611,7 +12621,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-_animateStyle.js.map
+  //# sourceMappingURL=02-6to5-_animateStyle.js.map
 
   var processParams = function (params, defaults) {
     if (typeof params === "number") {
@@ -12630,7 +12640,7 @@
 
     return fillGaps({}, params, defaults);
   };
-  //# sourceMappingURL=01-_6to5-processParams.js.map
+  //# sourceMappingURL=02-6to5-processParams.js.map
 
   function Transition$start() {
     var _this = this;
@@ -12676,7 +12686,7 @@
       node.removeAttribute("style");
     }
   }
-  //# sourceMappingURL=01-_6to5-start.js.map
+  //# sourceMappingURL=02-6to5-start.js.map
 
   var Transition = function (owner, template, isIntro) {
     this.init(owner, template, isIntro);
@@ -12692,7 +12702,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_Transition.js.map
+  //# sourceMappingURL=02-6to5-_Transition.js.map
 
   var updateCss, updateScript;
 
@@ -12930,7 +12940,7 @@
       }
     } while (instance = instance.parent);
   }
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=02-6to5-render.js.map
 
   var Element_prototype_toString = function () {
     var str, escape;
@@ -13026,7 +13036,7 @@
     var str = attribute.toString();
     return str ? " " + str : "";
   }
-  //# sourceMappingURL=01-_6to5-toString.js.map
+  //# sourceMappingURL=02-6to5-toString.js.map
 
   function Element$unbind() {
     if (this.fragment) {
@@ -13049,7 +13059,7 @@
     this.attributes.forEach(methodCallers__unbind);
     this.conditionalAttributes.forEach(methodCallers__unbind);
   }
-  //# sourceMappingURL=01-_6to5-unbind.js.map
+  //# sourceMappingURL=02-6to5-unbind.js.map
 
   function Element$unrender(shouldDestroy) {
     var binding, bindings, transition;
@@ -13121,7 +13131,7 @@
       query._remove(element.node);
     }
   }
-  //# sourceMappingURL=01-_6to5-unrender.js.map
+  //# sourceMappingURL=02-6to5-unrender.js.map
 
   var Element = function (options) {
     this.init(options);
@@ -13146,7 +13156,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_Element.js.map
+  //# sourceMappingURL=02-6to5-_Element.js.map
 
   var deIndent__empty = /^\s*$/,
       deIndent__leadingWhitespace = /^\s*/;
@@ -13187,7 +13197,7 @@
 
     return previous;
   }
-  //# sourceMappingURL=01-_6to5-deIndent.js.map
+  //# sourceMappingURL=02-6to5-deIndent.js.map
 
   function getPartialTemplate(ractive, name) {
     var partial;
@@ -13273,7 +13283,7 @@
     }
     return constructor.partials.hasOwnProperty(key) ? constructor : findConstructor(constructor._Parent, key);
   }
-  //# sourceMappingURL=01-_6to5-getPartialTemplate.js.map
+  //# sourceMappingURL=02-6to5-getPartialTemplate.js.map
 
   var applyIndent = function (string, indent) {
     var indented;
@@ -13288,7 +13298,7 @@
 
     return indented;
   };
-  //# sourceMappingURL=01-_6to5-applyIndent.js.map
+  //# sourceMappingURL=02-6to5-applyIndent.js.map
 
   var Partial = function (options) {
     var parentFragment, template;
@@ -13488,7 +13498,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-_Partial.js.map
+  //# sourceMappingURL=02-6to5-_Partial.js.map
 
   function getComponent__getComponent(ractive, name) {
     var Component, instance = findInstance("components", ractive, name);
@@ -13523,7 +13533,7 @@
 
     return Component;
   }
-  //# sourceMappingURL=01-_6to5-getComponent.js.map
+  //# sourceMappingURL=02-6to5-getComponent.js.map
 
   var Component_prototype_detach__detachHook = new Hook("detach");
 
@@ -13532,17 +13542,17 @@
     Component_prototype_detach__detachHook.fire(this.instance);
     return detached;
   }
-  //# sourceMappingURL=01-_6to5-detach.js.map
+  //# sourceMappingURL=02-6to5-detach.js.map
 
   function Component$find(selector) {
     return this.instance.fragment.find(selector);
   }
-  //# sourceMappingURL=01-_6to5-find.js.map
+  //# sourceMappingURL=02-6to5-find.js.map
 
   function Component$findAll(selector, query) {
     return this.instance.fragment.findAll(selector, query);
   }
-  //# sourceMappingURL=01-_6to5-findAll.js.map
+  //# sourceMappingURL=02-6to5-findAll.js.map
 
   function Component$findAllComponents(selector, query) {
     query._test(this, true);
@@ -13551,7 +13561,7 @@
       this.instance.fragment.findAllComponents(selector, query);
     }
   }
-  //# sourceMappingURL=01-_6to5-findAllComponents.js.map
+  //# sourceMappingURL=02-6to5-findAllComponents.js.map
 
   function Component$findComponent(selector) {
     if (!selector || selector === this.name) {
@@ -13564,12 +13574,12 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-findComponent.js.map
+  //# sourceMappingURL=02-6to5-findComponent.js.map
 
   function Component$findNextNode() {
     return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=01-_6to5-findNextNode.js.map
+  //# sourceMappingURL=02-6to5-findNextNode.js.map
 
   function Component$firstNode() {
     if (this.rendered) {
@@ -13578,7 +13588,7 @@
 
     return null;
   }
-  //# sourceMappingURL=01-_6to5-firstNode.js.map
+  //# sourceMappingURL=02-6to5-firstNode.js.map
 
   var prefixers = {};
 
@@ -13642,7 +13652,7 @@
 
     return prefixers[rootKeypath];
   }
-  //# sourceMappingURL=01-_6to5-adapt.js.map
+  //# sourceMappingURL=02-6to5-adapt.js.map
 
   function getUpstreamChanges(changes) {
     var upstreamChanges = [rootKeypath], i, keypath;
@@ -13659,7 +13669,7 @@
 
     return upstreamChanges;
   }
-  //# sourceMappingURL=01-_6to5-getUpstreamChanges.js.map
+  //# sourceMappingURL=02-6to5-getUpstreamChanges.js.map
 
   function notifyPatternObservers(viewmodel, keypath, onlyDirect) {
     var potentialWildcardMatches;
@@ -13705,7 +13715,7 @@
       }
     });
   }
-  //# sourceMappingURL=01-_6to5-notifyPatternObservers.js.map
+  //# sourceMappingURL=02-6to5-notifyPatternObservers.js.map
 
   function Viewmodel$applyChanges() {
     var _this = this;
@@ -13898,12 +13908,12 @@
     var group = viewmodel.deps[groupName];
     return group ? group[keypath.str] : null;
   }
-  //# sourceMappingURL=01-_6to5-applyChanges.js.map
+  //# sourceMappingURL=02-6to5-applyChanges.js.map
 
   function Viewmodel$capture() {
     this.captureGroups.push([]);
   }
-  //# sourceMappingURL=01-_6to5-capture.js.map
+  //# sourceMappingURL=02-6to5-capture.js.map
 
   function Viewmodel$clearCache(keypath, dontTeardownWrapper) {
     var cacheMap, wrapper;
@@ -13929,7 +13939,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-clearCache.js.map
+  //# sourceMappingURL=02-6to5-clearCache.js.map
 
   var getComputationSignature__pattern = /\$\{([^\}]+)\}/g;
 
@@ -13961,7 +13971,7 @@
 
     return new Function(functionBody);
   }
-  //# sourceMappingURL=01-_6to5-getComputationSignature.js.map
+  //# sourceMappingURL=02-6to5-getComputationSignature.js.map
 
   var UnresolvedDependency = function (computation, ref) {
     this.computation = computation;
@@ -13982,7 +13992,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-UnresolvedDependency.js.map
+  //# sourceMappingURL=02-6to5-UnresolvedDependency.js.map
 
   var Computation = function (ractive, key, signature) {
     var _this = this;
@@ -14170,16 +14180,16 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-Computation.js.map
+  //# sourceMappingURL=02-6to5-Computation.js.map
 
   function Viewmodel$compute(key, signature) {
     signature = getComputationSignature(signature);
     return this.computations[key.str] = new Computation(this.ractive, key, signature);
   }
-  //# sourceMappingURL=01-_6to5-compute.js.map
+  //# sourceMappingURL=02-6to5-compute.js.map
 
   var FAILED_LOOKUP = { FAILED_LOOKUP: true };
-  //# sourceMappingURL=01-_6to5-FAILED_LOOKUP.js.map
+  //# sourceMappingURL=02-6to5-FAILED_LOOKUP.js.map
 
   var get__empty = {};
 
@@ -14275,7 +14285,7 @@
     viewmodel.cache[keypath.str] = value;
     return value;
   }
-  //# sourceMappingURL=01-_6to5-get.js.map
+  //# sourceMappingURL=02-6to5-get.js.map
 
   function Viewmodel$init() {
     var key, computation, computations = [];
@@ -14295,7 +14305,7 @@
   function viewmodel_prototype_init__init(computation) {
     computation.init();
   }
-  //# sourceMappingURL=01-_6to5-init.js.map
+  //# sourceMappingURL=02-6to5-init.js.map
 
   function DataTracker(key, viewmodel) {
     this.keypath = key;
@@ -14307,7 +14317,7 @@
   DataTracker.prototype.setValue = function (value) {
     this.viewmodel.set(this.keypath, value, { noMapping: true });
   };
-  //# sourceMappingURL=01-_6to5-DataTracker.js.map
+  //# sourceMappingURL=02-6to5-DataTracker.js.map
 
   function Mapping(localKey, options) {
     this.localKey = localKey;
@@ -14444,14 +14454,14 @@
       this.origin.unregister(this.map(keypath), dependant, group);
     }
   };
-  //# sourceMappingURL=01-_6to5-Mapping.js.map
+  //# sourceMappingURL=02-6to5-Mapping.js.map
 
   function Viewmodel$map(key, options) {
     var mapping = this.mappings[key.str] = new Mapping(key, options);
     mapping.initViewmodel(this);
     return mapping;
   }
-  //# sourceMappingURL=01-_6to5-map.js.map
+  //# sourceMappingURL=02-6to5-map.js.map
 
   function Viewmodel$mark(keypath, options) {
     var computation, keypathStr = keypath.str;
@@ -14482,7 +14492,7 @@
 
     this.clearCache(keypathStr, dontTeardownWrapper);
   }
-  //# sourceMappingURL=01-_6to5-mark.js.map
+  //# sourceMappingURL=02-6to5-mark.js.map
 
   var mapOldToNewIndex = function (oldArray, newArray) {
     var usedIndices, firstUnusedIndex, newIndices, changed;
@@ -14523,7 +14533,7 @@
 
     return newIndices;
   };
-  //# sourceMappingURL=01-_6to5-mapOldToNewIndex.js.map
+  //# sourceMappingURL=02-6to5-mapOldToNewIndex.js.map
 
   var comparators = {};
 
@@ -14591,7 +14601,7 @@
 
     throw new Error("The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)");
   }
-  //# sourceMappingURL=01-_6to5-merge.js.map
+  //# sourceMappingURL=02-6to5-merge.js.map
 
   function Viewmodel$register(keypath, dependant) {
     var group = arguments[2] === undefined ? "default" : arguments[2];
@@ -14635,12 +14645,12 @@
       keypath = keypath.parent;
     }
   }
-  //# sourceMappingURL=01-_6to5-register.js.map
+  //# sourceMappingURL=02-6to5-register.js.map
 
   function Viewmodel$release() {
     return this.captureGroups.pop();
   }
-  //# sourceMappingURL=01-_6to5-release.js.map
+  //# sourceMappingURL=02-6to5-release.js.map
 
   function Viewmodel$set(keypath, value) {
     var options = arguments[2] === undefined ? {} : arguments[2];
@@ -14732,7 +14742,7 @@
       }
     }
   }
-  //# sourceMappingURL=01-_6to5-set.js.map
+  //# sourceMappingURL=02-6to5-set.js.map
 
   var implicitOption = { implicit: true },
       noCascadeOption = { noCascade: true };
@@ -14778,7 +14788,7 @@
   function canShuffle(dependant) {
     return typeof dependant.shuffle === "function";
   }
-  //# sourceMappingURL=01-_6to5-smartUpdate.js.map
+  //# sourceMappingURL=02-6to5-smartUpdate.js.map
 
   function Viewmodel$teardown() {
     var _this = this;
@@ -14795,7 +14805,7 @@
       unresolvedImplicitDependency.teardown();
     }
   }
-  //# sourceMappingURL=01-_6to5-teardown.js.map
+  //# sourceMappingURL=02-6to5-teardown.js.map
 
   function Viewmodel$unregister(keypath, dependant) {
     var group = arguments[2] === undefined ? "default" : arguments[2];
@@ -14844,7 +14854,7 @@
       keypath = keypath.parent;
     }
   }
-  //# sourceMappingURL=01-_6to5-unregister.js.map
+  //# sourceMappingURL=02-6to5-unregister.js.map
 
   var Viewmodel = function (ractive, mappings) {
     var key, mapping;
@@ -14914,7 +14924,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Viewmodel.js.map
+  //# sourceMappingURL=02-6to5-Viewmodel.js.map
 
   function HookQueue(event) {
     this.hook = new Hook(event);
@@ -14967,7 +14977,7 @@
 
 
 
-  //# sourceMappingURL=01-_6to5-HookQueue.js.map
+  //# sourceMappingURL=02-6to5-HookQueue.js.map
 
   var constructHook = new Hook("construct"),
       configHook = new Hook("config"),
@@ -15074,7 +15084,7 @@
     }
   }
   // saves doing `if ( this.parent ) { /*...*/ }` later on
-  //# sourceMappingURL=01-_6to5-initialise.js.map
+  //# sourceMappingURL=02-6to5-initialise.js.map
 
   var createInstance = function (component, Component, parameters, yieldTemplate, partials) {
     var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
@@ -15127,7 +15137,7 @@
 
     return instance;
   };
-  //# sourceMappingURL=01-_6to5-createInstance.js.map
+  //# sourceMappingURL=02-6to5-createInstance.js.map
 
   function ComplexParameter(parameters, key, value) {
     this.parameters = parameters;
@@ -15170,7 +15180,7 @@
       this.fragment.unbind();
     }
   };
-  //# sourceMappingURL=01-_6to5-ComplexParameter.js.map
+  //# sourceMappingURL=02-6to5-ComplexParameter.js.map
 
   function createComponentData(parameters, proto) {
     // Don't do anything with data at all..
@@ -15271,7 +15281,7 @@
 
     return json;
   }
-  //# sourceMappingURL=01-_6to5-createComponentData.js.map
+  //# sourceMappingURL=02-6to5-createComponentData.js.map
 
   function ParameterResolver(parameters, key, template) {
     var component, resolve, force;
@@ -15342,7 +15352,7 @@
       }
     }
   };
-  //# sourceMappingURL=01-_6to5-ParameterResolver.js.map
+  //# sourceMappingURL=02-6to5-ParameterResolver.js.map
 
   function createParameters(component, proto, attributes) {
     var parameters, data, defined;
@@ -15434,7 +15444,7 @@
   function isSingleInterpolator(template) {
     return template.length === 1 && template[0].t === INTERPOLATOR;
   }
-  //# sourceMappingURL=01-_6to5-createParameters.js.map
+  //# sourceMappingURL=02-6to5-createParameters.js.map
 
   function propagateEvents(component, eventsDescriptor) {
     var eventName;
@@ -15467,7 +15477,7 @@
       return false;
     });
   }
-  //# sourceMappingURL=01-_6to5-propagateEvents.js.map
+  //# sourceMappingURL=02-6to5-propagateEvents.js.map
 
   var updateLiveQueries__default = function (component) {
     var ancestor, query;
@@ -15482,7 +15492,7 @@
       ancestor = ancestor.parent;
     }
   };
-  //# sourceMappingURL=01-_6to5-updateLiveQueries.js.map
+  //# sourceMappingURL=02-6to5-updateLiveQueries.js.map
 
   function Component$init(options, Component) {
     var parentFragment, root, parameters;
@@ -15513,7 +15523,7 @@
 
     updateLiveQueries__default(this);
   }
-  //# sourceMappingURL=01-_6to5-init.js.map
+  //# sourceMappingURL=02-6to5-init.js.map
 
   function Component$rebind(oldKeypath, newKeypath) {
     var query;
@@ -15534,7 +15544,7 @@
       x.rebind(oldKeypath, newKeypath);
     }
   }
-  //# sourceMappingURL=01-_6to5-rebind.js.map
+  //# sourceMappingURL=02-6to5-rebind.js.map
 
   function Component$render() {
     var instance = this.instance;
@@ -15544,12 +15554,12 @@
     this.rendered = true;
     return instance.fragment.detach();
   }
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=02-6to5-render.js.map
 
   function Component$toString() {
     return this.instance.fragment.toString();
   }
-  //# sourceMappingURL=01-_6to5-toString.js.map
+  //# sourceMappingURL=02-6to5-toString.js.map
 
   var Component_prototype_unbind__teardownHook = new Hook("teardown");
 
@@ -15582,13 +15592,13 @@
       }
     } while (instance = instance.parent);
   }
-  //# sourceMappingURL=01-_6to5-unbind.js.map
+  //# sourceMappingURL=02-6to5-unbind.js.map
 
   function Component$unrender(shouldDestroy) {
     this.shouldDestroy = shouldDestroy;
     this.instance.unrender();
   }
-  //# sourceMappingURL=01-_6to5-unrender.js.map
+  //# sourceMappingURL=02-6to5-unrender.js.map
 
   var Component = function (options, Constructor) {
     this.init(options, Constructor);
@@ -15611,7 +15621,7 @@
   };
 
   var Component__default = Component;
-  //# sourceMappingURL=01-_6to5-_Component.js.map
+  //# sourceMappingURL=02-6to5-_Component.js.map
 
   var Comment = function (options) {
     this.type = COMMENT;
@@ -15645,7 +15655,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Comment.js.map
+  //# sourceMappingURL=02-6to5-Comment.js.map
 
   var Yielder = function (options) {
     var container, component;
@@ -15740,7 +15750,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Yielder.js.map
+  //# sourceMappingURL=02-6to5-Yielder.js.map
 
   var Doctype = function (options) {
     this.declaration = options.template.a;
@@ -15757,7 +15767,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Doctype.js.map
+  //# sourceMappingURL=02-6to5-Doctype.js.map
 
   function Fragment$init(options) {
     var _this = this;
@@ -15819,7 +15829,7 @@
         throw new Error("Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!");
     }
   }
-  //# sourceMappingURL=01-_6to5-init.js.map
+  //# sourceMappingURL=02-6to5-init.js.map
 
   function Fragment$rebind(oldKeypath, newKeypath) {
     // assign new context keypath if needed
@@ -15831,7 +15841,7 @@
       }
     });
   }
-  //# sourceMappingURL=01-_6to5-rebind.js.map
+  //# sourceMappingURL=02-6to5-rebind.js.map
 
   function Fragment$render() {
     var result;
@@ -15849,7 +15859,7 @@
     this.rendered = true;
     return result;
   }
-  //# sourceMappingURL=01-_6to5-render.js.map
+  //# sourceMappingURL=02-6to5-render.js.map
 
   function Fragment$toString(escape) {
     if (!this.items) {
@@ -15866,7 +15876,7 @@
   function toEscapedString(item) {
     return item.toString(true);
   }
-  //# sourceMappingURL=01-_6to5-toString.js.map
+  //# sourceMappingURL=02-6to5-toString.js.map
 
   function Fragment$unbind() {
     if (!this.bound) {
@@ -15882,7 +15892,7 @@
       item.unbind();
     }
   }
-  //# sourceMappingURL=01-_6to5-unbind.js.map
+  //# sourceMappingURL=02-6to5-unbind.js.map
 
   function Fragment$unrender(shouldDestroy) {
     if (!this.rendered) {
@@ -15894,7 +15904,7 @@
     });
     this.rendered = false;
   }
-  //# sourceMappingURL=01-_6to5-unrender.js.map
+  //# sourceMappingURL=02-6to5-unrender.js.map
 
   var Fragment = function (options) {
     this.init(options);
@@ -15931,7 +15941,7 @@
   };
 
 
-  //# sourceMappingURL=01-_6to5-Fragment.js.map
+  //# sourceMappingURL=02-6to5-Fragment.js.map
 
   var shouldRerender = ["template", "partials", "components", "decorators", "events"],
       resetHook = new Hook("reset");
@@ -16008,7 +16018,7 @@
 
     return promise;
   }
-  //# sourceMappingURL=01-_6to5-reset.js.map
+  //# sourceMappingURL=02-6to5-reset.js.map
 
   var resetPartial = function (name, partial) {
     var promise, collection = [];
@@ -16070,7 +16080,7 @@
 
     return promise;
   };
-  //# sourceMappingURL=01-_6to5-resetPartial.js.map
+  //# sourceMappingURL=02-6to5-resetPartial.js.map
 
   function Ractive$resetTemplate(template) {
     var transitionsEnabled, component;
@@ -16106,10 +16116,10 @@
 
     this.transitionsEnabled = transitionsEnabled;
   }
-  //# sourceMappingURL=01-_6to5-resetTemplate.js.map
+  //# sourceMappingURL=02-6to5-resetTemplate.js.map
 
   var reverse = makeArrayMethod("reverse");
-  //# sourceMappingURL=01-_6to5-reverse.js.map
+  //# sourceMappingURL=02-6to5-reverse.js.map
 
   var prototype_set__wildcard = /\*/;
 
@@ -16152,21 +16162,21 @@
 
     return promise;
   }
-  //# sourceMappingURL=01-_6to5-set.js.map
+  //# sourceMappingURL=02-6to5-set.js.map
 
   var shift = makeArrayMethod("shift");
-  //# sourceMappingURL=01-_6to5-shift.js.map
+  //# sourceMappingURL=02-6to5-shift.js.map
 
   var prototype_sort = makeArrayMethod("sort");
-  //# sourceMappingURL=01-_6to5-sort.js.map
+  //# sourceMappingURL=02-6to5-sort.js.map
 
   var splice = makeArrayMethod("splice");
-  //# sourceMappingURL=01-_6to5-splice.js.map
+  //# sourceMappingURL=02-6to5-splice.js.map
 
   function Ractive$subtract(keypath, d) {
     return add(this, keypath, d === undefined ? -1 : -d);
   }
-  //# sourceMappingURL=01-_6to5-subtract.js.map
+  //# sourceMappingURL=02-6to5-subtract.js.map
 
   var prototype_teardown__teardownHook = new Hook("teardown");
 
@@ -16196,7 +16206,7 @@
   function deleteFunctionCopy(bound) {
     delete bound.fn[bound.prop];
   }
-  //# sourceMappingURL=01-_6to5-teardown.js.map
+  //# sourceMappingURL=02-6to5-teardown.js.map
 
   function Ractive$toggle(keypath) {
     if (typeof keypath !== "string") {
@@ -16205,12 +16215,12 @@
 
     return this.set(keypath, !this.get(keypath));
   }
-  //# sourceMappingURL=01-_6to5-toggle.js.map
+  //# sourceMappingURL=02-6to5-toggle.js.map
 
   function Ractive$toHTML() {
     return this.fragment.toString(true);
   }
-  //# sourceMappingURL=01-_6to5-toHTML.js.map
+  //# sourceMappingURL=02-6to5-toHTML.js.map
 
   var unrenderHook = new Hook("unrender");
 
@@ -16249,10 +16259,10 @@
     runloop.end();
     return promise;
   }
-  //# sourceMappingURL=01-_6to5-unrender.js.map
+  //# sourceMappingURL=02-6to5-unrender.js.map
 
   var unshift = makeArrayMethod("unshift");
-  //# sourceMappingURL=01-_6to5-unshift.js.map
+  //# sourceMappingURL=02-6to5-unshift.js.map
 
   var updateHook = new Hook("update");
 
@@ -16269,7 +16279,7 @@
 
     return promise;
   }
-  //# sourceMappingURL=01-_6to5-update.js.map
+  //# sourceMappingURL=02-6to5-update.js.map
 
   function Ractive$updateModel(keypath, cascade) {
     var values, key, bindings;
@@ -16343,7 +16353,7 @@
 
     return values;
   }
-  //# sourceMappingURL=01-_6to5-updateModel.js.map
+  //# sourceMappingURL=02-6to5-updateModel.js.map
 
   var proto__default = {
     add: Ractive$add,
@@ -16385,7 +16395,7 @@
     update: Ractive$update,
     updateModel: Ractive$updateModel
   };
-  //# sourceMappingURL=01-_6to5-prototype.js.map
+  //# sourceMappingURL=02-6to5-prototype.js.map
 
   function unwrap(Child) {
     var options = {};
@@ -16460,7 +16470,7 @@
       }
     });
   }
-  //# sourceMappingURL=01-_6to5-unwrapExtended.js.map
+  //# sourceMappingURL=02-6to5-unwrapExtended.js.map
 
   var extend__uid = 1;
 
@@ -16507,7 +16517,7 @@
 
     return Child;
   }
-  //# sourceMappingURL=01-_6to5-_extend.js.map
+  //# sourceMappingURL=02-6to5-_extend.js.map
 
   var getNodeInfo = function (node) {
     var info = {}, priv, indices;
@@ -16527,7 +16537,7 @@
 
     return info;
   };
-  //# sourceMappingURL=01-_6to5-getNodeInfo.js.map
+  //# sourceMappingURL=02-6to5-getNodeInfo.js.map
 
   var Ractive, properties;
 
@@ -16553,7 +16563,7 @@
     magic: { value: magic },
 
     // version
-    VERSION: { value: "<%= pkg.version %>" },
+    VERSION: { value: "0.6.1" },
 
     // Plugins
     adaptors: { writable: true, value: {} },
@@ -16588,7 +16598,7 @@
   }
 
 
-  //# sourceMappingURL=01-_6to5-Ractive.js.map
+  //# sourceMappingURL=02-6to5-Ractive.js.map
 
   return Ractive;
 
