@@ -33,7 +33,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 	// `reset()` method returns false, the wrapper should be torn down, and
 	// (most likely) a new one should be created later
 	if ( wrapper && wrapper.reset ) {
-		teardownWrapper = ( wrapper.reset( value ) !== false );
+		teardownWrapper = ( wrapper.reset( value ) === false );
 
 		if ( !teardownWrapper ) {
 			value = wrapper.get();
