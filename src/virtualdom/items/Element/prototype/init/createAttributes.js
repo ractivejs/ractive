@@ -4,6 +4,11 @@ export default function ( element, attributes ) {
 	var name, attribute, result = [];
 
 	for ( name in attributes ) {
+		// skip binding attributes
+		if ( name === 'twoway' || name === 'lazy') {
+			continue;
+		}
+
 		if ( attributes.hasOwnProperty( name ) ) {
 			attribute = new Attribute({
 				element: element,

@@ -50,7 +50,7 @@ export default function Element$init ( options ) {
 	}
 
 	// handle binding attributes first (twoway, lazy)
-	bindingAttrs = template.bindingAttributes || processBindingAttributes( this, template );
+	bindingAttrs = processBindingAttributes( this, template );
 
 	// create attributes
 	this.attributes = createAttributes( this, template.a );

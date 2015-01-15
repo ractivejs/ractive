@@ -4,11 +4,8 @@ var isNumeric = /^[0-9]+$/;
 export default function( element, template ) {
 	var val, attrs, attributes;
 
-	// only do this once
-	if ( attrs = template.bindingAttributes ) return attrs;
-
 	attributes = template.a || {};
-	attrs = template.bindingAttributes = {};
+	attrs = {};
 
 	// attributes that are present but don't have a value (=)
 	// will be set to the number 0, which we condider to be true
@@ -17,7 +14,6 @@ export default function( element, template ) {
 	val = attributes.twoway;
 	if ( val !== undefined ) {
 		attrs.twoway = val === 0 || truthy.test( val );
-		delete attributes.twoway;
 	}
 
 	val = attributes.lazy;
@@ -28,7 +24,6 @@ export default function( element, template ) {
 		} else {
 			attrs.lazy = val === 0 || truthy.test( val );
 		}
-		delete attributes.lazy;
 	}
 
 	return attrs;

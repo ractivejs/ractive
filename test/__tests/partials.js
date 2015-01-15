@@ -212,7 +212,7 @@ test( 'static partials are compiled on Component not instance', function ( t ) {
 	});
 
 	t.ok( !ractive.partials.hasOwnProperty( 'foo' ) );
-	t.deepEqual( Component.partials.foo, [{"t":7,"e":"p","f":[{"t":2,"r":"foo"}],"bindingAttributes":{}}] );
+	t.deepEqual( Component.partials.foo, [{"t":7,"e":"p","f":[{"t":2,"r":"foo"}]}] );
 });
 
 test( 'Partials work in attributes (#917)', function ( t ) {
