@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.6.1
-	Thu Jan 15 2015 13:47:47 GMT+0000 (UTC) - commit ac90b61074133c7e79b70928e7de46b437aee425
+	Thu Jan 15 2015 20:38:09 GMT+0000 (UTC) - commit 7e3985a46cc8a2c6e1c07980b4d522f363098be3
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -794,9 +794,9 @@
   }
 
   function object__extend(target) {
-    var sources = [];
-
-    for (var _key = 1; _key < arguments.length; _key++) {
+    for (var _len = arguments.length,
+        sources = Array(_len > 1 ? _len - 1 : 0),
+        _key = 1; _key < _len; _key++) {
       sources[_key - 1] = arguments[_key];
     }
 
@@ -814,9 +814,9 @@
   }
 
   function fillGaps(target) {
-    var sources = [];
-
-    for (var _key2 = 1; _key2 < arguments.length; _key2++) {
+    for (var _len2 = arguments.length,
+        sources = Array(_len2 > 1 ? _len2 - 1 : 0),
+        _key2 = 1; _key2 < _len2; _key2++) {
       sources[_key2 - 1] = arguments[_key2];
     }
 
@@ -922,9 +922,9 @@
   }
 
   function fatal(message) {
-    var args = [];
-
-    for (var _key = 1; _key < arguments.length; _key++) {
+    for (var _len = arguments.length,
+        args = Array(_len > 1 ? _len - 1 : 0),
+        _key = 1; _key < _len; _key++) {
       args[_key - 1] = arguments[_key];
     }
 
@@ -933,9 +933,9 @@
   }
 
   function warn(message) {
-    var args = [];
-
-    for (var _key2 = 1; _key2 < arguments.length; _key2++) {
+    for (var _len2 = arguments.length,
+        args = Array(_len2 > 1 ? _len2 - 1 : 0),
+        _key2 = 1; _key2 < _len2; _key2++) {
       args[_key2 - 1] = arguments[_key2];
     }
 
@@ -944,9 +944,9 @@
   }
 
   function warnOnce(message) {
-    var args = [];
-
-    for (var _key3 = 1; _key3 < arguments.length; _key3++) {
+    for (var _len3 = arguments.length,
+        args = Array(_len3 > 1 ? _len3 - 1 : 0),
+        _key3 = 1; _key3 < _len3; _key3++) {
       args[_key3 - 1] = arguments[_key3];
     }
 
@@ -3486,9 +3486,9 @@
 
   var makeArrayMethod = function (methodName) {
     return function (keypath) {
-      var args = [];
-
-      for (var _key = 1; _key < arguments.length; _key++) {
+      for (var _len = arguments.length,
+          args = Array(_len > 1 ? _len - 1 : 0),
+          _key = 1; _key < _len; _key++) {
         args[_key - 1] = arguments[_key];
       }
 
@@ -3712,9 +3712,9 @@
 
   mutatorMethods.forEach(function (methodName) {
     var method = function () {
-      var args = [];
-
-      for (var _key = 0; _key < arguments.length; _key++) {
+      for (var _len = arguments.length,
+          args = Array(_len),
+          _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
 
@@ -9849,8 +9849,11 @@
   var truthy = /^true|on|yes|1$/i;
   var processBindingAttributes__isNumeric = /^[0-9]+$/;
 
-  var processBindingAttributes = function (element, attributes) {
-    var val;
+  var processBindingAttributes = function (element, template) {
+    var val, attrs, attributes;
+
+    attributes = template.a || {};
+    attrs = {};
 
     // attributes that are present but don't have a value (=)
     // will be set to the number 0, which we condider to be true
@@ -9858,20 +9861,20 @@
 
     val = attributes.twoway;
     if (val !== undefined) {
-      element.twoway = val === 0 || truthy.test(val);
-      delete attributes.twoway;
+      attrs.twoway = val === 0 || truthy.test(val);
     }
 
     val = attributes.lazy;
     if (val !== undefined) {
       // check for timeout value
       if (val !== 0 && processBindingAttributes__isNumeric.test(val)) {
-        element.lazy = parseInt(val);
+        attrs.lazy = parseInt(val);
       } else {
-        element.lazy = val === 0 || truthy.test(val);
+        attrs.lazy = val === 0 || truthy.test(val);
       }
-      delete attributes.lazy;
     }
+
+    return attrs;
   };
   //# sourceMappingURL=02-6to5-processBindingAttributes.js.map
 
@@ -10427,6 +10430,11 @@
     var name, attribute, result = [];
 
     for (name in attributes) {
+      // skip binding attributes
+      if (name === "twoway" || name === "lazy") {
+        continue;
+      }
+
       if (attributes.hasOwnProperty(name)) {
         attribute = new Attribute({
           element: element,
@@ -11189,18 +11197,26 @@
         lazy = true;
       } else if (this.element.lazy === false) {
         lazy = false;
-      } else if (isNumber(this.element.lazy)) {
+      } else if (is__isNumeric(this.element.lazy)) {
         lazy = false;
-        timeout = this.element.lazy;
+        timeout = +this.element.lazy;
+      } else if (is__isNumeric(lazy || "")) {
+        timeout = +lazy;
+        lazy = false;
+
+        // make sure the timeout is available to the handler
+        this.element.lazy = timeout;
       }
+
+      this.handler = timeout ? handleDelay : handleChange;
 
       node.addEventListener("change", handleChange, false);
 
       if (!lazy) {
-        node.addEventListener("input", timeout ? handleDelay : handleChange, false);
+        node.addEventListener("input", this.handler, false);
 
         if (node.attachEvent) {
-          node.addEventListener("keyup", timeout ? handleDelay : handleChange, false);
+          node.addEventListener("keyup", this.handler, false);
         }
       }
 
@@ -11212,8 +11228,8 @@
       this.rendered = false;
 
       node.removeEventListener("change", handleChange, false);
-      node.removeEventListener("input", handleChange, false);
-      node.removeEventListener("keyup", handleChange, false);
+      node.removeEventListener("input", this.handler, false);
+      node.removeEventListener("keyup", this.handler, false);
       node.removeEventListener("blur", handleBlur, false);
     }
   });
@@ -11876,7 +11892,7 @@
   //# sourceMappingURL=02-6to5-option.js.map
 
   function Element$init(options) {
-    var parentFragment, template, ractive, binding, bindings, twoway;
+    var parentFragment, template, ractive, binding, bindings, twoway, bindingAttrs;
 
     this.type = ELEMENT;
 
@@ -11909,7 +11925,7 @@
     }
 
     // handle binding attributes first (twoway, lazy)
-    processBindingAttributes(this, template.a || {});
+    bindingAttrs = processBindingAttributes(this, template);
 
     // create attributes
     this.attributes = createAttributes(this, template.a);
@@ -11926,7 +11942,10 @@
 
     // the element setting should override the ractive setting
     twoway = ractive.twoway;
-    if (this.twoway === false) twoway = false;else if (this.twoway === true) twoway = true;
+    if (bindingAttrs.twoway === false) twoway = false;else if (bindingAttrs.twoway === true) twoway = true;
+
+    this.twoway = twoway;
+    this.lazy = bindingAttrs.lazy;
 
     // create twoway binding
     if (twoway && (binding = createTwowayBinding(this, template.a))) {
