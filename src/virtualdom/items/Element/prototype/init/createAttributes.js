@@ -12,8 +12,20 @@ export default function ( element, attributes ) {
 				root:    element.root
 			});
 
-			result.push( result[ name ] = attribute );
+			result[ name ] = attribute;
+
+			if ( name !== 'value' ) {
+				result.push( attribute );
+			}
 		}
+	}
+
+	// value attribute goes last. This is because it
+	// may get clamped on render otherwise, e.g. in
+	// `<input type='range' value='999' min='0' max='1000'>`
+	// since default max is 100
+	if ( attribute = result.value ) {
+		result.push( attribute );
 	}
 
 	return result;

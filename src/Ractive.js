@@ -34,7 +34,7 @@ properties = {
 	magic:         { value: magic },
 
 	// version
-	VERSION:       { value: '<%= pkg.version %>' },
+	VERSION:       { value: '${version}' },
 
 	// Plugins
 	adaptors:      { writable: true, value: {} },

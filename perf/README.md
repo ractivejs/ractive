@@ -31,7 +31,7 @@ Navigate to [localhost:4567](http://localhost:4567). You will see a list of test
 
 ## Testing the current version
 
-By default, the app will use the `edge` build. To rebuild, run `grunt` on the command line. This will create a fresh build in the `build` folder.
+By default, the app will use the `edge` build. To rebuild, run `npm run build` on the command line. This will create a fresh build in the `build` folder.
 
 
 ## Testing old versions

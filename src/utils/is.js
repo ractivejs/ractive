@@ -47,3 +47,7 @@ export function isNumeric ( thing ) {
 export function isObject ( thing ) {
 	return ( thing && toString.call( thing ) === '[object Object]' );
 }
+
+export function isFunction ( thing ) {
+	return typeof thing === 'function';
+}
