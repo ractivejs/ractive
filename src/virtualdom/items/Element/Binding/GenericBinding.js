@@ -1,6 +1,6 @@
 import Binding from './Binding';
 import handleDomEvent from './shared/handleDomEvent';
-import { isNumber } from 'utils/is';
+import { isNumeric } from 'utils/is';
 
 var GenericBinding;
 
@@ -22,18 +22,26 @@ GenericBinding = Binding.extend({
 			lazy = true;
 		} else if ( this.element.lazy === false ) {
 			lazy = false;
-		} else if ( isNumber( this.element.lazy ) ) {
+		} else if ( isNumeric( this.element.lazy ) ) {
 			lazy = false;
-			timeout = this.element.lazy;
+			timeout = +this.element.lazy;
+		} else if ( isNumeric( ( lazy || '' ) ) ) {
+			timeout = +lazy;
+			lazy = false;
+
+			// make sure the timeout is available to the handler
+			this.element.lazy = timeout;
 		}
+
+		this.handler = timeout ? handleDelay : handleDomEvent;
 
 		node.addEventListener( 'change', handleDomEvent, false );
 
 		if ( !lazy ) {
-			node.addEventListener( 'input', timeout ? handleDelay : handleDomEvent, false );
+			node.addEventListener( 'input', this.handler, false );
 
 			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', timeout ? handleDelay : handleDomEvent, false );
+				node.addEventListener( 'keyup', this.handler, false );
 			}
 		}
 
@@ -45,8 +53,8 @@ GenericBinding = Binding.extend({
 		this.rendered = false;
 
 		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'input', handleDomEvent, false );
-		node.removeEventListener( 'keyup', handleDomEvent, false );
+		node.removeEventListener( 'input', this.handler, false );
+		node.removeEventListener( 'keyup', this.handler, false );
 		node.removeEventListener( 'blur', handleBlur, false );
 	}
 });
