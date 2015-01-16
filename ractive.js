@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.6.1
-	Thu Jan 15 2015 20:38:09 GMT+0000 (UTC) - commit 7e3985a46cc8a2c6e1c07980b4d522f363098be3
+	Fri Jan 16 2015 19:39:15 GMT+0000 (UTC) - commit 849e2d947b069176b56e96bb52ff82adeb34a3f7
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13975,7 +13975,14 @@
         this.deps.forEach(function (d) {
           var keypath = _this.map(d.keypath);
           _this.origin.register(keypath, d.dep, d.group);
-          d.dep.setValue(_this.origin.get(keypath));
+
+          // if the dep has a setter, it's a reference, otherwise, a computation
+          if (isFunction(d.dep.setValue)) {
+            d.dep.setValue(_this.origin.get(keypath));
+          } else {
+            // computations have no setter, get it to recompute via viewmodel
+            _this.local.mark(d.dep.key);
+          }
         });
 
         this.origin.mark(this.keypath);
