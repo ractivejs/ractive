@@ -1,7 +1,7 @@
-export default function Viewmodel$clearCache ( keypath, dontTeardownWrapper ) {
+export default function Viewmodel$clearCache ( keypath, teardownWrapper ) {
 	var cacheMap, wrapper;
 
-	if ( !dontTeardownWrapper ) {
+	if ( teardownWrapper ) {
 		// Is there a wrapped property at this keypath?
 		if ( wrapper = this.wrapped[ keypath ] ) {
 			// Did we unwrap it?
