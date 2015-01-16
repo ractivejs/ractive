@@ -814,3 +814,19 @@ test( 'Two-way bindings on an unresolved key can force resolution', t => {
 
 	t.equal( ractive.find( 'input' ).value, 'hello' );
 });
+
+test( 'Component mappings used in computations resolve correctly with the mapping (#1645)', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '<c1/>',
+		components: {
+			c1: Ractive.extend({ template: '<c2 foo="{{bar}}" />' }),
+			c2: Ractive.extend({ template: '{{JSON.stringify(foo)}}' })
+		},
+		onrender: function() {
+			this.set( 'bar', {} );
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, ractive.toHTML() );
+});
