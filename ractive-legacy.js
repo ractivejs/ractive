@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.6.1
-	Fri Jan 16 2015 19:39:15 GMT+0000 (UTC) - commit 849e2d947b069176b56e96bb52ff82adeb34a3f7
+	Sat Jan 17 2015 21:03:28 GMT+0000 (UTC) - commit 8abd755594fd67813a0bbbef878cc8c0157ac76d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3974,7 +3974,7 @@
         this.updating = true;
         this.obj[this.prop] = value; // trigger set() accessor
         runloop.addViewmodel(this.ractive.viewmodel);
-        this.ractive.viewmodel.mark(this.keypath, { dontTeardownWrapper: true });
+        this.ractive.viewmodel.mark(this.keypath, { keepExistingWrapper: true });
         this.updating = false;
         return true;
       },
@@ -13934,10 +13934,10 @@
   }
   //# sourceMappingURL=02-6to5-capture.js.map
 
-  function Viewmodel$clearCache(keypath, dontTeardownWrapper) {
+  function Viewmodel$clearCache(keypath, keepExistingWrapper) {
     var cacheMap, wrapper;
 
-    if (!dontTeardownWrapper) {
+    if (!keepExistingWrapper) {
       // Is there a wrapped property at this keypath?
       if (wrapper = this.wrapped[keypath]) {
         // Did we unwrap it?
@@ -14513,10 +14513,10 @@
       this.changes.push(keypath);
     }
 
-    // pass on dontTeardownWrapper, if we can
-    var dontTeardownWrapper = options ? options.dontTeardownWrapper : false;
+    // pass on keepExistingWrapper, if we can
+    var keepExistingWrapper = options ? options.keepExistingWrapper : false;
 
-    this.clearCache(keypathStr, dontTeardownWrapper);
+    this.clearCache(keypathStr, keepExistingWrapper);
   }
   //# sourceMappingURL=02-6to5-mark.js.map
 
@@ -14680,7 +14680,7 @@
 
   function Viewmodel$set(keypath, value) {
     var options = arguments[2] === undefined ? {} : arguments[2];
-    var mapping, computation, wrapper, dontTeardownWrapper;
+    var mapping, computation, wrapper, keepExistingWrapper;
 
     // unless data is being set for data tracking purposes
     if (!options.noMapping) {
@@ -14711,14 +14711,14 @@
     // `reset()` method returns false, the wrapper should be torn down, and
     // (most likely) a new one should be created later
     if (wrapper && wrapper.reset) {
-      dontTeardownWrapper = wrapper.reset(value) !== false;
+      keepExistingWrapper = wrapper.reset(value) !== false;
 
-      if (dontTeardownWrapper) {
+      if (keepExistingWrapper) {
         value = wrapper.get();
       }
     }
 
-    if (!computation && !dontTeardownWrapper) {
+    if (!computation && !keepExistingWrapper) {
       resolveSet(this, keypath, value);
     }
 
