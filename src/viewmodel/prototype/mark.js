@@ -24,8 +24,8 @@ export default function Viewmodel$mark ( keypath, options ) {
 		this.changes.push( keypath );
 	}
 
-	// pass on teardownWrapper, if we can
-	let teardownWrapper = options ? options.teardownWrapper : true;
+	// pass on keepExistingWrapper, if we can
+	let keepExistingWrapper = options ? options.keepExistingWrapper : false;
 
-	this.clearCache( keypathStr, teardownWrapper );
+	this.clearCache( keypathStr, keepExistingWrapper );
 }
