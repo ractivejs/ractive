@@ -2,7 +2,7 @@ import { isEqual } from 'utils/is';
 import createBranch from 'utils/createBranch';
 
 export default function Viewmodel$set ( keypath, value, options = {} ) {
-	var mapping, computation, wrapper, teardownWrapper;
+	var mapping, computation, wrapper, dontTeardownWrapper;
 
 	// unless data is being set for data tracking purposes
 	if ( !options.noMapping ) {
@@ -33,14 +33,14 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 	// `reset()` method returns false, the wrapper should be torn down, and
 	// (most likely) a new one should be created later
 	if ( wrapper && wrapper.reset ) {
-		teardownWrapper = ( wrapper.reset( value ) === false );
+		dontTeardownWrapper = ( wrapper.reset( value ) !== false );
 
-		if ( !teardownWrapper ) {
+		if ( dontTeardownWrapper ) {
 			value = wrapper.get();
 		}
 	}
 
-	if ( !computation && teardownWrapper ) {
+	if ( !computation && !dontTeardownWrapper ) {
 		resolveSet( this, keypath, value );
 	}
 
