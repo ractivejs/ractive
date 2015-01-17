@@ -84,7 +84,8 @@
     "mocha": "^2.1.0",
     "node-qunit-phantomjs": "^1.2.0",
     "promises-aplus-tests": "*",
-    "sander": "^0.2.1"
+    "sander": "^0.2.1",
+    "uglify-js": "^2.4.16"
   },
   "testling": {
     "html": "test/testling.html",
