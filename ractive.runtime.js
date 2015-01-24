@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.6.1
-	Sat Jan 17 2015 21:11:05 GMT+0000 (UTC) - commit d298ed0414855515aa388ea0ac28683349e7cdca
+	Sat Jan 24 2015 16:29:12 GMT+0000 (UTC) - commit e2d773125a46e07ea592a3bd4f2fd59f50082752
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -336,9 +336,7 @@
   }
 
   function object__extend(target) {
-    for (var _len = arguments.length,
-        sources = Array(_len > 1 ? _len - 1 : 0),
-        _key = 1; _key < _len; _key++) {
+    for (var _len = arguments.length, sources = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       sources[_key - 1] = arguments[_key];
     }
 
@@ -356,9 +354,7 @@
   }
 
   function fillGaps(target) {
-    for (var _len2 = arguments.length,
-        sources = Array(_len2 > 1 ? _len2 - 1 : 0),
-        _key2 = 1; _key2 < _len2; _key2++) {
+    for (var _len2 = arguments.length, sources = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
       sources[_key2 - 1] = arguments[_key2];
     }
 
@@ -435,7 +431,9 @@
   //# sourceMappingURL=02-6to5-noop.js.map
 
   /* global console */
-  var alreadyWarned = {}, log, printWarning;
+  var alreadyWarned = {},
+      log,
+      printWarning;
 
   if (hasConsole) {
     printWarning = function (message, args) {
@@ -464,9 +462,7 @@
   }
 
   function fatal(message) {
-    for (var _len = arguments.length,
-        args = Array(_len > 1 ? _len - 1 : 0),
-        _key = 1; _key < _len; _key++) {
+    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       args[_key - 1] = arguments[_key];
     }
 
@@ -475,9 +471,7 @@
   }
 
   function warn(message) {
-    for (var _len2 = arguments.length,
-        args = Array(_len2 > 1 ? _len2 - 1 : 0),
-        _key2 = 1; _key2 < _len2; _key2++) {
+    for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
       args[_key2 - 1] = arguments[_key2];
     }
 
@@ -486,9 +480,7 @@
   }
 
   function warnOnce(message) {
-    for (var _len3 = arguments.length,
-        args = Array(_len3 > 1 ? _len3 - 1 : 0),
-        _key3 = 1; _key3 < _len3; _key3++) {
+    for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
       args[_key3 - 1] = arguments[_key3];
     }
 
@@ -647,7 +639,8 @@
       len = properties.length;
 
       return function (t) {
-        var i = len, prop;
+        var i = len,
+            prop;
 
         while (i--) {
           prop = properties[i];
@@ -764,12 +757,12 @@
   }
 
   Hook.prototype.fire = function (ractive, arg) {
-    function call(method) {
+    var call = function (method) {
       if (ractive[method]) {
         arg ? ractive[method](arg) : ractive[method]();
         return true;
       }
-    }
+    };
 
     call(this.method);
 
@@ -796,8 +789,7 @@
   }
 
   function arrayContains(array, value) {
-    for (var i = 0,
-        c = array.length; i < c; i++) {
+    for (var i = 0, c = array.length; i < c; i++) {
       if (array[i] == value) {
         return true;
       }
@@ -872,7 +864,15 @@
     _Promise = Promise;
   } else {
     _Promise = function (callback) {
-      var fulfilledHandlers = [], rejectedHandlers = [], state = PENDING, result, dispatchHandlers, makeResolver, fulfil, reject, promise;
+      var fulfilledHandlers = [],
+          rejectedHandlers = [],
+          state = PENDING,
+          result,
+          dispatchHandlers,
+          makeResolver,
+          fulfil,
+          reject,
+          promise;
 
       makeResolver = function (newState) {
         return function (value) {
@@ -911,7 +911,7 @@
 
                   try {
                     x = handler(p1result);
-                    Promise__resolve(promise2, x, fulfil, reject);
+                    utils_Promise__resolve(promise2, x, fulfil, reject);
                   } catch (err) {
                     reject(err);
                   }
@@ -946,7 +946,10 @@
 
     _Promise.all = function (promises) {
       return new _Promise(function (fulfil, reject) {
-        var result = [], pending, i, processPromise;
+        var result = [],
+            pending,
+            i,
+            processPromise;
 
         if (!promises.length) {
           fulfil(result);
@@ -983,7 +986,7 @@
     };
   }
 
-  var Promise = _Promise;
+  var utils_Promise = _Promise;
 
   // TODO use MutationObservers or something to simulate setImmediate
   function wait(callback) {
@@ -1000,7 +1003,7 @@
     };
   }
 
-  function Promise__resolve(promise, x, fulfil, reject) {
+  function utils_Promise__resolve(promise, x, fulfil, reject) {
     // Promise Resolution Procedure
     var then;
 
@@ -1032,7 +1035,7 @@
             return;
           }
           called = true;
-          Promise__resolve(promise, y, fulfil, reject);
+          utils_Promise__resolve(promise, y, fulfil, reject);
         };
 
         rejectPromise = function (r) {
@@ -1102,7 +1105,12 @@
   // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
   // It does so by getting all the binary values between 0 and e.g. 11
   function getStarMap(num) {
-    var ones = "", max, binary, starMap, mapper, i;
+    var ones = "",
+        max,
+        binary,
+        starMap,
+        mapper,
+        i;
 
     if (!starMaps[num]) {
       starMap = [];
@@ -1227,6 +1235,22 @@
   }
 
   function getMatchingKeypaths(ractive, pattern) {
+    var expand = function (matchingKeypaths, keypath) {
+      var wrapper, value, key;
+
+      wrapper = ractive.viewmodel.wrapped[keypath.str];
+      value = wrapper ? wrapper.get() : ractive.viewmodel.get(keypath);
+
+      for (key in value) {
+        if (value.hasOwnProperty(key) && (key !== "_ractive" || !isArray(value))) {
+          // for benefit of IE8
+          matchingKeypaths.push(keypath.join(key));
+        }
+      }
+
+      return matchingKeypaths;
+    };
+
     var keys, key, matchingKeypaths;
 
     keys = pattern.split(".");
@@ -1247,22 +1271,6 @@
     }
 
     return matchingKeypaths;
-
-    function expand(matchingKeypaths, keypath) {
-      var wrapper, value, key;
-
-      wrapper = ractive.viewmodel.wrapped[keypath.str];
-      value = wrapper ? wrapper.get() : ractive.viewmodel.get(keypath);
-
-      for (key in value) {
-        if (value.hasOwnProperty(key) && (key !== "_ractive" || !isArray(value))) {
-          // for benefit of IE8
-          matchingKeypaths.push(keypath.join(key));
-        }
-      }
-
-      return matchingKeypaths;
-    }
   }
 
   function concatenate(key) {
@@ -1551,14 +1559,17 @@
 
   //# sourceMappingURL=02-6to5-TransitionManager.js.map
 
-  var batch, runloop, unresolved = [], changeHook = new Hook("change");
+  var batch,
+      runloop,
+      unresolved = [],
+      changeHook = new Hook("change");
 
   runloop = {
     start: function (instance, returnPromise) {
       var promise, fulfilPromise;
 
       if (returnPromise) {
-        promise = new Promise(function (f) {
+        promise = new utils_Promise(function (f) {
           return fulfilPromise = f;
         });
       }
@@ -1755,7 +1766,8 @@
 
     // TODO optimise this
     abort: function (keypath, root) {
-      var i = queue.length, animation;
+      var i = queue.length,
+          animation;
 
       while (i--) {
         animation = queue[i];
@@ -1867,7 +1879,7 @@
   function Ractive$animate(keypath, to, options) {
     var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
 
-    promise = new Promise(function (fulfil) {
+    promise = new utils_Promise(function (fulfil) {
       fulfilPromise = fulfil;
     });
 
@@ -2382,7 +2394,9 @@
     var initialFire = arguments[4] === undefined ? false : arguments[4];
 
 
-    var subscribers, i, bubble = true;
+    var subscribers,
+        i,
+        bubble = true;
 
     eventStack.enqueue(ractive, event);
 
@@ -2422,8 +2436,7 @@
     // so we need to copy to make sure everyone gets called
     subscribers = subscribers.slice();
 
-    for (var i = 0,
-        len = subscribers.length; i < len; i += 1) {
+    for (var i = 0, len = subscribers.length; i < len; i += 1) {
       if (subscribers[i].apply(ractive, args) === false) {
         stopEvent = true;
       }
@@ -2954,7 +2967,13 @@
   // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
 
   function getNewIndices(array, methodName, args) {
-    var spliceArguments, len, newIndices = [], removeStart, removeEnd, balance, i;
+    var spliceArguments,
+        len,
+        newIndices = [],
+        removeStart,
+        removeEnd,
+        balance,
+        i;
 
     spliceArguments = getSpliceEquivalent(array, methodName, args);
 
@@ -3028,13 +3047,15 @@
 
   var makeArrayMethod = function (methodName) {
     return function (keypath) {
-      for (var _len = arguments.length,
-          args = Array(_len > 1 ? _len - 1 : 0),
-          _key = 1; _key < _len; _key++) {
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         args[_key - 1] = arguments[_key];
       }
 
-      var array, newIndices = [], len, promise, result;
+      var array,
+          newIndices = [],
+          len,
+          promise,
+          result;
 
       keypath = getKeypath(normalise(keypath));
 
@@ -3071,7 +3092,15 @@
   var push = makeArrayMethod("push");
   //# sourceMappingURL=02-6to5-push.js.map
 
-  var css, css__update, styleElement, head, styleSheet, inDom, css__prefix = "/* Ractive.js component styles */\n", componentsInPage = {}, styles = [];
+  var css,
+      css__update,
+      styleElement,
+      head,
+      styleSheet,
+      inDom,
+      css__prefix = "/* Ractive.js component styles */\n",
+      componentsInPage = {},
+      styles = [];
 
   if (!isClient) {
     css = null;
@@ -3250,13 +3279,15 @@
   };
   //# sourceMappingURL=02-6to5-processWrapper.js.map
 
-  var patchedArrayProto = [], mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"], testObj, patchArrayMethods, unpatchArrayMethods;
+  var patchedArrayProto = [],
+      mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"],
+      testObj,
+      patchArrayMethods,
+      unpatchArrayMethods;
 
   mutatorMethods.forEach(function (methodName) {
     var method = function () {
-      for (var _len = arguments.length,
-          args = Array(_len),
-          _key = 0; _key < _len; _key++) {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
 
@@ -3579,6 +3610,27 @@
 
 
   function createAccessors(originalWrapper, value, template) {
+    var updateWrapper = function (wrapper) {
+      var keypath, ractive;
+
+      wrapper.value = value;
+
+      if (wrapper.updating) {
+        return;
+      }
+
+      ractive = wrapper.ractive;
+      keypath = wrapper.keypath;
+
+      wrapper.updating = true;
+      runloop.start(ractive);
+
+      ractive.viewmodel.mark(keypath);
+
+      runloop.end();
+      wrapper.updating = false;
+    };
+
     var object, property, oldGet, oldSet, get, set;
 
     object = originalWrapper.obj;
@@ -3613,27 +3665,6 @@
       value = oldGet ? oldGet() : v;
       set._ractiveWrappers.forEach(updateWrapper);
     };
-
-    function updateWrapper(wrapper) {
-      var keypath, ractive;
-
-      wrapper.value = value;
-
-      if (wrapper.updating) {
-        return;
-      }
-
-      ractive = wrapper.ractive;
-      keypath = wrapper.keypath;
-
-      wrapper.updating = true;
-      runloop.start(ractive);
-
-      ractive.viewmodel.mark(keypath);
-
-      runloop.end();
-      wrapper.updating = false;
-    }
 
     // Create an array of wrappers, in case other keypaths/ractives depend on this property.
     // Handily, we can store them as a property of the set function. Yay JavaScript.
@@ -3687,12 +3718,7 @@
     },
 
     init: function (Parent, ractive, options) {
-      var protoAdapt, adapt;
-
-      protoAdapt = ractive.adapt.map(lookup);
-      adapt = ensureArray(options.adapt).map(lookup);
-
-      function lookup(adaptor) {
+      var lookup = function (adaptor) {
         if (typeof adaptor === "string") {
           adaptor = findInViewHierarchy("adaptors", ractive, adaptor);
 
@@ -3702,7 +3728,12 @@
         }
 
         return adaptor;
-      }
+      };
+
+      var protoAdapt, adapt;
+
+      protoAdapt = ractive.adapt.map(lookup);
+      adapt = ensureArray(options.adapt).map(lookup);
 
       ractive.adapt = adaptConfigurator__combine(protoAdapt, adapt);
 
@@ -3752,7 +3783,14 @@
     dataAttr = "[data-ractive-css=\"" + id + "\"]";
 
     addGuid = function (selector) {
-      var selectorUnits, match, unit, base, prepended, appended, i, transformed = [];
+      var selectorUnits,
+          match,
+          unit,
+          base,
+          prepended,
+          appended,
+          i,
+          transformed = [];
 
       selectorUnits = [];
 
@@ -3821,7 +3859,8 @@
     name: "css",
 
     extend: function (Parent, proto, options) {
-      var guid = proto.constructor._guid, css;
+      var guid = proto.constructor._guid,
+          css;
 
       if (css = getCss(options.css, options, guid) || getCss(Parent.css, Parent, guid)) {
         proto.constructor.css = css;
@@ -4035,11 +4074,11 @@
   }
 
   function doParse(template, parseOptions) {
-    if (!undefined__default) {
+    if (!parse) {
       throw new Error("Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser");
     }
 
-    return undefined__default(template, parseOptions || this.options);
+    return parse(template, parseOptions || this.options);
   }
 
   function fromId(id, options) {
@@ -4146,7 +4185,8 @@
     },
 
     reset: function (ractive) {
-      var result = resetValue(ractive), parsed;
+      var result = resetValue(ractive),
+          parsed;
 
       if (result) {
         parsed = parseIfString(result, ractive);
@@ -4160,7 +4200,8 @@
   };
 
   function resetValue(ractive) {
-    var initial = ractive._config.template, result;
+    var initial = ractive._config.template,
+        result;
 
     // If this isn't a dynamic template, there's nothing to do
     if (!initial || !initial.fn) {
@@ -4198,7 +4239,7 @@
         template = parser__default.fromId(template);
       }
 
-      template = undefined__default(template, parser__default.getParseOptions(ractive));
+      template = parse(template, parser__default.getParseOptions(ractive));
     }
 
     // Check we're using the correct version
@@ -4585,7 +4626,8 @@
   //# sourceMappingURL=02-6to5-findComponent.js.map
 
   function Fragment$findNextNode(item) {
-    var index = item.index, node;
+    var index = item.index,
+        node;
 
     if (this.items[index + 1]) {
       node = this.items[index + 1].firstNode();
@@ -4925,6 +4967,10 @@
   //# sourceMappingURL=02-6to5-_objectLiteral.js.map
 
   function getExpressionList(parser) {
+    var append = function (expression) {
+      expressions.push(expression);
+    };
+
     var start, expressions, expr, next;
 
     start = parser.pos;
@@ -4949,10 +4995,6 @@
       }
 
       next.forEach(append);
-    }
-
-    function append(expression) {
-      expressions.push(expression);
     }
 
     return expressions;
@@ -5377,7 +5419,8 @@
   //# sourceMappingURL=02-6to5-conditional.js.map
 
   var flattenExpression = function (expression) {
-    var refs = [], flattened;
+    var refs = [],
+        flattened;
 
     extractRefs(expression, refs);
 
@@ -5481,7 +5524,9 @@
   }
   //# sourceMappingURL=02-6to5-flattenExpression.js.map
 
-  var Parser, ParseError, Parser__leadingWhitespace = /^\s+/;
+  var Parser,
+      ParseError,
+      Parser__leadingWhitespace = /^\s+/;
 
   ParseError = function (message) {
     this.name = "ParseError";
@@ -5496,7 +5541,9 @@
   ParseError.prototype = Error.prototype;
 
   Parser = function (str, options) {
-    var items, item, lineStart = 0;
+    var items,
+        item,
+        lineStart = 0;
 
     this.str = str;
     this.options = options || {};
@@ -5618,7 +5665,9 @@
   };
 
   Parser.extend = function (proto) {
-    var Parent = this, Child, key;
+    var Parent = this,
+        Child,
+        key;
 
     Child = function (str, options) {
       Parser.call(this, str, options);
@@ -5639,30 +5688,14 @@
 
   //# sourceMappingURL=02-6to5-_Parser.js.map
 
-  var _defineProperty = function (obj, key, value) {
-    return Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  };
-
   var JsonParser, specials, specialsPattern, parseJSON__numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
-  specials = (function () {
-    var _specials = {};
-
-    _defineProperty(_specials, "true" + "", true);
-
-    _defineProperty(_specials, "false" + "", false);
-
-    _defineProperty(_specials, "undefined" + "", undefined);
-
-    _defineProperty(_specials, "null" + "", null);
-
-    return _specials;
-  })();
+  specials = {
+    "true": true,
+    "false": false,
+    undefined: undefined,
+    "null": null
+  };
 
   specialsPattern = new RegExp("^(?:" + Object.keys(specials).join("|") + ")");
   parseJSON__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
@@ -5709,7 +5742,8 @@
         return { v: +number };
       }
     }, function getString(parser) {
-      var stringLiteral = getStringLiteral(parser), values;
+      var stringLiteral = getStringLiteral(parser),
+          values;
 
       if (stringLiteral && (values = parser.values)) {
         return {
@@ -6198,7 +6232,8 @@
 
   IndexResolver.prototype = {
     rebind: function () {
-      var index, ref = this.ref.ref;
+      var index,
+          ref = this.ref.ref;
 
       if (ref.ref.t === "k") {
         index = "k" + ref.fragment.key;
@@ -6220,7 +6255,13 @@
   //# sourceMappingURL=02-6to5-IndexResolver.js.map
 
   function findIndexRefs(fragment, refName) {
-    var result = {}, refs, fragRefs, ref, i, owner, hit = false;
+    var result = {},
+        refs,
+        fragRefs,
+        ref,
+        i,
+        owner,
+        hit = false;
 
     if (!refName) {
       result.refs = refs = {};
@@ -6271,7 +6312,9 @@
   }
 
   findIndexRefs.resolve = function findIndexRefs__resolve(indices) {
-    var refs = {}, k, ref;
+    var refs = {},
+        k,
+        ref;
 
     for (k in indices.refs) {
       ref = indices.refs[k];
@@ -6318,7 +6361,8 @@
   }
   //# sourceMappingURL=02-6to5-getFunctionFromString.js.map
 
-  var ExpressionResolver, bind = Function.prototype.bind;
+  var ExpressionResolver,
+      bind = Function.prototype.bind;
 
   ExpressionResolver = function (owner, parentFragment, expression, callback) {
     var _this = this;
@@ -6682,6 +6726,24 @@
   //# sourceMappingURL=02-6to5-ReferenceExpressionResolver.js.map
 
   function Mustache$init(mustache, options) {
+    var resolve = function (keypath) {
+      mustache.resolve(keypath);
+    };
+
+    var resolveAndRebindChildren = function (newKeypath) {
+      var oldKeypath = mustache.keypath;
+
+      if (newKeypath != oldKeypath) {
+        mustache.resolve(newKeypath);
+
+        if (oldKeypath !== undefined) {
+          mustache.fragments && mustache.fragments.forEach(function (f) {
+            f.rebind(oldKeypath, newKeypath);
+          });
+        }
+      }
+    };
+
     var ref, parentFragment, template;
 
     parentFragment = options.parentFragment;
@@ -6717,24 +6779,6 @@
     // Special case - inverted sections
     if (mustache.template.n === SECTION_UNLESS && !mustache.hasOwnProperty("value")) {
       mustache.setValue(undefined);
-    }
-
-    function resolve(keypath) {
-      mustache.resolve(keypath);
-    }
-
-    function resolveAndRebindChildren(newKeypath) {
-      var oldKeypath = mustache.keypath;
-
-      if (newKeypath != oldKeypath) {
-        mustache.resolve(newKeypath);
-
-        if (oldKeypath !== undefined) {
-          mustache.fragments && mustache.fragments.forEach(function (f) {
-            f.rebind(oldKeypath, newKeypath);
-          });
-        }
-      }
     }
   }
   //# sourceMappingURL=02-6to5-initialise.js.map
@@ -7639,7 +7683,9 @@
   }
   //# sourceMappingURL=02-6to5-firstNode.js.map
 
-  var elementCache = {}, ieBug, ieBlacklist;
+  var elementCache = {},
+      ieBug,
+      ieBlacklist;
 
   try {
     createElement("table").innerHTML = "foo";
@@ -7656,7 +7702,12 @@
   }
 
   var insertHtml = function (html, node, docFrag) {
-    var container, nodes = [], wrapper, selectedOption, child, i;
+    var container,
+        nodes = [],
+        wrapper,
+        selectedOption,
+        child,
+        i;
 
     // render 0 and false
     if (html != null && html !== "") {
@@ -7844,7 +7895,8 @@
   //# sourceMappingURL=02-6to5-bubble.js.map
 
   function Element$detach() {
-    var node = this.node, parentNode;
+    var node = this.node,
+        parentNode;
 
     if (node) {
       // need to check for parent node - DOM may have been altered
@@ -8178,10 +8230,10 @@
       name = namespacePrefix + ":" + name;
     }
 
-    return value ? name + "=\"" + escape(value) + "\"" : name;
+    return value ? name + "=\"" + Attribute_prototype_toString__escape(value) + "\"" : name;
   }
 
-  function escape(value) {
+  function Attribute_prototype_toString__escape(value) {
     return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
   //# sourceMappingURL=02-6to5-toString.js.map
@@ -8199,7 +8251,11 @@
   //# sourceMappingURL=02-6to5-unbind.js.map
 
   function Attribute$updateSelect() {
-    var value = this.value, options, option, optionValue, i;
+    var value = this.value,
+        options,
+        option,
+        optionValue,
+        i;
 
     if (!this.locked) {
       this.node._ractive.value = value;
@@ -8225,7 +8281,11 @@
   //# sourceMappingURL=02-6to5-updateSelectValue.js.map
 
   function Attribute$updateMultipleSelect() {
-    var value = this.value, options, i, option, optionValue;
+    var value = this.value,
+        options,
+        i,
+        option,
+        optionValue;
 
     if (!isArray(value)) {
       value = [value];
@@ -8251,7 +8311,11 @@
   //# sourceMappingURL=02-6to5-updateRadioName.js.map
 
   function Attribute$updateRadioValue() {
-    var wasChecked, node = this.node, binding, bindings, i;
+    var wasChecked,
+        node = this.node,
+        binding,
+        bindings,
+        i;
 
     wasChecked = node.checked;
 
@@ -8501,7 +8565,9 @@
   //# sourceMappingURL=02-6to5-_Attribute.js.map
 
   var createAttributes = function (element, attributes) {
-    var name, attribute, result = [];
+    var name,
+        attribute,
+        result = [];
 
     for (name in attributes) {
       // skip binding attributes
@@ -8731,7 +8797,8 @@
   };
 
   Binding.extend = function (properties) {
-    var Parent = this, SpecialisedBinding;
+    var Parent = this,
+        SpecialisedBinding;
 
     SpecialisedBinding = function (element) {
       Binding.call(this, element);
@@ -8971,7 +9038,9 @@
     },
 
     render: function () {
-      var node = this.element.node, existingValue, bindingValue;
+      var node = this.element.node,
+          existingValue,
+          bindingValue;
 
       existingValue = this.root.viewmodel.get(this.keypath);
       bindingValue = this.element.getAttribute("value");
@@ -9057,7 +9126,11 @@
 
   var SelectBinding = Binding__default.extend({
     getInitialValue: function () {
-      var options = this.element.options, len, i, value, optionWasSelected;
+      var options = this.element.options,
+          len,
+          i,
+          value,
+          optionWasSelected;
 
       if (this.element.getAttribute("value") !== undefined) {
         return;
@@ -9346,7 +9419,12 @@
   //# sourceMappingURL=02-6to5-NumericBinding.js.map
 
   function createTwowayBinding(element) {
-    var attributes = element.attributes, type, Binding, bindName, bindChecked, binding;
+    var attributes = element.attributes,
+        type,
+        Binding,
+        bindName,
+        bindChecked,
+        binding;
 
     // if this is a late binding, and there's already one, it
     // needs to be torn down
@@ -9563,7 +9641,10 @@
   //# sourceMappingURL=02-6to5-init.js.map
 
   function genericHandler(event) {
-    var storage, handler, indices, index = {};
+    var storage,
+        handler,
+        indices,
+        index = {};
 
     storage = this._ractive;
     handler = storage.events[event.type];
@@ -9593,7 +9674,8 @@
   };
 
   function EventHandler$listen() {
-    var definition, name = this.name;
+    var definition,
+        name = this.name;
 
     if (this.invalid) {
       return;
@@ -9636,6 +9718,10 @@
   //# sourceMappingURL=02-6to5-listen.js.map
 
   function EventHandler$rebind(oldKeypath, newKeypath) {
+    var rebind = function (thing) {
+      thing && thing.rebind(oldKeypath, newKeypath);
+    };
+
     var fragment;
     if (this.method) {
       fragment = this.element.parentFragment;
@@ -9650,10 +9736,6 @@
 
     if (this.dynamicParams) {
       rebind(this.dynamicParams);
-    }
-
-    function rebind(thing) {
-      thing && thing.rebind(oldKeypath, newKeypath);
     }
   }
   //# sourceMappingURL=02-6to5-rebind.js.map
@@ -9725,7 +9807,11 @@
   //# sourceMappingURL=02-6to5-_EventHandler.js.map
 
   var createEventHandlers = function (element, template) {
-    var i, name, names, handler, result = [];
+    var i,
+        name,
+        names,
+        handler,
+        result = [];
 
     for (name in template) {
       if (template.hasOwnProperty(name)) {
@@ -9744,7 +9830,10 @@
   //# sourceMappingURL=02-6to5-createEventHandlers.js.map
 
   var Decorator = function (element, template) {
-    var self = this, ractive, name, fragment;
+    var self = this,
+        ractive,
+        name,
+        fragment;
 
     this.element = element;
     this.root = ractive = element.root;
@@ -10047,6 +10136,10 @@
   //# sourceMappingURL=02-6to5-init.js.map
 
   function Element$rebind(oldKeypath, newKeypath) {
+    var rebind = function (thing) {
+      thing.rebind(oldKeypath, newKeypath);
+    };
+
     var i, storage, liveQueries, ractive;
 
     if (this.attributes) {
@@ -10083,10 +10176,6 @@
     if (this.node && (storage = this.node._ractive)) {
       // adjust keypath if needed
       assignNewKeypath(storage, "keypath", oldKeypath, newKeypath);
-    }
-
-    function rebind(thing) {
-      thing.rebind(oldKeypath, newKeypath);
     }
   }
   //# sourceMappingURL=02-6to5-rebind.js.map
@@ -10236,7 +10325,7 @@
   if (!isClient) {
     getStyle = null;
   } else {
-    getStyle__getComputedStyle = window.getComputedStyle || undefined__default.getComputedStyle;
+    getStyle__getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
     getStyle = function (props) {
       var computedStyle, styles, i, prop, value;
@@ -10394,7 +10483,16 @@
   };
   //# sourceMappingURL=02-6to5-hyphenate.js.map
 
-  var createTransitions, createTransitions__testStyle, TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION, canUseCssTransitions = {}, cannotUseCssTransitions = {};
+  var createTransitions,
+      createTransitions__testStyle,
+      TRANSITION,
+      TRANSITIONEND,
+      CSS_TRANSITIONS_ENABLED,
+      TRANSITION_DURATION,
+      TRANSITION_PROPERTY,
+      TRANSITION_TIMING_FUNCTION,
+      canUseCssTransitions = {},
+      cannotUseCssTransitions = {};
 
   if (!isClient) {
     createTransitions = null;
@@ -10466,7 +10564,13 @@
         t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
 
         setTimeout(function () {
-          var i = changedProperties.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop, suffix;
+          var i = changedProperties.length,
+              hash,
+              originalValue,
+              index,
+              propertiesToTransitionInJs = [],
+              prop,
+              suffix;
 
           while (i--) {
             prop = changedProperties[i];
@@ -10624,7 +10728,7 @@
   if (!isClient) {
     animateStyle = null;
   } else {
-    animateStyle__getComputedStyle = window.getComputedStyle || undefined__default.getComputedStyle;
+    animateStyle__getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
     animateStyle = function (style, value, options) {
       var _this = this;
@@ -10638,7 +10742,7 @@
       // that way you'll never get CSS transitionend events
       if (visibility.hidden) {
         this.setStyle(style, value);
-        return resolved || (resolved = Promise.resolve());
+        return resolved || (resolved = utils_Promise.resolve());
       }
 
       if (typeof style === "string") {
@@ -10661,7 +10765,7 @@
         options = this;
       }
 
-      var promise = new Promise(function (resolve) {
+      var promise = new utils_Promise(function (resolve) {
         var propertyNames, changedProperties, computedStyle, current, from, i, prop;
 
         // Edge case - if duration is zero, set style synchronously and complete
@@ -10832,7 +10936,10 @@
 
   function Element$render() {
     var _this = this;
-    var root = this.root, namespace, node, transition;
+    var root = this.root,
+        namespace,
+        node,
+        transition;
 
     namespace = getNamespace(this);
     node = this.node = createElement(this.name, namespace);
@@ -11594,7 +11701,8 @@
   //# sourceMappingURL=02-6to5-_Partial.js.map
 
   function getComponent(ractive, name) {
-    var Component, instance = findInstance("components", ractive, name);
+    var Component,
+        instance = findInstance("components", ractive, name);
 
     if (instance) {
       Component = instance.components[name];
@@ -11686,7 +11794,11 @@
   var prefixers = {};
 
   function Viewmodel$adapt(keypath, value) {
-    var ractive = this.ractive, len, i, adaptor, wrapped;
+    var ractive = this.ractive,
+        len,
+        i,
+        adaptor,
+        wrapped;
 
     // Do we have an adaptor for this value?
     len = ractive.adapt.length;
@@ -11704,7 +11816,8 @@
   }
 
   function prefixKeypath(obj, prefix) {
-    var prefixed = {}, key;
+    var prefixed = {},
+        key;
 
     if (!prefix) {
       return obj;
@@ -11748,7 +11861,9 @@
   //# sourceMappingURL=02-6to5-adapt.js.map
 
   function getUpstreamChanges(changes) {
-    var upstreamChanges = [rootKeypath], i, keypath;
+    var upstreamChanges = [rootKeypath],
+        i,
+        keypath;
 
     i = changes.length;
     while (i--) {
@@ -11812,16 +11927,7 @@
 
   function Viewmodel$applyChanges() {
     var _this = this;
-    var self = this, changes, upstreamChanges, hash = {}, bindings;
-
-    changes = this.changes;
-
-    if (!changes.length) {
-      // TODO we end up here on initial render. Perhaps we shouldn't?
-      return;
-    }
-
-    function cascade(keypath) {
+    var cascade = function (keypath) {
       var map, computations;
 
       if (self.noCascade.hasOwnProperty(keypath.str)) {
@@ -11847,6 +11953,19 @@
       if (map = self.depsMap.computed[keypath.str]) {
         map.forEach(cascade);
       }
+    };
+
+    var self = this,
+        changes,
+        upstreamChanges,
+        hash = {},
+        bindings;
+
+    changes = this.changes;
+
+    if (!changes.length) {
+      // TODO we end up here on initial render. Perhaps we shouldn't?
+      return;
     }
 
     changes.slice().forEach(cascade);
@@ -11960,17 +12079,12 @@
 
 
   function notifyAllDependants(viewmodel, keypaths, groupName) {
-    var queue = [];
-
-    addKeypaths(keypaths);
-    queue.forEach(dispatch);
-
-    function addKeypaths(keypaths) {
+    var addKeypaths = function (keypaths) {
       keypaths.forEach(addKeypath);
       keypaths.forEach(cascade);
-    }
+    };
 
-    function addKeypath(keypath) {
+    var addKeypath = function (keypath) {
       var deps = findDependants(viewmodel, keypath, groupName);
 
       if (deps) {
@@ -11979,22 +12093,27 @@
           deps: deps
         });
       }
-    }
+    };
 
-    function cascade(keypath) {
+    var cascade = function (keypath) {
       var childDeps;
 
       if (childDeps = viewmodel.depsMap[groupName][keypath.str]) {
         addKeypaths(childDeps);
       }
-    }
+    };
 
-    function dispatch(set) {
+    var dispatch = function (set) {
       var value = viewmodel.get(set.keypath);
       set.deps.forEach(function (d) {
         return d.setValue(value);
       });
-    }
+    };
+
+    var queue = [];
+
+    addKeypaths(keypaths);
+    queue.forEach(dispatch);
   }
 
   function findDependants(viewmodel, keypath, groupName) {
@@ -12135,7 +12254,10 @@
 
     get: function () {
       var _this2 = this;
-      var ractive, newDeps, dependenciesChanged, dependencyValuesChanged = false;
+      var ractive,
+          newDeps,
+          dependenciesChanged,
+          dependencyValuesChanged = false;
 
       if (this.getting) {
         // prevent double-computation (e.g. caused by array mutation inside computation)
@@ -12287,7 +12409,14 @@
   var get__empty = {};
 
   function Viewmodel$get(keypath, options) {
-    var ractive = this.ractive, cache = this.cache, mapping, value, computation, wrapped, captureGroup, keypathStr = keypath.str;
+    var ractive = this.ractive,
+        cache = this.cache,
+        mapping,
+        value,
+        computation,
+        wrapped,
+        captureGroup,
+        keypathStr = keypath.str;
 
     options = options || get__empty;
 
@@ -12381,7 +12510,9 @@
   //# sourceMappingURL=02-6to5-get.js.map
 
   function Viewmodel$init() {
-    var key, computation, computations = [];
+    var key,
+        computation,
+        computations = [];
 
     for (key in this.ractive.computed) {
       computation = this.compute(getKeypath(key), this.ractive.computed[key]);
@@ -12564,7 +12695,8 @@
   //# sourceMappingURL=02-6to5-map.js.map
 
   function Viewmodel$mark(keypath, options) {
-    var computation, keypathStr = keypath.str;
+    var computation,
+        keypathStr = keypath.str;
 
     runloop.addViewmodel(this); // TODO remove other instances of this call
 
@@ -13187,7 +13319,12 @@
   //# sourceMappingURL=02-6to5-initialise.js.map
 
   var createInstance = function (component, Component, parameters, yieldTemplate, partials) {
-    var instance, parentFragment, ractive, fragment, container, inlinePartials = {};
+    var instance,
+        parentFragment,
+        ractive,
+        fragment,
+        container,
+        inlinePartials = {};
 
     parentFragment = component.parentFragment;
     ractive = component.root;
@@ -13296,7 +13433,8 @@
   }
 
   function createLegacyData(parameters) {
-    var mappings = parameters.mappings, key;
+    var mappings = parameters.mappings,
+        key;
 
     for (key in mappings) {
       var mapping = mappings[key];
@@ -13326,6 +13464,11 @@
   }
 
   function makeConstructor(parameters, defined) {
+    var ComponentData = function (options) {
+      this._mappings = options.mappings;
+      this._data = options.data || {};
+    };
+
     var properties, proto;
 
     properties = parameters.keys.reduce(function (definition, key) {
@@ -13356,11 +13499,6 @@
       return definition;
     }, defined);
 
-    function ComponentData(options) {
-      this._mappings = options.mappings;
-      this._data = options.data || {};
-    }
-
     defineProperties(proto = { toJSON: toJSON }, properties);
     proto.constructor = ComponentData;
     ComponentData.prototype = proto;
@@ -13371,7 +13509,8 @@
   var reservedKeys = ["_data", "_mappings"];
 
   function toJSON() {
-    var json = {}, k;
+    var json = {},
+        k;
 
     for (k in this) {
       if (reservedKeys.indexOf(k) === -1) {
@@ -13626,6 +13765,10 @@
   //# sourceMappingURL=02-6to5-init.js.map
 
   function Component$rebind(oldKeypath, newKeypath) {
+    var rebind = function (x) {
+      x.rebind(oldKeypath, newKeypath);
+    };
+
     var query;
 
     this.resolvers.forEach(rebind);
@@ -13638,10 +13781,6 @@
 
     if (query = this.root._liveComponentQueries["_" + this.name]) {
       query._makeDirty();
-    }
-
-    function rebind(x) {
-      x.rebind(oldKeypath, newKeypath);
     }
   }
   //# sourceMappingURL=02-6to5-rebind.js.map
@@ -14121,9 +14260,7 @@
   //# sourceMappingURL=02-6to5-reset.js.map
 
   var resetPartial = function (name, partial) {
-    var promise, collection = [];
-
-    function collect(source, dest, ractive) {
+    var collect = function (source, dest, ractive) {
       // if this is a component and it has its own partial, bail
       if (ractive && ractive.partials[name]) return;
 
@@ -14164,7 +14301,10 @@
           }
         }
       });
-    }
+    };
+
+    var promise,
+        collection = [];
 
     collect(this.fragment.items, collection);
     this.partials[name] = partial;
@@ -14294,7 +14434,7 @@
     }
 
     this.shouldDestroy = true;
-    promise = this.fragment.rendered ? this.unrender() : Promise.resolve();
+    promise = this.fragment.rendered ? this.unrender() : utils_Promise.resolve();
 
     prototype_teardown__teardownHook.fire(this);
 
@@ -14330,7 +14470,7 @@
 
     if (!this.fragment.rendered) {
       warn("ractive.unrender() was called on a Ractive instance that was not rendered");
-      return Promise.resolve();
+      return utils_Promise.resolve();
     }
 
     promise = runloop.start(this, true);
@@ -14521,7 +14661,8 @@
   }
 
   function addRegistry(target, options, name) {
-    var registry, keys = Object.keys(target[name]);
+    var registry,
+        keys = Object.keys(target[name]);
 
     if (!keys.length) {
       return;
@@ -14576,7 +14717,9 @@
 
   function extend__extend() {
     var options = arguments[0] === undefined ? {} : arguments[0];
-    var Parent = this, Child, proto;
+    var Parent = this,
+        Child,
+        proto;
 
     // if we're extending with another Ractive instance...
     //
@@ -14620,7 +14763,9 @@
   //# sourceMappingURL=02-6to5-_extend.js.map
 
   var getNodeInfo = function (node) {
-    var info = {}, priv, indices;
+    var info = {},
+        priv,
+        indices;
 
     if (!node || !(priv = node._ractive)) {
       return info;
@@ -14653,10 +14798,10 @@
     // static methods:
     extend: { value: extend__extend },
     getNodeInfo: { value: getNodeInfo },
-    parse: { value: undefined__default },
+    parse: { value: parse },
 
     // Namespaced constructors
-    Promise: { value: Promise },
+    Promise: { value: utils_Promise },
 
     // support
     svg: { value: svg },
