@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.6.1
-	Sun Jan 25 2015 01:12:41 GMT+0000 (UTC) - commit d71ed15f7d30fe03b8fdfb249744bd6eff8f50c3
+	Sun Jan 25 2015 02:06:18 GMT+0000 (UTC) - commit 89b39d0156413b45b72f77fa52d92f30454af9c2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1231,7 +1231,14 @@
       return str;
     }
 
-    return keypathCache[str] || (keypathCache[str] = new Keypath(str));
+    // TODO it *may* be worth having two versions of this function - one where
+    // keypathCache inherits from null, and one for IE8. Depends on how
+    // much of an overhead hasOwnProperty is - probably negligible
+    if (!keypathCache.hasOwnProperty(str)) {
+      keypathCache[str] = new Keypath(str);
+    }
+
+    return keypathCache[str];
   }
 
   function getMatchingKeypaths(ractive, pattern) {
