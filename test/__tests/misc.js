@@ -1691,6 +1691,17 @@ test( 'input[type=range] values are respected regardless of attribute order (#16
 	t.equal( ractive.find( 'input' ).value, 150 );
 });
 
+test( 'regression test for #1630', function ( t ) {
+	var ractive = new Ractive();
+
+	var obj = { foo: 'bar' };
+	obj.constructor = obj.constructor;
+
+	ractive.set( obj );
+	t.equal( ractive.get( 'foo' ), 'bar' );
+	t.equal( ractive.get( 'constructor' ), obj.constructor );
+});
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {
