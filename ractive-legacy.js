@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.6.1
-	Sun Jan 25 2015 02:06:18 GMT+0000 (UTC) - commit 89b39d0156413b45b72f77fa52d92f30454af9c2
+	Tue Jan 27 2015 23:56:50 GMT+0000 (UTC) - commit 0d045c9dfb7aee997ec335d02ad000d6ff51f490
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7232,6 +7232,11 @@
             cleanup(item.a[key], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
           }
         }
+      }
+
+      // Clean up conditional attributes
+      if (item.m) {
+        cleanup(item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
       }
 
       // Clean up event handlers
