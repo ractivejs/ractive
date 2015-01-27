@@ -101,7 +101,7 @@ parse = function ( template, options = {} ) {
 	setDelimiters( options );
 
 	result = {
-		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
+		v: 3 // template spec version, defined in https://github.com/ractivejs/template-spec
 	};
 
 	result.t = new StandardParser( template, options ).result;
