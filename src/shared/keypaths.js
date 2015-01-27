@@ -91,7 +91,14 @@ export function getKeypath ( str ) {
 		return str;
 	}
 
-	return keypathCache[ str ] || ( keypathCache[ str ] = new Keypath( str ) );
+	// TODO it *may* be worth having two versions of this function - one where
+	// keypathCache inherits from null, and one for IE8. Depends on how
+	// much of an overhead hasOwnProperty is - probably negligible
+	if ( !keypathCache.hasOwnProperty( str ) ) {
+		keypathCache[ str ] = new Keypath( str );
+	}
+
+	return keypathCache[ str ];
 }
 
 export function getMatchingKeypaths ( ractive, pattern ) {

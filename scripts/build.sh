@@ -29,7 +29,7 @@ compress () {
 	# --source-map $dest.map \
 	# --source-map-root $dest \
 
-	uglifyjs \
+	node_modules/.bin/uglifyjs \
 		--compress \
 		--mangle \
 		--output $dest \

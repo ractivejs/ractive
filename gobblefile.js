@@ -7,13 +7,6 @@ var gobble = require( 'gobble' ),
 	bundleTransform,
 	es5, result;
 
-// This is necessary until this gets merged, or 6to5 gets fixed:
-// https://github.com/termi/es6-transpiler/pull/73
-require( 'es6-transpiler' );
-require( 'gobble-es6-transpiler' );
-Object.defineProperty( Array.prototype, 'contains', { enumerable: false });
-Object.defineProperty( String.prototype, 'contains', { enumerable: false });
-
 banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
 	.replace( '${version}', version )
 	.replace( '${time}', new Date() )

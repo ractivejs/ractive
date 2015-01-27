@@ -19,3 +19,4 @@ ractive.js
 .gobble-build
 perf/control/*
 !perf/control/.empty
+npm-debug.log

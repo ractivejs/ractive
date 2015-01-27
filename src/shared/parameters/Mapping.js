@@ -95,7 +95,14 @@ Mapping.prototype = {
 			this.deps.forEach( d => {
 				var keypath = this.map( d.keypath );
 				this.origin.register( keypath, d.dep, d.group );
-				d.dep.setValue( this.origin.get( keypath ) );
+
+				// if the dep has a setter, it's a reference, otherwise, a computation
+				if ( isFunction( d.dep.setValue ) ) {
+					d.dep.setValue( this.origin.get( keypath ) );
+				} else {
+					// computations have no setter, get it to recompute via viewmodel
+					this.local.mark( d.dep.key );
+				}
 			});
 
 			this.origin.mark( this.keypath );

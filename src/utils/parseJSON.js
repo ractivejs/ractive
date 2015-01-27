@@ -11,10 +11,10 @@ import getKey from 'parse/Parser/expressions/shared/key';
 var JsonParser, specials, specialsPattern, numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
 specials = {
-	['true' + '']: true,
-	['false' + '']: false,
-	['undefined' + '']: undefined,
-	['null' + '']: null
+	'true': true,
+	'false': false,
+	'undefined': undefined,
+	'null': null
 };
 
 specialsPattern = new RegExp( '^(?:' + Object.keys( specials ).join( '|' ) + ')' );
