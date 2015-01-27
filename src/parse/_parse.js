@@ -207,6 +207,11 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			}
 		}
 
+		// Clean up conditional attributes
+		if ( item.m ) {
+			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+		}
+
 		// Clean up event handlers
 		if ( item.v ) {
 			for ( key in item.v ) {
