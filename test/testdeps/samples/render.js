@@ -1003,6 +1003,14 @@ var renderTests = [
 		template: '{{#each object:k}}{{@key}} {{k}}{{/each}}',
 		data: { object: { '0001': 1 } },
 		result: '0001 0001'
+	},
+	{
+		name: 'if...else in conditional attribute',
+		template: '<p {{#if foo}}data-foo="yes"{{else}}data-bar="nope"{{/if}}></p>',
+		data: { foo: true },
+		result: '<p data-foo="yes"></p>',
+		new_data: { foo: false },
+		new_result: '<p data-bar="nope"></p>'
 	}
 ];
 
