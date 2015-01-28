@@ -46,11 +46,7 @@ export default function ( parser ) {
 	}
 
 	pattern = parser.relaxedNames ? relaxedName : namePattern;
-	name = parser.matchString( 'else if' ) || parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( pattern ) || '';
-
-	if ( name === 'else if' ) {
-		name = 'elseif';
-	}
+	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( pattern ) || '';
 
 	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
 	if ( !parser.relaxedNames && !dot && !ancestor && keywords.test( name ) ) {

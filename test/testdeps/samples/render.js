@@ -1024,7 +1024,7 @@ var renderTests = [
 	},
 	{
 		name: 'multiple elseif functions can be used within if',
-		template: '{{#if foo}}foo{{elseif bar}}bar{{else if baz}}baz{{else}}other{{/if}}',
+		template: '{{#if foo}}foo{{elseif bar}}bar{{elseif baz}}baz{{else}}other{{/if}}',
 		data: { foo: true, baz: true },
 		result: 'foo',
 		new_data: { foo: false },
@@ -1055,7 +1055,7 @@ var renderTests = [
 		new_result: 'foo'
 	},
 	{
-		name: 'nested else if',
+		name: 'nested elseif',
 		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
 		data: { foo: true, bar: true, baz: true },
 		result: 'foofoobar',
@@ -1063,7 +1063,7 @@ var renderTests = [
 		new_result: 'bazbazbar'
 	},
 	{
-		name: 'nested else if - part 2',
+		name: 'nested elseif - part 2',
 		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
 		data: { foo: true, bar: false, baz: false },
 		result: 'foofoofoo',
@@ -1071,14 +1071,14 @@ var renderTests = [
 		new_result: ''
 	},
 	{
-		name: 'nested else if - part 3',
+		name: 'nested elseif - part 3',
 		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
 		data: { foo: false, baz: true },
 		result: 'bazfin'
 	},
 	{
 		name: 'elseif in attribute',
-		template: '<p class="{{#if foo}}foo{{else if bar}}bar{{else}}other{{/if}}">result</p>',
+		template: '<p class="{{#if foo}}foo{{elseif bar}}bar{{else}}other{{/if}}">result</p>',
 		data: { bar: true },
 		result: '<p class="bar">result</p>',
 		new_data: { bar: null },
@@ -1086,7 +1086,7 @@ var renderTests = [
 	},
 	{
 		name: 'elseif in conditional attribute',
-		template: '<p {{#if foo}}data-foo="foo"{{else if bar}}data-foo="bar"{{else}}data-foo="other"{{/if}}>result</p>',
+		template: '<p {{#if foo}}data-foo="foo"{{elseif bar}}data-foo="bar"{{else}}data-foo="other"{{/if}}>result</p>',
 		data: { bar: true },
 		result: '<p data-foo="bar">result</p>',
 		new_data: { bar: null },
