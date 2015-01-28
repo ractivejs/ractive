@@ -1,5 +1,5 @@
 import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
-import Parser from './Parser/_Parser';
+import Parser from './Parser';
 import mustache from './converters/mustache';
 import comment from './converters/comment';
 import element from './converters/element';

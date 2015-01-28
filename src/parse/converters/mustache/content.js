@@ -1,13 +1,12 @@
-import { TRIPLE, INTERPOLATOR, COMMENT, SECTION, CLOSING, PARTIAL, REFERENCE, BRACKETED, NUMBER_LITERAL, MEMBER, REFINEMENT } from 'config/types';
+import { TRIPLE, INTERPOLATOR, COMMENT, SECTION, CLOSING, PARTIAL, REFERENCE } from 'config/types';
 import mustacheType from './type';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
-import flattenExpression from 'parse/utils/flattenExpression';
+import refineExpression from 'parse/utils/refineExpression';
 import readExpression from 'parse/converters/expression';
 import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-	arrayMemberPattern = /^[0-9][1-9]*$/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
 	legalReference;
 
@@ -175,12 +174,12 @@ export default function ( parser, delimiterType ) {
 		}
 	}
 
-	refineExpression( parser, expression, mustache );
+	refineExpression( expression, mustache );
 
 	// if there was context, process the expression now and save it for later
 	if ( mustache.contextPartialExpression ) {
 		mustache.contextPartialExpression = [
-			refineExpression( parser, mustache.contextPartialExpression, { t: PARTIAL } )
+			refineExpression( mustache.contextPartialExpression, { t: PARTIAL } )
 		];
 	}
 
@@ -196,60 +195,4 @@ export default function ( parser, delimiterType ) {
 	}
 
 	return mustache;
-}
-
-function refineExpression ( parser, expression, mustache ) {
-	var referenceExpression;
-
-	if ( expression ) {
-		while ( expression.t === BRACKETED && expression.x ) {
-			expression = expression.x;
-		}
-
-		// special case - integers should be treated as array members references,
-		// rather than as expressions in their own right
-		if ( expression.t === REFERENCE ) {
-			mustache.r = expression.n;
-		} else {
-			if ( expression.t === NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
-				mustache.r = expression.v;
-			} else if ( referenceExpression = getReferenceExpression( parser, expression ) ) {
-				mustache.rx = referenceExpression;
-			} else {
-				mustache.x = flattenExpression( expression );
-			}
-		}
-
-		return mustache;
-	}
-}
-
-// TODO refactor this! it's bewildering
-function getReferenceExpression ( parser, expression ) {
-	var members = [], refinement;
-
-	while ( expression.t === MEMBER && expression.r.t === REFINEMENT ) {
-		refinement = expression.r;
-
-		if ( refinement.x ) {
-			if ( refinement.x.t === REFERENCE ) {
-				members.unshift( refinement.x );
-			} else {
-				members.unshift( flattenExpression( refinement.x ) );
-			}
-		} else {
-			members.unshift( refinement.n );
-		}
-
-		expression = expression.x;
-	}
-
-	if ( expression.t !== REFERENCE ) {
-		return null;
-	}
-
-	return {
-		r: expression.n,
-		m: members
-	};
 }

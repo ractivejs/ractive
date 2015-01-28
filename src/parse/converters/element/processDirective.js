@@ -1,4 +1,4 @@
-import Parser from 'parse/Parser/_Parser';
+import Parser from 'parse/Parser';
 import conditional from 'parse/converters/expressions/conditional';
 import flattenExpression from 'parse/utils/flattenExpression';
 import parseJSON from 'utils/parseJSON';

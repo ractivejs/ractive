@@ -1,4 +1,4 @@
-import Parser from 'parse/Parser/_Parser';
+import Parser from 'parse/Parser';
 import getStringLiteral from 'parse/converters/expressions/primary/literal/stringLiteral/_stringLiteral';
 import getKey from 'parse/converters/expressions/shared/key';
 
