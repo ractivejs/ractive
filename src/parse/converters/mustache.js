@@ -33,7 +33,7 @@ function getMustache ( parser ) {
 }
 
 function getMustacheOfType ( parser, delimiterType ) {
-	var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child;
+	var start, mustache, delimiters, children, expectedClose, elseBlocks, currentChildren, child;
 
 	start = parser.pos;
 
@@ -110,14 +110,40 @@ function getMustacheOfType ( parser, delimiterType ) {
 			}
 
 			// {{else}} tags require special treatment
-			if ( child.t === INTERPOLATOR && child.r === 'else' ) {
-				// no {{else}} allowed in {{#unless}}
-				if ( mustache.n === 'unless' ) {
-					parser.error( '{{else}} not allowed in {{#unless}}' );
+			if ( child.t === INTERPOLATOR ) {
+				if ( child.r === 'else' ) {
+					// no {{else}} allowed in {{#unless}}
+					if ( mustache.n === 'unless' ) {
+						parser.error( '{{else}} not allowed in {{#unless}}' );
+					}
+
+					// begin else children
+					else {
+						if ( !elseBlocks ) {
+							elseBlocks = [];
+						}
+
+						currentChildren = [];
+						elseBlocks.push( currentChildren );
+						continue;
+					}
 				}
-				// begin else children
-				else {
-					currentChildren = elseChildren = [];
+
+				else if ( child.x && child.x.r[0] === 'elseif' ) {
+					if ( !elseBlocks ) {
+						elseBlocks = [];
+					}
+
+					currentChildren = [];
+					elseBlocks.push( currentChildren );
+					currentChildren.expression = child.x;
+					child.x.r.shift();
+					child.x.s = child.x.s.substring( 3, child.x.s.length - 1 );
+
+					let i = child.x.r.length + 1;
+					while ( i-- > 1 ) {
+						child.x.s = child.x.s.replace( '_' + i, '_' + ( i - 1) );
+					}
 					continue;
 				}
 			}
@@ -129,8 +155,8 @@ function getMustacheOfType ( parser, delimiterType ) {
 			mustache.f = children;
 		}
 
-		if ( elseChildren && elseChildren.length ) {
-			mustache.l = elseChildren;
+		if ( elseBlocks && elseBlocks.length ) {
+			mustache.l = elseBlocks;
 			if( mustache.n === 'with' ) {
 				mustache.n = 'if-with';
 			}

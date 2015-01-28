@@ -1,5 +1,5 @@
 import { SECTION_EACH, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH } from 'config/types';
-import { isArrayLike, isObject } from 'utils/is';
+import { isArrayLike, isObject, isEmptyObject } from 'utils/is';
 import { unbind } from 'shared/methodCallers';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
@@ -45,16 +45,85 @@ export default function Section$setValue ( value ) {
 		this.fragmentsToCreate.length = 0;
 	}
 
-	else if ( reevaluateSection( this, value ) ) {
+	else if ( !this.siblings && reevaluateSection( this, value ) ) {
 		this.bubble();
 
 		if ( this.rendered ) {
 			runloop.addView( this );
 		}
+	} else if ( this.siblings ) {
+		scheduleSiblingHandler( this );
 	}
 
 	this.value = value;
+	this.valueChanged = true;
 	this.updating = false;
+}
+
+function hasValue ( section ) {
+	if ( section.subtype === SECTION_EACH || section.currentSubtype === SECTION_EACH ) {
+		if ( section.value == null ) {
+			return false;
+		} if ( isArrayLike( section.value ) ) {
+			return section.value.length > 0;
+		} else {
+			return !isEmptyObject( section.value );
+		}
+	} else if ( section.subtype === SECTION_IF_WITH || section.currentSubtype === SECTION_IF_WITH ) {
+		return !!section.value;
+	} else {
+		return !!section.value && !isEmptyObject( section.value );
+	}
+}
+
+export function scheduleSiblingHandler ( section ) {
+	if ( section.siblings && section.siblings.unlocked ) {
+		section.siblings.unlocked = false;
+
+		runloop.scheduleTask( () => {
+			section.siblings.unlocked = true;
+			visitSiblings( section.siblings );
+			runloop.addViewmodel( section.root.viewmodel );
+		});
+	}
+}
+
+function doReevaluation ( section, value ) {
+	section.valueChanged = false;
+	if ( reevaluateSection( section, value ) ) {
+		section.bubble();
+
+		if ( section.rendered ) {
+			runloop.addView( section );
+		}
+	}
+}
+
+function visitSiblings ( siblings ) {
+	var i, section, valued;
+
+	for ( i = 0; i < siblings.length; i++ ) {
+		section = siblings[i];
+		valued = hasValue( section );
+		if ( ( section.currentSection !== true || section.valueChanged ) && valued ) {
+			section.currentSection = true;
+			doReevaluation( section, section.value );
+			break;
+		} else if ( section.currentSection === true && !valued ) {
+			section.currentSection = false;
+			doReevaluation( section, false );
+		}
+	}
+
+	if ( i < siblings.length ) {
+		for ( i++; i < siblings.length; i++ ) {
+			section = siblings[i];
+			if ( section.currentSection === true ) {
+				section.currentSection = false;
+				doReevaluation( section, false );
+			}
+		}
+	}
 }
 
 function changeCurrentSubtype ( section, value, obj ) {
@@ -262,17 +331,10 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 }
 
 function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
-	var doRender, emptyArray, emptyObject, fragment, name;
+	var doRender, emptyArray, emptyObject, fragment;
 
 	emptyArray = ( isArrayLike( value ) && value.length === 0 );
-	emptyObject = false;
-	if( !isArrayLike( value ) && isObject( value ) ) {
-		emptyObject = true;
-		for( name in value ) {
-			emptyObject = false;
-			break;
-		}
-	}
+	emptyObject = isEmptyObject( value );
 
 	if ( inverted ) {
 		doRender = emptyArray || emptyObject || !value;

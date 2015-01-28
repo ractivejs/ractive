@@ -1,4 +1,4 @@
-import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
+import { COMMENT, ELEMENT, SECTION_IF } from 'config/types';
 import Parser from './Parser/_Parser';
 import mustache from './converters/mustache';
 import comment from './converters/comment';
@@ -23,7 +23,8 @@ import { isEmptyObject, isArray } from 'utils/is';
 // * r - Reference, e.g. 'mustache' in {{mustache}}
 // * t - Type code (e.g. 1 is text, 2 is interpolator...)
 // * f - Fragment. Contains a template's children
-// * l - eLse fragment. Contains a template's children in the else case
+// * l - eLse fragment. Contains a template's children in the else cases
+// * b - sibling Block count
 // * e - Element name
 // * a - map of element Attributes, or proxy event/transition Arguments
 // * m - Mustache attributes (as in <div {{#if selected}}class="selected"{{/if}}>...</div>)
@@ -80,7 +81,7 @@ StandardParser = Parser.extend({
 			this.error( 'A section was left open' );
 		}
 
-		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
+		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace );
 
 		return items;
 	},
@@ -100,7 +101,7 @@ parse = function ( template, options = {} ) {
 	setDelimiters( options );
 
 	result = {
-		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
+		v: 3 // template spec version, defined in https://github.com/ractivejs/template-spec
 	};
 
 	result.t = new StandardParser( template, options ).result;
@@ -119,7 +120,7 @@ parse = function ( template, options = {} ) {
 
 export default parse;
 
-function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse ) {
+function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
 	var i,
 		item,
 		previousItem,
@@ -127,7 +128,6 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 		preserveWhitespaceInsideFragment,
 		removeLeadingWhitespaceInsideFragment,
 		removeTrailingWhitespaceInsideFragment,
-		unlessBlock,
 		key;
 
 	// First pass - remove standalones and comments etc
@@ -175,41 +175,48 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 				}
 			}
 
-			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 		}
 
-		// Split if-else blocks into two (an if, and an unless)
+		// Split if-else blocks into its bits
 		if ( item.l ) {
-			cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
-
-			if ( rewriteElse ) {
-				unlessBlock = {
+			let blocks = item.l.map( l => {
+				var block = {
 					t: 4,
-					n: SECTION_UNLESS,
-					f: item.l
+					n: SECTION_IF,
+					f: l
 				};
-				// copy the conditional based on its type
-				if( item.r  ) { unlessBlock.r  = item.r;  }
-				if( item.x  ) { unlessBlock.x  = item.x;  }
-				if( item.rx ) { unlessBlock.rx = item.rx; }
 
-				items.splice( i + 1, 0, unlessBlock );
-				delete item.l;
-			}
+				cleanup( l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+
+				if ( l.expression  ) {
+					block.x  = l.expression;
+					delete l.expression;
+				} else {
+					block.x = { s: 'true', r: [] };
+				}
+
+				return block;
+			});
+
+			item.b = blocks.length;
+
+			items.splice.apply( items, [ i + 1, 0 ].concat( blocks ) );
+			delete item.l;
 		}
 
 		// Clean up element attributes
 		if ( item.a ) {
 			for ( key in item.a ) {
 				if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 				}
 			}
 		}
 
 		// Clean up conditional attributes
 		if ( item.m ) {
-			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 		}
 
 		// Clean up event handlers
@@ -218,12 +225,12 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 				if ( item.v.hasOwnProperty( key ) ) {
 					// clean up names
 					if ( isArray( item.v[ key ].n ) ) {
-						cleanup( item.v[ key ].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+						cleanup( item.v[ key ].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 					}
 
 					// clean up params
 					if ( isArray( item.v[ key ].d ) ) {
-						cleanup( item.v[ key ].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+						cleanup( item.v[ key ].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 					}
 				}
 			}

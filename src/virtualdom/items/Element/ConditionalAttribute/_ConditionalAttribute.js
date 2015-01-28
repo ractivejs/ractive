@@ -19,7 +19,7 @@ var ConditionalAttribute = function ( element, template ) {
 	this.fragment = new Fragment({
 		root: element.root,
 		owner: this,
-		template: [ template ]
+		template
 	});
 };
 

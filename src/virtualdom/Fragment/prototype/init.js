@@ -10,8 +10,10 @@ import Component from 'virtualdom/items/Component/_Component';
 import Comment from 'virtualdom/items/Comment';
 import Yielder from 'virtualdom/items/Yielder';
 import Doctype from 'virtualdom/items/Doctype';
+import { scheduleSiblingHandler } from '../../items/Section/prototype/setValue';
 
 export default function Fragment$init ( options ) {
+	var left = 0;
 	this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
 	this.parent = this.owner.parentFragment;
 
@@ -23,12 +25,34 @@ export default function Fragment$init ( options ) {
 	this.key = options.key;
 	this.registeredIndexRefs = [];
 
-	this.items = options.template.map( ( template, i ) => createItem({
-		parentFragment: this,
-		pElement: options.pElement,
-		template: template,
-		index: i
-	}) );
+	this.items = options.template.map( ( template, i ) => {
+		var opts = {
+			parentFragment: this,
+			pElement: options.pElement,
+			template,
+			index: i
+		};
+
+		// keep track of sibling sections
+		if ( left-- > 0 ) {
+			opts.siblings = true;
+		} else if ( template.b ) {
+			opts.siblings = true;
+			left = template.b;
+		}
+
+		return createItem(opts);
+	});
+
+	// link up sections with siblings
+	this.items.forEach( ( fragment, i ) => {
+		if ( fragment.template && fragment.template.b ) {
+			let siblings = this.items.slice( i, i + fragment.template.b + 1 );
+			siblings.unlocked = true;
+			siblings.forEach( s => s.siblings = siblings );
+			scheduleSiblingHandler( fragment );
+		}
+	});
 
 	this.value = this.argsList = null;
 	this.dirtyArgs = this.dirtyValue = true;
