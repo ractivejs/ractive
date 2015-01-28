@@ -2,11 +2,11 @@ import { REFERENCE, BOOLEAN_LITERAL, GLOBAL, NUMBER_LITERAL, STRING_LITERAL, ARR
 import { isObject } from 'utils/is';
 
 export default function flattenExpression ( expression ) {
-	var refs = [], flattened;
+	var refs;
 
-	extractRefs( expression, refs );
+	extractRefs( expression, refs = [] );
 
-	flattened = {
+	return {
 		r: refs,
 		s: stringify( expression )
 	};
@@ -58,8 +58,6 @@ export default function flattenExpression ( expression ) {
 			throw new Error( 'Expected legal JavaScript' );
 		}
 	}
-
-	return flattened;
 }
 
 // TODO maybe refactor this?
