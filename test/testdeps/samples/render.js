@@ -359,7 +359,7 @@ var renderTests = [
 	{
 		name: 'Dependencies can be declared with this.get() inside expression functions',
 		template: '{{ area() }}',
-		data: { width: 50, height: 50, area: function () { return this.get( 'width' ) * this.get( 'height' ) } },
+		data: { width: 50, height: 50, area: function () { return this.get( 'width' ) * this.get( 'height' ); } },
 		result: '2500',
 		new_data: { width: 100 },
 		new_result: '5000'
@@ -1004,6 +1004,14 @@ var renderTests = [
 		data: { object: { '0001': 1 } },
 		result: '0001 0001'
 	},
+	{
+		name: 'if...else in conditional attribute',
+		template: '<p {{#if foo}}data-foo="yes"{{else}}data-bar="nope"{{/if}}></p>',
+		data: { foo: true },
+		result: '<p data-foo="yes"></p>',
+		new_data: { foo: false },
+		new_result: '<p data-bar="nope"></p>'
+	},
 
 	// elseif
 	{
@@ -1075,6 +1083,14 @@ var renderTests = [
 		result: '<p class="bar">result</p>',
 		new_data: { bar: null },
 		new_result: '<p class="other">result</p>'
+	},
+	{
+		name: 'elseif in conditional attribute',
+		template: '<p {{#if foo}}data-foo="foo"{{else if bar}}data-foo="bar"{{else}}data-foo="other"{{/if}}>result</p>',
+		data: { bar: true },
+		result: '<p data-foo="bar">result</p>',
+		new_data: { bar: null },
+		new_result: '<p data-foo="other">result</p>'
 	}
 ];
 

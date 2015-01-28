@@ -29,7 +29,7 @@ export default function Fragment$init ( options ) {
 		var opts = {
 			parentFragment: this,
 			pElement: options.pElement,
-			template: template,
+			template,
 			index: i
 		};
 

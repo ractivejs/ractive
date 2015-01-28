@@ -69,8 +69,10 @@ function hasValue ( section ) {
 		} else {
 			return !isEmptyObject( section.value );
 		}
-	} else {
+	} else if ( section.subtype === SECTION_IF_WITH || section.currentSubtype === SECTION_IF_WITH ) {
 		return !!section.value;
+	} else {
+		return !!section.value && !isEmptyObject( section.value );
 	}
 }
 
@@ -329,17 +331,10 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 }
 
 function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
-	var doRender, emptyArray, emptyObject, fragment, name;
+	var doRender, emptyArray, emptyObject, fragment;
 
 	emptyArray = ( isArrayLike( value ) && value.length === 0 );
-	emptyObject = false;
-	if( !isArrayLike( value ) && isObject( value ) ) {
-		emptyObject = true;
-		for( name in value ) {
-			emptyObject = false;
-			break;
-		}
-	}
+	emptyObject = isEmptyObject( value );
 
 	if ( inverted ) {
 		doRender = emptyArray || emptyObject || !value;

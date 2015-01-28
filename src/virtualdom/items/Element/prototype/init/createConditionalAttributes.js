@@ -5,7 +5,5 @@ export default function ( element, attributes ) {
 		return [];
 	}
 
-	return attributes.map( a => {
-		return new ConditionalAttribute( element, a );
-	});
+	return [ new ConditionalAttribute( element, attributes ) ];
 }
