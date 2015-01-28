@@ -1,5 +1,6 @@
 import { BRACKETED } from 'config/types';
 import { expectedExpression, expectedParen } from '../shared/errors';
+import getExpression from 'parse/converters/expression';
 
 export default function ( parser ) {
 	var start, expr;
@@ -12,7 +13,7 @@ export default function ( parser ) {
 
 	parser.allowWhitespace();
 
-	expr = parser.readExpression();
+	expr = getExpression( parser );
 	if ( !expr ) {
 		parser.error( expectedExpression );
 	}

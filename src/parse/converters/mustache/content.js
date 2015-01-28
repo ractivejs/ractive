@@ -2,6 +2,7 @@ import { TRIPLE, INTERPOLATOR, COMMENT, SECTION, CLOSING, PARTIAL, REFERENCE, BR
 import mustacheType from './type';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
 import flattenExpression from 'parse/utils/flattenExpression';
+import readExpression from 'parse/converters/expression';
 import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
@@ -33,7 +34,7 @@ export default function ( parser, delimiterType ) {
 		// an expression that begins '!' looks a lot like a comment
 		if ( parser.remaining()[0] === '!' ) {
 			try {
-				expression = parser.readExpression();
+				expression = readExpression( parser );
 
 				// Was it actually an expression, or a comment block in disguise?
 				parser.allowWhitespace();
@@ -95,7 +96,7 @@ export default function ( parser, delimiterType ) {
 		if ( type === PARTIAL ) {
 			relaxed = parser.relaxedNames;
 			parser.relaxedNames = true;
-			expression = parser.readExpression();
+			expression = readExpression( parser );
 			parser.relaxedNames = relaxed;
 		}
 
@@ -105,7 +106,7 @@ export default function ( parser, delimiterType ) {
 			mustache.r = 'yield';
 			relaxed = parser.relaxedNames;
 			parser.relaxedNames = true;
-			expression = parser.readExpression();
+			expression = readExpression( parser );
 			parser.relaxedNames = false;
 
 			if ( expression && expression.t === REFERENCE ) {
@@ -120,14 +121,14 @@ export default function ( parser, delimiterType ) {
 		else if ( mustache.t === SECTION && mustache.n === 'partial' ) {
 			relaxed = parser.relaxedNames;
 			parser.relaxedNames = true;
-			expression = parser.readExpression();
+			expression = readExpression( parser );
 			parser.relaxedNames = false;
 		}
 
 		// otherwise, just get an expression
 		else {
 			// get expression
-			expression = parser.readExpression();
+			expression = readExpression( parser );
 		}
 
 		// If this is a partial, it may have a context (e.g. `{{>item foo}}`). These
@@ -136,7 +137,7 @@ export default function ( parser, delimiterType ) {
 		// a 'contextPartialExpression' to the mustache, and process the context instead of
 		// the reference
 		let temp;
-		if ( mustache.t === PARTIAL && expression && ( temp = parser.readExpression() ) ) {
+		if ( mustache.t === PARTIAL && expression && ( temp = readExpression( parser ) ) ) {
 			mustache = {
 				contextPartialExpression: expression
 			};

@@ -1,6 +1,7 @@
 import { REFINEMENT } from 'config/types';
 import { expectedExpression } from './errors';
 import { name as namePattern } from './patterns';
+import getExpression from 'parse/converters/expression';
 
 export default function getRefinement ( parser ) {
 	var start, name, expr;
@@ -27,7 +28,7 @@ export default function getRefinement ( parser ) {
 	if ( parser.matchString( '[' ) ) {
 		parser.allowWhitespace();
 
-		expr = parser.readExpression();
+		expr = getExpression( parser );
 		if ( !expr ) {
 			parser.error( expectedExpression );
 		}

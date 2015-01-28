@@ -1,4 +1,5 @@
 import { expectedExpression } from './errors';
+import getExpression from 'parse/converters/expression';
 
 export default function getExpressionList ( parser ) {
 	var start, expressions, expr, next;
@@ -7,7 +8,7 @@ export default function getExpressionList ( parser ) {
 
 	parser.allowWhitespace();
 
-	expr = parser.readExpression();
+	expr = getExpression( parser );
 
 	if ( expr === null ) {
 		return null;

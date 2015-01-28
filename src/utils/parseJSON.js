@@ -1,6 +1,6 @@
 import Parser from 'parse/Parser/_Parser';
-import getStringLiteral from 'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral';
-import getKey from 'parse/Parser/expressions/shared/key';
+import getStringLiteral from 'parse/converters/expressions/primary/literal/stringLiteral/_stringLiteral';
+import getKey from 'parse/converters/expressions/shared/key';
 
 // simple JSON parser, without the restrictions of JSON parse
 // (i.e. having to double-quote keys).
