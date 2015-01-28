@@ -1,7 +1,7 @@
 import { REFERENCE, BOOLEAN_LITERAL, GLOBAL, NUMBER_LITERAL, STRING_LITERAL, ARRAY_LITERAL, OBJECT_LITERAL, KEY_VALUE_PAIR, PREFIX_OPERATOR, INFIX_OPERATOR, INVOCATION, BRACKETED, MEMBER, REFINEMENT, CONDITIONAL } from 'config/types';
 import { isObject } from 'utils/is';
 
-export default function ( expression ) {
+export default function flattenExpression ( expression ) {
 	var refs = [], flattened;
 
 	extractRefs( expression, refs );

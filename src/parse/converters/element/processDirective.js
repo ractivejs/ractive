@@ -1,6 +1,6 @@
 import Parser from 'parse/Parser/_Parser';
 import conditional from 'parse/Parser/expressions/conditional';
-import flattenExpression from 'parse/Parser/utils/flattenExpression';
+import flattenExpression from 'parse/utils/flattenExpression';
 import parseJSON from 'utils/parseJSON';
 
 var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/,

@@ -1,6 +1,7 @@
 import { TRIPLE, INTERPOLATOR, COMMENT, SECTION, CLOSING, PARTIAL, REFERENCE, BRACKETED, NUMBER_LITERAL, MEMBER, REFINEMENT } from 'config/types';
 import mustacheType from './type';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
+import flattenExpression from 'parse/utils/flattenExpression';
 import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
@@ -214,7 +215,7 @@ function refineExpression ( parser, expression, mustache ) {
 			} else if ( referenceExpression = getReferenceExpression( parser, expression ) ) {
 				mustache.rx = referenceExpression;
 			} else {
-				mustache.x = parser.flattenExpression( expression );
+				mustache.x = flattenExpression( expression );
 			}
 		}
 
@@ -233,7 +234,7 @@ function getReferenceExpression ( parser, expression ) {
 			if ( refinement.x.t === REFERENCE ) {
 				members.unshift( refinement.x );
 			} else {
-				members.unshift( parser.flattenExpression( refinement.x ) );
+				members.unshift( flattenExpression( refinement.x ) );
 			}
 		} else {
 			members.unshift( refinement.n );

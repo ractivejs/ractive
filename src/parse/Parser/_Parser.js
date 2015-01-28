@@ -1,6 +1,5 @@
 import { create, hasOwn } from 'utils/object';
 import getConditional from './expressions/conditional';
-import flattenExpression from './utils/flattenExpression';
 
 var Parser, ParseError, leadingWhitespace = /^\s+/;
 
@@ -73,8 +72,6 @@ Parser.prototype = {
 		// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
 		return getConditional( this );
 	},
-
-	flattenExpression: flattenExpression,
 
 	getLinePos: function ( char ) {
 		var lineNum = 0, lineStart = 0, columnNum;
