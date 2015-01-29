@@ -31,7 +31,7 @@ export default function readDelimiterChange ( parser, delimiterType ) {
 	} else {
 		// We need to test for expressions before we test for mustache type, because
 		// an expression that begins '!' looks a lot like a comment
-		if ( parser.remaining()[0] === '!' ) {
+		if ( parser.nextChar() === '!' ) {
 			try {
 				expression = readExpression( parser );
 
