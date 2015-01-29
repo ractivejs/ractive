@@ -1,6 +1,5 @@
 import { DELIMCHANGE, COMMENT, CLOSING, SECTION, INTERPOLATOR, INVERTED, SECTION_UNLESS, SECTION_PARTIAL, INLINE_PARTIAL } from 'config/types';
 import readDelimiterChange from './mustache/readDelimiterChange';
-import delimiterTypes from './mustache/delimiterTypes';
 import readMustacheContent from './mustache/readMustacheContent';
 import handlebarsBlockCodes from './mustache/handlebarsBlockCodes';
 
@@ -25,7 +24,7 @@ function getMustache ( parser ) {
 }
 
 function getMustacheOfType ( parser, delimiters ) {
-	var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child;
+	var start, mustache, children, expectedClose, elseChildren, currentChildren, child;
 
 	start = parser.pos;
 

@@ -107,7 +107,7 @@ StandardParser = Parser.extend({
 		// to protect against opening delimiters being substrings of each other
 		this.delimiters.sort( ( a, b ) => {
 			return b.content[0].length - a.content[0].length;
-		})
+		});
 	}
 });
 
