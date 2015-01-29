@@ -81,12 +81,7 @@ function readUnquotedAttributeValueToken ( parser ) {
 	}
 
 	haystack = text;
-	needles = [
-		parser.delimiters[0],
-		parser.tripleDelimiters[0],
-		parser.staticDelimiters[0],
-		parser.staticTripleDelimiters[0]
-	];
+	needles = parser.delimiters.map( d => d.content[0] ); // TODO refactor... we do this in readText.js as well
 
 	if ( ( index = getLowestIndex( haystack, needles ) ) !== -1 ) {
 		text = text.substr( 0, index );
@@ -152,13 +147,8 @@ function readQuotedStringToken ( parser, quoteMark ) {
 	start = parser.pos;
 	haystack = parser.remaining();
 
-	needles = [
-		quoteMark,
-		parser.delimiters[0],
-		parser.tripleDelimiters[0],
-		parser.staticDelimiters[0],
-		parser.staticTripleDelimiters[0]
-	];
+	needles = parser.delimiters.map( d => d.content[0] ); // TODO refactor... we do this in readText.js as well
+	needles.push( quoteMark );
 
 	index = getLowestIndex( haystack, needles );
 

@@ -12,21 +12,19 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 
 legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
 
-export default function readDelimiterChange ( parser, delimiterType ) {
+export default function readMustacheContent ( parser, delimiters ) {
 	var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, relaxed;
 
 	start = parser.pos;
 
 	mustache = {};
 
-	delimiters = parser[ delimiterType.delimiters ];
-
-	if ( delimiterType.isStatic ) {
+	if ( delimiters.isStatic ) {
 		mustache.s = true;
 	}
 
 	// Determine mustache type
-	if ( delimiterType.isTriple ) {
+	if ( delimiters.isTriple ) {
 		mustache.t = TRIPLE;
 	} else {
 		// We need to test for expressions before we test for mustache type, because
@@ -37,7 +35,7 @@ export default function readDelimiterChange ( parser, delimiterType ) {
 
 				// Was it actually an expression, or a comment block in disguise?
 				parser.allowWhitespace();
-				if ( parser.remaining().indexOf( delimiters[1] ) ) {
+				if ( parser.remaining().indexOf( delimiters.content[1] ) ) {
 					expression = null;
 				} else {
 					mustache.t = INTERPOLATOR;
@@ -45,12 +43,12 @@ export default function readDelimiterChange ( parser, delimiterType ) {
 			} catch ( err ) {}
 
 			if ( !expression ) {
-				index = parser.remaining().indexOf( delimiters[1] );
+				index = parser.remaining().indexOf( delimiters.content[1] );
 
 				if ( ~index ) {
 					parser.pos += index;
 				} else {
-					parser.error( 'Expected closing delimiter (\'' + delimiters[1] + '\')' );
+					parser.error( 'Expected closing delimiter (\'' + delimiters.content[1] + '\')' );
 				}
 
 				return {
@@ -76,7 +74,7 @@ export default function readDelimiterChange ( parser, delimiterType ) {
 			// if it's a comment or a section closer, allow any contents except '}}'
 			else if ( type === COMMENT || type === CLOSING ) {
 				remaining = parser.remaining();
-				index = remaining.indexOf( delimiters[1] );
+				index = remaining.indexOf( delimiters.content[1] );
 
 				if ( index !== -1 ) {
 					mustache.r = remaining.substr( 0, index ).split( ' ' )[0];
@@ -151,12 +149,12 @@ export default function readDelimiterChange ( parser, delimiterType ) {
 		// appear next, unless there's an index reference (i.e. a colon)
 		remaining = parser.remaining();
 
-		if ( ( remaining.substr( 0, delimiters[1].length ) !== delimiters[1] ) && ( remaining.charAt( 0 ) !== ':' ) ) {
+		if ( ( remaining.substr( 0, delimiters.content[1].length ) !== delimiters.content[1] ) && ( remaining.charAt( 0 ) !== ':' ) ) {
 			pos = parser.pos;
 			parser.pos = start;
 
 			remaining = parser.remaining();
-			index = remaining.indexOf( delimiters[1] );
+			index = remaining.indexOf( delimiters.content[1] );
 
 			if ( index !== -1 ) {
 				mustache.r = remaining.substr( 0, index ).trim();

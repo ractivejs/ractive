@@ -11,8 +11,8 @@ function getPartial( parser ) {
 	let template = parser.remaining(),
 	    firstPos = parser.pos,
 	    startMatch = parser.matchPattern( startPattern ),
-	    open = parser.options.delimiters[0],
-	    close = parser.options.delimiters[1];
+	    open = parser.standardDelimiters[0],
+	    close = parser.standardDelimiters[1];
 
 	if ( startMatch && parser.matchString( open ) ) {
 		let name = parser.matchPattern( namePattern );

@@ -9,7 +9,7 @@ var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 export default getMustache;
 
 function getMustache ( parser ) {
-	var types;
+	var mustache, i;
 
 	// If we're inside a <script> or <style> tag, and we're not
 	// interpolating, bug out
@@ -17,47 +17,39 @@ function getMustache ( parser ) {
 		return null;
 	}
 
-	types = delimiterTypes.slice().sort( function compare (a, b) {
-		// Sort in order of descending opening delimiter length (longer first),
-		// to protect against opening delimiters being substrings of each other
-		return parser[ b.delimiters ][ 0 ].length - parser[ a.delimiters ][ 0 ].length;
-	} );
-
-	return ( function r ( type ) {
-		if ( !type ) {
-			return null;
-		} else {
-			return getMustacheOfType( parser, type ) || r( types.shift() );
+	for ( i = 0; i < parser.delimiters.length; i += 1 ) {
+		if ( mustache = getMustacheOfType( parser, parser.delimiters[i] ) ) {
+			return mustache;
 		}
-	} ( types.shift() ) );
+	}
 }
 
-function getMustacheOfType ( parser, delimiterType ) {
+function getMustacheOfType ( parser, delimiters ) {
 	var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child;
 
 	start = parser.pos;
 
-	delimiters = parser[ delimiterType.delimiters ];
-
-	if ( !parser.matchString( delimiters[0] ) ) {
+	if ( !parser.matchString( delimiters.content[0] ) ) {
 		return null;
 	}
 
 	// delimiter change?
 	if ( mustache = readDelimiterChange( parser ) ) {
 		// find closing delimiter or abort...
-		if ( !parser.matchString( delimiters[1] ) ) {
+		if ( !parser.matchString( delimiters.content[1] ) ) {
 			return null;
 		}
 
 		// ...then make the switch
-		parser[ delimiterType.delimiters ] = mustache;
+		delimiters.content = mustache;
+		parser.sortDelimiters();
+
 		return delimiterChangeToken;
 	}
 
 	parser.allowWhitespace();
 
-	mustache = readMustacheContent( parser, delimiterType );
+	mustache = readMustacheContent( parser, delimiters );
 
 	if ( mustache === null ) {
 		parser.pos = start;
@@ -67,8 +59,8 @@ function getMustacheOfType ( parser, delimiterType ) {
 	// allow whitespace before closing delimiter
 	parser.allowWhitespace();
 
-	if ( !parser.matchString( delimiters[1] ) ) {
-		parser.error( 'Expected closing delimiter \'' + delimiters[1] + '\' after reference' );
+	if ( !parser.matchString( delimiters.content[1] ) ) {
+		parser.error( 'Expected closing delimiter \'' + delimiters.content[1] + '\' after reference' );
 	}
 
 	if ( mustache.t === COMMENT ) {

@@ -50,8 +50,17 @@ var StandardParser,
 
 StandardParser = Parser.extend({
 	init: function ( str, options ) {
-		// config
-		setDelimiters( options, this );
+
+		this.standardDelimiters = options.delimiters || [ '{{', '}}' ];
+
+		this.delimiters = [
+			{ isStatic: false, isTriple: false, content: this.standardDelimiters },
+			{ isStatic: false, isTriple: true,  content: options.tripleDelimiters       || [ '{{{', '}}}' ] },
+			{ isStatic: true,  isTriple: false, content: options.staticDelimiters       || [ '[[',  ']]'  ] },
+			{ isStatic: true,  isTriple: true,  content: options.staticTripleDelimiters || [ '[[[', ']]]' ] }
+		];
+
+		this.sortDelimiters();
 
 		this.sectionDepth = 0;
 
@@ -91,13 +100,19 @@ StandardParser = Parser.extend({
 		readComment,
 		readElement,
 		readText
-	]
+	],
+
+	sortDelimiters () {
+		// Sort in order of descending opening delimiter length (longer first),
+		// to protect against opening delimiters being substrings of each other
+		this.delimiters.sort( ( a, b ) => {
+			return b.content[0].length - a.content[0].length;
+		})
+	}
 });
 
 parse = function ( template, options = {} ) {
 	var result;
-
-	setDelimiters( options );
 
 	result = {
 		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
@@ -248,14 +263,4 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			}
 		}
 	}
-}
-
-function setDelimiters ( source, target ) {
-	target = target || source;
-
-	target.delimiters = source.delimiters || [ '{{', '}}' ];
-	target.tripleDelimiters = source.tripleDelimiters || [ '{{{', '}}}' ];
-
-	target.staticDelimiters = source.staticDelimiters || [ '[[', ']]' ];
-	target.staticTripleDelimiters = source.staticTripleDelimiters || [ '[[[', ']]]' ];
 }
