@@ -1,7 +1,7 @@
 import { CONDITIONAL } from 'config/types';
 import getLogicalOr from './logicalOr';
 import { expectedExpression } from './shared/errors';
-import getExpression from 'parse/converters/expression';
+import readExpression from 'parse/converters/readExpression';
 
 // The conditional operator is the lowest precedence operator, so we start here
 export default function getConditional ( parser ) {
@@ -23,7 +23,7 @@ export default function getConditional ( parser ) {
 
 	parser.allowWhitespace();
 
-	ifTrue = getExpression( parser );
+	ifTrue = readExpression( parser );
 	if ( !ifTrue ) {
 		parser.error( expectedExpression );
 	}
@@ -36,7 +36,7 @@ export default function getConditional ( parser ) {
 
 	parser.allowWhitespace();
 
-	ifFalse = getExpression( parser );
+	ifFalse = readExpression( parser );
 	if ( !ifFalse ) {
 		parser.error( expectedExpression );
 	}

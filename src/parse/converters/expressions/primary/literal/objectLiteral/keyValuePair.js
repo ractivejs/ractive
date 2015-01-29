@@ -1,6 +1,6 @@
 import { KEY_VALUE_PAIR } from 'config/types';
 import getKey from '../../../shared/key';
-import getExpression from 'parse/converters/expression';
+import readExpression from 'parse/converters/readExpression';
 
 export default function ( parser ) {
 	var start, key, value;
@@ -29,7 +29,7 @@ export default function ( parser ) {
 	parser.allowWhitespace();
 
 	// next expression must be a, well... expression
-	value = getExpression( parser );
+	value = readExpression( parser );
 	if ( value === null ) {
 		parser.pos = start;
 		return null;

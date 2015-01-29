@@ -1,7 +1,7 @@
 import { PREFIX_OPERATOR } from 'config/types';
 import { expectedExpression } from './shared/errors';
 import getMemberOrInvocation from './memberOrInvocation';
-import getExpression from 'parse/converters/expression';
+import readExpression from 'parse/converters/readExpression';
 
 var getTypeof, makePrefixSequenceMatcher;
 
@@ -19,7 +19,7 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 
 		parser.allowWhitespace();
 
-		expression = getExpression( parser );
+		expression = readExpression( parser );
 		if ( !expression ) {
 			parser.error( expectedExpression );
 		}

@@ -1,6 +1,6 @@
 import { MEMBER, INVOCATION } from 'config/types';
 import getPrimary from './primary/_primary';
-import getExpressionList from './shared/expressionList';
+import readExpressionList from './shared/expressionList';
 import getRefinement from './shared/refinement';
 import { expectedParen } from './shared/errors';
 
@@ -26,7 +26,7 @@ export default function ( parser ) {
 
 		else if ( parser.matchString( '(' ) ) {
 			parser.allowWhitespace();
-			expressionList = getExpressionList( parser );
+			expressionList = readExpressionList( parser );
 
 			parser.allowWhitespace();
 

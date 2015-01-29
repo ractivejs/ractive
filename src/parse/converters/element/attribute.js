@@ -1,5 +1,5 @@
 import getLowestIndex from '../utils/getLowestIndex';
-import getMustache from '../mustache';
+import readMustache from '../readMustache';
 import { decodeCharacterReferences } from 'utils/html';
 
 var attributeNamePattern = /^[^\s"'>\/=]+/,
@@ -105,10 +105,10 @@ function getUnquotedAttributeValue ( parser ) {
 
 	tokens = [];
 
-	token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
+	token = readMustache( parser ) || getUnquotedAttributeValueToken( parser );
 	while ( token !== null ) {
 		tokens.push( token );
-		token = getMustache( parser ) || getUnquotedAttributeValueToken( parser );
+		token = readMustache( parser ) || getUnquotedAttributeValueToken( parser );
 	}
 
 	if ( !tokens.length ) {
@@ -132,10 +132,10 @@ function getQuotedAttributeValue ( parser, quoteMark ) {
 
 	tokens = [];
 
-	token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
+	token = readMustache( parser ) || getQuotedStringToken( parser, quoteMark );
 	while ( token !== null ) {
 		tokens.push( token );
-		token = getMustache( parser ) || getQuotedStringToken( parser, quoteMark );
+		token = readMustache( parser ) || getQuotedStringToken( parser, quoteMark );
 	}
 
 	if ( !parser.matchString( quoteMark ) ) {

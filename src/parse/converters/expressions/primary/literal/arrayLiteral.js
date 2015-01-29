@@ -1,5 +1,5 @@
 import { ARRAY_LITERAL } from 'config/types';
-import getExpressionList from '../../shared/expressionList';
+import readExpressionList from '../../shared/expressionList';
 
 export default function ( parser ) {
 	var start, expressionList;
@@ -14,7 +14,7 @@ export default function ( parser ) {
 		return null;
 	}
 
-	expressionList = getExpressionList( parser );
+	expressionList = readExpressionList( parser );
 
 	if ( !parser.matchString( ']' ) ) {
 		parser.pos = start;

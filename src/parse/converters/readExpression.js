@@ -1,6 +1,6 @@
 import getConditional from './expressions/conditional';
 
-export default function getExpression ( parser ) {
+export default function readExpression ( parser ) {
 	// The conditional operator is the lowest precedence operator (except yield,
 	// assignment operators, and commas, none of which are supported), so we
 	// start there. If it doesn't match, it 'falls through' to progressively

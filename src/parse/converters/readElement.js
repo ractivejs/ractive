@@ -1,9 +1,9 @@
 import { DOCTYPE, ELEMENT, CLOSING, CLOSING_TAG } from 'config/types';
 import { voidElementNames } from 'utils/html';
-import getMustache from './mustache';
-import getComment from './comment';
-import getPartial from './partial';
-import getText from './text';
+import readMustache from './readMustache';
+import readComment from './readComment';
+import readPartial from './readPartial';
+import readText from './readText';
 import getClosingTag from './element/closingTag';
 import getAttribute from './element/attribute';
 import processDirective from './element/processDirective';
@@ -20,11 +20,11 @@ var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 
 // Different set of converters, because this time we're looking for closing tags
 converters = [
-	getPartial,
-	getMustache,
-	getComment,
+	readPartial,
+	readMustache,
+	readComment,
 	getElement,
-	getText,
+	readText,
 	getClosingTag
 ];
 
@@ -118,7 +118,7 @@ function getElement ( parser ) {
 	parser.allowWhitespace();
 
 	// directives and attributes
-	while ( attribute = getMustache( parser ) || getAttribute( parser ) ) {
+	while ( attribute = readMustache( parser ) || getAttribute( parser ) ) {
 		// regular attributes
 		if ( attribute.name ) {
 			// intro, outro, decorator

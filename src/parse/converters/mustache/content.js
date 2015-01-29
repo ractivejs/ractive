@@ -2,7 +2,7 @@ import { TRIPLE, INTERPOLATOR, COMMENT, SECTION, CLOSING, PARTIAL, REFERENCE } f
 import mustacheType from './type';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
 import refineExpression from 'parse/utils/refineExpression';
-import readExpression from 'parse/converters/expression';
+import readExpression from 'parse/converters/readExpression';
 import 'legacy';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,

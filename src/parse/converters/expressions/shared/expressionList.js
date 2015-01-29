@@ -1,14 +1,14 @@
 import { expectedExpression } from './errors';
-import getExpression from 'parse/converters/expression';
+import readExpression from 'parse/converters/readExpression';
 
-export default function getExpressionList ( parser ) {
+export default function readExpressionList ( parser ) {
 	var start, expressions, expr, next;
 
 	start = parser.pos;
 
 	parser.allowWhitespace();
 
-	expr = getExpression( parser );
+	expr = readExpression( parser );
 
 	if ( expr === null ) {
 		return null;
@@ -20,7 +20,7 @@ export default function getExpressionList ( parser ) {
 	parser.allowWhitespace();
 
 	if ( parser.matchString( ',' ) ) {
-		next = getExpressionList( parser );
+		next = readExpressionList( parser );
 		if ( next === null ) {
 			parser.error( expectedExpression );
 		}

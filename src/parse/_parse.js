@@ -1,10 +1,10 @@
 import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
 import Parser from './Parser';
-import mustache from './converters/mustache';
-import comment from './converters/comment';
-import element from './converters/element';
-import partial from './converters/partial';
-import text from './converters/text';
+import readMustache from './converters/readMustache';
+import readComment from './converters/readComment';
+import readElement from './converters/readElement';
+import readPartial from './converters/readPartial';
+import readText from './converters/readText';
 import trimWhitespace from './utils/trimWhitespace';
 import stripStandalones from './utils/stripStandalones';
 import processPartials from './converters/partial/processPartials';
@@ -86,11 +86,11 @@ StandardParser = Parser.extend({
 	},
 
 	converters: [
-		partial,
-		mustache,
-		comment,
-		element,
-		text
+		readPartial,
+		readMustache,
+		readComment,
+		readElement,
+		readText
 	]
 });
 
