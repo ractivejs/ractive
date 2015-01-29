@@ -53,7 +53,15 @@ function getMustacheOfType ( parser, delimiters ) {
 		for ( i = 0; i < delimiters.readers.length; i += 1 ) {
 			reader = delimiters.readers[i];
 
-			if ( mustache = reader( parser, delimiters ) ) {
+			if ( mustache = reader( parser ) ) {
+				if ( !parser.matchString( delimiters.content[1] ) ) {
+					parser.error( `Expected closing delimiter '${delimiters.content[1]}' after reference` );
+				}
+
+				if ( delimiters.isStatic ) {
+					mustache.s = true;
+				}
+
 				return mustache;
 			}
 		}
