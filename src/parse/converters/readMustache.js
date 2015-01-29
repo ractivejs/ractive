@@ -1,7 +1,7 @@
 import { DELIMCHANGE, COMMENT, CLOSING, SECTION, INTERPOLATOR, INVERTED, SECTION_UNLESS, SECTION_PARTIAL, INLINE_PARTIAL } from 'config/types';
-import delimiterChange from './mustache/delimiterChange';
+import readDelimiterChange from './mustache/readDelimiterChange';
 import delimiterTypes from './mustache/delimiterTypes';
-import mustacheContent from './mustache/content';
+import readMustacheContent from './mustache/readMustacheContent';
 import handlebarsBlockCodes from './mustache/handlebarsBlockCodes';
 
 var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
@@ -44,7 +44,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 	}
 
 	// delimiter change?
-	if ( mustache = delimiterChange( parser ) ) {
+	if ( mustache = readDelimiterChange( parser ) ) {
 		// find closing delimiter or abort...
 		if ( !parser.matchString( delimiters[1] ) ) {
 			return null;
@@ -57,7 +57,7 @@ function getMustacheOfType ( parser, delimiterType ) {
 
 	parser.allowWhitespace();
 
-	mustache = mustacheContent( parser, delimiterType );
+	mustache = readMustacheContent( parser, delimiterType );
 
 	if ( mustache === null ) {
 		parser.pos = start;

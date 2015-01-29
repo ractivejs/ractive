@@ -1,5 +1,5 @@
 import { OBJECT_LITERAL } from 'config/types';
-import getKeyValuePairs from './keyValuePairs';
+import readKeyValuePairs from './objectLiteral/keyValuePairs';
 
 export default function ( parser ) {
 	var start, keyValuePairs;
@@ -14,7 +14,7 @@ export default function ( parser ) {
 		return null;
 	}
 
-	keyValuePairs = getKeyValuePairs( parser );
+	keyValuePairs = readKeyValuePairs( parser );
 
 	// allow whitespace between final value and '}'
 	parser.allowWhitespace();

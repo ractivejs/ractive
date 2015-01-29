@@ -1,19 +1,19 @@
-import getStringLiteral from '../primary/literal/stringLiteral/_stringLiteral';
-import getNumberLiteral from '../primary/literal/numberLiteral';
+import readStringLiteral from '../primary/literal/readStringLiteral';
+import readNumberLiteral from '../primary/literal/readNumberLiteral';
 import { name as namePattern } from './patterns';
 
 var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
 // http://mathiasbynens.be/notes/javascript-properties
 // can be any name, string literal, or number literal
-export default function ( parser ) {
+export default function readKey ( parser ) {
 	var token;
 
-	if ( token = getStringLiteral( parser ) ) {
+	if ( token = readStringLiteral( parser ) ) {
 		return identifier.test( token.v ) ? token.v : '"' + token.v.replace( /"/g, '\\"' ) + '"';
 	}
 
-	if ( token = getNumberLiteral( parser ) ) {
+	if ( token = readNumberLiteral( parser ) ) {
 		return token.v;
 	}
 

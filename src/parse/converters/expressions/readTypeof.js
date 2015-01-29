@@ -1,9 +1,9 @@
 import { PREFIX_OPERATOR } from 'config/types';
 import { expectedExpression } from './shared/errors';
-import getMemberOrInvocation from './memberOrInvocation';
+import readMemberOrInvocation from './readMemberOrInvocation';
 import readExpression from 'parse/converters/readExpression';
 
-var getTypeof, makePrefixSequenceMatcher;
+var readTypeOf, makePrefixSequenceMatcher;
 
 makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
@@ -32,13 +32,13 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	};
 };
 
-// create all prefix sequence matchers, return getTypeof
+// create all prefix sequence matchers, return readTypeOf
 (function() {
 	var i, len, matcher, prefixOperators, fallthrough;
 
 	prefixOperators = '! ~ + - typeof'.split( ' ' );
 
-	fallthrough = getMemberOrInvocation;
+	fallthrough = readMemberOrInvocation;
 	for ( i = 0, len = prefixOperators.length; i < len; i += 1 ) {
 		matcher = makePrefixSequenceMatcher( prefixOperators[i], fallthrough );
 		fallthrough = matcher;
@@ -47,7 +47,7 @@ makePrefixSequenceMatcher = function ( symbol, fallthrough ) {
 	// typeof operator is higher precedence than multiplication, so provides the
 	// fallthrough for the multiplication sequence matcher we're about to create
 	// (we're skipping void and delete)
-	getTypeof = fallthrough;
+	readTypeOf = fallthrough;
 }());
 
-export default getTypeof;
+export default readTypeOf;

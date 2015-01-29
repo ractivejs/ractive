@@ -1,4 +1,4 @@
-import getConditional from './expressions/conditional';
+import readConditional from './expressions/readConditional';
 
 export default function readExpression ( parser ) {
 	// The conditional operator is the lowest precedence operator (except yield,
@@ -7,5 +7,5 @@ export default function readExpression ( parser ) {
 	// higher precedence operators, until it eventually matches (or fails to
 	// match) a 'primary' - a literal or a reference. This way, the abstract syntax
 	// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
-	return getConditional( parser );
+	return readConditional( parser );
 }

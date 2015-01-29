@@ -1,8 +1,8 @@
 import { KEY_VALUE_PAIR } from 'config/types';
-import getKey from '../../../shared/key';
+import readKey from '../../../shared/readKey';
 import readExpression from 'parse/converters/readExpression';
 
-export default function ( parser ) {
+export default function readKeyValuePair ( parser ) {
 	var start, key, value;
 
 	start = parser.pos;
@@ -10,7 +10,7 @@ export default function ( parser ) {
 	// allow whitespace between '{' and key
 	parser.allowWhitespace();
 
-	key = getKey( parser );
+	key = readKey( parser );
 	if ( key === null ) {
 		parser.pos = start;
 		return null;

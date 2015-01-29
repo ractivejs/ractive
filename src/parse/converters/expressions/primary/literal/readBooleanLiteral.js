@@ -1,6 +1,6 @@
 import { BOOLEAN_LITERAL } from 'config/types';
 
-export default function ( parser ) {
+export default function readBooleanLiteral ( parser ) {
 	var remaining = parser.remaining();
 
 	if ( remaining.substr( 0, 4 ) === 'true' ) {

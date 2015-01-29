@@ -2,7 +2,7 @@ import { CLOSING_TAG } from 'config/types';
 
 var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
-export default function ( parser ) {
+export default function readClosingTag ( parser ) {
 	var tag;
 
 	// are we looking at a closing tag?

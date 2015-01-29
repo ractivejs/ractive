@@ -12,7 +12,7 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 
 legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
 
-export default function ( parser, delimiterType ) {
+export default function readDelimiterChange ( parser, delimiterType ) {
 	var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, relaxed;
 
 	start = parser.pos;

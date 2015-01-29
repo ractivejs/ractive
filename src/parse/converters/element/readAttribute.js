@@ -5,9 +5,7 @@ import { decodeCharacterReferences } from 'utils/html';
 var attributeNamePattern = /^[^\s"'>\/=]+/,
 	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
 
-export default getAttribute;
-
-function getAttribute ( parser ) {
+export default function readAttribute ( parser ) {
 	var attr, name, value;
 
 	parser.allowWhitespace();
@@ -21,7 +19,7 @@ function getAttribute ( parser ) {
 		name: name
 	};
 
-	value = getAttributeValue( parser );
+	value = readAttributeValue( parser );
 	if ( value ) {
 		attr.value = value;
 	}
@@ -29,7 +27,7 @@ function getAttribute ( parser ) {
 	return attr;
 }
 
-function getAttributeValue ( parser ) {
+function readAttributeValue ( parser ) {
 	var start, valueStart, startDepth, value;
 
 	start = parser.pos;
@@ -46,9 +44,9 @@ function getAttributeValue ( parser ) {
 	valueStart = parser.pos;
 	startDepth = parser.sectionDepth;
 
-	value = getQuotedAttributeValue( parser, "'" ) ||
-			getQuotedAttributeValue( parser, '"' ) ||
-			getUnquotedAttributeValue( parser );
+	value = readQuotedAttributeValue( parser, "'" ) ||
+			readQuotedAttributeValue( parser, '"' ) ||
+			readUnquotedAttributeValue( parser );
 
 	if ( parser.sectionDepth !== startDepth ) {
 		parser.pos = valueStart;
@@ -71,7 +69,7 @@ function getAttributeValue ( parser ) {
 	return value;
 }
 
-function getUnquotedAttributeValueToken ( parser ) {
+function readUnquotedAttributeValueToken ( parser ) {
 	var start, text, haystack, needles, index;
 
 	start = parser.pos;
@@ -98,17 +96,17 @@ function getUnquotedAttributeValueToken ( parser ) {
 	return text;
 }
 
-function getUnquotedAttributeValue ( parser ) {
+function readUnquotedAttributeValue ( parser ) {
 	var tokens, token;
 
 	parser.inAttribute = true;
 
 	tokens = [];
 
-	token = readMustache( parser ) || getUnquotedAttributeValueToken( parser );
+	token = readMustache( parser ) || readUnquotedAttributeValueToken( parser );
 	while ( token !== null ) {
 		tokens.push( token );
-		token = readMustache( parser ) || getUnquotedAttributeValueToken( parser );
+		token = readMustache( parser ) || readUnquotedAttributeValueToken( parser );
 	}
 
 	if ( !tokens.length ) {
@@ -119,7 +117,7 @@ function getUnquotedAttributeValue ( parser ) {
 	return tokens;
 }
 
-function getQuotedAttributeValue ( parser, quoteMark ) {
+function readQuotedAttributeValue ( parser, quoteMark ) {
 	var start, tokens, token;
 
 	start = parser.pos;
@@ -132,10 +130,10 @@ function getQuotedAttributeValue ( parser, quoteMark ) {
 
 	tokens = [];
 
-	token = readMustache( parser ) || getQuotedStringToken( parser, quoteMark );
+	token = readMustache( parser ) || readQuotedStringToken( parser, quoteMark );
 	while ( token !== null ) {
 		tokens.push( token );
-		token = readMustache( parser ) || getQuotedStringToken( parser, quoteMark );
+		token = readMustache( parser ) || readQuotedStringToken( parser, quoteMark );
 	}
 
 	if ( !parser.matchString( quoteMark ) ) {
@@ -148,7 +146,7 @@ function getQuotedAttributeValue ( parser, quoteMark ) {
 	return tokens;
 }
 
-function getQuotedStringToken ( parser, quoteMark ) {
+function readQuotedStringToken ( parser, quoteMark ) {
 	var start, index, haystack, needles;
 
 	start = parser.pos;

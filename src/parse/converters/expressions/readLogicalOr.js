@@ -1,7 +1,7 @@
 import { INFIX_OPERATOR } from 'config/types';
-import getTypeof from './typeof';
+import readTypeof from './readTypeof';
 
-var getLogicalOr, makeInfixSequenceMatcher;
+var readLogicalOr, makeInfixSequenceMatcher;
 
 makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 	return function ( parser ) {
@@ -52,7 +52,7 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 	};
 };
 
-// create all infix sequence matchers, and return getLogicalOr
+// create all infix sequence matchers, and return readLogicalOr
 (function() {
 	var i, len, matcher, infixOperators, fallthrough;
 
@@ -63,14 +63,14 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 	infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split( ' ' );
 
 	// A typeof operator is higher precedence than multiplication
-	fallthrough = getTypeof;
+	fallthrough = readTypeof;
 	for ( i = 0, len = infixOperators.length; i < len; i += 1 ) {
 		matcher = makeInfixSequenceMatcher( infixOperators[i], fallthrough );
 		fallthrough = matcher;
 	}
 
 	// Logical OR is the fallthrough for the conditional matcher
-	getLogicalOr = fallthrough;
+	readLogicalOr = fallthrough;
 }());
 
-export default getLogicalOr;
+export default readLogicalOr;

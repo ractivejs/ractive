@@ -4,8 +4,8 @@ import readMustache from './readMustache';
 import readComment from './readComment';
 import readPartial from './readPartial';
 import readText from './readText';
-import getClosingTag from './element/closingTag';
-import getAttribute from './element/attribute';
+import readClosingTag from './element/readClosingTag';
+import readAttribute from './element/readAttribute';
 import processDirective from './element/processDirective';
 
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
@@ -25,7 +25,7 @@ converters = [
 	readComment,
 	getElement,
 	readText,
-	getClosingTag
+	readClosingTag
 ];
 
 // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
@@ -118,7 +118,7 @@ function getElement ( parser ) {
 	parser.allowWhitespace();
 
 	// directives and attributes
-	while ( attribute = readMustache( parser ) || getAttribute( parser ) ) {
+	while ( attribute = readMustache( parser ) || readAttribute( parser ) ) {
 		// regular attributes
 		if ( attribute.name ) {
 			// intro, outro, decorator

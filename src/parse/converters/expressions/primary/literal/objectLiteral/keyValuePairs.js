@@ -1,6 +1,6 @@
 import getKeyValuePair from './keyValuePair';
 
-export default function getKeyValuePairs ( parser ) {
+export default function readKeyValuePairs ( parser ) {
 	var start, pairs, pair, keyValuePairs;
 
 	start = parser.pos;
@@ -13,7 +13,7 @@ export default function getKeyValuePairs ( parser ) {
 	pairs = [ pair ];
 
 	if ( parser.matchString( ',' ) ) {
-		keyValuePairs = getKeyValuePairs( parser );
+		keyValuePairs = readKeyValuePairs( parser );
 
 		if ( !keyValuePairs ) {
 			parser.pos = start;

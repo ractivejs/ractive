@@ -1,18 +1,8 @@
 import { GLOBAL, REFERENCE } from 'config/types';
 import { name as namePattern, relaxedName } from '../shared/patterns';
 
-var dotRefinementPattern, arrayMemberPattern, getArrayRefinement, globals, keywords;
+var dotRefinementPattern, arrayMemberPattern, globals, keywords;
 dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
-
-getArrayRefinement = function ( parser ) {
-	var num = parser.matchPattern( arrayMemberPattern );
-
-	if ( num ) {
-		return '.' + num;
-	}
-
-	return null;
-};
 
 arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
 
@@ -22,7 +12,7 @@ globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIC
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
-export default function ( parser ) {
+export default function readReference ( parser ) {
 	var startPos, ancestor, name, dot, combo, refinement, lastDotIndex, pattern;
 
 	startPos = parser.pos;
@@ -68,7 +58,7 @@ export default function ( parser ) {
 		return null;
 	}
 
-	while ( refinement = parser.matchPattern( dotRefinementPattern ) || getArrayRefinement( parser ) ) {
+	while ( refinement = parser.matchPattern( dotRefinementPattern ) || readArrayRefinement( parser ) ) {
 		combo += refinement;
 	}
 
@@ -90,4 +80,14 @@ export default function ( parser ) {
 		t: REFERENCE,
 		n: combo.replace( /^this\./, './' ).replace( /^this$/, '.' )
 	};
+}
+
+function readArrayRefinement ( parser ) {
+	var num = parser.matchPattern( arrayMemberPattern );
+
+	if ( num ) {
+		return '.' + num;
+	}
+
+	return null;
 }

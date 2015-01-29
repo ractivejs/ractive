@@ -1,13 +1,13 @@
 import { MEMBER, INVOCATION } from 'config/types';
-import getPrimary from './primary/_primary';
-import readExpressionList from './shared/expressionList';
-import getRefinement from './shared/refinement';
+import readPrimary from './readPrimary';
+import readExpressionList from './shared/readExpressionList';
+import readRefinement from './shared/readRefinement';
 import { expectedParen } from './shared/errors';
 
 export default function ( parser ) {
 	var current, expression, refinement, expressionList;
 
-	expression = getPrimary( parser );
+	expression = readPrimary( parser );
 
 	if ( !expression ) {
 		return null;
@@ -16,7 +16,7 @@ export default function ( parser ) {
 	while ( expression ) {
 		current = parser.pos;
 
-		if ( refinement = getRefinement( parser ) ) {
+		if ( refinement = readRefinement( parser ) ) {
 			expression = {
 				t: MEMBER,
 				x: expression,

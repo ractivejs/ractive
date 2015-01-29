@@ -1,5 +1,5 @@
 import { CONDITIONAL } from 'config/types';
-import getLogicalOr from './logicalOr';
+import readLogicalOr from './readLogicalOr';
 import { expectedExpression } from './shared/errors';
 import readExpression from 'parse/converters/readExpression';
 
@@ -7,7 +7,7 @@ import readExpression from 'parse/converters/readExpression';
 export default function getConditional ( parser ) {
 	var start, expression, ifTrue, ifFalse;
 
-	expression = getLogicalOr( parser );
+	expression = readLogicalOr( parser );
 	if ( !expression ) {
 		return null;
 	}

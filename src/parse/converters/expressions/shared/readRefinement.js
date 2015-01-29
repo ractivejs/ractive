@@ -3,7 +3,7 @@ import { expectedExpression } from './errors';
 import { name as namePattern } from './patterns';
 import readExpression from 'parse/converters/readExpression';
 
-export default function getRefinement ( parser ) {
+export default function readRefinement ( parser ) {
 	var start, name, expr;
 
 	start = parser.pos;
