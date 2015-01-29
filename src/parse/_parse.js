@@ -1,6 +1,7 @@
 import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
 import Parser from './Parser';
 import readMustache from './converters/readMustache';
+import readTriple from './converters/mustache/readTriple';
 import readComment from './converters/readComment';
 import readElement from './converters/readElement';
 import readPartial from './converters/readPartial';
@@ -46,7 +47,9 @@ var StandardParser,
 	contiguousWhitespace = /[ \t\f\r\n]+/g,
 	preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 	leadingWhitespace = /^\s+/,
-	trailingWhitespace = /\s+$/;
+	trailingWhitespace = /\s+$/,
+
+	TRIPLE_READERS = [ readTriple ];
 
 StandardParser = Parser.extend({
 	init: function ( str, options ) {
@@ -55,9 +58,9 @@ StandardParser = Parser.extend({
 
 		this.delimiters = [
 			{ isStatic: false, isTriple: false, content: this.standardDelimiters },
-			{ isStatic: false, isTriple: true,  content: options.tripleDelimiters       || [ '{{{', '}}}' ] },
+			{ isStatic: false, isTriple: true,  content: options.tripleDelimiters       || [ '{{{', '}}}' ], readers: TRIPLE_READERS },
 			{ isStatic: true,  isTriple: false, content: options.staticDelimiters       || [ '[[',  ']]'  ] },
-			{ isStatic: true,  isTriple: true,  content: options.staticTripleDelimiters || [ '[[[', ']]]' ] }
+			{ isStatic: true,  isTriple: true,  content: options.staticTripleDelimiters || [ '[[[', ']]]' ], readers: TRIPLE_READERS }
 		];
 
 		this.sortDelimiters();

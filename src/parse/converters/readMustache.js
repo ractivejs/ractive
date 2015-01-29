@@ -24,7 +24,7 @@ function getMustache ( parser ) {
 }
 
 function getMustacheOfType ( parser, delimiters ) {
-	var start, mustache, children, expectedClose, elseChildren, currentChildren, child;
+	var start, mustache, children, expectedClose, elseChildren, currentChildren, child, reader, i;
 
 	start = parser.pos;
 
@@ -47,6 +47,20 @@ function getMustacheOfType ( parser, delimiters ) {
 	}
 
 	parser.allowWhitespace();
+
+	// TEMP should be no if statement - should all be done this way
+	if ( delimiters.readers ) {
+		for ( i = 0; i < delimiters.readers.length; i += 1 ) {
+			reader = delimiters.readers[i];
+
+			if ( mustache = reader( parser, delimiters ) ) {
+				return mustache;
+			}
+		}
+
+		parser.pos = start;
+		return null;
+	}
 
 	mustache = readMustacheContent( parser, delimiters );
 

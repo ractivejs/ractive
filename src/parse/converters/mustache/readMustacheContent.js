@@ -23,64 +23,59 @@ export default function readMustacheContent ( parser, delimiters ) {
 		mustache.s = true;
 	}
 
-	// Determine mustache type
-	if ( delimiters.isTriple ) {
-		mustache.t = TRIPLE;
-	} else {
-		// We need to test for expressions before we test for mustache type, because
-		// an expression that begins '!' looks a lot like a comment
-		if ( parser.nextChar() === '!' ) {
-			try {
-				expression = readExpression( parser );
+	// We need to test for expressions before we test for mustache type, because
+	// an expression that begins '!' looks a lot like a comment
+	if ( parser.nextChar() === '!' ) {
+		try {
+			expression = readExpression( parser );
 
-				// Was it actually an expression, or a comment block in disguise?
-				parser.allowWhitespace();
-				if ( parser.remaining().indexOf( delimiters.content[1] ) ) {
-					expression = null;
-				} else {
-					mustache.t = INTERPOLATOR;
-				}
-			} catch ( err ) {}
-
-			if ( !expression ) {
-				index = parser.remaining().indexOf( delimiters.content[1] );
-
-				if ( ~index ) {
-					parser.pos += index;
-				} else {
-					parser.error( 'Expected closing delimiter (\'' + delimiters.content[1] + '\')' );
-				}
-
-				return {
-					t: COMMENT
-				};
+			// Was it actually an expression, or a comment block in disguise?
+			parser.allowWhitespace();
+			if ( parser.remaining().indexOf( delimiters.content[1] ) ) {
+				expression = null;
+			} else {
+				mustache.t = INTERPOLATOR;
 			}
-		}
+		} catch ( err ) {}
 
 		if ( !expression ) {
-			type = mustacheType( parser );
+			index = parser.remaining().indexOf( delimiters.content[1] );
 
-			mustache.t = type || INTERPOLATOR; // default
-
-			// See if there's an explicit section type e.g. {{#with}}...{{/with}}
-			if ( type === SECTION ) {
-				if ( block = parser.matchPattern( handlebarsBlockPattern ) ) {
-					mustache.n = block;
-				}
-
-				parser.allowWhitespace();
+			if ( ~index ) {
+				parser.pos += index;
+			} else {
+				parser.error( 'Expected closing delimiter (\'' + delimiters.content[1] + '\')' );
 			}
 
-			// if it's a comment or a section closer, allow any contents except '}}'
-			else if ( type === COMMENT || type === CLOSING ) {
-				remaining = parser.remaining();
-				index = remaining.indexOf( delimiters.content[1] );
+			return {
+				t: COMMENT
+			};
+		}
+	}
 
-				if ( index !== -1 ) {
-					mustache.r = remaining.substr( 0, index ).split( ' ' )[0];
-					parser.pos += index;
-					return mustache;
-				}
+	if ( !expression ) {
+		type = mustacheType( parser );
+
+		mustache.t = type || INTERPOLATOR; // default
+
+		// See if there's an explicit section type e.g. {{#with}}...{{/with}}
+		if ( type === SECTION ) {
+			if ( block = parser.matchPattern( handlebarsBlockPattern ) ) {
+				mustache.n = block;
+			}
+
+			parser.allowWhitespace();
+		}
+
+		// if it's a comment or a section closer, allow any contents except '}}'
+		else if ( type === COMMENT || type === CLOSING ) {
+			remaining = parser.remaining();
+			index = remaining.indexOf( delimiters.content[1] );
+
+			if ( index !== -1 ) {
+				mustache.r = remaining.substr( 0, index ).split( ' ' )[0];
+				parser.pos += index;
+				return mustache;
 			}
 		}
 	}
