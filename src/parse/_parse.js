@@ -155,7 +155,6 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 		preserveWhitespaceInsideFragment,
 		removeLeadingWhitespaceInsideFragment,
 		removeTrailingWhitespaceInsideFragment,
-		spliceArgs,
 		key;
 
 	// First pass - remove standalones and comments etc
@@ -208,13 +207,9 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 
 		// Split if-else blocks into two (an if, and an unless)
 		if ( item.l ) {
-			item.l.forEach( block => {
-				cleanup( block.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
-			});
+			cleanup( item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 
-			spliceArgs = [ i + 1, 0 ].concat( item.l );
-
-			items.splice.apply( items, spliceArgs );
+			items.splice( i + 1, 0, item.l );
 			delete item.l; // TODO would be nice if there was a way around this
 		}
 

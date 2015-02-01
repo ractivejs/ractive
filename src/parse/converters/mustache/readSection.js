@@ -12,7 +12,7 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
 export default function readSection ( parser, tag ) {
-	var start, expression, section, child, children, hasElse, block, elseBlocks, conditions, closed, i, expectedClose;
+	var start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose;
 
 	start = parser.pos;
 
@@ -57,8 +57,7 @@ export default function readSection ( parser, tag ) {
 	parser.sectionDepth += 1;
 	children = section.f;
 
-	elseBlocks = [];
-	conditions = [ invert( expression ) ];
+	conditions = [];
 
 	do {
 		if ( child = readClosing( parser, tag ) ) {
@@ -79,14 +78,16 @@ export default function readSection ( parser, tag ) {
 				parser.error( 'illegal {{elseif...}} after {{else}}' );
 			}
 
-			elseBlocks.push({
+			if ( !unlessBlock ) {
+				unlessBlock = createUnlessBlock( expression, section.n );
+			}
+
+			unlessBlock.f.push({
 				t: SECTION,
 				n: SECTION_IF,
 				x: flattenExpression( combine( conditions.concat( child.x ) ) ),
 				f: children = []
 			});
-
-			console.log( 'elseBlocks', elseBlocks );
 
 			conditions.push( invert( child.x ) );
 		}
@@ -102,25 +103,18 @@ export default function readSection ( parser, tag ) {
 
 			hasElse = true;
 
-			// use an unless block if there's only one condition
-			if ( conditions.length === 1 ) {
-				block = {
-					t: SECTION,
-					n: SECTION_UNLESS,
-					f: children = []
-				};
-
-				refineExpression( expression, block );
+			// use an unless block if there's no elseif
+			if ( !unlessBlock ) {
+				unlessBlock = createUnlessBlock( expression, section.n );
+				children = unlessBlock.f;
 			} else {
-				block = {
+				unlessBlock.f.push({
 					t: SECTION,
 					n: SECTION_IF,
 					x: flattenExpression( combine( conditions ) ),
 					f: children = []
-				};
+				});
 			}
-
-			elseBlocks.push( block );
 		}
 
 		else {
@@ -134,7 +128,7 @@ export default function readSection ( parser, tag ) {
 		}
 	} while ( !closed );
 
-	if ( elseBlocks.length ) {
+	if ( unlessBlock ) {
 		// special case - `with` should become `if-with` (TODO is this right?
 		// seems to me that `with` ought to behave consistently, regardless
 		// of the presence/absence of `else`. In other words should always
@@ -143,7 +137,7 @@ export default function readSection ( parser, tag ) {
 			section.n = SECTION_IF_WITH;
 		}
 
-		section.l = elseBlocks;
+		section.l = unlessBlock;
 	}
 
 	refineExpression( expression, section );
@@ -157,6 +151,34 @@ export default function readSection ( parser, tag ) {
 	}
 
 	return section;
+}
+
+function createUnlessBlock ( expression, sectionType ) {
+	var unlessBlock;
+
+	if ( sectionType === SECTION_WITH ) {
+		// special case - a `{{#with foo}}` section will render if `foo` is
+		// truthy, so the `{{else}}` section needs to render if `foo` is falsy,
+		// rather than adhering to the normal `{{#unless foo}}` logic (which
+		// treats empty arrays/objects as falsy)
+		unlessBlock = {
+			t: SECTION,
+			n: SECTION_IF,
+			f: []
+		};
+
+		refineExpression( invert( expression ), unlessBlock );
+	} else {
+		unlessBlock = {
+			t: SECTION,
+			n: SECTION_UNLESS,
+			f: []
+		};
+
+		refineExpression( expression, unlessBlock );
+	}
+
+	return unlessBlock;
 }
 
 function invert ( expression ) {
