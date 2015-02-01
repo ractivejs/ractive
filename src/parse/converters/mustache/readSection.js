@@ -1,4 +1,4 @@
-import { SECTION, ELSE, SECTION_UNLESS } from 'config/types';
+import { SECTION, ELSE, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH } from 'config/types';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
@@ -9,8 +9,7 @@ var ELSEIF = {}; // TODO...
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' ),
-	legalReference;
+	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
 export default function readSection ( parser, delimiters ) {
 	var start, expression, section, child, children, hasElse, block, elseBlocks, closed, i, expectedClose;
@@ -48,6 +47,8 @@ export default function readSection ( parser, delimiters ) {
 			section.i = i;
 		}
 	}
+
+	parser.allowWhitespace();
 
 	if ( !parser.matchString( delimiters.content[1] ) ) {
 		parser.error( `Expected closing delimiter '${delimiters.content[1]}'` );
@@ -107,6 +108,14 @@ export default function readSection ( parser, delimiters ) {
 	} while ( !closed );
 
 	if ( elseBlocks ) {
+		// special case - `with` should become `if-with` (TODO is this right?
+		// seems to me that `with` ought to behave consistently, regardless
+		// of the presence/absence of `else`. In other words should always
+		// be `if-with`
+		if ( section.n === SECTION_WITH ) {
+			section.n = SECTION_IF_WITH;
+		}
+
 		section.l = elseBlocks;
 	}
 

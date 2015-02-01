@@ -59,7 +59,8 @@ function readElement ( parser ) {
 		directive,
 		selfClosing,
 		children,
-		child;
+		child,
+		closed;
 
 	start = parser.pos;
 
@@ -173,6 +174,7 @@ function readElement ( parser ) {
 		}
 
 		children = [];
+
 		while ( canContain( lowerCaseName, parser.remaining() ) && ( child = parser.read( converters ) ) ) {
 			// Special case - closing section tag
 			if ( child.t === CLOSING ) {
