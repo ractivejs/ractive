@@ -37,7 +37,7 @@ export default function readReference ( parser ) {
 	}
 
 	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
-	if ( !prefix && keywords.test( name ) ) {
+	if ( !prefix && !parser.relaxedNames && keywords.test( name ) ) {
 		parser.pos = startPos;
 		return null;
 	}
