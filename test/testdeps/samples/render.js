@@ -1015,7 +1015,7 @@ var renderTests = [
 
 	// elseif
 	{
-		name: 'elseif functions can be used within if',
+		name: 'elseif can be used within if',
 		template: '{{#if foo}}foo{{elseif bar}}bar{{else}}other{{/if}}',
 		data: { bar: true },
 		result: 'bar',
@@ -1023,7 +1023,7 @@ var renderTests = [
 		new_result: 'other'
 	},
 	{
-		name: 'multiple elseif functions can be used within if',
+		name: 'multiple elseif can be used within if',
 		template: '{{#if foo}}foo{{elseif bar}}bar{{elseif baz}}baz{{else}}other{{/if}}',
 		data: { foo: true, baz: true },
 		result: 'foo',
@@ -1031,7 +1031,7 @@ var renderTests = [
 		new_result: 'baz'
 	},
 	{
-		name: 'elseif functions can be used within each',
+		name: 'elseif can be used within each',
 		template: '{{#each foo}}foo{{elseif bar}}bar{{else}}other{{/each}}',
 		data: { foo: [], bar: true },
 		result: 'bar',
@@ -1039,7 +1039,7 @@ var renderTests = [
 		new_result: 'other'
 	},
 	{
-		name: 'elseif functions can be used within a populated each',
+		name: 'elseif can be used within a populated each',
 		template: '{{#each foo}}foo{{elseif bar}}bar{{else}}other{{/each}}',
 		data: { foo: [ 1, 2, 3 ], bar: true },
 		result: 'foofoofoo',
@@ -1047,7 +1047,7 @@ var renderTests = [
 		new_result: 'bar'
 	},
 	{
-		name: 'elseif functions can be used within with',
+		name: 'elseif can be used within with',
 		template: '{{#with foo}}foo{{elseif bar}}bar{{else}}other{{/with}}',
 		data: { bar: true },
 		result: 'bar',

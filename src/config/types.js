@@ -45,3 +45,4 @@ export var SECTION_IF_WITH   = 54;
 export var SECTION_PARTIAL   = 55;
 
 export var ELSE              = 60;
+export var ELSEIF            = 61;

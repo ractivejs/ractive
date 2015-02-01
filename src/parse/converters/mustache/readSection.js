@@ -1,8 +1,10 @@
-import { SECTION, ELSE, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH } from 'config/types';
+import { SECTION, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from 'config/types';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
+import readElseIf from './section/readElseIf';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
 import readExpression from 'parse/converters/readExpression';
+import flattenExpression from 'parse/utils/flattenExpression';
 import refineExpression from 'parse/utils/refineExpression';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
@@ -10,7 +12,7 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
 export default function readSection ( parser, tag ) {
-	var start, expression, section, child, children, hasElse, block, elseBlocks, closed, i, expectedClose;
+	var start, expression, section, child, children, hasElse, block, elseBlocks, conditions, closed, i, expectedClose;
 
 	start = parser.pos;
 
@@ -55,6 +57,9 @@ export default function readSection ( parser, tag ) {
 	parser.sectionDepth += 1;
 	children = section.f;
 
+	elseBlocks = [];
+	conditions = [ invert( expression ) ];
+
 	do {
 		if ( child = readClosing( parser, tag ) ) {
 			if ( expectedClose && child.r !== expectedClose ) {
@@ -65,7 +70,27 @@ export default function readSection ( parser, tag ) {
 			closed = true;
 		}
 
-		// TODO or elseif
+		else if ( child = readElseIf( parser, tag ) ) {
+			if ( section.n === SECTION_UNLESS ) {
+				parser.error( '{{else}} not allowed in {{#unless}}' );
+			}
+
+			if ( hasElse ) {
+				parser.error( 'illegal {{elseif...}} after {{else}}' );
+			}
+
+			elseBlocks.push({
+				t: SECTION,
+				n: SECTION_IF,
+				x: flattenExpression( combine( conditions.concat( child.x ) ) ),
+				f: children = []
+			});
+
+			console.log( 'elseBlocks', elseBlocks );
+
+			conditions.push( invert( child.x ) );
+		}
+
 		else if ( child = readElse( parser, tag ) ) {
 			if ( section.n === SECTION_UNLESS ) {
 				parser.error( '{{else}} not allowed in {{#unless}}' );
@@ -75,23 +100,27 @@ export default function readSection ( parser, tag ) {
 				parser.error( 'there can only be one {{else}} block, at the end of a section' );
 			}
 
-			if ( child.t === ELSE ) {
-				hasElse = true;
-				/*block = {
-					t: ELSE,
-					f: ( children = [] )
-				};*/
-				elseBlocks = children = [];
+			hasElse = true;
+
+			// use an unless block if there's only one condition
+			if ( conditions.length === 1 ) {
+				block = {
+					t: SECTION,
+					n: SECTION_UNLESS,
+					f: children = []
+				};
+
+				refineExpression( expression, block );
 			} else {
-				throw new Error( 'elseif not yet implemented' );
-				// block = {
-				// 	t: ELSEIF,
-				// 	x: child.x,
-				// 	f: ( children = [] )
-				// };
+				block = {
+					t: SECTION,
+					n: SECTION_IF,
+					x: flattenExpression( combine( conditions ) ),
+					f: children = []
+				};
 			}
 
-			//( elseBlocks || ( elseBlocks = [] ) ).push( block );
+			elseBlocks.push( block );
 		}
 
 		else {
@@ -105,7 +134,7 @@ export default function readSection ( parser, tag ) {
 		}
 	} while ( !closed );
 
-	if ( elseBlocks ) {
+	if ( elseBlocks.length ) {
 		// special case - `with` should become `if-with` (TODO is this right?
 		// seems to me that `with` ought to behave consistently, regardless
 		// of the presence/absence of `else`. In other words should always
@@ -128,4 +157,39 @@ export default function readSection ( parser, tag ) {
 	}
 
 	return section;
+}
+
+function invert ( expression ) {
+	if ( expression.t === PREFIX_OPERATOR && expression.s === '!' ) {
+		return expression.o;
+	}
+
+	return {
+		t: PREFIX_OPERATOR,
+		s: '!',
+		o: expression
+	};
+}
+
+function combine ( expressions ) {
+	if ( expressions.length === 1 ) {
+		return expressions[0];
+	}
+
+	return {
+		t: INFIX_OPERATOR,
+		s: '&&',
+		o: [
+			parensIfNecessary( expressions[0] ),
+			parensIfNecessary( combine( expressions.slice( 1 ) ) )
+		]
+	};
+}
+
+function parensIfNecessary ( expression ) {
+	// TODO only wrap if necessary
+	return {
+		t: BRACKETED,
+		x: expression
+	};
 }
