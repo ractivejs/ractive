@@ -52,9 +52,9 @@ var StandardParser,
 	leadingWhitespace = /^\s+/,
 	trailingWhitespace = /\s+$/,
 
-	STANDARD_READERS = [ readSection, readInterpolator, readUnescaped ],
+	STANDARD_READERS = [ readUnescaped, readSection, readInterpolator ],
 	TRIPLE_READERS = [ readTriple ],
-	STATIC_READERS = [ readSection, readInterpolator, readUnescaped ]; // TODO does it make sense to have a static section?
+	STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
 
 StandardParser = Parser.extend({
 	init: function ( str, options ) {

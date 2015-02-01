@@ -4,15 +4,26 @@ import readExpressionOrReference from 'parse/converters/readExpressionOrReferenc
 import refineExpression from 'parse/utils/refineExpression';
 
 export default function readInterpolator ( parser, delimiters ) {
-	var start, expression, interpolator;
+	var start, expression, interpolator, err;
 
 	start = parser.pos;
 
-	expression = readExpressionOrReference( parser, [ delimiters.content[1] ]);
-	console.log( 'expression', expression );
+	// TODO would be good for perf if we could do away with the try-catch
+	try {
+		expression = readExpressionOrReference( parser, [ delimiters.content[1] ]);
+	} catch ( e ) {
+		err = e;
+	}
 
 	if ( !expression ) {
-		return null;
+		if ( parser.str.charAt( start ) === '!' ) {
+			// special case - comment
+			return null;
+		}
+
+		if ( err ) {
+			throw err;
+		}
 	}
 
 	if ( !parser.matchString( delimiters.content[1] ) ) {

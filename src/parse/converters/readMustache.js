@@ -46,6 +46,12 @@ function getMustacheOfType ( parser, delimiters ) {
 
 	parser.allowWhitespace();
 
+	// illegal section closer
+	if ( parser.matchString( '/' ) ) {
+		parser.pos -= ( delimiters.content[1].length + 1 );
+		parser.error( 'Attempted to close a section that wasn\'t open' );
+	}
+
 	// TEMP should be no if statement - should all be done this way
 	if ( delimiters.readers ) {
 		for ( i = 0; i < delimiters.readers.length; i += 1 ) {

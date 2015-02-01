@@ -56,16 +56,13 @@ export default function readSection ( parser, delimiters ) {
 	parser.sectionDepth += 1;
 	children = section.f;
 
-	var temp = 10;
-
 	do {
-		console.log( 'parser.remaining() "%s"', parser.remaining() );
-
 		if ( child = readClosing( parser, delimiters ) ) {
 			if ( expectedClose && child.r !== expectedClose ) {
 				parser.error( `Expected ${delimiters.content[0]}/${expectedClose}${delimiters.content[1]}` );
 			}
 
+			parser.sectionDepth -= 1;
 			closed = true;
 		}
 
@@ -100,18 +97,19 @@ export default function readSection ( parser, delimiters ) {
 
 		else {
 			child = parser.read();
+
+			if ( !child ) {
+				break;
+			}
+
 			children.push( child );
 		}
-
-		console.log( 'temp', temp );
-	} while ( !closed && temp-- );
+	} while ( !closed );
 
 	if ( elseBlocks ) {
 		section.l = elseBlocks;
 		console.log( 'section', JSON.parse(JSON.stringify(section)) );
 	}
-
-	parser.sectionDepth -= 1;
 
 	refineExpression( expression, section );
 
