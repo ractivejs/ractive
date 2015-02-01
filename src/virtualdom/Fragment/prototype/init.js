@@ -1,4 +1,4 @@
-import { INTERPOLATOR, SECTION, TRIPLE, ELEMENT, PARTIAL, COMMENT, DOCTYPE } from 'config/types';
+import { YIELDER, INTERPOLATOR, SECTION, TRIPLE, ELEMENT, PARTIAL, COMMENT, DOCTYPE } from 'config/types';
 import Text from 'virtualdom/items/Text';
 import Interpolator from 'virtualdom/items/Interpolator';
 import Section from 'virtualdom/items/Section/_Section';
@@ -42,11 +42,8 @@ function createItem ( options ) {
 	}
 
 	switch ( options.template.t ) {
-		case INTERPOLATOR:
-			if ( options.template.r === 'yield' ) {
-				return new Yielder( options );
-			}
-			return new Interpolator( options );
+		case YIELDER:      return new Yielder( options );
+		case INTERPOLATOR: return new Interpolator( options );
 		case SECTION:      return new Section( options );
 		case TRIPLE:       return new Triple( options );
 		case ELEMENT:

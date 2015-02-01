@@ -16,7 +16,7 @@ var Yielder = function ( options ) {
 	this.containerFragment = options.parentFragment;
 	this.parentFragment = component.parentFragment;
 
-	let name = this.name = options.template.yn || '';
+	let name = this.name = options.template.n || '';
 
 	this.fragment = new Fragment({
 		owner: this,
