@@ -6,10 +6,11 @@ import readUnescaped from './converters/mustache/readUnescaped';
 import readPartial from './converters/mustache/readPartial';
 import readMustacheComment from './converters/mustache/readMustacheComment';
 import readInterpolator from './converters/mustache/readInterpolator';
+import readPartialDefinitionSection from './converters/mustache/readPartialDefinitionSection';
 import readSection from './converters/mustache/readSection';
 import readHtmlComment from './converters/readHtmlComment';
 import readElement from './converters/readElement';
-import readPartialDefinition from './converters/readPartialDefinition';
+import readPartialDefinitionComment from './converters/readPartialDefinitionComment';
 import readText from './converters/readText';
 import trimWhitespace from './utils/trimWhitespace';
 import stripStandalones from './utils/stripStandalones';
@@ -54,7 +55,7 @@ var StandardParser,
 	leadingWhitespace = /^\s+/,
 	trailingWhitespace = /\s+$/,
 
-	STANDARD_READERS = [ readPartial, readUnescaped, readSection, readInterpolator, readMustacheComment ],
+	STANDARD_READERS = [ readPartial, readUnescaped, readPartialDefinitionSection, readSection, readInterpolator, readMustacheComment ],
 	TRIPLE_READERS = [ readTriple ],
 	STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
 
@@ -105,8 +106,8 @@ StandardParser = Parser.extend({
 	},
 
 	converters: [
-		readPartialDefinition,
 		readMustache,
+		readPartialDefinitionComment,
 		readHtmlComment,
 		readElement,
 		readText
