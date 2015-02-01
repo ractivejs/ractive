@@ -1,9 +1,7 @@
 import { GLOBAL, REFERENCE } from 'config/types';
-import { name as namePattern, relaxedName } from '../shared/patterns';
 import { normalise } from 'shared/keypaths';
 
 var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
-	arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/,
 	globals,
 	keywords;
 
@@ -16,7 +14,7 @@ keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finall
 var legalReference = /^[a-zA-Z$_0-9]+(?:(?:\.[a-zA-Z$_0-9]+)|(?:\[[0-9]+\]))*/;
 
 export default function readReference ( parser ) {
-	var startPos, special, prefix, ancestor, name, dot, combo, lastDotIndex, pattern;
+	var startPos, prefix, name, reference, lastDotIndex;
 
 	startPos = parser.pos;
 
@@ -28,36 +26,13 @@ export default function readReference ( parser ) {
 
 		if ( !name && prefix === '.' ) {
 			prefix = '';
-			name = 'this';
+			name = '.';
 		}
-
-		console.log( 'prefix "%s"', prefix );
-		console.log( 'name "%s"', name );
 	}
 
 	if ( !name ) {
 		return null;
 	}
-
-	/*// we might have a root-level reference
-	if ( parser.matchString( '~/' ) ) {
-		ancestor = '~/';
-	}
-
-	else {
-		// we might have ancestor refs...
-		ancestor = '';
-		while ( parser.matchString( '../' ) ) {
-			ancestor += '../';
-		}
-	}
-
-	if ( !ancestor ) {
-		// we might have an implicit iterator or a restricted reference
-		dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
-	}
-
-	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( legalReference ) || '';*/
 
 	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
 	if ( !prefix && keywords.test( name ) ) {
@@ -73,22 +48,17 @@ export default function readReference ( parser ) {
 		};
 	}
 
-	combo = ( prefix || '' ) + normalise( name );
-
-	if ( !combo ) {
-		return null;
-	}
-
+	reference = ( prefix || '' ) + normalise( name );
 
 	if ( parser.matchString( '(' ) ) {
 
 		// if this is a method invocation (as opposed to a function) we need
 		// to strip the method name from the reference combo, else the context
 		// will be wrong
-		lastDotIndex = combo.lastIndexOf( '.' );
+		lastDotIndex = name.lastIndexOf( '.' );
 		if ( lastDotIndex !== -1 ) {
-			combo = combo.substr( 0, lastDotIndex );
-			parser.pos = startPos + combo.length;
+			reference = reference.substr( 0, lastDotIndex );
+			parser.pos = startPos + reference.length;
 		} else {
 			parser.pos -= 1;
 		}
@@ -96,16 +66,6 @@ export default function readReference ( parser ) {
 
 	return {
 		t: REFERENCE,
-		n: combo.replace( /^this\./, './' ).replace( /^this$/, '.' )
+		n: reference.replace( /^this\./, './' ).replace( /^this$/, '.' )
 	};
-}
-
-function readArrayRefinement ( parser ) {
-	var num = parser.matchPattern( arrayMemberPattern );
-
-	if ( num ) {
-		return '.' + num;
-	}
-
-	return null;
 }
