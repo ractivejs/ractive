@@ -571,7 +571,7 @@ var parseTests = [
 	{
 		name: 'Illegal infix sequence',
 		template: '{{a+}}',
-		error: 'Expected a legal Mustache reference at line 1 character 3:\n{{a+}}\n  ^----'
+		error: 'Expected closing delimiter \'}}\' after reference at line 1 character 4:\n{{a+}}\n   ^----'
 	},
 	{
 		name: 'Illegal invocation',

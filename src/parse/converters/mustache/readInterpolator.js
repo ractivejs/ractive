@@ -1,18 +1,14 @@
-import { INTERPOLATOR, REFERENCE } from 'config/types';
+import { INTERPOLATOR } from 'config/types';
 import readExpression from 'parse/converters/readExpression';
-import readReference from 'parse/converters/readReference';
+import readExpressionOrReference from 'parse/converters/readExpressionOrReference';
 import refineExpression from 'parse/utils/refineExpression';
 
-var legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*/;
-
 export default function readInterpolator ( parser, delimiters ) {
-	console.log( 'readInterpolator: "%s"', parser.remaining() );
-
 	var start, expression, interpolator;
 
 	start = parser.pos;
 
-	expression = readExpression( parser );
+	expression = readExpressionOrReference( parser, [ delimiters.content[1] ]);
 	console.log( 'expression', expression );
 
 	if ( !expression ) {
@@ -30,10 +26,6 @@ export default function readInterpolator ( parser, delimiters ) {
 
 			parser.error( `Expected expression or legal reference` );
 		}
-
-		// if ( !parser.matchString( delimiters.content[1] ) ) {
-
-		// }
 	}
 
 	interpolator = { t: INTERPOLATOR };
