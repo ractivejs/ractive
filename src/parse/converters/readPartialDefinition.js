@@ -1,13 +1,13 @@
 import { INLINE_PARTIAL } from 'config/types';
 import escapeRegExp from 'utils/escapeRegExp';
 
-export default getPartial;
+export default readPartialDefinition;
 
 var startPattern = /^<!--\s*/,
     namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
     finishPattern = /\s*-->/;
 
-function getPartial( parser ) {
+function readPartialDefinition ( parser ) {
 	let template = parser.remaining(),
 	    firstPos = parser.pos,
 	    startMatch = parser.matchPattern( startPattern ),

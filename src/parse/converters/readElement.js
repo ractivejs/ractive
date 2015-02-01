@@ -2,7 +2,7 @@ import { DOCTYPE, ELEMENT, CLOSING, CLOSING_TAG } from 'config/types';
 import { voidElementNames } from 'utils/html';
 import readMustache from './readMustache';
 import readComment from './readComment';
-import readPartial from './readPartial';
+import readPartialDefinition from './readPartialDefinition';
 import readText from './readText';
 import readClosingTag from './element/readClosingTag';
 import readAttribute from './element/readAttribute';
@@ -20,7 +20,7 @@ var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 
 // Different set of converters, because this time we're looking for closing tags
 converters = [
-	readPartial,
+	readPartialDefinition,
 	readMustache,
 	readComment,
 	getElement,
