@@ -1,10 +1,19 @@
+import { TEMPLATE_VERSION } from 'config/template';
 import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
-import Parser from './Parser/_Parser';
-import mustache from './converters/mustache';
-import comment from './converters/comment';
-import element from './converters/element';
-import partial from './converters/partial';
-import text from './converters/text';
+import Parser from './Parser';
+import readMustache from './converters/readMustache';
+import readTriple from './converters/mustache/readTriple';
+import readUnescaped from './converters/mustache/readUnescaped';
+import readPartial from './converters/mustache/readPartial';
+import readMustacheComment from './converters/mustache/readMustacheComment';
+import readInterpolator from './converters/mustache/readInterpolator';
+import readYielder from './converters/mustache/readYielder';
+import readPartialDefinitionSection from './converters/mustache/readPartialDefinitionSection';
+import readSection from './converters/mustache/readSection';
+import readHtmlComment from './converters/readHtmlComment';
+import readElement from './converters/readElement';
+import readPartialDefinitionComment from './converters/readPartialDefinitionComment';
+import readText from './converters/readText';
 import trimWhitespace from './utils/trimWhitespace';
 import stripStandalones from './utils/stripStandalones';
 import processPartials from './converters/partial/processPartials';
@@ -46,12 +55,28 @@ var StandardParser,
 	contiguousWhitespace = /[ \t\f\r\n]+/g,
 	preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 	leadingWhitespace = /^\s+/,
-	trailingWhitespace = /\s+$/;
+	trailingWhitespace = /\s+$/,
+
+	STANDARD_READERS = [ readPartial, readUnescaped, readPartialDefinitionSection, readSection, readYielder, readInterpolator, readMustacheComment ],
+	TRIPLE_READERS = [ readTriple ],
+	STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
 
 StandardParser = Parser.extend({
-	init: function ( str, options ) {
-		// config
-		setDelimiters( options, this );
+	init ( str, options ) {
+		var tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ],
+			staticDelimiters = options.staticDelimiters || [ '[[', ']]' ],
+			staticTripleDelimiters = options.staticTripleDelimiters || [ '[[[', ']]]' ];
+
+		this.standardDelimiters = options.delimiters || [ '{{', '}}' ];
+
+		this.tags = [
+			{ isStatic: false, isTriple: false, open: this.standardDelimiters[0], close: this.standardDelimiters[1], readers: STANDARD_READERS },
+			{ isStatic: false, isTriple: true,  open: tripleDelimiters[0],        close: tripleDelimiters[1],        readers: TRIPLE_READERS },
+			{ isStatic: true,  isTriple: false, open: staticDelimiters[0],        close: staticDelimiters[1],        readers: STATIC_READERS },
+			{ isStatic: true,  isTriple: true,  open: staticTripleDelimiters[0],  close: staticTripleDelimiters[1],  readers: TRIPLE_READERS }
+		];
+
+		this.sortMustacheTags();
 
 		this.sectionDepth = 0;
 
@@ -71,11 +96,9 @@ StandardParser = Parser.extend({
 		this.sanitizeElements = options.sanitize && options.sanitize.elements;
 		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
 		this.includeLinePositions = options.includeLinePositions;
-
-		this.StandardParser = StandardParser;
 	},
 
-	postProcess: function ( items, options ) {
+	postProcess ( items, options ) {
 		if ( this.sectionDepth > 0 ) {
 			this.error( 'A section was left open' );
 		}
@@ -86,24 +109,29 @@ StandardParser = Parser.extend({
 	},
 
 	converters: [
-		partial,
-		mustache,
-		comment,
-		element,
-		text
-	]
+		readMustache,
+		readPartialDefinitionComment,
+		readHtmlComment,
+		readElement,
+		readText
+	],
+
+	sortMustacheTags () {
+		// Sort in order of descending opening delimiter length (longer first),
+		// to protect against opening delimiters being substrings of each other
+		this.tags.sort( ( a, b ) => {
+			return b.open.length - a.open.length;
+		});
+	}
 });
 
 parse = function ( template, options = {} ) {
 	var result;
 
-	setDelimiters( options );
-
 	result = {
-		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
+		v: TEMPLATE_VERSION, // template spec version, defined in https://github.com/ractivejs/template-spec
+		t: new StandardParser( template, options ).result
 	};
-
-	result.t = new StandardParser( template, options ).result;
 
 	// collect all of the partials and stick them on the appropriate instances
 	let partials = {};
@@ -248,14 +276,4 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			}
 		}
 	}
-}
-
-function setDelimiters ( source, target ) {
-	target = target || source;
-
-	target.delimiters = source.delimiters || [ '{{', '}}' ];
-	target.tripleDelimiters = source.tripleDelimiters || [ '{{{', '}}}' ];
-
-	target.staticDelimiters = source.staticDelimiters || [ '[[', ']]' ];
-	target.staticTripleDelimiters = source.staticTripleDelimiters || [ '[[[', ']]]' ];
 }

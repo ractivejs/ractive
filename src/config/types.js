@@ -43,3 +43,5 @@ export var SECTION_EACH      = 52;
 export var SECTION_WITH      = 53;
 export var SECTION_IF_WITH   = 54;
 export var SECTION_PARTIAL   = 55;
+
+export var ELSE              = 60;

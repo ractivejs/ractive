@@ -1,17 +1,17 @@
-import Parser from 'parse/Parser/_Parser';
-import conditional from 'parse/Parser/expressions/conditional';
-import flattenExpression from 'parse/Parser/utils/flattenExpression';
+import Parser from 'parse/Parser';
+import readExpression from 'parse/converters/readExpression';
+import flattenExpression from 'parse/utils/flattenExpression';
 import parseJSON from 'utils/parseJSON';
 
 var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/,
 	ExpressionParser;
 
 ExpressionParser = Parser.extend({
-	converters: [ conditional ]
+	converters: [ readExpression ]
 });
 
 // TODO clean this up, it's shocking
-export default function ( tokens ) {
+export default function processDirective ( tokens ) {
 	var result,
 		match,
 		parser,

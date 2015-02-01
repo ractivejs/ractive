@@ -10,7 +10,7 @@ var mustacheTypes = {
 };
 
 export default function ( parser ) {
-	var type = mustacheTypes[ parser.str.charAt( parser.pos ) ];
+	var type = mustacheTypes[ parser.nextChar() ];
 
 	if ( !type ) {
 		return null;
