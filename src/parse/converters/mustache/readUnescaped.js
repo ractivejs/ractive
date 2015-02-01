@@ -9,6 +9,8 @@ export default function readUnescaped ( parser, delimiters ) {
 		return null;
 	}
 
+	parser.allowWhitespace();
+
 	expression = readExpression( parser );
 
 	if ( !expression ) {

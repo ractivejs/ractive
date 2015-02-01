@@ -3,7 +3,7 @@ import { COMMENT } from 'config/types';
 var OPEN_COMMENT = '<!--',
 	CLOSE_COMMENT = '-->';
 
-export default function ( parser ) {
+export default function readHtmlComment ( parser ) {
 	var start, content, remaining, endIndex, comment;
 
 	start = parser.pos;

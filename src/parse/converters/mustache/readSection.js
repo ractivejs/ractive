@@ -108,7 +108,6 @@ export default function readSection ( parser, delimiters ) {
 
 	if ( elseBlocks ) {
 		section.l = elseBlocks;
-		console.log( 'section', JSON.parse(JSON.stringify(section)) );
 	}
 
 	refineExpression( expression, section );

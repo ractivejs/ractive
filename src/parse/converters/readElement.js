@@ -1,7 +1,7 @@
 import { DOCTYPE, ELEMENT, CLOSING, CLOSING_TAG } from 'config/types';
 import { voidElementNames } from 'utils/html';
 import readMustache from './readMustache';
-import readComment from './readComment';
+import readHtmlComment from './readHtmlComment';
 import readPartialDefinition from './readPartialDefinition';
 import readText from './readText';
 import readClosingTag from './element/readClosingTag';
@@ -22,8 +22,8 @@ var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 converters = [
 	readPartialDefinition,
 	readMustache,
-	readComment,
-	getElement,
+	readHtmlComment,
+	readElement,
 	readText,
 	readClosingTag
 ];
@@ -46,9 +46,9 @@ disallowedContents = {
 	th: [ 'td', 'th', 'tr' ]
 };
 
-export default getElement;
+export default readElement;
 
-function getElement ( parser ) {
+function readElement ( parser ) {
 	var start,
 		element,
 		lowerCaseName,

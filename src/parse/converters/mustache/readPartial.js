@@ -11,6 +11,8 @@ export default function readPartial ( parser, delimiters ) {
 		return null;
 	}
 
+	parser.allowWhitespace();
+
 	// Partial names can include hyphens, so we can't use readExpression blindly
 	name = parser.matchPattern( hyphenatedPattern );
 
