@@ -1,11 +1,11 @@
 import { CLOSING } from 'config/types';
 
-export default function readClosing ( parser, delimiters ) {
+export default function readClosing ( parser, tag ) {
 	var start, remaining, index, closing;
 
 	start = parser.pos;
 
-	if ( !parser.matchString( delimiters.content[0] ) ) {
+	if ( !parser.matchString( tag.open ) ) {
 		return null;
 	}
 
@@ -19,7 +19,7 @@ export default function readClosing ( parser, delimiters ) {
 	parser.allowWhitespace();
 
 	remaining = parser.remaining();
-	index = remaining.indexOf( delimiters.content[1] );
+	index = remaining.indexOf( tag.close );
 
 	if ( index !== -1 ) {
 		closing = {
@@ -29,8 +29,8 @@ export default function readClosing ( parser, delimiters ) {
 
 		parser.pos += index;
 
-		if ( !parser.matchString( delimiters.content[1] ) ) {
-			parser.error( `Expected closing delimiter '${delimiters.content[1]}'` );
+		if ( !parser.matchString( tag.close ) ) {
+			parser.error( `Expected closing delimiter '${tag.close}'` );
 		}
 
 		return closing;

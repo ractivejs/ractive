@@ -2,7 +2,7 @@ import { YIELDER } from 'config/types';
 
 var yieldPattern = /^yield\s*/;
 
-export default function readYielder ( parser, delimiters ) {
+export default function readYielder ( parser, tag ) {
 	var start, name, yielder;
 
 	if ( !parser.matchPattern( yieldPattern ) ) {
@@ -14,7 +14,7 @@ export default function readYielder ( parser, delimiters ) {
 
 	parser.allowWhitespace();
 
-	if ( !parser.matchString( delimiters.content[1] ) ) {
+	if ( !parser.matchString( tag.close ) ) {
 		parser.pos = start;
 		return null;
 	}

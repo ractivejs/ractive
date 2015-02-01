@@ -2,14 +2,14 @@ import { INTERPOLATOR } from 'config/types';
 import readExpressionOrReference from 'parse/converters/readExpressionOrReference';
 import refineExpression from 'parse/utils/refineExpression';
 
-export default function readInterpolator ( parser, delimiters ) {
+export default function readInterpolator ( parser, tag ) {
 	var start, expression, interpolator, err;
 
 	start = parser.pos;
 
 	// TODO would be good for perf if we could do away with the try-catch
 	try {
-		expression = readExpressionOrReference( parser, [ delimiters.content[1] ]);
+		expression = readExpressionOrReference( parser, [ tag.close ]);
 	} catch ( e ) {
 		err = e;
 	}
@@ -25,8 +25,8 @@ export default function readInterpolator ( parser, delimiters ) {
 		}
 	}
 
-	if ( !parser.matchString( delimiters.content[1] ) ) {
-		parser.error( `Expected closing delimiter '${delimiters.content[1]}' after reference` );
+	if ( !parser.matchString( tag.close ) ) {
+		parser.error( `Expected closing delimiter '${tag.close}' after reference` );
 
 		if ( !expression ) {
 			// special case - comment

@@ -1,3 +1,4 @@
+import { TEMPLATE_VERSION } from 'config/template';
 import { create } from 'utils/object';
 import parser from './parser';
 import parse from 'parse/_parse';
@@ -108,8 +109,8 @@ function parseIfString ( template, ractive ) {
 	}
 
 	// Check we're using the correct version
-	else if ( template.v !== 2 ) {
-		throw new Error( 'Mismatched template version! Please ensure you are using the latest version of Ractive.js in your build process as well as in your app' );
+	else if ( template.v !== TEMPLATE_VERSION ) {
+		throw new Error( `Mismatched template version (expected ${TEMPLATE_VERSION}, got ${template.v}) Please ensure you are using the latest version of Ractive.js in your build process as well as in your app` );
 	}
 
 	return template;

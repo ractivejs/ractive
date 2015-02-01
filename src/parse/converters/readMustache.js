@@ -3,9 +3,7 @@ import readDelimiterChange from './mustache/readDelimiterChange';
 
 var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
-export default getMustache;
-
-function getMustache ( parser ) {
+export default function readMustache ( parser ) {
 	var mustache, i;
 
 	// If we're inside a <script> or <style> tag, and we're not
@@ -14,32 +12,33 @@ function getMustache ( parser ) {
 		return null;
 	}
 
-	for ( i = 0; i < parser.delimiters.length; i += 1 ) {
-		if ( mustache = getMustacheOfType( parser, parser.delimiters[i] ) ) {
+	for ( i = 0; i < parser.tags.length; i += 1 ) {
+		if ( mustache = readMustacheOfType( parser, parser.tags[i] ) ) {
 			return mustache;
 		}
 	}
 }
 
-function getMustacheOfType ( parser, delimiters ) {
+function readMustacheOfType ( parser, tag ) {
 	var start, mustache, reader, i;
 
 	start = parser.pos;
 
-	if ( !parser.matchString( delimiters.content[0] ) ) {
+	if ( !parser.matchString( tag.open ) ) {
 		return null;
 	}
 
 	// delimiter change?
 	if ( mustache = readDelimiterChange( parser ) ) {
 		// find closing delimiter or abort...
-		if ( !parser.matchString( delimiters.content[1] ) ) {
+		if ( !parser.matchString( tag.close ) ) {
 			return null;
 		}
 
 		// ...then make the switch
-		delimiters.content = mustache;
-		parser.sortDelimiters();
+		tag.open = mustache[0];
+		tag.close = mustache[1];
+		parser.sortMustacheTags();
 
 		return delimiterChangeToken;
 	}
@@ -48,15 +47,15 @@ function getMustacheOfType ( parser, delimiters ) {
 
 	// illegal section closer
 	if ( parser.matchString( '/' ) ) {
-		parser.pos -= ( delimiters.content[1].length + 1 );
+		parser.pos -= ( tag.close.length + 1 );
 		parser.error( 'Attempted to close a section that wasn\'t open' );
 	}
 
-	for ( i = 0; i < delimiters.readers.length; i += 1 ) {
-		reader = delimiters.readers[i];
+	for ( i = 0; i < tag.readers.length; i += 1 ) {
+		reader = tag.readers[i];
 
-		if ( mustache = reader( parser, delimiters ) ) {
-			if ( delimiters.isStatic ) {
+		if ( mustache = reader( parser, tag ) ) {
+			if ( tag.isStatic ) {
 				mustache.s = true; // TODO make this `1` instead - more compact
 			}
 

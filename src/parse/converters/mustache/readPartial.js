@@ -2,7 +2,7 @@ import { PARTIAL, SECTION, SECTION_WITH } from 'config/types';
 import readExpression from 'parse/converters/readExpression';
 import refineExpression from 'parse/utils/refineExpression';
 
-export default function readPartial ( parser, delimiters ) {
+export default function readPartial ( parser, tag ) {
 	var start, nameStart, expression, context, partial;
 
 	start = parser.pos;
@@ -47,8 +47,8 @@ export default function readPartial ( parser, delimiters ) {
 		refineExpression( context, partial );
 	}
 
-	if ( !parser.matchString( delimiters.content[1] ) ) {
-		parser.error( `Expected closing delimiter '${delimiters.content[1]}'` );
+	if ( !parser.matchString( tag.close ) ) {
+		parser.error( `Expected closing delimiter '${tag.close}'` );
 	}
 
 	return partial;

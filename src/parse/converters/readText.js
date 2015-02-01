@@ -11,7 +11,7 @@ export default function readText ( parser ) {
 	if ( parser.inside && !parser.interpolate[ parser.inside ] ) {
 		index = remaining.indexOf( barrier );
 	} else {
-		disallowed = parser.delimiters.map( d => d.content[0] );
+		disallowed = parser.tags.map( t => t.open );
 
 		// http://developers.whatwg.org/syntax.html#syntax-attributes
 		if ( parser.inAttribute === true ) {

@@ -1,3 +1,4 @@
+import { TEMPLATE_VERSION } from 'config/template';
 import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
 import Parser from './Parser';
 import readMustache from './converters/readMustache';
@@ -61,18 +62,21 @@ var StandardParser,
 	STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
 
 StandardParser = Parser.extend({
-	init: function ( str, options ) {
+	init ( str, options ) {
+		var tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ],
+			staticDelimiters = options.staticDelimiters || [ '[[', ']]' ],
+			staticTripleDelimiters = options.staticTripleDelimiters || [ '[[[', ']]]' ];
 
 		this.standardDelimiters = options.delimiters || [ '{{', '}}' ];
 
-		this.delimiters = [
-			{ isStatic: false, isTriple: false, content: this.standardDelimiters, readers: STANDARD_READERS },
-			{ isStatic: false, isTriple: true,  content: options.tripleDelimiters       || [ '{{{', '}}}' ], readers: TRIPLE_READERS },
-			{ isStatic: true,  isTriple: false, content: options.staticDelimiters       || [ '[[',  ']]'  ], readers: STATIC_READERS },
-			{ isStatic: true,  isTriple: true,  content: options.staticTripleDelimiters || [ '[[[', ']]]' ], readers: TRIPLE_READERS }
+		this.tags = [
+			{ isStatic: false, isTriple: false, open: this.standardDelimiters[0], close: this.standardDelimiters[1], readers: STANDARD_READERS },
+			{ isStatic: false, isTriple: true,  open: tripleDelimiters[0],        close: tripleDelimiters[1],        readers: TRIPLE_READERS },
+			{ isStatic: true,  isTriple: false, open: staticDelimiters[0],        close: staticDelimiters[1],        readers: STATIC_READERS },
+			{ isStatic: true,  isTriple: true,  open: staticTripleDelimiters[0],  close: staticTripleDelimiters[1],  readers: TRIPLE_READERS }
 		];
 
-		this.sortDelimiters();
+		this.sortMustacheTags();
 
 		this.sectionDepth = 0;
 
@@ -94,7 +98,7 @@ StandardParser = Parser.extend({
 		this.includeLinePositions = options.includeLinePositions;
 	},
 
-	postProcess: function ( items, options ) {
+	postProcess ( items, options ) {
 		if ( this.sectionDepth > 0 ) {
 			this.error( 'A section was left open' );
 		}
@@ -112,11 +116,11 @@ StandardParser = Parser.extend({
 		readText
 	],
 
-	sortDelimiters () {
+	sortMustacheTags () {
 		// Sort in order of descending opening delimiter length (longer first),
 		// to protect against opening delimiters being substrings of each other
-		this.delimiters.sort( ( a, b ) => {
-			return b.content[0].length - a.content[0].length;
+		this.tags.sort( ( a, b ) => {
+			return b.open.length - a.open.length;
 		});
 	}
 });
@@ -125,10 +129,9 @@ parse = function ( template, options = {} ) {
 	var result;
 
 	result = {
-		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
+		v: TEMPLATE_VERSION, // template spec version, defined in https://github.com/ractivejs/template-spec
+		t: new StandardParser( template, options ).result
 	};
-
-	result.t = new StandardParser( template, options ).result;
 
 	// collect all of the partials and stick them on the appropriate instances
 	let partials = {};

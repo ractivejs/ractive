@@ -3,7 +3,7 @@ import readClosing from './section/readClosing';
 
 var partialDefinitionSectionPattern = /^#\s*partial\s+/;
 
-export default function readPartialDefinitionSection ( parser, delimiters ) {
+export default function readPartialDefinitionSection ( parser, tag ) {
 	var start, name, content, child, closed;
 
 	if ( !parser.matchPattern( partialDefinitionSectionPattern ) ) {
@@ -18,16 +18,16 @@ export default function readPartialDefinitionSection ( parser, delimiters ) {
 		parser.error( 'expected legal partial name' );
 	}
 
-	if ( !parser.matchString( delimiters.content[1] ) ) {
-		parser.error( `Expected closing delimiter '${delimiters.content[1]}'` );
+	if ( !parser.matchString( tag.close ) ) {
+		parser.error( `Expected closing delimiter '${tag.close}'` );
 	}
 
 	content = [];
 
 	do {
-		if ( child = readClosing( parser, delimiters ) ) {
+		if ( child = readClosing( parser, tag ) ) {
 			if ( !child.r === 'partial' ) {
-				parser.error( `Expected ${delimiters.content[0]}/partial${delimiters.content[1]}` );
+				parser.error( `Expected ${tag.open}/partial${tag.close}` );
 			}
 
 			closed = true;
@@ -37,7 +37,7 @@ export default function readPartialDefinitionSection ( parser, delimiters ) {
 			child = parser.read();
 
 			if ( !child ) {
-				parser.error( `Expected ${delimiters.content[0]}/partial${delimiters.content[1]}` );
+				parser.error( `Expected ${tag.open}/partial${tag.close}` );
 			}
 
 			content.push( child );

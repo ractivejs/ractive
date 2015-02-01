@@ -9,7 +9,7 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
-export default function readSection ( parser, delimiters ) {
+export default function readSection ( parser, tag ) {
 	var start, expression, section, child, children, hasElse, block, elseBlocks, closed, i, expectedClose;
 
 	start = parser.pos;
@@ -48,17 +48,17 @@ export default function readSection ( parser, delimiters ) {
 
 	parser.allowWhitespace();
 
-	if ( !parser.matchString( delimiters.content[1] ) ) {
-		parser.error( `Expected closing delimiter '${delimiters.content[1]}'` );
+	if ( !parser.matchString( tag.close ) ) {
+		parser.error( `Expected closing delimiter '${tag.close}'` );
 	}
 
 	parser.sectionDepth += 1;
 	children = section.f;
 
 	do {
-		if ( child = readClosing( parser, delimiters ) ) {
+		if ( child = readClosing( parser, tag ) ) {
 			if ( expectedClose && child.r !== expectedClose ) {
-				parser.error( `Expected ${delimiters.content[0]}/${expectedClose}${delimiters.content[1]}` );
+				parser.error( `Expected ${tag.open}/${expectedClose}${tag.close}` );
 			}
 
 			parser.sectionDepth -= 1;
@@ -66,7 +66,7 @@ export default function readSection ( parser, delimiters ) {
 		}
 
 		// TODO or elseif
-		else if ( child = readElse( parser, delimiters ) ) {
+		else if ( child = readElse( parser, tag ) ) {
 			if ( section.n === SECTION_UNLESS ) {
 				parser.error( '{{else}} not allowed in {{#unless}}' );
 			}

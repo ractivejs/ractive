@@ -2,15 +2,15 @@ import { TRIPLE } from 'config/types';
 import readExpression from 'parse/converters/readExpression';
 import refineExpression from 'parse/utils/refineExpression';
 
-export default function readTriple ( parser, delimiters ) {
+export default function readTriple ( parser, tag ) {
 	var expression = readExpression( parser ), triple;
 
 	if ( !expression ) {
 		return null;
 	}
 
-	if ( !parser.matchString( delimiters.content[1] ) ) {
-		parser.error( `Expected closing delimiter '${delimiters.content[1]}'` );
+	if ( !parser.matchString( tag.close ) ) {
+		parser.error( `Expected closing delimiter '${tag.close}'` );
 	}
 
 	triple = { t: TRIPLE };

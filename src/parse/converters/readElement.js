@@ -179,7 +179,7 @@ function readElement ( parser ) {
 			}
 
 			// implicit close by closing section tag. TODO clean this up
-			else if ( child = readClosing( parser, { content: parser.standardDelimiters } ) ) {
+			else if ( child = readClosing( parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] } ) ) {
 				closed = true;
 				parser.pos = pos;
 			}

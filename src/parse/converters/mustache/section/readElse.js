@@ -2,10 +2,10 @@ import { ELSE } from 'config/types';
 
 var elsePattern = /^\s*else\s*/;
 
-export default function readElse ( parser, delimiters ) {
+export default function readElse ( parser, tag ) {
 	var start = parser.pos;
 
-	if ( !parser.matchString( delimiters.content[0] ) ) {
+	if ( !parser.matchString( tag.open ) ) {
 		return null;
 	}
 
@@ -14,8 +14,8 @@ export default function readElse ( parser, delimiters ) {
 		return null;
 	}
 
-	if ( !parser.matchString( delimiters.content[1] ) ) {
-		parser.error( `Expected closing delimiter '${delimiters.content[1]}'` );
+	if ( !parser.matchString( tag.close ) ) {
+		parser.error( `Expected closing delimiter '${tag.close}'` );
 	}
 
 	return {
