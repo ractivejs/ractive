@@ -1,7 +1,5 @@
-import { DELIMCHANGE, COMMENT, CLOSING, SECTION, INTERPOLATOR, INVERTED, SECTION_UNLESS, SECTION_PARTIAL, INLINE_PARTIAL } from 'config/types';
+import { DELIMCHANGE, SECTION, INVERTED } from 'config/types';
 import readDelimiterChange from './mustache/readDelimiterChange';
-import readMustacheContent from './mustache/readMustacheContent';
-import handlebarsBlockCodes from './mustache/handlebarsBlockCodes';
 
 var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
@@ -24,7 +22,7 @@ function getMustache ( parser ) {
 }
 
 function getMustacheOfType ( parser, delimiters ) {
-	var start, mustache, children, expectedClose, elseChildren, currentChildren, child, reader, i;
+	var start, mustache, reader, i;
 
 	start = parser.pos;
 
@@ -53,13 +51,13 @@ function getMustacheOfType ( parser, delimiters ) {
 		for ( i = 0; i < delimiters.readers.length; i += 1 ) {
 			reader = delimiters.readers[i];
 
-			if ( mustache = reader( parser ) ) {
-				if ( !parser.matchString( delimiters.content[1] ) ) {
-					parser.error( `Expected closing delimiter '${delimiters.content[1]}' after reference` );
+			if ( mustache = reader( parser, delimiters ) ) {
+				if ( delimiters.isStatic ) {
+					mustache.s = true; // TODO make this `1` instead - more compact
 				}
 
-				if ( delimiters.isStatic ) {
-					mustache.s = true;
+				if ( parser.includeLinePositions ) {
+					mustache.p = parser.getLinePos( start );
 				}
 
 				return mustache;
@@ -70,7 +68,7 @@ function getMustacheOfType ( parser, delimiters ) {
 		return null;
 	}
 
-	mustache = readMustacheContent( parser, delimiters );
+	/*mustache = readMustacheContent( parser, delimiters );
 
 	if ( mustache === null ) {
 		parser.pos = start;
@@ -175,9 +173,9 @@ function getMustacheOfType ( parser, delimiters ) {
 		};
 	}
 
-	return mustache;
+	return mustache;*/
 }
 
-function isSection ( mustache ) {
-	return mustache.t === SECTION || mustache.t === INVERTED;
-}
+// function isSection ( mustache ) {
+// 	return mustache.t === SECTION || mustache.t === INVERTED;
+// }

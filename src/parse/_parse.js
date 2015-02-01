@@ -2,6 +2,9 @@ import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
 import Parser from './Parser';
 import readMustache from './converters/readMustache';
 import readTriple from './converters/mustache/readTriple';
+import readUnescaped from './converters/mustache/readUnescaped';
+import readInterpolator from './converters/mustache/readInterpolator';
+import readSection from './converters/mustache/readSection';
 import readComment from './converters/readComment';
 import readElement from './converters/readElement';
 import readPartial from './converters/readPartial';
@@ -49,7 +52,9 @@ var StandardParser,
 	leadingWhitespace = /^\s+/,
 	trailingWhitespace = /\s+$/,
 
-	TRIPLE_READERS = [ readTriple ];
+	STANDARD_READERS = [ readSection, readInterpolator, readUnescaped ],
+	TRIPLE_READERS = [ readTriple ],
+	STATIC_READERS = [ readSection, readInterpolator, readUnescaped ]; // TODO does it make sense to have a static section?
 
 StandardParser = Parser.extend({
 	init: function ( str, options ) {
@@ -57,9 +62,9 @@ StandardParser = Parser.extend({
 		this.standardDelimiters = options.delimiters || [ '{{', '}}' ];
 
 		this.delimiters = [
-			{ isStatic: false, isTriple: false, content: this.standardDelimiters },
+			{ isStatic: false, isTriple: false, content: this.standardDelimiters, readers: STANDARD_READERS },
 			{ isStatic: false, isTriple: true,  content: options.tripleDelimiters       || [ '{{{', '}}}' ], readers: TRIPLE_READERS },
-			{ isStatic: true,  isTriple: false, content: options.staticDelimiters       || [ '[[',  ']]'  ] },
+			{ isStatic: true,  isTriple: false, content: options.staticDelimiters       || [ '[[',  ']]'  ], readers: STATIC_READERS },
 			{ isStatic: true,  isTriple: true,  content: options.staticTripleDelimiters || [ '[[[', ']]]' ], readers: TRIPLE_READERS }
 		];
 

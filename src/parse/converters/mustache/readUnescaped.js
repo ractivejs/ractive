@@ -2,8 +2,14 @@ import { TRIPLE } from 'config/types';
 import readExpression from 'parse/converters/readExpression';
 import refineExpression from 'parse/utils/refineExpression';
 
-export default function readTriple ( parser, delimiters ) {
-	var expression = readExpression( parser ), triple;
+export default function readUnescaped ( parser, delimiters ) {
+	var expression, triple;
+
+	if ( !parser.matchString( '&' ) ) {
+		return null;
+	}
+
+	expression = readExpression( parser );
 
 	if ( !expression ) {
 		return null;

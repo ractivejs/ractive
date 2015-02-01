@@ -1,10 +1,11 @@
 import { GLOBAL, REFERENCE } from 'config/types';
 import { name as namePattern, relaxedName } from '../shared/patterns';
+import { normalise } from 'shared/keypaths';
 
-var dotRefinementPattern, arrayMemberPattern, globals, keywords;
-dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
-
-arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
+var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
+	arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/,
+	globals,
+	keywords;
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
 globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
@@ -12,12 +13,33 @@ globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIC
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
+var legalReference = /^[a-zA-Z$_0-9]+(?:(?:\.[a-zA-Z$_0-9]+)|(?:\[[0-9]+\]))*/;
+
 export default function readReference ( parser ) {
-	var startPos, ancestor, name, dot, combo, refinement, lastDotIndex, pattern;
+	var startPos, special, prefix, ancestor, name, dot, combo, lastDotIndex, pattern;
 
 	startPos = parser.pos;
 
-	// we might have a root-level reference
+	name = parser.matchPattern( /^@(?:keypath|index|key)/ );
+
+	if ( !name ) {
+		prefix = parser.matchPattern( prefixPattern ) || '';
+		name = parser.matchPattern( legalReference );
+
+		if ( !name && prefix === '.' ) {
+			prefix = '';
+			name = 'this';
+		}
+
+		console.log( 'prefix "%s"', prefix );
+		console.log( 'name "%s"', name );
+	}
+
+	if ( !name ) {
+		return null;
+	}
+
+	/*// we might have a root-level reference
 	if ( parser.matchString( '~/' ) ) {
 		ancestor = '~/';
 	}
@@ -35,32 +57,28 @@ export default function readReference ( parser ) {
 		dot = parser.matchString( './' ) || parser.matchString( '.' ) || '';
 	}
 
-	pattern = parser.relaxedNames ? relaxedName : namePattern;
-	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( pattern ) || '';
+	name = parser.matchPattern( /^@(?:keypath|index|key)/ ) || parser.matchPattern( legalReference ) || '';*/
 
 	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
-	if ( !parser.relaxedNames && !dot && !ancestor && keywords.test( name ) ) {
+	if ( !prefix && keywords.test( name ) ) {
 		parser.pos = startPos;
 		return null;
 	}
 
 	// if this is a browser global, stop here
-	if ( !ancestor && !dot && !parser.relaxedNames && globals.test( name ) ) {
+	if ( !prefix && globals.test( name ) ) {
 		return {
 			t: GLOBAL,
 			v: name
 		};
 	}
 
-	combo = ( ancestor || dot ) + name;
+	combo = ( prefix || '' ) + normalise( name );
 
 	if ( !combo ) {
 		return null;
 	}
 
-	while ( refinement = parser.matchPattern( dotRefinementPattern ) || readArrayRefinement( parser ) ) {
-		combo += refinement;
-	}
 
 	if ( parser.matchString( '(' ) ) {
 

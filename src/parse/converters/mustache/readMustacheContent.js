@@ -12,7 +12,7 @@ var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 
 legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
 
-export default function readMustacheContent ( parser, delimiters ) {
+/*export default function readMustacheContent ( parser, delimiters ) {
 	var start, pos, mustache, type, block, expression, i, remaining, index, relaxed;
 
 	start = parser.pos;
@@ -188,4 +188,4 @@ export default function readMustacheContent ( parser, delimiters ) {
 	}
 
 	return mustache;
-}
+}*/
