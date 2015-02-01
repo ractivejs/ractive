@@ -6,7 +6,7 @@ var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
 	keywords;
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
-globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
+globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)\b/;
 
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
@@ -14,7 +14,7 @@ keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finall
 var legalReference = /^[a-zA-Z$_0-9]+(?:(?:\.[a-zA-Z$_0-9]+)|(?:\[[0-9]+\]))*/;
 
 export default function readReference ( parser ) {
-	var startPos, prefix, name, reference, lastDotIndex;
+	var startPos, prefix, name, global, reference, lastDotIndex;
 
 	startPos = parser.pos;
 
@@ -42,9 +42,12 @@ export default function readReference ( parser ) {
 
 	// if this is a browser global, stop here
 	if ( !prefix && globals.test( name ) ) {
+		global = globals.exec( name )[0];
+		parser.pos = startPos + global.length;
+
 		return {
 			t: GLOBAL,
-			v: name
+			v: global
 		};
 	}
 
