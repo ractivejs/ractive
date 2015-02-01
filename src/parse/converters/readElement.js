@@ -1,9 +1,7 @@
-import { DOCTYPE, ELEMENT, CLOSING, CLOSING_TAG } from 'config/types';
+import { DOCTYPE, ELEMENT } from 'config/types';
 import { voidElementNames } from 'utils/html';
 import readMustache from './readMustache';
-import readHtmlComment from './readHtmlComment';
-import readPartialDefinitionComment from './readPartialDefinitionComment';
-import readText from './readText';
+import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
 import readAttribute from './element/readAttribute';
 import processDirective from './element/processDirective';
@@ -15,18 +13,7 @@ var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
 	directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 	exclude = { exclude: true },
-	converters,
 	disallowedContents;
-
-// Different set of converters, because this time we're looking for closing tags
-converters = [
-	readMustache,
-	readPartialDefinitionComment,
-	readHtmlComment,
-	readElement,
-	readText,
-	readClosingTag
-];
 
 // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
 disallowedContents = {
@@ -60,7 +47,8 @@ function readElement ( parser ) {
 		selfClosing,
 		children,
 		child,
-		closed;
+		closed,
+		pos;
 
 	start = parser.pos;
 
@@ -175,23 +163,37 @@ function readElement ( parser ) {
 
 		children = [];
 
-		while ( canContain( lowerCaseName, parser.remaining() ) && ( child = parser.read( converters ) ) ) {
-			// Special case - closing section tag
-			if ( child.t === CLOSING ) {
-				break;
+		do {
+			pos = parser.pos;
+
+			if ( !canContain( lowerCaseName, parser.remaining() ) ) {
+				closed = true;
 			}
 
-			if ( child.t === CLOSING_TAG ) {
-				break;
-
+			else if ( child = readClosingTag( parser ) ) {
 				// TODO verify that this tag can close this element (is either the same, or
 				// a parent that can close child elements implicitly)
 
 				//parser.error( 'Expected closing </' + element.e + '> tag' );
+				closed = true;
 			}
 
-			children.push( child );
-		}
+			// implicit close by closing section tag. TODO clean this up
+			else if ( child = readClosing( parser, { content: parser.standardDelimiters } ) ) {
+				closed = true;
+				parser.pos = pos;
+			}
+
+			else {
+				child = parser.read();
+
+				if ( !child ) {
+					closed = true;
+				} else {
+					children.push( child );
+				}
+			}
+		} while ( !closed );
 
 		if ( children.length ) {
 			element.f = children;
