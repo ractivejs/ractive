@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.6.1
-	Tue Jan 27 2015 23:56:50 GMT+0000 (UTC) - commit 0d045c9dfb7aee997ec335d02ad000d6ff51f490
+	Sun Feb 01 2015 20:57:55 GMT+0000 (UTC) - commit 2a7d5155ae50cd43c13ded4ee51455439531d0ca
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14,6 +14,9 @@
   global.Ractive = factory()
 }(this, function () { 'use strict';
 
+  var TEMPLATE_VERSION = 3;
+  //# sourceMappingURL=02-6to5-template.js.map
+
   var defaultOptions = {
 
     // render placement:
@@ -21,7 +24,7 @@
     append: false,
 
     // template:
-    template: { v: 2, t: [] },
+    template: { v: TEMPLATE_VERSION, t: [] },
 
     // parse:     // TODO static delimiters?
     preserveWhitespace: false,
@@ -153,7 +156,7 @@
     };
   }
 
-  function dom__getElement(input) {
+  function getElement(input) {
     var output;
 
     if (!input || typeof input === "boolean") {
@@ -2971,8 +2974,8 @@
       throw new Error("The API has changed - you must call `ractive.render(target[, anchor])` to render your Ractive instance. Once rendered you can use `ractive.insert()`.");
     }
 
-    target = dom__getElement(target);
-    anchor = dom__getElement(anchor) || null;
+    target = getElement(target);
+    anchor = getElement(anchor) || null;
 
     if (!target) {
       throw new Error("You must specify a valid target to insert into");
@@ -3677,8 +3680,8 @@
       throw new Error("You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first");
     }
 
-    target = dom__getElement(target) || this.el;
-    anchor = dom__getElement(anchor) || this.anchor;
+    target = getElement(target) || this.el;
+    anchor = getElement(anchor) || this.anchor;
 
     this.el = target;
     this.anchor = anchor;
@@ -4579,821 +4582,9 @@
   var SECTION_WITH = 53;
   var SECTION_IF_WITH = 54;
   var SECTION_PARTIAL = 55;
+
+  var ELSE = 60;
   //# sourceMappingURL=02-6to5-types.js.map
-
-  var expectedExpression = "Expected a JavaScript expression";
-  var expectedParen = "Expected closing paren";
-  //# sourceMappingURL=02-6to5-errors.js.map
-
-  var getNumberLiteral__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
-
-  var getNumberLiteral = function (parser) {
-    var result;
-
-    if (result = parser.matchPattern(getNumberLiteral__numberPattern)) {
-      return {
-        t: NUMBER_LITERAL,
-        v: result
-      };
-    }
-
-    return null;
-  };
-  //# sourceMappingURL=02-6to5-numberLiteral.js.map
-
-  var getBooleanLiteral = function (parser) {
-    var remaining = parser.remaining();
-
-    if (remaining.substr(0, 4) === "true") {
-      parser.pos += 4;
-      return {
-        t: BOOLEAN_LITERAL,
-        v: "true"
-      };
-    }
-
-    if (remaining.substr(0, 5) === "false") {
-      parser.pos += 5;
-      return {
-        t: BOOLEAN_LITERAL,
-        v: "false"
-      };
-    }
-
-    return null;
-  };
-  //# sourceMappingURL=02-6to5-booleanLiteral.js.map
-
-  var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
-
-  // Match one or more characters until: ", ', \, or EOL/EOF.
-  // EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
-  stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
-
-  // Match one escape sequence, including the backslash.
-  escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
-
-  // Match one ES5 line continuation (backslash + line terminator).
-  lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
-
-  // Helper for defining getDoubleQuotedString and getSingleQuotedString.
-  var makeQuotedStringMatcher = function (okQuote) {
-    return function (parser) {
-      var start, literal, done, next;
-
-      start = parser.pos;
-      literal = "\"";
-      done = false;
-
-      while (!done) {
-        next = parser.matchPattern(stringMiddlePattern) || parser.matchPattern(escapeSequencePattern) || parser.matchString(okQuote);
-        if (next) {
-          if (next === "\"") {
-            literal += "\\\"";
-          } else if (next === "\\'") {
-            literal += "'";
-          } else {
-            literal += next;
-          }
-        } else {
-          next = parser.matchPattern(lineContinuationPattern);
-          if (next) {
-            // convert \(newline-like) into a \u escape, which is allowed in JSON
-            literal += "\\u" + ("000" + next.charCodeAt(1).toString(16)).slice(-4);
-          } else {
-            done = true;
-          }
-        }
-      }
-
-      literal += "\"";
-
-      // use JSON.parse to interpret escapes
-      return JSON.parse(literal);
-    };
-  };
-  //# sourceMappingURL=02-6to5-makeQuotedStringMatcher.js.map
-
-  var getSingleQuotedString = makeQuotedStringMatcher("\"");
-  var getDoubleQuotedString = makeQuotedStringMatcher("'");
-
-  var getStringLiteral = function (parser) {
-    var start, string;
-
-    start = parser.pos;
-
-    if (parser.matchString("\"")) {
-      string = getDoubleQuotedString(parser);
-
-      if (!parser.matchString("\"")) {
-        parser.pos = start;
-        return null;
-      }
-
-      return {
-        t: STRING_LITERAL,
-        v: string
-      };
-    }
-
-    if (parser.matchString("'")) {
-      string = getSingleQuotedString(parser);
-
-      if (!parser.matchString("'")) {
-        parser.pos = start;
-        return null;
-      }
-
-      return {
-        t: STRING_LITERAL,
-        v: string
-      };
-    }
-
-    return null;
-  };
-  //# sourceMappingURL=02-6to5-_stringLiteral.js.map
-
-  var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
-  var relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
-  //# sourceMappingURL=02-6to5-patterns.js.map
-
-  var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
-
-  // http://mathiasbynens.be/notes/javascript-properties
-  // can be any name, string literal, or number literal
-  var getKey = function (parser) {
-    var token;
-
-    if (token = getStringLiteral(parser)) {
-      return identifier.test(token.v) ? token.v : "\"" + token.v.replace(/"/g, "\\\"") + "\"";
-    }
-
-    if (token = getNumberLiteral(parser)) {
-      return token.v;
-    }
-
-    if (token = parser.matchPattern(patterns__name)) {
-      return token;
-    }
-  };
-  //# sourceMappingURL=02-6to5-key.js.map
-
-  var getKeyValuePair__default = function (parser) {
-    var start, key, value;
-
-    start = parser.pos;
-
-    // allow whitespace between '{' and key
-    parser.allowWhitespace();
-
-    key = getKey(parser);
-    if (key === null) {
-      parser.pos = start;
-      return null;
-    }
-
-    // allow whitespace between key and ':'
-    parser.allowWhitespace();
-
-    // next character must be ':'
-    if (!parser.matchString(":")) {
-      parser.pos = start;
-      return null;
-    }
-
-    // allow whitespace between ':' and value
-    parser.allowWhitespace();
-
-    // next expression must be a, well... expression
-    value = parser.readExpression();
-    if (value === null) {
-      parser.pos = start;
-      return null;
-    }
-
-    return {
-      t: KEY_VALUE_PAIR,
-      k: key,
-      v: value
-    };
-  };
-  //# sourceMappingURL=02-6to5-keyValuePair.js.map
-
-  function getKeyValuePairs(parser) {
-    var start, pairs, pair, keyValuePairs;
-
-    start = parser.pos;
-
-    pair = getKeyValuePair__default(parser);
-    if (pair === null) {
-      return null;
-    }
-
-    pairs = [pair];
-
-    if (parser.matchString(",")) {
-      keyValuePairs = getKeyValuePairs(parser);
-
-      if (!keyValuePairs) {
-        parser.pos = start;
-        return null;
-      }
-
-      return pairs.concat(keyValuePairs);
-    }
-
-    return pairs;
-  }
-  //# sourceMappingURL=02-6to5-keyValuePairs.js.map
-
-  var getObjectLiteral = function (parser) {
-    var start, keyValuePairs;
-
-    start = parser.pos;
-
-    // allow whitespace
-    parser.allowWhitespace();
-
-    if (!parser.matchString("{")) {
-      parser.pos = start;
-      return null;
-    }
-
-    keyValuePairs = getKeyValuePairs(parser);
-
-    // allow whitespace between final value and '}'
-    parser.allowWhitespace();
-
-    if (!parser.matchString("}")) {
-      parser.pos = start;
-      return null;
-    }
-
-    return {
-      t: OBJECT_LITERAL,
-      m: keyValuePairs
-    };
-  };
-  //# sourceMappingURL=02-6to5-_objectLiteral.js.map
-
-  function getExpressionList(parser) {
-    var append = function (expression) {
-      expressions.push(expression);
-    };
-
-    var start, expressions, expr, next;
-
-    start = parser.pos;
-
-    parser.allowWhitespace();
-
-    expr = parser.readExpression();
-
-    if (expr === null) {
-      return null;
-    }
-
-    expressions = [expr];
-
-    // allow whitespace between expression and ','
-    parser.allowWhitespace();
-
-    if (parser.matchString(",")) {
-      next = getExpressionList(parser);
-      if (next === null) {
-        parser.error(expectedExpression);
-      }
-
-      next.forEach(append);
-    }
-
-    return expressions;
-  }
-  //# sourceMappingURL=02-6to5-expressionList.js.map
-
-  var getArrayLiteral = function (parser) {
-    var start, expressionList;
-
-    start = parser.pos;
-
-    // allow whitespace before '['
-    parser.allowWhitespace();
-
-    if (!parser.matchString("[")) {
-      parser.pos = start;
-      return null;
-    }
-
-    expressionList = getExpressionList(parser);
-
-    if (!parser.matchString("]")) {
-      parser.pos = start;
-      return null;
-    }
-
-    return {
-      t: ARRAY_LITERAL,
-      m: expressionList
-    };
-  };
-  //# sourceMappingURL=02-6to5-arrayLiteral.js.map
-
-  var getLiteral = function (parser) {
-    var literal = getNumberLiteral(parser) || getBooleanLiteral(parser) || getStringLiteral(parser) || getObjectLiteral(parser) || getArrayLiteral(parser);
-
-    return literal;
-  };
-  //# sourceMappingURL=02-6to5-_literal.js.map
-
-  var dotRefinementPattern, getReference__arrayMemberPattern, getArrayRefinement, globals, keywords;
-  dotRefinementPattern = /^\.[a-zA-Z_$0-9]+/;
-
-  getArrayRefinement = function (parser) {
-    var num = parser.matchPattern(getReference__arrayMemberPattern);
-
-    if (num) {
-      return "." + num;
-    }
-
-    return null;
-  };
-
-  getReference__arrayMemberPattern = /^\[(0|[1-9][0-9]*)\]/;
-
-  // if a reference is a browser global, we don't deference it later, so it needs special treatment
-  globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)$/;
-
-  // keywords are not valid references, with the exception of `this`
-  keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
-
-  var getReference = function (parser) {
-    var startPos, ancestor, name, dot, combo, refinement, lastDotIndex, pattern;
-
-    startPos = parser.pos;
-
-    // we might have a root-level reference
-    if (parser.matchString("~/")) {
-      ancestor = "~/";
-    } else {
-      // we might have ancestor refs...
-      ancestor = "";
-      while (parser.matchString("../")) {
-        ancestor += "../";
-      }
-    }
-
-    if (!ancestor) {
-      // we might have an implicit iterator or a restricted reference
-      dot = parser.matchString("./") || parser.matchString(".") || "";
-    }
-
-    pattern = parser.relaxedNames ? relaxedName : patterns__name;
-    name = parser.matchPattern(/^@(?:keypath|index|key)/) || parser.matchPattern(pattern) || "";
-
-    // bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
-    if (!parser.relaxedNames && !dot && !ancestor && keywords.test(name)) {
-      parser.pos = startPos;
-      return null;
-    }
-
-    // if this is a browser global, stop here
-    if (!ancestor && !dot && !parser.relaxedNames && globals.test(name)) {
-      return {
-        t: GLOBAL,
-        v: name
-      };
-    }
-
-    combo = (ancestor || dot) + name;
-
-    if (!combo) {
-      return null;
-    }
-
-    while (refinement = parser.matchPattern(dotRefinementPattern) || getArrayRefinement(parser)) {
-      combo += refinement;
-    }
-
-    if (parser.matchString("(")) {
-      // if this is a method invocation (as opposed to a function) we need
-      // to strip the method name from the reference combo, else the context
-      // will be wrong
-      lastDotIndex = combo.lastIndexOf(".");
-      if (lastDotIndex !== -1) {
-        combo = combo.substr(0, lastDotIndex);
-        parser.pos = startPos + combo.length;
-      } else {
-        parser.pos -= 1;
-      }
-    }
-
-    return {
-      t: REFERENCE,
-      n: combo.replace(/^this\./, "./").replace(/^this$/, ".")
-    };
-  };
-  //# sourceMappingURL=02-6to5-reference.js.map
-
-  var getBracketedExpression = function (parser) {
-    var start, expr;
-
-    start = parser.pos;
-
-    if (!parser.matchString("(")) {
-      return null;
-    }
-
-    parser.allowWhitespace();
-
-    expr = parser.readExpression();
-    if (!expr) {
-      parser.error(expectedExpression);
-    }
-
-    parser.allowWhitespace();
-
-    if (!parser.matchString(")")) {
-      parser.error(expectedParen);
-    }
-
-    return {
-      t: BRACKETED,
-      x: expr
-    };
-  };
-  //# sourceMappingURL=02-6to5-bracketedExpression.js.map
-
-  var getPrimary = function (parser) {
-    return getLiteral(parser) || getReference(parser) || getBracketedExpression(parser);
-  };
-  //# sourceMappingURL=02-6to5-_primary.js.map
-
-  function getRefinement(parser) {
-    var start, name, expr;
-
-    start = parser.pos;
-
-    parser.allowWhitespace();
-
-    // "." name
-    if (parser.matchString(".")) {
-      parser.allowWhitespace();
-
-      if (name = parser.matchPattern(patterns__name)) {
-        return {
-          t: REFINEMENT,
-          n: name
-        };
-      }
-
-      parser.error("Expected a property name");
-    }
-
-    // "[" expression "]"
-    if (parser.matchString("[")) {
-      parser.allowWhitespace();
-
-      expr = parser.readExpression();
-      if (!expr) {
-        parser.error(expectedExpression);
-      }
-
-      parser.allowWhitespace();
-
-      if (!parser.matchString("]")) {
-        parser.error("Expected ']'");
-      }
-
-      return {
-        t: REFINEMENT,
-        x: expr
-      };
-    }
-
-    return null;
-  }
-  //# sourceMappingURL=02-6to5-refinement.js.map
-
-  var getMemberOrInvocation = function (parser) {
-    var current, expression, refinement, expressionList;
-
-    expression = getPrimary(parser);
-
-    if (!expression) {
-      return null;
-    }
-
-    while (expression) {
-      current = parser.pos;
-
-      if (refinement = getRefinement(parser)) {
-        expression = {
-          t: MEMBER,
-          x: expression,
-          r: refinement
-        };
-      } else if (parser.matchString("(")) {
-        parser.allowWhitespace();
-        expressionList = getExpressionList(parser);
-
-        parser.allowWhitespace();
-
-        if (!parser.matchString(")")) {
-          parser.error(expectedParen);
-        }
-
-        expression = {
-          t: INVOCATION,
-          x: expression
-        };
-
-        if (expressionList) {
-          expression.o = expressionList;
-        }
-      } else {
-        break;
-      }
-    }
-
-    return expression;
-  };
-  //# sourceMappingURL=02-6to5-memberOrInvocation.js.map
-
-  var getTypeof, makePrefixSequenceMatcher;
-
-  makePrefixSequenceMatcher = function (symbol, fallthrough) {
-    return function (parser) {
-      var expression;
-
-      if (expression = fallthrough(parser)) {
-        return expression;
-      }
-
-      if (!parser.matchString(symbol)) {
-        return null;
-      }
-
-      parser.allowWhitespace();
-
-      expression = parser.readExpression();
-      if (!expression) {
-        parser.error(expectedExpression);
-      }
-
-      return {
-        s: symbol,
-        o: expression,
-        t: PREFIX_OPERATOR
-      };
-    };
-  };
-
-  // create all prefix sequence matchers, return getTypeof
-  (function () {
-    var i, len, matcher, prefixOperators, fallthrough;
-
-    prefixOperators = "! ~ + - typeof".split(" ");
-
-    fallthrough = getMemberOrInvocation;
-    for (i = 0, len = prefixOperators.length; i < len; i += 1) {
-      matcher = makePrefixSequenceMatcher(prefixOperators[i], fallthrough);
-      fallthrough = matcher;
-    }
-
-    // typeof operator is higher precedence than multiplication, so provides the
-    // fallthrough for the multiplication sequence matcher we're about to create
-    // (we're skipping void and delete)
-    getTypeof = fallthrough;
-  })();
-
-
-  //# sourceMappingURL=02-6to5-typeof.js.map
-
-  var getLogicalOr, makeInfixSequenceMatcher;
-
-  makeInfixSequenceMatcher = function (symbol, fallthrough) {
-    return function (parser) {
-      var start, left, right;
-
-      left = fallthrough(parser);
-      if (!left) {
-        return null;
-      }
-
-      // Loop to handle left-recursion in a case like `a * b * c` and produce
-      // left association, i.e. `(a * b) * c`.  The matcher can't call itself
-      // to parse `left` because that would be infinite regress.
-      while (true) {
-        start = parser.pos;
-
-        parser.allowWhitespace();
-
-        if (!parser.matchString(symbol)) {
-          parser.pos = start;
-          return left;
-        }
-
-        // special case - in operator must not be followed by [a-zA-Z_$0-9]
-        if (symbol === "in" && /[a-zA-Z_$0-9]/.test(parser.remaining().charAt(0))) {
-          parser.pos = start;
-          return left;
-        }
-
-        parser.allowWhitespace();
-
-        // right operand must also consist of only higher-precedence operators
-        right = fallthrough(parser);
-        if (!right) {
-          parser.pos = start;
-          return left;
-        }
-
-        left = {
-          t: INFIX_OPERATOR,
-          s: symbol,
-          o: [left, right]
-        };
-
-        // Loop back around.  If we don't see another occurrence of the symbol,
-        // we'll return left.
-      }
-    };
-  };
-
-  // create all infix sequence matchers, and return getLogicalOr
-  (function () {
-    var i, len, matcher, infixOperators, fallthrough;
-
-    // All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
-    // Each sequence matcher will initially fall through to its higher precedence
-    // neighbour, and only attempt to match if one of the higher precedence operators
-    // (or, ultimately, a literal, reference, or bracketed expression) already matched
-    infixOperators = "* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||".split(" ");
-
-    // A typeof operator is higher precedence than multiplication
-    fallthrough = getTypeof;
-    for (i = 0, len = infixOperators.length; i < len; i += 1) {
-      matcher = makeInfixSequenceMatcher(infixOperators[i], fallthrough);
-      fallthrough = matcher;
-    }
-
-    // Logical OR is the fallthrough for the conditional matcher
-    getLogicalOr = fallthrough;
-  })();
-
-
-  //# sourceMappingURL=02-6to5-logicalOr.js.map
-
-  var getConditional = function (parser) {
-    var start, expression, ifTrue, ifFalse;
-
-    expression = getLogicalOr(parser);
-    if (!expression) {
-      return null;
-    }
-
-    start = parser.pos;
-
-    parser.allowWhitespace();
-
-    if (!parser.matchString("?")) {
-      parser.pos = start;
-      return expression;
-    }
-
-    parser.allowWhitespace();
-
-    ifTrue = parser.readExpression();
-    if (!ifTrue) {
-      parser.error(expectedExpression);
-    }
-
-    parser.allowWhitespace();
-
-    if (!parser.matchString(":")) {
-      parser.error("Expected \":\"");
-    }
-
-    parser.allowWhitespace();
-
-    ifFalse = parser.readExpression();
-    if (!ifFalse) {
-      parser.error(expectedExpression);
-    }
-
-    return {
-      t: CONDITIONAL,
-      o: [expression, ifTrue, ifFalse]
-    };
-  };
-  //# sourceMappingURL=02-6to5-conditional.js.map
-
-  var flattenExpression = function (expression) {
-    var refs = [],
-        flattened;
-
-    extractRefs(expression, refs);
-
-    flattened = {
-      r: refs,
-      s: flattenExpression__stringify(this, expression, refs)
-    };
-
-    return flattened;
-  };
-
-  function quoteStringLiteral(str) {
-    return JSON.stringify(String(str));
-  }
-
-  // TODO maybe refactor this?
-  function extractRefs(node, refs) {
-    var i, list;
-
-    if (node.t === REFERENCE) {
-      if (refs.indexOf(node.n) === -1) {
-        refs.unshift(node.n);
-      }
-    }
-
-    list = node.o || node.m;
-    if (list) {
-      if (isObject(list)) {
-        extractRefs(list, refs);
-      } else {
-        i = list.length;
-        while (i--) {
-          extractRefs(list[i], refs);
-        }
-      }
-    }
-
-    if (node.x) {
-      extractRefs(node.x, refs);
-    }
-
-    if (node.r) {
-      extractRefs(node.r, refs);
-    }
-
-    if (node.v) {
-      extractRefs(node.v, refs);
-    }
-  }
-
-  function flattenExpression__stringify(parser, node, refs) {
-    var stringifyAll = function (item) {
-      return flattenExpression__stringify(parser, item, refs);
-    };
-
-    switch (node.t) {
-      case BOOLEAN_LITERAL:
-      case GLOBAL:
-      case NUMBER_LITERAL:
-        return node.v;
-
-      case STRING_LITERAL:
-        return quoteStringLiteral(node.v);
-
-      case ARRAY_LITERAL:
-        return "[" + (node.m ? node.m.map(stringifyAll).join(",") : "") + "]";
-
-      case OBJECT_LITERAL:
-        return "{" + (node.m ? node.m.map(stringifyAll).join(",") : "") + "}";
-
-      case KEY_VALUE_PAIR:
-        return node.k + ":" + flattenExpression__stringify(parser, node.v, refs);
-
-      case PREFIX_OPERATOR:
-        return (node.s === "typeof" ? "typeof " : node.s) + flattenExpression__stringify(parser, node.o, refs);
-
-      case INFIX_OPERATOR:
-        return flattenExpression__stringify(parser, node.o[0], refs) + (node.s.substr(0, 2) === "in" ? " " + node.s + " " : node.s) + flattenExpression__stringify(parser, node.o[1], refs);
-
-      case INVOCATION:
-        return flattenExpression__stringify(parser, node.x, refs) + "(" + (node.o ? node.o.map(stringifyAll).join(",") : "") + ")";
-
-      case BRACKETED:
-        return "(" + flattenExpression__stringify(parser, node.x, refs) + ")";
-
-      case MEMBER:
-        return flattenExpression__stringify(parser, node.x, refs) + flattenExpression__stringify(parser, node.r, refs);
-
-      case REFINEMENT:
-        return node.n ? "." + node.n : "[" + flattenExpression__stringify(parser, node.x, refs) + "]";
-
-      case CONDITIONAL:
-        return flattenExpression__stringify(parser, node.o[0], refs) + "?" + flattenExpression__stringify(parser, node.o[1], refs) + ":" + flattenExpression__stringify(parser, node.o[2], refs);
-
-      case REFERENCE:
-        return "_" + refs.indexOf(node.n);
-
-      default:
-        parser.error("Expected legal JavaScript");
-    }
-  }
-  //# sourceMappingURL=02-6to5-flattenExpression.js.map
 
   var Parser,
       ParseError,
@@ -5460,18 +4651,6 @@
 
       return null;
     },
-
-    readExpression: function () {
-      // The conditional operator is the lowest precedence operator (except yield,
-      // assignment operators, and commas, none of which are supported), so we
-      // start there. If it doesn't match, it 'falls through' to progressively
-      // higher precedence operators, until it eventually matches (or fails to
-      // match) a 'primary' - a literal or a reference. This way, the abstract syntax
-      // tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
-      return getConditional(this);
-    },
-
-    flattenExpression: flattenExpression,
 
     getLinePos: function (char) {
       var lineNum = 0,
@@ -5557,12 +4736,12 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_Parser.js.map
+  //# sourceMappingURL=02-6to5-Parser.js.map
 
   var delimiterChangePattern = /^[^\s=]+/,
       whitespacePattern = /^\s+/;
 
-  var delimiterChange = function (parser) {
+  function readDelimiterChange(parser) {
     var start, opening, closing;
 
     if (!parser.matchString("=")) {
@@ -5600,251 +4779,879 @@
     }
 
     return [opening, closing];
-  };
-  //# sourceMappingURL=02-6to5-delimiterChange.js.map
+  }
+  //# sourceMappingURL=02-6to5-readDelimiterChange.js.map
 
-  var delimiterTypes = [{
-    delimiters: "delimiters",
-    isTriple: false,
-    isStatic: false
-  }, {
-    delimiters: "tripleDelimiters",
-    isTriple: true,
-    isStatic: false
-  }, {
-    delimiters: "staticDelimiters",
-    isTriple: false,
-    isStatic: true
-  }, {
-    delimiters: "staticTripleDelimiters",
-    isTriple: true,
-    isStatic: true
-  }];
-  //# sourceMappingURL=02-6to5-delimiterTypes.js.map
+  var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
-  var mustacheTypes = {
-    "#": SECTION,
-    "^": INVERTED,
-    "/": CLOSING,
-    ">": PARTIAL,
-    "!": COMMENT,
-    "&": TRIPLE
-  };
+  function readMustache(parser) {
+    var mustache, i;
 
-  var mustacheType = function (parser) {
-    var type = mustacheTypes[parser.str.charAt(parser.pos)];
-
-    if (!type) {
+    // If we're inside a <script> or <style> tag, and we're not
+    // interpolating, bug out
+    if (parser.interpolate[parser.inside] === false) {
       return null;
     }
 
-    parser.pos += 1;
-    return type;
-  };
-  //# sourceMappingURL=02-6to5-type.js.map
+    for (i = 0; i < parser.tags.length; i += 1) {
+      if (mustache = readMustacheOfType(parser, parser.tags[i])) {
+        return mustache;
+      }
+    }
+  }
 
-  var handlebarsBlockCodes = {
-    each: SECTION_EACH,
-    "if": SECTION_IF,
-    "if-with": SECTION_IF_WITH,
-    "with": SECTION_WITH,
-    unless: SECTION_UNLESS,
-    partial: SECTION_PARTIAL
-  };
-  //# sourceMappingURL=02-6to5-handlebarsBlockCodes.js.map
-
-  var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-      keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
-      mustacheContent__arrayMemberPattern = /^[0-9][1-9]*$/,
-      handlebarsBlockPattern = new RegExp("^(" + Object.keys(handlebarsBlockCodes).join("|") + ")\\b"),
-      legalReference;
-
-  legalReference = /^[a-zA-Z$_0-9]+(?:(\.[a-zA-Z$_0-9]+)|(\[[a-zA-Z$_0-9]+\]))*$/;
-
-  var mustacheContent = function (parser, delimiterType) {
-    var start, pos, mustache, type, block, expression, i, remaining, index, delimiters, relaxed;
+  function readMustacheOfType(parser, tag) {
+    var start, mustache, reader, i;
 
     start = parser.pos;
 
-    mustache = {};
-
-    delimiters = parser[delimiterType.delimiters];
-
-    if (delimiterType.isStatic) {
-      mustache.s = true;
+    if (!parser.matchString(tag.open)) {
+      return null;
     }
 
-    // Determine mustache type
-    if (delimiterType.isTriple) {
-      mustache.t = TRIPLE;
-    } else {
-      // We need to test for expressions before we test for mustache type, because
-      // an expression that begins '!' looks a lot like a comment
-      if (parser.remaining()[0] === "!") {
-        try {
-          expression = parser.readExpression();
-
-          // Was it actually an expression, or a comment block in disguise?
-          parser.allowWhitespace();
-          if (parser.remaining().indexOf(delimiters[1])) {
-            expression = null;
-          } else {
-            mustache.t = INTERPOLATOR;
-          }
-        } catch (err) {}
-
-        if (!expression) {
-          index = parser.remaining().indexOf(delimiters[1]);
-
-          if (~index) {
-            parser.pos += index;
-          } else {
-            parser.error("Expected closing delimiter ('" + delimiters[1] + "')");
-          }
-
-          return {
-            t: COMMENT
-          };
-        }
+    // delimiter change?
+    if (mustache = readDelimiterChange(parser)) {
+      // find closing delimiter or abort...
+      if (!parser.matchString(tag.close)) {
+        return null;
       }
 
-      if (!expression) {
-        type = mustacheType(parser);
+      // ...then make the switch
+      tag.open = mustache[0];
+      tag.close = mustache[1];
+      parser.sortMustacheTags();
 
-        mustache.t = type || INTERPOLATOR; // default
+      return delimiterChangeToken;
+    }
 
-        // See if there's an explicit section type e.g. {{#with}}...{{/with}}
-        if (type === SECTION) {
-          if (block = parser.matchPattern(handlebarsBlockPattern)) {
-            mustache.n = block;
-          }
+    parser.allowWhitespace();
 
-          parser.allowWhitespace();
+    // illegal section closer
+    if (parser.matchString("/")) {
+      parser.pos -= tag.close.length + 1;
+      parser.error("Attempted to close a section that wasn't open");
+    }
+
+    for (i = 0; i < tag.readers.length; i += 1) {
+      reader = tag.readers[i];
+
+      if (mustache = reader(parser, tag)) {
+        if (tag.isStatic) {
+          mustache.s = true; // TODO make this `1` instead - more compact
         }
 
-        // if it's a comment or a section closer, allow any contents except '}}'
-        else if (type === COMMENT || type === CLOSING) {
-          remaining = parser.remaining();
-          index = remaining.indexOf(delimiters[1]);
-
-          if (index !== -1) {
-            mustache.r = remaining.substr(0, index).split(" ")[0];
-            parser.pos += index;
-            return mustache;
-          }
+        if (parser.includeLinePositions) {
+          mustache.p = parser.getLinePos(start);
         }
+
+        return mustache;
       }
     }
 
-    if (!expression) {
-      // allow whitespace
+    parser.pos = start;
+    return null;
+  }
+  //# sourceMappingURL=02-6to5-readMustache.js.map
+
+  var expectedExpression = "Expected a JavaScript expression";
+  var expectedParen = "Expected closing paren";
+  //# sourceMappingURL=02-6to5-errors.js.map
+
+  var readNumberLiteral__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+
+  function readNumberLiteral(parser) {
+    var result;
+
+    if (result = parser.matchPattern(readNumberLiteral__numberPattern)) {
+      return {
+        t: NUMBER_LITERAL,
+        v: result
+      };
+    }
+
+    return null;
+  }
+  //# sourceMappingURL=02-6to5-readNumberLiteral.js.map
+
+  function readBooleanLiteral(parser) {
+    var remaining = parser.remaining();
+
+    if (remaining.substr(0, 4) === "true") {
+      parser.pos += 4;
+      return {
+        t: BOOLEAN_LITERAL,
+        v: "true"
+      };
+    }
+
+    if (remaining.substr(0, 5) === "false") {
+      parser.pos += 5;
+      return {
+        t: BOOLEAN_LITERAL,
+        v: "false"
+      };
+    }
+
+    return null;
+  }
+  //# sourceMappingURL=02-6to5-readBooleanLiteral.js.map
+
+  var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
+
+  // Match one or more characters until: ", ', \, or EOL/EOF.
+  // EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
+  stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
+
+  // Match one escape sequence, including the backslash.
+  escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
+
+  // Match one ES5 line continuation (backslash + line terminator).
+  lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
+
+  // Helper for defining getDoubleQuotedString and getSingleQuotedString.
+  var makeQuotedStringMatcher = function (okQuote) {
+    return function (parser) {
+      var start, literal, done, next;
+
+      start = parser.pos;
+      literal = "\"";
+      done = false;
+
+      while (!done) {
+        next = parser.matchPattern(stringMiddlePattern) || parser.matchPattern(escapeSequencePattern) || parser.matchString(okQuote);
+        if (next) {
+          if (next === "\"") {
+            literal += "\\\"";
+          } else if (next === "\\'") {
+            literal += "'";
+          } else {
+            literal += next;
+          }
+        } else {
+          next = parser.matchPattern(lineContinuationPattern);
+          if (next) {
+            // convert \(newline-like) into a \u escape, which is allowed in JSON
+            literal += "\\u" + ("000" + next.charCodeAt(1).toString(16)).slice(-4);
+          } else {
+            done = true;
+          }
+        }
+      }
+
+      literal += "\"";
+
+      // use JSON.parse to interpret escapes
+      return JSON.parse(literal);
+    };
+  };
+  //# sourceMappingURL=02-6to5-makeQuotedStringMatcher.js.map
+
+  var getSingleQuotedString = makeQuotedStringMatcher("\"");
+  var getDoubleQuotedString = makeQuotedStringMatcher("'");
+
+  var readStringLiteral = function (parser) {
+    var start, string;
+
+    start = parser.pos;
+
+    if (parser.matchString("\"")) {
+      string = getDoubleQuotedString(parser);
+
+      if (!parser.matchString("\"")) {
+        parser.pos = start;
+        return null;
+      }
+
+      return {
+        t: STRING_LITERAL,
+        v: string
+      };
+    }
+
+    if (parser.matchString("'")) {
+      string = getSingleQuotedString(parser);
+
+      if (!parser.matchString("'")) {
+        parser.pos = start;
+        return null;
+      }
+
+      return {
+        t: STRING_LITERAL,
+        v: string
+      };
+    }
+
+    return null;
+  };
+  //# sourceMappingURL=02-6to5-readStringLiteral.js.map
+
+  var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
+  var patterns__relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
+  //# sourceMappingURL=02-6to5-patterns.js.map
+
+  var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+
+  // http://mathiasbynens.be/notes/javascript-properties
+  // can be any name, string literal, or number literal
+  function readKey(parser) {
+    var token;
+
+    if (token = readStringLiteral(parser)) {
+      return identifier.test(token.v) ? token.v : "\"" + token.v.replace(/"/g, "\\\"") + "\"";
+    }
+
+    if (token = readNumberLiteral(parser)) {
+      return token.v;
+    }
+
+    if (token = parser.matchPattern(patterns__name)) {
+      return token;
+    }
+  }
+  //# sourceMappingURL=02-6to5-readKey.js.map
+
+  function readKeyValuePair(parser) {
+    var start, key, value;
+
+    start = parser.pos;
+
+    // allow whitespace between '{' and key
+    parser.allowWhitespace();
+
+    key = readKey(parser);
+    if (key === null) {
+      parser.pos = start;
+      return null;
+    }
+
+    // allow whitespace between key and ':'
+    parser.allowWhitespace();
+
+    // next character must be ':'
+    if (!parser.matchString(":")) {
+      parser.pos = start;
+      return null;
+    }
+
+    // allow whitespace between ':' and value
+    parser.allowWhitespace();
+
+    // next expression must be a, well... expression
+    value = readExpression(parser);
+    if (value === null) {
+      parser.pos = start;
+      return null;
+    }
+
+    return {
+      t: KEY_VALUE_PAIR,
+      k: key,
+      v: value
+    };
+  }
+  //# sourceMappingURL=02-6to5-keyValuePair.js.map
+
+  function readKeyValuePairs(parser) {
+    var start, pairs, pair, keyValuePairs;
+
+    start = parser.pos;
+
+    pair = readKeyValuePair(parser);
+    if (pair === null) {
+      return null;
+    }
+
+    pairs = [pair];
+
+    if (parser.matchString(",")) {
+      keyValuePairs = readKeyValuePairs(parser);
+
+      if (!keyValuePairs) {
+        parser.pos = start;
+        return null;
+      }
+
+      return pairs.concat(keyValuePairs);
+    }
+
+    return pairs;
+  }
+  //# sourceMappingURL=02-6to5-keyValuePairs.js.map
+
+  var readObjectLiteral = function (parser) {
+    var start, keyValuePairs;
+
+    start = parser.pos;
+
+    // allow whitespace
+    parser.allowWhitespace();
+
+    if (!parser.matchString("{")) {
+      parser.pos = start;
+      return null;
+    }
+
+    keyValuePairs = readKeyValuePairs(parser);
+
+    // allow whitespace between final value and '}'
+    parser.allowWhitespace();
+
+    if (!parser.matchString("}")) {
+      parser.pos = start;
+      return null;
+    }
+
+    return {
+      t: OBJECT_LITERAL,
+      m: keyValuePairs
+    };
+  };
+  //# sourceMappingURL=02-6to5-readObjectLiteral.js.map
+
+  function readExpressionList(parser) {
+    var append = function (expression) {
+      expressions.push(expression);
+    };
+
+    var start, expressions, expr, next;
+
+    start = parser.pos;
+
+    parser.allowWhitespace();
+
+    expr = readExpression(parser);
+
+    if (expr === null) {
+      return null;
+    }
+
+    expressions = [expr];
+
+    // allow whitespace between expression and ','
+    parser.allowWhitespace();
+
+    if (parser.matchString(",")) {
+      next = readExpressionList(parser);
+      if (next === null) {
+        parser.error(expectedExpression);
+      }
+
+      next.forEach(append);
+    }
+
+    return expressions;
+  }
+  //# sourceMappingURL=02-6to5-readExpressionList.js.map
+
+  var readArrayLiteral = function (parser) {
+    var start, expressionList;
+
+    start = parser.pos;
+
+    // allow whitespace before '['
+    parser.allowWhitespace();
+
+    if (!parser.matchString("[")) {
+      parser.pos = start;
+      return null;
+    }
+
+    expressionList = readExpressionList(parser);
+
+    if (!parser.matchString("]")) {
+      parser.pos = start;
+      return null;
+    }
+
+    return {
+      t: ARRAY_LITERAL,
+      m: expressionList
+    };
+  };
+  //# sourceMappingURL=02-6to5-readArrayLiteral.js.map
+
+  function readLiteral(parser) {
+    return readNumberLiteral(parser) || readBooleanLiteral(parser) || readStringLiteral(parser) || readObjectLiteral(parser) || readArrayLiteral(parser);
+  }
+  //# sourceMappingURL=02-6to5-readLiteral.js.map
+
+  var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
+      globals,
+      keywords;
+
+  // if a reference is a browser global, we don't deference it later, so it needs special treatment
+  globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)\b/;
+
+  // keywords are not valid references, with the exception of `this`
+  keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
+
+  var legalReference = /^[a-zA-Z$_0-9]+(?:(?:\.[a-zA-Z$_0-9]+)|(?:\[[0-9]+\]))*/;
+  var readReference__relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
+
+  function readReference(parser) {
+    var startPos, prefix, name, global, reference, lastDotIndex;
+
+    startPos = parser.pos;
+
+    name = parser.matchPattern(/^@(?:keypath|index|key)/);
+
+    if (!name) {
+      prefix = parser.matchPattern(prefixPattern) || "";
+      name = !prefix && parser.relaxedNames && parser.matchPattern(readReference__relaxedName) || parser.matchPattern(legalReference);
+
+      if (!name && prefix === ".") {
+        prefix = "";
+        name = ".";
+      }
+    }
+
+    if (!name) {
+      return null;
+    }
+
+    // bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
+    if (!prefix && !parser.relaxedNames && keywords.test(name)) {
+      parser.pos = startPos;
+      return null;
+    }
+
+    // if this is a browser global, stop here
+    if (!prefix && globals.test(name)) {
+      global = globals.exec(name)[0];
+      parser.pos = startPos + global.length;
+
+      return {
+        t: GLOBAL,
+        v: global
+      };
+    }
+
+    reference = (prefix || "") + normalise(name);
+
+    if (parser.matchString("(")) {
+      // if this is a method invocation (as opposed to a function) we need
+      // to strip the method name from the reference combo, else the context
+      // will be wrong
+      lastDotIndex = name.lastIndexOf(".");
+      if (lastDotIndex !== -1) {
+        reference = reference.substr(0, lastDotIndex);
+        parser.pos = startPos + reference.length;
+      } else {
+        parser.pos -= 1;
+      }
+    }
+
+    return {
+      t: REFERENCE,
+      n: reference.replace(/^this\./, "./").replace(/^this$/, ".")
+    };
+  }
+  //# sourceMappingURL=02-6to5-readReference.js.map
+
+  function readBracketedExpression(parser) {
+    var start, expr;
+
+    start = parser.pos;
+
+    if (!parser.matchString("(")) {
+      return null;
+    }
+
+    parser.allowWhitespace();
+
+    expr = readExpression(parser);
+    if (!expr) {
+      parser.error(expectedExpression);
+    }
+
+    parser.allowWhitespace();
+
+    if (!parser.matchString(")")) {
+      parser.error(expectedParen);
+    }
+
+    return {
+      t: BRACKETED,
+      x: expr
+    };
+  }
+  //# sourceMappingURL=02-6to5-readBracketedExpression.js.map
+
+  var readPrimary = function (parser) {
+    return readLiteral(parser) || readReference(parser) || readBracketedExpression(parser);
+  };
+  //# sourceMappingURL=02-6to5-readPrimary.js.map
+
+  function readRefinement(parser) {
+    var start, name, expr;
+
+    start = parser.pos;
+
+    parser.allowWhitespace();
+
+    // "." name
+    if (parser.matchString(".")) {
       parser.allowWhitespace();
 
-      // if this is a partial, we can relax the naming requirements for the expression
-      if (type === PARTIAL) {
-        relaxed = parser.relaxedNames;
-        parser.relaxedNames = true;
-        expression = parser.readExpression();
-        parser.relaxedNames = relaxed;
+      if (name = parser.matchPattern(patterns__name)) {
+        return {
+          t: REFINEMENT,
+          n: name
+        };
       }
 
-      // look for named yields
-      else if (mustache.t === INTERPOLATOR && parser.matchString("yield ")) {
+      parser.error("Expected a property name");
+    }
+
+    // "[" expression "]"
+    if (parser.matchString("[")) {
+      parser.allowWhitespace();
+
+      expr = readExpression(parser);
+      if (!expr) {
+        parser.error(expectedExpression);
+      }
+
+      parser.allowWhitespace();
+
+      if (!parser.matchString("]")) {
+        parser.error("Expected ']'");
+      }
+
+      return {
+        t: REFINEMENT,
+        x: expr
+      };
+    }
+
+    return null;
+  }
+  //# sourceMappingURL=02-6to5-readRefinement.js.map
+
+  var readMemberOrInvocation = function (parser) {
+    var current, expression, refinement, expressionList;
+
+    expression = readPrimary(parser);
+
+    if (!expression) {
+      return null;
+    }
+
+    while (expression) {
+      current = parser.pos;
+
+      if (refinement = readRefinement(parser)) {
+        expression = {
+          t: MEMBER,
+          x: expression,
+          r: refinement
+        };
+      } else if (parser.matchString("(")) {
         parser.allowWhitespace();
-        mustache.r = "yield";
-        relaxed = parser.relaxedNames;
-        parser.relaxedNames = true;
-        expression = parser.readExpression();
-        parser.relaxedNames = false;
+        expressionList = readExpressionList(parser);
 
-        if (expression && expression.t === REFERENCE) {
-          mustache.yn = expression.n;
-          expression = null;
-        } else if (expression) {
-          parser.error("Only names are supported with yield.");
+        parser.allowWhitespace();
+
+        if (!parser.matchString(")")) {
+          parser.error(expectedParen);
         }
-      }
 
-      // relax naming for inline partial section
-      else if (mustache.t === SECTION && mustache.n === "partial") {
-        relaxed = parser.relaxedNames;
-        parser.relaxedNames = true;
-        expression = parser.readExpression();
-        parser.relaxedNames = false;
-      }
-
-      // otherwise, just get an expression
-      else {
-        // get expression
-        expression = parser.readExpression();
-      }
-
-      // If this is a partial, it may have a context (e.g. `{{>item foo}}`). These
-      // cases involve a bit of a hack - we want to turn it into the equivalent of
-      // `{{#with foo}}{{>item}}{{/with}}`, but to get there we temporarily append
-      // a 'contextPartialExpression' to the mustache, and process the context instead of
-      // the reference
-      var temp = undefined;
-      if (mustache.t === PARTIAL && expression && (temp = parser.readExpression())) {
-        mustache = {
-          contextPartialExpression: expression
+        expression = {
+          t: INVOCATION,
+          x: expression
         };
 
-        expression = temp;
-      }
-
-      // With certain valid references that aren't valid expressions,
-      // e.g. {{1.foo}}, we have a problem: it looks like we've got an
-      // expression, but the expression didn't consume the entire
-      // reference. So we need to check that the mustache delimiters
-      // appear next, unless there's an index reference (i.e. a colon)
-      remaining = parser.remaining();
-
-      if (remaining.substr(0, delimiters[1].length) !== delimiters[1] && remaining.charAt(0) !== ":") {
-        pos = parser.pos;
-        parser.pos = start;
-
-        remaining = parser.remaining();
-        index = remaining.indexOf(delimiters[1]);
-
-        if (index !== -1) {
-          mustache.r = remaining.substr(0, index).trim();
-
-          // Check it's a legal reference
-          if (!legalReference.test(mustache.r)) {
-            parser.error("Expected a legal Mustache reference");
-          }
-
-          parser.pos += index;
-          return mustache;
+        if (expressionList) {
+          expression.o = expressionList;
         }
-
-        parser.pos = pos; // reset, so we get more informative error messages
-      }
-    }
-
-    refineExpression(parser, expression, mustache);
-
-    // if there was context, process the expression now and save it for later
-    if (mustache.contextPartialExpression) {
-      mustache.contextPartialExpression = [refineExpression(parser, mustache.contextPartialExpression, { t: PARTIAL })];
-    }
-
-    // optional index and key references
-    if (i = parser.matchPattern(indexRefPattern)) {
-      var extra = undefined;
-
-      if (extra = parser.matchPattern(keyIndexRefPattern)) {
-        mustache.i = i + "," + extra;
       } else {
-        mustache.i = i;
+        break;
       }
     }
 
-    return mustache;
+    return expression;
+  };
+  //# sourceMappingURL=02-6to5-readMemberOrInvocation.js.map
+
+  var readTypeOf, makePrefixSequenceMatcher;
+
+  makePrefixSequenceMatcher = function (symbol, fallthrough) {
+    return function (parser) {
+      var expression;
+
+      if (expression = fallthrough(parser)) {
+        return expression;
+      }
+
+      if (!parser.matchString(symbol)) {
+        return null;
+      }
+
+      parser.allowWhitespace();
+
+      expression = readExpression(parser);
+      if (!expression) {
+        parser.error(expectedExpression);
+      }
+
+      return {
+        s: symbol,
+        o: expression,
+        t: PREFIX_OPERATOR
+      };
+    };
   };
 
-  function refineExpression(parser, expression, mustache) {
+  // create all prefix sequence matchers, return readTypeOf
+  (function () {
+    var i, len, matcher, prefixOperators, fallthrough;
+
+    prefixOperators = "! ~ + - typeof".split(" ");
+
+    fallthrough = readMemberOrInvocation;
+    for (i = 0, len = prefixOperators.length; i < len; i += 1) {
+      matcher = makePrefixSequenceMatcher(prefixOperators[i], fallthrough);
+      fallthrough = matcher;
+    }
+
+    // typeof operator is higher precedence than multiplication, so provides the
+    // fallthrough for the multiplication sequence matcher we're about to create
+    // (we're skipping void and delete)
+    readTypeOf = fallthrough;
+  })();
+
+  var readTypeof = readTypeOf;
+  //# sourceMappingURL=02-6to5-readTypeof.js.map
+
+  var readLogicalOr, makeInfixSequenceMatcher;
+
+  makeInfixSequenceMatcher = function (symbol, fallthrough) {
+    return function (parser) {
+      var start, left, right;
+
+      left = fallthrough(parser);
+      if (!left) {
+        return null;
+      }
+
+      // Loop to handle left-recursion in a case like `a * b * c` and produce
+      // left association, i.e. `(a * b) * c`.  The matcher can't call itself
+      // to parse `left` because that would be infinite regress.
+      while (true) {
+        start = parser.pos;
+
+        parser.allowWhitespace();
+
+        if (!parser.matchString(symbol)) {
+          parser.pos = start;
+          return left;
+        }
+
+        // special case - in operator must not be followed by [a-zA-Z_$0-9]
+        if (symbol === "in" && /[a-zA-Z_$0-9]/.test(parser.remaining().charAt(0))) {
+          parser.pos = start;
+          return left;
+        }
+
+        parser.allowWhitespace();
+
+        // right operand must also consist of only higher-precedence operators
+        right = fallthrough(parser);
+        if (!right) {
+          parser.pos = start;
+          return left;
+        }
+
+        left = {
+          t: INFIX_OPERATOR,
+          s: symbol,
+          o: [left, right]
+        };
+
+        // Loop back around.  If we don't see another occurrence of the symbol,
+        // we'll return left.
+      }
+    };
+  };
+
+  // create all infix sequence matchers, and return readLogicalOr
+  (function () {
+    var i, len, matcher, infixOperators, fallthrough;
+
+    // All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
+    // Each sequence matcher will initially fall through to its higher precedence
+    // neighbour, and only attempt to match if one of the higher precedence operators
+    // (or, ultimately, a literal, reference, or bracketed expression) already matched
+    infixOperators = "* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||".split(" ");
+
+    // A typeof operator is higher precedence than multiplication
+    fallthrough = readTypeof;
+    for (i = 0, len = infixOperators.length; i < len; i += 1) {
+      matcher = makeInfixSequenceMatcher(infixOperators[i], fallthrough);
+      fallthrough = matcher;
+    }
+
+    // Logical OR is the fallthrough for the conditional matcher
+    readLogicalOr = fallthrough;
+  })();
+
+
+  //# sourceMappingURL=02-6to5-readLogicalOr.js.map
+
+  function getConditional(parser) {
+    var start, expression, ifTrue, ifFalse;
+
+    expression = readLogicalOr(parser);
+    if (!expression) {
+      return null;
+    }
+
+    start = parser.pos;
+
+    parser.allowWhitespace();
+
+    if (!parser.matchString("?")) {
+      parser.pos = start;
+      return expression;
+    }
+
+    parser.allowWhitespace();
+
+    ifTrue = readExpression(parser);
+    if (!ifTrue) {
+      parser.error(expectedExpression);
+    }
+
+    parser.allowWhitespace();
+
+    if (!parser.matchString(":")) {
+      parser.error("Expected \":\"");
+    }
+
+    parser.allowWhitespace();
+
+    ifFalse = readExpression(parser);
+    if (!ifFalse) {
+      parser.error(expectedExpression);
+    }
+
+    return {
+      t: CONDITIONAL,
+      o: [expression, ifTrue, ifFalse]
+    };
+  }
+  //# sourceMappingURL=02-6to5-readConditional.js.map
+
+  function readExpression(parser) {
+    // The conditional operator is the lowest precedence operator (except yield,
+    // assignment operators, and commas, none of which are supported), so we
+    // start there. If it doesn't match, it 'falls through' to progressively
+    // higher precedence operators, until it eventually matches (or fails to
+    // match) a 'primary' - a literal or a reference. This way, the abstract syntax
+    // tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
+    return getConditional(parser);
+  }
+  //# sourceMappingURL=02-6to5-readExpression.js.map
+
+  function flattenExpression(expression) {
+    var stringify = function (node) {
+      switch (node.t) {
+        case BOOLEAN_LITERAL:
+        case GLOBAL:
+        case NUMBER_LITERAL:
+          return node.v;
+
+        case STRING_LITERAL:
+          return JSON.stringify(String(node.v));
+
+        case ARRAY_LITERAL:
+          return "[" + (node.m ? node.m.map(stringify).join(",") : "") + "]";
+
+        case OBJECT_LITERAL:
+          return "{" + (node.m ? node.m.map(stringify).join(",") : "") + "}";
+
+        case KEY_VALUE_PAIR:
+          return node.k + ":" + stringify(node.v);
+
+        case PREFIX_OPERATOR:
+          return (node.s === "typeof" ? "typeof " : node.s) + stringify(node.o);
+
+        case INFIX_OPERATOR:
+          return stringify(node.o[0]) + (node.s.substr(0, 2) === "in" ? " " + node.s + " " : node.s) + stringify(node.o[1]);
+
+        case INVOCATION:
+          return stringify(node.x) + "(" + (node.o ? node.o.map(stringify).join(",") : "") + ")";
+
+        case BRACKETED:
+          return "(" + stringify(node.x) + ")";
+
+        case MEMBER:
+          return stringify(node.x) + stringify(node.r);
+
+        case REFINEMENT:
+          return node.n ? "." + node.n : "[" + stringify(node.x) + "]";
+
+        case CONDITIONAL:
+          return stringify(node.o[0]) + "?" + stringify(node.o[1]) + ":" + stringify(node.o[2]);
+
+        case REFERENCE:
+          return "_" + refs.indexOf(node.n);
+
+        default:
+          throw new Error("Expected legal JavaScript");
+      }
+    };
+
+    var refs;
+
+    extractRefs(expression, refs = []);
+
+    return {
+      r: refs,
+      s: stringify(expression)
+    };
+  }
+
+  // TODO maybe refactor this?
+  function extractRefs(node, refs) {
+    var i, list;
+
+    if (node.t === REFERENCE) {
+      if (refs.indexOf(node.n) === -1) {
+        refs.unshift(node.n);
+      }
+    }
+
+    list = node.o || node.m;
+    if (list) {
+      if (isObject(list)) {
+        extractRefs(list, refs);
+      } else {
+        i = list.length;
+        while (i--) {
+          extractRefs(list[i], refs);
+        }
+      }
+    }
+
+    if (node.x) {
+      extractRefs(node.x, refs);
+    }
+
+    if (node.r) {
+      extractRefs(node.r, refs);
+    }
+
+    if (node.v) {
+      extractRefs(node.v, refs);
+    }
+  }
+  //# sourceMappingURL=02-6to5-flattenExpression.js.map
+
+  var arrayMemberPattern = /^[0-9][1-9]*$/;
+
+  function refineExpression(expression, mustache) {
     var referenceExpression;
 
     if (expression) {
@@ -5857,12 +5664,12 @@
       if (expression.t === REFERENCE) {
         mustache.r = expression.n;
       } else {
-        if (expression.t === NUMBER_LITERAL && mustacheContent__arrayMemberPattern.test(expression.v)) {
+        if (expression.t === NUMBER_LITERAL && arrayMemberPattern.test(expression.v)) {
           mustache.r = expression.v;
-        } else if (referenceExpression = getReferenceExpression(parser, expression)) {
+        } else if (referenceExpression = getReferenceExpression(expression)) {
           mustache.rx = referenceExpression;
         } else {
-          mustache.x = parser.flattenExpression(expression);
+          mustache.x = flattenExpression(expression);
         }
       }
 
@@ -5871,7 +5678,7 @@
   }
 
   // TODO refactor this! it's bewildering
-  function getReferenceExpression(parser, expression) {
+  function getReferenceExpression(expression) {
     var members = [],
         refinement;
 
@@ -5882,7 +5689,7 @@
         if (refinement.x.t === REFERENCE) {
           members.unshift(refinement.x);
         } else {
-          members.unshift(parser.flattenExpression(refinement.x));
+          members.unshift(flattenExpression(refinement.x));
         }
       } else {
         members.unshift(refinement.n);
@@ -5900,178 +5707,467 @@
       m: members
     };
   }
-  //# sourceMappingURL=02-6to5-content.js.map
+  //# sourceMappingURL=02-6to5-refineExpression.js.map
 
-  var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
+  function readTriple(parser, tag) {
+    var expression = readExpression(parser),
+        triple;
 
-
-
-  function getMustache(parser) {
-    var types;
-
-    // If we're inside a <script> or <style> tag, and we're not
-    // interpolating, bug out
-    if (parser.interpolate[parser.inside] === false) {
+    if (!expression) {
       return null;
     }
 
-    types = delimiterTypes.slice().sort(function compare(a, b) {
-      // Sort in order of descending opening delimiter length (longer first),
-      // to protect against opening delimiters being substrings of each other
-      return parser[b.delimiters][0].length - parser[a.delimiters][0].length;
-    });
+    if (!parser.matchString(tag.close)) {
+      parser.error("Expected closing delimiter '" + tag.close + "'");
+    }
 
-    return (function r(type) {
-      if (!type) {
-        return null;
-      } else {
-        return getMustacheOfType(parser, type) || r(types.shift());
-      }
-    })(types.shift());
+    triple = { t: TRIPLE };
+    refineExpression(expression, triple); // TODO handle this differently - it's mysterious
+
+    return triple;
   }
+  //# sourceMappingURL=02-6to5-readTriple.js.map
 
-  function getMustacheOfType(parser, delimiterType) {
-    var start, mustache, delimiters, children, expectedClose, elseChildren, currentChildren, child;
+  function readUnescaped(parser, tag) {
+    var expression, triple;
 
-    start = parser.pos;
-
-    delimiters = parser[delimiterType.delimiters];
-
-    if (!parser.matchString(delimiters[0])) {
+    if (!parser.matchString("&")) {
       return null;
-    }
-
-    // delimiter change?
-    if (mustache = delimiterChange(parser)) {
-      // find closing delimiter or abort...
-      if (!parser.matchString(delimiters[1])) {
-        return null;
-      }
-
-      // ...then make the switch
-      parser[delimiterType.delimiters] = mustache;
-      return delimiterChangeToken;
     }
 
     parser.allowWhitespace();
 
-    mustache = mustacheContent(parser, delimiterType);
+    expression = readExpression(parser);
 
-    if (mustache === null) {
+    if (!expression) {
+      return null;
+    }
+
+    if (!parser.matchString(tag.close)) {
+      parser.error("Expected closing delimiter '" + tag.close + "'");
+    }
+
+    triple = { t: TRIPLE };
+    refineExpression(expression, triple); // TODO handle this differently - it's mysterious
+
+    return triple;
+  }
+  //# sourceMappingURL=02-6to5-readUnescaped.js.map
+
+  function readPartial(parser, tag) {
+    var start, nameStart, expression, context, partial;
+
+    start = parser.pos;
+
+    if (!parser.matchString(">")) {
+      return null;
+    }
+
+    parser.allowWhitespace();
+    nameStart = parser.pos;
+
+    // Partial names can include hyphens, so we can't use readExpression
+    // blindly. Instead, we use the `relaxedNames` flag to indicate that
+    // `foo-bar` should be read as a single name, rather than 'subtract
+    // bar from foo'
+    parser.relaxedNames = true;
+    expression = readExpression(parser);
+    parser.relaxedNames = false;
+
+    parser.allowWhitespace();
+    context = readExpression(parser);
+    parser.allowWhitespace();
+
+    if (!expression) {
+      return null;
+    }
+
+    partial = { t: PARTIAL };
+    refineExpression(expression, partial); // TODO...
+
+    parser.allowWhitespace();
+
+    // if we have another expression - e.g. `{{>foo bar}}` - then
+    // we turn it into `{{#with bar}}{{>foo}}{{/with}}`
+    if (context) {
+      partial = {
+        t: SECTION,
+        n: SECTION_WITH,
+        f: [partial]
+      };
+
+      refineExpression(context, partial);
+    }
+
+    if (!parser.matchString(tag.close)) {
+      parser.error("Expected closing delimiter '" + tag.close + "'");
+    }
+
+    return partial;
+  }
+  //# sourceMappingURL=02-6to5-readPartial.js.map
+
+  function readComment(parser, tag) {
+    var index;
+
+    if (!parser.matchString("!")) {
+      return null;
+    }
+
+    index = parser.remaining().indexOf(tag.close);
+
+    if (index !== -1) {
+      parser.pos += index + tag.close.length;
+      return { t: COMMENT };
+    }
+  }
+  //# sourceMappingURL=02-6to5-readMustacheComment.js.map
+
+  function readExpressionOrReference(parser, expectedFollowers) {
+    var start, expression, i;
+
+    start = parser.pos;
+    expression = readExpression(parser);
+
+    if (!expression) {
+      return null;
+    }
+
+    for (i = 0; i < expectedFollowers.length; i += 1) {
+      if (parser.remaining().substr(0, expectedFollowers[i].length) === expectedFollowers[i]) {
+        return expression;
+      }
+    }
+
+    parser.pos = start;
+    return readReference(parser);
+  }
+  //# sourceMappingURL=02-6to5-readExpressionOrReference.js.map
+
+  function readInterpolator(parser, tag) {
+    var start, expression, interpolator, err;
+
+    start = parser.pos;
+
+    // TODO would be good for perf if we could do away with the try-catch
+    try {
+      expression = readExpressionOrReference(parser, [tag.close]);
+    } catch (e) {
+      err = e;
+    }
+
+    if (!expression) {
+      if (parser.str.charAt(start) === "!") {
+        // special case - comment
+        return null;
+      }
+
+      if (err) {
+        throw err;
+      }
+    }
+
+    if (!parser.matchString(tag.close)) {
+      parser.error("Expected closing delimiter '" + tag.close + "' after reference");
+
+      if (!expression) {
+        // special case - comment
+        if (parser.nextChar() === "!") {
+          return null;
+        }
+
+        parser.error("Expected expression or legal reference");
+      }
+    }
+
+    interpolator = { t: INTERPOLATOR };
+    refineExpression(expression, interpolator); // TODO handle this differently - it's mysterious
+
+    return interpolator;
+  }
+  //# sourceMappingURL=02-6to5-readInterpolator.js.map
+
+  var yieldPattern = /^yield\s*/;
+
+  function readYielder(parser, tag) {
+    var start, name, yielder;
+
+    if (!parser.matchPattern(yieldPattern)) {
+      return null;
+    }
+
+    start = parser.pos;
+    name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
+
+    parser.allowWhitespace();
+
+    if (!parser.matchString(tag.close)) {
       parser.pos = start;
       return null;
     }
 
-    // allow whitespace before closing delimiter
+    yielder = { t: YIELDER };
+
+    if (name) {
+      yielder.n = name;
+    }
+
+    return yielder;
+  }
+  //# sourceMappingURL=02-6to5-readYielder.js.map
+
+  function readClosing(parser, tag) {
+    var start, remaining, index, closing;
+
+    start = parser.pos;
+
+    if (!parser.matchString(tag.open)) {
+      return null;
+    }
+
     parser.allowWhitespace();
 
-    if (!parser.matchString(delimiters[1])) {
-      parser.error("Expected closing delimiter '" + delimiters[1] + "' after reference");
+    if (!parser.matchString("/")) {
+      parser.pos = start;
+      return null;
     }
 
-    if (mustache.t === COMMENT) {
-      mustache.exclude = true;
+    parser.allowWhitespace();
+
+    remaining = parser.remaining();
+    index = remaining.indexOf(tag.close);
+
+    if (index !== -1) {
+      closing = {
+        t: CLOSING,
+        r: remaining.substr(0, index).split(" ")[0]
+      };
+
+      parser.pos += index;
+
+      if (!parser.matchString(tag.close)) {
+        parser.error("Expected closing delimiter '" + tag.close + "'");
+      }
+
+      return closing;
     }
 
-    if (mustache.t === CLOSING) {
-      parser.sectionDepth -= 1;
+    parser.pos = start;
+    return null;
+  }
+  //# sourceMappingURL=02-6to5-readClosing.js.map
 
-      if (parser.sectionDepth < 0) {
-        parser.pos = start;
-        parser.error("Attempted to close a section that wasn't open");
+  var partialDefinitionSectionPattern = /^#\s*partial\s+/;
+
+  function readPartialDefinitionSection(parser, tag) {
+    var start, name, content, child, closed;
+
+    if (!parser.matchPattern(partialDefinitionSectionPattern)) {
+      return null;
+    }
+
+    start = parser.pos;
+
+    name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
+
+    if (!name) {
+      parser.error("expected legal partial name");
+    }
+
+    if (!parser.matchString(tag.close)) {
+      parser.error("Expected closing delimiter '" + tag.close + "'");
+    }
+
+    content = [];
+
+    do {
+      if (child = readClosing(parser, tag)) {
+        if (!child.r === "partial") {
+          parser.error("Expected " + tag.open + "/partial" + tag.close);
+        }
+
+        closed = true;
+      } else {
+        child = parser.read();
+
+        if (!child) {
+          parser.error("Expected " + tag.open + "/partial" + tag.close);
+        }
+
+        content.push(child);
+      }
+    } while (!closed);
+
+    return {
+      t: INLINE_PARTIAL,
+      n: name,
+      f: content
+    };
+  }
+  //# sourceMappingURL=02-6to5-readPartialDefinitionSection.js.map
+
+  var elsePattern = /^\s*else\s*/;
+
+  function readElse(parser, tag) {
+    var start = parser.pos;
+
+    if (!parser.matchString(tag.open)) {
+      return null;
+    }
+
+    if (!parser.matchPattern(elsePattern)) {
+      parser.pos = start;
+      return null;
+    }
+
+    if (!parser.matchString(tag.close)) {
+      parser.error("Expected closing delimiter '" + tag.close + "'");
+    }
+
+    return {
+      t: ELSE
+    };
+  }
+  //# sourceMappingURL=02-6to5-readElse.js.map
+
+  var handlebarsBlockCodes = {
+    each: SECTION_EACH,
+    "if": SECTION_IF,
+    "if-with": SECTION_IF_WITH,
+    "with": SECTION_WITH,
+    unless: SECTION_UNLESS,
+    partial: SECTION_PARTIAL
+  };
+  //# sourceMappingURL=02-6to5-handlebarsBlockCodes.js.map
+
+  var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
+      keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
+      handlebarsBlockPattern = new RegExp("^(" + Object.keys(handlebarsBlockCodes).join("|") + ")\\b");
+
+  function readSection(parser, tag) {
+    var start, expression, section, child, children, hasElse, block, elseBlocks, closed, i, expectedClose;
+
+    start = parser.pos;
+
+    if (parser.matchString("^")) {
+      section = { t: SECTION, f: [], n: SECTION_UNLESS };
+    } else if (parser.matchString("#")) {
+      section = { t: SECTION, f: [] };
+
+      if (block = parser.matchPattern(handlebarsBlockPattern)) {
+        expectedClose = block;
+        section.n = handlebarsBlockCodes[block];
+      }
+    } else {
+      return null;
+    }
+
+    parser.allowWhitespace();
+
+    expression = readExpression(parser);
+
+    if (!expression) {
+      parser.error("Expected expression");
+    }
+
+    // optional index and key references
+    if (i = parser.matchPattern(indexRefPattern)) {
+      var extra = undefined;
+
+      if (extra = parser.matchPattern(keyIndexRefPattern)) {
+        section.i = i + "," + extra;
+      } else {
+        section.i = i;
       }
     }
 
-    // partials with context
-    if (mustache.contextPartialExpression) {
-      mustache.f = mustache.contextPartialExpression;
-      mustache.t = SECTION;
-      mustache.n = "with";
+    parser.allowWhitespace();
 
-      delete mustache.contextPartialExpression;
+    if (!parser.matchString(tag.close)) {
+      parser.error("Expected closing delimiter '" + tag.close + "'");
     }
 
-    // section children
-    else if (getMustache__isSection(mustache)) {
-      parser.sectionDepth += 1;
-      children = [];
-      currentChildren = children;
+    parser.sectionDepth += 1;
+    children = section.f;
 
-      expectedClose = mustache.n;
+    do {
+      if (child = readClosing(parser, tag)) {
+        if (expectedClose && child.r !== expectedClose) {
+          parser.error("Expected " + tag.open + "/" + expectedClose + "" + tag.close);
+        }
 
-      while (child = parser.read()) {
-        if (child.t === CLOSING) {
-          if (expectedClose && child.r !== expectedClose) {
-            parser.error("Expected {{/" + expectedClose + "}}");
-          }
+        parser.sectionDepth -= 1;
+        closed = true;
+      }
+
+      // TODO or elseif
+      else if (child = readElse(parser, tag)) {
+        if (section.n === SECTION_UNLESS) {
+          parser.error("{{else}} not allowed in {{#unless}}");
+        }
+
+        if (hasElse) {
+          parser.error("there can only be one {{else}} block, at the end of a section");
+        }
+
+        if (child.t === ELSE) {
+          hasElse = true;
+          /*block = {
+          	t: ELSE,
+          	f: ( children = [] )
+          };*/
+          elseBlocks = children = [];
+        } else {
+          throw new Error("elseif not yet implemented");
+          // block = {
+          // 	t: ELSEIF,
+          // 	x: child.x,
+          // 	f: ( children = [] )
+          // };
+        }
+
+        //( elseBlocks || ( elseBlocks = [] ) ).push( block );
+      } else {
+        child = parser.read();
+
+        if (!child) {
           break;
         }
 
-        // {{else}} tags require special treatment
-        if (child.t === INTERPOLATOR && child.r === "else") {
-          // no {{else}} allowed in {{#unless}}
-          if (mustache.n === "unless") {
-            parser.error("{{else}} not allowed in {{#unless}}");
-          }
-          // begin else children
-          else {
-            currentChildren = elseChildren = [];
-            continue;
-          }
-        }
+        children.push(child);
+      }
+    } while (!closed);
 
-        currentChildren.push(child);
+    if (elseBlocks) {
+      // special case - `with` should become `if-with` (TODO is this right?
+      // seems to me that `with` ought to behave consistently, regardless
+      // of the presence/absence of `else`. In other words should always
+      // be `if-with`
+      if (section.n === SECTION_WITH) {
+        section.n = SECTION_IF_WITH;
       }
 
-      if (children.length) {
-        mustache.f = children;
-      }
-
-      if (elseChildren && elseChildren.length) {
-        mustache.l = elseChildren;
-        if (mustache.n === "with") {
-          mustache.n = "if-with";
-        }
-      }
+      section.l = elseBlocks;
     }
 
-    if (parser.includeLinePositions) {
-      mustache.p = parser.getLinePos(start);
+    refineExpression(expression, section);
+
+    // TODO if a section is empty it should be discarded. Don't do
+    // that here though - we need to clean everything up first, as
+    // it may contain removeable whitespace. As a temporary measure,
+    // to pass the existing tests, remove empty `f` arrays
+    if (!section.f.length) {
+      delete section.f;
     }
 
-    // Replace block name with code
-    if (mustache.n) {
-      mustache.n = handlebarsBlockCodes[mustache.n];
-    } else if (mustache.t === INVERTED) {
-      mustache.t = SECTION;
-      mustache.n = SECTION_UNLESS;
-    }
-
-    // special case inline partial section
-    if (mustache.n === SECTION_PARTIAL) {
-      if (!mustache.r || mustache.r.indexOf(".") !== -1) {
-        parser.error("Invalid partial name " + mustache.r + ".");
-      }
-
-      return {
-        n: mustache.r,
-        f: mustache.f,
-        t: INLINE_PARTIAL
-      };
-    }
-
-    return mustache;
+    return section;
   }
-
-  function getMustache__isSection(mustache) {
-    return mustache.t === SECTION || mustache.t === INVERTED;
-  }
-  //# sourceMappingURL=02-6to5-mustache.js.map
+  //# sourceMappingURL=02-6to5-readSection.js.map
 
   var OPEN_COMMENT = "<!--",
       CLOSE_COMMENT = "-->";
 
-  var getComment = function (parser) {
+  function readHtmlComment(parser) {
     var start, content, remaining, endIndex, comment;
 
     start = parser.pos;
@@ -6100,8 +6196,8 @@
     }
 
     return comment;
-  };
-  //# sourceMappingURL=02-6to5-comment.js.map
+  }
+  //# sourceMappingURL=02-6to5-readHtmlComment.js.map
 
   var booleanAttributes, voidElementNames, htmlEntities, controlCharacters, entityPattern, lessThan, greaterThan, amp;
 
@@ -6186,57 +6282,35 @@
     return str.replace(amp, "&amp;").replace(lessThan, "&lt;").replace(greaterThan, "&gt;");
   }
 
-  var escapeRegExp__pattern = /[-/\\^$*+?.()|[\]{}]/g;
+  var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
 
-  function escapeRegExp(str) {
-    return str.replace(escapeRegExp__pattern, "\\$&");
-  }
-  //# sourceMappingURL=02-6to5-escapeRegExp.js.map
+  function readClosingTag(parser) {
+    var start, tag;
 
-  var startPattern = /^<!--\s*/,
-      namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
-      finishPattern = /\s*-->/;
+    start = parser.pos;
 
-  function getPartial(parser) {
-    var template = parser.remaining(),
-        firstPos = parser.pos,
-        startMatch = parser.matchPattern(startPattern),
-        open = parser.options.delimiters[0],
-        close = parser.options.delimiters[1];
+    // are we looking at a closing tag?
+    if (!parser.matchString("</")) {
+      return null;
+    }
 
-    if (startMatch && parser.matchString(open)) {
-      var name = parser.matchPattern(namePattern);
-
-      // make sure the rest of the comment is in the correct place
-      if (!parser.matchString(close) || !parser.matchPattern(finishPattern)) {
-        parser.pos = firstPos;
+    if (tag = parser.matchPattern(closingTagPattern)) {
+      if (parser.inside && tag !== parser.inside) {
+        parser.pos = start;
         return null;
       }
 
-      // look for the closing partial for name
-      var end = new RegExp("<!--\\s*" + escapeRegExp(open) + "\\s*\\/\\s*" + name + "\\s*" + escapeRegExp(close) + "\\s*-->");
-      template = parser.remaining();
-      var endMatch = end.exec(template);
-
-      if (!endMatch) {
-        throw new Error("Inline partials must have a closing delimiter, and cannot be nested. Expected closing for \"" + name + "\", but " + (endMatch ? "instead found \"" + endMatch[1] + "\"" : " no closing found"));
-      }
-
-      var partial = {
-        t: INLINE_PARTIAL,
-        f: new parser.StandardParser(template.substr(0, endMatch.index), parser.options).result,
-        n: name
+      return {
+        t: CLOSING_TAG,
+        e: tag
       };
-
-      parser.pos += endMatch.index + endMatch[0].length;
-
-      return partial;
     }
 
-    parser.pos = firstPos;
-    return null;
+    // We have an illegal closing tag, report it
+    parser.pos -= 2;
+    parser.error("Illegal closing tag");
   }
-  //# sourceMappingURL=02-6to5-partial.js.map
+  //# sourceMappingURL=02-6to5-readClosingTag.js.map
 
   var getLowestIndex = function (haystack, needles) {
     var i, index, lowest;
@@ -6263,75 +6337,10 @@
   };
   //# sourceMappingURL=02-6to5-getLowestIndex.js.map
 
-  var getText = function (parser) {
-    var index, remaining, disallowed, barrier;
-
-    remaining = parser.remaining();
-
-    barrier = parser.inside ? "</" + parser.inside : "<";
-
-    if (parser.inside && !parser.interpolate[parser.inside]) {
-      index = remaining.indexOf(barrier);
-    } else {
-      disallowed = [parser.delimiters[0], parser.tripleDelimiters[0], parser.staticDelimiters[0], parser.staticTripleDelimiters[0]];
-
-      // http://developers.whatwg.org/syntax.html#syntax-attributes
-      if (parser.inAttribute === true) {
-        // we're inside an unquoted attribute value
-        disallowed.push("\"", "'", "=", "<", ">", "`");
-      } else if (parser.inAttribute) {
-        // quoted attribute value
-        disallowed.push(parser.inAttribute);
-      } else {
-        disallowed.push(barrier);
-      }
-
-      index = getLowestIndex(remaining, disallowed);
-    }
-
-    if (!index) {
-      return null;
-    }
-
-    if (index === -1) {
-      index = remaining.length;
-    }
-
-    parser.pos += index;
-
-    return parser.inside ? remaining.substr(0, index) : decodeCharacterReferences(remaining.substr(0, index));
-  };
-  //# sourceMappingURL=02-6to5-text.js.map
-
-  var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
-
-  var getClosingTag = function (parser) {
-    var tag;
-
-    // are we looking at a closing tag?
-    if (!parser.matchString("</")) {
-      return null;
-    }
-
-    if (tag = parser.matchPattern(closingTagPattern)) {
-      return {
-        t: CLOSING_TAG,
-        e: tag
-      };
-    }
-
-    // We have an illegal closing tag, report it
-    parser.pos -= 2;
-    parser.error("Illegal closing tag");
-  };
-  //# sourceMappingURL=02-6to5-closingTag.js.map
-
   var attributeNamePattern = /^[^\s"'>\/=]+/,
       unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
 
-
-
-  function getAttribute(parser) {
+  function readAttribute(parser) {
     var attr, name, value;
 
     parser.allowWhitespace();
@@ -6345,7 +6354,7 @@
       name: name
     };
 
-    value = getAttributeValue(parser);
+    value = readAttributeValue(parser);
     if (value) {
       attr.value = value;
     }
@@ -6353,7 +6362,7 @@
     return attr;
   }
 
-  function getAttributeValue(parser) {
+  function readAttributeValue(parser) {
     var start, valueStart, startDepth, value;
 
     start = parser.pos;
@@ -6370,7 +6379,7 @@
     valueStart = parser.pos;
     startDepth = parser.sectionDepth;
 
-    value = getQuotedAttributeValue(parser, "'") || getQuotedAttributeValue(parser, "\"") || getUnquotedAttributeValue(parser);
+    value = readQuotedAttributeValue(parser, "'") || readQuotedAttributeValue(parser, "\"") || readUnquotedAttributeValue(parser);
 
     if (parser.sectionDepth !== startDepth) {
       parser.pos = valueStart;
@@ -6393,7 +6402,7 @@
     return value;
   }
 
-  function getUnquotedAttributeValueToken(parser) {
+  function readUnquotedAttributeValueToken(parser) {
     var start, text, haystack, needles, index;
 
     start = parser.pos;
@@ -6405,7 +6414,9 @@
     }
 
     haystack = text;
-    needles = [parser.delimiters[0], parser.tripleDelimiters[0], parser.staticDelimiters[0], parser.staticTripleDelimiters[0]];
+    needles = parser.tags.map(function (t) {
+      return t.open;
+    }); // TODO refactor... we do this in readText.js as well
 
     if ((index = getLowestIndex(haystack, needles)) !== -1) {
       text = text.substr(0, index);
@@ -6415,17 +6426,17 @@
     return text;
   }
 
-  function getUnquotedAttributeValue(parser) {
+  function readUnquotedAttributeValue(parser) {
     var tokens, token;
 
     parser.inAttribute = true;
 
     tokens = [];
 
-    token = getMustache(parser) || getUnquotedAttributeValueToken(parser);
+    token = readMustache(parser) || readUnquotedAttributeValueToken(parser);
     while (token !== null) {
       tokens.push(token);
-      token = getMustache(parser) || getUnquotedAttributeValueToken(parser);
+      token = readMustache(parser) || readUnquotedAttributeValueToken(parser);
     }
 
     if (!tokens.length) {
@@ -6436,7 +6447,7 @@
     return tokens;
   }
 
-  function getQuotedAttributeValue(parser, quoteMark) {
+  function readQuotedAttributeValue(parser, quoteMark) {
     var start, tokens, token;
 
     start = parser.pos;
@@ -6449,10 +6460,10 @@
 
     tokens = [];
 
-    token = getMustache(parser) || getQuotedStringToken(parser, quoteMark);
+    token = readMustache(parser) || readQuotedStringToken(parser, quoteMark);
     while (token !== null) {
       tokens.push(token);
-      token = getMustache(parser) || getQuotedStringToken(parser, quoteMark);
+      token = readMustache(parser) || readQuotedStringToken(parser, quoteMark);
     }
 
     if (!parser.matchString(quoteMark)) {
@@ -6465,13 +6476,16 @@
     return tokens;
   }
 
-  function getQuotedStringToken(parser, quoteMark) {
+  function readQuotedStringToken(parser, quoteMark) {
     var start, index, haystack, needles;
 
     start = parser.pos;
     haystack = parser.remaining();
 
-    needles = [quoteMark, parser.delimiters[0], parser.tripleDelimiters[0], parser.staticDelimiters[0], parser.staticTripleDelimiters[0]];
+    needles = parser.tags.map(function (t) {
+      return t.open;
+    }); // TODO refactor... we do this in readText.js as well
+    needles.push(quoteMark);
 
     index = getLowestIndex(haystack, needles);
 
@@ -6486,7 +6500,7 @@
     parser.pos += index;
     return haystack.substr(0, index);
   }
-  //# sourceMappingURL=02-6to5-attribute.js.map
+  //# sourceMappingURL=02-6to5-readAttribute.js.map
 
   var JsonParser, specials, specialsPattern, parseJSON__numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
@@ -6542,7 +6556,7 @@
         return { v: +number };
       }
     }, function getString(parser) {
-      var stringLiteral = getStringLiteral(parser),
+      var stringLiteral = readStringLiteral(parser),
           values;
 
       if (stringLiteral && (values = parser.values)) {
@@ -6624,7 +6638,7 @@
 
     parser.allowWhitespace();
 
-    key = getKey(parser);
+    key = readKey(parser);
 
     if (!key) {
       return null;
@@ -6661,11 +6675,11 @@
       ExpressionParser;
 
   ExpressionParser = Parser.extend({
-    converters: [getConditional]
+    converters: [readExpression]
   });
 
   // TODO clean this up, it's shocking
-  var processDirective = function (tokens) {
+  function processDirective(tokens) {
     var result, match, parser, args, token, colonIndex, directiveName, directiveArgs, parsed;
 
     if (typeof tokens === "string") {
@@ -6742,7 +6756,7 @@
     }
 
     return result;
-  };
+  }
   //# sourceMappingURL=02-6to5-processDirective.js.map
 
   var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
@@ -6752,11 +6766,7 @@
       reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
       directives = { "intro-outro": "t0", intro: "t1", outro: "t2", decorator: "o" },
       exclude = { exclude: true },
-      converters,
       disallowedContents;
-
-  // Different set of converters, because this time we're looking for closing tags
-  converters = [getPartial, getMustache, getComment, element__getElement, getText, getClosingTag];
 
   // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
   disallowedContents = {
@@ -6776,10 +6786,10 @@
     th: ["td", "th", "tr"]
   };
 
-  var element__default = element__getElement;
 
-  function element__getElement(parser) {
-    var start, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child;
+
+  function readElement(parser) {
+    var start, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child, closed, pos;
 
     start = parser.pos;
 
@@ -6838,7 +6848,7 @@
     parser.allowWhitespace();
 
     // directives and attributes
-    while (attribute = getMustache(parser) || getAttribute(parser)) {
+    while (attribute = readMustache(parser) || readAttribute(parser)) {
       // regular attributes
       if (attribute.name) {
         // intro, outro, decorator
@@ -6891,23 +6901,34 @@
       }
 
       children = [];
-      while (canContain(lowerCaseName, parser.remaining()) && (child = parser.read(converters))) {
-        // Special case - closing section tag
-        if (child.t === CLOSING) {
-          break;
-        }
 
-        if (child.t === CLOSING_TAG) {
-          break;
+      do {
+        pos = parser.pos;
 
+        if (!canContain(lowerCaseName, parser.remaining())) {
+          closed = true;
+        } else if (child = readClosingTag(parser)) {
           // TODO verify that this tag can close this element (is either the same, or
           // a parent that can close child elements implicitly)
 
           //parser.error( 'Expected closing </' + element.e + '> tag' );
+          closed = true;
         }
 
-        children.push(child);
-      }
+        // implicit close by closing section tag. TODO clean this up
+        else if (child = readClosing(parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] })) {
+          closed = true;
+          parser.pos = pos;
+        } else {
+          child = parser.read();
+
+          if (!child) {
+            closed = true;
+          } else {
+            children.push(child);
+          }
+        }
+      } while (!closed);
 
       if (children.length) {
         element.f = children;
@@ -6935,7 +6956,106 @@
 
     return ! ~disallowed.indexOf(match[1].toLowerCase());
   }
-  //# sourceMappingURL=02-6to5-element.js.map
+  //# sourceMappingURL=02-6to5-readElement.js.map
+
+  var escapeRegExp__pattern = /[-/\\^$*+?.()|[\]{}]/g;
+
+  function escapeRegExp(str) {
+    return str.replace(escapeRegExp__pattern, "\\$&");
+  }
+  //# sourceMappingURL=02-6to5-escapeRegExp.js.map
+
+  var startPattern = /^<!--\s*/,
+      namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
+      finishPattern = /\s*-->/,
+      closed,
+      child;
+
+  function readPartialDefinitionComment(parser) {
+    var firstPos = parser.pos,
+        open = parser.standardDelimiters[0],
+        close = parser.standardDelimiters[1],
+        content = undefined;
+
+    if (!parser.matchPattern(startPattern) || !parser.matchString(open)) {
+      parser.pos = firstPos;
+      return null;
+    }
+
+    var name = parser.matchPattern(namePattern);
+
+    // make sure the rest of the comment is in the correct place
+    if (!parser.matchString(close) || !parser.matchPattern(finishPattern)) {
+      parser.pos = firstPos;
+      return null;
+    }
+
+    content = [];
+
+    var endPattern = new RegExp("^<!--\\s*" + escapeRegExp(open) + "\\s*\\/\\s*" + name + "\\s*" + escapeRegExp(close) + "\\s*-->");
+
+    do {
+      if (parser.matchPattern(endPattern)) {
+        closed = true;
+      } else {
+        child = parser.read();
+        if (!child) {
+          parser.error("expected closing comment ('<!-- " + open + "/" + name + "" + close + " -->')");
+        }
+
+        content.push(child);
+      }
+    } while (!closed);
+
+    return {
+      t: INLINE_PARTIAL,
+      f: content,
+      n: name
+    };
+  }
+  //# sourceMappingURL=02-6to5-readPartialDefinitionComment.js.map
+
+  function readText(parser) {
+    var index, remaining, disallowed, barrier;
+
+    remaining = parser.remaining();
+
+    barrier = parser.inside ? "</" + parser.inside : "<";
+
+    if (parser.inside && !parser.interpolate[parser.inside]) {
+      index = remaining.indexOf(barrier);
+    } else {
+      disallowed = parser.tags.map(function (t) {
+        return t.open;
+      });
+
+      // http://developers.whatwg.org/syntax.html#syntax-attributes
+      if (parser.inAttribute === true) {
+        // we're inside an unquoted attribute value
+        disallowed.push("\"", "'", "=", "<", ">", "`");
+      } else if (parser.inAttribute) {
+        // quoted attribute value
+        disallowed.push(parser.inAttribute);
+      } else {
+        disallowed.push(barrier);
+      }
+
+      index = getLowestIndex(remaining, disallowed);
+    }
+
+    if (!index) {
+      return null;
+    }
+
+    if (index === -1) {
+      index = remaining.length;
+    }
+
+    parser.pos += index;
+
+    return parser.inside ? remaining.substr(0, index) : decodeCharacterReferences(remaining.substr(0, index));
+  }
+  //# sourceMappingURL=02-6to5-readText.js.map
 
   var trimWhitespace__leadingWhitespace = /^[ \t\f\r\n]+/,
       trimWhitespace__trailingWhitespace = /[ \t\f\r\n]+$/;
@@ -6996,7 +7116,7 @@
 
       // if the current item is a section, and it is preceded by a linebreak, and
       // its first item is a linebreak...
-      if (stripStandalones__isSection(current) && isString(backOne)) {
+      if (isSection(current) && isString(backOne)) {
         if (trailingLinebreak.test(backOne) && isString(current.f[0]) && leadingLinebreak.test(current.f[0])) {
           items[i - 1] = backOne.replace(trailingLinebreak, "\n");
           current.f[0] = current.f[0].replace(leadingLinebreak, "");
@@ -7005,7 +7125,7 @@
 
       // if the last item was a section, and it is followed by a linebreak, and
       // its last item is a linebreak...
-      if (isString(current) && stripStandalones__isSection(backOne)) {
+      if (isString(current) && isSection(backOne)) {
         lastSectionItem = lastItem(backOne.f);
 
         if (isString(lastSectionItem) && trailingLinebreak.test(lastSectionItem) && leadingLinebreak.test(current)) {
@@ -7026,7 +7146,7 @@
     return item.t === COMMENT || item.t === DELIMCHANGE;
   }
 
-  function stripStandalones__isSection(item) {
+  function isSection(item) {
     return (item.t === SECTION || item.t === INVERTED) && item.f;
   }
   //# sourceMappingURL=02-6to5-stripStandalones.js.map
@@ -7080,12 +7200,22 @@
       contiguousWhitespace = /[ \t\f\r\n]+/g,
       preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
       parse__leadingWhitespace = /^\s+/,
-      parse__trailingWhitespace = /\s+$/;
+      parse__trailingWhitespace = /\s+$/,
+      STANDARD_READERS = [readPartial, readUnescaped, readPartialDefinitionSection, readSection, readYielder, readInterpolator, readComment],
+      TRIPLE_READERS = [readTriple],
+      STATIC_READERS = [readUnescaped, readSection, readInterpolator]; // TODO does it make sense to have a static section?
 
   StandardParser = Parser.extend({
-    init: function (str, options) {
-      // config
-      setDelimiters(options, this);
+    init: function parse__init(str, options) {
+      var tripleDelimiters = options.tripleDelimiters || ["{{{", "}}}"],
+          staticDelimiters = options.staticDelimiters || ["[[", "]]"],
+          staticTripleDelimiters = options.staticTripleDelimiters || ["[[[", "]]]"];
+
+      this.standardDelimiters = options.delimiters || ["{{", "}}"];
+
+      this.tags = [{ isStatic: false, isTriple: false, open: this.standardDelimiters[0], close: this.standardDelimiters[1], readers: STANDARD_READERS }, { isStatic: false, isTriple: true, open: tripleDelimiters[0], close: tripleDelimiters[1], readers: TRIPLE_READERS }, { isStatic: true, isTriple: false, open: staticDelimiters[0], close: staticDelimiters[1], readers: STATIC_READERS }, { isStatic: true, isTriple: true, open: staticTripleDelimiters[0], close: staticTripleDelimiters[1], readers: TRIPLE_READERS }];
+
+      this.sortMustacheTags();
 
       this.sectionDepth = 0;
 
@@ -7105,11 +7235,9 @@
       this.sanitizeElements = options.sanitize && options.sanitize.elements;
       this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
       this.includeLinePositions = options.includeLinePositions;
-
-      this.StandardParser = StandardParser;
     },
 
-    postProcess: function (items, options) {
+    postProcess: function postProcess(items, options) {
       if (this.sectionDepth > 0) {
         this.error("A section was left open");
       }
@@ -7119,20 +7247,25 @@
       return items;
     },
 
-    converters: [getPartial, getMustache, getComment, element__default, getText]
+    converters: [readMustache, readPartialDefinitionComment, readHtmlComment, readElement, readText],
+
+    sortMustacheTags: function sortMustacheTags() {
+      // Sort in order of descending opening delimiter length (longer first),
+      // to protect against opening delimiters being substrings of each other
+      this.tags.sort(function (a, b) {
+        return b.open.length - a.open.length;
+      });
+    }
   });
 
   parse = function (template) {
     var options = arguments[1] === undefined ? {} : arguments[1];
     var result;
 
-    setDelimiters(options);
-
     result = {
-      v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
+      v: TEMPLATE_VERSION, // template spec version, defined in https://github.com/ractivejs/template-spec
+      t: new StandardParser(template, options).result
     };
-
-    result.t = new StandardParser(template, options).result;
 
     // collect all of the partials and stick them on the appropriate instances
     var partials = {};
@@ -7275,16 +7408,6 @@
         }
       }
     }
-  }
-
-  function setDelimiters(source, target) {
-    target = target || source;
-
-    target.delimiters = source.delimiters || ["{{", "}}"];
-    target.tripleDelimiters = source.tripleDelimiters || ["{{{", "}}}"];
-
-    target.staticDelimiters = source.staticDelimiters || ["[[", "]]"];
-    target.staticTripleDelimiters = source.staticTripleDelimiters || ["[[[", "]]]"];
   }
   //# sourceMappingURL=02-6to5-_parse.js.map
 
@@ -7477,8 +7600,8 @@
     }
 
     // Check we're using the correct version
-    else if (template.v !== 2) {
-      throw new Error("Mismatched template version! Please ensure you are using the latest version of Ractive.js in your build process as well as in your app");
+    else if (template.v !== TEMPLATE_VERSION) {
+      throw new Error("Mismatched template version (expected " + TEMPLATE_VERSION + ", got " + template.v + ") Please ensure you are using the latest version of Ractive.js in your build process as well as in your app");
     }
 
     return template;
@@ -14762,7 +14885,7 @@
     this.smartUpdate(keypath, array, newIndices, currentArray.length !== array.length);
   }
 
-  function merge__stringify(item) {
+  function stringify(item) {
     return JSON.stringify(item);
   }
 
@@ -14771,7 +14894,7 @@
     // objects that are the same shape, but non-identical - i.e.
     // { foo: 'bar' } !== { foo: 'bar' }
     if (comparator === true) {
-      return merge__stringify;
+      return stringify;
     }
 
     if (typeof comparator === "string") {
@@ -15220,7 +15343,7 @@
     initHook.end(ractive);
 
     // render automatically ( if `el` is specified )
-    if (el = dom__getElement(ractive.el)) {
+    if (el = getElement(ractive.el)) {
       ractive.render(el, ractive.append);
     }
   }
@@ -15865,7 +15988,7 @@
     this.containerFragment = options.parentFragment;
     this.parentFragment = component.parentFragment;
 
-    var name = this.name = options.template.yn || "";
+    var name = this.name = options.template.n || "";
 
     this.fragment = new Fragment({
       owner: this,
@@ -15999,10 +16122,9 @@
     }
 
     switch (options.template.t) {
+      case YIELDER:
+        return new Yielder(options);
       case INTERPOLATOR:
-        if (options.template.r === "yield") {
-          return new Yielder(options);
-        }
         return new Interpolator(options);
       case SECTION:
         return new Section(options);
