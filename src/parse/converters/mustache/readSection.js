@@ -5,8 +5,6 @@ import handlebarsBlockCodes from './handlebarsBlockCodes';
 import readExpression from 'parse/converters/readExpression';
 import refineExpression from 'parse/utils/refineExpression';
 
-var ELSEIF = {}; // TODO...
-
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
@@ -86,11 +84,11 @@ export default function readSection ( parser, delimiters ) {
 				elseBlocks = children = [];
 			} else {
 				throw new Error( 'elseif not yet implemented' );
-				block = {
-					t: ELSEIF,
-					x: child.x,
-					f: ( children = [] )
-				};
+				// block = {
+				// 	t: ELSEIF,
+				// 	x: child.x,
+				// 	f: ( children = [] )
+				// };
 			}
 
 			//( elseBlocks || ( elseBlocks = [] ) ).push( block );

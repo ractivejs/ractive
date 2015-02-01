@@ -1,5 +1,4 @@
 import { INTERPOLATOR } from 'config/types';
-import readExpression from 'parse/converters/readExpression';
 import readExpressionOrReference from 'parse/converters/readExpressionOrReference';
 import refineExpression from 'parse/utils/refineExpression';
 
