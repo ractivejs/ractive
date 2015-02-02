@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.6.1
-	Sun Feb 01 2015 20:57:55 GMT+0000 (UTC) - commit 2a7d5155ae50cd43c13ded4ee51455439531d0ca
+	Ractive.js v0.7.0-edge
+	Mon Feb 02 2015 00:32:03 GMT+0000 (UTC) - commit 4f27dba7cab56ddf8013f4e2c884cb35d4deaaca
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14124,7 +14124,7 @@
     magic: { value: magic },
 
     // version
-    VERSION: { value: "0.6.1" },
+    VERSION: { value: "0.7.0-edge" },
 
     // Plugins
     adaptors: { writable: true, value: {} },
