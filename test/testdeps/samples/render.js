@@ -1091,7 +1091,25 @@ var renderTests = [
 		result: '<p data-foo="bar">result</p>',
 		new_data: { bar: null },
 		new_result: '<p data-foo="other">result</p>'
+	},
+	{
+		name: 'complex elseif',
+		template: '{{#foo < 21 && bar < 12}}first{{elseif max(4, 5, x, 7) < y * 2}}second{{else}}third{{/}}',
+		data: { max, foo: 22, bar: 13 },
+		result: 'third',
+		steps: [
+			{
+				data: { foo: 20, bar: 11 },
+				result: 'first'
+			},
+			{
+				data: { foo: 30, x: 10, y: 200 },
+				result: 'second'
+			}
+		]
 	}
 ];
+
+function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }
 
 export default renderTests;

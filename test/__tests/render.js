@@ -52,7 +52,7 @@ runTest = function ( i ) {
 
 	test( theTest.name, function ( t ) {
 		magicModes.forEach( function ( magic ) {
-			var view, data;
+			var view, data, j, step;
 
 			data = typeof theTest.data === 'function' ? theTest.data() : deepClone( theTest.data );
 
@@ -75,6 +75,15 @@ runTest = function ( i ) {
 
 				t.htmlEqual( fixture.innerHTML, theTest.new_result, 'innerHTML should match result' );
 				t.htmlEqual( view.toHTML(), theTest.new_result, 'toHTML() should match result' );
+			} else if ( theTest.steps && theTest.steps.length ) {
+				for ( j = 0; j < theTest.steps.length; j++ ) {
+					step = theTest.steps[j];
+					data = typeof step.data === 'function' ? step.data() : deepClone( step.data );
+					view.set( data );
+
+					t.htmlEqual( fixture.innerHTML, step.result, step.message || 'innerHTML should match result' );
+					t.htmlEqual( view.toHTML(), step.result, step.message || 'toHTML() should match result' );
+				}
 			}
 
 			view.teardown();
