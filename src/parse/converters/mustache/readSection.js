@@ -189,7 +189,7 @@ function invert ( expression ) {
 	return {
 		t: PREFIX_OPERATOR,
 		s: '!',
-		o: expression
+		o: parensIfNecessary( expression )
 	};
 }
 
