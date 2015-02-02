@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Feb 02 2015 00:32:03 GMT+0000 (UTC) - commit 4f27dba7cab56ddf8013f4e2c884cb35d4deaaca
+	Mon Feb 02 2015 23:48:42 GMT+0000 (UTC) - commit 95e5304d998d449fc9fa0ef9634aa62627d4c665
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5345,6 +5345,7 @@
   var SECTION_PARTIAL = 55;
 
   var ELSE = 60;
+  var ELSEIF = 61;
   //# sourceMappingURL=02-6to5-types.js.map
 
   var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;

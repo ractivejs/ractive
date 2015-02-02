@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Feb 02 2015 00:32:03 GMT+0000 (UTC) - commit 4f27dba7cab56ddf8013f4e2c884cb35d4deaaca
+	Mon Feb 02 2015 23:48:42 GMT+0000 (UTC) - commit 95e5304d998d449fc9fa0ef9634aa62627d4c665
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4584,6 +4584,7 @@
   var SECTION_PARTIAL = 55;
 
   var ELSE = 60;
+  var ELSEIF = 61;
   //# sourceMappingURL=02-6to5-types.js.map
 
   var Parser,
@@ -6006,16 +6007,16 @@
   }
   //# sourceMappingURL=02-6to5-readPartialDefinitionSection.js.map
 
-  var elsePattern = /^\s*else\s*/;
+  var readElse__elsePattern = /^\s*else\s*/;
 
-  function readElse(parser, tag) {
+  function readElse__readElse(parser, tag) {
     var start = parser.pos;
 
     if (!parser.matchString(tag.open)) {
       return null;
     }
 
-    if (!parser.matchPattern(elsePattern)) {
+    if (!parser.matchPattern(readElse__elsePattern)) {
       parser.pos = start;
       return null;
     }
@@ -6029,6 +6030,34 @@
     };
   }
   //# sourceMappingURL=02-6to5-readElse.js.map
+
+  var readElseIf__elsePattern = /^\s*elseif\s+/;
+
+  function readElseIf__readElse(parser, tag) {
+    var start = parser.pos,
+        expression;
+
+    if (!parser.matchString(tag.open)) {
+      return null;
+    }
+
+    if (!parser.matchPattern(readElseIf__elsePattern)) {
+      parser.pos = start;
+      return null;
+    }
+
+    expression = readExpression(parser);
+
+    if (!parser.matchString(tag.close)) {
+      parser.error("Expected closing delimiter '" + tag.close + "'");
+    }
+
+    return {
+      t: ELSEIF,
+      x: expression
+    };
+  }
+  //# sourceMappingURL=02-6to5-readElseIf.js.map
 
   var handlebarsBlockCodes = {
     each: SECTION_EACH,
@@ -6045,7 +6074,7 @@
       handlebarsBlockPattern = new RegExp("^(" + Object.keys(handlebarsBlockCodes).join("|") + ")\\b");
 
   function readSection(parser, tag) {
-    var start, expression, section, child, children, hasElse, block, elseBlocks, closed, i, expectedClose;
+    var start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose;
 
     start = parser.pos;
 
@@ -6090,6 +6119,8 @@
     parser.sectionDepth += 1;
     children = section.f;
 
+    conditions = [];
+
     do {
       if (child = readClosing(parser, tag)) {
         if (expectedClose && child.r !== expectedClose) {
@@ -6098,10 +6129,28 @@
 
         parser.sectionDepth -= 1;
         closed = true;
-      }
+      } else if (child = readElseIf__readElse(parser, tag)) {
+        if (section.n === SECTION_UNLESS) {
+          parser.error("{{else}} not allowed in {{#unless}}");
+        }
 
-      // TODO or elseif
-      else if (child = readElse(parser, tag)) {
+        if (hasElse) {
+          parser.error("illegal {{elseif...}} after {{else}}");
+        }
+
+        if (!unlessBlock) {
+          unlessBlock = createUnlessBlock(expression, section.n);
+        }
+
+        unlessBlock.f.push({
+          t: SECTION,
+          n: SECTION_IF,
+          x: flattenExpression(readSection__combine(conditions.concat(child.x))),
+          f: children = []
+        });
+
+        conditions.push(invert(child.x));
+      } else if (child = readElse__readElse(parser, tag)) {
         if (section.n === SECTION_UNLESS) {
           parser.error("{{else}} not allowed in {{#unless}}");
         }
@@ -6110,23 +6159,20 @@
           parser.error("there can only be one {{else}} block, at the end of a section");
         }
 
-        if (child.t === ELSE) {
-          hasElse = true;
-          /*block = {
-          	t: ELSE,
-          	f: ( children = [] )
-          };*/
-          elseBlocks = children = [];
-        } else {
-          throw new Error("elseif not yet implemented");
-          // block = {
-          // 	t: ELSEIF,
-          // 	x: child.x,
-          // 	f: ( children = [] )
-          // };
-        }
+        hasElse = true;
 
-        //( elseBlocks || ( elseBlocks = [] ) ).push( block );
+        // use an unless block if there's no elseif
+        if (!unlessBlock) {
+          unlessBlock = createUnlessBlock(expression, section.n);
+          children = unlessBlock.f;
+        } else {
+          unlessBlock.f.push({
+            t: SECTION,
+            n: SECTION_IF,
+            x: flattenExpression(readSection__combine(conditions)),
+            f: children = []
+          });
+        }
       } else {
         child = parser.read();
 
@@ -6138,7 +6184,7 @@
       }
     } while (!closed);
 
-    if (elseBlocks) {
+    if (unlessBlock) {
       // special case - `with` should become `if-with` (TODO is this right?
       // seems to me that `with` ought to behave consistently, regardless
       // of the presence/absence of `else`. In other words should always
@@ -6147,7 +6193,7 @@
         section.n = SECTION_IF_WITH;
       }
 
-      section.l = elseBlocks;
+      section.l = unlessBlock;
     }
 
     refineExpression(expression, section);
@@ -6161,6 +6207,66 @@
     }
 
     return section;
+  }
+
+  function createUnlessBlock(expression, sectionType) {
+    var unlessBlock;
+
+    if (sectionType === SECTION_WITH) {
+      // special case - a `{{#with foo}}` section will render if `foo` is
+      // truthy, so the `{{else}}` section needs to render if `foo` is falsy,
+      // rather than adhering to the normal `{{#unless foo}}` logic (which
+      // treats empty arrays/objects as falsy)
+      unlessBlock = {
+        t: SECTION,
+        n: SECTION_IF,
+        f: []
+      };
+
+      refineExpression(invert(expression), unlessBlock);
+    } else {
+      unlessBlock = {
+        t: SECTION,
+        n: SECTION_UNLESS,
+        f: []
+      };
+
+      refineExpression(expression, unlessBlock);
+    }
+
+    return unlessBlock;
+  }
+
+  function invert(expression) {
+    if (expression.t === PREFIX_OPERATOR && expression.s === "!") {
+      return expression.o;
+    }
+
+    return {
+      t: PREFIX_OPERATOR,
+      s: "!",
+      o: parensIfNecessary(expression)
+    };
+  }
+
+  function readSection__combine(expressions) {
+    if (expressions.length === 1) {
+      return expressions[0];
+    }
+
+    return {
+      t: INFIX_OPERATOR,
+      s: "&&",
+      o: [parensIfNecessary(expressions[0]), parensIfNecessary(readSection__combine(expressions.slice(1)))]
+    };
+  }
+
+  function parensIfNecessary(expression) {
+    // TODO only wrap if necessary
+    return {
+      t: BRACKETED,
+      x: expression
+    };
   }
   //# sourceMappingURL=02-6to5-readSection.js.map
 
@@ -7242,7 +7348,7 @@
         this.error("A section was left open");
       }
 
-      cleanup(items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false);
+      cleanup(items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace);
 
       return items;
     },
@@ -7281,8 +7387,8 @@
 
 
 
-  function cleanup(items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse) {
-    var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, unlessBlock, key;
+  function cleanup(items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace) {
+    var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, key;
 
     // First pass - remove standalones and comments etc
     stripStandalones(items);
@@ -7329,47 +7435,29 @@
           }
         }
 
-        cleanup(item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
+        cleanup(item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
       }
 
       // Split if-else blocks into two (an if, and an unless)
       if (item.l) {
-        cleanup(item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
+        cleanup(item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
 
-        if (rewriteElse) {
-          unlessBlock = {
-            t: 4,
-            n: SECTION_UNLESS,
-            f: item.l
-          };
-          // copy the conditional based on its type
-          if (item.r) {
-            unlessBlock.r = item.r;
-          }
-          if (item.x) {
-            unlessBlock.x = item.x;
-          }
-          if (item.rx) {
-            unlessBlock.rx = item.rx;
-          }
-
-          items.splice(i + 1, 0, unlessBlock);
-          delete item.l;
-        }
+        items.splice(i + 1, 0, item.l);
+        delete item.l; // TODO would be nice if there was a way around this
       }
 
       // Clean up element attributes
       if (item.a) {
         for (key in item.a) {
           if (item.a.hasOwnProperty(key) && typeof item.a[key] !== "string") {
-            cleanup(item.a[key], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
+            cleanup(item.a[key], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
           }
         }
       }
 
       // Clean up conditional attributes
       if (item.m) {
-        cleanup(item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
+        cleanup(item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
       }
 
       // Clean up event handlers
@@ -7378,12 +7466,12 @@
           if (item.v.hasOwnProperty(key)) {
             // clean up names
             if (isArray(item.v[key].n)) {
-              cleanup(item.v[key].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
+              cleanup(item.v[key].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
             }
 
             // clean up params
             if (isArray(item.v[key].d)) {
-              cleanup(item.v[key].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse);
+              cleanup(item.v[key].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
             }
           }
         }
