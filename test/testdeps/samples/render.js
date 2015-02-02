@@ -1011,7 +1011,105 @@ var renderTests = [
 		result: '<p data-foo="yes"></p>',
 		new_data: { foo: false },
 		new_result: '<p data-bar="nope"></p>'
+	},
+
+	// elseif
+	{
+		name: 'elseif can be used within if',
+		template: '{{#if foo}}foo{{elseif bar}}bar{{else}}other{{/if}}',
+		data: { bar: true },
+		result: 'bar',
+		new_data: { bar: false },
+		new_result: 'other'
+	},
+	{
+		name: 'multiple elseif can be used within if',
+		template: '{{#if foo}}foo{{elseif bar}}bar{{elseif baz}}baz{{else}}other{{/if}}',
+		data: { foo: true, baz: true },
+		result: 'foo',
+		new_data: { foo: false },
+		new_result: 'baz'
+	},
+	{
+		name: 'elseif can be used within each',
+		template: '{{#each foo}}foo{{elseif bar}}bar{{else}}other{{/each}}',
+		data: { foo: [], bar: true },
+		result: 'bar',
+		new_data: { bar: false },
+		new_result: 'other'
+	},
+	{
+		name: 'elseif can be used within a populated each',
+		template: '{{#each foo}}foo{{elseif bar}}bar{{else}}other{{/each}}',
+		data: { foo: [ 1, 2, 3 ], bar: true },
+		result: 'foofoofoo',
+		new_data: { foo: null },
+		new_result: 'bar'
+	},
+	{
+		name: 'elseif can be used within with',
+		template: '{{#with foo}}foo{{elseif bar}}bar{{else}}other{{/with}}',
+		data: { bar: true },
+		result: 'bar',
+		new_data: { foo: {} },
+		new_result: 'foo'
+	},
+	{
+		name: 'nested elseif',
+		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
+		data: { foo: true, bar: true, baz: true },
+		result: 'foofoobar',
+		new_data: { foo: false },
+		new_result: 'bazbazbar'
+	},
+	{
+		name: 'nested elseif - part 2',
+		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
+		data: { foo: true, bar: false, baz: false },
+		result: 'foofoofoo',
+		new_data: { foo: false },
+		new_result: ''
+	},
+	{
+		name: 'nested elseif - part 3',
+		template: '{{#foo}}foo{{#bar}}foobar{{elseif foo}}foofoo{{/}}{{elseif baz}}baz{{#bar}}bazbar{{else}}fin{{/}}{{/}}',
+		data: { foo: false, baz: true },
+		result: 'bazfin'
+	},
+	{
+		name: 'elseif in attribute',
+		template: '<p class="{{#if foo}}foo{{elseif bar}}bar{{else}}other{{/if}}">result</p>',
+		data: { bar: true },
+		result: '<p class="bar">result</p>',
+		new_data: { bar: null },
+		new_result: '<p class="other">result</p>'
+	},
+	{
+		name: 'elseif in conditional attribute',
+		template: '<p {{#if foo}}data-foo="foo"{{elseif bar}}data-foo="bar"{{else}}data-foo="other"{{/if}}>result</p>',
+		data: { bar: true },
+		result: '<p data-foo="bar">result</p>',
+		new_data: { bar: null },
+		new_result: '<p data-foo="other">result</p>'
+	},
+	{
+		name: 'complex elseif',
+		template: '{{#foo < 21 && bar < 12}}first{{elseif max(4, 5, x, 7) < y * 2}}second{{else}}third{{/}}',
+		data: { max, foo: 22, bar: 13 },
+		result: 'third',
+		steps: [
+			{
+				data: { foo: 20, bar: 11 },
+				result: 'first'
+			},
+			{
+				data: { foo: 30, x: 10, y: 200 },
+				result: 'second'
+			}
+		]
 	}
 ];
+
+function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }
 
 export default renderTests;

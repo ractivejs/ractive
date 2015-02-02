@@ -1,5 +1,5 @@
 import { TEMPLATE_VERSION } from 'config/template';
-import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
+import { COMMENT, ELEMENT } from 'config/types';
 import Parser from './Parser';
 import readMustache from './converters/readMustache';
 import readTriple from './converters/mustache/readTriple';
@@ -103,7 +103,7 @@ StandardParser = Parser.extend({
 			this.error( 'A section was left open' );
 		}
 
-		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
+		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace );
 
 		return items;
 	},
@@ -147,7 +147,7 @@ parse = function ( template, options = {} ) {
 
 export default parse;
 
-function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse ) {
+function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
 	var i,
 		item,
 		previousItem,
@@ -155,7 +155,6 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 		preserveWhitespaceInsideFragment,
 		removeLeadingWhitespaceInsideFragment,
 		removeTrailingWhitespaceInsideFragment,
-		unlessBlock,
 		key;
 
 	// First pass - remove standalones and comments etc
@@ -203,41 +202,29 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 				}
 			}
 
-			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 		}
 
 		// Split if-else blocks into two (an if, and an unless)
 		if ( item.l ) {
-			cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+			cleanup( item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 
-			if ( rewriteElse ) {
-				unlessBlock = {
-					t: 4,
-					n: SECTION_UNLESS,
-					f: item.l
-				};
-				// copy the conditional based on its type
-				if( item.r  ) { unlessBlock.r  = item.r;  }
-				if( item.x  ) { unlessBlock.x  = item.x;  }
-				if( item.rx ) { unlessBlock.rx = item.rx; }
-
-				items.splice( i + 1, 0, unlessBlock );
-				delete item.l;
-			}
+			items.splice( i + 1, 0, item.l );
+			delete item.l; // TODO would be nice if there was a way around this
 		}
 
 		// Clean up element attributes
 		if ( item.a ) {
 			for ( key in item.a ) {
 				if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 				}
 			}
 		}
 
 		// Clean up conditional attributes
 		if ( item.m ) {
-			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 		}
 
 		// Clean up event handlers
@@ -246,12 +233,12 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 				if ( item.v.hasOwnProperty( key ) ) {
 					// clean up names
 					if ( isArray( item.v[ key ].n ) ) {
-						cleanup( item.v[ key ].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+						cleanup( item.v[ key ].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 					}
 
 					// clean up params
 					if ( isArray( item.v[ key ].d ) ) {
-						cleanup( item.v[ key ].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+						cleanup( item.v[ key ].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 					}
 				}
 			}
