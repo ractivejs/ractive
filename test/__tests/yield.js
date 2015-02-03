@@ -173,3 +173,34 @@ test( 'A component {{yield}} should be parented by the fragment holding the yiel
 
 	t.htmlEqual( fixture.innerHTML, '<div>foo! foo!</div>' );
 });
+
+test( 'Named yield with a hyphenated name (#1681)', t => {
+	let template, widget;
+
+	template = `
+		<widget>
+			{{#partial foo-bar}}
+				<p>this is foo-bar</p>
+			{{/partial}}
+		</widget>`;
+
+	widget = Ractive.extend({
+		template: '{{yield foo-bar}}'
+	});
+
+	new Ractive({
+		el: fixture,
+		template: template,
+		components: { widget }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>this is foo-bar</p>' );
+});
+
+test( 'Named yield must have valid name, not expression (#1681)', t => {
+	t.throws( () => {
+		let widget = Ractive.extend({
+			template: '{{yield "<p>nope</p>"}}'
+		});
+	}, /expected legal partial name/ );
+});
