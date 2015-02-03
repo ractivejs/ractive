@@ -71,8 +71,7 @@ testModules = gobble([
 testPages = testModules.transform( function () {
 	return templates.testpage({
 		testModule: path.basename( this.filename ),
-		name: this.filename.replace( /\.js$/, '' ),
-		pathPrefix: getPathPrefix( this.filename )
+		name: this.filename.replace( /\.js$/, '' )
 	});
 }, { accept: '.js', ext: '.html' });
 

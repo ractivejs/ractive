@@ -12,7 +12,7 @@ export default function readPartialDefinitionSection ( parser, tag ) {
 
 	start = parser.pos;
 
-	name = parser.matchPattern( /^[a-zA-Z_$][a-zA-Z_$0-9]*/ );
+	name = parser.matchPattern( /^[a-zA-Z_$][a-zA-Z_$0-9\-]*/ );
 
 	if ( !name ) {
 		parser.error( 'expected legal partial name' );
