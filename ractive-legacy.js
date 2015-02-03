@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Feb 02 2015 23:48:42 GMT+0000 (UTC) - commit 95e5304d998d449fc9fa0ef9634aa62627d4c665
+	Tue Feb 03 2015 03:53:28 GMT+0000 (UTC) - commit f22ab8ad0a640591b1c263f57e21d1565cb26bf5
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5898,13 +5898,12 @@
     }
 
     start = parser.pos;
-    name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
+    name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-]*/);
 
     parser.allowWhitespace();
 
     if (!parser.matchString(tag.close)) {
-      parser.pos = start;
-      return null;
+      parser.error("expected legal partial name");
     }
 
     yielder = { t: YIELDER };
@@ -5969,7 +5968,7 @@
 
     start = parser.pos;
 
-    name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9]*/);
+    name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-]*/);
 
     if (!name) {
       parser.error("expected legal partial name");
