@@ -15,8 +15,7 @@ export default function readYielder ( parser, tag ) {
 	parser.allowWhitespace();
 
 	if ( !parser.matchString( tag.close ) ) {
-		parser.pos = start;
-		return null;
+		parser.error( `expected legal partial name` );
 	}
 
 	yielder = { t: YIELDER };
