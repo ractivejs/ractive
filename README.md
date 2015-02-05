@@ -48,7 +48,7 @@ Navigate to [localhost:4567](http://localhost:4567) - you'll see two folders, pl
 
 After the initial build, any subsequent changes will result in fast incremental rebuilds. If you're using Chrome, you can use the [LiveReload](https://chrome.google.com/webstore/detail/livereload/jnihajbhpnppcggbcgedagnkighmdlei) plugin.
 
-*Gobble is still in development - please report any bugs to the [issue tracker](https://github.comgobblejs/gobble/issues) - thanks!*
+*Gobble is still in development - please report any bugs to the [issue tracker](https://github.com/gobblejs/gobble/issues) - thanks!*
 
 To run a complete build (including linting, testing and minification):
 
