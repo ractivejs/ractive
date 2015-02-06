@@ -25,21 +25,19 @@ compress () {
 	local src=$1
 	local dest=${src%.js}.min.js
 
-	# todo reinstate sourcemaps
-	# --source-map $dest.map \
-	# --source-map-root $dest \
-
-	node_modules/.bin/uglifyjs \
+	../node_modules/.bin/uglifyjs \
 		--compress \
 		--mangle \
+		--source-map $dest.map \
+		--source-map-root $dest \
 		--output $dest \
 		-- $src \
 		> /dev/null 2>&1
 
 	echo "  minified $src"
 
-	# sorcery -i $dest
-	# echo "  fixed $dest sourcemap"
+	../node_modules/.bin/sorcery -i $dest
+	echo "  fixed $dest sourcemap"
 
 }
 
@@ -54,6 +52,7 @@ rm -rf build/*
 echo "> copying to build folder..."
 ( cd tmp
 	cp *.js ../build
+	cp *.map ../build
 )
 
 echo "> ...aaaand we're done"

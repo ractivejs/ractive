@@ -85,6 +85,7 @@
     "node-qunit-phantomjs": "^1.2.0",
     "promises-aplus-tests": "*",
     "sander": "^0.2.1",
+    "sorcery": "^0.2.3",
     "uglify-js": "^2.4.16"
   },
   "testling": {

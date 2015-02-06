@@ -67,10 +67,10 @@ if ( gobble.env() === 'production' ) {
 		})
 	);
 
-	// TODO sourcemaps are currently pooched. Investigating...
-	/*result = result.map( function ( node ) {
+	// Combine sourcemaps from 6to5 and esperanto
+	result = result.map( function ( node ) {
 		return node.transform( 'sorcery' );
-	});*/
+	});
 }
 
 else {
