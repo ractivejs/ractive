@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Thu Feb 05 2015 21:05:04 GMT+0000 (UTC) - commit 228dac6bfbd0779ddbc5c61bf45054857387df02
+	Fri Feb 06 2015 17:32:02 GMT+0000 (UTC) - commit 76466b38a3621e64c736cf6848189f4c95f36bcc
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -17014,4 +17014,4 @@
   return Ractive;
 
 }));
-//# sourceMappingURL=./ractive-legacy.js.map
+//# sourceMappingURL=ractive-legacy.js.map
