@@ -1107,6 +1107,14 @@ var renderTests = [
 				result: 'second'
 			}
 		]
+	},
+	{
+		name: 'regexp expression',
+		template: '{{#/abc/.test(foo)}}regexp matched{{else}}{{"rOplacod".replace(/o/ig, "e")}}{{/}}',
+		data: {},
+		result: 'replaced',
+		new_data: { foo: '12abc34' },
+		new_result: 'regexp matched'
 	}
 ];
 

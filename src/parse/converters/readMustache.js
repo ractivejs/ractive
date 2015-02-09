@@ -1,5 +1,6 @@
 import { DELIMCHANGE } from 'config/types';
 import readDelimiterChange from './mustache/readDelimiterChange';
+import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
 
 var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
@@ -47,8 +48,14 @@ function readMustacheOfType ( parser, tag ) {
 
 	// illegal section closer
 	if ( parser.matchString( '/' ) ) {
-		parser.pos -= ( tag.close.length + 1 );
-		parser.error( 'Attempted to close a section that wasn\'t open' );
+		parser.pos -= 1;
+		let rewind = parser.pos;
+		if ( !readRegexpLiteral( parser ) ) {
+			parser.pos = rewind - ( tag.close.length );
+			parser.error( 'Attempted to close a section that wasn\'t open' );
+		} else {
+			parser.pos = rewind;
+		}
 	}
 
 	for ( i = 0; i < tag.readers.length; i += 1 ) {
