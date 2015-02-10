@@ -22,6 +22,7 @@ export var STRING_LITERAL    = 21;
 export var ARRAY_LITERAL     = 22;
 export var OBJECT_LITERAL    = 23;
 export var BOOLEAN_LITERAL   = 24;
+export var REGEXP_LITERAL    = 25;
 
 export var GLOBAL            = 26;
 export var KEY_VALUE_PAIR    = 27;
