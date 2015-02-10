@@ -9,7 +9,9 @@ export default function getUpstreamChanges ( changes ) {
 		keypath = changes[i].parent;
 
 		while ( keypath && !keypath.isRoot ) {
-			addToArray( upstreamChanges, keypath );
+			if( changes.indexOf(keypath) === -1 ) {
+				addToArray( upstreamChanges, keypath );
+			}
 			keypath = keypath.parent;
 		}
 	}
