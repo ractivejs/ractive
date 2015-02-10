@@ -1,7 +1,6 @@
 import { REGEXP_LITERAL } from 'config/types';
 
-// as far as I can tell, this only falls over if modifiers are repeated erroneously
-var regexpPattern = /^\/(?:(?=\\)..|[^\/])+\/[gimy]{0,4}(?=[\s\.\),])/;
+var regexpPattern = /^(\/(?:[^\n\r\u2028\u2029/\\[]|\\.|\[(?:[^\n\r\u2028\u2029\]\\]|\\.)*])+\/(?:([gimuy])(?![a-z]*\2))*(?![-a-zA-Z_$0-9]))/;
 
 export default function readNumberLiteral ( parser ) {
 	var result;
