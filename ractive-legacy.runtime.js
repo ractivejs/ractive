@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Feb 10 2015 23:35:36 GMT+0000 (UTC) - commit 18e66c441d6bf407bab3b1bc0496916b57f07117
+	Tue Feb 10 2015 23:39:43 GMT+0000 (UTC) - commit e08545aec9495fb8d349770b2af45e7f2f52a6c4
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5322,6 +5322,7 @@
   var ARRAY_LITERAL = 22;
   var OBJECT_LITERAL = 23;
   var BOOLEAN_LITERAL = 24;
+  var REGEXP_LITERAL = 25;
 
   var GLOBAL = 26;
   var KEY_VALUE_PAIR = 27;

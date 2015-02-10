@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Feb 10 2015 23:35:36 GMT+0000 (UTC) - commit 18e66c441d6bf407bab3b1bc0496916b57f07117
+	Tue Feb 10 2015 23:39:43 GMT+0000 (UTC) - commit e08545aec9495fb8d349770b2af45e7f2f52a6c4
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4561,6 +4561,7 @@
   var ARRAY_LITERAL = 22;
   var OBJECT_LITERAL = 23;
   var BOOLEAN_LITERAL = 24;
+  var REGEXP_LITERAL = 25;
 
   var GLOBAL = 26;
   var KEY_VALUE_PAIR = 27;
@@ -4783,6 +4784,22 @@
   }
   //# sourceMappingURL=02-6to5-readDelimiterChange.js.map
 
+  var regexpPattern = /^(\/(?:[^\n\r\u2028\u2029/\\[]|\\.|\[(?:[^\n\r\u2028\u2029\]\\]|\\.)*])+\/(?:([gimuy])(?![a-z]*\2))*(?![a-zA-Z_$0-9]))/;
+
+  function readRegexpLiteral__readNumberLiteral(parser) {
+    var result;
+
+    if (result = parser.matchPattern(regexpPattern)) {
+      return {
+        t: REGEXP_LITERAL,
+        v: result
+      };
+    }
+
+    return null;
+  }
+  //# sourceMappingURL=02-6to5-readRegexpLiteral.js.map
+
   var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
   function readMustache(parser) {
@@ -4829,8 +4846,14 @@
 
     // illegal section closer
     if (parser.matchString("/")) {
-      parser.pos -= tag.close.length + 1;
-      parser.error("Attempted to close a section that wasn't open");
+      parser.pos -= 1;
+      var rewind = parser.pos;
+      if (!readRegexpLiteral__readNumberLiteral(parser)) {
+        parser.pos = rewind - tag.close.length;
+        parser.error("Attempted to close a section that wasn't open");
+      } else {
+        parser.pos = rewind;
+      }
     }
 
     for (i = 0; i < tag.readers.length; i += 1) {
@@ -4860,7 +4883,7 @@
 
   var readNumberLiteral__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 
-  function readNumberLiteral(parser) {
+  function readNumberLiteral__readNumberLiteral(parser) {
     var result;
 
     if (result = parser.matchPattern(readNumberLiteral__numberPattern)) {
@@ -5002,7 +5025,7 @@
       return identifier.test(token.v) ? token.v : "\"" + token.v.replace(/"/g, "\\\"") + "\"";
     }
 
-    if (token = readNumberLiteral(parser)) {
+    if (token = readNumberLiteral__readNumberLiteral(parser)) {
       return token.v;
     }
 
@@ -5173,7 +5196,7 @@
   //# sourceMappingURL=02-6to5-readArrayLiteral.js.map
 
   function readLiteral(parser) {
-    return readNumberLiteral(parser) || readBooleanLiteral(parser) || readStringLiteral(parser) || readObjectLiteral(parser) || readArrayLiteral(parser);
+    return readNumberLiteral__readNumberLiteral(parser) || readBooleanLiteral(parser) || readStringLiteral(parser) || readObjectLiteral(parser) || readArrayLiteral(parser) || readRegexpLiteral__readNumberLiteral(parser);
   }
   //# sourceMappingURL=02-6to5-readLiteral.js.map
 
@@ -5561,6 +5584,7 @@
         case BOOLEAN_LITERAL:
         case GLOBAL:
         case NUMBER_LITERAL:
+        case REGEXP_LITERAL:
           return node.v;
 
         case STRING_LITERAL:
