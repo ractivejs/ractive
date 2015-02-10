@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Feb 10 2015 21:48:14 GMT+0000 (UTC) - commit 3eaf5ef6952a8680351ee795bf7ff0676161c365
+	Tue Feb 10 2015 23:35:36 GMT+0000 (UTC) - commit 18e66c441d6bf407bab3b1bc0496916b57f07117
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -16408,13 +16408,26 @@
   }
   //# sourceMappingURL=02-6to5-unwrapExtended.js.map
 
-  var extend__uid = 1;
+  var extend__uid = 1,
+      extend__extend;
 
-  function extend__extend() {
-    var options = arguments[0] === undefined ? {} : arguments[0];
-    var Parent = this,
-        Child,
-        proto;
+  extend__extend = function () {
+    for (var _len = arguments.length, options = Array(_len), _key = 0; _key < _len; _key++) {
+      options[_key] = arguments[_key];
+    }
+
+    if (!options.length) {
+      return extendOne(this);
+    } else {
+      return options.reduce(extendOne, this);
+    }
+  };
+
+  var extend__default = extend__extend;
+
+  function extendOne(Parent) {
+    var options = arguments[1] === undefined ? {} : arguments[1];
+    var Child, proto;
 
     // if we're extending with another Ractive instance...
     //
@@ -16491,7 +16504,7 @@
   properties = {
 
     // static methods:
-    extend: { value: extend__extend },
+    extend: { value: extend__default },
     getNodeInfo: { value: getNodeInfo },
     parse: { value: parse },
 
