@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Feb 10 2015 21:45:17 GMT+0000 (UTC) - commit 3b6b421ed1f72ae976220c53c3f58df15ae31853
+	Tue Feb 10 2015 21:48:14 GMT+0000 (UTC) - commit 3eaf5ef6952a8680351ee795bf7ff0676161c365
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11188,7 +11188,9 @@
       keypath = changes[i].parent;
 
       while (keypath && !keypath.isRoot) {
-        addToArray(upstreamChanges, keypath);
+        if (changes.indexOf(keypath) === -1) {
+          addToArray(upstreamChanges, keypath);
+        }
         keypath = keypath.parent;
       }
     }
