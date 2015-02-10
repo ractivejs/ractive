@@ -48,10 +48,21 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	// Render our *root fragment*
 	if ( ractive.template ) {
+		let cssIds;
+
+		if ( options.cssIds || ractive.constructor.css ) {
+			cssIds = options.cssIds ? options.cssIds.slice() : [];
+
+			if ( ractive.constructor.css ) {
+				cssIds.push( ractive.constructor._guid );
+			}
+		}
+
 		ractive.fragment = new Fragment({
 			template: ractive.template,
 			root: ractive,
 			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+			cssIds
 		});
 	}
 
