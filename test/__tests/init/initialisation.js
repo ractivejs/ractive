@@ -18,6 +18,31 @@ test( 'initialize with no options ok', t => {
 	t.ok( ractive );
 });
 
+module( 'ractive.extend()' );
+
+test( 'multiple options arguments applied left to right', t => {
+	var View, ractive;
+
+	View = Ractive.extend({
+		template: 'ignore',
+		data: { foo: 'foo' }
+	}, {
+		template: 'ignore',
+		data: { bar: 'bar' }
+	}, {
+		template: 'good',
+		data: { qux: 'qux' }
+	});
+
+	ractive = new View();
+
+	t.equal( ractive.get('foo'), 'foo' );
+	t.equal( ractive.get('bar'), 'bar' );
+	t.equal( ractive.get('qux'), 'qux' );
+
+	t.equal( ractive.template, 'good' );
+});
+
 module( 'Data Initialisation', cleanupDefaults );
 
 test( 'default data function called on initialize', t => {
