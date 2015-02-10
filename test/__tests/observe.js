@@ -646,18 +646,11 @@ test( 'Pattern observers used as validators behave correctly on blur (#1475)', t
 	t.equal( ractive.get( 'items[1].value' ), 10 );
 });
 
-test( 'Observers should not fire twice on array merge change in components (#1695)', t => {
+test( 'Observers should not fire twice when an upstream change is already a change (#1695)', t => {
 	let count = 0, ractive = new Ractive({
-		el: fixture,
-		template: '<component/>',
 		data: { items: [] },
-		components: {
-			component: Ractive.extend({
-				template: '{{#items}}{{.}}{{/}}',
-				oninit: function(){
-					this.observe( 'items', () => { count++; }, { init: false } );
-				}
-			})
+		oninit: function(){
+			this.observe( 'items', () => { count++; }, { init: false } );
 		}
 	});
 
