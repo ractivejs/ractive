@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Feb 10 2015 23:39:43 GMT+0000 (UTC) - commit e08545aec9495fb8d349770b2af45e7f2f52a6c4
+	Wed Feb 11 2015 14:44:43 GMT+0000 (UTC) - commit 0e5e989a291ee483310d5e038265a4ff430abd89
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4258,12 +4258,12 @@
       commentsPattern = /\/\*.*?\*\//g,
       selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g,
       mediaQueryPattern = /^@media/,
-      dataRvcGuidPattern = /\[data-ractive-css="[a-z0-9-]+"]/g;
+      dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 
   function transformCss(css, id) {
     var transformed, dataAttr, addGuid;
 
-    dataAttr = "[data-ractive-css=\"" + id + "\"]";
+    dataAttr = "[data-ractive-css~=\"{" + id + "}\"]";
 
     addGuid = function (selector) {
       var selectorUnits,
@@ -9892,7 +9892,9 @@
         template: template.f,
         root: ractive,
         owner: this,
-        pElement: this });
+        pElement: this,
+        cssIds: null
+      });
     }
 
     // the element setting should override the ractive setting
@@ -10738,11 +10740,10 @@
 
     // Is this a top-level node of a component? If so, we may need to add
     // a data-ractive-css attribute, for CSS encapsulation
-    // NOTE: css no longer copied to instance, so we check constructor.css -
-    // we can enhance to handle instance, but this is more "correct" with current
-    // functionality
-    if (root.constructor.css && this.parentFragment.getNode() === root.el) {
-      this.node.setAttribute("data-ractive-css", root.constructor._guid /*|| root._guid*/);
+    if (this.parentFragment.cssIds) {
+      this.node.setAttribute("data-ractive-css", this.parentFragment.cssIds.map(function (x) {
+        return "{" + x + "}";
+      }).join(" "));
     }
 
     // Add _ractive property to the node - we use this object to store stuff
@@ -13048,10 +13049,22 @@
 
     // Render our *root fragment*
     if (ractive.template) {
+      var cssIds = undefined;
+
+      if (options.cssIds || ractive.constructor.css) {
+        cssIds = options.cssIds ? options.cssIds.slice() : [];
+
+        if (ractive.constructor.css) {
+          cssIds.push(ractive.constructor._guid);
+        }
+      }
+
       ractive.fragment = new Fragment({
         template: ractive.template,
         root: ractive,
-        owner: ractive });
+        owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+        cssIds: cssIds
+      });
     }
 
     initHook.end(ractive);
@@ -13109,7 +13122,6 @@
       ractive.parent = ractive.container = null;
     }
   }
-  // saves doing `if ( this.parent ) { /*...*/ }` later on
   //# sourceMappingURL=02-6to5-initialise.js.map
 
   var createInstance = function (component, Component, parameters, yieldTemplate, partials) {
@@ -13163,7 +13175,8 @@
       component: component,
       container: container,
       mappings: parameters.mappings,
-      inlinePartials: inlinePartials
+      inlinePartials: inlinePartials,
+      cssIds: parentFragment.cssIds
     });
 
     return instance;
@@ -13814,6 +13827,9 @@
     this.index = options.index;
     this.key = options.key;
     this.registeredIndexRefs = [];
+
+    // encapsulated styles should be inherited until they get applied by an element
+    this.cssIds = options.cssIds || (this.parent ? this.parent.cssIds : null);
 
     this.items = options.template.map(function (template, i) {
       return createItem({
