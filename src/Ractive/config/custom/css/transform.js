@@ -2,12 +2,12 @@ var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
 	commentsPattern = /\/\*.*?\*\//g,
 	selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g,
 	mediaQueryPattern = /^@media/,
-	dataRvcGuidPattern = /\[data-ractive-css="[a-z0-9-]+"]/g;
+	dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 
 export default function transformCss( css, id ) {
 	var transformed, dataAttr, addGuid;
 
-	dataAttr = `[data-ractive-css="${id}"]`;
+	dataAttr = `[data-ractive-css~="{${id}}"]`;
 
 	addGuid = function ( selector ) {
 		var selectorUnits, match, unit, base, prepended, appended, i, transformed = [];

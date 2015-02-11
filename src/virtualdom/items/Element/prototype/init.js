@@ -63,6 +63,7 @@ export default function Element$init ( options ) {
 			root:     ractive,
 			owner:    this,
 			pElement: this,
+			cssIds: null
 		});
 	}
 

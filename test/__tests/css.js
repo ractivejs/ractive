@@ -228,3 +228,54 @@ test( 'nth-child selectors work', function ( t ) {
 	t.equal( getHexColor( lis[3] ), hexCodes.green );
 	t.equal( getHexColor( lis[4] ), hexCodes.red );
 });
+
+test( 'Components forward encapsulation instructions to top-level components in their own templates', t => {
+	let inner = Ractive.extend({
+		template: '<p>red, bold, italic</p>',
+		css: 'p { color: red; }'
+	});
+
+	let middle = Ractive.extend({
+		template: '<inner/>',
+		css: 'p { font-weight: bold; }',
+		components: { inner }
+	});
+
+	let Outer = Ractive.extend({
+		template: '<middle/>',
+		css: 'p { font-style: italic; }',
+		components: { middle }
+	});
+
+	let ractive = new Outer({
+		el: fixture
+	});
+
+	let p = ractive.find( 'p' );
+	let style = getComputedStyle( p );
+
+	t.equal( getHexColor( p ), hexCodes.red );
+	t.equal( style.fontWeight, 'bold' );
+	t.equal( style.fontStyle, 'italic' );
+});
+
+test( 'Yielded content gets encapsulated styles', t => {
+	let wrapper = Ractive.extend({
+		template: `<div class='blue'>{{yield}}</div>`,
+		css: '.blue { color: blue; }'
+	});
+
+	let Widget = Ractive.extend({
+	    template: '<wrapper><p>this should be blue</p></wrapper>',
+	    css: 'p { font-family: "Comic Sans MS"; }',
+	    components: { wrapper }
+	});
+
+	let ractive = new Widget({ el: fixture });
+
+	let p = ractive.find( 'p' );
+	let style = getComputedStyle( p );
+
+	t.equal( getHexColor( p ), hexCodes.blue );
+	t.ok( /Comic Sans MS/.test( style.fontFamily ) );
+});

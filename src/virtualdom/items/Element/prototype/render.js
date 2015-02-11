@@ -51,11 +51,8 @@ export default function Element$render () {
 
 	// Is this a top-level node of a component? If so, we may need to add
 	// a data-ractive-css attribute, for CSS encapsulation
-	// NOTE: css no longer copied to instance, so we check constructor.css -
-	// we can enhance to handle instance, but this is more "correct" with current
-	// functionality
-	if ( root.constructor.css && this.parentFragment.getNode() === root.el ) {
-		this.node.setAttribute( 'data-ractive-css', root.constructor._guid /*|| root._guid*/ );
+	if ( this.parentFragment.cssIds ) {
+		this.node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
 	}
 
 	// Add _ractive property to the node - we use this object to store stuff

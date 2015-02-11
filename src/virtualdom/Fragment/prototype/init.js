@@ -23,6 +23,9 @@ export default function Fragment$init ( options ) {
 	this.key = options.key;
 	this.registeredIndexRefs = [];
 
+	// encapsulated styles should be inherited until they get applied by an element
+	this.cssIds = options.cssIds || ( this.parent ? this.parent.cssIds : null );
+
 	this.items = options.template.map( ( template, i ) => createItem({
 		parentFragment: this,
 		pElement: options.pElement,
