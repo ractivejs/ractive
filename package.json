@@ -62,9 +62,9 @@
     "url": "https://github.com/ractivejs/ractive.git"
   },
   "scripts": {
-    "test": "./scripts/test.sh",
-    "serve": "gobble",
-    "build": "./scripts/build.sh",
+    "test": "sh ./scripts/test.sh",
+    "start": "node_modules/.bin/gobble",
+    "build": "sh ./scripts/build.sh",
     "promises-aplus-tests": "./scripts/promises-aplus-tests.js"
   },
   "github": "https://github.com/ractivejs/ractive",
