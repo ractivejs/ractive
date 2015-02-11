@@ -38,7 +38,7 @@ npm install
 While developing the library, you can serve it with [gobble](https://github.com/gobblejs/gobble):
 
 ```bash
-npm run serve
+npm start
 ```
 
 Navigate to [localhost:4567](http://localhost:4567) - you'll see two folders, plus `ractive.js`:
@@ -55,6 +55,10 @@ To run a complete build (including linting, testing and minification):
 ```bash
 npm run build
 ```
+
+### Distribution build requirements
+* A real shell, so Linux and OS X should be good. Windows needs MSYS or something similar at least on the path.
+* On Windows, if you get an `EINVAL` when running the tests, you may need to update the `phantomjs` script in the `node_modules/.bin` to use `{ stdio: 'inherit' }` when spawning the child process instead of manually piping afterwards.
 
 
 Contributing
