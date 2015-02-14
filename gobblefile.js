@@ -66,16 +66,16 @@ if ( gobble.env() === 'production' ) {
 			skip: [ 'parse/_parse' ]
 		})
 	);
-
-	// Combine sourcemaps from 6to5 and esperanto
-	result = result.map( function ( node ) {
-		return node.transform( 'sorcery' );
-	});
 }
 
 else {
 	result.push( sandbox );
 }
+
+// Combine sourcemaps from 6to5 and esperanto
+result = result.map( function ( node ) {
+	return node.transform( 'sorcery' );
+});
 
 module.exports = gobble([
 	result,
