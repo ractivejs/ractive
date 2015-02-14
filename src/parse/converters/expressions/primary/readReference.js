@@ -56,11 +56,10 @@ export default function readReference ( parser ) {
 	reference = ( prefix || '' ) + normalise( name );
 
 	if ( parser.matchString( '(' ) ) {
-
 		// if this is a method invocation (as opposed to a function) we need
 		// to strip the method name from the reference combo, else the context
 		// will be wrong
-		lastDotIndex = name.lastIndexOf( '.' );
+		lastDotIndex = reference.lastIndexOf( '.' );
 		if ( lastDotIndex !== -1 ) {
 			reference = reference.substr( 0, lastDotIndex );
 			parser.pos = startPos + reference.length;

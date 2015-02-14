@@ -248,6 +248,11 @@ var parseTests = [
 		parsed: {v:3,t:[{t:2,x:{s:'/abc/.test(_0)',r:['foo']}}]}
 	},
 	{
+		name: 'Expression with root reference',
+		template: '{{~/foo.indexOf("a")}}',
+		parsed: {v:3,t:[{t:2,x:{s:'_0.indexOf("a")',r:['~/foo']}}]}
+	},
+	{
 		name: 'Whitespace before mustache type character',
 		template: '{{ # foo }}blah{{ / foo }}',
 		parsed: {v:3,t:[{t:4,r:'foo',f:['blah']}]}
