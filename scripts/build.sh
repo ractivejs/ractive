@@ -47,12 +47,11 @@ compress () {
 )
 
 echo "> emptying build folder..."
-rm -rf build/*
+rm -rf build
 
 echo "> copying to build folder..."
-( cd tmp
-	cp *.js ../build
-	cp *.map ../build
-)
+mkdir -p build
+cp tmp/*.js build
+cp tmp/*.map build
 
 echo "> ...aaaand we're done"
