@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Wed Feb 11 2015 14:44:43 GMT+0000 (UTC) - commit 0e5e989a291ee483310d5e038265a4ff430abd89
+	Sat Feb 14 2015 09:11:58 GMT+0000 (UTC) - commit 7b8d9bf7cff9201dae64a00817bbf8e5039296a9
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4784,7 +4784,7 @@
       // if this is a method invocation (as opposed to a function) we need
       // to strip the method name from the reference combo, else the context
       // will be wrong
-      lastDotIndex = name.lastIndexOf(".");
+      lastDotIndex = reference.lastIndexOf(".");
       if (lastDotIndex !== -1) {
         reference = reference.substr(0, lastDotIndex);
         parser.pos = startPos + reference.length;
