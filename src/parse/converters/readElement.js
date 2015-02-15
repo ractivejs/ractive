@@ -48,7 +48,9 @@ function readElement ( parser ) {
 		children,
 		child,
 		closed,
-		pos;
+		pos,
+		remaining,
+		closingTag;
 
 	start = parser.pos;
 
@@ -155,6 +157,8 @@ function readElement ( parser ) {
 	lowerCaseName = element.e.toLowerCase();
 
 	if ( !selfClosing && !voidElementNames.test( element.e ) ) {
+		parser.elementStack.push( lowerCaseName );
+
 		// Special case - if we open a script element, further tags should
 		// be ignored unless they're a closing script element
 		if ( lowerCaseName === 'script' || lowerCaseName === 'style' ) {
@@ -165,17 +169,38 @@ function readElement ( parser ) {
 
 		do {
 			pos = parser.pos;
+			remaining = parser.remaining();
 
-			if ( !canContain( lowerCaseName, parser.remaining() ) ) {
+			// if for example we're in an <li> element, and we see another
+			// <li> tag, close the first so they become siblings
+			if ( !canContain( lowerCaseName, remaining ) ) {
 				closed = true;
 			}
 
-			else if ( child = readClosingTag( parser ) ) {
-				// TODO verify that this tag can close this element (is either the same, or
-				// a parent that can close child elements implicitly)
-
-				//parser.error( 'Expected closing </' + element.e + '> tag' );
+			// closing tag
+			else if ( closingTag = readClosingTag( parser ) ) {
 				closed = true;
+
+				let closingTagName = closingTag.e.toLowerCase();
+
+				// if this *isn't* the closing tag for the current element...
+				if ( closingTagName !== lowerCaseName ) {
+					// rewind parser
+					parser.pos = pos;
+
+					// if it doesn't close a parent tag, error
+					if ( !~parser.elementStack.indexOf( closingTagName ) ) {
+						let errorMessage = 'Unexpected closing tag';
+
+						// add additional help for void elements, since component names
+						// might clash with them
+						if ( voidElementNames.test( closingTagName ) ) {
+							errorMessage += ` (<${closingTagName}> is a void element - it cannot contain children)`;
+						}
+
+						parser.error( errorMessage );
+					}
+				}
 			}
 
 			// implicit close by closing section tag. TODO clean this up
@@ -198,6 +223,8 @@ function readElement ( parser ) {
 		if ( children.length ) {
 			element.f = children;
 		}
+
+		parser.elementStack.pop();
 	}
 
 	parser.inside = null;

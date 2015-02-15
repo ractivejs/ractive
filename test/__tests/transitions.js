@@ -46,7 +46,7 @@ asyncTest( 'Elements containing components with outroing elements do not detach 
 	var Widget, ractive, p, shouldHaveCompleted;
 
 	Widget = Ractive.extend({
-		template: '<p outro="test">foo</div>',
+		template: '<p outro="test">foo</p>',
 		beforeComplete: function ( transition, params ) {
 			shouldHaveCompleted = true;
 			t.ok( fixture.contains( p ), '<p> element has already been removed from the DOM' );

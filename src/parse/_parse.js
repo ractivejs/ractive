@@ -79,6 +79,7 @@ StandardParser = Parser.extend({
 		this.sortMustacheTags();
 
 		this.sectionDepth = 0;
+		this.elementStack = [];
 
 		this.interpolate = {
 			script: !options.interpolate || options.interpolate.script !== false,
@@ -126,11 +127,19 @@ StandardParser = Parser.extend({
 });
 
 parse = function ( template, options = {} ) {
-	var result;
+	var parser, result;
+
+	parser = new StandardParser( template, options );
+
+	// if we're left with non-whitespace content, it means we
+	// failed to parse some stuff
+	if ( /\S/.test( parser.leftover ) ) {
+		parser.error( 'Unexpected template content' );
+	}
 
 	result = {
 		v: TEMPLATE_VERSION, // template spec version, defined in https://github.com/ractivejs/template-spec
-		t: new StandardParser( template, options ).result
+		t: parser.result
 	};
 
 	// collect all of the partials and stick them on the appropriate instances
