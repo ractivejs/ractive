@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sun Feb 15 2015 19:24:52 GMT+0000 (UTC) - commit ae4d7bab34e6b6ec17b2c3b971470591c07e64d1
+	Sun Feb 15 2015 21:35:25 GMT+0000 (UTC) - commit 16e6f93882fb8c6897e2f0629daf5b5a1bc6e725
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -16480,6 +16480,7 @@
     }
 
     Child = function (options) {
+      if (!(this instanceof Child)) return new Child(options);
       initialise(this, options);
     };
 
@@ -16536,6 +16537,7 @@
 
   // Main Ractive required object
   Ractive = function (options) {
+    if (!(this instanceof Ractive)) return new Ractive(options);
     initialise(this, options);
   };
 
