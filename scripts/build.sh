@@ -3,8 +3,10 @@
 # if the tests fail, abort (errexit)
 set -e
 
+MOD='node_modules/.bin'
+
 echo "> linting..."
-jshint src
+$MOD/jshint src
 
 # build library plus tests
 echo "> emptying tmp dir..."
@@ -12,11 +14,11 @@ rm -rf tmp/*
 
 echo "> building Ractive..."
 export COMMIT_HASH=`git rev-parse HEAD`
-gobble build tmp
+$MOD/gobble build tmp
 
 # run the tests
 echo "> running tests..."
-npm run test
+./scripts/test.sh
 
 # if the tests passed, copy to the build folder...
 echo "> tests passed. minifying..."
@@ -25,7 +27,7 @@ compress () {
 	local src=$1
 	local dest=${src%.js}.min.js
 
-	../node_modules/.bin/uglifyjs \
+	$MOD/uglifyjs \
 		--compress \
 		--mangle \
 		--source-map $dest.map \
@@ -36,7 +38,7 @@ compress () {
 
 	echo "  minified $src"
 
-	../node_modules/.bin/sorcery -i $dest
+	$MOD/sorcery -i $dest
 	echo "  fixed $dest sourcemap"
 
 }
@@ -45,9 +47,13 @@ compress () {
 	for i in *.js; do compress "$i" & done
 	wait
 )
-
 echo "> emptying build folder..."
 rm -rf build
+
+# make sure there is a build folder
+if [[ ! -d build ]]; then
+	mkdir build
+fi
 
 echo "> copying to build folder..."
 mkdir -p build
