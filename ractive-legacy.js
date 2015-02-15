@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sun Feb 15 2015 21:35:25 GMT+0000 (UTC) - commit 16e6f93882fb8c6897e2f0629daf5b5a1bc6e725
+	Sun Feb 15 2015 21:57:23 GMT+0000 (UTC) - commit 72a7621ef2609568d4795fbbf0803ab2fd7d37b9
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5884,6 +5884,7 @@
     if (!expression) {
       if (parser.str.charAt(start) === "!") {
         // special case - comment
+        parser.pos = start;
         return null;
       }
 
@@ -6918,7 +6919,7 @@
 
 
   function readElement(parser) {
-    var start, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child, closed, pos;
+    var start, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child, closed, pos, remaining, closingTag;
 
     start = parser.pos;
 
@@ -7023,6 +7024,8 @@
     lowerCaseName = element.e.toLowerCase();
 
     if (!selfClosing && !voidElementNames.test(element.e)) {
+      parser.elementStack.push(lowerCaseName);
+
       // Special case - if we open a script element, further tags should
       // be ignored unless they're a closing script element
       if (lowerCaseName === "script" || lowerCaseName === "style") {
@@ -7033,15 +7036,38 @@
 
       do {
         pos = parser.pos;
+        remaining = parser.remaining();
 
-        if (!canContain(lowerCaseName, parser.remaining())) {
+        // if for example we're in an <li> element, and we see another
+        // <li> tag, close the first so they become siblings
+        if (!canContain(lowerCaseName, remaining)) {
           closed = true;
-        } else if (child = readClosingTag(parser)) {
-          // TODO verify that this tag can close this element (is either the same, or
-          // a parent that can close child elements implicitly)
+        }
 
-          //parser.error( 'Expected closing </' + element.e + '> tag' );
+        // closing tag
+        else if (closingTag = readClosingTag(parser)) {
           closed = true;
+
+          var closingTagName = closingTag.e.toLowerCase();
+
+          // if this *isn't* the closing tag for the current element...
+          if (closingTagName !== lowerCaseName) {
+            // rewind parser
+            parser.pos = pos;
+
+            // if it doesn't close a parent tag, error
+            if (! ~parser.elementStack.indexOf(closingTagName)) {
+              var errorMessage = "Unexpected closing tag";
+
+              // add additional help for void elements, since component names
+              // might clash with them
+              if (voidElementNames.test(closingTagName)) {
+                errorMessage += " (<" + closingTagName + "> is a void element - it cannot contain children)";
+              }
+
+              parser.error(errorMessage);
+            }
+          }
         }
 
         // implicit close by closing section tag. TODO clean this up
@@ -7062,6 +7088,8 @@
       if (children.length) {
         element.f = children;
       }
+
+      parser.elementStack.pop();
     }
 
     parser.inside = null;
@@ -7347,6 +7375,7 @@
       this.sortMustacheTags();
 
       this.sectionDepth = 0;
+      this.elementStack = [];
 
       this.interpolate = {
         script: !options.interpolate || options.interpolate.script !== false,
@@ -7389,11 +7418,19 @@
 
   parse = function (template) {
     var options = arguments[1] === undefined ? {} : arguments[1];
-    var result;
+    var parser, result;
+
+    parser = new StandardParser(template, options);
+
+    // if we're left with non-whitespace content, it means we
+    // failed to parse some stuff
+    if (/\S/.test(parser.leftover)) {
+      parser.error("Unexpected template content");
+    }
 
     result = {
       v: TEMPLATE_VERSION, // template spec version, defined in https://github.com/ractivejs/template-spec
-      t: new StandardParser(template, options).result
+      t: parser.result
     };
 
     // collect all of the partials and stick them on the appropriate instances
