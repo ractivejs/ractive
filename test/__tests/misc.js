@@ -1702,6 +1702,14 @@ test( 'regression test for #1630', function ( t ) {
 	t.equal( ractive.get( 'constructor' ), obj.constructor );
 });
 
+test( 'Ractive can be instantiated without `new`', t => {
+	t.ok( Ractive() instanceof Ractive );
+
+	var Subclass = Ractive.extend();
+	t.ok( Subclass() instanceof Subclass );
+	t.ok( Subclass() instanceof Ractive );
+})
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {

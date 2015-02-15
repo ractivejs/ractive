@@ -14,6 +14,7 @@ var Ractive, properties;
 
 // Main Ractive required object
 Ractive = function ( options ) {
+	if ( !( this instanceof Ractive ) ) return new Ractive( options );
 	initialise( this, options );
 };
 

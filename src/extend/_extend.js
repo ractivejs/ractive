@@ -30,6 +30,7 @@ function extendOne ( Parent, options = {} ) {
 	}
 
 	Child = function ( options ) {
+		if ( !( this instanceof Child ) ) return new Child( options );
 		initialise( this, options );
 	};
 
