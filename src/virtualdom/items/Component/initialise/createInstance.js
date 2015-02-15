@@ -111,7 +111,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 		component: component,
 		container: container,
 		mappings: mappings,
-		inlinePartials: inlinePartials
+		inlinePartials: inlinePartials,
 		cssIds: parentFragment.cssIds
 	});
 
