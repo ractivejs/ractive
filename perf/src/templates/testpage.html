@@ -112,14 +112,14 @@
 		</article>
 	</script>
 
-	<script src='<%= srcPrefix %>/builds/edge/ractive-legacy.min.js'></script>
+	<script src='<%= srcPrefix %>/builds/edge/ractive-legacy.js'></script>
 	<script src='<%= srcPrefix %>/ractive-transitions-slide.js'></script>
 	<script src='<%= srcPrefix %>/runSuite.js'></script>
 	<script>
 		<%= suite %>
 
 		if ( typeof Ractive === 'undefined' ) {
-			document.body.innerHTML = 'Could not find Ractive. You may need to build the project by running <code>grunt</code>';
+			document.body.innerHTML = 'Could not find Ractive. You may need to build the project by running <code>npm run build</code>';
 			throw new Error( 'Could not find Ractive' );
 		}
 

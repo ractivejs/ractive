@@ -5,10 +5,20 @@ import initialise from 'Ractive/initialise';
 import Ractive from 'Ractive';
 import unwrapExtended from './unwrapExtended';
 
-var uid = 1;
+var uid = 1, extend;
 
-export default function extend ( options = {} ) {
-	var Parent = this, Child, proto;
+extend = function ( ...options ) {
+	if( !options.length ) {
+		return extendOne( this );
+	} else {
+		return options.reduce( extendOne, this );
+	}
+};
+
+export default extend;
+
+function extendOne ( Parent, options = {} ) {
+	var Child, proto;
 
 	// if we're extending with another Ractive instance...
 	//
@@ -21,6 +31,7 @@ export default function extend ( options = {} ) {
 	}
 
 	Child = function ( options ) {
+		if ( !( this instanceof Child ) ) return new Child( options );
 		initialise( this, options );
 	};
 

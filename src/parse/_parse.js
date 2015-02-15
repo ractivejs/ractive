@@ -1,14 +1,23 @@
-import { COMMENT, ELEMENT, SECTION_UNLESS } from 'config/types';
-import Parser from './Parser/_Parser';
-import mustache from './converters/mustache';
-import comment from './converters/comment';
-import element from './converters/element';
-import partial from './converters/partial';
-import text from './converters/text';
+import { TEMPLATE_VERSION } from 'config/template';
+import { COMMENT, ELEMENT } from 'config/types';
+import Parser from './Parser';
+import readMustache from './converters/readMustache';
+import readTriple from './converters/mustache/readTriple';
+import readUnescaped from './converters/mustache/readUnescaped';
+import readPartial from './converters/mustache/readPartial';
+import readMustacheComment from './converters/mustache/readMustacheComment';
+import readInterpolator from './converters/mustache/readInterpolator';
+import readYielder from './converters/mustache/readYielder';
+import readPartialDefinitionSection from './converters/mustache/readPartialDefinitionSection';
+import readSection from './converters/mustache/readSection';
+import readHtmlComment from './converters/readHtmlComment';
+import readElement from './converters/readElement';
+import readPartialDefinitionComment from './converters/readPartialDefinitionComment';
+import readText from './converters/readText';
 import trimWhitespace from './utils/trimWhitespace';
 import stripStandalones from './utils/stripStandalones';
 import processPartials from './converters/partial/processPartials';
-import { isEmptyObject } from 'utils/is';
+import { isEmptyObject, isArray } from 'utils/is';
 
 // Ractive.parse
 // ===============
@@ -46,14 +55,31 @@ var StandardParser,
 	contiguousWhitespace = /[ \t\f\r\n]+/g,
 	preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 	leadingWhitespace = /^\s+/,
-	trailingWhitespace = /\s+$/;
+	trailingWhitespace = /\s+$/,
+
+	STANDARD_READERS = [ readPartial, readUnescaped, readPartialDefinitionSection, readSection, readYielder, readInterpolator, readMustacheComment ],
+	TRIPLE_READERS = [ readTriple ],
+	STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
 
 StandardParser = Parser.extend({
-	init: function ( str, options ) {
-		// config
-		setDelimiters( options, this );
+	init ( str, options ) {
+		var tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ],
+			staticDelimiters = options.staticDelimiters || [ '[[', ']]' ],
+			staticTripleDelimiters = options.staticTripleDelimiters || [ '[[[', ']]]' ];
+
+		this.standardDelimiters = options.delimiters || [ '{{', '}}' ];
+
+		this.tags = [
+			{ isStatic: false, isTriple: false, open: this.standardDelimiters[0], close: this.standardDelimiters[1], readers: STANDARD_READERS },
+			{ isStatic: false, isTriple: true,  open: tripleDelimiters[0],        close: tripleDelimiters[1],        readers: TRIPLE_READERS },
+			{ isStatic: true,  isTriple: false, open: staticDelimiters[0],        close: staticDelimiters[1],        readers: STATIC_READERS },
+			{ isStatic: true,  isTriple: true,  open: staticTripleDelimiters[0],  close: staticTripleDelimiters[1],  readers: TRIPLE_READERS }
+		];
+
+		this.sortMustacheTags();
 
 		this.sectionDepth = 0;
+		this.elementStack = [];
 
 		this.interpolate = {
 			script: !options.interpolate || options.interpolate.script !== false,
@@ -71,39 +97,50 @@ StandardParser = Parser.extend({
 		this.sanitizeElements = options.sanitize && options.sanitize.elements;
 		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
 		this.includeLinePositions = options.includeLinePositions;
-
-		this.StandardParser = StandardParser;
 	},
 
-	postProcess: function ( items, options ) {
+	postProcess ( items, options ) {
 		if ( this.sectionDepth > 0 ) {
 			this.error( 'A section was left open' );
 		}
 
-		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace, options.rewriteElse !== false );
+		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace );
 
 		return items;
 	},
 
 	converters: [
-		partial,
-		mustache,
-		comment,
-		element,
-		text
-	]
+		readMustache,
+		readPartialDefinitionComment,
+		readHtmlComment,
+		readElement,
+		readText
+	],
+
+	sortMustacheTags () {
+		// Sort in order of descending opening delimiter length (longer first),
+		// to protect against opening delimiters being substrings of each other
+		this.tags.sort( ( a, b ) => {
+			return b.open.length - a.open.length;
+		});
+	}
 });
 
 parse = function ( template, options = {} ) {
-	var result;
+	var parser, result;
 
-	setDelimiters( options );
+	parser = new StandardParser( template, options );
+
+	// if we're left with non-whitespace content, it means we
+	// failed to parse some stuff
+	if ( /\S/.test( parser.leftover ) ) {
+		parser.error( 'Unexpected template content' );
+	}
 
 	result = {
-		v: 2 // template spec version, defined in https://github.com/ractivejs/template-spec
+		v: TEMPLATE_VERSION, // template spec version, defined in https://github.com/ractivejs/template-spec
+		t: parser.result
 	};
-
-	result.t = new StandardParser( template, options ).result;
 
 	// collect all of the partials and stick them on the appropriate instances
 	let partials = {};
@@ -119,7 +156,7 @@ parse = function ( template, options = {} ) {
 
 export default parse;
 
-function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace, rewriteElse ) {
+function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
 	var i,
 		item,
 		previousItem,
@@ -127,7 +164,6 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 		preserveWhitespaceInsideFragment,
 		removeLeadingWhitespaceInsideFragment,
 		removeTrailingWhitespaceInsideFragment,
-		unlessBlock,
 		key;
 
 	// First pass - remove standalones and comments etc
@@ -175,34 +211,44 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 				}
 			}
 
-			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 		}
 
 		// Split if-else blocks into two (an if, and an unless)
 		if ( item.l ) {
-			cleanup( item.l, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+			cleanup( item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
 
-			if ( rewriteElse ) {
-				unlessBlock = {
-					t: 4,
-					n: SECTION_UNLESS,
-					f: item.l
-				};
-				// copy the conditional based on its type
-				if( item.r  ) { unlessBlock.r  = item.r;  }
-				if( item.x  ) { unlessBlock.x  = item.x;  }
-				if( item.rx ) { unlessBlock.rx = item.rx; }
-
-				items.splice( i + 1, 0, unlessBlock );
-				delete item.l;
-			}
+			items.splice( i + 1, 0, item.l );
+			delete item.l; // TODO would be nice if there was a way around this
 		}
 
 		// Clean up element attributes
 		if ( item.a ) {
 			for ( key in item.a ) {
 				if ( item.a.hasOwnProperty( key ) && typeof item.a[ key ] !== 'string' ) {
-					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, rewriteElse );
+					cleanup( item.a[ key ], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+				}
+			}
+		}
+
+		// Clean up conditional attributes
+		if ( item.m ) {
+			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+		}
+
+		// Clean up event handlers
+		if ( item.v ) {
+			for ( key in item.v ) {
+				if ( item.v.hasOwnProperty( key ) ) {
+					// clean up names
+					if ( isArray( item.v[ key ].n ) ) {
+						cleanup( item.v[ key ].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+					}
+
+					// clean up params
+					if ( isArray( item.v[ key ].d ) ) {
+						cleanup( item.v[ key ].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+					}
 				}
 			}
 		}
@@ -226,14 +272,4 @@ function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhites
 			}
 		}
 	}
-}
-
-function setDelimiters ( source, target ) {
-	target = target || source;
-
-	target.delimiters = source.delimiters || [ '{{', '}}' ];
-	target.tripleDelimiters = source.tripleDelimiters || [ '{{{', '}}}' ];
-
-	target.staticDelimiters = source.staticDelimiters || [ '[[', ']]' ];
-	target.staticTripleDelimiters = source.staticTripleDelimiters || [ '[[[', ']]]' ];
 }

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-var exec = require( 'exec-sync' ),
-	fs = require( 'fs' ),
+var fs = require( 'fs' ),
 	path = require( 'path' ),
 	version = require( '../package.json' ).version,
 	templates = {},

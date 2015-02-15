@@ -20,10 +20,10 @@ export default function Viewmodel$mark ( keypath, options ) {
 		this.changes.push( keypath );
 	}
 
-	// pass on dontTeardownWrapper, if we can
-	let dontTeardownWrapper = options ? options.dontTeardownWrapper : false;
+	// pass on keepExistingWrapper, if we can
+	let keepExistingWrapper = options ? options.keepExistingWrapper : false;
 
-	this.clearCache( keypathStr, dontTeardownWrapper );
+	this.clearCache( keypathStr, keepExistingWrapper );
 
 	if ( this.ready ) {
 		this.onchange();

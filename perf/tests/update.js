@@ -130,5 +130,35 @@ var tests = [
 
 			window.ractive.update( 'boxes' );
 		}
+	},
+
+	{
+		name: 'splice large array',
+		setup: () => {
+			var items = [];
+
+			window.i = 0;
+
+			for ( window.i = 0; window.i < 500; window.i += 1 ) {
+				items[ window.i ] = { key: window.i, text: `[${Math.random()}]` };
+			}
+
+			window.ractive = new Ractive({
+				el: 'body',
+				template: `
+					<ul>
+						{{#items}}
+							<li>{{key}}: {{text}}</li>
+						{{/items}}
+					</ul>`,
+				data: { items: items }
+			});
+		},
+		beforeEach: () => {
+			window.ractive.push( 'items', { key: window.i++, text: `[${Math.random()}]` });
+		},
+		test: () => {
+			window.ractive.splice( 'items', 3, 1 );
+		}
 	}
 ];

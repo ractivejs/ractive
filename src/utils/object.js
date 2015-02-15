@@ -73,7 +73,7 @@ try {
 	}());
 }
 
-export { create, defineProperty };
+export { create, defineProperty, defineProperties };
 
 export function extend ( target, ...sources ) {
 	var prop, source;
@@ -102,4 +102,3 @@ export function fillGaps ( target, ...sources ) {
 }
 
 export var hasOwn = Object.prototype.hasOwnProperty;
-

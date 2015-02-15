@@ -1,20 +1,20 @@
 import { isArray } from 'utils/is';
 
 export default function Attribute$updateCheckboxName () {
-	var { element, node, value } = this, valueAttribute, i;
+	var { element, node, value } = this, { binding } = element, valueAttribute, i;
 
 	valueAttribute = element.getAttribute( 'value' );
 
 	if ( !isArray( value ) ) {
-		node.checked = ( value == valueAttribute );
+		binding.isChecked = node.checked = ( value == valueAttribute );
 	} else {
 		i = value.length;
 		while ( i-- ) {
 			if ( valueAttribute == value[i] ) {
-				node.checked = true;
+				binding.isChecked = node.checked = true;
 				return;
 			}
 		}
-		node.checked = false;
+		binding.isChecked = node.checked = false;
 	}
 }

@@ -2,10 +2,9 @@ import defaults from 'Ractive/config/defaults';
 import easing from 'Ractive/static/easing';
 import interpolators from 'Ractive/static/interpolators';
 import { magic, svg } from 'config/environment';
-import { defineProperties } from 'utils/object';
+import { defineProperties, extend as extendObj } from 'utils/object';
 import proto from 'Ractive/prototype';
 import Promise from 'utils/Promise';
-import { extend as extendObj } from 'utils/object';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
 import getNodeInfo from 'Ractive/static/getNodeInfo';
@@ -15,6 +14,7 @@ var Ractive, properties;
 
 // Main Ractive required object
 Ractive = function ( options ) {
+	if ( !( this instanceof Ractive ) ) return new Ractive( options );
 	initialise( this, options );
 };
 
@@ -35,7 +35,7 @@ properties = {
 	magic:         { value: magic },
 
 	// version
-	VERSION:       { value: '<%= pkg.version %>' },
+	VERSION:       { value: '${version}' },
 
 	// Plugins
 	adaptors:      { writable: true, value: {} },

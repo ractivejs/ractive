@@ -112,6 +112,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 		container: container,
 		mappings: mappings,
 		inlinePartials: inlinePartials
+		cssIds: parentFragment.cssIds
 	});
 
 	ready = true;
