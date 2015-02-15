@@ -735,6 +735,11 @@ var parseTests = [
 		name: 'Keywords work as restricted references',
 		template: '{{.if}}',
 		parsed: {v:3,t:[{t:2,r:'.if'}]}
+	},
+	{
+		name: 'An unexpected closing tag is an error',
+		template: '<div></div></div>',
+		error: `Unexpected template content at line 1 character 12:\n<div></div></div>\n           ^----`
 	}
 ];
 

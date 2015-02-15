@@ -17,6 +17,7 @@ export default function readInterpolator ( parser, tag ) {
 	if ( !expression ) {
 		if ( parser.str.charAt( start ) === '!' ) {
 			// special case - comment
+			parser.pos = start;
 			return null;
 		}
 
