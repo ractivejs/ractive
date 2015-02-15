@@ -195,7 +195,7 @@ function readElement ( parser ) {
 						// add additional help for void elements, since component names
 						// might clash with them
 						if ( voidElementNames.test( closingTagName ) ) {
-							errorMessage += ` (<${closingTagName}> is a void element - it cannot contain children)`
+							errorMessage += ` (<${closingTagName}> is a void element - it cannot contain children)`;
 						}
 
 						parser.error( errorMessage );
