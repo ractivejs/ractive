@@ -16,7 +16,7 @@ export default function getComponent ( ractive, name ) {
 			// function option, execute and store for reset
 			let fn = Component.bind( instance );
 			fn.isOwner = instance.components.hasOwnProperty( name );
-			Component = fn( instance.data );
+			Component = fn();
 
 			if ( !Component ) {
 				if ( ractive.debug ) {

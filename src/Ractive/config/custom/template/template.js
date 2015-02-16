@@ -87,7 +87,7 @@ function resetValue ( ractive ) {
 
 function getDynamicTemplate ( ractive, fn ) {
 	var helper = createHelper( parser.getParseOptions( ractive ) );
-	return fn.call( ractive, ractive.data, helper );
+	return fn.call( ractive, helper );
 }
 
 function createHelper ( parseOptions ) {

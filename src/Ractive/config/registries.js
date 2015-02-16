@@ -30,7 +30,7 @@ Registry.prototype = {
 			options );
 	},
 
-	init: function ( Parent, ractive, options ) {
+	init: function () {
 		/*this.configure(
 			this.useDefaults ? Parent.defaults : Parent,
 			ractive,

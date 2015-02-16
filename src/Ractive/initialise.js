@@ -41,13 +41,8 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	initialiseProperties( ractive, options );
 
-	// TODO remove this - temporary, to help crossover to a data-less world
-	Object.defineProperty( ractive, 'data', {
-		get: () => {
-			//console.trace( 'getting data (%s)', !!ractive.viewmodel );
-			return ractive.viewmodel ? ractive.viewmodel.data : {};
-		}
-	});
+	// TODO remove this, eventually
+	Object.defineProperty( ractive, 'data', { get: deprecateRactiveData });
 
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
 	constructHook.fire( config.getConstructTarget( ractive, userOptions ), userOptions );
@@ -220,4 +215,8 @@ function initialiseProperties ( ractive, options ) {
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null;
 	}
+}
+
+function deprecateRactiveData () {
+	throw new Error( 'Using `ractive.data` is no longer supported - you must use the `ractive.get()` API instead' );
 }

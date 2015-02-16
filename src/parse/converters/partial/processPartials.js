@@ -1,9 +1,7 @@
 import { INLINE_PARTIAL } from 'config/types';
 import { isArray } from 'utils/is';
 
-export default process;
-
-function process( path, target, items ) {
+export default function process ( path, target, items ) {
 	let i = items.length, item, cmp;
 
 	while ( i-- ) {
