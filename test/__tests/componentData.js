@@ -320,16 +320,16 @@ test( 'mixed use of same component parameters across different instances', t => 
 	t.equal( fixture.innerHTML, 'qux qux obj static bar-qux qux' );
 
 	widgets = ractive.findAllComponents( 'widget' );
-	widgets[0].set('foo', 'one')
+	widgets[0].set('foo', 'one');
 	t.equal( fixture.innerHTML, 'one one obj static bar-one one' );
-	widgets[1].set('foo', 'two')
+	widgets[1].set('foo', 'two');
 	t.equal( fixture.innerHTML, 'one one two static bar-one one' );
-	widgets[2].set('foo', 'notstatic')
+	widgets[2].set('foo', 'notstatic');
 	t.equal( fixture.innerHTML, 'one one two notstatic bar-one one' );
-	widgets[3].set('foo', 'notcomplex')
+	widgets[3].set('foo', 'notcomplex');
 	t.equal( fixture.innerHTML, 'one one two notstatic notcomplex one' );
 	// keypath expressions ARE bound!
-	widgets[4].set('foo', 'bound')
+	widgets[4].set('foo', 'bound');
 	t.equal( fixture.innerHTML, 'bound bound two notstatic bar-bound bound' );
 });
 

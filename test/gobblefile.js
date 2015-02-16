@@ -18,10 +18,6 @@ function compileTemplate ( str ) {
 	};
 }
 
-function getPathPrefix ( mod ) {
-	return mod.split( path.sep ).map( function () { return '..'; }).join( '/' );
-}
-
 templates = {
 	testpage: compileTemplate( sander.readFileSync( __dirname, 'templates/testpage.html' ).toString() ),
 	index: compileTemplate( sander.readFileSync( __dirname, 'templates/index.html' ).toString() )
@@ -33,7 +29,7 @@ testModules = gobble([
 	gobble( '../src' )
 ]).transform( function bundleTests ( inputdir, outputdir, options ) {
 	return sander.lsr( inputdir, '__tests' ).then( function ( testModules ) {
-		var promises = testModules.map( function ( mod ) {
+		var promises = testModules.sort().map( function ( mod ) {
 			return esperanto.bundle({
 				base: inputdir,
 				entry: '__tests/' + mod
