@@ -635,10 +635,10 @@ test( 'Instances of subclasses with non-POJO default models have the correct pro
 	};
 
 	Subclass = Ractive.extend({
-		data: function () {
+		data () {
 			return new Model({
 				foo: 'bar'
-			})
+			});
 		}
 	});
 
@@ -650,7 +650,7 @@ test( 'Instances of subclasses with non-POJO default models have the correct pro
 		}
 	});
 
-	t.ok( instance.data instanceof Model );
+	t.ok( instance.viewmodel.data instanceof Model );
 });
 
 test( 'Regression test for #798', function ( t ) {
@@ -749,7 +749,7 @@ try {
 			}
 		});
 
-		ractive.data.items.push({ name: 'four' });
+		items.push({ name: 'four' });
 
 		t.htmlEqual( fixture.innerHTML, 'onetwothreefour' );
 	});
@@ -772,7 +772,7 @@ try {
 
 		t.htmlEqual( fixture.innerHTML, 'onetwothree' );
 
-		ractive.data[2].name = 'threefourfive';
+		items[2].name = 'threefourfive';
 		t.htmlEqual( fixture.innerHTML, 'onetwothreefourfive' );
 	});
 
@@ -1551,9 +1551,9 @@ test( '. reference without any implicit or explicit context should resolve to ro
 		data: { foo: 'bar' }
 	});
 
-	t.equal( fixture.innerHTML, JSON.stringify( ractive.data ) );
+	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.data ) );
 	ractive.set( 'foo', 'test' );
-	t.equal( fixture.innerHTML, JSON.stringify( ractive.data ) );
+	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.data ) );
 });
 
 test( 'Case-sensitive conditional SVG attribute', t => {

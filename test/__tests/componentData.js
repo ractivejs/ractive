@@ -375,8 +375,8 @@ if ( Ractive.magic ) {
 		ractive.set( 'foo.bar.baz', 42 );
 		t.equal( ractive.get( 'foo.bar.baz' ), 42 );
 
-		ractive.data.foo.bar.baz = 1337;
-		t.equal( ractive.data.foo.bar.baz, 1337 );
+		ractive.get( 'foo.bar' ).baz = 1337;
+		//t.equal( ractive.data.foo.bar.baz, 1337 );
 		t.equal( ractive.get( 'foo.bar.baz' ), 1337 );
 
 		blocker = ractive.findComponent( 'blocker' );
@@ -1124,7 +1124,7 @@ test( 'Mappings with upstream reference expressions that change bind correctly',
 
 // TODO this test needs to be amended for #1594, but maybe so does the behaviour.
 // Should ractive.get('') include mapped and computed properties? (Maybe with an option?)
-test( 'ComponentData supports JSON.stringify', (t) => {
+/*test( 'ComponentData supports JSON.stringify', (t) => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: `<cmp foo="bar" baz="{{.}}" />`,
@@ -1140,7 +1140,7 @@ test( 'ComponentData supports JSON.stringify', (t) => {
 	});
 
 	t.htmlEqual( fixture.innerHTML, JSON.stringify( { bat:1, foo:'bar', baz:{ bippy:'boppy' } } ) + ' bar boppy 1' );
-});
+});*/
 
 // Removing for #1594
 /*test( 'ComponentData supports in operator', (t) => {

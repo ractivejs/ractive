@@ -59,15 +59,15 @@ asyncTest( 'ractive.reset() returns a promise', function ( t ) {
 asyncTest( 'Dynamic template functions are recalled on reset', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,
-		template: function ( d ) {
-			return d.condition ? '{{foo}}' : '{{bar}}'
+		template () {
+			return this.get( 'condition' ) ? '{{foo}}' : '{{bar}}';
 		},
 		data: { foo: 'fizz', bar: 'bizz', condition: true }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'fizz' );
-	ractive.set('condition', false)
-	ractive.reset(ractive.data).then( function () {
+	ractive.set('condition', false);
+	ractive.reset(ractive.viewmodel.data).then( function () {
 		t.htmlEqual( fixture.innerHTML, 'bizz' );
 		start();
 	});
@@ -78,8 +78,8 @@ asyncTest( 'Promise with dynamic template functions are recalled on reset', func
 
 	ractive = new Ractive({
 		el: fixture,
-		template: function ( d ) {
-			return d.condition ? '{{foo}}' : '{{bar}}'
+		template () {
+			return this.get( 'condition' ) ? '{{foo}}' : '{{bar}}';
 		},
 		data: { foo: 'fizz', bar: 'bizz', condition: true }
 	});
@@ -89,17 +89,17 @@ asyncTest( 'Promise with dynamic template functions are recalled on reset', func
 
 	callback = function(){
 		t.ok(true);
-		done()
+		done();
 	};
 
 	expect(5);
 
 	t.htmlEqual( fixture.innerHTML, 'fizz' );
 	ractive.set('condition', false)
-	ractive.reset(ractive.data).then(callback);
+	ractive.reset(ractive.viewmodel.data).then(callback);
 	t.htmlEqual( fixture.innerHTML, 'bizz' );
 	ractive.set('condition', true)
-	ractive.reset(ractive.data).then(callback);
+	ractive.reset(ractive.viewmodel.data).then(callback);
 	t.htmlEqual( fixture.innerHTML, 'fizz' );
 
 });

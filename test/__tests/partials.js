@@ -29,7 +29,7 @@ if ( console && console.warn ) {
 
 		console.warn = function( msg ) {
 			t.ok( msg );
-		}
+		};
 
 		// will throw on no-partial found
 		throws( () => {
@@ -82,19 +82,17 @@ test( '`this` in function refers to ractive instance', function ( t ) {
 });
 
 test( 'partial function has access to parser helper', function ( t ) {
-
 	expect( 1 );
 
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{>foo}}',
 		partials: {
-			foo: function ( data, parser ) {
-				t.ok( parser.fromId )
+			foo: function ( parser ) {
+				t.ok( parser.fromId );
 			}
 		}
 	});
-
 });
 
 test( 'partial can be preparsed template (gh-942)', function ( t ) {

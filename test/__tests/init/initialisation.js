@@ -48,20 +48,18 @@ module( 'Data Initialisation', cleanupDefaults );
 test( 'default data function called on initialize', t => {
 	var ractive, data = { foo: 'bar' } ;
 
-	Ractive.defaults.data = function() { return data };
+	Ractive.defaults.data = function () { return data; };
 	ractive = new Ractive();
-	t.equal( ractive.data, data );
-
+	t.equal( ractive.viewmodel.data, data );
 });
 
 test( 'instance data function called on initialize', t => {
 	var ractive, data = { foo: 'bar' } ;
 
 	ractive = new Ractive({
-		data: function() { return data }
+		data () { return data; }
 	});
-	t.equal( ractive.data, data );
-
+	t.equal( ractive.viewmodel.data, data );
 });
 
 test( 'data is inherited from grand parent extend (#923)', t => {
@@ -133,7 +131,7 @@ test( 'instance data function takes precedence over default data function', t =>
 });
 
 test( 'instance data takes precedence over default data but includes unique properties', t => {
-	var ractive, data = { foo: 'bar' } ;
+	var ractive;
 
 	Ractive.defaults.data = {
 		unique: function () { return; },
@@ -143,39 +141,38 @@ test( 'instance data takes precedence over default data but includes unique prop
 	ractive = new Ractive( {
 		data: {
 			foo: 'bar',
-			format: function () { return 'foo' }
+			format: function () { return 'foo'; }
 		}
 	});
 
-	t.ok( ractive.data.foo, 'has instance data' );
-	t.ok( ractive.data.format, 'has default data' );
-	t.ok( ractive.data.unique, 'has default data' );
-	t.equal( ractive.data.format(), 'foo' );
-
+	t.ok( ractive.get( 'foo' ), 'has instance data' );
+	t.ok( ractive.get( 'format' ), 'has default data' );
+	t.ok( ractive.get( 'unique' ), 'has default data' );
+	t.equal( ractive.get( 'format' )(), 'foo' );
 });
 
 test( 'instantiated .extend() component with data function called on initialize', t => {
 	var Component, ractive, data = { foo: 'bar' };
 
 	Component = Ractive.extend({
-		data: function(){ return data }
+		data: function(){ return data; }
 	});
 
 	ractive = new Component();
-	t.equal( ractive.data, data );
+	t.equal( ractive.viewmodel.data, data );
 });
 
 test( 'extend data option includes Ractive defaults.data', t => {
 	var Component, ractive;
 
 	Ractive.defaults.data = {
-		format: function () { return 'default'; },
+		format () { return 'default'; },
 		defaultOnly: {}
 	};
 
 	Component = Ractive.extend({
 		data: {
-			format: function () { return 'component'; },
+			format () { return 'component'; },
 			componentOnly: {}
 		}
 	});
@@ -186,10 +183,10 @@ test( 'extend data option includes Ractive defaults.data', t => {
 		data: { foo: 'bar' }
 	});
 
-	t.ok( ractive.data.foo, 'has instance data' );
-	t.ok( ractive.data.componentOnly, 'has Component data' );
-	t.ok( ractive.data.defaultOnly, 'has Ractive.default data' );
-	t.equal( fixture.innerHTML, 'component' )
+	t.ok( ractive.get( 'foo' ), 'has instance data' );
+	t.ok( ractive.get( 'componentOnly' ), 'has Component data' );
+	t.ok( ractive.get( 'defaultOnly' ), 'has Ractive.default data' );
+	t.equal( fixture.innerHTML, 'component' );
 
 });
 
@@ -339,14 +336,14 @@ test( 'template function has helper object', t => {
 
 	createScriptTemplate( '{{foo}}' );
 
-	Ractive.defaults.template = function ( d, t ) {
+	Ractive.defaults.template = function ( t ) {
 		var template = t.fromId( 'template' );
 		template += '{{bar}}';
 		assert.ok( !t.isParsed(template) );
 		template = t.parse( template );
 		assert.ok( t.isParsed( template ) );
 		return template;
-	}
+	};
 
 	ractive = new Ractive( {
 		el: fixture,

@@ -154,7 +154,7 @@ test('Input with reference expression updates target when keypath changes', func
 	ractive.set( 'bar', 'bizz' );
 	ractive.find( 'input' ).value = 'buzz';
 	ractive.updateModel();
-	t.equal( ractive.data.foo.bizz, 'buzz' );
+	t.equal( ractive.get( 'foo.bizz' ), 'buzz' );
 
 });
 

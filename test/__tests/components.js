@@ -444,8 +444,8 @@ test( 'Specify component by function', t => {
 		el: fixture,
 		template: '{{#items}}<widget/>{{/items}}',
 		components: {
-			widget: function( data ) {
-				return data.foo ? Widget1 : Widget2;
+			widget () {
+				return this.get( 'foo' ) ? Widget1 : Widget2;
 			}
 		},
 		data: {
@@ -459,7 +459,7 @@ test( 'Specify component by function', t => {
 	ractive.push( 'items', 2);
 	t.htmlEqual( fixture.innerHTML, 'widget1widget1', 'Component pinned until reset' );
 
-	ractive.reset( ractive.data );
+	ractive.reset( ractive.get() );
 	t.htmlEqual( fixture.innerHTML, 'widget2widget2' );
 });
 
@@ -564,8 +564,8 @@ asyncTest( 'oninit() only fires once on a component (#943 #927), oncomplete fire
 
 	component = new Component({
 		el: fixture,
-		template: function( data ){
-			return data.foo ? 'foo' : 'bar';
+		template () {
+			return this.get( 'foo' ) ? 'foo' : 'bar';
 		}
 	});
 
