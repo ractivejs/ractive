@@ -115,21 +115,21 @@ test( 'data is inherited from grand parent extend (#923)', t => {
 	t.ok( ractive.data.bizz );
 });*/
 
-test( 'instance data function takes precendence over default data function', t => {
+test( 'instance data function takes precedence over default data function', t => {
 	var ractive;
 
 	Ractive.defaults.data = function () {
-		return { foo: 'fizz' }
+		return { foo: 'fizz' };
 	};
 
 	ractive = new Ractive({
-		data: function () {
-			return { bar: 'bizz' }
+		data () {
+			return { bar: 'bizz' };
 		}
 	});
 
-	t.ok( ractive.data.bar );
-	t.equal( ractive.data.bar, 'bizz' );
+	t.ok( ractive.get( 'bar' ) );
+	t.equal( ractive.get( 'bar' ), 'bizz' );
 });
 
 test( 'instance data takes precedence over default data but includes unique properties', t => {
@@ -198,9 +198,9 @@ test( 'return from data function replaces data instance', t => {
 	var Component, ractive;
 
 	function Model ( data ) {
-		if ( !( this instanceof Model ) ) { return new Model( data ) }
+		if ( !( this instanceof Model ) ) { return new Model( data ); }
 		this.foo = ( data ? data.foo : 'bar' ) || 'bar';
-	};
+	}
 
 	// This would be an odd thing to do, unless you
 	// were returning a model instance...
@@ -214,7 +214,7 @@ test( 'return from data function replaces data instance', t => {
 	});
 
 	t.ok( ractive.viewmodel.data instanceof Model );
-	t.equal( fixture.innerHTML, 'bar' )
+	t.equal( fixture.innerHTML, 'bar' );
 
 	ractive = new Component( {
 		el: fixture,
@@ -222,7 +222,7 @@ test( 'return from data function replaces data instance', t => {
 		data: { foo: 'fizz' }
 	});
 
-	t.ok( ractive.data instanceof Model );
+	t.ok( !ractive.hasOwnProperty( 'data' ) );
 	t.equal( fixture.innerHTML, 'fizz' );
 
 	ractive = new Component( {
@@ -230,7 +230,7 @@ test( 'return from data function replaces data instance', t => {
 		template: '{{foo}}{{bar}}',
 		data: function ( data ) {
 			data = this._super( data );
-			data.bar = 'bizz'
+			data.bar = 'bizz';
 			return data;
 		}
 	});

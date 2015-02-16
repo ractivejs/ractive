@@ -593,7 +593,7 @@ test( 'Components made with Ractive.extend() can include adaptors', function ( t
 		}
 	});
 
-	t.deepEqual( ractive.adapt, [ Ractive.adaptors.foo ] );
+	t.deepEqual( ractive.viewmodel.adaptors, [ Ractive.adaptors.foo ] );
 	t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 });
 
