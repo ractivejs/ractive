@@ -8,21 +8,21 @@ var dataConfigurator = {
 	},
 
 	init: ( Parent, ractive, options ) => {
-		/*var value = options.data,
+		var value = options.data,
 			result = combine( Parent, ractive, options );
 
 		if ( typeof result === 'function' ) {
-			result = result.call( ractive, value ) || value;
+			result = result.call( ractive ) || value;
 		}
 
-		return ractive.data = result || {};*/
+		return result;
 	},
 
 	reset: function ( ractive ) {
 		var result = this.init( ractive.constructor, ractive, ractive );
 
 		if ( result ) {
-			ractive.data = result;
+			ractive.viewmodel.data = result;
 			return true;
 		}
 	}

@@ -8,9 +8,9 @@ import magicAdaptor from 'Ractive/static/adaptors/magic';
 import magicArrayAdaptor from 'Ractive/static/adaptors/magicArray';
 import { getElement } from 'utils/dom';
 import { create, extend } from 'utils/object';
-import { isEmptyObject } from 'utils/is';
 import runloop from 'global/runloop';
 import config from 'Ractive/config/config';
+import dataConfigurator from 'Ractive/config/custom/data';
 import Fragment from 'virtualdom/Fragment';
 import Viewmodel from 'viewmodel/Viewmodel';
 import Hook from './prototype/shared/hooks/Hook';
@@ -60,7 +60,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	// Create a viewmodel
 	viewmodel = new Viewmodel({
 		adapt: getAdaptors( ractive, ractive.adapt, userOptions ),
-		data: combineData( ractive, ractive.constructor.prototype.data, userOptions.data ),
+		data: dataConfigurator.init( ractive.constructor, ractive, userOptions ),
 		computed: getComputationSignatures( ractive, extend( create( ractive.constructor.prototype.computed ), userOptions.computed ) ),
 		mappings: options.mappings,
 		ractive: ractive,
@@ -220,30 +220,4 @@ function initialiseProperties ( ractive, options ) {
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null;
 	}
-}
-
-function combineData ( context, parent, child ) {
-	var result;
-
-	if ( !child ) {
-		child = create( null );
-	}
-
-	if ( typeof child === 'function' ) {
-		// TODO this seems like a mythical use case. Should we continue to support it?
-		// Makes sense with `Ractive.extend(...)`, but less so with `new Ractive(...)`
-		child = child.call( context );
-	}
-
-	if ( typeof child !== 'object' ) {
-		throw new Error( 'data option must be an object or a function, "' + child + '" is not valid' );
-	}
-
-	if ( typeof parent === 'object' && !isEmptyObject( parent ) ) {
-		result = extend( {}, parent, child );
-	} else {
-		result = child;
-	}
-
-	return result;
 }

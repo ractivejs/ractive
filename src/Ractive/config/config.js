@@ -26,7 +26,7 @@ isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
 order = [].concat(
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
 	registries,
-	//custom.data,
+	custom.data,
 	custom.template,
 	custom.css
 );
