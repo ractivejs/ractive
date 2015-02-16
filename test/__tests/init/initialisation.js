@@ -193,12 +193,14 @@ test( 'extend data option includes Ractive defaults.data', t => {
 
 });
 
-test( 'return from data function replaces data instance', t => {
+// Removed for #1594 - it doesn't really make sense to have a Model constructor
+// as your default data, since no data object is passed to it
+/*test( 'return from data function replaces data instance', t => {
 
 	var Component, ractive;
 
 	function Model ( data ) {
-		if ( !( this instanceof Model ) ) { return new Model( data ); }
+		if ( !( this instanceof Model ) ) { return new Model( this.get() ); }
 		this.foo = ( data ? data.foo : 'bar' ) || 'bar';
 	}
 
@@ -222,7 +224,6 @@ test( 'return from data function replaces data instance', t => {
 		data: { foo: 'fizz' }
 	});
 
-	t.ok( !ractive.hasOwnProperty( 'data' ) );
 	t.equal( fixture.innerHTML, 'fizz' );
 
 	ractive = new Component( {
@@ -237,7 +238,7 @@ test( 'return from data function replaces data instance', t => {
 
 	t.ok( ractive.data instanceof Model );
 	t.equal( fixture.innerHTML, 'barbizz' );
-});
+});*/
 
 test( 'initing data with a primitive results in an error', t => {
 	expect( 1 );
