@@ -258,8 +258,8 @@ test( 'reset does not re-render if template function does not change', function 
 test( 'reset does re-render if template changes', function ( t ) {
 	var p, ractive = new Ractive({
 		el: fixture,
-		template: function( data ) {
-			return data.active ? '<p>active</p>' : '<p>not active</p>';
+		template () {
+			return this.get( 'active' ) ? '<p>active</p>' : '<p>not active</p>';
 		},
 		data: {
 			active: false

@@ -185,7 +185,7 @@ try {
 			magic: true,
 			data: data,
 			changeMagician: function () {
-				data.magician = 'David Copperfield';
+				this.viewmodel.data.magician = 'David Copperfield';
 			},
 			oninit: function () {
 				t.ok( this.magic );

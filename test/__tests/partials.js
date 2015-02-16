@@ -1,14 +1,13 @@
 module( 'partials' );
 
 var partialsFn = {
-	foo: function ( data ) {
-		return data.foo ? '<p>yes</p>' : '<h1>no</h1>';
+	foo () {
+		return this.get( 'foo' ) ? '<p>yes</p>' : '<h1>no</h1>';
 	}
 };
 
 test( 'specify partial by function', function ( t ) {
-
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{>foo}}',
 		data: { foo: true },
@@ -16,13 +15,10 @@ test( 'specify partial by function', function ( t ) {
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
-
 });
 
 if ( console && console.warn ) {
-
 	test( 'no return of partial warns in debug', function ( t ) {
-
 		var ractive, warn = console.warn;
 
 		expect( 2 ); //throws counts as an assertion
@@ -39,7 +35,7 @@ if ( console && console.warn ) {
 				data: { foo: true },
 				debug: true,
 				partials: {
-					foo: function ( data ) {
+					foo () {
 						// where's my partial?
 					}
 				}
@@ -47,7 +43,6 @@ if ( console && console.warn ) {
 		});
 
 		console.warn = warn;
-
 	});
 }
 
@@ -137,8 +132,8 @@ test( 'partial functions selects same partial until reset', function ( t ) {
 		el: fixture,
 		template: '{{#items}}{{>foo}}{{/items}}',
 		partials: {
-			foo: function ( data ) {
-				return data.foo ? '<p>{{.}}</p>' : '<h1>{{.}}</h1>'
+			foo () {
+				return this.get( 'foo' ) ? '<p>{{.}}</p>' : '<h1>{{.}}</h1>'
 			}
 		},
 		data: {
