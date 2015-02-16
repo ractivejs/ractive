@@ -1132,7 +1132,6 @@ test( 'ComponentData supports JSON.stringify', (t) => {
 			cmp: Ractive.extend({
 				template: `{{JSON.stringify(.)}} {{foo}} {{baz.bippy}} {{bat}}`,
 				onconstruct: function ( options ) {
-					console.log( options );
 					options.data.bat = 1;
 				}
 			})
