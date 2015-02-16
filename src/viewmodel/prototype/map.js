@@ -16,6 +16,12 @@ var Mapping = function ( localKey, options ) {
 };
 
 Mapping.prototype = {
+	forceResolution () {
+		// TODO warn, as per #1692?
+		this.keypath = this.localKey;
+		this.setup();
+	},
+
 	get ( keypath, options ) {
 		if ( !this.resolved ) {
 			return undefined;
@@ -57,9 +63,8 @@ Mapping.prototype = {
 	},
 
 	set ( keypath, value ) {
-		// TODO: force resolution
 		if ( !this.resolved ) {
-			throw new Error( 'Something very odd happened. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+			this.forceResolution();
 		}
 
 		this.origin.set( this.map( keypath ), value );
@@ -77,7 +82,15 @@ Mapping.prototype = {
 			this.deps.forEach( d => {
 				var keypath = this.map( d.keypath );
 				this.origin.register( keypath, d.dep, d.group );
-				d.dep.setValue( this.origin.get( keypath ) );
+
+				// TODO this is a bit of a red flag... all deps should be the same?
+				if ( d.dep.setValue ) {
+					d.dep.setValue( this.origin.get( keypath ) );
+				} else if ( d.dep.invalidate ) {
+					d.dep.invalidate();
+				} else {
+					throw new Error( 'An unexpected error occurred. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+				}
 			});
 
 			this.origin.mark( this.keypath );

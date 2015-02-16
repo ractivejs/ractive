@@ -53,12 +53,20 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 			else if ( isArray( attribute ) ) {
 				// this represents dynamic data
 				if ( isSingleInterpolator( attribute ) ) {
+					mappings[ key ] = {
+						origin: component.root.viewmodel,
+						keypath: undefined
+					};
+
 					resolver = createResolver( component, attribute[0], function ( keypath ) {
 						if ( keypath.isSpecial ) {
 							if ( ready ) {
 								instance.set( key, keypath.value ); // TODO use viewmodel?
 							} else {
 								data[ key ] = keypath.value;
+
+								// TODO errr.... would be better if we didn't have to do this
+								delete mappings[ key ];
 							}
 						}
 
@@ -67,10 +75,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 								instance.viewmodel.mappings[ key ].resolve( keypath );
 							} else {
 								// resolved immediately
-								mappings[ key ] = {
-									keypath: keypath,
-									origin: component.root.viewmodel
-								};
+								mappings[ key ].keypath = keypath;
 							}	
 						}
 					});
