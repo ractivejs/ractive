@@ -27,7 +27,6 @@ var tests = [
 	},
 
 	{
-		solo: true,
 		name: 'initialise explicit mappings',
 		setup: () => {
 			Ractive.components.foo = Ractive.extend({
