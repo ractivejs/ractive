@@ -1182,7 +1182,7 @@ test( 'set to current event object', t => {
 
 	ractive.on( 'foo', function ( event ) {
 		t.equal( this.event, event );
-	})
+	});
 
 	simulant.fire( ractive.nodes.test, 'click' );
 
@@ -1191,7 +1191,7 @@ test( 'set to current event object', t => {
 test( 'exists on ractive.fire()', t => {
 	var ractive, data = { foo: 'bar' };
 
-	expect( 4 );
+	expect( 2 );
 
 	ractive = new Ractive({
 		el: fixture,
@@ -1203,9 +1203,7 @@ test( 'exists on ractive.fire()', t => {
 		var e;
 		t.ok( e = this.event );
 		t.equal( e.name, 'foo' );
-		t.equal( e.keypath, '' );
-		t.equal( e.context, data );
-	})
+	});
 
 	ractive.fire( 'foo' );
 });
