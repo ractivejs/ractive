@@ -131,7 +131,7 @@ function testDataPropagation( mode, parameters ) {
 		widget = ractive.findComponent( 'widget' );
 
 		t.equal( ractive.get( 'one' ), 'yes' );
-		t.ok( !( ractive.data.hasOwnProperty( 'two' ) ) );
+		t.ok( !( 'two' in ractive.viewmodel.data ) );
 		t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 	});
 
@@ -367,7 +367,8 @@ function testDataPropagation( mode, parameters ) {
 
 		// only for ES5 prototype data params
 		if( parameters === true ) {
-			test( 'component data prototype if reused if parameters are the same and reset if not', t => {
+			// For removal (#1594)
+			/*test( 'component data prototype if reused if parameters are the same and reset if not', t => {
 				var ractive, Widget;
 
 				Widget = Ractive.extend({
@@ -387,9 +388,10 @@ function testDataPropagation( mode, parameters ) {
 				t.equal( widgets[0].data.__proto__, widgets[1].data.__proto__);
 				t.equal( widgets[0].data.__proto__, widgets[2].data.__proto__);
 				t.notEqual( widgets[0].data.__proto__, widgets[3].data.__proto__);
-			});
+			});*/
 
-			asyncTest( 'Data passed into component updates inside component in magic mode', t => {
+			// For removal (#1594)
+			/*asyncTest( 'Data passed into component updates inside component in magic mode', t => {
 				var ractive, Widget;
 
 				expect( 1 );
@@ -412,7 +414,7 @@ function testDataPropagation( mode, parameters ) {
 					components: { widget: Widget },
 					data: { world: 'mars' }
 				});
-			});
+			});*/
 		}
 
 		test( 'Data passed into component updates from outside component in magic mode', t => {
@@ -745,7 +747,8 @@ function testDataPropagation( mode, parameters ) {
 		t.equal( fixture.innerHTML, 'bar' );
 	});
 
-	test( 'Component in template having data function with no return uses existing data instance', t => {
+	// For removal (#1594)
+	/*test( 'Component in template having data function with no return uses existing data instance', t => {
 		var Component, ractive, data = { foo: 'bar' } ;
 
 		Component = Ractive.extend({
@@ -764,18 +767,21 @@ function testDataPropagation( mode, parameters ) {
 		});
 
 		t.equal( fixture.innerHTML, 'barbam' );
-	});
+	});*/
 
 	if ( parameters !== false ) {
 
 		test( 'Component in template passed parameters with data function', t => {
-			var Component, ractive, data = { foo: 'bar' } ;
+			var Component, ractive;
 
 			Component = Ractive.extend({
 				template: '{{foo}}{{bim}}',
 				parameters: parameters,
-				data: function(d){
-					d.bim = d.foo
+				data () {
+					return {
+						bim: this.get( 'foo' )
+					};
+					//d.bim = d.foo
 				}
 			});
 
@@ -789,8 +795,9 @@ function testDataPropagation( mode, parameters ) {
 			t.equal( fixture.innerHTML, 'barbar' );
 		});
 
-		test( 'Component data in sync with mapped property', t => {
-			var Component, component, ractive, data = { foo: 'bar' } ;
+		// For removal (#1594)
+		/*test( 'Component data in sync with mapped property', t => {
+			var Component, component, ractive;
 
 			Component = Ractive.extend({
 				template: '<input value="{{foo}}">',
@@ -821,6 +828,41 @@ function testDataPropagation( mode, parameters ) {
 			t.equal( component.data.foo, 'bar' );
 			t.equal( ractive.data.outer, 'bar' );
 
+		});*/
+
+		// post-#1594 version of previous test
+		test( 'Component data in sync with mapped property', t => {
+			var Component, component, ractive;
+
+			Component = Ractive.extend({
+				template: '<input value="{{foo}}">',
+				parameters: parameters
+			});
+
+			ractive = new Ractive({
+				el: fixture,
+				template: '<widget foo="{{outer}}"/>',
+				components: { widget: Component },
+				data: { outer: 'bar' }
+			});
+
+			component = ractive.findComponent( 'widget' );
+			t.equal( component.get( 'foo' ), 'bar' );
+
+			ractive.set( 'outer', 'space' );
+			t.equal( component.get( 'foo' ), 'space' );
+
+			component.find('input').value = 'limits';
+			component.updateModel();
+
+			t.equal( component.get( 'foo' ), 'limits' );
+			t.equal( ractive.get( 'outer' ), 'limits' );
+
+			component.set( 'foo', 'bar' );
+
+			t.equal( component.get( 'foo' ), 'bar' );
+			t.equal( ractive.get( 'outer' ), 'bar' );
+
 		});
 
 	}
@@ -829,8 +871,8 @@ function testDataPropagation( mode, parameters ) {
 		var Component, ractive;
 
 		Component = Ractive.extend({
-			template: function( data, parser ){
-				return data.useFoo ? '{{foo}}' : '{{fizz}}'
+			template () {
+				return this.get( 'useFoo' ) ? '{{foo}}' : '{{fizz}}';
 			},
 			parameters: parameters
 		});

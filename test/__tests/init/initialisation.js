@@ -92,7 +92,8 @@ test( 'data is inherited from grand parent extend (#923)', t => {
 	t.equal( fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD' );
 })
 
-test( 'instance data is used as data object', t => {
+// For removal? (#1594)
+/*test( 'instance data is used as data object', t => {
 
 	var ractive, data = { foo: 'bar' };
 
@@ -100,9 +101,10 @@ test( 'instance data is used as data object', t => {
 	ractive = new Ractive( { data: data } );
 
 	t.equal( ractive.data, data );
-});
+});*/
 
-test( 'default data function with no return uses existing data instance', t => {
+// For removal (#1594)
+/*test( 'default data function with no return uses existing data instance', t => {
 	var ractive;
 
 	Ractive.defaults.data = function ( d ) { d.bizz = 'bop' };
@@ -111,7 +113,7 @@ test( 'default data function with no return uses existing data instance', t => {
 
 	t.ok( ractive.data.foo );
 	t.ok( ractive.data.bizz );
-});
+});*/
 
 test( 'instance data function takes precendence over default data function', t => {
 	var ractive;
@@ -211,7 +213,7 @@ test( 'return from data function replaces data instance', t => {
 		template: '{{foo}}'
 	});
 
-	t.ok( ractive.data instanceof Model );
+	t.ok( ractive.viewmodel.data instanceof Model );
 	t.equal( fixture.innerHTML, 'bar' )
 
 	ractive = new Component( {
@@ -251,7 +253,8 @@ test( 'initing data with a primitive results in an error', t => {
 	}
 });
 
-test( 'instantiated extend with data uses existing data instance', t => {
+// For removal (#1594)
+/*test( 'instantiated extend with data uses existing data instance', t => {
 	var Component, ractive, data = { foo: 'bar' } ;
 
 	Component = Ractive.extend({
@@ -261,7 +264,7 @@ test( 'instantiated extend with data uses existing data instance', t => {
 	ractive = new Component( { data: data } );
 	t.equal( ractive.data, data );
 	t.ok( ractive.data.bizz );
-});
+});*/
 
 
 module( 'Template Initialisation', cleanupDefaults );
