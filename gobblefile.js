@@ -1,5 +1,6 @@
 var gobble = require( 'gobble' ),
 	sander = require( 'sander' ),
+	Promise = sander.Promise,
 	path = require( 'path' ),
 	esperanto = require( 'esperanto' ),
 	sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' ),
