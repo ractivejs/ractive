@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Feb 17 2015 11:35:22 GMT+0000 (UTC) - commit c8db7dfe186c9408a4adb02738f6077af7bf5ecb
+	Tue Feb 17 2015 14:35:10 GMT+0000 (UTC) - commit 7741ceb6e42f2033b98e9ba678d0efa44c6da208
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1131,7 +1131,7 @@
 
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/interpolators.js.map
 
-  function add(root, keypath, d) {
+  function add__add(root, keypath, d) {
     var value;
 
     if (typeof keypath !== "string" || !is__isNumeric(d)) {
@@ -1149,7 +1149,7 @@
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/add.js.map
 
   function Ractive$add(keypath, d) {
-    return add(this, keypath, d === undefined ? 1 : +d);
+    return add__add(this, keypath, d === undefined ? 1 : +d);
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/add.js.map
 
@@ -2680,7 +2680,7 @@
   };
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/sort.js.map
 
-  var dirty = function () {
+  var dirty__default = function () {
     var _this = this;
     if (!this._dirty) {
       this._dirty = true;
@@ -2723,7 +2723,7 @@
 
       _root: { value: ractive },
       _sort: { value: sort },
-      _makeDirty: { value: dirty },
+      _makeDirty: { value: dirty__default },
       _remove: { value: remove },
 
       _dirty: { value: false, writable: true }
@@ -3571,8 +3571,8 @@
       styleSheet,
       inDom,
       css__prefix = "/* Ractive.js component styles */\n",
-      componentsInPage = {},
-      styles = [];
+      styles = [],
+      dirty = false;
 
   if (!isClient) {
     css = null;
@@ -3589,62 +3589,38 @@
     styleSheet = styleElement.styleSheet;
 
     css__update = function () {
-      var css;
+      var css = css__prefix + styles.map(function (s) {
+        return "\n/* {" + s.id + "} */\n" + s.styles;
+      }).join("\n");
 
-      if (styles.length) {
-        css = css__prefix + styles.join(" ");
+      if (styleSheet) {
+        styleSheet.cssText = css;
+      } else {
+        styleElement.innerHTML = css;
+      }
 
-        if (styleSheet) {
-          styleSheet.cssText = css;
-        } else {
-          styleElement.innerHTML = css;
-        }
-
-        if (!inDom) {
-          head.appendChild(styleElement);
-          inDom = true;
-        }
-      } else if (inDom) {
-        head.removeChild(styleElement);
-        inDom = false;
+      if (!inDom) {
+        head.appendChild(styleElement);
+        inDom = true;
       }
     };
 
     css = {
-      add: function (Component) {
-        if (!Component.css) {
-          return;
-        }
-
-        if (!componentsInPage[Component._guid]) {
-          // we create this counter so that we can in/decrement it as
-          // instances are added and removed. When all components are
-          // removed, the style is too
-          componentsInPage[Component._guid] = 0;
-          styles.push(Component.css);
-
-          css__update(); // TODO can we only do this once for each runloop turn, but still ensure CSS is updated before onrender() methods are called?
-        }
-
-        componentsInPage[Component._guid] += 1;
+      add: function css__add(s) {
+        styles.push(s);
+        dirty = true;
       },
 
-      remove: function (Component) {
-        if (!Component.css) {
-          return;
-        }
-
-        componentsInPage[Component._guid] -= 1;
-
-        if (!componentsInPage[Component._guid]) {
-          removeFromArray(styles, Component.css);
-          runloop.scheduleTask(css__update);
+      apply: function apply() {
+        if (dirty) {
+          css__update();
+          dirty = false;
         }
       }
     };
   }
 
-  var css__default = css;
+
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/global/css.js.map
 
   var renderHook = new Hook("render"),
@@ -3687,9 +3663,9 @@
       target.innerHTML = ""; // TODO is this quicker than removeChild? Initial research inconclusive
     }
 
-    // Add CSS, if applicable
-    if (this.constructor.css) {
-      css__default.add(this.constructor);
+    if (this.cssId) {
+      // ensure encapsulated CSS is up-to-date
+      css.apply();
     }
 
     if (target) {
@@ -3843,28 +3819,23 @@
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/custom/css/transform.js.map
 
+  var cssConfigurator__uid = 1;
+
   var cssConfigurator = {
     name: "css",
 
     extend: function (Parent, proto, options) {
-      var guid = proto.constructor._guid,
-          css;
+      if (options.css) {
+        var id = cssConfigurator__uid++;
+        var styles = options.noCssTransform ? options.css : transformCss(options.css, id);
 
-      if (css = getCss(options.css, options, guid) || getCss(Parent.css, Parent, guid)) {
-        proto.constructor.css = css;
+        proto.cssId = id;
+        css.add({ id: id, styles: styles });
       }
     },
 
     init: function () {}
   };
-
-  function getCss(css, target, guid) {
-    if (!css) {
-      return;
-    }
-
-    return target.noCssTransform ? css : transformCss(css, guid);
-  }
 
 
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/custom/css/css.js.map
@@ -13050,11 +13021,11 @@
     if (ractive.template) {
       var cssIds = undefined;
 
-      if (options.cssIds || ractive.constructor.css) {
+      if (options.cssIds || ractive.cssId) {
         cssIds = options.cssIds ? options.cssIds.slice() : [];
 
-        if (ractive.constructor.css) {
-          cssIds.push(ractive.constructor._guid);
+        if (ractive.cssId) {
+          cssIds.push(ractive.cssId);
         }
       }
 
@@ -14090,7 +14061,7 @@
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/splice.js.map
 
   function Ractive$subtract(keypath, d) {
-    return add(this, keypath, d === undefined ? -1 : -d);
+    return add__add(this, keypath, d === undefined ? -1 : -d);
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/subtract.js.map
 
@@ -14141,7 +14112,6 @@
   var unrenderHook = new Hook("unrender");
 
   function Ractive$unrender() {
-    var _this = this;
     var promise, shouldDestroy;
 
     if (!this.fragment.rendered) {
@@ -14154,12 +14124,6 @@
     // If this is a component, and the component isn't marked for destruction,
     // don't detach nodes from the DOM unnecessarily
     shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
-
-    if (this.constructor.css) {
-      promise.then(function () {
-        css__default.remove(_this.constructor);
-      });
-    }
 
     // Cancel any animations in progress
     while (this._animations[0]) {
@@ -14389,10 +14353,9 @@
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/extend/unwrapExtended.js.map
 
-  var extend__uid = 1,
-      extend__extend;
+  var extend__default = extend__extend;
 
-  extend__extend = function () {
+  function extend__extend() {
     for (var _len = arguments.length, options = Array(_len), _key = 0; _key < _len; _key++) {
       options[_key] = arguments[_key];
     }
@@ -14402,9 +14365,7 @@
     } else {
       return options.reduce(extendOne, this);
     }
-  };
-
-  var extend__default = extend__extend;
+  }
 
   function extendOne(Parent) {
     var options = arguments[1] === undefined ? {} : arguments[1];
@@ -14430,9 +14391,6 @@
 
     // Static properties
     defineProperties(Child, {
-      // each component needs a unique ID, for managing CSS
-      _guid: { value: extend__uid++ },
-
       // alias prototype as defaults
       defaults: { value: proto },
 
