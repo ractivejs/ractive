@@ -77,3 +77,18 @@ test( 'Re-linking overwrites the existing link', t => {
 	ractive.link( 'dogs.1', 'dog' );
 	t.equal( fixture.innerHTML, 'John' );
 });
+
+test( 'Links should not be able to hose up component mappings', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '<foo bar="{{baz}}" />',
+		data: { baz: 'yep' },
+		components: { foo: Ractive.extend({ template: '{{bar}}', data: { bippy: 'nope' } } ) }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+	t.throws( () => {
+		ractive.findComponent( 'foo' ).link( 'bippy', 'bar' );
+	}, /exists for/ );
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});

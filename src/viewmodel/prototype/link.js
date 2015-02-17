@@ -1,7 +1,9 @@
 export function link( there, here ) {
-	let mapping = this.mappings[here.str];
-	if ( mapping ) {
-		this.unlink( here );
+	let mapping = this.mappings[here.str], error;
+
+	// unlink the existing mapping or return the error object from trying to do so
+	if ( mapping && ( error = this.unlink( here ) ) ) {
+		return error;
 	}
 
 	let deps = {
@@ -18,12 +20,15 @@ export function link( there, here ) {
 
 export function unlink( here ) {
 	let mapping = this.mappings[here.str];
-	if ( mapping ) {
+	// if the existing mapping isn't entirely local, tell upstream to bail
+	if ( mapping && mapping.origin === mapping.local && mapping.local === this ) {
 		let deps = mapping.deps.slice( 0 );
 		deps.forEach( d => mapping.unregister( d.keypath, d.dep, d.group ) );
 		delete this.mappings[here.str];
 		deps.forEach( d => mapping.origin.register( d.keypath, d.dep, d.group ) );
 		this.mark( here );
+	} else {
+		return { message: `A component link already exists for ${here.str}` };
 	}
 }
 
