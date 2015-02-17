@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sun Feb 15 2015 21:57:23 GMT+0000 (UTC) - commit 72a7621ef2609568d4795fbbf0803ab2fd7d37b9
+	Tue Feb 17 2015 11:35:22 GMT+0000 (UTC) - commit c8db7dfe186c9408a4adb02738f6077af7bf5ecb
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -15,7 +15,7 @@
 }(this, function () { 'use strict';
 
   var TEMPLATE_VERSION = 3;
-  //# sourceMappingURL=02-6to5-template.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/config/template.js.map
 
   var defaultOptions = {
 
@@ -41,7 +41,6 @@
     modifyArrays: true,
     adapt: [],
     isolated: false,
-    parameters: true,
     twoway: true,
     lazy: false,
 
@@ -59,7 +58,7 @@
   };
 
   var defaults = defaultOptions;
-  //# sourceMappingURL=02-6to5-defaults.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/defaults.js.map
 
   // These are a subset of the easing equations found at
   // https://raw.github.com/danro/easing-js - license info
@@ -102,7 +101,7 @@
       return 0.5 * (Math.pow(pos - 2, 3) + 2);
     }
   };
-  //# sourceMappingURL=02-6to5-easing.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/easing.js.map
 
   /*global console */
   var isClient, hasConsole, magic, namespaces, svg, vendors;
@@ -738,7 +737,7 @@
 
   var legacy = exportedShims;
   // TODO...
-  //# sourceMappingURL=02-6to5-legacy.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/legacy.js.map
 
   var create, defineProperty, defineProperties;
 
@@ -846,7 +845,7 @@
   }
 
   var hasOwn = Object.prototype.hasOwnProperty;
-  //# sourceMappingURL=02-6to5-object.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/object.js.map
 
   var is__toString = Object.prototype.toString,
       arrayLikePattern = /^\[object (?:Array|FileList)\]$/;
@@ -901,10 +900,10 @@
   function isFunction(thing) {
     return typeof thing === "function";
   }
-  //# sourceMappingURL=02-6to5-is.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/is.js.map
 
   var noop = function () {};
-  //# sourceMappingURL=02-6to5-noop.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/noop.js.map
 
   /* global console */
   var alreadyWarned = {},
@@ -969,7 +968,7 @@
     alreadyWarned[message] = true;
     printWarning(message, args);
   }
-  //# sourceMappingURL=02-6to5-log.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/log.js.map
 
   // Error messages that are used (or could be) in multiple places
   var badArguments = "Bad arguments";
@@ -977,7 +976,7 @@
   var missingPlugin = function (name, type) {
     return "Missing \"" + name + "\" " + type + " plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#" + type + "s";
   };
-  //# sourceMappingURL=02-6to5-errors.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/config/errors.js.map
 
   function findInViewHierarchy(registryName, ractive, name) {
     var instance = findInstance(registryName, ractive, name);
@@ -997,7 +996,7 @@
       ractive = ractive.parent;
     }
   }
-  //# sourceMappingURL=02-6to5-registry.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/registry.js.map
 
   var interpolate = function (from, to, ractive, type) {
     if (from === to) {
@@ -1023,7 +1022,7 @@
       return to;
     };
   }
-  //# sourceMappingURL=02-6to5-interpolate.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/interpolate.js.map
 
   var interpolators = {
     number: function (from, to) {
@@ -1130,7 +1129,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-interpolators.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/interpolators.js.map
 
   function add(root, keypath, d) {
     var value;
@@ -1147,12 +1146,12 @@
 
     return root.set(keypath, value + d);
   }
-  //# sourceMappingURL=02-6to5-add.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/add.js.map
 
   function Ractive$add(keypath, d) {
     return add(this, keypath, d === undefined ? 1 : +d);
   }
-  //# sourceMappingURL=02-6to5-add.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/add.js.map
 
   var requestAnimationFrame;
 
@@ -1194,7 +1193,7 @@
   }
 
   var rAF = requestAnimationFrame;
-  //# sourceMappingURL=02-6to5-requestAnimationFrame.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/requestAnimationFrame.js.map
 
   var getTime;
 
@@ -1209,7 +1208,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-getTime.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/getTime.js.map
 
   var deprecations = {
     construct: {
@@ -1254,7 +1253,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Hook.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/hooks/Hook.js.map
 
   function addToArray(array, value) {
     var index = array.indexOf(value);
@@ -1328,7 +1327,7 @@
 
     return array;
   }
-  //# sourceMappingURL=02-6to5-array.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/array.js.map
 
   var _Promise,
       PENDING = {},
@@ -1539,7 +1538,7 @@
       fulfil(x);
     }
   }
-  //# sourceMappingURL=02-6to5-Promise.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/Promise.js.map
 
   var starMaps = {};
 
@@ -1615,7 +1614,7 @@
 
     return starMaps[num];
   }
-  //# sourceMappingURL=02-6to5-getPotentialWildcardMatches.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/getPotentialWildcardMatches.js.map
 
   var refPattern, keypathCache, Keypath;
 
@@ -1767,7 +1766,7 @@
   }
 
   var rootKeypath = getKeypath("");
-  //# sourceMappingURL=02-6to5-keypaths.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/keypaths.js.map
 
   var getInnerContext = function (fragment) {
     do {
@@ -1778,7 +1777,7 @@
 
     return rootKeypath;
   };
-  //# sourceMappingURL=02-6to5-getInnerContext.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/getInnerContext.js.map
 
   function resolveRef(ractive, ref, fragment) {
     var keypath;
@@ -1871,7 +1870,7 @@
     }
 
     // Root/computed/mapped property?
-    if (isRootProperty(ractive, key)) {
+    if (isRootProperty(ractive.viewmodel, key)) {
       return ref;
     }
 
@@ -1907,7 +1906,7 @@
   function createMappingIfNecessary(ractive, key) {
     var parentKeypath;
 
-    if (!ractive.parent || ractive.isolated || isRootProperty(ractive, key)) {
+    if (!ractive.parent || ractive.isolated || isRootProperty(ractive.viewmodel, key)) {
       return;
     }
 
@@ -1921,11 +1920,11 @@
     }
   }
 
-  function isRootProperty(ractive, key) {
+  function isRootProperty(viewmodel, key) {
     // special case for reference to root
-    return key === "" || key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
+    return key === "" || key in viewmodel.data || key in viewmodel.computations || key in viewmodel.mappings;
   }
-  //# sourceMappingURL=02-6to5-resolveRef.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/resolveRef.js.map
 
   function teardown(x) {
     x.teardown();
@@ -1936,7 +1935,7 @@
   function methodCallers__unrender(x) {
     x.unrender();
   }
-  //# sourceMappingURL=02-6to5-methodCallers.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/methodCallers.js.map
 
   var TransitionManager = function (callback, parent) {
     this.callback = callback;
@@ -2040,7 +2039,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-TransitionManager.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/global/TransitionManager.js.map
 
   var batch,
       runloop,
@@ -2062,12 +2061,12 @@
         transitionManager: new TransitionManager(fulfilPromise, batch && batch.transitionManager),
         views: [],
         tasks: [],
-        viewmodels: [],
+        ractives: [],
         instance: instance
       };
 
       if (instance) {
-        batch.viewmodels.push(instance.viewmodel);
+        batch.ractives.push(instance);
       }
 
       return promise;
@@ -2081,17 +2080,9 @@
       batch = batch.previousBatch;
     },
 
-    addViewmodel: function (viewmodel) {
+    addRactive: function (ractive) {
       if (batch) {
-        if (batch.viewmodels.indexOf(viewmodel) === -1) {
-          batch.viewmodels.push(viewmodel);
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        viewmodel.applyChanges();
-        return false;
+        addToArray(batch.ractives, ractive);
       }
     },
 
@@ -2145,12 +2136,12 @@
   function flushChanges() {
     var i, thing, changeHash;
 
-    while (batch.viewmodels.length) {
-      thing = batch.viewmodels.pop();
-      changeHash = thing.applyChanges();
+    while (batch.ractives.length) {
+      thing = batch.ractives.pop();
+      changeHash = thing.viewmodel.applyChanges();
 
       if (changeHash) {
-        changeHook.fire(thing.ractive, changeHash);
+        changeHook.fire(thing, changeHash);
       }
     }
 
@@ -2171,7 +2162,7 @@
     // If updating the view caused some model blowback - e.g. a triple
     // containing <option> elements caused the binding on the <select>
     // to update - then we start over
-    if (batch.viewmodels.length) return flushChanges();
+    if (batch.ractives.length) return flushChanges();
   }
 
   function attemptKeypathResolution() {
@@ -2208,7 +2199,7 @@
   function runloop__resolve(resolved) {
     resolved.item.resolve(resolved.keypath);
   }
-  //# sourceMappingURL=02-6to5-runloop.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/global/runloop.js.map
 
   var queue = [];
 
@@ -2263,7 +2254,7 @@
   };
 
   var animations__default = animations;
-  //# sourceMappingURL=02-6to5-animations.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/animations.js.map
 
   var Animation = function (options) {
     var key;
@@ -2355,7 +2346,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Animation.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/animate/Animation.js.map
 
   var noAnimation = { stop: noop };
 
@@ -2528,7 +2519,7 @@
 
     return animation;
   }
-  //# sourceMappingURL=02-6to5-animate.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/animate.js.map
 
   var prototype_detach__detachHook = new Hook("detach");
 
@@ -2544,7 +2535,7 @@
     prototype_detach__detachHook.fire(this);
     return this.detached;
   }
-  //# sourceMappingURL=02-6to5-detach.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/detach.js.map
 
   function Ractive$find(selector) {
     if (!this.el) {
@@ -2553,7 +2544,7 @@
 
     return this.fragment.find(selector);
   }
-  //# sourceMappingURL=02-6to5-find.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/find.js.map
 
   var test = function (item, noDirty) {
     var itemMatches;
@@ -2574,7 +2565,7 @@
       return true;
     }
   };
-  //# sourceMappingURL=02-6to5-test.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/test.js.map
 
   var cancel = function () {
     var liveQueries, selector, index;
@@ -2589,7 +2580,7 @@
       liveQueries[selector] = null;
     }
   };
-  //# sourceMappingURL=02-6to5-cancel.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/cancel.js.map
 
   var sortByItemPosition = function (a, b) {
     var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
@@ -2667,7 +2658,7 @@
 
     return ancestry;
   }
-  //# sourceMappingURL=02-6to5-sortByItemPosition.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/sortByItemPosition.js.map
 
   var sortByDocumentPosition = function (node, otherNode) {
     var bitmask;
@@ -2681,13 +2672,13 @@
     // comparing component positions
     return sortByItemPosition(node, otherNode);
   };
-  //# sourceMappingURL=02-6to5-sortByDocumentPosition.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/sortByDocumentPosition.js.map
 
   var sort = function () {
     this.sort(this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition);
     this._dirty = false;
   };
-  //# sourceMappingURL=02-6to5-sort.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/sort.js.map
 
   var dirty = function () {
     var _this = this;
@@ -2701,7 +2692,7 @@
       });
     }
   };
-  //# sourceMappingURL=02-6to5-dirty.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/dirty.js.map
 
   var remove = function (nodeOrComponent) {
     var index = this.indexOf(this._isComponentQuery ? nodeOrComponent.instance : nodeOrComponent);
@@ -2710,7 +2701,7 @@
       this.splice(index, 1);
     }
   };
-  //# sourceMappingURL=02-6to5-remove.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/remove.js.map
 
   function makeQuery(ractive, selector, live, isComponentQuery) {
     var query = [];
@@ -2740,7 +2731,7 @@
 
     return query;
   }
-  //# sourceMappingURL=02-6to5-_makeQuery.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeQuery/_makeQuery.js.map
 
   function Ractive$findAll(selector, options) {
     var liveQueries, query;
@@ -2771,7 +2762,7 @@
     this.fragment.findAll(selector, query);
     return query;
   }
-  //# sourceMappingURL=02-6to5-findAll.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/findAll.js.map
 
   function Ractive$findAllComponents(selector, options) {
     var liveQueries, query;
@@ -2798,12 +2789,12 @@
     this.fragment.findAllComponents(selector, query);
     return query;
   }
-  //# sourceMappingURL=02-6to5-findAllComponents.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/findAllComponents.js.map
 
   function Ractive$findComponent(selector) {
     return this.fragment.findComponent(selector);
   }
-  //# sourceMappingURL=02-6to5-findComponent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/findComponent.js.map
 
   function Ractive$findContainer(selector) {
     if (this.container) {
@@ -2816,7 +2807,7 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-findContainer.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/findContainer.js.map
 
   function Ractive$findParent(selector) {
     if (this.parent) {
@@ -2829,7 +2820,7 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-findParent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/findParent.js.map
 
   var eventStack = {
     enqueue: function (ractive, event) {
@@ -2849,7 +2840,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-eventStack.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/eventStack.js.map
 
   function fireEvent(ractive, eventName) {
     var options = arguments[2] === undefined ? {} : arguments[2];
@@ -2860,8 +2851,6 @@
     if (!options.event) {
       options.event = {
         name: eventName,
-        context: ractive.data,
-        keypath: "",
         // until event not included as argument default
         _noArg: true
       };
@@ -2932,7 +2921,7 @@
 
     return !stopEvent;
   }
-  //# sourceMappingURL=02-6to5-fireEvent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/fireEvent.js.map
 
   function Ractive$fire(eventName) {
     var options = {
@@ -2941,7 +2930,7 @@
 
     fireEvent(this, eventName, options);
   }
-  //# sourceMappingURL=02-6to5-fire.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/fire.js.map
 
   var options = {
     capture: true, // top-level calls should be intercepted
@@ -2964,7 +2953,7 @@
 
     return value;
   }
-  //# sourceMappingURL=02-6to5-get.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/get.js.map
 
   var insertHook = new Hook("insert");
 
@@ -2997,7 +2986,7 @@
       fireInsertHook(child.instance);
     });
   }
-  //# sourceMappingURL=02-6to5-insert.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/insert.js.map
 
   function Ractive$merge(keypath, array, options) {
     var currentArray, promise;
@@ -3018,7 +3007,7 @@
 
     return promise;
   }
-  //# sourceMappingURL=02-6to5-merge.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/merge.js.map
 
   var Observer = function (ractive, keypath, callback, options) {
     this.root = ractive;
@@ -3072,7 +3061,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Observer.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/observe/Observer.js.map
 
   function getPattern(ractive, pattern) {
     var matchingKeypaths, values;
@@ -3086,7 +3075,7 @@
 
     return values;
   }
-  //# sourceMappingURL=02-6to5-getPattern.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/observe/getPattern.js.map
 
   var PatternObserver,
       PatternObserver__wildcard = /\*/,
@@ -3199,7 +3188,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-PatternObserver.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/observe/PatternObserver.js.map
 
   var getObserverFacade__wildcard = /\*/,
       emptyObject = {};
@@ -3245,7 +3234,7 @@
       }
     };
   }
-  //# sourceMappingURL=02-6to5-getObserverFacade.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/observe/getObserverFacade.js.map
 
   function Ractive$observe(keypath, callback, options) {
     var observers, map, keypaths, i;
@@ -3309,7 +3298,7 @@
       }
     };
   }
-  //# sourceMappingURL=02-6to5-observe.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/observe.js.map
 
   function Ractive$observeOnce(property, callback, options) {
     var observer = this.observe(property, function () {
@@ -3319,17 +3308,17 @@
 
     return observer;
   }
-  //# sourceMappingURL=02-6to5-observeOnce.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/observeOnce.js.map
 
   var trim__default = function (str) {
     return str.trim();
   };
-  //# sourceMappingURL=02-6to5-trim.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/trim.js.map
 
   var notEmptyString = function (str) {
     return str !== "";
   };
-  //# sourceMappingURL=02-6to5-notEmptyString.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/notEmptyString.js.map
 
   function Ractive$off(eventName, callback) {
     var _this = this;
@@ -3371,7 +3360,7 @@
 
     return this;
   }
-  //# sourceMappingURL=02-6to5-off.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/off.js.map
 
   function Ractive$on(eventName, callback) {
     var _this = this;
@@ -3411,7 +3400,7 @@
       }
     };
   }
-  //# sourceMappingURL=02-6to5-on.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/on.js.map
 
   function Ractive$once(eventName, handler) {
     var listener = this.on(eventName, function () {
@@ -3422,7 +3411,7 @@
     // so we can still do listener.cancel() manually
     return listener;
   }
-  //# sourceMappingURL=02-6to5-once.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/once.js.map
 
   // This function takes an array, the name of a mutator method, and the
   // arguments to call that mutator method with, and returns an array that
@@ -3524,7 +3513,7 @@
         return [0, 0].concat(args);
     }
   }
-  //# sourceMappingURL=02-6to5-getNewIndices.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/getNewIndices.js.map
 
   var arrayProto = Array.prototype;
 
@@ -3567,13 +3556,13 @@
       return promise;
     };
   };
-  //# sourceMappingURL=02-6to5-makeArrayMethod.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/makeArrayMethod.js.map
 
   var pop = makeArrayMethod("pop");
-  //# sourceMappingURL=02-6to5-pop.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/pop.js.map
 
   var push = makeArrayMethod("push");
-  //# sourceMappingURL=02-6to5-push.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/push.js.map
 
   var css,
       css__update,
@@ -3656,7 +3645,7 @@
   }
 
   var css__default = css;
-  //# sourceMappingURL=02-6to5-css.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/global/css.js.map
 
   var renderHook = new Hook("render"),
       completeHook = new Hook("complete");
@@ -3744,498 +3733,14 @@
   // certain very specific situations, trying to access node.parentNode (which
   // we need to do in order to detach elements) causes an 'Invalid argument'
   // error to be thrown. I don't even.
-  //# sourceMappingURL=02-6to5-render.js.map
-
-  var processWrapper = function (wrapper, array, methodName, newIndices) {
-    var root = wrapper.root;
-    var keypath = wrapper.keypath;
-
-
-    // If this is a sort or reverse, we just do root.set()...
-    // TODO use merge logic?
-    if (methodName === "sort" || methodName === "reverse") {
-      root.viewmodel.set(keypath, array);
-      return;
-    }
-
-    root.viewmodel.smartUpdate(keypath, array, newIndices);
-  };
-  //# sourceMappingURL=02-6to5-processWrapper.js.map
-
-  var patchedArrayProto = [],
-      mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"],
-      testObj,
-      patchArrayMethods,
-      unpatchArrayMethods;
-
-  mutatorMethods.forEach(function (methodName) {
-    var method = function () {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      var newIndices, result, wrapper, i;
-
-      newIndices = getNewIndices(this, methodName, args);
-
-      // apply the underlying method
-      result = Array.prototype[methodName].apply(this, arguments);
-
-      // trigger changes
-      runloop.start();
-
-      this._ractive.setting = true;
-      i = this._ractive.wrappers.length;
-      while (i--) {
-        wrapper = this._ractive.wrappers[i];
-
-        runloop.addViewmodel(wrapper.root.viewmodel);
-        processWrapper(wrapper, this, methodName, newIndices);
-      }
-
-      runloop.end();
-
-      this._ractive.setting = false;
-      return result;
-    };
-
-    defineProperty(patchedArrayProto, methodName, {
-      value: method
-    });
-  });
-
-  // can we use prototype chain injection?
-  // http://perfectionkills.com/how-ecmascript-5-still-does-not-allow-to-subclass-an-array/#wrappers_prototype_chain_injection
-  testObj = {};
-
-  if (testObj.__proto__) {
-    // yes, we can
-    patchArrayMethods = function (array) {
-      array.__proto__ = patchedArrayProto;
-    };
-
-    unpatchArrayMethods = function (array) {
-      array.__proto__ = Array.prototype;
-    };
-  } else {
-    // no, we can't
-    patchArrayMethods = function (array) {
-      var i, methodName;
-
-      i = mutatorMethods.length;
-      while (i--) {
-        methodName = mutatorMethods[i];
-        defineProperty(array, methodName, {
-          value: patchedArrayProto[methodName],
-          configurable: true
-        });
-      }
-    };
-
-    unpatchArrayMethods = function (array) {
-      var i;
-
-      i = mutatorMethods.length;
-      while (i--) {
-        delete array[mutatorMethods[i]];
-      }
-    };
-  }
-
-  patchArrayMethods.unpatch = unpatchArrayMethods;
-  var patch = patchArrayMethods;
-  //# sourceMappingURL=02-6to5-patch.js.map
-
-  var arrayAdaptor,
-
-  // helpers
-  ArrayWrapper, errorMessage;
-
-  arrayAdaptor = {
-    filter: function (object) {
-      // wrap the array if a) b) it's an array, and b) either it hasn't been wrapped already,
-      // or the array didn't trigger the get() itself
-      return isArray(object) && (!object._ractive || !object._ractive.setting);
-    },
-    wrap: function (ractive, array, keypath) {
-      return new ArrayWrapper(ractive, array, keypath);
-    }
-  };
-
-  ArrayWrapper = function (ractive, array, keypath) {
-    this.root = ractive;
-    this.value = array;
-    this.keypath = getKeypath(keypath);
-
-    // if this array hasn't already been ractified, ractify it
-    if (!array._ractive) {
-      // define a non-enumerable _ractive property to store the wrappers
-      defineProperty(array, "_ractive", {
-        value: {
-          wrappers: [],
-          instances: [],
-          setting: false
-        },
-        configurable: true
-      });
-
-      patch(array);
-    }
-
-    // store the ractive instance, so we can handle transitions later
-    if (!array._ractive.instances[ractive._guid]) {
-      array._ractive.instances[ractive._guid] = 0;
-      array._ractive.instances.push(ractive);
-    }
-
-    array._ractive.instances[ractive._guid] += 1;
-    array._ractive.wrappers.push(this);
-  };
-
-  ArrayWrapper.prototype = {
-    get: function () {
-      return this.value;
-    },
-    teardown: function () {
-      var array, storage, wrappers, instances, index;
-
-      array = this.value;
-      storage = array._ractive;
-      wrappers = storage.wrappers;
-      instances = storage.instances;
-
-      // if teardown() was invoked because we're clearing the cache as a result of
-      // a change that the array itself triggered, we can save ourselves the teardown
-      // and immediate setup
-      if (storage.setting) {
-        return false; // so that we don't remove it from this.root.viewmodel.wrapped
-      }
-
-      index = wrappers.indexOf(this);
-      if (index === -1) {
-        throw new Error(errorMessage);
-      }
-
-      wrappers.splice(index, 1);
-
-      // if nothing else depends on this array, we can revert it to its
-      // natural state
-      if (!wrappers.length) {
-        delete array._ractive;
-        patch.unpatch(this.value);
-      } else {
-        // remove ractive instance if possible
-        instances[this.root._guid] -= 1;
-        if (!instances[this.root._guid]) {
-          index = instances.indexOf(this.root);
-
-          if (index === -1) {
-            throw new Error(errorMessage);
-          }
-
-          instances.splice(index, 1);
-        }
-      }
-    }
-  };
-
-  errorMessage = "Something went wrong in a rather interesting way";
-
-  //# sourceMappingURL=02-6to5-index.js.map
-
-  var numeric = /^\s*[0-9]+\s*$/;
-
-  var createBranch = function (key) {
-    return numeric.test(key) ? [] : {};
-  };
-  //# sourceMappingURL=02-6to5-createBranch.js.map
-
-  var magicAdaptor, MagicWrapper;
-
-  try {
-    Object.defineProperty({}, "test", { value: 0 });
-
-    magicAdaptor = {
-      filter: function (object, keypath, ractive) {
-        var parentWrapper, parentValue;
-
-        if (!keypath) {
-          return false;
-        }
-
-        keypath = getKeypath(keypath);
-
-        // If the parent value is a wrapper, other than a magic wrapper,
-        // we shouldn't wrap this property
-        if ((parentWrapper = ractive.viewmodel.wrapped[keypath.parent.str]) && !parentWrapper.magic) {
-          return false;
-        }
-
-        parentValue = ractive.viewmodel.get(keypath.parent);
-
-        // if parentValue is an array that doesn't include this member,
-        // we should return false otherwise lengths will get messed up
-        if (isArray(parentValue) && /^[0-9]+$/.test(keypath.lastKey)) {
-          return false;
-        }
-
-        return parentValue && (typeof parentValue === "object" || typeof parentValue === "function");
-      },
-      wrap: function (ractive, property, keypath) {
-        return new MagicWrapper(ractive, property, keypath);
-      }
-    };
-
-    MagicWrapper = function (ractive, value, keypath) {
-      var objKeypath, template, siblings;
-
-      keypath = getKeypath(keypath);
-
-      this.magic = true;
-
-      this.ractive = ractive;
-      this.keypath = keypath;
-      this.value = value;
-
-      this.prop = keypath.lastKey;
-
-      objKeypath = keypath.parent;
-      this.obj = objKeypath.isRoot ? ractive.data : ractive.viewmodel.get(objKeypath);
-
-      template = this.originalDescriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
-
-      // Has this property already been wrapped?
-      if (template && template.set && (siblings = template.set._ractiveWrappers)) {
-        // Yes. Register this wrapper to this property, if it hasn't been already
-        if (siblings.indexOf(this) === -1) {
-          siblings.push(this);
-        }
-
-        return; // already wrapped
-      }
-
-      // No, it hasn't been wrapped
-      createAccessors(this, value, template);
-    };
-
-    MagicWrapper.prototype = {
-      get: function () {
-        return this.value;
-      },
-      reset: function (value) {
-        if (this.updating) {
-          return;
-        }
-
-        this.updating = true;
-        this.obj[this.prop] = value; // trigger set() accessor
-        runloop.addViewmodel(this.ractive.viewmodel);
-        this.ractive.viewmodel.mark(this.keypath, { keepExistingWrapper: true });
-        this.updating = false;
-        return true;
-      },
-      set: function (key, value) {
-        if (this.updating) {
-          return;
-        }
-
-        if (!this.obj[this.prop]) {
-          this.updating = true;
-          this.obj[this.prop] = createBranch(key);
-          this.updating = false;
-        }
-
-        this.obj[this.prop][key] = value;
-      },
-      teardown: function () {
-        var template, set, value, wrappers, index;
-
-        // If this method was called because the cache was being cleared as a
-        // result of a set()/update() call made by this wrapper, we return false
-        // so that it doesn't get torn down
-        if (this.updating) {
-          return false;
-        }
-
-        template = Object.getOwnPropertyDescriptor(this.obj, this.prop);
-        set = template && template.set;
-
-        if (!set) {
-          // most likely, this was an array member that was spliced out
-          return;
-        }
-
-        wrappers = set._ractiveWrappers;
-
-        index = wrappers.indexOf(this);
-        if (index !== -1) {
-          wrappers.splice(index, 1);
-        }
-
-        // Last one out, turn off the lights
-        if (!wrappers.length) {
-          value = this.obj[this.prop];
-
-          Object.defineProperty(this.obj, this.prop, this.originalDescriptor || {
-            writable: true,
-            enumerable: true,
-            configurable: true
-          });
-
-          this.obj[this.prop] = value;
-        }
-      }
-    };
-  } catch (err) {
-    magicAdaptor = false; // no magic in this browser
-  }
-
-
-
-  function createAccessors(originalWrapper, value, template) {
-    var updateWrapper = function (wrapper) {
-      var keypath, ractive;
-
-      wrapper.value = value;
-
-      if (wrapper.updating) {
-        return;
-      }
-
-      ractive = wrapper.ractive;
-      keypath = wrapper.keypath;
-
-      wrapper.updating = true;
-      runloop.start(ractive);
-
-      ractive.viewmodel.mark(keypath);
-
-      runloop.end();
-      wrapper.updating = false;
-    };
-
-    var object, property, oldGet, oldSet, get, set;
-
-    object = originalWrapper.obj;
-    property = originalWrapper.prop;
-
-    // Is this template configurable?
-    if (template && !template.configurable) {
-      // Special case - array length
-      if (property === "length") {
-        return;
-      }
-
-      throw new Error("Cannot use magic mode with property \"" + property + "\" - object is not configurable");
-    }
-
-
-    // Time to wrap this property
-    if (template) {
-      oldGet = template.get;
-      oldSet = template.set;
-    }
-
-    get = oldGet || function () {
-      return value;
-    };
-
-    set = function (v) {
-      if (oldSet) {
-        oldSet(v);
-      }
-
-      value = oldGet ? oldGet() : v;
-      set._ractiveWrappers.forEach(updateWrapper);
-    };
-
-    // Create an array of wrappers, in case other keypaths/ractives depend on this property.
-    // Handily, we can store them as a property of the set function. Yay JavaScript.
-    set._ractiveWrappers = [originalWrapper];
-    Object.defineProperty(object, property, { get: get, set: set, enumerable: true, configurable: true });
-  }
-  //# sourceMappingURL=02-6to5-magic.js.map
-
-  var magicArrayAdaptor, MagicArrayWrapper;
-
-  if (magicAdaptor) {
-    magicArrayAdaptor = {
-      filter: function (object, keypath, ractive) {
-        return magicAdaptor.filter(object, keypath, ractive) && arrayAdaptor.filter(object);
-      },
-
-      wrap: function (ractive, array, keypath) {
-        return new MagicArrayWrapper(ractive, array, keypath);
-      }
-    };
-
-    MagicArrayWrapper = function (ractive, array, keypath) {
-      this.value = array;
-
-      this.magic = true;
-
-      this.magicWrapper = magicAdaptor.wrap(ractive, array, keypath);
-      this.arrayWrapper = arrayAdaptor.wrap(ractive, array, keypath);
-    };
-
-    MagicArrayWrapper.prototype = {
-      get: function () {
-        return this.value;
-      },
-      teardown: function () {
-        this.arrayWrapper.teardown();
-        this.magicWrapper.teardown();
-      },
-      reset: function (value) {
-        return this.magicWrapper.reset(value);
-      }
-    };
-  }
-
-
-  //# sourceMappingURL=02-6to5-magicArray.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/render.js.map
 
   var adaptConfigurator = {
     extend: function (Parent, proto, options) {
       proto.adapt = adaptConfigurator__combine(proto.adapt, ensureArray(options.adapt));
     },
 
-    init: function (Parent, ractive, options) {
-      var lookup = function (adaptor) {
-        if (typeof adaptor === "string") {
-          adaptor = findInViewHierarchy("adaptors", ractive, adaptor);
-
-          if (!adaptor) {
-            fatal(missingPlugin(adaptor, "adaptor"));
-          }
-        }
-
-        return adaptor;
-      };
-
-      var protoAdapt, adapt;
-
-      protoAdapt = ractive.adapt.map(lookup);
-      adapt = ensureArray(options.adapt).map(lookup);
-
-      ractive.adapt = adaptConfigurator__combine(protoAdapt, adapt);
-
-      if (ractive.magic) {
-        if (!magic) {
-          throw new Error("Getters and setters (magic mode) are not supported in this browser");
-        }
-
-        if (ractive.modifyArrays) {
-          ractive.adapt.push(magicArrayAdaptor);
-        }
-
-        ractive.adapt.push(magicAdaptor);
-      }
-
-      if (ractive.modifyArrays) {
-        ractive.adapt.push(arrayAdaptor);
-      }
-    }
+    init: function adaptConfigurator__init() {}
   };
 
 
@@ -4252,7 +3757,7 @@
 
     return c;
   }
-  //# sourceMappingURL=02-6to5-adapt.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/custom/adapt.js.map
 
   var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
       commentsPattern = /\/\*.*?\*\//g,
@@ -4336,7 +3841,7 @@
   function extractString(unit) {
     return unit.str;
   }
-  //# sourceMappingURL=02-6to5-transform.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/custom/css/transform.js.map
 
   var cssConfigurator = {
     name: "css",
@@ -4362,7 +3867,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-css.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/custom/css/css.js.map
 
   var wrap__default = function (method, superMethod, force) {
     if (force || needsSuper(method, superMethod)) {
@@ -4389,7 +3894,7 @@
   function needsSuper(method, superMethod) {
     return typeof superMethod === "function" && /_super/.test(method);
   }
-  //# sourceMappingURL=02-6to5-wrapMethod.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/wrapMethod.js.map
 
   var dataConfigurator = {
     name: "data",
@@ -4403,17 +3908,18 @@
           result = dataConfigurator__combine(Parent, ractive, options);
 
       if (typeof result === "function") {
-        result = result.call(ractive, value) || value;
+        result = result.call(ractive) || value;
       }
 
-      return ractive.data = result || {};
+      return result;
     },
 
     reset: function (ractive) {
-      var result = this.init(ractive.constructor, ractive, ractive);
+      var result = this.init(ractive.constructor, ractive, ractive.viewmodel);
 
       if (result) {
-        ractive.data = result;
+        ractive.viewmodel.data = result;
+        ractive.viewmodel.clearCache("");
         return true;
       }
     }
@@ -4535,7 +4041,7 @@
 
     return wrap__default(childFn, parentFn);
   }
-  //# sourceMappingURL=02-6to5-data.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/custom/data.js.map
 
   var parseOptions = ["preserveWhitespace", "sanitize", "stripComments", "delimiters", "tripleDelimiters", "interpolate"];
 
@@ -4616,7 +4122,7 @@
   }
 
   var parser__default = parser;
-  //# sourceMappingURL=02-6to5-parser.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/custom/template/parser.js.map
 
   var templateConfigurator = {
     name: "template",
@@ -4704,7 +4210,7 @@
 
   function getDynamicTemplate(ractive, fn) {
     var helper = templateConfigurator__createHelper(parser__default.getParseOptions(ractive));
-    return fn.call(ractive, ractive.data, helper);
+    return fn.call(ractive, helper);
   }
 
   function templateConfigurator__createHelper(parseOptions) {
@@ -4747,11 +4253,11 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-template.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/custom/template/template.js.map
 
-  var registryNames, Registry, registries;
+  var registries__registryNames, Registry, registries;
 
-  registryNames = ["adaptors", "components", "computed", "decorators", "easing", "events", "interpolators", "partials", "transitions"];
+  registries__registryNames = ["adaptors", "components", "computed", "decorators", "easing", "events", "interpolators", "partials", "transitions"];
 
   Registry = function (name, useDefaults) {
     this.name = name;
@@ -4765,9 +4271,7 @@
       this.configure(this.useDefaults ? Parent.defaults : Parent, this.useDefaults ? proto : proto.constructor, options);
     },
 
-    init: function (Parent, ractive, options) {
-      this.configure(this.useDefaults ? Parent.defaults : Parent, ractive, options);
-    },
+    init: function () {},
 
     configure: function (Parent, target, options) {
       var name = this.name,
@@ -4801,12 +4305,16 @@
     }
   };
 
-  registries = registryNames.map(function (name) {
+  registries = registries__registryNames.map(function (name) {
     return new Registry(name, name === "computed");
   });
 
 
-  //# sourceMappingURL=02-6to5-registries.js.map
+  /*this.configure(
+  	this.useDefaults ? Parent.defaults : Parent,
+  	ractive,
+  	options );*/
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/registries.js.map
 
   function wrap(parent, name, method) {
     if (!/_super/.test(method)) {
@@ -4857,7 +4365,7 @@
 
     return method;
   }
-  //# sourceMappingURL=02-6to5-wrapPrototypeMethod.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/wrapPrototypeMethod.js.map
 
   function getMessage(deprecated, correct, isError) {
     return "options." + deprecated + " has been deprecated in favour of options." + correct + "." + (isError ? " You cannot specify both options, please use options." + correct + "." : "");
@@ -4887,7 +4395,7 @@
       deprecateOption(options, "adaptors", "adapt");
     }
   }
-  //# sourceMappingURL=02-6to5-deprecate.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/deprecate.js.map
 
   var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
 
@@ -4968,7 +4476,7 @@
     });
 
     adaptConfigurator[method](Parent, target, options);
-    dataConfigurator[method](Parent, target, options);
+    //dataConfigurator[ method ]( Parent, target, options );
     templateConfigurator[method](Parent, target, options);
     cssConfigurator[method](Parent, target, options);
 
@@ -4999,7 +4507,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-config.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/config/config.js.map
 
   function Fragment$bubble() {
     this.dirtyValue = this.dirtyArgs = true;
@@ -5008,7 +4516,7 @@
       this.owner.bubble();
     }
   }
-  //# sourceMappingURL=02-6to5-bubble.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/bubble.js.map
 
   function Fragment$detach() {
     var docFrag;
@@ -5034,7 +4542,7 @@
 
     return docFrag;
   }
-  //# sourceMappingURL=02-6to5-detach.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/detach.js.map
 
   function Fragment$find(selector) {
     var i, len, item, queryResult;
@@ -5052,7 +4560,7 @@
       return null;
     }
   }
-  //# sourceMappingURL=02-6to5-find.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/find.js.map
 
   function Fragment$findAll(selector, query) {
     var i, len, item;
@@ -5070,7 +4578,7 @@
 
     return query;
   }
-  //# sourceMappingURL=02-6to5-findAll.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/findAll.js.map
 
   function Fragment$findAllComponents(selector, query) {
     var i, len, item;
@@ -5088,7 +4596,7 @@
 
     return query;
   }
-  //# sourceMappingURL=02-6to5-findAllComponents.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/findAllComponents.js.map
 
   function Fragment$findComponent(selector) {
     var len, i, item, queryResult;
@@ -5106,7 +4614,7 @@
       return null;
     }
   }
-  //# sourceMappingURL=02-6to5-findComponent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/findComponent.js.map
 
   function Fragment$findNextNode(item) {
     var index = item.index,
@@ -5135,7 +4643,7 @@
 
     return node;
   }
-  //# sourceMappingURL=02-6to5-findNextNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/findNextNode.js.map
 
   function Fragment$firstNode() {
     if (this.items && this.items[0]) {
@@ -5144,7 +4652,7 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-firstNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/firstNode.js.map
 
   var Parser,
       ParseError,
@@ -5296,7 +4804,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Parser.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/parse/Parser.js.map
 
   var TEXT = 1;
   var INTERPOLATOR = 2;
@@ -5347,7 +4855,7 @@
 
   var ELSE = 60;
   var ELSEIF = 61;
-  //# sourceMappingURL=02-6to5-types.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/config/types.js.map
 
   var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
 
@@ -5397,7 +4905,7 @@
       return JSON.parse(literal);
     };
   };
-  //# sourceMappingURL=02-6to5-makeQuotedStringMatcher.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/parse/converters/expressions/primary/literal/stringLiteral/makeQuotedStringMatcher.js.map
 
   var getSingleQuotedString = makeQuotedStringMatcher("\"");
   var getDoubleQuotedString = makeQuotedStringMatcher("'");
@@ -5437,7 +4945,7 @@
 
     return null;
   };
-  //# sourceMappingURL=02-6to5-readStringLiteral.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/parse/converters/expressions/primary/literal/readStringLiteral.js.map
 
   var readNumberLiteral__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
 
@@ -5453,11 +4961,11 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-readNumberLiteral.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/parse/converters/expressions/primary/literal/readNumberLiteral.js.map
 
   var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
   var relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
-  //# sourceMappingURL=02-6to5-patterns.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/parse/converters/expressions/shared/patterns.js.map
 
   var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
@@ -5478,7 +4986,7 @@
       return token;
     }
   }
-  //# sourceMappingURL=02-6to5-readKey.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/parse/converters/expressions/shared/readKey.js.map
 
   var JsonParser, specials, specialsPattern, parseJSON__numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
@@ -5647,7 +5155,7 @@
 
     return parser.result;
   };
-  //# sourceMappingURL=02-6to5-parseJSON.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/parseJSON.js.map
 
   function processItems(items, values, guid, counter) {
     counter = counter || 0;
@@ -5678,7 +5186,7 @@
       return "${" + placeholderId + "}";
     }).join("");
   }
-  //# sourceMappingURL=02-6to5-processItems.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/shared/processItems.js.map
 
   function Fragment$getArgsList() {
     var values, source, parsed, result;
@@ -5699,7 +5207,7 @@
 
     return this.argsList;
   }
-  //# sourceMappingURL=02-6to5-getArgsList.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/getArgsList.js.map
 
   function Fragment$getNode() {
     var fragment = this;
@@ -5712,7 +5220,7 @@
 
     return this.root.detached || this.root.el;
   }
-  //# sourceMappingURL=02-6to5-getNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/getNode.js.map
 
   function Fragment$getValue() {
     var values, source, parsed, result;
@@ -5733,7 +5241,7 @@
 
     return this.value;
   }
-  //# sourceMappingURL=02-6to5-getValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/getValue.js.map
 
   var booleanAttributes, voidElementNames, htmlEntities, controlCharacters, entityPattern, lessThan, greaterThan, amp;
 
@@ -5821,7 +5329,7 @@
   var detach__default = function () {
     return detachNode(this.node);
   };
-  //# sourceMappingURL=02-6to5-detach.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/detach.js.map
 
   var Text = function (options) {
     this.type = TEXT;
@@ -5855,7 +5363,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Text.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Text.js.map
 
   function unbind__unbind() {
     if (this.registered) {
@@ -5867,12 +5375,12 @@
       this.resolver.unbind();
     }
   }
-  //# sourceMappingURL=02-6to5-unbind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/unbind.js.map
 
   function Mustache$getValue() {
     return this.value;
   }
-  //# sourceMappingURL=02-6to5-getValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Mustache/getValue.js.map
 
   var ReferenceResolver = function (owner, ref, callback) {
     var keypath;
@@ -5932,7 +5440,7 @@
 
 
 
-  //# sourceMappingURL=02-6to5-ReferenceResolver.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Resolvers/ReferenceResolver.js.map
 
   var SpecialResolver = function (owner, ref, callback) {
     this.parentFragment = owner.parentFragment;
@@ -6010,7 +5518,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-SpecialResolver.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Resolvers/SpecialResolver.js.map
 
   var IndexResolver = function (owner, ref, callback) {
     this.parentFragment = owner.parentFragment;
@@ -6044,7 +5552,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-IndexResolver.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Resolvers/IndexResolver.js.map
 
   function findIndexRefs(fragment, refName) {
     var result = {},
@@ -6115,7 +5623,7 @@
 
     return refs;
   };
-  //# sourceMappingURL=02-6to5-findIndexRefs.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Resolvers/findIndexRefs.js.map
 
   function createReferenceResolver(owner, ref, callback) {
     var indexRef;
@@ -6130,7 +5638,7 @@
 
     return new ReferenceResolver(owner, ref, callback);
   }
-  //# sourceMappingURL=02-6to5-createReferenceResolver.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Resolvers/createReferenceResolver.js.map
 
   var cache = {};
 
@@ -6151,10 +5659,10 @@
     cache[str] = fn;
     return fn;
   }
-  //# sourceMappingURL=02-6to5-getFunctionFromString.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/getFunctionFromString.js.map
 
   var ExpressionResolver,
-      bind = Function.prototype.bind;
+      ExpressionResolver__bind = Function.prototype.bind;
 
   ExpressionResolver = function (owner, parentFragment, expression, callback) {
     var _this = this;
@@ -6246,7 +5754,7 @@
 
         signature = {
           deps: this.keypaths.filter(isValidDependency),
-          get: function get() {
+          getter: function getter() {
             var args = valueGetters.map(call);
             return fn.apply(null, args);
           }
@@ -6317,7 +5825,7 @@
       return wrapped;
     } else if (/this/.test(fn.toString())) {
       defineProperty(fn, prop, {
-        value: bind.call(fn, ractive),
+        value: ExpressionResolver__bind.call(fn, ractive),
         configurable: true
       });
 
@@ -6342,7 +5850,7 @@
 
     return fn.__ractive_nowrap;
   }
-  //# sourceMappingURL=02-6to5-ExpressionResolver.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Resolvers/ExpressionResolver.js.map
 
   var MemberResolver = function (template, resolver, parentFragment) {
     var _this = this;
@@ -6417,7 +5925,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-MemberResolver.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js.map
 
   var ReferenceExpressionResolver = function (mustache, template, callback) {
     var _this = this;
@@ -6497,7 +6005,7 @@
         this.baseResolver = null;
       }
 
-      this.members.forEach(forceResolution);
+      this.members.forEach(ReferenceExpressionResolver__forceResolution);
       this.bubble();
     }
   };
@@ -6510,12 +6018,12 @@
     return value != undefined;
   }
 
-  function forceResolution(member) {
+  function ReferenceExpressionResolver__forceResolution(member) {
     member.forceResolution();
   }
 
 
-  //# sourceMappingURL=02-6to5-ReferenceExpressionResolver.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver.js.map
 
   function Mustache$init(mustache, options) {
     var resolve = function (keypath) {
@@ -6573,7 +6081,7 @@
       mustache.setValue(undefined);
     }
   }
-  //# sourceMappingURL=02-6to5-initialise.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Mustache/initialise.js.map
 
   function Mustache$resolve(keypath) {
     var wasResolved, value, twowayBinding;
@@ -6615,7 +6123,7 @@
       twowayBinding.rebound();
     }
   }
-  //# sourceMappingURL=02-6to5-resolve.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Mustache/resolve.js.map
 
   function Mustache$rebind(oldKeypath, newKeypath) {
     // Children first
@@ -6630,7 +6138,7 @@
       this.resolver.rebind(oldKeypath, newKeypath);
     }
   }
-  //# sourceMappingURL=02-6to5-rebind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Mustache/rebind.js.map
 
   var Mustache = {
     getValue: Mustache$getValue,
@@ -6638,7 +6146,7 @@
     resolve: Mustache$resolve,
     rebind: Mustache$rebind
   };
-  //# sourceMappingURL=02-6to5-_Mustache.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/shared/Mustache/_Mustache.js.map
 
   var Interpolator = function (options) {
     this.type = INTERPOLATOR;
@@ -6701,12 +6209,12 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Interpolator.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Interpolator.js.map
 
   function Section$bubble() {
     this.parentFragment.bubble();
   }
-  //# sourceMappingURL=02-6to5-bubble.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/bubble.js.map
 
   function Section$detach() {
     var docFrag;
@@ -6723,7 +6231,7 @@
 
     return docFrag;
   }
-  //# sourceMappingURL=02-6to5-detach.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/detach.js.map
 
   function Section$find(selector) {
     var i, len, queryResult;
@@ -6737,7 +6245,7 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-find.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/find.js.map
 
   function Section$findAll(selector, query) {
     var i, len;
@@ -6747,7 +6255,7 @@
       this.fragments[i].findAll(selector, query);
     }
   }
-  //# sourceMappingURL=02-6to5-findAll.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/findAll.js.map
 
   function Section$findAllComponents(selector, query) {
     var i, len;
@@ -6757,7 +6265,7 @@
       this.fragments[i].findAllComponents(selector, query);
     }
   }
-  //# sourceMappingURL=02-6to5-findAllComponents.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/findAllComponents.js.map
 
   function Section$findComponent(selector) {
     var i, len, queryResult;
@@ -6771,7 +6279,7 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-findComponent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/findComponent.js.map
 
   function Section$findNextNode(fragment) {
     if (this.fragments[fragment.index + 1]) {
@@ -6780,7 +6288,7 @@
 
     return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=02-6to5-findNextNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/findNextNode.js.map
 
   function Section$firstNode() {
     var len, i, node;
@@ -6795,7 +6303,7 @@
 
     return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=02-6to5-firstNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/firstNode.js.map
 
   function Section$shuffle(newIndices) {
     var _this = this;
@@ -6898,12 +6406,12 @@
     // the keypath doesn't actually matter here as it won't have changed
     dep.rebind("", "");
   }
-  //# sourceMappingURL=02-6to5-shuffle.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/shuffle.js.map
 
   var prototype_rebind = function (oldKeypath, newKeypath) {
     Mustache.rebind.call(this, oldKeypath, newKeypath);
   };
-  //# sourceMappingURL=02-6to5-rebind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/rebind.js.map
 
   function Section$render() {
     var _this = this;
@@ -6919,7 +6427,7 @@
     this.rendered = true;
     return this.docFrag;
   }
-  //# sourceMappingURL=02-6to5-render.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/render.js.map
 
   function Section$setValue(value) {
     var _this = this;
@@ -7238,7 +6746,7 @@
     // the keypath doesn't actually matter here as it won't have changed
     dep.rebind("", "");
   }
-  //# sourceMappingURL=02-6to5-setValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/setValue.js.map
 
   function Section$toString(escape) {
     var str, i, len;
@@ -7254,7 +6762,7 @@
 
     return str;
   }
-  //# sourceMappingURL=02-6to5-toString.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/toString.js.map
 
   function Section$unbind() {
     var _this = this;
@@ -7268,7 +6776,7 @@
     this.length = 0;
     this.unbound = true;
   }
-  //# sourceMappingURL=02-6to5-unbind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/unbind.js.map
 
   function Section$unrender(shouldDestroy) {
     this.fragments.forEach(shouldDestroy ? unrenderAndDestroy : unrender__unrender);
@@ -7283,7 +6791,7 @@
   function unrender__unrender(fragment) {
     fragment.unrender(false);
   }
-  //# sourceMappingURL=02-6to5-unrender.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/unrender.js.map
 
   function Section$update() {
     var fragment, renderIndex, renderedFragments, anchor, target, i, len;
@@ -7340,7 +6848,7 @@
     // Save the rendering order for next time
     this.renderedFragments = this.fragments.slice();
   }
-  //# sourceMappingURL=02-6to5-update.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/prototype/update.js.map
 
   var Section = function (options) {
     this.type = SECTION;
@@ -7401,7 +6909,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_Section.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Section/_Section.js.map
 
   function Triple$detach() {
     var len, i;
@@ -7415,7 +6923,7 @@
       return this.docFrag;
     }
   }
-  //# sourceMappingURL=02-6to5-detach.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/detach.js.map
 
   function Triple$find(selector) {
     var i, len, node, queryResult;
@@ -7439,7 +6947,7 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-find.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/find.js.map
 
   function Triple$findAll(selector, queryResult) {
     var i, len, node, queryAllResult, numNodes, j;
@@ -7464,7 +6972,7 @@
       }
     }
   }
-  //# sourceMappingURL=02-6to5-findAll.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/findAll.js.map
 
   function Triple$firstNode() {
     if (this.rendered && this.nodes[0]) {
@@ -7473,7 +6981,7 @@
 
     return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=02-6to5-firstNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/firstNode.js.map
 
   var elementCache = {},
       ieBug,
@@ -7550,7 +7058,7 @@
   function element(tagName) {
     return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
   }
-  //# sourceMappingURL=02-6to5-insertHtml.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/helpers/insertHtml.js.map
 
   function updateSelect(parentElement) {
     var selectedOptions, option, value;
@@ -7581,7 +7089,7 @@
   function isSelected(option) {
     return option.selected;
   }
-  //# sourceMappingURL=02-6to5-updateSelect.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/helpers/updateSelect.js.map
 
   function Triple$render() {
     if (this.rendered) {
@@ -7597,7 +7105,7 @@
     this.rendered = true;
     return this.docFrag;
   }
-  //# sourceMappingURL=02-6to5-render.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/render.js.map
 
   function Triple$setValue(value) {
     var wrapper;
@@ -7616,12 +7124,12 @@
       }
     }
   }
-  //# sourceMappingURL=02-6to5-setValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/setValue.js.map
 
   function Triple$toString() {
     return this.value != undefined ? decodeCharacterReferences("" + this.value) : "";
   }
-  //# sourceMappingURL=02-6to5-toString.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/toString.js.map
 
   function Triple$unrender(shouldDestroy) {
     if (this.rendered && shouldDestroy) {
@@ -7631,7 +7139,7 @@
 
     // TODO update live queries
   }
-  //# sourceMappingURL=02-6to5-unrender.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/unrender.js.map
 
   function Triple$update() {
     var node, parentNode;
@@ -7655,7 +7163,7 @@
     // Special case - we're inserting the contents of a <select>
     updateSelect(this.pElement);
   }
-  //# sourceMappingURL=02-6to5-update.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/prototype/update.js.map
 
   var Triple = function (options) {
     this.type = TRIPLE;
@@ -7679,12 +7187,12 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_Triple.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Triple/_Triple.js.map
 
   var Element_prototype_bubble = function () {
     this.parentFragment.bubble();
   };
-  //# sourceMappingURL=02-6to5-bubble.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/bubble.js.map
 
   function Element$detach() {
     var node = this.node,
@@ -7700,7 +7208,7 @@
       return node;
     }
   }
-  //# sourceMappingURL=02-6to5-detach.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/detach.js.map
 
   var Element_prototype_find = function (selector) {
     if (!this.node) {
@@ -7716,7 +7224,7 @@
       return this.fragment.find(selector);
     }
   };
-  //# sourceMappingURL=02-6to5-find.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/find.js.map
 
   var Element_prototype_findAll = function (selector, query) {
     // Add this node to the query, if applicable, and register the
@@ -7729,31 +7237,31 @@
       this.fragment.findAll(selector, query);
     }
   };
-  //# sourceMappingURL=02-6to5-findAll.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/findAll.js.map
 
   var Element_prototype_findAllComponents = function (selector, query) {
     if (this.fragment) {
       this.fragment.findAllComponents(selector, query);
     }
   };
-  //# sourceMappingURL=02-6to5-findAllComponents.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/findAllComponents.js.map
 
   var Element_prototype_findComponent = function (selector) {
     if (this.fragment) {
       return this.fragment.findComponent(selector);
     }
   };
-  //# sourceMappingURL=02-6to5-findComponent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/findComponent.js.map
 
   function Element$findNextNode() {
     return null;
   }
-  //# sourceMappingURL=02-6to5-findNextNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/findNextNode.js.map
 
   function Element$firstNode() {
     return this.node;
   }
-  //# sourceMappingURL=02-6to5-firstNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/firstNode.js.map
 
   function Element$getAttribute(name) {
     if (!this.attributes || !this.attributes[name]) {
@@ -7762,7 +7270,7 @@
 
     return this.attributes[name].value;
   }
-  //# sourceMappingURL=02-6to5-getAttribute.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/getAttribute.js.map
 
   var truthy = /^true|on|yes|1$/i;
   var processBindingAttributes__isNumeric = /^[0-9]+$/;
@@ -7794,7 +7302,7 @@
 
     return attrs;
   };
-  //# sourceMappingURL=02-6to5-processBindingAttributes.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/init/processBindingAttributes.js.map
 
   function Attribute$bubble() {
     var value = this.useProperty || !this.rendered ? this.fragment.getValue() : this.fragment.toString();
@@ -7820,7 +7328,7 @@
       }
     }
   }
-  //# sourceMappingURL=02-6to5-bubble.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/bubble.js.map
 
   var svgCamelCaseElements, svgCamelCaseAttributes, createMap, enforceCase__map;
   svgCamelCaseElements = "altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern".split(" ");
@@ -7841,7 +7349,7 @@
     var lowerCaseElementName = elementName.toLowerCase();
     return enforceCase__map[lowerCaseElementName] || lowerCaseElementName;
   };
-  //# sourceMappingURL=02-6to5-enforceCase.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/shared/enforceCase.js.map
 
   var determineNameAndNamespace = function (attribute, name) {
     var colonIndex, namespacePrefix;
@@ -7872,7 +7380,7 @@
     // SVG attribute names are case sensitive
     attribute.name = attribute.element.namespace !== namespaces.html ? enforceCase(name) : name;
   };
-  //# sourceMappingURL=02-6to5-determineNameAndNamespace.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace.js.map
 
   function getInterpolator(attribute) {
     var items = attribute.fragment.items;
@@ -7885,7 +7393,7 @@
       return items[0];
     }
   }
-  //# sourceMappingURL=02-6to5-getInterpolator.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/helpers/getInterpolator.js.map
 
   function Attribute$init(options) {
     this.type = ATTRIBUTE;
@@ -7925,14 +7433,14 @@
     // mark as ready
     this.ready = true;
   }
-  //# sourceMappingURL=02-6to5-init.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/init.js.map
 
   function Attribute$rebind(oldKeypath, newKeypath) {
     if (this.fragment) {
       this.fragment.rebind(oldKeypath, newKeypath);
     }
   }
-  //# sourceMappingURL=02-6to5-rebind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/rebind.js.map
 
   var propertyNames = {
     "accept-charset": "acceptCharset",
@@ -7983,7 +7491,7 @@
     this.rendered = true;
     this.update();
   }
-  //# sourceMappingURL=02-6to5-render.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/render.js.map
 
   function Attribute$toString() {
     var _ref = this;
@@ -8028,7 +7536,7 @@
   function Attribute_prototype_toString__escape(value) {
     return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
-  //# sourceMappingURL=02-6to5-toString.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/toString.js.map
 
   function Attribute$unbind() {
     // ignore non-dynamic attributes
@@ -8040,7 +7548,7 @@
       delete this.root.nodes[this.value];
     }
   }
-  //# sourceMappingURL=02-6to5-unbind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/unbind.js.map
 
   function Attribute$updateSelect() {
     var value = this.value,
@@ -8070,7 +7578,7 @@
     // if we're still here, it means the new value didn't match any of the options...
     // TODO figure out what to do in this situation
   }
-  //# sourceMappingURL=02-6to5-updateSelectValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateSelectValue.js.map
 
   function Attribute$updateMultipleSelect() {
     var value = this.value,
@@ -8092,7 +7600,7 @@
       option.selected = arrayContains(value, optionValue);
     }
   }
-  //# sourceMappingURL=02-6to5-updateMultipleSelectValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateMultipleSelectValue.js.map
 
   function Attribute$updateRadioName() {
     var _ref = this;
@@ -8100,7 +7608,7 @@
     var value = _ref.value;
     node.checked = value == node._ractive.value;
   }
-  //# sourceMappingURL=02-6to5-updateRadioName.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateRadioName.js.map
 
   function Attribute$updateRadioValue() {
     var wasChecked,
@@ -8132,7 +7640,7 @@
           }
 
           if (binding.element.node.checked) {
-            runloop.addViewmodel(binding.root.viewmodel);
+            runloop.addRactive(binding.root);
             return binding.handleChange();
           }
         }
@@ -8141,7 +7649,7 @@
       }
     }
   }
-  //# sourceMappingURL=02-6to5-updateRadioValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateRadioValue.js.map
 
   function Attribute$updateCheckboxName() {
     var _ref = this;
@@ -8164,7 +7672,7 @@
       binding.isChecked = node.checked = false;
     }
   }
-  //# sourceMappingURL=02-6to5-updateCheckboxName.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateCheckboxName.js.map
 
   function Attribute$updateClassName() {
     var node, value;
@@ -8178,7 +7686,7 @@
 
     node.className = value;
   }
-  //# sourceMappingURL=02-6to5-updateClassName.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateClassName.js.map
 
   function Attribute$updateIdAttribute() {
     var _ref = this;
@@ -8189,7 +7697,7 @@
     this.root.nodes[value] = node;
     node.id = value;
   }
-  //# sourceMappingURL=02-6to5-updateIdAttribute.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateIdAttribute.js.map
 
   function Attribute$updateIEStyleAttribute() {
     var node, value;
@@ -8203,7 +7711,7 @@
 
     node.style.setAttribute("cssText", value);
   }
-  //# sourceMappingURL=02-6to5-updateIEStyleAttribute.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateIEStyleAttribute.js.map
 
   function Attribute$updateContentEditableValue() {
     var value = this.value;
@@ -8216,7 +7724,7 @@
       this.node.innerHTML = value;
     }
   }
-  //# sourceMappingURL=02-6to5-updateContentEditableValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateContentEditableValue.js.map
 
   function Attribute$updateValue() {
     var _ref = this;
@@ -8233,7 +7741,7 @@
       node.value = value == undefined ? "" : value;
     }
   }
-  //# sourceMappingURL=02-6to5-updateValue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateValue.js.map
 
   function Attribute$updateBooleanAttribute() {
     // with two-way binding, only update if the change wasn't initiated by the user
@@ -8242,7 +7750,7 @@
       this.node[this.propertyName] = this.value;
     }
   }
-  //# sourceMappingURL=02-6to5-updateBoolean.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateBoolean.js.map
 
   function Attribute$updateEverythingElse() {
     var _ref = this;
@@ -8268,7 +7776,7 @@
       }
     }
   }
-  //# sourceMappingURL=02-6to5-updateEverythingElse.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update/updateEverythingElse.js.map
 
   function Attribute$update() {
     var _ref = this;
@@ -8337,7 +7845,7 @@
     this.update = updateMethod;
     this.update();
   }
-  //# sourceMappingURL=02-6to5-update.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/prototype/update.js.map
 
   var Attribute = function (options) {
     this.init(options);
@@ -8354,7 +7862,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_Attribute.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Attribute/_Attribute.js.map
 
   var createAttributes = function (element, attributes) {
     var name,
@@ -8393,7 +7901,7 @@
 
     return result;
   };
-  //# sourceMappingURL=02-6to5-createAttributes.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/init/createAttributes.js.map
 
   var ConditionalAttribute__div;
 
@@ -8487,7 +7995,7 @@
 
     return true;
   }
-  //# sourceMappingURL=02-6to5-_ConditionalAttribute.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/ConditionalAttribute/_ConditionalAttribute.js.map
 
   var createConditionalAttributes = function (element, attributes) {
     if (!attributes) {
@@ -8498,7 +8006,7 @@
       return new ConditionalAttribute(element, a);
     });
   };
-  //# sourceMappingURL=02-6to5-createConditionalAttributes.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/init/createConditionalAttributes.js.map
 
   var Binding = function (element) {
     var interpolator, keypath, value, parentForm;
@@ -8619,14 +8127,14 @@
   }
   // this is called when the element is unbound.
   // Specialised bindings can override it
-  //# sourceMappingURL=02-6to5-Binding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/Binding.js.map
 
   // This is the handler for DOM events that would lead to a change in the model
   // (i.e. change, sometimes, input, and occasionally click and keyup)
   function handleChange() {
     this._ractive.binding.handleChange();
   }
-  //# sourceMappingURL=02-6to5-handleDomEvent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/shared/handleDomEvent.js.map
 
   var ContentEditableBinding = Binding__default.extend({
     getInitialValue: function () {
@@ -8661,7 +8169,7 @@
   });
 
 
-  //# sourceMappingURL=02-6to5-ContentEditableBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/ContentEditableBinding.js.map
 
   var sets = {};
 
@@ -8669,7 +8177,7 @@
     var hash = id + group + keypath;
     return sets[hash] || (sets[hash] = []);
   }
-  //# sourceMappingURL=02-6to5-getSiblings.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/shared/getSiblings.js.map
 
   var RadioBinding = Binding__default.extend({
     name: "checked",
@@ -8716,7 +8224,7 @@
   });
 
 
-  //# sourceMappingURL=02-6to5-RadioBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/RadioBinding.js.map
 
   var RadioNameBinding = Binding__default.extend({
     name: "name",
@@ -8783,7 +8291,7 @@
   });
 
 
-  //# sourceMappingURL=02-6to5-RadioNameBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/RadioNameBinding.js.map
 
   var CheckboxNameBinding = Binding__default.extend({
     name: "name",
@@ -8886,7 +8394,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-CheckboxNameBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/CheckboxNameBinding.js.map
 
   var CheckboxBinding = Binding__default.extend({
     name: "checked",
@@ -8914,7 +8422,7 @@
   });
 
 
-  //# sourceMappingURL=02-6to5-CheckboxBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/CheckboxBinding.js.map
 
   var SelectBinding = Binding__default.extend({
     getInitialValue: function () {
@@ -9006,7 +8514,7 @@
   });
 
 
-  //# sourceMappingURL=02-6to5-SelectBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/SelectBinding.js.map
 
   var MultipleSelectBinding = SelectBinding.extend({
     getInitialValue: function () {
@@ -9093,7 +8601,7 @@
   });
 
 
-  //# sourceMappingURL=02-6to5-MultipleSelectBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/MultipleSelectBinding.js.map
 
   var FileListBinding = Binding__default.extend({
     render: function () {
@@ -9110,7 +8618,7 @@
   });
 
 
-  //# sourceMappingURL=02-6to5-FileListBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/FileListBinding.js.map
 
   var GenericBinding;
 
@@ -9196,7 +8704,7 @@
       binding._timeout = undefined;
     }, binding.element.lazy);
   }
-  //# sourceMappingURL=02-6to5-GenericBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/GenericBinding.js.map
 
   var NumericBinding = GenericBinding.extend({
     getInitialValue: function () {
@@ -9208,7 +8716,7 @@
       return isNaN(value) ? undefined : value;
     }
   });
-  //# sourceMappingURL=02-6to5-NumericBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Binding/NumericBinding.js.map
 
   function createTwowayBinding(element) {
     var attributes = element.attributes,
@@ -9276,7 +8784,7 @@
     return attribute && attribute.isBindable;
   }
   // and this element also has a value attribute to bind
-  //# sourceMappingURL=02-6to5-createTwowayBinding.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/init/createTwowayBinding.js.map
 
   function EventHandler$bubble() {
     var hasAction = this.getAction();
@@ -9287,17 +8795,17 @@
       this.unrender();
     }
   }
-  //# sourceMappingURL=02-6to5-bubble.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/bubble.js.map
 
   function EventHandler$fire(event) {
     fireEvent(this.root, this.getAction(), { event: event });
   }
-  //# sourceMappingURL=02-6to5-fire.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/fire.js.map
 
   function EventHandler$getAction() {
     return this.action.toString().trim();
   }
-  //# sourceMappingURL=02-6to5-getAction.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/getAction.js.map
 
   var eventPattern = /^event(?:\.(.+))?/;
 
@@ -9430,7 +8938,7 @@
 
     fireEvent(this.root, this.getAction(), { event: event, args: args });
   }
-  //# sourceMappingURL=02-6to5-init.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/init.js.map
 
   function genericHandler(event) {
     var storage,
@@ -9453,7 +8961,7 @@
       context: storage.root.viewmodel.get(storage.keypath)
     });
   }
-  //# sourceMappingURL=02-6to5-genericHandler.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/shared/genericHandler.js.map
 
   var customHandlers = {},
       touchEvents = {
@@ -9507,7 +9015,7 @@
 
     return customHandlers[name];
   }
-  //# sourceMappingURL=02-6to5-listen.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/listen.js.map
 
   function EventHandler$rebind(oldKeypath, newKeypath) {
     var rebind = function (thing) {
@@ -9530,7 +9038,7 @@
       rebind(this.dynamicParams);
     }
   }
-  //# sourceMappingURL=02-6to5-rebind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/rebind.js.map
 
   function EventHandler$render() {
     this.node = this.element.node;
@@ -9542,12 +9050,12 @@
       this.listen();
     }
   }
-  //# sourceMappingURL=02-6to5-render.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/render.js.map
 
   function EventHandler$resolve(index, keypath) {
     this.keypaths[index] = keypath;
   }
-  //# sourceMappingURL=02-6to5-resolve.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/resolve.js.map
 
   function EventHandler$unbind() {
     if (this.method) {
@@ -9565,7 +9073,7 @@
       this.dynamicParams.unbind();
     }
   }
-  //# sourceMappingURL=02-6to5-unbind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/unbind.js.map
 
   function EventHandler$unrender() {
     if (this.custom) {
@@ -9576,7 +9084,7 @@
 
     this.hasListener = false;
   }
-  //# sourceMappingURL=02-6to5-unrender.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/prototype/unrender.js.map
 
   var EventHandler = function (element, name, template) {
     this.init(element, name, template);
@@ -9596,7 +9104,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_EventHandler.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/EventHandler/_EventHandler.js.map
 
   var createEventHandlers = function (element, template) {
     var i,
@@ -9619,7 +9127,7 @@
 
     return result;
   };
-  //# sourceMappingURL=02-6to5-createEventHandlers.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/init/createEventHandlers.js.map
 
   var Decorator = function (element, template) {
     var self = this,
@@ -9726,7 +9234,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_Decorator.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Decorator/_Decorator.js.map
 
   function select__bubble() {
     var _this = this;
@@ -9798,7 +9306,7 @@
       }
     }
   }
-  //# sourceMappingURL=02-6to5-select.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/special/select.js.map
 
   function option__init(option, template) {
     option.select = findParentSelect(option.parent);
@@ -9844,7 +9352,7 @@
       }
     } while (element = element.parent);
   }
-  //# sourceMappingURL=02-6to5-option.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/special/option.js.map
 
   function Element$init(options) {
     var parentFragment, template, ractive, binding, bindings, twoway, bindingAttrs;
@@ -9927,7 +9435,7 @@
     this.intro = template.t0 || template.t1;
     this.outro = template.t0 || template.t2;
   }
-  //# sourceMappingURL=02-6to5-init.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/init.js.map
 
   function Element$rebind(oldKeypath, newKeypath) {
     var rebind = function (thing) {
@@ -9972,7 +9480,7 @@
       assignNewKeypath(storage, "keypath", oldKeypath, newKeypath);
     }
   }
-  //# sourceMappingURL=02-6to5-rebind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/rebind.js.map
 
   function img__render(img) {
     var loadHandler;
@@ -9996,7 +9504,7 @@
       }, false);
     }
   }
-  //# sourceMappingURL=02-6to5-img.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/special/img.js.map
 
   function form__render(element) {
     element.node.addEventListener("reset", handleReset, false);
@@ -10017,7 +9525,7 @@
   function updateModel(binding) {
     binding.root.viewmodel.set(binding.keypath, binding.resetValue);
   }
-  //# sourceMappingURL=02-6to5-form.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/special/form.js.map
 
   function Transition$init(element, template, isIntro) {
     var ractive, name, fragment;
@@ -10067,14 +9575,14 @@
       warnOnce(missingPlugin(name, "transition"));
     }
   }
-  //# sourceMappingURL=02-6to5-init.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/prototype/init.js.map
 
   var camelCase = function (hyphenatedStr) {
     return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
       return $1.toUpperCase();
     });
   };
-  //# sourceMappingURL=02-6to5-camelCase.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/camelCase.js.map
 
   var prefix__prefix, prefixCache, prefix__testStyle;
 
@@ -10112,7 +9620,7 @@
   }
 
   var prefix__default = prefix__prefix;
-  //# sourceMappingURL=02-6to5-prefix.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/helpers/prefix.js.map
 
   var getStyle, getStyle__getComputedStyle;
 
@@ -10155,7 +9663,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-getStyle.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/prototype/getStyle.js.map
 
   var setStyle = function (style, value) {
     var prop;
@@ -10172,7 +9680,7 @@
 
     return this;
   };
-  //# sourceMappingURL=02-6to5-setStyle.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/prototype/setStyle.js.map
 
   var Ticker = function (options) {
     var easing;
@@ -10247,14 +9755,14 @@
   function linear(t) {
     return t;
   }
-  //# sourceMappingURL=02-6to5-Ticker.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/shared/Ticker.js.map
 
   var unprefixPattern = new RegExp("^-(?:" + vendors.join("|") + ")-");
 
   var unprefix = function (prop) {
     return prop.replace(unprefixPattern, "");
   };
-  //# sourceMappingURL=02-6to5-unprefix.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/helpers/unprefix.js.map
 
   var vendorPattern = new RegExp("^(?:" + vendors.join("|") + ")([A-Z])");
 
@@ -10275,7 +9783,7 @@
 
     return hyphenated;
   };
-  //# sourceMappingURL=02-6to5-hyphenate.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/helpers/hyphenate.js.map
 
   var createTransitions,
       createTransitions__testStyle,
@@ -10457,7 +9965,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-createTransitions.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions.js.map
 
   var hidden, vendor, visibility__prefix, visibility__i, visibility;
 
@@ -10515,7 +10023,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-visibility.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/prototype/animateStyle/visibility.js.map
 
   var animateStyle, animateStyle__getComputedStyle, resolved;
 
@@ -10612,7 +10120,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-_animateStyle.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/prototype/animateStyle/_animateStyle.js.map
 
   var processParams = function (params, defaults) {
     if (typeof params === "number") {
@@ -10631,7 +10139,7 @@
 
     return fillGaps({}, params, defaults);
   };
-  //# sourceMappingURL=02-6to5-processParams.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/prototype/processParams.js.map
 
   function Transition$start() {
     var _this = this;
@@ -10677,7 +10185,7 @@
       node.removeAttribute("style");
     }
   }
-  //# sourceMappingURL=02-6to5-start.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/prototype/start.js.map
 
   var Transition = function (owner, template, isIntro) {
     this.init(owner, template, isIntro);
@@ -10693,7 +10201,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_Transition.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/Transition/_Transition.js.map
 
   var updateCss, updateScript;
 
@@ -10933,7 +10441,7 @@
       }
     } while (instance = instance.parent);
   }
-  //# sourceMappingURL=02-6to5-render.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/render.js.map
 
   var Element_prototype_toString = function () {
     var str, escape;
@@ -11029,7 +10537,7 @@
     var str = attribute.toString();
     return str ? " " + str : "";
   }
-  //# sourceMappingURL=02-6to5-toString.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/toString.js.map
 
   function Element$unbind() {
     if (this.fragment) {
@@ -11052,7 +10560,7 @@
     this.attributes.forEach(methodCallers__unbind);
     this.conditionalAttributes.forEach(methodCallers__unbind);
   }
-  //# sourceMappingURL=02-6to5-unbind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/unbind.js.map
 
   function Element$unrender(shouldDestroy) {
     var binding, bindings, transition;
@@ -11124,7 +10632,7 @@
       query._remove(element.node);
     }
   }
-  //# sourceMappingURL=02-6to5-unrender.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/prototype/unrender.js.map
 
   var Element = function (options) {
     this.init(options);
@@ -11149,7 +10657,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_Element.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Element/_Element.js.map
 
   var deIndent__empty = /^\s*$/,
       deIndent__leadingWhitespace = /^\s*/;
@@ -11190,7 +10698,7 @@
 
     return previous;
   }
-  //# sourceMappingURL=02-6to5-deIndent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Partial/deIndent.js.map
 
   function getPartialTemplate(ractive, name) {
     var partial;
@@ -11230,7 +10738,7 @@
     if (typeof partial === "function") {
       fn = partial.bind(instance);
       fn.isOwner = instance.partials.hasOwnProperty(name);
-      partial = fn(instance.data, parser__default);
+      partial = fn.call(ractive, parser__default);
     }
 
     if (!partial && partial !== "") {
@@ -11276,7 +10784,7 @@
     }
     return constructor.partials.hasOwnProperty(key) ? constructor : findConstructor(constructor._Parent, key);
   }
-  //# sourceMappingURL=02-6to5-getPartialTemplate.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Partial/getPartialTemplate.js.map
 
   var applyIndent = function (string, indent) {
     var indented;
@@ -11291,7 +10799,7 @@
 
     return indented;
   };
-  //# sourceMappingURL=02-6to5-applyIndent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Partial/applyIndent.js.map
 
   var Partial = function (options) {
     var parentFragment, template;
@@ -11491,7 +10999,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-_Partial.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Partial/_Partial.js.map
 
   function getComponent(ractive, name) {
     var Component,
@@ -11505,7 +11013,7 @@
         // function option, execute and store for reset
         var fn = Component.bind(instance);
         fn.isOwner = instance.components.hasOwnProperty(name);
-        Component = fn(instance.data);
+        Component = fn();
 
         if (!Component) {
           if (ractive.debug) {
@@ -11527,7 +11035,7 @@
 
     return Component;
   }
-  //# sourceMappingURL=02-6to5-getComponent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/getComponent.js.map
 
   var Component_prototype_detach__detachHook = new Hook("detach");
 
@@ -11536,17 +11044,17 @@
     Component_prototype_detach__detachHook.fire(this.instance);
     return detached;
   }
-  //# sourceMappingURL=02-6to5-detach.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/detach.js.map
 
   function Component$find(selector) {
     return this.instance.fragment.find(selector);
   }
-  //# sourceMappingURL=02-6to5-find.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/find.js.map
 
   function Component$findAll(selector, query) {
     return this.instance.fragment.findAll(selector, query);
   }
-  //# sourceMappingURL=02-6to5-findAll.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/findAll.js.map
 
   function Component$findAllComponents(selector, query) {
     query._test(this, true);
@@ -11555,7 +11063,7 @@
       this.instance.fragment.findAllComponents(selector, query);
     }
   }
-  //# sourceMappingURL=02-6to5-findAllComponents.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/findAllComponents.js.map
 
   function Component$findComponent(selector) {
     if (!selector || selector === this.name) {
@@ -11568,12 +11076,12 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-findComponent.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/findComponent.js.map
 
   function Component$findNextNode() {
     return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=02-6to5-findNextNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/findNextNode.js.map
 
   function Component$firstNode() {
     if (this.rendered) {
@@ -11582,30 +11090,475 @@
 
     return null;
   }
-  //# sourceMappingURL=02-6to5-firstNode.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/firstNode.js.map
+
+  var processWrapper = function (wrapper, array, methodName, newIndices) {
+    var root = wrapper.root;
+    var keypath = wrapper.keypath;
+
+
+    // If this is a sort or reverse, we just do root.set()...
+    // TODO use merge logic?
+    if (methodName === "sort" || methodName === "reverse") {
+      root.viewmodel.set(keypath, array);
+      return;
+    }
+
+    root.viewmodel.smartUpdate(keypath, array, newIndices);
+  };
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/adaptors/array/processWrapper.js.map
+
+  var patchedArrayProto = [],
+      mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"],
+      testObj,
+      patchArrayMethods,
+      unpatchArrayMethods;
+
+  mutatorMethods.forEach(function (methodName) {
+    var method = function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      var newIndices, result, wrapper, i;
+
+      newIndices = getNewIndices(this, methodName, args);
+
+      // apply the underlying method
+      result = Array.prototype[methodName].apply(this, arguments);
+
+      // trigger changes
+      runloop.start();
+
+      this._ractive.setting = true;
+      i = this._ractive.wrappers.length;
+      while (i--) {
+        wrapper = this._ractive.wrappers[i];
+
+        runloop.addRactive(wrapper.root);
+        processWrapper(wrapper, this, methodName, newIndices);
+      }
+
+      runloop.end();
+
+      this._ractive.setting = false;
+      return result;
+    };
+
+    defineProperty(patchedArrayProto, methodName, {
+      value: method
+    });
+  });
+
+  // can we use prototype chain injection?
+  // http://perfectionkills.com/how-ecmascript-5-still-does-not-allow-to-subclass-an-array/#wrappers_prototype_chain_injection
+  testObj = {};
+
+  if (testObj.__proto__) {
+    // yes, we can
+    patchArrayMethods = function (array) {
+      array.__proto__ = patchedArrayProto;
+    };
+
+    unpatchArrayMethods = function (array) {
+      array.__proto__ = Array.prototype;
+    };
+  } else {
+    // no, we can't
+    patchArrayMethods = function (array) {
+      var i, methodName;
+
+      i = mutatorMethods.length;
+      while (i--) {
+        methodName = mutatorMethods[i];
+        defineProperty(array, methodName, {
+          value: patchedArrayProto[methodName],
+          configurable: true
+        });
+      }
+    };
+
+    unpatchArrayMethods = function (array) {
+      var i;
+
+      i = mutatorMethods.length;
+      while (i--) {
+        delete array[mutatorMethods[i]];
+      }
+    };
+  }
+
+  patchArrayMethods.unpatch = unpatchArrayMethods;
+  var patch = patchArrayMethods;
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/adaptors/array/patch.js.map
+
+  var arrayAdaptor,
+
+  // helpers
+  ArrayWrapper, errorMessage;
+
+  arrayAdaptor = {
+    filter: function (object) {
+      // wrap the array if a) b) it's an array, and b) either it hasn't been wrapped already,
+      // or the array didn't trigger the get() itself
+      return isArray(object) && (!object._ractive || !object._ractive.setting);
+    },
+    wrap: function (ractive, array, keypath) {
+      return new ArrayWrapper(ractive, array, keypath);
+    }
+  };
+
+  ArrayWrapper = function (ractive, array, keypath) {
+    this.root = ractive;
+    this.value = array;
+    this.keypath = getKeypath(keypath);
+
+    // if this array hasn't already been ractified, ractify it
+    if (!array._ractive) {
+      // define a non-enumerable _ractive property to store the wrappers
+      defineProperty(array, "_ractive", {
+        value: {
+          wrappers: [],
+          instances: [],
+          setting: false
+        },
+        configurable: true
+      });
+
+      patch(array);
+    }
+
+    // store the ractive instance, so we can handle transitions later
+    if (!array._ractive.instances[ractive._guid]) {
+      array._ractive.instances[ractive._guid] = 0;
+      array._ractive.instances.push(ractive);
+    }
+
+    array._ractive.instances[ractive._guid] += 1;
+    array._ractive.wrappers.push(this);
+  };
+
+  ArrayWrapper.prototype = {
+    get: function () {
+      return this.value;
+    },
+    teardown: function () {
+      var array, storage, wrappers, instances, index;
+
+      array = this.value;
+      storage = array._ractive;
+      wrappers = storage.wrappers;
+      instances = storage.instances;
+
+      // if teardown() was invoked because we're clearing the cache as a result of
+      // a change that the array itself triggered, we can save ourselves the teardown
+      // and immediate setup
+      if (storage.setting) {
+        return false; // so that we don't remove it from this.root.viewmodel.wrapped
+      }
+
+      index = wrappers.indexOf(this);
+      if (index === -1) {
+        throw new Error(errorMessage);
+      }
+
+      wrappers.splice(index, 1);
+
+      // if nothing else depends on this array, we can revert it to its
+      // natural state
+      if (!wrappers.length) {
+        delete array._ractive;
+        patch.unpatch(this.value);
+      } else {
+        // remove ractive instance if possible
+        instances[this.root._guid] -= 1;
+        if (!instances[this.root._guid]) {
+          index = instances.indexOf(this.root);
+
+          if (index === -1) {
+            throw new Error(errorMessage);
+          }
+
+          instances.splice(index, 1);
+        }
+      }
+    }
+  };
+
+  errorMessage = "Something went wrong in a rather interesting way";
+
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/adaptors/array/index.js.map
+
+  var numeric = /^\s*[0-9]+\s*$/;
+
+  var createBranch = function (key) {
+    return numeric.test(key) ? [] : {};
+  };
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/utils/createBranch.js.map
+
+  var magicAdaptor, MagicWrapper;
+
+  try {
+    Object.defineProperty({}, "test", { value: 0 });
+
+    magicAdaptor = {
+      filter: function (object, keypath, ractive) {
+        var parentWrapper, parentValue;
+
+        if (!keypath) {
+          return false;
+        }
+
+        keypath = getKeypath(keypath);
+
+        // If the parent value is a wrapper, other than a magic wrapper,
+        // we shouldn't wrap this property
+        if ((parentWrapper = ractive.viewmodel.wrapped[keypath.parent.str]) && !parentWrapper.magic) {
+          return false;
+        }
+
+        parentValue = ractive.viewmodel.get(keypath.parent);
+
+        // if parentValue is an array that doesn't include this member,
+        // we should return false otherwise lengths will get messed up
+        if (isArray(parentValue) && /^[0-9]+$/.test(keypath.lastKey)) {
+          return false;
+        }
+
+        return parentValue && (typeof parentValue === "object" || typeof parentValue === "function");
+      },
+      wrap: function (ractive, property, keypath) {
+        return new MagicWrapper(ractive, property, keypath);
+      }
+    };
+
+    MagicWrapper = function (ractive, value, keypath) {
+      var objKeypath, template, siblings;
+
+      keypath = getKeypath(keypath);
+
+      this.magic = true;
+
+      this.ractive = ractive;
+      this.keypath = keypath;
+      this.value = value;
+
+      this.prop = keypath.lastKey;
+
+      objKeypath = keypath.parent;
+      this.obj = objKeypath.isRoot ? ractive.viewmodel.data : ractive.viewmodel.get(objKeypath);
+
+      template = this.originalDescriptor = Object.getOwnPropertyDescriptor(this.obj, this.prop);
+
+      // Has this property already been wrapped?
+      if (template && template.set && (siblings = template.set._ractiveWrappers)) {
+        // Yes. Register this wrapper to this property, if it hasn't been already
+        if (siblings.indexOf(this) === -1) {
+          siblings.push(this);
+        }
+
+        return; // already wrapped
+      }
+
+      // No, it hasn't been wrapped
+      createAccessors(this, value, template);
+    };
+
+    MagicWrapper.prototype = {
+      get: function () {
+        return this.value;
+      },
+      reset: function (value) {
+        if (this.updating) {
+          return;
+        }
+
+        this.updating = true;
+        this.obj[this.prop] = value; // trigger set() accessor
+        runloop.addRactive(this.ractive);
+        this.ractive.viewmodel.mark(this.keypath, { keepExistingWrapper: true });
+        this.updating = false;
+        return true;
+      },
+      set: function (key, value) {
+        if (this.updating) {
+          return;
+        }
+
+        if (!this.obj[this.prop]) {
+          this.updating = true;
+          this.obj[this.prop] = createBranch(key);
+          this.updating = false;
+        }
+
+        this.obj[this.prop][key] = value;
+      },
+      teardown: function () {
+        var template, set, value, wrappers, index;
+
+        // If this method was called because the cache was being cleared as a
+        // result of a set()/update() call made by this wrapper, we return false
+        // so that it doesn't get torn down
+        if (this.updating) {
+          return false;
+        }
+
+        template = Object.getOwnPropertyDescriptor(this.obj, this.prop);
+        set = template && template.set;
+
+        if (!set) {
+          // most likely, this was an array member that was spliced out
+          return;
+        }
+
+        wrappers = set._ractiveWrappers;
+
+        index = wrappers.indexOf(this);
+        if (index !== -1) {
+          wrappers.splice(index, 1);
+        }
+
+        // Last one out, turn off the lights
+        if (!wrappers.length) {
+          value = this.obj[this.prop];
+
+          Object.defineProperty(this.obj, this.prop, this.originalDescriptor || {
+            writable: true,
+            enumerable: true,
+            configurable: true
+          });
+
+          this.obj[this.prop] = value;
+        }
+      }
+    };
+  } catch (err) {
+    magicAdaptor = false; // no magic in this browser
+  }
+
+
+
+  function createAccessors(originalWrapper, value, template) {
+    var updateWrapper = function (wrapper) {
+      var keypath, ractive;
+
+      wrapper.value = value;
+
+      if (wrapper.updating) {
+        return;
+      }
+
+      ractive = wrapper.ractive;
+      keypath = wrapper.keypath;
+
+      wrapper.updating = true;
+      runloop.start(ractive);
+
+      ractive.viewmodel.mark(keypath);
+
+      runloop.end();
+      wrapper.updating = false;
+    };
+
+    var object, property, oldGet, oldSet, get, set;
+
+    object = originalWrapper.obj;
+    property = originalWrapper.prop;
+
+    // Is this template configurable?
+    if (template && !template.configurable) {
+      // Special case - array length
+      if (property === "length") {
+        return;
+      }
+
+      throw new Error("Cannot use magic mode with property \"" + property + "\" - object is not configurable");
+    }
+
+
+    // Time to wrap this property
+    if (template) {
+      oldGet = template.get;
+      oldSet = template.set;
+    }
+
+    get = oldGet || function () {
+      return value;
+    };
+
+    set = function (v) {
+      if (oldSet) {
+        oldSet(v);
+      }
+
+      value = oldGet ? oldGet() : v;
+      set._ractiveWrappers.forEach(updateWrapper);
+    };
+
+    // Create an array of wrappers, in case other keypaths/ractives depend on this property.
+    // Handily, we can store them as a property of the set function. Yay JavaScript.
+    set._ractiveWrappers = [originalWrapper];
+    Object.defineProperty(object, property, { get: get, set: set, enumerable: true, configurable: true });
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/adaptors/magic.js.map
+
+  var magicArrayAdaptor, MagicArrayWrapper;
+
+  if (magicAdaptor) {
+    magicArrayAdaptor = {
+      filter: function (object, keypath, ractive) {
+        return magicAdaptor.filter(object, keypath, ractive) && arrayAdaptor.filter(object);
+      },
+
+      wrap: function (ractive, array, keypath) {
+        return new MagicArrayWrapper(ractive, array, keypath);
+      }
+    };
+
+    MagicArrayWrapper = function (ractive, array, keypath) {
+      this.value = array;
+
+      this.magic = true;
+
+      this.magicWrapper = magicAdaptor.wrap(ractive, array, keypath);
+      this.arrayWrapper = arrayAdaptor.wrap(ractive, array, keypath);
+    };
+
+    MagicArrayWrapper.prototype = {
+      get: function () {
+        return this.value;
+      },
+      teardown: function () {
+        this.arrayWrapper.teardown();
+        this.magicWrapper.teardown();
+      },
+      reset: function (value) {
+        return this.magicWrapper.reset(value);
+      }
+    };
+  }
+
+
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/adaptors/magicArray.js.map
 
   var prefixers = {};
 
   function Viewmodel$adapt(keypath, value) {
-    var ractive = this.ractive,
-        len,
-        i,
-        adaptor,
-        wrapped;
+    var len, i, adaptor, wrapped;
+
+    if (!this.adaptors) return;
 
     // Do we have an adaptor for this value?
-    len = ractive.adapt.length;
+    len = this.adaptors.length;
     for (i = 0; i < len; i += 1) {
-      adaptor = ractive.adapt[i];
+      adaptor = this.adaptors[i];
 
-      if (adaptor.filter(value, keypath, ractive)) {
-        wrapped = this.wrapped[keypath] = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
+      if (adaptor.filter(value, keypath, this.ractive)) {
+        wrapped = this.wrapped[keypath] = adaptor.wrap(this.ractive, value, keypath, getPrefixer(keypath));
         wrapped.value = value;
-        return value;
+        return;
       }
     }
-
-    return value;
   }
 
   function prefixKeypath(obj, prefix) {
@@ -11651,7 +11604,7 @@
 
     return prefixers[rootKeypath];
   }
-  //# sourceMappingURL=02-6to5-adapt.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/adapt.js.map
 
   function getUpstreamChanges(changes) {
     var upstreamChanges = [rootKeypath],
@@ -11672,7 +11625,7 @@
 
     return upstreamChanges;
   }
-  //# sourceMappingURL=02-6to5-getUpstreamChanges.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/helpers/getUpstreamChanges.js.map
 
   function notifyPatternObservers(viewmodel, keypath, onlyDirect) {
     var potentialWildcardMatches;
@@ -11718,7 +11671,7 @@
       }
     });
   }
-  //# sourceMappingURL=02-6to5-notifyPatternObservers.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/applyChanges/notifyPatternObservers.js.map
 
   function Viewmodel$applyChanges() {
     var _this = this;
@@ -11915,12 +11868,12 @@
     var group = viewmodel.deps[groupName];
     return group ? group[keypath.str] : null;
   }
-  //# sourceMappingURL=02-6to5-applyChanges.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/applyChanges.js.map
 
   function Viewmodel$capture() {
     this.captureGroups.push([]);
   }
-  //# sourceMappingURL=02-6to5-capture.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/capture.js.map
 
   function Viewmodel$clearCache(keypath, keepExistingWrapper) {
     var cacheMap, wrapper;
@@ -11946,39 +11899,7 @@
       }
     }
   }
-  //# sourceMappingURL=02-6to5-clearCache.js.map
-
-  var pattern = /\$\{([^\}]+)\}/g;
-
-  var getComputationSignature = function (signature) {
-    if (typeof signature === "function") {
-      return { get: signature };
-    }
-
-    if (typeof signature === "string") {
-      return {
-        get: createFunctionFromString(signature)
-      };
-    }
-
-    if (typeof signature === "object" && typeof signature.get === "string") {
-      signature = {
-        get: createFunctionFromString(signature.get),
-        set: signature.set
-      };
-    }
-
-    return signature;
-  };
-
-  function createFunctionFromString(signature) {
-    var functionBody = "var __ractive=this;return(" + signature.replace(pattern, function (match, keypath) {
-      return "__ractive.get(\"" + keypath + "\")";
-    }) + ")";
-
-    return new Function(functionBody);
-  }
-  //# sourceMappingURL=02-6to5-getComputationSignature.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/clearCache.js.map
 
   var UnresolvedDependency = function (computation, ref) {
     this.computation = computation;
@@ -11999,16 +11920,13 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-UnresolvedDependency.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/Computation/UnresolvedDependency.js.map
 
-  var Computation = function (ractive, key, signature) {
-    var _this = this;
-    this.ractive = ractive;
-    this.viewmodel = ractive.viewmodel;
+  var Computation = function (key, signature) {
     this.key = key;
 
-    this.getter = signature.get;
-    this.setter = signature.set;
+    this.getter = signature.getter;
+    this.setter = signature.setter;
 
     this.hardDeps = signature.deps || [];
     this.softDeps = [];
@@ -12016,30 +11934,32 @@
 
     this.depValues = {};
 
-    if (this.hardDeps) {
-      this.hardDeps.forEach(function (d) {
-        return ractive.viewmodel.register(d, _this, "computed");
-      });
-    }
-
     this._dirty = this._firstRun = true;
   };
 
   Computation.prototype = {
     constructor: Computation,
 
-    init: function () {
+    init: function (viewmodel) {
+      var _this = this;
       var initial;
 
+      this.viewmodel = viewmodel;
       this.bypass = true;
 
-      initial = this.ractive.viewmodel.get(this.key);
-      this.ractive.viewmodel.clearCache(this.key.str);
+      initial = viewmodel.get(this.key);
+      viewmodel.clearCache(this.key.str);
 
       this.bypass = false;
 
       if (this.setter && initial !== undefined) {
         this.set(initial);
+      }
+
+      if (this.hardDeps) {
+        this.hardDeps.forEach(function (d) {
+          return viewmodel.register(d, _this, "computed");
+        });
       }
     },
 
@@ -12049,8 +11969,7 @@
 
     get: function () {
       var _this2 = this;
-      var ractive,
-          newDeps,
+      var newDeps,
           dependenciesChanged,
           dependencyValuesChanged = false;
 
@@ -12062,8 +11981,6 @@
       this.getting = true;
 
       if (this._dirty) {
-        ractive = this.ractive;
-
         // determine whether the inputs have changed, in case this depends on
         // other computed values
         if (this._firstRun || !this.hardDeps.length && !this.softDeps.length) {
@@ -12079,7 +11996,7 @@
             i = deps.length;
             while (i--) {
               keypath = deps[i];
-              value = ractive.viewmodel.get(keypath);
+              value = _this2.viewmodel.get(keypath);
 
               if (!isEqual(value, _this2.depValues[keypath.str])) {
                 _this2.depValues[keypath.str] = value;
@@ -12092,12 +12009,12 @@
         }
 
         if (dependencyValuesChanged) {
-          ractive.viewmodel.capture();
+          this.viewmodel.capture();
 
           try {
-            this.value = this.getter.call(ractive);
+            this.value = this.getter();
           } catch (err) {
-            if (ractive.debug) {
+            if (this.viewmodel.debug) {
               warn("Failed to compute \"%s\"", this.key.str);
               log(err.stack || err);
             }
@@ -12105,13 +12022,13 @@
             this.value = void 0;
           }
 
-          newDeps = ractive.viewmodel.release();
+          newDeps = this.viewmodel.release();
           dependenciesChanged = this.updateDependencies(newDeps);
 
           if (dependenciesChanged) {
             [this.hardDeps, this.softDeps].forEach(function (deps) {
               deps.forEach(function (keypath) {
-                _this2.depValues[keypath.str] = ractive.viewmodel.get(keypath);
+                _this2.depValues[keypath.str] = _this2.viewmodel.get(keypath);
               });
             });
           }
@@ -12134,7 +12051,7 @@
         throw new Error("Computed properties without setters are read-only. (This may change in a future version of Ractive!)");
       }
 
-      this.setter.call(this.ractive, value);
+      this.setter(value);
     },
 
     updateDependencies: function (newDeps) {
@@ -12186,26 +12103,30 @@
   function isUnresolved(viewmodel, keypath) {
     var key = keypath.firstKey;
 
-    return !(key in viewmodel.ractive.data) && !(key in viewmodel.computations) && !(key in viewmodel.mappings);
+    return !(key in viewmodel.data) && !(key in viewmodel.computations) && !(key in viewmodel.mappings);
   }
 
 
-  //# sourceMappingURL=02-6to5-Computation.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/Computation/Computation.js.map
 
   function Viewmodel$compute(key, signature) {
-    signature = getComputationSignature(signature);
-    return this.computations[key.str] = new Computation(this.ractive, key, signature);
+    var computation = new Computation(key, signature);
+
+    if (this.ready) {
+      computation.init(this);
+    }
+
+    return this.computations[key.str] = computation;
   }
-  //# sourceMappingURL=02-6to5-compute.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/compute.js.map
 
   var FAILED_LOOKUP = { FAILED_LOOKUP: true };
-  //# sourceMappingURL=02-6to5-FAILED_LOOKUP.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/get/FAILED_LOOKUP.js.map
 
   var get__empty = {};
 
   function Viewmodel$get(keypath, options) {
-    var ractive = this.ractive,
-        cache = this.cache,
+    var cache = this.cache,
         mapping,
         value,
         computation,
@@ -12244,8 +12165,8 @@
 
       // Is it the root?
       else if (keypath.isRoot) {
-        this.adapt("", ractive.data);
-        value = ractive.data;
+        this.adapt("", this.data);
+        value = this.data;
       }
 
       // No? Then we need to retrieve the value one key at a time
@@ -12302,71 +12223,39 @@
     viewmodel.cache[keypath.str] = value;
     return value;
   }
-  //# sourceMappingURL=02-6to5-get.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/get.js.map
 
   function Viewmodel$init() {
-    var key,
-        computation,
-        computations = [];
+    var key;
 
-    for (key in this.ractive.computed) {
-      computation = this.compute(getKeypath(key), this.ractive.computed[key]);
-      computations.push(computation);
-
-      if (key in this.mappings) {
-        fatal("Cannot map to a computed property ('%s')", key);
-      }
+    for (key in this.computations) {
+      this.computations[key].init(this);
     }
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/init.js.map
 
-    computations.forEach(viewmodel_prototype_init__init);
+  function Viewmodel$map(key, options) {
+    var mapping = this.mappings[key.str] = new Mapping(key, options);
+    mapping.initViewmodel(this);
+    return mapping;
   }
 
-  function viewmodel_prototype_init__init(computation) {
-    computation.init();
-  }
-  //# sourceMappingURL=02-6to5-init.js.map
-
-  function DataTracker(key, viewmodel) {
-    this.keypath = key;
-    this.viewmodel = viewmodel;
-  }
-
-
-
-  DataTracker.prototype.setValue = function (value) {
-    this.viewmodel.set(this.keypath, value, { noMapping: true });
-  };
-  //# sourceMappingURL=02-6to5-DataTracker.js.map
-
-  function Mapping(localKey, options) {
+  var Mapping = function (localKey, options) {
     this.localKey = localKey;
     this.keypath = options.keypath;
     this.origin = options.origin;
 
-    if (options.force) {
-      this.force = options.force;
-    }
-
     this.deps = [];
     this.unresolved = [];
 
-    this.trackData = options.trackData;
     this.resolved = false;
-  }
-
-
+  };
 
   Mapping.prototype = {
-    ensureKeypath: function ensureKeypath() {
-      if (!this.keypath) {
-        if (isFunction(this.force)) {
-          this.force();
-        }
-
-        if (!this.keypath) {
-          throw new Error("Mapping \"" + this.localKey.str + "\" on component \"" + this.local.ractive.component.name + "\" does not have a keypath. This is usually caused by an ambiguous complex reference, which can usually be fixed by scoping your references.");
-        }
-      }
+    forceResolution: function map__forceResolution() {
+      // TODO warn, as per #1692?
+      this.keypath = this.localKey;
+      this.setup();
     },
 
     get: function get(keypath, options) {
@@ -12376,7 +12265,7 @@
       return this.origin.get(this.map(keypath), options);
     },
 
-    getValue: function Mapping__getValue() {
+    getValue: function map__getValue() {
       if (!this.keypath) {
         return undefined;
       }
@@ -12388,7 +12277,7 @@
       this.setup();
     },
 
-    map: function Mapping__map(keypath) {
+    map: function map__map(keypath) {
       return keypath.replace(this.localKey, this.keypath);
     },
 
@@ -12400,7 +12289,7 @@
       }
     },
 
-    resolve: function Mapping__resolve(keypath) {
+    resolve: function map__resolve(keypath) {
       if (this.keypath !== undefined) {
         this.unbind(true);
       }
@@ -12410,7 +12299,10 @@
     },
 
     set: function set(keypath, value) {
-      this.ensureKeypath();
+      if (!this.resolved) {
+        this.forceResolution();
+      }
+
       this.origin.set(this.map(keypath), value);
     },
 
@@ -12422,24 +12314,19 @@
 
       this.resolved = true;
 
-      // keep local data in sync, for browsers w/ no defineProperty
-      if (this.trackData) {
-        this.tracker = new DataTracker(this.localKey, this.local);
-        this.origin.register(this.keypath, this.tracker);
-      }
-
       // accumulated dependants can now be registered
       if (this.deps.length) {
         this.deps.forEach(function (d) {
           var keypath = _this.map(d.keypath);
           _this.origin.register(keypath, d.dep, d.group);
 
-          // if the dep has a setter, it's a reference, otherwise, a computation
-          if (isFunction(d.dep.setValue)) {
+          // TODO this is a bit of a red flag... all deps should be the same?
+          if (d.dep.setValue) {
             d.dep.setValue(_this.origin.get(keypath));
+          } else if (d.dep.invalidate) {
+            d.dep.invalidate();
           } else {
-            // computations have no setter, get it to recompute via viewmodel
-            _this.local.mark(d.dep.key);
+            throw new Error("An unexpected error occurred. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!");
           }
         });
 
@@ -12447,12 +12334,15 @@
       }
     },
 
-    setValue: function Mapping__setValue(value) {
-      this.ensureKeypath();
+    setValue: function map__setValue(value) {
+      if (!this.keypath) {
+        throw new Error("Mapping does not have keypath, cannot set value. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!");
+      }
+
       this.origin.set(this.keypath, value);
     },
 
-    unbind: function Mapping__unbind(keepLocal) {
+    unbind: function map__unbind(keepLocal) {
       var _this2 = this;
       if (!keepLocal) {
         delete this.local.mappings[this.localKey];
@@ -12480,20 +12370,11 @@
       this.origin.unregister(this.map(keypath), dependant, group);
     }
   };
-  //# sourceMappingURL=02-6to5-Mapping.js.map
-
-  function Viewmodel$map(key, options) {
-    var mapping = this.mappings[key.str] = new Mapping(key, options);
-    mapping.initViewmodel(this);
-    return mapping;
-  }
-  //# sourceMappingURL=02-6to5-map.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/map.js.map
 
   function Viewmodel$mark(keypath, options) {
     var computation,
         keypathStr = keypath.str;
-
-    runloop.addViewmodel(this); // TODO remove other instances of this call
 
     // implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)
     // should not be picked up by pattern observers
@@ -12518,8 +12399,12 @@
     var keepExistingWrapper = options ? options.keepExistingWrapper : false;
 
     this.clearCache(keypathStr, keepExistingWrapper);
+
+    if (this.ready) {
+      this.onchange();
+    }
   }
-  //# sourceMappingURL=02-6to5-mark.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/mark.js.map
 
   var mapOldToNewIndex = function (oldArray, newArray) {
     var usedIndices, firstUnusedIndex, newIndices, changed;
@@ -12560,7 +12445,7 @@
 
     return newIndices;
   };
-  //# sourceMappingURL=02-6to5-mapOldToNewIndex.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/merge/mapOldToNewIndex.js.map
 
   var comparators = {};
 
@@ -12628,7 +12513,7 @@
 
     throw new Error("The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)");
   }
-  //# sourceMappingURL=02-6to5-merge.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/merge.js.map
 
   function Viewmodel$register(keypath, dependant) {
     var group = arguments[2] === undefined ? "default" : arguments[2];
@@ -12672,12 +12557,17 @@
       keypath = keypath.parent;
     }
   }
-  //# sourceMappingURL=02-6to5-register.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/register.js.map
 
   function Viewmodel$release() {
     return this.captureGroups.pop();
   }
-  //# sourceMappingURL=02-6to5-release.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/release.js.map
+
+  function Viewmodel$reset(data) {
+    this.data = data;
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/reset.js.map
 
   function Viewmodel$set(keypath, value) {
     var options = arguments[2] === undefined ? {} : arguments[2];
@@ -12769,7 +12659,7 @@
       }
     }
   }
-  //# sourceMappingURL=02-6to5-set.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/set.js.map
 
   var implicitOption = { implicit: true },
       noCascadeOption = { noCascade: true };
@@ -12815,7 +12705,7 @@
   function canShuffle(dependant) {
     return typeof dependant.shuffle === "function";
   }
-  //# sourceMappingURL=02-6to5-smartUpdate.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/smartUpdate.js.map
 
   function Viewmodel$teardown() {
     var _this = this;
@@ -12832,7 +12722,7 @@
       unresolvedImplicitDependency.teardown();
     }
   }
-  //# sourceMappingURL=02-6to5-teardown.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/teardown.js.map
 
   function Viewmodel$unregister(keypath, dependant) {
     var group = arguments[2] === undefined ? "default" : arguments[2];
@@ -12881,28 +12771,23 @@
       keypath = keypath.parent;
     }
   }
-  //# sourceMappingURL=02-6to5-unregister.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/prototype/unregister.js.map
 
-  var Viewmodel = function (ractive, mappings) {
-    var key, mapping;
+  var Viewmodel = function (options) {
+    var adapt = options.adapt;
+    var data = options.data;
+    var ractive = options.ractive;
+    var computed = options.computed;
+    var mappings = options.mappings;
+    var key;
+    var mapping;
 
-    this.ractive = ractive; // TODO eventually, we shouldn't need this reference
+    // TODO is it possible to remove this reference?
+    this.ractive = ractive;
 
-    // set up explicit mappings
-    this.mappings = mappings || create(null);
-    for (key in mappings) {
-      mappings[key].initViewmodel(this);
-    }
-
-    if (ractive.data && ractive.parameters !== true) {
-      // if data exists locally, but is missing on the parent,
-      // we transfer ownership to the parent
-      for (key in ractive.data) {
-        if ((mapping = this.mappings[key]) && mapping.getValue() === undefined) {
-          mapping.setValue(ractive.data[key]);
-        }
-      }
-    }
+    this.adaptors = adapt;
+    this.debug = options.debug;
+    this.onchange = options.onchange;
 
     this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
     this.cacheMap = create(null);
@@ -12929,6 +12814,34 @@
     this.changes = [];
     this.implicitChanges = {};
     this.noCascade = {};
+
+    this.data = data;
+
+    // set up explicit mappings
+    this.mappings = create(null);
+    for (key in mappings) {
+      this.map(getKeypath(key), mappings[key]);
+    }
+
+    if (data) {
+      // if data exists locally, but is missing on the parent,
+      // we transfer ownership to the parent
+      for (key in data) {
+        if ((mapping = this.mappings[key]) && mapping.getValue() === undefined) {
+          mapping.setValue(data[key]);
+        }
+      }
+    }
+
+    for (key in computed) {
+      if (mappings && key in mappings) {
+        fatal("Cannot map to a computed property ('%s')", key);
+      }
+
+      this.compute(getKeypath(key), computed[key]);
+    }
+
+    this.ready = true;
   };
 
   Viewmodel.prototype = {
@@ -12944,6 +12857,7 @@
     merge: Viewmodel$merge,
     register: Viewmodel$register,
     release: Viewmodel$release,
+    reset: Viewmodel$reset,
     set: Viewmodel$set,
     smartUpdate: Viewmodel$smartUpdate,
     teardown: Viewmodel$teardown,
@@ -12951,7 +12865,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Viewmodel.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/viewmodel/Viewmodel.js.map
 
   function HookQueue(event) {
     this.hook = new Hook(event);
@@ -13004,27 +12918,112 @@
 
 
 
-  //# sourceMappingURL=02-6to5-HookQueue.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shared/hooks/HookQueue.js.map
+
+  var pattern = /\$\{([^\}]+)\}/g;
+
+  function getComputationSignatures(ractive, computed) {
+    var signatures = {},
+        key;
+
+    for (key in computed) {
+      signatures[key] = getComputationSignature(ractive, key, computed[key]);
+    }
+
+    return signatures;
+  }
+
+  function getComputationSignature(ractive, key, signature) {
+    var getter, setter;
+
+    if (typeof signature === "function") {
+      getter = getComputationSignatures__bind(signature, ractive);
+    }
+
+    if (typeof signature === "string") {
+      getter = createFunctionFromString(ractive, signature);
+    }
+
+    if (typeof signature === "object") {
+      if (typeof signature.get === "string") {
+        getter = createFunctionFromString(ractive, signature.get);
+      } else if (typeof signature.get === "function") {
+        getter = getComputationSignatures__bind(signature.get, ractive);
+      } else {
+        fatal("`%s` computation must have a `get()` method", key);
+      }
+
+      if (typeof signature.set === "function") {
+        setter = getComputationSignatures__bind(signature.set, ractive);
+      }
+    }
+
+    return { getter: getter, setter: setter };
+  }
+
+  function createFunctionFromString(ractive, str) {
+    var functionBody, hasThis, fn;
+
+    functionBody = "return (" + str.replace(pattern, function (match, keypath) {
+      hasThis = true;
+      return "__ractive.get(\"" + keypath + "\")";
+    }) + ");";
+
+    if (hasThis) {
+      functionBody = "var __ractive = this; " + functionBody;
+    }
+
+    fn = new Function(functionBody);
+    return hasThis ? fn.bind(ractive) : fn;
+  }
+
+  function getComputationSignatures__bind(fn, context) {
+    return /this/.test(fn.toString()) ? fn.bind(context) : fn;
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/helpers/getComputationSignatures.js.map
 
   var constructHook = new Hook("construct"),
       configHook = new Hook("config"),
       initHook = new HookQueue("init"),
-      initialise__uid = 0;
+      initialise__uid = 0,
+      initialise__registryNames;
+
+  initialise__registryNames = ["adaptors", "components", "decorators", "easing", "events", "interpolators", "partials", "transitions"];
 
   var initialise = initialiseRactiveInstance;
 
   function initialiseRactiveInstance(ractive) {
     var userOptions = arguments[1] === undefined ? {} : arguments[1];
     var options = arguments[2] === undefined ? {} : arguments[2];
-    var el;
+    var el, viewmodel;
 
     initialiseProperties(ractive, options);
 
-    // make this option do what would be expected if someone
-    // did include it on a new Ractive() or new Component() call.
-    // Silly to do so (put a hook on the very options being used),
-    // but handle it correctly, consistent with the intent.
+    // TODO remove this, eventually
+    Object.defineProperty(ractive, "data", { get: deprecateRactiveData });
+
+    // TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
     constructHook.fire(config.getConstructTarget(ractive, userOptions), userOptions);
+
+    // Add registries
+    initialise__registryNames.forEach(function (name) {
+      ractive[name] = object__extend(create(ractive.constructor[name] || null), userOptions[name]);
+    });
+
+    // Create a viewmodel
+    viewmodel = new Viewmodel({
+      adapt: getAdaptors(ractive, ractive.adapt, userOptions),
+      data: dataConfigurator.init(ractive.constructor, ractive, userOptions),
+      computed: getComputationSignatures(ractive, object__extend(create(ractive.constructor.prototype.computed), userOptions.computed)),
+      mappings: options.mappings,
+      ractive: ractive,
+      onchange: function () {
+        return runloop.addRactive(ractive);
+      }
+    });
+
+    ractive.viewmodel = viewmodel;
+    viewmodel.debug = ractive.debug;
 
     // init config from Parent and options
     config.init(ractive.constructor, ractive, userOptions);
@@ -13038,16 +13037,16 @@
     configHook.fire(ractive);
     initHook.begin(ractive);
 
-    // TEMPORARY. This is so we can implement Viewmodel gradually
-    ractive.viewmodel = new Viewmodel(ractive, options.mappings);
+    // If this is a component with a function `data` property, call the function
+    // with `ractive` as context (unless the child was also a function)
+    if (typeof ractive.constructor.prototype.data === "function" && typeof userOptions.data !== "function") {
+      viewmodel.reset(ractive.constructor.prototype.data.call(ractive) || fatal("`data` functions must return a data object"));
+    }
 
-    // hacky circular problem until we get this sorted out
-    // if viewmodel immediately processes computed properties,
-    // they may call ractive.get, which calls ractive.viewmodel,
-    // which hasn't been set till line above finishes.
-    ractive.viewmodel.init();
+    // This can't happen earlier, because computed properties may call `ractive.get()`, etc
+    viewmodel.init();
 
-    // Render our *root fragment*
+    // Render virtual DOM
     if (ractive.template) {
       var cssIds = undefined;
 
@@ -13073,6 +13072,62 @@
     if (el = getElement(ractive.el)) {
       ractive.render(el, ractive.append);
     }
+  }
+
+  function getAdaptors(ractive, protoAdapt, userOptions) {
+    var lookup = function (adaptor) {
+      if (typeof adaptor === "string") {
+        adaptor = findInViewHierarchy("adaptors", ractive, adaptor);
+
+        if (!adaptor) {
+          fatal(missingPlugin(adaptor, "adaptor"));
+        }
+      }
+
+      return adaptor;
+    };
+
+    var adapt, magic, modifyArrays;
+
+    protoAdapt = protoAdapt.map(lookup);
+    adapt = ensureArray(userOptions.adapt).map(lookup);
+
+    adapt = initialise__combine(protoAdapt, adapt);
+
+    magic = "magic" in userOptions ? userOptions.magic : ractive.magic;
+    modifyArrays = "modifyArrays" in userOptions ? userOptions.modifyArrays : ractive.modifyArrays;
+
+    if (magic) {
+      if (!magic) {
+        throw new Error("Getters and setters (magic mode) are not supported in this browser");
+      }
+
+      if (modifyArrays) {
+        adapt.push(magicArrayAdaptor);
+      }
+
+      adapt.push(magicAdaptor);
+    }
+
+    if (modifyArrays) {
+      adapt.push(arrayAdaptor);
+    }
+
+    return adapt;
+
+  }
+
+  function initialise__combine(a, b) {
+    var c = a.slice(),
+        i = b.length;
+
+    while (i--) {
+      if (! ~c.indexOf(b[i])) {
+        c.push(b[i]);
+      }
+    }
+
+    return c;
   }
 
   function initialiseProperties(ractive, options) {
@@ -13122,15 +13177,61 @@
       ractive.parent = ractive.container = null;
     }
   }
-  //# sourceMappingURL=02-6to5-initialise.js.map
 
-  var createInstance = function (component, Component, parameters, yieldTemplate, partials) {
+  function deprecateRactiveData() {
+    throw new Error("Using `ractive.data` is no longer supported - you must use the `ractive.get()` API instead");
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/initialise.js.map
+
+  function ComplexParameter(component, template, callback) {
+    this.parentFragment = component.parentFragment;
+    this.callback = callback;
+
+    this.fragment = new Fragment({
+      template: template,
+      root: component.root,
+      owner: this
+    });
+
+    this.update();
+  }
+
+
+
+  ComplexParameter.prototype = {
+    bubble: function () {
+      if (!this.dirty) {
+        this.dirty = true;
+        runloop.addView(this);
+      }
+    },
+
+    update: function () {
+      this.callback(this.fragment.getValue());
+      this.dirty = false;
+    },
+
+    rebind: function (oldKeypath, newKeypath) {
+      this.fragment.rebind(oldKeypath, newKeypath);
+    },
+
+    unbind: function () {
+      this.fragment.unbind();
+    }
+  };
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/initialise/ComplexParameter.js.map
+
+  var createInstance = function (component, Component, attributes, yieldTemplate, partials) {
     var instance,
         parentFragment,
         ractive,
         fragment,
         container,
-        inlinePartials = {};
+        inlinePartials = {},
+        data = {},
+        mappings = {},
+        ready,
+        resolvers = [];
 
     parentFragment = component.parentFragment;
     ractive = component.root;
@@ -13159,12 +13260,67 @@
       fragment = fragment.parent;
     }
 
+    // each attribute represents either a) data or b) a mapping
+    if (attributes) {
+      Object.keys(attributes).forEach(function (key) {
+        var attribute = attributes[key],
+            parsed,
+            resolver;
+
+        if (typeof attribute === "string") {
+          // it's static data
+          parsed = parseJSON(attribute);
+          data[key] = parsed ? parsed.value : attribute;
+        } else if (isArray(attribute)) {
+          // this represents dynamic data
+          if (isSingleInterpolator(attribute)) {
+            mappings[key] = {
+              origin: component.root.viewmodel,
+              keypath: undefined
+            };
+
+            resolver = createResolver(component, attribute[0], function (keypath) {
+              if (keypath.isSpecial) {
+                if (ready) {
+                  instance.set(key, keypath.value); // TODO use viewmodel?
+                } else {
+                  data[key] = keypath.value;
+
+                  // TODO errr.... would be better if we didn't have to do this
+                  delete mappings[key];
+                }
+              } else {
+                if (ready) {
+                  instance.viewmodel.mappings[key].resolve(keypath);
+                } else {
+                  // resolved immediately
+                  mappings[key].keypath = keypath;
+                }
+              }
+            });
+          } else {
+            resolver = new ComplexParameter(component, attribute, function (value) {
+              if (ready) {
+                instance.set(key, value); // TODO use viewmodel?
+              } else {
+                data[key] = value;
+              }
+            });
+          }
+
+          resolvers.push(resolver);
+        } else {
+          throw new Error("erm wut");
+        }
+      });
+    }
+
     instance = create(Component.prototype);
 
     initialise(instance, {
       el: null,
       append: true,
-      data: parameters.data,
+      data: data,
       partials: partials,
       magic: ractive.magic || Component.defaults.magic,
       modifyArrays: ractive.modifyArrays,
@@ -13174,323 +13330,35 @@
       parent: ractive,
       component: component,
       container: container,
-      mappings: parameters.mappings,
+      mappings: mappings,
       inlinePartials: inlinePartials,
       cssIds: parentFragment.cssIds
     });
 
+    ready = true;
+    component.resolvers = resolvers;
+
     return instance;
   };
-  //# sourceMappingURL=02-6to5-createInstance.js.map
 
-  function ComplexParameter(parameters, key, value) {
-    this.parameters = parameters;
-    this.parentFragment = parameters.component.parentFragment;
-    this.key = key;
-
-    this.fragment = new Fragment({
-      template: value,
-      root: parameters.component.root,
-      owner: this
-    });
-
-    this.parameters.addData(this.key.str, this.fragment.getValue());
-  }
-
-
-
-  ComplexParameter.prototype = {
-    bubble: function () {
-      if (!this.dirty) {
-        this.dirty = true;
-        runloop.addView(this);
-      }
-    },
-
-    update: function () {
-      var viewmodel = this.parameters.component.instance.viewmodel;
-
-      this.parameters.addData(this.key.str, this.fragment.getValue());
-      viewmodel.mark(this.key);
-
-      this.dirty = false;
-    },
-
-    rebind: function (oldKeypath, newKeypath) {
-      this.fragment.rebind(oldKeypath, newKeypath);
-    },
-
-    unbind: function () {
-      this.fragment.unbind();
-    }
-  };
-  //# sourceMappingURL=02-6to5-ComplexParameter.js.map
-
-  function createComponentData(parameters, proto) {
-    // Don't do anything with data at all..
-    if (!proto.parameters) {
-      return parameters.data;
-    }
-    // No magic or legacy requested
-    else if (!magic || proto.parameters === "legacy") {
-      return createLegacyData(parameters);
-    }
-    // ES5 ftw!
-    return createDataFromPrototype(parameters, proto);
-  }
-
-  function createLegacyData(parameters) {
-    var mappings = parameters.mappings,
-        key;
-
-    for (key in mappings) {
-      var mapping = mappings[key];
-      mapping.trackData = true;
-
-      if (!mapping.updatable) {
-        parameters.addData(key, mapping.getValue());
-      }
-    }
-
-    return parameters.data;
-  }
-
-  function createDataFromPrototype(parameters, proto) {
-    var ComponentData = getConstructor(parameters, proto);
-    return new ComponentData(parameters);
-  }
-
-  function getConstructor(parameters, proto) {
-    var protoparams = proto._parameters;
-
-    if (!protoparams.Constructor || parameters.newKeys.length) {
-      protoparams.Constructor = makeConstructor(parameters, protoparams.defined);
-    }
-
-    return protoparams.Constructor;
-  }
-
-  function makeConstructor(parameters, defined) {
-    var ComponentData = function (options) {
-      this._mappings = options.mappings;
-      this._data = options.data || {};
-    };
-
-    var properties, proto;
-
-    properties = parameters.keys.reduce(function (definition, key) {
-      definition[key] = {
-        get: function () {
-          var mapping = this._mappings[key];
-
-          if (mapping) {
-            return mapping.getValue();
-          } else {
-            return this._data[key];
-          }
-        },
-        set: function (value) {
-          var mapping = this._mappings[key];
-
-          if (mapping) {
-            runloop.start();
-            mapping.setValue(value);
-            runloop.end();
-          } else {
-            this._data[key] = value;
-          }
-        },
-        enumerable: true
-      };
-
-      return definition;
-    }, defined);
-
-    defineProperties(proto = { toJSON: toJSON }, properties);
-    proto.constructor = ComponentData;
-    ComponentData.prototype = proto;
-
-    return ComponentData;
-  }
-
-  var reservedKeys = ["_data", "_mappings"];
-
-  function toJSON() {
-    var json = {},
-        k;
-
-    for (k in this) {
-      if (reservedKeys.indexOf(k) === -1) {
-        json[k] = this[k];
-      }
-    }
-
-    return json;
-  }
-  //# sourceMappingURL=02-6to5-createComponentData.js.map
-
-  function ParameterResolver(parameters, key, template) {
-    var component, resolve, force;
-
-    this.parameters = parameters;
-    this.key = key;
-    this.resolved = this.ready = false;
-
-    component = parameters.component;
-    resolve = this.resolve.bind(this);
+  function createResolver(component, template, callback) {
+    var resolver;
 
     if (template.r) {
-      this.resolver = createReferenceResolver(component, template.r, resolve);
+      resolver = createReferenceResolver(component, template.r, callback);
     } else if (template.x) {
-      this.resolver = new ExpressionResolver(component, component.parentFragment, template.x, resolve);
+      resolver = new ExpressionResolver(component, component.parentFragment, template.x, callback);
     } else if (template.rx) {
-      this.resolver = new ReferenceExpressionResolver(component, template.rx, resolve);
+      resolver = new ReferenceExpressionResolver(component, template.rx, callback);
     }
 
-    if (!this.resolved) {
-      // if the resolver can force resolution, so can the mapping
-      if (this.resolver && isFunction(this.resolver.forceResolution)) {
-        force = this.resolver.forceResolution.bind(this.resolver);
-      }
-
-      // note the mapping anyway, for the benefit of child components
-      parameters.addMapping(key, undefined, force);
-    }
-
-    this.ready = true;
+    return resolver;
   }
-
-
-
-  ParameterResolver.prototype = {
-    resolve: function (keypath) {
-      this.resolved = true;
-
-      if (this.ready) {
-        this.readyResolve(keypath);
-      } else {
-        this.notReadyResolve(keypath);
-      }
-    },
-
-    notReadyResolve: function (keypath) {
-      if (keypath.isSpecial) {
-        this.parameters.addData(this.key.str, keypath.value);
-      } else {
-        var mapping = this.parameters.addMapping(this.key, keypath);
-
-        if (mapping.getValue() === undefined) {
-          mapping.updatable = true;
-        }
-      }
-    },
-
-    readyResolve: function (keypath) {
-      var viewmodel = this.parameters.component.instance.viewmodel;
-
-      if (keypath.isSpecial) {
-        this.parameters.addData(this.key.str, keypath.value);
-        viewmodel.mark(this.key);
-      } else if (viewmodel.reversedMappings && viewmodel.reversedMappings[this.key.str]) {
-        viewmodel.reversedMappings[this.key.str].rebind(keypath);
-      } else {
-        viewmodel.mappings[this.key.str].resolve(keypath);
-      }
-    }
-  };
-  //# sourceMappingURL=02-6to5-ParameterResolver.js.map
-
-  function createParameters(component, proto, attributes) {
-    var parameters, data, defined;
-
-    if (!attributes) {
-      return { data: {} };
-    }
-
-    if (proto.parameters) {
-      defined = getParamsDefinition(proto);
-    }
-
-    parameters = new ComponentParameters(component, attributes, defined);
-    data = createComponentData(parameters, proto);
-
-    return { data: data, mappings: parameters.mappings };
-  }
-
-  function getParamsDefinition(proto) {
-    if (!proto._parameters) {
-      proto._parameters = { defined: {} };
-    } else if (!proto._parameters.defined) {
-      proto._parameters.defined = {};
-    }
-    return proto._parameters.defined;
-  }
-
-
-  function ComponentParameters(component, attributes, defined) {
-    var _this = this;
-    this.component = component;
-    this.parentViewmodel = component.root.viewmodel;
-    this.data = {};
-    this.mappings = create(null);
-    this.newKeys = []; // TODO it's not obvious that this does anything?
-    this.keys = Object.keys(attributes);
-
-    this.keys.forEach(function (key) {
-      if (defined && !defined[key]) {
-        _this.newKeys.push(key);
-      }
-      _this.add(getKeypath(key), attributes[key]);
-    });
-  }
-
-  ComponentParameters.prototype = {
-    add: function (key, template) {
-      // We have static data
-      if (typeof template === "string") {
-        var parsed = parseJSON(template);
-        this.addData(key.str, parsed ? parsed.value : template);
-      }
-      // Empty string
-      // TODO valueless attributes also end up here currently
-      // (i.e. `<widget bool>` === `<widget bool=''>`) - this
-      // is probably incorrect
-      else if (template === 0) {
-        this.addData(key.str);
-      }
-      // Interpolators
-      else {
-        var resolver = undefined;
-        // Single interpolator
-        if (isSingleInterpolator(template)) {
-          resolver = new ParameterResolver(this, key, template[0]).resolver;
-        }
-        // We have a 'complex' parameter, e.g.
-        // `<widget foo='{{bar}} {{baz}}'/>`
-        else {
-          resolver = new ComplexParameter(this, key, template);
-        }
-        this.component.resolvers.push(resolver);
-      }
-    },
-
-    addData: function (key, value) {
-      this.data[key] = value;
-    },
-
-    addMapping: function (key, keypath, force) {
-      return this.mappings[key.str] = new Mapping(key, {
-        origin: this.parentViewmodel,
-        keypath: keypath,
-        force: force
-      });
-    }
-  };
 
   function isSingleInterpolator(template) {
     return template.length === 1 && template[0].t === INTERPOLATOR;
   }
-  //# sourceMappingURL=02-6to5-createParameters.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/initialise/createInstance.js.map
 
   function propagateEvents(component, eventsDescriptor) {
     var eventName;
@@ -13523,7 +13391,7 @@
       return false;
     });
   }
-  //# sourceMappingURL=02-6to5-propagateEvents.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/initialise/propagateEvents.js.map
 
   var updateLiveQueries__default = function (component) {
     var ancestor, query;
@@ -13538,10 +13406,10 @@
       ancestor = ancestor.parent;
     }
   };
-  //# sourceMappingURL=02-6to5-updateLiveQueries.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/initialise/updateLiveQueries.js.map
 
   function Component$init(options, Component) {
-    var parentFragment, root, parameters;
+    var parentFragment, root;
 
     if (!Component) {
       throw new Error("Component \"" + this.name + "\" not found");
@@ -13558,8 +13426,7 @@
     this.yielders = {};
     this.resolvers = [];
 
-    parameters = createParameters(this, Component.prototype, options.template.a);
-    createInstance(this, Component, parameters, options.template.f, options.template.p);
+    createInstance(this, Component, options.template.a, options.template.f, options.template.p);
     propagateEvents(this, options.template.v);
 
     // intro, outro and decorator directives have no effect
@@ -13569,7 +13436,7 @@
 
     updateLiveQueries__default(this);
   }
-  //# sourceMappingURL=02-6to5-init.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/init.js.map
 
   function Component$rebind(oldKeypath, newKeypath) {
     var rebind = function (x) {
@@ -13590,7 +13457,7 @@
       query._makeDirty();
     }
   }
-  //# sourceMappingURL=02-6to5-rebind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/rebind.js.map
 
   function Component$render() {
     var instance = this.instance;
@@ -13600,12 +13467,12 @@
     this.rendered = true;
     return instance.fragment.detach();
   }
-  //# sourceMappingURL=02-6to5-render.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/render.js.map
 
   function Component$toString() {
     return this.instance.fragment.toString();
   }
-  //# sourceMappingURL=02-6to5-toString.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/toString.js.map
 
   var Component_prototype_unbind__teardownHook = new Hook("teardown");
 
@@ -13638,13 +13505,13 @@
       }
     } while (instance = instance.parent);
   }
-  //# sourceMappingURL=02-6to5-unbind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/unbind.js.map
 
   function Component$unrender(shouldDestroy) {
     this.shouldDestroy = shouldDestroy;
     this.instance.unrender();
   }
-  //# sourceMappingURL=02-6to5-unrender.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/prototype/unrender.js.map
 
   var Component = function (options, Constructor) {
     this.init(options, Constructor);
@@ -13667,7 +13534,7 @@
   };
 
   var Component__default = Component;
-  //# sourceMappingURL=02-6to5-_Component.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Component/_Component.js.map
 
   var Comment = function (options) {
     this.type = COMMENT;
@@ -13701,7 +13568,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Comment.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Comment.js.map
 
   var Yielder = function (options) {
     var container, component;
@@ -13796,7 +13663,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Yielder.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Yielder.js.map
 
   var Doctype = function (options) {
     this.declaration = options.template.a;
@@ -13813,7 +13680,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Doctype.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/items/Doctype.js.map
 
   function Fragment$init(options) {
     var _this = this;
@@ -13877,7 +13744,7 @@
         throw new Error("Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!");
     }
   }
-  //# sourceMappingURL=02-6to5-init.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/init.js.map
 
   function Fragment$rebind(oldKeypath, newKeypath) {
     // assign new context keypath if needed
@@ -13889,7 +13756,7 @@
       }
     });
   }
-  //# sourceMappingURL=02-6to5-rebind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/rebind.js.map
 
   function Fragment$render() {
     var result;
@@ -13907,7 +13774,7 @@
     this.rendered = true;
     return result;
   }
-  //# sourceMappingURL=02-6to5-render.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/render.js.map
 
   function Fragment$toString(escape) {
     if (!this.items) {
@@ -13924,7 +13791,7 @@
   function toEscapedString(item) {
     return item.toString(true);
   }
-  //# sourceMappingURL=02-6to5-toString.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/toString.js.map
 
   function Fragment$unbind() {
     if (!this.bound) {
@@ -13940,7 +13807,7 @@
       item.unbind();
     }
   }
-  //# sourceMappingURL=02-6to5-unbind.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/unbind.js.map
 
   function Fragment$unrender(shouldDestroy) {
     if (!this.rendered) {
@@ -13952,7 +13819,7 @@
     });
     this.rendered = false;
   }
-  //# sourceMappingURL=02-6to5-unrender.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment/prototype/unrender.js.map
 
   var Fragment = function (options) {
     this.init(options);
@@ -13989,7 +13856,7 @@
   };
 
 
-  //# sourceMappingURL=02-6to5-Fragment.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/virtualdom/Fragment.js.map
 
   var shouldRerender = ["template", "partials", "components", "decorators", "events"],
       resetHook = new Hook("reset");
@@ -14007,10 +13874,10 @@
     if ((wrapper = this.viewmodel.wrapped[""]) && wrapper.reset) {
       if (wrapper.reset(data) === false) {
         // reset was rejected, we need to replace the object
-        this.data = data;
+        this.viewmodel.reset(data);
       }
     } else {
-      this.data = data;
+      this.viewmodel.reset(data);
     }
 
     // reset config items and track if need to rerender
@@ -14066,7 +13933,7 @@
 
     return promise;
   }
-  //# sourceMappingURL=02-6to5-reset.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/reset.js.map
 
   var resetPartial = function (name, partial) {
     var collect = function (source, dest, ractive) {
@@ -14129,7 +13996,7 @@
 
     return promise;
   };
-  //# sourceMappingURL=02-6to5-resetPartial.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/resetPartial.js.map
 
   function Ractive$resetTemplate(template) {
     var transitionsEnabled, component;
@@ -14165,10 +14032,10 @@
 
     this.transitionsEnabled = transitionsEnabled;
   }
-  //# sourceMappingURL=02-6to5-resetTemplate.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/resetTemplate.js.map
 
   var reverse = makeArrayMethod("reverse");
-  //# sourceMappingURL=02-6to5-reverse.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/reverse.js.map
 
   var prototype_set__wildcard = /\*/;
 
@@ -14211,21 +14078,21 @@
 
     return promise;
   }
-  //# sourceMappingURL=02-6to5-set.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/set.js.map
 
   var shift = makeArrayMethod("shift");
-  //# sourceMappingURL=02-6to5-shift.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/shift.js.map
 
   var prototype_sort = makeArrayMethod("sort");
-  //# sourceMappingURL=02-6to5-sort.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/sort.js.map
 
   var splice = makeArrayMethod("splice");
-  //# sourceMappingURL=02-6to5-splice.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/splice.js.map
 
   function Ractive$subtract(keypath, d) {
     return add(this, keypath, d === undefined ? -1 : -d);
   }
-  //# sourceMappingURL=02-6to5-subtract.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/subtract.js.map
 
   var prototype_teardown__teardownHook = new Hook("teardown");
 
@@ -14255,7 +14122,7 @@
   function deleteFunctionCopy(bound) {
     delete bound.fn[bound.prop];
   }
-  //# sourceMappingURL=02-6to5-teardown.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/teardown.js.map
 
   function Ractive$toggle(keypath) {
     if (typeof keypath !== "string") {
@@ -14264,12 +14131,12 @@
 
     return this.set(keypath, !this.get(keypath));
   }
-  //# sourceMappingURL=02-6to5-toggle.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/toggle.js.map
 
   function Ractive$toHTML() {
     return this.fragment.toString(true);
   }
-  //# sourceMappingURL=02-6to5-toHTML.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/toHTML.js.map
 
   var unrenderHook = new Hook("unrender");
 
@@ -14308,10 +14175,10 @@
     runloop.end();
     return promise;
   }
-  //# sourceMappingURL=02-6to5-unrender.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/unrender.js.map
 
   var unshift = makeArrayMethod("unshift");
-  //# sourceMappingURL=02-6to5-unshift.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/unshift.js.map
 
   var updateHook = new Hook("update");
 
@@ -14328,7 +14195,7 @@
 
     return promise;
   }
-  //# sourceMappingURL=02-6to5-update.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/update.js.map
 
   function Ractive$updateModel(keypath, cascade) {
     var values, key, bindings;
@@ -14402,7 +14269,7 @@
 
     return values;
   }
-  //# sourceMappingURL=02-6to5-updateModel.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype/updateModel.js.map
 
   var proto__default = {
     add: Ractive$add,
@@ -14444,7 +14311,7 @@
     update: Ractive$update,
     updateModel: Ractive$updateModel
   };
-  //# sourceMappingURL=02-6to5-prototype.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/prototype.js.map
 
   function unwrap(Child) {
     var options = {};
@@ -14520,7 +14387,7 @@
       }
     });
   }
-  //# sourceMappingURL=02-6to5-unwrapExtended.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/extend/unwrapExtended.js.map
 
   var extend__uid = 1,
       extend__extend;
@@ -14579,11 +14446,17 @@
     // extend configuration
     config.extend(Parent, proto, options);
 
+    dataConfigurator.extend(Parent, proto, options);
+
+    if (options.computed) {
+      proto.computed = object__extend(create(Parent.prototype.computed), options.computed);
+    }
+
     Child.prototype = proto;
 
     return Child;
   }
-  //# sourceMappingURL=02-6to5-_extend.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/extend/_extend.js.map
 
   var getNodeInfo = function (node) {
     var info = {},
@@ -14605,7 +14478,7 @@
 
     return info;
   };
-  //# sourceMappingURL=02-6to5-getNodeInfo.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive/static/getNodeInfo.js.map
 
   var Ractive, properties;
 
@@ -14667,7 +14540,7 @@
   }
 
 
-  //# sourceMappingURL=02-6to5-Ractive.js.map
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-6to5/1/Ractive.js.map
 
   return Ractive;
 
