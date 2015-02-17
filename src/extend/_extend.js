@@ -5,17 +5,15 @@ import initialise from 'Ractive/initialise';
 import Ractive from 'Ractive';
 import unwrapExtended from './unwrapExtended';
 
-var uid = 1, extend;
+export default extend;
 
-extend = function ( ...options ) {
+function extend ( ...options ) {
 	if( !options.length ) {
 		return extendOne( this );
 	} else {
 		return options.reduce( extendOne, this );
 	}
-};
-
-export default extend;
+}
 
 function extendOne ( Parent, options = {} ) {
 	var Child, proto;
@@ -40,9 +38,6 @@ function extendOne ( Parent, options = {} ) {
 
 	// Static properties
 	defineProperties( Child, {
-		// each component needs a unique ID, for managing CSS
-		_guid: { value: uid++ },
-
 		// alias prototype as defaults
 		defaults: { value: proto },
 

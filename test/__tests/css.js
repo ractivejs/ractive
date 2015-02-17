@@ -81,14 +81,14 @@ asyncTest( 'CSS encapsulation transformation is optional', function ( t ) {
 	var Widget, ractive, paragraphs;
 
 	Widget = Ractive.extend({
-		template: '<p>red</p>',
-		css: 'p { color: red; }',
+		template: '<p class="unencapsulated">red</p>',
+		css: '.unencapsulated { color: red; }',
 		noCssTransform: true
 	});
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<p>red</p><widget/>',
+		template: '<p class="unencapsulated">red</p><widget/>',
 		components: {
 			widget: Widget
 		}
@@ -278,4 +278,39 @@ test( 'Yielded content gets encapsulated styles', t => {
 
 	t.equal( getHexColor( p ), hexCodes.blue );
 	t.ok( /Comic Sans MS/.test( style.fontFamily ) );
+});
+
+asyncTest( 'Components retain their encapsulated CSS until they are detached', t => {
+	let widget = Ractive.extend({
+	    template: '<p>some red text</p>',
+	    css: 'p { color: red; }'
+	});
+
+	let complete;
+
+	let ractive = new Ractive({
+	    el: fixture,
+	    template: `
+		    {{#if show}}
+				<div outro='wait'>
+					<widget/>
+				</div>
+			{{/if}}`,
+		data: { show: true },
+	    components: { widget },
+	    transitions: {
+	    	wait ( t ) {
+	    		complete = t.complete;
+	    	}
+	    }
+	});
+
+	let p = ractive.find( 'p' );
+	ractive.set( 'show', false );
+
+	setTimeout( () => {
+		t.equal( getHexColor( p ), hexCodes.red );
+		complete();
+		QUnit.start();
+	}, 50 );
 });
