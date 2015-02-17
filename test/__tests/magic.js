@@ -172,16 +172,20 @@ try {
 	});
 
 	test( 'A magic component is magic regardless of whether its parent is magic', function ( t ) {
-		var Magician, ractive;
+		var data, Magician, ractive;
 
 		expect( 3 );
+
+		data = {
+			magician: 'Harry Houdini'
+		};
 
 		Magician = MagicRactive.extend({
 			template: '<p>{{magician}}</p>',
 			magic: true,
-			data: { magician: 'Harry Houdini' },
+			data: data,
 			changeMagician: function () {
-				this.data.magician = 'David Copperfield'
+				this.viewmodel.data.magician = 'David Copperfield';
 			},
 			oninit: function () {
 				t.ok( this.magic );

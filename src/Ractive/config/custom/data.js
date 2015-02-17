@@ -12,17 +12,18 @@ var dataConfigurator = {
 			result = combine( Parent, ractive, options );
 
 		if ( typeof result === 'function' ) {
-			result = result.call( ractive, value ) || value;
+			result = result.call( ractive ) || value;
 		}
 
-		return ractive.data = result || {};
+		return result;
 	},
 
 	reset: function ( ractive ) {
-		var result = this.init( ractive.constructor, ractive, ractive );
+		var result = this.init( ractive.constructor, ractive, ractive.viewmodel );
 
 		if ( result ) {
-			ractive.data = result;
+			ractive.viewmodel.data = result;
+			ractive.viewmodel.clearCache( '' );
 			return true;
 		}
 	}

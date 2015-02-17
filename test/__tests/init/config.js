@@ -21,11 +21,11 @@ test( 'instance has config options', t => {
 		var name = itemConfig.name || itemConfig;
 
 		if ( name in Ractive.prototype ) {
-			ok( name in ractive, 'has ' + name);
+			t.ok( name in ractive, 'has ' + name);
 		}
 
 		if ( !~registryNames.indexOf( name ) && name !== 'template' ) { // TODO template is a special case... this should probably be handled differently
-			deepEqual( ractive[ name ], Ractive.prototype[ name ], 'compare ' + name );
+			t.deepEqual( ractive[ name ], Ractive.prototype[ name ], 'compare ' + name );
 		}
 	});
 });

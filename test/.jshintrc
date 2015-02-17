@@ -5,6 +5,8 @@
 	"globals": {
 		"module": true,
 		"define": true,
+		"require": true,
+		"__dirname": true,
 		"HTMLDocument": true,
 		"fixture": true,
 		"test": true,

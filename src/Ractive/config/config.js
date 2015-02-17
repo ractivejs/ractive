@@ -80,7 +80,7 @@ function configure ( method, Parent, target, options ) {
 	});
 
 	adaptConfigurator[ method ]( Parent, target, options );
-	dataConfigurator[ method ]( Parent, target, options );
+	//dataConfigurator[ method ]( Parent, target, options );
 	templateConfigurator[ method ]( Parent, target, options );
 	cssConfigurator[ method ]( Parent, target, options );
 

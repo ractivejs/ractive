@@ -10,10 +10,13 @@ test( 'has globally registered', function ( t ) {
 		target[ r.name ].foo = foo;
 	});
 
+	// Special case - computation signature can't be an empty object
+	Ractive.defaults.computed.foo = function () {};
+
 	ractive = new Ractive({});
 
 	registries.forEach( r => {
-		t.equal( ractive[ r.name ].foo, foo, r.name);
+		t.equal( ractive[ r.name ].foo, ( r.useDefaults ? Ractive.defaults : Ractive )[ r.name ].foo , r.name );
 	});
 
 	registries.forEach( r => {

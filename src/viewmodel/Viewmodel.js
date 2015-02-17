@@ -1,3 +1,5 @@
+import { fatal } from 'utils/log';
+import { getKeypath } from 'shared/keypaths';
 import { create } from 'utils/object';
 import adapt from './prototype/adapt';
 import applyChanges from './prototype/applyChanges';
@@ -11,31 +13,23 @@ import mark from './prototype/mark';
 import merge from './prototype/merge';
 import register from './prototype/register';
 import release from './prototype/release';
+import reset from './prototype/reset';
 import set from './prototype/set';
 import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 import unregister from './prototype/unregister';
 
-var Viewmodel = function ( ractive, mappings ) {
-	var key, mapping;
+var Viewmodel = function ( options ) {
+	var { adapt, data, ractive, computed, mappings } = options,
+		key,
+		mapping;
 
-	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
+	// TODO is it possible to remove this reference?
+	this.ractive = ractive;
 
-	// set up explicit mappings
-	this.mappings = mappings || create( null );
-	for ( key in mappings ) {
-		mappings[ key ].initViewmodel( this );
-	}
-
-	if ( ractive.data && ractive.parameters !== true ) {
-		// if data exists locally, but is missing on the parent,
-		// we transfer ownership to the parent
-		for ( key in ractive.data ) {
-			if ( ( mapping = this.mappings[ key ] ) && mapping.getValue() === undefined ) {
-				mapping.setValue( ractive.data[ key ] );
-			}
-		}
-	}
+	this.adaptors = adapt;
+	this.debug = options.debug;
+	this.onchange = options.onchange;
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
@@ -62,6 +56,34 @@ var Viewmodel = function ( ractive, mappings ) {
 	this.changes = [];
 	this.implicitChanges = {};
 	this.noCascade = {};
+
+	this.data = data;
+
+	// set up explicit mappings
+	this.mappings = create( null );
+	for ( key in mappings ) {
+		this.map( getKeypath( key ), mappings[ key ] );
+	}
+
+	if ( data ) {
+		// if data exists locally, but is missing on the parent,
+		// we transfer ownership to the parent
+		for ( key in data ) {
+			if ( ( mapping = this.mappings[ key ] ) && mapping.getValue() === undefined ) {
+				mapping.setValue( data[ key ] );
+			}
+		}
+	}
+
+	for ( key in computed ) {
+		if ( mappings && key in mappings ) {
+			fatal( 'Cannot map to a computed property (\'%s\')', key );
+		}
+
+		this.compute( getKeypath( key ), computed[ key ] );
+	}
+
+	this.ready = true;
 };
 
 Viewmodel.prototype = {
@@ -77,6 +99,7 @@ Viewmodel.prototype = {
 	merge: merge,
 	register: register,
 	release: release,
+	reset: reset,
 	set: set,
 	smartUpdate: smartUpdate,
 	teardown: teardown,

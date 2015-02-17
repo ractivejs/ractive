@@ -96,7 +96,7 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 	}
 
 	// Root/computed/mapped property?
-	if ( isRootProperty( ractive, key ) ) {
+	if ( isRootProperty( ractive.viewmodel, key ) ) {
 		return ref;
 	}
 
@@ -132,7 +132,7 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 function createMappingIfNecessary ( ractive, key ) {
 	var parentKeypath;
 
-	if ( !ractive.parent || ractive.isolated || isRootProperty( ractive, key ) ) {
+	if ( !ractive.parent || ractive.isolated || isRootProperty( ractive.viewmodel, key ) ) {
 		return;
 	}
 
@@ -146,7 +146,7 @@ function createMappingIfNecessary ( ractive, key ) {
 	}
 }
 
-function isRootProperty ( ractive, key ) {
+function isRootProperty ( viewmodel, key ) {
 	// special case for reference to root
-	return key === '' || key in ractive.data || key in ractive.viewmodel.computations || key in ractive.viewmodel.mappings;
+	return key === '' || key in viewmodel.data || key in viewmodel.computations || key in viewmodel.mappings;
 }

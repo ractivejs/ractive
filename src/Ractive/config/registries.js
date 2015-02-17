@@ -30,11 +30,11 @@ Registry.prototype = {
 			options );
 	},
 
-	init: function ( Parent, ractive, options ) {
-		this.configure(
+	init: function () {
+		/*this.configure(
 			this.useDefaults ? Parent.defaults : Parent,
 			ractive,
-			options );
+			options );*/
 	},
 
 	configure: function ( Parent, target, options ) {

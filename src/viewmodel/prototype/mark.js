@@ -1,9 +1,5 @@
-import runloop from 'global/runloop';
-
 export default function Viewmodel$mark ( keypath, options ) {
 	var computation, keypathStr = keypath.str;
-
-	runloop.addViewmodel( this ); // TODO remove other instances of this call
 
 	// implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)
 	// should not be picked up by pattern observers
@@ -28,4 +24,8 @@ export default function Viewmodel$mark ( keypath, options ) {
 	let keepExistingWrapper = options ? options.keepExistingWrapper : false;
 
 	this.clearCache( keypathStr, keepExistingWrapper );
+
+	if ( this.ready ) {
+		this.onchange();
+	}
 }

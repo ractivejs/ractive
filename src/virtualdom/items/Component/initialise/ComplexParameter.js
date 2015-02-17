@@ -1,18 +1,17 @@
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
 
-function ComplexParameter ( parameters, key, value ) {
-	this.parameters = parameters;
-	this.parentFragment = parameters.component.parentFragment;
-	this.key = key;
+function ComplexParameter ( component, template, callback ) {
+	this.parentFragment = component.parentFragment;
+	this.callback = callback;
 
 	this.fragment = new Fragment({
-		template: value,
-		root:     parameters.component.root,
+		template: template,
+		root:     component.root,
 		owner:    this
 	});
 
-	this.parameters.addData( this.key.str, this.fragment.getValue() );
+	this.update();
 }
 
 export default ComplexParameter;
@@ -26,11 +25,7 @@ ComplexParameter.prototype = {
 	},
 
 	update: function () {
-		var viewmodel = this.parameters.component.instance.viewmodel;
-
-		this.parameters.addData( this.key.str, this.fragment.getValue() );
-		viewmodel.mark( this.key );
-
+		this.callback( this.fragment.getValue() );
 		this.dirty = false;
 	},
 

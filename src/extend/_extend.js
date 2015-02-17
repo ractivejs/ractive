@@ -1,5 +1,6 @@
-import { create, defineProperties } from 'utils/object';
+import { create, defineProperties, extend as extendObj } from 'utils/object';
 import config from 'Ractive/config/config';
+import dataConfigurator from 'Ractive/config/custom/data';
 import initialise from 'Ractive/initialise';
 import Ractive from 'Ractive';
 import unwrapExtended from './unwrapExtended';
@@ -54,6 +55,12 @@ function extendOne ( Parent, options = {} ) {
 
 	// extend configuration
 	config.extend( Parent, proto, options );
+
+	dataConfigurator.extend( Parent, proto, options );
+
+	if ( options.computed ) {
+		proto.computed = extendObj( create( Parent.prototype.computed ), options.computed );
+	}
 
 	Child.prototype = proto;
 

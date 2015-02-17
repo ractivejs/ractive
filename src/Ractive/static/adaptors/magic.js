@@ -53,7 +53,7 @@ try {
 		this.prop = keypath.lastKey;
 
 		objKeypath = keypath.parent;
-		this.obj = objKeypath.isRoot ? ractive.data : ractive.viewmodel.get( objKeypath );
+		this.obj = objKeypath.isRoot ? ractive.viewmodel.data : ractive.viewmodel.get( objKeypath );
 
 		template = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
 
@@ -83,7 +83,7 @@ try {
 
 			this.updating = true;
 			this.obj[ this.prop ] = value; // trigger set() accessor
-			runloop.addViewmodel( this.ractive.viewmodel );
+			runloop.addRactive( this.ractive );
 			this.ractive.viewmodel.mark( this.keypath, { keepExistingWrapper: true } );
 			this.updating = false;
 			return true;

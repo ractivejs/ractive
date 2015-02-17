@@ -39,7 +39,7 @@ function getPartialFromRegistry ( ractive, name ) {
 	if ( typeof partial === 'function' ) {
 		fn = partial.bind( instance );
 		fn.isOwner = instance.partials.hasOwnProperty(name);
-		partial = fn( instance.data, parser );
+		partial = fn.call( ractive, parser );
 	}
 
 	if ( !partial && partial !== '' ) {

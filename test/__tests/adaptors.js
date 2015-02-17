@@ -104,7 +104,7 @@ test( 'A string can be supplied instead of an array for the `adapt` option (if t
 	Subclass = Ractive.extend({ adapt: 'Foo', adaptors: { Foo: FooAdaptor }, modifyArrays: false });
 	instance = new Subclass();
 
-	t.deepEqual( instance.adapt, [FooAdaptor] );
+	t.deepEqual( instance.viewmodel.adaptors, [FooAdaptor] );
 });
 
 test( 'Original values are passed to event handlers (#945)', function ( t ) {
