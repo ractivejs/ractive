@@ -90,11 +90,11 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	if ( ractive.template ) {
 		let cssIds;
 
-		if ( options.cssIds || ractive.constructor.css ) {
+		if ( options.cssIds || ractive.cssId ) {
 			cssIds = options.cssIds ? options.cssIds.slice() : [];
 
-			if ( ractive.constructor.css ) {
-				cssIds.push( ractive.constructor._guid );
+			if ( ractive.cssId ) {
+				cssIds.push( ractive.cssId );
 			}
 		}
 

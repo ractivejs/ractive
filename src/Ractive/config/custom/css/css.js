@@ -1,25 +1,22 @@
+import css from 'global/css';
 import transformCss from './transform';
+
+let uid = 1;
 
 var cssConfigurator = {
 	name: 'css',
 
 	extend: ( Parent, proto, options ) => {
-		var guid = proto.constructor._guid, css;
+		if ( options.css ) {
+			let id = uid++;
+			let styles = options.noCssTransform ? options.css : transformCss( options.css, id );
 
-		if ( css = getCss( options.css, options, guid ) || getCss( Parent.css, Parent, guid ) ) {
-			proto.constructor.css = css;
+			proto.cssId = id;
+			css.add({ id, styles });
 		}
 	},
 
 	init: () => {}
 };
-
-function getCss ( css, target, guid ) {
-	if ( !css ) { return; }
-
-	return target.noCssTransform
-		? css
-		: transformCss( css, guid );
-}
 
 export default cssConfigurator;

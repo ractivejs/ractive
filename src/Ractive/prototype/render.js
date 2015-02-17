@@ -41,9 +41,9 @@ export default function Ractive$render ( target, anchor ) {
 		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 	}
 
-	// Add CSS, if applicable
-	if ( this.constructor.css ) {
-		css.add( this.constructor );
+	if ( this.cssId ) {
+		// ensure encapsulated CSS is up-to-date
+		css.apply();
 	}
 
 	if ( target ) {

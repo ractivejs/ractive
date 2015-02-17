@@ -1,4 +1,3 @@
-import css from 'global/css';
 import Hook from './shared/hooks/Hook';
 import { warn } from 'utils/log';
 import Promise from 'utils/Promise';
@@ -20,12 +19,6 @@ export default function Ractive$unrender () {
 	// If this is a component, and the component isn't marked for destruction,
 	// don't detach nodes from the DOM unnecessarily
 	shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
-
-	if ( this.constructor.css ) {
-		promise.then( () => {
-			css.remove( this.constructor );
-		});
-	}
 
 	// Cancel any animations in progress
 	while ( this._animations[0] ) {

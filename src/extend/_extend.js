@@ -40,9 +40,6 @@ function extendOne ( Parent, options = {} ) {
 
 	// Static properties
 	defineProperties( Child, {
-		// each component needs a unique ID, for managing CSS
-		_guid: { value: uid++ },
-
 		// alias prototype as defaults
 		defaults: { value: proto },
 
