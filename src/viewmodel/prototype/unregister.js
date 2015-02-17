@@ -7,6 +7,10 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 		return;
 	}
 
+	if ( !keypath ) {
+		return;
+	}
+	
 	if ( mapping = this.mappings[ keypath.firstKey ] ) {
 		return mapping.unregister( keypath, dependant, group );
 	}
