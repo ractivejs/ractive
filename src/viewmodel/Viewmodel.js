@@ -1,5 +1,4 @@
 import { fatal } from 'utils/log';
-import { getKeypath } from 'shared/keypaths';
 import { create } from 'utils/object';
 import adapt from './prototype/adapt';
 import applyChanges from './prototype/applyChanges';
@@ -9,7 +8,6 @@ import compute from './prototype/compute';
 import get from './prototype/get';
 import getKeypath from './prototype/getKeypath';
 import init from './prototype/init';
-import { rootKeypath }  from 'shared/keypaths';
 import map from './prototype/map';
 import mark from './prototype/mark';
 import merge from './prototype/merge';
@@ -29,7 +27,12 @@ var Viewmodel = function ( options ) {
 	// TODO is it possible to remove this reference?
 	this.ractive = ractive;
 
-	this.rootKeypath = rootKeypath;
+	// TODO it *may* be worth having two versions of this function - one where
+	// keypathCache inherits from null, and one for IE8. Depends on how
+	// much of an overhead hasOwnProperty is - probably negligible
+	this.keypathCache = {};
+	this.rootKeypath = this.getKeypath( '' );
+
 
 	this.adaptors = adapt;
 	this.debug = options.debug;
@@ -66,7 +69,7 @@ var Viewmodel = function ( options ) {
 	// set up explicit mappings
 	this.mappings = create( null );
 	for ( key in mappings ) {
-		this.map( getKeypath( key ), mappings[ key ] );
+		this.map( this.getKeypath( key ), mappings[ key ] );
 	}
 
 	if ( data ) {
@@ -84,7 +87,7 @@ var Viewmodel = function ( options ) {
 			fatal( 'Cannot map to a computed property (\'%s\')', key );
 		}
 
-		this.compute( getKeypath( key ), computed[ key ] );
+		this.compute( this.getKeypath( key ), computed[ key ] );
 	}
 
 	this.ready = true;

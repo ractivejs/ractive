@@ -1,5 +1,7 @@
 export default function Viewmodel$mark ( keypath, options ) {
-	var computation, keypathStr = keypath.str;
+	var computation, keypathStr;
+	keypath = keypath || this.rootKeypath;
+	keypathStr = keypath.str;
 
 	// implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)
 	// should not be picked up by pattern observers

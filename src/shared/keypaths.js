@@ -7,7 +7,7 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
 keypathCache = {};
 
-Keypath = function ( str ) {
+Keypath = function ( str, viewmodel ) {
 	var keys = str.split( '.' );
 
 	this.str = str;
@@ -20,26 +20,29 @@ Keypath = function ( str ) {
 	this.firstKey = keys[0];
 	this.lastKey = keys.pop();
 
-	this.parent = str === '' ? null : getKeypath( keys.join( '.' ) );
+	this.viewmodel = viewmodel;
+
+	this.parent = str === '' ? null : viewmodel.getKeypath( keys.join( '.' ) );
 	this.isRoot = !str;
 };
 
 Keypath.prototype = {
 	equalsOrStartsWith ( keypath ) {
-		return keypath === this || this.startsWith( keypath );
+		return ( keypath && ( keypath.str === this.str ) ) || this.startsWith( keypath );
 	},
 
 	join ( str ) {
-		return getKeypath( this.isRoot ? String( str ) : this.str + '.' + str );
+		return this.viewmodel.getKeypath( this.isRoot ? String( str ) : this.str + '.' + str );
 	},
 
 	replace ( oldKeypath, newKeypath ) {
-		if ( this === oldKeypath ) {
+		// changed to ".str === .str" to transition to multiple keypathCaches
+		if ( oldKeypath && ( this.str === oldKeypath.str ) ) {
 			return newKeypath;
 		}
 
 		if ( this.startsWith( oldKeypath ) ) {
-			return newKeypath === null ? newKeypath : getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
+			return newKeypath === null ? newKeypath : this.viewmodel.getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
 		}
 	},
 
@@ -86,26 +89,11 @@ export function decodeKeypath ( keypath ) {
 	}
 }
 
-export function getKeypath ( str ) {
-	if ( str == null ) {
-		return str;
-	}
-
-	// TODO it *may* be worth having two versions of this function - one where
-	// keypathCache inherits from null, and one for IE8. Depends on how
-	// much of an overhead hasOwnProperty is - probably negligible
-	if ( !keypathCache.hasOwnProperty( str ) ) {
-		keypathCache[ str ] = new Keypath( str );
-	}
-
-	return keypathCache[ str ];
-}
-
 export function getMatchingKeypaths ( ractive, pattern ) {
 	var keys, key, matchingKeypaths;
 
 	keys = pattern.split( '.' );
-	matchingKeypaths = [ rootKeypath ];
+	matchingKeypaths = [ ractive.viewmodel.rootKeypath ];
 
 	while ( key = keys.shift() ) {
 		if ( key === '*' ) {
@@ -114,8 +102,8 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 		}
 
 		else {
-			if ( matchingKeypaths[0] === rootKeypath ) { // first key
-				matchingKeypaths[0] = getKeypath( key );
+			if ( matchingKeypaths[0] === ractive.viewmodel.rootKeypath ) { // first key
+				matchingKeypaths[0] = ractive.viewmodel.getKeypath( key );
 			} else {
 				matchingKeypaths = matchingKeypaths.map( concatenate( key ) );
 			}
@@ -150,4 +138,5 @@ export function normalise ( ref ) {
 	return ref ? ref.replace( refPattern, '.$1' ) : '';
 }
 
-export var rootKeypath = getKeypath( '' );
+export { Keypath };
+

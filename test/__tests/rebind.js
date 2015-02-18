@@ -3,33 +3,36 @@ import Fragment from 'virtualdom/Fragment';
 import Element from 'virtualdom/items/Element/_Element';
 import Triple from 'virtualdom/items/Triple/_Triple';
 import { TRIPLE } from 'config/types';
-import { getKeypath } from 'shared/keypaths';
 
 module( 'rebind' );
 
 function contextUpdate(opt){
 	test( 'update context path: ' + opt.test, function ( t ) {
-		var resolved, fragment, el, triple;
+		var resolved, root, viewmodel, fragment, el, triple;
+
+		root = {
+			'data': {},
+			'_liveQueries': [],
+			'_deps': [] ,
+			'_depsMap': [],
+			'_cache': [],
+			'_computations': [],
+			'_wrapped': [],
+			'_evaluators': [],
+			el: { namespaceURI: 'http://www.w3.org/1999/xhtml' },
+			adapt: []
+		};
+
+		viewmodel = new Viewmodel( root );
 
 		fragment = {
-			context: getKeypath( opt.target ),
+			context: viewmodel.getKeypath( opt.target ),
 			items: [],
-			root: {
-				'data': {},
-				'_liveQueries': [],
-				'_deps': [] ,
-				'_depsMap': [],
-				'_cache': [],
-				'_computations': [],
-				'_wrapped': [],
-				'_evaluators': [],
-				el: { namespaceURI: 'http://www.w3.org/1999/xhtml' },
-				adapt: []
-			},
+			root: root,
 			indexRefs: { i: opt.oldKeypath.replace('items.','')}
 		};
 
-		fragment.root.viewmodel = new Viewmodel( fragment.root );
+		fragment.root.viewmodel = viewmodel;
 
 		el = new Element({
 			parentFragment: fragment,
@@ -58,12 +61,12 @@ function contextUpdate(opt){
 
 		fragment.render();
 		fragment.index = opt.newKeypath.replace( 'items.', '' );
-		fragment.rebind( getKeypath( opt.oldKeypath ), getKeypath( opt.newKeypath ) );
+		fragment.rebind( viewmodel.getKeypath( opt.oldKeypath ), viewmodel.getKeypath( opt.newKeypath ) );
 
-		t.equal( fragment.context, getKeypath( opt.expected ) );
-		t.equal( fragment.items[0].node._ractive.keypath, getKeypath( opt.expected ) );
+		t.equal( fragment.context, viewmodel.getKeypath( opt.expected ) );
+		t.equal( fragment.items[0].node._ractive.keypath, viewmodel.getKeypath( opt.expected ) );
 		if(opt.target!==opt.newKeypath){
-			t.equal( resolved, getKeypath( opt.expected ) );
+			t.equal( resolved, viewmodel.getKeypath( opt.expected ) );
 		}
 
 		t.htmlEqual( fixture.innerHTML, '' );
