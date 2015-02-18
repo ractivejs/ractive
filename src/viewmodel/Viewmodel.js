@@ -54,7 +54,6 @@ var Viewmodel = function ( options ) {
 
 	this.specials = create( null );
 
-	this.wrapped = create( null );
 	this.computations = create( null );
 
 	this.captureGroups = [];

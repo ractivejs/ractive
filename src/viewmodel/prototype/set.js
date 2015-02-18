@@ -27,7 +27,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 		return;
 	}
 
-	wrapper = this.wrapped[ keypath.str ];
+	wrapper = keypath.wrapper;
 
 	// If we have a wrapper with a `reset()` method, we try and use it. If the
 	// `reset()` method returns false, the wrapper should be torn down, and
@@ -50,7 +50,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 		// We're setting a parent of the original target keypath (i.e.
 		// creating a fresh branch) - we need to clear the cache, but
 		// not mark it as a change
-		this.clearCache( keypath.str );
+		this.clearCache( keypath );
 	}
 }
 
@@ -74,7 +74,7 @@ function resolveSet ( viewmodel, keypath, value ) {
 		parentValue[ keypath.lastKey ] = value;
 	};
 
-	wrapper = viewmodel.wrapped[ keypath.parent.str ];
+	wrapper = keypath.parent.wrapper;
 
 	if ( wrapper ) {
 		wrapperSet();
@@ -83,7 +83,7 @@ function resolveSet ( viewmodel, keypath, value ) {
 
 		// may have been wrapped via the above .get()
 		// call on viewmodel if this is first access via .set()!
-		if( wrapper = viewmodel.wrapped[ keypath.parent.str ] ) {
+		if( wrapper = keypath.parent.wrapper ) {
 			wrapperSet();
 		} else {
 			valueSet();

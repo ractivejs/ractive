@@ -66,7 +66,7 @@ ArrayWrapper.prototype = {
 		// a change that the array itself triggered, we can save ourselves the teardown
 		// and immediate setup
 		if ( storage.setting ) {
-			return false; // so that we don't remove it from this.root.viewmodel.wrapped
+			return false; // so that we don't remove it from cached wrappers
 		}
 
 		index = wrappers.indexOf( this );

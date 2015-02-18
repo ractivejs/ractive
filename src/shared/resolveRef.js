@@ -106,7 +106,7 @@ function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
 		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
 
-		key = ractive.viewmodel.getKeypath( key );
+		key = ractive.parent.viewmodel.getKeypath( key );
 
 		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true ) ) {
 			// We need to create an inter-component binding
@@ -136,7 +136,7 @@ function createMappingIfNecessary ( ractive, key ) {
 		return;
 	}
 
-	key = ractive.viewmodel.getKeypath( key );
+	key = ractive.parent.viewmodel.getKeypath( key );
 
 	if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, ractive.component.parentFragment, true ) ) {
 		ractive.viewmodel.map( key, {

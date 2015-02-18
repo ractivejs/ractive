@@ -28,7 +28,7 @@ Computation.prototype = {
 		this.bypass = true;
 
 		initial = viewmodel.get( this.key );
-		viewmodel.clearCache( this.key.str );
+		viewmodel.clearCache( this.key );
 
 		this.bypass = false;
 

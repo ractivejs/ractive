@@ -34,17 +34,17 @@ export default function Viewmodel$get ( keypath, options ) {
 		// Is this a computed property?
 		if ( ( computation = this.computations[ keypathStr ] ) && !computation.bypass ) {
 			value = computation.get();
-			this.adapt( keypathStr, value );
+			this.adapt( keypath, value );
 		}
 
 		// Is this a wrapped property?
-		else if ( wrapped = this.wrapped[ keypathStr ] ) {
+		else if ( wrapped = keypath.wrapper ) {
 			value = wrapped.value;
 		}
 
 		// Is it the root?
 		else if ( keypath.isRoot ) {
-			this.adapt( '', this.data );
+			this.adapt( keypath, this.data );
 			value = this.data;
 		}
 
@@ -58,7 +58,7 @@ export default function Viewmodel$get ( keypath, options ) {
 		value = cache[ keypathStr ];
 	}
 
-	if ( !options.noUnwrap && ( wrapped = this.wrapped[ keypathStr ] ) ) {
+	if ( !options.noUnwrap && ( wrapped = keypath.wrapper ) ) {
 		value = wrapped.get();
 	}
 
@@ -71,7 +71,7 @@ function retrieve ( viewmodel, keypath ) {
 
 	parentValue = viewmodel.get( keypath.parent );
 
-	if ( wrapped = viewmodel.wrapped[ keypath.parent.str ] ) {
+	if ( wrapped = keypath.parent.wrapper ) {
 		parentValue = wrapped.get();
 	}
 
@@ -81,10 +81,10 @@ function retrieve ( viewmodel, keypath ) {
 
 	// update cache map
 	if ( !( cacheMap = viewmodel.cacheMap[ keypath.parent.str ] ) ) {
-		viewmodel.cacheMap[ keypath.parent.str ] = [ keypath.str ];
+		viewmodel.cacheMap[ keypath.parent.str ] = [ keypath ];
 	} else {
 		if ( cacheMap.indexOf( keypath.str ) === -1 ) {
-			cacheMap.push( keypath.str );
+			cacheMap.push( keypath );
 		}
 	}
 
@@ -97,7 +97,7 @@ function retrieve ( viewmodel, keypath ) {
 	value = parentValue[ keypath.lastKey ];
 
 	// Do we have an adaptor for this value?
-	viewmodel.adapt( keypath.str, value, false );
+	viewmodel.adapt( keypath, value, false );
 
 	// Update cache
 	viewmodel.cache[ keypath.str ] = value;

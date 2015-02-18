@@ -27,7 +27,7 @@ export default function Viewmodel$applyChanges () {
 				var key = c.key;
 
 				if ( c.viewmodel === self ) {
-					self.clearCache( key.str );
+					self.clearCache( key );
 					c.invalidate();
 
 					changes.push( key );

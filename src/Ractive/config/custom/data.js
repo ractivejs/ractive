@@ -23,7 +23,7 @@ var dataConfigurator = {
 
 		if ( result ) {
 			ractive.viewmodel.data = result;
-			ractive.viewmodel.clearCache( '' );
+			ractive.viewmodel.clearCache();
 			return true;
 		}
 	}

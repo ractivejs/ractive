@@ -25,7 +25,7 @@ export default function Viewmodel$mark ( keypath, options ) {
 	// pass on keepExistingWrapper, if we can
 	let keepExistingWrapper = options ? options.keepExistingWrapper : false;
 
-	this.clearCache( keypathStr, keepExistingWrapper );
+	this.clearCache( keypath, keepExistingWrapper );
 
 	if ( this.ready ) {
 		this.onchange();

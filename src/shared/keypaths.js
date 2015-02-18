@@ -21,6 +21,7 @@ Keypath = function ( str, viewmodel ) {
 	this.lastKey = keys.pop();
 
 	this.viewmodel = viewmodel;
+	this.wrapper = null;
 
 	this.parent = str === '' ? null : viewmodel.getKeypath( keys.join( '.' ) );
 	this.isRoot = !str;
@@ -115,7 +116,7 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 	function expand ( matchingKeypaths, keypath ) {
 		var wrapper, value, key;
 
-		wrapper = ractive.viewmodel.wrapped[ keypath.str ];
+		wrapper = keypath.wrapper;
 		value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
 
 		for ( key in value ) {
