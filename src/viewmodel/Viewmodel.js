@@ -7,7 +7,9 @@ import capture from './prototype/capture';
 import clearCache from './prototype/clearCache';
 import compute from './prototype/compute';
 import get from './prototype/get';
+import getKeypath from './prototype/getKeypath';
 import init from './prototype/init';
+import { rootKeypath }  from 'shared/keypaths';
 import map from './prototype/map';
 import mark from './prototype/mark';
 import merge from './prototype/merge';
@@ -26,6 +28,8 @@ var Viewmodel = function ( options ) {
 
 	// TODO is it possible to remove this reference?
 	this.ractive = ractive;
+
+	this.rootKeypath = rootKeypath;
 
 	this.adaptors = adapt;
 	this.debug = options.debug;
@@ -93,6 +97,7 @@ Viewmodel.prototype = {
 	clearCache: clearCache,
 	compute: compute,
 	get: get,
+	getKeypath: getKeypath,
 	init: init,
 	map: map,
 	mark: mark,

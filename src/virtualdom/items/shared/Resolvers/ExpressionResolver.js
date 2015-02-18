@@ -1,5 +1,4 @@
 import { defineProperty } from 'utils/object';
-import { getKeypath } from 'shared/keypaths';
 import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from './createReferenceResolver';
 import 'legacy'; // for fn.bind()
@@ -37,7 +36,7 @@ ExpressionResolver.prototype = {
 		}
 
 		this.uniqueString = getUniqueString( this.str, this.keypaths );
-		this.keypath = createExpressionKeypath( this.uniqueString );
+		this.keypath = createExpressionKeypath( this.root, this.uniqueString );
 
 		this.createEvaluator();
 		this.callback( this.keypath );
@@ -134,11 +133,11 @@ function getUniqueString ( str, keypaths ) {
 	});
 }
 
-function createExpressionKeypath ( uniqueString ) {
+function createExpressionKeypath ( ractive, uniqueString ) {
 	// Sanitize by removing any periods or square brackets. Otherwise
 	// we can't split the keypath into keys!
 	// Remove asterisks too, since they mess with pattern observers
-	return getKeypath( '${' + uniqueString.replace( /[\.\[\]]/g, '-' ).replace( /\*/, '#MUL#' ) + '}' );
+	return ractive.viewmodel.getKeypath( '${' + uniqueString.replace( /[\.\[\]]/g, '-' ).replace( /\*/, '#MUL#' ) + '}' );
 }
 
 function isValidDependency ( keypath ) {

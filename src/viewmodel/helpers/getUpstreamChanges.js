@@ -1,7 +1,6 @@
 import { addToArray } from 'utils/array';
-import { rootKeypath } from 'shared/keypaths'; // TEMP
 
-export default function getUpstreamChanges ( changes ) {
+export default function getUpstreamChanges ( changes, rootKeypath ) {
 	var upstreamChanges = [ rootKeypath ], i, keypath;
 
 	i = changes.length;

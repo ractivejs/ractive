@@ -1,5 +1,4 @@
 import runloop from 'global/runloop';
-import { getKeypath } from 'shared/keypaths';
 import { isEqual } from 'utils/is';
 import getPattern from './getPattern';
 
@@ -32,7 +31,7 @@ PatternObserver.prototype = {
 		if ( immediate !== false ) {
 			for ( keypath in values ) {
 				if ( values.hasOwnProperty( keypath ) ) {
-					this.update( getKeypath( keypath ) );
+					this.update( this.root.viewmodel.getKeypath( keypath ) );
 				}
 			}
 		} else {
@@ -48,7 +47,7 @@ PatternObserver.prototype = {
 
 			for ( keypath in values ) {
 				if ( values.hasOwnProperty( keypath ) ) {
-					this.update( getKeypath( keypath ) );
+					this.update( this.root.viewmodel.getKeypath( keypath ) );
 				}
 			}
 

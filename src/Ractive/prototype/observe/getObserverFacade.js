@@ -1,4 +1,4 @@
-import { getKeypath, normalise } from 'shared/keypaths';
+import { normalise } from 'shared/keypaths';
 import Observer from './Observer';
 import PatternObserver from './PatternObserver';
 
@@ -7,7 +7,7 @@ var wildcard = /\*/, emptyObject = {};
 export default function getObserverFacade ( ractive, keypath, callback, options ) {
 	var observer, isPatternObserver, cancelled;
 
-	keypath = getKeypath( normalise( keypath ) );
+	keypath = ractive.viewmodel.getKeypath( normalise( keypath ) );
 	options = options || emptyObject;
 
 	// pattern observers are treated differently

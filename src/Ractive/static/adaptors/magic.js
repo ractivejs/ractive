@@ -1,6 +1,5 @@
 import runloop from 'global/runloop';
 import createBranch from 'utils/createBranch';
-import { getKeypath } from 'shared/keypaths';
 import { isArray } from 'utils/is';
 
 var magicAdaptor, MagicWrapper;
@@ -16,7 +15,7 @@ try {
 				return false;
 			}
 
-			keypath = getKeypath( keypath );
+			keypath = ractive.viewmodel.getKeypath( keypath );
 
 			// If the parent value is a wrapper, other than a magic wrapper,
 			// we shouldn't wrap this property
@@ -42,7 +41,7 @@ try {
 	MagicWrapper = function ( ractive, value, keypath ) {
 		var objKeypath, template, siblings;
 
-		keypath = getKeypath( keypath );
+		keypath = ractive.viewmodel.getKeypath( keypath );
 
 		this.magic = true;
 

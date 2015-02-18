@@ -1,5 +1,5 @@
 import { isObject } from 'utils/is';
-import { getMatchingKeypaths, getKeypath, normalise } from 'shared/keypaths';
+import { getMatchingKeypaths, normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 var wildcard = /\*/;
@@ -16,7 +16,7 @@ export default function Ractive$set ( keypath, value ) {
 		for ( keypath in map ) {
 			if ( map.hasOwnProperty( keypath) ) {
 				value = map[ keypath ];
-				keypath = getKeypath( normalise( keypath ) );
+				keypath = this.viewmodel.getKeypath( normalise( keypath ) );
 
 				this.viewmodel.set( keypath, value );
 			}
@@ -25,7 +25,7 @@ export default function Ractive$set ( keypath, value ) {
 
 	// Set a single keypath
 	else {
-		keypath = getKeypath( normalise( keypath ) );
+		keypath = this.viewmodel.getKeypath( normalise( keypath ) );
 
 		// TODO a) wildcard test should probably happen at viewmodel level,
 		// b) it should apply to multiple/single set operations

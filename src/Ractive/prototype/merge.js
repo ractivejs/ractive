@@ -1,12 +1,12 @@
 import { isArray } from 'utils/is';
-import { getKeypath, normalise } from 'shared/keypaths';
+import { normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 export default function Ractive$merge ( keypath, array, options ) {
 	var currentArray,
 		promise;
 
-	keypath = getKeypath( normalise( keypath ) );
+	keypath = this.viewmodel.getKeypath( normalise( keypath ) );
 	currentArray = this.viewmodel.get( keypath );
 
 	// If either the existing value or the new value isn't an

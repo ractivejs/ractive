@@ -1,5 +1,4 @@
 import { arrayContentsMatch } from 'utils/array';
-import { getKeypath } from 'shared/keypaths';
 import { isEqual } from 'utils/is';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
@@ -11,7 +10,7 @@ export default function Ractive$updateModel ( keypath, cascade ) {
 		bindings = [];
 
 		for ( key in this._twowayBindings ) {
-			if ( !keypath || getKeypath( key ).equalsOrStartsWith( keypath ) ) { // TODO is this right?
+			if ( !keypath || this.viewmodel.getKeypath( key ).equalsOrStartsWith( keypath ) ) { // TODO is this right?
 				bindings.push.apply( bindings, this._twowayBindings[ key ]);
 			}
 		}

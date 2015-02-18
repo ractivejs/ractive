@@ -1,5 +1,4 @@
 import runloop from 'global/runloop';
-import { getKeypath } from 'shared/keypaths';
 import resolveRef from 'shared/resolveRef';
 
 var ReferenceResolver = function ( owner, ref, callback ) {
@@ -37,7 +36,7 @@ ReferenceResolver.prototype = {
 	},
 
 	forceResolution: function () {
-		this.resolve( getKeypath( this.ref ) );
+		this.resolve( this.root.viewmodel.getKeypath( this.ref ) );
 	},
 
 	rebind: function ( oldKeypath, newKeypath ) {

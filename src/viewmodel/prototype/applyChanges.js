@@ -45,7 +45,7 @@ export default function Viewmodel$applyChanges () {
 
 	changes.slice().forEach( cascade );
 
-	upstreamChanges = getUpstreamChanges( changes );
+	upstreamChanges = getUpstreamChanges( changes, this.rootKeypath );
 	upstreamChanges.forEach( keypath => {
 		var computations;
 

@@ -1,9 +1,10 @@
-import { getKeypath } from 'shared/keypaths'; // TODO find a better way than @
-
 var IndexResolver = function ( owner, ref, callback ) {
 	this.parentFragment = owner.parentFragment;
 	this.ref = ref;
 	this.callback = callback;
+
+	// TEMP for getKeypath
+	this.ractive = owner.root;
 
 	ref.ref.fragment.registerIndexRef( this );
 
@@ -21,7 +22,7 @@ IndexResolver.prototype = {
 		}
 
 		if ( index !== undefined ) {
-			this.callback( getKeypath( '@' + index ) );
+			this.callback( this.ractive.viewmodel.getKeypath( '@' + index ) );
 		}
 	},
 

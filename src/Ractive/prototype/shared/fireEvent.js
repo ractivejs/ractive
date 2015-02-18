@@ -1,5 +1,7 @@
-import { getKeypath } from 'shared/keypaths'; // TODO bit of a hack, using getKeypath - should maybe have dedicated utility for this
 import eventStack from './eventStack';
+import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
+
+var wildcardCache = {};
 
 export default function fireEvent ( ractive, eventName, options = {} ) {
 	if ( !eventName ) { return; }
@@ -14,8 +16,17 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 		options.event.name = eventName;
 	}
 
-	var eventNames = getKeypath( eventName ).wildcardMatches();
+	var eventNames = getWildcardNames( eventName );
+
 	fireEventAs( ractive, eventNames, options.event, options.args, true );
+}
+
+function getWildcardNames ( eventName ) {
+	if ( wildcardCache.hasOwnProperty( eventName ) ) {
+		return wildcardCache[ eventName ];
+	} else {
+		return wildcardCache[ eventName ] = getPotentialWildcardMatches( eventName );
+	}
 }
 
 function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) {
@@ -38,7 +49,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 
 		if ( initialFire && ractive.component ) {
 			let fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ];
-			eventNames = getKeypath( fullName ).wildcardMatches();
+			eventNames = getWildcardNames( fullName );
 
 			if( event ) {
 				event.component = ractive;

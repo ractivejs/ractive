@@ -1,5 +1,5 @@
 import { isArray } from 'utils/is';
-import { getKeypath, normalise } from 'shared/keypaths';
+import { normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 import getNewIndices from 'shared/getNewIndices';
 
@@ -9,7 +9,7 @@ export default function ( methodName ) {
 	return function ( keypath, ...args ) {
 		var array, newIndices = [], len, promise, result;
 
-		keypath = getKeypath( normalise( keypath ) );
+		keypath = this.viewmodel.getKeypath( normalise( keypath ) );
 
 		array = this.viewmodel.get( keypath );
 		len = array.length;

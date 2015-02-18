@@ -1,6 +1,5 @@
 import resolveRef from 'shared/resolveRef';
 import { unbind } from 'shared/methodCallers';
-import { getKeypath } from 'shared/keypaths';
 import ReferenceResolver from '../ReferenceResolver';
 import MemberResolver from './MemberResolver';
 
@@ -73,7 +72,7 @@ ReferenceExpressionResolver.prototype = {
 
 	forceResolution: function () {
 		if ( this.baseResolver ) {
-			this.base = getKeypath( this.ref );
+			this.base = this.root.viewmodel.getKeypath( this.ref );
 
 			this.baseResolver.unbind();
 			this.baseResolver = null;
