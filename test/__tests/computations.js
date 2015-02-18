@@ -10,7 +10,7 @@ test( 'Computed value declared as a function', function ( t ) {
 		},
 		computed: {
 			area: function () {
-				return this.get( 'width' ) * this.get( 'height' )
+				return this.get( 'width' ) * this.get( 'height' );
 			}
 		}
 	});
@@ -203,7 +203,7 @@ test( 'Regression test for #836', function ( t ) {
 });
 
 test( 'Setters are called on init with supplied data (#837)', function ( t ) {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{firstname}}',
 		computed: {
@@ -252,14 +252,15 @@ test( 'Set operations are not short-circuited when the set value is identical to
 });
 
 test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
+	/* global console */
 	var warn = console.warn;
 
 	console.warn = function () {
-		throw new Error('Console should not warn')
+		throw new Error('Console should not warn');
 	};
 
 	try {
-		let ractive = new Ractive({
+		new Ractive({
 			template: '<component/>',
 			components: {
 				component: Ractive.extend({
@@ -269,7 +270,7 @@ test( 'Computations on unresolved refs don\'t error on initial component binding
 					}
 				})
 			}
-		})
+		});
 	}
 	catch(err){
 		t.ok( false, err.message );
@@ -323,7 +324,7 @@ test( 'Computations are not order dependent', function ( t ) {
 	        foo: '${bar} + 1',
 	        bar: '${count} + 1'
 	    }
-	})
+	});
 
 	ractive = new Ractive({
         el: fixture,
@@ -334,7 +335,7 @@ test( 'Computations are not order dependent', function ( t ) {
         components: {
             component: Component
         }
-    })
+    });
 	t.equal( fixture.innerHTML, '3' );
 
 });
@@ -408,6 +409,24 @@ test( 'Computed values are only computed as necessary', function ( t ) {
 
 	ractive.set( 'str', 'How Long Is A Piece Of String' );
 	t.deepEqual( count, { foo: 3, bar: 2, baz: 3, qux: 1 });
+});
+
+test( 'Computations matching _[0-9]+ that are not references should not be mangled incorrectly for caching', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{ foo["_1bar"] }} {{ foo["_2bar"] }}',
+		data: { foo: { _1bar: 1, _2bar: 2 } }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '1 2' );
+
+	ractive = new Ractive({
+		el: fixture,
+		template: `{{ foo(bar, '_0') }} {{ foo(bar, '_1') }}`,
+		data: { foo( a, b ) { return b; }, bar: 'ignored' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '_0 _1' );
 });
 
 // Commented out temporarily, see #1381
