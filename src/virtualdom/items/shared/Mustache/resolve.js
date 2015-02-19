@@ -4,7 +4,7 @@ export default function Mustache$resolve ( keypath ) {
 	// 'Special' keypaths, e.g. @foo or @7, encode a value
 	if ( keypath && keypath.isSpecial ) {
 		this.keypath = keypath;
-		this.setValue( keypath.value );
+		this.setValue( keypath.getValue() );
 		return;
 	}
 

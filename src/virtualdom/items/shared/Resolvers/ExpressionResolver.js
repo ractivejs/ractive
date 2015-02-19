@@ -74,12 +74,12 @@ ExpressionResolver.prototype = {
 
 				// 'special' keypaths encode a value
 				if ( keypath.isSpecial ) {
-					value = keypath.value;
+					value = keypath.getValue();
 					return () => value;
 				}
 
 				return () => {
-					var value = this.root.viewmodel.get( keypath, { noUnwrap: true });
+					var value = this.root.viewmodel.get( keypath, { noUnwrap: true } );
 					if ( typeof value === 'function' ) {
 						value = wrapFunction( value, this.root );
 					}
@@ -125,7 +125,7 @@ function getUniqueString ( str, keypaths ) {
 		}
 
 		if ( keypath.isSpecial ) {
-			value = keypath.value;
+			value = keypath.getValue();
 			return typeof value === 'number' ? value : '"' + value + '"';
 		}
 

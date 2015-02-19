@@ -23,7 +23,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 		value = computation.get();
 	}
 
-	if ( isEqual( this.cache[ keypath.str ], value ) ) {
+	if ( isEqual( keypath.getValue(), value ) ) {
 		return;
 	}
 

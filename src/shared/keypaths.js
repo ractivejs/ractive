@@ -8,26 +8,74 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 keypathCache = {};
 
 Keypath = function ( str, viewmodel ) {
-	var keys = str.split( '.' );
+	var parent, keys = str.split( '.' );
 
 	this.str = str;
 
 	if ( str[0] === '@' ) {
 		this.isSpecial = true;
-		this.value = decodeKeypath( str );
+		this._value = decodeKeypath( str );
+	}	else {
+		this._value = void 0;
+		this.hasCachedValue = false;
 	}
+
+	this.wrapper = null;
 
 	this.firstKey = keys[0];
 	this.lastKey = keys.pop();
 
 	this.viewmodel = viewmodel;
-	this.wrapper = null;
+	this.children = null;
 
-	this.parent = str === '' ? null : viewmodel.getKeypath( keys.join( '.' ) );
+	this.parent = parent = str === '' ? null : viewmodel.getKeypath( keys.join( '.' ) );
+	if ( parent ) {
+		parent.addChild( this );
+	}
+
 	this.isRoot = !str;
 };
 
 Keypath.prototype = {
+
+	getValue () {
+		return this._value;
+	},
+
+	addChild ( child ) {
+		this.children ? this.children.push( child ) : this.children = [ child ];
+	},
+
+	setValue ( value ) {
+		this.hasCachedValue = true;
+		this._value = value;
+	},
+
+	clearValue ( keepExistingWrapper ) {
+		var wrapper, children;
+
+		this.hasCachedValue = false;
+		this._value = void 0;
+
+		if ( !keepExistingWrapper ) {
+			// Is there a wrapped property at this keypath?
+			if ( wrapper = this.wrapper ) {
+				// Did we unwrap it?
+				if ( wrapper.teardown() !== false ) {
+					this.wrapper = null;
+				}
+				// else
+				// Could there be a GC ramification if this is a "real" ractive.teardown()?
+			}
+		}
+
+		if ( children = this.children ) {
+			children.forEach( child => child.clearValue( /*keepExistingWrapper*/ ) );
+		}
+	},
+
+	/* string manipulation: */
+
 	equalsOrStartsWith ( keypath ) {
 		return ( keypath && ( keypath.str === this.str ) ) || this.startsWith( keypath );
 	},
@@ -43,7 +91,7 @@ Keypath.prototype = {
 		}
 
 		if ( this.startsWith( oldKeypath ) ) {
-			return newKeypath === null ? newKeypath : this.viewmodel.getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
+			return newKeypath === null ? newKeypath : newKeypath.viewmodel.getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
 		}
 	},
 

@@ -5,7 +5,7 @@ export default function Viewmodel$getKeypath ( str ) {
 		return str;
 	}
 
-	if( this.keypathCache.hasOwnProperty( str ) ) {
+	if( this.hasKeypath( str ) ) {
 		return this.keypathCache[ str ];
 	}
 

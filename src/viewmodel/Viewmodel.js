@@ -7,6 +7,7 @@ import clearCache from './prototype/clearCache';
 import compute from './prototype/compute';
 import get from './prototype/get';
 import getKeypath from './prototype/getKeypath';
+import hasKeypath from './prototype/hasKeypath';
 import init from './prototype/init';
 import map from './prototype/map';
 import mark from './prototype/mark';
@@ -38,7 +39,6 @@ var Viewmodel = function ( options ) {
 	this.debug = options.debug;
 	this.onchange = options.onchange;
 
-	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
 
 	this.deps = {
@@ -100,6 +100,7 @@ Viewmodel.prototype = {
 	compute: compute,
 	get: get,
 	getKeypath: getKeypath,
+	hasKeypath: hasKeypath,
 	init: init,
 	map: map,
 	mark: mark,

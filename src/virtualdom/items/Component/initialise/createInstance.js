@@ -49,7 +49,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 				parsed = parseJSON( attribute );
 				data[ key ] = parsed ? parsed.value : attribute;
 			}
-			
+
 			else if ( isArray( attribute ) ) {
 				// this represents dynamic data
 				if ( isSingleInterpolator( attribute ) ) {
@@ -61,9 +61,9 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 					resolver = createResolver( component, attribute[0], function ( keypath ) {
 						if ( keypath.isSpecial ) {
 							if ( ready ) {
-								instance.set( key, keypath.value ); // TODO use viewmodel?
+								instance.set( key, keypath.getValue() ); // TODO use viewmodel?
 							} else {
-								data[ key ] = keypath.value;
+								data[ key ] = keypath.getValue();
 
 								// TODO errr.... would be better if we didn't have to do this
 								delete mappings[ key ];
@@ -76,7 +76,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 							} else {
 								// resolved immediately
 								mappings[ key ].keypath = keypath;
-							}	
+							}
 						}
 					});
 				}
@@ -97,7 +97,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 			else {
 				throw new Error( 'erm wut' );
 			}
-		});	
+		});
 	}
 
 	instance = create( Component.prototype );

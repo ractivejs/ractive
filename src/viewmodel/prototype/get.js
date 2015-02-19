@@ -4,8 +4,7 @@ import FAILED_LOOKUP from './get/FAILED_LOOKUP';
 var empty = {};
 
 export default function Viewmodel$get ( keypath, options ) {
-	var cache = this.cache,
-		mapping,
+	var mapping,
 		value,
 		computation,
 		wrapped,
@@ -26,10 +25,10 @@ export default function Viewmodel$get ( keypath, options ) {
 	}
 
 	if ( keypath.isSpecial ) {
-		return keypath.value;
+		return keypath.getValue();
 	}
 
-	if ( cache[ keypathStr ] === undefined ) {
+	if ( !keypath.hasCachedValue ) {
 
 		// Is this a computed property?
 		if ( ( computation = this.computations[ keypathStr ] ) && !computation.bypass ) {
@@ -53,9 +52,9 @@ export default function Viewmodel$get ( keypath, options ) {
 			value = retrieve( this, keypath );
 		}
 
-		cache[ keypathStr ] = value;
+		keypath.setValue( value );
 	} else {
-		value = cache[ keypathStr ];
+		value = keypath.getValue();
 	}
 
 	if ( !options.noUnwrap && ( wrapped = keypath.wrapper ) ) {
@@ -79,19 +78,10 @@ function retrieve ( viewmodel, keypath ) {
 		return;
 	}
 
-	// update cache map
-	if ( !( cacheMap = viewmodel.cacheMap[ keypath.parent.str ] ) ) {
-		viewmodel.cacheMap[ keypath.parent.str ] = [ keypath ];
-	} else {
-		if ( cacheMap.indexOf( keypath.str ) === -1 ) {
-			cacheMap.push( keypath );
-		}
-	}
-
 	// If this property doesn't exist, we return a sentinel value
 	// so that we know to query parent scope (if such there be)
 	if ( typeof parentValue === 'object' && !( keypath.lastKey in parentValue ) ) {
-		return viewmodel.cache[ keypath.str ] = FAILED_LOOKUP;
+		return FAILED_LOOKUP;
 	}
 
 	value = parentValue[ keypath.lastKey ];
@@ -99,7 +89,5 @@ function retrieve ( viewmodel, keypath ) {
 	// Do we have an adaptor for this value?
 	viewmodel.adapt( keypath, value, false );
 
-	// Update cache
-	viewmodel.cache[ keypath.str ] = value;
 	return value;
 }
