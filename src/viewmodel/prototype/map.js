@@ -1,10 +1,9 @@
 export default function Viewmodel$map ( key, options ) {
-	var mapping = this.mappings[ key.str ] = new Mapping( key, options );
-	mapping.initViewmodel( this );
-	return mapping;
+	return this.mappings[ key.str ] = new Mapping( key, this, options );
 }
 
-var Mapping = function ( localKey, options ) {
+var Mapping = function ( localKey, viewmodel, options ) {
+	this.local = viewmodel;
 	this.localKey = localKey;
 	this.keypath = options.keypath;
 	this.origin = options.origin;
@@ -13,6 +12,8 @@ var Mapping = function ( localKey, options ) {
 	this.unresolved = [];
 
 	this.resolved = false;
+
+	this.setup();
 };
 
 Mapping.prototype = {

@@ -410,6 +410,21 @@ test( 'Computed values are only computed as necessary', function ( t ) {
 	t.deepEqual( count, { foo: 3, bar: 2, baz: 3, qux: 1 });
 });
 
+test( 'What happens if you access a computed property in data config?', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{total}}',
+		onconfig: function () {
+			return this.set( 'total', this.get( 'add' ) );
+		},
+		computed: {
+			add: '5'
+		}
+	});
+
+	t.equal( fixture.innerHTML, '5' );
+});
+
 // Commented out temporarily, see #1381
 /*test( 'Computations don\'t mistakenly set when used in components (#1357)', function ( t ) {
 	var ractive, Component;

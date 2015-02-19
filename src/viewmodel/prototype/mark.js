@@ -1,5 +1,5 @@
 export default function Viewmodel$mark ( keypath, options ) {
-	var computation, keypathStr;
+	var keypathStr;
 	keypath = keypath || this.rootKeypath;
 	keypathStr = keypath.str;
 
@@ -12,10 +12,6 @@ export default function Viewmodel$mark ( keypath, options ) {
 		if ( options.noCascade ) {
 			this.noCascade[ keypathStr ] = true;
 		}
-	}
-
-	if ( computation = this.computations[ keypathStr ] ) {
-		computation.invalidate();
 	}
 
 	if ( this.changes.indexOf( keypath ) === -1 ) {

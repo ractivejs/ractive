@@ -56,7 +56,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	viewmodel = new Viewmodel({
 		adapt: getAdaptors( ractive, ractive.adapt, userOptions ),
 		data: dataConfigurator.init( ractive.constructor, ractive, userOptions ),
-		computed: getComputationSignatures( ractive, extend( create( ractive.constructor.prototype.computed ), userOptions.computed ) ),
 		mappings: options.mappings,
 		ractive: ractive,
 		onchange: () => runloop.addRactive( ractive )
@@ -64,6 +63,16 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	ractive.viewmodel = viewmodel;
 	viewmodel.debug = ractive.debug;
+
+	// This can't happen in viewmodel concstructor,
+	// because computed properties may call `ractive.get()`, etc
+	viewmodel.addComputed( getComputationSignatures(
+		ractive,
+		extend(
+			create( ractive.constructor.prototype.computed ),
+			userOptions.computed
+		)
+	));
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
@@ -83,8 +92,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 		viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
 	}
 
-	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
-	viewmodel.init();
 
 	// Render virtual DOM
 	if ( ractive.template ) {

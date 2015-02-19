@@ -1,11 +1,9 @@
 import Computation from '../Computation/Computation';
 
-export default function Viewmodel$compute ( key, signature ) {
-	var computation = new Computation( key, signature );
+export default function Viewmodel$compute ( keypath, signature, initialValue ) {
+	// TODO can this be a ComputationKeypath?
+	var computation = new Computation( keypath, signature, initialValue );
+	keypath.setComputation( computation );
 
-	if ( this.ready ) {
-		computation.init( this );
-	}
-
-	return ( this.computations[ key.str ] = computation );
+	return computation;
 }

@@ -1,6 +1,8 @@
 import { Keypath } from 'shared/keypaths';
 
-export default function Viewmodel$getKeypath ( str ) {
+export default function Viewmodel$getKeypath ( str, options = {} ) {
+	var keypath;
+
 	if ( str == null ) {
 		return str;
 	}
@@ -9,5 +11,11 @@ export default function Viewmodel$getKeypath ( str ) {
 		return this.keypathCache[ str ];
 	}
 
-	return this.keypathCache[ str ] = new Keypath( str, this );
+	keypath = new Keypath( str, this );
+
+	if( !options.noCache ) {
+		this.keypathCache[ str ] = keypath;
+	}
+
+	return keypath;
 }

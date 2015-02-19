@@ -13,7 +13,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 		}
 	}
 
-	computation = this.computations[ keypath.str ];
+	computation = keypath.computation;
 	if ( computation ) {
 		if ( computation.setting ) {
 			// let the other computation set() handle things...

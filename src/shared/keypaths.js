@@ -1,6 +1,9 @@
 import { isArray, isNumeric } from 'utils/is';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
+
+var FAILED_LOOKUP = {};
+
 var refPattern, keypathCache, Keypath;
 
 refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
@@ -8,24 +11,20 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 keypathCache = {};
 
 Keypath = function ( str, viewmodel ) {
-	var parent, keys = str.split( '.' );
+	var parent, keys = str.split( '.' ), isSpecial = str[0] === '@';
 
 	this.str = str;
-
-	if ( str[0] === '@' ) {
-		this.isSpecial = true;
-		this._value = decodeKeypath( str );
-	}	else {
-		this._value = void 0;
-		this.hasCachedValue = false;
-	}
-
-	this.wrapper = null;
-
 	this.firstKey = keys[0];
 	this.lastKey = keys.pop();
 
-	this.viewmodel = viewmodel;
+	this.owner = viewmodel;
+
+	this.isSpecial = isSpecial;
+	this._value = isSpecial ? decodeKeypath( str ) : void 0;
+	this.hasCachedValue = isSpecial;
+	this.wrapper = null;
+	this.computation = null;
+
 	this.children = null;
 
 	this.parent = parent = str === '' ? null : viewmodel.getKeypath( keys.join( '.' ) );
@@ -38,6 +37,7 @@ Keypath = function ( str, viewmodel ) {
 
 Keypath.prototype = {
 
+	// currently onlt external caller of this method is set, which is comparing isEqual
 	getValue () {
 		return this._value;
 	},
@@ -46,13 +46,18 @@ Keypath.prototype = {
 		this.children ? this.children.push( child ) : this.children = [ child ];
 	},
 
-	setValue ( value ) {
-		this.hasCachedValue = true;
-		this._value = value;
+	setComputation ( computation ) {
+		this.computation = computation;
 	},
 
-	clearValue ( keepExistingWrapper ) {
+	isRooted () {
+		this.owner.hasKeypath( this.firstKey );
+	},
+
+	clearCachedValue ( keepExistingWrapper ) {
 		var wrapper, children;
+
+		if ( this.isSpecial ) { return; }
 
 		this.hasCachedValue = false;
 		this._value = void 0;
@@ -64,14 +69,78 @@ Keypath.prototype = {
 				if ( wrapper.teardown() !== false ) {
 					this.wrapper = null;
 				}
-				// else
-				// Could there be a GC ramification if this is a "real" ractive.teardown()?
+				else {
+					// Could there be a GC ramification if this is a "real" ractive.teardown()?
+					this.hasCachedValue = true;
+					this._value = this.wrapper.value;
+				}
 			}
 		}
 
-		if ( children = this.children ) {
-			children.forEach( child => child.clearValue( /*keepExistingWrapper*/ ) );
+		if ( this.computation ) {
+			// This is slightly broader than just viewmodel.mark(),
+			// but logicially if cache is being cleared, shouldn't comp be invalid?
+			this.computation.invalidate();
 		}
+
+		if ( children = this.children ) {
+			children.forEach( child => {
+				if ( child.owner === this.owner ) {
+					child.clearCachedValue();
+				}
+			});
+		}
+	},
+
+	get ( options ) {
+
+		var value, wrapper;
+
+		if ( !this.hasCachedValue ) {
+			this.cacheValue();
+		}
+
+		if ( ( !options || !options.noUnwrap ) && ( wrapper = this.wrapper ) ) {
+			value = wrapper.get();
+		} else {
+			value = this.getValue();
+		}
+
+		return value === FAILED_LOOKUP ? void 0 : value;
+	},
+
+	cacheValue () {
+		var computation, value;
+
+		// Is this a computed property?
+		if ( computation = this.computation ) {
+			value = computation.get();
+		}
+
+		// Get the value from the parent, or data if it's the root. Can return FAILED_LOOKUP
+		else {
+			value = this.isRoot ? this.owner.data : this.parent.getChildValue( this.lastKey );
+		}
+
+		// Adapt if we have a valid value and store wrapper
+		if ( typeof value !== 'undefined' && value !== FAILED_LOOKUP ) {
+			// this has side-effect of setting wrapper.value = value
+			this.wrapper = this.owner.adapt( this, value );
+		}
+
+		// Cache raw value
+		this.hasCachedValue = true;
+		return this._value = value;
+	},
+
+	getChildValue ( str ) {
+		var value = this.get();
+
+		if ( value == null || ( typeof value === 'object' && !( str in value ) ) ) {
+			return FAILED_LOOKUP;
+		}
+
+		return value[ str ];
 	},
 
 	/* string manipulation: */
@@ -81,7 +150,7 @@ Keypath.prototype = {
 	},
 
 	join ( str ) {
-		return this.viewmodel.getKeypath( this.isRoot ? String( str ) : this.str + '.' + str );
+		return this.owner.getKeypath( this.isRoot ? String( str ) : this.str + '.' + str );
 	},
 
 	replace ( oldKeypath, newKeypath ) {
@@ -91,7 +160,7 @@ Keypath.prototype = {
 		}
 
 		if ( this.startsWith( oldKeypath ) ) {
-			return newKeypath === null ? newKeypath : newKeypath.viewmodel.getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
+			return newKeypath === null ? newKeypath : newKeypath.owner.getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
 		}
 	},
 
@@ -116,6 +185,13 @@ Keypath.prototype = {
 		return this._wildcardMatches || ( this._wildcardMatches = getPotentialWildcardMatches( this.str ) );
 	}
 };
+
+// var KeypathAlias = function( str, viewmodel ){
+// 	Keypath.call(this, str, viewmodel );
+// }
+
+// KeypathAlias.prototype = create(Keypath.prototype);
+
 
 export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
 	var existingKeypath = target[ property ];
@@ -188,4 +264,5 @@ export function normalise ( ref ) {
 }
 
 export { Keypath };
+export { KeypathAlias };
 

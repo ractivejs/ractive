@@ -59,7 +59,7 @@ ExpressionResolver.prototype = {
 		var computation, valueGetters, signature, keypath, fn;
 
 		keypath = this.keypath;
-		computation = this.root.viewmodel.computations[ keypath.str ];
+		computation = keypath.computation;
 
 		// only if it doesn't exist yet!
 		if ( !computation ) {

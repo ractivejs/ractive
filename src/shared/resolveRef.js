@@ -148,5 +148,8 @@ function createMappingIfNecessary ( ractive, key ) {
 
 function isRootProperty ( viewmodel, key ) {
 	// special case for reference to root
-	return key === '' || key in viewmodel.data || key in viewmodel.computations || key in viewmodel.mappings;
+	return key === ''
+		|| key in viewmodel.data
+		|| ( viewmodel.hasKeypath( key ) && !!viewmodel.getKeypath( key ).computation )
+		|| key in viewmodel.mappings;
 }

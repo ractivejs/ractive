@@ -3,7 +3,7 @@ import { log, warn } from 'utils/log';
 import { isEqual } from 'utils/is';
 import UnresolvedDependency from './UnresolvedDependency';
 
-var Computation = function ( key, signature ) {
+var Computation = function ( key, signature, initialValue ) {
 	this.key = key;
 
 	this.getter = signature.getter;
@@ -16,30 +16,20 @@ var Computation = function ( key, signature ) {
 	this.depValues = {};
 
 	this._dirty = this._firstRun = true;
+
+	this.viewmodel = key.owner;
+
+	if ( this.setter && initialValue !== undefined ) {
+		this.set( initialValue );
+	}
+
+	if ( this.hardDeps ) {
+		this.hardDeps.forEach( d => this.viewmodel.register( d, this, 'computed' ) );
+	}
 };
 
 Computation.prototype = {
 	constructor: Computation,
-
-	init: function ( viewmodel ) {
-		var initial;
-
-		this.viewmodel = viewmodel;
-		this.bypass = true;
-
-		initial = viewmodel.get( this.key );
-		viewmodel.clearCache( this.key );
-
-		this.bypass = false;
-
-		if ( this.setter && initial !== undefined ) {
-			this.set( initial );
-		}
-
-		if ( this.hardDeps ) {
-			this.hardDeps.forEach( d => viewmodel.register( d, this, 'computed' ) );
-		}
-	},
 
 	invalidate: function () {
 		this._dirty = true;
@@ -178,8 +168,7 @@ Computation.prototype = {
 function isUnresolved( viewmodel, keypath ) {
 	var key = keypath.firstKey;
 
-	return !( key in viewmodel.data ) &&
-	       !( key in viewmodel.computations ) &&
+	return !keypath.isRooted() &&
 	       !( key in viewmodel.mappings );
 }
 
