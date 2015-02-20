@@ -33,7 +33,7 @@ export default function () {
 
 	// Special case - contenteditable
 	else if ( this.getAttribute( 'contenteditable' ) !== undefined ) {
-		str += this.getAttribute( 'value' );
+		str += ( this.getAttribute( 'value' ) || '' );
 	}
 
 	if ( this.fragment ) {

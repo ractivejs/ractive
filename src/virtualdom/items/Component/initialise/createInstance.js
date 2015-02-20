@@ -49,7 +49,12 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 				parsed = parseJSON( attribute );
 				data[ key ] = parsed ? parsed.value : attribute;
 			}
-			
+
+			else if ( attribute === 0 ) {
+				// it had no '=', so we'll call it true
+				data[ key ] = true;
+			}
+
 			else if ( isArray( attribute ) ) {
 				// this represents dynamic data
 				if ( isSingleInterpolator( attribute ) ) {
@@ -76,7 +81,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 							} else {
 								// resolved immediately
 								mappings[ key ].keypath = keypath;
-							}	
+							}
 						}
 					});
 				}
@@ -97,7 +102,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 			else {
 				throw new Error( 'erm wut' );
 			}
-		});	
+		});
 	}
 
 	instance = create( Component.prototype );
