@@ -119,6 +119,11 @@ function getUniqueString ( str, keypaths ) {
 	return str.replace( /_([0-9]+)/g, function ( match, $1 ) {
 		var keypath, value;
 
+		// make sure we're not replacing a non-keypath _[0-9]
+		if ( +$1 >= keypaths.length ) {
+			return `_${$1}`;
+		}
+
 		keypath = keypaths[ $1 ];
 
 		if ( keypath === undefined ) {
