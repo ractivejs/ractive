@@ -237,3 +237,15 @@ test( 'Interpolators that directly reference arrays are updated on array mutatio
 	ractive.push( 'letters', 'd', 'e', 'f' );
 	t.htmlEqual( fixture.innerHTML, 'a,b,c,d,e,f' );
 });
+
+test( 'unshift should make all indices update (#1729)', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{foo.0}}',
+		data: { foo: [ 'first' ] }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'first' );
+	ractive.unshift( 'foo', 'second' );
+	t.htmlEqual( fixture.innerHTML, 'second' );
+});

@@ -23,7 +23,8 @@ export default function ( methodName ) {
 		result = arrayProto[ methodName ].apply( array, args );
 		promise = runloop.start( this, true ).then( () => result );
 
-		if ( !!newIndices ) {
+		// unshift affects all the whole array
+		if ( !!newIndices && methodName !== 'unshift' ) {
 			this.viewmodel.smartUpdate( keypath, array, newIndices );
 		} else {
 			this.viewmodel.mark( keypath );
