@@ -20,7 +20,7 @@ export default function readAttribute ( parser ) {
 	};
 
 	value = readAttributeValue( parser );
-	if ( value ) {
+	if ( value != null ) { // not null/undefined
 		attr.value = value;
 	}
 
@@ -59,7 +59,7 @@ function readAttributeValue ( parser ) {
 	}
 
 	if ( !value.length ) {
-		return null;
+		return '';
 	}
 
 	if ( value.length === 1 && typeof value[0] === 'string' ) {

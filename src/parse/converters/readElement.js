@@ -127,7 +127,7 @@ function readElement ( parser ) {
 			else {
 				if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
 					if ( !element.a ) element.a = {};
-					element.a[ attribute.name ] = attribute.value || 0;
+					element.a[ attribute.name ] = attribute.value || ( attribute.value === '' ? '' : 0 );
 				}
 			}
 		}

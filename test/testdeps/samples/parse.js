@@ -709,7 +709,7 @@ var parseTests = [
 	{
 		name: 'Empty attribute',
 		template: '<div contenteditable=""></div>',
-		parsed: {v:3,t:[{t:7,e:'div',a:{contenteditable:0}}]}
+		parsed: {v:3,t:[{t:7,e:'div',a:{contenteditable:''}}]}
 	},
 	{
 		name: '{{else}} block in attribute',

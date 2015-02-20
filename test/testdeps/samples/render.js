@@ -116,6 +116,16 @@ var renderTests = [
 		result: "<p class=\"\">test</p>"
 	},
 	{
+		name: 'Empty string boolean attributes',
+		template: "<input type='checkbox' checked='' />",
+		result: "<input type='checkbox' checked />"
+	},
+	{
+		name: 'Contenteditale without a value binding works with toHTML',
+		template: "<div contenteditable=''>edit me</div>",
+		result: "<div contenteditable=''>edit me</div>"
+	},
+	{
 		name: 'Attribute with sections',
 		template: '<ul>{{#todos:i}}<li data-index="{{i}}" class="{{#completed}}completed{{/completed}}{{^completed}}view{{/completed}}">{{desc}}</li>{{/todos}}</ul>',
 		data: { todos: [{ desc: 'debug Ractive', completed: false }, { desc: 'release Ractive', completed: false }, { desc: 'make cup of tea', completed: true }]},
@@ -359,7 +369,7 @@ var renderTests = [
 	{
 		name: 'Dependencies can be declared with this.get() inside expression functions',
 		template: '{{ area() }}',
-		data: { width: 50, height: 50, area: function () { return this.get( 'width' ) * this.get( 'height' ) } },
+		data: { width: 50, height: 50, area: function () { return this.get( 'width' ) * this.get( 'height' ); } },
 		result: '2500',
 		new_data: { width: 100 },
 		new_result: '5000'
