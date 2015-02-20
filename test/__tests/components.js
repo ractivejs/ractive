@@ -834,7 +834,7 @@ test( 'Component attributes with no = are boolean true', t => {
 	new Ractive({
 		el: fixture,
 		template: '<cmp foo />',
-		components: { cmp: Ractive.extend({ template: '{{#foo}}yep{{/}}' }) }
+		components: { cmp: Ractive.extend({ template: '{{#foo === true}}yep{{/}}' }) }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'yep' );
