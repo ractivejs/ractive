@@ -42,7 +42,10 @@ Mapping.prototype = {
 	},
 
 	map ( keypath ) {
-		return keypath.replace( this.localKey, this.keypath );
+    		if( typeof this.keypath === undefined ) { 
+    			return this.localKey;
+    		}
+    		return keypath.replace( this.localKey, this.keypath );
 	},
 
 	register ( keypath, dependant, group ) {
