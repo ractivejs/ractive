@@ -6,14 +6,14 @@ export default readPartialDefinitionComment;
 var startPattern = /^<!--\s*/,
     namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
     finishPattern = /\s*-->/,
-    closed,
     child;
 
 function readPartialDefinitionComment ( parser ) {
 	let firstPos = parser.pos,
 	    open = parser.standardDelimiters[0],
 	    close = parser.standardDelimiters[1],
-	    content;
+	    content,
+	    closed;
 
 	if ( !parser.matchPattern( startPattern ) || !parser.matchString( open ) ) {
 		parser.pos = firstPos;
