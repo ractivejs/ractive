@@ -206,7 +206,7 @@ try {
 		t.htmlEqual( fixture.innerHTML, '<p>David Copperfield</p>' );
 	});
 
-	// TODO: this one is failing since cached values moved into keypath
+	// TODO: fix this, failing since keypath-ftw
 	/*
 	test( "Magic adapters shouldn't tear themselves down while resetting (#1342)", t => {
 		let list = 'abcde'.split('');

@@ -27,18 +27,9 @@ var Viewmodel = function ( options ) {
 	// TODO is it possible to remove this reference?
 	this.ractive = ractive;
 
-	// TODO it *may* be worth having two versions of this function - one where
-	// keypathCache inherits from null, and one for IE8. Depends on how
-	// much of an overhead hasOwnProperty is - probably negligible
-	this.keypathCache = {};
-	this.rootKeypath = this.getKeypath( '' );
-
-
 	this.adaptors = adapt;
 	this.debug = options.debug;
 	this.onchange = options.onchange;
-
-	this.cacheMap = create( null );
 
 	this.deps = {
 		computed: create( null ),
@@ -48,10 +39,8 @@ var Viewmodel = function ( options ) {
 		computed: create( null ),
 		'default': create( null )
 	};
-
 	this.patternObservers = [];
 
-	this.specials = create( null );
 
 	this.captureGroups = [];
 	this.unresolvedImplicitDependencies = [];
@@ -61,6 +50,9 @@ var Viewmodel = function ( options ) {
 	this.noCascade = {};
 
 	this.data = data;
+
+	this.keypathCache = {};
+	this.rootKeypath = this.getKeypath( '' );
 
 	// set up explicit mappings
 	this.mappings = create( null );
@@ -83,6 +75,7 @@ var Viewmodel = function ( options ) {
 
 Viewmodel.prototype = {
 	adapt: adapt,
+	addComputed: addComputed,
 	applyChanges: applyChanges,
 	capture: capture,
 	clearCache: clearCache,
@@ -90,7 +83,6 @@ Viewmodel.prototype = {
 	get: get,
 	getKeypath: getKeypath,
 	hasKeypath: hasKeypath,
-	addComputed: addComputed,
 	map: map,
 	mark: mark,
 	merge: merge,

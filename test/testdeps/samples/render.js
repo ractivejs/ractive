@@ -356,7 +356,7 @@ var renderTests = [
 		data: { foobar: undefined },
 		result: 'undefined'
 	},
-	// TODO: get this passing
+	// TODO: Get this passing in node. Broke with keypath-ftw work (but not in browser)
 	// {
 	// 	name: 'Dependencies can be declared with this.get() inside expression functions',
 	// 	template: '{{ area() }}',

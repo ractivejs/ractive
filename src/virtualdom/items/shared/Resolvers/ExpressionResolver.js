@@ -74,7 +74,7 @@ ExpressionResolver.prototype = {
 
 				// 'special' keypaths encode a value
 				if ( keypath.isSpecial ) {
-					value = keypath.getValue();
+					value = keypath.get();
 					return () => value;
 				}
 
@@ -125,7 +125,7 @@ function getUniqueString ( str, keypaths ) {
 		}
 
 		if ( keypath.isSpecial ) {
-			value = keypath.getValue();
+			value = keypath.get();
 			return typeof value === 'number' ? value : '"' + value + '"';
 		}
 

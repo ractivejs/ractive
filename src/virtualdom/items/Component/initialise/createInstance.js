@@ -61,9 +61,9 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 					resolver = createResolver( component, attribute[0], function ( keypath ) {
 						if ( keypath.isSpecial ) {
 							if ( ready ) {
-								instance.set( key, keypath.getValue() ); // TODO use viewmodel?
+								instance.set( key, keypath.get() ); // TODO use viewmodel?
 							} else {
-								data[ key ] = keypath.getValue();
+								data[ key ] = keypath.get();
 
 								// TODO errr.... would be better if we didn't have to do this
 								delete mappings[ key ];

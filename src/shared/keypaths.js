@@ -1,6 +1,7 @@
 import { isArray, isNumeric } from 'utils/is';
+import { isEqual } from 'utils/is';
+import createBranch from 'utils/createBranch';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
-
 
 var FAILED_LOOKUP = {};
 
@@ -36,11 +37,6 @@ Keypath = function ( str, viewmodel ) {
 };
 
 Keypath.prototype = {
-
-	// currently onlt external caller of this method is set, which is comparing isEqual
-	getValue () {
-		return this._value;
-	},
 
 	addChild ( child ) {
 		this.children ? this.children.push( child ) : this.children = [ child ];
@@ -93,17 +89,14 @@ Keypath.prototype = {
 	},
 
 	get ( options ) {
-
 		var value, wrapper;
 
-		if ( !this.hasCachedValue ) {
-			this.cacheValue();
-		}
+		this.cacheValue();
 
 		if ( ( !options || !options.noUnwrap ) && ( wrapper = this.wrapper ) ) {
 			value = wrapper.get();
 		} else {
-			value = this.getValue();
+			value = this._value;
 		}
 
 		return value === FAILED_LOOKUP ? void 0 : value;
@@ -111,6 +104,8 @@ Keypath.prototype = {
 
 	cacheValue () {
 		var computation, value;
+
+		if ( this.hasCachedValue ) { return; }
 
 		// Is this a computed property?
 		if ( computation = this.computation ) {
@@ -130,17 +125,83 @@ Keypath.prototype = {
 
 		// Cache raw value
 		this.hasCachedValue = true;
-		return this._value = value;
+		this._value = value;
 	},
 
-	getChildValue ( str ) {
+	getChildValue ( propertyOrIndex ) {
 		var value = this.get();
 
-		if ( value == null || ( typeof value === 'object' && !( str in value ) ) ) {
+		if ( value == null || ( typeof value === 'object' && !( propertyOrIndex in value ) ) ) {
 			return FAILED_LOOKUP;
 		}
 
-		return value[ str ];
+		return value[ propertyOrIndex ];
+	},
+
+	set ( value, options ) {
+		var computation, wrapper, keepExistingWrapper;
+
+		computation = this.computation;
+		if ( computation ) {
+			if ( computation.setting ) {
+				// let the other computation set() handle things...
+				return;
+			}
+			computation.set( value );
+			value = computation.get();
+		}
+
+		if ( isEqual( this._value, value ) ) {
+			return;
+		}
+
+		wrapper = this.wrapper;
+
+		// If we have a wrapper with a `reset()` method, we try and use it. If the
+		// `reset()` method returns false, the wrapper should be torn down, and
+		// (most likely) a new one should be created later
+		if ( wrapper && wrapper.reset ) {
+			keepExistingWrapper = ( wrapper.reset( value ) !== false );
+
+			if ( keepExistingWrapper ) {
+				value = wrapper.get();
+			}
+		}
+
+		if ( !computation && !keepExistingWrapper ) {
+			this.parent.setChildValue( this.lastKey, value );
+		}
+
+		if ( !options.silent ) {
+			this.owner.mark( this );
+		} else {
+			// We're setting a parent of the original target keypath (i.e.
+			// creating a fresh branch) - we need to clear the cache, but
+			// not mark it as a change
+			this.clearCachedValue();
+		}
+	},
+
+	setChildValue ( propertyOrIndex, childValue ) {
+
+		var wrapper, value;
+
+		// this will ensure wrapper gets created prior to set
+		this.cacheValue();
+
+		// shortcut if wrapper.set available
+		if( ( wrapper = this.wrapper ) && wrapper.set ) {
+			wrapper.set( propertyOrIndex, childValue );
+			return;
+		}
+
+		if ( !( value = this.get() ) ) {
+			// set value as {} or []
+			value = createBranch( propertyOrIndex );
+			this.set( value, { silent: true } );
+		}
+
+		value[ propertyOrIndex ] = childValue;
 	},
 
 	/* string manipulation: */
@@ -185,6 +246,7 @@ Keypath.prototype = {
 		return this._wildcardMatches || ( this._wildcardMatches = getPotentialWildcardMatches( this.str ) );
 	}
 };
+
 
 // var KeypathAlias = function( str, viewmodel ){
 // 	Keypath.call(this, str, viewmodel );

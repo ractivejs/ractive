@@ -747,7 +747,7 @@ test( 'Mapping to a computed property is an error', function ( t ) {
 	}, /Cannot map to a computed property \('foo'\)/ );
 });
 
-// TODO: broke this taking out create mappings. revisit if this is really correct
+// TODO: fix this, failing since keypath-ftw. maybe revisit if this is really correct
 /*
 test( 'Implicit mappings are created by restricted references (#1465)', function ( t ) {
 	var ractive = new Ractive({
