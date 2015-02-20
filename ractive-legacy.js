@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Fri Feb 20 2015 14:44:38 GMT+0000 (UTC) - commit 51422534c419e38361685d1069593c97a2a18dc9
+	Fri Feb 20 2015 14:45:07 GMT+0000 (UTC) - commit 264b188adb23b0f67178eead89fc653512ce32e2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6602,14 +6602,14 @@
   var startPattern = /^<!--\s*/,
       namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
       finishPattern = /\s*-->/,
-      closed,
       child;
 
   function readPartialDefinitionComment(parser) {
     var firstPos = parser.pos,
         open = parser.standardDelimiters[0],
         close = parser.standardDelimiters[1],
-        content = undefined;
+        content = undefined,
+        closed = undefined;
 
     if (!parser.matchPattern(startPattern) || !parser.matchString(open)) {
       parser.pos = firstPos;
