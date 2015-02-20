@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Fri Feb 20 2015 14:42:48 GMT+0000 (UTC) - commit de27b407dd47bfd91982da8826a55171390ca78c
+	Fri Feb 20 2015 14:44:38 GMT+0000 (UTC) - commit 51422534c419e38361685d1069593c97a2a18dc9
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14215,6 +14215,9 @@
     },
 
     map: function map__map(keypath) {
+      if (typeof this.keypath === undefined) {
+        return this.localKey;
+      }
       return keypath.replace(this.localKey, this.keypath);
     },
 
