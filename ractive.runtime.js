@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Fri Feb 20 2015 17:19:26 GMT+0000 (UTC) - commit adbbc0c0e193ae9a00452b8d8f5e55db1ab50672
+	Fri Feb 20 2015 17:21:18 GMT+0000 (UTC) - commit 9db087906bc60f734639bf8ded5c2de2805d0d2e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9977,7 +9977,7 @@
 
     // Special case - contenteditable
     else if (this.getAttribute("contenteditable") !== undefined) {
-      str += this.getAttribute("value");
+      str += this.getAttribute("value") || "";
     }
 
     if (this.fragment) {
@@ -12777,6 +12777,9 @@
           // it's static data
           parsed = parseJSON(attribute);
           data[key] = parsed ? parsed.value : attribute;
+        } else if (attribute === 0) {
+          // it had no '=', so we'll call it true
+          data[key] = true;
         } else if (isArray(attribute)) {
           // this represents dynamic data
           if (isSingleInterpolator(attribute)) {
