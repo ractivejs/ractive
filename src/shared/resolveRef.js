@@ -9,17 +9,18 @@ export default function resolveRef ( ractive, ref, fragment ) {
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
 		keypath = ractive.viewmodel.getKeypath( ref.substring( 2 ) );
-		createMappingIfNecessary( ractive, keypath.firstKey, fragment );
+
+		// createMappingIfNecessary( ractive, keypath.firstKey, fragment );
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
 	else if ( ref[0] === '.' ) {
-		keypath = resolveAncestorRef( ractive, getInnerContext( fragment ), ref );
+		keypath = resolveAncestorRef( getInnerContext( fragment ), ref );
 
-		if ( keypath ) {
-			createMappingIfNecessary( ractive, keypath.firstKey, fragment );
-		}
+		// if ( keypath ) {
+		// 	createMappingIfNecessary( ractive, keypath.firstKey, fragment );
+		// }
 	}
 
 	// ...otherwise we need to figure out the keypath based on context
@@ -30,43 +31,39 @@ export default function resolveRef ( ractive, ref, fragment ) {
 	return keypath;
 }
 
-function resolveAncestorRef ( ractive, baseContext, ref ) {
-	var contextKeys;
+function resolveAncestorRef ( baseContext, ref ) {
 
-	// TODO...
-	if ( baseContext != undefined && typeof baseContext !== 'string' ) {
-		baseContext = baseContext.str;
-	}
+	// the way KeypathExpression are currently handled, context can
+	// be null because there's no corresponding keypath
+	// really it doesn't work because context might be above that and not the root
+	//
+	// When we have Dedicated Keypath for those,
+	// should iron that out
+	if( !baseContext ) { return; }
 
 	// {{.}} means 'current context'
-    if ( ref === '.' ) return ractive.viewmodel.getKeypath( baseContext );
-
-	contextKeys = baseContext ? baseContext.split( '.' ) : [];
+    if ( ref === '.' ) { return baseContext; }
 
 	// ancestor references (starting "../") go up the tree
 	if ( ref.substr( 0, 3 ) === '../' ) {
+
 		while ( ref.substr( 0, 3 ) === '../' ) {
-			if ( !contextKeys.length ) {
+			if ( baseContext.isRoot ) {
 				throw new Error( 'Could not resolve reference - too many "../" prefixes' );
 			}
 
-			contextKeys.pop();
+			baseContext = baseContext.parent;
 			ref = ref.substring( 3 );
 		}
 
-		contextKeys.push( ref );
-        return ractive.viewmodel.getKeypath( contextKeys.join( '.' ) );
+        return baseContext.join( ref );
     }
 
 	// not an ancestor reference - must be a restricted reference (prepended with "." or "./")
-	if ( !baseContext ) {
-		return ractive.viewmodel.getKeypath( ref.replace( /^\.\/?/, '' ) );
-	}
-
-	return ractive.viewmodel.getKeypath( baseContext + ref.replace( /^\.\//, '.' ) );
+	return baseContext.join( ref );
 }
 
-function resolveAmbiguousReference ( ractive, ref, fragment, isParentLookup ) {
+function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isParentLookup ) {
 	var context,
 		key,
 		parentValue,

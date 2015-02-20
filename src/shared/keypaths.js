@@ -211,7 +211,22 @@ Keypath.prototype = {
 	},
 
 	join ( str ) {
-		return this.owner.getKeypath( this.isRoot ? String( str ) : this.str + '.' + str );
+		if ( this.isRoot ) {
+			str = String( str )
+			if( str[0] === '.' ) {
+				// remove prepended with "." or "./"
+				str = str.replace( /^\.\/?/, '' );
+			}
+		}
+		else {
+			if ( str[0] === '.' ) {
+				// normalize prepended with "./"
+				str = this.str + str.replace( /^\.\//, '.' );
+			} else {
+				str = this.str + '.' + str;
+			};
+		}
+		return this.owner.getKeypath( str );
 	},
 
 	replace ( oldKeypath, newKeypath ) {
