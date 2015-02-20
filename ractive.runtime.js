@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Feb 17 2015 14:35:10 GMT+0000 (UTC) - commit 7741ceb6e42f2033b98e9ba678d0efa44c6da208
+	Fri Feb 20 2015 14:42:48 GMT+0000 (UTC) - commit de27b407dd47bfd91982da8826a55171390ca78c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5282,6 +5282,11 @@
     // get string that is unique to this expression
     return str.replace(/_([0-9]+)/g, function (match, $1) {
       var keypath, value;
+
+      // make sure we're not replacing a non-keypath _[0-9]
+      if (+$1 >= keypaths.length) {
+        return "_" + $1;
+      }
 
       keypath = keypaths[$1];
 
