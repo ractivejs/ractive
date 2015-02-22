@@ -6,7 +6,6 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 	this.resolver = resolver;
 	this.root = resolver.root;
 	this.parentFragment = parentFragment;
-	this.viewmodel = resolver.root.viewmodel;
 
 	if ( typeof template === 'string' ) {
 		this.value = template;
@@ -30,11 +29,11 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 MemberResolver.prototype = {
 	resolve: function ( keypath ) {
 		if ( this.keypath ) {
-			this.viewmodel.unregister( this.keypath, this );
+			this.keypath.unregister( this );
 		}
 
 		this.keypath = keypath;
-		this.value = this.viewmodel.get( keypath );
+		this.value = keypath.get();
 
 		this.bind();
 
@@ -42,7 +41,7 @@ MemberResolver.prototype = {
 	},
 
 	bind: function () {
-		this.viewmodel.register( this.keypath, this );
+		this.keypath.register( this );
 	},
 
 	rebind: function ( oldKeypath, newKeypath ) {
@@ -58,7 +57,7 @@ MemberResolver.prototype = {
 
 	unbind: function () {
 		if ( this.keypath ) {
-			this.viewmodel.unregister( this.keypath, this );
+			this.keypath.unregister( this );
 		}
 
 		if ( this.refResolver ) {

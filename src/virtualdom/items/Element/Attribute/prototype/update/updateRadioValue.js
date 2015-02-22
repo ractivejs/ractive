@@ -31,7 +31,7 @@ export default function Attribute$updateRadioValue () {
 				}
 			}
 
-			this.root.viewmodel.set( binding.keypath, undefined );
+			binding.keypath.set( undefined );
 		}
 	}
 }

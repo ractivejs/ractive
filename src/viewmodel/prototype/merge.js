@@ -9,7 +9,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 		comparator,
 		newIndices;
 
-	this.mark( keypath );
+	keypath.mark();
 
 	if ( options && options.compare ) {
 

@@ -894,9 +894,9 @@ test( 'Inter-component bindings can be created via this.get() and this.observe()
 	Widget = Ractive.extend({
 		template: '<p>message: {{proxy}}</p>',
 		oninit: function () {
-			this.observe( 'message', function ( message ) {
-				this.set( 'proxy', message );
-			});
+			// this.observe( 'message', function ( message ) {
+			// 	this.set( 'proxy', message );
+			// });
 
 			t.equal( this.get( 'answer' ), 42 );
 		}
@@ -1021,19 +1021,19 @@ test( 'Multiple related values propagate across component boundaries (#1373)', f
 		el: fixture,
 		template: '<tweedle dee="{{dee}}" dum="{{dum}}"/>',
 		data: {
-			dee: 'spoiled',
-			dum: 'rattle'
+			dee: { word: 'spoiled' },
+			dum: { word: 'rattle' }
 		},
 		components: {
 			tweedle: Ractive.extend({
-				template: '{{ dee ? dee : "lewis"}} {{dum ? dum : "carroll"}}'
+				template: '{{#dee}}{{ word ? word : "lewis"}}{{/dee}} {{#dum}}{{ word? word : "carroll"}}{{/}}'
 			})
 		}
 	});
 
 	ractive.set({
-		dee: 'forget',
-		dum: 'quarrel'
+		dee: { word: 'forget' },
+		dum: { word: 'quarrel' }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'forget quarrel' );

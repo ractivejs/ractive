@@ -7,10 +7,6 @@ export default function Viewmodel$unregister ( keypath, dependant, group = 'defa
 		return;
 	}
 
-	if ( mapping = this.mappings[ keypath.firstKey ] ) {
-		return mapping.unregister( keypath, dependant, group );
-	}
-
 	deps = this.deps[ group ][ keypath.str ];
 	index = deps.indexOf( dependant );
 

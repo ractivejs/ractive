@@ -5,10 +5,6 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 		return; // TODO we should never get here if a dependant is static...
 	}
 
-	if ( mapping = this.mappings[ keypath.firstKey ] ) {
-		mapping.register( keypath, dependant, group );
-	}
-
 	else {
 		depsByKeypath = this.deps[ group ] || ( this.deps[ group ] = {} );
 		deps = depsByKeypath[ keypath.str ] || ( depsByKeypath[ keypath.str ] = [] );

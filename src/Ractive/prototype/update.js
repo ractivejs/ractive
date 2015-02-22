@@ -9,7 +9,7 @@ export default function Ractive$update ( keypath ) {
 	keypath = this.viewmodel.getKeypath( keypath ) || this.viewmodel.rootKeypath;
 
 	promise = runloop.start( this, true );
-	this.viewmodel.mark( keypath );
+	keypath.mark();
 	runloop.end();
 
 	updateHook.fire( this, keypath );

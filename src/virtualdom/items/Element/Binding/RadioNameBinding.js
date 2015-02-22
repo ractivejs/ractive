@@ -23,7 +23,7 @@ var RadioNameBinding = Binding.extend({
 		var node = this.element.node;
 
 		node.name = '{{' + this.keypath.str + '}}';
-		node.checked = this.root.viewmodel.get( this.keypath ) == this.element.getAttribute( 'value' );
+		node.checked = this.keypath.get() == this.element.getAttribute( 'value' );
 
 		node.addEventListener( 'change', handleDomEvent, false );
 

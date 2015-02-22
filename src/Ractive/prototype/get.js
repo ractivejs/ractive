@@ -6,18 +6,18 @@ var options = {
 	noUnwrap: true // wrapped values should NOT be unwrapped
 };
 
-export default function Ractive$get ( keypath ) {
-	var value;
+export default function Ractive$get ( keypathStr ) {
+	var keypath;
 
-	keypath = this.viewmodel.getKeypath( normalise( keypath ) );
-	value = this.viewmodel.get( keypath, options );
+	keypathStr = normalise( keypathStr );
 
-	// Create inter-component binding, if necessary
-	if ( value === undefined && this.parent && !this.isolated ) {
-		if ( resolveRef( this, keypath.str, this.component.parentFragment ) ) { // creates binding as side-effect, if appropriate
-			value = this.viewmodel.get( keypath );
-		}
+	if( !this.viewmodel.hasKeypath( keypathStr ) ) {
+		keypath = resolveRef( this, keypathStr, this.fragment );
+	}
+	else {
+		keypath = this.viewmodel.getKeypath( keypathStr );
 	}
 
-	return value;
+	// For now we go through viewmodel to do capture
+	return this.viewmodel.get( keypath, options );
 }

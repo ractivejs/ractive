@@ -33,7 +33,7 @@ var RadioBinding = Binding.extend({
 		runloop.start( this.root );
 
 		this.siblings.forEach( binding => {
-			binding.root.viewmodel.set( binding.keypath, binding.getValue() );
+			binding.keypath.set( binding.getValue() );
 		});
 
 		runloop.end();

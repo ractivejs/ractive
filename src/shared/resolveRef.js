@@ -25,7 +25,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 
 	// ...otherwise we need to figure out the keypath based on context
 	else {
-		keypath = resolveAmbiguousReference( ractive, ractive.viewmodel.getKeypath( ref ), fragment );
+		keypath = resolveAmbiguousReference( ractive, ref, fragment );
 	}
 
 	return keypath;
@@ -70,11 +70,14 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 		hasContextChain,
 		parentKeypath;
 
-	if ( ref.isRoot ) {
-		return ref;
+
+
+	if ( !ref ) {
+		return ractive.viewmodel.rootKeypath;
 	}
 
-	key = ref.firstKey;
+	// temp until figure out
+	key = ref.split( '.' )[0];
 
 	while ( fragment ) {
 		context = fragment.context;
@@ -85,16 +88,18 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 		}
 
 		hasContextChain = true;
-		parentValue = ractive.viewmodel.get( context );
+
+		// parentValue = ractive.viewmodel.get( context );
+		// revist when mapped keypaths are ready
+		parentValue = context.get();
 
 		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
-			return context.join( ref.str );
+			return context.join( ref );
 		}
 	}
 
-	// Root/computed/mapped property?
 	if ( isRootProperty( ractive.viewmodel, key ) ) {
-		return ref;
+		return ractive.viewmodel.getKeypath( ref );
 	}
 
 	// If this is an inline component, and it's not isolated, we
@@ -103,16 +108,17 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
 
-		key = ractive.parent.viewmodel.getKeypath( key );
-
 		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true ) ) {
-			// We need to create an inter-component binding
-			ractive.viewmodel.map( key, {
-				origin: ractive.parent.viewmodel,
-				keypath: parentKeypath
-			});
 
-			return ref;
+			ractive.viewmodel.keypathCache[ key ] = parentKeypath;
+
+			// // We need to create an inter-component binding
+			// ractive.viewmodel.map( ractive.viewmodel.getKeypath( key ), {
+			// 	origin: ractive.parent.viewmodel,
+			// 	keypath: parentKeypath
+			// });
+
+			return ractive.viewmodel.getKeypath( ref );
 		}
 	}
 
@@ -121,32 +127,35 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 	if ( !isParentLookup && !hasContextChain ) {
 		// the data object needs to have a property by this name,
 		// to prevent future failed lookups
+		ref = ractive.viewmodel.getKeypath( ref );
 		ractive.viewmodel.set( ref, undefined );
 		return ref;
 	}
 }
 
-function createMappingIfNecessary ( ractive, key ) {
-	var parentKeypath;
+// function createMappingIfNecessary ( ractive, key ) {
+// 	var parentKeypath;
 
-	if ( !ractive.parent || ractive.isolated || isRootProperty( ractive.viewmodel, key ) ) {
-		return;
-	}
+// 	if ( !ractive.parent || ractive.isolated || isRootProperty( ractive.viewmodel, key ) ) {
+// 		return;
+// 	}
 
-	key = ractive.parent.viewmodel.getKeypath( key );
+// 	key = ractive.parent.viewmodel.getKeypath( key );
 
-	if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, ractive.component.parentFragment, true ) ) {
-		ractive.viewmodel.map( key, {
-			origin: ractive.parent.viewmodel,
-			keypath: parentKeypath
-		});
-	}
-}
+// 	if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, ractive.component.parentFragment, true ) ) {
+// 		ractive.viewmodel.map( key, {
+// 			origin: ractive.parent.viewmodel,
+// 			keypath: parentKeypath
+// 		});
+// 	}
+// }
 
 function isRootProperty ( viewmodel, key ) {
 	// special case for reference to root
 	return key === ''
-		|| key in viewmodel.data
-		|| ( viewmodel.hasKeypath( key ) && !!viewmodel.getKeypath( key ).computation )
-		|| key in viewmodel.mappings;
+		|| viewmodel.hasKeypath( key )
+		|| viewmodel.rootKeypath.hasChild( key );
+
+		// || ( viewmodel.hasKeypath( key ) && !!viewmodel.getKeypath( key ).computation )
+		// || key in viewmodel.mappings;
 }

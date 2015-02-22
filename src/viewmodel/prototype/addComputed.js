@@ -4,12 +4,13 @@ export default function Viewmodel$addComputed ( computations ) {
 	var key, keypath, initialValue;
 
 	for ( key in computations ) {
-		if ( key in this.mappings ) {
-			fatal( 'Cannot map to a computed property (\'%s\')', key );
-		}
 
 		keypath = this.getKeypath( key );
-		// maybe this should go through viewmodel. depends how things shake out
+
+		if ( keypath.owner !== this ) {
+			fatal( 'Computed property \'%s\' cannot shadow a mapped property', key );
+		}
+
 		initialValue = keypath.get();
 		keypath.clearCachedValue();
 

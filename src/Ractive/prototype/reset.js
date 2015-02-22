@@ -39,7 +39,7 @@ export default function Ractive$reset ( data ) {
 	if ( rerender ) {
 		let component;
 
-		this.viewmodel.mark();
+		this.viewmodel.rootKeypath.mark();
 
 		// Is this is a component, we need to set the `shouldDestroy`
 	 	// flag, otherwise it will assume by default that a parent node
@@ -70,7 +70,7 @@ export default function Ractive$reset ( data ) {
 		promise = this.render( this.el, this.anchor );
 	} else {
 		promise = runloop.start( this, true );
-		this.viewmodel.mark();
+		this.viewmodel.rootKeypath.mark();
 		runloop.end();
 	}
 

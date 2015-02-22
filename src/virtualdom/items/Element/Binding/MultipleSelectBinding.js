@@ -15,7 +15,7 @@ var MultipleSelectBinding = SelectBinding.extend({
 
 		this.element.node.addEventListener( 'change', handleDomEvent, false );
 
-		valueFromModel = this.root.viewmodel.get( this.keypath );
+		valueFromModel = this.keypath.get();
 
 		if ( valueFromModel === undefined ) {
 			// get value from DOM, if possible
@@ -71,13 +71,13 @@ var MultipleSelectBinding = SelectBinding.extend({
 		if ( value !== undefined ) {
 			this.attribute.locked = true;
 			runloop.scheduleTask( () => this.attribute.locked = false );
-			this.root.viewmodel.set( this.keypath, value );
+			this.keypath.set( value );
 		}
 	},
 
 	updateModel: function () {
 		if ( this.attribute.value === undefined || !this.attribute.value.length ) {
-			this.root.viewmodel.set( this.keypath, this.initialValue );
+			this.keypath.set( this.initialValue );
 		}
 	}
 });

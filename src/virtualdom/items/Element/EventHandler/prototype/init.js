@@ -109,7 +109,7 @@ function fireMethodCall ( event ) {
 				}
 			}
 		} else {
-			value = ractive.viewmodel.get( keypath );
+			value = keypath.get();
 		}
 
 		return value;

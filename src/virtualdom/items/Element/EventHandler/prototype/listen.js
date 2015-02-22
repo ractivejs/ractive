@@ -47,7 +47,7 @@ function getCustomHandler ( name ) {
 
 			event.index = storage.index;
 			event.keypath = storage.keypath.str;
-			event.context = storage.root.viewmodel.get( storage.keypath );
+			event.context = storage.keypath.get();
 
 			storage.events[ name ].fire( event );
 		};

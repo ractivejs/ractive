@@ -10,20 +10,17 @@ export default function Mustache$resolve ( keypath ) {
 
 	// If we resolved previously, we need to unregister
 	if ( this.registered ) { // undefined or null
-		this.root.viewmodel.unregister( this.keypath, this );
+		keypath.unregister( this );
 		this.registered = false;
-
 		wasResolved = true;
 	}
 
 	this.keypath = keypath;
 
-	// If the new keypath exists, we need to register
-	// with the viewmodel
+	// If the new keypath exists, we need to register the mustache
 	if ( keypath != undefined ) { // undefined or null
-		value = this.root.viewmodel.get( keypath );
-		this.root.viewmodel.register( keypath, this );
-
+		value = keypath.get();
+		keypath.register( this );
 		this.registered = true;
 	}
 

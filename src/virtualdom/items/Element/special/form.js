@@ -17,5 +17,5 @@ function handleReset () {
 }
 
 function updateModel ( binding ) {
-	binding.root.viewmodel.set( binding.keypath, binding.resetValue );
+	binding.keypath.set( binding.resetValue );
 }

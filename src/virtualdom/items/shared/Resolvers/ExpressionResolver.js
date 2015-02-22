@@ -79,7 +79,7 @@ ExpressionResolver.prototype = {
 				}
 
 				return () => {
-					var value = this.root.viewmodel.get( keypath, { noUnwrap: true } );
+					var value = keypath.get( { noUnwrap: true } );
 					if ( typeof value === 'function' ) {
 						value = wrapFunction( value, this.root );
 					}
@@ -95,9 +95,10 @@ ExpressionResolver.prototype = {
 				}
 			};
 
+			// TODO: make this not viewmodel specific
 			computation = this.root.viewmodel.compute( keypath, signature );
 		} else {
-			this.root.viewmodel.mark( keypath );
+			keypath.mark();
 		}
 	},
 

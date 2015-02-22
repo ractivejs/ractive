@@ -37,7 +37,7 @@ var CheckboxNameBinding = Binding.extend({
 		// If no initial value was set, and this input is checked, we
 		// update the model
 		if ( this.siblings.noInitialValue && this.element.getAttribute( 'checked' ) ) {
-			existingValue = this.root.viewmodel.get( this.keypath );
+			existingValue = this.keypath.get();
 			bindingValue = this.element.getAttribute( 'value' );
 
 			existingValue.push( bindingValue );
@@ -51,7 +51,7 @@ var CheckboxNameBinding = Binding.extend({
 	render: function () {
 		var node = this.element.node, existingValue, bindingValue;
 
-		existingValue = this.root.viewmodel.get( this.keypath );
+		existingValue = this.keypath.get();
 		bindingValue = this.element.getAttribute( 'value' );
 
 		if ( isArray( existingValue ) ) {

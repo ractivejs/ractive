@@ -130,7 +130,7 @@ var tests = [
 
 			window.ractive.update( 'boxes' );
 		}
-	},
+	}/*,
 
 	{
 		name: 'splice large array',
@@ -160,5 +160,5 @@ var tests = [
 		test: () => {
 			window.ractive.splice( 'items', 3, 1 );
 		}
-	}
+	}*/
 ];

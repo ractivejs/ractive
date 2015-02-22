@@ -8,7 +8,7 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	// Indices that are being removed should be marked as dirty
 	newIndices.forEach( ( newIndex, oldIndex ) => {
 		if ( newIndex === -1 ) {
-			this.mark( keypath.join( oldIndex ), noCascadeOption );
+			keypath.join( oldIndex ).mark( noCascadeOption );
 		}
 	});
 
@@ -21,16 +21,16 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	}
 
 	if ( oldLength !== array.length ) {
-		this.mark( keypath.join( 'length' ), implicitOption );
+		keypath.join( 'length' ).mark( implicitOption );
 
 		for ( i = oldLength; i < array.length; i += 1 ) {
-			this.mark( keypath.join( i ) );
+			keypath.join( i ).mark();
 		}
 
 		// don't allow removed indexes beyond end of new array to trigger recomputations
 		// TODO is this still necessary, now that computations are lazy?
 		for ( i = array.length; i < oldLength; i += 1 ) {
-			this.mark( keypath.join( i ), noCascadeOption );
+			keypath.join( i ).mark( noCascadeOption );
 		}
 	}
 }

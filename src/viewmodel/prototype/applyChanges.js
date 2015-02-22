@@ -27,13 +27,11 @@ export default function Viewmodel$applyChanges () {
 				var key = c.key;
 
 				if ( c.viewmodel === self ) {
-					self.clearCache( key );
-					c.invalidate();
-
+					key.clearCachedValue( key );
 					changes.push( key );
 					cascade( key );
 				} else {
-					c.viewmodel.mark( key );
+					key.mark();
 				}
 			});
 		}
@@ -54,7 +52,7 @@ export default function Viewmodel$applyChanges () {
 			this.changes.push( keypath );
 
 			computations.forEach( c => {
-				c.viewmodel.mark( c.key );
+				c.key.mark();
 			});
 		}
 	});

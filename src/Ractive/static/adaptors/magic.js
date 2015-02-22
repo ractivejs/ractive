@@ -83,7 +83,7 @@ try {
 			this.updating = true;
 			this.obj[ this.prop ] = value; // trigger set() accessor
 			runloop.addRactive( this.ractive );
-			this.ractive.viewmodel.mark( this.keypath, { keepExistingWrapper: true } );
+			this.keypath.mark( { keepExistingWrapper: true } );
 			this.updating = false;
 			return true;
 		},
@@ -197,7 +197,7 @@ function createAccessors ( originalWrapper, value, template ) {
 		wrapper.updating = true;
 		runloop.start( ractive );
 
-		ractive.viewmodel.mark( keypath );
+		keypath.mark();
 
 		runloop.end();
 		wrapper.updating = false;

@@ -26,7 +26,7 @@ export default function ( methodName ) {
 		if ( !!newIndices ) {
 			this.viewmodel.smartUpdate( keypath, array, newIndices );
 		} else {
-			this.viewmodel.mark( keypath );
+			keypath.mark();
 		}
 
 		runloop.end();

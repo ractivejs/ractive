@@ -42,47 +42,47 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	// each attribute represents either a) data or b) a mapping
 	if ( attributes ) {
 		Object.keys( attributes ).forEach( key => {
-			var attribute = attributes[ key ], parsed, resolver;
+			var attribute = attributes[ key ], parsed, resolver, created = false;
 
 			if ( typeof attribute === 'string' ) {
 				// it's static data
 				parsed = parseJSON( attribute );
 				data[ key ] = parsed ? parsed.value : attribute;
+				created = true;
 			}
 
 			else if ( isArray( attribute ) ) {
 				// this represents dynamic data
+
 				if ( isSingleInterpolator( attribute ) ) {
-					mappings[ key ] = {
-						origin: component.root.viewmodel,
-						keypath: undefined
-					};
 
 					resolver = createResolver( component, attribute[0], function ( keypath ) {
+						created = !ready;
+
 						if ( keypath.isSpecial ) {
 							if ( ready ) {
 								instance.set( key, keypath.get() ); // TODO use viewmodel?
 							} else {
 								data[ key ] = keypath.get();
-
-								// TODO errr.... would be better if we didn't have to do this
-								delete mappings[ key ];
 							}
 						}
 
 						else {
 							if ( ready ) {
-								instance.viewmodel.mappings[ key ].resolve( keypath );
+								mappings[ key ].assign( keypath );
 							} else {
 								// resolved immediately
-								mappings[ key ].keypath = keypath;
+								mappings[ key ] = keypath;
 							}
 						}
 					});
 				}
 
 				else {
+					created = true;
 					resolver = new ComplexParameter( component, attribute, function ( value ) {
+						created = !ready;
+
 						if ( ready ) {
 							instance.set( key, value ); // TODO use viewmodel?
 						} else {
@@ -96,6 +96,10 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 
 			else {
 				throw new Error( 'erm wut' );
+			}
+
+			if( !created ) {
+				mappings[ key ] = { alias: true };
 			}
 		});
 	}

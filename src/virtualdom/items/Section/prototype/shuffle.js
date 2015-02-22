@@ -62,7 +62,7 @@ export default function Section$shuffle ( newIndices ) {
 		reboundFragments[ newIndex ] = fragment;
 	});
 
-	newLength = this.root.viewmodel.get( this.keypath ).length;
+	newLength = this.keypath.get().length;
 
 	// If nothing changed with the existing fragments, then we start adding
 	// new fragments at the end...

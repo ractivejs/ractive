@@ -67,7 +67,7 @@ function handleBlur () {
 
 	handleDomEvent.call( this );
 
-	value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath );
+	value = this._ractive.binding.keypath.get();
 	this.value = value == undefined ? '' : value;
 }
 

@@ -19,6 +19,9 @@ import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 import unregister from './prototype/unregister';
 
+// TODO: move this out of here
+import { KeypathAlias } from 'shared/keypaths';
+
 var Viewmodel = function ( options ) {
 	var { adapt, data, ractive, mappings } = options,
 		key,
@@ -41,8 +44,9 @@ var Viewmodel = function ( options ) {
 	};
 	this.patternObservers = [];
 
-
+	// TODO: move to singleton/runloop?
 	this.captureGroups = [];
+
 	this.unresolvedImplicitDependencies = [];
 
 	this.changes = [];
@@ -56,16 +60,21 @@ var Viewmodel = function ( options ) {
 
 	// set up explicit mappings
 	this.mappings = create( null );
-	for ( key in mappings ) {
-		this.map( this.getKeypath( key ), mappings[ key ] );
-	}
 
-	if ( data ) {
-		// if data exists locally, but is missing on the parent,
-		// we transfer ownership to the parent
-		for ( key in data ) {
-			if ( ( mapping = this.mappings[ key ] ) && mapping.getValue() === undefined ) {
-				mapping.setValue( data[ key ] );
+	// TODO: clean-up/move some of this
+	var keypath;
+	for ( key in mappings ) {
+		keypath = mappings[ key ];
+		if( keypath.alias ) {
+			// TODO: force data set if present?
+			mappings[ key ] = this.keypathCache[ key ] = new KeypathAlias( key, this );
+			// ^ TEMP mappings assignment
+
+		}
+		else {
+			this.keypathCache[ key ] = keypath;
+			if ( data && ( key in data ) && keypath.get() === undefined ) {
+				keypath.set( data[ key ] );
 			}
 		}
 	}

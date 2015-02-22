@@ -3,7 +3,7 @@ import { lastItem } from 'utils/array';
 var empty = {};
 
 export default function Viewmodel$get ( keypath, options = empty ) {
-	var mapping, captureGroup;
+	var captureGroup;
 
 	// Capture is initiated by a computation, by calling
 	// viewmodel.capture() to start and viewmode.release() to end.
@@ -15,10 +15,6 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		if ( !~captureGroup.indexOf( keypath ) ) {
 			captureGroup.push( keypath );
 		}
-	}
-
-	if ( mapping = this.mappings[ keypath.firstKey ] ) {
-		return mapping.get( keypath, options );
 	}
 
 	return keypath.get( options );

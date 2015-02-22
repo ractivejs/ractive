@@ -43,13 +43,13 @@ var Binding = function ( element ) {
 	this.keypath = keypath;
 
 	// initialise value, if it's undefined
-	value = this.root.viewmodel.get( keypath );
+	value = keypath.get();
 
 	if ( value === undefined && this.getInitialValue ) {
 		value = this.getInitialValue();
 
 		if ( value !== undefined ) {
-			this.root.viewmodel.set( keypath, value );
+			keypath.set( value );
 		}
 	}
 
@@ -63,7 +63,7 @@ Binding.prototype = {
 	handleChange: function () {
 		runloop.start( this.root );
 		this.attribute.locked = true;
-		this.root.viewmodel.set( this.keypath, this.getValue() );
+		this.keypath.set( this.getValue() );
 		runloop.scheduleTask( () => this.attribute.locked = false );
 		runloop.end();
 	},

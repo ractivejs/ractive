@@ -1,7 +1,12 @@
 import { isArray, isNumeric } from 'utils/is';
+import { addToArray, removeFromArray } from 'utils/array';
 import { isEqual } from 'utils/is';
 import createBranch from 'utils/createBranch';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
+
+// move this...
+import Computation from 'viewmodel/Computation/Computation';
+
 
 var FAILED_LOOKUP = {};
 
@@ -11,14 +16,13 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
 keypathCache = {};
 
-Keypath = function ( str, viewmodel ) {
+Keypath = function ( str, owner ) {
 	var parent, keys = str.split( '.' ), isSpecial = str[0] === '@';
 
 	this.str = str;
 	this.firstKey = keys[0];
 	this.lastKey = keys.pop();
 
-	this.owner = viewmodel;
 
 	this.isSpecial = isSpecial;
 	this._value = isSpecial ? decodeKeypath( str ) : void 0;
@@ -28,10 +32,14 @@ Keypath = function ( str, viewmodel ) {
 
 	this.children = null;
 
-	this.parent = parent = str === '' ? null : viewmodel.getKeypath( keys.join( '.' ) );
+	this.parent = parent = str === '' ? null : owner.getKeypath( keys.join( '.' ) );
 	if ( parent ) {
+		owner = parent.owner;
 		parent.addChild( this );
 	}
+
+	this.owner = owner;
+	this.ownerName = owner.ractive.component ? owner.ractive.component.name : 'Ractive';
 
 	this.isRoot = !str;
 };
@@ -128,13 +136,16 @@ Keypath.prototype = {
 		this._value = value;
 	},
 
+	hasChild ( propertyOrIndex ) {
+		return hasChildFor( this.get(), propertyOrIndex );
+	},
+
 	getChildValue ( propertyOrIndex ) {
 		var value = this.get();
 
-		if ( value == null || ( typeof value === 'object' && !( propertyOrIndex in value ) ) ) {
+		if ( !hasChildFor( value, propertyOrIndex ) ) {
 			return FAILED_LOOKUP;
 		}
-
 		return value[ propertyOrIndex ];
 	},
 
@@ -172,8 +183,9 @@ Keypath.prototype = {
 			this.parent.setChildValue( this.lastKey, value );
 		}
 
-		if ( !options.silent ) {
-			this.owner.mark( this );
+		if ( !options || !options.silent ) {
+			// Change notification happes
+			this.mark();
 		} else {
 			// We're setting a parent of the original target keypath (i.e.
 			// creating a fresh branch) - we need to clear the cache, but
@@ -204,6 +216,49 @@ Keypath.prototype = {
 		value[ propertyOrIndex ] = childValue;
 	},
 
+	register ( dependent ) {
+		var type = dependent instanceof Computation ? 'computed' : void 0;
+		this.owner.register( this, dependent, type );
+	},
+
+	unregister ( dependent ) {
+		var type = dependent instanceof Computation ? 'computed' : void 0;
+		this.owner.unregister( this, dependent, type );
+	},
+
+	mark ( options ) {
+
+		/* not sure how to manage changes yet
+		   maybe change listener is just another dependency? */
+
+		// implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)
+		// should not be picked up by pattern observers
+		if ( options ) {
+			if ( options.implicit ) {
+				this.owner.implicitChanges[ this.str ] = true;
+			}
+			if ( options.noCascade ) {
+				this.owner.noCascade[ this.str ] = true;
+			}
+		}
+
+		if ( !~this.owner.changes.indexOf( this ) ) {
+			this.owner.changes.push( this );
+		}
+
+		// pass on keepExistingWrapper, if we can
+		let keepExistingWrapper = options ? options.keepExistingWrapper : false;
+
+		this.clearCachedValue( keepExistingWrapper );
+
+
+		/* probably directly use runloop */
+
+		if ( this.owner.ready ) {
+			this.owner.onchange();
+		}
+	},
+
 	/* string manipulation: */
 
 	equalsOrStartsWith ( keypath ) {
@@ -212,7 +267,7 @@ Keypath.prototype = {
 
 	join ( str ) {
 		if ( this.isRoot ) {
-			str = String( str )
+			str = String( str );
 			if( str[0] === '.' ) {
 				// remove prepended with "." or "./"
 				str = str.replace( /^\.\/?/, '' );
@@ -224,7 +279,7 @@ Keypath.prototype = {
 				str = this.str + str.replace( /^\.\//, '.' );
 			} else {
 				str = this.str + '.' + str;
-			};
+			}
 		}
 		return this.owner.getKeypath( str );
 	},
@@ -262,12 +317,188 @@ Keypath.prototype = {
 	}
 };
 
+function hasChildFor ( value, key ) {
+	if ( value == null ) {
+		return false;
+	}
+	if ( ( typeof value === 'object' || typeof value === 'function' ) && !( key in value ) ) {
+		return false;
+	}
+	return true;
+}
 
-// var KeypathAlias = function( str, viewmodel ){
-// 	Keypath.call(this, str, viewmodel );
-// }
 
-// KeypathAlias.prototype = create(Keypath.prototype);
+var KeypathAlias = function( str, owner ){
+	var keys = str.split( '.' );
+
+	this.str = str;
+	this.firstKey = keys[0];
+	this.lastKey = keys.pop();
+
+	this.deps = null;
+	this.realKeypath = null;
+
+	this.owner = owner;
+	this.ownerName = owner.ractive.component ? owner.ractive.component.name : 'Ractive';
+
+}
+
+KeypathAlias.prototype = {
+
+	addChild ( child ) {
+		if ( ! this.realKeypath ) {
+			throw new Error('addChild');
+		}
+		this.realKeypath.addChild( child );
+	},
+
+	setComputation ( computation ) {
+		throw new Error('setComputation');
+	},
+
+	assign ( keypath ) {
+		var deps;
+		this.realKeypath = keypath;
+		if ( deps = this.deps ) {
+			for ( var i = 0, len = deps.length; i < len; i++ ) {
+				keypath.register( deps[i] );
+			}
+			this.deps = null;
+
+			// make sure these dependents get notified
+			keypath.mark();
+		}
+	},
+
+	// odd-ball, see how used and if should move to viewmodel/instance based on usage.
+	isRooted () {
+		this.owner.hasKeypath( this.firstKey );
+	},
+
+	clearCachedValue ( keepExistingWrapper ) {
+		if ( this.realKeypath ) {
+			this.realKeypath.clearCachedValue( keepExistingWrapper );
+		}
+	},
+
+	get ( options ) {
+		// TODO: wrapping at actual key level vs alias?
+		// because adaptor may be defined there
+		// but maybe adaptors should be global???
+
+		if ( this.realKeypath ) {
+			return this.realKeypath.get( options );
+		}
+	},
+
+	hasChild ( propertyOrIndex ) {
+		if ( ! this.realKeypath ) {
+			return false;
+		}
+		return this.realKeypath.hasChild( propertyOrIndex );
+	},
+
+	getChildValue ( propertyOrIndex ) {
+		throw new Error('getChildValue');
+		if ( this.realKeypath ) {
+			return this.realKeypath.getChildValue( propertyOrIndex );
+		}
+	},
+
+	set ( value, options ) {
+		// TODO force resolution?
+		if ( this.realKeypath ) {
+			return this.realKeypath.set( value, options );
+		}
+	},
+
+	setChildValue ( propertyOrIndex, childValue ) {
+		throw new Error('setChildValue');
+	},
+
+	register ( dependent ) {
+		if ( this.realKeypath ) {
+			this.realKeypath.register( dependent );
+		} else {
+			!this.deps ? this.deps = [ dependent ] : addToArray( this.deps, dependent );
+		}
+	},
+
+	unregister ( dependent ) {
+		if ( this.realKeypath ) {
+			this.realKeypath.unregister( dependent );
+		} else if ( this.deps ) {
+			removeFromArray( this.deps, dependent );
+		}
+	},
+
+	mark ( options ) {
+		if ( !this.realKeypath ) {
+			throw new Error('mark');
+		}
+		this.realKeypath( options );
+	},
+
+	/* string manipulation: */
+
+	/*
+	equalsOrStartsWith ( keypath ) {
+		return ( keypath && ( keypath.str === this.str ) ) || this.startsWith( keypath );
+	},
+
+	join ( str ) {
+		if ( this.isRoot ) {
+			str = String( str );
+			if( str[0] === '.' ) {
+				// remove prepended with "." or "./"
+				str = str.replace( /^\.\/?/, '' );
+			}
+		}
+		else {
+			if ( str[0] === '.' ) {
+				// normalize prepended with "./"
+				str = this.str + str.replace( /^\.\//, '.' );
+			} else {
+				str = this.str + '.' + str;
+			}
+		}
+		return this.owner.getKeypath( str );
+	},
+
+	replace ( oldKeypath, newKeypath ) {
+		// changed to ".str === .str" to transition to multiple keypathCaches
+		if ( oldKeypath && ( this.str === oldKeypath.str ) ) {
+			return newKeypath;
+		}
+
+		if ( this.startsWith( oldKeypath ) ) {
+			return newKeypath === null ? newKeypath : newKeypath.owner.getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
+		}
+	},
+
+	startsWith ( keypath ) {
+		if ( !keypath ) {
+			// TODO under what circumstances does this happen?
+			return false;
+		}
+
+		return keypath && this.str.substr( 0, keypath.str.length + 1 ) === keypath.str + '.';
+	},
+
+	toString () {
+		throw new Error( 'Bad coercion' );
+	},
+
+	valueOf () {
+		throw new Error( 'Bad coercion' );
+	},
+
+	wildcardMatches () {
+		return this._wildcardMatches || ( this._wildcardMatches = getPotentialWildcardMatches( this.str ) );
+	}
+	*/
+}
+
 
 
 export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
