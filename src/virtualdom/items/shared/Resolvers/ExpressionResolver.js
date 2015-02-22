@@ -114,24 +114,30 @@ function call ( value ) {
 	return value.call();
 }
 
+var number = 0;
+
 function getUniqueString ( str, keypaths ) {
-	// get string that is unique to this expression
-	return str.replace( /_([0-9]+)/g, function ( match, $1 ) {
-		var keypath, value;
 
-		keypath = keypaths[ $1 ];
+	return 'expr' + (++number);
 
-		if ( keypath === undefined ) {
-			return 'undefined';
-		}
 
-		if ( keypath.isSpecial ) {
-			value = keypath.get();
-			return typeof value === 'number' ? value : '"' + value + '"';
-		}
+	// // get string that is unique to this expression
+	// return str.replace( /_([0-9]+)/g, function ( match, $1 ) {
+	// 	var keypath, value;
 
-		return keypath.str;
-	});
+	// 	keypath = keypaths[ $1 ];
+
+	// 	if ( keypath === undefined ) {
+	// 		return 'undefined';
+	// 	}
+
+	// 	if ( keypath.isSpecial ) {
+	// 		value = keypath.get();
+	// 		return typeof value === 'number' ? value : '"' + value + '"';
+	// 	}
+
+	// 	return keypath.str;
+	// });
 }
 
 function createExpressionKeypath ( ractive, uniqueString ) {

@@ -24,7 +24,7 @@ var Computation = function ( key, signature, initialValue ) {
 	}
 
 	if ( this.hardDeps ) {
-		this.hardDeps.forEach( d => d.register( this ) );
+		this.hardDeps.forEach( d => d.register( this, 'computed' ) );
 	}
 };
 
@@ -131,7 +131,7 @@ Computation.prototype = {
 
 			if ( newDeps.indexOf( keypath ) === -1 ) {
 				dependenciesChanged = true;
-				keypath.unregister( this );
+				keypath.unregister( this, 'computed' );
 			}
 		}
 
@@ -152,7 +152,7 @@ Computation.prototype = {
 					this.unresolvedDeps[ keypath.str ] = unresolved;
 					runloop.addUnresolved( unresolved );
 				} else {
-					keypath.register( this );
+					keypath.register( this, 'computed' );
 				}
 			}
 		}

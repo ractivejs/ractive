@@ -30,6 +30,8 @@ Keypath = function ( str, owner ) {
 	this.wrapper = null;
 	this.computation = null;
 
+	this.dependants = null;
+
 	this.children = null;
 
 	this.parent = parent = str === '' ? null : owner.getKeypath( keys.join( '.' ) );
@@ -216,17 +218,96 @@ Keypath.prototype = {
 		value[ propertyOrIndex ] = childValue;
 	},
 
-	register ( dependent ) {
-		var type = dependent instanceof Computation ? 'computed' : void 0;
-		this.owner.register( this, dependent, type );
+	register ( dependant, type = 'default' ) {
+
+		// TODO: get rid of this
+		if ( dependant.isStatic ) {
+			return; // TODO we should never get here if a dependant is static...
+		}
+
+		if ( !( type === 'default' || type === 'computed' ) ) {
+			this.owner.register( this, dependant, type );
+		}
+
+		var dependants = this.dependants || ( this.dependants = {} ), group;
+
+		if( group = dependants[ type ] ) {
+			group.push( dependant );
+		}
+		else {
+			dependants[ type ] = [ dependant ];
+		}
 	},
 
-	unregister ( dependent ) {
-		var type = dependent instanceof Computation ? 'computed' : void 0;
-		this.owner.unregister( this, dependent, type );
+	unregister ( dependant, type = 'default' ) {
+
+		// TODO: get rid of this
+		if ( dependant.isStatic ) {
+			return; // TODO we should never get here if a dependant is static...
+		}
+
+		if ( !( type === 'default' || type === 'computed' ) ) {
+			this.owner.unregister( this, dependant, type );
+		}
+
+		var dependants = this.dependants, group;
+
+		if( dependants && ( group = this.dependants[ type ] ) ) {
+			removeFromArray( group, dependant );
+		}
+	},
+
+	cascade ( noCascade ) {
+		var computed, children, parent;
+
+		this._cascaded = true;
+
+		// confusing, because property is key. not keypath
+		if ( this.dependants && ( computed = this.dependants.computed ) ) {
+			computed.forEach( c => c.key.mark() );
+		}
+
+		if ( !noCascade && ( children = this.children ) ) {
+			children.forEach( c => c.cascade() );
+		}
+
+		// previous code look to see if parent
+		// already included in changes.
+		// Simplied with inherant graph structure.
+		// But is there more efficient way to roll-up
+		// the graph changes?
+		if ( ( parent = this.parent ) && !parent._cascaded ) {
+			parent.cascade( true );
+		}
+	},
+
+	notify ( type ) {
+		var dependants, group, value, children;
+
+		if( !( this._dirty || this._cascaded ) ) { return; }
+
+		// TOTAL HACK. Don't like these "flags" even being used
+		if ( type === 'default' ) {
+			this._cascaded = false;
+			// make this should be on .get()?
+			// then maybe just use hasCachedValue?
+			// duplicate concept?
+			this._dirty = false;
+		}
+
+		if( ( dependants = this.dependants ) && ( group = dependants[ type ] ) ) {
+			value = this.get();
+			group.forEach( d => d.setValue( value ) );
+		}
+
+		if ( children = this.children ) {
+			children.forEach( c => c.notify( type ) );
+		}
 	},
 
 	mark ( options ) {
+
+		this._dirty = true;
 
 		/* not sure how to manage changes yet
 		   maybe change listener is just another dependency? */
@@ -357,15 +438,16 @@ KeypathAlias.prototype = {
 	},
 
 	assign ( keypath ) {
-		var deps;
+		var deps, dep;
 		this.realKeypath = keypath;
 		if ( deps = this.deps ) {
 			for ( var i = 0, len = deps.length; i < len; i++ ) {
-				keypath.register( deps[i] );
+				dep = deps[i];
+				keypath.register( dep, dep._type );
 			}
 			this.deps = null;
 
-			// make sure these dependents get notified
+			// make sure these dependants get notified
 			keypath.mark();
 		}
 	},
@@ -416,19 +498,20 @@ KeypathAlias.prototype = {
 		throw new Error('setChildValue');
 	},
 
-	register ( dependent ) {
+	register ( dependant, type ) {
 		if ( this.realKeypath ) {
-			this.realKeypath.register( dependent );
+			this.realKeypath.register( dependant, type );
 		} else {
-			!this.deps ? this.deps = [ dependent ] : addToArray( this.deps, dependent );
+			dependant._type = type;
+			!this.deps ? this.deps = [ dependant ] : addToArray( this.deps, dependant );
 		}
 	},
 
-	unregister ( dependent ) {
+	unregister ( dependant, type ) {
 		if ( this.realKeypath ) {
-			this.realKeypath.unregister( dependent );
+			this.realKeypath.unregister( dependant, type );
 		} else if ( this.deps ) {
-			removeFromArray( this.deps, dependent );
+			removeFromArray( this.deps, dependant );
 		}
 	},
 

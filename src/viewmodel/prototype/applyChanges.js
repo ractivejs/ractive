@@ -22,40 +22,12 @@ export default function Viewmodel$applyChanges () {
 			return;
 		}
 
-		if ( computations = self.deps.computed[ keypath.str ] ) {
-			computations.forEach( c => {
-				var key = c.key;
-
-				if ( c.viewmodel === self ) {
-					key.clearCachedValue( key );
-					changes.push( key );
-					cascade( key );
-				} else {
-					key.mark();
-				}
-			});
-		}
-
-		if ( map = self.depsMap.computed[ keypath.str ] ) {
-			map.forEach( cascade );
-		}
+		keypath.cascade();
 	}
 
 	changes.slice().forEach( cascade );
 
 	upstreamChanges = getUpstreamChanges( changes, this.rootKeypath );
-	upstreamChanges.forEach( keypath => {
-		var computations;
-
-		// make sure we haven't already been down this particular keypath in this turn
-		if ( changes.indexOf( keypath ) === -1 && ( computations = self.deps.computed[ keypath.str ] ) ) {
-			this.changes.push( keypath );
-
-			computations.forEach( c => {
-				c.key.mark();
-			});
-		}
-	});
 
 	this.changes = [];
 
@@ -65,21 +37,25 @@ export default function Viewmodel$applyChanges () {
 		changes.forEach( keypath => notifyPatternObservers( this, keypath ) );
 	}
 
-	if ( this.deps.observers ) {
-		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, null, keypath, 'observers' ) );
-		notifyAllDependants( this, changes, 'observers' );
-	}
 
-	if ( this.deps['default'] ) {
-		bindings = [];
-		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, bindings, keypath, 'default' ) );
+	this.rootKeypath.notify( 'observers' );
 
-		if( bindings.length ) {
-			notifyBindings( this, bindings, changes );
-		}
+	// if ( this.deps.observers ) {
+	// 	upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, null, keypath, 'observers' ) );
+	// 	notifyAllDependants( this, changes, 'observers' );
+	// }
 
-		notifyAllDependants( this, changes, 'default' );
-	}
+	this.rootKeypath.notify( 'default' );
+	// if ( this.deps['default'] ) {
+	// 	//bindings = [];
+	// 	upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, bindings, keypath, 'default' ) );
+
+	// 	// if( bindings.length ) {
+	// 	// 	notifyBindings( this, bindings, changes );
+	// 	// }
+
+	// 	notifyAllDependants( this, changes, 'default' );
+	// }
 
 	// Return a hash of keypaths to updated values
 	changes.forEach( keypath => {
@@ -98,16 +74,7 @@ function notifyUpstreamDependants ( viewmodel, bindings, keypath, groupName ) {
 	if ( dependants = findDependants( viewmodel, keypath, groupName ) ) {
 		value = viewmodel.get( keypath );
 
-		dependants.forEach( d => {
-			// don't "set" the parent value, refine it
-			// i.e. not data = value, but data[foo] = fooValue
-			if( bindings && d.refineValue ) {
-				bindings.push( d );
-			}
-			else {
-				d.setValue( value );
-			}
-		});
+		dependants.forEach( d => d.setValue( value ) );
 	}
 }
 

@@ -24,6 +24,31 @@ test( 'Computed value declared as a function', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>area: 225</p>' );
 });
 
+test( 'Dependency of computed property', function ( t ) {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{answer}}',
+		data: {
+			foo: { bar: { qux: 1 } },
+			number: 10
+		},
+		computed: {
+			answer: '${foo.bar.qux} * ${number}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '10' );
+
+	ractive.set( 'foo.bar.qux', 2 );
+	t.htmlEqual( fixture.innerHTML, '20' );
+
+	ractive.set( 'foo.bar', { qux: 3 } );
+	t.htmlEqual( fixture.innerHTML, '30' );
+
+	ractive.set( 'foo', { bar: { qux: 4 } } );
+	t.htmlEqual( fixture.innerHTML, '40' );
+});
+
 test( 'Computed value declared as a string', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,

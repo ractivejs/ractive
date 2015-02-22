@@ -20,7 +20,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 	}
 
 	observer.init( options.init );
-	ractive.viewmodel.register( keypath, observer, isPatternObserver ? 'patternObservers' : 'observers' );
+	keypath.register( observer, isPatternObserver ? 'patternObservers' : 'observers' );
 
 	// This flag allows observers to initialise even with undefined values
 	observer.ready = true;
@@ -37,9 +37,9 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 				index = ractive.viewmodel.patternObservers.indexOf( observer );
 
 				ractive.viewmodel.patternObservers.splice( index, 1 );
-				ractive.viewmodel.unregister( keypath, observer, 'patternObservers' );
+				keypath.unregister( observer, 'patternObservers' );
 			} else {
-				ractive.viewmodel.unregister( keypath, observer, 'observers' );
+				keypath.unregister( observer, 'observers' );
 			}
 			cancelled = true;
 		}

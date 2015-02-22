@@ -34,8 +34,8 @@ export default function resolveRef ( ractive, ref, fragment ) {
 function resolveAncestorRef ( baseContext, ref ) {
 
 	// the way KeypathExpression are currently handled, context can
-	// be null because there's no corresponding keypath
-	// really it doesn't work because context might be above that and not the root
+	// be null because there's no corresponding keypath.
+	// But now it really it doesn't work because context might be above that and not the root
 	//
 	// When we have Dedicated Keypath for those,
 	// should iron that out
@@ -65,19 +65,23 @@ function resolveAncestorRef ( baseContext, ref ) {
 
 function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isParentLookup ) {
 	var context,
+		keys,
 		key,
 		parentValue,
 		hasContextChain,
-		parentKeypath;
+		parentKeypath,
+		keypath,
+		viewmodel = ractive.viewmodel;
 
 
 
 	if ( !ref ) {
-		return ractive.viewmodel.rootKeypath;
+		return viewmodel.rootKeypath;
 	}
 
-	// temp until figure out
-	key = ref.split( '.' )[0];
+	// temp until figure out bcuz logic already in keypath
+	keys = ref.split( '.' ),
+	key = keys.shift();
 
 	while ( fragment ) {
 		context = fragment.context;
@@ -98,9 +102,43 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 		}
 	}
 
-	if ( isRootProperty( ractive.viewmodel, key ) ) {
+	// this block is some core logic about finding keypaths amongst existing
+	// keypath trees and viewmodels
+	if ( key === '' ) {
+		return viewmodel.rootKeypath;
+	}
+	else if ( viewmodel.hasKeypath( ref ) ) {
+		return viewmodel.getKeypath( ref );
+	}
+	// is first key in this viewmodel?
+	else if ( viewmodel.hasKeypath( key ) ) {
+		parentKeypath = viewmodel.getKeypath( key );
+
+		// parent lives in same viewmodel, join to it to get the new keypath
+		if ( parentKeypath.owner === viewmodel ) {
+			keypath = parentKeypath.join( keys.join( '.' ) );
+		}
+		else {
+			// this keypath already exists as a child over in the other viewmodel
+			if ( parentKeypath.owner.hasKeypath( ref ) ) {
+				keypath = parentKeypath.owner.getKeypath( ref );
+			}
+			// doesn't exist yet, just join to create it
+			else {
+				keypath = parentKeypath.join( keys.join( '.' ) );
+			}
+
+			// store a lookup in "this" viewmodel to the new keypath
+			viewmodel.keypathCache[ ref ] = keypath;
+		}
+
+		return keypath;
+	}
+	else if ( viewmodel.rootKeypath.hasChild( key ) ) {
+		// just hasn't been fetched yet
 		return ractive.viewmodel.getKeypath( ref );
 	}
+
 
 	// If this is an inline component, and it's not isolated, we
 	// can try going up the scope chain
@@ -156,6 +194,4 @@ function isRootProperty ( viewmodel, key ) {
 		|| viewmodel.hasKeypath( key )
 		|| viewmodel.rootKeypath.hasChild( key );
 
-		// || ( viewmodel.hasKeypath( key ) && !!viewmodel.getKeypath( key ).computation )
-		// || key in viewmodel.mappings;
 }

@@ -198,7 +198,7 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 		}
 	}
 
-	// notify any dependents about changed indices
+	// notify any dependants about changed indices
 	i = section.fragments.length;
 	while ( i-- ) {
 		fragment = section.fragments[i];
@@ -245,7 +245,7 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 	var fragment;
 
 	// ...then if it isn't rendered, render it, adding section.keypath to the context stack
-	// (if it is already rendered, then any children dependent on the context stack
+	// (if it is already rendered, then any children dependant on the context stack
 	// will update themselves without any prompting)
 	if ( !section.length ) {
 		// append this section to the context stack
