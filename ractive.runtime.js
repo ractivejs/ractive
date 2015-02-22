@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Fri Feb 20 2015 19:38:13 GMT+0000 (UTC) - commit c6a4650bee134e918d176f9e012ae50f78c8187d
+	Sun Feb 22 2015 04:02:05 GMT+0000 (UTC) - commit ff0f9338106d7eb7618807f3854b67064aae4044
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13205,7 +13205,7 @@
     this.registeredIndexRefs = [];
 
     // encapsulated styles should be inherited until they get applied by an element
-    this.cssIds = options.cssIds || (this.parent ? this.parent.cssIds : null);
+    this.cssIds = "cssIds" in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
 
     this.items = options.template.map(function (template, i) {
       return createItem({
