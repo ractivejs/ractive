@@ -249,3 +249,16 @@ test( 'unshift should make all indices update (#1729)', t => {
 	ractive.unshift( 'foo', 'second' );
 	t.htmlEqual( fixture.innerHTML, 'second' );
 });
+
+test( 'splice with net additions should make all indices greater than start update', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{foo.2}}',
+		data: { foo: [ 0, 2 ] }
+	});
+
+	ractive.splice( 'foo', 1, 0, 1 );
+	t.htmlEqual( fixture.innerHTML, '2' );
+	ractive.splice( 'foo', 0, 1, 0, 'hello' );
+	t.htmlEqual( fixture.innerHTML, '1' );
+});

@@ -1,7 +1,7 @@
 var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
 
 export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
-	var dependants, oldLength, i;
+	var dependants, oldLength, i, allCanShuffle = true, d;
 
 	oldLength = newIndices.length;
 
@@ -17,10 +17,19 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	this.set( keypath, array, { silent: true } );
 
 	if ( dependants = this.deps[ 'default' ][ keypath.str ] ) {
-		dependants.filter( canShuffle ).forEach( d => d.shuffle( newIndices, array ) );
+		i = dependants.length;
+		while ( d = dependants[ --i ] ) {
+			if ( !canShuffle( d ) ) {
+				allCanShuffle = false;
+			} else {
+				d.shuffle( newIndices, array );
+			}
+		}
+	} else { // no direct deps, so make sure child deps get marked
+		allCanShuffle = false;
 	}
 
-	if ( oldLength !== array.length ) {
+	if ( allCanShuffle && oldLength !== array.length ) {
 		this.mark( keypath.join( 'length' ), implicitOption );
 
 		for ( i = oldLength; i < array.length; i += 1 ) {
@@ -32,6 +41,11 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 		for ( i = array.length; i < oldLength; i += 1 ) {
 			this.mark( keypath.join( i ), noCascadeOption );
 		}
+	}
+
+	// after shuffle-able deps are shuffled, notify everything else
+	if ( !allCanShuffle ) {
+		this.mark( keypath );
 	}
 }
 
