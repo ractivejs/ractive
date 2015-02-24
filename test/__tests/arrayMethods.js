@@ -262,3 +262,15 @@ test( 'splice with net additions should make all indices greater than start upda
 	ractive.splice( 'foo', 0, 1, 0, 'hello' );
 	t.htmlEqual( fixture.innerHTML, '1' );
 });
+
+test( 'array modification with non-shuffle-able deps should update correctly', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{#foo}}{{.}}{{/}}{{foo.0}}',
+		data: { foo: [ 1, 2 ] }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '121' );
+	ractive.unshift( 'foo', 0 );
+	t.htmlEqual( fixture.innerHTML, '0120' );
+});
