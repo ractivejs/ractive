@@ -284,6 +284,18 @@ test( 'Sections survive unrender-render (#1553)', t => {
 	t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p><p>3</p>' );
 });
 
+
+test( 'Updating parent object updates mustache of child property', t => {
+
+	var ractive = new Ractive({
+		template: '{{#with foo}}{{bar}}{{/with}}',
+		data: { foo: { bar: 'qux' } }
+	});
+
+	ractive.set( 'foo', { bar: 'update' } );
+	t.htmlEqual( fixture.innerHTML, 'update' );
+});
+
 function deepClone ( source ) {
 	var target, key;
 

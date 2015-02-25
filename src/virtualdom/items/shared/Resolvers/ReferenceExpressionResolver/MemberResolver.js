@@ -5,7 +5,7 @@ import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionReso
 var MemberResolver = function ( template, resolver, parentFragment ) {
 	this.resolver = resolver;
 	this.root = resolver.root;
-	this.parentFragment = parentFragment;
+	this.parentFragment = resolver.parentFragment;
 
 	if ( typeof template === 'string' ) {
 		this.value = template;
@@ -20,7 +20,7 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 
 	// Otherwise we have an expression in its own right
 	else {
-		new ExpressionResolver( resolver, parentFragment, template, keypath => {
+		new ExpressionResolver( resolver, template, keypath => {
 			this.resolve( keypath );
 		});
 	}

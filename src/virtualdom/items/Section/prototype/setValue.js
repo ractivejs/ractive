@@ -35,6 +35,7 @@ export default function Section$setValue ( value ) {
 		this.fragmentsToCreate.forEach( index => {
 			var fragment;
 
+			debugger;
 			fragmentOptions.context = this.keypath.join( index );
 			fragmentOptions.index = index;
 
@@ -164,7 +165,7 @@ function reevaluateListSection ( section, value, fragmentOptions ) {
 			// add any new ones
 			for ( i = section.length; i < length; i += 1 ) {
 				// append list item to context stack
-				fragmentOptions.context = section.keypath.join( i );
+				fragmentOptions.context = section.keypath.indexJoin( i, section.indexRefs );
 				fragmentOptions.index = i;
 
 				fragment = new Fragment( fragmentOptions );
@@ -217,9 +218,11 @@ function reevaluateListObjectSection ( section, value, fragmentOptions ) {
 		if ( !hasKey[ id ] ) {
 			changed = true;
 
-			fragmentOptions.context = section.keypath.join( id );
-			fragmentOptions.key = id;
-			fragmentOptions.index = i++;
+			fragmentOptions.context = section.keypath.keyJoin(
+				( fragmentOptions.key = id ),
+				( fragmentOptions.index = i++ ),
+				section.indexRefs
+			);
 
 			fragment = new Fragment( fragmentOptions );
 
@@ -248,6 +251,9 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 	// (if it is already rendered, then any children dependant on the context stack
 	// will update themselves without any prompting)
 	if ( !section.length ) {
+
+		// TODO model needs to handle this...
+
 		// append this section to the context stack
 		fragmentOptions.context = section.keypath;
 		fragmentOptions.index = 0;

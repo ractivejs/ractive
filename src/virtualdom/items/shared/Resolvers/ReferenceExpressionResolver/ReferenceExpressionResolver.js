@@ -1,6 +1,5 @@
 import resolveRef from 'shared/resolveRef';
 import { unbind } from 'shared/methodCallers';
-import ReferenceResolver from '../ReferenceResolver';
 import MemberResolver from './MemberResolver';
 
 var ReferenceExpressionResolver = function ( mustache, template, callback ) {
@@ -18,12 +17,16 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	// Find base keypath
 	if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
 		this.base = keypath;
-	} else {
-		this.baseResolver = new ReferenceResolver( this, ref, keypath => {
-			this.base = keypath;
-			this.baseResolver = null;
-			this.bubble();
-		});
+	}
+	// if above always succeeds with some keypath object
+	// then we won't need below (or vice-versa)
+	else {
+		debugger;
+		// this.baseResolver = new ReferenceResolver( this, ref, keypath => {
+		// 	this.base = keypath;
+		// 	this.baseResolver = null;
+		// 	this.bubble();
+		// });
 	}
 
 	// Find values for members, or mark them as unresolved
@@ -71,6 +74,8 @@ ReferenceExpressionResolver.prototype = {
 	},
 
 	forceResolution: function () {
+		debugger;
+
 		if ( this.baseResolver ) {
 			this.base = this.root.viewmodel.getKeypath( this.ref );
 

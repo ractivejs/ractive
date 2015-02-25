@@ -1,7 +1,5 @@
 import { SECTION_UNLESS } from 'config/types';
 import createReferenceResolver from '../Resolvers/createReferenceResolver';
-import ReferenceExpressionResolver from '../Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
-import ExpressionResolver from '../Resolvers/ExpressionResolver';
 
 export default function Mustache$init ( mustache, options ) {
 
@@ -22,20 +20,10 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.registered = false;
 
-	// if this is a simple mustache, with a reference, we just need to resolve
-	// the reference to a keypath
-	if ( ref = template.r ) {
-		mustache.resolver = createReferenceResolver( mustache, ref, resolve );
-	}
+	var keypath = mustache.root.viewmodel.getKeypath( template, mustache, resolve );
 
-	// if it's an expression, we have a bit more work to do
-	if ( options.template.x ) {
-		mustache.resolver = new ExpressionResolver( mustache, parentFragment, options.template.x, resolveAndRebindChildren );
-	}
 
-	if ( options.template.rx ) {
-		mustache.resolver = new ReferenceExpressionResolver( mustache, options.template.rx, resolveAndRebindChildren );
-	}
+	resolve( keypath );
 
 	// Special case - inverted sections
 	if ( mustache.template.n === SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {

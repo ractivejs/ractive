@@ -3,6 +3,7 @@ export default function Component$rebind ( oldKeypath, newKeypath ) {
 
 	this.resolvers.forEach( rebind );
 
+
 	for ( let k in this.yielders ) {
 		if ( this.yielders[k][0] ) {
 			rebind( this.yielders[k][0] );

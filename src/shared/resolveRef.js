@@ -1,7 +1,7 @@
 import { normalise } from 'shared/keypaths';
 import getInnerContext from 'shared/getInnerContext';
 
-export default function resolveRef ( ractive, ref, fragment ) {
+export default function resolveRef ( ractive, ref, fragment, noUnresolved ) {
 	var keypath;
 
 	ref = normalise( ref );
@@ -25,7 +25,11 @@ export default function resolveRef ( ractive, ref, fragment ) {
 
 	// ...otherwise we need to figure out the keypath based on context
 	else {
-		keypath = resolveAmbiguousReference( ractive, ref, fragment );
+		keypath = resolveAmbiguousReference( ractive, ref, fragment, false, noUnresolved );
+	}
+
+	if ( keypath && noUnresolved && keypath.unresolved ) {
+		return;
 	}
 
 	return keypath;
@@ -63,7 +67,7 @@ function resolveAncestorRef ( baseContext, ref ) {
 	return baseContext.join( ref );
 }
 
-function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isParentLookup ) {
+function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isParentLookup, noUnresolved ) {
 	var context,
 		keys,
 		key,
@@ -93,6 +97,10 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 
 		hasContextChain = true;
 
+		if ( viewmodel.hasKeypath( context.str + '.' + ref ) ) {
+			return viewmodel.getKeypath( context.str + '.' + ref );
+		}
+
 		// parentValue = ractive.viewmodel.get( context );
 		// revist when mapped keypaths are ready
 		parentValue = context.get();
@@ -107,11 +115,11 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 	if ( key === '' ) {
 		return viewmodel.rootKeypath;
 	}
-	else if ( viewmodel.hasKeypath( ref ) ) {
-		return viewmodel.getKeypath( ref );
+	else if ( viewmodel.hasKeypath( ref ) && ( keypath = viewmodel.getKeypath( ref ) ) && ( !noUnresolved || !keypath.unresolved ) ) {
+		return keypath;
 	}
 	// is first key in this viewmodel?
-	else if ( viewmodel.hasKeypath( key ) ) {
+	else if ( viewmodel.hasKeypath( key ) && ( keypath = viewmodel.getKeypath( key ) ) && ( !noUnresolved || !keypath.unresolved )  ) {
 		parentKeypath = viewmodel.getKeypath( key );
 
 		// parent lives in same viewmodel, join to it to get the new keypath
@@ -146,7 +154,7 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
 
-		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true ) ) {
+		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true, noUnresolved ) ) {
 
 			ractive.viewmodel.keypathCache[ key ] = parentKeypath;
 

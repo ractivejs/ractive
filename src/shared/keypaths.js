@@ -16,12 +16,16 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
 keypathCache = {};
 
-Keypath = function ( str, owner ) {
+Keypath = function ( str, owner, noParentAdd ) {
 	var parent, keys = str.split( '.' ), isSpecial = str[0] === '@';
 
 	this.str = str;
 	this.firstKey = keys[0];
 	this.lastKey = keys.pop();
+
+
+	// TEMP
+	this.isKeypath = true;
 
 
 	this.isSpecial = isSpecial;
@@ -37,7 +41,10 @@ Keypath = function ( str, owner ) {
 	this.parent = parent = str === '' ? null : owner.getKeypath( keys.join( '.' ) );
 	if ( parent ) {
 		owner = parent.owner;
-		parent.addChild( this );
+
+		if ( !noParentAdd ) { // hack - remove
+			parent.addChild( this );
+		}
 	}
 
 	this.owner = owner;
@@ -409,12 +416,14 @@ function hasChildFor ( value, key ) {
 }
 
 
-var KeypathAlias = function( str, owner ){
-	var keys = str.split( '.' );
+var KeypathAlias = function( owner ){
 
-	this.str = str;
-	this.firstKey = keys[0];
-	this.lastKey = keys.pop();
+	// TEMP
+	this.isKeypath = true;
+
+	this.str = null;
+
+	this.unresolved = true;
 
 	this.deps = null;
 	this.realKeypath = null;
@@ -437,9 +446,11 @@ KeypathAlias.prototype = {
 		throw new Error('setComputation');
 	},
 
-	assign ( keypath ) {
+	resolve ( keypath ) {
 		var deps, dep;
 		this.realKeypath = keypath;
+		this.unresolved = false;
+
 		if ( deps = this.deps ) {
 			for ( var i = 0, len = deps.length; i < len; i++ ) {
 				dep = deps[i];
@@ -452,9 +463,19 @@ KeypathAlias.prototype = {
 		}
 	},
 
+	forceResolution ( str ) {
+		var resolved = this.owner.getKeypath( str );
+		if ( resolved === this ) {
+			resolved = new Keypath( str, this.owner, true );
+		}
+		this.resolve( resolved );
+		return this;
+	},
+
 	// odd-ball, see how used and if should move to viewmodel/instance based on usage.
 	isRooted () {
-		this.owner.hasKeypath( this.firstKey );
+		debugger;
+		return false; //this.owner.hasKeypath( this.firstKey );
 	},
 
 	clearCachedValue ( keepExistingWrapper ) {
@@ -519,34 +540,24 @@ KeypathAlias.prototype = {
 		if ( !this.realKeypath ) {
 			throw new Error('mark');
 		}
-		this.realKeypath( options );
+		return this.realKeypath.mark( options );
 	},
 
 	/* string manipulation: */
+
+	join ( options ) {
+		if ( !this.realKeypath ) {
+			throw new Error('join');
+		}
+		return this.realKeypath.join( options );
+	},
 
 	/*
 	equalsOrStartsWith ( keypath ) {
 		return ( keypath && ( keypath.str === this.str ) ) || this.startsWith( keypath );
 	},
 
-	join ( str ) {
-		if ( this.isRoot ) {
-			str = String( str );
-			if( str[0] === '.' ) {
-				// remove prepended with "." or "./"
-				str = str.replace( /^\.\/?/, '' );
-			}
-		}
-		else {
-			if ( str[0] === '.' ) {
-				// normalize prepended with "./"
-				str = this.str + str.replace( /^\.\//, '.' );
-			} else {
-				str = this.str + '.' + str;
-			}
-		}
-		return this.owner.getKeypath( str );
-	},
+
 
 	replace ( oldKeypath, newKeypath ) {
 		// changed to ".str === .str" to transition to multiple keypathCaches

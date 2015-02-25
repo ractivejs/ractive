@@ -5,13 +5,13 @@ import 'legacy'; // for fn.bind()
 
 var ExpressionResolver, bind = Function.prototype.bind;
 
-ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
+ExpressionResolver = function ( owner, expression, callback ) {
 	var ractive;
 
 	ractive = owner.root;
 
 	this.root = ractive;
-	this.parentFragment = parentFragment;
+	this.parentFragment = owner.parentFragment;
 	this.callback = callback;
 	this.owner = owner;
 	this.str = expression.s;
@@ -46,7 +46,11 @@ ExpressionResolver.prototype = {
 		var resolver;
 
 		while ( resolver = this.refResolvers.pop() ) {
-			resolver.unbind();
+
+			// TEMP
+			if ( resolver.unbind ) {
+				resolver.unbind();
+			}
 		}
 	},
 

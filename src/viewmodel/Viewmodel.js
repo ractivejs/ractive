@@ -19,9 +19,6 @@ import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 import unregister from './prototype/unregister';
 
-// TODO: move this out of here
-import { KeypathAlias } from 'shared/keypaths';
-
 var Viewmodel = function ( options ) {
 	var { adapt, data, ractive, mappings } = options,
 		key,
@@ -58,25 +55,20 @@ var Viewmodel = function ( options ) {
 	this.keypathCache = {};
 	this.rootKeypath = this.getKeypath( '' );
 
-	// set up explicit mappings
-	this.mappings = create( null );
 
 	// TODO: clean-up/move some of this
-	var keypath;
-	for ( key in mappings ) {
-		keypath = mappings[ key ];
-		if( keypath.alias ) {
-			// TODO: force data set if present?
-			mappings[ key ] = this.keypathCache[ key ] = new KeypathAlias( key, this );
-			// ^ TEMP mappings assignment
+	var key, keypath;
+	if ( mappings ) {
+		mappings.forEach( mapping => {
+			key = mapping.key, keypath = mapping.keypath;
 
-		}
-		else {
+			if( keypath.unresolved ) { keypath.str = key; }
 			this.keypathCache[ key ] = keypath;
-			if ( data && ( key in data ) && keypath.get() === undefined ) {
+
+			if ( data && ( key in data ) && !keypath.unresolved && keypath.get() === undefined ) {
 				keypath.set( data[ key ] );
 			}
-		}
+		});
 	}
 
 	this.ready = true;

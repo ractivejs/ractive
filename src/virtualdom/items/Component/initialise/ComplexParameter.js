@@ -25,7 +25,7 @@ ComplexParameter.prototype = {
 	},
 
 	update: function () {
-		this.callback( this.fragment.getValue() );
+		this.callback( { get: () => this.fragment.getValue() } );
 		this.dirty = false;
 	},
 

@@ -13,7 +13,7 @@ var Binding = function ( element ) {
 	interpolator = this.attribute.interpolator;
 	interpolator.twowayBinding = this;
 
-	if ( keypath = interpolator.keypath ) {
+	if ( ( keypath = interpolator.keypath ) && !keypath.unresolved ) {
 		if ( keypath.str.slice( -1 ) === '}' ) {
 			warn( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name );
 			return false;
@@ -79,7 +79,9 @@ Binding.prototype = {
 			return;
 		}
 
-		removeFromArray( this.root._twowayBindings[ oldKeypath.str ], this );
+		if ( oldKeypath != null ) {
+			removeFromArray( this.root._twowayBindings[ oldKeypath.str ], this );
+		}
 
 		this.keypath = newKeypath;
 

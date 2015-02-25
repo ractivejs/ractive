@@ -894,9 +894,9 @@ test( 'Inter-component bindings can be created via this.get() and this.observe()
 	Widget = Ractive.extend({
 		template: '<p>message: {{proxy}}</p>',
 		oninit: function () {
-			// this.observe( 'message', function ( message ) {
-			// 	this.set( 'proxy', message );
-			// });
+			this.observe( 'message', function ( message ) {
+				this.set( 'proxy', message );
+			});
 
 			t.equal( this.get( 'answer' ), 42 );
 		}

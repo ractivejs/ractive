@@ -1,5 +1,5 @@
-import getUpstreamChanges from '../helpers/getUpstreamChanges';
-import notifyPatternObservers from './applyChanges/notifyPatternObservers';
+//import getUpstreamChanges from '../helpers/getUpstreamChanges';
+//import notifyPatternObservers from './applyChanges/notifyPatternObservers';
 
 export default function Viewmodel$applyChanges () {
 	var self = this,
@@ -15,27 +15,16 @@ export default function Viewmodel$applyChanges () {
 		return;
 	}
 
-	function cascade ( keypath ) {
-		var map, computations;
 
-		if ( self.noCascade.hasOwnProperty( keypath.str ) ) {
-			return;
-		}
-
-		keypath.cascade();
-	}
-
-	changes.slice().forEach( cascade );
-
-	upstreamChanges = getUpstreamChanges( changes, this.rootKeypath );
+	// upstreamChanges = getUpstreamChanges( changes, this.rootKeypath );
 
 	this.changes = [];
 
-	// Pattern observers are a weird special case
-	if ( this.patternObservers.length ) {
-		upstreamChanges.forEach( keypath => notifyPatternObservers( this, keypath, true ) );
-		changes.forEach( keypath => notifyPatternObservers( this, keypath ) );
-	}
+	// // Pattern observers are a weird special case
+	// if ( this.patternObservers.length ) {
+	// 	upstreamChanges.forEach( keypath => notifyPatternObservers( this, keypath, true ) );
+	// 	changes.forEach( keypath => notifyPatternObservers( this, keypath ) );
+	// }
 
 
 	this.rootKeypath.notify( 'observers' );

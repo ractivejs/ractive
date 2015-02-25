@@ -1,4 +1,3 @@
-import ReferenceResolver from './ReferenceResolver';
 import SpecialResolver from './SpecialResolver';
 import IndexResolver from './IndexResolver';
 import findIndexRefs from './findIndexRefs';
@@ -6,13 +5,27 @@ import findIndexRefs from './findIndexRefs';
 export default function createReferenceResolver ( owner, ref, callback ) {
 	var indexRef;
 
-	if ( ref.charAt( 0 ) === '@' ) {
+	if ( isSpecialResolver( ref ) ) {
 		return new SpecialResolver( owner, ref, callback );
 	}
 
-	if ( indexRef = findIndexRefs( owner.parentFragment, ref ) ) {
+	if ( indexRef = isIndexResolver( owner, ref ) ) {
 		return new IndexResolver( owner, indexRef, callback );
 	}
 
-	return new ReferenceResolver( owner, ref, callback );
+	var keypath = owner.root.viewmodel.getKeypath( ref, owner );
+
+	if ( callback ) {
+		callback( keypath );
+	}
+
+	return keypath;
+}
+
+export function isSpecialResolver ( ref ) {
+	return ref.charAt( 0 ) === '@';
+}
+
+export function isIndexResolver ( owner, ref ) {
+	return findIndexRefs( owner.parentFragment, ref );
 }

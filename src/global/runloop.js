@@ -124,7 +124,7 @@ function flushChanges () {
 }
 
 function attemptKeypathResolution () {
-	var i, item, keypath, resolved;
+	var i, item, keypath, resolved, root;
 
 	i = unresolved.length;
 
@@ -139,7 +139,9 @@ function attemptKeypathResolution () {
 			continue; // avoid removing the wrong thing should the next condition be true
 		}
 
-		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment ) ) {
+
+		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment, true ) ) {
+
 			( resolved || ( resolved = [] ) ).push({
 				item: item,
 				keypath: keypath

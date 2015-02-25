@@ -1,42 +1,41 @@
-import runloop from 'global/runloop';
 import { log, warn } from 'utils/log';
 import { isEqual } from 'utils/is';
-import UnresolvedDependency from './UnresolvedDependency';
 
-var Computation = function ( key, signature, initialValue ) {
-	this.key = key;
+class Computation {
 
-	this.getter = signature.getter;
-	this.setter = signature.setter;
+	constructor ( viewmodel, signature, initialValue ) {
 
-	this.hardDeps = signature.deps || [];
-	this.softDeps = [];
-	this.unresolvedDeps = {};
+		this.viewmodel = viewmodel;
 
-	this.depValues = {};
+		this.getter = signature.getter;
+		this.setter = signature.setter;
 
-	this._dirty = this._firstRun = true;
+		this.hardDeps = signature.deps || [];
+		this.softDeps = [];
 
-	this.viewmodel = key.owner;
+		this.depValues = {};
 
-	if ( this.setter && initialValue !== undefined ) {
-		this.set( initialValue );
+		this._dirty = this._firstRun = true;
+
+		if ( this.setter && initialValue !== undefined ) {
+			this.set( initialValue );
+		}
 	}
 
-	if ( this.hardDeps ) {
-		this.hardDeps.forEach( d => d.register( this, 'computed' ) );
+	// TODO: TEMP workaround for dependecy issue
+	setModel ( model ) {
+		this.model = model;
+		if ( this.hardDeps ) {
+			this.hardDeps.forEach( d => d.register( model, 'computed' ) );
+		}
 	}
-};
 
-Computation.prototype = {
-	constructor: Computation,
-
-	invalidate: function () {
+	invalidate () {
 		this._dirty = true;
-	},
+	}
 
-	get: function () {
-		var newDeps, dependenciesChanged, dependencyValuesChanged = false;
+	get () {
+		var model, newDeps, dependenciesChanged, dependencyValuesChanged = false;
 
 		if ( this.getting ) {
 			// prevent double-computation (e.g. caused by array mutation inside computation)
@@ -60,13 +59,12 @@ Computation.prototype = {
 
 					i = deps.length;
 					while ( i-- ) {
-						keypath = deps[i];
-						value = this.viewmodel.get( keypath );
+						model = deps[i];
+						value = model.get();
 
-						if ( !isEqual( value, this.depValues[ keypath.str ] ) ) {
-							this.depValues[ keypath.str ] = value;
+						if ( !isEqual( value, this.depValues[ model.str ] ) ) {
+							this.depValues[ model.str ] = value;
 							dependencyValuesChanged = true;
-
 							return;
 						}
 					}
@@ -104,9 +102,9 @@ Computation.prototype = {
 
 		this.getting = this._firstRun = false;
 		return this.value;
-	},
+	}
 
-	set: function ( value ) {
+	set ( value ) {
 		if ( this.setting ) {
 			this.value = value;
 			return;
@@ -117,43 +115,33 @@ Computation.prototype = {
 		}
 
 		this.setter( value );
-	},
+	}
 
-	updateDependencies: function ( newDeps ) {
-		var i, oldDeps, keypath, dependenciesChanged, unresolved;
+	updateDependencies ( newDeps ) {
+		var i, oldDeps, model, dependenciesChanged, unresolved;
 
 		oldDeps = this.softDeps;
 
 		// remove dependencies that are no longer used
 		i = oldDeps.length;
 		while ( i-- ) {
-			keypath = oldDeps[i];
+			model = oldDeps[i];
 
-			if ( newDeps.indexOf( keypath ) === -1 ) {
+			if ( newDeps.indexOf( model ) === -1 ) {
 				dependenciesChanged = true;
-				keypath.unregister( this, 'computed' );
+				model.unregister( this, 'computed' );
 			}
 		}
 
 		// create references for any new dependencies
 		i = newDeps.length;
 		while ( i-- ) {
-			keypath = newDeps[i];
+			model = newDeps[i];
 
-			if ( oldDeps.indexOf( keypath ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( keypath ) === -1 ) ) {
+			if ( oldDeps.indexOf( model ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( model ) === -1 ) ) {
 				dependenciesChanged = true;
 
-				// if this keypath is currently unresolved, we need to mark
-				// it as such. TODO this is a bit muddy...
-				if ( isUnresolved( this.viewmodel, keypath ) && ( !this.unresolvedDeps[ keypath.str ] ) ) {
-					unresolved = new UnresolvedDependency( this, keypath.str );
-					newDeps.splice( i, 1 );
-
-					this.unresolvedDeps[ keypath.str ] = unresolved;
-					runloop.addUnresolved( unresolved );
-				} else {
-					keypath.register( this, 'computed' );
-				}
+				model.register( this.model, 'computed' );
 			}
 		}
 
@@ -163,13 +151,6 @@ Computation.prototype = {
 
 		return dependenciesChanged;
 	}
-};
-
-function isUnresolved( viewmodel, keypath ) {
-	var key = keypath.firstKey;
-
-
-	return keypath.unresolved || !keypath.isRooted();
 }
 
 export default Computation;

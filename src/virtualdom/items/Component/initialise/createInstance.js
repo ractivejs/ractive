@@ -4,13 +4,10 @@ import { create, extend } from 'utils/object';
 import { isArray } from 'utils/is';
 import parseJSON from 'utils/parseJSON';
 import initialise from 'Ractive/initialise';
-import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
-import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 import ComplexParameter from './ComplexParameter';
 
 export default function ( component, Component, attributes, yieldTemplate, partials ) {
-	var instance, parentFragment, ractive, fragment, container, inlinePartials = {}, data = {}, mappings = {}, ready, resolvers = [];
+	var instance, parentFragment, ractive, fragment, container, inlinePartials = {}, data = {}, mappings = [], ready, resolvers = [];
 
 	parentFragment = component.parentFragment;
 	ractive = component.root;
@@ -42,64 +39,52 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	// each attribute represents either a) data or b) a mapping
 	if ( attributes ) {
 		Object.keys( attributes ).forEach( key => {
-			var attribute = attributes[ key ], parsed, resolver, created = false;
+			var attribute = attributes[ key ], parsed, resolver, keypath;
 
 			if ( typeof attribute === 'string' ) {
 				// it's static data
 				parsed = parseJSON( attribute );
 				data[ key ] = parsed ? parsed.value : attribute;
-				created = true;
 			}
 
 			else if ( isArray( attribute ) ) {
 				// this represents dynamic data
 
+				var valueResolve = function ( keypath ) {
+					if ( ready ) {
+						instance.set( key, keypath.get() ); // TODO use viewmodel?
+					} else {
+						data[ key ] = keypath.get();
+					}
+				}
+
 				if ( isSingleInterpolator( attribute ) ) {
 
-					resolver = createResolver( component, attribute[0], function ( keypath ) {
-						created = !ready;
+					attribute = attribute[0];
 
-						if ( keypath.isSpecial ) {
-							if ( ready ) {
-								instance.set( key, keypath.get() ); // TODO use viewmodel?
-							} else {
-								data[ key ] = keypath.get();
-							}
-						}
+					keypath = ractive.viewmodel.getKeypath( attribute, component, valueResolve );
 
-						else {
-							if ( ready ) {
-								mappings[ key ].assign( keypath );
-							} else {
-								// resolved immediately
-								mappings[ key ] = keypath;
-							}
-						}
-					});
+					if ( keypath.isKeypath ) {
+						mappings.push({
+							key: key,
+							keypath: keypath
+						});
+					} else {
+						resolver = keypath;
+					}
 				}
 
 				else {
-					created = true;
-					resolver = new ComplexParameter( component, attribute, function ( value ) {
-						created = !ready;
-
-						if ( ready ) {
-							instance.set( key, value ); // TODO use viewmodel?
-						} else {
-							data[ key ] = value;
-						}
-					});
+					resolver = new ComplexParameter( component, attribute, valueResolve);
 				}
 
-				resolvers.push( resolver );
+				if( resolver ) {
+					resolvers.push( resolver );
+				}
 			}
 
 			else {
 				throw new Error( 'erm wut' );
-			}
-
-			if( !created ) {
-				mappings[ key ] = { alias: true };
 			}
 		});
 	}
@@ -128,24 +113,6 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	component.resolvers = resolvers;
 
 	return instance;
-}
-
-function createResolver ( component, template, callback ) {
-	var resolver;
-
-	if ( template.r ) {
-		resolver = createReferenceResolver( component, template.r, callback );
-	}
-
-	else if ( template.x ) {
-		resolver = new ExpressionResolver( component, component.parentFragment, template.x, callback );
-	}
-
-	else if ( template.rx ) {
-		resolver = new ReferenceExpressionResolver( component, template.rx, callback );
-	}
-
-	return resolver;
 }
 
 function isSingleInterpolator( template ){
