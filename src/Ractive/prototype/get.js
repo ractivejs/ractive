@@ -11,6 +11,8 @@ export default function Ractive$get ( keypathStr ) {
 
 	keypathStr = normalise( keypathStr );
 
+	// TODO what about case of garbage keypath?
+
 	if( !this.viewmodel.hasKeypath( keypathStr ) ) {
 		keypath = resolveRef( this, keypathStr, this.fragment );
 	}
