@@ -120,7 +120,8 @@ class Model {
 		}
 
 		if ( this.shiftNotify === type ) {
-			throw new Error( this.str + 'register during notify!' )
+			console.log( this.str + ' attempted register during notify!', dependant );
+			return;
 		}
 
 		var dependants = this.dependants || ( this.dependants = {} ), group;
