@@ -9,11 +9,11 @@ import { DataStore, PropertyStore, StateStore } from './store';
 
 var FAILED_LOOKUP = {};
 
-var refPattern, keypathCache, Keypath;
+var refPattern, modelCache, Keypath;
 
 refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
-keypathCache = {};
+modelCache = {};
 
 class Model {
 	constructor ( str, owner, store ) {
@@ -229,10 +229,10 @@ class Model {
 		var key = parentKey + '.' + special,
 			model = new Model( key, this.owner, new StateStore( state ) );
 
-		this.owner.keypathCache[ key ] = model;
+		this.owner.modelCache[ key ] = model;
 
 		if ( alias ) {
-			this.owner.keypathCache[ parentKey + '.' + alias.n ] = model;
+			this.owner.modelCache[ parentKey + '.' + alias.n ] = model;
 		}
 	}
 

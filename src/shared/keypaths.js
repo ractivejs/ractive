@@ -10,11 +10,11 @@ import Computation from 'viewmodel/Computation/Computation';
 
 var FAILED_LOOKUP = {};
 
-var refPattern, keypathCache, Keypath;
+var refPattern, modelCache, Keypath;
 
 refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
-keypathCache = {};
+modelCache = {};
 
 Keypath = function ( str, owner, noParentAdd ) {
 	var parent, keys = str.split( '.' ), isSpecial = str[0] === '@';

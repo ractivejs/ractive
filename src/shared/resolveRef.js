@@ -137,7 +137,7 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 			}
 
 			// store a lookup in "this" viewmodel to the new keypath
-			viewmodel.keypathCache[ ref ] = keypath;
+			viewmodel.modelCache[ ref ] = keypath;
 		}
 
 		return keypath;
@@ -156,7 +156,7 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 
 		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true, noUnresolved ) ) {
 
-			ractive.viewmodel.keypathCache[ key ] = parentKeypath;
+			ractive.viewmodel.modelCache[ key ] = parentKeypath;
 
 			// // We need to create an inter-component binding
 			// ractive.viewmodel.map( ractive.viewmodel.getKeypath( key ), {

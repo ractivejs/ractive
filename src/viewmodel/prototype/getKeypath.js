@@ -1,6 +1,6 @@
-import { Keypath, KeypathAlias } from 'shared/keypaths';
 
 import Model from '../model/Model';
+import ModelPromise from '../model/ModelPromise';
 
 import getExpressionSignature from '../Computation/getExpressionSignature';
 import Computation from '../Computation/NewComputation';
@@ -12,6 +12,7 @@ import createReferenceResolver, { isSpecialResolver, isIndexResolver } from 'vir
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 
+import runloop from 'global/runloop';
 
 import resolveRef from 'shared/resolveRef';
 
@@ -39,38 +40,38 @@ export default function Viewmodel$getKeypath ( reference, context, callback /* T
 function getByString ( viewmodel, reference ) {
 
 	if( viewmodel.hasKeypath( reference ) ) {
-		return viewmodel.keypathCache[ reference ];
+		return viewmodel.modelCache[ reference ];
 	}
 	else {
-		return viewmodel.keypathCache[ reference ] = new Model( reference, viewmodel );
+		return viewmodel.modelCache[ reference ] = new Model( reference, viewmodel );
 	}
 
 }
 
 function getByTemplate ( viewmodel, reference, context ) {
 
-	var store, str, resolver, keypath, owner = {
+	var store, str, resolver, model, owner = {
 		root: viewmodel.ractive,
 		parentFragment: context.parentFragment
 	};
 
 	if ( reference.r ) {
-		keypath = resolveRef( viewmodel.ractive, reference.r, context.parentFragment );
+		model = resolveRef( viewmodel.ractive, reference.r, context.parentFragment );
 	}
 	else if ( reference.x ) {
-		keypath = getExpressionModel( viewmodel, reference.x, context );
+		model = getExpressionModel( viewmodel, reference.x, context );
 	}
 	else {
 		resolver = createResolver( owner, reference, function ( resolved ) {
-			if ( !keypath ) {
-				keypath = resolved;
+			if ( !model ) {
+				model = resolved;
 			}
 			else {
-				if ( keypath !== resolved && keypath.resolve ) {
-					keypath.resolve( resolved );
+				if ( model !== resolved && model.resolve ) {
+					model.resolve( resolved );
 				}
 				if ( !resolved.owner.hasKeypath( resolved.str ) ) {
-					// should be managed by the keypath creator
+					// should be managed by the model creator
 					debugger;
 				}
 			}
@@ -79,19 +80,26 @@ function getByTemplate ( viewmodel, reference, context ) {
 		// if the owner doesn't have an entry, create it.
 		// ideally this would happen consistently via the resolver
 		// or it always gets added here
-		if ( keypath && !keypath.owner.hasKeypath( keypath.str ) ) {
-			keypath.owner.keypathCache[ keypath.str ] = keypath;
+		if ( model && !model.owner.hasKeypath( model.str ) ) {
+			model.owner.modelCache[ model.str ] = model;
 		}
 	}
 
-	if ( !keypath ) {
-		keypath = new KeypathAlias( viewmodel );
+	if ( !model ) {
+		model = new ModelPromise( reference.r, viewmodel );
+		runloop.addUnresolved({
+			root: viewmodel.ractive,
+			ref: reference.r,
+			model: model,
+			parentFragment: context.parentFragment
+		});
+
 	} else {
 		// if the owner doesn't have an entry, create it.
 		// ideally this would happen consistently via the resolver
 		// or it always gets added here
-		if ( !keypath.owner.hasKeypath( keypath.str ) ) {
-			keypath.owner.keypathCache[ keypath.str ] = keypath;
+		if ( !model.owner.hasKeypath( model.str ) ) {
+			model.owner.modelCache[ model.str ] = model;
 		}
 	}
 
@@ -109,7 +117,7 @@ function getByTemplate ( viewmodel, reference, context ) {
 		}
 	}
 
-	return keypath;
+	return model;
 }
 
 function getExpressionModel( viewmodel, reference, context ) {
@@ -118,7 +126,7 @@ function getExpressionModel( viewmodel, reference, context ) {
 		str = reference.r.reduce( function ( str, ref, i ) {
 			return str.replace( '_' + i, ref );
 		}, reference.s),
-		model = new Model( str, viewmodel, store );
+		model = new Model( '${' + str + '}', viewmodel, store );
 
 	// TODO: reorder these dependencies to get around this hack
 	store.computation.setModel( model );

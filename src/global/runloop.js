@@ -143,7 +143,7 @@ function attemptKeypathResolution () {
 		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment, true ) ) {
 
 			( resolved || ( resolved = [] ) ).push({
-				item: item,
+				item: item.model,
 				keypath: keypath
 			});
 

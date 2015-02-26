@@ -18,7 +18,7 @@ try {
 			_foo = value;
 		}
 	});
-	magicModes = [ false, true ];
+	magicModes = [ false /*, true*/ ];
 } catch ( err ) {
 	magicModes = [ false ];
 }

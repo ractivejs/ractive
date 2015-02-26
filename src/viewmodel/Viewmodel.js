@@ -52,7 +52,7 @@ var Viewmodel = function ( options ) {
 
 	this.data = data;
 
-	this.keypathCache = {};
+	this.modelCache = {};
 	this.rootKeypath = this.getKeypath( '' );
 
 
@@ -63,7 +63,7 @@ var Viewmodel = function ( options ) {
 			key = mapping.key, keypath = mapping.keypath;
 
 			if( keypath.unresolved ) { keypath.str = key; }
-			this.keypathCache[ key ] = keypath;
+			this.modelCache[ key ] = keypath;
 
 			if ( data && ( key in data ) && !keypath.unresolved && keypath.get() === undefined ) {
 				keypath.set( data[ key ] );
