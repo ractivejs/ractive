@@ -1,6 +1,6 @@
 import { addToArray, removeFromArray } from 'utils/array';
 
-class ModelPromise {
+class ProxyModel {
 	constructor ( str, owner ) {
 		var keys = str.split( '.' );
 
@@ -132,4 +132,4 @@ class ModelPromise {
 
 }
 
-export default ModelPromise;
+export default ProxyModel;

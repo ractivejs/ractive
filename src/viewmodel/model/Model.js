@@ -1,6 +1,5 @@
-import { isArray, isNumeric } from 'utils/is';
 import { addToArray, removeFromArray } from 'utils/array';
-import { isEqual } from 'utils/is';
+import { isNumber } from 'utils/is';
 import createBranch from 'utils/createBranch';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
@@ -69,6 +68,9 @@ class Model {
 
 	mark ( /*options*/ ) {
 
+		// TODO: can this be part of a ComputationModel?
+		this.store.invalidate();
+
 		this.cascade();
 
 		addToArray( this.owner.changes, this );
@@ -79,7 +81,7 @@ class Model {
 	}
 
 	cascade ( cascadeUpOnly ) {
-		var children, dependants, computed, i;
+		var children, dependants, computed, i, l;
 
 		// bail if we've already been here...
 		if ( this.dirty ) { return; }
@@ -88,8 +90,7 @@ class Model {
 
 		// tell children, unless we're walking up the tree
 		if ( !cascadeUpOnly && ( children = this.children ) ) {
-			i = children.length;
-			while ( i-- ) {
+			for( i = 0, l = children.length; i < l; i++ ) {
 				children[i].cascade();
 			}
 		}
@@ -101,10 +102,7 @@ class Model {
 
 		// mark computed dependants as changed
 		if( ( dependants = this.dependants ) && ( computed = dependants.computed ) ) {
-			i = computed.length;
-			while ( i-- ) {
-				// TODO: this is odd place to invalidate computation
-				computed[i].store.reset();
+			for( i = 0, l = computed.length; i < l; i++ ) {
 				computed[i].mark();
 			}
 		}
@@ -117,8 +115,12 @@ class Model {
 			return; // TODO we should never get here if a dependant is static...
 		}
 
-		if ( !( type === 'default' || type === 'computed' ) ) {
+		if ( !( type === 'default' || type === 'computed'  ) ) {
 			this.owner.register( this, dependant, type );
+		}
+
+		if ( this.shiftNotify === type ) {
+			throw new Error( this.str + 'register during notify!' )
 		}
 
 		var dependants = this.dependants || ( this.dependants = {} ), group;
@@ -150,7 +152,7 @@ class Model {
 	}
 
 	notify ( type ) {
-		var dependants, group, value, children, i;
+		var dependants, group, value, children, i, l, shift, d;
 
 		if( !this.dirty ) { return; }
 
@@ -160,15 +162,22 @@ class Model {
 
 		if( ( dependants = this.dependants ) && ( group = dependants[ type ] ) ) {
 			value = this.get();
-			i = group.length;
-			while ( i-- ) {
-				group[i].setValue( value );
+
+			// TEMP to test if new registrations are happening...
+			this.shiftNotify = type;
+
+			var shift = [];
+			while ( d = group.shift() ) {
+				d.setValue( value );
+				shift.push( d );
 			}
+			dependants[ type ] = shift;
+
+			this.shiftNotify = null;
 		}
 
 		if ( children = this.children ) {
-			i = children.length;
-			while ( i-- ) {
+			for( i = 0, l = children.length; i < l; i++ ) {
 				children[i].notify( type );
 			}
 		}
@@ -191,6 +200,12 @@ class Model {
 				str = this.str + '.' + str;
 			}
 		}
+
+		// TODO: false positive for "0.4" - two numeric paths
+		if ( isNumber( str ) ) {
+			return this.indexJoin( +str );
+		}
+
 		return this.owner.getKeypath( str );
 	}
 
@@ -202,12 +217,12 @@ class Model {
 		return this.createStateChildren( key, key, index, aliases );
 	}
 
+	keyContext () {
+		this.createStateChild( this.str, '@keypath', this.str );
+	}
+
 	createStateChildren ( propertyOrIndex, key, index, aliases ) {
 		var childKey = this.str + '.' + propertyOrIndex, child, indexAlias, keyAlias;
-
-		if ( this.owner.hasKeypath( childKey ) ) {
-			return;
-		}
 
 		child = this.owner.getKeypath( childKey );
 
@@ -226,13 +241,18 @@ class Model {
 	}
 
 	createStateChild ( parentKey, special, state, alias ) {
-		var key = parentKey + '.' + special,
-			model = new Model( key, this.owner, new StateStore( state ) );
+		var key = parentKey + '.' + special, model;
 
-		this.owner.modelCache[ key ] = model;
+		if ( !this.owner.hasKeypath( key ) ) {
+			model = new Model( key, this.owner, new StateStore( state ) );
+			this.owner.modelCache[ key ] = model;
+		}
 
 		if ( alias ) {
-			this.owner.modelCache[ parentKey + '.' + alias.n ] = model;
+			key = parentKey + '.' + alias.n;
+			if( !this.owner.hasKeypath( key ) ) {
+				this.owner.modelCache[ key ] = model;
+			}
 		}
 	}
 

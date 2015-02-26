@@ -28,6 +28,28 @@ var renderTests = [
 		result: "<p>Hello world!</p>"
 	},
 	{
+		name: "Single keypath expression",
+		template: "{{foo[bar]}}",
+		data: { foo: { a: "hello", b: "goodbye" }, bar: 'a' },
+		result: "hello",
+		new_data: { bar: 'b' },
+		new_result: 'goodbye'
+	},
+	{
+		name: "Double keypath expression",
+		template: "{{foo[bar][qux]}}",
+		data: { foo: { a: { b: "hello world" } }, bar: 'a', qux: 'b' },
+		result: "hello world"
+	},
+	{
+		name: "Child reference updates with change of parent object",
+		template: "{{#with foo}}{{bar}}{{/with}}",
+		data: { foo: { bar: 'qux' } },
+		result: "qux",
+		new_data: { foo: { bar: 'updated' } },
+		new_result: 'updated'
+	},
+	{
 		name: "Section with index refs",
 		template: "<ul>{{#items:i}}<li>{{i}}: {{name}}</li>{{/items}}</ul>",
 		data: {

@@ -39,6 +39,10 @@ export class DataStore {
 		this.data = value;
 		return true;
 	}
+
+	invalidate () {
+
+	}
 }
 
 export class PropertyStore {
@@ -78,6 +82,10 @@ export class PropertyStore {
 
 		return true;
 	}
+
+	invalidate () {
+
+	}
 }
 
 export class StateStore {
@@ -107,6 +115,10 @@ export class StateStore {
 		this.state = state;
 
 		return true;
+	}
+
+	invalidate () {
+
 	}
 }
 
@@ -141,7 +153,7 @@ export class ExpressionStore {
 		return true;
 	}
 
-	reset () {
+	invalidate () {
 		this.computation.invalidate();
 	}
 }

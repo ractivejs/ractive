@@ -256,6 +256,7 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 
 		// append this section to the context stack
 		fragmentOptions.context = section.keypath;
+		section.keypath.keyContext();
 		fragmentOptions.index = 0;
 
 		fragment = new Fragment( fragmentOptions );

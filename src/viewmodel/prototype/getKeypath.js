@@ -1,13 +1,14 @@
 
 import Model from '../model/Model';
-import ModelPromise from '../model/ModelPromise';
+import ProxyModel from '../model/ProxyModel';
+import ReferenceModel from '../model/ReferenceModel';
 
 import getExpressionSignature from '../Computation/getExpressionSignature';
 import Computation from '../Computation/NewComputation';
 
-import { ExpressionStore } from '../model/store';
+import { ExpressionStore, StateStore } from '../model/store';
 
-import { INTERPOLATOR } from 'config/types';
+import { INTERPOLATOR, REFERENCE } from 'config/types';
 import createReferenceResolver, { isSpecialResolver, isIndexResolver } from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
 import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
@@ -26,7 +27,6 @@ export default function Viewmodel$getKeypath ( reference, context, callback /* T
 	}
 
 	if ( typeof reference === 'string' ) {
-
 		return getByString( this, reference );
 	}
 
@@ -50,71 +50,38 @@ function getByString ( viewmodel, reference ) {
 
 function getByTemplate ( viewmodel, reference, context ) {
 
-	var store, str, resolver, model, owner = {
-		root: viewmodel.ractive,
-		parentFragment: context.parentFragment
-	};
+	var model;
 
 	if ( reference.r ) {
-		model = resolveRef( viewmodel.ractive, reference.r, context.parentFragment );
+		model = getReferenceModel( viewmodel, reference.r, context );
 	}
+
 	else if ( reference.x ) {
 		model = getExpressionModel( viewmodel, reference.x, context );
 	}
-	else {
-		resolver = createResolver( owner, reference, function ( resolved ) {
-			if ( !model ) {
-				model = resolved;
-			}
-			else {
-				if ( model !== resolved && model.resolve ) {
-					model.resolve( resolved );
-				}
-				if ( !resolved.owner.hasKeypath( resolved.str ) ) {
-					// should be managed by the model creator
-					debugger;
-				}
-			}
-		});
 
-		// if the owner doesn't have an entry, create it.
-		// ideally this would happen consistently via the resolver
-		// or it always gets added here
-		if ( model && !model.owner.hasKeypath( model.str ) ) {
-			model.owner.modelCache[ model.str ] = model;
-		}
+	else if ( reference.rx ) {
+		model = getReferenceExpressionModel( viewmodel, reference.rx, context );
 	}
 
+	if ( !( model instanceof ProxyModel ) && !model.owner.hasKeypath( model.str ) ) {
+		model.owner.modelCache[ model.str ] = model;
+	}
+
+	return model;
+}
+
+function getReferenceModel( viewmodel, reference, context ) {
+	var model = resolveRef( viewmodel.ractive, reference, context.parentFragment );
+
 	if ( !model ) {
-		model = new ModelPromise( reference.r, viewmodel );
+		model = new ProxyModel( reference, viewmodel );
 		runloop.addUnresolved({
 			root: viewmodel.ractive,
-			ref: reference.r,
+			ref: reference,
 			model: model,
 			parentFragment: context.parentFragment
 		});
-
-	} else {
-		// if the owner doesn't have an entry, create it.
-		// ideally this would happen consistently via the resolver
-		// or it always gets added here
-		if ( !model.owner.hasKeypath( model.str ) ) {
-			model.owner.modelCache[ model.str ] = model;
-		}
-	}
-
-	// TEMP
-	if ( resolver ) {
-		if ( context.resolvers ) {
-			context.resolvers.push( resolver );
-		} else {
-			// shouldn't have mappings
-			// but mustaches will go here next!
-
-			// hmm, just guessing for now!
-			context.resolver = resolver;
-			// debugger;
-		}
 	}
 
 	return model;
@@ -142,28 +109,39 @@ function getExpressionStore( viewmodel, reference, context ){
 
 }
 
-function isSpecial ( owner, template ) {
-	var ref = template.r;
+function getReferenceExpressionModel ( viewmodel, reference, context ) {
+	var previous, members, member, model;
 
-	return ref && ( isSpecialResolver( ref ) || isIndexResolver( owner, ref) );
+	previous = getReferenceModel( viewmodel, reference.r, context );
+	members = reference.m.map( ref => getMemberModel( viewmodel, ref, context ) );
+
+	while( member = members.shift() ) {
+		model = new ReferenceModel( member, viewmodel );
+		// TODO: change so parent goes in constructor!
+		model.parent = previous;
+		previous.addChild( model );
+		model.cascade();
+
+		previous = model;
+	}
+
+	return previous;
 }
 
+function getMemberModel( viewmodel, reference, context ){
 
-function createResolver ( owner, reference, callback ) {
-	var resolver;
-
-	if ( reference.r ) {
-		resolver = createReferenceResolver( owner, reference.r, callback );
+	if ( typeof reference === 'string' ) {
+		// remove string when Model can be parentless on construct
+		return new Model( '"' + reference + '"', viewmodel, new StateStore( reference ) );
 	}
 
-	else if ( reference.x ) {
-		resolver = new ExpressionResolver( owner, reference.x, callback );
+	// Simple reference?
+	else if ( reference.t === REFERENCE ) {
+		return getReferenceModel( viewmodel, reference.n, context );
 	}
 
-	else if ( reference.rx ) {
-		resolver = new ReferenceExpressionResolver( owner, reference.rx, callback );
+	// Otherwise we have an expression in its own right
+	else {
+		return getExpressionModel( viewmodel, reference, context );
 	}
-
-	return resolver;
 }
-
