@@ -17,7 +17,7 @@ import runloop from 'global/runloop';
 
 import resolveRef from 'shared/resolveRef';
 
-export default function Viewmodel$getKeypath ( reference, context, callback /* TEMP */ ) {
+export default function Viewmodel$getKeypath ( reference, context) {
 	var keypath;
 
 	// don't think this is used...
@@ -30,7 +30,7 @@ export default function Viewmodel$getKeypath ( reference, context, callback /* T
 		return getByString( this, reference );
 	}
 
-	return getByTemplate( this, reference, context, callback );
+	return getByTemplate( this, reference, context );
 
 	debugger;
 

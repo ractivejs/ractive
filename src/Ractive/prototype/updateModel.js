@@ -34,9 +34,9 @@ function consolidate ( ractive, bindings ) {
 		// special case - checkbox name bindings come in groups, so
 		// we want to get the value once at most
 		if ( b.checkboxName ) {
-			if ( !checkboxGroups[ b.keypath.str ] && !b.changed() ) {
+			if ( !checkboxGroups[ b.keypath.getKeypath() ] && !b.changed() ) {
 				checkboxGroups.push( b.keypath );
-				checkboxGroups[ b.keypath.str ] = b;
+				checkboxGroups[ b.keypath.getKeypath() ] = b;
 			}
 
 			return;
@@ -50,7 +50,7 @@ function consolidate ( ractive, bindings ) {
 		}
 
 		if ( !isEqual( oldValue, newValue ) ) {
-			values[ b.keypath.str ] = newValue;
+			values[ b.keypath.getKeypath() ] = newValue;
 		}
 	});
 
@@ -64,7 +64,7 @@ function consolidate ( ractive, bindings ) {
 			newValue = binding.getValue();
 
 			if ( !arrayContentsMatch( oldValue, newValue ) ) {
-				values[ keypath.str ] = newValue;
+				values[ keypath.getKeypath() ] = newValue;
 			}
 		});
 	}

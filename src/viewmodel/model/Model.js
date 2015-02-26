@@ -44,6 +44,10 @@ class Model {
 		}
 	}
 
+	getKeypath () {
+		return this.str;
+	}
+
 	addChild ( child ) {
 		this.children ? this.children.push( child ) : this.children = [ child ];
 	}
@@ -263,10 +267,10 @@ function hasChildFor ( value, key ) {
 	if ( value == null ) {
 		return false;
 	}
-	if ( ( typeof value === 'object' || typeof value === 'function' ) && !( key in value ) ) {
-		return false;
+	if ( ( typeof value === 'object' || typeof value === 'function' ) && ( key in value ) ) {
+		return true;
 	}
-	return true;
+	return false;
 }
 
 export default Model;

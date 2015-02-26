@@ -4,9 +4,6 @@ import { isEqual } from 'utils/is';
 import createBranch from 'utils/createBranch';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
-// move this...
-import Computation from 'viewmodel/Computation/Computation';
-
 
 var FAILED_LOOKUP = {};
 
@@ -16,56 +13,9 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
 modelCache = {};
 
-Keypath = function ( str, owner, noParentAdd ) {
-	var parent, keys = str.split( '.' ), isSpecial = str[0] === '@';
 
-	this.str = str;
-	this.firstKey = keys[0];
-	this.lastKey = keys.pop();
+Keypath = {
 
-
-	// TEMP
-	this.isKeypath = true;
-
-
-	this.isSpecial = isSpecial;
-	this._value = isSpecial ? decodeKeypath( str ) : void 0;
-	this.hasCachedValue = isSpecial;
-	this.wrapper = null;
-	this.computation = null;
-
-	this.dependants = null;
-
-	this.children = null;
-
-	this.parent = parent = str === '' ? null : owner.getKeypath( keys.join( '.' ) );
-	if ( parent ) {
-		owner = parent.owner;
-
-		if ( !noParentAdd ) { // hack - remove
-			parent.addChild( this );
-		}
-	}
-
-	this.owner = owner;
-	this.ownerName = owner.ractive.component ? owner.ractive.component.name : 'Ractive';
-
-	this.isRoot = !str;
-};
-
-Keypath.prototype = {
-
-	addChild ( child ) {
-		this.children ? this.children.push( child ) : this.children = [ child ];
-	},
-
-	setComputation ( computation ) {
-		this.computation = computation;
-	},
-
-	isRooted () {
-		this.owner.hasKeypath( this.firstKey );
-	},
 
 	clearCachedValue ( keepExistingWrapper ) {
 		var wrapper, children;
@@ -145,16 +95,12 @@ Keypath.prototype = {
 		this._value = value;
 	},
 
-	hasChild ( propertyOrIndex ) {
-		return hasChildFor( this.get(), propertyOrIndex );
-	},
-
 	getChildValue ( propertyOrIndex ) {
 		var value = this.get();
 
-		if ( !hasChildFor( value, propertyOrIndex ) ) {
-			return FAILED_LOOKUP;
-		}
+		// if ( !hasChildFor( value, propertyOrIndex ) ) {
+		// 	return FAILED_LOOKUP;
+		// }
 		return value[ propertyOrIndex ];
 	},
 
@@ -225,93 +171,6 @@ Keypath.prototype = {
 		value[ propertyOrIndex ] = childValue;
 	},
 
-	register ( dependant, type = 'default' ) {
-
-		// TODO: get rid of this
-		if ( dependant.isStatic ) {
-			return; // TODO we should never get here if a dependant is static...
-		}
-
-		if ( !( type === 'default' || type === 'computed' ) ) {
-			this.owner.register( this, dependant, type );
-		}
-
-		var dependants = this.dependants || ( this.dependants = {} ), group;
-
-		if( group = dependants[ type ] ) {
-			group.push( dependant );
-		}
-		else {
-			dependants[ type ] = [ dependant ];
-		}
-	},
-
-	unregister ( dependant, type = 'default' ) {
-
-		// TODO: get rid of this
-		if ( dependant.isStatic ) {
-			return; // TODO we should never get here if a dependant is static...
-		}
-
-		if ( !( type === 'default' || type === 'computed' ) ) {
-			this.owner.unregister( this, dependant, type );
-		}
-
-		var dependants = this.dependants, group;
-
-		if( dependants && ( group = this.dependants[ type ] ) ) {
-			removeFromArray( group, dependant );
-		}
-	},
-
-	cascade ( noCascade ) {
-		var computed, children, parent;
-
-		this._cascaded = true;
-
-		// confusing, because property is key. not keypath
-		if ( this.dependants && ( computed = this.dependants.computed ) ) {
-			computed.forEach( c => c.key.mark() );
-		}
-
-		if ( !noCascade && ( children = this.children ) ) {
-			children.forEach( c => c.cascade() );
-		}
-
-		// previous code look to see if parent
-		// already included in changes.
-		// Simplied with inherant graph structure.
-		// But is there more efficient way to roll-up
-		// the graph changes?
-		if ( ( parent = this.parent ) && !parent._cascaded ) {
-			parent.cascade( true );
-		}
-	},
-
-	notify ( type ) {
-		var dependants, group, value, children;
-
-		if( !( this._dirty || this._cascaded ) ) { return; }
-
-		// TOTAL HACK. Don't like these "flags" even being used
-		if ( type === 'default' ) {
-			this._cascaded = false;
-			// make this should be on .get()?
-			// then maybe just use hasCachedValue?
-			// duplicate concept?
-			this._dirty = false;
-		}
-
-		if( ( dependants = this.dependants ) && ( group = dependants[ type ] ) ) {
-			value = this.get();
-			group.forEach( d => d.setValue( value ) );
-		}
-
-		if ( children = this.children ) {
-			children.forEach( c => c.notify( type ) );
-		}
-	},
-
 	mark ( options ) {
 
 		this._dirty = true;
@@ -345,254 +204,8 @@ Keypath.prototype = {
 		if ( this.owner.ready ) {
 			this.owner.onchange();
 		}
-	},
-
-	/* string manipulation: */
-
-	equalsOrStartsWith ( keypath ) {
-		return ( keypath && ( keypath.str === this.str ) ) || this.startsWith( keypath );
-	},
-
-	join ( str ) {
-		if ( this.isRoot ) {
-			str = String( str );
-			if( str[0] === '.' ) {
-				// remove prepended with "." or "./"
-				str = str.replace( /^\.\/?/, '' );
-			}
-		}
-		else {
-			if ( str[0] === '.' ) {
-				// normalize prepended with "./"
-				str = this.str + str.replace( /^\.\//, '.' );
-			} else {
-				str = this.str + '.' + str;
-			}
-		}
-		return this.owner.getKeypath( str );
-	},
-
-	replace ( oldKeypath, newKeypath ) {
-		// changed to ".str === .str" to transition to multiple keypathCaches
-		if ( oldKeypath && ( this.str === oldKeypath.str ) ) {
-			return newKeypath;
-		}
-
-		if ( this.startsWith( oldKeypath ) ) {
-			return newKeypath === null ? newKeypath : newKeypath.owner.getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
-		}
-	},
-
-	startsWith ( keypath ) {
-		if ( !keypath ) {
-			// TODO under what circumstances does this happen?
-			return false;
-		}
-
-		return keypath && this.str.substr( 0, keypath.str.length + 1 ) === keypath.str + '.';
-	},
-
-	toString () {
-		throw new Error( 'Bad coercion' );
-	},
-
-	valueOf () {
-		throw new Error( 'Bad coercion' );
-	},
-
-	wildcardMatches () {
-		return this._wildcardMatches || ( this._wildcardMatches = getPotentialWildcardMatches( this.str ) );
 	}
 };
-
-function hasChildFor ( value, key ) {
-	if ( value == null ) {
-		return false;
-	}
-	if ( ( typeof value === 'object' || typeof value === 'function' ) && !( key in value ) ) {
-		return false;
-	}
-	return true;
-}
-
-
-var KeypathAlias = function( owner ){
-
-	// TEMP
-	this.isKeypath = true;
-
-	this.str = null;
-
-	this.unresolved = true;
-
-	this.deps = null;
-	this.realKeypath = null;
-
-	this.owner = owner;
-	this.ownerName = owner.ractive.component ? owner.ractive.component.name : 'Ractive';
-
-}
-
-KeypathAlias.prototype = {
-
-	addChild ( child ) {
-		if ( ! this.realKeypath ) {
-			throw new Error('addChild');
-		}
-		this.realKeypath.addChild( child );
-	},
-
-	setComputation ( computation ) {
-		throw new Error('setComputation');
-	},
-
-	resolve ( keypath ) {
-		var deps, dep;
-		this.realKeypath = keypath;
-		this.unresolved = false;
-
-		if ( deps = this.deps ) {
-			for ( var i = 0, len = deps.length; i < len; i++ ) {
-				dep = deps[i];
-				keypath.register( dep, dep._type );
-			}
-			this.deps = null;
-
-			// make sure these dependants get notified
-			keypath.mark();
-		}
-	},
-
-	forceResolution ( str ) {
-		var resolved = this.owner.getKeypath( str );
-		if ( resolved === this ) {
-			resolved = new Keypath( str, this.owner, true );
-		}
-		this.resolve( resolved );
-		return this;
-	},
-
-	// odd-ball, see how used and if should move to viewmodel/instance based on usage.
-	isRooted () {
-		debugger;
-		return false; //this.owner.hasKeypath( this.firstKey );
-	},
-
-	clearCachedValue ( keepExistingWrapper ) {
-		if ( this.realKeypath ) {
-			this.realKeypath.clearCachedValue( keepExistingWrapper );
-		}
-	},
-
-	get ( options ) {
-		// TODO: wrapping at actual key level vs alias?
-		// because adaptor may be defined there
-		// but maybe adaptors should be global???
-
-		if ( this.realKeypath ) {
-			return this.realKeypath.get( options );
-		}
-	},
-
-	hasChild ( propertyOrIndex ) {
-		if ( ! this.realKeypath ) {
-			return false;
-		}
-		return this.realKeypath.hasChild( propertyOrIndex );
-	},
-
-	getChildValue ( propertyOrIndex ) {
-		throw new Error('getChildValue');
-		if ( this.realKeypath ) {
-			return this.realKeypath.getChildValue( propertyOrIndex );
-		}
-	},
-
-	set ( value, options ) {
-		// TODO force resolution?
-		if ( this.realKeypath ) {
-			return this.realKeypath.set( value, options );
-		}
-	},
-
-	setChildValue ( propertyOrIndex, childValue ) {
-		throw new Error('setChildValue');
-	},
-
-	register ( dependant, type ) {
-		if ( this.realKeypath ) {
-			this.realKeypath.register( dependant, type );
-		} else {
-			dependant._type = type;
-			!this.deps ? this.deps = [ dependant ] : addToArray( this.deps, dependant );
-		}
-	},
-
-	unregister ( dependant, type ) {
-		if ( this.realKeypath ) {
-			this.realKeypath.unregister( dependant, type );
-		} else if ( this.deps ) {
-			removeFromArray( this.deps, dependant );
-		}
-	},
-
-	mark ( options ) {
-		if ( !this.realKeypath ) {
-			throw new Error('mark');
-		}
-		return this.realKeypath.mark( options );
-	},
-
-	/* string manipulation: */
-
-	join ( options ) {
-		if ( !this.realKeypath ) {
-			throw new Error('join');
-		}
-		return this.realKeypath.join( options );
-	},
-
-	/*
-	equalsOrStartsWith ( keypath ) {
-		return ( keypath && ( keypath.str === this.str ) ) || this.startsWith( keypath );
-	},
-
-
-
-	replace ( oldKeypath, newKeypath ) {
-		// changed to ".str === .str" to transition to multiple keypathCaches
-		if ( oldKeypath && ( this.str === oldKeypath.str ) ) {
-			return newKeypath;
-		}
-
-		if ( this.startsWith( oldKeypath ) ) {
-			return newKeypath === null ? newKeypath : newKeypath.owner.getKeypath( this.str.replace( oldKeypath.str + '.', newKeypath.str + '.' ) );
-		}
-	},
-
-	startsWith ( keypath ) {
-		if ( !keypath ) {
-			// TODO under what circumstances does this happen?
-			return false;
-		}
-
-		return keypath && this.str.substr( 0, keypath.str.length + 1 ) === keypath.str + '.';
-	},
-
-	toString () {
-		throw new Error( 'Bad coercion' );
-	},
-
-	valueOf () {
-		throw new Error( 'Bad coercion' );
-	},
-
-	wildcardMatches () {
-		return this._wildcardMatches || ( this._wildcardMatches = getPotentialWildcardMatches( this.str ) );
-	}
-	*/
-}
-
 
 
 export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
@@ -664,7 +277,4 @@ function concatenate ( key ) {
 export function normalise ( ref ) {
 	return ref ? ref.replace( refPattern, '.$1' ) : '';
 }
-
-export { Keypath };
-export { KeypathAlias };
 

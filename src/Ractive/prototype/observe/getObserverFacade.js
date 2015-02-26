@@ -5,29 +5,29 @@ import resolveRef from 'shared/resolveRef';
 
 var wildcard = /\*/, emptyObject = {};
 
-export default function getObserverFacade ( ractive, keypathStr, callback, options ) {
-	var observer, isPatternObserver, cancelled, keypath;
+export default function getObserverFacade ( ractive, keypath, callback, options ) {
+	var observer, isPatternObserver, cancelled, model;
 
-	if( !ractive.viewmodel.hasKeypath( keypathStr ) ) {
-		keypath = resolveRef( ractive, keypathStr, ractive.fragment );
+	if( !ractive.viewmodel.hasKepaypath( keypath ) ) {
+		model = resolveRef( ractive, keypath, ractive.fragment );
 	}
 	else {
-		keypath = ractive.viewmodel.getKeypath( keypathStr );
+		model = ractive.viewmodel.getKeypath( keypath );
 	}
 
 	options = options || emptyObject;
 
 	// pattern observers are treated differently
-	if ( wildcard.test( keypath.str ) ) {
-		observer = new PatternObserver( ractive, keypath, callback, options );
+	if ( wildcard.test( model.getKeypath() ) ) {
+		observer = new PatternObserver( ractive, model, callback, options );
 		ractive.viewmodel.patternObservers.push( observer );
 		isPatternObserver = true;
 	} else {
-		observer = new Observer( ractive, keypath, callback, options );
+		observer = new Observer( ractive, model, callback, options );
 	}
 
 	observer.init( options.init );
-	keypath.register( observer, isPatternObserver ? 'patternObservers' : 'observers' );
+	model.register( observer, isPatternObserver ? 'patternObservers' : 'observers' );
 
 	// This flag allows observers to initialise even with undefined values
 	observer.ready = true;
@@ -44,9 +44,9 @@ export default function getObserverFacade ( ractive, keypathStr, callback, optio
 				index = ractive.viewmodel.patternObservers.indexOf( observer );
 
 				ractive.viewmodel.patternObservers.splice( index, 1 );
-				keypath.unregister( observer, 'patternObservers' );
+				model.unregister( observer, 'patternObservers' );
 			} else {
-				keypath.unregister( observer, 'observers' );
+				model.unregister( observer, 'observers' );
 			}
 			cancelled = true;
 		}

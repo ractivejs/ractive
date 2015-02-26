@@ -8,7 +8,7 @@ export default function( node ) {
 	}
 
 	info.ractive = priv.root;
-	info.keypath = priv.keypath.str;
+	info.keypath = priv.keypath.getKeypath();
 	info.index = {};
 
 	// find all index references and resolve them

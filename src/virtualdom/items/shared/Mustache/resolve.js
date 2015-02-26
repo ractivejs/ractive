@@ -1,13 +1,6 @@
 export default function Mustache$resolve ( keypath ) {
 	var wasResolved, value, twowayBinding;
 
-	// 'Special' keypaths, e.g. @foo or @7, encode a value
-	if ( keypath && keypath.isSpecial ) {
-		this.keypath = keypath;
-		this.setValue( keypath.get() );
-		return;
-	}
-
 	// If we resolved previously, we need to unregister
 	if ( this.registered ) { // undefined or null
 		keypath.unregister( this );

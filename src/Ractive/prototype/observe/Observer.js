@@ -1,9 +1,9 @@
 import runloop from 'global/runloop';
 import { isEqual } from 'utils/is';
 
-var Observer = function ( ractive, keypath, callback, options ) {
+var Observer = function ( ractive, model, callback, options ) {
 	this.root = ractive;
-	this.keypath = keypath;
+	this.model = model;
 	this.callback = callback;
 	this.defer = options.defer;
 
@@ -13,7 +13,7 @@ var Observer = function ( ractive, keypath, callback, options ) {
 
 Observer.prototype = {
 	init: function ( immediate ) {
-		this.value = this.root.get( this.keypath.str );
+		this.value = this.model.get();
 
 		if ( immediate !== false ) {
 			this.update();
@@ -42,7 +42,7 @@ Observer.prototype = {
 
 		this.updating = true;
 
-		this.callback.call( this.context, this.value, this.oldValue, this.keypath.str );
+		this.callback.call( this.context, this.value, this.oldValue, this.model.getKeypath() );
 		this.oldValue = this.value;
 
 		this.updating = false;

@@ -4,14 +4,14 @@ import getPattern from './getPattern';
 
 var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;
 
-PatternObserver = function ( ractive, keypath, callback, options ) {
+PatternObserver = function ( ractive, model, callback, options ) {
 	this.root = ractive;
 
 	this.callback = callback;
 	this.defer = options.defer;
 
-	this.keypath = keypath;
-	this.regex = new RegExp( '^' + keypath.str.replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
+	this.model = model;
+	this.regex = new RegExp( '^' + model.getKeypath().replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
 	this.values = {};
 
 	if ( this.defer ) {
@@ -24,14 +24,14 @@ PatternObserver = function ( ractive, keypath, callback, options ) {
 
 PatternObserver.prototype = {
 	init: function ( immediate ) {
-		var values, keypath;
+		var values, model;
 
-		values = getPattern( this.root, this.keypath );
+		values = getPattern( this.root, this.model );
 
 		if ( immediate !== false ) {
-			for ( keypath in values ) {
-				if ( values.hasOwnProperty( keypath ) ) {
-					this.update( this.root.viewmodel.getKeypath( keypath ) );
+			for ( model in values ) {
+				if ( values.hasOwnProperty( model ) ) {
+					this.update( model.get() );
 				}
 			}
 		} else {
@@ -39,15 +39,15 @@ PatternObserver.prototype = {
 		}
 	},
 
-	update: function ( keypath ) {
+	update: function ( model ) {
 		var values;
 
-		if ( wildcard.test( keypath.str ) ) {
-			values = getPattern( this.root, keypath );
+		if ( wildcard.test( model.getKeypath() ) ) {
+			values = getPattern( this.root, model );
 
-			for ( keypath in values ) {
-				if ( values.hasOwnProperty( keypath ) ) {
-					this.update( this.root.viewmodel.getKeypath( keypath ) );
+			for ( model in values ) {
+				if ( values.hasOwnProperty( model ) ) {
+					this.update( model.get() );
 				}
 			}
 
@@ -56,51 +56,51 @@ PatternObserver.prototype = {
 
 		// special case - array mutation should not trigger `array.*`
 		// pattern observer with `array.length`
-		if ( this.root.viewmodel.implicitChanges[ keypath.str ] ) {
+		if ( this.root.viewmodel.implicitChanges[ model.getKeypath() ] ) {
 			return;
 		}
 
 		if ( this.defer && this.ready ) {
-			runloop.scheduleTask( () => this.getProxy( keypath ).update() );
+			runloop.scheduleTask( () => this.getProxy( model ).update() );
 			return;
 		}
 
-		this.reallyUpdate( keypath );
+		this.reallyUpdate( model );
 	},
 
-	reallyUpdate: function ( keypath ) {
-		var keypathStr, value, keys, args;
+	reallyUpdate: function ( model ) {
+		var keypath, value, keys, args;
 
-		keypathStr = keypath.str;
-		value = this.root.viewmodel.get( keypath );
+		keypath = model.getKeypath();
+		value = this.root.viewmodel.get( model );
 
 		// Prevent infinite loops
 		if ( this.updating ) {
-			this.values[ keypathStr ] = value;
+			this.values[ keypath ] = value;
 			return;
 		}
 
 		this.updating = true;
 
-		if ( !isEqual( value, this.values[ keypathStr ] ) || !this.ready ) {
-			keys = slice.call( this.regex.exec( keypathStr ), 1 );
-			args = [ value, this.values[ keypathStr ], keypathStr ].concat( keys );
+		if ( !isEqual( value, this.values[ keypath ] ) || !this.ready ) {
+			keys = slice.call( this.regex.exec( keypath ), 1 );
+			args = [ value, this.values[ keypath ], keypath ].concat( keys );
 
-			this.values[ keypathStr ] = value;
+			this.values[ keypath ] = value;
 			this.callback.apply( this.context, args );
 		}
 
 		this.updating = false;
 	},
 
-	getProxy: function ( keypath ) {
-		if ( !this.proxies[ keypath.str ] ) {
-			this.proxies[ keypath.str ] = {
-				update: () => this.reallyUpdate( keypath )
+	getProxy: function ( model ) {
+		if ( !this.proxies[ model.getKeypath() ] ) {
+			this.proxies[ model.getKeypath() ] = {
+				update: () => this.reallyUpdate( model )
 			};
 		}
 
-		return this.proxies[ keypath.str ];
+		return this.proxies[ model.getKeypath() ];
 	}
 };
 

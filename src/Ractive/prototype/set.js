@@ -5,7 +5,7 @@ import runloop from 'global/runloop';
 var wildcard = /\*/;
 
 export default function Ractive$set ( keypath, value ) {
-	var map, promise;
+	var map, promise, model;
 
 	promise = runloop.start( this, true );
 
@@ -16,25 +16,25 @@ export default function Ractive$set ( keypath, value ) {
 		for ( keypath in map ) {
 			if ( map.hasOwnProperty( keypath) ) {
 				value = map[ keypath ];
-				keypath = this.viewmodel.getKeypath( normalise( keypath ) );
+				model = this.viewmodel.getKeypath( normalise( keypath ) );
 
-				this.viewmodel.set( keypath, value );
+				this.viewmodel.set( model, value );
 			}
 		}
 	}
 
 	// Set a single keypath
 	else {
-		keypath = this.viewmodel.getKeypath( normalise( keypath ) );
+		model = this.viewmodel.getKeypath( normalise( keypath ) );
 
 		// TODO a) wildcard test should probably happen at viewmodel level,
 		// b) it should apply to multiple/single set operations
-		if ( wildcard.test( keypath.str ) ) {
-			getMatchingKeypaths( this, keypath.str ).forEach( keypath => {
-				this.viewmodel.set( keypath, value );
+		if ( wildcard.test( model.getKeypath() ) ) {
+			getMatchingKeypaths( this, model.getKeypath() ).forEach( model => {
+				this.viewmodel.set( model, value );
 			});
 		} else {
-			this.viewmodel.set( keypath, value );
+			this.viewmodel.set( model, value );
 		}
 	}
 

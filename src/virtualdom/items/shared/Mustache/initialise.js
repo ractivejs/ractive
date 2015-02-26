@@ -20,31 +20,14 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.registered = false;
 
-	var keypath = mustache.root.viewmodel.getKeypath( template, mustache, resolve );
+	var keypath = mustache.root.viewmodel.getKeypath( template, mustache );
 
 
-	resolve( keypath );
+	mustache.resolve( keypath );
 
 	// Special case - inverted sections
 	if ( mustache.template.n === SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 		mustache.setValue( undefined );
 	}
 
-	function resolve ( keypath ) {
-		mustache.resolve( keypath );
-	}
-
-	function resolveAndRebindChildren ( newKeypath ) {
-		var oldKeypath = mustache.keypath;
-
-		if ( newKeypath != oldKeypath ) {
-			mustache.resolve( newKeypath );
-
-			if ( oldKeypath !== undefined ) {
-				mustache.fragments && mustache.fragments.forEach( f => {
-					f.rebind( oldKeypath, newKeypath );
-				});
-			}
-		}
-	}
 }

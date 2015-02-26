@@ -63,8 +63,8 @@ Computation.prototype = {
 						keypath = deps[i];
 						value = this.viewmodel.get( keypath );
 
-						if ( !isEqual( value, this.depValues[ keypath.str ] ) ) {
-							this.depValues[ keypath.str ] = value;
+						if ( !isEqual( value, this.depValues[ keypath.getKeypath() ] ) ) {
+							this.depValues[ keypath.getKeypath() ] = value;
 							dependencyValuesChanged = true;
 
 							return;
@@ -93,7 +93,7 @@ Computation.prototype = {
 				if ( dependenciesChanged ) {
 					[ this.hardDeps, this.softDeps ].forEach( deps => {
 						deps.forEach( keypath => {
-							this.depValues[ keypath.str ] = this.viewmodel.get( keypath );
+							this.depValues[ keypath.getKeypath() ] = this.viewmodel.get( keypath );
 						});
 					});
 				}
@@ -145,11 +145,11 @@ Computation.prototype = {
 
 				// if this keypath is currently unresolved, we need to mark
 				// it as such. TODO this is a bit muddy...
-				if ( isUnresolved( this.viewmodel, keypath ) && ( !this.unresolvedDeps[ keypath.str ] ) ) {
-					unresolved = new UnresolvedDependency( this, keypath.str );
+				if ( isUnresolved( this.viewmodel, keypath ) && ( !this.unresolvedDeps[ keypath.getKeypath() ] ) ) {
+					unresolved = new UnresolvedDependency( this, keypath.getKeypath() );
 					newDeps.splice( i, 1 );
 
-					this.unresolvedDeps[ keypath.str ] = unresolved;
+					this.unresolvedDeps[ keypath.getKeypath() ] = unresolved;
 					runloop.addUnresolved( unresolved );
 				} else {
 					keypath.register( this, 'computed' );

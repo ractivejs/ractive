@@ -62,8 +62,8 @@ class Computation {
 						model = deps[i];
 						value = model.get();
 
-						if ( !isEqual( value, this.depValues[ model.str ] ) ) {
-							this.depValues[ model.str ] = value;
+						if ( !isEqual( value, this.depValues[ model.getKeypath() ] ) ) {
+							this.depValues[ model.getKeypath() ] = value;
 							dependencyValuesChanged = true;
 							return;
 						}
@@ -78,7 +78,7 @@ class Computation {
 					this.value = this.getter();
 				} catch ( err ) {
 					if ( this.viewmodel.debug ) {
-						warn( 'Failed to compute "%s"', this.key.str );
+						warn( 'Failed to compute "%s"', this.key.getKeypath() );
 						log( err.stack || err );
 					}
 
@@ -90,8 +90,8 @@ class Computation {
 
 				if ( dependenciesChanged ) {
 					[ this.hardDeps, this.softDeps ].forEach( deps => {
-						deps.forEach( keypath => {
-							this.depValues[ keypath.str ] = this.viewmodel.get( keypath );
+						deps.forEach( model => {
+							this.depValues[ model.getKeypath() ] = this.viewmodel.get( model );
 						});
 					});
 				}

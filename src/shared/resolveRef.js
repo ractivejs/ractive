@@ -97,15 +97,19 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 
 		hasContextChain = true;
 
-		if ( viewmodel.hasKeypath( context.str + '.' + ref ) ) {
-			return viewmodel.getKeypath( context.str + '.' + ref );
+		if ( viewmodel.hasKeypath( context.getKeypath() + '.' + ref ) ) {
+			return viewmodel.getKeypath( context.getKeypath() + '.' + ref );
 		}
 
 		// parentValue = ractive.viewmodel.get( context );
 		// revist when mapped keypaths are ready
-		parentValue = context.get();
+		// parentValue = context.get();
 
-		if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
+		// if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
+		// 	return context.join( ref );
+		// }
+
+		if ( context.hasChild( key ) ) {
 			return context.join( ref );
 		}
 	}

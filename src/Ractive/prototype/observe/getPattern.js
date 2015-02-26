@@ -6,8 +6,9 @@ export default function getPattern ( ractive, pattern ) {
 	matchingKeypaths = getMatchingKeypaths( ractive, pattern.str );
 
 	values = {};
-	matchingKeypaths.forEach( keypath => {
-		values[ keypath.str ] = ractive.get( keypath.str );
+	matchingKeypaths.forEach( model => {
+		var keypath = model.getKeypath();
+		values[ keypath ] = ractive.get( keypath );
 	});
 
 	return values;
