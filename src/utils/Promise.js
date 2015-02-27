@@ -1,3 +1,4 @@
+/*global self */
 var _Promise,
 	PENDING = {},
 	FULFILLED = {},
