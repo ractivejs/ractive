@@ -8,17 +8,19 @@ var gobble = require( 'gobble' ),
 	testGlobals = JSON.parse( sander.readFileSync( 'test/.jshintrc' ).toString() ).globals,
 	es5, lib, test;
 
+var babelTransformWhitelist = [
+	'es6.arrowFunctions',
+	'es6.blockScoping',
+	'es6.constants',
+	'es6.destructuring',
+	'es6.parameters.default',
+	'es6.parameters.rest',
+	'es6.properties.shorthand',
+	'es6.templateLiterals'
+];
+
 es5 = gobble( 'src' ).transform( 'babel', {
-	whitelist: [
-		'es6.arrowFunctions',
-		'es6.blockScoping',
-		'es6.constants',
-		'es6.destructuring',
-		'es6.parameters.default',
-		'es6.parameters.rest',
-		'es6.properties.shorthand',
-		'es6.templateLiterals'
-	]
+	whitelist: babelTransformWhitelist
 });
 
 lib = (function () {
@@ -108,8 +110,13 @@ test = (function () {
 	};
 
 	var testModules = gobble([
-		gobble( 'test/__tests' ).moveTo( '__tests' ),
-		gobble( 'test/testdeps' ),
+		gobble([
+			gobble( 'test/__tests' ).moveTo( '__tests' ),
+			gobble( 'test/testdeps' )
+		]).transform( 'babel', {
+			whitelist: babelTransformWhitelist,
+			sourceMap: false
+		}),
 		es5
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
 		return sander.lsr( inputdir, '__tests' ).then( function ( testModules ) {
@@ -133,19 +140,6 @@ test = (function () {
 				return sander.writeFile( outputdir, 'index.html', index );
 			});
 		});
-	})
-	.transform( 'es6-transpiler', {
-		globals: testGlobals,
-		disallowDuplicated: false,
-		onError: function ( errors ) {
-			// es6-transpiler is not especially clever about dealing with
-			// references it doesn't expect. This squelches errors we expect
-			// to encounter
-			errors.forEach( function ( error ) {
-				if ( /referenced before its declaration/.test( error ) ) return;
-				throw new Error( error );
-			});
-		}
 	});
 
 	var testPages = testModules.transform( function () {
