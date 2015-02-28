@@ -8,7 +8,18 @@ var gobble = require( 'gobble' ),
 	testGlobals = JSON.parse( sander.readFileSync( 'test/.jshintrc' ).toString() ).globals,
 	es5, lib, test;
 
-es5 = gobble( 'src' ).transform( '6to5', { blacklist: [ 'modules', 'useStrict' ] });
+es5 = gobble( 'src' ).transform( 'babel', {
+	whitelist: [
+		'es6.arrowFunctions',
+		'es6.blockScoping',
+		'es6.constants',
+		'es6.destructuring',
+		'es6.parameters.default',
+		'es6.parameters.rest',
+		'es6.properties.shorthand',
+		'es6.templateLiterals'
+	]
+});
 
 lib = (function () {
 	var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
@@ -74,7 +85,7 @@ lib = (function () {
 		lib.push( sandbox );
 	}
 
-	// Combine sourcemaps from 6to5 and esperanto
+	// Combine sourcemaps from babel and esperanto
 	lib = lib.map( function ( node ) {
 		return node.transform( 'sorcery' );
 	});
