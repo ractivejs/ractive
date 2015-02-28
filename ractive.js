@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sun Feb 22 2015 04:02:05 GMT+0000 (UTC) - commit ff0f9338106d7eb7618807f3854b67064aae4044
+	Sat Feb 28 2015 00:11:43 GMT+0000 (UTC) - commit 89634f02ace972f6fe1efe9612d22853521df9ff
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3827,7 +3827,11 @@
 
     start = parser.pos;
 
-    if (!parser.matchString(tag.open)) {
+    if (parser.matchString("\\" + tag.open)) {
+      if (start === 0 || parser.str[start - 1] !== "\\") {
+        return tag.open;
+      }
+    } else if (!parser.matchString(tag.open)) {
       return null;
     }
 
@@ -6190,6 +6194,9 @@
       disallowed = parser.tags.map(function (t) {
         return t.open;
       });
+      disallowed = disallowed.concat(parser.tags.map(function (t) {
+        return "\\" + t.open;
+      }));
 
       // http://developers.whatwg.org/syntax.html#syntax-attributes
       if (parser.inAttribute === true) {
