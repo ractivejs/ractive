@@ -5,7 +5,6 @@ var gobble = require( 'gobble' ),
 	esperanto = require( 'esperanto' ),
 	sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' ),
 	version = require( './package.json' ).version,
-	testGlobals = JSON.parse( sander.readFileSync( 'test/.jshintrc' ).toString() ).globals,
 	es5, lib, test;
 
 var babelTransformWhitelist = [
@@ -157,7 +156,7 @@ test = (function () {
 		gobble( 'test/testdeps/samples' )
 			.include( '*.js' )
 			.transform( 'esperanto', { type: 'cjs', sourceMap: false })
-			.transform( 'es6-transpiler' )
+			.transform( 'babel', { whitelist: babelTransformWhitelist, sourceMap: false })
 			.moveTo( '__nodetests/samples' )
 	]).moveTo( 'test' );
 })();
