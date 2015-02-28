@@ -740,6 +740,16 @@ var parseTests = [
 		name: 'An unexpected closing tag is an error',
 		template: '<div></div></div>',
 		error: `Unexpected template content at line 1 character 12:\n<div></div></div>\n           ^----`
+	},
+	{
+		name: 'Escaped mustaches',
+		template: '\\[[static]] \\[[[tripleStatic]]] \\{{normal}} \\{{{triple}}}',
+		parsed: {v:3,t:['[[static]] [[[tripleStatic]]] {{normal}} {{{triple}}}']}
+	},
+	{
+		name: 'Not-really-escaped mustaches',
+		template: '\\\\[[static]] \\\\[[[tripleStatic]]] \\\\{{normal}} \\\\{{{triple}}}}',
+		parsed: {v:3,t:["\\",{"r":"static","s":true,"t":2}," \\",{"r":"tripleStatic","s":true,"t":3}," \\",{"r":"normal","t":2}," \\",{"r":"triple","t":3},"}"]}
 	}
 ];
 

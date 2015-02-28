@@ -12,6 +12,7 @@ export default function readText ( parser ) {
 		index = remaining.indexOf( barrier );
 	} else {
 		disallowed = parser.tags.map( t => t.open );
+		disallowed = disallowed.concat( parser.tags.map( t => '\\' + t.open ) );
 
 		// http://developers.whatwg.org/syntax.html#syntax-attributes
 		if ( parser.inAttribute === true ) {
