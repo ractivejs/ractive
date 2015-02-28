@@ -1523,4 +1523,13 @@ if ( !/phantomjs/i.test( window.navigator.userAgent ) ) {
 		t.ok( !event1Fired );
 		t.ok( event2Fired );
 	});
+
+	test( 'invalid content in method call event directive should have a reasonable error message', t => {
+		t.throws(() => {
+			new Ractive({
+				el: fixture,
+				template: '<button on-click="alert(foo);">Click Me</button>'
+			});
+		}, /invalid input/i );
+	});
 }
