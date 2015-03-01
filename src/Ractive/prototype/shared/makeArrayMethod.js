@@ -9,7 +9,7 @@ export default function ( methodName ) {
 	return function ( keypath, ...args ) {
 		var array, newIndices = [], len, promise, result;
 
-		keypath = this.viewmodel.getKeypath( normalise( keypath ) );
+		keypath = this.viewmodel.getModel( keypath );
 
 		array = this.viewmodel.get( keypath );
 		len = array.length;

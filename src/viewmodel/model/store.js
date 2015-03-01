@@ -47,13 +47,13 @@ export class DataStore {
 
 export class PropertyStore {
 
-	constructor ( parent, property ) {
-		this.parent = parent;
+	constructor ( property, model ) {
+		this.model = model;
 		this.property = property;
 	}
 
 	get () {
-		var value = this.parent.get();
+		var value = this.model.parent.get();
 		if( hasChild( value, this.property ) ) {
 			return value[ this.property ];
 		}
@@ -78,7 +78,7 @@ export class PropertyStore {
 			return false;
 		}
 
-		this.parent.store.getSettable( this.property )[ this.property ] = value;
+		this.model.parent.store.getSettable( this.property )[ this.property ] = value;
 
 		return true;
 	}

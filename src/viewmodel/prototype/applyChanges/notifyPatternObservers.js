@@ -9,6 +9,7 @@ function notifyPatternObservers ( viewmodel, keypath, onlyDirect ) {
 		return;
 	}
 
+	//TODO
 	potentialWildcardMatches = keypath.wildcardMatches();
 	potentialWildcardMatches.forEach( upstreamPattern => {
 		cascade( viewmodel, upstreamPattern, keypath );
@@ -20,7 +21,7 @@ function cascade ( viewmodel, upstreamPattern, keypath ) {
 	var group, map, actualChildKeypath;
 
 	// TODO should be one or the other
-	upstreamPattern = ( upstreamPattern.str || upstreamPattern );
+	upstreamPattern = ( upstreamPattern.getKeypath() || upstreamPattern );
 
 	group = viewmodel.depsMap.patternObservers;
 	map = group && group[ upstreamPattern ];
@@ -39,7 +40,7 @@ function cascade ( viewmodel, upstreamPattern, keypath ) {
 
 function updateMatchingPatternObservers ( viewmodel, keypath ) {
 	viewmodel.patternObservers.forEach( observer => {
-		if ( observer.regex.test( keypath.str ) ) {
+		if ( observer.regex.test( keypath.getKeypath() ) ) {
 			observer.update( keypath );
 		}
 	});

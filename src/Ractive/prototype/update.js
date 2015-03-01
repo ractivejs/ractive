@@ -3,16 +3,16 @@ import runloop from 'global/runloop';
 
 var updateHook = new Hook( 'update' );
 
-export default function Ractive$update ( keypathStr ) {
-	var promise, keypath;
+export default function Ractive$update ( keypath ) {
+	var promise, model;
 
-	keypath = this.viewmodel.getKeypath( keypathStr || '' );
+	model = this.viewmodel.getModel( keypath || '' );
 
 	promise = runloop.start( this, true );
-	keypath.mark();
+	model.mark();
 	runloop.end();
 
-	updateHook.fire( this, keypath );
+	updateHook.fire( this, model );
 
 	return promise;
 }

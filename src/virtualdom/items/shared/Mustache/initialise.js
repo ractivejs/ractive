@@ -1,5 +1,4 @@
 import { SECTION_UNLESS } from 'config/types';
-import createReferenceResolver from '../Resolvers/createReferenceResolver';
 
 export default function Mustache$init ( mustache, options ) {
 
@@ -20,7 +19,7 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.registered = false;
 
-	var keypath = mustache.root.viewmodel.getKeypath( template, mustache );
+	var keypath = mustache.root.viewmodel.getModel( template, mustache );
 
 
 	mustache.resolve( keypath );

@@ -32,6 +32,7 @@ lib = (function () {
 			entry: 'Ractive.js',
 			name: 'Ractive',
 			dest: 'ractive-legacy.js'
+			// , sourceMap: false
 		})
 	];
 

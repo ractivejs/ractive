@@ -1,7 +1,7 @@
 var prefixers = {};
 
 export default function Viewmodel$adapt ( keypath, value ) {
-	var ractive = this.ractive, keypathStr = keypath.str, len, i, adaptor, wrapper;
+	var ractive = this.ractive, keypath, len, i, adaptor, wrapper;
 
 	if ( !this.adaptors ) return;
 
@@ -10,8 +10,8 @@ export default function Viewmodel$adapt ( keypath, value ) {
 	for ( i = 0; i < len; i += 1 ) {
 		adaptor = this.adaptors[i];
 
-		if ( adaptor.filter( value, keypathStr, ractive ) ) {
-			wrapper = adaptor.wrap( ractive, value, keypathStr, getPrefixer( keypathStr ) );
+		if ( adaptor.filter( value, keypath, ractive ) ) {
+			wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
 			wrapper.value = value;
 			return wrapper;
 		}

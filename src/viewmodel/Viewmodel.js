@@ -6,18 +6,17 @@ import capture from './prototype/capture';
 import clearCache from './prototype/clearCache';
 import compute from './prototype/compute';
 import get from './prototype/get';
-import getKeypath from './prototype/getKeypath';
-import hasKeypath from './prototype/hasKeypath';
-import map from './prototype/map';
+import getModel from './prototype/getModel';
+import { hasModel, tryGetModel } from './prototype/hasModel';
 import mark from './prototype/mark';
 import merge from './prototype/merge';
-import register from './prototype/register';
 import release from './prototype/release';
 import reset from './prototype/reset';
 import set from './prototype/set';
 import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
-import unregister from './prototype/unregister';
+
+import RootModel from './model/RootModel';
 
 var Viewmodel = function ( options ) {
 	var { adapt, data, ractive, mappings } = options,
@@ -53,20 +52,21 @@ var Viewmodel = function ( options ) {
 	this.data = data;
 
 	this.modelCache = {};
-	this.rootKeypath = this.getKeypath( '' );
 
+	// TODO make RootModel class that encapsulates details
+	// like DataStore and startContext() call
+	this.rootKeypath = new RootModel( this, data );
 
 	// TODO: clean-up/move some of this
-	var key, keypath;
+	var key, model;
 	if ( mappings ) {
 		mappings.forEach( mapping => {
-			key = mapping.key, keypath = mapping.keypath;
+			key = mapping.key, model = mapping.model;
 
-			if( keypath.unresolved ) { keypath.str = key; }
-			this.modelCache[ key ] = keypath;
+			this.modelCache[ key ] = model;
 
-			if ( data && ( key in data ) && !keypath.unresolved && keypath.get() === undefined ) {
-				keypath.set( data[ key ] );
+			if ( data && ( key in data ) && model.get() === undefined ) {
+				model.set( data[ key ] );
 			}
 		});
 	}
@@ -82,18 +82,16 @@ Viewmodel.prototype = {
 	clearCache: clearCache,
 	compute: compute,
 	get: get,
-	getKeypath: getKeypath,
-	hasKeypath: hasKeypath,
-	map: map,
+	getModel: getModel,
+	hasModel: hasModel,
 	mark: mark,
 	merge: merge,
-	register: register,
 	release: release,
 	reset: reset,
 	set: set,
 	smartUpdate: smartUpdate,
 	teardown: teardown,
-	unregister: unregister
+	tryGetModel: tryGetModel,
 };
 
 export default Viewmodel;

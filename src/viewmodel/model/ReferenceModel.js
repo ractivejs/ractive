@@ -3,11 +3,9 @@ import { addToArray, removeFromArray } from 'utils/array';
 
 class ReferenceModel extends ProxyModel {
 
-	constructor ( reference, viewmodel ) {
-		super( '[' + reference.lastKey + ']', viewmodel );
+	constructor ( reference ) {
 
-		// TODO: refactor so runs off Model
-		this.dependants = null;
+		super( '[' + reference.key + ']' );
 
 		this.childReferences = null;
 		this.value = null;
@@ -20,9 +18,13 @@ class ReferenceModel extends ProxyModel {
 	}
 
 	reevaluate () {
-		var children;
+		var children, realModel;
 
-		this.realModel = this.value != null ? this.parent.join( this.value ) : null;
+		if ( this.value != null ) {
+			this.realModel = this.parent.join( this.value );
+		} else {
+			this.realModel = null
+		}
 
 		if ( children = this.childReferences ) {
 			for( var i = 0, l = children.length; i < l; i++ ) {

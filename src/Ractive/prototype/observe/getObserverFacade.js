@@ -1,19 +1,13 @@
 import { normalise } from 'shared/keypaths';
 import Observer from './Observer';
 import PatternObserver from './PatternObserver';
-import resolveRef from 'shared/resolveRef';
 
 var wildcard = /\*/, emptyObject = {};
 
 export default function getObserverFacade ( ractive, keypath, callback, options ) {
 	var observer, isPatternObserver, cancelled, model;
 
-	if( !ractive.viewmodel.hasKepaypath( keypath ) ) {
-		model = resolveRef( ractive, keypath, ractive.fragment );
-	}
-	else {
-		model = ractive.viewmodel.getKeypath( keypath );
-	}
+	model = ractive.viewmodel.getModel( keypath );
 
 	options = options || emptyObject;
 

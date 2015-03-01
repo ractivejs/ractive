@@ -15,45 +15,157 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 modelCache = {};
 
 class Model {
-	constructor ( str, owner, store ) {
-		var parent, keys = str.split( '.' );
 
-		this.str = str;
-		this.firstKey = keys[0];
-		this.lastKey = keys.pop();
+	constructor ( key, store ) {
+
+		this.key = key || '';
+		this.store = store || new PropertyStore( key, this );
+
+		this.parent = null;
+		this.owner = null;
 
 		this.dirty = false;
-
+		this.contextCache = null;
 		this.dependants = null;
 		this.children = null;
 
-		this.parent = parent = ( this.isRoot = !str ) ? null : owner.getKeypath( keys.join( '.' ) );
-		if ( parent ) {
-			owner = parent.owner;
-			parent.addChild( this );
-		}
-
-
-		this.store = store || ( this.isRoot ? new DataStore( owner.data ) : new PropertyStore( parent, this.lastKey ) );
-
-		this.owner = owner;
-
 		// for development debug purposes:
-		if ( true /*owner.debug*/ ) {
-			this.ownerName = owner.ractive.component ? owner.ractive.component.name : 'Ractive';
+		// if ( true /*owner.debug*/ ) {
+		// 	this.ownerName = this.owner.ractive.component ? this.owner.ractive.component.name : 'Ractive';
+		// }
+	}
+
+	isContext () {
+		return !!this.contextCache;
+	}
+
+	cacheChild ( key, child ) {
+		this.contextCache[ key ] = child;
+	}
+
+	startContext () {
+		var cache = this.contextCache = {},
+			children = this.children, child, childKey,
+			key = this.key;
+
+		addChildKeysToCache( cache, this );
+	}
+
+	join ( keypath ) {
+		return this._doJoin( keypath, false );
+	}
+
+	tryJoin ( keypath ) {
+		return this._doJoin( keypath, true );
+	}
+
+	_doJoin ( keypath, testFirstKey ) {
+		var found, child, parent, keys, key;
+
+		found = this._findInCache( keypath );
+
+		// was a match found exactly at requested keypath?
+		if ( found && ( child = found.child ) && found.keypath === keypath ) {
+			return child;
 		}
+
+		// for a tryJoin, the first key has to exist as a prop of this model
+		// TODO: is there more optimal way to get first key in relation to rest of method?
+		// i.e. i = keypath.indexOf('.'); ~i ? keypath.substr( 0, i ) : keypath
+		keys = keypath.split('.');
+		if ( !child && testFirstKey && !this.hasChild( keypath.split('.')[0] ) ) {
+			return;
+		}
+
+		if ( found && found.keypath ) {
+			keypath = keypath.replace( found.keypath + '.', '' );
+		}
+
+		keys = keypath.split( '.' );
+		key = keys.shift();
+
+		parent = this;
+		while ( key ) {
+			child = new Model( key );
+			parent.addChild( child );
+			key = keys.shift();
+			parent = child;
+		}
+
+		return child;
+	}
+
+	_findInCache ( keypath ) {
+		var cache = this.contextCache, child, original = keypath;
+
+		if ( !cache ) { return; }
+
+		while ( keypath ) {
+			if ( child = cache[ keypath ] ) {
+				break;
+			}
+			keypath = keypath.substring( 0, keypath.lastIndexOf('.') );
+		}
+
+		return {
+			child: child,
+			keypath: keypath
+		};
+	}
+
+	addChild ( child ) {
+		var parent, key;
+
+		child.parent = this;
+		child.owner = this.owner;
+		this.children ? this.children.push( child ) : this.children = [ child ];
+
+		parent = this;
+		key = child.key;
+
+		while ( parent ) {
+			if ( parent.isContext() ) {
+				parent.cacheChild( key, child );
+			}
+			key = parent.key + '.' + key;
+			parent = parent.parent;
+		}
+
 	}
 
 	getKeypath () {
 		return this.str;
 	}
 
-	addChild ( child ) {
-		this.children ? this.children.push( child ) : this.children = [ child ];
+	/*
+	join ( str ) {
+		if ( this.isRoot ) {
+			str = String( str );
+			if( str[0] === '.' ) {
+				// remove prepended with "." or "./"
+				str = str.replace( /^\.\/?/, '' );
+			}
+		}
+		else {
+			if ( str[0] === '.' ) {
+				// normalize prepended with "./"
+				str = this.str + str.replace( /^\.\//, '.' );
+			} else {
+				str = this.str + '.' + str;
+			}
+		}
+
+		// TODO: false positive for "0.4" - two numeric paths
+		if ( isNumber( str ) ) {
+			return this.indexJoin( +str );
+		}
+
+		return this.owner.getModel( str );
 	}
+	*/
 
 	isRooted () {
-		this.owner.hasKeypath( this.firstKey );
+		this.owner.hasModel( this.firstKey );
 	}
 
 	get ( options ) {
@@ -61,7 +173,7 @@ class Model {
 	}
 
 	hasChild ( propertyOrIndex ) {
-		return hasChildFor( this.store.get(), propertyOrIndex );
+		return hasChildFor( this.get(), propertyOrIndex );
 	}
 
 	set ( value, options ) {
@@ -189,30 +301,7 @@ class Model {
 	}
 
 
-	join ( str ) {
-		if ( this.isRoot ) {
-			str = String( str );
-			if( str[0] === '.' ) {
-				// remove prepended with "." or "./"
-				str = str.replace( /^\.\/?/, '' );
-			}
-		}
-		else {
-			if ( str[0] === '.' ) {
-				// normalize prepended with "./"
-				str = this.str + str.replace( /^\.\//, '.' );
-			} else {
-				str = this.str + '.' + str;
-			}
-		}
 
-		// TODO: false positive for "0.4" - two numeric paths
-		if ( isNumber( str ) ) {
-			return this.indexJoin( +str );
-		}
-
-		return this.owner.getKeypath( str );
-	}
 
 	indexJoin ( index, aliases ) {
 		return this.createStateChildren( index, index, index, aliases );
@@ -229,7 +318,7 @@ class Model {
 	createStateChildren ( propertyOrIndex, key, index, aliases ) {
 		var childKey = this.str + '.' + propertyOrIndex, child, indexAlias, keyAlias;
 
-		child = this.owner.getKeypath( childKey );
+		child = this.owner.getModel( childKey );
 
 		if ( aliases ) {
 			keyAlias = aliases.find( ref => ref.t ==='k' );
@@ -238,9 +327,9 @@ class Model {
 
 		// TODO need to change for updates (rebinds)
 		// need to hide actual strings and use gets
-		this.createStateChild( child.str, '@keypath', child.str );
-		this.createStateChild( child.str, '@key', key, keyAlias );
-		this.createStateChild( child.str, '@index', index, indexAlias );
+		this.createStateChild( child.key, '@keypath', child.key );
+		this.createStateChild( child.key, '@key', key, keyAlias );
+		this.createStateChild( child.key, '@index', index, indexAlias );
 
 		return child;
 	}
@@ -248,19 +337,37 @@ class Model {
 	createStateChild ( parentKey, special, state, alias ) {
 		var key = parentKey + '.' + special, model;
 
-		if ( !this.owner.hasKeypath( key ) ) {
-			model = new Model( key, this.owner, new StateStore( state ) );
+		if ( !this.owner.hasModel( key ) ) {
+			model = new Model( key, new StateStore( state ) );
 			this.owner.modelCache[ key ] = model;
 		}
 
 		if ( alias ) {
 			key = parentKey + '.' + alias.n;
-			if( !this.owner.hasKeypath( key ) ) {
+			if( !this.owner.hasModel( key ) ) {
 				this.owner.modelCache[ key ] = model;
 			}
 		}
 	}
 
+}
+
+
+function addChildKeysToCache ( cache, parent, keypath ) {
+	var children = parent.children, child, childKey, i, l;
+
+	if ( !children ) { return; }
+
+	for( i = 0, l = children.length; i < l; i++ ) {
+		child = children[i];
+		childKey = keypath ? keypath + '.' + child.key : child.key;
+
+		cache[ childKey ] = child;
+
+		if ( !child.isContext ) {
+			addChildKeysToCache( cache, child, childKey );
+		}
+	}
 }
 
 function hasChildFor ( value, key ) {

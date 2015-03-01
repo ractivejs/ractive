@@ -13,8 +13,8 @@ var Binding = function ( element ) {
 	interpolator = this.attribute.interpolator;
 	interpolator.twowayBinding = this;
 
-	if ( ( keypath = interpolator.keypath ) && !keypath.unresolved ) {
-		if ( keypath.str.slice( -1 ) === '}' ) {
+	if ( ( keypath = interpolator.keypath ) ) {
+		if ( keypath.getKeypath().slice( -1 ) === '}' ) {
 			warn( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name );
 			return false;
 		}
@@ -80,12 +80,12 @@ Binding.prototype = {
 		}
 
 		if ( oldKeypath != null ) {
-			removeFromArray( this.root._twowayBindings[ oldKeypath.str ], this );
+			removeFromArray( this.root._twowayBindings[ oldKeypath.getKeypath() ], this );
 		}
 
 		this.keypath = newKeypath;
 
-		bindings = this.root._twowayBindings[ newKeypath.str ] || ( this.root._twowayBindings[ newKeypath.str ] = [] );
+		bindings = this.root._twowayBindings[ newKeypath.getKeypath() ] || ( this.root._twowayBindings[ newKeypath.getKeypath() ] = [] );
 		bindings.push( this );
 	},
 

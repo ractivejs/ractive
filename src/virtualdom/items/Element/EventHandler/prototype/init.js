@@ -1,5 +1,4 @@
 import getFunctionFromString from 'shared/getFunctionFromString';
-import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
 import Fragment from 'virtualdom/Fragment';
 import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
@@ -34,7 +33,7 @@ export default function EventHandler$init ( element, name, template ) {
 		// Create resolvers for each reference
 		this.refResolvers = [];
 		refs.forEach(( ref, i ) => {
-			let match;
+			let match, model;
 
 			// special case - the `event` object
 			if ( match = eventPattern.exec( ref ) ) {
@@ -45,7 +44,9 @@ export default function EventHandler$init ( element, name, template ) {
 			}
 
 			else {
-				this.refResolvers.push( createReferenceResolver( this, ref, keypath => this.resolve( i, keypath ) ) );
+				this.refResolvers[i] = model = this.root.viewmodel.getKeypaths( ref, this );
+				this.resolve( i, model );
+
 			}
 		});
 

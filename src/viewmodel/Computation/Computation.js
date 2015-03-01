@@ -80,7 +80,7 @@ Computation.prototype = {
 					this.value = this.getter();
 				} catch ( err ) {
 					if ( this.viewmodel.debug ) {
-						warn( 'Failed to compute "%s"', this.key.str );
+						warn( 'Failed to compute "%s"', this.key.getKeypath() );
 						log( err.stack || err );
 					}
 

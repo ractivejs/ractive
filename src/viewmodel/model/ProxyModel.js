@@ -1,25 +1,15 @@
 import { addToArray, removeFromArray } from 'utils/array';
+import Model from './Model';
 
-class ProxyModel {
-	constructor ( str, owner ) {
-		var keys = str.split( '.' );
-
-		this.str = str;
-		this.firstKey = keys[0];
-		this.lastKey = keys.pop();
-
-		this.dependants = null;
-
+class ProxyModel extends Model {
+	constructor ( key, owner ) {
 		this.owner = owner;
-
-		// for development debug purposes:
-		if ( true /*owner.debug*/ ) {
-			this.ownerName = owner.ractive.component ? owner.ractive.component.name : 'Ractive';
-		}
+		super( key, {} );
+		this.realModel = null;
 	}
 
 	addChild ( child ) {
-		if ( ! this.realModel ) {
+		if ( !this.realModel ) {
 			throw new Error('addChild');
 		}
 		this.realModel.addChild( child );

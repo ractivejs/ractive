@@ -10,7 +10,7 @@ export default function Ractive$updateModel ( keypath, cascade ) {
 		bindings = [];
 
 		for ( key in this._twowayBindings ) {
-			if ( !keypath || this.viewmodel.getKeypath( key ).equalsOrStartsWith( keypath ) ) { // TODO is this right?
+			if ( !keypath || this.viewmodel.getModel( key ).equalsOrStartsWith( keypath ) ) { // TODO is this right?
 				bindings.push.apply( bindings, this._twowayBindings[ key ]);
 			}
 		}
@@ -56,15 +56,15 @@ function consolidate ( ractive, bindings ) {
 
 	// Handle groups of `<input type='checkbox' name='{{foo}}' ...>`
 	if ( checkboxGroups.length ) {
-		checkboxGroups.forEach( keypath => {
+		checkboxGroups.forEach( model => {
 			var binding, oldValue, newValue;
 
-			binding = checkboxGroups[ keypath.str ]; // one to represent the entire group
+			binding = checkboxGroups[ model.getKeypath() ]; // one to represent the entire group
 			oldValue = binding.attribute.value;
 			newValue = binding.getValue();
 
 			if ( !arrayContentsMatch( oldValue, newValue ) ) {
-				values[ keypath.getKeypath() ] = newValue;
+				values[ model.getKeypath() ] = newValue;
 			}
 		});
 	}

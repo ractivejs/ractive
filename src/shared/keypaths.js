@@ -87,7 +87,7 @@ Keypath = {
 		// Adapt if we have a valid value and store wrapper
 		if ( typeof value !== 'undefined' && value !== FAILED_LOOKUP ) {
 			// this has side-effect of setting wrapper.value = value
-			this.wrapper = this.owner.adapt( this, value );
+			this.wrapper = this.owner.adapt( this.str, value );
 		}
 
 		// Cache raw value
@@ -243,7 +243,7 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 
 		else {
 			if ( matchingKeypaths[0] === ractive.viewmodel.rootKeypath ) { // first key
-				matchingKeypaths[0] = ractive.viewmodel.getKeypath( key );
+				matchingKeypaths[0] = ractive.viewmodel.getModel( key );
 			} else {
 				matchingKeypaths = matchingKeypaths.map( concatenate( key ) );
 			}

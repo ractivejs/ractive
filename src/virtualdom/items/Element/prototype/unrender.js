@@ -30,7 +30,7 @@ export default function Element$unrender ( shouldDestroy ) {
 		this.binding.unrender();
 
 		this.node._ractive.binding = null;
-		bindings = this.root._twowayBindings[ binding.keypath.str ];
+		bindings = this.root._twowayBindings[ binding.keypath.getKeypath() ];
 		bindings.splice( bindings.indexOf( binding ), 1 );
 	}
 

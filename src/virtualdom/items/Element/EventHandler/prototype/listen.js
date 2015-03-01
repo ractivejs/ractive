@@ -46,7 +46,7 @@ function getCustomHandler ( name ) {
 			var storage = event.node._ractive;
 
 			event.index = storage.index;
-			event.keypath = storage.keypath.str;
+			event.keypath = storage.keypath.getKeypath();
 			event.context = storage.keypath.get();
 
 			storage.events[ name ].fire( event );

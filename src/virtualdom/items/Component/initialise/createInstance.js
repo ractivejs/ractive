@@ -50,36 +50,21 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 			else if ( isArray( attribute ) ) {
 				// this represents dynamic data
 
-				var valueResolve = function ( keypath ) {
-					if ( ready ) {
-						instance.set( key, keypath.get() ); // TODO use viewmodel?
-					} else {
-						data[ key ] = keypath.get();
-					}
-				}
-
 				if ( isSingleInterpolator( attribute ) ) {
-
-					attribute = attribute[0];
-
-					keypath = ractive.viewmodel.getKeypath( attribute, component, valueResolve );
-
-					if ( keypath.isKeypath ) {
-						mappings.push({
-							key: key,
-							keypath: keypath
-						});
-					} else {
-						resolver = keypath;
-					}
+					mappings.push({
+						key: key,
+						model: ractive.viewmodel.getModel( attribute[0], component )
+					});
 				}
 
 				else {
-					resolver = new ComplexParameter( component, attribute, valueResolve);
-				}
-
-				if( resolver ) {
-					resolvers.push( resolver );
+					resolvers.push( ComplexParameter( component, attribute, function ( keypath ) {
+						if ( ready ) {
+							instance.set( key, keypath.get() ); // TODO use viewmodel?
+						} else {
+							data[ key ] = keypath.get();
+						}
+					}) );
 				}
 			}
 

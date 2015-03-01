@@ -1,6 +1,6 @@
 var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
 
-export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
+export default function Viewmodel$smartUpdate ( model, array, newIndices ) {
 	var dependants, oldLength, i;
 
 	oldLength = newIndices.length;
@@ -8,29 +8,29 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	// Indices that are being removed should be marked as dirty
 	newIndices.forEach( ( newIndex, oldIndex ) => {
 		if ( newIndex === -1 ) {
-			keypath.join( oldIndex ).mark( noCascadeOption );
+			model.join( oldIndex ).mark( noCascadeOption );
 		}
 	});
 
 	// Update the model
 	// TODO allow existing array to be updated in place, rather than replaced?
-	this.set( keypath, array, { silent: true } );
+	this.set( model, array, { silent: true } );
 
-	if ( dependants = this.deps[ 'default' ][ keypath.str ] ) {
+	if ( dependants = this.deps[ 'default' ][ model.getKeypath() ] ) {
 		dependants.filter( canShuffle ).forEach( d => d.shuffle( newIndices, array ) );
 	}
 
 	if ( oldLength !== array.length ) {
-		keypath.join( 'length' ).mark( implicitOption );
+		model.join( 'length' ).mark( implicitOption );
 
 		for ( i = oldLength; i < array.length; i += 1 ) {
-			keypath.join( i ).mark();
+			model.join( i ).mark();
 		}
 
 		// don't allow removed indexes beyond end of new array to trigger recomputations
 		// TODO is this still necessary, now that computations are lazy?
 		for ( i = array.length; i < oldLength; i += 1 ) {
-			keypath.join( i ).mark( noCascadeOption );
+			model.join( i ).mark( noCascadeOption );
 		}
 	}
 }

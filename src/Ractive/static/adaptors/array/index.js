@@ -22,7 +22,7 @@ arrayAdaptor = {
 ArrayWrapper = function ( ractive, array, keypath ) {
 	this.root = ractive;
 	this.value = array;
-	this.keypath = ractive.viewmodel.getKeypath( keypath );
+	this.keypath = ractive.viewmodel.getModel( keypath );
 
 	// if this array hasn't already been ractified, ractify it
 	if ( !array._ractive ) {

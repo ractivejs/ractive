@@ -2,25 +2,20 @@ import { normalise } from 'shared/keypaths';
 import getInnerContext from 'shared/getInnerContext';
 
 export default function resolveRef ( ractive, ref, fragment, noUnresolved ) {
-	var keypath;
+	var keypath, viewmodel = ractive.viewmodel;
 
 	ref = normalise( ref );
 
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
-		keypath = ractive.viewmodel.getKeypath( ref.substring( 2 ) );
-
-		// createMappingIfNecessary( ractive, keypath.firstKey, fragment );
+		// TODO: recursive fail!
+		keypath = viewmodel.rootKeypath.getChild( ref.substring( 2 ) );
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
 	// an ancestor reference...
 	else if ( ref[0] === '.' ) {
 		keypath = resolveAncestorRef( getInnerContext( fragment ), ref );
-
-		// if ( keypath ) {
-		// 	createMappingIfNecessary( ractive, keypath.firstKey, fragment );
-		// }
 	}
 
 	// ...otherwise we need to figure out the keypath based on context
@@ -67,90 +62,50 @@ function resolveAncestorRef ( baseContext, ref ) {
 	return baseContext.join( ref );
 }
 
-function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isParentLookup, noUnresolved ) {
-	var context,
+function resolveAmbiguousReference ( ractive, keypath /* string */, fragment, isParentLookup, noUnresolved ) {
+	var
 		keys,
-		key,
-		parentValue,
+		firstKey,
+		context,
 		hasContextChain,
-		parentKeypath,
-		keypath,
+		parentModel,
+		model,
+		testKey,
 		viewmodel = ractive.viewmodel;
 
 
-
-	if ( !ref ) {
-		return viewmodel.rootKeypath;
-	}
-
 	// temp until figure out bcuz logic already in keypath
-	keys = ref.split( '.' ),
-	key = keys.shift();
+	keys = keypath.split( '.' ),
+	firstKey = keys.shift();
 
-	while ( fragment ) {
-		context = fragment.context;
-		fragment = fragment.parent;
 
-		if ( !context ) {
-			continue;
-		}
+	var stack = getContextStack( fragment );
 
+	// We have to try the context stack from the bottom up.
+	// Closer contexts have precedence.
+	for ( var _iterator = stack/*[Symbol.iterator]*/(), _step; !(_step = _iterator.next()).done; ) {
+		context = _step.value;
 		hasContextChain = true;
 
-		if ( viewmodel.hasKeypath( context.getKeypath() + '.' + ref ) ) {
-			return viewmodel.getKeypath( context.getKeypath() + '.' + ref );
-		}
-
-		// parentValue = ractive.viewmodel.get( context );
-		// revist when mapped keypaths are ready
-		// parentValue = context.get();
-
-		// if ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) && key in parentValue ) {
-		// 	return context.join( ref );
-		// }
-
-		if ( context.hasChild( key ) ) {
-			return context.join( ref );
+		if ( model = context.tryJoin( keypath ) ) {
+			return model;
 		}
 	}
 
+	throw new Error('unexpected unresolved');
 	// this block is some core logic about finding keypaths amongst existing
 	// keypath trees and viewmodels
-	if ( key === '' ) {
-		return viewmodel.rootKeypath;
-	}
-	else if ( viewmodel.hasKeypath( ref ) && ( keypath = viewmodel.getKeypath( ref ) ) && ( !noUnresolved || !keypath.unresolved ) ) {
-		return keypath;
-	}
-	// is first key in this viewmodel?
-	else if ( viewmodel.hasKeypath( key ) && ( keypath = viewmodel.getKeypath( key ) ) && ( !noUnresolved || !keypath.unresolved )  ) {
-		parentKeypath = viewmodel.getKeypath( key );
 
-		// parent lives in same viewmodel, join to it to get the new keypath
-		if ( parentKeypath.owner === viewmodel ) {
-			keypath = parentKeypath.join( keys.join( '.' ) );
-		}
-		else {
-			// this keypath already exists as a child over in the other viewmodel
-			if ( parentKeypath.owner.hasKeypath( ref ) ) {
-				keypath = parentKeypath.owner.getKeypath( ref );
-			}
-			// doesn't exist yet, just join to create it
-			else {
-				keypath = parentKeypath.join( keys.join( '.' ) );
-			}
-
-			// store a lookup in "this" viewmodel to the new keypath
-			viewmodel.modelCache[ ref ] = keypath;
-		}
-
-		return keypath;
-	}
-	else if ( viewmodel.rootKeypath.hasChild( key ) ) {
-		// just hasn't been fetched yet
-		return ractive.viewmodel.getKeypath( ref );
+	// Now that we've tried the context stack (or maybe not),
+	// Let's just see if the keypath is in the cache as-is
+	if ( model = viewmodel.tryGetModel( keypath ) ) {
+		return model;
 	}
 
+	// A variation on get Model From Context, from the Root of this instance
+	if ( model = getModelFromRoot( viewmodel, keypath, firstKey, keys ) ) {
+		return model;
+	}
 
 	// If this is an inline component, and it's not isolated, we
 	// can try going up the scope chain
@@ -158,52 +113,123 @@ function resolveAmbiguousReference ( ractive, ref /* string */, fragment, isPare
 		hasContextChain = true;
 		fragment = ractive.component.parentFragment;
 
-		if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, fragment, true, noUnresolved ) ) {
-
-			ractive.viewmodel.modelCache[ key ] = parentKeypath;
-
-			// // We need to create an inter-component binding
-			// ractive.viewmodel.map( ractive.viewmodel.getKeypath( key ), {
-			// 	origin: ractive.parent.viewmodel,
-			// 	keypath: parentKeypath
-			// });
-
-			return ractive.viewmodel.getKeypath( ref );
+		if ( parentModel = resolveAmbiguousReference( ractive.parent, firstKey, fragment, true, noUnresolved ) ) {
+			viewmodel.modelCache[ firstKey ] = parentModel;
+			return viewmodel.getModel( keypath );
 		}
 	}
 
 	// If there's no context chain, and the instance is either a) isolated or
-	// b) an orphan, then we know that the keypath is identical to the reference
+	// b) an orphan, then we know that the keypath is identical to the keypath
 	if ( !isParentLookup && !hasContextChain ) {
 		// the data object needs to have a property by this name,
 		// to prevent future failed lookups
-		ref = ractive.viewmodel.getKeypath( ref );
-		ractive.viewmodel.set( ref, undefined );
-		return ref;
+		model = viewmodel.getModel( keypath );
+
+		// TODO: Still necessary???
+		viewmodel.set( model, undefined );
+
+		return model;
 	}
 }
 
-// function createMappingIfNecessary ( ractive, key ) {
-// 	var parentKeypath;
+function getModelFromContext ( viewmodel, context, keypath, firstKey ) {
 
-// 	if ( !ractive.parent || ractive.isolated || isRootProperty( ractive.viewmodel, key ) ) {
-// 		return;
-// 	}
+	var model, testKey = context.getKeypath() + '.' + keypath;
 
-// 	key = ractive.parent.viewmodel.getKeypath( key );
+	// Is the context + keypath already a cached model?
+	// context "foo", keypath: "bar.qux" and "foo.bar.qux" cached
+	//
+	// We use context.owner because if "foo" is really a local
+	// alias for this model in another viewmodel, say "rum.bah",
+	// then we look for "rum.bah.bar.qux" in that viewmodel
+	if ( model = context.owner.tryGetModel( testKey ) ) {
+		return model;
+	}
 
-// 	if ( parentKeypath = resolveAmbiguousReference( ractive.parent, key, ractive.component.parentFragment, true ) ) {
-// 		ractive.viewmodel.map( key, {
-// 			origin: ractive.parent.viewmodel,
-// 			keypath: parentKeypath
-// 		});
-// 	}
-// }
+	// As long as the context model has a property that matches,
+	// "foo" has a "bar" property, join and create the new model
+	if ( context.hasChild( firstKey ) ) {
+		// this create itermediate children, using purely
+		// the relative keypaths of the owner viewmodel
+		return context.join( keypath );
+	}
+
+	// TODO: no local cache entry is being made at correct path
+	// we don't really know local alias if context.owner is different
+}
+
+function getModelFromRoot ( viewmodel, keypath, firstKey, remainingKeys ) {
+	var parentModel = viewmodel.tryGetModel( firstKey ),
+		model, testKey, endPath;
+
+	endPath = remainingKeys.join('.');
+
+	if ( !parentModel ) {
+		if ( viewmodel.rootKeypath.hasChild( firstKey ) ) {
+			return viewmodel.getModel( firstKey + endPath );
+		}
+		return;
+	}
+
+
+	// this model may already exists as a child over in the other viewmodel
+	testKey = parentModel.getKeypath() + endPath;
+
+	if ( model = parentModel.owner.tryGetModel( testKey ) ) {
+		// ok, just check owner below before returning
+	}
+	else {
+		model = parentModel.join( endPath );
+	}
+
+	// TODO need to add parent keys in keypath
+		// We found the parent via this viewmodel, but it may actually
+	// belong to another parent viewmodel. Check if same owner
+	viewmodel.modelCache[ keypath ] = model;
+
+}
+
+
+function getContextStack ( fragment ){
+
+	return function iterator () {
+		var nextFragment = fragment, root = fragment.root;
+
+		function getNextContext() {
+			var context;
+
+			while ( !context && nextFragment ) {
+				context = nextFragment.context;
+				nextFragment = nextFragment.parent;
+			}
+
+			return context;
+		}
+
+		function getRoot(){
+			if ( root ) {
+				return root.viewmodel.rootKeypath;
+				root = null
+			}
+		}
+
+		return {
+			next () {
+				var value = getNextContext() || getRoot();
+				return {
+					value: value,
+					done: !value
+				};
+			}
+		};
+	};
+}
 
 function isRootProperty ( viewmodel, key ) {
 	// special case for reference to root
 	return key === ''
-		|| viewmodel.hasKeypath( key )
+		|| viewmodel.hasModel( key )
 		|| viewmodel.rootKeypath.hasChild( key );
 
 }

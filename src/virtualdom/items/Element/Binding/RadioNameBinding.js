@@ -7,7 +7,7 @@ var RadioNameBinding = Binding.extend({
 	name: 'name',
 
 	init: function () {
-		this.siblings = getSiblings( this.root._guid, 'radioname', this.keypath.str );
+		this.siblings = getSiblings( this.root._guid, 'radioname', this.keypath.getKeypath() );
 		this.siblings.push( this );
 
 		this.radioName = true; // so that ractive.updateModel() knows what to do with this
@@ -22,7 +22,7 @@ var RadioNameBinding = Binding.extend({
 	render: function () {
 		var node = this.element.node;
 
-		node.name = '{{' + this.keypath.str + '}}';
+		node.name = '{{' + this.keypath.getKeypath() + '}}';
 		node.checked = this.keypath.get() == this.element.getAttribute( 'value' );
 
 		node.addEventListener( 'change', handleDomEvent, false );
@@ -58,7 +58,7 @@ var RadioNameBinding = Binding.extend({
 		Binding.prototype.rebound.call( this, oldKeypath, newKeypath );
 
 		if ( node = this.element.node ) {
-			node.name = '{{' + this.keypath.str + '}}';
+			node.name = '{{' + this.keypath.getKeypath() + '}}';
 		}
 	},
 

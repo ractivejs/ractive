@@ -9,15 +9,12 @@ import Computation from '../Computation/NewComputation';
 import { ExpressionStore, StateStore } from '../model/store';
 
 import { INTERPOLATOR, REFERENCE } from 'config/types';
-import createReferenceResolver, { isSpecialResolver, isIndexResolver } from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
-import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
 
 import runloop from 'global/runloop';
 
 import resolveRef from 'shared/resolveRef';
 
-export default function Viewmodel$getKeypath ( reference, context) {
+export default function Viewmodel$getModel ( reference, context) {
 	var keypath;
 
 	// don't think this is used...
@@ -37,15 +34,13 @@ export default function Viewmodel$getKeypath ( reference, context) {
 	return keypath;
 }
 
-function getByString ( viewmodel, reference ) {
+function getByString ( viewmodel, keypath ) {
 
-	if( viewmodel.hasKeypath( reference ) ) {
-		return viewmodel.modelCache[ reference ];
-	}
-	else {
-		return viewmodel.modelCache[ reference ] = new Model( reference, viewmodel );
+	if ( !keypath ) {
+		return viewmodel.rootKeypath;
 	}
 
+	return viewmodel.rootKeypath.join( keypath );
 }
 
 function getByTemplate ( viewmodel, reference, context ) {
@@ -64,8 +59,8 @@ function getByTemplate ( viewmodel, reference, context ) {
 		model = getReferenceExpressionModel( viewmodel, reference.rx, context );
 	}
 
-	if ( !( model instanceof ProxyModel ) && !model.owner.hasKeypath( model.str ) ) {
-		model.owner.modelCache[ model.str ] = model;
+	if ( !( model instanceof ProxyModel ) && !model.owner.hasModel( model.getKeypath() ) ) {
+		model.owner.modelCache[ model.getKeypath() ] = model;
 	}
 
 	return model;
@@ -116,12 +111,9 @@ function getReferenceExpressionModel ( viewmodel, reference, context ) {
 	members = reference.m.map( ref => getMemberModel( viewmodel, ref, context ) );
 
 	while( member = members.shift() ) {
-		model = new ReferenceModel( member, viewmodel );
-		// TODO: change so parent goes in constructor!
-		model.parent = previous;
+		model = new ReferenceModel( member, previous );
 		previous.addChild( model );
 		model.cascade();
-
 		previous = model;
 	}
 

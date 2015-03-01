@@ -27,7 +27,7 @@ var CheckboxNameBinding = Binding.extend({
 		// Each input has a reference to an array containing it and its
 		// siblings, as two-way binding depends on being able to ascertain
 		// the status of all inputs within the group
-		this.siblings = getSiblings( this.root._guid, 'checkboxes', this.keypath.str );
+		this.siblings = getSiblings( this.root._guid, 'checkboxes', this.keypath.getKeypath() );
 		this.siblings.push( this );
 
 		if ( this.noInitialValue ) {
@@ -60,7 +60,7 @@ var CheckboxNameBinding = Binding.extend({
 			this.isChecked = existingValue == bindingValue;
 		}
 
-		node.name = '{{' + this.keypath.str + '}}';
+		node.name = '{{' + this.keypath.getKeypath() + '}}';
 		node.checked = this.isChecked;
 
 		node.addEventListener( 'change', handleDomEvent, false );

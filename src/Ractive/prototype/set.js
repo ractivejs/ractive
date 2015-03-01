@@ -16,7 +16,7 @@ export default function Ractive$set ( keypath, value ) {
 		for ( keypath in map ) {
 			if ( map.hasOwnProperty( keypath) ) {
 				value = map[ keypath ];
-				model = this.viewmodel.getKeypath( normalise( keypath ) );
+				model = this.viewmodel.getModel( keypath );
 
 				this.viewmodel.set( model, value );
 			}
@@ -25,7 +25,7 @@ export default function Ractive$set ( keypath, value ) {
 
 	// Set a single keypath
 	else {
-		model = this.viewmodel.getKeypath( normalise( keypath ) );
+		model = this.viewmodel.getModel( keypath );
 
 		// TODO a) wildcard test should probably happen at viewmodel level,
 		// b) it should apply to multiple/single set operations

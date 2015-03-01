@@ -13,7 +13,7 @@ export default function Attribute$toString () {
 
 	// Special case - radio names
 	if ( name === 'name' && this.element.name === 'input' && interpolator ) {
-		return 'name={{' + ( interpolator.keypath.str || interpolator.ref ) + '}}';
+		return 'name={{' + ( interpolator.keypath.getKeypath() || interpolator.ref ) + '}}';
 	}
 
 	// Boolean attributes

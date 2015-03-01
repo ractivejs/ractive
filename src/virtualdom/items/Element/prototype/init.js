@@ -80,7 +80,7 @@ export default function Element$init ( options ) {
 		this.binding = binding;
 
 		// register this with the root, so that we can do ractive.updateModel()
-		bindings = this.root._twowayBindings[ binding.keypath.str ] || ( this.root._twowayBindings[ binding.keypath.str ] = [] );
+		bindings = this.root._twowayBindings[ binding.keypath.getKeypath() ] || ( this.root._twowayBindings[ binding.keypath.getKeypath() ] = [] );
 		bindings.push( binding );
 	}
 
