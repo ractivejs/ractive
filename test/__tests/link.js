@@ -16,50 +16,6 @@ test( 'Keypaths can be linked', t => {
 	t.htmlEqual( fixture.innerHTML, 'bip bip' );
 });
 
-/* only for mapped links
-test( 'Only top-level keypaths may be linked.', t => {
-	let ractive = new Ractive({
-		el: fixture,
-		template: '{{ foo.bar }}',
-		data: { baz: { bat: { bar: 21 } } }
-	});
-	t.throws( () => {
-		ractive.link( 'baz.bat.bar', 'foo.bar' );
-	}, /non-root/ );
-});
-
-test( 'Links should not be able to hose up component mappings', t => {
-	let ractive = new Ractive({
-		el: fixture,
-		template: '<foo bar="{{baz}}" />',
-		data: { baz: 'yep' },
-		components: { foo: Ractive.extend({ template: '{{bar}}', data: { bippy: 'nope' } } ) }
-	});
-
-	t.htmlEqual( fixture.innerHTML, 'yep' );
-	t.throws( () => {
-		ractive.findComponent( 'foo' ).link( 'bippy', 'bar' );
-	}, /exists for/ );
-	t.htmlEqual( fixture.innerHTML, 'yep' );
-});
-
-test( 'Linking temporarily overrides exising data', t => {
-	let ractive = new Ractive({
-		el: fixture,
-		template: '{{ foo }}',
-		data: { foo: 'tmp', bar: 'Argyll Arms' }
-	});
-
-	t.htmlEqual( fixture.innerHTML, 'tmp' );
-	ractive.link( 'bar', 'foo' );
-	t.htmlEqual( fixture.innerHTML, 'Argyll Arms' );
-	ractive.set( 'bar', 'Dog & Duck' );
-	t.htmlEqual( fixture.innerHTML, 'Dog & Duck' );
-	ractive.unlink( 'foo' );
-	t.htmlEqual( fixture.innerHTML, 'tmp' );
-});
-*/
-
 test( 'Deep references on links should work as expected', t => {
 	let ractive = new Ractive({
 		el: fixture,

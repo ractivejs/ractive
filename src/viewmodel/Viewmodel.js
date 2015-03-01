@@ -6,7 +6,6 @@ import clearCache from './prototype/clearCache';
 import compute from './prototype/compute';
 import get from './prototype/get';
 import init from './prototype/init';
-import { link, unlink } from './prototype/link';
 import map from './prototype/map';
 import mark from './prototype/mark';
 import merge from './prototype/merge';
@@ -73,7 +72,6 @@ Viewmodel.prototype = {
 	compute: compute,
 	get: get,
 	init: init,
-	link,
 	map: map,
 	mark: mark,
 	merge: merge,
@@ -82,7 +80,6 @@ Viewmodel.prototype = {
 	set: set,
 	smartUpdate: smartUpdate,
 	teardown: teardown,
-	unlink,
 	unregister: unregister
 };
 
