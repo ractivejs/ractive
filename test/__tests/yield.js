@@ -204,3 +204,37 @@ test( 'Named yield must have valid name, not expression (#1681)', t => {
 		});
 	}, /expected legal partial name/ );
 });
+
+test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t => {
+	let template, widget, ractive, Container;
+
+	widget = Ractive.extend({
+		template: '{{yield foo}}'
+	});
+
+	template = `
+		<widget>
+			{{#partial foo}}
+				<p>this is foo</p>
+			{{/partial}}
+		</widget>`;
+
+	ractive = new Ractive({
+		el: fixture,
+		template,
+		components: { widget }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
+
+	Container = Ractive.extend({
+		template,
+		components: { widget }
+	});
+
+	new Container({
+		el: fixture
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
+});
