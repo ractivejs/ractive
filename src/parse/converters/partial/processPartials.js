@@ -31,7 +31,7 @@ function getComponent( path, item ) {
 
 	if ( item.e ) {
 		for ( i = 0; i < path.length; i++ ) {
-			if ( cmp = ( path[i].components || {} )[name] ) {
+			if ( cmp = ( path[i].components || path[i].constructor.components || {} )[name] ) {
 				return cmp;
 			}
 		}

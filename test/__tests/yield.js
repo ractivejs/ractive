@@ -95,7 +95,7 @@ test( 'Events fire in parent context', function ( t ) {
 	simulant.fire( ractive.find( 'button' ), 'click' );
 });
 
-test( 'A component can only have one {{yield}}', function ( t ) {
+test( 'A component can only have one {{yield}}', function () {
 	var Widget, ractive;
 
 	Widget = Ractive.extend({
@@ -199,7 +199,7 @@ test( 'Named yield with a hyphenated name (#1681)', t => {
 
 test( 'Named yield must have valid name, not expression (#1681)', t => {
 	t.throws( () => {
-		let widget = Ractive.extend({
+		Ractive.extend({
 			template: '{{yield "<p>nope</p>"}}'
 		});
 	}, /expected legal partial name/ );
@@ -233,6 +233,32 @@ test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t
 	});
 
 	new Container({
+		el: fixture
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
+});
+
+test( 'Components inherited from more than one generation off work with named yields', t => {
+	let widget = Ractive.extend({
+		template: '{{yield foo}}'
+	});
+
+	let Base = Ractive.extend({
+		components: { widget }
+	});
+
+	let Step1 = Base.extend();
+	let Step2 = Step1.extend();
+	let Step3 = Step2.extend({
+		template: `<widget>
+				{{#partial foo}}
+					<p>this is foo</p>
+				{{/partial}}
+			</widget>`
+	});
+
+	new Step3({
 		el: fixture
 	});
 
