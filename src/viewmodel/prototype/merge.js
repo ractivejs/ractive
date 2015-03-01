@@ -41,6 +41,8 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 	// find new indices for members of oldArray
 	newIndices = mapOldToNewIndex( oldArray, newArray );
 
+	this.set( keypath, array, { silent: true } );
+
 	this.smartUpdate( keypath, array, newIndices, currentArray.length !== array.length );
 }
 

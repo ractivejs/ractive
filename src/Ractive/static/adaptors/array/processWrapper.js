@@ -8,5 +8,7 @@ export default function ( wrapper, array, methodName, newIndices ) {
 		return;
 	}
 
+	root.viewmodel.set( keypath, array, { silent: true } );
+
 	root.viewmodel.smartUpdate( keypath, array, newIndices );
 }
