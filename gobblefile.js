@@ -155,8 +155,8 @@ test = (function () {
 		gobble( 'test/__nodetests' ).moveTo( '__nodetests' ),
 		gobble( 'test/testdeps/samples' )
 			.include( '*.js' )
-			.transform( 'esperanto', { type: 'cjs', sourceMap: false })
 			.transform( 'babel', { whitelist: babelTransformWhitelist, sourceMap: false })
+			.transform( 'esperanto', { type: 'cjs', sourceMap: false })
 			.moveTo( '__nodetests/samples' )
 	]).moveTo( 'test' );
 })();
