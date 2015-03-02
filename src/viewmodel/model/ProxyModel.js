@@ -6,6 +6,11 @@ class ProxyModel extends Model {
 		this.owner = owner;
 		super( key, {} );
 		this.realModel = null;
+		this.isProxy = true;
+	}
+
+	isUnresolved () {
+		return !this.realModel;
 	}
 
 	addChild ( child ) {

@@ -39,16 +39,17 @@ class Model {
 		return !!this.contextCache;
 	}
 
+	tryGetChild ( key ) {
+		return this.contextCache[ key ];
+	}
+
 	cacheChild ( key, child ) {
 		this.contextCache[ key ] = child;
 	}
 
 	startContext () {
-		var cache = this.contextCache = {},
-			children = this.children, child, childKey,
-			key = this.key;
-
-		addChildKeysToCache( cache, this );
+		if ( this.isContext() ) { return; }
+		addChildKeysToCache( this.contextCache = {}, this );
 	}
 
 	join ( keypath ) {
@@ -113,15 +114,10 @@ class Model {
 		};
 	}
 
-	addChild ( child ) {
-		var parent, key;
-
-		child.parent = this;
+	addChild ( child, key = child.key ) {
+		var parent = child.parent = this;
 		child.owner = this.owner;
 		this.children ? this.children.push( child ) : this.children = [ child ];
-
-		parent = this;
-		key = child.key;
 
 		while ( parent ) {
 			if ( parent.isContext() ) {
@@ -130,7 +126,6 @@ class Model {
 			key = parent.key + '.' + key;
 			parent = parent.parent;
 		}
-
 	}
 
 	getKeypath () {
@@ -300,11 +295,8 @@ class Model {
 		}
 	}
 
-
-
-
 	indexJoin ( index, aliases ) {
-		return this.createStateChildren( index, index, index, aliases );
+		return this.createStateChildren( index + '', index, index, aliases );
 	}
 
 	keyJoin ( key, index, aliases ) {
@@ -312,13 +304,15 @@ class Model {
 	}
 
 	keyContext () {
+		this.startContext();
 		this.createStateChild( this.str, '@keypath', this.str );
 	}
 
 	createStateChildren ( propertyOrIndex, key, index, aliases ) {
-		var childKey = this.str + '.' + propertyOrIndex, child, indexAlias, keyAlias;
+		var child, indexAlias, keyAlias;
 
-		child = this.owner.getModel( childKey );
+		child = this.join( propertyOrIndex );
+		child.startContext();
 
 		if ( aliases ) {
 			keyAlias = aliases.find( ref => ref.t ==='k' );
@@ -327,26 +321,23 @@ class Model {
 
 		// TODO need to change for updates (rebinds)
 		// need to hide actual strings and use gets
-		this.createStateChild( child.key, '@keypath', child.key );
-		this.createStateChild( child.key, '@key', key, keyAlias );
-		this.createStateChild( child.key, '@index', index, indexAlias );
+		child.createStateChild( '@keypath', child.key );
+		child.createStateChild( '@key', key, keyAlias );
+		child.createStateChild( '@index', index, indexAlias );
 
 		return child;
 	}
 
-	createStateChild ( parentKey, special, state, alias ) {
-		var key = parentKey + '.' + special, model;
+	createStateChild ( key, state, alias ) {
+		var model;
 
-		if ( !this.owner.hasModel( key ) ) {
+		if ( !( model = this.tryGetChild( key ) ) ) {
 			model = new Model( key, new StateStore( state ) );
-			this.owner.modelCache[ key ] = model;
+			this.addChild( model );
 		}
 
-		if ( alias ) {
-			key = parentKey + '.' + alias.n;
-			if( !this.owner.hasModel( key ) ) {
-				this.owner.modelCache[ key ] = model;
-			}
+		if ( alias && !this.tryGetChild( key = alias.n ) ) {
+			this.addChild( model, key );
 		}
 	}
 

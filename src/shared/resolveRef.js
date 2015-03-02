@@ -92,6 +92,7 @@ function resolveAmbiguousReference ( ractive, keypath /* string */, fragment, is
 		}
 	}
 
+/*
 	throw new Error('unexpected unresolved');
 	// this block is some core logic about finding keypaths amongst existing
 	// keypath trees and viewmodels
@@ -118,10 +119,11 @@ function resolveAmbiguousReference ( ractive, keypath /* string */, fragment, is
 			return viewmodel.getModel( keypath );
 		}
 	}
+*/
 
 	// If there's no context chain, and the instance is either a) isolated or
 	// b) an orphan, then we know that the keypath is identical to the keypath
-	if ( !isParentLookup && !hasContextChain ) {
+	if ( !hasContextChain ) {
 		// the data object needs to have a property by this name,
 		// to prevent future failed lookups
 		model = viewmodel.getModel( keypath );
@@ -194,7 +196,13 @@ function getModelFromRoot ( viewmodel, keypath, firstKey, remainingKeys ) {
 function getContextStack ( fragment ){
 
 	return function iterator () {
-		var nextFragment = fragment, root = fragment.root;
+		var nextFragment, root, iterator;
+
+		function assignFragment ( fragment ) {
+			nextFragment = fragment;
+			root = fragment.root;
+		}
+
 
 		function getNextContext() {
 			var context;
@@ -208,13 +216,25 @@ function getContextStack ( fragment ){
 		}
 
 		function getRoot(){
-			if ( root ) {
-				return root.viewmodel.rootKeypath;
-				root = null
+			var context;
+			if ( !root ) { return; }
+
+			context = root.viewmodel.rootKeypath;
+
+			if ( root.parent && !root.isolated ) {
+				iterator.hasContextChain = true;
+				assignFragment( root.component.parentFragment );
 			}
+			else {
+				root = null;
+			}
+
+			return context;
 		}
 
-		return {
+		assignFragment( fragment );
+
+		iterator = {
 			next () {
 				var value = getNextContext() || getRoot();
 				return {
@@ -223,6 +243,8 @@ function getContextStack ( fragment ){
 				};
 			}
 		};
+
+		return iterator;
 	};
 }
 
