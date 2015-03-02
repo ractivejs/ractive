@@ -45,19 +45,6 @@ config = {
 	// this defines the order. TODO this isn't used anywhere in the codebase,
 	// only in the test suite - should get rid of it
 	order: order,
-
-	// TODO kill this off
-	getConstructTarget: ( ractive, options ) => {
-		if ( options.onconstruct ) {
-			// pretend this object literal is the ractive instance
-			return {
-				onconstruct: wrapPrototype( ractive, 'onconstruct', options.onconstruct ).bind(ractive),
-				fire: ractive.fire.bind(ractive)
-			};
-		} else {
-			return ractive;
-		}
-	}
 };
 
 function configure ( method, Parent, target, options ) {
