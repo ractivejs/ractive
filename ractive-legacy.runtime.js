@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Mar 02 2015 00:38:19 GMT+0000 (UTC) - commit c07987609b3b6bf4912b0bbf4facf5bfcdec9c3b
+	Mon Mar 02 2015 02:34:46 GMT+0000 (UTC) - commit f4af3c0f6ef2dc1c8ae401de90ff6538acc62a7e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4457,21 +4457,7 @@
 
   	// this defines the order. TODO this isn't used anywhere in the codebase,
   	// only in the test suite - should get rid of it
-  	order: order,
-
-  	// TODO kill this off
-  	getConstructTarget: function (ractive, options) {
-  		if (options.onconstruct) {
-  			// pretend this object literal is the ractive instance
-  			return {
-  				onconstruct: wrapPrototype(ractive, "onconstruct", options.onconstruct).bind(ractive),
-  				fire: ractive.fire.bind(ractive)
-  			};
-  		} else {
-  			return ractive;
-  		}
-  	}
-  };
+  	order: order };
 
   function configure(method, Parent, target, options) {
   	deprecate(options);
@@ -13254,7 +13240,7 @@
   	Object.defineProperty(ractive, "data", { get: deprecateRactiveData });
 
   	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
-  	constructHook.fire(config.getConstructTarget(ractive, userOptions), userOptions);
+  	constructHook.fire(ractive, userOptions);
 
   	// Add registries
   	initialise__registryNames.forEach(function (name) {
@@ -13276,6 +13262,9 @@
   	ractive.viewmodel = viewmodel;
   	viewmodel.debug = ractive.debug;
 
+  	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
+  	viewmodel.init();
+
   	// init config from Parent and options
   	config.init(ractive.constructor, ractive, userOptions);
 
@@ -13293,9 +13282,6 @@
   	if (typeof ractive.constructor.prototype.data === "function" && typeof userOptions.data !== "function") {
   		viewmodel.reset(ractive.constructor.prototype.data.call(ractive) || fatal("`data` functions must return a data object"));
   	}
-
-  	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
-  	viewmodel.init();
 
   	// Render virtual DOM
   	if (ractive.template) {
