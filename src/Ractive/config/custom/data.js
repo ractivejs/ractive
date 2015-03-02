@@ -71,8 +71,10 @@ function dispatch ( parent, child ) {
 		child = childIsFn ? child.call( this ) : child,
 		parent = parentIsFn ? parent.call(this) : parent;
 
-		// prefer a function return that is Model to a POJO return or literal
-		if ( parentIsFn && !childIsFn && parent.constructor !== Object ) {
+		// allow parent return value to take precedence if
+		// it is a function that returns non-POJO Model
+		// and child is either not a function or does not return non-POJO
+		if ( ( parentIsFn && parent.constructor !== Object ) && ( !childIsFn || child.constructor === Object ) ) {
 			return fromProperties( parent, child, true );
 		}
 		else {
