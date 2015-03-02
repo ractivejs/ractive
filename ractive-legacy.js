@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Mar 02 2015 02:34:46 GMT+0000 (UTC) - commit f4af3c0f6ef2dc1c8ae401de90ff6538acc62a7e
+	Mon Mar 02 2015 16:07:23 GMT+0000 (UTC) - commit fe00a9c1bea3a0ad597f0dfdfb20576047b4bd3b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3881,36 +3881,6 @@
 
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/css/css.js.map
 
-  var wrap__default = function (method, superMethod, force) {
-
-  	if (force || needsSuper(method, superMethod)) {
-
-  		return function () {
-
-  			var hasSuper = ("_super" in this),
-  			    _super = this._super,
-  			    result;
-
-  			this._super = superMethod;
-
-  			result = method.apply(this, arguments);
-
-  			if (hasSuper) {
-  				this._super = _super;
-  			}
-
-  			return result;
-  		};
-  	} else {
-  		return method;
-  	}
-  };
-
-  function needsSuper(method, superMethod) {
-  	return typeof superMethod === "function" && /_super/.test(method);
-  }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/wrapMethod.js.map
-
   var dataConfigurator = {
   	name: "data",
 
@@ -3919,14 +3889,13 @@
   	},
 
   	init: function (Parent, ractive, options) {
-  		var value = options.data,
-  		    result = dataConfigurator__combine(Parent, ractive, options);
+  		var result = dataConfigurator__combine(Parent, ractive, options);
 
   		if (typeof result === "function") {
-  			result = result.call(ractive) || value;
+  			result = result.call(ractive);
   		}
 
-  		return result;
+  		return result || {};
   	},
 
   	reset: function (ractive) {
@@ -3943,11 +3912,18 @@
 
 
   function dataConfigurator__combine(Parent, target, options) {
-  	var value = options.data || {},
+  	var value = options.data,
   	    parentValue = getAddedKeys(Parent.prototype.data);
 
-  	if (typeof value !== "object" && typeof value !== "function") {
+  	if (value && typeof value !== "object" && typeof value !== "function") {
   		throw new TypeError("data option must be an object or a function, \"" + value + "\" is not valid");
+  	}
+
+  	// Very important, otherwise child instance can become
+  	// the default data object on Ractive or a component.
+  	// then ractive.set() ends up setting on the prototype!
+  	if (!value && typeof parentValue !== "function") {
+  		value = {};
   	}
 
   	return dispatch(parentValue, value);
@@ -3969,92 +3945,47 @@
   }
 
   function dispatch(parent, child) {
-  	if (typeof child === "function") {
-  		return extendFn(child, parent);
-  	} else if (typeof parent === "function") {
-  		return fromFn(child, parent);
-  	} else {
+  	var parentIsFn = typeof parent === "function",
+  	    childIsFn = typeof child === "function";
+
+  	if (!parentIsFn && !childIsFn) {
   		return fromProperties(child, parent);
   	}
-  }
 
-  function copy(from, to, fillOnly) {
-  	for (var key in from) {
-  		if (!(to._mappings && to._mappings[key] && to._mappings[key].updatable) && fillOnly && key in to) {
-  			continue;
+  	return function () {
+  		child = childIsFn ? child.call(this) : child, parent = parentIsFn ? parent.call(this) : parent;
+
+  		// allow parent return value to take precedence if
+  		// it is a function that returns non-POJO Model
+  		// and child is either not a function or does not return non-POJO
+  		if (parentIsFn && parent.constructor !== Object && (!childIsFn || child.constructor === Object)) {
+  			return fromProperties(parent, child, true);
+  		} else {
+  			return fromProperties(child, parent);
   		}
-
-  		to[key] = from[key];
-  	}
-  }
-
-  function fromProperties(child, parent) {
-  	child = child || {};
-
-  	if (!parent) {
-  		return child;
-  	}
-
-  	copy(parent, child, true);
-
-  	return child;
-  }
-
-  function fromFn(child, parentFn) {
-  	return function (data) {
-  		var keys;
-
-  		if (child) {
-  			// Track the keys that our on the child,
-  			// but not on the data. We'll need to apply these
-  			// after the parent function returns.
-  			keys = [];
-
-  			for (var key in child) {
-  				if (!data || !(key in data)) {
-  					keys.push(key);
-  				}
-  			}
-  		}
-
-  		// call the parent fn, use data if no return value
-  		data = parentFn.call(this, data) || data;
-
-  		// Copy child keys back onto data. The child keys
-  		// should take precedence over whatever the
-  		// parent did with the data.
-  		if (keys && keys.length) {
-  			data = data || {};
-
-  			keys.forEach(function (key) {
-  				data[key] = child[key];
-  			});
-  		}
-
-  		return data;
   	};
   }
 
-  function extendFn(childFn, parent) {
-  	var parentFn;
-
-  	if (typeof parent !== "function") {
-  		// copy props to data
-  		parentFn = function (data) {
-  			fromProperties(data, parent);
-  		};
-  	} else {
-  		parentFn = function (data) {
-  			// give parent function it's own this._super context,
-  			// otherwise this._super is from child and
-  			// causes infinite loop
-  			parent = wrap__default(parent, function () {}, true);
-
-  			return parent.call(this, data) || data;
-  		};
+  function fromProperties(from, to, force) {
+  	if (!from) {
+  		return to;
   	}
+  	if (!to) {
+  		return from;
+  	}
+  	if (!to && !from) {
+  		return;
+  	}
+  	copy(to, from, force);
+  	return from;
+  }
 
-  	return wrap__default(childFn, parentFn);
+  function copy(from, to, force) {
+  	for (var key in from) {
+  		if (force || !(key in to)) {
+  			to[key] = from[key];
+  		}
+  	}
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/data.js.map
 
@@ -15719,11 +15650,11 @@
   	configHook.fire(ractive);
   	initHook.begin(ractive);
 
-  	// If this is a component with a function `data` property, call the function
-  	// with `ractive` as context (unless the child was also a function)
-  	if (typeof ractive.constructor.prototype.data === "function" && typeof userOptions.data !== "function") {
-  		viewmodel.reset(ractive.constructor.prototype.data.call(ractive) || fatal("`data` functions must return a data object"));
-  	}
+  	// // If this is a component with a function `data` property, call the function
+  	// // with `ractive` as context (unless the child was also a function)
+  	// if ( typeof ractive.constructor.prototype.data === 'function' && typeof userOptions.data !== 'function' ) {
+  	// 	viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
+  	// }
 
   	// Render virtual DOM
   	if (ractive.template) {
@@ -17030,6 +16961,36 @@
   	updateModel: updateModel__default
   };
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype.js.map
+
+  var wrap__default = function (method, superMethod, force) {
+
+  	if (force || needsSuper(method, superMethod)) {
+
+  		return function () {
+
+  			var hasSuper = ("_super" in this),
+  			    _super = this._super,
+  			    result;
+
+  			this._super = superMethod;
+
+  			result = method.apply(this, arguments);
+
+  			if (hasSuper) {
+  				this._super = _super;
+  			}
+
+  			return result;
+  		};
+  	} else {
+  		return method;
+  	}
+  };
+
+  function needsSuper(method, superMethod) {
+  	return typeof superMethod === "function" && /_super/.test(method);
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/wrapMethod.js.map
 
   var unwrapExtended = unwrap;
 
