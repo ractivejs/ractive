@@ -90,30 +90,40 @@ test( 'data is inherited from grand parent extend (#923)', t => {
 	t.equal( fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD' );
 })
 
-// For removal? (#1594)
-/*test( 'instance data is used as data object', t => {
+test( 'Instance data is used as data object when parent is also object', t => {
 
 	var ractive, data = { foo: 'bar' };
 
 	Ractive.defaults.data = { bar: 'bizz' };
 	ractive = new Ractive( { data: data } );
 
-	t.equal( ractive.data, data );
-});*/
+	t.equal( ractive.get(), data );
+});
 
-// For removal (#1594)
-/*test( 'default data function with no return uses existing data instance', t => {
-	var ractive;
+test( 'Data functions are inherited and pojo keys are copied', t => {
+	var ractive, data1 = { bizz: 'bop' }, data2 = { foo: 'bar' };
 
-	Ractive.defaults.data = function ( d ) { d.bizz = 'bop' };
+	Ractive.defaults.data = function () { return data1; };
+	ractive = new Ractive( { data: data2 } );
 
-	ractive = new Ractive( { data: { foo: 'bar' } } );
+	t.equal( ractive.get(), data2 );
+	t.equal( ractive.get('foo'), 'bar' );
+	t.equal( ractive.get('bizz'), 'bop' );
+});
 
-	t.ok( ractive.data.foo );
-	t.ok( ractive.data.bizz );
-});*/
+test( 'Data functions are inherited and Models are used as data object', t => {
+	function Model () { this.bizz = 'bop'; }
+	var ractive, data = { foo: 'bar' }, model = new Model();
 
-test( 'instance data function takes precedence over default data function', t => {
+	Ractive.defaults.data = function () { return model; };
+	ractive = new Ractive( { data: data } );
+
+	t.equal( ractive.get(), model );
+	t.equal( ractive.get('foo'), 'bar' );
+	t.equal( ractive.get('bizz'), 'bop' );
+});
+
+test( 'instance data function is added to default data function', t => {
 	var ractive;
 
 	Ractive.defaults.data = function () {
@@ -126,8 +136,8 @@ test( 'instance data function takes precedence over default data function', t =>
 		}
 	});
 
-	t.ok( ractive.get( 'bar' ) );
 	t.equal( ractive.get( 'bar' ), 'bizz' );
+	t.equal( ractive.get( 'foo' ), 'fizz' );
 });
 
 test( 'instance data takes precedence over default data but includes unique properties', t => {
@@ -190,53 +200,6 @@ test( 'extend data option includes Ractive defaults.data', t => {
 
 });
 
-// Removed for #1594 - it doesn't really make sense to have a Model constructor
-// as your default data, since no data object is passed to it
-/*test( 'return from data function replaces data instance', t => {
-
-	var Component, ractive;
-
-	function Model ( data ) {
-		if ( !( this instanceof Model ) ) { return new Model( this.get() ); }
-		this.foo = ( data ? data.foo : 'bar' ) || 'bar';
-	}
-
-	// This would be an odd thing to do, unless you
-	// were returning a model instance...
-	Component = Ractive.extend({
-		data: Model
-	});
-
-	ractive = new Component( {
-		el: fixture,
-		template: '{{foo}}'
-	});
-
-	t.ok( ractive.viewmodel.data instanceof Model );
-	t.equal( fixture.innerHTML, 'bar' );
-
-	ractive = new Component( {
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'fizz' }
-	});
-
-	t.equal( fixture.innerHTML, 'fizz' );
-
-	ractive = new Component( {
-		el: fixture,
-		template: '{{foo}}{{bar}}',
-		data: function ( data ) {
-			data = this._super( data );
-			data.bar = 'bizz';
-			return data;
-		}
-	});
-
-	t.ok( ractive.data instanceof Model );
-	t.equal( fixture.innerHTML, 'barbizz' );
-});*/
-
 test( 'initing data with a primitive results in an error', t => {
 	expect( 1 );
 
@@ -250,19 +213,6 @@ test( 'initing data with a primitive results in an error', t => {
 		t.equal( ex.message, 'data option must be an object or a function, "1" is not valid' );
 	}
 });
-
-// For removal (#1594)
-/*test( 'instantiated extend with data uses existing data instance', t => {
-	var Component, ractive, data = { foo: 'bar' } ;
-
-	Component = Ractive.extend({
-		data: function (d) { d.bizz = 'bop' }
-	});
-
-	ractive = new Component( { data: data } );
-	t.equal( ractive.data, data );
-	t.ok( ractive.data.bizz );
-});*/
 
 module( 'Computed Properties and Data in config' )
 
@@ -573,66 +523,3 @@ test( 'Bindings, mappings, and upstream computations should not cause infinite m
 
 	t.htmlEqual( fixture.innerHTML, '{"bar":""}<input />' );
 });
-
-/* Not supported, do we need it?
-test( 'Instantiated component with template function plus instantiation template', t => {
-	var Component, ractive;
-
-	Component = Ractive.extend({
-		template: function( d,p ){ return o.template + '{{fizz}}'; }
-	});
-
-	ractive = new Component({
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'bar', fizz: 'bizz' }
-	});
-
-	t.equal( fixture.innerHTML, 'barbizz' );
-});
-
-
-test( 'Instantiated component with no-return template function with instantiation options', t => {
-	var Component, ractive;
-
-	Component = Ractive.extend({
-		template: function(d,o){ o.template += '{{fizz}}'; }
-	});
-
-	ractive = new Component({
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'bar', fizz: 'bizz' }
-	});
-
-	t.equal( fixture.innerHTML, 'barbizz' );
-});
-
-
-test( 'Instantiated component with data-based template selection function', t => {
-	var Component, ractive;
-
-	Component = Ractive.extend({
-		template: function(t, options){
-			if(options.data.fizz) { return '{{fizz}}'; }
-		}
-	});
-
-	ractive = new Component({
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'bar', fizz: 'bizz' }
-	});
-
-	t.equal( fixture.innerHTML, 'bizz' );
-
-	ractive = new Component({
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'bar' }
-	});
-
-	t.equal( fixture.innerHTML, 'bar' );
-
-});
-*/

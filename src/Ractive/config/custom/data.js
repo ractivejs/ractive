@@ -1,5 +1,3 @@
-import wrap from 'utils/wrapMethod';
-
 var dataConfigurator = {
 	name: 'data',
 
@@ -8,14 +6,13 @@ var dataConfigurator = {
 	},
 
 	init: ( Parent, ractive, options ) => {
-		var value = options.data,
-			result = combine( Parent, ractive, options );
+		var result = combine( Parent, ractive, options );
 
 		if ( typeof result === 'function' ) {
-			result = result.call( ractive ) || value;
+			result = result.call( ractive );
 		}
 
-		return result;
+		return result || {};
 	},
 
 	reset: function ( ractive ) {
@@ -32,11 +29,18 @@ var dataConfigurator = {
 export default dataConfigurator;
 
 function combine ( Parent, target, options ) {
-	var value = options.data || {},
+	var value = options.data,
 		parentValue = getAddedKeys( Parent.prototype.data );
 
-	if ( typeof value !== 'object' && typeof value !== 'function') {
+	if ( value && typeof value !== 'object' && typeof value !== 'function') {
 		throw new TypeError( 'data option must be an object or a function, "' + value + '" is not valid' );
+	}
+
+	// Very important, otherwise child instance can become
+	// the default data object on Ractive or a component.
+	// then ractive.set() ends up setting on the prototype!
+	if ( !value && typeof parentValue !== 'function' ) {
+		value = {};
 	}
 
 	return dispatch( parentValue, value );
@@ -56,88 +60,41 @@ function getAddedKeys ( parent ) {
 }
 
 function dispatch ( parent, child ) {
-	if ( typeof child === 'function' ) {
-		return extendFn( child, parent );
-	} else if ( typeof parent === 'function' ){
-		return fromFn( child, parent );
-	} else {
+	var parentIsFn = typeof parent === 'function',
+		childIsFn = typeof child === 'function';
+
+	if( !parentIsFn && !childIsFn ) {
 		return fromProperties( child, parent );
 	}
-}
 
-function copy ( from, to, fillOnly ) {
-	for ( let key in from ) {
-		if ( !( to._mappings && to._mappings[ key ] && to._mappings[ key ].updatable ) && fillOnly && key in to ) {
-			continue;
+	return function(){
+		child = childIsFn ? child.call( this ) : child,
+		parent = parentIsFn ? parent.call(this) : parent;
+
+		// allow parent return value to take precedence if
+		// it is a function that returns non-POJO Model
+		// and child is either not a function or does not return non-POJO
+		if ( ( parentIsFn && parent.constructor !== Object ) && ( !childIsFn || child.constructor === Object ) ) {
+			return fromProperties( parent, child, true );
 		}
-
-		to[ key ] = from[ key ];
-	}
-}
-
-function fromProperties ( child, parent ) {
-	child = child || {};
-
-	if ( !parent ) { return child; }
-
-	copy( parent, child, true );
-
-	return child;
-}
-
-function fromFn ( child, parentFn ) {
-	return function ( data ) {
-		var keys;
-
-		if ( child ) {
-			// Track the keys that our on the child,
-			// but not on the data. We'll need to apply these
-			// after the parent function returns.
-			keys = [];
-
-			for ( let key in child ) {
-				if ( !data || !( key in data ) ) {
-					keys.push( key );
-				}
-			}
+		else {
+			return fromProperties( child, parent );
 		}
-
-		// call the parent fn, use data if no return value
-		data = parentFn.call( this, data ) || data;
-
-		// Copy child keys back onto data. The child keys
-		// should take precedence over whatever the
-		// parent did with the data.
-		if ( keys && keys.length ) {
-			data = data || {};
-
-			keys.forEach( key => {
-				data[ key ] = child[ key ];
-			});
-		}
-
-		return data;
 	};
 }
 
-function extendFn ( childFn, parent ) {
-	var parentFn;
+function fromProperties ( from, to, force ) {
+	if ( !from ) { return to; }
+	if ( !to ) { return from; }
+	if ( !to && !from ) { return; }
+	copy( to, from, force );
+	return from;
+}
 
-	if ( typeof parent !== 'function' ) {
-		// copy props to data
-		parentFn = function ( data ) {
-			fromProperties( data, parent );
-		};
-	} else {
-		parentFn = function ( data ) {
-			// give parent function it's own this._super context,
-			// otherwise this._super is from child and
-			// causes infinite loop
-			parent = wrap( parent, () => {}, true );
-
-			return parent.call( this, data ) || data;
-		};
+function copy ( from, to, force ) {
+	for ( let key in from ) {
+		if ( force || !( key in to ) ) {
+			to[ key ] = from[ key ];
+		}
 	}
-
-	return wrap( childFn, parentFn );
 }
