@@ -264,6 +264,27 @@ test( 'initing data with a primitive results in an error', t => {
 	t.ok( ractive.data.bizz );
 });*/
 
+module( 'Computed Properties and Data in config' )
+
+test( 'data and computed properties available in onconfig and later', t => {
+	var ractive;
+
+	expect(3);
+
+	ractive = new Ractive({
+		data: { foo: 'bar' },
+		computed: {
+			bizz: '${foo} + "ftw"'
+		},
+		onconfig: function () {
+			t.equal( this.get('foo'), 'bar' );
+			t.equal( this.get('bizz'), 'barftw' );
+			this.set( 'qux', 'config' );
+		}
+	});
+
+	t.equal( ractive.get('qux'), 'config' );
+});
 
 module( 'Template Initialisation', cleanupDefaults );
 
