@@ -214,6 +214,28 @@ test( 'initing data with a primitive results in an error', t => {
 	}
 });
 
+module( 'Computed Properties and Data in config' )
+
+test( 'data and computed properties available in onconfig and later', t => {
+	var ractive;
+
+	expect(3);
+
+	ractive = new Ractive({
+		data: { foo: 'bar' },
+		computed: {
+			bizz: '${foo} + "ftw"'
+		},
+		onconfig: function () {
+			t.equal( this.get('foo'), 'bar' );
+			t.equal( this.get('bizz'), 'barftw' );
+			this.set( 'qux', 'config' );
+		}
+	});
+
+	t.equal( ractive.get('qux'), 'config' );
+});
+
 module( 'Template Initialisation', cleanupDefaults );
 
 
@@ -501,66 +523,3 @@ test( 'Bindings, mappings, and upstream computations should not cause infinite m
 
 	t.htmlEqual( fixture.innerHTML, '{"bar":""}<input />' );
 });
-
-/* Not supported, do we need it?
-test( 'Instantiated component with template function plus instantiation template', t => {
-	var Component, ractive;
-
-	Component = Ractive.extend({
-		template: function( d,p ){ return o.template + '{{fizz}}'; }
-	});
-
-	ractive = new Component({
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'bar', fizz: 'bizz' }
-	});
-
-	t.equal( fixture.innerHTML, 'barbizz' );
-});
-
-
-test( 'Instantiated component with no-return template function with instantiation options', t => {
-	var Component, ractive;
-
-	Component = Ractive.extend({
-		template: function(d,o){ o.template += '{{fizz}}'; }
-	});
-
-	ractive = new Component({
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'bar', fizz: 'bizz' }
-	});
-
-	t.equal( fixture.innerHTML, 'barbizz' );
-});
-
-
-test( 'Instantiated component with data-based template selection function', t => {
-	var Component, ractive;
-
-	Component = Ractive.extend({
-		template: function(t, options){
-			if(options.data.fizz) { return '{{fizz}}'; }
-		}
-	});
-
-	ractive = new Component({
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'bar', fizz: 'bizz' }
-	});
-
-	t.equal( fixture.innerHTML, 'bizz' );
-
-	ractive = new Component({
-		el: fixture,
-		template: '{{foo}}',
-		data: { foo: 'bar' }
-	});
-
-	t.equal( fixture.innerHTML, 'bar' );
-
-});
-*/
