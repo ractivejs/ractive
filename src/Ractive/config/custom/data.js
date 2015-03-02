@@ -71,8 +71,8 @@ function dispatch ( parent, child ) {
 		child = childIsFn ? child.call( this ) : child,
 		parent = parentIsFn ? parent.call(this) : parent;
 
-		// prefer a function object to a literal
-		if ( parentIsFn && !childIsFn ) {
+		// prefer a function return that is Model to a POJO return or literal
+		if ( parentIsFn && !childIsFn && parent.constructor !== Object ) {
 			return fromProperties( parent, child, true );
 		}
 		else {

@@ -100,13 +100,25 @@ test( 'Instance data is used as data object when parent is also object', t => {
 	t.equal( ractive.get(), data );
 });
 
-test( 'Data functions are inherited and have precedence', t => {
-	var ractive, data = { bizz: 'bop' };
+test( 'Data functions are inherited and pojo keys are copied', t => {
+	var ractive, data1 = { bizz: 'bop' }, data2 = { foo: 'bar' };
 
-	Ractive.defaults.data = function () { return data; };
-	ractive = new Ractive( { data: { foo: 'bar' } } );
+	Ractive.defaults.data = function () { return data1; };
+	ractive = new Ractive( { data: data2 } );
 
-	t.equal( ractive.get(), data );
+	t.equal( ractive.get(), data2 );
+	t.equal( ractive.get('foo'), 'bar' );
+	t.equal( ractive.get('bizz'), 'bop' );
+});
+
+test( 'Data functions are inherited and Models are used as data object', t => {
+	function Model () { this.bizz = 'bop'; }
+	var ractive, data = { foo: 'bar' }, model = new Model();
+
+	Ractive.defaults.data = function () { return model; };
+	ractive = new Ractive( { data: data } );
+
+	t.equal( ractive.get(), model );
 	t.equal( ractive.get('foo'), 'bar' );
 	t.equal( ractive.get('bizz'), 'bop' );
 });
