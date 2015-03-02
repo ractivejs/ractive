@@ -77,11 +77,11 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
-	// If this is a component with a function `data` property, call the function
-	// with `ractive` as context (unless the child was also a function)
-	if ( typeof ractive.constructor.prototype.data === 'function' && typeof userOptions.data !== 'function' ) {
-		viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
-	}
+	// // If this is a component with a function `data` property, call the function
+	// // with `ractive` as context (unless the child was also a function)
+	// if ( typeof ractive.constructor.prototype.data === 'function' && typeof userOptions.data !== 'function' ) {
+	// 	viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
+	// }
 
 	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
 	viewmodel.init();
