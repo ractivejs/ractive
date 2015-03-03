@@ -15,6 +15,20 @@ export default function Viewmodel$applyChanges () {
 		return;
 	}
 
+	function invalidateComputation ( computation ) {
+		var key = computation.key;
+
+		if ( computation.viewmodel === self ) {
+			self.clearCache( key.str );
+			computation.invalidate();
+
+			changes.push( key );
+			cascade( key );
+		} else {
+			computation.viewmodel.mark( key );
+		}
+	}
+
 	function cascade ( keypath ) {
 		var map, computations;
 
@@ -23,19 +37,7 @@ export default function Viewmodel$applyChanges () {
 		}
 
 		if ( computations = self.deps.computed[ keypath.str ] ) {
-			computations.forEach( c => {
-				var key = c.key;
-
-				if ( c.viewmodel === self ) {
-					self.clearCache( key.str );
-					c.invalidate();
-
-					changes.push( key );
-					cascade( key );
-				} else {
-					c.viewmodel.mark( key );
-				}
-			});
+			computations.forEach( invalidateComputation );
 		}
 
 		if ( map = self.depsMap.computed[ keypath.str ] ) {
@@ -51,11 +53,7 @@ export default function Viewmodel$applyChanges () {
 
 		// make sure we haven't already been down this particular keypath in this turn
 		if ( changes.indexOf( keypath ) === -1 && ( computations = self.deps.computed[ keypath.str ] ) ) {
-			this.changes.push( keypath );
-
-			computations.forEach( c => {
-				c.viewmodel.mark( c.key );
-			});
+			computations.forEach( invalidateComputation );
 		}
 	});
 
