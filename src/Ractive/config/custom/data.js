@@ -37,44 +37,41 @@ function combine ( parentValue, childValue ) {
 		childValue = {};
 	}
 
-	return dispatch( parentValue, childValue );
-}
+	let parentIsFn = typeof parentValue === 'function';
+	let childIsFn = typeof childValue === 'function';
 
-function dispatch ( parent, child ) {
-	var parentIsFn = typeof parent === 'function',
-		childIsFn = typeof child === 'function';
-
-	if( !parentIsFn && !childIsFn ) {
-		return fromProperties( child, parent );
+	// Fast path, where we just need to copy properties from
+	// parent to child
+	if ( !parentIsFn && !childIsFn ) {
+		return fromProperties( childValue, parentValue );
 	}
 
-	return function(){
-		child = childIsFn ? child.call( this ) : child,
-		parent = parentIsFn ? parent.call(this) : parent;
+	return function () {
+		let child = childIsFn ? childValue.call( this ) : childValue;
+		let parent = parentIsFn ? parentValue.call( this ) : parentValue;
 
 		// allow parent return value to take precedence if
 		// it is a function that returns non-POJO Model
 		// and child is either not a function or does not return non-POJO
 		if ( ( parentIsFn && parent.constructor !== Object ) && ( !childIsFn || child.constructor === Object ) ) {
-			return fromProperties( parent, child, true );
-		}
-		else {
+			return fromProperties( parent, child );
+		} else {
 			return fromProperties( child, parent );
 		}
 	};
 }
 
-function fromProperties ( from, to, force ) {
+function fromProperties ( from, to ) {
 	if ( !from ) { return to; }
 	if ( !to ) { return from; }
 	if ( !to && !from ) { return; }
-	copy( to, from, force );
+	copy( to, from );
 	return from;
 }
 
-function copy ( from, to, force ) {
+function copy ( from, to ) {
 	for ( let key in from ) {
-		if ( force || !( key in to ) ) {
+		if ( !( key in to ) ) {
 			to[ key ] = from[ key ];
 		}
 	}
