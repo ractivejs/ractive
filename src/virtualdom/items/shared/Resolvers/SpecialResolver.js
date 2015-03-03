@@ -1,5 +1,6 @@
 import { SECTION_EACH } from 'config/types';
 import { getKeypath } from 'shared/keypaths'; // TODO maybe we don't need the @ construct now that we have Keypath objects?
+import getInnerContext from 'shared/getInnerContext';
 
 var SpecialResolver = function ( owner, ref, callback ) {
 	this.parentFragment = owner.parentFragment;
@@ -59,14 +60,8 @@ SpecialResolver.prototype = {
 			}
 		}
 
-		else {
-			while ( fragment ) {
-				if ( ( value = getProp( fragment, prop ) ) !== undefined ) {
-					return this.callback( getKeypath( '@' + prop.prefix + value.str ) );
-				}
-
-				fragment = fragment.parent;
-			}
+		else { // context
+			return this.callback( getKeypath( '@' + prop.prefix + getInnerContext( fragment ).str ) );
 		}
 	},
 
