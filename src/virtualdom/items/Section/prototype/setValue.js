@@ -88,7 +88,7 @@ function reevaluateSection ( section, value ) {
 		owner:      section
 	};
 
-	section.noContext = false;
+	section.hasContext = true;
 
 	// If we already know the section type, great
 	// TODO can this be optimised? i.e. pick an reevaluateSection function during init
@@ -96,11 +96,11 @@ function reevaluateSection ( section, value ) {
 	if ( section.subtype ) {
 		switch ( section.subtype ) {
 			case SECTION_IF:
-			section.noContext = true;
+			section.hasContext = false;
 			return reevaluateConditionalSection( section, value, false, fragmentOptions );
 
 			case SECTION_UNLESS:
-			section.noContext = true;
+			section.hasContext = false;
 			return reevaluateConditionalSection( section, value, true, fragmentOptions );
 
 			case SECTION_WITH:

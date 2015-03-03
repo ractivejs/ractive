@@ -3,7 +3,7 @@ import { assignNewKeypath } from 'shared/keypaths';
 export default function Fragment$rebind ( oldKeypath, newKeypath ) {
 
 	// assign new context keypath if needed
-	if ( !this.owner || !this.owner.noContext ) {
+	if ( !this.owner || this.owner.hasContext ) {
 		assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 	}
 

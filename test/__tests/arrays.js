@@ -218,15 +218,15 @@ test( 'Event handlers in inside iterative sections should be rebound correctly',
 test( "Nested sections don't grow a context on rebind during smart updates #1737", t => {
 	let ractive = new Ractive({
 		el: fixture,
-		template: '{{#each outer}}{{#each inner}}{{@keypath}} {{#if .foo || some.prop > 3}}{{@keypath}}{{/if}}<br/>{{/each}}{{/each}}',
+		template: '{{#each outer}}{{#each inner}}{{@keypath}} {{#if .foo || some.prop > 3}}<span>{{@keypath}}</span>{{/if}}<br/>{{/each}}{{/each}}',
 		data: { outer: [ { inner: [ { foo: true }, 1 ] } ], some: { prop: 10 } }
 	});
 
-	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 outer.0.inner.0<br/>outer.0.inner.1 outer.0.inner.1<br/>' );
+	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.0.inner.1 <span>outer.0.inner.1</span><br/>' );
 
 	ractive.unshift( 'outer', { inner: [ 0 ] } );
 
-	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 outer.0.inner.0<br/>outer.1.inner.0 outer.1.inner.0<br/>outer.1.inner.1 outer.1.inner.1<br/>' );
+	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.1.inner.0 <span>outer.1.inner.0</span><br/>outer.1.inner.1 <span>outer.1.inner.1</span><br/>' );
 });
 
 function removedElementsTest ( action, fn ) {
