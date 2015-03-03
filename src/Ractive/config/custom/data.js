@@ -2,11 +2,11 @@ var dataConfigurator = {
 	name: 'data',
 
 	extend: ( Parent, proto, options ) => {
-		proto.data = combine( Parent, proto, options );
+		proto.data = combine( proto.data, options.data );
 	},
 
 	init: ( Parent, ractive, options ) => {
-		var result = combine( Parent, ractive, options );
+		var result = combine( Parent.prototype.data, options.data );
 
 		if ( typeof result === 'function' ) {
 			result = result.call( ractive );
@@ -25,35 +25,19 @@ var dataConfigurator = {
 
 export default dataConfigurator;
 
-function combine ( Parent, target, options ) {
-	var value = options.data,
-		parentValue = getAddedKeys( Parent.prototype.data );
-
-	if ( value && typeof value !== 'object' && typeof value !== 'function') {
-		throw new TypeError( 'data option must be an object or a function, "' + value + '" is not valid' );
+function combine ( parentValue, childValue ) {
+	if ( childValue && typeof childValue !== 'object' && typeof childValue !== 'function') {
+		throw new TypeError( 'data option must be an object or a function, "' + childValue + '" is not valid' );
 	}
 
 	// Very important, otherwise child instance can become
 	// the default data object on Ractive or a component.
 	// then ractive.set() ends up setting on the prototype!
-	if ( !value && typeof parentValue !== 'function' ) {
-		value = {};
+	if ( !childValue && typeof parentValue !== 'function' ) {
+		childValue = {};
 	}
 
-	return dispatch( parentValue, value );
-}
-
-function getAddedKeys ( parent ) {
-	// only for functions that had keys added
-	if ( typeof parent !== 'function' || !Object.keys( parent ).length ) { return parent; }
-
-	// copy the added keys to temp 'object', otherwise
-	// parent would be interpreted as 'function' by dispatch
-	let temp = {};
-	copy( parent, temp );
-
-	// roll in added keys
-	return dispatch( parent, temp );
+	return dispatch( parentValue, childValue );
 }
 
 function dispatch ( parent, child ) {
