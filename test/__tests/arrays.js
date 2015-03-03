@@ -1,5 +1,6 @@
 var List, baseItems;
 
+/* global console */
 module( 'Arrays' );
 
 List = Ractive.extend({
@@ -214,6 +215,20 @@ test( 'Event handlers in inside iterative sections should be rebound correctly',
 	t.equal( ractive.fragment.items[0].fragments[2].items[0].eventHandlers[0].keypaths.length, 1 );
 });
 
+test( "Nested sections don't grow a context on rebind during smart updates #1737", t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{#each outer}}{{#each inner}}{{@keypath}} {{#if .foo || some.prop > 3}}{{@keypath}}{{/if}}<br/>{{/each}}{{/each}}',
+		data: { outer: [ { inner: [ { foo: true }, 1 ] } ], some: { prop: 10 } }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 outer.0.inner.0<br/>outer.0.inner.1 outer.0.inner.1<br/>' );
+
+	ractive.unshift( 'outer', { inner: [ 0 ] } );
+
+	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 outer.0.inner.0<br/>outer.1.inner.0 outer.1.inner.0<br/>outer.1.inner.1 outer.1.inner.1<br/>' );
+});
+
 function removedElementsTest ( action, fn ) {
 	test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', function ( t ) {
 		var warn = console.warn, observed = false;
@@ -221,7 +236,7 @@ function removedElementsTest ( action, fn ) {
 		expect( 4 );
 
 		console.warn = function (err) {
-			throw err
+			throw err;
 		};
 
 		try {
@@ -232,8 +247,8 @@ function removedElementsTest ( action, fn ) {
 				data: {
 					options: [ 'a', 'b', 'c' ],
 					get: function ( item ){
-						if(!item) { throw new Error('item should not be undefined'); }
-						return item
+						if ( !item ) { throw new Error('item should not be undefined'); }
+						return item;
 					}
 				}
 			});
