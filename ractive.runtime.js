@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Mar 03 2015 19:29:16 GMT+0000 (UTC) - commit 84f692bd420cd2ceb4fc59f22417f4fd9efa1e11
+	Tue Mar 03 2015 19:53:41 GMT+0000 (UTC) - commit bd2e5d57ae59743d2451efc5c7699f29a620d023
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11340,6 +11340,20 @@
   		return;
   	}
 
+  	function invalidateComputation(computation) {
+  		var key = computation.key;
+
+  		if (computation.viewmodel === self) {
+  			self.clearCache(key.str);
+  			computation.invalidate();
+
+  			changes.push(key);
+  			cascade(key);
+  		} else {
+  			computation.viewmodel.mark(key);
+  		}
+  	}
+
   	function cascade(keypath) {
   		var map, computations;
 
@@ -11348,19 +11362,7 @@
   		}
 
   		if (computations = self.deps.computed[keypath.str]) {
-  			computations.forEach(function (c) {
-  				var key = c.key;
-
-  				if (c.viewmodel === self) {
-  					self.clearCache(key.str);
-  					c.invalidate();
-
-  					changes.push(key);
-  					cascade(key);
-  				} else {
-  					c.viewmodel.mark(key);
-  				}
-  			});
+  			computations.forEach(invalidateComputation);
   		}
 
   		if (map = self.depsMap.computed[keypath.str]) {
@@ -11376,11 +11378,7 @@
 
   		// make sure we haven't already been down this particular keypath in this turn
   		if (changes.indexOf(keypath) === -1 && (computations = self.deps.computed[keypath.str])) {
-  			_this.changes.push(keypath);
-
-  			computations.forEach(function (c) {
-  				c.viewmodel.mark(c.key);
-  			});
+  			computations.forEach(invalidateComputation);
   		}
   	});
 
