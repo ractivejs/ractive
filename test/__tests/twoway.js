@@ -498,6 +498,22 @@ test( 'Ambiguous reference expressions in two-way bindings attach to the root (#
 	t.htmlEqual( fixture.innerHTML, '<p>foo[0]: test</p><input>' );
 });
 
+test( 'Ambiguous references trigger a warning (#1692)', function ( t ) {
+	var warn = console.warn;
+	console.warn = warning => {
+		t.ok( /ambiguous/.test( warning ) );
+	};
+
+	expect( 1 );
+
+	var ractive = new Ractive({
+		el: fixture,
+		template: `{{#with whatever}}<input value='{{foo}}'>{{/with}}`
+	});
+
+	console.warn = warn;
+});
+
 test( 'Static bindings can only be one-way (#1149)', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,
