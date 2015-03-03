@@ -4,6 +4,7 @@ import flattenExpression from 'parse/utils/flattenExpression';
 import parseJSON from 'utils/parseJSON';
 
 var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/,
+	methodCallExcessPattern = /\)\s*$/,
 	ExpressionParser;
 
 ExpressionParser = Parser.extend({
@@ -11,7 +12,7 @@ ExpressionParser = Parser.extend({
 });
 
 // TODO clean this up, it's shocking
-export default function processDirective ( tokens ) {
+export default function processDirective ( tokens, parentParser ) {
 	var result,
 		match,
 		parser,
@@ -24,8 +25,15 @@ export default function processDirective ( tokens ) {
 
 	if ( typeof tokens === 'string' ) {
 		if ( match = methodCallPattern.exec( tokens ) ) {
+			let end = tokens.lastIndexOf(')');
+
+			// check for invalid method calls
+			if ( !methodCallExcessPattern.test( tokens ) ) {
+				parentParser.error( `Invalid input after method call expression '${tokens.slice(end + 1)}'` );
+			}
+
 			result = { m: match[1] };
-			args = '[' + tokens.slice( result.m.length + 1, -1 ) + ']';
+			args = '[' + tokens.slice( result.m.length + 1, end ) + ']';
 
 			parser = new ExpressionParser( args );
 			result.a = flattenExpression( parser.result[0] );
