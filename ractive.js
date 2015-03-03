@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Mar 02 2015 16:07:23 GMT+0000 (UTC) - commit fe00a9c1bea3a0ad597f0dfdfb20576047b4bd3b
+	Tue Mar 03 2015 19:29:16 GMT+0000 (UTC) - commit 84f692bd420cd2ceb4fc59f22417f4fd9efa1e11
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5780,18 +5780,26 @@
   // TODO clean this up, it's shocking
 
   var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/,
+      methodCallExcessPattern = /\)\s*$/,
       ExpressionParser;
 
   ExpressionParser = Parser.extend({
   	converters: [readExpression]
   });
-  function processDirective(tokens) {
+  function processDirective(tokens, parentParser) {
   	var result, match, parser, args, token, colonIndex, directiveName, directiveArgs, parsed;
 
   	if (typeof tokens === "string") {
   		if (match = methodCallPattern.exec(tokens)) {
+  			var end = tokens.lastIndexOf(")");
+
+  			// check for invalid method calls
+  			if (!methodCallExcessPattern.test(tokens)) {
+  				parentParser.error("Invalid input after method call expression '" + tokens.slice(end + 1) + "'");
+  			}
+
   			result = { m: match[1] };
-  			args = "[" + tokens.slice(result.m.length + 1, -1) + "]";
+  			args = "[" + tokens.slice(result.m.length + 1, end) + "]";
 
   			parser = new ExpressionParser(args);
   			result.a = flattenExpression(parser.result[0]);
@@ -5960,13 +5968,13 @@
   		if (attribute.name) {
   			// intro, outro, decorator
   			if (directiveName = directives[attribute.name]) {
-  				element[directiveName] = processDirective(attribute.value);
+  				element[directiveName] = processDirective(attribute.value, parser);
   			}
 
   			// on-click etc
   			else if (match = proxyEventPattern.exec(attribute.name)) {
   				if (!element.v) element.v = {};
-  				directive = processDirective(attribute.value);
+  				directive = processDirective(attribute.value, parser);
   				addProxyEvent(match[1], directive);
   			} else {
   				if (!parser.sanitizeEventAttributes || !onPattern.test(attribute.name)) {
