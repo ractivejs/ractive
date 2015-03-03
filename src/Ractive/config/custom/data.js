@@ -30,15 +30,15 @@ function combine ( parentValue, childValue ) {
 		throw new TypeError( 'data option must be an object or a function, "' + childValue + '" is not valid' );
 	}
 
+	let parentIsFn = typeof parentValue === 'function';
+	let childIsFn = typeof childValue === 'function';
+
 	// Very important, otherwise child instance can become
 	// the default data object on Ractive or a component.
 	// then ractive.set() ends up setting on the prototype!
-	if ( !childValue && typeof parentValue !== 'function' ) {
+	if ( !childValue && !parentIsFn ) {
 		childValue = {};
 	}
-
-	let parentIsFn = typeof parentValue === 'function';
-	let childIsFn = typeof childValue === 'function';
 
 	// Fast path, where we just need to copy properties from
 	// parent to child
@@ -61,18 +61,16 @@ function combine ( parentValue, childValue ) {
 	};
 }
 
-function fromProperties ( from, to ) {
-	if ( !from ) { return to; }
-	if ( !to ) { return from; }
-	if ( !to && !from ) { return; }
-	copy( to, from );
-	return from;
-}
-
-function copy ( from, to ) {
-	for ( let key in from ) {
-		if ( !( key in to ) ) {
-			to[ key ] = from[ key ];
+function fromProperties ( primary, secondary ) {
+	if ( primary && secondary ) {
+		for ( let key in secondary ) {
+			if ( !( key in primary ) ) {
+				primary[ key ] = secondary[ key ];
+			}
 		}
+
+		return primary;
 	}
+
+	return primary || secondary;
 }
