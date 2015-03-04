@@ -617,42 +617,6 @@ test( 'Two-way binding can be set up against expressions that resolve to regular
 	t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
 });
 
-test( 'Instances of subclasses with non-POJO default models have the correct prototype', function ( t ) {
-	var Model, Subclass, instance;
-
-	Model = function ( data ) {
-		var key;
-
-		for ( key in data ) {
-			if ( data.hasOwnProperty( key ) ) {
-				this[ key ] = data[ key ];
-			}
-		}
-	};
-
-	Model.prototype.test = function () {
-		t.ok( true );
-	};
-
-	Subclass = Ractive.extend({
-		data () {
-			return new Model({
-				foo: 'bar'
-			});
-		}
-	});
-
-	instance = new Subclass({
-		el: fixture,
-		template: '{{foo}}{{bar}}',
-		data: {
-			bar: 'baz'
-		}
-	});
-
-	t.ok( instance.viewmodel.data instanceof Model );
-});
-
 test( 'Regression test for #798', function ( t ) {
 	var ClassA, ClassB, ractive;
 
