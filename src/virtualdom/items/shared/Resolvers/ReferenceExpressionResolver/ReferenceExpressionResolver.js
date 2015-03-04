@@ -20,10 +20,10 @@ var ReferenceExpressionResolver = function ( mustache, template, callback ) {
 	if ( keypath = resolveRef( ractive, ref, parentFragment ) ) {
 		this.base = keypath;
 	} else {
-		this.baseResolver = new ReferenceResolver( this, ref, keypath => {
+		this.baseResolver = new ReferenceResolver( this, ref, ( keypath, newValue ) => {
 			this.base = keypath;
 			this.baseResolver = null;
-			this.bubble();
+			this.bubble( newValue === undefined ? true : newValue );
 		});
 	}
 
@@ -45,29 +45,29 @@ ReferenceExpressionResolver.prototype = {
 		return this.base.join( values.join( '.' ) );
 	},
 
-	bubble: function () {
+	bubble: function ( newValue = true ) {
 		if ( !this.ready || this.baseResolver ) {
 			return;
 		}
 
-		this.callback( this.getKeypath() );
+		this.callback( this.getKeypath(), newValue );
 	},
 
 	unbind: function () {
 		this.members.forEach( unbind );
 	},
 
-	rebind: function ( oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath, newValue = true ) {
 		var changed;
 
 		this.members.forEach( members => {
-			if ( members.rebind( oldKeypath, newKeypath ) ) {
+			if ( members.rebind( oldKeypath, newKeypath, newValue ) ) {
 				changed = true;
 			}
 		});
 
 		if ( changed ) {
-			this.bubble();
+			this.bubble( newValue );
 		}
 	},
 

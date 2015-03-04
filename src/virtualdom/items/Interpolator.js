@@ -17,7 +17,14 @@ Interpolator.prototype = {
 		this.node.data = ( this.value == undefined ? '' : this.value );
 	},
 	resolve: Mustache.resolve,
-	rebind: Mustache.rebind,
+	rebind( oldKeypath, newKeypath, newValue = true ) {
+		if ( this.keypath && this.keypath.startsWith( oldKeypath ) ) {
+			this.root.viewmodel.unregister( this.keypath, this );
+			this.keypath = this.keypath.replace( oldKeypath, newKeypath );
+			this.root.viewmodel.register( this.keypath, this );
+		}
+		Mustache.rebind.call( this, oldKeypath, newKeypath, newValue );
+	},
 	detach: detach,
 
 	unbind: unbind,

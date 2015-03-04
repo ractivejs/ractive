@@ -21,8 +21,8 @@ ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 	// Create resolvers for each reference
 	this.pending = expression.r.length;
 	this.refResolvers = expression.r.map( ( ref, i ) => {
-		return createReferenceResolver( this, ref, keypath => {
-			this.resolve( i, keypath );
+		return createReferenceResolver( this, ref, ( keypath, newValue ) => {
+			this.resolve( i, keypath, newValue === undefined ? true : newValue );
 		});
 	});
 
@@ -31,7 +31,7 @@ ExpressionResolver = function ( owner, parentFragment, expression, callback ) {
 };
 
 ExpressionResolver.prototype = {
-	bubble () {
+	bubble ( newValue = true ) {
 		if ( !this.ready ) {
 			return;
 		}
@@ -40,7 +40,7 @@ ExpressionResolver.prototype = {
 		this.keypath = createExpressionKeypath( this.uniqueString );
 
 		this.createEvaluator();
-		this.callback( this.keypath );
+		this.callback( this.keypath, newValue );
 	},
 
 	unbind () {
@@ -51,9 +51,9 @@ ExpressionResolver.prototype = {
 		}
 	},
 
-	resolve ( index, keypath ) {
+	resolve ( index, keypath, newValue = true ) {
 		this.keypaths[ index ] = keypath;
-		this.bubble();
+		this.bubble( newValue );
 	},
 
 	createEvaluator () {
@@ -102,9 +102,9 @@ ExpressionResolver.prototype = {
 		}
 	},
 
-	rebind ( oldKeypath, newKeypath ) {
+	rebind ( oldKeypath, newKeypath, newValue = true ) {
 		// TODO only bubble once, no matter how many references are affected by the rebind
-		this.refResolvers.forEach( r => r.rebind( oldKeypath, newKeypath ) );
+		this.refResolvers.forEach( r => r.rebind( oldKeypath, newKeypath, newValue ) );
 	}
 };
 

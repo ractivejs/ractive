@@ -14,21 +14,21 @@ var MemberResolver = function ( template, resolver, parentFragment ) {
 
 	// Simple reference?
 	else if ( template.t === REFERENCE ) {
-		this.refResolver = createReferenceResolver( this, template.n, keypath => {
-			this.resolve( keypath );
+		this.refResolver = createReferenceResolver( this, template.n, ( keypath, newValue ) => {
+			this.resolve( keypath, newValue === undefined ? true : newValue );
 		});
 	}
 
 	// Otherwise we have an expression in its own right
 	else {
-		new ExpressionResolver( resolver, parentFragment, template, keypath => {
-			this.resolve( keypath );
+		new ExpressionResolver( resolver, parentFragment, template, ( keypath, newValue ) => {
+			this.resolve( keypath, newValue === undefined ? true : newValue );
 		});
 	}
 };
 
 MemberResolver.prototype = {
-	resolve: function ( keypath ) {
+	resolve: function ( keypath, newValue = true ) {
 		if ( this.keypath ) {
 			this.viewmodel.unregister( this.keypath, this );
 		}
@@ -38,16 +38,16 @@ MemberResolver.prototype = {
 
 		this.bind();
 
-		this.resolver.bubble();
+		this.resolver.bubble( newValue );
 	},
 
 	bind: function () {
 		this.viewmodel.register( this.keypath, this );
 	},
 
-	rebind: function ( oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath, newValue = true ) {
 		if ( this.refResolver ) {
-			this.refResolver.rebind( oldKeypath, newKeypath );
+			this.refResolver.rebind( oldKeypath, newKeypath, newValue );
 		}
 	},
 
