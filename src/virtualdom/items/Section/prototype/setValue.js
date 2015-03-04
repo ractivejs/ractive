@@ -143,6 +143,7 @@ function reevaluateSection ( section, value ) {
 
 	// Conditional section
 	changeCurrentSubtype( section, SECTION_IF, false );
+	section.hasContext = false;
 	return reevaluateConditionalSection( section, value, false, fragmentOptions );
 }
 
