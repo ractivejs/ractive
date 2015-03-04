@@ -1,4 +1,5 @@
 export default function Section$unrender ( shouldDestroy ) {
+	console.log('what?')
 	this.fragments.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
 	this.renderedFragments = [];
 	this.rendered = false;

@@ -1,4 +1,4 @@
-export default function Mustache$resolve ( keypath ) {
+export default function Mustache$resolve ( keypath, newValue = true ) {
 	var wasResolved, value, twowayBinding;
 
 	// 'Special' keypaths, e.g. @foo or @7, encode a value
@@ -29,7 +29,10 @@ export default function Mustache$resolve ( keypath ) {
 
 	// Either way we need to queue up a render (`value`
 	// will be `undefined` if there's no keypath)
-	this.setValue( value );
+	// unless we know there is no new value
+	if ( newValue ) {
+		this.setValue( value );
+	}
 
 	// Two-way bindings need to point to their new target keypath
 	if ( wasResolved && ( twowayBinding = this.twowayBinding ) ) {

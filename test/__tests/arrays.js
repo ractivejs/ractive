@@ -229,6 +229,23 @@ test( "Nested sections don't grow a context on rebind during smart updates #1737
 	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.1.inner.0 <span>outer.1.inner.0</span><br/>outer.1.inner.1 <span>outer.1.inner.1</span><br/>' );
 });
 
+test( 'Array updates cause sections to shuffle correctly', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{#each items}}{{.title}}{{#each .tags}}{{.}}{{/each}}{{/each}}',
+		data: {
+			items: [
+				{ title: 'one', tags: [ 'A' ] },
+				{ title: 'two', tags: [ 'B', 'C' ] }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'oneAtwoBC' );
+	ractive.unshift( 'items', { title: 'three' } );
+	t.htmlEqual( fixture.innerHTML, 'threeoneAtwoBC' );
+});
+
 function removedElementsTest ( action, fn ) {
 	test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', function ( t ) {
 		var warn = console.warn, observed = false;

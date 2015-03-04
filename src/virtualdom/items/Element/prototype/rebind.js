@@ -1,6 +1,6 @@
 import { assignNewKeypath } from 'shared/keypaths';
 
-export default function Element$rebind ( oldKeypath, newKeypath ) {
+export default function Element$rebind ( oldKeypath, newKeypath, newValue = true ) {
 	var i, storage, liveQueries, ractive;
 
 	if ( this.attributes ) {
@@ -41,6 +41,6 @@ export default function Element$rebind ( oldKeypath, newKeypath ) {
 	}
 
 	function rebind ( thing ) {
-		thing.rebind( oldKeypath, newKeypath );
+		thing.rebind( oldKeypath, newKeypath, newValue );
 	}
 }

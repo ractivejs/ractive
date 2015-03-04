@@ -1,6 +1,6 @@
 import { assignNewKeypath } from 'shared/keypaths';
 
-export default function Fragment$rebind ( oldKeypath, newKeypath ) {
+export default function Fragment$rebind ( oldKeypath, newKeypath, newValue = true ) {
 
 	// assign new context keypath if needed
 	if ( !this.owner || this.owner.hasContext ) {
@@ -9,7 +9,7 @@ export default function Fragment$rebind ( oldKeypath, newKeypath ) {
 
 	this.items.forEach( item => {
 		if ( item.rebind ) {
-			item.rebind( oldKeypath, newKeypath );
+			item.rebind( oldKeypath, newKeypath, newValue );
 		}
 	});
 }
