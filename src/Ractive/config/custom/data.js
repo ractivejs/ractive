@@ -1,3 +1,18 @@
+import { fatal, warn } from 'utils/log';
+
+function validate ( data ) {
+	// Warn if userOptions.data is a non-POJO
+	if ( data && data.constructor !== Object ) {
+		if ( typeof data === 'function' ) {
+			// TODO do we need to support this in the new Ractive() case?
+		} else if ( typeof data !== 'object' ) {
+			fatal( `data option must be an object or a function, \`${data}\` is not valid` );
+		} else {
+			warn( 'If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged' );
+		}
+	}
+}
+
 var dataConfigurator = {
 	name: 'data',
 
@@ -26,9 +41,7 @@ var dataConfigurator = {
 export default dataConfigurator;
 
 function combine ( parentValue, childValue ) {
-	if ( childValue && typeof childValue !== 'object' && typeof childValue !== 'function') {
-		throw new TypeError( 'data option must be an object or a function, "' + childValue + '" is not valid' );
-	}
+	validate( childValue );
 
 	let parentIsFn = typeof parentValue === 'function';
 	let childIsFn = typeof childValue === 'function';
@@ -50,14 +63,7 @@ function combine ( parentValue, childValue ) {
 		let child = childIsFn ? childValue.call( this ) : childValue;
 		let parent = parentIsFn ? parentValue.call( this ) : parentValue;
 
-		// allow parent return value to take precedence if
-		// it is a function that returns non-POJO Model
-		// and child is either not a function or does not return non-POJO
-		if ( ( parentIsFn && parent.constructor !== Object ) && ( !childIsFn || child.constructor === Object ) ) {
-			return fromProperties( parent, child );
-		} else {
-			return fromProperties( child, parent );
-		}
+		return fromProperties( child, parent );
 	};
 }
 
