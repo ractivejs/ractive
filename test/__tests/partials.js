@@ -714,3 +714,22 @@ test( 'Named partials should not get rebound if they happen to have the same nam
 
 	t.htmlEqual( fixture.innerHTML, 'abcc' );
 });
+
+test( 'Several inline partials containing elements can be defined (#1736)', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: `
+			<!-- {{>part1}} -->
+			<div>inline1</div>
+			<!-- {{/part1}} -->
+			<!-- {{>part2}} -->
+			<div>inline2</div>
+			<!-- {{/part2}} -->
+			A{{>part1}}B{{>part2}}C
+		`
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'A<div>inline1</div>B<div>inline2</div>C' );
+	t.equal( ractive.partials.part1.length, 1 );
+	t.equal( ractive.partials.part2.length, 1 );
+});

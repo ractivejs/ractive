@@ -114,20 +114,20 @@ function readElement ( parser ) {
 		if ( attribute.name ) {
 			// intro, outro, decorator
 			if ( directiveName = directives[ attribute.name ] ) {
-				element[ directiveName ] = processDirective( attribute.value );
+				element[ directiveName ] = processDirective( attribute.value, parser );
 			}
 
 			// on-click etc
 			else if ( match = proxyEventPattern.exec( attribute.name ) ) {
 				if ( !element.v ) element.v = {};
-				directive = processDirective( attribute.value );
+				directive = processDirective( attribute.value, parser );
 				addProxyEvent( match[1], directive );
 			}
 
 			else {
 				if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
 					if ( !element.a ) element.a = {};
-					element.a[ attribute.name ] = attribute.value || 0;
+					element.a[ attribute.name ] = attribute.value || ( attribute.value === '' ? '' : 0 );
 				}
 			}
 		}

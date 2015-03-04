@@ -45,7 +45,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	Object.defineProperty( ractive, 'data', { get: deprecateRactiveData });
 
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
-	constructHook.fire( config.getConstructTarget( ractive, userOptions ), userOptions );
+	constructHook.fire( ractive, userOptions );
 
 	// Add registries
 	registryNames.forEach( name => {
@@ -65,6 +65,9 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	ractive.viewmodel = viewmodel;
 	viewmodel.debug = ractive.debug;
 
+	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
+	viewmodel.init();
+
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
@@ -77,14 +80,12 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
-	// If this is a component with a function `data` property, call the function
-	// with `ractive` as context (unless the child was also a function)
-	if ( typeof ractive.constructor.prototype.data === 'function' && typeof userOptions.data !== 'function' ) {
-		viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
-	}
+	// // If this is a component with a function `data` property, call the function
+	// // with `ractive` as context (unless the child was also a function)
+	// if ( typeof ractive.constructor.prototype.data === 'function' && typeof userOptions.data !== 'function' ) {
+	// 	viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
+	// }
 
-	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
-	viewmodel.init();
 
 	// Render virtual DOM
 	if ( ractive.template ) {
