@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Mar 03 2015 19:53:41 GMT+0000 (UTC) - commit bd2e5d57ae59743d2451efc5c7699f29a620d023
+	Thu Mar 05 2015 15:26:46 GMT+0000 (UTC) - commit 6b9a891ca555cd493eca939bbe20d279e4111f71
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14941,6 +14941,10 @@
   			delete this.local.mappings[this.localKey];
   		}
 
+  		if (!this.resolved) {
+  			return;
+  		}
+
   		this.deps.forEach(function (d) {
   			_this.origin.unregister(_this.map(d.keypath), d.dep, d.group);
   		});
@@ -14951,8 +14955,14 @@
   	},
 
   	unregister: function (keypath, dependant, group) {
-  		var deps = this.deps,
-  		    i = deps.length;
+  		var deps, i;
+
+  		if (!this.resolved) {
+  			return;
+  		}
+
+  		deps = this.deps;
+  		i = deps.length;
 
   		while (i--) {
   			if (deps[i].dep === dependant) {
