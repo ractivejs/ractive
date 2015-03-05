@@ -42,7 +42,7 @@ Mapping.prototype = {
 	},
 
 	map ( keypath ) {
-    		if( typeof this.keypath === undefined ) { 
+    		if( typeof this.keypath === undefined ) {
     			return this.localKey;
     		}
     		return keypath.replace( this.localKey, this.keypath );
@@ -113,6 +113,10 @@ Mapping.prototype = {
 			delete this.local.mappings[ this.localKey ];
 		}
 
+		if( !this.resolved ) {
+			return;
+		}
+
 		this.deps.forEach( d => {
 			this.origin.unregister( this.map( d.keypath ), d.dep, d.group );
 		});
@@ -123,7 +127,14 @@ Mapping.prototype = {
 	},
 
 	unregister ( keypath, dependant, group ) {
-		var deps = this.deps, i = deps.length;
+		var deps, i;
+
+		if( !this.resolved ) {
+			return;
+		}
+
+		deps = this.deps;
+		i = deps.length;
 
 		while ( i-- ) {
 			if ( deps[i].dep === dependant ) {
