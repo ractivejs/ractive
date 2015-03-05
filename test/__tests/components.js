@@ -849,3 +849,23 @@ test( 'Component attributes with an empty string come back with an empty string'
 
 	t.htmlEqual( fixture.innerHTML, 'yep' );
 });
+
+test( 'Unresolved keypath can be safely torn down', t => {
+
+	expect(0);
+
+	var ractive = new Ractive({
+		el: fixture,
+		template: `<outer/>`,
+		components: {
+			outer: Ractive.extend({ template: `{{#show}}<inner foo="{{unresolved}}"/>{{/}}` }),
+			inner: Ractive.extend({ template: `{{foo}}` })
+		},
+		data: {
+			show: true
+		}
+	});
+
+	ractive.set('show', false);
+
+});
