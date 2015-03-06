@@ -73,7 +73,7 @@ class Model {
 		// for a tryJoin, the first key has to exist as a prop of this model
 		// TODO: is there more optimal way to get first key in relation to rest of method?
 		// i.e. i = keypath.indexOf('.'); ~i ? keypath.substr( 0, i ) : keypath
-		keys = keypath.split('.');
+		keys = ('' + keypath).split('.');
 		if ( !child && testFirstKey && !this.hasChild( keypath.split('.')[0] ) ) {
 			return;
 		}
@@ -82,10 +82,10 @@ class Model {
 			keypath = keypath.replace( found.keypath + '.', '' );
 		}
 
-		keys = keypath.split( '.' );
+		keys = ('' + keypath).split('.');
 		key = keys.shift();
 
-		parent = this;
+		parent = child || this;
 		while ( key ) {
 			child = new Model( key );
 			parent.addChild( child );

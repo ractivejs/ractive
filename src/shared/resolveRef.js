@@ -58,8 +58,10 @@ function resolveAncestorRef ( baseContext, ref ) {
         return baseContext.join( ref );
     }
 
-	// not an ancestor reference - must be a restricted reference (prepended with "." or "./")
-	return baseContext.join( ref );
+	// not an ancestor reference
+	// must be a restricted reference (prepended with "." or "./")
+	// which needs to be removed
+	return baseContext.join( ref.replace( /^\.\/?/, '' ) );
 }
 
 function resolveAmbiguousReference ( ractive, keypath /* string */, fragment, isParentLookup, noUnresolved ) {

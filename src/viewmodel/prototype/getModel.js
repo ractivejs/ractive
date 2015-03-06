@@ -3,6 +3,7 @@ import Model from '../model/Model';
 import ProxyModel from '../model/ProxyModel';
 import ReferenceModel from '../model/ReferenceModel';
 
+import getInnerContext from 'shared/getInnerContext';
 import getExpressionSignature from '../Computation/getExpressionSignature';
 import Computation from '../Computation/NewComputation';
 
@@ -59,9 +60,9 @@ function getByTemplate ( viewmodel, reference, context ) {
 		model = getReferenceExpressionModel( viewmodel, reference.rx, context );
 	}
 
-	if ( !( model instanceof ProxyModel ) && !model.owner.hasModel( model.getKeypath() ) ) {
-		model.owner.modelCache[ model.getKeypath() ] = model;
-	}
+	// if ( !( model instanceof ProxyModel ) && !model.owner.hasModel( model.getKeypath() ) ) {
+	// 	model.owner.modelCache[ model.getKeypath() ] = model;
+	// }
 
 	return model;
 }
@@ -83,15 +84,25 @@ function getReferenceModel( viewmodel, reference, context ) {
 }
 
 function getExpressionModel( viewmodel, reference, context ) {
-	// TODO: need to lookup expressionCache first
-	var store = getExpressionStore( viewmodel, reference, context ),
-		str = reference.r.reduce( function ( str, ref, i ) {
-			return str.replace( '_' + i, ref );
-		}, reference.s),
-		model = new Model( '${' + str + '}', viewmodel, store );
+	var key, store, model;
 
+
+	key = '${' + reference.r.reduce( function ( str, ref, i ) {
+			return str.replace( '_' + i, ref );
+		}, reference.s) + '}';
+
+	// TODO: explore caching of expression by context.
+	// What if itermediate innerContext gets created?
+	// if ( model = viewmodel.getExpression( key ) ) {
+	// 	return model;
+	// }
+
+	store = getExpressionStore( viewmodel, reference, context ),
+	model = new Model( key, store );
 	// TODO: reorder these dependencies to get around this hack
 	store.computation.setModel( model );
+
+	viewmodel.rootKeypath.addChild( model );
 
 	return model;
 }
