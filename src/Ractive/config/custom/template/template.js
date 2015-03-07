@@ -108,6 +108,11 @@ function parseIfString ( template, ractive ) {
 		template = parse( template, parser.getParseOptions( ractive ) );
 	}
 
+	// Check the parsed template has a version at all
+	else if ( typeof template.v !== 'number' ) {
+		throw new Error('The template parser was passed a non-string template, but the template doesn\'t have a version.  Make sure you\'re passing in the template you think you are.');
+	}
+
 	// Check we're using the correct version
 	else if ( template.v !== TEMPLATE_VERSION ) {
 		throw new Error( `Mismatched template version (expected ${TEMPLATE_VERSION}, got ${template.v}) Please ensure you are using the latest version of Ractive.js in your build process as well as in your app` );
