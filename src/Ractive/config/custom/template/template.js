@@ -107,7 +107,8 @@ function parseIfString ( template, ractive ) {
 
 		template = parse( template, parser.getParseOptions( ractive ) );
 	}
-
+	// Check if template is undefined because there'll be no `v` property to check for mismatch
+	else if ( typeof c === "undefined" ) throw new Error("Invalid template , make sure specified template exists !");
 	// Check we're using the correct version
 	else if ( template.v !== TEMPLATE_VERSION ) {
 		throw new Error( `Mismatched template version (expected ${TEMPLATE_VERSION}, got ${template.v}) Please ensure you are using the latest version of Ractive.js in your build process as well as in your app` );
