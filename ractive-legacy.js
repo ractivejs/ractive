@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Thu Mar 05 2015 15:26:46 GMT+0000 (UTC) - commit 6b9a891ca555cd493eca939bbe20d279e4111f71
+	Sat Mar 07 2015 18:04:25 GMT+0000 (UTC) - commit 9c310e6e200d855a1874f5b3fa613c925df69b40
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -15,7 +15,6 @@
 }(this, function () { 'use strict';
 
   var TEMPLATE_VERSION = 3;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/config/template.js.map
 
   var defaultOptions = {
 
@@ -845,7 +844,6 @@
   }
 
   var hasOwn = Object.prototype.hasOwnProperty;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/object.js.map
 
   // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
   var is__toString = Object.prototype.toString,
@@ -972,7 +970,6 @@
   var missingPlugin = function (name, type) {
     return "Missing \"" + name + "\" " + type + " plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#" + type + "s";
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/config/errors.js.map
 
   function findInViewHierarchy(registryName, ractive, name) {
   	var instance = findInstance(registryName, ractive, name);
@@ -1766,7 +1763,6 @@
   }
 
   var rootKeypath = getKeypath("");
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/keypaths.js.map
 
   var getInnerContext = function (fragment) {
   	do {
@@ -4037,7 +4033,6 @@
 
   var ELSE = 60;
   var ELSEIF = 61;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/config/types.js.map
 
   var Parser,
       ParseError,
@@ -4332,7 +4327,6 @@
 
   var expectedExpression = "Expected a JavaScript expression";
   var expectedParen = "Expected closing paren";
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/expressions/shared/errors.js.map
 
   var readNumberLiteral__default = readNumberLiteral__readNumberLiteral;
   var readNumberLiteral__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
@@ -4465,7 +4459,6 @@
 
   var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
   var patterns__relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/expressions/shared/patterns.js.map
 
   // http://mathiasbynens.be/notes/javascript-properties
   // can be any name, string literal, or number literal
@@ -7209,6 +7202,11 @@
   		}
 
   		template = parse(template, parser__default.getParseOptions(ractive));
+  	}
+
+  	// Check the parsed template has a version at all
+  	else if (typeof template.v !== "number") {
+  		throw new Error("The template parser was passed a non-string template, but the template doesn't have a version.  Make sure you're passing in the template you think you are.");
   	}
 
   	// Check we're using the correct version
