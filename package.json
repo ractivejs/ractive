@@ -3,7 +3,7 @@
   "description": "Next-generation DOM manipulation",
   "version": "0.7.0-edge",
   "homepage": "http://ractivejs.org",
-  "main": "ractive.js",
+  "main": "build/ractive.js",
   "keywords": [
     "template",
     "templating",
