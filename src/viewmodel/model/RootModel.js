@@ -8,6 +8,10 @@ class RootModel extends Model {
 		this.isRoot = true;
 		this.startContext();
 	}
+
+	getKeypath () {
+		return '';
+	}
 }
 
 export default RootModel;

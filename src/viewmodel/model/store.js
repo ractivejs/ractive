@@ -122,6 +122,50 @@ export class StateStore {
 	}
 }
 
+
+export class ReferenceStore {
+
+	constructor ( reference, parent ) {
+		this.parent = parent;
+		this.reference = reference;
+		this.resolved = null;
+	}
+
+	get () {
+		var value;
+		if ( !this.resolved && ( value = this.reference.get() ) ) {
+			this.resolved = this.parent.join( value );
+		}
+		return this.resolved ? this.resolved.get() : void 0;
+	}
+
+	getSettable ( propertyOrIndex ) {
+		throw new Error('ReferenceStore should not have getSettable called.');
+	}
+
+	set ( value ) {
+		if ( !this.resolved) {
+			throw new Error('ReferenceStore set called without resolved.');
+		}
+
+		this.resolved.set( value );
+		return this.resolved.dirty;
+	}
+
+	invalidate () {
+		this.resolved = null;
+
+		this.value = this.reference.get();
+
+		if ( this.value != null ) {
+			this.realModel = this.parent.join( this.value );
+		} else {
+			this.realModel = null
+		}
+	}
+}
+
+
 export class ExpressionStore {
 
 	constructor ( computation ) {

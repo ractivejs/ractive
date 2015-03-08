@@ -68,19 +68,7 @@ function getByTemplate ( viewmodel, reference, context ) {
 }
 
 function getReferenceModel( viewmodel, reference, context ) {
-	var model = resolveRef( viewmodel.ractive, reference, context.parentFragment );
-
-	if ( !model ) {
-		model = new ProxyModel( reference, viewmodel );
-		runloop.addUnresolved({
-			root: viewmodel.ractive,
-			ref: reference,
-			model: model,
-			parentFragment: context.parentFragment
-		});
-	}
-
-	return model;
+	return resolveRef( viewmodel.ractive, reference, context.parentFragment );
 }
 
 function getExpressionModel( viewmodel, reference, context ) {
@@ -124,7 +112,6 @@ function getReferenceExpressionModel ( viewmodel, reference, context ) {
 	while( member = members.shift() ) {
 		model = new ReferenceModel( member, previous );
 		previous.addChild( model );
-		model.cascade();
 		previous = model;
 	}
 

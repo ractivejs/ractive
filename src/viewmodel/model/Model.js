@@ -28,6 +28,7 @@ class Model {
 		this.contextCache = null;
 		this.dependants = null;
 		this.children = null;
+		this.watchers = null;
 
 		// for development debug purposes:
 		// if ( true /*owner.debug*/ ) {
@@ -115,7 +116,7 @@ class Model {
 	}
 
 	addChild ( child, key = child.key ) {
-		var parent = child.parent = this;
+		var parent = child.parent = this, originalKey = key;
 		child.owner = this.owner;
 		this.children ? this.children.push( child ) : this.children = [ child ];
 
@@ -126,10 +127,61 @@ class Model {
 			key = parent.key + '.' + key;
 			parent = parent.parent;
 		}
+
+		this._notifyWatcher( originalKey );
+
+	}
+
+	_notifyWatcher ( key ) {
+		var watcher = this._getWatcher( key ), length, i;
+		if( watcher ) {
+			this._doNotifyWatcher( watcher );
+		}
+	}
+
+	_doNotifyWatcher ( watcher ) {
+		var i = 0, length = watcher.length;
+		while ( i < length ) {
+			watcher[ i++ ]( this );
+		}
+	}
+
+	_testWatchers () {
+		var key, watchers = this.watchers;
+		if( watchers ) {
+			var value = this.get();
+			for( key in watchers ){
+				// a bit redundant wit hasChild, but don't
+				// want to refetch value
+				if ( hasChildFor( value, key ) ) {
+					this._doNotifyWatcher( watchers[ key ] );
+				}
+			}
+		}
+	}
+
+	_getWatcher ( key ) {
+		var watchers = this.watchers;
+		return watchers ?  watchers[ key ] : null;
+	}
+
+	addWatcher ( key, handler ) {
+		var watchers = this.watchers || ( this.watchers = {} ),
+			watcher = watchers[ key ] || ( watchers[ key ] = [] );
+
+		addToArray( watcher, handler );
+	}
+
+	removeWatcher ( key, handler ) {
+		var watcher = this._getWatcher( key );
+		if( watcher ) {
+			removeFromArray( watcher, handler );
+		}
 	}
 
 	getKeypath () {
-		return this.str;
+		var parentKey = this.parent.getKeypath();
+		return parentKey ? '.' + this.key : this.key;
 	}
 
 	/*
@@ -181,6 +233,8 @@ class Model {
 
 		// TODO: can this be part of a ComputationModel?
 		this.store.invalidate();
+
+		this._testWatchers();
 
 		this.cascade();
 
@@ -305,7 +359,8 @@ class Model {
 
 	keyContext () {
 		this.startContext();
-		this.createStateChild( this.str, '@keypath', this.str );
+		var key = this.getKeypath();
+		this.createStateChild( key, '@keypath' );
 	}
 
 	createStateChildren ( propertyOrIndex, key, index, aliases ) {
@@ -332,7 +387,7 @@ class Model {
 		var model;
 
 		if ( !( model = this.tryGetChild( key ) ) ) {
-			model = new Model( key, new StateStore( state ) );
+			model = new Model( state, new StateStore( state ) );
 			this.addChild( model );
 		}
 

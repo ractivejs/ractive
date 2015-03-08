@@ -60,10 +60,11 @@ class Computation {
 					i = deps.length;
 					while ( i-- ) {
 						model = deps[i];
+						keypath = model.getKeypath();
 						value = model.get();
 
-						if ( !isEqual( value, this.depValues[ model.getKeypath() ] ) ) {
-							this.depValues[ model.getKeypath() ] = value;
+						if ( !isEqual( value, this.depValues[ keypath ] ) ) {
+							this.depValues[ keypath ] = value;
 							dependencyValuesChanged = true;
 							return;
 						}
@@ -89,6 +90,7 @@ class Computation {
 				dependenciesChanged = this.updateDependencies( newDeps );
 
 				if ( dependenciesChanged ) {
+					this.depValues = {};
 					[ this.hardDeps, this.softDeps ].forEach( deps => {
 						deps.forEach( model => {
 							this.depValues[ model.getKeypath() ] = this.viewmodel.get( model );

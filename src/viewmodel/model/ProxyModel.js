@@ -60,6 +60,10 @@ class ProxyModel extends Model {
 		}
 	}
 
+	getKeypath () {
+		return '$unresolved.' + this.key;
+	}
+
 	mark ( /*options*/ ) {
 		if ( !this.realModel ) {
 			throw new Error('mark');

@@ -1,7 +1,8 @@
 import { normalise } from 'shared/keypaths';
+import ProxyModel from 'viewmodel/model/ProxyModel';
 import getInnerContext from 'shared/getInnerContext';
 
-export default function resolveRef ( ractive, ref, fragment, noUnresolved ) {
+export default function resolveRef ( ractive, ref, fragment ) {
 	var keypath, viewmodel = ractive.viewmodel;
 
 	ref = normalise( ref );
@@ -20,112 +21,72 @@ export default function resolveRef ( ractive, ref, fragment, noUnresolved ) {
 
 	// ...otherwise we need to figure out the keypath based on context
 	else {
-		keypath = resolveAmbiguousReference( ractive, ref, fragment, false, noUnresolved );
-	}
-
-	if ( keypath && noUnresolved && keypath.unresolved ) {
-		return;
+		keypath = resolveAmbiguousReference( ractive.viewmodel, ref, fragment, false );
 	}
 
 	return keypath;
 }
 
-function resolveAncestorRef ( baseContext, ref ) {
+function resolveAncestorRef ( context, ref ) {
 
-	// the way KeypathExpression are currently handled, context can
-	// be null because there's no corresponding keypath.
-	// But now it really it doesn't work because context might be above that and not the root
-	//
-	// When we have Dedicated Keypath for those,
-	// should iron that out
-	if( !baseContext ) { return; }
+	var isAncestor = false;
+
+	// legacy, need to find when this happens...
+	if( !context ) {
+		throw new Error('no base context');
+		// return;
+	}
 
 	// {{.}} means 'current context'
-    if ( ref === '.' ) { return baseContext; }
+    if ( ref === '.' ) { return context; }
 
 	// ancestor references (starting "../") go up the tree
-	if ( ref.substr( 0, 3 ) === '../' ) {
-
-		while ( ref.substr( 0, 3 ) === '../' ) {
-			if ( baseContext.isRoot ) {
-				throw new Error( 'Could not resolve reference - too many "../" prefixes' );
-			}
-
-			baseContext = baseContext.parent;
-			ref = ref.substring( 3 );
+	while ( ref.substr( 0, 3 ) === '../' ) {
+		if ( context.isRoot ) {
+			throw new Error( 'Could not resolve reference - too many "../" prefixes' );
 		}
+		isAncestor = true;
+		context = context.parent;
+		ref = ref.substring( 3 );
+	}
 
-        return baseContext.join( ref );
+	// not an ancestor reference must be a restricted reference,
+	// prepended with "." or "./", which needs to be removed
+    if ( !isAncestor ) {
+    	ref = ref.replace( /^\.\/?/, '' );
     }
 
-	// not an ancestor reference
-	// must be a restricted reference (prepended with "." or "./")
-	// which needs to be removed
-	return baseContext.join( ref.replace( /^\.\/?/, '' ) );
+	return context.join( ref );
 }
 
-function resolveAmbiguousReference ( ractive, keypath /* string */, fragment, isParentLookup, noUnresolved ) {
-	var
-		keys,
-		firstKey,
-		context,
-		hasContextChain,
-		parentModel,
-		model,
-		testKey,
-		viewmodel = ractive.viewmodel;
+function resolveAmbiguousReference ( viewmodel, keypath, fragment, isParentLookup ) {
+	var stack = getContextStack( fragment ), chain, context, model,
+		// temp until figure out bcuz logic already in keypath
+		firstKey = keypath.split( '.' )[0];
 
-
-	// temp until figure out bcuz logic already in keypath
-	keys = keypath.split( '.' ),
-	firstKey = keys.shift();
-
-
-	var stack = getContextStack( fragment );
 
 	// We have to try the context stack from the bottom up.
 	// Closer contexts have precedence.
+	// TODO: choose pseudo iterator API. This is based on ES6 generator.
 	for ( var _iterator = stack/*[Symbol.iterator]*/(), _step; !(_step = _iterator.next()).done; ) {
 		context = _step.value;
-		hasContextChain = true;
+		chain = {
+            current: context,
+            previous: chain
+        };
 
 		if ( model = context.tryJoin( keypath ) ) {
 			return model;
 		}
 	}
 
-/*
-	throw new Error('unexpected unresolved');
-	// this block is some core logic about finding keypaths amongst existing
-	// keypath trees and viewmodels
-
-	// Now that we've tried the context stack (or maybe not),
-	// Let's just see if the keypath is in the cache as-is
-	if ( model = viewmodel.tryGetModel( keypath ) ) {
-		return model;
-	}
-
-	// A variation on get Model From Context, from the Root of this instance
-	if ( model = getModelFromRoot( viewmodel, keypath, firstKey, keys ) ) {
-		return model;
-	}
-
-	// If this is an inline component, and it's not isolated, we
-	// can try going up the scope chain
-	if ( ractive.parent && !ractive.isolated ) {
-		hasContextChain = true;
-		fragment = ractive.component.parentFragment;
-
-		if ( parentModel = resolveAmbiguousReference( ractive.parent, firstKey, fragment, true, noUnresolved ) ) {
-			viewmodel.modelCache[ firstKey ] = parentModel;
-			return viewmodel.getModel( keypath );
-		}
-	}
-*/
-
+	// Return a proxy model and watch for new children to be added
+	if ( chain ) {
+		return getProxyModel( chain, firstKey, keypath, viewmodel );
+    }
 	// If there's no context chain, and the instance is either a) isolated or
 	// b) an orphan, then we know that the keypath is identical to the keypath
-	if ( !hasContextChain ) {
+	else {
 		// the data object needs to have a property by this name,
 		// to prevent future failed lookups
 		model = viewmodel.getModel( keypath );
@@ -137,63 +98,30 @@ function resolveAmbiguousReference ( ractive, keypath /* string */, fragment, is
 	}
 }
 
-function getModelFromContext ( viewmodel, context, keypath, firstKey ) {
+function getProxyModel ( chain, key, keypath, viewmodel ) {
+	var watchers = [], proxy, resolve, context;
 
-	var model, testKey = context.getKeypath() + '.' + keypath;
+	// TODO: need to handle mulit-part proxy for full keypath, "foo.bar.qux"
+	proxy = new ProxyModel( key, viewmodel );
 
-	// Is the context + keypath already a cached model?
-	// context "foo", keypath: "bar.qux" and "foo.bar.qux" cached
-	//
-	// We use context.owner because if "foo" is really a local
-	// alias for this model in another viewmodel, say "rum.bah",
-	// then we look for "rum.bah.bar.qux" in that viewmodel
-	if ( model = context.owner.tryGetModel( testKey ) ) {
-		return model;
+	resolve = function ( context ) {
+		proxy.resolve( context.join( proxy.key ) );
+
+		while(chain){
+	        context = chain.current;
+	        chain = chain.previous;
+	        context.removeWatcher( key, resolve );
+	    }
 	}
 
-	// As long as the context model has a property that matches,
-	// "foo" has a "bar" property, join and create the new model
-	if ( context.hasChild( firstKey ) ) {
-		// this create itermediate children, using purely
-		// the relative keypaths of the owner viewmodel
-		return context.join( keypath );
-	}
+	while(chain){
+        context = chain.current;
+        chain = chain.previous;
+        context.addWatcher( key, resolve );
+    }
 
-	// TODO: no local cache entry is being made at correct path
-	// we don't really know local alias if context.owner is different
+    return proxy;
 }
-
-function getModelFromRoot ( viewmodel, keypath, firstKey, remainingKeys ) {
-	var parentModel = viewmodel.tryGetModel( firstKey ),
-		model, testKey, endPath;
-
-	endPath = remainingKeys.join('.');
-
-	if ( !parentModel ) {
-		if ( viewmodel.rootKeypath.hasChild( firstKey ) ) {
-			return viewmodel.getModel( firstKey + endPath );
-		}
-		return;
-	}
-
-
-	// this model may already exists as a child over in the other viewmodel
-	testKey = parentModel.getKeypath() + endPath;
-
-	if ( model = parentModel.owner.tryGetModel( testKey ) ) {
-		// ok, just check owner below before returning
-	}
-	else {
-		model = parentModel.join( endPath );
-	}
-
-	// TODO need to add parent keys in keypath
-		// We found the parent via this viewmodel, but it may actually
-	// belong to another parent viewmodel. Check if same owner
-	viewmodel.modelCache[ keypath ] = model;
-
-}
-
 
 function getContextStack ( fragment ){
 
@@ -248,12 +176,4 @@ function getContextStack ( fragment ){
 
 		return iterator;
 	};
-}
-
-function isRootProperty ( viewmodel, key ) {
-	// special case for reference to root
-	return key === ''
-		|| viewmodel.hasModel( key )
-		|| viewmodel.rootKeypath.hasChild( key );
-
 }
