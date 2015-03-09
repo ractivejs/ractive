@@ -1,4 +1,4 @@
-import { fatal, warn } from 'utils/log';
+import { fatal, warn, warnOnce } from 'utils/log';
 
 function validate ( data ) {
 	// Warn if userOptions.data is a non-POJO
@@ -60,11 +60,27 @@ function combine ( parentValue, childValue ) {
 	}
 
 	return function () {
-		let child = childIsFn ? childValue.call( this ) : childValue;
-		let parent = parentIsFn ? parentValue.call( this ) : parentValue;
+		let child = childIsFn ? callDataFunction( childValue, this ) : childValue;
+		let parent = parentIsFn ? callDataFunction( parentValue, this ) : parentValue;
 
 		return fromProperties( child, parent );
 	};
+}
+
+function callDataFunction ( fn, context ) {
+	let data = fn.call( context );
+
+	if ( !data ) return;
+
+	if ( typeof data !== 'object' ) {
+		fatal( 'Data function must return an object' );
+	}
+
+	if ( data.constructor !== Object ) {
+		warnOnce( 'Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged' );
+	}
+
+	return data;
 }
 
 function fromProperties ( primary, secondary ) {

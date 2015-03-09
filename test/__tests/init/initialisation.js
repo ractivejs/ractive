@@ -128,6 +128,34 @@ test( 'instance data function is added to default data function', t => {
 	t.equal( ractive.get( 'foo' ), 'fizz' );
 });
 
+test( 'data function returning wrong value causes error/warning', t => {
+	// non-objects are an error
+	let Bad = Ractive.extend({
+		data () {
+			return 'disallowed';
+		}
+	});
+
+	t.throws( () => new Bad(), /Data function must return an object/ );
+
+	// non-POJOs should trigger a warning
+	function Foo () {}
+
+	let warn = console.warn, warned;
+	console.warn = () => warned = true;
+
+	let LessBad = Ractive.extend({
+		data () {
+			return new Foo();
+		}
+	});
+
+	new LessBad();
+	t.ok( warned );
+
+	console.warn = warn;
+});
+
 test( 'instance data takes precedence over default data but includes unique properties', t => {
 	var ractive;
 
