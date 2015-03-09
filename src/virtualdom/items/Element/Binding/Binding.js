@@ -35,6 +35,8 @@ var Binding = function ( element ) {
 		// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
 		// be explicit when using two-way data-binding about what keypath you're
 		// updating. Using it in lists is probably a recipe for confusion...
+		let ref = interpolator.template.r ? `'${interpolator.template.r}' reference` : 'expression';
+		warn( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref );
 		interpolator.resolver.forceResolution();
 		keypath = interpolator.keypath;
 	}
