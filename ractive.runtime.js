@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Mar 09 2015 21:40:12 GMT+0000 (UTC) - commit 982c6b78e5a8776ee5007d31b7e6ff7ffb1e39e5
+	Mon Mar 09 2015 22:00:50 GMT+0000 (UTC) - commit 1c193bcc79131bf12427da00e393fda98fe8f2a3
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7614,6 +7614,8 @@
   		// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
   		// be explicit when using two-way data-binding about what keypath you're
   		// updating. Using it in lists is probably a recipe for confusion...
+  		var ref = interpolator.template.r ? "'" + interpolator.template.r + "' reference" : "expression";
+  		warn("The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity", ref);
   		interpolator.resolver.forceResolution();
   		keypath = interpolator.keypath;
   	}
