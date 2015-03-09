@@ -296,3 +296,18 @@ test( 'reset removes an inline component from the DOM', function ( t ) {
 	ractive.set( 'type', 2 );
 	t.htmlEqual( fixture.innerHTML, 'TWO' );
 });
+
+test( 'resetting an instance of a component with a data function (#1745)', function ( t ) {
+	let Widget = Ractive.extend({
+		data () {
+			return { foo: 'bar' };
+		}
+	});
+
+	let widget = new Widget();
+
+	widget.set( 'foo', 'baz' );
+	widget.reset();
+
+	t.equal( widget.get( 'foo' ), 'bar' );
+});

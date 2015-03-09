@@ -111,18 +111,6 @@ test( 'Data functions are inherited and pojo keys are copied', t => {
 	t.equal( ractive.get('bizz'), 'bop' );
 });
 
-test( 'Data functions are inherited and Models are used as data object', t => {
-	function Model () { this.bizz = 'bop'; }
-	var ractive, data = { foo: 'bar' }, model = new Model();
-
-	Ractive.defaults.data = function () { return model; };
-	ractive = new Ractive( { data: data } );
-
-	t.equal( ractive.get(), model );
-	t.equal( ractive.get('foo'), 'bar' );
-	t.equal( ractive.get('bizz'), 'bop' );
-});
-
 test( 'instance data function is added to default data function', t => {
 	var ractive;
 
@@ -138,6 +126,34 @@ test( 'instance data function is added to default data function', t => {
 
 	t.equal( ractive.get( 'bar' ), 'bizz' );
 	t.equal( ractive.get( 'foo' ), 'fizz' );
+});
+
+test( 'data function returning wrong value causes error/warning', t => {
+	// non-objects are an error
+	let Bad = Ractive.extend({
+		data () {
+			return 'disallowed';
+		}
+	});
+
+	t.throws( () => new Bad(), /Data function must return an object/ );
+
+	// non-POJOs should trigger a warning
+	function Foo () {}
+
+	let warn = console.warn, warned;
+	console.warn = () => warned = true;
+
+	let LessBad = Ractive.extend({
+		data () {
+			return new Foo();
+		}
+	});
+
+	new LessBad();
+	t.ok( warned );
+
+	console.warn = warn;
 });
 
 test( 'instance data takes precedence over default data but includes unique properties', t => {
@@ -210,8 +226,29 @@ test( 'initing data with a primitive results in an error', t => {
 			data: 1
 		});
 	} catch ( ex ) {
-		t.equal( ex.message, 'data option must be an object or a function, "1" is not valid' );
+		t.equal( ex.message, 'data option must be an object or a function, `1` is not valid' );
 	}
+});
+
+test( 'initing data with a non-POJO results in a warning', t => {
+	let warn = console.warn;
+	console.warn = warning => {
+		t.ok( /should be a plain JavaScript object/.test( warning ) );
+	};
+
+	expect( 2 );
+
+	function Foo () { this.foo = 'bar' }
+
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{foo}}',
+		data: new Foo ()
+	});
+
+	t.equal( fixture.innerHTML, 'bar' );
+
+	console.warn = warn;
 });
 
 module( 'Computed Properties and Data in config' )
