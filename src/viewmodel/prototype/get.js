@@ -64,13 +64,8 @@ export default function Viewmodel$get ( keypath, options ) {
 	}
 
 	if ( keypath.isRoot && options.fullRootGet ) {
-		// this.mappings.forEach( m => value[ m ] = m.getValue() );
-		for ( var key in this.mappings ) {
+		for ( key in this.mappings ) {
 			value[ key ] = this.mappings[ key ].getValue();
-		}
-
-		for ( var key in this.computations ) {
-			value[ key ] = this.computations[ key ].get();
 		}
 	}
 

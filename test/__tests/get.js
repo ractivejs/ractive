@@ -1,33 +1,9 @@
 /*global test, module, simulant */
 module( 'get()' );
 
-test( 'Returns computations on root .get()', t => {
-	var ractive, result;
-
-	ractive = new Ractive({
-		el: fixture,
-		// template: '{{JSON.stringify(.)}}',
-		data: {
-			foo: 'foo'
-		},
-		computed: {
-			bar: '${foo} + "bar"'
-		}
-	});
-
-	result = { foo: 'foo', bar: 'foobar' };
-	t.deepEqual( ractive.get(), result );
-	// t.equal( fixture.innerHTML, JSON.stringify(result) );
-});
 
 test( 'Returns mappings on root .get()', t => {
-	var ractive, component;
-
-	component = Ractive.extend({
-		data: {
-			foo: 'foo'
-		}
-	});
+	var ractive;
 
 	ractive = new Ractive({
 		el: fixture,
@@ -38,6 +14,7 @@ test( 'Returns mappings on root .get()', t => {
 		},
 		components: {
 			c: Ractive.extend({
+				template: '{{JSON.stringify(.)}}',
 				data: {
 					foo: 'mine'
 				}
@@ -45,5 +22,7 @@ test( 'Returns mappings on root .get()', t => {
 		}
 	});
 
-	t.deepEqual( ractive.findComponent('c').get(), { foo: 'mine', bar: 'foo', qux: 'qux' } );
+	var expected = { foo: 'mine', bar: 'foo', qux: 'qux' };
+	t.deepEqual( ractive.findComponent('c').get(), expected );
+	t.deepEqual( fixture.innerHTML, JSON.stringify( expected ) );
 });
