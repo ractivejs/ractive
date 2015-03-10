@@ -7,11 +7,10 @@ var arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		var array, newIndices = [], len, promise, result;
+		var array, newIndices = [], len, promise, result, model;
 
-		keypath = this.viewmodel.getModel( keypath );
-
-		array = this.viewmodel.get( keypath );
+		model = this.viewmodel.getModel( keypath );
+		array = this.viewmodel.get( model );
 		len = array.length;
 
 		if ( !isArray( array ) ) {
@@ -24,9 +23,9 @@ export default function ( methodName ) {
 		promise = runloop.start( this, true ).then( () => result );
 
 		if ( !!newIndices ) {
-			this.viewmodel.smartUpdate( keypath, array, newIndices );
+			this.viewmodel.smartUpdate( model, array, newIndices );
 		} else {
-			keypath.mark();
+			model.mark();
 		}
 
 		runloop.end();

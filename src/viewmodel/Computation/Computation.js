@@ -169,7 +169,7 @@ function isUnresolved( viewmodel, keypath ) {
 	var key = keypath.firstKey;
 
 
-	return keypath.unresolved || !keypath.isRooted();
+	return keypath.unresolved || !keypath.isRoot;
 }
 
 export default Computation;

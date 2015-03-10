@@ -7,7 +7,6 @@ import clearCache from './prototype/clearCache';
 import compute from './prototype/compute';
 import get from './prototype/get';
 import getModel from './prototype/getModel';
-import { hasModel, tryGetModel } from './prototype/hasModel';
 import mark from './prototype/mark';
 import merge from './prototype/merge';
 import release from './prototype/release';
@@ -55,15 +54,14 @@ var Viewmodel = function ( options ) {
 
 	// TODO make RootModel class that encapsulates details
 	// like DataStore and startContext() call
-	this.rootKeypath = new RootModel( this, data );
+	this.root = new RootModel( this, data );
 
 	// TODO: clean-up/move some of this
 	var key, model;
 	if ( mappings ) {
 		mappings.forEach( mapping => {
-			key = mapping.key, model = mapping.model;
 
-			this.modelCache[ key ] = model;
+			this.root.addChild( mapping.model, mapping.key );
 
 			if ( data && ( key in data ) && model.get() === undefined ) {
 				model.set( data[ key ] );
@@ -83,7 +81,6 @@ Viewmodel.prototype = {
 	compute: compute,
 	get: get,
 	getModel: getModel,
-	hasModel: hasModel,
 	mark: mark,
 	merge: merge,
 	release: release,
@@ -91,7 +88,6 @@ Viewmodel.prototype = {
 	set: set,
 	smartUpdate: smartUpdate,
 	teardown: teardown,
-	tryGetModel: tryGetModel,
 };
 
 export default Viewmodel;

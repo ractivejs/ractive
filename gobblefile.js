@@ -31,8 +31,8 @@ lib = (function () {
 			banner: banner,
 			entry: 'Ractive.js',
 			name: 'Ractive',
-			dest: 'ractive-legacy.js'
-			, sourceMap: false
+			dest: 'ractive-legacy.js'//,
+			// sourceMap: false
 		})
 	];
 
@@ -47,7 +47,6 @@ lib = (function () {
 				name: 'Ractive',
 				dest: 'ractive.js',
 				skip: [ 'legacy' ]
-			, sourceMap: false
 			}),
 
 			es5.transform( 'esperanto-bundle', {
@@ -58,7 +57,6 @@ lib = (function () {
 				name: 'Ractive',
 				dest: 'ractive.runtime.js',
 				skip: [ 'legacy', 'parse/_parse' ]
-			, sourceMap: false
 			}),
 
 			es5.transform( 'esperanto-bundle', {
@@ -69,7 +67,6 @@ lib = (function () {
 				name: 'Ractive',
 				dest: 'ractive-legacy.runtime.js',
 				skip: [ 'parse/_parse' ]
-			, sourceMap: false
 			})
 		);
 	}
@@ -79,9 +76,9 @@ lib = (function () {
 	}
 
 	// Combine sourcemaps from 6to5 and esperanto
-	// lib = lib.map( function ( node ) {
-	// 	return node.transform( 'sorcery' );
-	// });
+	lib = lib.map( function ( node ) {
+		return node.transform( 'sorcery' );
+	});
 
 	return lib;
 })();

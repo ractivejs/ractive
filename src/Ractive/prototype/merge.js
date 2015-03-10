@@ -13,6 +13,7 @@ export default function Ractive$merge ( keypath, array, options ) {
 	// If either the existing value or the new value isn't an
 	// array, just do a regular set
 	if ( !isArray( currentArray ) || !isArray( array ) ) {
+		// TODO: won't work with model
 		return this.set( model, array, options && options.complete );
 	}
 

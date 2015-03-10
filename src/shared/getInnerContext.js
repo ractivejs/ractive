@@ -7,5 +7,5 @@ export default function ( fragment ) {
  		}
  	} while ( fragment = fragment.parent );
 
-	return original.root.viewmodel.rootKeypath;
+	return original.root.viewmodel.root;
  }

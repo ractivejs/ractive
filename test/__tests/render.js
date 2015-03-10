@@ -8,20 +8,20 @@ module ( 'Render' );
 
 var runTest, theTest, magicModes, hasSvg, i;
 
-try {
-	var obj = {}, _foo;
-	Object.defineProperty( obj, 'foo', {
-		get: function () {
-			return _foo;
-		},
-		set: function ( value ) {
-			_foo = value;
-		}
-	});
-	magicModes = [ false /*, true*/ ];
-} catch ( err ) {
+// try {
+// 	var obj = {}, _foo;
+// 	Object.defineProperty( obj, 'foo', {
+// 		get: function () {
+// 			return _foo;
+// 		},
+// 		set: function ( value ) {
+// 			_foo = value;
+// 		}
+// 	});
+// 	magicModes = [ false, true ];
+// } catch ( err ) {
 	magicModes = [ false ];
-}
+// }
 
 hasSvg = document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
 

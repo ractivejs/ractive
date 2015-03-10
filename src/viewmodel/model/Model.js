@@ -25,7 +25,7 @@ class Model {
 		this.owner = null;
 
 		this.dirty = false;
-		this.contextCache = null;
+		this.childHash = null;
 		this.dependants = null;
 		this.children = null;
 		this.watchers = null;
@@ -36,21 +36,19 @@ class Model {
 		// }
 	}
 
-	isContext () {
-		return !!this.contextCache;
+	findChild ( key ) {
+		var hash = this.childHash;
+		if ( !hash ) { return; }
+		return hash[ key ];
 	}
 
-	tryGetChild ( key ) {
-		return this.contextCache[ key ];
+	hashChild ( key, child ) {
+		var hash = this.childHash || ( this.childHash = {} );
+		hash[ key ] = child;
 	}
 
-	cacheChild ( key, child ) {
-		this.contextCache[ key ] = child;
-	}
-
-	startContext () {
-		if ( this.isContext() ) { return; }
-		addChildKeysToCache( this.contextCache = {}, this );
+	startContext ( index ) {
+		this.index = index;
 	}
 
 	join ( keypath ) {
@@ -62,74 +60,59 @@ class Model {
 	}
 
 	_doJoin ( keypath, testFirstKey ) {
-		var found, child, parent, keys, key;
+		var keys = ( '' + keypath ).split( '.' ), key,
+			child, parent = this, firstKey = true;
 
-		found = this._findInCache( keypath );
+		while ( key = keys.shift() ) {
 
-		// was a match found exactly at requested keypath?
-		if ( found && ( child = found.child ) && found.keypath === keypath ) {
-			return child;
-		}
+			child = parent.findChild( key );
 
-		// for a tryJoin, the first key has to exist as a prop of this model
-		// TODO: is there more optimal way to get first key in relation to rest of method?
-		// i.e. i = keypath.indexOf('.'); ~i ? keypath.substr( 0, i ) : keypath
-		keys = ('' + keypath).split('.');
-		if ( !child && testFirstKey && !this.hasChild( keypath.split('.')[0] ) ) {
-			return;
-		}
+			if ( !child ) {
 
-		if ( found && found.keypath ) {
-			keypath = keypath.replace( found.keypath + '.', '' );
-		}
+				if ( firstKey ) {
+					// specials
+					// TODO: could it be nested like 'foo.bar.@index'?
+					// or not worth extra === '@' on each loop?
+					if ( key[0] === '@' ) {
+						if ( key === '@index' ) {
+							return parent.createStateChild( '@index', parent.index );
+						}
+						else if ( key === '@key' ) {
+							return parent.createStateChild( '@key', parent.key );
+						}
+						else if ( key === '@keypath' ) {
+							// TODO: this will need work different to be "dynamic" and properly aliased
+							return parent.createStateChild( '@keypath', parent.getKeypath() );
+						}
+					}
 
-		keys = ('' + keypath).split('.');
-		key = keys.shift();
+					// for a tryJoin, the first key has to exist as a prop of this model
+					if ( !child && testFirstKey && !this.hasChild( key ) ) {
+						return;
+					}
+				}
 
-		parent = child || this;
-		while ( key ) {
-			child = new Model( key );
-			parent.addChild( child );
-			key = keys.shift();
+				child = new Model( key );
+				parent.addChild( child );
+			}
 			parent = child;
+			firstKey = false;
 		}
 
 		return child;
 	}
 
-	_findInCache ( keypath ) {
-		var cache = this.contextCache, child, original = keypath;
-
-		if ( !cache ) { return; }
-
-		while ( keypath ) {
-			if ( child = cache[ keypath ] ) {
-				break;
-			}
-			keypath = keypath.substring( 0, keypath.lastIndexOf('.') );
-		}
-
-		return {
-			child: child,
-			keypath: keypath
-		};
-	}
 
 	addChild ( child, key = child.key ) {
-		var parent = child.parent = this, originalKey = key;
-		child.owner = this.owner;
-		this.children ? this.children.push( child ) : this.children = [ child ];
 
-		while ( parent ) {
-			if ( parent.isContext() ) {
-				parent.cacheChild( key, child );
-			}
-			key = parent.key + '.' + key;
-			parent = parent.parent;
+		if ( !child.parent ) {
+			child.parent = this;
+			child.owner = this.owner;
 		}
 
-		this._notifyWatcher( originalKey );
-
+		this.children ? this.children.push( child ) : this.children = [ child ];
+		this.hashChild( key, child );
+		this._notifyWatcher( key );
 	}
 
 	_notifyWatcher ( key ) {
@@ -210,10 +193,6 @@ class Model {
 		return this.owner.getModel( str );
 	}
 	*/
-
-	isRooted () {
-		this.owner.hasModel( this.firstKey );
-	}
 
 	get ( options ) {
 		return this.store.get();
@@ -364,21 +343,19 @@ class Model {
 	}
 
 	createStateChildren ( propertyOrIndex, key, index, aliases ) {
-		var child, indexAlias, keyAlias;
+		var child, alias;
 
 		child = this.join( propertyOrIndex );
-		child.startContext();
+		child.startContext( index );
 
 		if ( aliases ) {
-			keyAlias = aliases.find( ref => ref.t ==='k' );
-			indexAlias = aliases.find( ref => ref.t ==='i' );
+			if ( alias = aliases.find( ref => ref.t ==='k' ) ) {
+				child.createStateChild( '@key', key, alias );
+			}
+			if ( alias = aliases.find( ref => ref.t ==='i' ) ) {
+				child.createStateChild( '@index', index, alias );
+			}
 		}
-
-		// TODO need to change for updates (rebinds)
-		// need to hide actual strings and use gets
-		child.createStateChild( '@keypath', child.key );
-		child.createStateChild( '@key', key, keyAlias );
-		child.createStateChild( '@index', index, indexAlias );
 
 		return child;
 	}
@@ -386,35 +363,21 @@ class Model {
 	createStateChild ( key, state, alias ) {
 		var model;
 
-		if ( !( model = this.tryGetChild( key ) ) ) {
-			model = new Model( state, new StateStore( state ) );
+		if ( !( model = this.findChild( key ) ) ) {
+			model = new Model( key, new StateStore( state ) );
 			this.addChild( model );
 		}
 
-		if ( alias && !this.tryGetChild( key = alias.n ) ) {
+		if ( alias && !this.findChild( key = alias.n ) ) {
 			this.addChild( model, key );
 		}
+
+		return model;
 	}
 
 }
 
 
-function addChildKeysToCache ( cache, parent, keypath ) {
-	var children = parent.children, child, childKey, i, l;
-
-	if ( !children ) { return; }
-
-	for( i = 0, l = children.length; i < l; i++ ) {
-		child = children[i];
-		childKey = keypath ? keypath + '.' + child.key : child.key;
-
-		cache[ childKey ] = child;
-
-		if ( !child.isContext ) {
-			addChildKeysToCache( cache, child, childKey );
-		}
-	}
-}
 
 function hasChildFor ( value, key ) {
 	if ( value == null ) {

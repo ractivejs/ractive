@@ -44,7 +44,7 @@ export default function EventHandler$init ( element, name, template ) {
 			}
 
 			else {
-				this.refResolvers[i] = model = this.root.viewmodel.getKeypaths( ref, this );
+				this.refResolvers[i] = model = this.root.viewmodel.getModel( ref, this );
 				this.resolve( i, model );
 
 			}

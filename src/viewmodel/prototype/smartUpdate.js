@@ -14,7 +14,7 @@ export default function Viewmodel$smartUpdate ( model, array, newIndices ) {
 
 	// Update the model
 	// TODO allow existing array to be updated in place, rather than replaced?
-	this.set( model, array, { silent: true } );
+	model.set( array, { silent: true } );
 
 	if ( dependants = this.deps[ 'default' ][ model.getKeypath() ] ) {
 		dependants.filter( canShuffle ).forEach( d => d.shuffle( newIndices, array ) );

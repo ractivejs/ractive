@@ -5,7 +5,7 @@ export default function Viewmodel$teardown () {
 	// of unwrapping adapted values (e.g. arrays)
 
  	// TODO: Implement when adaptors back...
-	// this.rootKeypath.clearCachedValue();
+	// this.root.clearCachedValue();
 
 	// Teardown any failed lookups - we don't need them to resolve any more
 	while ( unresolvedImplicitDependency = this.unresolvedImplicitDependencies.pop() ) {

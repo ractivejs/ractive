@@ -1,3 +1,3 @@
 export default function Viewmodel$clearCache ( keypath, keepExistingWrapper ) {
-	(keypath || this.rootKeypath).clearCachedValue( keepExistingWrapper );
+	(keypath || this.root).clearCachedValue( keepExistingWrapper );
 }

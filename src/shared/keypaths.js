@@ -233,7 +233,7 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 	var keys, key, matchingKeypaths;
 
 	keys = pattern.split( '.' );
-	matchingKeypaths = [ ractive.viewmodel.rootKeypath ];
+	matchingKeypaths = [ ractive.viewmodel.root ];
 
 	while ( key = keys.shift() ) {
 		if ( key === '*' ) {
@@ -242,7 +242,7 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 		}
 
 		else {
-			if ( matchingKeypaths[0] === ractive.viewmodel.rootKeypath ) { // first key
+			if ( matchingKeypaths[0] === ractive.viewmodel.root ) { // first key
 				matchingKeypaths[0] = ractive.viewmodel.getModel( key );
 			} else {
 				matchingKeypaths = matchingKeypaths.map( concatenate( key ) );

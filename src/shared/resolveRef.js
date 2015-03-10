@@ -10,7 +10,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
 		// TODO: recursive fail!
-		keypath = viewmodel.rootKeypath.getChild( ref.substring( 2 ) );
+		keypath = viewmodel.root.join( ref.substring( 2 ) );
 	}
 
 	// If a reference begins with '.', it's either a restricted reference or
@@ -59,7 +59,7 @@ function resolveAncestorRef ( context, ref ) {
 	return context.join( ref );
 }
 
-function resolveAmbiguousReference ( viewmodel, keypath, fragment, isParentLookup ) {
+function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 	var stack = getContextStack( fragment ), chain, context, model,
 		// temp until figure out bcuz logic already in keypath
 		firstKey = keypath.split( '.' )[0];
@@ -89,7 +89,7 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment, isParentLooku
 	else {
 		// the data object needs to have a property by this name,
 		// to prevent future failed lookups
-		model = viewmodel.getModel( keypath );
+		model = viewmodel.root.join( keypath );
 
 		// TODO: Still necessary???
 		viewmodel.set( model, undefined );
@@ -149,7 +149,7 @@ function getContextStack ( fragment ){
 			var context;
 			if ( !root ) { return; }
 
-			context = root.viewmodel.rootKeypath;
+			context = root.viewmodel.root;
 
 			if ( root.parent && !root.isolated ) {
 				iterator.hasContextChain = true;

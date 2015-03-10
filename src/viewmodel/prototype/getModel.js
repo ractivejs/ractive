@@ -15,13 +15,12 @@ import runloop from 'global/runloop';
 
 import resolveRef from 'shared/resolveRef';
 
-export default function Viewmodel$getModel ( reference, context) {
+export default function Viewmodel$getModel ( reference, context ) {
 	var keypath;
 
 	// don't think this is used...
 	if ( reference == null ) {
-		debugger; // canary
-		return reference;
+		throw new Error( 'no reference!' );
 	}
 
 	if ( typeof reference === 'string' ) {
@@ -30,18 +29,16 @@ export default function Viewmodel$getModel ( reference, context) {
 
 	return getByTemplate( this, reference, context );
 
-	debugger;
 
-	return keypath;
 }
 
 function getByString ( viewmodel, keypath ) {
 
 	if ( !keypath ) {
-		return viewmodel.rootKeypath;
+		return viewmodel.root;
 	}
 
-	return viewmodel.rootKeypath.join( keypath );
+	return viewmodel.root.join( keypath );
 }
 
 function getByTemplate ( viewmodel, reference, context ) {
@@ -59,10 +56,6 @@ function getByTemplate ( viewmodel, reference, context ) {
 	else if ( reference.rx ) {
 		model = getReferenceExpressionModel( viewmodel, reference.rx, context );
 	}
-
-	// if ( !( model instanceof ProxyModel ) && !model.owner.hasModel( model.getKeypath() ) ) {
-	// 	model.owner.modelCache[ model.getKeypath() ] = model;
-	// }
 
 	return model;
 }
@@ -90,7 +83,7 @@ function getExpressionModel( viewmodel, reference, context ) {
 	// TODO: reorder these dependencies to get around this hack
 	store.computation.setModel( model );
 
-	viewmodel.rootKeypath.addChild( model );
+	viewmodel.root.addChild( model );
 
 	return model;
 }
@@ -98,7 +91,7 @@ function getExpressionModel( viewmodel, reference, context ) {
 function getExpressionStore( viewmodel, reference, context ){
 	var models = reference.r.map( ref => getByTemplate( viewmodel, { r: ref }, context ) ),
 		signature = getExpressionSignature( reference.s, models, viewmodel.ractive ),
-		computation = new NewComputation( viewmodel, signature /*, initialValue*/ );
+		computation = new NewComputation( viewmodel, signature /**/ );
 		return new ExpressionStore( computation );
 
 }
@@ -122,7 +115,7 @@ function getMemberModel( viewmodel, reference, context ){
 
 	if ( typeof reference === 'string' ) {
 		// remove string when Model can be parentless on construct
-		return new Model( '"' + reference + '"', viewmodel, new StateStore( reference ) );
+		return new Model( '"' + reference + '"', new StateStore( reference ) );
 	}
 
 	// Simple reference?

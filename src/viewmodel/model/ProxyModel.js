@@ -15,15 +15,24 @@ class ProxyModel extends Model {
 
 	addChild ( child ) {
 		if ( !this.realModel ) {
-			throw new Error('addChild');
+			super( child );
+		} else {
+			this.realModel.addChild( child );
 		}
-		this.realModel.addChild( child );
 	}
 
 	resolve ( model ) {
-		var deps, dep, i;
+		var children, child, deps, dep, i;
 		this.realModel = model;
 		this.unresolved = false;
+
+		if ( children = this.children ) {
+			i = children.length;
+			while ( i-- ) {
+				child = children[ i ];
+				model.addChild( child );
+			}
+		}
 
 		if ( deps = this.dependants ) {
 			i = deps.length;
@@ -33,8 +42,8 @@ class ProxyModel extends Model {
 			}
 			this.deps = null;
 
-			// make sure these dependants get notified
-			model.mark();
+			// remove because causes resolution too early in "addChild" case
+			// model.mark();
 		}
 	}
 
@@ -109,10 +118,9 @@ class ProxyModel extends Model {
 
 
 	join ( str ) {
-		if ( !this.realModel ) {
-			throw new Error('join');
+		if ( this.realModel ) {
+			return this.realModel.join( str );
 		}
-		return this.realModel.join( str );
 	}
 
 	indexJoin ( index, aliases ) {

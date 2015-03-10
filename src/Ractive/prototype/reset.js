@@ -16,7 +16,7 @@ export default function Ractive$reset ( data ) {
 	}
 
 	// If the root object is wrapped, try and use the wrapper's reset value
-	if ( ( wrapper = this.viewmodel.rootKeypath.wrapper ) && wrapper.reset ) {
+	if ( ( wrapper = this.viewmodel.root.wrapper ) && wrapper.reset ) {
 		if ( wrapper.reset( data ) === false ) {
 			// reset was rejected, we need to replace the object
 			this.viewmodel.reset( data );
@@ -39,7 +39,7 @@ export default function Ractive$reset ( data ) {
 	if ( rerender ) {
 		let component;
 
-		this.viewmodel.rootKeypath.mark();
+		this.viewmodel.root.mark();
 
 		// Is this is a component, we need to set the `shouldDestroy`
 	 	// flag, otherwise it will assume by default that a parent node
@@ -70,7 +70,7 @@ export default function Ractive$reset ( data ) {
 		promise = this.render( this.el, this.anchor );
 	} else {
 		promise = runloop.start( this, true );
-		this.viewmodel.rootKeypath.mark();
+		this.viewmodel.root.mark();
 		runloop.end();
 	}
 
