@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Mar 10 2015 20:30:28 GMT+0000 (UTC) - commit 894da35b4ba4790836700d42c58d5de4c2aa0721
+	Tue Mar 10 2015 21:34:15 GMT+0000 (UTC) - commit bf03f60a818eac3d6d8a67459badaa6f6a938e79
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1324,16 +1324,23 @@
   	return matchingKeypaths;
 
   	function expand(matchingKeypaths, keypath) {
-  		var wrapper, value, key;
+  		var wrapper, value, keys;
 
-  		wrapper = ractive.viewmodel.wrapped[keypath.str];
-  		value = wrapper ? wrapper.get() : ractive.viewmodel.get(keypath);
+  		if (keypath.isRoot) {
+  			keys = [].concat(Object.keys(ractive.viewmodel.data), Object.keys(ractive.viewmodel.mappings), Object.keys(ractive.viewmodel.computations));
+  		} else {
+  			wrapper = ractive.viewmodel.wrapped[keypath.str];
+  			value = wrapper ? wrapper.get() : ractive.viewmodel.get(keypath);
 
-  		for (key in value) {
-  			if (value.hasOwnProperty(key) && (key !== "_ractive" || !isArray(value))) {
-  				// for benefit of IE8
-  				matchingKeypaths.push(keypath.join(key));
-  			}
+  			keys = value ? Object.keys(value) : null;
+  		}
+
+  		if (keys) {
+  			keys.forEach(function (key) {
+  				if (key !== "_ractive" || !isArray(value)) {
+  					matchingKeypaths.push(keypath.join(key));
+  				}
+  			});
   		}
 
   		return matchingKeypaths;
