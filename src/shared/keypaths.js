@@ -101,8 +101,10 @@ export function getKeypath ( str ) {
 	return keypathCache[ str ];
 }
 
-export function getMatchingKeypaths ( ractive, pattern ) {
+export function getMatchingKeypaths ( ractive, keypath ) {
 	var keys, key, matchingKeypaths;
+
+	let pattern = keypath.str;
 
 	keys = pattern.split( '.' );
 	matchingKeypaths = [ rootKeypath ];

@@ -30,7 +30,7 @@ export default function Ractive$set ( keypath, value ) {
 		// TODO a) wildcard test should probably happen at viewmodel level,
 		// b) it should apply to multiple/single set operations
 		if ( wildcard.test( keypath.str ) ) {
-			getMatchingKeypaths( this, keypath.str ).forEach( keypath => {
+			getMatchingKeypaths( this, keypath ).forEach( keypath => {
 				this.viewmodel.set( keypath, value );
 			});
 		} else {
