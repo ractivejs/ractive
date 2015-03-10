@@ -659,3 +659,19 @@ test( 'Observers should not fire twice when an upstream change is already a chan
 	t.equal( count, 1 );
 });
 
+test( 'Observer fires on initialisation for computed properties', t => {
+	let ractive = new Ractive({
+		data: { num: 21 },
+		computed: {
+			doubled: '${num}*2'
+		}
+	});
+
+	let observed = {};
+
+	ractive.observe( '*', ( n, o, k ) => {
+		observed[k] = n;
+	});
+
+	t.deepEqual( observed, { num: 21, doubled: 42 });
+});
