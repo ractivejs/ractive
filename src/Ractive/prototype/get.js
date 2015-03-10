@@ -3,7 +3,8 @@ import resolveRef from 'shared/resolveRef';
 
 var options = {
 	capture: true, // top-level calls should be intercepted
-	noUnwrap: true // wrapped values should NOT be unwrapped
+	noUnwrap: true, // wrapped values should NOT be unwrapped
+	fullRootGet: true // root get should return computations and mappings
 };
 
 export default function Ractive$get ( keypath ) {

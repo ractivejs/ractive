@@ -10,7 +10,8 @@ export default function Viewmodel$get ( keypath, options ) {
 		computation,
 		wrapped,
 		captureGroup,
-		keypathStr = keypath.str;
+		keypathStr = keypath.str,
+		key;
 
 	options = options || empty;
 
@@ -60,6 +61,17 @@ export default function Viewmodel$get ( keypath, options ) {
 
 	if ( !options.noUnwrap && ( wrapped = this.wrapped[ keypathStr ] ) ) {
 		value = wrapped.get();
+	}
+
+	if ( keypath.isRoot && options.fullRootGet ) {
+		// this.mappings.forEach( m => value[ m ] = m.getValue() );
+		for ( var key in this.mappings ) {
+			value[ key ] = this.mappings[ key ].getValue();
+		}
+
+		for ( var key in this.computations ) {
+			value[ key ] = this.computations[ key ].get();
+		}
 	}
 
 	return value === FAILED_LOOKUP ? void 0 : value;
