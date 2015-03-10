@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Mar 09 2015 22:00:50 GMT+0000 (UTC) - commit 1c193bcc79131bf12427da00e393fda98fe8f2a3
+	Tue Mar 10 2015 20:15:25 GMT+0000 (UTC) - commit 074fe3571c1ae95b473af105eb1015e2f9e9f952
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2479,7 +2479,8 @@
   var prototype_get = Ractive$get;
   var options = {
   	capture: true, // top-level calls should be intercepted
-  	noUnwrap: true // wrapped values should NOT be unwrapped
+  	noUnwrap: true, // wrapped values should NOT be unwrapped
+  	fullRootGet: true // root get should return mappings
   };
   function Ractive$get(keypath) {
   	var value;
@@ -5216,7 +5217,7 @@
   				}
 
   				return function () {
-  					var value = _this.root.viewmodel.get(keypath, { noUnwrap: true });
+  					var value = _this.root.viewmodel.get(keypath, { noUnwrap: true, fullRootGet: true });
   					if (typeof value === "function") {
   						value = wrapFunction(value, _this.root);
   					}
@@ -11781,7 +11782,8 @@
   	    computation,
   	    wrapped,
   	    captureGroup,
-  	    keypathStr = keypath.str;
+  	    keypathStr = keypath.str,
+  	    key;
 
   	options = options || get__empty;
 
@@ -11831,6 +11833,12 @@
 
   	if (!options.noUnwrap && (wrapped = this.wrapped[keypathStr])) {
   		value = wrapped.get();
+  	}
+
+  	if (keypath.isRoot && options.fullRootGet) {
+  		for (key in this.mappings) {
+  			value[key] = this.mappings[key].getValue();
+  		}
   	}
 
   	return value === FAILED_LOOKUP ? void 0 : value;
