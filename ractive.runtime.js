@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Mar 10 2015 20:15:25 GMT+0000 (UTC) - commit 074fe3571c1ae95b473af105eb1015e2f9e9f952
+	Tue Mar 10 2015 20:30:28 GMT+0000 (UTC) - commit 894da35b4ba4790836700d42c58d5de4c2aa0721
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -651,20 +651,264 @@
 
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/interpolators.js.map
 
-  function add(root, keypath, d) {
-  	var value;
+  // This function takes a keypath such as 'foo.bar.baz', and returns
+  // all the variants of that keypath that include a wildcard in place
+  // of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
+  // These are then checked against the dependants map (ractive.viewmodel.depsMap)
+  // to see if any pattern observers are downstream of one or more of
+  // these wildcard keypaths (e.g. 'foo.bar.*.status')
 
+
+  var starMaps = {};
+  function getPotentialWildcardMatches(keypath) {
+  	var keys, starMap, mapper, i, result, wildcardKeypath;
+
+  	keys = keypath.split(".");
+  	if (!(starMap = starMaps[keys.length])) {
+  		starMap = getStarMap(keys.length);
+  	}
+
+  	result = [];
+
+  	mapper = function (star, i) {
+  		return star ? "*" : keys[i];
+  	};
+
+  	i = starMap.length;
+  	while (i--) {
+  		wildcardKeypath = starMap[i].map(mapper).join(".");
+
+  		if (!result.hasOwnProperty(wildcardKeypath)) {
+  			result.push(wildcardKeypath);
+  			result[wildcardKeypath] = true;
+  		}
+  	}
+
+  	return result;
+  }
+
+  // This function returns all the possible true/false combinations for
+  // a given number - e.g. for two, the possible combinations are
+  // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
+  // It does so by getting all the binary values between 0 and e.g. 11
+  function getStarMap(num) {
+  	var ones = "",
+  	    max,
+  	    binary,
+  	    starMap,
+  	    mapper,
+  	    i;
+
+  	if (!starMaps[num]) {
+  		starMap = [];
+
+  		while (ones.length < num) {
+  			ones += 1;
+  		}
+
+  		max = parseInt(ones, 2);
+
+  		mapper = function (digit) {
+  			return digit === "1";
+  		};
+
+  		for (i = 0; i <= max; i += 1) {
+  			binary = i.toString(2);
+  			while (binary.length < num) {
+  				binary = "0" + binary;
+  			}
+
+  			starMap[i] = Array.prototype.map.call(binary, mapper);
+  		}
+
+  		starMaps[num] = starMap;
+  	}
+
+  	return starMaps[num];
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/getPotentialWildcardMatches.js.map
+
+  var refPattern, keypathCache, Keypath;
+
+  refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+
+  keypathCache = {};
+
+  Keypath = function (str) {
+  	var keys = str.split(".");
+
+  	this.str = str;
+
+  	if (str[0] === "@") {
+  		this.isSpecial = true;
+  		this.value = decodeKeypath(str);
+  	}
+
+  	this.firstKey = keys[0];
+  	this.lastKey = keys.pop();
+
+  	this.parent = str === "" ? null : getKeypath(keys.join("."));
+  	this.isRoot = !str;
+  };
+
+  Keypath.prototype = {
+  	equalsOrStartsWith: function (keypath) {
+  		return keypath === this || this.startsWith(keypath);
+  	},
+
+  	join: function (str) {
+  		return getKeypath(this.isRoot ? String(str) : this.str + "." + str);
+  	},
+
+  	replace: function (oldKeypath, newKeypath) {
+  		if (this === oldKeypath) {
+  			return newKeypath;
+  		}
+
+  		if (this.startsWith(oldKeypath)) {
+  			return newKeypath === null ? newKeypath : getKeypath(this.str.replace(oldKeypath.str + ".", newKeypath.str + "."));
+  		}
+  	},
+
+  	startsWith: function (keypath) {
+  		if (!keypath) {
+  			// TODO under what circumstances does this happen?
+  			return false;
+  		}
+
+  		return keypath && this.str.substr(0, keypath.str.length + 1) === keypath.str + ".";
+  	},
+
+  	toString: function () {
+  		throw new Error("Bad coercion");
+  	},
+
+  	valueOf: function () {
+  		throw new Error("Bad coercion");
+  	},
+
+  	wildcardMatches: function () {
+  		return this._wildcardMatches || (this._wildcardMatches = getPotentialWildcardMatches(this.str));
+  	}
+  };
+  function assignNewKeypath(target, property, oldKeypath, newKeypath) {
+  	var existingKeypath = target[property];
+
+  	if (existingKeypath && (existingKeypath.equalsOrStartsWith(newKeypath) || !existingKeypath.equalsOrStartsWith(oldKeypath))) {
+  		return;
+  	}
+
+  	target[property] = existingKeypath ? existingKeypath.replace(oldKeypath, newKeypath) : newKeypath;
+  	return true;
+  }
+
+  function decodeKeypath(keypath) {
+  	var value = keypath.slice(2);
+
+  	if (keypath[1] === "i") {
+  		return is__isNumeric(value) ? +value : value;
+  	} else {
+  		return value;
+  	}
+  }
+
+  function getKeypath(str) {
+  	if (str == null) {
+  		return str;
+  	}
+
+  	// TODO it *may* be worth having two versions of this function - one where
+  	// keypathCache inherits from null, and one for IE8. Depends on how
+  	// much of an overhead hasOwnProperty is - probably negligible
+  	if (!keypathCache.hasOwnProperty(str)) {
+  		keypathCache[str] = new Keypath(str);
+  	}
+
+  	return keypathCache[str];
+  }
+
+  function getMatchingKeypaths(ractive, keypath) {
+  	var keys, key, matchingKeypaths;
+
+  	keys = keypath.str.split(".");
+  	matchingKeypaths = [rootKeypath];
+
+  	while (key = keys.shift()) {
+  		if (key === "*") {
+  			// expand to find all valid child keypaths
+  			matchingKeypaths = matchingKeypaths.reduce(expand, []);
+  		} else {
+  			if (matchingKeypaths[0] === rootKeypath) {
+  				// first key
+  				matchingKeypaths[0] = getKeypath(key);
+  			} else {
+  				matchingKeypaths = matchingKeypaths.map(concatenate(key));
+  			}
+  		}
+  	}
+
+  	return matchingKeypaths;
+
+  	function expand(matchingKeypaths, keypath) {
+  		var wrapper, value, key;
+
+  		wrapper = ractive.viewmodel.wrapped[keypath.str];
+  		value = wrapper ? wrapper.get() : ractive.viewmodel.get(keypath);
+
+  		for (key in value) {
+  			if (value.hasOwnProperty(key) && (key !== "_ractive" || !isArray(value))) {
+  				// for benefit of IE8
+  				matchingKeypaths.push(keypath.join(key));
+  			}
+  		}
+
+  		return matchingKeypaths;
+  	}
+  }
+
+  function concatenate(key) {
+  	return function (keypath) {
+  		return keypath.join(key);
+  	};
+  }
+  function normalise(ref) {
+  	return ref ? ref.replace(refPattern, ".$1") : "";
+  }
+
+  var rootKeypath = getKeypath("");
+
+  var add__errorMessage = "Cannot add to a non-numeric value";
+  function add(root, keypath, d) {
   	if (typeof keypath !== "string" || !is__isNumeric(d)) {
   		throw new Error("Bad arguments");
   	}
 
-  	value = +root.get(keypath) || 0;
+  	var value = undefined,
+  	    changes = undefined;
 
-  	if (!is__isNumeric(value)) {
-  		throw new Error("Cannot add to a non-numeric value");
+  	if (/\*/.test(keypath)) {
+  		changes = {};
+
+  		getMatchingKeypaths(root, getKeypath(normalise(keypath))).forEach(function (keypath) {
+  			var value = root.viewmodel.get(keypath);
+
+  			if (!is__isNumeric(value)) {
+  				throw new Error(add__errorMessage);
+  			}
+
+  			changes[keypath.str] = value + d;
+  		});
+
+  		return root.set(changes);
   	}
 
-  	return root.set(keypath, value + d);
+  	value = root.get(keypath);
+
+  	if (!is__isNumeric(value)) {
+  		throw new Error(add__errorMessage);
+  	}
+
+  	return root.set(keypath, +value + d);
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/add.js.map
 
@@ -1063,232 +1307,6 @@
   	}
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/Promise.js.map
-
-  // This function takes a keypath such as 'foo.bar.baz', and returns
-  // all the variants of that keypath that include a wildcard in place
-  // of a key, such as 'foo.bar.*', 'foo.*.baz', 'foo.*.*' and so on.
-  // These are then checked against the dependants map (ractive.viewmodel.depsMap)
-  // to see if any pattern observers are downstream of one or more of
-  // these wildcard keypaths (e.g. 'foo.bar.*.status')
-
-
-  var starMaps = {};
-  function getPotentialWildcardMatches(keypath) {
-  	var keys, starMap, mapper, i, result, wildcardKeypath;
-
-  	keys = keypath.split(".");
-  	if (!(starMap = starMaps[keys.length])) {
-  		starMap = getStarMap(keys.length);
-  	}
-
-  	result = [];
-
-  	mapper = function (star, i) {
-  		return star ? "*" : keys[i];
-  	};
-
-  	i = starMap.length;
-  	while (i--) {
-  		wildcardKeypath = starMap[i].map(mapper).join(".");
-
-  		if (!result.hasOwnProperty(wildcardKeypath)) {
-  			result.push(wildcardKeypath);
-  			result[wildcardKeypath] = true;
-  		}
-  	}
-
-  	return result;
-  }
-
-  // This function returns all the possible true/false combinations for
-  // a given number - e.g. for two, the possible combinations are
-  // [ true, true ], [ true, false ], [ false, true ], [ false, false ].
-  // It does so by getting all the binary values between 0 and e.g. 11
-  function getStarMap(num) {
-  	var ones = "",
-  	    max,
-  	    binary,
-  	    starMap,
-  	    mapper,
-  	    i;
-
-  	if (!starMaps[num]) {
-  		starMap = [];
-
-  		while (ones.length < num) {
-  			ones += 1;
-  		}
-
-  		max = parseInt(ones, 2);
-
-  		mapper = function (digit) {
-  			return digit === "1";
-  		};
-
-  		for (i = 0; i <= max; i += 1) {
-  			binary = i.toString(2);
-  			while (binary.length < num) {
-  				binary = "0" + binary;
-  			}
-
-  			starMap[i] = Array.prototype.map.call(binary, mapper);
-  		}
-
-  		starMaps[num] = starMap;
-  	}
-
-  	return starMaps[num];
-  }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/getPotentialWildcardMatches.js.map
-
-  var refPattern, keypathCache, Keypath;
-
-  refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-
-  keypathCache = {};
-
-  Keypath = function (str) {
-  	var keys = str.split(".");
-
-  	this.str = str;
-
-  	if (str[0] === "@") {
-  		this.isSpecial = true;
-  		this.value = decodeKeypath(str);
-  	}
-
-  	this.firstKey = keys[0];
-  	this.lastKey = keys.pop();
-
-  	this.parent = str === "" ? null : getKeypath(keys.join("."));
-  	this.isRoot = !str;
-  };
-
-  Keypath.prototype = {
-  	equalsOrStartsWith: function (keypath) {
-  		return keypath === this || this.startsWith(keypath);
-  	},
-
-  	join: function (str) {
-  		return getKeypath(this.isRoot ? String(str) : this.str + "." + str);
-  	},
-
-  	replace: function (oldKeypath, newKeypath) {
-  		if (this === oldKeypath) {
-  			return newKeypath;
-  		}
-
-  		if (this.startsWith(oldKeypath)) {
-  			return newKeypath === null ? newKeypath : getKeypath(this.str.replace(oldKeypath.str + ".", newKeypath.str + "."));
-  		}
-  	},
-
-  	startsWith: function (keypath) {
-  		if (!keypath) {
-  			// TODO under what circumstances does this happen?
-  			return false;
-  		}
-
-  		return keypath && this.str.substr(0, keypath.str.length + 1) === keypath.str + ".";
-  	},
-
-  	toString: function () {
-  		throw new Error("Bad coercion");
-  	},
-
-  	valueOf: function () {
-  		throw new Error("Bad coercion");
-  	},
-
-  	wildcardMatches: function () {
-  		return this._wildcardMatches || (this._wildcardMatches = getPotentialWildcardMatches(this.str));
-  	}
-  };
-  function assignNewKeypath(target, property, oldKeypath, newKeypath) {
-  	var existingKeypath = target[property];
-
-  	if (existingKeypath && (existingKeypath.equalsOrStartsWith(newKeypath) || !existingKeypath.equalsOrStartsWith(oldKeypath))) {
-  		return;
-  	}
-
-  	target[property] = existingKeypath ? existingKeypath.replace(oldKeypath, newKeypath) : newKeypath;
-  	return true;
-  }
-
-  function decodeKeypath(keypath) {
-  	var value = keypath.slice(2);
-
-  	if (keypath[1] === "i") {
-  		return is__isNumeric(value) ? +value : value;
-  	} else {
-  		return value;
-  	}
-  }
-
-  function getKeypath(str) {
-  	if (str == null) {
-  		return str;
-  	}
-
-  	// TODO it *may* be worth having two versions of this function - one where
-  	// keypathCache inherits from null, and one for IE8. Depends on how
-  	// much of an overhead hasOwnProperty is - probably negligible
-  	if (!keypathCache.hasOwnProperty(str)) {
-  		keypathCache[str] = new Keypath(str);
-  	}
-
-  	return keypathCache[str];
-  }
-
-  function getMatchingKeypaths(ractive, pattern) {
-  	var keys, key, matchingKeypaths;
-
-  	keys = pattern.split(".");
-  	matchingKeypaths = [rootKeypath];
-
-  	while (key = keys.shift()) {
-  		if (key === "*") {
-  			// expand to find all valid child keypaths
-  			matchingKeypaths = matchingKeypaths.reduce(expand, []);
-  		} else {
-  			if (matchingKeypaths[0] === rootKeypath) {
-  				// first key
-  				matchingKeypaths[0] = getKeypath(key);
-  			} else {
-  				matchingKeypaths = matchingKeypaths.map(concatenate(key));
-  			}
-  		}
-  	}
-
-  	return matchingKeypaths;
-
-  	function expand(matchingKeypaths, keypath) {
-  		var wrapper, value, key;
-
-  		wrapper = ractive.viewmodel.wrapped[keypath.str];
-  		value = wrapper ? wrapper.get() : ractive.viewmodel.get(keypath);
-
-  		for (key in value) {
-  			if (value.hasOwnProperty(key) && (key !== "_ractive" || !isArray(value))) {
-  				// for benefit of IE8
-  				matchingKeypaths.push(keypath.join(key));
-  			}
-  		}
-
-  		return matchingKeypaths;
-  	}
-  }
-
-  function concatenate(key) {
-  	return function (keypath) {
-  		return keypath.join(key);
-  	};
-  }
-  function normalise(ref) {
-  	return ref ? ref.replace(refPattern, ".$1") : "";
-  }
-
-  var rootKeypath = getKeypath("");
 
   var getInnerContext = function (fragment) {
   	do {
@@ -2614,7 +2632,7 @@
   function getPattern(ractive, pattern) {
   	var matchingKeypaths, values;
 
-  	matchingKeypaths = getMatchingKeypaths(ractive, pattern.str);
+  	matchingKeypaths = getMatchingKeypaths(ractive, pattern);
 
   	values = {};
   	matchingKeypaths.forEach(function (keypath) {
@@ -10831,7 +10849,7 @@
   var arrayAdaptor,
 
   // helpers
-  ArrayWrapper, errorMessage;
+  ArrayWrapper, arrayAdaptor__errorMessage;
 
   arrayAdaptor = {
   	filter: function (object) {
@@ -10896,7 +10914,7 @@
 
   		index = wrappers.indexOf(this);
   		if (index === -1) {
-  			throw new Error(errorMessage);
+  			throw new Error(arrayAdaptor__errorMessage);
   		}
 
   		wrappers.splice(index, 1);
@@ -10913,7 +10931,7 @@
   				index = instances.indexOf(this.root);
 
   				if (index === -1) {
-  					throw new Error(errorMessage);
+  					throw new Error(arrayAdaptor__errorMessage);
   				}
 
   				instances.splice(index, 1);
@@ -10922,7 +10940,7 @@
   	}
   };
 
-  errorMessage = "Something went wrong in a rather interesting way";
+  arrayAdaptor__errorMessage = "Something went wrong in a rather interesting way";
 
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/array/index.js.map
 
@@ -13807,7 +13825,7 @@
   		// TODO a) wildcard test should probably happen at viewmodel level,
   		// b) it should apply to multiple/single set operations
   		if (prototype_set__wildcard.test(keypath.str)) {
-  			getMatchingKeypaths(this, keypath.str).forEach(function (keypath) {
+  			getMatchingKeypaths(this, keypath).forEach(function (keypath) {
   				_this.viewmodel.set(keypath, value);
   			});
   		} else {
@@ -13869,8 +13887,22 @@
 
   var toggle = Ractive$toggle;
   function Ractive$toggle(keypath) {
+  	var _this = this;
+
   	if (typeof keypath !== "string") {
   		throw new TypeError(badArguments);
+  	}
+
+  	var changes = undefined;
+
+  	if (/\*/.test(keypath)) {
+  		changes = {};
+
+  		getMatchingKeypaths(this, getKeypath(normalise(keypath))).forEach(function (keypath) {
+  			changes[keypath.str] = !_this.viewmodel.get(keypath);
+  		});
+
+  		return this.set(changes);
   	}
 
   	return this.set(keypath, !this.get(keypath));
