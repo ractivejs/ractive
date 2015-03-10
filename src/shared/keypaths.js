@@ -125,7 +125,7 @@ export function getMatchingKeypaths ( ractive, keypath ) {
 	return matchingKeypaths;
 
 	function expand ( matchingKeypaths, keypath ) {
-		var wrapper, value, key, keys;
+		var wrapper, value, keys;
 
 		if ( keypath.isRoot ) {
 			keys = [].concat(
