@@ -125,15 +125,27 @@ export function getMatchingKeypaths ( ractive, keypath ) {
 	return matchingKeypaths;
 
 	function expand ( matchingKeypaths, keypath ) {
-		var wrapper, value, key;
+		var wrapper, value, keys;
 
-		wrapper = ractive.viewmodel.wrapped[ keypath.str ];
-		value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
+		if ( keypath.isRoot ) {
+			keys = [].concat(
+				Object.keys( ractive.viewmodel.data ),
+				Object.keys( ractive.viewmodel.mappings ),
+				Object.keys( ractive.viewmodel.computations )
+			);
+		} else {
+			wrapper = ractive.viewmodel.wrapped[ keypath.str ];
+			value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
 
-		for ( key in value ) {
-			if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
-				matchingKeypaths.push( keypath.join( key ) );
-			}
+			keys = value ? Object.keys( value ) : null;
+		}
+
+		if ( keys ) {
+			keys.forEach( key => {
+				if ( key !== '_ractive' || !isArray( value ) ) {
+					matchingKeypaths.push( keypath.join( key ) );
+				}
+			});
 		}
 
 		return matchingKeypaths;
