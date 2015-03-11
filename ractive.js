@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Mar 10 2015 21:34:15 GMT+0000 (UTC) - commit bf03f60a818eac3d6d8a67459badaa6f6a938e79
+	Wed Mar 11 2015 20:54:11 GMT+0000 (UTC) - commit c1e390b0d810c5642f9c33ba171f42f81a701a5c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3057,6 +3057,13 @@
 
   	for (; i < len; i += 1) {
   		newIndices.push(i + balance);
+  	}
+
+  	// there is a net shift for the rest of the array starting with index + balance
+  	if (balance !== 0) {
+  		newIndices.touchedFrom = spliceArguments[0];
+  	} else {
+  		newIndices.touchedFrom = array.length;
   	}
 
   	return newIndices;
@@ -7939,6 +7946,14 @@
 
   	rebind: function (oldKeypath, newKeypath) {
   		var changed;
+
+  		if (this.base) {
+  			var newBase = this.base.replace(oldKeypath, newKeypath);
+  			if (newBase && newBase !== this.base) {
+  				this.base = newBase;
+  				changed = true;
+  			}
+  		}
 
   		this.members.forEach(function (members) {
   			if (members.rebind(oldKeypath, newKeypath)) {
@@ -14859,7 +14874,7 @@
   	if (oldLength !== array.length) {
   		this.mark(keypath.join("length"), implicitOption);
 
-  		for (i = oldLength; i < array.length; i += 1) {
+  		for (i = newIndices.touchedFrom; i < array.length; i += 1) {
   			this.mark(keypath.join(i));
   		}
 
