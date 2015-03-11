@@ -3,6 +3,8 @@ var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
 export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	var dependants, oldLength, i;
 
+	this.set( keypath, array, { silent: true } );
+
 	oldLength = newIndices.length;
 
 	// Indices that are being removed should be marked as dirty
