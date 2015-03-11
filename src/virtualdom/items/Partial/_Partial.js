@@ -76,13 +76,13 @@ Partial.prototype = {
 		return this.fragment.getValue();
 	},
 
-	rebind: function ( oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath, newValue = true ) {
 		// named partials aren't bound, so don't rebind
 		if ( !this.isNamed ) {
-			rebind.call( this, oldKeypath, newKeypath );
+			rebind.call( this, oldKeypath, newKeypath, newValue );
 		}
 
-		this.fragment.rebind( oldKeypath, newKeypath );
+		this.fragment.rebind( oldKeypath, newKeypath, newValue );
 	},
 
 	render: function () {

@@ -58,7 +58,7 @@ export default function Section$shuffle ( newIndices ) {
 			deps.forEach( blindRebind );
 		}
 
-		fragment.rebind( oldKeypath, newKeypath );
+		fragment.rebind( oldKeypath, newKeypath, false );
 		reboundFragments[ newIndex ] = fragment;
 	});
 

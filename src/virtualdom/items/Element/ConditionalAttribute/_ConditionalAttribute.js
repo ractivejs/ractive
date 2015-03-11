@@ -32,8 +32,8 @@ ConditionalAttribute.prototype = {
 		this.element.bubble();
 	},
 
-	rebind: function ( oldKeypath, newKeypath ) {
-		this.fragment.rebind( oldKeypath, newKeypath );
+	rebind: function ( oldKeypath, newKeypath, newValue = true ) {
+		this.fragment.rebind( oldKeypath, newKeypath, newValue );
 	},
 
 	render: function ( node ) {

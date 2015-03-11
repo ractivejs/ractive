@@ -1,4 +1,4 @@
-export default function EventHandler$rebind ( oldKeypath, newKeypath ) {
+export default function EventHandler$rebind ( oldKeypath, newKeypath, newValue = true ) {
 	var fragment;
 	if ( this.method ) {
 		fragment = this.element.parentFragment;
@@ -16,6 +16,6 @@ export default function EventHandler$rebind ( oldKeypath, newKeypath ) {
 	}
 
 	function rebind ( thing ) {
-		thing && thing.rebind( oldKeypath, newKeypath );
+		thing && thing.rebind( oldKeypath, newKeypath, newValue );
 	}
 }

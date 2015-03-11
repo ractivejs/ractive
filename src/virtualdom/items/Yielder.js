@@ -87,8 +87,8 @@ Yielder.prototype = {
 		removeFromArray( this.component.yielders[ this.name ], this );
 	},
 
-	rebind ( oldKeypath, newKeypath ) {
-		this.fragment.rebind( oldKeypath, newKeypath );
+	rebind ( oldKeypath, newKeypath, newValue = true ) {
+		this.fragment.rebind( oldKeypath, newKeypath, newValue );
 	},
 
 	toString () {

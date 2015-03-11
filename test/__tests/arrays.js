@@ -1,5 +1,6 @@
 var List, baseItems;
 
+/* global console */
 module( 'Arrays' );
 
 List = Ractive.extend({
@@ -214,6 +215,69 @@ test( 'Event handlers in inside iterative sections should be rebound correctly',
 	t.equal( ractive.fragment.items[0].fragments[2].items[0].eventHandlers[0].keypaths.length, 1 );
 });
 
+test( "Nested sections don't grow a context on rebind during smart updates #1737", t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{#each outer}}{{#each inner}}{{@keypath}} {{#if .foo || some.prop > 3}}<span>{{@keypath}}</span>{{/if}}<br/>{{/each}}{{/each}}',
+		data: { outer: [ { inner: [ { foo: true }, 1 ] } ], some: { prop: 10 } }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.0.inner.1 <span>outer.0.inner.1</span><br/>' );
+
+	ractive.unshift( 'outer', { inner: [ 0 ] } );
+
+	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.1.inner.0 <span>outer.1.inner.0</span><br/>outer.1.inner.1 <span>outer.1.inner.1</span><br/>' );
+});
+
+test( 'Array updates cause sections to shuffle with correct results', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{#each items}}{{.title}}{{#each .tags}}{{.}}{{/each}}{{/each}}',
+		data: {
+			items: [
+				{ title: 'one', tags: [ 'A' ] },
+				{ title: 'two', tags: [ 'B', 'C' ] }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'oneAtwoBC' );
+	ractive.unshift( 'items', { title: 'three' } );
+	t.htmlEqual( fixture.innerHTML, 'threeoneAtwoBC' );
+});
+
+test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{#each items}}{{.name}}{{.name + "_expr"}}{{.[~/name]}}<span {{#.name}}ok{{/}} class="{{.name}}">{{.name}}</span>{{/each}}',
+		data: { items: [ { name: 'foo' } ], name: 'name' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foofoo_exprfoo<span ok class="foo">foo</span>' );
+
+	let iter = ractive.fragment.items[0].fragments[0],
+		ref = iter.items[0],
+		exp = iter.items[1],
+		mem = iter.items[2],
+		el = iter.items[3];
+
+	// make sure these little suckers don't get re-rendered
+	ref.node.textContent += 'a';
+	exp.node.textContent += 'b';
+	mem.node.textContent += 'c';
+
+	ractive.unshift( 'items', { name: 'bar' } );
+
+	t.htmlEqual( fixture.innerHTML, 'barbar_exprbar<span ok class="bar">bar</span>fooafoo_exprbfooc<span ok class="foo">foo</span>' );
+
+	let shifted = ractive.fragment.items[0].fragments[1];
+	t.strictEqual( iter, shifted );
+	t.strictEqual( ref, shifted.items[0]);
+	t.strictEqual( exp, shifted.items[1]);
+	t.strictEqual( mem, shifted.items[2]);
+	t.strictEqual( el, shifted.items[3]);
+});
+
 function removedElementsTest ( action, fn ) {
 	test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', function ( t ) {
 		var warn = console.warn, observed = false;
@@ -221,7 +285,7 @@ function removedElementsTest ( action, fn ) {
 		expect( 4 );
 
 		console.warn = function (err) {
-			throw err
+			throw err;
 		};
 
 		try {
@@ -232,8 +296,8 @@ function removedElementsTest ( action, fn ) {
 				data: {
 					options: [ 'a', 'b', 'c' ],
 					get: function ( item ){
-						if(!item) { throw new Error('item should not be undefined'); }
-						return item
+						if ( !item ) { throw new Error('item should not be undefined'); }
+						return item;
 					}
 				}
 			});

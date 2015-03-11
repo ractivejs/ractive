@@ -45,7 +45,11 @@ export default function EventHandler$init ( element, name, template ) {
 			}
 
 			else {
-				this.refResolvers.push( createReferenceResolver( this, ref, keypath => this.resolve( i, keypath ) ) );
+				this.refResolvers.push(
+					createReferenceResolver( this, ref, ( keypath, newValue ) => {
+						return this.resolve( i, keypath, newValue === undefined ? true : newValue );
+					})
+				);
 			}
 		});
 

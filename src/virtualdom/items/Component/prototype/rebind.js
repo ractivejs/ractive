@@ -1,4 +1,4 @@
-export default function Component$rebind ( oldKeypath, newKeypath ) {
+export default function Component$rebind ( oldKeypath, newKeypath, newValue = true ) {
 	var query;
 
 	this.resolvers.forEach( rebind );
@@ -14,6 +14,6 @@ export default function Component$rebind ( oldKeypath, newKeypath ) {
 	}
 
 	function rebind ( x ) {
-		x.rebind( oldKeypath, newKeypath );
+		x.rebind( oldKeypath, newKeypath, newValue );
 	}
 }

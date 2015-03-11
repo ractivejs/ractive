@@ -3,6 +3,8 @@ var implicitOption = { implicit: true }, noCascadeOption = { noCascade: true };
 export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	var dependants, oldLength, i;
 
+	this.set( keypath, array, { silent: true } );
+
 	oldLength = newIndices.length;
 
 	// Indices that are being removed should be marked as dirty
@@ -12,10 +14,6 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 		}
 	});
 
-	// Update the model
-	// TODO allow existing array to be updated in place, rather than replaced?
-	this.set( keypath, array, { silent: true } );
-
 	if ( dependants = this.deps[ 'default' ][ keypath.str ] ) {
 		dependants.filter( canShuffle ).forEach( d => d.shuffle( newIndices, array ) );
 	}
@@ -23,7 +21,7 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	if ( oldLength !== array.length ) {
 		this.mark( keypath.join( 'length' ), implicitOption );
 
-		for ( i = oldLength; i < array.length; i += 1 ) {
+		for ( i = newIndices.touchedFrom; i < array.length; i += 1 ) {
 			this.mark( keypath.join( i ) );
 		}
 

@@ -23,7 +23,7 @@ var ReferenceResolver = function ( owner, ref, callback ) {
 };
 
 ReferenceResolver.prototype = {
-	resolve: function ( keypath ) {
+	resolve: function ( keypath, newValue = true ) {
 		if ( this.keypath && !keypath ) {
 			// it was resolved, and now it's not. Can happen if e.g. `bar` in
 			// `{{foo[bar]}}` becomes undefined
@@ -33,14 +33,14 @@ ReferenceResolver.prototype = {
 		this.resolved = true;
 
 		this.keypath = keypath;
-		this.callback( keypath );
+		this.callback( keypath, newValue );
 	},
 
 	forceResolution: function () {
 		this.resolve( getKeypath( this.ref ) );
 	},
 
-	rebind: function ( oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath, newValue = true ) {
 		var keypath;
 
 		if ( this.keypath != undefined ) {
@@ -48,7 +48,7 @@ ReferenceResolver.prototype = {
 			// was a new keypath created?
 			if ( keypath !== undefined ) {
 				// resolve it
-				this.resolve( keypath );
+				this.resolve( keypath, newValue );
 			}
 		}
 	},

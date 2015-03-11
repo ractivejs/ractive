@@ -42,19 +42,19 @@ export default function Mustache$init ( mustache, options ) {
 		mustache.setValue( undefined );
 	}
 
-	function resolve ( keypath ) {
-		mustache.resolve( keypath );
+	function resolve ( keypath, newValue = true ) {
+		mustache.resolve( keypath, newValue );
 	}
 
-	function resolveAndRebindChildren ( newKeypath ) {
+	function resolveAndRebindChildren ( newKeypath, newValue = true ) {
 		var oldKeypath = mustache.keypath;
 
 		if ( newKeypath != oldKeypath ) {
-			mustache.resolve( newKeypath );
+			mustache.resolve( newKeypath, newValue );
 
 			if ( oldKeypath !== undefined ) {
 				mustache.fragments && mustache.fragments.forEach( f => {
-					f.rebind( oldKeypath, newKeypath );
+					f.rebind( oldKeypath, newKeypath, newValue );
 				});
 			}
 		}
