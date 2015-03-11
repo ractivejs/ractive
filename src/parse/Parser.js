@@ -75,16 +75,21 @@ Parser.prototype = {
 	},
 
 	error: function ( message ) {
-		var pos, lineNum, columnNum, line, annotation, error;
+		let pos = this.getLinePos( this.pos );
+		let lineNum = pos[0];
+		let columnNum = pos[1];
 
-		pos = this.getLinePos( this.pos );
-		lineNum = pos[0];
-		columnNum = pos[1];
+		let line = this.lines[ pos[0] - 1 ];
+		let numTabs = 0;
+		let annotation = line.replace( /\t/g, ( match, char ) => {
+			if ( char < pos[1] ) {
+				numTabs += 1;
+			}
 
-		line = this.lines[ pos[0] - 1 ];
-		annotation = line + '\n' + new Array( pos[1] ).join( ' ' ) + '^----';
+			return '  ';
+		}) + '\n' + new Array( pos[1] + numTabs ).join( ' ' ) + '^----';
 
-		error = new ParseError( message + ' at line ' + lineNum + ' character ' + columnNum + ':\n' + annotation );
+		let error = new ParseError( `${message} at line ${lineNum} character ${columnNum}:\n${annotation}` );
 
 		error.line = pos[0];
 		error.character = pos[1];
