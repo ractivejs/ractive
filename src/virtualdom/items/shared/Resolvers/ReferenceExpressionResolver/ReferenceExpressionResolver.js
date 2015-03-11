@@ -60,6 +60,14 @@ ReferenceExpressionResolver.prototype = {
 	rebind: function ( oldKeypath, newKeypath ) {
 		var changed;
 
+		if ( this.base ) {
+			let newBase = this.base.replace( oldKeypath, newKeypath );
+			if ( newBase && newBase !== this.base ) {
+				this.base = newBase;
+				changed = true;
+			}
+		}
+
 		this.members.forEach( members => {
 			if ( members.rebind( oldKeypath, newKeypath ) ) {
 				changed = true;

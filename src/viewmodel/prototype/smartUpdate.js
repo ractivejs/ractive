@@ -23,7 +23,7 @@ export default function Viewmodel$smartUpdate ( keypath, array, newIndices ) {
 	if ( oldLength !== array.length ) {
 		this.mark( keypath.join( 'length' ), implicitOption );
 
-		for ( i = oldLength; i < array.length; i += 1 ) {
+		for ( i = newIndices.touchedFrom; i < array.length; i += 1 ) {
 			this.mark( keypath.join( i ) );
 		}
 
