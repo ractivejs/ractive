@@ -1,13 +1,11 @@
 import { isArray, isNumeric } from 'utils/is';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
-var refPattern, keypathCache, Keypath;
+let refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+let patternPattern = /\*/;
+let keypathCache = {};
 
-refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-
-keypathCache = {};
-
-Keypath = function ( str ) {
+let Keypath = function ( str ) {
 	var keys = str.split( '.' );
 
 	this.str = str;
@@ -19,6 +17,8 @@ Keypath = function ( str ) {
 
 	this.firstKey = keys[0];
 	this.lastKey = keys.pop();
+
+	this.isPattern = patternPattern.test( str );
 
 	this.parent = str === '' ? null : getKeypath( keys.join( '.' ) );
 	this.isRoot = !str;

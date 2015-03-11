@@ -3,7 +3,7 @@ import { getKeypath } from 'shared/keypaths';
 import { isEqual } from 'utils/is';
 import getPattern from './getPattern';
 
-var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;
+var PatternObserver, slice = Array.prototype.slice;
 
 PatternObserver = function ( ractive, keypath, callback, options ) {
 	this.root = ractive;
@@ -43,7 +43,7 @@ PatternObserver.prototype = {
 	update: function ( keypath ) {
 		var values;
 
-		if ( wildcard.test( keypath.str ) ) {
+		if ( keypath.isPattern ) {
 			values = getPattern( this.root, keypath );
 
 			for ( keypath in values ) {
