@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Wed Mar 11 2015 20:54:39 GMT+0000 (UTC) - commit 6d29a30983b190c04dc1630bc46b197f7f5db3b5
+	Wed Mar 11 2015 22:03:45 GMT+0000 (UTC) - commit 583f8d0d46e8a58ddee561976c592027db00b500
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4235,16 +4235,21 @@
   	},
 
   	error: function (message) {
-  		var pos, lineNum, columnNum, line, annotation, error;
+  		var pos = this.getLinePos(this.pos);
+  		var lineNum = pos[0];
+  		var columnNum = pos[1];
 
-  		pos = this.getLinePos(this.pos);
-  		lineNum = pos[0];
-  		columnNum = pos[1];
+  		var line = this.lines[pos[0] - 1];
+  		var numTabs = 0;
+  		var annotation = line.replace(/\t/g, function (match, char) {
+  			if (char < pos[1]) {
+  				numTabs += 1;
+  			}
 
-  		line = this.lines[pos[0] - 1];
-  		annotation = line + "\n" + new Array(pos[1]).join(" ") + "^----";
+  			return "  ";
+  		}) + "\n" + new Array(pos[1] + numTabs).join(" ") + "^----";
 
-  		error = new ParseError(message + " at line " + lineNum + " character " + columnNum + ":\n" + annotation);
+  		var error = new ParseError("" + message + " at line " + lineNum + " character " + columnNum + ":\n" + annotation);
 
   		error.line = pos[0];
   		error.character = pos[1];
