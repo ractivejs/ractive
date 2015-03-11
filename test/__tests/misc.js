@@ -1672,7 +1672,24 @@ test( 'Ractive can be instantiated without `new`', t => {
 	var Subclass = Ractive.extend();
 	t.ok( Subclass() instanceof Subclass );
 	t.ok( Subclass() instanceof Ractive );
-})
+});
+
+test( 'multiple pattern keypaths can be set simultaneously (#1319)', t => {
+	let ractive = new Ractive({
+		data: {
+			foo: [ 1, 2, 3 ],
+			bar: [ 4, 5, 6 ]
+		}
+	});
+
+	ractive.set({
+		'foo.*': 5,
+		'bar.*': 10
+	});
+
+	t.deepEqual( ractive.get( 'foo' ), [ 5, 5, 5 ] );
+	t.deepEqual( ractive.get( 'bar' ), [ 10, 10, 10 ] );
+});
 
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
