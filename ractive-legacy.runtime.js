@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Wed Mar 11 2015 20:54:11 GMT+0000 (UTC) - commit c1e390b0d810c5642f9c33ba171f42f81a701a5c
+	Wed Mar 11 2015 20:54:39 GMT+0000 (UTC) - commit 6d29a30983b190c04dc1630bc46b197f7f5db3b5
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6539,15 +6539,19 @@
   		owner: section
   	};
 
+  	section.hasContext = true;
+
   	// If we already know the section type, great
   	// TODO can this be optimised? i.e. pick an reevaluateSection function during init
   	// and avoid doing this each time?
   	if (section.subtype) {
   		switch (section.subtype) {
   			case SECTION_IF:
+  				section.hasContext = false;
   				return reevaluateConditionalSection(section, value, false, fragmentOptions);
 
   			case SECTION_UNLESS:
+  				section.hasContext = false;
   				return reevaluateConditionalSection(section, value, true, fragmentOptions);
 
   			case SECTION_WITH:
@@ -6590,6 +6594,7 @@
 
   	// Conditional section
   	changeCurrentSubtype(section, SECTION_IF, false);
+  	section.hasContext = false;
   	return reevaluateConditionalSection(section, value, false, fragmentOptions);
   }
 
@@ -13988,7 +13993,9 @@
   function Fragment$rebind(oldKeypath, newKeypath) {
 
   	// assign new context keypath if needed
-  	assignNewKeypath(this, "context", oldKeypath, newKeypath);
+  	if (!this.owner || this.owner.hasContext) {
+  		assignNewKeypath(this, "context", oldKeypath, newKeypath);
+  	}
 
   	this.items.forEach(function (item) {
   		if (item.rebind) {
