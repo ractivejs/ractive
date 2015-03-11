@@ -750,6 +750,13 @@ var parseTests = [
 		name: 'Not-really-escaped mustaches',
 		template: '\\\\[[static]] \\\\[[[tripleStatic]]] \\\\{{normal}} \\\\{{{triple}}}}',
 		parsed: {v:3,t:["\\",{"r":"static","s":true,"t":2}," \\",{"r":"tripleStatic","s":true,"t":3}," \\",{"r":"normal","t":2}," \\",{"r":"triple","t":3},"}"]}
+	},
+	{
+		name: 'Attribute/directive without =',
+		template: '<button on-click-"select">fire</button>',
+		error: `Expected \`=\`, \`/\`, \`>\` or whitespace at line 1 character 18:
+<button on-click-"select">fire</button>
+                 ^----`
 	}
 ];
 

@@ -15,9 +15,7 @@ export default function readAttribute ( parser ) {
 		return null;
 	}
 
-	attr = {
-		name: name
-	};
+	attr = { name };
 
 	value = readAttributeValue( parser );
 	if ( value != null ) { // not null/undefined
@@ -31,6 +29,11 @@ function readAttributeValue ( parser ) {
 	var start, valueStart, startDepth, value;
 
 	start = parser.pos;
+
+	// next character must be `=`, `/`, `>` or whitespace
+	if ( !/[=\/>\s]/.test( parser.nextChar() ) ) {
+		parser.error( 'Expected `=`, `/`, `>` or whitespace' );
+	}
 
 	parser.allowWhitespace();
 
