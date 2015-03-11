@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Wed Mar 11 2015 22:03:45 GMT+0000 (UTC) - commit 583f8d0d46e8a58ddee561976c592027db00b500
+	Wed Mar 11 2015 22:18:48 GMT+0000 (UTC) - commit 54a4d0aaba41b531a48b464e2a72c0109cbcff92
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -728,13 +728,11 @@
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/getPotentialWildcardMatches.js.map
 
-  var refPattern, keypathCache, Keypath;
+  var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+  var patternPattern = /\*/;
+  var keypathCache = {};
 
-  refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-
-  keypathCache = {};
-
-  Keypath = function (str) {
+  var Keypath = function (str) {
   	var keys = str.split(".");
 
   	this.str = str;
@@ -746,6 +744,8 @@
 
   	this.firstKey = keys[0];
   	this.lastKey = keys.pop();
+
+  	this.isPattern = patternPattern.test(str);
 
   	this.parent = str === "" ? null : getKeypath(keys.join("."));
   	this.isRoot = !str;
@@ -2651,7 +2651,6 @@
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/getPattern.js.map
 
   var PatternObserver,
-      PatternObserver__wildcard = /\*/,
       slice = Array.prototype.slice;
 
   PatternObserver = function (ractive, keypath, callback, options) {
@@ -2694,7 +2693,7 @@
 
   		var values;
 
-  		if (PatternObserver__wildcard.test(keypath.str)) {
+  		if (keypath.isPattern) {
   			values = getPattern(this.root, keypath);
 
   			for (keypath in values) {
@@ -2765,8 +2764,7 @@
 
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/PatternObserver.js.map
 
-  var getObserverFacade__wildcard = /\*/,
-      emptyObject = {};
+  var emptyObject = {};
   function getObserverFacade(ractive, keypath, callback, options) {
   	var observer, isPatternObserver, cancelled;
 
@@ -2774,7 +2772,7 @@
   	options = options || emptyObject;
 
   	// pattern observers are treated differently
-  	if (getObserverFacade__wildcard.test(keypath.str)) {
+  	if (keypath.isPattern) {
   		observer = new PatternObserver(ractive, keypath, callback, options);
   		ractive.viewmodel.patternObservers.push(observer);
   		isPatternObserver = true;
@@ -13830,10 +13828,8 @@
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/reverse.js.map
 
   var prototype_set = Ractive$set;
-  var prototype_set__wildcard = /\*/;
-  function Ractive$set(keypath, value) {
-  	var _this = this;
 
+  function Ractive$set(keypath, value) {
   	var map, promise;
 
   	promise = runloop.start(this, true);
@@ -13845,31 +13841,31 @@
   		for (keypath in map) {
   			if (map.hasOwnProperty(keypath)) {
   				value = map[keypath];
-  				keypath = getKeypath(normalise(keypath));
-
-  				this.viewmodel.set(keypath, value);
+  				set(this, keypath, value);
   			}
   		}
   	}
 
   	// Set a single keypath
   	else {
-  		keypath = getKeypath(normalise(keypath));
-
-  		// TODO a) wildcard test should probably happen at viewmodel level,
-  		// b) it should apply to multiple/single set operations
-  		if (prototype_set__wildcard.test(keypath.str)) {
-  			getMatchingKeypaths(this, keypath).forEach(function (keypath) {
-  				_this.viewmodel.set(keypath, value);
-  			});
-  		} else {
-  			this.viewmodel.set(keypath, value);
-  		}
+  		set(this, keypath, value);
   	}
 
   	runloop.end();
 
   	return promise;
+  }
+
+  function set(ractive, keypath, value) {
+  	keypath = getKeypath(normalise(keypath));
+
+  	if (keypath.isPattern) {
+  		getMatchingKeypaths(ractive, keypath).forEach(function (keypath) {
+  			ractive.viewmodel.set(keypath, value);
+  		});
+  	} else {
+  		ractive.viewmodel.set(keypath, value);
+  	}
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/set.js.map
 
