@@ -1,13 +1,12 @@
 
 import Model from '../model/Model';
-import ProxyModel from '../model/ProxyModel';
 import ReferenceModel from '../model/ReferenceModel';
+import ComputationModel from '../model/ComputationModel';
 
 import getInnerContext from 'shared/getInnerContext';
 import getExpressionSignature from '../Computation/getExpressionSignature';
-import Computation from '../Computation/NewComputation';
 
-import { ExpressionStore, StateStore } from '../model/store';
+import { StateStore } from '../model/store';
 
 import { INTERPOLATOR, REFERENCE } from 'config/types';
 
@@ -65,8 +64,7 @@ function getReferenceModel( viewmodel, reference, context ) {
 }
 
 function getExpressionModel( viewmodel, reference, context ) {
-	var key, store, model;
-
+	var key, models, signature, model;
 
 	key = '${' + reference.r.reduce( function ( str, ref, i ) {
 			return str.replace( '_' + i, ref );
@@ -78,23 +76,15 @@ function getExpressionModel( viewmodel, reference, context ) {
 	// 	return model;
 	// }
 
-	store = getExpressionStore( viewmodel, reference, context ),
-	model = new Model( key, store );
-	// TODO: reorder these dependencies to get around this hack
-	store.computation.setModel( model );
+	models = reference.r.map( ref => getByTemplate( viewmodel, { r: ref }, context ) );
+	signature = getExpressionSignature( reference.s, models, viewmodel.ractive );
+	model = new ComputationModel( key, signature, viewmodel );
 
 	viewmodel.root.addChild( model );
 
 	return model;
 }
 
-function getExpressionStore( viewmodel, reference, context ){
-	var models = reference.r.map( ref => getByTemplate( viewmodel, { r: ref }, context ) ),
-		signature = getExpressionSignature( reference.s, models, viewmodel.ractive ),
-		computation = new NewComputation( viewmodel, signature /**/ );
-		return new ExpressionStore( computation );
-
-}
 
 function getReferenceExpressionModel ( viewmodel, reference, context ) {
 	var previous, members, member, model;
@@ -103,8 +93,7 @@ function getReferenceExpressionModel ( viewmodel, reference, context ) {
 	members = reference.m.map( ref => getMemberModel( viewmodel, ref, context ) );
 
 	while( member = members.shift() ) {
-		model = new ReferenceModel( member, previous );
-		previous.addChild( model );
+		model = new ReferenceModel( member.fullKey || member.model.key, member.model, previous );
 		previous = model;
 	}
 
@@ -114,17 +103,23 @@ function getReferenceExpressionModel ( viewmodel, reference, context ) {
 function getMemberModel( viewmodel, reference, context ){
 
 	if ( typeof reference === 'string' ) {
-		// remove string when Model can be parentless on construct
-		return new Model( '"' + reference + '"', new StateStore( reference ) );
+		return {
+			model: new Model( "' + reference + '", new StateStore( reference ) )
+		};
 	}
 
 	// Simple reference?
 	else if ( reference.t === REFERENCE ) {
-		return getReferenceModel( viewmodel, reference.n, context );
+		return {
+			model: getReferenceModel( viewmodel, reference.n, context ),
+			fullKey: reference.n
+		};
 	}
 
 	// Otherwise we have an expression in its own right
 	else {
-		return getExpressionModel( viewmodel, reference, context );
+		return {
+			model: getExpressionModel( viewmodel, reference, context )
+		}
 	}
 }

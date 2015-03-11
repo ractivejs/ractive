@@ -184,12 +184,12 @@ test( 'Correct value is given to node._ractive.keypath when a component is torn 
 		}
 	});
 
-	t.equal( ractive.find( 'p' )._ractive.keypath.str, '' );
+	t.equal( ractive.find( 'p' )._ractive.keypath.getKeypath(), '' );
 
 	ractive.set( 'visible', false );
 	ractive.set( 'visible', true );
 
-	t.equal( ractive.find( 'p' )._ractive.keypath.str, '' );
+	t.equal( ractive.find( 'p' )._ractive.keypath.getKeypath(), '' );
 });
 
 test( 'Nested components fire the oninit() event correctly (#511)', t => {
@@ -744,6 +744,7 @@ test( 'Mapping to a computed property is an error', function ( t ) {
 				})
 			}
 		});
+		console.log(ractive.viewmodel);
 	}, /Computed property 'foo' cannot shadow a mapped property/ );
 });
 

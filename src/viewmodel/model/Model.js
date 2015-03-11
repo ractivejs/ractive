@@ -164,7 +164,7 @@ class Model {
 
 	getKeypath () {
 		var parentKey = this.parent.getKeypath();
-		return parentKey ? '.' + this.key : this.key;
+		return parentKey ? parentKey + '.' + this.key : this.key;
 	}
 
 	/*
@@ -244,7 +244,7 @@ class Model {
 			this.parent.cascade( true );
 		}
 
-		// mark computed dependants as changed
+		// mark computed dependants as dirty
 		if( ( dependants = this.dependants ) && ( computed = dependants.computed ) ) {
 			for( i = 0, l = computed.length; i < l; i++ ) {
 				computed[i].mark();
@@ -339,7 +339,7 @@ class Model {
 	keyContext () {
 		this.startContext();
 		var key = this.getKeypath();
-		this.createStateChild( key, '@keypath' );
+		this.createStateChild( '@keypath', key );
 	}
 
 	createStateChildren ( propertyOrIndex, key, index, aliases ) {

@@ -2,6 +2,7 @@ import { addToArray, removeFromArray } from 'utils/array';
 import Model from './Model';
 
 class ProxyModel extends Model {
+
 	constructor ( key, owner ) {
 		this.owner = owner;
 		super( key, {} );
@@ -22,27 +23,24 @@ class ProxyModel extends Model {
 	}
 
 	resolve ( model ) {
-		var children, child, deps, dep, i;
+		var children, child, deps, dep;
 		this.realModel = model;
 		this.unresolved = false;
 
 		if ( children = this.children ) {
-			i = children.length;
-			while ( i-- ) {
-				child = children[ i ];
+			while ( child = children.pop() ) {
 				model.addChild( child );
 			}
+			this.children = null;
 		}
 
 		if ( deps = this.dependants ) {
-			i = deps.length;
-			while ( i-- ) {
-				dep = deps[i];
+			while ( dep = deps.pop() ) {
 				model.register( dep.dependant, dep.type );
 			}
-			this.deps = null;
+			this.dependants = null;
 
-			// remove because causes resolution too early in "addChild" case
+			// note to self: removed because causes resolution too early in "addChild" case
 			// model.mark();
 		}
 	}
@@ -61,11 +59,11 @@ class ProxyModel extends Model {
 	}
 
 	set ( value, options ) {
-		// TODO force resolution?
 		if ( this.realModel ) {
 			return this.realModel.set( value, options );
 		} else {
-			debugger;
+			// TODO force resolution
+			throw new Error('need to force resolution of ProxyModel');
 		}
 	}
 
@@ -81,7 +79,10 @@ class ProxyModel extends Model {
 	}
 
 	cascade ( cascadeUpOnly ) {
-		throw new Error('cascade');
+		if ( !this.realModel ) {
+			throw new Error('cascade');
+		}
+		return this.realModel.cascade( cascadeUpOnly );
 	}
 
 	register ( dependant, type = 'default' ) {
@@ -112,8 +113,10 @@ class ProxyModel extends Model {
 	}
 
 	notify ( type ) {
-
-		throw new Error('notify');
+		if ( !this.realModel ) {
+			throw new Error('notify');
+		}
+		this.realModel.notify( type );
 	}
 
 

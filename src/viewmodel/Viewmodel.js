@@ -16,11 +16,11 @@ import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 
 import RootModel from './model/RootModel';
+import ComputationModel from './model/ComputationModel';
 
 var Viewmodel = function ( options ) {
-	var { adapt, data, ractive, mappings } = options,
-		key,
-		mapping;
+	var { adapt, computations, data, mappings, ractive } = options,
+		key, mapping, model;
 
 	// TODO is it possible to remove this reference?
 	this.ractive = ractive;
@@ -50,23 +50,25 @@ var Viewmodel = function ( options ) {
 
 	this.data = data;
 
-	this.modelCache = {};
-
-	// TODO make RootModel class that encapsulates details
-	// like DataStore and startContext() call
 	this.root = new RootModel( this, data );
 
 	// TODO: clean-up/move some of this
-	var key, model;
 	if ( mappings ) {
 		mappings.forEach( mapping => {
 
-			this.root.addChild( mapping.model, mapping.key );
+			this.root.addChild( ( model = mapping.model ), mapping.key );
 
 			if ( data && ( key in data ) && model.get() === undefined ) {
 				model.set( data[ key ] );
 			}
 		});
+	}
+
+	if ( computations ) {
+		for( key in computations ) {
+			model = new ComputationModel( key, computations[ key ], this );
+			this.root.addChild( model, key );
+		}
 	}
 
 	this.ready = true;

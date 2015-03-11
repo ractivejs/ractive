@@ -22,8 +22,7 @@ var dataConfigurator = {
 		var result = this.init( ractive.constructor, ractive, ractive.viewmodel );
 
 		if ( result ) {
-			ractive.viewmodel.data = result;
-			ractive.viewmodel.clearCache();
+			ractive.viewmodel.root.set( result );
 			return true;
 		}
 	}

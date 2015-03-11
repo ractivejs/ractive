@@ -37,7 +37,7 @@ registryNames = [
 export default initialiseRactiveInstance;
 
 function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
-	var el, viewmodel;
+	var el, viewmodel, computed;
 
 	initialiseProperties( ractive, options );
 
@@ -52,27 +52,20 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 		ractive[ name ] = extend( create( ractive.constructor[ name ] || null ), userOptions[ name ] );
 	});
 
+	computed = extend( create( ractive.constructor.prototype.computed ), userOptions.computed );
+
 	// Create a viewmodel
 	viewmodel = new Viewmodel({
 		adapt: getAdaptors( ractive, ractive.adapt, userOptions ),
 		data: dataConfigurator.init( ractive.constructor, ractive, userOptions ),
 		mappings: options.mappings,
+		computations: getComputationSignatures( ractive, computed ),
 		ractive: ractive,
 		onchange: () => runloop.addRactive( ractive )
 	});
 
 	ractive.viewmodel = viewmodel;
 	viewmodel.debug = ractive.debug;
-
-	// This can't happen in viewmodel concstructor,
-	// because computed properties may call `ractive.get()`, etc
-	viewmodel.addComputed( getComputationSignatures(
-		ractive,
-		extend(
-			create( ractive.constructor.prototype.computed ),
-			userOptions.computed
-		)
-	));
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );

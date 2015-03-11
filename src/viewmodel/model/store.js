@@ -133,7 +133,7 @@ export class ReferenceStore {
 
 	get () {
 		var value;
-		if ( !this.resolved && ( value = this.reference.get() ) ) {
+		if ( !this.resolved && typeof ( value = this.reference.get() ) !== 'undefined' ) {
 			this.resolved = this.parent.join( value );
 		}
 		return this.resolved ? this.resolved.get() : void 0;
@@ -144,8 +144,11 @@ export class ReferenceStore {
 	}
 
 	set ( value ) {
-		if ( !this.resolved) {
-			throw new Error('ReferenceStore set called without resolved.');
+		if ( !this.resolved ) {
+			if ( typeof value !== 'undefined' ) {
+				throw new Error('ReferenceStore set called without resolved.');
+			}
+			return;
 		}
 
 		this.resolved.set( value );

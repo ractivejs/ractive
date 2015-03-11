@@ -4,16 +4,15 @@ import { addToArray, removeFromArray } from 'utils/array';
 
 class ReferenceModel extends Model {
 
-	constructor ( reference, parent ) {
+	constructor ( key, reference, parent ) {
 
 		var store = new ReferenceStore( reference, parent );
 
-		super( '[' + reference.key + ']', store );
+		super( '[' + key + ']', store );
 
 		parent.addChild(this);
 		reference.register( this, 'computed' );
 	}
-
 }
 
 export default ReferenceModel;

@@ -171,7 +171,7 @@ test('List of inputs with referenceExpression name update correctly', function(t
 	ractive.set( 'topic', 'Color' );
 	var input = ractive.find('input');
 	t.ok( input );
-	t.equal( input.name, '{{responses.Color}}' );
+	t.equal( input.name, '{{responses.[topic]}}' );
 
 });
 
@@ -196,7 +196,7 @@ test('List of inputs with nested referenceExpression name updates correctly', fu
 	expect(3);
 
 	ractive.findAll('input').forEach(function(input){
-		t.equal( input.name, '{{responses.Colors}}' )
+		t.equal( input.name, '{{responses.[step.name]}}' )
 	});
 
 });

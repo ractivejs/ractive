@@ -5,14 +5,14 @@ export default function Viewmodel$addComputed ( computations ) {
 
 	for ( key in computations ) {
 
-		keypath = this.getKeypath( key );
+		keypath = this.getModel( key );
 
 		if ( keypath.owner !== this ) {
 			fatal( 'Computed property \'%s\' cannot shadow a mapped property', key );
 		}
 
 		initialValue = keypath.get();
-		keypath.clearCachedValue();
+		// keypath.clearCachedValue();
 
 		this.compute( keypath, computations[ key ], initialValue );
 	}

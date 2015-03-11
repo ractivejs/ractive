@@ -74,7 +74,7 @@ function changeCurrentSubtype ( section, value, obj ) {
 				}
 			}
 
-			ref.t = obj ? 'k' : 'i';
+			// ref.t = obj ? 'k' : 'i';
 		}
 	}
 
