@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Thu Mar 12 2015 21:01:45 GMT+0000 (UTC) - commit 24e325cb3ae57d698be623c8d5ff0cfa93f25843
+	Thu Mar 12 2015 22:07:07 GMT+0000 (UTC) - commit 75b7c77277689d116b355ce3a7fbf957748536d8
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11673,7 +11673,9 @@
 
   		if (this.getting) {
   			// prevent double-computation (e.g. caused by array mutation inside computation)
-  			return;
+  			var msg = "The " + this.key.str + " computation indirectly called itself. This probably indicates a bug in the computation. It is commonly caused by `array.sort(...)` - if that's the case, clone the array first with `array.slice().sort(...)`";
+  			warnOnce(msg);
+  			return this.value;
   		}
 
   		this.getting = true;
