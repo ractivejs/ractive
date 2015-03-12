@@ -204,3 +204,21 @@ test( 'Named yield must have valid name, not expression (#1681)', t => {
 		});
 	}, /expected legal partial name/ );
 });
+
+test( 'Yield with missing partial (#1681)', t => {
+	let warn = console.warn;
+	console.warn = msg => {
+		t.ok( /Could not find template for partial "missing"/.test( msg ) );
+	};
+
+	let Widget = Ractive.extend({
+		template: '{{yield missing}}'
+	});
+
+	new Ractive({
+		template: '<Widget/>',
+		components: { Widget }
+	});
+
+	console.warn = warn;
+});
