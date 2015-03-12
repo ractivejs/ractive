@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Thu Mar 12 2015 20:53:27 GMT+0000 (UTC) - commit e12517b93348371aea722f3b89a554f19b86ed12
+	Thu Mar 12 2015 21:01:45 GMT+0000 (UTC) - commit 24e325cb3ae57d698be623c8d5ff0cfa93f25843
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6831,7 +6831,7 @@
 
   	if (item.e) {
   		for (i = 0; i < path.length; i++) {
-  			if (cmp = (path[i].components || {})[name]) {
+  			if (cmp = (path[i].components || path[i].constructor.components || {})[name]) {
   				return cmp;
   			}
   		}
