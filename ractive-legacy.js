@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Thu Mar 12 2015 22:07:07 GMT+0000 (UTC) - commit 75b7c77277689d116b355ce3a7fbf957748536d8
+	Thu Mar 12 2015 22:11:07 GMT+0000 (UTC) - commit dedc3f27333db15545c7def0b6f4b3a841cb4b4b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -102,7 +102,7 @@
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/easing.js.02-babel.map
 
   /*global console */
-  var isClient, hasConsole, magic, namespaces, svg, vendors;
+  var isClient, hasConsole, environment__magic, namespaces, svg, vendors;
 
   isClient = typeof document === "object";
 
@@ -110,9 +110,9 @@
 
   try {
   	Object.defineProperty({}, "test", { value: 0 });
-  	magic = true;
+  	environment__magic = true;
   } catch (e) {
-  	magic = false;
+  	environment__magic = false;
   }
 
   namespaces = {
@@ -15711,12 +15711,6 @@
   	// init config from Parent and options
   	config.init(ractive.constructor, ractive, userOptions);
 
-  	// TODO this was moved from Viewmodel.extend - should be
-  	// rolled in with other config stuff
-  	if (ractive.magic && !magic) {
-  		throw new Error("Getters and setters (magic mode) are not supported in this browser");
-  	}
-
   	configHook.fire(ractive);
   	initHook.begin(ractive);
 
@@ -15766,7 +15760,7 @@
   	modifyArrays = "modifyArrays" in userOptions ? userOptions.modifyArrays : ractive.modifyArrays;
 
   	if (magic) {
-  		if (!magic) {
+  		if (!environment__magic) {
   			throw new Error("Getters and setters (magic mode) are not supported in this browser");
   		}
 
@@ -17269,7 +17263,7 @@
 
   	// support
   	svg: { value: svg },
-  	magic: { value: magic },
+  	magic: { value: environment__magic },
 
   	// version
   	VERSION: { value: "0.7.0-edge" },
