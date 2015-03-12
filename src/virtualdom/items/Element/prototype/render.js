@@ -96,15 +96,15 @@ export default function Element$render () {
 		}
 	}
 
-	// Add proxy event handlers
-	if ( this.eventHandlers ) {
-		this.eventHandlers.forEach( h => h.render() );
-	}
-
 	// deal with two-way bindings
 	if ( this.binding ) {
 		this.binding.render();
 		this.node._ractive.binding = this.binding;
+	}
+
+	// Add proxy event handlers
+	if ( this.eventHandlers ) {
+		this.eventHandlers.forEach( h => h.render() );
 	}
 
 	if ( this.name === 'option' ) {
