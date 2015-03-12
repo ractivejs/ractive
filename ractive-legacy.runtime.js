@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Thu Mar 12 2015 19:06:16 GMT+0000 (UTC) - commit c7f223bcc540d4b2f57148ac57a0038924054a07
+	Thu Mar 12 2015 20:10:51 GMT+0000 (UTC) - commit 173b0fee3260d70cd04e3b2ab2783ffc27f50afb
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1680,19 +1680,21 @@
   				return;
   			}
 
-  			processPromise = function (i) {
-  				promises[i].then(function (value) {
-  					result[i] = value;
-
-  					if (! --pending) {
-  						fulfil(result);
-  					}
-  				}, reject);
+  			processPromise = function (promise, i) {
+  				if (promise && typeof promise.then === "function") {
+  					promise.then(function (value) {
+  						result[i] = value;
+  						--pending || fulfil(result);
+  					}, reject);
+  				} else {
+  					result[i] = promise;
+  					--pending || fulfil(result);
+  				}
   			};
 
   			pending = i = promises.length;
   			while (i--) {
-  				processPromise(i);
+  				processPromise(promises[i], i);
   			}
   		});
   	};
