@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Wed Mar 11 2015 22:18:48 GMT+0000 (UTC) - commit 54a4d0aaba41b531a48b464e2a72c0109cbcff92
+	Thu Mar 12 2015 02:31:55 GMT+0000 (UTC) - commit bb31bfb61198876b9deaf892cfcf2bab78c5dec8
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12888,17 +12888,17 @@
   		}
   	}
 
+  	// deal with two-way bindings
+  	if (this.binding) {
+  		this.binding.render();
+  		this.node._ractive.binding = this.binding;
+  	}
+
   	// Add proxy event handlers
   	if (this.eventHandlers) {
   		this.eventHandlers.forEach(function (h) {
   			return h.render();
   		});
-  	}
-
-  	// deal with two-way bindings
-  	if (this.binding) {
-  		this.binding.render();
-  		this.node._ractive.binding = this.binding;
   	}
 
   	if (this.name === "option") {
