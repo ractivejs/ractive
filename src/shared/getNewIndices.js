@@ -50,6 +50,13 @@ export default function getNewIndices ( array, methodName, args ) {
 		newIndices.push( i + balance );
 	}
 
+	// there is a net shift for the rest of the array starting with index + balance
+	if ( balance !== 0 ) {
+		newIndices.touchedFrom = spliceArguments[0];
+	} else {
+		newIndices.touchedFrom = array.length;
+	}
+
 	return newIndices;
 }
 

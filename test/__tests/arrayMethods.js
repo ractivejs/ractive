@@ -237,3 +237,40 @@ test( 'Interpolators that directly reference arrays are updated on array mutatio
 	ractive.push( 'letters', 'd', 'e', 'f' );
 	t.htmlEqual( fixture.innerHTML, 'a,b,c,d,e,f' );
 });
+
+test( 'unshift should make all indices update (#1729)', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{foo.0}}',
+		data: { foo: [ 'first' ] }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'first' );
+	ractive.unshift( 'foo', 'second' );
+	t.htmlEqual( fixture.innerHTML, 'second' );
+});
+
+test( 'splice with net additions should make all indices greater than start update', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{foo.2}}',
+		data: { foo: [ 0, 2 ] }
+	});
+
+	ractive.splice( 'foo', 1, 0, 1 );
+	t.htmlEqual( fixture.innerHTML, '2' );
+	ractive.splice( 'foo', 0, 1, 0, 'hello' );
+	t.htmlEqual( fixture.innerHTML, '1' );
+});
+
+test( 'array modification with non-shuffle-able deps should update correctly', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{#foo}}{{.}}{{/}}{{foo.0}}',
+		data: { foo: [ 1, 2 ] }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '121' );
+	ractive.unshift( 'foo', 0 );
+	t.htmlEqual( fixture.innerHTML, '0120' );
+});

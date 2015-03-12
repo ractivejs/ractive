@@ -429,6 +429,23 @@ test( 'Computations matching _[0-9]+ that are not references should not be mangl
 	t.htmlEqual( fixture.innerHTML, '_0 _1' );
 });
 
+test( 'Computations can depend on array values (#1747)', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{count}} {{count === 4}}',
+		data: {
+			items: [ 1, 2, 3 ]
+		},
+		computed: {
+			count: '${items}.length'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '3 false' );
+	ractive.push( 'items', 4 );
+	t.htmlEqual( fixture.innerHTML, '4 true' );
+});
+
 // Commented out temporarily, see #1381
 /*test( 'Computations don\'t mistakenly set when used in components (#1357)', function ( t ) {
 	var ractive, Component;

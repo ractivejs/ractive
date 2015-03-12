@@ -1,13 +1,11 @@
 import { isArray, isNumeric } from 'utils/is';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
-var refPattern, keypathCache, Keypath;
+let refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+let patternPattern = /\*/;
+let keypathCache = {};
 
-refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-
-keypathCache = {};
-
-Keypath = function ( str ) {
+let Keypath = function ( str ) {
 	var keys = str.split( '.' );
 
 	this.str = str;
@@ -19,6 +17,8 @@ Keypath = function ( str ) {
 
 	this.firstKey = keys[0];
 	this.lastKey = keys.pop();
+
+	this.isPattern = patternPattern.test( str );
 
 	this.parent = str === '' ? null : getKeypath( keys.join( '.' ) );
 	this.isRoot = !str;
@@ -101,10 +101,10 @@ export function getKeypath ( str ) {
 	return keypathCache[ str ];
 }
 
-export function getMatchingKeypaths ( ractive, pattern ) {
+export function getMatchingKeypaths ( ractive, keypath ) {
 	var keys, key, matchingKeypaths;
 
-	keys = pattern.split( '.' );
+	keys = keypath.str.split( '.' );
 	matchingKeypaths = [ rootKeypath ];
 
 	while ( key = keys.shift() ) {
@@ -125,15 +125,27 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 	return matchingKeypaths;
 
 	function expand ( matchingKeypaths, keypath ) {
-		var wrapper, value, key;
+		var wrapper, value, keys;
 
-		wrapper = ractive.viewmodel.wrapped[ keypath.str ];
-		value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
+		if ( keypath.isRoot ) {
+			keys = [].concat(
+				Object.keys( ractive.viewmodel.data ),
+				Object.keys( ractive.viewmodel.mappings ),
+				Object.keys( ractive.viewmodel.computations )
+			);
+		} else {
+			wrapper = ractive.viewmodel.wrapped[ keypath.str ];
+			value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
 
-		for ( key in value ) {
-			if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
-				matchingKeypaths.push( keypath.join( key ) );
-			}
+			keys = value ? Object.keys( value ) : null;
+		}
+
+		if ( keys ) {
+			keys.forEach( key => {
+				if ( key !== '_ractive' || !isArray( value ) ) {
+					matchingKeypaths.push( keypath.join( key ) );
+				}
+			});
 		}
 
 		return matchingKeypaths;

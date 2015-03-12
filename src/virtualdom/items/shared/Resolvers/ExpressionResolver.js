@@ -80,7 +80,7 @@ ExpressionResolver.prototype = {
 				}
 
 				return () => {
-					var value = this.root.viewmodel.get( keypath, { noUnwrap: true });
+					var value = this.root.viewmodel.get( keypath, { noUnwrap: true, fullRootGet: true });
 					if ( typeof value === 'function' ) {
 						value = wrapFunction( value, this.root );
 					}

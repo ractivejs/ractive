@@ -617,42 +617,6 @@ test( 'Two-way binding can be set up against expressions that resolve to regular
 	t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
 });
 
-test( 'Instances of subclasses with non-POJO default models have the correct prototype', function ( t ) {
-	var Model, Subclass, instance;
-
-	Model = function ( data ) {
-		var key;
-
-		for ( key in data ) {
-			if ( data.hasOwnProperty( key ) ) {
-				this[ key ] = data[ key ];
-			}
-		}
-	};
-
-	Model.prototype.test = function () {
-		t.ok( true );
-	};
-
-	Subclass = Ractive.extend({
-		data () {
-			return new Model({
-				foo: 'bar'
-			});
-		}
-	});
-
-	instance = new Subclass({
-		el: fixture,
-		template: '{{foo}}{{bar}}',
-		data: {
-			bar: 'baz'
-		}
-	});
-
-	t.ok( instance.viewmodel.data instanceof Model );
-});
-
 test( 'Regression test for #798', function ( t ) {
 	var ClassA, ClassB, ractive;
 
@@ -1708,7 +1672,32 @@ test( 'Ractive can be instantiated without `new`', t => {
 	var Subclass = Ractive.extend();
 	t.ok( Subclass() instanceof Subclass );
 	t.ok( Subclass() instanceof Ractive );
-})
+});
+
+test( 'multiple pattern keypaths can be set simultaneously (#1319)', t => {
+	let ractive = new Ractive({
+		data: {
+			foo: [ 1, 2, 3 ],
+			bar: [ 4, 5, 6 ]
+		}
+	});
+
+	ractive.set({
+		'foo.*': 5,
+		'bar.*': 10
+	});
+
+	t.deepEqual( ractive.get( 'foo' ), [ 5, 5, 5 ] );
+	t.deepEqual( ractive.get( 'bar' ), [ 10, 10, 10 ] );
+});
+
+asyncTest( 'Promise.all works with non-promises (#1642)', t => {
+	// this test is redundant in browsers that support Promise natively
+	Ractive.Promise.all([ Ractive.Promise.resolve( 1 ), 2 ]).then( values => {
+		t.deepEqual( values, [ 1, 2 ]);
+		QUnit.start();
+	});
+});
 
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
