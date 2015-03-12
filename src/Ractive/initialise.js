@@ -1,6 +1,6 @@
 import { fatal } from 'utils/log';
 import { missingPlugin } from 'config/errors';
-import { magic } from 'config/environment';
+import { magic as magicSupported } from 'config/environment';
 import { ensureArray } from 'utils/array';
 import { findInViewHierarchy } from 'shared/registry';
 import arrayAdaptor from 'Ractive/static/adaptors/array/index';
@@ -71,12 +71,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
-	// TODO this was moved from Viewmodel.extend - should be
-	// rolled in with other config stuff
-	if ( ractive.magic && !magic ) {
-		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-	}
-
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
@@ -127,7 +121,7 @@ function getAdaptors ( ractive, protoAdapt, userOptions ) {
 	modifyArrays = 'modifyArrays' in userOptions ? userOptions.modifyArrays : ractive.modifyArrays;
 
 	if ( magic ) {
-		if ( !magic ) {
+		if ( !magicSupported ) {
 			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 		}
 
