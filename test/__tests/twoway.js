@@ -703,3 +703,22 @@ test( 'If there happen to be unresolved references next to binding resolved refe
 	simulant.fire( ractive.find( 'input' ), 'click' );
 	t.htmlEqual( div.innerHTML, 'true' );
 });
+
+test( 'Change events propagate after the model has been updated (#1371)', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: `
+			<select value='{{value}}' on-change='checkValue(value)'>
+				<option value='1'>1</option>
+				<option value='2'>2</option>
+			</select>`,
+		checkValue ( value ) {
+			t.equal( value, 2 );
+		}
+	});
+
+	expect( 1 );
+
+	ractive.findAll( 'option' )[1].selected = true;
+	simulant.fire( ractive.find( 'select' ), 'change' );
+});
