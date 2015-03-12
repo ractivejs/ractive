@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import { log, warn } from 'utils/log';
+import { log, warn, warnOnce } from 'utils/log';
 import { isEqual } from 'utils/is';
 import UnresolvedDependency from './UnresolvedDependency';
 
@@ -21,7 +21,7 @@ var Computation = function ( key, signature ) {
 Computation.prototype = {
 	constructor: Computation,
 
-	init: function ( viewmodel ) {
+	init ( viewmodel ) {
 		var initial;
 
 		this.viewmodel = viewmodel;
@@ -41,16 +41,18 @@ Computation.prototype = {
 		}
 	},
 
-	invalidate: function () {
+	invalidate () {
 		this._dirty = true;
 	},
 
-	get: function () {
+	get () {
 		var newDeps, dependenciesChanged, dependencyValuesChanged = false;
 
 		if ( this.getting ) {
 			// prevent double-computation (e.g. caused by array mutation inside computation)
-			return;
+			let msg = `The ${this.key.str} computation indirectly called itself. This probably indicates a bug in the computation. It is commonly caused by \`array.sort(...)\` - if that\'s the case, clone the array first with \`array.slice().sort(...)\``;
+			warnOnce( msg );
+			return this.value;
 		}
 
 		this.getting = true;
@@ -116,7 +118,7 @@ Computation.prototype = {
 		return this.value;
 	},
 
-	set: function ( value ) {
+	set ( value ) {
 		if ( this.setting ) {
 			this.value = value;
 			return;
@@ -129,7 +131,7 @@ Computation.prototype = {
 		this.setter( value );
 	},
 
-	updateDependencies: function ( newDeps ) {
+	updateDependencies ( newDeps ) {
 		var i, oldDeps, keypath, dependenciesChanged, unresolved;
 
 		oldDeps = this.softDeps;

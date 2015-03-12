@@ -446,6 +446,46 @@ test( 'Computations can depend on array values (#1747)', t => {
 	t.htmlEqual( fixture.innerHTML, '4 true' );
 });
 
+test( 'Computed value that calls itself (#1359)', t => {
+	let messages = 0;
+
+	let warn = console.warn;
+	console.warn = msg => {
+		if ( /computation indirectly called itself/.test( msg ) ) {
+			messages += 1;
+		}
+	};
+
+	let Widget = Ractive.extend({
+		template: `
+			{{sort(headers)}}
+
+			{{#sort(rows)}}
+				<p>{{id}} - {{name}}</p>
+			{{/rows}}`,
+		data: {
+			headers: [],
+			rows: [
+				{ id : 1, name: 'a' },
+				{}
+			],
+			sort ( arr ) {
+				return arr.sort( ( a, b ) => a.id - b.id );
+			}
+		}
+	});
+
+	let ractive = new Widget({ el: fixture });
+
+	ractive.reset();
+	ractive.update();
+
+	t.equal( messages, 2 );
+	t.htmlEqual( fixture.innerHTML, '<p>1 - a</p><p> - </p>' );
+
+	console.warn = warn;
+});
+
 // Commented out temporarily, see #1381
 /*test( 'Computations don\'t mistakenly set when used in components (#1357)', function ( t ) {
 	var ractive, Component;
