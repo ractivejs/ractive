@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Thu Mar 12 2015 20:10:51 GMT+0000 (UTC) - commit 173b0fee3260d70cd04e3b2ab2783ffc27f50afb
+	Thu Mar 12 2015 20:53:27 GMT+0000 (UTC) - commit e12517b93348371aea722f3b89a554f19b86ed12
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13355,10 +13355,17 @@
 
   	var name = this.name = options.template.n || "";
 
+  	var template = container._inlinePartials[name];
+
+  	if (!template) {
+  		warn("Could not find template for partial \"" + name + "\"");
+  		template = [];
+  	}
+
   	this.fragment = new Fragment({
   		owner: this,
   		root: container.parent,
-  		template: container._inlinePartials[name] || [],
+  		template: template,
   		pElement: this.containerFragment.pElement
   	});
 
