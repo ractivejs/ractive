@@ -1691,6 +1691,14 @@ test( 'multiple pattern keypaths can be set simultaneously (#1319)', t => {
 	t.deepEqual( ractive.get( 'bar' ), [ 10, 10, 10 ] );
 });
 
+asyncTest( 'Promise.all works with non-promises (#1642)', t => {
+	// this test is redundant in browsers that support Promise natively
+	Ractive.Promise.all([ Ractive.Promise.resolve( 1 ), 2 ]).then( values => {
+		t.deepEqual( values, [ 1, 2 ]);
+		QUnit.start();
+	});
+});
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {

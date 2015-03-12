@@ -102,19 +102,23 @@ if ( typeof Promise === 'function' ) {
 				return;
 			}
 
-			processPromise = function ( i ) {
-				promises[i].then( function ( value ) {
-					result[i] = value;
+			processPromise = ( promise, i ) => {
+				if ( promise && typeof promise.then === 'function' ) {
+					promise.then( value => {
+						result[i] = value;
+						--pending || fulfil( result );
+					}, reject );
+				}
 
-					if ( !--pending ) {
-						fulfil( result );
-					}
-				}, reject );
+				else {
+					result[i] = promise;
+					--pending || fulfil( result );
+				}
 			};
 
 			pending = i = promises.length;
 			while ( i-- ) {
-				processPromise( i );
+				processPromise( promises[i], i );
 			}
 		});
 	};
