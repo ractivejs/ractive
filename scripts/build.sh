@@ -1,7 +1,7 @@
 #!/bin/sh
 
 FAKE=0
-if [[ $1 != "--fake" ]]; then
+if [ $1 != "--fake" ]; then
 	FAKE=1
 fi
 
@@ -67,7 +67,7 @@ echo "> emptying build folder..."
 rm -rf build
 
 # make sure there is a build folder
-if [[ ! -d build ]]; then
+if [ ! -d build ]; then
 	mkdir build
 fi
 
@@ -78,6 +78,6 @@ cp tmp/*.map build
 
 echo "> ...aaaand we're done"
 
-if [[ $FAKE -eq 1 ]]; then
+if [ $FAKE -eq 1 ]; then
 	exit 0
 fi
