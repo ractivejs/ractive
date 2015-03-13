@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Thu Mar 12 2015 22:11:07 GMT+0000 (UTC) - commit dedc3f27333db15545c7def0b6f4b3a841cb4b4b
+	Fri Mar 13 2015 15:39:35 GMT+0000 (UTC) - commit 3da5321b3a053ef006fad1a4ba4f5b5f2046275d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3095,7 +3095,7 @@
   			if (array.length) {
   				return [array.length - 1, 1];
   			}
-  			return null;
+  			return [];
 
   		case "push":
   			return [array.length, 0].concat(args);
@@ -10783,14 +10783,13 @@
   	var root = wrapper.root;
   	var keypath = wrapper.keypath;
 
-  	// If this is a sort or reverse, we just do root.set()...
-  	// TODO use merge logic?
-  	if (methodName === "sort" || methodName === "reverse") {
-  		root.viewmodel.set(keypath, array);
-  		return;
+  	if (!!newIndices) {
+  		root.viewmodel.smartUpdate(keypath, array, newIndices);
+  	} else {
+  		// If this is a sort or reverse, we just do root.set()...
+  		// TODO use merge logic?
+  		root.viewmodel.mark(keypath);
   	}
-
-  	root.viewmodel.smartUpdate(keypath, array, newIndices);
   };
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/array/processWrapper.js.02-babel.map
 
