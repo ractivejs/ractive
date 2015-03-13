@@ -87,7 +87,7 @@ function getSpliceEquivalent ( array, methodName, args ) {
 			if ( array.length ) {
 				return [ array.length - 1, 1 ];
 			}
-			return [];
+			return [ 0, 0 ];
 
 		case 'push':
 			return [ array.length, 0 ].concat( args );
