@@ -4,9 +4,13 @@ import Model from './Model';
 class ProxyModel extends Model {
 
 	constructor ( key, owner ) {
-		this.owner = owner;
 		super( key, {} );
+		this.owner = owner;
 		this.realModel = null;
+		this.forceResolve = null;
+
+		// TODO don't need both these do we (or either)?
+		this.unresolved = true;
 		this.isProxy = true;
 	}
 
@@ -26,6 +30,7 @@ class ProxyModel extends Model {
 		var children, child, deps, dep;
 		this.realModel = model;
 		this.unresolved = false;
+		this.forceResolve = null;
 
 		if ( children = this.children ) {
 			while ( child = children.pop() ) {
@@ -45,6 +50,10 @@ class ProxyModel extends Model {
 		}
 	}
 
+	setForceResolve( resolve ) {
+		this.forceResolve = resolve;
+	}
+
 	get ( options ) {
 		if ( this.realModel ) {
 			return this.realModel.get( options );
@@ -59,12 +68,19 @@ class ProxyModel extends Model {
 	}
 
 	set ( value, options ) {
-		if ( this.realModel ) {
-			return this.realModel.set( value, options );
-		} else {
-			// TODO force resolution
-			throw new Error('need to force resolution of ProxyModel');
+		if ( !this.realModel ) {
+			this.forceResolve();
 		}
+		return this.realModel.set( value, options );
+	}
+
+	getSettable ( propertyOrIndex ) {
+		if ( !this.realModel ) {
+			// TODO: see if this works
+			throw new Error( 'getSettable on unresolved ProxyModel' );
+			this.forceResolve();
+		}
+		return this.realModel.getSettable ( propertyOrIndex );
 	}
 
 	getKeypath () {

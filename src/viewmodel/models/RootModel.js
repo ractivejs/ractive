@@ -1,5 +1,5 @@
 import Model from './Model';
-import { DataStore } from './store';
+import DataStore from '../stores/DataStore';
 
 class RootModel extends Model {
 	constructor ( viewmodel, data ) {

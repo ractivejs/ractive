@@ -1,9 +1,9 @@
 import { addToArray, removeFromArray } from 'utils/array';
 import { isNumber } from 'utils/is';
 import createBranch from 'utils/createBranch';
-import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
-import { DataStore, PropertyStore, StateStore } from './store';
+import PropertyStore from '../stores/PropertyStore';
+import StateStore from '../stores/StateStore';
 
 
 var FAILED_LOOKUP = {};
@@ -206,6 +206,10 @@ class Model {
 		if( this.store.set( value ) ) {
 			this.mark();
 		}
+	}
+
+	getSettable ( propertyOrIndex ) {
+		return this.store.getSettable ( propertyOrIndex );
 	}
 
 	mark ( /*options*/ ) {

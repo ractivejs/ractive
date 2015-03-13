@@ -1,17 +1,11 @@
-
-import Model from '../model/Model';
-import ReferenceModel from '../model/ReferenceModel';
-import ComputationModel from '../model/ComputationModel';
-
+import Model from '../models/Model';
+import ReferenceModel from '../models/ReferenceModel';
+import ComputationModel from '../models/ComputationModel';
 import getInnerContext from 'shared/getInnerContext';
 import getExpressionSignature from '../Computation/getExpressionSignature';
-
-import { StateStore } from '../model/store';
-
+import StateStore from '../stores/StateStore';
 import { INTERPOLATOR, REFERENCE } from 'config/types';
-
 import runloop from 'global/runloop';
-
 import resolveRef from 'shared/resolveRef';
 
 export default function Viewmodel$getModel ( reference, context ) {

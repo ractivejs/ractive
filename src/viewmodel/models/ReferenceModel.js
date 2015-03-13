@@ -1,12 +1,12 @@
 import Model from './Model';
-import { ReferenceStore } from './store';
+import ReferenceStore from '../stores/ReferenceStore';
 import { addToArray, removeFromArray } from 'utils/array';
 
 class ReferenceModel extends Model {
 
 	constructor ( key, reference, parent ) {
 
-		var store = new ReferenceStore( reference, parent );
+		var store = new ReferenceStore( reference, this );
 
 		super( '[' + key + ']', store );
 

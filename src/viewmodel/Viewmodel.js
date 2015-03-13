@@ -1,10 +1,8 @@
 import { create } from 'utils/object';
 import adapt from './prototype/adapt';
-import addComputed from './prototype/addComputed';
 import applyChanges from './prototype/applyChanges';
 import capture from './prototype/capture';
 import clearCache from './prototype/clearCache';
-import compute from './prototype/compute';
 import get from './prototype/get';
 import getModel from './prototype/getModel';
 import mark from './prototype/mark';
@@ -15,8 +13,8 @@ import set from './prototype/set';
 import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 
-import RootModel from './model/RootModel';
-import ComputationModel from './model/ComputationModel';
+import RootModel from './models/RootModel';
+import ComputationModel from './models/ComputationModel';
 
 var Viewmodel = function ( options ) {
 	var { adapt, computations, data, mappings, ractive } = options,
@@ -55,8 +53,10 @@ var Viewmodel = function ( options ) {
 	// TODO: clean-up/move some of this
 	if ( mappings ) {
 		mappings.forEach( mapping => {
+			model = mapping.model;
+			key = mapping.key;
 
-			this.root.addChild( ( model = mapping.model ), mapping.key );
+			this.root.addChild( model, key );
 
 			if ( data && ( key in data ) && model.get() === undefined ) {
 				model.set( data[ key ] );
@@ -66,7 +66,7 @@ var Viewmodel = function ( options ) {
 
 	if ( computations ) {
 		for( key in computations ) {
-			model = new ComputationModel( key, computations[ key ], this );
+			model = new ComputationModel( key, computations[ key ], this, data[ key ] );
 			this.root.addChild( model, key );
 		}
 	}
@@ -76,11 +76,9 @@ var Viewmodel = function ( options ) {
 
 Viewmodel.prototype = {
 	adapt: adapt,
-	addComputed: addComputed,
 	applyChanges: applyChanges,
 	capture: capture,
 	clearCache: clearCache,
-	compute: compute,
 	get: get,
 	getModel: getModel,
 	mark: mark,

@@ -1,5 +1,5 @@
 import { normalise } from 'shared/keypaths';
-import ProxyModel from 'viewmodel/model/ProxyModel';
+import ProxyModel from 'viewmodel/models/ProxyModel';
 import getInnerContext from 'shared/getInnerContext';
 
 export default function resolveRef ( ractive, ref, fragment ) {
@@ -119,6 +119,10 @@ function getProxyModel ( chain, key, keypath, viewmodel ) {
         chain = chain.previous;
         context.addWatcher( key, resolve );
     }
+
+	proxy.setForceResolve( function(){
+		resolve( context );
+	});
 
     return proxy;
 }

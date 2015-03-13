@@ -58,7 +58,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 				}
 
 				else {
-					resolvers.push( ComplexParameter( component, attribute, function ( keypath ) {
+					resolvers.push( new ComplexParameter( component, attribute, function ( keypath ) {
 						if ( ready ) {
 							instance.set( key, keypath.get() ); // TODO use viewmodel?
 						} else {
