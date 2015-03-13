@@ -765,6 +765,8 @@ test( 'Mapping to a computed property with a setter does not throw an error', fu
 			})
 		}
 	});
+
+	t.ok(true);
 });
 
 test( 'Implicit mappings are created by restricted references (#1465)', function ( t ) {
