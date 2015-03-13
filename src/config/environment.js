@@ -1,7 +1,9 @@
-/*global console */
-var isClient, hasConsole, magic, namespaces, svg, vendors;
+/*global console, navigator */
+var isClient, isJsdom, hasConsole, magic, namespaces, svg, vendors;
 
 isClient = ( typeof document === 'object' );
+
+isJsdom = ( typeof navigator !== 'undefined' && /jsDom/.test( navigator.appName ) );
 
 hasConsole = ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' );
 
@@ -29,4 +31,4 @@ if ( typeof document === 'undefined' ) {
 
 vendors = [ 'o', 'ms', 'moz', 'webkit' ];
 
-export { hasConsole, isClient, magic, namespaces, svg, vendors };
+export { isClient, isJsdom, hasConsole, magic, namespaces, svg, vendors };
