@@ -1,4 +1,4 @@
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import ContentEditableBinding from '../../Binding/ContentEditableBinding';
 import RadioBinding from '../../Binding/RadioBinding';
 import RadioNameBinding from '../../Binding/RadioNameBinding';
@@ -40,7 +40,7 @@ export default function createTwowayBinding ( element ) {
 
 			// we can either bind the name attribute, or the checked attribute - not both
 			if ( bindName && bindChecked ) {
-				warn( 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both' );
+				warnIfDebug( 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both' );
 			}
 
 			if ( bindName ) {

@@ -1,5 +1,5 @@
 import { INTERPOLATOR, YIELDER } from 'config/types';
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import { create, extend } from 'utils/object';
 import { isArray } from 'utils/is';
 import parseJSON from 'utils/parseJSON';
@@ -25,7 +25,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	inlinePartials[''] = partials.content;
 
 	if ( Component.defaults.el ) {
-		warn( 'The <%s/> component has a default `el` property; it has been disregarded', component.name );
+		warnIfDebug( 'The <%s/> component has a default `el` property; it has been disregarded', component.name );
 	}
 
 	// find container

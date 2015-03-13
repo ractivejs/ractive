@@ -1,4 +1,4 @@
-import { warnOnce } from 'utils/log';
+import { warnOnceIfDebug } from 'utils/log';
 import { missingPlugin } from 'config/errors';
 import Fragment from 'virtualdom/Fragment';
 import { findInViewHierarchy } from 'shared/registry';
@@ -50,6 +50,6 @@ export default function Transition$init ( element, template, isIntro ) {
 	this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
 	if ( !this._fn ) {
-		warnOnce( missingPlugin( name, 'transition' ) );
+		warnOnceIfDebug( missingPlugin( name, 'transition' ) );
 	}
 }

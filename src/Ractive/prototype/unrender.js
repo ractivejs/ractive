@@ -1,5 +1,5 @@
 import Hook from './shared/hooks/Hook';
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import Promise from 'utils/Promise';
 import { removeFromArray } from 'utils/array';
 import runloop from 'global/runloop';
@@ -10,7 +10,7 @@ export default function Ractive$unrender () {
 	var promise, shouldDestroy;
 
 	if ( !this.fragment.rendered ) {
-		warn( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
+		warnIfDebug( 'ractive.unrender() was called on a Ractive instance that was not rendered' );
 		return Promise.resolve();
 	}
 

@@ -1,4 +1,4 @@
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import { isArray } from 'utils/is';
 
 function getMessage( deprecated, correct, isError ) {
@@ -9,7 +9,7 @@ function getMessage( deprecated, correct, isError ) {
 function deprecateOption ( options, deprecatedOption, correct ) {
 	if ( deprecatedOption in options ) {
 		if( !( correct in options ) ) {
-			warn( getMessage( deprecatedOption, correct ) );
+			warnIfDebug( getMessage( deprecatedOption, correct ) );
 			options[ correct ] = options[ deprecatedOption ];
 		} else {
 			throw new Error( getMessage( deprecatedOption, correct, true ) );

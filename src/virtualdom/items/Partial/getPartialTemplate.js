@@ -1,5 +1,5 @@
 import { noRegistryFunctionReturn } from 'config/errors';
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import parser from 'Ractive/config/custom/template/parser';
 import { findInstance } from 'shared/registry';
 import deIndent from './deIndent';
@@ -43,7 +43,7 @@ function getPartialFromRegistry ( ractive, name ) {
 	}
 
 	if ( !partial && partial !== '' ) {
-		warn( noRegistryFunctionReturn, name, 'partial', 'partial' );
+		warnIfDebug( noRegistryFunctionReturn, name, 'partial', 'partial' );
 		return;
 	}
 
@@ -57,7 +57,7 @@ function getPartialFromRegistry ( ractive, name ) {
 		// Partials cannot contain nested partials!
 		// TODO add a test for this
 		if ( parsed.p ) {
-			warn( 'Partials ({{>%s}}) cannot contain nested inline partials', name );
+			warnIfDebug( 'Partials ({{>%s}}) cannot contain nested inline partials', name );
 		}
 
 		// if fn, use instance to store result, otherwise needs to go

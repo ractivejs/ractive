@@ -1,5 +1,5 @@
 import { isClient } from 'config/environment';
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import { createElement } from 'utils/dom';
 import camelCase from 'utils/camelCase';
 import interpolate from 'shared/interpolate';
@@ -127,7 +127,7 @@ if ( !isClient ) {
 						// will get confused
 						index = changedProperties.indexOf( prop );
 						if ( index === -1 ) {
-							warn( 'Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+							warnIfDebug( 'Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
 						} else {
 							changedProperties.splice( index, 1 );
 						}

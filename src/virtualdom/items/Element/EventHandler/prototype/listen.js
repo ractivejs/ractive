@@ -1,4 +1,4 @@
-import { warnOnce } from 'utils/log';
+import { warnOnceIfDebug } from 'utils/log';
 import { isJsdom } from 'config/environment';
 import { missingPlugin } from 'config/errors';
 import genericHandler from '../shared/genericHandler';
@@ -28,7 +28,7 @@ export default function EventHandler$listen () {
 
 			// okay to use touch events if this browser doesn't support them
 			if ( !touchEvents[ name ] ) {
-				warnOnce( missingPlugin( name, 'event' ) );
+				warnOnceIfDebug( missingPlugin( name, 'event' ) );
 			}
 
 			return;

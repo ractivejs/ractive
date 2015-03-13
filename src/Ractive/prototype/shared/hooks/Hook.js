@@ -1,4 +1,4 @@
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 
 // TODO: deprecate in future release
 var deprecations = {
@@ -40,9 +40,9 @@ Hook.prototype.fire = function ( ractive, arg ) {
 
 	if ( !ractive[ this.method ] && this.deprecate && call( this.deprecate.deprecated ) ) {
 		if ( this.deprecate.message ) {
-			warn( this.deprecate.message );
+			warnIfDebug( this.deprecate.message );
 		} else {
-			warn( 'The method "%s" has been deprecated in favor of "%s" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.', this.deprecate.deprecated, this.deprecate.replacement );
+			warnIfDebug( 'The method "%s" has been deprecated in favor of "%s" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.', this.deprecate.deprecated, this.deprecate.replacement );
 		}
 	}
 

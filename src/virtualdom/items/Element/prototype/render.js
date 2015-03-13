@@ -1,6 +1,6 @@
 import { namespaces } from 'config/environment';
 import { isArray } from 'utils/is';
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import { create, defineProperty } from 'utils/object';
 import { createElement } from 'utils/dom';
 import noop from 'utils/noop';
@@ -34,7 +34,7 @@ updateCss = function () {
 
 updateScript = function () {
 	if ( !this.node.type || this.node.type === 'text/javascript' ) {
-		warn( 'Script tag was updated. This does not cause the code to be re-evaluated!' );
+		warnIfDebug( 'Script tag was updated. This does not cause the code to be re-evaluated!' );
 		// As it happens, we ARE in a position to re-evaluate the code if we wanted
 		// to - we could eval() it, or insert it into a fresh (temporary) script tag.
 		// But this would be a terrible idea with unpredictable results, so let's not.

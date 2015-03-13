@@ -2,7 +2,7 @@ import createInstance from 'virtualdom/items/Component/initialise/createInstance
 import propagateEvents from 'virtualdom/items/Component/initialise/propagateEvents';
 import { COMPONENT } from 'config/types';
 import updateLiveQueries from 'virtualdom/items/Component/initialise/updateLiveQueries';
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 
 export default function Component$init ( options, Component ) {
 	var parentFragment, root;
@@ -27,7 +27,7 @@ export default function Component$init ( options, Component ) {
 
 	// intro, outro and decorator directives have no effect
 	if ( options.template.t1 || options.template.t2 || options.template.o ) {
-		warn( 'The "intro", "outro" and "decorator" directives have no effect on components' );
+		warnIfDebug( 'The "intro", "outro" and "decorator" directives have no effect on components' );
 	}
 
 	updateLiveQueries( this );

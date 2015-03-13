@@ -1,4 +1,4 @@
-import { fatal, warn, warnOnce } from 'utils/log';
+import { fatal, warnIfDebug, warnOnce } from 'utils/log';
 
 function validate ( data ) {
 	// Warn if userOptions.data is a non-POJO
@@ -8,7 +8,7 @@ function validate ( data ) {
 		} else if ( typeof data !== 'object' ) {
 			fatal( `data option must be an object or a function, \`${data}\` is not valid` );
 		} else {
-			warn( 'If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged' );
+			warnIfDebug( 'If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged' );
 		}
 	}
 }
@@ -77,7 +77,7 @@ function callDataFunction ( fn, context ) {
 	}
 
 	if ( data.constructor !== Object ) {
-		warnOnce( 'Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged' );
+		warnOnceIfDebug( 'Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged' );
 	}
 
 	return data;

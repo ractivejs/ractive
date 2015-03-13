@@ -1,4 +1,4 @@
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import runloop from 'global/runloop';
 import interpolate from 'shared/interpolate';
 
@@ -47,7 +47,7 @@ Animation.prototype = {
 
 				// TODO investigate why this happens
 				if ( index === -1 ) {
-					warn( 'Animation was not found' );
+					warnIfDebug( 'Animation was not found' );
 				}
 
 				this.root._animations.splice( index, 1 );
@@ -84,7 +84,7 @@ Animation.prototype = {
 
 		// TODO investigate why this happens
 		if ( index === -1 ) {
-			warn( 'Animation was not found' );
+			warnIfDebug( 'Animation was not found' );
 		}
 
 		this.root._animations.splice( index, 1 );

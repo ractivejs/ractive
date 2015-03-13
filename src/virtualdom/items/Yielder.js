@@ -1,5 +1,5 @@
 import { YIELDER } from 'config/types';
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import runloop from 'global/runloop';
 import { removeFromArray } from 'utils/array';
 import Fragment from 'virtualdom/Fragment';
@@ -22,7 +22,7 @@ var Yielder = function ( options ) {
 	let template = container._inlinePartials[ name ];
 
 	if ( !template ) {
-		warn( `Could not find template for partial "${name}"` );
+		warnIfDebug( `Could not find template for partial "${name}"` );
 		template = [];
 	}
 
