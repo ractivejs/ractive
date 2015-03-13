@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Fri Mar 13 2015 18:02:06 GMT+0000 (UTC) - commit 9175cdc86d61041529cf22a38ab8d280a15a9e68
+	Fri Mar 13 2015 18:32:03 GMT+0000 (UTC) - commit a8b6130edd957142a5e5a7ffca262e9a9646654a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7648,6 +7648,11 @@
   	if (keypath = interpolator.keypath) {
   		if (keypath.str.slice(-1) === "}") {
   			warn("Two-way binding does not work with expressions (`%s` on <%s>)", interpolator.resolver.uniqueString, element.name);
+  			return false;
+  		}
+
+  		if (keypath.isSpecial) {
+  			warnOnce("Two-way binding does not work with %s", interpolator.resolver.ref);
   			return false;
   		}
   	} else {
