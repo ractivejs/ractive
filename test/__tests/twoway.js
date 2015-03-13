@@ -722,3 +722,22 @@ test( 'Change events propagate after the model has been updated (#1371)', t => {
 	ractive.findAll( 'option' )[1].selected = true;
 	simulant.fire( ractive.find( 'select' ), 'change' );
 });
+
+test( '@key cannot be used for two-way binding', t => {
+	let warn = console.warn;
+	console.warn = msg => {
+		t.ok( /Two-way binding does not work with @key/.test( msg ) );
+	};
+
+	expect( 1 );
+
+	new Ractive({
+		el: fixture,
+		template: `{{#each obj}}<input value='{{@key}}'>{{/each}}`,
+		data: {
+			obj: { foo: 1, bar: 2, baz: 3 }
+		}
+	});
+
+	console.warn = warn;
+});
