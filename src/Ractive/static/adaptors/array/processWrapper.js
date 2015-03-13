@@ -8,5 +8,9 @@ export default function ( wrapper, array, methodName, newIndices ) {
 		return;
 	}
 
-	root.viewmodel.smartUpdate( keypath, array, newIndices );
+	if ( !!newIndices ) {
+		root.viewmodel.smartUpdate( keypath, array, newIndices );
+	} else {
+		root.viewmodel.mark( keypath );
+	}
 }
