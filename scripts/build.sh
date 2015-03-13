@@ -25,7 +25,7 @@ export COMMIT_HASH=`git rev-parse HEAD`
 set +e
 $MOD/gobble build tmp
 OK=$?
-if [ $FAKE -ne 0 -a $OK -ne 0 ]; then
+if [ $FAKE -eq 0 -a $OK -ne 0 ]; then
 	exit 1
 elif [ $OK -ne 0 ]; then
 	# we're faking, so roll on
