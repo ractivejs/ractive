@@ -29,8 +29,8 @@ lib = (function () {
 		.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
 
 	var bundleTransform = function ( src, path ) {
-		if ( /Ractive\.js$/.test( path ) ) {
-			return src.replace( '${version}', version );
+		if ( /(Ractive\.js|Ractive\/initialise\.js)$/.test( path ) ) {
+			return src.replace( '<@version@>', version );
 		}
 
 		return src;
