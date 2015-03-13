@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import { warn } from 'utils/log';
+import { warn, warnOnce } from 'utils/log';
 import { create, extend } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 
@@ -16,6 +16,11 @@ var Binding = function ( element ) {
 	if ( keypath = interpolator.keypath ) {
 		if ( keypath.str.slice( -1 ) === '}' ) {
 			warn( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name );
+			return false;
+		}
+
+		if ( keypath.isSpecial ) {
+			warnOnce( 'Two-way binding does not work with %s', interpolator.resolver.ref );
 			return false;
 		}
 	}
