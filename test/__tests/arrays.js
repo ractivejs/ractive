@@ -324,3 +324,16 @@ function removedElementsTest ( action, fn ) {
 
 removedElementsTest( 'splice', ractive => ractive.splice( 'options', 1, 1 ) );
 removedElementsTest( 'merge', ractive => ractive.merge( 'options', [ 'a', 'c' ] ) );
+
+test( 'popping from an empty array (#1665)', t => {
+	let array = [];
+
+	new Ractive({
+		template: '{{array}}',
+		data: { array },
+		modifyArrays: true
+	});
+
+	expect( 0 );
+	array.pop();
+});
