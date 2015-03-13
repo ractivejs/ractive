@@ -728,7 +728,7 @@ test( 'Data is synced as soon as an unresolved mapping is resolved', function ( 
 	t.htmlEqual( fixture.innerHTML, '<p>foo: false</p>' );
 });
 
-test( 'Mapping to a computed property is an error', function ( t ) {
+test( 'Mapping to a computed property without a setter is an error', function ( t ) {
 	t.throws( function () {
 		new Ractive({
 			template: '<widget foo="{{bar}}"/>',
@@ -744,6 +744,27 @@ test( 'Mapping to a computed property is an error', function ( t ) {
 			}
 		});
 	}, /Cannot map to a computed property \('foo'\)/ );
+});
+
+test( 'Mapping to a computed property with a setter does not throw an error', function ( t ) {
+	new Ractive({
+		template: '<widget foo="{{bar}}"/>',
+		data: { bar: 'irrelevant' },
+		components: {
+			widget: Ractive.extend({
+				computed: {
+					foo: {
+						get: function () {
+							return "Win";
+						},
+						set: function (value) {
+							this.set("_foo", value);
+						}
+					}
+				}
+			})
+		}
+	});
 });
 
 test( 'Implicit mappings are created by restricted references (#1465)', function ( t ) {
