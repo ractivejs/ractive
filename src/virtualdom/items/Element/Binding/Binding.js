@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import { warnOnceIfDebug } from 'utils/log';
+import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
 import { create, extend } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 
@@ -41,7 +41,7 @@ var Binding = function ( element ) {
 		// be explicit when using two-way data-binding about what keypath you're
 		// updating. Using it in lists is probably a recipe for confusion...
 		let ref = interpolator.template.r ? `'${interpolator.template.r}' reference` : 'expression';
-		warnOnceIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref );
+		warnIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref );
 		interpolator.resolver.forceResolution();
 		keypath = interpolator.keypath;
 	}

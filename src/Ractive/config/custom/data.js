@@ -1,4 +1,4 @@
-import { fatal, warnIfDebug, warnOnce } from 'utils/log';
+import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 
 function validate ( data ) {
 	// Warn if userOptions.data is a non-POJO

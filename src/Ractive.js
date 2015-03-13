@@ -38,7 +38,7 @@ properties = {
 	magic:         { value: magic },
 
 	// version
-	VERSION:       { value: '${version}' },
+	VERSION:       { value: '<@version@>' },
 
 	// Plugins
 	adaptors:      { writable: true, value: {} },
