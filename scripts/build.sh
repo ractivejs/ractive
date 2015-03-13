@@ -1,15 +1,12 @@
 #!/bin/sh
 
 FAKE=0
-echo $1
 if [[ $1 != "--fake" ]]; then
 	FAKE=1
 fi
 
 # if the tests fail (and we're not trying to work with bloody Windows), abort (errexit)
-if [[ $FAKE -eq 0 ]]; then
-	set -e
-fi
+set -e
 
 MOD='node_modules/.bin'
 
@@ -22,7 +19,18 @@ rm -rf tmp/*
 
 echo "> building Ractive..."
 export COMMIT_HASH=`git rev-parse HEAD`
+
+# temporarily allow command failure
+set +e
 $MOD/gobble build tmp
+OK=$?
+if [ $FAKE -ne 0 -a $OK -ne 0 ]; then
+	exit 1
+elif [ $OK -ne 0 ]; then
+	# we're faking, so roll on
+	exit 0
+fi
+set -e
 
 # run the tests
 echo "> running tests..."
