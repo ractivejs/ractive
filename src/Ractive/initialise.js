@@ -38,23 +38,19 @@ let registryNames = [
 let welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you find problems and optimise your application.
 
 To disable debug mode, add this line at the start of your app:
-
   Ractive.DEBUG = false;
 
 To disable debug mode when your app is minified, add this snippet:
-
   Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});
 
 Get help and support:
-
-* http://docs.ractivejs.org
-* http://stackoverflow.com/questions/tagged/ractivejs
-* http://groups.google.com/forum/#!forum/ractive-js
-* http://twitter.com/ractivejs
+  http://docs.ractivejs.org
+  http://stackoverflow.com/questions/tagged/ractivejs
+  http://groups.google.com/forum/#!forum/ractive-js
+  http://twitter.com/ractivejs
 
 Found a bug? Raise an issue:
-
-* https://github.com/ractivejs/ractive/issues
+  https://github.com/ractivejs/ractive/issues
 
 `;
 
