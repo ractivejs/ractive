@@ -22,6 +22,9 @@ Ractive = function ( options ) {
 // Ractive properties
 properties = {
 
+	// debug flag
+	DEBUG:         { value: true },
+
 	// static methods:
 	extend:        { value: extend },
 	getNodeInfo:   { value: getNodeInfo },

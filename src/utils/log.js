@@ -1,5 +1,6 @@
 /* global console */
 import { hasConsole } from 'config/environment';
+import Ractive from 'Ractive';
 import noop from 'utils/noop';
 
 var alreadyWarned = {}, log, printWarning;
@@ -35,6 +36,12 @@ export function fatal ( message, ...args ) {
 
 export { log };
 
+export function logIfDebug () {
+	if ( Ractive.DEBUG ) {
+		log.apply( null, arguments );
+	}
+}
+
 export function warn ( message, ...args ) {
 	message = format( message, args );
 	printWarning( message, args );
@@ -49,4 +56,16 @@ export function warnOnce ( message, ...args ) {
 
 	alreadyWarned[ message ] = true;
 	printWarning( message, args );
+}
+
+export function warnIfDebug () {
+	if ( Ractive.DEBUG ) {
+		warn.apply( null, arguments );
+	}
+}
+
+export function warnOnceIfDebug () {
+	if ( Ractive.DEBUG ) {
+		warnOnce.apply( null, arguments );
+	}
 }

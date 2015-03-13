@@ -5,11 +5,13 @@ import { findInViewHierarchy } from 'shared/registry';
 
 module( 'Configuration' );
 
+const test = QUnit.test; // necessary due to a bug in esperanto
+
 test( 'Ractive.defaults', t => {
 	t.equal( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
 
 	for( let key in defaults ) {
-		t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key )
+		t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key );
 	}
 });
 

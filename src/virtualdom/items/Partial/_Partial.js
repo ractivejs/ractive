@@ -1,4 +1,4 @@
-import { fatal, warnOnce } from 'utils/log';
+import { warnOnceIfDebug } from 'utils/log';
 import { PARTIAL, TEXT } from 'config/types';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
@@ -116,7 +116,7 @@ Partial.prototype = {
 		}
 
 		if ( !template ) {
-			( this.root.debug ? fatal : warnOnce )( 'Could not find template for partial "%s"', this.name );
+			warnOnceIfDebug( 'Could not find template for partial "%s"', this.name );
 		}
 
 		this.value = value;

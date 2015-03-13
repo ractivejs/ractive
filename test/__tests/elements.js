@@ -68,14 +68,21 @@ test( 'Textarea is stringified correctly', function ( t ) {
 	t.equal( ractive.toHTML(), '<textarea>123&lt;div&gt;&lt;/div&gt;</textarea>' );
 });
 
-test( 'Wildcard proxy-events invalid on elements', () => {
-	throws( function () {
-		new Ractive({
-			el: fixture,
-			debug: true,
-			template: '<p on-foo.*="foo"></p>'
-		});
-	}, /wildcards/ );
+test( 'Wildcard proxy-events invalid on elements', t => {
+	let warn = console.warn;
+	console.warn = msg => {
+		t.ok( /wildcards/.test( msg ) );
+	};
+
+	expect( 1 );
+
+	new Ractive({
+		el: fixture,
+		debug: true,
+		template: '<p on-foo.*="foo"></p>'
+	});
+
+	console.warn = warn;
 });
 
 test( 'draggable attribute is handled correctly (#1780)', t => {

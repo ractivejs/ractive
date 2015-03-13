@@ -63,7 +63,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	});
 
 	ractive.viewmodel = viewmodel;
-	viewmodel.debug = ractive.debug;
 
 	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
 	viewmodel.init();

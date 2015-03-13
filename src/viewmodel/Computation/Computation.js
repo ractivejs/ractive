@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import { log, warn, warnOnce } from 'utils/log';
+import { logIfDebug, warnIfDebug, warnOnce } from 'utils/log';
 import { isEqual } from 'utils/is';
 import UnresolvedDependency from './UnresolvedDependency';
 
@@ -91,10 +91,8 @@ Computation.prototype = {
 				try {
 					this.value = this.getter();
 				} catch ( err ) {
-					if ( this.viewmodel.debug ) {
-						warn( 'Failed to compute "%s"', this.key.str );
-						log( err.stack || err );
-					}
+					warnIfDebug( 'Failed to compute "%s"', this.key.str );
+					logIfDebug( err.stack || err );
 
 					this.value = void 0;
 				}
