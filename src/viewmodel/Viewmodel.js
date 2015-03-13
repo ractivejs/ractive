@@ -75,7 +75,7 @@ var Viewmodel = function ( options ) {
 	}
 
 	for ( key in computed ) {
-		if ( mappings && key in mappings && computed[key] != null && computed[key].set == null ) {
+		if ( mappings && key in mappings && computed[key] != null && computed[key].setter == null ) {
 			fatal( 'Cannot map to a computed property (\'%s\')', key );
 		}
 
