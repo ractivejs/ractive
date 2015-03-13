@@ -1,7 +1,15 @@
 #!/bin/sh
 
-# if the tests fail, abort (errexit)
-set -e
+FAKE=0
+echo $1
+if [[ $1 != "--fake" ]]; then
+	FAKE=1
+fi
+
+# if the tests fail (and we're not trying to work with bloody Windows), abort (errexit)
+if [[ $FAKE -eq 0 ]]; then
+	set -e
+fi
 
 MOD='node_modules/.bin'
 
@@ -61,3 +69,7 @@ cp tmp/*.js build
 cp tmp/*.map build
 
 echo "> ...aaaand we're done"
+
+if [[ $FAKE -eq 1 ]]; then
+	exit 0
+fi
