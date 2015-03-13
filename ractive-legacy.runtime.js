@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Fri Mar 13 2015 18:32:03 GMT+0000 (UTC) - commit a8b6130edd957142a5e5a7ffca262e9a9646654a
+	Fri Mar 13 2015 19:07:01 GMT+0000 (UTC) - commit 360ab1aa61dd1bb67e3f30e1dbbb558ed7894ae0
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -101,10 +101,12 @@
   };
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/easing.js.02-babel.map
 
-  /*global console */
-  var isClient, hasConsole, environment__magic, namespaces, svg, vendors;
+  /*global console, navigator */
+  var isClient, isJsdom, hasConsole, environment__magic, namespaces, svg, vendors;
 
   isClient = typeof document === "object";
+
+  isJsdom = typeof navigator !== "undefined" && /jsDom/.test(navigator.appName);
 
   hasConsole = typeof console !== "undefined" && typeof console.warn === "function" && typeof console.warn.apply === "function";
 
@@ -9108,7 +9110,7 @@
   		this.custom = definition(this.node, getCustomHandler(name));
   	} else {
   		// Looks like we're dealing with a standard DOM event... but let's check
-  		if (!("on" + name in this.node) && !(window && "on" + name in window)) {
+  		if (!("on" + name in this.node) && !(window && "on" + name in window) && !isJsdom) {
 
   			// okay to use touch events if this browser doesn't support them
   			if (!touchEvents[name]) {
