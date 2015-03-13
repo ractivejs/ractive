@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Fri Mar 13 2015 15:39:35 GMT+0000 (UTC) - commit 3da5321b3a053ef006fad1a4ba4f5b5f2046275d
+	Fri Mar 13 2015 15:57:36 GMT+0000 (UTC) - commit f84f27d8060104fce1a1307d7be4546b9b753dcd
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3569,7 +3569,7 @@
   			if (array.length) {
   				return [array.length - 1, 1];
   			}
-  			return [];
+  			return [0, 0];
 
   		case "push":
   			return [array.length, 0].concat(args);
