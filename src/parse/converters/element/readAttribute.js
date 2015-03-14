@@ -51,14 +51,13 @@ function readAttributeValue ( parser ) {
 			readQuotedAttributeValue( parser, '"' ) ||
 			readUnquotedAttributeValue( parser );
 
+	if ( value === null ) {
+		parser.error( 'Expected valid attribute value' );
+	}
+
 	if ( parser.sectionDepth !== startDepth ) {
 		parser.pos = valueStart;
 		parser.error( 'An attribute value must contain as many opening section tags as closing section tags' );
-	}
-
-	if ( value === null ) {
-		parser.pos = start;
-		return null;
 	}
 
 	if ( !value.length ) {
