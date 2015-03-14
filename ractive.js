@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Fri Mar 13 2015 19:07:01 GMT+0000 (UTC) - commit 360ab1aa61dd1bb67e3f30e1dbbb558ed7894ae0
+	Sat Mar 14 2015 02:52:56 GMT+0000 (UTC) - commit 16094e6fa7ff6910826ad017c38e75de12005888
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3453,6 +3453,22 @@
   	name: "data",
 
   	extend: function (Parent, proto, options) {
+  		var key = undefined,
+  		    value = undefined;
+
+  		// check for non-primitives, which could cause mutation-related bugs
+  		if (options.data && isObject(options.data)) {
+  			for (key in options.data) {
+  				value = options.data[key];
+
+  				if (value && typeof value === "object") {
+  					if (isObject(value) || isArray(value)) {
+  						warn("Passing a `data` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:\n\n// this...\ndata: function () {\n  return {\n    myObject: {}\n  };\n})\n\n// instead of this:\ndata: {\n  myObject: {}\n}");
+  					}
+  				}
+  			}
+  		}
+
   		proto.data = dataConfigurator__combine(proto.data, options.data);
   	},
 
