@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sat Mar 14 2015 02:52:56 GMT+0000 (UTC) - commit 16094e6fa7ff6910826ad017c38e75de12005888
+	Sat Mar 14 2015 03:55:14 GMT+0000 (UTC) - commit aaaada60617ee41470f986136a873004a1bf61da
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13421,6 +13421,8 @@
   };
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/applyIndent.js.02-babel.map
 
+  var missingPartialMessage = "Could not find template for partial \"%s\"";
+
   var Partial = function (options) {
   	var parentFragment, template;
 
@@ -13438,11 +13440,15 @@
   	// If this didn't resolve, it most likely means we have a named partial
   	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
   	// whose name is the value of `foo`')
-  	if (!this.keypath && (template = getPartialTemplate(this.root, this.name))) {
-  		unbind__default.call(this); // prevent any further changes
-  		this.isNamed = true;
+  	if (!this.keypath) {
+  		if (template = getPartialTemplate(this.root, this.name)) {
+  			unbind__default.call(this); // prevent any further changes
+  			this.isNamed = true;
 
-  		this.setTemplate(template);
+  			this.setTemplate(template);
+  		} else {
+  			warnOnce(missingPartialMessage, this.name);
+  		}
   	}
   };
 
@@ -13527,7 +13533,7 @@
   		}
 
   		if (!template) {
-  			(this.root.debug ? fatal : warnOnce)("Could not find template for partial \"%s\"", this.name);
+  			(this.root.debug ? fatal : warnOnce)(missingPartialMessage, this.name);
   		}
 
   		this.value = value;
