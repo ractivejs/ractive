@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sat Mar 14 2015 19:55:40 GMT+0000 (UTC) - commit 09c182c20a886aacdbde3a2f7b2a64b65952e91a
+	Sat Mar 14 2015 21:00:39 GMT+0000 (UTC) - commit 7c1f357690c7b33ffa2d9d44f58621a0a8289cad
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8999,7 +8999,7 @@
   	// this is the place to do it
   	if (this.fragmentsToCreate.length) {
   		fragmentOptions = {
-  			template: this.template.f,
+  			template: this.template.f || [],
   			root: this.root,
   			pElement: this.pElement,
   			owner: this
@@ -9055,7 +9055,7 @@
 
   function reevaluateSection(section, value) {
   	var fragmentOptions = {
-  		template: section.template.f,
+  		template: section.template.f || [],
   		root: section.root,
   		pElement: section.parentFragment.pElement,
   		owner: section
