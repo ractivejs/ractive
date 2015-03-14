@@ -41,7 +41,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 	}
 
 	if ( !computation && !keepExistingWrapper ) {
-		resolveSet( this, keypath, value );
+		resolveSet( this, keypath, value, options.createBranches !== false );
 	}
 
 	if ( !options.silent ) {
@@ -54,7 +54,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 	}
 }
 
-function resolveSet ( viewmodel, keypath, value ) {
+function resolveSet ( viewmodel, keypath, value, shouldCreateBranches ) {
 	var wrapper, parentValue, wrapperSet, valueSet;
 
 	wrapperSet = function() {
@@ -66,11 +66,14 @@ function resolveSet ( viewmodel, keypath, value ) {
 		}
 	};
 
-	valueSet = function(){
+	valueSet = () => {
 		if ( !parentValue ) {
+			if ( !shouldCreateBranches ) return;
+
 			parentValue = createBranch( keypath.lastKey );
 			viewmodel.set( keypath.parent, parentValue, { silent: true } );
 		}
+
 		parentValue[ keypath.lastKey ] = value;
 	};
 
