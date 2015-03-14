@@ -593,22 +593,17 @@ test( '(Only) inline partials can be yielded', t => {
 });
 
 if ( console && console.warn ) {
-
 	test( 'Warn on unknown partial', function ( t ) {
-
 		var ractive, warn = console.warn;
 
-		expect( 1 );
+		expect( 2 );
 
-		console.warn = function( msg ) {
-			t.ok( true );
-		}
+		console.warn = () => t.ok( true );
 
 		ractive = new Ractive({
 			el: fixture,
-			template: '{{>unknown}}',
-			partials: {
-			}
+			template: '{{>unknown}}{{>other {a:42} }}',
+			partials: {}
 		});
 
 		console.warn = warn;
