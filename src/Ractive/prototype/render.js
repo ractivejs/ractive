@@ -1,7 +1,6 @@
 import css from 'global/css';
 import Hook from './shared/hooks/Hook';
 import { getElement } from 'utils/dom';
-import { consoleError } from 'utils/log';
 import runloop from 'global/runloop';
 
 var renderHook = new Hook( 'render' ),
@@ -64,16 +63,7 @@ export default function Ractive$render ( target, anchor ) {
 
 	this.transitionsEnabled = transitionsEnabled;
 
-	// It is now more problematic to know if the complete hook
-	// would fire. Method checking is straight-forward, but would
-	// also require preflighting event subscriptions. Which seems
-	// like more work then just letting the promise happen.
-	// But perhaps I'm wrong about that...
-	promise
-		.then( () => completeHook.fire( this ) )
-		.then( null, consoleError );
-
-	return promise;
+	return promise.then( () => completeHook.fire( this ) );
 }
 
 function removeOtherInstances( others ) {

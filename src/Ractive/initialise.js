@@ -1,4 +1,4 @@
-import { fatal, welcome } from 'utils/log';
+import { fatal, logIfDebug, warnIfDebug, warnOnceIfDebug, welcome } from 'utils/log';
 import { missingPlugin } from 'config/errors';
 import { magic as magicSupported } from 'config/environment';
 import { ensureArray } from 'utils/array';
@@ -108,7 +108,17 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	// render automatically ( if `el` is specified )
 	if ( el = getElement( ractive.el ) ) {
-		ractive.render( el, ractive.append );
+		let promise = ractive.render( el, ractive.append );
+
+		if ( Ractive.DEBUG_PROMISES ) {
+			promise.catch( err => {
+				warnOnceIfDebug( 'Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;' );
+				warnIfDebug( 'An error happened during rendering', { ractive });
+				err.stack && logIfDebug( err.stack );
+
+				throw err;
+			});
+		}
 	}
 }
 

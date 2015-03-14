@@ -67,14 +67,6 @@ function format ( message, args ) {
 	return message.replace( /%s/g, () => args.shift() );
 }
 
-function consoleError ( err ) {
-	if ( hasConsole ) {
-		console.error( err );
-	} else {
-		throw err;
-	}
-}
-
 function fatal ( message, ...args ) {
 	message = format( message, args );
 	throw new Error( message );
@@ -114,4 +106,4 @@ function warnOnceIfDebug () {
 	}
 }
 
-export { consoleError, fatal, log, logIfDebug, warn, warnOnce, warnIfDebug, warnOnceIfDebug, welcome };
+export { fatal, log, logIfDebug, warn, warnOnce, warnIfDebug, warnOnceIfDebug, welcome };
