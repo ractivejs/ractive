@@ -1125,6 +1125,18 @@ var renderTests = [
 		result: 'replaced',
 		new_data: { foo: '12abc34' },
 		new_result: 'regexp matched'
+	},
+	{
+		name: 'Section with empty object (implicit with)',
+		template: '{{#with foo}}{{/with}}',
+		data: { foo: {} },
+		result: ''
+	},
+	{
+		name: 'Section with empty object (implicit with)',
+		template: '{{#foo}}{{/}}',
+		data: { foo: {} },
+		result: ''
 	}
 ];
 
