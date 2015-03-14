@@ -15,7 +15,6 @@ var customHandlers = {},
 	};
 
 export default function EventHandler$listen () {
-
 	var definition, name = this.name;
 
 	if ( this.invalid ) { return; }
@@ -28,7 +27,7 @@ export default function EventHandler$listen () {
 
 			// okay to use touch events if this browser doesn't support them
 			if ( !touchEvents[ name ] ) {
-				warnOnceIfDebug( missingPlugin( name, 'event' ) );
+				warnOnceIfDebug( missingPlugin( name, 'event' ), { node: this.node });
 			}
 
 			return;
@@ -38,7 +37,6 @@ export default function EventHandler$listen () {
 	}
 
 	this.hasListener = true;
-
 }
 
 function getCustomHandler ( name ) {

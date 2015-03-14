@@ -15,12 +15,12 @@ var Binding = function ( element ) {
 
 	if ( keypath = interpolator.keypath ) {
 		if ( keypath.str.slice( -1 ) === '}' ) {
-			warnOnceIfDebug( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name );
+			warnOnceIfDebug( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name, { ractive: this.root });
 			return false;
 		}
 
 		if ( keypath.isSpecial ) {
-			warnOnceIfDebug( 'Two-way binding does not work with %s', interpolator.resolver.ref );
+			warnOnceIfDebug( 'Two-way binding does not work with %s', interpolator.resolver.ref, { ractive: this.root });
 			return false;
 		}
 	}
@@ -41,7 +41,7 @@ var Binding = function ( element ) {
 		// be explicit when using two-way data-binding about what keypath you're
 		// updating. Using it in lists is probably a recipe for confusion...
 		let ref = interpolator.template.r ? `'${interpolator.template.r}' reference` : 'expression';
-		warnIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref );
+		warnIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref, { ractive: this.root });
 		interpolator.resolver.forceResolution();
 		keypath = interpolator.keypath;
 	}

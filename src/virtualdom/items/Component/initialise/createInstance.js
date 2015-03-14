@@ -110,18 +110,18 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	initialise( instance, {
 		el: null,
 		append: true,
-		data: data,
-		partials: partials,
+		data,
+		partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,
 		// need to inherit runtime parent adaptors
 		adapt: ractive.adapt
 	}, {
 		parent: ractive,
-		component: component,
-		container: container,
-		mappings: mappings,
-		inlinePartials: inlinePartials,
+		component,
+		container,
+		mappings,
+		inlinePartials,
 		cssIds: parentFragment.cssIds
 	});
 

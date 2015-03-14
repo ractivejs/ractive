@@ -19,7 +19,7 @@ export default function getComponent ( ractive, name ) {
 			Component = fn();
 
 			if ( !Component ) {
-				warnIfDebug( noRegistryFunctionReturn, name, 'component', 'component' );
+				warnIfDebug( noRegistryFunctionReturn, name, 'component', 'component', { ractive });
 
 				return;
 			}

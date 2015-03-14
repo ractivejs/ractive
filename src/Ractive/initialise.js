@@ -1,4 +1,4 @@
-import { fatal, warnIfDebug, welcome } from 'utils/log';
+import { fatal, welcome } from 'utils/log';
 import { missingPlugin } from 'config/errors';
 import { magic as magicSupported } from 'config/environment';
 import { ensureArray } from 'utils/array';

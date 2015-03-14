@@ -6,7 +6,7 @@ import noop from 'utils/noop';
 var alreadyWarned = {}, log, printWarning, welcome;
 
 if ( hasConsole ) {
-	let welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you find problems and optimise your application.
+	let welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
 
 To disable debug mode, add this line at the start of your app:
   Ractive.DEBUG = false;
@@ -32,6 +32,27 @@ Found a bug? Raise an issue:
 
 	printWarning = ( message, args ) => {
 		welcome();
+
+		// extract information about the instance this message pertains to, if applicable
+		if ( typeof args[ args.length - 1 ] === 'object' ) {
+			let options = args.pop();
+			let ractive = options.ractive;
+
+			if ( ractive ) {
+				// if this is an instance of a component that we know the name of, add
+				// it to the message
+				let name;
+				if ( ractive.component && ( name = ractive.component.name ) ) {
+					message = `<${name}> ${message}`;
+				}
+
+				let node;
+				if ( node = ( options.node || ( ractive.fragment && ractive.fragment.rendered && ractive.find( '*' ) ) ) ) {
+					args.push( node );
+				}
+			}
+		}
+
 		console.warn.apply( console, [ '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' ].concat( args ) );
 	};
 

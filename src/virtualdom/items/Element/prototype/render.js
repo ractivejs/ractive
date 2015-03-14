@@ -34,7 +34,7 @@ updateCss = function () {
 
 updateScript = function () {
 	if ( !this.node.type || this.node.type === 'text/javascript' ) {
-		warnIfDebug( 'Script tag was updated. This does not cause the code to be re-evaluated!' );
+		warnIfDebug( 'Script tag was updated. This does not cause the code to be re-evaluated!', { ractive: this.root });
 		// As it happens, we ARE in a position to re-evaluate the code if we wanted
 		// to - we could eval() it, or insert it into a fresh (temporary) script tag.
 		// But this would be a terrible idea with unpredictable results, so let's not.

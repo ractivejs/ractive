@@ -22,7 +22,7 @@ var Yielder = function ( options ) {
 	let template = container._inlinePartials[ name ];
 
 	if ( !template ) {
-		warnIfDebug( `Could not find template for partial "${name}"` );
+		warnIfDebug( `Could not find template for partial "${name}"`, { ractive: options.root });
 		template = [];
 	}
 

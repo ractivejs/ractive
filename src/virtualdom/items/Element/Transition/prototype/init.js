@@ -50,6 +50,6 @@ export default function Transition$init ( element, template, isIntro ) {
 	this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
 	if ( !this._fn ) {
-		warnOnceIfDebug( missingPlugin( name, 'transition' ) );
+		warnOnceIfDebug( missingPlugin( name, 'transition' ), { ractive: this.root });
 	}
 }

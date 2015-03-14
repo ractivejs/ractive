@@ -43,7 +43,7 @@ function getPartialFromRegistry ( ractive, name ) {
 	}
 
 	if ( !partial && partial !== '' ) {
-		warnIfDebug( noRegistryFunctionReturn, name, 'partial', 'partial' );
+		warnIfDebug( noRegistryFunctionReturn, name, 'partial', 'partial', { ractive });
 		return;
 	}
 
@@ -57,7 +57,7 @@ function getPartialFromRegistry ( ractive, name ) {
 		// Partials cannot contain nested partials!
 		// TODO add a test for this
 		if ( parsed.p ) {
-			warnIfDebug( 'Partials ({{>%s}}) cannot contain nested inline partials', name );
+			warnIfDebug( 'Partials ({{>%s}}) cannot contain nested inline partials', name, { ractive });
 		}
 
 		// if fn, use instance to store result, otherwise needs to go

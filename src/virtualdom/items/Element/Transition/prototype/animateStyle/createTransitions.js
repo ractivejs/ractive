@@ -127,7 +127,7 @@ if ( !isClient ) {
 						// will get confused
 						index = changedProperties.indexOf( prop );
 						if ( index === -1 ) {
-							warnIfDebug( 'Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!' );
+							warnIfDebug( 'Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!', { node: t.node });
 						} else {
 							changedProperties.splice( index, 1 );
 						}

@@ -116,7 +116,7 @@ Partial.prototype = {
 		}
 
 		if ( !template ) {
-			warnOnceIfDebug( 'Could not find template for partial "%s"', this.name );
+			warnOnceIfDebug( 'Could not find template for partial "%s"', this.name, { ractive: this.root });
 		}
 
 		this.value = value;

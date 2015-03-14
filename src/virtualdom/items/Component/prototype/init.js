@@ -27,7 +27,7 @@ export default function Component$init ( options, Component ) {
 
 	// intro, outro and decorator directives have no effect
 	if ( options.template.t1 || options.template.t2 || options.template.o ) {
-		warnIfDebug( 'The "intro", "outro" and "decorator" directives have no effect on components' );
+		warnIfDebug( 'The "intro", "outro" and "decorator" directives have no effect on components', { ractive: this.instance });
 	}
 
 	updateLiveQueries( this );
