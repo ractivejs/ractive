@@ -8,7 +8,9 @@ import unbind from '../shared/unbind';
 import getPartialTemplate from './getPartialTemplate';
 import applyIndent from './applyIndent';
 
-var Partial = function ( options ) {
+let missingPartialMessage = 'Could not find template for partial "%s"';
+
+let Partial = function ( options ) {
 	var parentFragment, template;
 
 	parentFragment = this.parentFragment = options.parentFragment;
@@ -25,58 +27,62 @@ var Partial = function ( options ) {
 	// If this didn't resolve, it most likely means we have a named partial
 	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
 	// whose name is the value of `foo`')
-	if ( !this.keypath && ( template = getPartialTemplate( this.root, this.name ) ) ) {
-		unbind.call( this ); // prevent any further changes
-		this.isNamed = true;
+	if ( !this.keypath ) {
+		if ( template = getPartialTemplate( this.root, this.name ) ) {
+			unbind.call( this ); // prevent any further changes
+			this.isNamed = true;
 
-		this.setTemplate( template );
+			this.setTemplate( template );
+		} else {
+			warnOnce( missingPartialMessage, this.name );
+		}
 	}
 };
 
 Partial.prototype = {
-	bubble: function () {
+	bubble () {
 		this.parentFragment.bubble();
 	},
 
-	detach: function () {
+	detach () {
 		return this.fragment.detach();
 	},
 
-	find: function ( selector ) {
+	find ( selector ) {
 		return this.fragment.find( selector );
 	},
 
-	findAll: function ( selector, query ) {
+	findAll ( selector, query ) {
 		return this.fragment.findAll( selector, query );
 	},
 
-	findComponent: function ( selector ) {
+	findComponent ( selector ) {
 		return this.fragment.findComponent( selector );
 	},
 
-	findAllComponents: function ( selector, query ) {
+	findAllComponents ( selector, query ) {
 		return this.fragment.findAllComponents( selector, query );
 	},
 
-	firstNode: function () {
+	firstNode () {
 		return this.fragment.firstNode();
 	},
 
-	findNextNode: function () {
+	findNextNode () {
 		return this.parentFragment.findNextNode( this );
 	},
 
-	getPartialName: function () {
+	getPartialName () {
 		if ( this.isNamed && this.name ) return this.name;
 		else if ( this.value === undefined ) return this.name;
 		else return this.value;
 	},
 
-	getValue: function () {
+	getValue () {
 		return this.fragment.getValue();
 	},
 
-	rebind: function ( oldKeypath, newKeypath ) {
+	rebind ( oldKeypath, newKeypath ) {
 		// named partials aren't bound, so don't rebind
 		if ( !this.isNamed ) {
 			rebind.call( this, oldKeypath, newKeypath );
@@ -85,7 +91,7 @@ Partial.prototype = {
 		this.fragment.rebind( oldKeypath, newKeypath );
 	},
 
-	render: function () {
+	render () {
 		this.docFrag = document.createDocumentFragment();
 		this.update();
 
@@ -95,7 +101,7 @@ Partial.prototype = {
 
 	resolve: Mustache.resolve,
 
-	setValue: function ( value ) {
+	setValue ( value ) {
 		var template;
 
 		if ( value !== undefined && value === this.value ) {
@@ -116,7 +122,7 @@ Partial.prototype = {
 		}
 
 		if ( !template ) {
-			( this.root.debug ? fatal : warnOnce )( 'Could not find template for partial "%s"', this.name );
+			( this.root.debug ? fatal : warnOnce )( missingPartialMessage, this.name );
 		}
 
 		this.value = value;
@@ -130,14 +136,14 @@ Partial.prototype = {
 		}
 	},
 
-	setTemplate: function ( template ) {
+	setTemplate ( template ) {
 		if ( this.fragment ) {
 			this.fragment.unbind();
 			this.fragmentToUnrender = this.fragment;
 		}
 
 		this.fragment = new Fragment({
-			template: template,
+			template,
 			root: this.root,
 			owner: this,
 			pElement: this.parentFragment.pElement
@@ -146,7 +152,7 @@ Partial.prototype = {
 		this.fragmentToRender = this.fragment;
 	},
 
-	toString: function ( toString ) {
+	toString ( toString ) {
 		var string, previousItem, lastLine, match;
 
 		string = this.fragment.toString( toString );
@@ -166,7 +172,7 @@ Partial.prototype = {
 		return string;
 	},
 
-	unbind: function () {
+	unbind () {
 		if ( !this.isNamed ) { // dynamic partial - need to unbind self
 			unbind.call( this );
 		}
@@ -176,16 +182,16 @@ Partial.prototype = {
 		}
 	},
 
-	unrender: function ( shouldDestroy ) {
+	unrender ( shouldDestroy ) {
 		if ( this.rendered ) {
-			if( this.fragment ) {
+			if ( this.fragment ) {
 				this.fragment.unrender( shouldDestroy );
 			}
 			this.rendered = false;
 		}
 	},
 
-	update: function() {
+	update() {
 		var target, anchor;
 
 		if ( this.fragmentToUnrender ) {
