@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sat Mar 14 2015 21:00:39 GMT+0000 (UTC) - commit 7c1f357690c7b33ffa2d9d44f58621a0a8289cad
+	Sat Mar 14 2015 21:18:36 GMT+0000 (UTC) - commit 9ff4734e3c8724a8a3a3b514bafd6a8bd3ad6f07
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3152,7 +3152,7 @@
   			return [array.length, 0].concat(args);
 
   		case "shift":
-  			return [0, 1];
+  			return [0, array.length ? 1 : 0];
 
   		case "unshift":
   			return [0, 0].concat(args);
@@ -10620,7 +10620,9 @@
   			rebind__default.call(this, oldKeypath, newKeypath);
   		}
 
-  		this.fragment.rebind(oldKeypath, newKeypath);
+  		if (this.fragment) {
+  			this.fragment.rebind(oldKeypath, newKeypath);
+  		}
   	},
 
   	render: function () {
