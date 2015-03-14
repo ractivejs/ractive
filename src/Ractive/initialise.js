@@ -1,4 +1,4 @@
-import { fatal, warnIfDebug } from 'utils/log';
+import { fatal, warnIfDebug, welcome } from 'utils/log';
 import { missingPlugin } from 'config/errors';
 import { magic as magicSupported } from 'config/environment';
 import { ensureArray } from 'utils/array';
@@ -21,7 +21,6 @@ import Ractive from '../Ractive';
 let constructHook = new Hook( 'construct' );
 let configHook = new Hook( 'config' );
 let initHook = new HookQueue( 'init' );
-let firstRun = true;
 let uid = 0;
 
 let registryNames = [
@@ -35,34 +34,13 @@ let registryNames = [
 	'transitions'
 ];
 
-let welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you find problems and optimise your application.
-
-To disable debug mode, add this line at the start of your app:
-  Ractive.DEBUG = false;
-
-To disable debug mode when your app is minified, add this snippet:
-  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});
-
-Get help and support:
-  http://docs.ractivejs.org
-  http://stackoverflow.com/questions/tagged/ractivejs
-  http://groups.google.com/forum/#!forum/ractive-js
-  http://twitter.com/ractivejs
-
-Found a bug? Raise an issue:
-  https://github.com/ractivejs/ractive/issues
-
-`;
-
-
 export default initialiseRactiveInstance;
 
 function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	var el, viewmodel;
 
-	if ( firstRun && Ractive.DEBUG ) {
-		warnIfDebug( welcomeMessage );
-		firstRun = false; // not using warnOnceIfDebug here, this is a hot code path
+	if ( Ractive.DEBUG ) {
+		welcome();
 	}
 
 	initialiseProperties( ractive, options );
