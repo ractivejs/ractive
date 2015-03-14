@@ -93,7 +93,7 @@ function getSpliceEquivalent ( array, methodName, args ) {
 			return [ array.length, 0 ].concat( args );
 
 		case 'shift':
-			return [ 0, 1 ];
+			return [ 0, array.length ? 1 : 0 ];
 
 		case 'unshift':
 			return [ 0, 0 ].concat( args );

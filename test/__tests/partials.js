@@ -726,3 +726,18 @@ test( 'Several inline partials containing elements can be defined (#1736)', t =>
 	t.equal( ractive.partials.part1.length, 1 );
 	t.equal( ractive.partials.part2.length, 1 );
 });
+
+test( 'Removing a missing partial (#1808)', t => {
+	expect( 0 );
+
+	let ractive = new Ractive({
+		template: '{{#items}}{{>item}}{{/}}',
+		el: 'main',
+		data: {
+			items: [ 1, 2, 3 ]
+		}
+	});
+
+	ractive.unshift( 'items', 4 );
+	ractive.shift( 'items' );
+});
