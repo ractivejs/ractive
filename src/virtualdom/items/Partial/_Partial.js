@@ -88,7 +88,9 @@ Partial.prototype = {
 			rebind.call( this, oldKeypath, newKeypath );
 		}
 
-		this.fragment.rebind( oldKeypath, newKeypath );
+		if ( this.fragment ) {
+			this.fragment.rebind( oldKeypath, newKeypath );
+		}
 	},
 
 	render () {
