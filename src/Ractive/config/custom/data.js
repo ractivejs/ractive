@@ -1,4 +1,5 @@
 import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import { isObject, isArray } from 'utils/is';
 
 function validate ( data ) {
 	// Warn if userOptions.data is a non-POJO
@@ -17,6 +18,33 @@ var dataConfigurator = {
 	name: 'data',
 
 	extend: ( Parent, proto, options ) => {
+		let key, value;
+
+		// check for non-primitives, which could cause mutation-related bugs
+		if ( options.data && isObject( options.data ) ) {
+			for ( key in options.data ) {
+				value = options.data[ key ];
+
+				if ( value && typeof value === 'object' ) {
+					if ( isObject( value ) || isArray( value ) ) {
+						warn( `Passing a \`data\` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:
+
+  // this...
+  data: function () {
+    return {
+      myObject: {}
+    };
+  })
+
+  // instead of this:
+  data: {
+    myObject: {}
+  }` );
+					}
+				}
+			}
+		}
+
 		proto.data = combine( proto.data, options.data );
 	},
 

@@ -869,3 +869,32 @@ test( 'Unresolved keypath can be safely torn down', t => {
 	ractive.set('show', false);
 
 });
+
+test( 'Using non-primitives in data passed to Ractive.extend() triggers a warning', t => {
+	let warn = console.warn;
+	console.warn = msg => {
+		t.ok( /Passing a `data` option with object and array properties to Ractive.extend\(\) is discouraged, as mutating them is likely to cause bugs/.test( msg ) );
+	};
+
+	expect( 1 );
+
+	Ractive.extend({
+		data: {
+			foo: 42
+		}
+	});
+
+	Ractive.extend({
+		data: {
+			foo: {}
+		}
+	});
+
+	Ractive.extend({
+		data: () => ({
+			foo: {}
+		})
+	});
+
+	console.warn = warn;
+});
