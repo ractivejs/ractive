@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sat Mar 14 2015 03:55:14 GMT+0000 (UTC) - commit aaaada60617ee41470f986136a873004a1bf61da
+	Sat Mar 14 2015 04:00:16 GMT+0000 (UTC) - commit e78639b9006f2d9725d512eb016dfcfd59a548cc
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -50,10 +50,7 @@
 
   	// css:
   	css: null,
-  	noCssTransform: false,
-
-  	// debug:
-  	debug: false
+  	noCssTransform: false
   };
 
   var defaults = defaultOptions;
@@ -903,20 +900,53 @@
   var noop = function () {};
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/noop.js.02-babel.map
 
+  /* global console */
   var alreadyWarned = {},
       log,
-      printWarning;
+      printWarning,
+      welcome;
 
   if (hasConsole) {
-  	printWarning = function (message, args) {
-  		console.warn.apply(console, ["%cRactive.js: %c" + message, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);"].concat(args));
-  	};
+  	(function () {
+  		var welcomeMessage = "You're running Ractive 0.7.0-edge in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
-  	log = function () {
-  		console.log.apply(console, arguments);
-  	};
+  		welcome = function () {
+  			console.log.apply(console, ["%cRactive.js: %c" + welcomeMessage, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);"]);
+  			welcome = noop;
+  		};
+
+  		printWarning = function (message, args) {
+  			welcome();
+
+  			// extract information about the instance this message pertains to, if applicable
+  			if (typeof args[args.length - 1] === "object") {
+  				var options = args.pop();
+  				var ractive = options.ractive;
+
+  				if (ractive) {
+  					// if this is an instance of a component that we know the name of, add
+  					// it to the message
+  					var _name = undefined;
+  					if (ractive.component && (_name = ractive.component.name)) {
+  						message = "<" + _name + "> " + message;
+  					}
+
+  					var node = undefined;
+  					if (node = options.node || ractive.fragment && ractive.fragment.rendered && ractive.find("*")) {
+  						args.push(node);
+  					}
+  				}
+  			}
+
+  			console.warn.apply(console, ["%cRactive.js: %c" + message, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);"].concat(args));
+  		};
+
+  		log = function () {
+  			console.log.apply(console, arguments);
+  		};
+  	})();
   } else {
-  	printWarning = log = noop;
+  	printWarning = log = welcome = noop;
   }
 
   function format(message, args) {
@@ -924,6 +954,7 @@
   		return args.shift();
   	});
   }
+
   function consoleError(err) {
   	if (hasConsole) {
   		console.error(err);
@@ -939,6 +970,12 @@
 
   	message = format(message, args);
   	throw new Error(message);
+  }
+
+  function logIfDebug() {
+  	if (Ractive.DEBUG) {
+  		log.apply(null, arguments);
+  	}
   }
 
   function warn(message) {
@@ -964,7 +1001,18 @@
   	alreadyWarned[message] = true;
   	printWarning(message, args);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/log.js.02-babel.map
+
+  function warnIfDebug() {
+  	if (Ractive.DEBUG) {
+  		warn.apply(null, arguments);
+  	}
+  }
+
+  function warnOnceIfDebug() {
+  	if (Ractive.DEBUG) {
+  		warnOnce.apply(null, arguments);
+  	}
+  }
 
   // Error messages that are used (or could be) in multiple places
   var badArguments = "Bad arguments";
@@ -1005,7 +1053,7 @@
   			return interpol(from, to) || snap(to);
   		}
 
-  		warnOnce(missingPlugin(type, "interpolator"));
+  		fatal(missingPlugin(type, "interpolator"));
   	}
 
   	return interpolators.number(from, to) || interpolators.array(from, to) || interpolators.object(from, to) || snap(to);
@@ -1492,9 +1540,9 @@
 
   	if (!ractive[this.method] && this.deprecate && call(this.deprecate.deprecated)) {
   		if (this.deprecate.message) {
-  			warn(this.deprecate.message);
+  			warnIfDebug(this.deprecate.message);
   		} else {
-  			warn("The method \"%s\" has been deprecated in favor of \"%s\" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.", this.deprecate.deprecated, this.deprecate.replacement);
+  			warnIfDebug("The method \"%s\" has been deprecated in favor of \"%s\" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.", this.deprecate.deprecated, this.deprecate.replacement);
   		}
   	}
 
@@ -2328,7 +2376,7 @@
 
   				// TODO investigate why this happens
   				if (index === -1) {
-  					warn("Animation was not found");
+  					warnIfDebug("Animation was not found");
   				}
 
   				this.root._animations.splice(index, 1);
@@ -2365,7 +2413,7 @@
 
   		// TODO investigate why this happens
   		if (index === -1) {
-  			warn("Animation was not found");
+  			warnIfDebug("Animation was not found");
   		}
 
   		this.root._animations.splice(index, 1);
@@ -2577,7 +2625,8 @@
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/find.js.02-babel.map
 
-  var test = function (item, noDirty) {
+  var test = Query$test;
+  function Query$test(item, noDirty) {
   	var itemMatches;
 
   	if (this._isComponentQuery) {
@@ -2595,7 +2644,7 @@
 
   		return true;
   	}
-  };
+  }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/test.js.02-babel.map
 
   var cancel = function () {
@@ -3918,7 +3967,7 @@
   		if (typeof data === "function") {} else if (typeof data !== "object") {
   			fatal("data option must be an object or a function, `" + data + "` is not valid");
   		} else {
-  			warn("If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged");
+  			warnIfDebug("If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged");
   		}
   	}
   }
@@ -3937,7 +3986,7 @@
 
   				if (value && typeof value === "object") {
   					if (isObject(value) || isArray(value)) {
-  						warn("Passing a `data` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:\n\n// this...\ndata: function () {\n  return {\n    myObject: {}\n  };\n})\n\n// instead of this:\ndata: {\n  myObject: {}\n}");
+  						warnIfDebug("Passing a `data` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:\n\n  // this...\n  data: function () {\n    return {\n      myObject: {}\n    };\n  })\n\n  // instead of this:\n  data: {\n    myObject: {}\n  }");
   					}
   				}
   			}
@@ -4003,7 +4052,7 @@
   	}
 
   	if (data.constructor !== Object) {
-  		warnOnce("Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged");
+  		warnOnceIfDebug("Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged");
   	}
 
   	return data;
@@ -4365,7 +4414,7 @@
   function deprecateOption(options, deprecatedOption, correct) {
   	if (deprecatedOption in options) {
   		if (!(correct in options)) {
-  			warn(getMessage(deprecatedOption, correct));
+  			warnIfDebug(getMessage(deprecatedOption, correct));
   			options[correct] = options[deprecatedOption];
   		} else {
   			throw new Error(getMessage(deprecatedOption, correct, true));
@@ -4452,7 +4501,6 @@
   	});
 
   	adaptConfigurator[method](Parent, target, options);
-  	//dataConfigurator[ method ]( Parent, target, options );
   	templateConfigurator[method](Parent, target, options);
   	cssConfigurator[method](Parent, target, options);
 
@@ -8139,12 +8187,12 @@
 
   	if (keypath = interpolator.keypath) {
   		if (keypath.str.slice(-1) === "}") {
-  			warn("Two-way binding does not work with expressions (`%s` on <%s>)", interpolator.resolver.uniqueString, element.name);
+  			warnOnceIfDebug("Two-way binding does not work with expressions (`%s` on <%s>)", interpolator.resolver.uniqueString, element.name, { ractive: this.root });
   			return false;
   		}
 
   		if (keypath.isSpecial) {
-  			warnOnce("Two-way binding does not work with %s", interpolator.resolver.ref);
+  			warnOnceIfDebug("Two-way binding does not work with %s", interpolator.resolver.ref, { ractive: this.root });
   			return false;
   		}
   	} else {
@@ -8163,7 +8211,7 @@
   		// be explicit when using two-way data-binding about what keypath you're
   		// updating. Using it in lists is probably a recipe for confusion...
   		var ref = interpolator.template.r ? "'" + interpolator.template.r + "' reference" : "expression";
-  		warn("The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity", ref);
+  		warnIfDebug("The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity", ref, { ractive: this.root });
   		interpolator.resolver.forceResolution();
   		keypath = interpolator.keypath;
   	}
@@ -8880,7 +8928,7 @@
 
   			// we can either bind the name attribute, or the checked attribute - not both
   			if (bindName && bindChecked) {
-  				warn("A radio input can have two-way binding on its name attribute, or its checked attribute - not both");
+  				warnIfDebug("A radio input can have two-way binding on its name attribute, or its checked attribute - not both", { ractive: element.root });
   			}
 
   			if (bindName) {
@@ -8959,7 +9007,7 @@
   	this.name = name;
 
   	if (name.indexOf("*") !== -1) {
-  		(this.root.debug ? fatal : warn)("Only component proxy-events may contain \"*\" wildcards, <%s on-%s=\"...\"/> is not valid", element.name, name);
+  		fatal("Only component proxy-events may contain \"*\" wildcards, <%s on-%s=\"...\"/> is not valid", element.name, name);
   		this.invalid = true;
   	}
 
@@ -9114,7 +9162,6 @@
   	touchleave: true
   };
   function EventHandler$listen() {
-
   	var definition,
   	    name = this.name;
 
@@ -9130,7 +9177,7 @@
 
   			// okay to use touch events if this browser doesn't support them
   			if (!touchEvents[name]) {
-  				warnOnce(missingPlugin(name, "event"));
+  				warnOnceIfDebug(missingPlugin(name, "event"), { node: this.node });
   			}
 
   			return;
@@ -9331,7 +9378,7 @@
   	this.fn = findInViewHierarchy("decorators", ractive, name);
 
   	if (!this.fn) {
-  		warn(missingPlugin(name, "decorator"));
+  		fatal(missingPlugin(name, "decorator"));
   	}
   };
 
@@ -9728,7 +9775,7 @@
   	this._fn = findInViewHierarchy("transitions", ractive, name);
 
   	if (!this._fn) {
-  		warnOnce(missingPlugin(name, "transition"));
+  		warnOnceIfDebug(missingPlugin(name, "transition"), { ractive: this.root });
   	}
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/init.js.02-babel.map
@@ -9850,7 +9897,7 @@
   		easing = options.root.easing[options.easing];
 
   		if (!easing) {
-  			warnOnce(missingPlugin(options.easing, "easing"));
+  			fatal(missingPlugin(options.easing, "easing"));
   			easing = linear;
   		}
   	} else if (typeof options.easing === "function") {
@@ -10066,7 +10113,7 @@
   						// will get confused
   						index = changedProperties.indexOf(prop);
   						if (index === -1) {
-  							warn("Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!");
+  							warnIfDebug("Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!", { node: t.node });
   						} else {
   							changedProperties.splice(index, 1);
   						}
@@ -10220,7 +10267,7 @@
 
   		// TODO remove this check in a future version
   		if (!options) {
-  			warn("The \"%s\" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340", this.name);
+  			warnOnceIfDebug("The \"%s\" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340", this.name);
   			options = this;
   		}
 
@@ -10391,7 +10438,7 @@
 
   updateScript = function () {
   	if (!this.node.type || this.node.type === "text/javascript") {
-  		warn("Script tag was updated. This does not cause the code to be re-evaluated!");
+  		warnIfDebug("Script tag was updated. This does not cause the code to be re-evaluated!", { ractive: this.root });
   		// As it happens, we ARE in a position to re-evaluate the code if we wanted
   		// to - we could eval() it, or insert it into a fresh (temporary) script tag.
   		// But this would be a terrible idea with unpredictable results, so let's not.
@@ -10909,7 +10956,7 @@
   	}
 
   	if (!partial && partial !== "") {
-  		warn(noRegistryFunctionReturn, name, "partial", "partial");
+  		warnIfDebug(noRegistryFunctionReturn, name, "partial", "partial", { ractive: ractive });
   		return;
   	}
 
@@ -10923,7 +10970,7 @@
   		// Partials cannot contain nested partials!
   		// TODO add a test for this
   		if (parsed.p) {
-  			warn("Partials ({{>%s}}) cannot contain nested inline partials", name);
+  			warnIfDebug("Partials ({{>%s}}) cannot contain nested inline partials", name, { ractive: ractive });
   		}
 
   		// if fn, use instance to store result, otherwise needs to go
@@ -10995,7 +11042,7 @@
 
   			this.setTemplate(template);
   		} else {
-  			warnOnce(missingPartialMessage, this.name);
+  			warnOnceIfDebug(missingPartialMessage, this.name);
   		}
   	}
   };
@@ -11081,7 +11128,7 @@
   		}
 
   		if (!template) {
-  			(this.root.debug ? fatal : warnOnce)(missingPartialMessage, this.name);
+  			warnOnceIfDebug(missingPartialMessage, this.name, { ractive: this.root });
   		}
 
   		this.value = value;
@@ -11194,9 +11241,7 @@
   			Component = fn();
 
   			if (!Component) {
-  				if (ractive.debug) {
-  					warn(noRegistryFunctionReturn, name, "component", "component");
-  				}
+  				warnIfDebug(noRegistryFunctionReturn, name, "component", "component", { ractive: ractive });
 
   				return;
   			}
@@ -12216,10 +12261,8 @@
   				try {
   					this.value = this.getter();
   				} catch (err) {
-  					if (this.viewmodel.debug) {
-  						warn("Failed to compute \"%s\"", this.key.str);
-  						log(err.stack || err);
-  					}
+  					warnIfDebug("Failed to compute \"%s\"", this.key.str);
+  					logIfDebug(err.stack || err);
 
   					this.value = void 0;
   				}
@@ -12699,13 +12742,7 @@
   		} catch (err) {
   			// fallback to an identity check - worst case scenario we have
   			// to do more DOM manipulation than we thought...
-
-  			// ...unless we're in debug mode of course
-  			if (this.debug) {
-  				throw err;
-  			} else {
-  				warn("Merge operation: comparison failed. Falling back to identity checking");
-  			}
+  			warnIfDebug("merge(): \"%s\" comparison failed. Falling back to identity checking", keypath);
 
   			oldArray = currentArray;
   			newArray = array;
@@ -13041,7 +13078,6 @@
   	this.ractive = ractive;
 
   	this.adaptors = adapt;
-  	this.debug = options.debug;
   	this.onchange = options.onchange;
 
   	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
@@ -13237,13 +13273,12 @@
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/helpers/getComputationSignatures.js.02-babel.map
 
-  var constructHook = new Hook("construct"),
-      configHook = new Hook("config"),
-      initHook = new HookQueue("init"),
-      initialise__uid = 0,
-      initialise__registryNames;
+  var constructHook = new Hook("construct");
+  var configHook = new Hook("config");
+  var initHook = new HookQueue("init");
+  var initialise__uid = 0;
 
-  initialise__registryNames = ["adaptors", "components", "decorators", "easing", "events", "interpolators", "partials", "transitions"];
+  var initialise__registryNames = ["adaptors", "components", "decorators", "easing", "events", "interpolators", "partials", "transitions"];
 
   var initialise = initialiseRactiveInstance;
 
@@ -13252,6 +13287,10 @@
   	var options = arguments[2] === undefined ? {} : arguments[2];
 
   	var el, viewmodel;
+
+  	if (Ractive.DEBUG) {
+  		welcome();
+  	}
 
   	initialiseProperties(ractive, options);
 
@@ -13279,7 +13318,6 @@
   	});
 
   	ractive.viewmodel = viewmodel;
-  	viewmodel.debug = ractive.debug;
 
   	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
   	viewmodel.init();
@@ -13494,7 +13532,7 @@
   	inlinePartials[""] = partials.content;
 
   	if (Component.defaults.el) {
-  		warn("The <%s/> component has a default `el` property; it has been disregarded", component.name);
+  		warnIfDebug("The <%s/> component has a default `el` property; it has been disregarded", component.name);
   	}
 
   	// find container
@@ -13631,7 +13669,7 @@
 
   function propagateEvent(childInstance, parentInstance, eventName, proxyEventName) {
   	if (typeof proxyEventName !== "string") {
-  		warn("Components currently only support simple events - you cannot include arguments. Sorry!");
+  		fatal("Components currently only support simple events - you cannot include arguments. Sorry!");
   	}
 
   	childInstance.on(eventName, function () {
@@ -13691,7 +13729,7 @@
 
   	// intro, outro and decorator directives have no effect
   	if (options.template.t1 || options.template.t2 || options.template.o) {
-  		warn("The \"intro\", \"outro\" and \"decorator\" directives have no effect on components");
+  		warnIfDebug("The \"intro\", \"outro\" and \"decorator\" directives have no effect on components", { ractive: this.instance });
   	}
 
   	updateLiveQueries__default(this);
@@ -13856,7 +13894,7 @@
   	var template = container._inlinePartials[name];
 
   	if (!template) {
-  		warn("Could not find template for partial \"" + name + "\"");
+  		warnIfDebug("Could not find template for partial \"" + name + "\"", { ractive: options.root });
   		template = [];
   	}
 
@@ -14459,7 +14497,7 @@
   	var promise, shouldDestroy;
 
   	if (!this.fragment.rendered) {
-  		warn("ractive.unrender() was called on a Ractive instance that was not rendered");
+  		warnIfDebug("ractive.unrender() was called on a Ractive instance that was not rendered");
   		return utils_Promise.resolve();
   	}
 
@@ -14828,6 +14866,9 @@
 
   // Ractive properties
   properties = {
+
+  	// debug flag
+  	DEBUG: { value: true },
 
   	// static methods:
   	extend: { value: extend__default },
