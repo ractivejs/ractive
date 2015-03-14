@@ -757,6 +757,13 @@ var parseTests = [
 		error: `Expected \`=\`, \`/\`, \`>\` or whitespace at line 1 character 18:
 <button on-click-"select">fire</button>
                  ^----`
+	},
+	{
+		name: 'Attribute/directive with fat-fingered ==',
+		template: `<div class=='wut'></div>`,
+		error: `Expected valid attribute value at line 1 character 12:
+<div class=='wut'></div>
+           ^----`
 	}
 ];
 
