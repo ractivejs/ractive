@@ -65,6 +65,7 @@
     "test": "sh ./scripts/test.sh",
     "start": "node_modules/.bin/gobble",
     "build": "sh ./scripts/build.sh",
+    "fakebuild": "sh ./scripts/build.sh --fake",
     "promises-aplus-tests": "./scripts/promises-aplus-tests.js"
   },
   "github": "https://github.com/ractivejs/ractive",
