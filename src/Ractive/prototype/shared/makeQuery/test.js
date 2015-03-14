@@ -1,6 +1,6 @@
 import { matches } from 'utils/dom';
 
-export default function ( item, noDirty ) {
+export default function Query$test ( item, noDirty ) {
 	var itemMatches;
 
 	if ( this._isComponentQuery ) {

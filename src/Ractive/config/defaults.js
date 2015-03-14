@@ -34,10 +34,7 @@ var defaultOptions = {
 
 	// css:
 	css:                null,
-	noCssTransform:     false,
-
-	// debug:
-	debug:              false
+	noCssTransform:     false
 };
 
 export default defaultOptions;

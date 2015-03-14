@@ -1,4 +1,4 @@
-import { fatal } from 'utils/log';
+import { fatal, welcome } from 'utils/log';
 import { missingPlugin } from 'config/errors';
 import { magic as magicSupported } from 'config/environment';
 import { ensureArray } from 'utils/array';
@@ -16,14 +16,14 @@ import Viewmodel from 'viewmodel/Viewmodel';
 import Hook from './prototype/shared/hooks/Hook';
 import HookQueue from './prototype/shared/hooks/HookQueue';
 import getComputationSignatures from './helpers/getComputationSignatures';
+import Ractive from '../Ractive';
 
-var constructHook = new Hook( 'construct' ),
-	configHook = new Hook( 'config' ),
-	initHook = new HookQueue( 'init' ),
-	uid = 0,
-	registryNames;
+let constructHook = new Hook( 'construct' );
+let configHook = new Hook( 'config' );
+let initHook = new HookQueue( 'init' );
+let uid = 0;
 
-registryNames = [
+let registryNames = [
 	'adaptors',
 	'components',
 	'decorators',
@@ -38,6 +38,10 @@ export default initialiseRactiveInstance;
 
 function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	var el, viewmodel;
+
+	if ( Ractive.DEBUG ) {
+		welcome();
+	}
 
 	initialiseProperties( ractive, options );
 
@@ -63,7 +67,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	});
 
 	ractive.viewmodel = viewmodel;
-	viewmodel.debug = ractive.debug;
 
 	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
 	viewmodel.init();

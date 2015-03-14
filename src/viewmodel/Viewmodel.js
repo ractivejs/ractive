@@ -28,7 +28,6 @@ var Viewmodel = function ( options ) {
 	this.ractive = ractive;
 
 	this.adaptors = adapt;
-	this.debug = options.debug;
 	this.onchange = options.onchange;
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null

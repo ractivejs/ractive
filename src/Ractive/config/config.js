@@ -44,7 +44,7 @@ config = {
 
 	// this defines the order. TODO this isn't used anywhere in the codebase,
 	// only in the test suite - should get rid of it
-	order: order,
+	order,
 };
 
 function configure ( method, Parent, target, options ) {
@@ -67,7 +67,6 @@ function configure ( method, Parent, target, options ) {
 	});
 
 	adaptConfigurator[ method ]( Parent, target, options );
-	//dataConfigurator[ method ]( Parent, target, options );
 	templateConfigurator[ method ]( Parent, target, options );
 	cssConfigurator[ method ]( Parent, target, options );
 

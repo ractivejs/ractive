@@ -22,6 +22,9 @@ Ractive = function ( options ) {
 // Ractive properties
 properties = {
 
+	// debug flag
+	DEBUG:         { value: true },
+
 	// static methods:
 	extend:        { value: extend },
 	getNodeInfo:   { value: getNodeInfo },
@@ -35,7 +38,7 @@ properties = {
 	magic:         { value: magic },
 
 	// version
-	VERSION:       { value: '${version}' },
+	VERSION:       { value: '<@version@>' },
 
 	// Plugins
 	adaptors:      { writable: true, value: {} },

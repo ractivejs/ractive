@@ -3,7 +3,7 @@ import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createRef
 import Fragment from 'virtualdom/Fragment';
 import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
-import { fatal, warn } from 'utils/log';
+import { fatal } from 'utils/log';
 
 var eventPattern = /^event(?:\.(.+))?/;
 
@@ -16,7 +16,7 @@ export default function EventHandler$init ( element, name, template ) {
 	this.name = name;
 
 	if ( name.indexOf( '*' ) !== -1 ) {
-		( this.root.debug ? fatal : warn )( 'Only component proxy-events may contain "*" wildcards, <%s on-%s="..."/> is not valid', element.name, name );
+		fatal( 'Only component proxy-events may contain "*" wildcards, <%s on-%s="..."/> is not valid', element.name, name );
 		this.invalid = true;
 	}
 

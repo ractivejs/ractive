@@ -1,4 +1,4 @@
-import { fatal, warn, warnOnce } from 'utils/log';
+import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 import { isObject, isArray } from 'utils/is';
 
 function validate ( data ) {
@@ -9,7 +9,7 @@ function validate ( data ) {
 		} else if ( typeof data !== 'object' ) {
 			fatal( `data option must be an object or a function, \`${data}\` is not valid` );
 		} else {
-			warn( 'If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged' );
+			warnIfDebug( 'If supplied, options.data should be a plain JavaScript object - using a non-POJO as the root object may work, but is discouraged' );
 		}
 	}
 }
@@ -27,19 +27,19 @@ var dataConfigurator = {
 
 				if ( value && typeof value === 'object' ) {
 					if ( isObject( value ) || isArray( value ) ) {
-						warn( `Passing a \`data\` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:
+						warnIfDebug( `Passing a \`data\` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:
 
-// this...
-data: function () {
-  return {
+  // this...
+  data: function () {
+    return {
+      myObject: {}
+    };
+  })
+
+  // instead of this:
+  data: {
     myObject: {}
-  };
-})
-
-// instead of this:
-data: {
-  myObject: {}
-}` );
+  }` );
 					}
 				}
 			}
@@ -105,7 +105,7 @@ function callDataFunction ( fn, context ) {
 	}
 
 	if ( data.constructor !== Object ) {
-		warnOnce( 'Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged' );
+		warnOnceIfDebug( 'Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged' );
 	}
 
 	return data;

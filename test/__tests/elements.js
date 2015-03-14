@@ -68,8 +68,10 @@ test( 'Textarea is stringified correctly', function ( t ) {
 	t.equal( ractive.toHTML(), '<textarea>123&lt;div&gt;&lt;/div&gt;</textarea>' );
 });
 
-test( 'Wildcard proxy-events invalid on elements', () => {
-	throws( function () {
+test( 'Wildcard proxy-events invalid on elements', t => {
+	expect( 1 );
+
+	t.throws( () => {
 		new Ractive({
 			el: fixture,
 			debug: true,

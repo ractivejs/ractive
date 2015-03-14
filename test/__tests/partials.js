@@ -21,25 +21,23 @@ if ( console && console.warn ) {
 	test( 'no return of partial warns in debug', function ( t ) {
 		var ractive, warn = console.warn;
 
-		expect( 2 ); //throws counts as an assertion
+		expect( 2 );
 
 		console.warn = function( msg ) {
 			t.ok( msg );
 		};
 
 		// will throw on no-partial found
-		throws( () => {
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{>foo}}',
-				data: { foo: true },
-				debug: true,
-				partials: {
-					foo () {
-						// where's my partial?
-					}
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{>foo}}',
+			data: { foo: true },
+			debug: true,
+			partials: {
+				foo () {
+					// where's my partial?
 				}
-			});
+			}
 		});
 
 		console.warn = warn;

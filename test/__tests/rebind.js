@@ -7,6 +7,8 @@ import { getKeypath } from 'shared/keypaths';
 
 module( 'rebind' );
 
+const test = QUnit.test; // necessary due to a bug in esperanto
+
 function contextUpdate(opt){
 	test( 'update context path: ' + opt.test, function ( t ) {
 		var resolved, fragment, el, triple;
@@ -45,7 +47,7 @@ function contextUpdate(opt){
 		});
 
 		triple.resolve = function(keypath){
-		 	resolved = keypath
+			resolved = keypath;
 		};
 
 		fragment.items.push(el, triple);

@@ -1,4 +1,4 @@
-import { fatal, warnOnce } from 'utils/log';
+import { warnOnceIfDebug } from 'utils/log';
 import { PARTIAL, TEXT } from 'config/types';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
@@ -34,7 +34,7 @@ let Partial = function ( options ) {
 
 			this.setTemplate( template );
 		} else {
-			warnOnce( missingPartialMessage, this.name );
+			warnOnceIfDebug( missingPartialMessage, this.name );
 		}
 	}
 };
@@ -122,7 +122,7 @@ Partial.prototype = {
 		}
 
 		if ( !template ) {
-			( this.root.debug ? fatal : warnOnce )( missingPartialMessage, this.name );
+			warnOnceIfDebug( missingPartialMessage, this.name, { ractive: this.root });
 		}
 
 		this.value = value;

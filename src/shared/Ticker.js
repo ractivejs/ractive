@@ -1,4 +1,4 @@
-import { warnOnce } from 'utils/log';
+import { fatal } from 'utils/log';
 import { missingPlugin } from 'config/errors';
 import getTime from 'utils/getTime';
 import animations from 'shared/animations';
@@ -18,7 +18,7 @@ var Ticker = function ( options ) {
 		easing = options.root.easing[ options.easing ];
 
 		if ( !easing ) {
-			warnOnce( missingPlugin( options.easing, 'easing' ) );
+			fatal( missingPlugin( options.easing, 'easing' ) );
 			easing = linear;
 		}
 	} else if ( typeof options.easing === 'function' ) {
