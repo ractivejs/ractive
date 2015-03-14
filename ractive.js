@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sat Mar 14 2015 15:13:07 GMT+0000 (UTC) - commit 88eb4be2d3722e448adc52456cf23f0a90e1104b
+	Sat Mar 14 2015 19:55:40 GMT+0000 (UTC) - commit 09c182c20a886aacdbde3a2f7b2a64b65952e91a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3950,7 +3950,7 @@
   var expectedParen = "Expected closing paren";
 
   var readNumberLiteral__default = readNumberLiteral__readNumberLiteral;
-  var readNumberLiteral__numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+  var readNumberLiteral__numberPattern = /^(?:[+-]?)0*(?:(?:(?:[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
   function readNumberLiteral__readNumberLiteral(parser) {
   	var result;
 
