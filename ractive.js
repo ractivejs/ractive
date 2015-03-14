@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sat Mar 14 2015 04:00:16 GMT+0000 (UTC) - commit e78639b9006f2d9725d512eb016dfcfd59a548cc
+	Sat Mar 14 2015 14:55:59 GMT+0000 (UTC) - commit 4a7e815817f98d520ec82375451d47e35baaa238
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5578,14 +5578,13 @@
 
   	value = readQuotedAttributeValue(parser, "'") || readQuotedAttributeValue(parser, "\"") || readUnquotedAttributeValue(parser);
 
+  	if (value === null) {
+  		parser.error("Expected valid attribute value");
+  	}
+
   	if (parser.sectionDepth !== startDepth) {
   		parser.pos = valueStart;
   		parser.error("An attribute value must contain as many opening section tags as closing section tags");
-  	}
-
-  	if (value === null) {
-  		parser.pos = start;
-  		return null;
   	}
 
   	if (!value.length) {
