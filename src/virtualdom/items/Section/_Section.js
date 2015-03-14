@@ -23,7 +23,6 @@ var Section = function ( options ) {
 	this.subtype = this.currentSubtype = options.template.n;
 	this.inverted = this.subtype === SECTION_UNLESS;
 
-
 	this.pElement = options.pElement;
 
 	this.fragments = [];

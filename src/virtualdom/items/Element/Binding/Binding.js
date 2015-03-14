@@ -3,6 +3,8 @@ import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
 import { create, extend } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 
+let dontCreateBranches = { createBranches: false };
+
 var Binding = function ( element ) {
 	var interpolator, keypath, value, parentForm;
 
@@ -56,7 +58,7 @@ var Binding = function ( element ) {
 		value = this.getInitialValue();
 
 		if ( value !== undefined ) {
-			this.root.viewmodel.set( keypath, value );
+			this.root.viewmodel.set( keypath, value, dontCreateBranches );
 		}
 	}
 
