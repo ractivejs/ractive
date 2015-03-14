@@ -34,7 +34,7 @@ let Partial = function ( options ) {
 
 			this.setTemplate( template );
 		} else {
-			warnOnce( missingPartialMessage, this.name );
+			warnOnceIfDebug( missingPartialMessage, this.name );
 		}
 	}
 };

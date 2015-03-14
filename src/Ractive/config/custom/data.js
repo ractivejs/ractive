@@ -27,7 +27,7 @@ var dataConfigurator = {
 
 				if ( value && typeof value === 'object' ) {
 					if ( isObject( value ) || isArray( value ) ) {
-						warn( `Passing a \`data\` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:
+						warnIfDebug( `Passing a \`data\` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:
 
   // this...
   data: function () {
