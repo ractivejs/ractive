@@ -764,6 +764,11 @@ var parseTests = [
 		error: `Expected valid attribute value at line 1 character 12:
 <div class=='wut'></div>
            ^----`
+	},
+	{
+		name: 'Double zero literal (#1819)',
+		template: `{{foo?11:00}}`,
+		parsed: {v:3,t:[{t:2,x:{r:['foo'],s:'_0?11:00'}}]}
 	}
 ];
 
