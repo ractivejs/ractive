@@ -732,7 +732,9 @@ test( 'Mapping to a computed property without a setter is an error', function ( 
 	t.throws( function () {
 		new Ractive({
 			template: '<widget foo="{{bar}}"/>',
-			data: { bar: 'irrelevant' },
+			data: {
+				bar: 'irrelevant'
+			},
 			components: {
 				widget: Ractive.extend({
 					computed: {
@@ -746,16 +748,22 @@ test( 'Mapping to a computed property without a setter is an error', function ( 
 	}, /Cannot map to a computed property \('foo'\)/ );
 });
 
-test( 'Mapping to a computed property with a setter does not throw an error', function ( t ) {
-	new Ractive({
+test( 'Mapping to a computed property with a setter does not throw an error (#1805)', function ( t ) {
+	var ractive;
+
+	ractive = new Ractive({
+		el: fixture,
 		template: '<widget foo="{{bar}}"/>',
-		data: { bar: 'irrelevant' },
+		data: {
+			bar: 'irrelevant'
+		},
 		components: {
 			widget: Ractive.extend({
+				template: "<p>widget: {{foo}}</p>",
 				computed: {
 					foo: {
 						get: function () {
-							return "Win";
+							return this.get("_foo");
 						},
 						set: function (value) {
 							this.set("_foo", value);
@@ -766,8 +774,70 @@ test( 'Mapping to a computed property with a setter does not throw an error', fu
 		}
 	});
 
-	t.ok(true);
+	t.htmlEqual( fixture.innerHTML, '<p>widget: irrelevant</p>' );
 });
+
+test( 'Mapping to a computed setter and data property with the same name calls the computed setter (#1805)', function ( t ) {
+	var ractive;
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<widget foo="{{bar}}"/>',
+		data: {
+			bar: 'irrelevant'
+		},
+		components: {
+			widget: Ractive.extend({
+				template: "<p>widget: {{foo}}</p>",
+				data: {
+					foo: "the default"
+				},
+				computed: {
+					foo: {
+						get: function () {
+							return this.get("_foo");
+						},
+						set: function (value) {
+							this.set("_foo", value);
+						}
+					}
+				}
+			})
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>widget: irrelevant</p>' );
+});
+
+test( 'A data property with the same name as a computed setter is passed as the default value to the setter on instantiation (#1805)', function ( t ) {
+	var ractive;
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<widget/>',
+		components: {
+			widget: Ractive.extend({
+				template: "<p>widget: {{foo}}</p>",
+				data: {
+					foo: "the default"
+				},
+				computed: {
+					foo: {
+						get: function () {
+							return this.get("_foo");
+						},
+						set: function (value) {
+							this.set("_foo", value);
+						}
+					}
+				}
+			})
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>widget: the default</p>' );
+});
+
 
 test( 'Implicit mappings are created by restricted references (#1465)', function ( t ) {
 	new Ractive({
