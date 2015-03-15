@@ -11,7 +11,9 @@ class ReferenceStore {
 
 		if ( !( resolved = this.resolved ) && typeof ( value = this.reference.get() ) !== 'undefined' ) {
 			resolved = this.resolved = this.model.parent.join( value );
-			resolved.register( this.model, 'computed' );
+			if ( resolved ) {
+				resolved.register( this.model, 'computed' );
+			}
 		}
 		return resolved ? resolved.get() : void 0;
 	}
@@ -29,7 +31,7 @@ class ReferenceStore {
 		}
 
 		this.resolved.set( value );
-		return this.resolved.dirty;
+		return !this.resolved || this.resolved.dirty;
 	}
 
 	invalidate () {
