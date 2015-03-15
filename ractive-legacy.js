@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sun Mar 15 2015 18:53:26 GMT+0000 (UTC) - commit bc9babea4d3508c4d4a9538a87552bb6bae7ef4e
+	Sun Mar 15 2015 22:12:50 GMT+0000 (UTC) - commit 2075d90ae57e0e635ddf6f524c0da971a9e5581b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -912,10 +912,17 @@
 
   if (hasConsole) {
   	(function () {
-  		var welcomeMessage = "You're running Ractive 0.7.0-edge in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  		var welcomeIntro = ["%cRactive.js %c0.7.0-edge %cin debug mode, %cmore...", "color: rgb(114, 157, 52); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;"];
+  		var welcomeMessage = "You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   		welcome = function () {
-  			console.log.apply(console, ["%cRactive.js: %c" + welcomeMessage, "color: rgb(114, 157, 52);", "color: rgb(85, 85, 85);"]);
+  			var hasGroup = !!console.groupCollapsed;
+  			console[hasGroup ? "groupCollapsed" : "log"].apply(console, welcomeIntro);
+  			console.log(welcomeMessage);
+  			if (hasGroup) {
+  				console.groupEnd(welcomeIntro);
+  			}
+
   			welcome = noop;
   		};
 
