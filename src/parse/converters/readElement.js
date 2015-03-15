@@ -1,6 +1,9 @@
 import { DOCTYPE, ELEMENT } from 'config/types';
 import { voidElementNames } from 'utils/html';
+import { create } from 'utils/object';
+import { READERS } from '../_parse';
 import readMustache from './readMustache';
+import readPartialDefinitionSection from './readPartialDefinitionSection';
 import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
 import readAttribute from './element/readAttribute';
@@ -46,6 +49,8 @@ function readElement ( parser ) {
 		directive,
 		selfClosing,
 		children,
+		partials,
+		hasPartials,
 		child,
 		closed,
 		pos,
@@ -166,6 +171,7 @@ function readElement ( parser ) {
 		}
 
 		children = [];
+		partials = create( null );
 
 		do {
 			pos = parser.pos;
@@ -210,18 +216,32 @@ function readElement ( parser ) {
 			}
 
 			else {
-				child = parser.read();
+				if ( child = readPartialDefinitionSection( parser ) ) {
+					if ( partials[ child.n ] ) {
+						parser.pos = pos;
+						parser.error( 'Duplicate partial definition' );
+					}
 
-				if ( !child ) {
-					closed = true;
-				} else {
-					children.push( child );
+					partials[ child.n ] = child.f;
+					hasPartials = true;
+				}
+
+				else {
+					if ( child = parser.read( READERS ) ) {
+						children.push( child );
+					} else {
+						closed = true;
+					}
 				}
 			}
 		} while ( !closed );
 
 		if ( children.length ) {
 			element.f = children;
+		}
+
+		if ( hasPartials ) {
+			element.p = partials;
 		}
 
 		parser.elementStack.pop();

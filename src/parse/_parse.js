@@ -8,16 +8,14 @@ import readPartial from './converters/mustache/readPartial';
 import readMustacheComment from './converters/mustache/readMustacheComment';
 import readInterpolator from './converters/mustache/readInterpolator';
 import readYielder from './converters/mustache/readYielder';
-import readPartialDefinitionSection from './converters/mustache/readPartialDefinitionSection';
 import readSection from './converters/mustache/readSection';
 import readHtmlComment from './converters/readHtmlComment';
 import readElement from './converters/readElement';
-import readPartialDefinitionComment from './converters/readPartialDefinitionComment';
 import readText from './converters/readText';
+import readTemplate from './converters/readTemplate';
 import trimWhitespace from './utils/trimWhitespace';
 import stripStandalones from './utils/stripStandalones';
-import processPartials from './converters/partial/processPartials';
-import { isEmptyObject, isArray } from 'utils/is';
+import { isArray } from 'utils/is';
 
 // Ractive.parse
 // ===============
@@ -51,15 +49,22 @@ import { isEmptyObject, isArray } from 'utils/is';
 
 
 var StandardParser,
-	parse,
 	contiguousWhitespace = /[ \t\f\r\n]+/g,
 	preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
 	leadingWhitespace = /^\s+/,
 	trailingWhitespace = /\s+$/,
 
-	STANDARD_READERS = [ readPartial, readUnescaped, readPartialDefinitionSection, readSection, readYielder, readInterpolator, readMustacheComment ],
+	STANDARD_READERS = [ readPartial, readUnescaped, readSection, readYielder, readInterpolator, readMustacheComment ],
 	TRIPLE_READERS = [ readTriple ],
 	STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
+
+export default function parse ( template, options = {} ) {
+	var parser = new StandardParser( template, options );
+
+	return parser.result;
+}
+
+export const READERS = [ readMustache, readHtmlComment, readElement, readText ];
 
 StandardParser = Parser.extend({
 	init ( str, options ) {
@@ -99,22 +104,23 @@ StandardParser = Parser.extend({
 		this.includeLinePositions = options.includeLinePositions;
 	},
 
-	postProcess ( items, options ) {
+	postProcess ( result, options ) {
+		// special case - empty string
+		if ( !result.length ) {
+			return { t: [], v: TEMPLATE_VERSION };
+		}
+
 		if ( this.sectionDepth > 0 ) {
 			this.error( 'A section was left open' );
 		}
 
-		cleanup( items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace );
+		cleanup( result[0].t, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace );
 
-		return items;
+		return result[0];
 	},
 
 	converters: [
-		readMustache,
-		readPartialDefinitionComment,
-		readHtmlComment,
-		readElement,
-		readText
+		readTemplate
 	],
 
 	sortMustacheTags () {
@@ -125,36 +131,6 @@ StandardParser = Parser.extend({
 		});
 	}
 });
-
-parse = function ( template, options = {} ) {
-	var parser, result;
-
-	parser = new StandardParser( template, options );
-
-	// if we're left with non-whitespace content, it means we
-	// failed to parse some stuff
-	if ( /\S/.test( parser.leftover ) ) {
-		parser.error( 'Unexpected template content' );
-	}
-
-	result = {
-		v: TEMPLATE_VERSION, // template spec version, defined in https://github.com/ractivejs/template-spec
-		t: parser.result
-	};
-
-	// collect all of the partials and stick them on the appropriate instances
-	let partials = {};
-	// without a ractive instance, no components will be found
-	processPartials( options.ractive ? [options.ractive] : [], partials, result.t );
-
-	if ( !isEmptyObject( partials ) ) {
-		result.p = partials;
-	}
-
-	return result;
-};
-
-export default parse;
 
 function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
 	var i,
