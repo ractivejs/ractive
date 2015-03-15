@@ -130,4 +130,8 @@ function detachNode ( node ) {
 	return node;
 }
 
-export { createElement, detachNode, getElement, matches };
+function safeToStringValue( value ) {
+	return ( value == null || !value.toString ) ? '' : value;
+}
+
+export { createElement, detachNode, getElement, matches, safeToStringValue };
