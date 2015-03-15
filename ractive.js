@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sat Mar 14 2015 21:18:36 GMT+0000 (UTC) - commit 9ff4734e3c8724a8a3a3b514bafd6a8bd3ad6f07
+	Sun Mar 15 2015 18:27:00 GMT+0000 (UTC) - commit eefa498baeeadb8d2e1db7876bc4cd3239a5843d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -261,6 +261,10 @@
   	}
 
   	return node;
+  }
+
+  function safeToStringValue(value) {
+  	return value == null || !value.toString ? "" : value;
   }
 
   var create, defineProperty, defineProperties;
@@ -8213,7 +8217,7 @@
 
   	render: function () {
   		if (!this.node) {
-  			this.node = document.createTextNode(this.value != undefined ? this.value : "");
+  			this.node = document.createTextNode(safeToStringValue(this.value));
   		}
 
   		return this.node;
@@ -8251,7 +8255,7 @@
   	},
 
   	toString: function (escape) {
-  		var string = this.value != undefined ? "" + this.value : "";
+  		var string = "" + safeToStringValue(this.value);
   		return escape ? escapeHtml(string) : string;
   	}
   };
@@ -9799,18 +9803,8 @@
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateCheckboxName.js.02-babel.map
 
   var updateClassName = Attribute$updateClassName;
-
   function Attribute$updateClassName() {
-  	var node, value;
-
-  	node = this.node;
-  	value = this.value;
-
-  	if (value === undefined) {
-  		value = "";
-  	}
-
-  	node.className = value;
+  	this.node.className = safeToStringValue(this.value);
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateClassName.js.02-babel.map
 
