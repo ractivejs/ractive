@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sun Mar 15 2015 18:27:00 GMT+0000 (UTC) - commit eefa498baeeadb8d2e1db7876bc4cd3239a5843d
+	Sun Mar 15 2015 18:53:26 GMT+0000 (UTC) - commit bc9babea4d3508c4d4a9538a87552bb6bae7ef4e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10547,6 +10547,7 @@
   	this.type = PARTIAL;
   	this.index = options.index;
   	this.name = options.template.r;
+  	this.rendered = false;
 
   	this.fragment = this.fragmentToRender = this.fragmentToUnrender = null;
 
@@ -10559,7 +10560,6 @@
   		if (template = getPartialTemplate(this.root, this.name)) {
   			unbind__default.call(this); // prevent any further changes
   			this.isNamed = true;
-
   			this.setTemplate(template);
   		} else {
   			warnOnceIfDebug(missingPartialMessage, this.name);
@@ -10667,7 +10667,9 @@
   	setTemplate: function (template) {
   		if (this.fragment) {
   			this.fragment.unbind();
-  			this.fragmentToUnrender = this.fragment;
+  			if (this.rendered) {
+  				this.fragmentToUnrender = this.fragment;
+  			}
   		}
 
   		this.fragment = new Fragment({
