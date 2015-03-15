@@ -741,3 +741,24 @@ test( 'Removing a missing partial (#1808)', t => {
 	ractive.unshift( 'items', 4 );
 	ractive.shift( 'items' );
 });
+
+test( 'Dynamic partial can be set in oninit (#1826)', t => {
+
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{> partialName }}',
+		partials: {
+			one: 'onepart',
+			two: 'twopart',
+		},
+		data: {
+			partialName: 'one',
+		},
+		oninit: function() {
+			this.set({partialName: 'two'});
+		},
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'twopart' );
+
+});
