@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Mar 16 2015 13:44:09 GMT+0000 (UTC) - commit 409ed1aa92cdd1e58104069e233bf9c9585928d2
+	Mon Mar 16 2015 19:22:39 GMT+0000 (UTC) - commit 608baa31b0b42bdb9a09f349651d0e63866de531
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9656,6 +9656,11 @@
   	}
 
   	if (fragment) {
+  		// special case - this catches undefined/null values (#1211)
+  		if (fragment.items.length === 1 && fragment.items[0].value == null) {
+  			return "";
+  		}
+
   		value = fragment.toString();
   	}
 
@@ -9913,7 +9918,11 @@
   	if (namespace) {
   		node.setAttributeNS(namespace, name, (fragment || value).toString());
   	} else if (!this.isBoolean) {
-  		node.setAttribute(name, (fragment || value).toString());
+  		if (value == null) {
+  			node.removeAttribute(name);
+  		} else {
+  			node.setAttribute(name, (fragment || value).toString());
+  		}
   	}
 
   	// Boolean attributes - truthy becomes '', falsy means 'remove attribute'
