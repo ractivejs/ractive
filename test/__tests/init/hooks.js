@@ -371,22 +371,35 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) 
 
 if ( typeof console !== 'undefined' && console.warn ) {
 	asyncTest( 'error in oncomplete sent to console', function ( t ) {
-		var ractive, error = console.error;
+		let warn = console.warn;
+		let log = console.log;
 
-		expect( 1 )
-		console.error = function ( err ) {
-			t.equal( err, 'evil handler' );
-			console.error = error;
+		expect( 2 )
+		console.warn = msg => {
+			if ( /DEBUG_PROMISES/.test( msg ) ) {
+				return;
+			}
+
+			t.ok( /error happened during rendering/.test( msg ) );
+			console.warn = warn;
+		};
+
+		console.log = stack => {
+			if ( /debug mode/.test( stack ) ) {
+				return;
+			}
+
+			t.ok( /evil handler/.test( stack ) );
+			console.log = log;
 			QUnit.start();
 		};
 
-		ractive = new Ractive({
+		new Ractive({
 			el: fixture,
 			template: 'foo',
-			data: { a: 'b' },
-			oncomplete: function(){
-				throw 'evil handler';
+			oncomplete () {
+				throw new Error( 'evil handler' );
 			}
 		});
-	});
+	}
 }

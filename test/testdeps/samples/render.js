@@ -894,6 +894,7 @@ var renderTests = [
 	{
 		name: 'Boolean attributes work correctly (#1078)',
 		template: '<input type="text" readOnly value="{{value}}"><input type="text" readonly value="anything">',
+		data: { value: '' },
 		result: '<input type="text" readOnly value=""><input type="text" readonly value="anything">'
 	},
 	{
@@ -1125,6 +1126,14 @@ var renderTests = [
 		result: 'replaced',
 		new_data: { foo: '12abc34' },
 		new_result: 'regexp matched'
+	},
+	{
+		name: 'undefined/null attributes',
+		template: `<div data-foo='{{foo}}' data-bar='{{bar}}' data-baz='{{baz}}'></div>`,
+		data: { foo: 'a', bar: 'b' },
+		result: `<div data-foo='a' data-bar='b'></div>`,
+		new_data: { foo: null, bar: undefined, baz: 'c' },
+		new_result: `<div data-baz='c'></div>`
 	},
 	{
 		name: 'Section with empty object (implicit with)',

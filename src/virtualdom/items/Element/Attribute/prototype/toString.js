@@ -22,6 +22,11 @@ export default function Attribute$toString () {
 	}
 
 	if ( fragment ) {
+		// special case - this catches undefined/null values (#1211)
+		if ( fragment.items.length === 1 && fragment.items[0].value == null ) {
+			return '';
+		}
+
 		value = fragment.toString();
 	}
 
