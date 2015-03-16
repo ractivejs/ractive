@@ -1,9 +1,9 @@
 import { DOCTYPE, ELEMENT } from 'config/types';
 import { voidElementNames } from 'utils/html';
 import { create } from 'utils/object';
-import { READERS } from '../_parse';
+import { READERS, PARTIAL_READERS } from '../_parse';
+import cleanup from '../utils/cleanup';
 import readMustache from './readMustache';
-import readPartialDefinitionSection from './readPartialDefinitionSection';
 import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
 import readAttribute from './element/readAttribute';
@@ -41,7 +41,6 @@ export default readElement;
 function readElement ( parser ) {
 	var start,
 		element,
-		lowerCaseName,
 		directiveName,
 		match,
 		addProxyEvent,
@@ -159,7 +158,8 @@ function readElement ( parser ) {
 		return null;
 	}
 
-	lowerCaseName = element.e.toLowerCase();
+	let lowerCaseName = element.e.toLowerCase();
+	let preserveWhitespace = parser.preserveWhitespace;
 
 	if ( !selfClosing && !voidElementNames.test( element.e ) ) {
 		parser.elementStack.push( lowerCaseName );
@@ -216,11 +216,13 @@ function readElement ( parser ) {
 			}
 
 			else {
-				if ( child = readPartialDefinitionSection( parser ) ) {
+				if ( child = parser.read( PARTIAL_READERS ) ) {
 					if ( partials[ child.n ] ) {
 						parser.pos = pos;
 						parser.error( 'Duplicate partial definition' );
 					}
+
+					cleanup( child.f, parser.stripComments, preserveWhitespace, !preserveWhitespace, !preserveWhitespace );
 
 					partials[ child.n ] = child.f;
 					hasPartials = true;

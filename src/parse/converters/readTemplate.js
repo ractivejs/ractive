@@ -1,15 +1,14 @@
 import { TEMPLATE_VERSION } from 'config/template';
 import { create } from 'utils/object';
-import { READERS } from '../_parse';
-import readPartialDefinitionComment from './readPartialDefinitionComment';
-import readPartialDefinitionSection from './readPartialDefinitionSection';
-
-const PARTIAL_READERS = [ readPartialDefinitionComment, readPartialDefinitionSection ];
+import { READERS, PARTIAL_READERS } from '../_parse';
+import cleanup from '../utils/cleanup';
 
 export default function readTemplate ( parser ) {
 	let fragment = [];
 	let partials = create( null );
 	let hasPartials = false;
+
+	let preserveWhitespace = parser.preserveWhitespace;
 
 	while ( parser.pos < parser.str.length ) {
 		let pos = parser.pos, item, partial;
@@ -19,6 +18,8 @@ export default function readTemplate ( parser ) {
 				parser.pos = pos;
 				parser.error( 'Duplicated partial definition' );
 			}
+
+			cleanup( partial.f, parser.stripComments, preserveWhitespace, !preserveWhitespace, !preserveWhitespace );
 
 			partials[ partial.n ] = partial.f;
 			hasPartials = true;

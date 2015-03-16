@@ -80,7 +80,7 @@ export function extend ( target, ...sources ) {
 
 	while ( source = sources.shift() ) {
 		for ( prop in source ) {
-			if ( source.hasOwnProperty( prop ) ) {
+			if ( hasOwn.call( source, prop ) ) {
 				target[ prop ] = source[ prop ];
 			}
 		}
