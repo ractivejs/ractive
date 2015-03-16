@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Mar 16 2015 19:22:39 GMT+0000 (UTC) - commit 608baa31b0b42bdb9a09f349651d0e63866de531
+	Mon Mar 16 2015 19:23:44 GMT+0000 (UTC) - commit 5dd3455c8de38e82e8abd963162b3f17bdf78d11
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -490,14 +490,6 @@
   	return message.replace(/%s/g, function () {
   		return args.shift();
   	});
-  }
-
-  function consoleError(err) {
-  	if (hasConsole) {
-  		console.error(err);
-  	} else {
-  		throw err;
-  	}
   }
 
   function fatal(message) {
@@ -1964,11 +1956,10 @@
 
   var noAnimation = { stop: noop };
   function Ractive$animate(keypath, to, options) {
-
   	var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
 
   	promise = new utils_Promise(function (fulfil) {
-  		fulfilPromise = fulfil;
+  		return fulfilPromise = fulfil;
   	});
 
   	// animate multiple keypaths
@@ -2002,10 +1993,7 @@
   			if (keypath.hasOwnProperty(k)) {
   				if (step || complete) {
   					collectValue = makeValueCollector(k);
-  					options = {
-  						easing: easing,
-  						duration: duration
-  					};
+  					options = { easing: easing, duration: duration };
 
   					if (step) {
   						options.step = collectValue;
@@ -2019,22 +2007,18 @@
 
   		// Create a dummy animation, to facilitate step/complete
   		// callbacks, and Promise fulfilment
-  		dummyOptions = {
-  			easing: easing,
-  			duration: duration
-  		};
+  		dummyOptions = { easing: easing, duration: duration };
 
   		if (step) {
   			dummyOptions.step = function (t) {
-  				step(t, currentValues);
+  				return step(t, currentValues);
   			};
   		}
 
   		if (complete) {
-
   			promise.then(function (t) {
-  				complete(t, currentValues);
-  			}).then(null, consoleError);
+  				return complete(t, currentValues);
+  			});
   		}
 
   		dummyOptions.complete = fulfilPromise;
@@ -2061,14 +2045,14 @@
   	options = options || {};
 
   	if (options.complete) {
-  		promise.then(options.complete).then(null, consoleError);
+  		promise.then(options.complete);
   	}
 
   	options.complete = fulfilPromise;
   	animation = animate(this, keypath, to, options);
 
   	promise.stop = function () {
-  		animation.stop();
+  		return animation.stop();
   	};
   	return promise;
   }
@@ -3344,16 +3328,9 @@
 
   	this.transitionsEnabled = transitionsEnabled;
 
-  	// It is now more problematic to know if the complete hook
-  	// would fire. Method checking is straight-forward, but would
-  	// also require preflighting event subscriptions. Which seems
-  	// like more work then just letting the promise happen.
-  	// But perhaps I'm wrong about that...
-  	promise.then(function () {
+  	return promise.then(function () {
   		return completeHook.fire(_this);
-  	}).then(null, consoleError);
-
-  	return promise;
+  	});
   }
 
   function removeOtherInstances(others) {
@@ -12898,7 +12875,17 @@
 
   	// render automatically ( if `el` is specified )
   	if (el = getElement(ractive.el)) {
-  		ractive.render(el, ractive.append);
+  		var promise = ractive.render(el, ractive.append);
+
+  		if (Ractive.DEBUG_PROMISES) {
+  			promise.catch(function (err) {
+  				warnOnceIfDebug("Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;");
+  				warnIfDebug("An error happened during rendering", { ractive: ractive });
+  				err.stack && logIfDebug(err.stack);
+
+  				throw err;
+  			});
+  		}
   	}
   }
 
@@ -14409,6 +14396,7 @@
 
   	// debug flag
   	DEBUG: { writable: true, value: true },
+  	DEBUG_PROMISES: { writable: true, value: true },
 
   	// static methods:
   	extend: { value: extend__default },
