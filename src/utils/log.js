@@ -6,6 +6,13 @@ import noop from 'utils/noop';
 var alreadyWarned = {}, log, printWarning, welcome;
 
 if ( hasConsole ) {
+	let welcomeIntro = [
+		`%cRactive.js %c<@version@> %cin debug mode, %cmore...`,
+		'color: rgb(114, 157, 52); font-weight: normal;',
+		'color: rgb(85, 85, 85); font-weight: normal;',
+		'color: rgb(85, 85, 85); font-weight: normal;',
+		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
+	];
 	let welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
 
 To disable debug mode, add this line at the start of your app:
@@ -26,7 +33,13 @@ Found a bug? Raise an issue:
 `;
 
 	welcome = () => {
-		console.log.apply( console, [ '%cRactive.js: %c' + welcomeMessage, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' ] );
+		let hasGroup = !!console.groupCollapsed;
+		console[ hasGroup ? 'groupCollapsed' : 'log' ].apply( console, welcomeIntro );
+		console.log( welcomeMessage );
+		if ( hasGroup ) {
+			console.groupEnd( welcomeIntro );
+		}
+
 		welcome = noop;
 	};
 

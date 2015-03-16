@@ -1,7 +1,7 @@
 import { INTERPOLATOR } from 'config/types';
 import runloop from 'global/runloop';
 import { escapeHtml } from 'utils/html';
-import { detachNode } from 'utils/dom';
+import { detachNode, safeToStringValue } from 'utils/dom';
 import { isEqual } from 'utils/is';
 import unbind from './shared/unbind';
 import Mustache from './shared/Mustache/_Mustache';
@@ -24,7 +24,7 @@ Interpolator.prototype = {
 
 	render () {
 		if ( !this.node ) {
-			this.node = document.createTextNode( this.value != undefined ? this.value : '' );
+			this.node = document.createTextNode( safeToStringValue(this.value) );
 		}
 
 		return this.node;
@@ -62,7 +62,7 @@ Interpolator.prototype = {
 	},
 
 	toString ( escape ) {
-		var string = ( this.value != undefined ? '' + this.value : '' );
+		var string = ( '' + safeToStringValue(this.value) );
 		return escape ? escapeHtml( string ) : string;
 	}
 };

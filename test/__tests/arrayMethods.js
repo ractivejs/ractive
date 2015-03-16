@@ -274,3 +274,17 @@ test( 'array modification with non-shuffle-able deps should update correctly', t
 	ractive.unshift( 'foo', 0 );
 	t.htmlEqual( fixture.innerHTML, '0120' );
 });
+
+test( 'shifting an empty array', t => {
+	expect( 0 );
+
+	let ractive = new Ractive({
+		template: '{{#items}}x{{/}}',
+		el: 'main',
+		data: {
+			items: []
+		}
+	});
+
+	ractive.shift( 'items' );
+});
