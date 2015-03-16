@@ -19,6 +19,12 @@ import cleanup from './utils/cleanup';
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
 
+let STANDARD_READERS = [ readPartial, readUnescaped, readSection, readYielder, readInterpolator, readMustacheComment ];
+let TRIPLE_READERS = [ readTriple ];
+let STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
+
+let StandardParser;
+
 export default function parse ( template, options ) {
 	return new StandardParser( template, options || {} ).result;
 }
@@ -26,11 +32,7 @@ export default function parse ( template, options ) {
 export const READERS = [ readMustache, readHtmlComment, readElement, readText ];
 export const PARTIAL_READERS = [ readPartialDefinitionComment, readPartialDefinitionSection ];
 
-let STANDARD_READERS = [ readPartial, readUnescaped, readSection, readYielder, readInterpolator, readMustacheComment ];
-let TRIPLE_READERS = [ readTriple ];
-let STATIC_READERS = [ readUnescaped, readSection, readInterpolator ]; // TODO does it make sense to have a static section?
-
-let StandardParser = Parser.extend({
+StandardParser = Parser.extend({
 	init ( str, options ) {
 		var tripleDelimiters = options.tripleDelimiters || [ '{{{', '}}}' ],
 			staticDelimiters = options.staticDelimiters || [ '[[', ']]' ],
