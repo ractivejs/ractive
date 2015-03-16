@@ -23,8 +23,8 @@ Ractive = function ( options ) {
 properties = {
 
 	// debug flag
-	DEBUG:          { value: true },
-	DEBUG_PROMISES: { value: true },
+	DEBUG:          { writable: true, value: true },
+	DEBUG_PROMISES: { writable: true, value: true },
 
 	// static methods:
 	extend:         { value: extend },
