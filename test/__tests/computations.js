@@ -251,15 +251,13 @@ test( 'Set operations are not short-circuited when the set value is identical to
 	t.htmlEqual( fixture.innerHTML, '2' );
 });
 
-test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
-	/* global console */
-	var warn = console.warn;
+if ( typeof console !== 'undefined' && console.warn ) {
+	test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
+		let warn = console.warn;
+		console.warn = () => t.ok( false );
 
-	console.warn = function () {
-		throw new Error('Console should not warn');
-	};
+		expect( 0 );
 
-	try {
 		new Ractive({
 			template: '<component/>',
 			components: {
@@ -271,16 +269,51 @@ test( 'Computations on unresolved refs don\'t error on initial component binding
 				})
 			}
 		});
-	}
-	catch(err){
-		t.ok( false, err.message );
-	}
-	finally {
-		console.warn = warn;
-		t.ok( true );
-	}
 
-});
+		console.warn = warn;
+	});
+
+	test( 'Computed value that calls itself (#1359)', t => {
+		let messages = 0;
+
+		let warn = console.warn;
+		console.warn = msg => {
+			if ( /computation indirectly called itself/.test( msg ) ) {
+				messages += 1;
+			}
+		};
+
+		let Widget = Ractive.extend({
+			template: `
+				{{sort(headers)}}
+
+				{{#sort(rows)}}
+					<p>{{id}} - {{name}}</p>
+				{{/rows}}`,
+			data: {
+				headers: [],
+				rows: [
+					{ id : 1, name: 'a' },
+					{}
+				],
+				sort ( arr ) {
+					return arr.sort( ( a, b ) => a.id - b.id );
+				}
+			}
+		});
+
+		let ractive = new Widget({ el: fixture });
+
+		ractive.reset();
+		ractive.update();
+
+		t.equal( messages, 2 );
+		t.htmlEqual( fixture.innerHTML, '<p>1 - a</p><p> - </p>' );
+
+		console.warn = warn;
+	});
+}
+
 
 test( 'Unresolved computations resolve when parent component data exists', function ( t ) {
 	var ractive, Component;
@@ -444,46 +477,6 @@ test( 'Computations can depend on array values (#1747)', t => {
 	t.htmlEqual( fixture.innerHTML, '3 false' );
 	ractive.push( 'items', 4 );
 	t.htmlEqual( fixture.innerHTML, '4 true' );
-});
-
-test( 'Computed value that calls itself (#1359)', t => {
-	let messages = 0;
-
-	let warn = console.warn;
-	console.warn = msg => {
-		if ( /computation indirectly called itself/.test( msg ) ) {
-			messages += 1;
-		}
-	};
-
-	let Widget = Ractive.extend({
-		template: `
-			{{sort(headers)}}
-
-			{{#sort(rows)}}
-				<p>{{id}} - {{name}}</p>
-			{{/rows}}`,
-		data: {
-			headers: [],
-			rows: [
-				{ id : 1, name: 'a' },
-				{}
-			],
-			sort ( arr ) {
-				return arr.sort( ( a, b ) => a.id - b.id );
-			}
-		}
-	});
-
-	let ractive = new Widget({ el: fixture });
-
-	ractive.reset();
-	ractive.update();
-
-	t.equal( messages, 2 );
-	t.htmlEqual( fixture.innerHTML, '<p>1 - a</p><p> - </p>' );
-
-	console.warn = warn;
 });
 
 // Commented out temporarily, see #1381

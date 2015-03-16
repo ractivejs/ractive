@@ -88,7 +88,7 @@ test( 'data is inherited from grand parent extend (#923)', t => {
 	});
 
 	t.equal( fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD' );
-})
+});
 
 test( 'Instance data is used as data object when parent is also object', t => {
 
@@ -128,33 +128,56 @@ test( 'instance data function is added to default data function', t => {
 	t.equal( ractive.get( 'foo' ), 'fizz' );
 });
 
-test( 'data function returning wrong value causes error/warning', t => {
-	// non-objects are an error
-	let Bad = Ractive.extend({
-		data () {
-			return 'disallowed';
-		}
+if ( typeof console !== 'undefined' && console.warn ) {
+	test( 'data function returning wrong value causes error/warning', t => {
+		// non-objects are an error
+		let Bad = Ractive.extend({
+			data () {
+				return 'disallowed';
+			}
+		});
+
+		t.throws( () => new Bad(), /Data function must return an object/ );
+
+		// non-POJOs should trigger a warning
+		function Foo () {}
+
+		let warn = console.warn, warned;
+		console.warn = () => warned = true;
+
+		let LessBad = Ractive.extend({
+			data () {
+				return new Foo();
+			}
+		});
+
+		new LessBad();
+		t.ok( warned );
+
+		console.warn = warn;
 	});
 
-	t.throws( () => new Bad(), /Data function must return an object/ );
+	test( 'initing data with a non-POJO results in a warning', t => {
+		let warn = console.warn;
+		console.warn = warning => {
+			t.ok( /should be a plain JavaScript object/.test( warning ) );
+		};
 
-	// non-POJOs should trigger a warning
-	function Foo () {}
+		expect( 2 );
 
-	let warn = console.warn, warned;
-	console.warn = () => warned = true;
+		function Foo () { this.foo = 'bar' }
 
-	let LessBad = Ractive.extend({
-		data () {
-			return new Foo();
-		}
+		let ractive = new Ractive({
+			el: fixture,
+			template: '{{foo}}',
+			data: new Foo ()
+		});
+
+		t.equal( fixture.innerHTML, 'bar' );
+
+		console.warn = warn;
 	});
-
-	new LessBad();
-	t.ok( warned );
-
-	console.warn = warn;
-});
+}
 
 test( 'instance data takes precedence over default data but includes unique properties', t => {
 	var ractive;
@@ -230,28 +253,7 @@ test( 'initing data with a primitive results in an error', t => {
 	}
 });
 
-test( 'initing data with a non-POJO results in a warning', t => {
-	let warn = console.warn;
-	console.warn = warning => {
-		t.ok( /should be a plain JavaScript object/.test( warning ) );
-	};
-
-	expect( 2 );
-
-	function Foo () { this.foo = 'bar' }
-
-	let ractive = new Ractive({
-		el: fixture,
-		template: '{{foo}}',
-		data: new Foo ()
-	});
-
-	t.equal( fixture.innerHTML, 'bar' );
-
-	console.warn = warn;
-});
-
-module( 'Computed Properties and Data in config' )
+module( 'Computed Properties and Data in config' );
 
 test( 'data and computed properties available in onconfig and later', t => {
 	var ractive;

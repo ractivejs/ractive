@@ -920,66 +920,58 @@ test( 'Inter-component bindings can be created via this.get() and this.observe()
 });
 
 test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', function ( t ) {
-	var ractive, Widget1, Widget2, noCall = false, warn = console.warn;
+	var ractive, Widget1, Widget2, noCall = false, errored = false;
 
 	expect( 3 );
 
-	console.warn = function (err) { throw err };
+	Widget1 = Ractive.extend({
+		debug: true,
+		template: 'w1:{{tata.foo}}{{tata.bar}}'
+	});
 
-	try {
-		Widget1 = Ractive.extend({
-			debug: true,
-			template: 'w1:{{tata.foo}}{{tata.bar}}'
-		});
-
-		Widget2 = Ractive.extend({
-			debug: true,
-			template: 'w2:{{schmata.foo}}{{calc}}',
-			computed: {
-				calc: function () {
-					if( noCall ) { throw new Error('"calc" should not be recalculated!')}
-					return this.get('schmata.bar')
-				}
-			},
-			oninit: function () {
-				this.observe('schmata.bar', function (n,o,k) {
-					throw new Error('observe on schmata.bar should not fire')
-				}, { init: false } )
+	Widget2 = Ractive.extend({
+		debug: true,
+		template: 'w2:{{schmata.foo}}{{calc}}',
+		computed: {
+			calc () {
+				if ( noCall ) errored = true;
+				return this.get( 'schmata.bar' );
 			}
-		});
+		},
+		oninit () {
+			this.observe('schmata.bar', function () {
+				t.ok( false );
+			}, { init: false } );
+		}
+	});
 
-		ractive = new Ractive({
-			el: fixture,
-			template: '{{data.foo}}{{data.bar}}<widget1 tata="{{data}}"/><widget2 schmata="{{data}}"/>',
+	ractive = new Ractive({
+		el: fixture,
+		template: '{{data.foo}}{{data.bar}}<widget1 tata="{{data}}"/><widget2 schmata="{{data}}"/>',
+		data: {
 			data: {
-				data: {
-					foo: 'foo',
-					bar: 'bar'
-				}
-			},
-			components: {
-				widget1: Widget1,
-				widget2: Widget2
-			},
-			oninit: function () {
-				this.observe('data.bar', function (n,o,k) {
-					throw new Error('observe on data.bar should not fire')
-				}, { init: false } )
+				foo: 'foo',
+				bar: 'bar'
 			}
-		});
+		},
+		components: {
+			widget1: Widget1,
+			widget2: Widget2
+		},
+		oninit: function () {
+			this.observe('data.bar', function () {
+				errored = true;
+				t.ok( false );
+			}, { init: false } );
+		}
+	});
 
-		t.htmlEqual( fixture.innerHTML, 'foobarw1:foobarw2:foobar' );
-		noCall = true;
-		ractive.findComponent('widget1').set( 'tata.foo', 'update' );
-		t.htmlEqual( fixture.innerHTML, 'updatebarw1:updatebarw2:updatebar' );
+	t.htmlEqual( fixture.innerHTML, 'foobarw1:foobarw2:foobar' );
+	noCall = true;
+	ractive.findComponent('widget1').set( 'tata.foo', 'update' );
+	t.htmlEqual( fixture.innerHTML, 'updatebarw1:updatebarw2:updatebar' );
 
-		t.ok( true );
-
-	} catch(err){
-		t.ok( false, err );
-	} finally {
-		console.warn = warn;
-	}
+	t.ok( !errored );
 
 });
 

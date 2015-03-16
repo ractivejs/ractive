@@ -480,11 +480,8 @@ test( 'Specify component by function as string', t => {
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
-/* global console */
-if ( console && console.warn ) {
-
+if ( typeof console !== 'undefined' && console.warn ) {
 	test( 'no return of component warns in debug', t => {
-
 		var ractive, warn = console.warn;
 
 		expect( 1 );
@@ -505,7 +502,61 @@ if ( console && console.warn ) {
 		});
 
 		console.warn = warn;
+	});
 
+	test( 'Inline components disregard `el` option (#1072) (and print a warning in debug mode)', function ( t ) {
+		var warn = console.warn;
+
+		expect( 1 );
+
+		console.warn = function () {
+			t.ok( true );
+		};
+
+		var ractive = new Ractive({
+			el: fixture,
+			data: { show: true },
+			template: '{{#if show}}<widget/>{{/if}}',
+			components: {
+				widget: Ractive.extend({
+				    el: fixture,
+				    template: '{{whatever}}'
+				})
+			},
+			debug: true
+		});
+
+		ractive.set( 'show', false );
+		console.warn = warn;
+	});
+
+	test( 'Using non-primitives in data passed to Ractive.extend() triggers a warning', t => {
+		let warn = console.warn;
+		console.warn = msg => {
+			t.ok( /Passing a `data` option with object and array properties to Ractive.extend\(\) is discouraged, as mutating them is likely to cause bugs/.test( msg ) );
+		};
+
+		expect( 1 );
+
+		Ractive.extend({
+			data: {
+				foo: 42
+			}
+		});
+
+		Ractive.extend({
+			data: {
+				foo: {}
+			}
+		});
+
+		Ractive.extend({
+			data: () => ({
+				foo: {}
+			})
+		});
+
+		console.warn = warn;
 	});
 }
 
@@ -587,32 +638,6 @@ if ( Ractive.svg ) {
 		t.htmlEqual( fixture.innerHTML, '<svg><text>yup</text></svg>' );
 	});
 }
-
-test( 'Inline components disregard `el` option (#1072) (and print a warning in debug mode)', function ( t ) {
-	var warn = console.warn;
-
-	expect( 1 );
-
-	console.warn = function () {
-		t.ok( true );
-	};
-
-	var ractive = new Ractive({
-		el: fixture,
-		data: { show: true },
-		template: '{{#if show}}<widget/>{{/if}}',
-		components: {
-			widget: Ractive.extend({
-			    el: fixture,
-			    template: '{{whatever}}'
-			})
-		},
-		debug: true
-	});
-
-	ractive.set( 'show', false );
-	console.warn = warn;
-});
 
 test( 'Double teardown is handled gracefully (#1218)', function () {
 	var Widget, ractive;
@@ -868,33 +893,4 @@ test( 'Unresolved keypath can be safely torn down', t => {
 
 	ractive.set('show', false);
 
-});
-
-test( 'Using non-primitives in data passed to Ractive.extend() triggers a warning', t => {
-	let warn = console.warn;
-	console.warn = msg => {
-		t.ok( /Passing a `data` option with object and array properties to Ractive.extend\(\) is discouraged, as mutating them is likely to cause bugs/.test( msg ) );
-	};
-
-	expect( 1 );
-
-	Ractive.extend({
-		data: {
-			foo: 42
-		}
-	});
-
-	Ractive.extend({
-		data: {
-			foo: {}
-		}
-	});
-
-	Ractive.extend({
-		data: () => ({
-			foo: {}
-		})
-	});
-
-	console.warn = warn;
 });

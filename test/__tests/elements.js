@@ -80,23 +80,25 @@ test( 'Wildcard proxy-events invalid on elements', t => {
 	}, /wildcards/ );
 });
 
-test( 'draggable attribute is handled correctly (#1780)', t => {
-	let ractive = new Ractive({
-		el: fixture,
-		template: '<div draggable="true" /><div draggable="false" /><div draggable="" /><div draggable /><div draggable="{{true}}" /><div draggable="{{false}}" /><div draggable="{{empty}}" />'
+if ( 'draggable' in document.createElement( 'div' ) ) {
+	test( 'draggable attribute is handled correctly (#1780)', t => {
+		let ractive = new Ractive({
+			el: fixture,
+			template: '<div draggable="true" /><div draggable="false" /><div draggable="" /><div draggable /><div draggable="{{true}}" /><div draggable="{{false}}" /><div draggable="{{empty}}" />'
+		});
+
+		let divs = ractive.findAll( 'div' );
+		t.equal( divs[0].draggable, true );
+		t.equal( divs[1].draggable, false );
+		t.equal( divs[2].draggable, false );
+		t.equal( divs[3].draggable, false );
+		t.equal( divs[4].draggable, true );
+		t.equal( divs[5].draggable, false );
+		t.equal( divs[6].draggable, false );
+
+		ractive.set( 'empty', true );
+		t.equal( divs[6].draggable, true );
+		ractive.set( 'empty', 'potato' );
+		t.equal( divs[6].draggable, false );
 	});
-
-	let divs = ractive.findAll( 'div' );
-	t.equal( divs[0].draggable, true );
-	t.equal( divs[1].draggable, false );
-	t.equal( divs[2].draggable, false );
-	t.equal( divs[3].draggable, false );
-	t.equal( divs[4].draggable, true );
-	t.equal( divs[5].draggable, false );
-	t.equal( divs[6].draggable, false );
-
-	ractive.set( 'empty', true );
-	t.equal( divs[6].draggable, true );
-	ractive.set( 'empty', 'potato' );
-	t.equal( divs[6].draggable, false );
-});
+}

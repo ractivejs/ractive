@@ -369,22 +369,24 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) 
 	t.deepEqual( count, { construct: 0, beforeInit: 1 });
 });
 
-asyncTest( 'error in oncomplete sent to console', function ( t ) {
-	var ractive, error = console.error;
+if ( typeof console !== 'undefined' && console.warn ) {
+	asyncTest( 'error in oncomplete sent to console', function ( t ) {
+		var ractive, error = console.error;
 
-	expect( 1 )
-	console.error = function ( err ) {
-		t.equal( err, 'evil handler' );
-		console.error = error;
-		QUnit.start();
-	}
+		expect( 1 )
+		console.error = function ( err ) {
+			t.equal( err, 'evil handler' );
+			console.error = error;
+			QUnit.start();
+		};
 
-	ractive = new Ractive({
-		el: fixture,
-		template: 'foo',
-		data: { a: 'b' },
-		oncomplete: function(){
-			throw 'evil handler';
-		}
+		ractive = new Ractive({
+			el: fixture,
+			template: 'foo',
+			data: { a: 'b' },
+			oncomplete: function(){
+				throw 'evil handler';
+			}
+		});
 	});
-});
+}

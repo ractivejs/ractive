@@ -279,46 +279,35 @@ test( `Array shuffling only adjusts context and doesn't tear stuff down to rebui
 
 function removedElementsTest ( action, fn ) {
 	test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', function ( t ) {
-		var warn = console.warn, observed = false;
+		let observed = false, errored = false;
 
-		expect( 4 );
+		expect( 5 );
 
-		console.warn = function (err) {
-			throw err
-		};
-
-		try {
-			let ractive = new Ractive({
-				debug: true,
-				el: fixture,
-				template: '{{#options}}{{get(this)}}{{/options}}',
-				data: {
-					options: [ 'a', 'b', 'c' ],
-					get: function ( item ){
-						if(!item) { throw new Error('item should not be undefined'); }
-						return item
-					}
+		let ractive = new Ractive({
+			debug: true,
+			el: fixture,
+			template: '{{#options}}{{get(this)}}{{/options}}',
+			data: {
+				options: [ 'a', 'b', 'c' ],
+				get: function ( item ){
+					if (!item ) errored = true;
+					return item;
 				}
-			});
+			}
+		});
 
-			ractive.observe( 'options.2', function ( n, o ) {
-				t.ok( !n );
-				t.equal( o, 'c' );
-				observed = true;
-			}, { init: false } );
+		ractive.observe( 'options.2', function ( n, o ) {
+			t.ok( !n );
+			t.equal( o, 'c' );
+			observed = true;
+		}, { init: false } );
 
-			t.ok( !observed );
+		t.ok( !observed );
 
-			fn( ractive );
-		}
-		catch(err){
-			t.ok( false, err );
-		}
-		finally {
-			console.warn = warn;
-			t.ok( observed );
-		}
+		fn( ractive );
 
+		t.ok( observed );
+		t.ok( !errored );
 	});
 }
 

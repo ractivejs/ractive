@@ -265,21 +265,23 @@ test( 'Components inherited from more than one generation off work with named yi
 	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
 });
 
-test( 'Yield with missing partial (#1681)', t => {
-	/* global console */
-	let warn = console.warn;
-	console.warn = msg => {
-		t.ok( /Could not find template for partial "missing"/.test( msg ) );
-	};
+if ( typeof console !== 'undefined' && console.warn ) {
+	test( 'Yield with missing partial (#1681)', t => {
+		/* global console */
+		let warn = console.warn;
+		console.warn = msg => {
+			t.ok( /Could not find template for partial "missing"/.test( msg ) );
+		};
 
-	let Widget = Ractive.extend({
-		template: '{{yield missing}}'
+		let Widget = Ractive.extend({
+			template: '{{yield missing}}'
+		});
+
+		new Ractive({
+			template: '<Widget/>',
+			components: { Widget }
+		});
+
+		console.warn = warn;
 	});
-
-	new Ractive({
-		template: '<Widget/>',
-		components: { Widget }
-	});
-
-	console.warn = warn;
-});
+}

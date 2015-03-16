@@ -166,7 +166,7 @@ asyncTest( 'ractive.transitionsEnabled false prevents all transitions', function
 	});
 });
 
-if ( console && console.warn ) {
+if ( typeof console !== 'undefined' && console.warn ) {
 	asyncTest( 'Missing transition functions do not cause errors, but do console.warn', function ( t ) {
 		var ractive, warn = console.warn;
 
@@ -174,7 +174,7 @@ if ( console && console.warn ) {
 
 		console.warn = function( msg ) {
 			t.ok( msg );
-		}
+		};
 
 		ractive = new Ractive({
 			el: fixture,

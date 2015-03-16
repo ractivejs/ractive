@@ -17,7 +17,7 @@ test( 'specify partial by function', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 });
 
-if ( console && console.warn ) {
+if ( typeof console !== 'undefined' && console.warn ) {
 	test( 'no return of partial warns in debug', function ( t ) {
 		var ractive, warn = console.warn;
 
@@ -39,6 +39,45 @@ if ( console && console.warn ) {
 				}
 			}
 		});
+
+		console.warn = warn;
+	});
+
+	test( 'Warn on unknown partial', function ( t ) {
+		var ractive, warn = console.warn;
+
+		expect( 2 );
+
+		console.warn = () => t.ok( true );
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{>unknown}}{{>other {a:42} }}',
+			partials: {}
+		});
+
+		console.warn = warn;
+	});
+
+	test( 'Don\'t warn on empty partial', function ( t ) {
+
+		var ractive, warn = console.warn;
+
+		expect( 1 );
+
+		console.warn = function( msg ) {
+			t.ok( false );
+		}
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{>empty}}',
+			partials: {
+				empty: ''
+			}
+		});
+
+		t.ok( true );
 
 		console.warn = warn;
 	});
@@ -590,24 +629,6 @@ test( '(Only) inline partials can be yielded', t => {
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
-if ( console && console.warn ) {
-	test( 'Warn on unknown partial', function ( t ) {
-		var ractive, warn = console.warn;
-
-		expect( 2 );
-
-		console.warn = () => t.ok( true );
-
-		ractive = new Ractive({
-			el: fixture,
-			template: '{{>unknown}}{{>other {a:42} }}',
-			partials: {}
-		});
-
-		console.warn = warn;
-	});
-}
-
 test( 'Don\'t throw on empty partial', function ( t ) {
 
 	var ractive;
@@ -645,32 +666,6 @@ test( 'Dynamic empty partial ok', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'bar' );
 
 });
-
-if ( console && console.warn ) {
-
-	test( 'Don\'t warn on empty partial', function ( t ) {
-
-		var ractive, warn = console.warn;
-
-		expect( 1 );
-
-		console.warn = function( msg ) {
-			t.ok( false );
-		}
-
-		ractive = new Ractive({
-			el: fixture,
-			template: '{{>empty}}',
-			partials: {
-				empty: ''
-			}
-		});
-
-		t.ok( true );
-
-		console.warn = warn;
-	});
-}
 
 test( 'Partials with expressions in recursive structures should not blow the stack', t => {
 	var ractive = new Ractive({
