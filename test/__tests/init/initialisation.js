@@ -283,7 +283,7 @@ function createScriptTemplate ( template ) {
 	fixture.appendChild( script = document.createElement( 'SCRIPT' ) );
 	script.id = 'template';
 	script.setAttribute( 'type', 'text/ractive' );
-	script.innerHTML = template;
+	script.textContent = template;
 }
 
 test( 'hash is retrieved from element Id', t => {
