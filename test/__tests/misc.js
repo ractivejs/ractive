@@ -1699,6 +1699,20 @@ asyncTest( 'Promise.all works with non-promises (#1642)', t => {
 	});
 });
 
+test( 'Ractive.DEBUG can be changed', t => {
+	let DEBUG = Ractive.DEBUG;
+	Ractive.DEBUG = false;
+
+	let warn = console.warn;
+	console.warn = () => t.ok( false );
+
+	expect( 0 );
+	new Ractive({ template: '{{>thisWouldNormallyWarn}}' });
+
+	Ractive.DEBUG = DEBUG;
+	console.warn = warn;
+});
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {
