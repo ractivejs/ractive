@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sun Mar 15 2015 22:12:50 GMT+0000 (UTC) - commit 2075d90ae57e0e635ddf6f524c0da971a9e5581b
+	Mon Mar 16 2015 13:42:32 GMT+0000 (UTC) - commit 7bbd9dffaf2573eeff75479449e1c5a3c981f05c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -347,7 +347,7 @@
 
   	while (source = sources.shift()) {
   		for (prop in source) {
-  			if (source.hasOwnProperty(prop)) {
+  			if (hasOwn.call(source, prop)) {
   				target[prop] = source[prop];
   			}
   		}
@@ -3612,55 +3612,6 @@
   // TODO do we need to support this in the new Ractive() case?
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/data.js.02-babel.map
 
-  var TEXT = 1;
-  var INTERPOLATOR = 2;
-  var TRIPLE = 3;
-  var SECTION = 4;
-  var INVERTED = 5;
-  var CLOSING = 6;
-  var ELEMENT = 7;
-  var PARTIAL = 8;
-  var COMMENT = 9;
-  var DELIMCHANGE = 10;
-  var MUSTACHE = 11;
-  var TAG = 12;
-  var ATTRIBUTE = 13;
-  var CLOSING_TAG = 14;
-  var COMPONENT = 15;
-  var YIELDER = 16;
-  var INLINE_PARTIAL = 17;
-  var DOCTYPE = 18;
-
-  var NUMBER_LITERAL = 20;
-  var STRING_LITERAL = 21;
-  var ARRAY_LITERAL = 22;
-  var OBJECT_LITERAL = 23;
-  var BOOLEAN_LITERAL = 24;
-  var REGEXP_LITERAL = 25;
-
-  var GLOBAL = 26;
-  var KEY_VALUE_PAIR = 27;
-
-  var REFERENCE = 30;
-  var REFINEMENT = 31;
-  var MEMBER = 32;
-  var PREFIX_OPERATOR = 33;
-  var BRACKETED = 34;
-  var CONDITIONAL = 35;
-  var INFIX_OPERATOR = 36;
-
-  var INVOCATION = 40;
-
-  var SECTION_IF = 50;
-  var SECTION_UNLESS = 51;
-  var SECTION_EACH = 52;
-  var SECTION_WITH = 53;
-  var SECTION_IF_WITH = 54;
-  var SECTION_PARTIAL = 55;
-
-  var ELSE = 60;
-  var ELSEIF = 61;
-
   var Parser,
       ParseError,
       Parser__leadingWhitespace = /^\s+/;
@@ -3817,6 +3768,55 @@
 
 
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/Parser.js.02-babel.map
+
+  var TEXT = 1;
+  var INTERPOLATOR = 2;
+  var TRIPLE = 3;
+  var SECTION = 4;
+  var INVERTED = 5;
+  var CLOSING = 6;
+  var ELEMENT = 7;
+  var PARTIAL = 8;
+  var COMMENT = 9;
+  var DELIMCHANGE = 10;
+  var MUSTACHE = 11;
+  var TAG = 12;
+  var ATTRIBUTE = 13;
+  var CLOSING_TAG = 14;
+  var COMPONENT = 15;
+  var YIELDER = 16;
+  var INLINE_PARTIAL = 17;
+  var DOCTYPE = 18;
+
+  var NUMBER_LITERAL = 20;
+  var STRING_LITERAL = 21;
+  var ARRAY_LITERAL = 22;
+  var OBJECT_LITERAL = 23;
+  var BOOLEAN_LITERAL = 24;
+  var REGEXP_LITERAL = 25;
+
+  var GLOBAL = 26;
+  var KEY_VALUE_PAIR = 27;
+
+  var REFERENCE = 30;
+  var REFINEMENT = 31;
+  var MEMBER = 32;
+  var PREFIX_OPERATOR = 33;
+  var BRACKETED = 34;
+  var CONDITIONAL = 35;
+  var INFIX_OPERATOR = 36;
+
+  var INVOCATION = 40;
+
+  var SECTION_IF = 50;
+  var SECTION_UNLESS = 51;
+  var SECTION_EACH = 52;
+  var SECTION_WITH = 53;
+  var SECTION_IF_WITH = 54;
+  var SECTION_PARTIAL = 55;
+
+  var ELSE = 60;
+  var ELSEIF = 61;
 
   var delimiterChangePattern = /^[^\s=]+/,
       whitespacePattern = /^\s+/;
@@ -5061,54 +5061,6 @@
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/mustache/section/readClosing.js.02-babel.map
 
-  var partialDefinitionSectionPattern = /^#\s*partial\s+/;
-  function readPartialDefinitionSection(parser, tag) {
-  	var start, name, content, child, closed;
-
-  	if (!parser.matchPattern(partialDefinitionSectionPattern)) {
-  		return null;
-  	}
-
-  	start = parser.pos;
-
-  	name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-]*/);
-
-  	if (!name) {
-  		parser.error("expected legal partial name");
-  	}
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error("Expected closing delimiter '" + tag.close + "'");
-  	}
-
-  	content = [];
-
-  	do {
-  		if (child = readClosing(parser, tag)) {
-  			if (!child.r === "partial") {
-  				parser.error("Expected " + tag.open + "/partial" + tag.close);
-  			}
-
-  			closed = true;
-  		} else {
-  			child = parser.read();
-
-  			if (!child) {
-  				parser.error("Expected " + tag.open + "/partial" + tag.close);
-  			}
-
-  			content.push(child);
-  		}
-  	} while (!closed);
-
-  	return {
-  		t: INLINE_PARTIAL,
-  		n: name,
-  		f: content
-  	};
-  }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/mustache/readPartialDefinitionSection.js.02-babel.map
-
   var readElse__default = readElse__readElse;
   var readElse__elsePattern = /^\s*else\s*/;
   function readElse__readElse(parser, tag) {
@@ -5166,8 +5118,7 @@
   	"if": SECTION_IF,
   	"if-with": SECTION_IF_WITH,
   	"with": SECTION_WITH,
-  	"unless": SECTION_UNLESS,
-  	"partial": SECTION_PARTIAL
+  	"unless": SECTION_UNLESS
   };
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/mustache/handlebarsBlockCodes.js.02-babel.map
 
@@ -5183,6 +5134,11 @@
   		section = { t: SECTION, f: [], n: SECTION_UNLESS };
   	} else if (parser.matchString("#")) {
   		section = { t: SECTION, f: [] };
+
+  		if (parser.matchString("partial")) {
+  			parser.pos = start - parser.standardDelimiters[0].length;
+  			parser.error("Partial definitions can only be at the top level of the template, or immediately inside components");
+  		}
 
   		if (block = parser.matchPattern(handlebarsBlockPattern)) {
   			expectedClose = block;
@@ -5275,7 +5231,7 @@
   				});
   			}
   		} else {
-  			child = parser.read();
+  			child = parser.read(READERS);
 
   			if (!child) {
   				break;
@@ -5487,6 +5443,218 @@
   function escapeHtml(str) {
   	return str.replace(amp, "&amp;").replace(lessThan, "&lt;").replace(greaterThan, "&gt;");
   }
+
+  var leadingLinebreak = /^\s*\r?\n/,
+      trailingLinebreak = /\r?\n\s*$/;
+
+  var stripStandalones = function (items) {
+  	var i, current, backOne, backTwo, lastSectionItem;
+
+  	for (i = 1; i < items.length; i += 1) {
+  		current = items[i];
+  		backOne = items[i - 1];
+  		backTwo = items[i - 2];
+
+  		// if we're at the end of a [text][comment][text] sequence...
+  		if (isString(current) && isComment(backOne) && isString(backTwo)) {
+
+  			// ... and the comment is a standalone (i.e. line breaks either side)...
+  			if (trailingLinebreak.test(backTwo) && leadingLinebreak.test(current)) {
+
+  				// ... then we want to remove the whitespace after the first line break
+  				items[i - 2] = backTwo.replace(trailingLinebreak, "\n");
+
+  				// and the leading line break of the second text token
+  				items[i] = current.replace(leadingLinebreak, "");
+  			}
+  		}
+
+  		// if the current item is a section, and it is preceded by a linebreak, and
+  		// its first item is a linebreak...
+  		if (isSection(current) && isString(backOne)) {
+  			if (trailingLinebreak.test(backOne) && isString(current.f[0]) && leadingLinebreak.test(current.f[0])) {
+  				items[i - 1] = backOne.replace(trailingLinebreak, "\n");
+  				current.f[0] = current.f[0].replace(leadingLinebreak, "");
+  			}
+  		}
+
+  		// if the last item was a section, and it is followed by a linebreak, and
+  		// its last item is a linebreak...
+  		if (isString(current) && isSection(backOne)) {
+  			lastSectionItem = lastItem(backOne.f);
+
+  			if (isString(lastSectionItem) && trailingLinebreak.test(lastSectionItem) && leadingLinebreak.test(current)) {
+  				backOne.f[backOne.f.length - 1] = lastSectionItem.replace(trailingLinebreak, "\n");
+  				items[i] = current.replace(leadingLinebreak, "");
+  			}
+  		}
+  	}
+
+  	return items;
+  };
+
+  function isString(item) {
+  	return typeof item === "string";
+  }
+
+  function isComment(item) {
+  	return item.t === COMMENT || item.t === DELIMCHANGE;
+  }
+
+  function isSection(item) {
+  	return (item.t === SECTION || item.t === INVERTED) && item.f;
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/utils/stripStandalones.js.02-babel.map
+
+  var trimWhitespace__leadingWhitespace = /^[ \t\f\r\n]+/,
+      trimWhitespace__trailingWhitespace = /[ \t\f\r\n]+$/;
+
+  var trimWhitespace = function (items, leading, trailing) {
+  	var item;
+
+  	if (leading) {
+  		item = items[0];
+  		if (typeof item === "string") {
+  			item = item.replace(trimWhitespace__leadingWhitespace, "");
+
+  			if (!item) {
+  				items.shift();
+  			} else {
+  				items[0] = item;
+  			}
+  		}
+  	}
+
+  	if (trailing) {
+  		item = lastItem(items);
+  		if (typeof item === "string") {
+  			item = item.replace(trimWhitespace__trailingWhitespace, "");
+
+  			if (!item) {
+  				items.pop();
+  			} else {
+  				items[items.length - 1] = item;
+  			}
+  		}
+  	}
+  };
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/utils/trimWhitespace.js.02-babel.map
+
+  var contiguousWhitespace = /[ \t\f\r\n]+/g;
+  var preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
+  var cleanup__leadingWhitespace = /^\s+/;
+  var cleanup__trailingWhitespace = /\s+$/;
+  function cleanup(items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace) {
+  	var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, key;
+
+  	// First pass - remove standalones and comments etc
+  	stripStandalones(items);
+
+  	i = items.length;
+  	while (i--) {
+  		item = items[i];
+
+  		// Remove delimiter changes, unsafe elements etc
+  		if (item.exclude) {
+  			items.splice(i, 1);
+  		}
+
+  		// Remove comments, unless we want to keep them
+  		else if (stripComments && item.t === COMMENT) {
+  			items.splice(i, 1);
+  		}
+  	}
+
+  	// If necessary, remove leading and trailing whitespace
+  	trimWhitespace(items, removeLeadingWhitespace, removeTrailingWhitespace);
+
+  	i = items.length;
+  	while (i--) {
+  		item = items[i];
+
+  		// Recurse
+  		if (item.f) {
+  			preserveWhitespaceInsideFragment = preserveWhitespace || item.t === ELEMENT && preserveWhitespaceElements.test(item.e);
+
+  			if (!preserveWhitespaceInsideFragment) {
+  				previousItem = items[i - 1];
+  				nextItem = items[i + 1];
+
+  				// if the previous item was a text item with trailing whitespace,
+  				// remove leading whitespace inside the fragment
+  				if (!previousItem || typeof previousItem === "string" && cleanup__trailingWhitespace.test(previousItem)) {
+  					removeLeadingWhitespaceInsideFragment = true;
+  				}
+
+  				// and vice versa
+  				if (!nextItem || typeof nextItem === "string" && cleanup__leadingWhitespace.test(nextItem)) {
+  					removeTrailingWhitespaceInsideFragment = true;
+  				}
+  			}
+
+  			cleanup(item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
+  		}
+
+  		// Split if-else blocks into two (an if, and an unless)
+  		if (item.l) {
+  			cleanup(item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
+
+  			items.splice(i + 1, 0, item.l);
+  			delete item.l; // TODO would be nice if there was a way around this
+  		}
+
+  		// Clean up element attributes
+  		if (item.a) {
+  			for (key in item.a) {
+  				if (item.a.hasOwnProperty(key) && typeof item.a[key] !== "string") {
+  					cleanup(item.a[key], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
+  				}
+  			}
+  		}
+
+  		// Clean up conditional attributes
+  		if (item.m) {
+  			cleanup(item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
+  		}
+
+  		// Clean up event handlers
+  		if (item.v) {
+  			for (key in item.v) {
+  				if (item.v.hasOwnProperty(key)) {
+  					// clean up names
+  					if (isArray(item.v[key].n)) {
+  						cleanup(item.v[key].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
+  					}
+
+  					// clean up params
+  					if (isArray(item.v[key].d)) {
+  						cleanup(item.v[key].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
+  					}
+  				}
+  			}
+  		}
+  	}
+
+  	// final pass - fuse text nodes together
+  	i = items.length;
+  	while (i--) {
+  		if (typeof items[i] === "string") {
+  			if (typeof items[i + 1] === "string") {
+  				items[i] = items[i] + items[i + 1];
+  				items.splice(i + 1, 1);
+  			}
+
+  			if (!preserveWhitespace) {
+  				items[i] = items[i].replace(contiguousWhitespace, " ");
+  			}
+
+  			if (items[i] === "") {
+  				items.splice(i, 1);
+  			}
+  		}
+  	}
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/utils/cleanup.js.02-babel.map
 
   var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
   function readClosingTag(parser) {
@@ -6005,7 +6173,7 @@
 
 
   function readElement(parser) {
-  	var start, element, lowerCaseName, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, child, closed, pos, remaining, closingTag;
+  	var start, element, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, partials, hasPartials, child, closed, pos, remaining, closingTag;
 
   	start = parser.pos;
 
@@ -6107,7 +6275,8 @@
   		return null;
   	}
 
-  	lowerCaseName = element.e.toLowerCase();
+  	var lowerCaseName = element.e.toLowerCase();
+  	var preserveWhitespace = parser.preserveWhitespace;
 
   	if (!selfClosing && !voidElementNames.test(element.e)) {
   		parser.elementStack.push(lowerCaseName);
@@ -6119,6 +6288,7 @@
   		}
 
   		children = [];
+  		partials = create(null);
 
   		do {
   			pos = parser.pos;
@@ -6161,18 +6331,32 @@
   				closed = true;
   				parser.pos = pos;
   			} else {
-  				child = parser.read();
+  				if (child = parser.read(PARTIAL_READERS)) {
+  					if (partials[child.n]) {
+  						parser.pos = pos;
+  						parser.error("Duplicate partial definition");
+  					}
 
-  				if (!child) {
-  					closed = true;
+  					cleanup(child.f, parser.stripComments, preserveWhitespace, !preserveWhitespace, !preserveWhitespace);
+
+  					partials[child.n] = child.f;
+  					hasPartials = true;
   				} else {
-  					children.push(child);
+  					if (child = parser.read(READERS)) {
+  						children.push(child);
+  					} else {
+  						closed = true;
+  					}
   				}
   			}
   		} while (!closed);
 
   		if (children.length) {
   			element.f = children;
+  		}
+
+  		if (hasPartials) {
+  			element.p = partials;
   		}
 
   		parser.elementStack.pop();
@@ -6200,62 +6384,6 @@
   	return ! ~disallowed.indexOf(match[1].toLowerCase());
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/readElement.js.02-babel.map
-
-  var escapeRegExp__pattern = /[-/\\^$*+?.()|[\]{}]/g;
-  function escapeRegExp(str) {
-  	return str.replace(escapeRegExp__pattern, "\\$&");
-  }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/escapeRegExp.js.02-babel.map
-
-  var startPattern = /^<!--\s*/,
-      namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
-      finishPattern = /\s*-->/,
-      child;
-
-  function readPartialDefinitionComment(parser) {
-  	var firstPos = parser.pos,
-  	    open = parser.standardDelimiters[0],
-  	    close = parser.standardDelimiters[1],
-  	    content = undefined,
-  	    closed = undefined;
-
-  	if (!parser.matchPattern(startPattern) || !parser.matchString(open)) {
-  		parser.pos = firstPos;
-  		return null;
-  	}
-
-  	var name = parser.matchPattern(namePattern);
-
-  	// make sure the rest of the comment is in the correct place
-  	if (!parser.matchString(close) || !parser.matchPattern(finishPattern)) {
-  		parser.pos = firstPos;
-  		return null;
-  	}
-
-  	content = [];
-
-  	var endPattern = new RegExp("^<!--\\s*" + escapeRegExp(open) + "\\s*\\/\\s*" + name + "\\s*" + escapeRegExp(close) + "\\s*-->");
-
-  	do {
-  		if (parser.matchPattern(endPattern)) {
-  			closed = true;
-  		} else {
-  			child = parser.read();
-  			if (!child) {
-  				parser.error("expected closing comment ('<!-- " + open + "/" + name + "" + close + " -->')");
-  			}
-
-  			content.push(child);
-  		}
-  	} while (!closed);
-
-  	return {
-  		t: INLINE_PARTIAL,
-  		f: content,
-  		n: name
-  	};
-  }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/readPartialDefinitionComment.js.02-babel.map
 
   function readText(parser) {
   	var index, remaining, disallowed, barrier;
@@ -6302,155 +6430,173 @@
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/readText.js.02-babel.map
 
-  var trimWhitespace__leadingWhitespace = /^[ \t\f\r\n]+/,
-      trimWhitespace__trailingWhitespace = /[ \t\f\r\n]+$/;
+  var escapeRegExp__pattern = /[-/\\^$*+?.()|[\]{}]/g;
+  function escapeRegExp(str) {
+  	return str.replace(escapeRegExp__pattern, "\\$&");
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/escapeRegExp.js.02-babel.map
 
-  var trimWhitespace = function (items, leading, trailing) {
-  	var item;
+  var startPattern = /^<!--\s*/,
+      namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
+      finishPattern = /\s*-->/,
+      child;
 
-  	if (leading) {
-  		item = items[0];
-  		if (typeof item === "string") {
-  			item = item.replace(trimWhitespace__leadingWhitespace, "");
+  function readPartialDefinitionComment(parser) {
+  	var firstPos = parser.pos,
+  	    open = parser.standardDelimiters[0],
+  	    close = parser.standardDelimiters[1],
+  	    content = undefined,
+  	    closed = undefined;
 
-  			if (!item) {
-  				items.shift();
-  			} else {
-  				items[0] = item;
+  	if (!parser.matchPattern(startPattern) || !parser.matchString(open)) {
+  		parser.pos = firstPos;
+  		return null;
+  	}
+
+  	var name = parser.matchPattern(namePattern);
+
+  	warnOnceIfDebug("Inline partial comments are deprecated.\nUse this...\n  {{#partial " + name + "}} ... {{/partial}}\n\n...instead of this:\n  <!-- {{>" + name + "}} --> ... <!-- {{/" + name + "}} -->'");
+
+  	// make sure the rest of the comment is in the correct place
+  	if (!parser.matchString(close) || !parser.matchPattern(finishPattern)) {
+  		parser.pos = firstPos;
+  		return null;
+  	}
+
+  	content = [];
+
+  	var endPattern = new RegExp("^<!--\\s*" + escapeRegExp(open) + "\\s*\\/\\s*" + name + "\\s*" + escapeRegExp(close) + "\\s*-->");
+
+  	do {
+  		if (parser.matchPattern(endPattern)) {
+  			closed = true;
+  		} else {
+  			child = parser.read(READERS);
+  			if (!child) {
+  				parser.error("expected closing comment ('<!-- " + open + "/" + name + "" + close + " -->')");
   			}
+
+  			content.push(child);
+  		}
+  	} while (!closed);
+
+  	return {
+  		t: INLINE_PARTIAL,
+  		f: content,
+  		n: name
+  	};
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/readPartialDefinitionComment.js.02-babel.map
+
+  var partialDefinitionSectionPattern = /^#\s*partial\s+/;
+  function readPartialDefinitionSection(parser) {
+  	var start, name, content, child, closed;
+
+  	start = parser.pos;
+
+  	var delimiters = parser.standardDelimiters;
+
+  	if (!parser.matchString(delimiters[0])) {
+  		return null;
+  	}
+
+  	if (!parser.matchPattern(partialDefinitionSectionPattern)) {
+  		parser.pos = start;
+  		return null;
+  	}
+
+  	name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-]*/);
+
+  	if (!name) {
+  		parser.error("expected legal partial name");
+  	}
+
+  	if (!parser.matchString(delimiters[1])) {
+  		parser.error("Expected closing delimiter '" + delimiters[1] + "'");
+  	}
+
+  	content = [];
+
+  	do {
+  		// TODO clean this up
+  		if (child = readClosing(parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] })) {
+  			if (!child.r === "partial") {
+  				parser.error("Expected " + delimiters[0] + "/partial" + delimiters[1]);
+  			}
+
+  			closed = true;
+  		} else {
+  			child = parser.read(READERS);
+
+  			if (!child) {
+  				parser.error("Expected " + delimiters[0] + "/partial" + delimiters[1]);
+  			}
+
+  			content.push(child);
+  		}
+  	} while (!closed);
+
+  	return {
+  		t: INLINE_PARTIAL,
+  		n: name,
+  		f: content
+  	};
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/readPartialDefinitionSection.js.02-babel.map
+
+  function readTemplate(parser) {
+  	var fragment = [];
+  	var partials = create(null);
+  	var hasPartials = false;
+
+  	var preserveWhitespace = parser.preserveWhitespace;
+
+  	while (parser.pos < parser.str.length) {
+  		var pos = parser.pos,
+  		    item = undefined,
+  		    partial = undefined;
+
+  		if (partial = parser.read(PARTIAL_READERS)) {
+  			if (partials[partial.n]) {
+  				parser.pos = pos;
+  				parser.error("Duplicated partial definition");
+  			}
+
+  			cleanup(partial.f, parser.stripComments, preserveWhitespace, !preserveWhitespace, !preserveWhitespace);
+
+  			partials[partial.n] = partial.f;
+  			hasPartials = true;
+  		} else if (item = parser.read(READERS)) {
+  			fragment.push(item);
+  		} else {
+  			parser.error("Unexpected template content");
   		}
   	}
 
-  	if (trailing) {
-  		item = lastItem(items);
-  		if (typeof item === "string") {
-  			item = item.replace(trimWhitespace__trailingWhitespace, "");
+  	var result = {
+  		v: TEMPLATE_VERSION,
+  		t: fragment
+  	};
 
-  			if (!item) {
-  				items.pop();
-  			} else {
-  				items[items.length - 1] = item;
-  			}
-  		}
-  	}
-  };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/utils/trimWhitespace.js.02-babel.map
-
-  var leadingLinebreak = /^\s*\r?\n/,
-      trailingLinebreak = /\r?\n\s*$/;
-
-  var stripStandalones = function (items) {
-  	var i, current, backOne, backTwo, lastSectionItem;
-
-  	for (i = 1; i < items.length; i += 1) {
-  		current = items[i];
-  		backOne = items[i - 1];
-  		backTwo = items[i - 2];
-
-  		// if we're at the end of a [text][comment][text] sequence...
-  		if (isString(current) && isComment(backOne) && isString(backTwo)) {
-
-  			// ... and the comment is a standalone (i.e. line breaks either side)...
-  			if (trailingLinebreak.test(backTwo) && leadingLinebreak.test(current)) {
-
-  				// ... then we want to remove the whitespace after the first line break
-  				items[i - 2] = backTwo.replace(trailingLinebreak, "\n");
-
-  				// and the leading line break of the second text token
-  				items[i] = current.replace(leadingLinebreak, "");
-  			}
-  		}
-
-  		// if the current item is a section, and it is preceded by a linebreak, and
-  		// its first item is a linebreak...
-  		if (isSection(current) && isString(backOne)) {
-  			if (trailingLinebreak.test(backOne) && isString(current.f[0]) && leadingLinebreak.test(current.f[0])) {
-  				items[i - 1] = backOne.replace(trailingLinebreak, "\n");
-  				current.f[0] = current.f[0].replace(leadingLinebreak, "");
-  			}
-  		}
-
-  		// if the last item was a section, and it is followed by a linebreak, and
-  		// its last item is a linebreak...
-  		if (isString(current) && isSection(backOne)) {
-  			lastSectionItem = lastItem(backOne.f);
-
-  			if (isString(lastSectionItem) && trailingLinebreak.test(lastSectionItem) && leadingLinebreak.test(current)) {
-  				backOne.f[backOne.f.length - 1] = lastSectionItem.replace(trailingLinebreak, "\n");
-  				items[i] = current.replace(leadingLinebreak, "");
-  			}
-  		}
+  	if (hasPartials) {
+  		result.p = partials;
   	}
 
-  	return items;
-  };
+  	return result;
+  }
+  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/readTemplate.js.02-babel.map
 
-  function isString(item) {
-  	return typeof item === "string";
+  var STANDARD_READERS = [readPartial, readUnescaped, readSection, readYielder, readInterpolator, readMustacheComment];
+  var TRIPLE_READERS = [readTriple];
+  var STATIC_READERS = [readUnescaped, readSection, readInterpolator]; // TODO does it make sense to have a static section?
+
+  var StandardParser = undefined;
+  function parse(template, options) {
+  	return new StandardParser(template, options || {}).result;
   }
 
-  function isComment(item) {
-  	return item.t === COMMENT || item.t === DELIMCHANGE;
-  }
-
-  function isSection(item) {
-  	return (item.t === SECTION || item.t === INVERTED) && item.f;
-  }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/utils/stripStandalones.js.02-babel.map
-
-  var processPartials = process;
-
-  function process(path, target, items) {
-  	var i = items.length,
-  	    item = undefined,
-  	    cmp = undefined;
-
-  	while (i--) {
-  		item = items[i];
-
-  		if (isPartial(item)) {
-  			target[item.n] = item.f;
-  			items.splice(i, 1);
-  		} else if (isArray(item.f)) {
-  			if (cmp = processPartials__getComponent(path, item)) {
-  				path.push(cmp);
-  				process(path, item.p = {}, item.f);
-  				path.pop();
-  			} else if (isArray(item.f)) {
-  				process(path, target, item.f);
-  			}
-  		}
-  	}
-  }
-
-  function isPartial(item) {
-  	return item.t === INLINE_PARTIAL;
-  }
-
-  function processPartials__getComponent(path, item) {
-  	var i,
-  	    cmp,
-  	    name = item.e;
-
-  	if (item.e) {
-  		for (i = 0; i < path.length; i++) {
-  			if (cmp = (path[i].components || path[i].constructor.components || {})[name]) {
-  				return cmp;
-  			}
-  		}
-  	}
-  }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/partial/processPartials.js.02-babel.map
-
-  var StandardParser,
-      parse,
-      contiguousWhitespace = /[ \t\f\r\n]+/g,
-      preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i,
-      parse__leadingWhitespace = /^\s+/,
-      parse__trailingWhitespace = /\s+$/,
-      STANDARD_READERS = [readPartial, readUnescaped, readPartialDefinitionSection, readSection, readYielder, readInterpolator, readMustacheComment],
-      TRIPLE_READERS = [readTriple],
-      STATIC_READERS = [readUnescaped, readSection, readInterpolator]; // TODO does it make sense to have a static section?
+  var READERS = [readMustache, readHtmlComment, readElement, readText];
+  var PARTIAL_READERS = [readPartialDefinitionComment, readPartialDefinitionSection];
 
   StandardParser = Parser.extend({
   	init: function (str, options) {
@@ -6480,22 +6626,29 @@
   			};
   		}
 
+  		this.stripComments = options.stripComments !== false;
+  		this.preserveWhitespace = options.preserveWhitespace;
   		this.sanitizeElements = options.sanitize && options.sanitize.elements;
   		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
   		this.includeLinePositions = options.includeLinePositions;
   	},
 
-  	postProcess: function (items, options) {
+  	postProcess: function (result) {
+  		// special case - empty string
+  		if (!result.length) {
+  			return { t: [], v: TEMPLATE_VERSION };
+  		}
+
   		if (this.sectionDepth > 0) {
   			this.error("A section was left open");
   		}
 
-  		cleanup(items, options.stripComments !== false, options.preserveWhitespace, !options.preserveWhitespace, !options.preserveWhitespace);
+  		cleanup(result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace);
 
-  		return items;
+  		return result[0];
   	},
 
-  	converters: [readMustache, readPartialDefinitionComment, readHtmlComment, readElement, readText],
+  	converters: [readTemplate],
 
   	sortMustacheTags: function () {
   		// Sort in order of descending opening delimiter length (longer first),
@@ -6505,149 +6658,6 @@
   		});
   	}
   });
-
-  parse = function (template) {
-  	var options = arguments[1] === undefined ? {} : arguments[1];
-
-  	var parser, result;
-
-  	parser = new StandardParser(template, options);
-
-  	// if we're left with non-whitespace content, it means we
-  	// failed to parse some stuff
-  	if (/\S/.test(parser.leftover)) {
-  		parser.error("Unexpected template content");
-  	}
-
-  	result = {
-  		v: TEMPLATE_VERSION, // template spec version, defined in https://github.com/ractivejs/template-spec
-  		t: parser.result
-  	};
-
-  	// collect all of the partials and stick them on the appropriate instances
-  	var partials = {};
-  	// without a ractive instance, no components will be found
-  	processPartials(options.ractive ? [options.ractive] : [], partials, result.t);
-
-  	if (!isEmptyObject(partials)) {
-  		result.p = partials;
-  	}
-
-  	return result;
-  };
-
-
-
-  function cleanup(items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace) {
-  	var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, key;
-
-  	// First pass - remove standalones and comments etc
-  	stripStandalones(items);
-
-  	i = items.length;
-  	while (i--) {
-  		item = items[i];
-
-  		// Remove delimiter changes, unsafe elements etc
-  		if (item.exclude) {
-  			items.splice(i, 1);
-  		}
-
-  		// Remove comments, unless we want to keep them
-  		else if (stripComments && item.t === COMMENT) {
-  			items.splice(i, 1);
-  		}
-  	}
-
-  	// If necessary, remove leading and trailing whitespace
-  	trimWhitespace(items, removeLeadingWhitespace, removeTrailingWhitespace);
-
-  	i = items.length;
-  	while (i--) {
-  		item = items[i];
-
-  		// Recurse
-  		if (item.f) {
-  			preserveWhitespaceInsideFragment = preserveWhitespace || item.t === ELEMENT && preserveWhitespaceElements.test(item.e);
-
-  			if (!preserveWhitespaceInsideFragment) {
-  				previousItem = items[i - 1];
-  				nextItem = items[i + 1];
-
-  				// if the previous item was a text item with trailing whitespace,
-  				// remove leading whitespace inside the fragment
-  				if (!previousItem || typeof previousItem === "string" && parse__trailingWhitespace.test(previousItem)) {
-  					removeLeadingWhitespaceInsideFragment = true;
-  				}
-
-  				// and vice versa
-  				if (!nextItem || typeof nextItem === "string" && parse__leadingWhitespace.test(nextItem)) {
-  					removeTrailingWhitespaceInsideFragment = true;
-  				}
-  			}
-
-  			cleanup(item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  		}
-
-  		// Split if-else blocks into two (an if, and an unless)
-  		if (item.l) {
-  			cleanup(item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-
-  			items.splice(i + 1, 0, item.l);
-  			delete item.l; // TODO would be nice if there was a way around this
-  		}
-
-  		// Clean up element attributes
-  		if (item.a) {
-  			for (key in item.a) {
-  				if (item.a.hasOwnProperty(key) && typeof item.a[key] !== "string") {
-  					cleanup(item.a[key], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  				}
-  			}
-  		}
-
-  		// Clean up conditional attributes
-  		if (item.m) {
-  			cleanup(item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  		}
-
-  		// Clean up event handlers
-  		if (item.v) {
-  			for (key in item.v) {
-  				if (item.v.hasOwnProperty(key)) {
-  					// clean up names
-  					if (isArray(item.v[key].n)) {
-  						cleanup(item.v[key].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  					}
-
-  					// clean up params
-  					if (isArray(item.v[key].d)) {
-  						cleanup(item.v[key].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  					}
-  				}
-  			}
-  		}
-  	}
-
-  	// final pass - fuse text nodes together
-  	i = items.length;
-  	while (i--) {
-  		if (typeof items[i] === "string") {
-  			if (typeof items[i + 1] === "string") {
-  				items[i] = items[i] + items[i + 1];
-  				items.splice(i + 1, 1);
-  			}
-
-  			if (!preserveWhitespace) {
-  				items[i] = items[i].replace(contiguousWhitespace, " ");
-  			}
-
-  			if (items[i] === "") {
-  				items.splice(i, 1);
-  			}
-  		}
-  	}
-  }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/_parse.js.02-babel.map
 
   var parseOptions = ["preserveWhitespace", "sanitize", "stripComments", "delimiters", "tripleDelimiters", "interpolate"];
@@ -6725,7 +6735,7 @@
   	return parseOptions.reduce(function (val, key) {
   		val[key] = ractive[key];
   		return val;
-  	}, { ractive: ractive });
+  	}, {});
   }
 
   var parser__default = parser;
@@ -13206,8 +13216,8 @@
 
   // finds the component constructor in the registry or view hierarchy registries
 
-  var getComponent__default = getComponent__getComponent;
-  function getComponent__getComponent(ractive, name) {
+
+  function getComponent(ractive, name) {
 
   	var Component,
   	    instance = findInstance("components", ractive, name);
@@ -13230,7 +13240,7 @@
 
   			if (typeof Component === "string") {
   				// allow string lookup
-  				Component = getComponent__getComponent(ractive, Component);
+  				Component = getComponent(ractive, Component);
   			}
 
   			Component._fn = fn;
@@ -15505,7 +15515,7 @@
   	ractive = component.root;
 
   	partials = partials || {};
-  	object__extend(inlinePartials, partials || {});
+  	object__extend(inlinePartials, partials);
 
   	// Make contents available as a {{>content}} partial
   	partials.content = yieldTemplate || [];
@@ -16028,7 +16038,7 @@
   			return new Triple(options);
   		case ELEMENT:
   			var constructor = undefined;
-  			if (constructor = getComponent__default(options.parentFragment.root, options.template.e)) {
+  			if (constructor = getComponent(options.parentFragment.root, options.template.e)) {
   				return new Component__default(options, constructor);
   			}
   			return new Element(options);

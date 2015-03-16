@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Sun Mar 15 2015 22:12:50 GMT+0000 (UTC) - commit 2075d90ae57e0e635ddf6f524c0da971a9e5581b
+	Mon Mar 16 2015 13:42:32 GMT+0000 (UTC) - commit 7bbd9dffaf2573eeff75479449e1c5a3c981f05c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -821,7 +821,7 @@
 
   	while (source = sources.shift()) {
   		for (prop in source) {
-  			if (source.hasOwnProperty(prop)) {
+  			if (hasOwn.call(source, prop)) {
   				target[prop] = source[prop];
   			}
   		}
@@ -4161,7 +4161,7 @@
   	return parseOptions.reduce(function (val, key) {
   		val[key] = ractive[key];
   		return val;
-  	}, { ractive: ractive });
+  	}, {});
   }
 
   var parser__default = parser;
@@ -13528,7 +13528,7 @@
   	ractive = component.root;
 
   	partials = partials || {};
-  	object__extend(inlinePartials, partials || {});
+  	object__extend(inlinePartials, partials);
 
   	// Make contents available as a {{>content}} partial
   	partials.content = yieldTemplate || [];
