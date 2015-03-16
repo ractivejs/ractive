@@ -401,5 +401,5 @@ if ( typeof console !== 'undefined' && console.warn ) {
 				throw new Error( 'evil handler' );
 			}
 		});
-	}
+	});
 }
