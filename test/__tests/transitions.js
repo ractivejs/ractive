@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 var Ractive_original;
 
 module( 'Transitions', {
@@ -166,7 +168,7 @@ asyncTest( 'ractive.transitionsEnabled false prevents all transitions', function
 	});
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	asyncTest( 'Missing transition functions do not cause errors, but do console.warn', function ( t ) {
 		var ractive, warn = console.warn;
 

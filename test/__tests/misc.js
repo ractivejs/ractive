@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 var Foo, fooAdaptor;
 
 Foo = function ( content ) {
@@ -1699,7 +1701,7 @@ asyncTest( 'Promise.all works with non-promises (#1642)', t => {
 	});
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	test( 'Ractive.DEBUG can be changed', t => {
 		let DEBUG = Ractive.DEBUG;
 		Ractive.DEBUG = false;

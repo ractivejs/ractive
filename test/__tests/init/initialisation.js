@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 var defaultTemplate, defaultData, cleanupDefaults;
 
 defaultTemplate = Ractive.defaults.template;
@@ -128,7 +130,7 @@ test( 'instance data function is added to default data function', t => {
 	t.equal( ractive.get( 'foo' ), 'fizz' );
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	test( 'data function returning wrong value causes error/warning', t => {
 		// non-objects are an error
 		let Bad = Ractive.extend({

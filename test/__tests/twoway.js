@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 module( 'Two-way bindings' );
 
 test( 'Two-way bindings work with index references', function ( t ) {
@@ -675,7 +677,7 @@ test( 'Change events propagate after the model has been updated (#1371)', t => {
 	simulant.fire( ractive.find( 'select' ), 'change' );
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	test( 'Ambiguous references trigger a warning (#1692)', function ( t ) {
 		var warn = console.warn;
 		console.warn = warning => {

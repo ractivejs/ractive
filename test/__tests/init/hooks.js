@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 var fired, firedSetup, hooks
 
 firedSetup = {
@@ -369,7 +371,7 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) 
 	t.deepEqual( count, { construct: 0, beforeInit: 1 });
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	asyncTest( 'error in oncomplete sent to console', function ( t ) {
 		let warn = console.warn;
 		let log = console.log;

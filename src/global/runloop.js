@@ -6,6 +6,19 @@ import TransitionManager from './TransitionManager';
 
 var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
 
+window.batchDepth = () => {
+	let depth = 0;
+
+	let currentBatch = batch;
+
+	while ( currentBatch ) {
+		depth += 1;
+		currentBatch = currentBatch.previousBatch;
+	}
+
+	return depth;
+};
+
 runloop = {
 	start: function ( instance, returnPromise ) {
 		var promise, fulfilPromise;
