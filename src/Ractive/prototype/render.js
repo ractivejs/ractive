@@ -1,6 +1,7 @@
 import css from 'global/css';
 import Hook from './shared/hooks/Hook';
 import { getElement } from 'utils/dom';
+import { teardown } from 'shared/methodCallers';
 import runloop from 'global/runloop';
 
 var renderHook = new Hook( 'render' ),
@@ -66,13 +67,6 @@ export default function Ractive$render ( target, anchor ) {
 	return promise.then( () => completeHook.fire( this ) );
 }
 
-function removeOtherInstances( others ) {
-	try {
-		others.splice( 0, others.length ).forEach( r => r.teardown() );
-	} catch ( err ) {
-		// this can happen with IE8, because it is unbelievably shit. Somehow, in
-		// certain very specific situations, trying to access node.parentNode (which
-		// we need to do in order to detach elements) causes an 'Invalid argument'
-		// error to be thrown. I don't even.
-	}
+function removeOtherInstances ( others ) {
+	others.splice( 0, others.length ).forEach( teardown );
 }
