@@ -6,7 +6,11 @@ export default function Attribute$updateEverythingElse () {
 	}
 
 	else if ( !this.isBoolean ) {
-		node.setAttribute( name, ( fragment || value ).toString() );
+		if ( value == null ) {
+			node.removeAttribute( name );
+		} else {
+			node.setAttribute( name, ( fragment || value ).toString() );
+		}
 	}
 
 	// Boolean attributes - truthy becomes '', falsy means 'remove attribute'
