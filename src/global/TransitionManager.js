@@ -18,11 +18,6 @@ var TransitionManager = function ( callback, parent ) {
 	if ( parent ) {
 		parent.addChild( this );
 	}
-
-	window.TEST && console.log( 'this.TEST: ', !!parent );
-	window.TEST && ( this.TEST = true );
-
-	this.WRONG = window.WRONG;
 };
 
 TransitionManager.prototype = {
@@ -59,19 +54,11 @@ TransitionManager.prototype = {
 	},
 
 	init: function () {
-		window.TEST && console.log( 'init' );
 		this.ready = true;
 		check( this );
 	},
 
 	detachNodes: function () {
-		if ( this.TEST ) {
-			console.log( 'detaching nodes' );
-
-			this.detachQueue.forEach( e => {
-				console.log( 'e.node', e.node.outerHTML );
-			});
-		}
 		this.decoratorQueue.forEach( teardown );
 		this.detachQueue.forEach( detach );
 		this.children.forEach( detachNodes );
@@ -87,16 +74,12 @@ function detachNodes ( tm ) {
 }
 
 function check ( tm ) {
-	tm.TEST && console.log( 'check' );
 	if ( !tm.ready || tm.outros.length || tm.outroChildren ) return;
 
 	// If all outros are complete, and we haven't already done this,
 	// we notify the parent if there is one, otherwise
 	// start detaching nodes
 	if ( !tm.outrosComplete ) {
-		tm.TEST && console.log( 'ready ', !!tm.parent );
-		//tm.TEST && console.log( 'wrong parent ', tm.parent.WRONG );
-
 		if ( tm.parent ) {
 			tm.parent.decrementOutros( tm );
 		} else {

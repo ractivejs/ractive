@@ -208,9 +208,6 @@ test( '#if sections only render once when arrays are mutated', function ( t ) {
 });
 
 test( 'Unbound sections disregard splice instructions (#967)', function ( t ) {
-	window.TEST = true;
-
-	console.log( 'c: ', window.batchDepth() );
 	var ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -224,18 +221,8 @@ test( 'Unbound sections disregard splice instructions (#967)', function ( t ) {
 		}
 	});
 
-	console.log( 'd: ', window.batchDepth() );
-
-	window.WRONG = false;
-
-
 	ractive.splice( 'list', 1, 1 );
-	console.log( ractive.toHTML() );
-	console.log( fixture.innerHTML );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>a: ac</li><li>c: ac</li></ul>' );
-
-	window.TEST = false;
-	console.log( 'e: ', window.batchDepth() );
 });
 
 test( 'Interpolators that directly reference arrays are updated on array mutation (#1074)', function ( t ) {
