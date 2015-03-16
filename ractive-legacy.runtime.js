@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Mon Mar 16 2015 13:42:32 GMT+0000 (UTC) - commit 7bbd9dffaf2573eeff75479449e1c5a3c981f05c
+	Mon Mar 16 2015 13:44:09 GMT+0000 (UTC) - commit 409ed1aa92cdd1e58104069e233bf9c9585928d2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14873,7 +14873,7 @@
   properties = {
 
   	// debug flag
-  	DEBUG: { value: true },
+  	DEBUG: { writable: true, value: true },
 
   	// static methods:
   	extend: { value: extend__default },
