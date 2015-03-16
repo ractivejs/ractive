@@ -8,6 +8,8 @@ var gobble = require( 'gobble' ),
 	es5, lib, test;
 
 var babelTransformWhitelist = [
+	'es3.memberExpressionLiterals',
+	'es3.propertyLiterals',
 	'es6.arrowFunctions',
 	'es6.blockScoping',
 	'es6.constants',
