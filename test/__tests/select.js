@@ -395,8 +395,8 @@ test( 'safe to render options into select outside of ractive', t => {
 		data: {
 			items: [ 'a' ]
 		}
-	})
+	});
 
-	t.equal( select.innerHTML, '<option>a</option>' );
+	t.htmlEqual( select.innerHTML, '<option>a</option>' );
 
 });

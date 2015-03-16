@@ -137,7 +137,7 @@ test( 'partial can be preparsed template (gh-942)', function ( t ) {
 		partials: { foo: partial }
 	});
 
-	t.equal( fixture.innerHTML, '<p>hello partial</p>' );
+	t.htmlEqual( fixture.innerHTML, '<p>hello partial</p>' );
 });
 
 test( 'partial functions belong to instance, not Component', function ( t ) {
