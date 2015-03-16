@@ -16,7 +16,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	ractive = component.root;
 
 	partials = partials || {};
-	extend( inlinePartials, partials || {} );
+	extend( inlinePartials, partials );
 
 	// Make contents available as a {{>content}} partial
 	partials.content = yieldTemplate || [];

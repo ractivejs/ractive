@@ -76,7 +76,7 @@ function getParseOptions ( ractive ) {
 	return parseOptions.reduce( ( val, key ) => {
 		val[ key ] = ractive[ key ];
 		return val;
-	}, { ractive: ractive } );
+	}, {});
 }
 
 export default parser;

@@ -1,4 +1,6 @@
 import { INLINE_PARTIAL } from 'config/types';
+import { warnOnceIfDebug } from 'utils/log';
+import { READERS } from '../_parse';
 import escapeRegExp from 'utils/escapeRegExp';
 
 export default readPartialDefinitionComment;
@@ -22,6 +24,13 @@ function readPartialDefinitionComment ( parser ) {
 
 	let name = parser.matchPattern( namePattern );
 
+	warnOnceIfDebug( `Inline partial comments are deprecated.
+Use this...
+  {{#partial ${name}}} ... {{/partial}}
+
+...instead of this:
+  <!-- {{>${name}}} --> ... <!-- {{/${name}}} -->'` );
+
 	// make sure the rest of the comment is in the correct place
 	if ( !parser.matchString( close ) || !parser.matchPattern( finishPattern ) ) {
 		parser.pos = firstPos;
@@ -38,7 +47,7 @@ function readPartialDefinitionComment ( parser ) {
 		}
 
 		else {
-			child = parser.read();
+			child = parser.read( READERS );
 			if ( !child ) {
 				parser.error( `expected closing comment ('<!-- ${open}/${name}${close} -->')` );
 			}
