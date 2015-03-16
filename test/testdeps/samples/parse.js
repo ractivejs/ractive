@@ -764,6 +764,42 @@ var parseTests = [
 		error: `Expected valid attribute value at line 1 character 12:
 <div class=='wut'></div>
            ^----`
+	},
+	{
+		name: 'Double zero literal (#1819)',
+		template: `{{foo?11:00}}`,
+		parsed: {v:3,t:[{t:2,x:{r:['foo'],s:'_0?11:00'}}]}
+	},
+	{
+		name: 'inline partial at top level',
+		template: '{{#partial foo}}this is foo{{/partial}}',
+		parsed: {v:3,t:[],p:{foo:['this is foo']}}
+	},
+	{
+		name: 'duplicate inline partials at top level',
+		template: '{{#partial foo}}this is foo{{/partial}}{{#partial foo}}dupe{{/partial}}',
+		error: `Duplicated partial definition at line 1 character 40:
+{{#partial foo}}this is foo{{/partial}}{{#partial foo}}dupe{{/partial}}
+                                       ^----`
+	},
+	{
+		name: 'inline partial inside component',
+		template: '<x>{{#partial foo}}this is foo{{/partial}}</x>',
+		parsed: {v:3,t:[{t:7,e:'x',p:{foo:['this is foo']}}]}
+	},
+	{
+		name: 'duplicate inline partials inside component',
+		template: '<x>{{#partial foo}}this is foo{{/partial}}{{#partial foo}}dupe{{/partial}}</x>',
+		error: `Duplicate partial definition at line 1 character 43:
+<x>{{#partial foo}}this is foo{{/partial}}{{#partial foo}}dupe{{/partial}}</x>
+                                          ^----`
+	},
+	{
+		name: 'illegal partial definition',
+		template: '{{#if whatever}}{{#partial nope}}...{{/partial}}{{/if}}',
+		error: `Partial definitions can only be at the top level of the template, or immediately inside components at line 1 character 17:
+{{#if whatever}}{{#partial nope}}...{{/partial}}{{/if}}
+                ^----`
 	}
 ];
 

@@ -26,7 +26,7 @@ export default function Section$setValue ( value ) {
 	// this is the place to do it
 	if ( this.fragmentsToCreate.length ) {
 		fragmentOptions = {
-			template: this.template.f,
+			template: this.template.f || [],
 			root:     this.root,
 			pElement: this.pElement,
 			owner:    this
@@ -82,10 +82,10 @@ function changeCurrentSubtype ( section, value, obj ) {
 
 function reevaluateSection ( section, value ) {
 	var fragmentOptions = {
-		template: section.template.f,
-		root:       section.root,
-		pElement:   section.parentFragment.pElement,
-		owner:      section
+		template: section.template.f || [],
+		root:     section.root,
+		pElement: section.parentFragment.pElement,
+		owner:    section
 	};
 
 	section.hasContext = true;

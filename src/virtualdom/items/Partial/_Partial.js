@@ -19,6 +19,7 @@ let Partial = function ( options ) {
 	this.type = PARTIAL;
 	this.index = options.index;
 	this.name = options.template.r;
+	this.rendered = false;
 
 	this.fragment = this.fragmentToRender = this.fragmentToUnrender = null;
 
@@ -31,7 +32,6 @@ let Partial = function ( options ) {
 		if ( template = getPartialTemplate( this.root, this.name ) ) {
 			unbind.call( this ); // prevent any further changes
 			this.isNamed = true;
-
 			this.setTemplate( template );
 		} else {
 			warnOnceIfDebug( missingPartialMessage, this.name );
@@ -88,7 +88,9 @@ Partial.prototype = {
 			rebind.call( this, oldKeypath, newKeypath );
 		}
 
-		this.fragment.rebind( oldKeypath, newKeypath );
+		if ( this.fragment ) {
+			this.fragment.rebind( oldKeypath, newKeypath );
+		}
 	},
 
 	render () {
@@ -139,7 +141,9 @@ Partial.prototype = {
 	setTemplate ( template ) {
 		if ( this.fragment ) {
 			this.fragment.unbind();
-			this.fragmentToUnrender = this.fragment;
+			if ( this.rendered ) {
+				this.fragmentToUnrender = this.fragment;
+			}
 		}
 
 		this.fragment = new Fragment({

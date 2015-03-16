@@ -1134,6 +1134,18 @@ var renderTests = [
 		result: `<div data-foo='a' data-bar='b'></div>`,
 		new_data: { foo: null, bar: undefined, baz: 'c' },
 		new_result: `<div data-baz='c'></div>`
+	},
+	{
+		name: 'Section with empty object (implicit with)',
+		template: '{{#with foo}}{{/with}}',
+		data: { foo: {} },
+		result: ''
+	},
+	{
+		name: 'Section with empty object (implicit with)',
+		template: '{{#foo}}{{/}}',
+		data: { foo: {} },
+		result: ''
 	}
 ];
 
