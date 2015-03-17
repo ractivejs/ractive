@@ -25,19 +25,6 @@ module( 'Transitions', {
 				t.complete();
 			}, delay );
 		};
-
-		Ractive.transitions.fade = function ( t ) {
-			var targetOpacity;
-
-			if ( t.isIntro ) {
-				targetOpacity = t.getStyle( 'opacity' );
-				t.setStyle( 'opacity', 0 );
-			} else {
-				targetOpacity = 0;
-			}
-
-			t.animateStyle( 'opacity', targetOpacity, { duration: 50 } ).then( t.complete );
-		};
 	},
 	teardown: function () {
 		Ractive = Ractive_original;
@@ -192,18 +179,32 @@ if ( hasUsableConsole ) {
 asyncTest( 'Transitions work the first time (#916)', function ( t ) {
 	var ractive, div;
 
+	// we're using line height for testing because it's a numerical CSS property that IE8 supports
+
 	ractive = new Ractive({
 		el: fixture,
-		template: '<div intro="fade"></div>',
+		template: '<div intro="changeLineHeight"></div>',
 		oncomplete: function () {
-			t.equal( div.style.opacity, '' );
+			t.equal( div.style.lineHeight, '' );
 			QUnit.start();
+		},
+		changeLineHeight ( t ) {
+			let targetLineHeight;
+
+			if ( t.isIntro ) {
+				targetLineHeight = t.getStyle( 'lineHeight' );
+				t.setStyle( 'lineHeight', 0 );
+			} else {
+				targetLineHeight = 0;
+			}
+
+			t.animateStyle( 'lineHeight', targetLineHeight, { duration: 50 } ).then( t.complete );
 		}
 	});
 
 	div = ractive.find( 'div' );
 
-	t.equal( div.style.opacity, 0 );
+	t.equal( div.style.lineHeight, 0 );
 });
 
 test( 'Nodes are detached synchronously if there are no outro transitions (#856)', function ( t ) {
