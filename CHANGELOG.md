@@ -1,8 +1,47 @@
 Changelog
 ---------
 
-* 0.x.x
-	* `ractive.parent`, `ractive.root` and `ractive.findParent(name)` now API supported references to component parent, view hierarchy root, and find method for parent component.
+* 0.7.0
+
+	* Breaking changes
+		* `ractive.data` is no longer exposed. Use `ractive.get()` and `ractive.set()` rather than accessing `data` directly
+		* When instantiating or extending components, `data` properties on the instance/child component always override parent data
+
+	* Deprecated features
+		* `ractive.debug` is replaced with a global `Ractive.DEBUG` flag (see below)
+		* Inline partial definition comments (`<!-- {{>myPartial}} -->...`) should be replaced with inline partial sections (see below)
+		* `options.data` should, if supplied, be a plain old JavaScript object (non-POJOs) or a function that returns one. Non-POJOs and arrays should only exist as *properties* of `options.data`
+
+	* New properties
+		* `ractive.parent` - reference to parent component
+		* `ractive.container` - reference to container component (e.g. in `<x><y/></x>`, `x === y.container`)
+		* `ractive.root` - reference to a component's top level parent (i.e. created with `new Ractive()`)
+
+	* New methods
+		* `ractive.findParent(name)` - finds the nearest parent component matching `name`
+		* `ractive.findContainer(name)` - finds the nearest container component matching `name`
+		* `ractive.resetPartial('name', template)` - updates all instances of `{{>name}}`
+		* `ractive.toHtml()` is an alias for `ractive.toHTML()`
+		* `ractive.once()` and `ractive.observeOnce()` are self-cancelling versions of `ractive.on()` and `ractive.observe()`
+		* `Ractive.getNodeInfo(node)` returns information about `node`'s owner and the context in which it lives
+
+
+	* Other features
+		* Rearchitecture of inter-component mappings, resulting in much faster updates.
+		* `Ractive.DEBUG` flag controls whether warnings for non-fatal errors are printed to the console
+		* `console` can be accessed inside template expressions (e.g. `{{console.log(this)}}`), for debugging
+		* `elseif` in templates: `{{#if something}}...{{elseif otherthing}}...{{/if}}`
+		* Element-level `twoway` directive for granular control over two-way binding
+		* Element-level `lazy` directive, e.g. `lazy=true` or `lazy=250` to prevent or throttle data updates from user input
+		* Inline partial section definitions (`{{#partial myPartial}}...{{/partial}}`). As well as defining partials within a template, they are used with named yields inside components (see next). Partial definitions must exist at the top level of a template, or as an immediate child of an element/component
+		* `ractive.set()` can be used to set multiple 'wildcard' keypaths simultaneously
+		* `ractive.toggle(wildcardKeypath)` toggles all keypaths matching `wildcardKeypath` individually. Ditto `ractive.add()` and `ractive.subtract()`
+		* Better parse errors for malformed templates
+		* Sourcemaps
+
+	* Bug fixes - too many to list...
+
+
 * 0.6.1
 	* Breaking changes
 		* If `obj` has no keys, then the `else` half of `{{#each obj}}...{{else}}...{{/each}}` will render
