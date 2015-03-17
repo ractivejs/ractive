@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Mar 17 2015 22:25:48 GMT+0000 (UTC) - commit 5d9d6288d315b0e7a3afbaab031a43be2065133f
+	Tue Mar 17 2015 22:41:56 GMT+0000 (UTC) - commit 9beef83f619243848b1c914444f38628c297d0c0
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -870,19 +870,6 @@
   	return arrayLikePattern.test(is__toString.call(obj));
   }
 
-  function isEmptyObject(obj) {
-  	// if it's not an object, it's not an empty object
-  	if (!isObject(obj)) {
-  		return false;
-  	}
-
-  	for (var k in obj) {
-  		if (obj.hasOwnProperty(k)) return false;
-  	}
-
-  	return true;
-  }
-
   function isEqual(a, b) {
   	if (a === null && b === null) {
   		return true;
@@ -895,20 +882,12 @@
   	return a === b;
   }
 
-  function isNumber(thing) {
-  	return typeof thing === "number" || typeof thing === "object" && is__toString.call(thing) === "[object Number]";
-  }
-
   function is__isNumeric(thing) {
   	return !isNaN(parseFloat(thing)) && isFinite(thing);
   }
 
   function isObject(thing) {
   	return thing && is__toString.call(thing) === "[object Object]";
-  }
-
-  function isFunction(thing) {
-  	return typeof thing === "function";
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/is.js.02-babel.map
 
@@ -4229,8 +4208,6 @@
   var PARTIAL = 8;
   var COMMENT = 9;
   var DELIMCHANGE = 10;
-  var MUSTACHE = 11;
-  var TAG = 12;
   var ATTRIBUTE = 13;
   var CLOSING_TAG = 14;
   var COMPONENT = 15;
@@ -4263,7 +4240,6 @@
   var SECTION_EACH = 52;
   var SECTION_WITH = 53;
   var SECTION_IF_WITH = 54;
-  var SECTION_PARTIAL = 55;
 
   var ELSE = 60;
   var ELSEIF = 61;
@@ -4540,7 +4516,6 @@
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/expressions/primary/literal/readStringLiteral.js.02-babel.map
 
   var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
-  var patterns__relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
 
   // http://mathiasbynens.be/notes/javascript-properties
   // can be any name, string literal, or number literal
@@ -4740,7 +4715,7 @@
   keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
   var legalReference = /^[a-zA-Z$_0-9]+(?:(?:\.[a-zA-Z$_0-9]+)|(?:\[[0-9]+\]))*/;
-  var readReference__relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
+  var relaxedName = /^[a-zA-Z_$][-a-zA-Z_$0-9]*/;
   function readReference(parser) {
   	var startPos, prefix, name, global, reference, lastDotIndex;
 
@@ -4750,7 +4725,7 @@
 
   	if (!name) {
   		prefix = parser.matchPattern(prefixPattern) || "";
-  		name = !prefix && parser.relaxedNames && parser.matchPattern(readReference__relaxedName) || parser.matchPattern(legalReference);
+  		name = !prefix && parser.relaxedNames && parser.matchPattern(relaxedName) || parser.matchPattern(legalReference);
 
   		if (!name && prefix === ".") {
   			prefix = "";
