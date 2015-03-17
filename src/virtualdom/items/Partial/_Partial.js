@@ -29,7 +29,7 @@ let Partial = function ( options ) {
 	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
 	// whose name is the value of `foo`')
 	if ( !this.keypath ) {
-		if ( template = getPartialTemplate( this.root, this.name ) ) {
+		if ( template = getPartialTemplate( this.root, this.name, parentFragment ) ) {
 			unbind.call( this ); // prevent any further changes
 			this.isNamed = true;
 			this.setTemplate( template );
@@ -112,13 +112,13 @@ Partial.prototype = {
 		}
 
 		if ( value !== undefined ) {
-			template = getPartialTemplate( this.root, '' + value );
+			template = getPartialTemplate( this.root, '' + value, this.parentFragment );
 		}
 
 		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 		// name of both a data property (whose value ISN'T the name of a partial)
 		// and a partial. In those cases, this becomes a named partial
-		if ( !template && this.name && ( template = getPartialTemplate( this.root, this.name ) ) ) {
+		if ( !template && this.name && ( template = getPartialTemplate( this.root, this.name, this.parentFragment ) ) ) {
 			unbind.call( this );
 			this.isNamed = true;
 		}

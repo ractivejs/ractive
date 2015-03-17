@@ -778,3 +778,23 @@ test( 'Inline partials bubble to their nearest component (#1823)', t => {
 
 	t.htmlEqual( fixture.innerHTML, 'cmpparent' );
 });
+
+test( 'Inline partials can override instance partials if they exist on a node directly up-hierarchy', t => {
+	new Ractive({
+		el: fixture,
+		template: `{{#partial foo}}
+				Something happens {{>here}}
+			{{/partial}}
+
+			<div>
+				{{#partial here}}one{{/partial}}
+				<span>{{>foo}}</span>
+			</div>
+			<div>
+				{{#partial here}}two{{/partial}}
+				<span>{{>foo}}</span>
+			</div>`
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div><span>Something happens one</span></div><div><span>Something happens two</span></div>' );
+});

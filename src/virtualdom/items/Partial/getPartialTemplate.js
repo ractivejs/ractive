@@ -4,11 +4,11 @@ import parser from 'Ractive/config/custom/template/parser';
 import { findInstance } from 'shared/registry';
 import deIndent from './deIndent';
 
-export default function getPartialTemplate ( ractive, name ) {
+export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	var partial;
 
 	// If the partial in instance or view heirarchy instances, great
-	if ( partial = getPartialFromRegistry( ractive, name ) ) {
+	if ( partial = getPartialFromRegistry( ractive, name, parentFragment || {} ) ) {
 		return partial;
 	}
 
@@ -27,13 +27,18 @@ export default function getPartialTemplate ( ractive, name ) {
 	}
 }
 
-function getPartialFromRegistry ( ractive, name ) {
+function getPartialFromRegistry ( ractive, name, parentFragment ) {
+	let fn, partial = findParentPartial( name, parentFragment.owner );
+
+	// if there was an instance up-hierarchy, cool
+	if ( partial ) return partial;
+
 	// find first instance in the ractive or view hierarchy that has this partial
 	var instance = findInstance( 'partials', ractive, name );
 
 	if ( !instance ) { return; }
 
-	let partial = instance.partials[ name ], fn;
+	partial = instance.partials[ name ];
 
 	// partial is a function?
 	if ( typeof partial === 'function' ) {
@@ -87,4 +92,14 @@ function findConstructor ( constructor, key ) {
 	return constructor.partials.hasOwnProperty( key )
 		? constructor
 		: findConstructor( constructor._Parent, key );
+}
+
+function findParentPartial( name, parent ) {
+	if ( parent ) {
+		if ( parent.template && parent.template.p && parent.template.p[name] ) {
+			return parent.template.p[name];
+		} else if ( parent.parentFragment && parent.parentFragment.owner ) {
+			return findParentPartial( name, parent.parentFragment.owner );
+		}
+	}
 }
