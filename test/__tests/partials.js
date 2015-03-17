@@ -760,23 +760,13 @@ test( 'Dynamic partial can be set in oninit (#1826)', t => {
 
 });
 
-test( 'Inline partials may be attached to any element (#1823)', t => {
+test( 'Inline partials don\'t dissipate into the ether when attached to non-components (#1838)', t => {
 	new Ractive({
 		el: fixture,
-		template: '<div>{{#partial foo}}foo{{/}}</div>{{>foo}}'
+		template: '<div>{{#partial foo}}foo{{/partial}}{{>foo}}</div>'
 	});
 
-	t.htmlEqual( fixture.innerHTML, '<div></div>foo' );
-});
-
-test( 'Inline partials bubble to their nearest component (#1823)', t => {
-	new Ractive({
-		el: fixture,
-		template: '{{#partial foo}}parent{{/partial}}<cmp>{{#partial foo}}cmp{{/partial}}</cmp>{{>foo}}',
-		components: { cmp: Ractive.extend({ template: '{{>foo}}' }) }
-	});
-
-	t.htmlEqual( fixture.innerHTML, 'cmpparent' );
+	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
 });
 
 test( 'Inline partials can override instance partials if they exist on a node directly up-hierarchy', t => {

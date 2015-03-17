@@ -97,11 +97,4 @@ export default function Element$init ( options ) {
 	// create transitions
 	this.intro = template.t0 || template.t1;
 	this.outro = template.t0 || template.t2;
-
-	// if there are any partials bound here, copy them to root
-	if ( template.p ) {
-		for ( let k in template.p ) {
-			this.root.partials[k] = template.p[k];
-		}
-	}
 }
