@@ -1,7 +1,7 @@
 module( 'Array methods' );
 
 var baseItems = [ 'alice', 'bob', 'charles' ];
-/*
+
 [ true, false ].forEach( modifyArrays => {
 	var List = Ractive.extend({
 		template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
@@ -237,4 +237,4 @@ test( 'Interpolators that directly reference arrays are updated on array mutatio
 	ractive.push( 'letters', 'd', 'e', 'f' );
 	t.htmlEqual( fixture.innerHTML, 'a,b,c,d,e,f' );
 });
-*/
+

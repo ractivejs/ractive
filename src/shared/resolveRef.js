@@ -9,7 +9,6 @@ export default function resolveRef ( ractive, ref, fragment ) {
 
 	// If a reference begins '~/', it's a top-level reference
 	if ( ref.substr( 0, 2 ) === '~/' ) {
-		// TODO: recursive fail!
 		keypath = viewmodel.root.join( ref.substring( 2 ) );
 	}
 
@@ -101,7 +100,8 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 function getProxyModel ( chain, key, keypath, viewmodel ) {
 	var watchers = [], proxy, resolve, context;
 
-	// TODO: need to handle mulit-part proxy for full keypath, "foo.bar.qux"
+	// TODO: handle rest of multo-part proxy for full keypath, "foo.bar.qux"
+	// by adding children
 	proxy = new ProxyModel( key, viewmodel );
 
 	resolve = function ( context ) {

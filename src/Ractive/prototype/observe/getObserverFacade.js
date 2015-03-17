@@ -13,8 +13,8 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 
 	// pattern observers are treated differently
 	if ( wildcard.test( model.getKeypath() ) ) {
-		observer = new PatternObserver( ractive, model, callback, options );
-		ractive.viewmodel.patternObservers.push( observer );
+		// observer = new PatternObserver( ractive, model, callback, options );
+		// ractive.viewmodel.patternObservers.push( observer );
 		isPatternObserver = true;
 	} else {
 		observer = new Observer( ractive, model, callback, options );

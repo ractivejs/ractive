@@ -1,7 +1,6 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import { addToArray, removeFromArray } from 'utils/array';
 import Promise from 'utils/Promise';
-import resolveRef from 'shared/resolveRef';
 import TransitionManager from './TransitionManager';
 
 var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
@@ -103,7 +102,6 @@ function flushChanges () {
 		}
 	}
 
-	attemptKeypathResolution();
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
@@ -121,41 +119,4 @@ function flushChanges () {
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
 	if ( batch.ractives.length ) return flushChanges();
-}
-
-function attemptKeypathResolution () {
-	var i, item, keypath, resolved, root;
-
-	i = unresolved.length;
-
-	// see if we can resolve any unresolved references
-	while ( i-- ) {
-		item = unresolved[i];
-
-		if ( item.keypath ) {
-			// it resolved some other way. TODO how? two-way binding? Seems
-			// weird that we'd still end up here
-			unresolved.splice( i, 1 );
-			continue; // avoid removing the wrong thing should the next condition be true
-		}
-
-
-		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment, true ) ) {
-
-			( resolved || ( resolved = [] ) ).push({
-				item: item.model,
-				keypath: keypath
-			});
-
-			unresolved.splice( i, 1 );
-		}
-	}
-
-	if ( resolved ) {
-		resolved.forEach( resolve );
-	}
-}
-
-function resolve ( resolved ) {
-	resolved.item.resolve( resolved.keypath );
 }

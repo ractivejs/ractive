@@ -4,18 +4,27 @@ class ReferenceStore {
 		this.model = model;
 		this.reference = reference;
 		this.resolved = null;
+		this.selfSet = false;
 	}
 
 	get () {
-		var resolved, value;
+		var resolved = this.resolved, value;
 
-		if ( !( resolved = this.resolved ) && typeof ( value = this.reference.get() ) !== 'undefined' ) {
-			resolved = this.resolved = this.model.parent.join( value );
+		if ( !resolved ) {
+			value = this.reference.get();
+
+			if( value != null ) {
+				resolved = this.resolved = this.model.parent.join( value );
+			}
+
 			if ( resolved ) {
 				resolved.register( this.model, 'computed' );
 			}
 		}
-		return resolved ? resolved.get() : void 0;
+
+		if ( resolved ) {
+			return resolved.get();
+		}
 	}
 
 	getSettable ( propertyOrIndex ) {
@@ -30,12 +39,15 @@ class ReferenceStore {
 			return;
 		}
 
+		this.selfSet = true;
 		this.resolved.set( value );
-		return !this.resolved || this.resolved.dirty;
+		this.selfSet = false;
+
+		return this.resolved.dirty;
 	}
 
 	invalidate () {
-		if ( this.resolved ) {
+		if ( !this.selfSet && this.resolved ) {
 			this.resolved.unregister( this.model, 'computed' );
 			this.resolved = null;
 		}

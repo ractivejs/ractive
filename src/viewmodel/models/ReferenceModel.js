@@ -10,9 +10,12 @@ class ReferenceModel extends Model {
 
 		super( '[' + key + ']', store );
 
-		parent.addChild(this);
+		this.reference = reference;
+		this.resolved = null;
+
 		reference.register( this, 'computed' );
 	}
+
 }
 
 export default ReferenceModel;

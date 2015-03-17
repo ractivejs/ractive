@@ -54,7 +54,11 @@ function getByTemplate ( viewmodel, reference, context ) {
 }
 
 function getReferenceModel( viewmodel, reference, context ) {
+
+
 	return resolveRef( viewmodel.ractive, reference, context.parentFragment );
+
+
 }
 
 function getExpressionModel( viewmodel, reference, context ) {
@@ -88,6 +92,7 @@ function getReferenceExpressionModel ( viewmodel, reference, context ) {
 
 	while( member = members.shift() ) {
 		model = new ReferenceModel( member.fullKey || member.model.key, member.model, previous );
+		previous.addChild( model );
 		previous = model;
 	}
 

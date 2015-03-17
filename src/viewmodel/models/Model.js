@@ -263,13 +263,8 @@ class Model {
 			return; // TODO we should never get here if a dependant is static...
 		}
 
-		if ( !( type === 'default' || type === 'computed'  ) ) {
+		if ( !( type === 'default' || type === 'computed'   || type === 'observers'  ) ) {
 			this.owner.register( this, dependant, type );
-		}
-
-		if ( this.shiftNotify === type ) {
-			console.log( this.str + ' attempted register during notify!', dependant );
-			return;
 		}
 
 		var dependants = this.dependants || ( this.dependants = {} ), group;
@@ -289,7 +284,7 @@ class Model {
 			return; // TODO we should never get here if a dependant is static...
 		}
 
-		if ( !( type === 'default' || type === 'computed' ) ) {
+		if ( !( type === 'default' || type === 'computed'   || type === 'observers'  ) ) {
 			this.owner.unregister( this, dependant, type );
 		}
 
@@ -301,7 +296,7 @@ class Model {
 	}
 
 	notify ( type ) {
-		var dependants, group, value, children, i, l, shift, d;
+		var dependants, group, value, children, i, l;
 
 		if( !this.dirty ) { return; }
 
@@ -311,18 +306,9 @@ class Model {
 
 		if( ( dependants = this.dependants ) && ( group = dependants[ type ] ) ) {
 			value = this.get();
-
-			// TEMP to test if new registrations are happening...
-			this.shiftNotify = type;
-
-			var shift = [];
-			while ( d = group.shift() ) {
-				d.setValue( value );
-				shift.push( d );
+			for( i = 0, l = group.length; i < l; i++ ) {
+				group[i].setValue( value );
 			}
-			dependants[ type ] = shift;
-
-			this.shiftNotify = null;
 		}
 
 		if ( children = this.children ) {
