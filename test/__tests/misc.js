@@ -356,7 +356,7 @@ test( 'Partial templates will be drawn from script tags if not already registere
 	partialScr = document.createElement( 'script' );
 	partialScr.id = 'thePartial';
 	partialScr.type = 'text/ractive';
-	partialScr.text = '{{one}}{{two}}{{three}}';
+	partialScr.textContent = '{{one}}{{two}}{{three}}';
 
 	document.getElementsByTagName('body')[0].appendChild( partialScr );
 
