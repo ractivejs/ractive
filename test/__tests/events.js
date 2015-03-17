@@ -1443,8 +1443,10 @@ test( 'Attribute directives on fragments that get re-used (partials) should stic
 	t.equal( ractive.get( 'list.1.foo' ), 'b' );
 });
 
-// phantom doesn't like these tests, but browsers are ok with them
-if ( !/phantomjs/i.test( window.navigator.userAgent ) ) {
+// phantom and IE8 don't like these tests, but browsers are ok with them
+try {
+	simulant.fire( document.createElement( 'div' ), 'input' );
+
 	test( 'lazy may be overriden on a per-element basis', t => {
 		let ractive = new Ractive({
 			el: fixture,
@@ -1532,4 +1534,4 @@ if ( !/phantomjs/i.test( window.navigator.userAgent ) ) {
 			});
 		}, /invalid input/i );
 	});
-}
+} catch ( err ) {}
