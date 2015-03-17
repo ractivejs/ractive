@@ -606,6 +606,7 @@ test( 'Asterisks should not be left in computation keypaths (#1472)', t => {
 // phantomjs, IE8...
 try {
 	simulant.fire( document.createElement( 'div' ), 'input' );
+	simulant.fire( document.createElement( 'div' ), 'blur' );
 
 	test( 'Pattern observers used as validators behave correctly on blur (#1475)', t => {
 		let ractive, inputs;

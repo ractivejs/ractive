@@ -1,5 +1,4 @@
 import { isClient, namespaces, svg, vendors } from 'config/environment';
-import { hasOwn } from './object';
 
 var createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 

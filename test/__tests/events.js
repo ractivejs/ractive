@@ -1448,6 +1448,7 @@ test( 'Attribute directives on fragments that get re-used (partials) should stic
 // phantom and IE8 don't like these tests, but browsers are ok with them
 try {
 	simulant.fire( document.createElement( 'div' ), 'input' );
+	simulant.fire( document.createElement( 'div' ), 'blur' );
 
 	test( 'lazy may be overriden on a per-element basis', t => {
 		let ractive = new Ractive({
