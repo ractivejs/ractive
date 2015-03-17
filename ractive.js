@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Mar 17 2015 21:15:32 GMT+0000 (UTC) - commit 47676a2feb12f0d4ae68874ffdf52103b9bed0b0
+	Tue Mar 17 2015 22:25:48 GMT+0000 (UTC) - commit 5d9d6288d315b0e7a3afbaab031a43be2065133f
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12879,11 +12879,11 @@
   }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/deIndent.js.02-babel.map
 
-  function getPartialTemplate(ractive, name) {
+  function getPartialTemplate(ractive, name, parentFragment) {
   	var partial;
 
   	// If the partial in instance or view heirarchy instances, great
-  	if (partial = getPartialFromRegistry(ractive, name)) {
+  	if (partial = getPartialFromRegistry(ractive, name, parentFragment || {})) {
   		return partial;
   	}
 
@@ -12902,7 +12902,13 @@
   	}
   }
 
-  function getPartialFromRegistry(ractive, name) {
+  function getPartialFromRegistry(ractive, name, parentFragment) {
+  	var fn = undefined,
+  	    partial = findParentPartial(name, parentFragment.owner);
+
+  	// if there was an instance up-hierarchy, cool
+  	if (partial) return partial;
+
   	// find first instance in the ractive or view hierarchy that has this partial
   	var instance = findInstance("partials", ractive, name);
 
@@ -12910,8 +12916,7 @@
   		return;
   	}
 
-  	var partial = instance.partials[name],
-  	    fn = undefined;
+  	partial = instance.partials[name];
 
   	// partial is a function?
   	if (typeof partial === "function") {
@@ -12964,6 +12969,16 @@
   	}
   	return constructor.partials.hasOwnProperty(key) ? constructor : findConstructor(constructor._Parent, key);
   }
+
+  function findParentPartial(name, parent) {
+  	if (parent) {
+  		if (parent.template && parent.template.p && parent.template.p[name]) {
+  			return parent.template.p[name];
+  		} else if (parent.parentFragment && parent.parentFragment.owner) {
+  			return findParentPartial(name, parent.parentFragment.owner);
+  		}
+  	}
+  }
   //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/getPartialTemplate.js.02-babel.map
 
   var applyIndent = function (string, indent) {
@@ -13002,7 +13017,7 @@
   	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
   	// whose name is the value of `foo`')
   	if (!this.keypath) {
-  		if (template = getPartialTemplate(this.root, this.name)) {
+  		if (template = getPartialTemplate(this.root, this.name, parentFragment)) {
   			unbind__default.call(this); // prevent any further changes
   			this.isNamed = true;
   			this.setTemplate(template);
@@ -13083,13 +13098,13 @@
   		}
 
   		if (value !== undefined) {
-  			template = getPartialTemplate(this.root, "" + value);
+  			template = getPartialTemplate(this.root, "" + value, this.parentFragment);
   		}
 
   		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
   		// name of both a data property (whose value ISN'T the name of a partial)
   		// and a partial. In those cases, this becomes a named partial
-  		if (!template && this.name && (template = getPartialTemplate(this.root, this.name))) {
+  		if (!template && this.name && (template = getPartialTemplate(this.root, this.name, this.parentFragment))) {
   			unbind__default.call(this);
   			this.isNamed = true;
   		}
