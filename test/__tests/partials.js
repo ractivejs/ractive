@@ -1,5 +1,7 @@
 module( 'partials' );
 
+/* global console */
+
 var partialsFn = {
 	foo () {
 		return this.get( 'foo' ) ? '<p>yes</p>' : '<h1>no</h1>';
@@ -65,9 +67,9 @@ if ( typeof console !== 'undefined' && console.warn ) {
 
 		expect( 1 );
 
-		console.warn = function( msg ) {
+		console.warn = function() {
 			t.ok( false );
-		}
+		};
 
 		ractive = new Ractive({
 			el: fixture,
@@ -170,7 +172,7 @@ test( 'partial functions selects same partial until reset', function ( t ) {
 		template: '{{#items}}{{>foo}}{{/items}}',
 		partials: {
 			foo () {
-				return this.get( 'foo' ) ? '<p>{{.}}</p>' : '<h1>{{.}}</h1>'
+				return this.get( 'foo' ) ? '<p>{{.}}</p>' : '<h1>{{.}}</h1>';
 			}
 		},
 		data: {
@@ -260,7 +262,7 @@ test( 'Partials work in attributes (#917)', function ( t ) {
 	ractive.set( 'height', 200 );
 
 	t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
-})
+});
 
 test( 'Partial mustaches can be references or expressions that resolve to a partial', function ( t ) {
 	// please never do anything like this
@@ -319,7 +321,7 @@ test( 'Partial mustaches can be references or expressions that resolve to a part
 });
 
 test( 'Partials with expressions may also have context', function( t ) {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{>(tpl + ".test") ctx}} : {{>"test." + tpl ctx.expr}}',
 		data: {
@@ -561,7 +563,7 @@ test( 'Partials in attribute blocks can be changed with resetPartial', t => {
 });
 
 test( 'Partial naming requirements are relaxed', t => {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: `{{>a-partial}}{{>10-2}}{{>a - partial}}{{>delete}}`,
 		partials: {
@@ -579,7 +581,7 @@ test( 'Partial naming requirements are relaxed', t => {
 });
 
 test( 'Inline partials can override component partials', t => {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: `
 			<cmp>
@@ -601,7 +603,7 @@ test( 'Inline partials can override component partials', t => {
 });
 
 test( 'Inline partials may be defined with a partial section', t => {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{#partial foo}}foo{{/partial}}{{>foo}}<cmp /><cmp>{{#partial foo}}bar{{/partial}}<cmp>',
 		components: {
@@ -615,7 +617,7 @@ test( 'Inline partials may be defined with a partial section', t => {
 });
 
 test( '(Only) inline partials can be yielded', t => {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '<cmp /><cmp>{{#partial foo}}foo{{/partial}}',
 		components: {
@@ -668,7 +670,7 @@ test( 'Dynamic empty partial ok', function ( t ) {
 });
 
 test( 'Partials with expressions in recursive structures should not blow the stack', t => {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{#items}}{{>\'item\'}}{{/}}',
 		partials: {
@@ -722,7 +724,7 @@ test( 'Several inline partials containing elements can be defined (#1736)', t =>
 	t.equal( ractive.partials.part2.length, 1 );
 });
 
-test( 'Removing a missing partial (#1808)', t => {
+test( 'Removing a missing partial (#1808)', () => {
 	expect( 0 );
 
 	let ractive = new Ractive({
@@ -739,7 +741,7 @@ test( 'Removing a missing partial (#1808)', t => {
 
 test( 'Dynamic partial can be set in oninit (#1826)', t => {
 
-	let ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{> partialName }}',
 		partials: {
@@ -756,4 +758,23 @@ test( 'Dynamic partial can be set in oninit (#1826)', t => {
 
 	t.htmlEqual( fixture.innerHTML, 'twopart' );
 
+});
+
+test( 'Inline partials may be attached to any element (#1823)', t => {
+	new Ractive({
+		el: fixture,
+		template: '<div>{{#partial foo}}foo{{/}}</div>{{>foo}}'
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div></div>foo' );
+});
+
+test( 'Inline partials bubble to their nearest component (#1823)', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{#partial foo}}parent{{/partial}}<cmp>{{#partial foo}}cmp{{/partial}}</cmp>{{>foo}}',
+		components: { cmp: Ractive.extend({ template: '{{>foo}}' }) }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'cmpparent' );
 });
