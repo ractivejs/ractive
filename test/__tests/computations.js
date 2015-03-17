@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 module( 'Computations' );
 
 test( 'Computed value declared as a function', function ( t ) {
@@ -251,7 +253,7 @@ test( 'Set operations are not short-circuited when the set value is identical to
 	t.htmlEqual( fixture.innerHTML, '2' );
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
 		let warn = console.warn;
 		console.warn = () => t.ok( false );

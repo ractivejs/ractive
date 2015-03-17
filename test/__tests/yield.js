@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 module( 'Yield' );
 
 test( 'Basic yield', function ( t ) {
@@ -265,7 +267,7 @@ test( 'Components inherited from more than one generation off work with named yi
 	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	test( 'Yield with missing partial (#1681)', t => {
 		/* global console */
 		let warn = console.warn;

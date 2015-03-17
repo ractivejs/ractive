@@ -1,3 +1,5 @@
+import noop from 'utils/noop';
+
 var win, doc, exportedShims;
 
 if ( typeof window === 'undefined' ) {
@@ -411,6 +413,12 @@ if ( typeof window === 'undefined' ) {
 				: [style[t], style[r], style[b], style[l]]).join(' ');
 			}
 
+			var normalProps = {
+				fontWeight: 400,
+				lineHeight: 1.2, // actually varies depending on font-family, but is generally close enough...
+				letterSpacing: 0
+			};
+
 			function CSSStyleDeclaration(element) {
 				var currentStyle, style, fontSize, property;
 
@@ -420,7 +428,9 @@ if ( typeof window === 'undefined' ) {
 
 				// TODO tidy this up, test it, send PR to jonathantneal!
 				for (property in currentStyle) {
-					if ( /width|height|margin.|padding.|border.+W/.test(property) ) {
+					if ( currentStyle[property] === 'normal' && normalProps.hasOwnProperty( property ) ) {
+						style[ property ] = normalProps[ property ];
+					} else if ( /width|height|margin.|padding.|border.+W/.test(property) ) {
 						if ( currentStyle[ property ] === 'auto' ) {
 							if ( /^width|height/.test( property ) ) {
 								// just use clientWidth/clientHeight...
@@ -453,14 +463,14 @@ if ( typeof window === 'undefined' ) {
 
 			CSSStyleDeclaration.prototype = {
 				constructor: CSSStyleDeclaration,
-				getPropertyPriority: function () {},
+				getPropertyPriority: noop,
 				getPropertyValue: function ( prop ) {
 					return this[prop] || '';
 				},
-				item: function () {},
-				removeProperty: function () {},
-				setProperty: function () {},
-				getPropertyCSSValue: function () {}
+				item: noop,
+				removeProperty: noop,
+				setProperty: noop,
+				getPropertyCSSValue: noop
 			};
 
 			function getComputedStyle(element) {

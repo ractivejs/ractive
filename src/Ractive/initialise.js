@@ -7,7 +7,7 @@ import arrayAdaptor from 'Ractive/static/adaptors/array/index';
 import magicAdaptor from 'Ractive/static/adaptors/magic';
 import magicArrayAdaptor from 'Ractive/static/adaptors/magicArray';
 import { getElement } from 'utils/dom';
-import { create, extend } from 'utils/object';
+import { create, defineProperty, extend } from 'utils/object';
 import runloop from 'global/runloop';
 import config from 'Ractive/config/config';
 import dataConfigurator from 'Ractive/config/custom/data';
@@ -46,7 +46,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	initialiseProperties( ractive, options );
 
 	// TODO remove this, eventually
-	Object.defineProperty( ractive, 'data', { get: deprecateRactiveData });
+	defineProperty( ractive, 'data', { get: deprecateRactiveData });
 
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
 	constructHook.fire( ractive, userOptions );

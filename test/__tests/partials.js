@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 module( 'partials' );
 
 var partialsFn = {
@@ -17,7 +19,7 @@ test( 'specify partial by function', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	test( 'no return of partial warns in debug', function ( t ) {
 		var ractive, warn = console.warn;
 
@@ -137,7 +139,7 @@ test( 'partial can be preparsed template (gh-942)', function ( t ) {
 		partials: { foo: partial }
 	});
 
-	t.equal( fixture.innerHTML, '<p>hello partial</p>' );
+	t.htmlEqual( fixture.innerHTML, '<p>hello partial</p>' );
 });
 
 test( 'partial functions belong to instance, not Component', function ( t ) {
