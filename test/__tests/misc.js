@@ -1,4 +1,7 @@
 import hasUsableConsole from 'hasUsableConsole';
+import { isArray } from 'utils/is';
+
+Array.isArray || ( Array.isArray = thing => isArray( thing ) ); // IE8... don't ask
 
 var Foo, fooAdaptor;
 
@@ -841,6 +844,16 @@ if ( Ractive.svg ) {
 		t.ok( !!text );
 		t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
 	});
+
+	test( 'Case-sensitive conditional SVG attribute', t => {
+		var ractive = new Ractive({
+			el: fixture,
+			template: '<svg {{vb}}></svg>',
+			data: { vb: 'viewBox="0 0 100 100"' }
+		});
+
+		t.equal( ractive.find( 'svg' ).getAttribute( 'viewBox' ), '0 0 100 100' );
+	});
 }
 
 test( 'Custom delimiters apply to partials (#601)', function ( t ) {
@@ -1361,7 +1374,12 @@ test( 'Interpolation of script/style contents can be disabled (#1050)', function
 	});
 
 	t.equal( window.TEST_VALUE, '{{uninterpolated}}' );
-	delete window.TEST_VALUE;
+
+	try {
+		delete window.TEST_VALUE;
+	} catch ( err ) {
+		window.TEST_VALUE = null; // IE8, sigh
+	}
 });
 
 test( 'Changing the length of a section has no effect to detached ractives until they are reattached (#1053)', function ( t ) {
@@ -1522,16 +1540,6 @@ test( '. reference without any implicit or explicit context should resolve to ro
 	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.data ) );
 });
 
-test( 'Case-sensitive conditional SVG attribute', t => {
-	var ractive = new Ractive({
-		el: fixture,
-		template: '<svg {{vb}}></svg>',
-		data: { vb: 'viewBox="0 0 100 100"' }
-	});
-
-	t.equal( ractive.find( 'svg' ).getAttribute( 'viewBox' ), '0 0 100 100' );
-});
-
 test( 'Nested conditional computations should survive unrendering and rerendering (#1364)', ( t ) => {
 	var ractive = new Ractive({
 		el: fixture,
@@ -1592,36 +1600,38 @@ test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t 
 	t.equal( p.keypath, 'baz.bat' );
 });
 
-test( 'Data functions do not retain instance-bound copies of themselves (#1538)', function ( t ) {
-	var foo, Widget, widgets, keys;
+if ( typeof Object.getOwnPropertyNames === 'function' ) {
+	test( 'Data functions do not retain instance-bound copies of themselves (#1538)', function ( t ) {
+		var foo, Widget, widgets, keys;
 
-	foo = function () {
-		this; // so that it gets wrapped
-		return 'bar';
-	};
+		foo = function () {
+			this; // so that it gets wrapped
+			return 'bar';
+		};
 
-	Widget = Ractive.extend({
-		template: '{{foo()}}',
-		data: { foo: foo }
+		Widget = Ractive.extend({
+			template: '{{foo()}}',
+			data: { foo: foo }
+		});
+
+		widgets = [ new Widget(), new Widget(), new Widget() ];
+		keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+
+		t.equal( keys.length, 3 );
+
+		widgets.pop().teardown();
+		keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+		t.equal( keys.length, 2 );
+
+		widgets.pop().teardown();
+		keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+		t.equal( keys.length, 1 );
+
+		widgets.pop().teardown();
+		keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
+		t.equal( keys.length, 0 );
 	});
-
-	widgets = [ new Widget(), new Widget(), new Widget() ];
-	keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
-
-	t.equal( keys.length, 3 );
-
-	widgets.pop().teardown();
-	keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
-	t.equal( keys.length, 2 );
-
-	widgets.pop().teardown();
-	keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
-	t.equal( keys.length, 1 );
-
-	widgets.pop().teardown();
-	keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
-	t.equal( keys.length, 0 );
-});
+}
 
 test( 'Boolean attributes are added/removed based on unstringified fragment value', function ( t ) {
 	var ractive, button;
