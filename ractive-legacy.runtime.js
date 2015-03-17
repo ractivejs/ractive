@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.0-edge
-	Tue Mar 17 2015 17:39:31 GMT+0000 (UTC) - commit b76ece43680dc465cd3b68533c95b48ab88540ff
+	Tue Mar 17 2015 21:15:32 GMT+0000 (UTC) - commit 47676a2feb12f0d4ae68874ffdf52103b9bed0b0
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3657,7 +3657,7 @@
   		len = array.length;
 
   		if (!isArray(array)) {
-  			throw new Error("Called ractive." + methodName + "('" + keypath + "'), but '" + keypath + "' does not refer to an array");
+  			throw new Error("Called ractive." + methodName + "('" + keypath.str + "'), but '" + keypath.str + "' does not refer to an array");
   		}
 
   		newIndices = getNewIndices(array, methodName, args);
