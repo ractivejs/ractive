@@ -1232,12 +1232,14 @@ test( 'Inflight unsubscribe works (#1504)', t => {
 
 	expect( 3 );
 
-	ractive.on( 'foo', function first () {
+	function first () {
 		t.ok( true );
 		ractive.off( 'foo', first );
-	});
+	}
 
-	ractive.on( 'foo', function second () {
+	ractive.on( 'foo', first );
+
+	ractive.on( 'foo', function () {
 		t.ok( true );
 	});
 
