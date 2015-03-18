@@ -1467,7 +1467,35 @@ test( 'Method call event handlers can fire on parent instances (#1832)', t => {
 
 	t.equal( count, 1 );
 	t.strictEqual( local._guid, ractive._guid );
-	t.strictEqual( ev.origin._guid, cmp._guid );
+	t.strictEqual( ev.component._guid, cmp._guid );
+});
+
+test( `Method call event handlers aren't are sought beyond isolated borders`, t => {
+	let count = 0;
+	let ractive = new Ractive({
+		el: fixture,
+		template: `<cmp1><cmp2><button on-click="foo1()">1</button><button on-click="foo2()">2</button></cmp2></cmp1>`,
+		components: {
+			cmp1: Ractive.extend({ isolated: true, template: '{{>content}}', foo1() { count++; } }),
+			cmp2: Ractive.extend({ template: '{{>content}}' })
+		},
+		foo2() { count++; }
+	});
+
+	let buttons = ractive.findAll('button');
+	simulant.fire( buttons[0], 'click' );
+	t.equal( count, 1 );
+
+	// oy vey!
+	let onerror = window.onerror;
+	window.onerror = function ( err ) {
+		t.ok( /Attempted to call a non-existent method \(\"foo2\"\)/.test( err ) );
+		return true;
+	};
+	simulant.fire( buttons[1], 'click' );
+	window.onerror = onerror;
+
+	t.equal( count, 1 );
 });
 
 // phantom and IE8 don't like these tests, but browsers are ok with them

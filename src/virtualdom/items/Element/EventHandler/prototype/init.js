@@ -85,7 +85,7 @@ function fireMethodCall ( event ) {
 	var ractive, values, args;
 
 	ractive = findMethodHost( this.root, this.method );
-	event.origin = this.root;
+	event.component = this.root;
 
 	if ( !ractive || typeof ractive[ this.method ] !== 'function' ) {
 		throw new Error( 'Attempted to call a non-existent method ("' + this.method + '")' );
@@ -141,7 +141,7 @@ function fireEventWithDynamicParams ( event ) {
 function findMethodHost ( ractive, method ) {
 	if ( typeof ractive[ method ] === 'function' ) {
 		return ractive;
-	} else if ( ractive.parent ) {
+	} else if ( !ractive.isolated && ractive.parent ) {
 		return findMethodHost( ractive.parent, method );
 	}
 }
