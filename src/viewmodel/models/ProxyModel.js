@@ -20,7 +20,7 @@ class ProxyModel extends Model {
 
 	addChild ( child ) {
 		if ( !this.realModel ) {
-			super( child );
+			super.addChild( child );
 		} else {
 			this.realModel.addChild( child );
 		}
