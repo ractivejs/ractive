@@ -284,20 +284,22 @@ test( 'Sections survive unrender-render (#1553)', t => {
 	t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p><p>3</p>' );
 });
 
-test( 'data of type Object.create(null) (#1825)', t => {
-	var ractive, expected;
+if ( typeof Object.create === 'function' ) {
+	test( 'data of type Object.create(null) (#1825)', t => {
+		var ractive, expected;
 
-	ractive = new Ractive({
-		el: fixture,
-		template: '<hr class="{{ noproto }}">{{ noproto }}',
-		data: { noproto: Object.create(null) }
+		ractive = new Ractive({
+			el: fixture,
+			template: '<hr class="{{ noproto }}">{{ noproto }}',
+			data: { noproto: Object.create(null) }
+		});
+
+		expected = '<hr class>';
+
+		t.htmlEqual( fixture.innerHTML, expected );
+		t.equal( ractive.toHTML(), expected );
 	});
-
-	expected = '<hr class>';
-
-	t.htmlEqual( fixture.innerHTML, expected );
-	t.equal( ractive.toHTML(), expected );
-});
+}
 
 function deepClone ( source ) {
 	var target, key;

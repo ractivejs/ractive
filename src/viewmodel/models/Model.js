@@ -1,5 +1,5 @@
 import { addToArray, removeFromArray } from 'utils/array';
-import { isNumber } from 'utils/is';
+import { isNumeric } from 'utils/is';
 import createBranch from 'utils/createBranch';
 
 import PropertyStore from '../stores/PropertyStore';

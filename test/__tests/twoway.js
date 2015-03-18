@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 module( 'Two-way bindings' );
 
 test( 'Two-way bindings work with index references', function ( t ) {
@@ -132,20 +134,24 @@ test( 'Contenteditable elements can be bound via the value attribute', function 
 	t.htmlEqual( fixture.innerHTML, '<div contenteditable="true"><p>some different content</p></div>' );
 });
 
-test( 'Contenteditable elements can be bound with a bindable contenteditable attribute.', ( t ) => {
-	var div, ractive = new Ractive({
-		el: fixture,
-		template: '<div contenteditable="{{editable}}" value="{{content}}"><strong>some content</strong></div>',
-		data: { editable: false }
+try {
+	simulant.fire( document.createElement( 'div' ), 'change' );
+
+	test( 'Contenteditable elements can be bound with a bindable contenteditable attribute.', ( t ) => {
+		var div, ractive = new Ractive({
+			el: fixture,
+			template: '<div contenteditable="{{editable}}" value="{{content}}"><strong>some content</strong></div>',
+			data: { editable: false }
+		});
+
+		div = ractive.find( 'div' );
+		div.innerHTML = 'foo';
+		simulant.fire( div, 'change' );
+
+		t.equal( div.innerHTML, ractive.get( 'content' ) );
+		t.equal( ractive.get( 'content' ), 'foo' );
 	});
-
-	div = ractive.find( 'div' );
-	div.innerHTML = 'foo';
-	simulant.fire( div, 'change' );
-
-	t.equal( div.innerHTML, ractive.get( 'content' ) );
-	t.equal( ractive.get( 'content' ), 'foo' );
-});
+} catch ( err ) {}
 
 test( 'Existing model data overrides contents of contenteditable elements', function ( t ) {
 	var ractive = new Ractive({
@@ -675,7 +681,7 @@ test( 'Change events propagate after the model has been updated (#1371)', t => {
 	simulant.fire( ractive.find( 'select' ), 'change' );
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	test( 'Ambiguous references trigger a warning (#1692)', function ( t ) {
 		var warn = console.warn;
 		console.warn = warning => {

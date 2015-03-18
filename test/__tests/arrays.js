@@ -261,9 +261,9 @@ test( `Array shuffling only adjusts context and doesn't tear stuff down to rebui
 		el = iter.items[3];
 
 	// make sure these little suckers don't get re-rendered
-	ref.node.textContent += 'a';
-	exp.node.textContent += 'b';
-	mem.node.textContent += 'c';
+	ref.node.data += 'a';
+	exp.node.data += 'b';
+	mem.node.data += 'c';
 
 	ractive.unshift( 'items', { name: 'bar' } );
 

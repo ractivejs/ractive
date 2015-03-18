@@ -255,7 +255,7 @@ test( 'Components forward encapsulation instructions to top-level components in 
 	let style = getComputedStyle( p );
 
 	t.equal( getHexColor( p ), hexCodes.red );
-	t.equal( style.fontWeight, 'bold' );
+	t.ok( style.fontWeight === 'bold' || style.fontWeight === 700 );
 	t.equal( style.fontStyle, 'italic' );
 });
 

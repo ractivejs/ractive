@@ -9,7 +9,7 @@ fi
 # if the tests fail (and we're not trying to work with bloody Windows), abort (errexit)
 set -e
 
-MOD='node_modules/.bin'
+export MOD='node_modules/.bin'
 
 echo "> linting..."
 #$MOD/jshint src
@@ -43,6 +43,7 @@ echo "> tests passed. minifying..."
 compress () {
 	local src=$1
 	local dest=${src%.js}.min.js
+	local MOD="../node_modules/.bin"
 
 	$MOD/uglifyjs \
 		--compress \

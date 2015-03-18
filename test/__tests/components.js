@@ -1,3 +1,5 @@
+import hasUsableConsole from 'hasUsableConsole';
+
 module( 'Components' );
 
 test( 'Components are rendered in the correct place', t => {
@@ -480,7 +482,7 @@ test( 'Specify component by function as string', t => {
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
-if ( typeof console !== 'undefined' && console.warn ) {
+if ( hasUsableConsole ) {
 	test( 'no return of component warns in debug', t => {
 		var ractive, warn = console.warn;
 

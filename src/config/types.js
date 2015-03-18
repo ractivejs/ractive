@@ -8,8 +8,6 @@ export var ELEMENT           = 7;
 export var PARTIAL           = 8;
 export var COMMENT           = 9;
 export var DELIMCHANGE       = 10;
-export var MUSTACHE          = 11;
-export var TAG               = 12;
 export var ATTRIBUTE         = 13;
 export var CLOSING_TAG       = 14;
 export var COMPONENT         = 15;
@@ -43,7 +41,6 @@ export var SECTION_UNLESS    = 51;
 export var SECTION_EACH      = 52;
 export var SECTION_WITH      = 53;
 export var SECTION_IF_WITH   = 54;
-export var SECTION_PARTIAL   = 55;
 
 export var ELSE              = 60;
 export var ELSEIF            = 61;

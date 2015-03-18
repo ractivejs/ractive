@@ -123,7 +123,7 @@ if ( !isClient ) {
 }
 
 function detachNode ( node ) {
-	if ( node && node.parentNode ) {
+	if ( node && typeof node.parentNode !== 'unknown' && node.parentNode ) {
 		node.parentNode.removeChild( node );
 	}
 
