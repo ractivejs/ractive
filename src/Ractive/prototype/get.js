@@ -2,7 +2,8 @@ import { normalise } from 'shared/keypaths';
 
 var options = {
 	capture: true, // top-level calls should be intercepted
-	noUnwrap: true // wrapped values should NOT be unwrapped
+	noUnwrap: true, // wrapped values should NOT be unwrapped
+	fullRootGet: true // root get should return mappings
 };
 
 export default function Ractive$get ( keypath ) {

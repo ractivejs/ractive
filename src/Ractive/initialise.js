@@ -1,6 +1,6 @@
-import { fatal } from 'utils/log';
+import { fatal, logIfDebug, warnIfDebug, warnOnceIfDebug, welcome } from 'utils/log';
 import { missingPlugin } from 'config/errors';
-import { magic } from 'config/environment';
+import { magic as magicSupported } from 'config/environment';
 import { ensureArray } from 'utils/array';
 import { findInViewHierarchy } from 'shared/registry';
 import arrayAdaptor from 'Ractive/static/adaptors/array/index';
@@ -16,14 +16,14 @@ import Viewmodel from 'viewmodel/Viewmodel';
 import Hook from './prototype/shared/hooks/Hook';
 import HookQueue from './prototype/shared/hooks/HookQueue';
 import getComputationSignatures from './helpers/getComputationSignatures';
+import Ractive from '../Ractive';
 
-var constructHook = new Hook( 'construct' ),
-	configHook = new Hook( 'config' ),
-	initHook = new HookQueue( 'init' ),
-	uid = 0,
-	registryNames;
+let constructHook = new Hook( 'construct' );
+let configHook = new Hook( 'config' );
+let initHook = new HookQueue( 'init' );
+let uid = 0;
 
-registryNames = [
+let registryNames = [
 	'adaptors',
 	'components',
 	'decorators',
@@ -39,13 +39,17 @@ export default initialiseRactiveInstance;
 function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	var el, viewmodel, computed;
 
+	if ( Ractive.DEBUG ) {
+		welcome();
+	}
+
 	initialiseProperties( ractive, options );
 
 	// TODO remove this, eventually
 	Object.defineProperty( ractive, 'data', { get: deprecateRactiveData });
 
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
-	constructHook.fire( config.getConstructTarget( ractive, userOptions ), userOptions );
+	constructHook.fire( ractive, userOptions );
 
 	// Add registries
 	registryNames.forEach( name => {
@@ -65,25 +69,21 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	});
 
 	ractive.viewmodel = viewmodel;
-	viewmodel.debug = ractive.debug;
+
+	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
+	viewmodel.init();
 
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
-	// TODO this was moved from Viewmodel.extend - should be
-	// rolled in with other config stuff
-	if ( ractive.magic && !magic ) {
-		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
-	}
-
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
-	// If this is a component with a function `data` property, call the function
-	// with `ractive` as context (unless the child was also a function)
-	if ( typeof ractive.constructor.prototype.data === 'function' && typeof userOptions.data !== 'function' ) {
-		viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
-	}
+	// // If this is a component with a function `data` property, call the function
+	// // with `ractive` as context (unless the child was also a function)
+	// if ( typeof ractive.constructor.prototype.data === 'function' && typeof userOptions.data !== 'function' ) {
+	// 	viewmodel.reset( ractive.constructor.prototype.data.call( ractive ) || fatal( '`data` functions must return a data object' ) );
+	// }
 
 
 	// Render virtual DOM
@@ -110,7 +110,17 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	// render automatically ( if `el` is specified )
 	if ( el = getElement( ractive.el ) ) {
-		ractive.render( el, ractive.append );
+		let promise = ractive.render( el, ractive.append );
+
+		if ( Ractive.DEBUG_PROMISES ) {
+			promise.catch( err => {
+				warnOnceIfDebug( 'Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;' );
+				warnIfDebug( 'An error happened during rendering', { ractive });
+				err.stack && logIfDebug( err.stack );
+
+				throw err;
+			});
+		}
 	}
 }
 
@@ -126,7 +136,7 @@ function getAdaptors ( ractive, protoAdapt, userOptions ) {
 	modifyArrays = 'modifyArrays' in userOptions ? userOptions.modifyArrays : ractive.modifyArrays;
 
 	if ( magic ) {
-		if ( !magic ) {
+		if ( !magicSupported ) {
 			throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
 		}
 

@@ -2,12 +2,6 @@ import { isObject } from 'utils/is';
 import { getMatchingKeypaths, normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
-var wildcard = /\*/;
-
-function set ( ractive, keypath, value ) {
-	ractive.viewmodel.set( normalise( keypath ), value );
-}
-
 export default function Ractive$set ( keypath, value ) {
 	var map, promise;
 
@@ -33,3 +27,21 @@ export default function Ractive$set ( keypath, value ) {
 	return promise;
 }
 
+
+function set ( ractive, keypath, value ) {
+	ractive.viewmodel.set( normalise( keypath ), value );
+}
+
+//TODO: wildcards
+
+// function set ( ractive, keypath, value ) {
+// 	keypath = getKeypath( normalise( keypath ) );
+
+// 	if ( keypath.isPattern ) {
+// 		getMatchingKeypaths( ractive, keypath ).forEach( keypath => {
+// 			ractive.viewmodel.set( keypath, value );
+// 		});
+// 	} else {
+// 		ractive.viewmodel.set( keypath, value );
+// 	}
+// }

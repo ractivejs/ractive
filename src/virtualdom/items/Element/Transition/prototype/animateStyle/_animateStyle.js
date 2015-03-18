@@ -1,4 +1,4 @@
-import { warn } from 'utils/log';
+import { warnOnceIfDebug } from 'utils/log';
 import { isClient } from 'config/environment';
 import legacy from 'legacy';
 import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
@@ -43,7 +43,7 @@ if ( !isClient ) {
 
 		// TODO remove this check in a future version
 		if ( !options ) {
-			warn( 'The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name );
+			warnOnceIfDebug( 'The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name );
 			options = this;
 		}
 

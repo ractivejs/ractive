@@ -1,5 +1,8 @@
 import { DOCTYPE, ELEMENT } from 'config/types';
 import { voidElementNames } from 'utils/html';
+import { create } from 'utils/object';
+import { READERS, PARTIAL_READERS } from '../_parse';
+import cleanup from '../utils/cleanup';
 import readMustache from './readMustache';
 import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
@@ -38,7 +41,6 @@ export default readElement;
 function readElement ( parser ) {
 	var start,
 		element,
-		lowerCaseName,
 		directiveName,
 		match,
 		addProxyEvent,
@@ -46,6 +48,8 @@ function readElement ( parser ) {
 		directive,
 		selfClosing,
 		children,
+		partials,
+		hasPartials,
 		child,
 		closed,
 		pos,
@@ -114,20 +118,20 @@ function readElement ( parser ) {
 		if ( attribute.name ) {
 			// intro, outro, decorator
 			if ( directiveName = directives[ attribute.name ] ) {
-				element[ directiveName ] = processDirective( attribute.value );
+				element[ directiveName ] = processDirective( attribute.value, parser );
 			}
 
 			// on-click etc
 			else if ( match = proxyEventPattern.exec( attribute.name ) ) {
 				if ( !element.v ) element.v = {};
-				directive = processDirective( attribute.value );
+				directive = processDirective( attribute.value, parser );
 				addProxyEvent( match[1], directive );
 			}
 
 			else {
 				if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
 					if ( !element.a ) element.a = {};
-					element.a[ attribute.name ] = attribute.value || 0;
+					element.a[ attribute.name ] = attribute.value || ( attribute.value === '' ? '' : 0 );
 				}
 			}
 		}
@@ -154,7 +158,8 @@ function readElement ( parser ) {
 		return null;
 	}
 
-	lowerCaseName = element.e.toLowerCase();
+	let lowerCaseName = element.e.toLowerCase();
+	let preserveWhitespace = parser.preserveWhitespace;
 
 	if ( !selfClosing && !voidElementNames.test( element.e ) ) {
 		parser.elementStack.push( lowerCaseName );
@@ -166,6 +171,7 @@ function readElement ( parser ) {
 		}
 
 		children = [];
+		partials = create( null );
 
 		do {
 			pos = parser.pos;
@@ -210,18 +216,34 @@ function readElement ( parser ) {
 			}
 
 			else {
-				child = parser.read();
+				if ( child = parser.read( PARTIAL_READERS ) ) {
+					if ( partials[ child.n ] ) {
+						parser.pos = pos;
+						parser.error( 'Duplicate partial definition' );
+					}
 
-				if ( !child ) {
-					closed = true;
-				} else {
-					children.push( child );
+					cleanup( child.f, parser.stripComments, preserveWhitespace, !preserveWhitespace, !preserveWhitespace );
+
+					partials[ child.n ] = child.f;
+					hasPartials = true;
+				}
+
+				else {
+					if ( child = parser.read( READERS ) ) {
+						children.push( child );
+					} else {
+						closed = true;
+					}
 				}
 			}
 		} while ( !closed );
 
 		if ( children.length ) {
 			element.f = children;
+		}
+
+		if ( hasPartials ) {
+			element.p = partials;
 		}
 
 		parser.elementStack.pop();

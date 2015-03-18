@@ -12,14 +12,17 @@ firedSetup = {
 module( 'onconstruct', firedSetup );
 
 test( 'has access to options', t => {
-	var ractive
+	var View, ractive;
 
-	ractive = new Ractive({
-		el: fixture,
+	View = Ractive.extend({
 		onconstruct: function ( options ){
 			options.template = '{{foo}}';
 			options.data = { foo: 'bar' };
 		}
+	});
+
+	ractive = new View({
+		el: fixture
 	});
 
 	t.equal( fixture.innerHTML, 'bar' );
@@ -27,7 +30,6 @@ test( 'has access to options', t => {
 });
 
 hooks = [
-	'onconstruct',
 	'onconfig',
 	'oninit',
 	'onrender',
@@ -45,22 +47,25 @@ test( 'basic order', t => {
 		template: 'foo'
 	};
 
-	hooks.forEach( hook => {
+	function addHook ( hook ) {
 		options[ hook ] = function () {
 			fired.push( hook );
 		};
-	});
+	}
+
+	hooks.forEach( hook => addHook( hook ) );
 
 	ractive = new Ractive( options );
 	ractive.teardown();
 	t.deepEqual( fired, hooks );
 
 	fired = [];
+	addHook( 'onconstruct');
 
 	Component = Ractive.extend( options );
 	ractive = new Component();
 	ractive.teardown();
-	t.deepEqual( fired, hooks );
+	t.deepEqual( fired, [ 'onconstruct' ].concat( hooks ) );
 
 });
 
@@ -205,7 +210,6 @@ function testHierarchy ( hook, expected ) {
 		options.template = '{{foo}}';
 		GrandChild = Ractive.extend( options );
 
-
 		options = getOptions( 'child' );
 		options.template = '<grand-child/>';
 		options.components = {
@@ -235,7 +239,7 @@ function testHierarchy ( hook, expected ) {
 var topDown = [ 'parent', 'child', 'grandchild' ];
 var bottomUp = [ 'grandchild', 'child', 'parent' ];
 
-testHierarchy( 'onconstruct', topDown );
+testHierarchy( 'onconstruct', [ 'child', 'grandchild' ] );
 testHierarchy( 'onconfig', topDown );
 testHierarchy( 'oninit', topDown );
 testHierarchy( 'onrender', topDown );
@@ -365,22 +369,37 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) 
 	t.deepEqual( count, { construct: 0, beforeInit: 1 });
 });
 
-asyncTest( 'error in oncomplete sent to console', function ( t ) {
-	var ractive, error = console.error;
+if ( typeof console !== 'undefined' && console.warn ) {
+	asyncTest( 'error in oncomplete sent to console', function ( t ) {
+		let warn = console.warn;
+		let log = console.log;
 
-	expect( 1 )
-	console.error = function ( err ) {
-		t.equal( err, 'evil handler' );
-		console.error = error;
-		QUnit.start();
-	}
+		expect( 2 )
+		console.warn = msg => {
+			if ( /DEBUG_PROMISES/.test( msg ) ) {
+				return;
+			}
 
-	ractive = new Ractive({
-		el: fixture,
-		template: 'foo',
-		data: { a: 'b' },
-		oncomplete: function(){
-			throw 'evil handler';
-		}
+			t.ok( /error happened during rendering/.test( msg ) );
+			console.warn = warn;
+		};
+
+		console.log = stack => {
+			if ( /debug mode/.test( stack ) ) {
+				return;
+			}
+
+			t.ok( /evil handler/.test( stack ) );
+			console.log = log;
+			QUnit.start();
+		};
+
+		new Ractive({
+			el: fixture,
+			template: 'foo',
+			oncomplete () {
+				throw new Error( 'evil handler' );
+			}
+		});
 	});
-});
+}

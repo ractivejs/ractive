@@ -1,4 +1,4 @@
-import { log, warn } from 'utils/log';
+import { logIfDebug, warnIfDebug, warnOnce } from 'utils/log';
 import { isEqual } from 'utils/is';
 
 class Computation {
@@ -39,7 +39,9 @@ class Computation {
 
 		if ( this.getting ) {
 			// prevent double-computation (e.g. caused by array mutation inside computation)
-			return;
+			let msg = `The ${this.key.str} computation indirectly called itself. This probably indicates a bug in the computation. It is commonly caused by \`array.sort(...)\` - if that\'s the case, clone the array first with \`array.slice().sort(...)\``;
+			warnOnce( msg );
+			return this.value;
 		}
 
 		this.getting = true;
@@ -78,11 +80,8 @@ class Computation {
 				try {
 					this.value = this.getter();
 				} catch ( err ) {
-					if ( this.viewmodel.debug ) {
-						warn( 'Failed to compute "%s"', this.key.getKeypath() );
-						log( err.stack || err );
-					}
-
+					warnIfDebug( 'Failed to compute "%s"', this.key.str );
+					logIfDebug( err.stack || err );
 					this.value = void 0;
 				}
 

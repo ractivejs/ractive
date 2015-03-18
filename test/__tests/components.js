@@ -1,5 +1,3 @@
-import Model from 'helpers/Model';
-
 module( 'Components' );
 
 test( 'Components are rendered in the correct place', t => {
@@ -21,7 +19,7 @@ test( 'Components are rendered in the correct place', t => {
 });
 
 test( 'Top-level sections in components are updated correctly', t => {
-	var ractive, Component, component;
+	var ractive, Component;
 
 	Component = Ractive.extend({
 		template: '{{#foo}}foo is truthy{{/foo}}{{^foo}}foo is falsy{{/foo}}'
@@ -129,7 +127,7 @@ asyncTest( 'Instances with multiple components still fire oncomplete() handlers 
 	expect( 3 );
 
 	counter = 3;
-	done = function () { if ( !--counter) start(); };
+	done = function () { if ( !--counter ) start(); };
 
 	ractive = new Ractive({
 		el: fixture,
@@ -368,7 +366,7 @@ test( 'Components not found in view hierarchy when isolated is true', t => {
 });
 
 test( 'Evaluator used in component more than once (gh-844)', t => {
-	var Component, BarComponent, ractive;
+	var Component;
 
 
 	Component = Ractive.extend({
@@ -380,7 +378,7 @@ test( 'Evaluator used in component more than once (gh-844)', t => {
 		}
 	});
 
-	var r = new Ractive({
+	new Ractive({
 		el: fixture,
 		components: { c: Component },
 		template: '<c>'
@@ -402,7 +400,7 @@ test( 'Removing inline components causes teardown events to fire (#853)', t => {
 				oninit: function () {
 					this.on( 'teardown', function () {
 						t.ok( true );
-					})
+					});
 				}
 			})
 		}
@@ -472,7 +470,7 @@ test( 'Specify component by function as string', t => {
 		el: fixture,
 		template: '<widget/>',
 		components: {
-			widget: function( data ) {
+			widget: function() {
 				return 'widget1';
 			},
 			widget1: Widget
@@ -482,31 +480,83 @@ test( 'Specify component by function as string', t => {
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
-if ( console && console.warn ) {
-
+if ( typeof console !== 'undefined' && console.warn ) {
 	test( 'no return of component warns in debug', t => {
-
 		var ractive, warn = console.warn;
 
 		expect( 1 );
 
 		console.warn = function( msg ) {
 			t.ok( msg );
-		}
+		};
 
 		ractive = new Ractive({
 			el: fixture,
 			template: '<widget/>',
 			debug: true,
 			components: {
-				widget: function( data ) {
+				widget: function() {
 					// where's my component?
 				}
 			}
 		});
 
 		console.warn = warn;
+	});
 
+	test( 'Inline components disregard `el` option (#1072) (and print a warning in debug mode)', function ( t ) {
+		var warn = console.warn;
+
+		expect( 1 );
+
+		console.warn = function () {
+			t.ok( true );
+		};
+
+		var ractive = new Ractive({
+			el: fixture,
+			data: { show: true },
+			template: '{{#if show}}<widget/>{{/if}}',
+			components: {
+				widget: Ractive.extend({
+				    el: fixture,
+				    template: '{{whatever}}'
+				})
+			},
+			debug: true
+		});
+
+		ractive.set( 'show', false );
+		console.warn = warn;
+	});
+
+	test( 'Using non-primitives in data passed to Ractive.extend() triggers a warning', t => {
+		let warn = console.warn;
+		console.warn = msg => {
+			t.ok( /Passing a `data` option with object and array properties to Ractive.extend\(\) is discouraged, as mutating them is likely to cause bugs/.test( msg ) );
+		};
+
+		expect( 1 );
+
+		Ractive.extend({
+			data: {
+				foo: 42
+			}
+		});
+
+		Ractive.extend({
+			data: {
+				foo: {}
+			}
+		});
+
+		Ractive.extend({
+			data: () => ({
+				foo: {}
+			})
+		});
+
+		console.warn = warn;
 	});
 }
 
@@ -514,7 +564,7 @@ test( '`this` in function refers to ractive instance', t => {
 
 	var thisForFoo, thisForBar, ractive, Component;
 
-	Component = Ractive.extend({})
+	Component = Ractive.extend({});
 
 	ractive = new Ractive({
 		el: fixture,
@@ -589,33 +639,7 @@ if ( Ractive.svg ) {
 	});
 }
 
-test( 'Inline components disregard `el` option (#1072) (and print a warning in debug mode)', function ( t ) {
-	var warn = console.warn;
-
-	expect( 1 );
-
-	console.warn = function () {
-		t.ok( true );
-	};
-
-	var ractive = new Ractive({
-		el: fixture,
-		data: { show: true },
-		template: '{{#if show}}<widget/>{{/if}}',
-		components: {
-			widget: Ractive.extend({
-			    el: fixture,
-			    template: '{{whatever}}'
-			})
-		},
-		debug: true
-	});
-
-	ractive.set( 'show', false );
-	console.warn = warn;
-});
-
-test( 'Double teardown is handled gracefully (#1218)', function ( t ) {
+test( 'Double teardown is handled gracefully (#1218)', function () {
 	var Widget, ractive;
 
 	expect( 0 );
@@ -641,7 +665,7 @@ test( 'Double teardown is handled gracefully (#1218)', function ( t ) {
 });
 
 test( 'component.teardown() causes component to be removed from the DOM (#1223)', function ( t ) {
-	var Widget, ractive, _fixture;
+	var Widget, ractive;
 
 	Widget = Ractive.extend({
 		template: '<p>I am here!</p>'
@@ -731,7 +755,7 @@ test( 'Data is synced as soon as an unresolved mapping is resolved', function ( 
 
 test( 'Mapping to a computed property is an error', function ( t ) {
 	t.throws( function () {
-		var ractive = new Ractive({
+		new Ractive({
 			template: '<widget foo="{{bar}}"/>',
 			data: { bar: 'irrelevant' },
 			components: {
@@ -751,7 +775,7 @@ test( 'Mapping to a computed property is an error', function ( t ) {
 // TODO: fix this, failing since keypath-ftw. maybe revisit if this is really correct
 /*
 test( 'Implicit mappings are created by restricted references (#1465)', function ( t ) {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '<p>a: {{foo}}</p><b/><c/>',
 		data: {
@@ -761,7 +785,7 @@ test( 'Implicit mappings are created by restricted references (#1465)', function
 			b: Ractive.extend({
 				template: '<p>b: {{./foo}}</p>',
 				oninit: function () {
-					this.get( 'foo' ) // triggers mapping creation; should be unnecessary
+					this.get( 'foo' ); // triggers mapping creation; should be unnecessary
 				}
 			}),
 			c: Ractive.extend({
@@ -833,4 +857,44 @@ test( 'Component mappings used in computations resolve correctly with the mappin
 	});
 
 	t.htmlEqual( fixture.innerHTML, ractive.toHTML() );
+});
+
+test( 'Component attributes with no = are boolean true', t => {
+	new Ractive({
+		el: fixture,
+		template: '<cmp foo />',
+		components: { cmp: Ractive.extend({ template: '{{#foo === true}}yep{{/}}' }) }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
+
+test( 'Component attributes with an empty string come back with an empty string', t => {
+	new Ractive({
+		el: fixture,
+		template: `<cmp foo='' />`,
+		components: { cmp: Ractive.extend({ template: `{{#foo === ''}}yep{{/}}` }) }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
+
+test( 'Unresolved keypath can be safely torn down', t => {
+
+	expect(0);
+
+	var ractive = new Ractive({
+		el: fixture,
+		template: `<outer/>`,
+		components: {
+			outer: Ractive.extend({ template: `{{#show}}<inner foo="{{unresolved}}"/>{{/}}` }),
+			inner: Ractive.extend({ template: `{{foo}}` })
+		},
+		data: {
+			show: true
+		}
+	});
+
+	ractive.set('show', false);
+
 });

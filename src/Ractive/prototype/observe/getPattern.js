@@ -3,7 +3,7 @@ import { getMatchingKeypaths } from 'shared/keypaths';
 export default function getPattern ( ractive, pattern ) {
 	var matchingKeypaths, values;
 
-	matchingKeypaths = getMatchingKeypaths( ractive, pattern.str );
+	matchingKeypaths = getMatchingKeypaths( ractive, pattern );
 
 	values = {};
 	matchingKeypaths.forEach( model => {

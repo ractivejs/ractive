@@ -15,12 +15,10 @@ export default function readAttribute ( parser ) {
 		return null;
 	}
 
-	attr = {
-		name: name
-	};
+	attr = { name };
 
 	value = readAttributeValue( parser );
-	if ( value ) {
+	if ( value != null ) { // not null/undefined
 		attr.value = value;
 	}
 
@@ -31,6 +29,11 @@ function readAttributeValue ( parser ) {
 	var start, valueStart, startDepth, value;
 
 	start = parser.pos;
+
+	// next character must be `=`, `/`, `>` or whitespace
+	if ( !/[=\/>\s]/.test( parser.nextChar() ) ) {
+		parser.error( 'Expected `=`, `/`, `>` or whitespace' );
+	}
 
 	parser.allowWhitespace();
 
@@ -48,18 +51,17 @@ function readAttributeValue ( parser ) {
 			readQuotedAttributeValue( parser, '"' ) ||
 			readUnquotedAttributeValue( parser );
 
+	if ( value === null ) {
+		parser.error( 'Expected valid attribute value' );
+	}
+
 	if ( parser.sectionDepth !== startDepth ) {
 		parser.pos = valueStart;
 		parser.error( 'An attribute value must contain as many opening section tags as closing section tags' );
 	}
 
-	if ( value === null ) {
-		parser.pos = start;
-		return null;
-	}
-
 	if ( !value.length ) {
-		return null;
+		return '';
 	}
 
 	if ( value.length === 1 && typeof value[0] === 'string' ) {

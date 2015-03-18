@@ -17,30 +17,67 @@ test( 'specify partial by function', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 });
 
-if ( console && console.warn ) {
+if ( typeof console !== 'undefined' && console.warn ) {
 	test( 'no return of partial warns in debug', function ( t ) {
 		var ractive, warn = console.warn;
 
-		expect( 2 ); //throws counts as an assertion
+		expect( 2 );
 
 		console.warn = function( msg ) {
 			t.ok( msg );
 		};
 
 		// will throw on no-partial found
-		throws( () => {
-			ractive = new Ractive({
-				el: fixture,
-				template: '{{>foo}}',
-				data: { foo: true },
-				debug: true,
-				partials: {
-					foo () {
-						// where's my partial?
-					}
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{>foo}}',
+			data: { foo: true },
+			debug: true,
+			partials: {
+				foo () {
+					// where's my partial?
 				}
-			});
+			}
 		});
+
+		console.warn = warn;
+	});
+
+	test( 'Warn on unknown partial', function ( t ) {
+		var ractive, warn = console.warn;
+
+		expect( 2 );
+
+		console.warn = () => t.ok( true );
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{>unknown}}{{>other {a:42} }}',
+			partials: {}
+		});
+
+		console.warn = warn;
+	});
+
+	test( 'Don\'t warn on empty partial', function ( t ) {
+
+		var ractive, warn = console.warn;
+
+		expect( 1 );
+
+		console.warn = function( msg ) {
+			t.ok( false );
+		}
+
+		ractive = new Ractive({
+			el: fixture,
+			template: '{{>empty}}',
+			partials: {
+				empty: ''
+			}
+		});
+
+		t.ok( true );
 
 		console.warn = warn;
 	});
@@ -592,29 +629,6 @@ test( '(Only) inline partials can be yielded', t => {
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
-if ( console && console.warn ) {
-
-	test( 'Warn on unknown partial', function ( t ) {
-
-		var ractive, warn = console.warn;
-
-		expect( 1 );
-
-		console.warn = function( msg ) {
-			t.ok( true );
-		}
-
-		ractive = new Ractive({
-			el: fixture,
-			template: '{{>unknown}}',
-			partials: {
-			}
-		});
-
-		console.warn = warn;
-	});
-}
-
 test( 'Don\'t throw on empty partial', function ( t ) {
 
 	var ractive;
@@ -653,32 +667,6 @@ test( 'Dynamic empty partial ok', function ( t ) {
 
 });
 
-if ( console && console.warn ) {
-
-	test( 'Don\'t warn on empty partial', function ( t ) {
-
-		var ractive, warn = console.warn;
-
-		expect( 1 );
-
-		console.warn = function( msg ) {
-			t.ok( false );
-		}
-
-		ractive = new Ractive({
-			el: fixture,
-			template: '{{>empty}}',
-			partials: {
-				empty: ''
-			}
-		});
-
-		t.ok( true );
-
-		console.warn = warn;
-	});
-}
-
 test( 'Partials with expressions in recursive structures should not blow the stack', t => {
 	var ractive = new Ractive({
 		el: fixture,
@@ -713,4 +701,59 @@ test( 'Named partials should not get rebound if they happen to have the same nam
 	ractive.push( 'items', { item: 'c' } );
 
 	t.htmlEqual( fixture.innerHTML, 'abcc' );
+});
+
+test( 'Several inline partials containing elements can be defined (#1736)', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: `
+			<!-- {{>part1}} -->
+			<div>inline1</div>
+			<!-- {{/part1}} -->
+			<!-- {{>part2}} -->
+			<div>inline2</div>
+			<!-- {{/part2}} -->
+			A{{>part1}}B{{>part2}}C
+		`
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'A<div>inline1</div>B<div>inline2</div>C' );
+	t.equal( ractive.partials.part1.length, 1 );
+	t.equal( ractive.partials.part2.length, 1 );
+});
+
+test( 'Removing a missing partial (#1808)', t => {
+	expect( 0 );
+
+	let ractive = new Ractive({
+		template: '{{#items}}{{>item}}{{/}}',
+		el: 'main',
+		data: {
+			items: [ 1, 2, 3 ]
+		}
+	});
+
+	ractive.unshift( 'items', 4 );
+	ractive.shift( 'items' );
+});
+
+test( 'Dynamic partial can be set in oninit (#1826)', t => {
+
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{> partialName }}',
+		partials: {
+			one: 'onepart',
+			two: 'twopart',
+		},
+		data: {
+			partialName: 'one',
+		},
+		oninit: function() {
+			this.set({partialName: 'two'});
+		},
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'twopart' );
+
 });

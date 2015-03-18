@@ -26,7 +26,7 @@ export default function Section$setValue ( value ) {
 	// this is the place to do it
 	if ( this.fragmentsToCreate.length ) {
 		fragmentOptions = {
-			template: this.template.f,
+			template: this.template.f || [],
 			root:     this.root,
 			pElement: this.pElement,
 			owner:    this
@@ -83,11 +83,13 @@ function changeCurrentSubtype ( section, value, obj ) {
 
 function reevaluateSection ( section, value ) {
 	var fragmentOptions = {
-		template: section.template.f,
-		root:       section.root,
-		pElement:   section.parentFragment.pElement,
-		owner:      section
+		template: section.template.f || [],
+		root:     section.root,
+		pElement: section.parentFragment.pElement,
+		owner:    section
 	};
+
+	section.hasContext = true;
 
 	// If we already know the section type, great
 	// TODO can this be optimised? i.e. pick an reevaluateSection function during init
@@ -95,9 +97,11 @@ function reevaluateSection ( section, value ) {
 	if ( section.subtype ) {
 		switch ( section.subtype ) {
 			case SECTION_IF:
+			section.hasContext = false;
 			return reevaluateConditionalSection( section, value, false, fragmentOptions );
 
 			case SECTION_UNLESS:
+			section.hasContext = false;
 			return reevaluateConditionalSection( section, value, true, fragmentOptions );
 
 			case SECTION_WITH:
@@ -140,6 +144,7 @@ function reevaluateSection ( section, value ) {
 
 	// Conditional section
 	changeCurrentSubtype( section, SECTION_IF, false );
+	section.hasContext = false;
 	return reevaluateConditionalSection( section, value, false, fragmentOptions );
 }
 

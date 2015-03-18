@@ -1,5 +1,5 @@
 import { INTERPOLATOR, YIELDER } from 'config/types';
-import { warn } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import { create, extend } from 'utils/object';
 import { isArray } from 'utils/is';
 import parseJSON from 'utils/parseJSON';
@@ -13,7 +13,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	ractive = component.root;
 
 	partials = partials || {};
-	extend( inlinePartials, partials || {} );
+	extend( inlinePartials, partials );
 
 	// Make contents available as a {{>content}} partial
 	partials.content = yieldTemplate || [];
@@ -22,7 +22,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	inlinePartials[''] = partials.content;
 
 	if ( Component.defaults.el ) {
-		warn( 'The <%s/> component has a default `el` property; it has been disregarded', component.name );
+		warnIfDebug( 'The <%s/> component has a default `el` property; it has been disregarded', component.name );
 	}
 
 	// find container
@@ -45,6 +45,11 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 				// it's static data
 				parsed = parseJSON( attribute );
 				data[ key ] = parsed ? parsed.value : attribute;
+			}
+
+			else if ( attribute === 0 ) {
+				// it had no '=', so we'll call it true
+				data[ key ] = true;
 			}
 
 			else if ( isArray( attribute ) ) {
@@ -79,18 +84,18 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 	initialise( instance, {
 		el: null,
 		append: true,
-		data: data,
-		partials: partials,
+		data,
+		partials,
 		magic: ractive.magic || Component.defaults.magic,
 		modifyArrays: ractive.modifyArrays,
 		// need to inherit runtime parent adaptors
 		adapt: ractive.adapt
 	}, {
 		parent: ractive,
-		component: component,
-		container: container,
-		mappings: mappings,
-		inlinePartials: inlinePartials,
+		component,
+		container,
+		mappings,
+		inlinePartials,
 		cssIds: parentFragment.cssIds
 	});
 

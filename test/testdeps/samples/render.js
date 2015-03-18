@@ -138,6 +138,16 @@ var renderTests = [
 		result: "<p class=\"\">test</p>"
 	},
 	{
+		name: 'Empty string boolean attributes',
+		template: "<input type='checkbox' checked='' />",
+		result: "<input type='checkbox' checked />"
+	},
+	{
+		name: 'Contenteditale without a value binding works with toHTML',
+		template: "<div contenteditable=''>edit me</div>",
+		result: "<div contenteditable=''>edit me</div>"
+	},
+	{
 		name: 'Attribute with sections',
 		template: '<ul>{{#todos:i}}<li data-index="{{i}}" class="{{#completed}}completed{{/completed}}{{^completed}}view{{/completed}}">{{desc}}</li>{{/todos}}</ul>',
 		data: { todos: [{ desc: 'debug Ractive', completed: false }, { desc: 'release Ractive', completed: false }, { desc: 'make cup of tea', completed: true }]},
@@ -378,15 +388,14 @@ var renderTests = [
 		data: { foobar: undefined },
 		result: 'undefined'
 	},
-	// TODO: Get this passing in node. Broke with keypath-ftw work (but not in browser)
-	// {
-	// 	name: 'Dependencies can be declared with this.get() inside expression functions',
-	// 	template: '{{ area() }}',
-	// 	data: { width: 50, height: 50, area: function () { return this.get( 'width' ) * this.get( 'height' ) } },
-	// 	result: '2500',
-	// 	new_data: { width: 100 },
-	// 	new_result: '5000'
-	// },
+	{
+		name: 'Dependencies can be declared with this.get() inside expression functions',
+		template: '{{ area() }}',
+		data: { width: 50, height: 50, area: function () { return this.get( 'width' ) * this.get( 'height' ); } },
+		result: '2500',
+		new_data: { width: 100 },
+		new_result: '5000'
+	},
 	{
 		name: 'Triples work correctly inside table elements',
 		template: '<table>{{{row}}}</table>' +
@@ -907,6 +916,7 @@ var renderTests = [
 	{
 		name: 'Boolean attributes work correctly (#1078)',
 		template: '<input type="text" readOnly value="{{value}}"><input type="text" readonly value="anything">',
+		data: { value: '' },
 		result: '<input type="text" readOnly value=""><input type="text" readonly value="anything">'
 	},
 	{
@@ -1138,6 +1148,26 @@ var renderTests = [
 		result: 'replaced',
 		new_data: { foo: '12abc34' },
 		new_result: 'regexp matched'
+	},
+	{
+		name: 'undefined/null attributes',
+		template: `<div data-foo='{{foo}}' data-bar='{{bar}}' data-baz='{{baz}}'></div>`,
+		data: { foo: 'a', bar: 'b' },
+		result: `<div data-foo='a' data-bar='b'></div>`,
+		new_data: { foo: null, bar: undefined, baz: 'c' },
+		new_result: `<div data-baz='c'></div>`
+	},
+	{
+		name: 'Section with empty object (implicit with)',
+		template: '{{#with foo}}{{/with}}',
+		data: { foo: {} },
+		result: ''
+	},
+	{
+		name: 'Section with empty object (implicit with)',
+		template: '{{#foo}}{{/}}',
+		data: { foo: {} },
+		result: ''
 	}
 ];
 

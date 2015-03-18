@@ -2,7 +2,7 @@ import runloop from 'global/runloop';
 import { isEqual } from 'utils/is';
 import getPattern from './getPattern';
 
-var PatternObserver, wildcard = /\*/, slice = Array.prototype.slice;
+var PatternObserver, slice = Array.prototype.slice;
 
 PatternObserver = function ( ractive, model, callback, options ) {
 	this.root = ractive;
@@ -42,8 +42,8 @@ PatternObserver.prototype = {
 	update: function ( model ) {
 		var values;
 
-		if ( wildcard.test( model.getKeypath() ) ) {
-			values = getPattern( this.root, model );
+		if ( keypath.isPattern ) {
+			values = getPattern( this.root, keypath );
 
 			for ( model in values ) {
 				if ( values.hasOwnProperty( model ) ) {

@@ -53,7 +53,7 @@ test( 'Elements with dynamic id is unregistered with ractive.nodes on change', f
 		}
 	});
 
-	p = ractive.find('p')
+	p = ractive.find('p');
 	t.equal( ractive.nodes.foo, p );
 	ractive.set( 'id', 'bar' );
 	t.ok( !ractive.nodes.foo );
@@ -68,12 +68,37 @@ test( 'Textarea is stringified correctly', function ( t ) {
 	t.equal( ractive.toHTML(), '<textarea>123&lt;div&gt;&lt;/div&gt;</textarea>' );
 });
 
-test( 'Wildcard proxy-events invalid on elements', function ( t ) {
-	throws( function () {
-		var ractive = new Ractive({
+test( 'Wildcard proxy-events invalid on elements', t => {
+	expect( 1 );
+
+	t.throws( () => {
+		new Ractive({
 			el: fixture,
 			debug: true,
 			template: '<p on-foo.*="foo"></p>'
 		});
 	}, /wildcards/ );
 });
+
+if ( 'draggable' in document.createElement( 'div' ) ) {
+	test( 'draggable attribute is handled correctly (#1780)', t => {
+		let ractive = new Ractive({
+			el: fixture,
+			template: '<div draggable="true" /><div draggable="false" /><div draggable="" /><div draggable /><div draggable="{{true}}" /><div draggable="{{false}}" /><div draggable="{{empty}}" />'
+		});
+
+		let divs = ractive.findAll( 'div' );
+		t.equal( divs[0].draggable, true );
+		t.equal( divs[1].draggable, false );
+		t.equal( divs[2].draggable, false );
+		t.equal( divs[3].draggable, false );
+		t.equal( divs[4].draggable, true );
+		t.equal( divs[5].draggable, false );
+		t.equal( divs[6].draggable, false );
+
+		ractive.set( 'empty', true );
+		t.equal( divs[6].draggable, true );
+		ractive.set( 'empty', 'potato' );
+		t.equal( divs[6].draggable, false );
+	});
+}

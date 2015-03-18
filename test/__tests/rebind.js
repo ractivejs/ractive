@@ -6,6 +6,8 @@ import { TRIPLE } from 'config/types';
 
 module( 'rebind' );
 
+const test = QUnit.test; // necessary due to a bug in esperanto
+
 function contextUpdate(opt){
 	test( 'update context path: ' + opt.test, function ( t ) {
 		var resolved, root, viewmodel, fragment, el, triple;
@@ -48,7 +50,7 @@ function contextUpdate(opt){
 		});
 
 		triple.resolve = function(keypath){
-		 	resolved = keypath
+			resolved = keypath;
 		};
 
 		fragment.items.push(el, triple);

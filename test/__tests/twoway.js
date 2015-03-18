@@ -605,38 +605,6 @@ test( 'input[type="checkbox"] works with array mutated on init (#1305)', functio
 	t.ok( checkboxes[2].checked );
 });
 
-test( 'Using expressions in two-way bindings triggers a warning (#1399)', function ( t ) {
-	var console_warn = console.warn;
-
-	console.warn = function ( message ) {
-		t.ok( /Two-way binding does not work with expressions/.test(message) );
-	};
-
-	new Ractive({
-		el: fixture,
-		template: '<input value="{{foo()}}">',
-		data: { foo: () => 'bar' }
-	});
-
-	console.warn = console_warn;
-});
-
-test( 'Using expressions with keypath in two-way bindings triggers a warning (#1399/#1421)', function ( t ) {
-	var console_warn = console.warn;
-
-	console.warn = function ( message ) {
-		t.ok( true );
-	};
-
-	new Ractive({
-		el: fixture,
-		template: '<input value="{{foo.bar()[\'biz.bop\']}}">',
-		data: { foo: { bar: () => 'bar' } }
-	});
-
-	console.warn = console_warn;
-});
-
 test( 'Downstream expression objects in two-way bindings do not trigger a warning (#1421)', function ( t ) {
 	var ractive;
 
@@ -687,3 +655,91 @@ test( 'If there happen to be unresolved references next to binding resolved refe
 	simulant.fire( ractive.find( 'input' ), 'click' );
 	t.htmlEqual( div.innerHTML, 'true' );
 });
+
+test( 'Change events propagate after the model has been updated (#1371)', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: `
+			<select value='{{value}}' on-change='checkValue(value)'>
+				<option value='1'>1</option>
+				<option value='2'>2</option>
+			</select>`,
+		checkValue ( value ) {
+			t.equal( value, 2 );
+		}
+	});
+
+	expect( 1 );
+
+	ractive.findAll( 'option' )[1].selected = true;
+	simulant.fire( ractive.find( 'select' ), 'change' );
+});
+
+if ( typeof console !== 'undefined' && console.warn ) {
+	test( 'Ambiguous references trigger a warning (#1692)', function ( t ) {
+		var warn = console.warn;
+		console.warn = warning => {
+			t.ok( /ambiguous/.test( warning ) );
+		};
+
+		expect( 1 );
+
+		var ractive = new Ractive({
+			el: fixture,
+			template: `{{#with whatever}}<input value='{{foo}}'>{{/with}}`
+		});
+
+		console.warn = warn;
+	});
+
+	test( 'Using expressions in two-way bindings triggers a warning (#1399)', function ( t ) {
+		var console_warn = console.warn;
+
+		console.warn = function ( message ) {
+			t.ok( /Two-way binding does not work with expressions/.test(message) );
+		};
+
+		new Ractive({
+			el: fixture,
+			template: '<input value="{{foo()}}">',
+			data: { foo: () => 'bar' }
+		});
+
+		console.warn = console_warn;
+	});
+
+	test( 'Using expressions with keypath in two-way bindings triggers a warning (#1399/#1421)', function ( t ) {
+		var console_warn = console.warn;
+
+		console.warn = function ( message ) {
+			t.ok( true );
+		};
+
+		new Ractive({
+			el: fixture,
+			template: '<input value="{{foo.bar()[\'biz.bop\']}}">',
+			data: { foo: { bar: () => 'bar' } }
+		});
+
+		console.warn = console_warn;
+	});
+
+	test( '@key cannot be used for two-way binding', t => {
+		let warn = console.warn;
+		console.warn = msg => {
+			t.ok( /Two-way binding does not work with @key/.test( msg ) );
+		};
+
+		expect( 1 );
+
+		new Ractive({
+			el: fixture,
+			template: `{{#each obj}}<input value='{{@key}}'>{{/each}}`,
+			data: {
+				obj: { foo: 1, bar: 2, baz: 3 }
+			}
+		});
+
+		console.warn = warn;
+	});
+}

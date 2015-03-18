@@ -23,7 +23,7 @@ export default function Viewmodel$smartUpdate ( model, array, newIndices ) {
 	if ( oldLength !== array.length ) {
 		model.join( 'length' ).mark( implicitOption );
 
-		for ( i = oldLength; i < array.length; i += 1 ) {
+		for ( i = newIndices.touchedFrom; i < array.length; i += 1 ) {
 			model.join( i ).mark();
 		}
 

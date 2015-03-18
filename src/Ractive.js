@@ -22,30 +22,34 @@ Ractive = function ( options ) {
 // Ractive properties
 properties = {
 
+	// debug flag
+	DEBUG:          { writable: true, value: true },
+	DEBUG_PROMISES: { writable: true, value: true },
+
 	// static methods:
-	extend:        { value: extend },
-	getNodeInfo:   { value: getNodeInfo },
-	parse:         { value: parse },
+	extend:         { value: extend },
+	getNodeInfo:    { value: getNodeInfo },
+	parse:          { value: parse },
 
 	// Namespaced constructors
-	Promise:       { value: Promise },
+	Promise:        { value: Promise },
 
 	// support
-	svg:           { value: svg },
-	magic:         { value: magic },
+	svg:            { value: svg },
+	magic:          { value: magic },
 
 	// version
-	VERSION:       { value: '${version}' },
+	VERSION:        { value: '<@version@>' },
 
 	// Plugins
-	adaptors:      { writable: true, value: {} },
-	components:    { writable: true, value: {} },
-	decorators:    { writable: true, value: {} },
-	easing:        { writable: true, value: easing },
-	events:        { writable: true, value: {} },
-	interpolators: { writable: true, value: interpolators },
-	partials:      { writable: true, value: {} },
-	transitions:   { writable: true, value: {} }
+	adaptors:       { writable: true, value: {} },
+	components:     { writable: true, value: {} },
+	decorators:     { writable: true, value: {} },
+	easing:         { writable: true, value: easing },
+	events:         { writable: true, value: {} },
+	interpolators:  { writable: true, value: interpolators },
+	partials:       { writable: true, value: {} },
+	transitions:    { writable: true, value: {} }
 };
 
 

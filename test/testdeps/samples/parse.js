@@ -709,7 +709,7 @@ var parseTests = [
 	{
 		name: 'Empty attribute',
 		template: '<div contenteditable=""></div>',
-		parsed: {v:3,t:[{t:7,e:'div',a:{contenteditable:0}}]}
+		parsed: {v:3,t:[{t:7,e:'div',a:{contenteditable:''}}]}
 	},
 	{
 		name: '{{else}} block in attribute',
@@ -740,6 +740,66 @@ var parseTests = [
 		name: 'An unexpected closing tag is an error',
 		template: '<div></div></div>',
 		error: `Unexpected template content at line 1 character 12:\n<div></div></div>\n           ^----`
+	},
+	{
+		name: 'Escaped mustaches',
+		template: '\\[[static]] \\[[[tripleStatic]]] \\{{normal}} \\{{{triple}}}',
+		parsed: {v:3,t:['[[static]] [[[tripleStatic]]] {{normal}} {{{triple}}}']}
+	},
+	{
+		name: 'Not-really-escaped mustaches',
+		template: '\\\\[[static]] \\\\[[[tripleStatic]]] \\\\{{normal}} \\\\{{{triple}}}}',
+		parsed: {v:3,t:["\\",{"r":"static","s":true,"t":2}," \\",{"r":"tripleStatic","s":true,"t":3}," \\",{"r":"normal","t":2}," \\",{"r":"triple","t":3},"}"]}
+	},
+	{
+		name: 'Attribute/directive without =',
+		template: '<button on-click-"select">fire</button>',
+		error: `Expected \`=\`, \`/\`, \`>\` or whitespace at line 1 character 18:
+<button on-click-"select">fire</button>
+                 ^----`
+	},
+	{
+		name: 'Attribute/directive with fat-fingered ==',
+		template: `<div class=='wut'></div>`,
+		error: `Expected valid attribute value at line 1 character 12:
+<div class=='wut'></div>
+           ^----`
+	},
+	{
+		name: 'Double zero literal (#1819)',
+		template: `{{foo?11:00}}`,
+		parsed: {v:3,t:[{t:2,x:{r:['foo'],s:'_0?11:00'}}]}
+	},
+	{
+		name: 'inline partial at top level',
+		template: '{{#partial foo}}this is foo{{/partial}}',
+		parsed: {v:3,t:[],p:{foo:['this is foo']}}
+	},
+	{
+		name: 'duplicate inline partials at top level',
+		template: '{{#partial foo}}this is foo{{/partial}}{{#partial foo}}dupe{{/partial}}',
+		error: `Duplicated partial definition at line 1 character 40:
+{{#partial foo}}this is foo{{/partial}}{{#partial foo}}dupe{{/partial}}
+                                       ^----`
+	},
+	{
+		name: 'inline partial inside component',
+		template: '<x>{{#partial foo}}this is foo{{/partial}}</x>',
+		parsed: {v:3,t:[{t:7,e:'x',p:{foo:['this is foo']}}]}
+	},
+	{
+		name: 'duplicate inline partials inside component',
+		template: '<x>{{#partial foo}}this is foo{{/partial}}{{#partial foo}}dupe{{/partial}}</x>',
+		error: `Duplicate partial definition at line 1 character 43:
+<x>{{#partial foo}}this is foo{{/partial}}{{#partial foo}}dupe{{/partial}}</x>
+                                          ^----`
+	},
+	{
+		name: 'illegal partial definition',
+		template: '{{#if whatever}}{{#partial nope}}...{{/partial}}{{/if}}',
+		error: `Partial definitions can only be at the top level of the template, or immediately inside components at line 1 character 17:
+{{#if whatever}}{{#partial nope}}...{{/partial}}{{/if}}
+                ^----`
 	}
 ];
 

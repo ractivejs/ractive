@@ -50,6 +50,13 @@ export default function getNewIndices ( array, methodName, args ) {
 		newIndices.push( i + balance );
 	}
 
+	// there is a net shift for the rest of the array starting with index + balance
+	if ( balance !== 0 ) {
+		newIndices.touchedFrom = spliceArguments[0];
+	} else {
+		newIndices.touchedFrom = array.length;
+	}
+
 	return newIndices;
 }
 
@@ -80,13 +87,13 @@ function getSpliceEquivalent ( array, methodName, args ) {
 			if ( array.length ) {
 				return [ array.length - 1, 1 ];
 			}
-			return null;
+			return [ 0, 0 ];
 
 		case 'push':
 			return [ array.length, 0 ].concat( args );
 
 		case 'shift':
-			return [ 0, 1 ];
+			return [ 0, array.length ? 1 : 0 ];
 
 		case 'unshift':
 			return [ 0, 0 ].concat( args );

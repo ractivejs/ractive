@@ -1,4 +1,5 @@
 import { SECTION, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from 'config/types';
+import { READERS } from '../../_parse';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
 import readElseIf from './section/readElseIf';
@@ -20,6 +21,11 @@ export default function readSection ( parser, tag ) {
 		section = { t: SECTION, f: [], n: SECTION_UNLESS };
 	} else if ( parser.matchString( '#' ) ) {
 		section = { t: SECTION, f: [] };
+
+		if ( parser.matchString( 'partial' ) ) {
+			parser.pos = start - parser.standardDelimiters[0].length;
+			parser.error( 'Partial definitions can only be at the top level of the template, or immediately inside components' );
+		}
 
 		if ( block = parser.matchPattern( handlebarsBlockPattern ) ) {
 			expectedClose = block;
@@ -118,7 +124,7 @@ export default function readSection ( parser, tag ) {
 		}
 
 		else {
-			child = parser.read();
+			child = parser.read( READERS );
 
 			if ( !child ) {
 				break;

@@ -25,7 +25,11 @@ function readMustacheOfType ( parser, tag ) {
 
 	start = parser.pos;
 
-	if ( !parser.matchString( tag.open ) ) {
+	if ( parser.matchString( '\\' + tag.open ) ) {
+		if ( start === 0 || parser.str[ start - 1 ] !== '\\' ) {
+			return tag.open;
+		}
+	} else if ( !parser.matchString( tag.open ) ) {
 		return null;
 	}
 

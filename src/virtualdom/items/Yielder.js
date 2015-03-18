@@ -1,4 +1,5 @@
 import { YIELDER } from 'config/types';
+import { warnIfDebug } from 'utils/log';
 import runloop from 'global/runloop';
 import { removeFromArray } from 'utils/array';
 import Fragment from 'virtualdom/Fragment';
@@ -18,10 +19,17 @@ var Yielder = function ( options ) {
 
 	let name = this.name = options.template.n || '';
 
+	let template = container._inlinePartials[ name ];
+
+	if ( !template ) {
+		warnIfDebug( `Could not find template for partial "${name}"`, { ractive: options.root });
+		template = [];
+	}
+
 	this.fragment = new Fragment({
 		owner: this,
 		root: container.parent,
-		template: container._inlinePartials[ name ] || [],
+		template,
 		pElement: this.containerFragment.pElement
 	});
 

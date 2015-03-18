@@ -2,6 +2,7 @@
 	"esnext": true,
 	"unused": true,
 	"undef": true,
+	"boss": true,
 	"globals": {
 		"module": true,
 		"define": true,

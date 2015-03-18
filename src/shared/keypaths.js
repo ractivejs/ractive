@@ -5,40 +5,47 @@ import createBranch from 'utils/createBranch';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
 
-var FAILED_LOOKUP = {};
+let refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+let patternPattern = /\*/;
+let keypathCache = {};
 
-var refPattern, modelCache, Keypath;
+let Keypath = function ( str ) {
+	var keys = str.split( '.' );
 
-refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+// <<<<<<< HEAD
+// 		if ( this.isSpecial ) { return; }
 
-modelCache = {};
+// 		this.hasCachedValue = false;
+// 		this._value = void 0;
 
+// 		if ( !keepExistingWrapper ) {
+// 			// Is there a wrapped property at this keypath?
+// 			if ( wrapper = this.wrapper ) {
+// 				// Did we unwrap it?
+// 				if ( wrapper.teardown() !== false ) {
+// 					this.wrapper = null;
+// 				}
+// 				else {
+// 					// Could there be a GC ramification if this is a "real" ractive.teardown()?
+// 					this.hasCachedValue = true;
+// 					this._value = this.wrapper.value;
+// 				}
+// 			}
+// 		}
+// =======
+};
 
-Keypath = {
-
+Keypath.prototype = {
 
 	clearCachedValue ( keepExistingWrapper ) {
 		var wrapper, children;
 
-		if ( this.isSpecial ) { return; }
+		this.isPattern = patternPattern.test( str );
 
-		this.hasCachedValue = false;
-		this._value = void 0;
+		this.parent = str === '' ? null : getKeypath( keys.join( '.' ) );
+		this.isRoot = !str;
 
-		if ( !keepExistingWrapper ) {
-			// Is there a wrapped property at this keypath?
-			if ( wrapper = this.wrapper ) {
-				// Did we unwrap it?
-				if ( wrapper.teardown() !== false ) {
-					this.wrapper = null;
-				}
-				else {
-					// Could there be a GC ramification if this is a "real" ractive.teardown()?
-					this.hasCachedValue = true;
-					this._value = this.wrapper.value;
-				}
-			}
-		}
+
 
 		if ( this.computation ) {
 			// This is slightly broader than just viewmodel.mark(),
@@ -229,11 +236,27 @@ export function decodeKeypath ( keypath ) {
 	}
 }
 
-export function getMatchingKeypaths ( ractive, pattern ) {
+export function getKeypath ( str ) {
+	if ( str == null ) {
+		return str;
+	}
+
+	// TODO it *may* be worth having two versions of this function - one where
+	// keypathCache inherits from null, and one for IE8. Depends on how
+	// much of an overhead hasOwnProperty is - probably negligible
+	if ( !keypathCache.hasOwnProperty( str ) ) {
+		keypathCache[ str ] = new Keypath( str );
+	}
+
+	return keypathCache[ str ];
+}
+
+export function getMatchingKeypaths ( ractive, keypath ) {
 	var keys, key, matchingKeypaths;
 
-	keys = pattern.split( '.' );
-	matchingKeypaths = [ ractive.viewmodel.root ];
+	keys = keypath.str.split( '.' );
+	matchingKeypaths = [ rootKeypath ];
+
 
 	while ( key = keys.shift() ) {
 		if ( key === '*' ) {
@@ -253,15 +276,28 @@ export function getMatchingKeypaths ( ractive, pattern ) {
 	return matchingKeypaths;
 
 	function expand ( matchingKeypaths, keypath ) {
-		var wrapper, value, key;
 
-		wrapper = keypath.wrapper;
-		value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
+		var wrapper, value, keys;
 
-		for ( key in value ) {
-			if ( value.hasOwnProperty( key ) && ( key !== '_ractive' || !isArray( value ) ) ) { // for benefit of IE8
-				matchingKeypaths.push( keypath.join( key ) );
-			}
+		if ( keypath.isRoot ) {
+			keys = [].concat(
+				Object.keys( ractive.viewmodel.data ),
+				Object.keys( ractive.viewmodel.mappings ),
+				Object.keys( ractive.viewmodel.computations )
+			);
+		} else {
+			wrapper = ractive.viewmodel.wrapped[ keypath.str ];
+			value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
+
+			keys = value ? Object.keys( value ) : null;
+		}
+
+		if ( keys ) {
+			keys.forEach( key => {
+				if ( key !== '_ractive' || !isArray( value ) ) {
+					matchingKeypaths.push( keypath.join( key ) );
+				}
+			});
 		}
 
 		return matchingKeypaths;

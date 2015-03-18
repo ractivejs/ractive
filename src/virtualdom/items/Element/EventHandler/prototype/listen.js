@@ -1,4 +1,5 @@
-import { warnOnce } from 'utils/log';
+import { warnOnceIfDebug } from 'utils/log';
+import { isJsdom } from 'config/environment';
 import { missingPlugin } from 'config/errors';
 import genericHandler from '../shared/genericHandler';
 import { findInViewHierarchy } from 'shared/registry';
@@ -14,7 +15,6 @@ var customHandlers = {},
 	};
 
 export default function EventHandler$listen () {
-
 	var definition, name = this.name;
 
 	if ( this.invalid ) { return; }
@@ -23,11 +23,11 @@ export default function EventHandler$listen () {
 		this.custom = definition( this.node, getCustomHandler( name ) );
 	} else {
 		// Looks like we're dealing with a standard DOM event... but let's check
-		if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) ) {
+		if ( !( 'on' + name in this.node ) && !( window && 'on' + name in window ) && !isJsdom ) {
 
 			// okay to use touch events if this browser doesn't support them
 			if ( !touchEvents[ name ] ) {
-				warnOnce( missingPlugin( name, 'event' ) );
+				warnOnceIfDebug( missingPlugin( name, 'event' ), { node: this.node });
 			}
 
 			return;
@@ -37,7 +37,6 @@ export default function EventHandler$listen () {
 	}
 
 	this.hasListener = true;
-
 }
 
 function getCustomHandler ( name ) {

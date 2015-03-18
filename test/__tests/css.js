@@ -314,3 +314,15 @@ asyncTest( 'Components retain their encapsulated CSS until they are detached', t
 		QUnit.start();
 	}, 50 );
 });
+
+test( 'data-ractive-css only gets applied to one level of elements', t => {
+	let Widget = Ractive.extend({
+		template: '<div><p></p></div>',
+		css: 'div {}'
+	});
+
+	let ractive = new Widget({ el: fixture });
+
+	t.ok( ractive.find( 'div' ).hasAttribute( 'data-ractive-css' ) );
+	t.ok( !ractive.find( 'p' ).hasAttribute( 'data-ractive-css' ) );
+});

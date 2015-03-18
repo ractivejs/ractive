@@ -24,7 +24,6 @@ var Viewmodel = function ( options ) {
 	this.ractive = ractive;
 
 	this.adaptors = adapt;
-	this.debug = options.debug;
 	this.onchange = options.onchange;
 
 	this.deps = {

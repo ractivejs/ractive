@@ -10,7 +10,7 @@ test( 'Computed value declared as a function', function ( t ) {
 		},
 		computed: {
 			area: function () {
-				return this.get( 'width' ) * this.get( 'height' )
+				return this.get( 'width' ) * this.get( 'height' );
 			}
 		}
 	});
@@ -228,7 +228,7 @@ test( 'Regression test for #836', function ( t ) {
 });
 
 test( 'Setters are called on init with supplied data (#837)', function ( t ) {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{firstname}}',
 		computed: {
@@ -276,15 +276,14 @@ test( 'Set operations are not short-circuited when the set value is identical to
 	t.htmlEqual( fixture.innerHTML, '2' );
 });
 
-test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
-	var warn = console.warn;
+if ( typeof console !== 'undefined' && console.warn ) {
+	test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
+		let warn = console.warn;
+		console.warn = () => t.ok( false );
 
-	console.warn = function () {
-		throw new Error('Console should not warn')
-	};
+		expect( 0 );
 
-	try {
-		let ractive = new Ractive({
+		new Ractive({
 			template: '<component/>',
 			components: {
 				component: Ractive.extend({
@@ -294,17 +293,52 @@ test( 'Computations on unresolved refs don\'t error on initial component binding
 					}
 				})
 			}
-		})
-	}
-	catch(err){
-		t.ok( false, err.message );
-	}
-	finally {
-		console.warn = warn;
-		t.ok( true );
-	}
+		});
 
-});
+		console.warn = warn;
+	});
+
+	test( 'Computed value that calls itself (#1359)', t => {
+		let messages = 0;
+
+		let warn = console.warn;
+		console.warn = msg => {
+			if ( /computation indirectly called itself/.test( msg ) ) {
+				messages += 1;
+			}
+		};
+
+		let Widget = Ractive.extend({
+			template: `
+				{{sort(headers)}}
+
+				{{#sort(rows)}}
+					<p>{{id}} - {{name}}</p>
+				{{/rows}}`,
+			data: {
+				headers: [],
+				rows: [
+					{ id : 1, name: 'a' },
+					{}
+				],
+				sort ( arr ) {
+					return arr.sort( ( a, b ) => a.id - b.id );
+				}
+			}
+		});
+
+		let ractive = new Widget({ el: fixture });
+
+		ractive.reset();
+		ractive.update();
+
+		t.equal( messages, 2 );
+		t.htmlEqual( fixture.innerHTML, '<p>1 - a</p><p> - </p>' );
+
+		console.warn = warn;
+	});
+}
+
 
 test( 'Unresolved computations resolve when parent component data exists', function ( t ) {
 	var ractive, Component;
@@ -348,7 +382,7 @@ test( 'Computations are not order dependent', function ( t ) {
 	        foo: '${bar} + 1',
 	        bar: '${count} + 1'
 	    }
-	})
+	});
 
 	ractive = new Ractive({
         el: fixture,
@@ -359,7 +393,7 @@ test( 'Computations are not order dependent', function ( t ) {
         components: {
             component: Component
         }
-    })
+    });
 	t.equal( fixture.innerHTML, '3' );
 
 });
@@ -448,6 +482,41 @@ test( 'What happens if you access a computed property in data config?', t => {
 	});
 
 	t.equal( fixture.innerHTML, '5' );
+});
+
+test( 'Computations matching _[0-9]+ that are not references should not be mangled incorrectly for caching', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{ foo["_1bar"] }} {{ foo["_2bar"] }}',
+		data: { foo: { _1bar: 1, _2bar: 2 } }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '1 2' );
+
+	ractive = new Ractive({
+		el: fixture,
+		template: `{{ foo(bar, '_0') }} {{ foo(bar, '_1') }}`,
+		data: { foo( a, b ) { return b; }, bar: 'ignored' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '_0 _1' );
+});
+
+test( 'Computations can depend on array values (#1747)', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{count}} {{count === 4}}',
+		data: {
+			items: [ 1, 2, 3 ]
+		},
+		computed: {
+			count: '${items}.length'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '3 false' );
+	ractive.push( 'items', 4 );
+	t.htmlEqual( fixture.innerHTML, '4 true' );
 });
 
 // Commented out temporarily, see #1381

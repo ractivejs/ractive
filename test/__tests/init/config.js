@@ -5,11 +5,13 @@ import { findInViewHierarchy } from 'shared/registry';
 
 module( 'Configuration' );
 
+const test = QUnit.test; // necessary due to a bug in esperanto
+
 test( 'Ractive.defaults', t => {
 	t.equal( Ractive.defaults, Ractive.prototype, 'defaults aliases prototype' );
 
 	for( let key in defaults ) {
-		t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key )
+		t.ok( Ractive.defaults.hasOwnProperty( key ), 'has default ' + key );
 	}
 });
 
@@ -24,7 +26,7 @@ test( 'instance has config options', t => {
 			t.ok( name in ractive, 'has ' + name);
 		}
 
-		if ( !~registryNames.indexOf( name ) && name !== 'template' ) { // TODO template is a special case... this should probably be handled differently
+		if ( !~registryNames.indexOf( name ) && !/^(template|data)$/.test( name ) ) { // TODO template is a special case... this should probably be handled differently
 			t.deepEqual( ractive[ name ], Ractive.prototype[ name ], 'compare ' + name );
 		}
 	});
