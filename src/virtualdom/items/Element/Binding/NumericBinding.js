@@ -1,4 +1,4 @@
-import GenericBinding from 'virtualdom/items/Element/Binding/GenericBinding';
+import GenericBinding from './GenericBinding';
 
 export default GenericBinding.extend({
 	getInitialValue: () => undefined,

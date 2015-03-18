@@ -1,9 +1,8 @@
-import Binding from 'virtualdom/items/Element/Binding/Binding';
-import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
+import Binding from './Binding';
+import handleDomEvent from './shared/handleDomEvent';
+import { isNumeric } from 'utils/is';
 
-var GenericBinding, getOptions;
-
-getOptions = { evaluateWrapped: true };
+var GenericBinding;
 
 GenericBinding = Binding.extend({
 	getInitialValue: () => '',
@@ -13,15 +12,36 @@ GenericBinding = Binding.extend({
 	},
 
 	render: function () {
-		var node = this.element.node;
+		var node = this.element.node, lazy, timeout = false;
+		this.rendered = true;
+
+		// any lazy setting for this element overrides the root
+		// if the value is a number, it's a timeout
+		lazy = this.root.lazy;
+		if ( this.element.lazy === true ) {
+			lazy = true;
+		} else if ( this.element.lazy === false ) {
+			lazy = false;
+		} else if ( isNumeric( this.element.lazy ) ) {
+			lazy = false;
+			timeout = +this.element.lazy;
+		} else if ( isNumeric( ( lazy || '' ) ) ) {
+			timeout = +lazy;
+			lazy = false;
+
+			// make sure the timeout is available to the handler
+			this.element.lazy = timeout;
+		}
+
+		this.handler = timeout ? handleDelay : handleDomEvent;
 
 		node.addEventListener( 'change', handleDomEvent, false );
 
-		if ( !this.root.lazy ) {
-			node.addEventListener( 'input', handleDomEvent, false );
+		if ( !lazy ) {
+			node.addEventListener( 'input', this.handler, false );
 
 			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', handleDomEvent, false );
+				node.addEventListener( 'keyup', this.handler, false );
 			}
 		}
 
@@ -30,10 +50,11 @@ GenericBinding = Binding.extend({
 
 	unrender: function () {
 		var node = this.element.node;
+		this.rendered = false;
 
 		node.removeEventListener( 'change', handleDomEvent, false );
-		node.removeEventListener( 'input', handleDomEvent, false );
-		node.removeEventListener( 'keyup', handleDomEvent, false );
+		node.removeEventListener( 'input', this.handler, false );
+		node.removeEventListener( 'keyup', this.handler, false );
 		node.removeEventListener( 'blur', handleBlur, false );
 	}
 });
@@ -46,6 +67,17 @@ function handleBlur () {
 
 	handleDomEvent.call( this );
 
-	value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath, getOptions );
+	value = this._ractive.root.viewmodel.get( this._ractive.binding.keypath );
 	this.value = value == undefined ? '' : value;
+}
+
+function handleDelay () {
+	var binding = this._ractive.binding, el = this;
+
+	if ( !!binding._timeout ) clearTimeout( binding._timeout );
+
+	binding._timeout = setTimeout( () => {
+		if ( binding.rendered ) handleDomEvent.call( el );
+		binding._timeout = undefined;
+	}, binding.element.lazy );
 }

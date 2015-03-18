@@ -1,5 +1,3 @@
-import booleanAttributes from 'config/booleanAttributes';
-
 export default function Attribute$toString () {
 	var { name, namespacePrefix, value, interpolator, fragment } = this;
 
@@ -15,15 +13,20 @@ export default function Attribute$toString () {
 
 	// Special case - radio names
 	if ( name === 'name' && this.element.name === 'input' && interpolator ) {
-		return 'name={{' + ( interpolator.keypath || interpolator.ref ) + '}}';
+		return 'name={{' + ( interpolator.keypath.str || interpolator.ref ) + '}}';
 	}
 
 	// Boolean attributes
-	if ( booleanAttributes.test( name ) ) {
+	if ( this.isBoolean ) {
 		return value ? name : '';
 	}
 
 	if ( fragment ) {
+		// special case - this catches undefined/null values (#1211)
+		if ( fragment.items.length === 1 && fragment.items[0].value == null ) {
+			return '';
+		}
+
 		value = fragment.toString();
 	}
 

@@ -5,17 +5,22 @@ import find from 'Ractive/prototype/find';
 import findAll from 'Ractive/prototype/findAll';
 import findAllComponents from 'Ractive/prototype/findAllComponents';
 import findComponent from 'Ractive/prototype/findComponent';
+import findContainer from 'Ractive/prototype/findContainer';
+import findParent from 'Ractive/prototype/findParent';
 import fire from 'Ractive/prototype/fire';
 import get from 'Ractive/prototype/get';
 import insert from 'Ractive/prototype/insert';
 import merge from 'Ractive/prototype/merge';
 import observe from 'Ractive/prototype/observe';
+import observeOnce from 'Ractive/prototype/observeOnce';
 import off from 'Ractive/prototype/off';
 import on from 'Ractive/prototype/on';
+import once from 'Ractive/prototype/once';
 import pop from 'Ractive/prototype/pop';
 import push from 'Ractive/prototype/push';
 import render from 'Ractive/prototype/render';
 import reset from 'Ractive/prototype/reset';
+import resetPartial from 'Ractive/prototype/resetPartial';
 import resetTemplate from 'Ractive/prototype/resetTemplate';
 import reverse from 'Ractive/prototype/reverse';
 import set from 'Ractive/prototype/set';
@@ -39,17 +44,22 @@ export default {
 	findAll: findAll,
 	findAllComponents: findAllComponents,
 	findComponent: findComponent,
+	findContainer: findContainer,
+	findParent: findParent,
 	fire: fire,
 	get: get,
 	insert: insert,
 	merge: merge,
 	observe: observe,
+	observeOnce: observeOnce,
 	off: off,
 	on: on,
+	once: once,
 	pop: pop,
 	push: push,
 	render: render,
 	reset: reset,
+	resetPartial: resetPartial,
 	resetTemplate: resetTemplate,
 	reverse: reverse,
 	set: set,
@@ -60,6 +70,7 @@ export default {
 	teardown: teardown,
 	toggle: toggle,
 	toHTML: toHTML,
+	toHtml: toHTML,
 	unrender: unrender,
 	unshift: unshift,
 	update: update,

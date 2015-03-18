@@ -1,28 +1,25 @@
-import log from 'utils/log';
-import types from 'config/types';
-import getPartialTemplate from 'virtualdom/items/Partial/getPartialTemplate';
-import applyIndent from 'virtualdom/items/Partial/applyIndent';
-import circular from 'circular';
+import { warnOnceIfDebug } from 'utils/log';
+import { PARTIAL, TEXT } from 'config/types';
 import runloop from 'global/runloop';
-import Mustache from 'virtualdom/items/shared/Mustache/_Mustache';
-import rebind from 'virtualdom/items/shared/Mustache/rebind';
-import unbind from 'virtualdom/items/shared/unbind';
+import Fragment from 'virtualdom/Fragment';
+import Mustache from '../shared/Mustache/_Mustache';
+import rebind from '../shared/Mustache/rebind';
+import unbind from '../shared/unbind';
+import getPartialTemplate from './getPartialTemplate';
+import applyIndent from './applyIndent';
 
-var Partial, Fragment;
+let missingPartialMessage = 'Could not find template for partial "%s"';
 
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
-
-Partial = function ( options ) {
+let Partial = function ( options ) {
 	var parentFragment, template;
 
 	parentFragment = this.parentFragment = options.parentFragment;
 
 	this.root = parentFragment.root;
-	this.type = types.PARTIAL;
+	this.type = PARTIAL;
 	this.index = options.index;
 	this.name = options.template.r;
+	this.rendered = false;
 
 	this.fragment = this.fragmentToRender = this.fragmentToUnrender = null;
 
@@ -31,57 +28,72 @@ Partial = function ( options ) {
 	// If this didn't resolve, it most likely means we have a named partial
 	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
 	// whose name is the value of `foo`')
-	if ( !this.keypath && ( template = getPartialTemplate( this.root, this.name ) ) ) {
-		unbind.call( this ); // prevent any further changes
-		this.isNamed = true;
-
-		this.setTemplate( template );
+	if ( !this.keypath ) {
+		if ( template = getPartialTemplate( this.root, this.name, parentFragment ) ) {
+			unbind.call( this ); // prevent any further changes
+			this.isNamed = true;
+			this.setTemplate( template );
+		} else {
+			warnOnceIfDebug( missingPartialMessage, this.name );
+		}
 	}
 };
 
 Partial.prototype = {
-	bubble: function () {
+	bubble () {
 		this.parentFragment.bubble();
 	},
 
-	detach: function () {
+	detach () {
 		return this.fragment.detach();
 	},
 
-	find: function ( selector ) {
+	find ( selector ) {
 		return this.fragment.find( selector );
 	},
 
-	findAll: function ( selector, query ) {
+	findAll ( selector, query ) {
 		return this.fragment.findAll( selector, query );
 	},
 
-	findComponent: function ( selector ) {
+	findComponent ( selector ) {
 		return this.fragment.findComponent( selector );
 	},
 
-	findAllComponents: function ( selector, query ) {
+	findAllComponents ( selector, query ) {
 		return this.fragment.findAllComponents( selector, query );
 	},
 
-	firstNode: function () {
+	firstNode () {
 		return this.fragment.firstNode();
 	},
 
-	findNextNode: function () {
+	findNextNode () {
 		return this.parentFragment.findNextNode( this );
 	},
 
-	getValue: function () {
+	getPartialName () {
+		if ( this.isNamed && this.name ) return this.name;
+		else if ( this.value === undefined ) return this.name;
+		else return this.value;
+	},
+
+	getValue () {
 		return this.fragment.getValue();
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
-		rebind.call( this, indexRef, newIndex, oldKeypath, newKeypath );
-		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+	rebind ( oldKeypath, newKeypath ) {
+		// named partials aren't bound, so don't rebind
+		if ( !this.isNamed ) {
+			rebind.call( this, oldKeypath, newKeypath );
+		}
+
+		if ( this.fragment ) {
+			this.fragment.rebind( oldKeypath, newKeypath );
+		}
 	},
 
-	render: function () {
+	render () {
 		this.docFrag = document.createDocumentFragment();
 		this.update();
 
@@ -91,7 +103,7 @@ Partial.prototype = {
 
 	resolve: Mustache.resolve,
 
-	setValue: function ( value ) {
+	setValue ( value ) {
 		var template;
 
 		if ( value !== undefined && value === this.value ) {
@@ -99,27 +111,26 @@ Partial.prototype = {
 			return;
 		}
 
-		template = getPartialTemplate( this.root, '' + value );
+		if ( value !== undefined ) {
+			template = getPartialTemplate( this.root, '' + value, this.parentFragment );
+		}
 
 		// we may be here if we have a partial like `{{>foo}}` and `foo` is the
 		// name of both a data property (whose value ISN'T the name of a partial)
 		// and a partial. In those cases, this becomes a named partial
-		if ( !template && this.name && ( template = getPartialTemplate( this.root, this.name ) ) ) {
+		if ( !template && this.name && ( template = getPartialTemplate( this.root, this.name, this.parentFragment ) ) ) {
 			unbind.call( this );
 			this.isNamed = true;
 		}
 
 		if ( !template ) {
-			log.error({
-				debug: this.root.debug,
-				message: 'noTemplateForPartial',
-				args: { name: this.name }
-			});
+			warnOnceIfDebug( missingPartialMessage, this.name, { ractive: this.root });
 		}
+
+		this.value = value;
 
 		this.setTemplate( template || [] );
 
-		this.value = value;
 		this.bubble();
 
 		if ( this.rendered ) {
@@ -127,14 +138,16 @@ Partial.prototype = {
 		}
 	},
 
-	setTemplate: function ( template ) {
+	setTemplate ( template ) {
 		if ( this.fragment ) {
 			this.fragment.unbind();
-			this.fragmentToUnrender = this.fragment;
+			if ( this.rendered ) {
+				this.fragmentToUnrender = this.fragment;
+			}
 		}
 
 		this.fragment = new Fragment({
-			template: template,
+			template,
 			root: this.root,
 			owner: this,
 			pElement: this.parentFragment.pElement
@@ -143,14 +156,14 @@ Partial.prototype = {
 		this.fragmentToRender = this.fragment;
 	},
 
-	toString: function ( toString ) {
+	toString ( toString ) {
 		var string, previousItem, lastLine, match;
 
 		string = this.fragment.toString( toString );
 
 		previousItem = this.parentFragment.items[ this.index - 1 ];
 
-		if ( !previousItem || ( previousItem.type !== types.TEXT ) ) {
+		if ( !previousItem || ( previousItem.type !== TEXT ) ) {
 			return string;
 		}
 
@@ -163,7 +176,7 @@ Partial.prototype = {
 		return string;
 	},
 
-	unbind: function () {
+	unbind () {
 		if ( !this.isNamed ) { // dynamic partial - need to unbind self
 			unbind.call( this );
 		}
@@ -173,16 +186,16 @@ Partial.prototype = {
 		}
 	},
 
-	unrender: function ( shouldDestroy ) {
+	unrender ( shouldDestroy ) {
 		if ( this.rendered ) {
-			if( this.fragment ) {
+			if ( this.fragment ) {
 				this.fragment.unrender( shouldDestroy );
 			}
 			this.rendered = false;
 		}
 	},
 
-	update: function() {
+	update() {
 		var target, anchor;
 
 		if ( this.fragmentToUnrender ) {

@@ -1,33 +1,22 @@
 import getFunctionFromString from 'shared/getFunctionFromString';
 import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import circular from 'circular';
+import Fragment from 'virtualdom/Fragment';
 import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
-import log from 'utils/log';
+import { fatal } from 'utils/log';
 
-var Fragment, getValueOptions = { args: true }, eventPattern = /^event(?:\.(.+))?/;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+var eventPattern = /^event(?:\.(.+))?/;
 
 export default function EventHandler$init ( element, name, template ) {
-	var handler = this, action, refs, ractive;
+	var action, refs, ractive;
 
-	handler.element = element;
-	handler.root = element.root;
-	handler.name = name;
+	this.element = element;
+	this.root = element.root;
+	this.parentFragment = element.parentFragment;
+	this.name = name;
 
-	if( name.indexOf( '*' ) !== -1 ) {
-		log.error({
-			debug: this.root.debug,
-			message: 'noElementProxyEventWildcards',
-			args: {
-				element: element.tagName,
-				event: name
-			}
-		});
-
+	if ( name.indexOf( '*' ) !== -1 ) {
+		fatal( 'Only component proxy-events may contain "*" wildcards, <%s on-%s="..."/> is not valid', element.name, name );
 		this.invalid = true;
 	}
 
@@ -35,30 +24,29 @@ export default function EventHandler$init ( element, name, template ) {
 		refs = template.a.r;
 
 		// This is a method call
-		handler.method = template.m;
-		handler.keypaths = [];
-		handler.fn = getFunctionFromString( template.a.s, refs.length );
+		this.method = template.m;
+		this.keypaths = [];
+		this.fn = getFunctionFromString( template.a.s, refs.length );
 
-		handler.parentFragment = element.parentFragment;
-		ractive = handler.root;
+		this.parentFragment = element.parentFragment;
+		ractive = this.root;
 
 		// Create resolvers for each reference
-		handler.refResolvers = refs.map( ( ref, i ) => {
-			var match;
+		this.refResolvers = [];
+		refs.forEach(( ref, i ) => {
+			let match;
 
 			// special case - the `event` object
 			if ( match = eventPattern.exec( ref ) ) {
-				handler.keypaths[i] = {
+				this.keypaths[i] = {
 					eventObject: true,
 					refinements: match[1] ? match[1].split( '.' ) : []
 				};
-
-				return null;
 			}
 
-			return createReferenceResolver( handler, ref, keypath => {
-				handler.resolve( i, keypath );
-			});
+			else {
+				this.refResolvers.push( createReferenceResolver( this, ref, keypath => this.resolve( i, keypath ) ) );
+			}
 		});
 
 		this.fire = fireMethodCall;
@@ -140,7 +128,7 @@ function fireEventWithParams ( event ) {
 }
 
 function fireEventWithDynamicParams ( event ) {
-	var args = this.dynamicParams.getValue( getValueOptions );
+	var args = this.dynamicParams.getArgsList();
 
 	// need to strip [] from ends if a string!
 	if ( typeof args === 'string' ) {

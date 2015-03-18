@@ -1,13 +1,13 @@
-import bubble from 'virtualdom/items/Element/EventHandler/prototype/bubble';
-import fire from 'virtualdom/items/Element/EventHandler/prototype/fire';
-import getAction from 'virtualdom/items/Element/EventHandler/prototype/getAction';
-import init from 'virtualdom/items/Element/EventHandler/prototype/init';
-import listen from 'virtualdom/items/Element/EventHandler/prototype/listen';
-import rebind from 'virtualdom/items/Element/EventHandler/prototype/rebind';
-import render from 'virtualdom/items/Element/EventHandler/prototype/render';
-import resolve from 'virtualdom/items/Element/EventHandler/prototype/resolve';
-import unbind from 'virtualdom/items/Element/EventHandler/prototype/unbind';
-import unrender from 'virtualdom/items/Element/EventHandler/prototype/unrender';
+import bubble from './prototype/bubble';
+import fire from './prototype/fire';
+import getAction from './prototype/getAction';
+import init from './prototype/init';
+import listen from './prototype/listen';
+import rebind from './prototype/rebind';
+import render from './prototype/render';
+import resolve from './prototype/resolve';
+import unbind from './prototype/unbind';
+import unrender from './prototype/unrender';
 
 var EventHandler = function ( element, name, template ) {
 	this.init( element, name, template );

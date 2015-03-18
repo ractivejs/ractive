@@ -1,4 +1,4 @@
-import getMatchingKeypaths from 'shared/getMatchingKeypaths';
+import { getMatchingKeypaths } from 'shared/keypaths';
 
 export default function getPattern ( ractive, pattern ) {
 	var matchingKeypaths, values;
@@ -7,7 +7,7 @@ export default function getPattern ( ractive, pattern ) {
 
 	values = {};
 	matchingKeypaths.forEach( keypath => {
-		values[ keypath ] = ractive.get( keypath );
+		values[ keypath.str ] = ractive.get( keypath.str );
 	});
 
 	return values;

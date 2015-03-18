@@ -1,10 +1,10 @@
+import { warnOnceIfDebug } from 'utils/log';
+import { isClient } from 'config/environment';
 import legacy from 'legacy';
-import isClient from 'config/isClient';
-import warn from 'utils/warn';
-import Promise from 'utils/Promise';
 import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
-import createTransitions from 'virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions';
-import visibility from 'virtualdom/items/Element/Transition/prototype/animateStyle/visibility';
+import Promise from 'utils/Promise';
+import createTransitions from './createTransitions';
+import visibility from './visibility';
 
 var animateStyle, getComputedStyle, resolved;
 
@@ -13,9 +13,12 @@ if ( !isClient ) {
 } else {
 	getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
 
-	animateStyle = function ( style, value, options, complete ) {
+	animateStyle = function ( style, value, options ) {
+		var to;
 
-		var t = this, to;
+		if ( arguments.length === 4 ) {
+			throw new Error( 't.animateStyle() returns a promise - use .then() instead of passing a callback' );
+		}
 
 		// Special case - page isn't visible. Don't animate anything, because
 		// that way you'll never get CSS transitionend events
@@ -31,7 +34,6 @@ if ( !isClient ) {
 			to = style;
 
 			// shuffle arguments
-			complete = options;
 			options = value;
 		}
 
@@ -41,18 +43,16 @@ if ( !isClient ) {
 
 		// TODO remove this check in a future version
 		if ( !options ) {
-			warn( 'The "' + t.name + '" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340' );
-
-			options = t;
-			complete = t.complete;
+			warnOnceIfDebug( 'The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name );
+			options = this;
 		}
 
-		var promise = new Promise( function ( resolve ) {
+		var promise = new Promise( resolve => {
 			var propertyNames, changedProperties, computedStyle, current, from, i, prop;
 
 			// Edge case - if duration is zero, set style synchronously and complete
 			if ( !options.duration ) {
-				t.setStyle( to );
+				this.setStyle( to );
 				resolve();
 				return;
 			}
@@ -62,7 +62,7 @@ if ( !isClient ) {
 			changedProperties = [];
 
 			// Store the current styles
-			computedStyle = getComputedStyle( t.node );
+			computedStyle = getComputedStyle( this.node );
 
 			from = {};
 			i = propertyNames.length;
@@ -80,7 +80,7 @@ if ( !isClient ) {
 
 					// make the computed style explicit, so we can animate where
 					// e.g. height='auto'
-					t.node.style[ prefix( prop ) ] = current;
+					this.node.style[ prefix( prop ) ] = current;
 				}
 			}
 
@@ -91,15 +91,8 @@ if ( !isClient ) {
 				return;
 			}
 
-			createTransitions( t, to, options, changedProperties, resolve );
+			createTransitions( this, to, options, changedProperties, resolve );
 		});
-
-		// If a callback was supplied, do the honours
-		// TODO remove this check in future
-		if ( complete ) {
-			warn( 't.animateStyle returns a Promise as of 0.4.0. Transition authors should do t.animateStyle(...).then(callback)' );
-			promise.then( complete );
-		}
 
 		return promise;
 	};

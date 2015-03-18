@@ -1,4 +1,4 @@
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
 import runloop from 'global/runloop';
 
 var empty = {};

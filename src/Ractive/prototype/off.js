@@ -1,5 +1,5 @@
-import trim from 'Ractive/prototype/shared/trim';
-import notEmptyString from 'Ractive/prototype/shared/notEmptyString';
+import trim from './shared/trim';
+import notEmptyString from './shared/notEmptyString';
 
 export default function Ractive$off ( eventName, callback ) {
 	var eventNames;

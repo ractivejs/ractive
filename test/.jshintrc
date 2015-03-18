@@ -1,0 +1,26 @@
+{
+	"esnext": true,
+	"unused": true,
+	"undef": true,
+	"boss": true,
+	"globals": {
+		"module": true,
+		"define": true,
+		"require": true,
+		"__dirname": true,
+		"HTMLDocument": true,
+		"fixture": true,
+		"test": true,
+		"asyncTest": true,
+		"expect": true,
+		"ok": true,
+		"equal": true,
+		"deepEqual": true,
+		"setup": true,
+		"start": true,
+		"throws": true,
+		"QUnit": true,
+		"Ractive": true,
+		"simulant": true
+	}
+}

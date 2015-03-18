@@ -1,8 +1,8 @@
-import trim from 'Ractive/prototype/shared/trim';
-import notEmptyString from 'Ractive/prototype/shared/notEmptyString';
+import trim from './shared/trim';
+import notEmptyString from './shared/notEmptyString';
 
 export default function Ractive$on ( eventName, callback ) {
-	var self = this, listeners, n, eventNames;
+	var listeners, n, eventNames;
 
 	// allow mutliple listeners to be bound in one go
 	if ( typeof eventName === 'object' ) {
@@ -33,8 +33,6 @@ export default function Ractive$on ( eventName, callback ) {
 	});
 
 	return {
-		cancel: function () {
-			self.off( eventName, callback );
-		}
+		cancel: () => this.off( eventName, callback )
 	};
 }

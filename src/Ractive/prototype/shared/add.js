@@ -1,17 +1,36 @@
-import isNumeric from 'utils/isNumeric';
+import { isNumeric } from 'utils/is';
+import { getKeypath, getMatchingKeypaths, normalise } from 'shared/keypaths';
+
+const errorMessage = 'Cannot add to a non-numeric value';
 
 export default function add ( root, keypath, d ) {
-	var value;
-
 	if ( typeof keypath !== 'string' || !isNumeric( d ) ) {
 		throw new Error( 'Bad arguments' );
 	}
 
-	value = +root.get( keypath ) || 0;
+	let value, changes;
 
-	if ( !isNumeric( value ) ) {
-		throw new Error( 'Cannot add to a non-numeric value' );
+	if ( /\*/.test( keypath ) ) {
+		changes = {};
+
+		getMatchingKeypaths( root, getKeypath( normalise( keypath ) ) ).forEach( keypath => {
+			let value = root.viewmodel.get( keypath );
+
+			if ( !isNumeric( value ) ) {
+				throw new Error( errorMessage );
+			}
+
+			changes[ keypath.str ] = value + d;
+		});
+
+		return root.set( changes );
 	}
 
-	return root.set( keypath, value + d );
+	value = root.get( keypath );
+
+	if ( !isNumeric( value ) ) {
+		throw new Error( errorMessage );
+	}
+
+	return root.set( keypath, +value + d );
 }

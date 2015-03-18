@@ -1,4 +1,4 @@
-import fillGaps from 'utils/fillGaps';
+import { fillGaps } from 'utils/object';
 
 export default function ( params, defaults ) {
 	if ( typeof params === 'number' ) {

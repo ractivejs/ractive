@@ -1,30 +1,43 @@
-import create from 'utils/create';
-import defineProperties from 'utils/defineProperties';
-import getGuid from 'utils/getGuid';
-import config from 'config/config';
+import { create, defineProperties, extend as extendObj } from 'utils/object';
+import config from 'Ractive/config/config';
+import dataConfigurator from 'Ractive/config/custom/data';
 import initialise from 'Ractive/initialise';
-import Viewmodel from 'viewmodel/Viewmodel';
-import unwrap from 'extend/unwrapExtended';
+import Ractive from 'Ractive';
+import unwrapExtended from './unwrapExtended';
 
-export default function extend ( options = {} ) {
-	var Parent = this, Child, proto, staticProperties;
+export default extend;
 
-	// if we're extending with another Ractive instance, inherit its
-	// prototype methods and default options as well
-	options = unwrap( options );
+function extend ( ...options ) {
+	if( !options.length ) {
+		return extendOne( this );
+	} else {
+		return options.reduce( extendOne, this );
+	}
+}
 
-	// create Child constructor
+function extendOne ( Parent, options = {} ) {
+	var Child, proto;
+
+	// if we're extending with another Ractive instance...
+	//
+	//   var Human = Ractive.extend(...), Spider = Ractive.extend(...);
+	//   var Spiderman = Human.extend( Spider );
+	//
+	// ...inherit prototype methods and default options as well
+	if ( options.prototype instanceof Ractive ) {
+		options = unwrapExtended( options );
+	}
+
 	Child = function ( options ) {
+		if ( !( this instanceof Child ) ) return new Child( options );
 		initialise( this, options );
 	};
 
 	proto = create( Parent.prototype );
 	proto.constructor = Child;
 
-	staticProperties = {
-		// each component needs a guid, for managing CSS etc
-		_guid: { value: getGuid() },
-
+	// Static properties
+	defineProperties( Child, {
 		// alias prototype as defaults
 		defaults: { value: proto },
 
@@ -32,15 +45,17 @@ export default function extend ( options = {} ) {
 		extend: { value: extend, writable: true, configurable: true },
 
 		// Parent - for IE8, can't use Object.getPrototypeOf
-		_parent: { value: Parent }
-	};
-
-	defineProperties( Child, staticProperties );
+		_Parent: { value: Parent }
+	});
 
 	// extend configuration
 	config.extend( Parent, proto, options );
 
-	Viewmodel.extend( Parent, proto );
+	dataConfigurator.extend( Parent, proto, options );
+
+	if ( options.computed ) {
+		proto.computed = extendObj( create( Parent.prototype.computed ), options.computed );
+	}
 
 	Child.prototype = proto;
 

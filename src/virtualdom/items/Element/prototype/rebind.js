@@ -1,6 +1,6 @@
-import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
+import { assignNewKeypath } from 'shared/keypaths';
 
-export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
+export default function Element$rebind ( oldKeypath, newKeypath ) {
 	var i, storage, liveQueries, ractive;
 
 	if ( this.attributes ) {
@@ -38,13 +38,9 @@ export default function Element$rebind ( indexRef, newIndex, oldKeypath, newKeyp
 
 		// adjust keypath if needed
 		assignNewKeypath( storage, 'keypath', oldKeypath, newKeypath );
-
-		if ( indexRef != undefined ) {
-			storage.index[ indexRef ] = newIndex;
-		}
 	}
 
 	function rebind ( thing ) {
-		thing.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		thing.rebind( oldKeypath, newKeypath );
 	}
 }

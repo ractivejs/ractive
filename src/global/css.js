@@ -1,25 +1,18 @@
-import circular from 'circular';
-import isClient from 'config/isClient';
-import removeFromArray from 'utils/removeFromArray';
+import { isClient } from 'config/environment';
 
 var css,
 	update,
-	runloop,
 	styleElement,
 	head,
 	styleSheet,
 	inDom,
 	prefix = '/* Ractive.js component styles */\n',
-	componentsInPage = {},
-	styles = [];
+	styles = [],
+	dirty = false;
 
 if ( !isClient ) {
 	css = null;
 } else {
-	circular.push( function () {
-		runloop = circular.runloop;
-	});
-
 	styleElement = document.createElement( 'style' );
 	styleElement.type = 'text/css';
 
@@ -32,58 +25,30 @@ if ( !isClient ) {
 	styleSheet = styleElement.styleSheet;
 
 	update = function () {
-		var css;
+		let css = prefix + styles.map( s => `\n/* {${s.id}} */\n${s.styles}` ).join( '\n' );
 
-		if ( styles.length ) {
-			css = prefix + styles.join( ' ' );
-
-			if ( styleSheet ) {
-				styleSheet.cssText = css;
-			} else {
-				styleElement.innerHTML = css;
-			}
-
-			if ( !inDom ) {
-				head.appendChild( styleElement );
-				inDom = true;
-			}
+		if ( styleSheet ) {
+			styleSheet.cssText = css;
+		} else {
+			styleElement.innerHTML = css;
 		}
 
-		else if ( inDom ) {
-			head.removeChild( styleElement );
-			inDom = false;
+		if ( !inDom ) {
+			head.appendChild( styleElement );
+			inDom = true;
 		}
 	};
 
 	css = {
-		add: function ( Component ) {
-			if ( !Component.css ) {
-				return;
-			}
-
-			if ( !componentsInPage[ Component._guid ] ) {
-				// we create this counter so that we can in/decrement it as
-				// instances are added and removed. When all components are
-				// removed, the style is too
-				componentsInPage[ Component._guid ] = 0;
-				styles.push( Component.css );
-
-				update(); // TODO can we only do this once for each runloop turn, but still ensure CSS is updated before onrender() methods are called?
-			}
-
-			componentsInPage[ Component._guid ] += 1;
+		add ( s ) {
+			styles.push( s );
+			dirty = true;
 		},
 
-		remove: function ( Component ) {
-			if ( !Component.css ) {
-				return;
-			}
-
-			componentsInPage[ Component._guid ] -= 1;
-
-			if ( !componentsInPage[ Component._guid ] ) {
-				removeFromArray( styles, Component.css );
-				runloop.scheduleTask( update );
+		apply () {
+			if ( dirty ) {
+				update();
+				dirty = false;
 			}
 		}
 	};

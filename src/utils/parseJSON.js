@@ -1,6 +1,6 @@
-import Parser from 'parse/Parser/_Parser';
-import getStringLiteral from 'parse/Parser/expressions/primary/literal/stringLiteral/_stringLiteral';
-import getKey from 'parse/Parser/expressions/shared/key';
+import Parser from 'parse/Parser';
+import readStringLiteral from 'parse/converters/expressions/primary/literal/readStringLiteral';
+import readKey from 'parse/converters/expressions/shared/readKey';
 
 // simple JSON parser, without the restrictions of JSON parse
 // (i.e. having to double-quote keys).
@@ -69,7 +69,7 @@ JsonParser = Parser.extend({
 		},
 
 		function getString ( parser ) {
-			var stringLiteral = getStringLiteral( parser ), values;
+			var stringLiteral = readStringLiteral( parser ), values;
 
 			if ( stringLiteral && ( values = parser.values ) ) {
 				return {
@@ -155,7 +155,7 @@ function getKeyValuePair ( parser ) {
 
 	parser.allowWhitespace();
 
-	key = getKey( parser );
+	key = readKey( parser );
 
 	if ( !key ) {
 		return null;

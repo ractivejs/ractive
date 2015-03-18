@@ -1,19 +1,15 @@
-import assignNewKeypath from 'virtualdom/items/shared/utils/assignNewKeypath';
+import { assignNewKeypath } from 'shared/keypaths';
 
-export default function Fragment$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
-
-	this.index = newIndex;
+export default function Fragment$rebind ( oldKeypath, newKeypath ) {
 
 	// assign new context keypath if needed
-	assignNewKeypath( this, 'context', oldKeypath, newKeypath );
-
-	if ( this.indexRefs && this.indexRefs[ indexRef ] !== undefined ) {
-		this.indexRefs[ indexRef ] = newIndex;
+	if ( !this.owner || this.owner.hasContext ) {
+		assignNewKeypath( this, 'context', oldKeypath, newKeypath );
 	}
 
 	this.items.forEach( item => {
 		if ( item.rebind ) {
-			item.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			item.rebind( oldKeypath, newKeypath );
 		}
 	});
 }

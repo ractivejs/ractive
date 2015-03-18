@@ -26,12 +26,11 @@ export default function Attribute$updateRadioValue () {
 				}
 
 				if ( binding.element.node.checked ) {
-					runloop.addViewmodel( binding.root.viewmodel );
+					runloop.addRactive( binding.root );
 					return binding.handleChange();
 				}
 			}
 
-			runloop.addViewmodel( binding.root.viewmodel );
 			this.root.viewmodel.set( binding.keypath, undefined );
 		}
 	}

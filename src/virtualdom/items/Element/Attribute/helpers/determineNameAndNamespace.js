@@ -1,4 +1,4 @@
-import namespaces from 'config/namespaces';
+import { namespaces } from 'config/environment';
 import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
 
 export default function ( attribute, name ) {

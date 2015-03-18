@@ -1,16 +1,16 @@
-import types from 'config/types';
+import { SECTION, INVERTED, CLOSING, PARTIAL, COMMENT, TRIPLE } from 'config/types';
 
 var mustacheTypes = {
-	'#': types.SECTION,
-	'^': types.INVERTED,
-	'/': types.CLOSING,
-	'>': types.PARTIAL,
-	'!': types.COMMENT,
-	'&': types.TRIPLE
+	'#': SECTION,
+	'^': INVERTED,
+	'/': CLOSING,
+	'>': PARTIAL,
+	'!': COMMENT,
+	'&': TRIPLE
 };
 
 export default function ( parser ) {
-	var type = mustacheTypes[ parser.str.charAt( parser.pos ) ];
+	var type = mustacheTypes[ parser.nextChar() ];
 
 	if ( !type ) {
 		return null;

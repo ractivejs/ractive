@@ -1,15 +1,13 @@
-import isEqual from 'utils/isEqual';
-import Promise from 'utils/Promise';
-import normaliseKeypath from 'utils/normaliseKeypath';
 import animations from 'shared/animations';
-import Animation from 'Ractive/prototype/animate/Animation';
+import Animation from './animate/Animation';
+import { isEqual } from 'utils/is';
+import { getKeypath, normalise } from 'shared/keypaths';
+import Promise from 'utils/Promise';
+import noop from 'utils/noop';
 
-var noop = function () {}, noAnimation = {
-	stop: noop
-};
+var noAnimation = { stop: noop };
 
 export default function Ractive$animate ( keypath, to, options ) {
-
 	var promise,
 		fulfilPromise,
 		k,
@@ -25,7 +23,7 @@ export default function Ractive$animate ( keypath, to, options ) {
 		dummy,
 		dummyOptions;
 
-	promise = new Promise( function ( fulfil ) { fulfilPromise = fulfil; });
+	promise = new Promise( fulfil => fulfilPromise = fulfil );
 
 	// animate multiple keypaths
 	if ( typeof keypath === 'object' ) {
@@ -59,10 +57,7 @@ export default function Ractive$animate ( keypath, to, options ) {
 			if ( keypath.hasOwnProperty( k ) ) {
 				if ( step || complete ) {
 					collectValue = makeValueCollector( k );
-					options = {
-						easing: easing,
-						duration: duration
-					};
+					options = { easing, duration };
 
 					if ( step ) {
 						options.step = collectValue;
@@ -76,21 +71,14 @@ export default function Ractive$animate ( keypath, to, options ) {
 
 		// Create a dummy animation, to facilitate step/complete
 		// callbacks, and Promise fulfilment
-		dummyOptions = {
-			easing: easing,
-			duration: duration
-		};
+		dummyOptions = { easing, duration };
 
 		if ( step ) {
-			dummyOptions.step = function ( t ) {
-				step( t, currentValues );
-			};
+			dummyOptions.step = t => step( t, currentValues );
 		}
 
 		if ( complete ) {
-			promise.then( function ( t ) {
-				complete( t, currentValues );
-			});
+			promise.then( t => complete( t, currentValues ) );
 		}
 
 		dummyOptions.complete = fulfilPromise;
@@ -98,7 +86,7 @@ export default function Ractive$animate ( keypath, to, options ) {
 		dummy = animate( this, null, null, dummyOptions );
 		animations.push( dummy );
 
-		promise.stop = function () {
+		promise.stop = () => {
 			var animation;
 
 			while ( animation = animations.pop() ) {
@@ -123,9 +111,7 @@ export default function Ractive$animate ( keypath, to, options ) {
 	options.complete = fulfilPromise;
 	animation = animate( this, keypath, to, options );
 
-	promise.stop = function () {
-		animation.stop();
-	};
+	promise.stop = () => animation.stop();
 	return promise;
 }
 
@@ -133,7 +119,7 @@ function animate ( root, keypath, to, options ) {
 	var easing, duration, animation, from;
 
 	if ( keypath ) {
-		keypath = normaliseKeypath( keypath );
+		keypath = getKeypath( normalise( keypath ) );
 	}
 
 	if ( keypath !== null ) {
@@ -173,12 +159,12 @@ function animate ( root, keypath, to, options ) {
 
 	// TODO store keys, use an internal set method
 	animation = new Animation({
-		keypath: keypath,
-		from: from,
-		to: to,
-		root: root,
-		duration: duration,
-		easing: easing,
+		keypath,
+		from,
+		to,
+		root,
+		duration,
+		easing,
 		interpolator: options.interpolator,
 
 		// TODO wrap callbacks if necessary, to use instance as context

@@ -1,17 +1,17 @@
-import normaliseKeypath from 'utils/normaliseKeypath';
-import Observer from 'Ractive/prototype/observe/Observer';
-import PatternObserver from 'Ractive/prototype/observe/PatternObserver';
+import { getKeypath, normalise } from 'shared/keypaths';
+import Observer from './Observer';
+import PatternObserver from './PatternObserver';
 
-var wildcard = /\*/, emptyObject = {};
+let emptyObject = {};
 
 export default function getObserverFacade ( ractive, keypath, callback, options ) {
 	var observer, isPatternObserver, cancelled;
 
-	keypath = normaliseKeypath( keypath );
+	keypath = getKeypath( normalise( keypath ) );
 	options = options || emptyObject;
 
 	// pattern observers are treated differently
-	if ( wildcard.test( keypath ) ) {
+	if ( keypath.isPattern ) {
 		observer = new PatternObserver( ractive, keypath, callback, options );
 		ractive.viewmodel.patternObservers.push( observer );
 		isPatternObserver = true;
@@ -19,8 +19,8 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 		observer = new Observer( ractive, keypath, callback, options );
 	}
 
-	ractive.viewmodel.register( keypath, observer, isPatternObserver ? 'patternObservers' : 'observers' );
 	observer.init( options.init );
+	ractive.viewmodel.register( keypath, observer, isPatternObserver ? 'patternObservers' : 'observers' );
 
 	// This flag allows observers to initialise even with undefined values
 	observer.ready = true;

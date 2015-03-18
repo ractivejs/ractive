@@ -3,7 +3,13 @@ export default function Fragment$toString ( escape ) {
 		return '';
 	}
 
-	return this.items.map( function ( item ) {
-		return item.toString( escape );
-	}).join( '' );
+	return this.items.map( escape ? toEscapedString : toString ).join( '' );
+}
+
+function toString ( item ) {
+	return item.toString();
+}
+
+function toEscapedString ( item ) {
+	return item.toString( true );
 }

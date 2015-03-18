@@ -1,4 +1,4 @@
-import EventHandler from 'virtualdom/items/Element/EventHandler/_EventHandler';
+import EventHandler from '../../EventHandler/_EventHandler';
 
 export default function ( element, template ) {
 	var i, name, names, handler, result = [];

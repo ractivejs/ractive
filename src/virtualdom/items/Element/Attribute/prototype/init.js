@@ -1,31 +1,21 @@
-import types from 'config/types';
-import booleanAttributes from 'config/booleanAttributes';
-import determineNameAndNamespace from 'virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace';
-import getInterpolator from 'virtualdom/items/Element/Attribute/helpers/getInterpolator';
-import determinePropertyName from 'virtualdom/items/Element/Attribute/helpers/determinePropertyName';
-
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import { ATTRIBUTE } from 'config/types';
+import { booleanAttributes } from 'utils/html';
+import determineNameAndNamespace from '../helpers/determineNameAndNamespace';
+import getInterpolator from '../helpers/getInterpolator';
+import Fragment from 'virtualdom/Fragment';
 
 export default function Attribute$init ( options ) {
-	this.type = types.ATTRIBUTE;
+	this.type = ATTRIBUTE;
 	this.element = options.element;
 	this.root = options.root;
 
 	determineNameAndNamespace( this, options.name );
+	this.isBoolean = booleanAttributes.test( this.name );
 
 	// if it's an empty attribute, or just a straight key-value pair, with no
 	// mustache shenanigans, set the attribute accordingly and go home
 	if ( !options.value || typeof options.value === 'string' ) {
-		this.value = booleanAttributes.test( this.name )
-			? true
-			: options.value || '';
-
+		this.value = this.isBoolean ? true : options.value || '';
 		return;
 	}
 
@@ -40,17 +30,14 @@ export default function Attribute$init ( options ) {
 		owner:    this
 	});
 
+	// TODO can we use this.fragment.toString() in some cases? It's quicker
 	this.value = this.fragment.getValue();
-
 
 	// Store a reference to this attribute's interpolator, if its fragment
 	// takes the form `{{foo}}`. This is necessary for two-way binding and
 	// for correctly rendering HTML later
 	this.interpolator = getInterpolator( this );
 	this.isBindable = !!this.interpolator && !this.interpolator.isStatic;
-
-	// can we establish this attribute's property name equivalent?
-	determinePropertyName( this, options );
 
 	// mark as ready
 	this.ready = true;

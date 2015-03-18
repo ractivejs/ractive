@@ -1,12 +1,12 @@
-import isClient from 'config/isClient';
-import warn from 'utils/warn';
-import createElement from 'utils/createElement';
+import { isClient } from 'config/environment';
+import { warnIfDebug } from 'utils/log';
+import { createElement } from 'utils/dom';
 import camelCase from 'utils/camelCase';
 import interpolate from 'shared/interpolate';
 import Ticker from 'shared/Ticker';
-import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
-import unprefix from 'virtualdom/items/Element/Transition/helpers/unprefix';
-import hyphenate from 'virtualdom/items/Element/Transition/helpers/hyphenate';
+import prefix from '../../helpers/prefix';
+import unprefix from '../../helpers/unprefix';
+import hyphenate from '../../helpers/hyphenate';
 
 var createTransitions,
 	testStyle,
@@ -127,7 +127,7 @@ if ( !isClient ) {
 						// will get confused
 						index = changedProperties.indexOf( prop );
 						if ( index === -1 ) {
-							warn( 'Something very strange happened with transitions. If you see this message, please let @RactiveJS know. Thanks!' );
+							warnIfDebug( 'Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!', { node: t.node });
 						} else {
 							changedProperties.splice( index, 1 );
 						}

@@ -1,5 +1,4 @@
-import namespaces from 'config/namespaces';
-import booleanAttributes from 'config/booleanAttributes';
+import { namespaces } from 'config/environment';
 
 // the property name equivalents for element attributes, where they differ
 // from the lowercased attribute name
@@ -40,12 +39,11 @@ export default function Attribute$render ( node ) {
 
 		// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 		// node.selected = true rather than node.setAttribute( 'selected', '' )
-		if ( booleanAttributes.test( propertyName ) || propertyName === 'value' ) {
+		if ( this.isBoolean || this.isTwoway ) {
 			this.useProperty = true;
 		}
 
 		if ( propertyName === 'value' ) {
-			this.useProperty = true;
 			node._ractive.value = this.value;
 		}
 	}

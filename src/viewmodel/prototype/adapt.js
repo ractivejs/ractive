@@ -1,61 +1,21 @@
-import config from 'config/config';
-import arrayAdaptor from 'viewmodel/prototype/get/arrayAdaptor';
-import log from 'utils/log';
-import magicAdaptor from 'viewmodel/prototype/get/magicAdaptor';
-import magicArrayAdaptor from 'viewmodel/prototype/get/magicArrayAdaptor';
-
 var prefixers = {};
 
 export default function Viewmodel$adapt ( keypath, value ) {
-	var ractive = this.ractive, len, i, adaptor, wrapped;
+	var len, i, adaptor, wrapped;
+
+	if ( !this.adaptors ) return;
 
 	// Do we have an adaptor for this value?
-	len = ractive.adapt.length;
+	len = this.adaptors.length;
 	for ( i = 0; i < len; i += 1 ) {
-		adaptor = ractive.adapt[i];
+		adaptor = this.adaptors[i];
 
-		// Adaptors can be specified as e.g. [ 'Backbone.Model', 'Backbone.Collection' ] -
-		// we need to get the actual adaptor if that's the case
-		if ( typeof adaptor === 'string' ) {
-			let found = config.registries.adaptors.find( ractive, adaptor );
-
-			if ( !found ) {
-				// will throw. "return" for safety, if we downgrade :)
-				return log.critical({
-					debug: ractive.debug,
-					message: 'missingPlugin',
-					args: {
-						plugin: 'adaptor',
-						name: adaptor
-					}
-				});
-			}
-
-			adaptor = ractive.adapt[i] = found;
-		}
-
-		if ( adaptor.filter( value, keypath, ractive ) ) {
-			wrapped = this.wrapped[ keypath ] = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+		if ( adaptor.filter( value, keypath, this.ractive ) ) {
+			wrapped = this.wrapped[ keypath ] = adaptor.wrap( this.ractive, value, keypath, getPrefixer( keypath ) );
 			wrapped.value = value;
-			return value;
+			return;
 		}
 	}
-
-	if ( ractive.magic ) {
-		if ( magicArrayAdaptor.filter( value, keypath, ractive ) ) {
-			this.wrapped[ keypath ] = magicArrayAdaptor.wrap( ractive, value, keypath );
-		}
-
-		else if ( magicAdaptor.filter( value, keypath, ractive ) ) {
-			this.wrapped[ keypath ] = magicAdaptor.wrap( ractive, value, keypath );
-		}
-	}
-
-	else if ( ractive.modifyArrays && arrayAdaptor.filter( value, keypath, ractive ) ) {
-		this.wrapped[ keypath ] = arrayAdaptor.wrap( ractive, value, keypath );
-	}
-
-	return value;
 }
 
 function prefixKeypath ( obj, prefix ) {

@@ -1,7 +1,7 @@
-import types from 'config/types';
-import createReferenceResolver from 'virtualdom/items/shared/Resolvers/createReferenceResolver';
-import ReferenceExpressionResolver from 'virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
-import ExpressionResolver from 'virtualdom/items/shared/Resolvers/ExpressionResolver';
+import { SECTION_UNLESS } from 'config/types';
+import createReferenceResolver from '../Resolvers/createReferenceResolver';
+import ReferenceExpressionResolver from '../Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver';
+import ExpressionResolver from '../Resolvers/ExpressionResolver';
 
 export default function Mustache$init ( mustache, options ) {
 
@@ -25,7 +25,7 @@ export default function Mustache$init ( mustache, options ) {
 	// if this is a simple mustache, with a reference, we just need to resolve
 	// the reference to a keypath
 	if ( ref = template.r ) {
-		mustache.resolver = new createReferenceResolver( mustache, ref, resolve );
+		mustache.resolver = createReferenceResolver( mustache, ref, resolve );
 	}
 
 	// if it's an expression, we have a bit more work to do
@@ -38,7 +38,7 @@ export default function Mustache$init ( mustache, options ) {
 	}
 
 	// Special case - inverted sections
-	if ( mustache.template.n === types.SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
+	if ( mustache.template.n === SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 		mustache.setValue( undefined );
 	}
 
@@ -49,12 +49,12 @@ export default function Mustache$init ( mustache, options ) {
 	function resolveAndRebindChildren ( newKeypath ) {
 		var oldKeypath = mustache.keypath;
 
-		if ( newKeypath !== oldKeypath ) {
+		if ( newKeypath != oldKeypath ) {
 			mustache.resolve( newKeypath );
 
 			if ( oldKeypath !== undefined ) {
 				mustache.fragments && mustache.fragments.forEach( f => {
-					f.rebind( null, null, oldKeypath, newKeypath );
+					f.rebind( oldKeypath, newKeypath );
 				});
 			}
 		}

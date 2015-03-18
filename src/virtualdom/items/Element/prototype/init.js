@@ -1,29 +1,25 @@
-import types from 'config/types';
-import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
-import createAttributes from 'virtualdom/items/Element/prototype/init/createAttributes';
-import createConditionalAttributes from 'virtualdom/items/Element/prototype/init/createConditionalAttributes';
-import createTwowayBinding from 'virtualdom/items/Element/prototype/init/createTwowayBinding';
-import createEventHandlers from 'virtualdom/items/Element/prototype/init/createEventHandlers';
-import Decorator from 'virtualdom/items/Element/Decorator/_Decorator';
-import bubbleSelect from 'virtualdom/items/Element/special/select/bubble';
-import initOption from 'virtualdom/items/Element/special/option/init';
-
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import { ELEMENT } from 'config/types';
+import processBindingAttributes from './init/processBindingAttributes';
+import createAttributes from './init/createAttributes';
+import createConditionalAttributes from './init/createConditionalAttributes';
+import createTwowayBinding from './init/createTwowayBinding';
+import createEventHandlers from './init/createEventHandlers';
+import enforceCase from '../shared/enforceCase';
+import Decorator from '../Decorator/_Decorator';
+import { bubble as bubbleSelect } from '../special/select';
+import { init as initOption } from '../special/option';
+import Fragment from 'virtualdom/Fragment';
 
 export default function Element$init ( options ) {
 	var parentFragment,
 		template,
 		ractive,
 		binding,
-		bindings;
+		bindings,
+		twoway,
+		bindingAttrs;
 
-	this.type = types.ELEMENT;
+	this.type = ELEMENT;
 
 	// stuff we'll need later
 	parentFragment = this.parentFragment = options.parentFragment;
@@ -33,6 +29,7 @@ export default function Element$init ( options ) {
 
 	this.root = ractive = parentFragment.root;
 	this.index = options.index;
+	this.key = options.key;
 
 	this.name = enforceCase( template.e );
 
@@ -47,6 +44,14 @@ export default function Element$init ( options ) {
 		this.bubble = bubbleSelect; // TODO this is a kludge
 	}
 
+	// Special case - <form> elements
+	if ( this.name === 'form' ) {
+		this.formBindings = [];
+	}
+
+	// handle binding attributes first (twoway, lazy)
+	bindingAttrs = processBindingAttributes( this, template );
+
 	// create attributes
 	this.attributes = createAttributes( this, template.a );
 	this.conditionalAttributes = createConditionalAttributes( this, template.m );
@@ -58,15 +63,24 @@ export default function Element$init ( options ) {
 			root:     ractive,
 			owner:    this,
 			pElement: this,
+			cssIds: null
 		});
 	}
 
+	// the element setting should override the ractive setting
+	twoway = ractive.twoway;
+	if ( bindingAttrs.twoway === false ) twoway = false;
+	else if ( bindingAttrs.twoway === true ) twoway = true;
+
+	this.twoway = twoway;
+	this.lazy = bindingAttrs.lazy;
+
 	// create twoway binding
-	if ( ractive.twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
+	if ( twoway && ( binding = createTwowayBinding( this, template.a ) ) ) {
 		this.binding = binding;
 
 		// register this with the root, so that we can do ractive.updateModel()
-		bindings = this.root._twowayBindings[ binding.keypath ] || ( this.root._twowayBindings[ binding.keypath ] = [] );
+		bindings = this.root._twowayBindings[ binding.keypath.str ] || ( this.root._twowayBindings[ binding.keypath.str ] = [] );
 		bindings.push( binding );
 	}
 

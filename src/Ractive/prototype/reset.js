@@ -1,21 +1,16 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import runloop from 'global/runloop';
+import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
-import config from 'config/config';
+import Hook from './shared/hooks/Hook';
+import runloop from 'global/runloop';
+import { rootKeypath } from 'shared/keypaths';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],
 	resetHook = new Hook( 'reset' );
 
-export default function Ractive$reset ( data, callback ) {
-
+export default function Ractive$reset ( data ) {
 	var promise, wrapper, changes, i, rerender;
 
-	if ( typeof data === 'function' && !callback ) {
-		callback = data;
-		data = {};
-	} else {
-		data = data || {};
-	}
+	data = data || {};
 
 	if ( typeof data !== 'object' ) {
 		throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
@@ -25,10 +20,10 @@ export default function Ractive$reset ( data, callback ) {
 	if ( ( wrapper = this.viewmodel.wrapped[ '' ] ) && wrapper.reset ) {
 		if ( wrapper.reset( data ) === false ) {
 			// reset was rejected, we need to replace the object
-			this.data = data;
+			this.viewmodel.reset( data );
 		}
 	} else {
-		this.data = data;
+		this.viewmodel.reset( data );
 	}
 
 	// reset config items and track if need to rerender
@@ -45,7 +40,7 @@ export default function Ractive$reset ( data, callback ) {
 	if ( rerender ) {
 		let component;
 
-		this.viewmodel.mark( '' );
+		this.viewmodel.mark( rootKeypath );
 
 		// Is this is a component, we need to set the `shouldDestroy`
 	 	// flag, otherwise it will assume by default that a parent node
@@ -76,15 +71,11 @@ export default function Ractive$reset ( data, callback ) {
 		promise = this.render( this.el, this.anchor );
 	} else {
 		promise = runloop.start( this, true );
-		this.viewmodel.mark( '' );
+		this.viewmodel.mark( rootKeypath );
 		runloop.end();
 	}
 
 	resetHook.fire( this, data );
-
-	if ( callback ) {
-		promise.then( callback );
-	}
 
 	return promise;
 }

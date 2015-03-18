@@ -1,20 +1,13 @@
-import log from 'utils/log';
-import circular from 'circular';
-import config from 'config/config';
+import { fatal } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import Fragment from 'virtualdom/Fragment';
+import { findInViewHierarchy } from 'shared/registry';
 
-var Fragment, getValueOptions, Decorator;
+var Decorator = function ( element, template ) {
+	var self = this, ractive, name, fragment;
 
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
-
-getValueOptions = { args: true };
-
-Decorator = function ( element, template ) {
-	var decorator = this, ractive, name, fragment;
-
-	decorator.element = element;
-	decorator.root = ractive = element.root;
+	this.element = element;
+	this.root = ractive = element.root;
 
 	name = template.n || template;
 
@@ -27,57 +20,54 @@ Decorator = function ( element, template ) {
 
 		name = fragment.toString();
 		fragment.unbind();
+
+		if ( name === '' ) {
+			// empty string okay, just no decorator
+			return;
+		}
 	}
 
 	if ( template.a ) {
-		decorator.params = template.a;
+		this.params = template.a;
 	}
 
 	else if ( template.d ) {
-		decorator.fragment = new Fragment({
+		this.fragment = new Fragment({
 			template: template.d,
 			root:     ractive,
 			owner:    element
 		});
 
-		decorator.params = decorator.fragment.getValue( getValueOptions );
+		this.params = this.fragment.getArgsList();
 
-		decorator.fragment.bubble = function () {
+		this.fragment.bubble = function () {
 			this.dirtyArgs = this.dirtyValue = true;
-			decorator.params = this.getValue( getValueOptions );
+			self.params = this.getArgsList();
 
-			if ( decorator.ready ) {
-				decorator.update();
+			if ( self.ready ) {
+				self.update();
 			}
 		};
 	}
 
-	decorator.fn = config.registries.decorators.find( ractive, name );
+	this.fn = findInViewHierarchy( 'decorators', ractive, name );
 
-	if ( !decorator.fn ) {
-
-		log.error({
-			debug: ractive.debug,
-			message: 'missingPlugin',
-			args: {
-				plugin: 'decorator',
-				name: name
-			}
-		});
+	if ( !this.fn ) {
+		fatal( missingPlugin( name, 'decorator' ) );
 	}
 };
 
 Decorator.prototype = {
 	init: function () {
-		var decorator = this, node, result, args;
+		var node, result, args;
 
-		node = decorator.element.node;
+		node = this.element.node;
 
-		if ( decorator.params ) {
-			args = [ node ].concat( decorator.params );
-			result = decorator.fn.apply( decorator.root, args );
+		if ( this.params ) {
+			args = [ node ].concat( this.params );
+			result = this.fn.apply( this.root, args );
 		} else {
-			result = decorator.fn.call( decorator.root, node );
+			result = this.fn.call( this.root, node );
 		}
 
 		if ( !result || !result.teardown ) {
@@ -85,8 +75,8 @@ Decorator.prototype = {
 		}
 
 		// TODO does this make sense?
-		decorator.actual = result;
-		decorator.ready = true;
+		this.actual = result;
+		this.ready = true;
 	},
 
 	update: function () {
@@ -100,14 +90,17 @@ Decorator.prototype = {
 		}
 	},
 
-	rebind: function ( indexRef, newIndex, oldKeypath, newKeypath ) {
+	rebind: function ( oldKeypath, newKeypath ) {
 		if ( this.fragment ) {
-			this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+			this.fragment.rebind( oldKeypath, newKeypath );
 		}
 	},
 
 	teardown: function ( updating ) {
-		this.actual.teardown();
+		this.torndown = true;
+		if ( this.ready ) {
+			this.actual.teardown();
+		}
 
 		if ( !updating && this.fragment ) {
 			this.fragment.unbind();

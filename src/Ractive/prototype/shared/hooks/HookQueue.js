@@ -1,4 +1,4 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
+import Hook from './Hook';
 
 function HookQueue ( event ) {
 	this.hook = new Hook( event );
@@ -16,7 +16,7 @@ HookQueue.prototype = {
 
 	end: function ( ractive ) {
 
-		var parent = ractive._parent;
+		var parent = ractive.parent;
 
 		// If this is *isn't* a child of a component that's in process,
 		// it should call methods or fire at this point

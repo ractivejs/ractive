@@ -1,49 +1,50 @@
-import create from 'utils/create';
-import adapt from 'viewmodel/prototype/adapt';
-import applyChanges from 'viewmodel/prototype/applyChanges';
-import capture from 'viewmodel/prototype/capture';
-import clearCache from 'viewmodel/prototype/clearCache';
-import compute from 'viewmodel/prototype/compute';
-import get from 'viewmodel/prototype/get';
-import init from 'viewmodel/prototype/init';
-import mark from 'viewmodel/prototype/mark';
-import merge from 'viewmodel/prototype/merge';
-import register from 'viewmodel/prototype/register';
-import release from 'viewmodel/prototype/release';
-import set from 'viewmodel/prototype/set';
-import smartUpdate from 'viewmodel/prototype/smartUpdate';
-import teardown from 'viewmodel/prototype/teardown';
-import unregister from 'viewmodel/prototype/unregister';
-import adaptConfig from 'viewmodel/adaptConfig';
+import { fatal } from 'utils/log';
+import { getKeypath } from 'shared/keypaths';
+import { create } from 'utils/object';
+import adapt from './prototype/adapt';
+import applyChanges from './prototype/applyChanges';
+import capture from './prototype/capture';
+import clearCache from './prototype/clearCache';
+import compute from './prototype/compute';
+import get from './prototype/get';
+import init from './prototype/init';
+import map from './prototype/map';
+import mark from './prototype/mark';
+import merge from './prototype/merge';
+import register from './prototype/register';
+import release from './prototype/release';
+import reset from './prototype/reset';
+import set from './prototype/set';
+import smartUpdate from './prototype/smartUpdate';
+import teardown from './prototype/teardown';
+import unregister from './prototype/unregister';
 
-// TODO: fix our ES6 modules so we can have multiple exports
-// then this magic check can be reused by magicAdaptor
-var noMagic;
+var Viewmodel = function ( options ) {
+	var { adapt, data, ractive, computed, mappings } = options,
+		key,
+		mapping;
 
-try {
-	Object.defineProperty({}, 'test', { value: 0 });
-}
-catch ( err ) {
-	noMagic = true; // no magic in this environment :(
-}
+	// TODO is it possible to remove this reference?
+	this.ractive = ractive;
 
-var Viewmodel = function ( ractive ) {
-	this.ractive = ractive; // TODO eventually, we shouldn't need this reference
-
-	Viewmodel.extend( ractive.constructor, ractive );
+	this.adaptors = adapt;
+	this.onchange = options.onchange;
 
 	this.cache = {}; // we need to be able to use hasOwnProperty, so can't inherit from null
 	this.cacheMap = create( null );
 
 	this.deps = {
-		computed: {},
-		'default': {}
+		computed: create( null ),
+		'default': create( null )
 	};
 	this.depsMap = {
-		computed: {},
-		'default': {}
+		computed: create( null ),
+		'default': create( null )
 	};
+
 	this.patternObservers = [];
+
+	this.specials = create( null );
 
 	this.wrapped = create( null );
 	this.computations = create( null );
@@ -54,19 +55,34 @@ var Viewmodel = function ( ractive ) {
 	this.changes = [];
 	this.implicitChanges = {};
 	this.noCascade = {};
-};
 
-Viewmodel.extend = function ( Parent, instance ) {
+	this.data = data;
 
-	if ( instance.magic && noMagic ) {
-		throw new Error( 'Getters and setters (magic mode) are not supported in this browser' );
+	// set up explicit mappings
+	this.mappings = create( null );
+	for ( key in mappings ) {
+		this.map( getKeypath( key ), mappings[ key ] );
 	}
 
-	instance.adapt = adaptConfig.combine(
-		Parent.prototype.adapt,
-		instance.adapt) || [];
+	if ( data ) {
+		// if data exists locally, but is missing on the parent,
+		// we transfer ownership to the parent
+		for ( key in data ) {
+			if ( ( mapping = this.mappings[ key ] ) && mapping.getValue() === undefined ) {
+				mapping.setValue( data[ key ] );
+			}
+		}
+	}
 
-	instance.adapt = adaptConfig.lookup( instance, instance.adaptors );
+	for ( key in computed ) {
+		if ( mappings && key in mappings ) {
+			fatal( 'Cannot map to a computed property (\'%s\')', key );
+		}
+
+		this.compute( getKeypath( key ), computed[ key ] );
+	}
+
+	this.ready = true;
 };
 
 Viewmodel.prototype = {
@@ -77,10 +93,12 @@ Viewmodel.prototype = {
 	compute: compute,
 	get: get,
 	init: init,
+	map: map,
 	mark: mark,
 	merge: merge,
 	register: register,
 	release: release,
+	reset: reset,
 	set: set,
 	smartUpdate: smartUpdate,
 	teardown: teardown,

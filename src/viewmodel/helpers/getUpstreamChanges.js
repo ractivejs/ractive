@@ -1,18 +1,18 @@
+import { addToArray } from 'utils/array';
+import { rootKeypath } from 'shared/keypaths'; // TEMP
+
 export default function getUpstreamChanges ( changes ) {
-	var upstreamChanges = [ '' ], i, keypath, keys, upstreamKeypath;
+	var upstreamChanges = [ rootKeypath ], i, keypath;
 
 	i = changes.length;
 	while ( i-- ) {
-		keypath = changes[i];
-		keys = keypath.split( '.' );
+		keypath = changes[i].parent;
 
-		while ( keys.length > 1 ) {
-			keys.pop();
-			upstreamKeypath = keys.join( '.' );
-
-			if ( upstreamChanges.indexOf( upstreamKeypath ) === -1 ) {
-				upstreamChanges.push( upstreamKeypath );
+		while ( keypath && !keypath.isRoot ) {
+			if( changes.indexOf(keypath) === -1 ) {
+				addToArray( upstreamChanges, keypath );
 			}
+			keypath = keypath.parent;
 		}
 	}
 

@@ -1,46 +1,38 @@
-import config from 'config/config';
-import log from 'utils/log';
-import circular from 'circular';
-
-var Ractive;
-circular.push( function () {
-	Ractive = circular.Ractive;
-});
+import { noRegistryFunctionReturn } from 'config/errors';
+import { warnIfDebug } from 'utils/log';
+import { findInstance } from 'shared/registry';
 
 // finds the component constructor in the registry or view hierarchy registries
 
 export default function getComponent ( ractive, name ) {
 
-	var component, instance = config.registries.components.findInstance( ractive, name );
+	var Component, instance = findInstance( 'components', ractive, name );
 
 	if ( instance ) {
-		component = instance.components[ name ];
+		Component = instance.components[ name ];
 
 		// best test we have for not Ractive.extend
-		if ( !component._parent ) {
+		if ( !Component._Parent ) {
 			// function option, execute and store for reset
-			let fn = component.bind( instance );
+			let fn = Component.bind( instance );
 			fn.isOwner = instance.components.hasOwnProperty( name );
-			component = fn( instance.data );
+			Component = fn();
 
-			if ( !component ) {
-				log.warn({
-					debug: ractive.debug,
-					message: 'noRegistryFunctionReturn',
-					args: { registry: 'component', name: name }
-				});
+			if ( !Component ) {
+				warnIfDebug( noRegistryFunctionReturn, name, 'component', 'component', { ractive });
+
 				return;
 			}
 
-			if ( typeof component === 'string' ) {
-				//allow string lookup
-				component = getComponent ( ractive, component );
+			if ( typeof Component === 'string' ) {
+				// allow string lookup
+				Component = getComponent ( ractive, Component );
 			}
 
-			component._fn = fn;
-			instance.components[ name ] = component;
+			Component._fn = fn;
+			instance.components[ name ] = Component;
 		}
 	}
 
-	return component;
+	return Component;
 }

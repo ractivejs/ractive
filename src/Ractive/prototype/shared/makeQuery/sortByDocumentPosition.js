@@ -1,4 +1,4 @@
-import sortByItemPosition from 'Ractive/prototype/shared/makeQuery/sortByItemPosition';
+import sortByItemPosition from './sortByItemPosition';
 
 export default function ( node, otherNode ) {
 	var bitmask;

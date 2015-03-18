@@ -1,16 +1,8 @@
-import types from 'config/types';
+import { SECTION_EACH } from 'config/types';
 import runloop from 'global/runloop';
-import circular from 'circular';
-
-var Fragment;
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
 
 export default function Section$shuffle ( newIndices ) {
-	var section = this,
-		parentFragment,
+	var parentFragment,
 		firstChange,
 		i,
 		newLength,
@@ -20,7 +12,7 @@ export default function Section$shuffle ( newIndices ) {
 
 	// short circuit any double-updates, and ensure that this isn't applied to
 	// non-list sections
-	if ( this.shuffling || this.unbound || ( this.subtype && this.subtype !== types.SECTION_EACH ) ) {
+	if ( this.shuffling || this.unbound || ( this.currentSubtype !== SECTION_EACH ) ) {
 		return;
 	}
 
@@ -31,16 +23,17 @@ export default function Section$shuffle ( newIndices ) {
 
 	reboundFragments = [];
 
+	// TODO: need to update this
 	// first, rebind existing fragments
-	newIndices.forEach( function rebindIfNecessary ( newIndex, oldIndex ) {
-		var fragment, by, oldKeypath, newKeypath;
+	newIndices.forEach( ( newIndex, oldIndex ) => {
+		var fragment, by, oldKeypath, newKeypath, deps;
 
 		if ( newIndex === oldIndex ) {
-			reboundFragments[ newIndex ] = section.fragments[ oldIndex ];
+			reboundFragments[ newIndex ] = this.fragments[ oldIndex ];
 			return;
 		}
 
-		fragment = section.fragments[ oldIndex ];
+		fragment = this.fragments[ oldIndex ];
 
 		if ( firstChange === undefined ) {
 			firstChange = oldIndex;
@@ -48,22 +41,28 @@ export default function Section$shuffle ( newIndices ) {
 
 		// does this fragment need to be torn down?
 		if ( newIndex === -1 ) {
-			section.fragmentsToUnrender.push( fragment );
+			this.fragmentsToUnrender.push( fragment );
 			fragment.unbind();
 			return;
 		}
 
 		// Otherwise, it needs to be rebound to a new index
 		by = newIndex - oldIndex;
-		oldKeypath = section.keypath + '.' + oldIndex;
-		newKeypath = section.keypath + '.' + newIndex;
+		oldKeypath = this.keypath.join( oldIndex );
+		newKeypath = this.keypath.join( newIndex );
 
-		fragment.rebind( section.template.i, newIndex, oldKeypath, newKeypath );
 		fragment.index = newIndex;
+
+		// notify any registered index refs directly
+		if ( deps = fragment.registeredIndexRefs ) {
+			deps.forEach( blindRebind );
+		}
+
+		fragment.rebind( oldKeypath, newKeypath );
 		reboundFragments[ newIndex ] = fragment;
 	});
 
-	newLength = this.root.get( this.keypath ).length;
+	newLength = this.root.viewmodel.get( this.keypath ).length;
 
 	// If nothing changed with the existing fragments, then we start adding
 	// new fragments at the end...
@@ -89,10 +88,6 @@ export default function Section$shuffle ( newIndices ) {
 		owner:      this
 	};
 
-	if ( this.template.i ) {
-		fragmentOptions.indexRef = this.template.i;
-	}
-
 	// Add as many new fragments as we need to, or add back existing
 	// (detached) fragments
 	for ( i = firstChange; i < newLength; i += 1 ) {
@@ -104,4 +99,9 @@ export default function Section$shuffle ( newIndices ) {
 
 		this.fragments[i] = fragment;
 	}
+}
+
+function blindRebind ( dep ) {
+	// the keypath doesn't actually matter here as it won't have changed
+	dep.rebind( '', '' );
 }

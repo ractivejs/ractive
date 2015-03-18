@@ -1,9 +1,8 @@
-import circular from 'circular';
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import removeFromArray from 'utils/removeFromArray';
+import { addToArray, removeFromArray } from 'utils/array';
 import Promise from 'utils/Promise';
 import resolveRef from 'shared/resolveRef';
-import TransitionManager from 'global/TransitionManager';
+import TransitionManager from './TransitionManager';
 
 var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
 
@@ -20,12 +19,12 @@ runloop = {
 			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 			views: [],
 			tasks: [],
-			viewmodels: [],
+			ractives: [],
 			instance: instance
 		};
 
 		if ( instance ) {
-			batch.viewmodels.push( instance.viewmodel );
+			batch.ractives.push( instance );
 		}
 
 		return promise;
@@ -39,23 +38,19 @@ runloop = {
 		batch = batch.previousBatch;
 	},
 
-	addViewmodel: function ( viewmodel ) {
+	addRactive: function ( ractive ) {
 		if ( batch ) {
-			if ( batch.viewmodels.indexOf( viewmodel ) === -1 ) {
-				batch.viewmodels.push( viewmodel );
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			viewmodel.applyChanges();
-			return false;
+			addToArray( batch.ractives, ractive );
 		}
 	},
 
 	registerTransition: function ( transition ) {
 		transition._manager = batch.transitionManager;
 		batch.transitionManager.add( transition );
+	},
+
+	registerDecorator: function ( decorator ) {
+		batch.transitionManager.addDecorator( decorator );
 	},
 
 	addView: function ( view ) {
@@ -94,21 +89,19 @@ runloop = {
 	}
 };
 
-circular.runloop = runloop;
 export default runloop;
 
 function flushChanges () {
 	var i, thing, changeHash;
 
-	for ( i = 0; i < batch.viewmodels.length; i += 1 ) {
-		thing = batch.viewmodels[i];
-		changeHash = thing.applyChanges();
+	while ( batch.ractives.length ) {
+		thing = batch.ractives.pop();
+		changeHash = thing.viewmodel.applyChanges();
 
 		if ( changeHash ) {
-			changeHook.fire( thing.ractive, changeHash );
+			changeHook.fire( thing, changeHash );
 		}
 	}
-	batch.viewmodels.length = 0;
 
 	attemptKeypathResolution();
 
@@ -127,7 +120,7 @@ function flushChanges () {
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.viewmodels.length ) return flushChanges();
+	if ( batch.ractives.length ) return flushChanges();
 }
 
 function attemptKeypathResolution () {
@@ -143,6 +136,7 @@ function attemptKeypathResolution () {
 			// it resolved some other way. TODO how? two-way binding? Seems
 			// weird that we'd still end up here
 			unresolved.splice( i, 1 );
+			continue; // avoid removing the wrong thing should the next condition be true
 		}
 
 		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment ) ) {

@@ -1,10 +1,9 @@
-import warn from 'utils/warn';
-import mapOldToNewIndex from 'viewmodel/prototype/merge/mapOldToNewIndex';
+import { warnIfDebug } from 'utils/log';
+import mapOldToNewIndex from './merge/mapOldToNewIndex';
 
 var comparators = {};
 
 export default function Viewmodel$merge ( keypath, currentArray, array, options ) {
-
 	var oldArray,
 		newArray,
 		comparator,
@@ -22,13 +21,7 @@ export default function Viewmodel$merge ( keypath, currentArray, array, options 
 		} catch ( err ) {
 			// fallback to an identity check - worst case scenario we have
 			// to do more DOM manipulation than we thought...
-
-			// ...unless we're in debug mode of course
-			if ( this.debug ) {
-				throw err;
-			} else {
-				warn( 'Merge operation: comparison failed. Falling back to identity checking' );
-			}
+			warnIfDebug( 'merge(): "%s" comparison failed. Falling back to identity checking', keypath );
 
 			oldArray = currentArray;
 			newArray = array;

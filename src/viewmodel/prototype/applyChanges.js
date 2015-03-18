@@ -1,11 +1,12 @@
-import getUpstreamChanges from 'viewmodel/helpers/getUpstreamChanges';
-import notifyPatternObservers from 'viewmodel/prototype/applyChanges/notifyPatternObservers';
+import getUpstreamChanges from '../helpers/getUpstreamChanges';
+import notifyPatternObservers from './applyChanges/notifyPatternObservers';
 
 export default function Viewmodel$applyChanges () {
 	var self = this,
 		changes,
 		upstreamChanges,
-		hash = {};
+		hash = {},
+		bindings;
 
 	changes = this.changes;
 
@@ -14,43 +15,45 @@ export default function Viewmodel$applyChanges () {
 		return;
 	}
 
-	function cascade ( keypath ) {
-		var map, dependants, keys;
+	function invalidateComputation ( computation ) {
+		var key = computation.key;
 
-		if ( self.noCascade.hasOwnProperty( keypath ) ) {
+		if ( computation.viewmodel === self ) {
+			self.clearCache( key.str );
+			computation.invalidate();
+
+			changes.push( key );
+			cascade( key );
+		} else {
+			computation.viewmodel.mark( key );
+		}
+	}
+
+	function cascade ( keypath ) {
+		var map, computations;
+
+		if ( self.noCascade.hasOwnProperty( keypath.str ) ) {
 			return;
 		}
 
-		if ( dependants = self.deps.computed[ keypath ] ) {
-			dependants.forEach( invalidate );
-
-			keys = dependants.map( getKey );
-
-			keys.forEach( mark );
-			keys.forEach( cascade );
+		if ( computations = self.deps.computed[ keypath.str ] ) {
+			computations.forEach( invalidateComputation );
 		}
 
-		if ( map = self.depsMap.computed[ keypath ] ) {
+		if ( map = self.depsMap.computed[ keypath.str ] ) {
 			map.forEach( cascade );
 		}
 	}
 
-	function mark ( keypath ) {
-		self.mark( keypath );
-	}
-
-	changes.forEach( cascade );
+	changes.slice().forEach( cascade );
 
 	upstreamChanges = getUpstreamChanges( changes );
 	upstreamChanges.forEach( keypath => {
-		var dependants, keys;
+		var computations;
 
-		if ( dependants = self.deps.computed[ keypath ] ) {
-			dependants.forEach( invalidate );
-
-			keys = dependants.map( getKey );
-			keys.forEach( mark );
-			keys.forEach( cascade );
+		// make sure we haven't already been down this particular keypath in this turn
+		if ( changes.indexOf( keypath ) === -1 && ( computations = self.deps.computed[ keypath.str ] ) ) {
+			computations.forEach( invalidateComputation );
 		}
 	});
 
@@ -68,7 +71,7 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	if ( this.deps['default'] ) {
-		let bindings = [];
+		bindings = [];
 		upstreamChanges.forEach( keypath => notifyUpstreamDependants( this, bindings, keypath, 'default' ) );
 
 		if( bindings.length ) {
@@ -80,21 +83,13 @@ export default function Viewmodel$applyChanges () {
 
 	// Return a hash of keypaths to updated values
 	changes.forEach( keypath => {
-		hash[ keypath ] = this.get( keypath );
+		hash[ keypath.str ] = this.get( keypath );
 	});
 
 	this.implicitChanges = {};
 	this.noCascade = {};
 
 	return hash;
-}
-
-function invalidate ( computation ) {
-	computation.invalidate();
-}
-
-function getKey ( computation ) {
-	return computation.key;
 }
 
 function notifyUpstreamDependants ( viewmodel, bindings, keypath, groupName ) {
@@ -172,7 +167,7 @@ function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 	function cascade ( keypath ) {
 		var childDeps;
 
-		if ( childDeps = viewmodel.depsMap[ groupName ][ keypath ] ) {
+		if ( childDeps = viewmodel.depsMap[ groupName ][ keypath.str ] ) {
 			addKeypaths( childDeps );
 		}
 	}
@@ -185,5 +180,5 @@ function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 
 function findDependants ( viewmodel, keypath, groupName ) {
 	var group = viewmodel.deps[ groupName ];
-	return group ? group[ keypath ] : null;
+	return group ? group[ keypath.str ] : null;
 }

@@ -1,7 +1,7 @@
 import legacy from 'legacy';
-import isClient from 'config/isClient';
-import isArray from 'utils/isArray';
-import prefix from 'virtualdom/items/Element/Transition/helpers/prefix';
+import { isClient } from 'config/environment';
+import { isArray } from 'utils/is';
+import prefix from '../helpers/prefix';
 
 var getStyle, getComputedStyle;
 

@@ -12,7 +12,10 @@
 	"-W030": false,
 	"esnext": true,
 	"globals": {
+		"process": true,
+		"__dirname": true,
 		"clearInterval": true,
+		"clearTimeout": true,
 		"define": true,
 		"document": true,
 		"Element": true,

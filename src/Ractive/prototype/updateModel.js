@@ -1,82 +1,74 @@
-import arrayContentsMatch from 'utils/arrayContentsMatch';
-import isEqual from 'utils/isEqual';
+import { arrayContentsMatch } from 'utils/array';
+import { getKeypath } from 'shared/keypaths';
+import { isEqual } from 'utils/is';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
-	var values;
+	var values, key, bindings;
 
-	if ( typeof keypath !== 'string' ) {
-		keypath = '';
-		cascade = true;
-	}
+	if ( typeof keypath === 'string' && !cascade ) {
+		bindings = this._twowayBindings[ keypath ];
+	} else {
+		bindings = [];
 
-	consolidateChangedValues( this, keypath, values = {}, cascade );
-	return this.set( values );
-}
-
-function consolidateChangedValues ( ractive, keypath, values, cascade ) {
-	var bindings, childDeps, i, binding, oldValue, newValue, checkboxGroups = [];
-
-	bindings = ractive._twowayBindings[ keypath ];
-
-	if ( bindings && ( i = bindings.length ) ) {
-		while ( i-- ) {
-			binding = bindings[i];
-
-			// special case - radio name bindings
-			if ( binding.radioName && !binding.element.node.checked ) {
-				continue;
-			}
-
-			// special case - checkbox name bindings come in groups, so
-			// we want to get the value once at most
-			if ( binding.checkboxName ) {
-				if ( !checkboxGroups[ binding.keypath ] && !binding.changed() ) {
-					checkboxGroups.push( binding.keypath );
-					checkboxGroups[ binding.keypath ] = binding;
-				}
-
-				continue;
-			}
-
-			oldValue = binding.attribute.value;
-			newValue = binding.getValue();
-
-			if ( arrayContentsMatch( oldValue, newValue ) ) {
-				continue;
-			}
-
-			if ( !isEqual( oldValue, newValue ) ) {
-				values[ keypath ] = newValue;
+		for ( key in this._twowayBindings ) {
+			if ( !keypath || getKeypath( key ).equalsOrStartsWith( keypath ) ) { // TODO is this right?
+				bindings.push.apply( bindings, this._twowayBindings[ key ]);
 			}
 		}
 	}
+
+	values = consolidate( this, bindings );
+	return this.set( values );
+}
+
+function consolidate ( ractive, bindings ) {
+	var values = {}, checkboxGroups = [];
+
+	bindings.forEach( b => {
+		var oldValue, newValue;
+
+		// special case - radio name bindings
+		if ( b.radioName && !b.element.node.checked ) {
+			return;
+		}
+
+		// special case - checkbox name bindings come in groups, so
+		// we want to get the value once at most
+		if ( b.checkboxName ) {
+			if ( !checkboxGroups[ b.keypath.str ] && !b.changed() ) {
+				checkboxGroups.push( b.keypath );
+				checkboxGroups[ b.keypath.str ] = b;
+			}
+
+			return;
+		}
+
+		oldValue = b.attribute.value;
+		newValue = b.getValue();
+
+		if ( arrayContentsMatch( oldValue, newValue ) ) {
+			return;
+		}
+
+		if ( !isEqual( oldValue, newValue ) ) {
+			values[ b.keypath.str ] = newValue;
+		}
+	});
 
 	// Handle groups of `<input type='checkbox' name='{{foo}}' ...>`
 	if ( checkboxGroups.length ) {
 		checkboxGroups.forEach( keypath => {
 			var binding, oldValue, newValue;
 
-			binding = checkboxGroups[ keypath ]; // one to represent the entire group
+			binding = checkboxGroups[ keypath.str ]; // one to represent the entire group
 			oldValue = binding.attribute.value;
 			newValue = binding.getValue();
 
 			if ( !arrayContentsMatch( oldValue, newValue ) ) {
-				values[ keypath ] = newValue;
+				values[ keypath.str ] = newValue;
 			}
 		});
 	}
 
-	if ( !cascade ) {
-		return;
-	}
-
-	// cascade
-	childDeps = ractive.viewmodel.depsMap[ 'default' ][ keypath ];
-
-	if ( childDeps ) {
-		i = childDeps.length;
-		while ( i-- ) {
-			consolidateChangedValues( ractive, childDeps[i], values, cascade );
-		}
-	}
+	return values;
 }

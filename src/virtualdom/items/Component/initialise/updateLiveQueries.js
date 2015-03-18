@@ -8,6 +8,6 @@ export default function ( component ) {
 			query.push( component.instance );
 		}
 
-		ancestor = ancestor._parent;
+		ancestor = ancestor.parent;
 	}
 }

@@ -1,6 +1,7 @@
 import css from 'global/css';
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import getElement from 'utils/getElement';
+import Hook from './shared/hooks/Hook';
+import { getElement } from 'utils/dom';
+import { teardown } from 'shared/methodCallers';
 import runloop from 'global/runloop';
 
 var renderHook = new Hook( 'render' ),
@@ -28,9 +29,21 @@ export default function Ractive$render ( target, anchor ) {
 	this.el = target;
 	this.anchor = anchor;
 
-	// Add CSS, if applicable
-	if ( this.constructor.css ) {
-		css.add( this.constructor );
+	if ( !this.append && target ) {
+		// Teardown any existing instances *before* trying to set up the new one -
+		// avoids certain weird bugs
+		let others = target.__ractive_instances__;
+		if ( others && others.length ) {
+			removeOtherInstances( others );
+		}
+
+		// make sure we are the only occupants
+		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+	}
+
+	if ( this.cssId ) {
+		// ensure encapsulated CSS is up-to-date
+		css.apply();
 	}
 
 	if ( target ) {
@@ -51,14 +64,9 @@ export default function Ractive$render ( target, anchor ) {
 
 	this.transitionsEnabled = transitionsEnabled;
 
-	// It is now more problematic to know if the complete hook
-	// would fire. Method checking is straight-forward, but would
-	// also require preflighting event subscriptions. Which seems
-	// like more work then just letting the promise happen.
-	// But perhaps I'm wrong about that...
-	promise.then( () => completeHook.fire( this ) );
-
-	return promise;
+	return promise.then( () => completeHook.fire( this ) );
 }
 
-
+function removeOtherInstances ( others ) {
+	others.splice( 0, others.length ).forEach( teardown );
+}

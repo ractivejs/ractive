@@ -35,52 +35,30 @@ cd ractive
 npm install
 ```
 
-Ractive is built with [Gobble](https://github.com/gobblejs/gobble) and [Grunt](http://gruntjs.com). While developing the library, you can serve it with [gobble-cli](https://github.com/gobblejs/gobble-cli):
+While developing the library, you can serve it with [gobble](https://github.com/gobblejs/gobble):
 
 ```bash
-npm install -g gobble-cli
-gobble
+npm start
 ```
 
-Navigate to [localhost:4567](http://localhost:4567) - you'll see three folders:
+Navigate to [localhost:4567](http://localhost:4567) - you'll see two folders, plus `ractive.js`:
 
 * `sandbox` - this contains some template files to help with debugging. Start by copying the `sandbox/sample` folder and following the instructions therein
-* `src` - this contains all of Ractive's source code, transpiled from ES6 modules to AMD for easy debugging
 * `test` - the test suite (duh)
 
 After the initial build, any subsequent changes will result in fast incremental rebuilds. If you're using Chrome, you can use the [LiveReload](https://chrome.google.com/webstore/detail/livereload/jnihajbhpnppcggbcgedagnkighmdlei) plugin.
 
-*Gobble is still in development - please report any bugs to the [issue tracker](https://github.comgobblejs/gobble/issues) - thanks!*
+*Gobble is still in development - please report any bugs to the [issue tracker](https://github.com/gobblejs/gobble/issues) - thanks!*
 
-To run a complete build (including linting, testing and minification), you'll need to have [Grunt](http://gruntjs.com) installed. Clone the repo, navigate to the folder, then run
+To run a complete build (including linting, testing and minification):
 
-```shell
-$ grunt
+```bash
+npm run build
 ```
 
-If all the build steps succeed, files will be created in the `build` folder.
-
-Other grunt commands available:
-
-```shell
-# Lint the source code
-$ grunt jshint
-
-# Build the code (will run jshint first)
-$ grunt build
-
-# Run tests on the build
-$ grunt qunit
-
-# Run node non-browser tests (parse and toHTML) on the concatenated code
-$ grunt nodeunit
-
-# Rebuilds the test runners when test folders and files change (based on ./test/modules)
-$ grunt buildTests
-
-# Rebuilds the tests, runs the nodeunit tests, runs the qunit tests
-$ grunt test
-```
+### Distribution build requirements
+* A real shell, so Linux and OS X should be good. Windows needs MSYS or something similar at least on the path.
+* On Windows, if you get an `EINVAL` when running the tests, you may need to update the `phantomjs` script in the `node_modules/.bin` to use `{ stdio: 'inherit' }` when spawning the child process instead of manually piping afterwards.
 
 
 Contributing

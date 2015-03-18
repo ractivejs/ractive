@@ -1,7 +1,13 @@
-import matches from 'utils/matches';
+import { matches } from 'utils/dom';
 
-export default function ( item, noDirty ) {
-	var itemMatches = ( this._isComponentQuery ? ( !this.selector || item.name === this.selector ) : ( matches( item.node, this.selector ) ) );
+export default function Query$test ( item, noDirty ) {
+	var itemMatches;
+
+	if ( this._isComponentQuery ) {
+		itemMatches = !this.selector || item.name === this.selector;
+	} else {
+		itemMatches = item.node ? matches( item.node, this.selector ) : null;
+	}
 
 	if ( itemMatches ) {
 		this.push( item.node || item.instance );

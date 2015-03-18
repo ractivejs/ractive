@@ -1,9 +1,8 @@
-import isArray from 'utils/isArray';
-import arrayContains from 'utils/arrayContains';
-import removeFromArray from 'utils/removeFromArray';
-import Binding from 'virtualdom/items/Element/Binding/Binding';
-import getSiblings from 'virtualdom/items/Element/Binding/shared/getSiblings';
-import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
+import { isArray } from 'utils/is';
+import { arrayContains, removeFromArray } from 'utils/array';
+import Binding from './Binding';
+import getSiblings from './shared/getSiblings';
+import handleDomEvent from './shared/handleDomEvent';
 
 var CheckboxNameBinding = Binding.extend({
 	name: 'name',
@@ -24,12 +23,11 @@ var CheckboxNameBinding = Binding.extend({
 		var existingValue, bindingValue;
 
 		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
-		this.attribute.twoway = true; // we set this property so that the attribute gets the correct update method
 
 		// Each input has a reference to an array containing it and its
 		// siblings, as two-way binding depends on being able to ascertain
 		// the status of all inputs within the group
-		this.siblings = getSiblings( this.root._guid, 'checkboxes', this.keypath );
+		this.siblings = getSiblings( this.root._guid, 'checkboxes', this.keypath.str );
 		this.siblings.push( this );
 
 		if ( this.noInitialValue ) {
@@ -62,7 +60,7 @@ var CheckboxNameBinding = Binding.extend({
 			this.isChecked = existingValue == bindingValue;
 		}
 
-		node.name = '{{' + this.keypath + '}}';
+		node.name = '{{' + this.keypath.str + '}}';
 		node.checked = this.isChecked;
 
 		node.addEventListener( 'change', handleDomEvent, false );

@@ -1,19 +1,14 @@
-import log from 'utils/log';
-import config from 'config/config';
-import circular from 'circular';
-
-var Fragment, getValueOptions = {}; // TODO what are the options?
-
-circular.push( function () {
-	Fragment = circular.Fragment;
-});
+import { warnOnceIfDebug } from 'utils/log';
+import { missingPlugin } from 'config/errors';
+import Fragment from 'virtualdom/Fragment';
+import { findInViewHierarchy } from 'shared/registry';
 
 export default function Transition$init ( element, template, isIntro ) {
-	var t = this, ractive, name, fragment;
+	var ractive, name, fragment;
 
-	t.element = element;
-	t.root = ractive = element.root;
-	t.isIntro = isIntro;
+	this.element = element;
+	this.root = ractive = element.root;
+	this.isIntro = isIntro;
 
 	name = template.n || template;
 
@@ -26,12 +21,17 @@ export default function Transition$init ( element, template, isIntro ) {
 
 		name = fragment.toString();
 		fragment.unbind();
+
+		if ( name === '' ) {
+			// empty string okay, just no transition
+			return;
+		}
 	}
 
-	t.name = name;
+	this.name = name;
 
 	if ( template.a ) {
-		t.params = template.a;
+		this.params = template.a;
 	}
 
 	else if ( template.d ) {
@@ -43,23 +43,13 @@ export default function Transition$init ( element, template, isIntro ) {
 			owner:    element
 		});
 
-		t.params = fragment.getValue( getValueOptions );
+		this.params = fragment.getArgsList();
 		fragment.unbind();
 	}
 
-	t._fn = config.registries.transitions.find( ractive, name );
+	this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
-	if ( !t._fn ) {
-
-		log.error({
-			debug: ractive.debug,
-			message: 'missingPlugin',
-			args: {
-				plugin: 'transition',
-				name: name
-			}
-		});
-
-		return;
+	if ( !this._fn ) {
+		warnOnceIfDebug( missingPlugin( name, 'transition' ), { ractive: this.root });
 	}
 }

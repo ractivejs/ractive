@@ -1,11 +1,10 @@
 import runloop from 'global/runloop';
-import warn from 'utils/warn';
-import create from 'utils/create';
-import extend from 'utils/extend';
-import removeFromArray from 'utils/removeFromArray';
+import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import { create, extend } from 'utils/object';
+import { removeFromArray } from 'utils/array';
 
 var Binding = function ( element ) {
-	var interpolator, keypath, value;
+	var interpolator, keypath, value, parentForm;
 
 	this.element = element;
 	this.root = element.root;
@@ -14,38 +13,56 @@ var Binding = function ( element ) {
 	interpolator = this.attribute.interpolator;
 	interpolator.twowayBinding = this;
 
-	if ( interpolator.keypath && interpolator.keypath.substr( 0, 2 ) === '${' ) {
-		warn( 'Two-way binding does not work with expressions (`' + interpolator.keypath.slice( 2, -1 ) + '`)' );
-		return false;
+	if ( keypath = interpolator.keypath ) {
+		if ( keypath.str.slice( -1 ) === '}' ) {
+			warnOnceIfDebug( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name, { ractive: this.root });
+			return false;
+		}
+
+		if ( keypath.isSpecial ) {
+			warnOnceIfDebug( 'Two-way binding does not work with %s', interpolator.resolver.ref, { ractive: this.root });
+			return false;
+		}
 	}
 
-	// A mustache may be *ambiguous*. Let's say we were given
-	// `value="{{bar}}"`. If the context was `foo`, and `foo.bar`
-	// *wasn't* `undefined`, the keypath would be `foo.bar`.
-	// Then, any user input would result in `foo.bar` being updated.
-	//
-	// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
-	// left with an unresolved partial keypath - so we are forced to make an
-	// assumption. That assumption is that the input in question should
-	// be forced to resolve to `bar`, and any user input would affect `bar`
-	// and not `foo.bar`.
-	//
-	// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
-	// be explicit when using two-way data-binding about what keypath you're
-	// updating. Using it in lists is probably a recipe for confusion...
-	if ( !interpolator.keypath ) {
+	else {
+		// A mustache may be *ambiguous*. Let's say we were given
+		// `value="{{bar}}"`. If the context was `foo`, and `foo.bar`
+		// *wasn't* `undefined`, the keypath would be `foo.bar`.
+		// Then, any user input would result in `foo.bar` being updated.
+		//
+		// If, however, `foo.bar` *was* undefined, and so was `bar`, we would be
+		// left with an unresolved partial keypath - so we are forced to make an
+		// assumption. That assumption is that the input in question should
+		// be forced to resolve to `bar`, and any user input would affect `bar`
+		// and not `foo.bar`.
+		//
+		// Did that make any sense? No? Oh. Sorry. Well the moral of the story is
+		// be explicit when using two-way data-binding about what keypath you're
+		// updating. Using it in lists is probably a recipe for confusion...
+		let ref = interpolator.template.r ? `'${interpolator.template.r}' reference` : 'expression';
+		warnIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref, { ractive: this.root });
 		interpolator.resolver.forceResolution();
+		keypath = interpolator.keypath;
 	}
 
-	this.keypath = keypath = interpolator.keypath;
+	this.attribute.isTwoway = true;
+	this.keypath = keypath;
 
 	// initialise value, if it's undefined
-	if ( this.root.viewmodel.get( keypath ) === undefined && this.getInitialValue ) {
+	value = this.root.viewmodel.get( keypath );
+
+	if ( value === undefined && this.getInitialValue ) {
 		value = this.getInitialValue();
 
 		if ( value !== undefined ) {
 			this.root.viewmodel.set( keypath, value );
 		}
+	}
+
+	if ( parentForm = findParentForm( element ) ) {
+		this.resetValue = value;
+		parentForm.formBindings.push( this );
 	}
 };
 
@@ -69,11 +86,11 @@ Binding.prototype = {
 			return;
 		}
 
-		removeFromArray( this.root._twowayBindings[ oldKeypath ], this );
+		removeFromArray( this.root._twowayBindings[ oldKeypath.str ], this );
 
 		this.keypath = newKeypath;
 
-		bindings = this.root._twowayBindings[ newKeypath ] || ( this.root._twowayBindings[ newKeypath ] = [] );
+		bindings = this.root._twowayBindings[ newKeypath.str ] || ( this.root._twowayBindings[ newKeypath.str ] = [] );
 		bindings.push( this );
 	},
 
@@ -103,3 +120,11 @@ Binding.extend = function ( properties ) {
 };
 
 export default Binding;
+
+function findParentForm ( element ) {
+	while ( element = element.parent ) {
+		if ( element.name === 'form' ) {
+			return element;
+		}
+	}
+}

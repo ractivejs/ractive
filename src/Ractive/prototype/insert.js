@@ -1,5 +1,5 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import getElement from 'utils/getElement';
+import Hook from './shared/hooks/Hook';
+import { getElement } from 'utils/dom';
 
 var insertHook = new Hook( 'insert' );
 

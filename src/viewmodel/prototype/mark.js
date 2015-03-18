@@ -1,18 +1,18 @@
 export default function Viewmodel$mark ( keypath, options ) {
-	var computation;
+	var computation, keypathStr = keypath.str;
 
 	// implicit changes (i.e. `foo.length` on `ractive.push('foo',42)`)
 	// should not be picked up by pattern observers
 	if ( options ) {
 		if ( options.implicit ) {
-			this.implicitChanges[ keypath ] = true;
+			this.implicitChanges[ keypathStr ] = true;
 		}
 		if ( options.noCascade ) {
-			this.noCascade[ keypath ] = true;
+			this.noCascade[ keypathStr ] = true;
 		}
 	}
 
-	if ( computation = this.computations[ keypath ] ) {
+	if ( computation = this.computations[ keypathStr ] ) {
 		computation.invalidate();
 	}
 
@@ -20,5 +20,12 @@ export default function Viewmodel$mark ( keypath, options ) {
 		this.changes.push( keypath );
 	}
 
-	this.clearCache( keypath );
+	// pass on keepExistingWrapper, if we can
+	let keepExistingWrapper = options ? options.keepExistingWrapper : false;
+
+	this.clearCache( keypathStr, keepExistingWrapper );
+
+	if ( this.ready ) {
+		this.onchange();
+	}
 }

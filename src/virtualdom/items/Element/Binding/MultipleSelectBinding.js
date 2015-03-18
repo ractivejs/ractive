@@ -1,7 +1,7 @@
 import runloop from 'global/runloop';
-import arrayContentsMatch from 'utils/arrayContentsMatch';
-import SelectBinding from 'virtualdom/items/Element/Binding/SelectBinding';
-import handleDomEvent from 'virtualdom/items/Element/Binding/shared/handleDomEvent';
+import { arrayContentsMatch } from 'utils/array';
+import SelectBinding from './SelectBinding';
+import handleDomEvent from './shared/handleDomEvent';
 
 var MultipleSelectBinding = SelectBinding.extend({
 	getInitialValue: function () {
@@ -70,7 +70,6 @@ var MultipleSelectBinding = SelectBinding.extend({
 
 		if ( value !== undefined ) {
 			this.attribute.locked = true;
-			runloop.addViewmodel( this.root.viewmodel );
 			runloop.scheduleTask( () => this.attribute.locked = false );
 			this.root.viewmodel.set( this.keypath, value );
 		}

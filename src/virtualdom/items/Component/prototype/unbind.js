@@ -1,13 +1,13 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import removeFromArray from 'utils/removeFromArray';
+import { removeFromArray } from 'utils/array';
+import { unbind } from 'shared/methodCallers';
 
 var teardownHook = new Hook( 'teardown' );
 
 export default function Component$unbind () {
 	var instance = this.instance;
 
-	this.complexParameters.forEach( unbind );
-	this.bindings.forEach( unbind );
+	this.resolvers.forEach( unbind );
 
 	removeFromLiveComponentQueries( this );
 
@@ -22,10 +22,6 @@ export default function Component$unbind () {
 	teardownHook.fire( instance );
 }
 
-function unbind ( thing ) {
-	thing.unbind();
-}
-
 function removeFromLiveComponentQueries ( component ) {
 	var instance, query;
 
@@ -35,5 +31,5 @@ function removeFromLiveComponentQueries ( component ) {
 		if ( query = instance._liveComponentQueries[ '_' + component.name ] ) {
 			query._remove( component );
 		}
-	} while ( instance = instance._parent );
+	} while ( instance = instance.parent );
 }

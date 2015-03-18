@@ -1,4 +1,5 @@
-import types from 'config/types';
+import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from 'config/types';
+import { lastItem } from 'utils/array';
 
 var leadingLinebreak = /^\s*\r?\n/,
 	trailingLinebreak = /\r?\n\s*$/;
@@ -37,7 +38,7 @@ export default function ( items ) {
 		// if the last item was a section, and it is followed by a linebreak, and
 		// its last item is a linebreak...
 		if ( isString( current ) && isSection( backOne ) ) {
-			lastSectionItem = backOne.f[ backOne.f.length - 1 ];
+			lastSectionItem = lastItem( backOne.f );
 
 			if ( isString( lastSectionItem ) && trailingLinebreak.test( lastSectionItem ) && leadingLinebreak.test( current ) ) {
 				backOne.f[ backOne.f.length - 1 ] = lastSectionItem.replace( trailingLinebreak, '\n' );
@@ -54,9 +55,9 @@ function isString ( item ) {
 }
 
 function isComment ( item ) {
-	return item.t === types.COMMENT || item.t === types.DELIMCHANGE;
+	return item.t === COMMENT || item.t === DELIMCHANGE;
 }
 
 function isSection ( item ) {
-	return ( item.t === types.SECTION || item.t === types.INVERTED ) && item.f;
+	return ( item.t === SECTION || item.t === INVERTED ) && item.f;
 }

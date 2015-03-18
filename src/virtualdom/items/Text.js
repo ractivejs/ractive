@@ -1,20 +1,20 @@
-import types from 'config/types';
-import escapeHtml from 'utils/escapeHtml';
-import detach from 'virtualdom/items/shared/detach';
+import { TEXT } from 'config/types';
+import { escapeHtml } from 'utils/html';
+import detach from './shared/detach';
 
 var Text = function ( options ) {
-	this.type = types.TEXT;
+	this.type = TEXT;
 	this.text = options.template;
 };
 
 Text.prototype = {
 	detach: detach,
 
-	firstNode: function () {
+	firstNode () {
 		return this.node;
 	},
 
-	render: function () {
+	render () {
 		if ( !this.node ) {
 			this.node = document.createTextNode( this.text );
 		}
@@ -22,11 +22,11 @@ Text.prototype = {
 		return this.node;
 	},
 
-	toString: function ( escape ) {
+	toString ( escape ) {
 		return escape ? escapeHtml( this.text ) : this.text;
 	},
 
-	unrender: function ( shouldDestroy ) {
+	unrender ( shouldDestroy ) {
 		if ( shouldDestroy ) {
 			return this.detach();
 		}

@@ -1,13 +1,14 @@
-import log from 'utils/log';
-import config from 'config/config';
-import parser from 'config/options/template/parser';
-import deIndent from 'virtualdom/items/Partial/deIndent';
+import { noRegistryFunctionReturn } from 'config/errors';
+import { warnIfDebug } from 'utils/log';
+import parser from 'Ractive/config/custom/template/parser';
+import { findInstance } from 'shared/registry';
+import deIndent from './deIndent';
 
-export default function getPartialTemplate ( ractive, name ) {
+export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	var partial;
 
 	// If the partial in instance or view heirarchy instances, great
-	if ( partial = getPartialFromRegistry( ractive, name ) ) {
+	if ( partial = getPartialFromRegistry( ractive, name, parentFragment || {} ) ) {
 		return partial;
 	}
 
@@ -26,29 +27,28 @@ export default function getPartialTemplate ( ractive, name ) {
 	}
 }
 
-function getPartialFromRegistry ( ractive, name ) {
-	var partials = config.registries.partials;
+function getPartialFromRegistry ( ractive, name, parentFragment ) {
+	let fn, partial = findParentPartial( name, parentFragment.owner );
+
+	// if there was an instance up-hierarchy, cool
+	if ( partial ) return partial;
 
 	// find first instance in the ractive or view hierarchy that has this partial
-	var instance = partials.findInstance( ractive, name );
+	var instance = findInstance( 'partials', ractive, name );
 
 	if ( !instance ) { return; }
 
-	let partial = instance.partials[ name ], fn;
+	partial = instance.partials[ name ];
 
 	// partial is a function?
 	if ( typeof partial === 'function' ) {
 		fn = partial.bind( instance );
 		fn.isOwner = instance.partials.hasOwnProperty(name);
-		partial = fn( instance.data, parser );
+		partial = fn.call( ractive, parser );
 	}
 
-	if ( !partial ) {
-		log.warn({
-			debug: ractive.debug,
-			message: 'noRegistryFunctionReturn',
-			args: { registry: 'partial', name: name }
-		});
+	if ( !partial && partial !== '' ) {
+		warnIfDebug( noRegistryFunctionReturn, name, 'partial', 'partial', { ractive });
 		return;
 	}
 
@@ -62,16 +62,12 @@ function getPartialFromRegistry ( ractive, name ) {
 		// Partials cannot contain nested partials!
 		// TODO add a test for this
 		if ( parsed.p ) {
-			log.warn({
-				debug: ractive.debug,
-				message: 'noNestedPartials',
-				args: { rname: name }
-			});
+			warnIfDebug( 'Partials ({{>%s}}) cannot contain nested inline partials', name, { ractive });
 		}
 
 		// if fn, use instance to store result, otherwise needs to go
 		// in the correct point in prototype chain on instance or constructor
-		let target = fn ? instance : partials.findOwner( instance, name );
+		let target = fn ? instance : findOwner( instance, name );
 
 		// may be a template with partials, which need to be registered and main template extracted
 		target.partials[ name ] = partial = parsed.t;
@@ -83,4 +79,27 @@ function getPartialFromRegistry ( ractive, name ) {
 	}
 
 	return partial.v ? partial.t : partial;
+}
+
+function findOwner ( ractive, key ) {
+	return ractive.partials.hasOwnProperty( key )
+		? ractive
+		: findConstructor( ractive.constructor, key);
+}
+
+function findConstructor ( constructor, key ) {
+	if ( !constructor ) { return; }
+	return constructor.partials.hasOwnProperty( key )
+		? constructor
+		: findConstructor( constructor._Parent, key );
+}
+
+function findParentPartial( name, parent ) {
+	if ( parent ) {
+		if ( parent.template && parent.template.p && parent.template.p[name] ) {
+			return parent.template.p[name];
+		} else if ( parent.parentFragment && parent.parentFragment.owner ) {
+			return findParentPartial( name, parent.parentFragment.owner );
+		}
+	}
 }

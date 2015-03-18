@@ -1,17 +1,22 @@
-import log from 'utils/log';
+import { badArguments } from 'config/errors';
+import { getKeypath, getMatchingKeypaths, normalise } from 'shared/keypaths';
 
-export default function Ractive$toggle ( keypath, callback ) {
-	var value;
-
+export default function Ractive$toggle ( keypath ) {
 	if ( typeof keypath !== 'string' ) {
-
-		log.errorOnly({
-			debug: this.debug,
-			messsage: 'badArguments',
-			arg: { arguments: keypath }
-		});
+		throw new TypeError( badArguments );
 	}
 
-	value = this.get( keypath );
-	return this.set( keypath, !value, callback );
+	let changes;
+
+	if ( /\*/.test( keypath ) ) {
+		changes = {};
+
+		getMatchingKeypaths( this, getKeypath( normalise( keypath ) ) ).forEach( keypath => {
+			changes[ keypath.str ] = !this.viewmodel.get( keypath );
+		});
+
+		return this.set( changes );
+	}
+
+	return this.set( keypath, !this.get( keypath ) );
 }

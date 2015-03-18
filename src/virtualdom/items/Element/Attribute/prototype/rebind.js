@@ -1,5 +1,5 @@
-export default function Attribute$rebind ( indexRef, newIndex, oldKeypath, newKeypath ) {
+export default function Attribute$rebind ( oldKeypath, newKeypath ) {
 	if ( this.fragment ) {
-		this.fragment.rebind( indexRef, newIndex, oldKeypath, newKeypath );
+		this.fragment.rebind( oldKeypath, newKeypath );
 	}
 }
