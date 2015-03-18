@@ -32,7 +32,7 @@ lib = (function () {
 
 	var bundleTransform = function ( src, path ) {
 		if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
-			return src.replace( '<@version@>', version );
+			return src.replace( /<@version@>/g, version );
 		}
 
 		return src;
