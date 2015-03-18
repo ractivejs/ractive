@@ -70,9 +70,6 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 
 	ractive.viewmodel = viewmodel;
 
-	// This can't happen earlier, because computed properties may call `ractive.get()`, etc
-	viewmodel.init();
-
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
