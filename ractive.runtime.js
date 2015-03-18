@@ -1,6 +1,6 @@
 /*
-	Ractive.js v0.7.0-edge
-	Tue Mar 17 2015 22:41:56 GMT+0000 (UTC) - commit 9beef83f619243848b1c914444f38628c297d0c0
+	Ractive.js v0.7.1
+	Tue Mar 17 2015 22:45:14 GMT-0400 (EDT) - commit 8b7677616a846bb4fc8174b27f4a40ac77408d08
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -15,6 +15,7 @@
 }(this, function () { 'use strict';
 
   var TEMPLATE_VERSION = 3;
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/config/template.js.map
 
   var defaultOptions = {
 
@@ -54,7 +55,7 @@
   };
 
   var defaults = defaultOptions;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/defaults.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/defaults.js.map
 
   // These are a subset of the easing equations found at
   // https://raw.github.com/danro/easing-js - license info
@@ -96,7 +97,7 @@
   		return 0.5 * (Math.pow(pos - 2, 3) + 2);
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/easing.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/static/easing.js.map
 
   /*global console, navigator */
   var isClient, isJsdom, hasConsole, environment__magic, namespaces, svg, vendors;
@@ -373,6 +374,7 @@
   }
 
   var hasOwn = Object.prototype.hasOwnProperty;
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/object.js.map
 
   // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
   var is__toString = Object.prototype.toString,
@@ -404,10 +406,10 @@
   function isObject(thing) {
   	return thing && is__toString.call(thing) === "[object Object]";
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/is.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/is.js.map
 
   var noop = function () {};
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/noop.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/noop.js.map
 
   /* global console */
   var alreadyWarned = {},
@@ -417,7 +419,7 @@
 
   if (hasConsole) {
   	(function () {
-  		var welcomeIntro = ["%cRactive.js %c0.7.0-edge %cin debug mode, %cmore...", "color: rgb(114, 157, 52); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;"];
+  		var welcomeIntro = ["%cRactive.js %c0.7.1 %cin debug mode, %cmore...", "color: rgb(114, 157, 52); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(85, 85, 85); font-weight: normal;", "color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;"];
   		var welcomeMessage = "You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   		welcome = function () {
@@ -528,6 +530,7 @@
   var missingPlugin = function (name, type) {
     return "Missing \"" + name + "\" " + type + " plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#" + type + "s";
   };
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/config/errors.js.map
 
   function findInViewHierarchy(registryName, ractive, name) {
   	var instance = findInstance(registryName, ractive, name);
@@ -547,7 +550,7 @@
   		ractive = ractive.parent;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/registry.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/registry.js.map
 
   var interpolate = function (from, to, ractive, type) {
   	if (from === to) {
@@ -574,7 +577,7 @@
   		return to;
   	};
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/interpolate.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/interpolate.js.map
 
   var interpolators = {
   	number: function (from, to) {
@@ -681,7 +684,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/interpolators.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/static/interpolators.js.map
 
   // This function takes a keypath such as 'foo.bar.baz', and returns
   // all the variants of that keypath that include a wildcard in place
@@ -758,7 +761,7 @@
 
   	return starMaps[num];
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/getPotentialWildcardMatches.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/getPotentialWildcardMatches.js.map
 
   var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
   var patternPattern = /\*/;
@@ -915,6 +918,7 @@
   }
 
   var rootKeypath = getKeypath("");
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/keypaths.js.map
 
   var add__errorMessage = "Cannot add to a non-numeric value";
   function add(root, keypath, d) {
@@ -949,13 +953,13 @@
 
   	return root.set(keypath, +value + d);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/add.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/add.js.map
 
   var prototype_add = Ractive$add;
   function Ractive$add(keypath, d) {
   	return add(this, keypath, d === undefined ? 1 : +d);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/add.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/add.js.map
 
   var requestAnimationFrame;
 
@@ -998,7 +1002,7 @@
   }
 
   var rAF = requestAnimationFrame;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/requestAnimationFrame.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/requestAnimationFrame.js.map
 
   var getTime;
 
@@ -1013,7 +1017,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/getTime.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/getTime.js.map
 
   var deprecations = {
   	construct: {
@@ -1058,7 +1062,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/hooks/Hook.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/hooks/Hook.js.map
 
   function addToArray(array, value) {
   	var index = array.indexOf(value);
@@ -1132,7 +1136,7 @@
 
   	return array;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/array.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/array.js.map
 
   var _Promise,
       PENDING = {},
@@ -1347,7 +1351,7 @@
   		fulfil(x);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/Promise.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/Promise.js.map
 
   var getInnerContext = function (fragment) {
   	do {
@@ -1358,7 +1362,7 @@
 
   	return rootKeypath;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/getInnerContext.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/getInnerContext.js.map
 
   function resolveRef(ractive, ref, fragment) {
   	var keypath;
@@ -1505,7 +1509,7 @@
   	// special case for reference to root
   	return key === "" || key in viewmodel.data || key in viewmodel.computations || key in viewmodel.mappings;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/resolveRef.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/resolveRef.js.map
 
   function teardown(x) {
     x.teardown();
@@ -1518,7 +1522,7 @@
   function methodCallers__unrender(x) {
     x.unrender();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/methodCallers.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/methodCallers.js.map
 
   var TransitionManager = function (callback, parent) {
   	this.callback = callback;
@@ -1622,7 +1626,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/global/TransitionManager.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/global/TransitionManager.js.map
 
   var batch,
       runloop,
@@ -1782,7 +1786,7 @@
   function runloop__resolve(resolved) {
   	resolved.item.resolve(resolved.keypath);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/global/runloop.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/global/runloop.js.map
 
   var queue = [];
 
@@ -1837,7 +1841,7 @@
   };
 
   var animations__default = animations;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/animations.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/animations.js.map
 
   var Animation = function (options) {
   	var key;
@@ -1929,7 +1933,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/animate/Animation.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/animate/Animation.js.map
 
   var animate__default = Ractive$animate;
 
@@ -2096,7 +2100,7 @@
 
   	return animation;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/animate.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/animate.js.map
 
   var prototype_detach = Ractive$detach;
   var prototype_detach__detachHook = new Hook("detach");
@@ -2112,7 +2116,7 @@
   	prototype_detach__detachHook.fire(this);
   	return this.detached;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/detach.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/detach.js.map
 
   var prototype_find = Ractive$find;
 
@@ -2123,7 +2127,7 @@
 
   	return this.fragment.find(selector);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/find.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/find.js.map
 
   var test = Query$test;
   function Query$test(item, noDirty) {
@@ -2145,7 +2149,7 @@
   		return true;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/test.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/test.js.map
 
   var cancel = function () {
   	var liveQueries, selector, index;
@@ -2160,7 +2164,7 @@
   		liveQueries[selector] = null;
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/cancel.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/cancel.js.map
 
   var sortByItemPosition = function (a, b) {
   	var ancestryA, ancestryB, oldestA, oldestB, mutualAncestor, indexA, indexB, fragments, fragmentA, fragmentB;
@@ -2238,7 +2242,7 @@
 
   	return ancestry;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/sortByItemPosition.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/sortByItemPosition.js.map
 
   var sortByDocumentPosition = function (node, otherNode) {
   	var bitmask;
@@ -2252,13 +2256,13 @@
   	// comparing component positions
   	return sortByItemPosition(node, otherNode);
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/sortByDocumentPosition.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/sortByDocumentPosition.js.map
 
   var sort = function () {
   	this.sort(this._isComponentQuery ? sortByItemPosition : sortByDocumentPosition);
   	this._dirty = false;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/sort.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/sort.js.map
 
   var dirty__default = function () {
   	var _this = this;
@@ -2273,7 +2277,7 @@
   		});
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/dirty.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/dirty.js.map
 
   var remove = function (nodeOrComponent) {
   	var index = this.indexOf(this._isComponentQuery ? nodeOrComponent.instance : nodeOrComponent);
@@ -2282,7 +2286,7 @@
   		this.splice(index, 1);
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/remove.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/remove.js.map
 
   function makeQuery(ractive, selector, live, isComponentQuery) {
   	var query = [];
@@ -2312,7 +2316,7 @@
 
   	return query;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/_makeQuery.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeQuery/_makeQuery.js.map
 
   var prototype_findAll = Ractive$findAll;
   function Ractive$findAll(selector, options) {
@@ -2345,7 +2349,7 @@
   	this.fragment.findAll(selector, query);
   	return query;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/findAll.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/findAll.js.map
 
   var prototype_findAllComponents = Ractive$findAllComponents;
   function Ractive$findAllComponents(selector, options) {
@@ -2374,14 +2378,14 @@
   	this.fragment.findAllComponents(selector, query);
   	return query;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/findAllComponents.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/findAllComponents.js.map
 
   var prototype_findComponent = Ractive$findComponent;
 
   function Ractive$findComponent(selector) {
   	return this.fragment.findComponent(selector);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/findComponent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/findComponent.js.map
 
   var findContainer = Ractive$findContainer;
 
@@ -2396,7 +2400,7 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/findContainer.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/findContainer.js.map
 
   var findParent = Ractive$findParent;
 
@@ -2412,7 +2416,7 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/findParent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/findParent.js.map
 
   var eventStack = {
   	enqueue: function (ractive, event) {
@@ -2432,7 +2436,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/eventStack.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/eventStack.js.map
 
   function fireEvent(ractive, eventName) {
   	var options = arguments[2] === undefined ? {} : arguments[2];
@@ -2490,7 +2494,6 @@
   }
 
   function notifySubscribers(ractive, subscribers, event, args) {
-
   	var originalEvent = null,
   	    stopEvent = false;
 
@@ -2515,7 +2518,7 @@
 
   	return !stopEvent;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/fireEvent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/fireEvent.js.map
 
   var prototype_fire = Ractive$fire;
   function Ractive$fire(eventName) {
@@ -2526,7 +2529,7 @@
 
   	fireEvent(this, eventName, options);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/fire.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/fire.js.map
 
   var prototype_get = Ractive$get;
   var options = {
@@ -2550,7 +2553,7 @@
 
   	return value;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/get.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/get.js.map
 
   var insert = Ractive$insert;
 
@@ -2584,7 +2587,7 @@
   		fireInsertHook(child.instance);
   	});
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/insert.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/insert.js.map
 
   var prototype_merge = Ractive$merge;
   function Ractive$merge(keypath, array, options) {
@@ -2606,7 +2609,7 @@
 
   	return promise;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/merge.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/merge.js.map
 
   var Observer = function (ractive, keypath, callback, options) {
   	this.root = ractive;
@@ -2661,7 +2664,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/Observer.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/Observer.js.map
 
   function getPattern(ractive, pattern) {
   	var matchingKeypaths, values;
@@ -2675,7 +2678,7 @@
 
   	return values;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/getPattern.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/getPattern.js.map
 
   var PatternObserver,
       slice = Array.prototype.slice;
@@ -2789,7 +2792,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/PatternObserver.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/PatternObserver.js.map
 
   var emptyObject = {};
   function getObserverFacade(ractive, keypath, callback, options) {
@@ -2833,7 +2836,7 @@
   		}
   	};
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/getObserverFacade.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe/getObserverFacade.js.map
 
   var observe = Ractive$observe;
   function Ractive$observe(keypath, callback, options) {
@@ -2899,7 +2902,7 @@
   		}
   	};
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/observe.js.map
 
   var observeOnce = Ractive$observeOnce;
 
@@ -2912,17 +2915,17 @@
 
   	return observer;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/observeOnce.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/observeOnce.js.map
 
   var trim__default = function (str) {
     return str.trim();
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/trim.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/trim.js.map
 
   var notEmptyString = function (str) {
     return str !== "";
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/notEmptyString.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/notEmptyString.js.map
 
   var off = Ractive$off;
   function Ractive$off(eventName, callback) {
@@ -2966,7 +2969,7 @@
 
   	return this;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/off.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/off.js.map
 
   var on = Ractive$on;
   function Ractive$on(eventName, callback) {
@@ -3008,7 +3011,7 @@
   		}
   	};
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/on.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/on.js.map
 
   var once = Ractive$once;
 
@@ -3022,7 +3025,7 @@
   	// so we can still do listener.cancel() manually
   	return listener;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/once.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/once.js.map
 
   // This function takes an array, the name of a mutator method, and the
   // arguments to call that mutator method with, and returns an array that
@@ -3132,7 +3135,7 @@
   			return [0, 0].concat(args);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/getNewIndices.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/getNewIndices.js.map
 
   var arrayProto = Array.prototype;
 
@@ -3175,13 +3178,13 @@
   		return promise;
   	};
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeArrayMethod.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/makeArrayMethod.js.map
 
   var pop = makeArrayMethod("pop");
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/pop.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/pop.js.map
 
   var push = makeArrayMethod("push");
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/push.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/push.js.map
 
   var css,
       update,
@@ -3240,7 +3243,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/global/css.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/global/css.js.map
 
   var prototype_render = Ractive$render;
 
@@ -3315,7 +3318,7 @@
   function removeOtherInstances(others) {
   	others.splice(0, others.length).forEach(teardown);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/render.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/render.js.map
 
   var adaptConfigurator = {
   	extend: function (Parent, proto, options) {
@@ -3339,7 +3342,7 @@
 
   	return c;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/adapt.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/custom/adapt.js.map
 
   var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
       commentsPattern = /\/\*.*?\*\//g,
@@ -3422,7 +3425,7 @@
   function extractString(unit) {
   	return unit.str;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/css/transform.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/custom/css/transform.js.map
 
   var cssConfigurator__uid = 1;
 
@@ -3443,7 +3446,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/css/css.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/custom/css/css.js.map
 
   function validate(data) {
   	// Warn if userOptions.data is a non-POJO
@@ -3557,7 +3560,7 @@
   }
 
   // TODO do we need to support this in the new Ractive() case?
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/data.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/custom/data.js.map
 
   var parseOptions = ["preserveWhitespace", "sanitize", "stripComments", "delimiters", "tripleDelimiters", "interpolate"];
 
@@ -3638,7 +3641,7 @@
   }
 
   var parser__default = parser;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/template/parser.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/custom/template/parser.js.map
 
   var templateConfigurator = {
   	name: "template",
@@ -3774,7 +3777,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/custom/template/template.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/custom/template/template.js.map
 
   var registries__registryNames, Registry, registries;
 
@@ -3836,7 +3839,7 @@
   	this.useDefaults ? Parent.defaults : Parent,
   	ractive,
   	options );*/
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/registries.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/registries.js.map
 
   var wrapPrototype = wrap;
 
@@ -3889,7 +3892,7 @@
 
   	return method;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/wrapPrototypeMethod.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/wrapPrototypeMethod.js.map
 
   function getMessage(deprecated, correct, isError) {
   	return "options." + deprecated + " has been deprecated in favour of options." + correct + "." + (isError ? " You cannot specify both options, please use options." + correct + "." : "");
@@ -3918,7 +3921,7 @@
   		deprecateOption(options, "adaptors", "adapt");
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/deprecate.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/deprecate.js.map
 
   var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
 
@@ -4015,7 +4018,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/config/config.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/config/config.js.map
 
   var prototype_bubble = Fragment$bubble;
 
@@ -4026,7 +4029,7 @@
   		this.owner.bubble();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/bubble.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/bubble.js.map
 
   var Fragment_prototype_detach = Fragment$detach;
 
@@ -4054,7 +4057,7 @@
 
   	return docFrag;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/detach.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/detach.js.map
 
   var Fragment_prototype_find = Fragment$find;
 
@@ -4074,7 +4077,7 @@
   		return null;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/find.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/find.js.map
 
   var Fragment_prototype_findAll = Fragment$findAll;
 
@@ -4094,7 +4097,7 @@
 
   	return query;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/findAll.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/findAll.js.map
 
   var Fragment_prototype_findAllComponents = Fragment$findAllComponents;
 
@@ -4114,7 +4117,7 @@
 
   	return query;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/findAllComponents.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/findAllComponents.js.map
 
   var Fragment_prototype_findComponent = Fragment$findComponent;
 
@@ -4134,7 +4137,7 @@
   		return null;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/findComponent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/findComponent.js.map
 
   var prototype_findNextNode = Fragment$findNextNode;
 
@@ -4165,7 +4168,7 @@
 
   	return node;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/findNextNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/findNextNode.js.map
 
   var prototype_firstNode = Fragment$firstNode;
 
@@ -4176,7 +4179,7 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/firstNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/firstNode.js.map
 
   var Parser,
       ParseError,
@@ -4333,7 +4336,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/Parser.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/parse/Parser.js.map
 
   var TEXT = 1;
   var INTERPOLATOR = 2;
@@ -4380,6 +4383,7 @@
 
   var ELSE = 60;
   var ELSEIF = 61;
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/config/types.js.map
 
   var stringMiddlePattern, escapeSequencePattern, lineContinuationPattern;
 
@@ -4429,7 +4433,7 @@
   		return JSON.parse(literal);
   	};
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/expressions/primary/literal/stringLiteral/makeQuotedStringMatcher.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/parse/converters/expressions/primary/literal/stringLiteral/makeQuotedStringMatcher.js.map
 
   var getSingleQuotedString = makeQuotedStringMatcher("\"");
   var getDoubleQuotedString = makeQuotedStringMatcher("'");
@@ -4469,7 +4473,7 @@
 
   	return null;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/expressions/primary/literal/readStringLiteral.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/parse/converters/expressions/primary/literal/readStringLiteral.js.map
 
   var readNumberLiteral__numberPattern = /^(?:[+-]?)0*(?:(?:(?:[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
   function readNumberLiteral(parser) {
@@ -4484,9 +4488,10 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/expressions/primary/literal/readNumberLiteral.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/parse/converters/expressions/primary/literal/readNumberLiteral.js.map
 
   var patterns__name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/parse/converters/expressions/shared/patterns.js.map
 
   // http://mathiasbynens.be/notes/javascript-properties
   // can be any name, string literal, or number literal
@@ -4507,7 +4512,7 @@
   		return token;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/parse/converters/expressions/shared/readKey.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/parse/converters/expressions/shared/readKey.js.map
 
   var JsonParser, specials, specialsPattern, parseJSON__numberPattern, placeholderPattern, placeholderAtStartPattern, onlyWhitespace;
 
@@ -4676,7 +4681,7 @@
 
   	return parser.result;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/parseJSON.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/parseJSON.js.map
 
   function processItems(items, values, guid, counter) {
   	counter = counter || 0;
@@ -4707,7 +4712,7 @@
   		return "${" + placeholderId + "}";
   	}).join("");
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/shared/processItems.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/shared/processItems.js.map
 
   var getArgsList = Fragment$getArgsList;
   function Fragment$getArgsList() {
@@ -4729,7 +4734,7 @@
 
   	return this.argsList;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/getArgsList.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/getArgsList.js.map
 
   var getNode = Fragment$getNode;
 
@@ -4744,7 +4749,7 @@
 
   	return this.root.detached || this.root.el;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/getNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/getNode.js.map
 
   var prototype_getValue = Fragment$getValue;
   function Fragment$getValue() {
@@ -4766,7 +4771,7 @@
 
   	return this.value;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/getValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/getValue.js.map
 
   var booleanAttributes, voidElementNames, htmlEntities, controlCharacters, entityPattern, lessThan, greaterThan, amp;
 
@@ -4854,7 +4859,7 @@
   var detach__default = function () {
   	return detachNode(this.node);
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/detach.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/detach.js.map
 
   var Text = function (options) {
   	this.type = TEXT;
@@ -4888,7 +4893,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Text.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Text.js.map
 
   var unbind__default = unbind__unbind;
 
@@ -4902,14 +4907,14 @@
   		this.resolver.unbind();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/unbind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/unbind.js.map
 
   var getValue__default = Mustache$getValue;
 
   function Mustache$getValue() {
   	return this.value;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/getValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/getValue.js.map
 
   var ReferenceResolver = function (owner, ref, callback) {
   	var keypath;
@@ -4968,7 +4973,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/ReferenceResolver.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/ReferenceResolver.js.map
 
   var SpecialResolver = function (owner, ref, callback) {
   	this.parentFragment = owner.parentFragment;
@@ -5046,7 +5051,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/SpecialResolver.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/SpecialResolver.js.map
 
   var IndexResolver = function (owner, ref, callback) {
   	this.parentFragment = owner.parentFragment;
@@ -5080,7 +5085,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/IndexResolver.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/IndexResolver.js.map
 
   function findIndexRefs(fragment, refName) {
   	var result = {},
@@ -5152,7 +5157,7 @@
 
   	return refs;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/findIndexRefs.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/findIndexRefs.js.map
 
   function createReferenceResolver(owner, ref, callback) {
   	var indexRef;
@@ -5167,7 +5172,7 @@
 
   	return new ReferenceResolver(owner, ref, callback);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/createReferenceResolver.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/createReferenceResolver.js.map
 
   var cache = {};
   function getFunctionFromString(str, i) {
@@ -5187,7 +5192,7 @@
   	cache[str] = fn;
   	return fn;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/getFunctionFromString.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/getFunctionFromString.js.map
 
   var ExpressionResolver,
       ExpressionResolver__bind = Function.prototype.bind;
@@ -5385,7 +5390,7 @@
 
   	return fn.__ractive_nowrap;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/ExpressionResolver.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/ExpressionResolver.js.map
 
   var MemberResolver = function (template, resolver, parentFragment) {
   	var _this = this;
@@ -5461,7 +5466,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/MemberResolver.js.map
 
   var ReferenceExpressionResolver = function (mustache, template, callback) {
   	var _this = this;
@@ -5568,7 +5573,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Resolvers/ReferenceExpressionResolver/ReferenceExpressionResolver.js.map
 
   var init__default = Mustache$init;
   function Mustache$init(mustache, options) {
@@ -5628,7 +5633,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/initialise.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/initialise.js.map
 
   var resolve__default = Mustache$resolve;
 
@@ -5672,7 +5677,7 @@
   		twowayBinding.rebound();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/resolve.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/resolve.js.map
 
   var rebind__default = Mustache$rebind;
 
@@ -5689,7 +5694,7 @@
   		this.resolver.rebind(oldKeypath, newKeypath);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/rebind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/rebind.js.map
 
   var Mustache = {
   	getValue: getValue__default,
@@ -5697,7 +5702,7 @@
   	resolve: resolve__default,
   	rebind: rebind__default
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/_Mustache.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/shared/Mustache/_Mustache.js.map
 
   var Interpolator = function (options) {
   	this.type = INTERPOLATOR;
@@ -5760,14 +5765,14 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Interpolator.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Interpolator.js.map
 
   var bubble__default = Section$bubble;
 
   function Section$bubble() {
   	this.parentFragment.bubble();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/bubble.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/bubble.js.map
 
   var Section_prototype_detach = Section$detach;
 
@@ -5786,7 +5791,7 @@
 
   	return docFrag;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/detach.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/detach.js.map
 
   var find = Section$find;
 
@@ -5802,7 +5807,7 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/find.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/find.js.map
 
   var findAll = Section$findAll;
 
@@ -5814,7 +5819,7 @@
   		this.fragments[i].findAll(selector, query);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/findAll.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/findAll.js.map
 
   var findAllComponents = Section$findAllComponents;
 
@@ -5826,7 +5831,7 @@
   		this.fragments[i].findAllComponents(selector, query);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/findAllComponents.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/findAllComponents.js.map
 
   var findComponent = Section$findComponent;
 
@@ -5842,7 +5847,7 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/findComponent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/findComponent.js.map
 
   var findNextNode = Section$findNextNode;
 
@@ -5853,7 +5858,7 @@
 
   	return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/findNextNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/findNextNode.js.map
 
   var firstNode = Section$firstNode;
 
@@ -5870,7 +5875,7 @@
 
   	return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/firstNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/firstNode.js.map
 
   var shuffle = Section$shuffle;
 
@@ -5976,12 +5981,12 @@
   	// the keypath doesn't actually matter here as it won't have changed
   	dep.rebind("", "");
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/shuffle.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/shuffle.js.map
 
   var prototype_rebind = function (oldKeypath, newKeypath) {
   	Mustache.rebind.call(this, oldKeypath, newKeypath);
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/rebind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/rebind.js.map
 
   var render__default = Section$render;
 
@@ -6000,7 +6005,7 @@
   	this.rendered = true;
   	return this.docFrag;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/render.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/render.js.map
 
   var setValue = Section$setValue;
 
@@ -6327,7 +6332,7 @@
   	// the keypath doesn't actually matter here as it won't have changed
   	dep.rebind("", "");
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/setValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/setValue.js.map
 
   var toString__default = Section$toString;
 
@@ -6345,7 +6350,7 @@
 
   	return str;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/toString.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/toString.js.map
 
   var prototype_unbind = Section$unbind;
   function Section$unbind() {
@@ -6361,7 +6366,7 @@
   	this.length = 0;
   	this.unbound = true;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/unbind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/unbind.js.map
 
   var unrender__default = Section$unrender;
 
@@ -6378,7 +6383,7 @@
   function unrender__unrender(fragment) {
   	fragment.unrender(false);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/unrender.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/unrender.js.map
 
   var update__default = Section$update;
 
@@ -6437,7 +6442,7 @@
   	// Save the rendering order for next time
   	this.renderedFragments = this.fragments.slice();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/update.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/prototype/update.js.map
 
   var Section = function (options) {
   	this.type = SECTION;
@@ -6497,7 +6502,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/_Section.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Section/_Section.js.map
 
   var Triple_prototype_detach = Triple$detach;
 
@@ -6513,7 +6518,7 @@
   		return this.docFrag;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/detach.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/detach.js.map
 
   var Triple_prototype_find = Triple$find;
   function Triple$find(selector) {
@@ -6538,7 +6543,7 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/find.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/find.js.map
 
   var Triple_prototype_findAll = Triple$findAll;
   function Triple$findAll(selector, queryResult) {
@@ -6564,7 +6569,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/findAll.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/findAll.js.map
 
   var Triple_prototype_firstNode = Triple$firstNode;
 
@@ -6575,7 +6580,7 @@
 
   	return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/firstNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/firstNode.js.map
 
   var elementCache = {},
       ieBug,
@@ -6652,7 +6657,7 @@
   function element(tagName) {
   	return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/helpers/insertHtml.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/helpers/insertHtml.js.map
 
   function updateSelect(parentElement) {
   	var selectedOptions, option, value;
@@ -6683,7 +6688,7 @@
   function isSelected(option) {
   	return option.selected;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/helpers/updateSelect.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/helpers/updateSelect.js.map
 
   var Triple_prototype_render = Triple$render;
   function Triple$render() {
@@ -6700,7 +6705,7 @@
   	this.rendered = true;
   	return this.docFrag;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/render.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/render.js.map
 
   var prototype_setValue = Triple$setValue;
   function Triple$setValue(value) {
@@ -6720,13 +6725,13 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/setValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/setValue.js.map
 
   var prototype_toString = Triple$toString;
   function Triple$toString() {
   	return this.value != undefined ? decodeCharacterReferences("" + this.value) : "";
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/toString.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/toString.js.map
 
   var prototype_unrender = Triple$unrender;
   function Triple$unrender(shouldDestroy) {
@@ -6737,7 +6742,7 @@
 
   	// TODO update live queries
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/unrender.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/unrender.js.map
 
   var prototype_update = Triple$update;
   function Triple$update() {
@@ -6762,7 +6767,7 @@
   	// Special case - we're inserting the contents of a <select>
   	updateSelect(this.pElement);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/update.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/prototype/update.js.map
 
   var Triple = function (options) {
   	this.type = TRIPLE;
@@ -6786,12 +6791,12 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/_Triple.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Triple/_Triple.js.map
 
   var Element_prototype_bubble = function () {
   	this.parentFragment.bubble();
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/bubble.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/bubble.js.map
 
   var Element_prototype_detach = Element$detach;
 
@@ -6809,7 +6814,7 @@
   		return node;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/detach.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/detach.js.map
 
   var Element_prototype_find = function (selector) {
   	if (!this.node) {
@@ -6825,7 +6830,7 @@
   		return this.fragment.find(selector);
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/find.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/find.js.map
 
   var Element_prototype_findAll = function (selector, query) {
   	// Add this node to the query, if applicable, and register the
@@ -6838,35 +6843,35 @@
   		this.fragment.findAll(selector, query);
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/findAll.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/findAll.js.map
 
   var Element_prototype_findAllComponents = function (selector, query) {
   	if (this.fragment) {
   		this.fragment.findAllComponents(selector, query);
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/findAllComponents.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/findAllComponents.js.map
 
   var Element_prototype_findComponent = function (selector) {
   	if (this.fragment) {
   		return this.fragment.findComponent(selector);
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/findComponent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/findComponent.js.map
 
   var Element_prototype_findNextNode = Element$findNextNode;
 
   function Element$findNextNode() {
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/findNextNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/findNextNode.js.map
 
   var Element_prototype_firstNode = Element$firstNode;
 
   function Element$firstNode() {
   	return this.node;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/firstNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/firstNode.js.map
 
   var getAttribute = Element$getAttribute;
 
@@ -6877,7 +6882,7 @@
 
   	return this.attributes[name].value;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/getAttribute.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/getAttribute.js.map
 
   var truthy = /^true|on|yes|1$/i;
   var processBindingAttributes__isNumeric = /^[0-9]+$/;
@@ -6909,7 +6914,7 @@
 
   	return attrs;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/processBindingAttributes.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/processBindingAttributes.js.map
 
   var Attribute_prototype_bubble = Attribute$bubble;
   function Attribute$bubble() {
@@ -6937,7 +6942,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/bubble.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/bubble.js.map
 
   var svgCamelCaseElements, svgCamelCaseAttributes, createMap, map;
   svgCamelCaseElements = "altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath vkern".split(" ");
@@ -6958,7 +6963,7 @@
   	var lowerCaseElementName = elementName.toLowerCase();
   	return map[lowerCaseElementName] || lowerCaseElementName;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/shared/enforceCase.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/shared/enforceCase.js.map
 
   var determineNameAndNamespace = function (attribute, name) {
   	var colonIndex, namespacePrefix;
@@ -6990,7 +6995,7 @@
   	// SVG attribute names are case sensitive
   	attribute.name = attribute.element.namespace !== namespaces.html ? enforceCase(name) : name;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/helpers/determineNameAndNamespace.js.map
 
   function getInterpolator(attribute) {
   	var items = attribute.fragment.items;
@@ -7003,7 +7008,7 @@
   		return items[0];
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/helpers/getInterpolator.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/helpers/getInterpolator.js.map
 
   var prototype_init = Attribute$init;
   function Attribute$init(options) {
@@ -7044,7 +7049,7 @@
   	// mark as ready
   	this.ready = true;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/init.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/init.js.map
 
   var Attribute_prototype_rebind = Attribute$rebind;
 
@@ -7053,7 +7058,7 @@
   		this.fragment.rebind(oldKeypath, newKeypath);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/rebind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/rebind.js.map
 
   var Attribute_prototype_render = Attribute$render;
   var propertyNames = {
@@ -7104,7 +7109,7 @@
   	this.rendered = true;
   	this.update();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/render.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/render.js.map
 
   var Attribute_prototype_toString = Attribute$toString;
 
@@ -7156,7 +7161,7 @@
   function Attribute_prototype_toString__escape(value) {
   	return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/toString.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/toString.js.map
 
   var Attribute_prototype_unbind = Attribute$unbind;
 
@@ -7170,7 +7175,7 @@
   		delete this.root.nodes[this.value];
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/unbind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/unbind.js.map
 
   var updateSelectValue = Attribute$updateSelect;
 
@@ -7202,7 +7207,7 @@
   	// if we're still here, it means the new value didn't match any of the options...
   	// TODO figure out what to do in this situation
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateSelectValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateSelectValue.js.map
 
   var updateMultipleSelectValue = Attribute$updateMultipleSelect;
   function Attribute$updateMultipleSelect() {
@@ -7225,7 +7230,7 @@
   		option.selected = arrayContains(value, optionValue);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateMultipleSelectValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateMultipleSelectValue.js.map
 
   var updateRadioName = Attribute$updateRadioName;
 
@@ -7237,7 +7242,7 @@
 
   	node.checked = value == node._ractive.value;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateRadioName.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateRadioName.js.map
 
   var updateRadioValue = Attribute$updateRadioValue;
   function Attribute$updateRadioValue() {
@@ -7279,7 +7284,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateRadioValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateRadioValue.js.map
 
   var updateCheckboxName = Attribute$updateCheckboxName;
   function Attribute$updateCheckboxName() {
@@ -7304,13 +7309,13 @@
   		binding.isChecked = node.checked = false;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateCheckboxName.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateCheckboxName.js.map
 
   var updateClassName = Attribute$updateClassName;
   function Attribute$updateClassName() {
   	this.node.className = safeToStringValue(this.value);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateClassName.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateClassName.js.map
 
   var updateIdAttribute = Attribute$updateIdAttribute;
 
@@ -7323,7 +7328,7 @@
   	this.root.nodes[value] = node;
   	node.id = value;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateIdAttribute.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateIdAttribute.js.map
 
   var updateIEStyleAttribute = Attribute$updateIEStyleAttribute;
 
@@ -7339,7 +7344,7 @@
 
   	node.style.setAttribute("cssText", value);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateIEStyleAttribute.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateIEStyleAttribute.js.map
 
   var updateContentEditableValue = Attribute$updateContentEditableValue;
 
@@ -7354,7 +7359,7 @@
   		this.node.innerHTML = value;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateContentEditableValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateContentEditableValue.js.map
 
   var updateValue = Attribute$updateValue;
 
@@ -7373,7 +7378,7 @@
   		node.value = value == undefined ? "" : value;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateValue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateValue.js.map
 
   var updateBoolean = Attribute$updateBooleanAttribute;
 
@@ -7384,7 +7389,7 @@
   		this.node[this.propertyName] = this.value;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateBoolean.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateBoolean.js.map
 
   var updateEverythingElse = Attribute$updateEverythingElse;
 
@@ -7416,7 +7421,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateEverythingElse.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update/updateEverythingElse.js.map
 
   // There are a few special cases when it comes to updating attributes. For this reason,
   // the prototype .update() method points to this method, which waits until the
@@ -7491,7 +7496,7 @@
   	this.update = updateMethod;
   	this.update();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/prototype/update.js.map
 
   var Attribute = function (options) {
   	this.init(options);
@@ -7508,7 +7513,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/_Attribute.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Attribute/_Attribute.js.map
 
   var createAttributes = function (element, attributes) {
   	var name,
@@ -7547,7 +7552,7 @@
 
   	return result;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/createAttributes.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/createAttributes.js.map
 
   var ConditionalAttribute__div;
 
@@ -7641,7 +7646,7 @@
 
   	return true;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/ConditionalAttribute/_ConditionalAttribute.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/ConditionalAttribute/_ConditionalAttribute.js.map
 
   var createConditionalAttributes = function (element, attributes) {
   	if (!attributes) {
@@ -7652,7 +7657,7 @@
   		return new ConditionalAttribute(element, a);
   	});
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/createConditionalAttributes.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/createConditionalAttributes.js.map
 
   var Binding = function (element) {
   	var interpolator, keypath, value, parentForm;
@@ -7782,7 +7787,7 @@
 
   // this is called when the element is unbound.
   // Specialised bindings can override it
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/Binding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/Binding.js.map
 
   // This is the handler for DOM events that would lead to a change in the model
   // (i.e. change, sometimes, input, and occasionally click and keyup)
@@ -7791,7 +7796,7 @@
   function handleChange() {
   	this._ractive.binding.handleChange();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/shared/handleDomEvent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/shared/handleDomEvent.js.map
 
   var ContentEditableBinding = Binding__default.extend({
   	getInitialValue: function () {
@@ -7826,14 +7831,14 @@
   });
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/ContentEditableBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/ContentEditableBinding.js.map
 
   var sets = {};
   function getSiblings(id, group, keypath) {
   	var hash = id + group + keypath;
   	return sets[hash] || (sets[hash] = []);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/shared/getSiblings.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/shared/getSiblings.js.map
 
   var RadioBinding = Binding__default.extend({
   	name: "checked",
@@ -7880,7 +7885,7 @@
   });
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/RadioBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/RadioBinding.js.map
 
   var RadioNameBinding = Binding__default.extend({
   	name: "name",
@@ -7947,7 +7952,7 @@
   });
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/RadioNameBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/RadioNameBinding.js.map
 
   var CheckboxNameBinding = Binding__default.extend({
   	name: "name",
@@ -8050,7 +8055,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/CheckboxNameBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/CheckboxNameBinding.js.map
 
   var CheckboxBinding = Binding__default.extend({
   	name: "checked",
@@ -8078,7 +8083,7 @@
   });
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/CheckboxBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/CheckboxBinding.js.map
 
   var SelectBinding = Binding__default.extend({
   	getInitialValue: function () {
@@ -8171,7 +8176,7 @@
   });
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/SelectBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/SelectBinding.js.map
 
   var MultipleSelectBinding = SelectBinding.extend({
   	getInitialValue: function () {
@@ -8259,7 +8264,7 @@
   });
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/MultipleSelectBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/MultipleSelectBinding.js.map
 
   var FileListBinding = Binding__default.extend({
   	render: function () {
@@ -8276,7 +8281,7 @@
   });
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/FileListBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/FileListBinding.js.map
 
   var GenericBinding;
 
@@ -8361,7 +8366,7 @@
   		binding._timeout = undefined;
   	}, binding.element.lazy);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/GenericBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/GenericBinding.js.map
 
   var NumericBinding = GenericBinding.extend({
   	getInitialValue: function () {
@@ -8373,7 +8378,7 @@
   		return isNaN(value) ? undefined : value;
   	}
   });
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/NumericBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Binding/NumericBinding.js.map
 
   function createTwowayBinding(element) {
   	var attributes = element.attributes,
@@ -8442,7 +8447,7 @@
   }
 
   // and this element also has a value attribute to bind
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/createTwowayBinding.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/createTwowayBinding.js.map
 
   var EventHandler_prototype_bubble = EventHandler$bubble;
 
@@ -8455,7 +8460,7 @@
   		this.unrender();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/bubble.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/bubble.js.map
 
   // This function may be overwritten, if the event directive
   // includes parameters
@@ -8463,14 +8468,14 @@
   function EventHandler$fire(event) {
   	fireEvent(this.root, this.getAction(), { event: event });
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/fire.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/fire.js.map
 
   var getAction = EventHandler$getAction;
 
   function EventHandler$getAction() {
   	return this.action.toString().trim();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/getAction.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/getAction.js.map
 
   var EventHandler_prototype_init = EventHandler$init;
 
@@ -8604,7 +8609,7 @@
 
   	fireEvent(this.root, this.getAction(), { event: event, args: args });
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/init.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/init.js.map
 
   function genericHandler(event) {
   	var storage,
@@ -8627,7 +8632,7 @@
   		context: storage.root.viewmodel.get(storage.keypath)
   	});
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/shared/genericHandler.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/shared/genericHandler.js.map
 
   var listen = EventHandler$listen;
 
@@ -8683,7 +8688,7 @@
 
   	return customHandlers[name];
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/listen.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/listen.js.map
 
   var EventHandler_prototype_rebind = EventHandler$rebind;
 
@@ -8708,7 +8713,7 @@
   		thing && thing.rebind(oldKeypath, newKeypath);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/rebind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/rebind.js.map
 
   var EventHandler_prototype_render = EventHandler$render;
 
@@ -8722,14 +8727,14 @@
   		this.listen();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/render.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/render.js.map
 
   var prototype_resolve = EventHandler$resolve;
 
   function EventHandler$resolve(index, keypath) {
   	this.keypaths[index] = keypath;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/resolve.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/resolve.js.map
 
   var EventHandler_prototype_unbind = EventHandler$unbind;
   function EventHandler$unbind() {
@@ -8748,7 +8753,7 @@
   		this.dynamicParams.unbind();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/unbind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/unbind.js.map
 
   var EventHandler_prototype_unrender = EventHandler$unrender;
   function EventHandler$unrender() {
@@ -8761,7 +8766,7 @@
 
   	this.hasListener = false;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/unrender.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/prototype/unrender.js.map
 
   var EventHandler = function (element, name, template) {
   	this.init(element, name, template);
@@ -8781,7 +8786,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/_EventHandler.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/EventHandler/_EventHandler.js.map
 
   var createEventHandlers = function (element, template) {
   	var i,
@@ -8804,7 +8809,7 @@
 
   	return result;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/createEventHandlers.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init/createEventHandlers.js.map
 
   var Decorator = function (element, template) {
   	var self = this,
@@ -8911,7 +8916,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Decorator/_Decorator.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Decorator/_Decorator.js.map
 
   function select__bubble() {
   	var _this = this;
@@ -8984,7 +8989,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/special/select.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/special/select.js.map
 
   function option__init(option, template) {
   	option.select = findParentSelect(option.parent);
@@ -9030,7 +9035,7 @@
   		}
   	} while (element = element.parent);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/special/option.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/special/option.js.map
 
   var Element_prototype_init = Element$init;
   function Element$init(options) {
@@ -9114,7 +9119,7 @@
   	this.intro = template.t0 || template.t1;
   	this.outro = template.t0 || template.t2;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/init.js.map
 
   var Element_prototype_rebind = Element$rebind;
   function Element$rebind(oldKeypath, newKeypath) {
@@ -9161,7 +9166,7 @@
   		thing.rebind(oldKeypath, newKeypath);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/rebind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/rebind.js.map
 
   function img__render(img) {
   	var loadHandler;
@@ -9185,7 +9190,7 @@
   		}, false);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/special/img.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/special/img.js.map
 
   function form__render(element) {
   	element.node.addEventListener("reset", handleReset, false);
@@ -9206,7 +9211,7 @@
   function updateModel(binding) {
   	binding.root.viewmodel.set(binding.keypath, binding.resetValue);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/special/form.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/special/form.js.map
 
   var Transition_prototype_init = Transition$init;
   function Transition$init(element, template, isIntro) {
@@ -9257,14 +9262,14 @@
   		warnOnceIfDebug(missingPlugin(name, "transition"), { ractive: this.root });
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/init.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/init.js.map
 
   var camelCase = function (hyphenatedStr) {
   	return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
   		return $1.toUpperCase();
   	});
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/camelCase.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/camelCase.js.map
 
   var prefix__prefix, prefixCache, prefix__testStyle;
 
@@ -9302,7 +9307,7 @@
   }
 
   var prefix__default = prefix__prefix;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/helpers/prefix.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/helpers/prefix.js.map
 
   var getStyle, getStyle__getComputedStyle;
 
@@ -9345,7 +9350,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/getStyle.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/getStyle.js.map
 
   var setStyle = function (style, value) {
   	var prop;
@@ -9362,7 +9367,7 @@
 
   	return this;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/setStyle.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/setStyle.js.map
 
   var Ticker = function (options) {
   	var easing;
@@ -9437,14 +9442,14 @@
   function linear(t) {
   	return t;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/shared/Ticker.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/shared/Ticker.js.map
 
   var unprefixPattern = new RegExp("^-(?:" + vendors.join("|") + ")-");
 
   var unprefix = function (prop) {
   	return prop.replace(unprefixPattern, "");
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/helpers/unprefix.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/helpers/unprefix.js.map
 
   var vendorPattern = new RegExp("^(?:" + vendors.join("|") + ")([A-Z])");
 
@@ -9465,7 +9470,7 @@
 
   	return hyphenated;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/helpers/hyphenate.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/helpers/hyphenate.js.map
 
   var createTransitions,
       createTransitions__testStyle,
@@ -9647,7 +9652,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/animateStyle/createTransitions.js.map
 
   var hidden, vendor, visibility__prefix, visibility__i, visibility;
 
@@ -9705,7 +9710,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/animateStyle/visibility.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/animateStyle/visibility.js.map
 
   var animateStyle, animateStyle__getComputedStyle, resolved;
 
@@ -9803,7 +9808,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/animateStyle/_animateStyle.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/animateStyle/_animateStyle.js.map
 
   var processParams = function (params, defaults) {
   	if (typeof params === "number") {
@@ -9822,7 +9827,7 @@
 
   	return fillGaps({}, params, defaults);
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/processParams.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/processParams.js.map
 
   var start__default = Transition$start;
 
@@ -9872,7 +9877,7 @@
   		node.removeAttribute("style");
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/start.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/prototype/start.js.map
 
   var Transition = function (owner, template, isIntro) {
   	this.init(owner, template, isIntro);
@@ -9888,7 +9893,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/_Transition.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/Transition/_Transition.js.map
 
   var Element_prototype_render = Element$render;
 
@@ -10131,7 +10136,7 @@
   		}
   	} while (instance = instance.parent);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/render.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/render.js.map
 
   var Element_prototype_toString = function () {
   	var str, escape;
@@ -10227,7 +10232,7 @@
   	var str = attribute.toString();
   	return str ? " " + str : "";
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/toString.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/toString.js.map
 
   var Element_prototype_unbind = Element$unbind;
   function Element$unbind() {
@@ -10251,7 +10256,7 @@
   	this.attributes.forEach(methodCallers__unbind);
   	this.conditionalAttributes.forEach(methodCallers__unbind);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/unbind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/unbind.js.map
 
   var Element_prototype_unrender = Element$unrender;
 
@@ -10325,7 +10330,7 @@
   		query._remove(element.node);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/unrender.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/prototype/unrender.js.map
 
   var Element = function (options) {
   	this.init(options);
@@ -10350,7 +10355,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/_Element.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Element/_Element.js.map
 
   var deIndent__empty = /^\s*$/,
       deIndent__leadingWhitespace = /^\s*/;
@@ -10391,7 +10396,7 @@
 
   	return previous;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/deIndent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/deIndent.js.map
 
   function getPartialTemplate(ractive, name, parentFragment) {
   	var partial;
@@ -10493,7 +10498,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/getPartialTemplate.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/getPartialTemplate.js.map
 
   var applyIndent = function (string, indent) {
   	var indented;
@@ -10508,7 +10513,7 @@
 
   	return indented;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/applyIndent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/applyIndent.js.map
 
   var missingPartialMessage = "Could not find template for partial \"%s\"";
 
@@ -10718,7 +10723,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/_Partial.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Partial/_Partial.js.map
 
   // finds the component constructor in the registry or view hierarchy registries
 
@@ -10756,7 +10761,7 @@
 
   	return Component;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/getComponent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/getComponent.js.map
 
   var Component_prototype_detach = Component$detach;
   var Component_prototype_detach__detachHook = new Hook("detach");
@@ -10765,21 +10770,21 @@
   	Component_prototype_detach__detachHook.fire(this.instance);
   	return detached;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/detach.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/detach.js.map
 
   var Component_prototype_find = Component$find;
 
   function Component$find(selector) {
   	return this.instance.fragment.find(selector);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/find.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/find.js.map
 
   var Component_prototype_findAll = Component$findAll;
 
   function Component$findAll(selector, query) {
   	return this.instance.fragment.findAll(selector, query);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/findAll.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/findAll.js.map
 
   var Component_prototype_findAllComponents = Component$findAllComponents;
 
@@ -10790,7 +10795,7 @@
   		this.instance.fragment.findAllComponents(selector, query);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/findAllComponents.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/findAllComponents.js.map
 
   var Component_prototype_findComponent = Component$findComponent;
 
@@ -10805,14 +10810,14 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/findComponent.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/findComponent.js.map
 
   var Component_prototype_findNextNode = Component$findNextNode;
 
   function Component$findNextNode() {
   	return this.parentFragment.findNextNode(this);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/findNextNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/findNextNode.js.map
 
   var Component_prototype_firstNode = Component$firstNode;
 
@@ -10823,7 +10828,7 @@
 
   	return null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/firstNode.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/firstNode.js.map
 
   var processWrapper = function (wrapper, array, methodName, newIndices) {
   	var root = wrapper.root;
@@ -10837,7 +10842,7 @@
   		root.viewmodel.mark(keypath);
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/array/processWrapper.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/array/processWrapper.js.map
 
   var patchedArrayProto = [],
       mutatorMethods = ["pop", "push", "reverse", "shift", "sort", "splice", "unshift"],
@@ -10921,7 +10926,7 @@
 
   patchArrayMethods.unpatch = unpatchArrayMethods;
   var patch = patchArrayMethods;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/array/patch.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/array/patch.js.map
 
   var arrayAdaptor,
 
@@ -11019,14 +11024,14 @@
 
   arrayAdaptor__errorMessage = "Something went wrong in a rather interesting way";
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/array/index.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/array/index.js.map
 
   var numeric = /^\s*[0-9]+\s*$/;
 
   var createBranch = function (key) {
   	return numeric.test(key) ? [] : {};
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/createBranch.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/createBranch.js.map
 
   var magicAdaptor, MagicWrapper;
 
@@ -11233,7 +11238,7 @@
   	set._ractiveWrappers = [originalWrapper];
   	Object.defineProperty(object, property, { get: get, set: set, enumerable: true, configurable: true });
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/magic.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/magic.js.map
 
   var magicArrayAdaptor, MagicArrayWrapper;
 
@@ -11272,7 +11277,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/magicArray.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/static/adaptors/magicArray.js.map
 
   var adapt__default = Viewmodel$adapt;
 
@@ -11338,7 +11343,7 @@
 
   	return prefixers[rootKeypath];
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/adapt.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/adapt.js.map
 
   // TEMP
 
@@ -11362,7 +11367,7 @@
 
   	return upstreamChanges;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/helpers/getUpstreamChanges.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/helpers/getUpstreamChanges.js.map
 
   function notifyPatternObservers(viewmodel, keypath, onlyDirect) {
   	var potentialWildcardMatches;
@@ -11407,7 +11412,7 @@
   		}
   	});
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/applyChanges/notifyPatternObservers.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/applyChanges/notifyPatternObservers.js.map
 
   var applyChanges = Viewmodel$applyChanges;
 
@@ -11605,14 +11610,14 @@
   	var group = viewmodel.deps[groupName];
   	return group ? group[keypath.str] : null;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/applyChanges.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/applyChanges.js.map
 
   var capture = Viewmodel$capture;
 
   function Viewmodel$capture() {
   	this.captureGroups.push([]);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/capture.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/capture.js.map
 
   var clearCache = Viewmodel$clearCache;
 
@@ -11640,7 +11645,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/clearCache.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/clearCache.js.map
 
   var UnresolvedDependency = function (computation, ref) {
   	this.computation = computation;
@@ -11661,7 +11666,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/Computation/UnresolvedDependency.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/Computation/UnresolvedDependency.js.map
 
   var Computation = function (key, signature) {
   	this.key = key;
@@ -11850,7 +11855,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/Computation/Computation.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/Computation/Computation.js.map
 
   var compute = Viewmodel$compute;
   function Viewmodel$compute(key, signature) {
@@ -11862,10 +11867,10 @@
 
   	return this.computations[key.str] = computation;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/compute.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/compute.js.map
 
   var FAILED_LOOKUP = { FAILED_LOOKUP: true };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/get/FAILED_LOOKUP.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/get/FAILED_LOOKUP.js.map
 
   var get__default = Viewmodel$get;
 
@@ -11976,7 +11981,7 @@
   	viewmodel.cache[keypath.str] = value;
   	return value;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/get.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/get.js.map
 
   var viewmodel_prototype_init = Viewmodel$init;
 
@@ -11987,7 +11992,7 @@
   		this.computations[key].init(this);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/init.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/init.js.map
 
   var map__default = Viewmodel$map;
 
@@ -12142,7 +12147,7 @@
   		this.origin.unregister(this.map(keypath), dependant, group);
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/map.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/map.js.map
 
   var mark = Viewmodel$mark;
 
@@ -12178,7 +12183,7 @@
   		this.onchange();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/mark.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/mark.js.map
 
   var mapOldToNewIndex = function (oldArray, newArray) {
   	var usedIndices, firstUnusedIndex, newIndices, changed;
@@ -12219,7 +12224,7 @@
 
   	return newIndices;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/merge/mapOldToNewIndex.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/merge/mapOldToNewIndex.js.map
 
   var merge = Viewmodel$merge;
 
@@ -12283,7 +12288,7 @@
 
   	throw new Error("The `compare` option must be a function, or a string representing an identifying field (or `true` to use JSON.stringify)");
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/merge.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/merge.js.map
 
   var register = Viewmodel$register;
 
@@ -12330,14 +12335,14 @@
   		keypath = keypath.parent;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/register.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/register.js.map
 
   var release = Viewmodel$release;
 
   function Viewmodel$release() {
   	return this.captureGroups.pop();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/release.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/release.js.map
 
   var reset = Viewmodel$reset;
 
@@ -12345,7 +12350,7 @@
   	this.data = data;
   	this.clearCache("");
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/reset.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/reset.js.map
 
   var set__default = Viewmodel$set;
 
@@ -12440,7 +12445,7 @@
   		}
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/set.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/set.js.map
 
   var smartUpdate = Viewmodel$smartUpdate;
 
@@ -12488,7 +12493,7 @@
   function canShuffle(dependant) {
   	return typeof dependant.shuffle === "function";
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/smartUpdate.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/smartUpdate.js.map
 
   var teardown__default = Viewmodel$teardown;
 
@@ -12508,7 +12513,7 @@
   		unresolvedImplicitDependency.teardown();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/teardown.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/teardown.js.map
 
   var unregister = Viewmodel$unregister;
 
@@ -12560,7 +12565,7 @@
   		keypath = keypath.parent;
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/prototype/unregister.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/prototype/unregister.js.map
 
   var Viewmodel = function (options) {
   	var adapt = options.adapt;
@@ -12653,7 +12658,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/viewmodel/Viewmodel.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/viewmodel/Viewmodel.js.map
 
   function HookQueue(event) {
   	this.hook = new Hook(event);
@@ -12707,7 +12712,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/hooks/HookQueue.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shared/hooks/HookQueue.js.map
 
   var pattern = /\$\{([^\}]+)\}/g;
   function getComputationSignatures(ractive, computed) {
@@ -12768,7 +12773,7 @@
   function getComputationSignatures__bind(fn, context) {
   	return /this/.test(fn.toString()) ? fn.bind(context) : fn;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/helpers/getComputationSignatures.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/helpers/getComputationSignatures.js.map
 
   var constructHook = new Hook("construct");
   var configHook = new Hook("config");
@@ -12974,7 +12979,7 @@
   function deprecateRactiveData() {
   	throw new Error("Using `ractive.data` is no longer supported - you must use the `ractive.get()` API instead");
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/initialise.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/initialise.js.map
 
   function ComplexParameter(component, template, callback) {
   	this.parentFragment = component.parentFragment;
@@ -13012,7 +13017,7 @@
   		this.fragment.unbind();
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/initialise/ComplexParameter.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/initialise/ComplexParameter.js.map
 
   var createInstance = function (component, Component, attributes, yieldTemplate, partials) {
   	var instance,
@@ -13154,7 +13159,7 @@
   function isSingleInterpolator(template) {
   	return template.length === 1 && template[0].t === INTERPOLATOR;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/initialise/createInstance.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/initialise/createInstance.js.map
 
   // TODO how should event arguments be handled? e.g.
   // <widget on-foo='bar:1,2,3'/>
@@ -13195,7 +13200,7 @@
   		return false;
   	});
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/initialise/propagateEvents.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/initialise/propagateEvents.js.map
 
   var updateLiveQueries__default = function (component) {
   	var ancestor, query;
@@ -13210,7 +13215,7 @@
   		ancestor = ancestor.parent;
   	}
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/initialise/updateLiveQueries.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/initialise/updateLiveQueries.js.map
 
   var Component_prototype_init = Component$init;
   function Component$init(options, Component) {
@@ -13241,7 +13246,7 @@
 
   	updateLiveQueries__default(this);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/init.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/init.js.map
 
   var Component_prototype_rebind = Component$rebind;
 
@@ -13264,7 +13269,7 @@
   		x.rebind(oldKeypath, newKeypath);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/rebind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/rebind.js.map
 
   var Component_prototype_render = Component$render;
 
@@ -13276,14 +13281,14 @@
   	this.rendered = true;
   	return instance.fragment.detach();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/render.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/render.js.map
 
   var Component_prototype_toString = Component$toString;
 
   function Component$toString() {
   	return this.instance.fragment.toString();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/toString.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/toString.js.map
 
   var Component_prototype_unbind = Component$unbind;
 
@@ -13317,7 +13322,7 @@
   		}
   	} while (instance = instance.parent);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/unbind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/unbind.js.map
 
   var Component_prototype_unrender = Component$unrender;
 
@@ -13325,7 +13330,7 @@
   	this.shouldDestroy = shouldDestroy;
   	this.instance.unrender();
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/unrender.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/prototype/unrender.js.map
 
   var Component = function (options, Constructor) {
   	this.init(options, Constructor);
@@ -13348,7 +13353,7 @@
   };
 
   var Component__default = Component;
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/_Component.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Component/_Component.js.map
 
   var Comment = function (options) {
   	this.type = COMMENT;
@@ -13382,7 +13387,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Comment.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Comment.js.map
 
   var Yielder = function (options) {
   	var container, component;
@@ -13484,7 +13489,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Yielder.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Yielder.js.map
 
   var Doctype = function (options) {
   	this.declaration = options.template.a;
@@ -13501,7 +13506,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/items/Doctype.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/items/Doctype.js.map
 
   var Fragment_prototype_init = Fragment$init;
 
@@ -13568,7 +13573,7 @@
   			throw new Error("Something very strange happened. Please file an issue at https://github.com/ractivejs/ractive/issues. Thanks!");
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/init.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/init.js.map
 
   var Fragment_prototype_rebind = Fragment$rebind;
   function Fragment$rebind(oldKeypath, newKeypath) {
@@ -13584,7 +13589,7 @@
   		}
   	});
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/rebind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/rebind.js.map
 
   var Fragment_prototype_render = Fragment$render;
 
@@ -13604,7 +13609,7 @@
   	this.rendered = true;
   	return result;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/render.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/render.js.map
 
   var Fragment_prototype_toString = Fragment$toString;
 
@@ -13623,7 +13628,7 @@
   function toEscapedString(item) {
   	return item.toString(true);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/toString.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/toString.js.map
 
   var Fragment_prototype_unbind = Fragment$unbind;
 
@@ -13641,7 +13646,7 @@
   		item.unbind();
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/unbind.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/unbind.js.map
 
   var Fragment_prototype_unrender = Fragment$unrender;
 
@@ -13655,7 +13660,7 @@
   	});
   	this.rendered = false;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/unrender.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment/prototype/unrender.js.map
 
   var Fragment = function (options) {
   	this.init(options);
@@ -13692,7 +13697,7 @@
   };
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/virtualdom/Fragment.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/virtualdom/Fragment.js.map
 
   var prototype_reset = Ractive$reset;
   var shouldRerender = ["template", "partials", "components", "decorators", "events"],
@@ -13769,7 +13774,7 @@
 
   	return promise;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/reset.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/reset.js.map
 
   var resetPartial = function (name, partial) {
   	var promise,
@@ -13832,7 +13837,7 @@
 
   	return promise;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/resetPartial.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/resetPartial.js.map
 
   // TODO should resetTemplate be asynchronous? i.e. should it be a case
   // of outro, update template, intro? I reckon probably not, since that
@@ -13874,10 +13879,10 @@
 
   	this.transitionsEnabled = transitionsEnabled;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/resetTemplate.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/resetTemplate.js.map
 
   var reverse = makeArrayMethod("reverse");
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/reverse.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/reverse.js.map
 
   var prototype_set = Ractive$set;
 
@@ -13919,22 +13924,22 @@
   		ractive.viewmodel.set(keypath, value);
   	}
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/set.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/set.js.map
 
   var shift = makeArrayMethod("shift");
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/shift.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/shift.js.map
 
   var prototype_sort = makeArrayMethod("sort");
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/sort.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/sort.js.map
 
   var splice = makeArrayMethod("splice");
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/splice.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/splice.js.map
 
   var subtract = Ractive$subtract;
   function Ractive$subtract(keypath, d) {
   	return add(this, keypath, d === undefined ? -1 : -d);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/subtract.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/subtract.js.map
 
   // Teardown. This goes through the root fragment and all its children, removing observers
   // and generally cleaning up after itself
@@ -13965,7 +13970,7 @@
   function deleteFunctionCopy(bound) {
   	delete bound.fn[bound.prop];
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/teardown.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/teardown.js.map
 
   var toggle = Ractive$toggle;
   function Ractive$toggle(keypath) {
@@ -13989,14 +13994,14 @@
 
   	return this.set(keypath, !this.get(keypath));
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/toggle.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/toggle.js.map
 
   var toHTML = Ractive$toHTML;
 
   function Ractive$toHTML() {
   	return this.fragment.toString(true);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/toHTML.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/toHTML.js.map
 
   var Ractive_prototype_unrender = Ractive$unrender;
   var unrenderHook = new Hook("unrender");
@@ -14028,10 +14033,10 @@
   	runloop.end();
   	return promise;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/unrender.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/unrender.js.map
 
   var unshift = makeArrayMethod("unshift");
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/unshift.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/unshift.js.map
 
   var Ractive_prototype_update = Ractive$update;
   var updateHook = new Hook("update");
@@ -14048,7 +14053,7 @@
 
   	return promise;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/update.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/update.js.map
 
   var updateModel__default = Ractive$updateModel;
 
@@ -14124,7 +14129,7 @@
 
   	return values;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype/updateModel.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype/updateModel.js.map
 
   var proto__default = {
   	add: prototype_add,
@@ -14166,7 +14171,7 @@
   	update: Ractive_prototype_update,
   	updateModel: updateModel__default
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/prototype.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/prototype.js.map
 
   var wrap__default = function (method, superMethod, force) {
 
@@ -14196,7 +14201,7 @@
   function needsSuper(method, superMethod) {
   	return typeof superMethod === "function" && /_super/.test(method);
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/utils/wrapMethod.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/utils/wrapMethod.js.map
 
   var unwrapExtended = unwrap;
 
@@ -14275,7 +14280,7 @@
   		}
   	});
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/extend/unwrapExtended.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/extend/unwrapExtended.js.map
 
   var extend__default = extend__extend;
 
@@ -14339,7 +14344,7 @@
 
   	return Child;
   }
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/extend/_extend.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/extend/_extend.js.map
 
   var getNodeInfo = function (node) {
   	var info = {},
@@ -14361,7 +14366,7 @@
 
   	return info;
   };
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive/static/getNodeInfo.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive/static/getNodeInfo.js.map
 
   var Ractive, properties;
 
@@ -14391,7 +14396,7 @@
   	magic: { value: environment__magic },
 
   	// version
-  	VERSION: { value: "0.7.0-edge" },
+  	VERSION: { value: "0.7.1" },
 
   	// Plugins
   	adaptors: { writable: true, value: {} },
@@ -14425,7 +14430,7 @@
   }
 
 
-  //# sourceMappingURL=/home/travis/build/ractivejs/ractive/.gobble-build/02-babel/1/Ractive.js.02-babel.map
+  //# sourceMappingURL=/www/RACTIVE/ractive/.gobble-build/02-babel/1/Ractive.js.map
 
   return Ractive;
 
