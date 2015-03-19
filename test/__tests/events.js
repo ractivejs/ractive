@@ -1,5 +1,7 @@
 module( 'Events' );
 
+/* global document, Element, window, setTimeout */
+
 test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 	var ractive;
 
@@ -18,7 +20,7 @@ test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 	simulant.fire( ractive.nodes.test, 'click' );
 });
 
-test( 'empty event on-click="" ok', t => {
+test( 'empty event on-click="" ok', () => {
 	var ractive;
 
 	expect( 0 );
@@ -29,9 +31,9 @@ test( 'empty event on-click="" ok', t => {
 	});
 
 	simulant.fire( ractive.nodes.test, 'click' );
-})
+});
 
-test( 'on-click="someEvent" does not fire event when unrendered', t => {
+test( 'on-click="someEvent" does not fire event when unrendered', () => {
 	var ractive, node;
 
 	expect( 0 );
@@ -41,7 +43,7 @@ test( 'on-click="someEvent" does not fire event when unrendered', t => {
 		template: '<span id="test" on-click="someEvent">click me</span>'
 	});
 
-	ractive.on( 'someEvent', function ( event ) {
+	ractive.on( 'someEvent', function () {
 		throw new Error('Event handler called after unrender');
 	});
 
@@ -99,8 +101,8 @@ test( 'custom event invoked and torndown', t => {
 				t.ok( torndown = true );
 				node.removeEventListener( 'click', fireEvent, false );
 			}
-		}
-	}
+		};
+	};
 
 
 	ractive = new Ractive({
@@ -151,7 +153,7 @@ test( 'Empty event names are safe, though do not fire', t => {
 	var ractive = new Ractive();
 
 	expect( 1 );
-	ractive.on( '', function ( event ) {
+	ractive.on( '', function () {
 		throw new Error( 'Empty event name should not fire' );
 	});
 	ractive.fire( '' );
@@ -173,8 +175,8 @@ test( 'preventDefault and stopPropagation if event handler returned false', t =>
 
 	function mockOriginalEvent( original ) {
 		preventedDefault = stoppedPropagation = false;
-		original.preventDefault = function() { preventedDefault = true; }
-		original.stopPropagation = function() { stoppedPropagation = true; }
+		original.preventDefault = function() { preventedDefault = true; };
+		original.stopPropagation = function() { stoppedPropagation = true; };
 	}
 
 	ractive.on( 'returnFalse', function ( event ) {
@@ -305,10 +307,10 @@ test( 'proxy events can have dynamic names', t => {
 	});
 
 	ractive.on({
-		do_foo: function ( event ) {
+		do_foo: function () {
 			last = 'foo';
 		},
-		do_bar: function ( event ) {
+		do_bar: function () {
 			last = 'bar';
 		}
 	});
@@ -647,7 +649,7 @@ test( 'Events really do not call addEventListener when no proxy name', t => {
 	var ractive,
 		addEventListener = Element.prototype.addEventListener,
 		errorAdd = function(){
-			throw new Error('addEventListener should not be called')
+			throw new Error('addEventListener should not be called');
 		};
 
 	try {
@@ -662,7 +664,7 @@ test( 'Events really do not call addEventListener when no proxy name', t => {
 
 		ractive.on('bar', function(){
 			t.ok( true );
-		})
+		});
 
 		simulant.fire( ractive.nodes.test, 'click' );
 
@@ -750,7 +752,7 @@ test( 'Calling an unknown method', function ( t ) {
 	// is a world of facepalm http://jsfiddle.net/geoz2tks/
 	onerror = window.onerror;
 	window.onerror = function ( err ) {
-		t.ok( /Attempted to call a non-existent method \(\"activate\"\)/.test( err ) )
+		t.ok( /Attempted to call a non-existent method \(\"activate\"\)/.test( err ) );
 		return true;
 	};
 
@@ -858,7 +860,7 @@ setup = {
 	}
 };
 
-function fired ( event ) {
+function fired () {
 	ok( true );
 }
 
@@ -884,7 +886,7 @@ function shouldBeNoBubbling () {
 
 function testEventBubbling( fire ) {
 
-	test( 'Events bubble under "eventname", and also "component.eventname" above firing component', t => {
+	test( 'Events bubble under "eventname", and also "component.eventname" above firing component', () => {
 		var ractive, middle, component;
 
 		expect( 3 );
@@ -905,12 +907,12 @@ function testEventBubbling( fire ) {
 		fire( ractive.findComponent( 'component' ) );
 	});
 
-	test( 'arguments bubble', t => {
+	test( 'arguments bubble', () => {
 		var ractive, middle, component;
 
 		expect( 3 );
 
-		Component.prototype.template = '<span id="test" on-click="someEvent:foo">click me</span>'
+		Component.prototype.template = '<span id="test" on-click="someEvent:foo">click me</span>';
 
 		ractive = new View();
 		middle = ractive.findComponent( 'middle' );
@@ -928,7 +930,7 @@ function testEventBubbling( fire ) {
 		fire( ractive.findComponent( 'component' ) );
 	});
 
-	test( 'bubbling events can be stopped by returning false', t => {
+	test( 'bubbling events can be stopped by returning false', () => {
 		var ractive, middle, component;
 
 		expect( 2 );
@@ -940,7 +942,7 @@ function testEventBubbling( fire ) {
 		component.on( 'someEvent', goodEvent );
 		component.on( 'component.someEvent', notOnOriginating );
 
-		middle.on( 'component.someEvent', function( event ) {
+		middle.on( 'component.someEvent', function() {
 			return false;
 		});
 		// still fires on same level
@@ -960,8 +962,9 @@ function testEventBubbling( fire ) {
 		middle = ractive.findComponent( 'middle' );
 		component = ractive.findComponent( 'component' );
 
-		function hasComponentRef( event, arg ) {
-			event.original ? t.equal( event.component, component ) : t.ok( true );
+		function hasComponentRef( event ) {
+			if ( event.original ) t.equal( event.component, component );
+			else t.ok( true );
 		}
 
 		component.on( 'someEvent', function( event ) {
@@ -976,13 +979,13 @@ function testEventBubbling( fire ) {
 }
 
 
-module( 'Component events bubbling proxy events', setup )
+module( 'Component events bubbling proxy events', setup );
 
 testEventBubbling( function ( component ) {
 	simulant.fire( component.nodes.test, 'click' );
 });
 
-module( 'Component events bubbling fire() events', setup )
+module( 'Component events bubbling fire() events', setup );
 
 testEventBubbling( function ( component ) {
 	component.fire( 'someEvent', 'foo' );
@@ -990,7 +993,7 @@ testEventBubbling( function ( component ) {
 
 module( 'Event pattern matching' );
 
-test( 'handlers can use pattern matching', t => {
+test( 'handlers can use pattern matching', () => {
 	var ractive;
 
 	expect( 4 );
@@ -1008,7 +1011,7 @@ test( 'handlers can use pattern matching', t => {
 	simulant.fire( ractive.nodes.test, 'click' );
 });
 
-test( 'bubbling handlers can use pattern matching', t => {
+test( 'bubbling handlers can use pattern matching', () => {
 	var Component, component, ractive;
 
 	expect( 4 );
@@ -1038,7 +1041,7 @@ test( 'bubbling handlers can use pattern matching', t => {
 	ractive.off();
 });
 
-test( 'component "on-someEvent" implicitly cancels bubbling', t => {
+test( 'component "on-someEvent" implicitly cancels bubbling', () => {
 	var Component, component, ractive;
 
 	expect( 1 );
@@ -1062,7 +1065,7 @@ test( 'component "on-someEvent" implicitly cancels bubbling', t => {
 	simulant.fire( component.nodes.test, 'click' );
 });
 
-test( 'component "on-" wildcards match', t => {
+test( 'component "on-" wildcards match', () => {
 	var Component, component, ractive;
 
 	expect( 3 );
@@ -1162,7 +1165,7 @@ test( 'touch events safe to include when they don\'t exist in browser', t => {
 
 	ractive.on( 'foo', function () {
 		t.ok( true );
-	})
+	});
 
 	simulant.fire( ractive.nodes.test2, 'mousedown' );
 
@@ -1218,7 +1221,7 @@ test( 'wildcard and multi-part listeners have correct event name', t => {
 
 	ractive.on( 'foo.* fuzzy *.bop', function () {
 		fired.push( this.event.name );
-	})
+	});
 
 	events = [ 'foo.bar', 'fuzzy', 'foo.fizz', 'bip.bop' ];
 	events.forEach( ractive.fire.bind( ractive ) );
@@ -1259,7 +1262,7 @@ test( '.once() event functionality', t => {
 	ractive.fire( 'foo' );
 	ractive.fire( 'foo' );
 	ractive.fire( 'bar' );
-})
+});
 
 test( 'method calls that fire events do not clobber this.events', t => {
 	var methodEvent, ractive;
@@ -1279,10 +1282,10 @@ test( 'method calls that fire events do not clobber this.events', t => {
 	ractive.on( 'yell', function(){
 		t.notEqual( this.event, methodEvent, 'handler does not have method event' );
 		t.equal ( this.event.name, 'yell', 'handler as own event name' );
-	})
+	});
 
 	simulant.fire( ractive.nodes.test, 'click' );
-})
+});
 
 
 module( 'Issues' );
@@ -1331,7 +1334,7 @@ asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => 
 	setTimeout(function() {
 		ractive.set('model', {});
 		t.equal( torndown.length, 4 );
-		QUnit.start()
+		QUnit.start();
 	});
 
 
@@ -1372,7 +1375,7 @@ test( 'event actions and parameter references have context', t => {
 
 	ractive.on( 'bar', function ( event, parameter ) {
 		t.equal( parameter, 'bar' );
-	})
+	});
 
 	simulant.fire( ractive.nodes.test1, 'click' );
 });
@@ -1443,6 +1446,56 @@ test( 'Attribute directives on fragments that get re-used (partials) should stic
 
 	t.equal( ractive.get( 'list.0.foo' ), 'a' );
 	t.equal( ractive.get( 'list.1.foo' ), 'b' );
+});
+
+test( 'Method call event handlers can fire on parent instances (#1832)', t => {
+	let count = 0, ev, local;
+	let ractive = new Ractive({
+		el: fixture,
+		template: '<cmp><button on-click="foo()">Go</button></cmp>',
+		components: { cmp: Ractive.extend({ template: '{{>content}}' }) },
+		foo() {
+			count++;
+			ev = this.event;
+			local = this;
+		}
+	});
+
+	let cmp = ractive.findComponent('cmp');
+
+	simulant.fire( ractive.find('button'), 'click' );
+
+	t.equal( count, 1 );
+	t.strictEqual( local._guid, ractive._guid );
+	t.strictEqual( ev.component._guid, cmp._guid );
+});
+
+test( `Method call event handlers aren't are sought beyond isolated borders`, t => {
+	let count = 0;
+	let ractive = new Ractive({
+		el: fixture,
+		template: `<cmp1><cmp2><button on-click="foo1()">1</button><button on-click="foo2()">2</button></cmp2></cmp1>`,
+		components: {
+			cmp1: Ractive.extend({ isolated: true, template: '{{>content}}', foo1() { count++; } }),
+			cmp2: Ractive.extend({ template: '{{>content}}' })
+		},
+		foo2() { count++; }
+	});
+
+	let buttons = ractive.findAll('button');
+	simulant.fire( buttons[0], 'click' );
+	t.equal( count, 1 );
+
+	// oy vey!
+	let onerror = window.onerror;
+	window.onerror = function ( err ) {
+		t.ok( /Attempted to call a non-existent method \(\"foo2\"\)/.test( err ) );
+		return true;
+	};
+	simulant.fire( buttons[1], 'click' );
+	window.onerror = onerror;
+
+	t.equal( count, 1 );
 });
 
 // phantom and IE8 don't like these tests, but browsers are ok with them

@@ -81,13 +81,13 @@ export default function EventHandler$init ( element, name, template ) {
 	}
 }
 
-
 function fireMethodCall ( event ) {
 	var ractive, values, args;
 
-	ractive = this.root;
+	ractive = findMethodHost( this.root, this.method );
+	event.component = this.root;
 
-	if ( typeof ractive[ this.method ] !== 'function' ) {
+	if ( !ractive || typeof ractive[ this.method ] !== 'function' ) {
 		throw new Error( 'Attempted to call a non-existent method ("' + this.method + '")' );
 	}
 
@@ -136,4 +136,12 @@ function fireEventWithDynamicParams ( event ) {
 	}
 
 	fireEvent( this.root, this.getAction(), { event: event, args: args } );
+}
+
+function findMethodHost ( ractive, method ) {
+	if ( typeof ractive[ method ] === 'function' ) {
+		return ractive;
+	} else if ( !ractive.isolated && ractive.parent ) {
+		return findMethodHost( ractive.parent, method );
+	}
 }
