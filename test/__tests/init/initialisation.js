@@ -45,27 +45,27 @@ test( 'multiple options arguments applied left to right', t => {
 	t.equal( ractive.template, 'good' );
 });
 
-// if ( hasUsableConsole ) {
+if ( hasUsableConsole ) {
 
-// 	module( 'standard options' );
+	module( 'standard options' );
 
-// 	test ( 'functions ignored and logs warning', t => {
+	test ( 'functions ignored and logs warning', t => {
 
-// 		let warn = console.warn, warned;
-// 		console.warn = message => warned = message;
+		let warn = console.warn, warned;
+		console.warn = message => warned = message;
 
-// 		let ractive = new Ractive ({
-// 			noIntro: function () {
-// 				return true;
-// 			}
-// 		});
+		let ractive = new Ractive ({
+			noIntro: function () {
+				return true;
+			}
+		});
 
-// 		t.ok( /noIntro/.test( warned ) );
-// 		t.equal( ractive.noIntro, false );
+		t.ok( /noIntro/.test( warned ) );
+		t.equal( ractive.noIntro, false );
 
-// 		console.warn = warn;
-// 	});
-// }
+		console.warn = warn;
+	});
+}
 
 module( 'Data Initialisation', cleanupDefaults );
 
