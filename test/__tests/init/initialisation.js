@@ -45,6 +45,28 @@ test( 'multiple options arguments applied left to right', t => {
 	t.equal( ractive.template, 'good' );
 });
 
+if ( hasUsableConsole ) {
+
+	module( 'standard options' );
+
+	test ( 'functions ignored and logs warning', t => {
+
+		let warn = console.warn, warned;
+		console.warn = message => warned = message;
+
+		let ractive = new Ractive ({
+			noIntro: function () {
+				return true;
+			}
+		});
+
+		t.ok( /noIntro/.test( warned ) );
+		t.equal( ractive.noIntro, false );
+
+		console.warn = warn;
+	});
+}
+
 module( 'Data Initialisation', cleanupDefaults );
 
 test( 'default data function called on initialize', t => {

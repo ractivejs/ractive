@@ -1,3 +1,4 @@
+import { warnIfDebug } from 'utils/log';
 import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
@@ -54,11 +55,18 @@ function configure ( method, Parent, target, options ) {
 		if ( isStandardKey[ key ] ) {
 			let value = options[ key ];
 
-			if ( typeof value === 'function' ) {
-				value = wrapPrototype( Parent.prototype, key, value );
-			}
+			// warn the developer if they passed a function and ignore its value
 
-			target[ key ] = value;
+			// NOTE: we allow some functions on "el" because we duck type element lists
+			// and some libraries or ef'ed-up virtual browsers (phantomJS) return a
+			// function object as the result of querySelector methods
+			if ( key !== 'el' && typeof value === 'function' ) {
+				warnIfDebug( `${ key } is a Ractive option that does not expect a function and will be ignored`,
+					method === 'init' ? target : null );
+			}
+			else {
+				target[ key ] = value;
+			}
 		}
 	}
 
