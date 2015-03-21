@@ -52,13 +52,7 @@ function configure ( method, Parent, target, options ) {
 
 	for ( let key in options ) {
 		if ( isStandardKey[ key ] ) {
-			let value = options[ key ];
-
-			if ( typeof value === 'function' ) {
-				value = wrapPrototype( Parent.prototype, key, value );
-			}
-
-			target[ key ] = value;
+			target[ key ] = options[ key ];
 		}
 	}
 
