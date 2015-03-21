@@ -1,3 +1,4 @@
+import { warnIfDebug } from 'utils/log';
 import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
@@ -52,7 +53,15 @@ function configure ( method, Parent, target, options ) {
 
 	for ( let key in options ) {
 		if ( isStandardKey[ key ] ) {
-			target[ key ] = options[ key ];
+
+			// warn the developer if they passed a function and ignore its value
+			if ( typeof options[ key ] === 'function' ) {
+				warnIfDebug( `${ key } is a Ractive option that does not expect a function and will be ignored`,
+					method === 'init' ? target : null );
+			}
+			else {
+				target[ key ] = options[ key ];
+			}
 		}
 	}
 
