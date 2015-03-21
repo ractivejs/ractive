@@ -53,14 +53,19 @@ function configure ( method, Parent, target, options ) {
 
 	for ( let key in options ) {
 		if ( isStandardKey[ key ] ) {
+			let value = options[ key ];
 
 			// warn the developer if they passed a function and ignore its value
-			if ( typeof options[ key ] === 'function' ) {
+
+			// NOTE: we allow some functions on "el" because we duck type element lists
+			// and some libraries or ef'ed-up virtual browsers (phantomJS) return a
+			// function object as the result of querySelector methods
+			if ( typeof value === 'function' && ( key !== 'el' || value[0] ) ) {
 				warnIfDebug( `${ key } is a Ractive option that does not expect a function and will be ignored`,
 					method === 'init' ? target : null );
 			}
 			else {
-				target[ key ] = options[ key ];
+				target[ key ] = value;
 			}
 		}
 	}
