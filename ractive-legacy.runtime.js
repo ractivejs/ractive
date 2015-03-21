@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.1
-	Wed Mar 18 2015 23:57:07 GMT+0000 (UTC) - commit 8947279ddbcd558bd118f241a9b834466e536b86
+	Sat Mar 21 2015 20:08:51 GMT+0000 (UTC) - commit 7906455d2a1b2ec422c5fa04f7561c4d3949706f
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4453,11 +4453,16 @@
   		if (isStandardKey[key]) {
   			var value = options[key];
 
-  			if (typeof value === "function") {
-  				value = wrapPrototype(Parent.prototype, key, value);
-  			}
+  			// warn the developer if they passed a function and ignore its value
 
-  			target[key] = value;
+  			// NOTE: we allow some functions on "el" because we duck type element lists
+  			// and some libraries or ef'ed-up virtual browsers (phantomJS) return a
+  			// function object as the result of querySelector methods
+  			if (key !== "el" && typeof value === "function") {
+  				warnIfDebug("" + key + " is a Ractive option that does not expect a function and will be ignored", method === "init" ? target : null);
+  			} else {
+  				target[key] = value;
+  			}
   		}
   	}
 
