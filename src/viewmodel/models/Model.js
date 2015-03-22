@@ -51,6 +51,10 @@ class Model {
 		this.index = index;
 	}
 
+	getJoinModel () {
+		return this;
+	}
+
 	join ( keypath ) {
 		return this._doJoin( keypath, false );
 	}
@@ -112,6 +116,12 @@ class Model {
 
 		this.children ? this.children.push( child ) : this.children = [ child ];
 		this.hashChild( key, child );
+		if ( this.dirty ) {
+			// This might need to be child.mark()?
+			// came up in testing, not sure about
+			// 'real' use
+			child.dirty = true;
+		}
 		this._notifyWatcher( key );
 	}
 
@@ -213,9 +223,6 @@ class Model {
 	}
 
 	mark ( /*options*/ ) {
-
-		// TODO: can this be part of a ComputationModel?
-		this.store.invalidate();
 
 		this._testWatchers();
 

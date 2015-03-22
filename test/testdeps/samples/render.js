@@ -486,6 +486,7 @@ var renderTests = [
 		template: '<p>{{^.foo}}this should appear{{/.foo}}</p>',
 		result: '<p>this should appear</p>'
 	},
+	// TODO: Remove when we don't support non-POJO roots
 	{
 		name: 'Data is an array',
 		template: '{{#.}}<p>{{name}}</p>{{/.}}',

@@ -1,21 +1,18 @@
-import Model from './Model';
-import ReferenceStore from '../stores/ReferenceStore';
-import { addToArray, removeFromArray } from 'utils/array';
+import StaticReferenceModel from './StaticReferenceModel';
 
-class ReferenceModel extends Model {
+class ReferenceModel extends StaticReferenceModel {
 
 	constructor ( key, reference, parent ) {
-
-		var store = new ReferenceStore( reference, this );
-
-		super( '[' + key + ']', store );
-
+		super( '[' + key + ']' );
 		this.reference = reference;
-		this.resolved = null;
-
-		reference.register( this, 'computed' );
+		reference.register( {
+			mark: () => this.reset()
+		}, 'computed' );
 	}
 
+	getJoinKey () {
+		return this.reference.get();
+	}
 }
 
 export default ReferenceModel;

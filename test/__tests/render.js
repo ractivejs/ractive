@@ -231,6 +231,7 @@ test( 'Render may be called with a selector (#1430)', t => {
 	t.htmlEqual( fixture.innerHTML, '<div id="foo">foo</div>' );
 });
 
+// TODO: Remove when we don't support non-POJO roots
 test( 'Array roots should not get confused deps in sections (#1494)', t => {
 	var ractive = new Ractive({
 		el: fixture,

@@ -12,6 +12,11 @@ class ComputationModel extends Model {
 		store.computation.setModel( this );
 		super ( key, store );
 	}
+
+	mark () {
+		this.store.invalidate();
+		super.mark();
+	}
 }
 
 export default ComputationModel;
