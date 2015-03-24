@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.1
-	Mon Mar 23 2015 09:02:58 GMT+0000 (UTC) - commit 040255cdf3c4bc8273d1a1d92f63a0cf6db95cd1
+	Tue Mar 24 2015 23:31:20 GMT+0000 (UTC) - commit f0f7bacae99144d4a62c8e1497694555ceac32f8
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13721,7 +13721,7 @@
   	propagateEvents(this, options.template.v);
 
   	// intro, outro and decorator directives have no effect
-  	if (options.template.t1 || options.template.t2 || options.template.o) {
+  	if (options.template.t0 || options.template.t1 || options.template.t2 || options.template.o) {
   		warnIfDebug("The \"intro\", \"outro\" and \"decorator\" directives have no effect on components", { ractive: this.instance });
   	}
 
