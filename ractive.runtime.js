@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.1
-	Tue Mar 24 2015 23:31:20 GMT+0000 (UTC) - commit f0f7bacae99144d4a62c8e1497694555ceac32f8
+	Wed Mar 25 2015 19:20:57 GMT+0000 (UTC) - commit 335477b32bee0889682b43cd8bca8447b67f0257
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -729,7 +729,10 @@
   	    binary,
   	    starMap,
   	    mapper,
-  	    i;
+  	    i,
+  	    j,
+  	    l,
+  	    map;
 
   	if (!starMaps[num]) {
   		starMap = [];
@@ -750,7 +753,12 @@
   				binary = "0" + binary;
   			}
 
-  			starMap[i] = Array.prototype.map.call(binary, mapper);
+  			map = [];
+  			l = binary.length;
+  			for (j = 0; j < l; j++) {
+  				map.push(mapper(binary[j]));
+  			}
+  			starMap[i] = map;
   		}
 
   		starMaps[num] = starMap;
