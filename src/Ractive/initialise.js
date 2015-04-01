@@ -205,6 +205,8 @@ function initialiseProperties ( ractive, options ) {
 	// bound data functions
 	ractive._boundFunctions = [];
 
+	// keypath links
+	ractive._links = {};
 
 	// properties specific to inline components
 	if ( options.component ) {

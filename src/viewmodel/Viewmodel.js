@@ -105,4 +105,5 @@ Viewmodel.prototype = {
 	unregister: unregister
 };
 
+
 export default Viewmodel;

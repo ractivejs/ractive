@@ -105,7 +105,7 @@ function notifyUpstreamDependants ( viewmodel, bindings, keypath, groupName ) {
 				bindings.push( d );
 			}
 			else {
-				d.setValue( value );
+				d.setValue( value, keypath );
 			}
 		});
 	}
@@ -124,7 +124,10 @@ function notifyBindings ( viewmodel, bindings, changes ) {
 				break;
 			}
 
-			if ( keypath.slice(0, binding.keypath.length) === binding.keypath ) {
+			if (
+				( binding.keypath && keypath.str.slice(0, binding.keypath.length) === binding.keypath ) ||
+				( binding.regex && binding.regex.test( keypath.str ) )
+			) {
 				refinements.push( keypath );
 			}
 
@@ -132,7 +135,7 @@ function notifyBindings ( viewmodel, bindings, changes ) {
 		}
 
 		if ( useSet ) {
-			binding.setValue( viewmodel.get( binding.keypath ) );
+			binding.setValue( viewmodel.get( binding.keypath ), binding.keyPath );
 		}
 
 		if( refinements.length ) {
@@ -174,7 +177,7 @@ function notifyAllDependants ( viewmodel, keypaths, groupName ) {
 
 	function dispatch ( set ) {
 		var value = viewmodel.get( set.keypath );
-		set.deps.forEach( d => d.setValue( value ) );
+		set.deps.forEach( d => d.setValue( value, set.keypath ) );
 	}
 }
 
