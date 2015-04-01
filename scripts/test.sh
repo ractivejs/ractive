@@ -9,5 +9,8 @@ MOD='node_modules/.bin'
 echo "> running node.js-specific tests. working directory is $PWD"
 $MOD/mocha ./tmp/test/__nodetests/index.js --reporter progress
 
+# check ractive.runtime doesn't error (#1860)
+node tmp/ractive.runtime.js
+
 # run browser tests
 $MOD/phantomjs scripts/phantom-runner.js
