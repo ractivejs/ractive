@@ -49,7 +49,7 @@ Found a bug? Raise an issue:
 		// extract information about the instance this message pertains to, if applicable
 		if ( typeof args[ args.length - 1 ] === 'object' ) {
 			let options = args.pop();
-			let ractive = options && options.ractive;
+			let ractive = options ? options.ractive : null;
 
 			if ( ractive ) {
 				// if this is an instance of a component that we know the name of, add
