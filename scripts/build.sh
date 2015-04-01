@@ -84,7 +84,7 @@ for FILE in scripts/templates/*.json; do
 	cat $FILE | sed "s/VERSION_PLACEHOLDER/$VERSION/" > build/${FILE#scripts/templates/}
 done
 
-echo "> ...aaaand we're done"
+echo "> build complete"
 
 if [ $FAKE -eq 1 ]; then
 	exit 0
