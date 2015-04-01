@@ -17,7 +17,7 @@ export default function ( methodName ) {
 			throw new Error( 'Called ractive.' + methodName + '(\'' + keypath.str + '\'), but \'' + keypath.str + '\' does not refer to an array' );
 		}
 
-		newIndices = getNewIndices( array, methodName, args );
+		newIndices = getNewIndices( array.length, methodName, args );
 
 		result = arrayProto[ methodName ].apply( array, args );
 		promise = runloop.start( this, true ).then( () => result );

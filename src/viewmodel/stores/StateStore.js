@@ -17,9 +17,6 @@ class StateStore {
 
 	set ( state ) {
 
-		// TODO Reevaluate after rebinds done
-		throw new Error('uh, shouldn\'t set value of an state store');
-
 		if ( isEqual( this.get(), state ) ) {
 			return false;
 		}

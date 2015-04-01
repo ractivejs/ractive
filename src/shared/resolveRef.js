@@ -1,5 +1,5 @@
 import { normalise } from 'shared/keypaths';
-import ProxyModel from 'viewmodel/models/ProxyModel';
+import Unresolved from 'viewmodel/models/Unresolved';
 import getInnerContext from 'shared/getInnerContext';
 
 export default function resolveRef ( ractive, ref, fragment ) {
@@ -59,7 +59,7 @@ function resolveAncestorRef ( context, ref ) {
 }
 
 function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
-	var stack = getContextStack( fragment ), chain, context, model,
+	var stack = getContextStack( fragment ), chain, context, model, first = true,
 		// temp until figure out bcuz logic already in keypath
 		firstKey = keypath.split( '.' )[0];
 
@@ -69,6 +69,14 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 	// TODO: choose pseudo iterator API. This is based on ES6 generator.
 	for ( var _iterator = stack/*[Symbol.iterator]*/(), _step; !(_step = _iterator.next()).done; ) {
 		context = _step.value;
+
+		if( first ) {
+			first = false;
+			if ( context.unresolved && ( model = context.unresolved[ firstKey ] ) ) {
+				return model;
+			}
+		}
+
 		chain = {
             current: context,
             previous: chain
@@ -81,7 +89,7 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 
 	// Return a proxy model and watch for new children to be added
 	if ( chain ) {
-		return getProxyModel( chain, firstKey, keypath, viewmodel );
+		return getUnresolved( chain, firstKey, keypath, viewmodel );
     }
 	// If there's no context chain, and the instance is either a) isolated or
 	// b) an orphan, then we know that the keypath is identical to the keypath
@@ -97,22 +105,29 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 	}
 }
 
-function getProxyModel ( chain, key, keypath, viewmodel ) {
-	var watchers = [], proxy, resolve, context;
+function getUnresolved ( chain, key, keypath, viewmodel ) {
+	var watchers = [], model, resolve, context, resolvedChain = chain, unresolved;
 
-	// TODO: handle rest of multo-part proxy for full keypath, "foo.bar.qux"
+	// TODO: handle rest of multi-part model for full keypath, "foo.bar.qux"
 	// by adding children
-	proxy = new ProxyModel( key, viewmodel );
+	model = new Unresolved( key, viewmodel );
+
+	unresolved = chain.current.unresolved || ( chain.current.unresolved = {} );
+
+	unresolved[ key ] = model;
 
 	resolve = function ( context ) {
-		proxy.resolve( context.join( proxy.key ) );
 
-		while(chain){
-	        context = chain.current;
-	        chain = chain.previous;
+		while(resolvedChain){
+	        context = resolvedChain.current;
+	        resolvedChain = resolvedChain.previous;
 	        context.removeWatcher( key, resolve );
+	        delete unresolved[ key ];
 	    }
+
+		model.resolve( context.join( model.key ) );
 	}
+
 
 	while(chain){
         context = chain.current;
@@ -120,11 +135,11 @@ function getProxyModel ( chain, key, keypath, viewmodel ) {
         context.addWatcher( key, resolve );
     }
 
-	proxy.setForceResolve( function(){
+	model.setForceResolve( function(){
 		resolve( context );
 	});
 
-    return proxy;
+    return model;
 }
 
 function getContextStack ( fragment ){

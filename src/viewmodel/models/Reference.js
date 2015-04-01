@@ -2,7 +2,7 @@ import Model from './Model';
 
 var noopStore = {};
 
-class StaticReferenceModel extends Model {
+class Reference extends Model {
 
 	constructor ( key ) {
 		this.resolved = null;
@@ -31,7 +31,7 @@ class StaticReferenceModel extends Model {
 			joinParent = this.parent.getJoinModel(),
 			key = this.getJoinKey();
 
-		if ( joinParent && key ) {
+		if ( joinParent && key != null ) {
 			resolved = this.resolved = joinParent.join( key );
 		}
 
@@ -45,7 +45,7 @@ class StaticReferenceModel extends Model {
 		var resolved = this.resolved;
 		if ( !resolved ) {
 			if ( typeof value !== 'undefined' ) {
-				throw new Error('StaticReferenceModel set called without resolved.');
+				throw new Error('Reference set called without resolved.');
 			}
 			return;
 		}
@@ -78,7 +78,7 @@ class StaticReferenceModel extends Model {
 		let resolved = this.resolved;
 		if ( !resolved ) {
 			// TODO:  create new ProxyModel() ????
-			throw new Error('StaticReferenceModel getJoinModel called without resolved.');
+			throw new Error('Reference getJoinModel called without resolved.');
 		}
 		return resolved;
 	}
@@ -98,8 +98,11 @@ class StaticReferenceModel extends Model {
 			parent = this;
 
 		while ( key = keys.shift() ) {
-			childRef = new StaticReferenceModel( key );
-			parent.addChild( childRef );
+			childRef = this.childHash[ key ]
+			if ( !childRef ) {
+				childRef = new Reference( key );
+				parent.addChild( childRef );
+			}
 			parent = childRef;
 		}
 
@@ -108,4 +111,4 @@ class StaticReferenceModel extends Model {
 
 }
 
-export default StaticReferenceModel;
+export default Reference;

@@ -84,8 +84,8 @@ export default function Section$shuffle ( newIndices ) {
 	// Prepare new fragment options
 	fragmentOptions = {
 		template: this.template.f,
-		root:       this.root,
-		owner:      this
+		root:     this.root,
+		owner:    this
 	};
 
 	// Add as many new fragments as we need to, or add back existing

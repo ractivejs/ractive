@@ -1,5 +1,5 @@
 import Model from '../models/Model';
-import ReferenceModel from '../models/ReferenceModel';
+import DynamicReference from '../models/DynamicReference';
 import ComputationModel from '../models/ComputationModel';
 import getInnerContext from 'shared/getInnerContext';
 import getExpressionSignature from '../Computation/getExpressionSignature';
@@ -25,13 +25,13 @@ export default function Viewmodel$getModel ( reference, context ) {
 
 }
 
-function getByString ( viewmodel, keypath ) {
+function getByString ( viewmodel, keypath, context ) {
 
 	if ( !keypath ) {
 		return viewmodel.root;
 	}
 
-	return viewmodel.root.join( keypath );
+	return getReferenceModel( viewmodel, keypath, { parentFragment: viewmodel.ractive.fragment } );
 }
 
 function getByTemplate ( viewmodel, reference, context ) {
@@ -91,7 +91,7 @@ function getReferenceExpressionModel ( viewmodel, reference, context ) {
 	members = reference.m.map( ref => getMemberModel( viewmodel, ref, context ) );
 
 	while( member = members.shift() ) {
-		model = new ReferenceModel( member.fullKey || member.model.key, member.model, previous );
+		model = new DynamicReference( member.fullKey || member.model.key, member.model, previous );
 		previous.addChild( model );
 		previous = model;
 	}

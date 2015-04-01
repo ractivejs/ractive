@@ -16,7 +16,7 @@ mutatorMethods.forEach( function ( methodName ) {
 			wrapper,
 			i;
 
-		newIndices = getNewIndices( this, methodName, args );
+		newIndices = getNewIndices( this.length, methodName, args );
 
 		// apply the underlying method
 		result = Array.prototype[ methodName ].apply( this, arguments );

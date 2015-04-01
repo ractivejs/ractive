@@ -1,6 +1,6 @@
 import Model from 'viewmodel/models/Model';
-import ReferenceModel from 'viewmodel/models/ReferenceModel';
-import RootModel from 'viewmodel/models/RootModel';
+import DynamicReference from 'viewmodel/models/DynamicReference';
+import Root from 'viewmodel/models/Root';
 
 var root, base, ref, a, b;
 
@@ -14,9 +14,9 @@ class Dependent {
 	}
 }
 
-module( 'ReferenceModel', {
+module( 'Reference', {
 	setup: () => {
-		root = new RootModel( { changes: [] }, {} );
+		root = new Root( { changes: [] }, {} );
 		base = root.join( 'foo' );
 		ref = root.join( 'prop' );
 		a = base.join( 'a' );
@@ -38,7 +38,7 @@ test( 'one level, all resolved, gets and sets, rebind', t => {
 	b.set( 'B' );
 	flush();
 
-	let refModel = new ReferenceModel( ref.key, ref, base );
+	let refModel = new DynamicReference( ref.key, ref, base );
 	base.addChild( refModel );
 	refModel.register( depRef );
 
@@ -76,7 +76,7 @@ test( 'second level, all resolved, gets and sets, rebind', t => {
 	a.set( { qux: 'A' } );
 	b.set( { qux: 'B' } );
 
-	let refModel = new ReferenceModel( ref.key, ref, base );
+	let refModel = new DynamicReference( ref.key, ref, base );
 	base.addChild( refModel );
 
 	let aChild = a.join( 'qux' ),
@@ -130,7 +130,7 @@ test( 'second level, all resolved, gets and sets, rebind', t => {
 
 module( 'Unresolved ReferenceModels', {
 	setup: () => {
-		root = new RootModel( { changes: [] }, {} );
+		root = new Root( { changes: [] }, {} );
 		base = root.join( 'foo' );
 		ref = root.join( 'prop' );
 		a = base.join( 'a' );
@@ -144,7 +144,7 @@ test( 'unresolved reference', t => {
 	a.set( 'A' );
 	a.register( depA );
 
-	let refModel = new ReferenceModel( ref.key, ref, base );
+	let refModel = new DynamicReference( ref.key, ref, base );
 	base.addChild( refModel );
 	refModel.register( depRef );
 

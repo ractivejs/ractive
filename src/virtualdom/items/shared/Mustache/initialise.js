@@ -19,9 +19,8 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.registered = false;
 
+
 	var keypath = mustache.root.viewmodel.getModel( template, mustache );
-
-
 	mustache.resolve( keypath );
 
 	// Special case - inverted sections

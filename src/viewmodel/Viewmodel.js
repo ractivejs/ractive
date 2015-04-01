@@ -13,7 +13,7 @@ import set from './prototype/set';
 import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 
-import RootModel from './models/RootModel';
+import Root from './models/Root';
 import ComputationModel from './models/ComputationModel';
 
 var Viewmodel = function ( options ) {
@@ -47,7 +47,7 @@ var Viewmodel = function ( options ) {
 
 	this.data = data;
 
-	this.root = new RootModel( this, data );
+	this.root = new Root( this, data );
 
 	// TODO: clean-up/move some of this
 	if ( mappings ) {

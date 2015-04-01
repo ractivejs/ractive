@@ -1,8 +1,8 @@
-import StaticReferenceModel from './StaticReferenceModel';
+import Reference from './Reference';
 
-class ReferenceModel extends StaticReferenceModel {
+class DynamicReference extends Reference {
 
-	constructor ( key, reference, parent ) {
+	constructor ( key, reference ) {
 		super( '[' + key + ']' );
 		this.reference = reference;
 		reference.register( {
@@ -15,4 +15,4 @@ class ReferenceModel extends StaticReferenceModel {
 	}
 }
 
-export default ReferenceModel;
+export default DynamicReference;

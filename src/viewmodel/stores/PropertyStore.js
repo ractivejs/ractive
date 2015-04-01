@@ -39,6 +39,14 @@ class PropertyStore {
 		return value;
 	}
 
+	shuffle ( method, args ) {
+		let array = this.get();
+
+		// TODO: deal with non-array, null, etc.
+
+		return array[ method ].apply( array, args );
+	}
+
 	set ( value ) {
 		if ( isEqual( this.get(), value ) ) {
 			return false;

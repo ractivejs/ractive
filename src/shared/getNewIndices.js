@@ -23,19 +23,18 @@
 // This information is used to enable fast, non-destructive shuffling of list
 // sections when you do e.g. `ractive.splice( 'items', 2, 2 );
 
-export default function getNewIndices ( array, methodName, args ) {
-	var spliceArguments, len, newIndices = [], removeStart, removeEnd, balance, i;
+export default function getNewIndices ( length, methodName, args ) {
+	var spliceArguments, newIndices = [], removeStart, removeEnd, balance, i;
 
-	spliceArguments = getSpliceEquivalent( array, methodName, args );
+	spliceArguments = getSpliceEquivalent( length, methodName, args );
 
 	if ( !spliceArguments ) {
 		return null; // TODO support reverse and sort?
 	}
 
-	len = array.length;
 	balance = ( spliceArguments.length - 2 ) - spliceArguments[1];
 
-	removeStart = Math.min( len, spliceArguments[0] );
+	removeStart = Math.min( length, spliceArguments[0] );
 	removeEnd = removeStart + spliceArguments[1];
 
 	for ( i = 0; i < removeStart; i += 1 ) {
@@ -46,7 +45,7 @@ export default function getNewIndices ( array, methodName, args ) {
 		newIndices.push( -1 );
 	}
 
-	for ( ; i < len; i += 1 ) {
+	for ( ; i < length; i += 1 ) {
 		newIndices.push( i + balance );
 	}
 
@@ -54,7 +53,7 @@ export default function getNewIndices ( array, methodName, args ) {
 	if ( balance !== 0 ) {
 		newIndices.touchedFrom = spliceArguments[0];
 	} else {
-		newIndices.touchedFrom = array.length;
+		newIndices.touchedFrom = length;
 	}
 
 	return newIndices;
@@ -63,11 +62,11 @@ export default function getNewIndices ( array, methodName, args ) {
 
 // The pop, push, shift an unshift methods can all be represented
 // as an equivalent splice
-function getSpliceEquivalent ( array, methodName, args ) {
+function getSpliceEquivalent ( length, methodName, args ) {
 	switch ( methodName ) {
 		case 'splice':
 			if ( args[0] !== undefined && args[0] < 0 ) {
-				args[0] = array.length + Math.max( args[0], -array.length );
+				args[0] = length + Math.max( args[0], -length );
 			}
 
 			while ( args.length < 2 ) {
@@ -75,7 +74,7 @@ function getSpliceEquivalent ( array, methodName, args ) {
 			}
 
 			// ensure we only remove elements that exist
-			args[1] = Math.min( args[1], array.length - args[0] );
+			args[1] = Math.min( args[1], length - args[0] );
 
 			return args;
 
@@ -84,16 +83,16 @@ function getSpliceEquivalent ( array, methodName, args ) {
 			return null;
 
 		case 'pop':
-			if ( array.length ) {
-				return [ array.length - 1, 1 ];
+			if ( length ) {
+				return [ length - 1, 1 ];
 			}
 			return [ 0, 0 ];
 
 		case 'push':
-			return [ array.length, 0 ].concat( args );
+			return [ length, 0 ].concat( args );
 
 		case 'shift':
-			return [ 0, array.length ? 1 : 0 ];
+			return [ 0, length ? 1 : 0 ];
 
 		case 'unshift':
 			return [ 0, 0 ].concat( args );

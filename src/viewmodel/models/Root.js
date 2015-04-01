@@ -1,12 +1,11 @@
 import Model from './Model';
 import DataStore from '../stores/DataStore';
 
-class RootModel extends Model {
+class Root extends Model {
 	constructor ( viewmodel, data ) {
 		super( '', new DataStore( data ) );
 		this.owner = viewmodel;
 		this.isRoot = true;
-		this.startContext();
 	}
 
 	getKeypath () {
@@ -14,4 +13,4 @@ class RootModel extends Model {
 	}
 }
 
-export default RootModel;
+export default Root;

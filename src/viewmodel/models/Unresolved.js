@@ -1,7 +1,7 @@
 import { addToArray, removeFromArray } from 'utils/array';
 import Model from './Model';
 
-class ProxyModel extends Model {
+class Unresolved extends Model {
 
 	constructor ( key, owner ) {
 		super( key, {} );
@@ -44,9 +44,6 @@ class ProxyModel extends Model {
 				model.register( dep.dependant, dep.type );
 			}
 			this.dependants = null;
-
-			// note to self: removed because causes resolution too early in "addChild" case
-			// model.mark();
 		}
 	}
 
@@ -77,7 +74,7 @@ class ProxyModel extends Model {
 	getSettable ( propertyOrIndex ) {
 		if ( !this.realModel ) {
 			// TODO: see if this works
-			throw new Error( 'getSettable on unresolved ProxyModel' );
+			throw new Error( 'getSettable on unresolved Unresolved' );
 			this.forceResolve();
 		}
 		return this.realModel.getSettable ( propertyOrIndex );
@@ -158,4 +155,4 @@ class ProxyModel extends Model {
 
 }
 
-export default ProxyModel;
+export default Unresolved;
