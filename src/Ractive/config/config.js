@@ -52,7 +52,7 @@ function configure ( method, Parent, target, options ) {
 	deprecate( options );
 
 	for ( let key in options ) {
-		if ( isStandardKey[ key ] ) {
+		if ( isStandardKey.hasOwnProperty( key ) ) {
 			let value = options[ key ];
 
 			// warn the developer if they passed a function and ignore its value
