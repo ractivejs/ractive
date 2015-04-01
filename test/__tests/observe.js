@@ -682,3 +682,22 @@ test( 'Observer fires on initialisation for computed properties', t => {
 
 	t.deepEqual( observed, { num: 21, doubled: 42 });
 });
+
+test( 'Observer with no keypath argument (#1868)', t => {
+	let ractive = new Ractive();
+
+	expect( 1 );
+
+	ractive.observe( data => t.equal( data.answer, 42 ), { init: false });
+	ractive.set( 'answer', 42 );
+});
+
+test( 'Observer with empty string keypath argument (#1868)', t => {
+	let ractive = new Ractive();
+
+	expect( 1 );
+
+	ractive.observe( '', data => t.equal( data.answer, 42 ), { init: false });
+	ractive.set( 'answer', 42 );
+});
+
