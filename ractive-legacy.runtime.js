@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.2-edge
-	Wed Apr 01 2015 21:31:46 GMT+0000 (UTC) - commit 63c6c71c49b8dea057025998cfbdd52728a4d85e
+	Wed Apr 01 2015 22:12:49 GMT+0000 (UTC) - commit 846a3830cddc8a9f159ca94da1bfbcbf1342b550
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -914,7 +914,7 @@
   			// extract information about the instance this message pertains to, if applicable
   			if (typeof args[args.length - 1] === "object") {
   				var options = args.pop();
-  				var ractive = options.ractive;
+  				var ractive = options ? options.ractive : null;
 
   				if (ractive) {
   					// if this is an instance of a component that we know the name of, add
@@ -4400,7 +4400,7 @@
   	config_deprecate(options);
 
   	for (var key in options) {
-  		if (isStandardKey[key]) {
+  		if (isStandardKey.hasOwnProperty(key)) {
   			var value = options[key];
 
   			// warn the developer if they passed a function and ignore its value
