@@ -2,7 +2,7 @@
   "name": "ractive",
   "repository": "ractivejs/ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.7.1",
+  "version": "0.7.2-edge",
   "keywords": [ "reactive", "templates", "templating", "ui", "mustache", "handlebars", "dom" ],
   "license": "MIT",
   "main": "ractive.js",
