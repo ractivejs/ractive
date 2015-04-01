@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.2-edge
-	Wed Apr 01 2015 20:33:47 GMT+0000 (UTC) - commit 59a1ae3bfd9ffffccb463a686598323d162b4e14
+	Wed Apr 01 2015 21:31:46 GMT+0000 (UTC) - commit 63c6c71c49b8dea057025998cfbdd52728a4d85e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -15016,6 +15016,10 @@
 
   		deps.push(dependant);
 
+  		if (!this.depsMap[group]) {
+  			this.depsMap[group] = {};
+  		}
+
   		if (!keypath.isRoot) {
   			register__updateDependantsMap(this, keypath, group);
   		}
@@ -15027,7 +15031,7 @@
 
   	// update dependants map
   	while (!keypath.isRoot) {
-  		map = viewmodel.depsMap[group] || (viewmodel.depsMap[group] = {});
+  		map = viewmodel.depsMap[group];
   		parent = map[keypath.parent.str] || (map[keypath.parent.str] = []);
 
   		keypathStr = keypath.str;
