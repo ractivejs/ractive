@@ -46,6 +46,7 @@ echo '> publishing to npm...'
 #############################
 echo '> updating tags...'
 
+git checkout -B build --track origin/build
 git tag -a v${VERSION} -m 'version ${VERSION}'
 git push -u origin v${VERSION}
 
