@@ -701,3 +701,39 @@ test( 'Observer with empty string keypath argument (#1868)', t => {
 	ractive.set( 'answer', 42 );
 });
 
+test( 'Observers are removed on teardown (#1865)', t => {
+	let rendered = 0;
+	let observed = 0;
+
+	let Widget = Ractive.extend({
+		template: '{{foo}}',
+		onrender () {
+			rendered += 1;
+			this.observe( 'foo', () => observed += 1 );
+		}
+	});
+
+	let ractive = new Ractive({
+		el: fixture,
+		template: `{{#if foo}}<Widget foo='{{foo}}'/>{{/if}}`,
+		data: { foo: false },
+		components: { Widget }
+	});
+
+	ractive.toggle( 'foo' );
+	t.equal( rendered, 1 );
+	t.equal( observed, 1 );
+
+	// This will still trigger the observer, even though the component is
+	// being torn down, because observers always fire before the virtual
+	// DOM is updated. If at some stage we decide that's undesirable behaviour
+	// and that the view hierarchy should determine execution order, we
+	// will have to change the 2 to a 1 (and the 3 to a 2).
+	ractive.toggle( 'foo' );
+	t.equal( rendered, 1 );
+	t.equal( observed, 2 );
+
+	ractive.toggle( 'foo' );
+	t.equal( rendered, 2 );
+	t.equal( observed, 3 );
+});

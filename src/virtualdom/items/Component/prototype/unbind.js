@@ -1,6 +1,6 @@
 import Hook from 'Ractive/prototype/shared/hooks/Hook';
 import { removeFromArray } from 'utils/array';
-import { unbind } from 'shared/methodCallers';
+import { unbind, cancel } from 'shared/methodCallers';
 
 var teardownHook = new Hook( 'teardown' );
 
@@ -10,6 +10,8 @@ export default function Component$unbind () {
 	this.resolvers.forEach( unbind );
 
 	removeFromLiveComponentQueries( this );
+
+	instance._observers.forEach( cancel );
 
 	// teardown the instance
 	instance.fragment.unbind();
