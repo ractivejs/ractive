@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.2-edge
-	Wed Apr 01 2015 22:12:49 GMT+0000 (UTC) - commit 846a3830cddc8a9f159ca94da1bfbcbf1342b550
+	Thu Apr 02 2015 14:12:38 GMT+0000 (UTC) - commit 214c4fcbb57da1deda0590cd0c99f4ace461aa4e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1994,6 +1994,10 @@
     x.unrender();
   }
 
+  function cancel(x) {
+    x.cancel();
+  }
+
   var TransitionManager = function (callback, parent) {
   	this.callback = callback;
   	this.parent = parent;
@@ -2613,7 +2617,7 @@
   	}
   }
 
-  var cancel = function () {
+  var makeQuery_cancel = function () {
   	var liveQueries, selector, index;
 
   	liveQueries = this._root[this._isComponentQuery ? "liveComponentQueries" : "liveQueries"];
@@ -2761,7 +2765,7 @@
   	}
 
   	defineProperties(query, {
-  		cancel: { value: cancel },
+  		cancel: { value: makeQuery_cancel },
 
   		_root: { value: ractive },
   		_sort: { value: sort },
@@ -3262,7 +3266,7 @@
   	// This flag allows observers to initialise even with undefined values
   	observer.ready = true;
 
-  	return {
+  	var facade = {
   		cancel: function () {
   			var index;
 
@@ -3281,6 +3285,9 @@
   			cancelled = true;
   		}
   	};
+
+  	ractive._observers.push(facade);
+  	return facade;
   }
 
   var observe = Ractive$observe;
@@ -13213,6 +13220,9 @@
   	// bound data functions
   	ractive._boundFunctions = [];
 
+  	// observers
+  	ractive._observers = [];
+
   	// properties specific to inline components
   	if (options.component) {
   		ractive.parent = options.parent;
@@ -13546,6 +13556,8 @@
   	this.resolvers.forEach(methodCallers__unbind);
 
   	removeFromLiveComponentQueries(this);
+
+  	instance._observers.forEach(cancel);
 
   	// teardown the instance
   	instance.fragment.unbind();
@@ -14177,6 +14189,8 @@
 
   	this.fragment.unbind();
   	this.viewmodel.teardown();
+
+  	this._observers.forEach(cancel);
 
   	if (this.fragment.rendered && this.el.__ractive_instances__) {
   		removeFromArray(this.el.__ractive_instances__, this);
