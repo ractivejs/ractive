@@ -1,6 +1,7 @@
 import Hook from './shared/hooks/Hook';
 import Promise from 'utils/Promise';
 import { removeFromArray } from 'utils/array';
+import { cancel } from 'shared/methodCallers';
 
 var teardownHook = new Hook( 'teardown' );
 
@@ -12,6 +13,8 @@ export default function Ractive$teardown () {
 
 	this.fragment.unbind();
 	this.viewmodel.teardown();
+
+	this._observers.forEach( cancel );
 
 	if ( this.fragment.rendered && this.el.__ractive_instances__ ) {
 		removeFromArray( this.el.__ractive_instances__, this );
