@@ -46,8 +46,22 @@ echo '> publishing to npm...'
 #############################
 echo '> updating tags...'
 
-git checkout -B build --track origin/build
-git tag -a v${VERSION} -m 'version ${VERSION}'
-git push -u origin v${VERSION}
+rm -rf build-branch
+git clone https://github.com/ractivejs/ractive -b build build-branch
+
+rm build-branch/*
+cp build/* build-branch
+
+( cd build-branch
+	git add -A
+	git commit -m '${VERSION} release'
+	git push
+
+	# Publish to bower...
+	git tag -a v${VERSION} -m 'version ${VERSION}'
+	git push origin v${VERSION}
+)
+
+rm -rf build-branch
 
 echo '> release complete'
