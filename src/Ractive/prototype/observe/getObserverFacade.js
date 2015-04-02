@@ -25,8 +25,8 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 	// This flag allows observers to initialise even with undefined values
 	observer.ready = true;
 
-	return {
-		cancel: function () {
+	let facade = {
+		cancel () {
 			var index;
 
 			if ( cancelled ) {
@@ -44,4 +44,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 			cancelled = true;
 		}
 	};
+
+	ractive._observers.push( facade );
+	return facade;
 }

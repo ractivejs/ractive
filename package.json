@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.7.0",
+  "version": "0.7.2",
   "homepage": "http://ractivejs.org",
   "main": "build/ractive.js",
   "keywords": [
@@ -65,6 +65,7 @@
     "test": "sh ./scripts/test.sh",
     "start": "node_modules/.bin/gobble",
     "build": "sh ./scripts/build.sh",
+    "release": "sh ./scripts/release.sh",
     "fakebuild": "sh ./scripts/build.sh --fake",
     "promises-aplus-tests": "./scripts/promises-aplus-tests.js"
   },

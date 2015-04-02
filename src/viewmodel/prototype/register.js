@@ -15,6 +15,10 @@ export default function Viewmodel$register ( keypath, dependant, group = 'defaul
 
 		deps.push( dependant );
 
+		if ( !this.depsMap[ group ] ) {
+			this.depsMap[ group ] = {};
+		}
+
 		if ( !keypath.isRoot ) {
 			updateDependantsMap( this, keypath, group );
 		}
@@ -26,7 +30,7 @@ function updateDependantsMap ( viewmodel, keypath, group ) {
 
 	// update dependants map
 	while ( !keypath.isRoot ) {
-		map = viewmodel.depsMap[ group ] || ( viewmodel.depsMap[ group ] = {} );
+		map = viewmodel.depsMap[ group ];
 		parent = map[ keypath.parent.str ] || ( map[ keypath.parent.str ] = [] );
 
 		keypathStr = keypath.str;
