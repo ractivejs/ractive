@@ -1,5 +1,18 @@
 # changelog
 
+# 0.7.2
+
+* `ractive.runtime.js` works again (sorry everyone!) (#1860)
+* Methods that clash with non-function config properties trigger a warning (#1857)
+* Using `intro-outro` on a component triggers the same warning as `intro` or `outro` by themselves (#1866)
+* Fix for bug caused by broken `Array.prototype.map` polyfill in old versions of Prototype.js (#1872)
+* Observers are cancelled when their instance is torn down (#1865)
+* Prevent internal logging function from failing in certain edge cases (#1890)
+
+# 0.7.1
+
+* Fix version snafu
+
 # 0.7.0
 
 * Breaking changes
