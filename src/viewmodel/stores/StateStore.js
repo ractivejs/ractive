@@ -11,8 +11,12 @@ class StateStore {
 	}
 
 	getSettable () {
-		// TODO Should be allowed once we allow object state
-		throw new Error('uh, shouldn\'t get value of an state store as a parent');
+		if ( !this.state ) {
+			// Don't think this could happen...
+			throw new Error('uh, state store should have a value');
+		}
+
+		return this.state;
 	}
 
 	set ( state ) {

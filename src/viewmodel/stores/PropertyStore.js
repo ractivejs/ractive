@@ -47,6 +47,17 @@ class PropertyStore {
 		return array[ method ].apply( array, args );
 	}
 
+	setChild ( propertyOrIndex, value ) {
+		var thisValue = this.getSettable( this.property )
+		if ( isEqual( thisValue[ propertyOrIndex ], value ) ) {
+			return false;
+		}
+
+		thisValue[ propertyOrIndex ] = value;
+
+		return true;
+	}
+
 	set ( value ) {
 		if ( isEqual( this.get(), value ) ) {
 			return false;

@@ -36,7 +36,7 @@ let Partial = function ( options ) {
 	// 	this.setTemplate( template );
 	// }
 
-	if ( !this.keypath ) {
+	if ( !this.fragment ) {
 		if ( template = getPartialTemplate( this.root, this.name, parentFragment ) ) {
 			unbind.call( this ); // prevent any further changes
 			this.isNamed = true;
@@ -115,12 +115,12 @@ Partial.prototype = {
 	setValue ( value ) {
 		var template;
 
-		if ( value !== undefined && value === this.value ) {
+		if ( value != null && value === this.value ) {
 			// nothing has changed, so no work to be done
 			return;
 		}
 
-		if ( value !== undefined ) {
+		if ( value != null ) {
 			template = getPartialTemplate( this.root, '' + value, this.parentFragment );
 		}
 

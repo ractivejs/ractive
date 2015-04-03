@@ -31,7 +31,14 @@ function getByString ( viewmodel, keypath, context ) {
 		return viewmodel.root;
 	}
 
-	return getReferenceModel( viewmodel, keypath, { parentFragment: viewmodel.ractive.fragment } );
+	// TODO: stop-gap until contextStack goes into fragments
+	var context = {
+		parentFragment: viewmodel.ractive.fragment || {
+			root: viewmodel.ractive
+		}
+	};
+
+	return getReferenceModel( viewmodel, keypath, context);
 }
 
 function getByTemplate ( viewmodel, reference, context ) {

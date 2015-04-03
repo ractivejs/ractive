@@ -3,6 +3,7 @@ import { isArrayLike, isObject } from 'utils/is';
 import { unbind } from 'shared/methodCallers';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
+import ListBlock from '../blocks/ListBlock'
 
 export default function Section$setValue ( value ) {
 	var wrapper, fragmentOptions;
@@ -125,8 +126,21 @@ function reevaluateSection ( section, value ) {
 
 	// Ordered list section
 	if ( section.ordered ) {
-		changeCurrentSubtype( section, SECTION_EACH, false );
-		return reevaluateListSection( section, value, fragmentOptions );
+
+		// TODO: redo this when block types shake out...
+		if ( section.block && section.block instanceof ListBlock ) {
+			return false;
+		}
+
+		section.block = new ListBlock( section, fragmentOptions );
+
+		if ( section.indices && section.indices[0] ) {
+			section.keypath.aliasIndices( section.indices[0] );
+		}
+
+		return false;
+		// changeCurrentSubtype( section, SECTION_EACH, false );
+		// return reevaluateListSection( section, value, fragmentOptions );
 	}
 
 	// Unordered list, or context

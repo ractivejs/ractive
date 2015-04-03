@@ -17,11 +17,17 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.type = options.template.t;
 
-	mustache.registered = false;
+	var model = mustache.keypath = mustache.root.viewmodel.getModel( template, mustache );
 
-
-	var keypath = mustache.root.viewmodel.getModel( template, mustache );
-	mustache.resolve( keypath );
+	// TODO: this could just be a get, but notifyDependants calls
+	// both setValue and setMembers. Could duplicate that bit, but
+	// is there a better way to just to get? What about sections?
+	if ( mustache.isStatic ) {
+		model.notifyDependants( [mustache] );
+	}
+	else {
+		model.register( mustache );
+	}
 
 	// Special case - inverted sections
 	if ( mustache.template.n === SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {

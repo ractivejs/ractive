@@ -27,17 +27,19 @@ class Unresolved extends Model {
 	}
 
 	resolve ( model ) {
-		var children, child, deps, dep;
+		var properties, child, deps, dep;
 		this.realModel = model;
 		this.unresolved = false;
 		this.forceResolve = null;
 
-		if ( children = this.children ) {
-			while ( child = children.pop() ) {
+		if ( properties = this.properties ) {
+			while ( child = properties.pop() ) {
 				model.addChild( child );
 			}
-			this.children = null;
+			this.properties = null;
 		}
+
+		// TODO: I don't think members can happen so don't need transfered???
 
 		if ( deps = this.dependants ) {
 			while ( dep = deps.pop() ) {

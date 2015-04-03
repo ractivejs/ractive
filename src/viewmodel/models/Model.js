@@ -62,55 +62,56 @@ Model.prototype = {
 	},
 
 	join ( keypath ) {
-		return this._doJoin( keypath, false );
+		return this.doJoin( ( '' + keypath ).split( '.' ), false, true );
 	},
 
 	tryJoin ( keypath ) {
-		return this._doJoin( keypath, true );
+		return this.doJoin( ( '' + keypath ).split( '.' ), true, true );
 	},
 
-	_doJoin ( keypath, testFirstKey ) {
-		var keys = ( '' + keypath ).split( '.' ), key,
-			child, parent = this, firstKey = true;
+	doJoin ( keys, testFirstKey = false, firstKey = false ) {
+		var key = keys.shift(),
+			child = this.findChild( key );
 
-		while ( key = keys.shift() ) {
+		if ( !child ) {
 
-			child = parent.findChild( key );
-
-			if ( !child ) {
-
-				if ( firstKey ) {
-					// specials
-					// TODO: could it be nested like 'foo.bar.@index'?
-					// or not worth extra === '@' on each loop?
-					if ( key[0] === '@' ) {
-						if ( key === '@index' ) {
-							return parent.createIndexChild();
-						}
-						else if ( key === '@key' ) {
-							return parent.createStateChild( '@key', parent.key );
-						}
-						else if ( key === '@keypath' ) {
-							// TODO: this will need work different to be "dynamic" and properly aliased
-							return parent.createStateChild( '@keypath', parent.getKeypath() );
-						}
+			if ( firstKey ) {
+				// specials
+				// TODO: could it be nested like 'foo.bar.@index'?
+				// or not worth extra === '@' on each loop?
+				if ( key[0] === '@' ) {
+					if ( key === '@index' ) {
+						return this.createIndexChild();
 					}
-
-					// for a tryJoin, the first key has to exist as a prop of this model
-					if ( !child && testFirstKey && !this.hasChild( key ) ) {
-						return;
+					else if ( key === '@key' ) {
+						return this.createStateChild( '@key', this.key );
+					}
+					else if ( key === '@keypath' ) {
+						// TODO: this will need work different to be "dynamic" and properly aliased
+						return this.createStateChild( '@keypath', this.getKeypath() );
 					}
 				}
 
-
-				child = isNumeric( key ) ? new MemberReference( +key, parent ) : new Model( key );
-				parent.addChild( child );
+				// for a tryJoin, the first key has to exist as a prop of this model
+				if ( !child && testFirstKey && !this.hasChild( key ) ) {
+					return;
+				}
 			}
-			parent = child;
-			firstKey = false;
+
+
+			child = this.createChild( key );
+			this.addChild( child );
+		}
+
+		if ( keys.length ) {
+			child = child.doJoin( keys );
 		}
 
 		return child;
+	},
+
+	createChild ( key ) {
+		return isNumeric( key ) ? new MemberReference( +key, this ) : new Model( key );
 	},
 
 	addChild ( child, key = child.key ) {
@@ -233,31 +234,56 @@ Model.prototype = {
 		if ( this.store.set( value ) ) {
 			// adjust members if this was/is an array
 			if ( this.members ) {
-				this.createMembers( value );
+				this.reconcileMembers( value );
 			}
 
 			this.mark();
 		}
 	},
 
-	shuffle ( method, ...args ) {
-		var members = this.members;
+	setMember ( index, value ) {
 
-		if(!members){
+		var members, array;
+
+		members = this.getMembers();
+		array = this.get();
+
+		// TODO: more on this: null, etc.
+		if( !members || !isArray( array ) ) {
 			throw new Error('array method called on non-array')
 		}
-		// TODO: nonaray, null, etc.
-		var array = this.get();
-		// pre-modication length
-		var splice = getSpliceEquivalent( array.length, method, args );
 
-		// this will mod the array
-		var result = this.store.shuffle( method, args );
+		this.store.setChild( index, value );
+
+		this.members[ index ] = this.createMemberChild( array[ index ], index );
+		this.resetMemberReference( index );
+
+		this.cascade( true );
+	},
+
+	shuffle ( method, ...args ) {
+		var members, array, oldLength, newLength, splice, result;
+
+
+		members = this.members;
+		array = this.get();
+
+		// TODO: more on this: null, etc.
+		if( !members || !isArray( array ) ) {
+			throw new Error('array method called on non-array')
+		}
+
+		oldLength = array.length;
+		splice = getSpliceEquivalent( oldLength, method, args );
+
+		// this will modify the array
+		result = this.store.shuffle( method, args );
+
+		newLength = array.length;
 
 		//make new members
 		if ( splice.length > 2 ) {
-			let i = splice[0],
-				replace = 2,
+			let i = splice[0], replace = 2,
 				end = i + ( splice.length - 2 );
 
 			for ( ; i < end; replace++, i++ ) {
@@ -274,17 +300,26 @@ Model.prototype = {
 			insert: splice.length - 2
 		};
 
-		// did we have an index shift for remaining members?
-		if ( this.splice.remove !== this.splice.insert ) {
-			let i = this.splice.start + this.splice.remove,
-				l = members.length,
+		// Deal with index shifts
+		if ( newLength !== oldLength ) {
+			// inserts were already handled, so start from there
+			let i = this.splice.start + this.splice.insert,
+				length = Math.max( oldLength, newLength ),
 				member;
 
-			while ( i < l ) {
-				member = members[ i ];
-				member.index = i;
-				this.resetMemberReference( i );
-				member.markSpecials();
+			while ( i < length ) {
+
+				if ( i < newLength ) {
+					member = members[ i ];
+					member.index = i;
+					member.markSpecials();
+				}
+
+				// clean up any explicit member refs
+				if ( i < oldLength ) {
+					this.resetMemberReference( i );
+				}
+
 				i++;
 			}
 		}
@@ -342,8 +377,7 @@ Model.prototype = {
 
 		// tell properties and members, unless we're walking up the tree
 		if ( !cascadeUpOnly ) {
-			this.cascadeChildren( this.members );
-			this.cascadeChildren( this.properties );
+			this.cascadeDown();
 		}
 
 		// all the way up the tree
@@ -357,6 +391,12 @@ Model.prototype = {
 				computed[i].mark();
 			}
 		}
+	},
+
+	cascadeDown () {
+		this.reconcileMembers( this.get() );
+		this.cascadeChildren( this.members );
+		this.cascadeChildren( this.properties );
 	},
 
 	cascadeChildren ( children ) {
@@ -379,7 +419,7 @@ Model.prototype = {
 		}
 	},
 
-	createMembers ( value ) {
+	reconcileMembers ( value ) {
 
 		if ( !isArray( value ) ) {
 			return this.members = null;
@@ -387,17 +427,20 @@ Model.prototype = {
 
 		let i = -1, l = value.length, members = this.members, member;
 
-		if( members && members.length > l ) {
-			// MemberReferences out of bounds need to clear their reference
-			for( let m = (l - 1); m < l; m++ ) {
+		// create new array
+		if( !members ) {
+			this.members = members = new Array( l );
+		}
+		// MemberReferences out of bounds need to clear their reference
+		else if ( members.length > l ) {
+			for( let m = l; m < l; m++ ) {
 				this.resetMemberReference( m );
 			}
-			// adjust to actual length
-			members.length = l;
 		}
-		// create new array
-		else {
-			this.members = members = new Array( l );
+
+		// adjust to actual length
+		if ( members.length !== l ) {
+			members.length = l;
 		}
 
 		while ( ++i < l ) {
@@ -415,7 +458,7 @@ Model.prototype = {
 	},
 
 	getMembers () {
-		return this.members || this.createMembers( this.get() );
+		return this.members || this.reconcileMembers( this.get() );
 	},
 
 	createMemberChild ( value, index ) {
@@ -444,17 +487,18 @@ Model.prototype = {
 		else {
 			dependants[ type ] = [ dependant ];
 		}
+
+		if ( type === 'default' && this.get() != null ) {
+			this.notifyDependants( [ dependant ] );
+		}
 	},
 
 	unregister ( dependant, type = 'default' ) {
 
 		// TODO: get rid of this
 		if ( dependant.isStatic ) {
+			throw new Error('register static dependant')
 			return; // TODO we should never get here if a dependant is static...
-		}
-
-		if ( !( type === 'default' || type === 'computed'   || type === 'observers'  ) ) {
-			this.owner.unregister( this, dependant, type );
 		}
 
 		var dependants = this.dependants, group;
@@ -465,40 +509,20 @@ Model.prototype = {
 	},
 
 	notify ( type ) {
-		var dependants, dependant, group, value, members, i, l;
+		var dependants, group;
 
 		if( !this.dirty ) { return; }
 
-
 		if( ( dependants = this.dependants ) && ( group = dependants[ type ] ) ) {
 			if ( this.splice ) {
-				for( i = 0, l = group.length; i < l; i++ ) {
-					dependant = group[i];
-
-					if ( dependant.updateMembers ) {
-						dependant.updateMembers( this.splice );
-					}
-				}
+				this.updateDependants( group );
 			}
 			else {
-				value = this.get();
-				members = isArray( value ) ? this.getMembers() : null;
-
-				for( i = 0, l = group.length; i < l; i++ ) {
-					dependant = group[i];
-
-					if( dependant.setValue ) {
-						dependant.setValue( value );
-					}
-
-					if ( dependant.setMembers ) {
-						dependant.setMembers( members );
-					}
-				}
+				this.notifyDependants( group );
 			}
 		}
 
-		// TODO find better way to handle this.
+		// TODO is there better way to handle this?
 		// maybe seperate "flush" method
 		if( type === 'default' ) {
 			this.dirty = false;
@@ -507,6 +531,37 @@ Model.prototype = {
 
 		this.notifyChildren( this.members, type );
 		this.notifyChildren( this.properties, type );
+	},
+
+	updateDependants ( dependants ) {
+		var dependant;
+
+		for( let i = 0, l = dependants.length; i < l; i++ ) {
+			dependant = dependants[i];
+
+			if ( dependant.updateMembers ) {
+				dependant.updateMembers( this.splice );
+			}
+		}
+	},
+
+	notifyDependants ( dependants ) {
+		var value, members, dependant;
+
+		value = this.get();
+		members = isArray( value ) ? this.getMembers() : null;
+
+		for( let i = 0, l = dependants.length; i < l; i++ ) {
+			dependant = dependants[i];
+
+			if( dependant.setValue ) {
+				dependant.setValue( value );
+			}
+
+			if ( dependant.setMembers ) {
+				dependant.setMembers( members );
+			}
+		}
 	},
 
 	notifyChildren ( children, type ) {
@@ -643,6 +698,19 @@ class Reference extends Model {
 		}
 	}
 
+	getSettable () {
+		this.resolve();
+
+		let resolved;
+		if ( resolved = this.resolved ) {
+			return resolved.getSettable();
+		}
+		else {
+			// TODO ???
+			throw new Error('MemberReference not settable, need to force?')
+		}
+	}
+
 	resolve () {
 		if ( this.resolved ) {
 			return;
@@ -661,10 +729,21 @@ class Reference extends Model {
 		}
 	}
 
+	// Don't know if this is answer to not re-resolving with old value
+	// on cascade. Probably a better option...
+	cascadeDown () {
+		// this.reconcileMembers( this.get() );
+		this.cascadeChildren( this.members );
+		this.cascadeChildren( this.properties );
+	}
+
 
 	set ( value ) {
-		var resolved = this.resolved;
+		this.resolve();
+
+		let resolved = this.resolved;
 		if ( !resolved ) {
+			// TODO force resolve?
 			if ( typeof value !== 'undefined' ) {
 				throw new Error('Reference set called without resolved.');
 			}
@@ -705,30 +784,19 @@ class Reference extends Model {
 		return resolved;
 	}
 
-	// TODO: tryJoin
+	createChild ( key ) {
+		return new Reference( key );
+	}
 
-	join ( keypath ) {
+	doJoin ( keys, testFirstKey, firstKey ) {
 
 		this.resolve();
+
 		if ( !this.resolved ) {
 			throw new Error('attempt to join unresolved reference');
 		}
 
-		var keys = ( '' + keypath ).split( '.' ),
-			key,
-			childRef,
-			parent = this;
-
-		while ( key = keys.shift() ) {
-			childRef = this.propertyHash[ key ]
-			if ( !childRef ) {
-				childRef = new Reference( key );
-				parent.addChild( childRef );
-			}
-			parent = childRef;
-		}
-
-		return childRef;
+		return super.doJoin( keys, testFirstKey, firstKey );
 	}
 
 }
@@ -738,12 +806,17 @@ class MemberReference extends Reference {
 	constructor ( index, parent ) {
 		super( '' + index );
 		this.index = index;
-		parent.register( this );
+		// TODO: use a markMembers method?
+		parent.register( this, 'observers' );
 	}
 
 	resolve () {
 		if ( this.resolved ) {
 			return;
+		}
+
+		if ( !this.parent.members ) {
+			this.parent.getMembers();
 		}
 
 		let resolved;
@@ -763,10 +836,8 @@ class MemberReference extends Reference {
 		}
 	}
 
-	updateMembers ( splice ) {
-		if ( this.index >= splice.start ) {
-			this.resetIfChanged();
-		}
+	set ( value ) {
+		this.parent.setMember( this.index, value );
 	}
 }
 
@@ -782,3 +853,4 @@ function hasChildFor ( value, key ) {
 }
 
 export default Model;
+export { Reference };

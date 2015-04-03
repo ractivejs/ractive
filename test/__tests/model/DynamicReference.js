@@ -103,7 +103,7 @@ test( 'second level, all resolved, gets and sets, rebind', t => {
 	t.equal( depRef.value, 'new A' );
 
 	ref.set( 'b' );
-	t.equal( refChild.get(), 'B' );
+	t.equal( refChild.get(), 'B', 'reference change' );
 	flush();
 
 	t.equal( depA.value, 'new A' );

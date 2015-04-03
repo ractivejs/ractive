@@ -26,15 +26,22 @@ var Section = function ( options ) {
 
 	this.pElement = options.pElement;
 
+	this.block = null;
+
 	this.fragments = [];
 	this.fragmentsToCreate = [];
 	this.fragmentsToRender = [];
 	this.fragmentsToUnrender = [];
 
+	this.indexRefs = null;
+	this.indices = null
+
 	if ( options.template.i ) {
 		this.indexRefs = options.template.i.split(',').map( ( k, i ) => {
 			return { n: k, t: i === 0 ? 'k' : 'i' };
 		});
+
+		this.indices = options.template.i.split(',');
 	}
 
 	this.renderedFragments = [];
@@ -70,6 +77,16 @@ Section.prototype = {
 	render: render,
 	resolve: Mustache.resolve,
 	setValue: setValue,
+	setMembers: function ( members ) {
+		if ( this.block ) {
+			this.block.setMembers( members );
+		}
+	},
+	updateMembers: function ( splice ) {
+		if ( this.block ) {
+			this.block.updateMembers( splice );
+		}
+	},
 	toString: toString,
 	unbind: unbind,
 	unrender: unrender,

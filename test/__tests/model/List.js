@@ -5,6 +5,7 @@ import Root from 'viewmodel/models/Root';
 var root, items, block, array, indices, aliasIndices, static0, static2, dep0, dep2;
 
 function flush () {
+	root.notify( 'observers' );
 	root.notify( 'default' );
 }
 
@@ -116,7 +117,6 @@ test( 'push shuffle', t => {
 
 test( 'splice shuffle', t => {
 
-	// var numeric = base.join(  );
 	items.shuffle( 'splice', 1, 1, 'd', 'e' );
 	indices = [
 		indices[0],
