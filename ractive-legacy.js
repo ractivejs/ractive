@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.2
-	Thu Apr 02 2015 18:17:17 GMT+0000 (UTC) - commit 6f99cb372dcd77bec6ae29c9970794cd8b3bf736
+	Fri Apr 03 2015 00:54:49 GMT+0000 (UTC) - commit 822662a301eef3e409f614b0a8d3d200a5f79e20
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7211,6 +7211,11 @@
   		}
 
   		template = _parse(template, template_parser.getParseOptions(ractive));
+  	}
+
+  	// Check that the template even exists
+  	else if (template == undefined) {
+  		throw new Error("The template cannot be " + template + ".");
   	}
 
   	// Check the parsed template has a version at all
