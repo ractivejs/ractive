@@ -64,7 +64,7 @@ Pull requests and issues are always welcome! Please read [CONTRIBUTING.md](https
 
 ### Reporting security vulnerabilities
 
-If you think you've found a security vulnerability, please raise an issue, prefixing the issue title with `[security]`.
+If you think you've found a security vulnerability, please email [ractive-js-security@googlegroups.com](mailto:ractive-js-security@googlegroups.com) with details, and someone from the core team will respond to you.
 
 
 ## Browser support

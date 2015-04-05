@@ -18,7 +18,7 @@ Of course, if you've encountered a bug, then the best course of action is to rai
 Reporting security vulnerabilities
 ----------------------------------
 
-If you think you've found a security vulnerability, please raise an issue, prefixing the issue title with `[security]`.
+If you think you've found a security vulnerability, please email [ractive-js-security@googlegroups.com](mailto:ractive-js-security@googlegroups.com) with details, and someone from the core team will respond to you.
 
 
 Raising issues
