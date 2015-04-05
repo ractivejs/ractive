@@ -1,11 +1,10 @@
-Ractive.js - Next-generation DOM manipulation
-=============================================
+# Ractive.js - Next-generation DOM manipulation
 
 
 *Got questions? Tag Stack Overflow questions with [ractivejs](http://stackoverflow.com/questions/tagged/ractivejs) or contact [@RactiveJS](http://twitter.com/RactiveJS) on Twitter*
 
-What is Ractive.js?
--------------------
+
+## What is Ractive.js?
 
 It's a JavaScript library for building reactive user interfaces in a way that doesn't force you into a particular framework's way of thinking. Its features include...
 
@@ -18,14 +17,12 @@ It's a JavaScript library for building reactive user interfaces in a way that do
 To get a feel for how it will make your life as a web developer easier, visit [ractivejs.org](http://ractivejs.org), follow the [interactive tutorials](http://learn.ractivejs.org), or try the [60 second setup](https://github.com/ractivejs/ractive/wiki/60-second-setup).
 
 
-Get help
---------
+## Get help
 
 If you don't find what you're looking for in the [docs](http://docs.ractivejs.org/latest), ask a question in [Google Groups](https://groups.google.com/forum/#!forum/ractive-js) forum, Stack Overflow with the [`ractivejs`](http://stackoverflow.com/questions/tagged/ractivejs) tag, or send a tweet to [@RactiveJS](http://twitter.com/RactiveJS).
 
 
-Developing and building
------------------------
+## Developing and building
 
 If you want to hack on Ractive, the first step is to clone the repo and install all its development dependencies:
 
@@ -61,20 +58,21 @@ npm run build
 * On Windows, if you get an `EINVAL` when running the tests, you may need to update the `phantomjs` script in the `node_modules/.bin` to use `{ stdio: 'inherit' }` when spawning the child process instead of manually piping afterwards.
 
 
-Contributing
-------------
+## Contributing
 
 Pull requests and issues are always welcome! Please read [CONTRIBUTING.md](https://github.com/ractivejs/ractive/blob/master/CONTRIBUTING.md) to learn how to contribute.
 
+### Reporting security vulnerabilities
 
-Browser support
----------------
+If you think you've found a security vulnerability, please email [ractive-js-security@googlegroups.com](mailto:ractive-js-security@googlegroups.com) with details, and someone from the core team will respond to you.
+
+
+## Browser support
 
 Tested successfully in IE8+ and all modern browsers. If your experience differs please let me know! (For legacy browser support, use the builds with `legacy` in the filename - these include polyfills for `Array.prototype.forEach` and other ES5 features used by Ractive.)
 
 
-License
--------
+## License
 
 Copyright (c) 2012-14 Rich Harris and contributors. Released under an [MIT license](https://github.com/ractivejs/ractive/blob/master/LICENSE.md).
 
