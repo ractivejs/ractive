@@ -12,19 +12,13 @@ var parseOptions = [
 ];
 
 var parser = {
-	parse: doParse,
-	fromId: fromId,
-	isHashedId: isHashedId,
-	isParsed: isParsed,
-	getParseOptions: getParseOptions,
-	createHelper: createHelper
+	fromId, isHashedId, isParsed, getParseOptions, createHelper,
+	parse: doParse
 };
 
 function createHelper ( parseOptions ) {
 	var helper = create( parser );
-	helper.parse = function ( template, options ){
-		return doParse( template, options || parseOptions );
-	};
+	helper.parse = ( template, options ) => doParse( template, options || parseOptions );
 	return helper;
 }
 
@@ -41,7 +35,7 @@ function fromId ( id, options ) {
 
 	if ( !isClient ) {
 		if ( options && options.noThrow ) { return; }
-		throw new Error( 'Cannot retrieve template #' + id + ' as Ractive is not running in a browser.' );
+		throw new Error( `Cannot retrieve template #${id} as Ractive is not running in a browser.` );
 	}
 
 	if ( isHashedId( id ) ) {
@@ -50,19 +44,19 @@ function fromId ( id, options ) {
 
 	if ( !( template = document.getElementById( id ) )) {
 		if ( options && options.noThrow ) { return; }
-		throw new Error( 'Could not find template element with id #' + id );
+		throw new Error( `Could not find template element with id #${id}` );
 	}
 
 	if ( template.tagName.toUpperCase() !== 'SCRIPT' ) {
 		if ( options && options.noThrow ) { return; }
-		throw new Error( 'Template element with id #' + id + ', must be a <script> element' );
+		throw new Error( `Template element with id #${id}, must be a <script> element` );
 	}
 
-	return template.textContent;
+	return ( 'textContent' in template ? template.textContent : template.innerText );
 }
 
 function isHashedId ( id ) {
-	return ( id && id.charAt( 0 ) === '#' ); // TODO what about `id[0]`, does that work everywhere?
+	return ( id && id[0] === '#' );
 }
 
 function isParsed ( template) {
