@@ -391,7 +391,8 @@ if ( hasUsableConsole ) {
 				return;
 			}
 
-			t.ok( /evil handler/.test( stack ) );
+
+			t.ok( /evil handler/.test( stack ) || /oncomplete@/.test( stack ) ); // Firefox & Safari don't include the error message in the stack for some reason
 			console.log = log;
 			QUnit.start();
 		};
