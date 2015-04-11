@@ -1,7 +1,7 @@
 import { addToArray, removeFromArray } from 'utils/array';
-import Model from './Model';
+import Context from './Context';
 
-class Unresolved extends Model {
+class Unresolved extends Context {
 
 	constructor ( key, owner ) {
 		super( key, {} );

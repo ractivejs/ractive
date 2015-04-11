@@ -116,16 +116,18 @@ function getUnresolved ( chain, key, keypath, viewmodel ) {
 
 	unresolved[ key ] = model;
 
-	resolve = function ( context ) {
+	resolve = function ( resolvedContext ) {
+
+		var current;
 
 		while(resolvedChain){
-	        context = resolvedChain.current;
+	        current = resolvedChain.current;
 	        resolvedChain = resolvedChain.previous;
-	        context.removeWatcher( key, resolve );
+	        current.removeWatcher( key, resolve );
 	        delete unresolved[ key ];
 	    }
 
-		model.resolve( context.join( model.key ) );
+		model.resolve( resolvedContext.join( model.key ) );
 	}
 
 

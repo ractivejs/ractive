@@ -1,4 +1,4 @@
-import { Reference } from './Model';
+import { Reference } from './Context';
 
 class DynamicReference extends Reference {
 

@@ -70,9 +70,9 @@ var tests = [
 	},
 
 	{
-		name: 'render boxes',
+		name: 'render 1000 boxes',
 		setup: () => {
-			var i = 100, style;
+			var i = 1000, style;
 
 			style = document.createElement( 'style' );
 			style.innerHTML = `
@@ -96,7 +96,7 @@ var tests = [
 
 			window.boxes = [];
 			while ( i-- ) {
-				window.boxes[i] = { top: 0, left: 0, color: 0, content: 0 };
+				window.boxes[i] = { top: i, left: i, color: 0, content: i };
 			}
 		},
 		test: () => {

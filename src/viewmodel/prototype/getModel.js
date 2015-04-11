@@ -1,4 +1,4 @@
-import Model from '../models/Model';
+import Context from '../models/Context';
 import DynamicReference from '../models/DynamicReference';
 import ComputationModel from '../models/ComputationModel';
 import getInnerContext from 'shared/getInnerContext';
@@ -110,7 +110,7 @@ function getMemberModel( viewmodel, reference, context ){
 
 	if ( typeof reference === 'string' ) {
 		return {
-			model: new Model( "' + reference + '", new StateStore( reference ) )
+			model: new Context( "' + reference + '", new StateStore( reference ) )
 		};
 	}
 

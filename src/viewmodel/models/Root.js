@@ -1,7 +1,7 @@
-import Model from './Model';
+import Context from './Context';
 import DataStore from '../stores/DataStore';
 
-class Root extends Model {
+class Root extends Context {
 	constructor ( viewmodel, data ) {
 		super( '', new DataStore( data ) );
 		this.owner = viewmodel;

@@ -15,7 +15,7 @@ refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
 modelCache = {};
 
-function Model ( key, store ) {
+function Context ( key, store ) {
 
 	this.key = key || '';
 	this.index = -1;
@@ -25,26 +25,23 @@ function Model ( key, store ) {
 	this.parent = null;
 	this.owner = null;
 
-	this.dirty = false;
 	this.propertyHash = null;
-
 	this.properties = null;
 	this.members = null;
 
 	this.dependants = null;
 	this.watchers = null;
+	this.unresolved = null;
+
 	this.splice = null;
 
+	this.dirty = false;
 
-	// for development debug purposes:
-	// if ( true /*owner.debug*/ ) {
-	// 	this.ownerName = this.owner.ractive.component ? this.owner.ractive.component.name : 'Ractive';
-	// }
 }
 
-Model.prototype = {
+Context.prototype = {
 
-	constructor: Model,
+	constructor: Context,
 
 	findChild ( key ) {
 		var hash = this.propertyHash;
@@ -111,7 +108,7 @@ Model.prototype = {
 	},
 
 	createChild ( key ) {
-		return isNumeric( key ) ? new MemberReference( +key, this ) : new Model( key );
+		return isNumeric( key ) ? new MemberReference( +key, this ) : new Context( key );
 	},
 
 	addChild ( child, key = child.key ) {
@@ -463,7 +460,7 @@ Model.prototype = {
 
 	createMemberChild ( value, index ) {
 		let store = new StateStore( value ),
-			model = new Model( '*', store );
+			model = new Context( '*', store );
 
 		model.index = index;
 		this.addChild( model );
@@ -645,7 +642,7 @@ Model.prototype = {
 		var model;
 
 		if ( !( model = this.findChild( key ) ) ) {
-			model = new Model( key, new StateStore( state ) );
+			model = new Context( key, new StateStore( state ) );
 			this.addChild( model );
 		}
 
@@ -662,7 +659,7 @@ Model.prototype = {
 // so here for now
 var noopStore = {};
 
-class Index extends Model {
+class Index extends Context {
 
 	constructor () {
 		this.that = 0;
@@ -678,7 +675,7 @@ class Index extends Model {
 	}
 }
 
-class Reference extends Model {
+class Reference extends Context {
 
 	constructor ( key ) {
 		this.resolved = null;
@@ -852,5 +849,5 @@ function hasChildFor ( value, key ) {
 	return false;
 }
 
-export default Model;
+export default Context;
 export { Reference };

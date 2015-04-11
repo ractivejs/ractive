@@ -1,8 +1,8 @@
-import Model from './Model';
+import Context from './Context';
 import ComputationStore from '../stores/ComputationStore';
 import Computation from '../Computation/Computation';
 
-class ComputationModel extends Model {
+class ComputationModel extends Context {
 
 	constructor ( key, signature, owner, initialValue ) {
 

@@ -2,8 +2,10 @@
 
 var setup = function(){
 	window.messages = new Array( 100 );
+	window.hash = {};
+
 	for (var i = 0; i < messages.length; i++) {
-		messages[i] = {
+		hash['message' + i] = messages[i] = {
 			message: 'hello ' + i,
 			number: i
 		};
@@ -31,24 +33,44 @@ var tests = [
 	},
 
 	{
-		name: 'partial iteration',
+		name: 'hash iteration',
 		setup: setup,
 		test: () => {
 			window.ractive = new Ractive({
 				el: 'body',
 				template: `
 					<ul>
+					{{#each messages: title }}
+						<li>{{title}}: {{this.message}}</li>
+					{{/each}}
+					<ul>`,
+				data: {
+					messages: window.hash
+				}
+			});
+		}
+	},
+
+	{
+		name: 'partial iteration',
+		setup: setup,
+		test: () => {
+			window.ractive = new Ractive({
+				el: 'body',
+				template: `
+					{{#partial message}}
+						<li>{{message}}{{number}}</li>
+					{{/partial}}
+					<ul>
 					{{#each messages }}
 						{{>message}}
 					{{/each}}
-					<ul>
-					{{#partial message}}
-						<li>{{message}}{{number}}</li>
-					{{/partial}}`,
+					<ul>`,
 				data: {
 					messages: window.messages
 				}
 			});
+
 		}
 	},
 

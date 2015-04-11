@@ -1,4 +1,3 @@
-import Model from 'viewmodel/models/Model';
 import DynamicReference from 'viewmodel/models/DynamicReference';
 import Root from 'viewmodel/models/Root';
 
