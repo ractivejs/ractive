@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.2
-	Sun Apr 05 2015 22:57:06 GMT+0000 (UTC) - commit 07cb780cbf414286523ce52f39d3046d150e37e7
+	Sat Apr 11 2015 20:01:10 GMT+0000 (UTC) - commit 8632ca866beb7fb9227a1de4008887b3983089a4
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5395,16 +5395,13 @@
   	return (item.t === SECTION || item.t === INVERTED) && item.f;
   }
 
-  var trimWhitespace__leadingWhitespace = /^[ \t\f\r\n]+/,
-      trimWhitespace__trailingWhitespace = /[ \t\f\r\n]+$/;
-
-  var trimWhitespace = function (items, leading, trailing) {
+  var trimWhitespace = function (items, leadingPattern, trailingPattern) {
   	var item;
 
-  	if (leading) {
+  	if (leadingPattern) {
   		item = items[0];
   		if (typeof item === "string") {
-  			item = item.replace(trimWhitespace__leadingWhitespace, "");
+  			item = item.replace(leadingPattern, "");
 
   			if (!item) {
   				items.shift();
@@ -5414,10 +5411,10 @@
   		}
   	}
 
-  	if (trailing) {
+  	if (trailingPattern) {
   		item = lastItem(items);
   		if (typeof item === "string") {
-  			item = item.replace(trimWhitespace__trailingWhitespace, "");
+  			item = item.replace(trailingPattern, "");
 
   			if (!item) {
   				items.pop();
@@ -5431,8 +5428,10 @@
   var utils_cleanup = cleanup;
   var contiguousWhitespace = /[ \t\f\r\n]+/g;
   var preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
-  var utils_cleanup__leadingWhitespace = /^\s+/;
-  var utils_cleanup__trailingWhitespace = /\s+$/;
+  var utils_cleanup__leadingWhitespace = /^[ \t\f\r\n]+/;
+  var trailingWhitespace = /[ \t\f\r\n]+$/;
+  var leadingNewLine = /^(?:\r\n|\r|\n)/;
+  var trailingNewLine = /(?:\r\n|\r|\n)$/;
   function cleanup(items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace) {
   	var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, key;
 
@@ -5455,7 +5454,7 @@
   	}
 
   	// If necessary, remove leading and trailing whitespace
-  	trimWhitespace(items, removeLeadingWhitespace, removeTrailingWhitespace);
+  	trimWhitespace(items, removeLeadingWhitespace ? utils_cleanup__leadingWhitespace : null, removeTrailingWhitespace ? trailingWhitespace : null);
 
   	i = items.length;
   	while (i--) {
@@ -5463,7 +5462,12 @@
 
   		// Recurse
   		if (item.f) {
-  			preserveWhitespaceInsideFragment = preserveWhitespace || item.t === ELEMENT && preserveWhitespaceElements.test(item.e);
+  			var isPreserveWhitespaceElement = item.t === ELEMENT && preserveWhitespaceElements.test(item.e);
+  			preserveWhitespaceInsideFragment = preserveWhitespace || isPreserveWhitespaceElement;
+
+  			if (!preserveWhitespace && isPreserveWhitespaceElement) {
+  				trimWhitespace(item.f, leadingNewLine, trailingNewLine);
+  			}
 
   			if (!preserveWhitespaceInsideFragment) {
   				previousItem = items[i - 1];
@@ -5471,7 +5475,7 @@
 
   				// if the previous item was a text item with trailing whitespace,
   				// remove leading whitespace inside the fragment
-  				if (!previousItem || typeof previousItem === "string" && utils_cleanup__trailingWhitespace.test(previousItem)) {
+  				if (!previousItem || typeof previousItem === "string" && trailingWhitespace.test(previousItem)) {
   					removeLeadingWhitespaceInsideFragment = true;
   				}
 
