@@ -27,19 +27,18 @@ var dataConfigurator = {
 
 				if ( value && typeof value === 'object' ) {
 					if ( isObject( value ) || isArray( value ) ) {
+						let dataString = JSON.stringify( options.data, null, 2 ).split( '\n' );
+						let example1 = dataString.map( ( line, i ) => { return i > 0 ? '    ' + line : line; } ).join('\n');
+						let example2 = dataString.map( ( line, i ) => { return i > 0 ? '  ' + line : line; } ).join('\n');
 						warnIfDebug( `Passing a \`data\` option with object and array properties to Ractive.extend() is discouraged, as mutating them is likely to cause bugs. Consider using a data function instead:
 
   // this...
   data: function () {
-    return {
-      myObject: {}
-    };
+    return ${example1};
   })
 
   // instead of this:
-  data: {
-    myObject: {}
-  }` );
+  data: ${example2}` );
 					}
 				}
 			}
