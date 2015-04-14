@@ -3,7 +3,7 @@ import { isArrayLike, isObject } from 'utils/is';
 import { unbind } from 'shared/methodCallers';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
-import ListBlock from '../blocks/ListBlock'
+import EachBlock from '../blocks/EachBlock'
 
 export default function Section$setValue ( value ) {
 	var wrapper, fragmentOptions;
@@ -113,8 +113,7 @@ function reevaluateSection ( section, value ) {
 
 			case SECTION_EACH:
 			if ( isObject( value ) ) {
-				changeCurrentSubtype( section, section.subtype, true );
-				return reevaluateListObjectSection( section, value, fragmentOptions );
+				return createObjectEachBlock( section, fragmentOptions );
 			}
 
 			// Fallthrough - if it's a conditional or an array we need to continue
@@ -126,34 +125,20 @@ function reevaluateSection ( section, value ) {
 
 	// Ordered list section
 	if ( section.ordered ) {
-
-		// TODO: redo this when block types shake out...
-		if ( section.block && section.block instanceof ListBlock ) {
-			return false;
-		}
-
-		section.block = new ListBlock( section, fragmentOptions );
-
-		if ( section.indices && section.indices[0] ) {
-			section.keypath.aliasIndices( section.indices[0] );
-		}
-
-		return false;
-		// changeCurrentSubtype( section, SECTION_EACH, false );
-		// return reevaluateListSection( section, value, fragmentOptions );
+		return createListEachBlock( section, fragmentOptions );
 	}
 
 	// Unordered list, or context
 	if ( isObject( value ) || typeof value === 'function' ) {
-		// Index reference indicates section should be treated as a list
-		if ( section.template.i ) {
-			changeCurrentSubtype( section, SECTION_EACH, true );
-			return reevaluateListObjectSection( section, value, fragmentOptions );
-		}
 
-		// Otherwise, object provides context for contents
-		changeCurrentSubtype( section, SECTION_WITH, false );
-		return reevaluateContextSection( section, fragmentOptions );
+		let indices = section.indices;
+		if ( indices && indices.length ) {
+			return createObjectEachBlock( section, fragmentOptions );
+		}
+		else {
+			changeCurrentSubtype( section, SECTION_WITH, false );
+			return reevaluateContextSection( section, fragmentOptions );
+		}
 	}
 
 	// Conditional section
@@ -162,97 +147,46 @@ function reevaluateSection ( section, value ) {
 	return reevaluateConditionalSection( section, value, false, fragmentOptions );
 }
 
-function reevaluateListSection ( section, value, fragmentOptions ) {
-	var i, length, fragment;
+function createAliases ( section, specials ) {
+	let indices, aliases;
+	if ( indices = section.indices ) {
+		aliases = {};
+		if ( indices[0] ) {
+			aliases[ indices[0] ] = specials[0]
+		}
+		if ( indices[1] ) {
+			aliases[ indices[1] ] = specials[1]
+		}
+	}
+	return aliases;
+}
 
-	length = value.length;
+function createListEachBlock ( section, fragmentOptions, aliases ) {
+	var aliases = createAliases( section, [ '@index', '@key' ] );
+	return createEachBlock( section, fragmentOptions, aliases );
+}
 
-	if ( length === section.length ) {
-		// Nothing to do
+function createObjectEachBlock ( section, fragmentOptions, aliases ) {
+	var aliases = createAliases( section, [ '@key', '@index' ] );
+	return createEachBlock( section, fragmentOptions, aliases );
+}
+
+function createEachBlock ( section, fragmentOptions, aliases ) {
+
+	// Already an EachBlock?
+	if ( section.block && section.block instanceof EachBlock ) {
+		// Did we switch the specials order, ie key,index => index,key
+		if ( aliases && ( section.block.aliases[0] !== aliases[0] ) ) {
+			section.block.aliases = aliases;
+		}
 		return false;
 	}
 
-	// if the array is shorter than it was previously, remove items
-	if ( length < section.length ) {
-		section.fragmentsToUnrender = section.fragments.splice( length, section.length - length );
-		section.fragmentsToUnrender.forEach( unbind );
-	}
+	section.block = new EachBlock( section, fragmentOptions, aliases );
 
-	// otherwise...
-	else {
-		if ( length > section.length ) {
-			// add any new ones
-			for ( i = section.length; i < length; i += 1 ) {
-				// append list item to context stack
-				fragmentOptions.context = section.keypath.indexJoin( i, section.indexRefs );
-				fragmentOptions.index = i;
+	section.context.listRegister( section.block );
 
-				fragment = new Fragment( fragmentOptions );
-				section.fragmentsToRender.push( section.fragments[i] = fragment );
-			}
-		}
-	}
-
-	section.length = length;
-	return true;
-}
-
-function reevaluateListObjectSection ( section, value, fragmentOptions ) {
-	var id, i, hasKey, fragment, changed, deps;
-
-	hasKey = section.hasKey || ( section.hasKey = {} );
-
-	// remove any fragments that should no longer exist
-	i = section.fragments.length;
-	while ( i-- ) {
-		fragment = section.fragments[i];
-
-		if ( !( fragment.key in value ) ) {
-			changed = true;
-
-			fragment.unbind();
-			section.fragmentsToUnrender.push( fragment );
-			section.fragments.splice( i, 1 );
-
-			hasKey[ fragment.key ] = false;
-		}
-	}
-
-	// notify any dependants about changed indices
-	i = section.fragments.length;
-	while ( i-- ) {
-		fragment = section.fragments[i];
-
-		if ( fragment.index !== i ){
-			fragment.index = i;
-			if ( deps = fragment.registeredIndexRefs ) {
-				deps.forEach( blindRebind );
-			}
-		}
-	}
-
-	// add any that haven't been created yet
-	i = section.fragments.length;
-	for ( id in value ) {
-		if ( !hasKey[ id ] ) {
-			changed = true;
-
-			fragmentOptions.context = section.keypath.keyJoin(
-				( fragmentOptions.key = id ),
-				( fragmentOptions.index = i++ ),
-				section.indexRefs
-			);
-
-			fragment = new Fragment( fragmentOptions );
-
-			section.fragmentsToRender.push( fragment );
-			section.fragments.push( fragment );
-			hasKey[ id ] = true;
-		}
-	}
-
-	section.length = section.fragments.length;
-	return changed;
+	return false;
 }
 
 function reevaluateConditionalContextSection ( section, value, fragmentOptions ) {
@@ -266,7 +200,7 @@ function reevaluateConditionalContextSection ( section, value, fragmentOptions )
 function reevaluateContextSection ( section, fragmentOptions ) {
 	var fragment;
 
-	// ...then if it isn't rendered, render it, adding section.keypath to the context stack
+	// ...then if it isn't rendered, render it, adding section.context to the context stack
 	// (if it is already rendered, then any children dependant on the context stack
 	// will update themselves without any prompting)
 	if ( !section.length ) {
@@ -274,8 +208,7 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 		// TODO model needs to handle this...
 
 		// append this section to the context stack
-		fragmentOptions.context = section.keypath;
-		section.keypath.keyContext();
+		fragmentOptions.context = section.context;
 		fragmentOptions.index = 0;
 
 		fragment = new Fragment( fragmentOptions );

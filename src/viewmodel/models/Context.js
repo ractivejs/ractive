@@ -1,5 +1,5 @@
 import { addToArray, removeFromArray } from 'utils/array';
-import { isArray, isNumeric } from 'utils/is';
+import { isArray, isObject, isNumeric } from 'utils/is';
 import createBranch from 'utils/createBranch';
 
 import PropertyStore from '../stores/PropertyStore';
@@ -7,13 +7,6 @@ import StateStore from '../stores/StateStore';
 
 import getSpliceEquivalent from 'shared/getSpliceEquivalent';
 
-var FAILED_LOOKUP = {};
-
-var refPattern, modelCache, Keypath;
-
-refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-
-modelCache = {};
 
 function Context ( key, store ) {
 
@@ -29,7 +22,11 @@ function Context ( key, store ) {
 	this.properties = null;
 	this.members = null;
 
+	this.hashWatcher = null;
+	this.isReconcilingMembers = false;
+
 	this.dependants = null;
+	this.listDependants = null;
 	this.watchers = null;
 	this.unresolved = null;
 
@@ -81,11 +78,10 @@ Context.prototype = {
 						return this.createIndexChild();
 					}
 					else if ( key === '@key' ) {
-						return this.createStateChild( '@key', this.key );
+						return this.createKeyChild();
 					}
 					else if ( key === '@keypath' ) {
-						// TODO: this will need work different to be "dynamic" and properly aliased
-						return this.createStateChild( '@keypath', this.getKeypath() );
+						return this.createKeypathChild();
 					}
 				}
 
@@ -94,7 +90,6 @@ Context.prototype = {
 					return;
 				}
 			}
-
 
 			child = this.createChild( key );
 			this.addChild( child );
@@ -108,10 +103,10 @@ Context.prototype = {
 	},
 
 	createChild ( key ) {
-		return isNumeric( key ) ? new MemberReference( +key, this ) : new Context( key );
+		return isNumeric( key ) ? new ArrayMemberReference( +key, this ) : new Context( key );
 	},
 
-	addChild ( child, key = child.key ) {
+	addChild ( child, key = child.key, addToProperties = true ) {
 
 		if ( !child.parent ) {
 			child.parent = this;
@@ -122,9 +117,16 @@ Context.prototype = {
 			child.dirty = true;
 		}
 
-		if ( key !== '*' ) {
+		if ( addToProperties ) {
 			if  ( key === child.key ) {
+				let members = this.members;
+
 				this.properties ? this.properties.push( child ) : this.properties = [ child ];
+
+				// if ( !( child instanceof HashPropertyReference) && members && this.isHashMembers ) {
+				// 	console.log( key, child.constructor.name, members.length );
+				// 	// members.push( this.createHashMemberChild( key, members.length ) );
+				// }
 			}
 			this.hashChild( key, child );
 		}
@@ -136,9 +138,16 @@ Context.prototype = {
 	},
 
 	_notifyWatcher ( key, child ) {
-		let watcher = this._getWatcher( key ), length, i;
+		let watcher = this._getWatcher( key );
 		if( watcher ) {
 			this._doNotifyWatcher( watcher.slice(), child );
+		}
+		// wildcard watcher
+		if ( key !== '*' ) {
+			watcher = this._getWatcher( '*' );
+			if( watcher ) {
+				this._doNotifyWatcher( watcher.slice(), child );
+			}
 		}
 	},
 
@@ -182,13 +191,14 @@ Context.prototype = {
 		}
 	},
 
+	getKey () {
+		var key = this.key;
+		return key === '[*]' ? '' + this.index : key;
+	},
+
 	getKeypath () {
-		var parentKey = this.parent.getKeypath(), key = this.key;
-
-		if ( key === '*' ) {
-			key = '' + this.index;
-		}
-
+		var parentKey = this.parent.getKeypath(),
+			key = this.getKey();
 		return parentKey ? parentKey + '.' + key : key;
 	},
 
@@ -231,7 +241,7 @@ Context.prototype = {
 		if ( this.store.set( value ) ) {
 			// adjust members if this was/is an array
 			if ( this.members ) {
-				this.reconcileMembers( value );
+				this.createOrReconcileMembers( value );
 			}
 
 			this.mark();
@@ -242,7 +252,7 @@ Context.prototype = {
 
 		var members, array;
 
-		members = this.getMembers();
+		members = this.getOrCreateMembers();
 		array = this.get();
 
 		// TODO: more on this: null, etc.
@@ -251,9 +261,12 @@ Context.prototype = {
 		}
 
 		this.store.setChild( index, value );
+		// MUST TODO: this should be a set value on
+		// existing member so we don't lose binding
+		// ???
+		this.members[ index ] = this.createArrayMemberChild( array[ index ], index );
 
-		this.members[ index ] = this.createMemberChild( array[ index ], index );
-		this.resetMemberReference( index );
+		this.resetArrayMemberReference( index );
 
 		this.cascade( true );
 	},
@@ -261,13 +274,12 @@ Context.prototype = {
 	shuffle ( method, ...args ) {
 		var members, array, oldLength, newLength, splice, result;
 
-
 		members = this.members;
 		array = this.get();
 
 		// TODO: more on this: null, etc.
-		if( !members || !isArray( array ) ) {
-			throw new Error('array method called on non-array')
+		if( !isArray( array ) ) {
+			throw new Error( 'shuffle array method ' + method + ' called on non-array at ' + this.getKeypath() );
 		}
 
 		oldLength = array.length;
@@ -279,45 +291,47 @@ Context.prototype = {
 		newLength = array.length;
 
 		//make new members
-		if ( splice.length > 2 ) {
-			let i = splice[0], replace = 2,
-				end = i + ( splice.length - 2 );
+		if ( members ) {
+			if ( splice.length > 2 ) {
+				let i = splice[0], replace = 2,
+					end = i + ( splice.length - 2 );
 
-			for ( ; i < end; replace++, i++ ) {
-				splice[ replace ] = this.createMemberChild( array[i], i );
-				this.resetMemberReference( i );
+				for ( ; i < end; replace++, i++ ) {
+					splice[ replace ] = this.createArrayMemberChild( array[i], i );
+					this.resetArrayMemberReference( i );
+				}
 			}
-		}
 
-		members.splice.apply( members, splice );
+			members.splice.apply( members, splice );
 
-		this.splice = {
-			start: splice[0],
-			remove: splice[1],
-			insert: splice.length - 2
-		};
+			this.splice = {
+				start: splice[0],
+				remove: splice[1],
+				insert: splice.length - 2
+			};
 
-		// Deal with index shifts
-		if ( newLength !== oldLength ) {
-			// inserts were already handled, so start from there
-			let i = this.splice.start + this.splice.insert,
-				length = Math.max( oldLength, newLength ),
-				member;
+			// Deal with index shifts
+			if ( newLength !== oldLength ) {
+				// inserts were already handled, so start from there
+				let i = this.splice.start + this.splice.insert,
+					length = Math.max( oldLength, newLength ),
+					member;
 
-			while ( i < length ) {
+				while ( i < length ) {
 
-				if ( i < newLength ) {
-					member = members[ i ];
-					member.index = i;
-					member.markSpecials();
+					if ( i < newLength ) {
+						member = members[ i ];
+						member.index = i;
+						member.markSpecials();
+					}
+
+					// clean up any explicit member refs
+					if ( i < oldLength ) {
+						this.resetArrayMemberReference( i );
+					}
+
+					i++;
 				}
-
-				// clean up any explicit member refs
-				if ( i < oldLength ) {
-					this.resetMemberReference( i );
-				}
-
-				i++;
 			}
 		}
 
@@ -391,7 +405,9 @@ Context.prototype = {
 	},
 
 	cascadeDown () {
-		this.reconcileMembers( this.get() );
+		if ( this.members ) {
+			this.createOrReconcileMembers( this.get() );
+		}
 		this.cascadeChildren( this.members );
 		this.cascadeChildren( this.properties );
 	},
@@ -409,18 +425,33 @@ Context.prototype = {
 		return this;
 	},
 
-	resetMemberReference ( index ) {
-		let reference;
-		if ( reference = this.propertyHash[ index ] ) {
+	resetArrayMemberReference ( index ) {
+		let reference, properties = this.propertyHash;
+		if ( properties && ( reference = properties[ index ] ) ) {
 			reference.reset();
 		}
 	},
 
-	reconcileMembers ( value ) {
+	createOrReconcileMembers ( value ) {
 
-		if ( !isArray( value ) ) {
-			return this.members = null;
+		// TODO: deal with type shift on Reconcile
+		// need to clean up hash watcher
+		if ( isArray( value ) ) {
+			this.isHashMembers = false;
+			return this.createOrReconcileArrayMembers( value );
 		}
+		else if ( isObject( value ) ) {
+			this.isHashMembers = true;
+			return this.createOrReconcileHashMembers( value );
+		}
+		else {
+			this.isHashMembers = false;
+			return this.members = [];
+		}
+
+	},
+
+	createOrReconcileArrayMembers ( value ) {
 
 		let i = -1, l = value.length, members = this.members, member;
 
@@ -428,10 +459,11 @@ Context.prototype = {
 		if( !members ) {
 			this.members = members = new Array( l );
 		}
-		// MemberReferences out of bounds need to clear their reference
+		// or clear out of bounds references
 		else if ( members.length > l ) {
-			for( let m = l; m < l; m++ ) {
-				this.resetMemberReference( m );
+			let ml = members.length;
+			for( let m = l; m < ml; m++ ) {
+				this.resetArrayMemberReference( m );
 			}
 		}
 
@@ -442,30 +474,116 @@ Context.prototype = {
 
 		while ( ++i < l ) {
 			// update existing value
-			if ( member = members[i] ) {
+			if ( ( member = members[i] ) ) {
 				member.set( value[i] );
 			}
 			// add new value as a member
 			else {
-				members[i] = this.createMemberChild( value[i], i );
+				members[i] = this.createArrayMemberChild( value[i], i );
+				this.resetArrayMemberReference( i );
 			}
 		}
 
 		return members;
 	},
 
-	getMembers () {
-		return this.members || this.reconcileMembers( this.get() );
+	createOrReconcileHashMembers ( value ) {
+
+		let i = -1, keys = Object.keys( value ), l = keys.length, key,
+			members = this.members, member;
+
+		this.isReconcilingMembers = true;
+
+		// create new array
+		if( !members ) {
+			this.members = members = new Array( l );
+		}
+
+		// TODO: Don't think this is needed,
+		// delete if everything shakes out ok
+	    // after GC profile check
+
+		// // or clear out of bounds references
+		// else if ( members.length > l ) {
+		// 	let ml = members.length;
+		// 	for( let m = l; m < ml; m++ ) {
+		// 		members[m].reset();
+		// 	}
+		// }
+
+		// adjust to actual length
+		if ( members.length !== l ) {
+			members.length = l;
+		}
+
+		while ( ++i < l ) {
+
+			let key = keys[i];
+
+			// make sure the property child exists
+			this.join( key );
+
+			// update existing value
+			if ( ( member = members[i] ) ) {
+				if ( member.key !== key ) {
+					member.reset();
+					member.key = key;
+				}
+			}
+			// add new value as a member
+			else {
+				members[i] = this.createHashMemberChild( keys[i], i );
+			}
+		}
+
+		// Finding new properties seems like it should be much
+		// easier. Using these flags are sucky too. But nothing
+		// better yet comes to mind
+
+		this.isReconcilingMembers = false;
+
+		if ( !this.hashWatcher ) {
+			this.hashWatcher = function( parent, child ){
+
+				if ( this.isReconcilingMembers || child instanceof HashPropertyReference ) {
+					return;
+				}
+
+				this.members.push( this.createHashMemberChild( child.key, this.members.length ) );
+
+			}.bind( this );
+
+			this.addWatcher( '*', this.hashWatcher );
+		}
+
+		return members;
 	},
 
-	createMemberChild ( value, index ) {
-		let store = new StateStore( value ),
-			model = new Context( '*', store );
+	removeHashWatcher () {
+		var watcher = this.hashWatcher;
+		if ( watcher ) {
+			this.removeWatcher( '*', watcher );
+			this.hashWatcher = null;
+		}
+	},
 
-		model.index = index;
-		this.addChild( model );
-		// model.mark();
-		return model;
+	getOrCreateMembers () {
+		return this.members || this.createOrReconcileMembers( this.get() );
+	},
+
+	createArrayMemberChild ( value, index ) {
+		let store = new StateStore( value ),
+			context = new Context( '[*]', store );
+
+		context.index = index;
+		this.addChild( context, context.key, false );
+		return context;
+	},
+
+	createHashMemberChild ( key, index ) {
+		let context = new HashPropertyReference( key, index );
+		this.addChild( context, context.key, false );
+		return context;
 	},
 
 	register ( dependant, type = 'default' ) {
@@ -485,12 +603,12 @@ Context.prototype = {
 			dependants[ type ] = [ dependant ];
 		}
 
-		if ( type === 'default' && this.get() != null ) {
+		if ( ( type === 'default' ) && this.get() != null ) {
 			this.notifyDependants( [ dependant ] );
 		}
 	},
 
-	unregister ( dependant, type = 'default' ) {
+	listRegister ( dependant, type = 'default' ) {
 
 		// TODO: get rid of this
 		if ( dependant.isStatic ) {
@@ -498,10 +616,60 @@ Context.prototype = {
 			return; // TODO we should never get here if a dependant is static...
 		}
 
+		var dependants = this.listDependants || ( this.listDependants = {} ), group;
+
+		if( group = dependants[ type ] ) {
+			group.push( dependant );
+		}
+		else {
+			dependants[ type ] = [ dependant ];
+		}
+
+		this.getOrCreateMembers();
+
+		if ( ( type === 'default' ) && this.get() != null ) {
+			this.notifyListDependants( [ dependant ] );
+		}
+	},
+
+	unregister ( dependant, type = 'default' ) {
+
+		// TODO: get rid of this
+		if ( dependant.isStatic ) {
+			throw new Error('unregister static dependant')
+			return; // TODO we should never get here if a dependant is static...
+		}
+
 		var dependants = this.dependants, group;
 
-		if( dependants && ( group = this.dependants[ type ] ) ) {
+		if( dependants && ( group = dependants[ type ] ) ) {
 			removeFromArray( group, dependant );
+		}
+	},
+
+	listUnregister ( dependant, type = 'default' ) {
+
+		// TODO: get rid of this
+		if ( dependant.isStatic ) {
+			throw new Error('unregister static dependant')
+			return; // TODO we should never get here if a dependant is static...
+		}
+
+		var dependants = this.listDependants, group;
+
+		if ( dependants && ( group = dependants[ type ] ) ) {
+			removeFromArray( group, dependant );
+
+			// forgo doing any member work if no more list dependants
+			if ( !group.length ) {
+				delete dependants[ type ];
+
+				if ( !dependants.computed && !dependants.observers && !dependants.default ) {
+					this.members = null;
+				}
+
+				// TODO: clean up index stuff???
+			}
 		}
 	},
 
@@ -511,11 +679,15 @@ Context.prototype = {
 		if( !this.dirty ) { return; }
 
 		if( ( dependants = this.dependants ) && ( group = dependants[ type ] ) ) {
+			this.notifyDependants( group );
+		}
+
+		if( ( dependants = this.listDependants ) && ( group = dependants[ type ] ) ) {
 			if ( this.splice ) {
-				this.updateDependants( group );
+				this.updateListDependants( group );
 			}
 			else {
-				this.notifyDependants( group );
+				this.notifyListDependants( group );
 			}
 		}
 
@@ -530,31 +702,33 @@ Context.prototype = {
 		this.notifyChildren( this.properties, type );
 	},
 
-	updateDependants ( dependants ) {
-		var dependant;
+	notifyDependants ( dependants ) {
+		var value = this.get(), dependant;
 
 		for( let i = 0, l = dependants.length; i < l; i++ ) {
 			dependant = dependants[i];
-
-			if ( dependant.updateMembers ) {
-				dependant.updateMembers( this.splice );
+			if( dependant.setValue ) {
+				dependant.setValue( value );
 			}
 		}
 	},
 
-	notifyDependants ( dependants ) {
-		var value, members, dependant;
-
-		value = this.get();
-		members = isArray( value ) ? this.getMembers() : null;
+	updateListDependants ( dependants ) {
+		var splice = this.splice, dependant;
 
 		for( let i = 0, l = dependants.length; i < l; i++ ) {
 			dependant = dependants[i];
-
-			if( dependant.setValue ) {
-				dependant.setValue( value );
+			if ( dependant.updateMembers ) {
+				dependant.updateMembers( splice );
 			}
+		}
+	},
 
+	notifyListDependants ( dependants ) {
+		var members = this.getOrCreateMembers(), dependant;
+
+		for( let i = 0, l = dependants.length; i < l; i++ ) {
+			dependant = dependants[i];
 			if ( dependant.setMembers ) {
 				dependant.setMembers( members );
 			}
@@ -576,78 +750,23 @@ Context.prototype = {
 		}
 	},
 
-	indexJoin ( index, aliases ) {
-		return this.createStateChildren( index + '', index, index, aliases );
+	createIndexChild () {
+		return this.createSpecialChild( '@index', IndexSpecial );
 	},
 
-	keyJoin ( key, index, aliases ) {
-		return this.createStateChildren( key, key, index, aliases );
+	createKeyChild () {
+		return this.createSpecialChild( '@key', KeySpecial );
 	},
 
-	keyContext () {
-		var key = this.getKeypath();
-		this.createStateChild( '@keypath', key );
+	createKeypathChild () {
+		return this.createSpecialChild( '@keypath', KeypathSpecial );
 	},
 
-	createStateChildren ( propertyOrIndex, key, index, aliases ) {
-		var child, alias;
-
-		child = this.join( propertyOrIndex );
-
-		if ( aliases ) {
-			if ( alias = aliases.find( ref => ref.t ==='k' ) ) {
-				child.createStateChild( '@key', key, alias );
-			}
-			if ( alias = aliases.find( ref => ref.t ==='i' ) ) {
-				child.createIndexChild( alias );
-			}
-		}
-
-		return child;
-	},
-
-	aliasIndices ( alias ) {
-		// TODO: handle being called twice, unwatch, etc.
-		var members = this.members;
-		if ( members ) {
-			for ( let i = 0, l = members.length; i < l; i++ ) {
-				members[i].createIndexChild( alias );
-			}
-
-		}
-
-		this.addWatcher( '*', function( parent, child ){
-			if ( !child ) { return; }
-			child.createIndexChild( alias );
-		});
-	},
-
-	createIndexChild ( alias ) {
+	createSpecialChild ( special, Special ) {
 		var model;
 
-		if ( !( model = this.findChild( '@index' ) ) ) {
-			this.addChild( model = new Index() );
-			// TODO remove (test if not needed):
-			model.mark();
-		}
-
-		if ( alias && !this.findChild( alias ) ) {
-			this.addChild( model, alias );
-		}
-
-		return model;
-	},
-
-	createStateChild ( key, state, alias ) {
-		var model;
-
-		if ( !( model = this.findChild( key ) ) ) {
-			model = new Context( key, new StateStore( state ) );
-			this.addChild( model );
-		}
-
-		if ( alias && !this.findChild( key = alias.n ) ) {
-			this.addChild( model, key );
+		if ( !( model = this.findChild( special ) ) ) {
+			this.addChild( model = new Special() );
 		}
 
 		return model;
@@ -659,9 +778,10 @@ Context.prototype = {
 // so here for now
 var noopStore = {};
 
-class Index extends Context {
+class IndexSpecial extends Context {
 
 	constructor () {
+		// babel bug
 		this.that = 0;
 		super( '@index', noopStore );
 	}
@@ -672,6 +792,50 @@ class Index extends Context {
 
 	set () {
 		throw new Error('cannot set @index');
+	}
+
+	// required as child or Reference
+	reset () {
+
+	}
+}
+
+class KeySpecial extends Context {
+
+	constructor () {
+		// babel bug
+		this.that = 0;
+		super( '@key', noopStore );
+	}
+
+	get () {
+		return this.parent.getKey();
+	}
+
+	set () {
+		throw new Error('cannot set @key');
+	}
+
+	// required as child of Reference
+	reset () {
+
+	}
+}
+
+class KeypathSpecial extends Context {
+
+	constructor () {
+		// babel bug
+		this.that = 0;
+		super( '@keypath', noopStore );
+	}
+
+	get () {
+		return this.parent.getKeypath();
+	}
+
+	set () {
+		throw new Error('cannot set @keypath');
 	}
 }
 
@@ -704,7 +868,7 @@ class Reference extends Context {
 		}
 		else {
 			// TODO ???
-			throw new Error('MemberReference not settable, need to force?')
+			throw new Error('ArrayMemberReference not settable, need to force?')
 		}
 	}
 
@@ -729,7 +893,7 @@ class Reference extends Context {
 	// Don't know if this is answer to not re-resolving with old value
 	// on cascade. Probably a better option...
 	cascadeDown () {
-		// this.reconcileMembers( this.get() );
+		// this.createOrReconcileMembers( this.get() );
 		this.cascadeChildren( this.members );
 		this.cascadeChildren( this.properties );
 	}
@@ -798,13 +962,11 @@ class Reference extends Context {
 
 }
 
-class MemberReference extends Reference {
+class ArrayMemberReference extends Reference {
 
-	constructor ( index, parent ) {
+	constructor ( index ) {
 		super( '' + index );
 		this.index = index;
-		// TODO: use a markMembers method?
-		parent.register( this, 'observers' );
 	}
 
 	resolve () {
@@ -813,7 +975,7 @@ class MemberReference extends Reference {
 		}
 
 		if ( !this.parent.members ) {
-			this.parent.getMembers();
+			this.parent.getOrCreateMembers();
 		}
 
 		let resolved;
@@ -823,19 +985,40 @@ class MemberReference extends Reference {
 		}
 	}
 
-	setMembers () {
-		this.resetIfChanged();
-	}
-
-	resetIfChanged () {
-		if ( this.parent.members[ this.index ] !== this.resolved ) {
-			this.reset();
-		}
-	}
-
 	set ( value ) {
 		this.parent.setMember( this.index, value );
 	}
+}
+
+class HashPropertyReference extends Reference {
+
+	constructor ( key, index ) {
+		// babel bug
+		this.that = 0;
+		super( key );
+		this.index = index;
+	}
+
+	resolve () {
+		if ( this.resolved ) {
+			return;
+		}
+
+		if ( !this.parent.members ) {
+			this.parent.getOrCreateMembers();
+		}
+
+		let resolved;
+
+		if ( resolved = this.resolved = this.parent.tryJoin( this.key ) ) {
+			resolved.register( this, 'computed' );
+		}
+	}
+
+	// Don't think this is need for Hash Member
+	// set ( value ) {
+	// 	this.parent.setMember( this.index, value );
+	// }
 }
 
 

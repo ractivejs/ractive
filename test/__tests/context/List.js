@@ -1,10 +1,11 @@
 import DynamicReference from 'viewmodel/models/DynamicReference';
 import Root from 'viewmodel/models/Root';
 
-var root, items, block, array, indices, aliasIndices, static0, static2, dep0, dep2;
+var root, items, block, array,
+	indices, aliasIndices, keys, aliasKeys,
+	static0, static2, dep0, dep2;
 
 function flush () {
-	root.notify( 'observers' );
 	root.notify( 'default' );
 }
 
@@ -34,17 +35,17 @@ module( 'Reference', {
 		items = root.join( 'items' );
 
 		block = new Block();
-		items.register( block );
+		items.listRegister( block, { index: 'i', key: 'k' } );
 
 		array = [ 'a', 'b', 'c' ];
 		items.set( array );
 		flush();
 
-		items.aliasIndices( 'i' );
-
 		// simulate dependant registrations
 		indices = items.members.map( m => createDependent( m, '@index' ) );
 		aliasIndices = items.members.map( m => createDependent( m, 'i') );
+		keys = items.members.map( m => createDependent( m, '@key' ) );
+		aliasKeys = items.members.map( m => createDependent( m, 'k') );
 		static0 = items.join('0');
 		static2 = items.join('2');
 		static0.register( dep0 = new Dependent() );
@@ -69,6 +70,8 @@ function testContexts () {
 		equal( context.get(), array[i], 'context has correct value' );
 		equal( indices[i].value, i, 'context has correct @index' );
 		equal( aliasIndices[i].value, i, 'context has correct i' );
+		equal( keys[i].value, i, 'context has correct @key' );
+		equal( aliasKeys[i].value, i, 'context has correct k' );
 	}
 
 	equal( dep0.value, array[0], 'static dependent 0 has array value 0' );
@@ -92,6 +95,9 @@ test( 'set triggers setMembers with array of contexts', t => {
 	// simulate new bindings against '@index' and 'i'
 	indices[3] = createDependent( items.members[3], '@index' );
 	aliasIndices[3] = createDependent( items.members[3], 'i' );
+	// simulate new bindings against '@key' and 'k'
+	keys[3] = createDependent( items.members[3], '@key' );
+	aliasKeys[3] = createDependent( items.members[3], 'k' );
 
 	flush();
 	testContexts();
@@ -104,6 +110,9 @@ test( 'push shuffle', t => {
 	// simulate new bindings against '@index' and 'i'
 	indices[3] = createDependent( items.members[3], '@index' );
 	aliasIndices[3] = createDependent( items.members[3], 'i' );
+	// simulate new bindings against '@index' and 'i'
+	keys[3] = createDependent( items.members[3], '@key' );
+	aliasKeys[3] = createDependent( items.members[3], 'k' );
 	flush();
 
 	testContexts();
@@ -128,6 +137,18 @@ test( 'splice shuffle', t => {
 		createDependent( items.members[1], 'i' ),
 		createDependent( items.members[2], 'i' ),
 		aliasIndices[2]
+	];
+	keys = [
+		keys[0],
+		createDependent( items.members[1], '@key' ),
+		createDependent( items.members[2], '@key' ),
+		keys[2]
+	];
+	aliasKeys = [
+		aliasKeys[0],
+		createDependent( items.members[1], 'k' ),
+		createDependent( items.members[2], 'k' ),
+		aliasKeys[2]
 	];
 	flush();
 

@@ -23,6 +23,7 @@ var Section = function ( options ) {
 	this.subtype = this.currentSubtype = options.template.n;
 	this.inverted = this.subtype === SECTION_UNLESS;
 
+	this.rendered = false;
 
 	this.pElement = options.pElement;
 
@@ -77,16 +78,6 @@ Section.prototype = {
 	render: render,
 	resolve: Mustache.resolve,
 	setValue: setValue,
-	setMembers: function ( members ) {
-		if ( this.block ) {
-			this.block.setMembers( members );
-		}
-	},
-	updateMembers: function ( splice ) {
-		if ( this.block ) {
-			this.block.updateMembers( splice );
-		}
-	},
 	toString: toString,
 	unbind: unbind,
 	unrender: unrender,
