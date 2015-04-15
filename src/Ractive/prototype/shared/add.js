@@ -13,14 +13,14 @@ export default function add ( root, keypath, d ) {
 	if ( /\*/.test( keypath ) ) {
 		changes = {};
 
-		getMatchingKeypaths( root, getKeypath( normalise( keypath ) ) ).forEach( keypath => {
-			let value = root.viewmodel.get( keypath );
+		getMatchingKeypaths( root, normalise( keypath ) ).forEach( keypath => {
+			let value = root.viewmodel.getModel( keypath ).get();
 
 			if ( !isNumeric( value ) ) {
 				throw new Error( errorMessage );
 			}
 
-			changes[ keypath.str ] = value + d;
+			changes[ keypath ] = value + d;
 		});
 
 		return root.set( changes );

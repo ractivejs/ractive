@@ -254,8 +254,8 @@ export function getKeypath ( str ) {
 export function getMatchingKeypaths ( ractive, keypath ) {
 	var keys, key, matchingKeypaths;
 
-	keys = keypath.str.split( '.' );
-	matchingKeypaths = [ rootKeypath ];
+	keys = keypath.split( '.' );
+	matchingKeypaths = [ '' ];
 
 
 	while ( key = keys.shift() ) {
@@ -279,15 +279,14 @@ export function getMatchingKeypaths ( ractive, keypath ) {
 
 		var wrapper, value, keys;
 
-		if ( keypath.isRoot ) {
+		if ( keypath === '' ) {
 			keys = [].concat(
 				Object.keys( ractive.viewmodel.data ),
 				Object.keys( ractive.viewmodel.mappings ),
 				Object.keys( ractive.viewmodel.computations )
 			);
 		} else {
-			wrapper = ractive.viewmodel.wrapped[ keypath.str ];
-			value = wrapper ? wrapper.get() : ractive.viewmodel.get( keypath );
+			value = ractive.viewmodel.getModel( keypath ).get();
 
 			keys = value ? Object.keys( value ) : null;
 		}
@@ -295,7 +294,7 @@ export function getMatchingKeypaths ( ractive, keypath ) {
 		if ( keys ) {
 			keys.forEach( key => {
 				if ( key !== '_ractive' || !isArray( value ) ) {
-					matchingKeypaths.push( keypath.join( key ) );
+					matchingKeypaths.push( keypath ? keypath + '.' + key : key );
 				}
 			});
 		}
@@ -305,9 +304,7 @@ export function getMatchingKeypaths ( ractive, keypath ) {
 }
 
 function concatenate ( key ) {
-	return function ( keypath ) {
-		return keypath.join( key );
-	};
+	return keypath => keypath ? keypath + '.' + key : key;
 }
 
 export function normalise ( ref ) {

@@ -11,8 +11,8 @@ export default function Ractive$toggle ( keypath ) {
 	if ( /\*/.test( keypath ) ) {
 		changes = {};
 
-		getMatchingKeypaths( this, getKeypath( normalise( keypath ) ) ).forEach( keypath => {
-			changes[ keypath.str ] = !this.viewmodel.get( keypath );
+		getMatchingKeypaths( this, normalise( keypath ) ).forEach( keypath => {
+			changes[ keypath ] = !this.viewmodel.getModel( keypath ).get();
 		});
 
 		return this.set( changes );
