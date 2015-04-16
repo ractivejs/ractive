@@ -2,6 +2,7 @@ import getFunctionFromString from 'shared/getFunctionFromString';
 import Fragment from 'virtualdom/Fragment';
 import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
+import resolveRef from 'shared/resolveRef';
 import { fatal } from 'utils/log';
 
 var eventPattern = /^event(?:\.(.+))?/;
@@ -44,7 +45,7 @@ export default function EventHandler$init ( element, name, template ) {
 			}
 
 			else {
-				this.refResolvers[i] = model = this.root.viewmodel.getModel( ref, this );
+				this.refResolvers[i] = model = resolveRef( this.root, ref, this );
 				this.resolve( i, model );
 
 			}
