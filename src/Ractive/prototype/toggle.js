@@ -1,5 +1,5 @@
 import { badArguments } from 'config/errors';
-import { getKeypath, getMatchingKeypaths, normalise } from 'shared/keypaths';
+import { getMatchingKeypaths, normalise } from 'shared/keypaths';
 
 export default function Ractive$toggle ( keypath ) {
 	if ( typeof keypath !== 'string' ) {
