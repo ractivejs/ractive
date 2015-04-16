@@ -6,24 +6,15 @@ import StateStore from '../stores/StateStore';
 import { REFERENCE } from 'config/types';
 import resolveRef from 'shared/resolveRef';
 
-export default function Viewmodel$getModel ( reference ) {
+// TODO getModel -> getContext?
+export default function Viewmodel$getModel ( keypath ) {
 	// don't think this is used...
-	if ( reference == null ) {
+	if ( keypath == null ) {
 		throw new Error( 'no reference!' );
 	}
 
-	if ( typeof reference === 'string' ) {
-		return getByString( this, reference );
-	}
-
-	// TEMP
-	throw new Error( 'reference should be a string' );
-	//return getByTemplate( this, reference, context );
-}
-
-function getByString ( viewmodel, keypath ) {
 	let keys = keypath.split( '.' );
-	let model = viewmodel.root;
+	let model = this.root;
 	let key;
 
 	while ( key = keys.shift() ) {
@@ -32,22 +23,6 @@ function getByString ( viewmodel, keypath ) {
 
 	return model;
 }
-
-/*function getByString ( viewmodel, keypath, context ) {
-
-	if ( !keypath ) {
-		return viewmodel.root;
-	}
-
-	// TODO: stop-gap until contextStack goes into fragments
-	var context = {
-		parentFragment: viewmodel.ractive.fragment || {
-			root: viewmodel.ractive
-		}
-	};
-
-	return getReferenceModel( viewmodel, keypath, context);
-}*/
 
 // TEMP export this so mustache can use it
 export function getByTemplate ( viewmodel, reference, context ) {
