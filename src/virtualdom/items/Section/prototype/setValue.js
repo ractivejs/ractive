@@ -162,29 +162,33 @@ function createAliases ( section, specials ) {
 }
 
 function createListEachBlock ( section, fragmentOptions, aliases ) {
-	var aliases = createAliases( section, [ '@index', '@key' ] );
-	return createEachBlock( section, fragmentOptions, aliases );
+	var aliases = createAliases( section, [ '@index', '@index' ] );
+	return createEachBlock( section, 'list', fragmentOptions, aliases );
 }
 
 function createObjectEachBlock ( section, fragmentOptions, aliases ) {
 	var aliases = createAliases( section, [ '@key', '@index' ] );
-	return createEachBlock( section, fragmentOptions, aliases );
+	return createEachBlock( section, 'hash', fragmentOptions, aliases );
 }
 
-function createEachBlock ( section, fragmentOptions, aliases ) {
+function createEachBlock ( section, type, fragmentOptions, aliases ) {
+	var block = section.block;
 
 	// Already an EachBlock?
-	if ( section.block && section.block instanceof EachBlock ) {
-		// Did we switch the specials order, ie key,index => index,key
-		if ( aliases && ( section.block.aliases[0] !== aliases[0] ) ) {
-			section.block.aliases = aliases;
+	if ( block && block instanceof EachBlock ) {
+		// just keep using same block
+		if ( section.type === type ) {
+			return false;
 		}
-		return false;
+		// unrender fragments, we'll start over with new EachBlock...
+		else {
+			block.unrender();
+		}
 	}
 
-	section.block = new EachBlock( section, fragmentOptions, aliases );
+	block = section.block = new EachBlock( section, type, fragmentOptions, aliases );
 
-	section.context.listRegister( section.block );
+	section.context.listRegister( block );
 
 	return false;
 }
