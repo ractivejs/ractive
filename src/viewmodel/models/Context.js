@@ -772,7 +772,13 @@ Context.prototype = {
 		return model;
 	},
 
-}
+	unbind () {
+		this.dependants = null;
+		this.listDependants = null;
+		this.watchers = null;
+		this.unresolved = null;
+	}
+};
 
 // circular module reference causing pain,
 // so here for now
