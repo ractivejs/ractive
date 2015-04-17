@@ -83,7 +83,7 @@ class Unresolved extends Context {
 	}
 
 	getKeypath () {
-		return '$unresolved.' + this.key;
+		return this.realModel ? this.realModel.getKeypath() : '$unresolved.' + this.key;
 	}
 
 	mark ( /*options*/ ) {
