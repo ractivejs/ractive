@@ -1,8 +1,7 @@
 import DynamicReference from 'viewmodel/models/DynamicReference';
 import Root from 'viewmodel/models/Root';
 
-var root, items, block, array,
-	indices, aliasIndices, keys, aliasKeys,
+var root, items, block, array, indices, keys,
 	static0, static2, dep0, dep2;
 
 function flush () {
@@ -29,13 +28,13 @@ class Block {
 
 }
 
-module( 'Reference', {
+module( 'Array List', {
 	setup: () => {
 		root = new Root( { changes: [] }, {} );
 		items = root.join( 'items' );
 
 		block = new Block();
-		items.listRegister( block, { index: 'i', key: 'k' } );
+		items.listRegister( block );
 
 		array = [ 'a', 'b', 'c' ];
 		items.set( array );
@@ -43,9 +42,7 @@ module( 'Reference', {
 
 		// simulate dependant registrations
 		indices = items.members.map( m => createDependent( m, '@index' ) );
-		aliasIndices = items.members.map( m => createDependent( m, 'i') );
 		keys = items.members.map( m => createDependent( m, '@key' ) );
-		aliasKeys = items.members.map( m => createDependent( m, 'k') );
 		static0 = items.join('0');
 		static2 = items.join('2');
 		static0.register( dep0 = new Dependent() );
@@ -69,9 +66,7 @@ function testContexts () {
 		context = contexts[i];
 		equal( context.get(), array[i], 'context has correct value' );
 		equal( indices[i].value, i, 'context has correct @index' );
-		equal( aliasIndices[i].value, i, 'context has correct i' );
 		equal( keys[i].value, i, 'context has correct @key' );
-		equal( aliasKeys[i].value, i, 'context has correct k' );
 	}
 
 	equal( dep0.value, array[0], 'static dependent 0 has array value 0' );
@@ -92,12 +87,9 @@ test( 'set triggers setMembers with array of contexts', t => {
 
 	items.set( array = [ 'i', 'j', 'k', 'l' ] );
 
-	// simulate new bindings against '@index' and 'i'
+	// simulate new bindings against '@index' and '@key' for new member
 	indices[3] = createDependent( items.members[3], '@index' );
-	aliasIndices[3] = createDependent( items.members[3], 'i' );
-	// simulate new bindings against '@key' and 'k'
 	keys[3] = createDependent( items.members[3], '@key' );
-	aliasKeys[3] = createDependent( items.members[3], 'k' );
 
 	flush();
 	testContexts();
@@ -107,12 +99,10 @@ test( 'set triggers setMembers with array of contexts', t => {
 test( 'push shuffle', t => {
 
 	items.shuffle( 'push', 'd' );
-	// simulate new bindings against '@index' and 'i'
+	// simulate new bindings
 	indices[3] = createDependent( items.members[3], '@index' );
-	aliasIndices[3] = createDependent( items.members[3], 'i' );
-	// simulate new bindings against '@index' and 'i'
 	keys[3] = createDependent( items.members[3], '@key' );
-	aliasKeys[3] = createDependent( items.members[3], 'k' );
+
 	flush();
 
 	testContexts();
@@ -126,17 +116,12 @@ test( 'push shuffle', t => {
 test( 'splice shuffle', t => {
 
 	items.shuffle( 'splice', 1, 1, 'd', 'e' );
+
 	indices = [
 		indices[0],
 		createDependent( items.members[1], '@index' ),
 		createDependent( items.members[2], '@index' ),
 		indices[2]
-	];
-	aliasIndices = [
-		aliasIndices[0],
-		createDependent( items.members[1], 'i' ),
-		createDependent( items.members[2], 'i' ),
-		aliasIndices[2]
 	];
 	keys = [
 		keys[0],
@@ -144,12 +129,7 @@ test( 'splice shuffle', t => {
 		createDependent( items.members[2], '@key' ),
 		keys[2]
 	];
-	aliasKeys = [
-		aliasKeys[0],
-		createDependent( items.members[1], 'k' ),
-		createDependent( items.members[2], 'k' ),
-		aliasKeys[2]
-	];
+
 	flush();
 
 	testContexts();
