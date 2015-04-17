@@ -24,6 +24,7 @@ function Context ( key, store ) {
 
 	this.hashWatcher = null;
 	this.isReconcilingMembers = false;
+	this.isHashList = false;
 
 	this.dependants = null;
 	this.listDependants = null;
@@ -119,14 +120,7 @@ Context.prototype = {
 
 		if ( addToProperties ) {
 			if  ( key === child.key ) {
-				let members = this.members;
-
 				this.properties ? this.properties.push( child ) : this.properties = [ child ];
-
-				// if ( !( child instanceof HashPropertyReference) && members && this.isHashMembers ) {
-				// 	console.log( key, child.constructor.name, members.length );
-				// 	// members.push( this.createHashMemberChild( key, members.length ) );
-				// }
 			}
 			this.hashChild( key, child );
 		}
@@ -239,11 +233,6 @@ Context.prototype = {
 
 	set ( value, options ) {
 		if ( this.store.set( value ) ) {
-			// adjust members if this was/is an array
-			if ( this.members ) {
-				this.createOrReconcileMembers( value );
-			}
-
 			this.mark();
 		}
 	},
@@ -351,6 +340,11 @@ Context.prototype = {
 
 	mark ( /*options*/ ) {
 
+		// adjust members if this has been bound to list dependant
+		if ( this.members ) {
+			this.createOrReconcileMembers( this.get() );
+		}
+
 		this._testWatchers();
 
 		this.cascade();
@@ -437,15 +431,13 @@ Context.prototype = {
 		// TODO: deal with type shift on Reconcile
 		// need to clean up hash watcher
 		if ( isArray( value ) ) {
-			this.isHashMembers = false;
 			return this.createOrReconcileArrayMembers( value );
 		}
 		else if ( isObject( value ) ) {
-			this.isHashMembers = true;
 			return this.createOrReconcileHashMembers( value );
 		}
 		else {
-			this.isHashMembers = false;
+			this.isHashList = false;
 			return this.members = [];
 		}
 
@@ -456,21 +448,25 @@ Context.prototype = {
 		let i = -1, l = value.length, members = this.members, member;
 
 		// create new array
-		if( !members ) {
+		if( !members || this.isHashList ) {
 			this.members = members = new Array( l );
 		}
-		// or clear out of bounds references
-		else if ( members.length > l ) {
-			let ml = members.length;
-			for( let m = l; m < ml; m++ ) {
-				this.resetArrayMemberReference( m );
+		else {
+			// or clear out of bounds references
+			if ( members.length > l ) {
+				let ml = members.length;
+				for( let m = l; m < ml; m++ ) {
+					this.resetArrayMemberReference( m );
+				}
+			}
+
+			// adjust to actual length
+			if ( members.length !== l ) {
+				members.length = l;
 			}
 		}
 
-		// adjust to actual length
-		if ( members.length !== l ) {
-			members.length = l;
-		}
+		this.isHashList = false;
 
 		while ( ++i < l ) {
 			// update existing value
@@ -495,26 +491,15 @@ Context.prototype = {
 		this.isReconcilingMembers = true;
 
 		// create new array
-		if( !members ) {
+		if( !members || !this.isHashList ) {
 			this.members = members = new Array( l );
 		}
-
-		// TODO: Don't think this is needed,
-		// delete if everything shakes out ok
-	    // after GC profile check
-
-		// // or clear out of bounds references
-		// else if ( members.length > l ) {
-		// 	let ml = members.length;
-		// 	for( let m = l; m < ml; m++ ) {
-		// 		members[m].reset();
-		// 	}
-		// }
-
 		// adjust to actual length
-		if ( members.length !== l ) {
+		else if ( members.length !== l ) {
 			members.length = l;
 		}
+
+		this.isHashList = true;
 
 		while ( ++i < l ) {
 
@@ -707,7 +692,9 @@ Context.prototype = {
 
 		for( let i = 0, l = dependants.length; i < l; i++ ) {
 			dependant = dependants[i];
-			if( dependant.setValue ) {
+			// dependants may unregister themselves, so we
+			// check that we are still getting a result
+			if( dependant ) {
 				dependant.setValue( value );
 			}
 		}
@@ -923,7 +910,8 @@ class Reference extends Context {
 		this.mark();
 
 		this.resetChildren( this.properties );
-		// TODO: do members need to be reset ???
+		// TODO: do members actually need to be reset ???
+		this.resetChildren( this.members );
 
 	}
 
@@ -939,7 +927,7 @@ class Reference extends Context {
 		this.resolve();
 		let resolved = this.resolved;
 		if ( !resolved ) {
-			// TODO:  create new ProxyModel() ????
+			// TODO:  create new Unresolved() ????
 			throw new Error('Reference getJoinModel called without resolved.');
 		}
 		return resolved;
@@ -959,7 +947,6 @@ class Reference extends Context {
 
 		return super.doJoin( keys, testFirstKey, firstKey );
 	}
-
 }
 
 class ArrayMemberReference extends Reference {

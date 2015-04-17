@@ -177,7 +177,7 @@ function createEachBlock ( section, type, fragmentOptions, aliases ) {
 	// Already an EachBlock?
 	if ( block && block instanceof EachBlock ) {
 		// just keep using same block
-		if ( section.type === type ) {
+		if ( block.type === type ) {
 			return false;
 		}
 		// unrender fragments, we'll start over with new EachBlock...
