@@ -1,8 +1,7 @@
 import DynamicReference from 'viewmodel/models/DynamicReference';
 import Root from 'viewmodel/models/Root';
 
-var root, items, block, hash,
-	indices, aliasIndices, keys, aliasKeys,
+var root, items, block, hash, indices, keys,
 	static0, static2, dep0, dep2;
 
 function flush () {
@@ -35,17 +34,15 @@ module( 'Reference', {
 		items = root.join( 'items' );
 
 		block = new Block();
-		items.listRegister( block, { index: 'i', key: 'k' } );
+		items.listRegister( block );
 
 		hash = { a: 'A', b: 'B', c: 'C' };
 		items.set( hash );
 		flush();
 
 		// simulate dependant registrations
-		indices = items.members.map( m => createDependent( m, '@index' ) );
-		aliasIndices = items.members.map( m => createDependent( m, 'i') );
 		keys = items.members.map( m => createDependent( m, '@key' ) );
-		aliasKeys = items.members.map( m => createDependent( m, 'k') );
+		indices = items.members.map( m => createDependent( m, '@index' ) );
 		// static0 = items.join('0');
 		// static2 = items.join('2');
 		// static0.register( dep0 = new Dependent() );
@@ -70,9 +67,7 @@ function testContexts () {
 		context = contexts[i];
 		equal( context.get(), hash[ hashKeys[i] ], 'context has correct value' );
 		equal( indices[i].value, i, 'context has correct @index' );
-		equal( aliasIndices[i].value, i, 'context has correct i' );
-		equal( keys[i].value, context.get().toLowerCase(), 'context has correct @key' );
-		equal( aliasKeys[i].value, context.get().toLowerCase(), 'context has correct k' );
+		equal( keys[i].value, hashKeys[i], 'context has correct @key' );
 	}
 
 	// equal( dep0.value, hash[ hashKeys[0] ], 'static dependent 0 has hash value ' );
@@ -92,9 +87,7 @@ test( 'set new object updates members', t => {
 
 	// simulate last dependant going away
 	indices.length = 2;
-	aliasIndices.length = 2;
 	keys.length = 2;
-	aliasKeys.length = 2;
 
 	testContexts();
 
@@ -102,13 +95,9 @@ test( 'set new object updates members', t => {
 
 	// simulate new bindings against last two new items
 	indices[2] = createDependent( items.members[2], '@index' );
-	aliasIndices[2] = createDependent( items.members[2], 'i' );
 	keys[2] = createDependent( items.members[2], '@key' );
-	aliasKeys[2] = createDependent( items.members[2], 'k' );
 	indices[3] = createDependent( items.members[3], '@index' );
-	aliasIndices[3] = createDependent( items.members[3], 'i' );
 	keys[3] = createDependent( items.members[3], '@key' );
-	aliasKeys[3] = createDependent( items.members[3], 'k' );
 
 	flush();
 	testContexts();
@@ -122,9 +111,7 @@ test( 'add new property adds to members', t => {
 
 	// simulate new bindings
 	indices[3] = createDependent( items.members[3], '@index' );
-	aliasIndices[3] = createDependent( items.members[3], 'i' );
 	keys[3] = createDependent( items.members[3], '@key' );
-	aliasKeys[3] = createDependent( items.members[3], 'k' );
 	flush();
 
 	testContexts();
@@ -138,9 +125,7 @@ test( 'delete of property and mark() updates members', t => {
 
 	// simulate binding changes
 	indices.pop();
-	aliasIndices.pop();
 	keys.pop();
-	aliasKeys.pop();
 
 	flush();
 	testContexts();

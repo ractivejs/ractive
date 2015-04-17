@@ -3,7 +3,8 @@ import runloop from 'global/runloop';
 import { unbind } from 'shared/methodCallers';
 
 class EachBlock {
-	constructor ( section, fragmentOptions, aliases ) {
+	constructor ( section, type, fragmentOptions, aliases ) {
+		this.type = type;
 		this.section = section;
 		this.fragmentOptions = fragmentOptions;
 		this.aliases = aliases;
@@ -60,12 +61,8 @@ class EachBlock {
 		}
 	}
 
-	aliasSpecials ( context, aliases ) {
-		var _join = context.join, _tryJoin = context._tryJoin;
-
-		return {
-
-		}
+	unrender () {
+		this.setMembers([]);
 	}
 
 	updateMembers ( splice ) {
