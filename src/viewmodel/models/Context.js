@@ -260,7 +260,7 @@ Context.prototype = {
 		this.cascade( true );
 	},
 
-	shuffle ( method, ...args ) {
+	shuffle ( method, args ) {
 		var members, array, oldLength, newLength, splice, result;
 
 		members = this.members;
@@ -330,6 +330,7 @@ Context.prototype = {
 		// .length
 
 		this.cascade( true );
+		this.addAsChanged();
 
 		return result;
 	},
@@ -349,6 +350,11 @@ Context.prototype = {
 
 		this.cascade();
 
+		this.addAsChanged();
+
+	},
+
+	addAsChanged () {
 		addToArray( this.owner.changes, this );
 
 		if ( this.owner.ready ) {

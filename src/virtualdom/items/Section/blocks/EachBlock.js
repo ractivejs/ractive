@@ -8,11 +8,13 @@ class EachBlock {
 		this.section = section;
 		this.fragmentOptions = fragmentOptions;
 		this.aliases = aliases;
+		this.members = null;
 	}
 
 	setMembers ( members ) {
 		var i, length, fragment, section, aliases, fragmentOptions, context, _get;
 
+		this.members = members;
 		section = this.section;
 		fragmentOptions = this.fragmentOptions;
 		aliases = this.aliases;
@@ -25,8 +27,7 @@ class EachBlock {
 
 		// if the array is shorter than it was previously, remove items
 		if ( length < section.length ) {
-			section.fragmentsToUnrender = section.fragments.splice( length, section.length - length );
-			section.fragmentsToUnrender.forEach( unbind );
+			this.removeFragments( length, section.length - length );
 		}
 
 		// otherwise...
@@ -34,17 +35,7 @@ class EachBlock {
 			if ( length > section.length ) {
 				// add any new ones
 				for ( i = section.length; i < length; i += 1 ) {
-					context = members[i];
-					if ( aliases ) {
-						context = new AliasWrapper( context, this );
-					}
-					// append list item to context stack
-					fragmentOptions.context = context;
-					// TODO: I don't think this will be needed
-					fragmentOptions.index = i;
-
-					fragment = new Fragment( fragmentOptions );
-					section.fragmentsToRender.push( section.fragments[i] = fragment );
+					this.createFragment( i );
 				}
 			}
 		}
@@ -61,12 +52,65 @@ class EachBlock {
 		}
 	}
 
+	createFragment ( index ) {
+		var context = this.members[ index ],
+			fragmentOptions = this.fragmentOptions,
+			section = this.section,
+			fragment;
+
+		if ( this.aliases ) {
+			context = new AliasWrapper( context, this );
+		}
+
+		// append list item to context stack
+		fragmentOptions.context = context;
+		// TODO: I don't think this will be needed
+		// and can be deleted
+		fragmentOptions.index = index;
+
+		fragment = new Fragment( fragmentOptions );
+		section.fragmentsToRender.push( section.fragments[ index ] = fragment );
+	}
+
+	removeFragments ( start, length ) {
+		var section = this.section;
+		section.fragmentsToUnrender = section.fragments.splice( start, length );
+		section.fragmentsToUnrender.forEach( unbind );
+	}
+
 	unrender () {
-		this.setMembers([]);
+		this.setMembers( [] );
 	}
 
 	updateMembers ( splice ) {
-		console.log( 'need to splice!!!', splice );
+		var section = this.section;
+
+		if ( splice.remove ) {
+			this.removeFragments( splice.start, splice.remove );
+		}
+
+		if ( splice.insert ) {
+			let i = splice.start,
+				end = splice.start + splice.insert;
+
+			while ( i < end ) {
+				this.createFragment( i );
+				i++;
+			}
+		}
+
+		if ( splice.insert !== splice.remove ) {
+			section.length += ( splice.insert - splice.remove );
+		}
+
+		// TODO: see how this shakes out,
+		// probably a method on section.
+		// or maybe something else
+		section.bubble();
+
+		if ( section.rendered ) {
+			runloop.addView( section );
+		}
 	}
 }
 
