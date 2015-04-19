@@ -3,16 +3,28 @@
 export default function getSpliceEquivalent ( length, methodName, args ) {
 	switch ( methodName ) {
 		case 'splice':
-			if ( args[0] !== undefined && args[0] < 0 ) {
-				args[0] = length + Math.max( args[0], -length );
+			// use start of array if not provided
+			if ( args[0] == null ) {
+				args[0] = 0;
+			}
+			else {
+				// Not sure what this one is trying to do...
+				if ( args[0] < 0 ) {
+					args[0] = length + Math.max( args[0], -length );
+				}
+				// Shouldn't be longer than the array
+				else if ( args[0] > length ) {
+					args[0] = length;
+				}
 			}
 
-			while ( args.length < 2 ) {
-				args.push( 0 );
+			if ( args[1] == null ) {
+				args[1] = 0;
 			}
-
 			// ensure we only remove elements that exist
-			args[1] = Math.min( args[1], length - args[0] );
+			else {
+				args[1] = Math.min( args[1], Math.max( length - args[0], 0 ) );
+			}
 
 			return args;
 

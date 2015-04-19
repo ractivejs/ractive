@@ -12,35 +12,82 @@ class EachBlock {
 	}
 
 	setMembers ( members ) {
-		var i, length, fragment, section, aliases, fragmentOptions, context, _get;
+		var section = this.section,
+			currentLength = section.length,
+			newLength = members.length;
 
 		this.members = members;
-		section = this.section;
-		fragmentOptions = this.fragmentOptions;
-		aliases = this.aliases;
-		length = members.length;
 
-		if ( length === section.length ) {
-			// Nothing to do
-			return false;
+		// same? nothing to do
+		if ( newLength === currentLength ) {
+			return;
 		}
 
-		// if the array is shorter than it was previously, remove items
-		if ( length < section.length ) {
-			this.removeFragments( length, section.length - length );
-		}
+		// shorter? remove items
+		if ( newLength < currentLength ) {
+			let len = currentLength - newLength, i, unrender;
 
-		// otherwise...
-		else {
-			if ( length > section.length ) {
-				// add any new ones
-				for ( i = section.length; i < length; i += 1 ) {
-					this.createFragment( i );
-				}
+			unrender = section.fragmentsToUnrender = section.fragments.splice( newLength, len );
+
+			for ( i = 0; i < len; i++ ) {
+				unrender[i].unbind();
 			}
 		}
 
-		section.length = length;
+		// longer? add new ones
+		else {
+			let i, fragments = section.fragments;
+			for ( i = currentLength; i < newLength; i += 1 ) {
+				fragments[i] = this.createFragment( i );
+			}
+		}
+
+		section.length = newLength;
+
+		// TODO: see how this shakes out,
+		// probably a method on section.
+		// or maybe something else
+		section.bubble();
+
+		if ( section.rendered ) {
+			runloop.addView( section );
+		}
+	}
+
+	updateMembers ( splice ) {
+		var section = this.section,
+			fragments = section.fragments,
+			args = new Array( 2 + splice.insert ),
+			removed, len;
+
+		args[0] = splice.start;
+		args[1] = splice.remove;
+
+		if ( splice.insert ) {
+			let arg = 2,
+				i = splice.start,
+				end = splice.start + splice.insert;
+
+			while ( i < end ) {
+				args[ arg ] = this.createFragment( i );
+				i++;
+				arg++;
+			}
+
+			section.fragmentsToAdd = args;
+		}
+
+		removed = section.fragmentsToUnrender = fragments.splice.apply( fragments, args );
+
+		if ( len = removed.length ) {
+			for( let i = 0; i < len; i++ ) {
+				removed[i].unbind();
+			}
+		}
+
+		if ( splice.insert !== splice.remove ) {
+			section.length = fragments.length;
+		}
 
 		// TODO: see how this shakes out,
 		// probably a method on section.
@@ -54,12 +101,10 @@ class EachBlock {
 
 	createFragment ( index ) {
 		var context = this.members[ index ],
-			fragmentOptions = this.fragmentOptions,
-			section = this.section,
-			fragment;
+			fragmentOptions = this.fragmentOptions;
 
 		if ( this.aliases ) {
-			context = new AliasWrapper( context, this );
+			context = new SpecialsWrapper( context, this.aliases );
 		}
 
 		// append list item to context stack
@@ -68,61 +113,25 @@ class EachBlock {
 		// and can be deleted
 		fragmentOptions.index = index;
 
-		fragment = new Fragment( fragmentOptions );
-		section.fragmentsToRender.push( section.fragments[ index ] = fragment );
-	}
+		return new Fragment( fragmentOptions );
 
-	removeFragments ( start, length ) {
-		var section = this.section;
-		section.fragmentsToUnrender = section.fragments.splice( start, length );
-		section.fragmentsToUnrender.forEach( unbind );
 	}
 
 	unrender () {
 		this.setMembers( [] );
 	}
-
-	updateMembers ( splice ) {
-		var section = this.section;
-
-		if ( splice.remove ) {
-			this.removeFragments( splice.start, splice.remove );
-		}
-
-		if ( splice.insert ) {
-			let i = splice.start,
-				end = splice.start + splice.insert;
-
-			while ( i < end ) {
-				this.createFragment( i );
-				i++;
-			}
-		}
-
-		if ( splice.insert !== splice.remove ) {
-			section.length += ( splice.insert - splice.remove );
-		}
-
-		// TODO: see how this shakes out,
-		// probably a method on section.
-		// or maybe something else
-		section.bubble();
-
-		if ( section.rendered ) {
-			runloop.addView( section );
-		}
-	}
 }
 
-class AliasWrapper {
-	constructor ( context, block ) {
+class SpecialsWrapper {
+	//todo just aliases, no block ref needed
+	constructor ( context, aliases ) {
 		this.context = context;
-		this.block = block;
+		this.aliases = aliases;
 	}
 
 	alias ( keypath ) {
 		var alias;
-		if ( alias = this.block.aliases[ keypath ] ) {
+		if ( alias = this.aliases[ keypath ] ) {
 			return alias;
 		}
 		return keypath;

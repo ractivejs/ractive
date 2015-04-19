@@ -1,11 +1,13 @@
 export default function Section$render () {
-	this.docFrag = document.createDocumentFragment();
+	var docFrag = this.docFrag = document.createDocumentFragment(),
+		fragments = this.fragments;
 
-	this.fragments.forEach( f => this.docFrag.appendChild( f.render() ) );
+	for ( var i = 0, len = fragments.length; i < len; i++ ) {
+		docFrag.appendChild( fragments[i].render() );
+	}
 
-	this.renderedFragments = this.fragments.slice();
 	this.fragmentsToRender = [];
-
 	this.rendered = true;
+
 	return this.docFrag;
 }

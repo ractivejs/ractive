@@ -277,6 +277,11 @@ Context.prototype = {
 		// this will modify the array
 		result = this.store.shuffle( method, args );
 
+		// sort or reverse
+		if ( !splice ) {
+			return this.set( array );
+		}
+
 		newLength = array.length;
 
 		//make new members

@@ -9,11 +9,10 @@ export default function ( methodName ) {
 	return function ( keypath, ...args ) {
 		var array, newIndices = [], len, promise, result, context;
 
-		context = this.viewmodel.getModel( keypath );
-
-		result = context.shuffle( methodName, args );
-
 		promise = runloop.start( this, true ).then( () => result );
+
+		context = this.viewmodel.getModel( keypath );
+		result = context.shuffle( methodName, args );
 
 		runloop.end();
 
