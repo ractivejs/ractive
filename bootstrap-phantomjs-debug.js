@@ -3,7 +3,7 @@ from http://phantomjs.org/troubleshooting.html
 
 1. start on command line with remote-debugger-port option:
 
-$ractive> node_modules/grunt-contrib-qunit/node_modules/grunt-lib-phantomjs/node_modules/phantomjs/lib/phantom/bin/phantomjs --remote-debugger-port=9000 bootstrap-phantomjs-debug.js
+$ractive> node_modules/phantomjs/lib/phantom/bin/phantomjs --remote-debugger-port=9000 bootstrap-phantomjs-debug.js
 
 2. navigate to debugging port in web browser (localhost:9000)
 3. get first web inspector for phantom context (click about:blank)
@@ -21,7 +21,7 @@ For many issues:
 */
 
 //set your page here
-var url = 'tmp-build/test/tests/css.html',
+var url = 'tmp/test/index.html',
     page = require('webpage').create();
 
 

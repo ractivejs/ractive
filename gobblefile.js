@@ -1,5 +1,6 @@
 var gobble = require( 'gobble' ),
 	sander = require( 'sander' ),
+	junk = require( 'junk' ),
 	Promise = sander.Promise,
 	path = require( 'path' ),
 	esperanto = require( 'esperanto' ),
@@ -31,18 +32,16 @@ lib = (function () {
 		.replace( '${time}', new Date() )
 		.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
 
-	var bundleTransform = function ( src, path ) {
-		if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
-			return src.replace( '<@version@>', version );
-		}
-
-		return src;
-	};
-
 	var lib = [
 		es5.transform( 'esperanto-bundle', {
 			type: 'umd',
-			transform: bundleTransform,
+			transform: function ( src, path ) {
+				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+					return src.replace( /<@version@>/g, version );
+				}
+
+				return src;
+			},
 			banner: banner,
 			entry: 'Ractive.js',
 			name: 'Ractive',
@@ -56,32 +55,59 @@ lib = (function () {
 		lib.push(
 			es5.transform( 'esperanto-bundle', {
 				type: 'umd',
-				transform: bundleTransform,
+				transform: function ( src, path ) {
+					if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+						return src.replace( /<@version@>/g, version );
+					}
+
+					if ( /legacy\.js/.test( path ) ) {
+						return 'export default null;';
+					}
+
+					return src;
+				},
 				banner: banner,
 				entry: 'Ractive.js',
 				name: 'Ractive',
-				dest: 'ractive.js',
-				skip: [ 'legacy' ]
+				dest: 'ractive.js'
 			}),
 
 			es5.transform( 'esperanto-bundle', {
 				type: 'umd',
-				transform: bundleTransform,
+				transform: function ( src, path ) {
+					if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+						return src.replace( /<@version@>/g, version );
+					}
+
+					if ( /legacy\.js|_parse\.js/.test( path ) ) {
+						return 'export default null;';
+					}
+
+					return src;
+				},
 				banner: banner,
 				entry: 'Ractive.js',
 				name: 'Ractive',
-				dest: 'ractive.runtime.js',
-				skip: [ 'legacy', 'parse/_parse' ]
+				dest: 'ractive.runtime.js'
 			}),
 
 			es5.transform( 'esperanto-bundle', {
 				type: 'umd',
-				transform: bundleTransform,
+				transform: function ( src, path ) {
+					if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+						return src.replace( /<@version@>/g, version );
+					}
+
+					if ( /_parse\.js/.test( path ) ) {
+						return 'export default null;';
+					}
+
+					return src;
+				},
 				banner: banner,
 				entry: 'Ractive.js',
 				name: 'Ractive',
-				dest: 'ractive-legacy.runtime.js',
-				skip: [ 'parse/_parse' ]
+				dest: 'ractive-legacy.runtime.js'
 			})
 		);
 	}
@@ -123,7 +149,7 @@ test = (function () {
 		es5
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
 		return sander.lsr( inputdir, '__tests' ).then( function ( testModules ) {
-			var promises = testModules.sort().map( function ( mod ) {
+			var promises = testModules.filter( junk.not ).sort().map( function ( mod ) {
 				return esperanto.bundle({
 					base: inputdir,
 					entry: '__tests/' + mod

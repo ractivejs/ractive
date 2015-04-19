@@ -61,7 +61,6 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 }
 
 function notifySubscribers ( ractive, subscribers, event, args ) {
-
 	var originalEvent = null, stopEvent = false;
 
 	if ( event && !event._noArg ) {
@@ -85,5 +84,3 @@ function notifySubscribers ( ractive, subscribers, event, args ) {
 
 	return !stopEvent;
 }
-
-

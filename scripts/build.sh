@@ -73,12 +73,18 @@ if [ ! -d build ]; then
 	mkdir build
 fi
 
-echo "> copying to build folder..."
+echo "> copying library to build folder..."
 mkdir -p build
 cp tmp/*.js build
 cp tmp/*.map build
 
-echo "> ...aaaand we're done"
+echo "> copying *.json files to build folder..."
+VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
+for FILE in scripts/templates/*.json; do
+	cat $FILE | sed "s/VERSION_PLACEHOLDER/$VERSION/" > build/${FILE#scripts/templates/}
+done
+
+echo "> build complete"
 
 if [ $FAKE -eq 1 ]; then
 	exit 0

@@ -5,8 +5,10 @@ import trimWhitespace from './trimWhitespace';
 
 let contiguousWhitespace = /[ \t\f\r\n]+/g;
 let preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
-let leadingWhitespace = /^\s+/;
-let trailingWhitespace = /\s+$/;
+let leadingWhitespace = /^[ \t\f\r\n]+/;
+let trailingWhitespace = /[ \t\f\r\n]+$/;
+let leadingNewLine = /^(?:\r\n|\r|\n)/;
+let trailingNewLine = /(?:\r\n|\r|\n)$/;
 
 export default function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
 	var i,
@@ -37,7 +39,7 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 	}
 
 	// If necessary, remove leading and trailing whitespace
-	trimWhitespace( items, removeLeadingWhitespace, removeTrailingWhitespace );
+	trimWhitespace( items, removeLeadingWhitespace ? leadingWhitespace : null, removeTrailingWhitespace ? trailingWhitespace : null );
 
 	i = items.length;
 	while ( i-- ) {
@@ -45,7 +47,12 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 
 		// Recurse
 		if ( item.f ) {
-			preserveWhitespaceInsideFragment = preserveWhitespace || ( item.t === ELEMENT && preserveWhitespaceElements.test( item.e ) );
+			let isPreserveWhitespaceElement = item.t === ELEMENT && preserveWhitespaceElements.test( item.e );
+			preserveWhitespaceInsideFragment = preserveWhitespace || isPreserveWhitespaceElement;
+
+			if ( !preserveWhitespace && isPreserveWhitespaceElement ) {
+				trimWhitespace( item.f, leadingNewLine, trailingNewLine );
+			}
 
 			if ( !preserveWhitespaceInsideFragment ) {
 				previousItem = items[ i - 1 ];
