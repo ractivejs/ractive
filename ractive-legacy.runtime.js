@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.2
-	Mon Apr 20 2015 16:40:10 GMT+0000 (UTC) - commit d833fc3f34e911219f27a93a0c89bb37e25af8ff
+	Mon Apr 20 2015 18:27:59 GMT+0000 (UTC) - commit f7107b4378b563cf492871e45dfb0abf7431fa87
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3638,7 +3638,11 @@
       dirty = false;
 
   if (!isClient) {
-  	css = null;
+  	// TODO handle encapsulated CSS in server-rendered HTML!
+  	css = {
+  		add: noop,
+  		apply: noop
+  	};
   } else {
   	styleElement = document.createElement("style");
   	styleElement.type = "text/css";
