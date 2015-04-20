@@ -22,4 +22,13 @@ describe( 'Components', function () {
 
 		assert.equal( ractive.toHTML(), '<p>foo-baz</p>' );
 	});
+
+	it( 'should not fail if component has CSS', function () {
+		var Widget = Ractive.extend({
+			template: '<p>red</p>',
+			css: 'p { color: red; }'
+		});
+
+		var ractive = new Widget();
+	});
 });
