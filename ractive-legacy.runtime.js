@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.2
-	Sun Apr 12 2015 02:08:11 GMT+0000 (UTC) - commit 2f36b6ac46805a7aad1e152679cd1375dad80e5a
+	Mon Apr 20 2015 16:40:10 GMT+0000 (UTC) - commit d833fc3f34e911219f27a93a0c89bb37e25af8ff
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4004,12 +4004,8 @@
   var parseOptions = ["preserveWhitespace", "sanitize", "stripComments", "delimiters", "tripleDelimiters", "interpolate"];
 
   var parser = {
-  	parse: doParse,
-  	fromId: fromId,
-  	isHashedId: isHashedId,
-  	isParsed: isParsed,
-  	getParseOptions: getParseOptions,
-  	createHelper: template_parser__createHelper
+  	fromId: fromId, isHashedId: isHashedId, isParsed: isParsed, getParseOptions: getParseOptions, createHelper: template_parser__createHelper,
+  	parse: doParse
   };
 
   function template_parser__createHelper(parseOptions) {
@@ -4056,11 +4052,11 @@
   		throw new Error("Template element with id #" + id + ", must be a <script> element");
   	}
 
-  	return template.textContent;
+  	return "textContent" in template ? template.textContent : template.innerHTML;
   }
 
   function isHashedId(id) {
-  	return id && id.charAt(0) === "#"; // TODO what about `id[0]`, does that work everywhere?
+  	return id && id[0] === "#";
   }
 
   function isParsed(template) {
