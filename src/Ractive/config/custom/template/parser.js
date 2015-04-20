@@ -52,7 +52,7 @@ function fromId ( id, options ) {
 		throw new Error( `Template element with id #${id}, must be a <script> element` );
 	}
 
-	return ( 'textContent' in template ? template.textContent : template.innerText );
+	return ( 'textContent' in template ? template.textContent : template.innerHTML );
 }
 
 function isHashedId ( id ) {
