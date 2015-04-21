@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.2
-	Mon Apr 20 2015 18:27:59 GMT+0000 (UTC) - commit f7107b4378b563cf492871e45dfb0abf7431fa87
+	Tue Apr 21 2015 11:53:54 GMT+0000 (UTC) - commit 114ee0814c7d9fbf35c6d142a962c579a41bbc5a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10119,31 +10119,93 @@
   	this._ractive.binding.handleChange();
   }
 
-  var ContentEditableBinding = Binding_Binding.extend({
+  var GenericBinding;
+
+  GenericBinding = Binding_Binding.extend({
   	getInitialValue: function () {
-  		return this.element.fragment ? this.element.fragment.toString() : "";
+  		return "";
+  	},
+
+  	getValue: function () {
+  		return this.element.node.value;
   	},
 
   	render: function () {
-  		var node = this.element.node;
+  		var node = this.element.node,
+  		    lazy,
+  		    timeout = false;
+  		this.rendered = true;
+
+  		// any lazy setting for this element overrides the root
+  		// if the value is a number, it's a timeout
+  		lazy = this.root.lazy;
+  		if (this.element.lazy === true) {
+  			lazy = true;
+  		} else if (this.element.lazy === false) {
+  			lazy = false;
+  		} else if (is__isNumeric(this.element.lazy)) {
+  			lazy = false;
+  			timeout = +this.element.lazy;
+  		} else if (is__isNumeric(lazy || "")) {
+  			timeout = +lazy;
+  			lazy = false;
+
+  			// make sure the timeout is available to the handler
+  			this.element.lazy = timeout;
+  		}
+
+  		this.handler = timeout ? handleDelay : handleDomEvent;
 
   		node.addEventListener("change", handleDomEvent, false);
 
-  		if (!this.root.lazy) {
-  			node.addEventListener("input", handleDomEvent, false);
+  		if (!lazy) {
+  			node.addEventListener("input", this.handler, false);
 
   			if (node.attachEvent) {
-  				node.addEventListener("keyup", handleDomEvent, false);
+  				node.addEventListener("keyup", this.handler, false);
   			}
   		}
+
+  		node.addEventListener("blur", handleBlur, false);
   	},
 
   	unrender: function () {
   		var node = this.element.node;
+  		this.rendered = false;
 
   		node.removeEventListener("change", handleDomEvent, false);
-  		node.removeEventListener("input", handleDomEvent, false);
-  		node.removeEventListener("keyup", handleDomEvent, false);
+  		node.removeEventListener("input", this.handler, false);
+  		node.removeEventListener("keyup", this.handler, false);
+  		node.removeEventListener("blur", handleBlur, false);
+  	}
+  });
+
+  var Binding_GenericBinding = GenericBinding;
+
+  function handleBlur() {
+  	var value;
+
+  	handleDomEvent.call(this);
+
+  	value = this._ractive.root.viewmodel.get(this._ractive.binding.keypath);
+  	this.value = value == undefined ? "" : value;
+  }
+
+  function handleDelay() {
+  	var binding = this._ractive.binding,
+  	    el = this;
+
+  	if (!!binding._timeout) clearTimeout(binding._timeout);
+
+  	binding._timeout = setTimeout(function () {
+  		if (binding.rendered) handleDomEvent.call(el);
+  		binding._timeout = undefined;
+  	}, binding.element.lazy);
+  }
+
+  var ContentEditableBinding = Binding_GenericBinding.extend({
+  	getInitialValue: function () {
+  		return this.element.fragment ? this.element.fragment.toString() : "";
   	},
 
   	getValue: function () {
@@ -10595,90 +10657,6 @@
   });
 
   var Binding_FileListBinding = FileListBinding;
-
-  var GenericBinding;
-
-  GenericBinding = Binding_Binding.extend({
-  	getInitialValue: function () {
-  		return "";
-  	},
-
-  	getValue: function () {
-  		return this.element.node.value;
-  	},
-
-  	render: function () {
-  		var node = this.element.node,
-  		    lazy,
-  		    timeout = false;
-  		this.rendered = true;
-
-  		// any lazy setting for this element overrides the root
-  		// if the value is a number, it's a timeout
-  		lazy = this.root.lazy;
-  		if (this.element.lazy === true) {
-  			lazy = true;
-  		} else if (this.element.lazy === false) {
-  			lazy = false;
-  		} else if (is__isNumeric(this.element.lazy)) {
-  			lazy = false;
-  			timeout = +this.element.lazy;
-  		} else if (is__isNumeric(lazy || "")) {
-  			timeout = +lazy;
-  			lazy = false;
-
-  			// make sure the timeout is available to the handler
-  			this.element.lazy = timeout;
-  		}
-
-  		this.handler = timeout ? handleDelay : handleDomEvent;
-
-  		node.addEventListener("change", handleDomEvent, false);
-
-  		if (!lazy) {
-  			node.addEventListener("input", this.handler, false);
-
-  			if (node.attachEvent) {
-  				node.addEventListener("keyup", this.handler, false);
-  			}
-  		}
-
-  		node.addEventListener("blur", handleBlur, false);
-  	},
-
-  	unrender: function () {
-  		var node = this.element.node;
-  		this.rendered = false;
-
-  		node.removeEventListener("change", handleDomEvent, false);
-  		node.removeEventListener("input", this.handler, false);
-  		node.removeEventListener("keyup", this.handler, false);
-  		node.removeEventListener("blur", handleBlur, false);
-  	}
-  });
-
-  var Binding_GenericBinding = GenericBinding;
-
-  function handleBlur() {
-  	var value;
-
-  	handleDomEvent.call(this);
-
-  	value = this._ractive.root.viewmodel.get(this._ractive.binding.keypath);
-  	this.value = value == undefined ? "" : value;
-  }
-
-  function handleDelay() {
-  	var binding = this._ractive.binding,
-  	    el = this;
-
-  	if (!!binding._timeout) clearTimeout(binding._timeout);
-
-  	binding._timeout = setTimeout(function () {
-  		if (binding.rendered) handleDomEvent.call(el);
-  		binding._timeout = undefined;
-  	}, binding.element.lazy);
-  }
 
   var NumericBinding = Binding_GenericBinding.extend({
   	getInitialValue: function () {
