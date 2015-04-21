@@ -3,7 +3,9 @@
 # 0.7.3
 
 * Fixed reading templates from `<script>` tags in IE8 (#1908)
+* Components with a `css` property can be created in node.js (#1927)
 * Leading/trailing newlines inside elements are removed (#1851)
+* Two-way contenteditable binding works with the `lazy: true` option (#1933)
 * Better error for undefined/null templates (#1893)
 * Internal tweaks (dependency updates, removal of .DS_Store files, fix tests in Firefox/Safari)
 
