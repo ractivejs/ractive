@@ -1,3 +1,4 @@
+import AliasWrapper from './AliasWrapper';
 import Fragment from 'virtualdom/Fragment';
 import runloop from 'global/runloop';
 import { unbind } from 'shared/methodCallers';
@@ -104,7 +105,7 @@ class EachBlock {
 			fragmentOptions = this.fragmentOptions;
 
 		if ( this.aliases ) {
-			context = new SpecialsWrapper( context, this.aliases );
+			context = new AliasWrapper( context, this.aliases );
 		}
 
 		// append list item to context stack
@@ -122,49 +123,6 @@ class EachBlock {
 	}
 }
 
-class SpecialsWrapper {
-	//todo just aliases, no block ref needed
-	constructor ( context, aliases ) {
-		this.context = context;
-		this.aliases = aliases;
-	}
-
-	alias ( keypath ) {
-		var alias;
-		if ( alias = this.aliases[ keypath ] ) {
-			return alias;
-		}
-		return keypath;
-	}
-
-	join ( keypath ) {
-		return this.context.join( this.alias( keypath ) );
-	}
-
-	tryJoin ( keypath ) {
-		return this.context.tryJoin( this.alias( keypath ) );
-	}
-
-	register ( dependant ) {
-		return this.context.register( dependant );
-	}
-
-	unregister ( dependant ) {
-		return this.context.unregister( dependant );
-	}
-
-	listRegister ( dependant ) {
-		return this.context.listRegister( dependant );
-	}
-
-	listUnregister ( dependant ) {
-		return this.context.listUnregister( dependant );
-	}
-
-	addWatcher ( key, resolve ) {
-		return this.context.addWatcher( key, resolve );
-	}
-}
 
 
 export default EachBlock;

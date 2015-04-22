@@ -2,14 +2,17 @@ export default function Section$update () {
 	var docFrag = this.docFrag,
 		rendered = this.rendered,
 		unrender, splice,
-		domFragment,
+		fragment, domFragment,
 		anchor, target, i, len;
 
 
 	// Remove fragments that have been marked for destruction
 	if ( unrender = this.fragmentsToUnrender ) {
 		for( i = 0, len = unrender.length; i < len; i++ ) {
-			unrender[i].unrender( true );
+			fragment = unrender[i];
+			if ( fragment.rendered ) {
+				fragment.unrender( true );
+			}
 		}
 		this.fragmentsToUnrender = null;
 	}

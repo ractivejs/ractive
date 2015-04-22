@@ -23,31 +23,7 @@ export default function Section$setValue ( value ) {
 		value = wrapper.get();
 	}
 
-	// If any fragments are awaiting creation after a splice,
-	// this is the place to do it
-	if ( this.fragmentsToCreate.length ) {
-		fragmentOptions = {
-			template: this.template.f || [],
-			root:     this.root,
-			pElement: this.pElement,
-			owner:    this
-		};
-
-		this.fragmentsToCreate.forEach( index => {
-			var fragment;
-
-			debugger;
-			fragmentOptions.context = this.keypath.join( index );
-			fragmentOptions.index = index;
-
-			fragment = new Fragment( fragmentOptions );
-			this.fragmentsToRender.push( this.fragments[ index ] = fragment );
-		});
-
-		this.fragmentsToCreate.length = 0;
-	}
-
-	else if ( reevaluateSection( this, value ) ) {
+	if ( reevaluateSection( this, value ) ) {
 		this.bubble();
 
 		if ( this.rendered ) {
@@ -57,29 +33,6 @@ export default function Section$setValue ( value ) {
 
 	this.value = value;
 	this.updating = false;
-}
-
-function changeCurrentSubtype ( section, value, obj ) {
-	if ( value === SECTION_EACH ) {
-		// make sure ref type is up to date for key or value indices
-		if ( section.indexRefs && section.indexRefs[0] ) {
-			let ref = section.indexRefs[0];
-
-			// when switching flavors, make sure the section gets updated
-			if ( ( obj && ref.t === 'i' ) || ( !obj && ref.t === 'k' ) ) {
-				// if switching from object to list, unbind all of the old fragments
-				if ( !obj ) {
-					section.length = 0;
-				  section.fragmentsToUnrender = section.fragments.slice( 0 );
-					section.fragmentsToUnrender.forEach( f => f.unbind() );
-				}
-			}
-
-			// ref.t = obj ? 'k' : 'i';
-		}
-	}
-
-	section.currentSubtype = value;
 }
 
 function reevaluateSection ( section, value ) {
@@ -147,6 +100,29 @@ function reevaluateSection ( section, value ) {
 	return reevaluateConditionalSection( section, value, false, fragmentOptions );
 }
 
+function changeCurrentSubtype ( section, value, obj ) {
+	if ( value === SECTION_EACH ) {
+		// make sure ref type is up to date for key or value indices
+		if ( section.indexRefs && section.indexRefs[0] ) {
+			let ref = section.indexRefs[0];
+
+			// when switching flavors, make sure the section gets updated
+			if ( ( obj && ref.t === 'i' ) || ( !obj && ref.t === 'k' ) ) {
+				// if switching from object to list, unbind all of the old fragments
+				if ( !obj ) {
+					section.length = 0;
+				  section.fragmentsToUnrender = section.fragments.slice( 0 );
+					section.fragmentsToUnrender.forEach( f => f.unbind() );
+				}
+			}
+
+			// ref.t = obj ? 'k' : 'i';
+		}
+	}
+
+	section.currentSubtype = value;
+}
+
 function createAliases ( section, specials ) {
 	let indices, aliases;
 	if ( indices = section.indices ) {
@@ -208,20 +184,22 @@ function reevaluateContextSection ( section, fragmentOptions ) {
 	// (if it is already rendered, then any children dependant on the context stack
 	// will update themselves without any prompting)
 	if ( !section.length ) {
-
-		// TODO model needs to handle this...
-
 		// append this section to the context stack
-		fragmentOptions.context = section.context;
-		fragmentOptions.index = 0;
-
-		fragment = new Fragment( fragmentOptions );
-
-		section.fragmentsToRender.push( section.fragments[0] = fragment );
+		addSingleFragment( section, fragmentOptions, true );
 		section.length = 1;
-
 		return true;
 	}
+}
+
+function addSingleFragment ( section, fragmentOptions, includeContext ) {
+	var fragment;
+
+	if ( includeContext ) {
+		fragmentOptions.context = section.context;
+	}
+	fragmentOptions.index = 0;
+	fragment = new Fragment( fragmentOptions );
+	section.fragmentsToAdd = [ 0, 0, ( section.fragments[0] = fragment ) ];
 }
 
 function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
@@ -244,23 +222,23 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 	}
 
 	if ( doRender ) {
-		if ( !section.length ) {
-			// no change to context stack
-			fragmentOptions.index = 0;
+		let changed = false;
 
-			fragment = new Fragment( fragmentOptions );
-			section.fragmentsToRender.push( section.fragments[0] = fragment );
-			section.length = 1;
-
-			return true;
+		if ( section.fragments.length === 1 ) {
+			return false;
 		}
 
 		if ( section.length > 1 ) {
-			section.fragmentsToUnrender = section.fragments.splice( 1 );
-			section.fragmentsToUnrender.forEach( unbind );
-
-			return true;
+			removeSectionFragments( section, section.fragments.splice( 1 ) )
+			section.fragments = [ section.fragments[0] ];
 		}
+		else {
+			addSingleFragment( section, fragmentOptions );
+		}
+
+		section.length = 1;
+		return true;
+
 	}
 
 	else {
@@ -268,20 +246,21 @@ function reevaluateConditionalSection ( section, value, inverted, fragmentOption
 	}
 }
 
-function removeSectionFragments ( section ) {
-	if ( section.length ) {
-		section.fragmentsToUnrender = section.fragments.splice( 0, section.fragments.length ).filter( isRendered );
-		section.fragmentsToUnrender.forEach( unbind );
-		section.length = section.fragmentsToRender.length = 0;
-		return true;
+function removeSectionFragments ( section, fragments = section.fragments ) {
+	var i, length = fragments.length;
+
+	if ( !length ) {
+		return false;
 	}
+
+	for ( i = 0; i < length; i++ ) {
+		fragments[i].unbind();
+	}
+
+	section.fragmentsToUnrender = fragments;
+	return true;
 }
 
 function isRendered ( fragment ) {
 	return fragment.rendered;
-}
-
-function blindRebind ( dep ) {
-	// the keypath doesn't actually matter here as it won't have changed
-	dep.rebind( '', '' );
 }
