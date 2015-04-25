@@ -1146,6 +1146,16 @@ var renderTests = [
 		template: '{{#foo}}{{/}}',
 		data: { foo: {} },
 		result: ''
+	},
+	{
+		name: 'Leading/trailing line break inside elements is stripped (#1851)',
+		template: '<pre>\rfoo\n</pre><textarea>\r\nfoo\r</textarea>',
+		result: '<pre>foo</pre><textarea>foo</textarea>'
+	},
+	{
+		name: 'No whitespace other than leading/trailing line break is stripped (#1851)',
+		template: '<pre>\r\tfoo\n\t</pre><textarea>\r\n\tfoo\r\t</textarea>',
+		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
 	}
 ];
 

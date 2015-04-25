@@ -15,6 +15,11 @@ If you're having trouble getting Ractive to do what you want, there are a couple
 
 Of course, if you've encountered a bug, then the best course of action is to raise an issue (if no-one else has!).
 
+Reporting security vulnerabilities
+----------------------------------
+
+If you think you've found a security vulnerability, please email [ractive-js-security@googlegroups.com](mailto:ractive-js-security@googlegroups.com) with details, and someone from the core team will respond to you.
+
 
 Raising issues
 --------------

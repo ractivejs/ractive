@@ -1,5 +1,6 @@
 var gobble = require( 'gobble' ),
 	sander = require( 'sander' ),
+	junk = require( 'junk' ),
 	Promise = sander.Promise,
 	path = require( 'path' ),
 	esperanto = require( 'esperanto' ),
@@ -146,7 +147,7 @@ test = (function () {
 		es5
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
 		return sander.lsr( inputdir, '__tests' ).then( function ( testModules ) {
-			var promises = testModules.sort().map( function ( mod ) {
+			var promises = testModules.filter( junk.not ).sort().map( function ( mod ) {
 				return esperanto.bundle({
 					base: inputdir,
 					entry: '__tests/' + mod

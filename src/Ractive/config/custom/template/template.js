@@ -108,9 +108,14 @@ function parseIfString ( template, ractive ) {
 		template = parse( template, parser.getParseOptions( ractive ) );
 	}
 
+	// Check that the template even exists
+	else if ( template == undefined ) {
+		throw new Error( `The template cannot be ${template}.` );
+	}
+
 	// Check the parsed template has a version at all
 	else if ( typeof template.v !== 'number' ) {
-		throw new Error('The template parser was passed a non-string template, but the template doesn\'t have a version.  Make sure you\'re passing in the template you think you are.');
+		throw new Error( 'The template parser was passed a non-string template, but the template doesn\'t have a version.  Make sure you\'re passing in the template you think you are.' );
 	}
 
 	// Check we're using the correct version
