@@ -74,7 +74,7 @@ Tested successfully in IE8+ and all modern browsers. If your experience differs 
 
 ## License
 
-Copyright (c) 2012-14 Rich Harris and contributors. Released under an [MIT license](https://github.com/ractivejs/ractive/blob/master/LICENSE.md).
+Copyright (c) 2012-15 Rich Harris and contributors. Released under an [MIT license](https://github.com/ractivejs/ractive/blob/master/LICENSE.md).
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/RactiveJS/ractive/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
