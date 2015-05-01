@@ -117,9 +117,9 @@ lib = (function () {
 	}
 
 	// Combine sourcemaps from babel and esperanto
-	lib = lib.map( function ( node ) {
-		return node.transform( 'sorcery' );
-	});
+	// lib = lib.map( function ( node ) {
+	// 	return node.transform( 'sorcery' );
+	// });
 
 	return lib;
 })();
