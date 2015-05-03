@@ -5,6 +5,7 @@ import { isArray } from 'utils/is';
 import parseJSON from 'utils/parseJSON';
 import initialise from 'Ractive/initialise';
 import ComplexParameter from './ComplexParameter';
+import { getByTemplate } from 'viewmodel/prototype/getModel'; // TEMP
 
 export default function ( component, Component, attributes, yieldTemplate, partials ) {
 	var instance, parentFragment, ractive, fragment, container, inlinePartials = {}, data = {}, mappings = [], ready, resolvers = [];
@@ -58,7 +59,7 @@ export default function ( component, Component, attributes, yieldTemplate, parti
 				if ( isSingleInterpolator( attribute ) ) {
 					mappings.push({
 						key: key,
-						model: ractive.viewmodel.getModel( attribute[0], component )
+						model: getByTemplate( ractive.viewmodel, attribute[0], component ) // TEMP use resolveRef directly?
 					});
 				}
 

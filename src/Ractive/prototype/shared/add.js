@@ -1,5 +1,5 @@
 import { isNumeric } from 'utils/is';
-import { getKeypath, getMatchingKeypaths, normalise } from 'shared/keypaths';
+import { getMatchingKeypaths, normalise } from 'shared/keypaths';
 
 const errorMessage = 'Cannot add to a non-numeric value';
 

@@ -1,4 +1,5 @@
 import { SECTION_UNLESS } from 'config/types';
+import { getByTemplate } from 'viewmodel/prototype/getModel'; // TEMP
 
 export default function Mustache$init ( mustache, options ) {
 
@@ -18,7 +19,7 @@ export default function Mustache$init ( mustache, options ) {
 	mustache.type = options.template.t;
 
 	// TODO: go through and change use of .keypath to .context
-	var context = mustache.context = mustache.keypath = mustache.root.viewmodel.getModel( template, mustache );
+	var context = mustache.context = mustache.keypath = getByTemplate( mustache.root.viewmodel, template, mustache );
 
 	// TODO: this could just be a get, but notifyDependants calls
 	// both setValue and setMembers. Could duplicate that bit, but

@@ -63,7 +63,6 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 		// temp until figure out bcuz logic already in keypath
 		firstKey = keypath.split( '.' )[0];
 
-
 	// We have to try the context stack from the bottom up.
 	// Closer contexts have precedence.
 	// TODO: choose pseudo iterator API. This is based on ES6 generator.

@@ -682,6 +682,7 @@ test( 'Change events propagate after the model has been updated (#1371)', t => {
 });
 
 if ( hasUsableConsole ) {
+	// #1740: this test fails because {{#with ...}} now behaves as {{#if ...}}{{#with ...}}?
 	test( 'Ambiguous references trigger a warning (#1692)', function ( t ) {
 		var warn = console.warn;
 		console.warn = warning => {

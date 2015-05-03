@@ -4,7 +4,7 @@ import { create, extend } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 
 var Binding = function ( element ) {
-	var interpolator, keypath, value, parentForm;
+	var interpolator, value, parentForm;
 
 	this.element = element;
 	this.root = element.root;
@@ -13,14 +13,16 @@ var Binding = function ( element ) {
 	interpolator = this.attribute.interpolator;
 	interpolator.twowayBinding = this;
 
-	if ( ( keypath = interpolator.keypath ) ) {
+	const keypath = interpolator.keypath;
+
+	if ( !keypath.unresolved ) {
 		if ( keypath.getKeypath().slice( -1 ) === '}' ) {
-			warnOnceIfDebug( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.resolver.uniqueString, element.name, { ractive: this.root });
+			warnOnceIfDebug( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.keypath.key, element.name, { ractive: this.root });
 			return false;
 		}
 
-		if ( keypath.isSpecial ) {
-			warnOnceIfDebug( 'Two-way binding does not work with %s', interpolator.resolver.ref, { ractive: this.root });
+		if ( keypath.key === '@key' ) { // TODO is this the best way to identify 'specials'? What about @index?
+			warnOnceIfDebug( 'Two-way binding does not work with %s', interpolator.keypath.key, { ractive: this.root });
 			return false;
 		}
 	}
@@ -42,8 +44,9 @@ var Binding = function ( element ) {
 		// updating. Using it in lists is probably a recipe for confusion...
 		let ref = interpolator.template.r ? `'${interpolator.template.r}' reference` : 'expression';
 		warnIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref, { ractive: this.root });
-		interpolator.resolver.forceResolution();
-		keypath = interpolator.keypath;
+
+		// TODO is this the correct way to force resolution?
+		keypath.resolve( this.root.viewmodel.getModel( keypath.key ) );
 	}
 
 	this.attribute.isTwoway = true;

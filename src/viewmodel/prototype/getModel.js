@@ -1,47 +1,31 @@
 import Context from '../models/Context';
 import DynamicReference from '../models/DynamicReference';
 import ComputationModel from '../models/ComputationModel';
-import getInnerContext from 'shared/getInnerContext';
 import getExpressionSignature from '../Computation/getExpressionSignature';
 import StateStore from '../stores/StateStore';
-import { INTERPOLATOR, REFERENCE } from 'config/types';
-import runloop from 'global/runloop';
+import { REFERENCE } from 'config/types';
 import resolveRef from 'shared/resolveRef';
 
-export default function Viewmodel$getModel ( reference, context ) {
-	var keypath;
-
+// TODO getModel -> getContext?
+export default function Viewmodel$getModel ( keypath ) {
 	// don't think this is used...
-	if ( reference == null ) {
+	if ( keypath == null ) {
 		throw new Error( 'no reference!' );
 	}
 
-	if ( typeof reference === 'string' ) {
-		return getByString( this, reference );
+	let keys = keypath.split( '.' );
+	let model = this.root;
+	let key;
+
+	while ( key = keys.shift() ) {
+		model = model.join( key );
 	}
 
-	return getByTemplate( this, reference, context );
-
-
+	return model;
 }
 
-function getByString ( viewmodel, keypath, context ) {
-
-	if ( !keypath ) {
-		return viewmodel.root;
-	}
-
-	// TODO: stop-gap until contextStack goes into fragments
-	var context = {
-		parentFragment: viewmodel.ractive.fragment || {
-			root: viewmodel.ractive
-		}
-	};
-
-	return getReferenceModel( viewmodel, keypath, context);
-}
-
-function getByTemplate ( viewmodel, reference, context ) {
+// TEMP export this so mustache can use it
+export function getByTemplate ( viewmodel, reference, context ) {
 
 	var model;
 

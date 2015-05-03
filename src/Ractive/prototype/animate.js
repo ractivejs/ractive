@@ -116,16 +116,18 @@ export default function Ractive$animate ( keypath, to, options ) {
 }
 
 function animate ( root, keypath, to, options ) {
-	var model, easing, duration, animation, from;
+	var context, easing, duration, animation, from;
 
 	if ( keypath ) {
-		model = root.viewmodel.getModel( keypath );
-		from = root.viewmodel.get( model );
-	}
+		// TODO revisit 'dummy' approach to handling multiple
+		// animations? this seems kind of hokey
+		context = root.viewmodel.getModel( keypath );
+		from = root.viewmodel.get( context );
 
-	// cancel any existing animation
-	// TODO what about upstream/downstream keypaths?
-	animations.abort( model, root );
+		// cancel any existing animation
+		// TODO what about upstream/downstream keypaths?
+		animations.abort( context, root );
+	}
 
 	// don't bother animating values that stay the same
 	if ( isEqual( from, to ) ) {
@@ -156,7 +158,7 @@ function animate ( root, keypath, to, options ) {
 
 	// TODO store keys, use an internal set method
 	animation = new Animation({
-		keypath: model,
+		context,
 		from,
 		to,
 		root,

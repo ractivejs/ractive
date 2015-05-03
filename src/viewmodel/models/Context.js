@@ -774,7 +774,14 @@ Context.prototype = {
 		return model;
 	},
 
-}
+	unbind () {
+		console.warn( 'TODO is Context#unbind necessary?' );
+		this.dependants = null;
+		this.listDependants = null;
+		this.watchers = null;
+		this.unresolved = null;
+	}
+};
 
 const noopStore = {};
 
