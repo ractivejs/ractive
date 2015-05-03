@@ -17,7 +17,7 @@ export default function Section$update () {
 		this.fragmentsToUnrender = null;
 	}
 
-	if ( splice = this.fragmentsToAdd ) {
+	if ( splice = this.fragmentsToSplice ) {
 		// Render new fragments (but don't insert them yet)
 		for( i = 2, len = splice.length; i < len; i++ ) {
 			domFragment = splice[i].render();
@@ -26,7 +26,7 @@ export default function Section$update () {
 			}
 		}
 
-		this.fragmentsToAdd = null;
+		this.fragmentsToSplice = null;
 	}
 
 	if ( rendered && this.docFrag.childNodes.length ) {
@@ -37,6 +37,8 @@ export default function Section$update () {
 			let next = splice[0] + splice.length - 2;
 			let fragment = this.fragments[ next ];
 
+			// TODO: not sure if this is 100% reliable.
+			// Will first item always have a node?
 			if ( fragment && fragment.items.length ) {
 				anchor = fragment.items[0].node;
 			}

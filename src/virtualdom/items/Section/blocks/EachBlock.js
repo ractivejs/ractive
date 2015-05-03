@@ -37,9 +37,25 @@ class EachBlock {
 
 		// longer? add new ones
 		else {
-			let i, fragments = section.fragments;
+			let i, toSplice, fragments = section.fragments;
+
+			// fragments.length = newLength
+
+			if ( section.rendered ) {
+				toSplice = new Array(newLength - currentLength + 2)
+				toSplice[0] = currentLength;
+				toSplice[1] = 0;
+			}
+
 			for ( i = currentLength; i < newLength; i += 1 ) {
 				fragments[i] = this.createFragment( i );
+				if ( toSplice ) {
+					toSplice[ i - currentLength + 2 ] = fragments[i];
+				}
+			}
+
+			if ( toSplice ) {
+				section.fragmentsToSplice = toSplice;
 			}
 		}
 
@@ -75,7 +91,7 @@ class EachBlock {
 				arg++;
 			}
 
-			section.fragmentsToAdd = args;
+			section.fragmentsToSplice = args;
 		}
 
 		removed = section.fragmentsToUnrender = fragments.splice.apply( fragments, args );

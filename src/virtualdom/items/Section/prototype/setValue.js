@@ -199,7 +199,10 @@ function addSingleFragment ( section, fragmentOptions, includeContext ) {
 	}
 	fragmentOptions.index = 0;
 	fragment = new Fragment( fragmentOptions );
-	section.fragmentsToAdd = [ 0, 0, ( section.fragments[0] = fragment ) ];
+	section.fragments[0] = fragment;
+	if ( section.rendered ) {
+		section.fragmentsToSplice = [ 0, 0, fragment ];
+	}
 }
 
 function reevaluateConditionalSection ( section, value, inverted, fragmentOptions ) {
@@ -258,6 +261,8 @@ function removeSectionFragments ( section, fragments = section.fragments ) {
 	}
 
 	section.fragmentsToUnrender = fragments;
+	section.fragments = [];
+	section.length = 0;
 	return true;
 }
 

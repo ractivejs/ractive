@@ -30,9 +30,8 @@ var Section = function ( options ) {
 	this.block = null;
 
 	this.fragments = [];
-	this.fragmentsToCreate = [];
-	this.fragmentsToRender = [];
-	this.fragmentsToUnrender = [];
+	this.fragmentsToSplice = null;
+	this.fragmentsToUnrender = null;
 
 	this.indexRefs = null;
 	this.indices = null

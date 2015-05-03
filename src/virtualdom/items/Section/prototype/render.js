@@ -6,7 +6,6 @@ export default function Section$render () {
 		docFrag.appendChild( fragments[i].render() );
 	}
 
-	this.fragmentsToRender = [];
 	this.rendered = true;
 
 	return this.docFrag;
