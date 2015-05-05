@@ -288,3 +288,26 @@ test( 'shifting an empty array', t => {
 
 	ractive.shift( 'items' );
 });
+
+test( 'reactive.push() with nested arrays (#1850)', function ( t ) {
+	var items, reactive;
+
+	var items = [{"list": [{item: '1'}] }];
+
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{#items}}Items: <ul>{{#list}}<li>List item: {{item}}</li>{{/list}}</ul>{{/items}}',
+		data: { items:items }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'Items: <ul><li>List item: 1</li></ul>' );
+
+	// we add new element to items
+	items.push({list:[{item: '1'}]});
+
+	t.htmlEqual( fixture.innerHTML, 'Items: <ul><li>List item: 1</li></ul>Items: <ul><li>List item: 1</li></ul>' );
+
+	items[0].list.push({item: '2'});
+
+	t.htmlEqual( fixture.innerHTML, 'Items: <ul><li>List item: 1</li><li>List item: 2</li></ul>Items: <ul><li>List item: 1</li></ul>' );
+});

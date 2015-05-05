@@ -24,7 +24,40 @@ mutatorMethods.forEach( function ( methodName ) {
 		// trigger changes
 		runloop.start();
 
-		this._ractive.setting = true;
+		// set _ractive.setting to given value on all arrays inside obj
+		var setSetting = function(obj, value, parents){
+			parents = parents || [];
+
+			// check if we have an object
+			if( !obj || typeof obj !== "object" ){
+			    return;
+			}
+
+			// check if object have _ractive property
+			if(typeof obj._ractive !== 'undefined') {
+				obj._ractive.setting = value;
+			}
+
+			// detect and break circular references
+			for (var i = parents.length - 1; i >= 0; i--) {
+				if(parents[i] === obj) {
+					return;
+				}
+			};
+
+			// save visted obj
+			parents.push(obj); 
+
+			// recurse
+			for(var prop in obj ) {
+				if( obj.hasOwnProperty( prop ) ) {
+					setSetting(obj[ prop ], value);
+				}
+			}
+		}
+
+		setSetting(this, true);
+
 		i = this._ractive.wrappers.length;
 		while ( i-- ) {
 			wrapper = this._ractive.wrappers[i];
@@ -35,7 +68,8 @@ mutatorMethods.forEach( function ( methodName ) {
 
 		runloop.end();
 
-		this._ractive.setting = false;
+		setSetting(this, false);
+
 		return result;
 	};
 
