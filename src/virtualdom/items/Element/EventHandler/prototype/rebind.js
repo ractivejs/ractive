@@ -1,9 +1,6 @@
 export default function EventHandler$rebind ( oldKeypath, newKeypath ) {
 	var fragment;
 	if ( this.method ) {
-		fragment = this.element.parentFragment;
-		this.refResolvers.forEach( rebind );
-
 		return;
 	}
 

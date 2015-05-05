@@ -2,7 +2,6 @@ import { unbind } from 'shared/methodCallers';
 
 export default function EventHandler$unbind () {
 	if ( this.method ) {
-		this.refResolvers.forEach( unbind );
 		return;
 	}
 

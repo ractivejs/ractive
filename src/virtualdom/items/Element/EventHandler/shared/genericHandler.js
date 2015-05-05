@@ -1,19 +1,15 @@
-import findIndexRefs from 'virtualdom/items/shared/Resolvers/findIndexRefs';
+import getSpecialsReferences from 'shared/getSpecialsReferences';
 
 export default function genericHandler ( event ) {
-	var storage, handler, indices, index = {};
-
-	storage = this._ractive;
-	handler = storage.events[ event.type ];
-
-	if ( indices = findIndexRefs( handler.element.parentFragment ) ) {
-		index = findIndexRefs.resolve( indices );
-	}
+	const storage = this._ractive,
+		  handler = storage.events[ event.type ],
+		  specials = getSpecialsReferences( handler.element.parentFragment );
 
 	handler.fire({
 		node: this,
 		original: event,
-		index: index,
+		index: specials.index,
+		key: specials.key,
 		keypath: storage.keypath.getKeypath(),
 		context: storage.keypath.get()
 	});

@@ -1,8 +1,9 @@
 class AliasWrapper {
 
-	constructor ( context, aliases ) {
+	constructor ( context, references ) {
 		this.context = context;
-		this.aliases = aliases;
+		this.aliases = references.aliases;
+		this.specials = references.specials;
 	}
 
 	alias ( keypath ) {
@@ -11,6 +12,14 @@ class AliasWrapper {
 			return alias;
 		}
 		return keypath;
+	}
+
+	getKeypath () {
+		return this.context.getKeypath();
+	}
+
+	get () {
+		return this.context.get();
 	}
 
 	join ( keypath ) {

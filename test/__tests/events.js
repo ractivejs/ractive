@@ -412,7 +412,7 @@ test( 'Splicing arrays correctly modifies proxy events', t => {
 	});
 
 	ractive.on( 'remove', function ( event, num ) {
-		this.get( 'buttons' ).splice( num, 1 );
+		this.splice( 'buttons', num, 1 );
 	});
 
 	t.equal( ractive.findAll( 'button' ).length, 5 );
@@ -466,7 +466,7 @@ test( 'Splicing arrays correctly modifies two-way bindings', t => {
 	t.equal( !!ractive.get( 'items.1.done' ), true );
 	t.equal( !!ractive.get( 'items.2.done' ), false );
 
-	items.shift();
+	ractive.shift('items');
 
 	// 13-14
 	t.equal( ractive.nodes.input_0.checked, true );

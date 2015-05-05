@@ -32,7 +32,6 @@ export default function EventHandler$init ( element, name, template ) {
 		ractive = this.root;
 
 		// Create resolvers for each reference
-		this.refResolvers = [];
 		refs.forEach(( ref, i ) => {
 			let match, model;
 
@@ -45,7 +44,7 @@ export default function EventHandler$init ( element, name, template ) {
 			}
 
 			else {
-				this.refResolvers[i] = model = resolveRef( this.root, ref, this );
+				model = resolveRef( this.root, ref, this.parentFragment );
 				this.resolve( i, model );
 
 			}

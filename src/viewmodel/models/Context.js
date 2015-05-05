@@ -946,12 +946,7 @@ class Reference extends Context {
 
 	getJoinModel () {
 		this.resolve();
-		let resolved = this.resolved;
-		if ( !resolved ) {
-			// TODO:  create new Unresolved() ????
-			throw new Error('Reference getJoinModel called without resolved.');
-		}
-		return resolved;
+		return this.resolved;
 	}
 
 	createChild ( key ) {

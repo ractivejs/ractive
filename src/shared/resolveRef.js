@@ -1,6 +1,7 @@
 import { normalise } from 'shared/keypaths';
 import Unresolved from 'viewmodel/models/Unresolved';
 import getInnerContext from 'shared/getInnerContext';
+import getContextStack from 'shared/getContextStack';
 
 export default function resolveRef ( ractive, ref, fragment ) {
 	var keypath, viewmodel = ractive.viewmodel;
@@ -59,6 +60,7 @@ function resolveAncestorRef ( context, ref ) {
 }
 
 function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
+
 	var stack = getContextStack( fragment ), chain, context, model, first = true,
 		// temp until figure out bcuz logic already in keypath
 		firstKey = keypath.split( '.' )[0];
@@ -143,57 +145,3 @@ function getUnresolved ( chain, key, keypath, viewmodel ) {
     return model;
 }
 
-function getContextStack ( fragment ){
-
-	return function iterator () {
-		var nextFragment, root, iterator;
-
-		function assignFragment ( fragment ) {
-			nextFragment = fragment;
-			root = fragment.root;
-		}
-
-
-		function getNextContext() {
-			var context;
-
-			while ( !context && nextFragment ) {
-				context = nextFragment.context;
-				nextFragment = nextFragment.parent;
-			}
-
-			return context;
-		}
-
-		function getRoot(){
-			var context;
-			if ( !root ) { return; }
-
-			context = root.viewmodel.root;
-
-			if ( root.parent && !root.isolated ) {
-				iterator.hasContextChain = true;
-				assignFragment( root.component.parentFragment );
-			}
-			else {
-				root = null;
-			}
-
-			return context;
-		}
-
-		assignFragment( fragment );
-
-		iterator = {
-			next () {
-				var value = getNextContext() || getRoot();
-				return {
-					value: value,
-					done: !value
-				};
-			}
-		};
-
-		return iterator;
-	};
-}

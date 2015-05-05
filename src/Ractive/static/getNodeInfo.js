@@ -1,20 +1,19 @@
-import findIndexRefs from 'virtualdom/items/shared/Resolvers/findIndexRefs';
+import getSpecialsReferences from 'shared/getSpecialsReferences';
 
 export default function( node ) {
-	var info = {}, priv, indices;
+	var storage, specials;
 
-	if ( !node || !( priv = node._ractive ) ) {
-		return info;
+	if ( !node || !( storage = node._ractive ) ) {
+		return {};
 	}
 
-	info.ractive = priv.root;
-	info.keypath = priv.keypath.getKeypath();
-	info.index = {};
+	specials = getSpecialsReferences( storage.proxy.parentFragment );
 
-	// find all index references and resolve them
-	if ( indices = findIndexRefs( priv.proxy.parentFragment ) ) {
-		info.index = findIndexRefs.resolve( indices );
-	}
+	return {
+		ractive: storage.root,
+		keypath: storage.keypath.getKeypath(),
+		index: specials.index,
+		key: specials.key
+	};
 
-	return info;
 }

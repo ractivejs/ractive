@@ -123,27 +123,35 @@ function changeCurrentSubtype ( section, value, obj ) {
 	section.currentSubtype = value;
 }
 
-function createAliases ( section, specials ) {
-	let indices, aliases;
+function createSpecialsAliases ( section, references ) {
+	var indices, result;
+
 	if ( indices = section.indices ) {
-		aliases = {};
+		result = { aliases: {}, specials: {} };
+		let aliases = result.aliases, specials = result.specials;
+
 		if ( indices[0] ) {
-			aliases[ indices[0] ] = specials[0]
+			aliases[ indices[0] ] = references[0];
+			specials[ references[0] ] = indices[0];
 		}
+
 		if ( indices[1] ) {
-			aliases[ indices[1] ] = specials[1]
+			aliases[ indices[1] ] = references[1]
+			if ( !specials[ references[1] ] ) {
+				specials[ references[1] ] = indices[1];
+			}
 		}
 	}
-	return aliases;
+	return result;
 }
 
 function createListEachBlock ( section, fragmentOptions, aliases ) {
-	var aliases = createAliases( section, [ '@index', '@index' ] );
+	var aliases = createSpecialsAliases( section, [ '@index', '@index' ] );
 	return createEachBlock( section, 'list', fragmentOptions, aliases );
 }
 
 function createObjectEachBlock ( section, fragmentOptions, aliases ) {
-	var aliases = createAliases( section, [ '@key', '@index' ] );
+	var aliases = createSpecialsAliases( section, [ '@key', '@index' ] );
 	return createEachBlock( section, 'hash', fragmentOptions, aliases );
 }
 
