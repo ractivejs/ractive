@@ -39,13 +39,18 @@ class Unresolved extends Context {
 			this.properties = null;
 		}
 
-		// TODO: I don't think members can happen so don't need transfered???
-
 		if ( deps = this.dependants ) {
 			while ( dep = deps.pop() ) {
 				model.register( dep.dependant, dep.type );
 			}
 			this.dependants = null;
+		}
+
+		if ( deps = this.listDependants ) {
+			while ( dep = deps.pop() ) {
+				model.listRegister( dep.dependant, dep.type );
+			}
+			this.listDependants = null;
 		}
 	}
 
@@ -127,9 +132,36 @@ class Unresolved extends Context {
 		}
 	}
 
+	listRegister ( dependant, type = 'default' ) {
+
+		if ( this.realModel ) {
+			return this.realModel.listRegister( dependant, type );
+		}
+
+		( this.listDependants || ( this.listDependants = [] ) ).push({
+			type: type,
+			dependant: dependant
+		});
+	}
+
+	listUnregister ( dependant, type = 'default' ) {
+
+		if ( this.realModel ) {
+			return this.realModel.listUnregister( dependant, type );
+		}
+
+		var deps, dep;
+
+		if( deps = this.listDependants ) {
+			if ( dep = deps.find( d => d.dependant === dependant) ) {
+				removeFromArray( deps, dep );
+			}
+		}
+	}
+
 	notify ( type ) {
 		if ( !this.realModel ) {
-			throw new Error('notify');
+			throw new Error('notify called on Unresolved');
 		}
 		this.realModel.notify( type );
 	}
@@ -143,14 +175,14 @@ class Unresolved extends Context {
 
 	indexJoin ( index, aliases ) {
 		if ( !this.realModel ) {
-			throw new Error('indexJoin');
+			throw new Error('indexJoin called on Unresolved');
 		}
 		return this.realModel.indexJoin ( index, aliases );
 	}
 
 	keyJoin ( key, index, aliases ) {
 		if ( !this.realModel ) {
-			throw new Error('keyJoin');
+			throw new Error('keyJoin called on Unresolved');
 		}
 		return this.realModel.keyJoin ( key, index, aliases );
 	}

@@ -61,7 +61,7 @@ function resolveAncestorRef ( context, ref ) {
 
 function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 
-	var stack = getContextStack( fragment ), chain, context, model, first = true,
+	var stack = getContextStack( fragment ), chain, context, model, first = null,
 		// temp until figure out bcuz logic already in keypath
 		firstKey = keypath.split( '.' )[0];
 
@@ -71,14 +71,15 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 	for ( var _iterator = stack/*[Symbol.iterator]*/(), _step; !(_step = _iterator.next()).done; ) {
 		context = _step.value;
 
-		if( first ) {
-			first = false;
+		if( !first ) {
+			first = context;
 			if ( context.unresolved && ( model = context.unresolved[ firstKey ] ) ) {
 				return model;
 			}
 		}
 
 		chain = {
+			first: first,
             current: context,
             previous: chain
         };
@@ -107,32 +108,35 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 }
 
 function getUnresolved ( chain, key, keypath, viewmodel ) {
-	var watchers = [], model, resolve, context, resolvedChain = chain, unresolved;
+	var watchers = [], model, resolve, context, resolveChain, unresolved;
 
 	// TODO: handle rest of multi-part model for full keypath, "foo.bar.qux"
 	// by adding children
 	model = new Unresolved( key, viewmodel );
 
-	unresolved = chain.current.unresolved || ( chain.current.unresolved = {} );
-
+	unresolved = chain.first.unresolved || ( chain.first.unresolved = {} );
 	unresolved[ key ] = model;
+
+	resolveChain = chain;
 
 	resolve = function ( resolvedContext ) {
 
 		var current;
 
-		while(resolvedChain){
-	        current = resolvedChain.current;
-	        resolvedChain = resolvedChain.previous;
+		while(resolveChain){
+	        current = resolveChain.current;
+	        resolveChain = resolveChain.previous;
 	        current.removeWatcher( key, resolve );
-	        delete unresolved[ key ];
 	    }
 
+	    delete unresolved[ key ];
+
+	    // TODO: change to keypath instead of model.key
 		model.resolve( resolvedContext.join( model.key ) );
 	}
 
 
-	while(chain){
+	while ( chain ) {
         context = chain.current;
         chain = chain.previous;
         context.addWatcher( key, resolve );

@@ -167,6 +167,7 @@ function createEachBlock ( section, type, fragmentOptions, aliases ) {
 		// unrender fragments, we'll start over with new EachBlock...
 		else {
 			block.unrender();
+			section.context.listUnregister( block );
 		}
 	}
 
