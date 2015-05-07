@@ -108,7 +108,7 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 }
 
 function getUnresolved ( chain, key, keypath, viewmodel ) {
-	var watchers = [], model, resolve, context, resolveChain, unresolved;
+	var watchers = [], model, resolve, context, resolveChain, unresolved, farthest;
 
 	// TODO: handle rest of multi-part model for full keypath, "foo.bar.qux"
 	// by adding children
@@ -135,6 +135,9 @@ function getUnresolved ( chain, key, keypath, viewmodel ) {
 		model.resolve( resolvedContext.join( model.key ) );
 	}
 
+	// TODO: just get rid of farthest and use
+	// chain.first to resolve to closest context
+	farthest = chain.current;
 
 	while ( chain ) {
         context = chain.current;
@@ -143,7 +146,7 @@ function getUnresolved ( chain, key, keypath, viewmodel ) {
     }
 
 	model.setForceResolve( function(){
-		resolve( context );
+		resolve( farthest );
 	});
 
     return model;

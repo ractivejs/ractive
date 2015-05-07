@@ -44,9 +44,6 @@ var Binding = function ( element ) {
 		// updating. Using it in lists is probably a recipe for confusion...
 		let ref = interpolator.template.r ? `'${interpolator.template.r}' reference` : 'expression';
 		warnIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref, { ractive: this.root });
-
-		// TODO is this the correct way to force resolution?
-		keypath.resolve( this.root.viewmodel.getModel( keypath.key ) );
 	}
 
 	this.attribute.isTwoway = true;

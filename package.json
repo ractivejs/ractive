@@ -73,9 +73,9 @@
   "devDependencies": {
     "cheerio": "^0.18.0",
     "esperanto": "^0.6.32",
-    "gobble": "^0.9.2",
+    "gobble": "^0.10.1",
     "gobble-babel": "^4.0.0",
-    "gobble-cli": "^0.4.1",
+    "gobble-cli": "^0.4.2",
     "gobble-esperanto": "^0.2.4",
     "gobble-esperanto-bundle": "^0.1.7",
     "gobble-sorcery": "^0.3.0",
@@ -83,7 +83,7 @@
     "junk": "^1.0.1",
     "mocha": "^2.1.0",
     "phantomjs": "^1.9.15",
-    "promises-aplus-tests": "*",
+    "promises-aplus-tests": "^2.1.0",
     "sander": "^0.2.4",
     "sorcery": "^0.5.1",
     "uglify-js": "^2.4.16"

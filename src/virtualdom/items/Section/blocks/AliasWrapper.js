@@ -30,16 +30,16 @@ class AliasWrapper {
 		return this.context.tryJoin( this.alias( keypath ) );
 	}
 
-	register ( dependant ) {
-		return this.context.register( dependant );
+	register ( dependant, type ) {
+		return this.context.register( dependant, type );
 	}
 
 	unregister ( dependant ) {
 		return this.context.unregister( dependant );
 	}
 
-	listRegister ( dependant ) {
-		return this.context.listRegister( dependant );
+	listRegister ( dependant, type ) {
+		return this.context.listRegister( dependant, type );
 	}
 
 	listUnregister ( dependant ) {

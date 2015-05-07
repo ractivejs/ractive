@@ -45,8 +45,7 @@ lib = (function () {
 			banner: banner,
 			entry: 'Ractive.js',
 			name: 'Ractive',
-			dest: 'ractive-legacy.js'//,
-			// sourceMap: false
+			dest: 'ractive-legacy.js'
 		})
 	];
 
@@ -115,11 +114,6 @@ lib = (function () {
 	else {
 		lib.push( sandbox );
 	}
-
-	// Combine sourcemaps from babel and esperanto
-	// lib = lib.map( function ( node ) {
-	// 	return node.transform( 'sorcery' );
-	// });
 
 	return lib;
 })();
