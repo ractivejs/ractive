@@ -98,7 +98,7 @@ test( 'set triggers setMembers with array of contexts', t => {
 
 test( 'push shuffle', t => {
 
-	items.shuffle( 'push', 'd' );
+	items.shuffle( 'push', [ 'd' ] );
 	// simulate new bindings
 	indices[3] = createDependent( items.members[3], '@index' );
 	keys[3] = createDependent( items.members[3], '@key' );
@@ -115,7 +115,7 @@ test( 'push shuffle', t => {
 
 test( 'splice shuffle', t => {
 
-	items.shuffle( 'splice', 1, 1, 'd', 'e' );
+	items.shuffle( 'splice', [ 1, 1, 'd', 'e' ] );
 
 	indices = [
 		indices[0],
@@ -138,7 +138,7 @@ test( 'splice shuffle', t => {
 	t.equal( block.insert, 2 );
 
 
-	items.shuffle( 'splice', 0, 3 );
+	items.shuffle( 'splice', [ 0, 3 ] );
 	flush();
 	testContexts();
 

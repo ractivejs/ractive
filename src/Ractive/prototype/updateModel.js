@@ -1,30 +1,44 @@
 import { arrayContentsMatch } from 'utils/array';
 import { isEqual } from 'utils/is';
+import runloop from 'global/runloop';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
-	var values, key, bindings;
+
+	const promise = runloop.start( this, true );
+	let bindings;
 
 	if ( typeof keypath === 'string' && !cascade ) {
 		bindings = this._twowayBindings[ keypath ];
 	} else {
+		const rootKeypath = ( keypath == null || keypath === '' ),
+			  twoway = this._twowayBindings,
+			  keys = Object.keys( twoway ),
+			  length = keys.length;
+
+		let i, key;
+
 		bindings = [];
 
-		for ( key in this._twowayBindings ) {
-			if ( !keypath || this.viewmodel.getModel( key ).equalsOrStartsWith( keypath ) ) { // TODO is this right?
-				bindings.push.apply( bindings, this._twowayBindings[ key ]);
+		for ( i = 0; i < length; i++ ) {
+			key = keys[i];
+			if ( rootKeypath || key.lastIndexOf( keypath, 0 ) === 0 ) {
+				bindings.push.apply( bindings, twoway[ key ] );
 			}
 		}
 	}
 
-	values = consolidate( this, bindings );
-	return this.set( values );
+	setValues( bindings );
+
+	runloop.end();
+
+	return promise;
 }
 
-function consolidate ( ractive, bindings ) {
+function setValues ( bindings ) {
 	var values = {}, checkboxGroups = [];
 
 	bindings.forEach( b => {
-		var oldValue, newValue;
+		var oldValue, newValue, context = b.keypath;
 
 		// special case - radio name bindings
 		if ( b.radioName && !b.element.node.checked ) {
@@ -34,9 +48,11 @@ function consolidate ( ractive, bindings ) {
 		// special case - checkbox name bindings come in groups, so
 		// we want to get the value once at most
 		if ( b.checkboxName ) {
-			if ( !checkboxGroups[ b.keypath.getKeypath() ] && !b.changed() ) {
-				checkboxGroups.push( b.keypath );
-				checkboxGroups[ b.keypath.getKeypath() ] = b;
+			let keypath = context.getKeypath();
+
+			if ( !checkboxGroups[ keypath ] && !b.changed() ) {
+				checkboxGroups.push( context );
+				checkboxGroups[ keypath ] = b;
 			}
 
 			return;
@@ -50,7 +66,7 @@ function consolidate ( ractive, bindings ) {
 		}
 
 		if ( !isEqual( oldValue, newValue ) ) {
-			values[ b.keypath.getKeypath() ] = newValue;
+			context.set( newValue );
 		}
 	});
 
@@ -64,10 +80,8 @@ function consolidate ( ractive, bindings ) {
 			newValue = binding.getValue();
 
 			if ( !arrayContentsMatch( oldValue, newValue ) ) {
-				values[ model.getKeypath() ] = newValue;
+				model.set( newValue );
 			}
 		});
 	}
-
-	return values;
 }

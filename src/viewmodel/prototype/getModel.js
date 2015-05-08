@@ -6,22 +6,19 @@ import StateStore from '../stores/StateStore';
 import { REFERENCE } from 'config/types';
 import resolveRef from 'shared/resolveRef';
 
-// TODO getModel -> getContext?
+// TODO getModel -> getContext? YEP!
 export default function Viewmodel$getModel ( keypath ) {
-	// don't think this is used...
-	if ( keypath == null ) {
-		throw new Error( 'no reference!' );
-	}
 
-	let keys = keypath.split( '.' );
-	let model = this.root;
-	let key;
+	if ( keypath == null || keypath === '' ) {
+ 		return this.root;
+ 	}
 
-	while ( key = keys.shift() ) {
-		model = model.join( key );
-	}
+ 	// TODO: stop-gap until contextStack goes into fragments
+ 	var context = {
+ 		parentFragment: this.ractive.fragment || { root: this.ractive }
+ 	};
 
-	return model;
+ 	return getReferenceModel( this, keypath, context);
 }
 
 // TEMP export this so mustache can use it
@@ -45,11 +42,7 @@ export function getByTemplate ( viewmodel, reference, context ) {
 }
 
 function getReferenceModel( viewmodel, reference, context ) {
-
-
 	return resolveRef( viewmodel.ractive, reference, context.parentFragment );
-
-
 }
 
 function getExpressionModel( viewmodel, reference, context ) {

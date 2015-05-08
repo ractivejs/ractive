@@ -61,11 +61,11 @@ Context.prototype = {
 	},
 
 	join ( keypath ) {
-		return this.doJoin( ( '' + keypath ).split( '.' ), false, true );
+		return this.doJoin( toKeys( keypath ), false, true );
 	},
 
 	tryJoin ( keypath ) {
-		return this.doJoin( ( '' + keypath ).split( '.' ), true, true );
+		return this.doJoin( toKeys( keypath ), true, true );
 	},
 
 	doJoin ( keys, testFirstKey = false, firstKey = false ) {
@@ -243,10 +243,8 @@ Context.prototype = {
 
 	setMember ( index, value ) {
 
-		var members, array;
-
-		members = this.getOrCreateMembers();
-		array = this.get();
+		const members = this.getOrCreateMembers(),
+			  array = this.get();
 
 		// TODO: more on this: null, etc.
 		if( !members || !isArray( array ) ) {
@@ -254,13 +252,7 @@ Context.prototype = {
 		}
 
 		this.store.setChild( index, value );
-		// MUST TODO: this should be a set value on
-		// existing member so we don't lose binding
-		// ???
-		this.members[ index ] = this.createArrayMemberChild( array[ index ], index );
-
-		this.resetArrayMemberReference( index );
-
+		this.updateOrCreateArrayMember( index, value );
 		this.cascade( true );
 	},
 
@@ -324,9 +316,7 @@ Context.prototype = {
 					}
 
 					// clean up any explicit member refs
-					if ( i < oldLength ) {
-						this.resetArrayMemberReference( i );
-					}
+					this.resetArrayMemberReference( i );
 
 					i++;
 				}
@@ -446,6 +436,7 @@ Context.prototype = {
 		// TODO: deal with type shift on Reconcile
 		// need to clean up hash watcher
 		if ( isArray( value ) ) {
+			this.removeHashWatcher();
 			return this.createOrReconcileArrayMembers( value );
 		}
 		else if ( isObject( value ) ) {
@@ -460,7 +451,8 @@ Context.prototype = {
 
 	createOrReconcileArrayMembers ( value ) {
 
-		let i = -1, l = value.length, members = this.members, member;
+		const l = value.length;
+		let i = -1, members = this.members, member;
 
 		// create new array
 		if( !members || this.isHashList ) {
@@ -484,18 +476,22 @@ Context.prototype = {
 		this.isHashList = false;
 
 		while ( ++i < l ) {
-			// update existing value
-			if ( ( member = members[i] ) ) {
-				member.set( value[i] );
-			}
-			// add new value as a member
-			else {
-				members[i] = this.createArrayMemberChild( value[i], i );
-				this.resetArrayMemberReference( i );
-			}
+			this.updateOrCreateArrayMember( i, value[i] );
 		}
 
 		return members;
+	},
+
+	updateOrCreateArrayMember ( index, value ) {
+		const members = this.members, member = members[ index ];
+
+		if ( member ) {
+			member.set( value );
+		}
+		else {
+			members[ index ] = this.createArrayMemberChild( value, index );
+			this.resetArrayMemberReference( index );
+		}
 	},
 
 	createOrReconcileHashMembers ( value ) {
@@ -1022,6 +1018,10 @@ class ArrayMemberReference extends Reference {
 	set ( value ) {
 		this.parent.setMember( this.index, value );
 	}
+}
+
+function toKeys ( keypath ) {
+	return isArray( keypath ) ? keypath : ( '' + keypath ).split( '.' );
 }
 
 function hasChildFor ( value, key ) {

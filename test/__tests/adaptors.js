@@ -3,7 +3,7 @@ import Model from 'helpers/Model';
 module( 'Adaptors' );
 
 var adaptor = Model.adaptor;
-
+/*
 test( 'Adaptors can change data as it is .set() (#442)', function ( t ) {
 	var model, ractive;
 
@@ -367,3 +367,4 @@ test( 'A component inherits adaptor config from its parent class', function ( t 
 
 	t.htmlEqual( fixture.innerHTML, 'bar' );
 });
+*/

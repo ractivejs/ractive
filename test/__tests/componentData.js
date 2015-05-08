@@ -162,7 +162,7 @@ test( 'Parent data overrides child data during child model creation', t => {
 });
 
 test( 'Regression test for #317', t => {
-	var Widget, widget, ractive, items;
+	var Widget, widget, ractive;
 
 	Widget = Ractive.extend({
 		template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
@@ -180,17 +180,15 @@ test( 'Regression test for #317', t => {
 		}
 	});
 
-	items = ractive.get( 'items' );
-
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
 
-	items.push( 'e' );
+	ractive.push( 'items', 'e' );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li><li>4: e</li></ul><p>a b c d e</p>' );
 
-	items.splice( 2, 1 );
+	ractive.splice( 'items', 2, 1 );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li><li>3: e</li></ul><p>a b d e</p>' );
 
-	items.pop();
+	ractive.pop( 'items' );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: d</li></ul><p>a b d</p>' );
 
 	ractive.set( 'items[0]', 'f' );
@@ -199,15 +197,14 @@ test( 'Regression test for #317', t => {
 
 	// reset items from within widget
 	widget.set( 'items', widget.get( 'items' ).slice() );
-	items = ractive.get( 'items' );
 
-	items.push( 'g' );
+	widget.push( 'items', 'g' );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li><li>3: g</li></ul><p>f b d g</p>' );
 
-	items.splice( 1, 1 );
+	widget.splice( 'items', 1, 1 );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li><li>2: g</li></ul><p>f d g</p>' );
 
-	items.pop();
+	widget.pop( 'items' );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: d</li></ul><p>f d</p>' );
 
 	widget.set( 'items[0]', 'h' );
@@ -563,7 +560,7 @@ test( 'Index references propagate down to non-isolated components', t => {
 
 	t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: b</p><p>2: c</p>' );
 
-	ractive.get( 'items' ).splice( 1, 1 );
+	ractive.splice( 'items', 1, 1 );
 	t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 });
 
@@ -581,7 +578,7 @@ test( 'Index references passed via @index propagate down to non-isolated compone
 
 	t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: b</p><p>2: c</p>' );
 
-	ractive.get( 'items' ).splice( 1, 1 );
+	ractive.splice( 'items', 1, 1 );
 	t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 });
 
@@ -870,8 +867,11 @@ test( 'Reference expressions default to two-way binding (#996)', function ( t ) 
 	t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Angela', age: 30 }] );
 
 	ractive.unshift( 'rows', { name: 'Bob', age: 54 });
+
+	// TODO: need to get live queries to recompute. tag: keypaths-ftw
 	widgets[0].find( 'input' ).value = 'Brian';
 	widgets[0].updateModel();
+
 	t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Brian', age: 54 }, { name: 'Angela', age: 30 }] );
 });
 

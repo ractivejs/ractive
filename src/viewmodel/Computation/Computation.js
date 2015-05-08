@@ -80,7 +80,7 @@ class Computation {
 				try {
 					this.value = this.getter();
 				} catch ( err ) {
-					warnIfDebug( 'Failed to compute "%s"', this.key.str );
+					warnIfDebug( 'Failed to compute "%s"', this.model.getKeypath() );
 					logIfDebug( err.stack || err );
 					this.value = void 0;
 				}

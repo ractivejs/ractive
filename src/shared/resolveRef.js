@@ -63,7 +63,7 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 
 	var stack = getContextStack( fragment ), chain, context, model, first = null,
 		// temp until figure out bcuz logic already in keypath
-		firstKey = keypath.split( '.' )[0];
+		keys = keypath.split( '.' ), firstKey = keys[0];
 
 	// We have to try the context stack from the bottom up.
 	// Closer contexts have precedence.
@@ -74,7 +74,12 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 		if( !first ) {
 			first = context;
 			if ( context.unresolved && ( model = context.unresolved[ firstKey ] ) ) {
-				return model;
+				if ( firstKey === keypath ) {
+					return model;
+				}
+				else {
+					return model.join( keys.slice(1) );
+				}
 			}
 		}
 
@@ -108,7 +113,7 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 }
 
 function getUnresolved ( chain, key, keypath, viewmodel ) {
-	var watchers = [], model, resolve, context, resolveChain, unresolved, farthest;
+	var watchers = [], model, resolve, context, resolveChain, unresolved, first;
 
 	// TODO: handle rest of multi-part model for full keypath, "foo.bar.qux"
 	// by adding children
@@ -135,9 +140,10 @@ function getUnresolved ( chain, key, keypath, viewmodel ) {
 		model.resolve( resolvedContext.join( model.key ) );
 	}
 
-	// TODO: just get rid of farthest and use
-	// chain.first to resolve to closest context
-	farthest = chain.current;
+	// // TODO: just get rid of farthest and use
+	// // chain.first to resolve to closest context
+	// farthest = chain.current;
+	first = chain.first;
 
 	while ( chain ) {
         context = chain.current;
@@ -146,7 +152,7 @@ function getUnresolved ( chain, key, keypath, viewmodel ) {
     }
 
 	model.setForceResolve( function(){
-		resolve( farthest );
+		resolve( first );
 	});
 
     return model;

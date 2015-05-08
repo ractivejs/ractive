@@ -37,10 +37,9 @@ export default function Section$update () {
 			let next = splice[0] + splice.length - 2;
 			let fragment = this.fragments[ next ];
 
-			// TODO: not sure if this is 100% reliable.
-			// Will first item always have a node?
-			if ( fragment && fragment.items.length ) {
-				anchor = fragment.items[0].node;
+			// TODO: not sure if this is 100% reliable
+			if ( fragment ) {
+				anchor = fragment.firstNode();
 			}
 		}
 

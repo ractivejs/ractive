@@ -6,7 +6,7 @@ class Unresolved extends Context {
 	constructor ( key, owner ) {
 		super( key, {} );
 		this.owner = owner;
-		this.realModel = null;
+		this.realContext = null;
 		this.forceResolve = null;
 
 		// TODO don't need both these do we (or either)?
@@ -15,40 +15,42 @@ class Unresolved extends Context {
 	}
 
 	isUnresolved () {
-		return !this.realModel;
+		return !this.realContext;
 	}
 
 	addChild ( child ) {
-		if ( !this.realModel ) {
+		if ( !this.realContext ) {
 			super.addChild( child );
 		} else {
-			this.realModel.addChild( child );
+			this.realContext.addChild( child );
 		}
 	}
 
-	resolve ( model ) {
+	resolve ( context ) {
 		var properties, child, deps, dep;
-		this.realModel = model;
+		this.realContext = context;
 		this.unresolved = false;
 		this.forceResolve = null;
 
 		if ( properties = this.properties ) {
 			while ( child = properties.pop() ) {
-				model.addChild( child );
+				context.addChild( child );
 			}
 			this.properties = null;
 		}
 
 		if ( deps = this.dependants ) {
 			while ( dep = deps.pop() ) {
-				model.register( dep.dependant, dep.type );
+				context.register( dep.dependant, dep.type );
+				markComputedIfDirty( context, dep );
 			}
 			this.dependants = null;
 		}
 
 		if ( deps = this.listDependants ) {
 			while ( dep = deps.pop() ) {
-				model.listRegister( dep.dependant, dep.type );
+				context.listRegister( dep.dependant, dep.type );
+				markComputedIfDirty( context, dep );
 			}
 			this.listDependants = null;
 		}
@@ -59,56 +61,54 @@ class Unresolved extends Context {
 	}
 
 	get ( options ) {
-		if ( this.realModel ) {
-			return this.realModel.get( options );
+		if ( this.realContext ) {
+			return this.realContext.get( options );
 		}
 	}
 
 	hasChild ( propertyOrIndex ) {
-		if ( ! this.realModel ) {
+		if ( ! this.realContext ) {
 			return false;
 		}
-		return this.realModel.hasChild( propertyOrIndex );
+		return this.realContext.hasChild( propertyOrIndex );
 	}
 
 	set ( value, options ) {
-		if ( !this.realModel ) {
+		if ( !this.realContext ) {
 			this.forceResolve();
 		}
-		return this.realModel.set( value, options );
+		return this.realContext.set( value, options );
 	}
 
 	getSettable ( propertyOrIndex ) {
-		if ( !this.realModel ) {
-			// TODO: see if this works
-			throw new Error( 'getSettable on unresolved Unresolved' );
+		if ( !this.realContext ) {
 			this.forceResolve();
 		}
-		return this.realModel.getSettable ( propertyOrIndex );
+		return this.realContext.getSettable ( propertyOrIndex );
 	}
 
 	getKeypath () {
-		return this.realModel ? this.realModel.getKeypath() : '$unresolved.' + this.key;
+		return this.realContext ? this.realContext.getKeypath() : '$unresolved.' + this.key;
 	}
 
 	mark ( /*options*/ ) {
-		if ( !this.realModel ) {
+		if ( !this.realContext ) {
 			throw new Error('mark');
 		}
-		return this.realModel.mark();
+		return this.realContext.mark();
 	}
 
 	cascade ( cascadeUpOnly ) {
-		if ( !this.realModel ) {
+		if ( !this.realContext ) {
 			throw new Error('cascade');
 		}
-		return this.realModel.cascade( cascadeUpOnly );
+		return this.realContext.cascade( cascadeUpOnly );
 	}
 
 	register ( dependant, type = 'default' ) {
 
-		if ( this.realModel ) {
-			return this.realModel.register( dependant, type );
+		if ( this.realContext ) {
+			return this.realContext.register( dependant, type );
 		}
 
 		( this.dependants || ( this.dependants = [] ) ).push({
@@ -119,8 +119,8 @@ class Unresolved extends Context {
 
 	unregister ( dependant, type = 'default' ) {
 
-		if ( this.realModel ) {
-			return this.realModel.unregister( dependant, type );
+		if ( this.realContext ) {
+			return this.realContext.unregister( dependant, type );
 		}
 
 		var deps, dep;
@@ -134,8 +134,8 @@ class Unresolved extends Context {
 
 	listRegister ( dependant, type = 'default' ) {
 
-		if ( this.realModel ) {
-			return this.realModel.listRegister( dependant, type );
+		if ( this.realContext ) {
+			return this.realContext.listRegister( dependant, type );
 		}
 
 		( this.listDependants || ( this.listDependants = [] ) ).push({
@@ -146,8 +146,8 @@ class Unresolved extends Context {
 
 	listUnregister ( dependant, type = 'default' ) {
 
-		if ( this.realModel ) {
-			return this.realModel.listUnregister( dependant, type );
+		if ( this.realContext ) {
+			return this.realContext.listUnregister( dependant, type );
 		}
 
 		var deps, dep;
@@ -160,33 +160,24 @@ class Unresolved extends Context {
 	}
 
 	notify ( type ) {
-		if ( !this.realModel ) {
+		if ( !this.realContext ) {
 			throw new Error('notify called on Unresolved');
 		}
-		this.realModel.notify( type );
+		this.realContext.notify( type );
 	}
 
-
-	join ( str ) {
-		if ( this.realModel ) {
-			return this.realModel.join( str );
+	join ( keypath ) {
+		if ( this.realContext ) {
+			return this.realContext.join( keypath );
 		}
+		return super.join( keypath );
 	}
+}
 
-	indexJoin ( index, aliases ) {
-		if ( !this.realModel ) {
-			throw new Error('indexJoin called on Unresolved');
-		}
-		return this.realModel.indexJoin ( index, aliases );
+function markComputedIfDirty ( context, dep ) {
+	if ( context.dirty && dep.type === 'computed' ) {
+		dep.dependant.mark();
 	}
-
-	keyJoin ( key, index, aliases ) {
-		if ( !this.realModel ) {
-			throw new Error('keyJoin called on Unresolved');
-		}
-		return this.realModel.keyJoin ( key, index, aliases );
-	}
-
 }
 
 export default Unresolved;
