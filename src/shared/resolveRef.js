@@ -1,5 +1,5 @@
 import { normalise } from 'shared/keypaths';
-import Unresolved from 'viewmodel/models/Unresolved';
+import UnresolvedContext from 'viewmodel/context/UnresolvedContext';
 import getInnerContext from 'shared/getInnerContext';
 import getContextStack from 'shared/getContextStack';
 
@@ -73,7 +73,8 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 
 		if( !first ) {
 			first = context;
-			if ( context.unresolved && ( model = context.unresolved[ firstKey ] ) ) {
+			if ( context.unresolved && context.unresolved.hasOwnProperty( firstKey )
+				&& ( model = context.unresolved[ firstKey ] ) ) {
 				if ( firstKey === keypath ) {
 					return model;
 				}
@@ -117,7 +118,7 @@ function getUnresolved ( chain, key, keypath, viewmodel ) {
 
 	// TODO: handle rest of multi-part model for full keypath, "foo.bar.qux"
 	// by adding children
-	model = new Unresolved( key, viewmodel );
+	model = new UnresolvedContext( key, viewmodel );
 
 	unresolved = chain.first.unresolved || ( chain.first.unresolved = {} );
 	unresolved[ key ] = model;

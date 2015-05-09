@@ -842,7 +842,7 @@ test( 'Two-way bindings on an unresolved key can force resolution', t => {
 		data: { context: {} }
 	});
 
-	ractive.set( 'value', 'hello' );
+	ractive.set( 'context.value', 'hello' );
 
 	t.equal( ractive.find( 'input' ).value, 'hello' );
 });

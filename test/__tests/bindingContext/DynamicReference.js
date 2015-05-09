@@ -1,5 +1,5 @@
-import DynamicReference from 'viewmodel/models/DynamicReference';
-import Root from 'viewmodel/models/Root';
+import DynamicContextReference from 'viewmodel/context/DynamicContextReference';
+import RootContext from 'viewmodel/context/RootContext';
 
 var root, base, ref, a, b;
 

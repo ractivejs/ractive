@@ -73,3 +73,30 @@ export function normalise ( ref ) {
 	return ref ? ref.replace( refPattern, '.$1' ) : '';
 }
 
+/*
+	join ( str ) {
+		if ( this.isRoot ) {
+			str = String( str );
+			if( str[0] === '.' ) {
+				// remove prepended with "." or "./"
+				str = str.replace( /^\.\/?/, '' );
+			}
+		}
+		else {
+			if ( str[0] === '.' ) {
+				// normalize prepended with "./"
+				str = this.str + str.replace( /^\.\//, '.' );
+			} else {
+				str = this.str + '.' + str;
+			}
+		}
+
+		// TODO: false positive for "0.4" - two numeric paths
+		if ( isNumber( str ) ) {
+			return this.indexJoin( +str );
+		}
+
+		return this.owner.getModel( str );
+	}
+*/
+

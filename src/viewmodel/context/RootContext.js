@@ -1,7 +1,7 @@
-import Context from './Context';
+import BindingContext from './BindingContext';
 import DataStore from '../stores/DataStore';
 
-class Root extends Context {
+class RootContext extends BindingContext {
 	constructor ( viewmodel, data ) {
 		super( '', new DataStore( data ) );
 		this.owner = viewmodel;
@@ -13,4 +13,4 @@ class Root extends Context {
 	}
 }
 
-export default Root;
+export default RootContext;

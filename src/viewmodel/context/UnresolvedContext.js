@@ -1,21 +1,13 @@
 import { addToArray, removeFromArray } from 'utils/array';
-import Context from './Context';
+import BindingContext from './BindingContext';
 
-class Unresolved extends Context {
+class UnresolvedContext extends BindingContext {
 
 	constructor ( key, owner ) {
 		super( key, {} );
 		this.owner = owner;
 		this.realContext = null;
 		this.forceResolve = null;
-
-		// TODO don't need both these do we (or either)?
-		this.unresolved = true;
-		this.isProxy = true;
-	}
-
-	isUnresolved () {
-		return !this.realContext;
 	}
 
 	addChild ( child ) {
@@ -42,6 +34,10 @@ class Unresolved extends Context {
 		if ( deps = this.dependants ) {
 			while ( dep = deps.pop() ) {
 				context.register( dep.dependant, dep.type );
+				// As resolution of UnresolvedContext may
+				// happen after computed depencies are called,
+				// we need to mark() them here if resolved
+				// context is dirty and dependancy is computed.
 				markComputedIfDirty( context, dep );
 			}
 			this.dependants = null;
@@ -50,6 +46,7 @@ class Unresolved extends Context {
 		if ( deps = this.listDependants ) {
 			while ( dep = deps.pop() ) {
 				context.listRegister( dep.dependant, dep.type );
+				// same as above
 				markComputedIfDirty( context, dep );
 			}
 			this.listDependants = null;
@@ -88,7 +85,7 @@ class Unresolved extends Context {
 	}
 
 	getKeypath () {
-		return this.realContext ? this.realContext.getKeypath() : '$unresolved.' + this.key;
+		return this.realContext ? this.realContext.getKeypath() : this.key;
 	}
 
 	mark ( /*options*/ ) {
@@ -161,7 +158,7 @@ class Unresolved extends Context {
 
 	notify ( type ) {
 		if ( !this.realContext ) {
-			throw new Error('notify called on Unresolved');
+			throw new Error('notify called on UnresolvedContext');
 		}
 		this.realContext.notify( type );
 	}
@@ -180,4 +177,4 @@ function markComputedIfDirty ( context, dep ) {
 	}
 }
 
-export default Unresolved;
+export default UnresolvedContext;

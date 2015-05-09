@@ -1,6 +1,6 @@
-import Context from '../models/Context';
-import DynamicReference from '../models/DynamicReference';
-import ComputationModel from '../models/ComputationModel';
+import BindingContext from '../context/BindingContext';
+import DynamicContextReference from '../context/DynamicContextReference';
+import ComputedContext from '../context/ComputedContext';
 import getExpressionSignature from '../Computation/getExpressionSignature';
 import StateStore from '../stores/StateStore';
 import { REFERENCE } from 'config/types';
@@ -60,7 +60,7 @@ function getExpressionModel( viewmodel, reference, context ) {
 
 	models = reference.r.map( ref => getByTemplate( viewmodel, { r: ref }, context ) );
 	signature = getExpressionSignature( reference.s, models, viewmodel.ractive );
-	model = new ComputationModel( key, signature, viewmodel );
+	model = new ComputedContext( key, signature, viewmodel );
 
 	viewmodel.root.addChild( model );
 
@@ -75,7 +75,7 @@ function getReferenceExpressionModel ( viewmodel, reference, context ) {
 	members = reference.m.map( ref => getMemberModel( viewmodel, ref, context ) );
 
 	while( member = members.shift() ) {
-		model = new DynamicReference( member.fullKey || member.model.key, member.model, previous );
+		model = new DynamicContextReference( member.fullKey || member.model.key, member.model, previous );
 		previous.addChild( model );
 		previous = model;
 	}
@@ -87,7 +87,7 @@ function getMemberModel( viewmodel, reference, context ){
 
 	if ( typeof reference === 'string' ) {
 		return {
-			model: new Context( "' + reference + '", new StateStore( reference ) )
+			model: new BindingContext( "' + reference + '", new StateStore( reference ) )
 		};
 	}
 

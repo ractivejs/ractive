@@ -473,14 +473,14 @@ test( 'Regression test for #271', function ( t ) {
 
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 
-	items.push({});
+	ractive.push( 'items', {});
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
-	items.push({});
+	ractive.push( 'items', {});
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
 
-	items.splice( 1, 1 );
+	ractive.splice( 'items', 1, 1 );
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p><p>bar</p><p>foo</p><p>bar</p>' );
-	items.splice( 1, 1 );
+	ractive.splice( 'items', 1, 1 );
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 });
 
@@ -500,7 +500,7 @@ test( 'Regression test for #297', function ( t ) {
 
 	t.htmlEqual( fixture.innerHTML, '<p>one</p><p>two</p><p>three</p>' );
 
-	items.splice( 1, 1 );
+	ractive.splice( 'items', 1, 1 );
 	t.htmlEqual( fixture.innerHTML, '<p>one</p><p>three</p>' );
 });
 
@@ -518,10 +518,10 @@ test( 'Regression test for #316', function ( t ) {
 
 	t.htmlEqual( fixture.innerHTML, 'baz' );
 
-	b.push( 1 );
+	ractive.push( 'b', 1 );
 	t.htmlEqual( fixture.innerHTML, 'bar' );
 
-	a.push( 1 );
+	ractive.push( 'a', 1 );
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
@@ -808,10 +808,10 @@ test( 'Regression test for #460', function ( t ) {
 		data: { items: items }
 	});
 
-	baz = items.pop();
+	baz = ractive.pop( 'items' );
 	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
 
-	items.push( baz );
+	ractive.push( 'items', baz );
 	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
 });
 

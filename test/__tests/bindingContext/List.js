@@ -1,5 +1,4 @@
-import DynamicReference from 'viewmodel/models/DynamicReference';
-import Root from 'viewmodel/models/Root';
+import RootContext from 'viewmodel/context/RootContext';
 
 var root, items, block, array, indices, keys,
 	static0, static2, dep0, dep2;

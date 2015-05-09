@@ -1,8 +1,8 @@
-import Context from './Context';
+import BindingContext from './BindingContext';
 import ComputationStore from '../stores/ComputationStore';
 import Computation from '../Computation/Computation';
 
-class ComputationModel extends Context {
+class ComputedContext extends BindingContext {
 
 	constructor ( key, signature, owner, initialValue ) {
 
@@ -19,4 +19,4 @@ class ComputationModel extends Context {
 	}
 }
 
-export default ComputationModel;
+export default ComputedContext;

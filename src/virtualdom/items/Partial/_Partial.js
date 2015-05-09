@@ -25,17 +25,6 @@ let Partial = function ( options ) {
 
 	Mustache.init( this, options );
 
-	// If this didn't resolve, it most likely means we have a named partial
-	// (i.e. `{{>foo}}` means 'use the foo partial', not 'use the partial
-	// whose name is the value of `foo`')
-
-	// if ( this.keypath.isProxy && this.keypath.isUnresolved() && ( template = getPartialTemplate( this.root, this.name ) ) ) {
-	// 	// unbind.call( this ); // prevent any further changes
-	// 	this.isNamed = true;
-
-	// 	this.setTemplate( template );
-	// }
-
 	if ( !this.fragment ) {
 		if ( template = getPartialTemplate( this.root, this.name, parentFragment ) ) {
 			unbind.call( this ); // prevent any further changes

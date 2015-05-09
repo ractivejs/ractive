@@ -13,8 +13,8 @@ import set from './prototype/set';
 import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 
-import Root from './models/Root';
-import ComputationModel from './models/ComputationModel';
+import RootContext from './context/RootContext';
+import ComputedContext from './context/ComputedContext';
 
 var Viewmodel = function ( options ) {
 	var { adapt, computations, data, mappings, ractive } = options,
@@ -47,7 +47,7 @@ var Viewmodel = function ( options ) {
 
 	this.data = data;
 
-	this.root = new Root( this, data );
+	this.root = new RootContext( this, data );
 
 	// TODO: clean-up/move some of this
 	if ( mappings ) {
@@ -65,7 +65,7 @@ var Viewmodel = function ( options ) {
 
 	if ( computations ) {
 		for( key in computations ) {
-			model = new ComputationModel( key, computations[ key ], this, data[ key ] );
+			model = new ComputedContext( key, computations[ key ], this, data[ key ] );
 			this.root.addChild( model, key );
 		}
 	}

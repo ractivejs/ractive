@@ -8,97 +8,6 @@ module( 'rebind' );
 
 const test = QUnit.test; // necessary due to a bug in esperanto
 
-function contextUpdate(opt){
-	test( 'update context path: ' + opt.test, function ( t ) {
-		var resolved, root, viewmodel, fragment, el, triple;
-
-		root = {
-			'data': {},
-			'_liveQueries': [],
-			'_deps': [] ,
-			'_depsMap': [],
-			'_cache': [],
-			'_computations': [],
-			'_wrapped': [],
-			'_evaluators': [],
-			el: { namespaceURI: 'http://www.w3.org/1999/xhtml' },
-			adapt: []
-		};
-
-		viewmodel = new Viewmodel( root );
-
-		fragment = {
-			context: viewmodel.getKeypath( opt.target ),
-			items: [],
-			root: root,
-			indexRefs: { i: opt.oldKeypath.replace('items.','')}
-		};
-
-		fragment.root.viewmodel = viewmodel;
-
-		el = new Element({
-			parentFragment: fragment,
-			template: { e: 'div' }
-		});
-
-		triple = new Triple({
-			parentFragment: fragment,
-			template: {
-				t: TRIPLE,
-				r: '.'
-			}
-		});
-
-		triple.resolve = function(keypath){
-			resolved = keypath;
-		};
-
-		fragment.items.push(el, triple);
-
-		fragment.render = Fragment.prototype.render;
-		fragment.rebind = Fragment.prototype.rebind;
-		fragment.bubble = Fragment.prototype.bubble;
-		fragment.getNode = function () { return fixture; };
-		fragment.findNextNode = function () { return null; };
-
-		fragment.render();
-		fragment.index = opt.newKeypath.replace( 'items.', '' );
-		fragment.rebind( viewmodel.getKeypath( opt.oldKeypath ), viewmodel.getKeypath( opt.newKeypath ) );
-
-		t.equal( fragment.context, viewmodel.getKeypath( opt.expected ) );
-		t.equal( fragment.items[0].node._ractive.keypath, viewmodel.getKeypath( opt.expected ) );
-		if(opt.target!==opt.newKeypath){
-			t.equal( resolved, viewmodel.getKeypath( opt.expected ) );
-		}
-
-		t.htmlEqual( fixture.innerHTML, '' );
-	});
-}
-
-contextUpdate({
-	test: 'exact match replace',
-	target: 'items.11',
-	oldKeypath: 'items.11',
-	newKeypath: 'items.21',
-	expected: 'items.21'
-});
-
-contextUpdate({
-	test: 'partial replace',
-	target: 'items.1.foo',
-	oldKeypath: 'items.1',
-	newKeypath: 'items.11',
-	expected: 'items.11.foo'
-});
-
-contextUpdate({
-	test: 'overlapping replace',
-	target: 'items.11',
-	oldKeypath: 'items.1',
-	newKeypath: 'items.11',
-	expected: 'items.11'
-});
-
 test('Section with item that has expression only called once when created', function(t){
 	var called = 0,
 		ractive = new Ractive({
@@ -112,11 +21,11 @@ test('Section with item that has expression only called once when created', func
 			}
 		});
 
-	ractive.get('items').push('item');
+	ractive.push('items', 'item');
 	t.equal( called, 1 );
 })
 
-test('Section with item indexRef expression changes correctly', function(t){
+test('Section with item index ref expression changes correctly', function(t){
 	var ractive = new Ractive({
 			el: fixture,
 			template: '{{#items:i}}{{format(.,i)}},{{/items}}',
@@ -131,8 +40,8 @@ test('Section with item indexRef expression changes correctly', function(t){
 	t.htmlEqual( fixture.innerHTML, '1,3,5,7,9,');
 
 	var items = ractive.get('items');
-	items.splice(1,2,10);
-	t.deepEqual(items, [1,10,4,5]);
+	ractive.splice( 'items', 1, 2, 10 );
+	t.deepEqual( items, [ 1, 10, 4, 5 ] );
 	t.htmlEqual( fixture.innerHTML, '1,11,6,8,');
 })
 
@@ -152,8 +61,7 @@ test('Section updates child keypath expression', function(t){
 
 	t.htmlEqual( fixture.innerHTML, 'bob,bill,betty,');
 
-	var items = ractive.get('items');
-	items.splice(1,2, { foo: { name: 'jill' } } );
+	ractive.splice( 'items', 1,2, { foo: { name: 'jill' } } );
 	t.htmlEqual( fixture.innerHTML, 'bob,jill,');
 })
 
@@ -163,7 +71,7 @@ test('Section with nested sections and inner context does splice()', function(t)
 							'<p>{{{format(inner)}}}</p>' +
 						'{{/ inner}}' +
 					'{{/thing}}{{/model}}'
-	var called = 0
+	var called = 0;
 
 	var ractive = new Ractive({
 			el: fixture,
@@ -178,7 +86,7 @@ test('Section with nested sections and inner context does splice()', function(t)
 		});
 
 	t.htmlEqual( fixture.innerHTML, '<p>3,4</p>');
-	ractive.get('model').splice(0, 0, {thing: {inner: [1,2]}});
+	ractive.splice( 'model', 0, 0, { thing: { inner: [ 1, 2 ] } } );
 	t.htmlEqual( fixture.innerHTML, '<p>1,2</p><p>3,4</p>');
 })
 
@@ -196,7 +104,7 @@ test( 'Components in a list can be rebound', function ( t ) {
 
 	t.htmlEqual( fixture.innerHTML, '<p>a</p><p>b</p><p>c</p>' );
 
-	ractive.get( 'items' ).splice( 1, 1 );
+	ractive.splice( 'items', 1, 1 );
 	t.htmlEqual( fixture.innerHTML, '<p>a</p><p>c</p>' );
 
 	ractive.set( 'items[0]', 'd' );
@@ -218,7 +126,7 @@ test( 'Index references can be used as key attributes on components, and rebindi
 
 	t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: b</p><p>2: c</p>' );
 
-	ractive.get( 'items' ).splice( 1, 1 );
+	ractive.splice( 'items', 1, 1 );
 	t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 });
 
@@ -234,9 +142,8 @@ test('Section with partials that use indexRef update correctly', function(t){
 
 	t.htmlEqual( fixture.innerHTML, '0,1,2,3,4,');
 
-	var items = ractive.get('items');
-	items.splice(1,2,10);
-	t.deepEqual(items, [1,10,4,5]);
+	ractive.splice( 'items', 1 , 2, 10 );
+	t.deepEqual( ractive.get( 'items' ), [1,10,4,5]);
 	t.htmlEqual( fixture.innerHTML, '0,1,2,3,');
 })
 
@@ -247,8 +154,8 @@ test( 'Expressions with unresolved references can be rebound (#630)', function (
 		data: {list:[1,2], check:3}
 	});
 
-	ractive.get('list').unshift(3);
-	t.ok(true);
+	ractive.unshift( 'list', 3 );
+	t.ok( true );
 });
 
 test( 'Regression test for #697', function ( t ) {
@@ -263,7 +170,7 @@ test( 'Regression test for #697', function ( t ) {
 		}
 	});
 
-	ractive.get('model').unshift({
+	ractive.unshift('model', {
 		thing: { bar: true },
 		foo: false
 	});
@@ -284,7 +191,7 @@ test( 'Regression test for #715', function ( t ) {
 		}
 	});
 
-	ractive.get( 'items' ).unshift({});
+	ractive.unshift( 'items' , {} );
 
 	t.ok( true );
 });
@@ -315,7 +222,7 @@ test( 'Items are not unrendered and rerendered unnecessarily in cases like #715'
 	t.equal( renderCount, 1 );
 	t.equal( unrenderCount, 0 );
 
-	ractive.get( 'items' ).unshift({});
+	ractive.unshift( 'items', {} );
 	t.equal( renderCount, 1 );
 	t.equal( unrenderCount, 0 );
 });
@@ -332,7 +239,7 @@ test( 'Regression test for #729 (part one) - rebinding silently-created elements
 	});
 
 	items[0].test = { bool: true };
-	items.unshift({});
+	ractive.unshift( 'items', {} );
 
 	t.ok( true );
 });
@@ -350,7 +257,7 @@ test( 'Regression test for #729 (part two) - inserting before silently-created e
 
 	ractive.set('items.0', {bool: false});
 	items[0].bool = true;
-	items.unshift({});
+	ractive.unshift( 'items', {} );
 
 	t.ok( true );
 });

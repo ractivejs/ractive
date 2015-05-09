@@ -223,7 +223,7 @@ test( 'Regression test for #339', function ( t ) {
 
 	t.equal( selects[0].value, 'red' );
 
-	ractive.get( 'items' ).push({});
+	ractive.push( 'items', {} );
 
 	t.htmlEqual( fixture.innerHTML, '<p>0: <select><option value="red">Red</option></select></p><p>1: <select><option value="red">Red</option></select></p>')
 	t.deepEqual( ractive.get(), { items: [ {color: 'red'}, {color: 'red'} ] } );
