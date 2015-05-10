@@ -1,19 +1,19 @@
 import runloop from 'global/runloop';
 import { isEqual } from 'utils/is';
 
-var Observer = function ( ractive, model, callback, options ) {
-	this.root = ractive;
-	this.model = model;
+var Observer = function ( bindingContext, callback, options ) {
+	this.context = bindingContext;
 	this.callback = callback;
+	this.callbackContext = options.context;
 	this.defer = options.defer;
 
-	// default to root as context, but allow it to be overridden
-	this.context = ( options && options.context ? options.context : ractive );
+	this.value = null;
+	this.oldValue = null;
 };
 
 Observer.prototype = {
 	init: function ( immediate ) {
-		this.value = this.model.get();
+		this.value = this.context.get();
 
 		if ( immediate !== false ) {
 			this.update();
@@ -42,7 +42,7 @@ Observer.prototype = {
 
 		this.updating = true;
 
-		this.callback.call( this.context, this.value, this.oldValue, this.model.getKeypath() );
+		this.callback.call( this.callbackContext, this.value, this.oldValue, this.context.getKeypath() );
 		this.oldValue = this.value;
 
 		this.updating = false;

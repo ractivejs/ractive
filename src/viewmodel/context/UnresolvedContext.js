@@ -11,45 +11,59 @@ class UnresolvedContext extends BindingContext {
 	}
 
 	addChild ( child ) {
-		if ( !this.realContext ) {
-			super.addChild( child );
-		} else {
-			this.realContext.addChild( child );
+		if ( this.realContext ) {
+			return this.realContext.addChild( child );
 		}
+
+		super.addChild( child );
 	}
 
 	resolve ( context ) {
-		var properties, child, deps, dep;
+		var properties, computed, observers, views, listViews;
+
 		this.realContext = context;
-		this.unresolved = false;
 		this.forceResolve = null;
 
 		if ( properties = this.properties ) {
-			while ( child = properties.pop() ) {
-				context.addChild( child );
+			for( let i = 0, l = properties.length; i < l; i++ ) {
+				context.addChild( properties[i] );
 			}
 			this.properties = null;
+			this.propertyHash = null;
 		}
 
-		if ( deps = this.dependants ) {
-			while ( dep = deps.pop() ) {
-				context.register( dep.dependant, dep.type );
+		if ( computed = this.computed ) {
+			for( let i = 0, l = computed.length; i < l; i++ ) {
+				context.registerComputed( computed[i] );
 				// As resolution of UnresolvedContext may
-				// happen after computed depencies are called,
-				// we need to mark() them here if resolved
-				// context is dirty and dependancy is computed.
-				markComputedIfDirty( context, dep );
+				// happen after computed dependancies have been called,
+				// we need to mark() them here if resolved context is dirty.
+				if ( context.dirty ) {
+					computed[i].mark();
+				}
 			}
-			this.dependants = null;
+			this.computed = null;
 		}
 
-		if ( deps = this.listDependants ) {
-			while ( dep = deps.pop() ) {
-				context.listRegister( dep.dependant, dep.type );
-				// same as above
-				markComputedIfDirty( context, dep );
+		if ( observers = this.observers ) {
+			for( let i = 0, l = observers.length; i < l; i++ ) {
+				context.registerObserver( observers[i] );
 			}
-			this.listDependants = null;
+			this.observers = null;
+		}
+
+		if ( views = this.views ) {
+			for( let i = 0, l = views.length; i < l; i++ ) {
+				context.registerView( views[i] );
+			}
+			this.views = null;
+		}
+
+		if ( listViews = this.listViews ) {
+			for( let i = 0, l = listViews.length; i < l; i++ ) {
+				context.registerListView( listViews[i] );
+			}
+			this.listViews = null;
 		}
 	}
 
@@ -57,24 +71,24 @@ class UnresolvedContext extends BindingContext {
 		this.forceResolve = resolve;
 	}
 
-	get ( options ) {
+	get () {
 		if ( this.realContext ) {
-			return this.realContext.get( options );
+			return this.realContext.get();
 		}
 	}
 
 	hasChild ( propertyOrIndex ) {
-		if ( ! this.realContext ) {
-			return false;
+		if ( this.realContext ) {
+			return this.realContext.hasChild( propertyOrIndex );
 		}
-		return this.realContext.hasChild( propertyOrIndex );
+		return false;
 	}
 
-	set ( value, options ) {
+	set ( value ) {
 		if ( !this.realContext ) {
 			this.forceResolve();
 		}
-		return this.realContext.set( value, options );
+		return this.realContext.set( value );
 	}
 
 	getSettable ( propertyOrIndex ) {
@@ -88,72 +102,74 @@ class UnresolvedContext extends BindingContext {
 		return this.realContext ? this.realContext.getKeypath() : this.key;
 	}
 
-	mark ( /*options*/ ) {
+	mark () {
 		if ( !this.realContext ) {
-			throw new Error('mark');
+			throw new Error('mark called on UnresolvedContext');
 		}
 		return this.realContext.mark();
 	}
 
 	cascade ( cascadeUpOnly ) {
 		if ( !this.realContext ) {
-			throw new Error('cascade');
+			throw new Error('cascade called on UnresolvedContext');
 		}
 		return this.realContext.cascade( cascadeUpOnly );
 	}
 
-	register ( dependant, type = 'default' ) {
-
+	registerComputed ( computed ) {
 		if ( this.realContext ) {
-			return this.realContext.register( dependant, type );
+			return this.realContext.registerComputed( computed );
 		}
-
-		( this.dependants || ( this.dependants = [] ) ).push({
-			type: type,
-			dependant: dependant
-		});
+		super.registerComputed( computed );
 	}
 
-	unregister ( dependant, type = 'default' ) {
-
+	registerObserver ( observer ) {
 		if ( this.realContext ) {
-			return this.realContext.unregister( dependant, type );
+			return this.realContext.registerObserver( observer );
 		}
-
-		var deps, dep;
-
-		if( deps = this.dependants ) {
-			if ( dep = deps.find( d => d.dependant === dependant) ) {
-				removeFromArray( deps, dep );
-			}
-		}
+		super.registerObserver( observer );
 	}
 
-	listRegister ( dependant, type = 'default' ) {
-
+	registerView ( view ) {
 		if ( this.realContext ) {
-			return this.realContext.listRegister( dependant, type );
+			return this.realContext.registerView( view );
 		}
-
-		( this.listDependants || ( this.listDependants = [] ) ).push({
-			type: type,
-			dependant: dependant
-		});
+		super.registerView( view );
 	}
 
-	listUnregister ( dependant, type = 'default' ) {
-
+	registerListView ( view ) {
 		if ( this.realContext ) {
-			return this.realContext.listUnregister( dependant, type );
+			return this.realContext.registerListView( view );
 		}
+		super.registerListView( view );
+	}
 
-		var deps, dep;
-
-		if( deps = this.listDependants ) {
-			if ( dep = deps.find( d => d.dependant === dependant) ) {
-				removeFromArray( deps, dep );
-			}
+	unregisterComputed ( computed ) {
+		if ( this.realContext ) {
+			return this.realContext.unregisterComputed( computed );
 		}
+		super.unregisterComputed( computed );
+	}
+
+	unregisterObserver ( observer ) {
+		if ( this.realContext ) {
+			return this.realContext.unregisterObserver( observer );
+		}
+		super.unregisterObserver( observer );
+	}
+
+	unregisterView ( view ) {
+		if ( this.realContext ) {
+			return this.realContext.unregisterView( view );
+		}
+		super.unregisterView( view );
+	}
+
+	unregisterListView ( view ) {
+		if ( this.realContext ) {
+			return this.realContext.unregisterListView( view );
+		}
+		super.unregisterListView( view );
 	}
 
 	notify ( type ) {
@@ -168,12 +184,6 @@ class UnresolvedContext extends BindingContext {
 			return this.realContext.join( keypath );
 		}
 		return super.join( keypath );
-	}
-}
-
-function markComputedIfDirty ( context, dep ) {
-	if ( context.dirty && dep.type === 'computed' ) {
-		dep.dependant.mark();
 	}
 }
 

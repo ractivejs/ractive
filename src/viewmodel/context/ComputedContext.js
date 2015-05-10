@@ -9,7 +9,7 @@ class ComputedContext extends BindingContext {
 		// TODO: this should be easy(ier) to unwind now...
 		var computation = new Computation( owner, signature, initialValue );
 		var store = new ComputationStore( computation );
-		store.computation.setModel( this );
+		store.computation.setContext( this );
 		super ( key, store );
 	}
 

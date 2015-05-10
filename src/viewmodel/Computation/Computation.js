@@ -7,6 +7,8 @@ class Computation {
 
 		this.viewmodel = viewmodel;
 
+		this.context = null;
+
 		this.getter = signature.getter;
 		this.setter = signature.setter;
 
@@ -23,10 +25,10 @@ class Computation {
 	}
 
 	// TODO: TEMP workaround for dependecy issue
-	setModel ( model ) {
-		this.model = model;
+	setContext ( context ) {
+		this.context = context;
 		if ( this.hardDeps ) {
-			this.hardDeps.forEach( d => d.register( model, 'computed' ) );
+			this.hardDeps.forEach( d => d.registerComputed( context ) );
 		}
 	}
 
@@ -35,7 +37,7 @@ class Computation {
 	}
 
 	get () {
-		var model, newDeps, dependenciesChanged, dependencyValuesChanged = false;
+		var context, newDeps, dependenciesChanged, dependencyValuesChanged = false;
 
 		if ( this.getting ) {
 			// prevent double-computation (e.g. caused by array mutation inside computation)
@@ -61,9 +63,9 @@ class Computation {
 
 					i = deps.length;
 					while ( i-- ) {
-						model = deps[i];
-						keypath = model.getKeypath();
-						value = model.get();
+						context = deps[i];
+						keypath = context.getKeypath();
+						value = context.get();
 
 						if ( !isEqual( value, this.depValues[ keypath ] ) ) {
 							this.depValues[ keypath ] = value;
@@ -80,7 +82,7 @@ class Computation {
 				try {
 					this.value = this.getter();
 				} catch ( err ) {
-					warnIfDebug( 'Failed to compute "%s"', this.model.getKeypath() );
+					warnIfDebug( 'Failed to compute "%s"', this.context.getKeypath() );
 					logIfDebug( err.stack || err );
 					this.value = void 0;
 				}
@@ -91,8 +93,8 @@ class Computation {
 				if ( dependenciesChanged ) {
 					this.depValues = {};
 					[ this.hardDeps, this.softDeps ].forEach( deps => {
-						deps.forEach( model => {
-							this.depValues[ model.getKeypath() ] = this.viewmodel.get( model );
+						deps.forEach( context => {
+							this.depValues[ context.getKeypath() ] = context.get();
 						});
 					});
 				}
@@ -119,30 +121,30 @@ class Computation {
 	}
 
 	updateDependencies ( newDeps ) {
-		var i, oldDeps, model, dependenciesChanged, unresolved;
+		var i, oldDeps, dep, dependenciesChanged, unresolved;
 
 		oldDeps = this.softDeps;
 
 		// remove dependencies that are no longer used
 		i = oldDeps.length;
 		while ( i-- ) {
-			model = oldDeps[i];
+			dep = oldDeps[i];
 
-			if ( newDeps.indexOf( model ) === -1 ) {
+			if ( newDeps.indexOf( dep ) === -1 ) {
 				dependenciesChanged = true;
-				model.unregister( this, 'computed' );
+				dep.unregisterComputed( this.context );
 			}
 		}
 
 		// create references for any new dependencies
 		i = newDeps.length;
 		while ( i-- ) {
-			model = newDeps[i];
+			dep = newDeps[i];
 
-			if ( oldDeps.indexOf( model ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( model ) === -1 ) ) {
+			if ( oldDeps.indexOf( dep ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( dep ) === -1 ) ) {
 				dependenciesChanged = true;
 
-				model.register( this.model, 'computed' );
+				dep.registerComputed( this.context );
 			}
 		}
 

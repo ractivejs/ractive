@@ -82,7 +82,11 @@ export function lastItem ( array ) {
 }
 
 export function removeFromArray ( array, member ) {
-	var index = array.indexOf( member );
+	if ( !array ) {
+		return;
+	}
+
+	const index = array.indexOf( member );
 
 	if ( index !== -1 ) {
 		array.splice( index, 1 );

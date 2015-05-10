@@ -35,8 +35,11 @@ class BindingContext {
 		this.members = null;
 
 		// dependants
-		this.dependants = null;
-		this.listDependants = null;
+		this.computed = null;
+		this.observers = null;
+		this.views = null;
+		this.listViews = null;
+
 		// watcher is created on request
 		// for certain child keys
 		this.watchers = null;
@@ -336,7 +339,7 @@ class BindingContext {
 	}
 
 	cascade ( cascadeUpOnly ) {
-		var properties, dependants, computed, i, l;
+		const computed = this.computed;
 
 		// bail if we've already been here...
 		if ( this.dirty ) { return; }
@@ -354,8 +357,8 @@ class BindingContext {
 		}
 
 		// mark computed dependants as dirty
-		if( ( dependants = this.dependants ) && ( computed = dependants.computed ) ) {
-			for( i = 0, l = computed.length; i < l; i++ ) {
+		if( computed ) {
+			for( let i = 0, l = computed.length; i < l; i++ ) {
 				computed[i].mark();
 			}
 		}
@@ -539,114 +542,100 @@ class BindingContext {
 		return context;
 	}
 
-	register ( dependant, type = 'default' ) {
-
-		// TODO: get rid of this
-		if ( dependant.isStatic ) {
-			throw new Error('register static dependant')
-			return; // TODO we should never get here if a dependant is static...
-		}
-
-		var dependants = this.dependants || ( this.dependants = {} ), group;
-
-		if( group = dependants[ type ] ) {
-			group.push( dependant );
+	registerComputed ( computed ) {
+		if ( !this.computed ) {
+			this.computed = [ computed ];
 		}
 		else {
-			dependants[ type ] = [ dependant ];
-		}
-
-		if ( ( type === 'default' ) && this.get() != null ) {
-			this.notifyDependants( [ dependant ] );
+			this.computed.push( computed );
 		}
 	}
 
-	listRegister ( dependant, type = 'default' ) {
-
-		// TODO: get rid of this
-		if ( dependant.isStatic ) {
-			throw new Error('register static dependant')
-			return; // TODO we should never get here if a dependant is static...
-		}
-
-		var dependants = this.listDependants || ( this.listDependants = {} ), group;
-
-		if( group = dependants[ type ] ) {
-			group.push( dependant );
+	registerObserver ( observer ) {
+		if ( !this.observers ) {
+			this.observers = [ observer ];
 		}
 		else {
-			dependants[ type ] = [ dependant ];
+			this.observers.push( observer );
 		}
 
-		this.getOrCreateMembers();
+		// this.notifyDependant( observer, this.get() );
+	}
 
-		if ( ( type === 'default' ) && this.get() != null ) {
-			this.notifyListDependants( [ dependant ] );
+	registerView ( view ) {
+		const value = this.get();
+
+		if ( !this.views ) {
+			this.views = [ view ];
+		}
+		else {
+			this.views.push( view );
+		}
+
+		if ( value != null && value !== '' ) {
+			this.notifyDependant( view, value );
 		}
 	}
 
-	unregister ( dependant, type = 'default' ) {
+	registerListView ( view ) {
+		const value = this.get();
 
-		// TODO: get rid of this
-		if ( dependant.isStatic ) {
-			throw new Error('unregister static dependant')
-			return; // TODO we should never get here if a dependant is static...
+		if ( !this.listViews ) {
+			this.listViews = [ view ];
+		}
+		else {
+			this.listViews.push( view );
 		}
 
-		var dependants = this.dependants, group;
+		const members = this.getOrCreateMembers();
 
-		if( dependants && ( group = dependants[ type ] ) ) {
-			removeFromArray( group, dependant );
+		if ( members.length ) {
+			this.notifyListDependant( view, members );
 		}
 	}
 
-	listUnregister ( dependant, type = 'default' ) {
+	unregisterComputed ( computed ) {
+		removeFromArray( this.computed, computed );
+	}
 
-		// TODO: get rid of this
-		if ( dependant.isStatic ) {
-			throw new Error('unregister static dependant')
-			return; // TODO we should never get here if a dependant is static...
-		}
+	unregisterObserver ( observer ) {
+		removeFromArray( this.observers, observer );
+	}
 
-		var dependants = this.listDependants, group;
+	unregisterView ( view ) {
+		removeFromArray( this.views, view );
+	}
 
-		if ( dependants && ( group = dependants[ type ] ) ) {
-			removeFromArray( group, dependant );
+	unregisterListView ( view ) {
+		removeFromArray( this.views, view );
 
-			// forgo doing any member work if no more list dependants
-			if ( !group.length ) {
-				delete dependants[ type ];
-
-				if ( !dependants.computed && !dependants.observers && !dependants.default ) {
-					this.members = null;
-				}
-
-				// TODO: clean up index stuff???
-			}
-		}
+		// TODO: Would it make sense to set
+		// this.members = null if no more list dependants?
 	}
 
 	notify ( type ) {
-		var dependants, group;
+		var dependants = this[ type ];
 
-		if( !this.dirty ) { return; }
-
-		if( ( dependants = this.dependants ) && ( group = dependants[ type ] ) ) {
-			this.notifyDependants( group );
+		if( !this.dirty ) {
+			return;
 		}
 
-		if( ( dependants = this.listDependants ) && ( group = dependants[ type ] ) ) {
+		if ( dependants ) {
+			this.notifyDependants( dependants );
+		}
+
+		if( type === 'views' && ( dependants = this.listViews ) ) {
 			if ( this.splice ) {
-				this.updateListDependants( group );
+				this.updateListDependants( dependants );
 			}
 			else {
-				this.notifyListDependants( group );
+				this.notifyListDependants( dependants );
 			}
 		}
 
 		// TODO is there better way to handle this?
 		// maybe seperate "flush" method
-		if( type === 'default' ) {
+		if( type === 'views' ) {
 			this.dirty = false;
 			this.splice = null;
 		}
@@ -656,15 +645,19 @@ class BindingContext {
 	}
 
 	notifyDependants ( dependants ) {
-		var value = this.get(), dependant;
+		const value = this.get(),
+			  length = dependants.length;
 
-		for( let i = 0, l = dependants.length; i < l; i++ ) {
-			dependant = dependants[i];
-			// dependants may unregister themselves, so we
-			// check that we are still getting a hit
-			if( dependant ) {
-				dependant.setValue( value );
-			}
+		for( let i = 0; i < length; i++ ) {
+			this.notifyDependant( dependants[i], value );
+		}
+	}
+
+	notifyDependant ( dependant, value ) {
+		// dependants may unregister themselves, so we
+		// check that we are still getting a hit
+		if( dependant ) {
+			dependant.setValue( value );
 		}
 	}
 
@@ -680,13 +673,18 @@ class BindingContext {
 	}
 
 	notifyListDependants ( dependants ) {
-		var members = this.getOrCreateMembers(), dependant;
+		const members = this.getOrCreateMembers(),
+			  length = dependants.length;
 
-		for( let i = 0, l = dependants.length; i < l; i++ ) {
-			dependant = dependants[i];
-			if ( dependant.setMembers ) {
-				dependant.setMembers( members );
-			}
+		for( var i = 0; i < length; i++ ) {
+			this.notifyListDependant( dependants[i], members );
+		}
+	}
+
+	notifyListDependant ( dependant, members ) {
+		// TODO: can we remove .setMembers check?
+		if ( dependant && dependant.setMembers ) {
+			dependant.setMembers( members );
 		}
 	}
 

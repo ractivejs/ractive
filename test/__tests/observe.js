@@ -61,19 +61,6 @@ test( 'Observers fire on init when no matching data', function ( t ) {
 	});
 });
 
-test( 'Pattern observers do NOT fire on init when no matching data', function ( t ) {
-	var ractive = new Ractive({
-		el: fixture,
-		template: '{{foo}}',
-		data: {}
-	});
-
-	expect( 0 );
-
-	ractive.observe( '*', function () {
-		t.ok( true );
-	});
-});
 
 test( 'Uninitialised observers do not fire if their keypath is set to the same value', function ( t ) {
 	var ractive = new Ractive({
@@ -106,6 +93,231 @@ test( 'Uninitialised observers correctly report initial value on first fire (#11
 	ractive.set( 'foo', 'baz' );
 });
 
+test( 'Observers fire on downstream changes (#1393)', function ( t ) {
+	var ractive, expected;
+
+	ractive = new Ractive({
+		el: fixture,
+		template: 'blah',
+		data: { config: { foo: 'bar' } }
+	});
+
+	expect( 4 );
+
+	expected = { foo: 'bar' };
+
+	ractive.observe( 'config', function ( n, o, keypath ) {
+		t.deepEqual( n, expected );
+		t.equal( keypath, 'config' );
+	});
+
+	expected = { foo: 'baz' };
+	ractive.set( 'config.foo', 'baz' );
+});
+
+test( 'Observers can observe multiple keypaths, separated by a space', function ( t ) {
+	var ractive, results;
+
+	ractive = new Ractive({
+		el: fixture,
+		template: 'irrelevant'
+	});
+
+	results = {};
+
+	ractive.observe( 'foo bar baz', function ( n, o, k ) {
+		results[ k ] = n;
+	});
+
+	ractive.observe({
+		'a b': function ( n, o, k ) {
+			results[ k ] = n;
+		}
+	})
+
+	ractive.set( 'foo', 'one' );
+	ractive.set({
+		bar: 'two',
+		baz: 'three'
+	});
+
+	ractive.set( 'a', 1 );
+	ractive.set( 'b', 2 );
+
+	t.deepEqual( results, { foo: 'one', bar: 'two', baz: 'three', a: 1, b: 2 });
+});
+
+asyncTest( 'Promises from set() operations inside observers resolve (#765)', function ( t ) {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{foo}}',
+		data: {
+			bar: 1
+		}
+	});
+
+	expect( 1 );
+
+	ractive.observe( 'bar', function ( bar ) {
+		ractive.set( 'foo', 'works' ).then( function () {
+			t.ok( true );
+			QUnit.start();
+		});
+	}, { init: false });
+
+	ractive.set( 'bar', true );
+});
+
+test( 'set() operations inside observers affect the DOM immediately (related to #765)', function ( t ) {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{foo}}',
+		data: {
+			bar: 1
+		}
+	});
+
+	expect( 1 );
+
+	ractive.observe( 'bar', function ( bar ) {
+		ractive.set( 'foo', 'works' );
+		t.htmlEqual( fixture.innerHTML, 'works' );
+	}, { init: false });
+
+	ractive.set( 'bar', true );
+});
+
+test( 'Errors inside observers are not caught', function ( t ) {
+	var ractive = new Ractive({
+		data: {
+			bar: [ 1, 2, 3 ]
+		}
+	});
+
+	expect( 2 );
+
+	try {
+		ractive.observe( 'foo', function () {
+			throw new Error( 'test' );
+		});
+	} catch ( err ) {
+		t.equal( err.message, 'test' );
+	}
+
+	try {
+		ractive.observe( 'bar.*', function () {
+			throw new Error( 'test' );
+		});
+	} catch ( err ) {
+		t.equal( err.message, 'test' );
+	}
+});
+
+test( 'Setting up and cancelling a regular observer', function ( t ) {
+	var ractive = new Ractive({
+		el: fixture,
+		template: 'unimportant',
+		data: {
+			person: { name: 'Joe' }
+		}
+	});
+
+	var dummy = false,
+	observer = ractive.observe('person.name', function(nv) { dummy = nv; });
+
+	t.equal(dummy, 'Joe');
+
+	ractive.set('person.name', 'Londo');
+
+	t.equal(dummy, 'Londo');
+
+	observer.cancel();
+});
+
+test( '.observeOnce() functionality', t => {
+	let ractive = new Ractive( { data: { foo: 'bar' } } );
+
+	expect( 1 );
+
+	ractive.observeOnce( 'foo', function () {
+		t.ok( true );
+	});
+
+	ractive.set( 'foo', 'fizz' );
+	ractive.set( 'foo', 'qux' );
+});
+
+test( 'Observer with no keypath argument (#1868)', t => {
+	let ractive = new Ractive();
+
+	expect( 1 );
+
+	ractive.observe( data => t.equal( data.answer, 42 ), { init: false });
+	ractive.set( 'answer', 42 );
+});
+
+test( 'Observer with empty string keypath argument (#1868)', t => {
+	let ractive = new Ractive();
+
+	expect( 1 );
+
+	ractive.observe( '', data => t.equal( data.answer, 42 ), { init: false });
+	ractive.set( 'answer', 42 );
+});
+
+test( 'Observers are removed on teardown (#1865)', t => {
+	let rendered = 0;
+	let observed = 0;
+
+	let Widget = Ractive.extend({
+		template: '{{foo}}',
+		onrender () {
+			rendered += 1;
+			this.observe( 'foo', () => observed += 1 );
+		}
+	});
+
+	let ractive = new Ractive({
+		el: fixture,
+		template: `{{#if foo}}<Widget foo='{{foo}}'/>{{/if}}`,
+		data: { foo: false },
+		components: { Widget }
+	});
+
+	ractive.toggle( 'foo' );
+	t.equal( rendered, 1 );
+	t.equal( observed, 1 );
+
+	// This will still trigger the observer, even though the component is
+	// being torn down, because observers always fire before the virtual
+	// DOM is updated. If at some stage we decide that's undesirable behaviour
+	// and that the view hierarchy should determine execution order, we
+	// will have to change the 2 to a 1 (and the 3 to a 2).
+	ractive.toggle( 'foo' );
+	t.equal( rendered, 1 );
+	t.equal( observed, 2 );
+
+	ractive.toggle( 'foo' );
+	t.equal( rendered, 2 );
+	t.equal( observed, 3 );
+});
+
+test( 'Observers should not fire twice when an upstream change is already a change (#1695)', t => {
+	let count = 0, ractive = new Ractive({
+		data: { items: [] },
+		oninit: function(){
+			this.observe( 'items', () => { count++; }, { init: false } );
+		}
+	});
+
+	ractive.merge( 'items', [ 1 ] );
+
+	t.equal( count, 1 );
+});
+
+
+module( 'ractive.observe() Pattern Observers' );
+
 test( 'Pattern observers fire on changes to keypaths that match their pattern', function ( t ) {
 	var ractive, expected;
 
@@ -126,6 +338,20 @@ test( 'Pattern observers fire on changes to keypaths that match their pattern', 
 
 	expected = 2;
 	ractive.set( 'foo.bar.baz', expected );
+});
+
+test( 'Pattern observers do NOT fire on init when no matching data', function ( t ) {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{foo}}',
+		data: {}
+	});
+
+	expect( 0 );
+
+	ractive.observe( '*', function () {
+		t.ok( true );
+	});
 });
 
 test( 'Pattern observers fire on changes to keypaths downstream of their pattern', function ( t ) {
@@ -150,27 +376,6 @@ test( 'Pattern observers fire on changes to keypaths downstream of their pattern
 	ractive.set( 'foo.bar.baz', 2 );
 });
 
-test( 'Observers fire on downstream changes (#1393)', function ( t ) {
-	var ractive, expected;
-
-	ractive = new Ractive({
-		el: fixture,
-		template: 'blah',
-		data: { config: { foo: 'bar' } }
-	});
-
-	expect( 4 );
-
-	expected = { foo: 'bar' };
-
-	ractive.observe( 'config', function ( n, o, keypath ) {
-		t.deepEqual( n, expected );
-		t.equal( keypath, 'config' );
-	});
-
-	expected = { foo: 'baz' };
-	ractive.set( 'config.foo', 'baz' );
-});
 
 test( 'Pattern observers fire on changes to keypaths upstream of their pattern', function ( t ) {
 	var ractive, expected;
@@ -269,38 +474,6 @@ test( 'The first key in a pattern observer\'s pattern can be a wildcard', functi
 
 	expected = 2;
 	ractive.set( 'gup.foo.bar', { baz: 2 });
-});
-
-test( 'Observers can observe multiple keypaths, separated by a space', function ( t ) {
-	var ractive, results;
-
-	ractive = new Ractive({
-		el: fixture,
-		template: 'irrelevant'
-	});
-
-	results = {};
-
-	ractive.observe( 'foo bar baz', function ( n, o, k ) {
-		results[ k ] = n;
-	});
-
-	ractive.observe({
-		'a b': function ( n, o, k ) {
-			results[ k ] = n;
-		}
-	})
-
-	ractive.set( 'foo', 'one' );
-	ractive.set({
-		bar: 'two',
-		baz: 'three'
-	});
-
-	ractive.set( 'a', 1 );
-	ractive.set( 'b', 2 );
-
-	t.deepEqual( results, { foo: 'one', bar: 'two', baz: 'three', a: 1, b: 2 });
 });
 
 test( 'Pattern observers fire when ractive.update() is called without parameters', function ( t ) {
@@ -422,10 +595,10 @@ test( 'Pattern observers receive additional arguments corresponding to the wildc
 });
 
 test( 'Pattern observers work with an empty array (#760)', function ( t ) {
-		var ractive = new Ractive({});
-		ractive.observe( 'foo.*.bar', function ( n, o, k ) {});
-		t.ok( true );
-	});
+	var ractive = new Ractive({});
+	ractive.observe( 'foo.*.bar', function ( n, o, k ) {});
+	t.ok( true );
+});
 
 test( 'Pattern observers work with an property of array (#760) varient', function ( t ) {
 
@@ -440,93 +613,6 @@ test( 'Pattern observers work with an property of array (#760) varient', functio
 	});
 
 	ractive.get( 'foo' ).push( bar );
-});
-
-asyncTest( 'Promises from set() operations inside observers resolve (#765)', function ( t ) {
-	var ractive = new Ractive({
-		el: fixture,
-		template: '{{foo}}',
-		data: {
-			bar: 1
-		}
-	});
-
-	expect( 1 );
-
-	ractive.observe( 'bar', function ( bar ) {
-		ractive.set( 'foo', 'works' ).then( function () {
-			t.ok( true );
-			QUnit.start();
-		});
-	}, { init: false });
-
-	ractive.set( 'bar', true );
-});
-
-test( 'set() operations inside observers affect the DOM immediately (related to #765)', function ( t ) {
-	var ractive = new Ractive({
-		el: fixture,
-		template: '{{foo}}',
-		data: {
-			bar: 1
-		}
-	});
-
-	expect( 1 );
-
-	ractive.observe( 'bar', function ( bar ) {
-		ractive.set( 'foo', 'works' );
-		t.htmlEqual( fixture.innerHTML, 'works' );
-	}, { init: false });
-
-	ractive.set( 'bar', true );
-});
-
-test( 'Errors inside observers are not caught', function ( t ) {
-	var ractive = new Ractive({
-		data: {
-			bar: [ 1, 2, 3 ]
-		}
-	});
-
-	expect( 2 );
-
-	try {
-		ractive.observe( 'foo', function () {
-			throw new Error( 'test' );
-		});
-	} catch ( err ) {
-		t.equal( err.message, 'test' );
-	}
-
-	try {
-		ractive.observe( 'bar.*', function () {
-			throw new Error( 'test' );
-		});
-	} catch ( err ) {
-		t.equal( err.message, 'test' );
-	}
-});
-
-test( 'Setting up and cancelling a regular observer', function ( t ) {
-	var ractive = new Ractive({
-		el: fixture,
-		template: 'unimportant',
-		data: {
-			person: { name: 'Joe' }
-		}
-	});
-
-	var dummy = false,
-	observer = ractive.observe('person.name', function(nv) { dummy = nv; });
-
-	t.equal(dummy, 'Joe');
-
-	ractive.set('person.name', 'Londo');
-
-	t.equal(dummy, 'Londo');
-
-	observer.cancel();
 });
 
 test( 'Setting up and cancelling a pattern observer', function ( t ) {
@@ -569,19 +655,6 @@ test( 'Deferred pattern observers work correctly (#1079)', function ( t ) {
 	t.deepEqual(dummy, [ 'apple', 'banana', 'orange', 'cabbage' ]);
 
 	observer.cancel();
-});
-
-test( '.observeOnce() functionality', t => {
-	let ractive = new Ractive( { data: { foo: 'bar' } } );
-
-	expect( 1 );
-
-	ractive.observeOnce( 'foo', function () {
-		t.ok( true );
-	});
-
-	ractive.set( 'foo', 'fizz' );
-	ractive.set( 'foo', 'qux' );
 });
 
 test( 'Asterisks should not be left in computation keypaths (#1472)', t => {
@@ -652,20 +725,6 @@ try {
 	});
 } catch ( err ) {}
 
-
-test( 'Observers should not fire twice when an upstream change is already a change (#1695)', t => {
-	let count = 0, ractive = new Ractive({
-		data: { items: [] },
-		oninit: function(){
-			this.observe( 'items', () => { count++; }, { init: false } );
-		}
-	});
-
-	ractive.merge( 'items', [ 1 ] );
-
-	t.equal( count, 1 );
-});
-
 test( 'Observer fires on initialisation for computed properties', t => {
 	let ractive = new Ractive({
 		data: { num: 21 },
@@ -681,59 +740,4 @@ test( 'Observer fires on initialisation for computed properties', t => {
 	});
 
 	t.deepEqual( observed, { num: 21, doubled: 42 });
-});
-
-test( 'Observer with no keypath argument (#1868)', t => {
-	let ractive = new Ractive();
-
-	expect( 1 );
-
-	ractive.observe( data => t.equal( data.answer, 42 ), { init: false });
-	ractive.set( 'answer', 42 );
-});
-
-test( 'Observer with empty string keypath argument (#1868)', t => {
-	let ractive = new Ractive();
-
-	expect( 1 );
-
-	ractive.observe( '', data => t.equal( data.answer, 42 ), { init: false });
-	ractive.set( 'answer', 42 );
-});
-
-test( 'Observers are removed on teardown (#1865)', t => {
-	let rendered = 0;
-	let observed = 0;
-
-	let Widget = Ractive.extend({
-		template: '{{foo}}',
-		onrender () {
-			rendered += 1;
-			this.observe( 'foo', () => observed += 1 );
-		}
-	});
-
-	let ractive = new Ractive({
-		el: fixture,
-		template: `{{#if foo}}<Widget foo='{{foo}}'/>{{/if}}`,
-		data: { foo: false },
-		components: { Widget }
-	});
-
-	ractive.toggle( 'foo' );
-	t.equal( rendered, 1 );
-	t.equal( observed, 1 );
-
-	// This will still trigger the observer, even though the component is
-	// being torn down, because observers always fire before the virtual
-	// DOM is updated. If at some stage we decide that's undesirable behaviour
-	// and that the view hierarchy should determine execution order, we
-	// will have to change the 2 to a 1 (and the 3 to a 2).
-	ractive.toggle( 'foo' );
-	t.equal( rendered, 1 );
-	t.equal( observed, 2 );
-
-	ractive.toggle( 'foo' );
-	t.equal( rendered, 2 );
-	t.equal( observed, 3 );
 });

@@ -28,7 +28,7 @@ export default function Mustache$init ( mustache, options ) {
 		context.notifyDependants( [mustache] );
 	}
 	else {
-		context.register( mustache );
+		context.registerView( mustache );
 	}
 
 	// Special case - inverted sections

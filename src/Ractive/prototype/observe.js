@@ -3,64 +3,69 @@ import getObserverFacade from './observe/getObserverFacade';
 
 export default function Ractive$observe ( keypath, callback, options ) {
 
-	var observers, map, keypaths, i;
+	var keypaths;
 
-	// Allow a map of keypaths to handlers
+	// `ractive.observe( { foo: n => {}, bar: n => {} } [, options] )`
 	if ( isObject( keypath ) ) {
-		options = callback;
-		map = keypath;
-
-		observers = [];
-
-		for ( keypath in map ) {
-			if ( map.hasOwnProperty( keypath ) ) {
-				callback = map[ keypath ];
-				observers.push( this.observe( keypath, callback, options ) );
-			}
-		}
-
-		return {
-			cancel: function () {
-				while ( observers.length ) {
-					observers.pop().cancel();
-				}
-			}
-		};
+		return observeHashMap( this, keypath, /*options:*/ callback );
 	}
 
-	// Allow `ractive.observe( callback )` - i.e. observe entire model
+	// `ractive.observe( callback [, options] )`
+	// ( i.e. observe entire model )
 	if ( typeof keypath === 'function' ) {
-		options = callback;
-		callback = keypath;
-		keypath = '';
-
-		return getObserverFacade( this, keypath, callback, options );
+		return getObserverFacade( this, /*keypath:*/ '', /*callback:*/ keypath, /*options:*/ callback );
 	}
 
 	keypaths = keypath.split( ' ' );
 
-	// Single keypath
+	// `ractive.observe( 'foo', n => {} [, options] )`
 	if ( keypaths.length === 1 ) {
 		return getObserverFacade( this, keypath, callback, options );
 	}
 
-	// Multiple space-separated keypaths
-	observers = [];
+	// `ractive.observe( 'foo bar qux', n => {} [, options] )`
+	return observeMultipleKeypaths( this, keypaths, callback, options );
 
-	i = keypaths.length;
+}
+
+function observeHashMap ( ractive, map, options ) {
+
+	const keys = Object.keys( map ),
+		  observers = new Array( keys.length );
+
+	var i = keys.length, key;
+
+	while ( i-- ) {
+		key = keys[i];
+		observers[i] = ractive.observe( key, map[ key ], options );
+	}
+
+	return getArrayCancel( observers );
+}
+
+function getArrayCancel ( observers ) {
+	return {
+		cancel: function () {
+			const length = observers.length;
+			for ( var i = 0; i < length; i++ ) {
+				observers[i].cancel();
+			}
+		}
+	};
+}
+
+function observeMultipleKeypaths ( ractive, keypaths, callback, options ) {
+
+	const observers = new Array( keypaths.length );
+	var i = keypaths.length, keypath;
+
 	while ( i-- ) {
 		keypath = keypaths[i];
 
 		if ( keypath ) {
-			observers.push( getObserverFacade( this, keypath, callback, options ) );
+			observers[i] = getObserverFacade( ractive, keypath, callback, options );
 		}
 	}
 
-	return {
-		cancel: function () {
-			while ( observers.length ) {
-				observers.pop().cancel();
-			}
-		}
-	};
+	return getArrayCancel( observers );
 }

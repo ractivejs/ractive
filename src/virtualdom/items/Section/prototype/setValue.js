@@ -167,13 +167,13 @@ function createEachBlock ( section, type, fragmentOptions, aliases ) {
 		// unrender fragments, we'll start over with new EachBlock...
 		else {
 			block.unrender();
-			section.context.listUnregister( block );
+			section.context.unregisterListView( block );
 		}
 	}
 
 	block = section.block = new EachBlock( section, type, fragmentOptions, aliases );
 
-	section.context.listRegister( block );
+	section.context.registerListView( block );
 
 	return false;
 }

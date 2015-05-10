@@ -3,7 +3,6 @@ import { PARTIAL, TEXT } from 'config/types';
 import runloop from 'global/runloop';
 import Fragment from 'virtualdom/Fragment';
 import Mustache from '../shared/Mustache/_Mustache';
-import rebind from '../shared/Mustache/rebind';
 import unbind from '../shared/unbind';
 import getPartialTemplate from './getPartialTemplate';
 import applyIndent from './applyIndent';
@@ -81,14 +80,7 @@ Partial.prototype = {
 	},
 
 	rebind ( oldKeypath, newKeypath ) {
-		// named partials aren't bound, so don't rebind
-		if ( !this.isNamed ) {
-			rebind.call( this, oldKeypath, newKeypath );
-		}
-
-		if ( this.fragment ) {
-			this.fragment.rebind( oldKeypath, newKeypath );
-		}
+		// TODO delete this
 	},
 
 	render () {
