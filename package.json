@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "homepage": "http://ractivejs.org",
   "main": "build/ractive.js",
   "keywords": [
@@ -80,6 +80,7 @@
     "gobble-esperanto-bundle": "^0.1.3",
     "gobble-sorcery": "^0.3.0",
     "jshint": "^2.5.11",
+    "junk": "^1.0.1",
     "mocha": "^2.1.0",
     "phantomjs": "^1.9.15",
     "promises-aplus-tests": "*",

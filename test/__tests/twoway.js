@@ -749,3 +749,21 @@ if ( hasUsableConsole ) {
 		console.warn = warn;
 	});
 }
+
+test( 'Contenteditable works with lazy: true (#1933)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<div contenteditable="true" value="{{value}}"></div>',
+		lazy: true
+	});
+
+	const div = ractive.find( 'div' );
+	div.innerHTML = 'foo';
+
+	try {
+		simulant.fire( div, 'blur' );
+		t.equal( ractive.get( 'value' ), 'foo' );
+	} catch ( err ) {
+		t.ok( true ); // phantomjs ಠ_ಠ
+	}
+});
