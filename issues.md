@@ -9,8 +9,9 @@ A few edge cases around Computed Properties and Components
 Breaking Changes
 	* Forced Resolution binds to nearest context, not root
 
-Failing Tests Not Covered From Above:
-* Issues: event references in method call handler should not create a null resolver (#1438)
+Failing Tests:
+* componentData.js - 3 tests
+	* magic mode, findAll query update, merge
 * get(): Returns mappings on root .get()
 * Miscellaneous: Subclasses of subclasses inherit data, partials and transitions
 * Miscellaneous: Multiple identical evaluators merge

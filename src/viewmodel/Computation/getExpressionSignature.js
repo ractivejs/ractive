@@ -13,7 +13,7 @@ export default function getExpressionSignature( signature, models, thisArg ){
 		deps: models,
 		getter () {
 			var args = models.map( model => {
-				var value = model.get( /* { noUnwrap: true } */ );
+				var value = model.get( { fullRootGet: true } );
 				if ( typeof value === 'function' ) {
 					value = wrapFunction( value, thisArg );
 				}

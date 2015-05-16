@@ -14,8 +14,5 @@ export default function Viewmodel$get ( keypath, options = empty ) {
 		}
 	}
 
-
-
 	return keypath.get( options );
-
 }
