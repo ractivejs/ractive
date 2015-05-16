@@ -546,6 +546,27 @@ test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{
 	t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
 });
 
+
+test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{#with qux}}<one foo="{{foo}}"/><two foo="{{foo}}"/>{{/with}}',
+		components: {
+			one: Ractive.extend({ template: '<p>{{foo.bar}}</p>' }),
+			two: Ractive.extend({ template: '<p>{{foo.bar}}</p>' })
+		}
+	});
+
+	ractive.set( 'qux.foo', {} );
+	t.htmlEqual( fixture.innerHTML, '<p></p><p></p>' );
+
+	ractive.findComponent( 'one' ).set( 'foo.bar', 'baz' );
+	t.htmlEqual( fixture.innerHTML, '<p>baz</p><p>baz</p>' );
+
+	ractive.findComponent( 'two' ).set( 'foo.bar', 'qux' );
+	t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
+});
+
 test( 'Index references propagate down to non-isolated components', t => {
 	var ractive = new Ractive({
 		el: fixture,

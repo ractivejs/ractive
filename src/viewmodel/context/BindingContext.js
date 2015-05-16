@@ -4,13 +4,15 @@ import getSpliceEquivalent from 'shared/getSpliceEquivalent';
 
 import HashPropertyContext from './HashPropertyContext';
 import ArrayIndexContext from './ArrayIndexContext';
+import UnresolvedContext from './UnresolvedContext';
+
 import { IndexSpecial, KeySpecial, KeypathSpecial } from './SpecialContext';
 
 import PropertyStore from '../stores/PropertyStore';
 import StateStore from '../stores/StateStore';
 
 import Watchers from './Watchers';
-import hasChildFor from './shared/hasChildFor';
+import { hasChildFor, hasKeys } from './shared/hasChildren';
 
 class BindingContext {
 
@@ -69,7 +71,7 @@ class BindingContext {
 		hash[ key ] = child;
 	}
 
-	addWatcher ( key, handler ) {
+	addWatcher ( key, handler, noInit ) {
 		let watchers = this.watchers;
 
 		if ( !watchers ) {
@@ -77,13 +79,33 @@ class BindingContext {
 		}
 
 		watchers.add( key, handler );
+
+		if ( key === '*' && !noInit ) {
+			this._flushProperties();
+		}
 	}
 
 	removeWatcher ( key, handler ) {
-		let watchers = this.watchers;
+		const watchers = this.watchers;
 
 		if ( watchers ) {
 			watchers.remove( key, handler );
+		}
+	}
+
+	_flushProperties () {
+		const value = this.get();
+
+		if ( hasKeys( value ) ) {
+			let keys = Object.keys( value ), key,
+				hash = this.propertyHash;
+
+			for ( var i = 0, l = keys.length; i < l; i++ ) {
+				key = keys[i];
+				if ( !hash || !hash.hasOwnProperty( key ) ) {
+					this.join( keys[i] )
+				}
+			}
 		}
 	}
 
@@ -148,7 +170,7 @@ class BindingContext {
 
 	addChild ( child, key = child.key, addToProperties = true ) {
 
-		if ( !child.parent ) {
+		if ( !child.parent && !( child instanceof UnresolvedContext ) ) {
 			child.parent = this;
 			child.owner = this.owner;
 		}
@@ -509,7 +531,7 @@ class BindingContext {
 
 			}.bind( this );
 
-			this.addWatcher( '*', this.hashWatcher );
+			this.addWatcher( '*', this.hashWatcher, true );
 		}
 
 		return members;
@@ -551,7 +573,7 @@ class BindingContext {
 		}
 	}
 
-	registerObserver ( observer ) {
+	registerObserver ( observer, noFire ) {
 		if ( !this.observers ) {
 			this.observers = [ observer ];
 		}
@@ -559,7 +581,9 @@ class BindingContext {
 			this.observers.push( observer );
 		}
 
-		// this.notifyDependant( observer, this.get() );
+		if ( !noFire ) {
+			this.notifyDependant( observer, this.get() );
+		}
 	}
 
 	registerView ( view ) {

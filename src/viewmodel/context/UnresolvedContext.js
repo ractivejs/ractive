@@ -125,7 +125,7 @@ class UnresolvedContext extends BindingContext {
 
 	registerObserver ( observer ) {
 		if ( this.realContext ) {
-			return this.realContext.registerObserver( observer );
+			return this.realContext.registerObserver( observer, true );
 		}
 		super.registerObserver( observer );
 	}

@@ -96,7 +96,7 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 	}
 
 	// Return a proxy model and watch for new children to be added
-	if ( chain ) {
+	if ( chain && chain.current !== chain.first ) {
 		return getUnresolved( chain, firstKey, keypath, viewmodel );
     }
 	// If there's no context chain, and the instance is either a) isolated or
@@ -105,9 +105,6 @@ function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
 		// the data object needs to have a property by this name,
 		// to prevent future failed lookups
 		model = viewmodel.root.join( keypath );
-
-		// TODO: Still necessary???
-		viewmodel.set( model, undefined );
 
 		return model;
 	}

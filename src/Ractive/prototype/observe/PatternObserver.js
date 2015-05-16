@@ -1,107 +1,74 @@
 import runloop from 'global/runloop';
 import { isEqual } from 'utils/is';
 import getPattern from './getPattern';
+import Observer from './Observer';
 
-var PatternObserver, slice = Array.prototype.slice;
 
-PatternObserver = function ( ractive, model, callback, options ) {
-	this.root = ractive;
+const segmentsPattern = /(\*|[\w|$|_]+)/g;
 
-	this.callback = callback;
-	this.defer = options.defer;
+class PatternObserver {
 
-	this.model = model;
-	this.regex = new RegExp( '^' + model.getKeypath().replace( /\./g, '\\.' ).replace( /\*/g, '([^\\.]+)' ) + '$' );
-	this.values = {};
+	constructor ( rootContext, keypath, callback, options ) {
+		this.callback = callback;
+		this.options = options;
+		this.observers = [];
+		this.watchers = [];
 
-	if ( this.defer ) {
-		this.proxies = [];
+		this.processSegment( rootContext, keypath.match( segmentsPattern ), [] );
 	}
 
-	// default to root as context, but allow it to be overridden
-	this.context = ( options && options.context ? options.context : ractive );
-};
+	processSegment ( context, segments, keys ) {
+		segments = segments.slice();
+		const segment = segments.shift();
 
-PatternObserver.prototype = {
-	init: function ( immediate ) {
-		var values, model;
-
-		values = getPattern( this.root, this.model );
-
-		if ( immediate !== false ) {
-			for ( model in values ) {
-				if ( values.hasOwnProperty( model ) ) {
-					this.update( model.get() );
-				}
+		if ( segment === '*' ) {
+			let resolved = this.getResolved( segments, keys );
+			this.watchers.push( { context, resolved } );
+			context.addWatcher( '*', resolved );
+		}
+		else {
+			context = context.join( segment );
+			if ( !segments.length ) {
+				this.observers.push( new Observer( context, this.callback, this.options, keys ) );
 			}
-		} else {
-			this.values = values;
-		}
-	},
-
-	update: function ( model ) {
-		var values;
-
-		if ( keypath.isPattern ) {
-			values = getPattern( this.root, keypath );
-
-			for ( model in values ) {
-				if ( values.hasOwnProperty( model ) ) {
-					this.update( model.get() );
-				}
+			else {
+				this.processSegment( context, segments, keys );
 			}
-
-			return;
 		}
-
-		// special case - array mutation should not trigger `array.*`
-		// pattern observer with `array.length`
-		if ( this.root.viewmodel.implicitChanges[ model.getKeypath() ] ) {
-			return;
-		}
-
-		if ( this.defer && this.ready ) {
-			runloop.scheduleTask( () => this.getProxy( model ).update() );
-			return;
-		}
-
-		this.reallyUpdate( model );
-	},
-
-	reallyUpdate: function ( model ) {
-		var keypath, value, keys, args;
-
-		keypath = model.getKeypath();
-		value = this.root.viewmodel.get( model );
-
-		// Prevent infinite loops
-		if ( this.updating ) {
-			this.values[ keypath ] = value;
-			return;
-		}
-
-		this.updating = true;
-
-		if ( !isEqual( value, this.values[ keypath ] ) || !this.ready ) {
-			keys = slice.call( this.regex.exec( keypath ), 1 );
-			args = [ value, this.values[ keypath ], keypath ].concat( keys );
-
-			this.values[ keypath ] = value;
-			this.callback.apply( this.context, args );
-		}
-
-		this.updating = false;
-	},
-
-	getProxy: function ( model ) {
-		if ( !this.proxies[ model.getKeypath() ] ) {
-			this.proxies[ model.getKeypath() ] = {
-				update: () => this.reallyUpdate( model )
-			};
-		}
-
-		return this.proxies[ model.getKeypath() ];
 	}
-};
+
+	getResolved ( segments, keys ) {
+		const remaining = segments.slice();
+
+		return ( parent, child ) => {
+
+			const resolvedKeys = keys.slice();
+			resolvedKeys.push( child.key );
+
+			if ( remaining.length ) {
+				this.processSegment( child, remaining, resolvedKeys );
+			}
+			else {
+				this.observers.push( new Observer( child, this.callback, this.options, resolvedKeys ) );
+			}
+		};
+	}
+
+	cancel() {
+		const observers = this.observers,
+			  watchers = this.watchers;
+
+		var i, l, watcher;
+
+		for ( i = 0, l = watchers.length; i < l; i++ ) {
+			watcher = watcherss[i];
+			watcher.context.removeWatcher( watcher.resolved );
+		}
+
+		for ( i = 0, l = observers.length; i < l; i++ ) {
+			observers[i].cancel();
+		}
+	}
+}
 
 export default PatternObserver;

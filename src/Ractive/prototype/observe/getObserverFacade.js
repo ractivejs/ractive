@@ -2,32 +2,27 @@ import { normalise } from 'shared/keypaths';
 import Observer from './Observer';
 import PatternObserver from './PatternObserver';
 
-let emptyObject = {};
+const wildcard = /\*/;
 
-export default function getObserverFacade ( ractive, keypath, callback, options ) {
+export default function getObserverFacade ( ractive, keypath, callback, options = { context: ractive, init: true } ) {
 
-	var observer, isPatternObserver, cancelled;
+	var observer, isPattern, cancelled;
 
-	const context = ractive.viewmodel.getModel( keypath );
-
-	options = options || emptyObject;
-	options.context = options.context || ractive;
-
-	// pattern observers are treated differently
-	if ( keypath.isPattern ) {
-		// TODO: implement pattern observers
-		// observer = new PatternObserver( ractive, keypath, callback, options );
-		// ractive.viewmodel.patternObservers.push( observer );
-		isPatternObserver = true;
-	} else {
-		observer = new Observer( context, callback, options );
+	if( !options.context ) {
+		options.context = ractive;
 	}
 
-	observer.init( options.init );
-	context.registerObserver( observer );
+	if( options.init !== false ) {
+		options.init = true;
+	}
 
-	// This flag allows observers to initialise even with undefined values
-	observer.ready = true;
+	// pattern observers are treated differently
+	if ( wildcard.test( keypath ) ) {
+		observer = new PatternObserver( ractive.viewmodel.root, keypath, callback, options );
+	} else {
+		let context = ractive.viewmodel.getModel( keypath );
+		observer = new Observer( context, callback, options );
+	}
 
 	let facade = {
 		cancel () {
@@ -37,15 +32,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 				return;
 			}
 
-			if ( isPatternObserver ) {
-				index = ractive.viewmodel.patternObservers.indexOf( observer );
-
-				ractive.viewmodel.patternObservers.splice( index, 1 );
-				context.unregisterObserver( observer );
-			} else {
-				context.unregisterObserver( observer );
-			}
-			cancelled = true;
+			observer.cancel();
 		}
 	};
 

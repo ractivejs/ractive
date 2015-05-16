@@ -1,5 +1,5 @@
 import { addToArray, removeFromArray } from 'utils/array';
-import hasChildFor from './shared/hasChildFor';
+import { hasChildFor } from './shared/hasChildren';
 
 export default class Watchers {
 
@@ -43,8 +43,9 @@ export default class Watchers {
 		}
 	}
 
-	add ( key, handler ) {
+	add ( key, handler, fireOnInit ) {
 		addToArray( this._getOrCreate( key ), handler );
+
 	}
 
 	remove ( key, handler ) {

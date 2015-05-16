@@ -3,8 +3,6 @@ import getObserverFacade from './observe/getObserverFacade';
 
 export default function Ractive$observe ( keypath, callback, options ) {
 
-	var keypaths;
-
 	// `ractive.observe( { foo: n => {}, bar: n => {} } [, options] )`
 	if ( isObject( keypath ) ) {
 		return observeHashMap( this, keypath, /*options:*/ callback );
@@ -16,7 +14,7 @@ export default function Ractive$observe ( keypath, callback, options ) {
 		return getObserverFacade( this, /*keypath:*/ '', /*callback:*/ keypath, /*options:*/ callback );
 	}
 
-	keypaths = keypath.split( ' ' );
+	const keypaths = keypath.split( ' ' );
 
 	// `ractive.observe( 'foo', n => {} [, options] )`
 	if ( keypaths.length === 1 ) {
@@ -43,17 +41,6 @@ function observeHashMap ( ractive, map, options ) {
 	return getArrayCancel( observers );
 }
 
-function getArrayCancel ( observers ) {
-	return {
-		cancel: function () {
-			const length = observers.length;
-			for ( var i = 0; i < length; i++ ) {
-				observers[i].cancel();
-			}
-		}
-	};
-}
-
 function observeMultipleKeypaths ( ractive, keypaths, callback, options ) {
 
 	const observers = new Array( keypaths.length );
@@ -68,4 +55,15 @@ function observeMultipleKeypaths ( ractive, keypaths, callback, options ) {
 	}
 
 	return getArrayCancel( observers );
+}
+
+function getArrayCancel ( observers ) {
+	return {
+		cancel: function () {
+			const length = observers.length;
+			for ( var i = 0; i < length; i++ ) {
+				observers[i].cancel();
+			}
+		}
+	};
 }

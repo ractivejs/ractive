@@ -1,52 +1,64 @@
 import runloop from 'global/runloop';
 import { isEqual } from 'utils/is';
 
-var Observer = function ( bindingContext, callback, options ) {
-	this.context = bindingContext;
-	this.callback = callback;
-	this.callbackContext = options.context;
-	this.defer = options.defer;
+const NEW_VALUE = 0, OLD_VALUE = 1
 
-	this.value = null;
-	this.oldValue = null;
-};
+class Observer {
 
-Observer.prototype = {
-	init: function ( immediate ) {
-		this.value = this.context.get();
+	constructor ( bindingContext, callback, options, keys ) {
 
-		if ( immediate !== false ) {
-			this.update();
-		} else {
-			this.oldValue = this.value;
+		this.context = bindingContext;
+		this.callback = callback;
+		this.callbackContext = options.context;
+		this.defer = options.defer;
+		this.init = options.init;
+
+		this.args = [ null, null, this.context.getKeypath() ];
+		if ( keys && keys.length ) {
+			this.args = this.args.concat( keys );
 		}
-	},
 
-	setValue: function ( value ) {
-		if ( !isEqual( value, this.value ) ) {
-			this.value = value;
+		this.updating = false;
 
-			if ( this.defer && this.ready ) {
+		this.initing = true;
+		this.context.registerObserver( this );
+		this.initing = false;
+	}
+
+	setValue ( value ) {
+
+		const args = this.args;
+		args[ OLD_VALUE ] = args[ NEW_VALUE ];
+		args[ NEW_VALUE ] = value;
+
+		if ( this.initing && !this.init ) {
+			return;
+		}
+
+		if ( !isEqual( value, args[ OLD_VALUE ] ) ) {
+
+			if ( this.defer ) {
 				runloop.scheduleTask( () => this.update() );
 			} else {
 				this.update();
 			}
 		}
-	},
+	}
 
-	update: function () {
+	update () {
 		// Prevent infinite loops
 		if ( this.updating ) {
 			return;
 		}
 
 		this.updating = true;
-
-		this.callback.call( this.callbackContext, this.value, this.oldValue, this.context.getKeypath() );
-		this.oldValue = this.value;
-
+		this.callback.apply( this.callbackContext, this.args );
 		this.updating = false;
 	}
-};
+
+	cancel () {
+		this.context.unregisterObserver( this );
+	}
+}
 
 export default Observer;
