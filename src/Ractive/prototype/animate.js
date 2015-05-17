@@ -121,7 +121,7 @@ function animate ( root, keypath, to, options ) {
 	if ( keypath ) {
 		// TODO revisit 'dummy' approach to handling multiple
 		// animations? this seems kind of hokey
-		context = root.viewmodel.getModel( keypath );
+		context = root.viewmodel.getContext( keypath );
 		from = root.viewmodel.get( context );
 
 		// cancel any existing animation

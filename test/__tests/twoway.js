@@ -484,7 +484,7 @@ test( 'Reference expression radio bindings rebind correctly inside reference exp
 	t.deepEqual( ractive.get( 'selected' ), { one: 'a', two: 'b' });
 });
 
-test( 'Ambiguous reference expressions in two-way bindings attach to the root (#900)', function ( t ) {
+test( 'Ambiguous reference expressions in two-way bindings attach to correct context', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -493,7 +493,8 @@ test( 'Ambiguous reference expressions in two-way bindings attach to the root (#
 				<input value='{{foo[bar]}}'>
 			{{/with}}`,
 		data: {
-			bar: 0
+			bar: 0,
+			whatever: {}
 		}
 	});
 

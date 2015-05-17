@@ -72,10 +72,18 @@ class EachBlock {
 	}
 
 	updateMembers ( splice ) {
-		var section = this.section,
-			fragments = section.fragments,
-			args = new Array( 2 + splice.insert ),
-			removed, len;
+		const section = this.section;
+
+		// if array was previously empty, we might not have members
+		if ( !this.members ) {
+			this.setMembers( section.context.members );
+			return;
+		}
+
+		const fragments = section.fragments,
+			  args = new Array( 2 + splice.insert );
+
+		var removed, len;
 
 		args[0] = splice.start;
 		args[1] = splice.remove;

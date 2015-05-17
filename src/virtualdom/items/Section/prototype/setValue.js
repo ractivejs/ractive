@@ -59,9 +59,8 @@ function reevaluateSection ( section, value ) {
 			return reevaluateConditionalSection( section, value, true, fragmentOptions );
 
 			case SECTION_WITH:
-			return reevaluateContextSection( section, fragmentOptions );
-
 			case SECTION_IF_WITH:
+
 			return reevaluateConditionalContextSection( section, value, fragmentOptions );
 
 			case SECTION_EACH:

@@ -53,7 +53,7 @@ var Binding = function ( element ) {
 	if ( value === undefined && this.getInitialValue ) {
 		value = this.getInitialValue();
 
-		if ( value !== undefined ) {
+		if ( value !== undefined /*&& value.length !== 0*/ ) {
 			keypath.set( value );
 		}
 	}

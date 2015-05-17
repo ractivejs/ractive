@@ -9,9 +9,12 @@ export default class Watchers {
 	}
 
 	_notify ( keyWatchers, child ) {
-		let watch;
+		let watcher;
 		for ( var i = 0, l = keyWatchers.length; i < l; i++ ) {
-			keyWatchers[i]( this.context, child );
+			// watchers may unsubscribe in flight
+			if ( watcher = keyWatchers[i] ) {
+				watcher( this.context, child );
+			}
 		}
 	}
 
@@ -49,7 +52,7 @@ export default class Watchers {
 	}
 
 	remove ( key, handler ) {
-		var watchers = this._get( key );
+		const watchers = this._get( key );
 		if( watchers ) {
 			removeFromArray( watchers, handler );
 		}

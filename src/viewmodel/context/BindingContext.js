@@ -48,6 +48,8 @@ class BindingContext {
 		// unresolved keys are stored on
 		// nearest context so they can be shared
 		this.unresolved = null;
+		// ditto expressions
+		this.expressions = null;
 
 		this.store = store || new PropertyStore( key, this );
 
@@ -218,7 +220,7 @@ class BindingContext {
 	setMember ( index, value ) {
 
 		const members = this.getOrCreateMembers(),
-			  array = this.get();
+			  array = this.getSettable( index );
 
 		// TODO: add more checks on this: null, etc.
 		if( !members || !isArray( array ) ) {

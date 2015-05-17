@@ -20,7 +20,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 	if ( wildcard.test( keypath ) ) {
 		observer = new PatternObserver( ractive.viewmodel.root, keypath, callback, options );
 	} else {
-		let context = ractive.viewmodel.getModel( keypath );
+		let context = ractive.viewmodel.getContext( keypath );
 		observer = new Observer( context, callback, options );
 	}
 

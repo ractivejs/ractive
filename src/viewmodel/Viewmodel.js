@@ -4,7 +4,7 @@ import applyChanges from './prototype/applyChanges';
 import capture from './prototype/capture';
 import clearCache from './prototype/clearCache';
 import get from './prototype/get';
-import getModel from './prototype/getModel';
+import getContext from './prototype/getContext';
 import mark from './prototype/mark';
 import merge from './prototype/merge';
 import release from './prototype/release';
@@ -17,8 +17,9 @@ import RootContext from './context/RootContext';
 import ComputedContext from './context/ComputedContext';
 
 var Viewmodel = function ( options ) {
-	var { adapt, computations, data, mappings, ractive } = options,
-		key, mapping, model;
+	var { adapt, computations, data, mappings, ractive } = options;
+
+	var key, mapping, context;
 
 	// TODO is it possible to remove this reference?
 	this.ractive = ractive;
@@ -49,28 +50,34 @@ var Viewmodel = function ( options ) {
 
 	this.root = new RootContext( this, data );
 
+	this.ready = true;
+
 	// TODO: clean-up/move some of this
 	if ( mappings ) {
 		mappings.forEach( mapping => {
-			model = mapping.model;
+			context = mapping.model;
 			key = mapping.key;
 
-			this.root.addChild( model, key );
+			this.root.addChild( context, key );
 
-			if ( data && ( key in data ) && model.get() === undefined ) {
-				model.set( data[ key ] );
+			if ( data && ( key in data ) && context.get() === undefined ) {
+				context.set( data[ key ] );
 			}
 		});
 	}
 
 	if ( computations ) {
+		let computed;
 		for( key in computations ) {
-			model = new ComputedContext( key, computations[ key ], this, data[ key ] );
-			this.root.addChild( model, key );
+			computed = new ComputedContext( key, computations[ key ] );
+			this.root.addChild( computed, key );
+			// TODO: initial values
+			// if ( data[ key ] != null ) {
+			// 	...
+			// }
 		}
 	}
 
-	this.ready = true;
 };
 
 Viewmodel.prototype = {
@@ -79,7 +86,7 @@ Viewmodel.prototype = {
 	capture: capture,
 	clearCache: clearCache,
 	get: get,
-	getModel: getModel,
+	getContext: getContext,
 	mark: mark,
 	merge: merge,
 	release: release,

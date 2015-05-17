@@ -89,8 +89,9 @@ test( 'Multiple identical evaluators merge', function ( t ) {
 
 	t.htmlEqual( fixture.innerHTML, '3 3 3' );
 
-	t.equal( ractive.viewmodel.deps[ 'computed' ].a.length, 1 );
-	t.equal( ractive.viewmodel.deps[ 'computed' ].b.length, 1 );
+	t.equal( ractive.viewmodel.root.propertyHash.a.computed.length, 1 );
+	t.equal( ractive.viewmodel.root.propertyHash.b.computed.length, 1 );
+	t.equal( ractive.viewmodel.root.properties.length, 3 );
 });
 
 test( 'Boolean attributes work as expected', function ( t ) {
@@ -178,7 +179,7 @@ test( '.unshift() works with proxy event handlers, without index references', fu
 		}
 	});
 
-	ractive.get('items').unshift({title: 'Title0'});
+	ractive.unshift( 'items', { title: 'Title0' } );
 
 	t.htmlEqual( fixture.innerHTML, '<button>Level1: Title0</button><button>Level1: Title1</button>' );
 });
@@ -297,9 +298,9 @@ test( 'Bindings without explicit keypaths can survive a splice operation', funct
 
 	expect( 1 );
 
-	items.splice( 1, 1 );
+	ractive.splice( 'items', 1, 1 );
 	try {
-		items.splice( 1, 1 );
+		ractive.splice( 'items', 1, 1 );
 		t.ok( 1 );
 	} catch ( err ) {
 		t.ok( 0 );
@@ -334,7 +335,7 @@ test( 'Inverted sections aren\'t broken by unshift operations', function ( t ) {
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'no items' );
-	ractive.get( 'items' ).unshift( 'foo' );
+	ractive.unshift( 'items', 'foo' );
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
@@ -346,7 +347,7 @@ test( 'Splice operations that try to remove more items than there are from an ar
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'abc' );
-	ractive.get( 'items' ).splice( 2, 2 );
+	ractive.splice( 'items', 2, 2 );
 	t.htmlEqual( fixture.innerHTML, 'ab' );
 });
 

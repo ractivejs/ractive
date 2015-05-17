@@ -15,7 +15,7 @@ try {
 				return false;
 			}
 
-			keypath = ractive.viewmodel.getModel( keypath );
+			keypath = ractive.viewmodel.getContext( keypath );
 
 			// If the parent value is a wrapper, other than a magic wrapper,
 			// we shouldn't wrap this property
@@ -41,7 +41,7 @@ try {
 	MagicWrapper = function ( ractive, value, keypath ) {
 		var objKeypath, template, siblings;
 
-		keypath = ractive.viewmodel.getModel( keypath );
+		keypath = ractive.viewmodel.getContext( keypath );
 
 		this.magic = true;
 

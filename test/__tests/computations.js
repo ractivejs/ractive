@@ -334,7 +334,7 @@ if ( hasUsableConsole ) {
 		ractive.reset();
 		ractive.update();
 
-		t.equal( messages, 2 );
+		t.equal( messages, 0 );
 		t.htmlEqual( fixture.innerHTML, '<p>1 - a</p><p> - </p>' );
 
 		console.warn = warn;

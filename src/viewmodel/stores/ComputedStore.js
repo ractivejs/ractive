@@ -1,33 +1,22 @@
 import { logIfDebug, warnIfDebug, warnOnce } from 'utils/log';
 import { isEqual } from 'utils/is';
 
-class Computation {
+class ComputedStore {
 
-	constructor ( viewmodel, signature, initialValue ) {
+	constructor ( signature, context ) {
 
-		this.viewmodel = viewmodel;
-
-		this.context = null;
+		this.context = context;
 
 		this.getter = signature.getter;
 		this.setter = signature.setter;
 
-		this.hardDeps = signature.deps || [];
+		const hardDeps = this.hardDeps = signature.deps || [];
 		this.softDeps = [];
-
 		this.depValues = {};
 
 		this._dirty = this._firstRun = true;
 
-		if ( this.setter && initialValue !== undefined ) {
-			this.set( initialValue );
-		}
-	}
-
-	// TODO: TEMP workaround for dependecy issue
-	setContext ( context ) {
-		this.context = context;
-		if ( this.hardDeps ) {
+		if ( hardDeps && hardDeps.length ) {
 			this.hardDeps.forEach( d => d.registerComputed( context ) );
 		}
 	}
@@ -36,12 +25,25 @@ class Computation {
 		this._dirty = true;
 	}
 
+	getSettable ( propertyOrIndex ) {
+		var value = this.get();
+
+		if ( !value ) {
+			// What to do here? And will we even be here?
+			throw new Error(`Setting a child of non-existant parent computation or expression ${this.context.getKeypath()}`);
+		}
+
+		return value;
+	}
+
 	get () {
-		var context, newDeps, dependenciesChanged, dependencyValuesChanged = false;
+		var context, newDeps, dependencyValuesChanged = false;
 
 		if ( this.getting ) {
+			// this doesn't seem to be happening anymore...
+
 			// prevent double-computation (e.g. caused by array mutation inside computation)
-			let msg = `The ${this.key.str} computation indirectly called itself. This probably indicates a bug in the computation. It is commonly caused by \`array.sort(...)\` - if that\'s the case, clone the array first with \`array.slice().sort(...)\``;
+			let msg = `The ${this.context.getKeypath()} computation indirectly called itself. This probably indicates a bug in the computation. It is commonly caused by \`array.sort(...)\` - if that\'s the case, clone the array first with \`array.slice().sort(...)\``;
 			warnOnce( msg );
 			return this.value;
 		}
@@ -49,8 +51,8 @@ class Computation {
 		this.getting = true;
 
 		if ( this._dirty ) {
-			// determine whether the inputs have changed, in case this depends on
-			// other computed values
+			// determine whether the inputs have changed
+			// based on depends on other computed values
 			if ( this._firstRun || ( !this.hardDeps.length && !this.softDeps.length ) ) {
 				dependencyValuesChanged = true;
 			} else {
@@ -77,20 +79,13 @@ class Computation {
 			}
 
 			if ( dependencyValuesChanged ) {
-				this.viewmodel.capture();
 
-				try {
-					this.value = this.getter();
-				} catch ( err ) {
-					warnIfDebug( 'Failed to compute "%s"', this.context.getKeypath() );
-					logIfDebug( err.stack || err );
-					this.value = void 0;
-				}
+				let viewmodel = this.context.owner;
+				viewmodel.capture();
+				this.value = this._tryGet();
+				newDeps = viewmodel.release();
 
-				newDeps = this.viewmodel.release();
-				dependenciesChanged = this.updateDependencies( newDeps );
-
-				if ( dependenciesChanged ) {
+				if ( this._updateDependencies( newDeps ) ) {
 					this.depValues = {};
 					[ this.hardDeps, this.softDeps ].forEach( deps => {
 						deps.forEach( context => {
@@ -107,20 +102,29 @@ class Computation {
 		return this.value;
 	}
 
-	set ( value ) {
-		if ( this.setting ) {
-			this.value = value;
-			return;
+	// js engine can't optimize functions with try/catch
+	// so move into own function that just does this...
+	_tryGet () {
+		try {
+			return this.getter();
 		}
+		catch ( err ) {
+			warnIfDebug( `Failed to compute ${this.context.getKeypath()}` );
+			logIfDebug( err.stack || err );
+		}
+	}
 
+	set ( value ) {
 		if ( !this.setter ) {
-			throw new Error( 'Computed properties without setters are read-only. (This may change in a future version of Ractive!)' );
+			throw new Error( 'Computed property ${this.context.getKeypath()} does not have a setter and is read-only.' );
 		}
 
 		this.setter( value );
+
+		return isEqual( this.get(), value );
 	}
 
-	updateDependencies ( newDeps ) {
+	_updateDependencies ( newDeps ) {
 		var i, oldDeps, dep, dependenciesChanged, unresolved;
 
 		oldDeps = this.softDeps;
@@ -156,4 +160,4 @@ class Computation {
 	}
 }
 
-export default Computation;
+export default ComputedStore;

@@ -11,7 +11,7 @@ export default function ( methodName ) {
 
 		promise = runloop.start( this, true ).then( () => result );
 
-		context = this.viewmodel.getModel( keypath );
+		context = this.viewmodel.getContext( keypath );
 		result = context.shuffle( methodName, args );
 
 		runloop.end();

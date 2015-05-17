@@ -1,5 +1,5 @@
 import { SECTION_UNLESS } from 'config/types';
-import { getByTemplate } from 'viewmodel/prototype/getModel'; // TEMP
+import { getByTemplate } from 'viewmodel/prototype/getContext'; // TEMP
 
 export default function Mustache$init ( mustache, options ) {
 

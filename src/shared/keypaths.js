@@ -28,7 +28,7 @@ export function getMatchingKeypaths ( ractive, keypath ) {
 
 		else {
 			if ( matchingKeypaths[0] === ractive.viewmodel.root ) { // first key
-				matchingKeypaths[0] = ractive.viewmodel.getModel( key );
+				matchingKeypaths[0] = ractive.viewmodel.getContext( key );
 			} else {
 				matchingKeypaths = matchingKeypaths.map( concatenate( key ) );
 			}
@@ -48,7 +48,7 @@ export function getMatchingKeypaths ( ractive, keypath ) {
 				Object.keys( ractive.viewmodel.computations )
 			);
 		} else {
-			value = ractive.viewmodel.getModel( keypath ).get();
+			value = ractive.viewmodel.getContext( keypath ).get();
 
 			keys = value ? Object.keys( value ) : null;
 		}
@@ -96,7 +96,7 @@ export function normalise ( ref ) {
 			return this.indexJoin( +str );
 		}
 
-		return this.owner.getModel( str );
+		return this.owner.getContext( str );
 	}
 */
 

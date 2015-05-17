@@ -1,15 +1,13 @@
 import BindingContext from './BindingContext';
-import ComputationStore from '../stores/ComputationStore';
-import Computation from '../Computation/Computation';
+import ComputedStore from '../stores/ComputedStore';
 
+// TODO: this class not pulling its weight.
+// Can we just use ComputedStore with a
+// BindingContext?
 class ComputedContext extends BindingContext {
 
-	constructor ( key, signature, owner, initialValue ) {
-
-		// TODO: this should be easy(ier) to unwind now...
-		var computation = new Computation( owner, signature, initialValue );
-		var store = new ComputationStore( computation );
-		store.computation.setContext( this );
+	constructor ( key, signature ) {
+		var store = new ComputedStore( signature, this );
 		super ( key, store );
 	}
 

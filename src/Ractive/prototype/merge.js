@@ -7,7 +7,7 @@ export default function Ractive$merge ( keypath, array, options ) {
 		currentArray,
 		promise;
 
-	model = this.viewmodel.getModel( keypath );
+	model = this.viewmodel.getContext( keypath );
 	currentArray = this.viewmodel.get( model );
 
 	// If either the existing value or the new value isn't an

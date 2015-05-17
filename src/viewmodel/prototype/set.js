@@ -7,7 +7,7 @@ export default function Viewmodel$set ( keypath, value, options = {} ) {
 	// });
 
 
-	this.getModel( keypath ).set( value );
+	this.getContext( keypath ).set( value );
 
 }
 

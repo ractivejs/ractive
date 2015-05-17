@@ -14,7 +14,7 @@ export default function add ( root, keypath, d ) {
 		changes = {};
 
 		getMatchingKeypaths( root, normalise( keypath ) ).forEach( keypath => {
-			let value = root.viewmodel.getModel( keypath ).get();
+			let value = root.viewmodel.getContext( keypath ).get();
 
 			if ( !isNumeric( value ) ) {
 				throw new Error( errorMessage );
