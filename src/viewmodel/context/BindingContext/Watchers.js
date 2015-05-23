@@ -1,5 +1,5 @@
 import { addToArray, removeFromArray } from 'utils/array';
-import { hasChildFor } from './shared/hasChildren';
+import { hasChildFor } from '../shared/hasChildren';
 
 export default class Watchers {
 
@@ -8,7 +8,7 @@ export default class Watchers {
 		this.watchers = {};
 	}
 
-	_notify ( keyWatchers, child ) {
+	_notify ( key, keyWatchers, child ) {
 		let watcher;
 		for ( var i = 0, l = keyWatchers.length; i < l; i++ ) {
 			// watchers may unsubscribe in flight
@@ -38,7 +38,7 @@ export default class Watchers {
 	notify ( key, child ) {
 		const watchers = this._get( key );
 		if( watchers ) {
-			this._notify( watchers, child );
+			this._notify( key, watchers, child );
 		}
 		// wildcard watcher
 		if ( key !== '*' ) {
@@ -48,7 +48,6 @@ export default class Watchers {
 
 	add ( key, handler, fireOnInit ) {
 		addToArray( this._getOrCreate( key ), handler );
-
 	}
 
 	remove ( key, handler ) {
@@ -68,7 +67,7 @@ export default class Watchers {
 		for( var i = 0, l = keys.length; i < l; i++ ) {
 			key = keys[i];
 			if ( hasChildFor( value, key ) ) {
-				this._notify( watchers[ key ] );
+				this._notify( key, watchers[ key ] );
 			}
 		}
 	}

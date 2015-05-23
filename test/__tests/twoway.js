@@ -694,7 +694,10 @@ if ( hasUsableConsole ) {
 
 		var ractive = new Ractive({
 			el: fixture,
-			template: `{{#with whatever}}<input value='{{foo}}'>{{/with}}`
+			template: `{{#with whatever}}<input value='{{foo}}'>{{/with}}`,
+			data: {
+				whatever: {}
+			}
 		});
 
 		console.warn = warn;

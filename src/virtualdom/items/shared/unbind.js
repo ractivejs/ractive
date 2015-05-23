@@ -1,5 +1,5 @@
 export default function unbind () {
-	if ( !this.isStatic ) {
-		this.context.unregisterView( this );
+	if ( this.handler ) {
+		this.context.off( this.handler );
 	}
 }

@@ -1,7 +1,6 @@
 
 No Adaptors (incudes array and magic, so ractive API only)
 Pattern Observers on array indexes
-.length property not being notified
 ractive.merge()
 Component Live Queries do not maintain order
 Should computed shadowing data be allowed?
@@ -14,24 +13,26 @@ Breaking Changes
 		* Doesn't happen until value set
 	* {{#with}} block does not render on non-value
 
-Failing Tests:
+Failing Tests (beyond adaptor and pattern observe):
 * componentData.js - 3 tests
 	* magic mode, findAll query update, merge
 * computations.js - 1 test
 	* setting computed on init with shadow prop
 * misc.js -
 	* Bindings without explicit keypaths can survive a splice operation
-
+	* 2 adaptor tests
 	* .length needs to be triggered
-		* Miscellaneous: Regression test for #271
 		* Miscellaneous: Regression test for #316
+	* 2 magic tests
+	* Two-way binding can be set up against expressions that resolve to regular keypaths
+	* Regression test for #460
+	* set with keypath pattern
+		* Keypaths in ractive.set() can contain wildcards (#784)
+		* multiple pattern keypaths can be set simultaneously (#1319)
 
-* Miscellaneous: Two-way binding can be set up against expressions that resolve to regular keypaths
-* Miscellaneous: Regression test for #460
-
-
-* partials: partial functions selects same partial until reset
-* partials: Named partials should not get rebound if they happen to have the same name as a reference
-* Radio name inputs respond to model changes (regression, see #783)
-* Two-way bindings: Changes made in oninit are reflected on render (#1390)
+* twoway.js - 2 tests
+	* Radio name inputs respond to model changes (regression, see #783)
+	* Two-way bindings: Changes made in oninit are reflected on render (#1390)
+	* 2 false fails (pass when run independently)
+	* 1 ambigous ref change
 

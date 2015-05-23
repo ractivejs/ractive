@@ -11,7 +11,8 @@ import { IndexSpecial, KeySpecial, KeypathSpecial } from './SpecialContext';
 import PropertyStore from '../stores/PropertyStore';
 import StateStore from '../stores/StateStore';
 
-import Watchers from './Watchers';
+import Watchers from './BindingContext/Watchers';
+import Dependants from './BindingContext/Dependants';
 import { hasChildFor, hasKeys } from './shared/hasChildren';
 
 class BindingContext {
@@ -37,10 +38,7 @@ class BindingContext {
 		this.members = null;
 
 		// dependants
-		this.computed = null;
-		this.observers = null;
-		this.views = null;
-		this.listViews = null;
+		this.dependants = null;
 
 		// watcher is created on request
 		// for certain child keys
@@ -53,7 +51,7 @@ class BindingContext {
 
 		this.store = store || new PropertyStore( key, this );
 
-		this.splice = null;
+		this.shuffled = null;
 		this.dirty = false;
 
 		this.hashWatcher = null;
@@ -105,7 +103,7 @@ class BindingContext {
 			for ( var i = 0, l = keys.length; i < l; i++ ) {
 				key = keys[i];
 				if ( !hash || !hash.hasOwnProperty( key ) ) {
-					this.join( keys[i] )
+					this.join( keys[i] );
 				}
 			}
 		}
@@ -206,12 +204,12 @@ class BindingContext {
 		return parentKey ? parentKey + '.' + key : key;
 	}
 
-	get ( options ) {
+	get () {
 		return this.store.get();
 	}
 
 
-	set ( value, options ) {
+	set ( value ) {
 		if ( this.store.set( value ) ) {
 			this.mark();
 		}
@@ -224,7 +222,7 @@ class BindingContext {
 
 		// TODO: add more checks on this: null, etc.
 		if( !members || !isArray( array ) ) {
-			throw new Error('array method called on non-array')
+			throw new Error('array method called on non-array');
 		}
 
 		this.store.setChild( index, value );
@@ -268,20 +266,26 @@ class BindingContext {
 				}
 			}
 
-			members.splice.apply( members, splice );
+			let removed = members.splice.apply( members, splice );
 
-			this.splice = {
+			// removed need to be marked so they notify any observer dependents
+			for ( let i = 0, l = removed.length; i < l; i++ ) {
+				removed[i].set();
+			}
+
+			this.shuffled = {
+				removed,
 				start: splice[0],
 				remove: splice[1],
 				insert: splice.length - 2
 			};
 
-			// Deal with index shifts
+			// Deal with index shifts and length change
 			if ( newLength !== oldLength ) {
 				// inserts were already handled, so start from there
-				let i = this.splice.start + this.splice.insert,
-					length = Math.max( oldLength, newLength ),
-					member;
+				const length = Math.max( oldLength, newLength );
+				let i = this.shuffled.start + this.shuffled.insert,
+					member, lengthProperty;
 
 				while ( i < length ) {
 
@@ -295,13 +299,16 @@ class BindingContext {
 
 					i++;
 				}
+
+				if ( lengthProperty = this.findChild( 'length' ) )  {
+					lengthProperty.mark();
+				}
 			}
 		}
 
 		// TODO:
 		// watchers
 		// add to changes
-		// .length
 
 		this.cascade( true );
 		this.addAsChanged();
@@ -330,10 +337,6 @@ class BindingContext {
 
 	}
 
-	// this is the only use of "owner",
-	// meaning the owner viewmodel.
-	// Could this dependency by moved and
-	// thus removed from here?
 	addAsChanged () {
 		addToArray( this.owner.changes, this );
 
@@ -363,7 +366,6 @@ class BindingContext {
 	}
 
 	cascade ( cascadeUpOnly ) {
-		const computed = this.computed;
 
 		// bail if we've already been here...
 		if ( this.dirty ) { return; }
@@ -380,11 +382,10 @@ class BindingContext {
 			this.parent.cascade( true );
 		}
 
+		const dependants = this.dependants;
 		// mark computed dependants as dirty
-		if( computed ) {
-			for( let i = 0, l = computed.length; i < l; i++ ) {
-				computed[i].mark();
-			}
+		if( dependants ) {
+			dependants.notify( 'mark' );
 		}
 	}
 
@@ -436,7 +437,7 @@ class BindingContext {
 	createOrReconcileArrayMembers ( value ) {
 
 		const l = value.length;
-		let i = -1, members = this.members, member;
+		let i = -1, members = this.members;
 
 		// create new array
 		if( !members || this.isHashList ) {
@@ -504,7 +505,7 @@ class BindingContext {
 			this.join( key );
 
 			// update existing value
-			if ( ( member = members[i] ) ) {
+			if ( member = members[i] ) {
 				if ( member.key !== key ) {
 					member.reset();
 					member.key = key;
@@ -566,153 +567,78 @@ class BindingContext {
 		return context;
 	}
 
-	registerComputed ( computed ) {
-		if ( !this.computed ) {
-			this.computed = [ computed ];
-		}
-		else {
-			this.computed.push( computed );
-		}
-	}
+	register ( method, dependant, noInit ) {
+		const dependants = this.dependants || ( this.dependants = new Dependants() );
 
-	registerObserver ( observer, noFire ) {
-		if ( !this.observers ) {
-			this.observers = [ observer ];
-		}
-		else {
-			this.observers.push( observer );
+		dependants.add( method, dependant );
+
+		if ( noInit ) {
+			return;
 		}
 
-		if ( !noFire ) {
-			this.notifyDependant( observer, this.get() );
-		}
-	}
-
-	registerView ( view ) {
-		const value = this.get();
-
-		if ( !this.views ) {
-			this.views = [ view ];
-		}
-		else {
-			this.views.push( view );
-		}
-
-		if ( value != null && value !== '' ) {
-			this.notifyDependant( view, value );
+		switch ( method ) {
+			case 'mark':
+			case 'updateMembers':
+				break;
+			case 'setValue':
+				const value = this.get();
+				if ( value != null && value !== '' ) {
+					dependant.setValue( value );
+				}
+				break;
+			case 'setMembers':
+				const members = this.getOrCreateMembers();
+				if ( members.length ) {
+					dependant.setMembers( members );
+				}
+				break;
+			default:
+				throw new Error(`Unrecognized BindingContext method "${method}" on register() call`);
 		}
 	}
 
-	registerListView ( view ) {
-		const value = this.get();
+	unregister ( method, dependant ) {
+		const dependants = this.dependants;
 
-		if ( !this.listViews ) {
-			this.listViews = [ view ];
+		if ( dependants ) {
+			dependants.remove( method, dependant );
 		}
-		else {
-			this.listViews.push( view );
-		}
-
-		const members = this.getOrCreateMembers();
-
-		if ( members.length ) {
-			this.notifyListDependant( view, members );
-		}
-	}
-
-	unregisterComputed ( computed ) {
-		removeFromArray( this.computed, computed );
-	}
-
-	unregisterObserver ( observer ) {
-		removeFromArray( this.observers, observer );
-	}
-
-	unregisterView ( view ) {
-		removeFromArray( this.views, view );
-	}
-
-	unregisterListView ( view ) {
-		removeFromArray( this.views, view );
 
 		// TODO: Would it make sense to set
 		// this.members = null if no more list dependants?
 	}
 
-	notify ( type ) {
-		var dependants = this[ type ];
+	notify () {
 
 		if( !this.dirty ) {
 			return;
 		}
 
-		if ( dependants ) {
-			this.notifyDependants( dependants );
-		}
+		const dependants = this.dependants;
 
-		if( type === 'views' && ( dependants = this.listViews ) ) {
-			if ( this.splice ) {
-				this.updateListDependants( dependants );
+		if ( dependants ) {
+			dependants.notify( 'setValue', this.get() );
+
+			const shuffled = this.shuffled;
+
+			if ( shuffled ) {
+				dependants.notify( 'updateMembers', shuffled );
 			}
 			else {
-				this.notifyListDependants( dependants );
+				// TODO: don't create unnecssarily
+				const members = this.getOrCreateMembers();
+				if ( members ) {
+					dependants.notify( 'setMembers', members );
+				}
 			}
 		}
 
-		// TODO is there better way to handle this?
-		// maybe seperate "flush" method
-		if( type === 'views' ) {
-			this.dirty = false;
-			this.splice = null;
-		}
-
-		this.notifyChildren( this.members, type );
-		this.notifyChildren( this.properties, type );
+		this.dirty = false;
+		this.shuffled = null;
+		this.notifyChildren( this.members );
+		this.notifyChildren( this.properties );
 	}
 
-	notifyDependants ( dependants ) {
-		const value = this.get(),
-			  length = dependants.length;
-
-		for( let i = 0; i < length; i++ ) {
-			this.notifyDependant( dependants[i], value );
-		}
-	}
-
-	notifyDependant ( dependant, value ) {
-		// dependants may unregister themselves, so we
-		// check that we are still getting a hit
-		if( dependant ) {
-			dependant.setValue( value );
-		}
-	}
-
-	updateListDependants ( dependants ) {
-		var splice = this.splice, dependant;
-
-		for( let i = 0, l = dependants.length; i < l; i++ ) {
-			dependant = dependants[i];
-			if ( dependant.updateMembers ) {
-				dependant.updateMembers( splice );
-			}
-		}
-	}
-
-	notifyListDependants ( dependants ) {
-		const members = this.getOrCreateMembers(),
-			  length = dependants.length;
-
-		for( var i = 0; i < length; i++ ) {
-			this.notifyListDependant( dependants[i], members );
-		}
-	}
-
-	notifyListDependant ( dependant, members ) {
-		// TODO: can we remove .setMembers check?
-		if ( dependant && dependant.setMembers ) {
-			dependant.setMembers( members );
-		}
-	}
 
 	notifyChildren ( children, type ) {
 		var i, l, child;
@@ -751,15 +677,14 @@ class BindingContext {
 		return model;
 	}
 
-	unbind () {
-		console.warn( 'TODO is Context#unbind necessary?' );
-		this.dependants = null;
-		this.listDependants = null;
-		this.watchers = null;
-		this.unresolved = null;
-	}
-};
-
+	// unbind () {
+	// 	console.warn( 'TODO is Context#unbind necessary?' );
+	// 	this.dependants = null;
+	// 	this.listDependants = null;
+	// 	this.watchers = null;
+	// 	this.unresolved = null;
+	// }
+}
 
 function toKeys ( keypath ) {
 	return isArray( keypath ) ? keypath : ( '' + keypath ).split( '.' );

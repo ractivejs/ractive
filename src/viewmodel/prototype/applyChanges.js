@@ -7,8 +7,8 @@ export default function Viewmodel$applyChanges () {
 	}
 
 	this.changes = [];
-	this.root.notify( 'observers' );
-	this.root.notify( 'views' );
+	// this.root.notify( 'observers' );
+	this.root.notify( /*'views'*/ );
 
 	// Return a hash of keypaths to updated values
 	return changes.reduce( ( hash, context ) => {

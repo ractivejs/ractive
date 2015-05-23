@@ -16,7 +16,7 @@ class ArrayIndexContext extends ContextReference {
 		let resolved;
 
 		if ( resolved = this.resolved = this.parent.members[ this.index ] ) {
-			resolved.registerComputed( this );
+			resolved.register( 'mark', this );
 		}
 
 		return resolved;

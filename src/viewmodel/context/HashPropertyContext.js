@@ -18,7 +18,7 @@ class HashPropertyContext extends ContextReference {
 		let resolved;
 
 		if ( resolved = this.resolved = this.parent.tryJoin( this.key ) ) {
-			resolved.registerComputed( this );
+			resolved.register( 'mark', this );
 		}
 
 		return resolved;

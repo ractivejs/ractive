@@ -186,7 +186,7 @@ test( 'partial functions selects same partial until reset', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>1</p>' );
 
 	ractive.set( 'foo', false );
-	ractive.get( 'items' ).push( 2 );
+	ractive.push( 'items', 2 );
 
 	t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p>' );
 });
@@ -691,7 +691,7 @@ test( 'Partials with expressions in recursive structures should not blow the sta
 test( 'Named partials should not get rebound if they happen to have the same name as a reference (#1507)', t => {
 	var ractive = new Ractive({
 		el: fixture,
-		template: '{{#each items}}{{>item}}{{/each}}{{#if items.length > 1}}{{#with items[items.length-1]}}{{>item}}{{/with}}{{/if}}',
+		template: `{{#each items}}{{>item}}{{/each}}{{#if items.length > 1}}{{#with items[items.length-1]}}{{>item}}{{/with}}{{/if}}`,
 		partials: {
 			item: '{{item}}'
 		},

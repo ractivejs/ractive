@@ -6,7 +6,7 @@ const wildcard = /\*/;
 
 export default function getObserverFacade ( ractive, keypath, callback, options = { context: ractive, init: true } ) {
 
-	var observer, isPattern, cancelled;
+	var observer;
 
 	if( !options.context ) {
 		options.context = ractive;
@@ -16,6 +16,8 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 		options.init = true;
 	}
 
+	keypath = normalise( keypath );
+
 	// pattern observers are treated differently
 	if ( wildcard.test( keypath ) ) {
 		observer = new PatternObserver( ractive.viewmodel.root, keypath, callback, options );
@@ -24,18 +26,23 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 		observer = new Observer( context, callback, options );
 	}
 
-	let facade = {
-		cancel () {
-			var index;
-
-			if ( cancelled ) {
-				return;
-			}
-
-			observer.cancel();
-		}
-	};
-
+	const facade = new ObserverFacade( observer );
 	ractive._observers.push( facade );
 	return facade;
+}
+
+class ObserverFacade {
+
+	constructor ( observer ) {
+		this.observer = observer;
+		this.cancelled = false;
+	}
+
+	cancel () {
+		if ( this.cancelled ) {
+			return;
+		}
+		this.cancelled = true;
+		this.observer.cancel();
+	}
 }

@@ -166,13 +166,15 @@ function createEachBlock ( section, type, fragmentOptions, aliases ) {
 		// unrender fragments, we'll start over with new EachBlock...
 		else {
 			block.unrender();
-			section.context.unregisterListView( block );
+			section.context.unregister( 'setMembers', block );
+			section.context.unregister( 'updateMembers', block );
 		}
 	}
 
 	block = section.block = new EachBlock( section, type, fragmentOptions, aliases );
 
-	section.context.registerListView( block );
+	section.context.register( 'setMembers', block );
+	section.context.register( 'updateMembers', block );
 
 	return false;
 }

@@ -53,7 +53,7 @@ class ContextReference extends BindingContext {
 		}
 
 		if ( resolved ) {
-			resolved.registerComputed( this );
+			resolved.register( 'mark', this );
 		}
 
 		return resolved;
@@ -86,7 +86,7 @@ class ContextReference extends BindingContext {
 
 	reset () {
 		if ( this.resolved ) {
-			this.resolved.unregisterComputed( this );
+			this.resolved.unregister( 'mark', this );
 			this.resolved = null;
 		}
 

@@ -18,13 +18,17 @@ class UnresolvedContext extends BindingContext {
 		super.addChild( child );
 	}
 
-	resolve ( context ) {
-		var properties, computed, observers, views, listViews;
+	_transferDependants ( method ) {
 
+	}
+
+	resolve ( context ) {
 		this.realContext = context;
 		this.forceResolve = null;
 
-		if ( properties = this.properties ) {
+		const properties = this.properties;
+
+		if ( properties ) {
 			for( let i = 0, l = properties.length; i < l; i++ ) {
 				context.addChild( properties[i] );
 			}
@@ -32,39 +36,33 @@ class UnresolvedContext extends BindingContext {
 			this.propertyHash = null;
 		}
 
-		if ( computed = this.computed ) {
-			for( let i = 0, l = computed.length; i < l; i++ ) {
-				context.registerComputed( computed[i] );
-				// As resolution of UnresolvedContext may
-				// happen after computed dependancies have been called,
-				// we need to mark() them here if resolved context is dirty.
-				if ( context.dirty ) {
-					computed[i].mark();
+		const dependants = this.dependants,
+			  isDirty = context.dirty;
+
+		if ( dependants ) {
+			const methods = dependants.keys();
+			let method, list;
+
+			for( let m = 0, ml = methods.length; m < ml; m++ ) {
+				method = methods[m];
+				list = dependants.list( method );
+
+				for( let i = 0, l = list.length; i < l; i++ ) {
+					context.register( method, list[i] );
 				}
 			}
-			this.computed = null;
+
+			// As resolution of UnresolvedContext may
+			// happen after dependants have been called,
+			// we need to mark() them here if resolved
+			// context is already dirty.
+			if ( context.dirty ) {
+				dependants.notify( 'mark' );
+			}
+
+			this.dependants = null;
 		}
 
-		if ( observers = this.observers ) {
-			for( let i = 0, l = observers.length; i < l; i++ ) {
-				context.registerObserver( observers[i] );
-			}
-			this.observers = null;
-		}
-
-		if ( views = this.views ) {
-			for( let i = 0, l = views.length; i < l; i++ ) {
-				context.registerView( views[i] );
-			}
-			this.views = null;
-		}
-
-		if ( listViews = this.listViews ) {
-			for( let i = 0, l = listViews.length; i < l; i++ ) {
-				context.registerListView( listViews[i] );
-			}
-			this.listViews = null;
-		}
 	}
 
 	setForceResolve( resolve ) {
@@ -116,67 +114,27 @@ class UnresolvedContext extends BindingContext {
 		return this.realContext.cascade( cascadeUpOnly );
 	}
 
-	registerComputed ( computed ) {
+	register ( method, handler ) {
 		if ( this.realContext ) {
-			return this.realContext.registerComputed( computed );
+			// TODO: observers should not fire here
+			return this.realContext.register( method, handler );
 		}
-		super.registerComputed( computed );
+		super.register( method, handler );
 	}
 
-	registerObserver ( observer ) {
+
+	unregister ( method, handler ) {
 		if ( this.realContext ) {
-			return this.realContext.registerObserver( observer, true );
+			return this.realContext.unregister( method, handler );
 		}
-		super.registerObserver( observer );
+		super.unregister( method, handler );
 	}
 
-	registerView ( view ) {
-		if ( this.realContext ) {
-			return this.realContext.registerView( view );
-		}
-		super.registerView( view );
-	}
-
-	registerListView ( view ) {
-		if ( this.realContext ) {
-			return this.realContext.registerListView( view );
-		}
-		super.registerListView( view );
-	}
-
-	unregisterComputed ( computed ) {
-		if ( this.realContext ) {
-			return this.realContext.unregisterComputed( computed );
-		}
-		super.unregisterComputed( computed );
-	}
-
-	unregisterObserver ( observer ) {
-		if ( this.realContext ) {
-			return this.realContext.unregisterObserver( observer );
-		}
-		super.unregisterObserver( observer );
-	}
-
-	unregisterView ( view ) {
-		if ( this.realContext ) {
-			return this.realContext.unregisterView( view );
-		}
-		super.unregisterView( view );
-	}
-
-	unregisterListView ( view ) {
-		if ( this.realContext ) {
-			return this.realContext.unregisterListView( view );
-		}
-		super.unregisterListView( view );
-	}
-
-	notify ( type ) {
+	notify () {
 		if ( !this.realContext ) {
 			throw new Error('notify called on UnresolvedContext');
 		}
-		this.realContext.notify( type );
+		this.realContext.notify();
 	}
 
 	join ( keypath ) {

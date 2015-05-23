@@ -288,18 +288,16 @@ test( 'Observers are removed on teardown (#1865)', t => {
 	t.equal( rendered, 1 );
 	t.equal( observed, 1 );
 
-	// This will still trigger the observer, even though the component is
-	// being torn down, because observers always fire before the virtual
-	// DOM is updated. If at some stage we decide that's undesirable behaviour
-	// and that the view hierarchy should determine execution order, we
-	// will have to change the 2 to a 1 (and the 3 to a 2).
+	// This won't trigger the observer because it will
+	// unregister when the Section is notified.
+	// this is breaking change from 0.7
 	ractive.toggle( 'foo' );
 	t.equal( rendered, 1 );
-	t.equal( observed, 2 );
+	t.equal( observed, 1 );
 
 	ractive.toggle( 'foo' );
 	t.equal( rendered, 2 );
-	t.equal( observed, 3 );
+	t.equal( observed, 2 );
 });
 
 test( 'Observers should not fire twice when an upstream change is already a change (#1695)', t => {
@@ -541,13 +539,13 @@ test( 'Pattern observers on arrays fire correctly after mutations', function ( t
 		if ( k === 'items.length' ) {
 			observedLengthChange = true;
 		}
-	}, { init: false });
+	}, { init: false } );
 
-	ractive.get( 'items' ).push( 'd' );
+	ractive.push( 'items', 'd' );
 	t.equal( lastKeypath, 'items.3' );
 	t.equal( lastValue, 'd' );
 
-	ractive.get( 'items' ).pop();
+	ractive.pop( 'items' );
 	t.equal( lastKeypath, 'items.3' );
 	t.equal( lastValue, undefined );
 
@@ -586,7 +584,7 @@ test( 'Pattern observers receive additional arguments corresponding to the wildc
 		}
 	}, { init: false });
 
-	ractive.get( 'array' ).push( 'd' );
+	ractive.push( 'array', 'd' );
 	t.equal( lastIndex, 3 );
 
 	ractive.set( 'object.foo.five', 5 );
@@ -646,13 +644,15 @@ test( 'Deferred pattern observers work correctly (#1079)', function ( t ) {
 	});
 
 	var dummy = [],
-		observer = ractive.observe('fruits.*', function(nv) { dummy.push(nv); }, { defer: true });
+		observer = ractive.observe('fruits.*', fruit => {
+			dummy.push( fruit );
+		}, { defer: true } );
 
-	t.deepEqual(dummy, [ 'apple', 'banana', 'orange' ]);
+	t.deepEqual( dummy, [ 'apple', 'banana', 'orange' ] );
 
-	ractive.get('fruits').push('cabbage');
+	ractive.push( 'fruits', 'cabbage' );
 
-	t.deepEqual(dummy, [ 'apple', 'banana', 'orange', 'cabbage' ]);
+	t.deepEqual( dummy, [ 'apple', 'banana', 'orange', 'cabbage' ] );
 
 	observer.cancel();
 });

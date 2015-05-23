@@ -10,11 +10,19 @@ class PatternObserver {
 
 	constructor ( rootContext, keypath, callback, options ) {
 		this.callback = callback;
-		this.options = options;
+		this.options = {
+			init: options.init,
+			defer: options.defer,
+			context: options.context
+		};
 		this.observers = [];
 		this.watchers = [];
 
 		this.processSegment( rootContext, keypath.match( segmentsPattern ), [] );
+
+		// initial processing has happened on line above, which respects init: true.
+		// from now on, any Observer added on pattern match should fire right away
+		this.options.init = true;
 	}
 
 	processSegment ( context, segments, keys ) {
@@ -38,12 +46,20 @@ class PatternObserver {
 	}
 
 	getResolved ( segments, keys ) {
-		const remaining = segments.slice();
+		const remaining = segments.slice(),
+			  added = {};
 
 		return ( parent, child ) => {
+			const key = child.key === '[*]' ? child.index : child.key;
+
+			// only add one Observer per key!
+			if ( added.hasOwnProperty( key ) ) {
+				return;
+			}
+			added[ key ] = true;
 
 			const resolvedKeys = keys.slice();
-			resolvedKeys.push( child.key );
+			resolvedKeys.push( key );
 
 			if ( remaining.length ) {
 				this.processSegment( child, remaining, resolvedKeys );
@@ -61,7 +77,7 @@ class PatternObserver {
 		var i, l, watcher;
 
 		for ( i = 0, l = watchers.length; i < l; i++ ) {
-			watcher = watcherss[i];
+			watcher = watchers[i];
 			watcher.context.removeWatcher( watcher.resolved );
 		}
 

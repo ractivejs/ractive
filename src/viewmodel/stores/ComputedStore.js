@@ -17,7 +17,7 @@ class ComputedStore {
 		this._dirty = this._firstRun = true;
 
 		if ( hardDeps && hardDeps.length ) {
-			this.hardDeps.forEach( d => d.registerComputed( context ) );
+			this.hardDeps.forEach( d => d.register( 'mark', context ) );
 		}
 	}
 
@@ -136,7 +136,7 @@ class ComputedStore {
 
 			if ( newDeps.indexOf( dep ) === -1 ) {
 				dependenciesChanged = true;
-				dep.unregisterComputed( this.context );
+				dep.unregister( 'mark', this.context );
 			}
 		}
 
@@ -148,7 +148,7 @@ class ComputedStore {
 			if ( oldDeps.indexOf( dep ) === -1 && ( !this.hardDeps || this.hardDeps.indexOf( dep ) === -1 ) ) {
 				dependenciesChanged = true;
 
-				dep.registerComputed( this.context );
+				dep.register( 'mark', this.context );
 			}
 		}
 

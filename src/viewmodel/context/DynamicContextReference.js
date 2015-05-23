@@ -9,7 +9,7 @@ class DynamicContextReference extends ContextReference {
 	constructor ( key, reference ) {
 		super( '[' + key + ']' );
 		this.reference = reference;
-		reference.registerComputed({
+		reference.register( 'mark', {
 			mark: () => this.reset()
 		});
 	}

@@ -1,69 +1,50 @@
-import { isObject } from 'utils/is';
-import getObserverFacade from './observe/getObserverFacade';
+import dispatchObserve from './observe/dispatchObserve';
 
-export default function Ractive$observe ( keypath, callback, options ) {
-
-	// `ractive.observe( { foo: n => {}, bar: n => {} } [, options] )`
-	if ( isObject( keypath ) ) {
-		return observeHashMap( this, keypath, /*options:*/ callback );
-	}
-
-	// `ractive.observe( callback [, options] )`
-	// ( i.e. observe entire model )
-	if ( typeof keypath === 'function' ) {
-		return getObserverFacade( this, /*keypath:*/ '', /*callback:*/ keypath, /*options:*/ callback );
-	}
-
-	const keypaths = keypath.split( ' ' );
-
-	// `ractive.observe( 'foo', n => {} [, options] )`
-	if ( keypaths.length === 1 ) {
-		return getObserverFacade( this, keypath, callback, options );
-	}
-
-	// `ractive.observe( 'foo bar qux', n => {} [, options] )`
-	return observeMultipleKeypaths( this, keypaths, callback, options );
-
+const observe = function ( keypath, callback, options ) {
+	return dispatchObserve( this, keypath, callback, options );
 }
 
-function observeHashMap ( ractive, map, options ) {
-
-	const keys = Object.keys( map ),
-		  observers = new Array( keys.length );
-
-	var i = keys.length, key;
-
-	while ( i-- ) {
-		key = keys[i];
-		observers[i] = ractive.observe( key, map[ key ], options );
-	}
-
-	return getArrayCancel( observers );
+const observeList = function ( keypath, callback, options = {} ) {
+	options.type = 'list';
+	return this.observe( keypath, callback, options );
 }
 
-function observeMultipleKeypaths ( ractive, keypaths, callback, options ) {
+const observeOnce = function ( keypath, callback, options ) {
 
-	const observers = new Array( keypaths.length );
-	var i = keypaths.length, keypath;
+	var observer, cancel = function () {
+		observer.cancel();
+	};
 
-	while ( i-- ) {
-		keypath = keypaths[i];
-
-		if ( keypath ) {
-			observers[i] = getObserverFacade( ractive, keypath, callback, options );
-		}
+	// context = options.context || this
+	if ( typeof callback === 'function' ) {
+		callback = wrapForOnce( this, callback, cancel );
+	}
+	else if ( typeof keypath === 'function' ) {
+		keypath = wrapForOnce( this, keypath, cancel );
 	}
 
-	return getArrayCancel( observers );
+	if ( options ) {
+		options.init = false;
+	}
+	else {
+		options = { init: false }
+	}
+
+	observer = dispatchObserve( this, keypath, callback, options );
+
+	return observer;
 }
 
-function getArrayCancel ( observers ) {
-	return {
-		cancel: function () {
-			const length = observers.length;
-			for ( var i = 0; i < length; i++ ) {
-				observers[i].cancel();
-			}
-		}
+const observeListOnce = function ( keypath, callback, options = {} ) {
+	options.type = 'list';
+	return this.observeOnce( keypath, callback, options );
+}
+
+function wrapForOnce ( ractive, callback, cancel ) {
+	return function () {
+		callback.apply( ractive, arguments );
+		cancel();
 	};
 }
+
+export { observe, observeList, observeOnce, observeListOnce };

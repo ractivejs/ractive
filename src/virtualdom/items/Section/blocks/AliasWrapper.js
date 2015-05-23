@@ -30,33 +30,19 @@ class AliasWrapper {
 		return this.context.tryJoin( this.alias( keypath ) );
 	}
 
-	registerComputed ( computed ) {
-		return this.context.registerComputed( computed );
+	register ( method, dependant ) {
+		return this.context.register( method, dependant );
 	}
 
-	registerView ( view ) {
-		return this.context.registerView( view );
-	}
-
-	registerListView ( view ) {
-		return this.context.registerListView( view );
-	}
-
-	unregisterView ( view ) {
-		return this.context.unregisterView( view );
-	}
-
-	unregisterComputed ( computed ) {
-		return this.context.unregisterComputed( computed );
-	}
-
-	unregisterListView ( dependant ) {
-		return this.context.unregisterListView( dependant );
+	unregister ( method, dependant ) {
+		return this.context.unregister( method, dependant );
 	}
 
 	addWatcher ( key, resolve ) {
 		return this.context.addWatcher( key, resolve );
 	}
+
+
 }
 
 export default AliasWrapper;

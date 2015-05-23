@@ -1,8 +1,8 @@
 export default function Fragment$findNextNode ( item ) {
 	var index = item.index, node;
 
-	if ( this.items[ index + 1 ] ) {
-		node = this.items[ index + 1 ].firstNode();
+	if ( node = this.items[ index + 1 ] ) {
+		node = node.firstNode();
 	}
 
 	// if this is the root fragment, and there are no more items,

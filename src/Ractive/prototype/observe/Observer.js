@@ -7,41 +7,54 @@ class Observer {
 
 	constructor ( bindingContext, callback, options, keys ) {
 
-		this.context = bindingContext;
+		const context = this.context = bindingContext;
 		this.callback = callback;
 		this.callbackContext = options.context;
 		this.defer = options.defer;
 		this.init = options.init;
+		this.updating = false;
 
-		this.args = [ null, null, this.context.getKeypath() ];
+		this.args = [ void 0, void 0, context.getKeypath() ];
+
 		if ( keys && keys.length ) {
 			this.args = this.args.concat( keys );
 		}
 
-		this.updating = false;
+		context.register( 'setValue', this, true );
 
-		this.initing = true;
-		this.context.registerObserver( this );
-		this.initing = false;
+		this.captureValues( context.get() );
+
+		if ( options.init ) {
+			this.fire();
+		}
+
 	}
 
-	setValue ( value ) {
-
+	captureValues ( value ) {
 		const args = this.args;
 		args[ OLD_VALUE ] = args[ NEW_VALUE ];
 		args[ NEW_VALUE ] = value;
+	}
 
-		if ( this.initing && !this.init ) {
-			return;
+	setValue ( value, initing ) {
+
+		this.captureValues( value );
+
+		if ( this.hasChanged() ) {
+			this.fire();
 		}
+	}
 
-		if ( !isEqual( value, args[ OLD_VALUE ] ) ) {
+	hasChanged () {
+		const args = this.args;
+		return !isEqual( args[ NEW_VALUE ], args[ OLD_VALUE ] );
+	}
 
-			if ( this.defer ) {
-				runloop.scheduleTask( () => this.update() );
-			} else {
-				this.update();
-			}
+	fire () {
+		if ( this.defer ) {
+			runloop.scheduleTask( () => this.update() );
+		} else {
+			this.update();
 		}
 	}
 
@@ -50,14 +63,13 @@ class Observer {
 		if ( this.updating ) {
 			return;
 		}
-
 		this.updating = true;
 		this.callback.apply( this.callbackContext, this.args );
 		this.updating = false;
 	}
 
 	cancel () {
-		this.context.unregisterObserver( this );
+		this.context.unregister( 'setValue', this );
 	}
 }
 

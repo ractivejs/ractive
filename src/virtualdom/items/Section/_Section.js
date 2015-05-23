@@ -46,6 +46,9 @@ var Section = function ( options ) {
 
 	this.renderedFragments = [];
 
+	this.listvalueHandler = null;
+	this.listupdateHandler = null;
+
 	this.length = 0; // number of times this section is rendered
 
 	Mustache.init( this, options );
@@ -60,17 +63,6 @@ Section.prototype = {
 	findComponent: findComponent,
 	findNextNode: findNextNode,
 	firstNode: firstNode,
-	getIndexRef: function( name ) {
-		if ( this.indexRefs ) {
-			let i = this.indexRefs.length;
-			while ( i-- ) {
-				let ref = this.indexRefs[i];
-				if ( ref.n === name ) {
-					return ref;
-				}
-			}
-		}
-	},
 	getValue: Mustache.getValue,
 	shuffle: shuffle,
 	rebind: rebind,

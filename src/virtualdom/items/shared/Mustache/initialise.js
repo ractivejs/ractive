@@ -3,7 +3,7 @@ import { getByTemplate } from 'viewmodel/prototype/getContext'; // TEMP
 
 export default function Mustache$init ( mustache, options ) {
 
-	var ref, parentFragment, template;
+	var ref, parentFragment, template, handler;
 
 	parentFragment = options.parentFragment;
 	template = options.template;
@@ -21,14 +21,11 @@ export default function Mustache$init ( mustache, options ) {
 	// TODO: go through and change use of .keypath to .context
 	var context = mustache.context = mustache.keypath = getByTemplate( mustache.root.viewmodel, template, mustache );
 
-	// TODO: this could just be a get, but notifyDependants calls
-	// both setValue and setMembers. Could duplicate that bit, but
-	// is there a better way to just to get? What about sections?
 	if ( mustache.isStatic ) {
-		context.notifyDependants( [mustache] );
+		mustache.setValue( context.get() );
 	}
 	else {
-		context.registerView( mustache );
+		context.register( 'setValue', mustache );
 	}
 
 	// Special case - inverted sections
