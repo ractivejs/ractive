@@ -35,4 +35,3 @@ Failing Tests (beyond adaptor and pattern observe):
 	* Two-way bindings: Changes made in oninit are reflected on render (#1390)
 	* 2 false fails (pass when run independently)
 	* 1 ambigous ref change
-

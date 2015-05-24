@@ -47,13 +47,20 @@ class PatternObserver {
 			  added = {};
 
 		return ( parent, child ) => {
-			const key = child.key === '[*]' ? child.index : child.key;
+			var key;
 
-			// only add one Observer per key!
-			if ( added.hasOwnProperty( key ) ) {
-				return;
+			if ( child.key === '[*]' ) {
+				key = child.index;
 			}
-			added[ key ] = true;
+			else {
+				key = child.key;
+
+				// only add one Observer per key!
+				if ( added.hasOwnProperty( key ) ) {
+					return;
+				}
+				added[ key ] = true;
+			}
 
 			const resolvedKeys = keys.slice();
 			resolvedKeys.push( key );

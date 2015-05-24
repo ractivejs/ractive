@@ -408,6 +408,50 @@ test( 'Pattern observers fire on changes to keypaths that match their pattern', 
 	ractive.set( 'foo.bar.baz', expected );
 });
 
+test( 'Pattern observers fire on changes and adds, but not deletes', function ( t ) {
+	var newName, oldName, keypath, index, observed = 0;
+
+	const ractive = new Ractive({
+		data: { fruits: [
+			{ name: 'apple' },
+			{ name: 'orange' },
+			{ name: 'banana' }
+		]},
+		oninit: function(){
+			this.observe( 'fruits.*.name', ( n, o, k, i ) => {
+				observed++;
+				newName = n;
+				oldName = o;
+				keypath = k;
+				index = i;
+			}, { init: false } );
+		}
+	});
+
+	ractive.splice( 'fruits', 1, 2, { name: 'pear' } );
+	t.equal( observed, 1 );
+	t.equal( newName, 'pear' );
+	t.equal( oldName, undefined );
+	t.equal( keypath, 'fruits.1.name' );
+	t.equal( index, 1 );
+});
+
+test( 'Pattern observers fire on adds and changes in full array set', function ( t ) {
+	var newName, oldName, keypath, index, observed = 0;
+
+	const ractive = new Ractive({
+		data: { fruits: [ 'apple', 'orange', 'banana' ] },
+		oninit: function(){
+			this.observe( 'fruits.*', ( n, o, k, i ) => {
+				observed++;
+			}, { init: false } );
+		}
+	});
+
+	ractive.set( 'fruits', [ 'apple', 'mango', 'banana', 'pear' ] );
+	t.equal( observed, 2 );
+});
+
 test( 'Pattern observers do NOT fire on init when no matching data', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,

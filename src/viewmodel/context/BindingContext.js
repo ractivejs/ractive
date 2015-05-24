@@ -269,10 +269,12 @@ class BindingContext {
 		if ( members ) {
 			if ( splice.length > 2 ) {
 				let i = splice[0], replace = 2,
-					end = i + ( splice.length - 2 );
+					end = i + ( splice.length - 2 ),
+					member;
 
 				for ( ; i < end; replace++, i++ ) {
-					splice[ replace ] = this.createArrayMemberChild( array[i], i );
+					member = splice[ replace ] = this.createArrayMemberChild( array[i], i );
+					member.dirty = true;
 					this.resetArrayIndexContext( i );
 				}
 			}
