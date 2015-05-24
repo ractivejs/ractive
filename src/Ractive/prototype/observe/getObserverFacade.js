@@ -1,5 +1,5 @@
 import { normalise } from 'shared/keypaths';
-import Observer from './Observer';
+import getObserver from './Observer';
 import PatternObserver from './PatternObserver';
 
 const wildcard = /\*/;
@@ -23,7 +23,7 @@ export default function getObserverFacade ( ractive, keypath, callback, options 
 		observer = new PatternObserver( ractive.viewmodel.root, keypath, callback, options );
 	} else {
 		let context = ractive.viewmodel.getContext( keypath );
-		observer = new Observer( context, callback, options );
+		observer = new getObserver( context, callback, options );
 	}
 
 	const facade = new ObserverFacade( observer );

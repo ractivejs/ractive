@@ -1,4 +1,5 @@
 import BindingContext from './BindingContext';
+import ComputedContext from './ComputedContext';
 import DataStore from '../stores/DataStore';
 
 class RootContext extends BindingContext {
@@ -30,6 +31,22 @@ class RootContext extends BindingContext {
 		}
 
 		return value;
+	}
+
+	flushProperties ( watchers ) {
+		super.flushProperties( watchers );
+
+		const properties = this.properties;
+
+		let property;
+
+		for( let i = 0, l = properties.length; i < l; i++ ) {
+			property = properties[i];
+			// TODO: encapsulate this check: computed, not expression
+			if ( property instanceof ComputedContext && property.key[0] !== '{' ) {
+				watchers.notify( property.key, property );
+			}
+		}
 	}
 }
 

@@ -10,8 +10,12 @@ class Dependants {
 		return Object.keys( this.methods );
 	}
 
-	list ( key ) {
-		return this.methods[ key ];
+	list ( method ) {
+		return this.methods[ method ];
+	}
+
+	has ( method ) {
+		return !!this.list( method );
 	}
 
 	add ( method, dependant ) {

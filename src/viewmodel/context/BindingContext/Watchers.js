@@ -46,7 +46,7 @@ export default class Watchers {
 		}
 	}
 
-	add ( key, handler, fireOnInit ) {
+	add ( key, handler ) {
 		addToArray( this._getOrCreate( key ), handler );
 	}
 

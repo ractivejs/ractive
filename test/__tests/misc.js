@@ -89,8 +89,8 @@ test( 'Multiple identical evaluators merge', function ( t ) {
 
 	t.htmlEqual( fixture.innerHTML, '3 3 3' );
 
-	t.equal( ractive.viewmodel.root.propertyHash.a.computed.length, 1 );
-	t.equal( ractive.viewmodel.root.propertyHash.b.computed.length, 1 );
+	t.equal( ractive.viewmodel.root.propertyHash.a.dependants.methods.mark.length, 1 );
+	t.equal( ractive.viewmodel.root.propertyHash.b.dependants.methods.mark.length, 1 );
 	t.equal( ractive.viewmodel.root.properties.length, 3 );
 });
 

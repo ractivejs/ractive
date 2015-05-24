@@ -1,6 +1,5 @@
 
 No Adaptors (incudes array and magic, so ractive API only)
-Pattern Observers on array indexes
 ractive.merge()
 Component Live Queries do not maintain order
 Should computed shadowing data be allowed?
@@ -12,6 +11,7 @@ Breaking Changes
 		* binds to nearest context, not root
 		* Doesn't happen until value set
 	* {{#with}} block does not render on non-value
+	* observeList replaces array muations in patter observers
 
 Failing Tests (beyond adaptor and pattern observe):
 * componentData.js - 3 tests

@@ -71,7 +71,7 @@ class EachBlock {
 		}
 	}
 
-	updateMembers ( splice ) {
+	updateMembers ( shuffle ) {
 		const section = this.section;
 
 		// if array was previously empty, we might not have members
@@ -81,17 +81,17 @@ class EachBlock {
 		}
 
 		const fragments = section.fragments,
-			  args = new Array( 2 + splice.insert );
+			  args = new Array( 2 + shuffle.insertCount );
 
 		var removed, len;
 
-		args[0] = splice.start;
-		args[1] = splice.remove;
+		args[0] = shuffle.start;
+		args[1] = shuffle.deleteCount;
 
-		if ( splice.insert ) {
+		if ( shuffle.insertCount ) {
 			let arg = 2,
-				i = splice.start,
-				end = splice.start + splice.insert;
+				i = shuffle.start,
+				end = shuffle.start + shuffle.insertCount;
 
 			while ( i < end ) {
 				args[ arg ] = this.createFragment( i );
@@ -110,7 +110,7 @@ class EachBlock {
 			}
 		}
 
-		if ( splice.insert !== splice.remove ) {
+		if ( shuffle.insertCount !== shuffle.deleteCount ) {
 			section.length = fragments.length;
 		}
 

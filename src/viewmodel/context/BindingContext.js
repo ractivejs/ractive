@@ -1,4 +1,4 @@
-import { addToArray, removeFromArray } from 'utils/array';
+import { addToArray } from 'utils/array';
 import { isArray, isObject, isNumeric } from 'utils/is';
 import getSpliceEquivalent from 'shared/getSpliceEquivalent';
 
@@ -72,16 +72,12 @@ class BindingContext {
 	}
 
 	addWatcher ( key, handler, noInit ) {
-		let watchers = this.watchers;
+		const watchers = this.watchers || ( this.watchers = new Watchers( this ) );
 
-		if ( !watchers ) {
-			watchers = this.watchers = new Watchers( this );
-		}
-
-		watchers.add( key, handler );
+		watchers.add( key, handler, noInit );
 
 		if ( key === '*' && !noInit ) {
-			this._flushProperties();
+			this.flushProperties( watchers );
 		}
 	}
 
@@ -93,17 +89,24 @@ class BindingContext {
 		}
 	}
 
-	_flushProperties () {
+	flushProperties ( watchers ) {
 		const value = this.get();
 
-		if ( hasKeys( value ) ) {
-			let keys = Object.keys( value ), key,
-				hash = this.propertyHash;
+		if ( isArray( value ) && !this.members ) {
+			this.getOrCreateMembers();
+		}
+		else if ( hasKeys( value ) ) {
+			const keys = Object.keys( value );
 
+			let key, context;
 			for ( var i = 0, l = keys.length; i < l; i++ ) {
 				key = keys[i];
-				if ( !hash || !hash.hasOwnProperty( key ) ) {
-					this.join( keys[i] );
+				context = this.findChild( key );
+				if ( context ) {
+					watchers.notify( key, context );
+				}
+				else {
+					this.join( key );
 				}
 			}
 		}
@@ -231,30 +234,38 @@ class BindingContext {
 	}
 
 	shuffle ( method, args ) {
-		var members, array, oldLength, newLength, splice, result;
 
-		members = this.members;
-		array = this.get();
+		const members = this.members,
+			  array = this.get(),
+			  oldLength = array.length;
 
 		// TODO: more on this: null, etc.
 		if( !isArray( array ) ) {
 			throw new Error( 'shuffle array method ' + method + ' called on non-array at ' + this.getKeypath() );
 		}
 
-		oldLength = array.length;
-		splice = getSpliceEquivalent( oldLength, method, args );
+		const splice = getSpliceEquivalent( oldLength, method, args );
 
 		// this will modify the array
-		result = this.store.shuffle( method, args );
+		const deleted = this.store.shuffle( method, args );
 
 		// sort or reverse
 		if ( !splice ) {
 			return this.set( array );
 		}
 
-		newLength = array.length;
+		const inserted = splice.slice( 2 ),
+			  newLength = array.length;
 
-		//make new members
+		this.shuffled = {
+			inserted,
+			deleted,
+			start: splice[0],
+			deleteCount: splice[1],
+			insertCount: splice.length - 2
+		};
+
+		// if anyone's tracking yet, make new members
 		if ( members ) {
 			if ( splice.length > 2 ) {
 				let i = splice[0], replace = 2,
@@ -266,25 +277,13 @@ class BindingContext {
 				}
 			}
 
-			let removed = members.splice.apply( members, splice );
-
-			// removed need to be marked so they notify any observer dependents
-			for ( let i = 0, l = removed.length; i < l; i++ ) {
-				removed[i].set();
-			}
-
-			this.shuffled = {
-				removed,
-				start: splice[0],
-				remove: splice[1],
-				insert: splice.length - 2
-			};
+			members.splice.apply( members, splice );
 
 			// Deal with index shifts and length change
 			if ( newLength !== oldLength ) {
 				// inserts were already handled, so start from there
 				const length = Math.max( oldLength, newLength );
-				let i = this.shuffled.start + this.shuffled.insert,
+				let i = this.shuffled.start + this.shuffled.insertCount,
 					member, lengthProperty;
 
 				while ( i < length ) {
@@ -300,10 +299,13 @@ class BindingContext {
 					i++;
 				}
 
-				if ( lengthProperty = this.findChild( 'length' ) )  {
-					lengthProperty.mark();
-				}
 			}
+		}
+
+		let lengthProperty;
+
+		if ( newLength !== oldLength && ( lengthProperty = this.findChild( 'length' ) ) )  {
+			lengthProperty.mark();
 		}
 
 		// TODO:
@@ -313,7 +315,7 @@ class BindingContext {
 		this.cascade( true );
 		this.addAsChanged();
 
-		return result;
+		return deleted;
 	}
 
 	getSettable ( propertyOrIndex ) {
@@ -578,7 +580,9 @@ class BindingContext {
 
 		switch ( method ) {
 			case 'mark':
+				break;
 			case 'updateMembers':
+				this.getOrCreateMembers();
 				break;
 			case 'setValue':
 				const value = this.get();
@@ -617,15 +621,16 @@ class BindingContext {
 		const dependants = this.dependants;
 
 		if ( dependants ) {
-			dependants.notify( 'setValue', this.get() );
+			if ( dependants.has( 'setValue') ) {
+				dependants.notify( 'setValue', this.get() );
+			}
 
 			const shuffled = this.shuffled;
 
 			if ( shuffled ) {
 				dependants.notify( 'updateMembers', shuffled );
 			}
-			else {
-				// TODO: don't create unnecssarily
+			else if ( dependants.has( 'setMembers') ) {
 				const members = this.getOrCreateMembers();
 				if ( members ) {
 					dependants.notify( 'setMembers', members );

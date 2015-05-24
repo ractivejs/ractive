@@ -115,6 +115,28 @@ test( 'Observers fire on downstream changes (#1393)', function ( t ) {
 	ractive.set( 'config.foo', 'baz' );
 });
 
+test( 'Observers do NOT fire on downstream changes with strict: true', function ( t ) {
+	var ractive, observed = 0;
+
+	ractive = new Ractive({
+		el: fixture,
+		template: 'blah',
+		data: { config: { foo: 'bar' } }
+	});
+
+	ractive.observe( 'config', function ( n, o, keypath ) {
+		observed++;
+	}, { init: false, strict: true } );
+
+	ractive.set( 'config.foo', 'baz' );
+
+	t.equal( observed, 0 );
+
+	ractive.set( 'config', { foo: 'baz' } );
+
+	t.equal( observed, 1 );
+});
+
 test( 'Observers can observe multiple keypaths, separated by a space', function ( t ) {
 	var ractive, results;
 
@@ -313,6 +335,54 @@ test( 'Observers should not fire twice when an upstream change is already a chan
 	t.equal( count, 1 );
 });
 
+module( 'ractive.observeList() List Observers' )
+
+test( 'Observers report array modifications', t => {
+	let ractive = new Ractive({
+		data: { fruits: [ 'apple', 'orange', 'banana' ] },
+		oninit: function(){
+			this.observeList( 'fruits', ( shuffle ) => {
+				t.deepEqual( shuffle.inserted, [ 'pear' ] );
+				t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
+				t.deepEqual( shuffle.start, 1 );
+				t.deepEqual( shuffle.deleteCount, 2 );
+				t.deepEqual( shuffle.insertCount, 1 );
+			});
+		}
+	});
+
+	expect(5);
+
+	ractive.splice( 'fruits', 1, 2, 'pear' );
+
+});
+
+test( 'Pattern observers on arrays fire correctly after mutations', function ( t ) {
+
+	const ractive = new Ractive({
+		data: {
+			items: [ 'a', 'b', 'c' ]
+		}
+	});
+
+	var index, deleted, inserted;
+
+	ractive.observeList( 'items', function ( shuffle, k ) {
+		index = shuffle.start;
+		inserted = shuffle.inserted;
+		deleted = shuffle.deleted;
+	}, { init: false } );
+
+	ractive.push( 'items', 'd' );
+	t.equal( index, '3' );
+	t.equal( deleted[0], undefined );
+	t.equal( inserted[0], 'd' );
+
+	ractive.pop( 'items' );
+	t.equal( index, '3' );
+	t.equal( inserted[0], undefined );
+	t.equal( deleted[0], 'd' );
+});
 
 module( 'ractive.observe() Pattern Observers' );
 
@@ -545,8 +615,11 @@ test( 'Pattern observers on arrays fire correctly after mutations', function ( t
 	t.equal( lastKeypath, 'items.3' );
 	t.equal( lastValue, 'd' );
 
+	lastKeypath = void 0;
+	lastValue = void 0;
+
 	ractive.pop( 'items' );
-	t.equal( lastKeypath, 'items.3' );
+	t.equal( lastKeypath, undefined );
 	t.equal( lastValue, undefined );
 
 	t.ok( !observedLengthChange );
@@ -610,7 +683,7 @@ test( 'Pattern observers work with an property of array (#760) varient', functio
 	    t.equal( k, 'foo.0.bar' );
 	});
 
-	ractive.get( 'foo' ).push( bar );
+	ractive.push( 'foo', bar );
 });
 
 test( 'Setting up and cancelling a pattern observer', function ( t ) {

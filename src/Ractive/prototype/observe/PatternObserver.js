@@ -1,7 +1,4 @@
-import runloop from 'global/runloop';
-import { isEqual } from 'utils/is';
-import getPattern from './getPattern';
-import Observer from './Observer';
+import getObserver from './Observer';
 
 
 const segmentsPattern = /(\*|[\w|$|_]+)/g;
@@ -37,7 +34,7 @@ class PatternObserver {
 		else {
 			context = context.join( segment );
 			if ( !segments.length ) {
-				this.observers.push( new Observer( context, this.callback, this.options, keys ) );
+				this.observers.push( getObserver( context, this.callback, this.options, keys ) );
 			}
 			else {
 				this.processSegment( context, segments, keys );
@@ -65,7 +62,7 @@ class PatternObserver {
 				this.processSegment( child, remaining, resolvedKeys );
 			}
 			else {
-				this.observers.push( new Observer( child, this.callback, this.options, resolvedKeys ) );
+				this.observers.push( getObserver( child, this.callback, this.options, resolvedKeys ) );
 			}
 		};
 	}

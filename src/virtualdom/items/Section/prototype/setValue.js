@@ -8,11 +8,14 @@ import EachBlock from '../blocks/EachBlock'
 export default function Section$setValue ( value ) {
 	var wrapper, fragmentOptions;
 
-	if ( this.updating ) {
+
+	if ( this.updating || this.unbound ) {
 		// If a child of this section causes a re-evaluation - for example, an
 		// expression refers to a function that mutates the array that this
 		// section depends on - we'll end up with a double rendering bug (see
 		// https://github.com/ractivejs/ractive/issues/748). This prevents it.
+
+		// plus if section is already unbound, don't bother...
 		return;
 	}
 
