@@ -44,7 +44,7 @@ class ContextReference extends BindingContext {
 
 	tryResolve () {
 		const key = this.getJoinKey(),
-			  joinParent = this.parent.getJoinModel();
+			  joinParent = this.parent.getJoinContext();
 
 		let resolved;
 
@@ -107,7 +107,7 @@ class ContextReference extends BindingContext {
 		}
 	}
 
-	getJoinModel () {
+	getJoinContext () {
 		return this.resolve();
 	}
 

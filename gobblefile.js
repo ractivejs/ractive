@@ -18,6 +18,7 @@ var babelTransformWhitelist = [
 	'es6.parameters.default',
 	'es6.parameters.rest',
 	'es6.properties.shorthand',
+	'es6.properties.computed',
 	'es6.templateLiterals',
 	'es6.classes'
 ];

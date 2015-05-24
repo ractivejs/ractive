@@ -17,15 +17,19 @@ class RootContext extends BindingContext {
 		const value = super.get();
 
 		if ( options && options.fullRootGet ) {
-			const properties = this.propertyHash, keys = Object.keys( properties );
-			let key, property;
+			const properties = this.propertyHash;
 
-			for ( let i = 0, l = keys.length; i < l; i++ ) {
-				key = keys[i];
-				property = properties[ key ];
+			if ( properties ) {
+				const keys = Object.keys( properties );
+				let key, property;
 
-				if ( property.owner !== this.owner ) {
-					value[ key ] = property.get();
+				for ( let i = 0, l = keys.length; i < l; i++ ) {
+					key = keys[i];
+					property = properties[ key ];
+
+					if ( property.owner !== this.owner ) {
+						value[ key ] = property.get();
+					}
 				}
 			}
 		}
