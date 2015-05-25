@@ -1,17 +1,17 @@
 import { addToArray } from 'utils/array';
 import { isArray, isObject } from 'utils/is';
-import getSpliceEquivalent from 'shared/getSpliceEquivalent';
 
 import HashPropertyContext from './HashPropertyContext';
 
 import PropertyStore from '../stores/PropertyStore';
 import StateStore from '../stores/StateStore';
 
-import Watchers from './BindingContext/Watchers';
 import { register, unregister, notify, notifyChildren } from './BindingContext/notify';
 import { join, tryJoin, getJoinContext, doJoin, findChild, hashChild, hasChild, createChild, addChild } from './BindingContext/children';
 import { getSpecial, markSpecials } from './BindingContext/specials';
-import { hasChildFor, hasKeys } from './shared/hasChildren';
+import { shuffle, markLength } from './BindingContext/shuffle';
+import { merge } from './BindingContext/merge';
+import { addWatcher, removeWatcher, flushProperties } from './BindingContext/watcher';
 
 class BindingContext {
 
@@ -57,48 +57,6 @@ class BindingContext {
 		this.isHashList = false;
 	}
 
-	addWatcher ( key, handler, noInit ) {
-		const watchers = this.watchers || ( this.watchers = new Watchers( this ) );
-
-		watchers.add( key, handler, noInit );
-
-		if ( key === '*' && !noInit ) {
-			this.flushProperties( watchers );
-		}
-	}
-
-	removeWatcher ( key, handler ) {
-		const watchers = this.watchers;
-
-		if ( watchers ) {
-			watchers.remove( key, handler );
-		}
-	}
-
-	flushProperties ( watchers ) {
-		const value = this.get();
-
-		if ( isArray( value ) && !this.members ) {
-			this.getOrCreateMembers();
-		}
-		else if ( hasKeys( value ) ) {
-			const keys = Object.keys( value );
-
-			let key, context;
-			for ( var i = 0, l = keys.length; i < l; i++ ) {
-				key = keys[i];
-				context = this.findChild( key );
-				if ( context ) {
-					watchers.notify( key, context );
-				}
-				else {
-					this.join( key );
-				}
-			}
-		}
-	}
-
-
 	getKey () {
 		var key = this.key;
 		return key === '[*]' ? '' + this.index : key;
@@ -134,95 +92,6 @@ class BindingContext {
 		this.store.setChild( index, value );
 		this.updateOrCreateArrayMember( index, value );
 		this.cascade( true );
-	}
-
-	shuffle ( method, args ) {
-
-		const members = this.members,
-			  array = this.get(),
-			  oldLength = array.length;
-
-		// TODO: more on this: null, etc.
-		if( !isArray( array ) ) {
-			throw new Error( 'shuffle array method ' + method + ' called on non-array at ' + this.getKeypath() );
-		}
-
-		const splice = getSpliceEquivalent( oldLength, method, args );
-
-		// this will modify the array
-		const deleted = this.store.shuffle( method, args );
-
-		// sort or reverse
-		if ( !splice ) {
-			return this.set( array );
-		}
-
-		const inserted = splice.slice( 2 ),
-			  newLength = array.length;
-
-		this.shuffled = {
-			inserted,
-			deleted,
-			start: splice[0],
-			deleteCount: splice[1],
-			insertCount: splice.length - 2
-		};
-
-		// if anyone's tracking yet, make new members
-		if ( members ) {
-			if ( splice.length > 2 ) {
-				let i = splice[0], replace = 2,
-					end = i + ( splice.length - 2 ),
-					member;
-
-				for ( ; i < end; replace++, i++ ) {
-					member = splice[ replace ] = this.createArrayMemberChild( array[i], i );
-					member.dirty = true;
-					this.resetArrayIndexContext( i );
-				}
-			}
-
-			members.splice.apply( members, splice );
-
-			// Deal with index shifts and length change
-			if ( newLength !== oldLength ) {
-				// inserts were already handled, so start from there
-				const length = Math.max( oldLength, newLength );
-				let i = this.shuffled.start + this.shuffled.insertCount,
-					member, lengthProperty;
-
-				while ( i < length ) {
-
-					if ( i < newLength ) {
-						member = members[ i ];
-						member.index = i;
-						// mark specials without marking
-						// the whole array member dirty
-						member.markSpecials();
-					}
-
-					this.resetArrayIndexContext( i );
-
-					i++;
-				}
-
-			}
-		}
-
-		let lengthProperty;
-
-		if ( newLength !== oldLength && ( lengthProperty = this.findChild( 'length' ) ) )  {
-			lengthProperty.mark();
-		}
-
-		// TODO:
-		// watchers
-		// add to changes
-
-		this.cascade( true );
-		this.addAsChanged();
-
-		return deleted;
 	}
 
 	getSettable ( propertyOrIndex ) {
@@ -482,6 +351,15 @@ BindingContext.prototype.addChild = addChild;
 
 BindingContext.prototype.getSpecial = getSpecial;
 BindingContext.prototype.markSpecials = markSpecials;
+
+BindingContext.prototype.shuffle = shuffle;
+BindingContext.prototype.markLength = markLength;
+
+BindingContext.prototype.merge = merge;
+
+BindingContext.prototype.addWatcher = addWatcher;
+BindingContext.prototype.removeWatcher = removeWatcher;
+BindingContext.prototype.flushProperties = flushProperties;
 
 
 export default BindingContext;

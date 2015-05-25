@@ -1,7 +1,49 @@
+import { isArray } from 'utils/is';
 import { addToArray, removeFromArray } from 'utils/array';
-import { hasChildFor } from '../shared/hasChildren';
+import { hasChildFor, hasKeys } from './shared/hasChildren';
 
-export default class Watchers {
+export function addWatcher ( key, handler, noInit ) {
+	const watchers = this.watchers || ( this.watchers = new Watchers( this ) );
+
+	watchers.add( key, handler, noInit );
+
+	if ( key === '*' && !noInit ) {
+		this.flushProperties( watchers );
+	}
+}
+
+export function removeWatcher ( key, handler ) {
+	const watchers = this.watchers;
+
+	if ( watchers ) {
+		watchers.remove( key, handler );
+	}
+}
+
+export function flushProperties ( watchers ) {
+	const value = this.get();
+
+	if ( isArray( value ) && !this.members ) {
+		this.getOrCreateMembers();
+	}
+	else if ( hasKeys( value ) ) {
+		const keys = Object.keys( value );
+
+		let key, context;
+		for ( var i = 0, l = keys.length; i < l; i++ ) {
+			key = keys[i];
+			context = this.findChild( key );
+			if ( context ) {
+				watchers.notify( key, context );
+			}
+			else {
+				this.join( key );
+			}
+		}
+	}
+}
+
+class Watchers {
 
 	constructor ( context ) {
 		this.context = context;

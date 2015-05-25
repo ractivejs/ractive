@@ -6,7 +6,6 @@ import clearCache from './prototype/clearCache';
 import get from './prototype/get';
 import getContext from './prototype/getContext';
 import mark from './prototype/mark';
-import merge from './prototype/merge';
 import release from './prototype/release';
 import reset from './prototype/reset';
 import set from './prototype/set';
@@ -88,7 +87,6 @@ Viewmodel.prototype = {
 	get: get,
 	getContext: getContext,
 	mark: mark,
-	merge: merge,
 	release: release,
 	reset: reset,
 	set: set,

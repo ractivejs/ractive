@@ -2,7 +2,7 @@ import BindingContext from '../BindingContext';
 import UnresolvedContext from '../UnresolvedContext';
 import ArrayIndexContext from '../ArrayIndexContext';
 import { isArray, isNumeric } from 'utils/is';
-import { hasChildFor } from '../shared/hasChildren';
+import { hasChildFor } from './shared/hasChildren';
 
 export function join ( keypath ) {
 	return this.doJoin( toKeys( keypath ), false, true );
