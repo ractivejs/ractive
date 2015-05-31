@@ -8,14 +8,15 @@ import EachBlock from '../blocks/EachBlock'
 export default function Section$setValue ( value ) {
 	var wrapper, fragmentOptions;
 
-
+	// If a child of this section causes a re-evaluation - for example, an
+	// expression refers to a function that mutates the array that this
+	// section depends on - we'll end up with a double rendering bug (see
+	// https://github.com/ractivejs/ractive/issues/748). This prevents it.
+	// OR
+	// If section has been unbound, for example because a parent has been
+	// changed, but dependant still was registered it can fire.
+	// TODO: this may not be the case - it should have unregistered
 	if ( this.updating || this.unbound ) {
-		// If a child of this section causes a re-evaluation - for example, an
-		// expression refers to a function that mutates the array that this
-		// section depends on - we'll end up with a double rendering bug (see
-		// https://github.com/ractivejs/ractive/issues/748). This prevents it.
-
-		// plus if section is already unbound, don't bother...
 		return;
 	}
 
@@ -117,34 +118,38 @@ function changeCurrentSubtype ( section, value, obj ) {
 					section.fragmentsToUnrender.forEach( f => f.unbind() );
 				}
 			}
-
-			// ref.t = obj ? 'k' : 'i';
 		}
 	}
 
 	section.currentSubtype = value;
 }
 
-function createSpecialsAliases ( section, references ) {
-	var indices, result;
+function createSpecialsAliases ( section, specialsRef ) {
+	const indices = section.indices;
 
-	if ( indices = section.indices ) {
-		result = { aliases: {}, specials: {} };
-		let aliases = result.aliases, specials = result.specials;
+	if ( indices ) {
+		const aliases = {}, specials = {},
+			  //{{#block:first,second}}
+			  first = indices[0], second = indices[1];
 
-		if ( indices[0] ) {
-			aliases[ indices[0] ] = references[0];
-			specials[ references[0] ] = indices[0];
+		if ( first ) {
+			// aliases[ 'i' ] = '@index'
+			aliases[ first ] = specialsRef[0];
+			// specials[ '@index' ] = 'i'
+			specials[ specialsRef[0] ] = first;
 		}
-
-		if ( indices[1] ) {
-			aliases[ indices[1] ] = references[1]
-			if ( !specials[ references[1] ] ) {
-				specials[ references[1] ] = indices[1];
+		if ( second ) {
+			// aliases[ 'i' ] = '@index'
+			aliases[ second ] = specialsRef[1]
+			// only in obj @key, @index case do
+			// we write the second entry
+			if ( !specials[ specialsRef[1] ] ) {
+				specials[ specialsRef[1] ] = second;
 			}
 		}
+
+		return { aliases, specials };
 	}
-	return result;
 }
 
 function createListEachBlock ( section, fragmentOptions, aliases ) {
@@ -170,14 +175,12 @@ function createEachBlock ( section, type, fragmentOptions, aliases ) {
 		else {
 			block.unrender();
 			section.context.unregister( 'setMembers', block );
-			section.context.unregister( 'updateMembers', block );
 		}
 	}
 
 	block = section.block = new EachBlock( section, type, fragmentOptions, aliases );
 
 	section.context.register( 'setMembers', block );
-	section.context.register( 'updateMembers', block );
 
 	return false;
 }

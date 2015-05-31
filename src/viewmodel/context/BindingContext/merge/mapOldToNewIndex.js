@@ -1,8 +1,9 @@
-export default function ( oldArray, newArray ) {
+export default function ( { oldArray, newArray } ) {
 
 	const usedIndices = {},
-		  firstUnusedIndex = 0,
 		  oldLength = oldArray.length;
+
+	let firstUnusedIndex = 0;
 
 	return newArray.map( function ( item, i ) {
 		let index, start = firstUnusedIndex;

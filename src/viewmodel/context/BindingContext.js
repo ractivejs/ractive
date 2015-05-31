@@ -27,7 +27,6 @@ class BindingContext {
 
 		// track child properties in one or more
 		// of the following:
-
 		// via hash for lookup in joining
 		this.propertyHash = null;
 		// via array for notifying all children
@@ -38,8 +37,8 @@ class BindingContext {
 		// dependants
 		this.dependants = null;
 
-		// watcher is created on request
-		// for certain child keys
+		// watcher is created on request for notifying
+		// on add of certain or all child keys
 		this.watchers = null;
 		// unresolved keys are stored on
 		// nearest context so they can be shared
@@ -49,7 +48,11 @@ class BindingContext {
 
 		this.store = store || new PropertyStore( key, this );
 
+		// stores the result of shuffle and merge for
+		// passing as arg to notificaiton of dependants
 		this.shuffled = null;
+
+		// when marked it becomes dirty
 		this.dirty = false;
 
 		this.hashWatcher = null;
@@ -161,10 +164,6 @@ class BindingContext {
 		for( let i = 0, l = children.length; i < l; i++ ) {
 			children[i].cascade();
 		}
-	}
-
-	getContext () {
-		return this;
 	}
 
 	// reset any explicit member refs, e.g. `{{foo.2}}`

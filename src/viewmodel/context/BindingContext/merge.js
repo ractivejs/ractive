@@ -17,24 +17,24 @@ export function merge ( array, options ) {
 	}
 
 	const compare = options ? options.compare : null,
-		  indicesMap = compareArrays( oldArray, array, compare ),
+		  mergeMap = compareArrays( oldArray, array, compare ),
 		  oldMembers = this.members,
 		  oldValues = oldArray.slice(),
-		  newMembers = this.members = [],
+		  members = this.members = [],
 		  deleted = [],
 		  inserted = [];
 
-	for ( let i = 0, l = indicesMap.length; i < l; i++ ) {
-		let existing = indicesMap[i], indexChange = true;
+	for ( let i = 0, l = mergeMap.length; i < l; i++ ) {
+		let existing = mergeMap[i], indexChange = true;
 		// no mapped member to merge
 		if ( existing === -1 ) {
 			let value = array[i];
-			newMembers[i] = this.createArrayMemberChild( value, i );
+			members[i] = this.createArrayMemberChild( value, i );
 			inserted.push( value );
 		}
 		// reuse existing member
 		else {
-			newMembers[i] = oldMembers[ existing ];
+			members[i] = oldMembers[ existing ];
 			oldValues[i] = void 0;
 			// did it change its index?
 			indexChange = ( i !== existing );
@@ -47,7 +47,7 @@ export function merge ( array, options ) {
 	}
 
 	for ( let i = 0, l = oldValues.length; i < l; i++ ) {
-		let value = oldValue[i];
+		let value = oldValues[i];
 		if ( value ) {
 			deleted.push( value );
 		}
@@ -57,10 +57,11 @@ export function merge ( array, options ) {
 	this.store.set( array );
 
 	this.shuffled = {
+		members,
 		inserted,
 		deleted,
-		map: indicesMap
-	}
+		mergeMap
+	};
 
 	// mark length property as dirty if it's being tracked
 	if ( array.length !== oldArray.length ) {

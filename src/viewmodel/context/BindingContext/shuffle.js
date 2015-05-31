@@ -26,11 +26,14 @@ export function shuffle ( method, args ) {
 		  newLength = array.length;
 
 	this.shuffled = {
+		members,
 		inserted,
 		deleted,
-		start: splice[0],
-		deleteCount: splice[1],
-		insertCount: splice.length - 2
+		splice: {
+			start: splice[0],
+			deleteCount: splice[1],
+			insertCount: splice.length - 2
+		}
 	};
 
 	// adjust members if they're being tracked
@@ -91,7 +94,7 @@ export function markLength () {
 
 function getDeleted( method, result ) {
 	switch ( method ) {
-    	case 'slice':
+    	case 'splice':
     		return result;
     	case 'pop':
 		case 'shift':

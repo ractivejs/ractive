@@ -12,9 +12,6 @@ export function register ( method, dependant, noInit ) {
 	switch ( method ) {
 		case 'mark':
 			break;
-		case 'updateMembers':
-			this.getOrCreateMembers();
-			break;
 		case 'setValue':
 			const value = this.get();
 			if ( value != null && value !== '' ) {
@@ -24,7 +21,7 @@ export function register ( method, dependant, noInit ) {
 		case 'setMembers':
 			const members = this.getOrCreateMembers();
 			if ( members.length ) {
-				dependant.setMembers( members );
+				dependant.setMembers( { members } );
 			}
 			break;
 		default:
@@ -56,16 +53,9 @@ export function notify () {
 			dependants.notify( 'setValue', this.get() );
 		}
 
-		const shuffled = this.shuffled;
-
-		if ( shuffled ) {
-			dependants.notify( 'updateMembers', shuffled );
-		}
-		else if ( dependants.has( 'setMembers') ) {
-			const members = this.getOrCreateMembers();
-			if ( members ) {
-				dependants.notify( 'setMembers', members );
-			}
+		if ( dependants.has( 'setMembers') ) {
+			const members = this.shuffled || { members: this.getOrCreateMembers() };
+			dependants.notify( 'setMembers', members );
 		}
 	}
 

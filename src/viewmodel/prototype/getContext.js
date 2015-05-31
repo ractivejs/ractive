@@ -10,7 +10,6 @@ import getInnerContext from 'shared/getInnerContext';
 // TODO: this functionality needs to move the virtualdom
 import getExpressionSignature from 'virtualdom/items/shared/Mustache/getExpressionSignature';
 
-// TODO getContext -> getContext? YEP!
 export default function Viewmodel$getContext ( keypath ) {
 
 	if ( keypath == null || keypath === '' ) {

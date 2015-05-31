@@ -37,7 +37,7 @@ class Dependants {
 		}
 	}
 
-	notify ( method, arg ) {
+	notify ( method, arg1, arg2 ) {
 		const dependants = this.methods[ method ];
 
 		if ( !dependants ) {
@@ -52,10 +52,10 @@ class Dependants {
 			// dependants can unregsiter as
 			// higher level dependants are fired
 			// TODO: there may be a chance we miss
-			// a dependant if array length slide past
+			// a dependant if array length slides past
 			// a valid dependant
 			if ( dependant = dependants[i] ) {
-				dependant[ method ]( arg );
+				dependant[ method ]( arg1, arg2 );
 			}
 		}
 	}
