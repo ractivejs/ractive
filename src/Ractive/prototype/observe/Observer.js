@@ -59,7 +59,6 @@ class ValueObserver extends Observer {
 		if ( options.init ) {
 			this.fire();
 		}
-
 	}
 
 	captureValues ( value ) {
@@ -91,12 +90,45 @@ class ValueObserver extends Observer {
 class ListObserver extends Observer {
 
 	constructor ( context, callback, options, keys ) {
-		super( context, callback, options, 'updateMembers',
+		super( context, callback, options, 'setMembers',
 			[ void 0, context.getKeypath() ], keys );
+
+		this.captureValues({ inserted: this.getCurrentValue() });
+
+		if ( options.init ) {
+			this.fire();
+		}
 	}
 
-	updateMembers ( shuffle ) {
-		this.args[ NEW_VALUE ] = shuffle;
+	captureValues ( shuffle ) {
+
+		const currentValue = this.getCurrentValue() || [],
+			  argValue = {
+			  	  inserted: shuffle.inserted || currentValue,
+				  deleted: shuffle.deleted
+			  };
+
+		if ( shuffle.mergeMap ) {
+			argValue.mergeMap = shuffle.mergeMap;
+		}
+		else if ( shuffle.splice ) {
+			argValue.start = shuffle.splice.start;
+		}
+		else {
+			argValue.deleted = this.oldValue || [];
+		}
+
+		this.args[ NEW_VALUE ] = argValue;
+		this.oldValue = currentValue;
+	}
+
+	getCurrentValue () {
+		const value = this.context.get();
+		return ( value && value.slice ) ? value.slice() : [];
+	}
+
+	setMembers ( shuffle ) {
+		this.captureValues( shuffle );
 		this.fire();
 	}
 }

@@ -337,24 +337,58 @@ test( 'Observers should not fire twice when an upstream change is already a chan
 
 module( 'ractive.observeList() List Observers' )
 
-test( 'Observers report array modifications', t => {
-	let ractive = new Ractive({
+test( 'List observers report array modifications', t => {
+	let shuffle, ractive = new Ractive({
 		data: { fruits: [ 'apple', 'orange', 'banana' ] },
 		oninit: function(){
-			this.observeList( 'fruits', ( shuffle ) => {
-				t.deepEqual( shuffle.inserted, [ 'pear' ] );
-				t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
-				t.deepEqual( shuffle.start, 1 );
-				t.deepEqual( shuffle.deleteCount, 2 );
-				t.deepEqual( shuffle.insertCount, 1 );
+			this.observeList( 'fruits', ( shfl ) => {
+				shuffle = shfl;
 			});
 		}
 	});
 
-	expect(5);
+	t.deepEqual( shuffle.inserted, [ 'apple', 'orange', 'banana' ] );
+	t.deepEqual( shuffle.deleted, [] );
+	t.ok( !shuffle.start );
 
 	ractive.splice( 'fruits', 1, 2, 'pear' );
 
+	t.deepEqual( shuffle.inserted, [ 'pear' ] );
+	t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
+	t.equal( shuffle.start, 1 );
+});
+
+test( 'List observers correctly report value change on no init', t => {
+	let shuffle, ractive = new Ractive({
+		data: { fruits: [ 'apple', 'orange', 'banana' ] },
+		oninit: function(){
+			this.observeList( 'fruits', ( shfl ) => {
+				shuffle = shfl;
+			}, { init: false } );
+		}
+	});
+
+	ractive.splice( 'fruits', 1, 2, 'pear' );
+
+	t.deepEqual( shuffle.inserted, [ 'pear' ] );
+	t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
+	t.equal( shuffle.start, 1 );
+});
+
+test( 'List observers report full array value changes as inserted/deleted', t => {
+	let shuffle, ractive = new Ractive({
+		data: { fruits: [ 'apple', 'orange', 'banana' ] },
+		oninit: function(){
+			this.observeList( 'fruits', ( shfl ) => {
+				shuffle = shfl;
+			}, { init: false } );
+		}
+	});
+
+	ractive.set( 'fruits', [ 'pear', 'mango' ] );
+
+	t.deepEqual( shuffle.inserted, [ 'pear', 'mango' ] );
+	t.deepEqual( shuffle.deleted, [ 'apple', 'orange', 'banana' ] );
 });
 
 test( 'Pattern observers on arrays fire correctly after mutations', function ( t ) {
