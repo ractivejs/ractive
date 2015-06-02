@@ -42,13 +42,22 @@ export default function EventHandler$listen () {
 function getCustomHandler ( name ) {
 	if ( !customHandlers[ name ] ) {
 		customHandlers[ name ] = function ( event ) {
-			var storage = event.node._ractive;
+		  	var storage,
+  			    handler,
+  			    indices,
+  	  		  index = {};
+  			storage = event.node._ractive;
+  			handler = storage.events[name];
 
-			event.index = storage.index;
-			event.keypath = storage.keypath.str;
-			event.context = storage.root.viewmodel.get( storage.keypath );
+  			if (indices = Resolvers_findIndexRefs(handler.element.parentFragment)) {
+  				index = Resolvers_findIndexRefs.resolve(indices);
+  			}
 
-			storage.events[ name ].fire( event );
+  			event.index = index;
+  			event.keypath = storage.keypath.str;
+  			event.context = storage.root.viewmodel.get(storage.keypath);
+
+  			storage.events[name].fire(event);
 		};
 	}
 
