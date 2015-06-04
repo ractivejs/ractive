@@ -93,7 +93,9 @@ class ListObserver extends Observer {
 		super( context, callback, options, 'setMembers',
 			[ void 0, context.getKeypath() ], keys );
 
-		this.captureValues({ inserted: this.getCurrentValue() });
+		this.oldArraySliced = null;
+
+		this.captureValues({ inserted: this.getSliceOfCurrent() });
 
 		if ( options.init ) {
 			this.fire();
@@ -102,7 +104,7 @@ class ListObserver extends Observer {
 
 	captureValues ( shuffle ) {
 
-		const currentValue = this.getCurrentValue() || [],
+		const currentValue = this.getSliceOfCurrent() || [],
 			  argValue = {
 			  	  inserted: shuffle.inserted || currentValue,
 				  deleted: shuffle.deleted
@@ -115,14 +117,14 @@ class ListObserver extends Observer {
 			argValue.start = shuffle.splice.start;
 		}
 		else {
-			argValue.deleted = this.oldValue || [];
+			argValue.deleted = this.oldArraySliced || [];
 		}
 
 		this.args[ NEW_VALUE ] = argValue;
-		this.oldValue = currentValue;
+		this.oldArraySliced = currentValue;
 	}
 
-	getCurrentValue () {
+	getSliceOfCurrent () {
 		const value = this.context.get();
 		return ( value && value.slice ) ? value.slice() : [];
 	}

@@ -32,6 +32,7 @@ var Section = function ( options ) {
 	this.fragments = [];
 	this.fragmentsToSplice = null;
 	this.fragmentsToUnrender = null;
+	this.mergeMap = null;
 
 	this.indexRefs = null;
 	this.indices = null
@@ -45,9 +46,6 @@ var Section = function ( options ) {
 	}
 
 	this.renderedFragments = [];
-
-	this.listvalueHandler = null;
-	this.listupdateHandler = null;
 
 	this.length = 0; // number of times this section is rendered
 

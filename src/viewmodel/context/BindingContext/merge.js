@@ -3,7 +3,8 @@ import compareArrays from './merge/compareArrays';
 
 export function merge ( array, options ) {
 
-	const oldArray = this.get();
+	const oldArray = this.get(),
+		  oldMembers = this.members;
 
 	// short-circuit if same array has been assigned :)
 	if ( oldArray === array ) {
@@ -12,17 +13,17 @@ export function merge ( array, options ) {
 
 	// If either the existing value or the new value
 	// isn't an array, just do a regular set
-	if ( !isArray( oldArray ) || !isArray( array ) ) {
+	if ( !oldMembers || !isArray( oldArray ) || !isArray( array ) ) {
 		return this.set( array );
 	}
 
 	const compare = options ? options.compare : null,
 		  mergeMap = compareArrays( oldArray, array, compare ),
-		  oldMembers = this.members,
 		  oldValues = oldArray.slice(),
 		  members = this.members = [],
 		  deleted = [],
 		  inserted = [];
+
 
 	for ( let i = 0, l = mergeMap.length; i < l; i++ ) {
 		let existing = mergeMap[i], indexChange = true;

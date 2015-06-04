@@ -56,13 +56,10 @@ class EachBlock {
 
 		// shorter? remove items
 		if ( newLength < currentLength ) {
-			let len = currentLength - newLength, i, unrender;
+			const len = currentLength - newLength,
+				  unrender = section.fragmentsToUnrender = section.fragments.splice( newLength, len );
 
-			unrender = section.fragmentsToUnrender = section.fragments.splice( newLength, len );
-
-			for ( i = 0; i < len; i++ ) {
-				unrender[i].unbind();
-			}
+			this.unbindFragments( unrender );
 		}
 
 		// longer? add new ones
@@ -122,19 +119,39 @@ class EachBlock {
 
 		removed = section.fragmentsToUnrender = fragments.splice.apply( fragments, args );
 
-		if ( len = removed.length ) {
-			for( let i = 0; i < len; i++ ) {
-				removed[i].unbind();
-			}
-		}
+		this.unbindFragments( removed );
 
 		if ( splice.insertCount !== splice.deleteCount ) {
 			section.length = fragments.length;
 		}
+
+		this.updateSection();
 	}
 
-	mergeMembers () {
+	mergeMembers ( shuffle ) {
+		const section = this.section,
+			  oldFragments = section.fragmentsToUnrender = section.fragments,
+			  members = shuffle.members,
+			  mergeMap = section.mergeMap = shuffle.mergeMap,
+			  newFragments = section.fragments = [];
 
+		for ( let i = 0, l = mergeMap.length; i < l; i++ ) {
+			let existing = mergeMap[i];
+			// no mapped fragment to merge
+			if ( existing === -1 ) {
+				newFragments[i] = this.createFragment( members[i], i );
+			}
+			// reuse existing fragment
+			else {
+				newFragments[i] = oldFragments[ existing ];
+				oldFragments[ existing ] = null;
+			}
+		}
+
+		// unbind any non-reused fragments...
+		this.unbindFragments( oldFragments );
+
+		this.updateSection();
 	}
 
 	createFragment ( context, index ) {
@@ -151,6 +168,16 @@ class EachBlock {
 
 		return new Fragment( fragmentOptions );
 
+	}
+
+	unbindFragments( removed ) {
+		var fragment;
+		for( let i = 0, l = removed.length; i < l; i++ ) {
+			fragment = removed[i];
+			if ( fragment ) {
+				fragment.unbind();
+			}
+		}
 	}
 
 	unrender () {
