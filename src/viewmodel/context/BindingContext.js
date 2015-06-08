@@ -13,6 +13,8 @@ import { shuffle, markLength } from './BindingContext/shuffle';
 import { merge } from './BindingContext/merge';
 import { addWatcher, removeWatcher, flushProperties } from './BindingContext/watcher';
 
+import getPrefixer from '../helpers/getPrefixer';
+
 class BindingContext {
 
 	constructor ( key, store ) {
@@ -47,6 +49,8 @@ class BindingContext {
 		this.expressions = null;
 
 		this.store = store || new PropertyStore( key, this );
+		this.wrapper = null;
+		this.adapted = false;
 
 		// stores the result of shuffle and merge for
 		// passing as arg to notificaiton of dependants
@@ -58,6 +62,30 @@ class BindingContext {
 		this.hashWatcher = null;
 		this.isReconcilingMembers = false;
 		this.isHashList = false;
+	}
+
+	adapt () {
+		const viewmodel = this.owner;
+		const len = this.owner.adaptors.length;
+		let i;
+
+		const value = this.store.get();
+
+		// these are necessary for legacy reasons. Ideally we'd overhaul
+		// the adaptors API in the near future
+		const keypath = this.getKeypath();
+		const ractive = this.owner.ractive;
+
+		for ( i = 0; i < len; i += 1 ) {
+			const adaptor = this.owner.adaptors[i];
+
+			if ( adaptor.filter( value, keypath, ractive ) ) {
+				this.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+				this.wrapper.value = value;
+			}
+		}
+
+		this.adapted = true;
 	}
 
 	getKey () {
@@ -72,7 +100,9 @@ class BindingContext {
 	}
 
 	get () {
-		return this.store.get();
+		if ( !this.adapted ) this.adapt();
+
+		return ( this.wrapper || this.store ).get();
 	}
 
 
