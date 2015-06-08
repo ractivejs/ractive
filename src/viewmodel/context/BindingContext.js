@@ -114,7 +114,8 @@ class BindingContext {
 		if ( this.parent && this.parent.wrapper ) {
 			this.parent.wrapper.set( this.key, value );
 		} else if ( this.wrapper ) {
-			const shouldTeardown = !this.wrapper.reset || !this.wrapper.reset( value );
+			const shouldTeardown = !this.wrapper.reset || ( this.wrapper.reset( value ) === false );
+
 			if ( shouldTeardown ) {
 				this.wrapper.teardown();
 				this.wrapper = null;
