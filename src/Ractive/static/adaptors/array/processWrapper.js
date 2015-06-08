@@ -6,6 +6,6 @@ export default function ( wrapper, array, methodName, newIndices ) {
 	} else {
 		// If this is a sort or reverse, we just do root.set()...
 		// TODO use merge logic?
-		root.viewmodel.mark( keypath );
+		//root.viewmodel.mark( keypath );
 	}
 }

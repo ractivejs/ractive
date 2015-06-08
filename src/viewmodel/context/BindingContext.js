@@ -1,5 +1,5 @@
 import { addToArray } from 'utils/array';
-import { isArray, isObject } from 'utils/is';
+import { isArray, isEqual, isObject } from 'utils/is';
 
 import HashPropertyContext from './HashPropertyContext';
 
@@ -107,9 +107,25 @@ class BindingContext {
 
 
 	set ( value ) {
-		if ( this.store.set( value ) ) {
-			this.mark();
+		// TODO remove isEqual stuff from this.store.set? can we do it
+		// here instead, so behaviour is the same with adaptor/store?
+		if ( isEqual( value, this.get() ) ) return;
+
+		if ( this.parent && this.parent.wrapper ) {
+			this.parent.wrapper.set( this.key, value );
+		} else if ( this.wrapper ) {
+			const shouldTeardown = !this.wrapper.reset || !this.wrapper.reset( value );
+			if ( shouldTeardown ) {
+				this.wrapper.teardown();
+				this.wrapper = null;
+				this.store.set( value );
+				this.adapt();
+			}
+		} else {
+			this.store.set( value );
 		}
+
+		this.mark();
 	}
 
 	setMember ( index, value ) {
