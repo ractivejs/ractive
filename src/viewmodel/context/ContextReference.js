@@ -11,8 +11,8 @@ var noopStore = {};
 class ContextReference extends BindingContext {
 
 	constructor ( key ) {
-		this.resolved = null;
 		super( key, noopStore );
+		this.resolved = null;
 	}
 
 	getJoinKey () {

@@ -13,7 +13,7 @@ import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 
 import RootContext from './context/RootContext';
-import ComputedContext from './context/ComputedContext';
+import BindingContext from './context/BindingContext';
 
 var Viewmodel = function ( options ) {
 	var { adapt, computations, data, mappings, ractive } = options;
@@ -68,7 +68,7 @@ var Viewmodel = function ( options ) {
 	if ( computations ) {
 		let computed;
 		for( key in computations ) {
-			computed = new ComputedContext( key, computations[ key ] );
+			computed = new BindingContext( key, null, { signature: computations[ key ] });
 			this.root.addChild( computed, key );
 			// TODO: initial values
 			// if ( data[ key ] != null ) {

@@ -7,6 +7,7 @@ import ArrayIndexContext from './ArrayIndexContext';
 
 import PropertyStore from '../stores/PropertyStore';
 import StateStore from '../stores/StateStore';
+import ComputedStore from '../stores/ComputedStore';
 
 import { register, unregister, notify, notifyChildren } from './BindingContext/notify';
 import { getSpecial, markSpecials } from './BindingContext/specials';
@@ -23,7 +24,7 @@ function toKeys ( keypath ) {
 
 class BindingContext {
 
-	constructor ( key, store ) {
+	constructor ( key, store, options ) {
 
 		// track key, and index if applicable
 		this.key = key || '';
@@ -54,7 +55,14 @@ class BindingContext {
 		// ditto expressions
 		this.expressions = null;
 
-		this.store = store || new PropertyStore( key, this );
+		this.isComputed = options && options.signature;
+
+		if ( this.isComputed ) {
+			this.store = new ComputedStore( options.signature, this );
+		} else {
+			this.store = store || new PropertyStore( key, this );
+		}
+
 		this.wrapper = null;
 		this.adapted = false;
 
@@ -167,6 +175,9 @@ class BindingContext {
 	}
 
 	mark () {
+		if ( this.isComputed ) {
+			this.store.invalidate();
+		}
 
 		// adjust members if this has been bound to list dependant
 		if ( this.members ) {

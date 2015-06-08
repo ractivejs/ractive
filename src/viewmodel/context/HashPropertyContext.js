@@ -3,8 +3,6 @@ import ContextReference from './ContextReference';
 class HashPropertyContext extends ContextReference {
 
 	constructor ( key, index ) {
-		// babel bug
-		this.that = 0;
 		super( key );
 		this.index = index;
 	}

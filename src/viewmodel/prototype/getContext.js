@@ -1,6 +1,5 @@
 import BindingContext from '../context/BindingContext';
 import DynamicContextReference from '../context/DynamicContextReference';
-import ComputedContext from '../context/ComputedContext';
 import StateStore from '../stores/StateStore';
 import { REFERENCE } from 'config/types';
 import resolveRef from 'shared/resolveRef';
@@ -72,7 +71,7 @@ function getExpressionModel( viewmodel, reference, context ) {
 		const models = reference.r.map( ref => getByTemplate( viewmodel, { r: ref }, context ) ),
 			  signature = getExpressionSignature( reference.s, models, viewmodel.ractive );
 
-		model = new ComputedContext( key, signature );
+		model = new BindingContext( key, null, { signature });
 		// Expressions are stored on root because cascades are
 		// they are not directly dependent on immediate context
 		// but to their dependencies (which are context dependent).
