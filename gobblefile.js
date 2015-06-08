@@ -8,24 +8,7 @@ var gobble = require( 'gobble' ),
 	version = require( './package.json' ).version,
 	es5, lib, test;
 
-var babelTransformWhitelist = [
-	'es3.memberExpressionLiterals',
-	'es3.propertyLiterals',
-	'es6.arrowFunctions',
-	'es6.blockScoping',
-	'es6.constants',
-	'es6.destructuring',
-	'es6.parameters.default',
-	'es6.parameters.rest',
-	'es6.properties.shorthand',
-	'es6.properties.computed',
-	'es6.templateLiterals',
-	'es6.classes'
-];
-
-es5 = gobble( 'src' ).transform( 'babel', {
-	whitelist: babelTransformWhitelist
-});
+es5 = gobble( 'src' ).transform( 'babel' );
 
 lib = (function () {
 	var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
@@ -138,7 +121,6 @@ test = (function () {
 			gobble( 'test/__tests' ).moveTo( '__tests' ),
 			gobble( 'test/testdeps' )
 		]).transform( 'babel', {
-			whitelist: babelTransformWhitelist,
 			sourceMap: false
 		}),
 		es5
@@ -180,7 +162,7 @@ test = (function () {
 		gobble( 'test/__nodetests' ).moveTo( '__nodetests' ),
 		gobble( 'test/testdeps/samples' )
 			.include( '*.js' )
-			.transform( 'babel', { whitelist: babelTransformWhitelist, sourceMap: false })
+			.transform( 'babel', { sourceMap: false })
 			.transform( 'esperanto', { type: 'cjs', sourceMap: false })
 			.moveTo( '__nodetests/samples' )
 	]).moveTo( 'test' );

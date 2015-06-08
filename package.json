@@ -74,7 +74,7 @@
     "cheerio": "^0.18.0",
     "esperanto": "^0.6.32",
     "gobble": "^0.10.1",
-    "gobble-babel": "^4.0.0",
+    "gobble-babel": "^5.1.0",
     "gobble-cli": "^0.4.2",
     "gobble-esperanto": "^0.3.0",
     "gobble-esperanto-bundle": "^0.2.1",
