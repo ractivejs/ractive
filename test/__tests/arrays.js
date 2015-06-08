@@ -7,7 +7,7 @@ List = Ractive.extend({
 });
 
 baseItems = [ 'alice', 'bob', 'charles' ];
-/*
+
 test( 'array.push()', function ( t ) {
 	var items, ractive;
 
@@ -327,4 +327,3 @@ test( 'popping from an empty array (#1665)', t => {
 	expect( 0 );
 	array.pop();
 });
-*/
