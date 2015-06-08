@@ -1,19 +1,25 @@
 import { addToArray } from 'utils/array';
-import { isArray, isEqual, isObject } from 'utils/is';
+import { isArray, isEqual, isNumeric, isObject } from 'utils/is';
 
 import HashPropertyContext from './HashPropertyContext';
+import UnresolvedContext from './UnresolvedContext';
+import ArrayIndexContext from './ArrayIndexContext';
 
 import PropertyStore from '../stores/PropertyStore';
 import StateStore from '../stores/StateStore';
 
 import { register, unregister, notify, notifyChildren } from './BindingContext/notify';
-import { join, tryJoin, getJoinContext, doJoin, findChild, hashChild, hasChild, createChild, addChild } from './BindingContext/children';
 import { getSpecial, markSpecials } from './BindingContext/specials';
 import { shuffle, markLength } from './BindingContext/shuffle';
 import { merge } from './BindingContext/merge';
 import { addWatcher, removeWatcher, flushProperties } from './BindingContext/watcher';
+import { hasChildFor} from './BindingContext/shared/hasChildren';
 
 import getPrefixer from '../helpers/getPrefixer';
+
+function toKeys ( keypath ) {
+	return isArray( keypath ) ? keypath : ( '' + keypath ).split( '.' );
+}
 
 class BindingContext {
 
@@ -62,6 +68,18 @@ class BindingContext {
 		this.hashWatcher = null;
 		this.isReconcilingMembers = false;
 		this.isHashList = false;
+
+		let _owner = this.owner;
+		Object.defineProperty( this, 'owner', {
+			get: function () {
+				return _owner;
+			},
+
+			set: function ( owner ) {
+				console.trace();
+				_owner = owner;
+			}
+		})
 	}
 
 	adapt () {
@@ -371,6 +389,93 @@ class BindingContext {
 		return context;
 	}
 
+	join ( keypath ) {
+		return this.doJoin( toKeys( keypath ), false, true );
+	}
+
+	tryJoin ( keypath ) {
+		return this.doJoin( toKeys( keypath ), true, true );
+	}
+
+	getJoinContext () {
+		return this;
+	}
+
+	doJoin ( keys, testFirstKey = false, firstKey = false ) {
+		const key = keys.shift();
+		let child = this.findChild( key );
+
+		if ( !child ) {
+
+			child = this.getSpecial( key );
+
+			// for a tryJoin, the first key has
+			// to exist as a prop of this model
+			if ( firstKey ) {
+				if ( !child && testFirstKey && !this.hasChild( key ) ) {
+					return;
+				}
+			}
+
+			if ( !child ) {
+				child = this.createChild( key );
+			}
+
+			this.addChild( child );
+		}
+
+		if ( keys.length ) {
+			child = child.doJoin( keys );
+		}
+
+		return child;
+	}
+
+	findChild ( key ) {
+		const hash = this.propertyHash;
+		if ( hash && hash.hasOwnProperty( key ) ) {
+			return hash[ key ];
+		}
+	}
+
+	hashChild ( key, child ) {
+		const hash = this.propertyHash || ( this.propertyHash = {} );
+		hash[ key ] = child;
+	}
+
+	hasChild ( propertyOrIndex ) {
+		return hasChildFor( this.get(), propertyOrIndex );
+	}
+
+	createChild ( key ) {
+		return isNumeric( key ) ? new ArrayIndexContext( +key, this ) : new BindingContext( key );
+	}
+
+	addChild ( child, key = child.key, addToProperties = true ) {
+
+		if ( !child.parent && !( child instanceof UnresolvedContext ) ) {
+			child.parent = this;
+			child.owner = this.owner;
+		}
+
+		if ( this.dirty && !child.dirty ) {
+			child.dirty = true;
+		}
+
+		if ( addToProperties ) {
+			if  ( key === child.key ) {
+				this.properties ? this.properties.push( child ) : this.properties = [ child ];
+			}
+			this.hashChild( key, child );
+		}
+
+		if ( this.watchers ) {
+			this.watchers.notify( key, child );
+		}
+
+		return child;
+	}
+
 	// TODO do we need a method like this?
 	// Or is GC good to go? need to profile...
 	// unbind () {
@@ -384,16 +489,6 @@ BindingContext.prototype.register = register;
 BindingContext.prototype.unregister = unregister;
 BindingContext.prototype.notify = notify;
 BindingContext.prototype.notifyChildren = notifyChildren;
-
-BindingContext.prototype.join = join;
-BindingContext.prototype.tryJoin = tryJoin;
-BindingContext.prototype.getJoinContext = getJoinContext;
-BindingContext.prototype.doJoin = doJoin;
-BindingContext.prototype.findChild = findChild;
-BindingContext.prototype.hashChild = hashChild;
-BindingContext.prototype.hasChild = hasChild;
-BindingContext.prototype.createChild = createChild;
-BindingContext.prototype.addChild = addChild;
 
 BindingContext.prototype.getSpecial = getSpecial;
 BindingContext.prototype.markSpecials = markSpecials;
