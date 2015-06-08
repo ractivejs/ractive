@@ -3,7 +3,7 @@ import Model from 'helpers/Model';
 module( 'Adaptors' );
 
 var adaptor = Model.adaptor;
-/*
+
 test( 'Adaptors can change data as it is .set() (#442)', function ( t ) {
 	var model, ractive;
 
@@ -150,9 +150,9 @@ test( 'Adaptor teardown is called when used in a component (#1190)', function ( 
 		components: {
 			component: Ractive.extend({
 				template: '{{wrapped.foo}}',
-				data: {
+				data: () => ({
 					wrapped: new Wrapped()
-				},
+				}),
 				adapt: [ adaptor ]
 			})
 		}
@@ -367,4 +367,3 @@ test( 'A component inherits adaptor config from its parent class', function ( t 
 
 	t.htmlEqual( fixture.innerHTML, 'bar' );
 });
-*/
