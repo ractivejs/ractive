@@ -76,18 +76,6 @@ class BindingContext {
 		this.hashWatcher = null;
 		this.isReconcilingMembers = false;
 		this.isHashList = false;
-
-		let _owner = this.owner;
-		Object.defineProperty( this, 'owner', {
-			get: function () {
-				return _owner;
-			},
-
-			set: function ( owner ) {
-				console.trace();
-				_owner = owner;
-			}
-		})
 	}
 
 	adapt () {
