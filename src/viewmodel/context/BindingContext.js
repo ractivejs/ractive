@@ -23,9 +23,7 @@ function toKeys ( keypath ) {
 }
 
 class BindingContext {
-
 	constructor ( key, store, options ) {
-
 		// track key, and index if applicable
 		this.key = key || '';
 		this.index = -1;
@@ -102,92 +100,36 @@ class BindingContext {
 		this.adapted = true;
 	}
 
-	getKey () {
-		var key = this.key;
-		return key === '[*]' ? '' + this.index : key;
-	}
-
-	getKeypath () {
-		var parentKey = this.parent.getKeypath(),
-			key = this.getKey();
-		return parentKey ? parentKey + '.' + key : key;
-	}
-
-	get () {
-		if ( !this.adapted ) this.adapt();
-
-		return ( this.wrapper || this.store ).get();
-	}
-
-
-	set ( value ) {
-		// TODO remove isEqual stuff from this.store.set? can we do it
-		// here instead, so behaviour is the same with adaptor/store?
-		if ( isEqual( value, this.get() ) ) return;
-
-		if ( this.parent && this.parent.wrapper ) {
-			this.parent.wrapper.set( this.key, value );
-		} else if ( this.wrapper ) {
-			const shouldTeardown = !this.wrapper.reset || ( this.wrapper.reset( value ) === false );
-
-			if ( shouldTeardown ) {
-				this.wrapper.teardown();
-				this.wrapper = null;
-				this.store.set( value );
-				this.adapt();
-			}
-		} else {
-			this.store.set( value );
-		}
-
-		this.mark();
-	}
-
-	setMember ( index, value ) {
-
-		const members = this.getOrCreateMembers(),
-			  array = this.getSettable( index );
-
-		// TODO: add more checks on this: null, etc.
-		if( !members || !isArray( array ) ) {
-			throw new Error('array method called on non-array');
-		}
-
-		this.store.setChild( index, value );
-		this.updateOrCreateArrayMember( index, value );
-		this.cascade( true );
-	}
-
-	getSettable ( propertyOrIndex ) {
-		return this.store.getSettable ( propertyOrIndex );
-	}
-
-	mark () {
-		if ( this.isComputed ) {
-			this.store.invalidate();
-		}
-
-		// adjust members if this has been bound to list dependant
-		if ( this.members ) {
-			this.createOrReconcileMembers( this.get() );
-		}
-
-		if ( this.watchers ) {
-			this.watchers.notifyAllMatches();
-		}
-
-		this.cascade();
-
-		this.addAsChanged();
-
-	}
-
 	addAsChanged () {
 		addToArray( this.owner.changes, this );
 
 		if ( this.owner.ready ) {
 			this.owner.onchange();
 		}
+	}
+
+	addChild ( child, key = child.key, addToProperties = true ) {
+		if ( !child.parent && !( child instanceof UnresolvedContext ) ) {
+			child.parent = this;
+			child.owner = this.owner;
+		}
+
+		if ( this.dirty && !child.dirty ) {
+			child.dirty = true;
+		}
+
+		if ( addToProperties ) {
+			if  ( key === child.key ) {
+				this.properties ? this.properties.push( child ) : this.properties = [ child ];
+			}
+			this.hashChild( key, child );
+		}
+
+		if ( this.watchers ) {
+			this.watchers.notify( key, child );
+		}
+
+		return child;
 	}
 
 	cascade ( cascadeUpOnly ) {
@@ -230,16 +172,26 @@ class BindingContext {
 		}
 	}
 
-	// reset any explicit member refs, e.g. `{{foo.2}}`
-	resetArrayIndexContext ( index ) {
-		let reference, properties = this.propertyHash;
-		if ( properties && ( reference = properties[ index ] ) ) {
-			reference.reset();
-		}
+	createArrayMemberChild ( value, index ) {
+		let store = new StateStore( value ),
+			context = new BindingContext( '[*]', store );
+
+		context.index = index;
+		this.addChild( context, context.key, false );
+		return context;
+	}
+
+	createChild ( key ) {
+		return isNumeric( key ) ? new ArrayIndexContext( +key, this ) : new BindingContext( key );
+	}
+
+	createHashMemberChild ( key, index ) {
+		let context = new HashPropertyContext( key, index );
+		this.addChild( context, context.key, false );
+		return context;
 	}
 
 	createOrReconcileMembers ( value ) {
-
 		if ( isArray( value ) ) {
 			// hope that this can go away, hash watcher is lame
 			this.removeHashWatcher();
@@ -252,11 +204,9 @@ class BindingContext {
 			this.isHashList = false;
 			return this.members = [];
 		}
-
 	}
 
 	createOrReconcileArrayMembers ( value ) {
-
 		const l = value.length;
 		let i = -1, members = this.members;
 
@@ -288,20 +238,7 @@ class BindingContext {
 		return members;
 	}
 
-	updateOrCreateArrayMember ( index, value ) {
-		const members = this.members, member = members[ index ];
-
-		if ( member ) {
-			member.set( value );
-		}
-		else {
-			members[ index ] = this.createArrayMemberChild( value, index );
-			this.resetArrayIndexContext( index );
-		}
-	}
-
 	createOrReconcileHashMembers ( value ) {
-
 		let i = -1, keys = Object.keys( value ), l = keys.length, key,
 			members = this.members, member;
 
@@ -361,45 +298,6 @@ class BindingContext {
 		return members;
 	}
 
-	removeHashWatcher () {
-		var watcher = this.hashWatcher;
-		if ( watcher ) {
-			this.removeWatcher( '*', watcher );
-			this.hashWatcher = null;
-		}
-	}
-
-	getOrCreateMembers () {
-		return this.members || this.createOrReconcileMembers( this.get() );
-	}
-
-	createArrayMemberChild ( value, index ) {
-		let store = new StateStore( value ),
-			context = new BindingContext( '[*]', store );
-
-		context.index = index;
-		this.addChild( context, context.key, false );
-		return context;
-	}
-
-	createHashMemberChild ( key, index ) {
-		let context = new HashPropertyContext( key, index );
-		this.addChild( context, context.key, false );
-		return context;
-	}
-
-	join ( keypath ) {
-		return this.doJoin( toKeys( keypath ), false, true );
-	}
-
-	tryJoin ( keypath ) {
-		return this.doJoin( toKeys( keypath ), true, true );
-	}
-
-	getJoinContext () {
-		return this;
-	}
-
 	doJoin ( keys, testFirstKey = false, firstKey = false ) {
 		const key = keys.shift();
 		let child = this.findChild( key );
@@ -437,42 +335,134 @@ class BindingContext {
 		}
 	}
 
-	hashChild ( key, child ) {
-		const hash = this.propertyHash || ( this.propertyHash = {} );
-		hash[ key ] = child;
+	get () {
+		if ( !this.adapted ) this.adapt();
+
+		return ( this.wrapper || this.store ).get();
+	}
+
+	getJoinContext () {
+		return this;
+	}
+
+	getKey () {
+		var key = this.key;
+		return key === '[*]' ? '' + this.index : key;
+	}
+
+	getKeypath () {
+		var parentKey = this.parent.getKeypath(),
+			key = this.getKey();
+		return parentKey ? parentKey + '.' + key : key;
+	}
+
+	getOrCreateMembers () {
+		return this.members || this.createOrReconcileMembers( this.get() );
+	}
+
+	getSettable ( propertyOrIndex ) {
+		return this.store.getSettable ( propertyOrIndex );
 	}
 
 	hasChild ( propertyOrIndex ) {
 		return hasChildFor( this.get(), propertyOrIndex );
 	}
 
-	createChild ( key ) {
-		return isNumeric( key ) ? new ArrayIndexContext( +key, this ) : new BindingContext( key );
+	hashChild ( key, child ) {
+		const hash = this.propertyHash || ( this.propertyHash = {} );
+		hash[ key ] = child;
 	}
 
-	addChild ( child, key = child.key, addToProperties = true ) {
+	join ( keypath ) {
+		return this.doJoin( toKeys( keypath ), false, true );
+	}
 
-		if ( !child.parent && !( child instanceof UnresolvedContext ) ) {
-			child.parent = this;
-			child.owner = this.owner;
+	mark () {
+		if ( this.isComputed ) {
+			this.store.invalidate();
 		}
 
-		if ( this.dirty && !child.dirty ) {
-			child.dirty = true;
-		}
-
-		if ( addToProperties ) {
-			if  ( key === child.key ) {
-				this.properties ? this.properties.push( child ) : this.properties = [ child ];
-			}
-			this.hashChild( key, child );
+		// adjust members if this has been bound to list dependant
+		if ( this.members ) {
+			this.createOrReconcileMembers( this.get() );
 		}
 
 		if ( this.watchers ) {
-			this.watchers.notify( key, child );
+			this.watchers.notifyAllMatches();
 		}
 
-		return child;
+		this.cascade();
+
+		this.addAsChanged();
+	}
+
+	removeHashWatcher () {
+		var watcher = this.hashWatcher;
+		if ( watcher ) {
+			this.removeWatcher( '*', watcher );
+			this.hashWatcher = null;
+		}
+	}
+
+	// reset any explicit member refs, e.g. `{{foo.2}}`
+	resetArrayIndexContext ( index ) {
+		let reference, properties = this.propertyHash;
+		if ( properties && ( reference = properties[ index ] ) ) {
+			reference.reset();
+		}
+	}
+
+	set ( value ) {
+		// TODO remove isEqual stuff from this.store.set? can we do it
+		// here instead, so behaviour is the same with adaptor/store?
+		if ( isEqual( value, this.get() ) ) return;
+
+		if ( this.parent && this.parent.wrapper ) {
+			this.parent.wrapper.set( this.key, value );
+		} else if ( this.wrapper ) {
+			const shouldTeardown = !this.wrapper.reset || ( this.wrapper.reset( value ) === false );
+
+			if ( shouldTeardown ) {
+				this.wrapper.teardown();
+				this.wrapper = null;
+				this.store.set( value );
+				this.adapt();
+			}
+		} else {
+			this.store.set( value );
+		}
+
+		this.mark();
+	}
+
+	setMember ( index, value ) {
+		const members = this.getOrCreateMembers(),
+			  array = this.getSettable( index );
+
+		// TODO: add more checks on this: null, etc.
+		if( !members || !isArray( array ) ) {
+			throw new Error('array method called on non-array');
+		}
+
+		this.store.setChild( index, value );
+		this.updateOrCreateArrayMember( index, value );
+		this.cascade( true );
+	}
+
+	tryJoin ( keypath ) {
+		return this.doJoin( toKeys( keypath ), true, true );
+	}
+
+	updateOrCreateArrayMember ( index, value ) {
+		const members = this.members, member = members[ index ];
+
+		if ( member ) {
+			member.set( value );
+		}
+		else {
+			members[ index ] = this.createArrayMemberChild( value, index );
+			this.resetArrayIndexContext( index );
+		}
 	}
 
 	// TODO do we need a method like this?
