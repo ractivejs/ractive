@@ -9,7 +9,6 @@ import mark from './prototype/mark';
 import release from './prototype/release';
 import reset from './prototype/reset';
 import set from './prototype/set';
-import smartUpdate from './prototype/smartUpdate';
 import teardown from './prototype/teardown';
 
 import RootContext from './context/RootContext';
@@ -90,7 +89,6 @@ Viewmodel.prototype = {
 	release: release,
 	reset: reset,
 	set: set,
-	smartUpdate: smartUpdate,
 	teardown: teardown,
 };
 
