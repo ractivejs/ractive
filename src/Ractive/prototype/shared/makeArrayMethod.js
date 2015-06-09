@@ -7,8 +7,6 @@ var arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		var array, len, promise, result, context;
-
 		const context = this.viewmodel.getContext( keypath );
 		const array = context.get();
 
@@ -19,7 +17,7 @@ export default function ( methodName ) {
 		const newIndices = getNewIndices( array.length, methodName, args );
 		const result = arrayProto[ methodName ].apply( array, args );
 
-		promise = runloop.start( this, true ).then( () => result );
+		const promise = runloop.start( this, true ).then( () => result );
 
 		if ( newIndices ) {
 			context.shuffle( newIndices );
