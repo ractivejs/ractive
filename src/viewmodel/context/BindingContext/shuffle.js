@@ -1,6 +1,8 @@
 import getSpliceEquivalent from 'shared/getSpliceEquivalent';
 import { isArray } from 'utils/is';
 
+const arrayProto = Array.prototype;
+
 export function shuffle ( method, args ) {
 
 	const array = this.get();
@@ -14,7 +16,7 @@ export function shuffle ( method, args ) {
 		  oldLength = array.length,
 		  splice = getSpliceEquivalent( oldLength, method, args ),
 		  // this next call modifies the array!
-		  result = this.store.shuffle( method, args );
+		  result = arrayProto[ method ].apply( array, args );
 
 	// !splice means sort or reverse, treat it like a set and be done
 	if ( !splice ) {

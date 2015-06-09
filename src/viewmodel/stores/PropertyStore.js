@@ -39,14 +39,6 @@ class PropertyStore {
 		return value;
 	}
 
-	shuffle ( method, args ) {
-		let array = this.get();
-
-		// TODO: deal with non-array, null, etc.
-
-		return array[ method ].apply( array, args );
-	}
-
 	setChild ( propertyOrIndex, value ) {
 		var thisValue = this.getSettable( this.property )
 		if ( isEqual( thisValue[ propertyOrIndex ], value ) ) {
