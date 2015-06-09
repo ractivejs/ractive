@@ -1,5 +1,5 @@
 import { normalise } from 'shared/keypaths';
-import UnresolvedContext from 'viewmodel/context/UnresolvedContext';
+// import UnresolvedContext from 'viewmodel/context/UnresolvedContext';
 import getInnerContext from 'shared/getInnerContext';
 import getContextStack from 'shared/getContextStack';
 
@@ -21,7 +21,7 @@ export default function resolveRef ( ractive, ref, fragment ) {
 
 	// ...otherwise we need to figure out the keypath based on context
 	else {
-		keypath = resolveAmbiguousReference( ractive.viewmodel, ref, fragment, false );
+		keypath = resolveAmbiguousReference( ractive.viewmodel, ref, fragment );
 	}
 
 	return keypath;
@@ -59,56 +59,81 @@ function resolveAncestorRef ( context, ref ) {
 	return context.join( ref );
 }
 
-function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
+function resolveAmbiguousReference ( viewmodel, ref, fragment ) {
+	console.log( 'arguments', arguments );
 
-	var stack = getContextStack( fragment ), chain, context, model, first = null,
-		// temp until figure out bcuz logic already in keypath
-		keys = keypath.split( '.' ), firstKey = keys[0];
+	const key = ref.split( '.' )[0];
+	let hasContextChain = false;
 
-	// We have to try the context stack from the bottom up.
-	// Closer contexts have precedence.
-	// TODO: choose pseudo iterator API. This is based on ES6 generator.
-	for ( var _iterator = stack/*[Symbol.iterator]*/(), _step; !(_step = _iterator.next()).done; ) {
-		context = _step.value;
+	while ( fragment ) {
+		if ( fragment.context ) {
+			hasContextChain = true;
 
-		if( !first ) {
-			first = context;
-			if ( context.unresolved && context.unresolved.hasOwnProperty( firstKey )
-				&& ( model = context.unresolved[ firstKey ] ) ) {
-				if ( firstKey === keypath ) {
-					return model;
-				}
-				else {
-					return model.join( keys.slice(1) );
-				}
+			if ( fragment.context.has( key ) ) {
+				return fragment.context.join( key );
 			}
 		}
 
-		chain = {
-			first: first,
-            current: context,
-            previous: chain
-        };
-
-		if ( model = context.tryJoin( keypath ) ) {
-			return model;
-		}
+		fragment = fragment.parent;
 	}
 
-	// Return a proxy model and watch for new children to be added
-	if ( chain && chain.current !== chain.first ) {
-		return getUnresolved( chain, firstKey, keypath, viewmodel );
-    }
-	// If there's no context chain, and the instance is either a) isolated or
-	// b) an orphan, then we know that the keypath is identical to the keypath
-	else {
-		// the data object needs to have a property by this name,
-		// to prevent future failed lookups
-		model = viewmodel.root.join( keypath );
-
-		return model;
+	if ( !hasContextChain || viewmodel.root.has( key ) ) {
+		return viewmodel.root.join( key );
 	}
+
+	// TODO unresolved
 }
+
+// function resolveAmbiguousReference ( viewmodel, keypath, fragment ) {
+//
+// 	var stack = getContextStack( fragment ), chain, context, model, first = null,
+// 		// temp until figure out bcuz logic already in keypath
+// 		keys = keypath.split( '.' ), firstKey = keys[0];
+//
+// 	// We have to try the context stack from the bottom up.
+// 	// Closer contexts have precedence.
+// 	// TODO: choose pseudo iterator API. This is based on ES6 generator.
+// 	for ( var _iterator = stack/*[Symbol.iterator]*/(), _step; !(_step = _iterator.next()).done; ) {
+// 		context = _step.value;
+//
+// 		if( !first ) {
+// 			first = context;
+// 			if ( context.unresolved && context.unresolved.hasOwnProperty( firstKey )
+// 				&& ( model = context.unresolved[ firstKey ] ) ) {
+// 				if ( firstKey === keypath ) {
+// 					return model;
+// 				}
+// 				else {
+// 					return model.join( keys.slice(1) );
+// 				}
+// 			}
+// 		}
+//
+// 		chain = {
+// 			first: first,
+//             current: context,
+//             previous: chain
+//         };
+//
+// 		if ( model = context.tryJoin( keypath ) ) {
+// 			return model;
+// 		}
+// 	}
+//
+// 	// Return a proxy model and watch for new children to be added
+// 	if ( chain && chain.current !== chain.first ) {
+// 		return getUnresolved( chain, firstKey, keypath, viewmodel );
+//     }
+// 	// If there's no context chain, and the instance is either a) isolated or
+// 	// b) an orphan, then we know that the keypath is identical to the keypath
+// 	else {
+// 		// the data object needs to have a property by this name,
+// 		// to prevent future failed lookups
+// 		model = viewmodel.root.join( keypath );
+//
+// 		return model;
+// 	}
+// }
 
 function getUnresolved ( chain, key, keypath, viewmodel ) {
 
@@ -150,4 +175,3 @@ function getUnresolved ( chain, key, keypath, viewmodel ) {
 
     return model;
 }
-

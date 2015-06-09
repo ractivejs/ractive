@@ -1,5 +1,5 @@
 import { SECTION_UNLESS } from 'config/types';
-import { getByTemplate } from 'viewmodel/prototype/getContext'; // TEMP
+import resolveRef from 'shared/resolveRef';
 
 export default function Mustache$init ( mustache, options ) {
 
@@ -18,20 +18,13 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.type = options.template.t;
 
-	var context = mustache.context = getByTemplate( mustache.root.viewmodel, template, mustache );
-
-	// TODO remove this, once we're sure it isn't used anywhere
-	Object.defineProperty( mustache, 'keypath', {
-		get () {
-			throw new Error( '.keypath should be .context' );
-		}
-	});
+	var context = mustache.context = resolveRef( mustache.root, options.template.r, parentFragment );
 
 	if ( mustache.isStatic ) {
 		mustache.setValue( context.get() );
 	}
 	else {
-		context.register( 'setValue', mustache );
+		context.register( mustache );
 	}
 
 	// Special case - inverted sections

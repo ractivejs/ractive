@@ -11,8 +11,7 @@ import reset from './prototype/reset';
 import set from './prototype/set';
 import teardown from './prototype/teardown';
 
-import RootContext from './context/RootContext';
-import BindingContext from './context/BindingContext';
+import RootNode from './RootNode';
 
 var Viewmodel = function ( options ) {
 	var { adapt, computations, data, mappings, ractive } = options;
@@ -38,35 +37,35 @@ var Viewmodel = function ( options ) {
 
 	this.data = data;
 
-	this.root = new RootContext( this, data );
+	this.root = new RootNode( this, data );
 
 	this.ready = true;
 
 	// TODO: clean-up/move some of this
-	if ( mappings ) {
-		mappings.forEach( mapping => {
-			context = mapping.model;
-			key = mapping.key;
+	// if ( mappings ) {
+	// 	mappings.forEach( mapping => {
+	// 		context = mapping.model;
+	// 		key = mapping.key;
+	//
+	// 		this.root.addChild( context, key );
+	//
+	// 		if ( data && ( key in data ) && context.get() === undefined ) {
+	// 			context.set( data[ key ] );
+	// 		}
+	// 	});
+	// }
 
-			this.root.addChild( context, key );
-
-			if ( data && ( key in data ) && context.get() === undefined ) {
-				context.set( data[ key ] );
-			}
-		});
-	}
-
-	if ( computations ) {
-		let computed;
-		for( key in computations ) {
-			computed = new BindingContext( key, null, { signature: computations[ key ] });
-			this.root.addChild( computed, key );
-			// TODO: initial values
-			// if ( data[ key ] != null ) {
-			// 	...
-			// }
-		}
-	}
+	// if ( computations ) {
+	// 	let computed;
+	// 	for( key in computations ) {
+	// 		computed = new BindingContext( key, null, { signature: computations[ key ] });
+	// 		this.root.addChild( computed, key );
+	// 		// TODO: initial values
+	// 		// if ( data[ key ] != null ) {
+	// 		// 	...
+	// 		// }
+	// 	}
+	// }
 
 };
 
