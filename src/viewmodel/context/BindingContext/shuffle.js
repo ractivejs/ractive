@@ -1,36 +1,57 @@
-import getSpliceEquivalent from 'shared/getSpliceEquivalent';
+// import getSpliceEquivalent from 'shared/getSpliceEquivalent';
 import { isArray } from 'utils/is';
 
 const arrayProto = Array.prototype;
 
-export function shuffle ( method, args ) {
+// TODO remove this, it's a quick hack for tiding us over
+function getSpliceEquivalent ( array, oldLength, newLength, newIndices ) {
+	let spliceStart = oldLength; // push by default
+	let i;
+
+	for ( i = 0; i < oldLength; i += 1 ) {
+		if ( newIndices[i] !== i ) {
+			spliceStart = i;
+			break;
+		}
+	}
+
+	let removeCount = 0;
+
+	for ( ; i < oldLength; i += 1 ) {
+		if ( newIndices[i] === -1 ) {
+			removeCount += 1;
+		} else {
+			break;
+		}
+	}
+
+	const newIndex = newIndices[i];
+	let splice = array.slice( spliceStart, newIndex );
+
+	splice.unshift( spliceStart, removeCount );
+	return splice;
+}
+
+export function shuffle ( newIndices ) {
 
 	const array = this.get();
+	const oldLength = newIndices.length;
+	const newLength = array.length;
 
-	// TODO: more on this? null, etc.
-	if( !isArray( array ) ) {
-		throw new Error( 'shuffle array method ' + method + ' called on non-array at ' + this.getKeypath() );
-	}
+	const members = this.members;
 
-	const members = this.members,
-		  oldLength = array.length,
-		  splice = getSpliceEquivalent( oldLength, method, args ),
-		  // this next call modifies the array!
-		  result = arrayProto[ method ].apply( array, args );
+	// TODO temporary?... seems like it might be easier to just
+	// use newIndices
+	const splice = getSpliceEquivalent( array, oldLength, newLength, newIndices );
 
-	// !splice means sort or reverse, treat it like a set and be done
-	if ( !splice ) {
-		return this.mark();
-	}
+	const inserted = splice.slice( 2 );
+	//const deleted = getDeleted( method, result );
 
-	const inserted = splice.slice( 2 ),
-		  deleted = getDeleted( method, result ),
-		  newLength = array.length;
-
+	// TODO how much of this do we need to expose?
 	this.shuffled = {
 		members,
 		inserted,
-		deleted,
+		deleted: null, // TODO. This is used in the new ListObserver, but is problematic for getting existing stuff to work
 		splice: {
 			start: splice[0],
 			deleteCount: splice[1],
@@ -83,8 +104,6 @@ export function shuffle ( method, args ) {
 
 	this.cascade( true );
 	this.addAsChanged();
-
-	return result;
 }
 
 export function markLength () {
@@ -92,16 +111,4 @@ export function markLength () {
 	if ( lengthProperty ) {
 		lengthProperty.mark();
 	}
-}
-
-function getDeleted( method, result ) {
-	switch ( method ) {
-    	case 'splice':
-    		return result;
-    	case 'pop':
-		case 'shift':
-			return [ result ];
-		default:
-			return [];
-    }
 }
