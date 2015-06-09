@@ -418,7 +418,10 @@ class BindingContext {
 		if ( isEqual( value, this.get() ) ) return;
 
 		if ( this.parent && this.parent.wrapper ) {
-			this.parent.wrapper.set( this.key, value );
+			if ( this.parent.wrapper.set ) {
+				// TODO what does it mean if this method is absent?
+				this.parent.wrapper.set( this.key, value );
+			}
 		} else if ( this.wrapper ) {
 			const shouldTeardown = !this.wrapper.reset || ( this.wrapper.reset( value ) === false );
 
