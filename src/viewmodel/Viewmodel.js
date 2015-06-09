@@ -25,14 +25,6 @@ var Viewmodel = function ( options ) {
 	this.adaptors = adapt;
 	this.onchange = options.onchange;
 
-	this.deps = {
-		computed: create( null ),
-		'default': create( null )
-	};
-	this.depsMap = {
-		computed: create( null ),
-		'default': create( null )
-	};
 	this.patternObservers = [];
 
 	// TODO: move to singleton/runloop?
