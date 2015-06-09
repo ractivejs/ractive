@@ -18,8 +18,14 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.type = options.template.t;
 
-	// TODO: go through and change use of .keypath to .context
-	var context = mustache.context = mustache.keypath = getByTemplate( mustache.root.viewmodel, template, mustache );
+	var context = mustache.context = getByTemplate( mustache.root.viewmodel, template, mustache );
+
+	// TODO remove this, once we're sure it isn't used anywhere
+	Object.defineProperty( mustache, 'keypath', {
+		get () {
+			throw new Error( '.keypath should be .context' );
+		}
+	});
 
 	if ( mustache.isStatic ) {
 		mustache.setValue( context.get() );
@@ -32,5 +38,4 @@ export default function Mustache$init ( mustache, options ) {
 	if ( mustache.template.n === SECTION_UNLESS && !mustache.hasOwnProperty( 'value' ) ) {
 		mustache.setValue( undefined );
 	}
-
 }

@@ -16,7 +16,7 @@ export default function processItems ( items, values, guid, counter ) {
 
 		placeholderId = guid + '-' + counter++;
 
-		if ( item.keypath && ( wrapped = item.keypath.wrapper ) ) {
+		if ( item.context && ( wrapped = item.context.wrapper ) ) {
 			value = wrapped.value;
 		} else {
 			value = item.getValue();

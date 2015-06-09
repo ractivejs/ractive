@@ -4,7 +4,7 @@ export default function Triple$setValue ( value ) {
 	var wrapper;
 
 	// TODO is there a better way to approach this?
-	if ( wrapper = this.keypath.wrapper ) {
+	if ( wrapper = this.context.wrapper ) {
 		value = wrapper.get();
 	}
 

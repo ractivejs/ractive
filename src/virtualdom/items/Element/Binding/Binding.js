@@ -13,15 +13,15 @@ var Binding = function ( element ) {
 	interpolator = this.attribute.interpolator;
 	interpolator.twowayBinding = this;
 
-	const keypath = interpolator.keypath;
+	const context = interpolator.context;
 
-	if ( keypath.getKeypath().slice( -1 ) === '}' ) {
-		warnOnceIfDebug( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.keypath.key, element.name, { ractive: this.root });
+	if ( context.getKeypath().slice( -1 ) === '}' ) {
+		warnOnceIfDebug( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.context.key, element.name, { ractive: this.root });
 		return false;
 	}
 
-	if ( keypath.key === '@key' ) { // TODO is this the best way to identify 'specials'? What about @index?
-		warnOnceIfDebug( 'Two-way binding does not work with %s', interpolator.keypath.key, { ractive: this.root });
+	if ( context.key === '@key' ) { // TODO is this the best way to identify 'specials'? What about @index?
+		warnOnceIfDebug( 'Two-way binding does not work with %s', interpolator.context.key, { ractive: this.root });
 		return false;
 	}
 
@@ -45,16 +45,16 @@ var Binding = function ( element ) {
 	// }
 
 	this.attribute.isTwoway = true;
-	this.keypath = keypath;
+	this.keypath = context; // TODO rename -> context
 
 	// initialise value, if it's undefined
-	value = keypath.get();
+	value = context.get();
 
 	if ( value === undefined && this.getInitialValue ) {
 		value = this.getInitialValue();
 
 		if ( value !== undefined /*&& value.length !== 0*/ ) {
-			keypath.set( value );
+			context.set( value );
 		}
 	}
 
@@ -73,11 +73,12 @@ Binding.prototype = {
 		runloop.end();
 	},
 
+	// TODO rename -> context
 	rebound: function () {
 		var bindings, oldKeypath, newKeypath;
 
 		oldKeypath = this.keypath;
-		newKeypath = this.attribute.interpolator.keypath;
+		newKeypath = this.attribute.interpolator.context;
 
 		// The attribute this binding is linked to has already done the work
 		if ( oldKeypath === newKeypath ) {
