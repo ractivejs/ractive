@@ -24,8 +24,7 @@ export default function ( methodName ) {
 		if ( newIndices ) {
 			context.shuffle( newIndices );
 		} else {
-			// TODO... not sure what happens with sort/reverse yet
-			context.mark();
+			context.set( result );
 		}
 
 		// result = context.shuffle( methodName, args );
