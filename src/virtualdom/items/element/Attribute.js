@@ -1,4 +1,6 @@
 import Fragment from '../../Fragment';
+import getUpdateDelegate from './attribute/getUpdateDelegate';
+import { isArray } from 'utils/is';
 
 export default class Attribute {
 	constructor ( options ) {
@@ -7,22 +9,32 @@ export default class Attribute {
 		this.ractive = options.ractive;
 		this.parentFragment = options.element.parentFragment; // shared
 
+		this.updateDelegate = getUpdateDelegate( options );
+		this.fragment = null;
+		this.value = null;
 
-		this.fragment = new Fragment({
-			owner: this,
-			template: options.template
-		});
+		if ( !isArray( options.template ) ) {
+			this.value = options.template;
+		} else {
+			this.fragment = new Fragment({
+				owner: this,
+				template: options.template
+			});
+		}
 	}
 
 	bind () {
-		this.fragment.bind();
+		if ( this.fragment ) {
+			this.fragment.bind();
+			this.value = this.fragment.valueOf();
+		}
 	}
 
 	render () {
-		this.element.node.setAttribute( this.name, this.fragment.toString() );
+		this.updateDelegate();
 	}
 
 	toString () {
-		return `${this.name}="${this.fragment.toString()}"`;
+		return `${this.name}="${this.value}"`;
 	}
 }

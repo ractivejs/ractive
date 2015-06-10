@@ -1,11 +1,14 @@
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
+import { voidElementNames } from 'utils/html';
 
 export default class Element {
 	constructor ( options ) {
 		this.parentFragment = options.parentFragment;
 		this.template = options.template;
 		this.index = options.index;
+
+		this.isVoid = voidElementNames.test( options.template.e );
 
 		this.attributes = this.template.a ?
 			Object.keys( this.template.a ).map( name => {
@@ -17,15 +20,20 @@ export default class Element {
 			}) :
 			[];
 
-		this.fragment = new Fragment({
-			template: options.template.f,
-			owner: this
-		});
+		if ( options.template.f ) {
+			this.fragment = new Fragment({
+				template: options.template.f,
+				owner: this
+			});
+		}
 	}
 
 	bind () {
 		this.attributes.forEach( attr => attr.bind() );
-		this.fragment.bind();
+
+		if ( this.fragment ) {
+			this.fragment.bind();
+		}
 	}
 
 	bubble () {
@@ -37,7 +45,10 @@ export default class Element {
 
 	render () {
 		const node = document.createElement( this.template.e );
-		node.appendChild( this.fragment.render() );
+
+		if ( this.fragment ) {
+			node.appendChild( this.fragment.render() );
+		}
 
 		this.node = node;
 
@@ -55,14 +66,24 @@ export default class Element {
 			})
 			.join( '' );
 
-		return `<${tagName}${attrs}>${this.fragment.toString()}</${tagName}>`;
+		if ( this.isVoid ) {
+			return `<${tagName}${attrs}/>`;
+		}
+
+		const contents = this.fragment ? this.fragment.toString() : '';
+
+		return `<${tagName}${attrs}>${contents}</${tagName}>`;
 	}
 
 	unbind () {
-		this.fragment.unbind();
+		if ( this.fragment ) {
+			this.fragment.unbind();
+		}
 	}
 
 	update () {
-		this.fragment.update();
+		if ( this.fragment ) {
+			this.fragment.update();
+		}
 	}
 }

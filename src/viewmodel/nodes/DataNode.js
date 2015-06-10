@@ -1,6 +1,8 @@
 import { isEqual } from 'utils/is';
 import { removeFromArray } from 'utils/array';
 
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+
 export default class DataNode {
 	constructor ( parent, key ) {
 		this.parent = parent;
@@ -33,7 +35,7 @@ export default class DataNode {
 	}
 
 	has ( key ) {
-		return key in this.value;
+		return hasOwnProperty.call( this.value, key );
 	}
 
 	join ( keys ) {

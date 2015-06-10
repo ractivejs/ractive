@@ -55,6 +55,11 @@ export default class Fragment {
 			return this.parent.resolve( template, callback );
 		}
 
+		// TODO handle fragment context changes (e.g. `{{#with foo[bar]}}...`)
+		if ( template.r === '.' || template.r === 'this' ) {
+			callback( this.context );
+		}
+
 		const resolver = createResolver( this, template, callback );
 
 		if ( !resolver.resolved ) {
