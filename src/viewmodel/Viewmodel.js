@@ -3,6 +3,7 @@ import DataNode from './nodes/DataNode';
 
 export default class Viewmodel {
 	constructor ( options ) {
+		this.isRoot = true;
 		this.value = options.data;
 
 		this.computations = {};

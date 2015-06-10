@@ -18,7 +18,7 @@ export default class RepeatedFragment {
 	bind ( context ) {
 		this.context = context;
 
-		this.iterations = this.context.value.map( ( childValue, index ) => {
+		this.iterations = context.value.map( ( childValue, index ) => {
 			const parentIndexRefs = this.owner.parentFragment.indexRefs;
 			let indexRefs;
 

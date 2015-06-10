@@ -5,6 +5,8 @@ import RepeatedFragment from '../RepeatedFragment';
 import Mustache from './shared/Mustache';
 import initialiseMustache from './shared/initialiseMustache';
 
+let emptyFragment;
+
 function getType ( value ) {
 	if ( isArray( value ) ) return SECTION_EACH;
 	if ( isObject( value ) ) return SECTION_WITH;
@@ -43,6 +45,8 @@ export default class Section extends Mustache {
 				return;
 			}
 
+			if ( this.sectionType === SECTION_UNLESS ) return;
+
 			if ( this.sectionType === SECTION_IF ) {
 				fragment = new Fragment({
 					owner: this,
@@ -79,11 +83,13 @@ export default class Section extends Mustache {
 	}
 
 	render () {
-		return this.fragment.render();
+		return this.fragment ?
+			this.fragment.render() :
+			( emptyFragment || ( emptyFragment = document.createDocumentFragment() ) );
 	}
 
 	toString () {
-		return this.fragment.toString();
+		return this.fragment ? this.fragment.toString() : '';
 	}
 
 	update () {

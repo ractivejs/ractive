@@ -1,5 +1,6 @@
 import { isEqual } from 'utils/is';
 import { removeFromArray } from 'utils/array';
+import { handleChange, mark } from 'shared/methodCallers';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -60,8 +61,8 @@ export default class DataNode {
 			this.dirty = true;
 			this.value = value;
 
-			this.deps.forEach( dep => dep.handleChange() );
-			this.children.forEach( child => child.mark() );
+			this.deps.forEach( handleChange );
+			this.children.forEach( mark );
 		}
 	}
 
@@ -78,8 +79,8 @@ export default class DataNode {
 		this.dirty = true;
 		this.value = value;
 
-		this.deps.forEach( dep => dep.handleChange() );
-		this.children.forEach( child => child.mark() );
+		this.deps.forEach( handleChange );
+		this.children.forEach( mark );
 
 		let parent = this.parent;
 		while ( parent ) {
