@@ -1,4 +1,5 @@
 import Fragment from './Fragment';
+import { update } from 'shared/methodCallers';
 
 export default class RepeatedFragment {
 	constructor ( options ) {
@@ -43,6 +44,13 @@ export default class RepeatedFragment {
 		});
 	}
 
+	bubble () {
+		if ( !this.dirty ) {
+			this.dirty = true;
+			this.parent.bubble();
+		}
+	}
+
 	render () {
 		// TODO use docFrag.cloneNode...
 
@@ -53,5 +61,9 @@ export default class RepeatedFragment {
 
 	toString () {
 		return this.iterations.join( '' );
+	}
+
+	update () {
+		this.iterations.forEach( update );
 	}
 }
