@@ -12,8 +12,10 @@ export default class Fragment {
 		this.parent = this.owner.parentFragment;
 		this.context = null;
 		this.rendered = false;
+		this.indexRefs = options.indexRefs || this.parent.indexRefs;
 
 		this.resolvers = [];
+		this.indexReferenceResolvers = [];
 
 		this.items = options.template
 			.map( ( template, index ) => createItem({ parentFragment: this, template, index }) );

@@ -46,7 +46,7 @@ export default class Viewmodel {
 	}
 
 	set ( value ) {
-		// TODO reset entire graph
+		throw new Error( 'TODO' );
 	}
 
 	teardown () {

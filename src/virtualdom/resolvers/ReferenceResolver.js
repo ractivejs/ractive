@@ -1,9 +1,12 @@
-export default class ExpressionResolver {
+import { normalise } from 'shared/keypaths';
+
+export default class ReferenceResolver {
 	constructor ( fragment, reference, callback ) {
 		this.fragment = fragment;
-		this.reference = reference;
+		this.reference = normalise( reference );
 		this.callback = callback;
 
+		this.keys = this.reference.split( '.' );
 		this.resolved = null;
 
 		// TODO restricted/ancestor refs - can shortcut
@@ -11,18 +14,22 @@ export default class ExpressionResolver {
 	}
 
 	attemptResolution () {
-		const keys = this.reference.split( '.' );
-		const key = keys[0];
+		const key = this.keys[0];
 
 		let fragment = this.fragment;
 		let hasContextChain;
 
 		while ( fragment ) {
+			// repeated fragments
+			if ( key === fragment.indexRef && this.keys.length === 1 ) {
+				throw new Error( key );
+			}
+
 			if ( fragment.context ) {
 				hasContextChain = true;
 
 				if ( fragment.context.has( key ) ) {
-					this.resolved = fragment.context.join( this.reference ); // TODO nested props...
+					this.resolved = fragment.context.join( this.keys ); // TODO nested props...
 					break;
 				}
 			}

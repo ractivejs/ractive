@@ -7,8 +7,6 @@ export default class DataNode {
 		this.viewmodel = parent.viewmodel || parent;
 		this.key = key;
 
-		this.keypath = parent.keypath ? parent.keypath + '.' + key : key;
-
 		this.deps = [];
 
 		this.children = [];
@@ -30,18 +28,28 @@ export default class DataNode {
 		}
 	}
 
+	getKeypath () {
+		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
+	}
+
 	has ( key ) {
 		return key in this.value;
 	}
 
-	join ( key ) {
+	join ( keys ) {
+		const key = keys[0];
+
 		if ( !this.childByKey[ key ] ) {
 			const child = new DataNode( this, key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;
 		}
 
-		return this.childByKey[ key ];
+		const child = this.childByKey[ key ];
+
+		return keys.length > 1 ?
+			child.join( keys.slice( 1 ) ) :
+			child;
 	}
 
 	mark () {
@@ -50,7 +58,7 @@ export default class DataNode {
 			this.dirty = true;
 			this.value = value;
 
-			this.deps.forEach( dep => dep.bubble() );
+			this.deps.forEach( dep => dep.handleChange() );
 			this.children.forEach( child => child.mark() );
 		}
 	}
@@ -68,6 +76,7 @@ export default class DataNode {
 		this.dirty = true;
 		this.value = value;
 
+		this.deps.forEach( dep => dep.handleChange() );
 		this.children.forEach( child => child.mark() );
 
 		let parent = this.parent;

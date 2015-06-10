@@ -1,6 +1,7 @@
 import { SECTION_EACH, SECTION_IF, SECTION_UNLESS, SECTION_WITH } from 'config/types';
 import { isArray, isObject } from 'utils/is';
 import Fragment from '../Fragment';
+import RepeatedFragment from '../RepeatedFragment';
 import Mustache from './shared/Mustache';
 import initialiseMustache from './shared/initialiseMustache';
 
@@ -61,7 +62,13 @@ export default class Section extends Mustache {
 			}
 
 			else {
-				throw new Error( '#each sections not implemented' );
+				fragment = new RepeatedFragment({
+					owner: this,
+					template: this.template.f,
+					indexRef: this.template.i
+				});
+
+				fragment.bind( this.model );
 			}
 
 

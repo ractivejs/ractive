@@ -95,7 +95,8 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 			ractive,
 			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
 			template: ractive.template,
-			cssIds
+			cssIds,
+			indexRefs: {}
 		});
 
 		ractive.fragment.bind( viewmodel );
