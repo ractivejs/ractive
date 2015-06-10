@@ -3,7 +3,7 @@ import Item from './Item';
 export default class Mustache extends Item {
 	constructor ( options ) {
 		super( options );
-		
+
 		this.parentFragment = options.parentFragment;
 		this.template = options.template;
 		this.index = options.index;
@@ -30,13 +30,6 @@ export default class Mustache extends Item {
 		});
 
 		this.bound = true;
-	}
-
-	bubble () {
-		if ( !this.dirty ) {
-			this.dirty = true;
-			this.parentFragment.bubble();
-		}
 	}
 
 	handleChange () {

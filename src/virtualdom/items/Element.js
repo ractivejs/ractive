@@ -3,11 +3,12 @@ import Item from './shared/Item';
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
 import { voidElementNames } from 'utils/html';
+import { bind, render, update } from 'shared/methodCallers';
 
 export default class Element extends Item {
 	constructor ( options ) {
 		super( options );
-		
+
 		this.parentFragment = options.parentFragment;
 		this.template = options.template;
 		this.index = options.index;
@@ -33,17 +34,10 @@ export default class Element extends Item {
 	}
 
 	bind () {
-		this.attributes.forEach( attr => attr.bind() );
+		this.attributes.forEach( bind );
 
 		if ( this.fragment ) {
 			this.fragment.bind();
-		}
-	}
-
-	bubble () {
-		if ( !this.dirty ) {
-			this.dirty = true;
-			this.parentFragment.bubble();
 		}
 	}
 
@@ -55,7 +49,7 @@ export default class Element extends Item {
 			node.appendChild( this.fragment.render() );
 		}
 
-		this.attributes.forEach( attr => attr.render() );
+		this.attributes.forEach( render );
 
 		return node;
 	}
@@ -85,6 +79,8 @@ export default class Element extends Item {
 	}
 
 	update () {
+		this.attributes.forEach( update );
+
 		if ( this.fragment ) {
 			this.fragment.update();
 		}

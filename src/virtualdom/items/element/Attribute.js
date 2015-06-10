@@ -1,9 +1,12 @@
 import Fragment from '../../Fragment';
+import Item from '../shared/Item';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import { isArray } from 'utils/is';
 
-export default class Attribute {
+export default class Attribute extends Item {
 	constructor ( options ) {
+		super( options );
+
 		this.name = options.name;
 		this.element = options.element;
 		this.ractive = options.ractive;
@@ -36,5 +39,9 @@ export default class Attribute {
 
 	toString () {
 		return `${this.name}="${this.value}"`;
+	}
+
+	update () {
+		this.updateDelegate();
 	}
 }
