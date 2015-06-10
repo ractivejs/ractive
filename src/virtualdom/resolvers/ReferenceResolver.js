@@ -10,7 +10,8 @@ export default class ReferenceResolver {
 		this.resolved = null;
 
 		// TODO restricted/ancestor refs - can shortcut
-		this.attemptResolution();
+		const model = this.attemptResolution();
+		if ( model ) callback( model );
 	}
 
 	attemptResolution () {
@@ -29,18 +30,15 @@ export default class ReferenceResolver {
 				hasContextChain = true;
 
 				if ( fragment.context.has( key ) ) {
-					this.resolved = fragment.context.join( this.keys ); // TODO nested props...
-					break;
+					return fragment.context.join( this.keys );
 				}
 			}
 
 			fragment = fragment.parent;
 		}
 
-		if ( !this.resolved ) {
-			throw new Error( 'TODO unresolved' );
-		}
+		if ( !hasContextChain ) return fragment.ractive.viewmodel.join( this.keys );
 
-		this.callback( this.resolved );
+		this.fragment.unresolved.push( this );
 	}
 }

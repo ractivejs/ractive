@@ -1,12 +1,14 @@
-import { ELEMENT, INTERPOLATOR, SECTION } from '../../config/types';
+import { ELEMENT, INTERPOLATOR, PARTIAL, SECTION } from '../../config/types';
 import Element from './Element';
 import Interpolator from './Interpolator';
+import Partial from './Partial';
 import Section from './Section';
 import Text from './Text';
 
 const constructors = {
 	[ ELEMENT ]: Element,
 	[ INTERPOLATOR ]: Interpolator,
+	[ PARTIAL ]: Partial,
 	[ SECTION ]: Section
 }
 

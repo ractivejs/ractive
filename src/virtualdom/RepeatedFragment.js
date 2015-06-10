@@ -8,6 +8,7 @@ export default class RepeatedFragment {
 		// layer of indirection
 		this.parentFragment = this;
 		this.owner = options.owner;
+		this.ractive = this.parent.ractive;
 
 		this.template = options.template;
 		this.indexRef = options.indexRef;

@@ -5,17 +5,18 @@ import createResolver from './resolvers/createResolver';
 export default class Fragment {
 	constructor ( options ) {
 		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
-		this.ractive = options.ractive;
 
-		this.isRoot = options.ractive === options.owner;
+		this.isRoot = !options.owner.parentFragment;
+		this.parent = this.isRoot ? null : this.owner.parentFragment;
+		this.ractive = this.isRoot ? options.owner : this.parent.ractive;
 
-		this.parent = this.owner.parentFragment;
 		this.context = null;
 		this.rendered = false;
 		this.indexRefs = options.indexRefs || this.parent.indexRefs;
 
 		this.resolvers = [];
 		this.indexReferenceResolvers = [];
+		this.unresolved = [];
 
 		this.items = options.template
 			.map( ( template, index ) => createItem({ parentFragment: this, template, index }) );

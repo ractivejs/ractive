@@ -78,13 +78,6 @@ export default class Section extends Mustache {
 		// if not, we only need to create children if this is an 'unless' block
 	}
 
-	bubble () {
-		if ( !this.dirty ) {
-			this.dirty = true;
-			this.parentFragment.bubble();
-		}
-	}
-
 	render () {
 		return this.fragment.render();
 	}
