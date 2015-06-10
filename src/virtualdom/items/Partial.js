@@ -10,7 +10,7 @@ export default class Partial extends Mustache {
 	bind () {
 		super.bind();
 
-		if ( !this.model && this.template.r ) {
+		if ( ( !this.model || !this.model.value ) && this.template.r ) {
 			this.setTemplate( this.template.r );
 		} else {
 			this.setTemplate( this.model.value );
