@@ -2,7 +2,7 @@ export default class IndexReferenceResolver {
 	constructor ( fragment, indexRef, callback ) {
 		this.deps = [];
 		this.value = fragment.indexRefs[ indexRef ];
-		
+
 		callback( this );
 
 		// we need to attach this to the repeated fragment that this is
@@ -17,6 +17,10 @@ export default class IndexReferenceResolver {
 		}
 
 		this.resolved = true;
+	}
+
+	getKeypath () {
+		return '@index';
 	}
 
 	register ( dep ) {

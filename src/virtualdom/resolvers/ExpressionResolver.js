@@ -1,3 +1,4 @@
+import IndexReferenceResolver from './IndexReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
 
 let functionCache = {};
@@ -22,10 +23,13 @@ export default class ExpressionResolver {
 		this.fn = createFunction( template.s, template.r.length );
 
 		this.models = new Array( template.r.length );
+
 		this.resolvers = template.r.map( ( ref, i ) => {
-			return new ReferenceResolver( fragment, ref, model => {
-				this.resolve( i, model );
-			});
+			const callback = model => this.resolve( i, model );
+
+			return ref in fragment.indexRefs ?
+				new IndexReferenceResolver( fragment, ref, callback ) :
+				new ReferenceResolver( fragment, ref, callback );
 		});
 
 		this.ready = true;
