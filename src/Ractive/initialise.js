@@ -92,9 +92,9 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 		}
 
 		ractive.fragment = new Fragment({
-			template: ractive.template,
-			root: ractive,
+			ractive,
 			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+			template: ractive.template,
 			cssIds
 		});
 

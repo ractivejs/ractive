@@ -1,10 +1,13 @@
+import runloop from 'global/runloop';
 import createItem from './items/createItem';
 import createResolver from './resolvers/createResolver';
 
 export default class Fragment {
 	constructor ( options ) {
 		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
-		this.root = options.root;
+		this.ractive = options.ractive;
+
+		this.isRoot = options.ractive === options.owner;
 
 		this.parent = this.owner.parentFragment;
 		this.context = null;
@@ -19,6 +22,17 @@ export default class Fragment {
 	bind ( context ) {
 		this.context = context;
 		this.items.forEach( item => item.bind() );
+	}
+
+	bubble () {
+		if ( !this.dirty ) {
+			this.dirty = true;
+			if ( this.isRoot ) {
+				runloop.addFragment( this );
+			} else {
+				this.owner.bubble();
+			}
+		}
 	}
 
 	render () {
@@ -55,5 +69,10 @@ export default class Fragment {
 
 	unbind () {
 		this.items.forEach( item => item.unbind() );
+	}
+
+	update () {
+		// TODO if this.dirty
+		this.items.forEach( item => item.update() );
 	}
 }

@@ -25,9 +25,11 @@ export default class Viewmodel {
 		return computation;
 	}
 
-	flush () {
-		console.warn( 'TODO Viewmodel$flush' );
-	}
+	// flush () {
+	// 	if ( this.dirty ) {
+	// 		this.children.forEach( child => child.flush() );
+	// 	}
+	// }
 
 	has ( key ) {
 		return key in this.value;

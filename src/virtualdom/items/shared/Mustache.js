@@ -11,6 +11,7 @@ export default class Mustache {
 		// try to find a model for this view
 		this.parentFragment.resolve( this.template, model => {
 			this.model = model;
+			model.register( this );
 		});
 	}
 

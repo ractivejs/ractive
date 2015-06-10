@@ -18,4 +18,8 @@ export default class Text {
 	unbind () {
 		// noop
 	}
+
+	update () {
+		// noop
+	}
 }
