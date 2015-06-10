@@ -6,9 +6,12 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 export default class DataNode {
 	constructor ( parent, key ) {
-		this.parent = parent;
-		this.viewmodel = parent.viewmodel || parent;
-		this.key = key;
+		if ( parent ) {
+			this.parent = parent;
+			this.viewmodel = parent.viewmodel;
+
+			this.key = key;
+		}
 
 		this.deps = [];
 
@@ -18,11 +21,6 @@ export default class DataNode {
 		this.value = undefined;
 		this.update();
 	}
-
-	// flush () {
-	// 	this.viewmodel._changeHash[ this.keypath ] = this.value;
-	// 	this.deps.forEach( dep => dep.bubble() );
-	// }
 
 	get () {
 		const parentValue = this.parent.value;
@@ -85,6 +83,8 @@ export default class DataNode {
 		let parent = this.parent;
 		while ( parent ) {
 			parent.dirty = true;
+			parent.deps.forEach( handleChange );
+
 			parent = parent.parent;
 		}
 	}
