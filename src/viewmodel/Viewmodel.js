@@ -1,86 +1,53 @@
-import { create } from 'utils/object';
-import adapt from './prototype/adapt';
-import applyChanges from './prototype/applyChanges';
-import capture from './prototype/capture';
-import clearCache from './prototype/clearCache';
-import get from './prototype/get';
-import getContext from './prototype/getContext';
-import mark from './prototype/mark';
-import release from './prototype/release';
-import reset from './prototype/reset';
-import set from './prototype/set';
-import teardown from './prototype/teardown';
+import ComputedNode from './nodes/ComputedNode';
+import DataNode from './nodes/DataNode';
 
-import RootNode from './RootNode';
+export default class Viewmodel {
+	constructor ( options ) {
+		this.value = options.data;
 
-var Viewmodel = function ( options ) {
-	var { adapt, computations, data, mappings, ractive } = options;
+		this.computations = {};
 
-	var key, mapping, context;
+		this.children = [];
+		this.childByKey = {};
+	}
 
-	// TODO is it possible to remove this reference?
-	this.ractive = ractive;
+	applyChanges () {
+		this._changeHash = {};
+		this.flush();
 
-	this.adaptors = adapt;
-	this.onchange = options.onchange;
+		return this._changeHash;
+	}
 
-	this.patternObservers = [];
+	compute ( key, signature ) {
+		const computation = new ComputedNode( this, signature );
+		this.computations[ key ] = computation;
 
-	// TODO: move to singleton/runloop?
-	this.captureGroups = [];
+		return computation;
+	}
 
-	this.unresolvedImplicitDependencies = [];
+	flush () {
+		console.warn( 'TODO Viewmodel$flush' );
+	}
 
-	this.changes = [];
-	this.implicitChanges = {};
-	this.noCascade = {};
+	has ( key ) {
+		return key in this.value;
+	}
 
-	this.data = data;
+	join ( key ) {
+		if ( !this.childByKey[ key ] ) {
+			const child = new DataNode( this, key );
+			this.children.push( child );
+			this.childByKey[ key ] = child;
+		}
 
-	this.root = new RootNode( this, data );
+		return this.childByKey[ key ];
+	}
 
-	this.ready = true;
+	set ( value ) {
+		// TODO reset entire graph
+	}
 
-	// TODO: clean-up/move some of this
-	// if ( mappings ) {
-	// 	mappings.forEach( mapping => {
-	// 		context = mapping.model;
-	// 		key = mapping.key;
-	//
-	// 		this.root.addChild( context, key );
-	//
-	// 		if ( data && ( key in data ) && context.get() === undefined ) {
-	// 			context.set( data[ key ] );
-	// 		}
-	// 	});
-	// }
-
-	// if ( computations ) {
-	// 	let computed;
-	// 	for( key in computations ) {
-	// 		computed = new BindingContext( key, null, { signature: computations[ key ] });
-	// 		this.root.addChild( computed, key );
-	// 		// TODO: initial values
-	// 		// if ( data[ key ] != null ) {
-	// 		// 	...
-	// 		// }
-	// 	}
-	// }
-
-};
-
-Viewmodel.prototype = {
-	adapt: adapt,
-	applyChanges: applyChanges,
-	capture: capture,
-	clearCache: clearCache,
-	get: get,
-	getContext: getContext,
-	mark: mark,
-	release: release,
-	reset: reset,
-	set: set,
-	teardown: teardown,
-};
-
-export default Viewmodel;
+	teardown () {
+		this.root = null; // is this enough?
+	}
+}

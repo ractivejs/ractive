@@ -29,7 +29,7 @@ export default function Ractive$set ( keypath, value ) {
 
 
 function set ( ractive, keypath, value ) {
-	ractive.viewmodel.set( normalise( keypath ), value );
+	ractive.viewmodel.join( normalise( keypath ) ).set( value );
 }
 
 //TODO: wildcards

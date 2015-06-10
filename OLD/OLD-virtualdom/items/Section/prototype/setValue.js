@@ -174,13 +174,13 @@ function createEachBlock ( section, type, fragmentOptions, aliases ) {
 		// unrender fragments, we'll start over with new EachBlock...
 		else {
 			block.unrender();
-			section.context.unregister( 'setMembers', block );
+			section.context.unregister( block );
 		}
 	}
 
 	block = section.block = new EachBlock( section, type, fragmentOptions, aliases );
 
-	section.context.register( 'setMembers', block );
+	section.context.register( block );
 
 	return false;
 }

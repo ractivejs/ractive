@@ -1,36 +1,21 @@
-import { TEXT } from 'config/types';
-import { escapeHtml } from 'utils/html';
-import detach from './shared/detach';
+export default class Text {
+	constructor ( str ) {
+		this.str = str;
+	}
 
-var Text = function ( options ) {
-	this.type = TEXT;
-	this.text = options.template;
-};
-
-Text.prototype = {
-	detach: detach,
-
-	firstNode () {
-		return this.node;
-	},
+	bind () {
+		// noop
+	}
 
 	render () {
-		if ( !this.node ) {
-			this.node = document.createTextNode( this.text );
-		}
-
-		return this.node;
-	},
-
-	toString ( escape ) {
-		return escape ? escapeHtml( this.text ) : this.text;
-	},
-
-	unrender ( shouldDestroy ) {
-		if ( shouldDestroy ) {
-			return this.detach();
-		}
+		return ( this.node = document.createTextNode( this.str ) );
 	}
-};
 
-export default Text;
+	toString () {
+		return this.str;
+	}
+
+	unbind () {
+		// noop
+	}
+}

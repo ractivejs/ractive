@@ -1,70 +1,18 @@
-import { INTERPOLATOR } from 'config/types';
-import runloop from 'global/runloop';
-import { escapeHtml } from 'utils/html';
-import { detachNode, safeToStringValue } from 'utils/dom';
-import { isEqual } from 'utils/is';
-import unbind from './shared/unbind';
-import Mustache from './shared/Mustache/_Mustache';
-import detach from './shared/detach';
+import Mustache from './shared/Mustache';
+import initialiseMustache from './shared/initialiseMustache';
 
-var Interpolator = function ( options ) {
-	this.type = INTERPOLATOR;
-	Mustache.init( this, options );
-};
-
-Interpolator.prototype = {
-	update () {
-		this.node.data = ( this.value == undefined ? '' : this.value );
-	},
-	resolve: Mustache.resolve,
-	rebind: Mustache.rebind,
-	detach: detach,
-
-	unbind: unbind,
+export default class Interpolator extends Mustache {
+	constructor ( options ) {
+		super( options );
+	}
 
 	render () {
-		if ( !this.node ) {
-			this.node = document.createTextNode( safeToStringValue(this.value) );
-		}
-
-		return this.node;
-	},
-
-	unrender ( shouldDestroy ) {
-		if ( shouldDestroy ) {
-			detachNode( this.node );
-		}
-	},
-
-	getValue: Mustache.getValue,
-
-	// TEMP
-	setValue ( value ) {
-		var wrapper;
-
-		// TODO is there a better way to approach this?
-		if ( this.context && ( wrapper = this.context.wrapper ) ) {
-			value = wrapper.get();
-		}
-
-		if ( !isEqual( value, this.value ) ) {
-			this.value = value;
-			this.parentFragment.bubble();
-
-			if ( this.node ) {
-				runloop.addView( this );
-			}
-		}
-	},
-
-	firstNode () {
-		return this.node;
-	},
-
-	toString ( escape ) {
-		var string = ( '' + safeToStringValue(this.value) );
-		return escape ? escapeHtml( string ) : string;
+		const value = this.model ? this.model.value : null;
+		return ( this.node = document.createTextNode( value == null ? '' : value ) );
 	}
-};
 
-export default Interpolator;
+	toString () {
+		const value = this.model ? this.model.value : null;
+		return value == null ? '' : value;
+	}
+}

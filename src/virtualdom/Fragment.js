@@ -1,53 +1,59 @@
-import bubble from './Fragment/prototype/bubble';
-import detach from './Fragment/prototype/detach';
-import find from './Fragment/prototype/find';
-import findAll from './Fragment/prototype/findAll';
-import findAllComponents from './Fragment/prototype/findAllComponents';
-import findComponent from './Fragment/prototype/findComponent';
-import findNextNode from './Fragment/prototype/findNextNode';
-import firstNode from './Fragment/prototype/firstNode';
-import getArgsList from './Fragment/prototype/getArgsList';
-import getNode from './Fragment/prototype/getNode';
-import getValue from './Fragment/prototype/getValue';
-import init from './Fragment/prototype/init';
-import rebind from './Fragment/prototype/rebind';
-import render from './Fragment/prototype/render';
-import toString from './Fragment/prototype/toString';
-import unbind from './Fragment/prototype/unbind';
-import unrender from './Fragment/prototype/unrender';
+import createItem from './items/createItem';
+import createResolver from './resolvers/createResolver';
 
-var Fragment = function ( options ) {
-	this.init( options );
-};
+export default class Fragment {
+	constructor ( options ) {
+		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
+		this.root = options.root;
 
-Fragment.prototype = {
-	bubble: bubble,
-	detach: detach,
-	find: find,
-	findAll: findAll,
-	findAllComponents: findAllComponents,
-	findComponent: findComponent,
-	findNextNode: findNextNode,
-	firstNode: firstNode,
-	getArgsList: getArgsList,
-	getNode: getNode,
-	getValue: getValue,
-	init: init,
-	rebind: rebind,
-	registerIndexRef: function( idx ) {
-		var idxs = this.registeredIndexRefs;
-		if ( idxs.indexOf( idx ) === -1 ) {
-			idxs.push( idx );
+		this.parent = this.owner.parentFragment;
+		this.context = null;
+		this.rendered = false;
+
+		this.resolvers = [];
+
+		this.items = options.template
+			.map( ( template, index ) => createItem({ parentFragment: this, template, index }) );
+	}
+
+	bind ( context ) {
+		this.context = context;
+		this.items.forEach( item => item.bind() );
+	}
+
+	render () {
+		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
+
+		if ( this.items.length === 1 ) {
+			return this.items[0].render();
 		}
-	},
-	render: render,
-	toString: toString,
-	unbind: unbind,
-	unregisterIndexRef: function( idx ) {
-		var idxs = this.registeredIndexRefs;
-		idxs.splice( idxs.indexOf( idx ), 1 );
-	},
-	unrender: unrender
-};
 
-export default Fragment;
+		const docFrag = document.createDocumentFragment();
+		this.items.forEach( item => docFrag.appendChild( item.render() ) );
+		return docFrag;
+	}
+
+	resolve ( template, callback ) {
+		if ( !this.context ) {
+			return this.parent.resolve( template, callback );
+		}
+
+		const resolver = createResolver( this, template, callback );
+
+		if ( !resolver.resolved ) {
+			this.resolvers.push( resolver );
+		}
+	}
+
+	toHtml () {
+		return this.toString();
+	}
+
+	toString () {
+		return this.items.map( item => item.toString() ).join( '' );
+	}
+
+	unbind () {
+		this.items.forEach( item => item.unbind() );
+	}
+}

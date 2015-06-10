@@ -18,7 +18,12 @@ export default function Mustache$init ( mustache, options ) {
 
 	mustache.type = options.template.t;
 
+	if ( !options.template.r ) {
+		throw new Error( 'expressions and reference expressions not yet implemented' );
+	}
+
 	var context = mustache.context = resolveRef( mustache.root, options.template.r, parentFragment );
+	console.log( 'context', context )
 
 	if ( mustache.isStatic ) {
 		mustache.setValue( context.get() );

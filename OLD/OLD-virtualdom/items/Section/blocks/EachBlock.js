@@ -22,6 +22,10 @@ class EachBlock {
 		}
 	}
 
+	setValue () {
+		console.log( 'this', this )
+	}
+
 	setMembers ( shuffle ) {
 		const section = this.section,
 			  fragments = section.fragments;

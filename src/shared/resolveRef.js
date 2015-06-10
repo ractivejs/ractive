@@ -60,8 +60,6 @@ function resolveAncestorRef ( context, ref ) {
 }
 
 function resolveAmbiguousReference ( viewmodel, ref, fragment ) {
-	console.log( 'arguments', arguments );
-
 	const key = ref.split( '.' )[0];
 	let hasContextChain = false;
 
