@@ -27,7 +27,7 @@ export default class Mustache {
 
 		this.bound = true;
 	}
-	
+
 	bubble () {
 		if ( !this.dirty ) {
 			this.dirty = true;

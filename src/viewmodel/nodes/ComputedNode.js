@@ -17,6 +17,10 @@ export default class ComputedNode {
 		return this.signature.getter();
 	}
 
+	register ( dependant ) {
+		this.deps.push( dependant );
+	}
+
 	unregister ( dependant ) {
 		removeFromArray( this.deps, dependant );
 	}

@@ -1,3 +1,5 @@
+import ReferenceResolver from './ReferenceResolver';
+
 let functionCache = {};
 
 function createFunction ( str, i ) {
@@ -33,7 +35,7 @@ export default class ExpressionResolver {
 	bubble () {
 		if ( !this.ready ) return;
 
-		const ractive = this.fragment.root;
+		const ractive = this.fragment.ractive;
 
 		const key = this.template.s.replace( /_(\d+)/g, ( match, i ) => {
 			return i >= this.models.length ? match : this.models[i].keypath;
@@ -47,7 +49,7 @@ export default class ExpressionResolver {
 			}
 		};
 
-		const model = this.fragment.root.viewmodel.compute( key, signature );
+		const model = ractive.viewmodel.compute( key, signature );
 		this.callback( model );
 	}
 
