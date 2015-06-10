@@ -1,5 +1,6 @@
 import Fragment from './Fragment';
 import { update } from 'shared/methodCallers';
+import findParentNode from './items/shared/findParentNode';
 
 export default class RepeatedFragment {
 	constructor ( options ) {
@@ -18,30 +19,7 @@ export default class RepeatedFragment {
 
 	bind ( context ) {
 		this.context = context;
-
-		this.iterations = context.value.map( ( childValue, index ) => {
-			const parentIndexRefs = this.owner.parentFragment.indexRefs;
-			let indexRefs;
-
-			if ( this.indexRef ) {
-				indexRefs = {};
-				Object.keys( parentIndexRefs ).forEach( ref => {
-					indexRefs[ ref ] = parentIndexRefs[ ref ];
-				});
-				indexRefs[ this.indexRef ] = index;
-			} else {
-				indexRefs = parentIndexRefs;
-			}
-
-			const fragment = new Fragment({
-				owner: this,
-				template: this.template,
-				indexRefs
-			});
-
-			fragment.bind( context.join([ index ]) ); // TODO join method that accepts non-array
-			return fragment;
-		});
+		this.iterations = context.value.map( ( childValue, index ) => this.createIteration( index ) );
 	}
 
 	bubble () {
@@ -49,6 +27,30 @@ export default class RepeatedFragment {
 			this.dirty = true;
 			this.parent.bubble();
 		}
+	}
+
+	createIteration ( index ) {
+		const parentIndexRefs = this.owner.parentFragment.indexRefs;
+		let indexRefs;
+
+		if ( this.indexRef ) {
+			indexRefs = {};
+			Object.keys( parentIndexRefs ).forEach( ref => {
+				indexRefs[ ref ] = parentIndexRefs[ ref ];
+			});
+			indexRefs[ this.indexRef ] = index;
+		} else {
+			indexRefs = parentIndexRefs;
+		}
+
+		const fragment = new Fragment({
+			owner: this,
+			template: this.template,
+			indexRefs
+		});
+
+		fragment.bind( this.context.join([ index ]) ); // TODO join method that accepts non-array
+		return fragment;
 	}
 
 	render () {
@@ -64,6 +66,31 @@ export default class RepeatedFragment {
 	}
 
 	update () {
+		const value = this.context.value;
+
+		if ( this.iterations.length > value.length ) {
+			this.iterations.splice( value.length ).forEach( fragment => {
+				fragment.unbind();
+				fragment.unrender( true );
+			});
+		}
+
 		this.iterations.forEach( update );
+
+		if ( value.length > this.iterations.length ) {
+			const docFrag = document.createDocumentFragment();
+
+			while ( this.iterations.length < value.length ) {
+				const fragment = this.createIteration( this.iterations.length );
+
+				this.iterations.push( fragment );
+				docFrag.appendChild( fragment.render() );
+			}
+
+			const parentNode = findParentNode( this );
+			const anchor = this.parent.findNextNode( this );
+		
+			parentNode.insertBefore( docFrag, anchor );
+		}
 	}
 }

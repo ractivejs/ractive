@@ -41,6 +41,10 @@ export default class Element extends Item {
 		}
 	}
 
+	findNextNode () {
+		return this.parentFragment.findNextNode( this );
+	}
+
 	render () {
 		const node = document.createElement( this.template.e );
 		this.node = node;

@@ -1,15 +1,7 @@
 import { ELEMENT } from 'config/types';
+import findParentNode from './shared/findParentNode';
 import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
-
-function findParentElement ( item ) {
-	let fragment = item.parentFragment;
-	while ( fragment.owner.type !== ELEMENT ) {
-		fragment = fragment.parent;
-	}
-
-	return fragment.owner.node;
-}
 
 export default class Triple extends Mustache {
 	constructor ( options ) {
@@ -20,7 +12,7 @@ export default class Triple extends Mustache {
 		const html = this.model ? this.model.value : '';
 
 		const docFrag = document.createDocumentFragment();
-		this.nodes = insertHtml( html, findParentElement( this ), docFrag );
+		this.nodes = insertHtml( html, findParentNode( this ), docFrag );
 
 		return docFrag;
 	}
@@ -37,6 +29,6 @@ export default class Triple extends Mustache {
 		this.unrender();
 		const docFrag = this.render();
 
-		findParentElement( this ).insertBefore( docFrag, this.parentFragment.findNextNode( this ) );
+		findParentNode( this ).insertBefore( docFrag, this.parentFragment.findNextNode( this ) );
 	}
 }
