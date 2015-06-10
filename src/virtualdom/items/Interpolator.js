@@ -1,5 +1,4 @@
 import Mustache from './shared/Mustache';
-import initialiseMustache from './shared/initialiseMustache';
 
 export default class Interpolator extends Mustache {
 	constructor ( options ) {

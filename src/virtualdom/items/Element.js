@@ -1,9 +1,13 @@
+import { ELEMENT } from 'config/types';
+import Item from './shared/Item';
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
 import { voidElementNames } from 'utils/html';
 
-export default class Element {
+export default class Element extends Item {
 	constructor ( options ) {
+		super( options );
+		
 		this.parentFragment = options.parentFragment;
 		this.template = options.template;
 		this.index = options.index;
@@ -45,12 +49,11 @@ export default class Element {
 
 	render () {
 		const node = document.createElement( this.template.e );
+		this.node = node;
 
 		if ( this.fragment ) {
 			node.appendChild( this.fragment.render() );
 		}
-
-		this.node = node;
 
 		this.attributes.forEach( attr => attr.render() );
 

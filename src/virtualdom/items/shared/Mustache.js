@@ -1,5 +1,9 @@
-export default class Mustache {
+import Item from './Item';
+
+export default class Mustache extends Item {
 	constructor ( options ) {
+		super( options );
+		
 		this.parentFragment = options.parentFragment;
 		this.template = options.template;
 		this.index = options.index;

@@ -3,7 +3,6 @@ import { isArray, isObject } from 'utils/is';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import Mustache from './shared/Mustache';
-import initialiseMustache from './shared/initialiseMustache';
 
 let emptyFragment;
 

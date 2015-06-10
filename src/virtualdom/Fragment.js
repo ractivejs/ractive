@@ -38,6 +38,14 @@ export default class Fragment {
 		}
 	}
 
+	findNextNode ( item ) {
+		const nextItem = this.items[ item.index + 1 ];
+
+		return nextItem ?
+			nextItem.firstNode() :
+			this.isRoot ? null : this.owner.findNextNode();
+	}
+
 	render () {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 

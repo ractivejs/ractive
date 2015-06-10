@@ -7,6 +7,10 @@ export default class Text {
 		// noop
 	}
 
+	firstNode () {
+		return this.node;
+	}
+
 	render () {
 		return ( this.node = document.createTextNode( this.str ) );
 	}

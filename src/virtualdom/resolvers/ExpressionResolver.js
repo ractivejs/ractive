@@ -38,7 +38,10 @@ export default class ExpressionResolver {
 		const ractive = this.fragment.ractive;
 
 		const key = this.template.s.replace( /_(\d+)/g, ( match, i ) => {
-			return i >= this.models.length ? match : this.models[i].keypath;
+			if ( i >= this.models.length ) return match;
+
+			const model = this.models[i];
+			return model ? model.getKeypath() : '@undefined';
 		});
 
 		const signature = {
