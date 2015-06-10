@@ -26,7 +26,7 @@ export default class ReferenceResolver {
 				throw new Error( key );
 			}
 
-			if ( fragment.context ) {
+			if ( fragment.context && !fragment.isRoot ) {
 				hasContextChain = true;
 
 				if ( fragment.context.has( key ) ) {
@@ -37,7 +37,7 @@ export default class ReferenceResolver {
 			fragment = fragment.parent;
 		}
 
-		if ( !hasContextChain ) return fragment.ractive.viewmodel.join( this.keys );
+		if ( !hasContextChain ) return this.fragment.ractive.viewmodel.join( this.keys );
 
 		this.fragment.unresolved.push( this );
 	}

@@ -22,6 +22,12 @@ export default class Fragment {
 			.map( ( template, index ) => createItem({ parentFragment: this, template, index }) );
 	}
 
+	attemptResolution () {
+		if ( this.unresolved.length ) {
+			throw new Error( 'TODO' );
+		}
+	}
+
 	bind ( context ) {
 		this.context = context;
 		this.items.forEach( item => item.bind() );
@@ -69,10 +75,7 @@ export default class Fragment {
 		}
 
 		const resolver = createResolver( this, template, callback );
-
-		if ( !resolver.resolved ) {
-			this.resolvers.push( resolver );
-		}
+		this.resolvers.push( resolver );
 	}
 
 	toHtml () {
