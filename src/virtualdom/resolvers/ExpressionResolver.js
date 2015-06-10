@@ -1,5 +1,6 @@
 import IndexReferenceResolver from './IndexReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
+import ShadowResolver from './ShadowResolver';
 
 let functionCache = {};
 
@@ -27,9 +28,20 @@ export default class ExpressionResolver {
 		this.resolvers = template.r.map( ( ref, i ) => {
 			const callback = model => this.resolve( i, model );
 
-			return ref in fragment.indexRefs ?
-				new IndexReferenceResolver( fragment, ref, callback ) :
-				new ReferenceResolver( fragment, ref, callback );
+			if ( ref[0] === '@' ) {
+				throw new Error( 'TODO specials' );
+			}
+
+			// TODO handle fragment context changes (e.g. `{{#with foo[bar]}}...`)
+			if ( ref === '.' || ref === 'this' ) {
+				return new ShadowResolver( fragment, callback );
+			}
+
+			if ( ref in fragment.indexRefs ) {
+				return new IndexReferenceResolver( fragment, ref, callback );
+			}
+
+			return new ReferenceResolver( fragment, ref, callback );
 		});
 
 		this.ready = true;

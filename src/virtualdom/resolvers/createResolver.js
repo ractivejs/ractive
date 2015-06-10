@@ -3,6 +3,7 @@ import ExpressionResolver from './ExpressionResolver';
 import IndexReferenceResolver from './IndexReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
 import ReferenceExpressionResolver from './ReferenceExpressionResolver';
+import ShadowResolver from './ShadowResolver';
 
 export default function createResolver ( fragment, template, callback ) {
 	const ref = template.r;
@@ -10,6 +11,10 @@ export default function createResolver ( fragment, template, callback ) {
 	if ( ref ) {
 		if ( ref[0] === '@' ) {
 			throw new Error( 'TODO specials' );
+		}
+
+		if ( ref === '.' || ref === 'this' ) {
+			return new ShadowResolver( fragment, callback );
 		}
 
 		if ( ref in fragment.indexRefs ) {

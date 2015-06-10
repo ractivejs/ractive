@@ -26,8 +26,8 @@ export default class ReferenceResolver {
 				throw new Error( key );
 			}
 
-			if ( fragment.context && !fragment.isRoot ) {
-				hasContextChain = true;
+			if ( fragment.context ) {
+				if ( !fragment.isRoot ) hasContextChain = true;
 
 				if ( fragment.context.has( key ) ) {
 					return fragment.context.join( this.keys );
