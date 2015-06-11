@@ -1,5 +1,9 @@
 import { REFERENCE } from 'config/types';
+import ExpressionResolver from './ExpressionResolver';
+import IndexReferenceResolver from './IndexReferenceResolver';
+import KeyReferenceResolver from './KeyReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
+import ShadowResolver from './ShadowResolver';
 
 export default class ReferenceExpressionResolver {
 	constructor ( fragment, template, callback ) {
@@ -14,11 +18,28 @@ export default class ReferenceExpressionResolver {
 			const callback = model => this.resolve( i, model );
 
 			if ( template.t === REFERENCE ) {
+				const ref = template.n;
+
+				// TODO handle fragment context changes (e.g. `{{#with foo[bar]}}...`)
+				if ( ref === '.' || ref === 'this' ) {
+					return new ShadowResolver( fragment, callback );
+				}
+
+				if ( ref === '@index' || ref in fragment.indexRefs ) {
+					return new IndexReferenceResolver( fragment, ref, callback );
+				}
+
+				if ( ref === '@key' || ref in fragment.keyRefs ) {
+					return new KeyReferenceResolver( fragment, ref, callback );
+				}
+
+				if ( ref[0] === '@' ) throw new Error( 'TODO' );
+
 				return new ReferenceResolver( fragment, template.n, callback );
 			}
 
 			else {
-				throw new Error( 'TODO' );
+				return new ExpressionResolver( fragment, template, callback );
 			}
 		});
 

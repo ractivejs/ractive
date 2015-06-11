@@ -1,5 +1,6 @@
 import { startCapturing, stopCapturing } from 'global/capture';
 import IndexReferenceResolver from './IndexReferenceResolver';
+import KeyReferenceResolver from './KeyReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
 import ShadowResolver from './ShadowResolver';
 
@@ -44,17 +45,21 @@ export default class ExpressionResolver {
 		this.resolvers = template.r.map( ( ref, i ) => {
 			const callback = model => this.resolve( i, model );
 
-			if ( ref[0] === '@' ) {
-				throw new Error( 'TODO specials' );
-			}
-
 			// TODO handle fragment context changes (e.g. `{{#with foo[bar]}}...`)
 			if ( ref === '.' || ref === 'this' ) {
 				return new ShadowResolver( fragment, callback );
 			}
 
-			if ( ref in fragment.indexRefs ) {
+			if ( ref === '@index' || ref in fragment.indexRefs ) {
 				return new IndexReferenceResolver( fragment, ref, callback );
+			}
+
+			if ( ref === '@key' || ref in fragment.keyRefs ) {
+				return new KeyReferenceResolver( fragment, ref, callback );
+			}
+
+			if ( ref[0] === '@' ) {
+				throw new Error( 'TODO specials' );
 			}
 
 			return new ReferenceResolver( fragment, ref, callback );
