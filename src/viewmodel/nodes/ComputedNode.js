@@ -6,13 +6,14 @@ export default class ComputedNode {
 	constructor ( viewmodel, signature ) {
 		this.viewmodel = viewmodel;
 		this.signature = signature;
+		this.context = viewmodel.computationContext;
 
 		this.hardDependencies = signature.dependencies;
 		this.hardDependencies.forEach( model => {
 			model.register( this );
 		});
 
-		this.value = this.getValue();
+		this.softDependencies = [];
 
 		this.children = [];
 		this.childByKey = {};
@@ -21,7 +22,7 @@ export default class ComputedNode {
 	}
 
 	getValue () {
-		return this.signature.getter();
+		return this.signature.getter.call( this.context );
 	}
 
 	handleChange () {
@@ -34,8 +35,30 @@ export default class ComputedNode {
 		this.children.forEach( mark );
 	}
 
+	init () {
+		this.value = this.getValue();
+	}
+
 	register ( dependant ) {
 		this.deps.push( dependant );
+	}
+
+	setSoftDependencies ( softDependencies ) {
+		// unregister any soft dependencies we no longer have
+		let i = this.softDependencies.length;
+		while ( i-- ) {
+			const model = this.softDependencies[i];
+			if ( !~softDependencies.indexOf( model ) ) model.unregister( this );
+		}
+
+		// and add any new ones
+		i = softDependencies.length;
+		while ( i-- ) {
+			const model = softDependencies[i];
+			if ( !~this.softDependencies.indexOf( model ) ) model.register( this );
+		}
+
+		this.softDependencies = softDependencies;
 	}
 
 	unregister ( dependant ) {

@@ -1,3 +1,4 @@
+import { capture } from 'global/capture';
 import { isEqual } from 'utils/is';
 import { removeFromArray } from 'utils/array';
 import { handleChange, mark } from 'shared/methodCallers';
@@ -23,6 +24,8 @@ export default class DataNode {
 	}
 
 	get () {
+		capture( this );
+
 		const parentValue = this.parent.value;
 		if ( parentValue ) {
 			return parentValue[ this.key ];

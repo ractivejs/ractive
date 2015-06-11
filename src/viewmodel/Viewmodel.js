@@ -8,6 +8,7 @@ export default class Viewmodel extends DataNode {
 		this.isRoot = true;
 		this.value = options.data;
 
+		this.computationContext = options.ractive;
 		this.computations = {};
 	}
 
@@ -24,12 +25,6 @@ export default class Viewmodel extends DataNode {
 
 		return computation;
 	}
-
-	// flush () {
-	// 	if ( this.dirty ) {
-	// 		this.children.forEach( child => child.flush() );
-	// 	}
-	// }
 
 	set ( value ) {
 		throw new Error( 'TODO' );

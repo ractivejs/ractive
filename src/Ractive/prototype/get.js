@@ -7,9 +7,6 @@ var options = {
 };
 
 export default function Ractive$get ( keypath ) {
-
-	var model = this.viewmodel.getContext( normalise( keypath ) );
-
-	// For now we go through viewmodel to do capture
-	return this.viewmodel.get( model, options );
+	const model = this.viewmodel.join( normalise( keypath ).split( '.' ) );
+	return model.get();
 }

@@ -1,3 +1,4 @@
+import { startCapturing, stopCapturing } from 'global/capture';
 import IndexReferenceResolver from './IndexReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
 import ShadowResolver from './ShadowResolver';
@@ -10,9 +11,24 @@ function createFunction ( str, i ) {
 	let args = new Array( i );
 	while ( i-- ) args[i] = `_${i}`;
 
-	const fn = new Function ( args.join( ',' ), `return (${str})` );
+	const fn = new Function( args.join( ',' ), `return (${str})` );
 
 	return ( functionCache[ str ] = fn );
+}
+
+function wrapFunction ( fn, context, uid ) {
+	if ( fn.__nowrap ) return fn;
+
+	const wrapProp = `__ractive_${uid}`;
+
+	if ( fn[ wrapProp ] ) return fn[ wrapProp ];
+
+	if ( !/\bthis\b/.test( fn ) ) {
+		fn.__nowrap = true;
+		return fn;
+	}
+
+	return ( fn[ wrapProp ] = fn.bind( context ) );
 }
 
 export default class ExpressionResolver {
@@ -63,12 +79,26 @@ export default class ExpressionResolver {
 		const signature = {
 			dependencies: this.models.filter( Boolean ),
 			getter: () => {
-				const values = this.models.map( model => model.value );
-				return this.fn.apply( ractive, values );
+				const values = this.models.map( model => {
+					if ( typeof model.value === 'function' ) {
+						return wrapFunction( model.value, ractive, ractive._guid );
+					} else {
+						return model.value;
+					}
+				});
+
+				startCapturing();
+				const result = this.fn.apply( ractive, values );
+				const softDeps = stopCapturing();
+
+				model.setSoftDependencies( softDeps );
+
+				return result;
 			}
 		};
 
 		const model = ractive.viewmodel.compute( key, signature );
+		model.init();
 		this.callback( model );
 	}
 
