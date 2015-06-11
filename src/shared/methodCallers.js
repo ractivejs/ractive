@@ -7,3 +7,4 @@ export function teardown     ( x ) { x.teardown(); }
 export function unbind       ( x ) { x.unbind(); }
 export function unrender     ( x ) { x.unrender(); }
 export function update       ( x ) { x.update(); }
+export function toString     ( x ) { return x.toString(); }
