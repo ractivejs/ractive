@@ -79,7 +79,9 @@ export default class Element extends Item {
 			return `<${tagName}${attrs}/>`;
 		}
 
-		const contents = this.fragment ? this.fragment.toString() : '';
+		const contents = this.fragment ?
+			this.fragment.toString( !/^(?:script|style)$/i.test( this.template.e ) ) : // escape text unless script/style
+			'';
 
 		return `<${tagName}${attrs}>${contents}</${tagName}>`;
 	}

@@ -1,10 +1,14 @@
 import runloop from 'global/runloop';
 import createItem from './items/createItem';
 import createResolver from './resolvers/createResolver';
-import { bind, unbind, update } from 'shared/methodCallers';
+import { bind, unbind, unrender, update, toString } from 'shared/methodCallers';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );
+}
+
+function toEscapedString ( item ) {
+	return item.toString( true );
 }
 
 export default class Fragment {
@@ -90,8 +94,8 @@ export default class Fragment {
 		return this.toString();
 	}
 
-	toString () {
-		return this.items.map( item => item.toString() ).join( '' );
+	toString ( escape ) {
+		return this.items.map( escape ? toEscapedString : toString ).join( '' );
 	}
 
 	unbind () {
