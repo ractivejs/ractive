@@ -95,6 +95,32 @@ export default class DataNode {
 		}
 	}
 
+	shuffle ( newIndices ) {
+		let temp = [];
+
+		newIndices.forEach( ( newIndex, oldIndex ) => {
+			const child = this.childByKey[ oldIndex ];
+
+			if ( !~newIndex ) {
+				// not in new array - destroy
+				delete this.childByKey[ oldIndex ];
+				removeFromArray( this.children, child );
+			}
+
+			else {
+				temp.push({ newIndex, child });
+				child.key = newIndex;
+			}
+		});
+
+		temp.forEach( ({ newIndex, child }) => {
+			this.childByKey[ newIndex ] = child;
+		});
+
+		this.deps.forEach( dep => dep.shuffle( newIndices ) );
+		this.mark();
+	}
+
 	unregister ( dependant ) {
 		removeFromArray( this.deps, dependant );
 	}

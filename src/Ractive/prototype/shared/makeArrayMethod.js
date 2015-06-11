@@ -7,8 +7,8 @@ var arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		const context = this.viewmodel.getContext( keypath );
-		const array = context.get();
+		const model = this.viewmodel.join( normalise( keypath ).split( '.' ) );
+		const array = model.value;
 
 		if ( !isArray( array ) ) {
 			throw new Error( `shuffle array method ${method} called on non-array at ${keypath.getKeypath()}` );
@@ -20,12 +20,11 @@ export default function ( methodName ) {
 		const promise = runloop.start( this, true ).then( () => result );
 
 		if ( newIndices ) {
-			context.shuffle( newIndices );
+			model.shuffle( newIndices );
 		} else {
-			context.set( result );
+			model.set( result );
 		}
 
-		// result = context.shuffle( methodName, args );
 		runloop.end();
 
 		return promise;

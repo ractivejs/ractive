@@ -35,6 +35,7 @@ export default class RepeatedFragment {
 		this.keyRef = options.keyRef;
 		this.indexRefResolvers = []; // no keyRefResolvers - key can never change
 
+		this.pendingNewIndices = null;
 		this.indexByKey = null; // for `{{#each object}}...`
 	}
 
@@ -132,6 +133,15 @@ export default class RepeatedFragment {
 		return docFrag;
 	}
 
+	shuffle ( newIndices ) {
+		if ( this.pendingNewIndices ) {
+			throw new Error( 'Section was already shuffled!' );
+		}
+
+		this.pendingNewIndices = newIndices;
+		this.dirty = true;
+	}
+
 	toString ( escape ) {
 		return this.iterations ?
 			this.iterations.map( escape ? toEscapedString : toString ).join( '' ) :
@@ -141,6 +151,11 @@ export default class RepeatedFragment {
 	// TODO smart update
 	update () {
 		if ( !this.dirty ) return;
+
+		if ( this.pendingNewIndices ) {
+			this.updatePostShuffle();
+			return;
+		}
 
 		const value = this.context.value;
 
@@ -221,6 +236,50 @@ export default class RepeatedFragment {
 			parentNode.insertBefore( docFrag, anchor );
 		}
 
+		this.dirty = false;
+	}
+
+	updatePostShuffle () {
+		const newIndices = this.pendingNewIndices;
+		const docFrag = document.createDocumentFragment();
+
+		let iterations = [];
+
+		// TODO reorder fragments in the DOM...
+		newIndices.forEach( ( newIndex, oldIndex ) => {
+			const fragment = this.iterations[ oldIndex ];
+
+			if ( newIndex === -1 ) {
+				fragment.unbind();
+				fragment.unrender( true );
+			} else {
+				iterations[ newIndex ] = fragment;
+			}
+		});
+
+		// create new iterations
+		const len = this.context.value.length;
+		let i = iterations.length;
+		while ( i < len ) {
+			const fragment = this.createIteration( i, i );
+			iterations[i] = fragment;
+
+			docFrag.appendChild( fragment.render() );
+
+			i += 1;
+		}
+
+		iterations.forEach( update );
+		this.iterations = iterations;
+
+		if ( docFrag.childNodes.length ) {
+			const parentNode = findParentNode( this.owner );
+			const anchor = this.owner.findNextNode();
+
+			parentNode.insertBefore( docFrag, anchor );
+		}
+
+		this.pendingNewIndices = null;
 		this.dirty = false;
 	}
 }

@@ -119,6 +119,12 @@ export default class Section extends Mustache {
 			( emptyFragment || ( emptyFragment = document.createDocumentFragment() ) );
 	}
 
+	shuffle ( newIndices ) {
+		if ( this.fragment ) {
+			this.fragment.shuffle( newIndices );
+		}
+	}
+
 	toString ( escape ) {
 		return this.fragment ? this.fragment.toString( escape ) : '';
 	}
