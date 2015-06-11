@@ -42,7 +42,7 @@ export default class Partial extends Mustache {
 		this.partialTemplate = template || []; // TODO warn on missing partial
 	}
 
-	toString () {
-		return this.fragment.toString();
+	toString ( escape ) {
+		return this.fragment.toString( escape );
 	}
 }

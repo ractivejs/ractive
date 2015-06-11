@@ -1,6 +1,6 @@
 import Fragment from './Fragment';
 import { isArray, isObject } from 'utils/is';
-import { update } from 'shared/methodCallers';
+import { toEscapedString, toString, update } from 'shared/methodCallers';
 import findParentNode from './items/shared/findParentNode';
 
 function getRefs ( ref, value, parent ) {
@@ -90,8 +90,8 @@ export default class RepeatedFragment {
 		return docFrag;
 	}
 
-	toString () {
-		return this.iterations.join( '' );
+	toString ( escape ) {
+		return this.iterations.map( escape ? toEscapedString : toString ).join( '' );
 	}
 
 	// TODO smart update

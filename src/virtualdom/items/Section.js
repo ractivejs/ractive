@@ -91,8 +91,8 @@ export default class Section extends Mustache {
 			( emptyFragment || ( emptyFragment = document.createDocumentFragment() ) );
 	}
 
-	toString () {
-		return this.fragment ? this.fragment.toString() : '';
+	toString ( escape ) {
+		return this.fragment ? this.fragment.toString( escape ) : '';
 	}
 
 	update () {

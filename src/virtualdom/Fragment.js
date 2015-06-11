@@ -1,14 +1,10 @@
 import runloop from 'global/runloop';
 import createItem from './items/createItem';
 import createResolver from './resolvers/createResolver';
-import { bind, unbind, unrender, update, toString } from 'shared/methodCallers';
+import { bind, unbind, unrender, update, toEscapedString, toString } from 'shared/methodCallers';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );
-}
-
-function toEscapedString ( item ) {
-	return item.toString( true );
 }
 
 export default class Fragment {

@@ -1,3 +1,4 @@
+import { escapeHtml } from 'utils/html';
 import Mustache from './shared/Mustache';
 
 export default class Interpolator extends Mustache {
@@ -10,9 +11,9 @@ export default class Interpolator extends Mustache {
 		return ( this.node = document.createTextNode( value == null ? '' : value ) );
 	}
 
-	toString () {
+	toString ( escape ) {
 		const value = this.model ? this.model.value : null;
-		return value == null ? '' : value;
+		return value == null ? '' : ( escape ? escapeHtml( '' + value ) : value );
 	}
 
 	update () {
