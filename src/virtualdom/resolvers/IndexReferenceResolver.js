@@ -14,6 +14,14 @@ export default class IndexReferenceResolver {
 			}
 		}
 
+		// with @index, we just need to find the closest repeated fragment
+		else {
+			while ( fragment ) {
+				if ( fragment.indexRefResolvers ) break;
+				fragment = fragment.parent;
+			}
+		}
+
 		fragment.indexRefResolvers.push( this );
 		this.resolved = true;
 	}
