@@ -17,7 +17,11 @@ export default class ReferenceExpressionResolver {
 		this.memberResolvers = template.m.map( ( template, i ) => {
 			const callback = model => this.resolve( i, model );
 
-			if ( template.t === REFERENCE ) {
+			if ( typeof template === 'string' ) {
+				this.members[i] = { value: template };
+			}
+
+			else if ( template.t === REFERENCE ) {
 				const ref = template.n;
 
 				// TODO handle fragment context changes (e.g. `{{#with foo[bar]}}...`)

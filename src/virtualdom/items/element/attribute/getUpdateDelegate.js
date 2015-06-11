@@ -1,3 +1,5 @@
+import { safeToStringValue } from 'utils/dom';
+
 export default function getUpdateDelegate ({ element, name, template }) {
 	if ( typeof template === 'boolean' ) return setProperty;
 	if ( typeof template === 'string' ) return setAttribute;
@@ -12,5 +14,5 @@ function setProperty () {
 }
 
 function setAttribute () {
-	this.element.node.setAttribute( this.name, this.value );
+	this.element.node.setAttribute( this.name, safeToStringValue( this.value ) );
 }

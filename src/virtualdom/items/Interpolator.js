@@ -1,4 +1,5 @@
 import { escapeHtml } from 'utils/html';
+import { safeToStringValue } from 'utils/dom';
 import Mustache from './shared/Mustache';
 
 export default class Interpolator extends Mustache {
@@ -7,13 +8,13 @@ export default class Interpolator extends Mustache {
 	}
 
 	render () {
-		const value = this.model ? this.model.value : null;
-		return ( this.node = document.createTextNode( value == null ? '' : value ) );
+		const string = this.model ? safeToStringValue( this.model.value ) : '';
+		return ( this.node = document.createTextNode( string ) );
 	}
 
 	toString ( escape ) {
-		const value = this.model ? this.model.value : null;
-		return value == null ? '' : ( escape ? escapeHtml( '' + value ) : value );
+		const string = this.model ? safeToStringValue( this.model.value ) : '';
+		return escape ? escapeHtml( string ) : string;
 	}
 
 	update () {
@@ -21,5 +22,9 @@ export default class Interpolator extends Mustache {
 			this.node.data = this.model.value;
 			this.dirty = false;
 		}
+	}
+
+	valueOf () {
+		return this.model ? this.model.value : undefined;
 	}
 }

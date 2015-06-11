@@ -1,3 +1,5 @@
+import { removeFromArray } from 'utils/array';
+
 export default class IndexReferenceResolver {
 	constructor ( fragment, indexRef, callback ) {
 		this.deps = [];
@@ -32,5 +34,9 @@ export default class IndexReferenceResolver {
 
 	register ( dep ) {
 		this.deps.push( dep );
+	}
+
+	unregister ( dep ) {
+		removeFromArray( this.deps, dep );
 	}
 }

@@ -16,4 +16,8 @@ export default class KeyReferenceResolver {
 	register () {
 		// noop - key can never change
 	}
+
+	unregister () {
+		// noop
+	}
 }

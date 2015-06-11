@@ -86,12 +86,18 @@ export default class RepeatedFragment {
 		// TODO use docFrag.cloneNode...
 
 		const docFrag = document.createDocumentFragment();
-		this.iterations.forEach( fragment => docFrag.appendChild( fragment.render() ) );
+
+		if ( this.iterations ) {
+			this.iterations.forEach( fragment => docFrag.appendChild( fragment.render() ) );
+		}
+
 		return docFrag;
 	}
 
 	toString ( escape ) {
-		return this.iterations.map( escape ? toEscapedString : toString ).join( '' );
+		return this.iterations ?
+			this.iterations.map( escape ? toEscapedString : toString ).join( '' ) :
+			'';
 	}
 
 	// TODO smart update
@@ -137,7 +143,12 @@ export default class RepeatedFragment {
 		this.iterations.forEach( update );
 
 		// add new iterations
-		const newLength = isArray( value ) ? value.length : Object.keys( value ).length;
+		const newLength = isArray( value ) ?
+			value.length :
+			isObject( value ) ?
+				Object.keys( value ).length :
+				0;
+
 		if ( newLength > this.iterations.length ) {
 			const docFrag = document.createDocumentFragment();
 			let i = this.iterations.length;

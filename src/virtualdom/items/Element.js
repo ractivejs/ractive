@@ -4,6 +4,7 @@ import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
 import { voidElementNames } from 'utils/html';
 import { bind, render, update } from 'shared/methodCallers';
+import { matches } from 'utils/dom';
 
 export default class Element extends Item {
 	constructor ( options ) {
@@ -12,6 +13,8 @@ export default class Element extends Item {
 		this.parentFragment = options.parentFragment;
 		this.template = options.template;
 		this.index = options.index;
+
+		this.liveQueries = []; // TODO rare case. can we handle differently?
 
 		this.isVoid = voidElementNames.test( options.template.e );
 
@@ -45,6 +48,23 @@ export default class Element extends Item {
 		return this.node.parentNode.removeChild( this.node );
 	}
 
+	find ( selector ) {
+		if ( matches( this.node, selector ) ) return this.node;
+		return this.fragment.find( selector );
+	}
+
+	findAll ( selector, query ) {
+		// Add this node to the query, if applicable, and register the
+		// query on this element
+		if ( query._test( this, true ) && query.live ) {
+			this.liveQueries.push( query );
+		}
+
+		if ( this.fragment ) {
+			this.fragment.findAll( selector, query );
+		}
+	}
+
 	findNextNode () {
 		return null;
 	}
@@ -76,7 +96,7 @@ export default class Element extends Item {
 			.join( '' );
 
 		if ( this.isVoid ) {
-			return `<${tagName}${attrs}/>`;
+			return `<${tagName}${attrs}>`;
 		}
 
 		const contents = this.fragment ?

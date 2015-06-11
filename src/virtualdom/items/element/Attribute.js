@@ -2,6 +2,7 @@ import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import { isArray } from 'utils/is';
+import { safeToStringValue } from 'utils/dom';
 
 export default class Attribute extends Item {
 	constructor ( options ) {
@@ -38,7 +39,11 @@ export default class Attribute extends Item {
 	}
 
 	toString () {
-		return `${this.name}="${this.value}"`;
+		const value = safeToStringValue( this.value );
+
+		return value ?
+			`${this.name}="${value}"` :
+			this.name;
 	}
 
 	update () {

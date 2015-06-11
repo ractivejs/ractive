@@ -131,7 +131,7 @@ function detachNode ( node ) {
 }
 
 function safeToStringValue( value ) {
-	return ( value == null || !value.toString ) ? '' : value;
+	return ( value == null || !value.toString ) ? '' : '' + value;
 }
 
 export { createElement, detachNode, getElement, matches, safeToStringValue };

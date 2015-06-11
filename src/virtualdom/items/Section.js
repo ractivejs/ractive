@@ -81,6 +81,10 @@ export default class Section extends Mustache {
 		// if not, we only need to create children if this is an 'unless' block
 	}
 
+	findNextNode () {
+		return this.parentFragment.findNextNode( this );
+	}
+
 	firstNode () {
 		return this.fragment.firstNode();
 	}

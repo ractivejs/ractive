@@ -23,8 +23,11 @@ export default class Fragment {
 		this.resolvers = [];
 		this.unresolved = [];
 
-		this.items = options.template
-			.map( ( template, index ) => createItem({ parentFragment: this, template, index }) );
+		this.items = options.template ?
+			options.template.map( ( template, index ) => {
+				return createItem({ parentFragment: this, template, index });
+			}) :
+			[];
 	}
 
 	attemptResolution () {
@@ -47,6 +50,33 @@ export default class Fragment {
 				this.owner.bubble();
 			}
 		}
+	}
+
+	find ( selector ) {
+		const len = this.items.length;
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			const found = this.items[i].find( selector );
+			if ( found ) return found;
+		}
+	}
+
+	findAll ( selector, query ) {
+		if ( this.items ) {
+			const len = this.items.length;
+			let i;
+
+			for ( i = 0; i < len; i += 1 ) {
+				const item = this.items[i];
+
+				if ( item.findAll ) {
+					item.findAll( selector, query );
+				}
+			}
+		}
+
+		return query;
 	}
 
 	findNextNode ( item ) {
@@ -107,5 +137,13 @@ export default class Fragment {
 			this.items.forEach( update );
 			this.dirty = false;
 		}
+	}
+
+	valueOf () {
+		if ( this.items.length === 1 ) {
+			return this.items[0].valueOf();
+		}
+
+		return this.items.join( '' );
 	}
 }
