@@ -68,6 +68,7 @@ export default class RepeatedFragment {
 		});
 
 		fragment.key = key; // TODO this is a bit hacky
+		fragment.index = index;
 
 		fragment.bind( this.context.join([ key ]) ); // TODO join method that accepts non-array
 		return fragment;

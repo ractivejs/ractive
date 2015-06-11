@@ -20,7 +20,6 @@ export default class Fragment {
 		this.indexRefs = options.indexRefs || this.parent.indexRefs;
 
 		this.resolvers = [];
-		this.indexReferenceResolvers = [];
 		this.unresolved = [];
 
 		this.items = options.template
