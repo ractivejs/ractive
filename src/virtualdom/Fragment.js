@@ -62,7 +62,7 @@ export default class Fragment {
 		}
 	}
 
-	findAll ( selector, query ) {
+	findAll ( selector, queryResult ) {
 		if ( this.items ) {
 			const len = this.items.length;
 			let i;
@@ -71,12 +71,39 @@ export default class Fragment {
 				const item = this.items[i];
 
 				if ( item.findAll ) {
-					item.findAll( selector, query );
+					item.findAll( selector, queryResult );
 				}
 			}
 		}
 
-		return query;
+		return queryResult;
+	}
+
+	findComponent ( name ) {
+		const len = this.items.length;
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			const found = this.items[i].findComponent( name );
+			if ( found ) return found;
+		}
+	}
+
+	findAllComponents ( name, queryResult ) {
+		if ( this.items ) {
+			const len = this.items.length;
+			let i;
+
+			for ( i = 0; i < len; i += 1 ) {
+				const item = this.items[i];
+
+				if ( item.findAllComponents ) {
+					item.findAllComponents( name, queryResult );
+				}
+			}
+		}
+
+		return queryResult;
 	}
 
 	findNextNode ( item ) {

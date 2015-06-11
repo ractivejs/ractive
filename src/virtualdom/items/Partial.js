@@ -24,6 +24,22 @@ export default class Partial extends Mustache {
 		this.fragment.bind();
 	}
 
+	find ( selector ) {
+		return this.fragment.find( selector );
+	}
+
+	findAll ( selector, queryResult ) {
+		this.fragment.find( selector, queryResult );
+	}
+
+	findComponent ( name ) {
+		return this.fragment.findComponent( name );
+	}
+
+	findAllComponents ( name, queryResult ) {
+		this.fragment.findAllComponents( name, queryResult );
+	}
+
 	firstNode () {
 		return this.fragment.firstNode();
 	}

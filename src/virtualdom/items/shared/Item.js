@@ -1,7 +1,11 @@
 export default class Item {
 	constructor ( options ) {
-		this.type = options.template.t;
+		this.parentFragment = options.parentFragment;
+		this.ractive = options.parentFragment.ractive;
+
+		this.template = options.template;
 		this.index = options.index;
+		this.type = options.template.t;
 	}
 
 	bubble () {

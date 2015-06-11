@@ -1,7 +1,7 @@
-import { ELEMENT } from 'config/types';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
+import updateLiveQueries from './element/updateLiveQueries';
 import { voidElementNames } from 'utils/html';
 import { bind, render, update } from 'shared/methodCallers';
 import { matches } from 'utils/dom';
@@ -9,10 +9,6 @@ import { matches } from 'utils/dom';
 export default class Element extends Item {
 	constructor ( options ) {
 		super( options );
-
-		this.parentFragment = options.parentFragment;
-		this.template = options.template;
-		this.index = options.index;
 
 		this.liveQueries = []; // TODO rare case. can we handle differently?
 
@@ -23,6 +19,7 @@ export default class Element extends Item {
 				return new Attribute({
 					name,
 					element: this,
+					parentFragment: this.parentFragment,
 					template: this.template.a[ name ]
 				})
 			}) :
@@ -65,6 +62,18 @@ export default class Element extends Item {
 		}
 	}
 
+	findComponent ( name ) {
+		if ( this.fragment ) {
+			return this.fragment.findComponent( name );
+		}
+	}
+
+	findAllComponents ( name, queryResult ) {
+		if ( this.fragment ) {
+			this.fragment.findAllComponents( name, queryResult );
+		}
+	}
+
 	findNextNode () {
 		return null;
 	}
@@ -82,6 +91,8 @@ export default class Element extends Item {
 		}
 
 		this.attributes.forEach( render );
+
+		updateLiveQueries( this );
 
 		return node;
 	}

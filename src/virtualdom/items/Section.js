@@ -81,6 +81,30 @@ export default class Section extends Mustache {
 		// if not, we only need to create children if this is an 'unless' block
 	}
 
+	find ( selector ) {
+		if ( this.fragment ) {
+			return this.fragment.find( selector );
+		}
+	}
+
+	findAll ( selector, queryResult ) {
+		if ( this.fragment ) {
+			this.fragment.findAll( selector, queryResult );
+		}
+	}
+
+	findComponent ( name ) {
+		if ( this.fragment ) {
+			return this.fragment.findComponent( name );
+		}
+	}
+
+	findAllComponents ( name, queryResult ) {
+		if ( this.fragment ) {
+			this.fragment.findAllComponents( name, queryResult );
+		}
+	}
+
 	findNextNode () {
 		return this.parentFragment.findNextNode( this );
 	}

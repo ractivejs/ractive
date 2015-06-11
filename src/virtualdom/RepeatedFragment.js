@@ -82,6 +82,44 @@ export default class RepeatedFragment {
 		return fragment;
 	}
 
+	find ( selector ) {
+		const len = this.iterations.length;
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			const found = this.iterations[i].find( selector );
+			if ( found ) return found;
+		}
+	}
+
+	findAll ( selector, queryResult ) {
+		const len = this.iterations.length;
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			this.iterations[i].findAll( selector, queryResult );
+		}
+	}
+
+	findComponent ( name ) {
+		const len = this.iterations.length;
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			const found = this.iterations[i].findComponent( name );
+			if ( found ) return found;
+		}
+	}
+
+	findAllComponents ( name, queryResult ) {
+		const len = this.iterations.length;
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			this.iterations[i].findAllComponents( name, queryResult );
+		}
+	}
+
 	render () {
 		// TODO use docFrag.cloneNode...
 
