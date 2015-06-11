@@ -1,6 +1,7 @@
 import { INTERPOLATOR } from 'config/types';
 import ExpressionResolver from './ExpressionResolver';
 import IndexReferenceResolver from './IndexReferenceResolver';
+import KeyReferenceResolver from './KeyReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
 import ReferenceExpressionResolver from './ReferenceExpressionResolver';
 import ShadowResolver from './ShadowResolver';
@@ -15,6 +16,10 @@ export default function createResolver ( fragment, template, callback ) {
 
 		if ( ref === '@index' || ref in fragment.indexRefs ) {
 			return new IndexReferenceResolver( fragment, ref, callback );
+		}
+
+		if ( ref === '@key' || ref in fragment.keyRefs ) {
+			return new KeyReferenceResolver( fragment, ref, callback );
 		}
 
 		if ( ref[0] === '@' ) {

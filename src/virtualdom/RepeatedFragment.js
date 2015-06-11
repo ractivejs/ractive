@@ -3,6 +3,22 @@ import { isArray, isObject } from 'utils/is';
 import { update } from 'shared/methodCallers';
 import findParentNode from './items/shared/findParentNode';
 
+function getRefs ( ref, value, parent ) {
+	let refs;
+
+	if ( ref ) {
+		refs = {};
+		Object.keys( parent ).forEach( ref => {
+			refs[ ref ] = parent[ ref ];
+		});
+		refs[ ref ] = value;
+	} else {
+		refs = parent;
+	}
+
+	return refs;
+}
+
 export default class RepeatedFragment {
 	constructor ( options ) {
 		this.parent = options.owner.parentFragment;
@@ -14,8 +30,10 @@ export default class RepeatedFragment {
 		this.ractive = this.parent.ractive;
 
 		this.template = options.template;
+
 		this.indexRef = options.indexRef;
-		this.indexRefResolvers = [];
+		this.keyRef = options.keyRef;
+		this.indexRefResolvers = []; // no keyRefResolvers - key can never change
 
 		this.indexByKey = null; // for `{{#each object}}...`
 	}
@@ -46,25 +64,15 @@ export default class RepeatedFragment {
 	}
 
 	createIteration ( key, index ) {
-		const parentIndexRefs = this.owner.parentFragment.indexRefs;
-		let indexRefs;
-
-		// TODO keyRefs
-
-		if ( this.indexRef ) {
-			indexRefs = {};
-			Object.keys( parentIndexRefs ).forEach( ref => {
-				indexRefs[ ref ] = parentIndexRefs[ ref ];
-			});
-			indexRefs[ this.indexRef ] = index;
-		} else {
-			indexRefs = parentIndexRefs;
-		}
+		const parentFragment = this.owner.parentFragment;
+		const keyRefs = getRefs( this.keyRef, key, parentFragment.keyRefs );
+		const indexRefs = getRefs( this.indexRef, index, parentFragment.indexRefs );
 
 		const fragment = new Fragment({
 			owner: this,
 			template: this.template,
-			indexRefs
+			indexRefs,
+			keyRefs
 		});
 
 		fragment.key = key; // TODO this is a bit hacky

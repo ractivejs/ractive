@@ -18,6 +18,7 @@ export default class Fragment {
 		this.context = null;
 		this.rendered = false;
 		this.indexRefs = options.indexRefs || this.parent.indexRefs;
+		this.keyRefs = options.keyRefs || this.parent.keyRefs;
 
 		this.resolvers = [];
 		this.unresolved = [];
