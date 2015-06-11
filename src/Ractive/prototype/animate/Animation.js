@@ -34,8 +34,8 @@ Animation.prototype = {
 				if ( keypath !== null ) {
 					runloop.start( this.root );
 
-					if ( this.context ) {
-						this.context.set( this.to );
+					if ( this.model ) {
+						this.model.set( this.to );
 					}
 
 					runloop.end();
@@ -66,8 +66,8 @@ Animation.prototype = {
 				value = this.interpolator( t );
 				runloop.start( this.root );
 
-				if ( this.context ) {
-					this.context.set( value );
+				if ( this.model ) {
+					this.model.set( value );
 				}
 
 				runloop.end();
