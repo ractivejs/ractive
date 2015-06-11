@@ -1,5 +1,5 @@
 import { capture } from 'global/capture';
-import { isEqual } from 'utils/is';
+import { isEqual, isNumeric } from 'utils/is';
 import { removeFromArray } from 'utils/array';
 import { handleChange, mark } from 'shared/methodCallers';
 
@@ -21,6 +21,13 @@ export default class DataNode {
 
 		this.value = undefined;
 		this.update();
+	}
+
+	createBranch ( key ) {
+		const branch = isNumeric( key ) ? [] : {};
+		this.set( branch );
+
+		return branch;
 	}
 
 	get () {
