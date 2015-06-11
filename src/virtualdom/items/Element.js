@@ -87,10 +87,14 @@ export default class Element extends Item {
 	}
 
 	update () {
-		this.attributes.forEach( update );
+		if ( this.dirty ) {
+			this.attributes.forEach( update );
 
-		if ( this.fragment ) {
-			this.fragment.update();
+			if ( this.fragment ) {
+				this.fragment.update();
+			}
+
+			this.dirty = false;
 		}
 	}
 }

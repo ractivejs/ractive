@@ -94,7 +94,9 @@ export default class Fragment {
 	}
 
 	update () {
-		// TODO if this.dirty
-		this.items.forEach( item => item.update() );
+		if ( this.dirty ) {
+			this.items.forEach( item => item.update() );
+			this.dirty = false;
+		}
 	}
 }

@@ -7,20 +7,20 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 export default class DataNode {
 	constructor ( parent, key ) {
-		if ( parent ) {
-			this.parent = parent;
-			this.viewmodel = parent.viewmodel;
-
-			this.key = key;
-		}
-
 		this.deps = [];
 
 		this.children = [];
 		this.childByKey = {};
 
 		this.value = undefined;
-		this.update();
+
+		if ( parent ) {
+			this.parent = parent;
+			this.viewmodel = parent.viewmodel;
+
+			this.key = key;
+			this.update();
+		}
 	}
 
 	createBranch ( key ) {
@@ -66,7 +66,6 @@ export default class DataNode {
 	mark () {
 		const value = this.get();
 		if ( !isEqual( value, this.value ) ) {
-			this.dirty = true;
 			this.value = value;
 
 			this.deps.forEach( handleChange );
@@ -84,7 +83,6 @@ export default class DataNode {
 		const parentValue = this.parent.value || this.parent.createBranch( this.key );
 		parentValue[ this.key ] = value;
 
-		this.dirty = true;
 		this.value = value;
 
 		this.deps.forEach( handleChange );
@@ -92,9 +90,7 @@ export default class DataNode {
 
 		let parent = this.parent;
 		while ( parent ) {
-			parent.dirty = true;
 			parent.deps.forEach( handleChange );
-
 			parent = parent.parent;
 		}
 	}

@@ -30,12 +30,16 @@ export default class Triple extends Mustache {
 	}
 
 	update () {
-		this.unrender();
-		const docFrag = this.render();
+		if ( this.dirty ) {
+			this.unrender();
+			const docFrag = this.render();
 
-		const parentNode = findParentNode( this );
-		const anchor = this.parentFragment.findNextNode( this );
+			const parentNode = findParentNode( this );
+			const anchor = this.parentFragment.findNextNode( this );
 
-		parentNode.insertBefore( docFrag, anchor );
+			parentNode.insertBefore( docFrag, anchor );
+
+			this.dirty = false;
+		}
 	}
 }

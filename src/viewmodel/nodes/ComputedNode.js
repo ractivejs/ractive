@@ -1,9 +1,12 @@
+import DataNode from './DataNode';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isEqual } from 'utils/is';
 import { handleChange, mark } from 'shared/methodCallers';
 
-export default class ComputedNode {
+export default class ComputedNode extends DataNode {
 	constructor ( viewmodel, signature ) {
+		super( null, null );
+
 		this.viewmodel = viewmodel;
 		this.signature = signature;
 		this.context = viewmodel.computationContext;

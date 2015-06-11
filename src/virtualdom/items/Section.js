@@ -96,6 +96,9 @@ export default class Section extends Mustache {
 	}
 
 	update () {
-		this.fragment.update();
+		if ( this.dirty ) {
+			this.fragment.update();
+			this.dirty = false;
+		}
 	}
 }
