@@ -41,6 +41,10 @@ export default class Element extends Item {
 		}
 	}
 
+	detach () {
+		return this.node.parentNode.removeChild( this.node );
+	}
+
 	findNextNode () {
 		return null;
 	}
@@ -83,6 +87,12 @@ export default class Element extends Item {
 	unbind () {
 		if ( this.fragment ) {
 			this.fragment.unbind();
+		}
+	}
+
+	unrender ( shouldDestroy ) {
+		if ( shouldDestroy ) {
+			this.detach();
 		}
 	}
 

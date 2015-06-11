@@ -1,6 +1,11 @@
 import runloop from 'global/runloop';
 import createItem from './items/createItem';
 import createResolver from './resolvers/createResolver';
+import { bind, unbind, update } from 'shared/methodCallers';
+
+function unrenderAndDestroy ( item ) {
+	item.unrender( true );
+}
 
 export default class Fragment {
 	constructor ( options ) {
@@ -30,7 +35,7 @@ export default class Fragment {
 
 	bind ( context ) {
 		this.context = context;
-		this.items.forEach( item => item.bind() );
+		this.items.forEach( bind );
 	}
 
 	bubble () {
@@ -90,12 +95,16 @@ export default class Fragment {
 	}
 
 	unbind () {
-		this.items.forEach( item => item.unbind() );
+		this.items.forEach( unbind );
+	}
+
+	unrender ( shouldDestroy ) {
+		this.items.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
 	}
 
 	update () {
 		if ( this.dirty ) {
-			this.items.forEach( item => item.update() );
+			this.items.forEach( update );
 			this.dirty = false;
 		}
 	}

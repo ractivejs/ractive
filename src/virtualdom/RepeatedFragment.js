@@ -1,4 +1,5 @@
 import Fragment from './Fragment';
+import { isArray, isObject } from 'utils/is';
 import { update } from 'shared/methodCallers';
 import findParentNode from './items/shared/findParentNode';
 
@@ -15,11 +16,26 @@ export default class RepeatedFragment {
 		this.template = options.template;
 		this.indexRef = options.indexRef;
 		this.indexRefResolvers = [];
+
+		this.indexByKey = null; // for `{{#each object}}...`
 	}
 
 	bind ( context ) {
 		this.context = context;
-		this.iterations = context.value.map( ( childValue, index ) => this.createIteration( index ) );
+
+		// {{#each array}}...
+		if ( isArray( context.value ) ) {
+			this.iterations = context.value.map( ( childValue, index ) => this.createIteration( index, index ) );
+		}
+
+		// {{#each object}}...
+		else if ( isObject( context.value ) ) {
+			this.indexByKey = {};
+			this.iterations = Object.keys( context.value ).map( ( key, index ) => {
+				this.indexByKey[ key ] = index;
+				return this.createIteration( key, index );
+			});
+		}
 	}
 
 	bubble () {
@@ -29,9 +45,11 @@ export default class RepeatedFragment {
 		}
 	}
 
-	createIteration ( index ) {
+	createIteration ( key, index ) {
 		const parentIndexRefs = this.owner.parentFragment.indexRefs;
 		let indexRefs;
+
+		// TODO keyRefs
 
 		if ( this.indexRef ) {
 			indexRefs = {};
@@ -49,7 +67,9 @@ export default class RepeatedFragment {
 			indexRefs
 		});
 
-		fragment.bind( this.context.join([ index ]) ); // TODO join method that accepts non-array
+		fragment.key = key; // TODO this is a bit hacky
+
+		fragment.bind( this.context.join([ key ]) ); // TODO join method that accepts non-array
 		return fragment;
 	}
 
@@ -65,32 +85,84 @@ export default class RepeatedFragment {
 		return this.iterations.join( '' );
 	}
 
+	// TODO smart update
 	update () {
+		if ( !this.dirty ) return;
+
 		const value = this.context.value;
 
-		if ( this.iterations.length > value.length ) {
-			this.iterations.splice( value.length ).forEach( fragment => {
+		let toRemove;
+		let oldKeys;
+
+		if ( isArray( value ) ) {
+			if ( this.iterations.length > value.length ) {
+				toRemove = this.iterations.splice( value.length );
+			}
+		} else if ( isObject( value ) ) {
+			toRemove = [];
+			oldKeys = {};
+			let i = this.iterations.length;
+
+			while ( i-- ) {
+				const fragment = this.iterations[i];
+				if ( fragment.key in value ) {
+					oldKeys[ fragment.key ] = true;
+				} else {
+					this.iterations.splice( i, 1 );
+					toRemove.push( fragment );
+				}
+			}
+		} else {
+			toRemove = this.iterations;
+			this.iterations = [];
+		}
+
+		if ( toRemove ) {
+			toRemove.forEach( fragment => {
 				fragment.unbind();
 				fragment.unrender( true );
 			});
 		}
 
+		// update the remaining ones
 		this.iterations.forEach( update );
 
-		if ( value.length > this.iterations.length ) {
+		// add new iterations
+		const newLength = isArray( value ) ? value.length : Object.keys( value ).length;
+		if ( newLength > this.iterations.length ) {
 			const docFrag = document.createDocumentFragment();
+			let i = this.iterations.length;
 
-			while ( this.iterations.length < value.length ) {
-				const fragment = this.createIteration( this.iterations.length );
+			if ( isArray( value ) ) {
+				while ( i < value.length ) {
+					const fragment = this.createIteration( i, i );
 
-				this.iterations.push( fragment );
-				docFrag.appendChild( fragment.render() );
+					this.iterations.push( fragment );
+					docFrag.appendChild( fragment.render() );
+
+					i += 1;
+				}
 			}
 
-			const parentNode = findParentNode( this );
+			else if ( isObject( value ) ) {
+				Object.keys( value ).forEach( key => {
+					if ( !( key in oldKeys ) ) {
+						const fragment = this.createIteration( key, i );
+
+						this.iterations.push( fragment );
+						docFrag.appendChild( fragment.render() );
+
+						i += 1;
+					}
+				});
+			}
+
+			const parentNode = findParentNode( this.owner );
 			const anchor = this.parent.findNextNode( this );
-		
+
 			parentNode.insertBefore( docFrag, anchor );
 		}
+
+		this.dirty = false;
 	}
 }

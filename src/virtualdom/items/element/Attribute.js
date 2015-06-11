@@ -42,6 +42,9 @@ export default class Attribute extends Item {
 	}
 
 	update () {
-		this.updateDelegate();
+		if ( this.dirty ) {
+			this.updateDelegate();
+			this.dirty = false;
+		}
 	}
 }
