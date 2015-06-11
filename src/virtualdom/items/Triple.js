@@ -8,6 +8,10 @@ export default class Triple extends Mustache {
 		super( options );
 	}
 
+	firstNode () {
+		return this.nodes[0];
+	}
+
 	render () {
 		const html = this.model ? this.model.value : '';
 
@@ -29,6 +33,9 @@ export default class Triple extends Mustache {
 		this.unrender();
 		const docFrag = this.render();
 
-		findParentNode( this ).insertBefore( docFrag, this.parentFragment.findNextNode( this ) );
+		const parentNode = findParentNode( this );
+		const anchor = this.parentFragment.findNextNode( this );
+
+		parentNode.insertBefore( docFrag, anchor );
 	}
 }

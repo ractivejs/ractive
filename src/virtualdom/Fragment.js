@@ -47,9 +47,17 @@ export default class Fragment {
 	findNextNode ( item ) {
 		const nextItem = this.items[ item.index + 1 ];
 
-		return nextItem ?
-			nextItem.firstNode() :
-			this.isRoot ? null : this.owner.findNextNode();
+		if ( nextItem ) return nextItem.firstNode();
+
+		// if this is the root fragment, and there are no more items,
+		// it means we're at the end...
+		if ( this.isRoot ) {
+			// TODO components, possible edge case with other content
+			// appended to this.ractive.el?
+			return null;
+		}
+
+		return this.owner.findNextNode();
 	}
 
 	render () {

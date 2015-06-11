@@ -42,7 +42,11 @@ export default class Element extends Item {
 	}
 
 	findNextNode () {
-		return this.parentFragment.findNextNode( this );
+		return null;
+	}
+
+	firstNode () {
+		return this.node;
 	}
 
 	render () {
