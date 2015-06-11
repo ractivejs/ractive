@@ -122,6 +122,10 @@ export default class Fragment {
 		return this.owner.findNextNode();
 	}
 
+	firstNode () {
+		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode( this.owner );
+	}
+
 	render () {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 

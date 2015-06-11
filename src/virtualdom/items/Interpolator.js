@@ -7,6 +7,14 @@ export default class Interpolator extends Mustache {
 		super( options );
 	}
 
+	detach () {
+		return this.node.parentNode.removeChild( this.node );
+	}
+
+	firstNode () {
+		return this.node;
+	}
+
 	render () {
 		const string = this.model ? safeToStringValue( this.model.value ) : '';
 		return ( this.node = document.createTextNode( string ) );
@@ -15,6 +23,10 @@ export default class Interpolator extends Mustache {
 	toString ( escape ) {
 		const string = this.model ? safeToStringValue( this.model.value ) : '';
 		return escape ? escapeHtml( string ) : string;
+	}
+
+	unrender ( shouldDestroy ) {
+		if ( shouldDestroy ) this.detach();
 	}
 
 	update () {

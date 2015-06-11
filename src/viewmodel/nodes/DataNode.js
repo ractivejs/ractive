@@ -101,9 +101,11 @@ export default class DataNode {
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			const child = this.childByKey[ oldIndex ];
 
+			if ( !child || newIndex === oldIndex ) return;
+
+			delete this.childByKey[ oldIndex ];
+
 			if ( !~newIndex ) {
-				// not in new array - destroy
-				delete this.childByKey[ oldIndex ];
 				removeFromArray( this.children, child );
 			}
 
@@ -117,8 +119,14 @@ export default class DataNode {
 			this.childByKey[ newIndex ] = child;
 		});
 
-		this.deps.forEach( dep => dep.shuffle( newIndices ) );
 		this.mark();
+		this.deps.forEach( dep => {
+			if ( dep.shuffle ) {
+				dep.shuffle( newIndices );
+			} else {
+				dep.handleChange();
+			}
+		});
 	}
 
 	unregister ( dependant ) {

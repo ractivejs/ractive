@@ -120,7 +120,7 @@ export default class Section extends Mustache {
 	}
 
 	shuffle ( newIndices ) {
-		if ( this.fragment ) {
+		if ( this.fragment && this.sectionType === SECTION_EACH ) {
 			this.fragment.shuffle( newIndices );
 		}
 	}

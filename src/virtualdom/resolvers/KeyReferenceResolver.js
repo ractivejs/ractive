@@ -1,4 +1,3 @@
-// TODO DRY this out?
 export default class KeyReferenceResolver {
 	constructor ( fragment, keyRef, callback ) {
 		this.deps = [];

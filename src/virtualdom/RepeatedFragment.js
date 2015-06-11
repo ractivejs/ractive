@@ -242,6 +242,7 @@ export default class RepeatedFragment {
 	updatePostShuffle () {
 		const newIndices = this.pendingNewIndices;
 		const docFrag = document.createDocumentFragment();
+		const parentNode = findParentNode( this.owner );
 
 		let iterations = [];
 
@@ -259,24 +260,28 @@ export default class RepeatedFragment {
 
 		// create new iterations
 		const len = this.context.value.length;
-		let i = iterations.length;
-		while ( i < len ) {
-			const fragment = this.createIteration( i, i );
-			iterations[i] = fragment;
+		let i;
 
-			docFrag.appendChild( fragment.render() );
+		for ( i = 0; i < len; i += 1 ) {
+			let fragment = iterations[i];
 
-			i += 1;
+			if ( fragment ) {
+				if ( docFrag.childNodes.length ) {
+					parentNode.insertBefore( docFrag, fragment.firstNode() );
+				}
+			} else {
+				fragment = this.createIteration( i, i );
+				iterations[i] = fragment;
+
+				docFrag.appendChild( fragment.render() );
+			}
 		}
 
 		iterations.forEach( update );
 		this.iterations = iterations;
 
 		if ( docFrag.childNodes.length ) {
-			const parentNode = findParentNode( this.owner );
-			const anchor = this.owner.findNextNode();
-
-			parentNode.insertBefore( docFrag, anchor );
+			parentNode.insertBefore( docFrag, this.owner.findNextNode() );
 		}
 
 		this.pendingNewIndices = null;

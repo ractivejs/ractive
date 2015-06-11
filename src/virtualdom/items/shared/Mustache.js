@@ -10,6 +10,7 @@ export default class Mustache extends Item {
 
 		this.model = null;
 		this.bound = false;
+		this.dirty = false;
 	}
 
 	bind () {
