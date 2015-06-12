@@ -39,6 +39,7 @@ export default class Fragment {
 	bind ( context ) {
 		this.context = context;
 		this.items.forEach( bind );
+		return this;
 	}
 
 	bubble () {
@@ -157,6 +158,7 @@ export default class Fragment {
 
 	unbind () {
 		this.items.forEach( unbind );
+		return this;
 	}
 
 	unrender ( shouldDestroy ) {
