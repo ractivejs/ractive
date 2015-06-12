@@ -1,5 +1,6 @@
 import { SECTION_EACH, SECTION_IF, SECTION_UNLESS, SECTION_WITH } from 'config/types';
 import { isArray, isObject } from 'utils/is';
+import findParentNode from './shared/findParentNode';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import Mustache from './shared/Mustache';
@@ -77,8 +78,6 @@ export default class Section extends Mustache {
 
 			this.fragment = fragment;
 		}
-
-		// if not, we only need to create children if this is an 'unless' block
 	}
 
 	find ( selector ) {
@@ -129,13 +128,63 @@ export default class Section extends Mustache {
 		return this.fragment ? this.fragment.toString( escape ) : '';
 	}
 
+	// TODO DRY this out - lot of repeated stuff between this and bind()
 	update () {
-		if ( this.dirty ) {
+		if ( !this.dirty ) return;
+		if ( !this.model ) return; // TODO can this happen?
+
+		const value = this.model.value;
+
+		if ( this.sectionType === null ) this.sectionType = getType( value );
+
+		let newFragment;
+
+		if ( this.sectionType === SECTION_EACH ) {
 			if ( this.fragment ) {
 				this.fragment.update();
+			} else {
+				// TODO can this happen?
+				newFragment = new RepeatedFragment({
+					owner: this,
+					template: this.template.f,
+					indexRef: this.template.i
+				}).bind( this.model );
 			}
-
-			this.dirty = false;
 		}
+
+		else if ( this.sectionType === SECTION_WITH ) {
+			// TODO remove fragments if value is null or empty object
+			if ( this.fragment ) {
+				this.fragment.update();
+			} else {
+				this.fragment = new Fragment({
+					owner: this,
+					template: this.template.f
+				}).bind( this.model );
+			}
+		}
+
+		else {
+			if ( this.fragment ) {
+				if ( !!value ) {
+					this.fragment.update();
+				} else {
+					this.fragment.unbind().unrender( true );
+					this.fragment = null;
+				}
+			} else if ( value ) {
+				newFragment = new Fragment({
+					owner: this,
+					template: this.template.f
+				}).bind( null );
+			}
+		}
+
+		if ( newFragment ) {
+			findParentNode( this ).insertBefore( newFragment.render(), this.parentFragment.findNextNode( this ) );
+			this.fragment = newFragment;
+		}
+
+		this.dirty = false;
 	}
 }
