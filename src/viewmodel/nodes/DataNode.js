@@ -16,7 +16,6 @@ export default class DataNode {
 
 		if ( parent ) {
 			this.parent = parent;
-			this.viewmodel = parent.viewmodel;
 
 			this.key = key;
 			this.update();
@@ -31,7 +30,7 @@ export default class DataNode {
 	}
 
 	get () {
-		capture( this );
+		capture( this ); // TODO should this happen here? do we want a non-side-effecty get()?
 
 		const parentValue = this.parent.value;
 		if ( parentValue ) {
@@ -50,7 +49,7 @@ export default class DataNode {
 	join ( keys ) {
 		const key = keys[0];
 
-		if ( keys.length === 1 && !key ) return this;
+		if ( keys.length === 1 && key === '' ) return this;
 
 		if ( !this.childByKey[ key ] ) {
 			const child = new DataNode( this, key );
@@ -73,6 +72,44 @@ export default class DataNode {
 			this.deps.forEach( handleChange );
 			this.children.forEach( mark );
 		}
+	}
+
+	merge ( array, comparator ) {
+		const oldArray = comparator ? this.value.map( comparator ) : this.value;
+		const newArray = comparator ? array.map( comparator ) : array;
+
+		const oldLength = oldArray.length;
+
+		let usedIndices = {};
+		let firstUnusedIndex = 0;
+
+		const newIndices = oldArray.map( function ( item, i ) {
+			let index;
+			let start = firstUnusedIndex;
+
+			do {
+				index = newArray.indexOf( item, start );
+
+				if ( index === -1 ) {
+					return -1;
+				}
+
+				start = index + 1;
+			} while ( ( usedIndices[ index ] === true ) && start < oldLength );
+
+			// keep track of the first unused index, so we don't search
+			// the whole of newArray for each item in oldArray unnecessarily
+			if ( index === firstUnusedIndex ) {
+				firstUnusedIndex += 1;
+			}
+			// allow next instance of next "equal" to be found item
+			usedIndices[ index ] = true;
+			return index;
+		});
+
+		this.parent.value[ this.key ] = array;
+		this._merged = true;
+		this.shuffle( newIndices );
 	}
 
 	register ( dep ) {

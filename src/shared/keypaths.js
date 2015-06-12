@@ -2,17 +2,6 @@ import { isArray } from 'utils/is';
 
 let refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
 
-export function assignNewKeypath ( target, property, oldKeypath, newKeypath ) {
-	var existingKeypath = target[ property ];
-
-	if ( existingKeypath && ( existingKeypath.equalsOrStartsWith( newKeypath ) || !existingKeypath.equalsOrStartsWith( oldKeypath ) ) ) {
-		return;
-	}
-
-	target[ property ] = existingKeypath ? existingKeypath.replace( oldKeypath, newKeypath ) : newKeypath;
-	return true;
-}
-
 export function getMatchingKeypaths ( ractive, keypath ) {
 	var keys, key, matchingKeypaths;
 
@@ -73,30 +62,6 @@ export function normalise ( ref ) {
 	return ref ? ref.replace( refPattern, '.$1' ) : '';
 }
 
-/*
-	join ( str ) {
-		if ( this.isRoot ) {
-			str = String( str );
-			if( str[0] === '.' ) {
-				// remove prepended with "." or "./"
-				str = str.replace( /^\.\/?/, '' );
-			}
-		}
-		else {
-			if ( str[0] === '.' ) {
-				// normalize prepended with "./"
-				str = this.str + str.replace( /^\.\//, '.' );
-			} else {
-				str = this.str + '.' + str;
-			}
-		}
-
-		// TODO: false positive for "0.4" - two numeric paths
-		if ( isNumber( str ) ) {
-			return this.indexJoin( +str );
-		}
-
-		return this.owner.getContext( str );
-	}
-*/
-
+export function splitKeypath ( keypath ) {
+	return normalise( keypath ).split( '.' );
+}
