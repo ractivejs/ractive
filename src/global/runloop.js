@@ -19,6 +19,8 @@ runloop = {
 			fragments: [],
 			tasks: [],
 			ractives: [],
+			immediateObservers: [],
+			deferredObservers: [],
 			instance: instance
 		};
 
@@ -45,6 +47,10 @@ runloop = {
 
 	addFragment ( fragment ) {
 		addToArray( batch.fragments, fragment );
+	},
+
+	addObserver ( observer, defer ) {
+		addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
 	},
 
 	registerTransition: function ( transition ) {
@@ -90,6 +96,10 @@ runloop = {
 
 export default runloop;
 
+function dispatch ( observer ) {
+	observer.dispatch();
+}
+
 function flushChanges () {
 	var i, thing, changeHash;
 
@@ -104,6 +114,8 @@ function flushChanges () {
 	// }
 	// batch.ractives.length = 0;
 
+	batch.immediateObservers.forEach( dispatch );
+
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
 	i = batch.fragments.length;
@@ -114,7 +126,7 @@ function flushChanges () {
 	}
 	batch.fragments.length = 0;
 
-
+	batch.deferredObservers.forEach( dispatch );
 
 	for ( i = 0; i < batch.tasks.length; i += 1 ) {
 		batch.tasks[i]();

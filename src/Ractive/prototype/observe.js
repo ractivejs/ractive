@@ -1,50 +1,88 @@
-import dispatchObserve from './observe/dispatchObserve';
+import runloop from 'global/runloop';
+import { isObject } from 'utils/is';
+import { normalise } from 'shared/keypaths';
 
-const observe = function ( keypath, callback, options ) {
-	return dispatchObserve( this, keypath, callback, options );
-}
+export function observe ( keypath, callback, options ) {
+	const viewmodel = this.viewmodel;
 
-const observeList = function ( keypath, callback, options = {} ) {
-	options.type = 'list';
-	return this.observe( keypath, callback, options );
-}
+	let observers = [];
 
-const observeOnce = function ( keypath, callback, options ) {
+	if ( isObject( keypath ) ) {
+		const map = keypath;
+		options = callback || {};
 
-	var observer, cancel = function () {
-		observer.cancel();
-	};
+		Object.keys( map ).forEach( keypath => {
+			const callback = map[ keypath ];
 
-	// context = options.context || this
-	if ( typeof callback === 'function' ) {
-		callback = wrapForOnce( this, callback, cancel );
-	}
-	else if ( typeof keypath === 'function' ) {
-		keypath = wrapForOnce( this, keypath, cancel );
+			keypath.split( ' ' ).forEach( keypath => {
+				const model = viewmodel.join( normalise( keypath ).split( '.' ) ); // should have a splitKeypath function
+				observers.push( new Observer( this, model, callback, options ) );
+			});
+		});
 	}
 
-	if ( options ) {
-		options.init = false;
-	}
 	else {
-		options = { init: false }
+		let keypaths;
+
+		if ( typeof keypath === 'function' ) {
+			options = callback;
+			callback = keypath;
+			keypaths = [ '' ];
+		} else {
+			keypaths = keypath.split( ' ' ).map( normalise );
+		}
+
+		keypaths.forEach( keypath => {
+			const model = viewmodel.join( keypath.split( '.' ) );
+			observers.push( new Observer( this, model, callback, options || {} ) );
+		});
 	}
 
-	observer = dispatchObserve( this, keypath, callback, options );
-
-	return observer;
-}
-
-const observeListOnce = function ( keypath, callback, options = {} ) {
-	options.type = 'list';
-	return this.observeOnce( keypath, callback, options );
-}
-
-function wrapForOnce ( ractive, callback, cancel ) {
-	return function () {
-		callback.apply( ractive, arguments );
-		cancel();
+	return {
+		cancel () {
+			observers.forEach( observer => observer.cancel() );
+		}
 	};
 }
 
-export { observe, observeList, observeOnce, observeListOnce };
+class Observer {
+	constructor ( context, model, callback, options ) {
+		this.context = context;
+		this.model = model;
+		this.keypath = model.getKeypath();
+		this.callback = callback;
+
+		this.oldValue = undefined;
+		this.newValue = model.value;
+
+		this.defer = options.defer;
+		this.strict = options.strict;
+
+		this.dirty = false;
+
+		if ( options.init !== false ) {
+			this.dispatch();
+		} else {
+			this.oldValue = model.value;
+		}
+
+		model.register( this );
+	}
+
+	handleChange () {
+		if ( !this.dirty ) {
+			this.newValue = this.model.value;
+
+			if ( this.strict && this.newValue === this.oldValue ) return;
+
+			runloop.addObserver( this, this.defer );
+			this.dirty = true;
+		}
+	}
+
+	dispatch () {
+		this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
+		this.oldValue = this.newValue;
+		this.dirty = false;
+	}
+}
