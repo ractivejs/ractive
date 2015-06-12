@@ -137,8 +137,6 @@ export default class Element extends Item {
 	}
 
 	unrender ( shouldDestroy ) {
-		console.log( 'unrendering' )
-
 		// unrendering before intro completed? complete it now
 		// TODO should be an API for aborting transitions
 		let transition = this._introTransition;

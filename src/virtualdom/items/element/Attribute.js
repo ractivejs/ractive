@@ -10,8 +10,8 @@ export default class Attribute extends Item {
 
 		this.name = options.name;
 		this.element = options.element;
-		this.ractive = options.ractive;
 		this.parentFragment = options.element.parentFragment; // shared
+		this.ractive = this.parentFragment.ractive;
 
 		this.updateDelegate = getUpdateDelegate( options );
 		this.fragment = null;
@@ -35,6 +35,7 @@ export default class Attribute extends Item {
 	}
 
 	render () {
+		this.node = this.element.node;
 		this.updateDelegate();
 	}
 
