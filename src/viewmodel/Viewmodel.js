@@ -26,6 +26,10 @@ export default class Viewmodel extends DataNode {
 		return computation;
 	}
 
+	getKeypath () {
+		return '';
+	}
+
 	set ( value ) {
 		throw new Error( 'TODO' );
 	}
