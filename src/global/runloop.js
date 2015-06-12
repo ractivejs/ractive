@@ -126,6 +126,8 @@ function flushChanges () {
 	}
 	batch.fragments.length = 0;
 
+	batch.transitionManager.start();
+
 	batch.deferredObservers.forEach( dispatch );
 
 	for ( i = 0; i < batch.tasks.length; i += 1 ) {

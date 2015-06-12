@@ -1,6 +1,8 @@
+import runloop from 'global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
+import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { voidElementNames } from 'utils/html';
 import { bind, render, update } from 'shared/methodCallers';
@@ -47,7 +49,9 @@ export default class Element extends Item {
 
 	find ( selector ) {
 		if ( matches( this.node, selector ) ) return this.node;
-		return this.fragment.find( selector );
+		if ( this.fragment ) {
+			return this.fragment.find( selector );
+		}
 	}
 
 	findAll ( selector, query ) {
@@ -94,6 +98,15 @@ export default class Element extends Item {
 
 		updateLiveQueries( this );
 
+		// transitions
+		const transitionTemplate = this.template.t0 || this.template.t1;
+		if ( transitionTemplate && this.ractive.transitionsEnabled ) {
+			const transition = new Transition( this, transitionTemplate, true );
+			runloop.registerTransition( transition );
+
+			this._introTransition = transition; // so we can abort if it gets removed
+		}
+
 		return node;
 	}
 
@@ -124,9 +137,36 @@ export default class Element extends Item {
 	}
 
 	unrender ( shouldDestroy ) {
-		if ( shouldDestroy ) {
+		console.log( 'unrendering' )
+
+		// unrendering before intro completed? complete it now
+		// TODO should be an API for aborting transitions
+		let transition = this._introTransition;
+		if ( transition ) transition.complete();
+
+		// Detach as soon as we can
+		if ( this.name === 'option' ) {
+			// <option> elements detach immediately, so that
+			// their parent <select> element syncs correctly, and
+			// since option elements can't have transitions anyway
 			this.detach();
+		} else if ( shouldDestroy ) {
+			runloop.detachWhenReady( this );
 		}
+
+		if ( this.fragment ) this.fragment.unrender();
+
+		// TODO two-way bindings, decorators, event handlers
+
+		// outro transition
+		const transitionTemplate = this.template.t0 || this.template.t2;
+		if ( transitionTemplate && this.ractive.transitionsEnabled ) {
+			const transition = new Transition( this, transitionTemplate, false );
+			runloop.registerTransition( transition );
+		}
+
+		// TODO update live queries
+		// TODO forms are a special case
 	}
 
 	update () {

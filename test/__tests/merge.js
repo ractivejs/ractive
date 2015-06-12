@@ -13,7 +13,7 @@ test( 'Merging an array of strings only creates the necessary fragments', functi
 			items: [ 'foo', 'bar', 'baz' ]
 		},
 		transitions: {
-			log: function ( t ) {
+			log ( t ) {
 				if ( t.isIntro ) {
 					entered += 1;
 				} else {
@@ -55,7 +55,7 @@ test( 'Merging an array of strings only removes the necessary fragments', functi
 			items: [ 'foo', 'bar', 'baz' ]
 		},
 		transitions: {
-			log: function ( t ) {
+			log ( t ) {
 				if ( t.isIntro ) {
 					entered += 1;
 				} else {

@@ -127,6 +127,13 @@ export default class Fragment {
 		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode( this.owner );
 	}
 
+	// TODO ideally, this would be deprecated in favour of an
+	// expression-like approach
+	getArgsList () {
+		console.warn( 'TODO getArgsList' );
+		return [];
+	}
+
 	render () {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 

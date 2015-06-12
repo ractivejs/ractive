@@ -18,8 +18,8 @@ module( 'Transitions', {
 			var delay = ( params && params.delay ) || 50;
 
 			setTimeout( function () {
-				if ( t.root.beforeComplete ) {
-					t.root.beforeComplete( t, params );
+				if ( t.ractive.beforeComplete ) {
+					t.ractive.beforeComplete( t, params );
 				}
 
 				t.complete();
