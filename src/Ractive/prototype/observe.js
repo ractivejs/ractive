@@ -1,6 +1,9 @@
 import runloop from 'global/runloop';
 import { isObject } from 'utils/is';
 import { normalise } from 'shared/keypaths';
+import { extend } from 'utils/object';
+
+const onceOptions = { init: false, once: true };
 
 export function observe ( keypath, callback, options ) {
 	const viewmodel = this.viewmodel;
@@ -38,11 +41,25 @@ export function observe ( keypath, callback, options ) {
 		});
 	}
 
+	// add observers to the Ractive instance, so they can be
+	// cancelled on ractive.teardown()
+	this._observers.push.apply( this._observers, observers );
+
 	return {
 		cancel () {
 			observers.forEach( observer => observer.cancel() );
 		}
 	};
+}
+
+export function observeOnce ( keypath, callback, options ) {
+	if ( isObject( keypath ) || typeof keypath === 'function' ) {
+		options = extend( callback || {}, onceOptions );
+		return this.observe( keypath, options );
+	}
+
+	options = extend( options || {}, onceOptions );
+	return this.observe( keypath, callback, options );
 }
 
 class Observer {
@@ -56,6 +73,7 @@ class Observer {
 		this.newValue = model.value;
 
 		this.defer = options.defer;
+		this.once = options.once;
 		this.strict = options.strict;
 
 		this.dirty = false;
@@ -69,6 +87,10 @@ class Observer {
 		model.register( this );
 	}
 
+	cancel () {
+		this.model.unregister( this );
+	}
+
 	handleChange () {
 		if ( !this.dirty ) {
 			this.newValue = this.model.value;
@@ -77,6 +99,8 @@ class Observer {
 
 			runloop.addObserver( this, this.defer );
 			this.dirty = true;
+
+			if ( this.once ) this.cancel();
 		}
 	}
 
