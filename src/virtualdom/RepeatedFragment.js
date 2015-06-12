@@ -1,6 +1,6 @@
 import Fragment from './Fragment';
 import { isArray, isObject } from 'utils/is';
-import { toEscapedString, toString, update } from 'shared/methodCallers';
+import { toEscapedString, toString, unbind, update } from 'shared/methodCallers';
 import findParentNode from './items/shared/findParentNode';
 
 function getRefs ( ref, value, parent ) {
@@ -55,6 +55,8 @@ export default class RepeatedFragment {
 				return this.createIteration( key, index );
 			});
 		}
+
+		return this;
 	}
 
 	bubble () {
@@ -146,6 +148,11 @@ export default class RepeatedFragment {
 		return this.iterations ?
 			this.iterations.map( escape ? toEscapedString : toString ).join( '' ) :
 			'';
+	}
+
+	unbind () {
+		this.iterations.forEach( unbind );
+		return this;
 	}
 
 	// TODO smart update
