@@ -95,7 +95,7 @@ export default class Component extends Item {
 	}
 
 	unrender () {
-
+		// TODO
 	}
 
 	update () {

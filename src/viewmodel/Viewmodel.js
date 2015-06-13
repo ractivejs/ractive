@@ -6,7 +6,11 @@ export default class Viewmodel extends DataNode {
 		super( null, null );
 
 		this.isRoot = true;
+		this.root = this;
+		this.ractive = options.ractive; // TODO sever this link
+
 		this.value = options.data;
+		this.adaptors = options.adapt;
 
 		this.mappings = {};
 

@@ -2,6 +2,7 @@ import { capture } from 'global/capture';
 import { isEqual, isNumeric } from 'utils/is';
 import { removeFromArray } from 'utils/array';
 import { handleChange, mark } from 'shared/methodCallers';
+import getPrefixer from '../helpers/getPrefixer';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -16,9 +17,36 @@ export default class DataNode {
 
 		if ( parent ) {
 			this.parent = parent;
-
+			this.root = parent.root;
 			this.key = key;
-			this.update();
+
+			if ( parent.value ) {
+				this.value = parent.value[ this.key ];
+				this.adapt();
+			}
+		}
+	}
+
+	adapt () {
+		const adaptors = this.root.adaptors;
+		const value = this.value;
+		const len = adaptors.length;
+
+		// TODO remove this legacy nonsense
+		const ractive = this.root.ractive;
+		const keypath = this.getKeypath();
+
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			const adaptor = adaptors[i];
+			if ( adaptor.filter( value, keypath, ractive ) ) {
+				this.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
+				this.wrapper.value = this.value;
+				this.value = this.wrapper.get();
+
+				break;
+			}
 		}
 	}
 
@@ -39,6 +67,7 @@ export default class DataNode {
 	}
 
 	getKeypath () {
+		// TODO keypaths inside components... tricky
 		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
 	}
 
@@ -119,10 +148,28 @@ export default class DataNode {
 	set ( value ) {
 		if ( isEqual( value, this.value ) ) return;
 
-		const parentValue = this.parent.value || this.parent.createBranch( this.key );
-		parentValue[ this.key ] = value;
+		if ( this.parent.wrapper && this.parent.wrapper.set ) {
+			this.parent.wrapper.set( this.key, value );
+			this.parent.value = this.parent.wrapper.get();
 
-		this.value = value;
+			this.value = this.parent.value[ this.key ];
+		} else if ( this.wrapper ) {
+			const shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
+
+			if ( shouldTeardown ) {
+				this.wrapper.teardown();
+				this.wrapper = null;
+				this.value = value;
+				this.adapt();
+			} else {
+				this.value = this.wrapper.get();
+			}
+		} else {
+			const parentValue = this.parent.value || this.parent.createBranch( this.key );
+			parentValue[ this.key ] = value;
+
+			this.value = value;
+		}
 
 		this.deps.forEach( handleChange );
 		this.children.forEach( mark );
@@ -170,12 +217,5 @@ export default class DataNode {
 
 	unregister ( dependant ) {
 		removeFromArray( this.deps, dependant );
-	}
-
-	update () {
-		const parentValue = this.parent.value;
-		if ( parentValue ) {
-			this.value = parentValue[ this.key ];
-		}
 	}
 }
