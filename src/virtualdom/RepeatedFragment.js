@@ -1,7 +1,6 @@
 import Fragment from './Fragment';
 import { isArray, isObject } from 'utils/is';
-import { toEscapedString, toString, unbind, update } from 'shared/methodCallers';
-import findParentNode from './items/shared/findParentNode';
+import { toEscapedString, toString, unbind, unrender, unrenderAndDestroy, update } from 'shared/methodCallers';
 
 function getRefs ( ref, value, parent ) {
 	let refs;
@@ -83,8 +82,7 @@ export default class RepeatedFragment {
 
 		const model = this.context.join([ key ]);
 
-		fragment.bind( this.context.join([ key ]) ); // TODO join method that accepts non-array
-		return fragment;
+		return fragment.bind( this.context.join([ key ]) ); // TODO join method that accepts non-array
 	}
 
 	find ( selector ) {
@@ -155,6 +153,10 @@ export default class RepeatedFragment {
 	unbind () {
 		this.iterations.forEach( unbind );
 		return this;
+	}
+
+	unrender ( shouldDestroy ) {
+		this.iterations.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
 	}
 
 	// TODO smart update
@@ -239,7 +241,7 @@ export default class RepeatedFragment {
 				});
 			}
 
-			const parentNode = findParentNode( this.owner );
+			const parentNode = this.parent.findParentNode();
 			const anchor = this.parent.findNextNode( this );
 
 			parentNode.insertBefore( docFrag, anchor );
@@ -251,7 +253,7 @@ export default class RepeatedFragment {
 	updatePostShuffle () {
 		const newIndices = this.pendingNewIndices;
 		const docFrag = document.createDocumentFragment();
-		const parentNode = findParentNode( this.owner );
+		const parentNode = this.parent.findParentNode();
 
 		let iterations = [];
 

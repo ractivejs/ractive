@@ -1,5 +1,4 @@
 import { matches } from 'utils/dom';
-import findParentNode from './shared/findParentNode';
 import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
 
@@ -61,7 +60,7 @@ export default class Triple extends Mustache {
 		const html = this.model ? this.model.value : '';
 
 		const docFrag = document.createDocumentFragment();
-		this.nodes = insertHtml( html, findParentNode( this ), docFrag );
+		this.nodes = insertHtml( html, this.parentFragment.findParentNode(), docFrag );
 
 		return docFrag;
 	}
@@ -79,7 +78,7 @@ export default class Triple extends Mustache {
 			this.unrender();
 			const docFrag = this.render();
 
-			const parentNode = findParentNode( this );
+			const parentNode = this.parentFragment.findParentNode();
 			const anchor = this.parentFragment.findNextNode( this );
 
 			parentNode.insertBefore( docFrag, anchor );

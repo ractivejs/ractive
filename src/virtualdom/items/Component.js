@@ -1,3 +1,4 @@
+import { INTERPOLATOR } from 'config/types';
 import Item from './shared/Item';
 import initialiseRactiveInstance from 'Ractive/initialise';
 import { create } from 'utils/object';
@@ -24,20 +25,22 @@ export default class Component extends Item {
 			component: this,
 			autobind: false
 		});
+	}
 
-		const viewmodel = instance.viewmodel;
+	bind () {
+		const viewmodel = this.instance.viewmodel;
 
 		// determine mappings
-		if ( options.template.a ) {
-			Object.keys( options.template.a ).forEach( localKey => {
-				const template = options.template.a[ localKey ];
+		if ( this.template.a ) {
+			Object.keys( this.template.a ).forEach( localKey => {
+				const template = this.template.a[ localKey ];
 
 				if ( typeof template === 'string' ) {
 					viewmodel.join([ localKey ]).set( template ); // TODO parse numbers etc
 				}
 
 				else if ( isArray( template ) ) {
-					if ( template.length === 1 ) {
+					if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
 						const resolver = createResolver( this.parentFragment, template[0], model => {
 							viewmodel.map( localKey, model );
 						});
@@ -51,9 +54,7 @@ export default class Component extends Item {
 				}
 			});
 		}
-	}
 
-	bind () {
 		this.instance.fragment.bind( this.instance.viewmodel );
 	}
 
@@ -85,8 +86,19 @@ export default class Component extends Item {
 		this.instance.fragment.findAllComponents( name, queryResult );
 	}
 
+	firstNode () {
+		return this.instance.fragment.firstNode();
+	}
+
+	// TODO can this be done in a less roundabout way?
 	render () {
-		return this.instance.fragment.render();
+		var instance = this.instance;
+
+		instance.render( this.parentFragment.getParentNode().cloneNode() );
+
+		this.rendered = true;
+		const docFrag = instance.fragment.detach();
+		return docFrag;
 	}
 
 	unbind () {
@@ -94,8 +106,9 @@ export default class Component extends Item {
 		this.instance.fragment.unbind();
 	}
 
-	unrender () {
-		// TODO
+	unrender ( shouldDestroy ) {
+		this.shouldDestroy = shouldDestroy;
+		this.instance.unrender();
 	}
 
 	update () {

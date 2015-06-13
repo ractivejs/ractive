@@ -1,3 +1,4 @@
+// TODO is this class even necessary?
 export default class ShadowResolver {
 	constructor ( fragment, callback ) {
 		while ( !fragment.context ) {
@@ -11,6 +12,6 @@ export default class ShadowResolver {
 	}
 
 	unbind () {
-		throw new Error( 'TODO' );
+		console.warn( 'TODO what does this mean' );
 	}
 }

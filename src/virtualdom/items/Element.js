@@ -44,7 +44,10 @@ export default class Element extends Item {
 	}
 
 	detach () {
-		return this.node.parentNode.removeChild( this.node );
+		const parentNode = this.node.parentNode;
+		if ( parentNode ) parentNode.removeChild( this.node );
+
+		return this.node;
 	}
 
 	find ( selector ) {

@@ -1,6 +1,5 @@
 import { SECTION_EACH, SECTION_IF, SECTION_UNLESS, SECTION_WITH } from 'config/types';
 import { isArray, isObject } from 'utils/is';
-import findParentNode from './shared/findParentNode';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import Mustache from './shared/Mustache';
@@ -128,6 +127,10 @@ export default class Section extends Mustache {
 		return this.fragment ? this.fragment.toString( escape ) : '';
 	}
 
+	unrender ( shouldDestroy ) {
+		if ( this.fragment ) this.fragment.unrender( shouldDestroy );
+	}
+
 	// TODO DRY this out - lot of repeated stuff between this and bind()
 	update () {
 		if ( !this.dirty ) return;
@@ -183,7 +186,7 @@ export default class Section extends Mustache {
 		}
 
 		if ( newFragment ) {
-			const parentNode = findParentNode( this );
+			const parentNode = this.parentFragment.findParentNode();
 			const anchor = this.parentFragment.findNextNode( this );
 
 			parentNode.insertBefore( newFragment.render(), anchor );

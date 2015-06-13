@@ -1,3 +1,4 @@
+import { ELEMENT } from 'config/types';
 import runloop from 'global/runloop';
 import createItem from './items/createItem';
 import createResolver from './resolvers/createResolver';
@@ -57,6 +58,12 @@ export default class Fragment {
 				this.owner.bubble();
 			}
 		}
+	}
+
+	detach () {
+		const docFrag = document.createDocumentFragment();
+		this.items.forEach( item => docFrag.appendChild( item.detach() ) );
+		return docFrag;
 	}
 
 	find ( selector ) {
@@ -133,6 +140,24 @@ export default class Fragment {
 		return this.owner.findNextNode();
 	}
 
+	findParentNode () {
+		let fragment = this;
+
+		do {
+			if ( fragment.owner.type === ELEMENT ) {
+				return fragment.owner.node;
+			}
+
+			if ( fragment.isRoot && !fragment.ractive.component ) { // TODO encapsulate check
+				return fragment.ractive.el;
+			}
+
+			fragment = fragment.parent;
+		} while ( fragment );
+
+		throw new Error( 'TODO' );
+	}
+
 	firstNode () {
 		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode( this.owner );
 	}
@@ -146,13 +171,16 @@ export default class Fragment {
 
 	render () {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
+		this.rendered = true;
 
+		// fast path
 		if ( this.items.length === 1 ) {
 			return this.items[0].render();
 		}
 
 		const docFrag = document.createDocumentFragment();
 		this.items.forEach( item => docFrag.appendChild( item.render() ) );
+
 		return docFrag;
 	}
 
@@ -180,6 +208,7 @@ export default class Fragment {
 
 	unrender ( shouldDestroy ) {
 		this.items.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
+		this.rendered = false;
 	}
 
 	update () {
