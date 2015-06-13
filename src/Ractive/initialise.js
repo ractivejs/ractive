@@ -92,15 +92,18 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 		}
 
 		ractive.fragment = new Fragment({
-			ractive,
-			owner: ractive, // saves doing `if ( this.parent ) { /*...*/ }` later on
+			owner: ractive,
 			template: ractive.template,
 			cssIds,
 			indexRefs: {},
 			keyRefs: {}
 		});
 
-		ractive.fragment.bind( viewmodel );
+		// options.autobind is so we can bind components lazily,
+		// after mappings have been created
+		if ( options.autobind !== false ) {
+			ractive.fragment.bind( viewmodel );
+		}
 	}
 
 	initHook.end( ractive );

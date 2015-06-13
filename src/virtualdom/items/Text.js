@@ -9,6 +9,10 @@ export default class Text {
 		// noop
 	}
 
+	detach () {
+		return this.node.parentNode.removeChild( this.node );
+	}
+
 	firstNode () {
 		return this.node;
 	}
@@ -23,6 +27,10 @@ export default class Text {
 
 	unbind () {
 		// noop
+	}
+
+	unrender ( shouldDestroy ) {
+		if ( shouldDestroy ) this.detach();
 	}
 
 	update () {

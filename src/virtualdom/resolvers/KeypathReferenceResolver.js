@@ -25,6 +25,10 @@ export default class KeypathReferenceResolver {
 		this.deps.push( dep );
 	}
 
+	unbind () {
+		// TODO when we figure out where this gets bound in the first place...
+	}
+
 	unregister ( dep ) {
 		removeFromArray( this.deps, dep );
 	}

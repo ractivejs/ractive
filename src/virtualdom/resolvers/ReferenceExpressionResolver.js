@@ -1,9 +1,11 @@
 import { REFERENCE } from 'config/types';
+import noop from 'utils/noop';
 import ExpressionResolver from './ExpressionResolver';
 import IndexReferenceResolver from './IndexReferenceResolver';
 import KeyReferenceResolver from './KeyReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
 import ShadowResolver from './ShadowResolver';
+import { unbind } from 'shared/methodCallers';
 
 export default class ReferenceExpressionResolver {
 	constructor ( fragment, template, callback ) {
@@ -18,7 +20,7 @@ export default class ReferenceExpressionResolver {
 			const callback = model => this.resolve( i, model );
 
 			if ( typeof template === 'string' ) {
-				this.members[i] = { value: template };
+				this.members[i] = { value: template, unbind: noop };
 			}
 
 			else if ( template.t === REFERENCE ) {
@@ -70,5 +72,10 @@ export default class ReferenceExpressionResolver {
 
 		model.register( this );
 		this.bubble();
+	}
+
+	unbind () {
+		this.baseResolver.unbind();
+		this.memberResolvers.forEach( unbind );
 	}
 }

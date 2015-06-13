@@ -49,7 +49,7 @@ export default class DataNode {
 	join ( keys ) {
 		const key = keys[0];
 
-		if ( keys.length === 1 && key === '' ) return this;
+		if ( keys.length === 0 || ( keys.length === 1 && key === '' ) ) return this;
 
 		if ( !this.childByKey[ key ] ) {
 			const child = new DataNode( this, key );

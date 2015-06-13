@@ -3,6 +3,7 @@ import IndexReferenceResolver from './IndexReferenceResolver';
 import KeyReferenceResolver from './KeyReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
 import ShadowResolver from './ShadowResolver';
+import { unbind } from 'shared/methodCallers';
 
 let functionCache = {};
 
@@ -110,5 +111,9 @@ export default class ExpressionResolver {
 	resolve ( index, model ) {
 		this.models[ index ] = model;
 		this.bubble();
+	}
+
+	unbind () {
+		this.resolvers.forEach( unbind );
 	}
 }

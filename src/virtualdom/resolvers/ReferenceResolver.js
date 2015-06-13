@@ -1,4 +1,5 @@
 import { normalise } from 'shared/keypaths';
+import { removeFromArray } from 'utils/array';
 
 export default class ReferenceResolver {
 	constructor ( fragment, reference, callback ) {
@@ -40,5 +41,9 @@ export default class ReferenceResolver {
 		if ( !hasContextChain ) return this.fragment.ractive.viewmodel.join( this.keys );
 
 		this.fragment.unresolved.push( this );
+	}
+
+	unbind () {
+		removeFromArray( this.fragment.unresolved, this );
 	}
 }

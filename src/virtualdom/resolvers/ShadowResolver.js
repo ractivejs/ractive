@@ -9,4 +9,8 @@ export default class ShadowResolver {
 		// it may not be possible for the fragment to change)
 		callback( fragment.context );
 	}
+
+	unbind () {
+		throw new Error( 'TODO' );
+	}
 }

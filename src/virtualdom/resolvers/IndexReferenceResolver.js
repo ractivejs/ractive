@@ -36,6 +36,11 @@ export default class IndexReferenceResolver {
 		this.deps.push( dep );
 	}
 
+	unbind () {
+		// TODO is this correct?
+		removeFromArray( this.fragment.indexRefResolvers, this );
+	}
+
 	unregister ( dep ) {
 		removeFromArray( this.deps, dep );
 	}

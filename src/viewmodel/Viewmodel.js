@@ -8,6 +8,8 @@ export default class Viewmodel extends DataNode {
 		this.isRoot = true;
 		this.value = options.data;
 
+		this.mappings = {};
+
 		this.computationContext = options.ractive;
 		this.computations = {};
 	}
@@ -28,6 +30,20 @@ export default class Viewmodel extends DataNode {
 
 	getKeypath () {
 		return '';
+	}
+
+	join ( keys ) {
+		const key = keys[0];
+
+		const mapping = this.mappings[ key ] || this.computations[ key ];
+
+		if ( mapping ) return mapping.join( keys.slice( 1 ) );
+		return super.join( keys );
+	}
+
+	map ( localKey, origin ) {
+		// TODO remapping
+		this.mappings[ localKey ] = origin;
 	}
 
 	set ( value ) {

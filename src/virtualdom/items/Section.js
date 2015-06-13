@@ -7,8 +7,8 @@ import Mustache from './shared/Mustache';
 
 let emptyFragment;
 
-function getType ( value ) {
-	if ( isArray( value ) ) return SECTION_EACH;
+function getType ( value, hasIndexRef ) {
+	if ( hasIndexRef || isArray( value ) ) return SECTION_EACH;
 	if ( isObject( value ) ) return SECTION_WITH;
 	return SECTION_IF;
 }
@@ -29,7 +29,7 @@ export default class Section extends Mustache {
 			const value = this.model.value;
 			let fragment;
 
-			if ( !this.sectionType ) this.sectionType = getType( value );
+			if ( !this.sectionType ) this.sectionType = getType( value, this.template.i );
 
 			if ( !value ) {
 				if ( this.sectionType === SECTION_UNLESS ) {
@@ -105,6 +105,7 @@ export default class Section extends Mustache {
 	}
 
 	findNextNode () {
+		console.log( 'finding next node', this.parentFragment.findNextNode( this ) )
 		return this.parentFragment.findNextNode( this );
 	}
 
@@ -135,7 +136,7 @@ export default class Section extends Mustache {
 
 		const value = this.model.value;
 
-		if ( this.sectionType === null ) this.sectionType = getType( value );
+		if ( this.sectionType === null ) this.sectionType = getType( value, this.template.i );
 
 		let newFragment;
 
@@ -165,14 +166,16 @@ export default class Section extends Mustache {
 		}
 
 		else {
+			const shouldRender = this.sectionType === SECTION_UNLESS ? !value : !!value;
+
 			if ( this.fragment ) {
-				if ( !!value ) {
+				if ( shouldRender ) {
 					this.fragment.update();
 				} else {
 					this.fragment.unbind().unrender( true );
 					this.fragment = null;
 				}
-			} else if ( value ) {
+			} else if ( shouldRender ) {
 				newFragment = new Fragment({
 					owner: this,
 					template: this.template.f
@@ -181,7 +184,10 @@ export default class Section extends Mustache {
 		}
 
 		if ( newFragment ) {
-			findParentNode( this ).insertBefore( newFragment.render(), this.parentFragment.findNextNode( this ) );
+			const parentNode = findParentNode( this );
+			const anchor = this.parentFragment.findNextNode( this );
+
+			parentNode.insertBefore( newFragment.render(), anchor );
 			this.fragment = newFragment;
 		}
 

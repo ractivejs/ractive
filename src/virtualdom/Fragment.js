@@ -15,6 +15,8 @@ export default class Fragment {
 		this.parent = this.isRoot ? null : this.owner.parentFragment;
 		this.ractive = this.isRoot ? options.owner : this.parent.ractive;
 
+		this.componentParent = ( this.isRoot && this.ractive.component ) ? this.ractive.component.parentFragment : null;
+
 		this.context = null;
 		this.rendered = false;
 		this.indexRefs = options.indexRefs || this.parent.indexRefs;
@@ -45,8 +47,12 @@ export default class Fragment {
 	bubble () {
 		if ( !this.dirty ) {
 			this.dirty = true;
-			if ( this.isRoot ) {
-				runloop.addFragment( this );
+			if ( this.isRoot ) { // TODO encapsulate 'is component root, but not overall root' check?
+				if ( this.ractive.component ) {
+					this.ractive.component.bubble();
+				} else {
+					runloop.addFragment( this );
+				}
 			} else {
 				this.owner.bubble();
 			}
@@ -115,7 +121,11 @@ export default class Fragment {
 		// if this is the root fragment, and there are no more items,
 		// it means we're at the end...
 		if ( this.isRoot ) {
-			// TODO components, possible edge case with other content
+			if ( this.ractive.component ) {
+				return this.ractive.component.parentFragment.findNextNode( this.ractive.component );
+			}
+
+			// TODO possible edge case with other content
 			// appended to this.ractive.el?
 			return null;
 		}
