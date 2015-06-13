@@ -43,6 +43,7 @@ export default class DataNode {
 			if ( adaptor.filter( value, keypath, ractive ) ) {
 				this.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
 				this.wrapper.value = this.value;
+				this.wrapper.__model = this; // massive temporary hack to enable array adaptor
 				this.value = this.wrapper.get();
 
 				break;

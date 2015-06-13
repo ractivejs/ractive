@@ -73,7 +73,7 @@ export default class Component extends Item {
 	}
 
 	findComponent ( name ) {
-		if ( this.name === name ) return this;
+		if ( this.name === name ) return this.instance;
 
 		if ( this.instance.fragment ) {
 			return this.instance.fragment.findComponent( name );

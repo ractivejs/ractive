@@ -1,60 +1,57 @@
 import { defineProperty } from 'utils/object';
 import { isArray } from 'utils/is';
+import { splitKeypath } from 'shared/keypaths';
 import patch from './patch';
 
-var arrayAdaptor,
+const errorMessage = 'Something went wrong in a rather interesting way';
 
-	// helpers
-	ArrayWrapper,
-	errorMessage;
-
-arrayAdaptor = {
-	filter: function ( object ) {
+export default {
+	filter ( object ) {
 		// wrap the array if a) b) it's an array, and b) either it hasn't been wrapped already,
 		// or the array didn't trigger the get() itself
 		return isArray( object ) && ( !object._ractive || !object._ractive.setting );
 	},
-	wrap: function ( ractive, array, keypath ) {
+	wrap ( ractive, array, keypath ) {
 		return new ArrayWrapper( ractive, array, keypath );
 	}
 };
 
-ArrayWrapper = function ( ractive, array, keypath ) {
-	this.root = ractive;
-	this.value = array;
-	this.keypath = ractive.viewmodel.getContext( keypath );
+class ArrayWrapper {
+	constructor ( ractive, array, keypath ) {
+		this.root = ractive;
+		this.value = array;
+		this.__model = null; // filled in later
 
-	// if this array hasn't already been ractified, ractify it
-	if ( !array._ractive ) {
+		// if this array hasn't already been ractified, ractify it
+		if ( !array._ractive ) {
+			// define a non-enumerable _ractive property to store the wrappers
+			defineProperty( array, '_ractive', {
+				value: {
+					wrappers: [],
+					instances: [],
+					setting: false
+				},
+				configurable: true
+			});
 
-		// define a non-enumerable _ractive property to store the wrappers
-		defineProperty( array, '_ractive', {
-			value: {
-				wrappers: [],
-				instances: [],
-				setting: false
-			},
-			configurable: true
-		});
+			patch( array );
+		}
 
-		patch( array );
+		// store the ractive instance, so we can handle transitions later
+		if ( !array._ractive.instances[ ractive._guid ] ) {
+			array._ractive.instances[ ractive._guid ] = 0;
+			array._ractive.instances.push( ractive );
+		}
+
+		array._ractive.instances[ ractive._guid ] += 1;
+		array._ractive.wrappers.push( this );
 	}
 
-	// store the ractive instance, so we can handle transitions later
-	if ( !array._ractive.instances[ ractive._guid ] ) {
-		array._ractive.instances[ ractive._guid ] = 0;
-		array._ractive.instances.push( ractive );
-	}
-
-	array._ractive.instances[ ractive._guid ] += 1;
-	array._ractive.wrappers.push( this );
-};
-
-ArrayWrapper.prototype = {
-	get: function () {
+	get () {
 		return this.value;
-	},
-	teardown: function () {
+	}
+
+	teardown () {
 		var array, storage, wrappers, instances, index;
 
 		array = this.value;
@@ -97,7 +94,4 @@ ArrayWrapper.prototype = {
 			}
 		}
 	}
-};
-
-errorMessage = 'Something went wrong in a rather interesting way';
-export default arrayAdaptor;
+}

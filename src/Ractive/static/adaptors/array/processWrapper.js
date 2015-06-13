@@ -1,8 +1,8 @@
 export default function ( wrapper, array, methodName, newIndices ) {
-	var { root, keypath } = wrapper;
+	var { __model } = wrapper;
 
 	if ( !!newIndices ) {
-		keypath.shuffle( newIndices );
+		__model.shuffle( newIndices );
 	} else {
 		// If this is a sort or reverse, we just do root.set()...
 		// TODO use merge logic?

@@ -105,7 +105,6 @@ export default class Section extends Mustache {
 	}
 
 	findNextNode () {
-		console.log( 'finding next node', this.parentFragment.findNextNode( this ) )
 		return this.parentFragment.findNextNode( this );
 	}
 
