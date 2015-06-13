@@ -102,7 +102,7 @@ Model.adaptor = {
 			}
 
 			setting = true;
-			ractive.set( prefix( attr, value ) );
+			ractive.set( prefix( attr ), value );
 			setting = false;
 		});
 
