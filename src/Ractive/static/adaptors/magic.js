@@ -82,7 +82,6 @@ try {
 
 			this.updating = true;
 			this.obj[ this.prop ] = value; // trigger set() accessor
-			runloop.addRactive( this.ractive );
 			this.keypath.mark( { keepExistingWrapper: true } );
 			this.updating = false;
 			return true;

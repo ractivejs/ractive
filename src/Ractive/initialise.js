@@ -64,8 +64,7 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 		data: dataConfigurator.init( ractive.constructor, ractive, userOptions ),
 		mappings: options.mappings,
 		computations: getComputationSignatures( ractive, computed ),
-		ractive: ractive,
-		onchange: () => runloop.addRactive( ractive )
+		ractive
 	});
 
 	ractive.viewmodel = viewmodel;

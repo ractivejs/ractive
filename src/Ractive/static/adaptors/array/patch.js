@@ -27,10 +27,7 @@ mutatorMethods.forEach( function ( methodName ) {
 		this._ractive.setting = true;
 		i = this._ractive.wrappers.length;
 		while ( i-- ) {
-			wrapper = this._ractive.wrappers[i];
-
-			runloop.addRactive( wrapper.root );
-			processWrapper( wrapper, this, methodName, newIndices );
+			processWrapper( this._ractive.wrappers[i], this, methodName, newIndices );
 		}
 
 		runloop.end();

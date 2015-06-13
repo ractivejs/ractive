@@ -6,7 +6,7 @@ import TransitionManager from './TransitionManager';
 var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
 
 runloop = {
-	start: function ( instance, returnPromise ) {
+	start ( instance, returnPromise ) {
 		var promise, fulfilPromise;
 
 		if ( returnPromise ) {
@@ -18,31 +18,20 @@ runloop = {
 			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
 			fragments: [],
 			tasks: [],
-			ractives: [],
 			immediateObservers: [],
 			deferredObservers: [],
 			instance: instance
 		};
 
-		if ( instance ) {
-			batch.ractives.push( instance );
-		}
-
 		return promise;
 	},
 
-	end: function () {
+	end () {
 		flushChanges();
 
 		batch.transitionManager.init();
 		if ( !batch.previousBatch && !!batch.instance ) batch.instance.viewmodel.changes = [];
 		batch = batch.previousBatch;
-	},
-
-	addRactive: function ( ractive ) {
-		if ( batch ) {
-			addToArray( batch.ractives, ractive );
-		}
 	},
 
 	addFragment ( fragment ) {
@@ -53,29 +42,21 @@ runloop = {
 		addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
 	},
 
-	registerTransition: function ( transition ) {
+	registerTransition ( transition ) {
 		transition._manager = batch.transitionManager;
 		batch.transitionManager.add( transition );
 	},
 
-	registerDecorator: function ( decorator ) {
+	registerDecorator ( decorator ) {
 		batch.transitionManager.addDecorator( decorator );
 	},
 
-	addUnresolved: function ( thing ) {
-		unresolved.push( thing );
-	},
-
-	removeUnresolved: function ( thing ) {
-		removeFromArray( unresolved, thing );
-	},
-
 	// synchronise node detachments with transition ends
-	detachWhenReady: function ( thing ) {
+	detachWhenReady ( thing ) {
 		batch.transitionManager.detachQueue.push( thing );
 	},
 
-	scheduleTask: function ( task, postRender ) {
+	scheduleTask ( task, postRender ) {
 		var _batch;
 
 		if ( !batch ) {
@@ -102,17 +83,6 @@ function dispatch ( observer ) {
 
 function flushChanges () {
 	var i, thing, changeHash;
-
-	// i = batch.ractives.length;
-	// while ( i-- ) {
-	// 	thing = batch.ractives[i];
-	// 	changeHash = thing.viewmodel.applyChanges();
-	//
-	// 	if ( changeHash ) {
-	// 		//changeHook.fire( thing, changeHash );
-	// 	}
-	// }
-	// batch.ractives.length = 0;
 
 	batch.immediateObservers.forEach( dispatch );
 
