@@ -30,17 +30,20 @@ export default class Attribute extends Item {
 	bind () {
 		if ( this.fragment ) {
 			this.fragment.bind();
-			this.value = this.fragment.valueOf();
 		}
+	}
+
+	getValue () {
+		return this.fragment ? this.fragment.valueOf() : this.value;
 	}
 
 	render () {
 		this.node = this.element.node;
-		this.updateDelegate();
+		this.updateDelegate( this.getValue() );
 	}
 
 	toString () {
-		const value = safeToStringValue( this.value );
+		const value = safeToStringValue( this.getValue() );
 
 		return value ?
 			`${this.name}="${value}"` :
@@ -49,7 +52,7 @@ export default class Attribute extends Item {
 
 	update () {
 		if ( this.dirty ) {
-			this.updateDelegate();
+			this.updateDelegate( this.getValue() );
 			this.dirty = false;
 		}
 	}

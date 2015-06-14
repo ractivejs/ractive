@@ -61,4 +61,8 @@ export default class Partial extends Mustache {
 	toString ( escape ) {
 		return this.fragment.toString( escape );
 	}
+
+	unrender ( shouldDestroy ) {
+		this.fragment.unrender( shouldDestroy );
+	}
 }

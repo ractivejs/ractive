@@ -11,7 +11,7 @@ export default function processItems ( items, values, guid, counter = 0 ) {
 					return processItems( fragment.items, values, guid, counter );
 				}).join( '' );
 			} else {
-				return processItems( fragment.items, values, guid, counter );
+				return processItems( item.fragment.items, values, guid, counter );
 			}
 		}
 

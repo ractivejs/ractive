@@ -11,17 +11,17 @@ export default function getUpdateDelegate ({ element, name, template }) {
 	return setAttribute;
 }
 
-function updateId () {
-	var { node, value } = this;
+function updateId ( value ) {
+	var { node } = this;
 
 	this.ractive.nodes[ value ] = node;
 	node.id = value;
 }
 
-function setProperty () {
-	this.element.node[ this.name ] = this.value;
+function setProperty ( value ) {
+	this.element.node[ this.name ] = value;
 }
 
-function setAttribute () {
-	this.element.node.setAttribute( this.name, safeToStringValue( this.value ) );
+function setAttribute ( value ) {
+	this.node.setAttribute( this.name, safeToStringValue( value ) );
 }

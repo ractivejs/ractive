@@ -130,7 +130,7 @@ export default class Section extends Mustache {
 	}
 
 	unrender ( shouldDestroy ) {
-		if ( this.rendered ) this.fragment.unrender( shouldDestroy );
+		if ( this.rendered && this.fragment ) this.fragment.unrender( shouldDestroy );
 		this.rendered = false;
 	}
 
