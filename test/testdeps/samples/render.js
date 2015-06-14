@@ -524,12 +524,9 @@ var renderTests = [
 		name: 'Properties of functions render correctly (#451)',
 		template: '{{foo.prop}}-{{#foo}}{{prop}}{{/foo}}',
 		data: function () {
-			var foo = function () {}, columns = [{ bar: foo }];
+			var foo = function () {};
 			foo.prop = 'works';
-			return {
-				columns: columns,
-				foo: foo
-			};
+			return { foo };
 		},
 		result: 'works-works',
 		new_data: { 'foo.prop': 'still works' },
