@@ -33,6 +33,13 @@ export default class Attribute extends Item {
 		}
 	}
 
+	bubble () {
+		if ( !this.dirty ) {
+			this.element.bubble();
+			this.dirty = true;
+		}
+	}
+
 	getValue () {
 		return this.fragment ? this.fragment.valueOf() : this.value;
 	}
