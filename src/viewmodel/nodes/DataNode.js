@@ -13,6 +13,9 @@ export default class DataNode {
 		this.children = [];
 		this.childByKey = {};
 
+		this.unresolved = [];
+		this.unresolvedByKey = {};
+
 		this.value = undefined;
 
 		if ( parent ) {
@@ -47,6 +50,36 @@ export default class DataNode {
 				this.value = this.wrapper.get();
 
 				break;
+			}
+		}
+	}
+
+	addUnresolved ( key, resolver ) {
+		if ( !this.unresolvedByKey[ key ] ) {
+			this.unresolved.push( key );
+			this.unresolvedByKey[ key ] = [];
+		}
+
+		this.unresolvedByKey[ key ].push( resolver );
+	}
+
+	clearUnresolveds () {
+		let i = this.unresolved.length;
+
+		while ( i-- ) {
+			const key = this.unresolved[i];
+			const resolvers = this.unresolvedByKey[ key ];
+			const hasKey = this.has( key );
+
+			let j = resolvers.length;
+			while ( j-- ) {
+				if ( hasKey ) resolvers[j].attemptResolution();
+				if ( resolvers[j].resolved ) resolvers.splice( j, 1 );
+			}
+
+			if ( !resolvers.length ) {
+				this.unresolved.splice( i, 1 );
+				this.unresolvedByKey[ key ] = null;
 			}
 		}
 	}
@@ -101,6 +134,7 @@ export default class DataNode {
 
 			this.deps.forEach( handleChange );
 			this.children.forEach( mark );
+			this.clearUnresolveds();
 		}
 	}
 
@@ -174,6 +208,7 @@ export default class DataNode {
 
 		this.deps.forEach( handleChange );
 		this.children.forEach( mark );
+		this.clearUnresolveds();
 
 		let parent = this.parent;
 		while ( parent ) {

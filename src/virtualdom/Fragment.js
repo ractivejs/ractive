@@ -26,7 +26,6 @@ export default class Fragment {
 		this.keyRefs = options.keyRefs || this.parent.keyRefs;
 
 		this.resolvers = [];
-		this.unresolved = [];
 
 		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
 
@@ -35,12 +34,6 @@ export default class Fragment {
 				return createItem({ parentFragment: this, template, index });
 			}) :
 			[];
-	}
-
-	attemptResolution () {
-		if ( this.unresolved.length ) {
-			throw new Error( 'TODO' );
-		}
 	}
 
 	bind ( context ) {

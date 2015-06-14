@@ -91,7 +91,6 @@ function flushChanges () {
 	i = batch.fragments.length;
 	while ( i-- ) {
 		thing = batch.fragments[i];
-		thing.attemptResolution();
 		thing.update();
 	}
 	batch.fragments.length = 0;

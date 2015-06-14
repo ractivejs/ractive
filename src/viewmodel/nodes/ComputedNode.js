@@ -7,7 +7,7 @@ export default class ComputedNode extends DataNode {
 	constructor ( viewmodel, signature ) {
 		super( null, null );
 
-		this.viewmodel = viewmodel;
+		this.root = this.parent = viewmodel;
 		this.signature = signature;
 		this.context = viewmodel.computationContext;
 
@@ -36,6 +36,7 @@ export default class ComputedNode extends DataNode {
 
 		this.deps.forEach( handleChange );
 		this.children.forEach( mark );
+		this.clearUnresolveds();
 	}
 
 	init () {

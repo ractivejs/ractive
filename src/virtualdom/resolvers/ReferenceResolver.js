@@ -46,8 +46,19 @@ export default class ReferenceResolver {
 			this.keys = reference.split( '.' );
 			this.resolved = null;
 
-			const model = this.attemptResolution();
-			if ( model ) callback( model );
+			this.attemptResolution();
+			if ( !this.resolved ) {
+				// we attach to all the contexts between here and the root
+				// - whenever their values change, they can quickly
+				// check to see if we can resolve
+				while ( fragment ) {
+					if ( fragment.context ) {
+						fragment.context.addUnresolved( this.keys[0], this );
+					}
+
+					fragment = fragment.parent;
+				}
+			}
 		}
 	}
 
@@ -55,38 +66,35 @@ export default class ReferenceResolver {
 		const key = this.keys[0];
 
 		let fragment = this.fragment;
-
-		if ( key[0] === '.' ) {
-			// restricted reference
-			while ( !fragment.context ) fragment = fragment.parent;
-			const context = fragment.context;
-			const keys = this.keys.slice();
-
-			console.log( 'keys', keys )
-		}
-
 		let hasContextChain;
 
 		while ( fragment ) {
 			// repeated fragments
-			if ( key === fragment.indexRef && this.keys.length === 1 ) {
-				throw new Error( key );
+			if ( ( key === fragment.indexRef || key === fragment.keyRef ) && this.keys.length === 1 ) {
+				throw new Error( `An index or key reference (${key}) cannot have child properties` );
 			}
 
 			if ( fragment.context ) {
 				if ( !fragment.isRoot ) hasContextChain = true;
 
 				if ( fragment.context.has( key ) ) {
-					return fragment.context.join( this.keys );
+					const model = fragment.context.join( this.keys );
+					this.callback( model );
+					this.resolved = true;
+
+					return;
 				}
 			}
 
 			fragment = fragment.parent;
 		}
 
-		if ( !hasContextChain ) return this.fragment.ractive.viewmodel.join( this.keys );
-
-		this.fragment.unresolved.push( this );
+		// TODO we can determine this immediately, don't need to wait for attemptResolution
+		if ( !hasContextChain ) {
+			const model = this.fragment.ractive.viewmodel.join( this.keys );
+			this.callback( model );
+			this.resolved = true;
+		}
 	}
 
 	unbind () {
