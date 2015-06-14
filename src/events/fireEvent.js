@@ -1,4 +1,4 @@
-import eventStack from './eventStack';
+import { enqueue, dequeue } from './eventStack';
 import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
 
 var wildcardCache = {};
@@ -33,7 +33,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 
 	var subscribers, i, bubble = true;
 
-	eventStack.enqueue( ractive, event );
+	enqueue( ractive, event );
 
 	for ( i = eventNames.length; i >= 0; i-- ) {
 		subscribers = ractive._subs[ eventNames[ i ] ];
@@ -43,7 +43,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 		}
 	}
 
-	eventStack.dequeue( ractive );
+	dequeue( ractive );
 
 	if ( ractive.parent && bubble ) {
 

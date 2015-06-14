@@ -199,6 +199,10 @@ function initialiseProperties ( ractive, options ) {
 	// nodes registry
 	ractive.nodes = {};
 
+	// events
+	ractive.event = null;
+	ractive._eventQueue = [];
+
 	// live queries
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];

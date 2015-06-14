@@ -2,11 +2,13 @@ import runloop from 'global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
+import EventHandler from './element/EventHandler';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { voidElementNames } from 'utils/html';
-import { bind, render, update } from 'shared/methodCallers';
+import { bind, render, unrender, update } from 'shared/methodCallers';
 import { matches } from 'utils/dom';
+import { defineProperty } from 'utils/object';
 
 export default class Element extends Item {
 	constructor ( options ) {
@@ -27,6 +29,17 @@ export default class Element extends Item {
 			}) :
 			[];
 
+		// attach event handlers
+		this.eventHandlers = [];
+		if ( this.template.v ) {
+			Object.keys( this.template.v ).forEach( key => {
+				const eventNames = key.split( '-' );
+				eventNames.forEach( eventName => {
+					this.eventHandlers.push( new EventHandler( this, eventName, this.template.v[ eventName ] ) );
+				});
+			});
+		}
+
 		if ( options.template.f ) {
 			this.fragment = new Fragment({
 				template: options.template.f,
@@ -37,6 +50,7 @@ export default class Element extends Item {
 
 	bind () {
 		this.attributes.forEach( bind );
+		this.eventHandlers.forEach( bind );
 
 		if ( this.fragment ) {
 			this.fragment.bind();
@@ -93,11 +107,18 @@ export default class Element extends Item {
 		const node = document.createElement( this.template.e );
 		this.node = node;
 
+		defineProperty( node, '_ractive', {
+			value: {
+				events: {}
+			}
+		});
+
 		if ( this.fragment ) {
 			node.appendChild( this.fragment.render() );
 		}
 
 		this.attributes.forEach( render );
+		this.eventHandlers.forEach( render );
 
 		updateLiveQueries( this );
 
@@ -156,6 +177,8 @@ export default class Element extends Item {
 		}
 
 		if ( this.fragment ) this.fragment.unrender();
+
+		this.eventHandlers.forEach( unrender );
 
 		// TODO two-way bindings, decorators, event handlers
 

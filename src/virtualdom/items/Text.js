@@ -36,4 +36,8 @@ export default class Text {
 	update () {
 		// noop
 	}
+
+	valueOf () {
+		return this.str;
+	}
 }

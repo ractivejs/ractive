@@ -3,6 +3,8 @@ import runloop from 'global/runloop';
 import createItem from './items/createItem';
 import createResolver from './resolvers/createResolver';
 import { bind, unbind, unrender, update, toEscapedString, toString } from 'shared/methodCallers';
+import processItems from './helpers/processItems';
+import parseJSON from 'utils/parseJSON';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );
@@ -25,6 +27,8 @@ export default class Fragment {
 
 		this.resolvers = [];
 		this.unresolved = [];
+
+		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
 
 		this.items = options.template ?
 			options.template.map( ( template, index ) => {
@@ -165,8 +169,19 @@ export default class Fragment {
 	// TODO ideally, this would be deprecated in favour of an
 	// expression-like approach
 	getArgsList () {
-		console.warn( 'TODO getArgsList' );
-		return [];
+		if ( this.dirtyArgs ) {
+			const values = {};
+			const source = processItems( this.items, values, this.ractive._guid );
+			const parsed = parseJSON( '[' + source + ']', values );
+
+			this.argsList = parsed ?
+				parsed.value :
+				[ this.toString() ];
+
+			this.dirtyArgs = false;
+		}
+
+		return this.argsList;
 	}
 
 	render () {
@@ -223,6 +238,18 @@ export default class Fragment {
 			return this.items[0].valueOf();
 		}
 
-		return this.items.join( '' );
+		if ( this.dirtyValue ) {
+			const values = {};
+			const source = processItems( this.items, values, this.ractive._guid );
+			const parsed = parseJSON( source, values );
+
+			this.value = parsed ?
+				parse.value :
+				this.toString();
+
+			this.dirtyValue = false;
+		}
+
+		return this.value;
 	}
 }
