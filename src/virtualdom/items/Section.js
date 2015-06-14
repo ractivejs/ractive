@@ -50,18 +50,14 @@ export default class Section extends Mustache {
 				fragment = new Fragment({
 					owner: this,
 					template: this.template.f
-				});
-
-				fragment.bind();
+				}).bind();
 			}
 
 			else if ( this.sectionType === SECTION_WITH ) {
 				fragment = new Fragment({
 					owner: this,
 					template: this.template.f
-				});
-
-				fragment.bind( this.model );
+				}).bind( this.model );
 			}
 
 			else {
@@ -69,9 +65,7 @@ export default class Section extends Mustache {
 					owner: this,
 					template: this.template.f,
 					indexRef: this.template.i
-				});
-
-				fragment.bind( this.model );
+				}).bind( this.model );
 			}
 
 
