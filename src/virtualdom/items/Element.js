@@ -34,8 +34,10 @@ export default class Element extends Item {
 		if ( this.template.v ) {
 			Object.keys( this.template.v ).forEach( key => {
 				const eventNames = key.split( '-' );
+				const template = this.template.v[ key ];
+
 				eventNames.forEach( eventName => {
-					this.eventHandlers.push( new EventHandler( this, eventName, this.template.v[ eventName ] ) );
+					this.eventHandlers.push( new EventHandler( this, eventName, template ) );
 				});
 			});
 		}
@@ -196,6 +198,7 @@ export default class Element extends Item {
 	update () {
 		if ( this.dirty ) {
 			this.attributes.forEach( update );
+			this.eventHandlers.forEach( update );
 
 			if ( this.fragment ) {
 				this.fragment.update();

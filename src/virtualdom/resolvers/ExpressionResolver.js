@@ -4,19 +4,7 @@ import KeyReferenceResolver from './KeyReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
 import ShadowResolver from './ShadowResolver';
 import { unbind } from 'shared/methodCallers';
-
-let functionCache = {};
-
-function createFunction ( str, i ) {
-	if ( functionCache[ str ] ) return functionCache[ str ];
-
-	let args = new Array( i );
-	while ( i-- ) args[i] = `_${i}`;
-
-	const fn = new Function( args.join( ',' ), `return (${str})` );
-
-	return ( functionCache[ str ] = fn );
-}
+import createFunction from 'shared/createFunction';
 
 function wrapFunction ( fn, context, uid ) {
 	if ( fn.__nowrap ) return fn;

@@ -50,8 +50,11 @@ export default class Fragment {
 	}
 
 	bubble () {
+		this.dirtyArgs = this.dirtyValue = true;
+
 		if ( !this.dirty ) {
 			this.dirty = true;
+
 			if ( this.isRoot ) { // TODO encapsulate 'is component root, but not overall root' check?
 				if ( this.ractive.component ) {
 					this.ractive.component.bubble();

@@ -3,6 +3,9 @@ import { missingPlugin } from 'config/errors';
 import { removeFromArray } from 'utils/array';
 import fireEvent from 'events/fireEvent';
 import Fragment from '../../Fragment';
+import ReferenceResolver from '../../resolvers/ReferenceResolver';
+import createFunction from 'shared/createFunction';
+import noop from 'utils/noop';
 
 function defaultHandler ( event ) {
 	const handler = this._ractive.events[ event.type ];
@@ -23,23 +26,49 @@ export default class EventHandler {
 		this.parentFragment = owner.parentFragment;
 		this.node = null;
 
-		this.action = typeof template === 'string' ? // on-click='foo'
-			template :
-			typeof template.n === 'string' ? // on-click='{{dynamic}}'
-				template.n :
-				new Fragment({
-					owner: this,
-					template: template.n
-				});
+		if ( template.m ) {
+			this.method = template.m;
 
-		this.args = template.a ? // static arguments
-			( typeof template.a === 'string' ? [ template.a ] : template.a ) :
-			template.d ? // dynamic arguments
-				new Fragment({
-					owner: this,
-					template: template.d
-				}) :
-				[]; // no arguments
+			this.models = new Array( template.a.r.length );
+			this.resolvers = template.a.r.map( ( ref, i ) => {
+				if ( /^event\.?/.test( ref ) ) {
+					// on-click="foo(event.node)"
+					this.models[i] = {
+						event: true,
+						keys: ref.length > 5 ? ref.slice( 6 ).split( '.' ) : []
+					};
+
+					return { unbind: noop };
+				}
+
+				return new ReferenceResolver( this.parentFragment, ref, model => {
+					this.models[i] = model;
+				});
+			});
+
+			this.argsFn = createFunction( template.a.s, template.a.r.length );
+		}
+
+		else {
+			// TODO deprecate this style of directive
+			this.action = typeof template === 'string' ? // on-click='foo'
+				template :
+				typeof template.n === 'string' ? // on-click='{{dynamic}}'
+					template.n :
+					new Fragment({
+						owner: this,
+						template: template.n
+					});
+
+			this.args = template.a ? // static arguments
+				( typeof template.a === 'string' ? [ template.a ] : template.a ) :
+				template.d ? // dynamic arguments
+					new Fragment({
+						owner: this,
+						template: template.d
+					}) :
+					[]; // no arguments
+		}
 	}
 
 	bind () {
@@ -52,22 +81,51 @@ export default class EventHandler {
 	}
 
 	bubble () {
-		// noop - this doesn't affect anything else
+		if ( !this.dirty ) {
+			this.dirty = true;
+			this.owner.bubble();
+		}
 	}
 
 	fire ( event ) {
-		const action = this.action.toString();
-		const args = this.template.d ? this.args.getArgsList() : this.args;
+		if ( this.method ) {
+			if ( typeof this.ractive[ this.method ] !== 'function' ) {
+				throw new Error( `Attempted to call a non-existent method ("${this.method}")` );
+			}
 
-		event.name = action;
-		event.keypath = this.context.getKeypath();
-		event.context = this.context.value;
-		event.index = this.parentFragment.indexRefs;
+			const values = this.models.map( model => {
+				console.log( 'model', model )
+				if ( !model ) return undefined;
 
-		fireEvent( this.ractive, action, {
-			event,
-			args
-		});
+				if ( model.event ) {
+					let obj = event;
+					let keys = model.keys.slice();
+
+					while ( keys.length ) obj = obj[ keys.shift() ];
+					return obj;
+				}
+
+				return model.value;
+			});
+			const args = this.argsFn.apply( null, values );
+
+			this.ractive[ this.method ].apply( this.ractive, args );
+		}
+
+		else {
+			const action = this.action.toString();
+			const args = this.template.d ? this.args.getArgsList() : this.args;
+
+			event.name = action;
+			event.keypath = this.context.getKeypath();
+			event.context = this.context.value;
+			event.index = this.parentFragment.indexRefs;
+
+			fireEvent( this.ractive, action, {
+				event,
+				args
+			});
+		}
 	}
 
 	render () {
@@ -96,5 +154,13 @@ export default class EventHandler {
 			this.node.removeEventListener( this.name, defaultHandler, false );
 			this.node._ractive.events[ this.name ] = null;
 		}
+	}
+
+	update () {
+		if ( this.method ) return; // nothing to do
+
+		// ugh legacy
+		if ( this.action.update ) this.action.update();
+		if ( this.template.d ) this.args.update();
 	}
 }

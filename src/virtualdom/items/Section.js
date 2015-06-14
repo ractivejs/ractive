@@ -112,6 +112,8 @@ export default class Section extends Mustache {
 	}
 
 	render () {
+		this.rendered = true;
+
 		return this.fragment ?
 			this.fragment.render() :
 			( emptyFragment || ( emptyFragment = document.createDocumentFragment() ) );
@@ -128,7 +130,8 @@ export default class Section extends Mustache {
 	}
 
 	unrender ( shouldDestroy ) {
-		if ( this.fragment ) this.fragment.unrender( shouldDestroy );
+		if ( this.rendered ) this.fragment.unrender( shouldDestroy );
+		this.rendered = false;
 	}
 
 	// TODO DRY this out - lot of repeated stuff between this and bind()
@@ -186,10 +189,13 @@ export default class Section extends Mustache {
 		}
 
 		if ( newFragment ) {
-			const parentNode = this.parentFragment.findParentNode();
-			const anchor = this.parentFragment.findNextNode( this );
+			if ( this.rendered ) {
+				const parentNode = this.parentFragment.findParentNode();
+				const anchor = this.parentFragment.findNextNode( this );
 
-			parentNode.insertBefore( newFragment.render(), anchor );
+				parentNode.insertBefore( newFragment.render(), anchor );
+			}
+
 			this.fragment = newFragment;
 		}
 
