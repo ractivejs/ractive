@@ -112,6 +112,7 @@ export default class DataNode {
 	join ( keys ) {
 		const key = keys[0];
 
+		// TODO can we simply avoid this situation elsewhere?
 		if ( keys.length === 0 || ( keys.length === 1 && key === '' ) ) return this;
 
 		if ( !this.childByKey[ key ] ) {
