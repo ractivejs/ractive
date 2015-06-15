@@ -49,8 +49,11 @@ export default class RepeatedFragment {
 		// {{#each object}}...
 		else if ( isObject( context.value ) ) {
 			// TODO this is a dreadful hack. There must be a neater way
-			this.keyRef = this.indexRef;
-			this.indexRef = null;
+			if ( this.indexRef ) {
+				const [ keyRef, indexRef ] = this.indexRef.split( ',' );
+				this.keyRef = keyRef;
+				this.indexRef = indexRef;
+			}
 
 			this.indexByKey = {};
 			this.iterations = Object.keys( context.value ).map( ( key, index ) => {
