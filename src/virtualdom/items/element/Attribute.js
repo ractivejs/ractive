@@ -50,7 +50,10 @@ export default class Attribute extends Item {
 	}
 
 	toString () {
-		const value = safeToStringValue( this.getValue() );
+		const value = safeToStringValue( this.getValue() )
+			.replace( /&/g, '&amp;' )
+			.replace( /"/g, '&quot;' )
+			.replace( /'/g, '&#39;' );
 
 		return value ?
 			`${this.name}="${value}"` :
