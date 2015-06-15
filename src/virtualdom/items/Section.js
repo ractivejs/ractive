@@ -9,6 +9,7 @@ let emptyFragment;
 function getType ( value, hasIndexRef ) {
 	if ( hasIndexRef || isArray( value ) ) return SECTION_EACH;
 	if ( isObject( value ) || typeof value === 'function' ) return SECTION_WITH;
+	if ( value === undefined ) return null;
 	return SECTION_IF;
 }
 
@@ -157,7 +158,7 @@ export default class Section extends Mustache {
 			if ( this.fragment ) {
 				this.fragment.update();
 			} else {
-				this.fragment = new Fragment({
+				newFragment = new Fragment({
 					owner: this,
 					template: this.template.f
 				}).bind( this.model );
