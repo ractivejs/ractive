@@ -181,7 +181,7 @@ export default class DataNode {
 		this.deps.push( dep );
 	}
 
-	set ( value ) {
+	set ( value, silent ) {
 		if ( isEqual( value, this.value ) ) return;
 
 		if ( this.parent.wrapper && this.parent.wrapper.set ) {
@@ -207,14 +207,17 @@ export default class DataNode {
 			this.value = value;
 		}
 
-		this.deps.forEach( handleChange );
-		this.children.forEach( mark );
 		this.clearUnresolveds();
 
-		let parent = this.parent;
-		while ( parent ) {
-			parent.deps.forEach( handleChange );
-			parent = parent.parent;
+		if ( !silent ) {
+			this.deps.forEach( handleChange );
+			this.children.forEach( mark );
+
+			let parent = this.parent;
+			while ( parent ) {
+				parent.deps.forEach( handleChange );
+				parent = parent.parent;
+			}
 		}
 	}
 

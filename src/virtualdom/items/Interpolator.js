@@ -31,11 +31,15 @@ export default class Interpolator extends Mustache {
 
 	unrender ( shouldDestroy ) {
 		if ( shouldDestroy ) this.detach();
+		this.rendered = false;
 	}
 
 	update () {
-		if ( this.dirty && this.rendered ) {
-			this.node.data = this.getString();
+		if ( this.dirty ) {
+			if ( this.rendered ) {
+				this.node.data = this.getString();
+			}
+
 			this.dirty = false;
 		}
 	}

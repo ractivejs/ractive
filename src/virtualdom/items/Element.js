@@ -9,6 +9,7 @@ import { voidElementNames } from 'utils/html';
 import { bind, render, unrender, update } from 'shared/methodCallers';
 import { matches } from 'utils/dom';
 import { defineProperty } from 'utils/object';
+import selectBinding from './element/binding/selectBinding';
 
 export default class Element extends Item {
 	constructor ( options ) {
@@ -16,18 +17,31 @@ export default class Element extends Item {
 
 		this.liveQueries = []; // TODO rare case. can we handle differently?
 
-		this.isVoid = voidElementNames.test( options.template.e );
+		this.name = options.template.e.toLowerCase();
+		this.isVoid = voidElementNames.test( this.name );
 
-		this.attributes = this.template.a ?
-			Object.keys( this.template.a ).map( name => {
-				return new Attribute({
+		// create attributes
+		this.attributeByName = {};
+		this.attributes = [];
+
+		if ( this.template.a ) {
+			Object.keys( this.template.a ).forEach( name => {
+				// TODO process this at parse time
+				if ( name === 'twoway' || name === 'lazy' ) return;
+
+				const attribute = new Attribute({
 					name,
 					element: this,
 					parentFragment: this.parentFragment,
 					template: this.template.a[ name ]
-				})
-			}) :
-			[];
+				});
+
+				this.attributeByName[ name ] = attribute;
+				this.attributes.push( attribute );
+			});
+		}
+
+		this.binding = null;
 
 		// attach event handlers
 		this.eventHandlers = [];
@@ -42,6 +56,7 @@ export default class Element extends Item {
 			});
 		}
 
+		// create children
 		if ( options.template.f ) {
 			this.fragment = new Fragment({
 				template: options.template.f,
@@ -54,9 +69,34 @@ export default class Element extends Item {
 		this.attributes.forEach( bind );
 		this.eventHandlers.forEach( bind );
 
+		// create two-way binding if necessary
+		this.binding = this.createTwowayBinding();
+
 		if ( this.fragment ) {
 			this.fragment.bind();
 		}
+	}
+
+	createTwowayBinding () {
+		const attributes = this.template.a;
+
+		if ( !attributes ) return null;
+
+		const shouldBind = 'twoway' in attributes ?
+			attributes.twoway === 0 || attributes.twoway === 'true' : // covers `twoway` and `twoway='true'`
+			this.ractive.twoway;
+
+		if ( !shouldBind ) return null;
+
+		const Binding = selectBinding( this );
+
+		if ( !Binding ) return null;
+
+		const binding = new Binding( this );
+
+		return binding && binding.model ?
+			binding :
+			null;
 	}
 
 	detach () {
@@ -105,6 +145,11 @@ export default class Element extends Item {
 		return this.node;
 	}
 
+	getAttribute ( name ) {
+		const attribute = this.attributeByName[ name ];
+		return attribute ? attribute.getValue() : undefined;
+	}
+
 	render () {
 		const node = document.createElement( this.template.e );
 		this.node = node;
@@ -121,6 +166,10 @@ export default class Element extends Item {
 
 		this.attributes.forEach( render );
 		this.eventHandlers.forEach( render );
+
+		if ( this.binding ) {
+			this.binding.render();
+		}
 
 		updateLiveQueries( this );
 

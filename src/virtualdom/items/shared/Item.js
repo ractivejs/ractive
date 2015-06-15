@@ -6,6 +6,8 @@ export default class Item {
 		this.template = options.template;
 		this.index = options.index;
 		this.type = options.template.t;
+
+		this.dirty = false;
 	}
 
 	bubble () {

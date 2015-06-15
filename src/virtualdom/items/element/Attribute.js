@@ -1,3 +1,4 @@
+import { INTERPOLATOR } from 'config/types';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
@@ -26,6 +27,11 @@ export default class Attribute extends Item {
 				template: options.template
 			});
 		}
+
+		this.interpolator = this.fragment &&
+		                    this.fragment.items.length === 1 &&
+		                    this.fragment.items[0].type === INTERPOLATOR &&
+		                    this.fragment.items[0];
 	}
 
 	bind () {
@@ -62,7 +68,7 @@ export default class Attribute extends Item {
 
 	toString () {
 		if ( this.isEmpty ) return '';
-		
+
 		const value = safeToStringValue( this.getString() )
 			.replace( /&/g, '&amp;' )
 			.replace( /"/g, '&quot;' )
