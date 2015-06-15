@@ -1,4 +1,4 @@
-import { SECTION_EACH, SECTION_IF, SECTION_UNLESS, SECTION_WITH } from 'config/types';
+import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_UNLESS, SECTION_WITH } from 'config/types';
 import { isArray, isObject } from 'utils/is';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
@@ -36,9 +36,7 @@ export default class Section extends Mustache {
 					this.fragment = new Fragment({
 						owner: this,
 						template: this.template.f
-					});
-
-					this.fragment.bind();
+					}).bind();
 				}
 
 				// otherwise, create no children
@@ -54,7 +52,8 @@ export default class Section extends Mustache {
 				}).bind();
 			}
 
-			else if ( this.sectionType === SECTION_WITH ) {
+			// TODO should only be WITH, and it should behave like IF_WITH
+			else if ( this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH ) {
 				fragment = new Fragment({
 					owner: this,
 					template: this.template.f
