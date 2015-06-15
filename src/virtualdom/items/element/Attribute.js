@@ -19,6 +19,7 @@ export default class Attribute extends Item {
 
 		if ( !isArray( options.template ) ) {
 			this.value = options.template;
+			if ( this.value === 0 ) this.isEmpty = true;
 		} else {
 			this.fragment = new Fragment({
 				owner: this,
@@ -46,16 +47,22 @@ export default class Attribute extends Item {
 			this.value != null ? '' + this.value : '';
 	}
 
+	// TODO could getValue ever be called for a static attribute,
+	// or can we assume that this.fragment exists?
 	getValue () {
 		return this.fragment ? this.fragment.valueOf() : this.value;
 	}
 
 	render () {
+		if ( this.isEmpty ) return;
+
 		this.node = this.element.node;
 		this.updateDelegate();
 	}
 
 	toString () {
+		if ( this.isEmpty ) return '';
+		
 		const value = safeToStringValue( this.getString() )
 			.replace( /&/g, '&amp;' )
 			.replace( /"/g, '&quot;' )
@@ -68,6 +75,10 @@ export default class Attribute extends Item {
 
 	update () {
 		if ( this.dirty ) {
+			if ( this.fragment ) {
+				this.fragment.update();
+			}
+
 			this.updateDelegate();
 			this.dirty = false;
 		}

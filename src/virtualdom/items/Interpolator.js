@@ -15,13 +15,17 @@ export default class Interpolator extends Mustache {
 		return this.node;
 	}
 
+	getString () {
+		return this.model ? safeToStringValue( this.model.value ) : '';
+	}
+
 	render () {
-		const string = this.model ? safeToStringValue( this.model.value ) : '';
-		return ( this.node = document.createTextNode( string ) );
+		this.rendered = true;
+		return ( this.node = document.createTextNode( this.getString() ) );
 	}
 
 	toString ( escape ) {
-		const string = this.model ? safeToStringValue( this.model.value ) : '';
+		const string = this.getString();
 		return escape ? escapeHtml( string ) : string;
 	}
 
@@ -30,8 +34,8 @@ export default class Interpolator extends Mustache {
 	}
 
 	update () {
-		if ( this.dirty ) {
-			this.node.data = this.model.value;
+		if ( this.dirty && this.rendered ) {
+			this.node.data = this.getString();
 			this.dirty = false;
 		}
 	}

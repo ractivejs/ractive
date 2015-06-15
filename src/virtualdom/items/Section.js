@@ -6,6 +6,12 @@ import Mustache from './shared/Mustache';
 
 let emptyFragment;
 
+function isEmpty ( value ) {
+	return !value ||
+	       ( isArray( value ) && value.length === 0 ) ||
+		   ( isObject( value ) && Object.keys( value ).length === 0 );
+}
+
 function getType ( value, hasIndexRef ) {
 	if ( hasIndexRef || isArray( value ) ) return SECTION_EACH;
 	if ( isObject( value ) || typeof value === 'function' ) return SECTION_WITH;
@@ -31,7 +37,7 @@ export default class Section extends Mustache {
 
 			if ( !this.sectionType ) this.sectionType = getType( value, this.template.i );
 
-			if ( !value ) {
+			if ( isEmpty( value ) ) {
 				if ( this.sectionType === SECTION_UNLESS ) {
 					this.fragment = new Fragment({
 						owner: this,
@@ -152,10 +158,18 @@ export default class Section extends Mustache {
 			}
 		}
 
-		else if ( this.sectionType === SECTION_WITH ) {
-			// TODO remove fragments if value is null or empty object
+		// TODO same comment as before - WITH should be IF_WITH
+		else if ( this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH ) {
 			if ( this.fragment ) {
-				this.fragment.update();
+				if ( isEmpty( value ) ) {
+					if ( this.rendered ) {
+						this.fragment.unbind().unrender( true );
+					}
+
+					this.fragment = null;
+				} else {
+					this.fragment.update();
+				}
 			} else {
 				newFragment = new Fragment({
 					owner: this,
@@ -165,16 +179,19 @@ export default class Section extends Mustache {
 		}
 
 		else {
-			const shouldRender = this.sectionType === SECTION_UNLESS ? !value : !!value;
+			const fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value;
 
 			if ( this.fragment ) {
-				if ( shouldRender ) {
+				if ( fragmentShouldExist ) {
 					this.fragment.update();
 				} else {
-					this.fragment.unbind().unrender( true );
+					if ( this.rendered ) {
+						this.fragment.unbind().unrender( true );
+					}
+
 					this.fragment = null;
 				}
-			} else if ( shouldRender ) {
+			} else if ( fragmentShouldExist ) {
 				newFragment = new Fragment({
 					owner: this,
 					template: this.template.f
