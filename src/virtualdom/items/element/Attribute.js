@@ -14,13 +14,13 @@ export default class Attribute extends Item {
 		this.parentFragment = options.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
 
-		this.updateDelegate = getUpdateDelegate( options );
+		this.updateDelegate = null;
 		this.fragment = null;
 		this.value = null;
 
 		if ( !isArray( options.template ) ) {
 			this.value = options.template;
-			if ( this.value === 0 ) this.isEmpty = true;
+			if ( this.value === 0 ) this.value = this.isEmpty = true;
 		} else {
 			this.fragment = new Fragment({
 				owner: this,
@@ -63,6 +63,8 @@ export default class Attribute extends Item {
 		if ( this.isEmpty ) return;
 
 		this.node = this.element.node;
+
+		this.updateDelegate = getUpdateDelegate( this );
 		this.updateDelegate();
 	}
 

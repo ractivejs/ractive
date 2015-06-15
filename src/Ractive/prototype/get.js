@@ -1,12 +1,6 @@
-import { normalise } from 'shared/keypaths';
-
-var options = {
-	capture: true, // top-level calls should be intercepted
-	noUnwrap: true, // wrapped values should NOT be unwrapped
-	fullRootGet: true // root get should return mappings
-};
+import { splitKeypath } from 'shared/keypaths';
 
 export default function Ractive$get ( keypath ) {
-	const model = this.viewmodel.join( normalise( keypath ).split( '.' ) );
+	const model = this.viewmodel.join( splitKeypath( keypath ) );
 	return model.get();
 }

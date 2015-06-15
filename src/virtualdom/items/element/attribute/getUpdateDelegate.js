@@ -1,4 +1,5 @@
 import { safeToStringValue } from 'utils/dom';
+import { isArray } from 'utils/is';
 
 export default function getUpdateDelegate ({ element, name, template }) {
 	if ( name === 'id' ) {
@@ -7,7 +8,20 @@ export default function getUpdateDelegate ({ element, name, template }) {
 
 	if ( name === 'value' ) {
 		if ( element.getAttribute( 'contenteditable' ) != null ) return updateContentEditableValue;
+		// TODO more...
+	}
 
+	const node = element.node;
+
+	// TODO only if two-way binding?
+	if ( name === 'name' ) {
+		if ( node.type === 'radio' ) {
+			return updateRadioName;
+		}
+
+		if ( node.type === 'checkbox' ) {
+			return updateCheckboxName;
+		}
 	}
 
 	if ( typeof template === 'boolean' ) return setProperty;
@@ -31,6 +45,34 @@ function updateContentEditableValue () {
 
 	if ( !this.locked ) {
 		this.node.innerHTML = value === undefined ? '' : value;
+	}
+}
+
+function updateRadioName () {
+	const node = this.node;
+	const value = this.getValue();
+
+	node.checked = ( value == this.element.getAttribute( 'value' ) );
+}
+
+function updateCheckboxName () {
+	const { element, node } = this;
+	const binding = element.binding;
+
+	const value = this.getValue();
+	const valueAttribute = element.getAttribute( 'value' );
+
+	if ( !isArray( value ) ) {
+		binding.isChecked = node.checked = ( value == valueAttribute );
+	} else {
+		let i = value.length;
+		while ( i-- ) {
+			if ( valueAttribute == value[i] ) {
+				binding.isChecked = node.checked = true;
+				return;
+			}
+		}
+		binding.isChecked = node.checked = false;
 	}
 }
 

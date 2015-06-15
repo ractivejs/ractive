@@ -189,13 +189,14 @@ export default class DataNode {
 			this.parent.value = this.parent.wrapper.get();
 
 			this.value = this.parent.value[ this.key ];
+			// TODO should this value be adapted? probably
 		} else if ( this.wrapper ) {
 			const shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
 
 			if ( shouldTeardown ) {
 				this.wrapper.teardown();
 				this.wrapper = null;
-				this.value = value;
+				this.parent.value[ this.key ] = this.value = value;
 				this.adapt();
 			} else {
 				this.value = this.wrapper.get();
@@ -205,6 +206,7 @@ export default class DataNode {
 			parentValue[ this.key ] = value;
 
 			this.value = value;
+			this.adapt();
 		}
 
 		this.clearUnresolveds();
