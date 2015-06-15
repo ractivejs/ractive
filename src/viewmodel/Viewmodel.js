@@ -1,5 +1,7 @@
+import { capture } from 'global/capture';
 import ComputedNode from './nodes/ComputedNode';
 import DataNode from './nodes/DataNode';
+import { handleChange, mark } from 'shared/methodCallers';
 
 export default class Viewmodel extends DataNode {
 	constructor ( options ) {
@@ -11,6 +13,7 @@ export default class Viewmodel extends DataNode {
 
 		this.value = options.data;
 		this.adaptors = options.adapt;
+		this.adapt();
 
 		this.mappings = {};
 
@@ -32,6 +35,11 @@ export default class Viewmodel extends DataNode {
 		return computation;
 	}
 
+	get () {
+		capture( this );
+		return this.value;
+	}
+
 	getKeypath () {
 		return '';
 	}
@@ -51,11 +59,25 @@ export default class Viewmodel extends DataNode {
 	}
 
 	set ( value ) {
-		throw new Error( 'TODO' );
-	}
+		// TODO wrapping root node is a baaaad idea. We should prevent this
+		const wrapper = this.wrapper;
+		if ( wrapper ) {
+			const shouldTeardown = !wrapper.reset || wrapper.reset( value ) === false;
 
-	teardown () {
-		this.root = null; // is this enough?
+			if ( shouldTeardown ) {
+				wrapper.teardown();
+				this.wrapper = null;
+				this.value = value;
+				this.adapt();
+			}
+		} else {
+			this.value = value;
+			this.adapt();
+		}
+
+		this.deps.forEach( handleChange );
+		this.children.forEach( mark );
+		this.clearUnresolveds();
 	}
 
 	update () {

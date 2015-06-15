@@ -152,10 +152,10 @@ export default class Fragment {
 				return fragment.ractive.el;
 			}
 
-			fragment = fragment.parent;
+			fragment = fragment.componentParent || fragment.parent; // TODO ugh
 		} while ( fragment );
 
-		throw new Error( 'TODO' );
+		throw new Error( 'Could not find parent node' ); // TODO link to issue tracker
 	}
 
 	firstNode () {

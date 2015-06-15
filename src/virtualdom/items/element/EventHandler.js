@@ -94,7 +94,6 @@ export default class EventHandler {
 			}
 
 			const values = this.models.map( model => {
-				console.log( 'model', model )
 				if ( !model ) return undefined;
 
 				if ( model.event ) {
@@ -105,10 +104,14 @@ export default class EventHandler {
 					return obj;
 				}
 
+				if ( model.wrapper ) {
+					return model.wrapper.value;
+				}
+
 				return model.value;
 			});
-			const args = this.argsFn.apply( null, values );
 
+			const args = this.argsFn.apply( null, values );
 			this.ractive[ this.method ].apply( this.ractive, args );
 		}
 

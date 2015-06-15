@@ -1,7 +1,7 @@
 import { capture } from 'global/capture';
 import { isEqual, isNumeric } from 'utils/is';
 import { removeFromArray } from 'utils/array';
-import { handleChange, mark } from 'shared/methodCallers';
+import { handleChange, mark, teardown } from 'shared/methodCallers';
 import getPrefixer from '../helpers/getPrefixer';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -250,6 +250,13 @@ export default class DataNode {
 				dep.handleChange();
 			}
 		});
+	}
+
+	teardown () {
+		this.children.forEach( teardown );
+
+		if ( this.wrapper ) this.wrapper.teardown();
+		this.children = this.childByKey = this.deps = this.computations = null;
 	}
 
 	unregister ( dependant ) {

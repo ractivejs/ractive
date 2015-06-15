@@ -10,6 +10,9 @@ export default class Text {
 	}
 
 	detach () {
+		if ( !this.node.parentNode ) {
+			throw new Error( 'WTF' );
+		}
 		return this.node.parentNode.removeChild( this.node );
 	}
 

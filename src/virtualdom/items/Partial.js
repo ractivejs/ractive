@@ -24,6 +24,10 @@ export default class Partial extends Mustache {
 		this.fragment.bind();
 	}
 
+	detach () {
+		return this.fragment.detach();
+	}
+
 	find ( selector ) {
 		return this.fragment.find( selector );
 	}

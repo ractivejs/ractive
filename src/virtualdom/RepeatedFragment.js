@@ -92,6 +92,12 @@ export default class RepeatedFragment {
 		return fragment.bind( this.context.join([ key ]) ); // TODO join method that accepts non-array
 	}
 
+	detach () {
+		const docFrag = document.createDocumentFragment();
+		this.iterations.forEach( fragment => docFrag.appendChild( fragment.detach() ) );
+		return docFrag;
+	}
+
 	find ( selector ) {
 		const len = this.iterations.length;
 		let i;

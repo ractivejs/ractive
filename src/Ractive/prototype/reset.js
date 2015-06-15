@@ -7,28 +7,30 @@ var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'even
 	resetHook = new Hook( 'reset' );
 
 export default function Ractive$reset ( data ) {
-	var promise, wrapper, changes, i, rerender;
-
 	data = data || {};
 
 	if ( typeof data !== 'object' ) {
 		throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
 	}
 
+	let promise = runloop.start( this, true );
+
 	// If the root object is wrapped, try and use the wrapper's reset value
-	if ( ( wrapper = this.viewmodel.root.wrapper ) && wrapper.reset ) {
+	const wrapper = this.viewmodel.wrapper;
+	if ( wrapper && wrapper.reset ) {
 		if ( wrapper.reset( data ) === false ) {
 			// reset was rejected, we need to replace the object
-			this.viewmodel.reset( data );
+			this.viewmodel.set( data );
 		}
 	} else {
-		this.viewmodel.reset( data );
+		this.viewmodel.set( data );
 	}
 
 	// reset config items and track if need to rerender
-	changes = config.reset( this );
+	const changes = config.reset( this );
+	let rerender;
 
-	i = changes.length;
+	let i = changes.length;
 	while ( i-- ) {
 		if ( shouldRerender.indexOf( changes[i] ) > -1 ) {
 			rerender = true;
@@ -38,8 +40,6 @@ export default function Ractive$reset ( data ) {
 
 	if ( rerender ) {
 		let component;
-
-		this.viewmodel.root.mark();
 
 		// Is this is a component, we need to set the `shouldDestroy`
 	 	// flag, otherwise it will assume by default that a parent node
@@ -67,12 +67,11 @@ export default function Ractive$reset ( data ) {
 			});
 		}
 
+		// change return value. TODO this seems kinda hacky
 		promise = this.render( this.el, this.anchor );
-	} else {
-		promise = runloop.start( this, true );
-		this.viewmodel.root.mark();
-		runloop.end();
 	}
+
+	runloop.end();
 
 	resetHook.fire( this, data );
 

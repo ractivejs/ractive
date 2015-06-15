@@ -94,7 +94,7 @@ export default class Component extends Item {
 	render () {
 		var instance = this.instance;
 
-		instance.render( this.parentFragment.getParentNode().cloneNode() );
+		instance.render( this.parentFragment.findParentNode().cloneNode() );
 
 		this.rendered = true;
 		const docFrag = instance.fragment.detach();
@@ -103,6 +103,7 @@ export default class Component extends Item {
 
 	unbind () {
 		this.resolvers.forEach( unbind );
+		this.instance.viewmodel.teardown();
 		this.instance.fragment.unbind();
 	}
 

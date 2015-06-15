@@ -79,6 +79,10 @@ export default class Section extends Mustache {
 		}
 	}
 
+	detach () {
+		return this.fragment ? this.fragment.detach() : document.createDocumentFragment();
+	}
+
 	find ( selector ) {
 		if ( this.fragment ) {
 			return this.fragment.find( selector );

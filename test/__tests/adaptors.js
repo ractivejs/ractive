@@ -99,7 +99,7 @@ test( 'If a wrapper\'s reset() method returns false, it should be torn down (#46
 });
 
 test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', function ( t ) {
-	var Subclass, instance, FooAdaptor = {};
+	var Subclass, instance, FooAdaptor = { filter: function () {}, wrap: function () {} };
 
 	Subclass = Ractive.extend({ adapt: 'Foo', adaptors: { Foo: FooAdaptor }, modifyArrays: false });
 	instance = new Subclass();

@@ -1,6 +1,19 @@
 import hasUsableConsole from 'hasUsableConsole';
 
-module( 'Components' );
+QUnit.module( 'Components', {
+	afterEach ( assert ) {
+		const done = assert.async();
+
+		if ( fixture.__ractive_instances__ ) {
+			const promises = fixture.__ractive_instances__.map( r => r.teardown() );
+
+			Ractive.Promise.all( promises ).then( done, done );
+		} else {
+			done();
+		}
+	}
+});
+
 
 test( 'Components are rendered in the correct place', t => {
 	var Component, ractive;
