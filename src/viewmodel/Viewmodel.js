@@ -2,6 +2,7 @@ import { capture } from 'global/capture';
 import ComputedNode from './nodes/ComputedNode';
 import DataNode from './nodes/DataNode';
 import { handleChange, mark } from 'shared/methodCallers';
+import { isArray, isObject } from 'utils/is';
 
 export default class Viewmodel extends DataNode {
 	constructor ( options ) {
@@ -33,6 +34,41 @@ export default class Viewmodel extends DataNode {
 		this.computations[ key ] = computation;
 
 		return computation;
+	}
+
+	findMatches ( keys ) {
+		const len = keys.length;
+
+		let existingMatches = [ this ];
+		let matches;
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			const key = keys[i];
+
+			if ( key === '*' ) {
+				matches = [];
+				existingMatches.forEach( model => {
+					if ( isArray( model.value ) ) {
+						model.value.forEach( ( member, i ) => {
+							matches.push( model.join([ i ]) );
+						});
+					}
+
+					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
+						Object.keys( model.value ).forEach( key => {
+							matches.push( model.join([ key ] ) );
+						})
+					}
+				});
+			} else {
+				matches = existingMatches.map( model => model.join([ key ]) );
+			}
+
+			existingMatches = matches;
+		}
+
+		return matches;
 	}
 
 	get () {
