@@ -14,7 +14,7 @@ export default class ReferenceResolver {
 			let keys;
 
 			if ( reference[0] === '~' ) {
-				keys = splitKeypath( reference.slice( 2 ) );
+				keys = reference.slice( 2 ).split( '.' );
 				context = fragment.ractive.viewmodel;
 			} else {
 				while ( !fragment.context ) fragment = fragment.parent;

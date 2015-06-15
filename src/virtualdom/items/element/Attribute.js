@@ -40,17 +40,23 @@ export default class Attribute extends Item {
 		}
 	}
 
+	getString () {
+		return this.fragment ?
+			this.fragment.toString() :
+			this.value != null ? '' + this.value : '';
+	}
+
 	getValue () {
 		return this.fragment ? this.fragment.valueOf() : this.value;
 	}
 
 	render () {
 		this.node = this.element.node;
-		this.updateDelegate( this.getValue() );
+		this.updateDelegate();
 	}
 
 	toString () {
-		const value = safeToStringValue( this.getValue() )
+		const value = safeToStringValue( this.getString() )
 			.replace( /&/g, '&amp;' )
 			.replace( /"/g, '&quot;' )
 			.replace( /'/g, '&#39;' );
@@ -62,7 +68,7 @@ export default class Attribute extends Item {
 
 	update () {
 		if ( this.dirty ) {
-			this.updateDelegate( this.getValue() );
+			this.updateDelegate();
 			this.dirty = false;
 		}
 	}

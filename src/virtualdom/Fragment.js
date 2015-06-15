@@ -240,7 +240,7 @@ export default class Fragment {
 			const parsed = parseJSON( source, values );
 
 			this.value = parsed ?
-				parse.value :
+				parsed.value :
 				this.toString();
 
 			this.dirtyValue = false;
