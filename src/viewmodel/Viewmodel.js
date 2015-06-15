@@ -26,7 +26,7 @@ export default class Viewmodel extends DataNode {
 	}
 
 	compute ( key, signature ) {
-		const computation = new ComputedNode( this, signature );
+		const computation = new ComputedNode( this, signature, key );
 		this.computations[ key ] = computation;
 
 		return computation;

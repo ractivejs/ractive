@@ -4,11 +4,13 @@ import { isEqual } from 'utils/is';
 import { handleChange, mark } from 'shared/methodCallers';
 
 export default class ComputedNode extends DataNode {
-	constructor ( viewmodel, signature ) {
+	constructor ( viewmodel, signature, key ) {
 		super( null, null );
 
 		this.root = this.parent = viewmodel;
 		this.signature = signature;
+		this.key = key; // not actually used, but helps with debugging
+
 		this.context = viewmodel.computationContext;
 
 		this.hardDependencies = signature.dependencies;
