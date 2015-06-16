@@ -1,6 +1,7 @@
 import Model from 'helpers/Model';
+import cleanup from 'helpers/cleanup';
 
-module( 'Adaptors' );
+module( 'Adaptors', { afterEach: cleanup });
 
 var adaptor = Model.adaptor;
 
