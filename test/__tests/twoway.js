@@ -1,6 +1,15 @@
 import hasUsableConsole from 'hasUsableConsole';
 
-module( 'Two-way bindings' );
+module( 'Two-way bindings', {
+	afterEach () {
+		if ( fixture.__ractive_instances__ ) {
+			fixture.__ractive_instances__.forEach( ractive => {
+				ractive.transitionsEnabled = false;
+				ractive.teardown();
+			});
+		}
+	}
+});
 
 test( 'Two-way bindings work with index references', function ( t ) {
 	var input, ractive;
