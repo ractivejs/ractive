@@ -6,6 +6,10 @@ import getPrefixer from '../helpers/getPrefixer';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+function updateFromBindings ( model ) {
+	model.updateFromBindings();
+}
+
 export default class DataNode {
 	constructor ( parent, key ) {
 		this.deps = [];
@@ -15,6 +19,8 @@ export default class DataNode {
 
 		this.unresolved = [];
 		this.unresolvedByKey = {};
+
+		this.bindings = [];
 
 		this.value = undefined;
 
@@ -181,6 +187,10 @@ export default class DataNode {
 		this.deps.push( dep );
 	}
 
+	registerTwowayBinding ( binding ) {
+		this.bindings.push( binding );
+	}
+
 	set ( value, silent ) {
 		if ( isEqual( value, this.value ) ) return;
 
@@ -266,5 +276,19 @@ export default class DataNode {
 
 	unregister ( dependant ) {
 		removeFromArray( this.deps, dependant );
+	}
+
+	unregisterTwowayBinding ( binding ) {
+		removeFromArray( this.bindings, binding );
+	}
+
+	updateFromBindings ( cascade ) {
+		let i = this.bindings.length;
+		while ( i-- ) {
+			const value = this.bindings[i].getValue();
+			if ( value !== this.value ) this.set( value );
+		}
+
+		if ( cascade ) this.children.forEach( updateFromBindings );
 	}
 }

@@ -7,7 +7,7 @@ export default class CheckboxBinding extends Binding {
 	}
 
 	render () {
-		this.node = this.element.node;
+		super.render();
 
 		this.node.addEventListener( 'change', handleDomEvent, false );
 
@@ -22,6 +22,6 @@ export default class CheckboxBinding extends Binding {
 	}
 
 	getValue () {
-		return this.ement.node.checked;
+		return this.node.checked;
 	}
 }

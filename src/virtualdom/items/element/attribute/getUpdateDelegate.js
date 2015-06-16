@@ -9,6 +9,8 @@ export default function getUpdateDelegate ({ element, name, template }) {
 	if ( name === 'value' ) {
 		if ( element.getAttribute( 'contenteditable' ) != null ) return updateContentEditableValue;
 		// TODO more...
+
+		return updateValue;
 	}
 
 	const node = element.node;
@@ -46,6 +48,10 @@ function updateContentEditableValue () {
 	if ( !this.locked ) {
 		this.node.innerHTML = value === undefined ? '' : value;
 	}
+}
+
+function updateValue () {
+	this.node.value = this.node._ractive.value = this.getValue();
 }
 
 function updateRadioName () {

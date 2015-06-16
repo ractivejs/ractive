@@ -54,6 +54,8 @@ export default class Binding {
 		this.attribute.isTwoway = true;
 		this.model = model;
 
+		model.registerTwowayBinding( this );
+
 		// initialise value, if it's undefined
 		let value = model.get();
 
@@ -111,6 +113,7 @@ export default class Binding {
 	}
 
 	unbind () {
+		this.model.unregisterTwowayBinding( this );
 		// this is called when the element is unbound.
 		// Specialised bindings can override it
 	}

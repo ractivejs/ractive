@@ -41,6 +41,8 @@ export default class RadioNameBinding extends Binding {
 	}
 
 	render () {
+		super.render();
+		
 		const node = this.node;
 
 		node.name = '{{' + this.model.getKeypath() + '}}';

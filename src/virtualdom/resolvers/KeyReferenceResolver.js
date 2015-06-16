@@ -1,3 +1,5 @@
+import { warnOnceIfDebug } from 'utils/log';
+
 export default class KeyReferenceResolver {
 	constructor ( fragment, keyRef, callback ) {
 		this.deps = [];
@@ -6,6 +8,14 @@ export default class KeyReferenceResolver {
 		callback( this );
 
 		this.resolved = true;
+
+		// for debugging
+		this.keyRef = keyRef;
+		this.ractive = fragment.ractive;
+	}
+
+	get () {
+		return this.value;
 	}
 
 	getKeypath () {
@@ -14,6 +24,10 @@ export default class KeyReferenceResolver {
 
 	register () {
 		// noop - key can never change
+	}
+
+	registerTwowayBinding () {
+		warnOnceIfDebug( 'Two-way binding does not work with %s', this.keyRef, { ractive: this.ractive });
 	}
 
 	unbind () {

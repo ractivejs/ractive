@@ -1,33 +1,17 @@
 import { arrayContentsMatch } from 'utils/array';
 import { isEqual } from 'utils/is';
+import { splitKeypath } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
-
 	const promise = runloop.start( this, true );
 	let bindings;
 
-	if ( typeof keypath === 'string' && !cascade ) {
-		bindings = this._twowayBindings[ keypath ];
+	if ( !keypath ) {
+		this.viewmodel.updateFromBindings( true );
 	} else {
-		const rootKeypath = ( keypath == null || keypath === '' ),
-			  twoway = this._twowayBindings,
-			  keys = Object.keys( twoway ),
-			  length = keys.length;
-
-		let i, key;
-
-		bindings = [];
-
-		for ( i = 0; i < length; i++ ) {
-			key = keys[i];
-			if ( rootKeypath || key.lastIndexOf( keypath, 0 ) === 0 ) {
-				bindings.push.apply( bindings, twoway[ key ] );
-			}
-		}
+		this.viewmodel.join( splitKeypath( keypath ) ).updateFromBindings( cascade );
 	}
-
-	setValues( bindings );
 
 	runloop.end();
 

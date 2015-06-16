@@ -1,3 +1,4 @@
+import { ELEMENT } from 'config/types';
 import runloop from 'global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
@@ -19,6 +20,16 @@ export default class Element extends Item {
 
 		this.name = options.template.e.toLowerCase();
 		this.isVoid = voidElementNames.test( this.name );
+
+		// find parent element
+		let fragment = this.parentFragment;
+		while ( fragment ) {
+			if ( fragment.owner.type === ELEMENT ) {
+				this.parent = fragment.owner;
+				break;
+			}
+			fragment = fragment.parent;
+		}
 
 		// create attributes
 		this.attributeByName = {};
@@ -69,12 +80,12 @@ export default class Element extends Item {
 		this.attributes.forEach( bind );
 		this.eventHandlers.forEach( bind );
 
-		// create two-way binding if necessary
-		this.binding = this.createTwowayBinding();
-
 		if ( this.fragment ) {
 			this.fragment.bind();
 		}
+
+		// create two-way binding if necessary
+		this.binding = this.createTwowayBinding();
 	}
 
 	createTwowayBinding () {

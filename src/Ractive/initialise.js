@@ -190,9 +190,6 @@ function initialiseProperties ( ractive, options ) {
 	// like dynamic functions or original values
 	ractive._config = {};
 
-	// two-way bindings
-	ractive._twowayBindings = create( null );
-
 	// animations (so we can stop any in progress at teardown)
 	ractive._animations = [];
 

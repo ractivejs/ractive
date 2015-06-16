@@ -12,6 +12,8 @@ function getValue ( binding ) {
 	return binding.element.getAttribute( 'value' );
 }
 
+const push = [].push;
+
 export default class CheckboxNameBinding extends Binding {
 	constructor ( element ) {
 		super( element, 'name' );
@@ -36,7 +38,7 @@ export default class CheckboxNameBinding extends Binding {
 			existingValue = this.model.value;
 			bindingValue = this.element.getAttribute( 'value' );
 
-			existingValue.push( bindingValue );
+			push.call( existingValue, bindingValue ); // to avoid triggering runloop with array adaptor
 		}
 	}
 
