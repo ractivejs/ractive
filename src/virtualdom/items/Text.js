@@ -1,8 +1,10 @@
 import { escapeHtml } from 'utils/html';
+import Item from './shared/Item';
 
-export default class Text {
-	constructor ( str ) {
-		this.str = str;
+export default class Text extends Item {
+	constructor ( options ) {
+		super( options );
+		this.str = options.template;
 	}
 
 	bind () {

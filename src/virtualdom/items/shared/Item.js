@@ -16,4 +16,20 @@ export default class Item {
 			this.parentFragment.bubble();
 		}
 	}
+
+	find () {
+		return null;
+	}
+
+	findAll () {
+		// noop
+	}
+
+	findComponent () {
+		return null;
+	}
+
+	findAllComponents () {
+		// noop;
+	}
 }

@@ -37,7 +37,7 @@ export default class Section extends Mustache {
 
 			if ( !this.sectionType ) this.sectionType = getType( value, this.template.i );
 
-			if ( isEmpty( value ) ) {
+			if ( isEmpty( value ) && this.sectionType !== SECTION_WITH ) { // TODO again, WITH should not render if empty
 				if ( this.sectionType === SECTION_UNLESS ) {
 					this.fragment = new Fragment({
 						owner: this,

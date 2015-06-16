@@ -54,9 +54,14 @@ export default class ReferenceExpressionResolver {
 	}
 
 	bubble () {
-		if ( !this.ready ) return;
+		if ( !this.ready || !this.base ) return;
 
-		// TODO if some members are not resolved, abort
+		// if some members are not resolved, abort
+		let i = this.members.length;
+		while ( i-- ) {
+			if ( !this.members[i] ) return;
+		}
+
 		const keys = this.members.map( model => model.value );
 		const model = this.base.join( keys );
 

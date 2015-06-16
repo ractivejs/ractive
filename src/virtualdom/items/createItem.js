@@ -24,7 +24,7 @@ const specialElements = {
 
 export default function createItem ( options ) {
 	if ( typeof options.template === 'string' ) {
-		return new Text( options.template );
+		return new Text( options );
 	}
 
 	if ( options.template.t === ELEMENT ) {
