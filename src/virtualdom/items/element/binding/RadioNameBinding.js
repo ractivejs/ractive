@@ -1,16 +1,28 @@
 import Binding from './Binding';
 import { removeFromArray } from 'utils/array';
-import getSiblings from './getSiblings';
+import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
+
+function getGroupValue () {
+	let i = this.bindings.length;
+	while ( i-- ) {
+		const binding = this.bindings[i];
+		if ( binding.node.checked ) return binding.element.getAttribute( 'value' );
+	}
+}
 
 export default class RadioNameBinding extends Binding {
 	constructor ( element ) {
 		super( element, 'name' );
 
-		this.siblings = getSiblings( this.ractive._guid, 'radioname', this.model.getKeypath() );
-		this.siblings.push( this );
+		this.group = getBindingGroup( this.ractive._guid, 'radioname', this.model, getGroupValue );
+		this.group.add( this );
+	}
 
-		this.radioName = true; // so that ractive.updateModel() knows what to do with this
+	bind () {
+		if ( !this.group.bound ) {
+			this.group.bind();
+		}
 	}
 
 	getInitialValue () {
@@ -42,7 +54,7 @@ export default class RadioNameBinding extends Binding {
 
 	render () {
 		super.render();
-		
+
 		const node = this.node;
 
 		node.name = '{{' + this.model.getKeypath() + '}}';
@@ -56,7 +68,7 @@ export default class RadioNameBinding extends Binding {
 	}
 
 	unbind () {
-		removeFromArray( this.siblings, this );
+		this.group.remove( this );
 	}
 
 	unrender () {

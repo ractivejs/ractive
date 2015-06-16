@@ -1,7 +1,9 @@
 import { safeToStringValue } from 'utils/dom';
 import { isArray } from 'utils/is';
 
-export default function getUpdateDelegate ({ element, name, template }) {
+export default function getUpdateDelegate ( attribute ) {
+	const { element, name, template } = attribute;
+
 	if ( name === 'id' ) {
 		return updateId;
 	}
@@ -15,10 +17,14 @@ export default function getUpdateDelegate ({ element, name, template }) {
 
 	const node = element.node;
 
+	// TODO temp
+	if ( name === 'checked' ) return setProperty;
+
 	// TODO only if two-way binding?
 	if ( name === 'name' ) {
 		if ( node.type === 'radio' ) {
-			return updateRadioName;
+			return setProperty;
+			//return updateRadioName;
 		}
 
 		if ( node.type === 'checkbox' ) {
@@ -52,13 +58,6 @@ function updateContentEditableValue () {
 
 function updateValue () {
 	this.node.value = this.node._ractive.value = this.getValue();
-}
-
-function updateRadioName () {
-	const node = this.node;
-	const value = this.getValue();
-
-	node.checked = ( value == this.element.getAttribute( 'value' ) );
 }
 
 function updateCheckboxName () {

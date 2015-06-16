@@ -1,15 +1,19 @@
 import Binding from './Binding';
 import { isArray } from 'utils/is';
 import { arrayContains, removeFromArray } from 'utils/array';
-import getSiblings from './getSiblings';
+import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
 function isChecked ( binding ) {
-	return binding.isChecked;
+	return binding.node.checked;
 }
 
 function getValue ( binding ) {
 	return binding.element.getAttribute( 'value' );
+}
+
+function getGroupValue () {
+	return this.bindings.filter( isChecked ).map( getValue )
 }
 
 const push = [].push;
@@ -23,22 +27,28 @@ export default class CheckboxNameBinding extends Binding {
 		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
 
 		// Each input has a reference to an array containing it and its
-		// siblings, as two-way binding depends on being able to ascertain
+		// group, as two-way binding depends on being able to ascertain
 		// the status of all inputs within the group
-		this.siblings = getSiblings( this.ractive._guid, 'checkboxes', this.model.getKeypath() );
-		this.siblings.push( this );
+		this.group = getBindingGroup( this.ractive._guid, 'checkboxes', this.model, getGroupValue );
+		this.group.add( this );
 
 		if ( this.noInitialValue ) {
-			this.siblings.noInitialValue = true;
+			this.group.noInitialValue = true;
 		}
 
 		// If no initial value was set, and this input is checked, we
 		// update the model
-		if ( this.siblings.noInitialValue && this.element.getAttribute( 'checked' ) ) {
+		if ( this.group.noInitialValue && this.element.getAttribute( 'checked' ) ) {
 			existingValue = this.model.value;
 			bindingValue = this.element.getAttribute( 'value' );
 
 			push.call( existingValue, bindingValue ); // to avoid triggering runloop with array adaptor
+		}
+	}
+
+	bind () {
+		if ( !this.group.bound ) {
+			this.group.bind();
 		}
 	}
 
@@ -61,7 +71,7 @@ export default class CheckboxNameBinding extends Binding {
 	}
 
 	getValue () {
-		return this.siblings.filter( isChecked ).map( getValue );
+		return this.group.getValue();
 	}
 
 	handleChange () {
@@ -95,7 +105,7 @@ export default class CheckboxNameBinding extends Binding {
 	}
 
 	unbind () {
-		removeFromArray( this.siblings, this );
+		this.group.remove( this );
 	}
 
 	unrender () {

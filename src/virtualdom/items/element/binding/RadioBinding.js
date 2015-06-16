@@ -1,19 +1,25 @@
 import runloop from 'global/runloop';
 import { removeFromArray } from 'utils/array';
 import Binding from './Binding';
-import getSiblings from './getSiblings';
+import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
+
+let siblings = {};
+
+function getSiblings ( hash ) {
+	return siblings[ hash ] || ( siblings[ hash ] = [] );
+}
 
 export default class RadioBinding extends Binding {
 	constructor ( element ) {
 		super( element, 'checked' );
 
-		this.siblings = getSiblings( this.ractive._guid, 'radio', this.element.getAttribute( 'name' ) );
+		this.siblings = getSiblings( this.ractive._guid + this.element.getAttribute( 'name' ) );
 		this.siblings.push( this );
 	}
 
 	getValue () {
-		return this.element.node.checked;
+		return this.node.checked;
 	}
 
 	handleChange () {

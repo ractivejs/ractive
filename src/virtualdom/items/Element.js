@@ -85,7 +85,9 @@ export default class Element extends Item {
 		}
 
 		// create two-way binding if necessary
-		this.binding = this.createTwowayBinding();
+		if ( this.binding = this.createTwowayBinding() ) {
+			this.binding.bind();
+		}
 	}
 
 	createTwowayBinding () {
