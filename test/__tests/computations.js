@@ -1,6 +1,7 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
-module( 'Computations' );
+module( 'Computations', { afterEach: cleanup });
 
 test( 'Computed value declared as a function', function ( t ) {
 	var ractive = new Ractive({
@@ -109,23 +110,21 @@ test( 'Computed value with a set() method', function ( t ) {
 });
 
 test( 'Components can have default computed properties', function ( t ) {
-	var Box, ractive;
-
-	Box = Ractive.extend({
+	const Box = Ractive.extend({
 		template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
 		computed: {
 			area: '${width} * ${height}'
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<box width="{{width}}" height="{{height}}"/>',
+		template: '<Box width="{{width}}" height="{{height}}"/>',
 		data: {
 			width: 100,
 			height: 100
 		},
-		components: { box: Box }
+		components: { Box }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div style="width: 100px; height: 100px;">10000px squared</div>' );
