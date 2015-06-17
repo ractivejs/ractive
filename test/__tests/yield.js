@@ -1,18 +1,17 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
-module( 'Yield' );
+module( 'Yield', { afterEach: cleanup });
 
 test( 'Basic yield', function ( t ) {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{yield}}</p>'
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget>yeah!</widget>',
-		components: { widget: Widget }
+		template: '<Widget>yeah!</Widget>',
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
@@ -98,52 +97,46 @@ test( 'Events fire in parent context', function ( t ) {
 });
 
 test( 'A component can only have one {{yield}}', function () {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{yield}}{{yield}}</p>'
 	});
 
 	throws( () => {
-		ractive = new Ractive({
+		new Ractive({
 			el: fixture,
-			template: '<widget>yeah!</widget>',
-			components: { widget: Widget }
+			template: '<Widget>yeah!</Widget>',
+			components: { Widget }
 		});
 	}, /one {{yield}} declaration/ );
 });
 
 test( 'A component {{yield}} can be rerendered in conditional section block', function ( t ) {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{#foo}}{{yield}}{{/}}</p>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<widget>yield</widget>',
-		components: { widget: Widget },
+		components: { Widget },
 		data: { foo: true }
 	});
 
-	ractive.set('foo', false);
-	ractive.set('foo', true);
+	ractive.set( 'foo', false );
+	ractive.set( 'foo', true );
 
 	t.htmlEqual( fixture.innerHTML, '<p>yield</p>' );
 });
 
 test( 'A component {{yield}} can be rerendered in list section block', function ( t ) {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{#items:i}}{{.}}{{#i===1}}{{yield}}{{/}}{{/}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<widget>yield</widget>',
-		components: { widget: Widget },
+		components: { Widget },
 		data: { items: [ 'a', 'b', 'c' ] }
 	});
 
@@ -153,25 +146,24 @@ test( 'A component {{yield}} can be rerendered in list section block', function 
 });
 
 test( 'A component {{yield}} should be parented by the fragment holding the yield and not the fragment holding the component', t => {
-	let template, widget;
-
-	template = `<widget foo='{{foo}}'>
-		{{#if foo}}foo!{{/if}}
-		{{#if foo}}foo!{{/if}}
-	</widget>`;
-
-	widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<div>{{yield}}</div>',
 		data: {
 			foo: true
 		}
 	});
 
-	new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: template,
-		components: { widget }
+		template: `
+			<Widget foo='{{foo}}'>
+				{{#if foo}}foo!{{/if}}
+				{{#if foo}}foo!{{/if}}
+			</Widget>`,
+		components: { Widget }
 	});
+
+	const widget = ractive.findComponent( 'Widget' );
 
 	t.htmlEqual( fixture.innerHTML, '<div>foo! foo!</div>' );
 });

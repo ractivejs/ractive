@@ -1,4 +1,4 @@
-import { ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE } from '../../config/types';
+import { ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
 import Component from './Component';
 import Element from './Element';
 import Interpolator from './Interpolator';
@@ -8,13 +8,15 @@ import Section from './Section';
 import Select from './element/specials/Select';
 import Text from './Text';
 import Triple from './Triple';
+import Yielder from './Yielder';
 import getComponentConstructor from './component/getComponentConstructor';
 
 const constructors = {
 	[ INTERPOLATOR ]: Interpolator,
 	[ PARTIAL ]: Partial,
 	[ SECTION ]: Section,
-	[ TRIPLE ]: Triple
+	[ TRIPLE ]: Triple,
+	[ YIELDER ]: Yielder
 };
 
 const specialElements = {

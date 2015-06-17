@@ -3,10 +3,6 @@ import Fragment from '../Fragment';
 import parse from 'parse/_parse';
 
 export default class Partial extends Mustache {
-	constructor ( options ) {
-		super( options );
-	}
-
 	bind () {
 		super.bind();
 

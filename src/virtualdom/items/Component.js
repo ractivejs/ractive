@@ -35,6 +35,8 @@ export default class Component extends Item {
 		let partials = options.template.p || {};
 		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
 
+		this.yielders = {};
+
 		// initialise
 		initialiseRactiveInstance( this.instance, {
 			partials
@@ -85,6 +87,14 @@ export default class Component extends Item {
 		}
 	}
 
+	checkYielders () {
+		Object.keys( this.yielders ).forEach( name => {
+			if ( this.yielders[ name ].length > 1 ) {
+				throw new Error( `A component template can only have one {{yield${name ? ' ' + name : ''}}} declaration at a time` );
+			}
+		});
+	}
+
 	detach () {
 		return this.instance.detach();
 	}
@@ -119,6 +129,7 @@ export default class Component extends Item {
 		var instance = this.instance;
 
 		instance.render( this.parentFragment.findParentNode().cloneNode() );
+		this.checkYielders();
 
 		this.rendered = true;
 		const docFrag = instance.fragment.detach();
@@ -153,6 +164,8 @@ export default class Component extends Item {
 
 	update () {
 		this.instance.fragment.update();
+		this.checkYielders();
+
 		this.dirty = false;
 	}
 }
