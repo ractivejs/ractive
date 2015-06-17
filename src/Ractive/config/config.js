@@ -27,7 +27,7 @@ isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
 order = [].concat(
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
 	registries,
-	custom.data,
+	//custom.data,
 	custom.template,
 	custom.css
 );
@@ -45,7 +45,7 @@ config = {
 
 	// this defines the order. TODO this isn't used anywhere in the codebase,
 	// only in the test suite - should get rid of it
-	order,
+	order
 };
 
 function configure ( method, Parent, target, options ) {

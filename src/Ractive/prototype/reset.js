@@ -2,6 +2,7 @@ import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
 import Hook from 'events/Hook';
 import runloop from 'global/runloop';
+import dataConfigurator from 'Ractive/config/custom/data';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],
 	resetHook = new Hook( 'reset' );
@@ -12,6 +13,9 @@ export default function Ractive$reset ( data ) {
 	if ( typeof data !== 'object' ) {
 		throw new Error( 'The reset method takes either no arguments, or an object containing new data' );
 	}
+
+	// TEMP need to tidy this up
+	data = dataConfigurator.init( this.constructor, this, { data });
 
 	let promise = runloop.start( this, true );
 
@@ -39,36 +43,7 @@ export default function Ractive$reset ( data ) {
 	}
 
 	if ( rerender ) {
-		let component;
-
-		// Is this is a component, we need to set the `shouldDestroy`
-	 	// flag, otherwise it will assume by default that a parent node
-	 	// will be detached, and therefore it doesn't need to bother
-	 	// detaching its own nodes
-	 	if ( component = this.component ) {
-	 		component.shouldDestroy = true;
-	 	}
-
-		this.unrender();
-
-		if ( component ) {
-			component.shouldDestroy = false;
-		}
-
-		// If the template changed, we need to destroy the parallel DOM
-		// TODO if we're here, presumably it did?
-		if ( this.fragment.template !== this.template ) {
-			this.fragment.unbind();
-
-			this.fragment = new Fragment({
-				template: this.template,
-				root: this,
-				owner: this
-			});
-		}
-
-		// change return value. TODO this seems kinda hacky
-		promise = this.render( this.el, this.anchor );
+		this.fragment.resetTemplate( this.template );
 	}
 
 	runloop.end();

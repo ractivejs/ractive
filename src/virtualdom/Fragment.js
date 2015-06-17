@@ -29,16 +29,15 @@ export default class Fragment {
 
 		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
 
-		this.items = options.template ?
-			options.template.map( ( template, index ) => {
-				return createItem({ parentFragment: this, template, index });
-			}) :
-			[];
+		this.template = options.template || [];
+		this.createItems();
 	}
 
 	bind ( context ) {
 		this.context = context;
 		this.items.forEach( bind );
+		this.bound = true;
+
 		return this;
 	}
 
@@ -58,6 +57,12 @@ export default class Fragment {
 				this.owner.bubble();
 			}
 		}
+	}
+
+	createItems () {
+		this.items = this.template.map( ( template, index ) => {
+			return createItem({ parentFragment: this, template, index });
+		});
 	}
 
 	detach () {
@@ -201,6 +206,32 @@ export default class Fragment {
 		return docFrag;
 	}
 
+	resetTemplate ( template ) {
+		const wasBound = this.bound;
+		const wasRendered = this.rendered;
+
+		// TODO ensure transitions are disabled globally during reset
+
+		if ( wasBound ) {
+			if ( wasRendered ) this.unrender( true );
+			this.unbind();
+		}
+
+		this.template = template;
+		this.createItems();
+
+		if ( wasBound ) {
+			this.bind( this.context );
+
+			if ( wasRendered ) {
+				const parentNode = this.findParentNode();
+				const anchor = null; // TODO!!!
+
+				parentNode.insertBefore( this.render(), anchor );
+			}
+		}
+	}
+
 	resolve ( template, callback ) {
 		if ( !this.context ) {
 			return this.parent.resolve( template, callback );
@@ -220,6 +251,8 @@ export default class Fragment {
 
 	unbind () {
 		this.items.forEach( unbind );
+		this.bound = false;
+
 		return this;
 	}
 

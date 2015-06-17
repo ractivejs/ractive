@@ -269,9 +269,7 @@ export default class DataNode {
 
 	teardown () {
 		this.children.forEach( teardown );
-
 		if ( this.wrapper ) this.wrapper.teardown();
-		this.children = this.childByKey = this.deps = this.computations = null;
 	}
 
 	unregister ( dependant ) {
