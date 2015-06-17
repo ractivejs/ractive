@@ -63,10 +63,12 @@ export default class ReferenceResolver {
 	}
 
 	attemptResolution () {
+		const localViewmodel = this.fragment.ractive.viewmodel;
 		const key = this.keys[0];
 
 		let fragment = this.fragment;
 		let hasContextChain;
+		let crossedComponentBoundary;
 
 		while ( fragment ) {
 			// repeated fragments
@@ -79,6 +81,10 @@ export default class ReferenceResolver {
 				if ( !fragment.isRoot || fragment.ractive.component ) hasContextChain = true;
 
 				if ( fragment.context.has( key ) ) {
+					if ( crossedComponentBoundary ) {
+						localViewmodel.map( key, fragment.context.join([ key ]) );
+					}
+
 					const model = fragment.context.join( this.keys );
 					this.callback( model );
 					this.resolved = true;
@@ -89,8 +95,8 @@ export default class ReferenceResolver {
 
 			if ( fragment.componentParent && !fragment.ractive.isolated ) {
 				// ascend through component boundary
-				// TODO is it more efficient to create an implicit mapping at this point?
 				fragment = fragment.componentParent;
+				crossedComponentBoundary = true;
 			} else {
 				fragment = fragment.parent;
 			}
