@@ -75,7 +75,8 @@ export default class ReferenceResolver {
 			}
 
 			if ( fragment.context ) {
-				if ( !fragment.isRoot ) hasContextChain = true;
+				// TODO better encapsulate the component check
+				if ( !fragment.isRoot || fragment.ractive.component ) hasContextChain = true;
 
 				if ( fragment.context.has( key ) ) {
 					const model = fragment.context.join( this.keys );
@@ -86,7 +87,13 @@ export default class ReferenceResolver {
 				}
 			}
 
-			fragment = fragment.parent;
+			if ( fragment.componentParent && !fragment.ractive.isolated ) {
+				// ascend through component boundary
+				// TODO is it more efficient to create an implicit mapping at this point?
+				fragment = fragment.componentParent;
+			} else {
+				fragment = fragment.parent;
+			}
 		}
 
 		// TODO we can determine this immediately, don't need to wait for attemptResolution
