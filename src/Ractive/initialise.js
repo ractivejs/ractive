@@ -15,7 +15,7 @@ import Fragment from 'virtualdom/Fragment';
 import Viewmodel from 'viewmodel/Viewmodel';
 import Hook from 'events/Hook';
 import HookQueue from 'events/HookQueue';
-import getComputationSignatures from './helpers/getComputationSignatures';
+import getComputationSignature from './helpers/getComputationSignature';
 import Ractive from '../Ractive';
 
 let constructHook = new Hook( 'construct' );
@@ -62,12 +62,17 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 	viewmodel = new Viewmodel({
 		adapt: getAdaptors( ractive, ractive.adapt, userOptions ),
 		data: dataConfigurator.init( ractive.constructor, ractive, userOptions ),
-		mappings: options.mappings,
-		computations: getComputationSignatures( ractive, computed ),
 		ractive
 	});
 
 	ractive.viewmodel = viewmodel;
+
+	// Add computed properties
+	Object.keys( computed ).forEach( key => {
+		const signature = getComputationSignature( ractive, key, computed[ key ] );
+		const computation = viewmodel.compute( key, signature );
+		computation.init();
+	});
 
 	// TODO: computed properties with setters need to access ractive
 	// viewmodel.init()

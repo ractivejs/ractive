@@ -1,4 +1,3 @@
-import { startCapturing, stopCapturing } from 'global/capture';
 import IndexReferenceResolver from './IndexReferenceResolver';
 import KeyReferenceResolver from './KeyReferenceResolver';
 import ReferenceResolver from './ReferenceResolver';
@@ -81,14 +80,9 @@ export default class ExpressionResolver {
 					}
 				});
 
-				startCapturing();
-				const result = this.fn.apply( ractive, values );
-				const softDeps = stopCapturing();
-
-				model.setSoftDependencies( softDeps );
-
-				return result;
-			}
+				return this.fn.apply( ractive, values );
+			},
+			getterString: key
 		};
 
 		const model = ractive.viewmodel.compute( key, signature );

@@ -112,7 +112,7 @@ export default class DataNode {
 	}
 
 	has ( key ) {
-		return hasOwnProperty.call( this.value, key );
+		return this.value && hasOwnProperty.call( this.value, key );
 	}
 
 	join ( keys ) {
