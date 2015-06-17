@@ -169,7 +169,8 @@ export default class Element extends Item {
 
 		defineProperty( node, '_ractive', {
 			value: {
-				events: {}
+				events: {},
+				context: this.parentFragment.findContext()
 			}
 		});
 

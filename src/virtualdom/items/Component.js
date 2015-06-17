@@ -17,9 +17,12 @@ export default class Component extends Item {
 		this.parentFragment = options.parentFragment;
 		this.resolvers = [];
 
+		let partials = options.template.p || {};
+		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
+
 		// initialise
 		initialiseRactiveInstance( this.instance, {
-
+			partials
 		}, {
 			parent: this.parentFragment.ractive,
 			component: this,
@@ -63,6 +66,10 @@ export default class Component extends Item {
 			this.dirty = true;
 			this.parentFragment.bubble();
 		}
+	}
+
+	detach () {
+		return this.instance.detach();
 	}
 
 	find ( selector ) {

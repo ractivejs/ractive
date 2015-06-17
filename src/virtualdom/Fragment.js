@@ -120,6 +120,12 @@ export default class Fragment {
 		return queryResult;
 	}
 
+	findContext () {
+		let fragment = this;
+		while ( !fragment.context ) fragment = fragment.parent;
+		return fragment.context;
+	}
+
 	findNextNode ( item ) {
 		const nextItem = this.items[ item.index + 1 ];
 
