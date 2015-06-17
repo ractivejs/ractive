@@ -163,7 +163,18 @@ export default class Section extends Mustache {
 		}
 
 		// TODO same comment as before - WITH should be IF_WITH
-		else if ( this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH ) {
+		else if ( this.sectionType === SECTION_WITH ) {
+			if ( this.fragment ) {
+				this.fragment.update();
+			} else {
+				newFragment = new Fragment({
+					owner: this,
+					template: this.template.f
+				}).bind( this.model );
+			}
+		}
+
+		else if ( this.sectionType === SECTION_IF_WITH ) {
 			if ( this.fragment ) {
 				if ( isEmpty( value ) ) {
 					if ( this.rendered ) {
@@ -174,7 +185,7 @@ export default class Section extends Mustache {
 				} else {
 					this.fragment.update();
 				}
-			} else {
+			} else if ( !isEmpty( value ) ) {
 				newFragment = new Fragment({
 					owner: this,
 					template: this.template.f

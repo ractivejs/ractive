@@ -41,7 +41,9 @@ export default class Component extends Item {
 		}, {
 			parent: this.parentFragment.ractive,
 			component: this,
-			autobind: false
+			autobind: false,
+			indexRefs: instance.isolated ? {} : this.parentFragment.indexRefs,
+			keyRefs: instance.isolated ? {} : this.parentFragment.keyRefs
 		});
 	}
 

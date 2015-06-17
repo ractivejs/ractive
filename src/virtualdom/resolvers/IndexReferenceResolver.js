@@ -12,7 +12,7 @@ export default class IndexReferenceResolver {
 		if ( indexRef !== '@index' ) {
 			while ( fragment ) {
 				if ( fragment.indexRef === indexRef ) break;
-				fragment = fragment.parent;
+				fragment = fragment.parent || fragment.componentParent;
 			}
 		}
 
@@ -20,7 +20,7 @@ export default class IndexReferenceResolver {
 		else {
 			while ( fragment ) {
 				if ( fragment.indexRefResolvers ) break;
-				fragment = fragment.parent;
+				fragment = fragment.parent || fragment.componentParent;
 			}
 		}
 

@@ -167,10 +167,13 @@ export default class Element extends Item {
 		const node = document.createElement( this.template.e );
 		this.node = node;
 
+		const context = this.parentFragment.findContext();
+
 		defineProperty( node, '_ractive', {
 			value: {
 				events: {},
-				context: this.parentFragment.findContext()
+				context,
+				keypath: context.getKeypath()
 			}
 		});
 

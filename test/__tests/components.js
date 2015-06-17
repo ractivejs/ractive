@@ -186,12 +186,12 @@ test( 'Correct value is given to node._ractive.keypath when a component is torn 
 		}
 	});
 
-	t.equal( ractive.find( 'p' )._ractive.keypath.getKeypath(), '' );
+	t.equal( ractive.find( 'p' )._ractive.keypath, '' );
 
 	ractive.set( 'visible', false );
 	ractive.set( 'visible', true );
 
-	t.equal( ractive.find( 'p' )._ractive.keypath.getKeypath(), '' );
+	t.equal( ractive.find( 'p' )._ractive.keypath, '' );
 });
 
 test( 'Nested components fire the oninit() event correctly (#511)', t => {
@@ -415,20 +415,24 @@ test( 'Removing inline components causes teardown events to fire (#853)', t => {
 });
 
 test( 'Regression test for #871', t => {
-	var ractive = new Ractive({
+	const Widget = Ractive.extend({
+		template: '<p>inside component: {{i}}-{{text}}</p>'
+	});
+
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#items:i}}<p>outside component: {{i}}-{{uppercase(.)}}</p><widget text="{{uppercase(.)}}" />{{/items}}',
+		template: `
+			{{#items:i}}
+				<p>outside component: {{i}}-{{uppercase(.)}}</p>
+				<Widget text="{{uppercase(.)}}" />
+			{{/items}}`,
 		data: {
 			items: [ 'a', 'b', 'c' ],
-			uppercase: function ( letter ) {
+			uppercase ( letter ) {
 				return letter.toUpperCase();
 			}
 		},
-		components: {
-			widget: Ractive.extend({
-				template: '<p>inside component: {{i}}-{{text}}</p>'
-			})
-		}
+		components: { Widget }
 	});
 
 	ractive.splice( 'items', 1, 1 );

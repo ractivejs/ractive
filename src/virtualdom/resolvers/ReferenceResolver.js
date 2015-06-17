@@ -70,7 +70,7 @@ export default class ReferenceResolver {
 
 		while ( fragment ) {
 			// repeated fragments
-			if ( ( key === fragment.indexRef || key === fragment.keyRef ) && this.keys.length === 1 ) {
+			if ( ( key === fragment.indexRef || key === fragment.keyRef ) && this.keys.length > 1 ) {
 				throw new Error( `An index or key reference (${key}) cannot have child properties` );
 			}
 

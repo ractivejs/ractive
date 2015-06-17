@@ -99,8 +99,8 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 			owner: ractive,
 			template: ractive.template,
 			cssIds,
-			indexRefs: {},
-			keyRefs: {}
+			indexRefs: options.indexRefs || {},
+			keyRefs: options.keyRefs || {}
 		});
 
 		// options.autobind is so we can bind components lazily,
