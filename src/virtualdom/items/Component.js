@@ -2,9 +2,24 @@ import { INTERPOLATOR } from 'config/types';
 import Item from './shared/Item';
 import initialiseRactiveInstance from 'Ractive/initialise';
 import { create } from 'utils/object';
+import { removeFromArray } from 'utils/array';
 import { isArray } from 'utils/is';
 import createResolver from '../resolvers/createResolver';
-import { unbind } from 'shared/methodCallers';
+import { cancel, unbind } from 'shared/methodCallers';
+import Hook from 'events/Hook';
+
+function removeFromLiveComponentQueries ( component ) {
+	let instance = component.ractive;
+
+	while ( instance ) {
+		const query = instance._liveComponentQueries[ `_${component.name}` ];
+		if ( query ) query._remove( component );
+
+		instance = instance.parent;
+	}
+}
+
+const teardownHook = new Hook( 'teardown' );
 
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
@@ -108,10 +123,25 @@ export default class Component extends Item {
 		return docFrag;
 	}
 
+	toString () {
+		return this.instance.toHTML();
+	}
+
 	unbind () {
 		this.resolvers.forEach( unbind );
-		this.instance.viewmodel.teardown();
-		this.instance.fragment.unbind();
+
+		const instance = this.instance;
+		instance.viewmodel.teardown();
+		instance.fragment.unbind();
+		instance._observers.forEach( cancel );
+
+		removeFromLiveComponentQueries( this );
+
+		if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
+			removeFromArray( instance.el.__ractive_instances__, instance );
+		}
+
+		teardownHook.fire( instance );
 	}
 
 	unrender ( shouldDestroy ) {

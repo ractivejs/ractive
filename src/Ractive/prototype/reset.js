@@ -1,6 +1,6 @@
 import config from 'Ractive/config/config';
 import Fragment from 'virtualdom/Fragment';
-import Hook from './shared/hooks/Hook';
+import Hook from 'events/Hook';
 import runloop from 'global/runloop';
 
 var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],

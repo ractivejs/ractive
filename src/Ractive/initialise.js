@@ -13,8 +13,8 @@ import config from 'Ractive/config/config';
 import dataConfigurator from 'Ractive/config/custom/data';
 import Fragment from 'virtualdom/Fragment';
 import Viewmodel from 'viewmodel/Viewmodel';
-import Hook from './prototype/shared/hooks/Hook';
-import HookQueue from './prototype/shared/hooks/HookQueue';
+import Hook from 'events/Hook';
+import HookQueue from 'events/HookQueue';
 import getComputationSignatures from './helpers/getComputationSignatures';
 import Ractive from '../Ractive';
 

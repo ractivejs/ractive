@@ -1,4 +1,4 @@
-import Hook from './shared/hooks/Hook';
+import Hook from 'events/Hook';
 import { getElement } from 'utils/dom';
 
 var insertHook = new Hook( 'insert' );

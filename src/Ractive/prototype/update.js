@@ -1,4 +1,4 @@
-import Hook from './shared/hooks/Hook';
+import Hook from 'events/Hook';
 import runloop from 'global/runloop';
 import { splitKeypath } from 'shared/keypaths';
 

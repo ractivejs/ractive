@@ -1,5 +1,5 @@
 import css from 'global/css';
-import Hook from './shared/hooks/Hook';
+import Hook from 'events/Hook';
 import { getElement } from 'utils/dom';
 import { teardown } from 'shared/methodCallers';
 import runloop from 'global/runloop';

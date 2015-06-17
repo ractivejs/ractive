@@ -8,7 +8,7 @@ import Section from './Section';
 import Select from './element/specials/Select';
 import Text from './Text';
 import Triple from './Triple';
-import { findInViewHierarchy } from 'shared/registry';
+import getComponentConstructor from './component/getComponentConstructor';
 
 const constructors = {
 	[ INTERPOLATOR ]: Interpolator,
@@ -29,7 +29,7 @@ export default function createItem ( options ) {
 
 	if ( options.template.t === ELEMENT ) {
 		// could be component or element
-		const ComponentConstructor = findInViewHierarchy( 'components', options.parentFragment.ractive, options.template.e );
+		const ComponentConstructor = getComponentConstructor( options.parentFragment.ractive, options.template.e );
 		if ( ComponentConstructor ) {
 			return new Component( options, ComponentConstructor );
 		}
