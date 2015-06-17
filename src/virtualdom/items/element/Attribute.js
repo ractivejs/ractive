@@ -1,9 +1,12 @@
 import { INTERPOLATOR } from 'config/types';
+import { html } from 'config/namespaces';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
+import propertyNames from './attribute/propertyNames';
 import { isArray } from 'utils/is';
 import { safeToStringValue } from 'utils/dom';
+import { booleanAttributes } from 'utils/html';
 
 export default class Attribute extends Item {
 	constructor ( options ) {
@@ -13,6 +16,8 @@ export default class Attribute extends Item {
 		this.element = options.element;
 		this.parentFragment = options.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
+
+		this.propertyName =
 
 		this.updateDelegate = null;
 		this.fragment = null;
@@ -60,10 +65,29 @@ export default class Attribute extends Item {
 	}
 
 	render () {
-		if ( this.isEmpty ) return;
+		const node = this.element.node;
+		this.node = node;
 
-		this.node = this.element.node;
+		// should we use direct property access, or setAttribute?
+		if ( !node.namespaceURI || node.namespaceURI === html ) {
+			const propertyName = propertyNames[ this.name ] || this.name;
 
+			if ( node[ propertyName ] !== undefined ) {
+				this.propertyName = propertyName;
+			}
+
+			// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
+			// node.selected = true rather than node.setAttribute( 'selected', '' )
+			if ( booleanAttributes.test( this.name ) || this.isTwoway ) {
+				this.useProperty = true;
+			}
+
+			if ( propertyName === 'value' ) {
+				node._ractive.value = this.value;
+			}
+		}
+
+		this.rendered = true; // TODO is this used?
 		this.updateDelegate = getUpdateDelegate( this );
 		this.updateDelegate();
 	}

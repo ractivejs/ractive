@@ -1,12 +1,12 @@
 /*global console, navigator */
-var isClient, isJsdom, hasConsole, magic, namespaces, svg, vendors;
 
-isClient = ( typeof document === 'object' );
+export const isClient = ( typeof document === 'object' );
 
-isJsdom = ( typeof navigator !== 'undefined' && /jsDom/.test( navigator.appName ) );
+export const isJsdom = ( typeof navigator !== 'undefined' && /jsDom/.test( navigator.appName ) );
 
-hasConsole = ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' );
+export const hasConsole = ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' );
 
+export let magic;
 try {
 	Object.defineProperty({}, 'test', { value: 0 });
 	magic = true;
@@ -14,21 +14,11 @@ try {
 	magic = false;
 }
 
-namespaces = {
-	html:   'http://www.w3.org/1999/xhtml',
-	mathml: 'http://www.w3.org/1998/Math/MathML',
-	svg:    'http://www.w3.org/2000/svg',
-	xlink:  'http://www.w3.org/1999/xlink',
-	xml:    'http://www.w3.org/XML/1998/namespace',
-	xmlns:  'http://www.w3.org/2000/xmlns/'
-};
-
+export let svg;
 if ( typeof document === 'undefined' ) {
 	svg = false;
 } else {
 	svg = document && document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
 }
 
-vendors = [ 'o', 'ms', 'moz', 'webkit' ];
-
-export { isClient, isJsdom, hasConsole, magic, namespaces, svg, vendors };
+export const vendors = [ 'o', 'ms', 'moz', 'webkit' ];

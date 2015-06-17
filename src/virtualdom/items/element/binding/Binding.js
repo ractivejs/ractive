@@ -87,26 +87,26 @@ export default class Binding {
 	}
 
 	// TODO still necessary?
-	rebound () {
-		var bindings, oldKeypath, newKeypath;
-
-		oldKeypath = this.keypath;
-		newKeypath = this.attribute.interpolator.model;
-
-		// The attribute this binding is linked to has already done the work
-		if ( oldKeypath === newKeypath ) {
-			return;
-		}
-
-		if ( oldKeypath != null ) {
-			removeFromArray( this.root._twowayBindings[ oldKeypath.getKeypath() ], this );
-		}
-
-		this.keypath = newKeypath;
-
-		bindings = this.root._twowayBindings[ newKeypath.getKeypath() ] || ( this.root._twowayBindings[ newKeypath.getKeypath() ] = [] );
-		bindings.push( this );
-	}
+	// rebound () {
+	// 	var bindings, oldKeypath, newKeypath;
+	//
+	// 	oldKeypath = this.keypath;
+	// 	newKeypath = this.attribute.interpolator.model;
+	//
+	// 	// The attribute this binding is linked to has already done the work
+	// 	if ( oldKeypath === newKeypath ) {
+	// 		return;
+	// 	}
+	//
+	// 	if ( oldKeypath != null ) {
+	// 		removeFromArray( this.root._twowayBindings[ oldKeypath.getKeypath() ], this );
+	// 	}
+	//
+	// 	this.keypath = newKeypath;
+	//
+	// 	bindings = this.root._twowayBindings[ newKeypath.getKeypath() ] || ( this.root._twowayBindings[ newKeypath.getKeypath() ] = [] );
+	// 	bindings.push( this );
+	// }
 
 	render () {
 		this.node = this.element.node;
@@ -116,7 +116,5 @@ export default class Binding {
 
 	unbind () {
 		this.model.unregisterTwowayBinding( this );
-		// this is called when the element is unbound.
-		// Specialised bindings can override it
 	}
 }

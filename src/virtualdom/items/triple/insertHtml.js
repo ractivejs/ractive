@@ -1,4 +1,4 @@
-import { namespaces } from 'config/environment';
+import { svg } from 'config/namespaces';
 import { createElement } from 'utils/dom';
 
 var elementCache = {}, ieBug, ieBlacklist;
@@ -32,7 +32,7 @@ export default function ( html, node, docFrag ) {
 			}
 		}
 
-		else if ( node.namespaceURI === namespaces.svg ) {
+		else if ( node.namespaceURI === svg ) {
 			container = element( 'DIV' );
 			container.innerHTML = '<svg class="x">' + html + '</svg>';
 			container = container.querySelector( '.x' );
