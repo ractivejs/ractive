@@ -70,13 +70,14 @@ export default class ExpressionResolver {
 		});
 
 		const signature = {
-			dependencies: this.models.filter( Boolean ),
 			getter: () => {
 				const values = this.models.map( model => {
-					if ( typeof model.value === 'function' ) {
-						return wrapFunction( model.value, ractive, ractive._guid );
+					const value = model.get();
+
+					if ( typeof value === 'function' ) {
+						return wrapFunction( value, ractive, ractive._guid );
 					} else {
-						return model.value;
+						return value;
 					}
 				});
 

@@ -55,12 +55,7 @@ export default class ComputedNode extends DataNode {
 
 		this.context = viewmodel.computationContext;
 
-		this.hardDependencies = signature.dependencies || [];
-		this.hardDependencies.forEach( model => {
-			model.register( this );
-		});
-
-		this.softDependencies = [];
+		this.dependencies = [];
 
 		this.children = [];
 		this.childByKey = {};
@@ -92,7 +87,7 @@ export default class ComputedNode extends DataNode {
 		}
 
 		const softDependencies = stopCapturing();
-		this.setSoftDependencies( softDependencies );
+		this.setDependencies( softDependencies );
 
 		return result;
 	}
@@ -128,22 +123,22 @@ export default class ComputedNode extends DataNode {
 		this.signature.setter( value );
 	}
 
-	setSoftDependencies ( softDependencies ) {
+	setDependencies ( dependencies ) {
 		// unregister any soft dependencies we no longer have
-		let i = this.softDependencies.length;
+		let i = this.dependencies.length;
 		while ( i-- ) {
-			const model = this.softDependencies[i];
-			if ( !~softDependencies.indexOf( model ) ) model.unregister( this );
+			const model = this.dependencies[i];
+			if ( !~dependencies.indexOf( model ) ) model.unregister( this );
 		}
 
 		// and add any new ones
-		i = softDependencies.length;
+		i = dependencies.length;
 		while ( i-- ) {
-			const model = softDependencies[i];
-			if ( !~this.softDependencies.indexOf( model ) ) model.register( this );
+			const model = dependencies[i];
+			if ( !~this.dependencies.indexOf( model ) ) model.register( this );
 		}
 
-		this.softDependencies = softDependencies;
+		this.dependencies = dependencies;
 	}
 
 	unregister ( dependant ) {
