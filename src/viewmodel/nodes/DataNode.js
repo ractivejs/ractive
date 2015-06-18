@@ -3,8 +3,9 @@ import { isEqual, isNumeric } from 'utils/is';
 import { removeFromArray } from 'utils/array';
 import { handleChange, mark, teardown } from 'shared/methodCallers';
 import getPrefixer from '../helpers/getPrefixer';
+import { isArray, isObject } from 'utils/is';
 
-const hasOwnProperty = Object.prototype.hasOwnProperty;
+const hasProp = Object.prototype.hasOwnProperty;
 
 function updateFromBindings ( model ) {
 	model.updateFromBindings( true );
@@ -97,6 +98,41 @@ export default class DataNode {
 		return branch;
 	}
 
+	findMatches ( keys ) {
+		const len = keys.length;
+
+		let existingMatches = [ this ];
+		let matches;
+		let i;
+
+		for ( i = 0; i < len; i += 1 ) {
+			const key = keys[i];
+
+			if ( key === '*' ) {
+				matches = [];
+				existingMatches.forEach( model => {
+					if ( isArray( model.value ) ) {
+						model.value.forEach( ( member, i ) => {
+							matches.push( model.join([ i ]) );
+						});
+					}
+
+					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
+						Object.keys( model.value ).forEach( key => {
+							matches.push( model.join([ key ] ) );
+						})
+					}
+				});
+			} else {
+				matches = existingMatches.map( model => model.join([ key ]) );
+			}
+
+			existingMatches = matches;
+		}
+
+		return matches;
+	}
+
 	get () {
 		capture( this ); // TODO should this happen here? do we want a non-side-effecty get()?
 
@@ -112,7 +148,7 @@ export default class DataNode {
 	}
 
 	has ( key ) {
-		return this.value && hasOwnProperty.call( this.value, key );
+		return this.value && hasProp.call( this.value, key );
 	}
 
 	join ( keys ) {

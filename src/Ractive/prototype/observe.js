@@ -1,6 +1,6 @@
 import runloop from 'global/runloop';
 import { isObject } from 'utils/is';
-import { normalise } from 'shared/keypaths';
+import { splitKeypath } from 'shared/keypaths';
 import { extend } from 'utils/object';
 
 const onceOptions = { init: false, once: true };
@@ -18,8 +18,7 @@ export function observe ( keypath, callback, options ) {
 			const callback = map[ keypath ];
 
 			keypath.split( ' ' ).forEach( keypath => {
-				const model = viewmodel.join( normalise( keypath ).split( '.' ) ); // should have a splitKeypath function
-				observers.push( new Observer( this, model, callback, options ) );
+				observers.push( createObserver( this, keypath, callback, options ) );
 			});
 		});
 	}
@@ -32,12 +31,11 @@ export function observe ( keypath, callback, options ) {
 			callback = keypath;
 			keypaths = [ '' ];
 		} else {
-			keypaths = keypath.split( ' ' ).map( normalise );
+			keypaths = keypath.split( ' ' );
 		}
 
 		keypaths.forEach( keypath => {
-			const model = viewmodel.join( keypath.split( '.' ) );
-			observers.push( new Observer( this, model, callback, options || {} ) );
+			observers.push( createObserver( this, keypath, callback, options || {} ) );
 		});
 	}
 
@@ -60,6 +58,26 @@ export function observeOnce ( keypath, callback, options ) {
 
 	options = extend( options || {}, onceOptions );
 	return this.observe( keypath, callback, options );
+}
+
+function createObserver ( ractive, keypath, callback, options ) {
+	const viewmodel = ractive.viewmodel;
+
+	const keys = splitKeypath( keypath );
+	const wildcardIndex = keys.indexOf( '*' );
+
+	// normal keypath - no wildcards
+	if ( !~wildcardIndex ) {
+		const model = viewmodel.join( keys );
+		return new Observer( ractive, model, callback, options );
+	}
+
+	// pattern observers - more complex case
+	const baseModel = wildcardIndex === 0 ?
+		viewmodel :
+		viewmodel.join( keys.slice( 0, wildcardIndex ) );
+
+	return new PatternObserver( ractive, baseModel, keys.splice( wildcardIndex ), callback, options );
 }
 
 class Observer {
@@ -91,6 +109,12 @@ class Observer {
 		this.model.unregister( this );
 	}
 
+	dispatch () {
+		this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
+		this.oldValue = this.newValue;
+		this.dirty = false;
+	}
+
 	handleChange () {
 		if ( !this.dirty ) {
 			this.newValue = this.model.value;
@@ -103,10 +127,72 @@ class Observer {
 			if ( this.once ) this.cancel();
 		}
 	}
+}
+
+class PatternObserver {
+	constructor ( context, baseModel, keys, callback, options ) {
+		this.context = context;
+		this.baseModel = baseModel;
+		this.keys = keys;
+		this.callback = callback;
+
+		this.oldValues = {};
+		this.newValues = {};
+
+		this.defer = options.defer;
+		this.once = options.once;
+		this.strict = options.strict;
+
+		this.dirty = false;
+
+		this.baseModel.findMatches( this.keys ).forEach( model => {
+			this.newValues[ model.getKeypath() ] = model.value;
+		});
+
+		if ( options.init !== false ) {
+			this.dispatch();
+		} else {
+			this.oldValues = this.newValues;
+		}
+
+		baseModel.register( this );
+	}
+
+	cancel () {
+		this.baseModel.unregister( this );
+	}
 
 	dispatch () {
-		this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
-		this.oldValue = this.newValue;
+		Object.keys( this.newValues ).forEach( keypath => {
+			const newValue = this.newValues[ keypath ];
+			const oldValue = this.oldValues[ keypath ];
+
+			this.callback.call( this.context, newValue, oldValue, keypath );
+		});
+
+		this.oldValues = this.newValues;
 		this.dirty = false;
+	}
+
+	handleChange () {
+		if ( !this.dirty ) {
+			this.newValues = {};
+
+			// handle case where previously extant keypath no longer exists -
+			// observer should still fire, with undefined as new value
+			Object.keys( this.oldValues ).forEach( keypath => {
+				this.newValues[ keypath ] = undefined;
+			});
+
+			this.baseModel.findMatches( this.keys ).forEach( model => {
+				const keypath = model.getKeypath();
+				this.newValues[ keypath ] = model.value;
+			});
+
+			runloop.addObserver( this, this.defer );
+			this.dirty = true;
+
+			if ( this.once ) this.cancel();
+		}
 	}
 }

@@ -337,7 +337,7 @@ test( 'Observers should not fire twice when an upstream change is already a chan
 	t.equal( count, 1 );
 });
 
-module( 'ractive.observeList() List Observers' )
+module( 'ractive.observeList() List Observers', { afterEach: cleanup });
 
 test( 'List observers report array modifications', t => {
 	let shuffle, ractive = new Ractive({
@@ -420,7 +420,7 @@ test( 'Pattern observers on arrays fire correctly after mutations', function ( t
 	t.equal( deleted[0], 'd' );
 });
 
-module( 'ractive.observe() Pattern Observers' );
+module( 'ractive.observe() Pattern Observers', { afterEach: cleanup });
 
 test( 'Pattern observers fire on changes to keypaths that match their pattern', function ( t ) {
 	var ractive, expected;
