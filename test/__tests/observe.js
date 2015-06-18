@@ -1,4 +1,6 @@
-module( 'ractive.observe()' );
+import cleanup from 'helpers/cleanup';
+
+module( 'ractive.observe()', { afterEach: cleanup });
 
 test( 'Observers fire before the DOM updates', function ( t ) {
 	var ractive = new Ractive({
