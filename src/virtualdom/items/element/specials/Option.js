@@ -25,6 +25,11 @@ export default class Option extends Element {
 	}
 
 	bind () {
+		if ( !this.select ) {
+			super.bind();
+			return;
+		}
+
 		// If the select has a value, it overrides the `selected` attribute on
 		// this option - so we delete the attribute
 		const selectedAttribute = this.attributeByName.selected;
@@ -40,6 +45,9 @@ export default class Option extends Element {
 
 	unbind () {
 		super.unbind();
-		removeFromArray( this.select.options, this );
+
+		if ( this.select ) {
+			removeFromArray( this.select.options, this );
+		}
 	}
 }

@@ -29,8 +29,13 @@ export default class SingleSelectBinding extends Binding {
 
 		// take the final selected option...
 		while ( i-- ) {
-			if ( options[i].getAttribute( 'selected' ) ) {
-				value = options[i].getAttribute( 'value' );
+			const option = options[i];
+
+			if ( option.getAttribute( 'selected' ) ) {
+				if ( !option.getAttribute( 'disabled' ) ) {
+					value = option.getAttribute( 'value' );
+				}
+
 				optionWasSelected = true;
 				break;
 			}
@@ -65,7 +70,7 @@ export default class SingleSelectBinding extends Binding {
 		for ( i = 0; i < len; i += 1 ) {
 			option = options[i];
 
-			if ( options[i].selected ) {
+			if ( options[i].selected && !options[i].disabled ) {
 				optionValue = option._ractive ? option._ractive.value : option.value;
 				return optionValue;
 			}
