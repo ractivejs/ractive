@@ -156,7 +156,9 @@ function updateRadioValue () {
 }
 
 function updateValue () {
-	this.node.value = this.node._ractive.value = this.getValue();
+	if ( !this.locked ) {
+		this.node.value = this.node._ractive.value = this.getValue();
+	}
 }
 
 function updateRadioName () {
