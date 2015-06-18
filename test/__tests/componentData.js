@@ -125,7 +125,7 @@ test( 'Data on the child is propagated to the parent, if it is not missing', t =
 	widget = ractive.findComponent( 'widget' );
 
 	t.equal( ractive.get( 'one' ), 'yes' );
-	t.ok( !( 'two' in ractive.viewmodel.data ) );
+	t.ok( !( 'two' in ractive.viewmodel.value ) );
 	t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 });
 

@@ -51,6 +51,7 @@ export default class Component extends Item {
 
 	bind () {
 		const viewmodel = this.instance.viewmodel;
+		const childData = viewmodel.value;
 
 		// determine mappings
 		if ( this.template.a ) {
@@ -65,6 +66,10 @@ export default class Component extends Item {
 					if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
 						const resolver = createResolver( this.parentFragment, template[0], model => {
 							viewmodel.map( localKey, model );
+
+							if ( model.value === undefined && localKey in childData ) {
+								model.set( childData[ localKey ] );
+							}
 						});
 
 						this.resolvers.push( resolver );
