@@ -10,13 +10,6 @@ function findParentSelect ( element ) {
 
 export default class Option extends Element {
 	constructor ( options ) {
-		super( options );
-
-		this.select = findParentSelect( this.parent );
-
-		// we might be inside a <datalist> element
-		if ( !this.select ) return;
-
 		const template = options.template;
 		if ( !template.a ) template.a = {};
 
@@ -25,6 +18,10 @@ export default class Option extends Element {
 		if ( template.a.value === undefined && !( 'disabled' in template ) ) {
 			template.a.value = template.f;
 		}
+
+		super( options );
+
+		this.select = findParentSelect( this.parent );
 	}
 
 	bind () {

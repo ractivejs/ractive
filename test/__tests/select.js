@@ -258,7 +258,17 @@ test( '<option>{{foo}}</option> behaves the same as <option value="{{foo}}">{{fo
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<select value="{{test1}}"><option>a</option><option>b</option><option>c</option></select><select value="{{test2}}">{{#options}}<option>{{.}}</option>{{/options}}</select>',
+		template: `
+			<select value="{{test1}}">
+				<option>a</option>
+				<option>b</option>
+				<option>c</option>
+			</select>
+			<select value="{{test2}}">
+				{{#options}}
+					<option>{{.}}</option>
+				{{/options}}
+			</select>`,
 		data: { options: [ 'a', 'b', 'c' ]}
 	});
 
