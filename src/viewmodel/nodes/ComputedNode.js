@@ -53,6 +53,8 @@ export default class ComputedNode extends DataNode {
 		this.signature = signature;
 		this.key = key; // not actually used, but helps with debugging
 
+		this.isReadonly = !this.signature.setter;
+
 		this.context = viewmodel.computationContext;
 
 		this.dependencies = [];
@@ -117,7 +119,7 @@ export default class ComputedNode extends DataNode {
 
 	set ( value ) {
 		if ( !this.signature.setter ) {
-			throw new Error( 'TODO' );
+			throw new Error( `Cannot set read-only computed property '${this.key}'` );
 		}
 
 		this.signature.setter( value );

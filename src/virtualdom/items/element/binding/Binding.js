@@ -32,8 +32,8 @@ export default class Binding {
 		}
 
 		// TODO does this still work?
-		if ( model.getKeypath().slice( -1 ) === '}' ) {
-			warnOnceIfDebug( 'Two-way binding does not work with expressions (`%s` on <%s>)', interpolator.model.key, element.name, { ractive: this.root });
+		if ( model.isReadonly ) {
+			warnOnceIfDebug( 'Cannot use two-way binding on <%s> element: %s is read-only', element.name, interpolator.model.getKeypath(), { ractive: this.root });
 			return false;
 		}
 

@@ -102,15 +102,19 @@ function initialiseRactiveInstance ( ractive, userOptions = {}, options = {} ) {
 			indexRefs: options.indexRefs || {},
 			keyRefs: options.keyRefs || {}
 		});
-
-		// options.autobind is so we can bind components lazily,
-		// after mappings have been created
-		if ( options.autobind !== false ) {
-			ractive.fragment.bind( viewmodel );
-		}
 	}
 
 	initHook.end( ractive );
+
+	// TODO initHook moved to before binding... will this break
+	// this.findComponent inside oninit? Is that a problem?
+	// Should be onrender anyway, right?
+
+	// options.autobind is so we can bind components lazily,
+	// after mappings have been created
+	if ( ractive.fragment && options.autobind !== false ) {
+		ractive.fragment.bind( viewmodel );
+	}
 
 	// render automatically ( if `el` is specified )
 	if ( el = getElement( ractive.el ) ) {
