@@ -175,8 +175,8 @@ export default class DataNode {
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 
-			this.deps.forEach( handleChange );
 			this.children.forEach( mark );
+			this.deps.forEach( handleChange );
 			this.clearUnresolveds();
 		}
 	}
@@ -258,8 +258,8 @@ export default class DataNode {
 		this.clearUnresolveds();
 
 		if ( !silent ) {
-			this.deps.forEach( handleChange );
 			this.children.forEach( mark );
+			this.deps.forEach( handleChange );
 
 			let parent = this.parent;
 			while ( parent ) {
