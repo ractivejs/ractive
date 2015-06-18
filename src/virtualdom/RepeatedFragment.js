@@ -36,6 +36,8 @@ export default class RepeatedFragment {
 
 		this.pendingNewIndices = null;
 		this.indexByKey = null; // for `{{#each object}}...`
+
+		this.dirty = false;
 	}
 
 	bind ( context ) {
@@ -68,7 +70,7 @@ export default class RepeatedFragment {
 	bubble () {
 		if ( !this.dirty ) {
 			this.dirty = true;
-			this.parent.bubble();
+			this.owner.bubble();
 		}
 	}
 
@@ -88,8 +90,7 @@ export default class RepeatedFragment {
 		fragment.index = index;
 
 		const model = this.context.join([ key ]);
-
-		return fragment.bind( this.context.join([ key ]) ); // TODO join method that accepts non-array
+		return fragment.bind( model ); // TODO join method that accepts non-array
 	}
 
 	detach () {
@@ -136,6 +137,10 @@ export default class RepeatedFragment {
 		}
 	}
 
+	firstNode () {
+		return this.iterations[0] ? this.iterations[0].firstNode() : null;
+	}
+
 	render () {
 		// TODO use docFrag.cloneNode...
 
@@ -153,7 +158,25 @@ export default class RepeatedFragment {
 			throw new Error( 'Section was already shuffled!' );
 		}
 
+		let indexRefResolvers = [];
+		newIndices.forEach( ( newIndex, oldIndex ) => {
+			if ( newIndex === -1 ) return;
+
+			const resolvers = this.indexRefResolvers[ oldIndex ];
+
+			if ( !resolvers ) return;
+
+			if ( newIndex !== oldIndex ) {
+				resolvers.forEach( resolver => {
+					resolver.update( newIndex );
+				});
+			}
+
+			indexRefResolvers[ newIndex ] = resolvers;
+		});
+
 		this.pendingNewIndices = newIndices;
+		this.indexRefResolvers = indexRefResolvers;
 		this.dirty = true;
 	}
 

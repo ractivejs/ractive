@@ -1,4 +1,5 @@
 import { removeFromArray } from 'utils/array';
+import { handleChange } from 'shared/methodCallers';
 
 export default class KeypathReferenceResolver {
 	constructor ( fragment, callback ) {
@@ -7,13 +8,13 @@ export default class KeypathReferenceResolver {
 			fragment = fragment.parent;
 		}
 
-		this.fragment = fragment;
+		this.model = fragment.context;
 		this.deps = [];
-		this.value = fragment.context.getKeypath();
+		this.value = this.model.getKeypath();
+
+		this.model.registerKeypathDependant( this );
 
 		callback( this );
-
-		// TODO what happens when it changes? Need to register with the fragment
 		this.resolved = true;
 	}
 
@@ -21,12 +22,17 @@ export default class KeypathReferenceResolver {
 		return '@keypath';
 	}
 
+	handleChange () {
+		this.value = this.model.getKeypath();
+		this.deps.forEach( handleChange );
+	}
+
 	register ( dep ) {
 		this.deps.push( dep );
 	}
 
 	unbind () {
-		// TODO when we figure out where this gets bound in the first place...
+		this.model.unregisterKeypathDependant( this );
 	}
 
 	unregister ( dep ) {

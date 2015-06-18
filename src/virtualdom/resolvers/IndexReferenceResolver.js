@@ -1,7 +1,10 @@
 import { removeFromArray } from 'utils/array';
+import { handleChange } from 'shared/methodCallers';
 
 export default class IndexReferenceResolver {
 	constructor ( fragment, indexRef, callback ) {
+		this.callback = callback;
+
 		this.deps = [];
 		this.value = indexRef === '@index' ? fragment.index : fragment.indexRefs[ indexRef ];
 
@@ -24,7 +27,7 @@ export default class IndexReferenceResolver {
 			}
 		}
 
-		fragment.indexRefResolvers.push( this );
+		( fragment.indexRefResolvers[ this.value ] || ( fragment.indexRefResolvers[ this.value ] = [] ) ).push( this );
 		this.resolved = true;
 	}
 
@@ -38,10 +41,15 @@ export default class IndexReferenceResolver {
 
 	unbind () {
 		// TODO is this correct?
-		removeFromArray( this.fragment.indexRefResolvers, this );
+		removeFromArray( this.fragment.indexRefResolvers[ this.value ], this );
 	}
 
 	unregister ( dep ) {
 		removeFromArray( this.deps, dep );
+	}
+
+	update ( newValue ) {
+		this.value = newValue;
+		this.deps.forEach( handleChange );
 	}
 }

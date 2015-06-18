@@ -112,7 +112,7 @@ export default class Section extends Mustache {
 	}
 
 	firstNode () {
-		return this.fragment.firstNode();
+		return this.fragment && this.fragment.firstNode();
 	}
 
 	render () {

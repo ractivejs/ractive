@@ -14,6 +14,7 @@ function updateFromBindings ( model ) {
 export default class DataNode {
 	constructor ( parent, key ) {
 		this.deps = [];
+		this.keypathDependants = [];
 
 		this.children = [];
 		this.childByKey = {};
@@ -230,6 +231,10 @@ export default class DataNode {
 		this.deps.push( dep );
 	}
 
+	registerKeypathDependant ( dep ) {
+		this.keypathDependants.push( dep );
+	}
+
 	registerTwowayBinding ( binding ) {
 		this.bindings.push( binding );
 	}
@@ -293,6 +298,10 @@ export default class DataNode {
 			else {
 				temp.push({ newIndex, child });
 				child.key = newIndex;
+
+				// any direct or downstream {{@keypath}} dependants need
+				// to be notified of the change
+				child.updateKeypathDependants();
 			}
 		});
 
@@ -319,6 +328,10 @@ export default class DataNode {
 		removeFromArray( this.deps, dependant );
 	}
 
+	unregisterKeypathDependant ( dep ) {
+		removeFromArray( this.keypathDependants, dep );
+	}
+
 	unregisterTwowayBinding ( binding ) {
 		removeFromArray( this.bindings, binding );
 	}
@@ -331,5 +344,10 @@ export default class DataNode {
 		}
 
 		if ( cascade ) this.children.forEach( updateFromBindings );
+	}
+
+	updateKeypathDependants () {
+		this.children.forEach( child => child.updateKeypathDependants() );
+		this.keypathDependants.forEach( handleChange );
 	}
 }

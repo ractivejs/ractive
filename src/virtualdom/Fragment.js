@@ -27,6 +27,7 @@ export default class Fragment {
 
 		this.resolvers = [];
 
+		this.dirty = false;
 		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
 
 		this.template = options.template || [];

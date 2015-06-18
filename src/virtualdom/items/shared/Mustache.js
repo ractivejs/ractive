@@ -18,7 +18,9 @@ export default class Mustache extends Item {
 			const wasBound = !!this.model;
 
 			if ( model === this.model ) {
-				throw new Error( 'Resolved to the same model' ); // TODO invite issue
+				this.handleChange();
+				return;
+				//throw new Error( 'Resolved to the same model' ); // TODO invite issue
 			}
 
 			if ( this.model ) {

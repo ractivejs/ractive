@@ -68,6 +68,15 @@ export default class ReferenceResolver {
 		const localViewmodel = this.fragment.ractive.viewmodel;
 		const key = this.keys[0];
 
+		// TODO what if there are two component boundaries to cross - does this still work?
+		if ( key in localViewmodel.mappings ) {
+			const model = localViewmodel.mappings[ key ].join( this.keys.slice( 1 ) );
+			this.callback( model );
+			this.resolved = true;
+
+			return;
+		}
+
 		let fragment = this.fragment;
 		let hasContextChain;
 		let crossedComponentBoundary;
