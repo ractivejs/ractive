@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import { isObject } from 'utils/is';
+import { isEqual, isObject } from 'utils/is';
 import { splitKeypath } from 'shared/keypaths';
 import { extend } from 'utils/object';
 
@@ -136,6 +136,11 @@ class PatternObserver {
 		this.keys = keys;
 		this.callback = callback;
 
+		const pattern = [ baseModel.getKeypath() ].concat( keys )
+			.join( '\\.' )
+			.replace( /\*/g, '(.+)' );
+		this.pattern = new RegExp( `^${pattern}$` );
+
 		this.oldValues = {};
 		this.newValues = {};
 
@@ -167,7 +172,13 @@ class PatternObserver {
 			const newValue = this.newValues[ keypath ];
 			const oldValue = this.oldValues[ keypath ];
 
-			this.callback.call( this.context, newValue, oldValue, keypath );
+			if ( this.strict && newValue === oldValue ) return;
+			if ( isEqual( newValue, oldValue ) ) return;
+
+			const wildcards = this.pattern.exec( keypath ).slice( 1 );
+			const args = [ newValue, oldValue, keypath ].concat( wildcards );
+
+			this.callback.apply( this.context, args );
 		});
 
 		this.oldValues = this.newValues;
@@ -180,9 +191,10 @@ class PatternObserver {
 
 			// handle case where previously extant keypath no longer exists -
 			// observer should still fire, with undefined as new value
-			Object.keys( this.oldValues ).forEach( keypath => {
-				this.newValues[ keypath ] = undefined;
-			});
+			// TODO huh. according to the test suite that's not the case...
+			// Object.keys( this.oldValues ).forEach( keypath => {
+			// 	this.newValues[ keypath ] = undefined;
+			// });
 
 			this.baseModel.findMatches( this.keys ).forEach( model => {
 				const keypath = model.getKeypath();
