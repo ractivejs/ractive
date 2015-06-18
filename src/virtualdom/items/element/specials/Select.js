@@ -60,7 +60,7 @@ export default class Select extends Element {
 				o.selected = shouldSelect;
 			});
 
-			if ( !optionWasSelected ) {
+			if ( !optionWasSelected && !isMultiple ) {
 				if ( options[0] ) {
 					options[0].selected = true;
 				}

@@ -1,18 +1,18 @@
+import runloop from 'global/runloop';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 import { arrayContentsMatch } from 'utils/array';
 
 export default class MultipleSelectBinding extends Binding {
-	// TODO is this still used?
 	forceUpdate () {
-		throw new Error( 'yes it is still used' );
-		// var value = this.getValue();
-		//
-		// if ( value !== undefined ) {
-		// 	this.attribute.locked = true;
-		// 	runloop.scheduleTask( () => this.attribute.locked = false );
-		// 	this.keypath.set( value );
-		// }
+		var value = this.getValue();
+		console.log( 'value', value );
+
+		if ( value !== undefined ) {
+			this.attribute.locked = true;
+			runloop.scheduleTask( () => this.attribute.locked = false );
+			this.model.set( value );
+		}
 	}
 
 	getInitialValue () {

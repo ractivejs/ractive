@@ -99,13 +99,15 @@ function flushChanges () {
 
 	batch.deferredObservers.forEach( dispatch );
 
-	for ( i = 0; i < batch.tasks.length; i += 1 ) {
-		batch.tasks[i]();
+	const tasks = batch.tasks;
+	batch.tasks = [];
+
+	for ( i = 0; i < tasks.length; i += 1 ) {
+		tasks[i]();
 	}
-	batch.tasks.length = 0;
 
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	//if ( batch.ractives.length ) return flushChanges();
+	if ( batch.fragments.length ) return flushChanges();
 }

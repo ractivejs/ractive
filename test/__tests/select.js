@@ -141,7 +141,12 @@ test( 'If a multiple select value with two-way binding has no selected option at
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<select value="{{colors}}" multiple><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select>'
+		template: `
+			<select value="{{colors}}" multiple>
+				<option value="red">red</option>
+				<option value="blue">blue</option>
+				<option value="green">green</option>
+			</select>`
 	});
 
 	t.deepEqual( ractive.get( 'colors' ), [] );
@@ -204,7 +209,13 @@ test( 'Options added to a select after the initial render will be selected if th
 test( 'If an empty select with a binding has options added to it, the model should update', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,
-		template: '<select value="{{id}}">{{#items}}<option value="{{id}}">{{text}}</option>{{/items}}</select><strong>Selected: {{id || "nothing"}}</strong>'
+		template: `
+			<select value="{{id}}">
+				{{#items}}
+					<option value="{{id}}">{{text}}</option>
+				{{/items}}
+			</select>
+			<strong>Selected: {{id || "nothing"}}</strong>`
 	});
 
 	ractive.set('items', [ { id: 1, text: 'one' }, { id: 2, text: 'two' } ]);

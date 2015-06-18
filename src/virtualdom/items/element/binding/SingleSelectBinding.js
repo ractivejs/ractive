@@ -1,8 +1,8 @@
+import runloop from 'global/runloop';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 
 export default class SingleSelectBinding extends Binding {
-	// TODO is this still necessary...?
 	forceUpdate () {
 		const value = this.getValue();
 
