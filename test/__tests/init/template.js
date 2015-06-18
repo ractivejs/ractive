@@ -2,6 +2,7 @@ import { TEMPLATE_VERSION } from 'config/template';
 import config from 'Ractive/config/custom/template/template';
 import { isObject } from 'utils/is';
 import { create } from 'utils/object';
+import cleanup from 'helpers/cleanup';
 
 const test = QUnit.test; // necessary due to a bug in esperanto
 
@@ -11,7 +12,7 @@ var MockRactive, Component, ractive,
 	templateOpt1fn = { template: () => templateOpt1.template },
 
 	moduleSetup = {
-		setup: function(){
+		beforeEach: function(){
 			//Ractive = { defaults: {}, parseOptions: {} };
 			ractive = { _config: {} };
 
@@ -25,9 +26,7 @@ var MockRactive, Component, ractive,
 			Component.prototype.constructor = Component;
 			Component.defaults = Component.prototype;
 		},
-		teardown: function(){
-
-		}
+		afterEach: cleanup
 	};
 
 function mockExtend( template ){

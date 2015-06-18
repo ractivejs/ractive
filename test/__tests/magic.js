@@ -1,4 +1,6 @@
-module( 'Magic mode' );
+import cleanup from 'helpers/cleanup';
+
+module( 'Magic mode', { afterEach: cleanup });
 
 var fixture2, makeObj;
 

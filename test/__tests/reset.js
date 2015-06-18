@@ -1,4 +1,6 @@
-module( 'ractive.reset()' );
+import cleanup from 'helpers/cleanup';
+
+module( 'ractive.reset()', { afterEach: cleanup });
 
 test( 'Basic reset', function ( t ) {
 	var ractive = new Ractive({

@@ -1,5 +1,7 @@
+import cleanup from 'helpers/cleanup';
+
 /*global test, module, simulant */
-module( 'Forms' );
+module( 'Forms', { afterEach: cleanup });
 
 test( 'Resetting a form resets an input with two-way binding', t => {
 	var ractive, input;

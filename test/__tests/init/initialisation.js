@@ -1,26 +1,19 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
-var defaultTemplate, defaultData, cleanupDefaults;
-
-defaultTemplate = Ractive.defaults.template;
-defaultData = Ractive.defaults.data;
 // make sure defaults get put back,
 // or will break other test modules!
-cleanupDefaults = {
-	teardown: () => {
-		Ractive.defaults.template = defaultTemplate;
-		Ractive.defaults.data = defaultData;
-	}
-};
+const defaultTemplate = Ractive.defaults.template;
+const defaultData = Ractive.defaults.data;
 
-module( 'Initialisation' );
+module( 'Initialisation', { afterEach: cleanup });
 
 test( 'initialize with no options ok', t => {
 	var ractive = new Ractive();
 	t.ok( ractive );
 });
 
-module( 'ractive.extend()' );
+module( 'ractive.extend()', { afterEach: cleanup });
 
 test( 'multiple options arguments applied left to right', t => {
 	var View, ractive;
@@ -47,7 +40,7 @@ test( 'multiple options arguments applied left to right', t => {
 
 if ( hasUsableConsole ) {
 
-	module( 'standard options' );
+	module( 'standard options', { afterEach: cleanup });
 
 	test ( 'functions ignored and logs warning', t => {
 
@@ -67,7 +60,13 @@ if ( hasUsableConsole ) {
 	});
 }
 
-module( 'Data Initialisation', cleanupDefaults );
+module( 'Data Initialisation', {
+	afterEach () {
+		Ractive.defaults.template = defaultTemplate;
+		Ractive.defaults.data = defaultData;
+		cleanup();
+	}
+});
 
 test( 'default data function called on initialize', t => {
 	var ractive, data = { foo: 'bar' } ;
@@ -299,7 +298,13 @@ test( 'data and computed properties available in onconfig and later', t => {
 	t.equal( ractive.get('qux'), 'config' );
 });
 
-module( 'Template Initialisation', cleanupDefaults );
+module( 'Template Initialisation', {
+	afterEach () {
+		Ractive.defaults.template = defaultTemplate;
+		Ractive.defaults.data = defaultData;
+		cleanup();
+	}
+});
 
 
 function createScriptTemplate ( template ) {

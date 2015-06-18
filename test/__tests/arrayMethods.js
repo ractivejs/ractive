@@ -1,4 +1,6 @@
-module( 'Array methods' );
+import cleanup from 'helpers/cleanup';
+
+module( 'Array methods', { afterEach: cleanup });
 
 var baseItems = [ 'alice', 'bob', 'charles' ];
 

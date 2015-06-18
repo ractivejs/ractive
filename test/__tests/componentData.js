@@ -1,6 +1,7 @@
+import cleanup from 'helpers/cleanup';
 import Model from 'helpers/Model';
 
-module( 'Component Data' );
+module( 'Component Data', { afterEach: cleanup });
 
 test( 'Static data is propagated from parent to child', t => {
 	var Widget, ractive, widget;

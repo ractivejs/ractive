@@ -1,10 +1,7 @@
-// RENDERING TESTS
-// ===============
-//
-// TODO: add moar tests
 import tests from 'samples/render';
+import cleanup from 'helpers/cleanup';
 
-module ( 'Render' );
+module ( 'Render', { afterEach: cleanup });
 
 var runTest, theTest, magicModes, hasSvg, i;
 

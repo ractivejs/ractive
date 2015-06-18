@@ -1,5 +1,6 @@
-/*global test, module, simulant */
-module( 'get()' );
+import cleanup from 'helpers/cleanup';
+
+module( 'get()', { afterEach: cleanup });
 
 
 test( 'Returns mappings on root .get()', t => {

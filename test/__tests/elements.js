@@ -1,4 +1,6 @@
-module( 'elements' );
+import cleanup from 'helpers/cleanup';
+
+module( 'elements', { afterEach: cleanup });
 
 test( 'option element with custom selected logic works without error and correctly', function ( t ) {
 	var ractive = new Ractive({

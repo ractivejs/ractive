@@ -1,4 +1,6 @@
-module( 'ractive.updateModel()' );
+import cleanup from 'helpers/cleanup';
+
+module( 'ractive.updateModel()', { afterEach: cleanup });
 
 test( 'Works across component boundary', t => {
 	const widget = Ractive.extend({

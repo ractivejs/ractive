@@ -1,6 +1,7 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
-module( 'partials' );
+module( 'partials', { afterEach: cleanup });
 
 /* global console */
 

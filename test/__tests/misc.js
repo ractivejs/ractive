@@ -1,5 +1,6 @@
 import hasUsableConsole from 'hasUsableConsole';
 import { isArray } from 'utils/is';
+import cleanup from 'helpers/cleanup';
 
 Array.isArray || ( Array.isArray = thing => isArray( thing ) ); // IE8... don't ask
 
@@ -26,11 +27,12 @@ fooAdaptor = {
 };
 
 module( 'Miscellaneous', {
-	setup: function(){
+	beforeEach () {
 		Ractive.adaptors.foo = fooAdaptor;
 	},
-	teardown: function(){
+	afterEach () {
 		delete Ractive.adaptors.foo;
+		cleanup();
 	}
 } );
 

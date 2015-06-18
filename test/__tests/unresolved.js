@@ -1,4 +1,6 @@
-module( 'Unresolved References' );
+import cleanup from 'helpers/cleanup';
+
+module( 'Unresolved References', { afterEach: cleanup });
 
 test( 'Array member by index number', t => {
 	var ractive = new Ractive({

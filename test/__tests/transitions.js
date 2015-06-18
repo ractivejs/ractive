@@ -1,9 +1,10 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
 var Ractive_original;
 
 module( 'Transitions', {
-	setup: function () {
+	beforeEach: function () {
 		// augment base Ractive object slightly
 		Ractive_original = Ractive;
 		Ractive = Ractive.extend({
@@ -26,8 +27,9 @@ module( 'Transitions', {
 			}, delay );
 		};
 	},
-	teardown: function () {
+	afterEach: function () {
 		Ractive = Ractive_original;
+		cleanup();
 	}
 });
 

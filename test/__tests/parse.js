@@ -1,7 +1,3 @@
-// PARSING TESTS
-// =============
-//
-// TODO: add moar samples
 import tests from 'samples/parse';
 
 module( 'Parse' );
