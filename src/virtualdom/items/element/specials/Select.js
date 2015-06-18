@@ -28,6 +28,12 @@ export default class Select extends Element {
 		this.parentFragment.bubble(); // default behaviour
 	}
 
+	render () {
+		const node = super.render();
+		this.sync();
+		return node;
+	}
+
 	sync () {
 		const selectNode = this.node;
 
