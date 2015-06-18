@@ -63,6 +63,8 @@ export default class ReferenceResolver {
 	}
 
 	attemptResolution () {
+		if ( this.resolved ) return;
+
 		const localViewmodel = this.fragment.ractive.viewmodel;
 		const key = this.keys[0];
 

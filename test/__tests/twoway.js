@@ -650,8 +650,11 @@ test( 'If there happen to be unresolved references next to binding resolved refe
 		el: fixture,
 		template: `
 			{{#context}}
-			  <select value="{{bar}}"><option>baz</option></select><input type="checkbox" checked="{{foo}}" />
-			  <div>{{#foo}}true{{else}}false{{/}}</div>
+				<select value="{{bar}}">
+					<option>baz</option>
+				</select>
+				<input type="checkbox" checked="{{foo}}">
+				<div>{{foo}}: {{#foo}}true{{else}}false{{/}}</div>
 			{{/}}`,
 		data: {
 			context: {}
@@ -659,9 +662,9 @@ test( 'If there happen to be unresolved references next to binding resolved refe
 	});
 
 	var div = ractive.find( 'div' );
-	t.htmlEqual( div.innerHTML, 'false' );
+	t.htmlEqual( div.innerHTML, 'false: false' );
 	simulant.fire( ractive.find( 'input' ), 'click' );
-	t.htmlEqual( div.innerHTML, 'true' );
+	t.htmlEqual( div.innerHTML, 'true: true' );
 });
 
 test( 'Change events propagate after the model has been updated (#1371)', t => {

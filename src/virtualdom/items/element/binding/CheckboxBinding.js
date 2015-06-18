@@ -21,6 +21,10 @@ export default class CheckboxBinding extends Binding {
 		this.node.removeEventListener( 'click', handleDomEvent, false );
 	}
 
+	getInitialValue () {
+		return !!this.element.getAttribute( 'checked' );
+	}
+
 	getValue () {
 		return this.node.checked;
 	}
