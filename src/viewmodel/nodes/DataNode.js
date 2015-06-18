@@ -121,6 +121,13 @@ export default class DataNode {
 						Object.keys( model.value ).forEach( key => {
 							matches.push( model.join([ key ] ) );
 						})
+
+						// special case - computed properties. TODO mappings also?
+						if ( model.isRoot ) {
+							Object.keys( model.computations ).forEach( key => {
+								matches.push( model.join([ key ] ) );
+							});
+						}
 					}
 				});
 			} else {

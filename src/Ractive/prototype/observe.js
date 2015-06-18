@@ -136,10 +136,9 @@ class PatternObserver {
 		this.keys = keys;
 		this.callback = callback;
 
-		const pattern = [ baseModel.getKeypath() ].concat( keys )
-			.join( '\\.' )
-			.replace( /\*/g, '(.+)' );
-		this.pattern = new RegExp( `^${pattern}$` );
+		const pattern = keys.join( '\\.' ).replace( /\*/g, '(.+)' );
+		const baseKeypath = baseModel.getKeypath();
+		this.pattern = new RegExp( `^${baseKeypath ? baseKeypath + '.' : ''}${pattern}$` );
 
 		this.oldValues = {};
 		this.newValues = {};
