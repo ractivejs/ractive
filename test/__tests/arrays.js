@@ -202,19 +202,20 @@ test( 'Option lists linked to arrays are updated when the array mutates', functi
 	t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option><option value="c">c</option><option value="d">d</option></select>' );
 });
 
-test( 'Event handlers in inside iterative sections should be rebound correctly', t => {
-	let ractive = new Ractive({
-		el: fixture,
-		template: '{{#list}}<a on-click="foo(.)" />{{/}}}',
-		data: { list: [ 1, 2, 3, 4 ] }
-	});
-
-	t.equal( ractive.fragment.items[0].fragments[3].items[0].eventHandlers[0].keypaths.length, 1 );
-
-	ractive.splice( 'list', 2, 1 );
-
-	t.equal( ractive.fragment.items[0].fragments[2].items[0].eventHandlers[0].keypaths.length, 1 );
-});
+// TODO reinstate this without using internal implementation details
+// test( 'Event handlers in inside iterative sections should be rebound correctly', t => {
+// 	let ractive = new Ractive({
+// 		el: fixture,
+// 		template: '{{#list}}<a on-click="foo(.)" />{{/}}}',
+// 		data: { list: [ 1, 2, 3, 4 ] }
+// 	});
+//
+// 	t.equal( ractive.fragment.items[0].fragments[3].items[0].eventHandlers[0].keypaths.length, 1 );
+//
+// 	ractive.splice( 'list', 2, 1 );
+//
+// 	t.equal( ractive.fragment.items[0].fragments[2].items[0].eventHandlers[0].keypaths.length, 1 );
+// });
 
 test( "Nested sections don't grow a context on rebind during smart updates #1737", t => {
 	let ractive = new Ractive({
