@@ -31,14 +31,9 @@ export default class Binding {
 			warnIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref, { ractive: this.root });
 		}
 
-		// TODO does this still work?
+		// TODO include index/key/keypath refs as read-only
 		if ( model.isReadonly ) {
-			warnOnceIfDebug( 'Cannot use two-way binding on <%s> element: %s is read-only', element.name, interpolator.model.getKeypath(), { ractive: this.root });
-			return false;
-		}
-
-		if ( model.key === '@key' ) { // TODO is this the best way to identify 'specials'? What about @index?
-			warnOnceIfDebug( 'Two-way binding does not work with %s', interpolator.model.key, { ractive: this.root });
+			warnIfDebug( `Cannot use two-way binding on <${element.name}> element: ${model.getKeypath()} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
 			return false;
 		}
 

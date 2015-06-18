@@ -708,7 +708,7 @@ if ( hasUsableConsole ) {
 		var console_warn = console.warn;
 
 		console.warn = function ( message ) {
-			t.ok( /Two-way binding does not work with expressions/.test(message) );
+			t.ok( ~message.indexOf( 'Cannot use two-way binding on <input> element: foo() is read-only' ) );
 		};
 
 		new Ractive({
