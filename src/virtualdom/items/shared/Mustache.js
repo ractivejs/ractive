@@ -9,15 +9,16 @@ export default class Mustache extends Item {
 		this.index = options.index;
 
 		this.model = null;
-		this.bound = false;
 		this.dirty = false;
 	}
 
 	bind () {
 		// try to find a model for this view
-		this.parentFragment.resolve( this.template, model => {
+		this.resolver = this.parentFragment.resolve( this.template, model => {
+			const wasBound = !!this.model;
+
 			if ( model === this.model ) {
-				throw new Error( 'yes, it happens. remove this check' );
+				throw new Error( 'Resolved to the same model' ); // TODO invite issue
 			}
 
 			if ( this.model ) {
@@ -27,10 +28,8 @@ export default class Mustache extends Item {
 			this.model = model;
 			model.register( this );
 
-			if ( this.bound ) this.handleChange();
+			if ( wasBound ) this.handleChange();
 		});
-
-		this.bound = true;
 	}
 
 	handleChange () {

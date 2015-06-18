@@ -7,7 +7,7 @@ import getPrefixer from '../helpers/getPrefixer';
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 function updateFromBindings ( model ) {
-	model.updateFromBindings();
+	model.updateFromBindings( true );
 }
 
 export default class DataNode {
@@ -90,9 +90,9 @@ export default class DataNode {
 		}
 	}
 
-	createBranch ( key ) {
+	createBranch ( key, silent ) {
 		const branch = isNumeric( key ) ? [] : {};
-		this.set( branch );
+		this.set( branch, silent );
 
 		return branch;
 	}
@@ -212,7 +212,7 @@ export default class DataNode {
 				this.value = this.wrapper.get();
 			}
 		} else {
-			const parentValue = this.parent.value || this.parent.createBranch( this.key );
+			const parentValue = this.parent.value || this.parent.createBranch( this.key, silent );
 			parentValue[ this.key ] = value;
 
 			this.value = value;

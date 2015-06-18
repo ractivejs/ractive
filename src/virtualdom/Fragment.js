@@ -239,6 +239,8 @@ export default class Fragment {
 
 		const resolver = createResolver( this, template, callback );
 		this.resolvers.push( resolver );
+
+		return resolver; // so we can e.g. force resolution
 	}
 
 	toHtml () {

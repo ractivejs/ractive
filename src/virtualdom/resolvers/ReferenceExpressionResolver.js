@@ -68,6 +68,13 @@ export default class ReferenceExpressionResolver {
 		this.callback( model );
 	}
 
+	forceResolution () {
+		this.baseResolver.forceResolution();
+		this.memberResolvers.forEach( resolver => resolver.forceResolution() );
+
+		this.bubble();
+	}
+
 	handleChange () {
 		this.bubble();
 	}

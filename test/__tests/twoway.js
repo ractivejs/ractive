@@ -486,24 +486,24 @@ test( 'Reference expression radio bindings rebind correctly inside reference exp
 });
 
 test( 'Ambiguous reference expressions in two-way bindings attach to correct context', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
-			<p>foo[{{bar}}]: {{foo[bar]}}</p>
-			{{#with whatever}}
+			<p>obj.foo[{{bar}}]: {{obj.foo[bar]}}</p>
+			{{#with obj}}
 				<input value='{{foo[bar]}}'>
 			{{/with}}`,
 		data: {
 			bar: 0,
-			whatever: {}
+			obj: {}
 		}
 	});
 
 	ractive.find( 'input' ).value = 'test';
 	ractive.updateModel();
 
-	t.deepEqual( ractive.get( 'foo' ), [ 'test' ] );
-	t.htmlEqual( fixture.innerHTML, '<p>foo[0]: test</p><input>' );
+	t.deepEqual( ractive.get( 'obj.foo' ), [ 'test' ] );
+	t.htmlEqual( fixture.innerHTML, '<p>obj.foo[0]: test</p><input>' );
 });
 
 test( 'Static bindings can only be one-way (#1149)', function ( t ) {
