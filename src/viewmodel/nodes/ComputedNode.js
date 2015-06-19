@@ -102,7 +102,7 @@ export default class ComputedNode extends DataNode {
 
 		this.deps.forEach( handleChange );
 		this.children.forEach( markChild ); // TODO rename to mark once bindling glitch fixed
-		this.clearUnresolveds();
+		this.clearUnresolveds(); // TODO same question as on DataNode - necessary for primitives?
 	}
 
 	init () {

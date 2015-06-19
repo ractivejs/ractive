@@ -71,11 +71,14 @@ export default class DataNode {
 		this.unresolvedByKey[ key ].push( resolver );
 	}
 
-	clearUnresolveds () {
+	clearUnresolveds ( specificKey ) {
 		let i = this.unresolved.length;
 
 		while ( i-- ) {
 			const key = this.unresolved[i];
+
+			if ( specificKey && key !== specificKey ) continue;
+
 			const resolvers = this.unresolvedByKey[ key ];
 			const hasKey = this.has( key );
 
@@ -267,6 +270,7 @@ export default class DataNode {
 			this.adapt();
 		}
 
+		this.parent.clearUnresolveds();
 		this.clearUnresolveds();
 
 		if ( !silent ) {

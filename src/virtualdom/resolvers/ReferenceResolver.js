@@ -124,7 +124,7 @@ export default class ReferenceResolver {
 	forceResolution () {
 		if ( this.resolved ) return;
 
-		const model = this.fragment.findContext().join( this.keys )
+		const model = this.fragment.findContext().join( this.keys );
 		this.callback( model );
 		this.resolved = true;
 	}

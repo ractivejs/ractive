@@ -52,6 +52,10 @@ export default class Viewmodel extends DataNode {
 		return '';
 	}
 
+	has ( key ) {
+		return ( key in this.mappings ) || ( key in this.computations ) || super.has( key );
+	}
+
 	join ( keys ) {
 		const key = keys[0];
 
@@ -85,7 +89,7 @@ export default class Viewmodel extends DataNode {
 
 		this.deps.forEach( handleChange );
 		this.children.forEach( mark );
-		this.clearUnresolveds();
+		this.clearUnresolveds(); // TODO do we need to do this with primitive values? if not, what about e.g. unresolved `length` property of null -> string?
 	}
 
 	update () {

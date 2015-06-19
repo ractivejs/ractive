@@ -53,6 +53,8 @@ export default class Component extends Item {
 		const viewmodel = this.instance.viewmodel;
 		const childData = viewmodel.value;
 
+		let initialising = true;
+
 		// determine mappings
 		if ( this.template.a ) {
 			Object.keys( this.template.a ).forEach( localKey => {
@@ -70,6 +72,10 @@ export default class Component extends Item {
 							if ( model.value === undefined && localKey in childData ) {
 								model.set( childData[ localKey ] );
 							}
+
+							if ( !initialising ) {
+								viewmodel.clearUnresolveds( localKey ); 
+							}
 						});
 
 						this.resolvers.push( resolver );
@@ -81,6 +87,8 @@ export default class Component extends Item {
 				}
 			});
 		}
+
+		initialising = false;
 
 		this.instance.fragment.bind( this.instance.viewmodel );
 	}
