@@ -8,6 +8,8 @@ import { isArray } from 'utils/is';
 import createResolver from '../resolvers/createResolver';
 import { cancel, unbind } from 'shared/methodCallers';
 import Hook from 'events/Hook';
+import Fragment from '../Fragment';
+import parseJSON from 'utils/parseJSON';
 
 function removeFromLiveComponentQueries ( component ) {
 	let instance = component.ractive;
@@ -32,6 +34,7 @@ export default class Component extends Item {
 		this.name = options.template.e;
 		this.parentFragment = options.parentFragment;
 		this.resolvers = [];
+		this.complexMappings = [];
 
 		let partials = options.template.p || {};
 		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
@@ -66,7 +69,8 @@ export default class Component extends Item {
 				const template = this.template.a[ localKey ];
 
 				if ( typeof template === 'string' ) {
-					viewmodel.join([ localKey ]).set( template ); // TODO parse numbers etc
+					const parsed = parseJSON( template );
+					viewmodel.join([ localKey ]).set( parsed ? parsed.value : template );
 				}
 
 				else if ( isArray( template ) ) {
@@ -87,7 +91,21 @@ export default class Component extends Item {
 					}
 
 					else {
-						throw new Error( 'TODO complex component mappings' );
+						const fragment = new Fragment({
+							owner: this,
+							template
+						}).bind();
+
+						const model = viewmodel.join([ localKey ]);
+						model.set( fragment.valueOf() );
+
+						// this is a *bit* of a hack
+						fragment.bubble = () => {
+							Fragment.prototype.bubble.call( fragment );
+							model.set( fragment.valueOf() );
+						};
+
+						this.complexMappings.push( fragment );
 					}
 				}
 			});
@@ -164,6 +182,7 @@ export default class Component extends Item {
 	}
 
 	unbind () {
+		this.complexMappings.forEach( unbind );
 		this.resolvers.forEach( unbind );
 
 		const instance = this.instance;
