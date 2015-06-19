@@ -1,6 +1,7 @@
 import { INTERPOLATOR } from 'config/types';
 import Item from './shared/Item';
-import initialiseRactiveInstance from 'Ractive/initialise';
+import construct from 'Ractive/construct';
+import initialise from 'Ractive/initialise';
 import { create } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 import { isArray } from 'utils/is';
@@ -34,18 +35,15 @@ export default class Component extends Item {
 
 		let partials = options.template.p || {};
 		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];
+		this._partials = partials; // TEMP
 
 		this.yielders = {};
 
-		// initialise
-		initialiseRactiveInstance( this.instance, {
+		construct( this.instance, {
 			partials
 		}, {
 			parent: this.parentFragment.ractive,
-			component: this,
-			autobind: false,
-			indexRefs: instance.isolated ? {} : this.parentFragment.indexRefs,
-			keyRefs: instance.isolated ? {} : this.parentFragment.keyRefs
+			component: this
 		});
 	}
 
@@ -89,6 +87,14 @@ export default class Component extends Item {
 		}
 
 		initialising = false;
+
+		initialise( this.instance, {
+			partials: this._partials
+		}, {
+			autobind: false,
+			indexRefs: this.instance.isolated ? {} : this.parentFragment.indexRefs,
+			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs
+		});
 
 		this.instance.fragment.bind( this.instance.viewmodel );
 	}

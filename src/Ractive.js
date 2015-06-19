@@ -8,66 +8,14 @@ import Promise from 'utils/Promise';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
 import getNodeInfo from 'Ractive/static/getNodeInfo';
+import construct from 'Ractive/construct';
 import initialise from 'Ractive/initialise';
-
-var Ractive, properties;
-
-// Main Ractive required object
-Ractive = function ( options ) {
-	if ( !( this instanceof Ractive ) ) return new Ractive( options );
-	initialise( this, options || {}, {} );
-};
-
-
-// Ractive properties
-properties = {
-
-	// debug flag
-	DEBUG:          { writable: true, value: true },
-	DEBUG_PROMISES: { writable: true, value: true },
-
-	// static methods:
-	extend:         { value: extend },
-	getNodeInfo:    { value: getNodeInfo },
-	parse:          { value: parse },
-
-	// Namespaced constructors
-	Promise:        { value: Promise },
-
-	// support
-	svg:            { value: svg },
-	magic:          { value: magic },
-
-	// version
-	VERSION:        { value: '<@version@>' },
-
-	// Plugins
-	adaptors:       { writable: true, value: {} },
-	components:     { writable: true, value: {} },
-	decorators:     { writable: true, value: {} },
-	easing:         { writable: true, value: easing },
-	events:         { writable: true, value: {} },
-	interpolators:  { writable: true, value: interpolators },
-	partials:       { writable: true, value: {} },
-	transitions:    { writable: true, value: {} }
-};
-
-
-// Ractive properties
-defineProperties( Ractive, properties );
-
-Ractive.prototype = extendObj( proto, defaults );
-
-Ractive.prototype.constructor = Ractive;
-
-// alias prototype as defaults
-Ractive.defaults = Ractive.prototype;
 
 // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
 // older browsers, these are made available via a shim - here, we do a quick
 // pre-flight check to make sure that either a) we're not in a shit browser,
 // or b) we're using a Ractive-legacy.js build
-var FUNCTION = 'function';
+const FUNCTION = 'function';
 
 if (
 	typeof Date.now !== FUNCTION                 ||
@@ -82,4 +30,48 @@ if (
 	throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
 }
 
-export default Ractive;
+export default function Ractive ( options ) {
+	if ( !( this instanceof Ractive ) ) return new Ractive( options );
+
+	construct( this, options || {}, {} );
+	initialise( this, options || {}, {} );
+}
+
+extendObj( Ractive.prototype, proto, defaults );
+Ractive.prototype.constructor = Ractive;
+
+// alias prototype as `defaults`
+Ractive.defaults = Ractive.prototype;
+
+// static properties
+defineProperties( Ractive, {
+
+	// debug flag
+	DEBUG:          { writable: true, value: true },
+	DEBUG_PROMISES: { writable: true, value: true },
+
+	// static methods:
+	extend:         { value: extend },
+	getNodeInfo:    { value: getNodeInfo },
+	parse:          { value: parse },
+
+	// namespaced constructors
+	Promise:        { value: Promise },
+
+	// support
+	svg:            { value: svg },
+	magic:          { value: magic },
+
+	// version
+	VERSION:        { value: '<@version@>' },
+
+	// plugins
+	adaptors:       { writable: true, value: {} },
+	components:     { writable: true, value: {} },
+	decorators:     { writable: true, value: {} },
+	easing:         { writable: true, value: easing },
+	events:         { writable: true, value: {} },
+	interpolators:  { writable: true, value: interpolators },
+	partials:       { writable: true, value: {} },
+	transitions:    { writable: true, value: {} }
+});

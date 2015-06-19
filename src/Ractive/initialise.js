@@ -11,8 +11,6 @@ let configHook = new Hook( 'config' );
 let initHook = new HookQueue( 'init' );
 
 export default function initialiseRactiveInstance ( ractive, userOptions, options ) {
-	construct( ractive, userOptions, options );
-
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
