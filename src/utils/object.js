@@ -101,4 +101,35 @@ export function fillGaps ( target, ...sources ) {
 	return target;
 }
 
+export function mapKeys ( object , iterator ) {
+	var result = {};
+	for (let key in object){
+		if ( object.hasOwnProperty( key ) ) {
+			let value = object[ key ];
+			result[ iterator( value , key, object ) ] = value;
+		}
+	}
+	return result;
+}
+
+export function mapValues ( object , iterator ) {
+	var result = {};
+	for (let key in object){
+		if ( object.hasOwnProperty( key ) ) {
+			result[ key ] = iterator( object[ key ] , key, object );
+		}
+	}
+	return result;
+}
+
+export function filter ( object, iterator ) {
+	var result = { };
+	for (let key in object){
+		if ( object.hasOwnProperty( key ) && iterator ( object[ key ], key, object ) ) {
+			result[ key ] = object[ key ];
+		}
+	}
+	return result;
+}
+
 export var hasOwn = Object.prototype.hasOwnProperty;

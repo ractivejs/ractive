@@ -3,6 +3,7 @@ import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
 import templateConfigurator from './custom/template/template';
+import staticMembersConfigurator from './custom/staticMembers';
 import defaults from './defaults';
 import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
@@ -14,7 +15,8 @@ custom = {
 	adapt: adaptConfigurator,
 	css: cssConfigurator,
 	data: dataConfigurator,
-	template: templateConfigurator
+	template: templateConfigurator,
+	staticMembers: staticMembersConfigurator
 };
 
 defaultKeys = Object.keys( defaults );
@@ -29,7 +31,8 @@ order = [].concat(
 	registries,
 	custom.data,
 	custom.template,
-	custom.css
+	custom.css,
+	custom.staticMembers
 );
 
 config = {
@@ -77,6 +80,7 @@ function configure ( method, Parent, target, options ) {
 	adaptConfigurator[ method ]( Parent, target, options );
 	templateConfigurator[ method ]( Parent, target, options );
 	cssConfigurator[ method ]( Parent, target, options );
+	staticMembersConfigurator[ method ]( Parent, target, options );
 
 	extendOtherMethods( Parent.prototype, target, options );
 }

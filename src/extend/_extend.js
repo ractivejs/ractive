@@ -41,9 +41,6 @@ function extendOne ( Parent, options = {} ) {
 		// alias prototype as defaults
 		defaults: { value: proto },
 
-		// extendable
-		extend: { value: extend, writable: true, configurable: true },
-
 		// Parent - for IE8, can't use Object.getPrototypeOf
 		_Parent: { value: Parent }
 	});
