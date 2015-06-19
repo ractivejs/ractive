@@ -5,7 +5,6 @@ import Fragment from 'virtualdom/Fragment';
 import Hook from 'events/Hook';
 import HookQueue from 'events/HookQueue';
 import Ractive from '../Ractive';
-import construct from './construct';
 
 let configHook = new Hook( 'config' );
 let initHook = new HookQueue( 'init' );
@@ -43,10 +42,7 @@ export default function initialiseRactiveInstance ( ractive, userOptions, option
 	// TODO initHook moved to before binding... will this break
 	// this.findComponent inside oninit? Is that a problem?
 	// Should be onrender anyway, right?
-
-	// options.autobind is so we can bind components lazily,
-	// after mappings have been created
-	if ( ractive.fragment && options.autobind !== false ) {
+	if ( ractive.fragment ) {
 		ractive.fragment.bind( ractive.viewmodel );
 
 		// render automatically ( if `el` is specified )

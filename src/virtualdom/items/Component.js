@@ -91,12 +91,9 @@ export default class Component extends Item {
 		initialise( this.instance, {
 			partials: this._partials
 		}, {
-			autobind: false,
 			indexRefs: this.instance.isolated ? {} : this.parentFragment.indexRefs,
 			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs
 		});
-
-		this.instance.fragment.bind( this.instance.viewmodel );
 	}
 
 	bubble () {
