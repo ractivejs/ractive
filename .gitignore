@@ -16,6 +16,7 @@ build/*
 .transpiled/
 .gobble
 ractive.js
+!src/Ractive.js
 .gobble-build
 perf/control/*
 !perf/control/.empty
