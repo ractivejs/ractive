@@ -27,6 +27,8 @@ export default class IndexReferenceResolver {
 			}
 		}
 
+		this.fragment = fragment;
+
 		( fragment.indexRefResolvers[ this.value ] || ( fragment.indexRefResolvers[ this.value ] = [] ) ).push( this );
 		this.resolved = true;
 	}

@@ -74,7 +74,7 @@ export default class Component extends Item {
 							}
 
 							if ( !initialising ) {
-								viewmodel.clearUnresolveds( localKey ); 
+								viewmodel.clearUnresolveds( localKey );
 							}
 						});
 

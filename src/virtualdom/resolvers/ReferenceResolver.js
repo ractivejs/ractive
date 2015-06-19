@@ -70,7 +70,12 @@ export default class ReferenceResolver {
 
 		// TODO what if there are two component boundaries to cross - does this still work?
 		if ( key in localViewmodel.mappings ) {
-			const model = localViewmodel.mappings[ key ].join( this.keys.slice( 1 ) );
+			const mapping = localViewmodel.mappings[key];
+
+			const model = this.keys.length > 1 ?
+				mapping.join( this.keys.slice( 1 ) ) :
+				mapping;
+
 			this.callback( model );
 			this.resolved = true;
 
