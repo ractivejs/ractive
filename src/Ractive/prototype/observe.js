@@ -1,13 +1,13 @@
 import runloop from 'global/runloop';
 import { isEqual, isObject } from 'utils/is';
 import { splitKeypath } from 'shared/keypaths';
+import { cancel } from 'shared/methodCallers';
 import { extend } from 'utils/object';
+import ReferenceResolver from 'virtualdom/resolvers/ReferenceResolver';
 
 const onceOptions = { init: false, once: true };
 
 export function observe ( keypath, callback, options ) {
-	const viewmodel = this.viewmodel;
-
 	let observers = [];
 
 	if ( isObject( keypath ) ) {
@@ -45,7 +45,7 @@ export function observe ( keypath, callback, options ) {
 
 	return {
 		cancel () {
-			observers.forEach( observer => observer.cancel() );
+			observers.forEach( cancel );
 		}
 	};
 }
@@ -68,6 +68,20 @@ function createObserver ( ractive, keypath, callback, options ) {
 
 	// normal keypath - no wildcards
 	if ( !~wildcardIndex ) {
+		const key = keys[0];
+
+		if ( !viewmodel.has( key ) ) {
+			// if this is an inline component, we may need to create an implicit mapping
+			if ( ractive.component ) {
+				const resolver = new ReferenceResolver( ractive.component.parentFragment, key, model => {
+					viewmodel.map( key, model );
+				});
+
+				// TODO can we just not bind in the first place?
+				resolver.unbind();
+			}
+		}
+
 		const model = viewmodel.join( keys );
 		return new Observer( ractive, model, callback, options );
 	}

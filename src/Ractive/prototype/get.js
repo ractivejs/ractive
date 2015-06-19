@@ -1,6 +1,23 @@
 import { splitKeypath } from 'shared/keypaths';
+import ReferenceResolver from 'virtualdom/resolvers/ReferenceResolver';
 
 export default function Ractive$get ( keypath ) {
-	const model = this.viewmodel.join( splitKeypath( keypath ) );
+	const keys = splitKeypath( keypath );
+	const key = keys[0];
+
+	if ( !this.viewmodel.has( key ) ) {
+		// if this is an inline component, we may need to create
+		// an implicit mapping
+		if ( this.component ) {
+			const resolver = new ReferenceResolver( this.component.parentFragment, key, model => {
+				this.viewmodel.map( key, model );
+			});
+
+			// TODO eesh, is there a better approach than this?
+			resolver.unbind();
+		}
+	}
+
+	const model = this.viewmodel.join( keys );
 	return model.get();
 }

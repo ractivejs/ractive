@@ -95,4 +95,16 @@ export default class Viewmodel extends DataNode {
 	update () {
 		// noop
 	}
+
+	updateFromBindings ( cascade ) {
+		super.updateFromBindings( cascade );
+
+		if ( cascade ) {
+			// TODO computations as well?
+			Object.keys( this.mappings ).forEach( key => {
+				const model = this.mappings[ key ];
+				model.updateFromBindings( cascade );
+			});
+		}
+	}
 }
