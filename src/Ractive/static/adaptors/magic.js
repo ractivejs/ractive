@@ -1,81 +1,89 @@
 import runloop from 'global/runloop';
 import createBranch from 'utils/createBranch';
 import { isArray } from 'utils/is';
+import { splitKeypath } from 'shared/keypaths';
 
-var magicAdaptor, MagicWrapper;
+let magicAdaptor;
 
 try {
 	Object.defineProperty({}, 'test', { value: 0 });
 
 	magicAdaptor = {
-		filter: function ( object, keypath, ractive ) {
+		filter ( object, keypath, ractive ) {
 			var parentWrapper, parentValue;
 
-			if ( !keypath ) {
-				return false;
-			}
+			if ( !keypath ) return false;
 
-			keypath = ractive.viewmodel.getContext( keypath );
+			const keys = splitKeypath( keypath );
+			const parent = keys.length === 1 ? ractive.viewmodel : ractive.viewmodel.join( keys.slice( 0, -1 ) );
+
+			if ( parent.__initmagic ) return false;
+			parent.__initmagic = true;
 
 			// If the parent value is a wrapper, other than a magic wrapper,
 			// we shouldn't wrap this property
-			if ( keypath.parent && ( parentWrapper = keypath.parent.wrapper ) && !parentWrapper.magic ) {
-				return false;
-			}
+			if ( parent && ( parentWrapper = parent.wrapper ) && !parentWrapper.magic ) return false;
 
-			parentValue = ractive.viewmodel.get( keypath.parent );
+			const key = keys[ keys.length - 1 ];
+
+			if ( !parent.has( key ) ) return false;
+
+			const model = parent.join( keys.slice( -1 ) );
+
+			parentValue = ractive.viewmodel.get( model.parent );
 
 			// if parentValue is an array that doesn't include this member,
 			// we should return false otherwise lengths will get messed up
-			if ( isArray( parentValue ) && /^[0-9]+$/.test( keypath.lastKey ) ) {
+			if ( isArray( parentValue ) && /^[0-9]+$/.test( model.key ) ) {
 				return false;
 			}
 
 			return ( parentValue && ( typeof parentValue === 'object' || typeof parentValue === 'function' ) );
 		},
-		wrap: function ( ractive, property, keypath ) {
+		wrap ( ractive, property, keypath ) {
 			return new MagicWrapper( ractive, property, keypath );
 		}
 	};
 
-	MagicWrapper = function ( ractive, value, keypath ) {
-		var objKeypath, template, siblings;
+	class MagicWrapper {
+		constructor ( ractive, value, keypath ) {
+			var objKeypath, template, siblings;
 
-		keypath = ractive.viewmodel.getContext( keypath );
+			keypath = ractive.viewmodel.getContext( keypath );
 
-		this.magic = true;
+			this.magic = true;
 
-		this.ractive = ractive;
-		this.keypath = keypath;
-		this.value = value;
+			this.ractive = ractive;
+			this.keypath = keypath;
+			this.value = value;
 
-		this.prop = keypath.lastKey;
+			this.prop = keypath.lastKey;
 
-		objKeypath = keypath.parent;
-		this.obj = objKeypath.isRoot ? ractive.viewmodel.data : ractive.viewmodel.get( objKeypath );
+			objKeypath = keypath.parent;
+			this.obj = objKeypath.isRoot ? ractive.viewmodel.data : ractive.viewmodel.get( objKeypath );
 
-		template = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
+			template = this.originalDescriptor = Object.getOwnPropertyDescriptor( this.obj, this.prop );
 
-		// Has this property already been wrapped?
-		if ( template && template.set && ( siblings = template.set._ractiveWrappers ) ) {
+			// Has this property already been wrapped?
+			if ( template && template.set && ( siblings = template.set._ractiveWrappers ) ) {
 
-			// Yes. Register this wrapper to this property, if it hasn't been already
-			if ( siblings.indexOf( this ) === -1 ) {
-				siblings.push( this );
+				// Yes. Register this wrapper to this property, if it hasn't been already
+				if ( siblings.indexOf( this ) === -1 ) {
+					siblings.push( this );
+				}
+
+				return; // already wrapped
 			}
 
-			return; // already wrapped
+			// No, it hasn't been wrapped
+			createAccessors( this, value, template );
 		}
 
-		// No, it hasn't been wrapped
-		createAccessors( this, value, template );
-	};
-
-	MagicWrapper.prototype = {
-		get: function () {
+		get () {
 			return this.value;
-		},
-		reset: function ( value ) {
+		}
+
+		reset ( value ) {
 			if ( this.updating ) {
 				return;
 			}
@@ -85,8 +93,9 @@ try {
 			this.keypath.mark( { keepExistingWrapper: true } );
 			this.updating = false;
 			return true;
-		},
-		set: function ( key, value ) {
+		}
+
+		set ( key, value ) {
 			if ( this.updating ) {
 				return;
 			}
@@ -98,8 +107,9 @@ try {
 			}
 
 			this.obj[ this.prop ][ key ] = value;
-		},
-		teardown: function () {
+		}
+
+		teardown () {
 			var template, set, value, wrappers, index;
 
 			// If this method was called because the cache was being cleared as a
@@ -137,7 +147,7 @@ try {
 				this.obj[ this.prop ] = value;
 			}
 		}
-	};
+	}
 } catch ( err ) {
 	magicAdaptor = false; // no magic in this browser
 }
