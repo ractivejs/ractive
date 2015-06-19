@@ -33,7 +33,7 @@ if (
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
 
-	construct( this, options || {}, {} );
+	construct( this, options || {} );
 	initialise( this, options || {}, {} );
 }
 

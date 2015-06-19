@@ -28,33 +28,33 @@ const registryNames = [
 
 let uid = 0;
 
-export default function construct ( ractive, userOptions, options ) {
+export default function construct ( ractive, options ) {
 	if ( Ractive.DEBUG ) welcome();
 
-	initialiseProperties( ractive, options );
+	initialiseProperties( ractive );
 
 	// TODO remove this, eventually
 	defineProperty( ractive, 'data', { get: deprecateRactiveData });
 
 	// TODO don't allow `onconstruct` with `new Ractive()`, there's no need for it
-	constructHook.fire( ractive, userOptions );
+	constructHook.fire( ractive, options );
 
 	// Add registries
 	registryNames.forEach( name => {
-		ractive[ name ] = extend( create( ractive.constructor[ name ] || null ), userOptions[ name ] );
+		ractive[ name ] = extend( create( ractive.constructor[ name ] || null ), options[ name ] );
 	});
 
 	// Create a viewmodel
 	const viewmodel = new Viewmodel({
-		adapt: getAdaptors( ractive, ractive.adapt, userOptions ),
-		data: dataConfigurator.init( ractive.constructor, ractive, userOptions ),
+		adapt: getAdaptors( ractive, ractive.adapt, options ),
+		data: dataConfigurator.init( ractive.constructor, ractive, options ),
 		ractive
 	});
 
 	ractive.viewmodel = viewmodel;
 
 	// Add computed properties
-	const computed = extend( create( ractive.constructor.prototype.computed ), userOptions.computed );
+	const computed = extend( create( ractive.constructor.prototype.computed ), options.computed );
 
 	Object.keys( computed ).forEach( key => {
 		const signature = getComputationSignature( ractive, key, computed[ key ] );
@@ -75,16 +75,16 @@ function combine ( a, b ) {
 	return c;
 }
 
-function getAdaptors ( ractive, protoAdapt, userOptions ) {
+function getAdaptors ( ractive, protoAdapt, options ) {
 	var adapt, magic, modifyArrays;
 
 	protoAdapt = protoAdapt.map( lookup );
-	adapt = ensureArray( userOptions.adapt ).map( lookup );
+	adapt = ensureArray( options.adapt ).map( lookup );
 
 	adapt = combine( protoAdapt, adapt );
 
-	magic = 'magic' in userOptions ? userOptions.magic : ractive.magic;
-	modifyArrays = 'modifyArrays' in userOptions ? userOptions.modifyArrays : ractive.modifyArrays;
+	magic = 'magic' in options ? options.magic : ractive.magic;
+	modifyArrays = 'modifyArrays' in options ? options.modifyArrays : ractive.modifyArrays;
 
 	if ( magic ) {
 		if ( !magicSupported ) {
@@ -118,7 +118,7 @@ function getAdaptors ( ractive, protoAdapt, userOptions ) {
 	}
 }
 
-function initialiseProperties ( ractive, options ) {
+function initialiseProperties ( ractive ) {
 	// Generate a unique identifier, for places where you'd use a weak map if it
 	// existed
 	ractive._guid = 'r-' + uid++;
@@ -150,24 +150,9 @@ function initialiseProperties ( ractive, options ) {
 	// observers
 	ractive._observers = [];
 
-
-	// properties specific to inline components
-	if ( options.component ) {
-		ractive.parent = options.parent;
-		ractive.container = options.container || null;
-		ractive.root = ractive.parent.root;
-
-		ractive.component = options.component;
-		options.component.instance = ractive;
-
-		// for hackability, this could be an open option
-		// for any ractive instance, but for now, just
-		// for components and just for ractive...
-		ractive._inlinePartials = options.inlinePartials;
-	} else {
-		ractive.root = ractive;
-		ractive.parent = ractive.container = null;
-	}
+	// these could be overridden if this is an inline component instance
+	ractive.root = ractive;
+	ractive.parent = ractive.container = null; // TODO container still applicable?
 }
 
 function deprecateRactiveData () {

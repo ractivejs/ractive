@@ -39,12 +39,19 @@ export default class Component extends Item {
 
 		this.yielders = {};
 
-		construct( this.instance, {
-			partials
-		}, {
-			parent: this.parentFragment.ractive,
-			component: this
-		});
+		construct( this.instance, { partials });
+
+		// add component-instance-specific properties
+		instance.parent = this.parentFragment.ractive;
+		//instance.container = options.container || null; TODO...?
+		instance.root = instance.parent.root;
+		instance.component = this;
+
+		// for hackability, this could be an open option
+		// for any ractive instance, but for now, just
+		// for components and just for ractive...
+		// TODO is this still used?
+		//instance._inlinePartials = options.inlinePartials;
 	}
 
 	bind () {

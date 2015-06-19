@@ -32,7 +32,7 @@ function extendOne ( Parent, options = {} ) {
 	Child = function ( options ) {
 		if ( !( this instanceof Child ) ) return new Child( options );
 
-		construct( this, options || {}, {} );
+		construct( this, options || {} );
 		initialise( this, options || {}, {} );
 	};
 
