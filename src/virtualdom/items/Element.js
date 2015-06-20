@@ -3,6 +3,7 @@ import runloop from 'global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
+import Decorator from './element/Decorator';
 import EventHandler from './element/EventHandler';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
@@ -52,7 +53,10 @@ export default class Element extends Item {
 			});
 		}
 
-		this.binding = null;
+		// create decorator
+		if ( this.template.o ) {
+			this.decorator = new Decorator( this, this.template.o );
+		}
 
 		// attach event handlers
 		this.eventHandlers = [];
@@ -74,20 +78,19 @@ export default class Element extends Item {
 				owner: this
 			});
 		}
+
+		this.binding = null; // filled in later
 	}
 
 	bind () {
 		this.attributes.forEach( bind );
 		this.eventHandlers.forEach( bind );
 
-		if ( this.fragment ) {
-			this.fragment.bind();
-		}
+		if ( this.decorator ) this.decorator.bind();
+		if ( this.fragment ) this.fragment.bind();
 
 		// create two-way binding if necessary
-		if ( this.binding = this.createTwowayBinding() ) {
-			this.binding.bind();
-		}
+		if ( this.binding = this.createTwowayBinding() ) this.binding.bind();
 	}
 
 	createTwowayBinding () {
@@ -113,6 +116,8 @@ export default class Element extends Item {
 	}
 
 	detach () {
+		if ( this.decorator ) this.decorator.unrender();
+
 		const parentNode = this.node.parentNode;
 		if ( parentNode ) parentNode.removeChild( this.node );
 
@@ -184,9 +189,8 @@ export default class Element extends Item {
 		this.attributes.forEach( render );
 		this.eventHandlers.forEach( render );
 
-		if ( this.binding ) {
-			this.binding.render();
-		}
+		if ( this.decorator ) this.decorator.render();
+		if ( this.binding ) this.binding.render();
 
 		updateLiveQueries( this );
 
@@ -248,7 +252,8 @@ export default class Element extends Item {
 
 		this.eventHandlers.forEach( unrender );
 
-		// TODO two-way bindings, decorators, event handlers
+		if ( this.binding ) this.binding.unrender();
+		if ( !shouldDestroy && this.decorator ) this.decorator.unrender();
 
 		// outro transition
 		const transitionTemplate = this.template.t0 || this.template.t2;
@@ -266,9 +271,8 @@ export default class Element extends Item {
 			this.attributes.forEach( update );
 			this.eventHandlers.forEach( update );
 
-			if ( this.fragment ) {
-				this.fragment.update();
-			}
+			if ( this.decorator ) this.decorator.update();
+			if ( this.fragment ) this.fragment.update();
 
 			this.dirty = false;
 		}
