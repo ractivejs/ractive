@@ -89,7 +89,7 @@ export default class RepeatedFragment {
 		fragment.key = key; // TODO this is a bit hacky
 		fragment.index = index;
 
-		const model = this.context.join([ key ]);
+		const model = this.context.joinKey( key );
 		return fragment.bind( model ); // TODO join method that accepts non-array
 	}
 

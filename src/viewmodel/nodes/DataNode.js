@@ -117,25 +117,25 @@ export default class DataNode {
 				existingMatches.forEach( model => {
 					if ( isArray( model.value ) ) {
 						model.value.forEach( ( member, i ) => {
-							matches.push( model.join([ i ]) );
+							matches.push( model.joinKey( i ) );
 						});
 					}
 
 					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
 						Object.keys( model.value ).forEach( key => {
-							matches.push( model.join([ key ] ) );
+							matches.push( model.joinKey( key ) );
 						})
 
 						// special case - computed properties. TODO mappings also?
 						if ( model.isRoot ) {
 							Object.keys( model.computations ).forEach( key => {
-								matches.push( model.join([ key ] ) );
+								matches.push( model.joinKey( key ) );
 							});
 						}
 					}
 				});
 			} else {
-				matches = existingMatches.map( model => model.join([ key ]) );
+				matches = existingMatches.map( model => model.joinKey( key ) );
 			}
 
 			existingMatches = matches;
@@ -160,6 +160,18 @@ export default class DataNode {
 
 	has ( key ) {
 		return this.value && hasProp.call( this.value, key );
+	}
+
+	joinKey ( key ) {
+		if ( key === undefined || key === '' ) return this;
+
+		if ( !this.childByKey[ key ] ) {
+			const child = new DataNode( this, key );
+			this.children.push( child );
+			this.childByKey[ key ] = child;
+		}
+
+		return this.childByKey[ key ];
 	}
 
 	join ( keys ) {

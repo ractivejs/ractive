@@ -98,7 +98,7 @@ export default class ReferenceResolver {
 
 				if ( fragment.context.has( key ) ) {
 					if ( crossedComponentBoundary ) {
-						localViewmodel.map( key, fragment.context.join([ key ]) );
+						localViewmodel.map( key, fragment.context.joinKey( key ) );
 					}
 
 					const model = fragment.context.join( this.keys );

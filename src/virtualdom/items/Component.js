@@ -76,7 +76,7 @@ export default class Component extends Item {
 
 				if ( typeof template === 'string' ) {
 					const parsed = parseJSON( template );
-					viewmodel.join([ localKey ]).set( parsed ? parsed.value : template );
+					viewmodel.joinKey( localKey ).set( parsed ? parsed.value : template );
 				}
 
 				else if ( isArray( template ) ) {
@@ -102,7 +102,7 @@ export default class Component extends Item {
 							template
 						}).bind();
 
-						const model = viewmodel.join([ localKey ]);
+						const model = viewmodel.joinKey( localKey );
 						model.set( fragment.valueOf() );
 
 						// this is a *bit* of a hack
