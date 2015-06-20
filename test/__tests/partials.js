@@ -267,60 +267,60 @@ test( 'Partials work in attributes (#917)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
 });
 
-test( 'Partial mustaches can be references or expressions that resolve to a partial', function ( t ) {
-	// please never do anything like this
-	var ractive = new Ractive({
+test( 'Partial name can be a reference', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#items}}{{>.type}}{{/}}{{>test + ".partial"}}{{>part(1)}}\n' +
-			'<div id="{{>id(test)}}">{{>guts}}</div>{{>("NEST" + "ED").toLowerCase()}} {{>onTheFly("george")}} {{>last0}}',
+		template: `{{#each items}}{{>type}}{{/each}}`,
 		data: {
-			items: [ { type: 'foo' }, { type: 'bar' }, { type: 'foo' }, { type: 'baz' } ],
-			test: 'a',
-			part: function(id) { return 'part' + id; },
-			id: function(test) { return test + 'divid'; },
-			last: {
-				one: function() { return 'st'; }
-			},
-			onTheFly: function(v) {
-				var str = 's' + Math.random();
-				this.partials[str] = 'onTheFly:{{' + v + '}}';
-				return str;
-			},
-			george: 'plimpton',
-			last0: 'last1',
-			last30: 'last3',
-			last40: 'last4'
+			items: [{ type: 'foo' }, { type: 'bar' }, { type: 'foo' }, { type: 'baz' }]
 		},
 		partials: {
-			foo: 'foo',
-			bar: 'bar',
-			baz: 'baz',
-			'a.partial': '- a partial',
-			'b.partial': '- b partial',
-			part1: 'hello',
-			adivid: 'theid',
-			bdivid: 'otherid',
-			guts: '<h1>{{>(\'part\' + 1)}} plain partial</h1>',
-			nested: 'ne{{>manylayered}}ed',
-			manylayered: '{{>last.one()}}',
-			'st': 'st',
-			'wt': 'wt',
-			last1: '{{>last30}}',
-			last2: '{{>last40}}',
-			last3: 'last3',
-			last4: 'last4'
+			foo: ':FOO',
+			bar: ':BAR',
+			baz: ':BAZ'
 		}
 	});
 
-	t.htmlEqual( fixture.innerHTML, 'foobarfoobaz- a partialhello <div id="theid"><h1>hello plain partial</h1></div>nested onTheFly:plimpton last3' );
+	t.htmlEqual( fixture.innerHTML, ':FOO:BAR:FOO:BAZ' );
+	ractive.push( 'items', { type: 'foo' });
+	t.htmlEqual( fixture.innerHTML, ':FOO:BAR:FOO:BAZ:FOO' );
+	ractive.set( 'items[1].type', 'baz' );
+	t.htmlEqual( fixture.innerHTML, ':FOO:BAZ:FOO:BAZ:FOO' );
+});
 
-	ractive.push( 'items', { type: 'foo' } );
-	ractive.set('test', 'b');
-	ractive.set('last.one', function() { return 'wt'; });
-	ractive.set('george', 'lazenby');
-	ractive.set('last0', 'last2');
+test( 'Partial name can be an expression', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{>'partial_' + x}}`,
+		data: { x: 'a' },
+		partials: {
+			partial_a: 'first',
+			partial_b: 'second'
+		}
+	});
 
-	t.htmlEqual( fixture.innerHTML, 'foobarfoobazfoo- b partialhello <div id="otherid"><h1>hello plain partial</h1></div>newted onTheFly:lazenby last4' );
+	t.htmlEqual( fixture.innerHTML, 'first' );
+	ractive.set( 'x', 'b' );
+	t.htmlEqual( fixture.innerHTML, 'second' );
+});
+
+test( 'Expression partials can be nested', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{>'NESTED'.toLowerCase()}}`,
+		data: { x: 'a' },
+		partials: {
+			nested: `<p>{{>'child_' + x}}</p>`,
+			child_a: '{{>foo}}',
+			child_b: '{{>bar}}',
+			foo: 'it works',
+			bar: 'it still works'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>it works</p>' );
+	ractive.set( 'x', 'b' );
+	t.htmlEqual( fixture.innerHTML, '<p>it still works</p>' );
 });
 
 test( 'Partials with expressions may also have context', function( t ) {

@@ -58,7 +58,9 @@ function updateId () {
 	const { node } = this;
 	const value = this.getValue();
 
+	delete this.ractive.nodes[ node.id ];
 	this.ractive.nodes[ value ] = node;
+	
 	node.id = value;
 }
 

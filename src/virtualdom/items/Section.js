@@ -107,10 +107,6 @@ export default class Section extends Mustache {
 		}
 	}
 
-	findNextNode () {
-		return this.parentFragment.findNextNode( this );
-	}
-
 	firstNode () {
 		return this.fragment && this.fragment.firstNode();
 	}

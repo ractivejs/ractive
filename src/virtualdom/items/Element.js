@@ -155,10 +155,6 @@ export default class Element extends Item {
 		}
 	}
 
-	findNextNode () {
-		return null;
-	}
-
 	firstNode () {
 		return this.node;
 	}
@@ -260,6 +256,12 @@ export default class Element extends Item {
 		if ( transitionTemplate && this.ractive.transitionsEnabled ) {
 			const transition = new Transition( this, transitionTemplate, false );
 			runloop.registerTransition( transition );
+		}
+
+		// special case
+		const id = this.attributeByName.id;
+		if ( id  ) {
+			delete this.ractive.nodes[ id.getValue() ];
 		}
 
 		// TODO update live queries

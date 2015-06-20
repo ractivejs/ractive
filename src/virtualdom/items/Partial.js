@@ -1,12 +1,14 @@
+import { warnOnceIfDebug } from 'utils/log';
 import Mustache from './shared/Mustache';
 import Fragment from '../Fragment';
 import parse from 'parse/_parse';
+import getPartialTemplate from './partial/getPartialTemplate';
 
 export default class Partial extends Mustache {
 	bind () {
 		super.bind();
 
-		if ( ( !this.model || !this.model.value ) && this.template.r ) {
+		if ( ( !this.model || typeof this.model.value !== 'string' ) && this.template.r ) {
 			this.setTemplate( this.template.r );
 		} else {
 			this.setTemplate( this.model.value );
@@ -15,9 +17,7 @@ export default class Partial extends Mustache {
 		this.fragment = new Fragment({
 			owner: this,
 			template: this.partialTemplate
-		});
-
-		this.fragment.bind();
+		}).bind();
 	}
 
 	detach () {
@@ -44,18 +44,30 @@ export default class Partial extends Mustache {
 		return this.fragment.firstNode();
 	}
 
+	forceResetTemplate () {
+		this.partialTemplate = getPartialTemplate( this.ractive, this.name, this.parentFragment );
+
+		if ( !this.partialTemplate ) {
+			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
+			this.partialTemplate = [];
+		}
+
+		this.fragment.resetTemplate( this.partialTemplate );
+	}
+
 	render () {
 		return this.fragment.render();
 	}
 
 	setTemplate ( name ) {
-		let template = this.parentFragment.ractive.partials[ name ];
+		this.name = name;
+		const template = getPartialTemplate( this.ractive, name, this.parentFragment );
 
-		if ( typeof template === 'string' ) {
-			template = parse( template ).t;
+		if ( !template ) {
+			warnOnceIfDebug( `Could not find template for partial '${name}'` );
 		}
 
-		this.partialTemplate = template || []; // TODO warn on missing partial
+		this.partialTemplate = template || [];
 	}
 
 	toString ( escape ) {
@@ -64,5 +76,14 @@ export default class Partial extends Mustache {
 
 	unrender ( shouldDestroy ) {
 		this.fragment.unrender( shouldDestroy );
+	}
+
+	update () {
+		if ( this.model && typeof this.model.value === 'string' && this.model.value !== this.name ) {
+			this.setTemplate( this.model.value );
+			this.fragment.resetTemplate( this.partialTemplate );
+		}
+
+		this.fragment.update();
 	}
 }

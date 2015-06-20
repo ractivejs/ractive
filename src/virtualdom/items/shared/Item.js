@@ -32,4 +32,8 @@ export default class Item {
 	findAllComponents () {
 		// noop;
 	}
+
+	findNextNode () {
+		return this.parentFragment.findNextNode( this );
+	}
 }

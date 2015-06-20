@@ -137,6 +137,14 @@ export default class RepeatedFragment {
 		}
 	}
 
+	findNextNode ( iteration ) {
+		if ( iteration.index < this.iterations.length - 1 ) {
+			return this.iterations[ iteration.index + 1 ].firstNode();
+		}
+
+		return this.owner.findNextNode();
+	}
+
 	firstNode () {
 		return this.iterations[0] ? this.iterations[0].firstNode() : null;
 	}

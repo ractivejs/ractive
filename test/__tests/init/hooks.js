@@ -1,13 +1,15 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
 var fired, firedSetup, hooks
 
 firedSetup = {
-	setup: function () {
+	beforeEach () {
 		fired = [];
 	},
-	teardown: function () {
+	afterEach () {
 		fired = void 0;
+		cleanup();
 	}
 };
 

@@ -149,7 +149,7 @@ export default class Fragment {
 			return null;
 		}
 
-		return this.owner.findNextNode();
+		return this.owner.findNextNode( this ); // the argument is in case the parent is a RepeatedFragment
 	}
 
 	findParentNode () {
@@ -226,7 +226,7 @@ export default class Fragment {
 
 			if ( wasRendered ) {
 				const parentNode = this.findParentNode();
-				const anchor = null; // TODO!!!
+				const anchor = this.parent ? this.parent.findNextNode( this.owner ) : null;
 
 				parentNode.insertBefore( this.render(), anchor );
 			}

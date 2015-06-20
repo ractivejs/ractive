@@ -11,7 +11,7 @@ export default function ( name, partial ) {
 
 		source.forEach( item => {
 			// queue to rerender if the item is a partial and the current name matches
-			if ( item.type === PARTIAL && item.getPartialName() === name ) {
+			if ( item.type === PARTIAL && item.name === name ) {
 				dest.push( item );
 			}
 
@@ -55,7 +55,7 @@ export default function ( name, partial ) {
 
 	collection.forEach( item => {
 		item.value = undefined;
-		item.setValue( name );
+		item.forceResetTemplate();
 	});
 
 	runloop.end();
