@@ -17,12 +17,7 @@ export default function ( name, partial ) {
 
 			// if it has a fragment, process its items
 			if ( item.fragment ) {
-				collect( item.fragment.items, dest, ractive );
-			}
-
-			// or if it has fragments
-			if ( isArray( item.fragments ) ) {
-				collect( item.fragments, dest, ractive );
+				collect( item.fragment.iterations || item.fragment.items, dest, ractive );
 			}
 
 			// or if it is itself a fragment, process its items

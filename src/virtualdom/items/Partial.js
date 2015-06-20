@@ -79,11 +79,14 @@ export default class Partial extends Mustache {
 	}
 
 	update () {
-		if ( this.model && typeof this.model.value === 'string' && this.model.value !== this.name ) {
-			this.setTemplate( this.model.value );
-			this.fragment.resetTemplate( this.partialTemplate );
-		}
+		if ( this.dirty ) {
+			if ( this.model && typeof this.model.value === 'string' && this.model.value !== this.name ) {
+				this.setTemplate( this.model.value );
+				this.fragment.resetTemplate( this.partialTemplate );
+			}
 
-		this.fragment.update();
+			this.fragment.update();
+			this.dirty = false;
+		}
 	}
 }
