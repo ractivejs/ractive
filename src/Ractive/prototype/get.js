@@ -18,6 +18,6 @@ export default function Ractive$get ( keypath ) {
 		}
 	}
 
-	const model = this.viewmodel.join( keys );
+	const model = this.viewmodel.joinAll( keys );
 	return model.get();
 }

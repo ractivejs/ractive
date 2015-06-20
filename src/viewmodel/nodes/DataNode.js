@@ -174,7 +174,7 @@ export default class DataNode {
 		return this.childByKey[ key ];
 	}
 
-	join ( keys ) {
+	joinAll ( keys ) {
 		const key = keys[0];
 
 		// TODO can we simply avoid this situation elsewhere?
@@ -189,7 +189,7 @@ export default class DataNode {
 		const child = this.childByKey[ key ];
 
 		return keys.length > 1 ?
-			child.join( keys.slice( 1 ) ) :
+			child.joinAll( keys.slice( 1 ) ) :
 			child;
 	}
 

@@ -82,14 +82,14 @@ function createObserver ( ractive, keypath, callback, options ) {
 			}
 		}
 
-		const model = viewmodel.join( keys );
+		const model = viewmodel.joinAll( keys );
 		return new Observer( ractive, model, callback, options );
 	}
 
 	// pattern observers - more complex case
 	const baseModel = wildcardIndex === 0 ?
 		viewmodel :
-		viewmodel.join( keys.slice( 0, wildcardIndex ) );
+		viewmodel.joinAll( keys.slice( 0, wildcardIndex ) );
 
 	return new PatternObserver( ractive, baseModel, keys.splice( wildcardIndex ), callback, options );
 }

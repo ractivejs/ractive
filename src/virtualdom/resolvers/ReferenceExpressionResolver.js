@@ -63,7 +63,7 @@ export default class ReferenceExpressionResolver {
 		}
 
 		const keys = this.members.map( model => model.value );
-		const model = this.base.join( keys );
+		const model = this.base.joinAll( keys );
 
 		this.callback( model );
 	}

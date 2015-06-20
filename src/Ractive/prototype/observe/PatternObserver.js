@@ -32,7 +32,7 @@ class PatternObserver {
 			context.addWatcher( '*', resolved );
 		}
 		else {
-			context = context.join( segment );
+			context = context.joinAll( segment );
 			if ( !segments.length ) {
 				this.observers.push( getObserver( context, this.callback, this.options, keys ) );
 			}

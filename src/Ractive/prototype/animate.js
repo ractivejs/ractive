@@ -123,7 +123,7 @@ function animate ( root, keypath, to, options ) {
 	if ( keypath ) {
 		// TODO revisit 'dummy' approach to handling multiple
 		// animations? this seems kind of hokey
-		model = root.viewmodel.join( normalise( keypath ).split( '.' ) );
+		model = root.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
 		from = model.value;
 
 		// cancel any existing animation

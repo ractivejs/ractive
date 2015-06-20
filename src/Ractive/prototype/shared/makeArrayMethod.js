@@ -7,7 +7,7 @@ var arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		const model = this.viewmodel.join( normalise( keypath ).split( '.' ) );
+		const model = this.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
 		const array = model.value;
 
 		if ( !isArray( array ) ) {

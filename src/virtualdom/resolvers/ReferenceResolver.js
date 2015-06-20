@@ -38,7 +38,7 @@ export default class ReferenceResolver {
 				keys = reference.split( '.' );
 			}
 
-			const model = context.join( keys );
+			const model = context.joinAll( keys );
 			callback( model );
 		}
 
@@ -73,7 +73,7 @@ export default class ReferenceResolver {
 			const mapping = localViewmodel.mappings[key];
 
 			const model = this.keys.length > 1 ?
-				mapping.join( this.keys.slice( 1 ) ) :
+				mapping.joinAll( this.keys.slice( 1 ) ) :
 				mapping;
 
 			this.callback( model );
@@ -101,7 +101,7 @@ export default class ReferenceResolver {
 						localViewmodel.map( key, fragment.context.joinKey( key ) );
 					}
 
-					const model = fragment.context.join( this.keys );
+					const model = fragment.context.joinAll( this.keys );
 					this.callback( model );
 					this.resolved = true;
 
@@ -120,7 +120,7 @@ export default class ReferenceResolver {
 
 		// TODO we can determine this immediately, don't need to wait for attemptResolution
 		if ( !hasContextChain ) {
-			const model = this.fragment.ractive.viewmodel.join( this.keys );
+			const model = this.fragment.ractive.viewmodel.joinAll( this.keys );
 			this.callback( model );
 			this.resolved = true;
 		}
@@ -129,7 +129,7 @@ export default class ReferenceResolver {
 	forceResolution () {
 		if ( this.resolved ) return;
 
-		const model = this.fragment.findContext().join( this.keys );
+		const model = this.fragment.findContext().joinAll( this.keys );
 		this.callback( model );
 		this.resolved = true;
 	}

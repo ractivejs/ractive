@@ -10,7 +10,7 @@ export default function Ractive$updateModel ( keypath, cascade ) {
 	if ( !keypath ) {
 		this.viewmodel.updateFromBindings( true );
 	} else {
-		this.viewmodel.join( splitKeypath( keypath ) ).updateFromBindings( cascade );
+		this.viewmodel.joinAll( splitKeypath( keypath ) ).updateFromBindings( cascade );
 	}
 
 	runloop.end();

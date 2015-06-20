@@ -29,7 +29,7 @@ export default function Ractive$set ( keypath, value ) {
 
 
 function set ( ractive, keypath, value ) {
-	const model = ractive.viewmodel.join( normalise( keypath ).split( '.' ) );
+	const model = ractive.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
 	model.set( value );
 }
 

@@ -18,7 +18,7 @@ function getComparator ( option ) {
 }
 
 export default function Ractive$merge ( keypath, array, options ) {
-	const model = this.viewmodel.join( splitKeypath( keypath ) );
+	const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
 	const promise = runloop.start( this, true );
 
 	if ( array === model.value ) {
