@@ -1,3 +1,4 @@
+import { warnIfDebug } from 'utils/log';
 import { COMPONENT, INTERPOLATOR } from 'config/types';
 import Item from './shared/Item';
 import construct from 'Ractive/construct';
@@ -36,6 +37,10 @@ export default class Component extends Item {
 		this.parentFragment = options.parentFragment;
 		this.resolvers = [];
 		this.complexMappings = [];
+
+		if ( instance.el ) {
+			warnIfDebug( `The <${this.name}> component has a default 'el' property; it has been disregarded` );
+		}
 
 		let partials = options.template.p || {};
 		if ( !( 'content' in partials ) ) partials.content = options.template.f || [];

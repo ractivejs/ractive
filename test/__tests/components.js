@@ -227,21 +227,19 @@ test( 'Nested components fire the oninit() event correctly (#511)', t => {
 
 
 test( 'Component removed from DOM on tear-down with teardown override that calls _super', t => {
+	const Widget = Ractive.extend({
+		template: 'foo',
+		teardown () {
+			this._super();
+		}
+	});
 
-	var Widget = Ractive.extend({
-			template: 'foo',
-			teardown: function(){
-				this._super();
-			}
-		});
-	var ractive = new Ractive({
-			el: fixture,
-			template: '{{#item}}<widget/>{{/item}}',
-			data: { item: {} },
-			components: {
-				widget: Widget
-			}
-		});
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{#if item}}<Widget/>{{/if}}',
+		data: { item: true },
+		components: { Widget }
+	});
 
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 
@@ -611,12 +609,10 @@ asyncTest( 'oninit() only fires once on a component (#943 #927), oncomplete fire
 			inited = true;
 		},
 		onrender () {
-			console.log( 'onrender' )
 			rendered++;
 			t.ok( true );
 		},
 		oncomplete () {
-			console.log( 'oncomplete' )
 			completed++;
 			t.ok( true );
 
@@ -720,18 +716,18 @@ test( 'Component CSS is added to the page before components (#1046)', function (
 test( 'Decorators and transitions are only initialised post-render, when components are inside elements (#1346)', function ( t ) {
 	var ractive, inDom = {};
 
-	ractive = new Ractive({
+	const Widget = Ractive.extend({
+		template: '<div decorator="check:widget">{{yield}}</div>'
+	});
+
+	new Ractive({
 		el: fixture,
-		template: '<div decorator="check:div"><widget><p decorator="check:p"></p></div>',
-		components: {
-			widget: Ractive.extend({
-				template: '<div decorator="check:widget">{{yield}}</div>'
-			})
-		},
+		template: '<div decorator="check:div"><Widget><p decorator="check:p"></p></div>',
+		components: { Widget },
 		decorators: {
-			check: function ( node, id ) {
+			check ( node, id ) {
 				inDom[ id ] = fixture.contains( node );
-				return { teardown: function () {} };
+				return { teardown () {} };
 			}
 		}
 	});

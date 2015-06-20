@@ -165,6 +165,7 @@ export default class Element extends Item {
 	}
 
 	render () {
+		// TODO determine correct namespace
 		const node = document.createElement( this.template.e );
 		this.node = node;
 
@@ -185,7 +186,7 @@ export default class Element extends Item {
 		this.attributes.forEach( render );
 		this.eventHandlers.forEach( render );
 
-		if ( this.decorator ) this.decorator.render();
+		if ( this.decorator ) this.decorator.render(); // TODO this should only happen once render is complete
 		if ( this.binding ) this.binding.render();
 
 		updateLiveQueries( this );
