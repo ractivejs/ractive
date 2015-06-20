@@ -599,35 +599,41 @@ test( '`this` in function refers to ractive instance', t => {
 });
 
 asyncTest( 'oninit() only fires once on a component (#943 #927), oncomplete fires each render', t => {
-
-	var Component, component, inited = false, completed = 0, rendered = 0;
-
 	expect( 5 );
 
-	Component = Ractive.extend({
-		oninit: function () {
+	let inited = false;
+	let completed = 0;
+	let rendered = 0;
+
+	const Component = Ractive.extend({
+		oninit () {
 			t.ok( !inited, 'oninit should not be called second time' );
 			inited = true;
 		},
-		onrender: function() {
+		onrender () {
+			console.log( 'onrender' )
 			rendered++;
 			t.ok( true );
 		},
-		oncomplete: function() {
+		oncomplete () {
+			console.log( 'oncomplete' )
 			completed++;
 			t.ok( true );
-			if( rendered === 2 && completed === 2 ) { start(); }
+
+			if( rendered === 2 && completed === 2 ) {
+				start();
+			}
 		}
 	});
 
-	component = new Component({
+	const component = new Component({
 		el: fixture,
 		template () {
 			return this.get( 'foo' ) ? 'foo' : 'bar';
 		}
 	});
 
-	component.reset( { foo: true } );
+	component.reset({ foo: true });
 });
 
 if ( Ractive.svg ) {

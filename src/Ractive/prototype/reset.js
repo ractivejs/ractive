@@ -4,8 +4,12 @@ import Hook from 'events/Hook';
 import runloop from 'global/runloop';
 import dataConfigurator from 'Ractive/config/custom/data';
 
-var shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ],
-	resetHook = new Hook( 'reset' );
+const shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ];
+
+const completeHook = new Hook( 'complete' );
+const resetHook = new Hook( 'reset' );
+const renderHook = new Hook( 'render' );
+const unrenderHook = new Hook( 'unrender' );
 
 export default function Ractive$reset ( data ) {
 	data = data || {};
@@ -43,7 +47,10 @@ export default function Ractive$reset ( data ) {
 	}
 
 	if ( rerender ) {
+		unrenderHook.fire( this );
 		this.fragment.resetTemplate( this.template );
+		renderHook.fire( this );
+		completeHook.fire( this );
 	}
 
 	runloop.end();
