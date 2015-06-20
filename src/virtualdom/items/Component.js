@@ -1,4 +1,4 @@
-import { INTERPOLATOR } from 'config/types';
+import { COMPONENT, INTERPOLATOR } from 'config/types';
 import Item from './shared/Item';
 import construct from 'Ractive/construct';
 import initialise from 'Ractive/initialise';
@@ -27,6 +27,7 @@ const teardownHook = new Hook( 'teardown' );
 export default class Component extends Item {
 	constructor ( options, ComponentConstructor ) {
 		super( options );
+		this.type = COMPONENT; // override ELEMENT from super
 
 		const instance = create( ComponentConstructor.prototype );
 

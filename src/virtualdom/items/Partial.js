@@ -53,6 +53,7 @@ export default class Partial extends Mustache {
 		}
 
 		this.fragment.resetTemplate( this.partialTemplate );
+		this.bubble();
 	}
 
 	render () {

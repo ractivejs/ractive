@@ -2,18 +2,13 @@ import { escapeHtml } from 'utils/html';
 import Item from './shared/Item';
 
 export default class Text extends Item {
-	constructor ( options ) {
-		super( options );
-		this.str = options.template;
-	}
-
 	bind () {
 		// noop
 	}
 
 	detach () {
 		if ( !this.node.parentNode ) {
-			throw new Error( 'WTF' );
+			throw new Error( 'TODO an unexpected situation arose' );
 		}
 		return this.node.parentNode.removeChild( this.node );
 	}
@@ -23,11 +18,11 @@ export default class Text extends Item {
 	}
 
 	render () {
-		return ( this.node = document.createTextNode( this.str ) );
+		return ( this.node = document.createTextNode( this.template ) );
 	}
 
 	toString ( escape ) {
-		return escape ? escapeHtml( this.str ) : this.str;
+		return escape ? escapeHtml( this.template ) : this.template;
 	}
 
 	unbind () {
@@ -43,6 +38,6 @@ export default class Text extends Item {
 	}
 
 	valueOf () {
-		return this.str;
+		return this.template;
 	}
 }

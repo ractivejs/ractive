@@ -588,9 +588,9 @@ test( 'Inline partials can override component partials', t => {
 		el: fixture,
 		template: `
 			<cmp>
-			<!-- {{>part}} -->
-			inline
-			<!-- {{/part}} -->
+			 	{{#partial part}}
+					inline
+				{{/partial}}
 			</cmp>
 			<cmp/>
 		`,
@@ -692,7 +692,16 @@ test( 'Partials with expressions in recursive structures should not blow the sta
 test( 'Named partials should not get rebound if they happen to have the same name as a reference (#1507)', t => {
 	var ractive = new Ractive({
 		el: fixture,
-		template: `{{#each items}}{{>item}}{{/each}}{{#if items.length > 1}}{{#with items[items.length-1]}}{{>item}}{{/with}}{{/if}}`,
+		template: `
+			{{#each items}}
+				{{>item}}
+			{{/each}}
+
+			{{#if items.length > 1}}
+				{{#with items[items.length-1]}}
+					{{>item}}
+				{{/with}}
+			{{/if}}`,
 		partials: {
 			item: '{{item}}'
 		},
@@ -712,14 +721,14 @@ test( 'Several inline partials containing elements can be defined (#1736)', t =>
 	var ractive = new Ractive({
 		el: fixture,
 		template: `
-			<!-- {{>part1}} -->
-			<div>inline1</div>
-			<!-- {{/part1}} -->
-			<!-- {{>part2}} -->
-			<div>inline2</div>
-			<!-- {{/part2}} -->
-			A{{>part1}}B{{>part2}}C
-		`
+			{{#partial part1}}
+				<div>inline1</div>
+			{{/partial}}
+			{{#partial part2}}
+				<div>inline2</div>
+			{{/partial}}
+
+			A{{>part1}}B{{>part2}}C`
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'A<div>inline1</div>B<div>inline2</div>C' );
