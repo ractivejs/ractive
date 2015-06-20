@@ -57,23 +57,7 @@ export default class Viewmodel extends DataNode {
 	}
 
 	joinKey ( key ) {
-		if ( key === undefined || key === '' ) return this;
-
-		if ( this.mappings[ key ] ) {
-			return this.mappings[ key ];
-		}
-
-		if ( this.computations[ key ] ) {
-			return this.computations[ key ];
-		}
-
-		if ( !this.childByKey[ key ] ) {
-			const child = new DataNode( this, key );
-			this.children.push( child );
-			this.childByKey[ key ] = child;
-		}
-
-		return this.childByKey[ key ];
+		return this.mappings[ key ] || this.computations[ key ] || super.joinKey( key );
 	}
 
 	map ( localKey, origin ) {
