@@ -2,6 +2,8 @@ import { splitKeypath } from 'shared/keypaths';
 import ReferenceResolver from 'virtualdom/resolvers/ReferenceResolver';
 
 export default function Ractive$get ( keypath ) {
+	if ( !keypath ) return this.viewmodel.value; // TODO include computations/mappings?
+
 	const keys = splitKeypath( keypath );
 	const key = keys[0];
 

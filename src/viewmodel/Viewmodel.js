@@ -76,15 +76,6 @@ export default class Viewmodel extends DataNode {
 		return this.childByKey[ key ];
 	}
 
-	joinAll ( keys ) {
-		const key = keys[0];
-
-		const mapping = this.mappings[ key ] || this.computations[ key ];
-
-		if ( mapping ) return mapping.joinAll( keys.slice( 1 ) );
-		return super.joinAll( keys );
-	}
-
 	map ( localKey, origin ) {
 		// TODO remapping
 		this.mappings[ localKey ] = origin;

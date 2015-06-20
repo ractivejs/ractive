@@ -175,22 +175,12 @@ export default class DataNode {
 	}
 
 	joinAll ( keys ) {
-		const key = keys[0];
-
-		// TODO can we simply avoid this situation elsewhere?
-		if ( keys.length === 0 || ( keys.length === 1 && key === '' ) ) return this;
-
-		if ( !this.childByKey[ key ] ) {
-			const child = new DataNode( this, key );
-			this.children.push( child );
-			this.childByKey[ key ] = child;
+		let model = this;
+		for ( let i = 0; i < keys.length; i += 1 ) {
+			model = model.joinKey( keys[i] );
 		}
 
-		const child = this.childByKey[ key ];
-
-		return keys.length > 1 ?
-			child.joinAll( keys.slice( 1 ) ) :
-			child;
+		return model;
 	}
 
 	mark () {

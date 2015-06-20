@@ -59,7 +59,7 @@ export default class ReferenceExpressionResolver {
 		// if some members are not resolved, abort
 		let i = this.members.length;
 		while ( i-- ) {
-			if ( !this.members[i] ) return;
+			if ( !this.members[i] || this.members[i].value === undefined ) return;
 		}
 
 		const keys = this.members.map( model => model.value );

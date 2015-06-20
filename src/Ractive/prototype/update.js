@@ -7,7 +7,9 @@ var updateHook = new Hook( 'update' );
 export default function Ractive$update ( keypath ) {
 	var promise, model;
 
-	model = this.viewmodel.joinAll( splitKeypath( keypath ) );
+	model = keypath ?
+		this.viewmodel.joinAll( splitKeypath( keypath ) ) :
+		this.viewmodel;
 
 	promise = runloop.start( this, true );
 	model.mark();
