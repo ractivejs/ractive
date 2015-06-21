@@ -11,6 +11,7 @@ import { cancel, unbind } from 'shared/methodCallers';
 import Hook from 'events/Hook';
 import Fragment from '../Fragment';
 import parseJSON from 'utils/parseJSON';
+import fireEvent from 'events/fireEvent';
 
 function removeFromLiveComponentQueries ( component ) {
 	let instance = component.ractive;
@@ -61,6 +62,8 @@ export default class Component extends Item {
 		// for components and just for ractive...
 		// TODO is this still used?
 		//instance._inlinePartials = options.inlinePartials;
+
+		if ( this.template.v ) this.setupEvents();
 	}
 
 	bind () {
@@ -193,6 +196,34 @@ export default class Component extends Item {
 		this.rendered = true;
 		const docFrag = instance.fragment.detach();
 		return docFrag;
+	}
+
+	setupEvents () {
+		Object.keys( this.template.v ).forEach( name => {
+			const template = this.template.v[ name ];
+
+			if ( typeof template !== 'string' ) {
+				fatal( 'Components currently only support simple events - you cannot include arguments. Sorry!' );
+			}
+
+			const ractive = this.ractive;
+
+			this.instance.on( name, function () {
+				let event;
+
+				// semi-weak test, but what else? tag the event obj ._isEvent ?
+				if ( arguments.length && arguments[0] && arguments[0].node ) {
+					event = Array.prototype.shift.call( arguments );
+				}
+
+				const args = Array.prototype.slice.call( arguments );
+
+				fireEvent( ractive, template, { event, args });
+
+				// cancel bubbling
+				return false;
+			});
+		});
 	}
 
 	toString () {
