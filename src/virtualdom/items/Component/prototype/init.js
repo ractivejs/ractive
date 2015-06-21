@@ -25,6 +25,8 @@ export default function Component$init ( options, Component ) {
 	createInstance( this, Component, options.template.a, options.template.f, options.template.p );
 	propagateEvents( this, options.template.v );
 
+	this.instance.getBoundEvents = () => Object.keys(options.template.v);
+
 	// intro, outro and decorator directives have no effect
 	if ( options.template.t0 || options.template.t1 || options.template.t2 || options.template.o ) {
 		warnIfDebug( 'The "intro", "outro" and "decorator" directives have no effect on components', { ractive: this.instance });

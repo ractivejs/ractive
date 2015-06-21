@@ -1,7 +1,7 @@
 import trim from './shared/trim';
 import notEmptyString from './shared/notEmptyString';
 
-export default function Ractive$off ( eventName, callback ) {
+export default function Ractive$off ( eventName, callback, options = {}  ) {
 	var eventNames;
 
 	// if no arguments specified, remove all callbacks
@@ -20,21 +20,25 @@ export default function Ractive$off ( eventName, callback ) {
 		eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
 
 		eventNames.forEach( eventName => {
-			var subscribers, index;
+			if ( options.target ) {
+				options.target.removeEventListener( eventName, callback, false );
+			} else {
+				let subscribers, index;
 
-			// If we have subscribers for this event...
-			if ( subscribers = this._subs[ eventName ] ) {
-				// ...if a callback was specified, only remove that
-				if ( callback ) {
-					index = subscribers.indexOf( callback );
-					if ( index !== -1 ) {
-						subscribers.splice( index, 1 );
+				// If we have subscribers for this event...
+				if ( subscribers = this._subs[ eventName ] ) {
+					// ...if a callback was specified, only remove that
+					if ( callback ) {
+						index = subscribers.indexOf( callback );
+						if ( index !== -1 ) {
+							subscribers.splice( index, 1 );
+						}
 					}
-				}
 
-				// ...otherwise remove all callbacks
-				else {
-					this._subs[ eventName ] = [];
+					// ...otherwise remove all callbacks
+					else {
+						this._subs[ eventName ] = [];
+					}
 				}
 			}
 		});
