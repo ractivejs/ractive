@@ -174,6 +174,8 @@ export default class Element extends Item {
 
 		defineProperty( node, '_ractive', {
 			value: {
+				ractive: this.ractive,
+				fragment: this.parentFragment,
 				events: {},
 				context,
 				keypath: context.getKeypath()

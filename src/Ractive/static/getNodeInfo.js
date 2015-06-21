@@ -1,19 +1,14 @@
-import getSpecialsReferences from 'shared/getSpecialsReferences';
+import { extend } from 'utils/object';
 
 export default function( node ) {
-	var storage, specials;
+	if ( !node || !node._ractive ) return {};
 
-	if ( !node || !( storage = node._ractive ) ) {
-		return {};
-	}
-
-	specials = getSpecialsReferences( storage.proxy.parentFragment );
+	const storage = node._ractive;
 
 	return {
 		ractive: storage.root,
-		keypath: storage.keypath.getKeypath(),
-		index: specials.index,
-		key: specials.key
+		keypath: storage.context.getKeypath(),
+		index: extend( {}, storage.fragment.indexRefs ),
+		key: extend( {}, storage.fragment.keyRefs )
 	};
-
 }
