@@ -1,7 +1,7 @@
 import trim from './shared/trim';
 import notEmptyString from './shared/notEmptyString';
 
-export default function Ractive$on ( eventName, callback ) {
+export default function Ractive$on ( eventName, callback, options = {} ) {
 	var listeners, n, eventNames;
 
 	// allow mutliple listeners to be bound in one go
@@ -10,7 +10,7 @@ export default function Ractive$on ( eventName, callback ) {
 
 		for ( n in eventName ) {
 			if ( eventName.hasOwnProperty( n ) ) {
-				listeners.push( this.on( n, eventName[ n ] ) );
+				listeners.push( this.on( n, eventName[ n ], options ) );
 			}
 		}
 
@@ -29,10 +29,16 @@ export default function Ractive$on ( eventName, callback ) {
 	eventNames = eventName.split( ' ' ).map( trim ).filter( notEmptyString );
 
 	eventNames.forEach( eventName => {
-		( this._subs[ eventName ] || ( this._subs[ eventName ] = [] ) ).push( callback );
+		if ( options.target ) {
+			options.target.addEventListener( eventName, callback, false );
+
+			this.on( 'teardown', () => this.off( eventName, callback, options ) );
+		} else {
+			( this._subs[ eventName ] || ( this._subs[ eventName ] = [] ) ).push( callback );
+		}
 	});
 
 	return {
-		cancel: () => this.off( eventName, callback )
+		cancel: () => this.off( eventName, callback, options )
 	};
 }
