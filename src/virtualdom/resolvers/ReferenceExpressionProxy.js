@@ -43,6 +43,8 @@ export default class ReferenceExpressionProxy extends DataNode {
 					model.register( intermediary );
 				} else {
 					// this should not be able to resolve immediately...
+					// TODO once it *does* resolve, remove from resolvers.
+					// use fragment.resolve() instead?
 					const resolver = new ReferenceResolver( fragment, template.n, model => {
 						this.members[i] = model;
 
@@ -74,14 +76,14 @@ export default class ReferenceExpressionProxy extends DataNode {
 		const keys = this.members.map( model => model.value );
 		const model = this.base.joinAll( keys );
 
-		this.value = model.value; // TODO is this necessary, or would this.get() suffice?
-
 		if ( this.model ) {
 			this.model.unregister( this );
 		}
 
 		this.model = model;
 		model.register( this );
+
+		this.mark();
 	}
 
 	forceResolution () {

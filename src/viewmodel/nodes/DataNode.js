@@ -221,6 +221,7 @@ export default class DataNode {
 
 	mark () {
 		const value = this.get();
+
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 

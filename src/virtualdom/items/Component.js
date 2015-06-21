@@ -95,7 +95,8 @@ export default class Component extends Item {
 						else {
 							// TODO once it resolves, it's fixed - so maybe we don't need
 							// this much machinery
-							const resolver = new ReferenceResolver( this.parentFragment, template[0], model => {
+							// TODO use this.parentFragment.resolve?
+							const resolver = new ReferenceResolver( this.parentFragment, template[0].r, model => {
 								viewmodel.map( localKey, model );
 
 								// TODO once resolvers have been refactored, we're guaranteed to not be initialising
