@@ -30,7 +30,6 @@ runloop = {
 		flushChanges();
 
 		batch.transitionManager.init();
-		if ( !batch.previousBatch && !!batch.instance ) batch.instance.viewmodel.changes = [];
 		batch = batch.previousBatch;
 	},
 
@@ -91,6 +90,12 @@ function flushChanges () {
 	i = batch.fragments.length;
 	while ( i-- ) {
 		thing = batch.fragments[i];
+
+		// TODO deprecate this. It's annoying and serves no useful function
+		const ractive = thing.ractive;
+		changeHook.fire( ractive, ractive.viewmodel.changes );
+		ractive.viewmodel.changes = {};
+
 		thing.update();
 	}
 	batch.fragments.length = 0;

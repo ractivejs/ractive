@@ -5,6 +5,7 @@ import fireEvent from 'events/fireEvent';
 import Fragment from '../../Fragment';
 import createFunction from 'shared/createFunction';
 import noop from 'utils/noop';
+import resolveReference from 'view/resolvers/resolveReference';
 
 function defaultHandler ( event ) {
 	const handler = this._ractive.events[ event.type ];
@@ -24,6 +25,14 @@ export default class EventHandler {
 		this.ractive = owner.parentFragment.ractive;
 		this.parentFragment = owner.parentFragment;
 		this.node = null;
+	}
+
+	bind () {
+		let fragment = this.parentFragment;
+		while ( !fragment.context ) fragment = fragment.parent;
+		this.context = fragment.context;
+
+		const template = this.template;
 
 		if ( template.m ) {
 			this.method = template.m;
@@ -75,12 +84,6 @@ export default class EventHandler {
 					}) :
 					[]; // no arguments
 		}
-	}
-
-	bind () {
-		let fragment = this.parentFragment;
-		while ( !fragment.context ) fragment = fragment.parent;
-		this.context = fragment.context;
 
 		if ( this.template.n && typeof this.template.n !== 'string' ) this.action.bind();
 		if ( this.template.d ) this.args.bind();
@@ -94,6 +97,11 @@ export default class EventHandler {
 	}
 
 	fire ( event ) {
+		// augment event object
+		event.keypath = this.context.getKeypath();
+		event.context = this.context.value;
+		event.index = this.parentFragment.indexRefs;
+
 		if ( this.method ) {
 			if ( typeof this.ractive[ this.method ] !== 'function' ) {
 				throw new Error( `Attempted to call a non-existent method ("${this.method}")` );
@@ -117,8 +125,14 @@ export default class EventHandler {
 				return model.value;
 			});
 
+			// make event available as `this.event`
+			const oldEvent = this.ractive.event;
+			this.ractive.event = event;
+
 			const args = this.argsFn.apply( null, values );
 			this.ractive[ this.method ].apply( this.ractive, args );
+
+			this.ractive.event = oldEvent;
 		}
 
 		else {
@@ -126,9 +140,6 @@ export default class EventHandler {
 			const args = this.template.d ? this.args.getArgsList() : this.args;
 
 			event.name = action;
-			event.keypath = this.context.getKeypath();
-			event.context = this.context.value;
-			event.index = this.parentFragment.indexRefs;
 
 			fireEvent( this.ractive, action, {
 				event,

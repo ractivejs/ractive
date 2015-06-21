@@ -94,6 +94,10 @@ export default class ExpressionProxy extends Model {
 		return this.computation.value;
 	}
 
+	getKeypath () {
+		return this.computation ? this.computation.getKeypath() : '@undefined';
+	}
+
 	handleChange () {
 		this.mark();
 	}

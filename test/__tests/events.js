@@ -535,7 +535,20 @@ test( 'Calling ractive.off() without a keypath removes all handlers', t => {
 test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
 	var changes, ractive = new Ractive({
 		el: fixture,
-		template: '{{#items}}<label><input type="checkbox" checked="{{completed}}"> {{description}}</label>{{/items}}<p class="result">{{ items.filter( completed ).length }}</p>{{# items.filter( completed ).length }}<p class="conditional">foo</p>{{/ items.filter( completed ).length }}',
+		template: `
+			{{#items}}
+				<label>
+					<input type="checkbox" checked="{{completed}}"> {{description}}
+				</label>
+			{{/items}}
+
+			<p class="result">
+				{{ items.filter( completed ).length }}
+			</p>
+
+			{{#if items.filter( completed ).length}}
+				<p class="conditional">foo</p>
+			{{/if}}`,
 		data: {
 			items: [
 				{ completed: true, description: 'fix this bug' },

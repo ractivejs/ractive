@@ -7,6 +7,9 @@ export default class RootModel extends Model {
 	constructor ( options ) {
 		super( null, null );
 
+		// TODO deprecate this
+		this.changes = {};
+
 		this.isRoot = true;
 		this.root = this;
 		this.ractive = options.ractive; // TODO sever this link

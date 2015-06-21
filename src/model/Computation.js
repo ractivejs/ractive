@@ -29,7 +29,7 @@ function truncateStack ( stack ) {
 	if ( !stack ) return '';
 
 	const lines = stack.split( '\n' );
-	const name = ComputedNode.name + '.getValue';
+	const name = Computation.name + '.getValue';
 
 	let truncated = [];
 

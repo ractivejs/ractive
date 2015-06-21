@@ -281,6 +281,9 @@ export default class Model {
 	set ( value, silent ) {
 		if ( isEqual( value, this.value ) ) return;
 
+		// TODO deprecate this nonsense
+		this.root.changes[ this.getKeypath() ] = value;
+
 		if ( this.parent.wrapper && this.parent.wrapper.set ) {
 			this.parent.wrapper.set( this.key, value );
 			this.parent.value = this.parent.wrapper.get();
@@ -345,7 +348,9 @@ export default class Model {
 
 					// any direct or downstream {{@keypath}} dependants need
 					// to be notified of the change
+					console.group( 'updating keypath dependants' )
 					model.updateKeypathDependants();
+					console.groupEnd()
 				}
 
 				if ( indexResolver ) {
@@ -399,6 +404,6 @@ export default class Model {
 		this.children.forEach( updateKeypathDependants );
 		this.indexedChildren.forEach( updateKeypathDependants );
 
-		if ( this.keypathReference ) this.keypathReference.handleChange();
+		if ( this.keypathModel ) this.keypathModel.handleChange();
 	}
 }
