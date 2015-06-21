@@ -348,9 +348,7 @@ export default class Model {
 
 					// any direct or downstream {{@keypath}} dependants need
 					// to be notified of the change
-					console.group( 'updating keypath dependants' )
 					model.updateKeypathDependants();
-					console.groupEnd()
 				}
 
 				if ( indexResolver ) {
