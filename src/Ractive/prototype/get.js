@@ -1,5 +1,5 @@
-import { splitKeypath } from 'shared/keypaths';
-import ReferenceResolver from 'virtualdom/resolvers/ReferenceResolver';
+import { normalise, splitKeypath } from 'shared/keypaths';
+import resolveReference from 'virtualdom/resolvers/resolveReference';
 
 export default function Ractive$get ( keypath ) {
 	if ( !keypath ) return this.viewmodel.value; // TODO include computations/mappings?
@@ -11,12 +11,8 @@ export default function Ractive$get ( keypath ) {
 		// if this is an inline component, we may need to create
 		// an implicit mapping
 		if ( this.component ) {
-			const resolver = new ReferenceResolver( this.component.parentFragment, key, model => {
-				this.viewmodel.map( key, model );
-			});
-
-			// TODO eesh, is there a better approach than this?
-			resolver.unbind();
+			// mapping is created as a side-effect
+			resolveReference( this.component.parentFragment, normalise( key ) );
 		}
 	}
 

@@ -164,7 +164,13 @@ test( 'Component \'backwash\' is prevented during a splice (#406)', function ( t
 test( 'Reference expression resolvers survive a splice operation', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,
-		template: '{{#rows:r}}{{#columns:c}}<p>{{columns[c]}}{{r}}{{rows[r][this]}}</p>{{/columns}}<strong>{{rows[r][selectedColumn]}}</strong>{{/rows}}',
+		template: `
+			{{#rows:r}}
+				{{#columns:c}}
+					<p>{{columns[c]}}{{r}}{{rows[r][this]}}</p>
+				{{/columns}}
+				<strong>{{rows[r][selectedColumn]}}</strong>
+			{{/rows}}`,
 		data: {
 			rows: [
 				{ foo: 'a', bar: 'b', baz: 'c' },

@@ -1,4 +1,5 @@
 import Item from './Item';
+import resolve from '../../resolvers/resolve';
 
 export default class Mustache extends Item {
 	constructor ( options ) {
@@ -14,24 +15,33 @@ export default class Mustache extends Item {
 
 	bind () {
 		// try to find a model for this view
-		this.resolver = this.parentFragment.resolve( this.template, model => {
-			const wasBound = !!this.model;
+		let model = resolve( this.parentFragment, this.template );
 
-			if ( model === this.model ) {
-				this.handleChange();
-				return;
-				//throw new Error( 'Resolved to the same model' ); // TODO invite issue
-			}
-
-			if ( this.model ) {
-				this.model.unregister( this );
-			}
-
+		if ( model ) {
 			this.model = model;
 			model.register( this );
+		}
 
-			if ( wasBound ) this.handleChange();
-		});
+		else {
+			// TODO this can now only resolve once...
+			this.resolver = this.parentFragment.resolve( this.template, model => {
+				const wasBound = !!this.model;
+
+				if ( model === this.model ) {
+					this.handleChange();
+					return;
+				}
+
+				if ( this.model ) {
+					this.model.unregister( this );
+				}
+
+				this.model = model;
+				model.register( this );
+
+				if ( wasBound ) this.handleChange();
+			});
+		}
 	}
 
 	handleChange () {

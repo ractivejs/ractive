@@ -3,7 +3,7 @@ import { isEqual, isObject } from 'utils/is';
 import { splitKeypath } from 'shared/keypaths';
 import { cancel } from 'shared/methodCallers';
 import { extend } from 'utils/object';
-import ReferenceResolver from 'virtualdom/resolvers/ReferenceResolver';
+import resolveReference from 'virtualdom/resolvers/resolveReference';
 
 const onceOptions = { init: false, once: true };
 
@@ -73,12 +73,8 @@ function createObserver ( ractive, keypath, callback, options ) {
 		if ( !viewmodel.has( key ) ) {
 			// if this is an inline component, we may need to create an implicit mapping
 			if ( ractive.component ) {
-				const resolver = new ReferenceResolver( ractive.component.parentFragment, key, model => {
-					viewmodel.map( key, model );
-				});
-
-				// TODO can we just not bind in the first place?
-				resolver.unbind();
+				// mapping created as side-effect
+				resolveReference( ractive.component.parentFragment, key );
 			}
 		}
 

@@ -1,9 +1,8 @@
-import IndexReferenceResolver from './IndexReferenceResolver';
-import KeyReferenceResolver from './KeyReferenceResolver';
+import DataNode from 'viewmodel/nodes/DataNode';
 import ReferenceResolver from './ReferenceResolver';
-import ShadowResolver from './ShadowResolver';
 import { unbind } from 'shared/methodCallers';
 import createFunction from 'shared/createFunction';
+import resolveReference from './resolveReference';
 
 function wrapFunction ( fn, context, uid ) {
 	if ( fn.__nowrap ) return fn;
@@ -20,46 +19,37 @@ function wrapFunction ( fn, context, uid ) {
 	return ( fn[ wrapProp ] = fn.bind( context ) );
 }
 
-export default class ExpressionResolver {
-	constructor ( fragment, template, callback ) {
+export default class ExpressionProxy extends DataNode {
+	constructor ( fragment, template ) {
+		super( fragment.ractive.viewmodel, null );
+
 		this.fragment = fragment;
 		this.template = template;
-		this.callback = callback;
 
 		this.fn = createFunction( template.s, template.r.length );
+		this.computation = null;
 
-		this.models = new Array( template.r.length );
+		this.resolvers = [];
+		this.models = template.r.map( ( ref, index ) => {
+			const model = resolveReference( fragment, ref );
 
-		this.resolvers = template.r.map( ( ref, i ) => {
-			const callback = model => this.resolve( i, model );
+			if ( !model ) {
+				const resolver = new ReferenceResolver( fragment, ref, model => {
+					removeFromArray( this.resolvers, resolver );
+					this.models[ index ] = model;
+					this.bubble();
+				});
 
-			// TODO handle fragment context changes (e.g. `{{#with foo[bar]}}...`)
-			if ( ref === '.' || ref === 'this' ) {
-				return new ShadowResolver( fragment, callback );
+				this.resolvers.push( resolver );
 			}
 
-			if ( ref === '@index' || ref in fragment.indexRefs ) {
-				return new IndexReferenceResolver( fragment, ref, callback );
-			}
-
-			if ( ref === '@key' || ref in fragment.keyRefs ) {
-				return new KeyReferenceResolver( fragment, ref, callback );
-			}
-
-			if ( ref[0] === '@' ) {
-				throw new Error( 'TODO specials' );
-			}
-
-			return new ReferenceResolver( fragment, ref, callback );
+			return model;
 		});
 
-		this.ready = true;
 		this.bubble();
 	}
 
 	bubble () {
-		if ( !this.ready ) return;
-
 		const ractive = this.fragment.ractive;
 
 		const key = this.template.s.replace( /_(\d+)/g, ( match, i ) => {
@@ -86,14 +76,27 @@ export default class ExpressionResolver {
 			getterString: key
 		};
 
-		const model = ractive.viewmodel.compute( key, signature );
-		model.init();
-		this.callback( model );
+		// TODO avoid recreating the same computation multiple times
+		const computation = ractive.viewmodel.compute( key, signature );
+		computation.init();
+
+		this.value = computation.value;
+
+		if ( this.computation ) {
+			this.computation.unregister( this );
+			// notify children...
+		}
+
+		this.computation = computation;
+		computation.register( this );
 	}
 
-	resolve ( index, model ) {
-		this.models[ index ] = model;
-		this.bubble();
+	get () {
+		return this.computation.value;
+	}
+
+	handleChange () {
+		this.mark();
 	}
 
 	unbind () {

@@ -29,21 +29,27 @@ export default class EventHandler {
 		if ( template.m ) {
 			this.method = template.m;
 
-			this.models = new Array( template.a.r.length );
-			this.resolvers = template.a.r.map( ( ref, i ) => {
+			this.resolvers = [];
+			this.models = template.a.r.map( ( ref, i ) => {
 				if ( /^event\.?/.test( ref ) ) {
 					// on-click="foo(event.node)"
-					this.models[i] = {
+					return {
 						event: true,
 						keys: ref.length > 5 ? ref.slice( 6 ).split( '.' ) : []
 					};
-
-					return { unbind: noop };
 				}
 
-				return new ReferenceResolver( this.parentFragment, ref, model => {
-					this.models[i] = model;
-				});
+				const model = resolveReference( this.parentFragment, ref );
+
+				if ( !model ) {
+					const resolver = new ReferenceResolver( this.parentFragment, ref, model => {
+						this.models[i] = model;
+					});
+
+					this.resolvers.push( resolver );
+				}
+
+				return model;
 			});
 
 			this.argsFn = createFunction( template.a.s, template.a.r.length );

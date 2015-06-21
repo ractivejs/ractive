@@ -4,6 +4,9 @@ import { removeFromArray } from 'utils/array';
 import { handleChange, mark, teardown } from 'shared/methodCallers';
 import getPrefixer from '../helpers/getPrefixer';
 import { isArray, isObject } from 'utils/is';
+import IndexReference from './IndexReference';
+import KeyReference from './KeyReference';
+import KeypathReference from './KeypathReference';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -18,12 +21,12 @@ function updateKeypathDependants ( model ) {
 export default class DataNode {
 	constructor ( parent, key ) {
 		this.deps = [];
-		this.keypathDependants = [];
 
 		this.children = [];
 		this.childByKey = {};
 
 		this.indexedChildren = [];
+		this.indexResolvers = [];
 
 		this.unresolved = [];
 		this.unresolvedByKey = {};
@@ -106,6 +109,25 @@ export default class DataNode {
 		this.set( branch, silent );
 
 		return branch;
+	}
+
+	// TODO rename these methods
+	createIndexReference () {
+		const indexResolvers = this.parent.indexResolvers;
+
+		if ( !indexResolvers[ this.key ] ) {
+			indexResolvers[ this.key ] = new IndexReference( this );
+		}
+
+		return indexResolvers[ this.key ];
+	}
+
+	createKeyReference () {
+		return new KeyReference( this );
+	}
+
+	createKeypathReference () {
+		return this.keypathReference || ( this.keypathReference = new KeypathReference( this ) );
 	}
 
 	findMatches ( keys ) {
@@ -252,10 +274,6 @@ export default class DataNode {
 		this.deps.push( dep );
 	}
 
-	registerKeypathDependant ( dep ) {
-		this.keypathDependants.push( dep );
-	}
-
 	registerTwowayBinding ( binding ) {
 		this.bindings.push( binding );
 	}
@@ -306,23 +324,39 @@ export default class DataNode {
 
 	shuffle ( newIndices ) {
 		let indexedChildren = [];
+		let indexResolvers = [];
 
 		if ( this.indexedChildren.length ) {
 			newIndices.forEach( ( newIndex, oldIndex ) => {
-				const child = this.indexedChildren[ oldIndex ];
+				if ( !~newIndex ) return; // TODO need to teardown e.g. ReferenceExpressionProxys?
 
-				if ( !child || !~newIndex || newIndex === oldIndex ) return;
+				const model = this.indexedChildren[ oldIndex ];
+				const indexResolver = this.indexResolvers[ oldIndex ];
 
-				indexedChildren[ newIndex ] = child;
-				child.key = newIndex;
+				if ( newIndex === oldIndex ) {
+					indexedChildren[ newIndex ] = model;
+					indexResolvers[ newIndex ] = indexResolver;
+					return;
+				}
 
-				// any direct or downstream {{@keypath}} dependants need
-				// to be notified of the change
-				child.updateKeypathDependants();
+				if ( model ) {
+					indexedChildren[ newIndex ] = model;
+					model.key = newIndex;
+
+					// any direct or downstream {{@keypath}} dependants need
+					// to be notified of the change
+					model.updateKeypathDependants();
+				}
+
+				if ( indexResolver ) {
+					indexResolver.key = newIndex;
+					indexResolver.handleChange();
+				}
 			});
 		}
 
 		this.indexedChildren = indexedChildren;
+		this.indexResolvers = indexResolvers;
 
 		this.mark();
 		this.deps.forEach( dep => {
@@ -342,10 +376,6 @@ export default class DataNode {
 
 	unregister ( dependant ) {
 		removeFromArray( this.deps, dependant );
-	}
-
-	unregisterKeypathDependant ( dep ) {
-		removeFromArray( this.keypathDependants, dep );
 	}
 
 	unregisterTwowayBinding ( binding ) {
@@ -368,6 +398,7 @@ export default class DataNode {
 	updateKeypathDependants () {
 		this.children.forEach( updateKeypathDependants );
 		this.indexedChildren.forEach( updateKeypathDependants );
-		this.keypathDependants.forEach( handleChange );
+
+		if ( this.keypathReference ) this.keypathReference.handleChange();
 	}
 }

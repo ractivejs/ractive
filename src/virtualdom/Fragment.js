@@ -1,7 +1,7 @@
 import { ELEMENT } from 'config/types';
 import runloop from 'global/runloop';
 import createItem from './items/createItem';
-import createResolver from './resolvers/createResolver';
+import ReferenceResolver from './resolvers/ReferenceResolver';
 import { bind, unbind, unrender, update, toEscapedString, toString } from 'shared/methodCallers';
 import processItems from './helpers/processItems';
 import parseJSON from 'utils/parseJSON';
@@ -170,6 +170,16 @@ export default class Fragment {
 		throw new Error( 'Could not find parent node' ); // TODO link to issue tracker
 	}
 
+	findRepeatingFragment () {
+		let fragment = this;
+		// TODO better check than fragment.parent.iterations
+		while ( fragment.parent && !!fragment.parent.iterations ) {
+			fragment = fragment.parent || fragment.componentParent;
+		}
+
+		return fragment.parent;
+	}
+
 	firstNode () {
 		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode( this.owner );
 	}
@@ -238,7 +248,7 @@ export default class Fragment {
 			return this.parent.resolve( template, callback );
 		}
 
-		const resolver = createResolver( this, template, callback );
+		const resolver = new ReferenceResolver( this, template.r, callback );
 		this.resolvers.push( resolver );
 
 		return resolver; // so we can e.g. force resolution

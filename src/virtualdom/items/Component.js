@@ -6,7 +6,8 @@ import initialise from 'Ractive/initialise';
 import { create } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 import { isArray } from 'utils/is';
-import createResolver from '../resolvers/createResolver';
+import resolve from '../resolvers/resolve';
+import ReferenceResolver from '../resolvers/ReferenceResolver';
 import { cancel, unbind } from 'shared/methodCallers';
 import Hook from 'events/Hook';
 import Fragment from '../Fragment';
@@ -81,19 +82,34 @@ export default class Component extends Item {
 
 				else if ( isArray( template ) ) {
 					if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
-						const resolver = createResolver( this.parentFragment, template[0], model => {
+						const model = resolve( this.parentFragment, template[0] );
+
+						if ( model ) {
 							viewmodel.map( localKey, model );
 
 							if ( model.value === undefined && localKey in childData ) {
 								model.set( childData[ localKey ] );
 							}
+						}
 
-							if ( !initialising ) {
-								viewmodel.clearUnresolveds( localKey );
-							}
-						});
+						else {
+							// TODO once it resolves, it's fixed - so maybe we don't need
+							// this much machinery
+							const resolver = new ReferenceResolver( this.parentFragment, template[0], model => {
+								viewmodel.map( localKey, model );
 
-						this.resolvers.push( resolver );
+								// TODO once resolvers have been refactored, we're guaranteed to not be initialising
+								if ( model.value === undefined && localKey in childData ) {
+									model.set( childData[ localKey ] );
+								}
+
+								if ( !initialising ) {
+									viewmodel.clearUnresolveds( localKey );
+								}
+							});
+
+							this.resolvers.push( resolver );
+						}
 					}
 
 					else {

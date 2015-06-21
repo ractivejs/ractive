@@ -68,7 +68,6 @@ runTest = function ( i ) {
 
 			if ( theTest.new_data ) {
 				data = typeof theTest.new_data === 'function' ? theTest.new_data() : deepClone( theTest.new_data );
-				console.log( 'new_data', data )
 				view.set( data );
 
 				t.htmlEqual( fixture.innerHTML, theTest.new_result, 'innerHTML should match result' );
