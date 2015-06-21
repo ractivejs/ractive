@@ -75,7 +75,8 @@ export default class Element extends Item {
 		if ( options.template.f ) {
 			this.fragment = new Fragment({
 				template: options.template.f,
-				owner: this
+				owner: this,
+				cssIds: null
 			});
 		}
 
@@ -178,6 +179,12 @@ export default class Element extends Item {
 				keypath: context.getKeypath()
 			}
 		});
+
+		// Is this a top-level node of a component? If so, we may need to add
+		// a data-ractive-css attribute, for CSS encapsulation
+		if ( this.parentFragment.cssIds ) {
+			this.node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
+		}
 
 		if ( this.fragment ) {
 			node.appendChild( this.fragment.render() );

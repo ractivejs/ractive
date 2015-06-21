@@ -129,7 +129,8 @@ export default class Component extends Item {
 			partials: this._partials
 		}, {
 			indexRefs: this.instance.isolated ? {} : this.parentFragment.indexRefs,
-			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs
+			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs,
+			cssIds: this.parentFragment.cssIds
 		});
 	}
 
