@@ -1,4 +1,4 @@
-import DataNode from 'viewmodel/nodes/DataNode';
+import DataNode from 'model/nodes/DataNode';
 import { REFERENCE } from 'config/types';
 import noop from 'utils/noop';
 import ExpressionProxy from './ExpressionProxy';

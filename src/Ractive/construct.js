@@ -8,7 +8,7 @@ import magicAdaptor from 'Ractive/static/adaptors/magic';
 import magicArrayAdaptor from 'Ractive/static/adaptors/magicArray';
 import { create, defineProperty, extend } from 'utils/object';
 import dataConfigurator from 'Ractive/config/custom/data';
-import Viewmodel from 'viewmodel/Viewmodel';
+import Viewmodel from 'model/Viewmodel';
 import Hook from 'events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
 import Ractive from '../Ractive';

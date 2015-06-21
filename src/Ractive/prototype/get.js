@@ -1,5 +1,5 @@
 import { normalise, splitKeypath } from 'shared/keypaths';
-import resolveReference from 'virtualdom/resolvers/resolveReference';
+import resolveReference from 'view/resolvers/resolveReference';
 
 export default function Ractive$get ( keypath ) {
 	if ( !keypath ) return this.viewmodel.value; // TODO include computations/mappings?

@@ -1,4 +1,4 @@
-import DataNode from 'viewmodel/nodes/DataNode';
+import DataNode from 'model/nodes/DataNode';
 import { unbind } from 'shared/methodCallers';
 import createFunction from 'shared/createFunction';
 import resolveReference from './resolveReference';

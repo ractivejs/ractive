@@ -3,7 +3,7 @@ import { isEqual, isObject } from 'utils/is';
 import { splitKeypath } from 'shared/keypaths';
 import { cancel } from 'shared/methodCallers';
 import { extend } from 'utils/object';
-import resolveReference from 'virtualdom/resolvers/resolveReference';
+import resolveReference from 'view/resolvers/resolveReference';
 
 const onceOptions = { init: false, once: true };
 

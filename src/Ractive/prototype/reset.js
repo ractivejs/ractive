@@ -1,5 +1,5 @@
 import config from 'Ractive/config/config';
-import Fragment from 'virtualdom/Fragment';
+import Fragment from 'view/Fragment';
 import Hook from 'events/Hook';
 import runloop from 'global/runloop';
 import dataConfigurator from 'Ractive/config/custom/data';
