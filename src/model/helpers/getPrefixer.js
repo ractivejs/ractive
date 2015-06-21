@@ -1,5 +1,6 @@
 let prefixers = {};
 
+// TODO this is legacy. sooner we can replace the old adaptor API the better
 function prefixKeypath ( obj, prefix ) {
 	var prefixed = {}, key;
 

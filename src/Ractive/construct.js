@@ -8,7 +8,7 @@ import magicAdaptor from 'Ractive/static/adaptors/magic';
 import magicArrayAdaptor from 'Ractive/static/adaptors/magicArray';
 import { create, defineProperty, extend } from 'utils/object';
 import dataConfigurator from 'Ractive/config/custom/data';
-import Viewmodel from 'model/Viewmodel';
+import RootModel from 'model/RootModel';
 import Hook from 'events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
 import Ractive from '../Ractive';
@@ -45,7 +45,7 @@ export default function construct ( ractive, options ) {
 	});
 
 	// Create a viewmodel
-	const viewmodel = new Viewmodel({
+	const viewmodel = new RootModel({
 		adapt: getAdaptors( ractive, ractive.adapt, options ),
 		data: dataConfigurator.init( ractive.constructor, ractive, options ),
 		ractive

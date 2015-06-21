@@ -1,4 +1,4 @@
-import DataNode from 'model/nodes/DataNode';
+import Model from 'model/Model';
 import { REFERENCE } from 'config/types';
 import noop from 'utils/noop';
 import ExpressionProxy from './ExpressionProxy';
@@ -7,7 +7,7 @@ import resolve from './resolve';
 import { unbind } from 'shared/methodCallers';
 import { removeFromArray } from 'utils/array';
 
-export default class ReferenceExpressionProxy extends DataNode {
+export default class ReferenceExpressionProxy extends Model {
 	constructor ( fragment, template ) {
 		super( fragment.ractive.viewmodel, null );
 

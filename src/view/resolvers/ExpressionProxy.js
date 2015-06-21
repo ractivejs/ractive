@@ -1,4 +1,4 @@
-import DataNode from 'model/nodes/DataNode';
+import Model from 'model/Model';
 import { unbind } from 'shared/methodCallers';
 import createFunction from 'shared/createFunction';
 import resolveReference from './resolveReference';
@@ -18,7 +18,7 @@ function wrapFunction ( fn, context, uid ) {
 	return ( fn[ wrapProp ] = fn.bind( context ) );
 }
 
-export default class ExpressionProxy extends DataNode {
+export default class ExpressionProxy extends Model {
 	constructor ( fragment, template ) {
 		super( fragment.ractive.viewmodel, null );
 

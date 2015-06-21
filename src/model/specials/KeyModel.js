@@ -1,6 +1,6 @@
 import { removeFromArray } from 'utils/array';
 
-export default class KeypathResolver {
+export default class KeyModel {
 	constructor ( parent ) {
 		this.dependants = [];
 		this.value = parent.key;

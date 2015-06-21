@@ -1,9 +1,9 @@
 import { capture } from 'global/capture';
-import ComputedNode from './nodes/ComputedNode';
-import DataNode from './nodes/DataNode';
+import Computation from './Computation';
+import Model from './Model';
 import { handleChange, mark } from 'shared/methodCallers';
 
-export default class Viewmodel extends DataNode {
+export default class RootModel extends Model {
 	constructor ( options ) {
 		super( null, null );
 
@@ -37,7 +37,7 @@ export default class Viewmodel extends DataNode {
 	}
 
 	compute ( key, signature ) {
-		const computation = new ComputedNode( this, signature, key );
+		const computation = new Computation( this, signature, key );
 		this.computations[ key ] = computation;
 
 		return computation;

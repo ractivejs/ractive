@@ -6,9 +6,9 @@ export default function resolveReference ( fragment, ref ) {
 	// special references
 	// TODO does `this` become `.` at parse time?
 	if ( ref === '.' || ref === 'this' ) return context;
-	if ( ref === '@keypath' ) return context.createKeypathReference();
-	if ( ref === '@index' ) return fragment.findRepeatingFragment().context.createIndexReference();
-	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.createKeyReference();
+	if ( ref === '@keypath' ) return context.getKeypathModel();
+	if ( ref === '@index' ) return fragment.findRepeatingFragment().context.getIndexModel();
+	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.getKeyModel();
 
 	// ancestor references
 	if ( ref[0] === '~' ) return context.root.joinAll( ref.slice( 2 ).split( '.' ) );

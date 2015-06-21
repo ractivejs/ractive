@@ -1,17 +1,15 @@
 import { removeFromArray } from 'utils/array';
 import { handleChange } from 'shared/methodCallers';
 
-// TODO is this basically identical to KeyResolver? dedupe?
-export default class IndexResolver {
+export default class KeypathModel {
 	constructor ( parent ) {
 		this.parent = parent;
-		this.value = parent.key;
-
+		this.value = parent.getKeypath();
 		this.dependants = [];
 	}
 
 	handleChange () {
-		this.value = this.parent.key;
+		this.value = this.parent.getKeypath();
 		this.dependants.forEach( handleChange );
 	}
 

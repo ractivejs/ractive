@@ -26,12 +26,12 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 		if ( fragment.isIteration ) {
 			if ( key === fragment.parent.keyRef ) {
 				if ( keys.length > 1 ) badReference( key );
-				return fragment.context.createKeyReference();
+				return fragment.context.getKeyModel();
 			}
 
 			if ( key === fragment.parent.indexRef ) {
 				if ( keys.length > 1 ) badReference( key );
-				return fragment.context.createIndexReference();
+				return fragment.context.getIndexModel();
 			}
 		}
 

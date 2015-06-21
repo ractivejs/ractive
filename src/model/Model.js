@@ -2,11 +2,11 @@ import { capture } from 'global/capture';
 import { isEqual, isNumeric } from 'utils/is';
 import { removeFromArray } from 'utils/array';
 import { handleChange, mark, teardown } from 'shared/methodCallers';
-import getPrefixer from '../helpers/getPrefixer';
+import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from 'utils/is';
-import IndexReference from './IndexReference';
-import KeyReference from './KeyReference';
-import KeypathReference from './KeypathReference';
+import IndexModel from './specials/IndexModel';
+import KeyModel from './specials/KeyModel';
+import KeypathModel from './specials/KeypathModel';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -18,7 +18,7 @@ function updateKeypathDependants ( model ) {
 	model.updateKeypathDependants();
 }
 
-export default class DataNode {
+export default class Model {
 	constructor ( parent, key ) {
 		this.deps = [];
 
@@ -111,25 +111,6 @@ export default class DataNode {
 		return branch;
 	}
 
-	// TODO rename these methods
-	createIndexReference () {
-		const indexResolvers = this.parent.indexResolvers;
-
-		if ( !indexResolvers[ this.key ] ) {
-			indexResolvers[ this.key ] = new IndexReference( this );
-		}
-
-		return indexResolvers[ this.key ];
-	}
-
-	createKeyReference () {
-		return new KeyReference( this );
-	}
-
-	createKeypathReference () {
-		return this.keypathReference || ( this.keypathReference = new KeypathReference( this ) );
-	}
-
 	findMatches ( keys ) {
 		const len = keys.length;
 
@@ -181,6 +162,24 @@ export default class DataNode {
 		}
 	}
 
+	getIndexModel () {
+		const indexResolvers = this.parent.indexResolvers;
+
+		if ( !indexResolvers[ this.key ] ) {
+			indexResolvers[ this.key ] = new IndexModel( this );
+		}
+
+		return indexResolvers[ this.key ];
+	}
+
+	getKeyModel () {
+		return new KeyModel( this );
+	}
+
+	getKeypathModel () {
+		return this.keypathModel || ( this.keypathModel = new KeypathModel( this ) );
+	}
+
 	getKeypath () {
 		// TODO keypaths inside components... tricky
 		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
@@ -192,7 +191,7 @@ export default class DataNode {
 
 	joinIndex ( index ) {
 		if ( !this.indexedChildren[ index ] ) {
-			this.indexedChildren[ index ] = new DataNode( this, index );
+			this.indexedChildren[ index ] = new Model( this, index );
 		}
 
 		return this.indexedChildren[ index ];
@@ -202,7 +201,7 @@ export default class DataNode {
 		if ( key === undefined || key === '' ) return this;
 
 		if ( !this.childByKey[ key ] ) {
-			const child = new DataNode( this, key );
+			const child = new Model( this, key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;
 		}

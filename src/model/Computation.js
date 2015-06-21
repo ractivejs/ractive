@@ -1,6 +1,6 @@
 import { startCapturing, stopCapturing } from 'global/capture';
 import { warnIfDebug, logIfDebug } from 'utils/log';
-import DataNode from './DataNode';
+import Model from './Model';
 import { addToArray, removeFromArray } from 'utils/array';
 import { isEqual } from 'utils/is';
 import { handleChange, mark as markChild } from 'shared/methodCallers';
@@ -45,7 +45,7 @@ function truncateStack ( stack ) {
 	}
 }
 
-export default class ComputedNode extends DataNode {
+export default class Computation extends Model {
 	constructor ( viewmodel, signature, key ) {
 		super( null, null );
 
@@ -102,7 +102,7 @@ export default class ComputedNode extends DataNode {
 
 		this.deps.forEach( handleChange );
 		this.children.forEach( markChild ); // TODO rename to mark once bindling glitch fixed
-		this.clearUnresolveds(); // TODO same question as on DataNode - necessary for primitives?
+		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
 	}
 
 	init () {
