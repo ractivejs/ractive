@@ -2,10 +2,10 @@ import DataNode from 'viewmodel/nodes/DataNode';
 import { REFERENCE } from 'config/types';
 import noop from 'utils/noop';
 import ExpressionProxy from './ExpressionProxy';
-import ReferenceResolver from './ReferenceResolver';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
 import { unbind } from 'shared/methodCallers';
+import { removeFromArray } from 'utils/array';
 
 export default class ReferenceExpressionProxy extends DataNode {
 	constructor ( fragment, template ) {
@@ -16,10 +16,13 @@ export default class ReferenceExpressionProxy extends DataNode {
 		this.base = resolve( fragment, template );
 
 		if ( !this.base ) {
-			const resolver = new ReferenceResolver( fragment, template.r, model => {
+			const resolver = fragment.resolve( template.r, model => {
 				this.base = model;
 				this.bubble();
+
+				removeFromArray( this.resolvers, resolver );
 			});
+
 			this.resolvers.push( resolver );
 		}
 
@@ -42,14 +45,13 @@ export default class ReferenceExpressionProxy extends DataNode {
 				if ( model ) {
 					model.register( intermediary );
 				} else {
-					// this should not be able to resolve immediately...
-					// TODO once it *does* resolve, remove from resolvers.
-					// use fragment.resolve() instead?
-					const resolver = new ReferenceResolver( fragment, template.n, model => {
+					const resolver = fragment.resolve( template.n, model => {
 						this.members[i] = model;
 
 						model.register( intermediary );
 						this.bubble();
+
+						removeFromArray( this.resolvers, resolver );
 					});
 
 					this.resolvers.push( resolver );

@@ -7,7 +7,6 @@ import { create } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 import { isArray } from 'utils/is';
 import resolve from '../resolvers/resolve';
-import ReferenceResolver from '../resolvers/ReferenceResolver';
 import { cancel, unbind } from 'shared/methodCallers';
 import Hook from 'events/Hook';
 import Fragment from '../Fragment';
@@ -93,22 +92,12 @@ export default class Component extends Item {
 						}
 
 						else {
-							// TODO once it resolves, it's fixed - so maybe we don't need
-							// this much machinery
-							// TODO use this.parentFragment.resolve?
-							const resolver = new ReferenceResolver( this.parentFragment, template[0].r, model => {
+							const resolver = this.parentFragment.resolve( template[0].r, model => {
 								viewmodel.map( localKey, model );
-
-								// TODO once resolvers have been refactored, we're guaranteed to not be initialising
-								if ( model.value === undefined && localKey in childData ) {
-									model.set( childData[ localKey ] );
-								}
-
-								if ( !initialising ) {
-									viewmodel.clearUnresolveds( localKey );
-								}
+								viewmodel.clearUnresolveds( localKey );
 							});
 
+							// TODO is this necessary? or can the parentFragment handle cleanup?
 							this.resolvers.push( resolver );
 						}
 					}

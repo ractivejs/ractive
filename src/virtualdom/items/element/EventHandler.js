@@ -3,7 +3,6 @@ import { missingPlugin } from 'config/errors';
 import { removeFromArray } from 'utils/array';
 import fireEvent from 'events/fireEvent';
 import Fragment from '../../Fragment';
-import ReferenceResolver from '../../resolvers/ReferenceResolver';
 import createFunction from 'shared/createFunction';
 import noop from 'utils/noop';
 
@@ -42,8 +41,9 @@ export default class EventHandler {
 				const model = resolveReference( this.parentFragment, ref );
 
 				if ( !model ) {
-					const resolver = new ReferenceResolver( this.parentFragment, ref, model => {
+					const resolver = this.parentFragment.resolve( ref, model => {
 						this.models[i] = model;
+						removeFromArray( this.resolvers, resolver );
 					});
 
 					this.resolvers.push( resolver );

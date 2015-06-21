@@ -1,5 +1,4 @@
 import DataNode from 'viewmodel/nodes/DataNode';
-import ReferenceResolver from './ReferenceResolver';
 import { unbind } from 'shared/methodCallers';
 import createFunction from 'shared/createFunction';
 import resolveReference from './resolveReference';
@@ -34,7 +33,7 @@ export default class ExpressionProxy extends DataNode {
 			const model = resolveReference( fragment, ref );
 
 			if ( !model ) {
-				const resolver = new ReferenceResolver( fragment, ref, model => {
+				const resolver = fragment.resolve( ref, model => {
 					removeFromArray( this.resolvers, resolver );
 					this.models[ index ] = model;
 					this.bubble();

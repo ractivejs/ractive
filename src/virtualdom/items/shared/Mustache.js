@@ -15,31 +15,19 @@ export default class Mustache extends Item {
 
 	bind () {
 		// try to find a model for this view
-		let model = resolve( this.parentFragment, this.template );
+		const model = resolve( this.parentFragment, this.template );
 
 		if ( model ) {
 			this.model = model;
 			model.register( this );
-		}
-
-		else {
+		} else {
 			// TODO this can now only resolve once...
-			this.resolver = this.parentFragment.resolve( this.template, model => {
-				const wasBound = !!this.model;
-
-				if ( model === this.model ) {
-					this.handleChange();
-					return;
-				}
-
-				if ( this.model ) {
-					this.model.unregister( this );
-				}
-
+			this.resolver = this.parentFragment.resolve( this.template.r, model => {
 				this.model = model;
 				model.register( this );
 
-				if ( wasBound ) this.handleChange();
+				this.handleChange();
+				this.resolver = null;
 			});
 		}
 	}
@@ -50,6 +38,8 @@ export default class Mustache extends Item {
 
 	unbind () {
 		this.model && this.model.unregister( this );
+		this.resolver && this.resolver.unbind();
+
 		this.bound = false;
 	}
 }

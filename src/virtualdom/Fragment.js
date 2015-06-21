@@ -248,7 +248,7 @@ export default class Fragment {
 			return this.parent.resolve( template, callback );
 		}
 
-		const resolver = new ReferenceResolver( this, template.r, callback );
+		const resolver = new ReferenceResolver( this, template, callback );
 		this.resolvers.push( resolver );
 
 		return resolver; // so we can e.g. force resolution
