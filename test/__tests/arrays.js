@@ -220,8 +220,24 @@ test( 'Option lists linked to arrays are updated when the array mutates', functi
 test( "Nested sections don't grow a context on rebind during smart updates #1737", t => {
 	let ractive = new Ractive({
 		el: fixture,
-		template: '{{#each outer}}{{#each inner}}{{@keypath}} {{#if .foo || some.prop > 3}}<span>{{@keypath}}</span>{{/if}}<br/>{{/each}}{{/each}}',
-		data: { outer: [ { inner: [ { foo: true }, 1 ] } ], some: { prop: 10 } }
+		template: `
+			{{#each outer}}
+				{{#each inner}}
+					{{@keypath}}
+					{{#if .foo || some.prop > 3}}
+						<span>{{@keypath}}</span>
+					{{/if}}
+					<br/>
+				{{/each}}
+			{{/each}}`,
+		data: {
+			outer: [
+				{
+					inner: [ { foo: true }, 1 ]
+				}
+			],
+			some: { prop: 10 }
+		}
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'outer.0.inner.0 <span>outer.0.inner.0</span><br/>outer.0.inner.1 <span>outer.0.inner.1</span><br/>' );

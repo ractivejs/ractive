@@ -11,6 +11,10 @@ function updateFromBindings ( model ) {
 	model.updateFromBindings( true );
 }
 
+function updateKeypathDependants ( model ) {
+	model.updateKeypathDependants();
+}
+
 export default class DataNode {
 	constructor ( parent, key ) {
 		this.deps = [];
@@ -18,6 +22,8 @@ export default class DataNode {
 
 		this.children = [];
 		this.childByKey = {};
+
+		this.indexedChildren = [];
 
 		this.unresolved = [];
 		this.unresolvedByKey = {};
@@ -162,6 +168,14 @@ export default class DataNode {
 		return this.value && hasProp.call( this.value, key );
 	}
 
+	joinIndex ( index ) {
+		if ( !this.indexedChildren[ index ] ) {
+			this.indexedChildren[ index ] = new DataNode( this, index );
+		}
+
+		return this.indexedChildren[ index ];
+	}
+
 	joinKey ( key ) {
 		if ( key === undefined || key === '' ) return this;
 
@@ -189,6 +203,8 @@ export default class DataNode {
 			this.value = value;
 
 			this.children.forEach( mark );
+			this.indexedChildren.forEach( mark );
+
 			this.deps.forEach( handleChange );
 			this.clearUnresolveds();
 		}
@@ -277,6 +293,7 @@ export default class DataNode {
 
 		if ( !silent ) {
 			this.children.forEach( mark );
+			this.indexedChildren.forEach( mark );
 			this.deps.forEach( handleChange );
 
 			let parent = this.parent;
@@ -288,32 +305,24 @@ export default class DataNode {
 	}
 
 	shuffle ( newIndices ) {
-		let temp = [];
+		let indexedChildren = [];
 
-		newIndices.forEach( ( newIndex, oldIndex ) => {
-			const child = this.childByKey[ oldIndex ];
+		if ( this.indexedChildren.length ) {
+			newIndices.forEach( ( newIndex, oldIndex ) => {
+				const child = this.indexedChildren[ oldIndex ];
 
-			if ( !child || newIndex === oldIndex ) return;
+				if ( !child || !~newIndex || newIndex === oldIndex ) return;
 
-			delete this.childByKey[ oldIndex ];
-
-			if ( !~newIndex ) {
-				removeFromArray( this.children, child );
-			}
-
-			else {
-				temp.push({ newIndex, child });
+				indexedChildren[ newIndex ] = child;
 				child.key = newIndex;
 
 				// any direct or downstream {{@keypath}} dependants need
 				// to be notified of the change
 				child.updateKeypathDependants();
-			}
-		});
+			});
+		}
 
-		temp.forEach( ({ newIndex, child }) => {
-			this.childByKey[ newIndex ] = child;
-		});
+		this.indexedChildren = indexedChildren;
 
 		this.mark();
 		this.deps.forEach( dep => {
@@ -327,6 +336,7 @@ export default class DataNode {
 
 	teardown () {
 		this.children.forEach( teardown );
+		this.indexedChildren.forEach( teardown );
 		if ( this.wrapper ) this.wrapper.teardown();
 	}
 
@@ -349,11 +359,15 @@ export default class DataNode {
 			if ( value !== this.value ) this.set( value );
 		}
 
-		if ( cascade ) this.children.forEach( updateFromBindings );
+		if ( cascade ) {
+			this.children.forEach( updateFromBindings );
+			this.indexedChildren.forEach( updateFromBindings );
+		}
 	}
 
 	updateKeypathDependants () {
-		this.children.forEach( child => child.updateKeypathDependants() );
+		this.children.forEach( updateKeypathDependants );
+		this.indexedChildren.forEach( updateKeypathDependants );
 		this.keypathDependants.forEach( handleChange );
 	}
 }
