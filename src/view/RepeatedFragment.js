@@ -45,7 +45,11 @@ export default class RepeatedFragment {
 
 		// {{#each array}}...
 		if ( isArray( context.value ) ) {
-			this.iterations = context.value.map( ( childValue, index ) => this.createIteration( index, index ) );
+			// we can't use map, because of sparse arrays
+			this.iterations = [];
+			for ( let i = 0; i < context.value.length; i += 1 ) {
+				this.iterations[i] = this.createIteration( i, i );
+			}
 		}
 
 		// {{#each object}}...
@@ -92,7 +96,7 @@ export default class RepeatedFragment {
 		fragment.isIteration = true;
 
 		const model = this.context.joinIndex( key );
-		return fragment.bind( model ); // TODO join method that accepts non-array
+		return fragment.bind( model );
 	}
 
 	detach () {

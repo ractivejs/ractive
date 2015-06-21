@@ -409,7 +409,10 @@ test( 'Splicing arrays correctly modifies proxy events', t => {
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '{{#buttons:i}}<button id="button_{{i}}" on-click="remove:{{i}}">click me</button>{{/buttons}}',
+		template: `
+			{{#buttons:i}}
+				<button id="button_{{i}}" on-click="remove:{{i}}">click me</button>
+			{{/buttons}}`,
 		data: { buttons: new Array(5) }
 	});
 
