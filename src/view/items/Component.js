@@ -74,7 +74,12 @@ export default class Component extends Item {
 			Object.keys( this.template.a ).forEach( localKey => {
 				const template = this.template.a[ localKey ];
 
-				if ( typeof template === 'string' ) {
+				if ( template === 0 ) {
+					// empty attributes are `true`
+					viewmodel.joinKey( localKey ).set( true );
+				}
+
+				else if ( typeof template === 'string' ) {
 					const parsed = parseJSON( template );
 					viewmodel.joinKey( localKey ).set( parsed ? parsed.value : template );
 				}
