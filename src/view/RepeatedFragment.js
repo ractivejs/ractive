@@ -72,10 +72,7 @@ export default class RepeatedFragment {
 	}
 
 	bubble () {
-		if ( !this.dirty ) {
-			this.dirty = true;
-			this.owner.bubble();
-		}
+		this.owner.bubble();
 	}
 
 	createIteration ( key, index ) {
@@ -211,7 +208,7 @@ export default class RepeatedFragment {
 
 	// TODO smart update
 	update () {
-		if ( !this.dirty ) return;
+		// skip dirty check, since this is basically just a facade
 
 		if ( this.pendingNewIndices ) {
 			this.updatePostShuffle();
@@ -296,8 +293,6 @@ export default class RepeatedFragment {
 
 			parentNode.insertBefore( docFrag, anchor );
 		}
-
-		this.dirty = false;
 	}
 
 	updatePostShuffle () {
@@ -346,6 +341,5 @@ export default class RepeatedFragment {
 		}
 
 		this.pendingNewIndices = null;
-		this.dirty = false;
 	}
 }
