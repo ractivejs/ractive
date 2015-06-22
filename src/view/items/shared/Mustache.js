@@ -9,6 +9,8 @@ export default class Mustache extends Item {
 		this.template = options.template;
 		this.index = options.index;
 
+		this.isStatic = !!options.template.s;
+
 		this.model = null;
 		this.dirty = false;
 	}
@@ -17,10 +19,18 @@ export default class Mustache extends Item {
 		// try to find a model for this view
 		const model = resolve( this.parentFragment, this.template );
 
+		if ( this.isStatic ) {
+			this.model = { value: model.value };
+			return;
+		}
+
 		if ( model ) {
 			this.model = model;
-			model.register( this );
-		} else {
+
+			if ( !this.template.s ) {
+				model.register( this );
+			}
+		} else if ( !this.template.s ) {
 			// TODO this can now only resolve once...
 			this.resolver = this.parentFragment.resolve( this.template.r, model => {
 				this.model = model;
@@ -37,9 +47,9 @@ export default class Mustache extends Item {
 	}
 
 	unbind () {
-		this.model && this.model.unregister( this );
-		this.resolver && this.resolver.unbind();
-
-		this.bound = false;
+		if ( !this.isStatic ) {
+			this.model && this.model.unregister( this );
+			this.resolver && this.resolver.unbind();
+		}
 	}
 }

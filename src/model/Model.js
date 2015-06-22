@@ -4,7 +4,6 @@ import { removeFromArray } from 'utils/array';
 import { handleChange, mark, teardown } from 'shared/methodCallers';
 import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from 'utils/is';
-import IndexModel from './specials/IndexModel';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 
@@ -166,13 +165,14 @@ export default class Model {
 		const indexResolvers = this.parent.indexResolvers;
 
 		if ( !indexResolvers[ this.key ] ) {
-			indexResolvers[ this.key ] = new IndexModel( this );
+			indexResolvers[ this.key ] = new KeyModel( this );
 		}
 
 		return indexResolvers[ this.key ];
 	}
 
 	getKeyModel () {
+		// TODO... different to IndexModel because key can never change
 		return new KeyModel( this );
 	}
 
