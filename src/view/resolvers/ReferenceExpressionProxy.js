@@ -60,7 +60,9 @@ export default class ReferenceExpressionProxy extends Model {
 				return model;
 			}
 
-			return new ExpressionProxy( fragment, template );
+			model = new ExpressionProxy( fragment, template );
+			model.register( intermediary );
+			return model;
 		});
 
 		this.bubble();
