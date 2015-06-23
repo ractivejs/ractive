@@ -220,121 +220,109 @@ test( 'Components inherit modifyArrays option from environment (#1297)', functio
 	t.htmlEqual( fixture.innerHTML, 'abc' );
 });
 
-test( 'display a collection from a model', function ( t ) {
-	var Classes = (function () {
-		var Model, Collection, Items, Store;
-		function extend ( parent, child ) {
-			var Surrogate = function () {
-				this.constructor = child;
-			};
-			Surrogate.prototype = parent.prototype;
-			child.prototype = new Surrogate();
+test( 'Computed properties are adapted', t => {
+	function Value ( value ) {
+		this._ = value;
+	}
+
+	const adaptor = {
+		filter: obj => obj instanceof Value,
+		wrap: ( ractive, obj ) => ({
+			get: () => obj._,
+			set: ( prop, val ) => null,
+			reset: () => false,
+			teardown: () => true
+		})
+	};
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{foo}}`,
+		data: { bar: 1 },
+		adapt: [ adaptor ],
+		computed: {
+			foo () {
+				return new Value( 2 * this.get( 'bar' ) );
+			}
 		}
+	});
 
-		Model = function ( attrs ) {
-			this.attrs = attrs || {};
-			return this;
+	t.htmlEqual( fixture.innerHTML, '2' );
+	ractive.set( 'bar', 2 );
+	t.htmlEqual( fixture.innerHTML, '4' );
+});
+
+test( 'display a collection from a model', function ( t ) {
+	function extend ( parent, child ) {
+		function Surrogate () {
+			this.constructor = child;
 		};
-		Collection = function ( attrs ) {
-			this.attrs = attrs || [];
-			return this;
-		};
+		Surrogate.prototype = parent.prototype;
+		child.prototype = new Surrogate();
+	}
 
-		Items = function ( attrs ) {
-			Collection.call(this, attrs);
-			return this;
-		};
-		extend( Collection, Items );
+	function Model ( attrs ) {
+		this.attrs = attrs || {};
+	}
 
-		Store = function ( attrs ) {
-			Model.call( this, attrs );
-			return this;
-		};
-		extend( Model, Store );
-		Store.prototype.getItems = function () {
-			return this.attrs.items;
-		};
+	function Collection ( attrs ) {
+		this.attrs = attrs || [];
+	}
 
-		return {
-			Model: Model,
-			Collection: Collection,
-			Items: Items,
-			Store: Store
-		};
-	})( 'Classes' );
+	function Items ( attrs ) {
+		Collection.call(this, attrs);
+		return this;
+	}
 
-	(function () {
-		Ractive.adaptors.ModelAdaptor = {
-			filter: function ( obj, keypath, ractive ) {
-				return obj instanceof Classes.Model;
-			},
-			wrap: function ( ractive, obj, keypath, prefix ) {
-				return {
-					get: function () {
-						return obj.attrs;
-					},
-					set: function (prop, val) {
-						obj.attrs[ prop ] = val;
-					},
-					reset: function () {
-						return false;
-					},
-					teardown: function () {
-						return true;
-					}
-				};
-			}
-		};
-		Ractive.adaptors.CollectionAdaptor = {
-			filter: function ( obj, keypath, ractive ) {
-				return obj instanceof Classes.Collection;
-			},
-			wrap: function ( ractive, obj, keypath, prefix ) {
-				return {
-					get: function () {
-						return obj.attrs;
-					},
-					reset: function () {
-						return false;
-					},
-					teardown: function () {
-						return true;
-					}
-				};
-			}
-		};
-	})( 'Adaptors' );
+	extend( Collection, Items );
 
-	(function () {
-		var template, store, app;
-		template = [
-			'{{# store.getItems() }}',
-			'-{{ this.name }}',
-			'{{/}}',
-		].join( '' );
+	function Store ( attrs ) {
+		Model.call( this, attrs );
+	}
 
-		store = new Classes.Store({
-			items: new Classes.Items([
-				{
-					name: 'duck'
-				},
-				{
-					name: 'chicken'
-				}
-			])
-		});
+	extend( Model, Store );
 
-		app = new Ractive({
-			el: fixture,
-			template: template,
-			data: {
-				store: store
-			},
-			adapt: [ 'ModelAdaptor', 'CollectionAdaptor' ],
-			debug: true
-		});
+	Store.prototype.getItems = function () {
+		console.log( 'this', this );
+		return this.attrs.items;
+	};
 
-	})( 'initialize' );
+	Ractive.adaptors.ModelAdaptor = {
+		filter: obj => obj instanceof Model,
+		wrap: ( ractive, obj ) => {
+			return {
+				get: () => obj.attrs,
+				set: ( prop, val ) => obj.attrs[ prop ] = val,
+				reset: () => false,
+				teardown: () => true
+			};
+		}
+	};
+
+	Ractive.adaptors.CollectionAdaptor = {
+		filter: obj => obj instanceof Collection,
+		wrap: ( ractive, obj ) => {
+			return {
+				get: () => obj.attrs,
+				reset: () => false,
+				teardown: () => true
+			};
+		}
+	};
+
+	const store = new Store({
+		items: new Items([
+			{ name: 'duck' },
+			{ name: 'chicken' }
+		])
+	});
+
+	new Ractive({
+		el: fixture,
+		template: `{{#each store.getItems() }}-{{ this.name }}{{/each}}`,
+		data: { store },
+		adapt: [ 'ModelAdaptor', 'CollectionAdaptor' ]
+	});
 	t.htmlEqual( fixture.innerHTML, '-duck-chicken' );
 });
 

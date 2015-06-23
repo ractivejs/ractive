@@ -17,7 +17,12 @@ export default function processItems ( items, values, guid, counter = 0 ) {
 
 		const placeholderId = `${guid}-${counter++}`;
 
-		values[ placeholderId ] = item.model ? item.model.value : undefined;
+		values[ placeholderId ] = item.model ?
+			item.model.wrapper ?
+				item.model.wrapper.value :
+				item.model.value :
+			undefined;
+
 		return '${' + placeholderId + '}';
 	}).join( '' );
 }

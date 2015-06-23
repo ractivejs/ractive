@@ -26,6 +26,8 @@ export default class ExpressionProxy extends Model {
 		this.fragment = fragment;
 		this.template = template;
 
+		this.isReadonly = true;
+
 		this.fn = createFunction( template.s, template.r.length );
 		this.computation = null;
 

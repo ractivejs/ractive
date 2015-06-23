@@ -98,7 +98,13 @@ export default class Computation extends Model {
 		const value = this.getValue();
 		if ( isEqual( value, this.value ) ) return;
 
+		if ( this.wrapper ) {
+			this.wrapper.teardown();
+			this.wrapper = null;
+		}
+
 		this.value = value;
+		this.adapt();
 
 		this.deps.forEach( handleChange );
 		this.children.forEach( markChild ); // TODO rename to mark once bindling glitch fixed
@@ -107,6 +113,7 @@ export default class Computation extends Model {
 
 	init () {
 		this.value = this.getValue();
+		this.adapt();
 	}
 
 	mark () {

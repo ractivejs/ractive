@@ -742,7 +742,7 @@ if ( hasUsableConsole ) {
 	test( '@key cannot be used for two-way binding', t => {
 		let warn = console.warn;
 		console.warn = msg => {
-			t.ok( /Two-way binding does not work with @key/.test( msg ) );
+			t.ok( /Cannot use two-way binding/.test( msg ) );
 		};
 
 		expect( 1 );

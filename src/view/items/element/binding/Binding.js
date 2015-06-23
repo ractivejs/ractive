@@ -28,12 +28,13 @@ export default class Binding {
 			model = interpolator.model;
 
 			const ref = interpolator.template.r ? `'${interpolator.template.r}' reference` : 'expression';
-			warnIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref, { ractive: this.root });
+			warnOnceIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref, { ractive: this.root });
 		}
 
 		// TODO include index/key/keypath refs as read-only
 		if ( model.isReadonly ) {
-			warnIfDebug( `Cannot use two-way binding on <${element.name}> element: ${model.getKeypath()} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
+			const keypath = model.getKeypath().replace( /^@/, '' );
+			warnOnceIfDebug( `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
 			return false;
 		}
 
@@ -92,10 +93,14 @@ export default class Binding {
 	render () {
 		this.node = this.element.node;
 		this.node._ractive.binding = this;
-		this.rendered = true;
+		this.rendered = true; // TODO is this used anywhere?
 	}
 
 	unbind () {
 		this.model.unregisterTwowayBinding( this );
+	}
+
+	unrender () {
+		// noop?
 	}
 }
