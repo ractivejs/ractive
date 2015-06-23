@@ -112,6 +112,10 @@ export default class ReferenceExpressionProxy extends Model {
 		return this.value;
 	}
 
+	getKeypath () {
+		return this.model ? this.model.getKeypath() : '@undefined';
+	}
+
 	handleChange () {
 		this.mark();
 	}
