@@ -2,6 +2,7 @@ import Model from 'model/Model';
 import { unbind } from 'shared/methodCallers';
 import createFunction from 'shared/createFunction';
 import resolveReference from './resolveReference';
+import { removeFromArray } from 'utils/array';
 
 function wrapFunction ( fn, context, uid ) {
 	if ( fn.__nowrap ) return fn;
@@ -51,7 +52,10 @@ export default class ExpressionProxy extends Model {
 	bubble () {
 		const ractive = this.fragment.ractive;
 
-		const key = this.template.s.replace( /_(\d+)/g, ( match, i ) => {
+		// TODO the @ prevents computed props from shadowing keypaths, but the real
+		// question is why it's a computed prop in the first place... (hint, it's
+		// to do with {{else}} blocks)
+		const key = '@' + this.template.s.replace( /_(\d+)/g, ( match, i ) => {
 			if ( i >= this.models.length ) return match;
 
 			const model = this.models[i];
