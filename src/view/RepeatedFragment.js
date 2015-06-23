@@ -48,7 +48,7 @@ export default class RepeatedFragment {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
 			for ( let i = 0; i < context.value.length; i += 1 ) {
-				this.iterations[i] = this.createIteration( i, i );
+				this.iterations[i] = this.createIteration( i, i, true );
 			}
 		}
 
@@ -59,12 +59,15 @@ export default class RepeatedFragment {
 				const [ keyRef, indexRef ] = this.indexRef.split( ',' );
 				this.keyRef = keyRef;
 				this.indexRef = indexRef;
+
+				console.log( 'this.keyRef', this.keyRef );
+				console.log( 'this.indexRef', this.indexRef );
 			}
 
 			this.indexByKey = {};
 			this.iterations = Object.keys( context.value ).map( ( key, index ) => {
 				this.indexByKey[ key ] = index;
-				return this.createIteration( key, index );
+				return this.createIteration( key, index, false );
 			});
 		}
 
@@ -75,7 +78,7 @@ export default class RepeatedFragment {
 		this.owner.bubble();
 	}
 
-	createIteration ( key, index ) {
+	createIteration ( key, index, shuffleable ) {
 		const parentFragment = this.owner.parentFragment;
 		const keyRefs = getRefs( this.keyRef, key, parentFragment.keyRefs );
 		const indexRefs = getRefs( this.indexRef, index, parentFragment.indexRefs );
@@ -92,7 +95,7 @@ export default class RepeatedFragment {
 		fragment.index = index;
 		fragment.isIteration = true;
 
-		const model = this.context.joinIndex( key );
+		const model = shuffleable ? this.context.joinIndex( key ) : this.context.joinKey( key );
 		return fragment.bind( model );
 	}
 
@@ -266,7 +269,7 @@ export default class RepeatedFragment {
 
 			if ( isArray( value ) ) {
 				while ( i < value.length ) {
-					const fragment = this.createIteration( i, i );
+					const fragment = this.createIteration( i, i, true );
 
 					this.iterations.push( fragment );
 					docFrag.appendChild( fragment.render() );
@@ -278,7 +281,7 @@ export default class RepeatedFragment {
 			else if ( isObject( value ) ) {
 				Object.keys( value ).forEach( key => {
 					if ( !( key in oldKeys ) ) {
-						const fragment = this.createIteration( key, i );
+						const fragment = this.createIteration( key, i, false );
 
 						this.iterations.push( fragment );
 						docFrag.appendChild( fragment.render() );
@@ -326,7 +329,7 @@ export default class RepeatedFragment {
 					parentNode.insertBefore( docFrag, fragment.firstNode() );
 				}
 			} else {
-				fragment = this.createIteration( i, i );
+				fragment = this.createIteration( i, i, true );
 				iterations[i] = fragment;
 
 				docFrag.appendChild( fragment.render() );

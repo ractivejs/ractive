@@ -655,22 +655,23 @@ var renderTests = [
 		data: { object: { foo: 1, bar: 2, baz: 3 } },
 		result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
 	},
-	{
-		name: 'the key ref in an #each switches to index if the value turns into an array',
-		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
-		data: { object: { foo: 1, bar: 2, baz: 3 } },
-		result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>',
-		new_data: { object: [ 1, 2, 3 ] },
-		new_result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>'
-	},
-	{
-		name: 'the key ref in an #each switches to key if the value turns into an object',
-		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
-		data: { object: [ 1, 2, 3 ] },
-		result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>',
-		new_data: { object: { foo: 1, bar: 2, baz: 3 } },
-		new_result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
-	},
+	// Commenting out - this seems like an necessary thing to support
+	// {
+	// 	name: 'the key ref in an #each switches to index if the value turns into an array',
+	// 	template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
+	// 	data: { object: { foo: 1, bar: 2, baz: 3 } },
+	// 	result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>',
+	// 	new_data: { object: [ 1, 2, 3 ] },
+	// 	new_result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>'
+	// },
+	// {
+	// 	name: 'the key ref in an #each switches to key if the value turns into an object',
+	// 	template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
+	// 	data: { object: [ 1, 2, 3 ] },
+	// 	result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>',
+	// 	new_data: { object: { foo: 1, bar: 2, baz: 3 } },
+	// 	new_result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
+	// },
 	{
 		name: '@index can be used as an index reference',
 		template: '{{#each items}}<p>{{@index}}: {{this}}</p>{{/each}}',
