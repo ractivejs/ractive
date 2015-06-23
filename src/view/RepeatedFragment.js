@@ -59,9 +59,6 @@ export default class RepeatedFragment {
 				const [ keyRef, indexRef ] = this.indexRef.split( ',' );
 				this.keyRef = keyRef;
 				this.indexRef = indexRef;
-
-				console.log( 'this.keyRef', this.keyRef );
-				console.log( 'this.indexRef', this.indexRef );
 			}
 
 			this.indexByKey = {};

@@ -1,5 +1,6 @@
 import { ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
 import Component from './Component';
+import Doctype from './element/specials/Doctype';
 import Element from './Element';
 import Interpolator from './Interpolator';
 import Option from './element/specials/Option';
@@ -20,8 +21,9 @@ const constructors = {
 };
 
 const specialElements = {
-	select: Select,
-	option: Option
+	doctype: Doctype,
+	option: Option,
+	select: Select
 };
 
 export default function createItem ( options ) {

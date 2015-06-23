@@ -1,5 +1,6 @@
 import Element from '../../Element';
 import { removeFromArray } from 'utils/array';
+import { isArray } from 'utils/is';
 
 function findParentSelect ( element ) {
 	while ( element ) {
@@ -41,6 +42,29 @@ export default class Option extends Element {
 
 		super.bind();
 		this.select.options.push( this );
+	}
+
+	isSelected () {
+		const optionValue = this.getAttribute( 'value' );
+
+		if ( optionValue === undefined || !this.select ) {
+			return false;
+		}
+
+		const selectValue = this.select.getAttribute( 'value' );
+
+		if ( selectValue == optionValue ) {
+			return true;
+		}
+
+		if ( this.select.getAttribute( 'multiple' ) && isArray( selectValue ) ) {
+			let i = selectValue.length;
+			while ( i-- ) {
+				if ( selectValue[i] == optionValue ) {
+					return true;
+				}
+			}
+		}
 	}
 
 	unbind () {

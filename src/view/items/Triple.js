@@ -1,6 +1,7 @@
 import { matches } from 'utils/dom';
 import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
+import { decodeCharacterReferences } from 'utils/html';
 
 export default class Triple extends Mustache {
 	constructor ( options ) {
@@ -72,7 +73,7 @@ export default class Triple extends Mustache {
 	}
 
 	toString () {
-		return this.model ? this.model.value : '';
+		return this.model && this.model.value != null ? decodeCharacterReferences( '' + this.model.value ) : '';
 	}
 
 	unrender () {

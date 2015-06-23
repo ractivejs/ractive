@@ -219,21 +219,42 @@ export default class Element extends Item {
 	toString () {
 		const tagName = this.template.e;
 
-		const attrs = this.attributes
+		let attrs = this.attributes
 			.map( attr => {
 				return ` ${attr.toString()}`;
 			})
 			.join( '' );
 
-		if ( this.isVoid ) {
-			return `<${tagName}${attrs}>`;
+		// Special case - selected options
+		if ( this.name === 'option' && this.isSelected() ) {
+			attrs += ' selected';
 		}
 
-		const contents = this.fragment ?
-			this.fragment.toString( !/^(?:script|style)$/i.test( this.template.e ) ) : // escape text unless script/style
-			'';
+		// Special case - two-way radio name bindings
+		if ( this.name === 'input' && inputIsCheckedRadio( this ) ) {
+			attrs += ' checked';
+		}
 
-		return `<${tagName}${attrs}>${contents}</${tagName}>`;
+		let str = `<${tagName}${attrs}>`;
+
+		if ( this.isVoid ) return str;
+
+		// Special case - textarea
+		if ( this.name === 'textarea' && this.getAttribute( 'value' ) !== undefined ) {
+			str += escapeHtml( this.getAttribute( 'value' ) );
+		}
+
+		// Special case - contenteditable
+		else if ( this.getAttribute( 'contenteditable' ) !== undefined ) {
+			str += ( this.getAttribute( 'value' ) || '' );
+		}
+
+		if ( this.fragment ) {
+			str += this.fragment.toString( !/^(?:script|style)$/i.test( this.template.e ) ); // escape text unless script/style
+		}
+
+		str += `</${tagName}>`;
+		return str;
 	}
 
 	unbind () {
@@ -292,5 +313,21 @@ export default class Element extends Item {
 
 			this.dirty = false;
 		}
+	}
+}
+
+function inputIsCheckedRadio ( element ) {
+	const attributes = element.attributeByName;
+
+	const typeAttribute  = attributes.type;
+	const valueAttribute = attributes.value;
+	const nameAttribute  = attributes.name;
+
+	if ( !typeAttribute || ( typeAttribute.value !== 'radio' ) || !valueAttribute || !nameAttribute.interpolator ) {
+		return;
+	}
+
+	if ( valueAttribute.getValue() === nameAttribute.interpolator.model.value ) {
+		return true;
 	}
 }

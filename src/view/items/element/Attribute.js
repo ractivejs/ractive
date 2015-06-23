@@ -25,7 +25,10 @@ export default class Attribute extends Item {
 
 		if ( !isArray( options.template ) ) {
 			this.value = options.template;
-			if ( this.value === 0 ) this.value = this.isEmpty = true;
+			if ( this.value === 0 ) {
+				this.value = '';
+				this.isEmpty = true;
+			}
 		} else {
 			this.fragment = new Fragment({
 				owner: this,
@@ -61,7 +64,7 @@ export default class Attribute extends Item {
 	// TODO could getValue ever be called for a static attribute,
 	// or can we assume that this.fragment exists?
 	getValue () {
-		return this.fragment ? this.fragment.valueOf() : this.value;
+		return this.fragment ? this.fragment.valueOf() : this.isEmpty ? true : this.value;
 	}
 
 	render () {

@@ -60,7 +60,7 @@ function updateId () {
 
 	delete this.ractive.nodes[ node.id ];
 	this.ractive.nodes[ value ] = node;
-	
+
 	node.id = value;
 }
 
