@@ -3,12 +3,13 @@ import runloop from 'global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
+import ConditionalAttribute from './element/ConditionalAttribute';
 import Decorator from './element/Decorator';
 import EventHandler from './element/EventHandler';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { voidElementNames } from 'utils/html';
-import { bind, render, unrender, update } from 'shared/methodCallers';
+import { bind, render, unbind, unrender, update } from 'shared/methodCallers';
 import { matches } from 'utils/dom';
 import { defineProperty } from 'utils/object';
 import selectBinding from './element/binding/selectBinding';
@@ -53,6 +54,15 @@ export default class Element extends Item {
 			});
 		}
 
+		// create conditional attributes
+		this.conditionalAttributes = ( this.template.m || [] ).map( template => {
+			return new ConditionalAttribute({
+				owner: this,
+				parentFragment: this.parentFragment,
+				template
+			});
+		});
+
 		// create decorator
 		if ( this.template.o ) {
 			this.decorator = new Decorator( this, this.template.o );
@@ -85,6 +95,7 @@ export default class Element extends Item {
 
 	bind () {
 		this.attributes.forEach( bind );
+		this.conditionalAttributes.forEach( bind );
 		this.eventHandlers.forEach( bind );
 
 		if ( this.decorator ) this.decorator.bind();
@@ -197,6 +208,7 @@ export default class Element extends Item {
 		}
 
 		this.attributes.forEach( render );
+		this.conditionalAttributes.forEach( render );
 		this.eventHandlers.forEach( render );
 
 		if ( this.decorator ) this.decorator.render(); // TODO this should only happen once render is complete
@@ -219,11 +231,8 @@ export default class Element extends Item {
 	toString () {
 		const tagName = this.template.e;
 
-		let attrs = this.attributes
-			.map( attr => {
-				return ` ${attr.toString()}`;
-			})
-			.join( '' );
+		let attrs = this.attributes.map( stringifyAttribute ).join( '' ) +
+		            this.conditionalAttributes.map( stringifyAttribute ).join( '' );
 
 		// Special case - selected options
 		if ( this.name === 'option' && this.isSelected() ) {
@@ -258,9 +267,11 @@ export default class Element extends Item {
 	}
 
 	unbind () {
-		if ( this.fragment ) {
-			this.fragment.unbind();
-		}
+		this.attributes.forEach( unbind );
+		this.conditionalAttributes.forEach( unbind );
+
+		if ( this.decorator ) this.decorator.unbind();
+		if ( this.fragment ) this.fragment.unbind();
 	}
 
 	unrender ( shouldDestroy ) {
@@ -306,6 +317,7 @@ export default class Element extends Item {
 	update () {
 		if ( this.dirty ) {
 			this.attributes.forEach( update );
+			this.conditionalAttributes.forEach( update );
 			this.eventHandlers.forEach( update );
 
 			if ( this.decorator ) this.decorator.update();
@@ -330,4 +342,9 @@ function inputIsCheckedRadio ( element ) {
 	if ( valueAttribute.getValue() === nameAttribute.interpolator.model.value ) {
 		return true;
 	}
+}
+
+function stringifyAttribute ( attribute ) {
+	const str = attribute.toString();
+	return str ? ' ' + str : '';
 }

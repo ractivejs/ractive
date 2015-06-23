@@ -4,6 +4,7 @@ import { removeFromArray } from 'utils/array';
 import fireEvent from 'events/fireEvent';
 import Fragment from '../../Fragment';
 import createFunction from 'shared/createFunction';
+import { unbind } from 'shared/methodCallers';
 import noop from 'utils/noop';
 import resolveReference from 'view/resolvers/resolveReference';
 
@@ -43,7 +44,8 @@ export default class EventHandler {
 					// on-click="foo(event.node)"
 					return {
 						event: true,
-						keys: ref.length > 5 ? ref.slice( 6 ).split( '.' ) : []
+						keys: ref.length > 5 ? ref.slice( 6 ).split( '.' ) : [],
+						unbind: noop
 					};
 				}
 
@@ -164,6 +166,25 @@ export default class EventHandler {
 
 			this.node._ractive.events[ this.name ] = this;
 			this.node.addEventListener( this.name, defaultHandler, false );
+		}
+	}
+
+	unbind () {
+		const template = this.template;
+
+		if ( template.m ) {
+			this.resolvers.forEach( unbind );
+			this.resolvers = [];
+
+			this.models.forEach( model => {
+				if ( model ) model.unbind();
+			});
+		}
+
+		else {
+			// TODO this is brittle and non-explicit, fix it
+			if ( this.action.unbind ) this.action.unbind();
+			if ( this.args.unbind ) this.args.unbind();
 		}
 	}
 

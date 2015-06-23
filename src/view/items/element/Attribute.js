@@ -108,6 +108,10 @@ export default class Attribute extends Item {
 			this.name;
 	}
 
+	unbind () {
+		if ( this.fragment ) this.fragment.unbind();
+	}
+
 	update () {
 		if ( this.dirty ) {
 			if ( this.fragment ) {
