@@ -50,8 +50,11 @@ export default class Element extends Item {
 				});
 
 				this.attributeByName[ name ] = attribute;
-				this.attributes.push( attribute );
+
+				if ( name !== 'value' )	this.attributes.push( attribute );
 			});
+
+			if ( this.attributeByName.value ) this.attributes.push( this.attributeByName.value );
 		}
 
 		// create conditional attributes
