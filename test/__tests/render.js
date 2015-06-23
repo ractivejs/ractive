@@ -168,7 +168,7 @@ test('List of inputs with referenceExpression name update correctly', function(t
 	ractive.set( 'topic', 'Color' );
 	var input = ractive.find('input');
 	t.ok( input );
-	t.equal( input.name, '{{responses.[topic]}}' );
+	t.equal( input.name, '{{responses.Color}}' );
 
 });
 
@@ -193,7 +193,7 @@ test('List of inputs with nested referenceExpression name updates correctly', fu
 	expect(3);
 
 	ractive.findAll('input').forEach(function(input){
-		t.equal( input.name, '{{responses.[step.name]}}' )
+		t.equal( input.name, '{{responses.Colors}}' )
 	});
 
 });
@@ -226,19 +226,6 @@ test( 'Render may be called with a selector (#1430)', t => {
 	ractive.render( '#foo' );
 
 	t.htmlEqual( fixture.innerHTML, '<div id="foo">foo</div>' );
-});
-
-// TODO: Remove when we don't support non-POJO roots
-test( 'Array roots should not get confused deps in sections (#1494)', t => {
-	var ractive = new Ractive({
-		el: fixture,
-		template: '{{#.}}{{.foo}}{{/}}',
-		data: [{ foo: 'a' }, { foo: 'b' }, { foo: 'c' }]
-	});
-
-	t.equal( fixture.innerHTML, 'abc' );
-	ractive.set('0.foo', 'z');
-	t.equal( fixture.innerHTML, 'zbc' );
 });
 
 test( 'Value changes in object iteration should cause updates (#1476)', t => {
