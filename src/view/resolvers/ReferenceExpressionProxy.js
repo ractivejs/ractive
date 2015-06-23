@@ -82,10 +82,12 @@ export default class ReferenceExpressionProxy extends Model {
 
 		if ( this.model ) {
 			this.model.unregister( this );
+			this.model.unregisterTwowayBinding( this );
 		}
 
 		this.model = model;
 		model.register( this );
+		model.registerTwowayBinding( this );
 
 		this.mark();
 	}
@@ -97,6 +99,17 @@ export default class ReferenceExpressionProxy extends Model {
 
 	get () {
 		return this.model ? this.model.value : undefined;
+	}
+
+	// indirect two-way bindings
+	getValue () {
+		let i = this.bindings.length;
+		while ( i-- ) {
+			const value = this.bindings[i].getValue();
+			if ( value !== this.value ) return value;
+		}
+
+		return this.value;
 	}
 
 	handleChange () {
