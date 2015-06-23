@@ -60,7 +60,9 @@ export default class RootModel extends Model {
 	}
 
 	joinKey ( key ) {
-		return this.mappings[ key ] || this.computations[ key ] || super.joinKey( key );
+		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
+		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
+		       super.joinKey( key );
 	}
 
 	map ( localKey, origin ) {

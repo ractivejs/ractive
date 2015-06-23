@@ -200,7 +200,7 @@ export default class Model {
 	joinKey ( key ) {
 		if ( key === undefined || key === '' ) return this;
 
-		if ( !this.childByKey[ key ] ) {
+		if ( !this.childByKey.hasOwnProperty( key ) ) {
 			const child = new Model( this, key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;
