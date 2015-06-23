@@ -1,5 +1,5 @@
 import { warnIfDebug } from 'utils/log';
-import { COMPONENT, INTERPOLATOR } from 'config/types';
+import { COMPONENT, INTERPOLATOR, YIELDER } from 'config/types';
 import Item from './shared/Item';
 import construct from 'Ractive/construct';
 import initialise from 'Ractive/initialise';
@@ -51,9 +51,21 @@ export default class Component extends Item {
 
 		construct( this.instance, { partials });
 
+		// find container
+		let fragment = options.parentFragment;
+		let container;
+		while ( fragment ) {
+			if ( fragment.owner.type === YIELDER ) {
+				container = fragment.owner.container;
+				break;
+			}
+
+			fragment = fragment.parent;
+		}
+
 		// add component-instance-specific properties
 		instance.parent = this.parentFragment.ractive;
-		//instance.container = options.container || null; TODO...?
+		instance.container = container || null;
 		instance.root = instance.parent.root;
 		instance.component = this;
 

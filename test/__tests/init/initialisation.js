@@ -573,6 +573,7 @@ test( '.findContainer() finds container component', function ( t ) {
 		template: '<outer><mid><inner/></mid></outer>',
 		components: {
 			outer: Ractive.extend({ template: '{{yield}}' }),
+			mid: Ractive.extend({ template: '{{yield}}' }),
 			inner: Ractive.extend()
 		}
 	});
