@@ -109,12 +109,12 @@ export default class RepeatedFragment {
 		}
 	}
 
-	findAll ( selector, queryResult ) {
+	findAll ( selector, query ) {
 		const len = this.iterations.length;
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
-			this.iterations[i].findAll( selector, queryResult );
+			this.iterations[i].findAll( selector, query );
 		}
 	}
 
@@ -128,12 +128,12 @@ export default class RepeatedFragment {
 		}
 	}
 
-	findAllComponents ( name, queryResult ) {
+	findAllComponents ( name, query ) {
 		const len = this.iterations.length;
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
-			this.iterations[i].findAllComponents( name, queryResult );
+			this.iterations[i].findAllComponents( name, query );
 		}
 	}
 

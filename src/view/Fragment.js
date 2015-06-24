@@ -85,7 +85,7 @@ export default class Fragment {
 		}
 	}
 
-	findAll ( selector, queryResult ) {
+	findAll ( selector, query ) {
 		if ( this.items ) {
 			const len = this.items.length;
 			let i;
@@ -94,12 +94,12 @@ export default class Fragment {
 				const item = this.items[i];
 
 				if ( item.findAll ) {
-					item.findAll( selector, queryResult );
+					item.findAll( selector, query );
 				}
 			}
 		}
 
-		return queryResult;
+		return query;
 	}
 
 	findComponent ( name ) {
@@ -112,7 +112,7 @@ export default class Fragment {
 		}
 	}
 
-	findAllComponents ( name, queryResult ) {
+	findAllComponents ( name, query ) {
 		if ( this.items ) {
 			const len = this.items.length;
 			let i;
@@ -121,12 +121,12 @@ export default class Fragment {
 				const item = this.items[i];
 
 				if ( item.findAllComponents ) {
-					item.findAllComponents( name, queryResult );
+					item.findAllComponents( name, query );
 				}
 			}
 		}
 
-		return queryResult;
+		return query;
 	}
 
 	findContext () {

@@ -28,16 +28,16 @@ export default class Partial extends Mustache {
 		return this.fragment.find( selector );
 	}
 
-	findAll ( selector, queryResult ) {
-		this.fragment.find( selector, queryResult );
+	findAll ( selector, query ) {
+		this.fragment.find( selector, query );
 	}
 
 	findComponent ( name ) {
 		return this.fragment.findComponent( name );
 	}
 
-	findAllComponents ( name, queryResult ) {
-		this.fragment.findAllComponents( name, queryResult );
+	findAllComponents ( name, query ) {
+		this.fragment.findAllComponents( name, query );
 	}
 
 	firstNode () {

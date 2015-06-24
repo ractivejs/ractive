@@ -89,9 +89,9 @@ export default class Section extends Mustache {
 		}
 	}
 
-	findAll ( selector, queryResult ) {
+	findAll ( selector, query ) {
 		if ( this.fragment ) {
-			this.fragment.findAll( selector, queryResult );
+			this.fragment.findAll( selector, query );
 		}
 	}
 
@@ -101,9 +101,9 @@ export default class Section extends Mustache {
 		}
 	}
 
-	findAllComponents ( name, queryResult ) {
+	findAllComponents ( name, query ) {
 		if ( this.fragment ) {
-			this.fragment.findAllComponents( name, queryResult );
+			this.fragment.findAllComponents( name, query );
 		}
 	}
 

@@ -170,9 +170,9 @@ export default class Element extends Item {
 		}
 	}
 
-	findAllComponents ( name, queryResult ) {
+	findAllComponents ( name, query ) {
 		if ( this.fragment ) {
-			this.fragment.findAllComponents( name, queryResult );
+			this.fragment.findAllComponents( name, query );
 		}
 	}
 
