@@ -3,17 +3,14 @@ import { removeFromArray } from 'utils/array';
 import { handleChange } from 'shared/methodCallers';
 
 export default class KeyModel {
-	constructor ( parent ) {
-		this.parent = parent;
-		this.value = parent.key;
-
+	constructor ( key ) {
+		this.value = key;
 		this.isReadonly = true;
-
 		this.dependants = [];
 	}
 
 	get () {
-		return this.parent.key;
+		return this.value;
 	}
 
 	getKeypath () {
@@ -22,8 +19,8 @@ export default class KeyModel {
 		return '@key';
 	}
 
-	handleChange () {
-		this.value = this.parent.key;
+	rebind ( key ) {
+		this.value = key;
 		this.dependants.forEach( handleChange );
 	}
 

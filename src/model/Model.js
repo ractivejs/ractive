@@ -164,7 +164,7 @@ export default class Model {
 		const indexModels = this.parent.indexModels;
 
 		if ( !indexModels[ this.key ] ) {
-			indexModels[ this.key ] = new KeyModel( this );
+			indexModels[ this.key ] = new KeyModel( this.key );
 		}
 
 		return indexModels[ this.key ];
@@ -172,7 +172,7 @@ export default class Model {
 
 	getKeyModel () {
 		// TODO... different to IndexModel because key can never change
-		return new KeyModel( this );
+		return new KeyModel( this.key );
 	}
 
 	getKeypathModel () {
@@ -315,6 +315,23 @@ export default class Model {
 	}
 
 	shuffle ( newIndices ) {
+		const indexModels = [];
+		newIndices.forEach( ( newIndex, oldIndex ) => {
+			if ( !~newIndex ) return;
+
+			const model = this.indexModels[ oldIndex ];
+
+			if ( !model ) return;
+
+			indexModels[ newIndex ] = model;
+
+			if ( newIndex !== oldIndex ) {
+				model.rebind( newIndex );
+			}
+		});
+
+		this.indexModels = indexModels;
+
 		this.deps.forEach( dep => {
 			if ( dep.shuffle ) {
 				dep.shuffle( newIndices );
@@ -323,6 +340,7 @@ export default class Model {
 			}
 		});
 
+		this.updateKeypathDependants();
 		this.mark();
 	}
 

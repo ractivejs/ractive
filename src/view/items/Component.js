@@ -7,7 +7,7 @@ import { create } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 import { isArray } from 'utils/is';
 import resolve from '../resolvers/resolve';
-import { cancel, unbind } from 'shared/methodCallers';
+import { cancel, rebind, unbind } from 'shared/methodCallers';
 import Hook from 'events/Hook';
 import Fragment from '../Fragment';
 import parseJSON from 'utils/parseJSON';
@@ -82,8 +82,6 @@ export default class Component extends Item {
 		const viewmodel = this.instance.viewmodel;
 		const childData = viewmodel.value;
 
-		let initialising = true;
-
 		// determine mappings
 		if ( this.template.a ) {
 			Object.keys( this.template.a ).forEach( localKey => {
@@ -143,8 +141,6 @@ export default class Component extends Item {
 			});
 		}
 
-		initialising = false;
-
 		initialise( this.instance, {
 			partials: this._partials
 		}, {
@@ -199,7 +195,37 @@ export default class Component extends Item {
 	}
 
 	rebind () {
-		console.warn( 'TODO component rebind' )
+		this.resolvers.forEach( unbind );
+		this.complexMappings.forEach( rebind );
+
+		// update relevant mappings
+		if ( this.template.a ) {
+			const viewmodel = this.instance.viewmodel;
+
+			Object.keys( this.template.a ).forEach( localKey => {
+				const template = this.template.a[ localKey ];
+
+				if ( isArray( template ) && template.length === 1 && template[0].t === INTERPOLATOR ) {
+					const model = resolve( this.parentFragment, template[0] );
+
+					if ( model ) {
+						viewmodel.map( localKey, model );
+					}
+
+					else {
+						const resolver = this.parentFragment.resolve( template[0].r, model => {
+							viewmodel.map( localKey, model );
+							viewmodel.clearUnresolveds( localKey );
+						});
+
+						// TODO is this necessary? or can the parentFragment handle cleanup?
+						this.resolvers.push( resolver );
+					}
+				}
+			});
+		}
+
+		this.instance.fragment.rebind( this.instance.viewmodel );
 	}
 
 	// TODO can this be done in a less roundabout way?
