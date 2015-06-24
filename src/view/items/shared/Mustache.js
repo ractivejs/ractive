@@ -46,6 +46,11 @@ export default class Mustache extends Item {
 		this.bubble();
 	}
 
+	rebind () {
+		this.unbind();
+		this.bind();
+	}
+
 	unbind () {
 		if ( !this.isStatic ) {
 			this.model && this.model.unregister( this );

@@ -9,7 +9,7 @@ import EventHandler from './element/EventHandler';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { voidElementNames } from 'utils/html';
-import { bind, render, unbind, unrender, update } from 'shared/methodCallers';
+import { bind, rebind, render, unbind, unrender, update } from 'shared/methodCallers';
 import { matches } from 'utils/dom';
 import { defineProperty } from 'utils/object';
 import selectBinding from './element/binding/selectBinding';
@@ -181,6 +181,13 @@ export default class Element extends Item {
 	getAttribute ( name ) {
 		const attribute = this.attributeByName[ name ];
 		return attribute ? attribute.getValue() : undefined;
+	}
+
+	rebind () {
+		this.attributes.forEach( rebind );
+		this.conditionalAttributes.forEach( rebind );
+		if ( this.decorator ) this.decorator.rebind();
+		if ( this.fragment ) this.fragment.rebind();
 	}
 
 	render () {

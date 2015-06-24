@@ -2,7 +2,7 @@ import { ELEMENT } from 'config/types';
 import runloop from 'global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';
-import { bind, unbind, unrender, update, toEscapedString, toString } from 'shared/methodCallers';
+import { bind, rebind, toEscapedString, toString, unbind, unrender, update } from 'shared/methodCallers';
 import processItems from './helpers/processItems';
 import parseJSON from 'utils/parseJSON';
 
@@ -203,6 +203,18 @@ export default class Fragment {
 		}
 
 		return this.argsList;
+	}
+
+	rebind ( context ) {
+		this.context = context;
+
+		this.items.forEach( item => {
+			if ( !item.rebind ) {
+				console.log( 'item', item )
+				throw new Error( 'cannot rebind' );
+			}
+			item.rebind();
+		});
 	}
 
 	render () {

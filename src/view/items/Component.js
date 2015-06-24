@@ -198,6 +198,10 @@ export default class Component extends Item {
 		return this.instance.fragment.firstNode();
 	}
 
+	rebind () {
+		console.warn( 'TODO component rebind' )
+	}
+
 	// TODO can this be done in a less roundabout way?
 	render () {
 		var instance = this.instance;

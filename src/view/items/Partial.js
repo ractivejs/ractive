@@ -56,6 +56,10 @@ export default class Partial extends Mustache {
 		this.bubble();
 	}
 
+	rebind () {
+		console.warn( 'TODO rebind partial' );
+	}
+
 	render () {
 		return this.fragment.render();
 	}

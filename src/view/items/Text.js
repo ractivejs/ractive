@@ -17,6 +17,10 @@ export default class Text extends Item {
 		return this.node;
 	}
 
+	rebind () {
+		// noop
+	}
+
 	render () {
 		return ( this.node = document.createTextNode( this.template ) );
 	}

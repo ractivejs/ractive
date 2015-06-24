@@ -67,6 +67,10 @@ export default class Attribute extends Item {
 		return this.fragment ? this.fragment.valueOf() : this.isEmpty ? true : this.value;
 	}
 
+	rebind () {
+		console.warn( 'TODO attribute rebind' );
+	}
+
 	render () {
 		const node = this.element.node;
 		this.node = node;

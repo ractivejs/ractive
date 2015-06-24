@@ -150,6 +150,10 @@ export default class EventHandler {
 		}
 	}
 
+	rebind () {
+		console.warn( 'TODO rebind event handler' );
+	}
+
 	render () {
 		this.node = this.owner.node;
 

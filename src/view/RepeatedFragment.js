@@ -32,12 +32,9 @@ export default class RepeatedFragment {
 
 		this.indexRef = options.indexRef;
 		this.keyRef = options.keyRef;
-		this.indexRefResolvers = []; // no keyRefResolvers - key can never change
 
 		this.pendingNewIndices = null;
 		this.indexByKey = null; // for `{{#each object}}...`
-
-		this.dirty = false;
 	}
 
 	bind ( context ) {
@@ -48,7 +45,7 @@ export default class RepeatedFragment {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
 			for ( let i = 0; i < context.value.length; i += 1 ) {
-				this.iterations[i] = this.createIteration( i, i, true );
+				this.iterations[i] = this.createIteration( i, i );
 			}
 		}
 
@@ -64,7 +61,7 @@ export default class RepeatedFragment {
 			this.indexByKey = {};
 			this.iterations = Object.keys( context.value ).map( ( key, index ) => {
 				this.indexByKey[ key ] = index;
-				return this.createIteration( key, index, false );
+				return this.createIteration( key, index );
 			});
 		}
 
@@ -75,7 +72,7 @@ export default class RepeatedFragment {
 		this.owner.bubble();
 	}
 
-	createIteration ( key, index, shuffleable ) {
+	createIteration ( key, index ) {
 		const parentFragment = this.owner.parentFragment;
 		const keyRefs = getRefs( this.keyRef, key, parentFragment.keyRefs );
 		const indexRefs = getRefs( this.indexRef, index, parentFragment.indexRefs );
@@ -92,7 +89,7 @@ export default class RepeatedFragment {
 		fragment.index = index;
 		fragment.isIteration = true;
 
-		const model = shuffleable ? this.context.joinIndex( key ) : this.context.joinKey( key );
+		const model = this.context.joinKey( key );
 		return fragment.bind( model );
 	}
 
@@ -152,6 +149,17 @@ export default class RepeatedFragment {
 		return this.iterations[0] ? this.iterations[0].firstNode() : null;
 	}
 
+	rebind ( context ) {
+		this.context = context;
+
+		// {{#each array}}...
+		if ( isArray( context.value ) ) {
+			this.iterations.forEach( ( fragment, i ) => {
+				fragment.rebind( context.joinKey( i ) );
+			});
+		}
+	}
+
 	render () {
 		// TODO use docFrag.cloneNode...
 
@@ -169,26 +177,22 @@ export default class RepeatedFragment {
 			throw new Error( 'Section was already shuffled!' );
 		}
 
-		let indexRefResolvers = [];
+		this.pendingNewIndices = newIndices;
+		this.previousIterations = this.iterations.slice();
+
+		const iterations = [];
+
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			if ( newIndex === -1 ) return;
 
-			const resolvers = this.indexRefResolvers[ oldIndex ];
+			const fragment = this.iterations[ oldIndex ];
+			iterations[ newIndex ] = fragment;
 
-			if ( !resolvers ) return;
-
-			if ( newIndex !== oldIndex ) {
-				resolvers.forEach( resolver => {
-					resolver.update( newIndex );
-				});
-			}
-
-			indexRefResolvers[ newIndex ] = resolvers;
+			if ( newIndex !== oldIndex ) fragment.dirty = true;
 		});
 
-		this.pendingNewIndices = newIndices;
-		this.indexRefResolvers = indexRefResolvers;
-		this.dirty = true;
+		this.iterations = iterations;
+		this.bubble();
 	}
 
 	toString ( escape ) {
@@ -266,7 +270,7 @@ export default class RepeatedFragment {
 
 			if ( isArray( value ) ) {
 				while ( i < value.length ) {
-					const fragment = this.createIteration( i, i, true );
+					const fragment = this.createIteration( i, i );
 
 					this.iterations.push( fragment );
 					docFrag.appendChild( fragment.render() );
@@ -278,7 +282,7 @@ export default class RepeatedFragment {
 			else if ( isObject( value ) ) {
 				Object.keys( value ).forEach( key => {
 					if ( !( key in oldKeys ) ) {
-						const fragment = this.createIteration( key, i, false );
+						const fragment = this.createIteration( key, i );
 
 						this.iterations.push( fragment );
 						docFrag.appendChild( fragment.render() );
@@ -300,17 +304,14 @@ export default class RepeatedFragment {
 		const docFrag = document.createDocumentFragment();
 		const parentNode = this.parent.findParentNode();
 
-		let iterations = [];
-
 		// TODO reorder fragments in the DOM...
 		newIndices.forEach( ( newIndex, oldIndex ) => {
-			const fragment = this.iterations[ oldIndex ];
+			const fragment = this.previousIterations[ oldIndex ];
 
 			if ( newIndex === -1 ) {
-				fragment.unbind();
-				fragment.unrender( true );
+				fragment.unbind().unrender( true );
 			} else {
-				iterations[ newIndex ] = fragment;
+				fragment.rebind( this.context.joinKey( newIndex ) );
 			}
 		});
 
@@ -319,22 +320,21 @@ export default class RepeatedFragment {
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
-			let fragment = iterations[i];
+			let fragment = this.iterations[i];
 
 			if ( fragment ) {
 				if ( docFrag.childNodes.length ) {
 					parentNode.insertBefore( docFrag, fragment.firstNode() );
 				}
 			} else {
-				fragment = this.createIteration( i, i, true );
-				iterations[i] = fragment;
+				fragment = this.createIteration( i, i );
+				this.iterations[i] = fragment;
 
 				docFrag.appendChild( fragment.render() );
 			}
 		}
 
-		iterations.forEach( update );
-		this.iterations = iterations;
+		this.iterations.forEach( update );
 
 		if ( docFrag.childNodes.length ) {
 			parentNode.insertBefore( docFrag, this.owner.findNextNode() );

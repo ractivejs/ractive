@@ -66,6 +66,10 @@ export default class Yielder extends Item {
 		return this.fragment.firstNode();
 	}
 
+	rebind () {
+		console.warn( 'TODO rebind yielder' );
+	}
+
 	render () {
 		return this.fragment.render();
 	}

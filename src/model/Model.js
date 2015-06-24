@@ -24,7 +24,6 @@ export default class Model {
 		this.children = [];
 		this.childByKey = {};
 
-		this.indexedChildren = [];
 		this.indexModels = [];
 
 		this.unresolved = [];
@@ -189,14 +188,6 @@ export default class Model {
 		return this.value && hasProp.call( this.value, key );
 	}
 
-	joinIndex ( index ) {
-		if ( !this.indexedChildren[ index ] ) {
-			this.indexedChildren[ index ] = new Model( this, index );
-		}
-
-		return this.indexedChildren[ index ];
-	}
-
 	joinKey ( key ) {
 		if ( key === undefined || key === '' ) return this;
 
@@ -225,7 +216,6 @@ export default class Model {
 			this.value = value;
 
 			this.children.forEach( mark );
-			this.indexedChildren.forEach( mark );
 
 			this.deps.forEach( handleChange );
 			this.clearUnresolveds();
@@ -314,12 +304,10 @@ export default class Model {
 
 		if ( !silent ) {
 			this.children.forEach( mark );
-			this.indexedChildren.forEach( mark );
 			this.deps.forEach( handleChange );
 
 			let parent = this.parent;
 			while ( parent ) {
-				parent.indexedChildren.forEach( mark ); // TODO is this the only way? seems inefficient
 				parent.deps.forEach( handleChange );
 				parent = parent.parent;
 			}
@@ -327,43 +315,6 @@ export default class Model {
 	}
 
 	shuffle ( newIndices ) {
-		let indexedChildren = [];
-		let indexModels = [];
-
-		if ( this.indexedChildren.length ) {
-			newIndices.forEach( ( newIndex, oldIndex ) => {
-				if ( !~newIndex ) return; // TODO need to teardown e.g. ReferenceExpressionProxys?
-
-				const model = this.indexedChildren[ oldIndex ];
-				const indexModel = this.indexModels[ oldIndex ];
-
-				if ( newIndex === oldIndex ) {
-					indexedChildren[ newIndex ] = model;
-					indexModels[ newIndex ] = indexModel;
-					return;
-				}
-
-				if ( model ) {
-					indexedChildren[ newIndex ] = model;
-					model.key = newIndex;
-
-					// any direct or downstream {{@keypath}} dependants need
-					// to be notified of the change
-					model.updateKeypathDependants();
-				}
-
-				if ( indexModel ) {
-					indexModels[ newIndex ] = indexModel;
-					indexModel.key = newIndex;
-					indexModel.handleChange();
-				}
-			});
-		}
-
-		this.indexedChildren = indexedChildren;
-		this.indexModels = indexModels;
-
-		this.mark();
 		this.deps.forEach( dep => {
 			if ( dep.shuffle ) {
 				dep.shuffle( newIndices );
@@ -371,11 +322,12 @@ export default class Model {
 				dep.handleChange();
 			}
 		});
+
+		this.mark();
 	}
 
 	teardown () {
 		this.children.forEach( teardown );
-		this.indexedChildren.forEach( teardown );
 		if ( this.wrapper ) this.wrapper.teardown();
 	}
 
@@ -396,14 +348,11 @@ export default class Model {
 
 		if ( cascade ) {
 			this.children.forEach( updateFromBindings );
-			this.indexedChildren.forEach( updateFromBindings );
 		}
 	}
 
 	updateKeypathDependants () {
 		this.children.forEach( updateKeypathDependants );
-		this.indexedChildren.forEach( updateKeypathDependants );
-
 		if ( this.keypathModel ) this.keypathModel.handleChange();
 	}
 }

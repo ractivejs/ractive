@@ -63,6 +63,10 @@ export default class Triple extends Mustache {
 		return this.nodes[0];
 	}
 
+	rebind () {
+		console.warn( 'TODO rebind triple' );
+	}
+
 	render () {
 		const html = this.model ? this.model.value : '';
 

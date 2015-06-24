@@ -4,7 +4,7 @@ import { toArray } from 'utils/array';
 import Fragment from 'view/Fragment';
 import Item from '../shared/Item';
 
-var div;
+let div;
 
 if ( typeof document !== 'undefined' ) {
 	div = createElement( 'div' );
@@ -42,8 +42,8 @@ export default class ConditionalAttribute extends Item {
 		}
 	}
 
-	rebind ( oldKeypath, newKeypath ) {
-		this.fragment.rebind( oldKeypath, newKeypath );
+	rebind () {
+		console.warn( 'TODO rebind conditional attribute' );
 	}
 
 	render () {

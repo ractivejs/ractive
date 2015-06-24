@@ -57,6 +57,10 @@ export default class Decorator {
 		}
 	}
 
+	rebind () {
+		console.warn( 'TODO rebind decorator' );
+	}
+
 	render () {
 		const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
 
