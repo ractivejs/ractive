@@ -163,22 +163,15 @@ test( 'Parent data overrides child data during child model creation', t => {
 });
 
 test( 'Regression test for #317', t => {
-	var Widget, widget, ractive;
-
-	Widget = Ractive.extend({
-		template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
-		oninit: function () {
-			widget = this;
-		}
+	const Widget = Ractive.extend({
+		template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget items="{{items}}"/><p>{{ items.join( " " ) }}</p>',
+		template: '<Widget items="{{items}}"/><p>{{ items.join( " " ) }}</p>',
 		data: { items: [ 'a', 'b', 'c', 'd' ] },
-		components: {
-			widget: Widget
-		}
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: a</li><li>1: b</li><li>2: c</li><li>3: d</li></ul><p>a b c d</p>' );
@@ -195,8 +188,8 @@ test( 'Regression test for #317', t => {
 	ractive.set( 'items[0]', 'f' );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>0: f</li><li>1: b</li><li>2: d</li></ul><p>f b d</p>' );
 
-
 	// reset items from within widget
+	const widget = ractive.findComponent( 'Widget' );
 	widget.set( 'items', widget.get( 'items' ).slice() );
 
 	widget.push( 'items', 'g' );

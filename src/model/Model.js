@@ -25,7 +25,7 @@ export default class Model {
 		this.childByKey = {};
 
 		this.indexedChildren = [];
-		this.indexResolvers = [];
+		this.indexModels = [];
 
 		this.unresolved = [];
 		this.unresolvedByKey = {};
@@ -162,13 +162,13 @@ export default class Model {
 	}
 
 	getIndexModel () {
-		const indexResolvers = this.parent.indexResolvers;
+		const indexModels = this.parent.indexModels;
 
-		if ( !indexResolvers[ this.key ] ) {
-			indexResolvers[ this.key ] = new KeyModel( this );
+		if ( !indexModels[ this.key ] ) {
+			indexModels[ this.key ] = new KeyModel( this );
 		}
 
-		return indexResolvers[ this.key ];
+		return indexModels[ this.key ];
 	}
 
 	getKeyModel () {
@@ -319,6 +319,7 @@ export default class Model {
 
 			let parent = this.parent;
 			while ( parent ) {
+				parent.indexedChildren.forEach( mark ); // TODO is this the only way? seems inefficient
 				parent.deps.forEach( handleChange );
 				parent = parent.parent;
 			}
@@ -327,18 +328,18 @@ export default class Model {
 
 	shuffle ( newIndices ) {
 		let indexedChildren = [];
-		let indexResolvers = [];
+		let indexModels = [];
 
 		if ( this.indexedChildren.length ) {
 			newIndices.forEach( ( newIndex, oldIndex ) => {
 				if ( !~newIndex ) return; // TODO need to teardown e.g. ReferenceExpressionProxys?
 
 				const model = this.indexedChildren[ oldIndex ];
-				const indexResolver = this.indexResolvers[ oldIndex ];
+				const indexModel = this.indexModels[ oldIndex ];
 
 				if ( newIndex === oldIndex ) {
 					indexedChildren[ newIndex ] = model;
-					indexResolvers[ newIndex ] = indexResolver;
+					indexModels[ newIndex ] = indexModel;
 					return;
 				}
 
@@ -351,15 +352,16 @@ export default class Model {
 					model.updateKeypathDependants();
 				}
 
-				if ( indexResolver ) {
-					indexResolver.key = newIndex;
-					indexResolver.handleChange();
+				if ( indexModel ) {
+					indexModels[ newIndex ] = indexModel;
+					indexModel.key = newIndex;
+					indexModel.handleChange();
 				}
 			});
 		}
 
 		this.indexedChildren = indexedChildren;
-		this.indexResolvers = indexResolvers;
+		this.indexModels = indexModels;
 
 		this.mark();
 		this.deps.forEach( dep => {
