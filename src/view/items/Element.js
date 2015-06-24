@@ -14,6 +14,10 @@ import { matches } from 'utils/dom';
 import { defineProperty } from 'utils/object';
 import selectBinding from './element/binding/selectBinding';
 
+function makeDirty ( query ) {
+	query.makeDirty();
+}
+
 export default class Element extends Item {
 	constructor ( options ) {
 		super( options );
@@ -149,8 +153,10 @@ export default class Element extends Item {
 	findAll ( selector, query ) {
 		// Add this node to the query, if applicable, and register the
 		// query on this element
-		if ( query._test( this, true ) && query.live ) {
-			this.liveQueries.push( query );
+		const matches = query.test( this.node );
+		if ( matches ) {
+			query.add( this.node );
+			if ( query.live ) this.liveQueries.push( query );
 		}
 
 		if ( this.fragment ) {
@@ -188,6 +194,8 @@ export default class Element extends Item {
 		this.conditionalAttributes.forEach( rebind );
 		if ( this.decorator ) this.decorator.rebind();
 		if ( this.fragment ) this.fragment.rebind();
+
+		this.liveQueries.forEach( makeDirty );
 	}
 
 	render () {
@@ -199,6 +207,7 @@ export default class Element extends Item {
 
 		defineProperty( node, '_ractive', {
 			value: {
+				proxy: this,
 				ractive: this.ractive,
 				fragment: this.parentFragment,
 				events: {},

@@ -18,7 +18,7 @@ function removeFromLiveComponentQueries ( component ) {
 
 	while ( instance ) {
 		const query = instance._liveComponentQueries[ `_${component.name}` ];
-		if ( query ) query._remove( component );
+		if ( query ) query.remove( component );
 
 		instance = instance.parent;
 	}
@@ -173,21 +173,21 @@ export default class Component extends Item {
 		return this.instance.fragment.find( selector );
 	}
 
-	findAll ( selector, queryResult ) {
-		this.instance.fragment.findAll( selector, queryResult );
+	findAll ( selector, query ) {
+		this.instance.fragment.findAll( selector, query );
 	}
 
 	findComponent ( name ) {
-		if ( this.name === name ) return this.instance;
+		if ( !name || this.name === name ) return this.instance;
 
 		if ( this.instance.fragment ) {
 			return this.instance.fragment.findComponent( name );
 		}
 	}
 
-	findAllComponents ( name, queryResult ) {
-		queryResult._test( this, true );
-		this.instance.fragment.findAllComponents( name, queryResult );
+	findAllComponents ( name, query ) {
+		if ( query.test( this ) ) query.add( this.instance );
+		this.instance.fragment.findAllComponents( name, query );
 	}
 
 	firstNode () {
