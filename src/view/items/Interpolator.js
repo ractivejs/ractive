@@ -3,10 +3,6 @@ import { safeToStringValue } from 'utils/dom';
 import Mustache from './shared/Mustache';
 
 export default class Interpolator extends Mustache {
-	constructor ( options ) {
-		super( options );
-	}
-
 	detach () {
 		return this.node.parentNode.removeChild( this.node );
 	}

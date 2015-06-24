@@ -907,9 +907,7 @@ test( 'Data that does not exist in a parent context binds to the current instanc
 });
 
 test( 'Inter-component bindings can be created via this.get() and this.observe(), not just through templates', function ( t ) {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>message: {{proxy}}</p>',
 		oninit: function () {
 			this.observe( 'message', function ( message ) {
@@ -920,16 +918,14 @@ test( 'Inter-component bindings can be created via this.get() and this.observe()
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget/>',
+		template: '<Widget/>',
 		data: {
 			message: 'hello',
 			answer: 42
 		},
-		components: {
-			widget: Widget
-		}
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>message: hello</p>' );
@@ -938,17 +934,16 @@ test( 'Inter-component bindings can be created via this.get() and this.observe()
 });
 
 test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', function ( t ) {
-	var ractive, Widget1, Widget2, noCall = false, errored = false;
+	let noCall = false;
+	let errored = false;
 
 	expect( 3 );
 
-	Widget1 = Ractive.extend({
-		debug: true,
+	const Widget1 = Ractive.extend({
 		template: 'w1:{{tata.foo}}{{tata.bar}}'
 	});
 
-	Widget2 = Ractive.extend({
-		debug: true,
+	const Widget2 = Ractive.extend({
 		template: 'w2:{{schmata.foo}}{{calc}}',
 		computed: {
 			calc () {
@@ -963,21 +958,18 @@ test( 'Sibling components do not unnessarily update on refinement update of data
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{data.foo}}{{data.bar}}<widget1 tata="{{data}}"/><widget2 schmata="{{data}}"/>',
+		template: '{{data.foo}}{{data.bar}}<Widget1 tata="{{data}}"/><Widget2 schmata="{{data}}"/>',
 		data: {
 			data: {
 				foo: 'foo',
 				bar: 'bar'
 			}
 		},
-		components: {
-			widget1: Widget1,
-			widget2: Widget2
-		},
-		oninit: function () {
-			this.observe('data.bar', function () {
+		components: { Widget1, Widget2 },
+		oninit () {
+			this.observe( 'data.bar', function () {
 				errored = true;
 				t.ok( false );
 			}, { init: false } );
@@ -986,7 +978,7 @@ test( 'Sibling components do not unnessarily update on refinement update of data
 
 	t.htmlEqual( fixture.innerHTML, 'foobarw1:foobarw2:foobar' );
 	noCall = true;
-	ractive.findComponent('widget1').set( 'tata.foo', 'update' );
+	ractive.findComponent( 'Widget1' ).set( 'tata.foo', 'update' );
 	t.htmlEqual( fixture.innerHTML, 'updatebarw1:updatebarw2:updatebar' );
 
 	t.ok( !errored );

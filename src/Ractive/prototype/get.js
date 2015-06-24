@@ -1,4 +1,4 @@
-import { normalise, splitKeypath } from 'shared/keypaths';
+import { splitKeypath } from 'shared/keypaths';
 import resolveReference from 'view/resolvers/resolveReference';
 
 export default function Ractive$get ( keypath ) {
@@ -11,8 +11,11 @@ export default function Ractive$get ( keypath ) {
 		// if this is an inline component, we may need to create
 		// an implicit mapping
 		if ( this.component ) {
-			// mapping is created as a side-effect
-			resolveReference( this.component.parentFragment, normalise( key ) );
+			const model = resolveReference( this.component.parentFragment, key );
+
+			if ( model ) {
+				this.viewmodel.map( key, model );
+			}
 		}
 	}
 

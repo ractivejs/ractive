@@ -210,7 +210,6 @@ export default class Fragment {
 
 		this.items.forEach( item => {
 			if ( !item.rebind ) {
-				console.log( 'item', item )
 				throw new Error( 'cannot rebind' );
 			}
 			item.rebind();

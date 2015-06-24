@@ -56,11 +56,10 @@ export default function construct ( ractive, options ) {
 	// Add computed properties
 	const computed = extend( create( ractive.constructor.prototype.computed ), options.computed );
 
-	Object.keys( computed ).forEach( key => {
+	for ( let key in computed ) {
 		const signature = getComputationSignature( ractive, key, computed[ key ] );
-		const computation = viewmodel.compute( key, signature );
-		computation.init();
-	});
+		viewmodel.compute( key, signature );
+	}
 }
 
 function combine ( a, b ) {

@@ -6,7 +6,6 @@ import { arrayContentsMatch } from 'utils/array';
 export default class MultipleSelectBinding extends Binding {
 	forceUpdate () {
 		var value = this.getValue();
-		console.log( 'value', value );
 
 		if ( value !== undefined ) {
 			this.attribute.locked = true;

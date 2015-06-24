@@ -73,8 +73,8 @@ function createObserver ( ractive, keypath, callback, options ) {
 		if ( !viewmodel.has( key ) ) {
 			// if this is an inline component, we may need to create an implicit mapping
 			if ( ractive.component ) {
-				// mapping created as side-effect
-				resolveReference( ractive.component.parentFragment, key );
+				const model = resolveReference( ractive.component.parentFragment, key );
+				if ( model ) viewmodel.map( key, model );
 			}
 		}
 

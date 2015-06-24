@@ -10,6 +10,10 @@ let configHook = new Hook( 'config' );
 let initHook = new HookQueue( 'init' );
 
 export default function initialise ( ractive, userOptions, options ) {
+	Object.keys( ractive.viewmodel.computations ).forEach( key => {
+		ractive.viewmodel.computations[ key ].init();
+	});
+
 	// init config from Parent and options
 	config.init( ractive.constructor, ractive, userOptions );
 
