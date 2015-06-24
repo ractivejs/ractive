@@ -9,7 +9,8 @@ import { removeFromArray } from 'utils/array';
 
 export default class ReferenceExpressionProxy extends Model {
 	constructor ( fragment, template ) {
-		super( fragment.ractive.viewmodel, null );
+		super( null, null );
+		this.root = fragment.ractive.viewmodel;
 
 		this.resolvers = [];
 
@@ -86,6 +87,8 @@ export default class ReferenceExpressionProxy extends Model {
 		}
 
 		this.model = model;
+		this.parent = model.parent;
+
 		model.register( this );
 		model.registerTwowayBinding( this );
 

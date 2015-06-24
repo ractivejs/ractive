@@ -1,8 +1,10 @@
+import { TEXT } from 'config/types';
+
 // TODO all this code needs to die
 export default function processItems ( items, values, guid, counter = 0 ) {
 	return items.map( function ( item ) {
-		if ( item.str ) {
-			return item.str;
+		if ( item.type === TEXT ) {
+			return item.template;
 		}
 
 		if ( item.fragment ) {

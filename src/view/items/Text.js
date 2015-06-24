@@ -1,7 +1,13 @@
+import { TEXT } from 'config/types';
 import { escapeHtml } from 'utils/html';
 import Item from './shared/Item';
 
 export default class Text extends Item {
+	constructor ( options ) {
+		super( options );
+		this.type = TEXT;
+	}
+
 	bind () {
 		// noop
 	}
