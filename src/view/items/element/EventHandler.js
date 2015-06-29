@@ -1,3 +1,4 @@
+import { fatal } from 'utils/log';
 import { findInViewHierarchy } from 'shared/registry';
 import { missingPlugin } from 'config/errors';
 import { removeFromArray } from 'utils/array';
@@ -19,6 +20,10 @@ function defaultHandler ( event ) {
 
 export default class EventHandler {
 	constructor ( owner, name, template ) {
+		if ( name.indexOf( '*' ) !== -1 ) {
+			fatal( `Only component proxy-events may contain "*" wildcards, <${owner.name} on-${name}="..."/> is not valid` );
+		}
+
 		this.owner = owner;
 		this.name = name;
 		this.template = template;
