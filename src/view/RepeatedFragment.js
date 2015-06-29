@@ -169,6 +169,8 @@ export default class RepeatedFragment {
 			this.iterations.forEach( fragment => docFrag.appendChild( fragment.render() ) );
 		}
 
+		this.rendered = true;
+
 		return docFrag;
 	}
 
@@ -208,6 +210,7 @@ export default class RepeatedFragment {
 
 	unrender ( shouldDestroy ) {
 		this.iterations.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
+		this.rendered = false;
 	}
 
 	// TODO smart update
@@ -304,7 +307,12 @@ export default class RepeatedFragment {
 		const docFrag = document.createDocumentFragment();
 		const parentNode = this.parent.findParentNode();
 
-		// TODO reorder fragments in the DOM...
+		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
+		// storing them in a document fragment for later reinsertion) seems a bit hokey,
+		// but it seems to work for now
+		let previousNewIndex = -1;
+		let reinsertFrom = null;
+
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			const fragment = this.previousIterations[ oldIndex ];
 
@@ -312,7 +320,13 @@ export default class RepeatedFragment {
 				fragment.unbind().unrender( true );
 			} else {
 				fragment.rebind( this.context.joinKey( newIndex ) );
+
+				if ( reinsertFrom === null && ( newIndex !== previousNewIndex + 1 ) ) {
+					reinsertFrom = oldIndex;
+				}
 			}
+
+			previousNewIndex = newIndex;
 		});
 
 		// create new iterations
@@ -320,17 +334,27 @@ export default class RepeatedFragment {
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
-			let fragment = this.iterations[i];
+			let existingFragment = this.iterations[i];
 
-			if ( fragment ) {
-				if ( docFrag.childNodes.length ) {
-					parentNode.insertBefore( docFrag, fragment.firstNode() );
+			if ( this.rendered ) {
+				if ( existingFragment ) {
+					if ( i >= reinsertFrom ) {
+						docFrag.appendChild( existingFragment.detach() );
+					}
+
+					else if ( docFrag.childNodes.length ) {
+						parentNode.insertBefore( docFrag, existingFragment.firstNode() );
+					}
+				} else {
+					this.iterations[i] = this.createIteration( i, i );
+					docFrag.appendChild( this.iterations[i].render() );
 				}
-			} else {
-				fragment = this.createIteration( i, i );
-				this.iterations[i] = fragment;
+			}
 
-				docFrag.appendChild( fragment.render() );
+			if ( !this.rendered ) {
+				if ( !existingFragment ) {
+					this.iterations[i] = this.createIteration( i, i );
+				}
 			}
 		}
 
