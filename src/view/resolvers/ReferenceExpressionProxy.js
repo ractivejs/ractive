@@ -92,6 +92,8 @@ export default class ReferenceExpressionProxy extends Model {
 		model.register( this );
 		model.registerTwowayBinding( this );
 
+		if ( this.keypathModel ) this.keypathModel.handleChange();
+
 		this.mark();
 	}
 

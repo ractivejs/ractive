@@ -1,5 +1,4 @@
 import Binding from './Binding';
-import { removeFromArray } from 'utils/array';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
@@ -23,6 +22,13 @@ export default class RadioNameBinding extends Binding {
 		if ( !this.group.bound ) {
 			this.group.bind();
 		}
+
+		// update name keypath when necessary
+		this.nameAttributeBinding = {
+			handleChange: () => this.node.name = `{{${this.model.getKeypath()}}}`
+		};
+
+		this.model.getKeypathModel().register( this.nameAttributeBinding );
 	}
 
 	getInitialValue () {
@@ -43,21 +49,12 @@ export default class RadioNameBinding extends Binding {
 		}
 	}
 
-	// TODO still necessary?
-	rebound ( oldKeypath, newKeypath ) {
-		super.rebound( oldKeypath, newKeypath );
-
-		if ( this.rendered ) {
-			this.node.name = '{{' + this.model.getKeypath() + '}}';
-		}
-	}
-
 	render () {
 		super.render();
 
 		const node = this.node;
 
-		node.name = '{{' + this.model.getKeypath() + '}}';
+		node.name = `{{${this.model.getKeypath()}}}`;
 		node.checked = this.model.value == this.element.getAttribute( 'value' );
 
 		node.addEventListener( 'change', handleDomEvent, false );
@@ -69,6 +66,8 @@ export default class RadioNameBinding extends Binding {
 
 	unbind () {
 		this.group.remove( this );
+
+		this.model.getKeypathModel().unregister( this.nameAttributeBinding );
 	}
 
 	unrender () {

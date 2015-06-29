@@ -1,3 +1,5 @@
+import { removeFromArray } from 'utils/array';
+
 let groups = {};
 
 export default function getBindingGroup ( id, group, model, getValue ) {

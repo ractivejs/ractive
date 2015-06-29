@@ -175,7 +175,12 @@ test('List of inputs with referenceExpression name update correctly', function(t
 test('List of inputs with nested referenceExpression name updates correctly', function(t){
 	var ractive = new Ractive({
 		el: fixture,
-		template: "{{#step}}{{#options}}<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>{{/}}{{/}}",
+		template: `
+			{{#step}}
+				{{#options}}
+					<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>
+				{{/}}
+			{{/}}`,
 		data: {
 			step: {
 				name: 'Products',
