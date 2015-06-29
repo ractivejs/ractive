@@ -17,8 +17,6 @@ export default class Attribute extends Item {
 		this.parentFragment = options.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
 
-		this.propertyName =
-
 		this.updateDelegate = null;
 		this.fragment = null;
 		this.value = null;
@@ -102,6 +100,11 @@ export default class Attribute extends Item {
 
 	toString () {
 		if ( this.isEmpty ) return '';
+
+		// Special case - select and textarea values (should not be stringified)
+		if ( this.name === 'value' && ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
+			return;
+		}
 
 		const value = safeToStringValue( this.getString() )
 			.replace( /&/g, '&amp;' )

@@ -8,7 +8,7 @@ import Decorator from './element/Decorator';
 import EventHandler from './element/EventHandler';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
-import { voidElementNames } from 'utils/html';
+import { escapeHtml, voidElementNames } from 'utils/html';
 import { bind, rebind, render, unbind, unrender, update } from 'shared/methodCallers';
 import { matches } from 'utils/dom';
 import { defineProperty } from 'utils/object';
