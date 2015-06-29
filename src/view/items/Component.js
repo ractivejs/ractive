@@ -1,4 +1,4 @@
-import { warnIfDebug } from 'utils/log';
+import { fatal, warnIfDebug } from 'utils/log';
 import { COMPONENT, INTERPOLATOR, YIELDER } from 'config/types';
 import Item from './shared/Item';
 import construct from 'Ractive/construct';
@@ -12,6 +12,7 @@ import Hook from 'events/Hook';
 import Fragment from '../Fragment';
 import parseJSON from 'utils/parseJSON';
 import fireEvent from 'events/fireEvent';
+import updateLiveQueries from './component/updateLiveQueries';
 
 function removeFromLiveComponentQueries ( component ) {
 	let instance = component.ractive;
@@ -22,6 +23,10 @@ function removeFromLiveComponentQueries ( component ) {
 
 		instance = instance.parent;
 	}
+}
+
+function makeDirty ( query ) {
+	query.makeDirty();
 }
 
 const teardownHook = new Hook( 'teardown' );
@@ -38,6 +43,8 @@ export default class Component extends Item {
 		this.parentFragment = options.parentFragment;
 		this.resolvers = [];
 		this.complexMappings = [];
+
+		this.liveQueries = [];
 
 		if ( instance.el ) {
 			warnIfDebug( `The <${this.name}> component has a default 'el' property; it has been disregarded` );
@@ -186,7 +193,15 @@ export default class Component extends Item {
 	}
 
 	findAllComponents ( name, query ) {
-		if ( query.test( this ) ) query.add( this.instance );
+		if ( query.test( this ) ) {
+			query.add( this.instance );
+
+			if ( query.live ) {
+				console.log( 'here' );
+				this.liveQueries.push( query );
+			}
+		}
+
 		this.instance.fragment.findAllComponents( name, query );
 	}
 
@@ -197,6 +212,8 @@ export default class Component extends Item {
 	rebind () {
 		this.resolvers.forEach( unbind );
 		this.complexMappings.forEach( rebind );
+
+		this.liveQueries.forEach( makeDirty );
 
 		// update relevant mappings
 		if ( this.template.a ) {
@@ -234,6 +251,8 @@ export default class Component extends Item {
 
 		instance.render( this.parentFragment.findParentNode().cloneNode() );
 		this.checkYielders();
+
+		updateLiveQueries( this );
 
 		this.rendered = true;
 		const docFrag = instance.fragment.detach();
@@ -293,6 +312,8 @@ export default class Component extends Item {
 	unrender ( shouldDestroy ) {
 		this.shouldDestroy = shouldDestroy;
 		this.instance.unrender();
+
+		this.liveQueries.forEach( query => query.remove( this.instance ) );
 	}
 
 	update () {
