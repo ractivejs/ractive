@@ -68,7 +68,8 @@ export default class Attribute extends Item {
 	}
 
 	rebind () {
-		console.warn( 'TODO attribute rebind' );
+		this.unbind();
+		this.bind();
 	}
 
 	render () {
