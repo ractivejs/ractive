@@ -73,7 +73,7 @@ test( 'default data function called on initialize', t => {
 
 	Ractive.defaults.data = function () { return data; };
 	ractive = new Ractive();
-	t.equal( ractive.viewmodel.data, data );
+	t.strictEqual( ractive.viewmodel.value, data );
 });
 
 test( 'instance data function called on initialize', t => {
@@ -82,7 +82,7 @@ test( 'instance data function called on initialize', t => {
 	ractive = new Ractive({
 		data () { return data; }
 	});
-	t.equal( ractive.viewmodel.data, data );
+	t.strictEqual( ractive.viewmodel.value, data );
 });
 
 test( 'data is inherited from grand parent extend (#923)', t => {
@@ -231,7 +231,7 @@ test( 'instantiated .extend() component with data function called on initialize'
 	});
 
 	ractive = new Component();
-	t.equal( ractive.viewmodel.data, data );
+	t.strictEqual( ractive.viewmodel.value, data );
 });
 
 test( 'extend data option includes Ractive defaults.data', t => {
