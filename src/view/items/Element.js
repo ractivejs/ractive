@@ -329,7 +329,7 @@ export default class Element extends Item {
 			delete this.ractive.nodes[ id.getValue() ];
 		}
 
-		// TODO update live queries
+		removeFromLiveQueries( this );
 		// TODO forms are a special case
 	}
 
@@ -366,4 +366,12 @@ function inputIsCheckedRadio ( element ) {
 function stringifyAttribute ( attribute ) {
 	const str = attribute.toString();
 	return str ? ' ' + str : '';
+}
+
+function removeFromLiveQueries ( element ) {
+	let i = element.liveQueries.length;
+	while ( i-- ) {
+		const query = element.liveQueries[i];
+		query.remove( element.node );
+	}
 }
