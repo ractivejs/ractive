@@ -1,6 +1,7 @@
 import { ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
 import Component from './Component';
 import Doctype from './element/specials/Doctype';
+import Form from './element/specials/Form';
 import Element from './Element';
 import Interpolator from './Interpolator';
 import Option from './element/specials/Option';
@@ -22,6 +23,7 @@ const constructors = {
 
 const specialElements = {
 	doctype: Doctype,
+	form: Form,
 	option: Option,
 	select: Select
 };
