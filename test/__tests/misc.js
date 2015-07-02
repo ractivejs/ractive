@@ -80,21 +80,22 @@ test( 'Subclasses of subclasses inherit data, partials and transitions', functio
 	t.ok( shimmied );
 });
 
-test( 'Multiple identical evaluators merge', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
-		el: fixture,
-		template: '{{( a+b )}} {{( a+b )}} {{( a+b )}}',
-		data: { a: 1, b: 2 }
-	});
-
-	t.htmlEqual( fixture.innerHTML, '3 3 3' );
-
-	t.equal( ractive.viewmodel.root.propertyHash.a.dependants.methods.mark.length, 1 );
-	t.equal( ractive.viewmodel.root.propertyHash.b.dependants.methods.mark.length, 1 );
-	t.equal( ractive.viewmodel.root.properties.length, 3 );
-});
+// Commenting out - can't think of a way to test this in 0.8
+// test( 'Multiple identical evaluators merge', function ( t ) {
+// 	var ractive;
+//
+// 	ractive = new Ractive({
+// 		el: fixture,
+// 		template: '{{( a+b )}} {{( a+b )}} {{( a+b )}}',
+// 		data: { a: 1, b: 2 }
+// 	});
+//
+// 	t.htmlEqual( fixture.innerHTML, '3 3 3' );
+//
+// 	t.equal( ractive.viewmodel.root.propertyHash.a.dependants.methods.mark.length, 1 );
+// 	t.equal( ractive.viewmodel.root.propertyHash.b.dependants.methods.mark.length, 1 );
+// 	t.equal( ractive.viewmodel.root.properties.length, 3 );
+// });
 
 test( 'Boolean attributes work as expected', function ( t ) {
 	var ractive;
