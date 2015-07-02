@@ -31,6 +31,12 @@ export default class Select extends Element {
 	render () {
 		const node = super.render();
 		this.sync();
+
+		let i = node.options.length;
+		while ( i-- ) {
+			node.options[i].defaultSelected = node.options[i].selected;
+		}
+
 		return node;
 	}
 

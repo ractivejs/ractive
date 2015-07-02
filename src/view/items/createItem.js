@@ -4,6 +4,7 @@ import Doctype from './element/specials/Doctype';
 import Form from './element/specials/Form';
 import Element from './Element';
 import Interpolator from './Interpolator';
+import Input from './element/specials/Input';
 import Option from './element/specials/Option';
 import Partial from './Partial';
 import Section from './Section';
@@ -24,8 +25,10 @@ const constructors = {
 const specialElements = {
 	doctype: Doctype,
 	form: Form,
+	input: Input,
 	option: Option,
-	select: Select
+	select: Select,
+	textarea: Input // it may turn out we need a separate Textarea class, but until then...
 };
 
 export default function createItem ( options ) {

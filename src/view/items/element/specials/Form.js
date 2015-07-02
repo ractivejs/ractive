@@ -25,8 +25,6 @@ function handleReset ( event ) {
 	runloop.start();
 	element.formBindings.forEach( updateModel );
 	runloop.end();
-
-	event.preventDefault();
 }
 
 function updateModel ( binding ) {
