@@ -64,26 +64,31 @@ export default class ExpressionProxy extends Model {
 			return model ? model.getKeypath() : '@undefined';
 		});
 
-		const signature = {
-			getter: () => {
-				const values = this.models.map( model => {
-					const value = model.get();
+		let computation = ractive.viewmodel.computations[ key ];
 
-					if ( typeof value === 'function' ) {
-						return wrapFunction( value, ractive, ractive._guid );
-					} else {
-						return value;
-					}
-				});
+		// TODO this (using existing computations) appears to break some
+		// tests... leaving it in this broken state pending diagnosis
+		if ( !computation ) {
+			const signature = {
+				getter: () => {
+					const values = this.models.map( model => {
+						const value = model.get();
 
-				return this.fn.apply( ractive, values );
-			},
-			getterString: key
-		};
+						if ( typeof value === 'function' ) {
+							return wrapFunction( value, ractive, ractive._guid );
+						} else {
+							return value;
+						}
+					});
 
-		// TODO avoid recreating the same computation multiple times
-		const computation = ractive.viewmodel.compute( key, signature );
-		computation.init();
+					return this.fn.apply( ractive, values );
+				},
+				getterString: key
+			};
+
+			computation = ractive.viewmodel.compute( key, signature );
+			computation.init();
+		}
 
 		this.value = computation.value;
 

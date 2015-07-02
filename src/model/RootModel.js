@@ -1,4 +1,5 @@
 import { capture } from 'global/capture';
+import { extend } from 'utils/object';
 import Computation from './Computation';
 import Model from './Model';
 import { handleChange, mark } from 'shared/methodCallers';
@@ -48,7 +49,19 @@ export default class RootModel extends Model {
 
 	get () {
 		capture( this );
-		return this.value;
+		let result = extend( {}, this.value );
+
+		Object.keys( this.mappings ).forEach( key => {
+			result[ key ] = this.mappings[ key ].value;
+		});
+
+		Object.keys( this.computations ).forEach( key => {
+			if ( key[0] !== '@' ) { // exclude template expressions
+				result[ key ] = this.computations[ key ].value;
+			}
+		});
+
+		return result;
 	}
 
 	getKeypath () {
