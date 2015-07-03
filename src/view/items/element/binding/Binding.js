@@ -10,11 +10,15 @@ function findParentForm ( element ) {
 	}
 }
 
+function warnAboutAmbiguity ( description, ractive ) {
+	warnOnceIfDebug( 'The ${description} being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive });
+}
+
 export default class Binding {
 	constructor ( element, name = 'value' ) {
 		this.element = element;
 		this.ractive = element.ractive;
-		this.attribute = element.attributeByName[ name  ];
+		this.attribute = element.attributeByName[ name ];
 
 		const interpolator = this.attribute.interpolator;
 		interpolator.twowayBinding = this;
@@ -27,12 +31,17 @@ export default class Binding {
 			interpolator.resolver.forceResolution();
 			model = interpolator.model;
 
-			const ref = interpolator.template.r ? `'${interpolator.template.r}' reference` : 'expression';
-			warnOnceIfDebug( 'The %s being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', ref, { ractive: this.root });
+			warnAboutAmbiguity( `'${interpolator.template.r}' reference`, this.ractive );
+		}
+
+		else if ( model.isUnresolved ) {
+			// reference expressions (e.g. foo[bar])
+			model.forceResolution();
+			warnAboutAmbiguity( 'expression', this.ractive );
 		}
 
 		// TODO include index/key/keypath refs as read-only
-		if ( model.isReadonly ) {
+		else if ( model.isReadonly ) {
 			const keypath = model.getKeypath().replace( /^@/, '' );
 			warnOnceIfDebug( `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
 			return false;

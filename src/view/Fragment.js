@@ -42,6 +42,11 @@ export default class Fragment {
 		this.items.forEach( bind );
 		this.bound = true;
 
+		// in rare cases, a forced resolution (or similar) will cause the
+		// fragment to be dirty before it's even finished binding. In those
+		// cases we update immediately
+		if ( this.dirty ) this.update();
+
 		return this;
 	}
 
@@ -54,7 +59,7 @@ export default class Fragment {
 			if ( this.isRoot ) { // TODO encapsulate 'is component root, but not overall root' check?
 				if ( this.ractive.component ) {
 					this.ractive.component.bubble();
-				} else {
+				} else if ( this.bound ) {
 					runloop.addFragment( this );
 				}
 			} else {

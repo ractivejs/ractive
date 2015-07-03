@@ -66,6 +66,7 @@ export default class ReferenceExpressionProxy extends Model {
 			return model;
 		});
 
+		this.isUnresolved = true;
 		this.bubble();
 	}
 
@@ -77,6 +78,8 @@ export default class ReferenceExpressionProxy extends Model {
 		while ( i-- ) {
 			if ( !this.members[i] || this.members[i].value === undefined ) return;
 		}
+
+		this.isUnresolved = false;
 
 		const keys = this.members.map( model => model.value );
 		const model = this.base.joinAll( keys );
@@ -126,7 +129,8 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	set ( value ) {
-		if ( this.model ) this.model.set( value );
+		if ( !this.model ) throw new Error( 'Unresolved reference expression. This should not happen!' );
+		this.model.set( value );
 	}
 
 	unbind () {
