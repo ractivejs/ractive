@@ -125,6 +125,10 @@ export default class ReferenceExpressionProxy extends Model {
 		this.mark();
 	}
 
+	set ( value ) {
+		if ( this.model ) this.model.set( value );
+	}
+
 	unbind () {
 		this.resolvers.forEach( unbind );
 	}
