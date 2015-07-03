@@ -815,20 +815,6 @@ test( 'Regression test for #457', function ( t ) {
 });
 
 if ( Ractive.svg ) {
-	test( 'Triples work inside SVG elements', function ( t ) {
-		var text, ractive = new Ractive({
-			el: document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' ),
-			template: '{{{code}}}',
-			data: {
-				code: '<text>works</text>'
-			}
-		});
-
-		text = ractive.find( 'text' );
-		t.ok( !!text );
-		t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
-	});
-
 	test( 'Case-sensitive conditional SVG attribute', t => {
 		var ractive = new Ractive({
 			el: fixture,
@@ -874,20 +860,6 @@ test( 'Rendering to an element, if `append` is false, causes any existing instan
 
 	t.htmlEqual( fixture.innerHTML, 'bar' );
 });
-
-if ( Ractive.svg ) {
-	test( 'Children of foreignObject elements default to html namespace (#713)', function ( t ) {
-		var ractive = new Ractive({
-			el: fixture,
-			template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
-		});
-
-		// We can't do `ractive.find( 'foreignObject' )` because of a longstanding browser bug
-		// (https://bugs.webkit.org/show_bug.cgi?id=83438)
-		t.equal( ractive.find( 'svg' ).firstChild.namespaceURI, 'http://www.w3.org/2000/svg' );
-		t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
-	});
-}
 
 // This test fails since #816, because evaluators are treated as computed properties.
 // Kept here in case we come up with a smart way to have the best of both worlds
