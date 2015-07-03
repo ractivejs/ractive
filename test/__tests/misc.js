@@ -606,26 +606,6 @@ test( 'Components made with Ractive.extend() can include adaptors', function ( t
 	t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 });
 
-test( 'Two-way binding can be set up against expressions that resolve to regular keypaths', function ( t ) {
-	var ractive, input;
-
-	ractive = new Ractive({
-		el: fixture,
-		template: '{{#items:i}}<label><input value="{{ proxies[i].name }}"> name: {{ proxies[i].name }}</label>{{/items}}',
-		data: {
-			items: [{}],
-			proxies: []
-		}
-	});
-
-	input = ractive.find( 'input' );
-	input.value = 'foo';
-	ractive.updateModel();
-
-	t.deepEqual( ractive.get( 'proxies' ), [{name: 'foo'  }] );
-	t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
-});
-
 test( 'Regression test for #798', function ( t ) {
 	var ClassA, ClassB, ractive;
 
@@ -1070,15 +1050,6 @@ test( 'Regression test for #857', function ( t ) {
 	});
 
 	t.equal( ractive.find( 'textarea' ).value, 'works' );
-});
-
-test( 'Radio input can have name/checked attributes without two-way binding (#783)', function ( t ) {
-	expect( 0 );
-
-	var ractive = new Ractive({
-		el: fixture,
-		template: '<input type="radio" name="a" value="a" checked>'
-	});
 });
 
 asyncTest( 'oncomplete handlers are called for lazily-rendered instances (#749)', function ( t ) {
