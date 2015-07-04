@@ -1483,9 +1483,9 @@ test( '. reference without any implicit or explicit context should resolve to ro
 		data: { foo: 'bar' }
 	});
 
-	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.data ) );
+	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.value ) );
 	ractive.set( 'foo', 'test' );
-	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.data ) );
+	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.value ) );
 });
 
 test( 'Nested conditional computations should survive unrendering and rerendering (#1364)', ( t ) => {
