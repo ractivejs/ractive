@@ -488,7 +488,7 @@ test( 'Regression test for #271', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 });
 
-test( 'Regression test for #297', function ( t ) {
+test( 'Partials in shuffled sections are updated/removed correctly (#297)', function ( t ) {
 	var ractive, items;
 
 	items = [ 'one', 'two', 'three' ];
