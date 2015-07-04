@@ -55,7 +55,7 @@ export default class Binding {
 
 		if ( value === undefined && this.getInitialValue ) {
 			value = this.getInitialValue();
-			model.set( value, true );
+			model.set( value );
 		}
 
 		const parentForm = findParentForm( element );

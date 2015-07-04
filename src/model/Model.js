@@ -102,9 +102,9 @@ export default class Model {
 		}
 	}
 
-	createBranch ( key, silent ) {
+	createBranch ( key ) {
 		const branch = isNumeric( key ) ? [] : {};
-		this.set( branch, silent );
+		this.set( branch );
 
 		return branch;
 	}
@@ -268,7 +268,7 @@ export default class Model {
 		this.bindings.push( binding );
 	}
 
-	set ( value, silent ) {
+	set ( value ) {
 		if ( isEqual( value, this.value ) ) return;
 
 		// TODO deprecate this nonsense
@@ -292,7 +292,7 @@ export default class Model {
 				this.value = this.wrapper.get();
 			}
 		} else {
-			const parentValue = this.parent.value || this.parent.createBranch( this.key, silent );
+			const parentValue = this.parent.value || this.parent.createBranch( this.key );
 			parentValue[ this.key ] = value;
 
 			this.value = value;
@@ -302,15 +302,14 @@ export default class Model {
 		this.parent.clearUnresolveds();
 		this.clearUnresolveds();
 
-		if ( !silent ) {
-			this.children.forEach( mark );
-			this.deps.forEach( handleChange );
+		// notify dependants
+		this.children.forEach( mark );
+		this.deps.forEach( handleChange );
 
-			let parent = this.parent;
-			while ( parent ) {
-				parent.deps.forEach( handleChange );
-				parent = parent.parent;
-			}
+		let parent = this.parent;
+		while ( parent ) {
+			parent.deps.forEach( handleChange );
+			parent = parent.parent;
 		}
 	}
 
