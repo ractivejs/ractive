@@ -248,7 +248,8 @@ export default class Component extends Item {
 		var instance = this.instance;
 
 		instance.render( target.cloneNode() );
-		target.appendChild( instance.detach() ); // TODO can this be done in a less roundabout way?
+
+		instance.insert( target, null ); // TODO can this be done in a less roundabout way?
 		this.checkYielders();
 
 		updateLiveQueries( this );
