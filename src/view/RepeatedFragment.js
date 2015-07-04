@@ -334,7 +334,7 @@ export default class RepeatedFragment {
 
 			if ( this.rendered ) {
 				if ( existingFragment ) {
-					if ( i >= reinsertFrom ) {
+					if ( reinsertFrom !== null && i >= reinsertFrom ) {
 						docFrag.appendChild( existingFragment.detach() );
 					}
 

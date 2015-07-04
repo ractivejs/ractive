@@ -224,7 +224,10 @@ export default class Section extends Mustache {
 				if ( anchor ) {
 					const docFrag = document.createDocumentFragment();
 					newFragment.render( docFrag );
-					parentNode.insertBefore( docFrag, anchor );
+
+					// we use anchor.parentNode, not parentNode, because the sibling
+					// may be temporarily detached as a result of a shuffle
+					anchor.parentNode.insertBefore( docFrag, anchor );
 				} else {
 					newFragment.render( parentNode );
 				}
