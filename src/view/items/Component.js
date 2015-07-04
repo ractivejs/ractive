@@ -197,7 +197,6 @@ export default class Component extends Item {
 			query.add( this.instance );
 
 			if ( query.live ) {
-				console.log( 'here' );
 				this.liveQueries.push( query );
 			}
 		}
@@ -245,18 +244,16 @@ export default class Component extends Item {
 		this.instance.fragment.rebind( this.instance.viewmodel );
 	}
 
-	// TODO can this be done in a less roundabout way?
-	render () {
+	render ( target ) {
 		var instance = this.instance;
 
-		instance.render( this.parentFragment.findParentNode().cloneNode() );
+		instance.render( target.cloneNode() );
+		target.appendChild( instance.detach() ); // TODO can this be done in a less roundabout way?
 		this.checkYielders();
 
 		updateLiveQueries( this );
 
 		this.rendered = true;
-		const docFrag = instance.fragment.detach();
-		return docFrag;
 	}
 
 	setupEvents () {

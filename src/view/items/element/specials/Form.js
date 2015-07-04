@@ -7,11 +7,9 @@ export default class Form extends Element {
 		this.formBindings = [];
 	}
 
-	render () {
-		const node = super.render();
-		node.addEventListener( 'reset', handleReset, false );
-
-		return node;
+	render ( target ) {
+		super.render( target );
+		this.node.addEventListener( 'reset', handleReset, false );
 	}
 
 	unrender () {

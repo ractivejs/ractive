@@ -53,10 +53,14 @@ export default function Ractive$render ( target, anchor ) {
 			instances.push( this );
 		}
 
+
+
 		if ( anchor ) {
-			target.insertBefore( this.fragment.render(), anchor );
+			const docFrag = document.createDocumentFragment();
+			this.fragment.render( docFrag );
+			target.insertBefore( docFrag, anchor );
 		} else {
-			target.appendChild( this.fragment.render() );
+			this.fragment.render( target );
 		}
 	}
 

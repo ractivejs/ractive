@@ -199,7 +199,7 @@ export default class Element extends Item {
 		this.liveQueries.forEach( makeDirty );
 	}
 
-	render () {
+	render ( target ) {
 		// TODO determine correct namespace
 		this.namespace = getNamespace( this );
 
@@ -226,7 +226,7 @@ export default class Element extends Item {
 		}
 
 		if ( this.fragment ) {
-			node.appendChild( this.fragment.render() );
+			this.fragment.render( node );
 		}
 
 		this.attributes.forEach( render );
@@ -247,7 +247,7 @@ export default class Element extends Item {
 			this._introTransition = transition; // so we can abort if it gets removed
 		}
 
-		return node;
+		target.appendChild( node );
 	}
 
 	toString () {

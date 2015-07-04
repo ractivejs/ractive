@@ -70,8 +70,8 @@ export default class Yielder extends Item {
 		console.warn( 'TODO rebind yielder' );
 	}
 
-	render () {
-		return this.fragment.render();
+	render ( target ) {
+		return this.fragment.render( target );
 	}
 
 	setTemplate ( name ) {

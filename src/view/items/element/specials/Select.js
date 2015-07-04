@@ -28,16 +28,16 @@ export default class Select extends Element {
 		this.parentFragment.bubble(); // default behaviour
 	}
 
-	render () {
-		const node = super.render();
+	render ( target ) {
+		super.render( target );
 		this.sync();
+
+		const node = this.node;
 
 		let i = node.options.length;
 		while ( i-- ) {
 			node.options[i].defaultSelected = node.options[i].selected;
 		}
-
-		return node;
 	}
 
 	sync () {

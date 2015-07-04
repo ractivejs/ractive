@@ -15,9 +15,11 @@ export default class Interpolator extends Mustache {
 		return this.model ? safeToStringValue( this.model.value ) : '';
 	}
 
-	render () {
+	render ( target ) {
 		this.rendered = true;
-		return ( this.node = document.createTextNode( this.getString() ) );
+		this.node = document.createTextNode( this.getString() );
+
+		target.appendChild( this.node );
 	}
 
 	toString ( escape ) {

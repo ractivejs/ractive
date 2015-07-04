@@ -60,8 +60,8 @@ export default class Partial extends Mustache {
 		console.warn( 'TODO rebind partial' );
 	}
 
-	render () {
-		return this.fragment.render();
+	render ( target ) {
+		this.fragment.render( target );
 	}
 
 	setTemplate ( name ) {

@@ -120,12 +120,9 @@ export default class Section extends Mustache {
 		}
 	}
 
-	render () {
+	render ( target ) {
 		this.rendered = true;
-
-		return this.fragment ?
-			this.fragment.render() :
-			( emptyFragment || ( emptyFragment = document.createDocumentFragment() ) );
+		if ( this.fragment ) this.fragment.render( target );
 	}
 
 	shuffle ( newIndices ) {
@@ -224,7 +221,13 @@ export default class Section extends Mustache {
 				const parentNode = this.parentFragment.findParentNode();
 				const anchor = this.parentFragment.findNextNode( this );
 
-				parentNode.insertBefore( newFragment.render(), anchor );
+				if ( anchor ) {
+					const docFrag = document.createDocumentFragment();
+					newFragment.render( docFrag );
+					parentNode.insertBefore( docFrag, anchor );
+				} else {
+					newFragment.render( parentNode );
+				}
 			}
 
 			this.fragment = newFragment;

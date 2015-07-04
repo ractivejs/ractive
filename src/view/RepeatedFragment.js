@@ -160,18 +160,14 @@ export default class RepeatedFragment {
 		}
 	}
 
-	render () {
+	render ( target ) {
 		// TODO use docFrag.cloneNode...
 
-		const docFrag = document.createDocumentFragment();
-
 		if ( this.iterations ) {
-			this.iterations.forEach( fragment => docFrag.appendChild( fragment.render() ) );
+			this.iterations.forEach( fragment => fragment.render( target ) );
 		}
 
 		this.rendered = true;
-
-		return docFrag;
 	}
 
 	shuffle ( newIndices ) {
@@ -276,7 +272,7 @@ export default class RepeatedFragment {
 					const fragment = this.createIteration( i, i );
 
 					this.iterations.push( fragment );
-					docFrag.appendChild( fragment.render() );
+					fragment.render( docFrag );
 
 					i += 1;
 				}
@@ -288,7 +284,7 @@ export default class RepeatedFragment {
 						const fragment = this.createIteration( key, i );
 
 						this.iterations.push( fragment );
-						docFrag.appendChild( fragment.render() );
+						fragment.render( docFrag );
 
 						i += 1;
 					}
@@ -347,7 +343,7 @@ export default class RepeatedFragment {
 					}
 				} else {
 					this.iterations[i] = this.createIteration( i, i );
-					docFrag.appendChild( this.iterations[i].render() );
+					this.iterations[i].render( docFrag );
 				}
 			}
 
