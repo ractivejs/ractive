@@ -21,6 +21,16 @@ if ( magicAdaptor ) {
 
 		this.magicWrapper = magicAdaptor.wrap( ractive, array, keypath );
 		this.arrayWrapper = arrayAdaptor.wrap( ractive, array, keypath );
+
+		// ugh, this really is a terrible hack
+		Object.defineProperty( this, '__model', {
+			get () {
+				return this.arrayWrapper.__model;
+			},
+			set ( model ) {
+				this.arrayWrapper.__model = model;
+			}
+		});
 	};
 
 	MagicArrayWrapper.prototype = {
