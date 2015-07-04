@@ -3,20 +3,36 @@ import { unbind } from 'shared/methodCallers';
 import createFunction from 'shared/createFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from 'utils/array';
+import { defineProperty } from 'utils/object';
 
-function wrapFunction ( fn, context, uid ) {
-	if ( fn.__nowrap ) return fn;
+function wrapFunction ( fn, ractive, uid ) {
+	if ( fn.__ractive_nowrap ) return fn;
 
-	const wrapProp = `__ractive_${uid}`;
+	const prop = `__ractive_${uid}`;
 
-	if ( fn[ wrapProp ] ) return fn[ wrapProp ];
+	if ( fn[ prop ] ) return fn[ prop ];
 
 	if ( !/\bthis\b/.test( fn ) ) {
-		fn.__nowrap = true;
+		defineProperty( fn, '__ractive_nowrap', {
+			value: true
+		});
 		return fn;
 	}
 
-	return ( fn[ wrapProp ] = fn.bind( context ) );
+	defineProperty( fn, prop, {
+		value: fn.bind( ractive ),
+		configurable: true
+	});
+
+	// Add properties/methods to wrapped function
+	for ( key in fn ) {
+		if ( fn.hasOwnProperty( key ) ) {
+			fn[ prop ][ key ] = fn[ key ];
+		}
+	}
+
+	ractive._boundFunctions.push({ fn, prop });
+	return fn[ prop ];
 }
 
 export default class ExpressionProxy extends Model {
