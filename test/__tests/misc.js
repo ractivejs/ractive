@@ -792,11 +792,12 @@ test( 'Regression test for #460', function ( t ) {
 		data: { items: items }
 	});
 
-	baz = ractive.pop( 'items' );
-	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
+	ractive.pop( 'items' ).then( baz => {
+		ractive.push( 'items', { desc: 'baz' });
+		t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
+	});
 
-	ractive.push( 'items', baz );
-	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
+	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
 });
 
 test( 'Regression test for #457', function ( t ) {
