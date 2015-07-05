@@ -19,13 +19,15 @@ export default class Select extends Element {
 		if ( !this.dirty ) {
 			this.dirty = true;
 
-			runloop.scheduleTask( () => {
-				this.sync();
-				this.dirty = false;
-			});
-		}
+			if ( this.rendered ) {
+				runloop.scheduleTask( () => {
+					this.sync();
+					this.dirty = false;
+				});
+			}
 
-		this.parentFragment.bubble(); // default behaviour
+			this.parentFragment.bubble(); // default behaviour
+		}
 	}
 
 	render ( target ) {
@@ -38,6 +40,8 @@ export default class Select extends Element {
 		while ( i-- ) {
 			node.options[i].defaultSelected = node.options[i].selected;
 		}
+
+		this.rendered = true;
 	}
 
 	sync () {
