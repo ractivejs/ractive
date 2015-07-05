@@ -83,4 +83,9 @@ export default class Select extends Element {
 			this.binding.forceUpdate();
 		}
 	}
+
+	update () {
+		super.update();
+		this.sync();
+	}
 }
