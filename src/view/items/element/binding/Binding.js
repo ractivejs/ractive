@@ -77,27 +77,12 @@ export default class Binding {
 		runloop.end();
 	}
 
-	// TODO still necessary?
-	// rebound () {
-	// 	var bindings, oldKeypath, newKeypath;
-	//
-	// 	oldKeypath = this.keypath;
-	// 	newKeypath = this.attribute.interpolator.model;
-	//
-	// 	// The attribute this binding is linked to has already done the work
-	// 	if ( oldKeypath === newKeypath ) {
-	// 		return;
-	// 	}
-	//
-	// 	if ( oldKeypath != null ) {
-	// 		removeFromArray( this.root._twowayBindings[ oldKeypath.getKeypath() ], this );
-	// 	}
-	//
-	// 	this.keypath = newKeypath;
-	//
-	// 	bindings = this.root._twowayBindings[ newKeypath.getKeypath() ] || ( this.root._twowayBindings[ newKeypath.getKeypath() ] = [] );
-	// 	bindings.push( this );
-	// }
+	rebind () {
+		// TODO what does this work with CheckboxNameBinding et al?
+		this.unbind();
+		this.model = this.attribute.interpolator.model;
+		this.bind();
+	}
 
 	render () {
 		this.node = this.element.node;

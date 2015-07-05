@@ -433,20 +433,26 @@ test( 'Splicing arrays correctly modifies proxy events', t => {
 });
 
 test( 'Splicing arrays correctly modifies two-way bindings', t => {
-	var ractive, items;
-
 	expect( 25 );
 
-	items = [
+	let items = [
 		{ description: 'one' },
 		{ description: 'two', done: true },
 		{ description: 'three' }
 	];
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<ul>{{#items:i}}<li><input id="input_{{i}}" type="checkbox" checked="{{.done}}"> {{description}}</li>{{/items}}</ul>',
-		data: { items: items }
+		template: `
+			<ul>
+				{{#items:i}}
+					<li>
+						<input id="input_{{i}}" type="checkbox" checked="{{.done}}">
+						{{description}}
+					</li>
+				{{/items}}
+			</ul>`,
+		data: { items }
 	});
 
 	// 1-3

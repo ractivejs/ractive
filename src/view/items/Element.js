@@ -195,6 +195,7 @@ export default class Element extends Item {
 		this.conditionalAttributes.forEach( rebind );
 		if ( this.decorator ) this.decorator.rebind();
 		if ( this.fragment ) this.fragment.rebind();
+		if ( this.binding ) this.binding.rebind();
 
 		this.liveQueries.forEach( makeDirty );
 	}
