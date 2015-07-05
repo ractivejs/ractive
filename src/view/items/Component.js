@@ -174,7 +174,7 @@ export default class Component extends Item {
 	}
 
 	detach () {
-		return this.instance.detach();
+		return this.instance.fragment.detach();
 	}
 
 	find ( selector ) {
