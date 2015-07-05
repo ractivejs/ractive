@@ -3,6 +3,7 @@ import { COMPONENT, INTERPOLATOR, YIELDER } from 'config/types';
 import Item from './shared/Item';
 import construct from 'Ractive/construct';
 import initialise from 'Ractive/initialise';
+import render from 'Ractive/render';
 import { create } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 import { isArray } from 'utils/is';
@@ -245,13 +246,9 @@ export default class Component extends Item {
 	}
 
 	render ( target ) {
-		var instance = this.instance;
+		render( this.instance, target, null );
 
-		instance.render( target.cloneNode() );
-
-		instance.insert( target, null ); // TODO can this be done in a less roundabout way?
 		this.checkYielders();
-
 		updateLiveQueries( this );
 
 		this.rendered = true;
