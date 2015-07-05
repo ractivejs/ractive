@@ -11,7 +11,7 @@ function findParentForm ( element ) {
 }
 
 function warnAboutAmbiguity ( description, ractive ) {
-	warnOnceIfDebug( 'The ${description} being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive });
+	warnOnceIfDebug( `The ${description} being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive });
 }
 
 export default class Binding {
