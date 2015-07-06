@@ -300,8 +300,6 @@ export default class RepeatedFragment {
 
 	updatePostShuffle () {
 		const newIndices = this.pendingNewIndices;
-		const docFrag = document.createDocumentFragment();
-		const parentNode = this.parent.findParentNode();
 
 		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
 		// storing them in a document fragment for later reinsertion) seems a bit hokey,
@@ -315,6 +313,7 @@ export default class RepeatedFragment {
 			if ( newIndex === -1 ) {
 				fragment.unbind().unrender( true );
 			} else {
+				fragment.index = newIndex;
 				fragment.rebind( this.context.joinKey( newIndex ) );
 
 				if ( reinsertFrom === null && ( newIndex !== previousNewIndex + 1 ) ) {
@@ -326,6 +325,9 @@ export default class RepeatedFragment {
 		});
 
 		// create new iterations
+		const docFrag = document.createDocumentFragment();
+		const parentNode = this.parent.findParentNode();
+
 		const len = this.context.value.length;
 		let i;
 

@@ -67,7 +67,7 @@ export default class Yielder extends Item {
 	}
 
 	rebind () {
-		console.warn( 'TODO rebind yielder' );
+		throw new Error( 'Yielder$rebind is not yet implemented!' );
 	}
 
 	render ( target ) {
