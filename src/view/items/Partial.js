@@ -29,7 +29,7 @@ export default class Partial extends Mustache {
 	}
 
 	findAll ( selector, query ) {
-		this.fragment.find( selector, query );
+		this.fragment.findAll( selector, query );
 	}
 
 	findComponent ( name ) {
@@ -57,11 +57,13 @@ export default class Partial extends Mustache {
 	}
 
 	rebind () {
-		console.warn( 'TODO rebind partial' );
+		super.unbind();
+		super.bind();
+		this.fragment.rebind();
 	}
 
-	render () {
-		return this.fragment.render();
+	render ( target ) {
+		this.fragment.render( target );
 	}
 
 	setTemplate ( name ) {
@@ -77,6 +79,11 @@ export default class Partial extends Mustache {
 
 	toString ( escape ) {
 		return this.fragment.toString( escape );
+	}
+
+	unbind () {
+		super.unbind();
+		this.fragment.unbind();
 	}
 
 	unrender ( shouldDestroy ) {

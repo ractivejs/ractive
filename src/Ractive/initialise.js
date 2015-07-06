@@ -12,9 +12,11 @@ let initHook = new HookQueue( 'init' );
 export default function initialise ( ractive, userOptions, options ) {
 	Object.keys( ractive.viewmodel.computations ).forEach( key => {
 		const computation = ractive.viewmodel.computations[ key ];
+
 		if ( ractive.viewmodel.value.hasOwnProperty( key ) ) {
 			computation.set( ractive.viewmodel.value[ key ] );
 		}
+
 		computation.init();
 	});
 

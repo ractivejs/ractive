@@ -433,20 +433,26 @@ test( 'Splicing arrays correctly modifies proxy events', t => {
 });
 
 test( 'Splicing arrays correctly modifies two-way bindings', t => {
-	var ractive, items;
-
 	expect( 25 );
 
-	items = [
+	let items = [
 		{ description: 'one' },
 		{ description: 'two', done: true },
 		{ description: 'three' }
 	];
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<ul>{{#items:i}}<li><input id="input_{{i}}" type="checkbox" checked="{{.done}}"> {{description}}</li>{{/items}}</ul>',
-		data: { items: items }
+		template: `
+			<ul>
+				{{#items:i}}
+					<li>
+						<input id="input_{{i}}" type="checkbox" checked="{{.done}}">
+						{{description}}
+					</li>
+				{{/items}}
+			</ul>`,
+		data: { items }
 	});
 
 	// 1-3
@@ -1306,44 +1312,41 @@ test( 'method calls that fire events do not clobber this.events', t => {
 module( 'Issues' );
 
 asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => {
-	var ractive, Child, Grandchild, torndown = [];
+	let torndown = [];
 
-	Child = Ractive.extend({
-		template:  `<div>
-						{{#each model.grandChildTitles}}
-							<grandchild item="{{.}}" />
-						{{/each}}
-					</div>`,
-		onteardown: function() {
+	const Child = Ractive.extend({
+		template: `
+			<div>
+				{{#each model.items}}
+					<Grandchild/>
+				{{/each}}
+			</div>`,
+		onteardown () {
 			torndown.push( this );
 		}
 	});
 
-	Grandchild = Ractive.extend({
+	const Grandchild = Ractive.extend({
 		template: '{{title}}',
-		onteardown: function() {
+		onteardown () {
 			torndown.push( this );
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#if model.childTitle}}<child model="{{model}}"/>{{/if}}',
+		template: '{{#if model.show}}<Child model="{{model}}"/>{{/if}}',
 		data: {
 			model : {
-				title : 'parent',
-				childTitle : 'child',
-				grandChildTitles : [
-					{ title : 'one' },
-					{ title : 'two' },
-					{ title : 'three' }
+				show: true,
+				items: [
+					{ title: 'one' },
+					{ title: 'two' },
+					{ title: 'three' }
 				]
 			}
 		},
-		components: {
-			child: Child,
-			grandchild: Grandchild
-		}
+		components: { Child, Grandchild }
 	});
 
 	setTimeout(function() {
@@ -1351,8 +1354,6 @@ asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => 
 		t.equal( torndown.length, 4 );
 		QUnit.start()
 	});
-
-
 });
 
 test( 'event references in method call handler should not create a null resolver (#1438)', t => {
@@ -1422,42 +1423,74 @@ test( 'twoway may be overridden on a per-element basis', t => {
 });
 
 test( 'Presence of lazy or twoway without value is considered true', t => {
-	let ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<input value="{{foo}}" twoway lazy />',
+		template: '<input value="{{foo}}" twoway lazy/>',
 		twoway: false
 	});
 
-	let el = ractive.fragment.items[0];
-	t.ok( el.lazy );
-	t.ok( el.twoway );
+	const input = ractive.find( 'input' );
 
-	ractive = new Ractive({
+	input.value = 'changed';
+
+	// input events shouldn't trigger change (because lazy=true)...
+	simulant.fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), '' );
+
+	// ...but change events still should (because twoway=true)
+	simulant.fire( input, 'change' );
+	t.equal( ractive.get( 'foo' ), 'changed' );
+});
+
+test( '`lazy=0` is not mistaken for `lazy`', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<input value="{{foo}}" twoway="0" lazy="0" />',
-		lazy: true
+		template: '<input value="{{foo}}" lazy="0"/>'
 	});
 
-	el = ractive.fragment.items[0];
-	t.ok( !el.lazy );
-	t.ok( !el.twoway );
+	const input = ractive.find( 'input' );
+
+	input.value = 'changed';
+
+	// input events should trigger change
+	simulant.fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), 'changed' );
+});
+
+test( '`twoway=0` is not mistaken for `twoway`', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" twoway="0"/>'
+	});
+
+	const input = ractive.find( 'input' );
+
+	input.value = 'changed';
+
+	simulant.fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), undefined );
+
+	simulant.fire( input, 'change' );
+	t.equal( ractive.get( 'foo' ), undefined );
 });
 
 test( 'Attribute directives on fragments that get re-used (partials) should stick around for re-use', t => {
-	let ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#list}}{{>partial}}{{/}}',
-		partials: { partial: '<input value="{{.foo}}" twoway="false" />' },
+		partials: {
+			partial: '<input value="{{.foo}}" twoway="false" />'
+		},
 		data: { list: [ { foo: 'a' }, { foo: 'b' } ] },
 		twoway: true
-	}), els;
+	});
 
 	// this should have no effect
-	els = ractive.findAll('input');
-	els[0].value = 'c';
-	els[1].value = 'c';
-	simulant.fire( els[0], 'change' );
-	simulant.fire( els[1], 'change' );
+	const inputs = ractive.findAll( 'input' );
+	inputs[0].value = 'c';
+	inputs[1].value = 'c';
+	simulant.fire( inputs[0], 'change' );
+	simulant.fire( inputs[1], 'change' );
 
 	t.equal( ractive.get( 'list.0.foo' ), 'a' );
 	t.equal( ractive.get( 'list.1.foo' ), 'b' );
@@ -1468,7 +1501,7 @@ try {
 	simulant.fire( document.createElement( 'div' ), 'input' );
 	simulant.fire( document.createElement( 'div' ), 'blur' );
 
-	test( 'lazy may be overriden on a per-element basis', t => {
+	test( 'lazy may be overridden on a per-element basis', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}" lazy="true" />',

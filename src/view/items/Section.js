@@ -120,12 +120,9 @@ export default class Section extends Mustache {
 		}
 	}
 
-	render () {
+	render ( target ) {
 		this.rendered = true;
-
-		return this.fragment ?
-			this.fragment.render() :
-			( emptyFragment || ( emptyFragment = document.createDocumentFragment() ) );
+		if ( this.fragment ) this.fragment.render( target );
 	}
 
 	shuffle ( newIndices ) {
@@ -136,6 +133,11 @@ export default class Section extends Mustache {
 
 	toString ( escape ) {
 		return this.fragment ? this.fragment.toString( escape ) : '';
+	}
+
+	unbind () {
+		super.unbind();
+		if ( this.fragment ) this.fragment.unbind();
 	}
 
 	unrender ( shouldDestroy ) {
@@ -224,7 +226,16 @@ export default class Section extends Mustache {
 				const parentNode = this.parentFragment.findParentNode();
 				const anchor = this.parentFragment.findNextNode( this );
 
-				parentNode.insertBefore( newFragment.render(), anchor );
+				if ( anchor ) {
+					const docFrag = document.createDocumentFragment();
+					newFragment.render( docFrag );
+
+					// we use anchor.parentNode, not parentNode, because the sibling
+					// may be temporarily detached as a result of a shuffle
+					anchor.parentNode.insertBefore( docFrag, anchor );
+				} else {
+					newFragment.render( parentNode );
+				}
 			}
 
 			this.fragment = newFragment;

@@ -488,7 +488,7 @@ test( 'Regression test for #271', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 });
 
-test( 'Regression test for #297', function ( t ) {
+test( 'Partials in shuffled sections are updated/removed correctly (#297)', function ( t ) {
 	var ractive, items;
 
 	items = [ 'one', 'two', 'three' ];
@@ -604,26 +604,6 @@ test( 'Components made with Ractive.extend() can include adaptors', function ( t
 
 	t.deepEqual( ractive.viewmodel.adaptors, [ Ractive.adaptors.foo ] );
 	t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
-});
-
-test( 'Two-way binding can be set up against expressions that resolve to regular keypaths', function ( t ) {
-	var ractive, input;
-
-	ractive = new Ractive({
-		el: fixture,
-		template: '{{#items:i}}<label><input value="{{ proxies[i].name }}"> name: {{ proxies[i].name }}</label>{{/items}}',
-		data: {
-			items: [{}],
-			proxies: []
-		}
-	});
-
-	input = ractive.find( 'input' );
-	input.value = 'foo';
-	ractive.updateModel();
-
-	t.deepEqual( ractive.get( 'proxies' ), [{name: 'foo'  }] );
-	t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
 });
 
 test( 'Regression test for #798', function ( t ) {
@@ -812,11 +792,12 @@ test( 'Regression test for #460', function ( t ) {
 		data: { items: items }
 	});
 
-	baz = ractive.pop( 'items' );
-	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
+	ractive.pop( 'items' ).then( baz => {
+		ractive.push( 'items', { desc: 'baz' });
+		t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
+	});
 
-	ractive.push( 'items', baz );
-	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
+	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
 });
 
 test( 'Regression test for #457', function ( t ) {
@@ -835,20 +816,6 @@ test( 'Regression test for #457', function ( t ) {
 });
 
 if ( Ractive.svg ) {
-	test( 'Triples work inside SVG elements', function ( t ) {
-		var text, ractive = new Ractive({
-			el: document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' ),
-			template: '{{{code}}}',
-			data: {
-				code: '<text>works</text>'
-			}
-		});
-
-		text = ractive.find( 'text' );
-		t.ok( !!text );
-		t.equal( text.namespaceURI, 'http://www.w3.org/2000/svg' );
-	});
-
 	test( 'Case-sensitive conditional SVG attribute', t => {
 		var ractive = new Ractive({
 			el: fixture,
@@ -894,20 +861,6 @@ test( 'Rendering to an element, if `append` is false, causes any existing instan
 
 	t.htmlEqual( fixture.innerHTML, 'bar' );
 });
-
-if ( Ractive.svg ) {
-	test( 'Children of foreignObject elements default to html namespace (#713)', function ( t ) {
-		var ractive = new Ractive({
-			el: fixture,
-			template: '<svg><foreignObject><p>foo</p></foreignObject></svg>'
-		});
-
-		// We can't do `ractive.find( 'foreignObject' )` because of a longstanding browser bug
-		// (https://bugs.webkit.org/show_bug.cgi?id=83438)
-		t.equal( ractive.find( 'svg' ).firstChild.namespaceURI, 'http://www.w3.org/2000/svg' );
-		t.equal( ractive.find( 'p' ).namespaceURI, 'http://www.w3.org/1999/xhtml' );
-	});
-}
 
 // This test fails since #816, because evaluators are treated as computed properties.
 // Kept here in case we come up with a smart way to have the best of both worlds
@@ -1070,15 +1023,6 @@ test( 'Regression test for #857', function ( t ) {
 	});
 
 	t.equal( ractive.find( 'textarea' ).value, 'works' );
-});
-
-test( 'Radio input can have name/checked attributes without two-way binding (#783)', function ( t ) {
-	expect( 0 );
-
-	var ractive = new Ractive({
-		el: fixture,
-		template: '<input type="radio" name="a" value="a" checked>'
-	});
 });
 
 asyncTest( 'oncomplete handlers are called for lazily-rendered instances (#749)', function ( t ) {
@@ -1539,9 +1483,9 @@ test( '. reference without any implicit or explicit context should resolve to ro
 		data: { foo: 'bar' }
 	});
 
-	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.data ) );
+	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.value ) );
 	ractive.set( 'foo', 'test' );
-	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.data ) );
+	t.equal( fixture.innerHTML, JSON.stringify( ractive.viewmodel.value ) );
 });
 
 test( 'Nested conditional computations should survive unrendering and rerendering (#1364)', ( t ) => {

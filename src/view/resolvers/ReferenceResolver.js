@@ -9,7 +9,7 @@ export default class ReferenceResolver {
 		this.callback = callback;
 
 		this.keys = reference.split( '.' );
-		this.resolved = null;
+		this.resolved = false;
 
 		// TODO the consumer should take care of addUnresolved
 		// we attach to all the contexts between here and the root
@@ -20,7 +20,7 @@ export default class ReferenceResolver {
 				fragment.context.addUnresolved( this.keys[0], this );
 			}
 
-			fragment = fragment.parent;
+			fragment = fragment.componentParent || fragment.parent;
 		}
 	}
 

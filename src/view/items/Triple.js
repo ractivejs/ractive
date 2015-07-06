@@ -67,13 +67,9 @@ export default class Triple extends Mustache {
 		console.warn( 'TODO rebind triple' );
 	}
 
-	render () {
+	render ( target ) {
 		const html = this.model ? this.model.value : '';
-
-		const docFrag = document.createDocumentFragment();
-		this.nodes = insertHtml( html, this.parentFragment.findParentNode(), docFrag );
-
-		return docFrag;
+		this.nodes = insertHtml( html, this.parentFragment.findParentNode(), target );
 	}
 
 	toString () {
@@ -87,7 +83,8 @@ export default class Triple extends Mustache {
 	update () {
 		if ( this.dirty ) {
 			this.unrender();
-			const docFrag = this.render();
+			const docFrag = document.createDocumentFragment();
+			this.render( docFrag );
 
 			const parentNode = this.parentFragment.findParentNode();
 			const anchor = this.parentFragment.findNextNode( this );

@@ -11,7 +11,9 @@ import fire from 'Ractive/prototype/fire';
 import get from 'Ractive/prototype/get';
 import insert from 'Ractive/prototype/insert';
 import merge from 'Ractive/prototype/merge';
-import { observe, observeOnce } from 'Ractive/prototype/observe';
+import observe from 'Ractive/prototype/observe';
+import observeList from 'Ractive/prototype/observeList';
+import observeOnce from 'Ractive/prototype/observeOnce';
 import off from 'Ractive/prototype/off';
 import on from 'Ractive/prototype/on';
 import once from 'Ractive/prototype/once';
@@ -50,9 +52,9 @@ export default {
 	insert,
 	merge,
 	observe,
+	observeList,
 	observeOnce,
 	// TODO reinstate these
-	// observeList,
 	// observeListOnce,
 	off,
 	on,

@@ -1,6 +1,6 @@
-import { ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
+import { DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
 import Component from './Component';
-import Doctype from './element/specials/Doctype';
+import Doctype from './Doctype';
 import Form from './element/specials/Form';
 import Element from './Element';
 import Interpolator from './Interpolator';
@@ -15,6 +15,7 @@ import Yielder from './Yielder';
 import getComponentConstructor from './component/getComponentConstructor';
 
 const constructors = {
+	[ DOCTYPE ]: Doctype,
 	[ INTERPOLATOR ]: Interpolator,
 	[ PARTIAL ]: Partial,
 	[ SECTION ]: Section,

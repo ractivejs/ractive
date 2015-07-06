@@ -23,8 +23,8 @@ export default class Yielder extends Item {
 
 		( this.component.yielders[ name ] || ( this.component.yielders[ name ] = [] ) ).push( this );
 
-		// TODO find in hierarchy, don't parse here
-		let template = this.container.partials[ name || 'content' ];
+		// TODO don't parse here
+		let template = this.container._inlinePartials[ name || 'content' ];
 
 		if ( typeof template === 'string' ) {
 			template = parse( template ).t;
@@ -70,8 +70,8 @@ export default class Yielder extends Item {
 		console.warn( 'TODO rebind yielder' );
 	}
 
-	render () {
-		return this.fragment.render();
+	render ( target ) {
+		return this.fragment.render( target );
 	}
 
 	setTemplate ( name ) {

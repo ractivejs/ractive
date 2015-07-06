@@ -10,7 +10,8 @@ import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { escapeHtml, voidElementNames } from 'utils/html';
 import { bind, rebind, render, unbind, unrender, update } from 'shared/methodCallers';
-import { matches } from 'utils/dom';
+import { createElement, matches } from 'utils/dom';
+import { html, svg } from 'config/namespaces';
 import { defineProperty } from 'utils/object';
 import selectBinding from './element/binding/selectBinding';
 
@@ -194,13 +195,16 @@ export default class Element extends Item {
 		this.conditionalAttributes.forEach( rebind );
 		if ( this.decorator ) this.decorator.rebind();
 		if ( this.fragment ) this.fragment.rebind();
+		if ( this.binding ) this.binding.rebind();
 
 		this.liveQueries.forEach( makeDirty );
 	}
 
-	render () {
+	render ( target ) {
 		// TODO determine correct namespace
-		const node = document.createElement( this.template.e );
+		this.namespace = getNamespace( this );
+
+		const node = createElement( this.template.e, this.namespace );
 		this.node = node;
 
 		const context = this.parentFragment.findContext();
@@ -219,11 +223,11 @@ export default class Element extends Item {
 		// Is this a top-level node of a component? If so, we may need to add
 		// a data-ractive-css attribute, for CSS encapsulation
 		if ( this.parentFragment.cssIds ) {
-			this.node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
+			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
 		}
 
 		if ( this.fragment ) {
-			node.appendChild( this.fragment.render() );
+			this.fragment.render( node );
 		}
 
 		this.attributes.forEach( render );
@@ -244,7 +248,7 @@ export default class Element extends Item {
 			this._introTransition = transition; // so we can abort if it gets removed
 		}
 
-		return node;
+		target.appendChild( node );
 	}
 
 	toString () {
@@ -374,4 +378,25 @@ function removeFromLiveQueries ( element ) {
 		const query = element.liveQueries[i];
 		query.remove( element.node );
 	}
+}
+
+function getNamespace ( element ) {
+	// Use specified namespace...
+	const xmlns = element.getAttribute( 'xmlns' );
+	if ( xmlns ) return xmlns;
+
+	// ...or SVG namespace, if this is an <svg> element
+	if ( element.name === 'svg' ) return svg;
+
+	const parent = element.parent;
+
+	if ( parent ) {
+		// ...or HTML, if the parent is a <foreignObject>
+		if ( parent.name === 'foreignobject' ) return html;
+
+		// ...or inherit from the parent node
+		return parent.node.namespaceURI;
+	}
+
+	return element.ractive.el.namespaceURI;
 }

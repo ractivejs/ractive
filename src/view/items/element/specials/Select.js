@@ -19,25 +19,29 @@ export default class Select extends Element {
 		if ( !this.dirty ) {
 			this.dirty = true;
 
-			runloop.scheduleTask( () => {
-				this.sync();
-				this.dirty = false;
-			});
-		}
+			if ( this.rendered ) {
+				runloop.scheduleTask( () => {
+					this.sync();
+					this.dirty = false;
+				});
+			}
 
-		this.parentFragment.bubble(); // default behaviour
+			this.parentFragment.bubble(); // default behaviour
+		}
 	}
 
-	render () {
-		const node = super.render();
+	render ( target ) {
+		super.render( target );
 		this.sync();
+
+		const node = this.node;
 
 		let i = node.options.length;
 		while ( i-- ) {
 			node.options[i].defaultSelected = node.options[i].selected;
 		}
 
-		return node;
+		this.rendered = true;
 	}
 
 	sync () {
@@ -82,5 +86,10 @@ export default class Select extends Element {
 		else if ( this.binding ) {
 			this.binding.forceUpdate();
 		}
+	}
+
+	update () {
+		super.update();
+		this.sync();
 	}
 }

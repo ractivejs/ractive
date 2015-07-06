@@ -350,21 +350,19 @@ test( 'Partials .toString() works when not the first child of parent (#1163)', f
 });
 
 test( 'Dynamic partial works with merge (#1313)', function ( t ) {
-	var ractive, fields;
-
-	fields = [
+	let fields = [
 		{ type: 'text', value: 'hello' },
 		{ type: 'number', value: 123 }
 	];
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: "{{#fields}}{{> .type + 'Field' }}{{/}}",
 		partials: {
 			textField: "text{{value}}",
 			numberField: "number{{value}}",
 		},
-		data: { fields: fields }
+		data: { fields }
 	});
 
 	t.htmlEqual( ractive.toHTML(), 'texthellonumber123' );
@@ -620,15 +618,17 @@ test( 'Inline partials may be defined with a partial section', t => {
 });
 
 test( '(Only) inline partials can be yielded', t => {
+	const Widget = Ractive.extend({
+		template: '{{yield foo}}',
+		partials: { foo: 'bar' }
+	});
+
 	new Ractive({
 		el: fixture,
-		template: '<cmp /><cmp>{{#partial foo}}foo{{/partial}}',
-		components: {
-			cmp: Ractive.extend({
-				template: '{{yield foo}}',
-				partials: { foo: 'bar' }
-			})
-		}
+		template: `
+			<Widget/>
+			<Widget>{{#partial foo}}foo{{/partial}}</Widget>`,
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'foo' );

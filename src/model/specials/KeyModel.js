@@ -14,9 +14,7 @@ export default class KeyModel {
 	}
 
 	getKeypath () {
-		// TODO would be nice if there were some way of knowing *which*
-		// key reference was being used
-		return '@key';
+		return this.value;
 	}
 
 	rebind ( key ) {

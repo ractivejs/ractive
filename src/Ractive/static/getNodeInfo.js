@@ -6,7 +6,7 @@ export default function( node ) {
 	const storage = node._ractive;
 
 	return {
-		ractive: storage.root,
+		ractive: storage.ractive,
 		keypath: storage.context.getKeypath(),
 		index: extend( {}, storage.fragment.indexRefs ),
 		key: extend( {}, storage.fragment.keyRefs )

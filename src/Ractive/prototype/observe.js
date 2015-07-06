@@ -5,9 +5,7 @@ import { cancel } from 'shared/methodCallers';
 import { extend } from 'utils/object';
 import resolveReference from 'view/resolvers/resolveReference';
 
-const onceOptions = { init: false, once: true };
-
-export function observe ( keypath, callback, options ) {
+export default function observe ( keypath, callback, options ) {
 	let observers = [];
 
 	if ( isObject( keypath ) ) {
@@ -48,16 +46,6 @@ export function observe ( keypath, callback, options ) {
 			observers.forEach( cancel );
 		}
 	};
-}
-
-export function observeOnce ( keypath, callback, options ) {
-	if ( isObject( keypath ) || typeof keypath === 'function' ) {
-		options = extend( callback || {}, onceOptions );
-		return this.observe( keypath, options );
-	}
-
-	options = extend( options || {}, onceOptions );
-	return this.observe( keypath, callback, options );
 }
 
 function createObserver ( ractive, keypath, callback, options ) {

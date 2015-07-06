@@ -3,6 +3,7 @@ import { COMPONENT, INTERPOLATOR, YIELDER } from 'config/types';
 import Item from './shared/Item';
 import construct from 'Ractive/construct';
 import initialise from 'Ractive/initialise';
+import render from 'Ractive/render';
 import { create } from 'utils/object';
 import { removeFromArray } from 'utils/array';
 import { isArray } from 'utils/is';
@@ -79,8 +80,7 @@ export default class Component extends Item {
 		// for hackability, this could be an open option
 		// for any ractive instance, but for now, just
 		// for components and just for ractive...
-		// TODO is this still used?
-		//instance._inlinePartials = options.inlinePartials;
+		instance._inlinePartials = partials;
 
 		if ( this.template.v ) this.setupEvents();
 	}
@@ -173,7 +173,7 @@ export default class Component extends Item {
 	}
 
 	detach () {
-		return this.instance.detach();
+		return this.instance.fragment.detach();
 	}
 
 	find ( selector ) {
@@ -197,7 +197,6 @@ export default class Component extends Item {
 			query.add( this.instance );
 
 			if ( query.live ) {
-				console.log( 'here' );
 				this.liveQueries.push( query );
 			}
 		}
@@ -245,18 +244,13 @@ export default class Component extends Item {
 		this.instance.fragment.rebind( this.instance.viewmodel );
 	}
 
-	// TODO can this be done in a less roundabout way?
-	render () {
-		var instance = this.instance;
+	render ( target ) {
+		render( this.instance, target, null );
 
-		instance.render( this.parentFragment.findParentNode().cloneNode() );
 		this.checkYielders();
-
 		updateLiveQueries( this );
 
 		this.rendered = true;
-		const docFrag = instance.fragment.detach();
-		return docFrag;
 	}
 
 	setupEvents () {

@@ -122,11 +122,8 @@ export default class Attribute extends Item {
 
 	update () {
 		if ( this.dirty ) {
-			if ( this.fragment ) {
-				this.fragment.update();
-			}
-
-			this.updateDelegate();
+			if ( this.fragment ) this.fragment.update();
+			if ( this.rendered ) this.updateDelegate();
 			this.dirty = false;
 		}
 	}

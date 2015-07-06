@@ -42,6 +42,11 @@ export default class Fragment {
 		this.items.forEach( bind );
 		this.bound = true;
 
+		// in rare cases, a forced resolution (or similar) will cause the
+		// fragment to be dirty before it's even finished binding. In those
+		// cases we update immediately
+		if ( this.dirty ) this.update();
+
 		return this;
 	}
 
@@ -54,7 +59,7 @@ export default class Fragment {
 			if ( this.isRoot ) { // TODO encapsulate 'is component root, but not overall root' check?
 				if ( this.ractive.component ) {
 					this.ractive.component.bubble();
-				} else {
+				} else if ( this.bound ) {
 					runloop.addFragment( this );
 				}
 			} else {
@@ -216,19 +221,11 @@ export default class Fragment {
 		});
 	}
 
-	render () {
+	render ( target ) {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 		this.rendered = true;
 
-		// fast path
-		if ( this.items.length === 1 ) {
-			return this.items[0].render();
-		}
-
-		const docFrag = document.createDocumentFragment();
-		this.items.forEach( item => docFrag.appendChild( item.render() ) );
-
-		return docFrag;
+		this.items.forEach( item => item.render( target ) );
 	}
 
 	resetTemplate ( template ) {
@@ -252,7 +249,13 @@ export default class Fragment {
 				const parentNode = this.findParentNode();
 				const anchor = this.parent ? this.parent.findNextNode( this.owner ) : null;
 
-				parentNode.insertBefore( this.render(), anchor );
+				if ( anchor ) {
+					const docFrag = document.createDocumentFragment();
+					this.render( docFrag );
+					parentNode.insertBefore( docFrag, anchor );
+				} else {
+					this.render( parentNode );
+				}
 			}
 		}
 	}

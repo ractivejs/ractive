@@ -27,8 +27,9 @@ export default class Text extends Item {
 		// noop
 	}
 
-	render () {
-		return ( this.node = document.createTextNode( this.template ) );
+	render ( target ) {
+		this.node = document.createTextNode( this.template );
+		target.appendChild( this.node );
 	}
 
 	toString ( escape ) {

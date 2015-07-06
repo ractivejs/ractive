@@ -113,6 +113,7 @@ test( 'data is inherited from grand parent extend (#923)', t => {
 	t.equal( fixture.innerHTML, 'title:CHILDtitle:GRANDCHILD' );
 });
 
+// TODO is this important/desirable?
 test( 'Instance data is used as data object when parent is also object', t => {
 
 	var ractive, data = { foo: 'bar' };
@@ -123,6 +124,7 @@ test( 'Instance data is used as data object when parent is also object', t => {
 	t.equal( ractive.get(), data );
 });
 
+// TODO see above...
 test( 'Data functions are inherited and pojo keys are copied', t => {
 	var ractive, data1 = { bizz: 'bop' }, data2 = { foo: 'bar' };
 
