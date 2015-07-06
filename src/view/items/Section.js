@@ -112,8 +112,7 @@ export default class Section extends Mustache {
 	}
 
 	rebind () {
-		super.unbind();
-		super.bind();
+		super.rebind();
 
 		if ( this.fragment ) {
 			this.fragment.rebind( this.sectionType === SECTION_IF ? null : this.model );

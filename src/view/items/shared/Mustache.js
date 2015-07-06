@@ -25,13 +25,9 @@ export default class Mustache extends Item {
 		}
 
 		if ( model ) {
+			model.register( this );
 			this.model = model;
-
-			if ( !this.template.s ) {
-				model.register( this );
-			}
-		} else if ( !this.template.s ) {
-			// TODO this can now only resolve once...
+		} else {
 			this.resolver = this.parentFragment.resolve( this.template.r, model => {
 				this.model = model;
 				model.register( this );
@@ -47,8 +43,19 @@ export default class Mustache extends Item {
 	}
 
 	rebind () {
-		this.unbind();
-		this.bind();
+		if ( this.isStatic || !this.model ) return;
+
+		const model = resolve( this.parentFragment, this.template );
+
+		if ( model === this.model ) return;
+
+		const oldValue = this.model.value;
+		this.model.unregister( this );
+
+		model.register( this );
+		this.model = model;
+
+		if ( model.value !== oldValue ) this.handleChange();
 	}
 
 	unbind () {
