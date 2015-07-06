@@ -57,7 +57,8 @@ export default class Partial extends Mustache {
 	}
 
 	rebind () {
-		console.warn( 'TODO rebind partial with context?' );
+		super.unbind();
+		super.bind();
 		this.fragment.rebind();
 	}
 
@@ -78,6 +79,11 @@ export default class Partial extends Mustache {
 
 	toString ( escape ) {
 		return this.fragment.toString( escape );
+	}
+
+	unbind () {
+		super.unbind();
+		this.fragment.unbind();
 	}
 
 	unrender ( shouldDestroy ) {
