@@ -18,7 +18,6 @@ export default function render ( ractive, target, anchor ) {
 		throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
 	}
 
-	target = getElement( target ) || ractive.el;
 	anchor = getElement( anchor ) || ractive.anchor;
 
 	ractive.el = target;
