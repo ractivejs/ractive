@@ -4,5 +4,7 @@ export default function cleanup () {
 			ractive.transitionsEnabled = false;
 			ractive.teardown();
 		});
+
+		fixture.__ractive_instances__ = null;
 	}
 }

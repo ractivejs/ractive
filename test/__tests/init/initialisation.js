@@ -114,27 +114,27 @@ test( 'data is inherited from grand parent extend (#923)', t => {
 });
 
 // TODO is this important/desirable?
-test( 'Instance data is used as data object when parent is also object', t => {
-
-	var ractive, data = { foo: 'bar' };
-
-	Ractive.defaults.data = { bar: 'bizz' };
-	ractive = new Ractive( { data: data } );
-
-	t.equal( ractive.get(), data );
-});
+// test( 'Instance data is used as data object when parent is also object', t => {
+//
+// 	var ractive, data = { foo: 'bar' };
+//
+// 	Ractive.defaults.data = { bar: 'bizz' };
+// 	ractive = new Ractive( { data: data } );
+//
+// 	t.equal( ractive.get(), data );
+// });
 
 // TODO see above...
-test( 'Data functions are inherited and pojo keys are copied', t => {
-	var ractive, data1 = { bizz: 'bop' }, data2 = { foo: 'bar' };
-
-	Ractive.defaults.data = function () { return data1; };
-	ractive = new Ractive( { data: data2 } );
-
-	t.equal( ractive.get(), data2 );
-	t.equal( ractive.get('foo'), 'bar' );
-	t.equal( ractive.get('bizz'), 'bop' );
-});
+// test( 'Data functions are inherited and pojo keys are copied', t => {
+// 	var ractive, data1 = { bizz: 'bop' }, data2 = { foo: 'bar' };
+//
+// 	Ractive.defaults.data = function () { return data1; };
+// 	ractive = new Ractive( { data: data2 } );
+//
+// 	t.equal( ractive.get(), data2 );
+// 	t.equal( ractive.get('foo'), 'bar' );
+// 	t.equal( ractive.get('bizz'), 'bop' );
+// });
 
 test( 'instance data function is added to default data function', t => {
 	var ractive;
