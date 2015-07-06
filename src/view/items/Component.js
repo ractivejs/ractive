@@ -80,8 +80,7 @@ export default class Component extends Item {
 		// for hackability, this could be an open option
 		// for any ractive instance, but for now, just
 		// for components and just for ractive...
-		// TODO is this still used?
-		//instance._inlinePartials = options.inlinePartials;
+		instance._inlinePartials = partials;
 
 		if ( this.template.v ) this.setupEvents();
 	}
