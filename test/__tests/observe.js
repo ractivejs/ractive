@@ -444,6 +444,7 @@ test( 'Pattern observers fire on changes to keypaths that match their pattern', 
 	ractive.set( 'foo.bar.baz', expected );
 });
 
+// TODO why not deletes? was this discussed?
 test( 'Pattern observers fire on changes and adds, but not deletes', function ( t ) {
 	var newName, oldName, keypath, index, observed = 0;
 
@@ -453,7 +454,7 @@ test( 'Pattern observers fire on changes and adds, but not deletes', function ( 
 			{ name: 'orange' },
 			{ name: 'banana' }
 		]},
-		oninit: function(){
+		oninit () {
 			this.observe( 'fruits.*.name', ( n, o, k, i ) => {
 				observed++;
 				newName = n;
@@ -467,7 +468,7 @@ test( 'Pattern observers fire on changes and adds, but not deletes', function ( 
 	ractive.splice( 'fruits', 1, 2, { name: 'pear' } );
 	t.equal( observed, 1 );
 	t.equal( newName, 'pear' );
-	t.equal( oldName, undefined );
+	t.equal( oldName, 'orange' );
 	t.equal( keypath, 'fruits.1.name' );
 	t.equal( index, 1 );
 });
@@ -673,14 +674,16 @@ test( 'Pattern observers can start with wildcards (#629)', function ( t ) {
 	});
 });
 
-test( 'Pattern observers on arrays fire correctly after mutations', function ( t ) {
-	var ractive, lastKeypath, lastValue, observedLengthChange;
-
-	ractive = new Ractive({
+test( 'Pattern observers on arrays fire correctly after mutations', t => {
+	const ractive = new Ractive({
 		data: {
 			items: [ 'a', 'b', 'c' ]
 		}
 	});
+
+	let lastKeypath;
+	let lastValue;
+	let observedLengthChange = false;
 
 	ractive.observe( 'items.*', function ( n, o, k ) {
 		lastKeypath = k;

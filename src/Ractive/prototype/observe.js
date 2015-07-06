@@ -2,7 +2,6 @@ import runloop from 'global/runloop';
 import { isEqual, isObject } from 'utils/is';
 import { splitKeypath } from 'shared/keypaths';
 import { cancel } from 'shared/methodCallers';
-import { extend } from 'utils/object';
 import resolveReference from 'view/resolvers/resolveReference';
 
 export default function observe ( keypath, callback, options ) {

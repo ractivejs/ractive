@@ -17,6 +17,8 @@ function updateKeypathDependants ( model ) {
 	model.updateKeypathDependants();
 }
 
+let originatingModel = null;
+
 export default class Model {
 	constructor ( parent, key ) {
 		this.deps = [];
@@ -123,6 +125,12 @@ export default class Model {
 				matches = [];
 				existingMatches.forEach( model => {
 					if ( isArray( model.value ) ) {
+						// special case - array.length. This is a horrible kludge, but
+						// it'll do for now. Alternatives welcome
+						if ( originatingModel && originatingModel.parent === model && originatingModel.key === 'length' ) {
+							matches.push( originatingModel );
+						}
+
 						model.value.forEach( ( member, i ) => {
 							matches.push( model.joinKey( i ) );
 						});
@@ -131,7 +139,7 @@ export default class Model {
 					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
 						Object.keys( model.value ).forEach( key => {
 							matches.push( model.joinKey( key ) );
-						})
+						});
 
 						// special case - computed properties. TODO mappings also?
 						if ( model.isRoot ) {
@@ -303,6 +311,9 @@ export default class Model {
 		this.clearUnresolveds();
 
 		// notify dependants
+		const previousOriginatingModel = originatingModel; // for the array.length special case
+		originatingModel = this;
+
 		this.children.forEach( mark );
 		this.deps.forEach( handleChange );
 
@@ -311,6 +322,8 @@ export default class Model {
 			parent.deps.forEach( handleChange );
 			parent = parent.parent;
 		}
+
+		originatingModel = previousOriginatingModel;
 	}
 
 	shuffle ( newIndices ) {
@@ -331,16 +344,18 @@ export default class Model {
 
 		this.indexModels = indexModels;
 
+		// shuffles need to happen before marks...
 		this.deps.forEach( dep => {
-			if ( dep.shuffle ) {
-				dep.shuffle( newIndices );
-			} else {
-				dep.handleChange();
-			}
+			if ( dep.shuffle ) dep.shuffle( newIndices );
 		});
 
 		this.updateKeypathDependants();
 		this.mark();
+
+		// ...but handleChange must happen after (TODO document why)
+		this.deps.forEach( dep => {
+			if ( !dep.shuffle ) dep.handleChange();
+		});
 	}
 
 	teardown () {
