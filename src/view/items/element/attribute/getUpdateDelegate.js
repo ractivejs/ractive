@@ -29,7 +29,7 @@ export default function getUpdateDelegate ( attribute ) {
 			if ( type === 'file' ) return noop; // read-only
 
 			// type='radio' name='{{twoway}}'
-			if ( type === 'radio' && element.binding && element.binding.name === 'name' ) return updateRadioValue;
+			if ( type === 'radio' && element.binding && element.binding.attribute.name === 'name' ) return updateRadioValue;
 		}
 
 		return updateValue;
@@ -121,40 +121,19 @@ function updateRadioValue () {
 	const node = this.node;
 	const wasChecked = node.checked;
 
-	node.value = this.element.getAttribute( 'value' );
-	node.checked = this.element.getAttribute( 'value' ) === this.element.getAttribute( 'name' );
+	const value = this.getValue();
 
-	// TODO does the below still apply?
+	//node.value = this.element.getAttribute( 'value' );
+	node.value = this.node._ractive.value = value;
+	node.checked = value === this.element.getAttribute( 'name' );
 
 	// This is a special case - if the input was checked, and the value
 	// changed so that it's no longer checked, the twoway binding is
 	// most likely out of date. To fix it we have to jump through some
 	// hoops... this is a little kludgy but it works
-	// if ( wasChecked && !node.checked && this.element.binding ) {
-	// 	const bindings = this.element.binding.siblings;
-	// 	let i = bindings.length;
-	//
-	// 	if ( i ) {
-	// 		let binding;
-	//
-	// 		while ( i-- ) {
-	// 			binding = bindings[i];
-	//
-	// 			if ( !binding.element.node ) {
-	// 				// this is the initial render, siblings are still rendering!
-	// 				// we'll come back later...
-	// 				return;
-	// 			}
-	//
-	// 			if ( binding.element.node.checked ) {
-	// 				runloop.addRactive( binding.ractive );
-	// 				return binding.handleChange();
-	// 			}
-	// 		}
-	//
-	// 		binding.model.set( undefined );
-	// 	}
-	// }
+	if ( wasChecked && !node.checked && this.element.binding && this.element.binding.rendered ) {
+		this.element.binding.group.model.set( this.element.binding.group.getValue() );
+	}
 }
 
 function updateValue () {

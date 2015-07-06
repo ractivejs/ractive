@@ -410,25 +410,24 @@ test( 'Radio inputs will update the model if another input in their group is che
 	t.equal( ractive.get( 'items[1].checked' ), true );
 });
 
-test( 'Radio name inputs respond to model changes (regression, see #783)', function ( t ) {
-	var ractive, inputs;
-
-	ractive = new Ractive({
+test( 'Radio name inputs respond to model changes (regression, see #783)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}<input type="radio" name="{{foo}}" value="{{this}}"/>{{/items}}',
 		data: {
+			foo: undefined,
 			items: [ 'a', 'b', 'c' ]
 		}
 	});
 
-	inputs = ractive.findAll( 'input' );
+	const inputs = ractive.findAll( 'input' );
+
 	t.equal( ractive.get( 'foo' ), undefined );
 
 	ractive.set( 'foo', 'b' );
 	t.ok( inputs[1].checked );
 
 	ractive.set( 'items', [ 'd', 'e', 'f' ]);
-
 	t.equal( ractive.get( 'foo' ), undefined );
 	t.ok( !inputs[1].checked );
 });

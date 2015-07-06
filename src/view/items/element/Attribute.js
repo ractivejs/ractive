@@ -17,6 +17,7 @@ export default class Attribute extends Item {
 		this.parentFragment = options.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
 
+		this.rendered = false;
 		this.updateDelegate = null;
 		this.fragment = null;
 		this.value = null;
@@ -93,7 +94,7 @@ export default class Attribute extends Item {
 			}
 		}
 
-		this.rendered = true; // TODO is this used?
+		this.rendered = true;
 		this.updateDelegate = getUpdateDelegate( this );
 		this.updateDelegate();
 	}
