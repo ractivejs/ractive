@@ -1475,20 +1475,22 @@ test( '`twoway=0` is not mistaken for `twoway`', t => {
 });
 
 test( 'Attribute directives on fragments that get re-used (partials) should stick around for re-use', t => {
-	let ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#list}}{{>partial}}{{/}}',
-		partials: { partial: '<input value="{{.foo}}" twoway="false" />' },
+		partials: {
+			partial: '<input value="{{.foo}}" twoway="false" />'
+		},
 		data: { list: [ { foo: 'a' }, { foo: 'b' } ] },
 		twoway: true
-	}), els;
+	});
 
 	// this should have no effect
-	els = ractive.findAll('input');
-	els[0].value = 'c';
-	els[1].value = 'c';
-	simulant.fire( els[0], 'change' );
-	simulant.fire( els[1], 'change' );
+	const inputs = ractive.findAll( 'input' );
+	inputs[0].value = 'c';
+	inputs[1].value = 'c';
+	simulant.fire( inputs[0], 'change' );
+	simulant.fire( inputs[1], 'change' );
 
 	t.equal( ractive.get( 'list.0.foo' ), 'a' );
 	t.equal( ractive.get( 'list.1.foo' ), 'b' );
