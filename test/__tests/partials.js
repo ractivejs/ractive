@@ -618,15 +618,17 @@ test( 'Inline partials may be defined with a partial section', t => {
 });
 
 test( '(Only) inline partials can be yielded', t => {
+	const Widget = Ractive.extend({
+		template: '{{yield foo}}',
+		partials: { foo: 'bar' }
+	});
+
 	new Ractive({
 		el: fixture,
-		template: '<cmp /><cmp>{{#partial foo}}foo{{/partial}}',
-		components: {
-			cmp: Ractive.extend({
-				template: '{{yield foo}}',
-				partials: { foo: 'bar' }
-			})
-		}
+		template: `
+			<Widget/>
+			<Widget>{{#partial foo}}foo{{/partial}}</Widget>`,
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'foo' );
