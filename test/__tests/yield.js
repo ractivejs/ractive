@@ -117,7 +117,7 @@ test( 'A component {{yield}} can be rerendered in conditional section block', fu
 
 	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget>yield</widget>',
+		template: '<Widget>yield</Widget>',
 		components: { Widget },
 		data: { foo: true }
 	});
@@ -130,12 +130,15 @@ test( 'A component {{yield}} can be rerendered in conditional section block', fu
 
 test( 'A component {{yield}} can be rerendered in list section block', function ( t ) {
 	const Widget = Ractive.extend({
-		template: '{{#items:i}}{{.}}{{#i===1}}{{yield}}{{/}}{{/}}'
+		template: `
+			{{#each items:i}}
+				{{this}}{{#if i===1}}:{{yield}}:{{/if}}
+			{{/each}}`
 	});
 
 	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget>yield</widget>',
+		template: '<Widget>yield</Widget>',
 		components: { Widget },
 		data: { items: [ 'a', 'b', 'c' ] }
 	});

@@ -329,6 +329,23 @@ test( 'Merging works with unrendered instances (#1314)', function ( t ) {
 	t.htmlEqual( ractive.toHTML(), 'ba' );
 });
 
+test( 'Expressions with index references survive a merge', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#each items :i}}
+				<p>{{i+1}} ({{i}}): {{this.toUpperCase()}} ({{this}})</p>
+			{{/each}}`,
+		data: {
+			items: [ 'a', 'b', 'c' ]
+		}
+	});
+
+	ractive.merge( 'items', [ 'c', 'a' ]);
+
+	t.htmlEqual( fixture.innerHTML, '<p>1 (0): C (c)</p><p>2 (1): A (a)</p>' );
+});
+
 function isOrphan ( node ) {
 	// IE8... when you detach a node from its parent it thinks the document
 	// is its parent
