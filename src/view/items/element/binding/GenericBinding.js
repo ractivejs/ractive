@@ -48,9 +48,12 @@ export default class GenericBinding extends Binding {
 			if ( lazy === 0 ) lazy = true; // empty attribute
 		}
 
+		// TODO handle this at parse time as well?
+		if ( lazy === 'false' ) lazy = false;
+
 		if ( isNumeric( lazy ) ) {
-			lazy = false;
 			timeout = +lazy;
+			lazy = false;
 		}
 
 		this.handler = timeout ? handleDelay( timeout ) : handleDomEvent;

@@ -1501,7 +1501,7 @@ try {
 	simulant.fire( document.createElement( 'div' ), 'input' );
 	simulant.fire( document.createElement( 'div' ), 'blur' );
 
-	test( 'lazy may be overriden on a per-element basis', t => {
+	test( 'lazy may be overridden on a per-element basis', t => {
 		let ractive = new Ractive({
 			el: fixture,
 			template: '<input value="{{foo}}" lazy="true" />',
