@@ -1423,25 +1423,55 @@ test( 'twoway may be overridden on a per-element basis', t => {
 });
 
 test( 'Presence of lazy or twoway without value is considered true', t => {
-	let ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<input value="{{foo}}" twoway lazy />',
+		template: '<input value="{{foo}}" twoway lazy/>',
 		twoway: false
 	});
 
-	let el = ractive.fragment.items[0];
-	t.ok( el.lazy );
-	t.ok( el.twoway );
+	const input = ractive.find( 'input' );
 
-	ractive = new Ractive({
+	input.value = 'changed';
+
+	// input events shouldn't trigger change (because lazy=true)...
+	simulant.fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), '' );
+
+	// ...but change events still should (because twoway=true)
+	simulant.fire( input, 'change' );
+	t.equal( ractive.get( 'foo' ), 'changed' );
+});
+
+test( '`lazy=0` is not mistaken for `lazy`', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<input value="{{foo}}" twoway="0" lazy="0" />',
-		lazy: true
+		template: '<input value="{{foo}}" lazy="0"/>'
 	});
 
-	el = ractive.fragment.items[0];
-	t.ok( !el.lazy );
-	t.ok( !el.twoway );
+	const input = ractive.find( 'input' );
+
+	input.value = 'changed';
+
+	// input events should trigger change
+	simulant.fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), 'changed' );
+});
+
+test( '`twoway=0` is not mistaken for `twoway`', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" twoway="0"/>'
+	});
+
+	const input = ractive.find( 'input' );
+
+	input.value = 'changed';
+
+	simulant.fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), undefined );
+
+	simulant.fire( input, 'change' );
+	t.equal( ractive.get( 'foo' ), undefined );
 });
 
 test( 'Attribute directives on fragments that get re-used (partials) should stick around for re-use', t => {
