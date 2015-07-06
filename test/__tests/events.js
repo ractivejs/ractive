@@ -1312,44 +1312,41 @@ test( 'method calls that fire events do not clobber this.events', t => {
 module( 'Issues' );
 
 asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => {
-	var ractive, Child, Grandchild, torndown = [];
+	let torndown = [];
 
-	Child = Ractive.extend({
-		template:  `<div>
-						{{#each model.grandChildTitles}}
-							<grandchild item="{{.}}" />
-						{{/each}}
-					</div>`,
-		onteardown: function() {
+	const Child = Ractive.extend({
+		template: `
+			<div>
+				{{#each model.items}}
+					<Grandchild/>
+				{{/each}}
+			</div>`,
+		onteardown () {
 			torndown.push( this );
 		}
 	});
 
-	Grandchild = Ractive.extend({
+	const Grandchild = Ractive.extend({
 		template: '{{title}}',
-		onteardown: function() {
+		onteardown () {
 			torndown.push( this );
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#if model.childTitle}}<child model="{{model}}"/>{{/if}}',
+		template: '{{#if model.show}}<Child model="{{model}}"/>{{/if}}',
 		data: {
 			model : {
-				title : 'parent',
-				childTitle : 'child',
-				grandChildTitles : [
-					{ title : 'one' },
-					{ title : 'two' },
-					{ title : 'three' }
+				show: true,
+				items: [
+					{ title: 'one' },
+					{ title: 'two' },
+					{ title: 'three' }
 				]
 			}
 		},
-		components: {
-			child: Child,
-			grandchild: Grandchild
-		}
+		components: { Child, Grandchild }
 	});
 
 	setTimeout(function() {
@@ -1357,8 +1354,6 @@ asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => 
 		t.equal( torndown.length, 4 );
 		QUnit.start()
 	});
-
-
 });
 
 test( 'event references in method call handler should not create a null resolver (#1438)', t => {

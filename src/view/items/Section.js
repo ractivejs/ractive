@@ -135,6 +135,11 @@ export default class Section extends Mustache {
 		return this.fragment ? this.fragment.toString( escape ) : '';
 	}
 
+	unbind () {
+		super.unbind();
+		if ( this.fragment ) this.fragment.unbind();
+	}
+
 	unrender ( shouldDestroy ) {
 		if ( this.rendered && this.fragment ) this.fragment.unrender( shouldDestroy );
 		this.rendered = false;
