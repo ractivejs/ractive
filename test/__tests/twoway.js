@@ -744,7 +744,7 @@ if ( hasUsableConsole ) {
 			t.ok( /Cannot use two-way binding/.test( msg ) );
 		};
 
-		expect( 1 );
+		expect( 3 );
 
 		new Ractive({
 			el: fixture,
