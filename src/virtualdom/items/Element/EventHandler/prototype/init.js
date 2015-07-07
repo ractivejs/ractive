@@ -112,6 +112,10 @@ function fireMethodCall ( event ) {
 			value = ractive.viewmodel.get( keypath );
 		}
 
+        if( typeof value == 'function' ) {
+            value = value.bind( ractive );
+        }
+
 		return value;
 	});
 
