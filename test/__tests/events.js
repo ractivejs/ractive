@@ -142,7 +142,7 @@ test( 'Standard events have correct properties: node, original, keypath, context
 		t.equal( event.name, 'someEvent' );
 		t.ok( event.original );
 		t.equal( event.keypath, '' );
-		t.equal( event.context, ractive.viewmodel.value );
+		t.deepEqual( event.context, {} );
 		t.ok( typeof event.index === 'object' && Object.keys( event.index ).length === 0 );
 	});
 

@@ -106,7 +106,7 @@ export default class EventHandler {
 	fire ( event ) {
 		// augment event object
 		event.keypath = this.context.getKeypath();
-		event.context = this.context.value; // TODO should use get()... that causes a test to fail though
+		event.context = this.context.get();
 		event.index = this.parentFragment.indexRefs;
 
 		if ( this.method ) {
