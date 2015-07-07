@@ -106,7 +106,7 @@ export default class ExpressionProxy extends Model {
 			computation.init();
 		}
 
-		this.value = computation.value;
+		this.value = computation.get(); // TODO should not need this, eventually
 
 		if ( this.computation ) {
 			this.computation.unregister( this );

@@ -39,7 +39,7 @@ export default class CheckboxNameBinding extends Binding {
 		// If no initial value was set, and this input is checked, we
 		// update the model
 		if ( this.group.noInitialValue && this.element.getAttribute( 'checked' ) ) {
-			existingValue = this.model.value;
+			existingValue = this.model.get();
 			bindingValue = this.element.getAttribute( 'value' );
 
 			push.call( existingValue, bindingValue ); // to avoid triggering runloop with array adaptor

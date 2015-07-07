@@ -56,7 +56,7 @@ export default class MultipleSelectBinding extends Binding {
 
 		this.node.addEventListener( 'change', handleDomEvent, false );
 
-		if ( this.model.value === undefined ) {
+		if ( this.model.get() === undefined ) {
 			// get value from DOM, if possible
 			this.handleChange();
 		}

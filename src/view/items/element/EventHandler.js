@@ -106,7 +106,7 @@ export default class EventHandler {
 	fire ( event ) {
 		// augment event object
 		event.keypath = this.context.getKeypath();
-		event.context = this.context.value;
+		event.context = this.context.value; // TODO should use get()... that causes a test to fail though
 		event.index = this.parentFragment.indexRefs;
 
 		if ( this.method ) {
@@ -129,7 +129,7 @@ export default class EventHandler {
 					return model.wrapper.value;
 				}
 
-				return model.value;
+				return model.get();
 			});
 
 			// make event available as `this.event`

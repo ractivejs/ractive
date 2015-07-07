@@ -12,7 +12,7 @@ export default function Ractive$toggle ( keypath ) {
 		changes = {};
 
 		this.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
-			changes[ model.getKeypath() ] = !model.value;
+			changes[ model.getKeypath() ] = !model.get();
 		});
 
 		return this.set( changes );

@@ -12,7 +12,7 @@ export default function add ( ractive, keypath, d ) {
 		let changes = {};
 
 		ractive.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
-			const value = model.value;
+			const value = model.get();
 
 			if ( !isNumeric( value ) ) throw new Error( errorMessage );
 

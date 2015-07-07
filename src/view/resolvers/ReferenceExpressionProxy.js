@@ -103,7 +103,7 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	get () {
-		return this.model ? this.model.value : undefined;
+		return this.model ? this.model.get() : undefined;
 	}
 
 	// indirect two-way bindings

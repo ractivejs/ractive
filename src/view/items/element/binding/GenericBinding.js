@@ -7,7 +7,7 @@ function handleBlur () {
 
 	handleDomEvent.call( this );
 
-	value = this._ractive.binding.model.value;
+	value = this._ractive.binding.model.get();
 	this.value = value == undefined ? '' : value;
 }
 
