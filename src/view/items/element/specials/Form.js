@@ -17,7 +17,7 @@ export default class Form extends Element {
 	}
 }
 
-function handleReset ( event ) {
+function handleReset () {
 	var element = this._ractive.proxy;
 
 	runloop.start();

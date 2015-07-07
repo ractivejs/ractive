@@ -58,7 +58,8 @@ export default class Decorator {
 	}
 
 	rebind () {
-		console.warn( 'TODO rebind decorator' );
+		if ( this.dynamicName ) this.nameFragment.rebind();
+		if ( this.dynamicArgs ) this.argsFragment.rebind();
 	}
 
 	render () {
@@ -91,7 +92,7 @@ export default class Decorator {
 
 	update () {
 		if ( this.dynamicName ) {
-			name = this.nameFragment.toString();
+			const name = this.nameFragment.toString();
 
 			if ( name !== this.name ) {
 				this.name = name;

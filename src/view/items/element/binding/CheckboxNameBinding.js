@@ -1,6 +1,6 @@
 import Binding from './Binding';
 import { isArray } from 'utils/is';
-import { arrayContains, removeFromArray } from 'utils/array';
+import { arrayContains } from 'utils/array';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
@@ -13,7 +13,7 @@ function getValue ( binding ) {
 }
 
 function getGroupValue () {
-	return this.bindings.filter( isChecked ).map( getValue )
+	return this.bindings.filter( isChecked ).map( getValue );
 }
 
 const push = [].push;

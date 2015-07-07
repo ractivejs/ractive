@@ -239,7 +239,7 @@ export default class Model {
 		let usedIndices = {};
 		let firstUnusedIndex = 0;
 
-		const newIndices = oldArray.map( function ( item, i ) {
+		const newIndices = oldArray.map( item => {
 			let index;
 			let start = firstUnusedIndex;
 

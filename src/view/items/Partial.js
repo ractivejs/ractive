@@ -1,7 +1,6 @@
 import { warnOnceIfDebug } from 'utils/log';
 import Mustache from './shared/Mustache';
 import Fragment from '../Fragment';
-import parse from 'parse/_parse';
 import getPartialTemplate from './partial/getPartialTemplate';
 
 export default class Partial extends Mustache {

@@ -1,5 +1,5 @@
 import runloop from 'global/runloop';
-import { warnIfDebug, warnOnceIfDebug } from 'utils/log';
+import { warnOnceIfDebug } from 'utils/log';
 
 // TODO element.parent currently undefined
 function findParentForm ( element ) {

@@ -1,4 +1,3 @@
-import { warnIfDebug } from 'utils/log';
 import { removeFromArray } from 'utils/array';
 import { handleChange } from 'shared/methodCallers';
 

@@ -1,5 +1,4 @@
 import legacy from 'legacy';
-import { isClient } from 'config/environment';
 import { isArray } from 'utils/is';
 import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from 'utils/log';
@@ -10,8 +9,10 @@ import { findInViewHierarchy } from 'shared/registry';
 import { visible } from 'config/visibility';
 import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
+import Promise from 'utils/Promise';
 
 const getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
+const resolved = Promise.resolve();
 
 export default class Transition {
 	constructor ( owner, template, isIntro ) {
@@ -64,8 +65,6 @@ export default class Transition {
 	}
 
 	animateStyle ( style, value, options ) {
-		var to;
-
 		if ( arguments.length === 4 ) {
 			throw new Error( 't.animateStyle() returns a promise - use .then() instead of passing a callback' );
 		}
@@ -74,8 +73,10 @@ export default class Transition {
 		// that way you'll never get CSS transitionend events
 		if ( !visible ) {
 			this.setStyle( style, value );
-			return resolved || ( resolved = Promise.resolve() );
+			return resolved;
 		}
+
+		let to;
 
 		if ( typeof style === 'string' ) {
 			to = {};

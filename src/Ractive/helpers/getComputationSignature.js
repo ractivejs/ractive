@@ -1,5 +1,7 @@
 import { fatal } from 'utils/log';
 
+const pattern = /\$\{([^\}]+)\}/g;
+
 function createFunctionFromString ( ractive, str ) {
 	var functionBody, hasThis, fn;
 
@@ -19,8 +21,6 @@ function createFunctionFromString ( ractive, str ) {
 function bind ( fn, context ) {
 	return /this/.test( fn.toString() ) ? fn.bind( context ) : fn;
 }
-
-const pattern = /\$\{([^\}]+)\}/g;
 
 export default function getComputationSignature ( ractive, key, signature ) {
 	let getter;

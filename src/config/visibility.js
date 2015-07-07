@@ -1,6 +1,6 @@
 import { vendors } from 'config/environment';
 
-let visible;
+export let visible;
 let hidden = 'hidden';
 
 if ( typeof document !== 'undefined' ) {
@@ -54,5 +54,3 @@ function onHide () {
 function onShow () {
 	visible = true;
 }
-
-export { visible };

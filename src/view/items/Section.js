@@ -4,8 +4,6 @@ import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';
 import Mustache from './shared/Mustache';
 
-let emptyFragment;
-
 function isEmpty ( value ) {
 	return !value ||
 	       ( isArray( value ) && value.length === 0 ) ||

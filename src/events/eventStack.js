@@ -4,7 +4,7 @@ export function enqueue ( ractive, event ) {
 	}
 
 	ractive.event = event;
-};
+}
 
 export function dequeue ( ractive ) {
 	if ( ractive._eventQueue.length ) {

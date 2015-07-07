@@ -74,7 +74,7 @@ export default {
 	teardown,
 	toggle,
 	toHTML,
-	toHTML,
+	toHtml: toHTML,
 	unrender,
 	unshift,
 	update,

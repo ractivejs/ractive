@@ -1,7 +1,7 @@
 import { startCapturing, stopCapturing } from 'global/capture';
-import { warnIfDebug, logIfDebug } from 'utils/log';
+import { warnIfDebug } from 'utils/log';
 import Model from './Model';
-import { addToArray, removeFromArray } from 'utils/array';
+import { removeFromArray } from 'utils/array';
 import { isEqual } from 'utils/is';
 import { handleChange, mark as markChild } from 'shared/methodCallers';
 

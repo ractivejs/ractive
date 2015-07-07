@@ -213,12 +213,7 @@ export default class Fragment {
 	rebind ( context ) {
 		this.context = context;
 
-		this.items.forEach( item => {
-			if ( !item.rebind ) {
-				throw new Error( 'cannot rebind' );
-			}
-			item.rebind();
-		});
+		this.items.forEach( rebind );
 	}
 
 	render ( target ) {

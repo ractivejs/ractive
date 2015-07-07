@@ -25,7 +25,7 @@ function wrapFunction ( fn, ractive, uid ) {
 	});
 
 	// Add properties/methods to wrapped function
-	for ( key in fn ) {
+	for ( let key in fn ) {
 		if ( fn.hasOwnProperty( key ) ) {
 			fn[ prop ][ key ] = fn[ key ];
 		}

@@ -1,4 +1,3 @@
-import { warnOnceIfDebug } from 'utils/log';
 import { isArray } from 'utils/is';
 import { splitKeypath } from 'shared/keypaths';
 import runloop from 'global/runloop';

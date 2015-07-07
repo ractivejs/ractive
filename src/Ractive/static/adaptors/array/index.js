@@ -1,6 +1,5 @@
 import { defineProperty } from 'utils/object';
 import { isArray } from 'utils/is';
-import { splitKeypath } from 'shared/keypaths';
 import patch from './patch';
 
 const errorMessage = 'Something went wrong in a rather interesting way';
@@ -17,7 +16,7 @@ export default {
 };
 
 class ArrayWrapper {
-	constructor ( ractive, array, keypath ) {
+	constructor ( ractive, array ) {
 		this.root = ractive;
 		this.value = array;
 		this.__model = null; // filled in later

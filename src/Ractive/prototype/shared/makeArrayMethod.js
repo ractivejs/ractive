@@ -11,7 +11,7 @@ export default function ( methodName ) {
 		const array = model.value;
 
 		if ( !isArray( array ) ) {
-			throw new Error( `shuffle array method ${method} called on non-array at ${keypath.getKeypath()}` );
+			throw new Error( `shuffle array method ${methodName} called on non-array at ${keypath.getKeypath()}` );
 		}
 
 		const newIndices = getNewIndices( array.length, methodName, args );

@@ -156,7 +156,7 @@ export default class EventHandler {
 	}
 
 	rebind () {
-		console.warn( 'TODO rebind event handler' );
+		throw new Error( 'EventHandler$rebind not yet implemented!' ); // TODO add tests
 	}
 
 	render () {

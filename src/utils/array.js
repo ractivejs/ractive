@@ -23,7 +23,7 @@ if (!Array.prototype.find) {
 			}
 		}
 		return undefined;
-	}
+	};
 }
 
 export function addToArray ( array, value ) {

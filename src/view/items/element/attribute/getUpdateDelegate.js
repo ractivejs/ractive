@@ -1,5 +1,4 @@
 import { html } from 'config/namespaces';
-import { booleanAttributes } from 'utils/html';
 import { safeToStringValue } from 'utils/dom';
 import { arrayContains } from 'utils/array';
 import { isArray } from 'utils/is';

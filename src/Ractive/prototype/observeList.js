@@ -20,6 +20,10 @@ export default function observeList ( keypath, callback, options ) {
 	};
 }
 
+function negativeOne () {
+	return -1;
+}
+
 class ListObserver {
 	constructor ( context, model, callback, options ) {
 		this.context = context;
@@ -49,7 +53,7 @@ class ListObserver {
 
 		else {
 			// entire array changed
-			this.shuffle( this.sliced.map( x => -1 ) );
+			this.shuffle( this.sliced.map( negativeOne ) );
 			this.handleChange();
 		}
 	}

@@ -1,11 +1,13 @@
 import Hook from 'events/Hook';
-import { addToArray, removeFromArray } from 'utils/array';
+import { addToArray } from 'utils/array';
 import Promise from 'utils/Promise';
 import TransitionManager from './TransitionManager';
 
-var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
+const changeHook = new Hook( 'change' );
 
-runloop = {
+let batch;
+
+const runloop = {
 	start ( instance, returnPromise ) {
 		var promise, fulfilPromise;
 

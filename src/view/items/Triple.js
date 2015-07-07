@@ -55,7 +55,7 @@ export default class Triple extends Mustache {
 		}
 	}
 
-	findComponent ( name ) {
+	findComponent () {
 		return null;
 	}
 
@@ -64,7 +64,7 @@ export default class Triple extends Mustache {
 	}
 
 	rebind () {
-		console.warn( 'TODO rebind triple' );
+		throw new Error( 'Triple$rebind is not yet implemented!' ); // TODO test
 	}
 
 	render ( target ) {

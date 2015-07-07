@@ -1,6 +1,5 @@
 import Model from 'model/Model';
 import { REFERENCE } from 'config/types';
-import noop from 'utils/noop';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
@@ -36,8 +35,6 @@ export default class ReferenceExpressionProxy extends Model {
 				return { value: template };
 			}
 
-			// TODO this is temporary...
-			let immediate = true;
 			let model;
 
 			if ( template.t === REFERENCE ) {

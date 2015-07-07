@@ -4,7 +4,7 @@ try {
 	Object.defineProperty({}, 'test', { value: 0 });
 
 	magicAdaptor = {
-		filter ( value, keypath, ractive ) {
+		filter ( value ) {
 			return typeof value === 'object';
 		},
 		wrap ( ractive, value, keypath ) {
@@ -95,8 +95,8 @@ class MagicWrapper {
 		return this.value;
 	}
 
-	reset ( value ) {
-		throw new Error( 'TODO' ); // does this ever happen?
+	reset () {
+		throw new Error( 'TODO magic adaptor reset' ); // does this ever happen?
 	}
 
 	set ( key, value ) {

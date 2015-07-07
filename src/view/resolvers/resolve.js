@@ -1,4 +1,3 @@
-import { INTERPOLATOR } from 'config/types';
 import resolveReference from './resolveReference';
 import ExpressionProxy from './ExpressionProxy';
 import ReferenceExpressionProxy from './ReferenceExpressionProxy';

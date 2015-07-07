@@ -43,7 +43,7 @@ export default class ConditionalAttribute extends Item {
 	}
 
 	rebind () {
-		console.warn( 'TODO rebind conditional attribute' );
+		throw new Error( 'ConditionalAttribute$rebind is not yet implemented' ); // TODO test
 	}
 
 	render () {
