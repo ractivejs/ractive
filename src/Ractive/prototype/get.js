@@ -2,7 +2,7 @@ import { splitKeypath } from 'shared/keypaths';
 import resolveReference from 'view/resolvers/resolveReference';
 
 export default function Ractive$get ( keypath ) {
-	if ( !keypath ) return this.viewmodel.get();
+	if ( !keypath ) return this.viewmodel.get( true );
 
 	const keys = splitKeypath( keypath );
 	const key = keys[0];
@@ -22,5 +22,5 @@ export default function Ractive$get ( keypath ) {
 	}
 
 	model = this.viewmodel.joinAll( keys );
-	return model.get();
+	return model.get( true );
 }

@@ -8,6 +8,10 @@ export default class KeypathModel {
 		this.dependants = [];
 	}
 
+	get () {
+		return this.value;
+	}
+
 	handleChange () {
 		this.value = this.parent.getKeypath();
 		this.dependants.forEach( handleChange );

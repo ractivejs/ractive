@@ -88,8 +88,8 @@ export default class Computation extends Model {
 			if ( console.groupCollapsed ) console.groupEnd();
 		}
 
-		const softDependencies = stopCapturing();
-		this.setDependencies( softDependencies );
+		const dependencies = stopCapturing();
+		this.setDependencies( dependencies );
 
 		return result;
 	}

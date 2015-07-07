@@ -64,6 +64,7 @@ export default class Model {
 				this.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
 				this.wrapper.value = this.value;
 				this.wrapper.__model = this; // massive temporary hack to enable array adaptor
+
 				this.value = this.wrapper.get();
 
 				break;
@@ -159,13 +160,9 @@ export default class Model {
 		return matches;
 	}
 
-	get () {
-		capture( this ); // TODO should this happen here? do we want a non-side-effecty get()?
-
-		const parentValue = this.parent.value;
-		if ( parentValue ) {
-			return parentValue[ this.key ];
-		}
+	get ( shouldCapture ) {
+		if ( shouldCapture ) capture( this );
+		return this.value;
 	}
 
 	getIndexModel () {
@@ -218,7 +215,7 @@ export default class Model {
 	}
 
 	mark () {
-		const value = this.get();
+		const value = this.retrieve();
 
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
@@ -274,6 +271,10 @@ export default class Model {
 
 	registerTwowayBinding ( binding ) {
 		this.bindings.push( binding );
+	}
+
+	retrieve () {
+		return this.parent.value ? this.parent.value[ this.key ] : undefined;
 	}
 
 	set ( value ) {

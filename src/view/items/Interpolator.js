@@ -12,7 +12,7 @@ export default class Interpolator extends Mustache {
 	}
 
 	getString () {
-		return this.model ? safeToStringValue( this.model.value ) : '';
+		return this.model ? safeToStringValue( this.model.get() ) : '';
 	}
 
 	render ( target ) {
@@ -43,6 +43,6 @@ export default class Interpolator extends Mustache {
 	}
 
 	valueOf () {
-		return this.model ? this.model.value : undefined;
+		return this.model ? this.model.get() : undefined;
 	}
 }

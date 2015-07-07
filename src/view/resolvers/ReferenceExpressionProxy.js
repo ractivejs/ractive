@@ -32,7 +32,7 @@ export default class ReferenceExpressionProxy extends Model {
 
 		this.members = template.m.map( ( template, i ) => {
 			if ( typeof template === 'string' ) {
-				return { value: template };
+				return { get: () => template };
 			}
 
 			let model;
@@ -73,12 +73,12 @@ export default class ReferenceExpressionProxy extends Model {
 		// if some members are not resolved, abort
 		let i = this.members.length;
 		while ( i-- ) {
-			if ( !this.members[i] || this.members[i].value === undefined ) return;
+			if ( !this.members[i] || this.members[i].get() === undefined ) return;
 		}
 
 		this.isUnresolved = false;
 
-		const keys = this.members.map( model => model.value );
+		const keys = this.members.map( model => model.get() );
 		const model = this.base.joinAll( keys );
 
 		if ( this.model ) {
@@ -123,6 +123,10 @@ export default class ReferenceExpressionProxy extends Model {
 
 	handleChange () {
 		this.mark();
+	}
+
+	retrieve () {
+		return this.get();
 	}
 
 	set ( value ) {

@@ -88,7 +88,7 @@ export default class ExpressionProxy extends Model {
 			const signature = {
 				getter: () => {
 					const values = this.models.map( model => {
-						const value = model.get();
+						const value = model.get( true );
 
 						if ( typeof value === 'function' ) {
 							return wrapFunction( value, ractive, ractive._guid );
@@ -118,7 +118,7 @@ export default class ExpressionProxy extends Model {
 	}
 
 	get () {
-		return this.computation.value;
+		return this.computation.get();
 	}
 
 	getKeypath () {
@@ -127,6 +127,10 @@ export default class ExpressionProxy extends Model {
 
 	handleChange () {
 		this.mark();
+	}
+
+	retrieve () {
+		return this.get();
 	}
 
 	unbind () {

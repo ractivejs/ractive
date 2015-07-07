@@ -47,8 +47,8 @@ export default class RootModel extends Model {
 		return computation;
 	}
 
-	get () {
-		capture( this );
+	get ( shouldCapture ) {
+		if ( shouldCapture ) capture( this );
 		let result = extend( {}, this.value );
 
 		Object.keys( this.mappings ).forEach( key => {
@@ -103,6 +103,10 @@ export default class RootModel extends Model {
 		this.deps.forEach( handleChange );
 		this.children.forEach( mark );
 		this.clearUnresolveds(); // TODO do we need to do this with primitive values? if not, what about e.g. unresolved `length` property of null -> string?
+	}
+
+	retrieve () {
+		return this.value;
 	}
 
 	update () {

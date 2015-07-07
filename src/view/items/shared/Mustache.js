@@ -18,9 +18,10 @@ export default class Mustache extends Item {
 	bind () {
 		// try to find a model for this view
 		const model = resolve( this.parentFragment, this.template );
+		const value = model ? model.value : undefined;
 
 		if ( this.isStatic ) {
-			this.model = { value: model.value };
+			this.model = { get: () => value };
 			return;
 		}
 
