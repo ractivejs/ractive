@@ -8,7 +8,7 @@ var arrayProto = Array.prototype;
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
 		const model = this.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
-		const array = model.value;
+		const array = model.get();
 
 		if ( !isArray( array ) ) {
 			throw new Error( `shuffle array method ${methodName} called on non-array at ${keypath.getKeypath()}` );

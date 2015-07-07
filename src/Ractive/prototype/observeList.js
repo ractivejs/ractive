@@ -91,6 +91,7 @@ class ListObserver {
 	}
 
 	slice () {
-		return isArray( this.model.value ) ? this.model.value.slice() : [];
+		const value = this.model.get();
+		return isArray( value ) ? value.slice() : [];
 	}
 }

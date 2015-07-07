@@ -362,7 +362,7 @@ function inputIsCheckedRadio ( element ) {
 		return;
 	}
 
-	if ( valueAttribute.getValue() === nameAttribute.interpolator.model.value ) {
+	if ( valueAttribute.getValue() === nameAttribute.interpolator.model.get() ) {
 		return true;
 	}
 }

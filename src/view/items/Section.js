@@ -30,7 +30,7 @@ export default class Section extends Mustache {
 
 		// if we managed to bind, we need to create children
 		if ( this.model ) {
-			const value = this.model.value;
+			const value = this.model.value; // TODO should use this.model.get()... but weirdness around root models
 			let fragment;
 
 			if ( !this.sectionType ) this.sectionType = getType( value, this.template.i );
@@ -147,7 +147,7 @@ export default class Section extends Mustache {
 		if ( !this.dirty ) return;
 		if ( !this.model ) return; // TODO can this happen?
 
-		const value = this.model.value;
+		const value = this.model.value; // TODO see above - should use .get()
 
 		if ( this.sectionType === null ) this.sectionType = getType( value, this.template.i );
 
