@@ -124,7 +124,7 @@ function animate ( root, keypath, to, options ) {
 		// TODO revisit 'dummy' approach to handling multiple
 		// animations? this seems kind of hokey
 		model = root.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
-		from = model.value;
+		from = model.get();
 
 		// cancel any existing animation
 		// TODO what about upstream/downstream keypaths?

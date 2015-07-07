@@ -85,7 +85,7 @@ class Observer {
 		this.callback = callback;
 
 		this.oldValue = undefined;
-		this.newValue = model.value;
+		this.newValue = model.get();
 
 		this.defer = options.defer;
 		this.once = options.once;
@@ -96,7 +96,7 @@ class Observer {
 		if ( options.init !== false ) {
 			this.dispatch();
 		} else {
-			this.oldValue = model.value;
+			this.oldValue = this.newValue;
 		}
 
 		model.register( this );
@@ -114,7 +114,7 @@ class Observer {
 
 	handleChange () {
 		if ( !this.dirty ) {
-			this.newValue = this.model.value;
+			this.newValue = this.model.get();
 
 			if ( this.strict && this.newValue === this.oldValue ) return;
 
@@ -147,7 +147,7 @@ class PatternObserver {
 		this.dirty = false;
 
 		this.baseModel.findMatches( this.keys ).forEach( model => {
-			this.newValues[ model.getKeypath() ] = model.value;
+			this.newValues[ model.getKeypath() ] = model.get();
 		});
 
 		if ( options.init !== false ) {
@@ -194,7 +194,7 @@ class PatternObserver {
 
 			this.baseModel.findMatches( this.keys ).forEach( model => {
 				const keypath = model.getKeypath();
-				this.newValues[ keypath ] = model.value;
+				this.newValues[ keypath ] = model.get();
 			});
 
 			runloop.addObserver( this, this.defer );

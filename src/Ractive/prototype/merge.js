@@ -19,10 +19,11 @@ function getComparator ( option ) {
 export default function Ractive$merge ( keypath, array, options ) {
 	const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
 	const promise = runloop.start( this, true );
+	const value = model.get();
 
-	if ( array === model.value ) {
+	if ( array === value ) {
 		throw new Error( 'You cannot merge an array with itself' ); // TODO link to docs
-	} else if ( !isArray( model.value ) || !isArray( array ) ) {
+	} else if ( !isArray( value ) || !isArray( array ) ) {
 		throw new Error( 'You cannot merge an array with a non-array' );
 	}
 

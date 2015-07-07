@@ -39,18 +39,19 @@ export default class RepeatedFragment {
 
 	bind ( context ) {
 		this.context = context;
+		const value = context.get();
 
 		// {{#each array}}...
-		if ( isArray( context.value ) ) {
+		if ( isArray( value ) ) {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
-			for ( let i = 0; i < context.value.length; i += 1 ) {
+			for ( let i = 0; i < value.length; i += 1 ) {
 				this.iterations[i] = this.createIteration( i, i );
 			}
 		}
 
 		// {{#each object}}...
-		else if ( isObject( context.value ) ) {
+		else if ( isObject( value ) ) {
 			// TODO this is a dreadful hack. There must be a neater way
 			if ( this.indexRef ) {
 				const [ keyRef, indexRef ] = this.indexRef.split( ',' );
@@ -59,7 +60,7 @@ export default class RepeatedFragment {
 			}
 
 			this.indexByKey = {};
-			this.iterations = Object.keys( context.value ).map( ( key, index ) => {
+			this.iterations = Object.keys( value ).map( ( key, index ) => {
 				this.indexByKey[ key ] = index;
 				return this.createIteration( key, index );
 			});
@@ -153,7 +154,7 @@ export default class RepeatedFragment {
 		this.context = context;
 
 		// {{#each array}}...
-		if ( isArray( context.value ) ) {
+		if ( isArray( context.get() ) ) {
 			this.iterations.forEach( ( fragment, i ) => {
 				fragment.rebind( context.joinKey( i ) );
 			});
@@ -218,7 +219,7 @@ export default class RepeatedFragment {
 			return;
 		}
 
-		const value = this.context.value;
+		const value = this.context.get();
 
 		let toRemove;
 		let oldKeys;
@@ -328,7 +329,7 @@ export default class RepeatedFragment {
 		const docFrag = document.createDocumentFragment();
 		const parentNode = this.parent.findParentNode();
 
-		const len = this.context.value.length;
+		const len = this.context.get().length;
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
