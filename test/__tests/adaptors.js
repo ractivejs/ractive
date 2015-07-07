@@ -283,7 +283,6 @@ test( 'display a collection from a model', function ( t ) {
 	extend( Model, Store );
 
 	Store.prototype.getItems = function () {
-		console.log( 'this', this );
 		return this.attrs.items;
 	};
 

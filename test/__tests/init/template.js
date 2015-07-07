@@ -165,7 +165,7 @@ test( 'Template with partial', t => {
 	ractive.partials = {};
 
 	config.init( MockRactive, ractive, {
-		template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->'
+		template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}'
 	});
 
 	testTemplate1( ractive.template );
@@ -176,13 +176,12 @@ test( 'Template with partial', t => {
 
 test( 'Template with partial extended', t => {
 
-	var options = { template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->' };
+	var options = { template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' };
 
 	Component.partials = {};
 	config.extend( MockRactive, Component.prototype, options );
 
-	deepEqual( Component.defaults.template, { v: TEMPLATE_VERSION, t: [{r: "foo", t: 2 } ], p: {bar: [{r: "bar", t: 2 } ] } });
-
+	t.deepEqual( Component.defaults.template, { v: TEMPLATE_VERSION, t: [{r: "foo", t: 2 } ], p: {bar: [{r: "bar", t: 2 } ] } });
 });
 
 test( 'Template with partial added and takes precedence over option partials', t => {
@@ -193,7 +192,7 @@ test( 'Template with partial added and takes precedence over option partials', t
 	};
 
 	config.init( MockRactive, ractive, {
-		template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->'
+		template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}'
 	});
 
 	t.ok( ractive.partials.bar, 'has bar partial' );

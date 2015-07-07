@@ -336,10 +336,11 @@ test( 'render hooks are not fired until after DOM updates (#1367)', function ( t
 });
 
 test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) {
-	var Subclass, count, reset;
-
-	reset = () => count = { construct: 0, beforeInit: 0 };
+	let count;
+	const reset = () => count = { construct: 0, beforeInit: 0 };
 	reset();
+
+	expect( 6 );
 
 	// specifying both options is an error
 	t.throws( function () {
@@ -351,11 +352,16 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) 
 
 	// hooks-without-extend were introduced at the same time as beforeInit was
 	// deprecated, so this should not fire
+	const warn = console.warn;
+	console.warn = msg => t.ok( /deprecated/.test( msg ) );
+
 	reset();
 	new Ractive({
 		beforeInit: () => count.beforeInit += 1
 	});
 	t.deepEqual( count, { construct: 0, beforeInit: 0 });
+
+	let Subclass;
 
 	t.throws( function () {
 		Subclass = Ractive.extend({
@@ -371,6 +377,8 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) 
 	});
 	new Subclass();
 	t.deepEqual( count, { construct: 0, beforeInit: 1 });
+
+	console.warn = warn;
 });
 
 if ( hasUsableConsole ) {

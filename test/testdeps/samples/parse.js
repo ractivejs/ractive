@@ -646,7 +646,7 @@ var parseTests = [
 	// #1024
 	{
 		name: 'Content after inline partials is not ignored (#1024)',
-		template: 'testing <!-- {{>a}} -->a<!-- {{/a}} --><script>alert()</script>',
+		template: 'testing {{#partial a}}a{{/partial}}<script>alert()</script>',
 		parsed: {v:3,p:{a:['a']},t:['testing ',{t:7,e:'script',f:['alert()']}]}
 	},
 

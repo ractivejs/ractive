@@ -254,7 +254,6 @@ test( 'Nodes belonging to components are removed from live queries when those co
 
 	[ 3, 2, 5, 10, 0 ].forEach( function ( length ) {
 		ractive.set( 'widgets', new Array( length ) );
-		console.log( '%s divs (%s)', length, divs.length, divs );
 		t.equal( divs.length, length );
 	});
 });

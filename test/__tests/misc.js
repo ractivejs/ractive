@@ -1228,7 +1228,7 @@ test( 'Regression test for #950', function ( t ) {
 
 test( 'Custom delimiters apply to inline partials (#990)', function ( t ) {
 	var ractive = new Ractive({
-		template: '<!-- ([>a]) --> abc <!-- ([/a]) -->',
+		template: '([#partial a])abc([/partial])',
 		delimiters: [ '([', '])' ]
 	});
 

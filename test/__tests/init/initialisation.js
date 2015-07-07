@@ -245,10 +245,10 @@ test( 'extend data option includes Ractive defaults.data', t => {
 	};
 
 	Component = Ractive.extend({
-		data: {
+		data: () => ({
 			format () { return 'component'; },
 			componentOnly: {}
-		}
+		})
 	});
 
 	ractive = new Component( {
