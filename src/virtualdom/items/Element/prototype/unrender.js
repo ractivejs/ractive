@@ -77,7 +77,9 @@ function removeFromLiveQueries ( element ) {
 }
 
 function checkForOutro(element) {
-	//Check current element and children for outros
-	return !!element.outro || !!((element.instance||{}).template||[]).filter(function(a){return a.t0}).length || //Does Current Element have an outro
-		(((element.instance||element).fragment||{}).items || []).filter(checkForOutro).length; //Do Children have an outro
+  //Check current element and children for outros
+  return !!element.outro || !!((element.instance || {}).template || []).filter(function(a) {
+      return a.t0
+    }).length || //Does Current Element have an outro
+    (((element.instance || element).fragment || {}).items || []).filter(checkForOutro).length; //Do Children have an outro
 }
