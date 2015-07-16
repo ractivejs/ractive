@@ -17,7 +17,11 @@ export default function Element$unrender ( shouldDestroy ) {
 		// since option elements can't have transitions anyway
 		this.detach();
 	} else if ( shouldDestroy ) {
-		runloop.detachWhenReady( this );
+		if(checkForOutro(this)){
+  			global_runloop.detachWhenReady(this);
+    } else {
+        this.detach();
+    }
 	}
 
 	// Children first. that way, any transitions on child elements will be
@@ -70,4 +74,10 @@ function removeFromLiveQueries ( element ) {
 
 		query._remove( element.node );
 	}
+}
+
+function checkForOutro(element) {
+	//Check current element and children for outros
+	return !!element.outro || !!((element.instance||{}).template||[]).filter(function(a){return a.t0}).length || //Does Current Element have an outro
+		(((element.instance||element).fragment||{}).items || []).filter(checkForOutro).length; //Do Children have an outro
 }
