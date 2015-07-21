@@ -44,10 +44,11 @@ updateScript = function () {
 };
 
 export default function Element$render () {
-	var root = this.root, namespace, node, transition;
+	var root = this.root, namespace, extend, node, transition;
 
 	namespace = getNamespace( this );
-	node = this.node = createElement( this.name, namespace );
+	extend = this.getAttribute( 'is' );
+	node = this.node = createElement( this.name, namespace, extend );
 
 	// Is this a top-level node of a component? If so, we may need to add
 	// a data-ractive-css attribute, for CSS encapsulation
