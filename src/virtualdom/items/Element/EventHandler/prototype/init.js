@@ -5,7 +5,7 @@ import eventStack from 'Ractive/prototype/shared/eventStack';
 import fireEvent from 'Ractive/prototype/shared/fireEvent';
 import { fatal } from 'utils/log';
 
-var eventPattern = /^event(?:\.(.+))?/;
+var eventPattern = /^event(?:\.(.+))?$/;
 
 export default function EventHandler$init ( element, name, template ) {
 	var action, refs, ractive;

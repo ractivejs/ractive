@@ -1445,6 +1445,23 @@ test( 'Attribute directives on fragments that get re-used (partials) should stic
 	t.equal( ractive.get( 'list.1.foo' ), 'b' );
 });
 
+test( 'Regression test for #2046', t => {
+	expect( 1 );
+
+	let ractive = new Ractive({
+		el: fixture,
+		template: '<button on-click="onClick(eventName)">{{eventName}}</button>',
+		data: { eventName: 'foo' },
+		onClick: function ( eventName ) {
+			t.equal( eventName, 'foo' );
+		}
+	}), el;
+
+	// this should have no effect
+	el = ractive.find('button');
+	simulant.fire( el, 'click' );
+});
+
 // phantom and IE8 don't like these tests, but browsers are ok with them
 try {
 	simulant.fire( document.createElement( 'div' ), 'input' );
