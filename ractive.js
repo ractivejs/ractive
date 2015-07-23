@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.3
-	Mon May 04 2015 18:19:29 GMT+0000 (UTC) - commit db7a5d61730ad72857ae355597838b3d77f5bc28
+	Thu Jul 23 2015 20:38:39 GMT+0000 (UTC) - commit 8b91eaa758afd81f7e56d3ad600715001e1da89a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10766,7 +10766,7 @@
 
   var EventHandler_prototype_init = EventHandler$init;
 
-  var eventPattern = /^event(?:\.(.+))?/;
+  var eventPattern = /^event(?:\.(.+))?$/;
   function EventHandler$init(element, name, template) {
   	var _this = this;
 
