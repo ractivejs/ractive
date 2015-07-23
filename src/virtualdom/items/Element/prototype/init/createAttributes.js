@@ -19,10 +19,16 @@ export default function ( element, attributes ) {
 
 			result[ name ] = attribute;
 
-			if ( name !== 'value' ) {
+			if ( name !== 'value' && name !== 'type' ) {
 				result.push( attribute );
 			}
 		}
+	}
+
+	// type needs to go before other attributes
+	// for 2-way binding to work correctly
+	if ( attribute = result.type ) {
+		result.unshift( attribute );
 	}
 
 	// value attribute goes last. This is because it

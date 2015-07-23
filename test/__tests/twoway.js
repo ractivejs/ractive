@@ -767,3 +767,14 @@ test( 'Contenteditable works with lazy: true (#1933)', t => {
 		t.ok( true ); // phantomjs ಠ_ಠ
 	}
 });
+
+test( 'type attribute does not have to be first (#1968)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input id="red" name="{{selectedColors}}" value="red" type="checkbox">'
+	});
+
+	ractive.set( 'selectedColors', [ 'red' ]);
+
+	t.ok( ractive.nodes.red.checked );
+});
