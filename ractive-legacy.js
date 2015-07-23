@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.3
-	Thu Jul 23 2015 20:38:39 GMT+0000 (UTC) - commit 8b91eaa758afd81f7e56d3ad600715001e1da89a
+	Thu Jul 23 2015 22:10:34 GMT+0000 (UTC) - commit 4a26f26ca5fa2918c29876751d1453f56a90871a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11395,7 +11395,7 @@
   		original: event,
   		index: index,
   		keypath: storage.keypath.str,
-  		context: storage.root.viewmodel.get(storage.keypath)
+  		context: storage.root.viewmodel.get(storage.keypath, { fullRootGet: true })
   	});
   }
 
@@ -11445,7 +11445,7 @@
 
   			event.index = storage.index;
   			event.keypath = storage.keypath.str;
-  			event.context = storage.root.viewmodel.get(storage.keypath);
+  			event.context = storage.root.viewmodel.get(storage.keypath, { fullRootGet: true });
 
   			storage.events[name].fire(event);
   		};
