@@ -1,11 +1,12 @@
+/*global self */
 var _Promise,
 	PENDING = {},
 	FULFILLED = {},
 	REJECTED = {};
 
-if ( typeof Promise === 'function' ) {
+if ( typeof self !== 'undefined' && typeof self.Promise === 'function' ) {
 	// use native Promise
-	_Promise = Promise;
+	_Promise = self.Promise;
 } else {
 	_Promise = function ( callback ) {
 		var fulfilledHandlers = [],
