@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.3
-	Thu Jul 23 2015 22:10:34 GMT+0000 (UTC) - commit 4a26f26ca5fa2918c29876751d1453f56a90871a
+	Thu Jul 23 2015 22:57:42 GMT+0000 (UTC) - commit db7ea59054a5067977db335a856904cd67aff06d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9862,10 +9862,16 @@
 
   			result[name] = attribute;
 
-  			if (name !== "value") {
+  			if (name !== "value" && name !== "type") {
   				result.push(attribute);
   			}
   		}
+  	}
+
+  	// type needs to go before other attributes
+  	// for 2-way binding to work correctly
+  	if (attribute = result.type) {
+  		result.unshift(attribute);
   	}
 
   	// value attribute goes last. This is because it
