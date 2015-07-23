@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.7.3
-	Thu Jul 23 2015 22:57:42 GMT+0000 (UTC) - commit db7ea59054a5067977db335a856904cd67aff06d
+	Thu Jul 23 2015 23:42:18 GMT+0000 (UTC) - commit f86f0691d34d4011f3e02b92fab6e1a8c9bd4dfc
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3073,7 +3073,7 @@
   			}
 
   			while (args.length < 2) {
-  				args.push(0);
+  				args.push(array.length - args[0]);
   			}
 
   			// ensure we only remove elements that exist

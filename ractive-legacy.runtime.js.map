@@ -1,1 +1,1 @@
-{"version":3,"file":"ractive-legacy.runtime.js","sources":["../../../src/config/template.js"],"sourcesContent":["export var TEMPLATE_VERSION = 3;"],"names":[],"mappings":"AAAO,eAAP,UAAA,MAAA,EAAA,MAAA,EAAA;AAAA,KAAA,QAAA,CAAA;;;;;;;;;;;"}
+{"version":3,"file":"ractive-legacy.runtime.js","sources":["../../../src/config/template.js"],"sourcesContent":["export var TEMPLATE_VERSION = 3;"],"names":[],"mappings":"AAAO,eAAwB,gBAA/B;;AAAA,SAA+B,gBAA/B,GAAA;AAAA,KAAA,IAAA,CAAA,QAAA,IAAA,IAAA,CAAA,KAAA,CAAA,CAAA,CAAA,EAAA;;;;;"}
