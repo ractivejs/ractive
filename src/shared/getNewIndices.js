@@ -71,7 +71,7 @@ function getSpliceEquivalent ( array, methodName, args ) {
 			}
 
 			while ( args.length < 2 ) {
-				args.push( 0 );
+				args.push( array.length - args[0] );
 			}
 
 			// ensure we only remove elements that exist
