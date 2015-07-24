@@ -896,3 +896,29 @@ test( 'Unresolved keypath can be safely torn down', t => {
 	ractive.set('show', false);
 
 });
+
+test( 'support for custom inheritable extendable *static* members', function (t) {
+	var Child = Ractive
+		.extend( { staticMembers: { foo () { return 'a'; }, bar: 'c' } } )
+		.extend( { staticMembers: { foo () { return this._super() + 'b'; } } } )
+		.extend( { staticMembers: { bar () { return this._super() + 'd'; } } } );
+	t.equal( Child.foo(), 'ab' );
+	t.equal( Child.bar(), 'cd' );
+} );
+
+test( 'extending the extend method (meta-extending)', function( t ) {
+	var Child = Ractive
+		.extend( {
+			foo: 'bar',
+			staticMembers: {
+				extend: function ( ...options ) {
+					// delete any option named "foo", effectively making "foo" read-only
+					options.forEach( options => { delete options.foo; });
+					// return this._super( ...options ); // ***why doesnt this work?
+					return this._super.apply(this, options);
+				}
+			}
+		} )
+		.extend( { foo: false } );
+	t.equal( Child.prototype.foo, 'bar' );
+} );
