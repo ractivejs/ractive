@@ -9,7 +9,7 @@ export default function Attribute$init ( options ) {
 	this.element = options.element;
 	this.root = options.root;
 
-	determineNameAndNamespace( this, options.name );
+	determineNameAndNamespace( this, options.name, this.root );
 	this.isBoolean = booleanAttributes.test( this.name );
 
 	// if it's an empty attribute, or just a straight key-value pair, with no

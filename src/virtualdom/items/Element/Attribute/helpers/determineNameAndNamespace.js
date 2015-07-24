@@ -1,8 +1,10 @@
 import { namespaces } from 'config/environment';
 import enforceCase from 'virtualdom/items/Element/shared/enforceCase';
 
-export default function ( attribute, name ) {
+export default function ( attribute, name, root ) {
 	var colonIndex, namespacePrefix;
+
+	utils_object__extend(namespaces, (root||{}).namespaces||{});
 
 	// are we dealing with a namespaced attribute, e.g. xlink:href?
 	colonIndex = name.indexOf( ':' );
