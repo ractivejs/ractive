@@ -61,20 +61,17 @@ function changeCurrentSubtype ( section, value, obj ) {
 	if ( value === SECTION_EACH ) {
 		// make sure ref type is up to date for key or value indices
 		if ( section.indexRefs && section.indexRefs[0] ) {
-			let ref = section.indexRefs[0];
-
-			// when switching flavors, make sure the section gets updated
-			if ( ( obj && ref.t === 'i' ) || ( !obj && ref.t === 'k' ) ) {
-				// if switching from object to list, unbind all of the old fragments
-				if ( !obj ) {
-					section.length = 0;
-				  section.fragmentsToUnrender = section.fragments.slice( 0 );
-					section.fragmentsToUnrender.forEach( f => f.unbind() );
-				}
-			}
-
-			ref.t = obj ? 'k' : 'i';
+			section.indexRefs[0].t = obj ? 'k' : 'i';
 		}
+
+		// if switching from object to list, unbind all of the old fragments
+		if ( section.obj && !obj ) {
+			section.length = 0;
+			section.fragmentsToUnrender = section.fragments.slice( 0 );
+			section.fragmentsToUnrender.forEach( f => f.unbind() );
+		}
+
+		section.obj = obj;
 	}
 
 	section.currentSubtype = value;
