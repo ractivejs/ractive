@@ -1156,6 +1156,14 @@ var renderTests = [
 		name: 'No whitespace other than leading/trailing line break is stripped (#1851)',
 		template: '<pre>\r\tfoo\n\t</pre><textarea>\r\n\tfoo\r\t</textarea>',
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
+	},
+	{
+		name: '{{#each}} works when an object changes to an array (#2054)',
+		template: '{{#each numbers}}{{number}}<br>{{/each numbers}}',
+		data: { numbers: { one: { number: 'one' }, two: { number: 'two' } } },
+		result: 'one<br>two<br>',
+		new_data: { numbers: [ { number: 'three' }, { number: 'four' } ] },
+		new_result: 'three<br>four<br>'
 	}
 ];
 
