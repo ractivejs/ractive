@@ -68,12 +68,12 @@ export default class Triple extends Mustache {
 	}
 
 	render ( target ) {
-		const html = this.model ? this.model.value : '';
+		const html = this.model ? this.model.get() : '';
 		this.nodes = insertHtml( html, this.parentFragment.findParentNode(), target );
 	}
 
 	toString () {
-		return this.model && this.model.value != null ? decodeCharacterReferences( '' + this.model.value ) : '';
+		return this.model && this.model.get() != null ? decodeCharacterReferences( '' + this.model.get() ) : '';
 	}
 
 	unrender () {

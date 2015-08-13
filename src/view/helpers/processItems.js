@@ -22,7 +22,7 @@ export default function processItems ( items, values, guid, counter = 0 ) {
 		values[ placeholderId ] = item.model ?
 			item.model.wrapper ?
 				item.model.wrapper.value :
-				item.model.value :
+				item.model.get() :
 			undefined;
 
 		return '${' + placeholderId + '}';

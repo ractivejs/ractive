@@ -111,7 +111,7 @@ export default class Component extends Item {
 						if ( model ) {
 							viewmodel.map( localKey, model );
 
-							if ( model.value === undefined && localKey in childData ) {
+							if ( model.get() === undefined && localKey in childData ) {
 								model.set( childData[ localKey ] );
 							}
 						}

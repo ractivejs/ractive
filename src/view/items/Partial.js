@@ -7,10 +7,10 @@ export default class Partial extends Mustache {
 	bind () {
 		super.bind();
 
-		if ( ( !this.model || typeof this.model.value !== 'string' ) && this.template.r ) {
+		if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.template.r ) {
 			this.setTemplate( this.template.r );
 		} else {
-			this.setTemplate( this.model.value );
+			this.setTemplate( this.model.get() );
 		}
 
 		this.fragment = new Fragment({
@@ -91,8 +91,8 @@ export default class Partial extends Mustache {
 
 	update () {
 		if ( this.dirty ) {
-			if ( this.model && typeof this.model.value === 'string' && this.model.value !== this.name ) {
-				this.setTemplate( this.model.value );
+			if ( this.model && typeof this.model.get() === 'string' && this.model.get() !== this.name ) {
+				this.setTemplate( this.model.get() );
 				this.fragment.resetTemplate( this.partialTemplate );
 			}
 
