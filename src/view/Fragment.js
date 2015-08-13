@@ -22,8 +22,8 @@ export default class Fragment {
 
 		this.context = null;
 		this.rendered = false;
-		this.indexRefs = options.indexRefs || this.parent.indexRefs;
-		this.keyRefs = options.keyRefs || this.parent.keyRefs;
+		this.indexRefs = options.indexRefs || ( this.parent ? this.parent.indexRefs : [] );
+		this.keyRefs = options.keyRefs || ( this.parent ? this.parent.keyRefs : {} );
 
 		// encapsulated styles should be inherited until they get applied by an element
 		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
