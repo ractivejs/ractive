@@ -13,11 +13,11 @@ test( 'Adaptors can change data as it is .set() (#442)', function ( t ) {
 		percent: 150
 	});
 
-	model.transform( 'foo', function ( newValue, oldValue ) {
+	model.transform( 'foo', function ( newValue ) {
 		return newValue.toLowerCase();
 	});
 
-	model.transform( 'percent', function ( newValue, oldValue ) {
+	model.transform( 'percent', function ( newValue ) {
 		return Math.min( 100, Math.max( 0, newValue ) );
 	});
 
@@ -51,7 +51,7 @@ test( 'ractive.reset() calls are forwarded to wrappers if the root data object i
 		unwanted: 'here'
 	});
 
-	model.transform( 'foo', function ( newValue, oldValue ) {
+	model.transform( 'foo', function ( newValue ) {
 		return newValue.toLowerCase();
 	});
 
@@ -67,7 +67,7 @@ test( 'ractive.reset() calls are forwarded to wrappers if the root data object i
 
 	model = new Model({ foo: 'QUX' });
 
-	model.transform( 'foo', function ( newValue, oldValue ) {
+	model.transform( 'foo', function ( newValue ) {
 		return newValue.toLowerCase();
 	});
 
@@ -130,7 +130,7 @@ test( 'Original values are passed to event handlers (#945)', function ( t ) {
 });
 
 test( 'Adaptor teardown is called when used in a component (#1190)', function ( t ) {
-	var ractive, adaptor, Component, torndown = 0;
+	var ractive, adaptor, torndown = 0;
 
 	function Wrapped(){}
 
@@ -141,9 +141,9 @@ test( 'Adaptor teardown is called when used in a component (#1190)', function ( 
 				get: () => ({ foo: 'bar' }),
 				reset: () => false,
 				teardown: () => torndown++
-			}
+			};
 		}
-	}
+	};
 
 	ractive = new Ractive({
 		el: fixture,
@@ -181,9 +181,9 @@ test( 'Adaptor called on data provided in initial options when no template (#128
 				reset: () => false,
 				set: (property, value) => obj.sekrit = value,
 				teardown: () => true
-			}
+			};
 		}
-	}
+	};
 
 	ractive = new Ractive({
 		el: fixture,
@@ -229,7 +229,7 @@ test( 'Computed properties are adapted', t => {
 		filter: obj => obj instanceof Value,
 		wrap: ( ractive, obj ) => ({
 			get: () => obj._,
-			set: ( prop, val ) => null,
+			set: () => null,
 			reset: () => false,
 			teardown: () => true
 		})
@@ -256,7 +256,7 @@ test( 'display a collection from a model', function ( t ) {
 	function extend ( parent, child ) {
 		function Surrogate () {
 			this.constructor = child;
-		};
+		}
 		Surrogate.prototype = parent.prototype;
 		child.prototype = new Surrogate();
 	}
