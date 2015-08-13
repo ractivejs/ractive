@@ -265,12 +265,12 @@ test( 'display a collection from a model', function ( t ) {
 		this.attrs = attrs || {};
 	}
 
-	function Collection ( attrs ) {
-		this.attrs = attrs || [];
+	function Collection ( arr ) {
+		this.arr = arr || [];
 	}
 
-	function Items ( attrs ) {
-		Collection.call(this, attrs);
+	function Items ( arr ) {
+		Collection.call(this, arr);
 		return this;
 	}
 
@@ -281,10 +281,6 @@ test( 'display a collection from a model', function ( t ) {
 	}
 
 	extend( Model, Store );
-
-	Store.prototype.getItems = function () {
-		return this.attrs.items;
-	};
 
 	Ractive.adaptors.ModelAdaptor = {
 		filter: obj => obj instanceof Model,
@@ -302,7 +298,7 @@ test( 'display a collection from a model', function ( t ) {
 		filter: obj => obj instanceof Collection,
 		wrap: ( ractive, obj ) => {
 			return {
-				get: () => obj.attrs,
+				get: () => obj.arr,
 				reset: () => false,
 				teardown: () => true
 			};
@@ -318,7 +314,7 @@ test( 'display a collection from a model', function ( t ) {
 
 	new Ractive({
 		el: fixture,
-		template: `{{#each store.getItems() }}-{{ this.name }}{{/each}}`,
+		template: `{{#each store.items }}-{{ this.name }}{{/each}}`,
 		data: { store },
 		adapt: [ 'ModelAdaptor', 'CollectionAdaptor' ]
 	});
