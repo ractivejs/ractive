@@ -33,7 +33,7 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 
 			if ( key === fragment.parent.indexRef ) {
 				if ( keys.length > 1 ) badReference( key );
-				return fragment.context.getIndexModel();
+				return fragment.context.getIndexModel( fragment.index );
 			}
 		}
 

@@ -165,10 +165,13 @@ export default class Model {
 		return this.value;
 	}
 
-	getIndexModel () {
+	getIndexModel ( fragmentIndex ) {
 		const indexModels = this.parent.indexModels;
 
-		if ( !indexModels[ this.key ] ) {
+		// non-numeric keys are a special of a numeric index in a object iteration
+		if ( typeof this.key === 'string' && fragmentIndex !== undefined ) {
+			return new KeyModel( fragmentIndex );
+		} else if ( !indexModels[ this.key ] ) {
 			indexModels[ this.key ] = new KeyModel( this.key );
 		}
 
