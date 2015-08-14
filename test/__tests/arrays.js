@@ -312,7 +312,7 @@ function removedElementsTest ( action, fn ) {
 		let ractive = new Ractive({
 			debug: true,
 			el: fixture,
-			template: '{{#options}}{{.get(this)}}{{/options}}',
+			template: '{{#options}}{{get(this)}}{{/options}}',
 			data: {
 				options: [ 'a', 'b', 'c' ],
 				get: function ( item ){

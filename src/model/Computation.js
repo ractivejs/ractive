@@ -63,6 +63,8 @@ export default class Computation extends Model {
 		this.childByKey = {};
 
 		this.deps = [];
+
+		this.boundsSensitive = true;
 	}
 
 	get ( shouldCapture ) {
