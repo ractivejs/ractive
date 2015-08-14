@@ -744,6 +744,15 @@ test( 'Partials from the template hierarchy should take precedent over reference
 	t.htmlEqual( fixture.innerHTML, '<p> abc c</p>' );
 });
 
+test( 'Partial names can have slashes', t => {
+	new Ractive({
+		el: fixture,
+		template: '<p>{{#partial foo/bar}}foobar{{/partial}}{{> foo/bar}}</p>'
+	});
+
+	t.htmlEqual( '<p>foobar</p>', fixture.innerHTML );
+});
+
 test( 'Several inline partials containing elements can be defined (#1736)', t => {
 	var ractive = new Ractive({
 		el: fixture,
