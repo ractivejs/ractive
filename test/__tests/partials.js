@@ -714,7 +714,34 @@ test( 'Named partials should not get rebound if they happen to have the same nam
 	ractive.push( 'items', { item: 'b' } );
 	ractive.push( 'items', { item: 'c' } );
 
-	t.htmlEqual( fixture.innerHTML, 'abcc' );
+	t.htmlEqual( fixture.innerHTML, 'abc c' );
+});
+
+test( 'Partials from the template hierarchy should take precedent over references', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: `<p>
+			{{#partial item}}{{item}}{{/partial}}
+			{{#each items}}
+				{{>item}}
+			{{/each}}
+
+			{{#if items.length > 1}}
+				{{#with items[items.length-1]}}
+					{{>item}}
+				{{/with}}
+			{{/if}}
+		</p>`,
+		data: {
+			items: []
+		}
+	});
+
+	ractive.push( 'items', { item: 'a' } );
+	ractive.push( 'items', { item: 'b' } );
+	ractive.push( 'items', { item: 'c' } );
+
+	t.htmlEqual( fixture.innerHTML, '<p> abc c</p>' );
 });
 
 test( 'Several inline partials containing elements can be defined (#1736)', t => {
