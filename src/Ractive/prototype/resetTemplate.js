@@ -35,6 +35,7 @@ export default function Ractive$resetTemplate ( template ) {
 		root: this,
 		owner: this
 	});
+	this.fragment.bind( this.viewmodel );
 
 	this.render( this.el, this.anchor );
 
