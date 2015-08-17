@@ -7,6 +7,7 @@ import proto from 'Ractive/prototype';
 import Promise from 'utils/Promise';
 import extend from 'extend/_extend';
 import parse from 'parse/_parse';
+import makeKey from 'Ractive/static/makeKey';
 import getNodeInfo from 'Ractive/static/getNodeInfo';
 import initialise from 'Ractive/initialise';
 
@@ -30,6 +31,7 @@ properties = {
 	extend:         { value: extend },
 	getNodeInfo:    { value: getNodeInfo },
 	parse:          { value: parse },
+	makeKey:        { value: makeKey },
 
 	// Namespaced constructors
 	Promise:        { value: Promise },
