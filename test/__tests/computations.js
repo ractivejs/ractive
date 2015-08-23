@@ -467,7 +467,7 @@ test( 'Computed values are only computed as necessary', function ( t ) {
 	t.deepEqual( count, { foo: 2, bar: 2, baz: 2, qux: 1 });
 
 	ractive.set( 'str', 'How Long Is A Piece Of String' );
-	t.deepEqual( count, { foo: 3, bar: 2, baz: 3, qux: 1 });
+	t.deepEqual( count, { foo: 3, bar: 3, baz: 3, qux: 1 });
 });
 
 test( 'What happens if you access a computed property in data config?', t => {
