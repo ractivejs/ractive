@@ -265,7 +265,7 @@ var parseTests = [
 	{
 		name: 'Intro and outro with simple parameters',
 		template: '<div intro="fade:400" outro="fade:fast"></div>',
-		parsed: {v:3,t:[{t:7,e:'div',t1:{a:[400],n:'fade'},t2:{a:'fast',n:'fade'}}]}
+		parsed: {v:3,t:[{t:7,e:'div',t1:{a:[400],n:'fade'},t2:{a:['fast'],n:'fade'}}]}
 	},
 	{
 		name: 'Intro and outro with JSON parameters',
