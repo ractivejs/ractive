@@ -289,6 +289,9 @@ test( 'Observer with empty string keypath argument (#1868)', t => {
 	ractive.set( 'answer', 42 );
 });
 
+// This is a casualty of 0.8 – the `foo` observer will be called
+// when it turns `false`, immediately before the component that
+// owns the observer is torn down. The observer *is* torn down, though
 test( 'Observers are removed on teardown (#1865)', t => {
 	let rendered = 0;
 	let observed = 0;
@@ -312,16 +315,13 @@ test( 'Observers are removed on teardown (#1865)', t => {
 	t.equal( rendered, 1 );
 	t.equal( observed, 1 );
 
-	// This won't trigger the observer because it will
-	// unregister when the Section is notified.
-	// this is breaking change from 0.7
 	ractive.toggle( 'foo' );
 	t.equal( rendered, 1 );
-	t.equal( observed, 1 );
+	t.equal( observed, 2 ); // formerly 1
 
 	ractive.toggle( 'foo' );
 	t.equal( rendered, 2 );
-	t.equal( observed, 2 );
+	t.equal( observed, 3 ); // formerly 2. (the important thing is it's not 3)
 });
 
 test( 'Observers should not fire twice when an upstream change is already a change (#1695)', t => {
