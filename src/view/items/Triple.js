@@ -64,7 +64,7 @@ export default class Triple extends Mustache {
 	}
 
 	rebind () {
-		throw new Error( 'Triple$rebind is not yet implemented!' ); // TODO test
+		// noop
 	}
 
 	render ( target ) {
