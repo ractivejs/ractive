@@ -232,10 +232,11 @@ export default class Element extends Item {
 
 		this.attributes.forEach( render );
 		this.conditionalAttributes.forEach( render );
-		this.eventHandlers.forEach( render );
 
 		if ( this.decorator ) runloop.scheduleTask( () => this.decorator.render(), true );
 		if ( this.binding ) this.binding.render();
+
+		this.eventHandlers.forEach( render );
 
 		updateLiveQueries( this );
 
