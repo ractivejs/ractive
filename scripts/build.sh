@@ -35,7 +35,7 @@ set -e
 
 # run the tests
 echo "> running tests..."
-# ./scripts/test.sh
+./scripts/test.sh
 
 # if the tests passed, copy to the build folder...
 echo "> tests passed. minifying..."
