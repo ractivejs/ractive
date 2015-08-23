@@ -56,9 +56,10 @@ export default class Element extends Item {
 
 				this.attributeByName[ name ] = attribute;
 
-				if ( name !== 'value' )	this.attributes.push( attribute );
+				if ( name !== 'value' && name !== 'type' ) this.attributes.push( attribute );
 			});
 
+			if ( this.attributeByName.type ) this.attributes.unshift( this.attributeByName.type );
 			if ( this.attributeByName.value ) this.attributes.push( this.attributeByName.value );
 		}
 

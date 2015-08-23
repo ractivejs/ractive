@@ -45,7 +45,7 @@ export default class EventHandler {
 
 			this.resolvers = [];
 			this.models = template.a.r.map( ( ref, i ) => {
-				if ( /^event\.?/.test( ref ) ) {
+				if ( /^event(?:\.(.+))?$/.test( ref ) ) {
 					// on-click="foo(event.node)"
 					return {
 						event: true,
