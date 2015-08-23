@@ -10,7 +10,6 @@ test( 'Works across component boundary', t => {
 	const ractive = new Ractive({
 	    el: fixture,
 	    template: `<input value='{{foo.bar}}'/><widget bar='{{foo.bar}}'/>`,
-	    twoway: false,
 	    data: {
 	        foo: {
 	            bar: 'change me'
@@ -25,6 +24,6 @@ test( 'Works across component boundary', t => {
 	ractive.updateModel( 'foo' );
 	t.equal( ractive.get( 'foo.bar' ), 'changed' );
 
-	t.equal( fixture.innerHTML, '<input value="change me">changed' );
+	t.equal( fixture.innerHTML, '<input value="changed">changed' );
 	t.equal( ractive.findComponent( 'widget' ).get( 'bar' ), 'changed' );
 });
