@@ -14,7 +14,7 @@ It's a JavaScript library for building reactive user interfaces in a way that do
 
 ...among many others. It takes a radically different approach to DOM manipulation - one that saves both you and the browser unnecessary work.
 
-To get a feel for how it will make your life as a web developer easier, visit [ractivejs.org](http://ractivejs.org), follow the [interactive tutorials](http://learn.ractivejs.org), or try the [60 second setup](https://github.com/ractivejs/ractive/wiki/60-second-setup).
+To get a feel for how it will make your life as a web developer easier, visit [ractivejs.org](http://ractivejs.org), follow the [interactive tutorials](http://learn.ractivejs.org), or try the [60 second setup](http://ractivejs.org/60-second-setup).
 
 
 ## Get help
@@ -74,7 +74,7 @@ Tested successfully in IE8+ and all modern browsers. If your experience differs 
 
 ## License
 
-Copyright (c) 2012-14 Rich Harris and contributors. Released under an [MIT license](https://github.com/ractivejs/ractive/blob/master/LICENSE.md).
+Copyright (c) 2012-15 Rich Harris and contributors. Released under an [MIT license](https://github.com/ractivejs/ractive/blob/master/LICENSE.md).
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/RactiveJS/ractive/trend.png)](https://bitdeli.com/free "Bitdeli Badge")

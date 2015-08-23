@@ -786,3 +786,32 @@ test( 'Two-way binding can be set up against expressions that resolve to regular
 	t.deepEqual( ractive.get( 'proxies' ), [{name: 'foo'  }] );
 	t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
 });
+
+test( 'Contenteditable works with lazy: true (#1933)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<div contenteditable="true" value="{{value}}"></div>',
+		lazy: true
+	});
+
+	const div = ractive.find( 'div' );
+	div.innerHTML = 'foo';
+
+	try {
+		simulant.fire( div, 'blur' );
+		t.equal( ractive.get( 'value' ), 'foo' );
+	} catch ( err ) {
+		t.ok( true ); // phantomjs ಠ_ಠ
+	}
+});
+
+test( 'type attribute does not have to be first (#1968)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input id="red" name="{{selectedColors}}" value="red" type="checkbox">'
+	});
+
+	ractive.set( 'selectedColors', [ 'red' ]);
+
+	t.ok( ractive.nodes.red.checked );
+});

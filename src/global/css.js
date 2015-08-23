@@ -1,4 +1,5 @@
 import { isClient } from 'config/environment';
+import noop from 'utils/noop';
 
 var css,
 	update,
@@ -11,7 +12,11 @@ var css,
 	dirty = false;
 
 if ( !isClient ) {
-	css = null;
+	// TODO handle encapsulated CSS in server-rendered HTML!
+	css = {
+		add: noop,
+		apply: noop
+	};
 } else {
 	styleElement = document.createElement( 'style' );
 	styleElement.type = 'text/css';

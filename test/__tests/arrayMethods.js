@@ -293,3 +293,18 @@ test( 'shifting an empty array', t => {
 
 	ractive.shift( 'items' );
 });
+
+
+test( 'splice with one argument (#1943)', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{#items}}{{this}}{{/}}',
+		data: {
+			items: [ 1, 2, 3 ]
+		}
+	});
+
+	ractive.splice( 'items', 1 );
+
+	t.htmlEqual( fixture.innerHTML, '1' );
+});
