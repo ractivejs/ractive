@@ -23,14 +23,6 @@ export default class RootModel extends Model {
 
 		this.computationContext = options.ractive;
 		this.computations = {};
-
-		if ( options.computations ) {
-			Object.keys( options.computations ).forEach( key => {
-				const signature = options.computations[ key ];
-				const computation = this.compute( key, signature );
-				computation.init();
-			});
-		}
 	}
 
 	applyChanges () {
