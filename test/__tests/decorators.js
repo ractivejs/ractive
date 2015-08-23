@@ -175,11 +175,8 @@ test( 'Unnecessary whitespace is trimmed (#810)', function ( t ) {
 		template: '<pre decorator="show: blue is the moon   "/><pre decorator="show:\' blue is the moon   \'"/>',
 		decorators: {
 			show: function ( node, arg ) {
-				node.innerHTML = typeof arg === 'string'
-					? '|' + arg + '|'
-					: JSON.stringify(arg)
-
-				return { teardown: Function.prototype }
+				node.innerHTML = `|${arg}|`;
+				return { teardown () {} };
 			}
 		}
 	});

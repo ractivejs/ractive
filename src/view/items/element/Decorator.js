@@ -34,7 +34,7 @@ export default class Decorator {
 				template: template.d
 			});
 		} else {
-			this.args = template.a ? [ template.a ] : [];
+			this.args = template.a || [];
 		}
 
 		this.node = null;
