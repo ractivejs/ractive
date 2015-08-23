@@ -1,3 +1,4 @@
+import runloop from 'global/runloop';
 import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 import { COMPONENT, INTERPOLATOR, YIELDER } from 'config/types';
 import Item from './shared/Item';
@@ -160,6 +161,7 @@ export default class Component extends Item {
 	checkYielders () {
 		Object.keys( this.yielders ).forEach( name => {
 			if ( this.yielders[ name ].length > 1 ) {
+				runloop.end();
 				throw new Error( `A component template can only have one {{yield${name ? ' ' + name : ''}}} declaration at a time` );
 			}
 		});
