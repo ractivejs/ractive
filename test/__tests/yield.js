@@ -138,14 +138,16 @@ test( 'A component {{yield}} can be rerendered in list section block', function 
 
 	const ractive = new Ractive({
 		el: fixture,
-		template: '<Widget>yield</Widget>',
+		template: '<Widget>YIELDED</Widget>',
 		components: { Widget },
 		data: { items: [ 'a', 'b', 'c' ] }
 	});
 
+	t.htmlEqual( fixture.innerHTML, 'ab:YIELDED:c' );
+
 	ractive.merge('items', [ 'c', 'a' ] );
 
-	t.htmlEqual( fixture.innerHTML, 'cayield' );
+	t.htmlEqual( fixture.innerHTML, 'ca:YIELDED:' );
 });
 
 test( 'A component {{yield}} should be parented by the fragment holding the yield and not the fragment holding the component', t => {

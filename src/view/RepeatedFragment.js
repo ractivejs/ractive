@@ -357,11 +357,11 @@ export default class RepeatedFragment {
 			}
 		}
 
-		this.iterations.forEach( update );
-
 		if ( docFrag.childNodes.length ) {
 			parentNode.insertBefore( docFrag, this.owner.findNextNode() );
 		}
+
+		this.iterations.forEach( update );
 
 		this.pendingNewIndices = null;
 	}
