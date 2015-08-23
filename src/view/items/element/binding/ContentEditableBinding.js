@@ -12,6 +12,7 @@ export default class ContentEditableBinding extends Binding {
 		const node = this.node;
 
 		node.addEventListener( 'change', handleDomEvent, false );
+		node.addEventListener( 'blur', handleDomEvent, false );
 
 		if ( !this.ractive.lazy ) {
 			node.addEventListener( 'input', handleDomEvent, false );
@@ -25,6 +26,7 @@ export default class ContentEditableBinding extends Binding {
 	unrender () {
 		const node = this.node;
 
+		node.removeEventListener( 'blur', handleDomEvent, false );
 		node.removeEventListener( 'change', handleDomEvent, false );
 		node.removeEventListener( 'input', handleDomEvent, false );
 		node.removeEventListener( 'keyup', handleDomEvent, false );
