@@ -1,7 +1,7 @@
 import defaults from 'Ractive/config/defaults';
 import easing from 'Ractive/static/easing';
 import interpolators from 'Ractive/static/interpolators';
-import { magic, svg } from 'config/environment';
+import { magic, svg, win } from 'config/environment';
 import { defineProperties, extend as extendObj } from 'utils/object';
 import proto from 'Ractive/prototype';
 import Promise from 'utils/Promise';
@@ -25,7 +25,7 @@ if (
 	typeof Array.prototype.forEach !== FUNCTION  ||
 	typeof Array.prototype.map !== FUNCTION      ||
 	typeof Array.prototype.filter !== FUNCTION   ||
-	( typeof window !== 'undefined' && typeof window.addEventListener !== FUNCTION )
+	( win && typeof win.addEventListener !== FUNCTION )
 ) {
 	throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
 }

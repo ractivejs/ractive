@@ -1,3 +1,4 @@
+import { win } from 'config/environment';
 import legacy from 'legacy';
 import { isArray } from 'utils/is';
 import prefix from './transitions/prefix';
@@ -11,7 +12,7 @@ import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
 import Promise from 'utils/Promise';
 
-const getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
+const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
 const resolved = Promise.resolve();
 
 export default class Transition {

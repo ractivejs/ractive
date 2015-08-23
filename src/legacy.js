@@ -1,17 +1,12 @@
+import { win, doc } from 'config/environment';
 import noop from 'utils/noop';
 
-var win, doc, exportedShims;
+var exportedShims;
 
-if ( typeof window === 'undefined' ) {
+if ( !win ) {
 	exportedShims = null;
 } else {
-	win = window;
-	doc = win.document;
 	exportedShims = {};
-
-	if ( !doc ) {
-		exportedShims = null;
-	}
 
 	// Shims for older browsers
 

@@ -1,4 +1,4 @@
-import { isClient, svg, vendors } from 'config/environment';
+import { isClient, svg, vendors, win, doc } from 'config/environment';
 import { html } from 'config/namespaces';
 
 var createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
@@ -10,15 +10,15 @@ if ( !svg ) {
 			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
 		}
 
-		return document.createElement( type );
+		return doc.createElement( type );
 	};
 } else {
 	createElement = function ( type, ns ) {
 		if ( !ns || ns === html ) {
-			return document.createElement( type );
+			return doc.createElement( type );
 		}
 
-		return document.createElementNS( ns, type );
+		return doc.createElementNS( ns, type );
 	};
 }
 
@@ -27,7 +27,7 @@ function getElement ( input ) {
 
 	if ( !input || typeof input === 'boolean' ) { return; }
 
-	if ( typeof window === 'undefined' || !document || !input ) {
+	if ( !win || !doc || !input ) {
 		return null;
 	}
 
@@ -39,11 +39,11 @@ function getElement ( input ) {
 	// Get node from string
 	if ( typeof input === 'string' ) {
 		// try ID first
-		output = document.getElementById( input );
+		output = doc.getElementById( input );
 
 		// then as selector, if possible
-		if ( !output && document.querySelector ) {
-			output = document.querySelector( input );
+		if ( !output && doc.querySelector ) {
+			output = doc.querySelector( input );
 		}
 
 		// did it work?

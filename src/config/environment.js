@@ -1,12 +1,13 @@
 /*global console, navigator */
 
-export const isClient = ( typeof document === 'object' );
+const win = typeof window !== 'undefined' ? window : null;
+const doc = win ? document : null;
 
-export const isJsdom = ( typeof navigator !== 'undefined' && /jsDom/.test( navigator.appName ) );
+const isClient = !!doc;
+const isJsdom = ( typeof navigator !== 'undefined' && /jsDom/.test( navigator.appName ) );
+const hasConsole = ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' );
 
-export const hasConsole = ( typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function' );
-
-export let magic;
+let magic;
 try {
 	Object.defineProperty({}, 'test', { value: 0 });
 	magic = true;
@@ -14,11 +15,13 @@ try {
 	magic = false;
 }
 
-export let svg;
+let svg;
 if ( typeof document === 'undefined' ) {
 	svg = false;
 } else {
 	svg = document && document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
 }
 
-export const vendors = [ 'o', 'ms', 'moz', 'webkit' ];
+const vendors = [ 'o', 'ms', 'moz', 'webkit' ];
+
+export { win, doc, isClient, isJsdom, hasConsole, magic, svg, vendors };

@@ -1,12 +1,12 @@
-import { vendors } from 'config/environment';
+import { win, doc, vendors } from 'config/environment';
 
 export let visible;
 let hidden = 'hidden';
 
-if ( typeof document !== 'undefined' ) {
+if ( doc ) {
 	let prefix;
 
-	if ( hidden in document ) {
+	if ( hidden in doc ) {
 		prefix = '';
 	} else {
 		let i = vendors.length;
@@ -14,9 +14,9 @@ if ( typeof document !== 'undefined' ) {
 			const vendor = vendors[i];
 			hidden = vendor + 'Hidden';
 
-			if ( hidden in document ) {
+			if ( hidden in doc ) {
 				prefix = vendor;
-				document.addEventListener( prefix + 'visibilitychange', onChange );
+				doc.addEventListener( prefix + 'visibilitychange', onChange );
 				onChange();
 
 				break;
@@ -25,26 +25,26 @@ if ( typeof document !== 'undefined' ) {
 	}
 
 	if ( prefix === undefined ) {
-        // gah, we're in an old browser
-        if ( 'onfocusout' in document ) {
-        	document.addEventListener( 'focusout', onHide );
-        	document.addEventListener( 'focusin', onShow );
-        }
+		// gah, we're in an old browser
+		if ( 'onfocusout' in doc ) {
+			doc.addEventListener( 'focusout', onHide );
+			doc.addEventListener( 'focusin', onShow );
+		}
 
-        else {
-        	window.addEventListener( 'pagehide', onHide );
-        	window.addEventListener( 'blur', onHide );
+		else {
+			win.addEventListener( 'pagehide', onHide );
+			win.addEventListener( 'blur', onHide );
 
-        	window.addEventListener( 'pageshow', onShow );
-        	window.addEventListener( 'focus', onShow );
-        }
+			win.addEventListener( 'pageshow', onShow );
+			win.addEventListener( 'focus', onShow );
+		}
 
-        visible = true; // until proven otherwise. Not ideal but hey
-    }
+		visible = true; // until proven otherwise. Not ideal but hey
+	}
 }
 
 function onChange () {
-	visible = !document[ hidden ];
+	visible = !doc[ hidden ];
 }
 
 function onHide () {

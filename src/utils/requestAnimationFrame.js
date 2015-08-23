@@ -1,28 +1,28 @@
-import { vendors } from 'config/environment';
+import { vendors, win } from 'config/environment';
 
 var requestAnimationFrame;
 
 // If window doesn't exist, we don't need requestAnimationFrame
-if ( typeof window === 'undefined' ) {
+if ( !win ) {
 	requestAnimationFrame = null;
 } else {
 	// https://gist.github.com/paulirish/1579671
-	(function(vendors, lastTime, window) {
+	(function(vendors, lastTime, win) {
 
 		var x, setTimeout;
 
-		if ( window.requestAnimationFrame ) {
+		if ( win.requestAnimationFrame ) {
 			return;
 		}
 
-		for ( x = 0; x < vendors.length && !window.requestAnimationFrame; ++x ) {
-			window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+		for ( x = 0; x < vendors.length && !win.requestAnimationFrame; ++x ) {
+			win.requestAnimationFrame = win[vendors[x]+'RequestAnimationFrame'];
 		}
 
-		if ( !window.requestAnimationFrame ) {
-			setTimeout = window.setTimeout;
+		if ( !win.requestAnimationFrame ) {
+			setTimeout = win.setTimeout;
 
-			window.requestAnimationFrame = function(callback) {
+			win.requestAnimationFrame = function(callback) {
 				var currTime, timeToCall, id;
 
 				currTime = Date.now();
@@ -34,9 +34,9 @@ if ( typeof window === 'undefined' ) {
 			};
 		}
 
-	}( vendors, 0, window ));
+	}( vendors, 0, win ));
 
-	requestAnimationFrame = window.requestAnimationFrame;
+	requestAnimationFrame = win.requestAnimationFrame;
 }
 
 export default requestAnimationFrame;
