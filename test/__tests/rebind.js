@@ -2,8 +2,9 @@ import Fragment from 'view/Fragment';
 import Element from 'view/items/Element';
 import Triple from 'view/items/Triple';
 import { TRIPLE } from 'config/types';
+import cleanup from 'helpers/cleanup';
 
-module( 'rebind' );
+module( 'rebind', { afterEach: cleanup });
 
 const test = QUnit.test; // necessary due to a bug in esperanto
 
@@ -26,15 +27,16 @@ test('Section with item that has expression only called once when created', func
 
 test('Section with item index ref expression changes correctly', function(t){
 	var ractive = new Ractive({
-			el: fixture,
-			template: '{{#items:i}}{{format(.,i)}},{{/items}}',
-			data: {
-				items: [1,2,3,4,5],
-				format: function(x,i){
-					return x+i;
-				}
+		el: fixture,
+		template: '{{#items:i}}{{format(.,i)}},{{/items}}',
+		data: {
+			items: [1,2,3,4,5],
+			format: function(x,i){
+				console.trace( 'x, i', x, i )
+				return x+i;
 			}
-		});
+		}
+	});
 
 	t.htmlEqual( fixture.innerHTML, '1,3,5,7,9,');
 
