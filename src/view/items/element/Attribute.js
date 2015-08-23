@@ -101,6 +101,7 @@ export default class Attribute extends Item {
 
 	toString () {
 		if ( this.isEmpty ) return '';
+		if ( this.getValue() == null ) return '';
 
 		// Special case - select and textarea values (should not be stringified)
 		if ( this.name === 'value' && ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
