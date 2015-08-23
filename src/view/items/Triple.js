@@ -63,10 +63,6 @@ export default class Triple extends Mustache {
 		return this.nodes[0];
 	}
 
-	rebind () {
-		// noop
-	}
-
 	render ( target ) {
 		const html = this.model ? this.model.get() : '';
 		this.nodes = insertHtml( html, this.parentFragment.findParentNode(), target );
