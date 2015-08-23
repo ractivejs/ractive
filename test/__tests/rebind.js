@@ -66,24 +66,24 @@ test('Section updates child keypath expression', function(t){
 })
 
 test('Section with nested sections and inner context does splice()', function(t){
-	var template = '{{#model:i}}{{#thing}}' +
-						'{{# .inner.length > 1}}' +
-							'<p>{{{format(inner)}}}</p>' +
-						'{{/ inner}}' +
-					'{{/thing}}{{/model}}'
-	var called = 0;
+	let called = 0;
 
-	var ractive = new Ractive({
-			el: fixture,
-			template: template,
-			data: {
-				model: [ { thing: { inner: [3,4] } } ],
-				format: function(a){
-					called++;
-					return a;
-				}
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#model:i}}{{#thing}}
+				{{# .inner.length > 1}}
+					<p>{{{format(inner)}}}</p>
+				{{/ inner}}
+			{{/thing}}{{/model}}`,
+		data: {
+			model: [ { thing: { inner: [3,4] } } ],
+			format: function(a){
+				called++;
+				return a;
 			}
-		});
+		}
+	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>3,4</p>');
 	ractive.splice( 'model', 0, 0, { thing: { inner: [ 1, 2 ] } } );
