@@ -5,7 +5,7 @@ try {
 
 	magicAdaptor = {
 		filter ( value ) {
-			return typeof value === 'object';
+			return value && typeof value === 'object';
 		},
 		wrap ( ractive, value, keypath ) {
 			return new MagicWrapper( ractive, value, keypath );
