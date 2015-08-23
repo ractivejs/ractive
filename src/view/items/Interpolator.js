@@ -1,3 +1,4 @@
+import { doc } from 'config/environment';
 import { escapeHtml } from 'utils/html';
 import { safeToStringValue } from 'utils/dom';
 import Mustache from './shared/Mustache';
@@ -17,7 +18,7 @@ export default class Interpolator extends Mustache {
 
 	render ( target ) {
 		this.rendered = true;
-		this.node = document.createTextNode( this.getString() );
+		this.node = doc.createTextNode( this.getString() );
 
 		target.appendChild( this.node );
 	}

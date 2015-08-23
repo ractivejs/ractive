@@ -1,4 +1,5 @@
 import Fragment from './Fragment';
+import { createDocumentFragment } from 'utils/dom';
 import { isArray, isObject } from 'utils/is';
 import { toEscapedString, toString, unbind, unrender, unrenderAndDestroy, update } from 'shared/methodCallers';
 
@@ -95,7 +96,7 @@ export default class RepeatedFragment {
 	}
 
 	detach () {
-		const docFrag = document.createDocumentFragment();
+		const docFrag = createDocumentFragment();
 		this.iterations.forEach( fragment => docFrag.appendChild( fragment.detach() ) );
 		return docFrag;
 	}
@@ -265,7 +266,7 @@ export default class RepeatedFragment {
 				0;
 
 		if ( newLength > this.iterations.length ) {
-			const docFrag = document.createDocumentFragment();
+			const docFrag = createDocumentFragment();
 			let i = this.iterations.length;
 
 			if ( isArray( value ) ) {
@@ -326,7 +327,7 @@ export default class RepeatedFragment {
 		});
 
 		// create new iterations
-		const docFrag = document.createDocumentFragment();
+		const docFrag = createDocumentFragment();
 		const parentNode = this.parent.findParentNode();
 
 		const len = this.context.get().length;

@@ -1,4 +1,4 @@
-import { matches } from 'utils/dom';
+import { createDocumentFragment, matches } from 'utils/dom';
 import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
 import { decodeCharacterReferences } from 'utils/html';
@@ -9,7 +9,7 @@ export default class Triple extends Mustache {
 	}
 
 	detach () {
-		const docFrag = document.createDocumentFragment();
+		const docFrag = createDocumentFragment();
 		this.nodes.forEach( node => docFrag.appendChild( node ) );
 		return docFrag;
 	}
@@ -79,7 +79,7 @@ export default class Triple extends Mustache {
 	update () {
 		if ( this.dirty ) {
 			this.unrender();
-			const docFrag = document.createDocumentFragment();
+			const docFrag = createDocumentFragment();
 			this.render( docFrag );
 
 			const parentNode = this.parentFragment.findParentNode();

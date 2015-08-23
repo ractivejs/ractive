@@ -1,3 +1,4 @@
+import { doc } from 'config/environment';
 import css from 'global/css';
 import Hook from 'events/Hook';
 import { getElement } from 'utils/dom';
@@ -30,7 +31,7 @@ export default function render ( ractive, target, anchor ) {
 		( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( ractive );
 
 		if ( anchor ) {
-			const docFrag = document.createDocumentFragment();
+			const docFrag = doc.createDocumentFragment();
 			ractive.fragment.render( docFrag );
 			target.insertBefore( docFrag, anchor );
 		} else {

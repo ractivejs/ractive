@@ -1,3 +1,4 @@
+import { doc } from 'config/environment';
 import { TEXT } from 'config/types';
 import { escapeHtml } from 'utils/html';
 import Item from './shared/Item';
@@ -28,7 +29,7 @@ export default class Text extends Item {
 	}
 
 	render ( target ) {
-		this.node = document.createTextNode( this.template );
+		this.node = doc.createTextNode( this.template );
 		target.appendChild( this.node );
 	}
 

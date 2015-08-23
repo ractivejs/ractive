@@ -1,3 +1,4 @@
+import { createDocumentFragment } from 'utils/dom';
 import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_UNLESS, SECTION_WITH } from 'config/types';
 import { isArray, isObject } from 'utils/is';
 import Fragment from '../Fragment';
@@ -78,7 +79,7 @@ export default class Section extends Mustache {
 	}
 
 	detach () {
-		return this.fragment ? this.fragment.detach() : document.createDocumentFragment();
+		return this.fragment ? this.fragment.detach() : createDocumentFragment();
 	}
 
 	find ( selector ) {
@@ -224,7 +225,7 @@ export default class Section extends Mustache {
 				const anchor = this.parentFragment.findNextNode( this );
 
 				if ( anchor ) {
-					const docFrag = document.createDocumentFragment();
+					const docFrag = createDocumentFragment();
 					newFragment.render( docFrag );
 
 					// we use anchor.parentNode, not parentNode, because the sibling

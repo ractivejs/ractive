@@ -15,12 +15,9 @@ try {
 	magic = false;
 }
 
-let svg;
-if ( typeof document === 'undefined' ) {
-	svg = false;
-} else {
-	svg = document && document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
-}
+const svg = doc ?
+	doc.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' ) :
+	false;
 
 const vendors = [ 'o', 'ms', 'moz', 'webkit' ];
 

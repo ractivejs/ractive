@@ -1,4 +1,4 @@
-import { isClient } from 'config/environment';
+import { doc } from 'config/environment';
 import { createElement } from 'utils/dom';
 import 'legacy';
 
@@ -7,8 +7,8 @@ var create, defineProperty, defineProperties;
 try {
 	Object.defineProperty({}, 'test', { value: 0 });
 
-	if ( isClient ) {
-		Object.defineProperty( document.createElement( 'div' ), 'test', { value: 0 });
+	if ( doc ) {
+		Object.defineProperty( createElement( 'div' ), 'test', { value: 0 });
 	}
 
 	defineProperty = Object.defineProperty;
@@ -28,7 +28,7 @@ try {
 		throw err;
 	}
 
-	if ( isClient ) {
+	if ( doc ) {
 		Object.defineProperties( createElement( 'div' ), { test: { value: 0 } });
 	}
 

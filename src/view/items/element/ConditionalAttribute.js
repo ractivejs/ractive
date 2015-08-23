@@ -1,14 +1,11 @@
+import { doc } from 'config/environment';
 import { svg } from 'config/namespaces';
 import { createElement } from 'utils/dom';
 import { toArray } from 'utils/array';
 import Fragment from 'view/Fragment';
 import Item from '../shared/Item';
 
-let div;
-
-if ( typeof document !== 'undefined' ) {
-	div = createElement( 'div' );
-}
+const div = doc ? createElement( 'div' ) : null;
 
 export default class ConditionalAttribute extends Item {
 	constructor ( options ) {

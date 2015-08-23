@@ -22,6 +22,10 @@ if ( !svg ) {
 	};
 }
 
+export function createDocumentFragment () {
+	return doc.createDocumentFragment();
+}
+
 function getElement ( input ) {
 	var output;
 

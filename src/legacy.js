@@ -351,13 +351,13 @@ if ( !win ) {
 
 				// `thin`, `medium` and `thick` vary between browsers. (Don't ever use them.)
 				if ( !borderSizes[ size ] ) {
-					div = document.createElement( 'div' );
+					div = doc.createElement( 'div' );
 					div.style.display = 'block';
 					div.style.position = 'fixed';
 					div.style.width = div.style.height = '0';
 					div.style.borderRight = size + ' solid black';
 
-					document.getElementsByTagName( 'body' )[0].appendChild( div );
+					doc.getElementsByTagName( 'body' )[0].appendChild( div );
 					bcr = div.getBoundingClientRect();
 
 					borderSizes[ size ] = bcr.right - bcr.left;

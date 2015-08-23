@@ -5,6 +5,7 @@ import ReferenceResolver from './resolvers/ReferenceResolver';
 import { bind, rebind, toEscapedString, toString, unbind, unrender, update } from 'shared/methodCallers';
 import processItems from './helpers/processItems';
 import parseJSON from 'utils/parseJSON';
+import { createDocumentFragment } from 'utils/dom';
 
 function unrenderAndDestroy ( item ) {
 	item.unrender( true );
@@ -75,7 +76,7 @@ export default class Fragment {
 	}
 
 	detach () {
-		const docFrag = document.createDocumentFragment();
+		const docFrag = createDocumentFragment();
 		this.items.forEach( item => docFrag.appendChild( item.detach() ) );
 		return docFrag;
 	}
@@ -245,7 +246,7 @@ export default class Fragment {
 				const anchor = this.parent ? this.parent.findNextNode( this.owner ) : null;
 
 				if ( anchor ) {
-					const docFrag = document.createDocumentFragment();
+					const docFrag = createDocumentFragment();
 					this.render( docFrag );
 					parentNode.insertBefore( docFrag, anchor );
 				} else {

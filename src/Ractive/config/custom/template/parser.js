@@ -1,4 +1,4 @@
-import { isClient } from 'config/environment';
+import { doc } from 'config/environment';
 import parse from 'parse/_parse';
 import { create } from 'utils/object';
 
@@ -33,7 +33,7 @@ function doParse ( template, parseOptions ) {
 function fromId ( id, options ) {
 	var template;
 
-	if ( !isClient ) {
+	if ( !doc ) {
 		if ( options && options.noThrow ) { return; }
 		throw new Error( `Cannot retrieve template #${id} as Ractive is not running in a browser.` );
 	}
@@ -42,7 +42,7 @@ function fromId ( id, options ) {
 		id = id.substring( 1 );
 	}
 
-	if ( !( template = document.getElementById( id ) )) {
+	if ( !( template = doc.getElementById( id ) )) {
 		if ( options && options.noThrow ) { return; }
 		throw new Error( `Could not find template element with id #${id}` );
 	}
