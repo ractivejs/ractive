@@ -108,7 +108,8 @@ export default class Component extends Item {
 						let model = resolve( this.parentFragment, template[0] );
 
 						if ( !model ) {
-							warnOnceIfDebug( `The ${localKey}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.instance });
+							warnOnceIfDebug( `The ${localKey}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.instance }); // TODO add docs page explaining this
+							this.parentFragment.ractive.get( localKey ); // side-effect: create mappings as necessary
 							model = this.parentFragment.findContext().joinKey( localKey );
 						}
 
@@ -218,6 +219,7 @@ export default class Component extends Item {
 					if ( !model ) {
 						// TODO is this even possible?
 						warnOnceIfDebug( `The ${localKey}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.instance });
+						this.parentFragment.ractive.get( localKey ); // side-effect: create mappings as necessary
 						model = this.parentFragment.findContext().joinKey( localKey );
 					}
 
