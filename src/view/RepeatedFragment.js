@@ -266,7 +266,7 @@ export default class RepeatedFragment {
 				0;
 
 		if ( newLength > this.iterations.length ) {
-			const docFrag = createDocumentFragment();
+			const docFrag = this.rendered ? createDocumentFragment() : null;
 			let i = this.iterations.length;
 
 			if ( isArray( value ) ) {
@@ -274,7 +274,7 @@ export default class RepeatedFragment {
 					const fragment = this.createIteration( i, i );
 
 					this.iterations.push( fragment );
-					fragment.render( docFrag );
+					if ( this.rendered ) fragment.render( docFrag );
 
 					i += 1;
 				}
@@ -286,17 +286,19 @@ export default class RepeatedFragment {
 						const fragment = this.createIteration( key, i );
 
 						this.iterations.push( fragment );
-						fragment.render( docFrag );
+						if ( this.rendered ) fragment.render( docFrag );
 
 						i += 1;
 					}
 				});
 			}
 
-			const parentNode = this.parent.findParentNode();
-			const anchor = this.parent.findNextNode( this );
+			if ( this.rendered ) {
+				const parentNode = this.parent.findParentNode();
+				const anchor = this.parent.findNextNode( this );
 
-			parentNode.insertBefore( docFrag, anchor );
+				parentNode.insertBefore( docFrag, anchor );
+			}
 		}
 	}
 
@@ -327,8 +329,10 @@ export default class RepeatedFragment {
 		});
 
 		// create new iterations
-		const docFrag = createDocumentFragment();
-		const parentNode = this.parent.findParentNode();
+		if ( this.rendered ) {
+			const docFrag = createDocumentFragment();
+			const parentNode = this.parent.findParentNode();
+		}
 
 		const len = this.context.get().length;
 		let i;
@@ -358,7 +362,7 @@ export default class RepeatedFragment {
 			}
 		}
 
-		if ( docFrag.childNodes.length ) {
+		if ( this.rendered && docFrag.childNodes.length ) {
 			parentNode.insertBefore( docFrag, this.owner.findNextNode() );
 		}
 

@@ -66,6 +66,7 @@ export default class Triple extends Mustache {
 	render ( target ) {
 		const html = this.model ? this.model.get() : '';
 		this.nodes = insertHtml( html, this.parentFragment.findParentNode(), target );
+		this.rendered = true;
 	}
 
 	toString () {
@@ -73,11 +74,12 @@ export default class Triple extends Mustache {
 	}
 
 	unrender () {
-		this.nodes.forEach( node => node.parentNode.removeChild( node ) );
+		if ( this.nodes ) this.nodes.forEach( node => node.parentNode.removeChild( node ) );
+		this.rendered = false;
 	}
 
 	update () {
-		if ( this.dirty ) {
+		if ( this.rendered && this.dirty ) {
 			this.unrender();
 			const docFrag = createDocumentFragment();
 			this.render( docFrag );
