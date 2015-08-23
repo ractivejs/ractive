@@ -1,4 +1,4 @@
-import { fatal, warnIfDebug } from 'utils/log';
+import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
 import { COMPONENT, INTERPOLATOR, YIELDER } from 'config/types';
 import Item from './shared/Item';
 import construct from 'Ractive/construct';
@@ -42,7 +42,6 @@ export default class Component extends Item {
 		this.instance = instance;
 		this.name = options.template.e;
 		this.parentFragment = options.parentFragment;
-		this.resolvers = [];
 		this.complexMappings = [];
 
 		this.liveQueries = [];
@@ -106,24 +105,17 @@ export default class Component extends Item {
 
 				else if ( isArray( template ) ) {
 					if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
-						const model = resolve( this.parentFragment, template[0] );
+						let model = resolve( this.parentFragment, template[0] );
 
-						if ( model ) {
-							viewmodel.map( localKey, model );
-
-							if ( model.get() === undefined && localKey in childData ) {
-								model.set( childData[ localKey ] );
-							}
+						if ( !model ) {
+							warnOnceIfDebug( `The ${localKey}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.instance });
+							model = this.parentFragment.findContext().joinKey( localKey );
 						}
 
-						else {
-							const resolver = this.parentFragment.resolve( template[0].r, model => {
-								viewmodel.map( localKey, model );
-								viewmodel.clearUnresolveds( localKey );
-							});
+						viewmodel.map( localKey, model );
 
-							// TODO is this necessary? or can the parentFragment handle cleanup?
-							this.resolvers.push( resolver );
+						if ( model.get() === undefined && localKey in childData ) {
+							model.set( childData[ localKey ] );
 						}
 					}
 
@@ -209,7 +201,6 @@ export default class Component extends Item {
 	}
 
 	rebind () {
-		this.resolvers.forEach( unbind );
 		this.complexMappings.forEach( rebind );
 
 		this.liveQueries.forEach( makeDirty );
@@ -222,21 +213,15 @@ export default class Component extends Item {
 				const template = this.template.a[ localKey ];
 
 				if ( isArray( template ) && template.length === 1 && template[0].t === INTERPOLATOR ) {
-					const model = resolve( this.parentFragment, template[0] );
+					let model = resolve( this.parentFragment, template[0] );
 
-					if ( model ) {
-						viewmodel.map( localKey, model );
+					if ( !model ) {
+						// TODO is this even possible?
+						warnOnceIfDebug( `The ${localKey}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.instance });
+						model = this.parentFragment.findContext().joinKey( localKey );
 					}
 
-					else {
-						const resolver = this.parentFragment.resolve( template[0].r, model => {
-							viewmodel.map( localKey, model );
-							viewmodel.clearUnresolveds( localKey );
-						});
-
-						// TODO is this necessary? or can the parentFragment handle cleanup?
-						this.resolvers.push( resolver );
-					}
+					viewmodel.map( localKey, model );
 				}
 			});
 		}
@@ -287,7 +272,6 @@ export default class Component extends Item {
 
 	unbind () {
 		this.complexMappings.forEach( unbind );
-		this.resolvers.forEach( unbind );
 
 		const instance = this.instance;
 		instance.viewmodel.teardown();
