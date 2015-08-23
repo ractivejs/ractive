@@ -51,7 +51,7 @@ export default class Transition {
 			const fragment = new Fragment({
 				owner,
 				template: template.d
-			});
+			}).bind();
 
 			this.params = fragment.getArgsList();
 			fragment.unbind();
