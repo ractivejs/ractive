@@ -3,8 +3,8 @@ import readExpression from 'parse/converters/readExpression';
 
 var elsePattern = /^\s*elseif\s+/;
 
-export default function readElse ( parser, tag ) {
-	var start = parser.pos, expression;
+export default function readElseIf ( parser, tag ) {
+	const start = parser.pos;
 
 	if ( !parser.matchString( tag.open ) ) {
 		return null;
@@ -15,7 +15,7 @@ export default function readElse ( parser, tag ) {
 		return null;
 	}
 
-	expression = readExpression( parser );
+	const expression = readExpression( parser );
 
 	if ( !parser.matchString( tag.close ) ) {
 		parser.error( `Expected closing delimiter '${tag.close}'` );

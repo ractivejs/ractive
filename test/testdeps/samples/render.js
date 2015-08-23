@@ -1066,7 +1066,7 @@ var renderTests = [
 		template: '{{#with foo}}foo{{elseif bar}}bar{{else}}other{{/with}}',
 		data: { bar: true },
 		result: 'bar',
-		new_data: { foo: {} },
+		new_data: { foo: { x: 1 } },
 		new_result: 'foo'
 	},
 	{
