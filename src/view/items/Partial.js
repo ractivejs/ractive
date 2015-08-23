@@ -7,10 +7,16 @@ export default class Partial extends Mustache {
 	bind () {
 		super.bind();
 
-		if ( ( !this.model || typeof this.model.value !== 'string' ) && this.template.r ) {
-			this.setTemplate( this.template.r );
+		// name matches take priority over expressions
+		let template = this.template.r ? getPartialTemplate( this.ractive, this.template.r, this.parentFragment ) || null : null;
+
+		if ( template ) {
+			this.named = true;
+			this.setTemplate( this.template.r, template );
+		} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.template.r ) {
+			this.setTemplate( this.template.r, template );
 		} else {
-			this.setTemplate( this.model.value );
+			this.setTemplate( this.model.get() );
 		}
 
 		this.fragment = new Fragment({
@@ -65,9 +71,10 @@ export default class Partial extends Mustache {
 		this.fragment.render( target );
 	}
 
-	setTemplate ( name ) {
+	setTemplate ( name, template ) {
 		this.name = name;
-		const template = getPartialTemplate( this.ractive, name, this.parentFragment );
+
+		if ( !template && template !== null ) template = getPartialTemplate( this.ractive, name, this.parentFragment );
 
 		if ( !template ) {
 			warnOnceIfDebug( `Could not find template for partial '${name}'` );
@@ -91,9 +98,11 @@ export default class Partial extends Mustache {
 
 	update () {
 		if ( this.dirty ) {
-			if ( this.model && typeof this.model.value === 'string' && this.model.value !== this.name ) {
-				this.setTemplate( this.model.value );
-				this.fragment.resetTemplate( this.partialTemplate );
+			if ( !this.named ) {
+				if ( this.model && typeof this.model.get() === 'string' && this.model.get() !== this.name ) {
+					this.setTemplate( this.model.get() );
+					this.fragment.resetTemplate( this.partialTemplate );
+				}
 			}
 
 			this.fragment.update();

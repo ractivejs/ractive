@@ -112,6 +112,10 @@ export default class Model {
 		return branch;
 	}
 
+	discard () {
+		this.deps.forEach( d => { if ( d.boundsSensitive ) this.unregister( d ); } );
+	}
+
 	findMatches ( keys ) {
 		const len = keys.length;
 
@@ -165,10 +169,13 @@ export default class Model {
 		return this.value;
 	}
 
-	getIndexModel () {
+	getIndexModel ( fragmentIndex ) {
 		const indexModels = this.parent.indexModels;
 
-		if ( !indexModels[ this.key ] ) {
+		// non-numeric keys are a special of a numeric index in a object iteration
+		if ( typeof this.key === 'string' && fragmentIndex !== undefined ) {
+			return new KeyModel( fragmentIndex );
+		} else if ( !indexModels[ this.key ] ) {
 			indexModels[ this.key ] = new KeyModel( this.key );
 		}
 
@@ -329,7 +336,11 @@ export default class Model {
 
 	shuffle ( newIndices ) {
 		const indexModels = [];
+		let max = 0, child;
+
 		newIndices.forEach( ( newIndex, oldIndex ) => {
+			if ( newIndex > max ) max = newIndex;
+
 			if ( !~newIndex ) return;
 
 			const model = this.indexModels[ oldIndex ];
@@ -343,7 +354,14 @@ export default class Model {
 			}
 		});
 
+		// some children, notably computations, need to be notified when they are
+		// no longer attached to anything so they don't recompute
+		while ( ( child = this.childByKey[ ++max ] ) ) {
+			if ( typeof child.discard === 'function' ) child.discard();
+		}
+
 		this.indexModels = indexModels;
+
 
 		// shuffles need to happen before marks...
 		this.deps.forEach( dep => {

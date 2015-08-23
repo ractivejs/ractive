@@ -1,4 +1,4 @@
-import { startCapturing, stopCapturing } from 'global/capture';
+import { capture, startCapturing, stopCapturing } from 'global/capture';
 import { warnIfDebug } from 'utils/log';
 import Model from './Model';
 import { removeFromArray } from 'utils/array';
@@ -63,10 +63,22 @@ export default class Computation extends Model {
 		this.childByKey = {};
 
 		this.deps = [];
+
+		this.boundsSensitive = true;
 	}
 
-	get () {
-		return this.value;
+	get ( shouldCapture ) {
+		if ( shouldCapture ) capture( this );
+
+		const value = this.handleChange();
+
+		// we've now inited, so swap out the getter
+		this.get = shouldCapture => {
+			if ( shouldCapture ) capture( this );
+			return this.value;
+		};
+
+		return value;
 	}
 
 	getValue () {
@@ -109,11 +121,11 @@ export default class Computation extends Model {
 		this.deps.forEach( handleChange );
 		this.children.forEach( markChild ); // TODO rename to mark once bindling glitch fixed
 		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
+
+		return value;
 	}
 
 	init () {
-		this.value = this.getValue();
-		this.adapt();
 	}
 
 	mark () {

@@ -18,7 +18,7 @@ export default class Mustache extends Item {
 	bind () {
 		// try to find a model for this view
 		const model = resolve( this.parentFragment, this.template );
-		const value = model ? model.value : undefined;
+		const value = model ? model.get() : undefined;
 
 		if ( this.isStatic ) {
 			this.model = { get: () => value };
@@ -50,13 +50,13 @@ export default class Mustache extends Item {
 
 		if ( model === this.model ) return;
 
-		const oldValue = this.model.value;
+		const oldValue = this.model.get();
 		this.model.unregister( this );
 
 		model.register( this );
 		this.model = model;
 
-		if ( model.value !== oldValue ) this.handleChange();
+		if ( model.get() !== oldValue ) this.handleChange();
 	}
 
 	unbind () {

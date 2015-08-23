@@ -546,7 +546,7 @@ test( 'Computations can depend on array values (#1747)', t => {
 	});
 
 	t.equal( fixture.innerHTML, 'foo:foobar-foo:foobar' );
-})
+});*/
 
 test( 'Computations depending up computed values cascade while updating (#1383)', ( t ) => {
 	var ractive = new Ractive({
@@ -563,4 +563,4 @@ test( 'Computations depending up computed values cascade while updating (#1383)'
 	t.equal( fixture.innerHTML, 'less' );
 	ractive.set( 'b.c', 100 );
 	t.equal( fixture.innerHTML, 'more' );
-});*/
+});
