@@ -65,20 +65,18 @@ export default class Computation extends Model {
 		this.deps = [];
 
 		this.boundsSensitive = true;
+		this.dirty = true;
 	}
 
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
 
-		const value = this.handleChange();
+		if ( this.dirty ) {
+			this.value = this.getValue();
+			this.dirty = false;
+		}
 
-		// we've now inited, so swap out the getter
-		this.get = shouldCapture => {
-			if ( shouldCapture ) capture( this );
-			return this.value;
-		};
-
-		return value;
+		return this.value;
 	}
 
 	getValue () {
@@ -107,22 +105,11 @@ export default class Computation extends Model {
 	}
 
 	handleChange () {
-		const value = this.getValue();
-		if ( isEqual( value, this.value ) ) return;
-
-		if ( this.wrapper ) {
-			this.wrapper.teardown();
-			this.wrapper = null;
-		}
-
-		this.value = value;
-		this.adapt();
+		this.dirty = true;
 
 		this.deps.forEach( handleChange );
-		this.children.forEach( markChild ); // TODO rename to mark once bindling glitch fixed
+		this.children.forEach( markChild ); // TODO rename to mark once bundling glitch fixed
 		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
-
-		return value;
 	}
 
 	init () {
