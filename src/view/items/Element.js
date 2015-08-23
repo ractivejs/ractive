@@ -234,7 +234,7 @@ export default class Element extends Item {
 		this.conditionalAttributes.forEach( render );
 		this.eventHandlers.forEach( render );
 
-		if ( this.decorator ) this.decorator.render(); // TODO this should only happen once render is complete
+		if ( this.decorator ) runloop.scheduleTask( () => this.decorator.render(), true );
 		if ( this.binding ) this.binding.render();
 
 		updateLiveQueries( this );
