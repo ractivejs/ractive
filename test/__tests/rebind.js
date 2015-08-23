@@ -32,7 +32,6 @@ test('Section with item index ref expression changes correctly', function(t){
 		data: {
 			items: [1,2,3,4,5],
 			format: function(x,i){
-				console.trace( 'x, i', x, i )
 				return x+i;
 			}
 		}

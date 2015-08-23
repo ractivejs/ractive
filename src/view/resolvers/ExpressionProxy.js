@@ -80,31 +80,26 @@ export default class ExpressionProxy extends Model {
 			return model ? model.getKeypath() : '@undefined';
 		});
 
-		let computation = ractive.viewmodel.computations[ key ];
+		// TODO can/should we reuse computations?
+		const signature = {
+			getter: () => {
+				const values = this.models.map( model => {
+					const value = model.get( true );
 
-		// TODO this (using existing computations) appears to break some
-		// tests... leaving it in this broken state pending diagnosis
-		if ( !computation ) {
-			const signature = {
-				getter: () => {
-					const values = this.models.map( model => {
-						const value = model.get( true );
+					if ( typeof value === 'function' ) {
+						return wrapFunction( value, ractive, ractive._guid );
+					} else {
+						return value;
+					}
+				});
 
-						if ( typeof value === 'function' ) {
-							return wrapFunction( value, ractive, ractive._guid );
-						} else {
-							return value;
-						}
-					});
+				return this.fn.apply( ractive, values );
+			},
+			getterString: key
+		};
 
-					return this.fn.apply( ractive, values );
-				},
-				getterString: key
-			};
-
-			computation = ractive.viewmodel.compute( key, signature );
-			computation.init();
-		}
+		const computation = ractive.viewmodel.compute( key, signature );
+		computation.init();
 
 		this.value = computation.get(); // TODO should not need this, eventually
 
