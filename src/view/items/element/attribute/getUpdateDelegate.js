@@ -137,7 +137,10 @@ function updateRadioValue () {
 
 function updateValue () {
 	if ( !this.locked ) {
-		this.node.value = this.node._ractive.value = this.getValue();
+		const value = this.getValue();
+
+		this.node.value = this.node._ractive.value = value;
+		this.node.setAttribute( 'value', value );
 	}
 }
 
