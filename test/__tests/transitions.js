@@ -223,8 +223,7 @@ test( 'Nodes are detached synchronously if there are no outro transitions (#856)
 	ractive.set( 'foo', true );
 	t.ok( !fixture.contains( target ) );
 });
-// TEMP so whole test suite doesn't hang. tagging with keypaths-ftw
-/*
+
 asyncTest( 'Regression test for #1157', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,
@@ -237,7 +236,7 @@ asyncTest( 'Regression test for #1157', function ( t ) {
 		}
 	});
 });
-*/
+
 test( 'Parameter objects are not polluted (#1239)', function ( t ) {
 	var ractive, uid = 0, objects = [];
 

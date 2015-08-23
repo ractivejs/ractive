@@ -883,7 +883,6 @@ test( 'Reference expressions default to two-way binding (#996)', function ( t ) 
 
 	ractive.unshift( 'rows', { name: 'Bob', age: 54 });
 
-	// TODO: need to get live queries to recompute. tag: keypaths-ftw
 	widgets[0].find( 'input' ).value = 'Brian';
 	widgets[0].updateModel();
 
