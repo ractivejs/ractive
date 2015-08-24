@@ -5,7 +5,7 @@ var Ractive = require( '../../ractive' ),
 	cheerio = require( 'cheerio' );
 
 function normaliseHTML ( html ) {
-	return cheerio.load( html ).html();
+	return cheerio.load( html ).html().trim().replace( /^\s+/gm, '' ).replace( /\n/g, ' ' );
 }
 
 describe( 'ractive.toHTML()', function () {

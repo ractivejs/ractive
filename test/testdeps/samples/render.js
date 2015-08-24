@@ -413,11 +413,11 @@ var renderTests = [
 		},
 		result: `
 			<table><tr><td>works</td></tr></table>
-	        <table><thead><tr><th>works</th></tr></thead></table>
-	        <table><tbody><tr><td>works</td></tr></tbody></table>
-	        <table><tr><td>works</td></tr></table>
-	        <table><tr><td>works</td></tr></table>
-	        <table><tr><th>works</th></tr></table>`,
+			<table><thead><tr><th>works</th></tr></thead></table>
+			<table><tbody><tr><td>works</td></tr></tbody></table>
+			<table><tr><td>works</td></tr></table>
+			<table><tr><td>works</td></tr></table>
+			<table><tr><th>works</th></tr></table>`,
 		new_data: {
 			row: '<tr><td>still works</td></tr>',
 			headerRow: '<tr><th>still works</th></tr>',
@@ -426,11 +426,11 @@ var renderTests = [
 		},
 		new_result: `
 			<table><tr><td>still works</td></tr></table>
-            <table><thead><tr><th>still works</th></tr></thead></table>
-            <table><tbody><tr><td>still works</td></tr></tbody></table>
-            <table><tr><td>still works</td></tr></table>
-            <table><tr><td>still works</td></tr></table>
-            <table><tr><th>still works</th></tr></table>`
+			<table><thead><tr><th>still works</th></tr></thead></table>
+			<table><tbody><tr><td>still works</td></tr></tbody></table>
+			<table><tr><td>still works</td></tr></table>
+			<table><tr><td>still works</td></tr></table>
+			<table><tr><th>still works</th></tr></table>`
 	},
 	{
 		name: 'Triples work correctly inside select elements',

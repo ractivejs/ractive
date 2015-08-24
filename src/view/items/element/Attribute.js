@@ -26,7 +26,6 @@ export default class Attribute extends Item {
 			this.value = options.template;
 			if ( this.value === 0 ) {
 				this.value = '';
-				this.isEmpty = true;
 			}
 		} else {
 			this.fragment = new Fragment({
@@ -63,7 +62,7 @@ export default class Attribute extends Item {
 	// TODO could getValue ever be called for a static attribute,
 	// or can we assume that this.fragment exists?
 	getValue () {
-		return this.fragment ? this.fragment.valueOf() : this.isEmpty ? true : this.value;
+		return this.fragment ? this.fragment.valueOf() : booleanAttributes.test( this.name ) ? true : this.value;
 	}
 
 	rebind () {
@@ -100,21 +99,23 @@ export default class Attribute extends Item {
 	}
 
 	toString () {
-		if ( this.isEmpty ) return '';
-		if ( this.getValue() == null ) return '';
+		const value = this.getValue();
+
+		if ( value == null ) return '';
+		if ( booleanAttributes.test( this.name ) ) return value ? this.name : '';
 
 		// Special case - select and textarea values (should not be stringified)
 		if ( this.name === 'value' && ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
 			return;
 		}
 
-		const value = safeToStringValue( this.getString() )
+		const str = safeToStringValue( this.getString() )
 			.replace( /&/g, '&amp;' )
 			.replace( /"/g, '&quot;' )
 			.replace( /'/g, '&#39;' );
 
-		return value ?
-			`${this.name}="${value}"` :
+		return str ?
+			`${this.name}="${str}"` :
 			this.name;
 	}
 

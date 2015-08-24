@@ -329,10 +329,8 @@ export default class RepeatedFragment {
 		});
 
 		// create new iterations
-		if ( this.rendered ) {
-			const docFrag = createDocumentFragment();
-			const parentNode = this.parent.findParentNode();
-		}
+		const docFrag = this.rendered ? createDocumentFragment() : null;
+		const parentNode = this.rendered ? this.parent.findParentNode() : null;
 
 		const len = this.context.get().length;
 		let i;
