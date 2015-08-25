@@ -101,13 +101,18 @@ export default class Attribute extends Item {
 	toString () {
 		const value = this.getValue();
 
-		if ( value == null ) return '';
-		if ( booleanAttributes.test( this.name ) ) return value ? this.name : '';
-
 		// Special case - select and textarea values (should not be stringified)
-		if ( this.name === 'value' && this.element.getAttribute( 'contenteditable' ) !== undefined || ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
+		if ( this.name === 'value' && ( this.element.getAttribute( 'contenteditable' ) !== undefined || ( this.element.name === 'select' || this.element.name === 'textarea' ) ) ) {
 			return;
 		}
+
+		// Special case – bound radio `name` attributes
+		if ( this.name === 'name' && this.element.name === 'input' && this.interpolator ) {
+			return `name="{{${this.interpolator.model.getKeypath()}}}"`;
+		}
+
+		if ( booleanAttributes.test( this.name ) ) return value ? this.name : '';
+		if ( value == null ) return '';
 
 		const str = safeToStringValue( this.getString() )
 			.replace( /&/g, '&amp;' )

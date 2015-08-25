@@ -11,10 +11,6 @@ export default class ConditionalAttribute extends Item {
 	constructor ( options ) {
 		super( options );
 
-		// this.element = options.element;
-		// this.ractive = options.element.ractive;
-		// this.parentFragment = element.parentFragment;
-
 		this.attributes = [];
 
 		this.owner = options.owner;
@@ -25,7 +21,7 @@ export default class ConditionalAttribute extends Item {
 			template: [ this.template ]
 		});
 
-		this.dirty = true;
+		this.dirty = false;
 	}
 
 	bind () {
@@ -47,6 +43,7 @@ export default class ConditionalAttribute extends Item {
 		this.node = this.owner.node;
 		this.isSvg = this.node.namespaceURI === svg;
 
+		this.rendered = true;
 		this.update();
 	}
 
@@ -58,23 +55,30 @@ export default class ConditionalAttribute extends Item {
 		this.fragment.unbind();
 	}
 
+	unrender () {
+		this.rendered = false;
+	}
+
 	update () {
 		if ( this.dirty ) {
 			this.fragment.update();
-			const str = this.fragment.toString();
-			const attrs = parseAttributes( str, this.isSvg );
 
-			// any attributes that previously existed but no longer do
-			// must be removed
-			this.attributes.filter( a => notIn( attrs, a ) ).forEach( a => {
-				this.node.removeAttribute( a.name );
-			});
+			if ( this.rendered ) {
+				const str = this.fragment.toString();
+				const attrs = parseAttributes( str, this.isSvg );
 
-			attrs.forEach( a => {
-				this.node.setAttribute( a.name, a.value );
-			});
+				// any attributes that previously existed but no longer do
+				// must be removed
+				this.attributes.filter( a => notIn( attrs, a ) ).forEach( a => {
+					this.node.removeAttribute( a.name );
+				});
 
-			this.attributes = attrs;
+				attrs.forEach( a => {
+					this.node.setAttribute( a.name, a.value );
+				});
+
+				this.attributes = attrs;
+			}
 
 			this.dirty = false;
 		}
