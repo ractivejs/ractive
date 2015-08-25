@@ -105,7 +105,7 @@ export default class Attribute extends Item {
 		if ( booleanAttributes.test( this.name ) ) return value ? this.name : '';
 
 		// Special case - select and textarea values (should not be stringified)
-		if ( this.name === 'value' && ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
+		if ( this.name === 'value' && this.element.getAttribute( 'contenteditable' ) !== undefined || ( this.element.name === 'select' || this.element.name === 'textarea' ) ) {
 			return;
 		}
 
