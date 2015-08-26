@@ -55,6 +55,7 @@ compress () {
 		> /dev/null 2>&1
 
 	echo "  minified $src"
+	echo "  fixing $dest sourcemap ($PWD)"
 
 	$MOD/sorcery -i $dest
 	echo "  fixed $dest sourcemap"

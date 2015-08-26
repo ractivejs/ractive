@@ -44,6 +44,7 @@ export default class ConditionalAttribute extends Item {
 		this.isSvg = this.node.namespaceURI === svg;
 
 		this.rendered = true;
+		this.dirty = true; // TODO this seems hacky, but necessary for tests to pass in browser AND node.js
 		this.update();
 	}
 

@@ -31,6 +31,7 @@ export default class Text extends Item {
 	render ( target ) {
 		this.node = doc.createTextNode( this.template );
 		target.appendChild( this.node );
+		this.rendered = true;
 	}
 
 	toString ( escape ) {
@@ -42,7 +43,8 @@ export default class Text extends Item {
 	}
 
 	unrender ( shouldDestroy ) {
-		if ( shouldDestroy ) this.detach();
+		if ( this.rendered && shouldDestroy ) this.detach();
+		this.rendered = false;
 	}
 
 	update () {

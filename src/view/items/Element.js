@@ -251,6 +251,8 @@ export default class Element extends Item {
 		}
 
 		target.appendChild( node );
+
+		this.rendered = true;
 	}
 
 	toString () {
@@ -300,6 +302,9 @@ export default class Element extends Item {
 	}
 
 	unrender ( shouldDestroy ) {
+		if ( !this.rendered ) return;
+		this.rendered = false;
+
 		// unrendering before intro completed? complete it now
 		// TODO should be an API for aborting transitions
 		let transition = this._introTransition;
