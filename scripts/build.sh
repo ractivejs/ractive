@@ -49,7 +49,6 @@ compress () {
 		--compress \
 		--mangle \
 		--source-map $dest.map \
-		--source-map-root $dest \
 		--output $dest \
 		-- $src \
 		> /dev/null 2>&1

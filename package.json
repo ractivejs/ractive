@@ -84,7 +84,7 @@
     "phantomjs": "^1.9.15",
     "promises-aplus-tests": "^2.1.0",
     "sander": "^0.2.4",
-    "sorcery": "^0.5.1",
+    "sorcery": "^0.6.3",
     "uglify-js": "^2.4.16"
   },
   "testling": {
