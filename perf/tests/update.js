@@ -160,5 +160,62 @@ var tests = [
 		test: () => {
 			window.ractive.splice( 'items', 3, 1 );
 		}
+	},
+
+	{
+		name: 'change object on object hash',
+		setup: () => {
+			var items = {};
+
+			window.newItems = {};
+
+			window.i = 0;
+
+			for ( window.i = 0; window.i < 50; window.i += 1 ) {
+				items[ 'key' + window.i ] = { text: `[${Math.random()}]` };
+				newItems[ 'key' + window.i ] = { text: `[${Math.random()}]` };
+			}
+
+			window.ractive = new Ractive({
+				el: 'body',
+				template: `
+					<ul>
+						{{#items:key}}
+							<li>{{key}}: {{text}}</li>
+						{{/items}}
+					</ul>`,
+				data: { items: items }
+			});
+		},
+		test: () => {
+			window.ractive.set( 'items', window.newItems );
+		}
+	},
+
+	{
+		name: 'add key to object hash',
+		setup: () => {
+			var items = {};
+
+			window.i = 0;
+
+			for ( window.i = 0; window.i < 50; window.i += 1 ) {
+				items[ 'key' + window.i ] = { text: `[${Math.random()}]` };
+			}
+
+			window.ractive = new Ractive({
+				el: 'body',
+				template: `
+					<ul>
+						{{#items:key}}
+							<li>{{key}}: {{text}}</li>
+						{{/items}}
+					</ul>`,
+				data: { items: items }
+			});
+		},
+		test: () => {
+			window.ractive.set( 'items.newKey', { text: `[${Math.random()}]` } );
+		}
 	}
 ];

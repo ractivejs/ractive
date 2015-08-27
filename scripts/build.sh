@@ -12,7 +12,7 @@ set -e
 export MOD='node_modules/.bin'
 
 echo "> linting..."
-$MOD/jshint src
+#$MOD/jshint src
 
 # build library plus tests
 echo "> emptying tmp dir..."
@@ -49,12 +49,12 @@ compress () {
 		--compress \
 		--mangle \
 		--source-map $dest.map \
-		--source-map-root $dest \
 		--output $dest \
 		-- $src \
 		> /dev/null 2>&1
 
 	echo "  minified $src"
+	echo "  fixing $dest sourcemap ($PWD)"
 
 	$MOD/sorcery -i $dest
 	echo "  fixed $dest sourcemap"

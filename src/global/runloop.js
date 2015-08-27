@@ -1,13 +1,14 @@
-import Hook from 'Ractive/prototype/shared/hooks/Hook';
-import { addToArray, removeFromArray } from 'utils/array';
+import Hook from 'events/Hook';
+import { addToArray } from 'utils/array';
 import Promise from 'utils/Promise';
-import resolveRef from 'shared/resolveRef';
 import TransitionManager from './TransitionManager';
 
-var batch, runloop, unresolved = [], changeHook = new Hook( 'change' );
+const changeHook = new Hook( 'change' );
 
-runloop = {
-	start: function ( instance, returnPromise ) {
+let batch;
+
+const runloop = {
+	start ( instance, returnPromise ) {
 		var promise, fulfilPromise;
 
 		if ( returnPromise ) {
@@ -17,60 +18,46 @@ runloop = {
 		batch = {
 			previousBatch: batch,
 			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
-			views: [],
+			fragments: [],
 			tasks: [],
-			ractives: [],
+			immediateObservers: [],
+			deferredObservers: [],
 			instance: instance
 		};
-
-		if ( instance ) {
-			batch.ractives.push( instance );
-		}
 
 		return promise;
 	},
 
-	end: function () {
+	end () {
 		flushChanges();
 
 		batch.transitionManager.init();
-		if ( !batch.previousBatch && !!batch.instance ) batch.instance.viewmodel.changes = [];
 		batch = batch.previousBatch;
 	},
 
-	addRactive: function ( ractive ) {
-		if ( batch ) {
-			addToArray( batch.ractives, ractive );
-		}
+	addFragment ( fragment ) {
+		addToArray( batch.fragments, fragment );
 	},
 
-	registerTransition: function ( transition ) {
+	addObserver ( observer, defer ) {
+		addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
+	},
+
+	registerTransition ( transition ) {
 		transition._manager = batch.transitionManager;
 		batch.transitionManager.add( transition );
 	},
 
-	registerDecorator: function ( decorator ) {
+	registerDecorator ( decorator ) {
 		batch.transitionManager.addDecorator( decorator );
 	},
 
-	addView: function ( view ) {
-		batch.views.push( view );
-	},
-
-	addUnresolved: function ( thing ) {
-		unresolved.push( thing );
-	},
-
-	removeUnresolved: function ( thing ) {
-		removeFromArray( unresolved, thing );
-	},
-
 	// synchronise node detachments with transition ends
-	detachWhenReady: function ( thing ) {
+	detachWhenReady ( thing ) {
 		batch.transitionManager.detachQueue.push( thing );
 	},
 
-	scheduleTask: function ( task, postRender ) {
+	scheduleTask ( task, postRender ) {
 		var _batch;
 
 		if ( !batch ) {
@@ -91,69 +78,43 @@ runloop = {
 
 export default runloop;
 
+function dispatch ( observer ) {
+	observer.dispatch();
+}
+
 function flushChanges () {
 	var i, thing, changeHash;
 
-	while ( batch.ractives.length ) {
-		thing = batch.ractives.pop();
-		changeHash = thing.viewmodel.applyChanges();
-
-		if ( changeHash ) {
-			changeHook.fire( thing, changeHash );
-		}
-	}
-
-	attemptKeypathResolution();
+	batch.immediateObservers.forEach( dispatch );
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
-	for ( i = 0; i < batch.views.length; i += 1 ) {
-		batch.views[i].update();
-	}
-	batch.views.length = 0;
+	i = batch.fragments.length;
+	while ( i-- ) {
+		thing = batch.fragments[i];
 
-	for ( i = 0; i < batch.tasks.length; i += 1 ) {
-		batch.tasks[i]();
+		// TODO deprecate this. It's annoying and serves no useful function
+		const ractive = thing.ractive;
+		changeHook.fire( ractive, ractive.viewmodel.changes );
+		ractive.viewmodel.changes = {};
+
+		thing.update();
 	}
-	batch.tasks.length = 0;
+	batch.fragments.length = 0;
+
+	batch.transitionManager.start();
+
+	batch.deferredObservers.forEach( dispatch );
+
+	const tasks = batch.tasks;
+	batch.tasks = [];
+
+	for ( i = 0; i < tasks.length; i += 1 ) {
+		tasks[i]();
+	}
 
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.ractives.length ) return flushChanges();
-}
-
-function attemptKeypathResolution () {
-	var i, item, keypath, resolved;
-
-	i = unresolved.length;
-
-	// see if we can resolve any unresolved references
-	while ( i-- ) {
-		item = unresolved[i];
-
-		if ( item.keypath ) {
-			// it resolved some other way. TODO how? two-way binding? Seems
-			// weird that we'd still end up here
-			unresolved.splice( i, 1 );
-			continue; // avoid removing the wrong thing should the next condition be true
-		}
-
-		if ( keypath = resolveRef( item.root, item.ref, item.parentFragment ) ) {
-			( resolved || ( resolved = [] ) ).push({
-				item: item,
-				keypath: keypath
-			});
-
-			unresolved.splice( i, 1 );
-		}
-	}
-
-	if ( resolved ) {
-		resolved.forEach( resolve );
-	}
-}
-
-function resolve ( resolved ) {
-	resolved.item.resolve( resolved.keypath );
+	if ( batch.fragments.length ) return flushChanges();
 }

@@ -28,6 +28,28 @@ var renderTests = [
 		result: "<p>Hello world!</p>"
 	},
 	{
+		name: "Single keypath expression",
+		template: "{{foo[bar]}}",
+		data: { foo: { a: "hello", b: "goodbye" }, bar: 'a' },
+		result: "hello",
+		new_data: { bar: 'b' },
+		new_result: 'goodbye'
+	},
+	{
+		name: "Double keypath expression",
+		template: "{{foo[bar][qux]}}",
+		data: { foo: { a: { b: "hello world" } }, bar: 'a', qux: 'b' },
+		result: "hello world"
+	},
+	{
+		name: "Child reference updates with change of parent object",
+		template: "{{#with foo}}{{bar}}{{/with}}",
+		data: { foo: { bar: 'qux' } },
+		result: "qux",
+		new_data: { foo: { bar: 'updated' } },
+		new_result: 'updated'
+	},
+	{
 		name: "Section with index refs",
 		template: "<ul>{{#items:i}}<li>{{i}}: {{name}}</li>{{/items}}</ul>",
 		data: {
@@ -376,36 +398,39 @@ var renderTests = [
 	},
 	{
 		name: 'Triples work correctly inside table elements',
-		template: '<table>{{{row}}}</table>' +
-		          '<table><thead>{{{headerRow}}}</thead></table>' +
-		          '<table><tbody>{{{row}}}</tbody></table>' +
-		          '<table><tr>{{{cell}}}</tr></table>' +
-		          '<table><tr><td>{{{cellContents}}}</td></tr></table>' +
-		          '<table><tr><th>{{{cellContents}}}</th></tr></table>',
+		template: `
+			<table>{{{row}}}</table>
+			<table><thead>{{{headerRow}}}</thead></table>
+			<table><tbody>{{{row}}}</tbody></table>
+			<table><tr>{{{cell}}}</tr></table>
+			<table><tr><td>{{{cellContents}}}</td></tr></table>
+			<table><tr><th>{{{cellContents}}}</th></tr></table>`,
 		data: {
 			row: '<tr><td>works</td></tr>',
 			headerRow: '<tr><th>works</th></tr>',
 			cell: '<td>works</td>',
 			cellContents: 'works'
 		},
-		result: '<table><tr><td>works</td></tr></table>' +
-		        '<table><thead><tr><th>works</th></tr></thead></table>' +
-		        '<table><tbody><tr><td>works</td></tr></tbody></table>' +
-		        '<table><tr><td>works</td></tr></table>' +
-		        '<table><tr><td>works</td></tr></table>' +
-		        '<table><tr><th>works</th></tr></table>',
+		result: `
+			<table><tr><td>works</td></tr></table>
+			<table><thead><tr><th>works</th></tr></thead></table>
+			<table><tbody><tr><td>works</td></tr></tbody></table>
+			<table><tr><td>works</td></tr></table>
+			<table><tr><td>works</td></tr></table>
+			<table><tr><th>works</th></tr></table>`,
 		new_data: {
 			row: '<tr><td>still works</td></tr>',
 			headerRow: '<tr><th>still works</th></tr>',
 			cell: '<td>still works</td>',
 			cellContents: 'still works'
 		},
-		new_result: '<table><tr><td>still works</td></tr></table>' +
-		            '<table><thead><tr><th>still works</th></tr></thead></table>' +
-		            '<table><tbody><tr><td>still works</td></tr></tbody></table>' +
-		            '<table><tr><td>still works</td></tr></table>' +
-		            '<table><tr><td>still works</td></tr></table>' +
-		            '<table><tr><th>still works</th></tr></table>'
+		new_result: `
+			<table><tr><td>still works</td></tr></table>
+			<table><thead><tr><th>still works</th></tr></thead></table>
+			<table><tbody><tr><td>still works</td></tr></tbody></table>
+			<table><tr><td>still works</td></tr></table>
+			<table><tr><td>still works</td></tr></table>
+			<table><tr><th>still works</th></tr></table>`
 	},
 	{
 		name: 'Triples work correctly inside select elements',
@@ -464,6 +489,7 @@ var renderTests = [
 		template: '<p>{{^.foo}}this should appear{{/.foo}}</p>',
 		result: '<p>this should appear</p>'
 	},
+	// TODO: Remove when we don't support non-POJO roots
 	{
 		name: 'Data is an array',
 		template: '{{#.}}<p>{{name}}</p>{{/.}}',
@@ -498,12 +524,9 @@ var renderTests = [
 		name: 'Properties of functions render correctly (#451)',
 		template: '{{foo.prop}}-{{#foo}}{{prop}}{{/foo}}',
 		data: function () {
-			var foo = function () {}, columns = [{ bar: foo }];
+			var foo = function () {};
 			foo.prop = 'works';
-			return {
-				columns: columns,
-				foo: foo
-			};
+			return { foo };
 		},
 		result: 'works-works',
 		new_data: { 'foo.prop': 'still works' },
@@ -620,7 +643,6 @@ var renderTests = [
 	},
 	{
 		name: '{{#each object}}...{{/each}} works',
-		handlebars: true,
 		template: '{{#each object}}<p>{{this}}</p>{{/each}}',
 		data: { object: { foo: 1, bar: 2, baz: 3 } },
 		result: '<p>1</p><p>2</p><p>3</p>',
@@ -629,46 +651,41 @@ var renderTests = [
 	},
 	{
 		name: 'two indices in an #each with object give access to the key and index',
-		handlebars: true,
 		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
 		data: { object: { foo: 1, bar: 2, baz: 3 } },
 		result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
 	},
-	{
-		name: 'the key ref in an #each switches to index if the value turns into an array',
-		handlebars: true,
-		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
-		data: { object: { foo: 1, bar: 2, baz: 3 } },
-		result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>',
-		new_data: { object: [ 1, 2, 3 ] },
-		new_result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>'
-	},
-	{
-		name: 'the key ref in an #each switches to key if the value turns into an object',
-		handlebars: true,
-		template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
-		data: { object: [ 1, 2, 3 ] },
-		result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>',
-		new_data: { object: { foo: 1, bar: 2, baz: 3 } },
-		new_result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
-	},
+	// Commenting out - this seems like an necessary thing to support
+	// {
+	// 	name: 'the key ref in an #each switches to index if the value turns into an array',
+	// 	template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
+	// 	data: { object: { foo: 1, bar: 2, baz: 3 } },
+	// 	result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>',
+	// 	new_data: { object: [ 1, 2, 3 ] },
+	// 	new_result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>'
+	// },
+	// {
+	// 	name: 'the key ref in an #each switches to key if the value turns into an object',
+	// 	template: '{{#object:k,i}}<p>{{k}} {{i}} {{.}}</p>{{/each}}',
+	// 	data: { object: [ 1, 2, 3 ] },
+	// 	result: '<p>0 0 1</p><p>1 1 2</p><p>2 2 3</p>',
+	// 	new_data: { object: { foo: 1, bar: 2, baz: 3 } },
+	// 	new_result: '<p>foo 0 1</p><p>bar 1 2</p><p>baz 2 3</p>'
+	// },
 	{
 		name: '@index can be used as an index reference',
-		handlebars: true,
 		template: '{{#each items}}<p>{{@index}}: {{this}}</p>{{/each}}',
 		data: { items: [ 'a', 'b', 'c' ] },
 		result: '<p>0: a</p><p>1: b</p><p>2: c</p>'
 	},
 	{
 		name: '@key can be used as a key reference',
-		handlebars: true,
 		template: '{{#each object}}<p>{{@key}}: {{this}}</p>{{/each}}',
 		data: { object: { foo: 1, bar: 2, baz: 3 } },
 		result: '<p>foo: 1</p><p>bar: 2</p><p>baz: 3</p>'
 	},
 	{
 		name: '@key can be used as an index reference for arrays',
-		handlebars: true,
 		template: '{{#each array}}<p>{{@key}}: {{this}}</p>{{/each}}',
 		data: { array: [ 'foo', 'bar', 'baz' ] },
 		result: '<p>0: foo</p><p>1: bar</p><p>2: baz</p>'
@@ -693,35 +710,30 @@ var renderTests = [
 	},
 	{
 		name: '@index can be used in an expression',
-		handlebars: true,
 		template: '{{#each items}}<p>{{@index + 1}}: {{this}}</p>{{/each}}',
 		data: { items: [ 'a', 'b', 'c' ] },
 		result: '<p>1: a</p><p>2: b</p><p>3: c</p>'
 	},
 	{
 		name: '@index can be used in a reference expression',
-		handlebars: true,
 		template: '{{#each items}}<p>{{items[@index]}} - {{items[@index+1]}}</p>{{/each}}',
 		data: { items: [ 'a', 'b', 'c' ] },
 		result: '<p>a - b</p><p>b - c</p><p>c - </p>'
 	},
 	{
 		name: '@index can be used within an each in an if',
-		handlebars: true,
 		template: '{{#each items}}{{#if . === \'a\' }}{{.}}-{{@index}}{{/if}}{{/each}}',
 		data: { items: [ 'a', 'b', 'c' ] },
 		result: 'a-0'
 	},
 	{
 		name: '@index can be used within an attribute',
-		handlebars: true,
 		template: '{{#each items}}<p id="p{{@index}}">{{.}}</p>{{/each}}',
 		data: { items: [ 'a', 'b', 'c' ] },
 		result: '<p id="p0">a</p><p id="p1">b</p><p id="p2">c</p>'
 	},
 	{
 		name: '{{#each items}}...{{else}}...{{/each}}',
-		handlebars: true,
 		template: '{{#each items}}<p>{{this}}</p>{{else}}<p>no items!</p>{{/each}}',
 		data: { items: [ 'a', 'b', 'c' ] },
 		result: '<p>a</p><p>b</p><p>c</p>',
@@ -730,7 +742,6 @@ var renderTests = [
 	},
 	{
 		name: '{{#with foo}}...{{else}}...{{/with}}',
-		handlebars: true,
 		template: '{{#with foo}}<p>{{this}}</p>{{else}}<p>no foo!</p>{{/with}}',
 		data: { foo: 'bar' },
 		result: '<p>bar</p>',
@@ -739,7 +750,6 @@ var renderTests = [
 	},
 	{
 		name: '{{#each foo}}...{{else}}...{{/each}}',
-		handlebars: true,
 		template: '{{#each foo}}<p>{{@key}}:{{.}}</p>{{else}}<p>empty foo!</p>{{/each}}',
 		data: { foo: {bar : 'qux'} },
 		result: '<p>bar:qux</p>',
@@ -748,40 +758,34 @@ var renderTests = [
 	},
 	{
 		name: '#if/else with true static expression',
-		handlebars: true,
 		template: '{{#if true}}yes{{else}}no{{/if}}',
 		result: 'yes'
 	},
 	{
 		name: '#if/else with false static expression',
-		handlebars: true,
 		template: '{{#if false}}yes{{else}}no{{/if}}',
 		result: 'no'
 	},
 	{
 		name: '#if/else with true keypath expression',
-		handlebars: true,
 		template: '{{#if foo[bar]}}yes{{else}}no{{/if}}',
 		data: { foo: { a: true, b: false }, bar: 'a' },
 		result: 'yes'
 	},
 	{
 		name: '#if/else with false keypath expression',
-		handlebars: true,
 		template: '{{#if foo[bar]}}yes{{else}}no{{/if}}',
 		data: { foo: { a: true, b: false }, bar: 'b' },
 		result: 'no'
 	},
 	{
 		name: '#if/else with true reference expression',
-		handlebars: true,
 		template: '{{#if (foo+1<12)}}yes{{else}}no{{/if}}',
 		data: { foo: 6 },
 		result: 'yes'
 	},
 	{
 		name: '#if/else with false reference expression',
-		handlebars: true,
 		template: '{{#if (foo+1<12)}}yes{{else}}no{{/if}}',
 		data: { foo: 16 },
 		result: 'no'
@@ -1062,7 +1066,7 @@ var renderTests = [
 		template: '{{#with foo}}foo{{elseif bar}}bar{{else}}other{{/with}}',
 		data: { bar: true },
 		result: 'bar',
-		new_data: { foo: {} },
+		new_data: { foo: { x: 1 } },
 		new_result: 'foo'
 	},
 	{

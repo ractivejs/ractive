@@ -1,7 +1,7 @@
 {
   "name": "ractive",
   "description": "Next-generation DOM manipulation",
-  "version": "0.7.3",
+  "version": "0.8.0-edge",
   "homepage": "http://ractivejs.org",
   "main": "build/ractive.js",
   "keywords": [
@@ -72,20 +72,19 @@
   "github": "https://github.com/ractivejs/ractive",
   "devDependencies": {
     "cheerio": "^0.18.0",
-    "esperanto": "^0.6.17",
-    "gobble": "^0.7.8",
-    "gobble-babel": "^4.0.0",
-    "gobble-cli": "^0.3.5",
-    "gobble-esperanto": "^0.2.3",
-    "gobble-esperanto-bundle": "^0.1.3",
-    "gobble-sorcery": "^0.3.0",
+    "esperanto": "^0.6.32",
+    "gobble": "^0.10.1",
+    "gobble-babel": "^5.1.0",
+    "gobble-cli": "^0.4.2",
+    "gobble-esperanto": "^0.3.0",
+    "gobble-esperanto-bundle": "^0.2.1",
     "jshint": "^2.5.11",
     "junk": "^1.0.1",
     "mocha": "^2.1.0",
     "phantomjs": "^1.9.15",
-    "promises-aplus-tests": "*",
-    "sander": "^0.2.1",
-    "sorcery": "^0.4.0",
+    "promises-aplus-tests": "^2.1.0",
+    "sander": "^0.2.4",
+    "sorcery": "^0.6.3",
     "uglify-js": "^2.4.16"
   },
   "testling": {

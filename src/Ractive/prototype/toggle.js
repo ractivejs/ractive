@@ -1,5 +1,5 @@
 import { badArguments } from 'config/errors';
-import { getKeypath, getMatchingKeypaths, normalise } from 'shared/keypaths';
+import { splitKeypath } from 'shared/keypaths';
 
 export default function Ractive$toggle ( keypath ) {
 	if ( typeof keypath !== 'string' ) {
@@ -11,8 +11,8 @@ export default function Ractive$toggle ( keypath ) {
 	if ( /\*/.test( keypath ) ) {
 		changes = {};
 
-		getMatchingKeypaths( this, getKeypath( normalise( keypath ) ) ).forEach( keypath => {
-			changes[ keypath.str ] = !this.viewmodel.get( keypath );
+		this.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
+			changes[ model.getKeypath() ] = !model.get();
 		});
 
 		return this.set( changes );

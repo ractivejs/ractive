@@ -2,6 +2,7 @@ import { TEMPLATE_VERSION } from 'config/template';
 import config from 'Ractive/config/custom/template/template';
 import { isObject } from 'utils/is';
 import { create } from 'utils/object';
+import cleanup from 'helpers/cleanup';
 
 const test = QUnit.test; // necessary due to a bug in esperanto
 
@@ -11,7 +12,7 @@ var MockRactive, Component, ractive,
 	templateOpt1fn = { template: () => templateOpt1.template },
 
 	moduleSetup = {
-		setup: function(){
+		beforeEach: function(){
 			//Ractive = { defaults: {}, parseOptions: {} };
 			ractive = { _config: {} };
 
@@ -25,9 +26,7 @@ var MockRactive, Component, ractive,
 			Component.prototype.constructor = Component;
 			Component.defaults = Component.prototype;
 		},
-		teardown: function(){
-
-		}
+		afterEach: cleanup
 	};
 
 function mockExtend( template ){
@@ -166,7 +165,7 @@ test( 'Template with partial', t => {
 	ractive.partials = {};
 
 	config.init( MockRactive, ractive, {
-		template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->'
+		template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}'
 	});
 
 	testTemplate1( ractive.template );
@@ -177,13 +176,12 @@ test( 'Template with partial', t => {
 
 test( 'Template with partial extended', t => {
 
-	var options = { template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->' };
+	var options = { template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' };
 
 	Component.partials = {};
 	config.extend( MockRactive, Component.prototype, options );
 
-	deepEqual( Component.defaults.template, { v: TEMPLATE_VERSION, t: [{r: "foo", t: 2 } ], p: {bar: [{r: "bar", t: 2 } ] } });
-
+	t.deepEqual( Component.defaults.template, { v: TEMPLATE_VERSION, t: [{r: "foo", t: 2 } ], p: {bar: [{r: "bar", t: 2 } ] } });
 });
 
 test( 'Template with partial added and takes precedence over option partials', t => {
@@ -194,7 +192,7 @@ test( 'Template with partial added and takes precedence over option partials', t
 	};
 
 	config.init( MockRactive, ractive, {
-		template: '{{foo}}<!-- {{>bar}} -->{{bar}}<!-- {{/bar}} -->'
+		template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}'
 	});
 
 	t.ok( ractive.partials.bar, 'has bar partial' );

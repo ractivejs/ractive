@@ -33,7 +33,11 @@ Animation.prototype = {
 			if ( elapsed >= this.duration ) {
 				if ( keypath !== null ) {
 					runloop.start( this.root );
-					this.root.viewmodel.set( keypath, this.to );
+
+					if ( this.model ) {
+						this.model.set( this.to );
+					}
+
 					runloop.end();
 				}
 
@@ -61,7 +65,11 @@ Animation.prototype = {
 			if ( keypath !== null ) {
 				value = this.interpolator( t );
 				runloop.start( this.root );
-				this.root.viewmodel.set( keypath, value );
+
+				if ( this.model ) {
+					this.model.set( value );
+				}
+
 				runloop.end();
 			}
 

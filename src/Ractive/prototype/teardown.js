@@ -1,4 +1,4 @@
-import Hook from './shared/hooks/Hook';
+import Hook from 'events/Hook';
 import Promise from 'utils/Promise';
 import { removeFromArray } from 'utils/array';
 import { cancel } from 'shared/methodCallers';

@@ -1,24 +1,26 @@
-import { getKeypath, normalise } from 'shared/keypaths';
-import resolveRef from 'shared/resolveRef';
-
-var options = {
-	capture: true, // top-level calls should be intercepted
-	noUnwrap: true, // wrapped values should NOT be unwrapped
-	fullRootGet: true // root get should return mappings
-};
+import { splitKeypath } from 'shared/keypaths';
+import resolveReference from 'view/resolvers/resolveReference';
 
 export default function Ractive$get ( keypath ) {
-	var value;
+	if ( !keypath ) return this.viewmodel.get( true );
 
-	keypath = getKeypath( normalise( keypath ) );
-	value = this.viewmodel.get( keypath, options );
+	const keys = splitKeypath( keypath );
+	const key = keys[0];
 
-	// Create inter-component binding, if necessary
-	if ( value === undefined && this.parent && !this.isolated ) {
-		if ( resolveRef( this, keypath.str, this.component.parentFragment ) ) { // creates binding as side-effect, if appropriate
-			value = this.viewmodel.get( keypath );
+	let model;
+
+	if ( !this.viewmodel.has( key ) ) {
+		// if this is an inline component, we may need to create
+		// an implicit mapping
+		if ( this.component ) {
+			model = resolveReference( this.component.parentFragment, key );
+
+			if ( model ) {
+				this.viewmodel.map( key, model );
+			}
 		}
 	}
 
-	return value;
+	model = this.viewmodel.joinAll( keys );
+	return model.get( true );
 }

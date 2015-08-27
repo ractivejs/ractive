@@ -1,19 +1,21 @@
-import Hook from './shared/hooks/Hook';
+import Hook from 'events/Hook';
 import runloop from 'global/runloop';
-import { getKeypath, rootKeypath } from 'shared/keypaths';
+import { splitKeypath } from 'shared/keypaths';
 
 var updateHook = new Hook( 'update' );
 
 export default function Ractive$update ( keypath ) {
-	var promise;
+	var promise, model;
 
-	keypath = getKeypath( keypath ) || rootKeypath;
+	model = keypath ?
+		this.viewmodel.joinAll( splitKeypath( keypath ) ) :
+		this.viewmodel;
 
 	promise = runloop.start( this, true );
-	this.viewmodel.mark( keypath );
+	model.mark();
 	runloop.end();
 
-	updateHook.fire( this, keypath );
+	updateHook.fire( this, model );
 
 	return promise;
 }

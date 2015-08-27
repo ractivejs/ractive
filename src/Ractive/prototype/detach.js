@@ -1,17 +1,20 @@
-import Hook from './shared/hooks/Hook';
+import Hook from 'events/Hook';
 import { removeFromArray } from 'utils/array';
 
 var detachHook = new Hook( 'detach' );
 
 export default function Ractive$detach () {
-	if ( this.detached ) {
-		return this.detached;
+	if ( this.isDetached ) {
+		return this.el;
 	}
 
 	if ( this.el ) {
 		removeFromArray( this.el.__ractive_instances__, this );
 	}
-	this.detached = this.fragment.detach();
+
+	this.el = this.fragment.detach();
+	this.isDetached = true;
+
 	detachHook.fire( this );
-	return this.detached;
+	return this.el;
 }

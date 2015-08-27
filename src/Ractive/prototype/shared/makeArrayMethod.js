@@ -1,5 +1,5 @@
 import { isArray } from 'utils/is';
-import { getKeypath, normalise } from 'shared/keypaths';
+import { normalise } from 'shared/keypaths';
 import runloop from 'global/runloop';
 import getNewIndices from 'shared/getNewIndices';
 
@@ -7,26 +7,22 @@ var arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		var array, newIndices = [], len, promise, result;
-
-		keypath = getKeypath( normalise( keypath ) );
-
-		array = this.viewmodel.get( keypath );
-		len = array.length;
+		const model = this.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
+		const array = model.get();
 
 		if ( !isArray( array ) ) {
-			throw new Error( 'Called ractive.' + methodName + '(\'' + keypath.str + '\'), but \'' + keypath.str + '\' does not refer to an array' );
+			throw new Error( `shuffle array method ${methodName} called on non-array at ${keypath.getKeypath()}` );
 		}
 
-		newIndices = getNewIndices( array, methodName, args );
+		const newIndices = getNewIndices( array.length, methodName, args );
+		const result = arrayProto[ methodName ].apply( array, args );
 
-		result = arrayProto[ methodName ].apply( array, args );
-		promise = runloop.start( this, true ).then( () => result );
+		const promise = runloop.start( this, true ).then( () => result );
 
-		if ( !!newIndices ) {
-			this.viewmodel.smartUpdate( keypath, array, newIndices );
+		if ( newIndices ) {
+			model.shuffle( newIndices );
 		} else {
-			this.viewmodel.mark( keypath );
+			model.set( result );
 		}
 
 		runloop.end();

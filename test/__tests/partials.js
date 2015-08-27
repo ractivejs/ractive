@@ -1,6 +1,7 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
-module( 'partials' );
+module( 'partials', { afterEach: cleanup });
 
 /* global console */
 
@@ -186,7 +187,7 @@ test( 'partial functions selects same partial until reset', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>1</p>' );
 
 	ractive.set( 'foo', false );
-	ractive.get( 'items' ).push( 2 );
+	ractive.push( 'items', 2 );
 
 	t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p>' );
 });
@@ -266,60 +267,60 @@ test( 'Partials work in attributes (#917)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
 });
 
-test( 'Partial mustaches can be references or expressions that resolve to a partial', function ( t ) {
-	// please never do anything like this
-	var ractive = new Ractive({
+test( 'Partial name can be a reference', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#items}}{{>.type}}{{/}}{{>test + ".partial"}}{{>part(1)}}\n' +
-			'<div id="{{>id(test)}}">{{>guts}}</div>{{>("NEST" + "ED").toLowerCase()}} {{>onTheFly("george")}} {{>last0}}',
+		template: `{{#each items}}{{>type}}{{/each}}`,
 		data: {
-			items: [ { type: 'foo' }, { type: 'bar' }, { type: 'foo' }, { type: 'baz' } ],
-			test: 'a',
-			part: function(id) { return 'part' + id; },
-			id: function(test) { return test + 'divid'; },
-			last: {
-				one: function() { return 'st'; }
-			},
-			onTheFly: function(v) {
-				var str = 's' + Math.random();
-				this.partials[str] = 'onTheFly:{{' + v + '}}';
-				return str;
-			},
-			george: 'plimpton',
-			last0: 'last1',
-			last30: 'last3',
-			last40: 'last4'
+			items: [{ type: 'foo' }, { type: 'bar' }, { type: 'foo' }, { type: 'baz' }]
 		},
 		partials: {
-			foo: 'foo',
-			bar: 'bar',
-			baz: 'baz',
-			'a.partial': '- a partial',
-			'b.partial': '- b partial',
-			part1: 'hello',
-			adivid: 'theid',
-			bdivid: 'otherid',
-			guts: '<h1>{{>(\'part\' + 1)}} plain partial</h1>',
-			nested: 'ne{{>manylayered}}ed',
-			manylayered: '{{>last.one()}}',
-			'st': 'st',
-			'wt': 'wt',
-			last1: '{{>last30}}',
-			last2: '{{>last40}}',
-			last3: 'last3',
-			last4: 'last4'
+			foo: ':FOO',
+			bar: ':BAR',
+			baz: ':BAZ'
 		}
 	});
 
-	t.htmlEqual( fixture.innerHTML, 'foobarfoobaz- a partialhello <div id="theid"><h1>hello plain partial</h1></div>nested onTheFly:plimpton last3' );
+	t.htmlEqual( fixture.innerHTML, ':FOO:BAR:FOO:BAZ' );
+	ractive.push( 'items', { type: 'foo' });
+	t.htmlEqual( fixture.innerHTML, ':FOO:BAR:FOO:BAZ:FOO' );
+	ractive.set( 'items[1].type', 'baz' );
+	t.htmlEqual( fixture.innerHTML, ':FOO:BAZ:FOO:BAZ:FOO' );
+});
 
-	ractive.push( 'items', { type: 'foo' } );
-	ractive.set('test', 'b');
-	ractive.set('last.one', function() { return 'wt'; });
-	ractive.set('george', 'lazenby');
-	ractive.set('last0', 'last2');
+test( 'Partial name can be an expression', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{>'partial_' + x}}`,
+		data: { x: 'a' },
+		partials: {
+			partial_a: 'first',
+			partial_b: 'second'
+		}
+	});
 
-	t.htmlEqual( fixture.innerHTML, 'foobarfoobazfoo- b partialhello <div id="otherid"><h1>hello plain partial</h1></div>newted onTheFly:lazenby last4' );
+	t.htmlEqual( fixture.innerHTML, 'first' );
+	ractive.set( 'x', 'b' );
+	t.htmlEqual( fixture.innerHTML, 'second' );
+});
+
+test( 'Expression partials can be nested', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{>'NESTED'.toLowerCase()}}`,
+		data: { x: 'a' },
+		partials: {
+			nested: `<p>{{>'child_' + x}}</p>`,
+			child_a: '{{>foo}}',
+			child_b: '{{>bar}}',
+			foo: 'it works',
+			bar: 'it still works'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>it works</p>' );
+	ractive.set( 'x', 'b' );
+	t.htmlEqual( fixture.innerHTML, '<p>it still works</p>' );
 });
 
 test( 'Partials with expressions may also have context', function( t ) {
@@ -349,21 +350,19 @@ test( 'Partials .toString() works when not the first child of parent (#1163)', f
 });
 
 test( 'Dynamic partial works with merge (#1313)', function ( t ) {
-	var ractive, fields;
-
-	fields = [
+	let fields = [
 		{ type: 'text', value: 'hello' },
 		{ type: 'number', value: 123 }
 	];
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: "{{#fields}}{{> .type + 'Field' }}{{/}}",
 		partials: {
 			textField: "text{{value}}",
 			numberField: "number{{value}}",
 		},
-		data: { fields: fields }
+		data: { fields }
 	});
 
 	t.htmlEqual( ractive.toHTML(), 'texthellonumber123' );
@@ -587,9 +586,9 @@ test( 'Inline partials can override component partials', t => {
 		el: fixture,
 		template: `
 			<cmp>
-			<!-- {{>part}} -->
-			inline
-			<!-- {{/part}} -->
+			 	{{#partial part}}
+					inline
+				{{/partial}}
 			</cmp>
 			<cmp/>
 		`,
@@ -619,15 +618,17 @@ test( 'Inline partials may be defined with a partial section', t => {
 });
 
 test( '(Only) inline partials can be yielded', t => {
+	const Widget = Ractive.extend({
+		template: '{{yield foo}}',
+		partials: { foo: 'bar' }
+	});
+
 	new Ractive({
 		el: fixture,
-		template: '<cmp /><cmp>{{#partial foo}}foo{{/partial}}',
-		components: {
-			cmp: Ractive.extend({
-				template: '{{yield foo}}',
-				partials: { foo: 'bar' }
-			})
-		}
+		template: `
+			<Widget/>
+			<Widget>{{#partial foo}}foo{{/partial}}</Widget>`,
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'foo' );
@@ -691,7 +692,16 @@ test( 'Partials with expressions in recursive structures should not blow the sta
 test( 'Named partials should not get rebound if they happen to have the same name as a reference (#1507)', t => {
 	var ractive = new Ractive({
 		el: fixture,
-		template: '{{#each items}}{{>item}}{{/each}}{{#if items.length > 1}}{{#with items[items.length-1]}}{{>item}}{{/with}}{{/if}}',
+		template: `
+			{{#each items}}
+				{{>item}}
+			{{/each}}
+
+			{{#if items.length > 1}}
+				{{#with items[items.length-1]}}
+					{{>item}}
+				{{/with}}
+			{{/if}}`,
 		partials: {
 			item: '{{item}}'
 		},
@@ -704,21 +714,57 @@ test( 'Named partials should not get rebound if they happen to have the same nam
 	ractive.push( 'items', { item: 'b' } );
 	ractive.push( 'items', { item: 'c' } );
 
-	t.htmlEqual( fixture.innerHTML, 'abcc' );
+	t.htmlEqual( fixture.innerHTML, 'abc c' );
+});
+
+test( 'Partials from the template hierarchy should take precedent over references', t => {
+	var ractive = new Ractive({
+		el: fixture,
+		template: `<p>
+			{{#partial item}}{{item}}{{/partial}}
+			{{#each items}}
+				{{>item}}
+			{{/each}}
+
+			{{#if items.length > 1}}
+				{{#with items[items.length-1]}}
+					{{>item}}
+				{{/with}}
+			{{/if}}
+		</p>`,
+		data: {
+			items: []
+		}
+	});
+
+	ractive.push( 'items', { item: 'a' } );
+	ractive.push( 'items', { item: 'b' } );
+	ractive.push( 'items', { item: 'c' } );
+
+	t.htmlEqual( fixture.innerHTML, '<p> abc c</p>' );
+});
+
+test( 'Partial names can have slashes', t => {
+	new Ractive({
+		el: fixture,
+		template: '<p>{{#partial foo/bar}}foobar{{/partial}}{{> foo/bar}}</p>'
+	});
+
+	t.htmlEqual( '<p>foobar</p>', fixture.innerHTML );
 });
 
 test( 'Several inline partials containing elements can be defined (#1736)', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: `
-			<!-- {{>part1}} -->
-			<div>inline1</div>
-			<!-- {{/part1}} -->
-			<!-- {{>part2}} -->
-			<div>inline2</div>
-			<!-- {{/part2}} -->
-			A{{>part1}}B{{>part2}}C
-		`
+			{{#partial part1}}
+				<div>inline1</div>
+			{{/partial}}
+			{{#partial part2}}
+				<div>inline2</div>
+			{{/partial}}
+
+			A{{>part1}}B{{>part2}}C`
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'A<div>inline1</div>B<div>inline2</div>C' );

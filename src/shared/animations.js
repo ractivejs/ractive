@@ -40,13 +40,13 @@ var animations = {
 	},
 
 	// TODO optimise this
-	abort: function ( keypath, root ) {
+	abort: function ( model, root ) {
 		var i = queue.length, animation;
 
 		while ( i-- ) {
 			animation = queue[i];
 
-			if ( animation.root === root && animation.keypath === keypath ) {
+			if ( animation.root === root && animation.model === model ) {
 				animation.stop();
 			}
 		}

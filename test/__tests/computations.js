@@ -1,6 +1,7 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
-module( 'Computations' );
+module( 'Computations', { afterEach: cleanup });
 
 test( 'Computed value declared as a function', function ( t ) {
 	var ractive = new Ractive({
@@ -24,6 +25,31 @@ test( 'Computed value declared as a function', function ( t ) {
 
 	ractive.set( 'height', 15 );
 	t.htmlEqual( fixture.innerHTML, '<p>area: 225</p>' );
+});
+
+test( 'Dependency of computed property', function ( t ) {
+	var ractive = new Ractive({
+		el: fixture,
+		template: '{{answer}}',
+		data: {
+			foo: { bar: { qux: 1 } },
+			number: 10
+		},
+		computed: {
+			answer: '${foo.bar.qux} * ${number}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '10' );
+
+	ractive.set( 'foo.bar.qux', 2 );
+	t.htmlEqual( fixture.innerHTML, '20' );
+
+	ractive.set( 'foo.bar', { qux: 3 } );
+	t.htmlEqual( fixture.innerHTML, '30' );
+
+	ractive.set( 'foo', { bar: { qux: 4 } } );
+	t.htmlEqual( fixture.innerHTML, '40' );
 });
 
 test( 'Computed value declared as a string', function ( t ) {
@@ -84,23 +110,21 @@ test( 'Computed value with a set() method', function ( t ) {
 });
 
 test( 'Components can have default computed properties', function ( t ) {
-	var Box, ractive;
-
-	Box = Ractive.extend({
+	const Box = Ractive.extend({
 		template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
 		computed: {
 			area: '${width} * ${height}'
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<box width="{{width}}" height="{{height}}"/>',
+		template: '<Box width="{{width}}" height="{{height}}"/>',
 		data: {
 			width: 100,
 			height: 100
 		},
-		components: { box: Box }
+		components: { Box }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div style="width: 100px; height: 100px;">10000px squared</div>' );
@@ -309,7 +333,7 @@ if ( hasUsableConsole ) {
 		ractive.reset();
 		ractive.update();
 
-		t.equal( messages, 2 );
+		t.equal( messages, 0 );
 		t.htmlEqual( fixture.innerHTML, '<p>1 - a</p><p> - </p>' );
 
 		console.warn = warn;
@@ -443,7 +467,22 @@ test( 'Computed values are only computed as necessary', function ( t ) {
 	t.deepEqual( count, { foo: 2, bar: 2, baz: 2, qux: 1 });
 
 	ractive.set( 'str', 'How Long Is A Piece Of String' );
-	t.deepEqual( count, { foo: 3, bar: 2, baz: 3, qux: 1 });
+	t.deepEqual( count, { foo: 3, bar: 3, baz: 3, qux: 1 });
+});
+
+test( 'What happens if you access a computed property in data config?', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{total}}',
+		onconfig: function () {
+			return this.set( 'total', this.get( 'add' ) );
+		},
+		computed: {
+			add: '5'
+		}
+	});
+
+	t.equal( fixture.innerHTML, '5' );
 });
 
 test( 'Computations matching _[0-9]+ that are not references should not be mangled incorrectly for caching', t => {
@@ -507,7 +546,7 @@ test( 'Computations can depend on array values (#1747)', t => {
 	});
 
 	t.equal( fixture.innerHTML, 'foo:foobar-foo:foobar' );
-})
+});*/
 
 test( 'Computations depending up computed values cascade while updating (#1383)', ( t ) => {
 	var ractive = new Ractive({
@@ -524,4 +563,4 @@ test( 'Computations depending up computed values cascade while updating (#1383)'
 	t.equal( fixture.innerHTML, 'less' );
 	ractive.set( 'b.c', 100 );
 	t.equal( fixture.innerHTML, 'more' );
-});*/
+});

@@ -1,13 +1,7 @@
-var getTime;
+import { win } from 'config/environment';
 
-if ( typeof window !== 'undefined' && window.performance && typeof window.performance.now === 'function' ) {
-	getTime = function () {
-		return window.performance.now();
-	};
-} else {
-	getTime = function () {
-		return Date.now();
-	};
-}
+const getTime = ( win && win.performance && typeof win.performance.now === 'function' ) ?
+	() => win.performance.now() :
+	() => Date.now();
 
 export default getTime;

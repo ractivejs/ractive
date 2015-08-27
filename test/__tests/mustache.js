@@ -10,6 +10,7 @@
 // Some tests technically fail in IE8. This is because IE8 is shit. The library
 // works fine, but IE8 gets all confused about whitespace when doing innerHTML.
 // For the sake of sanity, these tests are also marked.
+import cleanup from 'helpers/cleanup';
 
 var testModules, runTest, runModule, i, isOldIe;
 
@@ -1203,7 +1204,7 @@ runTest = function ( theTest ) {
 runModule = function ( theModule ) {
 	var i, theTest;
 
-	module( 'Mustache compliance (' + theModule.name + ')' );
+	module( 'Mustache compliance (' + theModule.name + ')', { afterEach: cleanup });
 
 	for ( i=0; i<theModule.tests.length; i+=1 ) {
 		theTest = theModule.tests[i];

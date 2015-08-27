@@ -1,5 +1,5 @@
 import { isObject } from 'utils/is';
-import { getMatchingKeypaths, getKeypath, normalise } from 'shared/keypaths';
+import { splitKeypath } from 'shared/keypaths';
 import runloop from 'global/runloop';
 
 export default function Ractive$set ( keypath, value ) {
@@ -13,12 +13,10 @@ export default function Ractive$set ( keypath, value ) {
 
 		for ( keypath in map ) {
 			if ( map.hasOwnProperty( keypath) ) {
-				value = map[ keypath ];
-				set( this, keypath, value );
+				set( this, keypath, map[ keypath ] );
 			}
 		}
 	}
-
 	// Set a single keypath
 	else {
 		set( this, keypath, value );
@@ -29,14 +27,14 @@ export default function Ractive$set ( keypath, value ) {
 	return promise;
 }
 
-function set ( ractive, keypath, value ) {
-	keypath = getKeypath( normalise( keypath ) );
 
-	if ( keypath.isPattern ) {
-		getMatchingKeypaths( ractive, keypath ).forEach( keypath => {
-			ractive.viewmodel.set( keypath, value );
+function set ( ractive, keypath, value ) {
+	if ( /\*/.test( keypath ) ) {
+		ractive.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
+			model.set( value );
 		});
 	} else {
-		ractive.viewmodel.set( keypath, value );
+		const model = ractive.viewmodel.joinAll( splitKeypath( keypath ) );
+		model.set( value );
 	}
 }

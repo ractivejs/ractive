@@ -1,4 +1,6 @@
-module( 'ractive.find()/findAll()/findComponent()/findAllComponents()' );
+import cleanup from 'helpers/cleanup';
+
+module( 'ractive.find()/findAll()/findComponent()/findAllComponents()', { afterEach: cleanup });
 
 var Widget, Decoy, MockRactive;
 
@@ -237,21 +239,17 @@ test( 'Components containing other components work as expected with ractive.find
 });
 
 test( 'Nodes belonging to components are removed from live queries when those components are torn down', function ( t ) {
-	var Widget, ractive, divs;
-
-	Widget = MockRactive.extend({
+	const Widget = MockRactive.extend({
 		template: '<div>this should be removed</div>'
 	});
 
-	ractive = new MockRactive({
+	const ractive = new MockRactive({
 		el: fixture,
-		template: '{{#widgets}}<widget/>{{/widgets}}',
-		components: {
-			widget: Widget
-		}
+		template: '{{#widgets}}<Widget/>{{/widgets}}',
+		components: { Widget }
 	});
 
-	divs = ractive.findAll( 'div', { live: true });
+	let divs = ractive.findAll( 'div', { live: true });
 	t.equal( divs.length, 0 );
 
 	[ 3, 2, 5, 10, 0 ].forEach( function ( length ) {

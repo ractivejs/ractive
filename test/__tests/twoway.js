@@ -1,6 +1,7 @@
 import hasUsableConsole from 'hasUsableConsole';
+import cleanup from 'helpers/cleanup';
 
-module( 'Two-way bindings' );
+module( 'Two-way bindings', { afterEach: cleanup });
 
 test( 'Two-way bindings work with index references', function ( t ) {
 	var input, ractive;
@@ -409,25 +410,24 @@ test( 'Radio inputs will update the model if another input in their group is che
 	t.equal( ractive.get( 'items[1].checked' ), true );
 });
 
-test( 'Radio name inputs respond to model changes (regression, see #783)', function ( t ) {
-	var ractive, inputs;
-
-	ractive = new Ractive({
+test( 'Radio name inputs respond to model changes (regression, see #783)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}<input type="radio" name="{{foo}}" value="{{this}}"/>{{/items}}',
 		data: {
+			foo: undefined,
 			items: [ 'a', 'b', 'c' ]
 		}
 	});
 
-	inputs = ractive.findAll( 'input' );
+	const inputs = ractive.findAll( 'input' );
+
 	t.equal( ractive.get( 'foo' ), undefined );
 
 	ractive.set( 'foo', 'b' );
 	t.ok( inputs[1].checked );
 
 	ractive.set( 'items', [ 'd', 'e', 'f' ]);
-
 	t.equal( ractive.get( 'foo' ), undefined );
 	t.ok( !inputs[1].checked );
 });
@@ -484,24 +484,25 @@ test( 'Reference expression radio bindings rebind correctly inside reference exp
 	t.deepEqual( ractive.get( 'selected' ), { one: 'a', two: 'b' });
 });
 
-test( 'Ambiguous reference expressions in two-way bindings attach to the root (#900)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Ambiguous reference expressions in two-way bindings attach to correct context', function ( t ) {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
-			<p>foo[{{bar}}]: {{foo[bar]}}</p>
-			{{#with whatever}}
+			<p>obj.foo[{{bar}}]: {{obj.foo[bar]}}</p>
+			{{#with obj}}
 				<input value='{{foo[bar]}}'>
 			{{/with}}`,
 		data: {
-			bar: 0
+			bar: 0,
+			obj: {}
 		}
 	});
 
 	ractive.find( 'input' ).value = 'test';
 	ractive.updateModel();
 
-	t.deepEqual( ractive.get( 'foo' ), [ 'test' ] );
-	t.htmlEqual( fixture.innerHTML, '<p>foo[0]: test</p><input>' );
+	t.deepEqual( ractive.get( 'obj.foo' ), [ 'test' ] );
+	t.htmlEqual( fixture.innerHTML, '<p>obj.foo[0]: test</p><input>' );
 });
 
 test( 'Static bindings can only be one-way (#1149)', function ( t ) {
@@ -648,8 +649,11 @@ test( 'If there happen to be unresolved references next to binding resolved refe
 		el: fixture,
 		template: `
 			{{#context}}
-			  <select value="{{bar}}"><option>baz</option></select><input type="checkbox" checked="{{foo}}" />
-			  <div>{{#foo}}true{{else}}false{{/}}</div>
+				<select value="{{bar}}">
+					<option>baz</option>
+				</select>
+				<input type="checkbox" checked="{{foo}}">
+				<div>{{foo}}: {{#foo}}true{{else}}false{{/}}</div>
 			{{/}}`,
 		data: {
 			context: {}
@@ -657,9 +661,9 @@ test( 'If there happen to be unresolved references next to binding resolved refe
 	});
 
 	var div = ractive.find( 'div' );
-	t.htmlEqual( div.innerHTML, 'false' );
+	t.htmlEqual( div.innerHTML, 'false: false' );
 	simulant.fire( ractive.find( 'input' ), 'click' );
-	t.htmlEqual( div.innerHTML, 'true' );
+	t.htmlEqual( div.innerHTML, 'true: true' );
 });
 
 test( 'Change events propagate after the model has been updated (#1371)', t => {
@@ -682,6 +686,7 @@ test( 'Change events propagate after the model has been updated (#1371)', t => {
 });
 
 if ( hasUsableConsole ) {
+	// #1740: this test fails because {{#with ...}} now behaves as {{#if ...}}{{#with ...}}?
 	test( 'Ambiguous references trigger a warning (#1692)', function ( t ) {
 		var warn = console.warn;
 		console.warn = warning => {
@@ -692,7 +697,10 @@ if ( hasUsableConsole ) {
 
 		var ractive = new Ractive({
 			el: fixture,
-			template: `{{#with whatever}}<input value='{{foo}}'>{{/with}}`
+			template: `{{#with whatever}}<input value='{{uniqueToThisTest}}'>{{/with}}`,
+			data: {
+				whatever: {}
+			}
 		});
 
 		console.warn = warn;
@@ -702,7 +710,7 @@ if ( hasUsableConsole ) {
 		var console_warn = console.warn;
 
 		console.warn = function ( message ) {
-			t.ok( /Two-way binding does not work with expressions/.test(message) );
+			t.ok( ~message.indexOf( 'Cannot use two-way binding on <input> element: foo() is read-only' ) );
 		};
 
 		new Ractive({
@@ -733,10 +741,10 @@ if ( hasUsableConsole ) {
 	test( '@key cannot be used for two-way binding', t => {
 		let warn = console.warn;
 		console.warn = msg => {
-			t.ok( /Two-way binding does not work with @key/.test( msg ) );
+			t.ok( /Cannot use two-way binding/.test( msg ) );
 		};
 
-		expect( 1 );
+		expect( 3 );
 
 		new Ractive({
 			el: fixture,
@@ -749,6 +757,35 @@ if ( hasUsableConsole ) {
 		console.warn = warn;
 	});
 }
+
+test( 'Radio input can have name/checked attributes without two-way binding (#783)', function ( t ) {
+	expect( 0 );
+
+	var ractive = new Ractive({
+		el: fixture,
+		template: '<input type="radio" name="a" value="a" checked>'
+	});
+});
+
+test( 'Two-way binding can be set up against expressions that resolve to regular keypaths', function ( t ) {
+	var ractive, input;
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '{{#items:i}}<label><input value="{{ proxies[i].name }}"> name: {{ proxies[i].name }}</label>{{/items}}',
+		data: {
+			items: [{}],
+			proxies: []
+		}
+	});
+
+	input = ractive.find( 'input' );
+	input.value = 'foo';
+	ractive.updateModel();
+
+	t.deepEqual( ractive.get( 'proxies' ), [{name: 'foo'  }] );
+	t.htmlEqual( fixture.innerHTML, '<label><input> name: foo</label>' );
+});
 
 test( 'Contenteditable works with lazy: true (#1933)', t => {
 	const ractive = new Ractive({

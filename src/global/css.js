@@ -1,4 +1,4 @@
-import { isClient } from 'config/environment';
+import { doc } from 'config/environment';
 import noop from 'utils/noop';
 
 var css,
@@ -11,17 +11,17 @@ var css,
 	styles = [],
 	dirty = false;
 
-if ( !isClient ) {
+if ( !doc ) {
 	// TODO handle encapsulated CSS in server-rendered HTML!
 	css = {
 		add: noop,
 		apply: noop
 	};
 } else {
-	styleElement = document.createElement( 'style' );
+	styleElement = doc.createElement( 'style' );
 	styleElement.type = 'text/css';
 
-	head = document.getElementsByTagName( 'head' )[0];
+	head = doc.getElementsByTagName( 'head' )[0];
 
 	inDom = false;
 

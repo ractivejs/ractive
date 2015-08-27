@@ -1,7 +1,7 @@
 import animations from 'shared/animations';
 import Animation from './animate/Animation';
 import { isEqual } from 'utils/is';
-import { getKeypath, normalise } from 'shared/keypaths';
+import { normalise } from 'shared/keypaths';
 import Promise from 'utils/Promise';
 import noop from 'utils/noop';
 
@@ -118,17 +118,18 @@ export default function Ractive$animate ( keypath, to, options ) {
 function animate ( root, keypath, to, options ) {
 	var easing, duration, animation, from;
 
+	let model;
+
 	if ( keypath ) {
-		keypath = getKeypath( normalise( keypath ) );
-	}
+		// TODO revisit 'dummy' approach to handling multiple
+		// animations? this seems kind of hokey
+		model = root.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
+		from = model.get();
 
-	if ( keypath !== null ) {
-		from = root.viewmodel.get( keypath );
+		// cancel any existing animation
+		// TODO what about upstream/downstream keypaths?
+		animations.abort( model, root );
 	}
-
-	// cancel any existing animation
-	// TODO what about upstream/downstream keypaths?
-	animations.abort( keypath, root );
 
 	// don't bother animating values that stay the same
 	if ( isEqual( from, to ) ) {
@@ -159,7 +160,7 @@ function animate ( root, keypath, to, options ) {
 
 	// TODO store keys, use an internal set method
 	animation = new Animation({
-		keypath,
+		model,
 		from,
 		to,
 		root,

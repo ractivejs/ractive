@@ -1,69 +1,74 @@
 import { removeFromArray } from 'utils/array';
 import { teardown } from 'shared/methodCallers';
 
-var TransitionManager = function ( callback, parent ) {
-	this.callback = callback;
-	this.parent = parent;
+export default class TransitionManager {
+	constructor ( callback, parent ) {
+		this.callback = callback;
+		this.parent = parent;
 
-	this.intros = [];
-	this.outros = [];
+		this.intros = [];
+		this.outros = [];
 
-	this.children = [];
-	this.totalChildren = this.outroChildren = 0;
+		this.children = [];
+		this.totalChildren = this.outroChildren = 0;
 
-	this.detachQueue = [];
-	this.decoratorQueue = [];
-	this.outrosComplete = false;
+		this.detachQueue = [];
+		this.decoratorQueue = [];
+		this.outrosComplete = false;
 
-	if ( parent ) {
-		parent.addChild( this );
+		if ( parent ) {
+			parent.addChild( this );
+		}
 	}
-};
 
-TransitionManager.prototype = {
-	addChild: function ( child ) {
+	add ( transition ) {
+		var list = transition.isIntro ? this.intros : this.outros;
+		list.push( transition );
+	}
+
+	addChild ( child ) {
 		this.children.push( child );
 
 		this.totalChildren += 1;
 		this.outroChildren += 1;
-	},
+	}
 
-	decrementOutros: function () {
+	// TODO can we move decorator stuff to element detach() methods?
+	addDecorator ( decorator ) {
+		this.decoratorQueue.push( decorator );
+	}
+
+	decrementOutros () {
 		this.outroChildren -= 1;
 		check( this );
-	},
+	}
 
-	decrementTotal: function () {
+	decrementTotal () {
 		this.totalChildren -= 1;
 		check( this );
-	},
+	}
 
-	add: function ( transition ) {
-		var list = transition.isIntro ? this.intros : this.outros;
-		list.push( transition );
-	},
-
-	addDecorator: function ( decorator ) {
-		this.decoratorQueue.push( decorator );
-	},
-
-	remove: function ( transition ) {
-		var list = transition.isIntro ? this.intros : this.outros;
-		removeFromArray( list, transition );
-		check( this );
-	},
-
-	init: function () {
-		this.ready = true;
-		check( this );
-	},
-
-	detachNodes: function () {
+	detachNodes () {
 		this.decoratorQueue.forEach( teardown );
 		this.detachQueue.forEach( detach );
 		this.children.forEach( detachNodes );
 	}
-};
+
+	init () {
+		this.ready = true;
+		check( this );
+	}
+
+	remove ( transition ) {
+		var list = transition.isIntro ? this.intros : this.outros;
+		removeFromArray( list, transition );
+		check( this );
+	}
+
+	start () {
+		this.intros.concat( this.outros ).forEach( t => t.start() );
+	}
+}
 
 function detach ( element ) {
 	element.detach();
@@ -101,5 +106,3 @@ function check ( tm ) {
 		}
 	}
 }
-
-export default TransitionManager;

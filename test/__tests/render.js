@@ -1,27 +1,24 @@
-// RENDERING TESTS
-// ===============
-//
-// TODO: add moar tests
 import tests from 'samples/render';
+import cleanup from 'helpers/cleanup';
 
-module ( 'Render' );
+module ( 'Render', { afterEach: cleanup });
 
 var runTest, theTest, magicModes, hasSvg, i;
 
-try {
-	var obj = {}, _foo;
-	Object.defineProperty( obj, 'foo', {
-		get: function () {
-			return _foo;
-		},
-		set: function ( value ) {
-			_foo = value;
-		}
-	});
-	magicModes = [ false, true ];
-} catch ( err ) {
+// try {
+// 	var obj = {}, _foo;
+// 	Object.defineProperty( obj, 'foo', {
+// 		get: function () {
+// 			return _foo;
+// 		},
+// 		set: function ( value ) {
+// 			_foo = value;
+// 		}
+// 	});
+// 	magicModes = [ false, true ];
+// } catch ( err ) {
 	magicModes = [ false ];
-}
+// }
 
 hasSvg = document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
 
@@ -178,7 +175,12 @@ test('List of inputs with referenceExpression name update correctly', function(t
 test('List of inputs with nested referenceExpression name updates correctly', function(t){
 	var ractive = new Ractive({
 		el: fixture,
-		template: "{{#step}}{{#options}}<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>{{/}}{{/}}",
+		template: `
+			{{#step}}
+				{{#options}}
+					<input type='radio' name='{{responses[step.name]}}' value='{{.}}'/>
+				{{/}}
+			{{/}}`,
 		data: {
 			step: {
 				name: 'Products',
@@ -229,18 +231,6 @@ test( 'Render may be called with a selector (#1430)', t => {
 	ractive.render( '#foo' );
 
 	t.htmlEqual( fixture.innerHTML, '<div id="foo">foo</div>' );
-});
-
-test( 'Array roots should not get confused deps in sections (#1494)', t => {
-	var ractive = new Ractive({
-		el: fixture,
-		template: '{{#.}}{{.foo}}{{/}}',
-		data: [{ foo: 'a' }, { foo: 'b' }, { foo: 'c' }]
-	});
-
-	t.equal( fixture.innerHTML, 'abc' );
-	ractive.set('0.foo', 'z');
-	t.equal( fixture.innerHTML, 'zbc' );
 });
 
 test( 'Value changes in object iteration should cause updates (#1476)', t => {

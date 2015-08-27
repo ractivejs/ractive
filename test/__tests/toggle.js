@@ -1,4 +1,6 @@
-module( 'toggle' );
+import cleanup from 'helpers/cleanup';
+
+module( 'toggle', { afterEach: cleanup });
 
 test( 'ractive.toggle("foo") toggles the value of foo', t => {
 	let ractive = new Ractive({

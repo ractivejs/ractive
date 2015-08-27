@@ -1,17 +1,12 @@
+import { win, doc } from 'config/environment';
 import noop from 'utils/noop';
 
-var win, doc, exportedShims;
+var exportedShims;
 
-if ( typeof window === 'undefined' ) {
+if ( !win ) {
 	exportedShims = null;
 } else {
-	win = window;
-	doc = win.document;
 	exportedShims = {};
-
-	if ( !doc ) {
-		exportedShims = null;
-	}
 
 	// Shims for older browsers
 
@@ -205,34 +200,6 @@ if ( typeof window === 'undefined' ) {
 		};
 	}
 
-	/*
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
-	if (!Array.prototype.find) {
-		Array.prototype.find = function(predicate) {
-			if (this == null) {
-			throw new TypeError('Array.prototype.find called on null or undefined');
-			}
-			if (typeof predicate !== 'function') {
-			throw new TypeError('predicate must be a function');
-			}
-			var list = Object(this);
-			var length = list.length >>> 0;
-			var thisArg = arguments[1];
-			var value;
-
-			for (var i = 0; i < length; i++) {
-				if (i in list) {
-					value = list[i];
-					if (predicate.call(thisArg, value, i, list)) {
-					return value;
-					}
-				}
-			}
-			return undefined;
-		}
-	}
-	*/
-
 	if ( typeof Function.prototype.bind !== 'function' ) {
 		Function.prototype.bind = function ( context ) {
 			var args, fn, Empty, bound, slice = [].slice;
@@ -384,13 +351,13 @@ if ( typeof window === 'undefined' ) {
 
 				// `thin`, `medium` and `thick` vary between browsers. (Don't ever use them.)
 				if ( !borderSizes[ size ] ) {
-					div = document.createElement( 'div' );
+					div = doc.createElement( 'div' );
 					div.style.display = 'block';
 					div.style.position = 'fixed';
 					div.style.width = div.style.height = '0';
 					div.style.borderRight = size + ' solid black';
 
-					document.getElementsByTagName( 'body' )[0].appendChild( div );
+					doc.getElementsByTagName( 'body' )[0].appendChild( div );
 					bcr = div.getBoundingClientRect();
 
 					borderSizes[ size ] = bcr.right - bcr.left;

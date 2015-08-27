@@ -1,5 +1,5 @@
 import { default as templateConfigurator } from 'Ractive/config/custom/template/template';
-import Fragment from 'virtualdom/Fragment';
+import Fragment from 'view/Fragment';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case
 // of outro, update template, intro? I reckon probably not, since that
@@ -35,6 +35,7 @@ export default function Ractive$resetTemplate ( template ) {
 		root: this,
 		owner: this
 	});
+	this.fragment.bind( this.viewmodel );
 
 	this.render( this.el, this.anchor );
 

@@ -1,4 +1,4 @@
-import makeQuery from './shared/makeQuery/_makeQuery';
+import Query from './shared/Query';
 
 export default function Ractive$findAll ( selector, options ) {
 	var liveQueries, query;
@@ -18,7 +18,7 @@ export default function Ractive$findAll ( selector, options ) {
 		return ( options && options.live ) ? query : query.slice();
 	}
 
-	query = makeQuery( this, selector, !!options.live, false );
+	query = new Query( this, selector, !!options.live, false );
 
 	// Add this to the list of live queries Ractive needs to maintain,
 	// if applicable
@@ -28,5 +28,7 @@ export default function Ractive$findAll ( selector, options ) {
 	}
 
 	this.fragment.findAll( selector, query );
-	return query;
+
+	query.init();
+	return query.result;
 }

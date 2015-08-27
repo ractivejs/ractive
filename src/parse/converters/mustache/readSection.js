@@ -160,29 +160,13 @@ export default function readSection ( parser, tag ) {
 }
 
 function createUnlessBlock ( expression, sectionType ) {
-	var unlessBlock;
+	let unlessBlock = {
+		t: SECTION,
+		n: SECTION_UNLESS,
+		f: []
+	};
 
-	if ( sectionType === SECTION_WITH ) {
-		// special case - a `{{#with foo}}` section will render if `foo` is
-		// truthy, so the `{{else}}` section needs to render if `foo` is falsy,
-		// rather than adhering to the normal `{{#unless foo}}` logic (which
-		// treats empty arrays/objects as falsy)
-		unlessBlock = {
-			t: SECTION,
-			n: SECTION_IF,
-			f: []
-		};
-
-		refineExpression( invert( expression ), unlessBlock );
-	} else {
-		unlessBlock = {
-			t: SECTION,
-			n: SECTION_UNLESS,
-			f: []
-		};
-
-		refineExpression( expression, unlessBlock );
-	}
+	refineExpression( expression, unlessBlock );
 
 	return unlessBlock;
 }

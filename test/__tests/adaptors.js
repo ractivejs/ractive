@@ -1,6 +1,7 @@
 import Model from 'helpers/Model';
+import cleanup from 'helpers/cleanup';
 
-module( 'Adaptors' );
+module( 'Adaptors', { afterEach: cleanup });
 
 var adaptor = Model.adaptor;
 
@@ -12,11 +13,11 @@ test( 'Adaptors can change data as it is .set() (#442)', function ( t ) {
 		percent: 150
 	});
 
-	model.transform( 'foo', function ( newValue, oldValue ) {
+	model.transform( 'foo', function ( newValue ) {
 		return newValue.toLowerCase();
 	});
 
-	model.transform( 'percent', function ( newValue, oldValue ) {
+	model.transform( 'percent', function ( newValue ) {
 		return Math.min( 100, Math.max( 0, newValue ) );
 	});
 
@@ -50,7 +51,7 @@ test( 'ractive.reset() calls are forwarded to wrappers if the root data object i
 		unwanted: 'here'
 	});
 
-	model.transform( 'foo', function ( newValue, oldValue ) {
+	model.transform( 'foo', function ( newValue ) {
 		return newValue.toLowerCase();
 	});
 
@@ -66,7 +67,7 @@ test( 'ractive.reset() calls are forwarded to wrappers if the root data object i
 
 	model = new Model({ foo: 'QUX' });
 
-	model.transform( 'foo', function ( newValue, oldValue ) {
+	model.transform( 'foo', function ( newValue ) {
 		return newValue.toLowerCase();
 	});
 
@@ -99,7 +100,7 @@ test( 'If a wrapper\'s reset() method returns false, it should be torn down (#46
 });
 
 test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', function ( t ) {
-	var Subclass, instance, FooAdaptor = {};
+	var Subclass, instance, FooAdaptor = { filter: function () {}, wrap: function () {} };
 
 	Subclass = Ractive.extend({ adapt: 'Foo', adaptors: { Foo: FooAdaptor }, modifyArrays: false });
 	instance = new Subclass();
@@ -129,7 +130,7 @@ test( 'Original values are passed to event handlers (#945)', function ( t ) {
 });
 
 test( 'Adaptor teardown is called when used in a component (#1190)', function ( t ) {
-	var ractive, adaptor, Component, torndown = 0;
+	var ractive, adaptor, torndown = 0;
 
 	function Wrapped(){}
 
@@ -140,9 +141,9 @@ test( 'Adaptor teardown is called when used in a component (#1190)', function ( 
 				get: () => ({ foo: 'bar' }),
 				reset: () => false,
 				teardown: () => torndown++
-			}
+			};
 		}
-	}
+	};
 
 	ractive = new Ractive({
 		el: fixture,
@@ -150,9 +151,9 @@ test( 'Adaptor teardown is called when used in a component (#1190)', function ( 
 		components: {
 			component: Ractive.extend({
 				template: '{{wrapped.foo}}',
-				data: {
+				data: () => ({
 					wrapped: new Wrapped()
-				},
+				}),
 				adapt: [ adaptor ]
 			})
 		}
@@ -180,9 +181,9 @@ test( 'Adaptor called on data provided in initial options when no template (#128
 				reset: () => false,
 				set: (property, value) => obj.sekrit = value,
 				teardown: () => true
-			}
+			};
 		}
-	}
+	};
 
 	ractive = new Ractive({
 		el: fixture,
@@ -219,121 +220,104 @@ test( 'Components inherit modifyArrays option from environment (#1297)', functio
 	t.htmlEqual( fixture.innerHTML, 'abc' );
 });
 
-test( 'display a collection from a model', function ( t ) {
-	var Classes = (function () {
-		var Model, Collection, Items, Store;
-		function extend ( parent, child ) {
-			var Surrogate = function () {
-				this.constructor = child;
-			};
-			Surrogate.prototype = parent.prototype;
-			child.prototype = new Surrogate();
+test( 'Computed properties are adapted', t => {
+	function Value ( value ) {
+		this._ = value;
+	}
+
+	const adaptor = {
+		filter: obj => obj instanceof Value,
+		wrap: ( ractive, obj ) => ({
+			get: () => obj._,
+			set: () => null,
+			reset: () => false,
+			teardown: () => true
+		})
+	};
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{foo}}`,
+		data: { bar: 1 },
+		adapt: [ adaptor ],
+		computed: {
+			foo () {
+				return new Value( 2 * this.get( 'bar' ) );
+			}
 		}
+	});
 
-		Model = function ( attrs ) {
-			this.attrs = attrs || {};
-			return this;
-		};
-		Collection = function ( attrs ) {
-			this.attrs = attrs || [];
-			return this;
-		};
+	t.htmlEqual( fixture.innerHTML, '2' );
+	ractive.set( 'bar', 2 );
+	t.htmlEqual( fixture.innerHTML, '4' );
+});
 
-		Items = function ( attrs ) {
-			Collection.call(this, attrs);
-			return this;
-		};
-		extend( Collection, Items );
+test( 'display a collection from a model', function ( t ) {
+	function extend ( parent, child ) {
+		function Surrogate () {
+			this.constructor = child;
+		}
+		Surrogate.prototype = parent.prototype;
+		child.prototype = new Surrogate();
+	}
 
-		Store = function ( attrs ) {
-			Model.call( this, attrs );
-			return this;
-		};
-		extend( Model, Store );
-		Store.prototype.getItems = function () {
-			return this.attrs.items;
-		};
+	function Model ( attrs ) {
+		this.attrs = attrs || {};
+	}
 
-		return {
-			Model: Model,
-			Collection: Collection,
-			Items: Items,
-			Store: Store
-		};
-	})( 'Classes' );
+	function Collection ( arr ) {
+		this.arr = arr || [];
+	}
 
-	(function () {
-		Ractive.adaptors.ModelAdaptor = {
-			filter: function ( obj, keypath, ractive ) {
-				return obj instanceof Classes.Model;
-			},
-			wrap: function ( ractive, obj, keypath, prefix ) {
-				return {
-					get: function () {
-						return obj.attrs;
-					},
-					set: function (prop, val) {
-						obj.attrs[ prop ] = val;
-					},
-					reset: function () {
-						return false;
-					},
-					teardown: function () {
-						return true;
-					}
-				};
-			}
-		};
-		Ractive.adaptors.CollectionAdaptor = {
-			filter: function ( obj, keypath, ractive ) {
-				return obj instanceof Classes.Collection;
-			},
-			wrap: function ( ractive, obj, keypath, prefix ) {
-				return {
-					get: function () {
-						return obj.attrs;
-					},
-					reset: function () {
-						return false;
-					},
-					teardown: function () {
-						return true;
-					}
-				};
-			}
-		};
-	})( 'Adaptors' );
+	function Items ( arr ) {
+		Collection.call(this, arr);
+		return this;
+	}
 
-	(function () {
-		var template, store, app;
-		template = [
-			'{{# store.getItems() }}',
-			'-{{ this.name }}',
-			'{{/}}',
-		].join( '' );
+	extend( Collection, Items );
 
-		store = new Classes.Store({
-			items: new Classes.Items([
-				{
-					name: 'duck'
-				},
-				{
-					name: 'chicken'
-				}
-			])
-		});
+	function Store ( attrs ) {
+		Model.call( this, attrs );
+	}
 
-		app = new Ractive({
-			el: fixture,
-			template: template,
-			data: {
-				store: store
-			},
-			adapt: [ 'ModelAdaptor', 'CollectionAdaptor' ],
-			debug: true
-		});
+	extend( Model, Store );
 
-	})( 'initialize' );
+	Ractive.adaptors.ModelAdaptor = {
+		filter: obj => obj instanceof Model,
+		wrap: ( ractive, obj ) => {
+			return {
+				get: () => obj.attrs,
+				set: ( prop, val ) => obj.attrs[ prop ] = val,
+				reset: () => false,
+				teardown: () => true
+			};
+		}
+	};
+
+	Ractive.adaptors.CollectionAdaptor = {
+		filter: obj => obj instanceof Collection,
+		wrap: ( ractive, obj ) => {
+			return {
+				get: () => obj.arr,
+				reset: () => false,
+				teardown: () => true
+			};
+		}
+	};
+
+	const store = new Store({
+		items: new Items([
+			{ name: 'duck' },
+			{ name: 'chicken' }
+		])
+	});
+
+	new Ractive({
+		el: fixture,
+		template: `{{#each store.items }}-{{ this.name }}{{/each}}`,
+		data: { store },
+		adapt: [ 'ModelAdaptor', 'CollectionAdaptor' ]
+	});
 	t.htmlEqual( fixture.innerHTML, '-duck-chicken' );
 });
 

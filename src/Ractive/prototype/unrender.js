@@ -1,4 +1,4 @@
-import Hook from './shared/hooks/Hook';
+import Hook from 'events/Hook';
 import { warnIfDebug } from 'utils/log';
 import Promise from 'utils/Promise';
 import { removeFromArray } from 'utils/array';

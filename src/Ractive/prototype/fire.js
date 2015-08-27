@@ -1,10 +1,5 @@
-import fireEvent from 'Ractive/prototype/shared/fireEvent';
+import fireEvent from 'events/fireEvent';
 
-export default function Ractive$fire ( eventName ) {
-
-	var options = {
-		args: Array.prototype.slice.call( arguments, 1 )
-	};
-
-	fireEvent( this, eventName, options );
+export default function Ractive$fire ( eventName, ...args ) {
+	fireEvent( this, eventName, { args });
 }

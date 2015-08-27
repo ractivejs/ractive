@@ -1,9 +1,14 @@
-export default function Ractive$observeOnce ( property, callback, options ) {
+import { isObject } from 'utils/is';
+import { extend } from 'utils/object';
 
-	var observer = this.observe( property, function () {
-		callback.apply( this, arguments );
-		observer.cancel();
-	}, { init: false, defer: options && options.defer });
+const onceOptions = { init: false, once: true };
 
-	return observer;
+export default function observeOnce ( keypath, callback, options ) {
+	if ( isObject( keypath ) || typeof keypath === 'function' ) {
+		options = extend( callback || {}, onceOptions );
+		return this.observe( keypath, options );
+	}
+
+	options = extend( options || {}, onceOptions );
+	return this.observe( keypath, callback, options );
 }

@@ -53,7 +53,7 @@ export default function processDirective ( tokens, parentParser ) {
 	directiveName = [];
 	directiveArgs = [];
 
-	if ( tokens) {
+	if ( tokens ) {
 		while ( tokens.length ) {
 			token = tokens.shift();
 
@@ -63,7 +63,6 @@ export default function processDirective ( tokens, parentParser ) {
 				if ( colonIndex === -1 ) {
 					directiveName.push( token );
 				} else {
-
 					// is the colon the first character?
 					if ( colonIndex ) {
 						// no
@@ -90,8 +89,7 @@ export default function processDirective ( tokens, parentParser ) {
 
 	if ( !directiveName.length ) {
 		result = '';
-	}
-	else if ( directiveArgs.length || typeof directiveName !== 'string' ) {
+	} else if ( directiveArgs.length || typeof directiveName !== 'string' ) {
 		result = {
 			// TODO is this really necessary? just use the array
 			n: ( directiveName.length === 1 && typeof directiveName[0] === 'string' ? directiveName[0] : directiveName )
@@ -99,7 +97,7 @@ export default function processDirective ( tokens, parentParser ) {
 
 		if ( directiveArgs.length === 1 && typeof directiveArgs[0] === 'string' ) {
 			parsed = parseJSON( '[' + directiveArgs[0] + ']' );
-			result.a = parsed ? parsed.value : directiveArgs[0].trim();
+			result.a = parsed ? parsed.value : [ directiveArgs[0].trim() ];
 		}
 
 		else {

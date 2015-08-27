@@ -1,4 +1,6 @@
-module( 'ractive.merge()' );
+import cleanup from 'helpers/cleanup';
+
+module( 'ractive.merge()', { afterEach: cleanup });
 
 test( 'Merging an array of strings only creates the necessary fragments', function ( t ) {
 	var entered, exited, foo, bar, baz, ractive;
@@ -13,7 +15,7 @@ test( 'Merging an array of strings only creates the necessary fragments', functi
 			items: [ 'foo', 'bar', 'baz' ]
 		},
 		transitions: {
-			log: function ( t ) {
+			log ( t ) {
 				if ( t.isIntro ) {
 					entered += 1;
 				} else {
@@ -55,7 +57,7 @@ test( 'Merging an array of strings only removes the necessary fragments', functi
 			items: [ 'foo', 'bar', 'baz' ]
 		},
 		transitions: {
-			log: function ( t ) {
+			log ( t ) {
 				if ( t.isIntro ) {
 					entered += 1;
 				} else {
@@ -325,6 +327,23 @@ test( 'Merging works with unrendered instances (#1314)', function ( t ) {
 
 	ractive.merge( 'items', [ 'b', 'a' ]);
 	t.htmlEqual( ractive.toHTML(), 'ba' );
+});
+
+test( 'Expressions with index references survive a merge', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#each items :i}}
+				<p>{{i+1}} ({{i}}): {{this.toUpperCase()}} ({{this}})</p>
+			{{/each}}`,
+		data: {
+			items: [ 'a', 'b', 'c' ]
+		}
+	});
+
+	ractive.merge( 'items', [ 'c', 'a' ]);
+
+	t.htmlEqual( fixture.innerHTML, '<p>1 (0): C (c)</p><p>2 (1): A (a)</p>' );
 });
 
 function isOrphan ( node ) {

@@ -60,8 +60,7 @@ var dataConfigurator = {
 
 	reset: function ( ractive ) {
 		var result = this.init( ractive.constructor, ractive, ractive.viewmodel );
-
-		ractive.viewmodel.reset( result );
+		ractive.viewmodel.root.set( result );
 		return true;
 	}
 };
