@@ -84,6 +84,8 @@ export default class ExpressionProxy extends Model {
 		const signature = {
 			getter: () => {
 				const values = this.models.map( model => {
+					if (!model) return undefined;
+					
 					const value = model.get( true );
 
 					if ( typeof value === 'function' ) {
