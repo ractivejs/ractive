@@ -76,6 +76,12 @@ export default class Section extends Mustache {
 
 			this.fragment = fragment;
 		}
+		else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
+			this.fragment = new Fragment({
+				owner: this,
+				template: this.template.f
+			}).bind();
+		}
 	}
 
 	detach () {
