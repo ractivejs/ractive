@@ -815,3 +815,16 @@ test( 'type attribute does not have to be first (#1968)', t => {
 
 	t.ok( ractive.nodes.red.checked );
 });
+
+test( 'input type=number binds (#2082)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{number}} <input type="number" value="{{number}}">`,
+		data: { number: 10 }
+	});
+
+	const input = ractive.find( 'input' );
+	input.value = '20';
+	simulant.fire( input, 'change' );
+	t.equal( ractive.get( 'number' ), 20 );
+});
