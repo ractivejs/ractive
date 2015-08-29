@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Aug 27 2015 03:11:02 GMT+0000 (UTC) - commit d8746228196e46e38d6a5ec04cac0a57297d49cb
+	Sat Aug 29 2015 15:14:44 GMT+0000 (UTC) - commit bf005c4fe74ec0e5f7c815c3b9298a5cb6572bb1
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11657,13 +11657,13 @@
 
   function NumericBinding___inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-  var NumericBinding = (function (_Binding) {
-  	NumericBinding___inherits(NumericBinding, _Binding);
+  var NumericBinding = (function (_GenericBinding) {
+  	NumericBinding___inherits(NumericBinding, _GenericBinding);
 
   	function NumericBinding() {
   		NumericBinding___classCallCheck(this, NumericBinding);
 
-  		_Binding.apply(this, arguments);
+  		_GenericBinding.apply(this, arguments);
   	}
 
   	NumericBinding.prototype.getInitialValue = function getInitialValue() {
@@ -11676,7 +11676,7 @@
   	};
 
   	return NumericBinding;
-  })(binding_Binding);
+  })(GenericBinding);
 
   function RadioBinding___classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
