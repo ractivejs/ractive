@@ -1,5 +1,5 @@
-import { doc } from 'config/environment';
-import { createElement } from 'utils/dom';
+import { doc } from '../config/environment';
+import { createElement } from './dom';
 import 'legacy';
 
 var create, defineProperty, defineProperties;

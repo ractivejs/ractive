@@ -1,6 +1,6 @@
-import { isObject } from 'utils/is';
-import { splitKeypath } from 'shared/keypaths';
-import runloop from 'global/runloop';
+import { isObject } from '../../utils/is';
+import { splitKeypath } from '../../shared/keypaths';
+import runloop from '../../global/runloop';
 
 export default function Ractive$set ( keypath, value ) {
 	var map, promise;

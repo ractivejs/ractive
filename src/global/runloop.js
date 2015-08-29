@@ -1,6 +1,6 @@
-import Hook from 'events/Hook';
-import { addToArray } from 'utils/array';
-import Promise from 'utils/Promise';
+import Hook from '../events/Hook';
+import { addToArray } from '../utils/array';
+import Promise from '../utils/Promise';
 import TransitionManager from './TransitionManager';
 
 const changeHook = new Hook( 'change' );

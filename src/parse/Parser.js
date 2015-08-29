@@ -1,4 +1,4 @@
-import { create, hasOwn } from 'utils/object';
+import { create, hasOwn } from '../utils/object';
 
 var Parser, ParseError, leadingWhitespace = /^\s+/;
 

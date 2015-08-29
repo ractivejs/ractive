@@ -1,7 +1,7 @@
-import { isArray } from 'utils/is';
-import { normalise } from 'shared/keypaths';
-import runloop from 'global/runloop';
-import getNewIndices from 'shared/getNewIndices';
+import { isArray } from '../../../utils/is';
+import { normalise } from '../../../shared/keypaths';
+import runloop from '../../../global/runloop';
+import getNewIndices from '../../../shared/getNewIndices';
 
 var arrayProto = Array.prototype;
 

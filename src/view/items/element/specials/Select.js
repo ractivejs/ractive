@@ -1,6 +1,6 @@
 import Element from '../../Element';
-import runloop from 'global/runloop';
-import { toArray } from 'utils/array';
+import runloop from '../../../../global/runloop';
+import { toArray } from '../../../../utils/array';
 
 function valueContains ( selectValue, optionValue ) {
 	let i = selectValue.length;

@@ -1,4 +1,4 @@
-import { YIELDER } from 'config/types';
+import { YIELDER } from '../../../config/types';
 
 var yieldPattern = /^yield\s*/;
 

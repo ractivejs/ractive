@@ -1,4 +1,4 @@
-import { warnIfDebug } from 'utils/log';
+import { warnIfDebug } from '../utils/log';
 
 // TODO: deprecate in future release
 const deprecations = {

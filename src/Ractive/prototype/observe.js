@@ -1,8 +1,8 @@
-import runloop from 'global/runloop';
-import { isEqual, isObject } from 'utils/is';
-import { splitKeypath } from 'shared/keypaths';
-import { cancel } from 'shared/methodCallers';
-import resolveReference from 'view/resolvers/resolveReference';
+import runloop from '../../global/runloop';
+import { isEqual, isObject } from '../../utils/is';
+import { splitKeypath } from '../../shared/keypaths';
+import { cancel } from '../../shared/methodCallers';
+import resolveReference from '../../view/resolvers/resolveReference';
 
 export default function observe ( keypath, callback, options ) {
 	let observers = [];

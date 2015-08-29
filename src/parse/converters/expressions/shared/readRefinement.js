@@ -1,7 +1,7 @@
-import { REFINEMENT } from 'config/types';
+import { REFINEMENT } from '../../../../config/types';
 import { expectedExpression } from './errors';
 import { name as namePattern } from './patterns';
-import readExpression from 'parse/converters/readExpression';
+import readExpression from '../../readExpression';
 
 export default function readRefinement ( parser ) {
 	var start, name, expr;

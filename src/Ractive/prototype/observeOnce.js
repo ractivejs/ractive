@@ -1,5 +1,5 @@
-import { isObject } from 'utils/is';
-import { extend } from 'utils/object';
+import { isObject } from '../../utils/is';
+import { extend } from '../../utils/object';
 
 const onceOptions = { init: false, once: true };
 

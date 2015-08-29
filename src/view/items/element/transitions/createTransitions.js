@@ -1,9 +1,9 @@
-import { isClient } from 'config/environment';
-import { warnIfDebug } from 'utils/log';
-import { createElement } from 'utils/dom';
-import camelCase from 'utils/camelCase';
-import interpolate from 'shared/interpolate';
-import Ticker from 'shared/Ticker';
+import { isClient } from '../../../../config/environment';
+import { warnIfDebug } from '../../../../utils/log';
+import { createElement } from '../../../../utils/dom';
+import camelCase from '../../../../utils/camelCase';
+import interpolate from '../../../../shared/interpolate';
+import Ticker from '../../../../shared/Ticker';
 import prefix from './prefix';
 import unprefix from './unprefix';
 import hyphenate from './hyphenate';

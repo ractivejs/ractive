@@ -1,6 +1,6 @@
-import Hook from 'events/Hook';
-import runloop from 'global/runloop';
-import { splitKeypath } from 'shared/keypaths';
+import Hook from '../../events/Hook';
+import runloop from '../../global/runloop';
+import { splitKeypath } from '../../shared/keypaths';
 
 var updateHook = new Hook( 'update' );
 

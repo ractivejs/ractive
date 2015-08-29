@@ -1,4 +1,4 @@
-import { REFERENCE, BRACKETED, NUMBER_LITERAL, MEMBER, REFINEMENT } from 'config/types';
+import { REFERENCE, BRACKETED, NUMBER_LITERAL, MEMBER, REFINEMENT } from '../../config/types';
 import flattenExpression from './flattenExpression';
 
 var arrayMemberPattern = /^[0-9][1-9]*$/;

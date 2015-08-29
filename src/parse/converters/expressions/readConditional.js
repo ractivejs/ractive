@@ -1,7 +1,7 @@
-import { CONDITIONAL } from 'config/types';
+import { CONDITIONAL } from '../../../config/types';
 import readLogicalOr from './readLogicalOr';
 import { expectedExpression } from './shared/errors';
-import readExpression from 'parse/converters/readExpression';
+import readExpression from '../readExpression';
 
 // The conditional operator is the lowest precedence operator, so we start here
 export default function getConditional ( parser ) {

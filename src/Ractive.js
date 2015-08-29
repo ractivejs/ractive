@@ -1,15 +1,15 @@
-import defaults from 'Ractive/config/defaults';
-import easing from 'Ractive/static/easing';
-import interpolators from 'Ractive/static/interpolators';
-import { magic, svg, win } from 'config/environment';
-import { defineProperties, extend as extendObj } from 'utils/object';
-import proto from 'Ractive/prototype';
-import Promise from 'utils/Promise';
-import extend from 'extend/_extend';
-import parse from 'parse/_parse';
-import getNodeInfo from 'Ractive/static/getNodeInfo';
-import construct from 'Ractive/construct';
-import initialise from 'Ractive/initialise';
+import defaults from './Ractive/config/defaults';
+import easing from './Ractive/static/easing';
+import interpolators from './Ractive/static/interpolators';
+import { magic, svg, win } from './config/environment';
+import { defineProperties, extend as extendObj } from './utils/object';
+import proto from './Ractive/prototype';
+import Promise from './utils/Promise';
+import extend from './extend/_extend';
+import parse from './parse/_parse';
+import getNodeInfo from './Ractive/static/getNodeInfo';
+import construct from './Ractive/construct';
+import initialise from './Ractive/initialise';
 
 // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
 // older browsers, these are made available via a shim - here, we do a quick

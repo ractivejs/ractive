@@ -1,5 +1,5 @@
-import { svg } from 'config/namespaces';
-import { createElement } from 'utils/dom';
+import { svg } from '../../../config/namespaces';
+import { createElement } from '../../../utils/dom';
 
 var elementCache = {}, ieBug, ieBlacklist;
 

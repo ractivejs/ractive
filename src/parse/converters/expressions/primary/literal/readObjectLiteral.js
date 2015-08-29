@@ -1,4 +1,4 @@
-import { OBJECT_LITERAL } from 'config/types';
+import { OBJECT_LITERAL } from '../../../../../config/types';
 import readKeyValuePairs from './objectLiteral/keyValuePairs';
 
 export default function ( parser ) {

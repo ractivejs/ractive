@@ -1,7 +1,7 @@
-import runloop from 'global/runloop';
+import runloop from '../../../../global/runloop';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
-import { arrayContentsMatch } from 'utils/array';
+import { arrayContentsMatch } from '../../../../utils/array';
 
 export default class MultipleSelectBinding extends Binding {
 	forceUpdate () {

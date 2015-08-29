@@ -1,4 +1,4 @@
-import css from 'global/css';
+import css from '../../../../global/css';
 import transformCss from './transform';
 
 let uid = 1;

@@ -1,7 +1,7 @@
-import { findInViewHierarchy } from 'shared/registry';
-import { missingPlugin } from 'config/errors';
+import { findInViewHierarchy } from '../../../shared/registry';
+import { missingPlugin } from '../../../config/errors';
 import Fragment from '../../Fragment';
-import noop from 'utils/noop';
+import noop from '../../../utils/noop';
 
 const missingDecorator = {
 	update: noop,

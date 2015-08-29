@@ -1,16 +1,16 @@
-import { win } from 'config/environment';
-import legacy from 'legacy';
-import { isArray } from 'utils/is';
+import { win } from '../../../config/environment';
+import legacy from '../../../legacy';
+import { isArray } from '../../../utils/is';
 import prefix from './transitions/prefix';
-import { warnOnceIfDebug } from 'utils/log';
-import { extend } from 'utils/object';
-import { missingPlugin } from 'config/errors';
-import Fragment from 'view/Fragment';
-import { findInViewHierarchy } from 'shared/registry';
-import { visible } from 'config/visibility';
+import { warnOnceIfDebug } from '../../../utils/log';
+import { extend } from '../../../utils/object';
+import { missingPlugin } from '../../../config/errors';
+import Fragment from '../../Fragment';
+import { findInViewHierarchy } from '../../../shared/registry';
+import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
-import Promise from 'utils/Promise';
+import Promise from '../../../utils/Promise';
 
 const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
 const resolved = Promise.resolve();

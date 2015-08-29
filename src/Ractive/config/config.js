@@ -1,4 +1,4 @@
-import { warnIfDebug } from 'utils/log';
+import { warnIfDebug } from '../../utils/log';
 import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';

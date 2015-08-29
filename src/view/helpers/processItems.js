@@ -1,4 +1,4 @@
-import { TEXT } from 'config/types';
+import { TEXT } from '../../config/types';
 
 // TODO all this code needs to die
 export default function processItems ( items, values, guid, counter = 0 ) {

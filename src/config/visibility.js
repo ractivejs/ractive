@@ -1,4 +1,4 @@
-import { win, doc, vendors } from 'config/environment';
+import { win, doc, vendors } from './environment';
 
 export let visible;
 let hidden = 'hidden';

@@ -1,5 +1,5 @@
-import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from 'config/types';
-import { lastItem } from 'utils/array';
+import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from '../../config/types';
+import { lastItem } from '../../utils/array';
 
 var leadingLinebreak = /^\s*\r?\n/,
 	trailingLinebreak = /\r?\n\s*$/;

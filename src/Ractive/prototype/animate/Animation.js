@@ -1,6 +1,6 @@
-import { warnIfDebug } from 'utils/log';
-import runloop from 'global/runloop';
-import interpolate from 'shared/interpolate';
+import { warnIfDebug } from '../../../utils/log';
+import runloop from '../../../global/runloop';
+import interpolate from '../../../shared/interpolate';
 
 var Animation = function ( options ) {
 	var key;

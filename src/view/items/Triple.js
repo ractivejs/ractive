@@ -1,7 +1,7 @@
-import { createDocumentFragment, matches } from 'utils/dom';
+import { createDocumentFragment, matches } from '../../utils/dom';
 import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
-import { decodeCharacterReferences } from 'utils/html';
+import { decodeCharacterReferences } from '../../utils/html';
 
 export default class Triple extends Mustache {
 	constructor ( options ) {

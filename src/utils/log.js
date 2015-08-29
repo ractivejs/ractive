@@ -1,7 +1,7 @@
 /* global console */
-import { hasConsole } from 'config/environment';
-import Ractive from 'Ractive';
-import noop from 'utils/noop';
+import { hasConsole } from '../config/environment';
+import Ractive from '../Ractive';
+import noop from './noop';
 
 var alreadyWarned = {}, log, printWarning, welcome;
 

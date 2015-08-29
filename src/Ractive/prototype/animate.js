@@ -1,9 +1,9 @@
-import animations from 'shared/animations';
+import animations from '../../shared/animations';
 import Animation from './animate/Animation';
-import { isEqual } from 'utils/is';
-import { normalise } from 'shared/keypaths';
-import Promise from 'utils/Promise';
-import noop from 'utils/noop';
+import { isEqual } from '../../utils/is';
+import { normalise } from '../../shared/keypaths';
+import Promise from '../../utils/Promise';
+import noop from '../../utils/noop';
 
 var noAnimation = { stop: noop };
 

@@ -1,6 +1,6 @@
-import runloop from 'global/runloop';
-import { defineProperty } from 'utils/object';
-import getNewIndices from 'shared/getNewIndices';
+import runloop from '../../../../global/runloop';
+import { defineProperty } from '../../../../utils/object';
+import getNewIndices from '../../../../shared/getNewIndices';
 import processWrapper from './processWrapper';
 
 const mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ];

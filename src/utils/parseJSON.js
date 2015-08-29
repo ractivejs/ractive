@@ -1,6 +1,6 @@
-import Parser from 'parse/Parser';
-import readStringLiteral from 'parse/converters/expressions/primary/literal/readStringLiteral';
-import readKey from 'parse/converters/expressions/shared/readKey';
+import Parser from '../parse/Parser';
+import readStringLiteral from '../parse/converters/expressions/primary/literal/readStringLiteral';
+import readKey from '../parse/converters/expressions/shared/readKey';
 
 // simple JSON parser, without the restrictions of JSON parse
 // (i.e. having to double-quote keys).

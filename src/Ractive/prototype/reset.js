@@ -1,7 +1,7 @@
-import config from 'Ractive/config/config';
-import Hook from 'events/Hook';
-import runloop from 'global/runloop';
-import dataConfigurator from 'Ractive/config/custom/data';
+import config from '../config/config';
+import Hook from '../../events/Hook';
+import runloop from '../../global/runloop';
+import dataConfigurator from '../config/custom/data';
 
 const shouldRerender = [ 'template', 'partials', 'components', 'decorators', 'events' ];
 

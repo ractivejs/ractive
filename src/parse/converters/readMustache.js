@@ -1,4 +1,4 @@
-import { DELIMCHANGE } from 'config/types';
+import { DELIMCHANGE } from '../../config/types';
 import readDelimiterChange from './mustache/readDelimiterChange';
 import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
 

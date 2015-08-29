@@ -1,4 +1,4 @@
-import { COMMENT } from 'config/types';
+import { COMMENT } from '../../../config/types';
 
 export default function readComment ( parser, tag ) {
 	var index;

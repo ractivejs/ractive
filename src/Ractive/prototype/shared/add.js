@@ -1,5 +1,5 @@
-import { isNumeric } from 'utils/is';
-import { splitKeypath } from 'shared/keypaths';
+import { isNumeric } from '../../../utils/is';
+import { splitKeypath } from '../../../shared/keypaths';
 
 const errorMessage = 'Cannot add to a non-numeric value';
 

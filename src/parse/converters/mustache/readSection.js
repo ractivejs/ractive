@@ -1,12 +1,12 @@
-import { SECTION, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from 'config/types';
+import { SECTION, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from '../../../config/types';
 import { READERS } from '../../_parse';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
 import readElseIf from './section/readElseIf';
 import handlebarsBlockCodes from './handlebarsBlockCodes';
-import readExpression from 'parse/converters/readExpression';
-import flattenExpression from 'parse/utils/flattenExpression';
-import refineExpression from 'parse/utils/refineExpression';
+import readExpression from '../readExpression';
+import flattenExpression from '../../utils/flattenExpression';
+import refineExpression from '../../utils/refineExpression';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,

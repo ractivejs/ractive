@@ -1,5 +1,5 @@
-import { normalise } from 'shared/keypaths';
-import { removeFromArray } from 'utils/array';
+import { normalise } from '../../shared/keypaths';
+import { removeFromArray } from '../../utils/array';
 import resolveAmbiguousReference from './resolveAmbiguousReference';
 
 export default class ReferenceResolver {

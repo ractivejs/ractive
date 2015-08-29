@@ -1,8 +1,8 @@
-import { capture } from 'global/capture';
-import { extend } from 'utils/object';
+import { capture } from '../global/capture';
+import { extend } from '../utils/object';
 import Computation from './Computation';
 import Model from './Model';
-import { handleChange, mark } from 'shared/methodCallers';
+import { handleChange, mark } from '../shared/methodCallers';
 
 export default class RootModel extends Model {
 	constructor ( options ) {

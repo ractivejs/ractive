@@ -1,4 +1,4 @@
-import { ARRAY_LITERAL } from 'config/types';
+import { ARRAY_LITERAL } from '../../../../../config/types';
 import readExpressionList from '../../shared/readExpressionList';
 
 export default function ( parser ) {

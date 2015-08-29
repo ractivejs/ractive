@@ -1,4 +1,4 @@
-import { MEMBER, INVOCATION } from 'config/types';
+import { MEMBER, INVOCATION } from '../../../config/types';
 import readPrimary from './readPrimary';
 import readExpressionList from './shared/readExpressionList';
 import readRefinement from './shared/readRefinement';

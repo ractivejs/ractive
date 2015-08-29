@@ -1,6 +1,6 @@
-import { BRACKETED } from 'config/types';
+import { BRACKETED } from '../../../../config/types';
 import { expectedExpression, expectedParen } from '../shared/errors';
-import readExpression from 'parse/converters/readExpression';
+import readExpression from '../../readExpression';
 
 export default function readBracketedExpression ( parser ) {
 	var start, expr;

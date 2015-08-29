@@ -1,6 +1,6 @@
-import wrap from 'utils/wrapMethod';
-import registries from 'Ractive/config/registries';
-import Ractive from 'Ractive';
+import wrap from '../utils/wrapMethod';
+import registries from '../Ractive/config/registries';
+import Ractive from '../Ractive';
 
 export default function unwrap ( Child ) {
 	let options = {};

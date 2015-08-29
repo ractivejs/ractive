@@ -1,5 +1,5 @@
-import { INTERPOLATOR } from 'config/types';
-import { warnIfDebug } from 'utils/log';
+import { INTERPOLATOR } from '../../../../config/types';
+import { warnIfDebug } from '../../../../utils/log';
 import CheckboxBinding from './CheckboxBinding';
 import CheckboxNameBinding from './CheckboxNameBinding';
 import ContentEditableBinding from './ContentEditableBinding';

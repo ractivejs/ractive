@@ -1,4 +1,4 @@
-import { TEMPLATE_VERSION } from 'config/template';
+import { TEMPLATE_VERSION } from '../../config/template';
 
 var defaultOptions = {
 

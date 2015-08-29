@@ -1,4 +1,4 @@
-import { ensureArray } from 'utils/array';
+import { ensureArray } from '../../../utils/array';
 
 var adaptConfigurator = {
 	extend: ( Parent, proto, options ) => {

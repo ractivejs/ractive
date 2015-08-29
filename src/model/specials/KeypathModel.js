@@ -1,5 +1,5 @@
-import { removeFromArray } from 'utils/array';
-import { handleChange } from 'shared/methodCallers';
+import { removeFromArray } from '../../utils/array';
+import { handleChange } from '../../shared/methodCallers';
 
 export default class KeypathModel {
 	constructor ( parent ) {

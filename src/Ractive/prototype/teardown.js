@@ -1,7 +1,7 @@
-import Hook from 'events/Hook';
-import Promise from 'utils/Promise';
-import { removeFromArray } from 'utils/array';
-import { cancel } from 'shared/methodCallers';
+import Hook from '../../events/Hook';
+import Promise from '../../utils/Promise';
+import { removeFromArray } from '../../utils/array';
+import { cancel } from '../../shared/methodCallers';
 
 var teardownHook = new Hook( 'teardown' );
 

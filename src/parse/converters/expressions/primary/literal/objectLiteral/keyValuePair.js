@@ -1,6 +1,6 @@
-import { KEY_VALUE_PAIR } from 'config/types';
+import { KEY_VALUE_PAIR } from '../../../../../../config/types';
 import readKey from '../../../shared/readKey';
-import readExpression from 'parse/converters/readExpression';
+import readExpression from '../../../../readExpression';
 
 export default function readKeyValuePair ( parser ) {
 	var start, key, value;

@@ -1,7 +1,7 @@
-import { warnOnceIfDebug } from 'utils/log';
-import { missingPlugin } from 'config/errors';
-import getTime from 'utils/getTime';
-import animations from 'shared/animations';
+import { warnOnceIfDebug } from '../utils/log';
+import { missingPlugin } from '../config/errors';
+import getTime from '../utils/getTime';
+import animations from './animations';
 
 // TODO what happens if a transition is aborted?
 // TODO use this with Animation to dedupe some code?

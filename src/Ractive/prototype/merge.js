@@ -1,6 +1,6 @@
-import { isArray } from 'utils/is';
-import { splitKeypath } from 'shared/keypaths';
-import runloop from 'global/runloop';
+import { isArray } from '../../utils/is';
+import { splitKeypath } from '../../shared/keypaths';
+import runloop from '../../global/runloop';
 
 let comparators = {};
 

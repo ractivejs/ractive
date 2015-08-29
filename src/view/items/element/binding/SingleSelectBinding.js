@@ -1,4 +1,4 @@
-import runloop from 'global/runloop';
+import runloop from '../../../../global/runloop';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 
