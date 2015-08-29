@@ -1,6 +1,6 @@
-import Binding from './Binding';
+import GenericBinding from './GenericBinding';
 
-export default class NumericBinding extends Binding {
+export default class NumericBinding extends GenericBinding {
 	getInitialValue () {
 		return undefined;
 	}
