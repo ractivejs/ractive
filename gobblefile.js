@@ -8,17 +8,18 @@ var gobble = require( 'gobble' ),
 	version = require( './package.json' ).version,
 	es5, lib, test;
 
-es5 = gobble( 'src' ).transform( 'babel' );
+var src = gobble( 'src' );
+var es5 = src.transform( 'babel' );
 
-lib = (function () {
+if ( gobble.env() === 'production' ) {
 	var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
 		.replace( '${version}', version )
 		.replace( '${time}', new Date() )
 		.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
 
-	var lib = [
-		es5.transform( 'esperanto-bundle', {
-			type: 'umd',
+	lib = gobble([
+		src.transform( 'rollup-babel', {
+			format: 'umd',
 			transform: function ( src, path ) {
 				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
 					return src.replace( /<@version@>/g, version );
@@ -26,81 +27,81 @@ lib = (function () {
 
 				return src;
 			},
+			entry: 'Ractive.js',
+			moduleName: 'Ractive',
+			dest: 'ractive-legacy.js',
+			banner: banner
+		}),
+
+		src.transform( 'rollup-babel', {
+			format: 'umd',
+			transform: function ( src, path ) {
+				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+					return src.replace( /<@version@>/g, version );
+				}
+
+				if ( /legacy\.js/.test( path ) ) {
+					return 'export default null;';
+				}
+
+				return src;
+			},
 			banner: banner,
 			entry: 'Ractive.js',
-			name: 'Ractive',
-			dest: 'ractive-legacy.js'
+			moduleName: 'Ractive',
+			dest: 'ractive.js'
+		}),
+
+		es5.transform( 'rollup-babel', {
+			format: 'umd',
+			transform: function ( src, path ) {
+				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+					return src.replace( /<@version@>/g, version );
+				}
+
+				if ( /legacy\.js|_parse\.js/.test( path ) ) {
+					return 'export default null;';
+				}
+
+				return src;
+			},
+			banner: banner,
+			entry: 'Ractive.js',
+			moduleName: 'Ractive',
+			dest: 'ractive.runtime.js'
+		}),
+
+		es5.transform( 'rollup-babel', {
+			format: 'umd',
+			transform: function ( src, path ) {
+				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+					return src.replace( /<@version@>/g, version );
+				}
+
+				if ( /_parse\.js/.test( path ) ) {
+					return 'export default null;';
+				}
+
+				return src;
+			},
+			banner: banner,
+			entry: 'Ractive.js',
+			moduleName: 'Ractive',
+			dest: 'ractive-legacy.runtime.js'
 		})
-	];
+	]);
+} else {
+	lib = gobble([
+		es5.transform( 'rollup', {
+			format: 'umd',
+			entry: 'Ractive.js',
+			moduleName: 'Ractive',
+			dest: 'ractive-legacy.js'
+		}),
 
-	if ( gobble.env() === 'production' ) {
-		// Add non-legacy and runtime-only builds
-		lib.push(
-			es5.transform( 'esperanto-bundle', {
-				type: 'umd',
-				transform: function ( src, path ) {
-					if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
-						return src.replace( /<@version@>/g, version );
-					}
-
-					if ( /legacy\.js/.test( path ) ) {
-						return 'export default null;';
-					}
-
-					return src;
-				},
-				banner: banner,
-				entry: 'Ractive.js',
-				name: 'Ractive',
-				dest: 'ractive.js'
-			}),
-
-			es5.transform( 'esperanto-bundle', {
-				type: 'umd',
-				transform: function ( src, path ) {
-					if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
-						return src.replace( /<@version@>/g, version );
-					}
-
-					if ( /legacy\.js|_parse\.js/.test( path ) ) {
-						return 'export default null;';
-					}
-
-					return src;
-				},
-				banner: banner,
-				entry: 'Ractive.js',
-				name: 'Ractive',
-				dest: 'ractive.runtime.js'
-			}),
-
-			es5.transform( 'esperanto-bundle', {
-				type: 'umd',
-				transform: function ( src, path ) {
-					if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
-						return src.replace( /<@version@>/g, version );
-					}
-
-					if ( /_parse\.js/.test( path ) ) {
-						return 'export default null;';
-					}
-
-					return src;
-				},
-				banner: banner,
-				entry: 'Ractive.js',
-				name: 'Ractive',
-				dest: 'ractive-legacy.runtime.js'
-			})
-		);
-	}
-
-	else {
-		lib.push( sandbox );
-	}
-
-	return lib;
-})();
+		sandbox
+	]);
+}
 
 test = (function () {
 	function compileTemplate ( str ) {
@@ -162,8 +163,25 @@ test = (function () {
 		gobble( 'test/__nodetests' ).moveTo( '__nodetests' ),
 		gobble( 'test/testdeps/samples' )
 			.include( '*.js' )
-			.transform( 'babel', { sourceMap: false })
-			.transform( 'esperanto', { type: 'cjs', sourceMap: false })
+			.transform( 'babel', {
+				whitelist: [
+					'es3.memberExpressionLiterals',
+					'es3.propertyLiterals',
+					'es6.arrowFunctions',
+					'es6.blockScoping',
+					'es6.constants',
+					'es6.destructuring',
+					'es6.parameters',
+					'es6.spread',
+					'es6.properties.shorthand',
+					'es6.properties.computed',
+					'es6.templateLiterals',
+					'es6.classes',
+					'es6.modules'
+				],
+				loose: [ 'es6.classes' ],
+				sourceMap: false
+			})
 			.moveTo( '__nodetests/samples' )
 	]).moveTo( 'test' );
 })();

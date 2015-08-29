@@ -13,5 +13,6 @@
 		"es6.templateLiterals",
 		"es6.classes"
 	],
-	"loose": [ "es6.classes" ]
+	"loose": [ "es6.classes" ],
+	"compact": false
 }
