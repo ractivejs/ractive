@@ -5,20 +5,26 @@ var createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFu
 
 // Test for SVG support
 if ( !svg ) {
-	createElement = function ( type, ns ) {
-		if ( ns && ns !== html ) {
+	createElement = function ( type, ns, extend ) {
+		if ( ns && ns !== namespaces.html ) {
 			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
 		}
 
-		return doc.createElement( type );
+		return extend ?
+			doc.createElement( type, extend ) :
+			doc.createElement( type );
 	};
 } else {
-	createElement = function ( type, ns ) {
+	createElement = function ( type, ns, extend ) {
 		if ( !ns || ns === html ) {
-			return doc.createElement( type );
+			return extend ?
+				doc.createElement( type, extend ) :
+				doc.createElement( type );
 		}
 
-		return doc.createElementNS( ns, type );
+		return extend ?
+			doc.createElementNS( ns, type, extend ) :
+			doc.createElementNS( ns, type );
 	};
 }
 

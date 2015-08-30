@@ -205,7 +205,7 @@ export default class Element extends Item {
 		// TODO determine correct namespace
 		this.namespace = getNamespace( this );
 
-		const node = createElement( this.template.e, this.namespace );
+		const node = createElement( this.template.e, this.namespace, this.getAttribute( 'is' ) );
 		this.node = node;
 
 		const context = this.parentFragment.findContext();

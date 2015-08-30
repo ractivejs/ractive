@@ -104,3 +104,21 @@ if ( 'draggable' in document.createElement( 'div' ) ) {
 		t.equal( divs[6].draggable, false );
 	});
 }
+
+if ( 'registerElement' in document ) {
+	test( '"is" attribute is handled correctly for custom elements (#2043)', t => {
+		let XFoo = document.registerElement('x-foo', {
+			prototype: Object.create(HTMLParagraphElement.prototype, {
+				testMember: { value: true }
+			}),
+			extends: 'p'
+		});
+		let ractive = new Ractive({
+			el: fixture,
+			template: '<p is="x-foo"></p>'
+		});
+
+		let p = ractive.find( 'p' );
+		t.ok( 'testMember' in p );
+	});
+}
