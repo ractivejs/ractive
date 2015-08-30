@@ -1,6 +1,6 @@
-import { isClient, vendors } from 'config/environment';
-import { createElement } from 'utils/dom';
-import camelCase from 'utils/camelCase';
+import { isClient, vendors } from '../../../../config/environment';
+import { createElement } from '../../../../utils/dom';
+import camelCase from '../../../../utils/camelCase';
 
 var prefix, prefixCache, testStyle;
 

@@ -1,5 +1,5 @@
-import { ELSEIF } from 'config/types';
-import readExpression from 'parse/converters/readExpression';
+import { ELSEIF } from '../../../../config/types';
+import readExpression from '../../readExpression';
 
 var elsePattern = /^\s*elseif\s+/;
 

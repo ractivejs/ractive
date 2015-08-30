@@ -1,6 +1,6 @@
-import { doc } from 'config/environment';
-import { escapeHtml } from 'utils/html';
-import { safeToStringValue } from 'utils/dom';
+import { doc } from '../../config/environment';
+import { escapeHtml } from '../../utils/html';
+import { safeToStringValue } from '../../utils/dom';
 import Mustache from './shared/Mustache';
 
 export default class Interpolator extends Mustache {

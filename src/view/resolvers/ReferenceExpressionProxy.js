@@ -1,10 +1,10 @@
-import Model from 'model/Model';
-import { REFERENCE } from 'config/types';
+import Model from '../../model/Model';
+import { REFERENCE } from '../../config/types';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
-import { unbind } from 'shared/methodCallers';
-import { removeFromArray } from 'utils/array';
+import { unbind } from '../../shared/methodCallers';
+import { removeFromArray } from '../../utils/array';
 
 export default class ReferenceExpressionProxy extends Model {
 	constructor ( fragment, template ) {

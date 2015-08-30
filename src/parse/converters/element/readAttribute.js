@@ -1,6 +1,6 @@
 import getLowestIndex from '../utils/getLowestIndex';
 import readMustache from '../readMustache';
-import { decodeCharacterReferences } from 'utils/html';
+import { decodeCharacterReferences } from '../../../utils/html';
 
 var attributeNamePattern = /^[^\s"'>\/=]+/,
 	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;

@@ -1,4 +1,4 @@
-import { INLINE_PARTIAL } from 'config/types';
+import { INLINE_PARTIAL } from '../../config/types';
 import { READERS } from '../_parse';
 import readClosing from './mustache/section/readClosing';
 

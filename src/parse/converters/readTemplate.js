@@ -1,5 +1,5 @@
-import { TEMPLATE_VERSION } from 'config/template';
-import { create } from 'utils/object';
+import { TEMPLATE_VERSION } from '../../config/template';
+import { create } from '../../utils/object';
 import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from '../utils/cleanup';
 

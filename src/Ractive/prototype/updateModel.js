@@ -1,5 +1,5 @@
-import { splitKeypath } from 'shared/keypaths';
-import runloop from 'global/runloop';
+import { splitKeypath } from '../../shared/keypaths';
+import runloop from '../../global/runloop';
 
 export default function Ractive$updateModel ( keypath, cascade ) {
 	const promise = runloop.start( this, true );

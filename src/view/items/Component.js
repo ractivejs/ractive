@@ -1,19 +1,19 @@
-import runloop from 'global/runloop';
-import { fatal, warnIfDebug, warnOnceIfDebug } from 'utils/log';
-import { COMPONENT, INTERPOLATOR, YIELDER } from 'config/types';
+import runloop from '../../global/runloop';
+import { fatal, warnIfDebug, warnOnceIfDebug } from '../../utils/log';
+import { COMPONENT, INTERPOLATOR, YIELDER } from '../../config/types';
 import Item from './shared/Item';
-import construct from 'Ractive/construct';
-import initialise from 'Ractive/initialise';
-import render from 'Ractive/render';
-import { create } from 'utils/object';
-import { removeFromArray } from 'utils/array';
-import { isArray } from 'utils/is';
+import construct from '../../Ractive/construct';
+import initialise from '../../Ractive/initialise';
+import render from '../../Ractive/render';
+import { create } from '../../utils/object';
+import { removeFromArray } from '../../utils/array';
+import { isArray } from '../../utils/is';
 import resolve from '../resolvers/resolve';
-import { cancel, rebind, unbind } from 'shared/methodCallers';
-import Hook from 'events/Hook';
+import { cancel, rebind, unbind } from '../../shared/methodCallers';
+import Hook from '../../events/Hook';
 import Fragment from '../Fragment';
-import parseJSON from 'utils/parseJSON';
-import fireEvent from 'events/fireEvent';
+import parseJSON from '../../utils/parseJSON';
+import fireEvent from '../../events/fireEvent';
 import updateLiveQueries from './component/updateLiveQueries';
 
 function removeFromLiveComponentQueries ( component ) {

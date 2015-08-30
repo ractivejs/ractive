@@ -1,9 +1,9 @@
-import { logIfDebug, warnIfDebug, warnOnceIfDebug } from 'utils/log';
-import { getElement } from 'utils/dom';
-import config from 'Ractive/config/config';
-import Fragment from 'view/Fragment';
-import Hook from 'events/Hook';
-import HookQueue from 'events/HookQueue';
+import { logIfDebug, warnIfDebug, warnOnceIfDebug } from '../utils/log';
+import { getElement } from '../utils/dom';
+import config from './config/config';
+import Fragment from '../view/Fragment';
+import Hook from '../events/Hook';
+import HookQueue from '../events/HookQueue';
 import Ractive from '../Ractive';
 
 let configHook = new Hook( 'config' );

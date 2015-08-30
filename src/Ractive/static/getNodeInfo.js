@@ -1,4 +1,4 @@
-import { extend } from 'utils/object';
+import { extend } from '../../utils/object';
 
 export default function( node ) {
 	if ( !node || !node._ractive ) return {};

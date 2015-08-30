@@ -1,5 +1,5 @@
-import { win, doc } from 'config/environment';
-import noop from 'utils/noop';
+import { win, doc } from './config/environment';
+import noop from './utils/noop';
 
 var exportedShims;
 

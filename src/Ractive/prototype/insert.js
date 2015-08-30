@@ -1,5 +1,5 @@
-import Hook from 'events/Hook';
-import { getElement } from 'utils/dom';
+import Hook from '../../events/Hook';
+import { getElement } from '../../utils/dom';
 
 var insertHook = new Hook( 'insert' );
 

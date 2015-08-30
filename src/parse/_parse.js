@@ -1,4 +1,4 @@
-import { TEMPLATE_VERSION } from 'config/template';
+import { TEMPLATE_VERSION } from '../config/template';
 import Parser from './Parser';
 import readMustache from './converters/readMustache';
 import readTriple from './converters/mustache/readTriple';

@@ -14,14 +14,13 @@ import Triple from './Triple';
 import Yielder from './Yielder';
 import getComponentConstructor from './component/getComponentConstructor';
 
-const constructors = {
-	[ DOCTYPE ]: Doctype,
-	[ INTERPOLATOR ]: Interpolator,
-	[ PARTIAL ]: Partial,
-	[ SECTION ]: Section,
-	[ TRIPLE ]: Triple,
-	[ YIELDER ]: Yielder
-};
+const constructors = {};
+constructors[ DOCTYPE ] = Doctype;
+constructors[ INTERPOLATOR ] = Interpolator;
+constructors[ PARTIAL ] = Partial;
+constructors[ SECTION ] = Section;
+constructors[ TRIPLE ] = Triple;
+constructors[ YIELDER ] = Yielder;
 
 const specialElements = {
 	doctype: Doctype,

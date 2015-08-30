@@ -1,6 +1,6 @@
 import Binding from './Binding';
-import { isArray } from 'utils/is';
-import { arrayContains } from 'utils/array';
+import { isArray } from '../../../../utils/is';
+import { arrayContains } from '../../../../utils/array';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 

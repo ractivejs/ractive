@@ -1,6 +1,6 @@
-import { DOCTYPE, ELEMENT } from 'config/types';
-import { voidElementNames } from 'utils/html';
-import { create } from 'utils/object';
+import { DOCTYPE, ELEMENT } from '../../config/types';
+import { voidElementNames } from '../../utils/html';
+import { create } from '../../utils/object';
 import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from '../utils/cleanup';
 import readMustache from './readMustache';

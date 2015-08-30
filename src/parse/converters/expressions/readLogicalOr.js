@@ -1,4 +1,4 @@
-import { INFIX_OPERATOR } from 'config/types';
+import { INFIX_OPERATOR } from '../../../config/types';
 import readTypeof from './readTypeof';
 
 var readLogicalOr, makeInfixSequenceMatcher;

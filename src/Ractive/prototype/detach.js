@@ -1,5 +1,5 @@
-import Hook from 'events/Hook';
-import { removeFromArray } from 'utils/array';
+import Hook from '../../events/Hook';
+import { removeFromArray } from '../../utils/array';
 
 var detachHook = new Hook( 'detach' );
 

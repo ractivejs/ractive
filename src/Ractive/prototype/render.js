@@ -1,6 +1,6 @@
-import { getElement } from 'utils/dom';
+import { getElement } from '../../utils/dom';
 import render from '../render';
-import { teardown } from 'shared/methodCallers';
+import { teardown } from '../../shared/methodCallers';
 
 export default function Ractive$render ( target, anchor ) {
 	target = getElement( target ) || this.el;

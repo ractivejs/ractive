@@ -1,9 +1,9 @@
-import Model from 'model/Model';
-import { unbind } from 'shared/methodCallers';
-import createFunction from 'shared/createFunction';
+import Model from '../../model/Model';
+import { unbind } from '../../shared/methodCallers';
+import createFunction from '../../shared/createFunction';
 import resolveReference from './resolveReference';
-import { removeFromArray } from 'utils/array';
-import { defineProperty } from 'utils/object';
+import { removeFromArray } from '../../utils/array';
+import { defineProperty } from '../../utils/object';
 
 function wrapFunction ( fn, ractive, uid ) {
 	if ( fn.__ractive_nowrap ) return fn;

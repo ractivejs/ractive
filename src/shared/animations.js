@@ -1,6 +1,6 @@
-import rAF from 'utils/requestAnimationFrame';
-import getTime from 'utils/getTime';
-import runloop from 'global/runloop';
+import rAF from '../utils/requestAnimationFrame';
+import getTime from '../utils/getTime';
+import runloop from '../global/runloop';
 
 var queue = [];
 

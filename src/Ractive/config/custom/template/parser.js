@@ -1,6 +1,6 @@
-import { doc } from 'config/environment';
-import parse from 'parse/_parse';
-import { create } from 'utils/object';
+import { doc } from '../../../../config/environment';
+import parse from '../../../../parse/_parse';
+import { create } from '../../../../utils/object';
 
 var parseOptions = [
  	'preserveWhitespace',

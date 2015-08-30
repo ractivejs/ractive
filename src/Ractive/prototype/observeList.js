@@ -1,5 +1,5 @@
-import { splitKeypath } from 'shared/keypaths';
-import { isArray } from 'utils/is';
+import { splitKeypath } from '../../shared/keypaths';
+import { isArray } from '../../utils/is';
 
 export default function observeList ( keypath, callback, options ) {
 	if ( typeof keypath !== 'string' ) {

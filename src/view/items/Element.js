@@ -1,5 +1,5 @@
-import { ELEMENT } from 'config/types';
-import runloop from 'global/runloop';
+import { ELEMENT } from '../../config/types';
+import runloop from '../../global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
@@ -8,11 +8,11 @@ import Decorator from './element/Decorator';
 import EventHandler from './element/EventHandler';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
-import { escapeHtml, voidElementNames } from 'utils/html';
-import { bind, rebind, render, unbind, unrender, update } from 'shared/methodCallers';
-import { createElement, matches } from 'utils/dom';
-import { html, svg } from 'config/namespaces';
-import { defineProperty } from 'utils/object';
+import { escapeHtml, voidElementNames } from '../../utils/html';
+import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
+import { createElement, matches } from '../../utils/dom';
+import { html, svg } from '../../config/namespaces';
+import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
 
 function makeDirty ( query ) {

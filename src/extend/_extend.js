@@ -1,9 +1,9 @@
-import { create, defineProperties, extend as extendObj } from 'utils/object';
-import config from 'Ractive/config/config';
-import dataConfigurator from 'Ractive/config/custom/data';
-import construct from 'Ractive/construct';
-import initialise from 'Ractive/initialise';
-import Ractive from 'Ractive';
+import { create, defineProperties, extend as extendObj } from '../utils/object';
+import config from '../Ractive/config/config';
+import dataConfigurator from '../Ractive/config/custom/data';
+import construct from '../Ractive/construct';
+import initialise from '../Ractive/initialise';
+import Ractive from '../Ractive';
 import unwrapExtended from './unwrapExtended';
 
 export default extend;

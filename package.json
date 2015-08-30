@@ -78,6 +78,8 @@
     "gobble-cli": "^0.4.2",
     "gobble-esperanto": "^0.3.0",
     "gobble-esperanto-bundle": "^0.2.1",
+    "gobble-rollup": "^0.7.0",
+    "gobble-rollup-babel": "^0.1.2",
     "jshint": "^2.5.11",
     "junk": "^1.0.1",
     "mocha": "^2.1.0",

@@ -1,5 +1,5 @@
 import { expectedExpression } from './errors';
-import readExpression from 'parse/converters/readExpression';
+import readExpression from '../../readExpression';
 
 export default function readExpressionList ( parser ) {
 	var start, expressions, expr, next;

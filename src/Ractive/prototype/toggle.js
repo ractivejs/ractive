@@ -1,5 +1,5 @@
-import { badArguments } from 'config/errors';
-import { splitKeypath } from 'shared/keypaths';
+import { badArguments } from '../../config/errors';
+import { splitKeypath } from '../../shared/keypaths';
 
 export default function Ractive$toggle ( keypath ) {
 	if ( typeof keypath !== 'string' ) {

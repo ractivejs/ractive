@@ -1,5 +1,5 @@
-import { create } from 'utils/object';
-import 'legacy';
+import '../../legacy';
+import { create } from '../../utils/object';
 
 var registryNames, Registry, registries;
 

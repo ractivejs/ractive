@@ -1,6 +1,6 @@
 import Element from '../../Element';
-import { removeFromArray } from 'utils/array';
-import { isArray } from 'utils/is';
+import { removeFromArray } from '../../../../utils/array';
+import { isArray } from '../../../../utils/is';
 
 function findParentSelect ( element ) {
 	while ( element ) {

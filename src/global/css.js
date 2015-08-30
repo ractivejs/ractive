@@ -1,5 +1,5 @@
-import { doc } from 'config/environment';
-import noop from 'utils/noop';
+import { doc } from '../config/environment';
+import noop from '../utils/noop';
 
 var css,
 	update,

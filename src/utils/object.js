@@ -1,6 +1,6 @@
-import { doc } from 'config/environment';
-import { createElement } from 'utils/dom';
-import 'legacy';
+import '../legacy';
+import { doc } from '../config/environment';
+import { createElement } from './dom';
 
 var create, defineProperty, defineProperties;
 

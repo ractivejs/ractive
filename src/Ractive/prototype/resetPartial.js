@@ -1,6 +1,6 @@
-import { isArray } from 'utils/is';
-import runloop from 'global/runloop';
-import { PARTIAL, COMPONENT, ELEMENT } from 'config/types';
+import { isArray } from '../../utils/is';
+import runloop from '../../global/runloop';
+import { PARTIAL, COMPONENT, ELEMENT } from '../../config/types';
 
 function collect( source, name, dest ) {
 	source.forEach( item => {

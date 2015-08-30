@@ -1,7 +1,7 @@
 import Fragment from './Fragment';
-import { createDocumentFragment } from 'utils/dom';
-import { isArray, isObject } from 'utils/is';
-import { toEscapedString, toString, unbind, unrender, unrenderAndDestroy, update } from 'shared/methodCallers';
+import { createDocumentFragment } from '../utils/dom';
+import { isArray, isObject } from '../utils/is';
+import { toEscapedString, toString, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
 
 function getRefs ( ref, value, parent ) {
 	let refs;

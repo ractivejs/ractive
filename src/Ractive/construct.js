@@ -1,15 +1,15 @@
-import { fatal, welcome } from 'utils/log';
-import { missingPlugin } from 'config/errors';
-import { magic as magicSupported } from 'config/environment';
-import { ensureArray } from 'utils/array';
-import { findInViewHierarchy } from 'shared/registry';
-import arrayAdaptor from 'Ractive/static/adaptors/array/index';
-import magicAdaptor from 'Ractive/static/adaptors/magic';
-import magicArrayAdaptor from 'Ractive/static/adaptors/magicArray';
-import { create, defineProperty, extend } from 'utils/object';
-import dataConfigurator from 'Ractive/config/custom/data';
-import RootModel from 'model/RootModel';
-import Hook from 'events/Hook';
+import { fatal, welcome } from '../utils/log';
+import { missingPlugin } from '../config/errors';
+import { magic as magicSupported } from '../config/environment';
+import { ensureArray } from '../utils/array';
+import { findInViewHierarchy } from '../shared/registry';
+import arrayAdaptor from './static/adaptors/array/index';
+import magicAdaptor from './static/adaptors/magic';
+import magicArrayAdaptor from './static/adaptors/magicArray';
+import { create, defineProperty, extend } from '../utils/object';
+import dataConfigurator from './config/custom/data';
+import RootModel from '../model/RootModel';
+import Hook from '../events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
 import Ractive from '../Ractive';
 

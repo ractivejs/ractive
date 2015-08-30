@@ -1,7 +1,7 @@
-import { INLINE_PARTIAL } from 'config/types';
-import { warnOnceIfDebug } from 'utils/log';
+import { INLINE_PARTIAL } from '../../config/types';
+import { warnOnceIfDebug } from '../../utils/log';
 import { READERS } from '../_parse';
-import escapeRegExp from 'utils/escapeRegExp';
+import escapeRegExp from '../../utils/escapeRegExp';
 
 export default readPartialDefinitionComment;
 

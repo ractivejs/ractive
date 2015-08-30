@@ -1,6 +1,6 @@
-import runloop from 'global/runloop';
-import { lastItem } from 'utils/array';
-import { matches } from 'utils/dom';
+import runloop from '../../../global/runloop';
+import { lastItem } from '../../../utils/array';
+import { matches } from '../../../utils/dom';
 
 function sortByDocumentPosition ( node, otherNode ) {
 	if ( node.compareDocumentPosition ) {

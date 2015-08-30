@@ -1,8 +1,8 @@
-import { html } from 'config/namespaces';
-import { safeToStringValue } from 'utils/dom';
-import { arrayContains } from 'utils/array';
-import { isArray } from 'utils/is';
-import noop from 'utils/noop';
+import { html } from '../../../../config/namespaces';
+import { safeToStringValue } from '../../../../utils/dom';
+import { arrayContains } from '../../../../utils/array';
+import { isArray } from '../../../../utils/is';
+import noop from '../../../../utils/noop';
 
 export default function getUpdateDelegate ( attribute ) {
 	const { element, name } = attribute;

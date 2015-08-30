@@ -1,6 +1,6 @@
-import { PARTIAL, SECTION, SECTION_WITH } from 'config/types';
-import readExpression from 'parse/converters/readExpression';
-import refineExpression from 'parse/utils/refineExpression';
+import { PARTIAL, SECTION, SECTION_WITH } from '../../../config/types';
+import readExpression from '../readExpression';
+import refineExpression from '../../utils/refineExpression';
 
 export default function readPartial ( parser, tag ) {
 	var start, nameStart, expression, context, partial;

@@ -1,4 +1,4 @@
-import { vendors, win } from 'config/environment';
+import { vendors, win } from '../config/environment';
 
 var requestAnimationFrame;
 

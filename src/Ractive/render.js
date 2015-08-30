@@ -1,8 +1,8 @@
-import { doc } from 'config/environment';
-import css from 'global/css';
-import Hook from 'events/Hook';
-import { getElement } from 'utils/dom';
-import runloop from 'global/runloop';
+import { doc } from '../config/environment';
+import css from '../global/css';
+import Hook from '../events/Hook';
+import { getElement } from '../utils/dom';
+import runloop from '../global/runloop';
 
 const renderHook = new Hook( 'render' );
 const completeHook = new Hook( 'complete' );

@@ -1,6 +1,6 @@
-import { noRegistryFunctionReturn } from 'config/errors';
-import { warnIfDebug } from 'utils/log';
-import { findInstance } from 'shared/registry';
+import { noRegistryFunctionReturn } from '../../../config/errors';
+import { warnIfDebug } from '../../../utils/log';
+import { findInstance } from '../../../shared/registry';
 
 // finds the component constructor in the registry or view hierarchy registries
 export default function getComponentConstructor ( ractive, name ) {

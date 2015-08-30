@@ -1,13 +1,13 @@
-import { fatal } from 'utils/log';
-import { findInViewHierarchy } from 'shared/registry';
-import { missingPlugin } from 'config/errors';
-import { removeFromArray } from 'utils/array';
-import fireEvent from 'events/fireEvent';
+import { fatal } from '../../../utils/log';
+import { findInViewHierarchy } from '../../../shared/registry';
+import { missingPlugin } from '../../../config/errors';
+import { removeFromArray } from '../../../utils/array';
+import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
-import createFunction from 'shared/createFunction';
-import { unbind } from 'shared/methodCallers';
-import noop from 'utils/noop';
-import resolveReference from 'view/resolvers/resolveReference';
+import createFunction from '../../../shared/createFunction';
+import { unbind } from '../../../shared/methodCallers';
+import noop from '../../../utils/noop';
+import resolveReference from '../../resolvers/resolveReference';
 
 function defaultHandler ( event ) {
 	const handler = this._ractive.events[ event.type ];

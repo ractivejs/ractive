@@ -1,5 +1,5 @@
 import { enqueue, dequeue } from './eventStack';
-import getPotentialWildcardMatches from 'utils/getPotentialWildcardMatches';
+import getPotentialWildcardMatches from '../utils/getPotentialWildcardMatches';
 
 var wildcardCache = {};
 

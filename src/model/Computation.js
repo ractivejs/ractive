@@ -1,9 +1,9 @@
-import { capture, startCapturing, stopCapturing } from 'global/capture';
-import { warnIfDebug } from 'utils/log';
+import { capture, startCapturing, stopCapturing } from '../global/capture';
+import { warnIfDebug } from '../utils/log';
 import Model from './Model';
-import { removeFromArray } from 'utils/array';
-import { isEqual } from 'utils/is';
-import { handleChange, mark as markChild } from 'shared/methodCallers';
+import { removeFromArray } from '../utils/array';
+import { isEqual } from '../utils/is';
+import { handleChange, mark as markChild } from '../shared/methodCallers';
 
 // TODO `mark` appears to conflict with method name,
 // hence `markChild` - revert once bundler is fixed

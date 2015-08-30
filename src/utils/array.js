@@ -1,4 +1,4 @@
-import { isArray } from 'utils/is';
+import { isArray } from './is';
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
 if (!Array.prototype.find) {

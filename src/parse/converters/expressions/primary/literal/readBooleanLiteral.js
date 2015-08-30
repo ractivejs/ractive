@@ -1,4 +1,4 @@
-import { BOOLEAN_LITERAL } from 'config/types';
+import { BOOLEAN_LITERAL } from '../../../../../config/types';
 
 export default function readBooleanLiteral ( parser ) {
 	var remaining = parser.remaining();

@@ -1,7 +1,7 @@
-import Parser from 'parse/Parser';
-import readExpression from 'parse/converters/readExpression';
-import flattenExpression from 'parse/utils/flattenExpression';
-import parseJSON from 'utils/parseJSON';
+import Parser from '../../Parser';
+import readExpression from '../readExpression';
+import flattenExpression from '../../utils/flattenExpression';
+import parseJSON from '../../../utils/parseJSON';
 
 var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/,
 	methodCallExcessPattern = /\)\s*$/,

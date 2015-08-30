@@ -1,8 +1,8 @@
-import { doc } from 'config/environment';
-import { svg } from 'config/namespaces';
-import { createElement } from 'utils/dom';
-import { toArray } from 'utils/array';
-import Fragment from 'view/Fragment';
+import { doc } from '../../../config/environment';
+import { svg } from '../../../config/namespaces';
+import { createElement } from '../../../utils/dom';
+import { toArray } from '../../../utils/array';
+import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 
 const div = doc ? createElement( 'div' ) : null;

@@ -1,4 +1,4 @@
-import { warnOnceIfDebug } from 'utils/log';
+import { warnOnceIfDebug } from '../../utils/log';
 import Mustache from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';

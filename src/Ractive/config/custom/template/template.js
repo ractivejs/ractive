@@ -1,7 +1,7 @@
-import { TEMPLATE_VERSION } from 'config/template';
-import { create } from 'utils/object';
+import { TEMPLATE_VERSION } from '../../../../config/template';
+import { create } from '../../../../utils/object';
 import parser from './parser';
-import parse from 'parse/_parse';
+import parse from '../../../../parse/_parse';
 
 var templateConfigurator = {
 	name: 'template',

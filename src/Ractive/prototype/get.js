@@ -1,5 +1,5 @@
-import { splitKeypath } from 'shared/keypaths';
-import resolveReference from 'view/resolvers/resolveReference';
+import { splitKeypath } from '../../shared/keypaths';
+import resolveReference from '../../view/resolvers/resolveReference';
 
 export default function Ractive$get ( keypath ) {
 	if ( !keypath ) return this.viewmodel.get( true );

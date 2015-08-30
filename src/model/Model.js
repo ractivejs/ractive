@@ -1,9 +1,9 @@
-import { capture } from 'global/capture';
-import { isEqual, isNumeric } from 'utils/is';
-import { removeFromArray } from 'utils/array';
-import { handleChange, mark, teardown } from 'shared/methodCallers';
+import { capture } from '../global/capture';
+import { isEqual, isNumeric } from '../utils/is';
+import { removeFromArray } from '../utils/array';
+import { handleChange, mark, teardown } from '../shared/methodCallers';
 import getPrefixer from './helpers/getPrefixer';
-import { isArray, isObject } from 'utils/is';
+import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 

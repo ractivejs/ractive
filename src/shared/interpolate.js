@@ -1,7 +1,7 @@
-import { fatal } from 'utils/log';
-import { missingPlugin } from 'config/errors';
-import interpolators from 'Ractive/static/interpolators';
-import { findInViewHierarchy } from 'shared/registry';
+import { fatal } from '../utils/log';
+import { missingPlugin } from '../config/errors';
+import interpolators from '../Ractive/static/interpolators';
+import { findInViewHierarchy } from './registry';
 
 var interpolate = function ( from, to, ractive, type ) {
 	if ( from === to ) {

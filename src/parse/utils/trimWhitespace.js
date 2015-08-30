@@ -1,4 +1,4 @@
-import { lastItem } from 'utils/array';
+import { lastItem } from '../../utils/array';
 
 export default function ( items, leadingPattern, trailingPattern ) {
 	var item;

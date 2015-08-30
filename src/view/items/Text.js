@@ -1,6 +1,6 @@
-import { doc } from 'config/environment';
-import { TEXT } from 'config/types';
-import { escapeHtml } from 'utils/html';
+import { doc } from '../../config/environment';
+import { TEXT } from '../../config/types';
+import { escapeHtml } from '../../utils/html';
 import Item from './shared/Item';
 
 export default class Text extends Item {

@@ -1,5 +1,5 @@
-import { removeFromArray } from 'utils/array';
-import { teardown } from 'shared/methodCallers';
+import { removeFromArray } from '../utils/array';
+import { teardown } from '../shared/methodCallers';
 
 export default class TransitionManager {
 	constructor ( callback, parent ) {

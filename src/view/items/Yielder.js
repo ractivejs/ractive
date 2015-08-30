@@ -1,8 +1,8 @@
 import Item from './shared/Item';
 import Fragment from '../Fragment';
-import parse from 'parse/_parse';
-import { warnIfDebug } from 'utils/log';
-import { removeFromArray } from 'utils/array';
+import parse from '../../parse/_parse';
+import { warnIfDebug } from '../../utils/log';
+import { removeFromArray } from '../../utils/array';
 
 export default class Yielder extends Item {
 	constructor ( options ) {

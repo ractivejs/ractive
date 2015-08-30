@@ -1,4 +1,4 @@
-import { fatal } from 'utils/log';
+import { fatal } from '../../utils/log';
 
 const pattern = /\$\{([^\}]+)\}/g;
 

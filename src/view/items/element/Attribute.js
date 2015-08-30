@@ -1,12 +1,12 @@
-import { INTERPOLATOR } from 'config/types';
-import { html } from 'config/namespaces';
+import { INTERPOLATOR } from '../../../config/types';
+import { html } from '../../../config/namespaces';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
-import { isArray } from 'utils/is';
-import { safeToStringValue } from 'utils/dom';
-import { booleanAttributes } from 'utils/html';
+import { isArray } from '../../../utils/is';
+import { safeToStringValue } from '../../../utils/dom';
+import { booleanAttributes } from '../../../utils/html';
 
 export default class Attribute extends Item {
 	constructor ( options ) {

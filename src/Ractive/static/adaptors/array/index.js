@@ -1,5 +1,5 @@
-import { defineProperty } from 'utils/object';
-import { isArray } from 'utils/is';
+import { defineProperty } from '../../../../utils/object';
+import { isArray } from '../../../../utils/is';
 import patch from './patch';
 
 const errorMessage = 'Something went wrong in a rather interesting way';
