@@ -5,7 +5,7 @@ import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 
 export default function getUpdateDelegate ( attribute ) {
-	const { element, name } = attribute;
+	const { element, name, namespace } = attribute;
 
 	if ( name === 'id' ) return updateId;
 
@@ -49,6 +49,8 @@ export default function getUpdateDelegate ( attribute ) {
 	if ( name === 'class' && ( !node.namespaceURI || node.namespaceURI === html ) ) return updateClassName;
 
 	if ( attribute.useProperty ) return updateProperty;
+
+	if ( attribute.namespace ) return updateNamespacedAttribute;
 
 	return updateAttribute;
 }
@@ -187,4 +189,8 @@ function updateProperty () {
 
 function updateAttribute () {
 	this.node.setAttribute( this.name, safeToStringValue( this.getString() ) );
+}
+
+function updateNamespacedAttribute () {
+	this.node.setAttributeNS( this.namespace, this.name, safeToStringValue( this.getString() ) );
 }

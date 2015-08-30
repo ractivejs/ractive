@@ -274,6 +274,16 @@ test( 'Sections survive unrender-render (#1553)', t => {
 	t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p><p>3</p>' );
 });
 
+test( 'Namespaced attributes are set correctly', t => {
+	var ractive = new Ractive({
+		template: '<svg><use xlink:href="#yup" /></svg>'
+	});
+
+	ractive.render( fixture );
+
+	t.equal(ractive.find('use').getAttributeNS('http://www.w3.org/1999/xlink', 'href'), '#yup');
+});
+
 if ( typeof Object.create === 'function' ) {
 	test( 'data of type Object.create(null) (#1825)', t => {
 		var ractive, expected;
