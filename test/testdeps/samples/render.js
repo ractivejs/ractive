@@ -791,6 +791,18 @@ var renderTests = [
 		result: 'no'
 	},
 	{
+		name: '#if/else for a class attribute inside an array',
+		template: '{{#items}}<div class="{{#if value}}truthy{{else}}falsey{{/if}}"></div>{{/items}}',
+		data: {items: [1]},
+		result: '<div class="falsey"></div>'
+	},
+	{
+		name: '#if/else (multiple) for a class attribute inside an array',
+		template: '{{#items}}<div class="{{#if value}}value{{elseif value2}}value2{{else}}falsey{{/if}}"></div>{{/items}}',
+		data: {items: [1]},
+		result: '<div class="falsey"></div>'
+	},
+	{
 		name: 'Restricting references with `this`',
 		template: '{{#foo}}{{this.bar}}{{/foo}}',
 		data: { foo: {}, bar: 'fail' },
