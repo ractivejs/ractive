@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Aug 30 2015 15:30:31 GMT+0000 (UTC) - commit 4a1e0c1a15a6c25e00e8fdaf502d7f3443f87770
+	Sun Aug 30 2015 15:32:43 GMT+0000 (UTC) - commit 2de4047bad6f90fcc50a26c0cae95dadfa5e1a53
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2892,6 +2892,8 @@ var classCallCheck = function (instance, Constructor) {
   		var signature = {
   			getter: function () {
   				var values = _this2.models.map(function (model) {
+  					if (!model) return undefined;
+
   					var value = model.get(true);
 
   					if (typeof value === 'function') {
@@ -6466,6 +6468,11 @@ var classCallCheck = function (instance, Constructor) {
   				}
 
   			this.fragment = fragment;
+  		} else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
+  			this.fragment = new Fragment({
+  				owner: this,
+  				template: this.template.f
+  			}).bind();
   		}
   	};
 
