@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Aug 30 2015 15:32:43 GMT+0000 (UTC) - commit 2de4047bad6f90fcc50a26c0cae95dadfa5e1a53
+	Sun Aug 30 2015 16:02:49 GMT+0000 (UTC) - commit 4c1ac38486f60b643538d2002621f08d4e3f4f3b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1414,20 +1414,20 @@ var classCallCheck = function (instance, Constructor) {
   var makeFunction;
   // Test for SVG support
   if (!_svg) {
-  	createElement = function (type, ns) {
-  		if (ns && ns !== html) {
+  	createElement = function (type, ns, extend) {
+  		if (ns && ns !== namespaces.html) {
   			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
   		}
 
-  		return doc.createElement(type);
+  		return extend ? doc.createElement(type, extend) : doc.createElement(type);
   	};
   } else {
-  	createElement = function (type, ns) {
+  	createElement = function (type, ns, extend) {
   		if (!ns || ns === html) {
-  			return doc.createElement(type);
+  			return extend ? doc.createElement(type, extend) : doc.createElement(type);
   		}
 
-  		return doc.createElementNS(ns, type);
+  		return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
   	};
   }
 
@@ -10260,7 +10260,7 @@ var classCallCheck = function (instance, Constructor) {
   		// TODO determine correct namespace
   		this.namespace = getNamespace(this);
 
-  		var node = createElement(this.template.e, this.namespace);
+  		var node = createElement(this.template.e, this.namespace, this.getAttribute('is'));
   		this.node = node;
 
   		var context = this.parentFragment.findContext();
