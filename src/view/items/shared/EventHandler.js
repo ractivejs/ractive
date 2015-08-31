@@ -1,6 +1,3 @@
-import { fatal } from '../../../utils/log';
-import { findInViewHierarchy } from '../../../shared/registry';
-import { missingPlugin } from '../../../config/errors';
 import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
@@ -9,28 +6,14 @@ import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 
-function defaultHandler ( event ) {
-	const handler = this._ractive.events[ event.type ];
-
-	handler.fire({
-		node: this,
-		original: event
-	});
-}
-
 export default class EventHandler {
-	constructor ( owner, name, template ) {
-		if ( name.indexOf( '*' ) !== -1 ) {
-			fatal( `Only component proxy-events may contain "*" wildcards, <${owner.name} on-${name}="..."/> is not valid` );
-		}
-
+	constructor ( owner, event, template ) {
 		this.owner = owner;
-		this.name = name;
+		this.event = event;
 		this.template = template;
 
 		this.ractive = owner.parentFragment.ractive;
 		this.parentFragment = owner.parentFragment;
-		this.node = null;
 	}
 
 	bind () {
@@ -160,22 +143,7 @@ export default class EventHandler {
 	}
 
 	render () {
-		this.node = this.owner.node;
-
-		const fn = findInViewHierarchy( 'events', this.ractive, this.name );
-
-		if ( fn ) {
-			const fire = event => this.fire( event );
-			this.customHandler = fn( this.node, fire );
-		} else {
-			// no plugin - most likely a standard DOM event
-			if ( !( `on${this.name}` in this.node ) ) {
-				missingPlugin( this.name, 'events' );
-			}
-
-			this.node._ractive.events[ this.name ] = this;
-			this.node.addEventListener( this.name, defaultHandler, false );
-		}
+		this.event.listen( this );
 	}
 
 	unbind () {
@@ -198,12 +166,7 @@ export default class EventHandler {
 	}
 
 	unrender () {
-		if ( this.customHandler ) {
-			this.customHandler.teardown();
-		} else {
-			this.node.removeEventListener( this.name, defaultHandler, false );
-			this.node._ractive.events[ this.name ] = null;
-		}
+		this.event.unlisten();
 	}
 
 	update () {
