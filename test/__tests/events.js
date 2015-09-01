@@ -1073,7 +1073,9 @@ test( 'component "on-" with ...arguments', t => {
 	component.fire( 'bar', 'bar', 100 );
 });
 
-test( 'component "on-" with arguments[n]', t => {
+
+
+test( 'component "on-" with $n', t => {
 	var Component, component, ractive;
 
 	expect( 5 );
@@ -1084,7 +1086,7 @@ test( 'component "on-" with arguments[n]', t => {
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<component on-foo="foo(arguments[1], \'qux\', arguments[0])" on-bar="bar(arguments[0], 100)"/>',
+		template: '<component on-foo="foo($3, \'qux\', $1)" on-bar="bar($1, 100)"/>',
 		components: {
 			component: Component
 		},
@@ -1104,10 +1106,10 @@ test( 'component "on-" with arguments[n]', t => {
 	component.fire( 'bar', 'bar' );
 });
 
-test( 'component "on-" supply own arguments', t => {
+test( 'component "on-" supply own event proxy arguments', t => {
 	var Component, component, ractive;
 
-	expect( 6 );
+	expect( 4 );
 
 	Component = Ractive.extend({
 		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
@@ -1124,17 +1126,15 @@ test( 'component "on-" supply own arguments', t => {
 		}
 	});
 
-	ractive.on( 'foo-reproxy', ( e, num, word ) => {
-		t.equal( e.original.type, 'click' );
-		t.equal( num, 1 );
-		t.equal( word, 'foo' );
+	ractive.on( 'foo-reproxy', ( arg1, arg2 ) => {
+		t.equal( arg1.original.type, 'click' );
+		t.equal( arg2, 1 );
 	});
-	ractive.on( 'bar-reproxy', ( outter, inner ) => {
-		t.equal( outter, 'qux' );
-		t.equal( inner, 'bar' );
+	ractive.on( 'bar-reproxy', ( arg1 ) => {
+		t.equal( arg1, 'qux' );
 	});
-	ractive.on( 'bizz-reproxy', ( arg ) => {
-		t.equal( arg, 'buzz' );
+	ractive.on( 'bizz-reproxy', () => {
+		t.equal( arguments.length, 0 );
 	});
 
 	component = ractive.findComponent( 'component' );
@@ -1161,12 +1161,12 @@ test( 'component "on-" handles reproxy of arguments correctly', t => {
 		}
 	});
 
-	ractive.on( 'foo-reproxy', ( e, arg ) => {
+	ractive.on( 'foo-reproxy', ( e, ...args ) => {
 		t.equal( e.original.type, 'click' );
-		t.equal( arg, 'foo' );
+		t.equal( args.length, 0 );
 	});
-	ractive.on( 'bar-reproxy', ( arg ) => {
-		t.equal( arg, 'bar' );
+	ractive.on( 'bar-reproxy', () => {
+		t.equal( arguments.length, 0 );
 	});
 	ractive.on( 'bizz-reproxy', () => {
 		t.equal( arguments.length, 0 );

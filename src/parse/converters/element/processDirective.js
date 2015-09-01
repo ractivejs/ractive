@@ -41,7 +41,7 @@ export default function processDirective ( tokens, parentParser ) {
 				result.g = true;
 			}
 			else {
-				args = '[' + sliced.replace( /arguments/g, '__args' ) + ']';
+				args = '[' + sliced + ']';
 				parser = new ExpressionParser( args );
 				result.a = flattenExpression( parser.result[0] );
 			}

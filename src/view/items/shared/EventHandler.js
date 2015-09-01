@@ -6,6 +6,11 @@ import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 
+const eventPattern = /^event(?:\.(.+))?$/,
+	  argumentsPattern = /^arguments\.(\d*)$/,
+	  dollarArgsPattern = /^\$(\d*)$/;
+
+
 export default class EventHandler {
 	constructor ( owner, event, template ) {
 		this.owner = owner;
@@ -16,13 +21,17 @@ export default class EventHandler {
 		this.parentFragment = owner.parentFragment;
 
 		this.context = null;
+		this.passthru = false;
+
+		// method calls
 		this.method = null;
 		this.resolvers = null;
 		this.models = null;
 		this.argsFn = null;
+
+		// handler directive
 		this.action = null;
 		this.args = null;
-		this.passthru = false;
 	}
 
 	bind () {
@@ -41,7 +50,7 @@ export default class EventHandler {
 			else {
 				this.resolvers = [];
 				this.models = template.a.r.map( ( ref, i ) => {
-					if ( /^event(?:\.(.+))?$/.test( ref ) ) {
+					if ( eventPattern.test( ref ) ) {
 						// on-click="foo(event.node)"
 						return {
 							event: true,
@@ -50,8 +59,23 @@ export default class EventHandler {
 						};
 					}
 
-					const model = resolveReference( this.parentFragment, ref );
+					const argMatch = argumentsPattern.exec( ref );
+					if ( argMatch ) {
+						return {
+							argument: true,
+							index: argMatch[1]
+						};
+					}
 
+					const dollarMatch = dollarArgsPattern.exec( ref );
+					if ( dollarMatch ) {
+						return {
+							argument: true,
+							index: dollarMatch[1] - 1
+						};
+					}
+
+					const model = resolveReference( this.parentFragment, ref );
 					if ( !model ) {
 						const resolver = this.parentFragment.resolve( ref, model => {
 							this.models[i] = model;
@@ -107,6 +131,8 @@ export default class EventHandler {
 			event.keypath = this.context.getKeypath();
 			event.context = this.context.get();
 			event.index = this.parentFragment.indexRefs;
+
+			if ( passedArgs ) passedArgs.unshift( event );
 		}
 
 		if ( this.method ) {
@@ -117,7 +143,6 @@ export default class EventHandler {
 			let args;
 
 			if ( this.passthru ) {
-				if ( event ) passedArgs.unshift( event );
 				args = passedArgs;
 			}
 			else {
@@ -130,6 +155,10 @@ export default class EventHandler {
 
 						while ( keys.length ) obj = obj[ keys.shift() ];
 						return obj;
+					}
+
+					if ( model.argument ) {
+						return passedArgs ? passedArgs[ model.index ] : void 0;
 					}
 
 					if ( model.wrapper ) {
@@ -158,8 +187,6 @@ export default class EventHandler {
 		else {
 			const action = this.action.toString();
 			let args = this.template.d ? this.args.getArgsList() : this.args;
-
-			if ( passedArgs ) args = args.concat( passedArgs );
 
 			if ( event ) event.name = action;
 
