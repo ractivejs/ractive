@@ -33,10 +33,18 @@ export default function processDirective ( tokens, parentParser ) {
 			}
 
 			result = { m: match[1] };
-			args = '[' + tokens.slice( result.m.length + 1, end ) + ']';
+			const sliced = tokens.slice( result.m.length + 1, end )
 
-			parser = new ExpressionParser( args );
-			result.a = flattenExpression( parser.result[0] );
+			if ( sliced === '...arguments' ) {
+				// TODO: what the heck should this be???
+				// maybe ExpressionParser should understand ES6???
+				result.g = true;
+			}
+			else {
+				args = '[' + sliced.replace( /arguments/g, '__args' ) + ']';
+				parser = new ExpressionParser( args );
+				result.a = flattenExpression( parser.result[0] );
+			}
 
 			return result;
 		}

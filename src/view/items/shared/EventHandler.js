@@ -22,6 +22,7 @@ export default class EventHandler {
 		this.argsFn = null;
 		this.action = null;
 		this.args = null;
+		this.passthru = false;
 	}
 
 	bind () {
@@ -34,32 +35,38 @@ export default class EventHandler {
 		if ( template.m ) {
 			this.method = template.m;
 
-			this.resolvers = [];
-			this.models = template.a.r.map( ( ref, i ) => {
-				if ( /^event(?:\.(.+))?$/.test( ref ) ) {
-					// on-click="foo(event.node)"
-					return {
-						event: true,
-						keys: ref.length > 5 ? ref.slice( 6 ).split( '.' ) : [],
-						unbind: noop
-					};
-				}
+			if ( this.passthru = template.g ) {
+				// no models or args, just pass thru values
+			}
+			else {
+				this.resolvers = [];
+				this.models = template.a.r.map( ( ref, i ) => {
+					if ( /^event(?:\.(.+))?$/.test( ref ) ) {
+						// on-click="foo(event.node)"
+						return {
+							event: true,
+							keys: ref.length > 5 ? ref.slice( 6 ).split( '.' ) : [],
+							unbind: noop
+						};
+					}
 
-				const model = resolveReference( this.parentFragment, ref );
+					const model = resolveReference( this.parentFragment, ref );
 
-				if ( !model ) {
-					const resolver = this.parentFragment.resolve( ref, model => {
-						this.models[i] = model;
-						removeFromArray( this.resolvers, resolver );
-					});
+					if ( !model ) {
+						const resolver = this.parentFragment.resolve( ref, model => {
+							this.models[i] = model;
+							removeFromArray( this.resolvers, resolver );
+						});
 
-					this.resolvers.push( resolver );
-				}
+						this.resolvers.push( resolver );
+					}
 
-				return model;
-			});
+					return model;
+				});
 
-			this.argsFn = createFunction( template.a.s, template.a.r.length );
+				this.argsFn = createFunction( template.a.s, template.a.r.length, '__args' );
+			}
+
 		}
 
 		else {
@@ -107,36 +114,45 @@ export default class EventHandler {
 				throw new Error( `Attempted to call a non-existent method ("${this.method}")` );
 			}
 
-			const values = this.models.map( model => {
-				if ( !model ) return undefined;
+			let args;
 
-				if ( model.event ) {
-					let obj = event;
-					let keys = model.keys.slice();
+			if ( this.passthru ) {
+				if ( event ) passedArgs.unshift( event );
+				args = passedArgs;
+			}
+			else {
+				const values = this.models.map( model => {
+					if ( !model ) return undefined;
 
-					while ( keys.length ) obj = obj[ keys.shift() ];
-					return obj;
-				}
+					if ( model.event ) {
+						let obj = event;
+						let keys = model.keys.slice();
 
-				if ( model.wrapper ) {
-					return model.wrapper.value;
-				}
+						while ( keys.length ) obj = obj[ keys.shift() ];
+						return obj;
+					}
 
-				return model.get();
-			});
+					if ( model.wrapper ) {
+						return model.wrapper.value;
+					}
+
+					return model.get();
+				});
+
+				// TODO: include passedArgs interpolation
+				//if ( passedArgs ) args = args.concat( passedArgs );
+
+				args = this.argsFn.apply( null, values );
+			}
+
 
 			// make event available as `this.event`
-			const oldEvent = this.ractive.event;
-			this.ractive.event = event;
+			const ractive = this.ractive,
+				  oldEvent = ractive.event;
 
-			// TODO: augment with ...arguments, $1, $2, etc.
-			let args = this.argsFn.apply( null, values );
-
-			if ( passedArgs ) args = args.concat( passedArgs );
-
-			this.ractive[ this.method ].apply( this.ractive, args );
-
-			this.ractive.event = oldEvent;
+			ractive.event = event;
+			ractive[ this.method ].apply( ractive, args );
+			ractive.event = oldEvent;
 		}
 
 		else {

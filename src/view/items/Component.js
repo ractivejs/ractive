@@ -46,7 +46,6 @@ export default class Component extends Item {
 		this.name = options.template.e;
 		this.parentFragment = options.parentFragment;
 		this.complexMappings = [];
-		this.eventHandlers = null;
 
 		this.liveQueries = [];
 

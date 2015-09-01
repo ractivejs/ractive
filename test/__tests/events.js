@@ -1017,7 +1017,7 @@ module( 'Component events', setup )
 test( 'component "on-" can call methods', t => {
 	var Component, component, ractive;
 
-	expect( 3 );
+	expect( 2 );
 
 	Component = Ractive.extend({
 		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
@@ -1029,12 +1029,73 @@ test( 'component "on-" can call methods', t => {
 		components: {
 			component: Component
 		},
-		foo ( num, word ) {
+		foo ( num ) {
 			t.equal( num, 1 );
-			t.equal( word, 'foo' );
 		},
 		bar ( num ) {
 			t.equal( num, 2 );
+		}
+	});
+
+	component = ractive.findComponent( 'component' );
+	simulant.fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+});
+
+test( 'component "on-" with ...arguments', t => {
+	var Component, component, ractive;
+
+	expect( 5 );
+
+	Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\', 42">click me</span>'
+	});
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<component on-foo="foo(...arguments)" on-bar="bar(...arguments)"/>',
+		components: {
+			component: Component
+		},
+		foo ( e, arg1, arg2 ) {
+			t.equal( e.original.type, 'click' );
+			t.equal( arg1, 'foo' );
+			t.equal( arg2, 42 );
+		},
+		bar ( arg1, arg2 ) {
+			t.equal( arg1, 'bar' );
+			t.equal( arg2, 100 );
+		}
+	});
+
+	component = ractive.findComponent( 'component' );
+	simulant.fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar', 100 );
+});
+
+test( 'component "on-" with arguments[n]', t => {
+	var Component, component, ractive;
+
+	expect( 5 );
+
+	Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\', 42">click me</span>'
+	});
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<component on-foo="foo(arguments[1], \'qux\', arguments[0])" on-bar="bar(arguments[0], 100)"/>',
+		components: {
+			component: Component
+		},
+		foo ( arg1, arg2, arg3 ) {
+			t.equal( arg1, 42 );
+			t.equal( arg2, 'qux' );
+			t.equal( arg3.original.type, 'click' );
+		},
+		bar ( arg1, arg2 ) {
+			t.equal( arg1, 'bar' );
+			t.equal( arg2, 100 );
 		}
 	});
 
