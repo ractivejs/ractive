@@ -88,7 +88,7 @@ export default class EventDirective {
 					return model;
 				});
 
-				this.argsFn = createFunction( template.a.s, template.a.r.length, '__args' );
+				this.argsFn = createFunction( template.a.s, template.a.r.length );
 			}
 
 		}
