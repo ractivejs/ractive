@@ -14,6 +14,14 @@ export default class EventHandler {
 
 		this.ractive = owner.parentFragment.ractive;
 		this.parentFragment = owner.parentFragment;
+
+		this.context = null;
+		this.method = null;
+		this.resolvers = null;
+		this.models = null;
+		this.argsFn = null;
+		this.action = null;
+		this.args = null;
 	}
 
 	bind () {
@@ -86,11 +94,13 @@ export default class EventHandler {
 		}
 	}
 
-	fire ( event ) {
+	fire ( event, passedArgs ) {
 		// augment event object
-		event.keypath = this.context.getKeypath();
-		event.context = this.context.get();
-		event.index = this.parentFragment.indexRefs;
+		if ( event ) {
+			event.keypath = this.context.getKeypath();
+			event.context = this.context.get();
+			event.index = this.parentFragment.indexRefs;
+		}
 
 		if ( this.method ) {
 			if ( typeof this.ractive[ this.method ] !== 'function' ) {
@@ -119,7 +129,11 @@ export default class EventHandler {
 			const oldEvent = this.ractive.event;
 			this.ractive.event = event;
 
-			const args = this.argsFn.apply( null, values );
+			// TODO: augment with ...arguments, $1, $2, etc.
+			let args = this.argsFn.apply( null, values );
+
+			if ( passedArgs ) args = args.concat( passedArgs );
+
 			this.ractive[ this.method ].apply( this.ractive, args );
 
 			this.ractive.event = oldEvent;
@@ -127,9 +141,11 @@ export default class EventHandler {
 
 		else {
 			const action = this.action.toString();
-			const args = this.template.d ? this.args.getArgsList() : this.args;
+			let args = this.template.d ? this.args.getArgsList() : this.args;
 
-			event.name = action;
+			if ( passedArgs ) args = args.concat( passedArgs );
+
+			if ( event ) event.name = action;
 
 			fireEvent( this.ractive, action, {
 				event,

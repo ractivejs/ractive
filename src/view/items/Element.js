@@ -82,6 +82,9 @@ export default class Element extends Item {
 		// attach event handlers
 		this.eventHandlers = [];
 		if ( this.template.v ) {
+
+			const handlers = this.eventHandlers = [];
+
 			Object.keys( this.template.v ).forEach( key => {
 				const eventNames = key.split( '-' );
 				const template = this.template.v[ key ];
@@ -91,7 +94,7 @@ export default class Element extends Item {
 					// we need to pass in "this" in order to get
 					// access to node when it is created.
 					const event = fn ? new CustomEvent( fn, this ) : new DOMEvent( eventName, this );
-					this.eventHandlers.push( new EventHandler( this, event, template ) );
+					handlers.push( new EventHandler( this, event, template ) );
 				});
 			});
 		}

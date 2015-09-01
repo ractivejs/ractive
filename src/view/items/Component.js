@@ -9,10 +9,12 @@ import { create } from '../../utils/object';
 import { removeFromArray } from '../../utils/array';
 import { isArray } from '../../utils/is';
 import resolve from '../resolvers/resolve';
-import { cancel, rebind, unbind } from '../../shared/methodCallers';
+import { bind, cancel, rebind, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
 import Hook from '../../events/Hook';
 import Fragment from '../Fragment';
 import parseJSON from '../../utils/parseJSON';
+import EventHandler from './shared/EventHandler';
+import RactiveEvent from './component/RactiveEvent';
 import fireEvent from '../../events/fireEvent';
 import updateLiveQueries from './component/updateLiveQueries';
 
@@ -44,6 +46,7 @@ export default class Component extends Item {
 		this.name = options.template.e;
 		this.parentFragment = options.parentFragment;
 		this.complexMappings = [];
+		this.eventHandlers = null;
 
 		this.liveQueries = [];
 
@@ -82,6 +85,7 @@ export default class Component extends Item {
 		// for components and just for ractive...
 		instance._inlinePartials = partials;
 
+		this.eventHandlers = [];
 		if ( this.template.v ) this.setupEvents();
 	}
 
@@ -149,6 +153,8 @@ export default class Component extends Item {
 			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs,
 			cssIds: this.parentFragment.cssIds
 		});
+
+		this.eventHandlers.forEach( bind );
 	}
 
 	bubble () {
@@ -237,35 +243,22 @@ export default class Component extends Item {
 		render( this.instance, target, null );
 
 		this.checkYielders();
+		this.eventHandlers.forEach( callRender );
 		updateLiveQueries( this );
 
 		this.rendered = true;
 	}
 
 	setupEvents () {
-		Object.keys( this.template.v ).forEach( name => {
-			const template = this.template.v[ name ];
+		const handlers = this.eventHandlers;
 
-			if ( typeof template !== 'string' ) {
-				fatal( 'Components currently only support simple events - you cannot include arguments. Sorry!' );
-			}
+		Object.keys( this.template.v ).forEach( key => {
+			const eventNames = key.split( '-' );
+			const template = this.template.v[ key ];
 
-			const ractive = this.ractive;
-
-			this.instance.on( name, function () {
-				let event;
-
-				// semi-weak test, but what else? tag the event obj ._isEvent ?
-				if ( arguments.length && arguments[0] && arguments[0].node ) {
-					event = Array.prototype.shift.call( arguments );
-				}
-
-				const args = Array.prototype.slice.call( arguments );
-
-				fireEvent( ractive, template, { event, args });
-
-				// cancel bubbling
-				return false;
+			eventNames.forEach( eventName => {
+				const event = new RactiveEvent( this.instance, eventName );
+				handlers.push( new EventHandler( this, event, template ) );
 			});
 		});
 	}
@@ -294,14 +287,14 @@ export default class Component extends Item {
 	unrender ( shouldDestroy ) {
 		this.shouldDestroy = shouldDestroy;
 		this.instance.unrender();
-
+		this.eventHandlers.forEach( unrender );
 		this.liveQueries.forEach( query => query.remove( this.instance ) );
 	}
 
 	update () {
 		this.instance.fragment.update();
 		this.checkYielders();
-
+		this.eventHandlers.forEach( update );
 		this.dirty = false;
 	}
 }
