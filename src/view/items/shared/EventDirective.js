@@ -11,7 +11,7 @@ const eventPattern = /^event(?:\.(.+))?$/,
 	  dollarArgsPattern = /^\$(\d*)$/;
 
 
-export default class EventHandler {
+export default class EventDirective {
 	constructor ( owner, event, template ) {
 		this.owner = owner;
 		this.event = event;
@@ -198,7 +198,7 @@ export default class EventHandler {
 	}
 
 	rebind () {
-		throw new Error( 'EventHandler$rebind not yet implemented!' ); // TODO add tests
+		throw new Error( 'EventDirective$rebind not yet implemented!' ); // TODO add tests
 	}
 
 	render () {

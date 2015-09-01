@@ -5,7 +5,7 @@ import Fragment from '../Fragment';
 import Attribute from './element/Attribute';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import Decorator from './element/Decorator';
-import EventHandler from './shared/EventHandler';
+import EventDirective from './shared/EventDirective';
 import { findInViewHierarchy } from '../../shared/registry';
 import { DOMEvent, CustomEvent } from './element/ElementEvents';
 import Transition from './element/Transition';
@@ -94,7 +94,7 @@ export default class Element extends Item {
 					// we need to pass in "this" in order to get
 					// access to node when it is created.
 					const event = fn ? new CustomEvent( fn, this ) : new DOMEvent( eventName, this );
-					handlers.push( new EventHandler( this, event, template ) );
+					handlers.push( new EventDirective( this, event, template ) );
 				});
 			});
 		}

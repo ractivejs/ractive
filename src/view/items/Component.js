@@ -13,7 +13,7 @@ import { bind, cancel, rebind, render as callRender, unbind, unrender, update } 
 import Hook from '../../events/Hook';
 import Fragment from '../Fragment';
 import parseJSON from '../../utils/parseJSON';
-import EventHandler from './shared/EventHandler';
+import EventDirective from './shared/EventDirective';
 import RactiveEvent from './component/RactiveEvent';
 import fireEvent from '../../events/fireEvent';
 import updateLiveQueries from './component/updateLiveQueries';
@@ -257,7 +257,7 @@ export default class Component extends Item {
 
 			eventNames.forEach( eventName => {
 				const event = new RactiveEvent( this.instance, eventName );
-				handlers.push( new EventHandler( this, event, template ) );
+				handlers.push( new EventDirective( this, event, template ) );
 			});
 		});
 	}
