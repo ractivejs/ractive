@@ -92,7 +92,7 @@ lib = (function () {
 			es5.transform( 'esperanto-bundle', {
 				type: 'umd',
 				transform: function ( src, path ) {
-					if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+					if ( /(Ractive\.js|utils\\log\.js|utils\/log\.js)$/.test( path ) ) {
 						return src.replace( /<@version@>/g, version );
 					}
 
