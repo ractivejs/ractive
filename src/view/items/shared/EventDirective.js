@@ -168,9 +168,6 @@ export default class EventDirective {
 					return model.get();
 				});
 
-				// TODO: include passedArgs interpolation
-				//if ( passedArgs ) args = args.concat( passedArgs );
-
 				args = this.argsFn.apply( null, values );
 			}
 
