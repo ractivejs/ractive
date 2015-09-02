@@ -45,6 +45,7 @@ export default class EventDirective {
 			this.method = template.m;
 
 			if ( this.passthru = template.g ) {
+				// on-click="foo(...arguments)"
 				// no models or args, just pass thru values
 			}
 			else {
@@ -61,6 +62,7 @@ export default class EventDirective {
 
 					const argMatch = argumentsPattern.exec( ref );
 					if ( argMatch ) {
+						// on-click="foo(arguments[0])"
 						return {
 							argument: true,
 							index: argMatch[1]
@@ -69,6 +71,7 @@ export default class EventDirective {
 
 					const dollarMatch = dollarArgsPattern.exec( ref );
 					if ( dollarMatch ) {
+						// on-click="foo($1)"
 						return {
 							argument: true,
 							index: dollarMatch[1] - 1
