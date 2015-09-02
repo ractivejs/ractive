@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Sep 02 2015 14:53:58 GMT+0000 (UTC) - commit 707962c9c024b8920a118210548e58f8ae7dff4a
+	Wed Sep 02 2015 14:58:23 GMT+0000 (UTC) - commit d3fbc9619c8640c48b888d6f15a2def5bf89d95d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9560,6 +9560,7 @@
   			this.method = template.m;
 
   			if (this.passthru = template.g) {
+  				// on-click="foo(...arguments)"
   				// no models or args, just pass thru values
   			} else {
   					this.resolvers = [];
@@ -9575,6 +9576,7 @@
 
   						var argMatch = argumentsPattern.exec(ref);
   						if (argMatch) {
+  							// on-click="foo(arguments[0])"
   							return {
   								argument: true,
   								index: argMatch[1]
@@ -9583,6 +9585,7 @@
 
   						var dollarMatch = dollarArgsPattern.exec(ref);
   						if (dollarMatch) {
+  							// on-click="foo($1)"
   							return {
   								argument: true,
   								index: dollarMatch[1] - 1
