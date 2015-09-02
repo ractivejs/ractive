@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Sep 02 2015 14:49:01 GMT+0000 (UTC) - commit 39c63c94d762c10f227e34cad38fa9d82946d9a6
+	Wed Sep 02 2015 14:53:58 GMT+0000 (UTC) - commit 707962c9c024b8920a118210548e58f8ae7dff4a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4862,10 +4862,17 @@ var classCallCheck = function (instance, Constructor) {
   			}
 
   			result = { m: match[1] };
-  			args = '[' + tokens.slice(result.m.length + 1, end) + ']';
+  			var sliced = tokens.slice(result.m.length + 1, end);
 
-  			parser = new ExpressionParser(args);
-  			result.a = flattenExpression(parser.result[0]);
+  			if (sliced === '...arguments') {
+  				// TODO: what the heck should this be???
+  				// maybe ExpressionParser should understand ES6???
+  				result.g = true;
+  			} else {
+  				args = '[' + sliced + ']';
+  				parser = new ExpressionParser(args);
+  				result.a = flattenExpression(parser.result[0]);
+  			}
 
   			return result;
   		}
@@ -9279,7 +9286,7 @@ var classCallCheck = function (instance, Constructor) {
   			var fullName = ractive.component.name + '.' + eventNames[eventNames.length - 1];
   			eventNames = getWildcardNames(fullName);
 
-  			if (event) {
+  			if (event && !event.component) {
   				event.component = ractive;
   			}
   		}
@@ -9314,33 +9321,35 @@ var classCallCheck = function (instance, Constructor) {
   	return !stopEvent;
   }
 
-  function defaultHandler(event) {
-  	var handler = this._ractive.events[event.type];
-
-  	handler.fire({
-  		node: this,
-  		original: event
-  	});
-  }
-
-  var EventHandler = (function () {
-  	function EventHandler(owner, name, template) {
-  		classCallCheck(this, EventHandler);
-
-  		if (name.indexOf('*') !== -1) {
-  			fatal('Only component proxy-events may contain "*" wildcards, <' + owner.name + ' on-' + name + '="..."/> is not valid');
-  		}
+  var eventPattern = /^event(?:\.(.+))?$/;
+  var argumentsPattern = /^arguments\.(\d*)$/;
+  var dollarArgsPattern = /^\$(\d*)$/;
+  var EventDirective = (function () {
+  	function EventDirective(owner, event, template) {
+  		classCallCheck(this, EventDirective);
 
   		this.owner = owner;
-  		this.name = name;
+  		this.event = event;
   		this.template = template;
 
   		this.ractive = owner.parentFragment.ractive;
   		this.parentFragment = owner.parentFragment;
-  		this.node = null;
+
+  		this.context = null;
+  		this.passthru = false;
+
+  		// method calls
+  		this.method = null;
+  		this.resolvers = null;
+  		this.models = null;
+  		this.argsFn = null;
+
+  		// handler directive
+  		this.action = null;
+  		this.args = null;
   	}
 
-  	EventHandler.prototype.bind = function bind() {
+  	EventDirective.prototype.bind = function bind() {
   		var _this = this;
 
   		var fragment = this.parentFragment;
@@ -9352,34 +9361,53 @@ var classCallCheck = function (instance, Constructor) {
   		if (template.m) {
   			this.method = template.m;
 
-  			this.resolvers = [];
-  			this.models = template.a.r.map(function (ref, i) {
-  				if (/^event(?:\.(.+))?$/.test(ref)) {
-  					// on-click="foo(event.node)"
-  					return {
-  						event: true,
-  						keys: ref.length > 5 ? ref.slice(6).split('.') : [],
-  						unbind: noop
-  					};
+  			if (this.passthru = template.g) {
+  				// no models or args, just pass thru values
+  			} else {
+  					this.resolvers = [];
+  					this.models = template.a.r.map(function (ref, i) {
+  						if (eventPattern.test(ref)) {
+  							// on-click="foo(event.node)"
+  							return {
+  								event: true,
+  								keys: ref.length > 5 ? ref.slice(6).split('.') : [],
+  								unbind: noop
+  							};
+  						}
+
+  						var argMatch = argumentsPattern.exec(ref);
+  						if (argMatch) {
+  							return {
+  								argument: true,
+  								index: argMatch[1]
+  							};
+  						}
+
+  						var dollarMatch = dollarArgsPattern.exec(ref);
+  						if (dollarMatch) {
+  							return {
+  								argument: true,
+  								index: dollarMatch[1] - 1
+  							};
+  						}
+
+  						var model = resolveReference(_this.parentFragment, ref);
+  						if (!model) {
+  							(function () {
+  								var resolver = _this.parentFragment.resolve(ref, function (model) {
+  									_this.models[i] = model;
+  									removeFromArray(_this.resolvers, resolver);
+  								});
+
+  								_this.resolvers.push(resolver);
+  							})();
+  						}
+
+  						return model;
+  					});
+
+  					this.argsFn = createFunction(template.a.s, template.a.r.length);
   				}
-
-  				var model = resolveReference(_this.parentFragment, ref);
-
-  				if (!model) {
-  					(function () {
-  						var resolver = _this.parentFragment.resolve(ref, function (model) {
-  							_this.models[i] = model;
-  							removeFromArray(_this.resolvers, resolver);
-  						});
-
-  						_this.resolvers.push(resolver);
-  					})();
-  				}
-
-  				return model;
-  			});
-
-  			this.argsFn = createFunction(template.a.s, template.a.r.length);
   		} else {
   			// TODO deprecate this style of directive
   			this.action = typeof template === 'string' ? // on-click='foo'
@@ -9401,55 +9429,70 @@ var classCallCheck = function (instance, Constructor) {
   		if (this.template.d) this.args.bind();
   	};
 
-  	EventHandler.prototype.bubble = function bubble() {
+  	EventDirective.prototype.bubble = function bubble() {
   		if (!this.dirty) {
   			this.dirty = true;
   			this.owner.bubble();
   		}
   	};
 
-  	EventHandler.prototype.fire = function fire(event) {
+  	EventDirective.prototype.fire = function fire(event, passedArgs) {
   		// augment event object
-  		event.keypath = this.context.getKeypath();
-  		event.context = this.context.get();
-  		event.index = this.parentFragment.indexRefs;
+  		if (event) {
+  			event.keypath = this.context.getKeypath();
+  			event.context = this.context.get();
+  			event.index = this.parentFragment.indexRefs;
+
+  			if (passedArgs) passedArgs.unshift(event);
+  		}
 
   		if (this.method) {
   			if (typeof this.ractive[this.method] !== 'function') {
   				throw new Error('Attempted to call a non-existent method ("' + this.method + '")');
   			}
 
-  			var values = this.models.map(function (model) {
-  				if (!model) return undefined;
+  			var args = undefined;
 
-  				if (model.event) {
-  					var obj = event;
-  					var keys = model.keys.slice();
+  			if (this.passthru) {
+  				args = passedArgs;
+  			} else {
+  				var values = this.models.map(function (model) {
+  					if (!model) return undefined;
 
-  					while (keys.length) obj = obj[keys.shift()];
-  					return obj;
-  				}
+  					if (model.event) {
+  						var obj = event;
+  						var keys = model.keys.slice();
 
-  				if (model.wrapper) {
-  					return model.wrapper.value;
-  				}
+  						while (keys.length) obj = obj[keys.shift()];
+  						return obj;
+  					}
 
-  				return model.get();
-  			});
+  					if (model.argument) {
+  						return passedArgs ? passedArgs[model.index] : void 0;
+  					}
+
+  					if (model.wrapper) {
+  						return model.wrapper.value;
+  					}
+
+  					return model.get();
+  				});
+
+  				args = this.argsFn.apply(null, values);
+  			}
 
   			// make event available as `this.event`
-  			var oldEvent = this.ractive.event;
-  			this.ractive.event = event;
+  			var ractive = this.ractive,
+  			    oldEvent = ractive.event;
 
-  			var args = this.argsFn.apply(null, values);
-  			this.ractive[this.method].apply(this.ractive, args);
-
-  			this.ractive.event = oldEvent;
+  			ractive.event = event;
+  			ractive[this.method].apply(ractive, args);
+  			ractive.event = oldEvent;
   		} else {
   			var action = this.action.toString();
   			var args = this.template.d ? this.args.getArgsList() : this.args;
 
-  			event.name = action;
+  			if (event) event.name = action;
 
   			fireEvent(this.ractive, action, {
   				event: event,
@@ -9458,34 +9501,15 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	EventHandler.prototype.rebind = function rebind() {
-  		throw new Error('EventHandler$rebind not yet implemented!'); // TODO add tests
+  	EventDirective.prototype.rebind = function rebind() {
+  		throw new Error('EventDirective$rebind not yet implemented!'); // TODO add tests
   	};
 
-  	EventHandler.prototype.render = function render() {
-  		var _this2 = this;
-
-  		this.node = this.owner.node;
-
-  		var fn = findInViewHierarchy('events', this.ractive, this.name);
-
-  		if (fn) {
-  			var fire = function (event) {
-  				return _this2.fire(event);
-  			};
-  			this.customHandler = fn(this.node, fire);
-  		} else {
-  			// no plugin - most likely a standard DOM event
-  			if (!('on' + this.name in this.node)) {
-  				missingPlugin(this.name, 'events');
-  			}
-
-  			this.node._ractive.events[this.name] = this;
-  			this.node.addEventListener(this.name, defaultHandler, false);
-  		}
+  	EventDirective.prototype.render = function render() {
+  		this.event.listen(this);
   	};
 
-  	EventHandler.prototype.unbind = function unbind$$() {
+  	EventDirective.prototype.unbind = function unbind$$() {
   		var template = this.template;
 
   		if (template.m) {
@@ -9502,16 +9526,11 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	EventHandler.prototype.unrender = function unrender() {
-  		if (this.customHandler) {
-  			this.customHandler.teardown();
-  		} else {
-  			this.node.removeEventListener(this.name, defaultHandler, false);
-  			this.node._ractive.events[this.name] = null;
-  		}
+  	EventDirective.prototype.unrender = function unrender() {
+  		this.event.unlisten();
   	};
 
-  	EventHandler.prototype.update = function update() {
+  	EventDirective.prototype.update = function update() {
   		if (this.method) return; // nothing to do
 
   		// ugh legacy
@@ -9519,7 +9538,75 @@ var classCallCheck = function (instance, Constructor) {
   		if (this.template.d) this.args.update();
   	};
 
-  	return EventHandler;
+  	return EventDirective;
+  })();
+
+  function defaultHandler(event) {
+  	var handler = this._ractive.events[event.type];
+
+  	handler.fire({
+  		node: this,
+  		original: event
+  	});
+  }
+
+  var DOMEvent = (function () {
+  	function DOMEvent(name, owner) {
+  		classCallCheck(this, DOMEvent);
+
+  		if (name.indexOf('*') !== -1) {
+  			fatal('Only component proxy-events may contain "*" wildcards, <' + owner.name + ' on-' + name + '="..."/> is not valid');
+  		}
+
+  		this.name = name;
+  		this.owner = owner;
+  		this.node = null;
+  	}
+
+  	DOMEvent.prototype.listen = function listen(directive) {
+  		var node = this.node = this.owner.node,
+  		    name = this.name;
+
+  		if (!('on' + name in node)) {
+  			missingPlugin(name, 'events');
+  		}
+
+  		node._ractive.events[name] = directive;
+  		node.addEventListener(name, defaultHandler, false);
+  	};
+
+  	DOMEvent.prototype.unlisten = function unlisten() {
+  		var node = this.node,
+  		    name = this.name;
+
+  		node.removeEventListener(name, defaultHandler, false);
+  		node._ractive.events[name] = null;
+  	};
+
+  	return DOMEvent;
+  })();
+
+  var CustomEvent = (function () {
+  	function CustomEvent(eventPlugin, owner) {
+  		classCallCheck(this, CustomEvent);
+
+  		this.eventPlugin = eventPlugin;
+  		this.owner = owner;
+  		this.node = null;
+  	}
+
+  	CustomEvent.prototype.listen = function listen(directive) {
+  		var fire = function (event) {
+  			return directive.fire(event);
+  		};
+  		this.customHandler = this.eventPlugin(this.owner.node, fire);
+  	};
+
+  	CustomEvent.prototype.unlisten = function unlisten() {
+  		this.customHandler.teardown();
+  	};
+
+  	return CustomEvent;
   })();
 
   var missingDecorator = {
@@ -10187,14 +10274,23 @@ var classCallCheck = function (instance, Constructor) {
   		// attach event handlers
   		this.eventHandlers = [];
   		if (this.template.v) {
-  			Object.keys(this.template.v).forEach(function (key) {
-  				var eventNames = key.split('-');
-  				var template = _this.template.v[key];
+  			(function () {
 
-  				eventNames.forEach(function (eventName) {
-  					_this.eventHandlers.push(new EventHandler(_this, eventName, template));
+  				var handlers = _this.eventHandlers = [];
+
+  				Object.keys(_this.template.v).forEach(function (key) {
+  					var eventNames = key.split('-');
+  					var template = _this.template.v[key];
+
+  					eventNames.forEach(function (eventName) {
+  						var fn = findInViewHierarchy('events', _this.ractive, eventName);
+  						// we need to pass in "this" in order to get
+  						// access to node when it is created.
+  						var event = fn ? new CustomEvent(fn, _this) : new DOMEvent(eventName, _this);
+  						handlers.push(new EventDirective(_this, event, template));
+  					});
   				});
-  			});
+  			})();
   		}
 
   		// create children
@@ -10749,6 +10845,42 @@ var classCallCheck = function (instance, Constructor) {
   function updateModel(binding) {
   	binding.model.set(binding.resetValue);
   }
+
+  var RactiveEvent = (function () {
+  	function RactiveEvent(ractive, name) {
+  		classCallCheck(this, RactiveEvent);
+
+  		this.ractive = ractive;
+  		this.name = name;
+  		this.handler = null;
+  	}
+
+  	RactiveEvent.prototype.listen = function listen(directive) {
+  		var ractive = this.ractive;
+
+  		this.handler = ractive.on(this.name, function () {
+  			var event = undefined;
+
+  			// semi-weak test, but what else? tag the event obj ._isEvent ?
+  			if (arguments.length && arguments[0] && arguments[0].node) {
+  				event = Array.prototype.shift.call(arguments);
+  				event.component = ractive;
+  			}
+
+  			var args = Array.prototype.slice.call(arguments);
+  			directive.fire(event, args);
+
+  			// cancel bubbling
+  			return false;
+  		});
+  	};
+
+  	RactiveEvent.prototype.unlisten = function unlisten() {
+  		this.handler.cancel();
+  	};
+
+  	return RactiveEvent;
+  })();
 
   // TODO it's unfortunate that this has to run every time a
   // component is rendered... is there a better way?
@@ -12507,6 +12639,7 @@ var classCallCheck = function (instance, Constructor) {
   		// for components and just for ractive...
   		instance._inlinePartials = partials;
 
+  		this.eventHandlers = [];
   		if (this.template.v) this.setupEvents();
   	}
 
@@ -12572,6 +12705,8 @@ var classCallCheck = function (instance, Constructor) {
   			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs,
   			cssIds: this.parentFragment.cssIds
   		});
+
+  		this.eventHandlers.forEach(_bind);
   	};
 
   	Component.prototype.bubble = function bubble() {
@@ -12666,6 +12801,7 @@ var classCallCheck = function (instance, Constructor) {
   		render(this.instance, target, null);
 
   		this.checkYielders();
+  		this.eventHandlers.forEach(_render);
   		updateLiveQueries(this);
 
   		this.rendered = true;
@@ -12674,29 +12810,15 @@ var classCallCheck = function (instance, Constructor) {
   	Component.prototype.setupEvents = function setupEvents() {
   		var _this4 = this;
 
-  		Object.keys(this.template.v).forEach(function (name) {
-  			var template = _this4.template.v[name];
+  		var handlers = this.eventHandlers;
 
-  			if (typeof template !== 'string') {
-  				fatal('Components currently only support simple events - you cannot include arguments. Sorry!');
-  			}
+  		Object.keys(this.template.v).forEach(function (key) {
+  			var eventNames = key.split('-');
+  			var template = _this4.template.v[key];
 
-  			var ractive = _this4.ractive;
-
-  			_this4.instance.on(name, function () {
-  				var event = undefined;
-
-  				// semi-weak test, but what else? tag the event obj ._isEvent ?
-  				if (arguments.length && arguments[0] && arguments[0].node) {
-  					event = Array.prototype.shift.call(arguments);
-  				}
-
-  				var args = Array.prototype.slice.call(arguments);
-
-  				fireEvent(ractive, template, { event: event, args: args });
-
-  				// cancel bubbling
-  				return false;
+  			eventNames.forEach(function (eventName) {
+  				var event = new RactiveEvent(_this4.instance, eventName);
+  				handlers.push(new EventDirective(_this4, event, template));
   			});
   		});
   	};
@@ -12722,12 +12844,12 @@ var classCallCheck = function (instance, Constructor) {
   		teardownHook.fire(instance);
   	};
 
-  	Component.prototype.unrender = function unrender(shouldDestroy) {
+  	Component.prototype.unrender = function unrender$$(shouldDestroy) {
   		var _this5 = this;
 
   		this.shouldDestroy = shouldDestroy;
   		this.instance.unrender();
-
+  		this.eventHandlers.forEach(unrender);
   		this.liveQueries.forEach(function (query) {
   			return query.remove(_this5.instance);
   		});
@@ -12736,7 +12858,7 @@ var classCallCheck = function (instance, Constructor) {
   	Component.prototype.update = function update() {
   		this.instance.fragment.update();
   		this.checkYielders();
-
+  		this.eventHandlers.forEach(_update);
   		this.dirty = false;
   	};
 

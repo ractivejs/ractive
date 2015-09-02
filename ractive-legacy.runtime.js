@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Sep 02 2015 14:49:01 GMT+0000 (UTC) - commit 39c63c94d762c10f227e34cad38fa9d82946d9a6
+	Wed Sep 02 2015 14:53:58 GMT+0000 (UTC) - commit 707962c9c024b8920a118210548e58f8ae7dff4a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -197,7 +197,7 @@
   }
 
   // TODO: deprecate in future release
-  function __________________________________________________classCallCheck(instance, Constructor) {
+  function ____________________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -218,7 +218,7 @@
 
   var Hook = (function () {
   	function Hook(event) {
-  		__________________________________________________classCallCheck(this, Hook);
+  		____________________________________________________classCallCheck(this, Hook);
 
   		this.event = event;
   		this.method = 'on' + event;
@@ -414,13 +414,13 @@
     return x.toString(true);
   }
 
-  function _________________________________________________classCallCheck(instance, Constructor) {
+  function ___________________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
   }var TransitionManager = (function () {
   	function TransitionManager(callback, parent) {
-  		_________________________________________________classCallCheck(this, TransitionManager);
+  		___________________________________________________classCallCheck(this, TransitionManager);
 
   		this.callback = callback;
   		this.parent = parent;
@@ -2043,13 +2043,13 @@
   	}
   }
 
-  function ________________________________________________classCallCheck(instance, Constructor) {
+  function __________________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
   }var ReferenceResolver = (function () {
   	function ReferenceResolver(fragment, reference, callback) {
-  		________________________________________________classCallCheck(this, ReferenceResolver);
+  		__________________________________________________classCallCheck(this, ReferenceResolver);
 
   		this.fragment = fragment;
   		this.reference = normalise(reference);
@@ -2097,7 +2097,7 @@
   	return ReferenceResolver;
   })();
 
-  function _______________________________________________classCallCheck(instance, Constructor) {
+  function _________________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError("Cannot call a class as a function");
   	}
@@ -2105,7 +2105,7 @@
 
   var Item = (function () {
   	function Item(options) {
-  		_______________________________________________classCallCheck(this, Item);
+  		_________________________________________________classCallCheck(this, Item);
 
   		this.parentFragment = options.parentFragment;
   		this.ractive = options.parentFragment.ractive;
@@ -2147,7 +2147,7 @@
   	return Item;
   })();
 
-  function ______________________________________________classCallCheck(instance, Constructor) {
+  function ________________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -2161,7 +2161,7 @@
   	______________________________inherits(Doctype, _Item);
 
   	function Doctype() {
-  		______________________________________________classCallCheck(this, Doctype);
+  		________________________________________________classCallCheck(this, Doctype);
 
   		_Item.apply(this, arguments);
   	}
@@ -2193,13 +2193,13 @@
   	return Doctype;
   })(Item);
 
-  function _____________________________________________classCallCheck(instance, Constructor) {
+  function _______________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
   }var KeypathModel = (function () {
   	function KeypathModel(parent) {
-  		_____________________________________________classCallCheck(this, KeypathModel);
+  		_______________________________________________classCallCheck(this, KeypathModel);
 
   		this.parent = parent;
   		this.value = parent.getKeypath();
@@ -2226,13 +2226,13 @@
   	return KeypathModel;
   })();
 
-  function ____________________________________________classCallCheck(instance, Constructor) {
+  function ______________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
   }var KeyModel = (function () {
   	function KeyModel(key) {
-  		____________________________________________classCallCheck(this, KeyModel);
+  		______________________________________________classCallCheck(this, KeyModel);
 
   		this.value = key;
   		this.isReadonly = true;
@@ -2326,7 +2326,7 @@
   	return prefixers[rootKeypath];
   }
 
-  function ___________________________________________classCallCheck(instance, Constructor) {
+  function _____________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -2344,7 +2344,7 @@
 
   var Model = (function () {
   	function Model(parent, key) {
-  		___________________________________________classCallCheck(this, Model);
+  		_____________________________________________classCallCheck(this, Model);
 
   		this.deps = [];
 
@@ -2793,7 +2793,7 @@
   	return functionCache[str] = fn;
   }
 
-  function __________________________________________classCallCheck(instance, Constructor) {
+  function ____________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -2839,7 +2839,7 @@
   	function ExpressionProxy(fragment, template) {
   		var _this = this;
 
-  		__________________________________________classCallCheck(this, ExpressionProxy);
+  		____________________________________________classCallCheck(this, ExpressionProxy);
 
   		_Model.call(this, fragment.ractive.viewmodel, null);
 
@@ -2945,7 +2945,7 @@
   	return ExpressionProxy;
   })(Model);
 
-  function _________________________________________classCallCheck(instance, Constructor) {
+  function ___________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -2961,7 +2961,7 @@
   	function ReferenceExpressionProxy(fragment, template) {
   		var _this = this;
 
-  		_________________________________________classCallCheck(this, ReferenceExpressionProxy);
+  		___________________________________________classCallCheck(this, ReferenceExpressionProxy);
 
   		_Model.call(this, null, null);
   		this.root = fragment.ractive.viewmodel;
@@ -3119,7 +3119,7 @@
   	}
   }
 
-  function ________________________________________classCallCheck(instance, Constructor) {
+  function __________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -3133,7 +3133,7 @@
   	___________________________inherits(Mustache, _Item);
 
   	function Mustache(options) {
-  		________________________________________classCallCheck(this, Mustache);
+  		__________________________________________classCallCheck(this, Mustache);
 
   		_Item.call(this, options);
 
@@ -3285,7 +3285,7 @@
   	return 65533;
   }
 
-  function _______________________________________classCallCheck(instance, Constructor) {
+  function _________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -3299,7 +3299,7 @@
   	__________________________inherits(Interpolator, _Mustache);
 
   	function Interpolator() {
-  		_______________________________________classCallCheck(this, Interpolator);
+  		_________________________________________classCallCheck(this, Interpolator);
 
   		_Mustache.apply(this, arguments);
   	}
@@ -4876,10 +4876,17 @@
   			}
 
   			result = { m: match[1] };
-  			args = '[' + tokens.slice(result.m.length + 1, end) + ']';
+  			var sliced = tokens.slice(result.m.length + 1, end);
 
-  			parser = new ExpressionParser(args);
-  			result.a = flattenExpression(parser.result[0]);
+  			if (sliced === '...arguments') {
+  				// TODO: what the heck should this be???
+  				// maybe ExpressionParser should understand ES6???
+  				result.g = true;
+  			} else {
+  				args = '[' + sliced + ']';
+  				parser = new ExpressionParser(args);
+  				result.a = flattenExpression(parser.result[0]);
+  			}
 
   			return result;
   		}
@@ -5922,7 +5929,7 @@
   	}
   }
 
-  function ______________________________________classCallCheck(instance, Constructor) {
+  function ________________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -5936,7 +5943,7 @@
   	_________________________inherits(Partial, _Mustache);
 
   	function Partial() {
-  		______________________________________classCallCheck(this, Partial);
+  		________________________________________classCallCheck(this, Partial);
 
   		_Mustache.apply(this, arguments);
   	}
@@ -6076,7 +6083,7 @@
   	};
   })();
 
-  function _____________________________________classCallCheck(instance, Constructor) {
+  function _______________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -6098,7 +6105,7 @@
 
   var RepeatedFragment = (function () {
   	function RepeatedFragment(options) {
-  		_____________________________________classCallCheck(this, RepeatedFragment);
+  		_______________________________________classCallCheck(this, RepeatedFragment);
 
   		this.parent = options.owner.parentFragment;
 
@@ -6462,7 +6469,7 @@
   	return RepeatedFragment;
   })();
 
-  function ____________________________________classCallCheck(instance, Constructor) {
+  function ______________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -6487,7 +6494,7 @@
   	________________________inherits(Section, _Mustache);
 
   	function Section(options) {
-  		____________________________________classCallCheck(this, Section);
+  		______________________________________classCallCheck(this, Section);
 
   		_Mustache.call(this, options);
 
@@ -6789,7 +6796,7 @@
   	return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
   }
 
-  function ___________________________________classCallCheck(instance, Constructor) {
+  function _____________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -6803,7 +6810,7 @@
   	_______________________inherits(Triple, _Mustache);
 
   	function Triple(options) {
-  		___________________________________classCallCheck(this, Triple);
+  		_____________________________________classCallCheck(this, Triple);
 
   		_Mustache.call(this, options);
   	}
@@ -6900,7 +6907,7 @@
   	return Triple;
   })(Mustache);
 
-  function __________________________________classCallCheck(instance, Constructor) {
+  function ____________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -6914,7 +6921,7 @@
   	______________________inherits(Yielder, _Item);
 
   	function Yielder(options) {
-  		__________________________________classCallCheck(this, Yielder);
+  		____________________________________classCallCheck(this, Yielder);
 
   		_Item.call(this, options);
 
@@ -8068,7 +8075,7 @@
   	visible = true;
   }
 
-  function _________________________________classCallCheck(instance, Constructor) {
+  function ___________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8077,7 +8084,7 @@
 
   var Transition = (function () {
   	function Transition(owner, template, isIntro) {
-  		_________________________________classCallCheck(this, Transition);
+  		___________________________________classCallCheck(this, Transition);
 
   		this.owner = owner;
   		this.isIntro = isIntro;
@@ -8338,7 +8345,7 @@
   }
 
   // TODO element.parent currently undefined
-  function ________________________________classCallCheck(instance, Constructor) {
+  function __________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8358,7 +8365,7 @@
   	function Binding(element) {
   		var name = arguments.length <= 1 || arguments[1] === undefined ? 'value' : arguments[1];
 
-  		________________________________classCallCheck(this, Binding);
+  		__________________________________classCallCheck(this, Binding);
 
   		this.element = element;
   		this.ractive = element.ractive;
@@ -8454,7 +8461,7 @@
   	this._ractive.binding.handleChange();
   }
 
-  function _______________________________classCallCheck(instance, Constructor) {
+  function _________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8493,7 +8500,7 @@
   	_____________________inherits(GenericBinding, _Binding);
 
   	function GenericBinding() {
-  		_______________________________classCallCheck(this, GenericBinding);
+  		_________________________________classCallCheck(this, GenericBinding);
 
   		_Binding.apply(this, arguments);
   	}
@@ -8558,7 +8565,7 @@
   	return GenericBinding;
   })(Binding);
 
-  function ______________________________classCallCheck(instance, Constructor) {
+  function ________________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8572,7 +8579,7 @@
   	____________________inherits(SingleSelectBinding, _Binding);
 
   	function SingleSelectBinding() {
-  		______________________________classCallCheck(this, SingleSelectBinding);
+  		________________________________classCallCheck(this, SingleSelectBinding);
 
   		_Binding.apply(this, arguments);
   	}
@@ -8673,7 +8680,7 @@
   	return SingleSelectBinding;
   })(Binding);
 
-  function _____________________________classCallCheck(instance, Constructor) {
+  function _______________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8687,7 +8694,7 @@
   	___________________inherits(MultipleSelectBinding, _Binding);
 
   	function MultipleSelectBinding() {
-  		_____________________________classCallCheck(this, MultipleSelectBinding);
+  		_______________________________classCallCheck(this, MultipleSelectBinding);
 
   		_Binding.apply(this, arguments);
   	}
@@ -8773,7 +8780,7 @@
   	return MultipleSelectBinding;
   })(Binding);
 
-  function ____________________________classCallCheck(instance, Constructor) {
+  function ______________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8787,7 +8794,7 @@
   	__________________inherits(NumericBinding, _GenericBinding);
 
   	function NumericBinding() {
-  		____________________________classCallCheck(this, NumericBinding);
+  		______________________________classCallCheck(this, NumericBinding);
 
   		_GenericBinding.apply(this, arguments);
   	}
@@ -8804,7 +8811,7 @@
   	return NumericBinding;
   })(GenericBinding);
 
-  function ___________________________classCallCheck(instance, Constructor) {
+  function _____________________________classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError('Cannot call a class as a function');
     }
@@ -8818,7 +8825,7 @@
     _________________inherits(FileListBinding, _Binding);
 
     function FileListBinding() {
-      ___________________________classCallCheck(this, FileListBinding);
+      _____________________________classCallCheck(this, FileListBinding);
 
       _Binding.apply(this, arguments);
     }
@@ -8826,7 +8833,7 @@
     return FileListBinding;
   })(Binding);
 
-  function __________________________classCallCheck(instance, Constructor) {
+  function ____________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8840,7 +8847,7 @@
   	________________inherits(CheckboxBinding, _Binding);
 
   	function CheckboxBinding(element) {
-  		__________________________classCallCheck(this, CheckboxBinding);
+  		____________________________classCallCheck(this, CheckboxBinding);
 
   		_Binding.call(this, element, 'checked');
   	}
@@ -8871,7 +8878,7 @@
   	return CheckboxBinding;
   })(Binding);
 
-  function _________________________classCallCheck(instance, Constructor) {
+  function ___________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8891,7 +8898,7 @@
   	_______________inherits(RadioBinding, _Binding);
 
   	function RadioBinding(element) {
-  		_________________________classCallCheck(this, RadioBinding);
+  		___________________________classCallCheck(this, RadioBinding);
 
   		_Binding.call(this, element, 'checked');
 
@@ -8936,7 +8943,7 @@
   	return RadioBinding;
   })(Binding);
 
-  function ________________________classCallCheck(instance, Constructor) {
+  function __________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -8948,7 +8955,7 @@
 
   var BindingGroup = (function () {
   	function BindingGroup(model, getValue) {
-  		________________________classCallCheck(this, BindingGroup);
+  		__________________________classCallCheck(this, BindingGroup);
 
   		this.model = model;
   		this.getValue = getValue;
@@ -8980,7 +8987,7 @@
   	return BindingGroup;
   })();
 
-  function _______________________classCallCheck(instance, Constructor) {
+  function _________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -9008,7 +9015,7 @@
   	______________inherits(CheckboxNameBinding, _Binding);
 
   	function CheckboxNameBinding(element) {
-  		_______________________classCallCheck(this, CheckboxNameBinding);
+  		_________________________classCallCheck(this, CheckboxNameBinding);
 
   		_Binding.call(this, element, 'name');
 
@@ -9108,7 +9115,7 @@
   	return CheckboxNameBinding;
   })(Binding);
 
-  function ______________________classCallCheck(instance, Constructor) {
+  function ________________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -9130,7 +9137,7 @@
   	_____________inherits(RadioNameBinding, _Binding);
 
   	function RadioNameBinding(element) {
-  		______________________classCallCheck(this, RadioNameBinding);
+  		________________________classCallCheck(this, RadioNameBinding);
 
   		_Binding.call(this, element, 'name');
 
@@ -9204,7 +9211,7 @@
   	return RadioNameBinding;
   })(Binding);
 
-  function _____________________classCallCheck(instance, Constructor) {
+  function _______________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -9218,7 +9225,7 @@
   	____________inherits(ContentEditableBinding, _Binding);
 
   	function ContentEditableBinding() {
-  		_____________________classCallCheck(this, ContentEditableBinding);
+  		_______________________classCallCheck(this, ContentEditableBinding);
 
   		_Binding.apply(this, arguments);
   	}
@@ -9473,7 +9480,7 @@
   			var fullName = ractive.component.name + '.' + eventNames[eventNames.length - 1];
   			eventNames = getWildcardNames(fullName);
 
-  			if (event) {
+  			if (event && !event.component) {
   				event.component = ractive;
   			}
   		}
@@ -9508,37 +9515,39 @@
   	return !stopEvent;
   }
 
-  function ____________________classCallCheck(instance, Constructor) {
+  function ______________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
-  }function defaultHandler(event) {
-  	var handler = this._ractive.events[event.type];
-
-  	handler.fire({
-  		node: this,
-  		original: event
-  	});
-  }
-
-  var EventHandler = (function () {
-  	function EventHandler(owner, name, template) {
-  		____________________classCallCheck(this, EventHandler);
-
-  		if (name.indexOf('*') !== -1) {
-  			fatal('Only component proxy-events may contain "*" wildcards, <' + owner.name + ' on-' + name + '="..."/> is not valid');
-  		}
+  }var eventPattern = /^event(?:\.(.+))?$/;
+  var argumentsPattern = /^arguments\.(\d*)$/;
+  var dollarArgsPattern = /^\$(\d*)$/;
+  var EventDirective = (function () {
+  	function EventDirective(owner, event, template) {
+  		______________________classCallCheck(this, EventDirective);
 
   		this.owner = owner;
-  		this.name = name;
+  		this.event = event;
   		this.template = template;
 
   		this.ractive = owner.parentFragment.ractive;
   		this.parentFragment = owner.parentFragment;
-  		this.node = null;
+
+  		this.context = null;
+  		this.passthru = false;
+
+  		// method calls
+  		this.method = null;
+  		this.resolvers = null;
+  		this.models = null;
+  		this.argsFn = null;
+
+  		// handler directive
+  		this.action = null;
+  		this.args = null;
   	}
 
-  	EventHandler.prototype.bind = function bind() {
+  	EventDirective.prototype.bind = function bind() {
   		var _this = this;
 
   		var fragment = this.parentFragment;
@@ -9550,34 +9559,53 @@
   		if (template.m) {
   			this.method = template.m;
 
-  			this.resolvers = [];
-  			this.models = template.a.r.map(function (ref, i) {
-  				if (/^event(?:\.(.+))?$/.test(ref)) {
-  					// on-click="foo(event.node)"
-  					return {
-  						event: true,
-  						keys: ref.length > 5 ? ref.slice(6).split('.') : [],
-  						unbind: noop
-  					};
+  			if (this.passthru = template.g) {
+  				// no models or args, just pass thru values
+  			} else {
+  					this.resolvers = [];
+  					this.models = template.a.r.map(function (ref, i) {
+  						if (eventPattern.test(ref)) {
+  							// on-click="foo(event.node)"
+  							return {
+  								event: true,
+  								keys: ref.length > 5 ? ref.slice(6).split('.') : [],
+  								unbind: noop
+  							};
+  						}
+
+  						var argMatch = argumentsPattern.exec(ref);
+  						if (argMatch) {
+  							return {
+  								argument: true,
+  								index: argMatch[1]
+  							};
+  						}
+
+  						var dollarMatch = dollarArgsPattern.exec(ref);
+  						if (dollarMatch) {
+  							return {
+  								argument: true,
+  								index: dollarMatch[1] - 1
+  							};
+  						}
+
+  						var model = resolveReference(_this.parentFragment, ref);
+  						if (!model) {
+  							(function () {
+  								var resolver = _this.parentFragment.resolve(ref, function (model) {
+  									_this.models[i] = model;
+  									removeFromArray(_this.resolvers, resolver);
+  								});
+
+  								_this.resolvers.push(resolver);
+  							})();
+  						}
+
+  						return model;
+  					});
+
+  					this.argsFn = createFunction(template.a.s, template.a.r.length);
   				}
-
-  				var model = resolveReference(_this.parentFragment, ref);
-
-  				if (!model) {
-  					(function () {
-  						var resolver = _this.parentFragment.resolve(ref, function (model) {
-  							_this.models[i] = model;
-  							removeFromArray(_this.resolvers, resolver);
-  						});
-
-  						_this.resolvers.push(resolver);
-  					})();
-  				}
-
-  				return model;
-  			});
-
-  			this.argsFn = createFunction(template.a.s, template.a.r.length);
   		} else {
   			// TODO deprecate this style of directive
   			this.action = typeof template === 'string' ? // on-click='foo'
@@ -9599,55 +9627,70 @@
   		if (this.template.d) this.args.bind();
   	};
 
-  	EventHandler.prototype.bubble = function bubble() {
+  	EventDirective.prototype.bubble = function bubble() {
   		if (!this.dirty) {
   			this.dirty = true;
   			this.owner.bubble();
   		}
   	};
 
-  	EventHandler.prototype.fire = function fire(event) {
+  	EventDirective.prototype.fire = function fire(event, passedArgs) {
   		// augment event object
-  		event.keypath = this.context.getKeypath();
-  		event.context = this.context.get();
-  		event.index = this.parentFragment.indexRefs;
+  		if (event) {
+  			event.keypath = this.context.getKeypath();
+  			event.context = this.context.get();
+  			event.index = this.parentFragment.indexRefs;
+
+  			if (passedArgs) passedArgs.unshift(event);
+  		}
 
   		if (this.method) {
   			if (typeof this.ractive[this.method] !== 'function') {
   				throw new Error('Attempted to call a non-existent method ("' + this.method + '")');
   			}
 
-  			var values = this.models.map(function (model) {
-  				if (!model) return undefined;
+  			var args = undefined;
 
-  				if (model.event) {
-  					var obj = event;
-  					var keys = model.keys.slice();
+  			if (this.passthru) {
+  				args = passedArgs;
+  			} else {
+  				var values = this.models.map(function (model) {
+  					if (!model) return undefined;
 
-  					while (keys.length) obj = obj[keys.shift()];
-  					return obj;
-  				}
+  					if (model.event) {
+  						var obj = event;
+  						var keys = model.keys.slice();
 
-  				if (model.wrapper) {
-  					return model.wrapper.value;
-  				}
+  						while (keys.length) obj = obj[keys.shift()];
+  						return obj;
+  					}
 
-  				return model.get();
-  			});
+  					if (model.argument) {
+  						return passedArgs ? passedArgs[model.index] : void 0;
+  					}
+
+  					if (model.wrapper) {
+  						return model.wrapper.value;
+  					}
+
+  					return model.get();
+  				});
+
+  				args = this.argsFn.apply(null, values);
+  			}
 
   			// make event available as `this.event`
-  			var oldEvent = this.ractive.event;
-  			this.ractive.event = event;
+  			var ractive = this.ractive,
+  			    oldEvent = ractive.event;
 
-  			var args = this.argsFn.apply(null, values);
-  			this.ractive[this.method].apply(this.ractive, args);
-
-  			this.ractive.event = oldEvent;
+  			ractive.event = event;
+  			ractive[this.method].apply(ractive, args);
+  			ractive.event = oldEvent;
   		} else {
   			var action = this.action.toString();
   			var args = this.template.d ? this.args.getArgsList() : this.args;
 
-  			event.name = action;
+  			if (event) event.name = action;
 
   			fireEvent(this.ractive, action, {
   				event: event,
@@ -9656,34 +9699,15 @@
   		}
   	};
 
-  	EventHandler.prototype.rebind = function rebind() {
-  		throw new Error('EventHandler$rebind not yet implemented!'); // TODO add tests
+  	EventDirective.prototype.rebind = function rebind() {
+  		throw new Error('EventDirective$rebind not yet implemented!'); // TODO add tests
   	};
 
-  	EventHandler.prototype.render = function render() {
-  		var _this2 = this;
-
-  		this.node = this.owner.node;
-
-  		var fn = findInViewHierarchy('events', this.ractive, this.name);
-
-  		if (fn) {
-  			var fire = function (event) {
-  				return _this2.fire(event);
-  			};
-  			this.customHandler = fn(this.node, fire);
-  		} else {
-  			// no plugin - most likely a standard DOM event
-  			if (!('on' + this.name in this.node)) {
-  				missingPlugin(this.name, 'events');
-  			}
-
-  			this.node._ractive.events[this.name] = this;
-  			this.node.addEventListener(this.name, defaultHandler, false);
-  		}
+  	EventDirective.prototype.render = function render() {
+  		this.event.listen(this);
   	};
 
-  	EventHandler.prototype.unbind = function unbind$$() {
+  	EventDirective.prototype.unbind = function unbind$$() {
   		var template = this.template;
 
   		if (template.m) {
@@ -9700,16 +9724,11 @@
   		}
   	};
 
-  	EventHandler.prototype.unrender = function unrender() {
-  		if (this.customHandler) {
-  			this.customHandler.teardown();
-  		} else {
-  			this.node.removeEventListener(this.name, defaultHandler, false);
-  			this.node._ractive.events[this.name] = null;
-  		}
+  	EventDirective.prototype.unrender = function unrender() {
+  		this.event.unlisten();
   	};
 
-  	EventHandler.prototype.update = function update() {
+  	EventDirective.prototype.update = function update() {
   		if (this.method) return; // nothing to do
 
   		// ugh legacy
@@ -9717,10 +9736,82 @@
   		if (this.template.d) this.args.update();
   	};
 
-  	return EventHandler;
+  	return EventDirective;
   })();
 
-  function ___________________classCallCheck(instance, Constructor) {
+  function _____________________classCallCheck(instance, Constructor) {
+  	if (!(instance instanceof Constructor)) {
+  		throw new TypeError('Cannot call a class as a function');
+  	}
+  }function defaultHandler(event) {
+  	var handler = this._ractive.events[event.type];
+
+  	handler.fire({
+  		node: this,
+  		original: event
+  	});
+  }
+
+  var DOMEvent = (function () {
+  	function DOMEvent(name, owner) {
+  		_____________________classCallCheck(this, DOMEvent);
+
+  		if (name.indexOf('*') !== -1) {
+  			fatal('Only component proxy-events may contain "*" wildcards, <' + owner.name + ' on-' + name + '="..."/> is not valid');
+  		}
+
+  		this.name = name;
+  		this.owner = owner;
+  		this.node = null;
+  	}
+
+  	DOMEvent.prototype.listen = function listen(directive) {
+  		var node = this.node = this.owner.node,
+  		    name = this.name;
+
+  		if (!('on' + name in node)) {
+  			missingPlugin(name, 'events');
+  		}
+
+  		node._ractive.events[name] = directive;
+  		node.addEventListener(name, defaultHandler, false);
+  	};
+
+  	DOMEvent.prototype.unlisten = function unlisten() {
+  		var node = this.node,
+  		    name = this.name;
+
+  		node.removeEventListener(name, defaultHandler, false);
+  		node._ractive.events[name] = null;
+  	};
+
+  	return DOMEvent;
+  })();
+
+  var CustomEvent = (function () {
+  	function CustomEvent(eventPlugin, owner) {
+  		_____________________classCallCheck(this, CustomEvent);
+
+  		this.eventPlugin = eventPlugin;
+  		this.owner = owner;
+  		this.node = null;
+  	}
+
+  	CustomEvent.prototype.listen = function listen(directive) {
+  		var fire = function (event) {
+  			return directive.fire(event);
+  		};
+  		this.customHandler = this.eventPlugin(this.owner.node, fire);
+  	};
+
+  	CustomEvent.prototype.unlisten = function unlisten() {
+  		this.customHandler.teardown();
+  	};
+
+  	return CustomEvent;
+  })();
+
+  function ____________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -9731,7 +9822,7 @@
 
   var Decorator = (function () {
   	function Decorator(owner, template) {
-  		___________________classCallCheck(this, Decorator);
+  		____________________classCallCheck(this, Decorator);
 
   		this.owner = owner;
   		this.template = template;
@@ -9834,7 +9925,7 @@
   	return Decorator;
   })();
 
-  function __________________classCallCheck(instance, Constructor) {
+  function ___________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -9850,7 +9941,7 @@
   	___________inherits(ConditionalAttribute, _Item);
 
   	function ConditionalAttribute(options) {
-  		__________________classCallCheck(this, ConditionalAttribute);
+  		___________________classCallCheck(this, ConditionalAttribute);
 
   		_Item.call(this, options);
 
@@ -10201,7 +10292,7 @@
   	attribute.name = name;
   }
 
-  function _________________classCallCheck(instance, Constructor) {
+  function __________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -10215,7 +10306,7 @@
   	__________inherits(Attribute, _Item);
 
   	function Attribute(options) {
-  		_________________classCallCheck(this, Attribute);
+  		__________________classCallCheck(this, Attribute);
 
   		_Item.call(this, options);
 
@@ -10338,7 +10429,7 @@
   	return Attribute;
   })(Item);
 
-  function ________________classCallCheck(instance, Constructor) {
+  function _________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -10358,7 +10449,7 @@
   	function Element(options) {
   		var _this = this;
 
-  		________________classCallCheck(this, Element);
+  		_________________classCallCheck(this, Element);
 
   		_Item.call(this, options);
 
@@ -10419,14 +10510,23 @@
   		// attach event handlers
   		this.eventHandlers = [];
   		if (this.template.v) {
-  			Object.keys(this.template.v).forEach(function (key) {
-  				var eventNames = key.split('-');
-  				var template = _this.template.v[key];
+  			(function () {
 
-  				eventNames.forEach(function (eventName) {
-  					_this.eventHandlers.push(new EventHandler(_this, eventName, template));
+  				var handlers = _this.eventHandlers = [];
+
+  				Object.keys(_this.template.v).forEach(function (key) {
+  					var eventNames = key.split('-');
+  					var template = _this.template.v[key];
+
+  					eventNames.forEach(function (eventName) {
+  						var fn = findInViewHierarchy('events', _this.ractive, eventName);
+  						// we need to pass in "this" in order to get
+  						// access to node when it is created.
+  						var event = fn ? new CustomEvent(fn, _this) : new DOMEvent(eventName, _this);
+  						handlers.push(new EventDirective(_this, event, template));
+  					});
   				});
-  			});
+  			})();
   		}
 
   		// create children
@@ -10751,7 +10851,7 @@
   	return element.ractive.el.namespaceURI;
   }
 
-  function _______________classCallCheck(instance, Constructor) {
+  function ________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -10765,7 +10865,7 @@
   	________inherits(Input, _Element);
 
   	function Input() {
-  		_______________classCallCheck(this, Input);
+  		________________classCallCheck(this, Input);
 
   		_Element.apply(this, arguments);
   	}
@@ -10778,7 +10878,7 @@
   	return Input;
   })(Element);
 
-  function ______________classCallCheck(instance, Constructor) {
+  function _______________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -10799,7 +10899,7 @@
   	_______inherits(Select, _Element);
 
   	function Select(options) {
-  		______________classCallCheck(this, Select);
+  		_______________classCallCheck(this, Select);
 
   		_Element.call(this, options);
   		this.options = [];
@@ -10888,7 +10988,7 @@
   	return Select;
   })(Element);
 
-  function _____________classCallCheck(instance, Constructor) {
+  function ______________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -10909,7 +11009,7 @@
   	______inherits(Option, _Element);
 
   	function Option(options) {
-  		_____________classCallCheck(this, Option);
+  		______________classCallCheck(this, Option);
 
   		var template = options.template;
   		if (!template.a) template.a = {};
@@ -10978,7 +11078,7 @@
   	return Option;
   })(Element);
 
-  function ____________classCallCheck(instance, Constructor) {
+  function _____________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
   	}
@@ -10992,7 +11092,7 @@
   	_____inherits(Form, _Element);
 
   	function Form(options) {
-  		____________classCallCheck(this, Form);
+  		_____________classCallCheck(this, Form);
 
   		_Element.call(this, options);
   		this.formBindings = [];
@@ -11021,6 +11121,48 @@
   function updateModel(binding) {
   	binding.model.set(binding.resetValue);
   }
+
+  function ____________classCallCheck(instance, Constructor) {
+  	if (!(instance instanceof Constructor)) {
+  		throw new TypeError("Cannot call a class as a function");
+  	}
+  }
+
+  var RactiveEvent = (function () {
+  	function RactiveEvent(ractive, name) {
+  		____________classCallCheck(this, RactiveEvent);
+
+  		this.ractive = ractive;
+  		this.name = name;
+  		this.handler = null;
+  	}
+
+  	RactiveEvent.prototype.listen = function listen(directive) {
+  		var ractive = this.ractive;
+
+  		this.handler = ractive.on(this.name, function () {
+  			var event = undefined;
+
+  			// semi-weak test, but what else? tag the event obj ._isEvent ?
+  			if (arguments.length && arguments[0] && arguments[0].node) {
+  				event = Array.prototype.shift.call(arguments);
+  				event.component = ractive;
+  			}
+
+  			var args = Array.prototype.slice.call(arguments);
+  			directive.fire(event, args);
+
+  			// cancel bubbling
+  			return false;
+  		});
+  	};
+
+  	RactiveEvent.prototype.unlisten = function unlisten() {
+  		this.handler.cancel();
+  	};
+
+  	return RactiveEvent;
+  })();
 
   // TODO it's unfortunate that this has to run every time a
   // component is rendered... is there a better way?
@@ -12823,6 +12965,7 @@
   		// for components and just for ractive...
   		instance._inlinePartials = partials;
 
+  		this.eventHandlers = [];
   		if (this.template.v) this.setupEvents();
   	}
 
@@ -12888,6 +13031,8 @@
   			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs,
   			cssIds: this.parentFragment.cssIds
   		});
+
+  		this.eventHandlers.forEach(_bind);
   	};
 
   	Component.prototype.bubble = function bubble() {
@@ -12982,6 +13127,7 @@
   		render(this.instance, target, null);
 
   		this.checkYielders();
+  		this.eventHandlers.forEach(_render);
   		updateLiveQueries(this);
 
   		this.rendered = true;
@@ -12990,29 +13136,15 @@
   	Component.prototype.setupEvents = function setupEvents() {
   		var _this4 = this;
 
-  		Object.keys(this.template.v).forEach(function (name) {
-  			var template = _this4.template.v[name];
+  		var handlers = this.eventHandlers;
 
-  			if (typeof template !== 'string') {
-  				fatal('Components currently only support simple events - you cannot include arguments. Sorry!');
-  			}
+  		Object.keys(this.template.v).forEach(function (key) {
+  			var eventNames = key.split('-');
+  			var template = _this4.template.v[key];
 
-  			var ractive = _this4.ractive;
-
-  			_this4.instance.on(name, function () {
-  				var event = undefined;
-
-  				// semi-weak test, but what else? tag the event obj ._isEvent ?
-  				if (arguments.length && arguments[0] && arguments[0].node) {
-  					event = Array.prototype.shift.call(arguments);
-  				}
-
-  				var args = Array.prototype.slice.call(arguments);
-
-  				fireEvent(ractive, template, { event: event, args: args });
-
-  				// cancel bubbling
-  				return false;
+  			eventNames.forEach(function (eventName) {
+  				var event = new RactiveEvent(_this4.instance, eventName);
+  				handlers.push(new EventDirective(_this4, event, template));
   			});
   		});
   	};
@@ -13038,12 +13170,12 @@
   		teardownHook.fire(instance);
   	};
 
-  	Component.prototype.unrender = function unrender(shouldDestroy) {
+  	Component.prototype.unrender = function unrender$$(shouldDestroy) {
   		var _this5 = this;
 
   		this.shouldDestroy = shouldDestroy;
   		this.instance.unrender();
-
+  		this.eventHandlers.forEach(unrender);
   		this.liveQueries.forEach(function (query) {
   			return query.remove(_this5.instance);
   		});
@@ -13052,7 +13184,7 @@
   	Component.prototype.update = function update() {
   		this.instance.fragment.update();
   		this.checkYielders();
-
+  		this.eventHandlers.forEach(_update);
   		this.dirty = false;
   	};
 
