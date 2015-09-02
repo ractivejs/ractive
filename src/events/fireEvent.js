@@ -51,7 +51,7 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 			let fullName = ractive.component.name + '.' + eventNames[ eventNames.length-1 ];
 			eventNames = getWildcardNames( fullName );
 
-			if( event ) {
+			if( event && !event.component ) {
 				event.component = ractive;
 			}
 		}

@@ -999,7 +999,6 @@ function testEventBubbling( fire ) {
 
 }
 
-
 module( 'Component events bubbling proxy events', setup )
 
 testEventBubbling( function ( component ) {
@@ -1010,6 +1009,202 @@ module( 'Component events bubbling fire() events', setup )
 
 testEventBubbling( function ( component ) {
 	component.fire( 'someEvent', 'foo' );
+});
+
+
+module( 'Component events', setup )
+
+test( 'component "on-" can call methods', t => {
+	var Component, component, ractive;
+
+	expect( 2 );
+
+	Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
+	});
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<component on-foo="foo(1)" on-bar="bar(2)"/>',
+		components: {
+			component: Component
+		},
+		foo ( num ) {
+			t.equal( num, 1 );
+		},
+		bar ( num ) {
+			t.equal( num, 2 );
+		}
+	});
+
+	component = ractive.findComponent( 'component' );
+	simulant.fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+});
+
+test( 'component "on-" with ...arguments', t => {
+	var Component, component, ractive;
+
+	expect( 5 );
+
+	Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\', 42">click me</span>'
+	});
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<component on-foo="foo(...arguments)" on-bar="bar(...arguments)"/>',
+		components: {
+			component: Component
+		},
+		foo ( e, arg1, arg2 ) {
+			t.equal( e.original.type, 'click' );
+			t.equal( arg1, 'foo' );
+			t.equal( arg2, 42 );
+		},
+		bar ( arg1, arg2 ) {
+			t.equal( arg1, 'bar' );
+			t.equal( arg2, 100 );
+		}
+	});
+
+	component = ractive.findComponent( 'component' );
+	simulant.fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar', 100 );
+});
+
+test( 'component "on-" with arguments[n]', t => {
+	var Component, component, ractive;
+
+	expect( 5 );
+
+	Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\', 42">click me</span>'
+	});
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<component on-foo="foo(arguments[2], \'qux\', arguments[0])" on-bar="bar(arguments[0], 100)"/>',
+		components: {
+			component: Component
+		},
+		foo ( arg1, arg2, arg3 ) {
+			t.equal( arg1, 42 );
+			t.equal( arg2, 'qux' );
+			t.equal( arg3.original.type, 'click' );
+		},
+		bar ( arg1, arg2 ) {
+			t.equal( arg1, 'bar' );
+			t.equal( arg2, 100 );
+		}
+	});
+
+	component = ractive.findComponent( 'component' );
+	simulant.fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+});
+
+test( 'component "on-" with $n', t => {
+	var Component, component, ractive;
+
+	expect( 5 );
+
+	Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\', 42">click me</span>'
+	});
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<component on-foo="foo($3, \'qux\', $1)" on-bar="bar($1, 100)"/>',
+		components: {
+			component: Component
+		},
+		foo ( arg1, arg2, arg3 ) {
+			t.equal( arg1, 42 );
+			t.equal( arg2, 'qux' );
+			t.equal( arg3.original.type, 'click' );
+		},
+		bar ( arg1, arg2 ) {
+			t.equal( arg1, 'bar' );
+			t.equal( arg2, 100 );
+		}
+	});
+
+	component = ractive.findComponent( 'component' );
+	simulant.fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+});
+
+test( 'component "on-" supply own event proxy arguments', t => {
+	var Component, component, ractive;
+
+	expect( 4 );
+
+	Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
+	});
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<component on-foo="foo-reproxy:1" on-bar="bar-reproxy:{{qux}}" on-bizz="bizz-reproxy"/>',
+		data: {
+			qux: 'qux'
+		},
+		components: {
+			component: Component
+		}
+	});
+
+	ractive.on( 'foo-reproxy', ( arg1, arg2 ) => {
+		t.equal( arg1.original.type, 'click' );
+		t.equal( arg2, 1 );
+	});
+	ractive.on( 'bar-reproxy', ( arg1 ) => {
+		t.equal( arg1, 'qux' );
+	});
+	ractive.on( 'bizz-reproxy', () => {
+		t.equal( arguments.length, 0 );
+	});
+
+	component = ractive.findComponent( 'component' );
+	simulant.fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+	component.fire( 'bizz', 'buzz' );
+});
+
+
+test( 'component "on-" handles reproxy of arguments correctly', t => {
+	var Component, component, ractive;
+
+	expect( 4 );
+
+	Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
+	});
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
+		components: {
+			component: Component
+		}
+	});
+
+	ractive.on( 'foo-reproxy', ( e, ...args ) => {
+		t.equal( e.original.type, 'click' );
+		t.equal( args.length, 0 );
+	});
+	ractive.on( 'bar-reproxy', () => {
+		t.equal( arguments.length, 0 );
+	});
+	ractive.on( 'bizz-reproxy', () => {
+		t.equal( arguments.length, 0 );
+	});
+
+	component = ractive.findComponent( 'component' );
+	simulant.fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+	component.fire( 'bizz' );
 });
 
 module( 'Event pattern matching' );
@@ -1135,39 +1330,8 @@ test( 'component "on-" do not get auto-namespaced events', t => {
 	t.ok( true );
 });
 
-test( 'component "on-" handles arguments correctly', t => {
-	var Component, component, ractive;
 
-	expect( 4 );
 
-	Component = Ractive.extend({
-		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
-	});
-
-	ractive = new Ractive({
-		el: fixture,
-		template: '<component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
-		components: {
-			component: Component
-		}
-	});
-
-	ractive.on( 'foo-reproxy', ( e, arg ) => {
-		t.equal( e.original.type, 'click' );
-		t.equal( arg, 'foo' );
-	});
-	ractive.on( 'bar-reproxy', ( arg ) => {
-		t.equal( arg, 'bar' );
-	});
-	ractive.on( 'bizz-reproxy', () => {
-		t.equal( arguments.length, 0 );
-	});
-
-	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
-	component.fire( 'bar', 'bar' );
-	component.fire( 'bizz' );
-});
 
 
 module( 'Touch events' );
