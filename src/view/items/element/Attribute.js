@@ -2,6 +2,7 @@ import { INTERPOLATOR } from '../../../config/types';
 import { html } from '../../../config/namespaces';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
+import determineNameAndNamespace from './attribute/determineNameAndNamespace';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { isArray } from '../../../utils/is';
@@ -12,7 +13,8 @@ export default class Attribute extends Item {
 	constructor ( options ) {
 		super( options );
 
-		this.name = options.name;
+		determineNameAndNamespace( this, options.name );
+
 		this.element = options.element;
 		this.parentFragment = options.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
