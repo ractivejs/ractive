@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Aug 30 2015 16:02:49 GMT+0000 (UTC) - commit 4c1ac38486f60b643538d2002621f08d4e3f4f3b
+	Wed Sep 02 2015 14:49:01 GMT+0000 (UTC) - commit 39c63c94d762c10f227e34cad38fa9d82946d9a6
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14,6 +14,15 @@
   typeof define === 'function' && define.amd ? define(factory) :
   global.Ractive = factory();
 }(this, function () { 'use strict';
+
+  var _namespaces = {
+    get html () { return html; },
+    get mathml () { return mathml; },
+    get svg () { return svg; },
+    get xlink () { return xlink; },
+    get xml () { return xml; },
+    get xmlns () { return xmlns; }
+  };
 
   var TEMPLATE_VERSION = 3;
 
@@ -1349,7 +1358,11 @@
   }
 
   var html = 'http://www.w3.org/1999/xhtml';
+  var mathml = 'http://www.w3.org/1998/Math/MathML';
   var svg = 'http://www.w3.org/2000/svg';
+  var xlink = 'http://www.w3.org/1999/xlink';
+  var xml = 'http://www.w3.org/XML/1998/namespace';
+  var xmlns = 'http://www.w3.org/2000/xmlns/';
 
   var createElement;
   var matches;
@@ -9946,6 +9959,7 @@
   function getUpdateDelegate(attribute) {
   	var element = attribute.element;
   	var name = attribute.name;
+  	var namespace = attribute.namespace;
 
   	if (name === 'id') return updateId;
 
@@ -9989,6 +10003,8 @@
   	if (name === 'class' && (!node.namespaceURI || node.namespaceURI === html)) return updateClassName;
 
   	if (attribute.useProperty) return updateProperty;
+
+  	if (attribute.namespace) return updateNamespacedAttribute;
 
   	return updateAttribute;
   }
@@ -10129,6 +10145,10 @@
   	this.node.setAttribute(this.name, safeToStringValue(this.getString()));
   }
 
+  function updateNamespacedAttribute() {
+  	this.node.setAttributeNS(this.namespace, this.name, safeToStringValue(this.getString()));
+  }
+
   var propertyNames = {
   	'accept-charset': 'acceptCharset',
   	'accesskey': 'accessKey',
@@ -10151,6 +10171,36 @@
   	'usemap': 'useMap'
   };
 
+  function determineNameAndNamespace (attribute, name) {
+  	var colonIndex, namespacePrefix;
+
+  	// are we dealing with a namespaced attribute, e.g. xlink:href?
+  	colonIndex = name.indexOf(':');
+  	if (colonIndex !== -1) {
+
+  		// looks like we are, yes...
+  		namespacePrefix = name.substr(0, colonIndex);
+
+  		// ...unless it's a namespace *declaration*, which we ignore (on the assumption
+  		// that only valid namespaces will be used)
+  		if (namespacePrefix !== 'xmlns') {
+  			name = name.substring(colonIndex + 1);
+
+  			attribute.name = name;
+  			attribute.namespace = _namespaces[namespacePrefix.toLowerCase()];
+  			attribute.namespacePrefix = namespacePrefix;
+
+  			if (!attribute.namespace) {
+  				throw 'Unknown namespace ("' + namespacePrefix + '")';
+  			}
+
+  			return;
+  		}
+  	}
+
+  	attribute.name = name;
+  }
+
   function _________________classCallCheck(instance, Constructor) {
   	if (!(instance instanceof Constructor)) {
   		throw new TypeError('Cannot call a class as a function');
@@ -10169,7 +10219,8 @@
 
   		_Item.call(this, options);
 
-  		this.name = options.name;
+  		determineNameAndNamespace(this, options.name);
+
   		this.element = options.element;
   		this.parentFragment = options.element.parentFragment; // shared
   		this.ractive = this.parentFragment.ractive;
