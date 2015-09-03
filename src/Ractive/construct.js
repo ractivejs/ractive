@@ -149,9 +149,11 @@ function initialiseProperties ( ractive ) {
 	// observers
 	ractive._observers = [];
 
-	// these could be overridden if this is an inline component instance
-	ractive.root = ractive;
-	ractive.parent = ractive.container = null; // TODO container still applicable?
+	if(!ractive.component){
+		ractive.root = ractive;
+		ractive.parent = ractive.container = null; // TODO container still applicable?		
+	}
+
 }
 
 function deprecateRactiveData () {

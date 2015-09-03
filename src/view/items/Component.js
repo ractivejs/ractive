@@ -57,8 +57,6 @@ export default class Component extends Item {
 
 		this.yielders = {};
 
-		construct( this.instance, { partials });
-
 		// find container
 		let fragment = options.parentFragment;
 		let container;
@@ -76,6 +74,8 @@ export default class Component extends Item {
 		instance.container = container || null;
 		instance.root = instance.parent.root;
 		instance.component = this;
+
+		construct( this.instance, { partials });
 
 		// for hackability, this could be an open option
 		// for any ractive instance, but for now, just
