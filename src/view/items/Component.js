@@ -224,7 +224,7 @@ export default class Component extends Item {
 				let model;
 
 				if ( isArray( template ) && template.length === 1 && template[0].t === INTERPOLATOR ) {
-					let model = resolve( this.parentFragment, template[0] );
+					model = resolve( this.parentFragment, template[0] );
 
 					if ( !model ) {
 						// TODO is this even possible?
