@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Sep 03 2015 13:29:10 GMT+0000 (UTC) - commit 220d59f2374506b05b39c18baa2a86cff364b277
+	Thu Sep 03 2015 20:37:56 GMT+0000 (UTC) - commit 2ce87f0f0bedb88908af208d8231e2eddc1245af
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -91,8 +91,8 @@
   var welcome;
   if (hasConsole) {
   	(function () {
-  		var welcomeIntro = ['%cRactive.js %c<@version@> %cin debug mode, %cmore...', 'color: rgb(114, 157, 52); font-weight: normal;', 'color: rgb(85, 85, 85); font-weight: normal;', 'color: rgb(85, 85, 85); font-weight: normal;', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'];
-  		var welcomeMessage = 'You\'re running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n';
+  		var welcomeIntro = ['%cRactive.js %c0.8.0-edge %cin debug mode, %cmore...', 'color: rgb(114, 157, 52); font-weight: normal;', 'color: rgb(85, 85, 85); font-weight: normal;', 'color: rgb(85, 85, 85); font-weight: normal;', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'];
+  		var welcomeMessage = 'You\'re running Ractive 0.8.0-edge in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n';
 
   		welcome = function () {
   			var hasGroup = !!console.groupCollapsed;
@@ -14868,7 +14868,7 @@ var classCallCheck = function (instance, Constructor) {
   	magic: { value: magic },
 
   	// version
-  	VERSION: { value: '<@version@>' },
+  	VERSION: { value: '0.8.0-edge' },
 
   	// plugins
   	adaptors: { writable: true, value: {} },

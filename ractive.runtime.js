@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Sep 03 2015 13:29:10 GMT+0000 (UTC) - commit 220d59f2374506b05b39c18baa2a86cff364b277
+	Thu Sep 03 2015 20:37:56 GMT+0000 (UTC) - commit 2ce87f0f0bedb88908af208d8231e2eddc1245af
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -91,8 +91,8 @@
   var welcome;
   if (hasConsole) {
   	(function () {
-  		var welcomeIntro = ['%cRactive.js %c<@version@> %cin debug mode, %cmore...', 'color: rgb(114, 157, 52); font-weight: normal;', 'color: rgb(85, 85, 85); font-weight: normal;', 'color: rgb(85, 85, 85); font-weight: normal;', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'];
-  		var welcomeMessage = 'You\'re running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n';
+  		var welcomeIntro = ['%cRactive.js %c0.8.0-edge %cin debug mode, %cmore...', 'color: rgb(114, 157, 52); font-weight: normal;', 'color: rgb(85, 85, 85); font-weight: normal;', 'color: rgb(85, 85, 85); font-weight: normal;', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'];
+  		var welcomeMessage = 'You\'re running Ractive 0.8.0-edge in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n';
 
   		welcome = function () {
   			var hasGroup = !!console.groupCollapsed;
@@ -196,12 +196,68 @@
   	}
   }
 
+var inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+var slicedToArray = (function () {
+  function sliceIterator(arr, i) {
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"]) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  return function (arr, i) {
+    if (Array.isArray(arr)) {
+      return arr;
+    } else if (Symbol.iterator in Object(arr)) {
+      return sliceIterator(arr, i);
+    } else {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+  };
+})();
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
   // TODO: deprecate in future release
-  function ____________________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var deprecations = {
+  var deprecations = {
   	construct: {
   		deprecated: 'beforeInit',
   		replacement: 'onconstruct'
@@ -218,7 +274,7 @@
 
   var Hook = (function () {
   	function Hook(event) {
-  		____________________________________________________classCallCheck(this, Hook);
+  		classCallCheck(this, Hook);
 
   		this.event = event;
   		this.method = 'on' + event;
@@ -414,13 +470,9 @@
     return x.toString(true);
   }
 
-  function ___________________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var TransitionManager = (function () {
+  var TransitionManager = (function () {
   	function TransitionManager(callback, parent) {
-  		___________________________________________________classCallCheck(this, TransitionManager);
+  		classCallCheck(this, TransitionManager);
 
   		this.callback = callback;
   		this.parent = parent;
@@ -1277,46 +1329,20 @@
   var INTERPOLATOR = 2;
   var TRIPLE = 3;
   var SECTION = 4;
-  var INVERTED = 5;
-  var CLOSING = 6;
   var ELEMENT = 7;
   var PARTIAL = 8;
-  var COMMENT = 9;
-  var DELIMCHANGE = 10;
-  var CLOSING_TAG = 14;
   var COMPONENT = 15;
   var YIELDER = 16;
-  var INLINE_PARTIAL = 17;
   var DOCTYPE = 18;
 
   var NUMBER_LITERAL = 20;
   var STRING_LITERAL = 21;
-  var ARRAY_LITERAL = 22;
-  var OBJECT_LITERAL = 23;
-  var BOOLEAN_LITERAL = 24;
-  var REGEXP_LITERAL = 25;
-
-  var GLOBAL = 26;
-  var KEY_VALUE_PAIR = 27;
-
   var REFERENCE = 30;
-  var REFINEMENT = 31;
-  var MEMBER = 32;
-  var PREFIX_OPERATOR = 33;
-  var BRACKETED = 34;
-  var CONDITIONAL = 35;
-  var INFIX_OPERATOR = 36;
-
-  var INVOCATION = 40;
-
   var SECTION_IF = 50;
   var SECTION_UNLESS = 51;
   var SECTION_EACH = 52;
   var SECTION_WITH = 53;
   var SECTION_IF_WITH = 54;
-
-  var ELSE = 60;
-  var ELSEIF = 61;
 
   var getSingleQuotedString = makeQuotedStringMatcher('"');
   var getDoubleQuotedString = makeQuotedStringMatcher("'");
@@ -1597,7 +1623,7 @@
 
   var Parser;
   var ParseError;
-  var _leadingWhitespace = /^\s+/;
+  var leadingWhitespace = /^\s+/;
   ParseError = function (message) {
   	this.name = 'ParseError';
   	this.message = message;
@@ -1715,7 +1741,7 @@
   	},
 
   	allowWhitespace: function () {
-  		this.matchPattern(_leadingWhitespace);
+  		this.matchPattern(leadingWhitespace);
   	},
 
   	remaining: function () {
@@ -1750,8 +1776,9 @@
 
   var name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
 
+  // bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
   var _numberPattern = /^(?:[+-]?)0*(?:(?:(?:[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
-  function _readNumberLiteral(parser) {
+  function readNumberLiteral(parser) {
   	var result;
 
   	if (result = parser.matchPattern(_numberPattern)) {
@@ -1776,7 +1803,7 @@
   		return identifier.test(token.v) ? token.v : '"' + token.v.replace(/"/g, '\\"') + '"';
   	}
 
-  	if (token = _readNumberLiteral(parser)) {
+  	if (token = readNumberLiteral(parser)) {
   		return token.v;
   	}
 
@@ -1958,6 +1985,8 @@
   	return parser.result;
   }
 
+  // TODO all this code needs to die
+
   function processItems(items, values, guid) {
   	var counter = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
 
@@ -1985,7 +2014,7 @@
   }
 
   function badReference(key) {
-  	throw new Error('An index or key reference (' + key + ') cannot have child properties');
+  	throw new Error("An index or key reference (" + key + ") cannot have child properties");
   }
   function resolveAmbiguousReference(fragment, ref) {
   	var localViewmodel = fragment.findContext().root;
@@ -2043,13 +2072,9 @@
   	}
   }
 
-  function __________________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var ReferenceResolver = (function () {
+  var ReferenceResolver = (function () {
   	function ReferenceResolver(fragment, reference, callback) {
-  		__________________________________________________classCallCheck(this, ReferenceResolver);
+  		classCallCheck(this, ReferenceResolver);
 
   		this.fragment = fragment;
   		this.reference = normalise(reference);
@@ -2097,15 +2122,9 @@
   	return ReferenceResolver;
   })();
 
-  function _________________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError("Cannot call a class as a function");
-  	}
-  }
-
   var Item = (function () {
   	function Item(options) {
-  		_________________________________________________classCallCheck(this, Item);
+  		classCallCheck(this, Item);
 
   		this.parentFragment = options.parentFragment;
   		this.ractive = options.parentFragment.ractive;
@@ -2147,21 +2166,11 @@
   	return Item;
   })();
 
-  function ________________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ______________________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Doctype = (function (_Item) {
-  	______________________________inherits(Doctype, _Item);
+  var Doctype = (function (_Item) {
+  	inherits(Doctype, _Item);
 
   	function Doctype() {
-  		________________________________________________classCallCheck(this, Doctype);
+  		classCallCheck(this, Doctype);
 
   		_Item.apply(this, arguments);
   	}
@@ -2193,13 +2202,9 @@
   	return Doctype;
   })(Item);
 
-  function _______________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var KeypathModel = (function () {
+  var KeypathModel = (function () {
   	function KeypathModel(parent) {
-  		_______________________________________________classCallCheck(this, KeypathModel);
+  		classCallCheck(this, KeypathModel);
 
   		this.parent = parent;
   		this.value = parent.getKeypath();
@@ -2226,13 +2231,9 @@
   	return KeypathModel;
   })();
 
-  function ______________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var KeyModel = (function () {
+  var KeyModel = (function () {
   	function KeyModel(key) {
-  		______________________________________________classCallCheck(this, KeyModel);
+  		classCallCheck(this, KeyModel);
 
   		this.value = key;
   		this.isReadonly = true;
@@ -2326,11 +2327,7 @@
   	return prefixers[rootKeypath];
   }
 
-  function _____________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var hasProp = Object.prototype.hasOwnProperty;
+  var hasProp = Object.prototype.hasOwnProperty;
 
   function _updateFromBindings(model) {
   	model.updateFromBindings(true);
@@ -2344,7 +2341,7 @@
 
   var Model = (function () {
   	function Model(parent, key) {
-  		_____________________________________________classCallCheck(this, Model);
+  		classCallCheck(this, Model);
 
   		this.deps = [];
 
@@ -2786,24 +2783,14 @@
   	if (functionCache[str]) return functionCache[str];
 
   	var args = new Array(i);
-  	while (i--) args[i] = '_' + i;
+  	while (i--) args[i] = "_" + i;
 
-  	var fn = new Function(args.join(','), 'return (' + str + ')');
+  	var fn = new Function(args.join(','), "return (" + str + ")");
 
   	return functionCache[str] = fn;
   }
 
-  function ____________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _____________________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function wrapFunction(fn, ractive, uid) {
+  function wrapFunction(fn, ractive, uid) {
   	if (fn.__ractive_nowrap) return fn;
 
   	var prop = '__ractive_' + uid;
@@ -2834,12 +2821,12 @@
   }
 
   var ExpressionProxy = (function (_Model) {
-  	_____________________________inherits(ExpressionProxy, _Model);
+  	inherits(ExpressionProxy, _Model);
 
   	function ExpressionProxy(fragment, template) {
   		var _this = this;
 
-  		____________________________________________classCallCheck(this, ExpressionProxy);
+  		classCallCheck(this, ExpressionProxy);
 
   		_Model.call(this, fragment.ractive.viewmodel, null);
 
@@ -2945,23 +2932,13 @@
   	return ExpressionProxy;
   })(Model);
 
-  function ___________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ____________________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var ReferenceExpressionProxy = (function (_Model) {
-  	____________________________inherits(ReferenceExpressionProxy, _Model);
+  var ReferenceExpressionProxy = (function (_Model) {
+  	inherits(ReferenceExpressionProxy, _Model);
 
   	function ReferenceExpressionProxy(fragment, template) {
   		var _this = this;
 
-  		___________________________________________classCallCheck(this, ReferenceExpressionProxy);
+  		classCallCheck(this, ReferenceExpressionProxy);
 
   		_Model.call(this, null, null);
   		this.root = fragment.ractive.viewmodel;
@@ -3119,21 +3096,11 @@
   	}
   }
 
-  function __________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ___________________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Mustache = (function (_Item) {
-  	___________________________inherits(Mustache, _Item);
+  var Mustache = (function (_Item) {
+  	inherits(Mustache, _Item);
 
   	function Mustache(options) {
-  		__________________________________________classCallCheck(this, Mustache);
+  		classCallCheck(this, Mustache);
 
   		_Item.call(this, options);
 
@@ -3205,6 +3172,7 @@
   	return Mustache;
   })(Item);
 
+  // https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
   var booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
   var voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
 
@@ -3285,21 +3253,11 @@
   	return 65533;
   }
 
-  function _________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function __________________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Interpolator = (function (_Mustache) {
-  	__________________________inherits(Interpolator, _Mustache);
+  var Interpolator = (function (_Mustache) {
+  	inherits(Interpolator, _Mustache);
 
   	function Interpolator() {
-  		_________________________________________classCallCheck(this, Interpolator);
+  		classCallCheck(this, Interpolator);
 
   		_Mustache.apply(this, arguments);
   	}
@@ -3350,2393 +3308,7 @@
   	return Interpolator;
   })(Mustache);
 
-  function readComment(parser, tag) {
-  	var index;
-
-  	if (!parser.matchString('!')) {
-  		return null;
-  	}
-
-  	index = parser.remaining().indexOf(tag.close);
-
-  	if (index !== -1) {
-  		parser.pos += index + tag.close.length;
-  		return { t: COMMENT };
-  	}
-  }
-
-  function flattenExpression(expression) {
-  	var refs;
-
-  	extractRefs(expression, refs = []);
-
-  	return {
-  		r: refs,
-  		s: stringify(expression)
-  	};
-
-  	function stringify(node) {
-  		switch (node.t) {
-  			case BOOLEAN_LITERAL:
-  			case GLOBAL:
-  			case NUMBER_LITERAL:
-  			case REGEXP_LITERAL:
-  				return node.v;
-
-  			case STRING_LITERAL:
-  				return JSON.stringify(String(node.v));
-
-  			case ARRAY_LITERAL:
-  				return '[' + (node.m ? node.m.map(stringify).join(',') : '') + ']';
-
-  			case OBJECT_LITERAL:
-  				return '{' + (node.m ? node.m.map(stringify).join(',') : '') + '}';
-
-  			case KEY_VALUE_PAIR:
-  				return node.k + ':' + stringify(node.v);
-
-  			case PREFIX_OPERATOR:
-  				return (node.s === 'typeof' ? 'typeof ' : node.s) + stringify(node.o);
-
-  			case INFIX_OPERATOR:
-  				return stringify(node.o[0]) + (node.s.substr(0, 2) === 'in' ? ' ' + node.s + ' ' : node.s) + stringify(node.o[1]);
-
-  			case INVOCATION:
-  				return stringify(node.x) + '(' + (node.o ? node.o.map(stringify).join(',') : '') + ')';
-
-  			case BRACKETED:
-  				return '(' + stringify(node.x) + ')';
-
-  			case MEMBER:
-  				return stringify(node.x) + stringify(node.r);
-
-  			case REFINEMENT:
-  				return node.n ? '.' + node.n : '[' + stringify(node.x) + ']';
-
-  			case CONDITIONAL:
-  				return stringify(node.o[0]) + '?' + stringify(node.o[1]) + ':' + stringify(node.o[2]);
-
-  			case REFERENCE:
-  				return '_' + refs.indexOf(node.n);
-
-  			default:
-  				throw new Error('Expected legal JavaScript');
-  		}
-  	}
-  }
-
-  // TODO maybe refactor this?
-  function extractRefs(node, refs) {
-  	var i, list;
-
-  	if (node.t === REFERENCE) {
-  		if (refs.indexOf(node.n) === -1) {
-  			refs.unshift(node.n);
-  		}
-  	}
-
-  	list = node.o || node.m;
-  	if (list) {
-  		if (isObject(list)) {
-  			extractRefs(list, refs);
-  		} else {
-  			i = list.length;
-  			while (i--) {
-  				extractRefs(list[i], refs);
-  			}
-  		}
-  	}
-
-  	if (node.x) {
-  		extractRefs(node.x, refs);
-  	}
-
-  	if (node.r) {
-  		extractRefs(node.r, refs);
-  	}
-
-  	if (node.v) {
-  		extractRefs(node.v, refs);
-  	}
-  }
-
-  var arrayMemberPattern = /^[0-9][1-9]*$/;
-  function refineExpression(expression, mustache) {
-  	var referenceExpression;
-
-  	if (expression) {
-  		while (expression.t === BRACKETED && expression.x) {
-  			expression = expression.x;
-  		}
-
-  		// special case - integers should be treated as array members references,
-  		// rather than as expressions in their own right
-  		if (expression.t === REFERENCE) {
-  			mustache.r = expression.n;
-  		} else {
-  			if (expression.t === NUMBER_LITERAL && arrayMemberPattern.test(expression.v)) {
-  				mustache.r = expression.v;
-  			} else if (referenceExpression = getReferenceExpression(expression)) {
-  				mustache.rx = referenceExpression;
-  			} else {
-  				mustache.x = flattenExpression(expression);
-  			}
-  		}
-
-  		return mustache;
-  	}
-  }
-
-  // TODO refactor this! it's bewildering
-  function getReferenceExpression(expression) {
-  	var members = [],
-  	    refinement;
-
-  	while (expression.t === MEMBER && expression.r.t === REFINEMENT) {
-  		refinement = expression.r;
-
-  		if (refinement.x) {
-  			if (refinement.x.t === REFERENCE) {
-  				members.unshift(refinement.x);
-  			} else {
-  				members.unshift(flattenExpression(refinement.x));
-  			}
-  		} else {
-  			members.unshift(refinement.n);
-  		}
-
-  		expression = expression.x;
-  	}
-
-  	if (expression.t !== REFERENCE) {
-  		return null;
-  	}
-
-  	return {
-  		r: expression.n,
-  		m: members
-  	};
-  }
-
-  var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
-  var globals;
-  var keywords;
-  // if a reference is a browser global, we don't deference it later, so it needs special treatment
-  globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)\b/;
-
-  // keywords are not valid references, with the exception of `this`
-  keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
-
-  var legalReference = /^[a-zA-Z$_0-9]+(?:(?:\.[a-zA-Z$_0-9]+)|(?:\[[0-9]+\]))*/;
-  var relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
-  function readReference(parser) {
-  	var startPos, prefix, name, global, reference, lastDotIndex;
-
-  	startPos = parser.pos;
-
-  	name = parser.matchPattern(/^@(?:keypath|index|key)/);
-
-  	if (!name) {
-  		prefix = parser.matchPattern(prefixPattern) || '';
-  		name = !prefix && parser.relaxedNames && parser.matchPattern(relaxedName) || parser.matchPattern(legalReference);
-
-  		if (!name && prefix === '.') {
-  			prefix = '';
-  			name = '.';
-  		}
-  	}
-
-  	if (!name) {
-  		return null;
-  	}
-
-  	// bug out if it's a keyword (exception for ancestor/restricted refs - see https://github.com/ractivejs/ractive/issues/1497)
-  	if (!prefix && !parser.relaxedNames && keywords.test(name)) {
-  		parser.pos = startPos;
-  		return null;
-  	}
-
-  	// if this is a browser global, stop here
-  	if (!prefix && globals.test(name)) {
-  		global = globals.exec(name)[0];
-  		parser.pos = startPos + global.length;
-
-  		return {
-  			t: GLOBAL,
-  			v: global
-  		};
-  	}
-
-  	reference = (prefix || '') + normalise(name);
-
-  	if (parser.matchString('(')) {
-  		// if this is a method invocation (as opposed to a function) we need
-  		// to strip the method name from the reference combo, else the context
-  		// will be wrong
-  		lastDotIndex = reference.lastIndexOf('.');
-  		if (lastDotIndex !== -1) {
-  			reference = reference.substr(0, lastDotIndex);
-  			parser.pos = startPos + reference.length;
-  		} else {
-  			parser.pos -= 1;
-  		}
-  	}
-
-  	return {
-  		t: REFERENCE,
-  		n: reference.replace(/^this\./, './').replace(/^this$/, '.')
-  	};
-  }
-
-  var expectedExpression = 'Expected a JavaScript expression';
-  var expectedParen = 'Expected closing paren';
-
-  function readExpressionList(parser) {
-  	var start, expressions, expr, next;
-
-  	start = parser.pos;
-
-  	parser.allowWhitespace();
-
-  	expr = readExpression(parser);
-
-  	if (expr === null) {
-  		return null;
-  	}
-
-  	expressions = [expr];
-
-  	// allow whitespace between expression and ','
-  	parser.allowWhitespace();
-
-  	if (parser.matchString(',')) {
-  		next = readExpressionList(parser);
-  		if (next === null) {
-  			parser.error(expectedExpression);
-  		}
-
-  		next.forEach(append);
-  	}
-
-  	function append(expression) {
-  		expressions.push(expression);
-  	}
-
-  	return expressions;
-  }
-
-  function readRefinement(parser) {
-  	var start, name$$, expr;
-
-  	start = parser.pos;
-
-  	parser.allowWhitespace();
-
-  	// "." name
-  	if (parser.matchString('.')) {
-  		parser.allowWhitespace();
-
-  		if (name$$ = parser.matchPattern(name)) {
-  			return {
-  				t: REFINEMENT,
-  				n: name$$
-  			};
-  		}
-
-  		parser.error('Expected a property name');
-  	}
-
-  	// "[" expression "]"
-  	if (parser.matchString('[')) {
-  		parser.allowWhitespace();
-
-  		expr = readExpression(parser);
-  		if (!expr) {
-  			parser.error(expectedExpression);
-  		}
-
-  		parser.allowWhitespace();
-
-  		if (!parser.matchString(']')) {
-  			parser.error('Expected \']\'');
-  		}
-
-  		return {
-  			t: REFINEMENT,
-  			x: expr
-  		};
-  	}
-
-  	return null;
-  }
-
-  function readBracketedExpression(parser) {
-  	var start, expr;
-
-  	start = parser.pos;
-
-  	if (!parser.matchString('(')) {
-  		return null;
-  	}
-
-  	parser.allowWhitespace();
-
-  	expr = readExpression(parser);
-  	if (!expr) {
-  		parser.error(expectedExpression);
-  	}
-
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString(')')) {
-  		parser.error(expectedParen);
-  	}
-
-  	return {
-  		t: BRACKETED,
-  		x: expr
-  	};
-  }
-
-  var regexpPattern = /^(\/(?:[^\n\r\u2028\u2029/\\[]|\\.|\[(?:[^\n\r\u2028\u2029\]\\]|\\.)*])+\/(?:([gimuy])(?![a-z]*\2))*(?![a-zA-Z_$0-9]))/;
-  function readNumberLiteral(parser) {
-  	var result;
-
-  	if (result = parser.matchPattern(regexpPattern)) {
-  		return {
-  			t: REGEXP_LITERAL,
-  			v: result
-  		};
-  	}
-
-  	return null;
-  }
-
-  function readArrayLiteral (parser) {
-  	var start, expressionList;
-
-  	start = parser.pos;
-
-  	// allow whitespace before '['
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString('[')) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	expressionList = readExpressionList(parser);
-
-  	if (!parser.matchString(']')) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	return {
-  		t: ARRAY_LITERAL,
-  		m: expressionList
-  	};
-  }
-
-  function readKeyValuePair(parser) {
-  	var start, key, value;
-
-  	start = parser.pos;
-
-  	// allow whitespace between '{' and key
-  	parser.allowWhitespace();
-
-  	key = readKey(parser);
-  	if (key === null) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	// allow whitespace between key and ':'
-  	parser.allowWhitespace();
-
-  	// next character must be ':'
-  	if (!parser.matchString(':')) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	// allow whitespace between ':' and value
-  	parser.allowWhitespace();
-
-  	// next expression must be a, well... expression
-  	value = readExpression(parser);
-  	if (value === null) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	return {
-  		t: KEY_VALUE_PAIR,
-  		k: key,
-  		v: value
-  	};
-  }
-
-  function readKeyValuePairs(parser) {
-  	var start, pairs, pair, keyValuePairs;
-
-  	start = parser.pos;
-
-  	pair = readKeyValuePair(parser);
-  	if (pair === null) {
-  		return null;
-  	}
-
-  	pairs = [pair];
-
-  	if (parser.matchString(',')) {
-  		keyValuePairs = readKeyValuePairs(parser);
-
-  		if (!keyValuePairs) {
-  			parser.pos = start;
-  			return null;
-  		}
-
-  		return pairs.concat(keyValuePairs);
-  	}
-
-  	return pairs;
-  }
-
-  function readObjectLiteral (parser) {
-  	var start, keyValuePairs;
-
-  	start = parser.pos;
-
-  	// allow whitespace
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString('{')) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	keyValuePairs = readKeyValuePairs(parser);
-
-  	// allow whitespace between final value and '}'
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString('}')) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	return {
-  		t: OBJECT_LITERAL,
-  		m: keyValuePairs
-  	};
-  }
-
-  function readBooleanLiteral(parser) {
-  	var remaining = parser.remaining();
-
-  	if (remaining.substr(0, 4) === 'true') {
-  		parser.pos += 4;
-  		return {
-  			t: BOOLEAN_LITERAL,
-  			v: 'true'
-  		};
-  	}
-
-  	if (remaining.substr(0, 5) === 'false') {
-  		parser.pos += 5;
-  		return {
-  			t: BOOLEAN_LITERAL,
-  			v: 'false'
-  		};
-  	}
-
-  	return null;
-  }
-
-  function readLiteral(parser) {
-  	return _readNumberLiteral(parser) || readBooleanLiteral(parser) || readStringLiteral(parser) || readObjectLiteral(parser) || readArrayLiteral(parser) || readNumberLiteral(parser);
-  }
-
-  function readPrimary (parser) {
-  	return readLiteral(parser) || readReference(parser) || readBracketedExpression(parser);
-  }
-
-  function readMemberOrInvocation (parser) {
-  	var current, expression, refinement, expressionList;
-
-  	expression = readPrimary(parser);
-
-  	if (!expression) {
-  		return null;
-  	}
-
-  	while (expression) {
-  		current = parser.pos;
-
-  		if (refinement = readRefinement(parser)) {
-  			expression = {
-  				t: MEMBER,
-  				x: expression,
-  				r: refinement
-  			};
-  		} else if (parser.matchString('(')) {
-  			parser.allowWhitespace();
-  			expressionList = readExpressionList(parser);
-
-  			parser.allowWhitespace();
-
-  			if (!parser.matchString(')')) {
-  				parser.error(expectedParen);
-  			}
-
-  			expression = {
-  				t: INVOCATION,
-  				x: expression
-  			};
-
-  			if (expressionList) {
-  				expression.o = expressionList;
-  			}
-  		} else {
-  			break;
-  		}
-  	}
-
-  	return expression;
-  }
-
-  var readTypeOf;
-  var makePrefixSequenceMatcher;
-  makePrefixSequenceMatcher = function (symbol, fallthrough) {
-  	return function (parser) {
-  		var expression;
-
-  		if (expression = fallthrough(parser)) {
-  			return expression;
-  		}
-
-  		if (!parser.matchString(symbol)) {
-  			return null;
-  		}
-
-  		parser.allowWhitespace();
-
-  		expression = readExpression(parser);
-  		if (!expression) {
-  			parser.error(expectedExpression);
-  		}
-
-  		return {
-  			s: symbol,
-  			o: expression,
-  			t: PREFIX_OPERATOR
-  		};
-  	};
-  };
-
-  // create all prefix sequence matchers, return readTypeOf
-  (function () {
-  	var i, len, matcher, prefixOperators, fallthrough;
-
-  	prefixOperators = '! ~ + - typeof'.split(' ');
-
-  	fallthrough = readMemberOrInvocation;
-  	for (i = 0, len = prefixOperators.length; i < len; i += 1) {
-  		matcher = makePrefixSequenceMatcher(prefixOperators[i], fallthrough);
-  		fallthrough = matcher;
-  	}
-
-  	// typeof operator is higher precedence than multiplication, so provides the
-  	// fallthrough for the multiplication sequence matcher we're about to create
-  	// (we're skipping void and delete)
-  	readTypeOf = fallthrough;
-  })();
-
-  var readLogicalOr;
-  var makeInfixSequenceMatcher;
-  makeInfixSequenceMatcher = function (symbol, fallthrough) {
-  	return function (parser) {
-  		var start, left, right;
-
-  		left = fallthrough(parser);
-  		if (!left) {
-  			return null;
-  		}
-
-  		// Loop to handle left-recursion in a case like `a * b * c` and produce
-  		// left association, i.e. `(a * b) * c`.  The matcher can't call itself
-  		// to parse `left` because that would be infinite regress.
-  		while (true) {
-  			start = parser.pos;
-
-  			parser.allowWhitespace();
-
-  			if (!parser.matchString(symbol)) {
-  				parser.pos = start;
-  				return left;
-  			}
-
-  			// special case - in operator must not be followed by [a-zA-Z_$0-9]
-  			if (symbol === 'in' && /[a-zA-Z_$0-9]/.test(parser.remaining().charAt(0))) {
-  				parser.pos = start;
-  				return left;
-  			}
-
-  			parser.allowWhitespace();
-
-  			// right operand must also consist of only higher-precedence operators
-  			right = fallthrough(parser);
-  			if (!right) {
-  				parser.pos = start;
-  				return left;
-  			}
-
-  			left = {
-  				t: INFIX_OPERATOR,
-  				s: symbol,
-  				o: [left, right]
-  			};
-
-  			// Loop back around.  If we don't see another occurrence of the symbol,
-  			// we'll return left.
-  		}
-  	};
-  };
-
-  // create all infix sequence matchers, and return readLogicalOr
-  (function () {
-  	var i, len, matcher, infixOperators, fallthrough;
-
-  	// All the infix operators on order of precedence (source: https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence)
-  	// Each sequence matcher will initially fall through to its higher precedence
-  	// neighbour, and only attempt to match if one of the higher precedence operators
-  	// (or, ultimately, a literal, reference, or bracketed expression) already matched
-  	infixOperators = '* / % + - << >> >>> < <= > >= in instanceof == != === !== & ^ | && ||'.split(' ');
-
-  	// A typeof operator is higher precedence than multiplication
-  	fallthrough = readTypeOf;
-  	for (i = 0, len = infixOperators.length; i < len; i += 1) {
-  		matcher = makeInfixSequenceMatcher(infixOperators[i], fallthrough);
-  		fallthrough = matcher;
-  	}
-
-  	// Logical OR is the fallthrough for the conditional matcher
-  	readLogicalOr = fallthrough;
-  })();
-
-  function getConditional(parser) {
-  	var start, expression, ifTrue, ifFalse;
-
-  	expression = readLogicalOr(parser);
-  	if (!expression) {
-  		return null;
-  	}
-
-  	start = parser.pos;
-
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString('?')) {
-  		parser.pos = start;
-  		return expression;
-  	}
-
-  	parser.allowWhitespace();
-
-  	ifTrue = readExpression(parser);
-  	if (!ifTrue) {
-  		parser.error(expectedExpression);
-  	}
-
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString(':')) {
-  		parser.error('Expected ":"');
-  	}
-
-  	parser.allowWhitespace();
-
-  	ifFalse = readExpression(parser);
-  	if (!ifFalse) {
-  		parser.error(expectedExpression);
-  	}
-
-  	return {
-  		t: CONDITIONAL,
-  		o: [expression, ifTrue, ifFalse]
-  	};
-  }
-
-  function readExpression(parser) {
-  	// The conditional operator is the lowest precedence operator (except yield,
-  	// assignment operators, and commas, none of which are supported), so we
-  	// start there. If it doesn't match, it 'falls through' to progressively
-  	// higher precedence operators, until it eventually matches (or fails to
-  	// match) a 'primary' - a literal or a reference. This way, the abstract syntax
-  	// tree has everything in its proper place, i.e. 2 + 3 * 4 === 14, not 20.
-  	return getConditional(parser);
-  }
-
-  function readExpressionOrReference(parser, expectedFollowers) {
-  	var start, expression, i;
-
-  	start = parser.pos;
-  	expression = readExpression(parser);
-
-  	if (!expression) {
-  		return null;
-  	}
-
-  	for (i = 0; i < expectedFollowers.length; i += 1) {
-  		if (parser.remaining().substr(0, expectedFollowers[i].length) === expectedFollowers[i]) {
-  			return expression;
-  		}
-  	}
-
-  	parser.pos = start;
-  	return readReference(parser);
-  }
-
-  function readInterpolator(parser, tag) {
-  	var start, expression, interpolator, err;
-
-  	start = parser.pos;
-
-  	// TODO would be good for perf if we could do away with the try-catch
-  	try {
-  		expression = readExpressionOrReference(parser, [tag.close]);
-  	} catch (e) {
-  		err = e;
-  	}
-
-  	if (!expression) {
-  		if (parser.str.charAt(start) === '!') {
-  			// special case - comment
-  			parser.pos = start;
-  			return null;
-  		}
-
-  		if (err) {
-  			throw err;
-  		}
-  	}
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error('Expected closing delimiter \'' + tag.close + '\' after reference');
-
-  		if (!expression) {
-  			// special case - comment
-  			if (parser.nextChar() === '!') {
-  				return null;
-  			}
-
-  			parser.error('Expected expression or legal reference');
-  		}
-  	}
-
-  	interpolator = { t: INTERPOLATOR };
-  	refineExpression(expression, interpolator); // TODO handle this differently - it's mysterious
-
-  	return interpolator;
-  }
-
-  var yieldPattern = /^yield\s*/;
-  function readYielder(parser, tag) {
-  	var start, name, yielder;
-
-  	if (!parser.matchPattern(yieldPattern)) {
-  		return null;
-  	}
-
-  	start = parser.pos;
-  	name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-]*/);
-
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error('expected legal partial name');
-  	}
-
-  	yielder = { t: YIELDER };
-
-  	if (name) {
-  		yielder.n = name;
-  	}
-
-  	return yielder;
-  }
-
-  var handlebarsBlockCodes = {
-  	'each': SECTION_EACH,
-  	'if': SECTION_IF,
-  	'if-with': SECTION_IF_WITH,
-  	'with': SECTION_WITH,
-  	'unless': SECTION_UNLESS
-  };
-
-  var _elsePattern = /^\s*else\s*/;
-  function readElse(parser, tag) {
-  	var start = parser.pos;
-
-  	if (!parser.matchString(tag.open)) {
-  		return null;
-  	}
-
-  	if (!parser.matchPattern(_elsePattern)) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error('Expected closing delimiter \'' + tag.close + '\'');
-  	}
-
-  	return {
-  		t: ELSE
-  	};
-  }
-
-  var elsePattern = /^\s*elseif\s+/;
-  function readElseIf(parser, tag) {
-  	var start = parser.pos;
-
-  	if (!parser.matchString(tag.open)) {
-  		return null;
-  	}
-
-  	if (!parser.matchPattern(elsePattern)) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	var expression = readExpression(parser);
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error('Expected closing delimiter \'' + tag.close + '\'');
-  	}
-
-  	return {
-  		t: ELSEIF,
-  		x: expression
-  	};
-  }
-
-  function readClosing(parser, tag) {
-  	var start, remaining, index, closing;
-
-  	start = parser.pos;
-
-  	if (!parser.matchString(tag.open)) {
-  		return null;
-  	}
-
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString('/')) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	parser.allowWhitespace();
-
-  	remaining = parser.remaining();
-  	index = remaining.indexOf(tag.close);
-
-  	if (index !== -1) {
-  		closing = {
-  			t: CLOSING,
-  			r: remaining.substr(0, index).split(' ')[0]
-  		};
-
-  		parser.pos += index;
-
-  		if (!parser.matchString(tag.close)) {
-  			parser.error('Expected closing delimiter \'' + tag.close + '\'');
-  		}
-
-  		return closing;
-  	}
-
-  	parser.pos = start;
-  	return null;
-  }
-
-  var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-  var keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/;
-  var handlebarsBlockPattern = new RegExp('^(' + Object.keys(handlebarsBlockCodes).join('|') + ')\\b');
-  function readSection(parser, tag) {
-  	var start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose;
-
-  	start = parser.pos;
-
-  	if (parser.matchString('^')) {
-  		section = { t: SECTION, f: [], n: SECTION_UNLESS };
-  	} else if (parser.matchString('#')) {
-  		section = { t: SECTION, f: [] };
-
-  		if (parser.matchString('partial')) {
-  			parser.pos = start - parser.standardDelimiters[0].length;
-  			parser.error('Partial definitions can only be at the top level of the template, or immediately inside components');
-  		}
-
-  		if (block = parser.matchPattern(handlebarsBlockPattern)) {
-  			expectedClose = block;
-  			section.n = handlebarsBlockCodes[block];
-  		}
-  	} else {
-  		return null;
-  	}
-
-  	parser.allowWhitespace();
-
-  	expression = readExpression(parser);
-
-  	if (!expression) {
-  		parser.error('Expected expression');
-  	}
-
-  	// optional index and key references
-  	if (i = parser.matchPattern(indexRefPattern)) {
-  		var extra = undefined;
-
-  		if (extra = parser.matchPattern(keyIndexRefPattern)) {
-  			section.i = i + ',' + extra;
-  		} else {
-  			section.i = i;
-  		}
-  	}
-
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error('Expected closing delimiter \'' + tag.close + '\'');
-  	}
-
-  	parser.sectionDepth += 1;
-  	children = section.f;
-
-  	conditions = [];
-
-  	do {
-  		if (child = readClosing(parser, tag)) {
-  			if (expectedClose && child.r !== expectedClose) {
-  				parser.error('Expected ' + tag.open + '/' + expectedClose + tag.close);
-  			}
-
-  			parser.sectionDepth -= 1;
-  			closed = true;
-  		} else if (child = readElseIf(parser, tag)) {
-  			if (section.n === SECTION_UNLESS) {
-  				parser.error('{{else}} not allowed in {{#unless}}');
-  			}
-
-  			if (hasElse) {
-  				parser.error('illegal {{elseif...}} after {{else}}');
-  			}
-
-  			if (!unlessBlock) {
-  				unlessBlock = createUnlessBlock(expression, section.n);
-  			}
-
-  			unlessBlock.f.push({
-  				t: SECTION,
-  				n: SECTION_IF,
-  				x: flattenExpression(___combine(conditions.concat(child.x))),
-  				f: children = []
-  			});
-
-  			conditions.push(invert(child.x));
-  		} else if (child = readElse(parser, tag)) {
-  			if (section.n === SECTION_UNLESS) {
-  				parser.error('{{else}} not allowed in {{#unless}}');
-  			}
-
-  			if (hasElse) {
-  				parser.error('there can only be one {{else}} block, at the end of a section');
-  			}
-
-  			hasElse = true;
-
-  			// use an unless block if there's no elseif
-  			if (!unlessBlock) {
-  				unlessBlock = createUnlessBlock(expression, section.n);
-  				children = unlessBlock.f;
-  			} else {
-  				unlessBlock.f.push({
-  					t: SECTION,
-  					n: SECTION_IF,
-  					x: flattenExpression(___combine(conditions)),
-  					f: children = []
-  				});
-  			}
-  		} else {
-  			child = parser.read(READERS);
-
-  			if (!child) {
-  				break;
-  			}
-
-  			children.push(child);
-  		}
-  	} while (!closed);
-
-  	if (unlessBlock) {
-  		// special case - `with` should become `if-with` (TODO is this right?
-  		// seems to me that `with` ought to behave consistently, regardless
-  		// of the presence/absence of `else`. In other words should always
-  		// be `if-with`
-  		if (section.n === SECTION_WITH) {
-  			section.n = SECTION_IF_WITH;
-  		}
-
-  		section.l = unlessBlock;
-  	}
-
-  	refineExpression(expression, section);
-
-  	// TODO if a section is empty it should be discarded. Don't do
-  	// that here though - we need to clean everything up first, as
-  	// it may contain removeable whitespace. As a temporary measure,
-  	// to pass the existing tests, remove empty `f` arrays
-  	if (!section.f.length) {
-  		delete section.f;
-  	}
-
-  	return section;
-  }
-
-  function createUnlessBlock(expression, sectionType) {
-  	var unlessBlock = {
-  		t: SECTION,
-  		n: SECTION_UNLESS,
-  		f: []
-  	};
-
-  	refineExpression(expression, unlessBlock);
-
-  	return unlessBlock;
-  }
-
-  function invert(expression) {
-  	if (expression.t === PREFIX_OPERATOR && expression.s === '!') {
-  		return expression.o;
-  	}
-
-  	return {
-  		t: PREFIX_OPERATOR,
-  		s: '!',
-  		o: parensIfNecessary(expression)
-  	};
-  }
-
-  function ___combine(expressions) {
-  	if (expressions.length === 1) {
-  		return expressions[0];
-  	}
-
-  	return {
-  		t: INFIX_OPERATOR,
-  		s: '&&',
-  		o: [parensIfNecessary(expressions[0]), parensIfNecessary(___combine(expressions.slice(1)))]
-  	};
-  }
-
-  function parensIfNecessary(expression) {
-  	// TODO only wrap if necessary
-  	return {
-  		t: BRACKETED,
-  		x: expression
-  	};
-  }
-
-  function readUnescaped(parser, tag) {
-  	var expression, triple;
-
-  	if (!parser.matchString('&')) {
-  		return null;
-  	}
-
-  	parser.allowWhitespace();
-
-  	expression = readExpression(parser);
-
-  	if (!expression) {
-  		return null;
-  	}
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error('Expected closing delimiter \'' + tag.close + '\'');
-  	}
-
-  	triple = { t: TRIPLE };
-  	refineExpression(expression, triple); // TODO handle this differently - it's mysterious
-
-  	return triple;
-  }
-
-  function readPartial(parser, tag) {
-  	var start, nameStart, expression, context, partial;
-
-  	start = parser.pos;
-
-  	if (!parser.matchString('>')) {
-  		return null;
-  	}
-
-  	parser.allowWhitespace();
-  	nameStart = parser.pos;
-
-  	// Partial names can include hyphens, so we can't use readExpression
-  	// blindly. Instead, we use the `relaxedNames` flag to indicate that
-  	// `foo-bar` should be read as a single name, rather than 'subtract
-  	// bar from foo'
-  	parser.relaxedNames = true;
-  	expression = readExpression(parser);
-  	parser.relaxedNames = false;
-
-  	parser.allowWhitespace();
-  	context = readExpression(parser);
-  	parser.allowWhitespace();
-
-  	if (!expression) {
-  		return null;
-  	}
-
-  	partial = { t: PARTIAL };
-  	refineExpression(expression, partial); // TODO...
-
-  	parser.allowWhitespace();
-
-  	// if we have another expression - e.g. `{{>foo bar}}` - then
-  	// we turn it into `{{#with bar}}{{>foo}}{{/with}}`
-  	if (context) {
-  		partial = {
-  			t: SECTION,
-  			n: SECTION_WITH,
-  			f: [partial]
-  		};
-
-  		refineExpression(context, partial);
-  	}
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error('Expected closing delimiter \'' + tag.close + '\'');
-  	}
-
-  	return partial;
-  }
-
-  function readTriple(parser, tag) {
-  	var expression = readExpression(parser),
-  	    triple;
-
-  	if (!expression) {
-  		return null;
-  	}
-
-  	if (!parser.matchString(tag.close)) {
-  		parser.error('Expected closing delimiter \'' + tag.close + '\'');
-  	}
-
-  	triple = { t: TRIPLE };
-  	refineExpression(expression, triple); // TODO handle this differently - it's mysterious
-
-  	return triple;
-  }
-
-  function getLowestIndex (haystack, needles) {
-  	var i, index, lowest;
-
-  	i = needles.length;
-  	while (i--) {
-  		index = haystack.indexOf(needles[i]);
-
-  		// short circuit
-  		if (!index) {
-  			return 0;
-  		}
-
-  		if (index === -1) {
-  			continue;
-  		}
-
-  		if (!lowest || index < lowest) {
-  			lowest = index;
-  		}
-  	}
-
-  	return lowest || -1;
-  }
-
-  function readText(parser) {
-  	var index, remaining, disallowed, barrier;
-
-  	remaining = parser.remaining();
-
-  	barrier = parser.inside ? '</' + parser.inside : '<';
-
-  	if (parser.inside && !parser.interpolate[parser.inside]) {
-  		index = remaining.indexOf(barrier);
-  	} else {
-  		disallowed = parser.tags.map(function (t) {
-  			return t.open;
-  		});
-  		disallowed = disallowed.concat(parser.tags.map(function (t) {
-  			return '\\' + t.open;
-  		}));
-
-  		// http://developers.whatwg.org/syntax.html#syntax-attributes
-  		if (parser.inAttribute === true) {
-  			// we're inside an unquoted attribute value
-  			disallowed.push('"', "'", '=', '<', '>', '`');
-  		} else if (parser.inAttribute) {
-  			// quoted attribute value
-  			disallowed.push(parser.inAttribute);
-  		} else {
-  			disallowed.push(barrier);
-  		}
-
-  		index = getLowestIndex(remaining, disallowed);
-  	}
-
-  	if (!index) {
-  		return null;
-  	}
-
-  	if (index === -1) {
-  		index = remaining.length;
-  	}
-
-  	parser.pos += index;
-
-  	return parser.inside ? remaining.substr(0, index) : decodeCharacterReferences(remaining.substr(0, index));
-  }
-
-  function trimWhitespace (items, leadingPattern, trailingPattern) {
-  	var item;
-
-  	if (leadingPattern) {
-  		item = items[0];
-  		if (typeof item === 'string') {
-  			item = item.replace(leadingPattern, '');
-
-  			if (!item) {
-  				items.shift();
-  			} else {
-  				items[0] = item;
-  			}
-  		}
-  	}
-
-  	if (trailingPattern) {
-  		item = lastItem(items);
-  		if (typeof item === 'string') {
-  			item = item.replace(trailingPattern, '');
-
-  			if (!item) {
-  				items.pop();
-  			} else {
-  				items[items.length - 1] = item;
-  			}
-  		}
-  	}
-  }
-
-  var leadingLinebreak = /^\s*\r?\n/;
-  var trailingLinebreak = /\r?\n\s*$/;
-  function stripStandalones (items) {
-  	var i, current, backOne, backTwo, lastSectionItem;
-
-  	for (i = 1; i < items.length; i += 1) {
-  		current = items[i];
-  		backOne = items[i - 1];
-  		backTwo = items[i - 2];
-
-  		// if we're at the end of a [text][comment][text] sequence...
-  		if (isString(current) && isComment(backOne) && isString(backTwo)) {
-
-  			// ... and the comment is a standalone (i.e. line breaks either side)...
-  			if (trailingLinebreak.test(backTwo) && leadingLinebreak.test(current)) {
-
-  				// ... then we want to remove the whitespace after the first line break
-  				items[i - 2] = backTwo.replace(trailingLinebreak, '\n');
-
-  				// and the leading line break of the second text token
-  				items[i] = current.replace(leadingLinebreak, '');
-  			}
-  		}
-
-  		// if the current item is a section, and it is preceded by a linebreak, and
-  		// its first item is a linebreak...
-  		if (isSection(current) && isString(backOne)) {
-  			if (trailingLinebreak.test(backOne) && isString(current.f[0]) && leadingLinebreak.test(current.f[0])) {
-  				items[i - 1] = backOne.replace(trailingLinebreak, '\n');
-  				current.f[0] = current.f[0].replace(leadingLinebreak, '');
-  			}
-  		}
-
-  		// if the last item was a section, and it is followed by a linebreak, and
-  		// its last item is a linebreak...
-  		if (isString(current) && isSection(backOne)) {
-  			lastSectionItem = lastItem(backOne.f);
-
-  			if (isString(lastSectionItem) && trailingLinebreak.test(lastSectionItem) && leadingLinebreak.test(current)) {
-  				backOne.f[backOne.f.length - 1] = lastSectionItem.replace(trailingLinebreak, '\n');
-  				items[i] = current.replace(leadingLinebreak, '');
-  			}
-  		}
-  	}
-
-  	return items;
-  }
-
-  function isString(item) {
-  	return typeof item === 'string';
-  }
-
-  function isComment(item) {
-  	return item.t === COMMENT || item.t === DELIMCHANGE;
-  }
-
-  function isSection(item) {
-  	return (item.t === SECTION || item.t === INVERTED) && item.f;
-  }
-
-  var contiguousWhitespace = /[ \t\f\r\n]+/g;
-  var preserveWhitespaceElements = /^(?:pre|script|style|textarea)$/i;
-  var leadingWhitespace = /^[ \t\f\r\n]+/;
-  var trailingWhitespace = /[ \t\f\r\n]+$/;
-  var leadingNewLine = /^(?:\r\n|\r|\n)/;
-  var trailingNewLine = /(?:\r\n|\r|\n)$/;
-  function cleanup(items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace) {
-  	var i, item, previousItem, nextItem, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment, key;
-
-  	// First pass - remove standalones and comments etc
-  	stripStandalones(items);
-
-  	i = items.length;
-  	while (i--) {
-  		item = items[i];
-
-  		// Remove delimiter changes, unsafe elements etc
-  		if (item.exclude) {
-  			items.splice(i, 1);
-  		}
-
-  		// Remove comments, unless we want to keep them
-  		else if (stripComments && item.t === COMMENT) {
-  				items.splice(i, 1);
-  			}
-  	}
-
-  	// If necessary, remove leading and trailing whitespace
-  	trimWhitespace(items, removeLeadingWhitespace ? leadingWhitespace : null, removeTrailingWhitespace ? trailingWhitespace : null);
-
-  	i = items.length;
-  	while (i--) {
-  		item = items[i];
-
-  		// Recurse
-  		if (item.f) {
-  			var isPreserveWhitespaceElement = item.t === ELEMENT && preserveWhitespaceElements.test(item.e);
-  			preserveWhitespaceInsideFragment = preserveWhitespace || isPreserveWhitespaceElement;
-
-  			if (!preserveWhitespace && isPreserveWhitespaceElement) {
-  				trimWhitespace(item.f, leadingNewLine, trailingNewLine);
-  			}
-
-  			if (!preserveWhitespaceInsideFragment) {
-  				previousItem = items[i - 1];
-  				nextItem = items[i + 1];
-
-  				// if the previous item was a text item with trailing whitespace,
-  				// remove leading whitespace inside the fragment
-  				if (!previousItem || typeof previousItem === 'string' && trailingWhitespace.test(previousItem)) {
-  					removeLeadingWhitespaceInsideFragment = true;
-  				}
-
-  				// and vice versa
-  				if (!nextItem || typeof nextItem === 'string' && leadingWhitespace.test(nextItem)) {
-  					removeTrailingWhitespaceInsideFragment = true;
-  				}
-  			}
-
-  			cleanup(item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  		}
-
-  		// Split if-else blocks into two (an if, and an unless)
-  		if (item.l) {
-  			cleanup(item.l.f, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-
-  			items.splice(i + 1, 0, item.l);
-  			delete item.l; // TODO would be nice if there was a way around this
-  		}
-
-  		// Clean up element attributes
-  		if (item.a) {
-  			for (key in item.a) {
-  				if (item.a.hasOwnProperty(key) && typeof item.a[key] !== 'string') {
-  					cleanup(item.a[key], stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  				}
-  			}
-  		}
-
-  		// Clean up conditional attributes
-  		if (item.m) {
-  			cleanup(item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  		}
-
-  		// Clean up event handlers
-  		if (item.v) {
-  			for (key in item.v) {
-  				if (item.v.hasOwnProperty(key)) {
-  					// clean up names
-  					if (isArray(item.v[key].n)) {
-  						cleanup(item.v[key].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  					}
-
-  					// clean up params
-  					if (isArray(item.v[key].d)) {
-  						cleanup(item.v[key].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment);
-  					}
-  				}
-  			}
-  		}
-  	}
-
-  	// final pass - fuse text nodes together
-  	i = items.length;
-  	while (i--) {
-  		if (typeof items[i] === 'string') {
-  			if (typeof items[i + 1] === 'string') {
-  				items[i] = items[i] + items[i + 1];
-  				items.splice(i + 1, 1);
-  			}
-
-  			if (!preserveWhitespace) {
-  				items[i] = items[i].replace(contiguousWhitespace, ' ');
-  			}
-
-  			if (items[i] === '') {
-  				items.splice(i, 1);
-  			}
-  		}
-  	}
-  }
-
-  var closingTagPattern = /^([a-zA-Z]{1,}:?[a-zA-Z0-9\-]*)\s*\>/;
-  function readClosingTag(parser) {
-  	var start, tag;
-
-  	start = parser.pos;
-
-  	// are we looking at a closing tag?
-  	if (!parser.matchString('</')) {
-  		return null;
-  	}
-
-  	if (tag = parser.matchPattern(closingTagPattern)) {
-  		if (parser.inside && tag !== parser.inside) {
-  			parser.pos = start;
-  			return null;
-  		}
-
-  		return {
-  			t: CLOSING_TAG,
-  			e: tag
-  		};
-  	}
-
-  	// We have an illegal closing tag, report it
-  	parser.pos -= 2;
-  	parser.error('Illegal closing tag');
-  }
-
-  var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/;
-  var methodCallExcessPattern = /\)\s*$/;
-  var ExpressionParser;
-  ExpressionParser = Parser.extend({
-  	converters: [readExpression]
-  });
-
-  // TODO clean this up, it's shocking
-
-  function processDirective(tokens, parentParser) {
-  	var result, match, parser, args, token, colonIndex, directiveName, directiveArgs, parsed;
-
-  	if (typeof tokens === 'string') {
-  		if (match = methodCallPattern.exec(tokens)) {
-  			var end = tokens.lastIndexOf(')');
-
-  			// check for invalid method calls
-  			if (!methodCallExcessPattern.test(tokens)) {
-  				parentParser.error('Invalid input after method call expression \'' + tokens.slice(end + 1) + '\'');
-  			}
-
-  			result = { m: match[1] };
-  			var sliced = tokens.slice(result.m.length + 1, end);
-
-  			if (sliced === '...arguments') {
-  				// TODO: what the heck should this be???
-  				// maybe ExpressionParser should understand ES6???
-  				result.g = true;
-  			} else {
-  				args = '[' + sliced + ']';
-  				parser = new ExpressionParser(args);
-  				result.a = flattenExpression(parser.result[0]);
-  			}
-
-  			return result;
-  		}
-
-  		if (tokens.indexOf(':') === -1) {
-  			return tokens.trim();
-  		}
-
-  		tokens = [tokens];
-  	}
-
-  	result = {};
-
-  	directiveName = [];
-  	directiveArgs = [];
-
-  	if (tokens) {
-  		while (tokens.length) {
-  			token = tokens.shift();
-
-  			if (typeof token === 'string') {
-  				colonIndex = token.indexOf(':');
-
-  				if (colonIndex === -1) {
-  					directiveName.push(token);
-  				} else {
-  					// is the colon the first character?
-  					if (colonIndex) {
-  						// no
-  						directiveName.push(token.substr(0, colonIndex));
-  					}
-
-  					// if there is anything after the colon in this token, treat
-  					// it as the first token of the directiveArgs fragment
-  					if (token.length > colonIndex + 1) {
-  						directiveArgs[0] = token.substring(colonIndex + 1);
-  					}
-
-  					break;
-  				}
-  			} else {
-  				directiveName.push(token);
-  			}
-  		}
-
-  		directiveArgs = directiveArgs.concat(tokens);
-  	}
-
-  	if (!directiveName.length) {
-  		result = '';
-  	} else if (directiveArgs.length || typeof directiveName !== 'string') {
-  		result = {
-  			// TODO is this really necessary? just use the array
-  			n: directiveName.length === 1 && typeof directiveName[0] === 'string' ? directiveName[0] : directiveName
-  		};
-
-  		if (directiveArgs.length === 1 && typeof directiveArgs[0] === 'string') {
-  			parsed = parseJSON('[' + directiveArgs[0] + ']');
-  			result.a = parsed ? parsed.value : [directiveArgs[0].trim()];
-  		} else {
-  			result.d = directiveArgs;
-  		}
-  	} else {
-  		result = directiveName;
-  	}
-
-  	return result;
-  }
-
-  var delimiterChangePattern = /^[^\s=]+/;
-  var whitespacePattern = /^\s+/;
-  function readDelimiterChange(parser) {
-  	var start, opening, closing;
-
-  	if (!parser.matchString('=')) {
-  		return null;
-  	}
-
-  	start = parser.pos;
-
-  	// allow whitespace before new opening delimiter
-  	parser.allowWhitespace();
-
-  	opening = parser.matchPattern(delimiterChangePattern);
-  	if (!opening) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	// allow whitespace (in fact, it's necessary...)
-  	if (!parser.matchPattern(whitespacePattern)) {
-  		return null;
-  	}
-
-  	closing = parser.matchPattern(delimiterChangePattern);
-  	if (!closing) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	// allow whitespace before closing '='
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString('=')) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	return [opening, closing];
-  }
-
-  var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
-  function readMustache(parser) {
-  	var mustache, i;
-
-  	// If we're inside a <script> or <style> tag, and we're not
-  	// interpolating, bug out
-  	if (parser.interpolate[parser.inside] === false) {
-  		return null;
-  	}
-
-  	for (i = 0; i < parser.tags.length; i += 1) {
-  		if (mustache = readMustacheOfType(parser, parser.tags[i])) {
-  			return mustache;
-  		}
-  	}
-  }
-
-  function readMustacheOfType(parser, tag) {
-  	var start, mustache, reader, i;
-
-  	start = parser.pos;
-
-  	if (parser.matchString('\\' + tag.open)) {
-  		if (start === 0 || parser.str[start - 1] !== '\\') {
-  			return tag.open;
-  		}
-  	} else if (!parser.matchString(tag.open)) {
-  		return null;
-  	}
-
-  	// delimiter change?
-  	if (mustache = readDelimiterChange(parser)) {
-  		// find closing delimiter or abort...
-  		if (!parser.matchString(tag.close)) {
-  			return null;
-  		}
-
-  		// ...then make the switch
-  		tag.open = mustache[0];
-  		tag.close = mustache[1];
-  		parser.sortMustacheTags();
-
-  		return delimiterChangeToken;
-  	}
-
-  	parser.allowWhitespace();
-
-  	// illegal section closer
-  	if (parser.matchString('/')) {
-  		parser.pos -= 1;
-  		var rewind = parser.pos;
-  		if (!readNumberLiteral(parser)) {
-  			parser.pos = rewind - tag.close.length;
-  			parser.error('Attempted to close a section that wasn\'t open');
-  		} else {
-  			parser.pos = rewind;
-  		}
-  	}
-
-  	for (i = 0; i < tag.readers.length; i += 1) {
-  		reader = tag.readers[i];
-
-  		if (mustache = reader(parser, tag)) {
-  			if (tag.isStatic) {
-  				mustache.s = true; // TODO make this `1` instead - more compact
-  			}
-
-  			if (parser.includeLinePositions) {
-  				mustache.p = parser.getLinePos(start);
-  			}
-
-  			return mustache;
-  		}
-  	}
-
-  	parser.pos = start;
-  	return null;
-  }
-
-  var attributeNamePattern = /^[^\s"'>\/=]+/;
-  var unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
-  function readAttribute(parser) {
-  	var attr, name, value;
-
-  	parser.allowWhitespace();
-
-  	name = parser.matchPattern(attributeNamePattern);
-  	if (!name) {
-  		return null;
-  	}
-
-  	attr = { name: name };
-
-  	value = readAttributeValue(parser);
-  	if (value != null) {
-  		// not null/undefined
-  		attr.value = value;
-  	}
-
-  	return attr;
-  }
-
-  function readAttributeValue(parser) {
-  	var start, valueStart, startDepth, value;
-
-  	start = parser.pos;
-
-  	// next character must be `=`, `/`, `>` or whitespace
-  	if (!/[=\/>\s]/.test(parser.nextChar())) {
-  		parser.error('Expected `=`, `/`, `>` or whitespace');
-  	}
-
-  	parser.allowWhitespace();
-
-  	if (!parser.matchString('=')) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	parser.allowWhitespace();
-
-  	valueStart = parser.pos;
-  	startDepth = parser.sectionDepth;
-
-  	value = readQuotedAttributeValue(parser, "'") || readQuotedAttributeValue(parser, '"') || readUnquotedAttributeValue(parser);
-
-  	if (value === null) {
-  		parser.error('Expected valid attribute value');
-  	}
-
-  	if (parser.sectionDepth !== startDepth) {
-  		parser.pos = valueStart;
-  		parser.error('An attribute value must contain as many opening section tags as closing section tags');
-  	}
-
-  	if (!value.length) {
-  		return '';
-  	}
-
-  	if (value.length === 1 && typeof value[0] === 'string') {
-  		return decodeCharacterReferences(value[0]);
-  	}
-
-  	return value;
-  }
-
-  function readUnquotedAttributeValueToken(parser) {
-  	var start, text, haystack, needles, index;
-
-  	start = parser.pos;
-
-  	text = parser.matchPattern(unquotedAttributeValueTextPattern);
-
-  	if (!text) {
-  		return null;
-  	}
-
-  	haystack = text;
-  	needles = parser.tags.map(function (t) {
-  		return t.open;
-  	}); // TODO refactor... we do this in readText.js as well
-
-  	if ((index = getLowestIndex(haystack, needles)) !== -1) {
-  		text = text.substr(0, index);
-  		parser.pos = start + text.length;
-  	}
-
-  	return text;
-  }
-
-  function readUnquotedAttributeValue(parser) {
-  	var tokens, token;
-
-  	parser.inAttribute = true;
-
-  	tokens = [];
-
-  	token = readMustache(parser) || readUnquotedAttributeValueToken(parser);
-  	while (token !== null) {
-  		tokens.push(token);
-  		token = readMustache(parser) || readUnquotedAttributeValueToken(parser);
-  	}
-
-  	if (!tokens.length) {
-  		return null;
-  	}
-
-  	parser.inAttribute = false;
-  	return tokens;
-  }
-
-  function readQuotedAttributeValue(parser, quoteMark) {
-  	var start, tokens, token;
-
-  	start = parser.pos;
-
-  	if (!parser.matchString(quoteMark)) {
-  		return null;
-  	}
-
-  	parser.inAttribute = quoteMark;
-
-  	tokens = [];
-
-  	token = readMustache(parser) || readQuotedStringToken(parser, quoteMark);
-  	while (token !== null) {
-  		tokens.push(token);
-  		token = readMustache(parser) || readQuotedStringToken(parser, quoteMark);
-  	}
-
-  	if (!parser.matchString(quoteMark)) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	parser.inAttribute = false;
-
-  	return tokens;
-  }
-
-  function readQuotedStringToken(parser, quoteMark) {
-  	var start, index, haystack, needles;
-
-  	start = parser.pos;
-  	haystack = parser.remaining();
-
-  	needles = parser.tags.map(function (t) {
-  		return t.open;
-  	}); // TODO refactor... we do this in readText.js as well
-  	needles.push(quoteMark);
-
-  	index = getLowestIndex(haystack, needles);
-
-  	if (index === -1) {
-  		parser.error('Quoted attribute value must have a closing quote');
-  	}
-
-  	if (!index) {
-  		return null;
-  	}
-
-  	parser.pos += index;
-  	return haystack.substr(0, index);
-  }
-
-  var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/;
-  var validTagNameFollower = /^[\s\n\/>]/;
-  var onPattern = /^on/;
-  var proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/;
-  var reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/;
-  var directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' };
-  var exclude = { exclude: true };
-  var disallowedContents;
-  // based on http://developers.whatwg.org/syntax.html#syntax-tag-omission
-  disallowedContents = {
-  	li: ['li'],
-  	dt: ['dt', 'dd'],
-  	dd: ['dt', 'dd'],
-  	p: 'address article aside blockquote div dl fieldset footer form h1 h2 h3 h4 h5 h6 header hgroup hr main menu nav ol p pre section table ul'.split(' '),
-  	rt: ['rt', 'rp'],
-  	rp: ['rt', 'rp'],
-  	optgroup: ['optgroup'],
-  	option: ['option', 'optgroup'],
-  	thead: ['tbody', 'tfoot'],
-  	tbody: ['tbody', 'tfoot'],
-  	tfoot: ['tbody'],
-  	tr: ['tr', 'tbody'],
-  	td: ['td', 'th', 'tr'],
-  	th: ['td', 'th', 'tr']
-  };
-
-  function readElement(parser) {
-  	var start, element, directiveName, match, addProxyEvent, attribute, directive, selfClosing, children, partials, hasPartials, child, closed, pos, remaining, closingTag;
-
-  	start = parser.pos;
-
-  	if (parser.inside || parser.inAttribute) {
-  		return null;
-  	}
-
-  	if (!parser.matchString('<')) {
-  		return null;
-  	}
-
-  	// if this is a closing tag, abort straight away
-  	if (parser.nextChar() === '/') {
-  		return null;
-  	}
-
-  	element = {};
-  	if (parser.includeLinePositions) {
-  		element.p = parser.getLinePos(start);
-  	}
-
-  	if (parser.matchString('!')) {
-  		element.t = DOCTYPE;
-  		if (!parser.matchPattern(/^doctype/i)) {
-  			parser.error('Expected DOCTYPE declaration');
-  		}
-
-  		element.a = parser.matchPattern(/^(.+?)>/);
-  		return element;
-  	}
-
-  	element.t = ELEMENT;
-
-  	// element name
-  	element.e = parser.matchPattern(tagNamePattern);
-  	if (!element.e) {
-  		return null;
-  	}
-
-  	// next character must be whitespace, closing solidus or '>'
-  	if (!validTagNameFollower.test(parser.nextChar())) {
-  		parser.error('Illegal tag name');
-  	}
-
-  	addProxyEvent = function (name, directive) {
-  		var directiveName = directive.n || directive;
-
-  		if (reservedEventNames.test(directiveName)) {
-  			parser.pos -= directiveName.length;
-  			parser.error('Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)');
-  		}
-
-  		element.v[name] = directive;
-  	};
-
-  	parser.allowWhitespace();
-
-  	// directives and attributes
-  	while (attribute = readMustache(parser) || readAttribute(parser)) {
-  		// regular attributes
-  		if (attribute.name) {
-  			// intro, outro, decorator
-  			if (directiveName = directives[attribute.name]) {
-  				element[directiveName] = processDirective(attribute.value, parser);
-  			}
-
-  			// on-click etc
-  			else if (match = proxyEventPattern.exec(attribute.name)) {
-  					if (!element.v) element.v = {};
-  					directive = processDirective(attribute.value, parser);
-  					addProxyEvent(match[1], directive);
-  				} else {
-  					if (!parser.sanitizeEventAttributes || !onPattern.test(attribute.name)) {
-  						if (!element.a) element.a = {};
-  						element.a[attribute.name] = attribute.value || (attribute.value === '' ? '' : 0);
-  					}
-  				}
-  		}
-
-  		// {{#if foo}}class='foo'{{/if}}
-  		else {
-  				if (!element.m) element.m = [];
-  				element.m.push(attribute);
-  			}
-
-  		parser.allowWhitespace();
-  	}
-
-  	// allow whitespace before closing solidus
-  	parser.allowWhitespace();
-
-  	// self-closing solidus?
-  	if (parser.matchString('/')) {
-  		selfClosing = true;
-  	}
-
-  	// closing angle bracket
-  	if (!parser.matchString('>')) {
-  		return null;
-  	}
-
-  	var lowerCaseName = element.e.toLowerCase();
-  	var preserveWhitespace = parser.preserveWhitespace;
-
-  	if (!selfClosing && !voidElementNames.test(element.e)) {
-  		parser.elementStack.push(lowerCaseName);
-
-  		// Special case - if we open a script element, further tags should
-  		// be ignored unless they're a closing script element
-  		if (lowerCaseName === 'script' || lowerCaseName === 'style') {
-  			parser.inside = lowerCaseName;
-  		}
-
-  		children = [];
-  		partials = create(null);
-
-  		do {
-  			pos = parser.pos;
-  			remaining = parser.remaining();
-
-  			// if for example we're in an <li> element, and we see another
-  			// <li> tag, close the first so they become siblings
-  			if (!canContain(lowerCaseName, remaining)) {
-  				closed = true;
-  			}
-
-  			// closing tag
-  			else if (closingTag = readClosingTag(parser)) {
-  					closed = true;
-
-  					var closingTagName = closingTag.e.toLowerCase();
-
-  					// if this *isn't* the closing tag for the current element...
-  					if (closingTagName !== lowerCaseName) {
-  						// rewind parser
-  						parser.pos = pos;
-
-  						// if it doesn't close a parent tag, error
-  						if (! ~parser.elementStack.indexOf(closingTagName)) {
-  							var errorMessage = 'Unexpected closing tag';
-
-  							// add additional help for void elements, since component names
-  							// might clash with them
-  							if (voidElementNames.test(closingTagName)) {
-  								errorMessage += ' (<' + closingTagName + '> is a void element - it cannot contain children)';
-  							}
-
-  							parser.error(errorMessage);
-  						}
-  					}
-  				}
-
-  				// implicit close by closing section tag. TODO clean this up
-  				else if (child = readClosing(parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] })) {
-  						closed = true;
-  						parser.pos = pos;
-  					} else {
-  						if (child = parser.read(PARTIAL_READERS)) {
-  							if (partials[child.n]) {
-  								parser.pos = pos;
-  								parser.error('Duplicate partial definition');
-  							}
-
-  							cleanup(child.f, parser.stripComments, preserveWhitespace, !preserveWhitespace, !preserveWhitespace);
-
-  							partials[child.n] = child.f;
-  							hasPartials = true;
-  						} else {
-  							if (child = parser.read(READERS)) {
-  								children.push(child);
-  							} else {
-  								closed = true;
-  							}
-  						}
-  					}
-  		} while (!closed);
-
-  		if (children.length) {
-  			element.f = children;
-  		}
-
-  		if (hasPartials) {
-  			element.p = partials;
-  		}
-
-  		parser.elementStack.pop();
-  	}
-
-  	parser.inside = null;
-
-  	if (parser.sanitizeElements && parser.sanitizeElements.indexOf(lowerCaseName) !== -1) {
-  		return exclude;
-  	}
-
-  	return element;
-  }
-
-  function canContain(name, remaining) {
-  	var match, disallowed;
-
-  	match = /^<([a-zA-Z][a-zA-Z0-9]*)/.exec(remaining);
-  	disallowed = disallowedContents[name];
-
-  	if (!match || !disallowed) {
-  		return true;
-  	}
-
-  	return ! ~disallowed.indexOf(match[1].toLowerCase());
-  }
-
-  var OPEN_COMMENT = '<!--';
-  var CLOSE_COMMENT = '-->';
-  function readHtmlComment(parser) {
-  	var start, content, remaining, endIndex, comment;
-
-  	start = parser.pos;
-
-  	if (!parser.matchString(OPEN_COMMENT)) {
-  		return null;
-  	}
-
-  	remaining = parser.remaining();
-  	endIndex = remaining.indexOf(CLOSE_COMMENT);
-
-  	if (endIndex === -1) {
-  		parser.error('Illegal HTML - expected closing comment sequence (\'-->\')');
-  	}
-
-  	content = remaining.substr(0, endIndex);
-  	parser.pos += endIndex + 3;
-
-  	comment = {
-  		t: COMMENT,
-  		c: content
-  	};
-
-  	if (parser.includeLinePositions) {
-  		comment.p = parser.getLinePos(start);
-  	}
-
-  	return comment;
-  }
-
-  var partialDefinitionSectionPattern = /^#\s*partial\s+/;
-  function readPartialDefinitionSection(parser) {
-  	var start, name, content, child, closed;
-
-  	start = parser.pos;
-
-  	var delimiters = parser.standardDelimiters;
-
-  	if (!parser.matchString(delimiters[0])) {
-  		return null;
-  	}
-
-  	if (!parser.matchPattern(partialDefinitionSectionPattern)) {
-  		parser.pos = start;
-  		return null;
-  	}
-
-  	name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-\/]*/);
-
-  	if (!name) {
-  		parser.error('expected legal partial name');
-  	}
-
-  	if (!parser.matchString(delimiters[1])) {
-  		parser.error('Expected closing delimiter \'' + delimiters[1] + '\'');
-  	}
-
-  	content = [];
-
-  	do {
-  		// TODO clean this up
-  		if (child = readClosing(parser, { open: parser.standardDelimiters[0], close: parser.standardDelimiters[1] })) {
-  			if (!child.r === 'partial') {
-  				parser.error('Expected ' + delimiters[0] + '/partial' + delimiters[1]);
-  			}
-
-  			closed = true;
-  		} else {
-  			child = parser.read(READERS);
-
-  			if (!child) {
-  				parser.error('Expected ' + delimiters[0] + '/partial' + delimiters[1]);
-  			}
-
-  			content.push(child);
-  		}
-  	} while (!closed);
-
-  	return {
-  		t: INLINE_PARTIAL,
-  		n: name,
-  		f: content
-  	};
-  }
-
-  var _pattern = /[-/\\^$*+?.()|[\]{}]/g;
-  function escapeRegExp(str) {
-  	return str.replace(_pattern, '\\$&');
-  }
-
-  var startPattern = /^<!--\s*/;
-  var namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/;
-  var finishPattern = /\s*-->/;
-  var child;
-  function readPartialDefinitionComment(parser) {
-  	var firstPos = parser.pos,
-  	    open = parser.standardDelimiters[0],
-  	    close = parser.standardDelimiters[1],
-  	    content = undefined,
-  	    closed = undefined;
-
-  	if (!parser.matchPattern(startPattern) || !parser.matchString(open)) {
-  		parser.pos = firstPos;
-  		return null;
-  	}
-
-  	var name = parser.matchPattern(namePattern);
-
-  	warnOnceIfDebug('Inline partial comments are deprecated.\nUse this...\n  {{#partial ' + name + '}} ... {{/partial}}\n\n...instead of this:\n  <!-- {{>' + name + '}} --> ... <!-- {{/' + name + '}} -->\'');
-
-  	// make sure the rest of the comment is in the correct place
-  	if (!parser.matchString(close) || !parser.matchPattern(finishPattern)) {
-  		parser.pos = firstPos;
-  		return null;
-  	}
-
-  	content = [];
-
-  	var endPattern = new RegExp('^<!--\\s*' + escapeRegExp(open) + '\\s*\\/\\s*' + name + '\\s*' + escapeRegExp(close) + '\\s*-->');
-
-  	do {
-  		if (parser.matchPattern(endPattern)) {
-  			closed = true;
-  		} else {
-  			child = parser.read(READERS);
-  			if (!child) {
-  				parser.error('expected closing comment (\'<!-- ' + open + '/' + name + close + ' -->\')');
-  			}
-
-  			content.push(child);
-  		}
-  	} while (!closed);
-
-  	return {
-  		t: INLINE_PARTIAL,
-  		f: content,
-  		n: name
-  	};
-  }
-
-  function readTemplate(parser) {
-  	var fragment = [];
-  	var partials = create(null);
-  	var hasPartials = false;
-
-  	var preserveWhitespace = parser.preserveWhitespace;
-
-  	while (parser.pos < parser.str.length) {
-  		var pos = parser.pos,
-  		    item = undefined,
-  		    partial = undefined;
-
-  		if (partial = parser.read(PARTIAL_READERS)) {
-  			if (partials[partial.n]) {
-  				parser.pos = pos;
-  				parser.error('Duplicated partial definition');
-  			}
-
-  			cleanup(partial.f, parser.stripComments, preserveWhitespace, !preserveWhitespace, !preserveWhitespace);
-
-  			partials[partial.n] = partial.f;
-  			hasPartials = true;
-  		} else if (item = parser.read(READERS)) {
-  			fragment.push(item);
-  		} else {
-  			parser.error('Unexpected template content');
-  		}
-  	}
-
-  	var result = {
-  		v: TEMPLATE_VERSION,
-  		t: fragment
-  	};
-
-  	if (hasPartials) {
-  		result.p = partials;
-  	}
-
-  	return result;
-  }
-
-  var STANDARD_READERS = [readPartial, readUnescaped, readSection, readYielder, readInterpolator, readComment];
-  var TRIPLE_READERS = [readTriple];
-  var STATIC_READERS = [readUnescaped, readSection, readInterpolator]; // TODO does it make sense to have a static section?
-
-  var StandardParser = undefined;
-  function parse(template, options) {
-  	return new StandardParser(template, options || {}).result;
-  }
-
-  var READERS = [readMustache, readHtmlComment, readElement, readText];
-  var PARTIAL_READERS = [readPartialDefinitionComment, readPartialDefinitionSection];
-
-  StandardParser = Parser.extend({
-  	init: function (str, options) {
-  		var tripleDelimiters = options.tripleDelimiters || ['{{{', '}}}'],
-  		    staticDelimiters = options.staticDelimiters || ['[[', ']]'],
-  		    staticTripleDelimiters = options.staticTripleDelimiters || ['[[[', ']]]'];
-
-  		this.standardDelimiters = options.delimiters || ['{{', '}}'];
-
-  		this.tags = [{ isStatic: false, isTriple: false, open: this.standardDelimiters[0], close: this.standardDelimiters[1], readers: STANDARD_READERS }, { isStatic: false, isTriple: true, open: tripleDelimiters[0], close: tripleDelimiters[1], readers: TRIPLE_READERS }, { isStatic: true, isTriple: false, open: staticDelimiters[0], close: staticDelimiters[1], readers: STATIC_READERS }, { isStatic: true, isTriple: true, open: staticTripleDelimiters[0], close: staticTripleDelimiters[1], readers: TRIPLE_READERS }];
-
-  		this.sortMustacheTags();
-
-  		this.sectionDepth = 0;
-  		this.elementStack = [];
-
-  		this.interpolate = {
-  			script: !options.interpolate || options.interpolate.script !== false,
-  			style: !options.interpolate || options.interpolate.style !== false
-  		};
-
-  		if (options.sanitize === true) {
-  			options.sanitize = {
-  				// blacklist from https://code.google.com/p/google-caja/source/browse/trunk/src/com/google/caja/lang/html/html4-elements-whitelist.json
-  				elements: 'applet base basefont body frame frameset head html isindex link meta noframes noscript object param script style title'.split(' '),
-  				eventAttributes: true
-  			};
-  		}
-
-  		this.stripComments = options.stripComments !== false;
-  		this.preserveWhitespace = options.preserveWhitespace;
-  		this.sanitizeElements = options.sanitize && options.sanitize.elements;
-  		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
-  		this.includeLinePositions = options.includeLinePositions;
-  	},
-
-  	postProcess: function (result) {
-  		// special case - empty string
-  		if (!result.length) {
-  			return { t: [], v: TEMPLATE_VERSION };
-  		}
-
-  		if (this.sectionDepth > 0) {
-  			this.error('A section was left open');
-  		}
-
-  		cleanup(result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace);
-
-  		return result[0];
-  	},
-
-  	converters: [readTemplate],
-
-  	sortMustacheTags: function () {
-  		// Sort in order of descending opening delimiter length (longer first),
-  		// to protect against opening delimiters being substrings of each other
-  		this.tags.sort(function (a, b) {
-  			return b.open.length - a.open.length;
-  		});
-  	}
-  });
+  var parse = null;
 
   var parseOptions = ['preserveWhitespace', 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters', 'interpolate'];
 
@@ -5929,21 +3501,11 @@
   	}
   }
 
-  function ________________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _________________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Partial = (function (_Mustache) {
-  	_________________________inherits(Partial, _Mustache);
+  var Partial = (function (_Mustache) {
+  	inherits(Partial, _Mustache);
 
   	function Partial() {
-  		________________________________________classCallCheck(this, Partial);
+  		classCallCheck(this, Partial);
 
   		_Mustache.apply(this, arguments);
   	}
@@ -6057,37 +3619,7 @@
   	return Partial;
   })(Mustache);
 
-  var _slicedToArray = (function () {
-  	function sliceIterator(arr, i) {
-  		var _arr = [];var _n = true;var _d = false;var _e = undefined;try {
-  			for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-  				_arr.push(_s.value);if (i && _arr.length === i) break;
-  			}
-  		} catch (err) {
-  			_d = true;_e = err;
-  		} finally {
-  			try {
-  				if (!_n && _i['return']) _i['return']();
-  			} finally {
-  				if (_d) throw _e;
-  			}
-  		}return _arr;
-  	}return function (arr, i) {
-  		if (Array.isArray(arr)) {
-  			return arr;
-  		} else if (Symbol.iterator in Object(arr)) {
-  			return sliceIterator(arr, i);
-  		} else {
-  			throw new TypeError('Invalid attempt to destructure non-iterable instance');
-  		}
-  	};
-  })();
-
-  function _______________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }function getRefs(ref, value, parent) {
+  function getRefs(ref, value, parent) {
   	var refs = undefined;
 
   	if (ref) {
@@ -6105,7 +3637,7 @@
 
   var RepeatedFragment = (function () {
   	function RepeatedFragment(options) {
-  		_______________________________________classCallCheck(this, RepeatedFragment);
+  		classCallCheck(this, RepeatedFragment);
 
   		this.parent = options.owner.parentFragment;
 
@@ -6145,7 +3677,7 @@
   				if (this.indexRef) {
   					var _indexRef$split = this.indexRef.split(',');
 
-  					var _indexRef$split2 = _slicedToArray(_indexRef$split, 2);
+  					var _indexRef$split2 = slicedToArray(_indexRef$split, 2);
 
   					var keyRef = _indexRef$split2[0];
   					var indexRef = _indexRef$split2[1];
@@ -6469,17 +4001,7 @@
   	return RepeatedFragment;
   })();
 
-  function ______________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ________________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function isEmpty(value) {
+  function isEmpty(value) {
   	return !value || isArray(value) && value.length === 0 || isObject(value) && Object.keys(value).length === 0;
   }
 
@@ -6491,10 +4013,10 @@
   }
 
   var Section = (function (_Mustache) {
-  	________________________inherits(Section, _Mustache);
+  	inherits(Section, _Mustache);
 
   	function Section(options) {
-  		______________________________________classCallCheck(this, Section);
+  		classCallCheck(this, Section);
 
   		_Mustache.call(this, options);
 
@@ -6796,21 +4318,11 @@
   	return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
   }
 
-  function _____________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _______________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Triple = (function (_Mustache) {
-  	_______________________inherits(Triple, _Mustache);
+  var Triple = (function (_Mustache) {
+  	inherits(Triple, _Mustache);
 
   	function Triple(options) {
-  		_____________________________________classCallCheck(this, Triple);
+  		classCallCheck(this, Triple);
 
   		_Mustache.call(this, options);
   	}
@@ -6907,21 +4419,11 @@
   	return Triple;
   })(Mustache);
 
-  function ____________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ______________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Yielder = (function (_Item) {
-  	______________________inherits(Yielder, _Item);
+  var Yielder = (function (_Item) {
+  	inherits(Yielder, _Item);
 
   	function Yielder(options) {
-  		____________________________________classCallCheck(this, Yielder);
+  		classCallCheck(this, Yielder);
 
   		_Item.call(this, options);
 
@@ -7017,451 +4519,7 @@
   	return Yielder;
   })(Item);
 
-  var exportedShims;
-
-  if (!win) {
-  	exportedShims = null;
-  } else {
-  	exportedShims = {};
-
-  	// Shims for older browsers
-
-  	if (!Date.now) {
-  		Date.now = function () {
-  			return +new Date();
-  		};
-  	}
-
-  	if (!String.prototype.trim) {
-  		String.prototype.trim = function () {
-  			return this.replace(/^\s+/, '').replace(/\s+$/, '');
-  		};
-  	}
-
-  	// Polyfill for Object.keys
-  	// https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/keys
-  	if (!Object.keys) {
-  		Object.keys = (function () {
-  			var hasOwnProperty = Object.prototype.hasOwnProperty,
-  			    hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
-  			    dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'],
-  			    dontEnumsLength = dontEnums.length;
-
-  			return function (obj) {
-  				if (typeof obj !== 'object' && typeof obj !== 'function' || obj === null) {
-  					throw new TypeError('Object.keys called on non-object');
-  				}
-
-  				var result = [];
-
-  				for (var prop in obj) {
-  					if (hasOwnProperty.call(obj, prop)) {
-  						result.push(prop);
-  					}
-  				}
-
-  				if (hasDontEnumBug) {
-  					for (var i = 0; i < dontEnumsLength; i++) {
-  						if (hasOwnProperty.call(obj, dontEnums[i])) {
-  							result.push(dontEnums[i]);
-  						}
-  					}
-  				}
-  				return result;
-  			};
-  		})();
-  	}
-
-  	// TODO: use defineProperty to make these non-enumerable
-
-  	// Array extras
-  	if (!Array.prototype.indexOf) {
-  		Array.prototype.indexOf = function (needle, i) {
-  			var len;
-
-  			if (i === undefined) {
-  				i = 0;
-  			}
-
-  			if (i < 0) {
-  				i += this.length;
-  			}
-
-  			if (i < 0) {
-  				i = 0;
-  			}
-
-  			for (len = this.length; i < len; i++) {
-  				if (this.hasOwnProperty(i) && this[i] === needle) {
-  					return i;
-  				}
-  			}
-
-  			return -1;
-  		};
-  	}
-
-  	if (!Array.prototype.forEach) {
-  		Array.prototype.forEach = function (callback, context) {
-  			var i, len;
-
-  			for (i = 0, len = this.length; i < len; i += 1) {
-  				if (this.hasOwnProperty(i)) {
-  					callback.call(context, this[i], i, this);
-  				}
-  			}
-  		};
-  	}
-
-  	if (!Array.prototype.map) {
-  		Array.prototype.map = function (mapper, context) {
-  			var array = this,
-  			    i,
-  			    len,
-  			    mapped = [],
-  			    isActuallyString;
-
-  			// incredibly, if you do something like
-  			// Array.prototype.map.call( someString, iterator )
-  			// then `this` will become an instance of String in IE8.
-  			// And in IE8, you then can't do string[i]. Facepalm.
-  			if (array instanceof String) {
-  				array = array.toString();
-  				isActuallyString = true;
-  			}
-
-  			for (i = 0, len = array.length; i < len; i += 1) {
-  				if (array.hasOwnProperty(i) || isActuallyString) {
-  					mapped[i] = mapper.call(context, array[i], i, array);
-  				}
-  			}
-
-  			return mapped;
-  		};
-  	}
-
-  	if (typeof Array.prototype.reduce !== 'function') {
-  		Array.prototype.reduce = function (callback, opt_initialValue) {
-  			var i, value, len, valueIsSet;
-
-  			if ('function' !== typeof callback) {
-  				throw new TypeError(callback + ' is not a function');
-  			}
-
-  			len = this.length;
-  			valueIsSet = false;
-
-  			if (arguments.length > 1) {
-  				value = opt_initialValue;
-  				valueIsSet = true;
-  			}
-
-  			for (i = 0; i < len; i += 1) {
-  				if (this.hasOwnProperty(i)) {
-  					if (valueIsSet) {
-  						value = callback(value, this[i], i, this);
-  					}
-  				} else {
-  					value = this[i];
-  					valueIsSet = true;
-  				}
-  			}
-
-  			if (!valueIsSet) {
-  				throw new TypeError('Reduce of empty array with no initial value');
-  			}
-
-  			return value;
-  		};
-  	}
-
-  	if (!Array.prototype.filter) {
-  		Array.prototype.filter = function (filter, context) {
-  			var i,
-  			    len,
-  			    filtered = [];
-
-  			for (i = 0, len = this.length; i < len; i += 1) {
-  				if (this.hasOwnProperty(i) && filter.call(context, this[i], i, this)) {
-  					filtered[filtered.length] = this[i];
-  				}
-  			}
-
-  			return filtered;
-  		};
-  	}
-
-  	if (!Array.prototype.every) {
-  		Array.prototype.every = function (iterator, context) {
-  			var t, len, i;
-
-  			if (this == null) {
-  				throw new TypeError();
-  			}
-
-  			t = Object(this);
-  			len = t.length >>> 0;
-
-  			if (typeof iterator !== 'function') {
-  				throw new TypeError();
-  			}
-
-  			for (i = 0; i < len; i += 1) {
-  				if (i in t && !iterator.call(context, t[i], i, t)) {
-  					return false;
-  				}
-  			}
-
-  			return true;
-  		};
-  	}
-
-  	if (typeof Function.prototype.bind !== 'function') {
-  		Function.prototype.bind = function (context) {
-  			var args,
-  			    fn,
-  			    Empty,
-  			    bound,
-  			    slice = [].slice;
-
-  			if (typeof this !== 'function') {
-  				throw new TypeError('Function.prototype.bind called on non-function');
-  			}
-
-  			args = slice.call(arguments, 1);
-  			fn = this;
-  			Empty = function () {};
-
-  			bound = function () {
-  				var ctx = this instanceof Empty && context ? this : context;
-  				return fn.apply(ctx, args.concat(slice.call(arguments)));
-  			};
-
-  			Empty.prototype = this.prototype;
-  			bound.prototype = new Empty();
-
-  			return bound;
-  		};
-  	}
-
-  	// https://gist.github.com/Rich-Harris/6010282 via https://gist.github.com/jonathantneal/2869388
-  	// addEventListener polyfill IE6+
-  	if (!win.addEventListener) {
-  		(function (win, doc) {
-  			var Event, addEventListener, removeEventListener, head, style, origCreateElement;
-
-  			// because sometimes inquiring minds want to know
-  			win.appearsToBeIELessEqual8 = true;
-
-  			Event = function (e, element) {
-  				var property,
-  				    instance = this;
-
-  				for (property in e) {
-  					instance[property] = e[property];
-  				}
-
-  				instance.currentTarget = element;
-  				instance.target = e.srcElement || element;
-  				instance.timeStamp = +new Date();
-
-  				instance.preventDefault = function () {
-  					e.returnValue = false;
-  				};
-
-  				instance.stopPropagation = function () {
-  					e.cancelBubble = true;
-  				};
-  			};
-
-  			addEventListener = function (type, listener) {
-  				var element = this,
-  				    listeners,
-  				    i;
-
-  				listeners = element.listeners || (element.listeners = []);
-  				i = listeners.length;
-
-  				listeners[i] = [listener, function (e) {
-  					listener.call(element, new Event(e, element));
-  				}];
-
-  				element.attachEvent('on' + type, listeners[i][1]);
-  			};
-
-  			removeEventListener = function (type, listener) {
-  				var element = this,
-  				    listeners,
-  				    i;
-
-  				if (!element.listeners) {
-  					return;
-  				}
-
-  				listeners = element.listeners;
-  				i = listeners.length;
-
-  				while (i--) {
-  					if (listeners[i][0] === listener) {
-  						element.detachEvent('on' + type, listeners[i][1]);
-  					}
-  				}
-  			};
-
-  			win.addEventListener = doc.addEventListener = addEventListener;
-  			win.removeEventListener = doc.removeEventListener = removeEventListener;
-
-  			if ('Element' in win) {
-  				win.Element.prototype.addEventListener = addEventListener;
-  				win.Element.prototype.removeEventListener = removeEventListener;
-  			} else {
-  				// First, intercept any calls to document.createElement - this is necessary
-  				// because the CSS hack (see below) doesn't come into play until after a
-  				// node is added to the DOM, which is too late for a lot of Ractive setup work
-  				origCreateElement = doc.createElement;
-
-  				doc.createElement = function (tagName) {
-  					var el = origCreateElement(tagName);
-  					el.addEventListener = addEventListener;
-  					el.removeEventListener = removeEventListener;
-  					return el;
-  				};
-
-  				// Then, mop up any additional elements that weren't created via
-  				// document.createElement (i.e. with innerHTML).
-  				head = doc.getElementsByTagName('head')[0];
-  				style = doc.createElement('style');
-
-  				head.insertBefore(style, head.firstChild);
-
-  				//style.styleSheet.cssText = '*{-ms-event-prototype:expression(!this.addEventListener&&(this.addEventListener=addEventListener)&&(this.removeEventListener=removeEventListener))}';
-  			}
-  		})(win, doc);
-  	}
-
-  	// The getComputedStyle polyfill interacts badly with jQuery, so we don't attach
-  	// it to window. Instead, we export it for other modules to use as needed
-
-  	// https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
-  	if (!win.getComputedStyle) {
-  		exportedShims.getComputedStyle = (function () {
-  			var borderSizes = {};
-
-  			function getPixelSize(element, style, property, fontSize) {
-  				var sizeWithSuffix = style[property],
-  				    size = parseFloat(sizeWithSuffix),
-  				    suffix = sizeWithSuffix.split(/\d/)[0],
-  				    rootSize;
-
-  				if (isNaN(size)) {
-  					if (/^thin|medium|thick$/.test(sizeWithSuffix)) {
-  						size = getBorderPixelSize(sizeWithSuffix);
-  						suffix = '';
-  					} else {
-  						// TODO...
-  					}
-  				}
-
-  				fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
-  				rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
-
-  				return suffix == 'em' ? size * fontSize : suffix == 'in' ? size * 96 : suffix == 'pt' ? size * 96 / 72 : suffix == '%' ? size / 100 * rootSize : size;
-  			}
-
-  			function getBorderPixelSize(size) {
-  				var div, bcr;
-
-  				// `thin`, `medium` and `thick` vary between browsers. (Don't ever use them.)
-  				if (!borderSizes[size]) {
-  					div = doc.createElement('div');
-  					div.style.display = 'block';
-  					div.style.position = 'fixed';
-  					div.style.width = div.style.height = '0';
-  					div.style.borderRight = size + ' solid black';
-
-  					doc.getElementsByTagName('body')[0].appendChild(div);
-  					bcr = div.getBoundingClientRect();
-
-  					borderSizes[size] = bcr.right - bcr.left;
-  				}
-
-  				return borderSizes[size];
-  			}
-
-  			function setShortStyleProperty(style, property) {
-  				var borderSuffix = property == 'border' ? 'Width' : '',
-  				    t = property + 'Top' + borderSuffix,
-  				    r = property + 'Right' + borderSuffix,
-  				    b = property + 'Bottom' + borderSuffix,
-  				    l = property + 'Left' + borderSuffix;
-
-  				style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]] : style[t] == style[b] && style[l] == style[r] ? [style[t], style[r]] : style[l] == style[r] ? [style[t], style[r], style[b]] : [style[t], style[r], style[b], style[l]]).join(' ');
-  			}
-
-  			var normalProps = {
-  				fontWeight: 400,
-  				lineHeight: 1.2, // actually varies depending on font-family, but is generally close enough...
-  				letterSpacing: 0
-  			};
-
-  			function CSSStyleDeclaration(element) {
-  				var currentStyle, style, fontSize, property;
-
-  				currentStyle = element.currentStyle;
-  				style = this;
-  				fontSize = getPixelSize(element, currentStyle, 'fontSize', null);
-
-  				// TODO tidy this up, test it, send PR to jonathantneal!
-  				for (property in currentStyle) {
-  					if (currentStyle[property] === 'normal' && normalProps.hasOwnProperty(property)) {
-  						style[property] = normalProps[property];
-  					} else if (/width|height|margin.|padding.|border.+W/.test(property)) {
-  						if (currentStyle[property] === 'auto') {
-  							if (/^width|height/.test(property)) {
-  								// just use clientWidth/clientHeight...
-  								style[property] = (property === 'width' ? element.clientWidth : element.clientHeight) + 'px';
-  							} else if (/(?:padding)?Top|Bottom$/.test(property)) {
-  								style[property] = '0px';
-  							}
-  						} else {
-  							style[property] = getPixelSize(element, currentStyle, property, fontSize) + 'px';
-  						}
-  					} else if (property === 'styleFloat') {
-  						style.float = currentStyle[property];
-  					} else {
-  						style[property] = currentStyle[property];
-  					}
-  				}
-
-  				setShortStyleProperty(style, 'margin');
-  				setShortStyleProperty(style, 'padding');
-  				setShortStyleProperty(style, 'border');
-
-  				style.fontSize = fontSize + 'px';
-
-  				return style;
-  			}
-
-  			CSSStyleDeclaration.prototype = {
-  				constructor: CSSStyleDeclaration,
-  				getPropertyPriority: noop,
-  				getPropertyValue: function (prop) {
-  					return this[prop] || '';
-  				},
-  				item: noop,
-  				removeProperty: noop,
-  				setProperty: noop,
-  				getPropertyCSSValue: noop
-  			};
-
-  			function getComputedStyle(element) {
-  				return new CSSStyleDeclaration(element);
-  			}
-
-  			return getComputedStyle;
-  		})();
-  	}
-  }
+  var legacy = null;
 
   function resetStyle(node, style) {
   	if (style) {
@@ -8075,16 +5133,12 @@
   	visible = true;
   }
 
-  function ___________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var getComputedStyle = win && (win.getComputedStyle || exportedShims.getComputedStyle);
+  var getComputedStyle = win && (win.getComputedStyle || legacy.getComputedStyle);
   var resolved = _Promise.resolve();
 
   var Transition = (function () {
   	function Transition(owner, template, isIntro) {
-  		___________________________________classCallCheck(this, Transition);
+  		classCallCheck(this, Transition);
 
   		this.owner = owner;
   		this.isIntro = isIntro;
@@ -8345,11 +5399,7 @@
   }
 
   // TODO element.parent currently undefined
-  function __________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }function findParentForm(element) {
+  function findParentForm(element) {
   	while (element = element.parent) {
   		if (element.name === 'form') {
   			return element;
@@ -8364,8 +5414,7 @@
   var Binding = (function () {
   	function Binding(element) {
   		var name = arguments.length <= 1 || arguments[1] === undefined ? 'value' : arguments[1];
-
-  		__________________________________classCallCheck(this, Binding);
+  		classCallCheck(this, Binding);
 
   		this.element = element;
   		this.ractive = element.ractive;
@@ -8461,17 +5510,7 @@
   	this._ractive.binding.handleChange();
   }
 
-  function _________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _____________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function handleBlur() {
+  function handleBlur() {
   	var value;
 
   	handleDomEvent.call(this);
@@ -8497,10 +5536,10 @@
   }
 
   var GenericBinding = (function (_Binding) {
-  	_____________________inherits(GenericBinding, _Binding);
+  	inherits(GenericBinding, _Binding);
 
   	function GenericBinding() {
-  		_________________________________classCallCheck(this, GenericBinding);
+  		classCallCheck(this, GenericBinding);
 
   		_Binding.apply(this, arguments);
   	}
@@ -8565,21 +5604,11 @@
   	return GenericBinding;
   })(Binding);
 
-  function ________________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ____________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var SingleSelectBinding = (function (_Binding) {
-  	____________________inherits(SingleSelectBinding, _Binding);
+  var SingleSelectBinding = (function (_Binding) {
+  	inherits(SingleSelectBinding, _Binding);
 
   	function SingleSelectBinding() {
-  		________________________________classCallCheck(this, SingleSelectBinding);
+  		classCallCheck(this, SingleSelectBinding);
 
   		_Binding.apply(this, arguments);
   	}
@@ -8680,21 +5709,11 @@
   	return SingleSelectBinding;
   })(Binding);
 
-  function _______________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ___________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var MultipleSelectBinding = (function (_Binding) {
-  	___________________inherits(MultipleSelectBinding, _Binding);
+  var MultipleSelectBinding = (function (_Binding) {
+  	inherits(MultipleSelectBinding, _Binding);
 
   	function MultipleSelectBinding() {
-  		_______________________________classCallCheck(this, MultipleSelectBinding);
+  		classCallCheck(this, MultipleSelectBinding);
 
   		_Binding.apply(this, arguments);
   	}
@@ -8780,21 +5799,11 @@
   	return MultipleSelectBinding;
   })(Binding);
 
-  function ______________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function __________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var NumericBinding = (function (_GenericBinding) {
-  	__________________inherits(NumericBinding, _GenericBinding);
+  var NumericBinding = (function (_GenericBinding) {
+  	inherits(NumericBinding, _GenericBinding);
 
   	function NumericBinding() {
-  		______________________________classCallCheck(this, NumericBinding);
+  		classCallCheck(this, NumericBinding);
 
   		_GenericBinding.apply(this, arguments);
   	}
@@ -8811,21 +5820,11 @@
   	return NumericBinding;
   })(GenericBinding);
 
-  function _____________________________classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError('Cannot call a class as a function');
-    }
-  }
-
-  function _________________inherits(subClass, superClass) {
-    if (typeof superClass !== 'function' && superClass !== null) {
-      throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var FileListBinding = (function (_Binding) {
-    _________________inherits(FileListBinding, _Binding);
+  var FileListBinding = (function (_Binding) {
+    inherits(FileListBinding, _Binding);
 
     function FileListBinding() {
-      _____________________________classCallCheck(this, FileListBinding);
+      classCallCheck(this, FileListBinding);
 
       _Binding.apply(this, arguments);
     }
@@ -8833,21 +5832,11 @@
     return FileListBinding;
   })(Binding);
 
-  function ____________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ________________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var CheckboxBinding = (function (_Binding) {
-  	________________inherits(CheckboxBinding, _Binding);
+  var CheckboxBinding = (function (_Binding) {
+  	inherits(CheckboxBinding, _Binding);
 
   	function CheckboxBinding(element) {
-  		____________________________classCallCheck(this, CheckboxBinding);
+  		classCallCheck(this, CheckboxBinding);
 
   		_Binding.call(this, element, 'checked');
   	}
@@ -8878,27 +5867,17 @@
   	return CheckboxBinding;
   })(Binding);
 
-  function ___________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _______________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var siblings = {};
+  var siblings = {};
 
   function getSiblings(hash) {
   	return siblings[hash] || (siblings[hash] = []);
   }
 
   var RadioBinding = (function (_Binding) {
-  	_______________inherits(RadioBinding, _Binding);
+  	inherits(RadioBinding, _Binding);
 
   	function RadioBinding(element) {
-  		___________________________classCallCheck(this, RadioBinding);
+  		classCallCheck(this, RadioBinding);
 
   		_Binding.call(this, element, 'checked');
 
@@ -8943,11 +5922,7 @@
   	return RadioBinding;
   })(Binding);
 
-  function __________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var groups = {};
+  var groups = {};
   function getBindingGroup(id, group, model, getValue) {
   	var hash = id + group + model.getKeypath();
   	return groups[hash] || (groups[hash] = new BindingGroup(model, getValue));
@@ -8955,7 +5930,7 @@
 
   var BindingGroup = (function () {
   	function BindingGroup(model, getValue) {
-  		__________________________classCallCheck(this, BindingGroup);
+  		classCallCheck(this, BindingGroup);
 
   		this.model = model;
   		this.getValue = getValue;
@@ -8987,17 +5962,7 @@
   	return BindingGroup;
   })();
 
-  function _________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ______________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function isChecked(binding) {
+  function isChecked(binding) {
   	return binding.node.checked;
   }
 
@@ -9012,10 +5977,10 @@
   var push = [].push;
 
   var CheckboxNameBinding = (function (_Binding) {
-  	______________inherits(CheckboxNameBinding, _Binding);
+  	inherits(CheckboxNameBinding, _Binding);
 
   	function CheckboxNameBinding(element) {
-  		_________________________classCallCheck(this, CheckboxNameBinding);
+  		classCallCheck(this, CheckboxNameBinding);
 
   		_Binding.call(this, element, 'name');
 
@@ -9115,17 +6080,7 @@
   	return CheckboxNameBinding;
   })(Binding);
 
-  function ________________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _____________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function getGroupValue() {
+  function getGroupValue() {
   	var i = this.bindings.length;
   	while (i--) {
   		var binding = this.bindings[i];
@@ -9134,10 +6089,10 @@
   }
 
   var RadioNameBinding = (function (_Binding) {
-  	_____________inherits(RadioNameBinding, _Binding);
+  	inherits(RadioNameBinding, _Binding);
 
   	function RadioNameBinding(element) {
-  		________________________classCallCheck(this, RadioNameBinding);
+  		classCallCheck(this, RadioNameBinding);
 
   		_Binding.call(this, element, 'name');
 
@@ -9211,21 +6166,11 @@
   	return RadioNameBinding;
   })(Binding);
 
-  function _______________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ____________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var ContentEditableBinding = (function (_Binding) {
-  	____________inherits(ContentEditableBinding, _Binding);
+  var ContentEditableBinding = (function (_Binding) {
+  	inherits(ContentEditableBinding, _Binding);
 
   	function ContentEditableBinding() {
-  		_______________________classCallCheck(this, ContentEditableBinding);
+  		classCallCheck(this, ContentEditableBinding);
 
   		_Binding.apply(this, arguments);
   	}
@@ -9515,16 +6460,12 @@
   	return !stopEvent;
   }
 
-  function ______________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var eventPattern = /^event(?:\.(.+))?$/;
+  var eventPattern = /^event(?:\.(.+))?$/;
   var argumentsPattern = /^arguments\.(\d*)$/;
   var dollarArgsPattern = /^\$(\d*)$/;
   var EventDirective = (function () {
   	function EventDirective(owner, event, template) {
-  		______________________classCallCheck(this, EventDirective);
+  		classCallCheck(this, EventDirective);
 
   		this.owner = owner;
   		this.event = event;
@@ -9742,11 +6683,7 @@
   	return EventDirective;
   })();
 
-  function _____________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }function defaultHandler(event) {
+  function defaultHandler(event) {
   	var handler = this._ractive.events[event.type];
 
   	handler.fire({
@@ -9757,7 +6694,7 @@
 
   var DOMEvent = (function () {
   	function DOMEvent(name, owner) {
-  		_____________________classCallCheck(this, DOMEvent);
+  		classCallCheck(this, DOMEvent);
 
   		if (name.indexOf('*') !== -1) {
   			fatal('Only component proxy-events may contain "*" wildcards, <' + owner.name + ' on-' + name + '="..."/> is not valid');
@@ -9793,7 +6730,7 @@
 
   var CustomEvent = (function () {
   	function CustomEvent(eventPlugin, owner) {
-  		_____________________classCallCheck(this, CustomEvent);
+  		classCallCheck(this, CustomEvent);
 
   		this.eventPlugin = eventPlugin;
   		this.owner = owner;
@@ -9814,18 +6751,14 @@
   	return CustomEvent;
   })();
 
-  function ____________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var missingDecorator = {
+  var missingDecorator = {
   	update: noop,
   	teardown: noop
   };
 
   var Decorator = (function () {
   	function Decorator(owner, template) {
-  		____________________classCallCheck(this, Decorator);
+  		classCallCheck(this, Decorator);
 
   		this.owner = owner;
   		this.template = template;
@@ -9928,23 +6861,13 @@
   	return Decorator;
   })();
 
-  function ___________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ___________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var div = doc ? createElement('div') : null;
+  var div = doc ? createElement('div') : null;
 
   var ConditionalAttribute = (function (_Item) {
-  	___________inherits(ConditionalAttribute, _Item);
+  	inherits(ConditionalAttribute, _Item);
 
   	function ConditionalAttribute(options) {
-  		___________________classCallCheck(this, ConditionalAttribute);
+  		classCallCheck(this, ConditionalAttribute);
 
   		_Item.call(this, options);
 
@@ -10295,21 +7218,11 @@
   	attribute.name = name;
   }
 
-  function __________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function __________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Attribute = (function (_Item) {
-  	__________inherits(Attribute, _Item);
+  var Attribute = (function (_Item) {
+  	inherits(Attribute, _Item);
 
   	function Attribute(options) {
-  		__________________classCallCheck(this, Attribute);
+  		classCallCheck(this, Attribute);
 
   		_Item.call(this, options);
 
@@ -10432,27 +7345,17 @@
   	return Attribute;
   })(Item);
 
-  function _________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function _makeDirty(query) {
+  function _makeDirty(query) {
   	query.makeDirty();
   }
 
   var Element = (function (_Item) {
-  	_________inherits(Element, _Item);
+  	inherits(Element, _Item);
 
   	function Element(options) {
   		var _this = this;
 
-  		_________________classCallCheck(this, Element);
+  		classCallCheck(this, Element);
 
   		_Item.call(this, options);
 
@@ -10854,21 +7757,11 @@
   	return element.ractive.el.namespaceURI;
   }
 
-  function ________________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ________inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Input = (function (_Element) {
-  	________inherits(Input, _Element);
+  var Input = (function (_Element) {
+  	inherits(Input, _Element);
 
   	function Input() {
-  		________________classCallCheck(this, Input);
+  		classCallCheck(this, Input);
 
   		_Element.apply(this, arguments);
   	}
@@ -10881,17 +7774,7 @@
   	return Input;
   })(Element);
 
-  function _______________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _______inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function valueContains(selectValue, optionValue) {
+  function valueContains(selectValue, optionValue) {
   	var i = selectValue.length;
   	while (i--) {
   		if (selectValue[i] == optionValue) return true;
@@ -10899,10 +7782,10 @@
   }
 
   var Select = (function (_Element) {
-  	_______inherits(Select, _Element);
+  	inherits(Select, _Element);
 
   	function Select(options) {
-  		_______________classCallCheck(this, Select);
+  		classCallCheck(this, Select);
 
   		_Element.call(this, options);
   		this.options = [];
@@ -10991,17 +7874,7 @@
   	return Select;
   })(Element);
 
-  function ______________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ______inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function findParentSelect(element) {
+  function findParentSelect(element) {
   	while (element) {
   		if (element.name === 'select') return element;
   		element = element.parent;
@@ -11009,10 +7882,10 @@
   }
 
   var Option = (function (_Element) {
-  	______inherits(Option, _Element);
+  	inherits(Option, _Element);
 
   	function Option(options) {
-  		______________classCallCheck(this, Option);
+  		classCallCheck(this, Option);
 
   		var template = options.template;
   		if (!template.a) template.a = {};
@@ -11081,21 +7954,11 @@
   	return Option;
   })(Element);
 
-  function _____________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _____inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Form = (function (_Element) {
-  	_____inherits(Form, _Element);
+  var Form = (function (_Element) {
+  	inherits(Form, _Element);
 
   	function Form(options) {
-  		_____________classCallCheck(this, Form);
+  		classCallCheck(this, Form);
 
   		_Element.call(this, options);
   		this.formBindings = [];
@@ -11125,15 +7988,9 @@
   	binding.model.set(binding.resetValue);
   }
 
-  function ____________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError("Cannot call a class as a function");
-  	}
-  }
-
   var RactiveEvent = (function () {
   	function RactiveEvent(ractive, name) {
-  		____________classCallCheck(this, RactiveEvent);
+  		classCallCheck(this, RactiveEvent);
 
   		this.ractive = ractive;
   		this.name = name;
@@ -11294,11 +8151,7 @@
   	});
   }
 
-  function ___________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }function getChildQueue(queue, ractive) {
+  function getChildQueue(queue, ractive) {
   	return queue[ractive._guid] || (queue[ractive._guid] = []);
   }
 
@@ -11318,7 +8171,7 @@
 
   var HookQueue = (function () {
   	function HookQueue(event) {
-  		___________classCallCheck(this, HookQueue);
+  		classCallCheck(this, HookQueue);
 
   		this.hook = new Hook(event);
   		this.inProcess = {};
@@ -12101,17 +8954,7 @@
   // hence `markChild` - revert once bundler is fixed
 
   // TODO this is probably a bit anal, maybe we should leave it out
-  function __________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ____inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function prettify(fnBody) {
+  function prettify(fnBody) {
   	var lines = fnBody.replace(/^\t+/gm, function (tabs) {
   		return tabs.split('\t').join('  ');
   	}).split('\n');
@@ -12147,10 +8990,10 @@
   }
 
   var Computation = (function (_Model) {
-  	____inherits(Computation, _Model);
+  	inherits(Computation, _Model);
 
   	function Computation(viewmodel, signature, key) {
-  		__________classCallCheck(this, Computation);
+  		classCallCheck(this, Computation);
 
   		_Model.call(this, null, null);
 
@@ -12261,21 +9104,11 @@
   	return Computation;
   })(Model);
 
-  function _________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function ___inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var RootModel = (function (_Model) {
-  	___inherits(RootModel, _Model);
+  var RootModel = (function (_Model) {
+  	inherits(RootModel, _Model);
 
   	function RootModel(options) {
-  		_________classCallCheck(this, RootModel);
+  		classCallCheck(this, RootModel);
 
   		_Model.call(this, null, null);
 
@@ -12476,11 +9309,7 @@
 
   patchArrayMethods.unpatch = unpatchArrayMethods;
 
-  function ________classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }var errorMessage = 'Something went wrong in a rather interesting way';
+  var errorMessage = 'Something went wrong in a rather interesting way';
 
   var arrayAdaptor = {
   	filter: function (object) {
@@ -12495,7 +9324,7 @@
 
   var ArrayWrapper = (function () {
   	function ArrayWrapper(ractive, array) {
-  		________classCallCheck(this, ArrayWrapper);
+  		classCallCheck(this, ArrayWrapper);
 
   		this.root = ractive;
   		this.value = array;
@@ -12575,12 +9404,6 @@
   	return ArrayWrapper;
   })();
 
-  function _______classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
   var magicAdaptor = undefined;
 
   try {
@@ -12656,7 +9479,7 @@
   	function MagicWrapper(ractive, value, keypath) {
   		var _this = this;
 
-  		_______classCallCheck(this, MagicWrapper);
+  		classCallCheck(this, MagicWrapper);
 
   		this.ractive = ractive;
   		this.value = value;
@@ -12888,17 +9711,7 @@
   	throw new Error('Using `ractive.data` is no longer supported - you must use the `ractive.get()` API instead');
   }
 
-  function ______classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function __inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }function removeFromLiveComponentQueries(component) {
+  function removeFromLiveComponentQueries(component) {
   	var instance = component.ractive;
 
   	while (instance) {
@@ -12916,10 +9729,10 @@
   var teardownHook = new Hook('teardown');
 
   var Component = (function (_Item) {
-  	__inherits(Component, _Item);
+  	inherits(Component, _Item);
 
   	function Component(options, ComponentConstructor) {
-  		______classCallCheck(this, Component);
+  		classCallCheck(this, Component);
 
   		_Item.call(this, options);
   		this.type = COMPONENT; // override ELEMENT from super
@@ -13194,6 +10007,8 @@
   	return Component;
   })(Item);
 
+  // finds the component constructor in the registry or view hierarchy registries
+
   function getComponentConstructor(ractive, name) {
   	var Component,
   	    instance = findInstance('components', ractive, name);
@@ -13226,21 +10041,11 @@
   	return Component;
   }
 
-  function _____classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }
-
-  function _inherits(subClass, superClass) {
-  	if (typeof superClass !== 'function' && superClass !== null) {
-  		throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-  	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }var Text = (function (_Item) {
-  	_inherits(Text, _Item);
+  var Text = (function (_Item) {
+  	inherits(Text, _Item);
 
   	function Text(options) {
-  		_____classCallCheck(this, Text);
+  		classCallCheck(this, Text);
 
   		_Item.call(this, options);
   		this.type = TEXT;
@@ -13336,17 +10141,13 @@
   	return new Item(options);
   }
 
-  function ____classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }function unrenderAndDestroy(item) {
+  function unrenderAndDestroy(item) {
   	item.unrender(true);
   }
 
   var Fragment = (function () {
   	function Fragment(options) {
-  		____classCallCheck(this, Fragment);
+  		classCallCheck(this, Fragment);
 
   		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
 
@@ -13657,6 +10458,11 @@
   	return Fragment;
   })();
 
+  // TODO should resetTemplate be asynchronous? i.e. should it be a case
+  // of outro, update template, intro? I reckon probably not, since that
+  // could be achieved with unrender-resetTemplate-render. Also, it should
+  // conceptually be similar to resetPartial, which couldn't be async
+
   function Ractive$resetTemplate(template) {
   	var transitionsEnabled, component;
 
@@ -13942,11 +10748,7 @@
   	return this.observe(keypath, callback, options);
   }
 
-  function ___classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }function observeList(keypath, callback, options) {
+  function observeList(keypath, callback, options) {
   	if (typeof keypath !== 'string') {
   		throw new Error('ractive.observeList() must be passed a string as its first argument');
   	}
@@ -13971,7 +10773,7 @@
 
   var ListObserver = (function () {
   	function ListObserver(context, model, callback, options) {
-  		___classCallCheck(this, ListObserver);
+  		classCallCheck(this, ListObserver);
 
   		this.context = context;
   		this.model = model;
@@ -14045,11 +10847,7 @@
   	return ListObserver;
   })();
 
-  function __classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }function observe(keypath, callback, options) {
+  function observe(keypath, callback, options) {
   	var _this = this;
 
   	var observers = [];
@@ -14124,7 +10922,7 @@
 
   var Observer = (function () {
   	function Observer(context, model, callback, options) {
-  		__classCallCheck(this, Observer);
+  		classCallCheck(this, Observer);
 
   		this.context = context;
   		this.model = model;
@@ -14179,7 +10977,7 @@
   	function PatternObserver(context, baseModel, keys, callback, options) {
   		var _this2 = this;
 
-  		__classCallCheck(this, PatternObserver);
+  		classCallCheck(this, PatternObserver);
 
   		this.context = context;
   		this.baseModel = baseModel;
@@ -14389,11 +11187,7 @@
   	return this.fragment.findComponent(selector);
   }
 
-  function _classCallCheck(instance, Constructor) {
-  	if (!(instance instanceof Constructor)) {
-  		throw new TypeError('Cannot call a class as a function');
-  	}
-  }function sortByDocumentPosition(node, otherNode) {
+  function sortByDocumentPosition(node, otherNode) {
   	if (node.compareDocumentPosition) {
   		var bitmask = node.compareDocumentPosition(otherNode);
   		return bitmask & 2 ? 1 : -1;
@@ -14483,7 +11277,7 @@
 
   var Query = (function () {
   	function Query(ractive, selector, live, isComponentQuery) {
-  		_classCallCheck(this, Query);
+  		classCallCheck(this, Query);
 
   		this.ractive = ractive;
   		this.selector = selector;
@@ -15171,6 +11965,10 @@
   	return Child;
   }
 
+  // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
+  // older browsers, these are made available via a shim - here, we do a quick
+  // pre-flight check to make sure that either a) we're not in a shit browser,
+  // or b) we're using a Ractive-legacy.js build
   var FUNCTION = 'function';
 
   if (typeof Date.now !== FUNCTION || typeof String.prototype.trim !== FUNCTION || typeof Object.keys !== FUNCTION || typeof Array.prototype.indexOf !== FUNCTION || typeof Array.prototype.forEach !== FUNCTION || typeof Array.prototype.map !== FUNCTION || typeof Array.prototype.filter !== FUNCTION || win && typeof win.addEventListener !== FUNCTION) {
@@ -15209,7 +12007,7 @@
   	magic: { value: magic },
 
   	// version
-  	VERSION: { value: '<@version@>' },
+  	VERSION: { value: '0.8.0-edge' },
 
   	// plugins
   	adaptors: { writable: true, value: {} },
