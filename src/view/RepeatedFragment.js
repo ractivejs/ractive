@@ -295,7 +295,7 @@ export default class RepeatedFragment {
 
 			if ( this.rendered ) {
 				const parentNode = this.parent.findParentNode();
-				const anchor = this.parent.findNextNode( this );
+				const anchor = this.parent.findNextNode( this.owner );
 
 				parentNode.insertBefore( docFrag, anchor );
 			}
