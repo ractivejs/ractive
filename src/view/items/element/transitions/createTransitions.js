@@ -8,36 +8,31 @@ import prefix from './prefix';
 import unprefix from './unprefix';
 import hyphenate from './hyphenate';
 
-var createTransitions,
-	testStyle,
-	TRANSITION,
-	TRANSITIONEND,
-	CSS_TRANSITIONS_ENABLED,
-	TRANSITION_DURATION,
-	TRANSITION_PROPERTY,
-	TRANSITION_TIMING_FUNCTION,
-	canUseCssTransitions = {},
-	cannotUseCssTransitions = {};
+let createTransitions;
 
 if ( !isClient ) {
 	createTransitions = null;
 } else {
-	testStyle = createElement( 'div' ).style;
+	const testStyle = createElement( 'div' ).style;
+	const linear = x => x;
+
+	let canUseCssTransitions = {};
+	let cannotUseCssTransitions = {};
 
 	// determine some facts about our environment
-	(function() {
-		if ( testStyle.transition !== undefined ) {
-			TRANSITION = 'transition';
-			TRANSITIONEND = 'transitionend';
-			CSS_TRANSITIONS_ENABLED = true;
-		} else if ( testStyle.webkitTransition !== undefined ) {
-			TRANSITION = 'webkitTransition';
-			TRANSITIONEND = 'webkitTransitionEnd';
-			CSS_TRANSITIONS_ENABLED = true;
-		} else {
-			CSS_TRANSITIONS_ENABLED = false;
-		}
-	}());
+	let TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION;
+
+	if ( testStyle.transition !== undefined ) {
+		TRANSITION = 'transition';
+		TRANSITIONEND = 'transitionend';
+		CSS_TRANSITIONS_ENABLED = true;
+	} else if ( testStyle.webkitTransition !== undefined ) {
+		TRANSITION = 'webkitTransition';
+		TRANSITIONEND = 'webkitTransitionEnd';
+		CSS_TRANSITIONS_ENABLED = true;
+	} else {
+		CSS_TRANSITIONS_ENABLED = false;
+	}
 
 	if ( TRANSITION ) {
 		TRANSITION_DURATION = TRANSITION + 'Duration';
@@ -148,11 +143,25 @@ if ( !isClient ) {
 
 				// javascript transitions
 				if ( propertiesToTransitionInJs.length ) {
+					let easing;
+
+					if ( typeof options.easing === 'string' ) {
+						easing = t.ractive.easing[ options.easing ];
+
+						if ( !easing ) {
+							warnOnceIfDebug( missingPlugin( options.easing, 'easing' ) );
+							easing = linear;
+						}
+					} else if ( typeof options.easing === 'function' ) {
+						easing = options.easing;
+					} else {
+						easing = linear;
+					}
+
 					new Ticker({
-						ractive: t.ractive,
 						duration: options.duration,
-						easing: camelCase( options.easing || '' ),
-						step: function ( pos ) {
+						easing,
+						step ( pos ) {
 							var prop, i;
 
 							i = propertiesToTransitionInJs.length;
@@ -161,7 +170,7 @@ if ( !isClient ) {
 								t.node.style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
 							}
 						},
-						complete: function () {
+						complete () {
 							jsTransitionsComplete = true;
 							checkComplete();
 						}
