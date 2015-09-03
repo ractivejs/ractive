@@ -7,19 +7,6 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 	const keys = ref.split( '.' );
 	const key = keys[0];
 
-	// TODO what if there are two component boundaries to cross - does this still work?
-	const base = localViewmodel.mappings.hasOwnProperty( key ) ?
-		localViewmodel.mappings[ key ] :
-		localViewmodel.computations.hasOwnProperty( key ) ?
-			localViewmodel.computations[ key ] :
-			null;
-
-	if ( base ) {
-		return keys.length > 1 ?
-			base.joinAll( keys.slice( 1 ) ) :
-			base;
-	}
-
 	let hasContextChain;
 	let crossedComponentBoundary;
 

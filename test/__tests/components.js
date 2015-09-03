@@ -875,7 +875,6 @@ test( 'Component attributes with an empty string come back with an empty string'
 });
 
 test( 'Unresolved keypath can be safely torn down', t => {
-
 	expect(0);
 
 	var ractive = new Ractive({
@@ -891,5 +890,34 @@ test( 'Unresolved keypath can be safely torn down', t => {
 	});
 
 	ractive.set('show', false);
+});
 
+test( 'Mappings resolve correctly where references are shadowed (#2108)', assert => {
+	const names = [ 'alice', 'amy', 'andrew', 'bob', 'beatrice', 'brenda', 'charles', 'colin', 'camilla' ];
+
+	const Group = Ractive.extend({
+		template: `{{names.length}}`
+	});
+
+	const List = Ractive.extend({
+		template: `
+			{{#each groups}}
+				<Group names='{{names}}'/>
+			{{/each}}`,
+		data: () => ({
+			groups: [ 'a', 'b', 'c' ].map( letter => {
+				return { names: names.filter( name => name[0] === letter ) };
+			})
+		}),
+		components: { Group }
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `<List names='{{names}}'/>`,
+		data: { names },
+		components: { List }
+	});
+
+	assert.equal( fixture.innerHTML, '333' );
 });
