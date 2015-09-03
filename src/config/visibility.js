@@ -16,15 +16,15 @@ if ( doc ) {
 
 			if ( hidden in doc ) {
 				prefix = vendor;
-				doc.addEventListener( prefix + 'visibilitychange', onChange );
-				onChange();
-
 				break;
 			}
 		}
 	}
 
-	if ( prefix === undefined ) {
+	if ( prefix !== undefined ) {
+		doc.addEventListener( prefix + 'visibilitychange', onChange );
+		onChange();
+	} else {
 		// gah, we're in an old browser
 		if ( 'onfocusout' in doc ) {
 			doc.addEventListener( 'focusout', onHide );

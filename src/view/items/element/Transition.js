@@ -99,13 +99,13 @@ export default class Transition {
 			options = this;
 		}
 
-		var promise = new Promise( resolve => {
+		return new Promise( fulfil => {
 			var propertyNames, changedProperties, computedStyle, current, from, i, prop;
 
 			// Edge case - if duration is zero, set style synchronously and complete
 			if ( !options.duration ) {
 				this.setStyle( to );
-				resolve();
+				fulfil();
 				return;
 			}
 
@@ -139,14 +139,12 @@ export default class Transition {
 			// If we're not actually changing anything, the transitionend event
 			// will never fire! So we complete early
 			if ( !changedProperties.length ) {
-				resolve();
+				fulfil();
 				return;
 			}
 
-			createTransitions( this, to, options, changedProperties, resolve );
+			createTransitions( this, to, options, changedProperties, fulfil );
 		});
-
-		return promise;
 	}
 
 	getStyle ( props ) {
