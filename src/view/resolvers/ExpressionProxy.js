@@ -50,9 +50,10 @@ export default class ExpressionProxy extends Model {
 		this.resolvers = [];
 		this.models = template.r.map( ( ref, index ) => {
 			const model = resolveReference( fragment, ref );
+			let resolver;
 
 			if ( !model ) {
-				const resolver = fragment.resolve( ref, model => {
+				resolver = fragment.resolve( ref, model => {
 					removeFromArray( this.resolvers, resolver );
 					this.models[ index ] = model;
 					this.bubble();
@@ -85,7 +86,7 @@ export default class ExpressionProxy extends Model {
 			getter: () => {
 				const values = this.models.map( model => {
 					if (!model) return undefined;
-					
+
 					const value = model.get( true );
 
 					if ( typeof value === 'function' ) {

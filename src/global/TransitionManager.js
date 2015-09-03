@@ -51,7 +51,7 @@ export default class TransitionManager {
 	detachNodes () {
 		this.decoratorQueue.forEach( teardown );
 		this.detachQueue.forEach( detach );
-		this.children.forEach( detachNodes );
+		this.children.forEach( _detachNodes );
 	}
 
 	init () {
@@ -74,7 +74,7 @@ function detach ( element ) {
 	element.detach();
 }
 
-function detachNodes ( tm ) {
+function _detachNodes ( tm ) { // _ to avoid transpiler quirk
 	tm.detachNodes();
 }
 

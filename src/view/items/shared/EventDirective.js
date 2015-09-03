@@ -78,9 +78,11 @@ export default class EventDirective {
 						};
 					}
 
+					let resolver;
+
 					const model = resolveReference( this.parentFragment, ref );
 					if ( !model ) {
-						const resolver = this.parentFragment.resolve( ref, model => {
+						resolver = this.parentFragment.resolve( ref, model => {
 							this.models[i] = model;
 							removeFromArray( this.resolvers, resolver );
 						});
