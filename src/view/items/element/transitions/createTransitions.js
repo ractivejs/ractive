@@ -56,7 +56,7 @@ if ( !isClient ) {
 			checkComplete = function () {
 				if ( jsTransitionsComplete && cssTransitionsComplete ) {
 					// will changes to events and fire have an unexpected consequence here?
-					t.root.fire( t.name + ':end', t.node, t.isIntro );
+					t.ractive.fire( t.name + ':end', t.node, t.isIntro );
 					resolve();
 				}
 			};
@@ -149,7 +149,7 @@ if ( !isClient ) {
 				// javascript transitions
 				if ( propertiesToTransitionInJs.length ) {
 					new Ticker({
-						root: t.root,
+						ractive: t.ractive,
 						duration: options.duration,
 						easing: camelCase( options.easing || '' ),
 						step: function ( pos ) {

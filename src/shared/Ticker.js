@@ -15,7 +15,7 @@ var Ticker = function ( options ) {
 
 	// easing
 	if ( typeof options.easing === 'string' ) {
-		easing = options.root.easing[ options.easing ];
+		easing = options.ractive.easing[ options.easing ];
 
 		if ( !easing ) {
 			warnOnceIfDebug( missingPlugin( options.easing, 'easing' ) );
