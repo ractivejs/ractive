@@ -1783,6 +1783,27 @@ try {
 		t.ok( event2Fired );
 	});
 
+	test( 'correct function scope for this.bar() in template', t => {
+		let ractive = new Ractive({
+	    el: fixture,
+	    template: `
+			<button on-click='set("foo",bar())'>click me</button>
+			<p>foo: {{foo}}</p>
+			`,
+	    data: {
+	        foo: 'nope',
+	        bar: function () {
+	            return this.get( 'answer' );
+	        },
+	        answer: 42
+	    }
+		});
+
+		simulant.fire( ractive.find( 'button' ), 'click' );
+
+		t.equal( ractive.get( 'foo' ), '42' );
+	});
+
 	test( 'invalid content in method call event directive should have a reasonable error message', t => {
 		t.throws(() => {
 			new Ractive({
