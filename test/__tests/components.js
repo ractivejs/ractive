@@ -893,3 +893,22 @@ test( 'Unresolved keypath can be safely torn down', t => {
 	ractive.set('show', false);
 
 });
+
+
+test( 'not null value for this.parent in Component.oncunstruct() (#2091)', t => {
+	var component = Ractive.extend({
+    template: "<div>component</div>",
+	    onconstruct: function()
+	    {
+	        var parent = this.parent !== null;
+	        t.equal(parent,true);
+	    }
+	});
+	var ractive = new Ractive({
+		el: fixture,
+		template: 'Here comes the <c1>',
+		components: {
+			c1: component
+		}
+	});
+});
