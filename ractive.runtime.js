@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Sep 03 2015 20:42:48 GMT+0000 (UTC) - commit 0b9c5a7a333f794ce0fb319bff6ec90bad53383f
+	Thu Sep 03 2015 20:44:46 GMT+0000 (UTC) - commit cebc0b6d05fcf77b77f3a0a000081dc3707b5d8b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -190,7 +190,7 @@
   	}
   }
 
-  function warnOnceIfDebug() {
+  function _warnOnceIfDebug() {
   	if (Ractive.DEBUG) {
   		warnOnce.apply(null, arguments);
   	}
@@ -1137,7 +1137,7 @@ var classCallCheck = function (instance, Constructor) {
   // Error messages that are used (or could be) in multiple places
   var badArguments = 'Bad arguments';
   var noRegistryFunctionReturn = 'A function was specified for "%s" %s, but no %s was returned';
-  var missingPlugin = function (name, type) {
+  var _missingPlugin = function (name, type) {
     return 'Missing "' + name + '" ' + type + ' plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#' + type + 's';
   };
 
@@ -3552,7 +3552,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.partialTemplate = getPartialTemplate(this.ractive, this.name, this.parentFragment);
 
   		if (!this.partialTemplate) {
-  			warnOnceIfDebug('Could not find template for partial \'' + this.name + '\'');
+  			_warnOnceIfDebug('Could not find template for partial \'' + this.name + '\'');
   			this.partialTemplate = [];
   		}
 
@@ -3576,7 +3576,7 @@ var classCallCheck = function (instance, Constructor) {
   		if (!template && template !== null) template = getPartialTemplate(this.ractive, name, this.parentFragment);
 
   		if (!template) {
-  			warnOnceIfDebug('Could not find template for partial \'' + name + '\'');
+  			_warnOnceIfDebug('Could not find template for partial \'' + name + '\'');
   		}
 
   		this.partialTemplate = template || [];
@@ -4533,12 +4533,12 @@ var classCallCheck = function (instance, Constructor) {
 
   var __prefix;
   var prefixCache;
-  var _testStyle;
+  var testStyle;
   if (!isClient) {
   	__prefix = null;
   } else {
   	prefixCache = {};
-  	_testStyle = createElement('div').style;
+  	testStyle = createElement('div').style;
 
   	__prefix = function (prop) {
   		var i, vendor, capped;
@@ -4546,7 +4546,7 @@ var classCallCheck = function (instance, Constructor) {
   		prop = camelCase(prop);
 
   		if (!prefixCache[prop]) {
-  			if (_testStyle[prop] !== undefined) {
+  			if (testStyle[prop] !== undefined) {
   				prefixCache[prop] = prop;
   			} else {
   				// test vendors...
@@ -4555,7 +4555,7 @@ var classCallCheck = function (instance, Constructor) {
   				i = vendors.length;
   				while (i--) {
   					vendor = vendors[i];
-  					if (_testStyle[vendor + capped] !== undefined) {
+  					if (testStyle[vendor + capped] !== undefined) {
   						prefixCache[prop] = vendor + capped;
   						break;
   					}
@@ -4668,78 +4668,47 @@ var classCallCheck = function (instance, Constructor) {
   // TODO what happens if a transition is aborted?
   // TODO use this with Animation to dedupe some code?
 
-  var Ticker = function (options) {
-  	var easing;
+  var Ticker = (function () {
+  	function Ticker(options) {
+  		classCallCheck(this, Ticker);
 
-  	this.duration = options.duration;
-  	this.step = options.step;
-  	this.complete = options.complete;
+  		this.duration = options.duration;
+  		this.step = options.step;
+  		this.complete = options.complete;
+  		this.easing = options.easing;
 
-  	// easing
-  	if (typeof options.easing === 'string') {
-  		easing = options.root.easing[options.easing];
+  		this.start = getTime();
+  		this.end = this.start + this.duration;
 
-  		if (!easing) {
-  			warnOnceIfDebug(missingPlugin(options.easing, 'easing'));
-  			easing = linear;
-  		}
-  	} else if (typeof options.easing === 'function') {
-  		easing = options.easing;
-  	} else {
-  		easing = linear;
+  		this.running = true;
+  		animations.add(this);
   	}
 
-  	this.easing = easing;
-
-  	this.start = getTime();
-  	this.end = this.start + this.duration;
-
-  	this.running = true;
-  	animations.add(this);
-  };
-
-  Ticker.prototype = {
-  	tick: function (now) {
-  		var elapsed, eased;
-
-  		if (!this.running) {
-  			return false;
-  		}
+  	Ticker.prototype.tick = function tick(now) {
+  		if (!this.running) return false;
 
   		if (now > this.end) {
-  			if (this.step) {
-  				this.step(1);
-  			}
-
-  			if (this.complete) {
-  				this.complete(1);
-  			}
+  			if (this.step) this.step(1);
+  			if (this.complete) this.complete(1);
 
   			return false;
   		}
 
-  		elapsed = now - this.start;
-  		eased = this.easing(elapsed / this.duration);
+  		var elapsed = now - this.start;
+  		var eased = this.easing(elapsed / this.duration);
 
-  		if (this.step) {
-  			this.step(eased);
-  		}
+  		if (this.step) this.step(eased);
 
   		return true;
-  	},
+  	};
 
-  	stop: function () {
-  		if (this.abort) {
-  			this.abort();
-  		}
-
+  	Ticker.prototype.stop = function stop() {
+  		if (this.abort) this.abort();
   		this.running = false;
-  	}
-  };
+  	};
 
-  function linear(t) {
-  	return t;
-  }
+  	return Ticker;
+  })();
 
   var interpolators = {
   	number: function (from, to) {
@@ -4857,7 +4826,7 @@ var classCallCheck = function (instance, Constructor) {
   			return interpol(from, to) || snap(to);
   		}
 
-  		fatal(missingPlugin(type, 'interpolator'));
+  		fatal(_missingPlugin(type, 'interpolator'));
   	}
 
   	return interpolators.number(from, to) || interpolators.array(from, to) || interpolators.object(from, to) || snap(to);
@@ -4895,23 +4864,28 @@ var classCallCheck = function (instance, Constructor) {
   	return hyphenated;
   }
 
-  var createTransitions;
-  var testStyle;
-  var TRANSITION;
-  var TRANSITIONEND;
-  var CSS_TRANSITIONS_ENABLED;
-  var TRANSITION_DURATION;
-  var TRANSITION_PROPERTY;
-  var TRANSITION_TIMING_FUNCTION;
-  var canUseCssTransitions = {};
-  var cannotUseCssTransitions = {};
+  var createTransitions = undefined;
+
   if (!isClient) {
   	createTransitions = null;
   } else {
-  	testStyle = createElement('div').style;
-
-  	// determine some facts about our environment
   	(function () {
+  		var testStyle = createElement('div').style;
+  		var linear = function (x) {
+  			return x;
+  		};
+
+  		var canUseCssTransitions = {};
+  		var cannotUseCssTransitions = {};
+
+  		// determine some facts about our environment
+  		var TRANSITION = undefined,
+  		    TRANSITIONEND = undefined,
+  		    CSS_TRANSITIONS_ENABLED = undefined,
+  		    TRANSITION_DURATION = undefined,
+  		    TRANSITION_PROPERTY = undefined,
+  		    TRANSITION_TIMING_FUNCTION = undefined;
+
   		if (testStyle.transition !== undefined) {
   			TRANSITION = 'transition';
   			TRANSITIONEND = 'transitionend';
@@ -4923,154 +4897,168 @@ var classCallCheck = function (instance, Constructor) {
   		} else {
   			CSS_TRANSITIONS_ENABLED = false;
   		}
-  	})();
 
-  	if (TRANSITION) {
-  		TRANSITION_DURATION = TRANSITION + 'Duration';
-  		TRANSITION_PROPERTY = TRANSITION + 'Property';
-  		TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
-  	}
+  		if (TRANSITION) {
+  			TRANSITION_DURATION = TRANSITION + 'Duration';
+  			TRANSITION_PROPERTY = TRANSITION + 'Property';
+  			TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
+  		}
 
-  	createTransitions = function (t, to, options, changedProperties, resolve) {
+  		createTransitions = function (t, to, options, changedProperties, resolve) {
 
-  		// Wait a beat (otherwise the target styles will be applied immediately)
-  		// TODO use a fastdom-style mechanism?
-  		setTimeout(function () {
-
-  			var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete, transitionEndHandler;
-
-  			checkComplete = function () {
-  				if (jsTransitionsComplete && cssTransitionsComplete) {
-  					// will changes to events and fire have an unexpected consequence here?
-  					t.root.fire(t.name + ':end', t.node, t.isIntro);
-  					resolve();
-  				}
-  			};
-
-  			// this is used to keep track of which elements can use CSS to animate
-  			// which properties
-  			hashPrefix = (t.node.namespaceURI || '') + t.node.tagName;
-
-  			t.node.style[TRANSITION_PROPERTY] = changedProperties.map(__prefix).map(hyphenate).join(',');
-  			t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
-  			t.node.style[TRANSITION_DURATION] = options.duration / 1000 + 's';
-
-  			transitionEndHandler = function (event) {
-  				var index;
-
-  				index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
-  				if (index !== -1) {
-  					changedProperties.splice(index, 1);
-  				}
-
-  				if (changedProperties.length) {
-  					// still transitioning...
-  					return;
-  				}
-
-  				t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
-
-  				cssTransitionsComplete = true;
-  				checkComplete();
-  			};
-
-  			t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
-
+  			// Wait a beat (otherwise the target styles will be applied immediately)
+  			// TODO use a fastdom-style mechanism?
   			setTimeout(function () {
-  				var i = changedProperties.length,
-  				    hash,
-  				    originalValue,
-  				    index,
-  				    propertiesToTransitionInJs = [],
-  				    prop,
-  				    suffix;
 
-  				while (i--) {
-  					prop = changedProperties[i];
-  					hash = hashPrefix + prop;
+  				var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete, transitionEndHandler;
 
-  					if (CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[hash]) {
-  						t.node.style[__prefix(prop)] = to[prop];
+  				checkComplete = function () {
+  					if (jsTransitionsComplete && cssTransitionsComplete) {
+  						// will changes to events and fire have an unexpected consequence here?
+  						t.ractive.fire(t.name + ':end', t.node, t.isIntro);
+  						resolve();
+  					}
+  				};
 
-  						// If we're not sure if CSS transitions are supported for
-  						// this tag/property combo, find out now
-  						if (!canUseCssTransitions[hash]) {
-  							originalValue = t.getStyle(prop);
+  				// this is used to keep track of which elements can use CSS to animate
+  				// which properties
+  				hashPrefix = (t.node.namespaceURI || '') + t.node.tagName;
 
-  							// if this property is transitionable in this browser,
-  							// the current style will be different from the target style
-  							canUseCssTransitions[hash] = t.getStyle(prop) != to[prop];
-  							cannotUseCssTransitions[hash] = !canUseCssTransitions[hash];
+  				t.node.style[TRANSITION_PROPERTY] = changedProperties.map(__prefix).map(hyphenate).join(',');
+  				t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
+  				t.node.style[TRANSITION_DURATION] = options.duration / 1000 + 's';
 
-  							// Reset, if we're going to use timers after all
-  							if (cannotUseCssTransitions[hash]) {
-  								t.node.style[__prefix(prop)] = originalValue;
-  							}
-  						}
+  				transitionEndHandler = function (event) {
+  					var index;
+
+  					index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
+  					if (index !== -1) {
+  						changedProperties.splice(index, 1);
   					}
 
-  					if (!CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[hash]) {
-  						// we need to fall back to timer-based stuff
-  						if (originalValue === undefined) {
-  							originalValue = t.getStyle(prop);
-  						}
-
-  						// need to remove this from changedProperties, otherwise transitionEndHandler
-  						// will get confused
-  						index = changedProperties.indexOf(prop);
-  						if (index === -1) {
-  							warnIfDebug('Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!', { node: t.node });
-  						} else {
-  							changedProperties.splice(index, 1);
-  						}
-
-  						// TODO Determine whether this property is animatable at all
-
-  						suffix = /[^\d]*$/.exec(to[prop])[0];
-
-  						// ...then kick off a timer-based transition
-  						propertiesToTransitionInJs.push({
-  							name: __prefix(prop),
-  							interpolator: interpolate(parseFloat(originalValue), parseFloat(to[prop])),
-  							suffix: suffix
-  						});
+  					if (changedProperties.length) {
+  						// still transitioning...
+  						return;
   					}
-  				}
 
-  				// javascript transitions
-  				if (propertiesToTransitionInJs.length) {
-  					new Ticker({
-  						root: t.root,
-  						duration: options.duration,
-  						easing: camelCase(options.easing || ''),
-  						step: function (pos) {
-  							var prop, i;
-
-  							i = propertiesToTransitionInJs.length;
-  							while (i--) {
-  								prop = propertiesToTransitionInJs[i];
-  								t.node.style[prop.name] = prop.interpolator(pos) + prop.suffix;
-  							}
-  						},
-  						complete: function () {
-  							jsTransitionsComplete = true;
-  							checkComplete();
-  						}
-  					});
-  				} else {
-  					jsTransitionsComplete = true;
-  				}
-
-  				if (!changedProperties.length) {
-  					// We need to cancel the transitionEndHandler, and deal with
-  					// the fact that it will never fire
   					t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
+
   					cssTransitionsComplete = true;
   					checkComplete();
-  				}
-  			}, 0);
-  		}, options.delay || 0);
-  	};
+  				};
+
+  				t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
+
+  				setTimeout(function () {
+  					var i = changedProperties.length,
+  					    hash,
+  					    originalValue,
+  					    index,
+  					    propertiesToTransitionInJs = [],
+  					    prop,
+  					    suffix;
+
+  					while (i--) {
+  						prop = changedProperties[i];
+  						hash = hashPrefix + prop;
+
+  						if (CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[hash]) {
+  							t.node.style[__prefix(prop)] = to[prop];
+
+  							// If we're not sure if CSS transitions are supported for
+  							// this tag/property combo, find out now
+  							if (!canUseCssTransitions[hash]) {
+  								originalValue = t.getStyle(prop);
+
+  								// if this property is transitionable in this browser,
+  								// the current style will be different from the target style
+  								canUseCssTransitions[hash] = t.getStyle(prop) != to[prop];
+  								cannotUseCssTransitions[hash] = !canUseCssTransitions[hash];
+
+  								// Reset, if we're going to use timers after all
+  								if (cannotUseCssTransitions[hash]) {
+  									t.node.style[__prefix(prop)] = originalValue;
+  								}
+  							}
+  						}
+
+  						if (!CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[hash]) {
+  							// we need to fall back to timer-based stuff
+  							if (originalValue === undefined) {
+  								originalValue = t.getStyle(prop);
+  							}
+
+  							// need to remove this from changedProperties, otherwise transitionEndHandler
+  							// will get confused
+  							index = changedProperties.indexOf(prop);
+  							if (index === -1) {
+  								warnIfDebug('Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!', { node: t.node });
+  							} else {
+  								changedProperties.splice(index, 1);
+  							}
+
+  							// TODO Determine whether this property is animatable at all
+
+  							suffix = /[^\d]*$/.exec(to[prop])[0];
+
+  							// ...then kick off a timer-based transition
+  							propertiesToTransitionInJs.push({
+  								name: __prefix(prop),
+  								interpolator: interpolate(parseFloat(originalValue), parseFloat(to[prop])),
+  								suffix: suffix
+  							});
+  						}
+  					}
+
+  					// javascript transitions
+  					if (propertiesToTransitionInJs.length) {
+  						var easing = undefined;
+
+  						if (typeof options.easing === 'string') {
+  							easing = t.ractive.easing[options.easing];
+
+  							if (!easing) {
+  								warnOnceIfDebug(missingPlugin(options.easing, 'easing'));
+  								easing = linear;
+  							}
+  						} else if (typeof options.easing === 'function') {
+  							easing = options.easing;
+  						} else {
+  							easing = linear;
+  						}
+
+  						new Ticker({
+  							duration: options.duration,
+  							easing: easing,
+  							step: function (pos) {
+  								var prop, i;
+
+  								i = propertiesToTransitionInJs.length;
+  								while (i--) {
+  									prop = propertiesToTransitionInJs[i];
+  									t.node.style[prop.name] = prop.interpolator(pos) + prop.suffix;
+  								}
+  							},
+  							complete: function () {
+  								jsTransitionsComplete = true;
+  								checkComplete();
+  							}
+  						});
+  					} else {
+  						jsTransitionsComplete = true;
+  					}
+
+  					if (!changedProperties.length) {
+  						// We need to cancel the transitionEndHandler, and deal with
+  						// the fact that it will never fire
+  						t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
+  						cssTransitionsComplete = true;
+  						checkComplete();
+  					}
+  				}, 0);
+  			}, options.delay || 0);
+  		};
+  	})();
   }
 
   var visible = undefined;
@@ -5089,15 +5077,15 @@ var classCallCheck = function (instance, Constructor) {
 
   			if (hidden in doc) {
   				_prefix = vendor;
-  				doc.addEventListener(_prefix + 'visibilitychange', onChange);
-  				onChange();
-
   				break;
   			}
   		}
   	}
 
-  	if (_prefix === undefined) {
+  	if (_prefix !== undefined) {
+  		doc.addEventListener(_prefix + 'visibilitychange', onChange);
+  		onChange();
+  	} else {
   		// gah, we're in an old browser
   		if ('onfocusout' in doc) {
   			doc.addEventListener('focusout', onHide);
@@ -5175,7 +5163,7 @@ var classCallCheck = function (instance, Constructor) {
   		this._fn = findInViewHierarchy('transitions', ractive, name);
 
   		if (!this._fn) {
-  			warnOnceIfDebug(missingPlugin(name, 'transition'), { ractive: ractive });
+  			_warnOnceIfDebug(_missingPlugin(name, 'transition'), { ractive: ractive });
   		}
   	}
 
@@ -5211,17 +5199,17 @@ var classCallCheck = function (instance, Constructor) {
 
   		// TODO remove this check in a future version
   		if (!options) {
-  			warnOnceIfDebug('The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name);
+  			_warnOnceIfDebug('The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name);
   			options = this;
   		}
 
-  		var promise = new _Promise(function (resolve) {
+  		return new _Promise(function (fulfil) {
   			var propertyNames, changedProperties, computedStyle, current, from, i, prop;
 
   			// Edge case - if duration is zero, set style synchronously and complete
   			if (!options.duration) {
   				_this.setStyle(to);
-  				resolve();
+  				fulfil();
   				return;
   			}
 
@@ -5256,14 +5244,12 @@ var classCallCheck = function (instance, Constructor) {
   			// If we're not actually changing anything, the transitionend event
   			// will never fire! So we complete early
   			if (!changedProperties.length) {
-  				resolve();
+  				fulfil();
   				return;
   			}
 
-  			createTransitions(_this, to, options, changedProperties, resolve);
+  			createTransitions(_this, to, options, changedProperties, fulfil);
   		});
-
-  		return promise;
   	};
 
   	Transition.prototype.getStyle = function getStyle(props) {
@@ -5401,7 +5387,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function warnAboutAmbiguity(description, ractive) {
-  	warnOnceIfDebug('The ' + description + ' being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: ractive });
+  	_warnOnceIfDebug('The ' + description + ' being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: ractive });
   }
 
   var Binding = (function () {
@@ -5434,7 +5420,7 @@ var classCallCheck = function (instance, Constructor) {
   		// TODO include index/key/keypath refs as read-only
   		else if (model.isReadonly) {
   				var keypath = model.getKeypath().replace(/^@/, '');
-  				warnOnceIfDebug('Cannot use two-way binding on <' + element.name + '> element: ' + keypath + ' is read-only. To suppress this warning use <' + element.name + ' twoway=\'false\'...>', { ractive: this.ractive });
+  				_warnOnceIfDebug('Cannot use two-way binding on <' + element.name + '> element: ' + keypath + ' is read-only. To suppress this warning use <' + element.name + ' twoway=\'false\'...>', { ractive: this.ractive });
   				return false;
   			}
 
@@ -6703,7 +6689,7 @@ var classCallCheck = function (instance, Constructor) {
   		    name = this.name;
 
   		if (!('on' + name in node)) {
-  			missingPlugin(name, 'events');
+  			_missingPlugin(name, 'events');
   		}
 
   		node._ractive.events[name] = directive;
@@ -6809,7 +6795,7 @@ var classCallCheck = function (instance, Constructor) {
   		var fn = findInViewHierarchy('decorators', this.ractive, this.name);
 
   		if (!fn) {
-  			missingPlugin(this.name, 'decorators');
+  			_missingPlugin(this.name, 'decorators');
   			this.intermediary = missingDecorator;
   			return;
   		}
@@ -8422,7 +8408,7 @@ var classCallCheck = function (instance, Constructor) {
   	}
 
   	if (data.constructor !== Object) {
-  		warnOnceIfDebug('Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged');
+  		_warnOnceIfDebug('Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged');
   	}
 
   	return data;
@@ -8863,7 +8849,7 @@ var classCallCheck = function (instance, Constructor) {
 
   			if (Ractive.DEBUG_PROMISES) {
   				promise['catch'](function (err) {
-  					warnOnceIfDebug('Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;');
+  					_warnOnceIfDebug('Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;');
   					warnIfDebug('An error happened during rendering', { ractive: ractive });
   					err.stack && logIfDebug(err.stack);
 
@@ -9655,7 +9641,7 @@ var classCallCheck = function (instance, Constructor) {
   			adaptor = findInViewHierarchy('adaptors', ractive, adaptor);
 
   			if (!adaptor) {
-  				fatal(missingPlugin(adaptor, 'adaptor'));
+  				fatal(_missingPlugin(adaptor, 'adaptor'));
   			}
   		}
 
@@ -9800,7 +9786,7 @@ var classCallCheck = function (instance, Constructor) {
   						var model = resolve(_this.parentFragment, template[0]);
 
   						if (!model) {
-  							warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this.instance }); // TODO add docs page explaining this
+  							_warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this.instance }); // TODO add docs page explaining this
   							_this.parentFragment.ractive.get(localKey); // side-effect: create mappings as necessary
   							model = _this.parentFragment.findContext().joinKey(localKey);
   						}
@@ -9918,7 +9904,7 @@ var classCallCheck = function (instance, Constructor) {
 
   						if (!model) {
   							// TODO is this even possible?
-  							warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this3.instance });
+  							_warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this3.instance });
   							_this3.parentFragment.ractive.get(localKey); // side-effect: create mappings as necessary
   							model = _this3.parentFragment.findContext().joinKey(localKey);
   						}
