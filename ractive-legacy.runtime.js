@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Sep 03 2015 20:44:46 GMT+0000 (UTC) - commit cebc0b6d05fcf77b77f3a0a000081dc3707b5d8b
+	Thu Sep 03 2015 20:53:39 GMT+0000 (UTC) - commit cfca9640851ce500bfd0b2af6a15e9b20358efbe
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3916,7 +3916,7 @@ var classCallCheck = function (instance, Constructor) {
 
   				if (_this3.rendered) {
   					var parentNode = _this3.parent.findParentNode();
-  					var anchor = _this3.parent.findNextNode(_this3);
+  					var anchor = _this3.parent.findNextNode(_this3.owner);
 
   					parentNode.insertBefore(docFrag, anchor);
   				}
