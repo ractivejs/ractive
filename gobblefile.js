@@ -18,7 +18,7 @@ if ( gobble.env() === 'production' ) {
 		.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
 
 	lib = gobble([
-		src.transform( 'rollup-babel', {
+		es5.transform( 'rollup', {
 			format: 'umd',
 			transform: function ( src, path ) {
 				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
@@ -33,7 +33,7 @@ if ( gobble.env() === 'production' ) {
 			banner: banner
 		}),
 
-		src.transform( 'rollup-babel', {
+		es5.transform( 'rollup', {
 			format: 'umd',
 			transform: function ( src, path ) {
 				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
@@ -52,7 +52,7 @@ if ( gobble.env() === 'production' ) {
 			dest: 'ractive.js'
 		}),
 
-		es5.transform( 'rollup-babel', {
+		es5.transform( 'rollup', {
 			format: 'umd',
 			transform: function ( src, path ) {
 				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
@@ -71,7 +71,7 @@ if ( gobble.env() === 'production' ) {
 			dest: 'ractive.runtime.js'
 		}),
 
-		es5.transform( 'rollup-babel', {
+		es5.transform( 'rollup', {
 			format: 'umd',
 			transform: function ( src, path ) {
 				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
