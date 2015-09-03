@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Sep 03 2015 20:37:56 GMT+0000 (UTC) - commit 2ce87f0f0bedb88908af208d8231e2eddc1245af
+	Thu Sep 03 2015 20:42:48 GMT+0000 (UTC) - commit 0b9c5a7a333f794ce0fb319bff6ec90bad53383f
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2020,13 +2020,6 @@ var classCallCheck = function (instance, Constructor) {
   	var localViewmodel = fragment.findContext().root;
   	var keys = ref.split('.');
   	var key = keys[0];
-
-  	// TODO what if there are two component boundaries to cross - does this still work?
-  	var base = localViewmodel.mappings.hasOwnProperty(key) ? localViewmodel.mappings[key] : localViewmodel.computations.hasOwnProperty(key) ? localViewmodel.computations[key] : null;
-
-  	if (base) {
-  		return keys.length > 1 ? base.joinAll(keys.slice(1)) : base;
-  	}
 
   	var hasContextChain = undefined;
   	var crossedComponentBoundary = undefined;
