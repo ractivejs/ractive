@@ -33,6 +33,36 @@ module( 'Transitions', {
 	}
 });
 
+asyncTest( 'Animated style', assert => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#if show}}
+				<div intro-outro="test">content...</div>
+			{{/if show}}`,
+		transitions: {
+			test ( t ) {
+				t.setStyle( 'height', '100px' );
+
+				t.animateStyle( 'height', '200px', {
+					duration: 50
+				}).then( t.complete );
+
+				// should not have changed yet
+				assert.equal( t.getStyle( 'height' ), '100px' );
+			}
+		}
+	});
+
+	expect( 2 );
+
+	ractive.set( 'show', true ).then( () => {
+		const div = ractive.find( 'div' );
+		assert.equal( div.style.height, '' );
+		QUnit.start();
+	});
+});
+
 asyncTest( 'Elements containing components with outroing elements do not detach until transitions are complete', function ( t ) {
 	var Widget, ractive, p, shouldHaveCompleted;
 
@@ -156,7 +186,7 @@ asyncTest( 'ractive.transitionsEnabled false prevents all transitions', function
 		}
 	});
 });
-/*
+
 if ( hasUsableConsole ) {
 	asyncTest( 'Missing transition functions do not cause errors, but do console.warn', function ( t ) {
 		var ractive, warn = console.warn;
@@ -190,17 +220,19 @@ asyncTest( 'Transitions work the first time (#916)', function ( t ) {
 			t.equal( div.style.lineHeight, '' );
 			QUnit.start();
 		},
-		changeLineHeight ( t ) {
-			let targetLineHeight;
+		transitions: {
+			changeLineHeight ( t ) {
+				let targetLineHeight;
 
-			if ( t.isIntro ) {
-				targetLineHeight = t.getStyle( 'lineHeight' );
-				t.setStyle( 'lineHeight', 0 );
-			} else {
-				targetLineHeight = 0;
+				if ( t.isIntro ) {
+					targetLineHeight = t.getStyle( 'lineHeight' );
+					t.setStyle( 'lineHeight', 0 );
+				} else {
+					targetLineHeight = 0;
+				}
+
+				t.animateStyle( 'lineHeight', targetLineHeight, { duration: 50 } ).then( t.complete );
 			}
-
-			t.animateStyle( 'lineHeight', targetLineHeight, { duration: 50 } ).then( t.complete );
 		}
 	});
 
@@ -208,7 +240,7 @@ asyncTest( 'Transitions work the first time (#916)', function ( t ) {
 
 	t.equal( div.style.lineHeight, 0 );
 });
-*/
+
 test( 'Nodes are detached synchronously if there are no outro transitions (#856)', function ( t ) {
 	var ractive, target;
 
