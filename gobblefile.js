@@ -21,7 +21,7 @@ if ( gobble.env() === 'production' ) {
 		src.transform( 'rollup-babel', {
 			format: 'umd',
 			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
 					return src.replace( /<@version@>/g, version );
 				}
 
@@ -36,7 +36,7 @@ if ( gobble.env() === 'production' ) {
 		src.transform( 'rollup-babel', {
 			format: 'umd',
 			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
 					return src.replace( /<@version@>/g, version );
 				}
 
@@ -55,7 +55,7 @@ if ( gobble.env() === 'production' ) {
 		es5.transform( 'rollup-babel', {
 			format: 'umd',
 			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
 					return src.replace( /<@version@>/g, version );
 				}
 
@@ -74,7 +74,7 @@ if ( gobble.env() === 'production' ) {
 		es5.transform( 'rollup-babel', {
 			format: 'umd',
 			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils\/log\.js)$/.test( path ) ) {
+				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
 					return src.replace( /<@version@>/g, version );
 				}
 
