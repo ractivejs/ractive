@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Sep 03 2015 20:53:39 GMT+0000 (UTC) - commit cfca9640851ce500bfd0b2af6a15e9b20358efbe
+	Thu Sep 03 2015 20:56:30 GMT+0000 (UTC) - commit ac266f6ef7d4fb9de5b8b59d9bcad5a26bc3f509
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12542,9 +12542,10 @@ var classCallCheck = function (instance, Constructor) {
   	// observers
   	ractive._observers = [];
 
-  	// these could be overridden if this is an inline component instance
-  	ractive.root = ractive;
-  	ractive.parent = ractive.container = null; // TODO container still applicable?
+  	if (!ractive.component) {
+  		ractive.root = ractive;
+  		ractive.parent = ractive.container = null; // TODO container still applicable?		
+  	}
   }
 
   function deprecateRactiveData() {
@@ -12596,8 +12597,6 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.yielders = {};
 
-  		construct(this.instance, { partials: partials });
-
   		// find container
   		var fragment = options.parentFragment;
   		var container = undefined;
@@ -12615,6 +12614,8 @@ var classCallCheck = function (instance, Constructor) {
   		instance.container = container || null;
   		instance.root = instance.parent.root;
   		instance.component = this;
+
+  		construct(this.instance, { partials: partials });
 
   		// for hackability, this could be an open option
   		// for any ractive instance, but for now, just
