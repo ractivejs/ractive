@@ -6,6 +6,7 @@ import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
+import Computation from './Computation';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -166,6 +167,10 @@ export default class Model {
 
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
+		if ( this.value === void 0 && this.parent instanceof Computation ) {
+			this.parent.get();
+			return this.retrieve();
+		}
 		return this.value;
 	}
 
