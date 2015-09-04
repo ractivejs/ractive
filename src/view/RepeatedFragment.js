@@ -31,7 +31,7 @@ export default class RepeatedFragment {
 
 		this.context = null;
 		this.rendered = false;
-		this.iterations = null;
+		this.iterations = [];
 
 		this.template = options.template;
 
