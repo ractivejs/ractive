@@ -284,6 +284,29 @@ test( 'Namespaced attributes are set correctly', t => {
 	t.equal(ractive.find('use').getAttributeNS('http://www.w3.org/1999/xlink', 'href'), '#yup');
 });
 
+test( 'Multi switch each block object -> array -> object -> array (#2054)', t => {
+	const arrayData = ['a', 'b', 'c'],
+		  objectData = { a: 'a', b: 'b', c: 'c' },
+		  expected = 'abc';
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{#each bar}}{{.}}{{/each}}',
+		data: {
+		  bar: arrayData
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, expected );
+
+	ractive.set( 'bar', objectData );
+	t.htmlEqual( fixture.innerHTML, expected );
+
+	ractive.set( 'bar', arrayData );
+	t.htmlEqual( fixture.innerHTML, expected );
+
+});
+
 if ( typeof Object.create === 'function' ) {
 	test( 'data of type Object.create(null) (#1825)', t => {
 		var ractive, expected;

@@ -29,13 +29,21 @@ export default class RepeatedFragment {
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
 
+		this.context = null;
+		this.rendered = false;
+		this.iterations = null;
+
 		this.template = options.template;
 
 		this.indexRef = options.indexRef;
 		this.keyRef = options.keyRef;
+		this.indexByKey = null; // for `{{#each object}}...`
 
 		this.pendingNewIndices = null;
-		this.indexByKey = null; // for `{{#each object}}...`
+		this.previousIterations = null;
+
+		// track array versus object so updates of type rest
+		this.isArray = false;
 	}
 
 	bind ( context ) {
@@ -43,7 +51,7 @@ export default class RepeatedFragment {
 		const value = context.get();
 
 		// {{#each array}}...
-		if ( isArray( value ) ) {
+		if ( this.isArray = isArray( value ) ) {
 			// we can't use map, because of sparse arrays
 			this.iterations = [];
 			for ( let i = 0; i < value.length; i += 1 ) {
@@ -53,6 +61,8 @@ export default class RepeatedFragment {
 
 		// {{#each object}}...
 		else if ( isObject( value ) ) {
+			this.isArray = false;
+
 			// TODO this is a dreadful hack. There must be a neater way
 			if ( this.indexRef ) {
 				const refs = this.indexRef.split( ',' );
@@ -220,17 +230,23 @@ export default class RepeatedFragment {
 			return;
 		}
 
-		const value = this.context.get();
+		const value = this.context.get(),
+			  wasArray = this.isArray;
 
 		let toRemove;
 		let oldKeys;
+		let reset = true;
 		let i;
 
-		if ( isArray( value ) ) {
-			if ( this.iterations.length > value.length ) {
-				toRemove = this.iterations.splice( value.length );
+		if ( this.isArray = isArray( value ) ) {
+			if ( wasArray ) {
+				reset = false;
+				if ( this.iterations.length > value.length ) {
+					toRemove = this.iterations.splice( value.length );
+				}
 			}
-		} else if ( isObject( value ) ) {
+		} else if ( isObject( value ) && !wasArray ) {
+			reset = false;
 			toRemove = [];
 			oldKeys = {};
 			i = this.iterations.length;
@@ -244,7 +260,9 @@ export default class RepeatedFragment {
 					toRemove.push( fragment );
 				}
 			}
-		} else {
+		}
+
+		if ( reset ) {
 			toRemove = this.iterations;
 			this.iterations = [];
 		}
@@ -286,7 +304,7 @@ export default class RepeatedFragment {
 
 			else if ( isObject( value ) ) {
 				Object.keys( value ).forEach( key => {
-					if ( !( key in oldKeys ) ) {
+					if ( !oldKeys || !( key in oldKeys ) ) {
 						fragment = this.createIteration( key, i );
 
 						this.iterations.push( fragment );
