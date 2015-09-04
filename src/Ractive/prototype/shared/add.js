@@ -8,8 +8,10 @@ export default function add ( ractive, keypath, d ) {
 		throw new Error( 'Bad arguments' );
 	}
 
+	let changes;
+
 	if ( /\*/.test( keypath ) ) {
-		let changes = {};
+		changes = {};
 
 		ractive.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
 			const value = model.get();

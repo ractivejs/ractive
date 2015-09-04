@@ -96,6 +96,8 @@ export default class Component extends Item {
 		if ( this.template.a ) {
 			Object.keys( this.template.a ).forEach( localKey => {
 				const template = this.template.a[ localKey ];
+				let model;
+				let fragment;
 
 				if ( template === 0 ) {
 					// empty attributes are `true`
@@ -109,7 +111,7 @@ export default class Component extends Item {
 
 				else if ( isArray( template ) ) {
 					if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
-						let model = resolve( this.parentFragment, template[0] );
+						model = resolve( this.parentFragment, template[0] );
 
 						if ( !model ) {
 							warnOnceIfDebug( `The ${localKey}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.instance }); // TODO add docs page explaining this
@@ -125,12 +127,12 @@ export default class Component extends Item {
 					}
 
 					else {
-						const fragment = new Fragment({
+						fragment = new Fragment({
 							owner: this,
 							template
 						}).bind();
 
-						const model = viewmodel.joinKey( localKey );
+						model = viewmodel.joinKey( localKey );
 						model.set( fragment.valueOf() );
 
 						// this is a *bit* of a hack
@@ -214,14 +216,15 @@ export default class Component extends Item {
 		this.liveQueries.forEach( makeDirty );
 
 		// update relevant mappings
-		if ( this.template.a ) {
-			const viewmodel = this.instance.viewmodel;
+		const viewmodel = this.instance.viewmodel;
 
+		if ( this.template.a ) {
 			Object.keys( this.template.a ).forEach( localKey => {
 				const template = this.template.a[ localKey ];
+				let model;
 
 				if ( isArray( template ) && template.length === 1 && template[0].t === INTERPOLATOR ) {
-					let model = resolve( this.parentFragment, template[0] );
+					model = resolve( this.parentFragment, template[0] );
 
 					if ( !model ) {
 						// TODO is this even possible?
@@ -235,7 +238,7 @@ export default class Component extends Item {
 			});
 		}
 
-		this.instance.fragment.rebind( this.instance.viewmodel );
+		this.instance.fragment.rebind( viewmodel );
 	}
 
 	render ( target ) {

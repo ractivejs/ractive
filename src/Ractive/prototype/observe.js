@@ -6,9 +6,10 @@ import resolveReference from '../../view/resolvers/resolveReference';
 
 export default function observe ( keypath, callback, options ) {
 	let observers = [];
+	let map;
 
 	if ( isObject( keypath ) ) {
-		const map = keypath;
+		map = keypath;
 		options = callback || {};
 
 		Object.keys( map ).forEach( keypath => {

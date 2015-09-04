@@ -55,9 +55,9 @@ export default class RepeatedFragment {
 		else if ( isObject( value ) ) {
 			// TODO this is a dreadful hack. There must be a neater way
 			if ( this.indexRef ) {
-				const [ keyRef, indexRef ] = this.indexRef.split( ',' );
-				this.keyRef = keyRef;
-				this.indexRef = indexRef;
+				const refs = this.indexRef.split( ',' );
+				this.keyRef = refs[0];
+				this.indexRef = refs[1];
 			}
 
 			this.indexByKey = {};
@@ -224,6 +224,7 @@ export default class RepeatedFragment {
 
 		let toRemove;
 		let oldKeys;
+		let i;
 
 		if ( isArray( value ) ) {
 			if ( this.iterations.length > value.length ) {
@@ -232,7 +233,7 @@ export default class RepeatedFragment {
 		} else if ( isObject( value ) ) {
 			toRemove = [];
 			oldKeys = {};
-			let i = this.iterations.length;
+			i = this.iterations.length;
 
 			while ( i-- ) {
 				const fragment = this.iterations[i];
@@ -265,13 +266,16 @@ export default class RepeatedFragment {
 				Object.keys( value ).length :
 				0;
 
+		let docFrag;
+		let fragment;
+
 		if ( newLength > this.iterations.length ) {
-			const docFrag = this.rendered ? createDocumentFragment() : null;
-			let i = this.iterations.length;
+			docFrag = this.rendered ? createDocumentFragment() : null;
+			i = this.iterations.length;
 
 			if ( isArray( value ) ) {
 				while ( i < value.length ) {
-					const fragment = this.createIteration( i, i );
+					fragment = this.createIteration( i, i );
 
 					this.iterations.push( fragment );
 					if ( this.rendered ) fragment.render( docFrag );
@@ -283,7 +287,7 @@ export default class RepeatedFragment {
 			else if ( isObject( value ) ) {
 				Object.keys( value ).forEach( key => {
 					if ( !( key in oldKeys ) ) {
-						const fragment = this.createIteration( key, i );
+						fragment = this.createIteration( key, i );
 
 						this.iterations.push( fragment );
 						if ( this.rendered ) fragment.render( docFrag );

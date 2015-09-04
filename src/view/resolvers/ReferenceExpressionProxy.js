@@ -14,16 +14,17 @@ export default class ReferenceExpressionProxy extends Model {
 		this.resolvers = [];
 
 		this.base = resolve( fragment, template );
+		let baseResolver;
 
 		if ( !this.base ) {
-			const resolver = fragment.resolve( template.r, model => {
+			baseResolver = fragment.resolve( template.r, model => {
 				this.base = model;
 				this.bubble();
 
-				removeFromArray( this.resolvers, resolver );
+				removeFromArray( this.resolvers, baseResolver );
 			});
 
-			this.resolvers.push( resolver );
+			this.resolvers.push( baseResolver );
 		}
 
 		const intermediary = {
@@ -36,6 +37,7 @@ export default class ReferenceExpressionProxy extends Model {
 			}
 
 			let model;
+			let resolver;
 
 			if ( template.t === REFERENCE ) {
 				model = resolveReference( fragment, template.n );
@@ -43,7 +45,7 @@ export default class ReferenceExpressionProxy extends Model {
 				if ( model ) {
 					model.register( intermediary );
 				} else {
-					const resolver = fragment.resolve( template.n, model => {
+					resolver = fragment.resolve( template.n, model => {
 						this.members[i] = model;
 
 						model.register( intermediary );

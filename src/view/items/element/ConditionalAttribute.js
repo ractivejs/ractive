@@ -61,12 +61,15 @@ export default class ConditionalAttribute extends Item {
 	}
 
 	update () {
+		let str;
+		let attrs;
+
 		if ( this.dirty ) {
 			this.fragment.update();
 
 			if ( this.rendered ) {
-				const str = this.fragment.toString();
-				const attrs = parseAttributes( str, this.isSvg );
+				str = this.fragment.toString();
+				attrs = parseAttributes( str, this.isSvg );
 
 				// any attributes that previously existed but no longer do
 				// must be removed
