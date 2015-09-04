@@ -221,7 +221,6 @@ export default class Element extends Item {
 				proxy: this,
 				ractive: this.ractive,
 				fragment: this.parentFragment,
-				events: {},
 				context,
 				keypath: context.getKeypath()
 			}
