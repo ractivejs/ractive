@@ -372,20 +372,48 @@ test( 'Unresolved computations resolve when parent component data exists', funct
 
 test( 'Computed properties referencing bound parent data', function ( t ) {
 	const List = Ractive.extend({
-		// template: `
-		// 	{{#if limits.sum}}
-		// 		{{limits.sum}}
-		// 	{{else}}
-		// 		x
-		// 	{{/if}}
-		// `,
 		template: `
 			{{limits.sum}}
 		`,
 		computed: {
 			limits: function () {
-				// debugger
-				console.log('computed!')
+				return {sum: this.get('d.opts').reduce((a, b) => a + b)}
+			}
+		}
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+		{{#each list}}
+			<List d='{{.}}'/>
+		{{/each list}}
+		`,
+		data: {
+			list: [
+				{ opts: [3, 3, 3] },
+				{ opts: [3, 2, 1] },
+				{ opts: [1, 1, 1] },
+			]
+		},
+		components: { List }
+	});
+
+	t.equal( fixture.innerHTML, '963' );
+
+});
+
+test( 'Computed properties referencing bound parent data w/ conditional', function ( t ) {
+	const List = Ractive.extend({
+		template: `
+			{{#if limits.sum}}
+				{{limits.sum}}
+			{{else}}
+				x
+			{{/if}}
+		`,
+		computed: {
+			limits: function () {
 				return {sum: this.get('d.opts').reduce((a, b) => a + b)}
 			}
 		}
