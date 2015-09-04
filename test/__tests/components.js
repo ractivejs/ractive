@@ -525,8 +525,8 @@ if ( hasUsableConsole ) {
 			template: '{{#if show}}<widget/>{{/if}}',
 			components: {
 				widget: Ractive.extend({
-				    el: fixture,
-				    template: '{{whatever}}'
+					el: fixture,
+					template: '{{whatever}}'
 				})
 			},
 			debug: true
@@ -925,12 +925,12 @@ test( 'Mappings resolve correctly where references are shadowed (#2108)', assert
 
 test( 'not null value for this.parent in Component.oncunstruct() (#2091)', t => {
 	var component = Ractive.extend({
-    template: "<div>component</div>",
-	    onconstruct: function()
-	    {
-	        var parent = this.parent !== null;
-	        t.equal(parent,true);
-	    }
+		template: "<div>component</div>",
+		onconstruct: function()
+		{
+			var parent = this.parent !== null;
+			t.equal(parent,true);
+		}
 	});
 	var ractive = new Ractive({
 		el: fixture,
