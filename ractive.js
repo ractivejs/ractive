@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Sep 04 2015 18:09:55 GMT+0000 (UTC) - commit a832493408b9c3deddec632806e851fb64d4e4df
+	Fri Sep 04 2015 18:20:33 GMT+0000 (UTC) - commit 59cef4a50edb6b1dda7d1854345cc1269356760d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1136,13 +1136,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	_teardownHook.fire(this);
 
-  	this._boundFunctions.forEach(deleteFunctionCopy);
-
   	return promise;
-  }
-
-  function deleteFunctionCopy(bound) {
-  	delete bound.fn[bound.prop];
   }
 
   var _errorMessage = 'Cannot add to a non-numeric value';
@@ -1186,6 +1180,15 @@ var classCallCheck = function (instance, Constructor) {
 
   var shift = makeArrayMethod('shift');
 
+  function bind(fn, context) {
+  	if (!/this/.test(fn.toString())) return fn;
+
+  	var bound = fn.bind(context);
+  	for (var prop in fn) {
+  		bound[prop] = fn[prop];
+  	}return bound;
+  }
+
   function Ractive$set(keypath, value) {
   	var map, promise;
 
@@ -1212,6 +1215,8 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function set(ractive, keypath, value) {
+  	if (typeof value === 'function') value = bind(value, ractive);
+
   	if (/\*/.test(keypath)) {
   		ractive.viewmodel.findMatches(splitKeypath(keypath)).forEach(function (model) {
   			model.set(value);
@@ -2758,34 +2763,8 @@ var classCallCheck = function (instance, Constructor) {
   	return functionCache[str] = fn;
   }
 
-  function wrapFunction(fn, ractive, uid) {
-  	if (fn.__ractive_nowrap) return fn;
-
-  	var prop = '__ractive_' + uid;
-
-  	if (fn[prop]) return fn[prop];
-
-  	if (!/\bthis\b/.test(fn)) {
-  		defineProperty(fn, '__ractive_nowrap', {
-  			value: true
-  		});
-  		return fn;
-  	}
-
-  	defineProperty(fn, prop, {
-  		value: fn.bind(ractive),
-  		configurable: true
-  	});
-
-  	// Add properties/methods to wrapped function
-  	for (var key in fn) {
-  		if (fn.hasOwnProperty(key)) {
-  			fn[prop][key] = fn[key];
-  		}
-  	}
-
-  	ractive._boundFunctions.push({ fn: fn, prop: prop });
-  	return fn[prop];
+  function _getValue(model) {
+  	return model ? model.get(true) : undefined;
   }
 
   var ExpressionProxy = (function (_Model) {
@@ -2845,18 +2824,7 @@ var classCallCheck = function (instance, Constructor) {
   		// TODO can/should we reuse computations?
   		var signature = {
   			getter: function () {
-  				var values = _this2.models.map(function (model) {
-  					if (!model) return undefined;
-
-  					var value = model.get(true);
-
-  					if (typeof value === 'function') {
-  						return wrapFunction(value, ractive, ractive._guid);
-  					} else {
-  						return value;
-  					}
-  				});
-
+  				var values = _this2.models.map(_getValue);
   				return _this2.fn.apply(ractive, values);
   			},
   			getterString: key
@@ -8905,8 +8873,6 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	EventDirective.prototype.fire = function fire(event, passedArgs) {
-  		var _this2 = this;
-
   		// augment event object
   		if (event) {
   			event.keypath = this.context.getKeypath();
@@ -8945,8 +8911,7 @@ var classCallCheck = function (instance, Constructor) {
   						return model.wrapper.value;
   					}
 
-  					var value = model.get();
-  					return typeof value === 'function' ? value.bind(_this2.ractive) : value;
+  					return model.get();
   				});
 
   				args = this.argsFn.apply(null, values);
@@ -11016,8 +10981,14 @@ var classCallCheck = function (instance, Constructor) {
   	init: function (Parent, ractive, options) {
   		var result = __combine(Parent.prototype.data, options.data);
 
-  		if (typeof result === 'function') {
-  			result = result.call(ractive);
+  		if (typeof result === 'function') result = result.call(ractive);
+
+  		// bind functions to the ractive instance at the top level,
+  		// unless it's a non-POJO (in which case alarm bells should ring)
+  		if (result && result.constructor === Object) {
+  			for (var prop in result) {
+  				if (typeof result[prop] === 'function') result[prop] = bind(result[prop], ractive);
+  			}
   		}
 
   		return result || {};
@@ -11535,11 +11506,6 @@ var classCallCheck = function (instance, Constructor) {
 
   	fn = new Function(functionBody);
   	return hasThis ? fn.bind(ractive) : fn;
-  }
-
-  function bind(fn, context) {
-  	return (/this/.test(fn.toString()) ? fn.bind(context) : fn
-  	);
   }
   function getComputationSignature(ractive, key, signature) {
   	var getter = undefined;
@@ -12334,15 +12300,12 @@ var classCallCheck = function (instance, Constructor) {
   	ractive._liveQueries = [];
   	ractive._liveComponentQueries = [];
 
-  	// bound data functions
-  	ractive._boundFunctions = [];
-
   	// observers
   	ractive._observers = [];
 
   	if (!ractive.component) {
   		ractive.root = ractive;
-  		ractive.parent = ractive.container = null; // TODO container still applicable?		
+  		ractive.parent = ractive.container = null; // TODO container still applicable?
   	}
   }
 
