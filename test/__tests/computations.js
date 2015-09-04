@@ -440,6 +440,31 @@ test( 'Computed properties referencing bound parent data w/ conditional', functi
 
 });
 
+test( 'Computed properties referencing deep objects', function ( t ) {
+	let ractive = new Ractive({
+	  el: fixture,
+	  template: '{{one.two.tre}}',
+	  data: {
+	    answer: 42
+	  },
+	  computed: {
+	    one () {
+	      var answer = this.get( 'answer' );
+	      return {
+	        two: {
+	          tre: answer
+	        }
+	      };
+	    }
+	  }
+	});
+
+	t.equal( fixture.innerHTML, '42' );
+	ractive.set( 'answer', 99 );
+	t.equal( fixture.innerHTML, '99' );
+
+});
+
 test( 'Computations are not order dependent', function ( t ) {
 
 	var ractive, Component;
