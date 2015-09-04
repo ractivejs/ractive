@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Sep 04 2015 14:41:35 GMT+0000 (UTC) - commit 94a2b35c9dc0c76699f978916b20e77572adc646
+	Fri Sep 04 2015 18:09:55 GMT+0000 (UTC) - commit a832493408b9c3deddec632806e851fb64d4e4df
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6595,15 +6595,6 @@ var classCallCheck = function (instance, Constructor) {
   	return EventDirective;
   })();
 
-  function defaultHandler(event) {
-  	var handler = this._ractive.events[event.type];
-
-  	handler.fire({
-  		node: this,
-  		original: event
-  	});
-  }
-
   var DOMEvent = (function () {
   	function DOMEvent(name, owner) {
   		classCallCheck(this, DOMEvent);
@@ -6615,6 +6606,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.name = name;
   		this.owner = owner;
   		this.node = null;
+  		this.handler = null;
   	}
 
   	DOMEvent.prototype.listen = function listen(directive) {
@@ -6625,16 +6617,16 @@ var classCallCheck = function (instance, Constructor) {
   			_missingPlugin(name, 'events');
   		}
 
-  		node._ractive.events[name] = directive;
-  		node.addEventListener(name, defaultHandler, false);
+  		node.addEventListener(name, this.handler = function (event) {
+  			directive.fire({
+  				node: node,
+  				original: event
+  			});
+  		}, false);
   	};
 
   	DOMEvent.prototype.unlisten = function unlisten() {
-  		var node = this.node,
-  		    name = this.name;
-
-  		node.removeEventListener(name, defaultHandler, false);
-  		node._ractive.events[name] = null;
+  		this.node.removeEventListener(this.name, this.handler, false);
   	};
 
   	return DOMEvent;
@@ -6646,18 +6638,22 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.eventPlugin = eventPlugin;
   		this.owner = owner;
-  		this.node = null;
+  		this.handler = null;
   	}
 
   	CustomEvent.prototype.listen = function listen(directive) {
-  		var fire = function (event) {
-  			return directive.fire(event);
-  		};
-  		this.customHandler = this.eventPlugin(this.owner.node, fire);
+  		var node = this.owner.node;
+
+  		this.handler = this.eventPlugin(node, function () {
+  			var event = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+  			event.node = event.node || node;
+  			directive.fire(event);
+  		});
   	};
 
   	CustomEvent.prototype.unlisten = function unlisten() {
-  		this.customHandler.teardown();
+  		this.handler.teardown();
   	};
 
   	return CustomEvent;
