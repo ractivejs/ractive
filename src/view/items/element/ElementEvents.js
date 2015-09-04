@@ -45,8 +45,7 @@ class CustomEvent {
 	}
 
 	listen ( directive ) {
-		const node = this.owner.node,
-			  fire = directive.fire.bind( directive );
+		const node = this.owner.node;
 
 		this.handler = this.eventPlugin( node, function( event = {} ) {
 			event.node = event.node || node;
