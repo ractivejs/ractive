@@ -168,7 +168,8 @@ export default class EventDirective {
 						return model.wrapper.value;
 					}
 
-					return model.get();
+					let value = model.get();
+					return typeof value === 'function' ? value.bind(this.ractive) : value;
 				});
 
 				args = this.argsFn.apply( null, values );
