@@ -9,17 +9,11 @@ export default function Ractive$render ( target, anchor ) {
 		// Teardown any existing instances *before* trying to set up the new one -
 		// avoids certain weird bugs
 		let others = target.__ractive_instances__;
-		if ( others && others.length ) {
-			removeOtherInstances( others );
-		}
+		if ( others ) others.forEach( teardown );
 
 		// make sure we are the only occupants
 		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
 	}
 
 	return render( this, target, anchor );
-}
-
-function removeOtherInstances ( others ) {
-	others.splice( 0, others.length ).forEach( teardown );
 }

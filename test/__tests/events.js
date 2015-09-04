@@ -1473,7 +1473,7 @@ test( 'method calls that fire events do not clobber this.events', t => {
 })
 
 
-module( 'Issues' );
+module( 'Issues', { afterEach: cleanup });
 
 asyncTest( 'Grandchild component teardown when nested in element (#1360)', t => {
 	let torndown = [];
@@ -1699,6 +1699,27 @@ test( 'Regression test for #1971', t => {
 	simulant.fire( el, 'click' );
 });
 
+test( 'correct function scope for this.bar() in template', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: `
+			<button on-click='set("foo",bar())'>click me</button>
+			<p>foo: {{foo}}</p>
+		`,
+		data: {
+			foo: 'nope',
+			bar: function () {
+				return this.get( 'answer' );
+			},
+			answer: 42
+		}
+	});
+
+	simulant.fire( ractive.find( 'button' ), 'click' );
+
+	t.equal( ractive.get( 'foo' ), '42' );
+});
+
 // phantom and IE8 don't like these tests, but browsers are ok with them
 try {
 	simulant.fire( document.createElement( 'div' ), 'input' );
@@ -1781,27 +1802,6 @@ try {
 		simulant.fire( button, 'click' );
 		t.ok( !event1Fired );
 		t.ok( event2Fired );
-	});
-
-	test( 'correct function scope for this.bar() in template', t => {
-		let ractive = new Ractive({
-			el: fixture,
-			template: `
-				<button on-click='set("foo",bar())'>click me</button>
-				<p>foo: {{foo}}</p>
-			`,
-			data: {
-				foo: 'nope',
-				bar: function () {
-					return this.get( 'answer' );
-				},
-				answer: 42
-			}
-		});
-
-		simulant.fire( ractive.find( 'button' ), 'click' );
-
-		t.equal( ractive.get( 'foo' ), '42' );
 	});
 
 	test( 'invalid content in method call event directive should have a reasonable error message', t => {
