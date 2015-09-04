@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Sep 04 2015 18:20:33 GMT+0000 (UTC) - commit 59cef4a50edb6b1dda7d1854345cc1269356760d
+	Fri Sep 04 2015 19:15:28 GMT+0000 (UTC) - commit 0a791ac39eb5d03a9867707e5e9b3f0a9d32021e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5971,13 +5971,21 @@ var classCallCheck = function (instance, Constructor) {
   		this.owner = options.owner;
   		this.ractive = this.parent.ractive;
 
+  		this.context = null;
+  		this.rendered = false;
+  		this.iterations = null;
+
   		this.template = options.template;
 
   		this.indexRef = options.indexRef;
   		this.keyRef = options.keyRef;
+  		this.indexByKey = null; // for `{{#each object}}...`
 
   		this.pendingNewIndices = null;
-  		this.indexByKey = null; // for `{{#each object}}...`
+  		this.previousIterations = null;
+
+  		// track array versus object so updates of type rest
+  		this.isArray = false;
   	}
 
   	RepeatedFragment.prototype.bind = function bind(context) {
@@ -5987,7 +5995,7 @@ var classCallCheck = function (instance, Constructor) {
   		var value = context.get();
 
   		// {{#each array}}...
-  		if (isArray(value)) {
+  		if (this.isArray = isArray(value)) {
   			// we can't use map, because of sparse arrays
   			this.iterations = [];
   			for (var i = 0; i < value.length; i += 1) {
@@ -5997,6 +6005,8 @@ var classCallCheck = function (instance, Constructor) {
 
   		// {{#each object}}...
   		else if (isObject(value)) {
+  				this.isArray = false;
+
   				// TODO this is a dreadful hack. There must be a neater way
   				if (this.indexRef) {
   					var refs = this.indexRef.split(',');
@@ -6171,17 +6181,23 @@ var classCallCheck = function (instance, Constructor) {
   			return;
   		}
 
-  		var value = this.context.get();
+  		var value = this.context.get(),
+  		    wasArray = this.isArray;
 
   		var toRemove = undefined;
   		var oldKeys = undefined;
+  		var reset = true;
   		var i = undefined;
 
-  		if (isArray(value)) {
-  			if (this.iterations.length > value.length) {
-  				toRemove = this.iterations.splice(value.length);
+  		if (this.isArray = isArray(value)) {
+  			if (wasArray) {
+  				reset = false;
+  				if (this.iterations.length > value.length) {
+  					toRemove = this.iterations.splice(value.length);
+  				}
   			}
-  		} else if (isObject(value)) {
+  		} else if (isObject(value) && !wasArray) {
+  			reset = false;
   			toRemove = [];
   			oldKeys = {};
   			i = this.iterations.length;
@@ -6195,7 +6211,9 @@ var classCallCheck = function (instance, Constructor) {
   					toRemove.push(_fragment);
   				}
   			}
-  		} else {
+  		}
+
+  		if (reset) {
   			toRemove = this.iterations;
   			this.iterations = [];
   		}
@@ -6231,7 +6249,7 @@ var classCallCheck = function (instance, Constructor) {
   				}
   			} else if (isObject(value)) {
   				Object.keys(value).forEach(function (key) {
-  					if (!(key in oldKeys)) {
+  					if (!oldKeys || !(key in oldKeys)) {
   						fragment = _this3.createIteration(key, i);
 
   						_this3.iterations.push(fragment);
