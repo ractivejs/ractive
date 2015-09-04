@@ -1785,18 +1785,18 @@ try {
 
 	test( 'correct function scope for this.bar() in template', t => {
 		let ractive = new Ractive({
-	    el: fixture,
-	    template: `
-			<button on-click='set("foo",bar())'>click me</button>
-			<p>foo: {{foo}}</p>
+			el: fixture,
+			template: `
+				<button on-click='set("foo",bar())'>click me</button>
+				<p>foo: {{foo}}</p>
 			`,
-	    data: {
-	        foo: 'nope',
-	        bar: function () {
-	            return this.get( 'answer' );
-	        },
-	        answer: 42
-	    }
+			data: {
+				foo: 'nope',
+				bar: function () {
+					return this.get( 'answer' );
+				},
+				answer: 42
+			}
 		});
 
 		simulant.fire( ractive.find( 'button' ), 'click' );
