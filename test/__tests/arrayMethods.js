@@ -308,3 +308,19 @@ test( 'splice with one argument (#1943)', t => {
 
 	t.htmlEqual( fixture.innerHTML, '1' );
 });
+
+test( 'Check for this.model existence when rebinding (#2114)', t => {
+	let list = [ {} ];
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#each list}}
+				{{#if bar}}yep{{else}}nope{{/if bar}}
+			{{/each list}}`,
+		data: { list }
+	});
+
+	ractive.unshift( 'list', { bar: true });
+	t.equal( fixture.innerHTML, 'yepnope' );
+});

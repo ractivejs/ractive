@@ -53,10 +53,12 @@ export default class Mustache extends Item {
 		const oldValue = this.model.get();
 		this.model.unregister( this );
 
-		model.register( this );
 		this.model = model;
 
-		if ( model.get() !== oldValue ) this.handleChange();
+		if ( model ) {
+			model.register( this );
+			if ( model.get() !== oldValue ) this.handleChange();
+		}
 	}
 
 	unbind () {
