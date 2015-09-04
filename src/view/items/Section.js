@@ -31,7 +31,7 @@ export default class Section extends Mustache {
 
 		// if we managed to bind, we need to create children
 		if ( this.model ) {
-			const value = this.model.value; // TODO should use this.model.get()... but weirdness around root models
+			const value = this.model.parent ? this.model.get() : this.model.value;
 			let fragment;
 
 			if ( !this.sectionType ) this.sectionType = getType( value, this.template.i );
