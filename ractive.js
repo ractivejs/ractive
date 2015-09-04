@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Sep 04 2015 00:07:10 GMT+0000 (UTC) - commit 826b83585aab95db427c4af0d1f494f4995e1852
+	Fri Sep 04 2015 14:37:13 GMT+0000 (UTC) - commit 2b2dac6756d25b997d72e58cde89dfcdc0418354
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8216,18 +8216,6 @@ var classCallCheck = function (instance, Constructor) {
   	return NumericBinding;
   })(GenericBinding);
 
-  var FileListBinding = (function (_Binding) {
-    inherits(FileListBinding, _Binding);
-
-    function FileListBinding() {
-      classCallCheck(this, FileListBinding);
-
-      _Binding.apply(this, arguments);
-    }
-
-    return FileListBinding;
-  })(Binding);
-
   var CheckboxBinding = (function (_Binding) {
   	inherits(CheckboxBinding, _Binding);
 
@@ -8644,7 +8632,7 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		if (type === 'file' && isBindable(attributes.value)) {
-  			return FileListBinding;
+  			return Binding;
   		}
 
   		if (isBindable(attributes.value)) {
@@ -13017,19 +13005,13 @@ var classCallCheck = function (instance, Constructor) {
   		// Teardown any existing instances *before* trying to set up the new one -
   		// avoids certain weird bugs
   		var others = target.__ractive_instances__;
-  		if (others && others.length) {
-  			removeOtherInstances(others);
-  		}
+  		if (others) others.forEach(teardown);
 
   		// make sure we are the only occupants
   		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
   	}
 
   	return render(this, target, anchor);
-  }
-
-  function removeOtherInstances(others) {
-  	others.splice(0, others.length).forEach(teardown);
   }
 
   var _push = makeArrayMethod('push');
