@@ -1,15 +1,6 @@
 import { missingPlugin } from '../../../config/errors';
 import { fatal } from '../../../utils/log';
 
-function defaultHandler ( event ) {
-	const handler = this._ractive.events[ event.type ];
-
-	handler.fire({
-		node: this,
-		original: event
-	});
-}
-
 class DOMEvent {
 
 	constructor ( name, owner ) {
@@ -21,6 +12,7 @@ class DOMEvent {
 		this.name = name;
 		this.owner = owner;
 		this.node = null;
+		this.handler = null;
 	}
 
 	listen ( directive ) {
@@ -31,16 +23,16 @@ class DOMEvent {
 			missingPlugin( name, 'events' );
 		}
 
-		node._ractive.events[ name ] = directive;
-		node.addEventListener( name, defaultHandler, false );
+		node.addEventListener( name, this.handler = function( event ) {
+			directive.fire({
+				node: node,
+				original: event
+			});
+		}, false );
 	}
 
 	unlisten () {
-		const node = this.node,
-			  name = this.name;
-
-		node.removeEventListener( name, defaultHandler, false );
-		node._ractive.events[ name ] = null;
+		this.node.removeEventListener( this.name, this.handler, false );
 	}
 }
 
@@ -49,16 +41,20 @@ class CustomEvent {
 	constructor ( eventPlugin, owner ) {
 		this.eventPlugin = eventPlugin;
 		this.owner = owner;
-		this.node = null;
+		this.handler = null;
 	}
 
 	listen ( directive ) {
-		const fire = event => directive.fire( event );
-		this.customHandler = this.eventPlugin( this.owner.node, fire );
+		const node = this.owner.node;
+
+		this.handler = this.eventPlugin( node, function( event = {} ) {
+			event.node = event.node || node;
+			directive.fire( event );
+		});
 	}
 
 	unlisten () {
-		this.customHandler.teardown();
+		this.handler.teardown();
 	}
 }
 

@@ -1548,39 +1548,6 @@ test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t 
 	t.equal( p.keypath, 'baz.bat' );
 });
 
-if ( typeof Object.getOwnPropertyNames === 'function' ) {
-	test( 'Data functions do not retain instance-bound copies of themselves (#1538)', function ( t ) {
-		var foo, Widget, widgets, keys;
-
-		foo = function () {
-			this; // so that it gets wrapped
-			return 'bar';
-		};
-
-		Widget = Ractive.extend({
-			template: '{{foo()}}',
-			data: { foo: foo }
-		});
-
-		widgets = [ new Widget(), new Widget(), new Widget() ];
-		keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
-
-		t.equal( keys.length, 3 );
-
-		widgets.pop().teardown();
-		keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
-		t.equal( keys.length, 2 );
-
-		widgets.pop().teardown();
-		keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
-		t.equal( keys.length, 1 );
-
-		widgets.pop().teardown();
-		keys = Object.getOwnPropertyNames( foo ).filter( key => /__ractive/.test( key ) );
-		t.equal( keys.length, 0 );
-	});
-}
-
 test( 'Boolean attributes are added/removed based on unstringified fragment value', function ( t ) {
 	var ractive, button;
 

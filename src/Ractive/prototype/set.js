@@ -1,4 +1,5 @@
 import { isObject } from '../../utils/is';
+import bind from '../../utils/bind';
 import { splitKeypath } from '../../shared/keypaths';
 import runloop from '../../global/runloop';
 
@@ -29,6 +30,8 @@ export default function Ractive$set ( keypath, value ) {
 
 
 function set ( ractive, keypath, value ) {
+	if ( typeof value === 'function' ) value = bind( value, ractive );
+
 	if ( /\*/.test( keypath ) ) {
 		ractive.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
 			model.set( value );

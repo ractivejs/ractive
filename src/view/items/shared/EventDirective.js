@@ -170,8 +170,7 @@ export default class EventDirective {
 						return model.wrapper.value;
 					}
 
-					let value = model.get();
-					return typeof value === 'function' ? value.bind(this.ractive) : value;
+					return model.get();
 				});
 
 				args = this.argsFn.apply( null, values );

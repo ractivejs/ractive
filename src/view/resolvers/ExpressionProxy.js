@@ -5,34 +5,8 @@ import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
 import { defineProperty } from '../../utils/object';
 
-function wrapFunction ( fn, ractive, uid ) {
-	if ( fn.__ractive_nowrap ) return fn;
-
-	const prop = `__ractive_${uid}`;
-
-	if ( fn[ prop ] ) return fn[ prop ];
-
-	if ( !/\bthis\b/.test( fn ) ) {
-		defineProperty( fn, '__ractive_nowrap', {
-			value: true
-		});
-		return fn;
-	}
-
-	defineProperty( fn, prop, {
-		value: fn.bind( ractive ),
-		configurable: true
-	});
-
-	// Add properties/methods to wrapped function
-	for ( let key in fn ) {
-		if ( fn.hasOwnProperty( key ) ) {
-			fn[ prop ][ key ] = fn[ key ];
-		}
-	}
-
-	ractive._boundFunctions.push({ fn, prop });
-	return fn[ prop ];
+function getValue ( model ) {
+	return model ? model.get( true ) : undefined;
 }
 
 export default class ExpressionProxy extends Model {
@@ -84,18 +58,7 @@ export default class ExpressionProxy extends Model {
 		// TODO can/should we reuse computations?
 		const signature = {
 			getter: () => {
-				const values = this.models.map( model => {
-					if (!model) return undefined;
-
-					const value = model.get( true );
-
-					if ( typeof value === 'function' ) {
-						return wrapFunction( value, ractive, ractive._guid );
-					} else {
-						return value;
-					}
-				});
-
+				const values = this.models.map( getValue );
 				return this.fn.apply( ractive, values );
 			},
 			getterString: key
