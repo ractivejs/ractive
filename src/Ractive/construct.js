@@ -143,15 +143,12 @@ function initialiseProperties ( ractive ) {
 	ractive._liveQueries = [];
 	ractive._liveComponentQueries = [];
 
-	// bound data functions
-	ractive._boundFunctions = [];
-
 	// observers
 	ractive._observers = [];
 
 	if(!ractive.component){
 		ractive.root = ractive;
-		ractive.parent = ractive.container = null; // TODO container still applicable?		
+		ractive.parent = ractive.container = null; // TODO container still applicable?
 	}
 
 }

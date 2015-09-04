@@ -5,6 +5,8 @@ var Model = function ( attributes ) {
 };
 
 Model.prototype = {
+	constructor: Model,
+
 	set: function ( attr, newValue ) {
 		var transformer, oldValue = this.attributes[ attr ];
 

@@ -1,5 +1,6 @@
 import { fatal, warnIfDebug, warnOnceIfDebug } from '../../../utils/log';
 import { isObject, isArray } from '../../../utils/is';
+import bind from '../../../utils/bind';
 
 function validate ( data ) {
 	// Warn if userOptions.data is a non-POJO
@@ -49,10 +50,16 @@ var dataConfigurator = {
 	},
 
 	init: ( Parent, ractive, options ) => {
-		var result = combine( Parent.prototype.data, options.data );
+		let result = combine( Parent.prototype.data, options.data );
 
-		if ( typeof result === 'function' ) {
-			result = result.call( ractive );
+		if ( typeof result === 'function' ) result = result.call( ractive );
+
+		// bind functions to the ractive instance at the top level,
+		// unless it's a non-POJO (in which case alarm bells should ring)
+		if ( result && result.constructor === Object ) {
+			for ( let prop in result ) {
+				if ( typeof result[ prop ] === 'function' ) result[ prop ] = bind( result[ prop ], ractive );
+			}
 		}
 
 		return result || {};

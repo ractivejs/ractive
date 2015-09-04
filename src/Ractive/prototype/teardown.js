@@ -25,11 +25,5 @@ export default function Ractive$teardown () {
 
 	teardownHook.fire( this );
 
-	this._boundFunctions.forEach( deleteFunctionCopy );
-
 	return promise;
-}
-
-function deleteFunctionCopy ( bound ) {
-	delete bound.fn[ bound.prop ];
 }
