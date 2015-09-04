@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Sep 04 2015 19:15:28 GMT+0000 (UTC) - commit 0a791ac39eb5d03a9867707e5e9b3f0a9d32021e
+	Fri Sep 04 2015 19:22:41 GMT+0000 (UTC) - commit 55bb8113ff99ef6ba860ec557c9a3ad8c004d660
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10624,7 +10624,6 @@ var classCallCheck = function (instance, Constructor) {
   				proxy: this,
   				ractive: this.ractive,
   				fragment: this.parentFragment,
-  				events: {},
   				context: context,
   				keypath: context.getKeypath()
   			}
