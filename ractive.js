@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Sep 04 2015 14:37:13 GMT+0000 (UTC) - commit 2b2dac6756d25b997d72e58cde89dfcdc0418354
+	Fri Sep 04 2015 14:41:35 GMT+0000 (UTC) - commit 94a2b35c9dc0c76699f978916b20e77572adc646
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -211,44 +211,6 @@ var inherits = function (subClass, superClass) {
   });
   if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 };
-
-var slicedToArray = (function () {
-  function sliceIterator(arr, i) {
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"]) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-
-    return _arr;
-  }
-
-  return function (arr, i) {
-    if (Array.isArray(arr)) {
-      return arr;
-    } else if (Symbol.iterator in Object(arr)) {
-      return sliceIterator(arr, i);
-    } else {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance");
-    }
-  };
-})();
 
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -520,21 +482,11 @@ var classCallCheck = function (instance, Constructor) {
   		check(this);
   	};
 
-  	TransitionManager.prototype.detachNodes = (function (_detachNodes) {
-  		function detachNodes() {
-  			return _detachNodes.apply(this, arguments);
-  		}
-
-  		detachNodes.toString = function () {
-  			return _detachNodes.toString();
-  		};
-
-  		return detachNodes;
-  	})(function () {
+  	TransitionManager.prototype.detachNodes = function detachNodes() {
   		this.decoratorQueue.forEach(teardown);
   		this.detachQueue.forEach(detach);
-  		this.children.forEach(detachNodes);
-  	});
+  		this.children.forEach(_detachNodes);
+  	};
 
   	TransitionManager.prototype.init = function init() {
   		this.ready = true;
@@ -560,7 +512,8 @@ var classCallCheck = function (instance, Constructor) {
   	element.detach();
   }
 
-  function detachNodes(tm) {
+  function _detachNodes(tm) {
+  	// _ to avoid transpiler quirk
   	tm.detachNodes();
   }
 
@@ -1198,24 +1151,20 @@ var classCallCheck = function (instance, Constructor) {
   		throw new Error('Bad arguments');
   	}
 
+  	var changes = undefined;
+
   	if (/\*/.test(keypath)) {
-  		var _ret = (function () {
-  			var changes = {};
+  		changes = {};
 
-  			ractive.viewmodel.findMatches(splitKeypath(keypath)).forEach(function (model) {
-  				var value = model.get();
+  		ractive.viewmodel.findMatches(splitKeypath(keypath)).forEach(function (model) {
+  			var value = model.get();
 
-  				if (!isNumeric(value)) throw new Error(_errorMessage);
+  			if (!isNumeric(value)) throw new Error(_errorMessage);
 
-  				changes[model.getKeypath()] = value + d;
-  			});
+  			changes[model.getKeypath()] = value + d;
+  		});
 
-  			return {
-  				v: ractive.set(changes)
-  			};
-  		})();
-
-  		if (typeof _ret === 'object') return _ret.v;
+  		return ractive.set(changes);
   	}
 
   	var value = ractive.get(keypath);
@@ -2860,17 +2809,16 @@ var classCallCheck = function (instance, Constructor) {
   		this.resolvers = [];
   		this.models = template.r.map(function (ref, index) {
   			var model = resolveReference(fragment, ref);
+  			var resolver = undefined;
 
   			if (!model) {
-  				(function () {
-  					var resolver = fragment.resolve(ref, function (model) {
-  						removeFromArray(_this.resolvers, resolver);
-  						_this.models[index] = model;
-  						_this.bubble();
-  					});
+  				resolver = fragment.resolve(ref, function (model) {
+  					removeFromArray(_this.resolvers, resolver);
+  					_this.models[index] = model;
+  					_this.bubble();
+  				});
 
-  					_this.resolvers.push(resolver);
-  				})();
+  				_this.resolvers.push(resolver);
   			}
 
   			return model;
@@ -2965,18 +2913,17 @@ var classCallCheck = function (instance, Constructor) {
   		this.resolvers = [];
 
   		this.base = resolve(fragment, template);
+  		var baseResolver = undefined;
 
   		if (!this.base) {
-  			(function () {
-  				var resolver = fragment.resolve(template.r, function (model) {
-  					_this.base = model;
-  					_this.bubble();
+  			baseResolver = fragment.resolve(template.r, function (model) {
+  				_this.base = model;
+  				_this.bubble();
 
-  					removeFromArray(_this.resolvers, resolver);
-  				});
+  				removeFromArray(_this.resolvers, baseResolver);
+  			});
 
-  				_this.resolvers.push(resolver);
-  			})();
+  			this.resolvers.push(baseResolver);
   		}
 
   		var intermediary = {
@@ -2993,6 +2940,7 @@ var classCallCheck = function (instance, Constructor) {
   			}
 
   			var model = undefined;
+  			var resolver = undefined;
 
   			if (template.t === REFERENCE) {
   				model = resolveReference(fragment, template.n);
@@ -3000,18 +2948,16 @@ var classCallCheck = function (instance, Constructor) {
   				if (model) {
   					model.register(intermediary);
   				} else {
-  					(function () {
-  						var resolver = fragment.resolve(template.n, function (model) {
-  							_this.members[i] = model;
+  					resolver = fragment.resolve(template.n, function (model) {
+  						_this.members[i] = model;
 
-  							model.register(intermediary);
-  							_this.bubble();
+  						model.register(intermediary);
+  						_this.bubble();
 
-  							removeFromArray(_this.resolvers, resolver);
-  						});
+  						removeFromArray(_this.resolvers, resolver);
+  					});
 
-  						_this.resolvers.push(resolver);
-  					})();
+  					_this.resolvers.push(resolver);
   				}
 
   				return model;
@@ -6085,15 +6031,9 @@ var classCallCheck = function (instance, Constructor) {
   		else if (isObject(value)) {
   				// TODO this is a dreadful hack. There must be a neater way
   				if (this.indexRef) {
-  					var _indexRef$split = this.indexRef.split(',');
-
-  					var _indexRef$split2 = slicedToArray(_indexRef$split, 2);
-
-  					var keyRef = _indexRef$split2[0];
-  					var indexRef = _indexRef$split2[1];
-
-  					this.keyRef = keyRef;
-  					this.indexRef = indexRef;
+  					var refs = this.indexRef.split(',');
+  					this.keyRef = refs[0];
+  					this.indexRef = refs[1];
   				}
 
   				this.indexByKey = {};
@@ -6267,6 +6207,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		var toRemove = undefined;
   		var oldKeys = undefined;
+  		var i = undefined;
 
   		if (isArray(value)) {
   			if (this.iterations.length > value.length) {
@@ -6275,15 +6216,15 @@ var classCallCheck = function (instance, Constructor) {
   		} else if (isObject(value)) {
   			toRemove = [];
   			oldKeys = {};
-  			var i = this.iterations.length;
+  			i = this.iterations.length;
 
   			while (i--) {
-  				var fragment = this.iterations[i];
-  				if (fragment.key in value) {
-  					oldKeys[fragment.key] = true;
+  				var _fragment = this.iterations[i];
+  				if (_fragment.key in value) {
+  					oldKeys[_fragment.key] = true;
   				} else {
   					this.iterations.splice(i, 1);
-  					toRemove.push(fragment);
+  					toRemove.push(_fragment);
   				}
   			}
   		} else {
@@ -6304,40 +6245,41 @@ var classCallCheck = function (instance, Constructor) {
   		// add new iterations
   		var newLength = isArray(value) ? value.length : isObject(value) ? Object.keys(value).length : 0;
 
-  		if (newLength > this.iterations.length) {
-  			(function () {
-  				var docFrag = _this3.rendered ? createDocumentFragment() : null;
-  				var i = _this3.iterations.length;
+  		var docFrag = undefined;
+  		var fragment = undefined;
 
-  				if (isArray(value)) {
-  					while (i < value.length) {
-  						var fragment = _this3.createIteration(i, i);
+  		if (newLength > this.iterations.length) {
+  			docFrag = this.rendered ? createDocumentFragment() : null;
+  			i = this.iterations.length;
+
+  			if (isArray(value)) {
+  				while (i < value.length) {
+  					fragment = this.createIteration(i, i);
+
+  					this.iterations.push(fragment);
+  					if (this.rendered) fragment.render(docFrag);
+
+  					i += 1;
+  				}
+  			} else if (isObject(value)) {
+  				Object.keys(value).forEach(function (key) {
+  					if (!(key in oldKeys)) {
+  						fragment = _this3.createIteration(key, i);
 
   						_this3.iterations.push(fragment);
   						if (_this3.rendered) fragment.render(docFrag);
 
   						i += 1;
   					}
-  				} else if (isObject(value)) {
-  					Object.keys(value).forEach(function (key) {
-  						if (!(key in oldKeys)) {
-  							var fragment = _this3.createIteration(key, i);
+  				});
+  			}
 
-  							_this3.iterations.push(fragment);
-  							if (_this3.rendered) fragment.render(docFrag);
+  			if (this.rendered) {
+  				var parentNode = this.parent.findParentNode();
+  				var anchor = this.parent.findNextNode(this.owner);
 
-  							i += 1;
-  						}
-  					});
-  				}
-
-  				if (_this3.rendered) {
-  					var parentNode = _this3.parent.findParentNode();
-  					var anchor = _this3.parent.findNextNode(_this3.owner);
-
-  					parentNode.insertBefore(docFrag, anchor);
-  				}
-  			})();
+  				parentNode.insertBefore(docFrag, anchor);
+  			}
   		}
   	};
 
@@ -8917,16 +8859,16 @@ var classCallCheck = function (instance, Constructor) {
   							};
   						}
 
+  						var resolver = undefined;
+
   						var model = resolveReference(_this.parentFragment, ref);
   						if (!model) {
-  							(function () {
-  								var resolver = _this.parentFragment.resolve(ref, function (model) {
-  									_this.models[i] = model;
-  									removeFromArray(_this.resolvers, resolver);
-  								});
+  							resolver = _this.parentFragment.resolve(ref, function (model) {
+  								_this.models[i] = model;
+  								removeFromArray(_this.resolvers, resolver);
+  							});
 
-  								_this.resolvers.push(resolver);
-  							})();
+  							_this.resolvers.push(resolver);
   						}
 
   						return model;
@@ -9248,6 +9190,323 @@ var classCallCheck = function (instance, Constructor) {
   	return Decorator;
   })();
 
+  function unrenderAndDestroy(item) {
+  	item.unrender(true);
+  }
+
+  var Fragment = (function () {
+  	function Fragment(options) {
+  		classCallCheck(this, Fragment);
+
+  		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
+
+  		this.isRoot = !options.owner.parentFragment;
+  		this.parent = this.isRoot ? null : this.owner.parentFragment;
+  		this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
+
+  		this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.parentFragment : null;
+
+  		this.context = null;
+  		this.rendered = false;
+  		this.indexRefs = options.indexRefs || (this.parent ? this.parent.indexRefs : []);
+  		this.keyRefs = options.keyRefs || (this.parent ? this.parent.keyRefs : {});
+
+  		// encapsulated styles should be inherited until they get applied by an element
+  		this.cssIds = 'cssIds' in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
+
+  		this.resolvers = [];
+
+  		this.dirty = false;
+  		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
+
+  		this.template = options.template || [];
+  		this.createItems();
+  	}
+
+  	Fragment.prototype.bind = function bind(context) {
+  		this.context = context;
+  		this.items.forEach(_bind);
+  		this.bound = true;
+
+  		// in rare cases, a forced resolution (or similar) will cause the
+  		// fragment to be dirty before it's even finished binding. In those
+  		// cases we update immediately
+  		if (this.dirty) this.update();
+
+  		return this;
+  	};
+
+  	Fragment.prototype.bubble = function bubble() {
+  		this.dirtyArgs = this.dirtyValue = true;
+
+  		if (!this.dirty) {
+  			this.dirty = true;
+
+  			if (this.isRoot) {
+  				// TODO encapsulate 'is component root, but not overall root' check?
+  				if (this.ractive.component) {
+  					this.ractive.component.bubble();
+  				} else if (this.bound) {
+  					runloop.addFragment(this);
+  				}
+  			} else {
+  				this.owner.bubble();
+  			}
+  		}
+  	};
+
+  	Fragment.prototype.createItems = function createItems() {
+  		var _this = this;
+
+  		this.items = this.template.map(function (template, index) {
+  			return createItem({ parentFragment: _this, template: template, index: index });
+  		});
+  	};
+
+  	Fragment.prototype.detach = function detach() {
+  		var docFrag = createDocumentFragment();
+  		this.items.forEach(function (item) {
+  			return docFrag.appendChild(item.detach());
+  		});
+  		return docFrag;
+  	};
+
+  	Fragment.prototype.find = function find(selector) {
+  		var len = this.items.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var found = this.items[i].find(selector);
+  			if (found) return found;
+  		}
+  	};
+
+  	Fragment.prototype.findAll = function findAll(selector, query) {
+  		if (this.items) {
+  			var len = this.items.length;
+  			var i = undefined;
+
+  			for (i = 0; i < len; i += 1) {
+  				var item = this.items[i];
+
+  				if (item.findAll) {
+  					item.findAll(selector, query);
+  				}
+  			}
+  		}
+
+  		return query;
+  	};
+
+  	Fragment.prototype.findComponent = function findComponent(name) {
+  		var len = this.items.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var found = this.items[i].findComponent(name);
+  			if (found) return found;
+  		}
+  	};
+
+  	Fragment.prototype.findAllComponents = function findAllComponents(name, query) {
+  		if (this.items) {
+  			var len = this.items.length;
+  			var i = undefined;
+
+  			for (i = 0; i < len; i += 1) {
+  				var item = this.items[i];
+
+  				if (item.findAllComponents) {
+  					item.findAllComponents(name, query);
+  				}
+  			}
+  		}
+
+  		return query;
+  	};
+
+  	Fragment.prototype.findContext = function findContext() {
+  		var fragment = this;
+  		while (!fragment.context) fragment = fragment.parent;
+  		return fragment.context;
+  	};
+
+  	Fragment.prototype.findNextNode = function findNextNode(item) {
+  		var nextItem = this.items[item.index + 1];
+
+  		if (nextItem) return nextItem.firstNode();
+
+  		// if this is the root fragment, and there are no more items,
+  		// it means we're at the end...
+  		if (this.isRoot) {
+  			if (this.ractive.component) {
+  				return this.ractive.component.parentFragment.findNextNode(this.ractive.component);
+  			}
+
+  			// TODO possible edge case with other content
+  			// appended to this.ractive.el?
+  			return null;
+  		}
+
+  		return this.owner.findNextNode(this); // the argument is in case the parent is a RepeatedFragment
+  	};
+
+  	Fragment.prototype.findParentNode = function findParentNode() {
+  		var fragment = this;
+
+  		do {
+  			if (fragment.owner.type === ELEMENT) {
+  				return fragment.owner.node;
+  			}
+
+  			if (fragment.isRoot && !fragment.ractive.component) {
+  				// TODO encapsulate check
+  				return fragment.ractive.el;
+  			}
+
+  			fragment = fragment.componentParent || fragment.parent; // TODO ugh
+  		} while (fragment);
+
+  		throw new Error('Could not find parent node'); // TODO link to issue tracker
+  	};
+
+  	Fragment.prototype.findRepeatingFragment = function findRepeatingFragment() {
+  		var fragment = this;
+  		// TODO better check than fragment.parent.iterations
+  		while (fragment.parent && !fragment.isIteration) {
+  			fragment = fragment.parent || fragment.componentParent;
+  		}
+
+  		return fragment;
+  	};
+
+  	Fragment.prototype.firstNode = function firstNode() {
+  		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode(this.owner);
+  	};
+
+  	// TODO ideally, this would be deprecated in favour of an
+  	// expression-like approach
+
+  	Fragment.prototype.getArgsList = function getArgsList() {
+  		if (this.dirtyArgs) {
+  			var values = {};
+  			var source = processItems(this.items, values, this.ractive._guid);
+  			var parsed = parseJSON('[' + source + ']', values);
+
+  			this.argsList = parsed ? parsed.value : [this.toString()];
+
+  			this.dirtyArgs = false;
+  		}
+
+  		return this.argsList;
+  	};
+
+  	Fragment.prototype.rebind = function rebind$$(context) {
+  		this.context = context;
+
+  		this.items.forEach(rebind);
+  	};
+
+  	Fragment.prototype.render = function render(target) {
+  		if (this.rendered) throw new Error('Fragment is already rendered!');
+  		this.rendered = true;
+
+  		this.items.forEach(function (item) {
+  			return item.render(target);
+  		});
+  	};
+
+  	Fragment.prototype.resetTemplate = function resetTemplate(template) {
+  		var wasBound = this.bound;
+  		var wasRendered = this.rendered;
+
+  		// TODO ensure transitions are disabled globally during reset
+
+  		if (wasBound) {
+  			if (wasRendered) this.unrender(true);
+  			this.unbind();
+  		}
+
+  		this.template = template;
+  		this.createItems();
+
+  		if (wasBound) {
+  			this.bind(this.context);
+
+  			if (wasRendered) {
+  				var parentNode = this.findParentNode();
+  				var anchor = this.parent ? this.parent.findNextNode(this.owner) : null;
+
+  				if (anchor) {
+  					var docFrag = createDocumentFragment();
+  					this.render(docFrag);
+  					parentNode.insertBefore(docFrag, anchor);
+  				} else {
+  					this.render(parentNode);
+  				}
+  			}
+  		}
+  	};
+
+  	Fragment.prototype.resolve = function resolve(template, callback) {
+  		if (!this.context) {
+  			return this.parent.resolve(template, callback);
+  		}
+
+  		var resolver = new ReferenceResolver(this, template, callback);
+  		this.resolvers.push(resolver);
+
+  		return resolver; // so we can e.g. force resolution
+  	};
+
+  	Fragment.prototype.toHtml = function toHtml() {
+  		return this.toString();
+  	};
+
+  	Fragment.prototype.toString = function toString$$(escape) {
+  		return this.items.map(escape ? toEscapedString : toString).join('');
+  	};
+
+  	Fragment.prototype.unbind = function unbind$$() {
+  		this.items.forEach(unbind);
+  		this.bound = false;
+
+  		return this;
+  	};
+
+  	Fragment.prototype.unrender = function unrender$$(shouldDestroy) {
+  		this.items.forEach(shouldDestroy ? unrenderAndDestroy : unrender);
+  		this.rendered = false;
+  	};
+
+  	Fragment.prototype.update = function update() {
+  		if (this.dirty) {
+  			this.items.forEach(_update);
+  			this.dirty = false;
+  		}
+  	};
+
+  	Fragment.prototype.valueOf = function valueOf() {
+  		if (this.items.length === 1) {
+  			return this.items[0].valueOf();
+  		}
+
+  		if (this.dirtyValue) {
+  			var values = {};
+  			var source = processItems(this.items, values, this.ractive._guid);
+  			var parsed = parseJSON(source, values);
+
+  			this.value = parsed ? parsed.value : this.toString();
+
+  			this.dirtyValue = false;
+  		}
+
+  		return this.value;
+  	};
+
+  	return Fragment;
+  })();
+
   var div = doc ? createElement('div') : null;
 
   var ConditionalAttribute = (function (_Item) {
@@ -9310,28 +9569,29 @@ var classCallCheck = function (instance, Constructor) {
   	ConditionalAttribute.prototype.update = function update() {
   		var _this = this;
 
+  		var str = undefined;
+  		var attrs = undefined;
+
   		if (this.dirty) {
   			this.fragment.update();
 
   			if (this.rendered) {
-  				(function () {
-  					var str = _this.fragment.toString();
-  					var attrs = parseAttributes(str, _this.isSvg);
+  				str = this.fragment.toString();
+  				attrs = parseAttributes(str, this.isSvg);
 
-  					// any attributes that previously existed but no longer do
-  					// must be removed
-  					_this.attributes.filter(function (a) {
-  						return notIn(attrs, a);
-  					}).forEach(function (a) {
-  						_this.node.removeAttribute(a.name);
-  					});
+  				// any attributes that previously existed but no longer do
+  				// must be removed
+  				this.attributes.filter(function (a) {
+  					return notIn(attrs, a);
+  				}).forEach(function (a) {
+  					_this.node.removeAttribute(a.name);
+  				});
 
-  					attrs.forEach(function (a) {
-  						_this.node.setAttribute(a.name, a.value);
-  					});
+  				attrs.forEach(function (a) {
+  					_this.node.setAttribute(a.name, a.value);
+  				});
 
-  					_this.attributes = attrs;
-  				})();
+  				this.attributes = attrs;
   			}
 
   			this.dirty = false;
@@ -9803,23 +10063,18 @@ var classCallCheck = function (instance, Constructor) {
   		// attach event handlers
   		this.eventHandlers = [];
   		if (this.template.v) {
-  			(function () {
+  			Object.keys(this.template.v).forEach(function (key) {
+  				var eventNames = key.split('-');
+  				var template = _this.template.v[key];
 
-  				var handlers = _this.eventHandlers = [];
-
-  				Object.keys(_this.template.v).forEach(function (key) {
-  					var eventNames = key.split('-');
-  					var template = _this.template.v[key];
-
-  					eventNames.forEach(function (eventName) {
-  						var fn = findInViewHierarchy('events', _this.ractive, eventName);
-  						// we need to pass in "this" in order to get
-  						// access to node when it is created.
-  						var event = fn ? new CustomEvent(fn, _this) : new DOMEvent(eventName, _this);
-  						handlers.push(new EventDirective(_this, event, template));
-  					});
+  				eventNames.forEach(function (eventName) {
+  					var fn = findInViewHierarchy('events', _this.ractive, eventName);
+  					// we need to pass in "this" in order to get
+  					// access to node when it is created.
+  					var event = fn ? new CustomEvent(fn, _this) : new DOMEvent(eventName, _this);
+  					_this.eventHandlers.push(new EventDirective(_this, event, template));
   				});
-  			})();
+  			});
   		}
 
   		// create children
@@ -12183,6 +12438,8 @@ var classCallCheck = function (instance, Constructor) {
   		if (this.template.a) {
   			Object.keys(this.template.a).forEach(function (localKey) {
   				var template = _this.template.a[localKey];
+  				var model = undefined;
+  				var fragment = undefined;
 
   				if (template === 0) {
   					// empty attributes are `true`
@@ -12192,7 +12449,7 @@ var classCallCheck = function (instance, Constructor) {
   					viewmodel.joinKey(localKey).set(parsed ? parsed.value : template);
   				} else if (isArray(template)) {
   					if (template.length === 1 && template[0].t === INTERPOLATOR) {
-  						var model = resolve(_this.parentFragment, template[0]);
+  						model = resolve(_this.parentFragment, template[0]);
 
   						if (!model) {
   							_warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this.instance }); // TODO add docs page explaining this
@@ -12206,23 +12463,21 @@ var classCallCheck = function (instance, Constructor) {
   							model.set(childData[localKey]);
   						}
   					} else {
-  						(function () {
-  							var fragment = new Fragment({
-  								owner: _this,
-  								template: template
-  							}).bind();
+  						fragment = new Fragment({
+  							owner: _this,
+  							template: template
+  						}).bind();
 
-  							var model = viewmodel.joinKey(localKey);
+  						model = viewmodel.joinKey(localKey);
+  						model.set(fragment.valueOf());
+
+  						// this is a *bit* of a hack
+  						fragment.bubble = function () {
+  							Fragment.prototype.bubble.call(fragment);
   							model.set(fragment.valueOf());
+  						};
 
-  							// this is a *bit* of a hack
-  							fragment.bubble = function () {
-  								Fragment.prototype.bubble.call(fragment);
-  								model.set(fragment.valueOf());
-  							};
-
-  							_this.complexMappings.push(fragment);
-  						})();
+  						_this.complexMappings.push(fragment);
   					}
   				}
   			});
@@ -12301,30 +12556,29 @@ var classCallCheck = function (instance, Constructor) {
   		this.liveQueries.forEach(makeDirty);
 
   		// update relevant mappings
+  		var viewmodel = this.instance.viewmodel;
+
   		if (this.template.a) {
-  			(function () {
-  				var viewmodel = _this3.instance.viewmodel;
+  			Object.keys(this.template.a).forEach(function (localKey) {
+  				var template = _this3.template.a[localKey];
+  				var model = undefined;
 
-  				Object.keys(_this3.template.a).forEach(function (localKey) {
-  					var template = _this3.template.a[localKey];
+  				if (isArray(template) && template.length === 1 && template[0].t === INTERPOLATOR) {
+  					model = resolve(_this3.parentFragment, template[0]);
 
-  					if (isArray(template) && template.length === 1 && template[0].t === INTERPOLATOR) {
-  						var model = resolve(_this3.parentFragment, template[0]);
-
-  						if (!model) {
-  							// TODO is this even possible?
-  							_warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this3.instance });
-  							_this3.parentFragment.ractive.get(localKey); // side-effect: create mappings as necessary
-  							model = _this3.parentFragment.findContext().joinKey(localKey);
-  						}
-
-  						viewmodel.map(localKey, model);
+  					if (!model) {
+  						// TODO is this even possible?
+  						_warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this3.instance });
+  						_this3.parentFragment.ractive.get(localKey); // side-effect: create mappings as necessary
+  						model = _this3.parentFragment.findContext().joinKey(localKey);
   					}
-  				});
-  			})();
+
+  					viewmodel.map(localKey, model);
+  				}
+  			});
   		}
 
-  		this.instance.fragment.rebind(this.instance.viewmodel);
+  		this.instance.fragment.rebind(viewmodel);
   	};
 
   	Component.prototype.render = function render$$(target) {
@@ -12528,323 +12782,6 @@ var classCallCheck = function (instance, Constructor) {
 
   	return new Item(options);
   }
-
-  function unrenderAndDestroy(item) {
-  	item.unrender(true);
-  }
-
-  var Fragment = (function () {
-  	function Fragment(options) {
-  		classCallCheck(this, Fragment);
-
-  		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
-
-  		this.isRoot = !options.owner.parentFragment;
-  		this.parent = this.isRoot ? null : this.owner.parentFragment;
-  		this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
-
-  		this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.parentFragment : null;
-
-  		this.context = null;
-  		this.rendered = false;
-  		this.indexRefs = options.indexRefs || (this.parent ? this.parent.indexRefs : []);
-  		this.keyRefs = options.keyRefs || (this.parent ? this.parent.keyRefs : {});
-
-  		// encapsulated styles should be inherited until they get applied by an element
-  		this.cssIds = 'cssIds' in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
-
-  		this.resolvers = [];
-
-  		this.dirty = false;
-  		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
-
-  		this.template = options.template || [];
-  		this.createItems();
-  	}
-
-  	Fragment.prototype.bind = function bind(context) {
-  		this.context = context;
-  		this.items.forEach(_bind);
-  		this.bound = true;
-
-  		// in rare cases, a forced resolution (or similar) will cause the
-  		// fragment to be dirty before it's even finished binding. In those
-  		// cases we update immediately
-  		if (this.dirty) this.update();
-
-  		return this;
-  	};
-
-  	Fragment.prototype.bubble = function bubble() {
-  		this.dirtyArgs = this.dirtyValue = true;
-
-  		if (!this.dirty) {
-  			this.dirty = true;
-
-  			if (this.isRoot) {
-  				// TODO encapsulate 'is component root, but not overall root' check?
-  				if (this.ractive.component) {
-  					this.ractive.component.bubble();
-  				} else if (this.bound) {
-  					runloop.addFragment(this);
-  				}
-  			} else {
-  				this.owner.bubble();
-  			}
-  		}
-  	};
-
-  	Fragment.prototype.createItems = function createItems() {
-  		var _this = this;
-
-  		this.items = this.template.map(function (template, index) {
-  			return createItem({ parentFragment: _this, template: template, index: index });
-  		});
-  	};
-
-  	Fragment.prototype.detach = function detach() {
-  		var docFrag = createDocumentFragment();
-  		this.items.forEach(function (item) {
-  			return docFrag.appendChild(item.detach());
-  		});
-  		return docFrag;
-  	};
-
-  	Fragment.prototype.find = function find(selector) {
-  		var len = this.items.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var found = this.items[i].find(selector);
-  			if (found) return found;
-  		}
-  	};
-
-  	Fragment.prototype.findAll = function findAll(selector, query) {
-  		if (this.items) {
-  			var len = this.items.length;
-  			var i = undefined;
-
-  			for (i = 0; i < len; i += 1) {
-  				var item = this.items[i];
-
-  				if (item.findAll) {
-  					item.findAll(selector, query);
-  				}
-  			}
-  		}
-
-  		return query;
-  	};
-
-  	Fragment.prototype.findComponent = function findComponent(name) {
-  		var len = this.items.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var found = this.items[i].findComponent(name);
-  			if (found) return found;
-  		}
-  	};
-
-  	Fragment.prototype.findAllComponents = function findAllComponents(name, query) {
-  		if (this.items) {
-  			var len = this.items.length;
-  			var i = undefined;
-
-  			for (i = 0; i < len; i += 1) {
-  				var item = this.items[i];
-
-  				if (item.findAllComponents) {
-  					item.findAllComponents(name, query);
-  				}
-  			}
-  		}
-
-  		return query;
-  	};
-
-  	Fragment.prototype.findContext = function findContext() {
-  		var fragment = this;
-  		while (!fragment.context) fragment = fragment.parent;
-  		return fragment.context;
-  	};
-
-  	Fragment.prototype.findNextNode = function findNextNode(item) {
-  		var nextItem = this.items[item.index + 1];
-
-  		if (nextItem) return nextItem.firstNode();
-
-  		// if this is the root fragment, and there are no more items,
-  		// it means we're at the end...
-  		if (this.isRoot) {
-  			if (this.ractive.component) {
-  				return this.ractive.component.parentFragment.findNextNode(this.ractive.component);
-  			}
-
-  			// TODO possible edge case with other content
-  			// appended to this.ractive.el?
-  			return null;
-  		}
-
-  		return this.owner.findNextNode(this); // the argument is in case the parent is a RepeatedFragment
-  	};
-
-  	Fragment.prototype.findParentNode = function findParentNode() {
-  		var fragment = this;
-
-  		do {
-  			if (fragment.owner.type === ELEMENT) {
-  				return fragment.owner.node;
-  			}
-
-  			if (fragment.isRoot && !fragment.ractive.component) {
-  				// TODO encapsulate check
-  				return fragment.ractive.el;
-  			}
-
-  			fragment = fragment.componentParent || fragment.parent; // TODO ugh
-  		} while (fragment);
-
-  		throw new Error('Could not find parent node'); // TODO link to issue tracker
-  	};
-
-  	Fragment.prototype.findRepeatingFragment = function findRepeatingFragment() {
-  		var fragment = this;
-  		// TODO better check than fragment.parent.iterations
-  		while (fragment.parent && !fragment.isIteration) {
-  			fragment = fragment.parent || fragment.componentParent;
-  		}
-
-  		return fragment;
-  	};
-
-  	Fragment.prototype.firstNode = function firstNode() {
-  		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode(this.owner);
-  	};
-
-  	// TODO ideally, this would be deprecated in favour of an
-  	// expression-like approach
-
-  	Fragment.prototype.getArgsList = function getArgsList() {
-  		if (this.dirtyArgs) {
-  			var values = {};
-  			var source = processItems(this.items, values, this.ractive._guid);
-  			var parsed = parseJSON('[' + source + ']', values);
-
-  			this.argsList = parsed ? parsed.value : [this.toString()];
-
-  			this.dirtyArgs = false;
-  		}
-
-  		return this.argsList;
-  	};
-
-  	Fragment.prototype.rebind = function rebind$$(context) {
-  		this.context = context;
-
-  		this.items.forEach(rebind);
-  	};
-
-  	Fragment.prototype.render = function render(target) {
-  		if (this.rendered) throw new Error('Fragment is already rendered!');
-  		this.rendered = true;
-
-  		this.items.forEach(function (item) {
-  			return item.render(target);
-  		});
-  	};
-
-  	Fragment.prototype.resetTemplate = function resetTemplate(template) {
-  		var wasBound = this.bound;
-  		var wasRendered = this.rendered;
-
-  		// TODO ensure transitions are disabled globally during reset
-
-  		if (wasBound) {
-  			if (wasRendered) this.unrender(true);
-  			this.unbind();
-  		}
-
-  		this.template = template;
-  		this.createItems();
-
-  		if (wasBound) {
-  			this.bind(this.context);
-
-  			if (wasRendered) {
-  				var parentNode = this.findParentNode();
-  				var anchor = this.parent ? this.parent.findNextNode(this.owner) : null;
-
-  				if (anchor) {
-  					var docFrag = createDocumentFragment();
-  					this.render(docFrag);
-  					parentNode.insertBefore(docFrag, anchor);
-  				} else {
-  					this.render(parentNode);
-  				}
-  			}
-  		}
-  	};
-
-  	Fragment.prototype.resolve = function resolve(template, callback) {
-  		if (!this.context) {
-  			return this.parent.resolve(template, callback);
-  		}
-
-  		var resolver = new ReferenceResolver(this, template, callback);
-  		this.resolvers.push(resolver);
-
-  		return resolver; // so we can e.g. force resolution
-  	};
-
-  	Fragment.prototype.toHtml = function toHtml() {
-  		return this.toString();
-  	};
-
-  	Fragment.prototype.toString = function toString$$(escape) {
-  		return this.items.map(escape ? toEscapedString : toString).join('');
-  	};
-
-  	Fragment.prototype.unbind = function unbind$$() {
-  		this.items.forEach(unbind);
-  		this.bound = false;
-
-  		return this;
-  	};
-
-  	Fragment.prototype.unrender = function unrender$$(shouldDestroy) {
-  		this.items.forEach(shouldDestroy ? unrenderAndDestroy : unrender);
-  		this.rendered = false;
-  	};
-
-  	Fragment.prototype.update = function update() {
-  		if (this.dirty) {
-  			this.items.forEach(_update);
-  			this.dirty = false;
-  		}
-  	};
-
-  	Fragment.prototype.valueOf = function valueOf() {
-  		if (this.items.length === 1) {
-  			return this.items[0].valueOf();
-  		}
-
-  		if (this.dirtyValue) {
-  			var values = {};
-  			var source = processItems(this.items, values, this.ractive._guid);
-  			var parsed = parseJSON(source, values);
-
-  			this.value = parsed ? parsed.value : this.toString();
-
-  			this.dirtyValue = false;
-  		}
-
-  		return this.value;
-  	};
-
-  	return Fragment;
-  })();
 
   // TODO should resetTemplate be asynchronous? i.e. should it be a case
   // of outro, update template, intro? I reckon probably not, since that
@@ -13233,20 +13170,19 @@ var classCallCheck = function (instance, Constructor) {
   	var _this = this;
 
   	var observers = [];
+  	var map = undefined;
 
   	if (isObject(keypath)) {
-  		(function () {
-  			var map = keypath;
-  			options = callback || {};
+  		map = keypath;
+  		options = callback || {};
 
-  			Object.keys(map).forEach(function (keypath) {
-  				var callback = map[keypath];
+  		Object.keys(map).forEach(function (keypath) {
+  			var callback = map[keypath];
 
-  				keypath.split(' ').forEach(function (keypath) {
-  					observers.push(createObserver(_this, keypath, callback, options));
-  				});
+  			keypath.split(' ').forEach(function (keypath) {
+  				observers.push(createObserver(_this, keypath, callback, options));
   			});
-  		})();
+  		});
   	} else {
   		var keypaths = undefined;
 
