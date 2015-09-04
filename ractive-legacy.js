@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Sep 03 2015 20:56:30 GMT+0000 (UTC) - commit ac266f6ef7d4fb9de5b8b59d9bcad5a26bc3f509
+	Fri Sep 04 2015 00:07:10 GMT+0000 (UTC) - commit 826b83585aab95db427c4af0d1f494f4995e1852
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9419,6 +9419,8 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	EventDirective.prototype.fire = function fire(event, passedArgs) {
+  		var _this2 = this;
+
   		// augment event object
   		if (event) {
   			event.keypath = this.context.getKeypath();
@@ -9457,7 +9459,8 @@ var classCallCheck = function (instance, Constructor) {
   						return model.wrapper.value;
   					}
 
-  					return model.get();
+  					var value = model.get();
+  					return typeof value === 'function' ? value.bind(_this2.ractive) : value;
   				});
 
   				args = this.argsFn.apply(null, values);
