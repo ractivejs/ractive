@@ -345,25 +345,25 @@ test( 'Unresolved computations resolve when parent component data exists', funct
 	var ractive, Component;
 
 	Component = Ractive.extend({
-	    template: '{{FOO}} {{BAR}}',
-	    computed: {
-	        FOO: '${foo}.toUpperCase()',
-	        BAR: function () {
-	            return this.get( 'bar' ).toUpperCase();
-	        }
-	    }
+		template: '{{FOO}} {{BAR}}',
+		computed: {
+			FOO: '${foo}.toUpperCase()',
+			BAR: function () {
+				return this.get( 'bar' ).toUpperCase();
+			}
+		}
 	});
 
 	ractive = new Ractive({
-	    el: fixture,
-	    template: '<component/>',
-	    data: {
-	        foo: 'fee fi',
-	        bar: 'fo fum'
-	    },
-	    components: {
-	    	component: Component
-	    }
+		el: fixture,
+		template: '<component/>',
+		data: {
+			foo: 'fee fi',
+			bar: 'fo fum'
+		},
+		components: {
+			component: Component
+		}
 	});
 
 	t.equal( fixture.innerHTML, 'FEE FI FO FUM' );
@@ -375,26 +375,26 @@ test( 'Computations are not order dependent', function ( t ) {
 	var ractive, Component;
 
 	Component = Ractive.extend({
-	    template: '{{foo}}',
-	    data: {
-	        count: 1
-	    },
-	    computed: {
-	        foo: '${bar} + 1',
-	        bar: '${count} + 1'
-	    }
+		template: '{{foo}}',
+		data: {
+			count: 1
+		},
+		computed: {
+			foo: '${bar} + 1',
+			bar: '${count} + 1'
+		}
 	});
 
 	ractive = new Ractive({
-        el: fixture,
-        template: '<component/>',
-        data: {
-            bar: 20
-        },
-        components: {
-            component: Component
-        }
-    });
+el: fixture,
+template: '<component/>',
+data: {
+bar: 20
+},
+components: {
+component: Component
+}
+});
 	t.equal( fixture.innerHTML, '3' );
 
 });
@@ -404,24 +404,24 @@ test( 'Parent extend instance computations are resolved before child computation
 	var ractive, Base, Component;
 
 	Base = Ractive.extend({
-	    computed: {
-	        base: () => 1
-	    }
+		computed: {
+			base: () => 1
+		}
 	});
 
 	Component = Base.extend({
 		template: '{{foo}}',
-	    computed: {
-	        foo: '${base} + 1'
-	    }
+		computed: {
+			foo: '${base} + 1'
+		}
 	});
 
 	ractive = new Ractive({
-	    el: fixture,
-	    template: '<component/>',
-	    components: {
-	    	component: Component
-	    }
+		el: fixture,
+		template: '<component/>',
+		components: {
+			component: Component
+		}
 	});
 
 	t.equal( fixture.innerHTML, '2' );
@@ -526,23 +526,23 @@ test( 'Computations can depend on array values (#1747)', t => {
 
 	Component = Ractive.extend({
 		template: "{{ a }}:{{ b }}",
-	    computed: {
-	        b: function() {
-	            var a = this.get("a");
-	            return a + "bar";
-	        }
-	    }
+		computed: {
+			b: function() {
+				var a = this.get("a");
+				return a + "bar";
+			}
+		}
 	});
 
 	ractive = new Ractive({
-	    el: fixture,
-	    template: '{{ a }}:{{ b }}-<component a="{{ a }}" b="{{ b }}" />',
+		el: fixture,
+		template: '{{ a }}:{{ b }}-<component a="{{ a }}" b="{{ b }}" />',
 		components: {
-	        component: Component
-	    },
-	    data: {
-	        a: "foo"
-	    }
+			component: Component
+		},
+		data: {
+			a: "foo"
+		}
 	});
 
 	t.equal( fixture.innerHTML, 'foo:foobar-foo:foobar' );
