@@ -456,15 +456,15 @@ test( 'Computations are not order dependent', function ( t ) {
 	});
 
 	ractive = new Ractive({
-el: fixture,
-template: '<component/>',
-data: {
-bar: 20
-},
-components: {
-component: Component
-}
-});
+		el: fixture,
+		template: '<component/>',
+		data: {
+			bar: 20
+		},
+		components: {
+			component: Component
+		}
+	});
 	t.equal( fixture.innerHTML, '3' );
 
 });
