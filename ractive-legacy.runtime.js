@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Sep 04 2015 19:22:41 GMT+0000 (UTC) - commit 55bb8113ff99ef6ba860ec557c9a3ad8c004d660
+	Fri Sep 04 2015 19:52:59 GMT+0000 (UTC) - commit f42b2e6b5941a82d33e73d890ed76a9e9e6928fc
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3556,7 +3556,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.context = null;
   		this.rendered = false;
-  		this.iterations = null;
+  		this.iterations = [];
 
   		this.template = options.template;
 
