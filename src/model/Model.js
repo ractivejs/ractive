@@ -6,6 +6,7 @@ import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
+import Computation from './Computation';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -39,6 +40,7 @@ export default class Model {
 			this.parent = parent;
 			this.root = parent.root;
 			this.key = key;
+			this.isReadonly = parent.isReadonly;
 
 			if ( parent.value ) {
 				this.value = parent.value[ this.key ];
@@ -197,7 +199,8 @@ export default class Model {
 	}
 
 	has ( key ) {
-		return this.value && hasProp.call( this.value, key );
+		const value = this.get();
+		return value && hasProp.call( value, key );
 	}
 
 	joinKey ( key ) {

@@ -270,6 +270,32 @@ test( 'Array updates cause sections to shuffle with correct results', t => {
 	t.htmlEqual( fixture.innerHTML, 'threeoneAtwoBC' );
 });
 
+test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
+	// t.expect(2)
+	let called = { func: 0, f1: 0, f2: 0, f3: 0 };
+	let ractive = new Ractive({
+		el: fixture,
+		template: `
+			<ul>
+				{{#each items}}
+					<li>{{ func(this) }}-{{ this.f() }}</li>
+				{{/each}}
+			</ul>`,
+		data: () => ({
+			items: [
+				{ f () { called.f1++; return 'f1'; } },
+				{ f () { called.f2++; return 'f2'; } },
+				{ f () { called.f3++; return 'f3'; } }
+			],
+			func (obj) { console.trace(); called.func++; return obj; }
+		})
+	});
+
+	t.deepEqual( called, { func: 3, f1: 1, f2: 1, f3: 1 })
+	ractive.set('items', []);
+	t.deepEqual( called, { func: 3, f1: 1, f2: 1, f3: 1 })
+});
+
 // TODO reinstate this in some form. Commented out for purposes of #1740
 // test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 // 	let ractive = new Ractive({

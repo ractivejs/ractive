@@ -1,12 +1,10 @@
 import { capture, startCapturing, stopCapturing } from '../global/capture';
 import { warnIfDebug } from '../utils/log';
 import Model from './Model';
+import ComputationChild from './ComputationChild';
 import { removeFromArray } from '../utils/array';
 import { isEqual } from '../utils/is';
-import { handleChange, mark as markChild } from '../shared/methodCallers';
-
-// TODO `mark` appears to conflict with method name,
-// hence `markChild` - revert once bundler is fixed
+import { handleChange } from '../shared/methodCallers';
 
 // TODO this is probably a bit anal, maybe we should leave it out
 function prettify ( fnBody ) {
@@ -109,24 +107,29 @@ export default class Computation extends Model {
 		this.dirty = true;
 
 		this.deps.forEach( handleChange );
-		this.children.forEach( markChild ); // TODO rename to mark once bundling glitch fixed
+		this.children.forEach( handleChange );
 		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
 	}
 
-	init () {
+	joinKey ( key ) {
+		if ( key === undefined || key === '' ) return this;
+
+		if ( !this.childByKey.hasOwnProperty( key ) ) {
+			const child = new ComputationChild( this, key );
+			this.children.push( child );
+			this.childByKey[ key ] = child;
+		}
+
+		return this.childByKey[ key ];
 	}
 
 	mark () {
 		this.handleChange();
 	}
 
-	register ( dependant ) {
-		this.deps.push( dependant );
-	}
-
 	set ( value ) {
 		if ( !this.signature.setter ) {
-			throw new Error( `Cannot set read-only computed property '${this.key}'` );
+			throw new Error( `Cannot set read-only computed value '${this.key}'` );
 		}
 
 		this.signature.setter( value );
@@ -148,9 +151,5 @@ export default class Computation extends Model {
 		}
 
 		this.dependencies = dependencies;
-	}
-
-	unregister ( dependant ) {
-		removeFromArray( this.deps, dependant );
 	}
 }

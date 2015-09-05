@@ -345,28 +345,123 @@ test( 'Unresolved computations resolve when parent component data exists', funct
 	var ractive, Component;
 
 	Component = Ractive.extend({
-	    template: '{{FOO}} {{BAR}}',
-	    computed: {
-	        FOO: '${foo}.toUpperCase()',
-	        BAR: function () {
-	            return this.get( 'bar' ).toUpperCase();
-	        }
-	    }
+		template: '{{FOO}} {{BAR}}',
+		computed: {
+			FOO: '${foo}.toUpperCase()',
+			BAR: function () {
+				return this.get( 'bar' ).toUpperCase();
+			}
+		}
 	});
 
 	ractive = new Ractive({
-	    el: fixture,
-	    template: '<component/>',
-	    data: {
-	        foo: 'fee fi',
-	        bar: 'fo fum'
-	    },
-	    components: {
-	    	component: Component
-	    }
+		el: fixture,
+		template: '<component/>',
+		data: {
+			foo: 'fee fi',
+			bar: 'fo fum'
+		},
+		components: {
+			component: Component
+		}
 	});
 
 	t.equal( fixture.innerHTML, 'FEE FI FO FUM' );
+
+});
+
+test( 'Computed properties referencing bound parent data', function ( t ) {
+	const List = Ractive.extend({
+		template: `
+			{{limits.sum}}
+		`,
+		computed: {
+			limits: function () {
+				return {sum: this.get('d.opts').reduce((a, b) => a + b)}
+			}
+		}
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+		{{#each list}}
+			<List d='{{.}}'/>
+		{{/each list}}
+		`,
+		data: {
+			list: [
+				{ opts: [3, 3, 3] },
+				{ opts: [3, 2, 1] },
+				{ opts: [1, 1, 1] },
+			]
+		},
+		components: { List }
+	});
+
+	t.equal( fixture.innerHTML, '963' );
+
+});
+
+test( 'Computed properties referencing bound parent data w/ conditional', function ( t ) {
+	const List = Ractive.extend({
+		template: `
+			{{#if limits.sum}}
+				{{limits.sum}}
+			{{else}}
+				x
+			{{/if}}
+		`,
+		computed: {
+			limits: function () {
+				return {sum: this.get('d.opts').reduce((a, b) => a + b)}
+			}
+		}
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+		{{#each list}}
+			<List d='{{.}}'/>
+		{{/each list}}
+		`,
+		data: {
+			list: [
+				{ opts: [3, 3, 3] },
+				{ opts: [3, 2, 1] },
+				{ opts: [1, 1, 1] },
+			]
+		},
+		components: { List }
+	});
+
+	t.equal( fixture.innerHTML, '963' );
+
+});
+
+test( 'Computed properties referencing deep objects', function ( t ) {
+	let ractive = new Ractive({
+	  el: fixture,
+	  template: '{{one.two.tre}}',
+	  data: {
+	    answer: 42
+	  },
+	  computed: {
+	    one () {
+	      var answer = this.get( 'answer' );
+	      return {
+	        two: {
+	          tre: answer
+	        }
+	      };
+	    }
+	  }
+	});
+
+	t.equal( fixture.innerHTML, '42' );
+	ractive.set( 'answer', 99 );
+	t.equal( fixture.innerHTML, '99' );
 
 });
 
@@ -375,26 +470,26 @@ test( 'Computations are not order dependent', function ( t ) {
 	var ractive, Component;
 
 	Component = Ractive.extend({
-	    template: '{{foo}}',
-	    data: {
-	        count: 1
-	    },
-	    computed: {
-	        foo: '${bar} + 1',
-	        bar: '${count} + 1'
-	    }
+		template: '{{foo}}',
+		data: {
+			count: 1
+		},
+		computed: {
+			foo: '${bar} + 1',
+			bar: '${count} + 1'
+		}
 	});
 
 	ractive = new Ractive({
-        el: fixture,
-        template: '<component/>',
-        data: {
-            bar: 20
-        },
-        components: {
-            component: Component
-        }
-    });
+		el: fixture,
+		template: '<component/>',
+		data: {
+			bar: 20
+		},
+		components: {
+			component: Component
+		}
+	});
 	t.equal( fixture.innerHTML, '3' );
 
 });
@@ -404,24 +499,24 @@ test( 'Parent extend instance computations are resolved before child computation
 	var ractive, Base, Component;
 
 	Base = Ractive.extend({
-	    computed: {
-	        base: () => 1
-	    }
+		computed: {
+			base: () => 1
+		}
 	});
 
 	Component = Base.extend({
 		template: '{{foo}}',
-	    computed: {
-	        foo: '${base} + 1'
-	    }
+		computed: {
+			foo: '${base} + 1'
+		}
 	});
 
 	ractive = new Ractive({
-	    el: fixture,
-	    template: '<component/>',
-	    components: {
-	    	component: Component
-	    }
+		el: fixture,
+		template: '<component/>',
+		components: {
+			component: Component
+		}
 	});
 
 	t.equal( fixture.innerHTML, '2' );
@@ -526,23 +621,23 @@ test( 'Computations can depend on array values (#1747)', t => {
 
 	Component = Ractive.extend({
 		template: "{{ a }}:{{ b }}",
-	    computed: {
-	        b: function() {
-	            var a = this.get("a");
-	            return a + "bar";
-	        }
-	    }
+		computed: {
+			b: function() {
+				var a = this.get("a");
+				return a + "bar";
+			}
+		}
 	});
 
 	ractive = new Ractive({
-	    el: fixture,
-	    template: '{{ a }}:{{ b }}-<component a="{{ a }}" b="{{ b }}" />',
+		el: fixture,
+		template: '{{ a }}:{{ b }}-<component a="{{ a }}" b="{{ b }}" />',
 		components: {
-	        component: Component
-	    },
-	    data: {
-	        a: "foo"
-	    }
+			component: Component
+		},
+		data: {
+			a: "foo"
+		}
 	});
 
 	t.equal( fixture.innerHTML, 'foo:foobar-foo:foobar' );
