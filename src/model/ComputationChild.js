@@ -26,4 +26,8 @@ export default class ComputationChild extends Model {
 
 		return this.childByKey[ key ];
 	}
+
+	set () {
+		throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
+	}
 }

@@ -40,7 +40,7 @@ export default class Model {
 			this.parent = parent;
 			this.root = parent.root;
 			this.key = key;
-			this.isComputed = parent.isComputed;
+			this.isReadonly = parent.isReadonly;
 
 			if ( parent.value ) {
 				this.value = parent.value[ this.key ];

@@ -129,7 +129,7 @@ export default class Computation extends Model {
 
 	set ( value ) {
 		if ( !this.signature.setter ) {
-			throw new Error( `Cannot set read-only computed property '${this.key}'` );
+			throw new Error( `Cannot set read-only computed value '${this.key}'` );
 		}
 
 		this.signature.setter( value );
