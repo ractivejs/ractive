@@ -1,7 +1,4 @@
 import hasUsableConsole from 'hasUsableConsole';
-import cleanup from 'helpers/cleanup';
-
-module( 'Yield', { afterEach: cleanup });
 
 test( 'Basic yield', function ( t ) {
 	const Widget = Ractive.extend({

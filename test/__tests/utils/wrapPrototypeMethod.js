@@ -1,8 +1,6 @@
 import wrap from 'Ractive/config/wrapPrototypeMethod';
 import { create } from 'utils/object';
 
-module( 'Wrap Method' );
-
 var callSuper = function () { this._super() };
 
 test( 'can call _super on parent', function ( t ) {

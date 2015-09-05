@@ -1,23 +1,19 @@
-import cleanup from 'helpers/cleanup';
-
-module( 'ractive.updateModel()', { afterEach: cleanup });
-
 test( 'Works across component boundary', t => {
 	const widget = Ractive.extend({
-	    template: '{{bar}}'
+		template: '{{bar}}'
 	});
 
 	const ractive = new Ractive({
-	    el: fixture,
-	    template: `<input value='{{foo.bar}}'/><widget bar='{{foo.bar}}'/>`,
-	    data: {
-	        foo: {
-	            bar: 'change me'
-	        }
-	    },
-	    components: {
-	    	widget
-	    }
+		el: fixture,
+		template: `<input value='{{foo.bar}}'/><widget bar='{{foo.bar}}'/>`,
+		data: {
+			foo: {
+				bar: 'change me'
+			}
+		},
+		components: {
+			widget
+		}
 	});
 
 	ractive.find( 'input' ).value = 'changed';

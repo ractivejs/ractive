@@ -1,7 +1,4 @@
 import hasUsableConsole from 'hasUsableConsole';
-import cleanup from 'helpers/cleanup';
-
-module( 'Computations', { afterEach: cleanup });
 
 test( 'Computed value declared as a function', function ( t ) {
 	var ractive = new Ractive({

@@ -1,8 +1,4 @@
 import hasUsableConsole from 'hasUsableConsole';
-import cleanup from 'helpers/cleanup';
-
-QUnit.module( 'Components', { afterEach: cleanup });
-
 
 test( 'Components are rendered in the correct place', t => {
 	var Component, ractive;

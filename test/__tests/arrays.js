@@ -1,8 +1,4 @@
-import cleanup from 'helpers/cleanup';
-
 var List, baseItems;
-
-module( 'Arrays', { afterEach: cleanup });
 
 List = Ractive.extend({
 	template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>'

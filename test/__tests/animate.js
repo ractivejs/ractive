@@ -1,7 +1,3 @@
-import cleanup from 'helpers/cleanup';
-
-module( 'ractive.animate()', { afterEach: cleanup });
-
 test( 'Values that cannot be interpolated change to their final value immediately', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,

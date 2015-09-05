@@ -1,7 +1,5 @@
 import { normalise } from 'shared/keypaths';
 
-module( 'normalise.js');
-
 test( 'Regular keypath', function ( t ) {
 	t.equal( normalise( 'foo.bar' ), 'foo.bar' );
 });

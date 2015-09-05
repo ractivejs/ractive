@@ -1,7 +1,5 @@
 import tests from 'samples/parse';
 
-module( 'Parse' );
-
 test( 'Mismatched template version causes error', function ( t ) {
 	t.throws( function () {
 		var ractive = new Ractive({

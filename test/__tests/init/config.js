@@ -3,8 +3,6 @@ import config from 'Ractive/config/config';
 import registries from 'Ractive/config/registries';
 import { findInViewHierarchy } from 'shared/registry';
 
-module( 'Configuration' );
-
 const test = QUnit.test; // necessary due to a bug in esperanto
 
 test( 'Ractive.defaults', t => {

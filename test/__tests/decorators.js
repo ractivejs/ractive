@@ -1,7 +1,3 @@
-import cleanup from 'helpers/cleanup';
-
-module( 'Decorators', { afterEach: cleanup });
-
 test( 'Basic decorator', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,

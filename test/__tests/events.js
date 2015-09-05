@@ -1,7 +1,5 @@
 import cleanup from 'helpers/cleanup';
 
-module( 'Events', { afterEach: cleanup });
-
 test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 	var ractive;
 

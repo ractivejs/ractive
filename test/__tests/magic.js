@@ -1,7 +1,3 @@
-import cleanup from 'helpers/cleanup';
-
-module( 'Magic mode', { afterEach: cleanup });
-
 var fixture2, makeObj;
 
 // only run these tests if magic mode is supported

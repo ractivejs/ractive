@@ -1,7 +1,5 @@
 import registries from 'Ractive/config/registries';
 
-module( 'Registries Config' );
-
 test( 'has globally registered', function ( t ) {
 	var ractive, foo = {};
 

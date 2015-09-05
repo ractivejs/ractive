@@ -1,7 +1,5 @@
 import parseJSON from 'utils/parseJSON';
 
-module( 'parseJSON' );
-
 test( 'Unquoted string', function ( t ) {
 	var parsed = parseJSON( 'foo' );
 	t.ok( !parsed );

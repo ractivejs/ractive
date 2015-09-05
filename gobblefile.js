@@ -1,15 +1,16 @@
-var gobble = require( 'gobble' ),
-	sander = require( 'sander' ),
-	junk = require( 'junk' ),
-	Promise = sander.Promise,
-	path = require( 'path' ),
-	rollup = require( 'rollup' ),
-	sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' ),
-	version = require( './package.json' ).version,
-	es5, lib, test;
+var gobble = require( 'gobble' );
+var sander = require( 'sander' );
+var junk = require( 'junk' );
+var Promise = sander.Promise;
+var path = require( 'path' );
+var rollup = require( 'rollup' );
+var sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' );
+var version = require( './package.json' ).version;
 
 var src = gobble( 'src' );
 var es5 = src.transform( 'babel' );
+var lib;
+var test;
 
 if ( gobble.env() === 'production' ) {
 	var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
@@ -138,6 +139,16 @@ test = (function () {
 						}
 
 						return path.resolve( inputdir, importee ) + '.js';
+					},
+					load: function ( id ) {
+						var code = sander.readFileSync( id, { encoding: 'utf-8' })
+							.replace( /import cleanup.+/, '' ); // TEMP
+
+						if ( /helpers\/cleanup/.test( id ) ) return code;
+
+						return 'import cleanup from \'helpers/cleanup\';\n\n' +
+						       'module(\'' + mod + '\', { afterEach: cleanup });\n\n' +
+						        code;
 					}
 				}).then( function ( bundle ) {
 					return bundle.write({

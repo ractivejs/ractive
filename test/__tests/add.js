@@ -1,7 +1,3 @@
-import cleanup from 'helpers/cleanup';
-
-module( 'add/subtract', { afterEach: cleanup });
-
 test( 'ractive.add("foo") adds 1 to the value of foo', t => {
 	let ractive = new Ractive({
 		data: { foo: 0 }

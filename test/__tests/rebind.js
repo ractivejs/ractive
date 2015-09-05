@@ -2,9 +2,6 @@ import Fragment from 'view/Fragment';
 import Element from 'view/items/Element';
 import Triple from 'view/items/Triple';
 import { TRIPLE } from 'config/types';
-import cleanup from 'helpers/cleanup';
-
-module( 'rebind', { afterEach: cleanup });
 
 const test = QUnit.test; // necessary due to a bug in esperanto
 

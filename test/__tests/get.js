@@ -1,8 +1,3 @@
-import cleanup from 'helpers/cleanup';
-
-module( 'get()', { afterEach: cleanup });
-
-
 test( 'Returns mappings on root .get()', t => {
 	var ractive;
 

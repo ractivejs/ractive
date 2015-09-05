@@ -1,8 +1,4 @@
-import cleanup from 'helpers/cleanup';
-
 if ( Ractive.svg ) {
-	module( 'namespaceURI', { afterEach: cleanup });
-
 	const html = 'http://www.w3.org/1999/xhtml';
 	const svg = 'http://www.w3.org/2000/svg';
 

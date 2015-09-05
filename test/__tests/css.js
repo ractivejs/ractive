@@ -1,7 +1,4 @@
-import cleanup from 'helpers/cleanup';
 import legacy from 'legacy';
-
-module( 'CSS encapsulation', { afterEach: cleanup });
 
 var hexCodes, getComputedStyle;
 

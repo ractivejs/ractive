@@ -1,7 +1,3 @@
-import cleanup from 'helpers/cleanup';
-
-module( 'ractive.find()/findAll()/findComponent()/findAllComponents()', { afterEach: cleanup });
-
 var Widget, Decoy, MockRactive;
 
 Widget = Ractive.extend({
