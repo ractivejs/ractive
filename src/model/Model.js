@@ -40,6 +40,7 @@ export default class Model {
 			this.parent = parent;
 			this.root = parent.root;
 			this.key = key;
+			this.isComputed = parent.isComputed;
 
 			if ( parent.value ) {
 				this.value = parent.value[ this.key ];
@@ -167,23 +168,6 @@ export default class Model {
 
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
-		let p = this, stem = []
-		// in the case that one of the model's parents is a computed property,
-		// then we must climb the tree and get its value.
-		// once we have it's value we should return it by going back down the stem.
-		if ( this.value === void 0 && this.parent) {
-			while ( p = p.parent ) {
-				if ( p instanceof Computation ) {
-					let v = p.value || p.getValue()
-					for (var i = 0; i < stem.length; i++) {
-						if ( !( v = v[ stem[ i ].key ] ) ) return
-					}
-					return v[ this.key ]
-				}
-				stem.push( p )
-			}
-		}
-
 		return this.value;
 	}
 
@@ -299,24 +283,7 @@ export default class Model {
 	}
 
 	retrieve () {
-		let p = this
-		let value = this.parent.value ? this.parent.value[ this.key ] : undefined
-		// in the case that the values are deep inside of a computed key, we need
-		// to go up the tree, and compute its value first (before it becomes available)
-		// next, refer to the `get` method to see how we pull the value out and apply
-		// it to the sub-keys on the way back down the tree to the value.
-		if ( value === void 0 ) {
-			while ( p = p.parent ) {
-				if ( p instanceof Computation ) {
-					p.get();
-					break;
-				}
-			}
-
-			return this.parent.value ? this.parent.value[ this.key ] : undefined;
-		} else {
-			return value
-		}
+		return this.parent.value ? this.parent.value[ this.key ] : undefined;
 	}
 
 	set ( value ) {
