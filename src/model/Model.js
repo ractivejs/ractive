@@ -6,7 +6,6 @@ import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
-import Computation from './Computation';
 
 const hasProp = Object.prototype.hasOwnProperty;
 

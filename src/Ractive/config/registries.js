@@ -23,7 +23,7 @@ Registry = function ( name, useDefaults ) {
 Registry.prototype = {
 	constructor: Registry,
 
- 	extend: function ( Parent, proto, options ) {
+	extend: function ( Parent, proto, options ) {
 		this.configure(
 			this.useDefaults ? Parent.defaults : Parent,
 			this.useDefaults ? proto : proto.constructor,

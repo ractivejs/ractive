@@ -5,18 +5,13 @@ import readRefinement from './shared/readRefinement';
 import { expectedParen } from './shared/errors';
 
 export default function ( parser ) {
-	var current, expression, refinement, expressionList;
+	let expression = readPrimary( parser );
 
-	expression = readPrimary( parser );
-
-	if ( !expression ) {
-		return null;
-	}
+	if ( !expression ) return null;
 
 	while ( expression ) {
-		current = parser.pos;
-
-		if ( refinement = readRefinement( parser ) ) {
+		const refinement = readRefinement( parser );
+		if ( refinement ) {
 			expression = {
 				t: MEMBER,
 				x: expression,
@@ -26,7 +21,7 @@ export default function ( parser ) {
 
 		else if ( parser.matchString( '(' ) ) {
 			parser.allowWhitespace();
-			expressionList = readExpressionList( parser );
+			const expressionList = readExpressionList( parser );
 
 			parser.allowWhitespace();
 
@@ -39,9 +34,7 @@ export default function ( parser ) {
 				x: expression
 			};
 
-			if ( expressionList ) {
-				expression.o = expressionList;
-			}
+			if ( expressionList ) expression.o = expressionList;
 		}
 
 		else {

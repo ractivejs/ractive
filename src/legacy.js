@@ -322,12 +322,10 @@ if ( !win ) {
 		exportedShims.getComputedStyle = (function () {
 			var borderSizes = {};
 
-			function getPixelSize(element, style, property, fontSize) {
-				var
-				sizeWithSuffix = style[property],
-				size = parseFloat(sizeWithSuffix),
-				suffix = sizeWithSuffix.split(/\d/)[0],
-				rootSize;
+			function getPixelSize ( element, style, property, fontSize ) {
+				const sizeWithSuffix = style[property];
+				let size = parseFloat(sizeWithSuffix);
+				let suffix = sizeWithSuffix.split(/\d/)[0];
 
 				if ( isNaN( size ) ) {
 					if ( /^thin|medium|thick$/.test( sizeWithSuffix ) ) {
@@ -341,7 +339,7 @@ if ( !win ) {
 				}
 
 				fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
-				rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
+				const rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
 
 				return (suffix == 'em') ? size * fontSize : (suffix == 'in') ? size * 96 : (suffix == 'pt') ? size * 96 / 72 : (suffix == '%') ? size / 100 * rootSize : size;
 			}
@@ -367,12 +365,11 @@ if ( !win ) {
 			}
 
 			function setShortStyleProperty(style, property) {
-				var
-				borderSuffix = property == 'border' ? 'Width' : '',
-				t = property + 'Top' + borderSuffix,
-				r = property + 'Right' + borderSuffix,
-				b = property + 'Bottom' + borderSuffix,
-				l = property + 'Left' + borderSuffix;
+				const borderSuffix = property == 'border' ? 'Width' : '';
+				const t = `${property}Top${borderSuffix}`;
+				const r = `${property}Right${borderSuffix}`;
+				const b = `${property}Bottom${borderSuffix}`;
+				const l = `${property}Left${borderSuffix}`;
 
 				style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]]
 				: style[t] == style[b] && style[l] == style[r] ? [style[t], style[r]]

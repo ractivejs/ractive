@@ -3,7 +3,7 @@ import parse from '../../../../parse/_parse';
 import { create } from '../../../../utils/object';
 
 var parseOptions = [
- 	'preserveWhitespace',
+	'preserveWhitespace',
 	'sanitize',
 	'stripComments',
 	'delimiters',

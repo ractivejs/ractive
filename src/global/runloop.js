@@ -83,22 +83,22 @@ function dispatch ( observer ) {
 }
 
 function flushChanges () {
-	var i, thing, changeHash;
-
 	batch.immediateObservers.forEach( dispatch );
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
-	i = batch.fragments.length;
+	let i = batch.fragments.length;
+	let fragment;
+
 	while ( i-- ) {
-		thing = batch.fragments[i];
+		fragment = batch.fragments[i];
 
 		// TODO deprecate this. It's annoying and serves no useful function
-		const ractive = thing.ractive;
+		const ractive = fragment.ractive;
 		changeHook.fire( ractive, ractive.viewmodel.changes );
 		ractive.viewmodel.changes = {};
 
-		thing.update();
+		fragment.update();
 	}
 	batch.fragments.length = 0;
 
