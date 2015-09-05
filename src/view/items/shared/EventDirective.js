@@ -35,7 +35,7 @@ export default class EventDirective {
 	}
 
 	bind () {
-		this.context = this.parentFragment.findContext();;
+		this.context = this.parentFragment.findContext();
 
 		const template = this.template;
 
