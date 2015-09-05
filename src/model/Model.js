@@ -227,7 +227,7 @@ export default class Model {
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 
-			this.children.forEach( mark );
+			if ( value ) this.children.forEach( mark );
 
 			this.deps.forEach( handleChange );
 			this.clearUnresolveds();

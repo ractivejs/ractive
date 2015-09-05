@@ -525,8 +525,8 @@ if ( hasUsableConsole ) {
 			template: '{{#if show}}<widget/>{{/if}}',
 			components: {
 				widget: Ractive.extend({
-				    el: fixture,
-				    template: '{{whatever}}'
+					el: fixture,
+					template: '{{whatever}}'
 				})
 			},
 			debug: true
@@ -793,6 +793,56 @@ test( 'Implicit mappings are created by restricted references (#1465)', function
 });
 */
 
+test( 'Multiple components two-way binding', function ( t ) {
+	const ListFoo = Ractive.extend({
+		template: `{{d.foo}}`
+	});
+
+	const ListBaz = Ractive.extend({
+		template: `
+			{{#each list}}
+				{{a}}
+			{{/each}}
+		`
+	});
+
+	const ListBar = Ractive.extend({
+		template: `
+			<ListBaz list="{{d.bar}}" />
+		`,
+		components: { ListBaz }
+	});
+
+	let list = []
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+		{{#each list}}
+			{{#if bar}}
+			<ListBar d='{{.}}'/>
+			{{else}}
+			<ListFoo d='{{.}}'/>
+			{{/if bar}}
+		{{/each list}}
+		`,
+		components: { ListFoo, ListBar },
+		data: { list: list }
+	});
+
+	let list2 = [
+		{ foo: 1 },
+		{ foo: 2, bar: [ { a: 1 }, { a: 2 }, { a: 3 } ] },
+		{ foo: 3 },
+	]
+
+	for (var i = 0; i < list2.length; i++) {
+		list.push(list2[i])
+	}
+
+	t.htmlEqual( fixture.innerHTML, '11233' );
+});
+
 test( 'Explicit mappings with uninitialised data', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,
@@ -925,12 +975,12 @@ test( 'Mappings resolve correctly where references are shadowed (#2108)', assert
 
 test( 'not null value for this.parent in Component.oncunstruct() (#2091)', t => {
 	var component = Ractive.extend({
-    template: "<div>component</div>",
-	    onconstruct: function()
-	    {
-	        var parent = this.parent !== null;
-	        t.equal(parent,true);
-	    }
+		template: "<div>component</div>",
+		onconstruct: function()
+		{
+			var parent = this.parent !== null;
+			t.equal(parent,true);
+		}
 	});
 	var ractive = new Ractive({
 		el: fixture,
