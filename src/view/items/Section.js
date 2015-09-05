@@ -154,7 +154,7 @@ export default class Section extends Mustache {
 		if ( !this.dirty ) return;
 		if ( !this.model ) return; // TODO can this happen?
 
-		const value = this.model.value; // TODO see above - should use .get()
+		const value = this.model.get();
 
 		if ( this.sectionType === null ) this.sectionType = getType( value, this.template.i );
 

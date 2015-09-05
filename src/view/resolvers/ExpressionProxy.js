@@ -1,5 +1,6 @@
 import Model from '../../model/Model';
-import { unbind } from '../../shared/methodCallers';
+import ComputationChild from '../../model/ComputationChild';
+import { handleChange, unbind } from '../../shared/methodCallers';
 import createFunction from '../../shared/createFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
@@ -86,7 +87,24 @@ export default class ExpressionProxy extends Model {
 	}
 
 	handleChange () {
-		this.mark();
+		this.deps.forEach( handleChange );
+		this.children.forEach( handleChange );
+	}
+
+	joinKey ( key ) {
+		if ( key === undefined || key === '' ) return this;
+
+		if ( !this.childByKey.hasOwnProperty( key ) ) {
+			const child = new ComputationChild( this, key );
+			this.children.push( child );
+			this.childByKey[ key ] = child;
+		}
+
+		return this.childByKey[ key ];
+	}
+
+	mark () {
+		this.handleChange();
 	}
 
 	retrieve () {
