@@ -11,7 +11,7 @@ export default class ComputationChild extends Model {
 		this.dirty = true;
 
 		this.deps.forEach( handleChange );
-		this.children.forEach( handleChange ); // TODO rename to mark once bundling glitch fixed
+		this.children.forEach( handleChange );
 		this.clearUnresolveds(); // TODO is this necessary?
 	}
 
