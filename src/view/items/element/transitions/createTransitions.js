@@ -1,5 +1,6 @@
+import { missingPlugin } from '../../../../config/errors';
 import { isClient } from '../../../../config/environment';
-import { warnIfDebug } from '../../../../utils/log';
+import { warnIfDebug, warnOnceIfDebug } from '../../../../utils/log';
 import { createElement } from '../../../../utils/dom';
 import camelCase from '../../../../utils/camelCase';
 import interpolate from '../../../../shared/interpolate';

@@ -5,7 +5,7 @@ import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 
 export default function getUpdateDelegate ( attribute ) {
-	const { element, name, namespace } = attribute;
+	const { element, name } = attribute;
 
 	if ( name === 'id' ) return updateId;
 

@@ -1,5 +1,5 @@
 import runloop from '../../global/runloop';
-import { fatal, warnIfDebug, warnOnceIfDebug } from '../../utils/log';
+import { warnIfDebug, warnOnceIfDebug } from '../../utils/log';
 import { COMPONENT, INTERPOLATOR, YIELDER } from '../../config/types';
 import Item from './shared/Item';
 import construct from '../../Ractive/construct';
@@ -15,7 +15,6 @@ import Fragment from '../Fragment';
 import parseJSON from '../../utils/parseJSON';
 import EventDirective from './shared/EventDirective';
 import RactiveEvent from './component/RactiveEvent';
-import fireEvent from '../../events/fireEvent';
 import updateLiveQueries from './component/updateLiveQueries';
 
 function removeFromLiveComponentQueries ( component ) {
