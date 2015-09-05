@@ -854,6 +854,33 @@ test( 'Current event is available to method handler as this.event (#1403)', t =>
 	simulant.fire( ractive.find( 'button' ), 'click' );
 });
 
+test( 'Proxy event arguments update correctly (#2098)', t => {
+	const one = { number: 1 };
+	const two = { number: 2 };
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `<button type="button" on-click="checkValue:{{current}}">foo</button>`
+	});
+
+	ractive.set( 'current', one );
+	ractive.set( 'current', two );
+
+	let expected = two;
+
+	ractive.on( 'checkValue', ( event, value ) => {
+		t.strictEqual( value, expected );
+		ractive.set( 'current', one );
+		expected = one;
+	});
+
+	const button = ractive.find( 'button' );
+
+	expect( 2 );
+	simulant.fire( button, 'click' );
+	simulant.fire( button, 'click' );
+});
+
 
 var Component, Middle, View, setup;
 

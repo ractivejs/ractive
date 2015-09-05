@@ -35,9 +35,7 @@ export default class EventDirective {
 	}
 
 	bind () {
-		let fragment = this.parentFragment;
-		while ( !fragment.context ) fragment = fragment.parent;
-		this.context = fragment.context;
+		this.context = this.parentFragment.findContext();
 
 		const template = this.template;
 
@@ -236,5 +234,7 @@ export default class EventDirective {
 		// ugh legacy
 		if ( this.action.update ) this.action.update();
 		if ( this.template.d ) this.args.update();
+
+		this.dirty = false;
 	}
 }
