@@ -111,9 +111,6 @@ export default class Computation extends Model {
 		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
 	}
 
-	init () {
-	}
-
 	joinKey ( key ) {
 		if ( key === undefined || key === '' ) return this;
 

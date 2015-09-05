@@ -16,8 +16,6 @@ export default function initialise ( ractive, userOptions, options ) {
 		if ( ractive.viewmodel.value.hasOwnProperty( key ) ) {
 			computation.set( ractive.viewmodel.value[ key ] );
 		}
-
-		computation.init();
 	});
 
 	// init config from Parent and options

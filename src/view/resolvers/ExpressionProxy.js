@@ -65,7 +65,6 @@ export default class ExpressionProxy extends Model {
 		};
 
 		const computation = ractive.viewmodel.compute( key, signature );
-		computation.init();
 
 		this.value = computation.get(); // TODO should not need this, eventually
 
