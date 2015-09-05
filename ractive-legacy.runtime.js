@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Sep 05 2015 18:48:13 GMT+0000 (UTC) - commit 97909ffd24d37783619c6ff1c70656deda76391c
+	Sat Sep 05 2015 19:07:57 GMT+0000 (UTC) - commit a8c9e44fc06884bea9dbe44037ad989f3d739d4b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2308,6 +2308,7 @@ var classCallCheck = function (instance, Constructor) {
   			this.parent = parent;
   			this.root = parent.root;
   			this.key = key;
+  			this.isReadonly = parent.isReadonly;
 
   			if (parent.value) {
   				this.value = parent.value[this.key];
@@ -2474,7 +2475,8 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Model.prototype.has = function has(key) {
-  		return this.value && hasProp.call(this.value, key);
+  		var value = this.get();
+  		return value && hasProp.call(value, key);
   	};
 
   	Model.prototype.joinKey = function joinKey(key) {
@@ -2689,6 +2691,47 @@ var classCallCheck = function (instance, Constructor) {
   	return Model;
   })();
 
+  var ComputationChild = (function (_Model) {
+  	inherits(ComputationChild, _Model);
+
+  	function ComputationChild() {
+  		classCallCheck(this, ComputationChild);
+
+  		_Model.apply(this, arguments);
+  	}
+
+  	ComputationChild.prototype.get = function get() {
+  		var parentValue = this.parent.get();
+  		return parentValue ? parentValue[this.key] : undefined;
+  	};
+
+  	ComputationChild.prototype.handleChange = function handleChange$$() {
+  		this.dirty = true;
+
+  		this.deps.forEach(handleChange);
+  		this.children.forEach(handleChange);
+  		this.clearUnresolveds(); // TODO is this necessary?
+  	};
+
+  	ComputationChild.prototype.joinKey = function joinKey(key) {
+  		if (key === undefined || key === '') return this;
+
+  		if (!this.childByKey.hasOwnProperty(key)) {
+  			var child = new ComputationChild(this, key);
+  			this.children.push(child);
+  			this.childByKey[key] = child;
+  		}
+
+  		return this.childByKey[key];
+  	};
+
+  	// TODO this causes problems with inter-component mappings
+  	// set () {
+  	// 	throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
+  	// }
+  	return ComputationChild;
+  })(Model);
+
   function resolveReference(fragment, ref) {
   	var context = fragment.findContext();
 
@@ -2805,7 +2848,6 @@ var classCallCheck = function (instance, Constructor) {
   		};
 
   		var computation = ractive.viewmodel.compute(key, signature);
-  		computation.init();
 
   		this.value = computation.get(); // TODO should not need this, eventually
 
@@ -2826,8 +2868,27 @@ var classCallCheck = function (instance, Constructor) {
   		return this.computation ? this.computation.getKeypath() : '@undefined';
   	};
 
-  	ExpressionProxy.prototype.handleChange = function handleChange() {
-  		this.mark();
+  	ExpressionProxy.prototype.handleChange = function handleChange$$() {
+  		this.deps.forEach(handleChange);
+  		this.children.forEach(handleChange);
+
+  		this.clearUnresolveds();
+  	};
+
+  	ExpressionProxy.prototype.joinKey = function joinKey(key) {
+  		if (key === undefined || key === '') return this;
+
+  		if (!this.childByKey.hasOwnProperty(key)) {
+  			var child = new ComputationChild(this, key);
+  			this.children.push(child);
+  			this.childByKey[key] = child;
+  		}
+
+  		return this.childByKey[key];
+  	};
+
+  	ExpressionProxy.prototype.mark = function mark() {
+  		this.handleChange();
   	};
 
   	ExpressionProxy.prototype.retrieve = function retrieve() {
@@ -3952,7 +4013,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		// if we managed to bind, we need to create children
   		if (this.model) {
-  			var value = this.model.value; // TODO should use this.model.get()... but weirdness around root models
+  			var value = this.model.parent ? this.model.get() : this.model.value;
   			var fragment = undefined;
 
   			if (!this.sectionType) this.sectionType = getType(value, this.template.i);
@@ -4073,7 +4134,7 @@ var classCallCheck = function (instance, Constructor) {
   		if (!this.dirty) return;
   		if (!this.model) return; // TODO can this happen?
 
-  		var value = this.model.value; // TODO see above - should use .get()
+  		var value = this.model.get();
 
   		if (this.sectionType === null) this.sectionType = getType(value, this.template.i);
 
@@ -9478,8 +9539,6 @@ var classCallCheck = function (instance, Constructor) {
   		if (ractive.viewmodel.value.hasOwnProperty(key)) {
   			computation.set(ractive.viewmodel.value[key]);
   		}
-
-  		computation.init();
   	});
 
   	// init config from Parent and options
@@ -9600,9 +9659,6 @@ var classCallCheck = function (instance, Constructor) {
   	};
   }
 
-  // TODO `mark` appears to conflict with method name,
-  // hence `markChild` - revert once bundler is fixed
-
   // TODO this is probably a bit anal, maybe we should leave it out
   function prettify(fnBody) {
   	var lines = fnBody.replace(/^\t+/gm, function (tabs) {
@@ -9707,23 +9763,29 @@ var classCallCheck = function (instance, Constructor) {
   		this.dirty = true;
 
   		this.deps.forEach(handleChange);
-  		this.children.forEach(mark); // TODO rename to mark once bundling glitch fixed
+  		this.children.forEach(handleChange);
   		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
   	};
 
-  	Computation.prototype.init = function init() {};
+  	Computation.prototype.joinKey = function joinKey(key) {
+  		if (key === undefined || key === '') return this;
 
-  	Computation.prototype.mark = function mark$$() {
-  		this.handleChange();
+  		if (!this.childByKey.hasOwnProperty(key)) {
+  			var child = new ComputationChild(this, key);
+  			this.children.push(child);
+  			this.childByKey[key] = child;
+  		}
+
+  		return this.childByKey[key];
   	};
 
-  	Computation.prototype.register = function register(dependant) {
-  		this.deps.push(dependant);
+  	Computation.prototype.mark = function mark() {
+  		this.handleChange();
   	};
 
   	Computation.prototype.set = function set(value) {
   		if (!this.signature.setter) {
-  			throw new Error('Cannot set read-only computed property \'' + this.key + '\'');
+  			throw new Error('Cannot set read-only computed value \'' + this.key + '\'');
   		}
 
   		this.signature.setter(value);
@@ -9745,10 +9807,6 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		this.dependencies = dependencies;
-  	};
-
-  	Computation.prototype.unregister = function unregister(dependant) {
-  		removeFromArray(this.deps, dependant);
   	};
 
   	return Computation;
