@@ -89,6 +89,8 @@ export default class ExpressionProxy extends Model {
 	handleChange () {
 		this.deps.forEach( handleChange );
 		this.children.forEach( handleChange );
+
+		this.clearUnresolveds();
 	}
 
 	joinKey ( key ) {

@@ -199,7 +199,8 @@ export default class Model {
 	}
 
 	has ( key ) {
-		return this.value && hasProp.call( this.value, key );
+		const value = this.get();
+		return value && hasProp.call( value, key );
 	}
 
 	joinKey ( key ) {
