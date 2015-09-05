@@ -3,7 +3,7 @@ var gobble = require( 'gobble' ),
 	junk = require( 'junk' ),
 	Promise = sander.Promise,
 	path = require( 'path' ),
-	esperanto = require( 'esperanto' ),
+	rollup = require( 'rollup' ),
 	sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' ),
 	version = require( './package.json' ).version,
 	es5, lib, test;
@@ -128,11 +128,22 @@ test = (function () {
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
 		return sander.lsr( inputdir, '__tests' ).then( function ( testModules ) {
 			var promises = testModules.filter( junk.not ).sort().map( function ( mod ) {
-				return esperanto.bundle({
-					base: inputdir,
-					entry: '__tests/' + mod
+				return rollup.rollup({
+					entry: inputdir + '/__tests/' + mod,
+					resolveId: function ( importee, importer ) {
+						if ( !importer ) return importee;
+
+						if ( importee[0] === '.' ) {
+							return path.resolve( path.dirname( importer ), importee ) + '.js';
+						}
+
+						return path.resolve( inputdir, importee ) + '.js';
+					}
 				}).then( function ( bundle ) {
-					return sander.writeFile( outputdir, mod, bundle.concat({}).code );
+					return bundle.write({
+						dest: outputdir + '/' + mod,
+						format: 'iife'
+					});
 				});
 			});
 
