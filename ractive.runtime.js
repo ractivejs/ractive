@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Sep 04 2015 19:52:59 GMT+0000 (UTC) - commit f42b2e6b5941a82d33e73d890ed76a9e9e6928fc
+	Sat Sep 05 2015 13:22:36 GMT+0000 (UTC) - commit 0a17bd317014d1c17e63037a9644b49662cab483
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3063,10 +3063,12 @@ var classCallCheck = function (instance, Constructor) {
   		var oldValue = this.model.get();
   		this.model.unregister(this);
 
-  		model.register(this);
   		this.model = model;
 
-  		if (model.get() !== oldValue) this.handleChange();
+  		if (model) {
+  			model.register(this);
+  			if (model.get() !== oldValue) this.handleChange();
+  		}
   	};
 
   	Mustache.prototype.unbind = function unbind() {
