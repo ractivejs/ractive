@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Sep 05 2015 13:22:36 GMT+0000 (UTC) - commit 0a17bd317014d1c17e63037a9644b49662cab483
+	Sat Sep 05 2015 18:48:13 GMT+0000 (UTC) - commit 97909ffd24d37783619c6ff1c70656deda76391c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6388,9 +6388,7 @@ var classCallCheck = function (instance, Constructor) {
   	EventDirective.prototype.bind = function bind() {
   		var _this = this;
 
-  		var fragment = this.parentFragment;
-  		while (!fragment.context) fragment = fragment.parent;
-  		this.context = fragment.context;
+  		this.context = this.parentFragment.findContext();
 
   		var template = this.template;
 
@@ -6575,6 +6573,8 @@ var classCallCheck = function (instance, Constructor) {
   		// ugh legacy
   		if (this.action.update) this.action.update();
   		if (this.template.d) this.args.update();
+
+  		this.dirty = false;
   	};
 
   	return EventDirective;
