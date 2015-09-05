@@ -27,7 +27,8 @@ export default class ComputationChild extends Model {
 		return this.childByKey[ key ];
 	}
 
-	set () {
-		throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
-	}
+	// TODO this causes problems with inter-component mappings
+	// set () {
+	// 	throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
+	// }
 }
