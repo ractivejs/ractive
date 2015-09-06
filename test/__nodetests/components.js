@@ -4,13 +4,11 @@ var assert = require( 'assert' );
 
 describe( 'Components', function () {
 	it( 'should render in a non-DOM environment', function () {
-		var ractive, Widget;
-
-		Widget = Ractive.extend({
+		var Widget = Ractive.extend({
 			template: '<p>foo-{{bar}}</p>'
 		});
 
-		ractive = new Ractive({
+		var ractive = new Ractive({
 			template: '<widget/>',
 			data: {
 				bar: 'baz'

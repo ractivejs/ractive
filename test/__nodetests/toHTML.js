@@ -8,15 +8,17 @@ function normaliseHTML ( html ) {
 	return cheerio.load( html ).html().trim().replace( /^\s+/gm, '' ).replace( /\n/g, ' ' );
 }
 
+function getData ( data ) {
+	return typeof data === 'function' ? data() : deepClone( data );
+}
+
 describe( 'ractive.toHTML()', function () {
 	renderTests.forEach( function ( theTest ) {
 		it( theTest.name, function () {
 			[ false, true ].forEach( function ( magic ) {
-				var data, ractive;
+				var data = getData( theTest.data );
 
-				data = typeof theTest.data === 'function' ? theTest.data() : deepClone( theTest.data );
-
-				ractive = new Ractive({
+				var ractive = new Ractive({
 					template: theTest.template,
 					data: data,
 					partials: theTest.partials,
@@ -27,11 +29,13 @@ describe( 'ractive.toHTML()', function () {
 				assert.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.result ) );
 
 				if ( theTest.new_data ) {
-					data = typeof theTest.new_data === 'function' ? theTest.new_data() : deepClone( theTest.new_data );
+					data = getData( theTest.new_data );
 
 					ractive.set( data );
 					assert.equal( normaliseHTML( ractive.toHTML() ), normaliseHTML( theTest.new_result ) );
 				}
+
+				// TODO array of data/expected
 
 				ractive.teardown();
 			});
@@ -40,8 +44,6 @@ describe( 'ractive.toHTML()', function () {
 });
 
 function deepClone ( source ) {
-	var target, key;
-
 	if ( !source || typeof source !== 'object' ) {
 		return source;
 	}
@@ -50,9 +52,9 @@ function deepClone ( source ) {
 		return source.slice();
 	}
 
-	target = {};
+	var target = {};
 
-	for ( key in source ) {
+	for ( var key in source ) {
 		if ( source.hasOwnProperty( key ) ) {
 			target[ key ] = deepClone( source[ key ] );
 		}

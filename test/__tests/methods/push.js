@@ -20,7 +20,11 @@ import { test } from 'qunit';
 	});
 });
 
-asyncTest( 'Array method proxies return a promise that resolves on transition complete', t => {
+test( 'Array method proxies return a promise that resolves on transition complete', t => {
+	t.expect( 1 );
+
+	const done = t.async();
+
 	let items = [ 'alice', 'bob', 'charles' ];
 
 	const ractive = new Ractive({
@@ -39,10 +43,8 @@ asyncTest( 'Array method proxies return a promise that resolves on transition co
 		}
 	});
 
-	expect( 1 );
-
 	ractive.push( 'items', 'dave' ).then( () => {
 		t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>' );
-		QUnit.start();
+		done();
 	});
 });

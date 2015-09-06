@@ -1,12 +1,11 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 import Model from 'helpers/Model';
 
-var adaptor = Model.adaptor;
+const adaptor = Model.adaptor;
 
-test( 'Adaptors can change data as it is .set() (#442)', function ( t ) {
-	var model, ractive;
-
-	model = new Model({
+test( 'Adaptors can change data as it is .set() (#442)', t => {
+	const model = new Model({
 		foo: 'BAR',
 		percent: 150
 	});
@@ -19,12 +18,10 @@ test( 'Adaptors can change data as it is .set() (#442)', function ( t ) {
 		return Math.min( 100, Math.max( 0, newValue ) );
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>{{model.foo}}</p><p>{{model.percent}}</p>',
-		data: {
-			model: model
-		},
+		data: { model },
 		adapt: [ adaptor ]
 	});
 
@@ -41,10 +38,8 @@ test( 'Adaptors can change data as it is .set() (#442)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>50</p>' );
 });
 
-test( 'ractive.reset() calls are forwarded to wrappers if the root data object is wrapped', function ( t ) {
-	var model, ractive;
-
-	model = new Model({
+test( 'ractive.reset() calls are forwarded to wrappers if the root data object is wrapped', t => {
+	let model = new Model({
 		foo: 'BAR',
 		unwanted: 'here'
 	});
@@ -53,7 +48,7 @@ test( 'ractive.reset() calls are forwarded to wrappers if the root data object i
 		return newValue.toLowerCase();
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>{{foo}}</p>{{unwanted}}',
 		data: model,
@@ -73,18 +68,16 @@ test( 'ractive.reset() calls are forwarded to wrappers if the root data object i
 	t.htmlEqual( fixture.innerHTML, '<p>qux</p>' );
 });
 
-test( 'If a wrapper\'s reset() method returns false, it should be torn down (#467)', function ( t ) {
-	var model1, model2, ractive;
-
-	model1 = new Model({
+test( 'If a wrapper\'s reset() method returns false, it should be torn down (#467)', t => {
+	const model1 = new Model({
 		foo: 'bar'
 	});
 
-	model2 = new Model({
+	const model2 = new Model({
 		foo: 'baz'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>{{model.foo}}</p>',
 		data: { model: model1 },
@@ -97,19 +90,22 @@ test( 'If a wrapper\'s reset() method returns false, it should be torn down (#46
 	t.htmlEqual( fixture.innerHTML, '<p>baz</p>' );
 });
 
-test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', function ( t ) {
-	var Subclass, instance, FooAdaptor = { filter: function () {}, wrap: function () {} };
+test( 'A string can be supplied instead of an array for the `adapt` option (if there\'s only one adaptor listed', t => {
+	const FooAdaptor = {
+		filter () {},
+		wrap () {}
+	};
 
-	Subclass = Ractive.extend({ adapt: 'Foo', adaptors: { Foo: FooAdaptor }, modifyArrays: false });
-	instance = new Subclass();
+	const Subclass = Ractive.extend({ adapt: 'Foo', adaptors: { Foo: FooAdaptor }, modifyArrays: false });
+	const instance = new Subclass();
 
 	t.deepEqual( instance.viewmodel.adaptors, [FooAdaptor] );
 });
 
-test( 'Original values are passed to event handlers (#945)', function ( t ) {
-	expect( 2 );
+test( 'Original values are passed to event handlers (#945)', t => {
+	t.expect( 2 );
 
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#with model}}<button on-click="select:{{this}}">{{foo}}</button>{{/with}}',
 		data: {
@@ -124,15 +120,15 @@ test( 'Original values are passed to event handlers (#945)', function ( t ) {
 		t.ok( model instanceof Model );
 	});
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 });
 
-test( 'Adaptor teardown is called when used in a component (#1190)', function ( t ) {
-	var ractive, adaptor, torndown = 0;
+test( 'Adaptor teardown is called when used in a component (#1190)', t => {
+	function Wrapped () {}
 
-	function Wrapped(){}
+	let torndown = 0;
 
-	adaptor = {
+	const adaptor = {
 		filter: obj => obj instanceof Wrapped,
 		wrap: () => {
 			return {
@@ -143,11 +139,11 @@ test( 'Adaptor teardown is called when used in a component (#1190)', function ( 
 		}
 	};
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<component/>',
+		template: '<Component/>',
 		components: {
-			component: Ractive.extend({
+			Component: Ractive.extend({
 				template: '{{wrapped.foo}}',
 				data: () => ({
 					wrapped: new Wrapped()
@@ -164,14 +160,12 @@ test( 'Adaptor teardown is called when used in a component (#1190)', function ( 
 });
 
 
-test( 'Adaptor called on data provided in initial options when no template (#1285)', function ( t ) {
-	var ractive, adaptor, obj;
+test( 'Adaptor called on data provided in initial options when no template (#1285)', t => {
+	function Wrapped () {}
 
-	function Wrapped(){}
+	const obj = new Wrapped();
 
-	obj = new Wrapped();
-
-	adaptor = {
+	const adaptor = {
 		filter: obj => obj instanceof Wrapped,
 		wrap: () => {
 			return {
@@ -183,7 +177,7 @@ test( 'Adaptor called on data provided in initial options when no template (#128
 		}
 	};
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		data: { wrapped: obj },
 		adapt: [ adaptor ]
@@ -191,30 +185,28 @@ test( 'Adaptor called on data provided in initial options when no template (#128
 
 	t.ok( !obj.sekrit );
 	t.ok( !obj.enabled );
-	ractive.set('wrapped.enabled', true);
+	ractive.set( 'wrapped.enabled', true );
 	t.ok( obj.sekrit, 'adaptor set should have been used to set sekrit property' );
 	t.ok( !obj.enabled, 'object property should not have been set, adaptor should have been used'	);
 });
 
-test( 'Components inherit modifyArrays option from environment (#1297)', function ( t ) {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+test( 'Components inherit modifyArrays option from environment (#1297)', t => {
+	const Widget = Ractive.extend({
 		template: '{{#each items}}{{this}}{{/each}}'
 	});
 
 	// YOUR CODE GOES HERE
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget/>',
+		template: '<Widget/>',
 		data: {
 			items: [ 'a', 'b', 'c' ]
 		},
 		modifyArrays: false,
-		components: { widget: Widget }
+		components: { Widget }
 	});
 
-	ractive.findComponent( 'widget' ).get( 'items' ).push( 'd' );
+	ractive.findComponent( 'Widget' ).get( 'items' ).push( 'd' );
 	t.htmlEqual( fixture.innerHTML, 'abc' );
 });
 
@@ -250,7 +242,7 @@ test( 'Computed properties are adapted', t => {
 	t.htmlEqual( fixture.innerHTML, '4' );
 });
 
-test( 'display a collection from a model', function ( t ) {
+test( 'display a collection from a model', t => {
 	function extend ( parent, child ) {
 		function Surrogate () {
 			this.constructor = child;
@@ -319,12 +311,10 @@ test( 'display a collection from a model', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '-duck-chicken' );
 });
 
-test( 'A component inherits adaptor config from its parent class', function ( t ) {
-	var Sub, SubSub, ractive;
+test( 'A component inherits adaptor config from its parent class', t => {
+	function Wrapped () {}
 
-	function Wrapped(){}
-
-	adaptor = {
+	const adaptor = {
 		filter: obj => obj instanceof Wrapped,
 		wrap: () => {
 			return {
@@ -334,15 +324,15 @@ test( 'A component inherits adaptor config from its parent class', function ( t 
 		}
 	};
 
-	Sub = Ractive.extend({
+	const Sub = Ractive.extend({
 		adapt: [ adaptor ]
 	});
 
-	SubSub = Sub.extend({
+	const SubSub = Sub.extend({
 		template: '{{wrapped.foo}}'
 	});
 
-	ractive = new SubSub({
+	new SubSub({
 		el: fixture,
 		data: { wrapped: new Wrapped() }
 	});

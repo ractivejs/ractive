@@ -3,13 +3,13 @@ import hasUsableConsole from 'hasUsableConsole';
 
 /* global console */
 
-var partialsFn = {
+const partialsFn = {
 	foo () {
 		return this.get( 'foo' ) ? '<p>yes</p>' : '<h1>no</h1>';
 	}
 };
 
-test( 'specify partial by function', function ( t ) {
+test( 'specify partial by function', t => {
 	new Ractive({
 		el: fixture,
 		template: '{{>foo}}',
@@ -21,17 +21,17 @@ test( 'specify partial by function', function ( t ) {
 });
 
 if ( hasUsableConsole ) {
-	test( 'no return of partial warns in debug', function ( t ) {
-		var ractive, warn = console.warn;
+	test( 'no return of partial warns in debug', t => {
+		t.expect( 2 );
 
-		expect( 2 );
+		const warn = console.warn;
 
-		console.warn = function( msg ) {
+		console.warn = msg => {
 			t.ok( msg );
 		};
 
 		// will throw on no-partial found
-		ractive = new Ractive({
+		new Ractive({
 			el: fixture,
 			template: '{{>foo}}',
 			data: { foo: true },
@@ -46,14 +46,13 @@ if ( hasUsableConsole ) {
 		console.warn = warn;
 	});
 
-	test( 'Warn on unknown partial', function ( t ) {
-		var ractive, warn = console.warn;
+	test( 'Warn on unknown partial', t => {
+		t.expect( 2 );
 
-		expect( 2 );
-
+		const warn = console.warn;
 		console.warn = () => t.ok( true );
 
-		ractive = new Ractive({
+		new Ractive({
 			el: fixture,
 			template: '{{>unknown}}{{>other {a:42} }}',
 			partials: {}
@@ -62,17 +61,16 @@ if ( hasUsableConsole ) {
 		console.warn = warn;
 	});
 
-	test( 'Don\'t warn on empty partial', function ( t ) {
+	test( 'Don\'t warn on empty partial', t => {
+		t.expect( 1 );
 
-		var ractive, warn = console.warn;
+		const warn = console.warn;
 
-		expect( 1 );
-
-		console.warn = function() {
+		console.warn = () => {
 			t.ok( false );
 		};
 
-		ractive = new Ractive({
+		new Ractive({
 			el: fixture,
 			template: '{{>empty}}',
 			partials: {
@@ -86,11 +84,11 @@ if ( hasUsableConsole ) {
 	});
 }
 
-test( '`this` in function refers to ractive instance', function ( t ) {
+test( '`this` in function refers to ractive instance', t => {
+	let thisForFoo;
+	let thisForBar;
 
-	var thisForFoo, thisForBar, ractive;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{>foo}}<widget/>',
 		data: { foo: true },
@@ -100,11 +98,11 @@ test( '`this` in function refers to ractive instance', function ( t ) {
 			})
 		},
 		partials: {
-			foo: function ( ) {
+			foo () {
 				thisForFoo = this;
 				return 'foo';
 			},
-			bar: function ( ) {
+			bar () {
 				thisForBar = this;
 				return 'bar';
 			}
@@ -113,28 +111,26 @@ test( '`this` in function refers to ractive instance', function ( t ) {
 
 	t.equal( thisForFoo, ractive );
 	t.equal( thisForBar, ractive );
-
 });
 
-test( 'partial function has access to parser helper', function ( t ) {
-	expect( 1 );
+test( 'partial function has access to parser helper', t => {
+	t.expect( 1 );
 
 	new Ractive({
 		el: fixture,
 		template: '{{>foo}}',
 		partials: {
-			foo: function ( parser ) {
+			foo ( parser ) {
 				t.ok( parser.fromId );
 			}
 		}
 	});
 });
 
-test( 'partial can be preparsed template (gh-942)', function ( t ) {
+test( 'partial can be preparsed template (#942)', t => {
+	const partial = Ractive.parse( '<p>hello partial</p>' );
 
-	var ractive, partial = Ractive.parse('<p>hello partial</p>');
-
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{>foo}}',
 		partials: { foo: partial }
@@ -143,32 +139,26 @@ test( 'partial can be preparsed template (gh-942)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>hello partial</p>' );
 });
 
-test( 'partial functions belong to instance, not Component', function ( t ) {
-
-	var Component, ractive1, ractive2;
-
-	Component = Ractive.extend({
+test( 'partial functions belong to instance, not Component', t => {
+	const Component = Ractive.extend({
 		template: '{{>foo}}',
 		partials: partialsFn
 	});
 
-	ractive1 = new Component({
+	const ractive1 = new Component({
 		data: { foo: true }
 	});
 
-	ractive2 = new Component({
+	const ractive2 = new Component({
 		data: { foo: false }
 	});
 
 	t.equal( ractive1.toHTML(), '<p>yes</p>' );
 	t.equal( ractive2.toHTML(), '<h1>no</h1>' );
-
-
 });
 
-test( 'partial functions selects same partial until reset', function ( t ) {
-
-	var ractive = new Ractive({
+test( 'partial functions selects same partial until reset', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}{{>foo}}{{/items}}',
 		partials: {
@@ -190,9 +180,8 @@ test( 'partial functions selects same partial until reset', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p>' );
 });
 
-test( 'reset data re-evaluates partial function', function ( t ) {
-
-	var ractive = new Ractive({
+test( 'reset data re-evaluates partial function', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{>foo}}',
 		data: { foo: true },
@@ -202,23 +191,17 @@ test( 'reset data re-evaluates partial function', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>yes</p>' );
 	ractive.reset( { foo: false } );
 	t.htmlEqual( fixture.innerHTML, '<h1>no</h1>' );
-
 });
 
-test( 'partials functions can be found on view heirarchy', function ( t ) {
-
-	var Component, ractive;
-
-	Component = Ractive.extend({
+test( 'partials functions can be found on view heirarchy', t => {
+	const Widget = Ractive.extend({
 		template: '{{>foo}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#if !foo}}<widget/>{{/if}}',
-		components: {
-			widget: Component
-		},
+		template: '{{#if !foo}}<Widget/>{{/if}}',
+		components: { Widget },
 		data: { foo: true },
 		partials: partialsFn
 	});
@@ -226,30 +209,26 @@ test( 'partials functions can be found on view heirarchy', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '' );
 	ractive.set( 'foo', false );
 	t.htmlEqual( fixture.innerHTML, '<h1>no</h1>' );
-
 });
 
-test( 'static partials are compiled on Component not instance', function ( t ) {
-
-	var Component, ractive;
-
-	Component = Ractive.extend({
+test( 'static partials are compiled on Component not instance', t => {
+	const Component = Ractive.extend({
 		template: '{{>foo}}',
 		partials: {
 			foo: '<p>{{foo}}</p>'
 		}
 	});
 
-	ractive = new Component({
+	const ractive = new Component({
 		el: fixture
 	});
 
 	t.ok( !ractive.partials.hasOwnProperty( 'foo' ) );
-	t.deepEqual( Component.partials.foo, [{"t":7,"e":"p","f":[{"t":2,"r":"foo"}]}] );
+	t.deepEqual( Component.partials.foo, [{ t:7, e: 'p', f: [{ t:2, r: 'foo' }] }] );
 });
 
-test( 'Partials work in attributes (#917)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Partials work in attributes (#917)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div style="{{>boxAttr}}"/>',
 		partials: {
@@ -338,16 +317,16 @@ test( 'Partials with expressions may also have context', function( t ) {
 	t.htmlEqual( fixture.innerHTML, 'inverted - 1 : normal - 2');
 });
 
-test( 'Partials .toString() works when not the first child of parent (#1163)', function ( t ) {
-	var ractive = new Ractive({
-		template: "<div>Foo {{>foo}}</div>",
+test( 'Partials .toString() works when not the first child of parent (#1163)', t => {
+	const ractive = new Ractive({
+		template: '<div>Foo {{>foo}}</div>',
 		partials: { foo: '...' }
 	});
 
 	t.htmlEqual( ractive.toHTML(), '<div>Foo ...</div>' );
 });
 
-test( 'Dynamic partial works with merge (#1313)', function ( t ) {
+test( 'Dynamic partial works with merge (#1313)', t => {
 	let fields = [
 		{ type: 'text', value: 'hello' },
 		{ type: 'number', value: 123 }
@@ -355,10 +334,10 @@ test( 'Dynamic partial works with merge (#1313)', function ( t ) {
 
 	const ractive = new Ractive({
 		el: fixture,
-		template: "{{#fields}}{{> .type + 'Field' }}{{/}}",
+		template: `{{#fields}}{{> .type + 'Field' }}{{/}}`,
 		partials: {
-			textField: "text{{value}}",
-			numberField: "number{{value}}",
+			textField: 'text{{value}}',
+			numberField: 'number{{value}}'
 		},
 		data: { fields }
 	});
@@ -371,17 +350,17 @@ test( 'Dynamic partial works with merge (#1313)', function ( t ) {
 	t.htmlEqual( ractive.toHTML(), 'number123texthello' );
 });
 
-test( 'Nameless expressions with no matching partial don\'t throw', ( t ) => {
-	var ractive = new Ractive({
+test( 'Nameless expressions with no matching partial don\'t throw', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: "{{> 'miss' + 'ing' }}"
+		template: `{{> 'miss' + 'ing' }}`
 	});
 
 	t.htmlEqual( ractive.toHTML(), '' );
 });
 
 test( 'Partials can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `wrapped {{>'partial'}} around`,
 		partials: {
@@ -395,7 +374,7 @@ test( 'Partials can be changed with resetPartial', t => {
 });
 
 test( 'Partials with variable names can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: 'wrapped {{>partial}} around',
 		partials: {
@@ -416,7 +395,7 @@ test( 'Partials with variable names can be changed with resetPartial', t => {
 });
 
 test( 'Partials with expression names can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `wrapped {{>foo + 'Partial'}} around`,
 		partials: {
@@ -432,7 +411,7 @@ test( 'Partials with expression names can be changed with resetPartial', t => {
 });
 
 test( 'Partials inside conditionals can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `{{#cond}}{{>partial}}{{/}}`,
 		partials: {
@@ -448,7 +427,7 @@ test( 'Partials inside conditionals can be changed with resetPartial', t => {
 });
 
 test( 'Partials (only) borrowed by components can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{>foo}} {{>bar}} <component />',
 		partials: {
@@ -475,7 +454,7 @@ test( 'Partials (only) borrowed by components can be changed with resetPartial',
 });
 
 test( 'Partials inside iteratives can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#list}}{{>.type}}{{/}}',
 		partials: {
@@ -496,7 +475,7 @@ test( 'Partials inside iteratives can be changed with resetPartial', t => {
 });
 
 test( 'Nested partials can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{>outer}}',
 		partials: {
@@ -515,7 +494,7 @@ test( 'Nested partials can be changed with resetPartial', t => {
 });
 
 test( 'Partials in context blocks can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `{{#with { ctx: 'foo' } }}{{>ctx}}{{/with}}`,
 		partials: {
@@ -529,7 +508,7 @@ test( 'Partials in context blocks can be changed with resetPartial', t => {
 });
 
 test( 'Partials in attributes can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div class="wrapped {{>foo}} around" id="{{>foo}}"></div>',
 		partials: {
@@ -543,7 +522,7 @@ test( 'Partials in attributes can be changed with resetPartial', t => {
 });
 
 test( 'Partials in attribute blocks can be changed with resetPartial', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `<div {{#cond}}class="wrapped {{>foo}} around" id="{{>foo}}" {{>attr}}{{/}}></div>`,
 		partials: {
@@ -567,8 +546,8 @@ test( 'Partial naming requirements are relaxed', t => {
 		template: `{{>a-partial}}{{>10-2}}{{>a - partial}}{{>delete}}`,
 		partials: {
 			'a-partial': 'a',
-			'8': 'b',
-			'delete': 'c'
+			8: 'b',
+			delete: 'c'
 		},
 		data: {
 			a: 10,
@@ -583,15 +562,15 @@ test( 'Inline partials can override component partials', t => {
 	new Ractive({
 		el: fixture,
 		template: `
-			<cmp>
-			 	{{#partial part}}
+			<Widget>
+				{{#partial part}}
 					inline
 				{{/partial}}
-			</cmp>
-			<cmp/>
+			</Widget>
+			<Widget/>
 		`,
 		components: {
-			cmp: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '{{>part}}',
 				partials: { part: 'component' }
 			})
@@ -604,15 +583,21 @@ test( 'Inline partials can override component partials', t => {
 test( 'Inline partials may be defined with a partial section', t => {
 	new Ractive({
 		el: fixture,
-		template: '{{#partial foo}}foo{{/partial}}{{>foo}}<cmp /><cmp>{{#partial foo}}bar{{/partial}}<cmp>',
+		template: `
+			{{#partial foo}}foo{{/partial}}
+			{{>foo}}
+			<Widget />
+			<Widget>
+				{{#partial foo}}bar{{/partial}}
+			<Widget>`,
 		components: {
-			cmp: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '{{>foo}}'
 			})
 		}
 	});
 
-	t.htmlEqual( fixture.innerHTML, 'foofoobar' );
+	t.htmlEqual( fixture.innerHTML, 'foo foo bar' );
 });
 
 test( '(Only) inline partials can be yielded', t => {
@@ -632,13 +617,10 @@ test( '(Only) inline partials can be yielded', t => {
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
-test( 'Don\'t throw on empty partial', function ( t ) {
+test( 'Don\'t throw on empty partial', t => {
+	t.expect( 1 );
 
-	var ractive;
-
-	expect( 1 );
-
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{>empty}}',
 		debug: true,
@@ -650,8 +632,8 @@ test( 'Don\'t throw on empty partial', function ( t ) {
 	t.ok( true );
 });
 
-test( 'Dynamic empty partial ok', function ( t ) {
-	var ractive = new Ractive({
+test( 'Dynamic empty partial ok', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{>foo}}',
 		debug: true,
@@ -688,7 +670,7 @@ test( 'Partials with expressions in recursive structures should not blow the sta
 });
 
 test( 'Named partials should not get rebound if they happen to have the same name as a reference (#1507)', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#each items}}
@@ -716,7 +698,7 @@ test( 'Named partials should not get rebound if they happen to have the same nam
 });
 
 test( 'Partials from the template hierarchy should take precedent over references', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `<p>
 			{{#partial item}}{{item}}{{/partial}}
@@ -752,7 +734,7 @@ test( 'Partial names can have slashes', t => {
 });
 
 test( 'Several inline partials containing elements can be defined (#1736)', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#partial part1}}
@@ -770,10 +752,10 @@ test( 'Several inline partials containing elements can be defined (#1736)', t =>
 	t.equal( ractive.partials.part2.length, 1 );
 });
 
-test( 'Removing a missing partial (#1808)', () => {
-	expect( 0 );
+test( 'Removing a missing partial (#1808)', t => {
+	t.expect( 0 );
 
-	let ractive = new Ractive({
+	const ractive = new Ractive({
 		template: '{{#items}}{{>item}}{{/}}',
 		el: 'main',
 		data: {
@@ -786,24 +768,22 @@ test( 'Removing a missing partial (#1808)', () => {
 });
 
 test( 'Dynamic partial can be set in oninit (#1826)', t => {
-
 	new Ractive({
 		el: fixture,
 		template: '{{> partialName }}',
 		partials: {
 			one: 'onepart',
-			two: 'twopart',
+			two: 'twopart'
 		},
 		data: {
-			partialName: 'one',
+			partialName: 'one'
 		},
-		oninit: function() {
+		oninit () {
 			this.set({partialName: 'two'});
-		},
+		}
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'twopart' );
-
 });
 
 test( 'Inline partials don\'t dissipate into the ether when attached to non-components (#1838)', t => {

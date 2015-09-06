@@ -1,7 +1,7 @@
 import { test } from 'qunit';
 
-test( 'Basic reset', function ( t ) {
-	var ractive = new Ractive({
+test( 'Basic reset', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{one}}{{two}}{{three}}',
 		data: { one: 1, two: 2, three: 3 }
@@ -11,53 +11,55 @@ test( 'Basic reset', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '4' );
 });
 
-test( 'Invalid arguments', function ( t ) {
-	var ractive = new Ractive({
-		el: fixture,
+test( 'Invalid arguments', t => {
+	const ractive = new Ractive({
+		el: fixture
 	});
 
-	throws(function(){
-		ractive.reset("data");
-	})
+	t.throws(function(){
+		ractive.reset( 'data' );
+	});
 
-	//Assuming that data fn's are not allowed on reset
-	//caller could just execute themselves:
-	//ractive.reset(fn(), cb)
-	//Otherwise introduces ambiguity...
-	throws(function(){
-		ractive.reset(function(){}, function(){});
-	})
-
+	// Assuming that data fn's are not allowed on reset
+	// caller could just execute themselves:
+	// ractive.reset(fn(), cb)
+	// Otherwise introduces ambiguity...
+	t.throws( () => {
+		ractive.reset( function () {}, function () {});
+	});
 });
 
-asyncTest( 'ractive.reset() returns a promise', function ( t ) {
-	var ractive, callback, counter, done;
+test( 'ractive.reset() returns a promise', t => {
+	t.expect( 6 );
 
-	ractive = new Ractive({
+	const done = t.async();
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{one}}{{two}}{{three}}',
 		data: { one: 1, two: 2, three: 3 }
 	});
 
-	counter = 2;
-	done = function () { --counter || start(); };
+	let counter = 3;
+	const check = () => { --counter || done(); };
 
-	callback = function(){
-		t.ok(true);
-		done()
-	};
+	function callback () {
+		t.ok( true );
+		check();
+	}
 
-	expect(6)
-	ractive.reset({ two: 4 }).then(callback);
+	ractive.reset({ two: 4 }).then( callback );
 	t.htmlEqual( fixture.innerHTML, '4' );
-	ractive.reset({ one: 9 }).then(callback);
+	ractive.reset({ one: 9 }).then( callback );
 	t.htmlEqual( fixture.innerHTML, '9' );
-	ractive.reset().then(callback);
+	ractive.reset().then( callback );
 	t.htmlEqual( fixture.innerHTML, '' );
 });
 
-asyncTest( 'Dynamic template functions are recalled on reset', function ( t ) {
-	var ractive = new Ractive({
+test( 'Dynamic template functions are recalled on reset', t => {
+	const done = t.async();
+
+	const ractive = new Ractive({
 		el: fixture,
 		template () {
 			return this.get( 'condition' ) ? '{{foo}}' : '{{bar}}';
@@ -67,16 +69,18 @@ asyncTest( 'Dynamic template functions are recalled on reset', function ( t ) {
 
 	t.htmlEqual( fixture.innerHTML, 'fizz' );
 	ractive.set('condition', false);
-	ractive.reset(ractive.viewmodel.get()).then( function () {
+	ractive.reset( ractive.viewmodel.get() ).then( function () {
 		t.htmlEqual( fixture.innerHTML, 'bizz' );
-		start();
+		done();
 	});
 });
 
-asyncTest( 'Promise with dynamic template functions are recalled on reset', function ( t ) {
-	var ractive, callback, counter, done;
+test( 'Promise with dynamic template functions are recalled on reset', t => {
+	t.expect( 5 );
 
-	ractive = new Ractive({
+	const done = t.async();
+
+	const ractive = new Ractive({
 		el: fixture,
 		template () {
 			return this.get( 'condition' ) ? '{{foo}}' : '{{bar}}';
@@ -84,43 +88,39 @@ asyncTest( 'Promise with dynamic template functions are recalled on reset', func
 		data: { foo: 'fizz', bar: 'bizz', condition: true }
 	});
 
-	counter = 2;
-	done = function () { --counter || start(); };
+	let counter = 2;
+	const check = () => { --counter || done(); };
 
-	callback = function(){
+	function callback () {
 		t.ok(true);
-		done();
-	};
-
-	expect(5);
+		check();
+	}
 
 	t.htmlEqual( fixture.innerHTML, 'fizz' );
-	ractive.set('condition', false)
-	ractive.reset(ractive.viewmodel.get()).then(callback);
+	ractive.set( 'condition', false );
+	ractive.reset( ractive.viewmodel.get() ).then( callback );
 	t.htmlEqual( fixture.innerHTML, 'bizz' );
-	ractive.set('condition', true)
-	ractive.reset(ractive.viewmodel.get()).then(callback);
+	ractive.set( 'condition', true );
+	ractive.reset( ractive.viewmodel.get() ).then( callback );
 	t.htmlEqual( fixture.innerHTML, 'fizz' );
-
 });
 
-test( 'resetTemplate rerenders with new template', function ( t ) {
-	var ractive = new Ractive({
+test( 'resetTemplate rerenders with new template', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{foo}}',
 		data: { foo: 'fizz', bar: 'bizz' }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'fizz' );
-	ractive.resetTemplate('{{bar}}')
+	ractive.resetTemplate( '{{bar}}' );
 	t.htmlEqual( fixture.innerHTML, 'bizz' );
-
 });
 
 // Removed this functionality for now as not apparent
 // what purpose of calling resetTemplate() without rerender
 /*
-test( 'resetTemplate with no template change doesnt rerender', function ( t ) {
+test( 'resetTemplate with no template change doesnt rerender', t => {
 	var p, ractive = new Ractive({
 		el: fixture,
 		template: '<p>{{foo}}</p>',
@@ -138,32 +138,28 @@ test( 'resetTemplate with no template change doesnt rerender', function ( t ) {
 });
 */
 
-test( 'Reset retains parent default data (#572)', function ( t ) {
-	var ractive, Widget;
-
-	Widget = Ractive.extend({
-	  data: {
-		uppercase: function ( str ) {
-		  return str.toUpperCase();
+test( 'Reset retains parent default data (#572)', t => {
+	const Widget = Ractive.extend({
+		data: {
+			uppercase ( str ) {
+				return str.toUpperCase();
+			}
 		}
-	  }
 	});
 
-	ractive = new Widget({
-	  el: fixture,
-	  template: '{{ uppercase(foo) }}',
-	  data: { foo: 'bar' }
+	const ractive = new Widget({
+		el: fixture,
+		template: '{{ uppercase(foo) }}',
+		data: { foo: 'bar' }
 	});
 
 	ractive.reset({ foo: 'bizz' });
 	t.htmlEqual( fixture.innerHTML, 'BIZZ' );
-
 });
 
-test( 'Reset inserts { target, anchor } el option correctly', function ( t ) {
-	var ractive,
-		target = document.createElement('div'),
-		anchor = document.createElement('div');
+test( 'Reset inserts { target, anchor } el option correctly', t => {
+	const target = document.createElement('div');
+	const anchor = document.createElement('div');
 
 	anchor.innerHTML = 'bar';
 	target.id = 'target';
@@ -172,7 +168,7 @@ test( 'Reset inserts { target, anchor } el option correctly', function ( t ) {
 
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: target,
 		append: anchor,
 		template: '<div>{{what}}</div>',
@@ -180,24 +176,24 @@ test( 'Reset inserts { target, anchor } el option correctly', function ( t ) {
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>fizz</div><div>bar</div></div>' );
-	ractive.reset( { what: 'foo' } );
+	ractive.reset({ what: 'foo' });
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );
 });
 
-test( 'resetTemplate removes an inline component from the DOM (#928)', function ( t ) {
-	var ractive = new Ractive({
+test( 'resetTemplate removes an inline component from the DOM (#928)', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget type="{{type}}"/>',
+		template: '<Widget type="{{type}}"/>',
 		data: {
 			type: 1
 		},
 		components: {
-			widget: Ractive.extend({
-				template: function ( data ) {
+			Widget: Ractive.extend({
+				template ( data ) {
 					return data.type === 1 ? 'ONE' : 'TWO';
 				},
-				oninit: function () {
-					this.observe( 'type', function ( type ) {
+				oninit () {
+					this.observe( 'type', type => {
 						this.resetTemplate( type === 1 ? 'ONE' : 'TWO' );
 					}, { init: false });
 				}
@@ -209,8 +205,8 @@ test( 'resetTemplate removes an inline component from the DOM (#928)', function 
 	t.htmlEqual( fixture.innerHTML, 'TWO' );
 });
 
-test( 'reset removes correctly from the DOM (#941)', function ( t ) {
-	var ractive = new Ractive({
+test( 'reset removes correctly from the DOM (#941)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#active}}active{{/active}}{{^active}}not active{{/active}}',
 		data: {
@@ -223,8 +219,8 @@ test( 'reset removes correctly from the DOM (#941)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'active' );
 });
 
-test( 'reset does not re-render if template does not change', function ( t ) {
-	var p, ractive = new Ractive({
+test( 'reset does not re-render if template does not change', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>me</p>',
 		data: {
@@ -232,16 +228,16 @@ test( 'reset does not re-render if template does not change', function ( t ) {
 		}
 	});
 
-	p = ractive.find( 'p' );
+	const p = ractive.find( 'p' );
 	t.ok( p );
 	ractive.reset( { active: true } );
 	t.equal( ractive.find('p'), p );
 });
 
-test( 'reset does not re-render if template function does not change', function ( t ) {
-	var p, ractive = new Ractive({
+test( 'reset does not re-render if template function does not change', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: function( data ) {
+		template ( data ) {
 			return data.active ? '<p>active</p>' : '<p>not active</p>';
 		},
 		data: {
@@ -249,14 +245,14 @@ test( 'reset does not re-render if template function does not change', function 
 		}
 	});
 
-	p = ractive.find( 'p' );
+	const p = ractive.find( 'p' );
 	t.ok( p );
-	ractive.reset( { active: false } );
+	ractive.reset({ active: false });
 	t.equal( ractive.find('p'), p );
 });
 
-test( 'reset does re-render if template changes', function ( t ) {
-	var p, ractive = new Ractive({
+test( 'reset does re-render if template changes', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template () {
 			return this.get( 'active' ) ? '<p>active</p>' : '<p>not active</p>';
@@ -266,14 +262,14 @@ test( 'reset does re-render if template changes', function ( t ) {
 		}
 	});
 
-	p = ractive.find( 'p' );
+	const p = ractive.find( 'p' );
 	t.ok( p );
 	ractive.reset( { active: true } );
 	t.notEqual( ractive.find('p'), p );
 });
 
-test( 'reset removes an inline component from the DOM', function ( t ) {
-	var ractive = new Ractive({
+test( 'reset removes an inline component from the DOM', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<widget type="{{type}}"/>',
 		data: {
@@ -281,12 +277,12 @@ test( 'reset removes an inline component from the DOM', function ( t ) {
 		},
 		components: {
 			widget: Ractive.extend({
-				template: function ( data ) {
+				template ( data ) {
 					return data.type === 1 ? 'ONE' : 'TWO';
 				},
-				oninit: function () {
-					this.observe( 'type', function ( type ) {
-						this.reset( { type: type } );
+				oninit () {
+					this.observe( 'type', type => {
+						this.reset({ type });
 					}, { init: false });
 				}
 			})
@@ -297,7 +293,7 @@ test( 'reset removes an inline component from the DOM', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'TWO' );
 });
 
-test( 'resetting an instance of a component with a data function (#1745)', function ( t ) {
+test( 'resetting an instance of a component with a data function (#1745)', t => {
 	let Widget = Ractive.extend({
 		data () {
 			return { foo: 'bar' };

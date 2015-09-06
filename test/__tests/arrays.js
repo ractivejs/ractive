@@ -308,7 +308,8 @@ test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
 
 function removedElementsTest ( action, fn ) {
 	test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', t => {
-		let observed = false, errored = false;
+		let observed = false;
+		let errored = false;
 
 		t.expect( 5 );
 

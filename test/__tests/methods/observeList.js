@@ -1,9 +1,11 @@
 import { test } from 'qunit';
 
 test( 'List observers report array modifications', t => {
-	let shuffle, ractive = new Ractive({
+	let shuffle;
+
+	const ractive = new Ractive({
 		data: { fruits: [ 'apple', 'orange', 'banana' ] },
-		oninit: function(){
+		oninit () {
 			this.observeList( 'fruits', ( shfl ) => {
 				shuffle = shfl;
 			});
@@ -22,9 +24,11 @@ test( 'List observers report array modifications', t => {
 });
 
 test( 'List observers correctly report value change on no init', t => {
-	let shuffle, ractive = new Ractive({
+	let shuffle;
+
+	const ractive = new Ractive({
 		data: { fruits: [ 'apple', 'orange', 'banana' ] },
-		oninit: function(){
+		oninit () {
 			this.observeList( 'fruits', ( shfl ) => {
 				shuffle = shfl;
 			}, { init: false } );
@@ -39,9 +43,11 @@ test( 'List observers correctly report value change on no init', t => {
 });
 
 test( 'List observers report full array value changes as inserted/deleted', t => {
-	let shuffle, ractive = new Ractive({
+	let shuffle;
+
+	const ractive = new Ractive({
 		data: { fruits: [ 'apple', 'orange', 'banana' ] },
-		oninit: function(){
+		oninit () {
 			this.observeList( 'fruits', ( shfl ) => {
 				shuffle = shfl;
 			}, { init: false } );
@@ -61,13 +67,15 @@ test( 'Pattern observers on arrays fire correctly after mutations', t => {
 		}
 	});
 
-	var index, deleted, inserted;
+	let index;
+	let deleted;
+	let inserted;
 
-	ractive.observeList( 'items', function ( shuffle, k ) {
+	ractive.observeList( 'items', shuffle => {
 		index = shuffle.start;
 		inserted = shuffle.inserted;
 		deleted = shuffle.deleted;
-	}, { init: false } );
+	}, { init: false });
 
 	ractive.push( 'items', 'd' );
 	t.equal( index, '3' );

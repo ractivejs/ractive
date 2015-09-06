@@ -1,12 +1,10 @@
 import { test } from 'qunit';
 
 test( 'Merging an array of strings only creates the necessary fragments', function ( t ) {
-	var entered, exited, foo, bar, baz, ractive;
+	let entered = 0;
+	let exited = 0;
 
-	entered = 0;
-	exited = 0;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#items}}<li id="{{.}}" intro-outro="log">{{.}}</li>{{/items}}</ul>',
 		data: {
@@ -25,9 +23,9 @@ test( 'Merging an array of strings only creates the necessary fragments', functi
 		}
 	});
 
-	foo = ractive.nodes.foo;
-	bar = ractive.nodes.bar;
-	baz = ractive.nodes.baz;
+	const foo = ractive.nodes.foo;
+	const bar = ractive.nodes.bar;
+	const baz = ractive.nodes.baz;
 
 	t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 	t.equal( entered, 3 );
@@ -43,12 +41,10 @@ test( 'Merging an array of strings only creates the necessary fragments', functi
 });
 
 test( 'Merging an array of strings only removes the necessary fragments', function ( t ) {
-	var entered, exited, foo, bar, baz, ractive;
+	let entered = 0;
+	let exited = 0;
 
-	entered = 0;
-	exited = 0;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#items}}<li id="{{.}}" intro-outro="log">{{.}}</li>{{/items}}</ul>',
 		data: {
@@ -67,9 +63,9 @@ test( 'Merging an array of strings only removes the necessary fragments', functi
 		}
 	});
 
-	foo = ractive.nodes.foo;
-	bar = ractive.nodes.bar;
-	baz = ractive.nodes.baz;
+	const foo = ractive.nodes.foo;
+	const bar = ractive.nodes.bar;
+	const baz = ractive.nodes.baz;
 
 	t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 	t.equal( entered, 3 );
@@ -84,19 +80,17 @@ test( 'Merging an array of strings only removes the necessary fragments', functi
 });
 
 test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is `true`', function ( t ) {
-	var entered, exited, foo, bar, baz, ractive;
+	let entered = 0;
+	let exited = 0;
 
-	entered = 0;
-	exited = 0;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#items}}<li id="{{name}}" intro-outro="log">{{name}}</li>{{/items}}</ul>',
 		data: {
 			items: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 		},
 		transitions: {
-			log: function ( t ) {
+			log ( t ) {
 				if ( t.isIntro ) {
 					entered += 1;
 				} else {
@@ -108,9 +102,9 @@ test( 'Merging an array of same-looking objects only adds/removes the necessary 
 		}
 	});
 
-	foo = ractive.nodes.foo;
-	bar = ractive.nodes.bar;
-	baz = ractive.nodes.baz;
+	const foo = ractive.nodes.foo;
+	const bar = ractive.nodes.bar;
+	const baz = ractive.nodes.baz;
 
 	t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 	t.equal( entered, 3 );
@@ -127,19 +121,17 @@ test( 'Merging an array of same-looking objects only adds/removes the necessary 
 });
 
 test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a string id field', function ( t ) {
-	var entered, exited, foo, bar, baz, ractive;
+	let entered = 0;
+	let exited = 0;
 
-	entered = 0;
-	exited = 0;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#items}}<li id="{{name}}" intro-outro="log">{{name}}</li>{{/items}}</ul>',
 		data: {
 			items: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 		},
 		transitions: {
-			log: function ( t ) {
+			log ( t ) {
 				if ( t.isIntro ) {
 					entered += 1;
 				} else {
@@ -151,9 +143,9 @@ test( 'Merging an array of same-looking objects only adds/removes the necessary 
 		}
 	});
 
-	foo = ractive.nodes.foo;
-	bar = ractive.nodes.bar;
-	baz = ractive.nodes.baz;
+	const foo = ractive.nodes.foo;
+	const bar = ractive.nodes.bar;
+	const baz = ractive.nodes.baz;
 
 	t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 	t.equal( entered, 3 );
@@ -170,19 +162,17 @@ test( 'Merging an array of same-looking objects only adds/removes the necessary 
 });
 
 test( 'Merging an array of same-looking objects only adds/removes the necessary fragments if `compare` is a comparison function', function ( t ) {
-	var entered, exited, foo, bar, baz, ractive;
+	let entered = 0;
+	let exited = 0;
 
-	entered = 0;
-	exited = 0;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#items}}<li id="{{name}}" intro-outro="log">{{name}}</li>{{/items}}</ul>',
 		data: {
 			items: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 		},
 		transitions: {
-			log: function ( t ) {
+			log ( t ) {
 				if ( t.isIntro ) {
 					entered += 1;
 				} else {
@@ -194,15 +184,17 @@ test( 'Merging an array of same-looking objects only adds/removes the necessary 
 		}
 	});
 
-	foo = ractive.nodes.foo;
-	bar = ractive.nodes.bar;
-	baz = ractive.nodes.baz;
+	const foo = ractive.nodes.foo;
+	const bar = ractive.nodes.bar;
+	const baz = ractive.nodes.baz;
 
 	t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 	t.equal( entered, 3 );
 
 	entered = 0;
-	ractive.merge( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], { compare: function ( item ) { return item.name; }});
+	ractive.merge( 'items', [{ name: 'foo' }, { name: 'baz' }, { name: 'bip' }], {
+		compare: item => item.name
+	});
 	t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="baz">baz</li><li id="bip">bip</li></ul>' );
 	t.equal( entered, 1 );
 	t.equal( exited, 1 );
@@ -213,19 +205,17 @@ test( 'Merging an array of same-looking objects only adds/removes the necessary 
 });
 
 test( 'If identity comparison fails, the resulting shape of the DOM is still correct', function ( t ) {
-	var entered, exited, foo, bar, baz, ractive;
+	let entered = 0;
+	let exited = 0;
 
-	entered = 0;
-	exited = 0;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#items}}<li id="{{name}}" intro-outro="log">{{name}}</li>{{/items}}</ul>',
 		data: {
 			items: [{ name: 'foo' }, { name: 'bar' }, { name: 'baz' }]
 		},
 		transitions: {
-			log: function ( t ) {
+			log ( t ) {
 				if ( t.isIntro ) {
 					entered += 1;
 				} else {
@@ -237,9 +227,9 @@ test( 'If identity comparison fails, the resulting shape of the DOM is still cor
 		}
 	});
 
-	foo = ractive.nodes.foo;
-	bar = ractive.nodes.bar;
-	baz = ractive.nodes.baz;
+	const foo = ractive.nodes.foo;
+	const bar = ractive.nodes.bar;
+	const baz = ractive.nodes.baz;
 
 	t.htmlEqual( fixture.innerHTML, '<ul><li id="foo">foo</li><li id="bar">bar</li><li id="baz">baz</li></ul>' );
 	t.equal( entered, 3 );
@@ -256,7 +246,7 @@ test( 'If identity comparison fails, the resulting shape of the DOM is still cor
 });
 
 test( 'Merging will trigger upstream updates regardless of whether items are being added/removed', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{items}} {{JSON.stringify(items)}}',
 		data: {
@@ -270,7 +260,7 @@ test( 'Merging will trigger upstream updates regardless of whether items are bei
 });
 
 test( '#if section with merged array (#952)', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#if list}}yes{{else}}no{{/if}}',
 		data: {
@@ -285,7 +275,7 @@ test( '#if section with merged array (#952)', function ( t ) {
 });
 
 test( 'Unbound sections disregard merge instructions (#967)', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<ul>
@@ -303,7 +293,7 @@ test( 'Unbound sections disregard merge instructions (#967)', function ( t ) {
 });
 
 test( 'Shuffling the order of array members', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#each items}}<li>{{this}}</li>{{/each}}</ul>',
 		data: {
@@ -316,8 +306,8 @@ test( 'Shuffling the order of array members', function ( t ) {
 });
 
 test( 'Merging works with unrendered instances (#1314)', function ( t ) {
-	var ractive = new Ractive({
-		template: "{{#items}}{{.}}{{/}}",
+	const ractive = new Ractive({
+		template: '{{#items}}{{.}}{{/}}',
 		data: {
 			items: [ 'a','b' ]
 		}

@@ -3,32 +3,27 @@ import tests from 'samples/parse';
 
 test( 'Mismatched template version causes error', function ( t ) {
 	t.throws( function () {
-		var ractive = new Ractive({
+		new Ractive({
 			template: {v:'nope',t:[]}
 		});
 	});
 });
 
-var runTest = function ( theTest ) {
+tests.forEach( theTest => {
 	test( theTest.name, function ( t ) {
-		if (theTest.error) {
-			t.throws( function () {
+		if ( theTest.error ) {
+			t.throws( () => {
 				Ractive.parse( theTest.template, theTest.options );
-			}, function ( error ) {
-				if (error.name !== 'ParseError') {
+			}, error => {
+				if ( error.name !== 'ParseError' ) {
 					throw error;
 				}
 				t.equal( error.message, theTest.error );
 				return true;
-			}, 'Expected ParseError');
+			}, 'Expected ParseError' );
 		} else {
-			var parsed = Ractive.parse( theTest.template, theTest.options );
-
+			const parsed = Ractive.parse( theTest.template, theTest.options );
 			t.deepEqual( parsed, theTest.parsed );
 		}
 	});
-};
-
-for ( var i=0; i<tests.length; i+=1 ) {
-	runTest( tests[i] );
-}
+});

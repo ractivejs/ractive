@@ -1,9 +1,12 @@
 import { test } from 'qunit';
 
 [ true, false ].forEach( modifyArrays => {
-	asyncTest( `ractive.splice() (modifyArrays: ${modifyArrays})`, t => {
+	test( `ractive.splice() (modifyArrays: ${modifyArrays})`, t => {
+		t.expect( 5 );
+
+		const done = t.async();
+
 		let items = [ 'alice', 'bob', 'charles' ];
-		expect( 5 );
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -18,7 +21,7 @@ import { test } from 'qunit';
 
 		ractive.splice( 'items', 1, 1, 'dave', 'eric' ).then( v => {
 			t.deepEqual( v, [ 'bob' ] );
-			QUnit.start();
+			done();
 		});
 		t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>dave</li><li>eric</li><li>charles</li></ul>' );
 
