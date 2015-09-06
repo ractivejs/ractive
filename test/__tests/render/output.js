@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import 'legacy';
 import { svg } from 'config/environment';
 import tests from 'samples/render';

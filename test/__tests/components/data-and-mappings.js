@@ -1,69 +1,58 @@
+import { test } from 'qunit';
 import Model from 'helpers/Model';
 
 test( 'Static data is propagated from parent to child', t => {
-	var Widget, ractive, widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{foo}}</p>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget foo="blah"/>',
-		components: {
-			widget: Widget
-		}
+		template: '<Widget foo="blah"/>',
+		components: { Widget }
 	});
 
-	widget = ractive.findComponent( 'widget' );
+	const widget = ractive.findComponent( 'Widget' );
 
 	t.equal( widget.get( 'foo' ), 'blah' );
 	t.htmlEqual( fixture.innerHTML, '<p>blah</p>' );
 });
 
 test( 'Static object data is propagated from parent to child', t => {
-	var Widget, ractive, widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{foo.bar}}</p>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget foo="{{ { bar: \'biz\' } }}"/>',
-		components: {
-			widget: Widget
-		}
+		template: `<Widget foo="{{ { bar: 'biz' } }}"/>`,
+		components: { Widget }
 	});
 
-	widget = ractive.findComponent( 'widget' );
+	const widget = ractive.findComponent( 'Widget' );
 	t.deepEqual( widget.get( 'foo' ), { bar: 'biz' } );
 	t.htmlEqual( fixture.innerHTML, '<p>biz</p>' );
 
-	widget.set('foo.bar', 'bah')
+	widget.set( 'foo.bar', 'bah' );
 	t.deepEqual( widget.get( 'foo' ), { bar: 'bah' } );
 	t.htmlEqual( fixture.innerHTML, '<p>bah</p>' );
 });
 
 test( 'Dynamic data is propagated from parent to child, and (two-way) bindings are created', t => {
-	var Widget, ractive, widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{foo}}</p>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget foo="{{bar}}"/>',
-		components: {
-			widget: Widget
-		},
+		template: '<Widget foo="{{bar}}"/>',
+		components: { Widget },
 		data: {
 			bar: 'blah'
 		}
 	});
 
-	widget = ractive.findComponent( 'widget' );
+	const widget = ractive.findComponent( 'Widget' );
 
 	t.equal( widget.get( 'foo' ), 'blah' );
 	t.htmlEqual( fixture.innerHTML, '<p>blah</p>' );
@@ -78,48 +67,36 @@ test( 'Dynamic data is propagated from parent to child, and (two-way) bindings a
 });
 
 test( 'Missing data on the parent is added when set', t => {
-	var Widget, ractive, widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{foo}}</p>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget foo="{{missing}}"/>',
-		components: {
-			widget: Widget
-		}
+		template: '<Widget foo="{{missing}}"/>',
+		components: { Widget }
 	});
-
-	widget = ractive.findComponent( 'widget' );
 
 	t.htmlEqual( fixture.innerHTML, '<p></p>' );
 
-	ractive.set('missing', 'found')
+	ractive.set( 'missing', 'found' );
 	t.htmlEqual( fixture.innerHTML, '<p>found</p>' );
 
 });
 
 test( 'Data on the child is propagated to the parent, if it is not missing', t => {
-	var Widget, ractive, widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{foo}}{{bar}}</p>',
 		data: {
 			foo: 'yes'
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget foo="{{one}}" bar="{{two}}"/>',
-		components: {
-			widget: Widget
-		}
+		template: '<Widget foo="{{one}}" bar="{{two}}"/>',
+		components: { Widget }
 	});
-
-	widget = ractive.findComponent( 'widget' );
 
 	t.equal( ractive.get( 'one' ), 'yes' );
 	t.ok( !( 'two' in ractive.viewmodel.value ) );
@@ -127,9 +104,7 @@ test( 'Data on the child is propagated to the parent, if it is not missing', t =
 });
 
 test( 'Parent data overrides child data during child model creation', t => {
-	var Widget, ractive, widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{foo}}{{bar}}</p>',
 		data: {
 			foo: 'yes',
@@ -137,19 +112,17 @@ test( 'Parent data overrides child data during child model creation', t => {
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget foo="{{one}}" bar="{{two}}"/>',
-		components: {
-			widget: Widget
-		},
+		template: '<Widget foo="{{one}}" bar="{{two}}"/>',
+		components: { Widget },
 		data: {
 			one: 'uno',
 			two: 'dos'
 		}
 	});
 
-	widget = ractive.findComponent( 'widget' );
+	const widget = ractive.findComponent( 'Widget' );
 
 	t.equal( ractive.get( 'one' ), 'uno' );
 	t.equal( ractive.get( 'two' ), 'dos' );
@@ -203,22 +176,18 @@ test( 'Regression test for #317', t => {
 });
 
 test( 'Components can access outer data context, in the same way JavaScript functions can access outer lexical scope', t => {
-	var ractive, Widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{foo || "missing"}}</p>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget/><widget foo="{{bar}}"/><widget foo="{{baz}}"/>',
+		template: '<Widget/><Widget foo="{{bar}}"/><Widget foo="{{baz}}"/>',
 		data: {
 			foo: 'one',
 			bar: 'two'
 		},
-		components: {
-			widget: Widget
-		}
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>one</p><p>two</p><p>missing</p>' );
@@ -234,21 +203,19 @@ test( 'Components can access outer data context, in the same way JavaScript func
 
 
 test( 'Nested components can access outer-most data context', t => {
-	var ractive, Widget;
+	const GrandWidget = Ractive.extend({
+		template: 'hello {{world}}'
+	});
 
-	ractive = new Ractive({
+	const Widget = Ractive.extend({
+		template: '<GrandWidget/>',
+		components: { GrandWidget }
+	});
+
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget/>',
-		components: {
-			widget: Ractive.extend({
-				template: '<grandwidget/>',
-				components: {
-					grandwidget: Ractive.extend({
-						template: 'hello {{world}}'
-					})
-				},
-			})
-		},
+		template: '<Widget/>',
+		components: { Widget },
 		data: { world: 'mars' }
 	});
 
@@ -258,18 +225,16 @@ test( 'Nested components can access outer-most data context', t => {
 });
 
 test( 'Nested components registered at global Ractive can access outer-most data context', t => {
-	var ractive, Widget;
-
-	Ractive.components.widget = Ractive.extend({
-		template: '<grandwidget/>'
+	Ractive.components.Widget = Ractive.extend({
+		template: '<GrandWidget/>'
 	});
-	Ractive.components.grandwidget = Ractive.extend({
+	Ractive.components.GrandWidget = Ractive.extend({
 		template: 'hello {{world}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget/>',
+		template: '<Widget/>',
 		data: { world: 'mars' }
 	});
 
@@ -277,122 +242,46 @@ test( 'Nested components registered at global Ractive can access outer-most data
 	ractive.set('world', 'venus');
 	t.htmlEqual( fixture.innerHTML, 'hello venus' );
 
-	delete Ractive.components.widget
-	delete Ractive.components.grandwidget
+	delete Ractive.components.Widget;
+	delete Ractive.components.GrandWidget;
 });
 
 test( 'mixed use of same component parameters across different instances', t => {
-	var ractive, Widget, widgets;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{foo}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template:  //	`{{obj.bar}}
-					`{{#with obj}}
-						<widget foo="{{bar}}"/>
-					` +
-						// <widget foo="{{@keypath}}"/>
-					`{{/with}}` +
-					// <widget foo="static"/>
-					// <widget foo="{{prop}}-{{obj.bar}}"/>
-					`<widget foo="{{obj[prop]}}"/>`,
-		components: { widget: Widget },
+		template: `
+			{{#with obj}}
+				<Widget foo='{{bar}}'/>
+			{{/with}}
+
+			<Widget foo='{{obj[prop]}}'/>`,
+		components: { Widget },
 		data: {
 			obj: { bar: 'qux' },
 			prop: 'bar'
 		}
 	});
 
-	// t.equal( fixture.innerHTML, 'qux qux obj static bar-qux qux' );
 	t.equal( fixture.innerHTML, 'qux qux' );
 
-	widgets = ractive.findAllComponents( 'widget' );
+	const widgets = ractive.findAllComponents( 'Widget' );
 	widgets[0].set('foo', 'one');
-	// t.equal( fixture.innerHTML, 'one one obj static bar-one one' );
 	t.equal( fixture.innerHTML, 'one one' );
-	// widgets[1].set('foo', 'two');
-	// t.equal( fixture.innerHTML, 'one one two static bar-one one' );
-	// widgets[2].set('foo', 'notstatic');
-	// t.equal( fixture.innerHTML, 'one one two notstatic bar-one one' );
-	// widgets[3].set('foo', 'notcomplex');
-	// t.equal( fixture.innerHTML, 'one one two notstatic notcomplex one' );
-	// // keypath expressions ARE bound!
-	// widgets[4].set('foo', 'bound');
-	// t.equal( fixture.innerHTML, 'bound bound two notstatic bar-bound bound' );
 });
 
-if ( Ractive.magic ) {
-
-	test( 'Data passed into component updates from outside component in magic mode', t => {
-		var ractive, Widget;
-
-		Widget = Ractive.extend({
-			template: '{{world}}',
-			magic: true
-		});
-
-		var data = { world: 'mars' }
-		ractive = new Ractive({
-			el: fixture,
-			template: '{{world}}<widget world="{{world}}"/>',
-			magic: true,
-			components: { widget: Widget },
-			data: data
-		});
-
-		data.world = 'venus'
-
-		t.htmlEqual( fixture.innerHTML, 'venusvenus' );
-	});
-
-	test( 'Indirect changes propagate across components in magic mode (#480)', t => {
-		var Blocker, ractive, blocker;
-
-		Blocker = Ractive.extend({
-			template: '{{foo.bar.baz}}'
-		});
-
-		ractive = new Ractive({
-			el: fixture,
-			template: '<input value="{{foo.bar.baz}}"><blocker foo="{{foo}}"/>',
-			data: { foo: { bar: { baz: 50 } } },
-			magic: true,
-			components: { blocker: Blocker }
-		});
-
-		ractive.set( 'foo.bar.baz', 42 );
-		t.equal( ractive.get( 'foo.bar.baz' ), 42 );
-
-		ractive.get( 'foo.bar' ).baz = 1337;
-		//t.equal( ractive.data.foo.bar.baz, 1337 );
-		t.equal( ractive.get( 'foo.bar.baz' ), 1337 );
-
-		blocker = ractive.findComponent( 'blocker' );
-
-		blocker.set( 'foo.bar.baz', 42 );
-		t.equal( blocker.get( 'foo.bar.baz' ), 42 );
-
-		//blocker.data.foo.bar.baz = 1337;
-		blocker.set( 'foo.bar.baz', 1337 ); // TODO necessary since #1373. Might need to review some of these tests
-		//t.equal( blocker.data.foo.bar.baz, 1337 );
-		t.equal( blocker.get( 'foo.bar.baz' ), 1337 );
-	});
-} // end "Ractive.magic" section
-
 test( 'Component data passed but non-existent on parent data', t => {
-	var ractive, Widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{exists}}{{missing}}'
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget exists="{{exists}}" missing="{{missing}}"/>',
-		components: { widget: Widget },
+		template: '<Widget exists="{{exists}}" missing="{{missing}}"/>',
+		components: { Widget },
 		data: { exists: 'exists' }
 	});
 
@@ -400,16 +289,14 @@ test( 'Component data passed but non-existent on parent data', t => {
 });
 
 test( 'Some component data not included in invocation parameters', t => {
-	var ractive, Widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{exists}}{{missing}}'
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget exists="{{exists}}"/>',
-		components: { widget: Widget },
+		template: '<Widget exists="{{exists}}"/>',
+		components: { Widget },
 		data: { exists: 'exists' }
 	});
 
@@ -417,16 +304,14 @@ test( 'Some component data not included in invocation parameters', t => {
 });
 
 test( 'Some component data not included, with implicit sibling', t => {
-	var ractive, Widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{exists}}{{also}}{{missing}}'
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '{{#stuff:exists}}<widget exists="{{exists}}" also="{{.}}"/>{{/stuff}}',
-		components: { widget: Widget },
+		template: '{{#stuff:exists}}<Widget exists="{{exists}}" also="{{.}}"/>{{/stuff}}',
+		components: { Widget },
 		data: {
 			stuff: {
 				exists: 'also'
@@ -438,17 +323,15 @@ test( 'Some component data not included, with implicit sibling', t => {
 });
 
 test( 'Isolated components do not interact with ancestor viewmodels', t => {
-	var ractive, Widget;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{foo}}.{{bar}}',
 		isolated: true
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget foo="{{foo}}"/>',
-		components: { widget: Widget },
+		template: '<Widget foo="{{foo}}"/>',
+		components: { Widget },
 		data: {
 			foo: 'you should see me',
 			bar: 'but not me'
@@ -459,20 +342,18 @@ test( 'Isolated components do not interact with ancestor viewmodels', t => {
 });
 
 test( 'Children do not nuke parent data when inheriting from ancestors', t => {
-	var Widget, Block, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>value: {{thing.value}}</p>'
 	});
 
-	Block = Ractive.extend({
-		template: '<widget thing="{{things.one}}"/><widget thing="{{things.two}}"/><widget thing="{{things.three}}"/>',
-		components: { widget: Widget }
+	const Block = Ractive.extend({
+		template: '<Widget thing="{{things.one}}"/><Widget thing="{{things.two}}"/><Widget thing="{{things.three}}"/>',
+		components: { Widget }
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<block/>',
+		template: '<Block/>',
 		data: {
 			things: {
 				one: { value: 1 },
@@ -480,32 +361,26 @@ test( 'Children do not nuke parent data when inheriting from ancestors', t => {
 				three: { value: 3 }
 			}
 		},
-		components: {
-			block: Block
-		}
+		components: { Block }
 	});
 
-	t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } )
+	t.deepEqual( ractive.get( 'things' ), { one: { value: 1 }, two: { value: 2 }, three: { value: 3 } } );
 });
 
 test( 'Uninitialised implicit dependencies of evaluators that use inherited functions are handled', t => {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{status()}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{status()}}-<widget/>',
+		template: '{{status()}}-<Widget/>',
 		data: {
-			status: function () {
+			status () {
 				return this.get( '_status' );
 			}
 		},
-		components: {
-			widget: Widget
-		}
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '-' );
@@ -518,53 +393,60 @@ test( 'Uninitialised implicit dependencies of evaluators that use inherited func
 });
 
 test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<one foo="{{foo}}"/><two foo="{{foo}}"/>',
+		template: '<One foo="{{foo}}"/><Two foo="{{foo}}"/>',
 		components: {
-			one: Ractive.extend({ template: '<p>{{foo.bar}}</p>' }),
-			two: Ractive.extend({ template: '<p>{{foo.bar}}</p>' })
+			One: Ractive.extend({ template: '<p>{{foo.bar}}</p>' }),
+			Two: Ractive.extend({ template: '<p>{{foo.bar}}</p>' })
 		}
 	});
 
 	ractive.set( 'foo', {} );
 	t.htmlEqual( fixture.innerHTML, '<p></p><p></p>' );
 
-	ractive.findComponent( 'one' ).set( 'foo.bar', 'baz' );
+	ractive.findComponent( 'One' ).set( 'foo.bar', 'baz' );
 	t.htmlEqual( fixture.innerHTML, '<p>baz</p><p>baz</p>' );
 
-	ractive.findComponent( 'two' ).set( 'foo.bar', 'qux' );
+	ractive.findComponent( 'Two' ).set( 'foo.bar', 'qux' );
 	t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
 });
 
 
 test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#with qux}}<one foo="{{foo}}"/><two foo="{{foo}}"/>{{/with}}',
+		template: `
+			{{#with qux}}
+				<One foo='{{foo}}'/>
+				<Two foo='{{foo}}'/>
+			{{/with}}`,
 		components: {
-			one: Ractive.extend({ template: '<p>{{foo.bar}}</p>' }),
-			two: Ractive.extend({ template: '<p>{{foo.bar}}</p>' })
+			One: Ractive.extend({ template: '<p>{{foo.bar}}</p>' }),
+			Two: Ractive.extend({ template: '<p>{{foo.bar}}</p>' })
 		}
 	});
 
 	ractive.set( 'qux.foo', {} );
 	t.htmlEqual( fixture.innerHTML, '<p></p><p></p>' );
 
-	ractive.findComponent( 'one' ).set( 'foo.bar', 'baz' );
+	ractive.findComponent( 'One' ).set( 'foo.bar', 'baz' );
 	t.htmlEqual( fixture.innerHTML, '<p>baz</p><p>baz</p>' );
 
-	ractive.findComponent( 'two' ).set( 'foo.bar', 'qux' );
+	ractive.findComponent( 'Two' ).set( 'foo.bar', 'qux' );
 	t.htmlEqual( fixture.innerHTML, '<p>qux</p><p>qux</p>' );
 });
 
 test( 'Index references propagate down to non-isolated components', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#items:i}}<widget letter="{{.}}"/>{{/items}}',
+		template: `
+			{{#each items:i}}
+				<Widget letter='{{this}}'/>
+			{{/each}}`,
 		data: { items: [ 'a', 'b', 'c' ] },
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '<p>{{i}}: {{letter}}</p>'
 			})
 		}
@@ -577,12 +459,15 @@ test( 'Index references propagate down to non-isolated components', t => {
 });
 
 test( 'Index references passed via @index propagate down to non-isolated components', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#items:i}}<widget number="{{@index}}" letter="{{.}}"/>{{/items}}',
+		template: `
+			{{#each items}}
+				<Widget number='{{@index}}' letter='{{this}}'/>
+			{{/each}}`,
 		data: { items: [ 'a', 'b', 'c' ] },
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '<p>{{number}}: {{letter}}</p>'
 			})
 		}
@@ -595,12 +480,12 @@ test( 'Index references passed via @index propagate down to non-isolated compone
 });
 
 test( 'Reference based fragment parameters update components', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget answer="{{foo}} and {{bar}}"/>',
+		template: '<Widget answer="{{foo}} and {{bar}}"/>',
 		data: { foo: 'rice', bar: 'beans' },
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '{{answer}}'
 			})
 		}
@@ -613,24 +498,22 @@ test( 'Reference based fragment parameters update components', t => {
 });
 
 test( 'Data will propagate up through multiple component boundaries (#520)', t => {
-	var ractive, Outer, Inner, inner;
-
-	Inner = Ractive.extend({
+	const Inner = Ractive.extend({
 		template: '{{input.value}}',
-		update: function ( val ) {
+		update ( val ) {
 			this.set( 'input', { value: val });
 		}
 	});
 
-	Outer = Ractive.extend({
-		template: '{{#inputs}}<inner input="{{this}}"/>{{/inputs}}',
-		components: { inner: Inner }
+	const Outer = Ractive.extend({
+		template: '{{#inputs}}<Inner input="{{this}}"/>{{/inputs}}',
+		components: { Inner }
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#simulation}}<outer inputs="{{inputs}}"/>{{/simulation}}',
-		components: { outer: Outer },
+		template: '{{#simulation}}<Outer inputs="{{inputs}}"/>{{/simulation}}',
+		components: { Outer },
 		data: {
 			simulation: { inputs: [{ value: 1 }] }
 		}
@@ -638,26 +521,25 @@ test( 'Data will propagate up through multiple component boundaries (#520)', t =
 
 	t.equal( ractive.get( 'simulation.inputs[0].value' ), 1 );
 
-	inner = ractive.findComponent( 'inner' );
+	const inner = ractive.findComponent( 'Inner' );
 
 	inner.update( 2 );
 	t.equal( ractive.get( 'simulation.inputs[0].value' ), 2 );
 	t.htmlEqual( fixture.innerHTML, '2' );
-
 });
 
 test( 'Component in template has data function called on initialize', t => {
-	var Component, ractive, data = { foo: 'bar' } ;
+	const data = { foo: 'bar' } ;
 
-	Component = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{foo}}',
-		data: function(){ return data }
+		data: () => data
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget/>',
-		components: { widget: Component },
+		template: '<Widget/>',
+		components: { Widget },
 		data: { foo: 'no' }
 	});
 
@@ -686,19 +568,16 @@ test( 'Component in template has data function called on initialize', t => {
 });*/
 
 test( 'Component in template with dynamic template function', t => {
-	var Component, ractive;
-
-	Component = Ractive.extend({
+	const Widget = Ractive.extend({
 		template () {
 			return this.get( 'useFoo' ) ? '{{foo}}' : '{{fizz}}';
 		}
 	});
 
-
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget foo="{{one}}" fizz="{{two}}" useFoo="true"/>',
-		components: { widget: Component },
+		template: '<Widget foo="{{one}}" fizz="{{two}}" useFoo="true"/>',
+		components: { Widget },
 		data: { one: 'bar', two: 'bizz' }
 	});
 
@@ -706,17 +585,15 @@ test( 'Component in template with dynamic template function', t => {
 });
 
 test( 'Inline component attributes are passed through correctly', t => {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '<p>{{foo.bar}}</p><p>{{typeof answer}}: {{answer}}</p><p>I got {{string}} but type coercion ain\'t one</p><p>{{dynamic.yes}}</p>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget foo="{bar:10}" answer="42 " string="99 problems" dynamic="{yes:{{but}}}"/>',
+		template: '<Widget foo="{bar:10}" answer="42 " string="99 problems" dynamic="{yes:{{but}}}"/>',
 		data: { but: 'no' },
-		components: { widget: Widget }
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>10</p><p>number: 42</p><p>I got 99 problems but type coercion ain\'t one</p><p>no</p>' );
@@ -725,24 +602,21 @@ test( 'Inline component attributes are passed through correctly', t => {
 	t.htmlEqual( fixture.innerHTML, '<p>10</p><p>number: 42</p><p>I got 99 problems but type coercion ain\'t one</p><p>maybe</p>' );
 });
 
-// See issue #681
-test( 'Inline component attributes update the value of bindings pointing to them even if they are old values', t => {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+test( 'Inline component attributes update the value of bindings pointing to them even if they are old values (#681)', t => {
+	const Widget = Ractive.extend({
 		template: '{{childdata}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{parentdata}} - <widget childdata="{{parentdata}}" />',
+		template: '{{parentdata}} - <Widget childdata="{{parentdata}}" />',
 		data: { parentdata: 'old' },
-		components: { widget: Widget }
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'old - old' );
 
-	ractive.findComponent( 'widget' ).set( 'childdata', 'new' );
+	ractive.findComponent( 'Widget' ).set( 'childdata', 'new' );
 	t.htmlEqual( fixture.innerHTML, 'new - new' );
 
 	ractive.set( 'parentdata', 'old' );
@@ -750,23 +624,20 @@ test( 'Inline component attributes update the value of bindings pointing to them
 });
 
 test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
-	var List, ractive;
-
-	List = Ractive.extend({
-		template: '{{#items:i}}<p>{{i}}:{{ foo.bar.length }}</p>{{/items}}'
+	const List = Ractive.extend({
+		template: `
+			{{#each items:i}}
+				<p>{{i}}:{{ foo.bar.length }}</p>
+			{{/each}}`
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<list items="{{sorted_items}}"/>',
-		components: {
-			list: List
-		},
+		template: '<List items="{{sorted_items}}"/>',
+		components: { List },
 		computed: {
-			sorted_items: function () {
-				return this.get( 'items' ).slice().sort( function ( a, b ) {
-					return ( a.rank - b.rank );
-				});
+			sorted_items () {
+				return this.get( 'items' ).slice().sort( ( a, b ) => a.rank - b.rank );
 			}
 		}
 	});
@@ -780,44 +651,38 @@ test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
 	t.htmlEqual( fixture.innerHTML, '<p>0:</p><p>1:0</p><p>2:0</p>' );
 });
 
-test( 'Component bindings propagate the underlying value in the case of adaptors (#945)', function ( t ) {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+test( 'Component bindings propagate the underlying value in the case of adaptors (#945)', t => {
+	const Widget = Ractive.extend({
 		adapt: [ Model.adaptor ],
 		template: '{{#model}}Title: {{title}}{{/model}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#model}}<widget model="{{this}}"/>{{/model}}',
+		template: '{{#model}}<Widget model="{{this}}"/>{{/model}}',
 		data: {
-			model: new Model({"title": "aaa", "something": ""})
+			model: new Model({ title: 'aaa', something: '' })
 		},
-		components: {
-			widget: Widget
-		}
+		components: { Widget }
 	});
 
-	ractive.get("model").set("something", "anything");
+	ractive.get( 'model' ).set( 'something', 'anything' );
 	t.ok( ractive.get( 'model' ) instanceof Model );
 });
 
-test( 'Implicit bindings are created at the highest level possible (#960)', function ( t ) {
-	var ractive, widget;
-
-	ractive = new Ractive({
+test( 'Implicit bindings are created at the highest level possible (#960)', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget/>',
+		template: '<Widget/>',
 		data: { person: {} },
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '<input value="{{person.first}}"/><input value="{{person.last}}"/>'
 			})
 		}
 	});
 
-	widget = ractive.findComponent( 'widget' );
+	const widget = ractive.findComponent( 'Widget' );
 
 	widget.findAll( 'input' )[0].value = 'Buzz';
 	widget.findAll( 'input' )[1].value = 'Lightyear';
@@ -827,12 +692,12 @@ test( 'Implicit bindings are created at the highest level possible (#960)', func
 	t.equal( ractive.get( 'person' ), widget.get( 'person' ) );
 });
 
-test( 'Implicit bindings involving context (#975)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Implicit bindings involving context (#975)', t => {
+	new Ractive({
 		el: fixture,
-		template: '{{#context}}<widget/>{{/}}',
+		template: '{{#context}}<Widget/>{{/}}',
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: 'works? {{works}}'
 			})
 		},
@@ -846,15 +711,13 @@ test( 'Implicit bindings involving context (#975)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'works? yes' );
 });
 
-test( 'Reference expressions default to two-way binding (#996)', function ( t ) {
-	var ractive, widgets, output;
-
-	ractive = new Ractive({
+test( 'Reference expressions default to two-way binding (#996)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#each rows:r}}
 				{{#columns}}
-					<widget row="{{rows[r]}}" column="{{this}}" />
+					<Widget row="{{rows[r]}}" column="{{this}}" />
 				{{/columns}}
 			{{/each}}
 			<pre>{{JSON.stringify(rows)}}</pre>`,
@@ -865,14 +728,14 @@ test( 'Reference expressions default to two-way binding (#996)', function ( t ) 
 			columns: [ 'name', 'age' ]
 		},
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '<input value="{{row[column]}}" />'
 			})
 		}
 	});
 
-	output = ractive.find( 'pre' );
-	widgets = ractive.findAllComponents( 'widget', { live: true });
+	const output = ractive.find( 'pre' );
+	const widgets = ractive.findAllComponents( 'Widget', { live: true });
 
 	widgets[0].find( 'input' ).value = 'Angela';
 	widgets[0].updateModel();
@@ -886,30 +749,27 @@ test( 'Reference expressions default to two-way binding (#996)', function ( t ) 
 	t.deepEqual( JSON.parse( output.innerHTML ), [{ name: 'Brian', age: 54 }, { name: 'Angela', age: 30 }] );
 });
 
-test( 'Data that does not exist in a parent context binds to the current instance on set (#1205)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Data that does not exist in a parent context binds to the current instance on set (#1205)', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget/><widget/>',
+		template: '<Widget/><Widget/>',
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '<p>title:{{title}}</p>'
 			})
 		}
 	});
 
-	ractive.findComponent( 'widget' ).set( 'title', 'foo' );
+	ractive.findComponent( 'Widget' ).set( 'title', 'foo' );
 
 	t.htmlEqual( fixture.innerHTML, '<p>title:foo</p><p>title:</p>' );
 });
 
-test( 'Inter-component bindings can be created via this.get() and this.observe(), not just through templates', function ( t ) {
+test( 'Inter-component bindings can be created via this.get() and this.observe(), not just through templates', t => {
 	const Widget = Ractive.extend({
 		template: '<p>message: {{proxy}}</p>',
-		oninit: function () {
-			this.observe( 'message', function ( message ) {
-				this.set( 'proxy', message );
-			});
-
+		oninit () {
+			this.observe( 'message', message => this.set( 'proxy', message ) );
 			t.equal( this.get( 'answer' ), 42 );
 		}
 	});
@@ -929,11 +789,11 @@ test( 'Inter-component bindings can be created via this.get() and this.observe()
 	t.htmlEqual( fixture.innerHTML, '<p>message: goodbye</p>' );
 });
 
-test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', function ( t ) {
+test( 'Sibling components do not unnessarily update on refinement update of data. (#1293)', t => {
 	let noCall = false;
 	let errored = false;
 
-	expect( 3 );
+	t.expect( 3 );
 
 	const Widget1 = Ractive.extend({
 		template: 'w1:{{tata.foo}}{{tata.bar}}'
@@ -948,7 +808,7 @@ test( 'Sibling components do not unnessarily update on refinement update of data
 			}
 		},
 		oninit () {
-			this.observe('schmata.bar', function () {
+			this.observe('schmata.bar', () => {
 				t.ok( false );
 			}, { init: false } );
 		}
@@ -965,7 +825,7 @@ test( 'Sibling components do not unnessarily update on refinement update of data
 		},
 		components: { Widget1, Widget2 },
 		oninit () {
-			this.observe( 'data.bar', function () {
+			this.observe( 'data.bar', () => {
 				errored = true;
 				t.ok( false );
 			}, { init: false } );
@@ -978,17 +838,18 @@ test( 'Sibling components do not unnessarily update on refinement update of data
 	t.htmlEqual( fixture.innerHTML, 'updatebarw1:updatebarw2:updatebar' );
 
 	t.ok( !errored );
-
 });
 
-test( 'Component bindings respect smart updates (#1209)', function ( t ) {
-	var Widget, ractive, intros = {}, outros = {};
+test( 'Component bindings respect smart updates (#1209)', t => {
+	let intros = {};
+	let outros = {};
 
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{#each items}}<p intro-outro="log">{{this}}</p>{{/each}}',
 		transitions: {
-			log: function ( t ) {
-				var x = t.node.innerHTML, count = t.isIntro ? intros : outros;
+			log ( t ) {
+				const x = t.node.innerHTML;
+				const count = t.isIntro ? intros : outros;
 
 				if ( !count[x] ) count[x] = 0;
 				count[x] += 1;
@@ -998,10 +859,10 @@ test( 'Component bindings respect smart updates (#1209)', function ( t ) {
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget/>',
-		components: { widget: Widget },
+		template: '<Widget/>',
+		components: { Widget },
 		data: { items: [ 'a', 'b', 'c' ]}
 	});
 
@@ -1014,16 +875,16 @@ test( 'Component bindings respect smart updates (#1209)', function ( t ) {
 	t.deepEqual( outros, { a: 1, b: 1 });
 });
 
-test( 'Multiple related values propagate across component boundaries (#1373)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Multiple related values propagate across component boundaries (#1373)', t => {
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<tweedle dee="{{dee}}" dum="{{dum}}"/>',
+		template: '<Tweedle dee="{{dee}}" dum="{{dum}}"/>',
 		data: {
 			dee: { word: 'spoiled' },
 			dum: { word: 'rattle' }
 		},
 		components: {
-			tweedle: Ractive.extend({
+			Tweedle: Ractive.extend({
 				template: '{{#dee}}{{ word ? word : "lewis"}}{{/dee}} {{#dum}}{{ word? word : "carroll"}}{{/}}'
 			})
 		}
@@ -1038,11 +899,14 @@ test( 'Multiple related values propagate across component boundaries (#1373)', f
 });
 
 test( 'Components unbind their resolvers while they are unbinding (#1428)', t => {
-	let ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#list}}<cmp item="{{foo[.]}}" />{{/}}',
+		template: `
+			{{#each list}}
+				<Widget item='{{foo[.]}}'/>
+			{{/each}}`,
 		components: {
-			cmp: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '{{item}}'
 			})
 		},
@@ -1057,17 +921,16 @@ test( 'Components unbind their resolvers while they are unbinding (#1428)', t =>
 		}
 	});
 
-	ractive.splice('list', 0, 1);
-
+	ractive.splice( 'list', 0, 1 );
 	t.htmlEqual( fixture.innerHTML, 'john jacob jingleheimerschmidt' );
 });
 
 test( 'Components may bind to the parent root (#1442)', t => {
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<foo data="{{.}}" />',
+		template: '<Foo data="{{.}}" />',
 		components: {
-			foo: Ractive.extend({
+			Foo: Ractive.extend({
 				template: '{{data.foo}}'
 			})
 		},
@@ -1078,15 +941,15 @@ test( 'Components may bind to the parent root (#1442)', t => {
 });
 
 test( 'Mappings with reference expressions that change bind correctly', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget foo="{{a[p]}}"/>',
+		template: '<Widget foo="{{a[p]}}"/>',
 		data: {
 			a: { b: 'b', c: 'c' },
 			p: 'b'
 		},
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '{{foo}}'
 			})
 		}
@@ -1098,9 +961,9 @@ test( 'Mappings with reference expressions that change bind correctly', t => {
 });
 
 test( 'Mappings with upstream reference expressions that change bind correctly', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#a[p]}}<widget foo="{{bar}}"/>{{/a}}',
+		template: '{{#a[p]}}<Widget foo="{{bar}}"/>{{/a}}',
 		data: {
 			a: {
 				b: { bar: 'of b' },
@@ -1109,7 +972,7 @@ test( 'Mappings with upstream reference expressions that change bind correctly',
 			p: 'b'
 		},
 		components: {
-			widget: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '{{foo}}'
 			})
 		}
@@ -1164,20 +1027,19 @@ test( 'Mappings with upstream reference expressions that change bind correctly',
 	t.ok( 'bat' in cmp );
 });*/
 
-test( 'Multiple levels of mappings work', ( t ) => {
-
+test( 'Multiple levels of mappings work', t => {
 	var ractive = new Ractive({
 		el: fixture,
-		template: '{{a}}-{{b}}-{{c}}:<c1 d="{{a}}" e="{{b}}" f="{{c}}"/>',
+		template: '{{a}}-{{b}}-{{c}}:<C1 d="{{a}}" e="{{b}}" f="{{c}}"/>',
 		data: {
 			a: 'foo',
 		 	b: 'bar'
 		},
 		components: {
-			c1: Ractive.extend({
-				template: '{{d}}-{{e}}-{{f}}:<c2 g="{{d}}" h="{{e}}" i="{{f}}"/>',
+			C1: Ractive.extend({
+				template: '{{d}}-{{e}}-{{f}}:<C2 g="{{d}}" h="{{e}}" i="{{f}}"/>',
 				components: {
-					c2: Ractive.extend({
+					C2: Ractive.extend({
 						template: '{{g}}-{{h}}-{{i}}'
 					})
 				}
@@ -1188,5 +1050,4 @@ test( 'Multiple levels of mappings work', ( t ) => {
 	t.htmlEqual( fixture.innerHTML, 'foo-bar-:foo-bar-:foo-bar-' );
 	ractive.set( 'c', 'qux' );
 	t.htmlEqual( fixture.innerHTML, 'foo-bar-qux:foo-bar-qux:foo-bar-qux' );
-
 });

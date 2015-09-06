@@ -1,9 +1,9 @@
+import { test } from 'qunit';
+
 test( 'on-click="someEvent" fires an event when user clicks the element', t => {
-	var ractive;
+	t.expect( 2 );
 
-	expect( 2 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<span id="test" on-click="someEvent">click me</span>'
 	});
@@ -17,45 +17,38 @@ test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 });
 
 test( 'empty event on-click="" ok', t => {
-	var ractive;
+	t.expect( 0 );
 
-	expect( 0 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<span id="test" on-click="">click me</span>'
 	});
 
 	simulant.fire( ractive.nodes.test, 'click' );
-})
+});
 
 test( 'on-click="someEvent" does not fire event when unrendered', t => {
-	var ractive, node;
+	t.expect( 0 );
 
-	expect( 0 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<span id="test" on-click="someEvent">click me</span>'
 	});
 
-	ractive.on( 'someEvent', function ( event ) {
-		throw new Error('Event handler called after unrender');
+	ractive.on( 'someEvent', () => {
+		throw new Error( 'Event handler called after unrender' );
 	});
 
-	node = ractive.nodes.test;
+	const node = ractive.nodes.test;
 
 	ractive.unrender();
-
 	simulant.fire( node, 'click' );
 });
 
 test( 'Standard events have correct properties: node, original, keypath, context, index, name', t => {
-	var ractive;
+	t.expect( 6 );
 
-	expect( 6 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<span id="test" on-click="someEvent">click me</span>'
 	});
@@ -73,45 +66,50 @@ test( 'Standard events have correct properties: node, original, keypath, context
 });
 
 test( 'preventDefault and stopPropagation if event handler returned false', t => {
-	var ractive, preventedDefault = false, stoppedPropagation = false;
+	t.expect( 9 );
 
-	expect( 9 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<span id="return_false" on-click="returnFalse">click me</span>' +
-					'<span id="return_undefined" on-click="returnUndefined">click me</span>' +
-					'<span id="return_zero" on-click="returnZero">click me</span> ' +
-					'<span id="multiHandler" on-click="multiHandler">click me</span> '
+		template: `
+			<span id="return_false" on-click="returnFalse">click me</span>
+			<span id="return_undefined" on-click="returnUndefined">click me</span>
+			<span id="return_zero" on-click="returnZero">click me</span>
+			<span id="multiHandler" on-click="multiHandler">click me</span>`
 	});
 
-	function mockOriginalEvent( original ) {
+	let preventedDefault = false;
+	let stoppedPropagation = false;
+
+	function mockOriginalEvent ( original ) {
 		preventedDefault = stoppedPropagation = false;
-		original.preventDefault = function() { preventedDefault = true; }
-		original.stopPropagation = function() { stoppedPropagation = true; }
+		original.preventDefault = () => preventedDefault = true;
+		original.stopPropagation = () => stoppedPropagation = true;
 	}
 
-	ractive.on( 'returnFalse', function ( event ) {
+	ractive.on( 'returnFalse', event => {
 		t.ok( true );
 		mockOriginalEvent( event.original );
 		return false;
 	});
-	ractive.on( 'returnUndefined', function ( event ) {
+
+	ractive.on( 'returnUndefined', event => {
 		t.ok( true );
 		mockOriginalEvent( event.original );
 	});
-	ractive.on( 'returnZero', function ( event ) {
+
+	ractive.on( 'returnZero', event => {
 		t.ok( true );
 		mockOriginalEvent( event.original );
 		return 0;
 	});
 
-	ractive.on( 'multiHandler', function ( event ) {
+	ractive.on( 'multiHandler', event => {
 		t.ok( true );
 		mockOriginalEvent( event.original );
 		return false;
 	});
-	ractive.on( 'multiHandler', function ( event ) {
+
+	ractive.on( 'multiHandler', event => {
 		t.ok( true );
 		mockOriginalEvent( event.original );
 		return 0;
@@ -131,11 +129,9 @@ test( 'preventDefault and stopPropagation if event handler returned false', t =>
 });
 
 test( 'event.keypath is set to the innermost context', t => {
-	var ractive;
+	t.expect( 2 );
 
-	expect( 2 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo}}<span id="test" on-click="someEvent">click me</span>{{/foo}}',
 		data: {
@@ -152,11 +148,9 @@ test( 'event.keypath is set to the innermost context', t => {
 });
 
 test( 'event.index stores current indices against their references', t => {
-	var ractive;
+	t.expect( 4 );
 
-	expect( 4 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#array:i}}<li id="item_{{i}}" on-click="someEvent">{{i}}: {{.}}</li>{{/array}}</ul>',
 		data: {
@@ -175,23 +169,15 @@ test( 'event.index stores current indices against their references', t => {
 });
 
 test( 'event.index reports nested indices correctly', t => {
-	var ractive;
+	t.expect( 4 );
 
-	expect( 4 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo:x}}{{#bar:y}}{{#baz:z}}<span id="test_{{x}}{{y}}{{z}}" on-click="someEvent">{{x}}{{y}}{{z}}</span>{{/baz}}{{/bar}}{{/foo}}',
 		data: {
-			foo: [
-				{
-					bar: [
-						{
-							baz: [ 1, 2, 3 ]
-						}
-					]
-				}
-			]
+			foo: [{
+				bar: [{ baz: [ 1, 2, 3 ] }]
+			}]
 		}
 	});
 
@@ -207,21 +193,21 @@ test( 'event.index reports nested indices correctly', t => {
 });
 
 test( 'proxy events can have dynamic names', t => {
-	var ractive, last;
+	t.expect( 2 );
 
-	expect( 2 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<span id="test" on-click="do_{{something}}">click me</span>',
 		data: { something: 'foo' }
 	});
 
+	let last;
+
 	ractive.on({
-		do_foo: function ( event ) {
+		do_foo () {
 			last = 'foo';
 		},
-		do_bar: function ( event ) {
+		do_bar () {
 			last = 'bar';
 		}
 	});
@@ -236,17 +222,17 @@ test( 'proxy events can have dynamic names', t => {
 });
 
 test( 'proxy event parameters are correctly parsed as JSON, or treated as a string', t => {
-	var ractive, last;
+	t.expect( 3 );
 
-	expect( 3 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<span id="foo" on-click="log:one">click me</span><span id="bar" on-click=\'log:{"bar":true}\'>click me</span><span id="baz" on-click="log:[1,2,3]">click me</span>'
 	});
 
+	let last;
+
 	ractive.on({
-		log: function ( event, params ) {
+		log ( event, params ) {
 			last = params;
 		}
 	});
@@ -262,18 +248,16 @@ test( 'proxy event parameters are correctly parsed as JSON, or treated as a stri
 });
 
 test( 'proxy events can have dynamic arguments', t => {
-	var ractive;
+	t.expect( 1 );
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<span id="foo" on-click="foo:{{foo}}">click me</span>',
 		data: { foo: 'bar' }
 	});
 
-	expect( 1 );
-
 	ractive.on({
-		foo: function ( event, foo ) {
+		foo ( event, foo ) {
 			t.equal( foo, 'bar' );
 		}
 	});
@@ -282,27 +266,25 @@ test( 'proxy events can have dynamic arguments', t => {
 });
 
 test( 'proxy events can have multiple arguments', t => {
-	var ractive;
+	t.expect( 7 );
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<span id="foo" on-click="one:1,2,3">click me</span><span id="bar" on-click="two:{a:1},{b:2}">click me</span><span id="baz" on-click="three:{c:{{c}}},{d:\'{{d}}\'}">click me</span>',
 		data: { c: 3, d: 'four' }
 	});
 
-	expect( 7 );
-
 	ractive.on({
-		one: function ( event, one, two, three ) {
+		one ( event, one, two, three ) {
 			t.equal( one, 1 );
 			t.equal( two, 2 );
 			t.equal( three, 3 );
 		},
-		two: function ( event, one, two ) {
+		two ( event, one, two ) {
 			t.equal( one.a, 1 );
 			t.equal( two.b, 2 );
 		},
-		three: function ( event, three, four ) {
+		three ( event, three, four ) {
 			t.equal( three.c, 3 );
 			t.equal( four.d, 'four' );
 		}
@@ -314,11 +296,9 @@ test( 'proxy events can have multiple arguments', t => {
 });
 
 test( 'Splicing arrays correctly modifies proxy events', t => {
-	var ractive;
+	t.expect( 4 );
 
-	expect( 4 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#buttons:i}}
@@ -344,7 +324,7 @@ test( 'Splicing arrays correctly modifies proxy events', t => {
 });
 
 test( 'Splicing arrays correctly modifies two-way bindings', t => {
-	expect( 25 );
+	t.expect( 25 );
 
 	let items = [
 		{ description: 'one' },
@@ -423,7 +403,7 @@ test( 'Splicing arrays correctly modifies two-way bindings', t => {
 });
 
 test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
-	var changes, ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#items}}
@@ -445,11 +425,13 @@ test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
 				{ completed: false, description: 'fix other bugs' },
 				{ completed: false, description: 'housework' }
 			],
-			completed: function ( item ) {
+			completed ( item ) {
 				return !!item.completed;
 			}
 		}
 	});
+
+	let changes;
 
 	ractive.on( 'change', function ( c ) {
 		changes = c;
@@ -468,14 +450,14 @@ test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
 });
 
 test( 'Multiple events can share the same directive', t => {
-	var ractive, count = 0;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div on-click-mouseover="foo"></div>'
 	});
 
-	ractive.on( 'foo', function () {
+	let count = 0;
+
+	ractive.on( 'foo', () => {
 		count += 1;
 	});
 
@@ -487,18 +469,19 @@ test( 'Multiple events can share the same directive', t => {
 });
 
 test( 'Superfluous whitespace is ignored', t => {
-	var ractive, fooCount = 0, barCount = 0;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div class="one" on-click=" foo "></div><div class="two" on-click="{{#bar}} bar {{/}}"></div>'
 	});
 
+	let fooCount = 0;
+	let barCount = 0;
+
 	ractive.on({
-		foo: function () {
+		foo () {
 			fooCount += 1;
 		},
-		bar: function () {
+		bar () {
 			barCount += 1;
 		}
 	});
@@ -515,7 +498,9 @@ test( 'Superfluous whitespace is ignored', t => {
 });
 
 test( '@index can be used in proxy event directives', t => {
-	var ractive = new Ractive({
+	t.expect( 3 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#each letters}}
@@ -524,8 +509,6 @@ test( '@index can be used in proxy event directives', t => {
 			{{/each}}`,
 		data: { letters: [ 'a', 'b', 'c' ] }
 	});
-
-	expect( 3 );
 
 	ractive.select = ( idx ) => t.equal( idx, 1 );
 
@@ -540,6 +523,8 @@ test( '@index can be used in proxy event directives', t => {
 });
 
 test( 'Proxy event arguments update correctly (#2098)', t => {
+	t.expect( 2 );
+
 	const one = { number: 1 };
 	const two = { number: 2 };
 
@@ -561,7 +546,6 @@ test( 'Proxy event arguments update correctly (#2098)', t => {
 
 	const button = ractive.find( 'button' );
 
-	expect( 2 );
 	simulant.fire( button, 'click' );
 	simulant.fire( button, 'click' );
 });

@@ -1,5 +1,7 @@
+import { test } from 'qunit';
+
 test( 'Array member by index number', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#with bar}}{{1}}{{/with}}'
 	});

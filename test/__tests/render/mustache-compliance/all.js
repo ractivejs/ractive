@@ -1,3 +1,6 @@
+import { test } from 'qunit';
+import cleanup from 'helpers/cleanup';
+
 // MUSTACHE SPEC COMPLIANCE TESTS
 // ==============================
 //
@@ -12,7 +15,6 @@
 // For the sake of sanity, these tests are also marked.
 //
 // TODO update tests from source
-import cleanup from 'helpers/cleanup';
 
 var testModules, runTest, runModule, i, isOldIe;
 

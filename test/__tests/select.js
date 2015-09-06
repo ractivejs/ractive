@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', function ( t ) {
 	var ractive;
 

@@ -10,16 +10,6 @@
 		"__dirname": true,
 		"HTMLDocument": true,
 		"fixture": true,
-		"test": true,
-		"asyncTest": true,
-		"expect": true,
-		"ok": true,
-		"equal": true,
-		"deepEqual": true,
-		"setup": true,
-		"start": true,
-		"throws": true,
-		"QUnit": true,
 		"Ractive": true,
 		"simulant": true
 	}

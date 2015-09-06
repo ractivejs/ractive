@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import tests from 'samples/parse';
 
 test( 'Mismatched template version causes error', function ( t ) {

@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'Merging an array of strings only creates the necessary fragments', function ( t ) {
 	var entered, exited, foo, bar, baz, ractive;
 

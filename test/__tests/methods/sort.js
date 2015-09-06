@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 [ true, false ].forEach( modifyArrays => {
 	test( `ractive.sort() (modifyArrays: ${modifyArrays})`, t => {
 		let items = [ 'alice', 'bob', 'charles' ];

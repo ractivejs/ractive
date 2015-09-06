@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import Fragment from 'view/Fragment';
 import Element from 'view/items/Element';
 import Triple from 'view/items/Triple';

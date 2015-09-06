@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'ractive.subtract("foo") subtracts 1 from the value of foo', t => {
 	let ractive = new Ractive({
 		data: { foo: 10 }

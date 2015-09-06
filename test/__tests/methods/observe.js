@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'Observers fire before the DOM updates', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,

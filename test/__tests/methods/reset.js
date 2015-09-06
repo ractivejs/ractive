@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'Basic reset', function ( t ) {
 	var ractive = new Ractive({
 		el: fixture,

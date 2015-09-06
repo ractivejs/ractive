@@ -1,5 +1,8 @@
-test( 'Calling a builtin method', function ( t ) {
-	var ractive = new Ractive({
+/*global window */
+import { test } from 'qunit';
+
+test( 'Calling a builtin method', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `<button on-click='set("foo",foo+1)'>{{foo}}</button>`,
 		data: { foo: 0 }
@@ -10,41 +13,38 @@ test( 'Calling a builtin method', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<button>1</button>' );
 });
 
-test( 'Calling a custom method', function ( t ) {
-	var Widget, ractive;
+test( 'Calling a custom method', t => {
+	t.expect( 2 );
 
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: `<button on-click='activate()'>{{foo}}</button>`,
-		activate: function () {
+		activate () {
 			t.ok( true );
 			t.equal( this, ractive );
 		}
 	});
 
-	ractive = new Widget({
+	const ractive = new Widget({
 		el: fixture
 	});
 
-	expect( 2 );
 	simulant.fire( ractive.find( 'button' ), 'click' );
 });
 
-test( 'Calling an unknown method', function ( t ) {
-	var Widget, ractive, onerror;
-
-	Widget = Ractive.extend({
+test( 'Calling an unknown method', t => {
+	const Widget = Ractive.extend({
 		template: `<button on-click='activate()'>{{foo}}</button>`
 	});
 
-	ractive = new Widget({
+	const ractive = new Widget({
 		el: fixture
 	});
 
 	// Catching errors inside handlers for programmatically-fired events
 	// is a world of facepalm http://jsfiddle.net/geoz2tks/
-	onerror = window.onerror;
+	const onerror = window.onerror;
 	window.onerror = function ( err ) {
-		t.ok( /Attempted to call a non-existent method \(\"activate\"\)/.test( err ) )
+		t.ok( /Attempted to call a non-existent method \(\"activate\"\)/.test( err ) );
 		return true;
 	};
 
@@ -52,74 +52,72 @@ test( 'Calling an unknown method', function ( t ) {
 	window.onerror = onerror;
 });
 
-test( 'Passing the event object to a method', function ( t ) {
-	var Widget, ractive;
+test( 'Passing the event object to a method', t => {
+	t.expect( 1 );
 
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: `<button on-click='activate(event)'>{{foo}}</button>`,
-		activate: function ( event ) {
+		activate ( event ) {
 			t.equal( event.original.type, 'click' );
 		}
 	});
 
-	ractive = new Widget({
+	const ractive = new Widget({
 		el: fixture
 	});
 
-	expect( 1 );
 	simulant.fire( ractive.find( 'button' ), 'click' );
 });
 
-test( 'Passing a child of the event object to a method', function ( t ) {
-	var Widget, ractive;
+test( 'Passing a child of the event object to a method', t => {
+	t.expect( 1 );
 
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: `<button on-click='activate(event.original.type)'>{{foo}}</button>`,
-		activate: function ( type ) {
+		activate ( type ) {
 			t.equal( type, 'click' );
 		}
 	});
 
-	ractive = new Widget({
+	const ractive = new Widget({
 		el: fixture
 	});
 
-	expect( 1 );
 	simulant.fire( ractive.find( 'button' ), 'click' );
 });
 
 // Bit of a cheeky workaround...
-test( 'Passing a reference to this.event', function ( t ) {
-	var Widget, ractive;
+test( 'Passing a reference to this.event', t => {
+	t.expect( 1 );
 
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: `<button on-click='activate(.event)'>{{foo}}</button>`,
-		activate: function ( event ) {
+		activate ( event ) {
 			t.equal( event, 'Christmas' );
 		}
 	});
 
-	ractive = new Widget({
+	const ractive = new Widget({
 		el: fixture,
 		data: {
 			event: 'Christmas'
 		}
 	});
 
-	expect( 1 );
 	simulant.fire( ractive.find( 'button' ), 'click' );
 });
 
 test( 'Current event is available to method handler as this.event (#1403)', t => {
-	var ractive = new Ractive({
+	t.expect( 2 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<button on-click="test(event)"></button>',
-		test: function( event ) {
+		test ( event ) {
 			t.equal( event, this.event );
 			t.equal( ractive, this );
 		}
 	});
 
-	expect( 2 );
 	simulant.fire( ractive.find( 'button' ), 'click' );
 });

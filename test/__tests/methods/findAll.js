@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'findAll() gets an array of all nodes matching a selector', function ( t ) {
 	var ractive, divs;
 

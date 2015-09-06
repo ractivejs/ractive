@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'Returns mappings on root .get()', t => {
 	var ractive;
 

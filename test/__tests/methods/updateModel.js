@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'Works across component boundary', t => {
 	const widget = Ractive.extend({
 		template: '{{bar}}'

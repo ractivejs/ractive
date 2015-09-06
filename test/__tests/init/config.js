@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import defaults from 'Ractive/config/defaults';
 import config from 'Ractive/config/config';
 import registries from 'Ractive/config/registries';

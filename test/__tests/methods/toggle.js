@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'ractive.toggle("foo") toggles the value of foo', t => {
 	let ractive = new Ractive({
 		data: { foo: false }

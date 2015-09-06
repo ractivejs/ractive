@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'Pattern observers on arrays fire correctly after mutations (mirror of test in observe.js)', t => {
 	const ractive = new Ractive({
 		data: {
@@ -119,8 +121,8 @@ test( 'array modification with non-shuffle-able deps should update correctly', t
 	t.htmlEqual( fixture.innerHTML, '0120' );
 });
 
-test( 'shifting an empty array', () => {
-	expect( 0 );
+test( 'shifting an empty array', t => {
+	t.expect( 0 );
 
 	let ractive = new Ractive({
 		template: '{{#items}}x{{/}}',

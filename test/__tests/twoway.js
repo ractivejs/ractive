@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import hasUsableConsole from 'hasUsableConsole';
 
 test( 'Two-way bindings work with index references', function ( t ) {

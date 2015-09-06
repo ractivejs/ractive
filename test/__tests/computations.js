@@ -1,7 +1,9 @@
+/*global console */
+import { test } from 'qunit';
 import hasUsableConsole from 'hasUsableConsole';
 
-test( 'Computed value declared as a function', function ( t ) {
-	var ractive = new Ractive({
+test( 'Computed value declared as a function', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>area: {{area}}</p>',
 		data: {
@@ -9,7 +11,7 @@ test( 'Computed value declared as a function', function ( t ) {
 			height: 10
 		},
 		computed: {
-			area: function () {
+			area () {
 				return this.get( 'width' ) * this.get( 'height' );
 			}
 		}
@@ -24,7 +26,7 @@ test( 'Computed value declared as a function', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>area: 225</p>' );
 });
 
-test( 'Dependency of computed property', function ( t ) {
+test( 'Dependency of computed property', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '{{answer}}',
@@ -49,7 +51,7 @@ test( 'Dependency of computed property', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '40' );
 });
 
-test( 'Computed value declared as a string', function ( t ) {
+test( 'Computed value declared as a string', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '<p>area: {{area}}</p>',
@@ -71,7 +73,7 @@ test( 'Computed value declared as a string', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>area: 225</p>' );
 });
 
-test( 'Computed value with a set() method', function ( t ) {
+test( 'Computed value with a set() method', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '<p>First name: {{first}}</p><p>Last name: {{last}}</p><p>Full name: {{full}}</p>',
@@ -106,7 +108,7 @@ test( 'Computed value with a set() method', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>First name: John</p><p>Last name: Belushi</p><p>Full name: John Belushi</p>' );
 });
 
-test( 'Components can have default computed properties', function ( t ) {
+test( 'Components can have default computed properties', t => {
 	const Box = Ractive.extend({
 		template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
 		computed: {
@@ -130,7 +132,7 @@ test( 'Components can have default computed properties', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div style="width: 200px; height: 100px;">20000px squared</div>' );
 });
 
-test( 'Instances can augment default computed properties of components', function ( t ) {
+test( 'Instances can augment default computed properties of components', t => {
 	var Box, ractive;
 
 	Box = Ractive.extend({
@@ -155,7 +157,7 @@ test( 'Instances can augment default computed properties of components', functio
 	t.htmlEqual( fixture.innerHTML, '<div style="width: 200px; height: 100px;">20000px squared</div>' );
 });
 
-test( 'Computed values can depend on other computed values', function ( t ) {
+test( 'Computed values can depend on other computed values', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '{{number}} - {{squared}} - {{cubed}}',
@@ -172,7 +174,7 @@ test( 'Computed values can depend on other computed values', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '6 - 36 - 216' );
 });
 
-test( 'Computations that cause errors are considered undefined', function ( t ) {
+test( 'Computations that cause errors are considered undefined', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '{{uppercaseBar}}',
@@ -187,7 +189,7 @@ test( 'Computations that cause errors are considered undefined', function ( t ) 
 	t.htmlEqual( fixture.innerHTML, 'WORKS' );
 });
 
-test( 'Computations can be updated with ractive.update() (#651)', function ( t ) {
+test( 'Computations can be updated with ractive.update() (#651)', t => {
 	var ractive, bar;
 
 	ractive = new Ractive({
@@ -205,7 +207,7 @@ test( 'Computations can be updated with ractive.update() (#651)', function ( t )
 	t.equal( ractive.get( 'foo' ), 1 );
 });
 
-test( 'Regression test for #836', function ( t ) {
+test( 'Regression test for #836', t => {
 	var Widget, ractive;
 
 	Widget = Ractive.extend({
@@ -225,7 +227,7 @@ test( 'Regression test for #836', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'yes' );
 });
 
-test( 'Setters are called on init with supplied data (#837)', function ( t ) {
+test( 'Setters are called on init with supplied data (#837)', t => {
 	new Ractive({
 		el: fixture,
 		template: '{{firstname}}',
@@ -251,7 +253,7 @@ test( 'Setters are called on init with supplied data (#837)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'Colonel' );
 });
 
-test( 'Set operations are not short-circuited when the set value is identical to the current get value (#837)', function ( t ) {
+test( 'Set operations are not short-circuited when the set value is identical to the current get value (#837)', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '{{bar}}',
@@ -275,11 +277,11 @@ test( 'Set operations are not short-circuited when the set value is identical to
 });
 
 if ( hasUsableConsole ) {
-	test( 'Computations on unresolved refs don\'t error on initial component bindings', function ( t ) {
+	test( 'Computations on unresolved refs don\'t error on initial component bindings', t => {
+		t.expect( 0 );
+
 		let warn = console.warn;
 		console.warn = () => t.ok( false );
-
-		expect( 0 );
 
 		new Ractive({
 			template: '<component/>',
@@ -338,7 +340,7 @@ if ( hasUsableConsole ) {
 }
 
 
-test( 'Unresolved computations resolve when parent component data exists', function ( t ) {
+test( 'Unresolved computations resolve when parent component data exists', t => {
 	var ractive, Component;
 
 	Component = Ractive.extend({
@@ -367,77 +369,74 @@ test( 'Unresolved computations resolve when parent component data exists', funct
 
 });
 
-test( 'Computed properties referencing bound parent data', function ( t ) {
+test( 'Computed properties referencing bound parent data', t => {
 	const List = Ractive.extend({
-		template: `
-			{{limits.sum}}
-		`,
+		template: `{{limits.sum}}`,
 		computed: {
-			limits: function () {
-				return {sum: this.get('d.opts').reduce((a, b) => a + b)}
+			limits () {
+				return {
+					sum: this.get( 'd.opts' ).reduce( ( a, b ) => a + b )
+				};
 			}
 		}
 	});
 
-	const ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: `
-		{{#each list}}
-			<List d='{{.}}'/>
-		{{/each list}}
-		`,
+			{{#each list}}
+				<List d='{{.}}'/>
+			{{/each list}}`,
 		data: {
 			list: [
-				{ opts: [3, 3, 3] },
-				{ opts: [3, 2, 1] },
-				{ opts: [1, 1, 1] },
+				{ opts: [ 3, 3, 3 ] },
+				{ opts: [ 3, 2, 1 ] },
+				{ opts: [ 1, 1, 1 ] },
 			]
 		},
 		components: { List }
 	});
 
 	t.equal( fixture.innerHTML, '963' );
-
 });
 
-test( 'Computed properties referencing bound parent data w/ conditional', function ( t ) {
+test( 'Computed properties referencing bound parent data w/ conditional', t => {
 	const List = Ractive.extend({
 		template: `
 			{{#if limits.sum}}
 				{{limits.sum}}
 			{{else}}
 				x
-			{{/if}}
-		`,
+			{{/if}}`,
 		computed: {
-			limits: function () {
-				return {sum: this.get('d.opts').reduce((a, b) => a + b)}
+			limits () {
+				return {
+					sum: this.get( 'd.opts' ).reduce( ( a, b ) => a + b )
+				};
 			}
 		}
 	});
 
-	const ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: `
-		{{#each list}}
-			<List d='{{.}}'/>
-		{{/each list}}
-		`,
+			{{#each list}}
+				<List d='{{.}}'/>
+			{{/each}}`,
 		data: {
 			list: [
-				{ opts: [3, 3, 3] },
-				{ opts: [3, 2, 1] },
-				{ opts: [1, 1, 1] },
+				{ opts: [ 3, 3, 3 ] },
+				{ opts: [ 3, 2, 1 ] },
+				{ opts: [ 1, 1, 1 ] },
 			]
 		},
 		components: { List }
 	});
 
 	t.equal( fixture.innerHTML, '963' );
-
 });
 
-test( 'Computed properties referencing deep objects', function ( t ) {
+test( 'Computed properties referencing deep objects', t => {
 	let ractive = new Ractive({
 	  el: fixture,
 	  template: '{{one.two.tre}}',
@@ -462,7 +461,7 @@ test( 'Computed properties referencing deep objects', function ( t ) {
 
 });
 
-test( 'Computations are not order dependent', function ( t ) {
+test( 'Computations are not order dependent', t => {
 
 	var ractive, Component;
 
@@ -491,7 +490,7 @@ test( 'Computations are not order dependent', function ( t ) {
 
 });
 
-test( 'Parent extend instance computations are resolved before child computations', function ( t ) {
+test( 'Parent extend instance computations are resolved before child computations', t => {
 
 	var ractive, Base, Component;
 
@@ -520,7 +519,7 @@ test( 'Parent extend instance computations are resolved before child computation
 
 });
 
-test( 'Computed values are only computed as necessary', function ( t ) {
+test( 'Computed values are only computed as necessary', t => {
 	var ractive, count = { foo: 0, bar: 0, baz: 0, qux: 0 };
 
 	ractive = new Ractive({
@@ -613,7 +612,7 @@ test( 'Computations can depend on array values (#1747)', t => {
 });
 
 // Commented out temporarily, see #1381
-/*test( 'Computations don\'t mistakenly set when used in components (#1357)', function ( t ) {
+/*test( 'Computations don\'t mistakenly set when used in components (#1357)', t => {
 	var ractive, Component;
 
 	Component = Ractive.extend({

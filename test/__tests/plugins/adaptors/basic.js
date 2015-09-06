@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import Model from 'helpers/Model';
 
 var adaptor = Model.adaptor;

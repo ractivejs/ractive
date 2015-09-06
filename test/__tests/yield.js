@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import hasUsableConsole from 'hasUsableConsole';
 
 test( 'Basic yield', function ( t ) {

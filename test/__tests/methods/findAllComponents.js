@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 const Widget = Ractive.extend({
 	template: '<p>{{content}}</p>'
 });

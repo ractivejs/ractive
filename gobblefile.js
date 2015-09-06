@@ -132,6 +132,8 @@ test = (function () {
 				return rollup.rollup({
 					entry: inputdir + '/__tests/' + mod,
 					resolveId: function ( importee, importer ) {
+						if ( importee === 'qunit' ) return false;
+
 						if ( !importer ) return importee;
 
 						if ( importee[0] === '.' ) {
@@ -153,7 +155,10 @@ test = (function () {
 				}).then( function ( bundle ) {
 					return bundle.write({
 						dest: outputdir + '/' + mod,
-						format: 'iife'
+						format: 'iife',
+						globals: {
+							qunit: 'QUnit'
+						}
 					});
 				});
 			});

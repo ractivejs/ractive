@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import parseJSON from 'utils/parseJSON';
 
 test( 'Unquoted string', function ( t ) {

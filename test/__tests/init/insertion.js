@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 var config, placement;
 
 config = {

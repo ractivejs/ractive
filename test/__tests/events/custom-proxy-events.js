@@ -1,29 +1,27 @@
+import { test } from 'qunit';
+
 test( 'custom event invoked and torndown', t => {
-	expect( 3 );
+	t.expect( 3 );
 
 	const custom = ( node, fire ) => {
-		var torndown = false;
+		let torndown = false;
 
 		node.addEventListener( 'click', fireEvent, false );
 
 		function fireEvent ( event ) {
-
 			if ( torndown ) {
 				throw new Error('Custom event called after teardown');
 			}
 
-			fire({
-				node: node,
-				original: event
-			});
+			fire({ node, original: event });
 		}
 
 		return {
-			teardown: function () {
+			teardown () {
 				t.ok( torndown = true );
 				node.removeEventListener( 'click', fireEvent, false );
 			}
-		}
+		};
 	};
 
 	const ractive = new Ractive({

@@ -1,27 +1,28 @@
+import { test } from 'qunit';
+
 test( 'sharing names with array mutator functions doesn\'t break events', t => {
-	var ractive,
-		eventNames = ['sort', 'reverse', 'push', 'pop', 'shift', 'unshift', 'fhtagn'], // the last one just tests the test
-		results = new Object(null);
+	const eventNames = ['sort', 'reverse', 'push', 'pop', 'shift', 'unshift', 'fhtagn']; // the last one just tests the test
+	let results = new Object( null );
 
-	expect(eventNames.length);
+	t.expect( eventNames.length );
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: ''
 	});
 
-	eventNames.forEach(function(eventName) {
-		ractive.on( eventName, function () { results[eventName] = true; });
+	eventNames.forEach( eventName => {
+		ractive.on( eventName, () => results[eventName] = true );
 		ractive.fire( eventName );
-		t.ok( typeof( results[eventName] ) != 'undefined', 'Event "'+eventName+'" did not fire.' );
+		t.ok( typeof( results[eventName] ) != 'undefined', `Event '${eventName}' did not fire.` );
 	});
 });
 
 test( 'Empty event names are safe, though do not fire', t => {
 	var ractive = new Ractive();
 
-	expect( 1 );
-	ractive.on( '', function ( event ) {
+	t.expect( 1 );
+	ractive.on( '', () => {
 		throw new Error( 'Empty event name should not fire' );
 	});
 	ractive.fire( '' );
@@ -34,7 +35,7 @@ test( 'Calling ractive.off() without a keypath removes all handlers', t => {
 		template: 'doesn\'t matter'
 	});
 
-	expect( 0 );
+	t.expect( 0 );
 
 	ractive.on({
 		foo: function () {

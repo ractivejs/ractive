@@ -1,10 +1,9 @@
+import { test } from 'qunit';
 import { TEMPLATE_VERSION } from 'config/template';
 import config from 'Ractive/config/custom/template/template';
 import { isObject } from 'utils/is';
 import { create } from 'utils/object';
 import cleanup from 'helpers/cleanup';
-
-const test = QUnit.test; // necessary due to a bug in esperanto
 
 var MockRactive, Component, ractive,
 	templateOpt1 = { template: '{{foo}}' },

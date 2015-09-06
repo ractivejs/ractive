@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import registries from 'Ractive/config/registries';
 
 test( 'has globally registered', function ( t ) {

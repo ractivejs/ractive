@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 var List, baseItems;
 
 List = Ractive.extend({
@@ -267,7 +269,6 @@ test( 'Array updates cause sections to shuffle with correct results', t => {
 });
 
 test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
-	// t.expect(2)
 	let called = { func: 0, f1: 0, f2: 0, f3: 0 };
 	let ractive = new Ractive({
 		el: fixture,
@@ -329,7 +330,7 @@ function removedElementsTest ( action, fn ) {
 	test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', function ( t ) {
 		let observed = false, errored = false;
 
-		expect( 5 );
+		t.expect( 5 );
 
 		let ractive = new Ractive({
 			debug: true,
@@ -362,7 +363,7 @@ function removedElementsTest ( action, fn ) {
 removedElementsTest( 'splice', ractive => ractive.splice( 'options', 1, 1 ) );
 removedElementsTest( 'merge', ractive => ractive.merge( 'options', [ 'a', 'c' ] ) );
 
-test( 'popping from an empty array (#1665)', () => {
+test( 'popping from an empty array (#1665)', t => {
 	let array = [];
 
 	new Ractive({
@@ -371,6 +372,6 @@ test( 'popping from an empty array (#1665)', () => {
 		modifyArrays: true
 	});
 
-	expect( 0 );
+	t.expect( 0 );
 	array.pop();
 });

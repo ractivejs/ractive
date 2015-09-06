@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import legacy from 'legacy';
 
 const getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;

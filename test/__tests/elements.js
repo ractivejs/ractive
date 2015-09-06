@@ -1,5 +1,8 @@
-test( 'option element with custom selected logic works without error and correctly', function ( t ) {
-	var ractive = new Ractive({
+/*global document, HTMLParagraphElement */
+import { test } from 'qunit';
+
+test( 'option element with custom selected logic works without error and correctly', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select>
@@ -9,14 +12,14 @@ test( 'option element with custom selected logic works without error and correct
 			</select>`,
 		data: {
 			selected: 2,
-			options: [1,2,3]
+			options: [ 1, 2, 3 ]
 		}
 	});
 
 	t.equal( ractive.find('select').value , 2 );
 });
 
-test( 'Input with uppercase tag name binds correctly', function ( t ) {
+test( 'Input with uppercase tag name binds correctly', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: "<INPUT value='{{val}}'>{{val}}",
@@ -28,7 +31,7 @@ test( 'Input with uppercase tag name binds correctly', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<input>bar' );
 });
 
-test( 'Elements with id are registered and unregistered with ractive.nodes', function ( t ) {
+test( 'Elements with id are registered and unregistered with ractive.nodes', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: "{{#hasP}}<p id='foo'></p>{{/}}",
@@ -42,7 +45,7 @@ test( 'Elements with id are registered and unregistered with ractive.nodes', fun
 	t.ok( !ractive.nodes.foo );
 });
 
-test( 'Elements with dynamic id is unregistered with ractive.nodes on change', function ( t ) {
+test( 'Elements with dynamic id is unregistered with ractive.nodes on change', t => {
 	var p, ractive = new Ractive({
 		el: fixture,
 		template: "<p id='{{id}}'></p>",
@@ -58,7 +61,7 @@ test( 'Elements with dynamic id is unregistered with ractive.nodes on change', f
 	t.equal( ractive.nodes.bar, p );
 });
 
-test( 'Textarea is stringified correctly', function ( t ) {
+test( 'Textarea is stringified correctly', t => {
 	var ractive = new Ractive({
 		template: '<textarea value="123<div></div>"></textarea>'
 	});
@@ -67,7 +70,7 @@ test( 'Textarea is stringified correctly', function ( t ) {
 });
 
 test( 'Wildcard proxy-events invalid on elements', t => {
-	expect( 1 );
+	t.expect( 1 );
 
 	t.throws( () => {
 		new Ractive({
@@ -103,18 +106,19 @@ if ( 'draggable' in document.createElement( 'div' ) ) {
 
 if ( 'registerElement' in document ) {
 	test( '"is" attribute is handled correctly for custom elements (#2043)', t => {
-		let XFoo = document.registerElement('x-foo', {
-			prototype: Object.create(HTMLParagraphElement.prototype, {
+		document.registerElement( 'x-foo', {
+			prototype: Object.create( HTMLParagraphElement.prototype, {
 				testMember: { value: true }
 			}),
 			extends: 'p'
 		});
-		let ractive = new Ractive({
+
+		const ractive = new Ractive({
 			el: fixture,
 			template: '<p is="x-foo"></p>'
 		});
 
-		let p = ractive.find( 'p' );
+		const p = ractive.find( 'p' );
 		t.ok( 'testMember' in p );
 	});
 }

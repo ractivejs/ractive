@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import { svg } from 'config/environment';
 
 if ( svg ) {

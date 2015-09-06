@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import cleanup from 'helpers/cleanup';
 
 // TODO move these into more sensible locations
@@ -283,23 +284,19 @@ test( 'component "on-" with $n', t => {
 });
 
 test( 'component "on-" supply own event proxy arguments', t => {
-	var Component, component, ractive;
+	t.expect( 4 );
 
-	expect( 4 );
-
-	Component = Ractive.extend({
+	const Component = Ractive.extend({
 		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<component on-foo="foo-reproxy:1" on-bar="bar-reproxy:{{qux}}" on-bizz="bizz-reproxy"/>',
+		template: '<Component on-foo="foo-reproxy:1" on-bar="bar-reproxy:{{qux}}" on-bizz="bizz-reproxy"/>',
 		data: {
 			qux: 'qux'
 		},
-		components: {
-			component: Component
-		}
+		components: { Component }
 	});
 
 	ractive.on( 'foo-reproxy', ( arg1, arg2 ) => {
@@ -309,11 +306,11 @@ test( 'component "on-" supply own event proxy arguments', t => {
 	ractive.on( 'bar-reproxy', ( arg1 ) => {
 		t.equal( arg1, 'qux' );
 	});
-	ractive.on( 'bizz-reproxy', () => {
+	ractive.on( 'bizz-reproxy', function () {
 		t.equal( arguments.length, 0 );
 	});
 
-	component = ractive.findComponent( 'component' );
+	const component = ractive.findComponent( 'Component' );
 	simulant.fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
 	component.fire( 'bizz', 'buzz' );
@@ -321,34 +318,30 @@ test( 'component "on-" supply own event proxy arguments', t => {
 
 
 test( 'component "on-" handles reproxy of arguments correctly', t => {
-	var Component, component, ractive;
-
 	expect( 4 );
 
-	Component = Ractive.extend({
+	const Component = Ractive.extend({
 		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
-		components: {
-			component: Component
-		}
+		template: '<Component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
+		components: { Component }
 	});
 
 	ractive.on( 'foo-reproxy', ( e, ...args ) => {
 		t.equal( e.original.type, 'click' );
 		t.equal( args.length, 0 );
 	});
-	ractive.on( 'bar-reproxy', () => {
+	ractive.on( 'bar-reproxy', function () {
 		t.equal( arguments.length, 0 );
 	});
-	ractive.on( 'bizz-reproxy', () => {
+	ractive.on( 'bizz-reproxy', function () {
 		t.equal( arguments.length, 0 );
 	});
 
-	component = ractive.findComponent( 'component' );
+	const component = ractive.findComponent( 'Component' );
 	simulant.fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
 	component.fire( 'bizz' );

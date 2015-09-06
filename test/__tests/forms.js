@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'Resetting a form resets an input with two-way binding', t => {
 	var ractive, input;
 

@@ -1,11 +1,11 @@
+import { test } from 'qunit';
 import wrap from 'Ractive/config/wrapPrototypeMethod';
 import { create } from 'utils/object';
 
 var callSuper = function () { this._super() };
 
 test( 'can call _super on parent', function ( t ) {
-
-	expect(1);
+	t.expect(1);
 
 	var parent = { talk: () => t.ok( true ) },
 		instance = create( parent );
@@ -16,8 +16,7 @@ test( 'can call _super on parent', function ( t ) {
 });
 
 test( '"this" in methods refers to correct instance', function ( t ) {
-
-	expect(2);
+	t.expect(2);
 
 	// no fat arrows! that would bind "this" to test method or module!
 

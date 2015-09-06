@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'List observers report array modifications', t => {
 	let shuffle, ractive = new Ractive({
 		data: { fruits: [ 'apple', 'orange', 'banana' ] },

@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'find() works with a string-only template', function ( t ) {
 	var ractive;
 

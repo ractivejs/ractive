@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 [ true, false ].forEach( modifyArrays => {
 	asyncTest( `ractive.splice() (modifyArrays: ${modifyArrays})`, t => {
 		let items = [ 'alice', 'bob', 'charles' ];

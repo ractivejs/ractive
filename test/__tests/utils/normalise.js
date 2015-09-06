@@ -1,3 +1,4 @@
+import { test } from 'qunit';
 import { normalise } from 'shared/keypaths';
 
 test( 'Regular keypath', function ( t ) {
