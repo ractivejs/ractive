@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Sep 05 2015 19:19:42 GMT+0000 (UTC) - commit b04091894db575c1b5cd98b4166d73450d4f5e5f
+	Sun Sep 06 2015 16:25:18 GMT+0000 (UTC) - commit 947abe0fbb0bc5b44fcea29245f90c927729e5dd
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -15,7 +15,7 @@
   global.Ractive = factory();
 }(this, function () { 'use strict';
 
-  var _namespaces = {
+  var namespaces = {
     get html () { return html; },
     get mathml () { return mathml; },
     get svg () { return svg; },
@@ -190,7 +190,7 @@
   	}
   }
 
-  function _warnOnceIfDebug() {
+  function warnOnceIfDebug() {
   	if (Ractive.DEBUG) {
   		warnOnce.apply(null, arguments);
   	}
@@ -837,22 +837,22 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function flushChanges() {
-  	var i, thing, changeHash;
-
   	batch.immediateObservers.forEach(dispatch);
 
   	// Now that changes have been fully propagated, we can update the DOM
   	// and complete other tasks
-  	i = batch.fragments.length;
+  	var i = batch.fragments.length;
+  	var fragment = undefined;
+
   	while (i--) {
-  		thing = batch.fragments[i];
+  		fragment = batch.fragments[i];
 
   		// TODO deprecate this. It's annoying and serves no useful function
-  		var ractive = thing.ractive;
+  		var ractive = fragment.ractive;
   		changeHook.fire(ractive, ractive.viewmodel.changes);
   		ractive.viewmodel.changes = {};
 
-  		thing.update();
+  		fragment.update();
   	}
   	batch.fragments.length = 0;
 
@@ -1090,7 +1090,7 @@ var classCallCheck = function (instance, Constructor) {
   // Error messages that are used (or could be) in multiple places
   var badArguments = 'Bad arguments';
   var noRegistryFunctionReturn = 'A function was specified for "%s" %s, but no %s was returned';
-  var _missingPlugin = function (name, type) {
+  var missingPlugin = function (name, type) {
     return 'Missing "' + name + '" ' + type + ' plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#' + type + 's';
   };
 
@@ -1245,19 +1245,17 @@ var classCallCheck = function (instance, Constructor) {
   // Helper for defining getDoubleQuotedString and getSingleQuotedString.
   function makeQuotedStringMatcher (okQuote) {
   	return function (parser) {
-  		var start, literal, done, next;
-
-  		start = parser.pos;
-  		literal = '"';
-  		done = false;
+  		var literal = '"';
+  		var done = false;
+  		var next = undefined;
 
   		while (!done) {
   			next = parser.matchPattern(stringMiddlePattern) || parser.matchPattern(escapeSequencePattern) || parser.matchString(okQuote);
   			if (next) {
   				if (next === '"') {
   					literal += '\\"';
-  				} else if (next === "\\'") {
-  					literal += "'";
+  				} else if (next === '\\\'') {
+  					literal += '\'';
   				} else {
   					literal += next;
   				}
@@ -1325,7 +1323,7 @@ var classCallCheck = function (instance, Constructor) {
   var ELSEIF = 61;
 
   var getSingleQuotedString = makeQuotedStringMatcher('"');
-  var getDoubleQuotedString = makeQuotedStringMatcher("'");
+  var getDoubleQuotedString = makeQuotedStringMatcher('\'');
 
   function readStringLiteral (parser) {
   	var start, string;
@@ -1346,10 +1344,10 @@ var classCallCheck = function (instance, Constructor) {
   		};
   	}
 
-  	if (parser.matchString("'")) {
+  	if (parser.matchString('\'')) {
   		string = getSingleQuotedString(parser);
 
-  		if (!parser.matchString("'")) {
+  		if (!parser.matchString('\'')) {
   			parser.pos = start;
   			return null;
   		}
@@ -1382,7 +1380,7 @@ var classCallCheck = function (instance, Constructor) {
   // Test for SVG support
   if (!_svg) {
   	createElement = function (type, ns, extend) {
-  		if (ns && ns !== namespaces.html) {
+  		if (ns && ns !== html) {
   			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
   		}
 
@@ -3546,54 +3544,39 @@ var classCallCheck = function (instance, Constructor) {
   var expectedParen = 'Expected closing paren';
 
   function readExpressionList(parser) {
-  	var start, expressions, expr, next;
-
-  	start = parser.pos;
-
   	parser.allowWhitespace();
 
-  	expr = readExpression(parser);
+  	var expr = readExpression(parser);
 
-  	if (expr === null) {
-  		return null;
-  	}
+  	if (expr === null) return null;
 
-  	expressions = [expr];
+  	var expressions = [expr];
 
   	// allow whitespace between expression and ','
   	parser.allowWhitespace();
 
   	if (parser.matchString(',')) {
-  		next = readExpressionList(parser);
-  		if (next === null) {
-  			parser.error(expectedExpression);
-  		}
+  		var next = readExpressionList(parser);
+  		if (next === null) parser.error(expectedExpression);
 
-  		next.forEach(append);
-  	}
-
-  	function append(expression) {
-  		expressions.push(expression);
+  		expressions.push.apply(expressions, next);
   	}
 
   	return expressions;
   }
 
   function readRefinement(parser) {
-  	var start, name$$, expr;
-
-  	start = parser.pos;
-
   	parser.allowWhitespace();
 
   	// "." name
   	if (parser.matchString('.')) {
   		parser.allowWhitespace();
 
-  		if (name$$ = parser.matchPattern(name)) {
+  		var _name = parser.matchPattern(name);
+  		if (_name) {
   			return {
   				t: REFINEMENT,
-  				n: name$$
+  				n: _name
   			};
   		}
 
@@ -3604,16 +3587,12 @@ var classCallCheck = function (instance, Constructor) {
   	if (parser.matchString('[')) {
   		parser.allowWhitespace();
 
-  		expr = readExpression(parser);
-  		if (!expr) {
-  			parser.error(expectedExpression);
-  		}
+  		var expr = readExpression(parser);
+  		if (!expr) parser.error(expectedExpression);
 
   		parser.allowWhitespace();
 
-  		if (!parser.matchString(']')) {
-  			parser.error('Expected \']\'');
-  		}
+  		if (!parser.matchString(']')) parser.error('Expected \']\'');
 
   		return {
   			t: REFINEMENT,
@@ -3625,26 +3604,17 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function readBracketedExpression(parser) {
-  	var start, expr;
-
-  	start = parser.pos;
-
-  	if (!parser.matchString('(')) {
-  		return null;
-  	}
+  	if (!parser.matchString('(')) return null;
 
   	parser.allowWhitespace();
 
-  	expr = readExpression(parser);
-  	if (!expr) {
-  		parser.error(expectedExpression);
-  	}
+  	var expr = readExpression(parser);
+
+  	if (!expr) parser.error(expectedExpression);
 
   	parser.allowWhitespace();
 
-  	if (!parser.matchString(')')) {
-  		parser.error(expectedParen);
-  	}
+  	if (!parser.matchString(')')) parser.error(expectedParen);
 
   	return {
   		t: BRACKETED,
@@ -3818,18 +3788,13 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function readMemberOrInvocation (parser) {
-  	var current, expression, refinement, expressionList;
+  	var expression = readPrimary(parser);
 
-  	expression = readPrimary(parser);
-
-  	if (!expression) {
-  		return null;
-  	}
+  	if (!expression) return null;
 
   	while (expression) {
-  		current = parser.pos;
-
-  		if (refinement = readRefinement(parser)) {
+  		var refinement = readRefinement(parser);
+  		if (refinement) {
   			expression = {
   				t: MEMBER,
   				x: expression,
@@ -3837,7 +3802,7 @@ var classCallCheck = function (instance, Constructor) {
   			};
   		} else if (parser.matchString('(')) {
   			parser.allowWhitespace();
-  			expressionList = readExpressionList(parser);
+  			var expressionList = readExpressionList(parser);
 
   			parser.allowWhitespace();
 
@@ -3850,9 +3815,7 @@ var classCallCheck = function (instance, Constructor) {
   				x: expression
   			};
 
-  			if (expressionList) {
-  				expression.o = expressionList;
-  			}
+  			if (expressionList) expression.o = expressionList;
   		} else {
   			break;
   		}
@@ -4100,14 +4063,9 @@ var classCallCheck = function (instance, Constructor) {
 
   var yieldPattern = /^yield\s*/;
   function readYielder(parser, tag) {
-  	var start, name, yielder;
+  	if (!parser.matchPattern(yieldPattern)) return null;
 
-  	if (!parser.matchPattern(yieldPattern)) {
-  		return null;
-  	}
-
-  	start = parser.pos;
-  	name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-]*/);
+  	var name = parser.matchPattern(/^[a-zA-Z_$][a-zA-Z_$0-9\-]*/);
 
   	parser.allowWhitespace();
 
@@ -4115,11 +4073,8 @@ var classCallCheck = function (instance, Constructor) {
   		parser.error("expected legal partial name");
   	}
 
-  	yielder = { t: YIELDER };
-
-  	if (name) {
-  		yielder.n = name;
-  	}
+  	var yielder = { t: YIELDER };
+  	if (name) yielder.n = name;
 
   	return yielder;
   }
@@ -4293,7 +4248,7 @@ var classCallCheck = function (instance, Constructor) {
   			}
 
   			if (!unlessBlock) {
-  				unlessBlock = createUnlessBlock(expression, section.n);
+  				unlessBlock = createUnlessBlock(expression);
   			}
 
   			unlessBlock.f.push({
@@ -4317,7 +4272,7 @@ var classCallCheck = function (instance, Constructor) {
 
   			// use an unless block if there's no elseif
   			if (!unlessBlock) {
-  				unlessBlock = createUnlessBlock(expression, section.n);
+  				unlessBlock = createUnlessBlock(expression);
   				children = unlessBlock.f;
   			} else {
   				unlessBlock.f.push({
@@ -4363,7 +4318,7 @@ var classCallCheck = function (instance, Constructor) {
   	return section;
   }
 
-  function createUnlessBlock(expression, sectionType) {
+  function createUnlessBlock(expression) {
   	var unlessBlock = {
   		t: SECTION,
   		n: SECTION_UNLESS,
@@ -4371,7 +4326,6 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	refineExpression(expression, unlessBlock);
-
   	return unlessBlock;
   }
 
@@ -4433,34 +4387,25 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function readPartial(parser, tag) {
-  	var start, nameStart, expression, context, partial;
-
-  	start = parser.pos;
-
-  	if (!parser.matchString('>')) {
-  		return null;
-  	}
+  	if (!parser.matchString('>')) return null;
 
   	parser.allowWhitespace();
-  	nameStart = parser.pos;
 
   	// Partial names can include hyphens, so we can't use readExpression
   	// blindly. Instead, we use the `relaxedNames` flag to indicate that
   	// `foo-bar` should be read as a single name, rather than 'subtract
   	// bar from foo'
   	parser.relaxedNames = true;
-  	expression = readExpression(parser);
+  	var expression = readExpression(parser);
   	parser.relaxedNames = false;
 
   	parser.allowWhitespace();
-  	context = readExpression(parser);
+  	var context = readExpression(parser);
   	parser.allowWhitespace();
 
-  	if (!expression) {
-  		return null;
-  	}
+  	if (!expression) return null;
 
-  	partial = { t: PARTIAL };
+  	var partial = { t: PARTIAL };
   	refineExpression(expression, partial); // TODO...
 
   	parser.allowWhitespace();
@@ -4546,7 +4491,7 @@ var classCallCheck = function (instance, Constructor) {
   		// http://developers.whatwg.org/syntax.html#syntax-attributes
   		if (parser.inAttribute === true) {
   			// we're inside an unquoted attribute value
-  			disallowed.push('"', "'", '=', '<', '>', '`');
+  			disallowed.push('"', '\'', '=', '<', '>', '`');
   		} else if (parser.inAttribute) {
   			// quoted attribute value
   			disallowed.push(parser.inAttribute);
@@ -5078,7 +5023,7 @@ var classCallCheck = function (instance, Constructor) {
   	valueStart = parser.pos;
   	startDepth = parser.sectionDepth;
 
-  	value = readQuotedAttributeValue(parser, "'") || readQuotedAttributeValue(parser, '"') || readUnquotedAttributeValue(parser);
+  	value = readQuotedAttributeValue(parser, '\'') || readQuotedAttributeValue(parser, '"') || readUnquotedAttributeValue(parser);
 
   	if (value === null) {
   		parser.error('Expected valid attribute value');
@@ -5175,17 +5120,14 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function readQuotedStringToken(parser, quoteMark) {
-  	var start, index, haystack, needles;
+  	var haystack = parser.remaining();
 
-  	start = parser.pos;
-  	haystack = parser.remaining();
-
-  	needles = parser.tags.map(function (t) {
+  	var needles = parser.tags.map(function (t) {
   		return t.open;
   	}); // TODO refactor... we do this in readText.js as well
   	needles.push(quoteMark);
 
-  	index = getLowestIndex(haystack, needles);
+  	var index = getLowestIndex(haystack, needles);
 
   	if (index === -1) {
   		parser.error('Quoted attribute value must have a closing quote');
@@ -5533,30 +5475,29 @@ var classCallCheck = function (instance, Constructor) {
   var startPattern = /^<!--\s*/;
   var namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/;
   var finishPattern = /\s*-->/;
-  var child;
+
   function readPartialDefinitionComment(parser) {
-  	var firstPos = parser.pos,
-  	    open = parser.standardDelimiters[0],
-  	    close = parser.standardDelimiters[1],
-  	    content = undefined,
-  	    closed = undefined;
+  	var start = parser.pos;
+  	var open = parser.standardDelimiters[0];
+  	var close = parser.standardDelimiters[1];
 
   	if (!parser.matchPattern(startPattern) || !parser.matchString(open)) {
-  		parser.pos = firstPos;
+  		parser.pos = start;
   		return null;
   	}
 
   	var name = parser.matchPattern(namePattern);
 
-  	_warnOnceIfDebug('Inline partial comments are deprecated.\nUse this...\n  {{#partial ' + name + '}} ... {{/partial}}\n\n...instead of this:\n  <!-- {{>' + name + '}} --> ... <!-- {{/' + name + '}} -->\'');
+  	warnOnceIfDebug('Inline partial comments are deprecated.\nUse this...\n  {{#partial ' + name + '}} ... {{/partial}}\n\n...instead of this:\n  <!-- {{>' + name + '}} --> ... <!-- {{/' + name + '}} -->\'');
 
   	// make sure the rest of the comment is in the correct place
   	if (!parser.matchString(close) || !parser.matchPattern(finishPattern)) {
-  		parser.pos = firstPos;
+  		parser.pos = start;
   		return null;
   	}
 
-  	content = [];
+  	var content = [];
+  	var closed = undefined;
 
   	var endPattern = new RegExp('^<!--\\s*' + escapeRegExp(open) + '\\s*\\/\\s*' + name + '\\s*' + escapeRegExp(close) + '\\s*-->');
 
@@ -5564,7 +5505,7 @@ var classCallCheck = function (instance, Constructor) {
   		if (parser.matchPattern(endPattern)) {
   			closed = true;
   		} else {
-  			child = parser.read(READERS);
+  			var child = parser.read(READERS);
   			if (!child) {
   				parser.error('expected closing comment (\'<!-- ' + open + '/' + name + close + ' -->\')');
   			}
@@ -5946,7 +5887,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.partialTemplate = getPartialTemplate(this.ractive, this.name, this.parentFragment);
 
   		if (!this.partialTemplate) {
-  			_warnOnceIfDebug('Could not find template for partial \'' + this.name + '\'');
+  			warnOnceIfDebug('Could not find template for partial \'' + this.name + '\'');
   			this.partialTemplate = [];
   		}
 
@@ -5970,7 +5911,7 @@ var classCallCheck = function (instance, Constructor) {
   		if (!template && template !== null) template = getPartialTemplate(this.ractive, name, this.parentFragment);
 
   		if (!template) {
-  			_warnOnceIfDebug('Could not find template for partial \'' + name + '\'');
+  			warnOnceIfDebug('Could not find template for partial \'' + name + '\'');
   		}
 
   		this.partialTemplate = template || [];
@@ -7251,10 +7192,9 @@ var classCallCheck = function (instance, Constructor) {
   			var borderSizes = {};
 
   			function getPixelSize(element, style, property, fontSize) {
-  				var sizeWithSuffix = style[property],
-  				    size = parseFloat(sizeWithSuffix),
-  				    suffix = sizeWithSuffix.split(/\d/)[0],
-  				    rootSize;
+  				var sizeWithSuffix = style[property];
+  				var size = parseFloat(sizeWithSuffix);
+  				var suffix = sizeWithSuffix.split(/\d/)[0];
 
   				if (isNaN(size)) {
   					if (/^thin|medium|thick$/.test(sizeWithSuffix)) {
@@ -7266,7 +7206,7 @@ var classCallCheck = function (instance, Constructor) {
   				}
 
   				fontSize = fontSize != null ? fontSize : /%|em/.test(suffix) && element.parentElement ? getPixelSize(element.parentElement, element.parentElement.currentStyle, 'fontSize', null) : 16;
-  				rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
+  				var rootSize = property == 'fontSize' ? fontSize : /width/i.test(property) ? element.clientWidth : element.clientHeight;
 
   				return suffix == 'em' ? size * fontSize : suffix == 'in' ? size * 96 : suffix == 'pt' ? size * 96 / 72 : suffix == '%' ? size / 100 * rootSize : size;
   			}
@@ -7292,11 +7232,11 @@ var classCallCheck = function (instance, Constructor) {
   			}
 
   			function setShortStyleProperty(style, property) {
-  				var borderSuffix = property == 'border' ? 'Width' : '',
-  				    t = property + 'Top' + borderSuffix,
-  				    r = property + 'Right' + borderSuffix,
-  				    b = property + 'Bottom' + borderSuffix,
-  				    l = property + 'Left' + borderSuffix;
+  				var borderSuffix = property == 'border' ? 'Width' : '';
+  				var t = property + 'Top' + borderSuffix;
+  				var r = property + 'Right' + borderSuffix;
+  				var b = property + 'Bottom' + borderSuffix;
+  				var l = property + 'Left' + borderSuffix;
 
   				style[property] = (style[t] == style[r] == style[b] == style[l] ? [style[t]] : style[t] == style[b] && style[l] == style[r] ? [style[t], style[r]] : style[l] == style[r] ? [style[t], style[r], style[b]] : [style[t], style[r], style[b], style[l]]).join(' ');
   			}
@@ -7678,7 +7618,7 @@ var classCallCheck = function (instance, Constructor) {
   			return interpol(from, to) || snap(to);
   		}
 
-  		fatal(_missingPlugin(type, 'interpolator'));
+  		fatal(missingPlugin(type, 'interpolator'));
   	}
 
   	return interpolators.number(from, to) || interpolators.array(from, to) || interpolators.object(from, to) || snap(to);
@@ -8015,7 +7955,7 @@ var classCallCheck = function (instance, Constructor) {
   		this._fn = findInViewHierarchy('transitions', ractive, name);
 
   		if (!this._fn) {
-  			_warnOnceIfDebug(_missingPlugin(name, 'transition'), { ractive: ractive });
+  			warnOnceIfDebug(missingPlugin(name, 'transition'), { ractive: ractive });
   		}
   	}
 
@@ -8051,12 +7991,12 @@ var classCallCheck = function (instance, Constructor) {
 
   		// TODO remove this check in a future version
   		if (!options) {
-  			_warnOnceIfDebug('The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name);
+  			warnOnceIfDebug('The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name);
   			options = this;
   		}
 
   		return new _Promise(function (fulfil) {
-  			var propertyNames, changedProperties, computedStyle, current, from, i, prop;
+  			var propertyNames, changedProperties, computedStyle, current, i, prop;
 
   			// Edge case - if duration is zero, set style synchronously and complete
   			if (!options.duration) {
@@ -8072,7 +8012,6 @@ var classCallCheck = function (instance, Constructor) {
   			// Store the current styles
   			computedStyle = getComputedStyle(_this.node);
 
-  			from = {};
   			i = propertyNames.length;
   			while (i--) {
   				prop = propertyNames[i];
@@ -8239,7 +8178,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function warnAboutAmbiguity(description, ractive) {
-  	_warnOnceIfDebug('The ' + description + ' being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: ractive });
+  	warnOnceIfDebug('The ' + description + ' being used for two-way binding is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: ractive });
   }
 
   var Binding = (function () {
@@ -8272,7 +8211,7 @@ var classCallCheck = function (instance, Constructor) {
   		// TODO include index/key/keypath refs as read-only
   		else if (model.isReadonly) {
   				var keypath = model.getKeypath().replace(/^@/, '');
-  				_warnOnceIfDebug('Cannot use two-way binding on <' + element.name + '> element: ' + keypath + ' is read-only. To suppress this warning use <' + element.name + ' twoway=\'false\'...>', { ractive: this.ractive });
+  				warnOnceIfDebug('Cannot use two-way binding on <' + element.name + '> element: ' + keypath + ' is read-only. To suppress this warning use <' + element.name + ' twoway=\'false\'...>', { ractive: this.ractive });
   				return false;
   			}
 
@@ -9521,7 +9460,7 @@ var classCallCheck = function (instance, Constructor) {
   		    name = this.name;
 
   		if (!('on' + name in node)) {
-  			_missingPlugin(name, 'events');
+  			missingPlugin(name, 'events');
   		}
 
   		node.addEventListener(name, this.handler = function (event) {
@@ -9631,7 +9570,7 @@ var classCallCheck = function (instance, Constructor) {
   		var fn = findInViewHierarchy('decorators', this.ractive, this.name);
 
   		if (!fn) {
-  			_missingPlugin(this.name, 'decorators');
+  			missingPlugin(this.name, 'decorators');
   			this.intermediary = missingDecorator;
   			return;
   		}
@@ -10109,7 +10048,6 @@ var classCallCheck = function (instance, Constructor) {
   function getUpdateDelegate(attribute) {
   	var element = attribute.element;
   	var name = attribute.name;
-  	var namespace = attribute.namespace;
 
   	if (name === 'id') return updateId;
 
@@ -10337,7 +10275,7 @@ var classCallCheck = function (instance, Constructor) {
   			name = name.substring(colonIndex + 1);
 
   			attribute.name = name;
-  			attribute.namespace = _namespaces[namespacePrefix.toLowerCase()];
+  			attribute.namespace = namespaces[namespacePrefix.toLowerCase()];
   			attribute.namespacePrefix = namespacePrefix;
 
   			if (!attribute.namespace) {
@@ -11562,7 +11500,7 @@ var classCallCheck = function (instance, Constructor) {
   	}
 
   	if (data.constructor !== Object) {
-  		_warnOnceIfDebug('Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged');
+  		warnOnceIfDebug('Data function returned something other than a plain JavaScript object. This might work, but is strongly discouraged');
   	}
 
   	return data;
@@ -12001,7 +11939,7 @@ var classCallCheck = function (instance, Constructor) {
 
   			if (Ractive.DEBUG_PROMISES) {
   				promise['catch'](function (err) {
-  					_warnOnceIfDebug('Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;');
+  					warnOnceIfDebug('Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;');
   					warnIfDebug('An error happened during rendering', { ractive: ractive });
   					err.stack && logIfDebug(err.stack);
 
@@ -12355,7 +12293,7 @@ var classCallCheck = function (instance, Constructor) {
   function processWrapper (wrapper, array, methodName, newIndices) {
   	var __model = wrapper.__model;
 
-  	if (!!newIndices) {
+  	if (newIndices) {
   		__model.shuffle(newIndices);
   	} else {
   		// If this is a sort or reverse, we just do root.set()...
@@ -12787,7 +12725,7 @@ var classCallCheck = function (instance, Constructor) {
   			adaptor = findInViewHierarchy('adaptors', ractive, adaptor);
 
   			if (!adaptor) {
-  				fatal(_missingPlugin(adaptor, 'adaptor'));
+  				fatal(missingPlugin(adaptor, 'adaptor'));
   			}
   		}
 
@@ -12932,7 +12870,7 @@ var classCallCheck = function (instance, Constructor) {
   						model = resolve(_this.parentFragment, template[0]);
 
   						if (!model) {
-  							_warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this.instance }); // TODO add docs page explaining this
+  							warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this.instance }); // TODO add docs page explaining this
   							_this.parentFragment.ractive.get(localKey); // side-effect: create mappings as necessary
   							model = _this.parentFragment.findContext().joinKey(localKey);
   						}
@@ -13048,7 +12986,7 @@ var classCallCheck = function (instance, Constructor) {
 
   					if (!model) {
   						// TODO is this even possible?
-  						_warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this3.instance });
+  						warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this3.instance });
   						_this3.parentFragment.ractive.get(localKey); // side-effect: create mappings as necessary
   						model = _this3.parentFragment.findContext().joinKey(localKey);
   					}
