@@ -1,0 +1,6 @@
+{
+	"globals": {
+		"Ractive": true,
+		"fixture": true
+	}
+}

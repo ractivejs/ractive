@@ -1,9 +1,7 @@
 import { test } from 'qunit';
 
-test( 'find() works with a string-only template', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'find() works with a string-only template', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>foo</p><p>bar</p>'
 	});
@@ -11,10 +9,8 @@ test( 'find() works with a string-only template', function ( t ) {
 	t.ok( ractive.find( 'p' ).innerHTML === 'foo' );
 });
 
-test( 'find() works with a template containing mustaches', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'find() works with a template containing mustaches', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>{{foo}}</p><p>{{bar}}</p>',
 		data: { foo: 'one', bar: 'two' }
@@ -23,10 +19,8 @@ test( 'find() works with a template containing mustaches', function ( t ) {
 	t.ok( ractive.find( 'p' ).innerHTML === 'one' );
 });
 
-test( 'find() works with nested elements', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'find() works with nested elements', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div class="outer"><div class="inner"><p>{{foo}}</p><p>{{bar}}</p></div></div>',
 		data: { foo: 'one', bar: 'two' }
@@ -35,10 +29,8 @@ test( 'find() works with nested elements', function ( t ) {
 	t.ok( ractive.find( 'p' ).innerHTML === 'one' );
 });
 
-test( 'A live query maintains the correct sort order after a merge operation', function ( t ) {
-	var ractive, lis, getHtml;
-
-	ractive = new Ractive({
+test( 'A live query maintains the correct sort order after a merge operation', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
 		data: {
@@ -46,19 +38,21 @@ test( 'A live query maintains the correct sort order after a merge operation', f
 		}
 	});
 
-	getHtml = function ( node ) {
+	function getHtml ( node ) {
 		return node.innerHTML;
-	};
+	}
 
-	lis = ractive.findAll( 'li', { live: true });
+	const lis = ractive.findAll( 'li', { live: true });
 	t.deepEqual( lis.map( getHtml ), [ 'a', 'b', 'c', 'd' ] );
 
 	ractive.merge( 'items', [ 'c', 'b', 'a', 'd' ] );
 	t.deepEqual( lis.map( getHtml ), [ 'c', 'b', 'a', 'd' ] );
 });
 
-test( 'ractive.find() and ractive.findAll() work inside an onchange handler (#1541)', function ( t ) {
-	var ractive = new Ractive({
+test( 'ractive.find() and ractive.findAll() work inside an onchange handler (#1541)', t => {
+	t.expect( 2 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#each items}}
@@ -69,13 +63,9 @@ test( 'ractive.find() and ractive.findAll() work inside an onchange handler (#15
 		}
 	});
 
-	expect( 2 );
-
-	ractive.on( 'change', function () {
-		var node, nodes;
-
-		node = ractive.find( 'p' );
-		nodes = ractive.findAll( 'p' );
+	ractive.on( 'change', () => {
+		const node = ractive.find( 'p' );
+		const nodes = ractive.findAll( 'p' );
 
 		t.equal( node, null );
 		t.equal( nodes.length, 0 );

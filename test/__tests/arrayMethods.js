@@ -36,7 +36,7 @@ test( 'Pattern observers on arrays fire correctly after mutations (mirror of tes
 });
 
 test( '#if sections only render once when arrays are mutated', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#if list}}yes{{else}}no{{/if}}',
 		data: {
@@ -54,7 +54,7 @@ test( '#if sections only render once when arrays are mutated', function ( t ) {
 });
 
 test( 'Unbound sections disregard splice instructions (#967)', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<ul>
@@ -72,7 +72,7 @@ test( 'Unbound sections disregard splice instructions (#967)', function ( t ) {
 });
 
 test( 'Interpolators that directly reference arrays are updated on array mutation (#1074)', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{letters}}',
 		data: {
@@ -85,7 +85,7 @@ test( 'Interpolators that directly reference arrays are updated on array mutatio
 });
 
 test( 'unshift should make all indices update (#1729)', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{foo.0}}',
 		data: { foo: [ 'first' ] }
@@ -97,7 +97,7 @@ test( 'unshift should make all indices update (#1729)', t => {
 });
 
 test( 'splice with net additions should make all indices greater than start update', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{foo.2}}',
 		data: { foo: [ 0, 2 ] }
@@ -110,7 +110,7 @@ test( 'splice with net additions should make all indices greater than start upda
 });
 
 test( 'array modification with non-shuffle-able deps should update correctly', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo}}{{.}}{{/}}{{foo.0}}',
 		data: { foo: [ 1, 2 ] }

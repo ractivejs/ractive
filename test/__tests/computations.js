@@ -27,7 +27,7 @@ test( 'Computed value declared as a function', t => {
 });
 
 test( 'Dependency of computed property', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{answer}}',
 		data: {
@@ -52,7 +52,7 @@ test( 'Dependency of computed property', t => {
 });
 
 test( 'Computed value declared as a string', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>area: {{area}}</p>',
 		data: {
@@ -74,7 +74,7 @@ test( 'Computed value declared as a string', t => {
 });
 
 test( 'Computed value with a set() method', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>First name: {{first}}</p><p>Last name: {{last}}</p><p>Full name: {{full}}</p>',
 		data: {
@@ -84,8 +84,8 @@ test( 'Computed value with a set() method', t => {
 		computed: {
 			full: {
 				get: '${first} + " " + ${last}',
-				set: function ( fullname ) {
-					var parts = fullname.split( ' ' );
+				set ( fullname ) {
+					const parts = fullname.split( ' ' );
 
 					this.set({
 						first: parts[0] || '',
@@ -133,16 +133,14 @@ test( 'Components can have default computed properties', t => {
 });
 
 test( 'Instances can augment default computed properties of components', t => {
-	var Box, ractive;
-
-	Box = Ractive.extend({
+	const Box = Ractive.extend({
 		template: '<div style="width: {{width}}px; height: {{height}}px;">{{area}}px squared</div>',
 		computed: {
 			area: '${width} * ${height}'
 		}
 	});
 
-	ractive = new Box({
+	const ractive = new Box({
 		el: fixture,
 		data: {
 			width: 100,
@@ -158,7 +156,7 @@ test( 'Instances can augment default computed properties of components', t => {
 });
 
 test( 'Computed values can depend on other computed values', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{number}} - {{squared}} - {{cubed}}',
 		data: { number: 5 },
@@ -175,7 +173,7 @@ test( 'Computed values can depend on other computed values', t => {
 });
 
 test( 'Computations that cause errors are considered undefined', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{uppercaseBar}}',
 		computed: {
@@ -190,11 +188,11 @@ test( 'Computations that cause errors are considered undefined', t => {
 });
 
 test( 'Computations can be updated with ractive.update() (#651)', t => {
-	var ractive, bar;
+	let bar;
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		computed: {
-			foo: function () {
+			foo () {
 				return bar;
 			}
 		}
@@ -208,17 +206,15 @@ test( 'Computations can be updated with ractive.update() (#651)', t => {
 });
 
 test( 'Regression test for #836', t => {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{# foo <= bar }}yes{{/}}',
 		computed: { foo: '[]' },
-		oninit: function () {
+		oninit () {
 			this.set({ bar: 10 });
 		}
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '<widget>',
 		components: { widget: Widget }
@@ -233,14 +229,14 @@ test( 'Setters are called on init with supplied data (#837)', t => {
 		template: '{{firstname}}',
 		computed: {
 			fullname: {
-				set: function ( fullname ) {
-					var split = fullname.split( ' ' );
+				set ( fullname ) {
+					const split = fullname.split( ' ' );
 					this.set({
 						firstname: split[0],
 						lastname: split[1]
 					});
 				},
-				get: function () {
+				get () {
 					return this.get( 'firstname' ) + ' ' + this.get( 'lastname' );
 				}
 			}
@@ -254,7 +250,7 @@ test( 'Setters are called on init with supplied data (#837)', t => {
 });
 
 test( 'Set operations are not short-circuited when the set value is identical to the current get value (#837)', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{bar}}',
 		data: {
@@ -262,10 +258,10 @@ test( 'Set operations are not short-circuited when the set value is identical to
 		},
 		computed: {
 			foo: {
-				get: function () {
+				get () {
 					return this.get( 'bar' );
 				},
-				set: function ( value ) {
+				set ( value ) {
 					this.set( 'bar', value + 1 );
 				}
 			}
@@ -280,7 +276,7 @@ if ( hasUsableConsole ) {
 	test( 'Computations on unresolved refs don\'t error on initial component bindings', t => {
 		t.expect( 0 );
 
-		let warn = console.warn;
+		const warn = console.warn;
 		console.warn = () => t.ok( false );
 
 		new Ractive({
@@ -301,14 +297,14 @@ if ( hasUsableConsole ) {
 	test( 'Computed value that calls itself (#1359)', t => {
 		let messages = 0;
 
-		let warn = console.warn;
+		const warn = console.warn;
 		console.warn = msg => {
 			if ( /computation indirectly called itself/.test( msg ) ) {
 				messages += 1;
 			}
 		};
 
-		let Widget = Ractive.extend({
+		const Widget = Ractive.extend({
 			template: `
 				{{sort(headers)}}
 
@@ -341,28 +337,24 @@ if ( hasUsableConsole ) {
 
 
 test( 'Unresolved computations resolve when parent component data exists', t => {
-	var ractive, Component;
-
-	Component = Ractive.extend({
+	const Component = Ractive.extend({
 		template: '{{FOO}} {{BAR}}',
 		computed: {
 			FOO: '${foo}.toUpperCase()',
-			BAR: function () {
+			BAR () {
 				return this.get( 'bar' ).toUpperCase();
 			}
 		}
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<component/>',
+		template: '<Component/>',
 		data: {
 			foo: 'fee fi',
 			bar: 'fo fum'
 		},
-		components: {
-			component: Component
-		}
+		components: { Component }
 	});
 
 	t.equal( fixture.innerHTML, 'FEE FI FO FUM' );
@@ -391,7 +383,7 @@ test( 'Computed properties referencing bound parent data', t => {
 			list: [
 				{ opts: [ 3, 3, 3 ] },
 				{ opts: [ 3, 2, 1 ] },
-				{ opts: [ 1, 1, 1 ] },
+				{ opts: [ 1, 1, 1 ] }
 			]
 		},
 		components: { List }
@@ -427,7 +419,7 @@ test( 'Computed properties referencing bound parent data w/ conditional', t => {
 			list: [
 				{ opts: [ 3, 3, 3 ] },
 				{ opts: [ 3, 2, 1 ] },
-				{ opts: [ 1, 1, 1 ] },
+				{ opts: [ 1, 1, 1 ] }
 			]
 		},
 		components: { List }
@@ -438,34 +430,30 @@ test( 'Computed properties referencing bound parent data w/ conditional', t => {
 
 test( 'Computed properties referencing deep objects', t => {
 	let ractive = new Ractive({
-	  el: fixture,
-	  template: '{{one.two.tre}}',
-	  data: {
-	    answer: 42
-	  },
-	  computed: {
-	    one () {
-	      var answer = this.get( 'answer' );
-	      return {
-	        two: {
-	          tre: answer
-	        }
-	      };
-	    }
-	  }
+		el: fixture,
+		template: '{{one.two.tre}}',
+		data: {
+			answer: 42
+		},
+		computed: {
+			one () {
+				return {
+					two: {
+						tre: this.get( 'answer' )
+					}
+				};
+			}
+		}
 	});
 
 	t.equal( fixture.innerHTML, '42' );
 	ractive.set( 'answer', 99 );
 	t.equal( fixture.innerHTML, '99' );
-
 });
 
 test( 'Computations are not order dependent', t => {
 
-	var ractive, Component;
-
-	Component = Ractive.extend({
+	const Component = Ractive.extend({
 		template: '{{foo}}',
 		data: {
 			count: 1
@@ -476,72 +464,64 @@ test( 'Computations are not order dependent', t => {
 		}
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<component/>',
+		template: '<Component/>',
 		data: {
 			bar: 20
 		},
-		components: {
-			component: Component
-		}
+		components: { Component }
 	});
 	t.equal( fixture.innerHTML, '3' );
 
 });
 
 test( 'Parent extend instance computations are resolved before child computations', t => {
-
-	var ractive, Base, Component;
-
-	Base = Ractive.extend({
+	const Base = Ractive.extend({
 		computed: {
 			base: () => 1
 		}
 	});
 
-	Component = Base.extend({
+	const Component = Base.extend({
 		template: '{{foo}}',
 		computed: {
 			foo: '${base} + 1'
 		}
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<component/>',
-		components: {
-			component: Component
-		}
+		template: '<Component/>',
+		components: { Component }
 	});
 
 	t.equal( fixture.innerHTML, '2' );
-
 });
 
 test( 'Computed values are only computed as necessary', t => {
-	var ractive, count = { foo: 0, bar: 0, baz: 0, qux: 0 };
+	let count = { foo: 0, bar: 0, baz: 0, qux: 0 };
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{bar}}',
 		data: {
 			str: 'this is a string'
 		},
 		computed: {
-			foo: function () {
+			foo () {
 				count.foo += 1;
 				return this.get( 'baz' ).toUpperCase();
 			},
-			baz: function () {
+			baz () {
 				count.baz += 1;
 				return this.get( 'str' ).replace( /string/i, 'computation' );
 			},
-			bar: function () {
+			bar () {
 				count.bar += 1;
 				return this.get( 'foo' ) + '//' + this.get( 'foo' );
 			},
-			qux: function () {
+			qux () {
 				count.qux += 1;
 				return 'whatever';
 			}
@@ -565,7 +545,7 @@ test( 'What happens if you access a computed property in data config?', t => {
 	new Ractive({
 		el: fixture,
 		template: '{{total}}',
-		onconfig: function () {
+		onconfig () {
 			return this.set( 'total', this.get( 'add' ) );
 		},
 		computed: {
@@ -577,7 +557,7 @@ test( 'What happens if you access a computed property in data config?', t => {
 });
 
 test( 'Computations matching _[0-9]+ that are not references should not be mangled incorrectly for caching', t => {
-	let ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{ foo["_1bar"] }} {{ foo["_2bar"] }}',
 		data: { foo: { _1bar: 1, _2bar: 2 } }
@@ -585,7 +565,7 @@ test( 'Computations matching _[0-9]+ that are not references should not be mangl
 
 	t.htmlEqual( fixture.innerHTML, '1 2' );
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: `{{ foo(bar, '_0') }} {{ foo(bar, '_1') }}`,
 		data: { foo( a, b ) { return b; }, bar: 'ignored' }
@@ -640,14 +620,14 @@ test( 'Computations can depend on array values (#1747)', t => {
 });*/
 
 test( 'Computations depending up computed values cascade while updating (#1383)', ( t ) => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#if a < 10}}less{{else}}more{{/if}}',
 		data: {
 			b: { c: 0 }
 		},
 		computed: {
-			a: function() { return this.get('b').c; }
+			a () { return this.get('b').c; }
 		}
 	});
 

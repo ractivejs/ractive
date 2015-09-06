@@ -1,9 +1,7 @@
 import { test } from 'qunit';
 
-test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select id="select" value="{{selected}}">
@@ -24,10 +22,8 @@ test( 'If a select\'s value attribute is updated at the same time as the availab
 	t.equal( ractive.nodes.select.value, 'c' );
 });
 
-test( 'If a select value with two-way binding has a selected option at render time, the model updates accordingly', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'If a select value with two-way binding has a selected option at render time, the model updates accordingly', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{color}}">
@@ -43,10 +39,8 @@ test( 'If a select value with two-way binding has a selected option at render ti
 	t.htmlEqual( fixture.innerHTML, '<select><option value="red">red</option><option value="blue">blue</option><option value="green">green</option></select> <p>selected green</p>' );
 });
 
-test( 'If a select value with two-way binding has no selected option at render time, the model defaults to the top value', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'If a select value with two-way binding has no selected option at render time, the model defaults to the top value', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{color}}">
@@ -62,10 +56,8 @@ test( 'If a select value with two-way binding has no selected option at render t
 });
 
 
-test( 'If the value of a select is specified in the model, it overrides the markup', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'If the value of a select is specified in the model, it overrides the markup', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{color}}">
@@ -81,8 +73,8 @@ test( 'If the value of a select is specified in the model, it overrides the mark
 	t.ok( !ractive.nodes.green.selected );
 });
 
-test( 'A select value with static options with numeric values will show the one determined by the model, whether a string or a number is used', function ( t ) {
-	var ractive = new Ractive({
+test( 'A select value with static options with numeric values will show the one determined by the model, whether a string or a number is used', t => {
+	let ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{i}}">
@@ -105,7 +97,7 @@ test( 'A select value with static options with numeric values will show the one 
 				<option id="_2" value="2">two</option>
 				<option id="_3" value="3">three</option>
 			</select>`,
-		data: { i: "3" }
+		data: { i: '3' }
 	});
 
 	t.ok( !ractive.nodes._1.selected );
@@ -113,8 +105,8 @@ test( 'A select value with static options with numeric values will show the one 
 	t.ok(  ractive.nodes._3.selected );
 });
 /*
-test( 'Setting the value of a select works with options added via a triple', function ( t ) {
-	var ractive = new Ractive({
+test( 'Setting the value of a select works with options added via a triple', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<select value="{{value}}">{{{triple}}}</select>',
 		data: {
@@ -131,8 +123,8 @@ test( 'Setting the value of a select works with options added via a triple', fun
 	t.equal( ractive.get( 'value' ), 1 );
 });
 */
-test( 'A two-way select updates to the actual value of its selected option, not the stringified value', function ( t ) {
-	var ractive = new Ractive({
+test( 'A two-way select updates to the actual value of its selected option, not the stringified value', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{selected}}">
@@ -161,10 +153,8 @@ test( 'A two-way select updates to the actual value of its selected option, not 
 });
 
 /*
-test( 'If a multiple select value with two-way binding has a selected option at render time, the model updates accordingly', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'If a multiple select value with two-way binding has a selected option at render time, the model updates accordingly', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<select value="{{colors}}" multiple><option value="red">red</option><option value="blue" selected>blue</option><option value="green" selected>green</option></select>'
 	});
@@ -173,10 +163,8 @@ test( 'If a multiple select value with two-way binding has a selected option at 
 });
 */
 
-test( 'If a multiple select value with two-way binding has no selected option at render time, the model defaults to an empty array', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'If a multiple select value with two-way binding has no selected option at render time, the model defaults to an empty array', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{colors}}" multiple>
@@ -189,10 +177,8 @@ test( 'If a multiple select value with two-way binding has no selected option at
 	t.deepEqual( ractive.get( 'colors' ), [] );
 });
 
-test( 'If the value of a multiple select is specified in the model, it overrides the markup', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'If the value of a multiple select is specified in the model, it overrides the markup', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{colors}}" multiple>
@@ -209,8 +195,8 @@ test( 'If the value of a multiple select is specified in the model, it overrides
 	t.ok( ractive.nodes.green.selected );
 });
 
-test( 'updateModel correctly updates the value of a multiple select', function ( t ) {
-	var ractive = new Ractive({
+test( 'updateModel correctly updates the value of a multiple select', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select multiple value="{{selected}}">
@@ -228,10 +214,8 @@ test( 'updateModel correctly updates the value of a multiple select', function (
 	t.deepEqual( ractive.get( 'selected' ), [ 'red', 'blue' ] );
 });
 
-test( 'Options added to a select after the initial render will be selected if the value matches', function ( t ) {
-	var ractive, options;
-
-	ractive = new Ractive({
+test( 'Options added to a select after the initial render will be selected if the value matches', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{value_id}}">
@@ -242,13 +226,13 @@ test( 'Options added to a select after the initial render will be selected if th
 		data: {
 			value_id: 42,
 			values: [
-				{ id: 1, name: "Boo" },
-				{ id: 42, name: "Here 'tis" }
+				{ id: 1, name: 'Boo' },
+				{ id: 42, name: 'Here \'tis' }
 			]
 		}
 	});
 
-	options = ractive.findAll( 'option', { live: true });
+	const options = ractive.findAll( 'option', { live: true });
 	t.ok( !options.length );
 
 	ractive.set('post_values', ractive.get('values'));
@@ -258,8 +242,8 @@ test( 'Options added to a select after the initial render will be selected if th
 	t.ok( options[1].selected );
 });
 
-test( 'If an empty select with a binding has options added to it, the model should update', function ( t ) {
-	var ractive = new Ractive({
+test( 'If an empty select with a binding has options added to it, the model should update', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{id}}">
@@ -275,10 +259,8 @@ test( 'If an empty select with a binding has options added to it, the model shou
 	t.htmlEqual( fixture.innerHTML, '<select><option value="1">one</option><option value="2">two</option></select><strong>Selected: 1</strong>' );
 });
 
-test( 'Regression test for #339', function ( t ) {
-	var ractive, selects;
-
-	ractive = new Ractive({
+test( 'Regression test for #339', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#items:i}}
@@ -291,18 +273,18 @@ test( 'Regression test for #339', function ( t ) {
 		data: { items: [{}] }
 	});
 
-	selects = ractive.findAll( 'select', { live: true });
+	const selects = ractive.findAll( 'select', { live: true });
 
 	t.equal( selects[0].value, 'red' );
 
 	ractive.push( 'items', {} );
 
-	t.htmlEqual( fixture.innerHTML, '<p>0: <select><option value="red">Red</option></select></p><p>1: <select><option value="red">Red</option></select></p>')
+	t.htmlEqual( fixture.innerHTML, '<p>0: <select><option value="red">Red</option></select></p><p>1: <select><option value="red">Red</option></select></p>' );
 	t.deepEqual( ractive.get(), { items: [ {color: 'red'}, {color: 'red'} ] } );
 });
 
-test( 'Regression test for #351', function ( t ) {
-	var ractive = new Ractive({
+test( 'Regression test for #351', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{selected}}" multiple>
@@ -317,10 +299,8 @@ test( 'Regression test for #351', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<select multiple><option value="1">one</option><option value="2">two</option></select>' );
 });
 
-test( '<option>{{foo}}</option> behaves the same as <option value="{{foo}}">{{foo}}</option>', function ( t ) {
-	var ractive, options;
-
-	ractive = new Ractive({
+test( '<option>{{foo}}</option> behaves the same as <option value="{{foo}}">{{foo}}</option>', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{test1}}">
@@ -339,7 +319,7 @@ test( '<option>{{foo}}</option> behaves the same as <option value="{{foo}}">{{fo
 	t.equal( ractive.get( 'test1' ), 'a' );
 	t.equal( ractive.get( 'test2' ), 'a' );
 
-	options = ractive.findAll( 'option' );
+	const options = ractive.findAll( 'option' );
 
 	options[1].selected = true;
 	options[5].selected = true;
@@ -350,8 +330,8 @@ test( '<option>{{foo}}</option> behaves the same as <option value="{{foo}}">{{fo
 	t.equal( ractive.get( 'test2' ), 'c' );
 });
 
-test( 'A select whose options are re-rendered will update its binding', function ( t ) {
-	var ractive = new Ractive({
+test( 'A select whose options are re-rendered will update its binding', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{selected}}">
@@ -373,8 +353,8 @@ test( 'A select whose options are re-rendered will update its binding', function
 	t.htmlEqual( fixture.innerHTML, '<select><option value="d">d</option><option value="e">e</option><option value="f">f</option></select><p>selected: d</p>' );
 });
 
-test( 'Options can be inside a partial (#707)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Options can be inside a partial (#707)', t => {
+	new Ractive({
 		el: fixture,
 		template: `
 			<select>
@@ -387,8 +367,8 @@ test( 'Options can be inside a partial (#707)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<select><option value="a">a</option><option value="b">b</option></select>' );
 });
 
-test( 'Disabled options have no implicit value (#786)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Disabled options have no implicit value (#786)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<p>{{selected}}</p>
@@ -407,8 +387,8 @@ test( 'Disabled options have no implicit value (#786)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p></p><select><option disabled>Select a letter</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>' );
 });
 
-test( 'Uninitialised <select> elements will use the first *non-disabled* option', function ( t ) {
-	var ractive = new Ractive({
+test( 'Uninitialised <select> elements will use the first *non-disabled* option', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<p>{{selected}}</p>
@@ -428,8 +408,8 @@ test( 'Uninitialised <select> elements will use the first *non-disabled* option'
 	t.equal( ractive.find( 'select' ).value, 'a' );
 });
 
-test( 'Removing selected options from a list causes the select element\'s binding to update (#776)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Removing selected options from a list causes the select element\'s binding to update (#776)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{value}}">
@@ -450,10 +430,10 @@ test( 'Removing selected options from a list causes the select element\'s bindin
 	t.equal( ractive.get( 'value' ), '999' );
 });
 
-test( 'Select bindings work even if there is only a disabled option', function ( t ) {
-	expect( 0 );
+test( 'Select bindings work even if there is only a disabled option', t => {
+	t.expect( 0 );
 
-	var ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: `
 			<select value="{{foo}}">
@@ -462,10 +442,8 @@ test( 'Select bindings work even if there is only a disabled option', function (
 	});
 });
 
-test( 'Model -> view binding works with <select multiple> (#1009)', function ( t ) {
-	var ractive, options;
-
-	ractive = new Ractive({
+test( 'Model -> view binding works with <select multiple> (#1009)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select value='{{selectedColors}}' multiple>
@@ -478,7 +456,7 @@ test( 'Model -> view binding works with <select multiple> (#1009)', function ( t
 		}
 	});
 
-	options = ractive.findAll( 'option' );
+	const options = ractive.findAll( 'option' );
 
 	ractive.set( 'selectedColors', [ 'green', 'purple' ]);
 	t.ok( !options[0].selected );
@@ -487,8 +465,8 @@ test( 'Model -> view binding works with <select multiple> (#1009)', function ( t
 	t.ok( options[3].selected );
 });
 
-test( 'A multiple select uses non-strict comparison', function ( t ) {
-	var ractive = new Ractive({
+test( 'A multiple select uses non-strict comparison', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<select multiple value="{{i}}">
@@ -511,10 +489,10 @@ test( 'A multiple select uses non-strict comparison', function ( t ) {
 });
 
 test( 'safe to render options into select outside of ractive', t => {
-	var ractive, select = document.createElement( 'SELECT' );
+	const select = document.createElement( 'SELECT' );
 	fixture.appendChild( select );
 
-	ractive = new Ractive({
+	new Ractive({
 		el: select,
 		template: `
 			{{#items}}
@@ -526,5 +504,4 @@ test( 'safe to render options into select outside of ractive', t => {
 	});
 
 	t.htmlEqual( select.innerHTML, '<option>a</option>' );
-
 });

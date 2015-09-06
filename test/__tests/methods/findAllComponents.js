@@ -9,52 +9,43 @@ const Decoy = Ractive.extend({
 });
 
 const MockRactive = Ractive.extend({
-	components: {
-		widget: Widget,
-		decoy: Decoy
-	}
+	components: { Widget, Decoy }
 });
 
 test( 'ractive.findAllComponents() finds all components, of any type', function ( t ) {
-	var ractive, widgets;
-
-	ractive = new MockRactive({
+	const ractive = new MockRactive({
 		el: fixture,
-		template: '<widget/><widget/><widget/>'
+		template: '<Widget/><Widget/><Widget/>'
 	});
 
-	widgets = ractive.findAllComponents();
+	const widgets = ractive.findAllComponents();
 
 	t.equal( widgets.length, 3 );
 	t.ok( widgets[0] instanceof Widget && widgets[1] instanceof Widget && widgets[2] instanceof Widget );
 });
 
 test( 'ractive.findAllComponents(selector) finds all components of type `selector`', function ( t ) {
-	var ractive, widgets;
-
-	ractive = new MockRactive({
+	const ractive = new MockRactive({
 		el: fixture,
-		template: '<widget/><decoy/><widget/>'
+		template: '<Widget/><Decoy/><Widget/>'
 	});
 
-	widgets = ractive.findAllComponents( 'widget' );
+	const widgets = ractive.findAllComponents( 'Widget' );
 
 	t.equal( widgets.length, 2 );
 	t.ok( widgets[0] instanceof Widget && widgets[1] instanceof Widget );
 });
 
 test( 'ractive.findAllComponents(selector, {live: true}) returns a live query that maintains sort order', function ( t ) {
-	var ractive, widgets, widgetA, widgetB, widgetC, widgetD;
-
-	ractive = new MockRactive({
+	const ractive = new MockRactive({
 		el: fixture,
-		template: '{{#widgets}}<div><widget content="{{this}}"/></div>{{/widgets}}',
+		template: '{{#widgets}}<div><Widget content="{{this}}"/></div>{{/widgets}}',
 		data: {
 			widgets: [ 'a', 'b', 'c' ]
 		}
 	});
 
-	widgets = ractive.findAllComponents( 'widget', { live: true });
+	const widgets = ractive.findAllComponents( 'Widget', { live: true });
 
 	t.equal( widgets.length, 3 );
 	t.ok( widgets[0] instanceof Widget && widgets[1] instanceof Widget && widgets[2] instanceof Widget );
@@ -67,10 +58,10 @@ test( 'ractive.findAllComponents(selector, {live: true}) returns a live query th
 	t.ok( widgets[3] instanceof Widget );
 	t.equal( widgets[3].get( 'content' ), 'd' );
 
-	widgetA = widgets[0];
-	widgetB = widgets[1];
-	widgetC = widgets[2];
-	widgetD = widgets[3];
+	const widgetA = widgets[0];
+	const widgetB = widgets[1];
+	const widgetC = widgets[2];
+	const widgetD = widgets[3];
 
 	ractive.merge( 'widgets', [ 'c', 'a', 'd', 'b' ]);
 
@@ -81,21 +72,17 @@ test( 'ractive.findAllComponents(selector, {live: true}) returns a live query th
 });
 
 test( 'Components containing other components work as expected with ractive.findAllComponents()', function ( t ) {
-	var Compound, ractive, widgets;
-
-	Compound = MockRactive.extend({
-		template: '<widget content="foo"/><div><widget content="bar"/></div>'
+	const Compound = MockRactive.extend({
+		template: '<Widget content="foo"/><div><Widget content="bar"/></div>'
 	});
 
-	ractive = new MockRactive({
+	const ractive = new MockRactive({
 		el: fixture,
-		template: '{{#shown}}<compound/><widget content="baz"/>{{/shown}}',
-		components: {
-			compound: Compound
-		}
+		template: '{{#shown}}<Compound/><Widget content="baz"/>{{/shown}}',
+		components: { Compound }
 	});
 
-	widgets = ractive.findAllComponents( 'widget', { live: true });
+	const widgets = ractive.findAllComponents( 'Widget', { live: true });
 
 	t.equal( widgets.length, 0 );
 

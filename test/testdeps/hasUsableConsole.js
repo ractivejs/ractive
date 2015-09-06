@@ -1,4 +1,4 @@
-var hasUsableConsole;
+let hasUsableConsole;
 
 try {
 	console.warn.toString();

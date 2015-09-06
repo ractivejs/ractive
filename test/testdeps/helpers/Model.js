@@ -1,16 +1,15 @@
-var Model = function ( attributes ) {
-	this.attributes = attributes;
-	this.callbacks = {};
-	this.transformers = {};
-};
+class Model {
+	constructor ( attributes ) {
+		this.attributes = attributes;
+		this.callbacks = {};
+		this.transformers = {};
+	}
 
-Model.prototype = {
-	constructor: Model,
+	set ( attr, newValue ) {
+		const transformer = this.transformers[ attr ];
+		const oldValue = this.attributes[ attr ];
 
-	set: function ( attr, newValue ) {
-		var transformer, oldValue = this.attributes[ attr ];
-
-		if ( transformer = this.transformers[ attr ] ) {
+		if ( transformer ) {
 			newValue = transformer.call( this, newValue, oldValue );
 		}
 
@@ -18,34 +17,30 @@ Model.prototype = {
 			this.attributes[ attr ] = newValue;
 			this.fire( 'change', attr, newValue );
 		}
-	},
+	}
 
-	get: function ( attr ) {
+	get ( attr ) {
 		return this.attributes[ attr ];
-	},
+	}
 
-	reset: function ( newData ) {
-		var attr;
-
+	reset ( newData ) {
 		this.attributes = {};
 
-		for ( attr in newData ) {
+		for ( let attr in newData ) {
 			if ( newData.hasOwnProperty( attr ) ) {
 				this.set( attr, newData[ attr ] );
 			}
 		}
-	},
+	}
 
-	transform: function ( attr, transformer ) {
+	transform ( attr, transformer ) {
 		this.transformers[ attr ] = transformer;
 		if ( this.attributes.hasOwnProperty( attr ) ) {
 			this.set( attr, this.get( attr ) );
 		}
-	},
+	}
 
-	on: function ( eventName, callback ) {
-		var self = this;
-
+	on ( eventName, callback ) {
 		if ( !this.callbacks[ eventName ] ) {
 			this.callbacks[ eventName ] = [];
 		}
@@ -53,52 +48,48 @@ Model.prototype = {
 		this.callbacks[ eventName ].push( callback );
 
 		return {
-			cancel: function () {
-				self.off( eventName, callback );
+			cancel: () => {
+				this.off( eventName, callback );
 			}
-		}
-	},
+		};
+	}
 
-	off: function ( eventName, callback ) {
-		var callbacks, index;
-
-		callbacks = this.callbacks[ eventName ];
+	off ( eventName, callback ) {
+		let callbacks = this.callbacks[ eventName ];
 
 		if ( !callbacks ) {
 			return;
 		}
 
-		index = callbacks.indexOf( callback );
+		const index = callbacks.indexOf( callback );
 		if ( index !== -1 ) {
 			callbacks.splice( index, 1 );
 		}
-	},
+	}
 
-	fire: function ( eventName ) {
-		var args, callbacks, i;
-
-		callbacks = this.callbacks[ eventName ];
+	fire ( eventName ) {
+		let callbacks = this.callbacks[ eventName ];
 
 		if ( !callbacks ) {
 			return;
 		}
 
-		args = Array.prototype.slice.call( arguments, 1 );
-		i = callbacks.length;
+		const args = Array.prototype.slice.call( arguments, 1 );
+		let i = callbacks.length;
 		while ( i-- ) {
 			callbacks[i].apply( null, args );
 		}
 	}
-};
+}
 
 Model.adaptor = {
-	filter: function ( object ) {
+	filter ( object ) {
 		return object instanceof Model;
 	},
-	wrap: function ( ractive, object, keypath, prefix ) {
-		var listener, setting;
+	wrap ( ractive, object, keypath, prefix ) {
+		let setting;
 
-		listener = object.on( 'change', function ( attr, value ) {
+		const listener = object.on( 'change', function ( attr, value ) {
 			if ( setting ) {
 				return;
 			}
@@ -109,13 +100,13 @@ Model.adaptor = {
 		});
 
 		return {
-			get: function () {
+			get () {
 				return object.attributes;
 			},
-			teardown: function () {
+			teardown () {
 				listener.cancel();
 			},
-			set: function ( attr, value ) {
+			set ( attr, value ) {
 				if ( setting ) {
 					return;
 				}
@@ -124,9 +115,7 @@ Model.adaptor = {
 				object.set( attr, value );
 				setting = false;
 			},
-			reset: function ( newData ) {
-				var attr;
-
+			reset ( newData ) {
 				if ( newData instanceof Model ) {
 					return false; // teardown
 				}

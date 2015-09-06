@@ -643,9 +643,9 @@ test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
 	});
 
 	ractive.set( 'items', [
-		{ rank: 2, "foo": {"bar": []} },
-		{ rank: 1, "foo": {} },
-		{ rank: 3, "foo": {"bar": []} }
+		{ rank: 2, foo: { bar: []} },
+		{ rank: 1, foo: {} },
+		{ rank: 3, foo: { bar: []} }
 	]);
 
 	t.htmlEqual( fixture.innerHTML, '<p>0:</p><p>1:0</p><p>2:0</p>' );
@@ -1028,12 +1028,12 @@ test( 'Mappings with upstream reference expressions that change bind correctly',
 });*/
 
 test( 'Multiple levels of mappings work', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{a}}-{{b}}-{{c}}:<C1 d="{{a}}" e="{{b}}" f="{{c}}"/>',
 		data: {
 			a: 'foo',
-		 	b: 'bar'
+			b: 'bar'
 		},
 		components: {
 			C1: Ractive.extend({

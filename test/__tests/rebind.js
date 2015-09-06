@@ -1,10 +1,4 @@
 import { test } from 'qunit';
-import Fragment from 'view/Fragment';
-import Element from 'view/items/Element';
-import Triple from 'view/items/Triple';
-import { TRIPLE } from 'config/types';
-
-const test = QUnit.test; // necessary due to a bug in esperanto
 
 test('Section with item that has expression only called once when created', function(t){
 	var called = 0,
@@ -21,7 +15,7 @@ test('Section with item that has expression only called once when created', func
 
 	ractive.push('items', 'item');
 	t.equal( called, 1 );
-})
+});
 
 test('Section with item index ref expression changes correctly', function(t){
 	var ractive = new Ractive({
@@ -41,27 +35,27 @@ test('Section with item index ref expression changes correctly', function(t){
 	ractive.splice( 'items', 1, 2, 10 );
 	t.deepEqual( items, [ 1, 10, 4, 5 ] );
 	t.htmlEqual( fixture.innerHTML, '1,11,6,8,');
-})
+});
 
-test('Section updates child keypath expression', function(t){
-	var ractive = new Ractive({
-			el: fixture,
-			template: '{{#items:i}}{{foo[bar]}},{{/}}',
-			data: {
-				bar: 'name',
-				items: [
-					{ foo: { name: 'bob' } },
-					{ foo: { name: 'bill' } },
-					{ foo: { name: 'betty' } }
-				]
-			}
-		});
+test( 'Section updates child keypath expression', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{#each items:i}}{{foo[bar]}},{{/each}}',
+		data: {
+			bar: 'name',
+			items: [
+				{ foo: { name: 'bob' } },
+				{ foo: { name: 'bill' } },
+				{ foo: { name: 'betty' } }
+			]
+		}
+	});
 
 	t.htmlEqual( fixture.innerHTML, 'bob,bill,betty,');
 
 	ractive.splice( 'items', 1,2, { foo: { name: 'jill' } } );
 	t.htmlEqual( fixture.innerHTML, 'bob,jill,');
-})
+});
 
 test('Section with nested sections and inner context does splice()', function(t){
 	let called = 0;
@@ -86,7 +80,7 @@ test('Section with nested sections and inner context does splice()', function(t)
 	t.htmlEqual( fixture.innerHTML, '<p>3,4</p>');
 	ractive.splice( 'model', 0, 0, { thing: { inner: [ 1, 2 ] } } );
 	t.htmlEqual( fixture.innerHTML, '<p>1,2</p><p>3,4</p>');
-})
+});
 
 test( 'Components in a list can be rebound', function ( t ) {
 	var ractive = new Ractive({
@@ -129,21 +123,21 @@ test( 'Index references can be used as key attributes on components, and rebindi
 });
 
 test('Section with partials that use indexRef update correctly', function(t){
-	var ractive = new Ractive({
-			el: fixture,
-			template: '{{#items:i}}{{>partial}},{{/items}}',
-			partials: {
-				partial: '{{i}}'
-			},
-			data: { items: [1,2,3,4,5] }
-		});
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{#items:i}}{{>partial}},{{/items}}',
+		partials: {
+			partial: '{{i}}'
+		},
+		data: { items: [1,2,3,4,5] }
+	});
 
 	t.htmlEqual( fixture.innerHTML, '0,1,2,3,4,');
 
 	ractive.splice( 'items', 1 , 2, 10 );
 	t.deepEqual( ractive.get( 'items' ), [1,10,4,5]);
 	t.htmlEqual( fixture.innerHTML, '0,1,2,3,');
-})
+});
 
 test( 'Expressions with unresolved references can be rebound (#630)', function ( t ) {
 	var ractive = new Ractive({
@@ -182,8 +176,8 @@ test( 'Regression test for #715', function ( t ) {
 		template: '{{#items}}{{#test}}{{# .entries > 1 }}{{{ foo }}}{{/ .entries }}{{/test}}{{/items}}',
 		data: {
 			items: [
-				{test: [{"entries": 2}]},
-				{test: [{}]}
+				{ test: [{ entries: 2}] },
+				{ test: [{}] }
 			],
 			foo: 'bar'
 		}
@@ -202,16 +196,16 @@ test( 'Items are not unrendered and rerendered unnecessarily in cases like #715'
 		template: '{{#items}}{{#test}}{{# .entries > 1 }}<p intro="rendered" outro="unrendered">foo</p>{{/ .entries }}{{/test}}{{/items}}',
 		data: {
 			items: [
-				{test: [{"entries": 2}]},
-				{test: [{}]}
+				{ test: [{ entries: 2 }] },
+				{ test: [{}] }
 			],
 			foo: 'bar'
 		},
 		transitions: {
-			rendered: function () {
+			rendered () {
 				renderCount += 1;
 			},
-			unrendered: function () {
+			unrendered () {
 				unrenderCount += 1;
 			}
 		}
@@ -274,12 +268,14 @@ test( 'Regression test for #756 - fragment contexts are not rebound to undefined
 		data: { items:[{},{}] }
 	});
 
-	new_items = [{"test":{"list":[{"thing":"Z"},{"thing":"Z"}]},"foo":false},
-	             {"test":{"list":[{"thing":"Z"},{"thing":"Z"}]},"foo":false}]
+	new_items = [
+		{ test: { list: [{ thing: 'Z' }, { thing: 'Z' }] }, foo: false },
+		{ test: { list: [{ thing: 'Z' }, { thing: 'Z' }] }, foo: false }
+	];
 
-	ractive.set('items', new_items)
+	ractive.set( 'items', new_items );
 
-	new_items[1].test = {"list":[{"thing":"Z"}]}
+	new_items[1].test = { list: [{ thing: 'Z' }] };
 	ractive.update();
 
 	t.htmlEqual( fixture.innerHTML, '<div class></div><div class>[ Z ]</div>' );

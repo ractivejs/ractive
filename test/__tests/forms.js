@@ -1,9 +1,8 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 test( 'Resetting a form resets an input with two-way binding', t => {
-	var ractive, input;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<form>
@@ -15,20 +14,18 @@ test( 'Resetting a form resets an input with two-way binding', t => {
 		}
 	});
 
-	input = ractive.find( 'input' );
+	const input = ractive.find( 'input' );
 
 	input.value = 'bar';
 	ractive.updateModel();
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 	t.equal( input.value, 'foo' );
 	t.equal( ractive.get( 'value' ), 'foo' );
 });
 
 test( 'Resetting a form resets widgets with one-way bindings', t => {
-	var ractive, widgets = {};
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<form>
@@ -49,27 +46,25 @@ test( 'Resetting a form resets widgets with one-way bindings', t => {
 		twoway: false
 	});
 
-	widgets = {
+	const nodes = {
 		input: ractive.find( 'input' ),
 		select: ractive.find( 'select' ),
 		textarea: ractive.find( 'textarea' )
 	};
 
-	widgets.input.value = 'bar';
-	widgets.select.value = 'c';
-	widgets.textarea.value = 'yuiop';
+	nodes.input.value = 'bar';
+	nodes.select.value = 'c';
+	nodes.textarea.value = 'yuiop';
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 
-	t.equal( widgets.input.value, 'foo' );
-	t.equal( widgets.select.value, 'b' );
-	t.equal( widgets.textarea.value, 'qwert' );
+	t.equal( nodes.input.value, 'foo' );
+	t.equal( nodes.select.value, 'b' );
+	t.equal( nodes.textarea.value, 'qwert' );
 });
 
 test( 'Resetting a form resets widgets with no bindings', t => {
-	var ractive, widgets = {};
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			<form>
@@ -85,23 +80,23 @@ test( 'Resetting a form resets widgets with no bindings', t => {
 		twoway: false
 	});
 
-	widgets = {
+	const nodes = {
 		input: ractive.find( 'input' ),
 		select: ractive.find( 'select' ),
 		textarea: ractive.find( 'textarea' )
 	};
 
-	t.equal( widgets.input.value, 'foo' );
-	t.equal( widgets.select.value, 'b' );
-	t.equal( widgets.textarea.value, 'qwert' );
+	t.equal( nodes.input.value, 'foo' );
+	t.equal( nodes.select.value, 'b' );
+	t.equal( nodes.textarea.value, 'qwert' );
 
-	widgets.input.value = 'bar';
-	widgets.select.value = 'c';
-	widgets.textarea.value = 'yuiop';
+	nodes.input.value = 'bar';
+	nodes.select.value = 'c';
+	nodes.textarea.value = 'yuiop';
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 
-	t.equal( widgets.input.value, 'foo' );
-	t.equal( widgets.select.value, 'b' );
-	t.equal( widgets.textarea.value, 'qwert' );
+	t.equal( nodes.input.value, 'foo' );
+	t.equal( nodes.select.value, 'b' );
+	t.equal( nodes.textarea.value, 'qwert' );
 });

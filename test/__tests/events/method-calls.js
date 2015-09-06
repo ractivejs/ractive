@@ -1,5 +1,6 @@
 /*global window */
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 test( 'Calling a builtin method', t => {
 	const ractive = new Ractive({
@@ -8,7 +9,7 @@ test( 'Calling a builtin method', t => {
 		data: { foo: 0 }
 	});
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 	t.equal( ractive.get( 'foo' ), 1 );
 	t.htmlEqual( fixture.innerHTML, '<button>1</button>' );
 });
@@ -28,7 +29,7 @@ test( 'Calling a custom method', t => {
 		el: fixture
 	});
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 });
 
 test( 'Calling an unknown method', t => {
@@ -48,7 +49,7 @@ test( 'Calling an unknown method', t => {
 		return true;
 	};
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 	window.onerror = onerror;
 });
 
@@ -66,7 +67,7 @@ test( 'Passing the event object to a method', t => {
 		el: fixture
 	});
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 });
 
 test( 'Passing a child of the event object to a method', t => {
@@ -83,7 +84,7 @@ test( 'Passing a child of the event object to a method', t => {
 		el: fixture
 	});
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 });
 
 // Bit of a cheeky workaround...
@@ -104,7 +105,7 @@ test( 'Passing a reference to this.event', t => {
 		}
 	});
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 });
 
 test( 'Current event is available to method handler as this.event (#1403)', t => {
@@ -119,5 +120,5 @@ test( 'Current event is available to method handler as this.event (#1403)', t =>
 		}
 	});
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 });

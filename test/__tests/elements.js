@@ -20,9 +20,9 @@ test( 'option element with custom selected logic works without error and correct
 });
 
 test( 'Input with uppercase tag name binds correctly', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: "<INPUT value='{{val}}'>{{val}}",
+		template: `<INPUT value='{{val}}'>{{val}}`,
 		data: { val: 'foo' }
 	});
 
@@ -32,9 +32,9 @@ test( 'Input with uppercase tag name binds correctly', t => {
 });
 
 test( 'Elements with id are registered and unregistered with ractive.nodes', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: "{{#hasP}}<p id='foo'></p>{{/}}",
+		template: `{{#hasP}}<p id='foo'></p>{{/}}`,
 		data: {
 			hasP: true
 		}
@@ -46,15 +46,15 @@ test( 'Elements with id are registered and unregistered with ractive.nodes', t =
 });
 
 test( 'Elements with dynamic id is unregistered with ractive.nodes on change', t => {
-	var p, ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: "<p id='{{id}}'></p>",
+		template: `<p id='{{id}}'></p>`,
 		data: {
 			id: 'foo'
 		}
 	});
 
-	p = ractive.find('p');
+	const p = ractive.find('p');
 	t.equal( ractive.nodes.foo, p );
 	ractive.set( 'id', 'bar' );
 	t.ok( !ractive.nodes.foo );
@@ -62,7 +62,7 @@ test( 'Elements with dynamic id is unregistered with ractive.nodes on change', t
 });
 
 test( 'Textarea is stringified correctly', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		template: '<textarea value="123<div></div>"></textarea>'
 	});
 

@@ -1,93 +1,77 @@
 import { test } from 'qunit';
 
-var List, baseItems;
-
-List = Ractive.extend({
+const List = Ractive.extend({
 	template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>'
 });
 
-baseItems = [ 'alice', 'bob', 'charles' ];
+test( 'array.push()', t => {
+	const items = [ 'alice', 'bob', 'charles' ];
 
-test( 'array.push()', function ( t ) {
-	var items, ractive;
-
-	items = baseItems.slice();
-
-	ractive = new List({
+	new List({
 		el: fixture,
-		data: { items: items }
+		data: { items }
 	});
 
 	items.push( 'dave' );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>' );
 });
 
-test( 'array.pop()', function ( t ) {
-	var items, ractive;
+test( 'array.pop()', t => {
+	const items = [ 'alice', 'bob', 'charles' ];
 
-	items = baseItems.slice();
-
-	ractive = new List({
+	new List({
 		el: fixture,
-		data: { items: items }
+		data: { items }
 	});
 
 	items.pop();
 	t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li></ul>' );
 });
 
-test( 'array.shift()', function ( t ) {
-	var items, ractive;
+test( 'array.shift()', t => {
+	const items = [ 'alice', 'bob', 'charles' ];
 
-	items = baseItems.slice();
-
-	ractive = new List({
+	new List({
 		el: fixture,
-		data: { items: items }
+		data: { items }
 	});
 
 	items.shift();
 	t.htmlEqual( fixture.innerHTML, '<ul><li>bob</li><li>charles</li></ul>' );
 });
 
-test( 'array.unshift()', function ( t ) {
-	var items, ractive;
+test( 'array.unshift()', t => {
+	const items = [ 'alice', 'bob', 'charles' ];
 
-	items = baseItems.slice();
-
-	ractive = new List({
+	new List({
 		el: fixture,
-		data: { items: items }
+		data: { items }
 	});
 
 	items.unshift( 'dave');
 	t.htmlEqual( fixture.innerHTML, '<ul><li>dave</li><li>alice</li><li>bob</li><li>charles</li></ul>' );
 });
 
-test( 'array.splice()', function ( t ) {
-	var items, ractive;
+test( 'array.splice()', t => {
+	const items = [ 'alice', 'bob', 'charles' ];
 
-	items = baseItems.slice();
-
-	ractive = new List({
+	new List({
 		el: fixture,
-		data: { items: items }
+		data: { items }
 	});
 
 	items.splice( 1, 1, 'dave', 'eric' );
 	t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>dave</li><li>eric</li><li>charles</li></ul>' );
 });
 
-test( 'Regression test for #425', function ( t ) {
-	var items, ractive;
+test( 'Regression test for #425', t => {
+	const items = [];
 
-	items = [];
-
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{#items.length < limit}}<p>{{items.length}} / {{limit}}</p>{{/items.length < limit}}',
 		data: {
-			items: items,
+			items,
 			limit: 3
 		}
 	});
@@ -101,24 +85,22 @@ test( 'Regression test for #425', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '' );
 });
 
-test( 'Component bindings will survive a splice', function ( t ) {
-	var Widget, people, ractive;
-
-	Widget = Ractive.extend({
+test( 'Component bindings will survive a splice', t => {
+	const Widget = Ractive.extend({
 		template: '<p>{{person.name}}</p>'
 	});
 
-	people = [
+	let people = [
 		{ name: 'alice' },
 		{ name: 'bob' },
 		{ name: 'charles' }
 	];
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '{{#people}}<widget person="{{this}}"/>{{/people}}',
-		data: { people: people },
-		components: { widget: Widget }
+		template: '{{#people}}<Widget person="{{this}}"/>{{/people}}',
+		data: { people },
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p>');
@@ -130,24 +112,22 @@ test( 'Component bindings will survive a splice', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
 });
 
-test( 'Component \'backwash\' is prevented during a splice (#406)', function ( t ) {
-	var Widget, people, ractive;
-
-	Widget = Ractive.extend({
+test( 'Component \'backwash\' is prevented during a splice (#406)', t => {
+	const Widget = Ractive.extend({
 		template: '<p>{{person.name}}</p>'
 	});
 
-	people = [
+	const people = [
 		{ name: 'alice' },
 		{ name: 'bob' },
 		{ name: 'charles' }
 	];
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '{{#people}}<widget person="{{this}}"/>{{/people}}{{#people}}<widget person="{{this}}"/>{{/people}}',
-		data: { people: people },
-		components: { widget: Widget }
+		template: '{{#people}}<Widget person="{{this}}"/>{{/people}}{{#people}}<Widget person="{{this}}"/>{{/people}}',
+		data: { people },
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>alice</p><p>bob</p><p>charles</p><p>alice</p><p>bob</p><p>charles</p>');
@@ -159,8 +139,8 @@ test( 'Component \'backwash\' is prevented during a splice (#406)', function ( t
 	t.htmlEqual( fixture.innerHTML, '<p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p><p>daisy</p><p>alice</p><p>erica</p><p>fenton</p><p>charles</p>');
 });
 
-test( 'Reference expression resolvers survive a splice operation', function ( t ) {
-	var ractive = new Ractive({
+test( 'Reference expression resolvers survive a splice operation', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#rows:r}}
@@ -193,8 +173,8 @@ test( 'Reference expression resolvers survive a splice operation', function ( t 
 	t.htmlEqual( fixture.innerHTML, '<p>bar0b</p><p>baz0c</p><strong>c</strong><p>bar1h</p><p>baz1i</p><strong>i</strong>');
 });
 
-test( 'Option lists linked to arrays are updated when the array mutates', function ( t ) {
-	var ractive = new Ractive({
+test( 'Option lists linked to arrays are updated when the array mutates', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<select>{{#options}}<option>{{this}}</option>{{/options}}</select>',
 		data: {
@@ -221,7 +201,7 @@ test( 'Option lists linked to arrays are updated when the array mutates', functi
 // 	t.equal( ractive.fragment.items[0].fragments[2].items[0].eventHandlers[0].keypaths.length, 1 );
 // });
 
-test( "Nested sections don't grow a context on rebind during smart updates #1737", t => {
+test( 'Nested sections don\'t grow a context on rebind during smart updates #1737', t => {
 	let ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -327,7 +307,7 @@ test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
 // });
 
 function removedElementsTest ( action, fn ) {
-	test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', function ( t ) {
+	test( 'Array elements removed via ' + action + ' do not trigger updates in removed sections', t => {
 		let observed = false, errored = false;
 
 		t.expect( 5 );
@@ -338,7 +318,7 @@ function removedElementsTest ( action, fn ) {
 			template: '{{#options}}{{get(this)}}{{/options}}',
 			data: {
 				options: [ 'a', 'b', 'c' ],
-				get: function ( item ){
+				get ( item ){
 					if (!item ) errored = true;
 					return item;
 				}

@@ -19,7 +19,7 @@ test( 'sharing names with array mutator functions doesn\'t break events', t => {
 });
 
 test( 'Empty event names are safe, though do not fire', t => {
-	var ractive = new Ractive();
+	const ractive = new Ractive();
 
 	t.expect( 1 );
 	ractive.on( '', () => {
@@ -30,7 +30,7 @@ test( 'Empty event names are safe, though do not fire', t => {
 });
 
 test( 'Calling ractive.off() without a keypath removes all handlers', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: 'doesn\'t matter'
 	});
@@ -38,13 +38,13 @@ test( 'Calling ractive.off() without a keypath removes all handlers', t => {
 	t.expect( 0 );
 
 	ractive.on({
-		foo: function () {
+		foo () {
 			t.ok( false );
 		},
-		bar: function () {
+		bar () {
 			t.ok( false );
 		},
-		baz: function () {
+		baz () {
 			t.ok( false );
 		}
 	});
@@ -57,9 +57,8 @@ test( 'Calling ractive.off() without a keypath removes all handlers', t => {
 });
 
 test( 'Multiple space-separated events can be handled with a single callback (#731)', t => {
-	var ractive, count = 0;
-
-	ractive = new Ractive({});
+	const ractive = new Ractive({});
+	let count = 0;
 
 	ractive.on( ' foo bar  baz', () => count += 1 );
 
@@ -85,10 +84,8 @@ test( 'Multiple space-separated events can be handled with a single callback (#7
 });
 
 test( 'ractive.off() is chainable (#677)', t => {
-	var ractive, returnedValue;
-
-	ractive = new Ractive();
-	returnedValue = ractive.off('foo');
+	const ractive = new Ractive();
+	const returnedValue = ractive.off( 'foo' );
 
 	t.equal( returnedValue, ractive );
 });

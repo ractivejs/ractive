@@ -1,117 +1,117 @@
-var renderTests = [
+const renderTests = [
 	{
-		name: "Empty model",
-		template: "",
-		result: ""
+		name: 'Empty model',
+		template: '',
+		result: ''
 	},
 	{
-		name: "Plain text",
-		template: "a string",
-		result: "a string"
+		name: 'Plain text',
+		template: `a string`,
+		result: `a string`
 	},
 	{
-		name: "Single interpolator",
-		template: "{{mustache}}",
-		data: { mustache: "hello world" },
-		result: "hello world"
+		name: 'Single interpolator',
+		template: `{{mustache}}`,
+		data: { mustache: 'hello world' },
+		result: `hello world`
 	},
 	{
-		name: "Element containing single interpolator",
-		template: "<p>{{mustache}}</p>",
-		data: { mustache: "hello world" },
-		result: "<p>hello world</p>"
+		name: 'Element containing single interpolator',
+		template: `<p>{{mustache}}</p>`,
+		data: { mustache: 'hello world' },
+		result: `<p>hello world</p>`
 	},
 	{
-		name: "Element containing interpolator surrounded by text",
-		template: "<p>Hello {{mustache}}!</p>",
-		data: { mustache: "world" },
-		result: "<p>Hello world!</p>"
+		name: 'Element containing interpolator surrounded by text',
+		template: `<p>Hello {{mustache}}!</p>`,
+		data: { mustache: 'world' },
+		result: `<p>Hello world!</p>`
 	},
 	{
-		name: "Single keypath expression",
-		template: "{{foo[bar]}}",
-		data: { foo: { a: "hello", b: "goodbye" }, bar: 'a' },
-		result: "hello",
+		name: 'Single keypath expression',
+		template: `{{foo[bar]}}`,
+		data: { foo: { a: 'hello', b: 'goodbye' }, bar: 'a' },
+		result: 'hello',
 		new_data: { bar: 'b' },
 		new_result: 'goodbye'
 	},
 	{
-		name: "Double keypath expression",
-		template: "{{foo[bar][qux]}}",
-		data: { foo: { a: { b: "hello world" } }, bar: 'a', qux: 'b' },
-		result: "hello world"
+		name: 'Double keypath expression',
+		template: `{{foo[bar][qux]}}`,
+		data: { foo: { a: { b: 'hello world' } }, bar: 'a', qux: 'b' },
+		result: `hello world`
 	},
 	{
-		name: "Child reference updates with change of parent object",
-		template: "{{#with foo}}{{bar}}{{/with}}",
+		name: 'Child reference updates with change of parent object',
+		template: `{{#with foo}}{{bar}}{{/with}}`,
 		data: { foo: { bar: 'qux' } },
-		result: "qux",
+		result: 'qux',
 		new_data: { foo: { bar: 'updated' } },
 		new_result: 'updated'
 	},
 	{
-		name: "Section with index refs",
-		template: "<ul>{{#items:i}}<li>{{i}}: {{name}}</li>{{/items}}</ul>",
+		name: 'Section with index refs',
+		template: `<ul>{{#items:i}}<li>{{i}}: {{name}}</li>{{/items}}</ul>`,
 		data: {
-			items: [{name:"zero"},{name:"one"},{name:"two"}]
+			items: [{ name: 'zero' }, { name: 'one' }, { name: 'two' }]
 		},
-		result: "<ul><li>0: zero</li><li>1: one</li><li>2: two</li></ul>"
+		result: `<ul><li>0: zero</li><li>1: one</li><li>2: two</li></ul>`
 	},
 	{
-		name: "Section with index refs in attributes",
-		template: "<ul>{{#items:i}}<li data-id=\"{{i}}\">{{name}}</li>{{/items}}</ul>",
+		name: 'Section with index refs in attributes',
+		template: `<ul>{{#items:i}}<li data-id='{{i}}'>{{name}}</li>{{/items}}</ul>`,
 		data: {
-			items: [{name:"zero"},{name:"one"},{name:"two"}]
+			items: [{ name: 'zero' }, { name: 'one' }, { name: 'two' }]
 		},
-		result: "<ul><li data-id=\"0\">zero</li><li data-id=\"1\">one</li><li data-id=\"2\">two</li></ul>"
+		result: `<ul><li data-id='0'>zero</li><li data-id='1'>one</li><li data-id='2'>two</li></ul>`
 	},
 	{
-		name: "Element with attributes",
-		template: "<p class='{{class_name}}'>text</p>",
+		name: 'Element with attributes',
+		template: `<p class='{{class_name}}'>text</p>`,
 		data: {
-			"class_name": "it_works"
+			class_name: 'it_works'
 		},
-		result: "<p class=\"it_works\">text</p>"
+		result: `<p class='it_works'>text</p>`
 	},
 	// ugh, this fails in PhantomJS, which doesn't return namespaced attributes from
 	// innerHTML correctly. Skipping. See https://github.com/ractivejs/ractive/pull/1184
 	/*{
-		name: "Element with namespaced attributes",
-		template: "<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#{{href}}'></use></svg>",
+		name: 'Element with namespaced attributes',
+		template: `<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#{{href}}'></use></svg>`,
 		data: {
 			href: 'check'
 		},
-		result: "<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#check'></use></svg>"
+		result: `<svg viewBox='0 0 10 10'><use xlink:href='/vector.svg#check'></use></svg>`
 	},*/
 	{
-		name: "Section with descendant attributes",
-		template: "{{#todos}}<li><label>{{todo}}</label><span class='{{status}}'>{{todo}}</span></li>{{/todos}}",
+		name: 'Section with descendant attributes',
+		template: `{{#todos}}<li><label>{{todo}}</label><span class='{{status}}'>{{todo}}</span></li>{{/todos}}`,
 		data: {
-			todos: [{todo:"debug Ractive",status:"complete"},{todo:"release Ractive",status:"incomplete"}]
+			todos: [{todo:'debug Ractive',status:'complete'},{todo:'release Ractive',status:'incomplete'}]
 		},
-		result: "<li><label>debug Ractive</label><span class=\"complete\">debug Ractive</span></li><li><label>release Ractive</label><span class=\"incomplete\">release Ractive</span></li>"
+		result: `<li><label>debug Ractive</label><span class='complete'>debug Ractive</span></li><li><label>release Ractive</label><span class='incomplete'>release Ractive</span></li>`
 	},
 
 	// argh, fails in IE because of how it does innerHTML (i.e. wrongly). Skipping
 	/*{
-		name: "Section with descendant value attributes",
-		template: "{{#todos}}<li><label>{{todo}}</label><input value='{{todo}}'></li>{{/todos}}",
+		name: 'Section with descendant value attributes',
+		template: `{{#todos}}<li><label>{{todo}}</label><input value='{{todo}}'></li>{{/todos}}`,
 		data: {
 			todos: [{todo:"debug Ractive"},{todo:"release Ractive"}]
 		},
-		result: "<li><label>debug Ractive</label><input></li><li><label>release Ractive</label><input></li>"
+		result: `<li><label>debug Ractive</label><input></li><li><label>release Ractive</label><input></li>`
 	},*/
 
 	{
-		name: "Partials",
-		template: "{{#items}}{{>item}}{{/items}}",
+		name: 'Partials',
+		template: `{{#items}}{{>item}}{{/items}}`,
 		data: {
-			items: [{description:"Item the first"},{description:"Item the second"},{description:"Item the third"}]
+			items: [{description:'Item the first'},{description:'Item the second'},{description:'Item the third'}]
 		},
 		partials: {
-			item: "<p>{{description}}</p>"
+			item: '<p>{{description}}</p>'
 		},
-		result: "<p>Item the first</p><p>Item the second</p><p>Item the third</p>"
+		result: `<p>Item the first</p><p>Item the second</p><p>Item the third</p>`
 	},
 	{
 		name: 'Partials that compile as HTML',
@@ -128,24 +128,24 @@ var renderTests = [
 		result: '<ul><li data-index="0">0: zero</li><li data-index="1">1: one</li><li data-index="2">2: two</li><li data-index="3">3: three</li></ul>'
 	},
 	{
-		name: "Static string attributes",
-		template: "<p class=\"myclass\">test</p>",
-		result: "<p class=\"myclass\">test</p>"
+		name: 'Static string attributes',
+		template: `<p class='myclass'>test</p>`,
+		result: `<p class='myclass'>test</p>`
 	},
 	{
-		name: "Empty string attributes",
-		template: "<p class=\"\">test</p>",
-		result: "<p class=\"\">test</p>"
+		name: 'Empty string attributes',
+		template: `<p class=''>test</p>`,
+		result: `<p class=''>test</p>`
 	},
 	{
 		name: 'Empty string boolean attributes',
-		template: "<input type='checkbox' checked='' />",
-		result: "<input type='checkbox' checked />"
+		template: `<input type='checkbox' checked='' />`,
+		result: `<input type='checkbox' checked />`
 	},
 	{
 		name: 'Contenteditale without a value binding works with toHTML',
-		template: "<div contenteditable=''>edit me</div>",
-		result: "<div contenteditable=''>edit me</div>"
+		template: `<div contenteditable=''>edit me</div>`,
+		result: `<div contenteditable=''>edit me</div>`
 	},
 	{
 		name: 'Attribute with sections',
@@ -272,7 +272,7 @@ var renderTests = [
 		data: {
 			country: 'the UK',
 			population: 62641000,
-			format: function ( num ) {
+			format ( num ) {
 				if ( num > 1000000000 ) return ( num / 1000000000 ).toFixed( 1 ) + ' billion';
 				if ( num > 1000000 ) return ( num / 1000000 ).toFixed( 1 ) + ' million';
 				if ( num > 1000 ) return ( Math.floor( num / 1000 ) ) + ',' + ( num % 1000 );
@@ -286,7 +286,7 @@ var renderTests = [
 		template: '<p>Total: {{( total( numbers ) )}}</p>',
 		data: {
 			numbers: [ 1, 2, 3, 4 ],
-			total: function ( numbers ) {
+			total ( numbers ) {
 				return numbers.reduce( function ( prev, curr ) {
 					return prev + curr;
 				}, 0 );
@@ -347,7 +347,7 @@ var renderTests = [
 	{
 		name: 'Expression with implicit iterator',
 		template: '<ul>{{#items}}<li>{{( uppercase( . ) )}}</li>{{/items}}</ul>',
-		data: { items: [ 'a', 'b', 'c' ], uppercase: function ( str ) { return str.toUpperCase(); } },
+		data: { items: [ 'a', 'b', 'c' ], uppercase ( str ) { return str.toUpperCase(); } },
 		result: '<ul><li>A</li><li>B</li><li>C</li></ul>',
 		new_data: { items: [ 'd', 'e', 'f' ]},
 		new_result: '<ul><li>D</li><li>E</li><li>F</li></ul>'
@@ -391,7 +391,7 @@ var renderTests = [
 	{
 		name: 'Dependencies can be declared with this.get() inside expression functions',
 		template: '{{ area() }}',
-		data: { width: 50, height: 50, area: function () { return this.get( 'width' ) * this.get( 'height' ); } },
+		data: { width: 50, height: 50, area () { return this.get( 'width' ) * this.get( 'height' ); } },
 		result: '2500',
 		new_data: { width: 100 },
 		new_result: '5000'
@@ -515,16 +515,16 @@ var renderTests = [
 	{
 		name: 'Different expressions that share a keypath in unresolved state',
 		template: '{{identity(foo)}} / {{identity(bar)}}',
-		data: { identity: function ( val ) { return val; } },
+		data: { identity ( val ) { return val; } },
 		result: ' / ',
-		new_data: { foo: 'one', bar: 'two', identity: function ( val ) { return val; } },
+		new_data: { foo: 'one', bar: 'two', identity ( val ) { return val; } },
 		new_result: 'one / two'
 	},
 	{
 		name: 'Properties of functions render correctly (#451)',
 		template: '{{foo.prop}}-{{#foo}}{{prop}}{{/foo}}',
-		data: function () {
-			var foo = function () {};
+		data () {
+			function foo () {}
 			foo.prop = 'works';
 			return { foo };
 		},
@@ -877,7 +877,7 @@ var renderTests = [
 			foo: [
 				[ 2, 1, 4, 3 ]
 			],
-			f: function ( x ) {
+			f ( x ) {
 				return x.sort( ( a, b ) => b - a );
 			}
 		},

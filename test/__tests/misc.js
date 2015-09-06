@@ -1,26 +1,25 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 import hasUsableConsole from 'hasUsableConsole';
 import { isArray } from 'utils/is';
 import cleanup from 'helpers/cleanup';
 
 Array.isArray || ( Array.isArray = thing => isArray( thing ) ); // IE8... don't ask
 
-var Foo, fooAdaptor;
-
-Foo = function ( content ) {
+function Foo ( content ) {
 	this.content = content;
-};
+}
 
-fooAdaptor = {
-	filter: function ( object ) {
+const fooAdaptor = {
+	filter ( object ) {
 		return object instanceof Foo;
 	},
-	wrap: function ( ractive, foo, keypath, prefix ) {
+	wrap ( ractive, foo ) {
 		return {
-			get: function () {
+			get () {
 				return foo.content;
 			},
-			teardown: function () {
+			teardown () {
 
 			}
 		};
@@ -37,15 +36,13 @@ module( 'Miscellaneous', {
 	}
 } );
 
-test( 'Subclass instance data extends prototype data', function ( t ) {
-	var Subclass, instance;
-
-	Subclass = Ractive.extend({
+test( 'Subclass instance data extends prototype data', t => {
+	const Subclass = Ractive.extend({
 		template: '{{foo}} {{bar}}',
 		data: { foo: 1 }
 	});
 
-	instance = new Subclass({
+	const instance = new Subclass({
 		el: fixture,
 		data: { bar: 2 }
 	});
@@ -54,23 +51,24 @@ test( 'Subclass instance data extends prototype data', function ( t ) {
 	t.deepEqual( instance.get(), { foo: 1, bar: 2 });
 });
 
-test( 'Subclasses of subclasses inherit data, partials and transitions', function ( t ) {
-	var Subclass, SubSubclass, wiggled, shimmied, instance;
+test( 'Subclasses of subclasses inherit data, partials and transitions', t => {
+	let wiggled;
+	let shimmied;
 
-	Subclass = Ractive.extend({
+	const Subclass = Ractive.extend({
 		template: '<div intro="wiggle">{{>foo}}{{>bar}}{{>baz}}</div><div intro="shimmy">{{foo}}{{bar}}{{baz}}</div>',
 		data: { foo: 1 },
 		partials: { foo: 'fooPartial' },
-		transitions: { wiggle: function ( t ) { wiggled = true; } }
+		transitions: { wiggle () { wiggled = true; } }
 	});
 
-	SubSubclass = Subclass.extend({
+	const SubSubclass = Subclass.extend({
 		data: { bar: 2 },
 		partials: { bar: 'barPartial' },
-		transitions: { shimmy: function ( t ) { shimmied = true; } }
+		transitions: { shimmy () { shimmied = true; } }
 	});
 
-	instance = new SubSubclass({
+	new SubSubclass({
 		el: fixture,
 		data: { baz: 3 },
 		partials: { baz: 'bazPartial' }
@@ -82,8 +80,8 @@ test( 'Subclasses of subclasses inherit data, partials and transitions', functio
 });
 
 // Commenting out - can't think of a way to test this in 0.8
-// test( 'Multiple identical evaluators merge', function ( t ) {
-// 	var ractive;
+// test( 'Multiple identical evaluators merge', t => {
+// 	const ractive;
 //
 // 	ractive = new Ractive({
 // 		el: fixture,
@@ -98,10 +96,8 @@ test( 'Subclasses of subclasses inherit data, partials and transitions', functio
 // 	t.equal( ractive.viewmodel.root.properties.length, 3 );
 // });
 
-test( 'Boolean attributes work as expected', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'Boolean attributes work as expected', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<input id="one" type="checkbox" checked="{{falsy}}"><input id="two" type="checkbox" checked="{{truthy}}">',
 		data: { truthy: true, falsy: false }
@@ -111,10 +107,8 @@ test( 'Boolean attributes work as expected', function ( t ) {
 	t.equal( ractive.nodes.two.checked, true );
 });
 
-test( 'Instances can be created without an element', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'Instances can be created without an element', t => {
+	const ractive = new Ractive({
 		template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
 		data: { items: [ 'a', 'b', 'c' ] }
 	});
@@ -122,10 +116,8 @@ test( 'Instances can be created without an element', function ( t ) {
 	t.ok( ractive );
 });
 
-test( 'Instances without an element can render HTML', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'Instances without an element can render HTML', t => {
+	const ractive = new Ractive({
 		template: '<ul>{{#items:i}}<li>{{i}}: {{.}}</li>{{/items}}</ul>',
 		data: { items: [ 'a', 'b', 'c' ] }
 	});
@@ -133,10 +125,8 @@ test( 'Instances without an element can render HTML', function ( t ) {
 	t.htmlEqual( ractive.toHTML(), '<ul><li>0: a</li><li>1: b</li><li>2: c</li></ul>' );
 });
 
-test( 'Triples work with toHTML', function ( t ) {
-	var ractive;
-
-	ractive = new Ractive({
+test( 'Triples work with toHTML', t => {
+	const ractive = new Ractive({
 		template: '{{{ triple }}}',
 		data: { triple: '<p>test</p>' }
 	});
@@ -144,8 +134,8 @@ test( 'Triples work with toHTML', function ( t ) {
 	t.htmlEqual( ractive.toHTML(), '<p>test</p>' );
 });
 
-test( 'Passing in alternative delimiters', function ( t ) {
-	var ractive = new Ractive({
+test( 'Passing in alternative delimiters', t => {
+	new Ractive({
 		el: fixture,
 		template: '/~ greeting ~/, /~recipient~/! /~~ triple ~~/',
 		data: {
@@ -160,8 +150,8 @@ test( 'Passing in alternative delimiters', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
 });
 
-test( 'Using alternative delimiters in template', function ( t ) {
-	var ractive = new Ractive({
+test( 'Using alternative delimiters in template', t => {
+	new Ractive({
 		el: fixture,
 		template: '{{=/~ ~/=}} {{{=/~~ ~~/=}}} /~ greeting ~/, /~recipient~/! /~~ triple ~~/',
 		data: {
@@ -174,8 +164,8 @@ test( 'Using alternative delimiters in template', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'Hello, world! <p>here is some HTML</p>' );
 });
 
-test( '.unshift() works with proxy event handlers, without index references', function ( t ) {
-	var ractive = new Ractive({
+test( '.unshift() works with proxy event handlers, without index references', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}<button on-click="bla">Level1: {{ title }}</button>{{/items}}',
 		data: {
@@ -188,15 +178,13 @@ test( '.unshift() works with proxy event handlers, without index references', fu
 	t.htmlEqual( fixture.innerHTML, '<button>Level1: Title0</button><button>Level1: Title1</button>' );
 });
 
-test( 'Updating values with properties corresponding to unresolved references works', function ( t ) {
-	var ractive, user;
+test( 'Updating values with properties corresponding to unresolved references works', t => {
+	let user = {};
 
-	user = {};
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#user}}{{name}}{{/user}}',
-		data: { user: user }
+		data: { user }
 	});
 
 	t.equal( fixture.innerHTML, '' );
@@ -205,21 +193,20 @@ test( 'Updating values with properties corresponding to unresolved references wo
 	t.equal( fixture.innerHTML, 'Jim' );
 });
 
-test( 'Setting nested properties with a keypath correctly updates value of intermediate keypaths', function ( t ) {
-	var ractive = new Ractive({
+test( 'Setting nested properties with a keypath correctly updates value of intermediate keypaths', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo}}{{#bar}}{{baz}}{{/bar}}{{/foo}}'
 	});
 
 	ractive.set( 'foo.bar.baz', 'success' );
-
 	t.htmlEqual( fixture.innerHTML, 'success' );
 });
 
-test( 'Functions are called with the ractive instance as context', function ( t ) {
-	expect( 1 );
+test( 'Functions are called with the ractive instance as context', t => {
+	t.expect( 1 );
 
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ foo() }}'
 	});
@@ -229,38 +216,38 @@ test( 'Functions are called with the ractive instance as context', function ( t 
 	});
 });
 
-test( 'Methods are called with their object as context', function ( t ) {
-	expect( 1 );
+test( 'Methods are called with their object as context', t => {
+	t.expect( 1 );
 
-	var foo, run, ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ foo.bar() }}'
 	});
 
-	foo = {
-		bar: function () {
+	let ran;
+
+	const foo = {
+		bar () {
 			// TODO why is this running twice?
-			if ( !run ) {
+			if ( !ran ) {
 				t.equal( this, foo );
 			}
 
-			run = true;
+			ran = true;
 		}
 	};
 
 	ractive.set( 'foo', foo );
 });
 
-test( 'Delimiters can be reset globally', function ( t ) {
-	var oldDelimiters, oldTripledDelimiters, ractive;
-
-	oldDelimiters = Ractive.defaults.delimiters;
-	oldTripledDelimiters = Ractive.defaults.tripleDelimiters;
+test( 'Delimiters can be reset globally', t => {
+	const oldDelimiters = Ractive.defaults.delimiters;
+	const oldTripledDelimiters = Ractive.defaults.tripleDelimiters;
 
 	Ractive.defaults.delimiters = [ '/~', '~/' ];
 	Ractive.defaults.tripleDelimiters = [ '/~~', '~~/' ];
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '/~foo~/ /~~bar~~/',
 		data: { foo: 'text', bar: '<strong>html</strong>' }
@@ -272,14 +259,14 @@ test( 'Delimiters can be reset globally', function ( t ) {
 	Ractive.defaults.tripleDelimiters = oldTripledDelimiters;
 });
 
-test( 'Teardown works without throwing an error (#205)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Teardown works without throwing an error (#205)', t => {
+	t.expect( 1 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: 'a {{generic}} template',
 		data: { generic: 'bog standard' }
 	});
-
-	expect( 1 );
 
 	try {
 		ractive.teardown();
@@ -289,18 +276,16 @@ test( 'Teardown works without throwing an error (#205)', function ( t ) {
 	}
 });
 
-test( 'Bindings without explicit keypaths can survive a splice operation', function ( t ) {
-	var items, ractive;
+test( 'Bindings without explicit keypaths can survive a splice operation', t => {
+	t.expect( 1 );
 
-	items = new Array( 3 );
+	let items = new Array( 3 );
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<ul>{{#items}}<li><input value="{{foo}}"></li>{{/items}}</ul>',
-		data: { items: items }
+		data: { items }
 	});
-
-	expect( 1 );
 
 	ractive.splice( 'items', 1, 1 );
 	try {
@@ -311,8 +296,10 @@ test( 'Bindings without explicit keypaths can survive a splice operation', funct
 	}
 });
 
-test( 'Keypath resolutions that trigger teardowns don\'t cause the universe to implode', function ( t ) {
-	var ractive = new Ractive({
+test( 'Keypath resolutions that trigger teardowns don\'t cause the universe to implode', t => {
+	t.expect( 1 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{^foo}}not foo{{/foo}}{{#foo}}<widget items="{{items}}"/>{{/foo}}',
 		data: { items: [ 1, 2 ] },
@@ -320,8 +307,6 @@ test( 'Keypath resolutions that trigger teardowns don\'t cause the universe to i
 			widget: Ractive.extend({ template: 'widget' })
 		}
 	});
-
-	expect( 1 );
 
 	try {
 		ractive.set( 'foo', true );
@@ -331,8 +316,8 @@ test( 'Keypath resolutions that trigger teardowns don\'t cause the universe to i
 	}
 });
 
-test( 'Inverted sections aren\'t broken by unshift operations', function ( t ) {
-	var ractive = new Ractive({
+test( 'Inverted sections aren\'t broken by unshift operations', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{^items}}no items{{/items}}{{#items}}{{.}}{{/items}}',
 		data: { items: [] }
@@ -343,8 +328,8 @@ test( 'Inverted sections aren\'t broken by unshift operations', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
-test( 'Splice operations that try to remove more items than there are from an array are handled', function ( t ) {
-	var ractive = new Ractive({
+test( 'Splice operations that try to remove more items than there are from an array are handled', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}{{.}}{{/items}}',
 		data: { items: [ 'a', 'b', 'c' ] }
@@ -355,17 +340,15 @@ test( 'Splice operations that try to remove more items than there are from an ar
 	t.htmlEqual( fixture.innerHTML, 'ab' );
 });
 
-test( 'Partial templates will be drawn from script tags if not already registered', function ( t ) {
-	var partialScr, ractive;
-
-	partialScr = document.createElement( 'script' );
+test( 'Partial templates will be drawn from script tags if not already registered', t => {
+	const partialScr = document.createElement( 'script' );
 	partialScr.id = 'thePartial';
 	partialScr.type = 'text/ractive';
 	partialScr.textContent = '{{one}}{{two}}{{three}}';
 
 	document.getElementsByTagName('body')[0].appendChild( partialScr );
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{>thePartial}}',
 		data: { one: 1, two: 2, three: 3 }
@@ -375,8 +358,8 @@ test( 'Partial templates will be drawn from script tags if not already registere
 });
 
 // ARGH these tests don't work in phantomJS
-/*test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', function ( t ) {
-	var ractive, p, docFrag;
+/*test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', t => {
+	const ractive, p, docFrag;
 
 	ractive = new Ractive({
 		el: fixture,
@@ -391,8 +374,8 @@ test( 'Partial templates will be drawn from script tags if not already registere
 	t.ok( docFrag.contains( p ) );
 });
 
-test( 'ractive.detach() works with a previously unrendered ractive', function ( t ) {
-	var ractive, p, docFrag;
+test( 'ractive.detach() works with a previously unrendered ractive', t => {
+	const ractive, p, docFrag;
 
 	ractive = new Ractive({
 		template: '<p>{{foo}}</p>',
@@ -406,22 +389,20 @@ test( 'ractive.detach() works with a previously unrendered ractive', function ( 
 	t.ok( docFrag.contains( p ) );
 });*/
 
-test( 'ractive.insert() moves an instance to a different location', function ( t ) {
-	var ractive, p, one, two, three;
+test( 'ractive.insert() moves an instance to a different location', t => {
+	const one = document.createElement( 'div' );
+	const two = document.createElement( 'div' );
 
-	one = document.createElement( 'div' );
-	two = document.createElement( 'div' );
-
-	three = document.createElement( 'div' );
+	const three = document.createElement( 'div' );
 	three.innerHTML = '<p>before</p><p class="after">after</p>';
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<p>{{foo}}</p>',
 		data: { foo: 'whee!' }
 	});
 
-	p = ractive.find( 'p' );
+	const p = ractive.find( 'p' );
 
 	ractive.insert( one );
 	t.ok( one.contains( p ) );
@@ -435,16 +416,14 @@ test( 'ractive.insert() moves an instance to a different location', function ( t
 	t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
 });
 
-test( 'ractive.insert() throws an error if instance is not rendered (#712)', function ( t ) {
-	var ractive, p, one, two, three;
+test( 'ractive.insert() throws an error if instance is not rendered (#712)', t => {
+	const one = document.createElement( 'div' );
+	const two = document.createElement( 'div' );
 
-	one = document.createElement( 'div' );
-	two = document.createElement( 'div' );
-
-	three = document.createElement( 'div' );
+	const three = document.createElement( 'div' );
 	three.innerHTML = '<p>before</p><p class="after">after</p>';
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		template: '<p>{{foo}}</p>',
 		data: { foo: 'whee!' }
 	});
@@ -457,7 +436,7 @@ test( 'ractive.insert() throws an error if instance is not rendered (#712)', fun
 	}
 
 	ractive.render( two );
-	p = ractive.find( 'p' );
+	const p = ractive.find( 'p' );
 	t.ok( !one.contains( p ) );
 	t.ok( two.contains( p ) );
 
@@ -466,14 +445,12 @@ test( 'ractive.insert() throws an error if instance is not rendered (#712)', fun
 	t.htmlEqual( three.innerHTML, '<p>before</p><p>whee!</p><p class="after">after</p>' );
 });
 
-test( 'Regression test for #271', function ( t ) {
-	var ractive, items;
-
-	items = [{}];
-	ractive = new Ractive({
+test( 'Regression test for #271', t => {
+	let items = [{}];
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}<p>foo</p>{{# items.length > 1 }}<p>bar</p>{{/}}{{/items}}',
-		data: { items: items }
+		data: { items }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
@@ -489,15 +466,13 @@ test( 'Regression test for #271', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>foo</p>' );
 });
 
-test( 'Partials in shuffled sections are updated/removed correctly (#297)', function ( t ) {
-	var ractive, items;
+test( 'Partials in shuffled sections are updated/removed correctly (#297)', t => {
+	let items = [ 'one', 'two', 'three' ];
 
-	items = [ 'one', 'two', 'three' ];
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}{{>item}}{{/items}}',
-		data: { items: items },
+		data: { items },
 		partials: {
 			item: '<p>{{.}}</p>'
 		}
@@ -509,16 +484,14 @@ test( 'Partials in shuffled sections are updated/removed correctly (#297)', func
 	t.htmlEqual( fixture.innerHTML, '<p>one</p><p>three</p>' );
 });
 
-test( 'Regression test for #316', function ( t ) {
-	var ractive, a, b;
+test( 'Regression test for #316', t => {
+	let a = [];
+	let b = [];
 
-	a = [];
-	b = [];
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ a.length ? "foo" : b.length ? "bar" : "baz" }}',
-		data: { a: a, b: b }
+		data: { a, b }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'baz' );
@@ -530,10 +503,10 @@ test( 'Regression test for #316', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'foo' );
 });
 
-test( 'Regression test for #321', function ( t ) {
-	var ractive, buttons, expected;
+test( 'Regression test for #321', t => {
+	t.expect( 2 );
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<button on-click=\'test:{{ ["just a string"] }}\'>test 1</button><button on-click=\'test:{{ {bar: 3} }}\'>test 2</button>'
 	});
@@ -542,18 +515,17 @@ test( 'Regression test for #321', function ( t ) {
 		t.deepEqual( arg, expected );
 	});
 
-	expect( 2 );
-	buttons = ractive.findAll( 'button' );
+	const buttons = ractive.findAll( 'button' );
 
-	expected = ['just a string'];
-	simulant.fire( buttons[0], 'click' );
+	let expected = [ 'just a string' ];
+	fire( buttons[0], 'click' );
 
 	expected = { bar: 3 };
-	simulant.fire( buttons[1], 'click' );
+	fire( buttons[1], 'click' );
 });
 
-test( 'Evaluators that have a value of undefined behave correctly', function ( t ) {
-	var ractive = new Ractive({
+test( 'Evaluators that have a value of undefined behave correctly', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ list[index] }}',
 		data: {
@@ -568,16 +540,14 @@ test( 'Evaluators that have a value of undefined behave correctly', function ( t
 	t.htmlEqual( fixture.innerHTML, '' );
 });
 
-test( 'Components inherit adaptors from their parent', function ( t ) {
-	var ractive;
-
-	Ractive.components.widget = Ractive.extend({
+test( 'Components inherit adaptors from their parent', t => {
+	Ractive.components.Widget = Ractive.extend({
 		template: '<p>{{wrappedThing}}</p>'
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget wrappedThing="{{thing}}"/>',
+		template: '<Widget wrappedThing="{{thing}}"/>',
 		adapt: [ 'foo' ],
 		data: {
 			thing: new Foo( 'whee!' )
@@ -587,15 +557,13 @@ test( 'Components inherit adaptors from their parent', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 });
 
-test( 'Components made with Ractive.extend() can include adaptors', function ( t ) {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+test( 'Components made with Ractive.extend() can include adaptors', t => {
+	const Widget = Ractive.extend({
 		adapt: [ 'foo' ],
 		modifyArrays: false
 	});
 
-	ractive = new Widget({
+	const ractive = new Widget({
 		el: fixture,
 		template: '<p>{{thing}}</p>',
 		data: {
@@ -607,52 +575,50 @@ test( 'Components made with Ractive.extend() can include adaptors', function ( t
 	t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 });
 
-test( 'Regression test for #798', function ( t ) {
-	var ClassA, ClassB, ractive;
-
-	ClassB = function () {};
-	ClassA = function () {};
+test( 'Regression test for #798', t => {
+	function ClassB () {}
+	function ClassA () {}
 	ClassA.prototype.resources = new ClassB();
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget attr="{{item.resources}}"/>',
+		template: '<Widget attr="{{item.resources}}"/>',
 		data: { item: new ClassA() },
 		components: {
-			widget: Ractive.extend({})
+			Widget: Ractive.extend({})
 		}
 	});
 
-	t.ok( ractive.findComponent('widget').get( 'attr' ) instanceof ClassB );
+	t.ok( ractive.findComponent( 'Widget' ).get( 'attr' ) instanceof ClassB );
 });
 
-asyncTest( 'Subclass instance oncomplete() handlers can call _super', function ( t ) {
-	var Subclass, instance;
+test( 'Subclass instance oncomplete() handlers can call _super', t => {
+	t.expect( 1 );
 
-	expect( 1 );
+	const done = t.async();
 
-	Subclass = Ractive.extend({
-		oncomplete: function () {
+	const Subclass = Ractive.extend({
+		oncomplete () {
 			return 42;
 		}
 	});
 
-	instance = new Subclass({
+	new Subclass({
 		el: fixture,
-		oncomplete: function () {
+		oncomplete () {
 			t.equal( this._super(), 42 );
-			start();
+			done();
 		}
 	});
 });
 
 
-test( 'ractive.insert() with triples doesn\'t invoke Yoda (#391)', function ( t ) {
-	var ractive = new Ractive({
+test( 'ractive.insert() with triples doesn\'t invoke Yoda (#391)', t => {
+	const ractive = new Ractive({
 		el: document.createElement( 'div' ),
 		template: '{{{value}}}',
 		data: {
-			'value': ' you are <i>very puzzled now</i>'
+			value: ' you are <i>very puzzled now</i>'
 		}
 	});
 
@@ -661,8 +627,8 @@ test( 'ractive.insert() with triples doesn\'t invoke Yoda (#391)', function ( t 
 });
 
 // commenting out. PhantomJS.
-// test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', function ( t ) {
-// 	var ractive = new Ractive({
+// test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', t => {
+// 	const ractive = new Ractive({
 // 		el: fixture,
 // 		template: '<input value="{{foo}}">',
 // 		data: {
@@ -675,49 +641,43 @@ test( 'ractive.insert() with triples doesn\'t invoke Yoda (#391)', function ( t 
 
 // only run these tests if magic mode is supported
 try {
-	var obj = {}, _foo;
+	let obj = {};
+	let _foo;
 	Object.defineProperty( obj, 'foo', {
-		get: function () {
+		get () {
 			return _foo;
 		},
-		set: function ( value ) {
+		set ( value ) {
 			_foo = value;
 		}
 	});
 
-	test( 'Array mutators work when `magic` is `true` (#376)', function ( t ) {
-		var ractive, items;
-
-		items = [
+	test( 'Array mutators work when `magic` is `true` (#376)', t => {
+		let items = [
 			{ name: 'one' },
 			{ name: 'two' },
 			{ name: 'three' }
 		];
 
-		ractive = new Ractive({
+		new Ractive({
 			el: fixture,
 			template: '{{#items}}{{name}}{{/items}}',
 			magic: true,
-			data: {
-				items: items
-			}
+			data: { items }
 		});
 
 		items.push({ name: 'four' });
-
 		t.htmlEqual( fixture.innerHTML, 'onetwothreefour' );
 	});
 
-	test( 'Implicit iterators work in magic mode', function ( t ) {
-		var ractive, items;
-
-		items = [
+	test( 'Implicit iterators work in magic mode', t => {
+		let items = [
 			{ name: 'one' },
 			{ name: 'two' },
 			{ name: 'three' }
 		];
 
-		ractive = new Ractive({
+		new Ractive({
 			el: fixture,
 			template: '{{#.}}{{name}}{{/.}}',
 			magic: true,
@@ -735,18 +695,16 @@ try {
 	// do nothing
 }
 
-test( 'Foo.extend(Bar), where both Foo and Bar are Ractive instances, returns on object that inherits from Foo and Bar', function ( t ) {
-	var Human, Spider, Spiderman, spiderman;
-
-	Human = Ractive.extend({
+test( 'Foo.extend(Bar), where both Foo and Bar are Ractive instances, returns on object that inherits from Foo and Bar', t => {
+	const Human = Ractive.extend({
 		template: '<p>type: {{type}}</p>',
 
-		talk: function () {
+		talk () {
 			return 'hello';
 		}
 	});
 
-	Spider = Ractive.extend({
+	const Spider = Ractive.extend({
 		// registries
 		data: {
 			type: 'arachnid'
@@ -756,18 +714,18 @@ test( 'Foo.extend(Bar), where both Foo and Bar are Ractive instances, returns on
 		lazy: true,
 
 		// methods
-		climb: function () {
+		climb () {
 			return 'climbing';
 		},
 
-		talk: function () {
+		talk () {
 			return this._super() + ' my name is Peter Parker';
 		}
 	});
 
-	Spiderman = Human.extend( Spider );
+	const Spiderman = Human.extend( Spider );
 
-	spiderman = new Spiderman({
+	const spiderman = new Spiderman({
 		el: fixture
 	});
 
@@ -778,22 +736,20 @@ test( 'Foo.extend(Bar), where both Foo and Bar are Ractive instances, returns on
 });
 
 
-test( 'Regression test for #460', function ( t ) {
-	var items, ractive, baz;
-
-	items = [
+test( 'Regression test for #460', t => {
+	let items = [
 		{ desc: 'foo' },
 		{ desc: 'bar' },
 		{ desc: 'baz' }
-	]
+	];
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}<p>{{desc}}:{{missing[data]}}</p>{{/items}}',
-		data: { items: items }
+		data: { items }
 	});
 
-	ractive.pop( 'items' ).then( baz => {
+	ractive.pop( 'items' ).then( () => {
 		ractive.push( 'items', { desc: 'baz' });
 		t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
 	});
@@ -801,24 +757,25 @@ test( 'Regression test for #460', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
 });
 
-test( 'Regression test for #457', function ( t ) {
-	var ractive = new Ractive({
+test( 'Regression test for #457', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#step.current == step.current}}<p>{{foo}}</p>{{/step.current == step.current}}'
 	});
 
 	ractive.set({
-		"foo": "bar",
-		"step": {
-			"current": 2
+		foo: 'bar',
+		step: {
+			current: 2
 		}
 	});
+
 	t.ok( true );
 });
 
 if ( Ractive.svg ) {
 	test( 'Case-sensitive conditional SVG attribute', t => {
-		var ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '<svg {{vb}}></svg>',
 			data: { vb: 'viewBox="0 0 100 100"' }
@@ -828,8 +785,8 @@ if ( Ractive.svg ) {
 	});
 }
 
-test( 'Custom delimiters apply to partials (#601)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Custom delimiters apply to partials (#601)', t => {
+	new Ractive({
 		el: fixture,
 		template: '([#items:i])([>foo])([/items])',
 		partials: { foo: '([a])' },
@@ -838,24 +795,22 @@ test( 'Custom delimiters apply to partials (#601)', function ( t ) {
 		tripleDelimiters: [ '([[', ']])' ]
 	});
 
-	t.htmlEqual( fixture.innerHTML, '01')
+	t.htmlEqual( fixture.innerHTML, '01' );
 });
 
-test( 'Rendering to an element, if `append` is false, causes any existing instances to be torn down', function ( t ) {
-	var ractive1, ractive2;
+test( 'Rendering to an element, if `append` is false, causes any existing instances to be torn down', t => {
+	t.expect( 2 );
 
-	expect( 2 );
-
-	ractive1 = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: 'foo'
 	});
 
-	ractive1.on( 'teardown', function () {
+	ractive.on( 'teardown', function () {
 		t.ok( true );
 	});
 
-	ractive2 = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: 'bar'
 	});
@@ -865,8 +820,8 @@ test( 'Rendering to an element, if `append` is false, causes any existing instan
 
 // This test fails since #816, because evaluators are treated as computed properties.
 // Kept here in case we come up with a smart way to have the best of both worlds
-/*test( 'Evaluators are not called if their expressions no longer exist (#716)', function ( t ) {
-	var ractive, doubled = 0, tripled = 0;
+/*test( 'Evaluators are not called if their expressions no longer exist (#716)', t => {
+	const ractive, doubled = 0, tripled = 0;
 
 	ractive = new Ractive({
 		el: fixture,
@@ -903,12 +858,14 @@ test( 'Rendering to an element, if `append` is false, causes any existing instan
 	t.equal( tripled, 1 );
 });*/
 
-test( 'Regression test for #695 (unrendering non-rendered items)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Regression test for #695 (unrendering non-rendered items)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{# { items: nested.items } }}{{#insert}}{{#items}}<div decorator="foo"></div>{{/items}}{{/insert}}{{/}}',
 		decorators: {
-			foo: function () { return { teardown: function () {} }; }
+			foo () {
+				return { teardown () {} };
+			}
 		}
 	});
 
@@ -929,32 +886,34 @@ test( 'Regression test for #695 (unrendering non-rendered items)', function ( t 
 	t.ok( true );
 });
 
-asyncTest( 'A Promise will be rejected if its callback throws (#759)', function ( t ) {
-	var p = new Ractive.Promise( function () {
+test( 'A Promise will be rejected if its callback throws (#759)', t => {
+	const done = t.async();
+
+	const p = new Ractive.Promise( () => {
 		throw 'ruh-roh';
 	});
 
 	p.then( null, function ( err ) {
 		t.equal( err, 'ruh-roh' );
-		QUnit.start();
+		done();
 	});
 });
 
-asyncTest( 'A Promise will be chained and rejected if its callback throws ', function ( t ) {
-	var p = new Ractive.Promise( function (resolve, reject) {
-		resolve();
-	});
+test( 'A Promise will be chained and rejected if its callback throws ', t => {
+	const done = t.async();
 
-	p.then(function () {
+	const p = Ractive.Promise.resolve();
+
+	p.then( () => {
 		throw 'ruh-roh';
-	}).then( null, function ( err ) {
+	}).then( null, err => {
 		t.equal( err, 'ruh-roh' );
-		QUnit.start();
+		done();
 	});
 });
 
-test( 'Keypaths in ractive.set() can contain wildcards (#784)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Keypaths in ractive.set() can contain wildcards (#784)', t => {
+	const ractive = new Ractive({
 		data: {
 			array: [
 				{ active: true },
@@ -972,8 +931,8 @@ test( 'Keypaths in ractive.set() can contain wildcards (#784)', function ( t ) {
 	t.deepEqual( ractive.get( 'object' ), { foo: 42, bar: 42, baz: 42 });
 });
 
-test( 'Wildcard keypaths do not affect array length', function ( t ) {
-	var ractive = new Ractive({
+test( 'Wildcard keypaths do not affect array length', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{array.length}}',
 		data: {
@@ -985,8 +944,8 @@ test( 'Wildcard keypaths do not affect array length', function ( t ) {
 	t.deepEqual( ractive.get( 'array.length' ), 3 );
 });
 
-test( 'Regression test for #801', function ( t ) {
-	var ractive = new Ractive({
+test( 'Regression test for #801', t => {
+	const ractive = new Ractive({
 		el: document.createElement( 'div' ),
 		template: '<div>{{#(foo !== "bar")}}not bar{{#(foo !== "baz")}}not baz{{/()}}{{/()}}</div>',
 		data: {
@@ -998,8 +957,8 @@ test( 'Regression test for #801', function ( t ) {
 	t.ok( true );
 });
 
-test( 'Regression test for #832', function ( t ) {
-	var ractive = new Ractive({
+test( 'Regression test for #832', t => {
+	const ractive = new Ractive({
 		el: document.createElement( 'div' ),
 		template: '{{#if obj[foo].length}}{{#each obj[foo]}}{{this}}{{/each}}{{/if}}',
 		data: {
@@ -1014,8 +973,8 @@ test( 'Regression test for #832', function ( t ) {
 	t.ok( true );
 });
 
-test( 'Regression test for #857', function ( t ) {
-	var ractive = new Ractive({
+test( 'Regression test for #857', t => {
+	const ractive = new Ractive({
 		el: document.createElement( 'div' ),
 		template: '<textarea value="{{foo}}"></textarea>',
 		data: {
@@ -1026,23 +985,25 @@ test( 'Regression test for #857', function ( t ) {
 	t.equal( ractive.find( 'textarea' ).value, 'works' );
 });
 
-asyncTest( 'oncomplete handlers are called for lazily-rendered instances (#749)', function ( t ) {
-	expect( 1 );
+test( 'oncomplete handlers are called for lazily-rendered instances (#749)', t => {
+	t.expect( 1 );
 
-	var ractive = new Ractive({
+	const done = t.async();
+
+	const ractive = new Ractive({
 		template: '<p>foo</p>',
-		oncomplete: function () {
+		oncomplete () {
 			t.ok( true );
 			ractive.teardown();
-			QUnit.start();
+			done();
 		}
 	});
 
 	ractive.render( fixture );
 });
 
-test( 'Doctype declarations are handled, and the tag name is uppercased (#877)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Doctype declarations are handled, and the tag name is uppercased (#877)', t => {
+	const ractive = new Ractive({
 		template: '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>{{title}}</title></head><body>{{hello}} World!</body></html>',
 		data: { title: 'hi', hello: 'Hello' }
 	});
@@ -1050,8 +1011,10 @@ test( 'Doctype declarations are handled, and the tag name is uppercased (#877)',
 	t.equal( ractive.toHTML(), '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>hi</title></head><body>Hello World!</body></html>' );
 });
 
-test( 'Resolvers are torn down (#884)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Resolvers are torn down (#884)', t => {
+	t.expect( 0 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#if foo}}
@@ -1067,15 +1030,13 @@ test( 'Resolvers are torn down (#884)', function ( t ) {
 		}
 	});
 
-	expect( 0 );
-
 	ractive.set( 'foo', true );
 	ractive.set( 'foo', false );
 	ractive.set( 'currentStep', 1 );
 });
 
-test( 'Regression test for #844', function ( t ) {
-	var ractive = new Ractive({
+test( 'Regression test for #844', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{# steps[currentStep] }}
@@ -1106,8 +1067,8 @@ test( 'Regression test for #844', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'some text  <a>toggle step: 1</a>' );
 });
 
-test( 'Mustaches that re-resolve to undefined behave correctly (#908)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Mustaches that re-resolve to undefined behave correctly (#908)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{# steps[currentStep] }}
@@ -1132,8 +1093,8 @@ test( 'Mustaches that re-resolve to undefined behave correctly (#908)', function
 	t.htmlEqual( fixture.innerHTML, '<p>1: one</p>' );
 });
 
-test( 'Content renders to correct place when subsequent sections have no nodes (#910)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Content renders to correct place when subsequent sections have no nodes (#910)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ >partial}} <!-- foo -->',
 		partials: {
@@ -1159,12 +1120,14 @@ test( 'Content renders to correct place when subsequent sections have no nodes (
 	t.htmlEqual( fixture.innerHTML, 'before after' );
 });
 
-test( 'Dependants can register more than once without error (#838)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Dependants can register more than once without error (#838)', t => {
+	t.expect( 0 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#if foo}}<p>{{fn(foo)}}</p>{{/if}}',
 		data: {
-			fn: function ( foo ) {
+			fn ( foo ) {
 				foo.bar;
 				this.get( 'foo' );
 				this.get( 'bar' );
@@ -1172,28 +1135,22 @@ test( 'Dependants can register more than once without error (#838)', function ( 
 		}
 	});
 
-	expect( 0 );
-
 	ractive.set( 'foo', {} );
 	ractive.set( 'foo', null );
 });
 
-test( 'Ractive.extend() with parsed template (#939)', function ( t ) {
-	var parsed, Widget, ractive;
+test( 'Ractive.extend() with parsed template (#939)', t => {
+	const parsed = Ractive.parse( '<p>{{foo}}</p>' );
+	const Widget = Ractive.extend({ template: parsed });
 
-	parsed = Ractive.parse( '<p>{{foo}}</p>' );
-	Widget = Ractive.extend({ template: parsed });
-
-	ractive = new Widget({ data: { foo: 'bar' }});
+	const ractive = new Widget({ data: { foo: 'bar' }});
 	t.equal( ractive.toHTML(), '<p>bar</p>' );
 });
 
-test( 'Regression test for #950', function ( t ) {
-	var ractive, select;
+test( 'Regression test for #950', t => {
+	t.expect( 0 );
 
-	expect( 0 );
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#if editing}}
@@ -1209,7 +1166,7 @@ test( 'Regression test for #950', function ( t ) {
 			{{/if}}`,
 		data: {
 			editing: true,
-			items: ["Apples", "Oranges", "Samsungs"]
+			items: [ 'Apples', 'Oranges', 'Samsungs' ]
 		}
 	});
 
@@ -1217,18 +1174,18 @@ test( 'Regression test for #950', function ( t ) {
 		ractive.set('editing', false);
 	}, { init: false });
 
-	ractive.on('done-selecting', function( event ) {
-		ractive.set('editing', false);
+	ractive.on( 'done-selecting', () => {
+		ractive.set( 'editing', false );
 	});
 
-	select = ractive.find( 'select' );
+	const select = ractive.find( 'select' );
 	select.focus();
 	select.options[2].selected = true;
-	simulant.fire( select, 'change' );
+	fire( select, 'change' );
 });
 
-test( 'Custom delimiters apply to inline partials (#990)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Custom delimiters apply to inline partials (#990)', t => {
+	const ractive = new Ractive({
 		template: '([#partial a])abc([/partial])',
 		delimiters: [ '([', '])' ]
 	});
@@ -1236,48 +1193,48 @@ test( 'Custom delimiters apply to inline partials (#990)', function ( t ) {
 	t.deepEqual( ractive.partials, { a : [ 'abc' ] });
 });
 
-asyncTest( 'Regression test for #1019', function ( t ) {
-	var ractive, img, int, i;
+test( 'Regression test for #1019', t => {
+	const done = t.async();
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<img src="/test/350x150.gif" width="{{350}}">'
 	});
 
-	img = ractive.find( 'img' );
+	const img = ractive.find( 'img' );
 
-	i = 0;
-	int = setInterval( function () {
+	let i = 0;
+	const int = setInterval( () => {
 		if ( img.complete || i++ === 20 ) {
 			clearInterval( int );
 			t.equal( img.width, 350 );
-			QUnit.start();
+			done();
 		}
 	}, 100);
 });
 
-asyncTest( 'Another regression test for #1019', function ( t ) {
-	var ractive, img, int, i;
+test( 'Another regression test for #1019', t => {
+	const done = t.async();
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div style="width: 350px"><img src="/test/350x150.gif" width="100%"></div>'
 	});
 
-	img = ractive.find( 'img' );
+	const img = ractive.find( 'img' );
 
-	i = 0;
-	int = setInterval( function () {
+	let i = 0;
+	const int = setInterval( () => {
 		if ( img.complete || i++ === 20 ) {
 			clearInterval( int );
 			t.equal( img.width, 350 );
-			QUnit.start();
+			done();
 		}
 	}, 100);
 });
 
-test( 'Regression test for #1003', function ( t ) {
-	var ractive = new Ractive({
+test( 'Regression test for #1003', t => {
+	new Ractive({
 		el: fixture,
 		template: `
 			{{#unless foo}}y{{/unless}}
@@ -1290,23 +1247,21 @@ test( 'Regression test for #1003', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<select><option>x</option></select>' );
 });
 
-test( 'Regression test for #1055', function ( t ) {
-	var _, ractive;
-
-	_ = {
-		bind: function () {
+test( 'Regression test for #1055', t => {
+	const _ = {
+		bind () {
 			// do nothing
 		},
-		uppercase: function ( str ) {
+		uppercase ( str ) {
 			return str.toUpperCase();
 		}
 	};
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: '{{_.uppercase(str)}}',
 		data: {
-			_: _,
+			_,
 			str: 'foo'
 		}
 	});
@@ -1314,8 +1269,8 @@ test( 'Regression test for #1055', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'FOO' );
 });
 
-test( 'Interpolation of script/style contents can be disabled (#1050)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Interpolation of script/style contents can be disabled (#1050)', t => {
+	new Ractive({
 		el: fixture,
 		template: '<script>window.TEST_VALUE = "{{uninterpolated}}";</script>',
 		data: { uninterpolated: 'whoops' },
@@ -1331,8 +1286,8 @@ test( 'Interpolation of script/style contents can be disabled (#1050)', function
 	}
 });
 
-test( 'Changing the length of a section has no effect to detached ractives until they are reattached (#1053)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Changing the length of a section has no effect to detached ractives until they are reattached (#1053)', t => {
+	let ractive = new Ractive({
 		el: fixture,
 		template: '{{#if foo}}yes{{else}}no{{/if}}',
 		data: {
@@ -1363,14 +1318,13 @@ test( 'Changing the length of a section has no effect to detached ractives until
 	t.htmlEqual( fixture.innerHTML, 'abcdef' );
 });
 
-asyncTest( 'Regression test for #1038', function ( t ) {
-		expect( 0 );
+test( 'Regression test for #1038', t => {
+	t.expect( 0 );
 
-	var el, ractive;
+	const done = t.async();
 
-	el = document.createElement( 'div' );
-	ractive = new Ractive({
-		el: el,
+	const ractive = new Ractive({
+		el: document.createElement( 'div' ),
 		template: `
 			{{#with obj}}
 				{{#if loading}}
@@ -1390,16 +1344,16 @@ asyncTest( 'Regression test for #1038', function ( t ) {
 
 	ractive.set('obj.loading', true);
 
-	setTimeout( function () {
+	setTimeout( () => {
 		ractive.set('obj.error', true);
 		ractive.set('obj.loading', false);
 
-		QUnit.start();
+		done();
 	}, 100 );
 });
 
-test( 'Reference expressions can become invalid after being valid, without breaking (#1106)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Reference expressions can become invalid after being valid, without breaking (#1106)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#with items[i]}}
@@ -1423,10 +1377,10 @@ test( 'Reference expressions can become invalid after being valid, without break
 	t.htmlEqual( fixture.innerHTML, 'c' );
 });
 
-test( 'Implicitly-closed elements without closing section tag (#1124)', function ( t ) {
+test( 'Implicitly-closed elements without closing section tag (#1124)', t => {
 	// this test lives here, not in render.js, due to an awkward quirk with htmlEqual -
 	// it corrects malformed HTML before stubbing it
-	var ractive = new Ractive({
+	let ractive = new Ractive({
 		el: fixture,
 		template: '<ul><li>one<li>two<li>three'
 	});
@@ -1441,9 +1395,9 @@ test( 'Implicitly-closed elements without closing section tag (#1124)', function
 	t.equal( ractive.findAll( 'tr > td' ).length, 3 );
 });
 
-test( 'Reference expressions used in component parameters teardown properly (#1130)', function ( t ) {
+test( 'Reference expressions used in component parameters teardown properly (#1130)', t => {
 
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<widget data="{{foo[bar]}}"/>',
 		components: {
@@ -1460,17 +1414,15 @@ test( 'Reference expressions used in component parameters teardown properly (#11
 	t.ok( true );
 });
 
-test( 'Regression test for #1166 (spellcheck bug)', function ( t ) {
-	var ractive, one, two;
-
-	ractive = new Ractive({
+test( 'Regression test for #1166 (spellcheck bug)', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<input class="one" spellcheck="false"><input class="two" spellchecker="false">',
 		data: { name: 'world' }
 	});
 
-	one = ractive.find( '.one' );
-	two = ractive.find( '.two' );
+	const one = ractive.find( '.one' );
+	const two = ractive.find( '.two' );
 
 	t.ok( !one.spellcheck );
 	t.equal( one.getAttribute( 'spellcheck' ), 'false' );
@@ -1478,7 +1430,7 @@ test( 'Regression test for #1166 (spellcheck bug)', function ( t ) {
 });
 
 test( '. reference without any implicit or explicit context should resolve to root', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{JSON.stringify(.)}}',
 		data: { foo: 'bar' }
@@ -1490,7 +1442,7 @@ test( '. reference without any implicit or explicit context should resolve to ro
 });
 
 test( 'Nested conditional computations should survive unrendering and rerendering (#1364)', ( t ) => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#cond}}{{# i === 1 }}1{{/}}{{# i === 2 }}2{{/}}{{/}}',
 		data: { i: 1, cond: true }
@@ -1503,13 +1455,13 @@ test( 'Nested conditional computations should survive unrendering and rerenderin
 	t.equal( fixture.innerHTML, '2' );
 });
 
-test( 'DOCTYPE declarations are stringified correctly', function ( t ) {
-	var template = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html></html>';
-	t.equal( new Ractive({ template: template }).toHTML(), template );
+test( 'DOCTYPE declarations are stringified correctly', t => {
+	const template = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html></html>';
+	t.equal( new Ractive({ template }).toHTML(), template );
 });
 
 test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div><foo /></div>{{#bars:i}}<b>b</b><foo />{{/}}{{#baz}}{{#bat}}<p>hello</p>{{/}}{{/}}',
 		components: {
@@ -1549,10 +1501,8 @@ test( 'Ractive.getNodeInfo returns correct keypath, index, and ractive info', t 
 	t.equal( p.keypath, 'baz.bat' );
 });
 
-test( 'Boolean attributes are added/removed based on unstringified fragment value', function ( t ) {
-	var ractive, button;
-
-	ractive = new Ractive({
+test( 'Boolean attributes are added/removed based on unstringified fragment value', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<button disabled="{{foo}}"></button>',
 		data: {
@@ -1560,15 +1510,15 @@ test( 'Boolean attributes are added/removed based on unstringified fragment valu
 		}
 	});
 
-	button = ractive.find( 'button' );
+	const button = ractive.find( 'button' );
 	t.ok( button.disabled );
 
 	ractive.set( 'foo', false );
 	t.ok( !button.disabled );
 });
 
-test( 'input[type=range] values are respected regardless of attribute order (#1621)', function ( t ) {
-	var ractive = new Ractive({
+test( 'input[type=range] values are respected regardless of attribute order (#1621)', t => {
+	let ractive = new Ractive({
 		el: fixture,
 		template: '<input type="range" min="0" max="200" value="150"/>'
 	});
@@ -1583,10 +1533,10 @@ test( 'input[type=range] values are respected regardless of attribute order (#16
 	t.equal( ractive.find( 'input' ).value, 150 );
 });
 
-test( 'regression test for #1630', function ( t ) {
-	var ractive = new Ractive();
+test( 'regression test for #1630', t => {
+	const ractive = new Ractive();
 
-	var obj = { foo: 'bar' };
+	let obj = { foo: 'bar' };
 	obj.constructor = obj.constructor;
 
 	ractive.set( obj );
@@ -1597,7 +1547,7 @@ test( 'regression test for #1630', function ( t ) {
 test( 'Ractive can be instantiated without `new`', t => {
 	t.ok( Ractive() instanceof Ractive );
 
-	var Subclass = Ractive.extend();
+	const Subclass = Ractive.extend();
 	t.ok( Subclass() instanceof Subclass );
 	t.ok( Subclass() instanceof Ractive );
 });
@@ -1619,23 +1569,26 @@ test( 'multiple pattern keypaths can be set simultaneously (#1319)', t => {
 	t.deepEqual( ractive.get( 'bar' ), [ 10, 10, 10 ] );
 });
 
-asyncTest( 'Promise.all works with non-promises (#1642)', t => {
+test( 'Promise.all works with non-promises (#1642)', t => {
+	const done = t.async();
+
 	// this test is redundant in browsers that support Promise natively
 	Ractive.Promise.all([ Ractive.Promise.resolve( 1 ), 2 ]).then( values => {
 		t.deepEqual( values, [ 1, 2 ]);
-		QUnit.start();
+		done();
 	});
 });
 
 if ( hasUsableConsole ) {
 	test( 'Ractive.DEBUG can be changed', t => {
+		t.expect( 0 );
+
 		let DEBUG = Ractive.DEBUG;
 		Ractive.DEBUG = false;
 
-		let warn = console.warn;
+		const warn = console.warn;
 		console.warn = () => t.ok( false );
 
-		expect( 0 );
 		new Ractive({ template: '{{>thisWouldNormallyWarn}}' });
 
 		Ractive.DEBUG = DEBUG;
@@ -1669,7 +1622,7 @@ if ( hasUsableConsole ) {
 // Anyway I can't be bothered to figure it out right now so I'm just commenting
 // these out so it will build
 
-/*test( 'Components with two-way bindings set parent values on initialisation', function ( t ) {
+/*test( 'Components with two-way bindings set parent values on initialisation', t => {
 	var Dropdown, ractive;
 
 	Dropdown = Ractive.extend({
@@ -1700,7 +1653,7 @@ if ( hasUsableConsole ) {
 {
 	name: 'Tearing down expression mustaches and recreating them does\'t throw errors',
 	test: function () {
-		var ractive;
+		const ractive;
 
 		ractive = new Ractive({
 			el: fixture,
@@ -1720,7 +1673,7 @@ if ( hasUsableConsole ) {
 {
 	name: 'Updating an expression section doesn\'t throw errors',
 	test: function () {
-		var ractive, array;
+		const ractive, array;
 
 		array = [{ foo: 1 }, { foo: 2 }, { foo: 3 }, { foo: 4 }, { foo: 5 }];
 
@@ -1750,7 +1703,7 @@ if ( hasUsableConsole ) {
 {
 	name: 'Updating a list section with child list expressions doesn\'t throw errors',
 	test: function () {
-		var ractive, array;
+		const ractive, array;
 
 		array = [
 			{ foo: [ 1, 2, 3, 4, 5 ] },

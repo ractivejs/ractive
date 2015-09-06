@@ -62,7 +62,9 @@ test( 'CSS is encapsulated', t => {
 	t.equal( getHexColor( paragraphs[1] ), hexCodes.red );
 });
 
-asyncTest( 'CSS encapsulation transformation is optional', t => {
+test( 'CSS encapsulation transformation is optional', t => {
+	const done = t.async();
+
 	const Widget = Ractive.extend({
 		template: '<p class="unencapsulated">red</p>',
 		css: '.unencapsulated { color: red; }',
@@ -81,7 +83,7 @@ asyncTest( 'CSS encapsulation transformation is optional', t => {
 	t.equal( getHexColor( paragraphs[1] ), hexCodes.red );
 
 	// we need to clean up after ourselves otherwise the global styles remain in the DOM!
-	ractive.teardown().then( start );
+	ractive.teardown().then( done );
 });
 
 test( 'Comments do not break transformed CSS', t => {
@@ -248,7 +250,9 @@ test( 'Yielded content gets encapsulated styles', t => {
 	t.ok( /Comic Sans MS/.test( style.fontFamily ) );
 });
 
-asyncTest( 'Components retain their encapsulated CSS until they are detached', t => {
+test( 'Components retain their encapsulated CSS until they are detached', t => {
+	const done = t.async();
+
 	const Widget = Ractive.extend({
 		template: '<p>some red text</p>',
 		css: 'p { color: red; }'
@@ -279,7 +283,7 @@ asyncTest( 'Components retain their encapsulated CSS until they are detached', t
 	setTimeout( () => {
 		t.equal( getHexColor( p ), hexCodes.red );
 		complete();
-		QUnit.start();
+		done();
 	}, 50 );
 });
 

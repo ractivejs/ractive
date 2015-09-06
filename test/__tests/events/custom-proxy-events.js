@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 test( 'custom event invoked and torndown', t => {
 	t.expect( 3 );
@@ -37,7 +38,7 @@ test( 'custom event invoked and torndown', t => {
 
 	const span = ractive.find( 'span' );
 
-	simulant.fire( span, 'click' );
+	fire( span, 'click' );
 	ractive.unrender();
-	simulant.fire( span, 'click' );
+	fire( span, 'click' );
 });

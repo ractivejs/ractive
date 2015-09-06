@@ -1,7 +1,8 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 import hasUsableConsole from 'hasUsableConsole';
 
-test( 'Basic yield', function ( t ) {
+test( 'Basic yield', t => {
 	const Widget = Ractive.extend({
 		template: '<p>{{yield}}</p>'
 	});
@@ -15,91 +16,86 @@ test( 'Basic yield', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
 });
 
-test( 'References are resolved in parent context', function ( t ) {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+test( 'References are resolved in parent context', t => {
+	const Widget = Ractive.extend({
 		template: '<p>{{yield}}</p>',
 		isolated: true
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget>{{foo}}</widget>',
+		template: '<Widget>{{foo}}</Widget>',
 		data: { foo: 'yeah!' },
-		components: { widget: Widget }
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>yeah!</p>' );
 });
 
-test( 'References are resolved in parent context through multiple layers', function ( t ) {
-	var Widget, WidgetInner, Middle, ractive;
-
-	WidgetInner = Ractive.extend({
+test( 'References are resolved in parent context through multiple layers', t => {
+	const WidgetInner = Ractive.extend({
 		template: '<p>{{yield}}</p>',
 		isolated: true
 	});
 
-	Widget = Ractive.extend({
-		template: '<widget-inner>{{yield}}</widget-inner>',
+	const Widget = Ractive.extend({
+		template: '<WidgetInner>{{yield}}</WidgetInner>',
 		isolated: true,
-		components: { 'widget-inner': WidgetInner }
+		components: { WidgetInner }
 	});
 
-	Middle = Ractive.extend({
+	const Middle = Ractive.extend({
 		template: '<strong>{{yield}}</strong>'
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<widget><middle>{{foo}}</middle></widget>',
+		template: '<Widget><Middle>{{foo}}</Middle></Widget>',
 		data: { foo: 'yeah!' },
-		components: { widget: Widget, middle: Middle }
+		components: { Widget, Middle }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p><strong>yeah!</strong></p>' );
 });
 
-test( 'Events fire in parent context', function ( t ) {
-	var Widget, WidgetInner, Middle, ractive;
+test( 'Events fire in parent context', t => {
+	t.expect( 1 );
 
-	WidgetInner = Ractive.extend({
+	const WidgetInner = Ractive.extend({
 		template: '<p>{{yield}}</p>',
 		isolated: true
 	});
 
-	Widget = Ractive.extend({
-		template: '<widget-inner>{{yield}}</widget-inner>',
+	const Widget = Ractive.extend({
+		template: '<WidgetInner>{{yield}}</WidgetInner>',
 		isolated: true,
-		components: { 'widget-inner': WidgetInner }
+		components: { WidgetInner }
 	});
 
-	Middle = Ractive.extend({
+	const Middle = Ractive.extend({
 		template: '<strong>{{yield}}</strong>'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<widget><middle><button on-click="test(foo)">click me</button></middle></widget>',
+		template: '<Widget><Middle><button on-click="test(foo)">click me</button></Middle></Widget>',
 		data: { foo: 'yeah!' },
-		components: { widget: Widget, middle: Middle }
+		components: { Widget, Middle }
 	});
 
 	ractive.test = function ( foo ) {
 		t.equal( foo, 'yeah!' );
 	};
 
-	expect( 1 );
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 });
 
-test( 'A component can only have one {{yield}}', function () {
+test( 'A component can only have one {{yield}}', t => {
 	const Widget = Ractive.extend({
 		template: '<p>{{yield}}{{yield}}</p>'
 	});
 
-	throws( () => {
+	t.throws( () => {
 		new Ractive({
 			el: fixture,
 			template: '<Widget>yeah!</Widget>',
@@ -108,7 +104,7 @@ test( 'A component can only have one {{yield}}', function () {
 	}, /one {{yield}} declaration/ );
 });
 
-test( 'A component {{yield}} can be rerendered in conditional section block', function ( t ) {
+test( 'A component {{yield}} can be rerendered in conditional section block', t => {
 	const Widget = Ractive.extend({
 		template: '<p>{{#foo}}{{yield}}{{/}}</p>'
 	});
@@ -126,7 +122,7 @@ test( 'A component {{yield}} can be rerendered in conditional section block', fu
 	t.htmlEqual( fixture.innerHTML, '<p>yield</p>' );
 });
 
-test( 'A component {{yield}} can be rerendered in list section block', function ( t ) {
+test( 'A component {{yield}} can be rerendered in list section block', t => {
 	const Widget = Ractive.extend({
 		template: `
 			{{#each items:i}}
@@ -156,7 +152,7 @@ test( 'A component {{yield}} should be parented by the fragment holding the yiel
 		}
 	});
 
-	const ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template: `
 			<Widget foo='{{foo}}'>
@@ -166,29 +162,25 @@ test( 'A component {{yield}} should be parented by the fragment holding the yiel
 		components: { Widget }
 	});
 
-	const widget = ractive.findComponent( 'Widget' );
-
 	t.htmlEqual( fixture.innerHTML, '<div>foo! foo!</div>' );
 });
 
 test( 'Named yield with a hyphenated name (#1681)', t => {
-	let template, widget;
-
-	template = `
-		<widget>
+	const template = `
+		<Widget>
 			{{#partial foo-bar}}
 				<p>this is foo-bar</p>
 			{{/partial}}
-		</widget>`;
+		</Widget>`;
 
-	widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{yield foo-bar}}'
 	});
 
 	new Ractive({
 		el: fixture,
-		template: template,
-		components: { widget }
+		template,
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>this is foo-bar</p>' );
@@ -203,30 +195,28 @@ test( 'Named yield must have valid name, not expression (#1681)', t => {
 });
 
 test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t => {
-	let template, widget, ractive, Container;
-
-	widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{yield foo}}'
 	});
 
-	template = `
-		<widget>
+	const template = `
+		<Widget>
 			{{#partial foo}}
 				<p>this is foo</p>
 			{{/partial}}
-		</widget>`;
+		</Widget>`;
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
 		template,
-		components: { widget }
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
 
-	Container = Ractive.extend({
+	const Container = Ractive.extend({
 		template,
-		components: { widget }
+		components: { Widget }
 	});
 
 	new Container({
@@ -265,12 +255,12 @@ test( 'Components inherited from more than one generation off work with named yi
 if ( hasUsableConsole ) {
 	test( 'Yield with missing partial (#1681)', t => {
 		/* global console */
-		let warn = console.warn;
+		const warn = console.warn;
 		console.warn = msg => {
 			t.ok( /Could not find template for partial "missing"/.test( msg ) );
 		};
 
-		let Widget = Ractive.extend({
+		const Widget = Ractive.extend({
 			template: '{{yield missing}}'
 		});
 

@@ -68,7 +68,8 @@
     "release": "sh ./scripts/release.sh",
     "fakebuild": "sh ./scripts/build.sh --fake",
     "promises-aplus-tests": "./scripts/promises-aplus-tests.js",
-    "lint": "node node_modules/eslint/bin/eslint src/ --ext .js"
+    "lint": "node node_modules/eslint/bin/eslint src/ --ext .js",
+    "lint-tests": "node node_modules/eslint/bin/eslint test/__nodetests test/__tests test/testdeps --ext .js"
   },
   "github": "https://github.com/ractivejs/ractive",
   "devDependencies": {

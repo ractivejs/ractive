@@ -1,12 +1,13 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 import cleanup from 'helpers/cleanup';
 
 // TODO move these into more sensible locations
 
-var Component, Middle, View, setup;
+var Component, Middle, View;
 
-setup = {
-	setup: function(){
+const setup = {
+	beforeEach () {
 		Component = Ractive.extend({
 			template: '<span id="test" on-click="someEvent">click me</span>'
 		});
@@ -25,20 +26,20 @@ setup = {
 		});
 
 	},
-	teardown: function(){
+	afterEach () {
 		Component = Middle = View = void 0;
 	}
 };
 
-function fired ( event ) {
+function fired () {
 	ok( true );
 }
 
-function goodEvent( event ) {
+function goodEvent ( event ) {
 	ok( event.context || event === 'foo' );
 }
 
-function goodEventWithArg( event, arg ) {
+function goodEventWithArg ( event, arg ) {
 	equal( arg || event, 'foo' );
 }
 
@@ -54,8 +55,7 @@ function shouldBeNoBubbling () {
 	throw new Error( 'Event bubbling should not have happened' );
 }
 
-function testEventBubbling( fire ) {
-
+function testEventBubbling ( fire ) {
 	test( 'Events bubble under "eventname", and also "component.eventname" above firing component', t => {
 		var ractive, middle, component;
 
@@ -150,7 +150,7 @@ function testEventBubbling( fire ) {
 module( 'Component events bubbling proxy events', setup )
 
 testEventBubbling( function ( component ) {
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 });
 
 module( 'Component events bubbling fire() events', setup )
@@ -186,7 +186,7 @@ test( 'component "on-" can call methods', t => {
 	});
 
 	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
 });
 
@@ -217,7 +217,7 @@ test( 'component "on-" with ...arguments', t => {
 	});
 
 	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar', 100 );
 });
 
@@ -248,7 +248,7 @@ test( 'component "on-" with arguments[n]', t => {
 	});
 
 	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
 });
 
@@ -279,7 +279,7 @@ test( 'component "on-" with $n', t => {
 	});
 
 	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
 });
 
@@ -311,7 +311,7 @@ test( 'component "on-" supply own event proxy arguments', t => {
 	});
 
 	const component = ractive.findComponent( 'Component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
 	component.fire( 'bizz', 'buzz' );
 });
@@ -342,7 +342,7 @@ test( 'component "on-" handles reproxy of arguments correctly', t => {
 	});
 
 	const component = ractive.findComponent( 'Component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
 	component.fire( 'bizz' );
 });
@@ -364,7 +364,7 @@ test( 'handlers can use pattern matching', t => {
 	ractive.on( '*.event', fired);
 	ractive.on( 'some.event', fired);
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 });
 
 test( 'bubbling handlers can use pattern matching', t => {
@@ -390,7 +390,7 @@ test( 'bubbling handlers can use pattern matching', t => {
 	ractive.on( 'component.foo', fired);
 
 	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 
 	// otherwise we get cross test failure due to "teardown" event
 	// becasue we're reusing fixture element
@@ -418,7 +418,7 @@ test( 'component "on-someEvent" implicitly cancels bubbling', t => {
 	ractive.on( 'component.someEvent', shouldBeNoBubbling);
 
 	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 });
 
 test( 'component "on-" wildcards match', t => {
@@ -443,7 +443,7 @@ test( 'component "on-" wildcards match', t => {
 	ractive.on( 'both', fired);
 
 	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 });
 
 test( 'component "on-" do not get auto-namespaced events', t => {
@@ -466,7 +466,7 @@ test( 'component "on-" do not get auto-namespaced events', t => {
 	ractive.on( 'foo', shouldNotFire);
 
 	component = ractive.findComponent( 'component' );
-	simulant.fire( component.nodes.test, 'click' );
+	fire( component.nodes.test, 'click' );
 	t.ok( true );
 });
 
@@ -492,7 +492,7 @@ test( 'touch events safe to include when they don\'t exist in browser', t => {
 		t.ok( true );
 	})
 
-	simulant.fire( ractive.nodes.test2, 'mousedown' );
+	fire( ractive.nodes.test2, 'mousedown' );
 
 });
 
@@ -512,7 +512,7 @@ test( 'set to current event object', t => {
 		t.equal( this.event, event );
 	});
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 
 });
 
@@ -609,7 +609,7 @@ test( 'method calls that fire events do not clobber this.events', t => {
 		t.equal ( this.event.name, 'yell', 'handler as own event name' );
 	})
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 })
 
 
@@ -697,7 +697,7 @@ test( 'event actions and parameter references have context', t => {
 		t.equal( parameter, 'bar' );
 	})
 
-	simulant.fire( ractive.nodes.test1, 'click' );
+	fire( ractive.nodes.test1, 'click' );
 });
 
 test( 'twoway may be overridden on a per-element basis', t => {
@@ -710,7 +710,7 @@ test( 'twoway may be overridden on a per-element basis', t => {
 
 	let node = ractive.find( 'input' );
 	node.value = 'bar';
-	simulant.fire( node, 'change' );
+	fire( node, 'change' );
 	t.equal( ractive.get( 'foo' ), 'bar' );
 
 	ractive = new Ractive({
@@ -722,7 +722,7 @@ test( 'twoway may be overridden on a per-element basis', t => {
 
 	node = ractive.find( 'input' );
 	node.value = 'bar';
-	simulant.fire( node, 'change' );
+	fire( node, 'change' );
 	t.equal( ractive.get( 'foo' ), 'test' );
 });
 
@@ -738,11 +738,11 @@ test( 'Presence of lazy or twoway without value is considered true', t => {
 	input.value = 'changed';
 
 	// input events shouldn't trigger change (because lazy=true)...
-	simulant.fire( input, 'input' );
+	fire( input, 'input' );
 	t.equal( ractive.get( 'foo' ), '' );
 
 	// ...but change events still should (because twoway=true)
-	simulant.fire( input, 'change' );
+	fire( input, 'change' );
 	t.equal( ractive.get( 'foo' ), 'changed' );
 });
 
@@ -757,7 +757,7 @@ test( '`lazy=0` is not mistaken for `lazy`', t => {
 	input.value = 'changed';
 
 	// input events should trigger change
-	simulant.fire( input, 'input' );
+	fire( input, 'input' );
 	t.equal( ractive.get( 'foo' ), 'changed' );
 });
 
@@ -771,10 +771,10 @@ test( '`twoway=0` is not mistaken for `twoway`', t => {
 
 	input.value = 'changed';
 
-	simulant.fire( input, 'input' );
+	fire( input, 'input' );
 	t.equal( ractive.get( 'foo' ), undefined );
 
-	simulant.fire( input, 'change' );
+	fire( input, 'change' );
 	t.equal( ractive.get( 'foo' ), undefined );
 });
 
@@ -793,8 +793,8 @@ test( 'Attribute directives on fragments that get re-used (partials) should stic
 	const inputs = ractive.findAll( 'input' );
 	inputs[0].value = 'c';
 	inputs[1].value = 'c';
-	simulant.fire( inputs[0], 'change' );
-	simulant.fire( inputs[1], 'change' );
+	fire( inputs[0], 'change' );
+	fire( inputs[1], 'change' );
 
 	t.equal( ractive.get( 'list.0.foo' ), 'a' );
 	t.equal( ractive.get( 'list.1.foo' ), 'b' );
@@ -814,7 +814,7 @@ test( 'Regression test for #2046', t => {
 
 	// this should have no effect
 	el = ractive.find('button');
-	simulant.fire( el, 'click' );
+	fire( el, 'click' );
 });
 
 test( 'Regression test for #1971', t => {
@@ -836,7 +836,7 @@ test( 'Regression test for #1971', t => {
 
 	// this should have no effect
 	el = ractive.find('button');
-	simulant.fire( el, 'click' );
+	fire( el, 'click' );
 });
 
 test( 'correct function scope for this.bar() in template', t => {
@@ -855,15 +855,15 @@ test( 'correct function scope for this.bar() in template', t => {
 		}
 	});
 
-	simulant.fire( ractive.find( 'button' ), 'click' );
+	fire( ractive.find( 'button' ), 'click' );
 
 	t.equal( ractive.get( 'foo' ), '42' );
 });
 
 // phantom and IE8 don't like these tests, but browsers are ok with them
 try {
-	simulant.fire( document.createElement( 'div' ), 'input' );
-	simulant.fire( document.createElement( 'div' ), 'blur' );
+	fire( document.createElement( 'div' ), 'input' );
+	fire( document.createElement( 'div' ), 'blur' );
 
 	test( 'lazy may be overridden on a per-element basis', t => {
 		let ractive = new Ractive({
@@ -875,9 +875,9 @@ try {
 
 		let node = ractive.find( 'input' );
 		node.value = 'bar';
-		simulant.fire( node, 'input' );
+		fire( node, 'input' );
 		t.equal( ractive.get( 'foo' ), 'test' );
-		simulant.fire( node, 'blur' );
+		fire( node, 'blur' );
 		t.equal( ractive.get( 'foo' ), 'bar' );
 
 		ractive = new Ractive({
@@ -889,7 +889,7 @@ try {
 
 		node = ractive.find( 'input' );
 		node.value = 'bar';
-		simulant.fire( node, 'input' );
+		fire( node, 'input' );
 		t.equal( ractive.get( 'foo' ), 'bar' );
 	});
 
@@ -902,7 +902,7 @@ try {
 
 		let node = ractive.find( 'input' );
 		node.value = 'bar';
-		simulant.fire( node, 'input' );
+		fire( node, 'input' );
 		t.equal( ractive.get( 'foo' ), 'test' );
 
 		setTimeout( () => {
@@ -933,13 +933,13 @@ try {
 
 		button = ractive.find( 'button' );
 
-		simulant.fire( button, 'click' );
+		fire( button, 'click' );
 		t.ok( event1Fired );
 		t.ok( !event2Fired );
 
 		event1Fired = false;
 		ractive.set( 'foo', false );
-		simulant.fire( button, 'click' );
+		fire( button, 'click' );
 		t.ok( !event1Fired );
 		t.ok( event2Fired );
 	});

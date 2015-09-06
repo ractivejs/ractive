@@ -341,7 +341,7 @@ test( 'Specify component by function as string', t => {
 		el: fixture,
 		template: '<Widget/>',
 		components: {
-			Widget: function() {
+			Widget () {
 				return 'Widget1';
 			},
 			Widget1: Widget
@@ -383,7 +383,7 @@ if ( hasUsableConsole ) {
 			t.ok( true );
 		};
 
-		var ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			data: { show: true },
 			template: '{{#if show}}<Widget/>{{/if}}',
@@ -540,7 +540,7 @@ test( 'Component CSS is added to the page before components (#1046)', t => {
 		template: '<div class="box"></div>',
 		css: '.box { width: 100px; height: 100px; }',
 		onrender () {
-			var div = this.find( '.box' );
+			const div = this.find( '.box' );
 			t.equal( div.offsetHeight, 100 );
 			t.equal( div.offsetWidth, 100 );
 		}
@@ -689,10 +689,10 @@ test( 'Multiple components two-way binding', t => {
 	let list2 = [
 		{ foo: 1 },
 		{ foo: 2, bar: [ { a: 1 }, { a: 2 }, { a: 3 } ] },
-		{ foo: 3 },
+		{ foo: 3 }
 	];
 
-	for ( var i = 0; i < list2.length; i++ ) {
+	for ( let i = 0; i < list2.length; i++ ) {
 		list.push( list2[i] );
 	}
 
@@ -744,7 +744,7 @@ test( 'Two-way bindings on an unresolved key can force resolution', t => {
 });
 
 test( 'Component mappings used in computations resolve correctly with the mapping (#1645)', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<C1/>',
 		components: {
@@ -782,7 +782,7 @@ test( 'Component attributes with an empty string come back with an empty string'
 test( 'Unresolved keypath can be safely torn down', t => {
 	t.expect( 0 );
 
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `<Outer/>`,
 		components: {
@@ -830,7 +830,7 @@ test( 'Mappings resolve correctly where references are shadowed (#2108)', assert
 
 test( 'this.parent exists in component.onconstruct() (#2091)', t => {
 	const Widget = Ractive.extend({
-		template: "<div>component</div>",
+		template: '<div>component</div>',
 		onconstruct () {
 			t.ok( this.parent );
 		}

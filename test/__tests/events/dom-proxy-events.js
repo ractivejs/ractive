@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 	t.expect( 2 );
@@ -13,7 +14,7 @@ test( 'on-click="someEvent" fires an event when user clicks the element', t => {
 		t.equal( event.original.type, 'click' );
 	});
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 });
 
 test( 'empty event on-click="" ok', t => {
@@ -24,7 +25,7 @@ test( 'empty event on-click="" ok', t => {
 		template: '<span id="test" on-click="">click me</span>'
 	});
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 });
 
 test( 'on-click="someEvent" does not fire event when unrendered', t => {
@@ -42,7 +43,7 @@ test( 'on-click="someEvent" does not fire event when unrendered', t => {
 	const node = ractive.nodes.test;
 
 	ractive.unrender();
-	simulant.fire( node, 'click' );
+	fire( node, 'click' );
 });
 
 test( 'Standard events have correct properties: node, original, keypath, context, index, name', t => {
@@ -62,7 +63,7 @@ test( 'Standard events have correct properties: node, original, keypath, context
 		t.ok( typeof event.index === 'object' && Object.keys( event.index ).length === 0 );
 	});
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 });
 
 test( 'preventDefault and stopPropagation if event handler returned false', t => {
@@ -115,16 +116,16 @@ test( 'preventDefault and stopPropagation if event handler returned false', t =>
 		return 0;
 	});
 
-	simulant.fire( ractive.nodes.return_false, 'click' );
+	fire( ractive.nodes.return_false, 'click' );
 	t.ok( preventedDefault && stoppedPropagation );
 
-	simulant.fire( ractive.nodes.return_undefined, 'click' );
+	fire( ractive.nodes.return_undefined, 'click' );
 	t.ok( !preventedDefault && !stoppedPropagation );
 
-	simulant.fire( ractive.nodes.return_zero, 'click' );
+	fire( ractive.nodes.return_zero, 'click' );
 	t.ok( !preventedDefault && !stoppedPropagation );
 
-	simulant.fire( ractive.nodes.multiHandler, 'click' );
+	fire( ractive.nodes.multiHandler, 'click' );
 	t.ok( preventedDefault && stoppedPropagation );
 });
 
@@ -144,7 +145,7 @@ test( 'event.keypath is set to the innermost context', t => {
 		t.equal( event.context.bar, 'test' );
 	});
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 });
 
 test( 'event.index stores current indices against their references', t => {
@@ -165,7 +166,7 @@ test( 'event.index stores current indices against their references', t => {
 		t.equal( event.index.i, 2 );
 	});
 
-	simulant.fire( ractive.nodes.item_2, 'click' );
+	fire( ractive.nodes.item_2, 'click' );
 });
 
 test( 'event.index reports nested indices correctly', t => {
@@ -189,7 +190,7 @@ test( 'event.index reports nested indices correctly', t => {
 		t.equal( event.index.z, 1 );
 	});
 
-	simulant.fire( ractive.nodes.test_001, 'click' );
+	fire( ractive.nodes.test_001, 'click' );
 });
 
 test( 'proxy events can have dynamic names', t => {
@@ -212,12 +213,12 @@ test( 'proxy events can have dynamic names', t => {
 		}
 	});
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 	t.equal( last, 'foo' );
 
 	ractive.set( 'something', 'bar' );
 
-	simulant.fire( ractive.nodes.test, 'click' );
+	fire( ractive.nodes.test, 'click' );
 	t.equal( last, 'bar' );
 });
 
@@ -237,13 +238,13 @@ test( 'proxy event parameters are correctly parsed as JSON, or treated as a stri
 		}
 	});
 
-	simulant.fire( ractive.nodes.foo, 'click' );
+	fire( ractive.nodes.foo, 'click' );
 	t.equal( last, 'one' );
 
-	simulant.fire( ractive.nodes.bar, 'click' );
+	fire( ractive.nodes.bar, 'click' );
 	t.deepEqual( last, { bar: true } );
 
-	simulant.fire( ractive.nodes.baz, 'click' );
+	fire( ractive.nodes.baz, 'click' );
 	t.deepEqual( last, [ 1, 2, 3 ] );
 });
 
@@ -262,7 +263,7 @@ test( 'proxy events can have dynamic arguments', t => {
 		}
 	});
 
-	simulant.fire( ractive.nodes.foo, 'click' );
+	fire( ractive.nodes.foo, 'click' );
 });
 
 test( 'proxy events can have multiple arguments', t => {
@@ -290,9 +291,9 @@ test( 'proxy events can have multiple arguments', t => {
 		}
 	});
 
-	simulant.fire( ractive.nodes.foo, 'click' );
-	simulant.fire( ractive.nodes.bar, 'click' );
-	simulant.fire( ractive.nodes.baz, 'click' );
+	fire( ractive.nodes.foo, 'click' );
+	fire( ractive.nodes.bar, 'click' );
+	fire( ractive.nodes.baz, 'click' );
 });
 
 test( 'Splicing arrays correctly modifies proxy events', t => {
@@ -313,13 +314,13 @@ test( 'Splicing arrays correctly modifies proxy events', t => {
 
 	t.equal( ractive.findAll( 'button' ).length, 5 );
 
-	simulant.fire( ractive.nodes.button_2, 'click' );
+	fire( ractive.nodes.button_2, 'click' );
 	t.equal( ractive.findAll( 'button' ).length, 4 );
 
-	simulant.fire( ractive.nodes.button_2, 'click' );
+	fire( ractive.nodes.button_2, 'click' );
 	t.equal( ractive.findAll( 'button' ).length, 3 );
 
-	simulant.fire( ractive.nodes.button_2, 'click' );
+	fire( ractive.nodes.button_2, 'click' );
 	t.equal( ractive.findAll( 'button' ).length, 2 );
 });
 
@@ -356,7 +357,7 @@ test( 'Splicing arrays correctly modifies two-way bindings', t => {
 	t.equal( !!ractive.get( 'items.1.done' ), true );
 	t.equal( !!ractive.get( 'items.2.done' ), false );
 
-	simulant.fire( ractive.nodes.input_0, 'click' );
+	fire( ractive.nodes.input_0, 'click' );
 
 	// 7-9
 	t.equal( ractive.nodes.input_0.checked, true );
@@ -378,7 +379,7 @@ test( 'Splicing arrays correctly modifies two-way bindings', t => {
 	t.equal( !!ractive.get( 'items.0.done' ), true );
 	t.equal( !!ractive.get( 'items.1.done' ), false );
 
-	simulant.fire( ractive.nodes.input_0, 'click' );
+	fire( ractive.nodes.input_0, 'click' );
 
 	// 17-18
 	t.equal( ractive.nodes.input_0.checked, false );
@@ -388,7 +389,7 @@ test( 'Splicing arrays correctly modifies two-way bindings', t => {
 	t.equal( !!ractive.get( 'items.0.done' ), false );
 	t.equal( !!ractive.get( 'items.1.done' ), false );
 
-	simulant.fire( ractive.nodes.input_1, 'click' );
+	fire( ractive.nodes.input_1, 'click' );
 
 	// 21-22
 	t.equal( ractive.nodes.input_0.checked, false );
@@ -439,13 +440,13 @@ test( 'Changes triggered by two-way bindings propagate properly (#460)', t => {
 
 	t.htmlEqual( ractive.find( '.result' ).innerHTML, '1' );
 
-	simulant.fire( ractive.findAll( 'input' )[1], 'click' );
+	fire( ractive.findAll( 'input' )[1], 'click' );
 	t.htmlEqual( ractive.find( '.result' ).innerHTML, '2' );
 
 	t.equal( changes[ 'items.1.completed' ], true );
 
-	simulant.fire( ractive.findAll( 'input' )[0], 'click' );
-	simulant.fire( ractive.findAll( 'input' )[1], 'click' );
+	fire( ractive.findAll( 'input' )[0], 'click' );
+	fire( ractive.findAll( 'input' )[1], 'click' );
 	t.htmlEqual( ractive.find( '.result' ).innerHTML, '0' );
 });
 
@@ -461,10 +462,10 @@ test( 'Multiple events can share the same directive', t => {
 		count += 1;
 	});
 
-	simulant.fire( ractive.find( 'div' ), 'click' );
+	fire( ractive.find( 'div' ), 'click' );
 	t.equal( count, 1 );
 
-	simulant.fire( ractive.find( 'div' ), 'mouseover' );
+	fire( ractive.find( 'div' ), 'mouseover' );
 	t.equal( count, 2 );
 });
 
@@ -486,14 +487,14 @@ test( 'Superfluous whitespace is ignored', t => {
 		}
 	});
 
-	simulant.fire( ractive.find( '.one' ), 'click' );
+	fire( ractive.find( '.one' ), 'click' );
 	t.equal( fooCount, 1 );
 
-	simulant.fire( ractive.find( '.two' ), 'click' );
+	fire( ractive.find( '.two' ), 'click' );
 	t.equal( barCount, 0 );
 
 	ractive.set( 'bar', true );
-	simulant.fire( ractive.find( '.two' ), 'click' );
+	fire( ractive.find( '.two' ), 'click' );
 	t.equal( barCount, 1 );
 });
 
@@ -514,12 +515,12 @@ test( '@index can be used in proxy event directives', t => {
 
 	ractive.on( 'select', ( event, index ) => t.equal( index, 1 ) );
 
-	simulant.fire( ractive.findAll( 'button[class=proxy]' )[1], 'click' );
-	simulant.fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
+	fire( ractive.findAll( 'button[class=proxy]' )[1], 'click' );
+	fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
 
 	ractive.splice( 'letters', 0, 1 );
 	ractive.splice( 'letters', 1, 0, 'a' );
-	simulant.fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
+	fire( ractive.findAll( 'button[class=method]' )[1], 'click' );
 });
 
 test( 'Proxy event arguments update correctly (#2098)', t => {
@@ -546,8 +547,8 @@ test( 'Proxy event arguments update correctly (#2098)', t => {
 
 	const button = ractive.find( 'button' );
 
-	simulant.fire( button, 'click' );
-	simulant.fire( button, 'click' );
+	fire( button, 'click' );
+	fire( button, 'click' );
 });
 
 // This fails as of 0.8.0... does that matter? Seems unnecessary to support
@@ -572,15 +573,15 @@ test( 'Proxy event arguments update correctly (#2098)', t => {
 // 			t.ok( true );
 // 		})
 //
-// 		simulant.fire( ractive.nodes.test, 'click' );
+// 		fire( ractive.nodes.test, 'click' );
 //
 // 		Element.prototype.addEventListener = addEventListener;
 // 		ractive.set( 'foo', 'bar' );
-// 		simulant.fire( ractive.nodes.test, 'click' );
+// 		fire( ractive.nodes.test, 'click' );
 //
 // 		Element.prototype.addEventListener = errorAdd;
 // 		ractive.set( 'foo', ' ' );
-// 		simulant.fire( ractive.nodes.test, 'click' );
+// 		fire( ractive.nodes.test, 'click' );
 // 	}
 // 	finally {
 // 		Element.prototype.addEventListener = addEventListener;

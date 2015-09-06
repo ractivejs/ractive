@@ -128,11 +128,16 @@ test = (function () {
 		es5
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
 		return sander.lsr( inputdir, '__tests' ).then( function ( testModules ) {
+			var globals = {
+				qunit: 'QUnit',
+				simulant: 'simulant'
+			};
+
 			var promises = testModules.filter( junk.not ).sort().map( function ( mod ) {
 				return rollup.rollup({
 					entry: inputdir + '/__tests/' + mod,
 					resolveId: function ( importee, importer ) {
-						if ( importee === 'qunit' ) return false;
+						if ( globals[ importee ] ) return false;
 
 						if ( !importer ) return importee;
 
@@ -156,9 +161,7 @@ test = (function () {
 					return bundle.write({
 						dest: outputdir + '/' + mod,
 						format: 'iife',
-						globals: {
-							qunit: 'QUnit'
-						}
+						globals: globals
 					});
 				});
 			});

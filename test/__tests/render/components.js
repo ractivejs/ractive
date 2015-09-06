@@ -1,36 +1,28 @@
 import { test } from 'qunit';
 
 test( 'Components are rendered in the correct place', t => {
-	var Component, ractive;
-
-	Component = Ractive.extend({
+	const Component = Ractive.extend({
 		template: '<p>this is a component!</p>'
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<h2>Here is a component:</h2><component/><p>(that was a component)</p>',
-		components: {
-			component: Component
-		}
+		template: '<h2>Here is a component:</h2><Component/><p>(that was a component)</p>',
+		components: { Component }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<h2>Here is a component:</h2><p>this is a component!</p><p>(that was a component)</p>' );
 });
 
 test( 'Top-level sections in components are updated correctly', t => {
-	var ractive, Component;
-
-	Component = Ractive.extend({
+	const Component = Ractive.extend({
 		template: '{{#foo}}foo is truthy{{/foo}}{{^foo}}foo is falsy{{/foo}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<component foo="{{foo}}"/>',
-		components: {
-			component: Component
-		}
+		template: '<Component foo="{{foo}}"/>',
+		components: { Component }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'foo is falsy' );
@@ -40,16 +32,14 @@ test( 'Top-level sections in components are updated correctly', t => {
 });
 
 test( 'Element order is maintained correctly with components with multiple top-level elements', t => {
-	var ractive, TestComponent;
-
-	TestComponent = Ractive.extend({
+	const Test = Ractive.extend({
 		template: '{{#bool}}TRUE{{/bool}}{{^bool}}FALSE{{/bool}}'
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '<p>before</p> <test bool="{{bool}}"/> <p>after</p>',
-		components: { test: TestComponent }
+		template: '<p>before</p> <Test bool="{{bool}}"/> <p>after</p>',
+		components: { Test }
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>before</p> FALSE <p>after</p>' );
@@ -62,18 +52,14 @@ test( 'Element order is maintained correctly with components with multiple top-l
 });
 
 test( 'Top-level list sections in components do not cause elements to be out of order (#412 regression)', t => {
-	var Widget, ractive;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{#numbers:o}}<p>{{.}}</p>{{/numbers}}'
 	});
 
-	ractive = new Ractive({
+	new Ractive({
 		el: fixture,
-		template: '<h1>Names</h1><widget numbers="{{first}}"/><widget numbers="{{second}}"/>',
-		components: {
-			widget: Widget
-		},
+		template: '<h1>Names</h1><Widget numbers="{{first}}"/><Widget numbers="{{second}}"/>',
+		components: { Widget },
 		data: {
 			first: { one: 'one', two: 'two' },
 			second: { three: 'three', four: 'four' }
