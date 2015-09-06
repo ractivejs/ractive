@@ -33,7 +33,7 @@ export default function processDirective ( tokens, parentParser ) {
 			}
 
 			result = { m: match[1] };
-			const sliced = tokens.slice( result.m.length + 1, end )
+			const sliced = tokens.slice( result.m.length + 1, end );
 
 			if ( sliced === '...arguments' ) {
 				// TODO: what the heck should this be???

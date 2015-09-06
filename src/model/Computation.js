@@ -2,8 +2,6 @@ import { capture, startCapturing, stopCapturing } from '../global/capture';
 import { warnIfDebug } from '../utils/log';
 import Model from './Model';
 import ComputationChild from './ComputationChild';
-import { removeFromArray } from '../utils/array';
-import { isEqual } from '../utils/is';
 import { handleChange } from '../shared/methodCallers';
 
 // TODO this is probably a bit anal, maybe we should leave it out

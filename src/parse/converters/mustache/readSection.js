@@ -85,7 +85,7 @@ export default function readSection ( parser, tag ) {
 			}
 
 			if ( !unlessBlock ) {
-				unlessBlock = createUnlessBlock( expression, section.n );
+				unlessBlock = createUnlessBlock( expression );
 			}
 
 			unlessBlock.f.push({
@@ -111,7 +111,7 @@ export default function readSection ( parser, tag ) {
 
 			// use an unless block if there's no elseif
 			if ( !unlessBlock ) {
-				unlessBlock = createUnlessBlock( expression, section.n );
+				unlessBlock = createUnlessBlock( expression );
 				children = unlessBlock.f;
 			} else {
 				unlessBlock.f.push({
@@ -159,7 +159,7 @@ export default function readSection ( parser, tag ) {
 	return section;
 }
 
-function createUnlessBlock ( expression, sectionType ) {
+function createUnlessBlock ( expression ) {
 	let unlessBlock = {
 		t: SECTION,
 		n: SECTION_UNLESS,
@@ -167,7 +167,6 @@ function createUnlessBlock ( expression, sectionType ) {
 	};
 
 	refineExpression( expression, unlessBlock );
-
 	return unlessBlock;
 }
 
