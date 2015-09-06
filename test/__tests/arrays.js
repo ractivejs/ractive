@@ -283,13 +283,13 @@ test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
 				{ f () { called.f2++; return 'f2'; } },
 				{ f () { called.f3++; return 'f3'; } }
 			],
-			func (obj) { console.trace(); called.func++; return obj; }
+			func ( obj ) { called.func++; return obj; }
 		})
 	});
 
-	t.deepEqual( called, { func: 3, f1: 1, f2: 1, f3: 1 })
+	t.deepEqual( called, { func: 3, f1: 1, f2: 1, f3: 1 });
 	ractive.set('items', []);
-	t.deepEqual( called, { func: 3, f1: 1, f2: 1, f3: 1 })
+	t.deepEqual( called, { func: 3, f1: 1, f2: 1, f3: 1 });
 });
 
 // TODO reinstate this in some form. Commented out for purposes of #1740
@@ -362,7 +362,7 @@ function removedElementsTest ( action, fn ) {
 removedElementsTest( 'splice', ractive => ractive.splice( 'options', 1, 1 ) );
 removedElementsTest( 'merge', ractive => ractive.merge( 'options', [ 'a', 'c' ] ) );
 
-test( 'popping from an empty array (#1665)', t => {
+test( 'popping from an empty array (#1665)', () => {
 	let array = [];
 
 	new Ractive({

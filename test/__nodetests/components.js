@@ -1,6 +1,6 @@
 /*global require, describe, it */
-var Ractive = require( '../../ractive' ),
-	assert = require( 'assert' );
+var Ractive = require( '../../ractive' );
+var assert = require( 'assert' );
 
 describe( 'Components', function () {
 	it( 'should render in a non-DOM environment', function () {
@@ -29,6 +29,6 @@ describe( 'Components', function () {
 			css: 'p { color: red; }'
 		});
 
-		var ractive = new Widget();
+		new Widget();
 	});
 });

@@ -1,4 +1,6 @@
-if ( Ractive.svg ) {
+import { svg } from 'config/environment';
+
+if ( svg ) {
 	const html = 'http://www.w3.org/1999/xhtml';
 	const svg = 'http://www.w3.org/2000/svg';
 

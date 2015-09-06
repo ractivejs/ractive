@@ -10,6 +10,8 @@
 // Some tests technically fail in IE8. This is because IE8 is shit. The library
 // works fine, but IE8 gets all confused about whitespace when doing innerHTML.
 // For the sake of sanity, these tests are also marked.
+//
+// TODO update tests from source
 import cleanup from 'helpers/cleanup';
 
 var testModules, runTest, runModule, i, isOldIe;
@@ -1185,36 +1187,24 @@ testModules = [
 
 isOldIe = /MSIE [6-8]/.test( navigator.userAgent );
 
-runTest = function ( theTest ) {
-	test( theTest.name, function ( t ) {
-		var ractive;
-
-		ractive = new Ractive({
-			el: fixture,
-			template: theTest.template,
-			data: theTest.data,
-			partials: theTest.partials,
-			preserveWhitespace: true
-		});
-
-		t.htmlEqual( fixture.innerHTML, theTest.expected, theTest.desc + '\n' + theTest.template + '\n' );
-	});
-};
-
-runModule = function ( theModule ) {
-	var i, theTest;
-
+testModules.forEach( theModule => {
 	module( 'Mustache compliance (' + theModule.name + ')', { afterEach: cleanup });
 
-	for ( i=0; i<theModule.tests.length; i+=1 ) {
-		theTest = theModule.tests[i];
+	theModule.tests.forEach( theTest => {
+		if ( theTest.unpassable || ( isOldIe && theTest.oldIe ) ) return;
 
-		if ( !theTest.unpassable && ( !isOldIe || !theTest.oldIe ) ) {
-			runTest( theModule.tests[i] );
-		}
-	}
-};
+		test( theTest.name, function ( t ) {
+			var ractive;
 
-for ( i=0; i<testModules.length; i+=1 ) {
-	runModule( testModules[i] );
-}
+			ractive = new Ractive({
+				el: fixture,
+				template: theTest.template,
+				data: theTest.data,
+				partials: theTest.partials,
+				preserveWhitespace: true
+			});
+
+			t.htmlEqual( fixture.innerHTML, theTest.expected, theTest.desc + '\n' + theTest.template + '\n' );
+		});
+	});
+});

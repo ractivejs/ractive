@@ -1,100 +1,7 @@
-import tests from 'samples/render';
+import { svg } from 'config/environment';
 
-var runTest, theTest, magicModes, hasSvg, i;
-
-// try {
-// 	var obj = {}, _foo;
-// 	Object.defineProperty( obj, 'foo', {
-// 		get: function () {
-// 			return _foo;
-// 		},
-// 		set: function ( value ) {
-// 			_foo = value;
-// 		}
-// 	});
-// 	magicModes = [ false, true ];
-// } catch ( err ) {
-	magicModes = [ false ];
-// }
-
-hasSvg = document.implementation.hasFeature( 'http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1' );
-
-// argh IE
-if ( ![].reduce ) {
-	Array.prototype.reduce = function ( reducer, start ) {
-		var i, len, reduced;
-
-		reduced = start || 0;
-
-		len = this.length;
-		for ( i=0; i<len; i+=1 ) {
-			if ( this.hasOwnProperty( i ) ) {
-				reduced = reducer( reduced, this[i] );
-			}
-		}
-
-		return reduced;
-	};
-}
-
-runTest = function ( i ) {
-	var theTest = tests[i];
-
-	if ( theTest.nodeOnly ) {
-		return;
-	}
-
-	test( theTest.name, function ( t ) {
-		magicModes.forEach( function ( magic ) {
-			var view, data, j, step;
-
-			data = typeof theTest.data === 'function' ? theTest.data() : deepClone( theTest.data );
-
-			view = new Ractive({
-				el: fixture,
-				data: data,
-				template: theTest.template,
-				partials: theTest.partials,
-				handlebars: theTest.handlebars, // TODO remove this if handlebars mode becomes default
-				debug: true,
-				magic: magic
-			});
-
-			t.htmlEqual( fixture.innerHTML, theTest.result, 'innerHTML should match result' );
-			t.htmlEqual( view.toHTML(), theTest.result, 'toHTML() should match result' );
-
-			if ( theTest.new_data ) {
-				data = typeof theTest.new_data === 'function' ? theTest.new_data() : deepClone( theTest.new_data );
-				view.set( data );
-
-				t.htmlEqual( fixture.innerHTML, theTest.new_result, 'innerHTML should match result' );
-				t.htmlEqual( view.toHTML(), theTest.new_result, 'toHTML() should match result' );
-			} else if ( theTest.steps && theTest.steps.length ) {
-				for ( j = 0; j < theTest.steps.length; j++ ) {
-					step = theTest.steps[j];
-					data = typeof step.data === 'function' ? step.data() : deepClone( step.data );
-					view.set( data );
-
-					t.htmlEqual( fixture.innerHTML, step.result, step.message || 'innerHTML should match result' );
-					t.htmlEqual( view.toHTML(), step.result, step.message || 'toHTML() should match result' );
-				}
-			}
-
-			view.teardown();
-		});
-	});
-};
-
-for ( i=0; i<tests.length; i+=1 ) {
-	if ( !hasSvg && tests[i].svg ) {
-		continue;
-	}
-
-	runTest( i );
-}
-
-if ( Ractive.svg ) {
-	test('Style elements have content inserted that becomes .textContent gh #569', function(t){
+if ( svg ) {
+	test( 'Style elements have content inserted that becomes .textContent gh #569', t => {
 		var ractive = new Ractive({
 				el: fixture,
 				template: '<svg><style id="style">text { font-size: 40px }</style></svg>'
@@ -106,7 +13,7 @@ if ( Ractive.svg ) {
 	});
 }
 
-test('Nested reference expression updates when array index member changes', function(t){
+test( 'Nested reference expression updates when array index member changes', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '{{#item}}{{foo[bar]}}{{/}}',
@@ -119,7 +26,7 @@ test('Nested reference expression updates when array index member changes', func
 
 });
 
-test('Conditional section with reference expression updates when keypath changes', function(t){
+test( 'Conditional section with reference expression updates when keypath changes', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo[bar]}}buzz{{/}}',
@@ -135,7 +42,7 @@ test('Conditional section with reference expression updates when keypath changes
 
 });
 
-test('Input with reference expression updates target when keypath changes', function(t){
+test( 'Input with reference expression updates target when keypath changes', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: '<input value="{{foo[bar]}}"/>',
@@ -152,7 +59,7 @@ test('Input with reference expression updates target when keypath changes', func
 
 });
 
-test('List of inputs with referenceExpression name update correctly', function(t){
+test( 'List of inputs with referenceExpression name update correctly', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: "<input type='radio' name='{{responses[topic]}}'/>",
@@ -166,10 +73,9 @@ test('List of inputs with referenceExpression name update correctly', function(t
 	var input = ractive.find('input');
 	t.ok( input );
 	t.equal( input.name, '{{responses.Color}}' );
-
 });
 
-test('List of inputs with nested referenceExpression name updates correctly', function(t){
+test( 'List of inputs with nested referenceExpression name updates correctly', t => {
 	var ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -197,7 +103,6 @@ test('List of inputs with nested referenceExpression name updates correctly', fu
 	ractive.findAll('input').forEach(function(input){
 		t.equal( input.name, '{{responses.Colors}}' )
 	});
-
 });
 
 test( 'Rendering a non-append instance into an already-occupied element removes the other instance (#1430)', t => {
@@ -301,7 +206,6 @@ test( 'Multi switch each block object -> array -> object -> array (#2054)', t =>
 
 	ractive.set( 'bar', arrayData );
 	t.htmlEqual( fixture.innerHTML, expected );
-
 });
 
 if ( typeof Object.create === 'function' ) {
@@ -319,30 +223,4 @@ if ( typeof Object.create === 'function' ) {
 		t.htmlEqual( fixture.innerHTML, expected );
 		t.equal( ractive.toHTML(), expected );
 	});
-}
-
-function deepClone ( source ) {
-	var target, key;
-
-	if ( !source || typeof source !== 'object' ) {
-		return source;
-	}
-
-	if ( isArray( source ) ) {
-		return source.slice();
-	}
-
-	target = {};
-
-	for ( key in source ) {
-		if ( source.hasOwnProperty( key ) ) {
-			target[ key ] = deepClone( source[ key ] );
-		}
-	}
-
-	return target;
-}
-
-function isArray ( thing ) {
-	return Object.prototype.toString.call( thing ) === '[object Array]';
 }

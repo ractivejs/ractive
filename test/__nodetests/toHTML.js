@@ -1,8 +1,8 @@
 /*global require, describe, it */
-var Ractive = require( '../../ractive' ),
-	assert = require( 'assert' ),
-	renderTests = require( './samples/render' ),
-	cheerio = require( 'cheerio' );
+var Ractive = require( '../../ractive' );
+var assert = require( 'assert' );
+var renderTests = require( './samples/render' );
+var cheerio = require( 'cheerio' );
 
 function normaliseHTML ( html ) {
 	return cheerio.load( html ).html().trim().replace( /^\s+/gm, '' ).replace( /\n/g, ' ' );

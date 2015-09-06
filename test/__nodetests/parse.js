@@ -1,7 +1,7 @@
 /*global require, describe, it */
-var Ractive = require( '../../ractive' ),
-	assert = require( 'assert' ),
-	parseTests = require( './samples/parse' );
+var Ractive = require( '../../ractive' );
+var assert = require( 'assert' );
+var parseTests = require( './samples/parse' );
 
 describe( 'Ractive.parse()', function () {
 	parseTests.forEach( function ( test ) {
