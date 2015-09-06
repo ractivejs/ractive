@@ -1,19 +1,19 @@
 import { test } from 'qunit';
 
-test( 'Basic decorator', function ( t ) {
-	var ractive = new Ractive({
+test( 'Basic decorator', t => {
+	new Ractive({
 		el: fixture,
 		template: '<div decorator="foo">this text will be overwritten</div>',
 		decorators: {
-			foo: function ( node ) {
-				var contents = node.innerHTML;
+			foo ( node ) {
+				const contents = node.innerHTML;
 				node.innerHTML = 'foo';
 
 				return {
-					teardown: function () {
+					teardown () {
 						node.innerHTML = contents;
 					}
-				}
+				};
 			}
 		}
 	});
@@ -21,20 +21,20 @@ test( 'Basic decorator', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
 });
 
-test( 'Decorator with a static argument', function ( t ) {
-	var ractive = new Ractive({
+test( 'Decorator with a static argument', t => {
+	new Ractive({
 		el: fixture,
 		template: '<div decorator="foo:bar">this text will be overwritten</div>',
 		decorators: {
-			foo: function ( node, newContents ) {
-				var contents = node.innerHTML;
+			foo ( node, newContents ) {
+				const contents = node.innerHTML;
 				node.innerHTML = newContents;
 
 				return {
-					teardown: function () {
+					teardown () {
 						node.innerHTML = contents;
 					}
-				}
+				};
 			}
 		}
 	});
@@ -42,23 +42,23 @@ test( 'Decorator with a static argument', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 });
 
-test( 'Decorator with a dynamic argument', function ( t ) {
-	var ractive = new Ractive({
+test( 'Decorator with a dynamic argument', t => {
+	new Ractive({
 		el: fixture,
 		template: '<div decorator="foo:{{foo}}">this text will be overwritten</div>',
 		data: {
 			foo: 'baz'
 		},
 		decorators: {
-			foo: function ( node, newContents ) {
-				var contents = node.innerHTML;
+			foo ( node, newContents ) {
+				const contents = node.innerHTML;
 				node.innerHTML = newContents;
 
 				return {
-					teardown: function () {
+					teardown () {
 						node.innerHTML = contents;
 					}
-				}
+				};
 			}
 		}
 	});
@@ -66,23 +66,23 @@ test( 'Decorator with a dynamic argument', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 });
 
-test( 'Decorator with a dynamic argument that changes, without update() method', function ( t ) {
-	var ractive = new Ractive({
+test( 'Decorator with a dynamic argument that changes, without update() method', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div decorator="foo:{{foo}}">this text will be overwritten</div>',
 		data: {
 			foo: 'baz'
 		},
 		decorators: {
-			foo: function ( node, newContents ) {
-				var contents = node.innerHTML;
+			foo ( node, newContents ) {
+				const contents = node.innerHTML;
 				node.innerHTML = newContents;
 
 				return {
-					teardown: function () {
+					teardown () {
 						node.innerHTML = contents;
 					}
-				}
+				};
 			}
 		}
 	});
@@ -92,26 +92,26 @@ test( 'Decorator with a dynamic argument that changes, without update() method',
 	t.htmlEqual( fixture.innerHTML, '<div>qux</div>' );
 });
 
-test( 'Decorator with a dynamic argument that changes, with update() method', function ( t ) {
-	var ractive = new Ractive({
+test( 'Decorator with a dynamic argument that changes, with update() method', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<div decorator="foo:{{foo}}">this text will be overwritten</div>',
 		data: {
 			foo: 'baz'
 		},
 		decorators: {
-			foo: function ( node, newContents ) {
-				var contents = node.innerHTML;
+			foo ( node, newContents ) {
+				const contents = node.innerHTML;
 				node.innerHTML = newContents;
 
 				return {
-					update: function ( newContents ) {
+					update ( newContents ) {
 						node.innerHTML = newContents;
 					},
-					teardown: function () {
+					teardown () {
 						node.innerHTML = contents;
 					}
-				}
+				};
 			}
 		}
 	});
@@ -122,25 +122,23 @@ test( 'Decorator with a dynamic argument that changes, with update() method', fu
 });
 
 if ( Ractive.magic ) {
-	test( 'Referencing parent data context in magic mode does not break decorators', function ( t ) {
-		var ractive, data;
-
-		data = {
+	test( 'Referencing parent data context in magic mode does not break decorators', t => {
+		const data = {
 			item: { name: 'one' },
 			foo: {
 				bar: 'biz'
 			}
 		};
 
-		ractive = new Ractive({
+		new Ractive({
 			el: fixture,
 			template: '{{#item}}{{foo.bar}}{{name}}<span decorator="decorateme:{{foo}}"></span>{{/item}}',
 			magic: true,
-			data: data,
+			data,
 			decorators: {
-				decorateme: function(node, foo){
+				decorateme ( node, foo ) {
 					node.innerHTML = foo ? foo.bar || 'fail' : 'fail';
-					return { teardown: function () {} };
+					return { teardown () {} };
 				}
 			}
 		});
@@ -149,30 +147,30 @@ if ( Ractive.magic ) {
 	});
 }
 
-test( 'Decorator without arguments can be torn down (#453)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Decorator without arguments can be torn down (#453)', t => {
+	t.expect( 1 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo}}<p decorator="bar">foo</p>{{/foo}}',
 		data: { foo: true },
 		decorators: {
-			bar: function( node ) {
-				return { teardown: function () {} }
+			bar () {
+				return { teardown () {} };
 			}
 		}
 	});
 
-	expect( 1 );
-
-	ractive.set("foo", false);
+	ractive.set( 'foo', false );
 	t.ok( true );
 });
 
-test( 'Unnecessary whitespace is trimmed (#810)', function ( t ) {
-	var ractive = new Ractive({
+test( 'Unnecessary whitespace is trimmed (#810)', t => {
+	new Ractive({
 		el: fixture,
 		template: '<pre decorator="show: blue is the moon   "/><pre decorator="show:\' blue is the moon   \'"/>',
 		decorators: {
-			show: function ( node, arg ) {
+			show ( node, arg ) {
 				node.innerHTML = `|${arg}|`;
 				return { teardown () {} };
 			}
@@ -182,21 +180,21 @@ test( 'Unnecessary whitespace is trimmed (#810)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<pre>|blue is the moon|</pre><pre>| blue is the moon   |</pre>' );
 });
 
-test( 'Rebinding causes decorators to update, if arguments are index references', function ( t ) {
-	var ractive = new Ractive({
+test( 'Rebinding causes decorators to update, if arguments are index references', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#each letters :i}}<p decorator="check:{{i}}"></p>{{/each}}',
 		data: {
 			letters: [ 'a', 'b' ]
 		},
 		decorators: {
-			check: function ( node, index ) {
+			check ( node, index ) {
 				return {
-					update: function ( newIndex ) {
+					update ( newIndex ) {
 						t.equal( newIndex, index - 1 );
 						index = newIndex;
 					},
-					teardown: function () {}
+					teardown () {}
 				};
 			}
 		}
@@ -205,18 +203,18 @@ test( 'Rebinding causes decorators to update, if arguments are index references'
 	ractive.shift( 'letters' );
 });
 
-test( 'Rebinding safe if decorators have no arguments', function ( t ) {
-	var ractive = new Ractive({
+test( 'Rebinding safe if decorators have no arguments', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#each letters :i}}<p decorator="whatever"></p>{{/each}}',
 		data: {
 			letters: [ 'a', 'b' ]
 		},
 		decorators: {
-			whatever: function ( node ) {
+			whatever () {
 				return {
-					update: function () {},
-					teardown: function () {
+					update () {},
+					teardown () {
 						t.ok( true );
 					}
 				};
@@ -227,31 +225,32 @@ test( 'Rebinding safe if decorators have no arguments', function ( t ) {
 	ractive.shift( 'letters' );
 });
 
-test( 'Teardown before init should work', function ( t ) {
-	var ractive = new Ractive({
+test( 'Teardown before init should work', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{# count > 0}}<span decorator="whatever">foo</span>{{/0}}',
 		data: {
 			count: 0
 		},
 		decorators: {
-			whatever: function ( node ) {
-				return { teardown: Function.prototype }
+			whatever () {
+				return { teardown: Function.prototype };
 			}
 		}
 	});
 
-	ractive.observe( 'boo', function( newval, oldval ) {
-	    ractive.set( 'count', 1 );
-	    ractive.set( 'count', 0 );
+	ractive.observe( 'boo', () => {
+		ractive.set( 'count', 1 );
+		ractive.set( 'count', 0 );
 	});
-	ractive.set( 'boo', 1) ;
+
+	ractive.set( 'boo', 1 );
 	t.ok( true );
 });
 
 
-test( 'Dynamic and empty dynamic decorator and empty', function ( t ) {
-	var ractive = new Ractive({
+test( 'Dynamic and empty dynamic decorator and empty', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		debug: true,
 		template: '{{#if x}}<div decorator="{{foo}}">not this</div>{{/if}}',
@@ -260,9 +259,9 @@ test( 'Dynamic and empty dynamic decorator and empty', function ( t ) {
 			x: true
 		},
 		decorators: {
-			test: function ( node ) {
+			test ( node ) {
 				node.innerHTML = 'pass';
-				return { teardown: function () {} }
+				return { teardown () {} };
 			}
 		}
 	});
@@ -274,10 +273,12 @@ test( 'Dynamic and empty dynamic decorator and empty', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div>pass</div>' );
 });
 
-asyncTest( 'Decorator teardown should happen after outros have completed (#1481)', function ( t ) {
-	var ractive, div, decoratorTorndown;
+test( 'Decorator teardown should happen after outros have completed (#1481)', t => {
+	const done = t.async();
 
-	ractive = new Ractive({
+	let decoratorTorndown;
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#if foo}}
@@ -287,8 +288,8 @@ asyncTest( 'Decorator teardown should happen after outros have completed (#1481)
 			foo: true
 		},
 		decorators: {
-			red: function ( node ) {
-				var originalColor = node.style.color;
+			red ( node ) {
+				const originalColor = node.style.color;
 				node.style.color = 'red';
 
 				return {
@@ -300,7 +301,7 @@ asyncTest( 'Decorator teardown should happen after outros have completed (#1481)
 			}
 		},
 		transitions: {
-			wait: function ( tr ) {
+			wait ( tr ) {
 				setTimeout( () => {
 					t.ok( !decoratorTorndown );
 					t.equal( div.style.color, 'red' );
@@ -311,11 +312,11 @@ asyncTest( 'Decorator teardown should happen after outros have completed (#1481)
 		}
 	});
 
-	div = ractive.find( 'div' );
+	const div = ractive.find( 'div' );
 
 	ractive.set( 'foo', false ).then( function () {
 		t.ok( decoratorTorndown );
-		QUnit.start();
+		done();
 	});
 
 	t.equal( div.style.color, 'red' );

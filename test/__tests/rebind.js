@@ -1,37 +1,38 @@
 import { test } from 'qunit';
 
-test('Section with item that has expression only called once when created', function(t){
-	var called = 0,
-		ractive = new Ractive({
-			el: fixture,
-			template: '{{#items}}{{format(.)}}{{/items}}',
-			data: {
-				items: [],
-				format: function(){
-					called++;
-				}
-			}
-		});
+test('Section with item that has expression only called once when created', t => {
+	let called = 0;
 
-	ractive.push('items', 'item');
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{#items}}{{format(.)}}{{/items}}',
+		data: {
+			items: [],
+			format () {
+				called++;
+			}
+		}
+	});
+
+	ractive.push( 'items', 'item' );
 	t.equal( called, 1 );
 });
 
-test('Section with item index ref expression changes correctly', function(t){
-	var ractive = new Ractive({
+test( 'Section with item index ref expression changes correctly', t => {
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items:i}}{{format(.,i)}},{{/items}}',
 		data: {
-			items: [1,2,3,4,5],
-			format: function(x,i){
-				return x+i;
+			items: [ 1, 2, 3, 4, 5 ],
+			format ( x, i ) {
+				return x + i;
 			}
 		}
 	});
 
 	t.htmlEqual( fixture.innerHTML, '1,3,5,7,9,');
 
-	var items = ractive.get('items');
+	const items = ractive.get( 'items' );
 	ractive.splice( 'items', 1, 2, 10 );
 	t.deepEqual( items, [ 1, 10, 4, 5 ] );
 	t.htmlEqual( fixture.innerHTML, '1,11,6,8,');
@@ -57,7 +58,7 @@ test( 'Section updates child keypath expression', t => {
 	t.htmlEqual( fixture.innerHTML, 'bob,jill,');
 });
 
-test('Section with nested sections and inner context does splice()', function(t){
+test('Section with nested sections and inner context does splice()', t => {
 	let called = 0;
 
 	const ractive = new Ractive({
@@ -70,7 +71,7 @@ test('Section with nested sections and inner context does splice()', function(t)
 			{{/thing}}{{/model}}`,
 		data: {
 			model: [ { thing: { inner: [3,4] } } ],
-			format: function(a){
+			format ( a ) {
 				called++;
 				return a;
 			}
@@ -83,7 +84,7 @@ test('Section with nested sections and inner context does splice()', function(t)
 });
 
 test( 'Components in a list can be rebound', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}<widget letter="{{.}}"/>{{/items}}',
 		data: { items: [ 'a', 'b', 'c' ] },
@@ -105,7 +106,7 @@ test( 'Components in a list can be rebound', function ( t ) {
 });
 
 test( 'Index references can be used as key attributes on components, and rebinding works', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items:i}}<widget index="{{i}}" letter="{{.}}"/>{{/items}}',
 		data: { items: [ 'a', 'b', 'c' ] },
@@ -122,7 +123,7 @@ test( 'Index references can be used as key attributes on components, and rebindi
 	t.htmlEqual( fixture.innerHTML, '<p>0: a</p><p>1: c</p>' );
 });
 
-test('Section with partials that use indexRef update correctly', function(t){
+test('Section with partials that use indexRef update correctly', t => {
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items:i}}{{>partial}},{{/items}}',
@@ -140,7 +141,7 @@ test('Section with partials that use indexRef update correctly', function(t){
 });
 
 test( 'Expressions with unresolved references can be rebound (#630)', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#list}}{{#check > length}}true{{/test}}{{/list}}',
 		data: {list:[1,2], check:3}
@@ -151,7 +152,7 @@ test( 'Expressions with unresolved references can be rebound (#630)', function (
 });
 
 test( 'Regression test for #697', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#model}}{{#thing}}{{# foo && bar }}<p>works</p>{{/inner}}{{/thing}}{{/model}}',
 		data: {
@@ -171,7 +172,7 @@ test( 'Regression test for #697', function ( t ) {
 });
 
 test( 'Regression test for #715', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}{{#test}}{{# .entries > 1 }}{{{ foo }}}{{/ .entries }}{{/test}}{{/items}}',
 		data: {
@@ -189,9 +190,10 @@ test( 'Regression test for #715', function ( t ) {
 });
 
 test( 'Items are not unrendered and rerendered unnecessarily in cases like #715', function ( t ) {
-	var ractive, renderCount = 0, unrenderCount = 0;
+	let renderCount = 0;
+	let unrenderCount = 0;
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}{{#test}}{{# .entries > 1 }}<p intro="rendered" outro="unrendered">foo</p>{{/ .entries }}{{/test}}{{/items}}',
 		data: {
@@ -220,14 +222,12 @@ test( 'Items are not unrendered and rerendered unnecessarily in cases like #715'
 });
 
 test( 'Regression test for #729 (part one) - rebinding silently-created elements', function ( t ) {
-	var items, ractive;
+	let items = [{test: { bool: false }}];
 
-	items = [{test: { bool: false }}];
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}{{#test}}{{#bool}}<p>true</p>{{/bool}}{{^bool}}<p>false</p>{{/bool}}{{/test}}{{/items}}',
-		data: { items: items }
+		data: { items }
 	});
 
 	items[0].test = { bool: true };
@@ -237,14 +237,12 @@ test( 'Regression test for #729 (part one) - rebinding silently-created elements
 });
 
 test( 'Regression test for #729 (part two) - inserting before silently-created elements', function ( t ) {
-	var items, ractive;
+	let items = [];
 
-	items = [];
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#items}}{{#bool}}{{{foo}}}{{/bool}}{{/items}}',
-		data: { items: items }
+		data: { items }
 	});
 
 	ractive.set('items.0', {bool: false});
@@ -255,9 +253,7 @@ test( 'Regression test for #729 (part two) - inserting before silently-created e
 });
 
 test( 'Regression test for #756 - fragment contexts are not rebound to undefined', function ( t ) {
-	var ractive, new_items;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: `
 			{{#items}}
@@ -268,7 +264,7 @@ test( 'Regression test for #756 - fragment contexts are not rebound to undefined
 		data: { items:[{},{}] }
 	});
 
-	new_items = [
+	let new_items = [
 		{ test: { list: [{ thing: 'Z' }, { thing: 'Z' }] }, foo: false },
 		{ test: { list: [{ thing: 'Z' }, { thing: 'Z' }] }, foo: false }
 	];
@@ -282,7 +278,7 @@ test( 'Regression test for #756 - fragment contexts are not rebound to undefined
 });
 
 test( '@index rebinds correctly', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#each items}}<p>{{@index}}:{{this}}</p>{{/each}}',
 		data: { items: [ 'a', 'b', 'd' ] }
@@ -293,7 +289,7 @@ test( '@index rebinds correctly', function ( t ) {
 });
 
 test( 'index rebinds do not go past new index providers (#1457)', function ( t ) {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#each foo}}{{@index}}{{#each .bar}}{{@index}}{{/each}}<br/>{{/each}}',
 		data: {
@@ -313,7 +309,7 @@ test( 'index rebinds do not go past new index providers (#1457)', function ( t )
 });
 
 test( 'index rebinds get passed through conditional sections correctly', t => {
-	var ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#each foo}}{{@index}}{{#.bar}}{{@index}}{{/}}<br/>{{/each}}',
 		data: {

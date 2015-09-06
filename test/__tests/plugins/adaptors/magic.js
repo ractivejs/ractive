@@ -1,22 +1,24 @@
 import { test } from 'qunit';
 
-var fixture2, makeObj;
+let fixture2;
+let makeObj;
 
 // only run these tests if magic mode is supported
 try {
-	var obj = {}, _foo;
+	let obj = {};
+	let _foo;
 	Object.defineProperty( obj, 'foo', {
-		get: function () {
+		get () {
 			return _foo;
 		},
-		set: function ( value ) {
+		set ( value ) {
 			_foo = value;
 		}
 	});
 
 	fixture2 = document.createElement( 'div' );
 
-	var MagicRactive = Ractive.extend({
+	const MagicRactive = Ractive.extend({
 		template: '{{name}}: {{type}}',
 		magic: true
 	});
@@ -28,12 +30,10 @@ try {
 		};
 	};
 
-	test( 'Mustaches update when property values change', function ( t ) {
-		var muppet, ractive;
+	test( 'Mustaches update when property values change', t => {
+		const muppet = makeObj();
 
-		muppet = makeObj();
-
-		ractive = new MagicRactive({
+		new MagicRactive({
 			el: fixture,
 			data: muppet
 		});
@@ -49,17 +49,15 @@ try {
 		t.htmlEqual( fixture.innerHTML, 'Fozzie: bear' );
 	});
 
-	test( 'Multiple instances can share an object', function ( t ) {
-		var muppet, ractive1, ractive2;
+	test( 'Multiple instances can share an object', t => {
+		const muppet = makeObj();
 
-		muppet = makeObj();
-
-		ractive1 = new MagicRactive({
+		new MagicRactive({
 			el: fixture,
 			data: muppet
 		});
 
-		ractive2 = new MagicRactive({
+		new MagicRactive({
 			el: fixture2,
 			data: muppet
 		});
@@ -77,17 +75,15 @@ try {
 		t.htmlEqual( fixture2.innerHTML, 'Fozzie: bear' );
 	});
 
-	test( 'Direct property access can be used interchangeably with ractive.set()', function ( t ) {
-		var muppet, ractive1, ractive2;
+	test( 'Direct property access can be used interchangeably with ractive.set()', t => {
+		const muppet = makeObj();
 
-		muppet = makeObj();
-
-		ractive1 = new MagicRactive({
+		const ractive1 = new MagicRactive({
 			el: fixture,
 			data: muppet
 		});
 
-		ractive2 = new MagicRactive({
+		const ractive2 = new MagicRactive({
 			el: fixture2,
 			data: muppet
 		});
@@ -121,28 +117,25 @@ try {
 		t.htmlEqual( fixture2.innerHTML, 'Pepe: king prawn' );
 	});
 
-	test( 'Magic mode works with existing accessors', function ( t ) {
-		var _foo, data, ractive;
-
-		_foo = 'Bar';
-
-		data = {};
+	test( 'Magic mode works with existing accessors', t => {
+		let _foo = 'Bar';
+		let data = {};
 
 		Object.defineProperty( data, 'foo', {
-			get: function () {
+			get () {
 				return _foo.toLowerCase();
 			},
-			set: function ( value ) {
+			set ( value ) {
 				_foo = value;
 			},
 			configurable: true,
 			enumerable: true
 		});
 
-		ractive = new MagicRactive({
+		new MagicRactive({
 			el: fixture,
 			template: '{{foo}}',
-			data: data
+			data
 		});
 
 		t.htmlEqual( fixture.innerHTML, 'bar' );
@@ -151,50 +144,46 @@ try {
 		t.htmlEqual( fixture.innerHTML, 'baz' );
 	});
 
-	test( 'Setting properties in magic mode triggers change events', function ( t ) {
-		var ractive, foo;
+	test( 'Setting properties in magic mode triggers change events', t => {
+		t.expect( 1 );
 
-		foo = { bar: 'baz' };
+		let foo = { bar: 'baz' };
 
-		ractive = new MagicRactive({
+		const ractive = new MagicRactive({
 			el: fixture,
 			template: '{{foo.bar}}',
-			data: { foo: foo }
+			data: { foo }
 		});
 
-		expect( 1 );
-
-		ractive.on( 'change', function ( changeHash ) {
+		ractive.on( 'change', changeHash => {
 			t.deepEqual( changeHash, { 'foo.bar': 'qux' });
 		});
 
 		foo.bar = 'qux';
 	});
 
-	test( 'A magic component is magic regardless of whether its parent is magic', function ( t ) {
-		var data, Magician, ractive;
+	test( 'A magic component is magic regardless of whether its parent is magic', t => {
+		t.expect( 3 );
 
-		expect( 3 );
-
-		data = {
+		let data = {
 			magician: 'Harry Houdini'
 		};
 
-		Magician = MagicRactive.extend({
+		const Magician = MagicRactive.extend({
 			template: '<p>{{magician}}</p>',
 			magic: true,
-			data: data,
-			changeMagician: function () {
+			data,
+			changeMagician () {
 				this.viewmodel.value.magician = 'David Copperfield';
 			},
-			oninit: function () {
+			oninit () {
 				t.ok( this.magic );
 			}
 		});
 
 		window.Magician = Magician;
 
-		ractive = new MagicRactive({
+		const ractive = new MagicRactive({
 			el: fixture,
 			magic: false,
 			template: '<magician/>',
@@ -229,20 +218,19 @@ try {
 	*/
 
 	test( 'Data passed into component updates from outside component in magic mode', t => {
-		var ractive, Widget;
-
-		Widget = Ractive.extend({
+		const Widget = Ractive.extend({
 			template: '{{world}}',
 			magic: true
 		});
 
-		var data = { world: 'mars' }
-		ractive = new Ractive({
+		let data = { world: 'mars' };
+
+		new Ractive({
 			el: fixture,
 			template: '{{world}}<widget world="{{world}}"/>',
 			magic: true,
 			components: { widget: Widget },
-			data: data
+			data
 		});
 
 		data.world = 'venus';
@@ -251,18 +239,16 @@ try {
 	});
 
 	test( 'Indirect changes propagate across components in magic mode (#480)', t => {
-		var Blocker, ractive, blocker;
-
-		Blocker = Ractive.extend({
+		const Blocker = Ractive.extend({
 			template: '{{foo.bar.baz}}'
 		});
 
-		ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
-			template: '<input value="{{foo.bar.baz}}"><blocker foo="{{foo}}"/>',
+			template: '<input value="{{foo.bar.baz}}"><Blocker foo="{{foo}}"/>',
 			data: { foo: { bar: { baz: 50 } } },
 			magic: true,
-			components: { blocker: Blocker }
+			components: { Blocker }
 		});
 
 		ractive.set( 'foo.bar.baz', 42 );
@@ -272,7 +258,7 @@ try {
 		//t.equal( ractive.data.foo.bar.baz, 1337 );
 		t.equal( ractive.get( 'foo.bar.baz' ), 1337 );
 
-		blocker = ractive.findComponent( 'blocker' );
+		const blocker = ractive.findComponent( 'Blocker' );
 
 		blocker.set( 'foo.bar.baz', 42 );
 		t.equal( blocker.get( 'foo.bar.baz' ), 42 );
