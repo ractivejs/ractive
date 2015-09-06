@@ -31,7 +31,7 @@ makeInfixSequenceMatcher = function ( symbol, fallthrough ) {
 				return left;
 			}
 
-		   parser.allowWhitespace();
+			parser.allowWhitespace();
 
 			// right operand must also consist of only higher-precedence operators
 			right = fallthrough( parser );

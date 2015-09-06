@@ -47,8 +47,8 @@ function readAttributeValue ( parser ) {
 	valueStart = parser.pos;
 	startDepth = parser.sectionDepth;
 
-	value = readQuotedAttributeValue( parser, "'" ) ||
-			readQuotedAttributeValue( parser, '"' ) ||
+	value = readQuotedAttributeValue( parser, `'` ) ||
+			readQuotedAttributeValue( parser, `"` ) ||
 			readUnquotedAttributeValue( parser );
 
 	if ( value === null ) {
@@ -144,15 +144,12 @@ function readQuotedAttributeValue ( parser, quoteMark ) {
 }
 
 function readQuotedStringToken ( parser, quoteMark ) {
-	var start, index, haystack, needles;
+	const haystack = parser.remaining();
 
-	start = parser.pos;
-	haystack = parser.remaining();
-
-	needles = parser.tags.map( t => t.open ); // TODO refactor... we do this in readText.js as well
+	let needles = parser.tags.map( t => t.open ); // TODO refactor... we do this in readText.js as well
 	needles.push( quoteMark );
 
-	index = getLowestIndex( haystack, needles );
+	const index = getLowestIndex( haystack, needles );
 
 	if ( index === -1 ) {
 		parser.error( 'Quoted attribute value must have a closing quote' );

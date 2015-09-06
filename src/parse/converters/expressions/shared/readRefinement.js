@@ -4,17 +4,14 @@ import { name as namePattern } from './patterns';
 import readExpression from '../../readExpression';
 
 export default function readRefinement ( parser ) {
-	var start, name, expr;
-
-	start = parser.pos;
-
 	parser.allowWhitespace();
 
 	// "." name
 	if ( parser.matchString( '.' ) ) {
 		parser.allowWhitespace();
 
-		if ( name = parser.matchPattern( namePattern ) ) {
+		const name = parser.matchPattern( namePattern );
+		if ( name ) {
 			return {
 				t: REFINEMENT,
 				n: name
@@ -28,16 +25,12 @@ export default function readRefinement ( parser ) {
 	if ( parser.matchString( '[' ) ) {
 		parser.allowWhitespace();
 
-		expr = readExpression( parser );
-		if ( !expr ) {
-			parser.error( expectedExpression );
-		}
+		const expr = readExpression( parser );
+		if ( !expr ) parser.error( expectedExpression );
 
 		parser.allowWhitespace();
 
-		if ( !parser.matchString( ']' ) ) {
-			parser.error( 'Expected \']\'' );
-		}
+		if ( !parser.matchString( ']' ) ) parser.error( `Expected ']'` );
 
 		return {
 			t: REFINEMENT,

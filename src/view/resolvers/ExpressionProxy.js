@@ -4,7 +4,6 @@ import { handleChange, unbind } from '../../shared/methodCallers';
 import createFunction from '../../shared/createFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
-import { defineProperty } from '../../utils/object';
 
 function getValue ( model ) {
 	return model ? model.get( true ) : undefined;

@@ -1,8 +1,8 @@
 import { STRING_LITERAL } from '../../../../../config/types';
 import makeQuotedStringMatcher from './stringLiteral/makeQuotedStringMatcher';
 
-var getSingleQuotedString = makeQuotedStringMatcher( '"' );
-var getDoubleQuotedString = makeQuotedStringMatcher( "'" );
+var getSingleQuotedString = makeQuotedStringMatcher( `"` );
+var getDoubleQuotedString = makeQuotedStringMatcher( `'` );
 
 export default function ( parser ) {
 	var start, string;
@@ -23,10 +23,10 @@ export default function ( parser ) {
 		};
 	}
 
-	if ( parser.matchString( "'" ) ) {
+	if ( parser.matchString( `'` ) ) {
 		string = getSingleQuotedString( parser );
 
-		if ( !parser.matchString( "'" ) ) {
+		if ( !parser.matchString( `'` ) ) {
 			parser.pos = start;
 			return null;
 		}

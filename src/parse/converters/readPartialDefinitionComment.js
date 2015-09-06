@@ -5,20 +5,17 @@ import escapeRegExp from '../../utils/escapeRegExp';
 
 export default readPartialDefinitionComment;
 
-var startPattern = /^<!--\s*/,
-    namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/,
-    finishPattern = /\s*-->/,
-    child;
+const startPattern = /^<!--\s*/;
+const namePattern = /s*>\s*([a-zA-Z_$][-a-zA-Z_$0-9]*)\s*/;
+const finishPattern = /\s*-->/;
 
 function readPartialDefinitionComment ( parser ) {
-	let firstPos = parser.pos,
-	    open = parser.standardDelimiters[0],
-	    close = parser.standardDelimiters[1],
-	    content,
-	    closed;
+	const start = parser.pos;
+	const open = parser.standardDelimiters[0];
+	const close = parser.standardDelimiters[1];
 
 	if ( !parser.matchPattern( startPattern ) || !parser.matchString( open ) ) {
-		parser.pos = firstPos;
+		parser.pos = start;
 		return null;
 	}
 
@@ -33,11 +30,12 @@ Use this...
 
 	// make sure the rest of the comment is in the correct place
 	if ( !parser.matchString( close ) || !parser.matchPattern( finishPattern ) ) {
-		parser.pos = firstPos;
+		parser.pos = start;
 		return null;
 	}
 
-	content = [];
+	let content = [];
+	let closed;
 
 	let endPattern = new RegExp('^<!--\\s*' + escapeRegExp( open ) + '\\s*\\/\\s*' + name + '\\s*' + escapeRegExp( close ) + '\\s*-->');
 
@@ -47,7 +45,7 @@ Use this...
 		}
 
 		else {
-			child = parser.read( READERS );
+			const child = parser.read( READERS );
 			if ( !child ) {
 				parser.error( `expected closing comment ('<!-- ${open}/${name}${close} -->')` );
 			}

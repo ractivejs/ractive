@@ -13,20 +13,18 @@ lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
 // Helper for defining getDoubleQuotedString and getSingleQuotedString.
 export default function ( okQuote ) {
 	return function ( parser ) {
-		var start, literal, done, next;
-
-		start = parser.pos;
-		literal = '"';
-		done = false;
+		let literal = '"';
+		let done = false;
+		let next;
 
 		while ( !done ) {
 			next = ( parser.matchPattern( stringMiddlePattern ) || parser.matchPattern( escapeSequencePattern ) ||
 				parser.matchString( okQuote ) );
 			if ( next ) {
-				if ( next === '"' ) {
-					literal += '\\"';
-				} else if ( next === "\\'" ) {
-					literal += "'";
+				if ( next === `"` ) {
+					literal += `\\"`;
+				} else if ( next === `\\'` ) {
+					literal += `'`;
 				} else {
 					literal += next;
 				}

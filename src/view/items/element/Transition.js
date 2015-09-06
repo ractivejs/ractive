@@ -100,7 +100,7 @@ export default class Transition {
 		}
 
 		return new Promise( fulfil => {
-			var propertyNames, changedProperties, computedStyle, current, from, i, prop;
+			var propertyNames, changedProperties, computedStyle, current, i, prop;
 
 			// Edge case - if duration is zero, set style synchronously and complete
 			if ( !options.duration ) {
@@ -116,7 +116,6 @@ export default class Transition {
 			// Store the current styles
 			computedStyle = getComputedStyle( this.node );
 
-			from = {};
 			i = propertyNames.length;
 			while ( i-- ) {
 				prop = propertyNames[i];
