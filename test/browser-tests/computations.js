@@ -653,3 +653,28 @@ test( 'Setting an Array to [] does not recompute removed values (#2069)', t => {
 	ractive.set('items', []);
 	t.deepEqual( called, { func: 3, f1: 1, f2: 1, f3: 1 });
 });
+
+test( 'ComputationChild dependencies are captured (#2132)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#each items}}
+				<p>{{this}}/{{getItem(this)}}</p>
+			{{/each}}`,
+		data: {
+			odd: true,
+			getItem ( n ) {
+				return n;
+			}
+		},
+		computed: {
+			items () {
+				return this.get( 'odd' ) ? [ 'a', 'b', 'c' ] : [ 'd', 'e' ];
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>a/a</p><p>b/b</p><p>c/c</p>' );
+	ractive.toggle( 'odd' );
+	t.htmlEqual( fixture.innerHTML, '<p>d/d</p><p>e/e</p>' );
+});
