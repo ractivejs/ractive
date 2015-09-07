@@ -4,18 +4,18 @@
 	<meta charset='utf-8'>
 	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
 
-	<title>${name} | Ractive Test Suite</title>
-	<link rel='stylesheet' href='/test/qunit.css' type='text/css' media='screen' />
+	<title>Ractive Test Suite</title>
+	<link rel='stylesheet' href='qunit.css' type='text/css' media='screen' />
 </head>
 <body>
 	<div id='qunit'></div>
 	<div id='qunit-fixture'></div>
 
-	<script src='/test/qunit.js'></script>
-	<script src='/test/qunit-html.js'></script>
-	<script src='/test/simulant.js'></script>
+	<script src='qunit.js'></script>
+	<script src='qunit-html.js'></script>
+	<script src='simulant.js'></script>
 
-	<script src='/ractive-legacy.js'></script>
+	<script src='../ractive-legacy.js'></script>
 
 	<script>
 		var fixture = document.getElementById( 'qunit-fixture' );
@@ -23,6 +23,6 @@
 		QUnit.config.testTimeout = 3000;
 	</script>
 
-	<script src='${testModule}'></script>
+	<@scriptBlock@>
 </body>
 </html>

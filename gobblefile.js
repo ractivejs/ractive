@@ -107,18 +107,7 @@ if ( gobble.env() === 'production' ) {
 }
 
 test = (function () {
-	function compileTemplate ( str ) {
-		return function ( data ) {
-			return str.replace( /\${([^}]+)}/g, function ( match, $1 ) {
-				return $1 in data ? data[ $1 ] : match;
-			});
-		};
-	}
-
-	var templates = {
-		testpage: compileTemplate( sander.readFileSync( 'test/__support/templates/testpage.html' ).toString() ),
-		index: compileTemplate( sander.readFileSync( 'test/__support/templates/index.html' ).toString() )
-	};
+	var testFiles = sander.lsrSync( 'test/browser-tests' ).filter( junk.not );
 
 	var testModules = gobble([
 		gobble([
@@ -129,58 +118,53 @@ test = (function () {
 		}),
 		es5
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
-		return sander.lsr( inputdir, 'browser-tests' ).then( function ( testModules ) {
-			var globals = {
-				qunit: 'QUnit',
-				simulant: 'simulant'
-			};
+		var globals = {
+			qunit: 'QUnit',
+			simulant: 'simulant'
+		};
 
-			var promises = testModules.filter( junk.not ).sort().map( function ( mod ) {
-				return rollup.rollup({
-					entry: inputdir + '/browser-tests/' + mod,
-					resolveId: function ( importee, importer ) {
-						if ( globals[ importee ] ) return false;
+		var promises = testFiles.sort().map( function ( mod ) {
+			return rollup.rollup({
+				entry: inputdir + '/browser-tests/' + mod,
+				resolveId: function ( importee, importer ) {
+					if ( globals[ importee ] ) return false;
 
-						if ( !importer ) return importee;
+					if ( !importer ) return importee;
 
-						if ( importee[0] === '.' ) {
-							return path.resolve( path.dirname( importer ), importee ) + '.js';
-						}
-
-						return path.resolve( inputdir, importee ) + '.js';
-					},
-					load: function ( id ) {
-						var code = sander.readFileSync( id, { encoding: 'utf-8' });
-
-						if ( /test-config/.test( id ) ) return code;
-
-						return 'import { initModule } from \'test-config\';\n' +
-						       'initModule(\'' + mod + '\' );\n\n' +
-						        code;
+					if ( importee[0] === '.' ) {
+						return path.resolve( path.dirname( importer ), importee ) + '.js';
 					}
-				}).then( function ( bundle ) {
-					return bundle.write({
-						dest: outputdir + '/' + mod,
-						format: 'iife',
-						globals: globals
-					});
-				});
-			});
 
-			return Promise.all( promises ).then( function () {
-				// index page
-				var index = templates.index({
-					scriptBlock: testModules.map( function ( src ) {
-						return '<script src="' + src + '"></script>';
-					}).join( '\n\t' )
-				});
+					return path.resolve( inputdir, importee ) + '.js';
+				},
+				load: function ( id ) {
+					var code = sander.readFileSync( id, { encoding: 'utf-8' });
 
-				return sander.writeFile( outputdir, 'index.html', index );
+					if ( /test-config/.test( id ) ) return code;
+
+					return 'import { initModule } from \'test-config\';\n' +
+					       'initModule(\'' + mod + '\' );\n\n' +
+					        code;
+				}
+			}).then( function ( bundle ) {
+				return bundle.write({
+					dest: outputdir + '/' + mod,
+					format: 'iife',
+					globals: globals
+				});
 			});
 		});
+
+		return Promise.all( promises );
 	});
 
 	return gobble([
+		gobble( 'test/__support/index.html' )
+			.transform( 'replace', {
+				scriptBlock: testFiles.map( function ( src ) {
+					return '<script src="' + src + '"></script>';
+				}).join( '\n\t' )
+			}),
 		testModules,
 		gobble( 'test/__support/files' ),
 		gobble( 'test/node-tests' ).moveTo( 'node-tests' ),
@@ -208,7 +192,6 @@ test = (function () {
 			.moveTo( 'node-tests/samples' )
 	]).moveTo( 'test' );
 })();
-
 
 module.exports = gobble([
 	lib,
