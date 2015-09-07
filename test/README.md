@@ -109,6 +109,28 @@ import { isArrayLike } from 'utils/is';
 
 ...but note the point above about testing the public API rather than internal implementation details.
 
+## Triggering DOM events
+
+You may need to trigger DOM events within your test. Use [simulant](https://github.com/rich-harris/simulant) for this:
+
+```js
+import { fire } from 'simulant';
+
+test( 'Click events work', t => {
+  t.expect( 1 );
+
+  const ractive = new Ractive({
+    el: fixture,
+    template: `<button on-click='test(42)'>click me</button>`,
+    test ( answer ) {
+      t.equal( answer, 42 );
+    }
+  });
+
+  fire( ractive.find( 'button' ), 'click' );
+});
+```
+
 
 ## If in doubt...
 
