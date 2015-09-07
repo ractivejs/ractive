@@ -284,7 +284,7 @@ test( 'Components retain their encapsulated CSS until they are detached', t => {
 		t.equal( getHexColor( p ), hexCodes.red );
 		complete();
 		done();
-	}, 50 );
+	});
 });
 
 test( 'data-ractive-css only gets applied to one level of elements', t => {

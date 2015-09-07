@@ -15,7 +15,7 @@ beforeEach( () => {
 	});
 
 	Ractive.transitions.test = function ( t, params ) {
-		const delay = ( params && params.delay ) || 50;
+		const delay = ( params && params.delay ) || 10;
 
 		setTimeout( function () {
 			if ( t.ractive.beforeComplete ) {

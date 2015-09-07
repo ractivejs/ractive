@@ -314,7 +314,7 @@ test( 'Decorator teardown should happen after outros have completed (#1481)', t 
 
 	const div = ractive.find( 'div' );
 
-	ractive.set( 'foo', false ).then( function () {
+	ractive.set( 'foo', false ).then( () => {
 		t.ok( decoratorTorndown );
 		done();
 	});

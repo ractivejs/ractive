@@ -4,8 +4,6 @@ import { fire } from 'simulant';
 // TODO finish moving these into more sensible locations
 
 test( 'Grandchild component teardown when nested in element (#1360)', t => {
-	const done = t.async();
-
 	let torndown = [];
 
 	const Child = Ractive.extend({
@@ -43,11 +41,8 @@ test( 'Grandchild component teardown when nested in element (#1360)', t => {
 		components: { Child, Grandchild }
 	});
 
-	setTimeout( () => {
-		ractive.set( 'model', {} );
-		t.equal( torndown.length, 4 );
-		done();
-	});
+	ractive.set( 'model', {} );
+	t.equal( torndown.length, 4 );
 });
 
 test( 'event references in method call handler should not create a null resolver (#1438)', t => {
@@ -208,7 +203,7 @@ try {
 
 		const ractive = new Ractive({
 			el: fixture,
-			template: '<input value="{{foo}}" lazy="50" />',
+			template: '<input value="{{foo}}" lazy="20" />',
 			data: { foo: 'test' }
 		});
 
@@ -224,7 +219,7 @@ try {
 		setTimeout( () => {
 			t.equal( ractive.get( 'foo' ), 'bar' );
 			done();
-		}, 60 );
+		}, 30 );
 	});
 
 	test( '{{else}} blocks work in event names (#1598)', t => {

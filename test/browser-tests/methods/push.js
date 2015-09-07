@@ -21,11 +21,12 @@ import { test } from 'qunit';
 });
 
 test( 'Array method proxies return a promise that resolves on transition complete', t => {
-	t.expect( 1 );
+	t.expect( 2 );
 
 	const done = t.async();
 
 	let items = [ 'alice', 'bob', 'charles' ];
+	let transitioned;
 
 	const ractive = new Ractive({
 		el: fixture,
@@ -38,12 +39,14 @@ test( 'Array method proxies return a promise that resolves on transition complet
 		data: { items },
 		transitions: {
 			test ( t ) {
-				setTimeout( t.complete, 50 );
+				transitioned = true;
+				t.complete();
 			}
 		}
 	});
 
 	ractive.push( 'items', 'dave' ).then( () => {
+		t.ok( transitioned );
 		t.htmlEqual( fixture.innerHTML, '<ul><li>alice</li><li>bob</li><li>charles</li><li>dave</li></ul>' );
 		done();
 	});

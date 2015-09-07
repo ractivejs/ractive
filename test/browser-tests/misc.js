@@ -1276,14 +1276,14 @@ test( 'Regression test for #1038', t => {
 		}
 	});
 
-	ractive.set('obj.loading', true);
+	ractive.set( 'obj.loading', true );
 
 	setTimeout( () => {
-		ractive.set('obj.error', true);
-		ractive.set('obj.loading', false);
+		ractive.set( 'obj.error', true );
+		ractive.set( 'obj.loading', false );
 
 		done();
-	}, 100 );
+	});
 });
 
 test( 'Reference expressions can become invalid after being valid, without breaking (#1106)', t => {
