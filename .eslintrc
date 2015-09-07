@@ -4,7 +4,11 @@
 		"quotes": [ 2, "single" ],
 		"linebreak-style": [ 2, "unix" ],
 		"semi": [ 2, "always" ],
-		"no-mixed-spaces-and-tabs": [2, "smart-tabs"],
+		"no-mixed-spaces-and-tabs": [ 2, "smart-tabs" ],
+		"object-shorthand":  [2, "always" ],
+		"no-var": 2,
+		"quote-props": [ 2, "as-needed" ],
+		"one-var": [ 2, "never" ],
 
 		"no-cond-assign": 0
 	},
