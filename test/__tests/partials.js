@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { onWarn } from 'test-config';
 import hasUsableConsole from 'hasUsableConsole';
 
 /* global console */
@@ -24,11 +25,9 @@ if ( hasUsableConsole ) {
 	test( 'no return of partial warns in debug', t => {
 		t.expect( 2 );
 
-		const warn = console.warn;
-
-		console.warn = msg => {
+		onWarn( msg => {
 			t.ok( msg );
-		};
+		});
 
 		// will throw on no-partial found
 		new Ractive({
@@ -42,33 +41,26 @@ if ( hasUsableConsole ) {
 				}
 			}
 		});
-
-		console.warn = warn;
 	});
 
 	test( 'Warn on unknown partial', t => {
 		t.expect( 2 );
 
-		const warn = console.warn;
-		console.warn = () => t.ok( true );
+		onWarn( () => t.ok( true ) );
 
 		new Ractive({
 			el: fixture,
 			template: '{{>unknown}}{{>other {a:42} }}',
 			partials: {}
 		});
-
-		console.warn = warn;
 	});
 
 	test( 'Don\'t warn on empty partial', t => {
 		t.expect( 1 );
 
-		const warn = console.warn;
-
-		console.warn = () => {
+		onWarn( () => {
 			t.ok( false );
-		};
+		});
 
 		new Ractive({
 			el: fixture,
@@ -79,8 +71,6 @@ if ( hasUsableConsole ) {
 		});
 
 		t.ok( true );
-
-		console.warn = warn;
 	});
 }
 

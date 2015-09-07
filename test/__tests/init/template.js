@@ -5,81 +5,78 @@ import { isObject } from 'utils/is';
 import { create } from 'utils/object';
 import cleanup from 'helpers/cleanup';
 
-var MockRactive, Component, ractive,
-	templateOpt1 = { template: '{{foo}}' },
-	templateOpt2 = { template: '{{bar}}' },
-	templateOpt1fn = { template: () => templateOpt1.template },
+let MockRactive;
+let Component;
+let ractive;
+const templateOpt1 = { template: '{{foo}}' };
+const templateOpt2 = { template: '{{bar}}' };
+const templateOpt1fn = { template: () => templateOpt1.template };
 
-	moduleSetup = {
-		beforeEach: function(){
-			//Ractive = { defaults: {}, parseOptions: {} };
-			ractive = { _config: {} };
+const moduleSetup = {
+	beforeEach () {
+		//Ractive = { defaults: {}, parseOptions: {} };
+		ractive = { _config: {} };
 
-			// bootstrap mock Ractive
-			MockRactive = function () {};
-			MockRactive.prototype = { template: {v:TEMPLATE_VERSION,t:[]} };
-			MockRactive.defaults = MockRactive.prototype;
+		// bootstrap mock Ractive
+		MockRactive = function () {};
+		MockRactive.prototype = { template: { v: TEMPLATE_VERSION, t: [] } };
+		MockRactive.defaults = MockRactive.prototype;
 
-			Component = function() {};
-			Component.prototype = create( MockRactive.prototype );
-			Component.prototype.constructor = Component;
-			Component.defaults = Component.prototype;
-		},
-		afterEach: cleanup
-	};
+		Component = function() {};
+		Component.prototype = create( MockRactive.prototype );
+		Component.prototype.constructor = Component;
+		Component.defaults = Component.prototype;
+	},
+	afterEach: cleanup
+};
 
-function mockExtend( template ){
-
+function mockExtend ( template ) {
 	config.extend( MockRactive, Component.prototype, template || {} );
 }
 
-module( 'Template Configuration', moduleSetup);
+module( 'Template Configuration', moduleSetup );
 
-function testDefault( template ) {
-
+function testDefault ( template ) {
 	ok( template, 'on defaults' );
-	ok( isObject(template), 'isObject' );
+	ok( isObject( template ), 'isObject' );
 	ok( template.v, 'has version' );
 	ok( template.t, 'has main template' );
 	equal( template.t.length, 0, 'main template has no items' );
 }
 
-function testTemplate1( template ) {
-	deepEqual( template, [ { r: 'foo', t: 2 } ] );
+function testTemplate1 ( template ) {
+	deepEqual( template, [{ r: 'foo', t: 2 }] );
 }
 
-function testTemplate2( template ) {
-	deepEqual( template, [ { r: 'bar', t: 2 } ] );
+function testTemplate2 ( template ) {
+	deepEqual( template, [{ r: 'bar', t: 2 }] );
 }
 
-function testComponentTemplate1( template ) {
-	deepEqual( template, {v:TEMPLATE_VERSION,t:[ { r: 'foo', t: 2 } ]} );
+function testComponentTemplate1 ( template ) {
+	deepEqual( template, { v: TEMPLATE_VERSION, t: [{ r: 'foo', t: 2 }] } );
 }
 
-function testComponentTemplate2( template ) {
-	deepEqual( template, {v:TEMPLATE_VERSION,t:[ { r: 'bar', t: 2 } ]} );
+function testComponentTemplate2 ( template ) {
+	deepEqual( template, { v: TEMPLATE_VERSION, t: [{ r: 'bar', t: 2 }] } );
 }
 
 test( 'Default create', t => {
 	testDefault( MockRactive.defaults.template );
 });
 
-
 test( 'Empty extend inherits parent', t => {
 	mockExtend();
-	testDefault( Component.defaults.template )
+	testDefault( Component.defaults.template );
 });
-
 
 test( 'Extend with template', t => {
 	mockExtend( templateOpt1 );
 	testComponentTemplate1( Component.defaults.template );
 });
 
-
 test( 'Extend twice with different templates', t => {
 	config.extend( MockRactive, Component.prototype, templateOpt1 );
-	var Child = create( Component );
+	const Child = create( Component );
 	config.extend( Component, Child.prototype, templateOpt2 );
 
 	testComponentTemplate2( Child.prototype.template );
@@ -125,14 +122,6 @@ test( 'Init with template function', t => {
 	testTemplate1( ractive.template );
 });
 
-// test( 'Overwrite before init', t => {
-
-// 	Ractive.defaults.template = templateOpt1.template;
-// 	config.init( Ractive, ractive );
-
-// 	testTemplate1( ractive.template );
-// });
-
 test( 'Overwrite after extend before init', t => {
 
 	config.extend( MockRactive, Component.prototype, templateOpt1 );
@@ -141,21 +130,6 @@ test( 'Overwrite after extend before init', t => {
 	config.init( Component, ractive, {} );
 	testTemplate2( ractive.template );
 });
-
-// Commenting out temporarily for #1594 - use of mocks causes problems
-/*test( 'Template function arguments and this', t => {
-	ractive.data = { good: true };
-
-	config.init( MockRactive, ractive, {
-		template: function( parser ){
-			t.equal( this, ractive );
-			t.ok( parser.parse );
-			return ( this.get( 'good' ) ? templateOpt1 : templateOpt2).template;
-		}
-	});
-
-	testTemplate1( ractive.template );
-});*/
 
 module( 'Template Configuration', moduleSetup);
 
@@ -169,22 +143,20 @@ test( 'Template with partial', t => {
 
 	testTemplate1( ractive.template );
 	t.ok( ractive.partials.bar );
-	testTemplate2( ractive.partials.bar)
+	testTemplate2( ractive.partials.bar);
 
 });
 
 test( 'Template with partial extended', t => {
-
-	var options = { template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' };
+	const options = { template: '{{foo}}{{#partial bar}}{{bar}}{{/partial}}' };
 
 	Component.partials = {};
 	config.extend( MockRactive, Component.prototype, options );
 
-	t.deepEqual( Component.defaults.template, { v: TEMPLATE_VERSION, t: [{r: "foo", t: 2 } ], p: {bar: [{r: "bar", t: 2 } ] } });
+	t.deepEqual( Component.defaults.template, { v: TEMPLATE_VERSION, t: [{r: 'foo', t: 2 } ], p: {bar: [{r: 'bar', t: 2 } ] } });
 });
 
 test( 'Template with partial added and takes precedence over option partials', t => {
-
 	ractive.partials = {
 		bar: '{{bop}}',
 		bizz: '{{buzz}}'
@@ -200,5 +172,4 @@ test( 'Template with partial added and takes precedence over option partials', t
 	// testTemplate2( ractive.partials.bar, 'has correct bar partial')
 
 	delete ractive.partials;
-
 });

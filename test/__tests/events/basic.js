@@ -89,3 +89,68 @@ test( 'ractive.off() is chainable (#677)', t => {
 
 	t.equal( returnedValue, ractive );
 });
+
+test( 'handlers can use pattern matching', t => {
+	t.expect( 4 );
+
+	const ractive = new Ractive();
+
+	ractive.on( '*.*', () => t.ok( true ) );
+	ractive.on( 'some.*', () => t.ok( true ) );
+	ractive.on( '*.event', () => t.ok( true ) );
+	ractive.on( 'some.event', () => t.ok( true ) );
+
+	ractive.fire( 'some.event' );
+});
+
+test( '.once() event functionality', t => {
+	t.expect( 1 );
+
+	const ractive = new Ractive( {} );
+
+	ractive.once( 'foo bar', function () {
+		t.ok( true );
+	});
+
+	ractive.fire( 'foo' );
+	ractive.fire( 'foo' );
+	ractive.fire( 'bar' );
+});
+
+test( 'wildcard and multi-part listeners have correct event name', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<span id="test" on-click="foo"/>'
+	});
+
+	let fired = [];
+
+	ractive.on( 'foo.* fuzzy *.bop', function () {
+		fired.push( this.event.name );
+	});
+
+	const events = [ 'foo.bar', 'fuzzy', 'foo.fizz', 'bip.bop' ];
+	events.forEach( ractive.fire.bind( ractive ) );
+
+	t.deepEqual( fired, events );
+});
+
+test( 'Inflight unsubscribe works (#1504)', t => {
+	t.expect( 3 );
+
+	const ractive = new Ractive( {} );
+
+	function first () {
+		t.ok( true );
+		ractive.off( 'foo', first );
+	}
+
+	ractive.on( 'foo', first );
+
+	ractive.on( 'foo', function () {
+		t.ok( true );
+	});
+
+	ractive.fire( 'foo' );
+	ractive.fire( 'foo' );
+});

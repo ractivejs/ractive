@@ -551,6 +551,69 @@ test( 'Proxy event arguments update correctly (#2098)', t => {
 	fire( button, 'click' );
 });
 
+test( 'component "on-" supply own event proxy arguments', t => {
+	t.expect( 4 );
+
+	const Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<Component on-foo="foo-reproxy:1" on-bar="bar-reproxy:{{qux}}" on-bizz="bizz-reproxy"/>',
+		data: {
+			qux: 'qux'
+		},
+		components: { Component }
+	});
+
+	ractive.on( 'foo-reproxy', ( arg1, arg2 ) => {
+		t.equal( arg1.original.type, 'click' );
+		t.equal( arg2, 1 );
+	});
+	ractive.on( 'bar-reproxy', ( arg1 ) => {
+		t.equal( arg1, 'qux' );
+	});
+	ractive.on( 'bizz-reproxy', function () {
+		t.equal( arguments.length, 0 );
+	});
+
+	const component = ractive.findComponent( 'Component' );
+	fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+	component.fire( 'bizz', 'buzz' );
+});
+
+test( 'component "on-" handles reproxy of arguments correctly', t => {
+	t.expect( 4 );
+
+	const Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<Component on-foo="foo-reproxy" on-bar="bar-reproxy" on-bizz="bizz-reproxy"/>',
+		components: { Component }
+	});
+
+	ractive.on( 'foo-reproxy', ( e, ...args ) => {
+		t.equal( e.original.type, 'click' );
+		t.equal( args.length, 0 );
+	});
+	ractive.on( 'bar-reproxy', function () {
+		t.equal( arguments.length, 0 );
+	});
+	ractive.on( 'bizz-reproxy', function () {
+		t.equal( arguments.length, 0 );
+	});
+
+	const component = ractive.findComponent( 'Component' );
+	fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+	component.fire( 'bizz' );
+});
+
 // This fails as of 0.8.0... does that matter? Seems unnecessary to support
 // test( 'Events really do not call addEventListener when no proxy name', t => {
 // 	var ractive,

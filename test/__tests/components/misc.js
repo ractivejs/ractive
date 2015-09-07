@@ -1,5 +1,5 @@
-/*global console */
 import { test } from 'qunit';
+import { onWarn } from 'test-config';
 import hasUsableConsole from 'hasUsableConsole';
 
 // TODO tidy up, move some of these tests into separate files
@@ -355,11 +355,9 @@ if ( hasUsableConsole ) {
 	test( 'no return of component warns in debug', t => {
 		t.expect( 1 );
 
-		const warn = console.warn;
-
-		console.warn = msg => {
+		onWarn( msg => {
 			t.ok( msg );
-		};
+		});
 
 		new Ractive({
 			el: fixture,
@@ -370,18 +368,14 @@ if ( hasUsableConsole ) {
 				}
 			}
 		});
-
-		console.warn = warn;
 	});
 
 	test( 'Inline components disregard `el` option (#1072) (and print a warning in debug mode)', t => {
 		t.expect( 1 );
 
-		const warn = console.warn;
-
-		console.warn = () => {
+		onWarn( () => {
 			t.ok( true );
-		};
+		});
 
 		const ractive = new Ractive({
 			el: fixture,
@@ -397,16 +391,14 @@ if ( hasUsableConsole ) {
 		});
 
 		ractive.set( 'show', false );
-		console.warn = warn;
 	});
 
 	test( 'Using non-primitives in data passed to Ractive.extend() triggers a warning', t => {
 		t.expect( 1 );
 
-		const warn = console.warn;
-		console.warn = msg => {
+		onWarn( msg => {
 			t.ok( /Passing a `data` option with object and array properties to Ractive.extend\(\) is discouraged, as mutating them is likely to cause bugs/.test( msg ) );
-		};
+		});
 
 		Ractive.extend({
 			data: {
@@ -425,8 +417,6 @@ if ( hasUsableConsole ) {
 				foo: {}
 			})
 		});
-
-		console.warn = warn;
 	});
 }
 

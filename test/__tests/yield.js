@@ -1,5 +1,6 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
+import { onWarn } from 'test-config';
 import hasUsableConsole from 'hasUsableConsole';
 
 test( 'Basic yield', t => {
@@ -254,11 +255,9 @@ test( 'Components inherited from more than one generation off work with named yi
 
 if ( hasUsableConsole ) {
 	test( 'Yield with missing partial (#1681)', t => {
-		/* global console */
-		const warn = console.warn;
-		console.warn = msg => {
+		onWarn( msg => {
 			t.ok( /Could not find template for partial "missing"/.test( msg ) );
-		};
+		});
 
 		const Widget = Ractive.extend({
 			template: '{{yield missing}}'
@@ -268,7 +267,5 @@ if ( hasUsableConsole ) {
 			template: '<Widget/>',
 			components: { Widget }
 		});
-
-		console.warn = warn;
 	});
 }

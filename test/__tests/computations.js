@@ -1,5 +1,5 @@
-/*global console */
 import { test } from 'qunit';
+import { onWarn } from 'test-config';
 import hasUsableConsole from 'hasUsableConsole';
 
 test( 'Computed value declared as a function', t => {
@@ -276,8 +276,7 @@ if ( hasUsableConsole ) {
 	test( 'Computations on unresolved refs don\'t error on initial component bindings', t => {
 		t.expect( 0 );
 
-		const warn = console.warn;
-		console.warn = () => t.ok( false );
+		onWarn( () => t.ok( false ) );
 
 		new Ractive({
 			template: '<component/>',
@@ -290,19 +289,16 @@ if ( hasUsableConsole ) {
 				})
 			}
 		});
-
-		console.warn = warn;
 	});
 
 	test( 'Computed value that calls itself (#1359)', t => {
 		let messages = 0;
 
-		const warn = console.warn;
-		console.warn = msg => {
+		onWarn( msg => {
 			if ( /computation indirectly called itself/.test( msg ) ) {
 				messages += 1;
 			}
-		};
+		});
 
 		const Widget = Ractive.extend({
 			template: `
@@ -330,8 +326,6 @@ if ( hasUsableConsole ) {
 
 		t.equal( messages, 0 );
 		t.htmlEqual( fixture.innerHTML, '<p>1 - a</p><p> - </p>' );
-
-		console.warn = warn;
 	});
 }
 

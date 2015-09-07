@@ -1,17 +1,15 @@
 import { test } from 'qunit';
 
 test( 'Returns mappings on root .get()', t => {
-	var ractive;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: `<c bar='{{foo}}' qux='{{qux}}'/>`,
+		template: `<Widget bar='{{foo}}' qux='{{qux}}'/>`,
 		data: {
 			foo: 'foo',
 			qux: 'qux'
 		},
 		components: {
-			c: Ractive.extend({
+			Widget: Ractive.extend({
 				template: '{{JSON.stringify(.)}}',
 				data: {
 					foo: 'mine'
@@ -20,7 +18,7 @@ test( 'Returns mappings on root .get()', t => {
 		}
 	});
 
-	var expected = { foo: 'mine', bar: 'foo', qux: 'qux' };
-	t.deepEqual( ractive.findComponent('c').get(), expected );
+	const expected = { foo: 'mine', bar: 'foo', qux: 'qux' };
+	t.deepEqual( ractive.findComponent( 'Widget' ).get(), expected );
 	t.deepEqual( fixture.innerHTML, JSON.stringify( expected ) );
 });

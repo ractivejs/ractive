@@ -1,5 +1,6 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
+import { onWarn } from 'test-config';
 import hasUsableConsole from 'hasUsableConsole';
 
 test( 'Two-way bindings work with index references', t => {
@@ -663,10 +664,9 @@ if ( hasUsableConsole ) {
 	test( 'Ambiguous references trigger a warning (#1692)', t => {
 		t.expect( 1 );
 
-		const warn = console.warn;
-		console.warn = warning => {
+		onWarn( warning => {
 			t.ok( /ambiguous/.test( warning ) );
-		};
+		});
 
 		new Ractive({
 			el: fixture,
@@ -675,49 +675,38 @@ if ( hasUsableConsole ) {
 				whatever: {}
 			}
 		});
-
-		console.warn = warn;
 	});
 
 	test( 'Using expressions in two-way bindings triggers a warning (#1399)', t => {
-		const warn = console.warn;
-
-		console.warn = message => {
+		onWarn( message => {
 			t.ok( ~message.indexOf( 'Cannot use two-way binding on <input> element: foo() is read-only' ) );
-		};
+		});
 
 		new Ractive({
 			el: fixture,
 			template: '<input value="{{foo()}}">',
 			data: { foo: () => 'bar' }
 		});
-
-		console.warn = warn;
 	});
 
 	test( 'Using expressions with keypath in two-way bindings triggers a warning (#1399/#1421)', t => {
-		const warn = console.warn;
-
-		console.warn = () => {
+		onWarn( () => {
 			t.ok( true );
-		};
+		});
 
 		new Ractive({
 			el: fixture,
 			template: '<input value="{{foo.bar()[\'biz.bop\']}}">',
 			data: { foo: { bar: () => 'bar' } }
 		});
-
-		console.warn = warn;
 	});
 
 	test( '@key cannot be used for two-way binding', t => {
 		t.expect( 3 );
 
-		const warn = console.warn;
-		console.warn = msg => {
+		onWarn( msg => {
 			t.ok( /Cannot use two-way binding/.test( msg ) );
-		};
+		});
 
 		new Ractive({
 			el: fixture,
@@ -726,8 +715,6 @@ if ( hasUsableConsole ) {
 				obj: { foo: 1, bar: 2, baz: 3 }
 			}
 		});
-
-		console.warn = warn;
 	});
 }
 
@@ -798,4 +785,82 @@ test( 'input type=number binds (#2082)', t => {
 	input.value = '20';
 	fire( input, 'change' );
 	t.equal( ractive.get( 'number' ), 20 );
+});
+
+test( 'twoway may be overridden on a per-element basis', t => {
+	let ractive = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" twoway="true" />',
+		data: { foo: 'test' },
+		twoway: false
+	});
+
+	let node = ractive.find( 'input' );
+	node.value = 'bar';
+	fire( node, 'change' );
+	t.equal( ractive.get( 'foo' ), 'bar' );
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" twoway="false" />',
+		data: { foo: 'test' },
+		twoway: true
+	});
+
+	node = ractive.find( 'input' );
+	node.value = 'bar';
+	fire( node, 'change' );
+	t.equal( ractive.get( 'foo' ), 'test' );
+});
+
+test( 'Presence of lazy or twoway without value is considered true', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" twoway lazy/>',
+		twoway: false
+	});
+
+	const input = ractive.find( 'input' );
+
+	input.value = 'changed';
+
+	// input events shouldn't trigger change (because lazy=true)...
+	fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), '' );
+
+	// ...but change events still should (because twoway=true)
+	fire( input, 'change' );
+	t.equal( ractive.get( 'foo' ), 'changed' );
+});
+
+test( '`lazy=0` is not mistaken for `lazy`', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" lazy="0"/>'
+	});
+
+	const input = ractive.find( 'input' );
+
+	input.value = 'changed';
+
+	// input events should trigger change
+	fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), 'changed' );
+});
+
+test( '`twoway=0` is not mistaken for `twoway`', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" twoway="0"/>'
+	});
+
+	const input = ractive.find( 'input' );
+
+	input.value = 'changed';
+
+	fire( input, 'input' );
+	t.equal( ractive.get( 'foo' ), undefined );
+
+	fire( input, 'change' );
+	t.equal( ractive.get( 'foo' ), undefined );
 });

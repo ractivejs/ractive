@@ -148,13 +148,12 @@ test = (function () {
 						return path.resolve( inputdir, importee ) + '.js';
 					},
 					load: function ( id ) {
-						var code = sander.readFileSync( id, { encoding: 'utf-8' })
-							.replace( /import cleanup.+/, '' ); // TEMP
+						var code = sander.readFileSync( id, { encoding: 'utf-8' });
 
-						if ( /helpers\/cleanup/.test( id ) ) return code;
+						if ( /test-config/.test( id ) ) return code;
 
-						return 'import cleanup from \'helpers/cleanup\';\n\n' +
-						       'module(\'' + mod + '\', { afterEach: cleanup });\n\n' +
+						return 'import { initModule } from \'test-config\';\n' +
+						       'initModule(\'' + mod + '\' );\n\n' +
 						        code;
 					}
 				}).then( function ( bundle ) {

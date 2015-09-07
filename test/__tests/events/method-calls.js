@@ -122,3 +122,108 @@ test( 'Current event is available to method handler as this.event (#1403)', t =>
 
 	fire( ractive.find( 'button' ), 'click' );
 });
+
+test( 'component "on-" can call methods', t => {
+	t.expect( 2 );
+
+	const Component = Ractive.extend({
+		template: `<span id="test" on-click="foo:'foo'">click me</span>`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<Component on-foo="foo(1)" on-bar="bar(2)"/>',
+		components: { Component },
+		foo ( num ) {
+			t.equal( num, 1 );
+		},
+		bar ( num ) {
+			t.equal( num, 2 );
+		}
+	});
+
+	const component = ractive.findComponent( 'Component' );
+	fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+});
+
+test( 'component "on-" with ...arguments', t => {
+	t.expect( 5 );
+
+	const Component = Ractive.extend({
+		template: `<span id="test" on-click="foo:'foo', 42">click me</span>`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<Component on-foo="foo(...arguments)" on-bar="bar(...arguments)"/>',
+		components: { Component },
+		foo ( e, arg1, arg2 ) {
+			t.equal( e.original.type, 'click' );
+			t.equal( arg1, 'foo' );
+			t.equal( arg2, 42 );
+		},
+		bar ( arg1, arg2 ) {
+			t.equal( arg1, 'bar' );
+			t.equal( arg2, 100 );
+		}
+	});
+
+	const component = ractive.findComponent( 'Component' );
+	fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar', 100 );
+});
+
+test( 'component "on-" with arguments[n]', t => {
+	t.expect( 5 );
+
+	const Component = Ractive.extend({
+		template: `<span id="test" on-click="foo:'foo', 42">click me</span>`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<Component on-foo="foo(arguments[2], \'qux\', arguments[0])" on-bar="bar(arguments[0], 100)"/>',
+		components: { Component },
+		foo ( arg1, arg2, arg3 ) {
+			t.equal( arg1, 42 );
+			t.equal( arg2, 'qux' );
+			t.equal( arg3.original.type, 'click' );
+		},
+		bar ( arg1, arg2 ) {
+			t.equal( arg1, 'bar' );
+			t.equal( arg2, 100 );
+		}
+	});
+
+	const component = ractive.findComponent( 'Component' );
+	fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+});
+
+test( 'component "on-" with $n', t => {
+	t.expect( 5 );
+
+	const Component = Ractive.extend({
+		template: '<span id="test" on-click="foo:\'foo\', 42">click me</span>'
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<Component on-foo="foo($3, \'qux\', $1)" on-bar="bar($1, 100)"/>',
+		components: { Component },
+		foo ( arg1, arg2, arg3 ) {
+			t.equal( arg1, 42 );
+			t.equal( arg2, 'qux' );
+			t.equal( arg3.original.type, 'click' );
+		},
+		bar ( arg1, arg2 ) {
+			t.equal( arg1, 'bar' );
+			t.equal( arg2, 100 );
+		}
+	});
+
+	const component = ractive.findComponent( 'Component' );
+	fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar' );
+});

@@ -1,29 +1,23 @@
 import { test } from 'qunit';
+import { beforeEach } from 'test-config';
 
-var config, placement;
+let target;
+let child;
 
-config = {
-	setup: function () {
-		var target = document.createElement('div'),
-			child = document.createElement('div');
+beforeEach( () => {
+	target = document.createElement( 'div' );
+	child = document.createElement( 'div' );
 
-		child.innerHTML = 'bar';
-		target.id = 'target';
-		target.appendChild( child );
-		fixture.appendChild( target );
+	target.id = 'target';
 
-		QUnit.assert.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div></div>' );
+	child.innerHTML = 'bar';
+	target.appendChild( child );
 
-		placement = { target: target, child: child };
-	}
-};
+	fixture.appendChild( target );
+});
 
-module( 'Element Selector', config );
-
-test( 'Element by id selector', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
+test( 'Element by id selector', t => {
+	new Ractive({
 		el: '#target',
 		template: '<div>foo</div>'
 	});
@@ -31,10 +25,8 @@ test( 'Element by id selector', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-test( 'Element by id (hashless)', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
+test( 'Element by id (hashless)', t => {
+	new Ractive({
 		el: 'target',
 		template: '<div>foo</div>'
 	});
@@ -42,10 +34,8 @@ test( 'Element by id (hashless)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-test( 'Element by query selector', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
+test( 'Element by query selector', t => {
+	new Ractive({
 		el: 'div[id=target]',
 		template: '<div>foo</div>'
 	});
@@ -53,21 +43,17 @@ test( 'Element by query selector', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-test( 'Element by node', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
-		el: placement.target,
+test( 'Element by node', t => {
+	new Ractive({
+		el: target,
 		template: '<div>foo</div>'
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-test( 'Element by nodelist', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
+test( 'Element by nodelist', t => {
+	new Ractive({
 		el: fixture.querySelectorAll('div'),
 		template: '<div>foo</div>'
 	});
@@ -75,47 +61,36 @@ test( 'Element by nodelist', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-test( 'Element by any array-like', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
-		el: [placement.target],
+test( 'Element by any array-like', t => {
+	new Ractive({
+		el: [target],
 		template: '<div>foo</div>'
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-
-module( 'Placement', config );
-
-test( 'Default replaces content', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
-		el: placement.target,
+test( 'Default replaces content', t => {
+	new Ractive({
+		el: target,
 		template: '<div>foo</div>'
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-test( 'Default replaces content', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
-		el: placement.target,
+test( 'Default replaces content', t => {
+	new Ractive({
+		el: target,
 		template: '<div>foo</div>'
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-test( 'Append false (normal default) replaces content', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
-		el: placement.target,
+test( 'Append false (normal default) replaces content', t => {
+	new Ractive({
+		el: target,
 		template: '<div>foo</div>',
 		append: false
 	});
@@ -123,11 +98,9 @@ test( 'Append false (normal default) replaces content', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div></div>' );
 });
 
-test( 'Append true option inserts as last child node', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
-		el: placement.target,
+test( 'Append true option inserts as last child node', t => {
+	new Ractive({
+		el: target,
 		template: '<div>foo</div>',
 		append: true
 	});
@@ -135,14 +108,11 @@ test( 'Append true option inserts as last child node', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>bar</div><div>foo</div></div>' );
 });
 
-
-test( 'Append with anchor inserts before anchor', function ( t ) {
-	var ractive
-
-	ractive = new Ractive({
-		el: placement.target,
+test( 'Append with anchor inserts before anchor', t => {
+	new Ractive({
+		el: target,
 		template: '<div>foo</div>',
-		append: placement.child
+		append: child
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div id="target"><div>foo</div><div>bar</div></div>' );

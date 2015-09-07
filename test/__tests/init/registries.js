@@ -1,7 +1,7 @@
 import { test } from 'qunit';
 import registries from 'Ractive/config/registries';
 
-test( 'has globally registered', function ( t ) {
+test( 'has globally registered', t => {
 	let foo = {};
 
 	registries.forEach( r => {

@@ -1,10 +1,11 @@
 import { test } from 'qunit';
+import { onWarn, onLog } from 'test-config';
 import hasUsableConsole from 'hasUsableConsole';
 import cleanup from 'helpers/cleanup';
 
-var fired, firedSetup, hooks
+let fired;
 
-firedSetup = {
+const firedSetup = {
 	beforeEach () {
 		fired = [];
 	},
@@ -14,27 +15,7 @@ firedSetup = {
 	}
 };
 
-module( 'onconstruct', firedSetup );
-
-test( 'has access to options', t => {
-	var View, ractive;
-
-	View = Ractive.extend({
-		onconstruct: function ( options ){
-			options.template = '{{foo}}';
-			options.data = { foo: 'bar' };
-		}
-	});
-
-	ractive = new View({
-		el: fixture
-	});
-
-	t.equal( fixture.innerHTML, 'bar' );
-
-});
-
-hooks = [
+const hooks = [
 	'onconfig',
 	'oninit',
 	'onrender',
@@ -45,9 +26,7 @@ hooks = [
 module( 'hooks', firedSetup );
 
 test( 'basic order', t => {
-	var ractive, options, Component;
-
-	options = {
+	let options = {
 		el: fixture,
 		template: 'foo'
 	};
@@ -60,22 +39,22 @@ test( 'basic order', t => {
 
 	hooks.forEach( hook => addHook( hook ) );
 
-	ractive = new Ractive( options );
+	let ractive = new Ractive( options );
 	ractive.teardown();
 	t.deepEqual( fired, hooks );
 
 	fired = [];
 	addHook( 'onconstruct');
 
-	Component = Ractive.extend( options );
+	const Component = Ractive.extend( options );
 	ractive = new Component();
 	ractive.teardown();
 	t.deepEqual( fired, [ 'onconstruct' ].concat( hooks ) );
-
 });
 
 test( 'hooks call _super', t => {
-	var ractive, Component, superOptions = {}, options = {};
+	let superOptions = {};
+	let options = {};
 
 	hooks.forEach( hook => {
 		superOptions[ hook ] = function () {
@@ -83,7 +62,7 @@ test( 'hooks call _super', t => {
 		};
 	});
 
-	Component = Ractive.extend( superOptions );
+	const Component = Ractive.extend( superOptions );
 
 	options = {
 		el: fixture,
@@ -91,13 +70,13 @@ test( 'hooks call _super', t => {
 	};
 
 	hooks.forEach( hook => {
-		options[ hook ] = function( arg ){
+		options[ hook ] = function ( arg ) {
 			this._super( arg );
 			fired.push( 'instance' + hook );
-		}
+		};
 	});
 
-	ractive = new Component( options );
+	const ractive = new Component( options );
 	ractive.teardown();
 
 	hooks.forEach( hook => {
@@ -106,143 +85,133 @@ test( 'hooks call _super', t => {
 	});
 });
 
-asyncTest( 'Component hooks called in consistent order (gh #589)', t => {
-	var Simpson, ractive,
-		// construct and config temporarily commented out, see #1381
-		method = {
-			/*construct: [], config: [], */init: [],
-			render: [], complete: [],
-			unrender: [], teardown: []
-		},
-		event = {
-			/*config: [],*/ init: [],
-			render: [], complete: [],
-			unrender: [], teardown: []
-		},
-		simpsons = ["Homer", "Marge", "Lisa", "Bart", "Maggie"];
+test( 'Component hooks called in consistent order (gh #589)', t => {
+	const done = t.async();
 
-	Simpson = Ractive.extend({
-		template: "{{simpson}}",
-		onconstruct: function ( o ) {
-			// method.construct.push( o.data.simpson );
+	// construct and config temporarily commented out, see #1381
+	const method = {
+		init: [],
+		render: [],
+		complete: [],
+		unrender: [],
+		teardown: []
+	};
 
-			/*this.on('config', () => {
-				event.config.push( this.data.simpson );
-			})*/
+	const event = {
+		init: [],
+		render: [],
+		complete: [],
+		unrender: [],
+		teardown: []
+	};
+
+	const simpsons = [ 'Homer', 'Marge', 'Lisa', 'Bart', 'Maggie' ];
+
+	const Simpson = Ractive.extend({
+		template: '{{simpson}}',
+		onconstruct () {
 			this.on('init', () => {
-				event.init.push( this.get( "simpson" ) );
-			})
+				event.init.push( this.get( 'simpson' ) );
+			});
 			this.on('render', () => {
-				event.render.push( this.get( "simpson" ) );
-			})
+				event.render.push( this.get( 'simpson' ) );
+			});
 			this.on('complete', () => {
-				event.complete.push( this.get( "simpson" ) );
-			})
+				event.complete.push( this.get( 'simpson' ) );
+			});
 			this.on('unrender', () => {
-				event.unrender.push( this.get( "simpson" ) );
-			})
+				event.unrender.push( this.get( 'simpson' ) );
+			});
 			this.on('teardown', () => {
-				event.teardown.push( this.get( "simpson" ) );
-			})
+				event.teardown.push( this.get( 'simpson' ) );
+			});
 		},
-		// onconfig: function () {
-		// 	method.config.push( this.data.simpson );
-		// },
-		oninit: function () {
-			method.init.push( this.get( "simpson" ) );
+		oninit () {
+			method.init.push( this.get( 'simpson' ) );
 		},
-		onrender: function () {
-			method.render.push( this.get( "simpson" ) );
+		onrender () {
+			method.render.push( this.get( 'simpson' ) );
 		},
-		oncomplete: function () {
-			method.complete.push( this.get( "simpson" ) );
+		oncomplete () {
+			method.complete.push( this.get( 'simpson' ) );
 		},
-		onunrender: function () {
-			method.unrender.push( this.get( "simpson" ) );
+		onunrender () {
+			method.unrender.push( this.get( 'simpson' ) );
 		},
-		onteardown: function () {
-			method.teardown.push( this.get( "simpson" ) );
+		onteardown () {
+			method.teardown.push( this.get( 'simpson' ) );
 		}
 	});
 
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		template: '{{#simpsons}}<simpson simpson="{{this}}"/>{{/}}',
-		data: {
-			simpsons: simpsons
-		},
-		components: {
-			simpson: Simpson
-		}
+		template: '{{#simpsons}}<Simpson simpson="{{this}}"/>{{/}}',
+		data: { simpsons },
+		components: { Simpson }
 	});
 
-	t.equal( fixture.innerHTML, simpsons.join('') );
+	t.equal( fixture.innerHTML, simpsons.join( '' ) );
 
 	ractive.teardown().then( () => {
 		function testHooks( name, order ) {
-			Object.keys( order ).forEach( function ( hook ) {
-				if( hook === 'complete' ){
+			Object.keys( order ).forEach( hook => {
+				if ( hook === 'complete' ) {
 					t.equal( order.complete.length, simpsons.length );
 				} else {
-					t.deepEqual( order[ hook ], simpsons, hook + ' ' + name + ' order' );
+					t.deepEqual( order[ hook ], simpsons, `${hook} ${name} order` );
 				}
 			});
 		}
+
 		testHooks( 'method', method );
 		testHooks( 'event', event );
-		start();
-	})
+		done();
+	});
 });
 
 
-module( 'hierarchy order', firedSetup);
+module( 'hierarchy order', firedSetup );
 
 function testHierarchy ( hook, expected ) {
-
-	asyncTest( hook, t => {
-
-		var ractive, options, Child, GrandChild, grandchild;
+	test( hook, t => {
+		const done = t.async();
 
 		function getOptions ( level ) {
-			var options = {};
+			let options = {};
 			options[ hook ] = function () {
 				fired.push( level );
 			};
 			return options;
 		}
 
-		options = getOptions( 'grandchild' );
+		let options = getOptions( 'grandchild' );
 		options.template = '{{foo}}';
-		GrandChild = Ractive.extend( options );
+		const GrandChild = Ractive.extend( options );
 
 		options = getOptions( 'child' );
-		options.template = '<grand-child/>';
-		options.components = {
-			'grand-child': GrandChild
-		};
-		Child = Ractive.extend( options );
+		options.template = '<GrandChild/>';
+		options.components = { GrandChild };
+		const Child = Ractive.extend( options );
 
 		options = getOptions( 'parent' );
 		options.el = fixture;
-		options.template = '<child/>';
+		options.template = '<Child/>';
 		options.data = { foo: 'bar' };
-		options.components = {
-			child: Child
-		};
-		ractive = new Ractive(options);
+		options.components = { Child };
+		const ractive = new Ractive(options);
 
-		grandchild = ractive.findComponent( 'grand-child' );
+		const grandchild = ractive.findComponent( 'GrandChild' );
 		grandchild.set( 'foo', 'fizz' );
 
 		ractive.teardown().then( () => {
 			t.deepEqual( fired, expected );
-			start()
+			done();
 		});
-	})
+	});
 }
 
-var topDown = [ 'parent', 'child', 'grandchild' ];
-var bottomUp = [ 'grandchild', 'child', 'parent' ];
+const topDown = [ 'parent', 'child', 'grandchild' ];
+const bottomUp = [ 'grandchild', 'child', 'parent' ];
 
 testHierarchy( 'onconstruct', [ 'child', 'grandchild' ] );
 testHierarchy( 'onconfig', topDown );
@@ -256,15 +225,13 @@ testHierarchy( 'onteardown', bottomUp );
 module( 'detach and insert', firedSetup);
 
 test( 'fired', t => {
-	var ractive;
-
-	ractive = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
 		template: 'foo',
-		oninsert: function () {
+		oninsert () {
 			fired.push( 'oninsert' );
 		},
-		ondetach: function () {
+		ondetach () {
 			fired.push( 'ondetach' );
 		}
 	});
@@ -273,41 +240,36 @@ test( 'fired', t => {
 	ractive.insert( fixture );
 
 	t.deepEqual( fired, [ 'ondetach', 'oninsert' ] );
-
-})
+});
 
 test( 'late-comer components on render still fire init', t => {
-	var ractive, Widget, Widget2;
-
-	Widget = Ractive.extend({
+	const Widget = Ractive.extend({
 		template: '{{~/init}}',
-		oninit: function(){
-			this.set('init', 'yes')
-		}
-	})
-
-	Widget2 = Ractive.extend({
-		template: '',
-		oninit: function(){
-			this.set('show', true)
-		}
-	})
-
-	ractive = new Ractive( {
-		el: fixture,
-		template: '{{#show}}<widget/>{{/}}<widget-two show="{{show}}"/>',
-		components: {
-			widget: Widget,
-			'widget-two': Widget2
+		oninit () {
+			this.set( 'init', 'yes' );
 		}
 	});
 
-	t.equal( fixture.innerHTML, 'yes' );
+	const Widget2 = Ractive.extend({
+		template: '',
+		oninit () {
+			this.set( 'show', true );
+		}
+	});
 
+	new Ractive( {
+		el: fixture,
+		template: '{{#show}}<Widget/>{{/}}<Widget2 show="{{show}}"/>',
+		components: { Widget, Widget2 }
+	});
+
+	t.equal( fixture.innerHTML, 'yes' );
 });
 
-test( 'render hooks are not fired until after DOM updates (#1367)', function ( t ) {
-	var ractive = new Ractive({
+test( 'render hooks are not fired until after DOM updates (#1367)', t => {
+	t.expect( 0 );
+
+	const ractive = new Ractive({
 		el: fixture,
 		template: '<one/>',
 		components: {
@@ -322,26 +284,24 @@ test( 'render hooks are not fired until after DOM updates (#1367)', function ( t
 					{{/if}}`
 			}),
 			two: Ractive.extend({
-				onrender: function () {
+				onrender () {
 					this.parent.find( 'whatever' );
 				}
 			})
 		}
 	});
 
-	expect( 0 );
-
 	// If the `<one>` component is not rendered, the `<two>` component's
 	// render handler will cause an error
 	ractive.set( 'bool', true );
 });
 
-test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) {
+test( 'correct behaviour of deprecated beforeInit hook (#1395)', t => {
+	t.expect( 6 );
+
 	let count;
 	const reset = () => count = { construct: 0, beforeInit: 0 };
 	reset();
-
-	expect( 6 );
 
 	// specifying both options is an error
 	t.throws( function () {
@@ -353,8 +313,7 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) 
 
 	// hooks-without-extend were introduced at the same time as beforeInit was
 	// deprecated, so this should not fire
-	const warn = console.warn;
-	console.warn = msg => t.ok( /deprecated/.test( msg ) );
+	onWarn( msg => t.ok( /deprecated/.test( msg ) ) );
 
 	reset();
 	new Ractive({
@@ -378,35 +337,30 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', function ( t ) 
 	});
 	new Subclass();
 	t.deepEqual( count, { construct: 0, beforeInit: 1 });
-
-	console.warn = warn;
 });
 
 if ( hasUsableConsole ) {
-	asyncTest( 'error in oncomplete sent to console', function ( t ) {
-		let warn = console.warn;
-		let log = console.log;
+	test( 'error in oncomplete sent to console', t => {
+		t.expect( 2 );
 
-		expect( 2 )
-		console.warn = msg => {
+		const done = t.async();
+
+		onWarn( msg => {
 			if ( /DEBUG_PROMISES/.test( msg ) ) {
 				return;
 			}
 
 			t.ok( /error happened during rendering/.test( msg ) );
-			console.warn = warn;
-		};
+		});
 
-		console.log = stack => {
+		onLog( stack => {
 			if ( /debug mode/.test( stack ) ) {
 				return;
 			}
 
-
 			t.ok( /evil handler/.test( stack ) || /oncomplete@/.test( stack ) ); // Firefox & Safari don't include the error message in the stack for some reason
-			console.log = log;
-			QUnit.start();
-		};
+			done();
+		});
 
 		new Ractive({
 			el: fixture,

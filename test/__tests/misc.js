@@ -1,5 +1,6 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
+import { onWarn } from 'test-config';
 import hasUsableConsole from 'hasUsableConsole';
 import { isArray } from 'utils/is';
 import cleanup from 'helpers/cleanup';
@@ -1586,13 +1587,11 @@ if ( hasUsableConsole ) {
 		let DEBUG = Ractive.DEBUG;
 		Ractive.DEBUG = false;
 
-		const warn = console.warn;
-		console.warn = () => t.ok( false );
+		onWarn( () => t.ok( false ) );
 
 		new Ractive({ template: '{{>thisWouldNormallyWarn}}' });
 
 		Ractive.DEBUG = DEBUG;
-		console.warn = warn;
 	});
 }
 

@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { onWarn } from 'test-config';
 import hasUsableConsole from 'hasUsableConsole';
 import cleanup from 'helpers/cleanup';
 
@@ -203,16 +204,14 @@ if ( hasUsableConsole ) {
 
 		const done = t.async();
 
-		const warn = console.warn;
-		console.warn = msg => {
+		onWarn( msg => {
 			t.ok( msg );
-		};
+		});
 
 		new Ractive({
 			el: fixture,
 			template: '<div intro="foo"></div>',
 			oncomplete () {
-				console.warn = warn;
 				done();
 			}
 		});
