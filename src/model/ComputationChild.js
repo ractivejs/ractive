@@ -1,8 +1,11 @@
+import { capture } from '../global/capture';
 import Model from './Model';
 import { handleChange } from '../shared/methodCallers';
 
 export default class ComputationChild extends Model {
-	get () {
+	get ( shouldCapture ) {
+		if ( shouldCapture ) capture( this );
+
 		const parentValue = this.parent.get();
 		return parentValue ? parentValue[ this.key ] : undefined;
 	}
