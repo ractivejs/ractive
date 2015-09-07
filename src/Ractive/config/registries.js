@@ -1,4 +1,3 @@
-import '../../legacy';
 import { create } from '../../utils/object';
 
 var registryNames, Registry, registries;

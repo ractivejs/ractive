@@ -1,4 +1,4 @@
-import * as namespaces from '../../../../config/namespaces';
+import namespaces from '../../../../config/namespaces';
 
 export default function ( attribute, name ) {
 	var colonIndex, namespacePrefix;
