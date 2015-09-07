@@ -1,3 +1,5 @@
+/*global require, module, __dirname, process */
+/*eslint no-var:0, object-shorthand:0 */
 var gobble = require( 'gobble' );
 var sander = require( 'sander' );
 var junk = require( 'junk' );
@@ -114,20 +116,20 @@ test = (function () {
 	}
 
 	var templates = {
-		testpage: compileTemplate( sander.readFileSync( 'test/templates/testpage.html' ).toString() ),
-		index: compileTemplate( sander.readFileSync( 'test/templates/index.html' ).toString() )
+		testpage: compileTemplate( sander.readFileSync( 'test/__support/templates/testpage.html' ).toString() ),
+		index: compileTemplate( sander.readFileSync( 'test/__support/templates/index.html' ).toString() )
 	};
 
 	var testModules = gobble([
 		gobble([
-			gobble( 'test/__tests' ).moveTo( '__tests' ),
-			gobble( 'test/testdeps' )
+			gobble( 'test/browser-tests' ).moveTo( 'browser-tests' ),
+			gobble( 'test/__support/js' )
 		]).transform( 'babel', {
 			sourceMap: false
 		}),
 		es5
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
-		return sander.lsr( inputdir, '__tests' ).then( function ( testModules ) {
+		return sander.lsr( inputdir, 'browser-tests' ).then( function ( testModules ) {
 			var globals = {
 				qunit: 'QUnit',
 				simulant: 'simulant'
@@ -135,7 +137,7 @@ test = (function () {
 
 			var promises = testModules.filter( junk.not ).sort().map( function ( mod ) {
 				return rollup.rollup({
-					entry: inputdir + '/__tests/' + mod,
+					entry: inputdir + '/browser-tests/' + mod,
 					resolveId: function ( importee, importer ) {
 						if ( globals[ importee ] ) return false;
 
@@ -178,19 +180,11 @@ test = (function () {
 		});
 	});
 
-	var testPages = testModules.transform( function () {
-		return templates.testpage({
-			testModule: path.basename( this.filename ),
-			name: this.filename.replace( /\.js$/, '' )
-		});
-	}, { accept: '.js', ext: '.html' });
-
 	return gobble([
 		testModules,
-		testPages,
-		gobble( 'test/root' ),
-		gobble( 'test/__nodetests' ).moveTo( '__nodetests' ),
-		gobble( 'test/testdeps/samples' )
+		gobble( 'test/__support/files' ),
+		gobble( 'test/node-tests' ).moveTo( 'node-tests' ),
+		gobble( 'test/__support/js/samples' )
 			.include( '*.js' )
 			.transform( 'babel', {
 				whitelist: [
@@ -211,7 +205,7 @@ test = (function () {
 				loose: [ 'es6.classes' ],
 				sourceMap: false
 			})
-			.moveTo( '__nodetests/samples' )
+			.moveTo( 'node-tests/samples' )
 	]).moveTo( 'test' );
 })();
 
