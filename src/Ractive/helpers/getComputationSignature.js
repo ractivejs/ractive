@@ -6,7 +6,7 @@ const pattern = /\$\{([^\}]+)\}/g;
 function createFunctionFromString ( ractive, str ) {
 	let hasThis;
 
-	const functionBody = 'return (' + str.replace( pattern, ( match, keypath ) => {
+	let functionBody = 'return (' + str.replace( pattern, ( match, keypath ) => {
 		hasThis = true;
 		return '__ractive.get("' + keypath + '")';
 	}) + ');';
