@@ -84,3 +84,61 @@ test( 'all animations are updated in a single batch', t => {
 		done();
 	});
 });
+
+test( 'animations cancel existing animations on the same keypath', t => {
+	t.expect( 3 );
+
+	const done = t.async();
+
+	let ractive = new Ractive({
+		el: fixture,
+		data: {
+			foo: 1,
+			bar: 1
+		}
+	});
+
+	function shouldBeCancelled () {
+		t.ok( false, 'animation should be cancelled' );
+	}
+
+	Ractive.Promise.resolve()
+		.then( () => {
+			ractive.animate( 'foo', 100, {
+				step: shouldBeCancelled
+			});
+
+			// animating single keypath directly
+			return ractive.animate( 'foo', 200, {
+				duration: 50
+			}).then( () => {
+				t.equal( ractive.get( 'foo' ), 200 );
+			});
+		})
+		.then( () => {
+			ractive.animate( 'bar', 100, {
+				step: shouldBeCancelled
+			});
+
+			// animating multiple keypaths that includes existing keypath
+			return ractive.animate({
+				foo: 50,
+				bar: 50
+			}, {
+				duration: 50
+			}).then( () => {
+				t.equal( ractive.get( 'foo' ), 50 );
+				t.equal( ractive.get( 'bar' ), 50 );
+			});
+		})
+		.then( () => {
+			// TODO jeez, what are we supposed to do here?
+			// ractive.animate({
+			// 	foo: 50,
+			// 	bar: 50
+			// });
+			//
+			// return ractive.animate( 'foo', 100 );
+		})
+		.then( done );
+});
