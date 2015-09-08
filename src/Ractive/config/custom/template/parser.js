@@ -2,7 +2,7 @@ import { doc } from '../../../../config/environment';
 import parse from '../../../../parse/_parse';
 import { create } from '../../../../utils/object';
 
-var parseOptions = [
+const parseOptions = [
 	'preserveWhitespace',
 	'sanitize',
 	'stripComments',
@@ -11,13 +11,13 @@ var parseOptions = [
 	'interpolate'
 ];
 
-var parser = {
+const parser = {
 	fromId, isHashedId, isParsed, getParseOptions, createHelper,
 	parse: doParse
 };
 
 function createHelper ( parseOptions ) {
-	var helper = create( parser );
+	const helper = create( parser );
 	helper.parse = ( template, options ) => doParse( template, options || parseOptions );
 	return helper;
 }
@@ -31,16 +31,14 @@ function doParse ( template, parseOptions ) {
 }
 
 function fromId ( id, options ) {
-	var template;
-
 	if ( !doc ) {
 		if ( options && options.noThrow ) { return; }
 		throw new Error( `Cannot retrieve template #${id} as Ractive is not running in a browser.` );
 	}
 
-	if ( isHashedId( id ) ) {
-		id = id.substring( 1 );
-	}
+	if ( isHashedId( id ) ) id = id.substring( 1 );
+
+	let template;
 
 	if ( !( template = doc.getElementById( id ) )) {
 		if ( options && options.noThrow ) { return; }

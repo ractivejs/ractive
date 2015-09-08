@@ -1,7 +1,6 @@
 import { TEMPLATE_VERSION } from '../../config/template';
 
-var defaultOptions = {
-
+export default {
 	// render placement:
 	el:                 void 0,
 	append:				false,
@@ -36,5 +35,3 @@ var defaultOptions = {
 	css:                null,
 	noCssTransform:     false
 };
-
-export default defaultOptions;

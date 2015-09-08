@@ -42,3 +42,43 @@ test( 'ractive.animate() returns a promise that resolves when the animation comp
 		done();
 	});
 });
+
+test( 'all animations are updated in a single batch', t => {
+	const done = t.async();
+
+	let fooSteps = 0;
+	let barSteps = 0;
+	let bazSteps = 0;
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{baz}}',
+		computed: {
+			baz () {
+				bazSteps += 1;
+				return this.get( 'foo' ) + this.get( 'bar' );
+			}
+		},
+		data: {
+			foo: 1,
+			bar: 1
+		}
+	});
+
+	const p1 = ractive.animate( 'foo', 100, {
+		duration: 100,
+		step: () => fooSteps += 1
+	});
+
+	const p2 = ractive.animate( 'bar', 100, {
+		duration: 100,
+		step: () => barSteps += 1
+	});
+
+	Promise.all([ p1, p2 ]).then( () => {
+		t.equal( fooSteps, bazSteps );
+		t.equal( barSteps, bazSteps );
+
+		done();
+	});
+});

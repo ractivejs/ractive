@@ -1,47 +1,56 @@
-var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g,
-	commentsPattern = /\/\*.*?\*\//g,
-	selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g,
-	mediaQueryPattern = /^@media/,
-	dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
+const selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
+const commentsPattern = /\/\*.*?\*\//g;
+const selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g;
+const mediaQueryPattern = /^@media/;
+const dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 
-export default function transformCss( css, id ) {
-	var transformed, dataAttr, addGuid;
+function trim ( str ) {
+	return str.trim();
+}
 
-	dataAttr = `[data-ractive-css~="{${id}}"]`;
+function extractString ( unit ) {
+	return unit.str;
+}
 
-	addGuid = function ( selector ) {
-		var selectorUnits, match, unit, base, prepended, appended, i, transformed = [];
+function transformSelector ( selector, parent ) {
+	let selectorUnits = [];
+	let match;
 
-		selectorUnits = [];
+	while ( match = selectorUnitPattern.exec( selector ) ) {
+		selectorUnits.push({
+			str: match[0],
+			base: match[1],
+			modifiers: match[2]
+		});
+	}
 
-		while ( match = selectorUnitPattern.exec( selector ) ) {
-			selectorUnits.push({
-				str: match[0],
-				base: match[1],
-				modifiers: match[2]
-			});
-		}
+	// For each simple selector within the selector, we need to create a version
+	// that a) combines with the id, and b) is inside the id
+	const base = selectorUnits.map( extractString );
 
-		// For each simple selector within the selector, we need to create a version
-		// that a) combines with the id, and b) is inside the id
-		base = selectorUnits.map( extractString );
+	let transformed = [];
+	let i = selectorUnits.length;
 
-		i = selectorUnits.length;
-		while ( i-- ) {
-			appended = base.slice();
+	while ( i-- ) {
+		let appended = base.slice();
 
-			// Pseudo-selectors should go after the attribute selector
-			unit = selectorUnits[i];
-			appended[i] = unit.base + dataAttr + unit.modifiers || '';
+		// Pseudo-selectors should go after the attribute selector
+		const unit = selectorUnits[i];
+		appended[i] = unit.base + parent + unit.modifiers || '';
 
-			prepended = base.slice();
-			prepended[i] = dataAttr + ' ' + prepended[i];
+		let prepended = base.slice();
+		prepended[i] = parent + ' ' + prepended[i];
 
-			transformed.push( appended.join( ' ' ), prepended.join( ' ' ) );
-		}
+		transformed.push( appended.join( ' ' ), prepended.join( ' ' ) );
+	}
 
-		return transformed.join( ', ' );
-	};
+	return transformed.join( ', ' );
+}
+
+export default function transformCss ( css, id ) {
+	const dataAttr = `[data-ractive-css~="{${id}}"]`;
+
+	let transformed;
 
 	if ( dataRvcGuidPattern.test( css ) ) {
 		transformed = css.replace( dataRvcGuidPattern, dataAttr );
@@ -49,29 +58,17 @@ export default function transformCss( css, id ) {
 		transformed = css
 		.replace( commentsPattern, '' )
 		.replace( selectorsPattern, function ( match, $1 ) {
-			var selectors, transformed;
-
 			// don't transform media queries!
 			if ( mediaQueryPattern.test( $1 ) ) return match;
 
-			selectors = $1.split( ',' ).map( trim );
-			transformed = selectors.map( addGuid ).join( ', ' ) + ' ';
+			const selectors = $1.split( ',' ).map( trim );
+			const transformed = selectors
+				.map( selector => transformSelector( selector, dataAttr ) )
+				.join( ', ' ) + ' ';
 
 			return match.replace( $1, transformed );
 		});
 	}
 
 	return transformed;
-}
-
-function trim ( str ) {
-	if ( str.trim ) {
-		return str.trim();
-	}
-
-	return str.replace( /^\s+/, '' ).replace( /\s+$/, '' );
-}
-
-function extractString ( unit ) {
-	return unit.str;
 }

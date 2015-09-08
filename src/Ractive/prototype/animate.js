@@ -1,16 +1,105 @@
+import runloop from '../../global/runloop';
+import interpolate from '../../shared/interpolate';
 import animations from '../../shared/animations';
-import Animation from './animate/Animation';
+import { warnIfDebug } from '../../utils/log';
 import { isEqual } from '../../utils/is';
 import { normalise } from '../../shared/keypaths';
 import Promise from '../../utils/Promise';
 import noop from '../../utils/noop';
 
-var noAnimation = { stop: noop };
+const noAnimation = { stop: noop };
+
+class Animation {
+	constructor ( options ) {
+		this.startTime = Date.now();
+
+		// from and to
+		for ( let key in options ) {
+			if ( options.hasOwnProperty( key ) ) {
+				this[ key ] = options[ key ];
+			}
+		}
+
+		this.interpolator = interpolate( this.from, this.to, this.root, this.interpolator );
+		this.running = true;
+
+		this.tick();
+	}
+
+	tick () {
+		if ( !this.running ) return false; // remove from the stack
+
+		const keypath = this.keypath; // TODO this apparently isn't used any more...
+
+		const timeNow = Date.now();
+		const elapsed = timeNow - this.startTime;
+
+		if ( elapsed >= this.duration ) {
+			if ( keypath !== null ) {
+				runloop.start( this.root ); // TODO runloop should not be invoked per-animation
+
+				if ( this.model ) {
+					this.model.set( this.to );
+				}
+
+				runloop.end();
+			}
+
+			if ( this.step ) {
+				this.step( 1, this.to );
+			}
+
+			this.complete( this.to );
+
+			const index = this.root._animations.indexOf( this );
+
+			// TODO investigate why this happens
+			if ( index === -1 ) {
+				warnIfDebug( 'Animation was not found' );
+			}
+
+			this.root._animations.splice( index, 1 );
+
+			this.running = false;
+			return false; // remove from the stack
+		}
+
+		const t = this.easing ? this.easing ( elapsed / this.duration ) : ( elapsed / this.duration );
+		const value = this.interpolator( t );
+
+		if ( keypath !== null ) {
+			runloop.start( this.root );
+
+			if ( this.model ) {
+				this.model.set( value );
+			}
+
+			runloop.end();
+		}
+
+		if ( this.step ) {
+			this.step( t, value );
+		}
+
+		return true; // keep in the stack
+	}
+
+	stop () {
+		this.running = false;
+
+		const index = this.root._animations.indexOf( this );
+
+		// TODO investigate why this happens
+		if ( index === -1 ) {
+			warnIfDebug( 'Animation was not found' );
+		}
+
+		this.root._animations.splice( index, 1 );
+	}
+}
 
 export default function Ractive$animate ( keypath, to, options ) {
-	var promise,
-		fulfilPromise,
-		k,
+	let k,
 		animation,
 		animations,
 		easing,
@@ -23,7 +112,8 @@ export default function Ractive$animate ( keypath, to, options ) {
 		dummy,
 		dummyOptions;
 
-	promise = new Promise( fulfil => fulfilPromise = fulfil );
+	let fulfilPromise;
+	const promise = new Promise( fulfil => fulfilPromise = fulfil );
 
 	// animate multiple keypaths
 	if ( typeof keypath === 'object' ) {
@@ -158,7 +248,6 @@ function animate ( root, keypath, to, options ) {
 	// duration
 	duration = ( options.duration === undefined ? 400 : options.duration );
 
-	// TODO store keys, use an internal set method
 	animation = new Animation({
 		model,
 		from,

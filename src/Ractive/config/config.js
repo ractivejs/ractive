@@ -8,23 +8,21 @@ import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
 
-var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
-
-custom = {
+const custom = {
 	adapt: adaptConfigurator,
 	css: cssConfigurator,
 	data: dataConfigurator,
 	template: templateConfigurator
 };
 
-defaultKeys = Object.keys( defaults );
+const defaultKeys = Object.keys( defaults );
 
-isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
+const isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
 
 // blacklisted keys that we don't double extend
-isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
+const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
 
-order = [].concat(
+const order = [].concat(
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
 	registries,
 	//custom.data,
@@ -32,7 +30,7 @@ order = [].concat(
 	custom.css
 );
 
-config = {
+const config = {
 	extend: ( Parent, proto, options ) => configure( 'extend', Parent, proto, options ),
 
 	init: ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options ),
@@ -97,7 +95,7 @@ function extendOtherMethods ( parent, target, options ) {
 }
 
 function makeObj ( array ) {
-	var obj = {};
+	let obj = {};
 	array.forEach( x => obj[x] = true );
 	return obj;
 }
