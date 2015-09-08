@@ -17,7 +17,7 @@ export default class Option extends Element {
 		// If the value attribute is missing, use the element's content,
 		// as long as it isn't disabled
 		if ( template.a.value === undefined && !( 'disabled' in template ) ) {
-			template.a.value = template.f;
+			template.a.value = template.f || '';
 		}
 
 		super( options );
