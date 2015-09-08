@@ -65,6 +65,8 @@ test( 'all animations are updated in a single batch', t => {
 		}
 	});
 
+	bazSteps = 0;
+
 	const p1 = ractive.animate( 'foo', 100, {
 		duration: 100,
 		step: () => fooSteps += 1
