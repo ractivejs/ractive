@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Sep 09 2015 14:45:57 GMT+0000 (UTC) - commit a915a87ec44eeb4e1c65b62e1df167f14467d3f6
+	Wed Sep 09 2015 14:49:22 GMT+0000 (UTC) - commit 825fed1418c16778368eda89d418236fec9b55f3
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8157,7 +8157,7 @@ var classCallCheck = function (instance, Constructor) {
   		// If the value attribute is missing, use the element's content,
   		// as long as it isn't disabled
   		if (template.a.value === undefined && !('disabled' in template)) {
-  			template.a.value = template.f;
+  			template.a.value = template.f || '';
   		}
 
   		_Element.call(this, options);
