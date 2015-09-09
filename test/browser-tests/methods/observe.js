@@ -439,6 +439,27 @@ test( 'Pattern observers fire on changes to keypaths downstream of their pattern
 });
 
 
+test( 'observe has correct context #2087', t => {
+	t.expect( 4 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: 'blah',
+		data: { foo: { bar: { baz: 1 } } }
+	});
+
+	ractive.observe( 'foo.*', function ( n, o, keypath ) {
+		t.ok( this === window )
+	}, { context: window });
+
+	ractive.observe( 'foo', function ( n, o, keypath ) {
+		t.ok( this === window )
+	}, { context: window });
+
+	ractive.set( 'foo.bar.baz', 2 );
+});
+
+
 test( 'Pattern observers fire on changes to keypaths upstream of their pattern', t => {
 	t.expect( 4 );
 
