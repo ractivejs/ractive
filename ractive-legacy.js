@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Sep 07 2015 21:05:18 GMT+0000 (UTC) - commit fd41c278b8ccced95c139f14a7cf6ae54b3afdf5
+	Wed Sep 09 2015 14:45:57 GMT+0000 (UTC) - commit a915a87ec44eeb4e1c65b62e1df167f14467d3f6
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13649,13 +13649,13 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		var model = viewmodel.joinAll(keys);
-  		return new Observer(ractive, model, callback, options);
+  		return new Observer(options.context || ractive, model, callback, options);
   	}
 
   	// pattern observers - more complex case
   	var baseModel = wildcardIndex === 0 ? viewmodel : viewmodel.joinAll(keys.slice(0, wildcardIndex));
 
-  	return new PatternObserver(ractive, baseModel, keys.splice(wildcardIndex), callback, options);
+  	return new PatternObserver(options.context || ractive, baseModel, keys.splice(wildcardIndex), callback, options);
   }
 
   var Observer = (function () {
