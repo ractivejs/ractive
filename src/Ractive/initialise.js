@@ -43,16 +43,13 @@ export default function initialise ( ractive, userOptions, options ) {
 			indexRefs: options.indexRefs || {},
 			keyRefs: options.keyRefs || {}
 		});
+
 	}
 
 	initHook.end( ractive );
 
-	// TODO initHook moved to before binding... will this break
-	// this.findComponent inside oninit? Is that a problem?
-	// Should be onrender anyway, right?
 	if ( ractive.fragment ) {
 		ractive.fragment.bind( ractive.viewmodel );
-
 		// render automatically ( if `el` is specified )
 		const el = getElement( ractive.el );
 		if ( el ) {
