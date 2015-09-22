@@ -143,7 +143,7 @@ test = (function () {
 					if ( /test-config/.test( id ) ) return code;
 
 					return 'import { initModule } from \'test-config\';\n' +
-					       'initModule(\'' + mod + '\' );\n\n' +
+					       'initModule(\'' + mod.replace( /\\/g, '/' ) + '\' );\n\n' +
 					        code;
 				}
 			}).then( function ( bundle ) {
