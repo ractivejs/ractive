@@ -806,6 +806,13 @@ const parseTests = [
 		error: `Partial definitions can only be at the top level of the template, or immediately inside components at line 1 character 17:
 {{#if whatever}}{{#partial nope}}...{{/partial}}{{/if}}
                 ^----`
+	},
+	{
+		name: 'unclosed element',
+		template: '<ul><li>',
+		error: `Missing end tags (</li></ul>) at line 1 character 9:
+<ul><li>
+        ^----`
 	}
 ];
 
