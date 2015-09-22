@@ -87,7 +87,7 @@ if ( !isClient ) {
 			t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
 
 			setTimeout( function () {
-				var i = changedProperties.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop, suffix;
+				var i = changedProperties.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop, suffix, interpolator;
 
 				while ( i-- ) {
 					prop = changedProperties[i];
@@ -131,12 +131,13 @@ if ( !isClient ) {
 						// TODO Determine whether this property is animatable at all
 
 						suffix = /[^\d]*$/.exec( to[ prop ] )[0];
+						interpolator = interpolate( parseFloat( originalValue ), parseFloat( to[ prop ] ) ) || ( () => to[ prop ] );
 
 						// ...then kick off a timer-based transition
 						propertiesToTransitionInJs.push({
 							name: prefix( prop ),
-							interpolator: interpolate( parseFloat( originalValue ), parseFloat( to[ prop ] ) ),
-							suffix: suffix
+							interpolator,
+							suffix
 						});
 					}
 				}
