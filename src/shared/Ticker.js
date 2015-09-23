@@ -1,8 +1,37 @@
+import rAF from '../utils/requestAnimationFrame';
 import getTime from '../utils/getTime';
-import animations from './animations';
+import runloop from '../global/runloop';
 
 // TODO what happens if a transition is aborted?
-// TODO use this with Animation to dedupe some code?
+
+let tickers = [];
+let running = false;
+
+function tick () {
+	runloop.start();
+
+	const now = getTime();
+
+	let i;
+	let ticker;
+
+	for ( i = 0; i < tickers.length; i += 1 ) {
+		ticker = tickers[i];
+
+		if ( !ticker.tick( now ) ) {
+			// ticker is complete, remove it from the stack, and decrement i so we don't miss one
+			tickers.splice( i--, 1 );
+		}
+	}
+
+	runloop.end();
+
+	if ( tickers.length ) {
+		rAF( tick );
+	} else {
+		running = false;
+	}
+}
 
 export default class Ticker {
 	constructor ( options ) {
@@ -15,7 +44,9 @@ export default class Ticker {
 		this.end = this.start + this.duration;
 
 		this.running = true;
-		animations.add( this );
+
+		tickers.push( this );
+		if ( !running ) rAF( tick );
 	}
 
 	tick ( now ) {

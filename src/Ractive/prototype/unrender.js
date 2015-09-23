@@ -20,11 +20,6 @@ export default function Ractive$unrender () {
 	// don't detach nodes from the DOM unnecessarily
 	shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
 
-	// Cancel any animations in progress
-	while ( this._animations[0] ) {
-		this._animations[0].stop(); // it will remove itself from the index
-	}
-
 	this.fragment.unrender( shouldDestroy );
 
 	removeFromArray( this.el.__ractive_instances__, this );

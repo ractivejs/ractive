@@ -129,9 +129,6 @@ function initialiseProperties ( ractive ) {
 	// like dynamic functions or original values
 	ractive._config = {};
 
-	// animations (so we can stop any in progress at teardown)
-	ractive._animations = [];
-
 	// nodes registry
 	ractive.nodes = {};
 
