@@ -2,6 +2,7 @@ import { capture } from '../global/capture';
 import { isEqual, isNumeric } from '../utils/is';
 import { removeFromArray } from '../utils/array';
 import { handleChange, mark, teardown } from '../shared/methodCallers';
+import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
@@ -34,6 +35,8 @@ export default class Model {
 		this.bindings = [];
 
 		this.value = undefined;
+
+		this.ticker = null;
 
 		if ( parent ) {
 			this.parent = parent;
@@ -80,6 +83,83 @@ export default class Model {
 		}
 
 		this.unresolvedByKey[ key ].push( resolver );
+	}
+
+	animate ( from, to, options, interpolator ) {
+		if ( this.ticker ) this.ticker.stop();
+
+		let fulfilPromise;
+		const promise = new Promise( fulfil => fulfilPromise = fulfil );
+
+		this.ticker = new Ticker({
+			duration: options.duration,
+			easing: options.easing,
+			step: t => {
+				const value = interpolator( t );
+				this.applyValue( value );
+				if ( options.step ) options.step( t, value );
+			},
+			complete: () => {
+				this.applyValue( to );
+				if ( options.complete ) options.complete( to );
+
+				this.ticker = null;
+				fulfilPromise();
+			}
+		});
+
+		promise.stop = this.ticker.stop;
+		return promise;
+	}
+
+	applyValue ( value ) {
+		if ( isEqual( value, this.value ) ) return;
+
+		// TODO deprecate this nonsense
+		this.root.changes[ this.getKeypath() ] = value;
+
+		if ( this.parent.wrapper && this.parent.wrapper.set ) {
+			this.parent.wrapper.set( this.key, value );
+			this.parent.value = this.parent.wrapper.get();
+
+			this.value = this.parent.value[ this.key ];
+			// TODO should this value be adapted? probably
+		} else if ( this.wrapper ) {
+			const shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
+
+			if ( shouldTeardown ) {
+				this.wrapper.teardown();
+				this.wrapper = null;
+				this.parent.value[ this.key ] = this.value = value;
+				this.adapt();
+			} else {
+				this.value = this.wrapper.get();
+			}
+		} else {
+			const parentValue = this.parent.value || this.parent.createBranch( this.key );
+			parentValue[ this.key ] = value;
+
+			this.value = value;
+			this.adapt();
+		}
+
+		this.parent.clearUnresolveds();
+		this.clearUnresolveds();
+
+		// notify dependants
+		const previousOriginatingModel = originatingModel; // for the array.length special case
+		originatingModel = this;
+
+		this.children.forEach( mark );
+		this.deps.forEach( handleChange );
+
+		let parent = this.parent;
+		while ( parent ) {
+			parent.deps.forEach( handleChange );
+			parent = parent.parent;
+		}
+
+		originatingModel = previousOriginatingModel;
 	}
 
 	clearUnresolveds ( specificKey ) {
@@ -287,53 +367,8 @@ export default class Model {
 	}
 
 	set ( value ) {
-		if ( isEqual( value, this.value ) ) return;
-
-		// TODO deprecate this nonsense
-		this.root.changes[ this.getKeypath() ] = value;
-
-		if ( this.parent.wrapper && this.parent.wrapper.set ) {
-			this.parent.wrapper.set( this.key, value );
-			this.parent.value = this.parent.wrapper.get();
-
-			this.value = this.parent.value[ this.key ];
-			// TODO should this value be adapted? probably
-		} else if ( this.wrapper ) {
-			const shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
-
-			if ( shouldTeardown ) {
-				this.wrapper.teardown();
-				this.wrapper = null;
-				this.parent.value[ this.key ] = this.value = value;
-				this.adapt();
-			} else {
-				this.value = this.wrapper.get();
-			}
-		} else {
-			const parentValue = this.parent.value || this.parent.createBranch( this.key );
-			parentValue[ this.key ] = value;
-
-			this.value = value;
-			this.adapt();
-		}
-
-		this.parent.clearUnresolveds();
-		this.clearUnresolveds();
-
-		// notify dependants
-		const previousOriginatingModel = originatingModel; // for the array.length special case
-		originatingModel = this;
-
-		this.children.forEach( mark );
-		this.deps.forEach( handleChange );
-
-		let parent = this.parent;
-		while ( parent ) {
-			parent.deps.forEach( handleChange );
-			parent = parent.parent;
-		}
-
-		originatingModel = previousOriginatingModel;
+		if ( this.ticker ) this.ticker.stop();
+		this.applyValue( value );
 	}
 
 	shuffle ( newIndices ) {

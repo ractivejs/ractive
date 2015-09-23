@@ -67,7 +67,7 @@ function createObserver ( ractive, keypath, callback, options ) {
 		}
 
 		const model = viewmodel.joinAll( keys );
-		return new Observer( ractive, model, callback, options );
+		return new Observer( options.context || ractive, model, callback, options );
 	}
 
 	// pattern observers - more complex case
@@ -75,7 +75,7 @@ function createObserver ( ractive, keypath, callback, options ) {
 		viewmodel :
 		viewmodel.joinAll( keys.slice( 0, wildcardIndex ) );
 
-	return new PatternObserver( ractive, baseModel, keys.splice( wildcardIndex ), callback, options );
+	return new PatternObserver( options.context || ractive, baseModel, keys.splice( wildcardIndex ), callback, options );
 }
 
 class Observer {

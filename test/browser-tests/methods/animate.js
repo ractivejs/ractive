@@ -28,21 +28,6 @@ test( 'ractive.animate() returns a promise that resolves when the animation comp
 	});
 });
 
-test( 'ractive.animate() returns a promise that resolves when the animation completes when using a map of values (#1047)', t => {
-	const done = t.async();
-
-	const ractive = new Ractive({
-		el: fixture,
-		template: '{{~~foo}}',
-		data: { foo: 0 }
-	});
-
-	ractive.animate({ foo: 100 }, { duration: 10 }).then( function () {
-		t.htmlEqual( fixture.innerHTML, '100' );
-		done();
-	});
-});
-
 test( 'all animations are updated in a single batch', t => {
 	const done = t.async();
 
@@ -83,4 +68,61 @@ test( 'all animations are updated in a single batch', t => {
 
 		done();
 	});
+});
+
+test( 'animations cancel existing animations on the same keypath', t => {
+	t.expect( 1 );
+
+	const done = t.async();
+
+	let ractive = new Ractive({
+		el: fixture,
+		data: {
+			foo: 1
+		}
+	});
+
+	function shouldBeCancelled () {
+		t.ok( false, 'animation should be cancelled' );
+	}
+
+	ractive.animate( 'foo', 100, {
+		step: shouldBeCancelled
+	});
+
+	// animating single keypath directly
+	return ractive.animate( 'foo', 200, {
+		duration: 50
+	}).then( () => {
+		t.equal( ractive.get( 'foo' ), 200 );
+		done();
+	});
+});
+
+test( 'set operations cancel existing animations on the same keypath', t => {
+	t.expect( 1 );
+
+	const done = t.async();
+
+	let ractive = new Ractive({
+		el: fixture,
+		data: {
+			foo: 1
+		}
+	});
+
+	function shouldBeCancelled () {
+		t.ok( false, 'animation should be cancelled' );
+	}
+
+	ractive.animate( 'foo', 100, {
+		step: shouldBeCancelled
+	});
+
+	// animating single keypath directly
+	ractive.set( 'foo', 200 );
+	t.equal( ractive.get( 'foo' ), 200 );
+
+	// wait to check step function isn't called
+	setTimeout( done, 50 );
 });

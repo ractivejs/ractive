@@ -844,3 +844,28 @@ test( 'Inline components have a `container` property', t => {
 	t.strictEqual( ractive.findComponent( 'Inner' ).container, ractive.findComponent( 'Outer' ) );
 	t.strictEqual( ractive.container, null );
 });
+
+test( 'component w/ empty select/option value does not throw (#2139)', t => {
+	t.expect( 0 );
+
+	const Component = Ractive.extend({
+		template: `
+		{{# persons}}
+		  <select><option></option></select>
+		{{/}}
+		`
+	});
+
+	var ractive = new Ractive({
+		el: fixture,
+		template: `
+			<Component />
+		`,
+		data: {
+			persons: []
+		},
+		components: { Component }
+	});
+
+	ractive.set('persons', [{}]);
+});
