@@ -34,7 +34,8 @@ export default function Ractive$animate ( keypath, to, options ) {
   ${keys.map( key => `'${key}': ${keypath[ key ]}` ).join( '\n  ' )}
 }, {...}), do
 
-${keys.map( key => `ractive.animate('${key}', ${keypath[ key ]}, ...);` ).join( '\n' )}` );
+${keys.map( key => `ractive.animate('${key}', ${keypath[ key ]}, {...});` ).join( '\n' )}
+` );
 	}
 
 	options = getOptions( options );
