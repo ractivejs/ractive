@@ -1,22 +1,36 @@
 import Hook from './Hook';
 
-function HookQueue ( event ) {
-	this.hook = new Hook( event );
-	this.inProcess = {};
-	this.queue = {};
+function getChildQueue ( queue, ractive ) {
+	return queue[ ractive._guid ] || ( queue[ ractive._guid ] = [] );
 }
 
-HookQueue.prototype = {
+function fire ( hookQueue, ractive ) {
+	let childQueue = getChildQueue( hookQueue.queue, ractive );
 
-	constructor: HookQueue,
+	hookQueue.hook.fire( ractive );
 
-	begin: function ( ractive ) {
+	// queue is "live" because components can end up being
+	// added while hooks fire on parents that modify data values.
+	while ( childQueue.length ) {
+		fire( hookQueue, childQueue.shift() );
+	}
+
+	delete hookQueue.queue[ ractive._guid ];
+}
+
+export default class HookQueue {
+	constructor ( event ) {
+		this.hook = new Hook( event );
+		this.inProcess = {};
+		this.queue = {};
+	}
+
+	begin ( ractive ) {
 		this.inProcess[ ractive._guid ] = true;
-	},
+	}
 
-	end: function ( ractive ) {
-
-		var parent = ractive.parent;
+	end ( ractive ) {
+		const parent = ractive.parent;
 
 		// If this is *isn't* a child of a component that's in process,
 		// it should call methods or fire at this point
@@ -30,26 +44,4 @@ HookQueue.prototype = {
 
 		delete this.inProcess[ ractive._guid ];
 	}
-};
-
-function getChildQueue ( queue, ractive ) {
-	return queue[ ractive._guid ] || ( queue[ ractive._guid ] = [] );
 }
-
-function fire ( hookQueue, ractive ) {
-
-	var childQueue = getChildQueue( hookQueue.queue, ractive );
-
-	hookQueue.hook.fire( ractive );
-
-	// queue is "live" because components can end up being
-	// added while hooks fire on parents that modify data values.
-	while ( childQueue.length ) {
-		fire( hookQueue, childQueue.shift() );
-	}
-
-	delete hookQueue.queue[ ractive._guid ];
-}
-
-
-export default HookQueue;

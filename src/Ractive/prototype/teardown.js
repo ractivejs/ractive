@@ -3,14 +3,12 @@ import Promise from '../../utils/Promise';
 import { removeFromArray } from '../../utils/array';
 import { cancel } from '../../shared/methodCallers';
 
-var teardownHook = new Hook( 'teardown' );
+const teardownHook = new Hook( 'teardown' );
 
 // Teardown. This goes through the root fragment and all its children, removing observers
 // and generally cleaning up after itself
 
 export default function Ractive$teardown () {
-	var promise;
-
 	this.fragment.unbind();
 	this.viewmodel.teardown();
 
@@ -21,7 +19,7 @@ export default function Ractive$teardown () {
 	}
 
 	this.shouldDestroy = true;
-	promise = ( this.fragment.rendered ? this.unrender() : Promise.resolve() );
+	const promise = ( this.fragment.rendered ? this.unrender() : Promise.resolve() );
 
 	teardownHook.fire( this );
 

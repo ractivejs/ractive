@@ -57,7 +57,7 @@ export default function transformCss ( css, id ) {
 	} else {
 		transformed = css
 		.replace( commentsPattern, '' )
-		.replace( selectorsPattern, function ( match, $1 ) {
+		.replace( selectorsPattern, ( match, $1 ) => {
 			// don't transform media queries!
 			if ( mediaQueryPattern.test( $1 ) ) return match;
 

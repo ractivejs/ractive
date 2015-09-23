@@ -1,7 +1,7 @@
 import Hook from '../../events/Hook';
 import { getElement } from '../../utils/dom';
 
-var insertHook = new Hook( 'insert' );
+const insertHook = new Hook( 'insert' );
 
 export default function Ractive$insert ( target, anchor ) {
 	if ( !this.fragment.rendered ) {
