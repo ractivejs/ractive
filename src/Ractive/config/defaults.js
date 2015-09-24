@@ -7,7 +7,7 @@ var defaultOptions = {
 	append:				false,
 
 	// template:
-	template:           { v: TEMPLATE_VERSION, t: [] },
+	template:           null,
 
 	// parse:     // TODO static delimiters?
 	preserveWhitespace: false,

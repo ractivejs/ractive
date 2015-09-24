@@ -27,7 +27,7 @@ export default function initialise ( ractive, userOptions, options ) {
 	let fragment;
 
 	// Render virtual DOM
-	if ( ractive.template ) { // TODO ractive.template is always truthy, because of the defaults...
+	if ( ractive.template ) {
 		let cssIds;
 
 		if ( options.cssIds || ractive.cssId ) {
