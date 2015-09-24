@@ -44,12 +44,12 @@ export default function initialise ( ractive, userOptions, options ) {
 			keyRefs: options.keyRefs || {}
 		});
 
+		ractive.fragment.bind( ractive.viewmodel );
 	}
 
 	initHook.end( ractive );
 
 	if ( ractive.fragment ) {
-		ractive.fragment.bind( ractive.viewmodel );
 		// render automatically ( if `el` is specified )
 		const el = getElement( ractive.el );
 		if ( el ) {
