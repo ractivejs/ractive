@@ -44,9 +44,7 @@ export default function initialise ( ractive, userOptions, options ) {
 			cssIds,
 			indexRefs: options.indexRefs || {},
 			keyRefs: options.keyRefs || {}
-		});
-
-		fragment.bind( ractive.viewmodel );
+		}).bind( ractive.viewmodel );
 	}
 
 	initHook.end( ractive );
