@@ -24,6 +24,8 @@ export default function initialise ( ractive, userOptions, options ) {
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
+	let fragment;
+
 	// Render virtual DOM
 	if ( ractive.template ) { // TODO ractive.template is always truthy, because of the defaults...
 		let cssIds;
@@ -36,7 +38,7 @@ export default function initialise ( ractive, userOptions, options ) {
 			}
 		}
 
-		ractive.fragment = new Fragment({
+		ractive.fragment = fragment = new Fragment({
 			owner: ractive,
 			template: ractive.template,
 			cssIds,
@@ -44,12 +46,12 @@ export default function initialise ( ractive, userOptions, options ) {
 			keyRefs: options.keyRefs || {}
 		});
 
-		ractive.fragment.bind( ractive.viewmodel );
+		fragment.bind( ractive.viewmodel );
 	}
 
 	initHook.end( ractive );
 
-	if ( ractive.fragment ) {
+	if ( fragment ) {
 		// render automatically ( if `el` is specified )
 		const el = getElement( ractive.el );
 		if ( el ) {
