@@ -1,5 +1,3 @@
-import { TEMPLATE_VERSION } from '../../config/template';
-
 var defaultOptions = {
 
 	// render placement:
@@ -7,7 +5,7 @@ var defaultOptions = {
 	append:				false,
 
 	// template:
-	template:           { v: TEMPLATE_VERSION, t: [] },
+	template:           null,
 
 	// parse:     // TODO static delimiters?
 	preserveWhitespace: false,

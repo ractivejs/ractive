@@ -45,6 +45,21 @@ test( 'late-comer components on render still fire init', t => {
 	t.equal( fixture.innerHTML, 'yes' );
 });
 
+test( 'component with data dependency can be found in oninit', t => {
+	const Component = Ractive.extend();
+	let component = null;
+
+	new Ractive( {
+		el: fixture,
+		data: { show: true },
+		template: '{{#show}}<Component/>{{/}}',
+		components: { Component },
+		oninit () { component = this.findComponent( 'Component' ); }
+	});
+
+	t.ok( component );
+});
+
 test( 'render hooks are not fired until after DOM updates (#1367)', t => {
 	t.expect( 0 );
 
