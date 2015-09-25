@@ -603,7 +603,11 @@ test( 'Changes made in oninit are reflected on render (#1390)', t => {
 	new Ractive({
 		el: fixture,
 		template: '{{#each items}}<input type="checkbox" name="{{selected}}" value="{{this}}">{{/each}}',
-		data: { items: [ 'a', 'b', 'c' ] },
+		data: {
+			items: [ 'a', 'b', 'c' ],
+			// will fail without this
+			selected: null
+		},
 		oninit () {
 			this.set( 'selected', [ 'b' ]);
 		},
@@ -611,6 +615,27 @@ test( 'Changes made in oninit are reflected on render (#1390)', t => {
 			inputs = this.findAll( 'input' );
 		}
 	});
+
+	t.ok( !inputs[0].checked );
+	t.ok(  inputs[1].checked );
+	t.ok( !inputs[2].checked );
+});
+
+test( 'Changes made after render to unresolved', t => {
+	let ractive, inputs;
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '{{#each items}}<input type="checkbox" name="{{selected}}" value="{{this}}">{{/each}}',
+		data: {
+			items: [ 'a', 'b', 'c' ],
+			// will fail without this
+			selected: null
+		}
+	});
+
+	ractive.set( 'selected', [ 'b' ] );
+	inputs = ractive.findAll( 'input' );
 
 	t.ok( !inputs[0].checked );
 	t.ok(  inputs[1].checked );

@@ -24,6 +24,7 @@ export default {
 		// ractive.template, and not bother passing through the Parent object.
 		// At present that breaks the test mocks' expectations
 		let template = 'template' in options ? options.template : Parent.prototype.template;
+		template = template || { v: TEMPLATE_VERSION, t: [] };
 
 		if ( typeof template === 'function' ) {
 			const fn = template;

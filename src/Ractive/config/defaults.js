@@ -1,12 +1,10 @@
-import { TEMPLATE_VERSION } from '../../config/template';
-
 export default {
 	// render placement:
 	el:                 void 0,
 	append:				false,
 
 	// template:
-	template:           { v: TEMPLATE_VERSION, t: [] },
+	template:           null,
 
 	// parse:     // TODO static delimiters?
 	preserveWhitespace: false,
