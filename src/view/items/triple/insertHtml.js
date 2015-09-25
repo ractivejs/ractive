@@ -1,7 +1,10 @@
 import { svg } from '../../../config/namespaces';
 import { createElement } from '../../../utils/dom';
 
-var elementCache = {}, ieBug, ieBlacklist;
+let elementCache = {};
+
+let ieBug;
+let ieBlacklist;
 
 try {
 	createElement( 'table' ).innerHTML = 'foo';
@@ -18,51 +21,57 @@ try {
 }
 
 export default function ( html, node, docFrag ) {
-	var container, nodes = [], wrapper, selectedOption, child, i;
+	let nodes = [];
 
 	// render 0 and false
-	if ( html != null && html !== '' ) {
-		if ( ieBug && ( wrapper = ieBlacklist[ node.tagName ] ) ) {
-			container = element( 'DIV' );
-			container.innerHTML = wrapper[0] + html + wrapper[1];
-			container = container.querySelector( '.x' );
+	if ( html == null || html === '' ) return nodes;
 
-			if ( container.tagName === 'SELECT' ) {
-				selectedOption = container.options[ container.selectedIndex ];
-			}
+	let container;
+	let wrapper;
+	let selectedOption;
+
+	if ( ieBug && ( wrapper = ieBlacklist[ node.tagName ] ) ) {
+		container = element( 'DIV' );
+		container.innerHTML = wrapper[0] + html + wrapper[1];
+		container = container.querySelector( '.x' );
+
+		if ( container.tagName === 'SELECT' ) {
+			selectedOption = container.options[ container.selectedIndex ];
 		}
+	}
 
-		else if ( node.namespaceURI === svg ) {
-			container = element( 'DIV' );
-			container.innerHTML = '<svg class="x">' + html + '</svg>';
-			container = container.querySelector( '.x' );
+	else if ( node.namespaceURI === svg ) {
+		container = element( 'DIV' );
+		container.innerHTML = '<svg class="x">' + html + '</svg>';
+		container = container.querySelector( '.x' );
+	}
+
+	else {
+		container = element( node.tagName );
+		container.innerHTML = html;
+
+		if ( container.tagName === 'SELECT' ) {
+			selectedOption = container.options[ container.selectedIndex ];
 		}
+	}
 
-		else {
-			container = element( node.tagName );
-			container.innerHTML = html;
+	let child;
+	while ( child = container.firstChild ) {
+		nodes.push( child );
+		docFrag.appendChild( child );
+	}
 
-			if ( container.tagName === 'SELECT' ) {
-				selectedOption = container.options[ container.selectedIndex ];
-			}
-		}
-
-		while ( child = container.firstChild ) {
-			nodes.push( child );
-			docFrag.appendChild( child );
-		}
-
-		// This is really annoying. Extracting <option> nodes from the
-		// temporary container <select> causes the remaining ones to
-		// become selected. So now we have to deselect them. IE8, you
-		// amaze me. You really do
-		// ...and now Chrome too
-		if ( node.tagName === 'SELECT' ) {
-			i = nodes.length;
-			while ( i-- ) {
-				if ( nodes[i] !== selectedOption ) {
-					nodes[i].selected = false;
-				}
+	// This is really annoying. Extracting <option> nodes from the
+	// temporary container <select> causes the remaining ones to
+	// become selected. So now we have to deselect them. IE8, you
+	// amaze me. You really do
+	// ...and now Chrome too
+	let i;
+	if ( node.tagName === 'SELECT' ) {
+		i = nodes.length;
+		while ( i-- ) {
+			if ( nodes[i] !== selectedOption ) {
+				nodes[i].selected = false;
 			}
 		}
 	}

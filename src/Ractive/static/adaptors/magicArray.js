@@ -1,20 +1,8 @@
 import magicAdaptor from './magic';
 import arrayAdaptor from './array/index';
 
-var magicArrayAdaptor, MagicArrayWrapper;
-
-if ( magicAdaptor ) {
-	magicArrayAdaptor = {
-		filter: function ( object, keypath, ractive ) {
-			return magicAdaptor.filter( object, keypath, ractive ) && arrayAdaptor.filter( object );
-		},
-
-		wrap: function ( ractive, array, keypath ) {
-			return new MagicArrayWrapper( ractive, array, keypath );
-		}
-	};
-
-	MagicArrayWrapper = function ( ractive, array, keypath ) {
+class MagicArrayWrapper {
+	constructor ( ractive, array, keypath ) {
 		this.value = array;
 
 		this.magic = true;
@@ -31,20 +19,28 @@ if ( magicAdaptor ) {
 				this.arrayWrapper.__model = model;
 			}
 		});
-	};
+	}
 
-	MagicArrayWrapper.prototype = {
-		get: function () {
-			return this.value;
-		},
-		teardown: function () {
-			this.arrayWrapper.teardown();
-			this.magicWrapper.teardown();
-		},
-		reset: function ( value ) {
-			return this.magicWrapper.reset( value );
-		}
-	};
+	get () {
+		return this.value;
+	}
+
+	teardown () {
+		this.arrayWrapper.teardown();
+		this.magicWrapper.teardown();
+	}
+
+	reset ( value ) {
+		return this.magicWrapper.reset( value );
+	}
 }
 
-export default magicArrayAdaptor;
+export default {
+	filter ( object, keypath, ractive ) {
+		return magicAdaptor.filter( object, keypath, ractive ) && arrayAdaptor.filter( object );
+	},
+
+	wrap ( ractive, array, keypath ) {
+		return new MagicArrayWrapper( ractive, array, keypath );
+	}
+};

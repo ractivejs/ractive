@@ -1,5 +1,5 @@
 export default function ( wrapper, array, methodName, newIndices ) {
-	var { __model } = wrapper;
+	const { __model } = wrapper;
 
 	if ( newIndices ) {
 		__model.shuffle( newIndices );

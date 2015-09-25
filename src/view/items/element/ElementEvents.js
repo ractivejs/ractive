@@ -2,9 +2,7 @@ import { missingPlugin } from '../../../config/errors';
 import { fatal } from '../../../utils/log';
 
 class DOMEvent {
-
 	constructor ( name, owner ) {
-
 		if ( name.indexOf( '*' ) !== -1 ) {
 			fatal( `Only component proxy-events may contain "*" wildcards, <${owner.name} on-${name}="..."/> is not valid` );
 		}
@@ -16,8 +14,8 @@ class DOMEvent {
 	}
 
 	listen ( directive ) {
-		const node = this.node = this.owner.node,
-			  name = this.name;
+		const node = this.node = this.owner.node;
+		const name = this.name;
 
 		if ( !( `on${name}` in node ) ) {
 			missingPlugin( name, 'events' );
@@ -25,7 +23,7 @@ class DOMEvent {
 
 		node.addEventListener( name, this.handler = function( event ) {
 			directive.fire({
-				node: node,
+				node,
 				original: event
 			});
 		}, false );
@@ -37,7 +35,6 @@ class DOMEvent {
 }
 
 class CustomEvent {
-
 	constructor ( eventPlugin, owner ) {
 		this.eventPlugin = eventPlugin;
 		this.owner = owner;
@@ -47,7 +44,7 @@ class CustomEvent {
 	listen ( directive ) {
 		const node = this.owner.node;
 
-		this.handler = this.eventPlugin( node, function( event = {} ) {
+		this.handler = this.eventPlugin( node, ( event = {} ) => {
 			event.node = event.node || node;
 			directive.fire( event );
 		});
