@@ -32,6 +32,7 @@ import subtract from './prototype/subtract';
 import teardown from './prototype/teardown';
 import toggle from './prototype/toggle';
 import toHTML from './prototype/toHTML';
+import transition from './prototype/transition';
 import unrender from './prototype/unrender';
 import unshift from './prototype/unshift';
 import update from './prototype/update';
@@ -75,6 +76,7 @@ export default {
 	toggle,
 	toHTML,
 	toHtml: toHTML,
+	transition,
 	unrender,
 	unshift,
 	update,

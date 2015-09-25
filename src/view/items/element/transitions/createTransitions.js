@@ -47,9 +47,9 @@ if ( !isClient ) {
 		// TODO use a fastdom-style mechanism?
 		setTimeout( function () {
 
-			var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete, transitionEndHandler;
+			let jsTransitionsComplete, cssTransitionsComplete;
 
-			checkComplete = function () {
+			const checkComplete = function () {
 				if ( jsTransitionsComplete && cssTransitionsComplete ) {
 					// will changes to events and fire have an unexpected consequence here?
 					t.ractive.fire( t.name + ':end', t.node, t.isIntro );
@@ -59,13 +59,21 @@ if ( !isClient ) {
 
 			// this is used to keep track of which elements can use CSS to animate
 			// which properties
-			hashPrefix = ( t.node.namespaceURI || '' ) + t.node.tagName;
+			const hashPrefix = ( t.node.namespaceURI || '' ) + t.node.tagName;
 
-			t.node.style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
-			t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
-			t.node.style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
+			// need to reset transition properties
+			const style = t.node.style;
+			const previous = {
+				property: style[ TRANSITION_PROPERTY ],
+				timing: style[ TRANSITION_TIMING_FUNCTION ],
+				duration: style[ TRANSITION_DURATION ]
+			};
 
-			transitionEndHandler = function ( event ) {
+			style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
+			style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
+			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
+
+			const transitionEndHandler = function ( event ) {
 				var index;
 
 				index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
@@ -77,6 +85,10 @@ if ( !isClient ) {
 					// still transitioning...
 					return;
 				}
+
+				style[ TRANSITION_PROPERTY ] = previous.property;
+				style[ TRANSITION_TIMING_FUNCTION ] = previous.duration;
+				style[ TRANSITION_DURATION ] = previous.timing;
 
 				t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 
@@ -94,7 +106,7 @@ if ( !isClient ) {
 					hash = hashPrefix + prop;
 
 					if ( CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
-						t.node.style[ prefix( prop ) ] = to[ prop ];
+						style[ prefix( prop ) ] = to[ prop ];
 
 						// If we're not sure if CSS transitions are supported for
 						// this tag/property combo, find out now
@@ -108,7 +120,7 @@ if ( !isClient ) {
 
 							// Reset, if we're going to use timers after all
 							if ( cannotUseCssTransitions[ hash ] ) {
-								t.node.style[ prefix( prop ) ] = originalValue;
+								style[ prefix( prop ) ] = originalValue;
 							}
 						}
 					}
@@ -169,7 +181,7 @@ if ( !isClient ) {
 							i = propertiesToTransitionInJs.length;
 							while ( i-- ) {
 								prop = propertiesToTransitionInJs[i];
-								t.node.style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
+								style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
 							}
 						},
 						complete () {
