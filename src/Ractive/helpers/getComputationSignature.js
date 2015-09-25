@@ -4,18 +4,16 @@ import bind from '../../utils/bind';
 const pattern = /\$\{([^\}]+)\}/g;
 
 function createFunctionFromString ( ractive, str ) {
-	var functionBody, hasThis, fn;
+	let hasThis;
 
-	functionBody = 'return (' + str.replace( pattern, ( match, keypath ) => {
+	let functionBody = 'return (' + str.replace( pattern, ( match, keypath ) => {
 		hasThis = true;
 		return '__ractive.get("' + keypath + '")';
 	}) + ');';
 
-	if ( hasThis ) {
-		functionBody = 'var __ractive = this; ' + functionBody;
-	}
+	if ( hasThis ) functionBody = `var __ractive = this; ${functionBody}`;
 
-	fn = new Function( functionBody );
+	const fn = new Function( functionBody );
 	return hasThis ? fn.bind( ractive ) : fn;
 }
 

@@ -3,7 +3,7 @@ import { normalise } from '../../../shared/keypaths';
 import runloop from '../../../global/runloop';
 import getNewIndices from '../../../shared/getNewIndices';
 
-var arrayProto = Array.prototype;
+const arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {

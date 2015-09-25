@@ -3,7 +3,7 @@ import transformCss from './transform';
 
 let uid = 1;
 
-var cssConfigurator = {
+export default {
 	name: 'css',
 
 	extend: ( Parent, proto, options ) => {
@@ -18,5 +18,3 @@ var cssConfigurator = {
 
 	init: () => {}
 };
-
-export default cssConfigurator;

@@ -1,17 +1,15 @@
 import { TEMPLATE_VERSION } from '../../../../config/template';
 import { create } from '../../../../utils/object';
-import parser from './parser';
 import parse from '../../../../parse/_parse';
+import parser from './parser';
 
-var templateConfigurator = {
+export default {
 	name: 'template',
 
-	extend: function extend ( Parent, proto, options ) {
-		var template;
-
+	extend ( Parent, proto, options ) {
 		// only assign if exists
 		if ( 'template' in options ) {
-			template = options.template;
+			const template = options.template;
 
 			if ( typeof template === 'function' ) {
 				proto.template = template;
@@ -21,21 +19,19 @@ var templateConfigurator = {
 		}
 	},
 
-	init: function init ( Parent, ractive, options ) {
-		var template, fn;
-
+	init ( Parent, ractive, options ) {
 		// TODO because of prototypal inheritance, we might just be able to use
 		// ractive.template, and not bother passing through the Parent object.
 		// At present that breaks the test mocks' expectations
-		template = 'template' in options ? options.template : Parent.prototype.template;
+		let template = 'template' in options ? options.template : Parent.prototype.template;
 		template = template || { v: TEMPLATE_VERSION, t: [] };
 
 		if ( typeof template === 'function' ) {
-			fn = template;
+			const fn = template;
 			template = getDynamicTemplate( ractive, fn );
 
 			ractive._config.template = {
-				fn: fn,
+				fn,
 				result: template
 			};
 		}
@@ -53,11 +49,11 @@ var templateConfigurator = {
 		}
 	},
 
-	reset: function ( ractive ) {
-		var result = resetValue( ractive ), parsed;
+	reset ( ractive ) {
+		const result = resetValue( ractive );
 
 		if ( result ) {
-			parsed = parseIfString( result, ractive );
+			const parsed = parseIfString( result, ractive );
 
 			ractive.template = parsed.t;
 			extendPartials( ractive.partials, parsed.p, true );
@@ -68,14 +64,14 @@ var templateConfigurator = {
 };
 
 function resetValue ( ractive ) {
-	var initial = ractive._config.template, result;
+	const initial = ractive._config.template;
 
 	// If this isn't a dynamic template, there's nothing to do
 	if ( !initial || !initial.fn ) {
 		return;
 	}
 
-	result = getDynamicTemplate( ractive, initial.fn );
+	let result = getDynamicTemplate( ractive, initial.fn );
 
 	// TODO deep equality check to prevent unnecessary re-rendering
 	// in the case of already-parsed templates
@@ -87,12 +83,12 @@ function resetValue ( ractive ) {
 }
 
 function getDynamicTemplate ( ractive, fn ) {
-	var helper = createHelper( parser.getParseOptions( ractive ) );
+	const helper = createHelper( parser.getParseOptions( ractive ) );
 	return fn.call( ractive, helper );
 }
 
 function createHelper ( parseOptions ) {
-	var helper = create( parser );
+	const helper = create( parser );
 	helper.parse = function ( template, options ){
 		return parser.parse( template, options || parseOptions );
 	};
@@ -139,5 +135,3 @@ function extendPartials ( existingPartials, newPartials, overwrite ) {
 		}
 	}
 }
-
-export default templateConfigurator;

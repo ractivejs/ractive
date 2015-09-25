@@ -4,16 +4,12 @@ import parser from '../../../Ractive/config/custom/template/parser';
 import { findInstance } from '../../../shared/registry';
 
 export default function getPartialTemplate ( ractive, name, parentFragment ) {
-	var partial;
-
 	// If the partial in instance or view heirarchy instances, great
-	if ( partial = getPartialFromRegistry( ractive, name, parentFragment || {} ) ) {
-		return partial;
-	}
+	let partial = getPartialFromRegistry( ractive, name, parentFragment || {} );
+	if ( partial ) return partial;
 
 	// Does it exist on the page as a script tag?
 	partial = parser.fromId( name, { noThrow: true } );
-
 	if ( partial ) {
 		// parse and register to this ractive instance
 		let parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
@@ -24,19 +20,19 @@ export default function getPartialTemplate ( ractive, name, parentFragment ) {
 }
 
 function getPartialFromRegistry ( ractive, name, parentFragment ) {
-	let fn, partial = findParentPartial( name, parentFragment.owner );
-
 	// if there was an instance up-hierarchy, cool
+	let partial = findParentPartial( name, parentFragment.owner );
 	if ( partial ) return partial;
 
 	// find first instance in the ractive or view hierarchy that has this partial
-	var instance = findInstance( 'partials', ractive, name );
+	const instance = findInstance( 'partials', ractive, name );
 
 	if ( !instance ) { return; }
 
 	partial = instance.partials[ name ];
 
 	// partial is a function?
+	let fn;
 	if ( typeof partial === 'function' ) {
 		fn = partial.bind( instance );
 		fn.isOwner = instance.partials.hasOwnProperty(name);
@@ -51,7 +47,6 @@ function getPartialFromRegistry ( ractive, name, parentFragment ) {
 	// If this was added manually to the registry,
 	// but hasn't been parsed, parse it now
 	if ( !parser.isParsed( partial ) ) {
-
 		// use the parseOptions of the ractive instance on which it was found
 		let parsed = parser.parse( partial, parser.getParseOptions( instance ) );
 
@@ -70,9 +65,7 @@ function getPartialFromRegistry ( ractive, name, parentFragment ) {
 	}
 
 	// store for reset
-	if ( fn ) {
-		partial._fn = fn;
-	}
+	if ( fn ) partial._fn = fn;
 
 	return partial.v ? partial.t : partial;
 }

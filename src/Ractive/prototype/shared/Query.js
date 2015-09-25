@@ -64,11 +64,9 @@ function sortByItemPosition ( a, b ) {
 }
 
 function getParent ( item ) {
-	var parentFragment;
+	let parentFragment = item.parentFragment;
 
-	if ( parentFragment = item.parentFragment ) {
-		return parentFragment.owner;
-	}
+	if ( parentFragment ) return parentFragment.owner;
 
 	if ( item.component && ( parentFragment = item.component.parentFragment ) ) {
 		return parentFragment.owner;
@@ -76,11 +74,8 @@ function getParent ( item ) {
 }
 
 function getAncestry ( item ) {
-	var ancestry, ancestor;
-
-	ancestry = [ item ];
-
-	ancestor = getParent( item );
+	let ancestry = [ item ];
+	let ancestor = getParent( item );
 
 	while ( ancestor ) {
 		ancestry.push( ancestor );
@@ -109,12 +104,10 @@ export default class Query {
 	}
 
 	cancel () {
-		var liveQueries, selector, index;
+		let liveQueries = this._root[ this.isComponentQuery ? 'liveComponentQueries' : 'liveQueries' ];
+		const selector = this.selector;
 
-		liveQueries = this._root[ this.isComponentQuery ? 'liveComponentQueries' : 'liveQueries' ];
-		selector = this.selector;
-
-		index = liveQueries.indexOf( selector );
+		const index = liveQueries.indexOf( selector );
 
 		if ( index !== -1 ) {
 			liveQueries.splice( index, 1 );
@@ -137,11 +130,8 @@ export default class Query {
 	}
 
 	remove ( nodeOrComponent ) {
-		var index = this.result.indexOf( this.isComponentQuery ? nodeOrComponent.instance : nodeOrComponent );
-
-		if ( index !== -1 ) {
-			this.result.splice( index, 1 );
-		}
+		const index = this.result.indexOf( this.isComponentQuery ? nodeOrComponent.instance : nodeOrComponent );
+		if ( index !== -1 ) this.result.splice( index, 1 );
 	}
 
 	update () {

@@ -1,14 +1,11 @@
 import * as namespaces from '../../../../config/namespaces';
 
 export default function ( attribute, name ) {
-	var colonIndex, namespacePrefix;
-
 	// are we dealing with a namespaced attribute, e.g. xlink:href?
-	colonIndex = name.indexOf( ':' );
+	const colonIndex = name.indexOf( ':' );
 	if ( colonIndex !== -1 ) {
-
 		// looks like we are, yes...
-		namespacePrefix = name.substr( 0, colonIndex );
+		const namespacePrefix = name.substr( 0, colonIndex );
 
 		// ...unless it's a namespace *declaration*, which we ignore (on the assumption
 		// that only valid namespaces will be used)

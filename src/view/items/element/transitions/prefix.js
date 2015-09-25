@@ -2,17 +2,15 @@ import { isClient, vendors } from '../../../../config/environment';
 import { createElement } from '../../../../utils/dom';
 import camelCase from '../../../../utils/camelCase';
 
-var prefix, prefixCache, testStyle;
+let prefix;
 
 if ( !isClient ) {
 	prefix = null;
 } else {
-	prefixCache = {};
-	testStyle = createElement( 'div' ).style;
+	let prefixCache = {};
+	const testStyle = createElement( 'div' ).style;
 
 	prefix = function ( prop ) {
-		var i, vendor, capped;
-
 		prop = camelCase( prop );
 
 		if ( !prefixCache[ prop ] ) {
@@ -22,11 +20,11 @@ if ( !isClient ) {
 
 			else {
 				// test vendors...
-				capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
+				const capped = prop.charAt( 0 ).toUpperCase() + prop.substring( 1 );
 
-				i = vendors.length;
+				let i = vendors.length;
 				while ( i-- ) {
-					vendor = vendors[i];
+					const vendor = vendors[i];
 					if ( testStyle[ vendor + capped ] !== undefined ) {
 						prefixCache[ prop ] = vendor + capped;
 						break;

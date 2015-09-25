@@ -6,10 +6,9 @@ import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 
-const eventPattern = /^event(?:\.(.+))?$/,
-	  argumentsPattern = /^arguments\.(\d*)$/,
-	  dollarArgsPattern = /^\$(\d*)$/;
-
+const eventPattern = /^event(?:\.(.+))?$/;
+const argumentsPattern = /^arguments\.(\d*)$/;
+const dollarArgsPattern = /^\$(\d*)$/;
 
 export default class EventDirective {
 	constructor ( owner, event, template ) {
@@ -176,8 +175,8 @@ export default class EventDirective {
 
 
 			// make event available as `this.event`
-			const ractive = this.ractive,
-				  oldEvent = ractive.event;
+			const ractive = this.ractive;
+			const oldEvent = ractive.event;
 
 			ractive.event = event;
 			ractive[ this.method ].apply( ractive, args );

@@ -71,7 +71,7 @@ export default class RadioNameBinding extends Binding {
 	}
 
 	unrender () {
-		var node = this.node;
+		const node = this.node;
 
 		node.removeEventListener( 'change', handleDomEvent, false );
 		node.removeEventListener( 'click', handleDomEvent, false );
