@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Sep 09 2015 14:49:22 GMT+0000 (UTC) - commit 825fed1418c16778368eda89d418236fec9b55f3
+	Sat Sep 26 2015 03:30:31 GMT+0000 (UTC) - commit 3de5b6e347b3e267498824e63e948558f93fe1e0
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -16,7 +16,7 @@
 }(this, function () { 'use strict';
 
   var namespaces = {
-    get html () { return html; },
+    get html () { return _html; },
     get mathml () { return mathml; },
     get svg () { return svg; },
     get xlink () { return xlink; },
@@ -24,16 +24,33 @@
     get xmlns () { return xmlns; }
   };
 
-  var TEMPLATE_VERSION = 3;
+  /*global console, navigator */
 
-  var defaultOptions = {
+  var win = typeof window !== 'undefined' ? window : null;
+  var doc = win ? document : null;
 
+  var isClient = !!doc;
+  var hasConsole = typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function';
+
+  var magic = undefined;
+  try {
+  	Object.defineProperty({}, 'test', { value: 0 });
+  	magic = true;
+  } catch (e) {
+  	magic = false;
+  }
+
+  var _svg = doc ? doc.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1') : false;
+
+  var vendors = ['o', 'ms', 'moz', 'webkit'];
+
+  var _defaults = {
   	// render placement:
   	el: void 0,
   	append: false,
 
   	// template:
-  	template: { v: TEMPLATE_VERSION, t: [] },
+  	template: null,
 
   	// parse:     // TODO static delimiters?
   	preserveWhitespace: false,
@@ -64,26 +81,6 @@
   };
 
   function noop () {}
-
-  /*global console, navigator */
-
-  var win = typeof window !== 'undefined' ? window : null;
-  var doc = win ? document : null;
-
-  var isClient = !!doc;
-  var hasConsole = typeof console !== 'undefined' && typeof console.warn === 'function' && typeof console.warn.apply === 'function';
-
-  var magic = undefined;
-  try {
-  	Object.defineProperty({}, 'test', { value: 0 });
-  	magic = true;
-  } catch (e) {
-  	magic = false;
-  }
-
-  var _svg = doc ? doc.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1') : false;
-
-  var vendors = ['o', 'ms', 'moz', 'webkit'];
 
   var alreadyWarned = {};
   var log;
@@ -269,16 +266,11 @@ var classCallCheck = function (instance, Constructor) {
   	return Hook;
   })();
 
-  var _toString = Object.prototype.toString;
-  var arrayLikePattern = /^\[object (?:Array|FileList)\]$/;
+  var __toString = Object.prototype.toString;
   // thanks, http://perfectionkills.com/instanceof-considered-harmful-or-how-to-write-a-robust-isarray/
 
   function isArray(thing) {
-  	return _toString.call(thing) === '[object Array]';
-  }
-
-  function isArrayLike(obj) {
-  	return arrayLikePattern.test(_toString.call(obj));
+  	return __toString.call(thing) === '[object Array]';
   }
 
   function isEqual(a, b) {
@@ -300,7 +292,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function isObject(thing) {
-  	return thing && _toString.call(thing) === '[object Object]';
+  	return thing && __toString.call(thing) === '[object Object]';
   }
 
   function addToArray(array, value) {
@@ -380,39 +372,39 @@ var classCallCheck = function (instance, Constructor) {
   	return array;
   }
 
-  function _bind(x) {
+  function __bind(x) {
     x.bind();
   }
 
-  function cancel(x) {
+  function _cancel(x) {
     x.cancel();
   }
 
-  function handleChange(x) {
+  function _handleChange(x) {
     x.handleChange();
   }
 
-  function mark(x) {
+  function _mark(x) {
     x.mark();
   }
 
-  function _render(x) {
+  function __render(x) {
     x.render();
   }
 
-  function rebind(x) {
+  function _rebind(x) {
     x.rebind();
   }
 
-  function teardown(x) {
+  function _teardown(x) {
     x.teardown();
   }
 
-  function unbind(x) {
+  function _unbind(x) {
     x.unbind();
   }
 
-  function unrender(x) {
+  function _unrender(x) {
     x.unrender();
   }
 
@@ -420,11 +412,11 @@ var classCallCheck = function (instance, Constructor) {
     x.unrender(true);
   }
 
-  function _update(x) {
+  function __update(x) {
     x.update();
   }
 
-  function toString(x) {
+  function _toString(x) {
     return x.toString();
   }
 
@@ -483,8 +475,8 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	TransitionManager.prototype.detachNodes = function detachNodes() {
-  		this.decoratorQueue.forEach(teardown);
-  		this.detachQueue.forEach(detach);
+  		this.decoratorQueue.forEach(_teardown);
+  		this.detachQueue.forEach(_detach);
   		this.children.forEach(_detachNodes);
   	};
 
@@ -508,7 +500,7 @@ var classCallCheck = function (instance, Constructor) {
   	return TransitionManager;
   })();
 
-  function detach(element) {
+  function _detach(element) {
   	element.detach();
   }
 
@@ -604,7 +596,7 @@ var classCallCheck = function (instance, Constructor) {
 
   								try {
   									x = handler(p1result);
-  									_resolve(promise2, x, fulfil, reject);
+  									__resolve(promise2, x, fulfil, reject);
   								} catch (err) {
   									reject(err);
   								}
@@ -696,7 +688,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
   }
 
-  function _resolve(promise, x, fulfil, reject) {
+  function __resolve(promise, x, fulfil, reject) {
   	// Promise Resolution Procedure
   	var then;
 
@@ -728,7 +720,7 @@ var classCallCheck = function (instance, Constructor) {
   						return;
   					}
   					called = true;
-  					_resolve(promise, y, fulfil, reject);
+  					__resolve(promise, y, fulfil, reject);
   				};
 
   				rejectPromise = function (r) {
@@ -832,12 +824,12 @@ var classCallCheck = function (instance, Constructor) {
   	}
   };
 
-  function dispatch(observer) {
+  function _dispatch(observer) {
   	observer.dispatch();
   }
 
   function flushChanges() {
-  	batch.immediateObservers.forEach(dispatch);
+  	batch.immediateObservers.forEach(_dispatch);
 
   	// Now that changes have been fully propagated, we can update the DOM
   	// and complete other tasks
@@ -858,7 +850,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	batch.transitionManager.start();
 
-  	batch.deferredObservers.forEach(dispatch);
+  	batch.deferredObservers.forEach(_dispatch);
 
   	var tasks = batch.tasks;
   	batch.tasks = [];
@@ -899,11 +891,9 @@ var classCallCheck = function (instance, Constructor) {
 
   var updateHook = new Hook('update');
   function Ractive$update(keypath) {
-  	var promise, model;
+  	var model = keypath ? this.viewmodel.joinAll(splitKeypath(keypath)) : this.viewmodel;
 
-  	model = keypath ? this.viewmodel.joinAll(splitKeypath(keypath)) : this.viewmodel;
-
-  	promise = runloop.start(this, true);
+  	var promise = runloop.start(this, true);
   	model.mark();
   	runloop.end();
 
@@ -1055,24 +1045,16 @@ var classCallCheck = function (instance, Constructor) {
 
   var _unrenderHook = new Hook('unrender');
   function Ractive$unrender() {
-  	var promise, shouldDestroy;
-
   	if (!this.fragment.rendered) {
   		warnIfDebug('ractive.unrender() was called on a Ractive instance that was not rendered');
   		return _Promise.resolve();
   	}
 
-  	promise = runloop.start(this, true);
+  	var promise = runloop.start(this, true);
 
   	// If this is a component, and the component isn't marked for destruction,
   	// don't detach nodes from the DOM unnecessarily
-  	shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
-
-  	// Cancel any animations in progress
-  	while (this._animations[0]) {
-  		this._animations[0].stop(); // it will remove itself from the index
-  	}
-
+  	var shouldDestroy = !this.component || this.component.shouldDestroy || this.shouldDestroy;
   	this.fragment.unrender(shouldDestroy);
 
   	removeFromArray(this.el.__ractive_instances__, this);
@@ -1120,19 +1102,17 @@ var classCallCheck = function (instance, Constructor) {
   // and generally cleaning up after itself
 
   function Ractive$teardown() {
-  	var promise;
-
   	this.fragment.unbind();
   	this.viewmodel.teardown();
 
-  	this._observers.forEach(cancel);
+  	this._observers.forEach(_cancel);
 
   	if (this.fragment.rendered && this.el.__ractive_instances__) {
   		removeFromArray(this.el.__ractive_instances__, this);
   	}
 
   	this.shouldDestroy = true;
-  	promise = this.fragment.rendered ? this.unrender() : _Promise.resolve();
+  	var promise = this.fragment.rendered ? this.unrender() : _Promise.resolve();
 
   	_teardownHook.fire(this);
 
@@ -1140,7 +1120,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   var _errorMessage = 'Cannot add to a non-numeric value';
-  function add(ractive, keypath, d) {
+  function _add(ractive, keypath, d) {
   	if (typeof keypath !== 'string' || !isNumeric(d)) {
   		throw new Error('Bad arguments');
   	}
@@ -1171,7 +1151,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function Ractive$subtract(keypath, d) {
-  	return add(this, keypath, d === undefined ? -1 : -d);
+  	return _add(this, keypath, d === undefined ? -1 : -d);
   }
 
   var splice = makeArrayMethod('splice');
@@ -1180,7 +1160,7 @@ var classCallCheck = function (instance, Constructor) {
 
   var shift = makeArrayMethod('shift');
 
-  function bind(fn, context) {
+  function _bind(fn, context) {
   	if (!/this/.test(fn.toString())) return fn;
 
   	var bound = fn.bind(context);
@@ -1190,23 +1170,21 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function Ractive$set(keypath, value) {
-  	var map, promise;
-
-  	promise = runloop.start(this, true);
+  	var promise = runloop.start(this, true);
 
   	// Set multiple keypaths in one go
   	if (isObject(keypath)) {
-  		map = keypath;
+  		var map = keypath;
 
   		for (keypath in map) {
   			if (map.hasOwnProperty(keypath)) {
-  				set(this, keypath, map[keypath]);
+  				_set(this, keypath, map[keypath]);
   			}
   		}
   	}
   	// Set a single keypath
   	else {
-  			set(this, keypath, value);
+  			_set(this, keypath, value);
   		}
 
   	runloop.end();
@@ -1214,8 +1192,8 @@ var classCallCheck = function (instance, Constructor) {
   	return promise;
   }
 
-  function set(ractive, keypath, value) {
-  	if (typeof value === 'function') value = bind(value, ractive);
+  function _set(ractive, keypath, value) {
+  	if (typeof value === 'function') value = _bind(value, ractive);
 
   	if (/\*/.test(keypath)) {
   		ractive.viewmodel.findMatches(splitKeypath(keypath)).forEach(function (model) {
@@ -1228,3280 +1206,6 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   var reverse = makeArrayMethod('reverse');
-
-  var stringMiddlePattern;
-  var escapeSequencePattern;
-  var lineContinuationPattern;
-  // Match one or more characters until: ", ', \, or EOL/EOF.
-  // EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
-  stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
-
-  // Match one escape sequence, including the backslash.
-  escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
-
-  // Match one ES5 line continuation (backslash + line terminator).
-  lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
-
-  // Helper for defining getDoubleQuotedString and getSingleQuotedString.
-  function makeQuotedStringMatcher (okQuote) {
-  	return function (parser) {
-  		var literal = '"';
-  		var done = false;
-  		var next = undefined;
-
-  		while (!done) {
-  			next = parser.matchPattern(stringMiddlePattern) || parser.matchPattern(escapeSequencePattern) || parser.matchString(okQuote);
-  			if (next) {
-  				if (next === '"') {
-  					literal += '\\"';
-  				} else if (next === '\\\'') {
-  					literal += '\'';
-  				} else {
-  					literal += next;
-  				}
-  			} else {
-  				next = parser.matchPattern(lineContinuationPattern);
-  				if (next) {
-  					// convert \(newline-like) into a \u escape, which is allowed in JSON
-  					literal += '\\u' + ('000' + next.charCodeAt(1).toString(16)).slice(-4);
-  				} else {
-  					done = true;
-  				}
-  			}
-  		}
-
-  		literal += '"';
-
-  		// use JSON.parse to interpret escapes
-  		return JSON.parse(literal);
-  	};
-  }
-
-  var TEXT = 1;
-  var INTERPOLATOR = 2;
-  var TRIPLE = 3;
-  var SECTION = 4;
-  var ELEMENT = 7;
-  var PARTIAL = 8;
-  var COMPONENT = 15;
-  var YIELDER = 16;
-  var DOCTYPE = 18;
-
-  var NUMBER_LITERAL = 20;
-  var STRING_LITERAL = 21;
-  var REFERENCE = 30;
-  var SECTION_IF = 50;
-  var SECTION_UNLESS = 51;
-  var SECTION_EACH = 52;
-  var SECTION_WITH = 53;
-  var SECTION_IF_WITH = 54;
-
-  var getSingleQuotedString = makeQuotedStringMatcher('"');
-  var getDoubleQuotedString = makeQuotedStringMatcher('\'');
-
-  function readStringLiteral (parser) {
-  	var start, string;
-
-  	start = parser.pos;
-
-  	if (parser.matchString('"')) {
-  		string = getDoubleQuotedString(parser);
-
-  		if (!parser.matchString('"')) {
-  			parser.pos = start;
-  			return null;
-  		}
-
-  		return {
-  			t: STRING_LITERAL,
-  			v: string
-  		};
-  	}
-
-  	if (parser.matchString('\'')) {
-  		string = getSingleQuotedString(parser);
-
-  		if (!parser.matchString('\'')) {
-  			parser.pos = start;
-  			return null;
-  		}
-
-  		return {
-  			t: STRING_LITERAL,
-  			v: string
-  		};
-  	}
-
-  	return null;
-  }
-
-  var html = 'http://www.w3.org/1999/xhtml';
-  var mathml = 'http://www.w3.org/1998/Math/MathML';
-  var svg = 'http://www.w3.org/2000/svg';
-  var xlink = 'http://www.w3.org/1999/xlink';
-  var xml = 'http://www.w3.org/XML/1998/namespace';
-  var xmlns = 'http://www.w3.org/2000/xmlns/';
-
-  var createElement;
-  var matches;
-  var _div;
-  var methodNames;
-  var unprefixed;
-  var prefixed;
-  var _i;
-  var j;
-  var makeFunction;
-  // Test for SVG support
-  if (!_svg) {
-  	createElement = function (type, ns, extend) {
-  		if (ns && ns !== html) {
-  			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
-  		}
-
-  		return extend ? doc.createElement(type, extend) : doc.createElement(type);
-  	};
-  } else {
-  	createElement = function (type, ns, extend) {
-  		if (!ns || ns === html) {
-  			return extend ? doc.createElement(type, extend) : doc.createElement(type);
-  		}
-
-  		return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
-  	};
-  }
-
-  function createDocumentFragment() {
-  	return doc.createDocumentFragment();
-  }
-
-  function getElement(input) {
-  	var output;
-
-  	if (!input || typeof input === 'boolean') {
-  		return;
-  	}
-
-  	if (!win || !doc || !input) {
-  		return null;
-  	}
-
-  	// We already have a DOM node - no work to do. (Duck typing alert!)
-  	if (input.nodeType) {
-  		return input;
-  	}
-
-  	// Get node from string
-  	if (typeof input === 'string') {
-  		// try ID first
-  		output = doc.getElementById(input);
-
-  		// then as selector, if possible
-  		if (!output && doc.querySelector) {
-  			output = doc.querySelector(input);
-  		}
-
-  		// did it work?
-  		if (output && output.nodeType) {
-  			return output;
-  		}
-  	}
-
-  	// If we've been given a collection (jQuery, Zepto etc), extract the first item
-  	if (input[0] && input[0].nodeType) {
-  		return input[0];
-  	}
-
-  	return null;
-  }
-
-  if (!isClient) {
-  	matches = null;
-  } else {
-  	_div = createElement('div');
-  	methodNames = ['matches', 'matchesSelector'];
-
-  	makeFunction = function (methodName) {
-  		return function (node, selector) {
-  			return node[methodName](selector);
-  		};
-  	};
-
-  	_i = methodNames.length;
-
-  	while (_i-- && !matches) {
-  		unprefixed = methodNames[_i];
-
-  		if (_div[unprefixed]) {
-  			matches = makeFunction(unprefixed);
-  		} else {
-  			j = vendors.length;
-  			while (j--) {
-  				prefixed = vendors[_i] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
-
-  				if (_div[prefixed]) {
-  					matches = makeFunction(prefixed);
-  					break;
-  				}
-  			}
-  		}
-  	}
-
-  	// IE8...
-  	if (!matches) {
-  		matches = function (node, selector) {
-  			var nodes, parentNode, i;
-
-  			parentNode = node.parentNode;
-
-  			if (!parentNode) {
-  				// empty dummy <div>
-  				_div.innerHTML = '';
-
-  				parentNode = _div;
-  				node = node.cloneNode();
-
-  				_div.appendChild(node);
-  			}
-
-  			nodes = parentNode.querySelectorAll(selector);
-
-  			i = nodes.length;
-  			while (i--) {
-  				if (nodes[i] === node) {
-  					return true;
-  				}
-  			}
-
-  			return false;
-  		};
-  	}
-  }
-
-  function safeToStringValue(value) {
-  	return value == null || !value.toString ? '' : '' + value;
-  }
-
-  var create;
-  var defineProperty;
-  var defineProperties;
-  try {
-  	Object.defineProperty({}, 'test', { value: 0 });
-
-  	if (doc) {
-  		Object.defineProperty(createElement('div'), 'test', { value: 0 });
-  	}
-
-  	defineProperty = Object.defineProperty;
-  } catch (err) {
-  	// Object.defineProperty doesn't exist, or we're in IE8 where you can
-  	// only use it with DOM objects (what were you smoking, MSFT?)
-  	defineProperty = function (obj, prop, desc) {
-  		obj[prop] = desc.value;
-  	};
-  }
-
-  try {
-  	try {
-  		Object.defineProperties({}, { test: { value: 0 } });
-  	} catch (err) {
-  		// TODO how do we account for this? noMagic = true;
-  		throw err;
-  	}
-
-  	if (doc) {
-  		Object.defineProperties(createElement('div'), { test: { value: 0 } });
-  	}
-
-  	defineProperties = Object.defineProperties;
-  } catch (err) {
-  	defineProperties = function (obj, props) {
-  		var prop;
-
-  		for (prop in props) {
-  			if (props.hasOwnProperty(prop)) {
-  				defineProperty(obj, prop, props[prop]);
-  			}
-  		}
-  	};
-  }
-
-  try {
-  	Object.create(null);
-
-  	create = Object.create;
-  } catch (err) {
-  	// sigh
-  	create = (function () {
-  		var F = function () {};
-
-  		return function (proto, props) {
-  			var obj;
-
-  			if (proto === null) {
-  				return {};
-  			}
-
-  			F.prototype = proto;
-  			obj = new F();
-
-  			if (props) {
-  				Object.defineProperties(obj, props);
-  			}
-
-  			return obj;
-  		};
-  	})();
-  }
-
-  function _extend(target) {
-  	var prop, source;
-
-  	for (var _len = arguments.length, sources = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-  		sources[_key - 1] = arguments[_key];
-  	}
-
-  	while (source = sources.shift()) {
-  		for (prop in source) {
-  			if (hasOwn.call(source, prop)) {
-  				target[prop] = source[prop];
-  			}
-  		}
-  	}
-
-  	return target;
-  }
-
-  var hasOwn = Object.prototype.hasOwnProperty;
-
-  var Parser;
-  var ParseError;
-  var leadingWhitespace = /^\s+/;
-  ParseError = function (message) {
-  	this.name = 'ParseError';
-  	this.message = message;
-  	try {
-  		throw new Error(message);
-  	} catch (e) {
-  		this.stack = e.stack;
-  	}
-  };
-
-  ParseError.prototype = Error.prototype;
-
-  Parser = function (str, options) {
-  	var items,
-  	    item,
-  	    lineStart = 0;
-
-  	this.str = str;
-  	this.options = options || {};
-  	this.pos = 0;
-
-  	this.lines = this.str.split('\n');
-  	this.lineEnds = this.lines.map(function (line) {
-  		var lineEnd = lineStart + line.length + 1; // +1 for the newline
-
-  		lineStart = lineEnd;
-  		return lineEnd;
-  	}, 0);
-
-  	// Custom init logic
-  	if (this.init) this.init(str, options);
-
-  	items = [];
-
-  	while (this.pos < this.str.length && (item = this.read())) {
-  		items.push(item);
-  	}
-
-  	this.leftover = this.remaining();
-  	this.result = this.postProcess ? this.postProcess(items, options) : items;
-  };
-
-  Parser.prototype = {
-  	read: function (converters) {
-  		var pos, i, len, item;
-
-  		if (!converters) converters = this.converters;
-
-  		pos = this.pos;
-
-  		len = converters.length;
-  		for (i = 0; i < len; i += 1) {
-  			this.pos = pos; // reset for each attempt
-
-  			if (item = converters[i](this)) {
-  				return item;
-  			}
-  		}
-
-  		return null;
-  	},
-
-  	getLinePos: function (char) {
-  		var lineNum = 0,
-  		    lineStart = 0,
-  		    columnNum;
-
-  		while (char >= this.lineEnds[lineNum]) {
-  			lineStart = this.lineEnds[lineNum];
-  			lineNum += 1;
-  		}
-
-  		columnNum = char - lineStart;
-  		return [lineNum + 1, columnNum + 1, char]; // line/col should be one-based, not zero-based!
-  	},
-
-  	error: function (message) {
-  		var pos = this.getLinePos(this.pos);
-  		var lineNum = pos[0];
-  		var columnNum = pos[1];
-
-  		var line = this.lines[pos[0] - 1];
-  		var numTabs = 0;
-  		var annotation = line.replace(/\t/g, function (match, char) {
-  			if (char < pos[1]) {
-  				numTabs += 1;
-  			}
-
-  			return '  ';
-  		}) + '\n' + new Array(pos[1] + numTabs).join(' ') + '^----';
-
-  		var error = new ParseError(message + ' at line ' + lineNum + ' character ' + columnNum + ':\n' + annotation);
-
-  		error.line = pos[0];
-  		error.character = pos[1];
-  		error.shortMessage = message;
-
-  		throw error;
-  	},
-
-  	matchString: function (string) {
-  		if (this.str.substr(this.pos, string.length) === string) {
-  			this.pos += string.length;
-  			return string;
-  		}
-  	},
-
-  	matchPattern: function (pattern) {
-  		var match;
-
-  		if (match = pattern.exec(this.remaining())) {
-  			this.pos += match[0].length;
-  			return match[1] || match[0];
-  		}
-  	},
-
-  	allowWhitespace: function () {
-  		this.matchPattern(leadingWhitespace);
-  	},
-
-  	remaining: function () {
-  		return this.str.substring(this.pos);
-  	},
-
-  	nextChar: function () {
-  		return this.str.charAt(this.pos);
-  	}
-  };
-
-  Parser.extend = function (proto) {
-  	var Parent = this,
-  	    Child,
-  	    key;
-
-  	Child = function (str, options) {
-  		Parser.call(this, str, options);
-  	};
-
-  	Child.prototype = create(Parent.prototype);
-
-  	for (key in proto) {
-  		if (hasOwn.call(proto, key)) {
-  			Child.prototype[key] = proto[key];
-  		}
-  	}
-
-  	Child.extend = Parser.extend;
-  	return Child;
-  };
-
-  var name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
-
-  // bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
-  var _numberPattern = /^(?:[+-]?)0*(?:(?:(?:[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
-  function readNumberLiteral(parser) {
-  	var result;
-
-  	if (result = parser.matchPattern(_numberPattern)) {
-  		return {
-  			t: NUMBER_LITERAL,
-  			v: result
-  		};
-  	}
-
-  	return null;
-  }
-
-  var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
-
-  // http://mathiasbynens.be/notes/javascript-properties
-  // can be any name, string literal, or number literal
-
-  function readKey(parser) {
-  	var token;
-
-  	if (token = readStringLiteral(parser)) {
-  		return identifier.test(token.v) ? token.v : '"' + token.v.replace(/"/g, '\\"') + '"';
-  	}
-
-  	if (token = readNumberLiteral(parser)) {
-  		return token.v;
-  	}
-
-  	if (token = parser.matchPattern(name)) {
-  		return token;
-  	}
-  }
-
-  var JsonParser;
-  var specials;
-  var specialsPattern;
-  var numberPattern;
-  var placeholderPattern;
-  var placeholderAtStartPattern;
-  var onlyWhitespace;
-  specials = {
-  	'true': true,
-  	'false': false,
-  	'undefined': undefined,
-  	'null': null
-  };
-
-  specialsPattern = new RegExp('^(?:' + Object.keys(specials).join('|') + ')');
-  numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
-  placeholderPattern = /\$\{([^\}]+)\}/g;
-  placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
-  onlyWhitespace = /^\s*$/;
-
-  JsonParser = Parser.extend({
-  	init: function (str, options) {
-  		this.values = options.values;
-  		this.allowWhitespace();
-  	},
-
-  	postProcess: function (result) {
-  		if (result.length !== 1 || !onlyWhitespace.test(this.leftover)) {
-  			return null;
-  		}
-
-  		return { value: result[0].v };
-  	},
-
-  	converters: [function getPlaceholder(parser) {
-  		var placeholder;
-
-  		if (!parser.values) {
-  			return null;
-  		}
-
-  		placeholder = parser.matchPattern(placeholderAtStartPattern);
-
-  		if (placeholder && parser.values.hasOwnProperty(placeholder)) {
-  			return { v: parser.values[placeholder] };
-  		}
-  	}, function getSpecial(parser) {
-  		var special;
-
-  		if (special = parser.matchPattern(specialsPattern)) {
-  			return { v: specials[special] };
-  		}
-  	}, function getNumber(parser) {
-  		var number;
-
-  		if (number = parser.matchPattern(numberPattern)) {
-  			return { v: +number };
-  		}
-  	}, function getString(parser) {
-  		var stringLiteral = readStringLiteral(parser),
-  		    values;
-
-  		if (stringLiteral && (values = parser.values)) {
-  			return {
-  				v: stringLiteral.v.replace(placeholderPattern, function (match, $1) {
-  					return $1 in values ? values[$1] : $1;
-  				})
-  			};
-  		}
-
-  		return stringLiteral;
-  	}, function getObject(parser) {
-  		var result, pair;
-
-  		if (!parser.matchString('{')) {
-  			return null;
-  		}
-
-  		result = {};
-
-  		parser.allowWhitespace();
-
-  		if (parser.matchString('}')) {
-  			return { v: result };
-  		}
-
-  		while (pair = getKeyValuePair(parser)) {
-  			result[pair.key] = pair.value;
-
-  			parser.allowWhitespace();
-
-  			if (parser.matchString('}')) {
-  				return { v: result };
-  			}
-
-  			if (!parser.matchString(',')) {
-  				return null;
-  			}
-  		}
-
-  		return null;
-  	}, function getArray(parser) {
-  		var result, valueToken;
-
-  		if (!parser.matchString('[')) {
-  			return null;
-  		}
-
-  		result = [];
-
-  		parser.allowWhitespace();
-
-  		if (parser.matchString(']')) {
-  			return { v: result };
-  		}
-
-  		while (valueToken = parser.read()) {
-  			result.push(valueToken.v);
-
-  			parser.allowWhitespace();
-
-  			if (parser.matchString(']')) {
-  				return { v: result };
-  			}
-
-  			if (!parser.matchString(',')) {
-  				return null;
-  			}
-
-  			parser.allowWhitespace();
-  		}
-
-  		return null;
-  	}]
-  });
-
-  function getKeyValuePair(parser) {
-  	var key, valueToken, pair;
-
-  	parser.allowWhitespace();
-
-  	key = readKey(parser);
-
-  	if (!key) {
-  		return null;
-  	}
-
-  	pair = { key: key };
-
-  	parser.allowWhitespace();
-  	if (!parser.matchString(':')) {
-  		return null;
-  	}
-  	parser.allowWhitespace();
-
-  	valueToken = parser.read();
-  	if (!valueToken) {
-  		return null;
-  	}
-
-  	pair.value = valueToken.v;
-
-  	return pair;
-  }
-
-  function parseJSON (str, values) {
-  	var parser = new JsonParser(str, {
-  		values: values
-  	});
-
-  	return parser.result;
-  }
-
-  // TODO all this code needs to die
-
-  function processItems(items, values, guid) {
-  	var counter = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
-
-  	return items.map(function (item) {
-  		if (item.type === TEXT) {
-  			return item.template;
-  		}
-
-  		if (item.fragment) {
-  			if (item.fragment.iterations) {
-  				return item.fragment.iterations.map(function (fragment) {
-  					return processItems(fragment.items, values, guid, counter);
-  				}).join('');
-  			} else {
-  				return processItems(item.fragment.items, values, guid, counter);
-  			}
-  		}
-
-  		var placeholderId = guid + '-' + counter++;
-
-  		values[placeholderId] = item.model ? item.model.wrapper ? item.model.wrapper.value : item.model.get() : undefined;
-
-  		return '${' + placeholderId + '}';
-  	}).join('');
-  }
-
-  function badReference(key) {
-  	throw new Error("An index or key reference (" + key + ") cannot have child properties");
-  }
-  function resolveAmbiguousReference(fragment, ref) {
-  	var localViewmodel = fragment.findContext().root;
-  	var keys = ref.split('.');
-  	var key = keys[0];
-
-  	var hasContextChain = undefined;
-  	var crossedComponentBoundary = undefined;
-
-  	while (fragment) {
-  		// repeated fragments
-  		if (fragment.isIteration) {
-  			if (key === fragment.parent.keyRef) {
-  				if (keys.length > 1) badReference(key);
-  				return fragment.context.getKeyModel();
-  			}
-
-  			if (key === fragment.parent.indexRef) {
-  				if (keys.length > 1) badReference(key);
-  				return fragment.context.getIndexModel(fragment.index);
-  			}
-  		}
-
-  		if (fragment.context) {
-  			// TODO better encapsulate the component check
-  			if (!fragment.isRoot || fragment.ractive.component) hasContextChain = true;
-
-  			if (fragment.context.has(key)) {
-  				if (crossedComponentBoundary) {
-  					localViewmodel.map(key, fragment.context.joinKey(key));
-  				}
-
-  				return fragment.context.joinAll(keys);
-  			}
-  		}
-
-  		if (fragment.componentParent && !fragment.ractive.isolated) {
-  			// ascend through component boundary
-  			fragment = fragment.componentParent;
-  			crossedComponentBoundary = true;
-  		} else {
-  			fragment = fragment.parent;
-  		}
-  	}
-
-  	if (!hasContextChain) {
-  		return localViewmodel.joinAll(keys);
-  	}
-  }
-
-  var ReferenceResolver = (function () {
-  	function ReferenceResolver(fragment, reference, callback) {
-  		classCallCheck(this, ReferenceResolver);
-
-  		this.fragment = fragment;
-  		this.reference = normalise(reference);
-  		this.callback = callback;
-
-  		this.keys = reference.split('.');
-  		this.resolved = false;
-
-  		// TODO the consumer should take care of addUnresolved
-  		// we attach to all the contexts between here and the root
-  		// - whenever their values change, they can quickly
-  		// check to see if we can resolve
-  		while (fragment) {
-  			if (fragment.context) {
-  				fragment.context.addUnresolved(this.keys[0], this);
-  			}
-
-  			fragment = fragment.componentParent || fragment.parent;
-  		}
-  	}
-
-  	ReferenceResolver.prototype.attemptResolution = function attemptResolution() {
-  		if (this.resolved) return;
-
-  		var model = resolveAmbiguousReference(this.fragment, this.reference);
-
-  		if (model) {
-  			this.resolved = true;
-  			this.callback(model);
-  		}
-  	};
-
-  	ReferenceResolver.prototype.forceResolution = function forceResolution() {
-  		if (this.resolved) return;
-
-  		var model = this.fragment.findContext().joinAll(this.keys);
-  		this.callback(model);
-  		this.resolved = true;
-  	};
-
-  	ReferenceResolver.prototype.unbind = function unbind() {
-  		removeFromArray(this.fragment.unresolved, this);
-  	};
-
-  	return ReferenceResolver;
-  })();
-
-  var Item = (function () {
-  	function Item(options) {
-  		classCallCheck(this, Item);
-
-  		this.parentFragment = options.parentFragment;
-  		this.ractive = options.parentFragment.ractive;
-
-  		this.template = options.template;
-  		this.index = options.index;
-  		this.type = options.template.t;
-
-  		this.dirty = false;
-  	}
-
-  	Item.prototype.bubble = function bubble() {
-  		if (!this.dirty) {
-  			this.dirty = true;
-  			this.parentFragment.bubble();
-  		}
-  	};
-
-  	Item.prototype.find = function find() {
-  		return null;
-  	};
-
-  	Item.prototype.findAll = function findAll() {
-  		// noop
-  	};
-
-  	Item.prototype.findComponent = function findComponent() {
-  		return null;
-  	};
-
-  	Item.prototype.findAllComponents = function findAllComponents() {
-  		// noop;
-  	};
-
-  	Item.prototype.findNextNode = function findNextNode() {
-  		return this.parentFragment.findNextNode(this);
-  	};
-
-  	return Item;
-  })();
-
-  var Doctype = (function (_Item) {
-  	inherits(Doctype, _Item);
-
-  	function Doctype() {
-  		classCallCheck(this, Doctype);
-
-  		_Item.apply(this, arguments);
-  	}
-
-  	Doctype.prototype.bind = function bind() {
-  		// noop
-  	};
-
-  	Doctype.prototype.render = function render() {
-  		// noop
-  	};
-
-  	Doctype.prototype.teardown = function teardown() {
-  		// noop
-  	};
-
-  	Doctype.prototype.toString = function toString() {
-  		return '<!DOCTYPE' + this.template.a + '>';
-  	};
-
-  	Doctype.prototype.unbind = function unbind() {
-  		// noop
-  	};
-
-  	Doctype.prototype.unrender = function unrender() {
-  		// noop
-  	};
-
-  	return Doctype;
-  })(Item);
-
-  var KeypathModel = (function () {
-  	function KeypathModel(parent) {
-  		classCallCheck(this, KeypathModel);
-
-  		this.parent = parent;
-  		this.value = parent.getKeypath();
-  		this.dependants = [];
-  	}
-
-  	KeypathModel.prototype.get = function get() {
-  		return this.value;
-  	};
-
-  	KeypathModel.prototype.handleChange = function handleChange$$() {
-  		this.value = this.parent.getKeypath();
-  		this.dependants.forEach(handleChange);
-  	};
-
-  	KeypathModel.prototype.register = function register(dependant) {
-  		this.dependants.push(dependant);
-  	};
-
-  	KeypathModel.prototype.unregister = function unregister(dependant) {
-  		removeFromArray(this.dependants, dependant);
-  	};
-
-  	return KeypathModel;
-  })();
-
-  var KeyModel = (function () {
-  	function KeyModel(key) {
-  		classCallCheck(this, KeyModel);
-
-  		this.value = key;
-  		this.isReadonly = true;
-  		this.dependants = [];
-  	}
-
-  	KeyModel.prototype.get = function get() {
-  		return this.value;
-  	};
-
-  	KeyModel.prototype.getKeypath = function getKeypath() {
-  		return this.value;
-  	};
-
-  	KeyModel.prototype.rebind = function rebind(key) {
-  		this.value = key;
-  		this.dependants.forEach(handleChange);
-  	};
-
-  	KeyModel.prototype.register = function register(dependant) {
-  		this.dependants.push(dependant);
-  	};
-
-  	KeyModel.prototype.unregister = function unregister(dependant) {
-  		removeFromArray(this.dependants, dependant);
-  	};
-
-  	return KeyModel;
-  })();
-
-  var stack = [];
-  var captureGroup = undefined;
-
-  function startCapturing() {
-  	stack.push(captureGroup = []);
-  }
-
-  function stopCapturing() {
-  	return stack.pop();
-  }
-
-  function capture(model) {
-  	if (captureGroup) {
-  		captureGroup.push(model);
-  	}
-  }
-
-  var prefixers = {};
-
-  // TODO this is legacy. sooner we can replace the old adaptor API the better
-  function prefixKeypath(obj, prefix) {
-  	var prefixed = {},
-  	    key;
-
-  	if (!prefix) {
-  		return obj;
-  	}
-
-  	prefix += '.';
-
-  	for (key in obj) {
-  		if (obj.hasOwnProperty(key)) {
-  			prefixed[prefix + key] = obj[key];
-  		}
-  	}
-
-  	return prefixed;
-  }
-  function getPrefixer(rootKeypath) {
-  	var rootDot;
-
-  	if (!prefixers[rootKeypath]) {
-  		rootDot = rootKeypath ? rootKeypath + '.' : '';
-
-  		prefixers[rootKeypath] = function (relativeKeypath, value) {
-  			var obj;
-
-  			if (typeof relativeKeypath === 'string') {
-  				obj = {};
-  				obj[rootDot + relativeKeypath] = value;
-  				return obj;
-  			}
-
-  			if (typeof relativeKeypath === 'object') {
-  				// 'relativeKeypath' is in fact a hash, not a keypath
-  				return rootDot ? prefixKeypath(relativeKeypath, rootKeypath) : relativeKeypath;
-  			}
-  		};
-  	}
-
-  	return prefixers[rootKeypath];
-  }
-
-  var hasProp = Object.prototype.hasOwnProperty;
-
-  function _updateFromBindings(model) {
-  	model.updateFromBindings(true);
-  }
-
-  function _updateKeypathDependants(model) {
-  	model.updateKeypathDependants();
-  }
-
-  var originatingModel = null;
-
-  var Model = (function () {
-  	function Model(parent, key) {
-  		classCallCheck(this, Model);
-
-  		this.deps = [];
-
-  		this.children = [];
-  		this.childByKey = {};
-
-  		this.indexModels = [];
-
-  		this.unresolved = [];
-  		this.unresolvedByKey = {};
-
-  		this.bindings = [];
-
-  		this.value = undefined;
-
-  		if (parent) {
-  			this.parent = parent;
-  			this.root = parent.root;
-  			this.key = key;
-  			this.isReadonly = parent.isReadonly;
-
-  			if (parent.value) {
-  				this.value = parent.value[this.key];
-  				this.adapt();
-  			}
-  		}
-  	}
-
-  	Model.prototype.adapt = function adapt() {
-  		var adaptors = this.root.adaptors;
-  		var value = this.value;
-  		var len = adaptors.length;
-
-  		// TODO remove this legacy nonsense
-  		var ractive = this.root.ractive;
-  		var keypath = this.getKeypath();
-
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var adaptor = adaptors[i];
-  			if (adaptor.filter(value, keypath, ractive)) {
-  				this.wrapper = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
-  				this.wrapper.value = this.value;
-  				this.wrapper.__model = this; // massive temporary hack to enable array adaptor
-
-  				this.value = this.wrapper.get();
-
-  				break;
-  			}
-  		}
-  	};
-
-  	Model.prototype.addUnresolved = function addUnresolved(key, resolver) {
-  		if (!this.unresolvedByKey[key]) {
-  			this.unresolved.push(key);
-  			this.unresolvedByKey[key] = [];
-  		}
-
-  		this.unresolvedByKey[key].push(resolver);
-  	};
-
-  	Model.prototype.clearUnresolveds = function clearUnresolveds(specificKey) {
-  		var i = this.unresolved.length;
-
-  		while (i--) {
-  			var key = this.unresolved[i];
-
-  			if (specificKey && key !== specificKey) continue;
-
-  			var resolvers = this.unresolvedByKey[key];
-  			var hasKey = this.has(key);
-
-  			var j = resolvers.length;
-  			while (j--) {
-  				if (hasKey) resolvers[j].attemptResolution();
-  				if (resolvers[j].resolved) resolvers.splice(j, 1);
-  			}
-
-  			if (!resolvers.length) {
-  				this.unresolved.splice(i, 1);
-  				this.unresolvedByKey[key] = null;
-  			}
-  		}
-  	};
-
-  	Model.prototype.createBranch = function createBranch(key) {
-  		var branch = isNumeric(key) ? [] : {};
-  		this.set(branch);
-
-  		return branch;
-  	};
-
-  	Model.prototype.discard = function discard() {
-  		var _this = this;
-
-  		this.deps.forEach(function (d) {
-  			if (d.boundsSensitive) _this.unregister(d);
-  		});
-  	};
-
-  	Model.prototype.findMatches = function findMatches(keys) {
-  		var len = keys.length;
-
-  		var existingMatches = [this];
-  		var matches = undefined;
-  		var i = undefined;
-
-  		var _loop = function () {
-  			var key = keys[i];
-
-  			if (key === '*') {
-  				matches = [];
-  				existingMatches.forEach(function (model) {
-  					if (isArray(model.value)) {
-  						// special case - array.length. This is a horrible kludge, but
-  						// it'll do for now. Alternatives welcome
-  						if (originatingModel && originatingModel.parent === model && originatingModel.key === 'length') {
-  							matches.push(originatingModel);
-  						}
-
-  						model.value.forEach(function (member, i) {
-  							matches.push(model.joinKey(i));
-  						});
-  					} else if (isObject(model.value) || typeof model.value === 'function') {
-  						Object.keys(model.value).forEach(function (key) {
-  							matches.push(model.joinKey(key));
-  						});
-
-  						// special case - computed properties. TODO mappings also?
-  						if (model.isRoot) {
-  							Object.keys(model.computations).forEach(function (key) {
-  								matches.push(model.joinKey(key));
-  							});
-  						}
-  					}
-  				});
-  			} else {
-  				matches = existingMatches.map(function (model) {
-  					return model.joinKey(key);
-  				});
-  			}
-
-  			existingMatches = matches;
-  		};
-
-  		for (i = 0; i < len; i += 1) {
-  			_loop();
-  		}
-
-  		return matches;
-  	};
-
-  	Model.prototype.get = function get(shouldCapture) {
-  		if (shouldCapture) capture(this);
-  		return this.value;
-  	};
-
-  	Model.prototype.getIndexModel = function getIndexModel(fragmentIndex) {
-  		var indexModels = this.parent.indexModels;
-
-  		// non-numeric keys are a special of a numeric index in a object iteration
-  		if (typeof this.key === 'string' && fragmentIndex !== undefined) {
-  			return new KeyModel(fragmentIndex);
-  		} else if (!indexModels[this.key]) {
-  			indexModels[this.key] = new KeyModel(this.key);
-  		}
-
-  		return indexModels[this.key];
-  	};
-
-  	Model.prototype.getKeyModel = function getKeyModel() {
-  		// TODO... different to IndexModel because key can never change
-  		return new KeyModel(this.key);
-  	};
-
-  	Model.prototype.getKeypathModel = function getKeypathModel() {
-  		return this.keypathModel || (this.keypathModel = new KeypathModel(this));
-  	};
-
-  	Model.prototype.getKeypath = function getKeypath() {
-  		// TODO keypaths inside components... tricky
-  		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
-  	};
-
-  	Model.prototype.has = function has(key) {
-  		var value = this.get();
-  		return value && hasProp.call(value, key);
-  	};
-
-  	Model.prototype.joinKey = function joinKey(key) {
-  		if (key === undefined || key === '') return this;
-
-  		if (!this.childByKey.hasOwnProperty(key)) {
-  			var child = new Model(this, key);
-  			this.children.push(child);
-  			this.childByKey[key] = child;
-  		}
-
-  		return this.childByKey[key];
-  	};
-
-  	Model.prototype.joinAll = function joinAll(keys) {
-  		var model = this;
-  		for (var i = 0; i < keys.length; i += 1) {
-  			model = model.joinKey(keys[i]);
-  		}
-
-  		return model;
-  	};
-
-  	Model.prototype.mark = function mark$$() {
-  		var value = this.retrieve();
-
-  		if (!isEqual(value, this.value)) {
-  			this.value = value;
-
-  			this.children.forEach(mark);
-
-  			this.deps.forEach(handleChange);
-  			this.clearUnresolveds();
-  		}
-  	};
-
-  	Model.prototype.merge = function merge(array, comparator) {
-  		var oldArray = comparator ? this.value.map(comparator) : this.value;
-  		var newArray = comparator ? array.map(comparator) : array;
-
-  		var oldLength = oldArray.length;
-
-  		var usedIndices = {};
-  		var firstUnusedIndex = 0;
-
-  		var newIndices = oldArray.map(function (item) {
-  			var index = undefined;
-  			var start = firstUnusedIndex;
-
-  			do {
-  				index = newArray.indexOf(item, start);
-
-  				if (index === -1) {
-  					return -1;
-  				}
-
-  				start = index + 1;
-  			} while (usedIndices[index] === true && start < oldLength);
-
-  			// keep track of the first unused index, so we don't search
-  			// the whole of newArray for each item in oldArray unnecessarily
-  			if (index === firstUnusedIndex) {
-  				firstUnusedIndex += 1;
-  			}
-  			// allow next instance of next "equal" to be found item
-  			usedIndices[index] = true;
-  			return index;
-  		});
-
-  		this.parent.value[this.key] = array;
-  		this._merged = true;
-  		this.shuffle(newIndices);
-  	};
-
-  	Model.prototype.register = function register(dep) {
-  		this.deps.push(dep);
-  	};
-
-  	Model.prototype.registerTwowayBinding = function registerTwowayBinding(binding) {
-  		this.bindings.push(binding);
-  	};
-
-  	Model.prototype.retrieve = function retrieve() {
-  		return this.parent.value ? this.parent.value[this.key] : undefined;
-  	};
-
-  	Model.prototype.set = function set(value) {
-  		if (isEqual(value, this.value)) return;
-
-  		// TODO deprecate this nonsense
-  		this.root.changes[this.getKeypath()] = value;
-
-  		if (this.parent.wrapper && this.parent.wrapper.set) {
-  			this.parent.wrapper.set(this.key, value);
-  			this.parent.value = this.parent.wrapper.get();
-
-  			this.value = this.parent.value[this.key];
-  			// TODO should this value be adapted? probably
-  		} else if (this.wrapper) {
-  				var shouldTeardown = !this.wrapper.reset || this.wrapper.reset(value) === false;
-
-  				if (shouldTeardown) {
-  					this.wrapper.teardown();
-  					this.wrapper = null;
-  					this.parent.value[this.key] = this.value = value;
-  					this.adapt();
-  				} else {
-  					this.value = this.wrapper.get();
-  				}
-  			} else {
-  				var parentValue = this.parent.value || this.parent.createBranch(this.key);
-  				parentValue[this.key] = value;
-
-  				this.value = value;
-  				this.adapt();
-  			}
-
-  		this.parent.clearUnresolveds();
-  		this.clearUnresolveds();
-
-  		// notify dependants
-  		var previousOriginatingModel = originatingModel; // for the array.length special case
-  		originatingModel = this;
-
-  		this.children.forEach(mark);
-  		this.deps.forEach(handleChange);
-
-  		var parent = this.parent;
-  		while (parent) {
-  			parent.deps.forEach(handleChange);
-  			parent = parent.parent;
-  		}
-
-  		originatingModel = previousOriginatingModel;
-  	};
-
-  	Model.prototype.shuffle = function shuffle(newIndices) {
-  		var _this2 = this;
-
-  		var indexModels = [];
-  		var max = 0,
-  		    child = undefined;
-
-  		newIndices.forEach(function (newIndex, oldIndex) {
-  			if (newIndex > max) max = newIndex;
-
-  			if (! ~newIndex) return;
-
-  			var model = _this2.indexModels[oldIndex];
-
-  			if (!model) return;
-
-  			indexModels[newIndex] = model;
-
-  			if (newIndex !== oldIndex) {
-  				model.rebind(newIndex);
-  			}
-  		});
-
-  		// some children, notably computations, need to be notified when they are
-  		// no longer attached to anything so they don't recompute
-  		while (child = this.childByKey[++max]) {
-  			if (typeof child.discard === 'function') child.discard();
-  		}
-
-  		this.indexModels = indexModels;
-
-  		// shuffles need to happen before marks...
-  		this.deps.forEach(function (dep) {
-  			if (dep.shuffle) dep.shuffle(newIndices);
-  		});
-
-  		this.updateKeypathDependants();
-  		this.mark();
-
-  		// ...but handleChange must happen after (TODO document why)
-  		this.deps.forEach(function (dep) {
-  			if (!dep.shuffle) dep.handleChange();
-  		});
-  	};
-
-  	Model.prototype.teardown = function teardown$$() {
-  		this.children.forEach(teardown);
-  		if (this.wrapper) this.wrapper.teardown();
-  	};
-
-  	Model.prototype.unregister = function unregister(dependant) {
-  		removeFromArray(this.deps, dependant);
-  	};
-
-  	Model.prototype.unregisterTwowayBinding = function unregisterTwowayBinding(binding) {
-  		removeFromArray(this.bindings, binding);
-  	};
-
-  	Model.prototype.updateFromBindings = function updateFromBindings(cascade) {
-  		var i = this.bindings.length;
-  		while (i--) {
-  			var value = this.bindings[i].getValue();
-  			if (value !== this.value) this.set(value);
-  		}
-
-  		if (cascade) {
-  			this.children.forEach(_updateFromBindings);
-  		}
-  	};
-
-  	Model.prototype.updateKeypathDependants = function updateKeypathDependants() {
-  		this.children.forEach(_updateKeypathDependants);
-  		if (this.keypathModel) this.keypathModel.handleChange();
-  	};
-
-  	return Model;
-  })();
-
-  var ComputationChild = (function (_Model) {
-  	inherits(ComputationChild, _Model);
-
-  	function ComputationChild() {
-  		classCallCheck(this, ComputationChild);
-
-  		_Model.apply(this, arguments);
-  	}
-
-  	ComputationChild.prototype.get = function get(shouldCapture) {
-  		if (shouldCapture) capture(this);
-
-  		var parentValue = this.parent.get();
-  		return parentValue ? parentValue[this.key] : undefined;
-  	};
-
-  	ComputationChild.prototype.handleChange = function handleChange$$() {
-  		this.dirty = true;
-
-  		this.deps.forEach(handleChange);
-  		this.children.forEach(handleChange);
-  		this.clearUnresolveds(); // TODO is this necessary?
-  	};
-
-  	ComputationChild.prototype.joinKey = function joinKey(key) {
-  		if (key === undefined || key === '') return this;
-
-  		if (!this.childByKey.hasOwnProperty(key)) {
-  			var child = new ComputationChild(this, key);
-  			this.children.push(child);
-  			this.childByKey[key] = child;
-  		}
-
-  		return this.childByKey[key];
-  	};
-
-  	// TODO this causes problems with inter-component mappings
-  	// set () {
-  	// 	throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
-  	// }
-  	return ComputationChild;
-  })(Model);
-
-  function resolveReference(fragment, ref) {
-  	var context = fragment.findContext();
-
-  	// special references
-  	// TODO does `this` become `.` at parse time?
-  	if (ref === '.' || ref === 'this') return context;
-  	if (ref === '@keypath') return context.getKeypathModel();
-  	if (ref === '@index') {
-  		var repeater = fragment.findRepeatingFragment();
-  		return repeater.context.getIndexModel(repeater.index);
-  	}
-  	if (ref === '@key') return fragment.findRepeatingFragment().context.getKeyModel();
-
-  	// ancestor references
-  	if (ref[0] === '~') return context.root.joinAll(ref.slice(2).split('.'));
-  	if (ref[0] === '.') {
-  		var parts = ref.split('/');
-
-  		while (parts[0] === '.' || parts[0] === '..') {
-  			var part = parts.shift();
-
-  			if (part === '..') {
-  				context = context.parent;
-  			}
-  		}
-
-  		ref = parts.join('/');
-
-  		// special case - `{{.foo}}` means the same as `{{./foo}}`
-  		if (ref[0] === '.') ref = ref.slice(1);
-  		return context.joinAll(ref.split('.'));
-  	}
-
-  	return resolveAmbiguousReference(fragment, ref);
-  }
-
-  var functionCache = {};
-  function createFunction(str, i) {
-  	if (functionCache[str]) return functionCache[str];
-
-  	var args = new Array(i);
-  	while (i--) args[i] = "_" + i;
-
-  	var fn = new Function(args.join(','), "return (" + str + ")");
-
-  	return functionCache[str] = fn;
-  }
-
-  function _getValue(model) {
-  	return model ? model.get(true) : undefined;
-  }
-
-  var ExpressionProxy = (function (_Model) {
-  	inherits(ExpressionProxy, _Model);
-
-  	function ExpressionProxy(fragment, template) {
-  		var _this = this;
-
-  		classCallCheck(this, ExpressionProxy);
-
-  		_Model.call(this, fragment.ractive.viewmodel, null);
-
-  		this.fragment = fragment;
-  		this.template = template;
-
-  		this.isReadonly = true;
-
-  		this.fn = createFunction(template.s, template.r.length);
-  		this.computation = null;
-
-  		this.resolvers = [];
-  		this.models = template.r.map(function (ref, index) {
-  			var model = resolveReference(fragment, ref);
-  			var resolver = undefined;
-
-  			if (!model) {
-  				resolver = fragment.resolve(ref, function (model) {
-  					removeFromArray(_this.resolvers, resolver);
-  					_this.models[index] = model;
-  					_this.bubble();
-  				});
-
-  				_this.resolvers.push(resolver);
-  			}
-
-  			return model;
-  		});
-
-  		this.bubble();
-  	}
-
-  	ExpressionProxy.prototype.bubble = function bubble() {
-  		var _this2 = this;
-
-  		var ractive = this.fragment.ractive;
-
-  		// TODO the @ prevents computed props from shadowing keypaths, but the real
-  		// question is why it's a computed prop in the first place... (hint, it's
-  		// to do with {{else}} blocks)
-  		var key = '@' + this.template.s.replace(/_(\d+)/g, function (match, i) {
-  			if (i >= _this2.models.length) return match;
-
-  			var model = _this2.models[i];
-  			return model ? model.getKeypath() : '@undefined';
-  		});
-
-  		// TODO can/should we reuse computations?
-  		var signature = {
-  			getter: function () {
-  				var values = _this2.models.map(_getValue);
-  				return _this2.fn.apply(ractive, values);
-  			},
-  			getterString: key
-  		};
-
-  		var computation = ractive.viewmodel.compute(key, signature);
-
-  		this.value = computation.get(); // TODO should not need this, eventually
-
-  		if (this.computation) {
-  			this.computation.unregister(this);
-  			// notify children...
-  		}
-
-  		this.computation = computation;
-  		computation.register(this);
-  	};
-
-  	ExpressionProxy.prototype.get = function get() {
-  		return this.computation.get();
-  	};
-
-  	ExpressionProxy.prototype.getKeypath = function getKeypath() {
-  		return this.computation ? this.computation.getKeypath() : '@undefined';
-  	};
-
-  	ExpressionProxy.prototype.handleChange = function handleChange$$() {
-  		this.deps.forEach(handleChange);
-  		this.children.forEach(handleChange);
-
-  		this.clearUnresolveds();
-  	};
-
-  	ExpressionProxy.prototype.joinKey = function joinKey(key) {
-  		if (key === undefined || key === '') return this;
-
-  		if (!this.childByKey.hasOwnProperty(key)) {
-  			var child = new ComputationChild(this, key);
-  			this.children.push(child);
-  			this.childByKey[key] = child;
-  		}
-
-  		return this.childByKey[key];
-  	};
-
-  	ExpressionProxy.prototype.mark = function mark() {
-  		this.handleChange();
-  	};
-
-  	ExpressionProxy.prototype.retrieve = function retrieve() {
-  		return this.get();
-  	};
-
-  	ExpressionProxy.prototype.unbind = function unbind$$() {
-  		this.resolvers.forEach(unbind);
-  	};
-
-  	return ExpressionProxy;
-  })(Model);
-
-  var ReferenceExpressionProxy = (function (_Model) {
-  	inherits(ReferenceExpressionProxy, _Model);
-
-  	function ReferenceExpressionProxy(fragment, template) {
-  		var _this = this;
-
-  		classCallCheck(this, ReferenceExpressionProxy);
-
-  		_Model.call(this, null, null);
-  		this.root = fragment.ractive.viewmodel;
-
-  		this.resolvers = [];
-
-  		this.base = resolve(fragment, template);
-  		var baseResolver = undefined;
-
-  		if (!this.base) {
-  			baseResolver = fragment.resolve(template.r, function (model) {
-  				_this.base = model;
-  				_this.bubble();
-
-  				removeFromArray(_this.resolvers, baseResolver);
-  			});
-
-  			this.resolvers.push(baseResolver);
-  		}
-
-  		var intermediary = {
-  			handleChange: function () {
-  				return _this.bubble();
-  			}
-  		};
-
-  		this.members = template.m.map(function (template, i) {
-  			if (typeof template === 'string') {
-  				return { get: function () {
-  						return template;
-  					} };
-  			}
-
-  			var model = undefined;
-  			var resolver = undefined;
-
-  			if (template.t === REFERENCE) {
-  				model = resolveReference(fragment, template.n);
-
-  				if (model) {
-  					model.register(intermediary);
-  				} else {
-  					resolver = fragment.resolve(template.n, function (model) {
-  						_this.members[i] = model;
-
-  						model.register(intermediary);
-  						_this.bubble();
-
-  						removeFromArray(_this.resolvers, resolver);
-  					});
-
-  					_this.resolvers.push(resolver);
-  				}
-
-  				return model;
-  			}
-
-  			model = new ExpressionProxy(fragment, template);
-  			model.register(intermediary);
-  			return model;
-  		});
-
-  		this.isUnresolved = true;
-  		this.bubble();
-  	}
-
-  	ReferenceExpressionProxy.prototype.bubble = function bubble() {
-  		if (!this.base) return;
-
-  		// if some members are not resolved, abort
-  		var i = this.members.length;
-  		while (i--) {
-  			if (!this.members[i] || this.members[i].get() === undefined) return;
-  		}
-
-  		this.isUnresolved = false;
-
-  		var keys = this.members.map(function (model) {
-  			return model.get();
-  		});
-  		var model = this.base.joinAll(keys);
-
-  		if (this.model) {
-  			this.model.unregister(this);
-  			this.model.unregisterTwowayBinding(this);
-  		}
-
-  		this.model = model;
-  		this.parent = model.parent;
-
-  		model.register(this);
-  		model.registerTwowayBinding(this);
-
-  		if (this.keypathModel) this.keypathModel.handleChange();
-
-  		this.mark();
-  	};
-
-  	ReferenceExpressionProxy.prototype.forceResolution = function forceResolution() {
-  		this.resolvers.forEach(function (resolver) {
-  			return resolver.forceResolution();
-  		});
-  		this.bubble();
-  	};
-
-  	ReferenceExpressionProxy.prototype.get = function get() {
-  		return this.model ? this.model.get() : undefined;
-  	};
-
-  	// indirect two-way bindings
-
-  	ReferenceExpressionProxy.prototype.getValue = function getValue() {
-  		var i = this.bindings.length;
-  		while (i--) {
-  			var value = this.bindings[i].getValue();
-  			if (value !== this.value) return value;
-  		}
-
-  		return this.value;
-  	};
-
-  	ReferenceExpressionProxy.prototype.getKeypath = function getKeypath() {
-  		return this.model ? this.model.getKeypath() : '@undefined';
-  	};
-
-  	ReferenceExpressionProxy.prototype.handleChange = function handleChange() {
-  		this.mark();
-  	};
-
-  	ReferenceExpressionProxy.prototype.retrieve = function retrieve() {
-  		return this.get();
-  	};
-
-  	ReferenceExpressionProxy.prototype.set = function set(value) {
-  		if (!this.model) throw new Error('Unresolved reference expression. This should not happen!');
-  		this.model.set(value);
-  	};
-
-  	ReferenceExpressionProxy.prototype.unbind = function unbind$$() {
-  		this.resolvers.forEach(unbind);
-  	};
-
-  	return ReferenceExpressionProxy;
-  })(Model);
-
-  function resolve(fragment, template) {
-  	if (template.r) {
-  		return resolveReference(fragment, template.r);
-  	} else if (template.x) {
-  		return new ExpressionProxy(fragment, template.x);
-  	} else {
-  		return new ReferenceExpressionProxy(fragment, template.rx);
-  	}
-  }
-
-  var Mustache = (function (_Item) {
-  	inherits(Mustache, _Item);
-
-  	function Mustache(options) {
-  		classCallCheck(this, Mustache);
-
-  		_Item.call(this, options);
-
-  		this.parentFragment = options.parentFragment;
-  		this.template = options.template;
-  		this.index = options.index;
-
-  		this.isStatic = !!options.template.s;
-
-  		this.model = null;
-  		this.dirty = false;
-  	}
-
-  	Mustache.prototype.bind = function bind() {
-  		var _this = this;
-
-  		// try to find a model for this view
-  		var model = resolve(this.parentFragment, this.template);
-  		var value = model ? model.get() : undefined;
-
-  		if (this.isStatic) {
-  			this.model = { get: function () {
-  					return value;
-  				} };
-  			return;
-  		}
-
-  		if (model) {
-  			model.register(this);
-  			this.model = model;
-  		} else {
-  			this.resolver = this.parentFragment.resolve(this.template.r, function (model) {
-  				_this.model = model;
-  				model.register(_this);
-
-  				_this.handleChange();
-  				_this.resolver = null;
-  			});
-  		}
-  	};
-
-  	Mustache.prototype.handleChange = function handleChange() {
-  		this.bubble();
-  	};
-
-  	Mustache.prototype.rebind = function rebind() {
-  		if (this.isStatic || !this.model) return;
-
-  		var model = resolve(this.parentFragment, this.template);
-
-  		if (model === this.model) return;
-
-  		var oldValue = this.model.get();
-  		this.model.unregister(this);
-
-  		this.model = model;
-
-  		if (model) {
-  			model.register(this);
-  			if (model.get() !== oldValue) this.handleChange();
-  		}
-  	};
-
-  	Mustache.prototype.unbind = function unbind() {
-  		if (!this.isStatic) {
-  			this.model && this.model.unregister(this);
-  			this.resolver && this.resolver.unbind();
-  		}
-  	};
-
-  	return Mustache;
-  })(Item);
-
-  // https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
-  var booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
-  var voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
-
-  var htmlEntities = { quot: 34, amp: 38, apos: 39, lt: 60, gt: 62, nbsp: 160, iexcl: 161, cent: 162, pound: 163, curren: 164, yen: 165, brvbar: 166, sect: 167, uml: 168, copy: 169, ordf: 170, laquo: 171, not: 172, shy: 173, reg: 174, macr: 175, deg: 176, plusmn: 177, sup2: 178, sup3: 179, acute: 180, micro: 181, para: 182, middot: 183, cedil: 184, sup1: 185, ordm: 186, raquo: 187, frac14: 188, frac12: 189, frac34: 190, iquest: 191, Agrave: 192, Aacute: 193, Acirc: 194, Atilde: 195, Auml: 196, Aring: 197, AElig: 198, Ccedil: 199, Egrave: 200, Eacute: 201, Ecirc: 202, Euml: 203, Igrave: 204, Iacute: 205, Icirc: 206, Iuml: 207, ETH: 208, Ntilde: 209, Ograve: 210, Oacute: 211, Ocirc: 212, Otilde: 213, Ouml: 214, times: 215, Oslash: 216, Ugrave: 217, Uacute: 218, Ucirc: 219, Uuml: 220, Yacute: 221, THORN: 222, szlig: 223, agrave: 224, aacute: 225, acirc: 226, atilde: 227, auml: 228, aring: 229, aelig: 230, ccedil: 231, egrave: 232, eacute: 233, ecirc: 234, euml: 235, igrave: 236, iacute: 237, icirc: 238, iuml: 239, eth: 240, ntilde: 241, ograve: 242, oacute: 243, ocirc: 244, otilde: 245, ouml: 246, divide: 247, oslash: 248, ugrave: 249, uacute: 250, ucirc: 251, uuml: 252, yacute: 253, thorn: 254, yuml: 255, OElig: 338, oelig: 339, Scaron: 352, scaron: 353, Yuml: 376, fnof: 402, circ: 710, tilde: 732, Alpha: 913, Beta: 914, Gamma: 915, Delta: 916, Epsilon: 917, Zeta: 918, Eta: 919, Theta: 920, Iota: 921, Kappa: 922, Lambda: 923, Mu: 924, Nu: 925, Xi: 926, Omicron: 927, Pi: 928, Rho: 929, Sigma: 931, Tau: 932, Upsilon: 933, Phi: 934, Chi: 935, Psi: 936, Omega: 937, alpha: 945, beta: 946, gamma: 947, delta: 948, epsilon: 949, zeta: 950, eta: 951, theta: 952, iota: 953, kappa: 954, lambda: 955, mu: 956, nu: 957, xi: 958, omicron: 959, pi: 960, rho: 961, sigmaf: 962, sigma: 963, tau: 964, upsilon: 965, phi: 966, chi: 967, psi: 968, omega: 969, thetasym: 977, upsih: 978, piv: 982, ensp: 8194, emsp: 8195, thinsp: 8201, zwnj: 8204, zwj: 8205, lrm: 8206, rlm: 8207, ndash: 8211, mdash: 8212, lsquo: 8216, rsquo: 8217, sbquo: 8218, ldquo: 8220, rdquo: 8221, bdquo: 8222, dagger: 8224, Dagger: 8225, bull: 8226, hellip: 8230, permil: 8240, prime: 8242, Prime: 8243, lsaquo: 8249, rsaquo: 8250, oline: 8254, frasl: 8260, euro: 8364, image: 8465, weierp: 8472, real: 8476, trade: 8482, alefsym: 8501, larr: 8592, uarr: 8593, rarr: 8594, darr: 8595, harr: 8596, crarr: 8629, lArr: 8656, uArr: 8657, rArr: 8658, dArr: 8659, hArr: 8660, forall: 8704, part: 8706, exist: 8707, empty: 8709, nabla: 8711, isin: 8712, notin: 8713, ni: 8715, prod: 8719, sum: 8721, minus: 8722, lowast: 8727, radic: 8730, prop: 8733, infin: 8734, ang: 8736, and: 8743, or: 8744, cap: 8745, cup: 8746, 'int': 8747, there4: 8756, sim: 8764, cong: 8773, asymp: 8776, ne: 8800, equiv: 8801, le: 8804, ge: 8805, sub: 8834, sup: 8835, nsub: 8836, sube: 8838, supe: 8839, oplus: 8853, otimes: 8855, perp: 8869, sdot: 8901, lceil: 8968, rceil: 8969, lfloor: 8970, rfloor: 8971, lang: 9001, rang: 9002, loz: 9674, spades: 9824, clubs: 9827, hearts: 9829, diams: 9830 };
-  var controlCharacters = [8364, 129, 8218, 402, 8222, 8230, 8224, 8225, 710, 8240, 352, 8249, 338, 141, 381, 143, 144, 8216, 8217, 8220, 8221, 8226, 8211, 8212, 732, 8482, 353, 8250, 339, 157, 382, 376];
-  var entityPattern = new RegExp('&(#?(?:x[\\w\\d]+|\\d+|' + Object.keys(htmlEntities).join('|') + '));?', 'g');
-
-  function decodeCharacterReferences(html) {
-  	return html.replace(entityPattern, function (match, entity) {
-  		var code;
-
-  		// Handle named entities
-  		if (entity[0] !== '#') {
-  			code = htmlEntities[entity];
-  		} else if (entity[1] === 'x') {
-  			code = parseInt(entity.substring(2), 16);
-  		} else {
-  			code = parseInt(entity.substring(1), 10);
-  		}
-
-  		if (!code) {
-  			return match;
-  		}
-
-  		return String.fromCharCode(validateCode(code));
-  	});
-  }
-
-  var lessThan = /</g;
-  var greaterThan = />/g;
-  var amp = /&/g;
-
-  function escapeHtml(str) {
-  	return str.replace(amp, '&amp;').replace(lessThan, '&lt;').replace(greaterThan, '&gt;');
-  }
-
-  // some code points are verboten. If we were inserting HTML, the browser would replace the illegal
-  // code points with alternatives in some cases - since we're bypassing that mechanism, we need
-  // to replace them ourselves
-  //
-  // Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
-  function validateCode(code) {
-  	if (!code) {
-  		return 65533;
-  	}
-
-  	// line feed becomes generic whitespace
-  	if (code === 10) {
-  		return 32;
-  	}
-
-  	// ASCII range. (Why someone would use HTML entities for ASCII characters I don't know, but...)
-  	if (code < 128) {
-  		return code;
-  	}
-
-  	// code points 128-159 are dealt with leniently by browsers, but they're incorrect. We need
-  	// to correct the mistake or we'll end up with missing € signs and so on
-  	if (code <= 159) {
-  		return controlCharacters[code - 128];
-  	}
-
-  	// basic multilingual plane
-  	if (code < 55296) {
-  		return code;
-  	}
-
-  	// UTF-16 surrogate halves
-  	if (code <= 57343) {
-  		return 65533;
-  	}
-
-  	// rest of the basic multilingual plane
-  	if (code <= 65535) {
-  		return code;
-  	}
-
-  	return 65533;
-  }
-
-  var Interpolator = (function (_Mustache) {
-  	inherits(Interpolator, _Mustache);
-
-  	function Interpolator() {
-  		classCallCheck(this, Interpolator);
-
-  		_Mustache.apply(this, arguments);
-  	}
-
-  	Interpolator.prototype.detach = function detach() {
-  		return this.node.parentNode.removeChild(this.node);
-  	};
-
-  	Interpolator.prototype.firstNode = function firstNode() {
-  		return this.node;
-  	};
-
-  	Interpolator.prototype.getString = function getString() {
-  		return this.model ? safeToStringValue(this.model.get()) : '';
-  	};
-
-  	Interpolator.prototype.render = function render(target) {
-  		this.rendered = true;
-  		this.node = doc.createTextNode(this.getString());
-
-  		target.appendChild(this.node);
-  	};
-
-  	Interpolator.prototype.toString = function toString(escape) {
-  		var string = this.getString();
-  		return escape ? escapeHtml(string) : string;
-  	};
-
-  	Interpolator.prototype.unrender = function unrender(shouldDestroy) {
-  		if (shouldDestroy) this.detach();
-  		this.rendered = false;
-  	};
-
-  	Interpolator.prototype.update = function update() {
-  		if (this.dirty) {
-  			if (this.rendered) {
-  				this.node.data = this.getString();
-  			}
-
-  			this.dirty = false;
-  		}
-  	};
-
-  	Interpolator.prototype.valueOf = function valueOf() {
-  		return this.model ? this.model.get() : undefined;
-  	};
-
-  	return Interpolator;
-  })(Mustache);
-
-  var parse = null;
-
-  var parseOptions = ['preserveWhitespace', 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters', 'interpolate'];
-
-  var parser = {
-  	fromId: fromId, isHashedId: isHashedId, isParsed: isParsed, getParseOptions: getParseOptions, createHelper: _createHelper,
-  	parse: doParse
-  };
-
-  function _createHelper(parseOptions) {
-  	var helper = create(parser);
-  	helper.parse = function (template, options) {
-  		return doParse(template, options || parseOptions);
-  	};
-  	return helper;
-  }
-
-  function doParse(template, parseOptions) {
-  	if (!parse) {
-  		throw new Error('Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser');
-  	}
-
-  	return parse(template, parseOptions || this.options);
-  }
-
-  function fromId(id, options) {
-  	var template;
-
-  	if (!doc) {
-  		if (options && options.noThrow) {
-  			return;
-  		}
-  		throw new Error('Cannot retrieve template #' + id + ' as Ractive is not running in a browser.');
-  	}
-
-  	if (isHashedId(id)) {
-  		id = id.substring(1);
-  	}
-
-  	if (!(template = doc.getElementById(id))) {
-  		if (options && options.noThrow) {
-  			return;
-  		}
-  		throw new Error('Could not find template element with id #' + id);
-  	}
-
-  	if (template.tagName.toUpperCase() !== 'SCRIPT') {
-  		if (options && options.noThrow) {
-  			return;
-  		}
-  		throw new Error('Template element with id #' + id + ', must be a <script> element');
-  	}
-
-  	return 'textContent' in template ? template.textContent : template.innerHTML;
-  }
-
-  function isHashedId(id) {
-  	return id && id[0] === '#';
-  }
-
-  function isParsed(template) {
-  	return !(typeof template === 'string');
-  }
-
-  function getParseOptions(ractive) {
-  	// Could be Ractive or a Component
-  	if (ractive.defaults) {
-  		ractive = ractive.defaults;
-  	}
-
-  	return parseOptions.reduce(function (val, key) {
-  		val[key] = ractive[key];
-  		return val;
-  	}, {});
-  }
-
-  function findInViewHierarchy(registryName, ractive, name) {
-  	var instance = findInstance(registryName, ractive, name);
-  	return instance ? instance[registryName][name] : null;
-  }
-
-  function findInstance(registryName, ractive, name) {
-  	while (ractive) {
-  		if (name in ractive[registryName]) {
-  			return ractive;
-  		}
-
-  		if (ractive.isolated) {
-  			return null;
-  		}
-
-  		ractive = ractive.parent;
-  	}
-  }
-
-  function getPartialTemplate(ractive, name, parentFragment) {
-  	var partial;
-
-  	// If the partial in instance or view heirarchy instances, great
-  	if (partial = getPartialFromRegistry(ractive, name, parentFragment || {})) {
-  		return partial;
-  	}
-
-  	// Does it exist on the page as a script tag?
-  	partial = parser.fromId(name, { noThrow: true });
-
-  	if (partial) {
-  		// parse and register to this ractive instance
-  		var parsed = parser.parse(partial, parser.getParseOptions(ractive));
-
-  		// register (and return main partial if there are others in the template)
-  		return ractive.partials[name] = parsed.t;
-  	}
-  }
-
-  function getPartialFromRegistry(ractive, name, parentFragment) {
-  	var fn = undefined,
-  	    partial = findParentPartial(name, parentFragment.owner);
-
-  	// if there was an instance up-hierarchy, cool
-  	if (partial) return partial;
-
-  	// find first instance in the ractive or view hierarchy that has this partial
-  	var instance = findInstance('partials', ractive, name);
-
-  	if (!instance) {
-  		return;
-  	}
-
-  	partial = instance.partials[name];
-
-  	// partial is a function?
-  	if (typeof partial === 'function') {
-  		fn = partial.bind(instance);
-  		fn.isOwner = instance.partials.hasOwnProperty(name);
-  		partial = fn.call(ractive, parser);
-  	}
-
-  	if (!partial && partial !== '') {
-  		warnIfDebug(noRegistryFunctionReturn, name, 'partial', 'partial', { ractive: ractive });
-  		return;
-  	}
-
-  	// If this was added manually to the registry,
-  	// but hasn't been parsed, parse it now
-  	if (!parser.isParsed(partial)) {
-
-  		// use the parseOptions of the ractive instance on which it was found
-  		var parsed = parser.parse(partial, parser.getParseOptions(instance));
-
-  		// Partials cannot contain nested partials!
-  		// TODO add a test for this
-  		if (parsed.p) {
-  			warnIfDebug('Partials ({{>%s}}) cannot contain nested inline partials', name, { ractive: ractive });
-  		}
-
-  		// if fn, use instance to store result, otherwise needs to go
-  		// in the correct point in prototype chain on instance or constructor
-  		var target = fn ? instance : findOwner(instance, name);
-
-  		// may be a template with partials, which need to be registered and main template extracted
-  		target.partials[name] = partial = parsed.t;
-  	}
-
-  	// store for reset
-  	if (fn) {
-  		partial._fn = fn;
-  	}
-
-  	return partial.v ? partial.t : partial;
-  }
-
-  function findOwner(ractive, key) {
-  	return ractive.partials.hasOwnProperty(key) ? ractive : findConstructor(ractive.constructor, key);
-  }
-
-  function findConstructor(constructor, key) {
-  	if (!constructor) {
-  		return;
-  	}
-  	return constructor.partials.hasOwnProperty(key) ? constructor : findConstructor(constructor._Parent, key);
-  }
-
-  function findParentPartial(name, parent) {
-  	if (parent) {
-  		if (parent.template && parent.template.p && parent.template.p[name]) {
-  			return parent.template.p[name];
-  		} else if (parent.parentFragment && parent.parentFragment.owner) {
-  			return findParentPartial(name, parent.parentFragment.owner);
-  		}
-  	}
-  }
-
-  var Partial = (function (_Mustache) {
-  	inherits(Partial, _Mustache);
-
-  	function Partial() {
-  		classCallCheck(this, Partial);
-
-  		_Mustache.apply(this, arguments);
-  	}
-
-  	Partial.prototype.bind = function bind() {
-  		_Mustache.prototype.bind.call(this);
-
-  		// name matches take priority over expressions
-  		var template = this.template.r ? getPartialTemplate(this.ractive, this.template.r, this.parentFragment) || null : null;
-
-  		if (template) {
-  			this.named = true;
-  			this.setTemplate(this.template.r, template);
-  		} else if ((!this.model || typeof this.model.get() !== 'string') && this.template.r) {
-  			this.setTemplate(this.template.r, template);
-  		} else {
-  			this.setTemplate(this.model.get());
-  		}
-
-  		this.fragment = new Fragment({
-  			owner: this,
-  			template: this.partialTemplate
-  		}).bind();
-  	};
-
-  	Partial.prototype.detach = function detach() {
-  		return this.fragment.detach();
-  	};
-
-  	Partial.prototype.find = function find(selector) {
-  		return this.fragment.find(selector);
-  	};
-
-  	Partial.prototype.findAll = function findAll(selector, query) {
-  		this.fragment.findAll(selector, query);
-  	};
-
-  	Partial.prototype.findComponent = function findComponent(name) {
-  		return this.fragment.findComponent(name);
-  	};
-
-  	Partial.prototype.findAllComponents = function findAllComponents(name, query) {
-  		this.fragment.findAllComponents(name, query);
-  	};
-
-  	Partial.prototype.firstNode = function firstNode() {
-  		return this.fragment.firstNode();
-  	};
-
-  	Partial.prototype.forceResetTemplate = function forceResetTemplate() {
-  		this.partialTemplate = getPartialTemplate(this.ractive, this.name, this.parentFragment);
-
-  		if (!this.partialTemplate) {
-  			warnOnceIfDebug('Could not find template for partial \'' + this.name + '\'');
-  			this.partialTemplate = [];
-  		}
-
-  		this.fragment.resetTemplate(this.partialTemplate);
-  		this.bubble();
-  	};
-
-  	Partial.prototype.rebind = function rebind() {
-  		_Mustache.prototype.unbind.call(this);
-  		_Mustache.prototype.bind.call(this);
-  		this.fragment.rebind();
-  	};
-
-  	Partial.prototype.render = function render(target) {
-  		this.fragment.render(target);
-  	};
-
-  	Partial.prototype.setTemplate = function setTemplate(name, template) {
-  		this.name = name;
-
-  		if (!template && template !== null) template = getPartialTemplate(this.ractive, name, this.parentFragment);
-
-  		if (!template) {
-  			warnOnceIfDebug('Could not find template for partial \'' + name + '\'');
-  		}
-
-  		this.partialTemplate = template || [];
-  	};
-
-  	Partial.prototype.toString = function toString(escape) {
-  		return this.fragment.toString(escape);
-  	};
-
-  	Partial.prototype.unbind = function unbind() {
-  		_Mustache.prototype.unbind.call(this);
-  		this.fragment.unbind();
-  	};
-
-  	Partial.prototype.unrender = function unrender(shouldDestroy) {
-  		this.fragment.unrender(shouldDestroy);
-  	};
-
-  	Partial.prototype.update = function update() {
-  		if (this.dirty) {
-  			if (!this.named) {
-  				if (this.model && typeof this.model.get() === 'string' && this.model.get() !== this.name) {
-  					this.setTemplate(this.model.get());
-  					this.fragment.resetTemplate(this.partialTemplate);
-  				}
-  			}
-
-  			this.fragment.update();
-  			this.dirty = false;
-  		}
-  	};
-
-  	return Partial;
-  })(Mustache);
-
-  function getRefs(ref, value, parent) {
-  	var refs = undefined;
-
-  	if (ref) {
-  		refs = {};
-  		Object.keys(parent).forEach(function (ref) {
-  			refs[ref] = parent[ref];
-  		});
-  		refs[ref] = value;
-  	} else {
-  		refs = parent;
-  	}
-
-  	return refs;
-  }
-
-  var RepeatedFragment = (function () {
-  	function RepeatedFragment(options) {
-  		classCallCheck(this, RepeatedFragment);
-
-  		this.parent = options.owner.parentFragment;
-
-  		// bit of a hack, so reference resolution works without another
-  		// layer of indirection
-  		this.parentFragment = this;
-  		this.owner = options.owner;
-  		this.ractive = this.parent.ractive;
-
-  		this.context = null;
-  		this.rendered = false;
-  		this.iterations = [];
-
-  		this.template = options.template;
-
-  		this.indexRef = options.indexRef;
-  		this.keyRef = options.keyRef;
-  		this.indexByKey = null; // for `{{#each object}}...`
-
-  		this.pendingNewIndices = null;
-  		this.previousIterations = null;
-
-  		// track array versus object so updates of type rest
-  		this.isArray = false;
-  	}
-
-  	RepeatedFragment.prototype.bind = function bind(context) {
-  		var _this = this;
-
-  		this.context = context;
-  		var value = context.get();
-
-  		// {{#each array}}...
-  		if (this.isArray = isArray(value)) {
-  			// we can't use map, because of sparse arrays
-  			this.iterations = [];
-  			for (var i = 0; i < value.length; i += 1) {
-  				this.iterations[i] = this.createIteration(i, i);
-  			}
-  		}
-
-  		// {{#each object}}...
-  		else if (isObject(value)) {
-  				this.isArray = false;
-
-  				// TODO this is a dreadful hack. There must be a neater way
-  				if (this.indexRef) {
-  					var refs = this.indexRef.split(',');
-  					this.keyRef = refs[0];
-  					this.indexRef = refs[1];
-  				}
-
-  				this.indexByKey = {};
-  				this.iterations = Object.keys(value).map(function (key, index) {
-  					_this.indexByKey[key] = index;
-  					return _this.createIteration(key, index);
-  				});
-  			}
-
-  		return this;
-  	};
-
-  	RepeatedFragment.prototype.bubble = function bubble() {
-  		this.owner.bubble();
-  	};
-
-  	RepeatedFragment.prototype.createIteration = function createIteration(key, index) {
-  		var parentFragment = this.owner.parentFragment;
-  		var keyRefs = getRefs(this.keyRef, key, parentFragment.keyRefs);
-  		var indexRefs = getRefs(this.indexRef, index, parentFragment.indexRefs);
-
-  		var fragment = new Fragment({
-  			owner: this,
-  			template: this.template,
-  			indexRefs: indexRefs,
-  			keyRefs: keyRefs
-  		});
-
-  		// TODO this is a bit hacky
-  		fragment.key = key;
-  		fragment.index = index;
-  		fragment.isIteration = true;
-
-  		var model = this.context.joinKey(key);
-  		return fragment.bind(model);
-  	};
-
-  	RepeatedFragment.prototype.detach = function detach() {
-  		var docFrag = createDocumentFragment();
-  		this.iterations.forEach(function (fragment) {
-  			return docFrag.appendChild(fragment.detach());
-  		});
-  		return docFrag;
-  	};
-
-  	RepeatedFragment.prototype.find = function find(selector) {
-  		var len = this.iterations.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var found = this.iterations[i].find(selector);
-  			if (found) return found;
-  		}
-  	};
-
-  	RepeatedFragment.prototype.findAll = function findAll(selector, query) {
-  		var len = this.iterations.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			this.iterations[i].findAll(selector, query);
-  		}
-  	};
-
-  	RepeatedFragment.prototype.findComponent = function findComponent(name) {
-  		var len = this.iterations.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var found = this.iterations[i].findComponent(name);
-  			if (found) return found;
-  		}
-  	};
-
-  	RepeatedFragment.prototype.findAllComponents = function findAllComponents(name, query) {
-  		var len = this.iterations.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			this.iterations[i].findAllComponents(name, query);
-  		}
-  	};
-
-  	RepeatedFragment.prototype.findNextNode = function findNextNode(iteration) {
-  		if (iteration.index < this.iterations.length - 1) {
-  			return this.iterations[iteration.index + 1].firstNode();
-  		}
-
-  		return this.owner.findNextNode();
-  	};
-
-  	RepeatedFragment.prototype.firstNode = function firstNode() {
-  		return this.iterations[0] ? this.iterations[0].firstNode() : null;
-  	};
-
-  	RepeatedFragment.prototype.rebind = function rebind(context) {
-  		this.context = context;
-
-  		// {{#each array}}...
-  		if (isArray(context.get())) {
-  			this.iterations.forEach(function (fragment, i) {
-  				fragment.rebind(context.joinKey(i));
-  			});
-  		}
-  	};
-
-  	RepeatedFragment.prototype.render = function render(target) {
-  		// TODO use docFrag.cloneNode...
-
-  		if (this.iterations) {
-  			this.iterations.forEach(function (fragment) {
-  				return fragment.render(target);
-  			});
-  		}
-
-  		this.rendered = true;
-  	};
-
-  	RepeatedFragment.prototype.shuffle = function shuffle(newIndices) {
-  		var _this2 = this;
-
-  		if (this.pendingNewIndices) {
-  			throw new Error('Section was already shuffled!');
-  		}
-
-  		this.pendingNewIndices = newIndices;
-  		this.previousIterations = this.iterations.slice();
-
-  		var iterations = [];
-
-  		newIndices.forEach(function (newIndex, oldIndex) {
-  			if (newIndex === -1) return;
-
-  			var fragment = _this2.iterations[oldIndex];
-  			iterations[newIndex] = fragment;
-
-  			if (newIndex !== oldIndex) fragment.dirty = true;
-  		});
-
-  		this.iterations = iterations;
-  		this.bubble();
-  	};
-
-  	RepeatedFragment.prototype.toString = function toString$$(escape) {
-  		return this.iterations ? this.iterations.map(escape ? toEscapedString : toString).join('') : '';
-  	};
-
-  	RepeatedFragment.prototype.unbind = function unbind$$() {
-  		this.iterations.forEach(unbind);
-  		return this;
-  	};
-
-  	RepeatedFragment.prototype.unrender = function unrender$$(shouldDestroy) {
-  		this.iterations.forEach(shouldDestroy ? _unrenderAndDestroy : unrender);
-  		this.rendered = false;
-  	};
-
-  	// TODO smart update
-
-  	RepeatedFragment.prototype.update = function update() {
-  		var _this3 = this;
-
-  		// skip dirty check, since this is basically just a facade
-
-  		if (this.pendingNewIndices) {
-  			this.updatePostShuffle();
-  			return;
-  		}
-
-  		var value = this.context.get(),
-  		    wasArray = this.isArray;
-
-  		var toRemove = undefined;
-  		var oldKeys = undefined;
-  		var reset = true;
-  		var i = undefined;
-
-  		if (this.isArray = isArray(value)) {
-  			if (wasArray) {
-  				reset = false;
-  				if (this.iterations.length > value.length) {
-  					toRemove = this.iterations.splice(value.length);
-  				}
-  			}
-  		} else if (isObject(value) && !wasArray) {
-  			reset = false;
-  			toRemove = [];
-  			oldKeys = {};
-  			i = this.iterations.length;
-
-  			while (i--) {
-  				var _fragment = this.iterations[i];
-  				if (_fragment.key in value) {
-  					oldKeys[_fragment.key] = true;
-  				} else {
-  					this.iterations.splice(i, 1);
-  					toRemove.push(_fragment);
-  				}
-  			}
-  		}
-
-  		if (reset) {
-  			toRemove = this.iterations;
-  			this.iterations = [];
-  		}
-
-  		if (toRemove) {
-  			toRemove.forEach(function (fragment) {
-  				fragment.unbind();
-  				fragment.unrender(true);
-  			});
-  		}
-
-  		// update the remaining ones
-  		this.iterations.forEach(_update);
-
-  		// add new iterations
-  		var newLength = isArray(value) ? value.length : isObject(value) ? Object.keys(value).length : 0;
-
-  		var docFrag = undefined;
-  		var fragment = undefined;
-
-  		if (newLength > this.iterations.length) {
-  			docFrag = this.rendered ? createDocumentFragment() : null;
-  			i = this.iterations.length;
-
-  			if (isArray(value)) {
-  				while (i < value.length) {
-  					fragment = this.createIteration(i, i);
-
-  					this.iterations.push(fragment);
-  					if (this.rendered) fragment.render(docFrag);
-
-  					i += 1;
-  				}
-  			} else if (isObject(value)) {
-  				Object.keys(value).forEach(function (key) {
-  					if (!oldKeys || !(key in oldKeys)) {
-  						fragment = _this3.createIteration(key, i);
-
-  						_this3.iterations.push(fragment);
-  						if (_this3.rendered) fragment.render(docFrag);
-
-  						i += 1;
-  					}
-  				});
-  			}
-
-  			if (this.rendered) {
-  				var parentNode = this.parent.findParentNode();
-  				var anchor = this.parent.findNextNode(this.owner);
-
-  				parentNode.insertBefore(docFrag, anchor);
-  			}
-  		}
-  	};
-
-  	RepeatedFragment.prototype.updatePostShuffle = function updatePostShuffle() {
-  		var _this4 = this;
-
-  		var newIndices = this.pendingNewIndices;
-
-  		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
-  		// storing them in a document fragment for later reinsertion) seems a bit hokey,
-  		// but it seems to work for now
-  		var previousNewIndex = -1;
-  		var reinsertFrom = null;
-
-  		newIndices.forEach(function (newIndex, oldIndex) {
-  			var fragment = _this4.previousIterations[oldIndex];
-
-  			if (newIndex === -1) {
-  				fragment.unbind().unrender(true);
-  			} else {
-  				fragment.index = newIndex;
-  				fragment.rebind(_this4.context.joinKey(newIndex));
-
-  				if (reinsertFrom === null && newIndex !== previousNewIndex + 1) {
-  					reinsertFrom = oldIndex;
-  				}
-  			}
-
-  			previousNewIndex = newIndex;
-  		});
-
-  		// create new iterations
-  		var docFrag = this.rendered ? createDocumentFragment() : null;
-  		var parentNode = this.rendered ? this.parent.findParentNode() : null;
-
-  		var len = this.context.get().length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var existingFragment = this.iterations[i];
-
-  			if (this.rendered) {
-  				if (existingFragment) {
-  					if (reinsertFrom !== null && i >= reinsertFrom) {
-  						docFrag.appendChild(existingFragment.detach());
-  					} else if (docFrag.childNodes.length) {
-  						parentNode.insertBefore(docFrag, existingFragment.firstNode());
-  					}
-  				} else {
-  					this.iterations[i] = this.createIteration(i, i);
-  					this.iterations[i].render(docFrag);
-  				}
-  			}
-
-  			if (!this.rendered) {
-  				if (!existingFragment) {
-  					this.iterations[i] = this.createIteration(i, i);
-  				}
-  			}
-  		}
-
-  		if (this.rendered && docFrag.childNodes.length) {
-  			parentNode.insertBefore(docFrag, this.owner.findNextNode());
-  		}
-
-  		this.iterations.forEach(_update);
-
-  		this.pendingNewIndices = null;
-  	};
-
-  	return RepeatedFragment;
-  })();
-
-  function isEmpty(value) {
-  	return !value || isArray(value) && value.length === 0 || isObject(value) && Object.keys(value).length === 0;
-  }
-
-  function getType(value, hasIndexRef) {
-  	if (hasIndexRef || isArray(value)) return SECTION_EACH;
-  	if (isObject(value) || typeof value === 'function') return SECTION_WITH;
-  	if (value === undefined) return null;
-  	return SECTION_IF;
-  }
-
-  var Section = (function (_Mustache) {
-  	inherits(Section, _Mustache);
-
-  	function Section(options) {
-  		classCallCheck(this, Section);
-
-  		_Mustache.call(this, options);
-
-  		this.sectionType = options.template.n || null;
-  		this.fragment = null;
-  	}
-
-  	Section.prototype.bind = function bind() {
-  		_Mustache.prototype.bind.call(this);
-
-  		// if we managed to bind, we need to create children
-  		if (this.model) {
-  			var value = this.model.parent ? this.model.get() : this.model.value;
-  			var fragment = undefined;
-
-  			if (!this.sectionType) this.sectionType = getType(value, this.template.i);
-
-  			if (isEmpty(value) && this.sectionType !== SECTION_WITH) {
-  				// TODO again, WITH should not render if empty
-  				if (this.sectionType === SECTION_UNLESS) {
-  					this.fragment = new Fragment({
-  						owner: this,
-  						template: this.template.f
-  					}).bind();
-  				}
-
-  				// otherwise, create no children
-  				return;
-  			}
-
-  			if (this.sectionType === SECTION_UNLESS) return;
-
-  			if (this.sectionType === SECTION_IF) {
-  				fragment = new Fragment({
-  					owner: this,
-  					template: this.template.f
-  				}).bind();
-  			}
-
-  			// TODO should only be WITH, and it should behave like IF_WITH
-  			else if (this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH) {
-  					fragment = new Fragment({
-  						owner: this,
-  						template: this.template.f
-  					}).bind(this.model);
-  				} else {
-  					fragment = new RepeatedFragment({
-  						owner: this,
-  						template: this.template.f,
-  						indexRef: this.template.i
-  					}).bind(this.model);
-  				}
-
-  			this.fragment = fragment;
-  		} else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
-  			this.fragment = new Fragment({
-  				owner: this,
-  				template: this.template.f
-  			}).bind();
-  		}
-  	};
-
-  	Section.prototype.detach = function detach() {
-  		return this.fragment ? this.fragment.detach() : createDocumentFragment();
-  	};
-
-  	Section.prototype.find = function find(selector) {
-  		if (this.fragment) {
-  			return this.fragment.find(selector);
-  		}
-  	};
-
-  	Section.prototype.findAll = function findAll(selector, query) {
-  		if (this.fragment) {
-  			this.fragment.findAll(selector, query);
-  		}
-  	};
-
-  	Section.prototype.findComponent = function findComponent(name) {
-  		if (this.fragment) {
-  			return this.fragment.findComponent(name);
-  		}
-  	};
-
-  	Section.prototype.findAllComponents = function findAllComponents(name, query) {
-  		if (this.fragment) {
-  			this.fragment.findAllComponents(name, query);
-  		}
-  	};
-
-  	Section.prototype.firstNode = function firstNode() {
-  		return this.fragment && this.fragment.firstNode();
-  	};
-
-  	Section.prototype.rebind = function rebind() {
-  		_Mustache.prototype.rebind.call(this);
-
-  		if (this.fragment) {
-  			this.fragment.rebind(this.sectionType === SECTION_IF ? null : this.model);
-  		}
-  	};
-
-  	Section.prototype.render = function render(target) {
-  		this.rendered = true;
-  		if (this.fragment) this.fragment.render(target);
-  	};
-
-  	Section.prototype.shuffle = function shuffle(newIndices) {
-  		if (this.fragment && this.sectionType === SECTION_EACH) {
-  			this.fragment.shuffle(newIndices);
-  		}
-  	};
-
-  	Section.prototype.toString = function toString(escape) {
-  		return this.fragment ? this.fragment.toString(escape) : '';
-  	};
-
-  	Section.prototype.unbind = function unbind() {
-  		_Mustache.prototype.unbind.call(this);
-  		if (this.fragment) this.fragment.unbind();
-  	};
-
-  	Section.prototype.unrender = function unrender(shouldDestroy) {
-  		if (this.rendered && this.fragment) this.fragment.unrender(shouldDestroy);
-  		this.rendered = false;
-  	};
-
-  	// TODO DRY this out - lot of repeated stuff between this and bind()
-
-  	Section.prototype.update = function update() {
-  		if (!this.dirty) return;
-  		if (!this.model) return; // TODO can this happen?
-
-  		var value = this.model.get();
-
-  		if (this.sectionType === null) this.sectionType = getType(value, this.template.i);
-
-  		var newFragment = undefined;
-
-  		if (this.sectionType === SECTION_EACH) {
-  			if (this.fragment) {
-  				this.fragment.update();
-  			} else {
-  				// TODO can this happen?
-  				newFragment = new RepeatedFragment({
-  					owner: this,
-  					template: this.template.f,
-  					indexRef: this.template.i
-  				}).bind(this.model);
-  			}
-  		}
-
-  		// TODO same comment as before - WITH should be IF_WITH
-  		else if (this.sectionType === SECTION_WITH) {
-  				if (this.fragment) {
-  					this.fragment.update();
-  				} else {
-  					newFragment = new Fragment({
-  						owner: this,
-  						template: this.template.f
-  					}).bind(this.model);
-  				}
-  			} else if (this.sectionType === SECTION_IF_WITH) {
-  				if (this.fragment) {
-  					if (isEmpty(value)) {
-  						if (this.rendered) {
-  							this.fragment.unbind().unrender(true);
-  						}
-
-  						this.fragment = null;
-  					} else {
-  						this.fragment.update();
-  					}
-  				} else if (!isEmpty(value)) {
-  					newFragment = new Fragment({
-  						owner: this,
-  						template: this.template.f
-  					}).bind(this.model);
-  				}
-  			} else {
-  				var fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty(value) : !!value;
-
-  				if (this.fragment) {
-  					if (fragmentShouldExist) {
-  						this.fragment.update();
-  					} else {
-  						if (this.rendered) {
-  							this.fragment.unbind().unrender(true);
-  						}
-
-  						this.fragment = null;
-  					}
-  				} else if (fragmentShouldExist) {
-  					newFragment = new Fragment({
-  						owner: this,
-  						template: this.template.f
-  					}).bind(null);
-  				}
-  			}
-
-  		if (newFragment) {
-  			if (this.rendered) {
-  				var parentNode = this.parentFragment.findParentNode();
-  				var anchor = this.parentFragment.findNextNode(this);
-
-  				if (anchor) {
-  					var docFrag = createDocumentFragment();
-  					newFragment.render(docFrag);
-
-  					// we use anchor.parentNode, not parentNode, because the sibling
-  					// may be temporarily detached as a result of a shuffle
-  					anchor.parentNode.insertBefore(docFrag, anchor);
-  				} else {
-  					newFragment.render(parentNode);
-  				}
-  			}
-
-  			this.fragment = newFragment;
-  		}
-
-  		this.dirty = false;
-  	};
-
-  	return Section;
-  })(Mustache);
-
-  var elementCache = {};
-  var ieBug;
-  var ieBlacklist;
-  try {
-  	createElement('table').innerHTML = 'foo';
-  } catch (err) {
-  	ieBug = true;
-
-  	ieBlacklist = {
-  		TABLE: ['<table class="x">', '</table>'],
-  		THEAD: ['<table><thead class="x">', '</thead></table>'],
-  		TBODY: ['<table><tbody class="x">', '</tbody></table>'],
-  		TR: ['<table><tr class="x">', '</tr></table>'],
-  		SELECT: ['<select class="x">', '</select>']
-  	};
-  }
-
-  function insertHtml (html, node, docFrag) {
-  	var container,
-  	    nodes = [],
-  	    wrapper,
-  	    selectedOption,
-  	    child,
-  	    i;
-
-  	// render 0 and false
-  	if (html != null && html !== '') {
-  		if (ieBug && (wrapper = ieBlacklist[node.tagName])) {
-  			container = element('DIV');
-  			container.innerHTML = wrapper[0] + html + wrapper[1];
-  			container = container.querySelector('.x');
-
-  			if (container.tagName === 'SELECT') {
-  				selectedOption = container.options[container.selectedIndex];
-  			}
-  		} else if (node.namespaceURI === svg) {
-  			container = element('DIV');
-  			container.innerHTML = '<svg class="x">' + html + '</svg>';
-  			container = container.querySelector('.x');
-  		} else {
-  			container = element(node.tagName);
-  			container.innerHTML = html;
-
-  			if (container.tagName === 'SELECT') {
-  				selectedOption = container.options[container.selectedIndex];
-  			}
-  		}
-
-  		while (child = container.firstChild) {
-  			nodes.push(child);
-  			docFrag.appendChild(child);
-  		}
-
-  		// This is really annoying. Extracting <option> nodes from the
-  		// temporary container <select> causes the remaining ones to
-  		// become selected. So now we have to deselect them. IE8, you
-  		// amaze me. You really do
-  		// ...and now Chrome too
-  		if (node.tagName === 'SELECT') {
-  			i = nodes.length;
-  			while (i--) {
-  				if (nodes[i] !== selectedOption) {
-  					nodes[i].selected = false;
-  				}
-  			}
-  		}
-  	}
-
-  	return nodes;
-  }
-
-  function element(tagName) {
-  	return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
-  }
-
-  var Triple = (function (_Mustache) {
-  	inherits(Triple, _Mustache);
-
-  	function Triple(options) {
-  		classCallCheck(this, Triple);
-
-  		_Mustache.call(this, options);
-  	}
-
-  	Triple.prototype.detach = function detach() {
-  		var docFrag = createDocumentFragment();
-  		this.nodes.forEach(function (node) {
-  			return docFrag.appendChild(node);
-  		});
-  		return docFrag;
-  	};
-
-  	Triple.prototype.find = function find(selector) {
-  		var len = this.nodes.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var node = this.nodes[i];
-
-  			if (node.nodeType !== 1) continue;
-
-  			if (matches(node, selector)) return node;
-
-  			var queryResult = node.querySelector(selector);
-  			if (queryResult) return queryResult;
-  		}
-
-  		return null;
-  	};
-
-  	Triple.prototype.findAll = function findAll(selector, query) {
-  		var len = this.nodes.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var node = this.nodes[i];
-
-  			if (node.nodeType !== 1) continue;
-
-  			if (query.test(node)) query.add(node);
-
-  			var queryAllResult = node.querySelectorAll(selector);
-  			if (queryAllResult) {
-  				var numNodes = queryAllResult.length;
-  				var j = undefined;
-
-  				for (j = 0; j < numNodes; j += 1) {
-  					query.add(queryAllResult[j]);
-  				}
-  			}
-  		}
-  	};
-
-  	Triple.prototype.findComponent = function findComponent() {
-  		return null;
-  	};
-
-  	Triple.prototype.firstNode = function firstNode() {
-  		return this.nodes[0];
-  	};
-
-  	Triple.prototype.render = function render(target) {
-  		var html = this.model ? this.model.get() : '';
-  		this.nodes = insertHtml(html, this.parentFragment.findParentNode(), target);
-  		this.rendered = true;
-  	};
-
-  	Triple.prototype.toString = function toString() {
-  		return this.model && this.model.get() != null ? decodeCharacterReferences('' + this.model.get()) : '';
-  	};
-
-  	Triple.prototype.unrender = function unrender() {
-  		if (this.nodes) this.nodes.forEach(function (node) {
-  			return node.parentNode.removeChild(node);
-  		});
-  		this.rendered = false;
-  	};
-
-  	Triple.prototype.update = function update() {
-  		if (this.rendered && this.dirty) {
-  			this.unrender();
-  			var docFrag = createDocumentFragment();
-  			this.render(docFrag);
-
-  			var parentNode = this.parentFragment.findParentNode();
-  			var anchor = this.parentFragment.findNextNode(this);
-
-  			parentNode.insertBefore(docFrag, anchor);
-
-  			this.dirty = false;
-  		}
-  	};
-
-  	return Triple;
-  })(Mustache);
-
-  var Yielder = (function (_Item) {
-  	inherits(Yielder, _Item);
-
-  	function Yielder(options) {
-  		classCallCheck(this, Yielder);
-
-  		_Item.call(this, options);
-
-  		this.container = options.parentFragment.ractive;
-  		this.component = this.container.component;
-
-  		this.containerFragment = options.parentFragment;
-  		this.parentFragment = this.component.parentFragment;
-
-  		// {{yield}} is equivalent to {{yield content}}
-  		this.name = options.template.n || '';
-  	}
-
-  	Yielder.prototype.bind = function bind() {
-  		var name = this.name;
-
-  		(this.component.yielders[name] || (this.component.yielders[name] = [])).push(this);
-
-  		// TODO don't parse here
-  		var template = this.container._inlinePartials[name || 'content'];
-
-  		if (typeof template === 'string') {
-  			template = parse(template).t;
-  		}
-
-  		if (!template) {
-  			warnIfDebug('Could not find template for partial "' + name + '"', { ractive: this.ractive });
-  			template = [];
-  		}
-
-  		this.fragment = new Fragment({
-  			owner: this,
-  			ractive: this.container.parent,
-  			template: template
-  		}).bind();
-  	};
-
-  	Yielder.prototype.detach = function detach() {
-  		return this.fragment.detach();
-  	};
-
-  	Yielder.prototype.find = function find(selector) {
-  		return this.fragment.find(selector);
-  	};
-
-  	Yielder.prototype.findAll = function findAll(selector, queryResult) {
-  		this.fragment.find(selector, queryResult);
-  	};
-
-  	Yielder.prototype.findComponent = function findComponent(name) {
-  		return this.fragment.findComponent(name);
-  	};
-
-  	Yielder.prototype.findAllComponents = function findAllComponents(name, queryResult) {
-  		this.fragment.findAllComponents(name, queryResult);
-  	};
-
-  	Yielder.prototype.firstNode = function firstNode() {
-  		return this.fragment.firstNode();
-  	};
-
-  	Yielder.prototype.rebind = function rebind() {
-  		throw new Error('Yielder$rebind is not yet implemented!');
-  	};
-
-  	Yielder.prototype.render = function render(target) {
-  		return this.fragment.render(target);
-  	};
-
-  	Yielder.prototype.setTemplate = function setTemplate(name) {
-  		var template = this.parentFragment.ractive.partials[name];
-
-  		if (typeof template === 'string') {
-  			template = parse(template).t;
-  		}
-
-  		this.partialTemplate = template || []; // TODO warn on missing partial
-  	};
-
-  	Yielder.prototype.toString = function toString(escape) {
-  		return this.fragment.toString(escape);
-  	};
-
-  	Yielder.prototype.unbind = function unbind() {
-  		this.fragment.unbind();
-  		removeFromArray(this.component.yielders[this.name], this);
-  	};
-
-  	Yielder.prototype.unrender = function unrender(shouldDestroy) {
-  		this.fragment.unrender(shouldDestroy);
-  	};
-
-  	return Yielder;
-  })(Item);
 
   var exportedShims;
 
@@ -4948,57 +1652,979 @@ var classCallCheck = function (instance, Constructor) {
   	}
   }
 
-  function resetStyle(node, style) {
-  	if (style) {
-  		node.setAttribute('style', style);
-  	} else {
-  		// Next line is necessary, to remove empty style attribute!
-  		// See http://stackoverflow.com/a/7167553
-  		node.getAttribute('style');
-  		node.removeAttribute('style');
+  var _html = 'http://www.w3.org/1999/xhtml';
+  var mathml = 'http://www.w3.org/1998/Math/MathML';
+  var svg = 'http://www.w3.org/2000/svg';
+  var xlink = 'http://www.w3.org/1999/xlink';
+  var xml = 'http://www.w3.org/XML/1998/namespace';
+  var xmlns = 'http://www.w3.org/2000/xmlns/';
+
+  var createElement;
+  var matches;
+  var _div;
+  var methodNames;
+  var unprefixed;
+  var prefixed;
+  var __i;
+  var j;
+  var makeFunction;
+  // Test for SVG support
+  if (!_svg) {
+  	createElement = function (type, ns, extend) {
+  		if (ns && ns !== _html) {
+  			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
+  		}
+
+  		return extend ? doc.createElement(type, extend) : doc.createElement(type);
+  	};
+  } else {
+  	createElement = function (type, ns, extend) {
+  		if (!ns || ns === _html) {
+  			return extend ? doc.createElement(type, extend) : doc.createElement(type);
+  		}
+
+  		return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
+  	};
+  }
+
+  function createDocumentFragment() {
+  	return doc.createDocumentFragment();
+  }
+
+  function getElement(input) {
+  	var output;
+
+  	if (!input || typeof input === 'boolean') {
+  		return;
+  	}
+
+  	if (!win || !doc || !input) {
+  		return null;
+  	}
+
+  	// We already have a DOM node - no work to do. (Duck typing alert!)
+  	if (input.nodeType) {
+  		return input;
+  	}
+
+  	// Get node from string
+  	if (typeof input === 'string') {
+  		// try ID first
+  		output = doc.getElementById(input);
+
+  		// then as selector, if possible
+  		if (!output && doc.querySelector) {
+  			output = doc.querySelector(input);
+  		}
+
+  		// did it work?
+  		if (output && output.nodeType) {
+  			return output;
+  		}
+  	}
+
+  	// If we've been given a collection (jQuery, Zepto etc), extract the first item
+  	if (input[0] && input[0].nodeType) {
+  		return input[0];
+  	}
+
+  	return null;
+  }
+
+  if (!isClient) {
+  	matches = null;
+  } else {
+  	_div = createElement('div');
+  	methodNames = ['matches', 'matchesSelector'];
+
+  	makeFunction = function (methodName) {
+  		return function (node, selector) {
+  			return node[methodName](selector);
+  		};
+  	};
+
+  	__i = methodNames.length;
+
+  	while (__i-- && !matches) {
+  		unprefixed = methodNames[__i];
+
+  		if (_div[unprefixed]) {
+  			matches = makeFunction(unprefixed);
+  		} else {
+  			j = vendors.length;
+  			while (j--) {
+  				prefixed = vendors[__i] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
+
+  				if (_div[prefixed]) {
+  					matches = makeFunction(prefixed);
+  					break;
+  				}
+  			}
+  		}
+  	}
+
+  	// IE8...
+  	if (!matches) {
+  		matches = function (node, selector) {
+  			var nodes, parentNode, i;
+
+  			parentNode = node.parentNode;
+
+  			if (!parentNode) {
+  				// empty dummy <div>
+  				_div.innerHTML = '';
+
+  				parentNode = _div;
+  				node = node.cloneNode();
+
+  				_div.appendChild(node);
+  			}
+
+  			nodes = parentNode.querySelectorAll(selector);
+
+  			i = nodes.length;
+  			while (i--) {
+  				if (nodes[i] === node) {
+  					return true;
+  				}
+  			}
+
+  			return false;
+  		};
   	}
   }
 
-  function camelCase (hyphenatedStr) {
-  	return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
-  		return $1.toUpperCase();
-  	});
+  function safeToStringValue(value) {
+  	return value == null || !value.toString ? '' : '' + value;
   }
 
-  var __prefix;
-  var prefixCache;
-  var testStyle;
-  if (!isClient) {
-  	__prefix = null;
-  } else {
-  	prefixCache = {};
-  	testStyle = createElement('div').style;
+  var create;
+  var defineProperty;
+  var defineProperties;
+  try {
+  	Object.defineProperty({}, 'test', { value: 0 });
 
-  	__prefix = function (prop) {
-  		var i, vendor, capped;
+  	if (doc) {
+  		Object.defineProperty(createElement('div'), 'test', { value: 0 });
+  	}
 
-  		prop = camelCase(prop);
+  	defineProperty = Object.defineProperty;
+  } catch (err) {
+  	// Object.defineProperty doesn't exist, or we're in IE8 where you can
+  	// only use it with DOM objects (what were you smoking, MSFT?)
+  	defineProperty = function (obj, prop, desc) {
+  		obj[prop] = desc.value;
+  	};
+  }
 
-  		if (!prefixCache[prop]) {
-  			if (testStyle[prop] !== undefined) {
-  				prefixCache[prop] = prop;
+  try {
+  	try {
+  		Object.defineProperties({}, { test: { value: 0 } });
+  	} catch (err) {
+  		// TODO how do we account for this? noMagic = true;
+  		throw err;
+  	}
+
+  	if (doc) {
+  		Object.defineProperties(createElement('div'), { test: { value: 0 } });
+  	}
+
+  	defineProperties = Object.defineProperties;
+  } catch (err) {
+  	defineProperties = function (obj, props) {
+  		var prop;
+
+  		for (prop in props) {
+  			if (props.hasOwnProperty(prop)) {
+  				defineProperty(obj, prop, props[prop]);
+  			}
+  		}
+  	};
+  }
+
+  try {
+  	Object.create(null);
+
+  	create = Object.create;
+  } catch (err) {
+  	// sigh
+  	create = (function () {
+  		var F = function () {};
+
+  		return function (proto, props) {
+  			var obj;
+
+  			if (proto === null) {
+  				return {};
+  			}
+
+  			F.prototype = proto;
+  			obj = new F();
+
+  			if (props) {
+  				Object.defineProperties(obj, props);
+  			}
+
+  			return obj;
+  		};
+  	})();
+  }
+
+  function __extend(target) {
+  	var prop, source;
+
+  	for (var _len = arguments.length, sources = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+  		sources[_key - 1] = arguments[_key];
+  	}
+
+  	while (source = sources.shift()) {
+  		for (prop in source) {
+  			if (hasOwn.call(source, prop)) {
+  				target[prop] = source[prop];
+  			}
+  		}
+  	}
+
+  	return target;
+  }
+
+  var hasOwn = Object.prototype.hasOwnProperty;
+
+  var Parser;
+  var ParseError;
+  var leadingWhitespace = /^\s+/;
+  ParseError = function (message) {
+  	this.name = 'ParseError';
+  	this.message = message;
+  	try {
+  		throw new Error(message);
+  	} catch (e) {
+  		this.stack = e.stack;
+  	}
+  };
+
+  ParseError.prototype = Error.prototype;
+
+  Parser = function (str, options) {
+  	var items,
+  	    item,
+  	    lineStart = 0;
+
+  	this.str = str;
+  	this.options = options || {};
+  	this.pos = 0;
+
+  	this.lines = this.str.split('\n');
+  	this.lineEnds = this.lines.map(function (line) {
+  		var lineEnd = lineStart + line.length + 1; // +1 for the newline
+
+  		lineStart = lineEnd;
+  		return lineEnd;
+  	}, 0);
+
+  	// Custom init logic
+  	if (this.init) this.init(str, options);
+
+  	items = [];
+
+  	while (this.pos < this.str.length && (item = this.read())) {
+  		items.push(item);
+  	}
+
+  	this.leftover = this.remaining();
+  	this.result = this.postProcess ? this.postProcess(items, options) : items;
+  };
+
+  Parser.prototype = {
+  	read: function (converters) {
+  		var pos, i, len, item;
+
+  		if (!converters) converters = this.converters;
+
+  		pos = this.pos;
+
+  		len = converters.length;
+  		for (i = 0; i < len; i += 1) {
+  			this.pos = pos; // reset for each attempt
+
+  			if (item = converters[i](this)) {
+  				return item;
+  			}
+  		}
+
+  		return null;
+  	},
+
+  	getLinePos: function (char) {
+  		var lineNum = 0,
+  		    lineStart = 0,
+  		    columnNum;
+
+  		while (char >= this.lineEnds[lineNum]) {
+  			lineStart = this.lineEnds[lineNum];
+  			lineNum += 1;
+  		}
+
+  		columnNum = char - lineStart;
+  		return [lineNum + 1, columnNum + 1, char]; // line/col should be one-based, not zero-based!
+  	},
+
+  	error: function (message) {
+  		var pos = this.getLinePos(this.pos);
+  		var lineNum = pos[0];
+  		var columnNum = pos[1];
+
+  		var line = this.lines[pos[0] - 1];
+  		var numTabs = 0;
+  		var annotation = line.replace(/\t/g, function (match, char) {
+  			if (char < pos[1]) {
+  				numTabs += 1;
+  			}
+
+  			return '  ';
+  		}) + '\n' + new Array(pos[1] + numTabs).join(' ') + '^----';
+
+  		var error = new ParseError(message + ' at line ' + lineNum + ' character ' + columnNum + ':\n' + annotation);
+
+  		error.line = pos[0];
+  		error.character = pos[1];
+  		error.shortMessage = message;
+
+  		throw error;
+  	},
+
+  	matchString: function (string) {
+  		if (this.str.substr(this.pos, string.length) === string) {
+  			this.pos += string.length;
+  			return string;
+  		}
+  	},
+
+  	matchPattern: function (pattern) {
+  		var match;
+
+  		if (match = pattern.exec(this.remaining())) {
+  			this.pos += match[0].length;
+  			return match[1] || match[0];
+  		}
+  	},
+
+  	allowWhitespace: function () {
+  		this.matchPattern(leadingWhitespace);
+  	},
+
+  	remaining: function () {
+  		return this.str.substring(this.pos);
+  	},
+
+  	nextChar: function () {
+  		return this.str.charAt(this.pos);
+  	}
+  };
+
+  Parser.extend = function (proto) {
+  	var Parent = this,
+  	    Child,
+  	    key;
+
+  	Child = function (str, options) {
+  		Parser.call(this, str, options);
+  	};
+
+  	Child.prototype = create(Parent.prototype);
+
+  	for (key in proto) {
+  		if (hasOwn.call(proto, key)) {
+  			Child.prototype[key] = proto[key];
+  		}
+  	}
+
+  	Child.extend = Parser.extend;
+  	return Child;
+  };
+
+  var stringMiddlePattern;
+  var escapeSequencePattern;
+  var lineContinuationPattern;
+  // Match one or more characters until: ", ', \, or EOL/EOF.
+  // EOL/EOF is written as (?!.) (meaning there's no non-newline char next).
+  stringMiddlePattern = /^(?=.)[^"'\\]+?(?:(?!.)|(?=["'\\]))/;
+
+  // Match one escape sequence, including the backslash.
+  escapeSequencePattern = /^\\(?:['"\\bfnrt]|0(?![0-9])|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|(?=.)[^ux0-9])/;
+
+  // Match one ES5 line continuation (backslash + line terminator).
+  lineContinuationPattern = /^\\(?:\r\n|[\u000A\u000D\u2028\u2029])/;
+
+  // Helper for defining getDoubleQuotedString and getSingleQuotedString.
+  function makeQuotedStringMatcher (okQuote) {
+  	return function (parser) {
+  		var literal = '"';
+  		var done = false;
+  		var next = undefined;
+
+  		while (!done) {
+  			next = parser.matchPattern(stringMiddlePattern) || parser.matchPattern(escapeSequencePattern) || parser.matchString(okQuote);
+  			if (next) {
+  				if (next === '"') {
+  					literal += '\\"';
+  				} else if (next === '\\\'') {
+  					literal += '\'';
+  				} else {
+  					literal += next;
+  				}
   			} else {
-  				// test vendors...
-  				capped = prop.charAt(0).toUpperCase() + prop.substring(1);
-
-  				i = vendors.length;
-  				while (i--) {
-  					vendor = vendors[i];
-  					if (testStyle[vendor + capped] !== undefined) {
-  						prefixCache[prop] = vendor + capped;
-  						break;
-  					}
+  				next = parser.matchPattern(lineContinuationPattern);
+  				if (next) {
+  					// convert \(newline-like) into a \u escape, which is allowed in JSON
+  					literal += '\\u' + ('000' + next.charCodeAt(1).toString(16)).slice(-4);
+  				} else {
+  					done = true;
   				}
   			}
   		}
 
-  		return prefixCache[prop];
+  		literal += '"';
+
+  		// use JSON.parse to interpret escapes
+  		return JSON.parse(literal);
   	};
+  }
+
+  var TEXT = 1;
+  var INTERPOLATOR = 2;
+  var TRIPLE = 3;
+  var SECTION = 4;
+  var ELEMENT = 7;
+  var PARTIAL = 8;
+  var COMPONENT = 15;
+  var YIELDER = 16;
+  var DOCTYPE = 18;
+
+  var NUMBER_LITERAL = 20;
+  var STRING_LITERAL = 21;
+  var REFERENCE = 30;
+  var SECTION_IF = 50;
+  var SECTION_UNLESS = 51;
+  var SECTION_EACH = 52;
+  var SECTION_WITH = 53;
+  var SECTION_IF_WITH = 54;
+
+  var getSingleQuotedString = makeQuotedStringMatcher('"');
+  var getDoubleQuotedString = makeQuotedStringMatcher('\'');
+
+  function readStringLiteral (parser) {
+  	var start, string;
+
+  	start = parser.pos;
+
+  	if (parser.matchString('"')) {
+  		string = getDoubleQuotedString(parser);
+
+  		if (!parser.matchString('"')) {
+  			parser.pos = start;
+  			return null;
+  		}
+
+  		return {
+  			t: STRING_LITERAL,
+  			v: string
+  		};
+  	}
+
+  	if (parser.matchString('\'')) {
+  		string = getSingleQuotedString(parser);
+
+  		if (!parser.matchString('\'')) {
+  			parser.pos = start;
+  			return null;
+  		}
+
+  		return {
+  			t: STRING_LITERAL,
+  			v: string
+  		};
+  	}
+
+  	return null;
+  }
+
+  var _name = /^[a-zA-Z_$][a-zA-Z_$0-9]*/;
+
+  // bulletproof number regex from https://gist.github.com/Rich-Harris/7544330
+  var _numberPattern = /^(?:[+-]?)0*(?:(?:(?:[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+  function readNumberLiteral(parser) {
+  	var result;
+
+  	if (result = parser.matchPattern(_numberPattern)) {
+  		return {
+  			t: NUMBER_LITERAL,
+  			v: result
+  		};
+  	}
+
+  	return null;
+  }
+
+  var identifier = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+
+  // http://mathiasbynens.be/notes/javascript-properties
+  // can be any name, string literal, or number literal
+
+  function readKey(parser) {
+  	var token;
+
+  	if (token = readStringLiteral(parser)) {
+  		return identifier.test(token.v) ? token.v : '"' + token.v.replace(/"/g, '\\"') + '"';
+  	}
+
+  	if (token = readNumberLiteral(parser)) {
+  		return token.v;
+  	}
+
+  	if (token = parser.matchPattern(_name)) {
+  		return token;
+  	}
+  }
+
+  // simple JSON parser, without the restrictions of JSON parse
+  // (i.e. having to double-quote keys).
+  //
+  // If passed a hash of values as the second argument, ${placeholders}
+  // will be replaced with those values
+
+  var specials = {
+  	'true': true,
+  	'false': false,
+  	'null': null,
+  	undefined: undefined
+  };
+
+  var specialsPattern = new RegExp('^(?:' + Object.keys(specials).join('|') + ')');
+  var numberPattern = /^(?:[+-]?)(?:(?:(?:0|[1-9]\d*)?\.\d+)|(?:(?:0|[1-9]\d*)\.)|(?:0|[1-9]\d*))(?:[eE][+-]?\d+)?/;
+  var placeholderPattern = /\$\{([^\}]+)\}/g;
+  var placeholderAtStartPattern = /^\$\{([^\}]+)\}/;
+  var onlyWhitespace = /^\s*$/;
+
+  var JsonParser = Parser.extend({
+  	init: function (str, options) {
+  		this.values = options.values;
+  		this.allowWhitespace();
+  	},
+
+  	postProcess: function (result) {
+  		if (result.length !== 1 || !onlyWhitespace.test(this.leftover)) {
+  			return null;
+  		}
+
+  		return { value: result[0].v };
+  	},
+
+  	converters: [function getPlaceholder(parser) {
+  		if (!parser.values) return null;
+
+  		var placeholder = parser.matchPattern(placeholderAtStartPattern);
+
+  		if (placeholder && parser.values.hasOwnProperty(placeholder)) {
+  			return { v: parser.values[placeholder] };
+  		}
+  	}, function getSpecial(parser) {
+  		var special = parser.matchPattern(specialsPattern);
+  		if (special) return { v: specials[special] };
+  	}, function getNumber(parser) {
+  		var number = parser.matchPattern(numberPattern);
+  		if (number) return { v: +number };
+  	}, function getString(parser) {
+  		var stringLiteral = readStringLiteral(parser);
+  		var values = parser.values;
+
+  		if (stringLiteral && values) {
+  			return {
+  				v: stringLiteral.v.replace(placeholderPattern, function (match, $1) {
+  					return $1 in values ? values[$1] : $1;
+  				})
+  			};
+  		}
+
+  		return stringLiteral;
+  	}, function getObject(parser) {
+  		if (!parser.matchString('{')) return null;
+
+  		var result = {};
+
+  		parser.allowWhitespace();
+
+  		if (parser.matchString('}')) {
+  			return { v: result };
+  		}
+
+  		var pair = undefined;
+  		while (pair = getKeyValuePair(parser)) {
+  			result[pair.key] = pair.value;
+
+  			parser.allowWhitespace();
+
+  			if (parser.matchString('}')) {
+  				return { v: result };
+  			}
+
+  			if (!parser.matchString(',')) {
+  				return null;
+  			}
+  		}
+
+  		return null;
+  	}, function getArray(parser) {
+  		if (!parser.matchString('[')) return null;
+
+  		var result = [];
+
+  		parser.allowWhitespace();
+
+  		if (parser.matchString(']')) {
+  			return { v: result };
+  		}
+
+  		var valueToken = undefined;
+  		while (valueToken = parser.read()) {
+  			result.push(valueToken.v);
+
+  			parser.allowWhitespace();
+
+  			if (parser.matchString(']')) {
+  				return { v: result };
+  			}
+
+  			if (!parser.matchString(',')) {
+  				return null;
+  			}
+
+  			parser.allowWhitespace();
+  		}
+
+  		return null;
+  	}]
+  });
+
+  function getKeyValuePair(parser) {
+  	parser.allowWhitespace();
+
+  	var key = readKey(parser);
+
+  	if (!key) return null;
+
+  	var pair = { key: key };
+
+  	parser.allowWhitespace();
+  	if (!parser.matchString(':')) {
+  		return null;
+  	}
+  	parser.allowWhitespace();
+
+  	var valueToken = parser.read();
+
+  	if (!valueToken) return null;
+
+  	pair.value = valueToken.v;
+  	return pair;
+  }
+
+  function parseJSON (str, values) {
+  	var parser = new JsonParser(str, { values: values });
+  	return parser.result;
+  }
+
+  // TODO all this code needs to die
+
+  function processItems(items, values, guid) {
+  	var counter = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
+
+  	return items.map(function (item) {
+  		if (item.type === TEXT) {
+  			return item.template;
+  		}
+
+  		if (item.fragment) {
+  			if (item.fragment.iterations) {
+  				return item.fragment.iterations.map(function (fragment) {
+  					return processItems(fragment.items, values, guid, counter);
+  				}).join('');
+  			} else {
+  				return processItems(item.fragment.items, values, guid, counter);
+  			}
+  		}
+
+  		var placeholderId = guid + '-' + counter++;
+
+  		values[placeholderId] = item.model ? item.model.wrapper ? item.model.wrapper.value : item.model.get() : undefined;
+
+  		return '${' + placeholderId + '}';
+  	}).join('');
+  }
+
+  function badReference(key) {
+  	throw new Error("An index or key reference (" + key + ") cannot have child properties");
+  }
+  function resolveAmbiguousReference(fragment, ref) {
+  	var localViewmodel = fragment.findContext().root;
+  	var keys = ref.split('.');
+  	var key = keys[0];
+
+  	var hasContextChain = undefined;
+  	var crossedComponentBoundary = undefined;
+
+  	while (fragment) {
+  		// repeated fragments
+  		if (fragment.isIteration) {
+  			if (key === fragment.parent.keyRef) {
+  				if (keys.length > 1) badReference(key);
+  				return fragment.context.getKeyModel();
+  			}
+
+  			if (key === fragment.parent.indexRef) {
+  				if (keys.length > 1) badReference(key);
+  				return fragment.context.getIndexModel(fragment.index);
+  			}
+  		}
+
+  		if (fragment.context) {
+  			// TODO better encapsulate the component check
+  			if (!fragment.isRoot || fragment.ractive.component) hasContextChain = true;
+
+  			if (fragment.context.has(key)) {
+  				if (crossedComponentBoundary) {
+  					localViewmodel.map(key, fragment.context.joinKey(key));
+  				}
+
+  				return fragment.context.joinAll(keys);
+  			}
+  		}
+
+  		if (fragment.componentParent && !fragment.ractive.isolated) {
+  			// ascend through component boundary
+  			fragment = fragment.componentParent;
+  			crossedComponentBoundary = true;
+  		} else {
+  			fragment = fragment.parent;
+  		}
+  	}
+
+  	if (!hasContextChain) {
+  		return localViewmodel.joinAll(keys);
+  	}
+  }
+
+  var ReferenceResolver = (function () {
+  	function ReferenceResolver(fragment, reference, callback) {
+  		classCallCheck(this, ReferenceResolver);
+
+  		this.fragment = fragment;
+  		this.reference = normalise(reference);
+  		this.callback = callback;
+
+  		this.keys = reference.split('.');
+  		this.resolved = false;
+
+  		// TODO the consumer should take care of addUnresolved
+  		// we attach to all the contexts between here and the root
+  		// - whenever their values change, they can quickly
+  		// check to see if we can resolve
+  		while (fragment) {
+  			if (fragment.context) {
+  				fragment.context.addUnresolved(this.keys[0], this);
+  			}
+
+  			fragment = fragment.componentParent || fragment.parent;
+  		}
+  	}
+
+  	ReferenceResolver.prototype.attemptResolution = function attemptResolution() {
+  		if (this.resolved) return;
+
+  		var model = resolveAmbiguousReference(this.fragment, this.reference);
+
+  		if (model) {
+  			this.resolved = true;
+  			this.callback(model);
+  		}
+  	};
+
+  	ReferenceResolver.prototype.forceResolution = function forceResolution() {
+  		if (this.resolved) return;
+
+  		var model = this.fragment.findContext().joinAll(this.keys);
+  		this.callback(model);
+  		this.resolved = true;
+  	};
+
+  	ReferenceResolver.prototype.unbind = function unbind() {
+  		removeFromArray(this.fragment.unresolved, this);
+  	};
+
+  	return ReferenceResolver;
+  })();
+
+  var Item = (function () {
+  	function Item(options) {
+  		classCallCheck(this, Item);
+
+  		this.parentFragment = options.parentFragment;
+  		this.ractive = options.parentFragment.ractive;
+
+  		this.template = options.template;
+  		this.index = options.index;
+  		this.type = options.template.t;
+
+  		this.dirty = false;
+  	}
+
+  	Item.prototype.bubble = function bubble() {
+  		if (!this.dirty) {
+  			this.dirty = true;
+  			this.parentFragment.bubble();
+  		}
+  	};
+
+  	Item.prototype.find = function find() {
+  		return null;
+  	};
+
+  	Item.prototype.findAll = function findAll() {
+  		// noop
+  	};
+
+  	Item.prototype.findComponent = function findComponent() {
+  		return null;
+  	};
+
+  	Item.prototype.findAllComponents = function findAllComponents() {
+  		// noop;
+  	};
+
+  	Item.prototype.findNextNode = function findNextNode() {
+  		return this.parentFragment.findNextNode(this);
+  	};
+
+  	return Item;
+  })();
+
+  var Doctype = (function (_Item) {
+  	inherits(Doctype, _Item);
+
+  	function Doctype() {
+  		classCallCheck(this, Doctype);
+
+  		_Item.apply(this, arguments);
+  	}
+
+  	Doctype.prototype.bind = function bind() {
+  		// noop
+  	};
+
+  	Doctype.prototype.render = function render() {
+  		// noop
+  	};
+
+  	Doctype.prototype.teardown = function teardown() {
+  		// noop
+  	};
+
+  	Doctype.prototype.toString = function toString() {
+  		return '<!DOCTYPE' + this.template.a + '>';
+  	};
+
+  	Doctype.prototype.unbind = function unbind() {
+  		// noop
+  	};
+
+  	Doctype.prototype.unrender = function unrender() {
+  		// noop
+  	};
+
+  	return Doctype;
+  })(Item);
+
+  var KeypathModel = (function () {
+  	function KeypathModel(parent) {
+  		classCallCheck(this, KeypathModel);
+
+  		this.parent = parent;
+  		this.value = parent.getKeypath();
+  		this.dependants = [];
+  	}
+
+  	KeypathModel.prototype.get = function get() {
+  		return this.value;
+  	};
+
+  	KeypathModel.prototype.getKeypath = function getKeypath() {
+  		return this.value;
+  	};
+
+  	KeypathModel.prototype.handleChange = function handleChange() {
+  		this.value = this.parent.getKeypath();
+  		this.dependants.forEach(_handleChange);
+  	};
+
+  	KeypathModel.prototype.register = function register(dependant) {
+  		this.dependants.push(dependant);
+  	};
+
+  	KeypathModel.prototype.unregister = function unregister(dependant) {
+  		removeFromArray(this.dependants, dependant);
+  	};
+
+  	return KeypathModel;
+  })();
+
+  var KeyModel = (function () {
+  	function KeyModel(key) {
+  		classCallCheck(this, KeyModel);
+
+  		this.value = key;
+  		this.isReadonly = true;
+  		this.dependants = [];
+  	}
+
+  	KeyModel.prototype.get = function get() {
+  		return this.value;
+  	};
+
+  	KeyModel.prototype.getKeypath = function getKeypath() {
+  		return this.value;
+  	};
+
+  	KeyModel.prototype.rebind = function rebind(key) {
+  		this.value = key;
+  		this.dependants.forEach(_handleChange);
+  	};
+
+  	KeyModel.prototype.register = function register(dependant) {
+  		this.dependants.push(dependant);
+  	};
+
+  	KeyModel.prototype.unregister = function unregister(dependant) {
+  		removeFromArray(this.dependants, dependant);
+  	};
+
+  	return KeyModel;
+  })();
+
+  var _stack = [];
+  var captureGroup = undefined;
+
+  function startCapturing() {
+  	_stack.push(captureGroup = []);
+  }
+
+  function stopCapturing() {
+  	return _stack.pop();
+  }
+
+  function capture(model) {
+  	if (captureGroup) {
+  		captureGroup.push(model);
+  	}
   }
 
   var requestAnimationFrame;
@@ -5047,60 +2673,36 @@ var classCallCheck = function (instance, Constructor) {
   	return Date.now();
   };
 
-  var queue = [];
+  // TODO what happens if a transition is aborted?
 
-  var animations = {
-  	tick: function () {
-  		var i, animation, now;
+  var tickers = [];
+  var running = false;
 
-  		now = getTime();
+  function tick() {
+  	runloop.start();
 
-  		runloop.start();
+  	var now = getTime();
 
-  		for (i = 0; i < queue.length; i += 1) {
-  			animation = queue[i];
+  	var i = undefined;
+  	var ticker = undefined;
 
-  			if (!animation.tick(now)) {
-  				// animation is complete, remove it from the stack, and decrement i so we don't miss one
-  				queue.splice(i--, 1);
-  			}
-  		}
+  	for (i = 0; i < tickers.length; i += 1) {
+  		ticker = tickers[i];
 
-  		runloop.end();
-
-  		if (queue.length) {
-  			requestAnimationFrame(animations.tick);
-  		} else {
-  			animations.running = false;
-  		}
-  	},
-
-  	add: function (animation) {
-  		queue.push(animation);
-
-  		if (!animations.running) {
-  			animations.running = true;
-  			requestAnimationFrame(animations.tick);
-  		}
-  	},
-
-  	// TODO optimise this
-  	abort: function (model, root) {
-  		var i = queue.length,
-  		    animation;
-
-  		while (i--) {
-  			animation = queue[i];
-
-  			if (animation.root === root && animation.model === model) {
-  				animation.stop();
-  			}
+  		if (!ticker.tick(now)) {
+  			// ticker is complete, remove it from the stack, and decrement i so we don't miss one
+  			tickers.splice(i--, 1);
   		}
   	}
-  };
 
-  // TODO what happens if a transition is aborted?
-  // TODO use this with Animation to dedupe some code?
+  	runloop.end();
+
+  	if (tickers.length) {
+  		requestAnimationFrame(tick);
+  	} else {
+  		running = false;
+  	}
+  }
 
   var Ticker = (function () {
   	function Ticker(options) {
@@ -5115,7 +2717,9 @@ var classCallCheck = function (instance, Constructor) {
   		this.end = this.start + this.duration;
 
   		this.running = true;
-  		animations.add(this);
+
+  		tickers.push(this);
+  		if (!running) requestAnimationFrame(tick);
   	}
 
   	Ticker.prototype.tick = function tick(now) {
@@ -5143,6 +2747,2366 @@ var classCallCheck = function (instance, Constructor) {
 
   	return Ticker;
   })();
+
+  var prefixers = {};
+
+  // TODO this is legacy. sooner we can replace the old adaptor API the better
+  function prefixKeypath(obj, prefix) {
+  	var prefixed = {},
+  	    key;
+
+  	if (!prefix) {
+  		return obj;
+  	}
+
+  	prefix += '.';
+
+  	for (key in obj) {
+  		if (obj.hasOwnProperty(key)) {
+  			prefixed[prefix + key] = obj[key];
+  		}
+  	}
+
+  	return prefixed;
+  }
+  function getPrefixer(rootKeypath) {
+  	var rootDot;
+
+  	if (!prefixers[rootKeypath]) {
+  		rootDot = rootKeypath ? rootKeypath + '.' : '';
+
+  		prefixers[rootKeypath] = function (relativeKeypath, value) {
+  			var obj;
+
+  			if (typeof relativeKeypath === 'string') {
+  				obj = {};
+  				obj[rootDot + relativeKeypath] = value;
+  				return obj;
+  			}
+
+  			if (typeof relativeKeypath === 'object') {
+  				// 'relativeKeypath' is in fact a hash, not a keypath
+  				return rootDot ? prefixKeypath(relativeKeypath, rootKeypath) : relativeKeypath;
+  			}
+  		};
+  	}
+
+  	return prefixers[rootKeypath];
+  }
+
+  var hasProp = Object.prototype.hasOwnProperty;
+
+  function _updateFromBindings(model) {
+  	model.updateFromBindings(true);
+  }
+
+  function _updateKeypathDependants(model) {
+  	model.updateKeypathDependants();
+  }
+
+  var originatingModel = null;
+
+  var Model = (function () {
+  	function Model(parent, key) {
+  		classCallCheck(this, Model);
+
+  		this.deps = [];
+
+  		this.children = [];
+  		this.childByKey = {};
+
+  		this.indexModels = [];
+
+  		this.unresolved = [];
+  		this.unresolvedByKey = {};
+
+  		this.bindings = [];
+
+  		this.value = undefined;
+
+  		this.ticker = null;
+
+  		if (parent) {
+  			this.parent = parent;
+  			this.root = parent.root;
+  			this.key = key;
+  			this.isReadonly = parent.isReadonly;
+
+  			if (parent.value) {
+  				this.value = parent.value[this.key];
+  				this.adapt();
+  			}
+  		}
+  	}
+
+  	Model.prototype.adapt = function adapt() {
+  		var adaptors = this.root.adaptors;
+  		var value = this.value;
+  		var len = adaptors.length;
+
+  		// TODO remove this legacy nonsense
+  		var ractive = this.root.ractive;
+  		var keypath = this.getKeypath();
+
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var adaptor = adaptors[i];
+  			if (adaptor.filter(value, keypath, ractive)) {
+  				this.wrapper = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
+  				this.wrapper.value = this.value;
+  				this.wrapper.__model = this; // massive temporary hack to enable array adaptor
+
+  				this.value = this.wrapper.get();
+
+  				break;
+  			}
+  		}
+  	};
+
+  	Model.prototype.addUnresolved = function addUnresolved(key, resolver) {
+  		if (!this.unresolvedByKey[key]) {
+  			this.unresolved.push(key);
+  			this.unresolvedByKey[key] = [];
+  		}
+
+  		this.unresolvedByKey[key].push(resolver);
+  	};
+
+  	Model.prototype.animate = function animate(from, to, options, interpolator) {
+  		var _this = this;
+
+  		if (this.ticker) this.ticker.stop();
+
+  		var fulfilPromise = undefined;
+  		var promise = new _Promise(function (fulfil) {
+  			return fulfilPromise = fulfil;
+  		});
+
+  		this.ticker = new Ticker({
+  			duration: options.duration,
+  			easing: options.easing,
+  			step: function (t) {
+  				var value = interpolator(t);
+  				_this.applyValue(value);
+  				if (options.step) options.step(t, value);
+  			},
+  			complete: function () {
+  				_this.applyValue(to);
+  				if (options.complete) options.complete(to);
+
+  				_this.ticker = null;
+  				fulfilPromise();
+  			}
+  		});
+
+  		promise.stop = this.ticker.stop;
+  		return promise;
+  	};
+
+  	Model.prototype.applyValue = function applyValue(value) {
+  		if (isEqual(value, this.value)) return;
+
+  		// TODO deprecate this nonsense
+  		this.root.changes[this.getKeypath()] = value;
+
+  		if (this.parent.wrapper && this.parent.wrapper.set) {
+  			this.parent.wrapper.set(this.key, value);
+  			this.parent.value = this.parent.wrapper.get();
+
+  			this.value = this.parent.value[this.key];
+  			// TODO should this value be adapted? probably
+  		} else if (this.wrapper) {
+  				var shouldTeardown = !this.wrapper.reset || this.wrapper.reset(value) === false;
+
+  				if (shouldTeardown) {
+  					this.wrapper.teardown();
+  					this.wrapper = null;
+  					this.parent.value[this.key] = this.value = value;
+  					this.adapt();
+  				} else {
+  					this.value = this.wrapper.get();
+  				}
+  			} else {
+  				var parentValue = this.parent.value || this.parent.createBranch(this.key);
+  				parentValue[this.key] = value;
+
+  				this.value = value;
+  				this.adapt();
+  			}
+
+  		this.parent.clearUnresolveds();
+  		this.clearUnresolveds();
+
+  		// notify dependants
+  		var previousOriginatingModel = originatingModel; // for the array.length special case
+  		originatingModel = this;
+
+  		this.children.forEach(_mark);
+  		this.deps.forEach(_handleChange);
+
+  		var parent = this.parent;
+  		while (parent) {
+  			parent.deps.forEach(_handleChange);
+  			parent = parent.parent;
+  		}
+
+  		originatingModel = previousOriginatingModel;
+  	};
+
+  	Model.prototype.clearUnresolveds = function clearUnresolveds(specificKey) {
+  		var i = this.unresolved.length;
+
+  		while (i--) {
+  			var key = this.unresolved[i];
+
+  			if (specificKey && key !== specificKey) continue;
+
+  			var resolvers = this.unresolvedByKey[key];
+  			var hasKey = this.has(key);
+
+  			var j = resolvers.length;
+  			while (j--) {
+  				if (hasKey) resolvers[j].attemptResolution();
+  				if (resolvers[j].resolved) resolvers.splice(j, 1);
+  			}
+
+  			if (!resolvers.length) {
+  				this.unresolved.splice(i, 1);
+  				this.unresolvedByKey[key] = null;
+  			}
+  		}
+  	};
+
+  	Model.prototype.createBranch = function createBranch(key) {
+  		var branch = isNumeric(key) ? [] : {};
+  		this.set(branch);
+
+  		return branch;
+  	};
+
+  	Model.prototype.discard = function discard() {
+  		var _this2 = this;
+
+  		this.deps.forEach(function (d) {
+  			if (d.boundsSensitive) _this2.unregister(d);
+  		});
+  	};
+
+  	Model.prototype.findMatches = function findMatches(keys) {
+  		var len = keys.length;
+
+  		var existingMatches = [this];
+  		var matches = undefined;
+  		var i = undefined;
+
+  		var _loop = function () {
+  			var key = keys[i];
+
+  			if (key === '*') {
+  				matches = [];
+  				existingMatches.forEach(function (model) {
+  					if (isArray(model.value)) {
+  						// special case - array.length. This is a horrible kludge, but
+  						// it'll do for now. Alternatives welcome
+  						if (originatingModel && originatingModel.parent === model && originatingModel.key === 'length') {
+  							matches.push(originatingModel);
+  						}
+
+  						model.value.forEach(function (member, i) {
+  							matches.push(model.joinKey(i));
+  						});
+  					} else if (isObject(model.value) || typeof model.value === 'function') {
+  						Object.keys(model.value).forEach(function (key) {
+  							matches.push(model.joinKey(key));
+  						});
+
+  						// special case - computed properties. TODO mappings also?
+  						if (model.isRoot) {
+  							Object.keys(model.computations).forEach(function (key) {
+  								matches.push(model.joinKey(key));
+  							});
+  						}
+  					}
+  				});
+  			} else {
+  				matches = existingMatches.map(function (model) {
+  					return model.joinKey(key);
+  				});
+  			}
+
+  			existingMatches = matches;
+  		};
+
+  		for (i = 0; i < len; i += 1) {
+  			_loop();
+  		}
+
+  		return matches;
+  	};
+
+  	Model.prototype.get = function get(shouldCapture) {
+  		if (shouldCapture) capture(this);
+  		return this.value;
+  	};
+
+  	Model.prototype.getIndexModel = function getIndexModel(fragmentIndex) {
+  		var indexModels = this.parent.indexModels;
+
+  		// non-numeric keys are a special of a numeric index in a object iteration
+  		if (typeof this.key === 'string' && fragmentIndex !== undefined) {
+  			return new KeyModel(fragmentIndex);
+  		} else if (!indexModels[this.key]) {
+  			indexModels[this.key] = new KeyModel(this.key);
+  		}
+
+  		return indexModels[this.key];
+  	};
+
+  	Model.prototype.getKeyModel = function getKeyModel() {
+  		// TODO... different to IndexModel because key can never change
+  		return new KeyModel(this.key);
+  	};
+
+  	Model.prototype.getKeypathModel = function getKeypathModel() {
+  		return this.keypathModel || (this.keypathModel = new KeypathModel(this));
+  	};
+
+  	Model.prototype.getKeypath = function getKeypath() {
+  		// TODO keypaths inside components... tricky
+  		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
+  	};
+
+  	Model.prototype.has = function has(key) {
+  		var value = this.get();
+  		return value && hasProp.call(value, key);
+  	};
+
+  	Model.prototype.joinKey = function joinKey(key) {
+  		if (key === undefined || key === '') return this;
+
+  		if (!this.childByKey.hasOwnProperty(key)) {
+  			var child = new Model(this, key);
+  			this.children.push(child);
+  			this.childByKey[key] = child;
+  		}
+
+  		return this.childByKey[key];
+  	};
+
+  	Model.prototype.joinAll = function joinAll(keys) {
+  		var model = this;
+  		for (var i = 0; i < keys.length; i += 1) {
+  			model = model.joinKey(keys[i]);
+  		}
+
+  		return model;
+  	};
+
+  	Model.prototype.mark = function mark() {
+  		var value = this.retrieve();
+
+  		if (!isEqual(value, this.value)) {
+  			this.value = value;
+
+  			this.children.forEach(_mark);
+
+  			this.deps.forEach(_handleChange);
+  			this.clearUnresolveds();
+  		}
+  	};
+
+  	Model.prototype.merge = function merge(array, comparator) {
+  		var oldArray = comparator ? this.value.map(comparator) : this.value;
+  		var newArray = comparator ? array.map(comparator) : array;
+
+  		var oldLength = oldArray.length;
+
+  		var usedIndices = {};
+  		var firstUnusedIndex = 0;
+
+  		var newIndices = oldArray.map(function (item) {
+  			var index = undefined;
+  			var start = firstUnusedIndex;
+
+  			do {
+  				index = newArray.indexOf(item, start);
+
+  				if (index === -1) {
+  					return -1;
+  				}
+
+  				start = index + 1;
+  			} while (usedIndices[index] === true && start < oldLength);
+
+  			// keep track of the first unused index, so we don't search
+  			// the whole of newArray for each item in oldArray unnecessarily
+  			if (index === firstUnusedIndex) {
+  				firstUnusedIndex += 1;
+  			}
+  			// allow next instance of next "equal" to be found item
+  			usedIndices[index] = true;
+  			return index;
+  		});
+
+  		this.parent.value[this.key] = array;
+  		this._merged = true;
+  		this.shuffle(newIndices);
+  	};
+
+  	Model.prototype.register = function register(dep) {
+  		this.deps.push(dep);
+  	};
+
+  	Model.prototype.registerTwowayBinding = function registerTwowayBinding(binding) {
+  		this.bindings.push(binding);
+  	};
+
+  	Model.prototype.retrieve = function retrieve() {
+  		return this.parent.value ? this.parent.value[this.key] : undefined;
+  	};
+
+  	Model.prototype.set = function set(value) {
+  		if (this.ticker) this.ticker.stop();
+  		this.applyValue(value);
+  	};
+
+  	Model.prototype.shuffle = function shuffle(newIndices) {
+  		var _this3 = this;
+
+  		var indexModels = [];
+  		var max = 0,
+  		    child = undefined;
+
+  		newIndices.forEach(function (newIndex, oldIndex) {
+  			if (newIndex > max) max = newIndex;
+
+  			if (! ~newIndex) return;
+
+  			var model = _this3.indexModels[oldIndex];
+
+  			if (!model) return;
+
+  			indexModels[newIndex] = model;
+
+  			if (newIndex !== oldIndex) {
+  				model.rebind(newIndex);
+  			}
+  		});
+
+  		// some children, notably computations, need to be notified when they are
+  		// no longer attached to anything so they don't recompute
+  		while (child = this.childByKey[++max]) {
+  			if (typeof child.discard === 'function') child.discard();
+  		}
+
+  		this.indexModels = indexModels;
+
+  		// shuffles need to happen before marks...
+  		this.deps.forEach(function (dep) {
+  			if (dep.shuffle) dep.shuffle(newIndices);
+  		});
+
+  		this.updateKeypathDependants();
+  		this.mark();
+
+  		// ...but handleChange must happen after (TODO document why)
+  		this.deps.forEach(function (dep) {
+  			if (!dep.shuffle) dep.handleChange();
+  		});
+  	};
+
+  	Model.prototype.teardown = function teardown() {
+  		this.children.forEach(_teardown);
+  		if (this.wrapper) this.wrapper.teardown();
+  	};
+
+  	Model.prototype.unregister = function unregister(dependant) {
+  		removeFromArray(this.deps, dependant);
+  	};
+
+  	Model.prototype.unregisterTwowayBinding = function unregisterTwowayBinding(binding) {
+  		removeFromArray(this.bindings, binding);
+  	};
+
+  	Model.prototype.updateFromBindings = function updateFromBindings(cascade) {
+  		var i = this.bindings.length;
+  		while (i--) {
+  			var value = this.bindings[i].getValue();
+  			if (value !== this.value) this.set(value);
+  		}
+
+  		if (cascade) {
+  			this.children.forEach(_updateFromBindings);
+  		}
+  	};
+
+  	Model.prototype.updateKeypathDependants = function updateKeypathDependants() {
+  		this.children.forEach(_updateKeypathDependants);
+  		if (this.keypathModel) this.keypathModel.handleChange();
+  	};
+
+  	return Model;
+  })();
+
+  var ComputationChild = (function (_Model) {
+  	inherits(ComputationChild, _Model);
+
+  	function ComputationChild() {
+  		classCallCheck(this, ComputationChild);
+
+  		_Model.apply(this, arguments);
+  	}
+
+  	ComputationChild.prototype.get = function get(shouldCapture) {
+  		if (shouldCapture) capture(this);
+
+  		var parentValue = this.parent.get();
+  		return parentValue ? parentValue[this.key] : undefined;
+  	};
+
+  	ComputationChild.prototype.handleChange = function handleChange() {
+  		this.dirty = true;
+
+  		this.deps.forEach(_handleChange);
+  		this.children.forEach(_handleChange);
+  		this.clearUnresolveds(); // TODO is this necessary?
+  	};
+
+  	ComputationChild.prototype.joinKey = function joinKey(key) {
+  		if (key === undefined || key === '') return this;
+
+  		if (!this.childByKey.hasOwnProperty(key)) {
+  			var child = new ComputationChild(this, key);
+  			this.children.push(child);
+  			this.childByKey[key] = child;
+  		}
+
+  		return this.childByKey[key];
+  	};
+
+  	// TODO this causes problems with inter-component mappings
+  	// set () {
+  	// 	throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
+  	// }
+  	return ComputationChild;
+  })(Model);
+
+  function resolveReference(fragment, ref) {
+  	var context = fragment.findContext();
+
+  	// special references
+  	// TODO does `this` become `.` at parse time?
+  	if (ref === '.' || ref === 'this') return context;
+  	if (ref === '@keypath') return context.getKeypathModel();
+  	if (ref === '@index') {
+  		var repeater = fragment.findRepeatingFragment();
+  		return repeater.context.getIndexModel(repeater.index);
+  	}
+  	if (ref === '@key') return fragment.findRepeatingFragment().context.getKeyModel();
+
+  	// ancestor references
+  	if (ref[0] === '~') return context.root.joinAll(ref.slice(2).split('.'));
+  	if (ref[0] === '.') {
+  		var parts = ref.split('/');
+
+  		while (parts[0] === '.' || parts[0] === '..') {
+  			var part = parts.shift();
+
+  			if (part === '..') {
+  				context = context.parent;
+  			}
+  		}
+
+  		ref = parts.join('/');
+
+  		// special case - `{{.foo}}` means the same as `{{./foo}}`
+  		if (ref[0] === '.') ref = ref.slice(1);
+  		return context.joinAll(ref.split('.'));
+  	}
+
+  	return resolveAmbiguousReference(fragment, ref);
+  }
+
+  var functionCache = {};
+  function createFunction(str, i) {
+  	if (functionCache[str]) return functionCache[str];
+
+  	var args = new Array(i);
+  	while (i--) args[i] = "_" + i;
+
+  	var fn = new Function(args.join(','), "return (" + str + ")");
+
+  	return functionCache[str] = fn;
+  }
+
+  function __getValue(model) {
+  	return model ? model.get(true) : undefined;
+  }
+
+  var ExpressionProxy = (function (_Model) {
+  	inherits(ExpressionProxy, _Model);
+
+  	function ExpressionProxy(fragment, template) {
+  		var _this = this;
+
+  		classCallCheck(this, ExpressionProxy);
+
+  		_Model.call(this, fragment.ractive.viewmodel, null);
+
+  		this.fragment = fragment;
+  		this.template = template;
+
+  		this.isReadonly = true;
+
+  		this.fn = createFunction(template.s, template.r.length);
+  		this.computation = null;
+
+  		this.resolvers = [];
+  		this.models = template.r.map(function (ref, index) {
+  			var model = resolveReference(fragment, ref);
+  			var resolver = undefined;
+
+  			if (!model) {
+  				resolver = fragment.resolve(ref, function (model) {
+  					removeFromArray(_this.resolvers, resolver);
+  					_this.models[index] = model;
+  					_this.bubble();
+  				});
+
+  				_this.resolvers.push(resolver);
+  			}
+
+  			return model;
+  		});
+
+  		this.bubble();
+  	}
+
+  	ExpressionProxy.prototype.bubble = function bubble() {
+  		var _this2 = this;
+
+  		var ractive = this.fragment.ractive;
+
+  		// TODO the @ prevents computed props from shadowing keypaths, but the real
+  		// question is why it's a computed prop in the first place... (hint, it's
+  		// to do with {{else}} blocks)
+  		var key = '@' + this.template.s.replace(/_(\d+)/g, function (match, i) {
+  			if (i >= _this2.models.length) return match;
+
+  			var model = _this2.models[i];
+  			return model ? model.getKeypath() : '@undefined';
+  		});
+
+  		// TODO can/should we reuse computations?
+  		var signature = {
+  			getter: function () {
+  				var values = _this2.models.map(__getValue);
+  				return _this2.fn.apply(ractive, values);
+  			},
+  			getterString: key
+  		};
+
+  		var computation = ractive.viewmodel.compute(key, signature);
+
+  		this.value = computation.get(); // TODO should not need this, eventually
+
+  		if (this.computation) {
+  			this.computation.unregister(this);
+  			// notify children...
+  		}
+
+  		this.computation = computation;
+  		computation.register(this);
+  	};
+
+  	ExpressionProxy.prototype.get = function get() {
+  		return this.computation.get();
+  	};
+
+  	ExpressionProxy.prototype.getKeypath = function getKeypath() {
+  		return this.computation ? this.computation.getKeypath() : '@undefined';
+  	};
+
+  	ExpressionProxy.prototype.handleChange = function handleChange() {
+  		this.deps.forEach(_handleChange);
+  		this.children.forEach(_handleChange);
+
+  		this.clearUnresolveds();
+  	};
+
+  	ExpressionProxy.prototype.joinKey = function joinKey(key) {
+  		if (key === undefined || key === '') return this;
+
+  		if (!this.childByKey.hasOwnProperty(key)) {
+  			var child = new ComputationChild(this, key);
+  			this.children.push(child);
+  			this.childByKey[key] = child;
+  		}
+
+  		return this.childByKey[key];
+  	};
+
+  	ExpressionProxy.prototype.mark = function mark() {
+  		this.handleChange();
+  	};
+
+  	ExpressionProxy.prototype.retrieve = function retrieve() {
+  		return this.get();
+  	};
+
+  	ExpressionProxy.prototype.unbind = function unbind() {
+  		this.resolvers.forEach(_unbind);
+  	};
+
+  	return ExpressionProxy;
+  })(Model);
+
+  var ReferenceExpressionProxy = (function (_Model) {
+  	inherits(ReferenceExpressionProxy, _Model);
+
+  	function ReferenceExpressionProxy(fragment, template) {
+  		var _this = this;
+
+  		classCallCheck(this, ReferenceExpressionProxy);
+
+  		_Model.call(this, null, null);
+  		this.root = fragment.ractive.viewmodel;
+
+  		this.resolvers = [];
+
+  		this.base = _resolve(fragment, template);
+  		var baseResolver = undefined;
+
+  		if (!this.base) {
+  			baseResolver = fragment.resolve(template.r, function (model) {
+  				_this.base = model;
+  				_this.bubble();
+
+  				removeFromArray(_this.resolvers, baseResolver);
+  			});
+
+  			this.resolvers.push(baseResolver);
+  		}
+
+  		var intermediary = {
+  			handleChange: function () {
+  				return _this.bubble();
+  			}
+  		};
+
+  		this.members = template.m.map(function (template, i) {
+  			if (typeof template === 'string') {
+  				return { get: function () {
+  						return template;
+  					} };
+  			}
+
+  			var model = undefined;
+  			var resolver = undefined;
+
+  			if (template.t === REFERENCE) {
+  				model = resolveReference(fragment, template.n);
+
+  				if (model) {
+  					model.register(intermediary);
+  				} else {
+  					resolver = fragment.resolve(template.n, function (model) {
+  						_this.members[i] = model;
+
+  						model.register(intermediary);
+  						_this.bubble();
+
+  						removeFromArray(_this.resolvers, resolver);
+  					});
+
+  					_this.resolvers.push(resolver);
+  				}
+
+  				return model;
+  			}
+
+  			model = new ExpressionProxy(fragment, template);
+  			model.register(intermediary);
+  			return model;
+  		});
+
+  		this.isUnresolved = true;
+  		this.bubble();
+  	}
+
+  	ReferenceExpressionProxy.prototype.bubble = function bubble() {
+  		if (!this.base) return;
+
+  		// if some members are not resolved, abort
+  		var i = this.members.length;
+  		while (i--) {
+  			if (!this.members[i] || this.members[i].get() === undefined) return;
+  		}
+
+  		this.isUnresolved = false;
+
+  		var keys = this.members.map(function (model) {
+  			return model.get();
+  		});
+  		var model = this.base.joinAll(keys);
+
+  		if (this.model) {
+  			this.model.unregister(this);
+  			this.model.unregisterTwowayBinding(this);
+  		}
+
+  		this.model = model;
+  		this.parent = model.parent;
+
+  		model.register(this);
+  		model.registerTwowayBinding(this);
+
+  		if (this.keypathModel) this.keypathModel.handleChange();
+
+  		this.mark();
+  	};
+
+  	ReferenceExpressionProxy.prototype.forceResolution = function forceResolution() {
+  		this.resolvers.forEach(function (resolver) {
+  			return resolver.forceResolution();
+  		});
+  		this.bubble();
+  	};
+
+  	ReferenceExpressionProxy.prototype.get = function get() {
+  		return this.model ? this.model.get() : undefined;
+  	};
+
+  	// indirect two-way bindings
+
+  	ReferenceExpressionProxy.prototype.getValue = function getValue() {
+  		var i = this.bindings.length;
+  		while (i--) {
+  			var value = this.bindings[i].getValue();
+  			if (value !== this.value) return value;
+  		}
+
+  		return this.value;
+  	};
+
+  	ReferenceExpressionProxy.prototype.getKeypath = function getKeypath() {
+  		return this.model ? this.model.getKeypath() : '@undefined';
+  	};
+
+  	ReferenceExpressionProxy.prototype.handleChange = function handleChange() {
+  		this.mark();
+  	};
+
+  	ReferenceExpressionProxy.prototype.retrieve = function retrieve() {
+  		return this.get();
+  	};
+
+  	ReferenceExpressionProxy.prototype.set = function set(value) {
+  		if (!this.model) throw new Error('Unresolved reference expression. This should not happen!');
+  		this.model.set(value);
+  	};
+
+  	ReferenceExpressionProxy.prototype.unbind = function unbind() {
+  		this.resolvers.forEach(_unbind);
+  	};
+
+  	return ReferenceExpressionProxy;
+  })(Model);
+
+  function _resolve(fragment, template) {
+  	if (template.r) {
+  		return resolveReference(fragment, template.r);
+  	} else if (template.x) {
+  		return new ExpressionProxy(fragment, template.x);
+  	} else {
+  		return new ReferenceExpressionProxy(fragment, template.rx);
+  	}
+  }
+
+  var Mustache = (function (_Item) {
+  	inherits(Mustache, _Item);
+
+  	function Mustache(options) {
+  		classCallCheck(this, Mustache);
+
+  		_Item.call(this, options);
+
+  		this.parentFragment = options.parentFragment;
+  		this.template = options.template;
+  		this.index = options.index;
+
+  		this.isStatic = !!options.template.s;
+
+  		this.model = null;
+  		this.dirty = false;
+  	}
+
+  	Mustache.prototype.bind = function bind() {
+  		var _this = this;
+
+  		// try to find a model for this view
+  		var model = _resolve(this.parentFragment, this.template);
+  		var value = model ? model.get() : undefined;
+
+  		if (this.isStatic) {
+  			this.model = { get: function () {
+  					return value;
+  				} };
+  			return;
+  		}
+
+  		if (model) {
+  			model.register(this);
+  			this.model = model;
+  		} else {
+  			this.resolver = this.parentFragment.resolve(this.template.r, function (model) {
+  				_this.model = model;
+  				model.register(_this);
+
+  				_this.handleChange();
+  				_this.resolver = null;
+  			});
+  		}
+  	};
+
+  	Mustache.prototype.handleChange = function handleChange() {
+  		this.bubble();
+  	};
+
+  	Mustache.prototype.rebind = function rebind() {
+  		if (this.isStatic || !this.model) return;
+
+  		var model = _resolve(this.parentFragment, this.template);
+
+  		if (model === this.model) return;
+
+  		var oldValue = this.model.get();
+  		this.model.unregister(this);
+
+  		this.model = model;
+
+  		if (model) {
+  			model.register(this);
+  			if (model.get() !== oldValue) this.handleChange();
+  		}
+  	};
+
+  	Mustache.prototype.unbind = function unbind() {
+  		if (!this.isStatic) {
+  			this.model && this.model.unregister(this);
+  			this.resolver && this.resolver.unbind();
+  		}
+  	};
+
+  	return Mustache;
+  })(Item);
+
+  // https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
+  var booleanAttributes = /^(allowFullscreen|async|autofocus|autoplay|checked|compact|controls|declare|default|defaultChecked|defaultMuted|defaultSelected|defer|disabled|enabled|formNoValidate|hidden|indeterminate|inert|isMap|itemScope|loop|multiple|muted|noHref|noResize|noShade|noValidate|noWrap|open|pauseOnExit|readOnly|required|reversed|scoped|seamless|selected|sortable|translate|trueSpeed|typeMustMatch|visible)$/i;
+  var voidElementNames = /^(?:area|base|br|col|command|doctype|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/i;
+
+  var htmlEntities = { quot: 34, amp: 38, apos: 39, lt: 60, gt: 62, nbsp: 160, iexcl: 161, cent: 162, pound: 163, curren: 164, yen: 165, brvbar: 166, sect: 167, uml: 168, copy: 169, ordf: 170, laquo: 171, not: 172, shy: 173, reg: 174, macr: 175, deg: 176, plusmn: 177, sup2: 178, sup3: 179, acute: 180, micro: 181, para: 182, middot: 183, cedil: 184, sup1: 185, ordm: 186, raquo: 187, frac14: 188, frac12: 189, frac34: 190, iquest: 191, Agrave: 192, Aacute: 193, Acirc: 194, Atilde: 195, Auml: 196, Aring: 197, AElig: 198, Ccedil: 199, Egrave: 200, Eacute: 201, Ecirc: 202, Euml: 203, Igrave: 204, Iacute: 205, Icirc: 206, Iuml: 207, ETH: 208, Ntilde: 209, Ograve: 210, Oacute: 211, Ocirc: 212, Otilde: 213, Ouml: 214, times: 215, Oslash: 216, Ugrave: 217, Uacute: 218, Ucirc: 219, Uuml: 220, Yacute: 221, THORN: 222, szlig: 223, agrave: 224, aacute: 225, acirc: 226, atilde: 227, auml: 228, aring: 229, aelig: 230, ccedil: 231, egrave: 232, eacute: 233, ecirc: 234, euml: 235, igrave: 236, iacute: 237, icirc: 238, iuml: 239, eth: 240, ntilde: 241, ograve: 242, oacute: 243, ocirc: 244, otilde: 245, ouml: 246, divide: 247, oslash: 248, ugrave: 249, uacute: 250, ucirc: 251, uuml: 252, yacute: 253, thorn: 254, yuml: 255, OElig: 338, oelig: 339, Scaron: 352, scaron: 353, Yuml: 376, fnof: 402, circ: 710, tilde: 732, Alpha: 913, Beta: 914, Gamma: 915, Delta: 916, Epsilon: 917, Zeta: 918, Eta: 919, Theta: 920, Iota: 921, Kappa: 922, Lambda: 923, Mu: 924, Nu: 925, Xi: 926, Omicron: 927, Pi: 928, Rho: 929, Sigma: 931, Tau: 932, Upsilon: 933, Phi: 934, Chi: 935, Psi: 936, Omega: 937, alpha: 945, beta: 946, gamma: 947, delta: 948, epsilon: 949, zeta: 950, eta: 951, theta: 952, iota: 953, kappa: 954, lambda: 955, mu: 956, nu: 957, xi: 958, omicron: 959, pi: 960, rho: 961, sigmaf: 962, sigma: 963, tau: 964, upsilon: 965, phi: 966, chi: 967, psi: 968, omega: 969, thetasym: 977, upsih: 978, piv: 982, ensp: 8194, emsp: 8195, thinsp: 8201, zwnj: 8204, zwj: 8205, lrm: 8206, rlm: 8207, ndash: 8211, mdash: 8212, lsquo: 8216, rsquo: 8217, sbquo: 8218, ldquo: 8220, rdquo: 8221, bdquo: 8222, dagger: 8224, Dagger: 8225, bull: 8226, hellip: 8230, permil: 8240, prime: 8242, Prime: 8243, lsaquo: 8249, rsaquo: 8250, oline: 8254, frasl: 8260, euro: 8364, image: 8465, weierp: 8472, real: 8476, trade: 8482, alefsym: 8501, larr: 8592, uarr: 8593, rarr: 8594, darr: 8595, harr: 8596, crarr: 8629, lArr: 8656, uArr: 8657, rArr: 8658, dArr: 8659, hArr: 8660, forall: 8704, part: 8706, exist: 8707, empty: 8709, nabla: 8711, isin: 8712, notin: 8713, ni: 8715, prod: 8719, sum: 8721, minus: 8722, lowast: 8727, radic: 8730, prop: 8733, infin: 8734, ang: 8736, and: 8743, or: 8744, cap: 8745, cup: 8746, 'int': 8747, there4: 8756, sim: 8764, cong: 8773, asymp: 8776, ne: 8800, equiv: 8801, le: 8804, ge: 8805, sub: 8834, sup: 8835, nsub: 8836, sube: 8838, supe: 8839, oplus: 8853, otimes: 8855, perp: 8869, sdot: 8901, lceil: 8968, rceil: 8969, lfloor: 8970, rfloor: 8971, lang: 9001, rang: 9002, loz: 9674, spades: 9824, clubs: 9827, hearts: 9829, diams: 9830 };
+  var controlCharacters = [8364, 129, 8218, 402, 8222, 8230, 8224, 8225, 710, 8240, 352, 8249, 338, 141, 381, 143, 144, 8216, 8217, 8220, 8221, 8226, 8211, 8212, 732, 8482, 353, 8250, 339, 157, 382, 376];
+  var entityPattern = new RegExp('&(#?(?:x[\\w\\d]+|\\d+|' + Object.keys(htmlEntities).join('|') + '));?', 'g');
+
+  function decodeCharacterReferences(html) {
+  	return html.replace(entityPattern, function (match, entity) {
+  		var code;
+
+  		// Handle named entities
+  		if (entity[0] !== '#') {
+  			code = htmlEntities[entity];
+  		} else if (entity[1] === 'x') {
+  			code = parseInt(entity.substring(2), 16);
+  		} else {
+  			code = parseInt(entity.substring(1), 10);
+  		}
+
+  		if (!code) {
+  			return match;
+  		}
+
+  		return String.fromCharCode(validateCode(code));
+  	});
+  }
+
+  var lessThan = /</g;
+  var greaterThan = />/g;
+  var amp = /&/g;
+
+  function escapeHtml(str) {
+  	return str.replace(amp, '&amp;').replace(lessThan, '&lt;').replace(greaterThan, '&gt;');
+  }
+
+  // some code points are verboten. If we were inserting HTML, the browser would replace the illegal
+  // code points with alternatives in some cases - since we're bypassing that mechanism, we need
+  // to replace them ourselves
+  //
+  // Source: http://en.wikipedia.org/wiki/Character_encodings_in_HTML#Illegal_characters
+  function validateCode(code) {
+  	if (!code) {
+  		return 65533;
+  	}
+
+  	// line feed becomes generic whitespace
+  	if (code === 10) {
+  		return 32;
+  	}
+
+  	// ASCII range. (Why someone would use HTML entities for ASCII characters I don't know, but...)
+  	if (code < 128) {
+  		return code;
+  	}
+
+  	// code points 128-159 are dealt with leniently by browsers, but they're incorrect. We need
+  	// to correct the mistake or we'll end up with missing € signs and so on
+  	if (code <= 159) {
+  		return controlCharacters[code - 128];
+  	}
+
+  	// basic multilingual plane
+  	if (code < 55296) {
+  		return code;
+  	}
+
+  	// UTF-16 surrogate halves
+  	if (code <= 57343) {
+  		return 65533;
+  	}
+
+  	// rest of the basic multilingual plane
+  	if (code <= 65535) {
+  		return code;
+  	}
+
+  	return 65533;
+  }
+
+  var Interpolator = (function (_Mustache) {
+  	inherits(Interpolator, _Mustache);
+
+  	function Interpolator() {
+  		classCallCheck(this, Interpolator);
+
+  		_Mustache.apply(this, arguments);
+  	}
+
+  	Interpolator.prototype.detach = function detach() {
+  		return this.node.parentNode.removeChild(this.node);
+  	};
+
+  	Interpolator.prototype.firstNode = function firstNode() {
+  		return this.node;
+  	};
+
+  	Interpolator.prototype.getString = function getString() {
+  		return this.model ? safeToStringValue(this.model.get()) : '';
+  	};
+
+  	Interpolator.prototype.render = function render(target) {
+  		this.rendered = true;
+  		this.node = doc.createTextNode(this.getString());
+
+  		target.appendChild(this.node);
+  	};
+
+  	Interpolator.prototype.toString = function toString(escape) {
+  		var string = this.getString();
+  		return escape ? escapeHtml(string) : string;
+  	};
+
+  	Interpolator.prototype.unrender = function unrender(shouldDestroy) {
+  		if (shouldDestroy) this.detach();
+  		this.rendered = false;
+  	};
+
+  	Interpolator.prototype.update = function update() {
+  		if (this.dirty) {
+  			if (this.rendered) {
+  				this.node.data = this.getString();
+  			}
+
+  			this.dirty = false;
+  		}
+  	};
+
+  	Interpolator.prototype.valueOf = function valueOf() {
+  		return this.model ? this.model.get() : undefined;
+  	};
+
+  	return Interpolator;
+  })(Mustache);
+
+  var parse = null;
+
+  var _parseOptions = ['preserveWhitespace', 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters', 'interpolate'];
+
+  var _parser = {
+  	fromId: fromId, isHashedId: isHashedId, isParsed: isParsed, getParseOptions: getParseOptions, createHelper: _createHelper,
+  	parse: doParse
+  };
+
+  function _createHelper(parseOptions) {
+  	var helper = create(_parser);
+  	helper.parse = function (template, options) {
+  		return doParse(template, options || parseOptions);
+  	};
+  	return helper;
+  }
+
+  function doParse(template, parseOptions) {
+  	if (!parse) {
+  		throw new Error('Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser');
+  	}
+
+  	return parse(template, parseOptions || this.options);
+  }
+
+  function fromId(id, options) {
+  	if (!doc) {
+  		if (options && options.noThrow) {
+  			return;
+  		}
+  		throw new Error('Cannot retrieve template #' + id + ' as Ractive is not running in a browser.');
+  	}
+
+  	if (isHashedId(id)) id = id.substring(1);
+
+  	var template = undefined;
+
+  	if (!(template = doc.getElementById(id))) {
+  		if (options && options.noThrow) {
+  			return;
+  		}
+  		throw new Error('Could not find template element with id #' + id);
+  	}
+
+  	if (template.tagName.toUpperCase() !== 'SCRIPT') {
+  		if (options && options.noThrow) {
+  			return;
+  		}
+  		throw new Error('Template element with id #' + id + ', must be a <script> element');
+  	}
+
+  	return 'textContent' in template ? template.textContent : template.innerHTML;
+  }
+
+  function isHashedId(id) {
+  	return id && id[0] === '#';
+  }
+
+  function isParsed(template) {
+  	return !(typeof template === 'string');
+  }
+
+  function getParseOptions(ractive) {
+  	// Could be Ractive or a Component
+  	if (ractive.defaults) {
+  		ractive = ractive.defaults;
+  	}
+
+  	return _parseOptions.reduce(function (val, key) {
+  		val[key] = ractive[key];
+  		return val;
+  	}, {});
+  }
+
+  function findInViewHierarchy(registryName, ractive, name) {
+  	var instance = findInstance(registryName, ractive, name);
+  	return instance ? instance[registryName][name] : null;
+  }
+
+  function findInstance(registryName, ractive, name) {
+  	while (ractive) {
+  		if (name in ractive[registryName]) {
+  			return ractive;
+  		}
+
+  		if (ractive.isolated) {
+  			return null;
+  		}
+
+  		ractive = ractive.parent;
+  	}
+  }
+
+  function getPartialTemplate(ractive, name, parentFragment) {
+  	// If the partial in instance or view heirarchy instances, great
+  	var partial = getPartialFromRegistry(ractive, name, parentFragment || {});
+  	if (partial) return partial;
+
+  	// Does it exist on the page as a script tag?
+  	partial = _parser.fromId(name, { noThrow: true });
+  	if (partial) {
+  		// parse and register to this ractive instance
+  		var parsed = _parser.parse(partial, _parser.getParseOptions(ractive));
+
+  		// register (and return main partial if there are others in the template)
+  		return ractive.partials[name] = parsed.t;
+  	}
+  }
+
+  function getPartialFromRegistry(ractive, name, parentFragment) {
+  	// if there was an instance up-hierarchy, cool
+  	var partial = findParentPartial(name, parentFragment.owner);
+  	if (partial) return partial;
+
+  	// find first instance in the ractive or view hierarchy that has this partial
+  	var instance = findInstance('partials', ractive, name);
+
+  	if (!instance) {
+  		return;
+  	}
+
+  	partial = instance.partials[name];
+
+  	// partial is a function?
+  	var fn = undefined;
+  	if (typeof partial === 'function') {
+  		fn = partial.bind(instance);
+  		fn.isOwner = instance.partials.hasOwnProperty(name);
+  		partial = fn.call(ractive, _parser);
+  	}
+
+  	if (!partial && partial !== '') {
+  		warnIfDebug(noRegistryFunctionReturn, name, 'partial', 'partial', { ractive: ractive });
+  		return;
+  	}
+
+  	// If this was added manually to the registry,
+  	// but hasn't been parsed, parse it now
+  	if (!_parser.isParsed(partial)) {
+  		// use the parseOptions of the ractive instance on which it was found
+  		var parsed = _parser.parse(partial, _parser.getParseOptions(instance));
+
+  		// Partials cannot contain nested partials!
+  		// TODO add a test for this
+  		if (parsed.p) {
+  			warnIfDebug('Partials ({{>%s}}) cannot contain nested inline partials', name, { ractive: ractive });
+  		}
+
+  		// if fn, use instance to store result, otherwise needs to go
+  		// in the correct point in prototype chain on instance or constructor
+  		var target = fn ? instance : findOwner(instance, name);
+
+  		// may be a template with partials, which need to be registered and main template extracted
+  		target.partials[name] = partial = parsed.t;
+  	}
+
+  	// store for reset
+  	if (fn) partial._fn = fn;
+
+  	return partial.v ? partial.t : partial;
+  }
+
+  function findOwner(ractive, key) {
+  	return ractive.partials.hasOwnProperty(key) ? ractive : findConstructor(ractive.constructor, key);
+  }
+
+  function findConstructor(constructor, key) {
+  	if (!constructor) {
+  		return;
+  	}
+  	return constructor.partials.hasOwnProperty(key) ? constructor : findConstructor(constructor._Parent, key);
+  }
+
+  function findParentPartial(name, parent) {
+  	if (parent) {
+  		if (parent.template && parent.template.p && parent.template.p[name]) {
+  			return parent.template.p[name];
+  		} else if (parent.parentFragment && parent.parentFragment.owner) {
+  			return findParentPartial(name, parent.parentFragment.owner);
+  		}
+  	}
+  }
+
+  var Partial = (function (_Mustache) {
+  	inherits(Partial, _Mustache);
+
+  	function Partial() {
+  		classCallCheck(this, Partial);
+
+  		_Mustache.apply(this, arguments);
+  	}
+
+  	Partial.prototype.bind = function bind() {
+  		_Mustache.prototype.bind.call(this);
+
+  		// name matches take priority over expressions
+  		var template = this.template.r ? getPartialTemplate(this.ractive, this.template.r, this.parentFragment) || null : null;
+
+  		if (template) {
+  			this.named = true;
+  			this.setTemplate(this.template.r, template);
+  		} else if ((!this.model || typeof this.model.get() !== 'string') && this.template.r) {
+  			this.setTemplate(this.template.r, template);
+  		} else {
+  			this.setTemplate(this.model.get());
+  		}
+
+  		this.fragment = new Fragment({
+  			owner: this,
+  			template: this.partialTemplate
+  		}).bind();
+  	};
+
+  	Partial.prototype.detach = function detach() {
+  		return this.fragment.detach();
+  	};
+
+  	Partial.prototype.find = function find(selector) {
+  		return this.fragment.find(selector);
+  	};
+
+  	Partial.prototype.findAll = function findAll(selector, query) {
+  		this.fragment.findAll(selector, query);
+  	};
+
+  	Partial.prototype.findComponent = function findComponent(name) {
+  		return this.fragment.findComponent(name);
+  	};
+
+  	Partial.prototype.findAllComponents = function findAllComponents(name, query) {
+  		this.fragment.findAllComponents(name, query);
+  	};
+
+  	Partial.prototype.firstNode = function firstNode() {
+  		return this.fragment.firstNode();
+  	};
+
+  	Partial.prototype.forceResetTemplate = function forceResetTemplate() {
+  		this.partialTemplate = getPartialTemplate(this.ractive, this.name, this.parentFragment);
+
+  		if (!this.partialTemplate) {
+  			warnOnceIfDebug('Could not find template for partial \'' + this.name + '\'');
+  			this.partialTemplate = [];
+  		}
+
+  		this.fragment.resetTemplate(this.partialTemplate);
+  		this.bubble();
+  	};
+
+  	Partial.prototype.rebind = function rebind() {
+  		_Mustache.prototype.unbind.call(this);
+  		_Mustache.prototype.bind.call(this);
+  		this.fragment.rebind();
+  	};
+
+  	Partial.prototype.render = function render(target) {
+  		this.fragment.render(target);
+  	};
+
+  	Partial.prototype.setTemplate = function setTemplate(name, template) {
+  		this.name = name;
+
+  		if (!template && template !== null) template = getPartialTemplate(this.ractive, name, this.parentFragment);
+
+  		if (!template) {
+  			warnOnceIfDebug('Could not find template for partial \'' + name + '\'');
+  		}
+
+  		this.partialTemplate = template || [];
+  	};
+
+  	Partial.prototype.toString = function toString(escape) {
+  		return this.fragment.toString(escape);
+  	};
+
+  	Partial.prototype.unbind = function unbind() {
+  		_Mustache.prototype.unbind.call(this);
+  		this.fragment.unbind();
+  	};
+
+  	Partial.prototype.unrender = function unrender(shouldDestroy) {
+  		this.fragment.unrender(shouldDestroy);
+  	};
+
+  	Partial.prototype.update = function update() {
+  		if (this.dirty) {
+  			if (!this.named) {
+  				if (this.model && typeof this.model.get() === 'string' && this.model.get() !== this.name) {
+  					this.setTemplate(this.model.get());
+  					this.fragment.resetTemplate(this.partialTemplate);
+  				}
+  			}
+
+  			this.fragment.update();
+  			this.dirty = false;
+  		}
+  	};
+
+  	return Partial;
+  })(Mustache);
+
+  function getRefs(ref, value, parent) {
+  	var refs = undefined;
+
+  	if (ref) {
+  		refs = {};
+  		Object.keys(parent).forEach(function (ref) {
+  			refs[ref] = parent[ref];
+  		});
+  		refs[ref] = value;
+  	} else {
+  		refs = parent;
+  	}
+
+  	return refs;
+  }
+
+  var RepeatedFragment = (function () {
+  	function RepeatedFragment(options) {
+  		classCallCheck(this, RepeatedFragment);
+
+  		this.parent = options.owner.parentFragment;
+
+  		// bit of a hack, so reference resolution works without another
+  		// layer of indirection
+  		this.parentFragment = this;
+  		this.owner = options.owner;
+  		this.ractive = this.parent.ractive;
+
+  		this.context = null;
+  		this.rendered = false;
+  		this.iterations = [];
+
+  		this.template = options.template;
+
+  		this.indexRef = options.indexRef;
+  		this.keyRef = options.keyRef;
+  		this.indexByKey = null; // for `{{#each object}}...`
+
+  		this.pendingNewIndices = null;
+  		this.previousIterations = null;
+
+  		// track array versus object so updates of type rest
+  		this.isArray = false;
+  	}
+
+  	RepeatedFragment.prototype.bind = function bind(context) {
+  		var _this = this;
+
+  		this.context = context;
+  		var value = context.get();
+
+  		// {{#each array}}...
+  		if (this.isArray = isArray(value)) {
+  			// we can't use map, because of sparse arrays
+  			this.iterations = [];
+  			for (var i = 0; i < value.length; i += 1) {
+  				this.iterations[i] = this.createIteration(i, i);
+  			}
+  		}
+
+  		// {{#each object}}...
+  		else if (isObject(value)) {
+  				this.isArray = false;
+
+  				// TODO this is a dreadful hack. There must be a neater way
+  				if (this.indexRef) {
+  					var refs = this.indexRef.split(',');
+  					this.keyRef = refs[0];
+  					this.indexRef = refs[1];
+  				}
+
+  				this.indexByKey = {};
+  				this.iterations = Object.keys(value).map(function (key, index) {
+  					_this.indexByKey[key] = index;
+  					return _this.createIteration(key, index);
+  				});
+  			}
+
+  		return this;
+  	};
+
+  	RepeatedFragment.prototype.bubble = function bubble() {
+  		this.owner.bubble();
+  	};
+
+  	RepeatedFragment.prototype.createIteration = function createIteration(key, index) {
+  		var parentFragment = this.owner.parentFragment;
+  		var keyRefs = getRefs(this.keyRef, key, parentFragment.keyRefs);
+  		var indexRefs = getRefs(this.indexRef, index, parentFragment.indexRefs);
+
+  		var fragment = new Fragment({
+  			owner: this,
+  			template: this.template,
+  			indexRefs: indexRefs,
+  			keyRefs: keyRefs
+  		});
+
+  		// TODO this is a bit hacky
+  		fragment.key = key;
+  		fragment.index = index;
+  		fragment.isIteration = true;
+
+  		var model = this.context.joinKey(key);
+  		return fragment.bind(model);
+  	};
+
+  	RepeatedFragment.prototype.detach = function detach() {
+  		var docFrag = createDocumentFragment();
+  		this.iterations.forEach(function (fragment) {
+  			return docFrag.appendChild(fragment.detach());
+  		});
+  		return docFrag;
+  	};
+
+  	RepeatedFragment.prototype.find = function find(selector) {
+  		var len = this.iterations.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var found = this.iterations[i].find(selector);
+  			if (found) return found;
+  		}
+  	};
+
+  	RepeatedFragment.prototype.findAll = function findAll(selector, query) {
+  		var len = this.iterations.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			this.iterations[i].findAll(selector, query);
+  		}
+  	};
+
+  	RepeatedFragment.prototype.findComponent = function findComponent(name) {
+  		var len = this.iterations.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var found = this.iterations[i].findComponent(name);
+  			if (found) return found;
+  		}
+  	};
+
+  	RepeatedFragment.prototype.findAllComponents = function findAllComponents(name, query) {
+  		var len = this.iterations.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			this.iterations[i].findAllComponents(name, query);
+  		}
+  	};
+
+  	RepeatedFragment.prototype.findNextNode = function findNextNode(iteration) {
+  		if (iteration.index < this.iterations.length - 1) {
+  			return this.iterations[iteration.index + 1].firstNode();
+  		}
+
+  		return this.owner.findNextNode();
+  	};
+
+  	RepeatedFragment.prototype.firstNode = function firstNode() {
+  		return this.iterations[0] ? this.iterations[0].firstNode() : null;
+  	};
+
+  	RepeatedFragment.prototype.rebind = function rebind(context) {
+  		this.context = context;
+
+  		// {{#each array}}...
+  		if (isArray(context.get())) {
+  			this.iterations.forEach(function (fragment, i) {
+  				fragment.rebind(context.joinKey(i));
+  			});
+  		}
+  	};
+
+  	RepeatedFragment.prototype.render = function render(target) {
+  		// TODO use docFrag.cloneNode...
+
+  		if (this.iterations) {
+  			this.iterations.forEach(function (fragment) {
+  				return fragment.render(target);
+  			});
+  		}
+
+  		this.rendered = true;
+  	};
+
+  	RepeatedFragment.prototype.shuffle = function shuffle(newIndices) {
+  		var _this2 = this;
+
+  		if (this.pendingNewIndices) {
+  			throw new Error('Section was already shuffled!');
+  		}
+
+  		this.pendingNewIndices = newIndices;
+  		this.previousIterations = this.iterations.slice();
+
+  		var iterations = [];
+
+  		newIndices.forEach(function (newIndex, oldIndex) {
+  			if (newIndex === -1) return;
+
+  			var fragment = _this2.iterations[oldIndex];
+  			iterations[newIndex] = fragment;
+
+  			if (newIndex !== oldIndex) fragment.dirty = true;
+  		});
+
+  		this.iterations = iterations;
+  		this.bubble();
+  	};
+
+  	RepeatedFragment.prototype.toString = function toString(escape) {
+  		return this.iterations ? this.iterations.map(escape ? toEscapedString : _toString).join('') : '';
+  	};
+
+  	RepeatedFragment.prototype.unbind = function unbind() {
+  		this.iterations.forEach(_unbind);
+  		return this;
+  	};
+
+  	RepeatedFragment.prototype.unrender = function unrender(shouldDestroy) {
+  		this.iterations.forEach(shouldDestroy ? _unrenderAndDestroy : _unrender);
+  		this.rendered = false;
+  	};
+
+  	// TODO smart update
+
+  	RepeatedFragment.prototype.update = function update() {
+  		var _this3 = this;
+
+  		// skip dirty check, since this is basically just a facade
+
+  		if (this.pendingNewIndices) {
+  			this.updatePostShuffle();
+  			return;
+  		}
+
+  		var value = this.context.get(),
+  		    wasArray = this.isArray;
+
+  		var toRemove = undefined;
+  		var oldKeys = undefined;
+  		var reset = true;
+  		var i = undefined;
+
+  		if (this.isArray = isArray(value)) {
+  			if (wasArray) {
+  				reset = false;
+  				if (this.iterations.length > value.length) {
+  					toRemove = this.iterations.splice(value.length);
+  				}
+  			}
+  		} else if (isObject(value) && !wasArray) {
+  			reset = false;
+  			toRemove = [];
+  			oldKeys = {};
+  			i = this.iterations.length;
+
+  			while (i--) {
+  				var _fragment = this.iterations[i];
+  				if (_fragment.key in value) {
+  					oldKeys[_fragment.key] = true;
+  				} else {
+  					this.iterations.splice(i, 1);
+  					toRemove.push(_fragment);
+  				}
+  			}
+  		}
+
+  		if (reset) {
+  			toRemove = this.iterations;
+  			this.iterations = [];
+  		}
+
+  		if (toRemove) {
+  			toRemove.forEach(function (fragment) {
+  				fragment.unbind();
+  				fragment.unrender(true);
+  			});
+  		}
+
+  		// update the remaining ones
+  		this.iterations.forEach(__update);
+
+  		// add new iterations
+  		var newLength = isArray(value) ? value.length : isObject(value) ? Object.keys(value).length : 0;
+
+  		var docFrag = undefined;
+  		var fragment = undefined;
+
+  		if (newLength > this.iterations.length) {
+  			docFrag = this.rendered ? createDocumentFragment() : null;
+  			i = this.iterations.length;
+
+  			if (isArray(value)) {
+  				while (i < value.length) {
+  					fragment = this.createIteration(i, i);
+
+  					this.iterations.push(fragment);
+  					if (this.rendered) fragment.render(docFrag);
+
+  					i += 1;
+  				}
+  			} else if (isObject(value)) {
+  				Object.keys(value).forEach(function (key) {
+  					if (!oldKeys || !(key in oldKeys)) {
+  						fragment = _this3.createIteration(key, i);
+
+  						_this3.iterations.push(fragment);
+  						if (_this3.rendered) fragment.render(docFrag);
+
+  						i += 1;
+  					}
+  				});
+  			}
+
+  			if (this.rendered) {
+  				var parentNode = this.parent.findParentNode();
+  				var anchor = this.parent.findNextNode(this.owner);
+
+  				parentNode.insertBefore(docFrag, anchor);
+  			}
+  		}
+  	};
+
+  	RepeatedFragment.prototype.updatePostShuffle = function updatePostShuffle() {
+  		var _this4 = this;
+
+  		var newIndices = this.pendingNewIndices;
+
+  		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
+  		// storing them in a document fragment for later reinsertion) seems a bit hokey,
+  		// but it seems to work for now
+  		var previousNewIndex = -1;
+  		var reinsertFrom = null;
+
+  		newIndices.forEach(function (newIndex, oldIndex) {
+  			var fragment = _this4.previousIterations[oldIndex];
+
+  			if (newIndex === -1) {
+  				fragment.unbind().unrender(true);
+  			} else {
+  				fragment.index = newIndex;
+  				fragment.rebind(_this4.context.joinKey(newIndex));
+
+  				if (reinsertFrom === null && newIndex !== previousNewIndex + 1) {
+  					reinsertFrom = oldIndex;
+  				}
+  			}
+
+  			previousNewIndex = newIndex;
+  		});
+
+  		// create new iterations
+  		var docFrag = this.rendered ? createDocumentFragment() : null;
+  		var parentNode = this.rendered ? this.parent.findParentNode() : null;
+
+  		var len = this.context.get().length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var existingFragment = this.iterations[i];
+
+  			if (this.rendered) {
+  				if (existingFragment) {
+  					if (reinsertFrom !== null && i >= reinsertFrom) {
+  						docFrag.appendChild(existingFragment.detach());
+  					} else if (docFrag.childNodes.length) {
+  						parentNode.insertBefore(docFrag, existingFragment.firstNode());
+  					}
+  				} else {
+  					this.iterations[i] = this.createIteration(i, i);
+  					this.iterations[i].render(docFrag);
+  				}
+  			}
+
+  			if (!this.rendered) {
+  				if (!existingFragment) {
+  					this.iterations[i] = this.createIteration(i, i);
+  				}
+  			}
+  		}
+
+  		if (this.rendered && docFrag.childNodes.length) {
+  			parentNode.insertBefore(docFrag, this.owner.findNextNode());
+  		}
+
+  		this.iterations.forEach(__update);
+
+  		this.pendingNewIndices = null;
+  	};
+
+  	return RepeatedFragment;
+  })();
+
+  function isEmpty(value) {
+  	return !value || isArray(value) && value.length === 0 || isObject(value) && Object.keys(value).length === 0;
+  }
+
+  function getType(value, hasIndexRef) {
+  	if (hasIndexRef || isArray(value)) return SECTION_EACH;
+  	if (isObject(value) || typeof value === 'function') return SECTION_WITH;
+  	if (value === undefined) return null;
+  	return SECTION_IF;
+  }
+
+  var Section = (function (_Mustache) {
+  	inherits(Section, _Mustache);
+
+  	function Section(options) {
+  		classCallCheck(this, Section);
+
+  		_Mustache.call(this, options);
+
+  		this.sectionType = options.template.n || null;
+  		this.fragment = null;
+  	}
+
+  	Section.prototype.bind = function bind() {
+  		_Mustache.prototype.bind.call(this);
+
+  		// if we managed to bind, we need to create children
+  		if (this.model) {
+  			var value = this.model.parent ? this.model.get() : this.model.value;
+  			var fragment = undefined;
+
+  			if (!this.sectionType) this.sectionType = getType(value, this.template.i);
+
+  			if (isEmpty(value) && this.sectionType !== SECTION_WITH) {
+  				// TODO again, WITH should not render if empty
+  				if (this.sectionType === SECTION_UNLESS) {
+  					this.fragment = new Fragment({
+  						owner: this,
+  						template: this.template.f
+  					}).bind();
+  				}
+
+  				// otherwise, create no children
+  				return;
+  			}
+
+  			if (this.sectionType === SECTION_UNLESS) return;
+
+  			if (this.sectionType === SECTION_IF) {
+  				fragment = new Fragment({
+  					owner: this,
+  					template: this.template.f
+  				}).bind();
+  			}
+
+  			// TODO should only be WITH, and it should behave like IF_WITH
+  			else if (this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH) {
+  					fragment = new Fragment({
+  						owner: this,
+  						template: this.template.f
+  					}).bind(this.model);
+  				} else {
+  					fragment = new RepeatedFragment({
+  						owner: this,
+  						template: this.template.f,
+  						indexRef: this.template.i
+  					}).bind(this.model);
+  				}
+
+  			this.fragment = fragment;
+  		} else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
+  			this.fragment = new Fragment({
+  				owner: this,
+  				template: this.template.f
+  			}).bind();
+  		}
+  	};
+
+  	Section.prototype.detach = function detach() {
+  		return this.fragment ? this.fragment.detach() : createDocumentFragment();
+  	};
+
+  	Section.prototype.find = function find(selector) {
+  		if (this.fragment) {
+  			return this.fragment.find(selector);
+  		}
+  	};
+
+  	Section.prototype.findAll = function findAll(selector, query) {
+  		if (this.fragment) {
+  			this.fragment.findAll(selector, query);
+  		}
+  	};
+
+  	Section.prototype.findComponent = function findComponent(name) {
+  		if (this.fragment) {
+  			return this.fragment.findComponent(name);
+  		}
+  	};
+
+  	Section.prototype.findAllComponents = function findAllComponents(name, query) {
+  		if (this.fragment) {
+  			this.fragment.findAllComponents(name, query);
+  		}
+  	};
+
+  	Section.prototype.firstNode = function firstNode() {
+  		return this.fragment && this.fragment.firstNode();
+  	};
+
+  	Section.prototype.rebind = function rebind() {
+  		_Mustache.prototype.rebind.call(this);
+
+  		if (this.fragment) {
+  			this.fragment.rebind(this.sectionType === SECTION_IF ? null : this.model);
+  		}
+  	};
+
+  	Section.prototype.render = function render(target) {
+  		this.rendered = true;
+  		if (this.fragment) this.fragment.render(target);
+  	};
+
+  	Section.prototype.shuffle = function shuffle(newIndices) {
+  		if (this.fragment && this.sectionType === SECTION_EACH) {
+  			this.fragment.shuffle(newIndices);
+  		}
+  	};
+
+  	Section.prototype.toString = function toString(escape) {
+  		return this.fragment ? this.fragment.toString(escape) : '';
+  	};
+
+  	Section.prototype.unbind = function unbind() {
+  		_Mustache.prototype.unbind.call(this);
+  		if (this.fragment) this.fragment.unbind();
+  	};
+
+  	Section.prototype.unrender = function unrender(shouldDestroy) {
+  		if (this.rendered && this.fragment) this.fragment.unrender(shouldDestroy);
+  		this.rendered = false;
+  	};
+
+  	// TODO DRY this out - lot of repeated stuff between this and bind()
+
+  	Section.prototype.update = function update() {
+  		if (!this.dirty) return;
+  		if (!this.model) return; // TODO can this happen?
+
+  		var value = this.model.get();
+
+  		if (this.sectionType === null) this.sectionType = getType(value, this.template.i);
+
+  		var newFragment = undefined;
+
+  		if (this.sectionType === SECTION_EACH) {
+  			if (this.fragment) {
+  				this.fragment.update();
+  			} else {
+  				// TODO can this happen?
+  				newFragment = new RepeatedFragment({
+  					owner: this,
+  					template: this.template.f,
+  					indexRef: this.template.i
+  				}).bind(this.model);
+  			}
+  		}
+
+  		// TODO same comment as before - WITH should be IF_WITH
+  		else if (this.sectionType === SECTION_WITH) {
+  				if (this.fragment) {
+  					this.fragment.update();
+  				} else {
+  					newFragment = new Fragment({
+  						owner: this,
+  						template: this.template.f
+  					}).bind(this.model);
+  				}
+  			} else if (this.sectionType === SECTION_IF_WITH) {
+  				if (this.fragment) {
+  					if (isEmpty(value)) {
+  						if (this.rendered) {
+  							this.fragment.unbind().unrender(true);
+  						}
+
+  						this.fragment = null;
+  					} else {
+  						this.fragment.update();
+  					}
+  				} else if (!isEmpty(value)) {
+  					newFragment = new Fragment({
+  						owner: this,
+  						template: this.template.f
+  					}).bind(this.model);
+  				}
+  			} else {
+  				var fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty(value) : !!value;
+
+  				if (this.fragment) {
+  					if (fragmentShouldExist) {
+  						this.fragment.update();
+  					} else {
+  						if (this.rendered) {
+  							this.fragment.unbind().unrender(true);
+  						}
+
+  						this.fragment = null;
+  					}
+  				} else if (fragmentShouldExist) {
+  					newFragment = new Fragment({
+  						owner: this,
+  						template: this.template.f
+  					}).bind(null);
+  				}
+  			}
+
+  		if (newFragment) {
+  			if (this.rendered) {
+  				var parentNode = this.parentFragment.findParentNode();
+  				var anchor = this.parentFragment.findNextNode(this);
+
+  				if (anchor) {
+  					var docFrag = createDocumentFragment();
+  					newFragment.render(docFrag);
+
+  					// we use anchor.parentNode, not parentNode, because the sibling
+  					// may be temporarily detached as a result of a shuffle
+  					anchor.parentNode.insertBefore(docFrag, anchor);
+  				} else {
+  					newFragment.render(parentNode);
+  				}
+  			}
+
+  			this.fragment = newFragment;
+  		}
+
+  		this.dirty = false;
+  	};
+
+  	return Section;
+  })(Mustache);
+
+  var elementCache = {};
+
+  var ieBug = undefined;
+  var ieBlacklist = undefined;
+
+  try {
+  	createElement('table').innerHTML = 'foo';
+  } catch (err) {
+  	ieBug = true;
+
+  	ieBlacklist = {
+  		TABLE: ['<table class="x">', '</table>'],
+  		THEAD: ['<table><thead class="x">', '</thead></table>'],
+  		TBODY: ['<table><tbody class="x">', '</tbody></table>'],
+  		TR: ['<table><tr class="x">', '</tr></table>'],
+  		SELECT: ['<select class="x">', '</select>']
+  	};
+  }
+
+  function insertHtml (html, node, docFrag) {
+  	var nodes = [];
+
+  	// render 0 and false
+  	if (html == null || html === '') return nodes;
+
+  	var container = undefined;
+  	var wrapper = undefined;
+  	var selectedOption = undefined;
+
+  	if (ieBug && (wrapper = ieBlacklist[node.tagName])) {
+  		container = _element('DIV');
+  		container.innerHTML = wrapper[0] + html + wrapper[1];
+  		container = container.querySelector('.x');
+
+  		if (container.tagName === 'SELECT') {
+  			selectedOption = container.options[container.selectedIndex];
+  		}
+  	} else if (node.namespaceURI === svg) {
+  		container = _element('DIV');
+  		container.innerHTML = '<svg class="x">' + html + '</svg>';
+  		container = container.querySelector('.x');
+  	} else {
+  		container = _element(node.tagName);
+  		container.innerHTML = html;
+
+  		if (container.tagName === 'SELECT') {
+  			selectedOption = container.options[container.selectedIndex];
+  		}
+  	}
+
+  	var child = undefined;
+  	while (child = container.firstChild) {
+  		nodes.push(child);
+  		docFrag.appendChild(child);
+  	}
+
+  	// This is really annoying. Extracting <option> nodes from the
+  	// temporary container <select> causes the remaining ones to
+  	// become selected. So now we have to deselect them. IE8, you
+  	// amaze me. You really do
+  	// ...and now Chrome too
+  	var i = undefined;
+  	if (node.tagName === 'SELECT') {
+  		i = nodes.length;
+  		while (i--) {
+  			if (nodes[i] !== selectedOption) {
+  				nodes[i].selected = false;
+  			}
+  		}
+  	}
+
+  	return nodes;
+  }
+
+  function _element(tagName) {
+  	return elementCache[tagName] || (elementCache[tagName] = createElement(tagName));
+  }
+
+  var Triple = (function (_Mustache) {
+  	inherits(Triple, _Mustache);
+
+  	function Triple(options) {
+  		classCallCheck(this, Triple);
+
+  		_Mustache.call(this, options);
+  	}
+
+  	Triple.prototype.detach = function detach() {
+  		var docFrag = createDocumentFragment();
+  		this.nodes.forEach(function (node) {
+  			return docFrag.appendChild(node);
+  		});
+  		return docFrag;
+  	};
+
+  	Triple.prototype.find = function find(selector) {
+  		var len = this.nodes.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var node = this.nodes[i];
+
+  			if (node.nodeType !== 1) continue;
+
+  			if (matches(node, selector)) return node;
+
+  			var queryResult = node.querySelector(selector);
+  			if (queryResult) return queryResult;
+  		}
+
+  		return null;
+  	};
+
+  	Triple.prototype.findAll = function findAll(selector, query) {
+  		var len = this.nodes.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var node = this.nodes[i];
+
+  			if (node.nodeType !== 1) continue;
+
+  			if (query.test(node)) query.add(node);
+
+  			var queryAllResult = node.querySelectorAll(selector);
+  			if (queryAllResult) {
+  				var numNodes = queryAllResult.length;
+  				var j = undefined;
+
+  				for (j = 0; j < numNodes; j += 1) {
+  					query.add(queryAllResult[j]);
+  				}
+  			}
+  		}
+  	};
+
+  	Triple.prototype.findComponent = function findComponent() {
+  		return null;
+  	};
+
+  	Triple.prototype.firstNode = function firstNode() {
+  		return this.nodes[0];
+  	};
+
+  	Triple.prototype.render = function render(target) {
+  		var html = this.model ? this.model.get() : '';
+  		this.nodes = insertHtml(html, this.parentFragment.findParentNode(), target);
+  		this.rendered = true;
+  	};
+
+  	Triple.prototype.toString = function toString() {
+  		return this.model && this.model.get() != null ? decodeCharacterReferences('' + this.model.get()) : '';
+  	};
+
+  	Triple.prototype.unrender = function unrender() {
+  		if (this.nodes) this.nodes.forEach(function (node) {
+  			return node.parentNode.removeChild(node);
+  		});
+  		this.rendered = false;
+  	};
+
+  	Triple.prototype.update = function update() {
+  		if (this.rendered && this.dirty) {
+  			this.unrender();
+  			var docFrag = createDocumentFragment();
+  			this.render(docFrag);
+
+  			var parentNode = this.parentFragment.findParentNode();
+  			var anchor = this.parentFragment.findNextNode(this);
+
+  			parentNode.insertBefore(docFrag, anchor);
+
+  			this.dirty = false;
+  		}
+  	};
+
+  	return Triple;
+  })(Mustache);
+
+  var Yielder = (function (_Item) {
+  	inherits(Yielder, _Item);
+
+  	function Yielder(options) {
+  		classCallCheck(this, Yielder);
+
+  		_Item.call(this, options);
+
+  		this.container = options.parentFragment.ractive;
+  		this.component = this.container.component;
+
+  		this.containerFragment = options.parentFragment;
+  		this.parentFragment = this.component.parentFragment;
+
+  		// {{yield}} is equivalent to {{yield content}}
+  		this.name = options.template.n || '';
+  	}
+
+  	Yielder.prototype.bind = function bind() {
+  		var name = this.name;
+
+  		(this.component.yielders[name] || (this.component.yielders[name] = [])).push(this);
+
+  		// TODO don't parse here
+  		var template = this.container._inlinePartials[name || 'content'];
+
+  		if (typeof template === 'string') {
+  			template = parse(template).t;
+  		}
+
+  		if (!template) {
+  			warnIfDebug('Could not find template for partial "' + name + '"', { ractive: this.ractive });
+  			template = [];
+  		}
+
+  		this.fragment = new Fragment({
+  			owner: this,
+  			ractive: this.container.parent,
+  			template: template
+  		}).bind();
+  	};
+
+  	Yielder.prototype.detach = function detach() {
+  		return this.fragment.detach();
+  	};
+
+  	Yielder.prototype.find = function find(selector) {
+  		return this.fragment.find(selector);
+  	};
+
+  	Yielder.prototype.findAll = function findAll(selector, queryResult) {
+  		this.fragment.find(selector, queryResult);
+  	};
+
+  	Yielder.prototype.findComponent = function findComponent(name) {
+  		return this.fragment.findComponent(name);
+  	};
+
+  	Yielder.prototype.findAllComponents = function findAllComponents(name, queryResult) {
+  		this.fragment.findAllComponents(name, queryResult);
+  	};
+
+  	Yielder.prototype.firstNode = function firstNode() {
+  		return this.fragment.firstNode();
+  	};
+
+  	Yielder.prototype.rebind = function rebind() {
+  		throw new Error('Yielder$rebind is not yet implemented!');
+  	};
+
+  	Yielder.prototype.render = function render(target) {
+  		return this.fragment.render(target);
+  	};
+
+  	Yielder.prototype.setTemplate = function setTemplate(name) {
+  		var template = this.parentFragment.ractive.partials[name];
+
+  		if (typeof template === 'string') {
+  			template = parse(template).t;
+  		}
+
+  		this.partialTemplate = template || []; // TODO warn on missing partial
+  	};
+
+  	Yielder.prototype.toString = function toString(escape) {
+  		return this.fragment.toString(escape);
+  	};
+
+  	Yielder.prototype.unbind = function unbind() {
+  		this.fragment.unbind();
+  		removeFromArray(this.component.yielders[this.name], this);
+  	};
+
+  	Yielder.prototype.unrender = function unrender(shouldDestroy) {
+  		this.fragment.unrender(shouldDestroy);
+  	};
+
+  	return Yielder;
+  })(Item);
+
+  function resetStyle(node, style) {
+  	if (style) {
+  		node.setAttribute('style', style);
+  	} else {
+  		// Next line is necessary, to remove empty style attribute!
+  		// See http://stackoverflow.com/a/7167553
+  		node.getAttribute('style');
+  		node.removeAttribute('style');
+  	}
+  }
+
+  function camelCase (hyphenatedStr) {
+  	return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
+  		return $1.toUpperCase();
+  	});
+  }
+
+  var ___prefix = undefined;
+
+  if (!isClient) {
+  	___prefix = null;
+  } else {
+  	(function () {
+  		var prefixCache = {};
+  		var testStyle = createElement('div').style;
+
+  		___prefix = function (prop) {
+  			prop = camelCase(prop);
+
+  			if (!prefixCache[prop]) {
+  				if (testStyle[prop] !== undefined) {
+  					prefixCache[prop] = prop;
+  				} else {
+  					// test vendors...
+  					var capped = prop.charAt(0).toUpperCase() + prop.substring(1);
+
+  					var i = vendors.length;
+  					while (i--) {
+  						var vendor = vendors[i];
+  						if (testStyle[vendor + capped] !== undefined) {
+  							prefixCache[prop] = vendor + capped;
+  							break;
+  						}
+  					}
+  				}
+  			}
+
+  			return prefixCache[prop];
+  		};
+  	})();
+  }
 
   var interpolators = {
   	number: function (from, to) {
@@ -5248,28 +5212,17 @@ var classCallCheck = function (instance, Constructor) {
   	}
   };
 
-  var interpolate = function (from, to, ractive, type) {
-  	if (from === to) {
-  		return snap(to);
-  	}
+  function interpolate(from, to, ractive, type) {
+  	if (from === to) return null;
 
   	if (type) {
-
   		var interpol = findInViewHierarchy('interpolators', ractive, type);
-  		if (interpol) {
-  			return interpol(from, to) || snap(to);
-  		}
+  		if (interpol) return interpol(from, to) || null;
 
   		fatal(missingPlugin(type, 'interpolator'));
   	}
 
-  	return interpolators.number(from, to) || interpolators.array(from, to) || interpolators.object(from, to) || snap(to);
-  };
-
-  function snap(to) {
-  	return function () {
-  		return to;
-  	};
+  	return interpolators.number(from, to) || interpolators.array(from, to) || interpolators.object(from, to) || null;
   }
 
   var unprefixPattern = new RegExp('^-(?:' + vendors.join('|') + ')-');
@@ -5281,21 +5234,13 @@ var classCallCheck = function (instance, Constructor) {
   var vendorPattern = new RegExp('^(?:' + vendors.join('|') + ')([A-Z])');
 
   function hyphenate (str) {
-  	var hyphenated;
+  	if (!str) return ''; // edge case
 
-  	if (!str) {
-  		return ''; // edge case
-  	}
+  	if (vendorPattern.test(str)) str = '-' + str;
 
-  	if (vendorPattern.test(str)) {
-  		str = '-' + str;
-  	}
-
-  	hyphenated = str.replace(/[A-Z]/g, function (match) {
+  	return str.replace(/[A-Z]/g, function (match) {
   		return '-' + match.toLowerCase();
   	});
-
-  	return hyphenated;
   }
 
   var createTransitions = undefined;
@@ -5313,12 +5258,12 @@ var classCallCheck = function (instance, Constructor) {
   		var cannotUseCssTransitions = {};
 
   		// determine some facts about our environment
-  		var TRANSITION = undefined,
-  		    TRANSITIONEND = undefined,
-  		    CSS_TRANSITIONS_ENABLED = undefined,
-  		    TRANSITION_DURATION = undefined,
-  		    TRANSITION_PROPERTY = undefined,
-  		    TRANSITION_TIMING_FUNCTION = undefined;
+  		var TRANSITION = undefined;
+  		var TRANSITIONEND = undefined;
+  		var CSS_TRANSITIONS_ENABLED = undefined;
+  		var TRANSITION_DURATION = undefined;
+  		var TRANSITION_PROPERTY = undefined;
+  		var TRANSITION_TIMING_FUNCTION = undefined;
 
   		if (testStyle.transition !== undefined) {
   			TRANSITION = 'transition';
@@ -5343,29 +5288,27 @@ var classCallCheck = function (instance, Constructor) {
   			// Wait a beat (otherwise the target styles will be applied immediately)
   			// TODO use a fastdom-style mechanism?
   			setTimeout(function () {
+  				var jsTransitionsComplete = undefined;
+  				var cssTransitionsComplete = undefined;
 
-  				var hashPrefix, jsTransitionsComplete, cssTransitionsComplete, checkComplete, transitionEndHandler;
-
-  				checkComplete = function () {
+  				function checkComplete() {
   					if (jsTransitionsComplete && cssTransitionsComplete) {
   						// will changes to events and fire have an unexpected consequence here?
   						t.ractive.fire(t.name + ':end', t.node, t.isIntro);
   						resolve();
   					}
-  				};
+  				}
 
   				// this is used to keep track of which elements can use CSS to animate
   				// which properties
-  				hashPrefix = (t.node.namespaceURI || '') + t.node.tagName;
+  				var hashPrefix = (t.node.namespaceURI || '') + t.node.tagName;
 
-  				t.node.style[TRANSITION_PROPERTY] = changedProperties.map(__prefix).map(hyphenate).join(',');
+  				t.node.style[TRANSITION_PROPERTY] = changedProperties.map(___prefix).map(hyphenate).join(',');
   				t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
   				t.node.style[TRANSITION_DURATION] = options.duration / 1000 + 's';
 
-  				transitionEndHandler = function (event) {
-  					var index;
-
-  					index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
+  				function transitionEndHandler(event) {
+  					var index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
   					if (index !== -1) {
   						changedProperties.splice(index, 1);
   					}
@@ -5379,25 +5322,26 @@ var classCallCheck = function (instance, Constructor) {
 
   					cssTransitionsComplete = true;
   					checkComplete();
-  				};
+  				}
 
   				t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
 
   				setTimeout(function () {
-  					var i = changedProperties.length,
-  					    hash,
-  					    originalValue,
-  					    index,
-  					    propertiesToTransitionInJs = [],
-  					    prop,
-  					    suffix;
+  					var i = changedProperties.length;
+  					var hash = undefined;
+  					var originalValue = undefined;
+  					var index = undefined;
+  					var propertiesToTransitionInJs = [];
+  					var prop = undefined;
+  					var suffix = undefined;
+  					var interpolator = undefined;
 
   					while (i--) {
   						prop = changedProperties[i];
   						hash = hashPrefix + prop;
 
   						if (CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[hash]) {
-  							t.node.style[__prefix(prop)] = to[prop];
+  							t.node.style[___prefix(prop)] = to[prop];
 
   							// If we're not sure if CSS transitions are supported for
   							// this tag/property combo, find out now
@@ -5411,7 +5355,7 @@ var classCallCheck = function (instance, Constructor) {
 
   								// Reset, if we're going to use timers after all
   								if (cannotUseCssTransitions[hash]) {
-  									t.node.style[__prefix(prop)] = originalValue;
+  									t.node.style[___prefix(prop)] = originalValue;
   								}
   							}
   						}
@@ -5434,11 +5378,14 @@ var classCallCheck = function (instance, Constructor) {
   							// TODO Determine whether this property is animatable at all
 
   							suffix = /[^\d]*$/.exec(to[prop])[0];
+  							interpolator = interpolate(parseFloat(originalValue), parseFloat(to[prop])) || function () {
+  								return to[prop];
+  							};
 
   							// ...then kick off a timer-based transition
   							propertiesToTransitionInJs.push({
-  								name: __prefix(prop),
-  								interpolator: interpolate(parseFloat(originalValue), parseFloat(to[prop])),
+  								name: ___prefix(prop),
+  								interpolator: interpolator,
   								suffix: suffix
   							});
   						}
@@ -5465,12 +5412,10 @@ var classCallCheck = function (instance, Constructor) {
   							duration: options.duration,
   							easing: easing,
   							step: function (pos) {
-  								var prop, i;
-
-  								i = propertiesToTransitionInJs.length;
+  								var i = propertiesToTransitionInJs.length;
   								while (i--) {
-  									prop = propertiesToTransitionInJs[i];
-  									t.node.style[prop.name] = prop.interpolator(pos) + prop.suffix;
+  									var _prop = propertiesToTransitionInJs[i];
+  									t.node.style[_prop.name] = _prop.interpolator(pos) + _prop.suffix;
   								}
   							},
   							complete: function () {
@@ -5499,25 +5444,25 @@ var classCallCheck = function (instance, Constructor) {
   var hidden = 'hidden';
 
   if (doc) {
-  	var _prefix = undefined;
+  	var __prefix = undefined;
 
   	if (hidden in doc) {
-  		_prefix = '';
+  		__prefix = '';
   	} else {
-  		var i = vendors.length;
-  		while (i--) {
-  			var vendor = vendors[i];
+  		var _i = vendors.length;
+  		while (_i--) {
+  			var vendor = vendors[_i];
   			hidden = vendor + 'Hidden';
 
   			if (hidden in doc) {
-  				_prefix = vendor;
+  				__prefix = vendor;
   				break;
   			}
   		}
   	}
 
-  	if (_prefix !== undefined) {
-  		doc.addEventListener(_prefix + 'visibilitychange', onChange);
+  	if (__prefix !== undefined) {
+  		doc.addEventListener(__prefix + 'visibilitychange', onChange);
   		onChange();
   	} else {
   		// gah, we're in an old browser
@@ -5638,8 +5583,6 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		return new _Promise(function (fulfil) {
-  			var propertyNames, changedProperties, computedStyle, current, i, prop;
-
   			// Edge case - if duration is zero, set style synchronously and complete
   			if (!options.duration) {
   				_this.setStyle(to);
@@ -5648,20 +5591,18 @@ var classCallCheck = function (instance, Constructor) {
   			}
 
   			// Get a list of the properties we're animating
-  			propertyNames = Object.keys(to);
-  			changedProperties = [];
+  			var propertyNames = Object.keys(to);
+  			var changedProperties = [];
 
   			// Store the current styles
-  			computedStyle = getComputedStyle(_this.node);
+  			var computedStyle = getComputedStyle(_this.node);
 
-  			i = propertyNames.length;
+  			var i = propertyNames.length;
   			while (i--) {
-  				prop = propertyNames[i];
-  				current = computedStyle[__prefix(prop)];
+  				var prop = propertyNames[i];
+  				var current = computedStyle[___prefix(prop)];
 
-  				if (current === '0px') {
-  					current = 0;
-  				}
+  				if (current === '0px') current = 0;
 
   				// we need to know if we're actually changing anything
   				if (current != to[prop]) {
@@ -5670,7 +5611,7 @@ var classCallCheck = function (instance, Constructor) {
 
   					// make the computed style explicit, so we can animate where
   					// e.g. height='auto'
-  					_this.node.style[__prefix(prop)] = current;
+  					_this.node.style[___prefix(prop)] = current;
   				}
   			}
 
@@ -5686,31 +5627,25 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Transition.prototype.getStyle = function getStyle(props) {
-  		var computedStyle, styles, i, prop, value;
-
-  		computedStyle = getComputedStyle(this.node);
+  		var computedStyle = getComputedStyle(this.node);
 
   		if (typeof props === 'string') {
-  			value = computedStyle[__prefix(props)];
-  			if (value === '0px') {
-  				value = 0;
-  			}
-  			return value;
+  			var value = computedStyle[___prefix(props)];
+  			return value === '0px' ? 0 : value;
   		}
 
   		if (!isArray(props)) {
   			throw new Error('Transition$getStyle must be passed a string, or an array of strings representing CSS properties');
   		}
 
-  		styles = {};
+  		var styles = {};
 
-  		i = props.length;
+  		var i = props.length;
   		while (i--) {
-  			prop = props[i];
-  			value = computedStyle[__prefix(prop)];
-  			if (value === '0px') {
-  				value = 0;
-  			}
+  			var prop = props[i];
+  			var value = computedStyle[___prefix(prop)];
+
+  			if (value === '0px') value = 0;
   			styles[prop] = value;
   		}
 
@@ -5732,18 +5667,17 @@ var classCallCheck = function (instance, Constructor) {
   			params = {};
   		}
 
-  		return _extend({}, defaults, params);
+  		return __extend({}, defaults, params);
   	};
 
   	Transition.prototype.setStyle = function setStyle(style, value) {
-  		var prop;
-
   		if (typeof style === 'string') {
-  			this.node.style[__prefix(style)] = value;
+  			this.node.style[___prefix(style)] = value;
   		} else {
+  			var prop = undefined;
   			for (prop in style) {
   				if (style.hasOwnProperty(prop)) {
-  					this.node.style[__prefix(prop)] = style[prop];
+  					this.node.style[___prefix(prop)] = style[prop];
   				}
   			}
   		}
@@ -5754,10 +5688,10 @@ var classCallCheck = function (instance, Constructor) {
   	Transition.prototype.start = function start() {
   		var _this2 = this;
 
-  		var node, originalStyle, completed;
+  		var node = this.node = this.owner.node;
+  		var originalStyle = node.getAttribute('style');
 
-  		node = this.node = this.owner.node;
-  		originalStyle = node.getAttribute('style');
+  		var completed = undefined;
 
   		// create t.complete() - we don't want this on the prototype,
   		// because we don't want `this` silliness when passing it as
@@ -5923,11 +5857,9 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function handleBlur() {
-  	var value;
-
   	handleDomEvent.call(this);
 
-  	value = this._ractive.binding.model.get();
+  	var value = this._ractive.binding.model.get();
   	this.value = value == undefined ? '' : value;
   }
 
@@ -6088,17 +6020,15 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	SingleSelectBinding.prototype.getValue = function getValue() {
-  		var options, i, len, option, optionValue;
+  		var options = this.node.options;
+  		var len = options.length;
 
-  		options = this.node.options;
-  		len = options.length;
-
+  		var i = undefined;
   		for (i = 0; i < len; i += 1) {
-  			option = options[i];
+  			var option = options[i];
 
   			if (options[i].selected && !options[i].disabled) {
-  				optionValue = option._ractive ? option._ractive.value : option.value;
-  				return optionValue;
+  				return option._ractive ? option._ractive.value : option.value;
   			}
   		}
   	};
@@ -6366,12 +6296,12 @@ var classCallCheck = function (instance, Constructor) {
   	return binding.node.checked;
   }
 
-  function getValue(binding) {
+  function _getValue(binding) {
   	return binding.element.getAttribute('value');
   }
 
   function _getGroupValue() {
-  	return this.bindings.filter(isChecked).map(getValue);
+  	return this.bindings.filter(isChecked).map(_getValue);
   }
 
   var push = [].push;
@@ -6383,8 +6313,6 @@ var classCallCheck = function (instance, Constructor) {
   		classCallCheck(this, CheckboxNameBinding);
 
   		_Binding.call(this, element, 'name');
-
-  		var existingValue, bindingValue;
 
   		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
 
@@ -6401,8 +6329,8 @@ var classCallCheck = function (instance, Constructor) {
   		// If no initial value was set, and this input is checked, we
   		// update the model
   		if (this.group.noInitialValue && this.element.getAttribute('checked')) {
-  			existingValue = this.model.get();
-  			bindingValue = this.element.getAttribute('value');
+  			var existingValue = this.model.get();
+  			var bindingValue = this.element.getAttribute('value');
 
   			push.call(existingValue, bindingValue); // to avoid triggering runloop with array adaptor
   		}
@@ -6863,6 +6791,7 @@ var classCallCheck = function (instance, Constructor) {
   var eventPattern = /^event(?:\.(.+))?$/;
   var argumentsPattern = /^arguments\.(\d*)$/;
   var dollarArgsPattern = /^\$(\d*)$/;
+
   var EventDirective = (function () {
   	function EventDirective(owner, event, template) {
   		classCallCheck(this, EventDirective);
@@ -7022,8 +6951,8 @@ var classCallCheck = function (instance, Constructor) {
   			}
 
   			// make event available as `this.event`
-  			var ractive = this.ractive,
-  			    oldEvent = ractive.event;
+  			var ractive = this.ractive;
+  			var oldEvent = ractive.event;
 
   			ractive.event = event;
   			ractive[this.method].apply(ractive, args);
@@ -7049,11 +6978,11 @@ var classCallCheck = function (instance, Constructor) {
   		this.event.listen(this);
   	};
 
-  	EventDirective.prototype.unbind = function unbind$$() {
+  	EventDirective.prototype.unbind = function unbind() {
   		var template = this.template;
 
   		if (template.m) {
-  			this.resolvers.forEach(unbind);
+  			this.resolvers.forEach(_unbind);
   			this.resolvers = [];
 
   			this.models.forEach(function (model) {
@@ -7098,8 +7027,8 @@ var classCallCheck = function (instance, Constructor) {
   	}
 
   	DOMEvent.prototype.listen = function listen(directive) {
-  		var node = this.node = this.owner.node,
-  		    name = this.name;
+  		var node = this.node = this.owner.node;
+  		var name = this.name;
 
   		if (!('on' + name in node)) {
   			missingPlugin(name, 'events');
@@ -7255,323 +7184,6 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	return Decorator;
-  })();
-
-  function unrenderAndDestroy(item) {
-  	item.unrender(true);
-  }
-
-  var Fragment = (function () {
-  	function Fragment(options) {
-  		classCallCheck(this, Fragment);
-
-  		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
-
-  		this.isRoot = !options.owner.parentFragment;
-  		this.parent = this.isRoot ? null : this.owner.parentFragment;
-  		this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
-
-  		this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.parentFragment : null;
-
-  		this.context = null;
-  		this.rendered = false;
-  		this.indexRefs = options.indexRefs || (this.parent ? this.parent.indexRefs : []);
-  		this.keyRefs = options.keyRefs || (this.parent ? this.parent.keyRefs : {});
-
-  		// encapsulated styles should be inherited until they get applied by an element
-  		this.cssIds = 'cssIds' in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
-
-  		this.resolvers = [];
-
-  		this.dirty = false;
-  		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
-
-  		this.template = options.template || [];
-  		this.createItems();
-  	}
-
-  	Fragment.prototype.bind = function bind(context) {
-  		this.context = context;
-  		this.items.forEach(_bind);
-  		this.bound = true;
-
-  		// in rare cases, a forced resolution (or similar) will cause the
-  		// fragment to be dirty before it's even finished binding. In those
-  		// cases we update immediately
-  		if (this.dirty) this.update();
-
-  		return this;
-  	};
-
-  	Fragment.prototype.bubble = function bubble() {
-  		this.dirtyArgs = this.dirtyValue = true;
-
-  		if (!this.dirty) {
-  			this.dirty = true;
-
-  			if (this.isRoot) {
-  				// TODO encapsulate 'is component root, but not overall root' check?
-  				if (this.ractive.component) {
-  					this.ractive.component.bubble();
-  				} else if (this.bound) {
-  					runloop.addFragment(this);
-  				}
-  			} else {
-  				this.owner.bubble();
-  			}
-  		}
-  	};
-
-  	Fragment.prototype.createItems = function createItems() {
-  		var _this = this;
-
-  		this.items = this.template.map(function (template, index) {
-  			return createItem({ parentFragment: _this, template: template, index: index });
-  		});
-  	};
-
-  	Fragment.prototype.detach = function detach() {
-  		var docFrag = createDocumentFragment();
-  		this.items.forEach(function (item) {
-  			return docFrag.appendChild(item.detach());
-  		});
-  		return docFrag;
-  	};
-
-  	Fragment.prototype.find = function find(selector) {
-  		var len = this.items.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var found = this.items[i].find(selector);
-  			if (found) return found;
-  		}
-  	};
-
-  	Fragment.prototype.findAll = function findAll(selector, query) {
-  		if (this.items) {
-  			var len = this.items.length;
-  			var i = undefined;
-
-  			for (i = 0; i < len; i += 1) {
-  				var item = this.items[i];
-
-  				if (item.findAll) {
-  					item.findAll(selector, query);
-  				}
-  			}
-  		}
-
-  		return query;
-  	};
-
-  	Fragment.prototype.findComponent = function findComponent(name) {
-  		var len = this.items.length;
-  		var i = undefined;
-
-  		for (i = 0; i < len; i += 1) {
-  			var found = this.items[i].findComponent(name);
-  			if (found) return found;
-  		}
-  	};
-
-  	Fragment.prototype.findAllComponents = function findAllComponents(name, query) {
-  		if (this.items) {
-  			var len = this.items.length;
-  			var i = undefined;
-
-  			for (i = 0; i < len; i += 1) {
-  				var item = this.items[i];
-
-  				if (item.findAllComponents) {
-  					item.findAllComponents(name, query);
-  				}
-  			}
-  		}
-
-  		return query;
-  	};
-
-  	Fragment.prototype.findContext = function findContext() {
-  		var fragment = this;
-  		while (!fragment.context) fragment = fragment.parent;
-  		return fragment.context;
-  	};
-
-  	Fragment.prototype.findNextNode = function findNextNode(item) {
-  		var nextItem = this.items[item.index + 1];
-
-  		if (nextItem) return nextItem.firstNode();
-
-  		// if this is the root fragment, and there are no more items,
-  		// it means we're at the end...
-  		if (this.isRoot) {
-  			if (this.ractive.component) {
-  				return this.ractive.component.parentFragment.findNextNode(this.ractive.component);
-  			}
-
-  			// TODO possible edge case with other content
-  			// appended to this.ractive.el?
-  			return null;
-  		}
-
-  		return this.owner.findNextNode(this); // the argument is in case the parent is a RepeatedFragment
-  	};
-
-  	Fragment.prototype.findParentNode = function findParentNode() {
-  		var fragment = this;
-
-  		do {
-  			if (fragment.owner.type === ELEMENT) {
-  				return fragment.owner.node;
-  			}
-
-  			if (fragment.isRoot && !fragment.ractive.component) {
-  				// TODO encapsulate check
-  				return fragment.ractive.el;
-  			}
-
-  			fragment = fragment.componentParent || fragment.parent; // TODO ugh
-  		} while (fragment);
-
-  		throw new Error('Could not find parent node'); // TODO link to issue tracker
-  	};
-
-  	Fragment.prototype.findRepeatingFragment = function findRepeatingFragment() {
-  		var fragment = this;
-  		// TODO better check than fragment.parent.iterations
-  		while (fragment.parent && !fragment.isIteration) {
-  			fragment = fragment.parent || fragment.componentParent;
-  		}
-
-  		return fragment;
-  	};
-
-  	Fragment.prototype.firstNode = function firstNode() {
-  		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode(this.owner);
-  	};
-
-  	// TODO ideally, this would be deprecated in favour of an
-  	// expression-like approach
-
-  	Fragment.prototype.getArgsList = function getArgsList() {
-  		if (this.dirtyArgs) {
-  			var values = {};
-  			var source = processItems(this.items, values, this.ractive._guid);
-  			var parsed = parseJSON('[' + source + ']', values);
-
-  			this.argsList = parsed ? parsed.value : [this.toString()];
-
-  			this.dirtyArgs = false;
-  		}
-
-  		return this.argsList;
-  	};
-
-  	Fragment.prototype.rebind = function rebind$$(context) {
-  		this.context = context;
-
-  		this.items.forEach(rebind);
-  	};
-
-  	Fragment.prototype.render = function render(target) {
-  		if (this.rendered) throw new Error('Fragment is already rendered!');
-  		this.rendered = true;
-
-  		this.items.forEach(function (item) {
-  			return item.render(target);
-  		});
-  	};
-
-  	Fragment.prototype.resetTemplate = function resetTemplate(template) {
-  		var wasBound = this.bound;
-  		var wasRendered = this.rendered;
-
-  		// TODO ensure transitions are disabled globally during reset
-
-  		if (wasBound) {
-  			if (wasRendered) this.unrender(true);
-  			this.unbind();
-  		}
-
-  		this.template = template;
-  		this.createItems();
-
-  		if (wasBound) {
-  			this.bind(this.context);
-
-  			if (wasRendered) {
-  				var parentNode = this.findParentNode();
-  				var anchor = this.parent ? this.parent.findNextNode(this.owner) : null;
-
-  				if (anchor) {
-  					var docFrag = createDocumentFragment();
-  					this.render(docFrag);
-  					parentNode.insertBefore(docFrag, anchor);
-  				} else {
-  					this.render(parentNode);
-  				}
-  			}
-  		}
-  	};
-
-  	Fragment.prototype.resolve = function resolve(template, callback) {
-  		if (!this.context) {
-  			return this.parent.resolve(template, callback);
-  		}
-
-  		var resolver = new ReferenceResolver(this, template, callback);
-  		this.resolvers.push(resolver);
-
-  		return resolver; // so we can e.g. force resolution
-  	};
-
-  	Fragment.prototype.toHtml = function toHtml() {
-  		return this.toString();
-  	};
-
-  	Fragment.prototype.toString = function toString$$(escape) {
-  		return this.items.map(escape ? toEscapedString : toString).join('');
-  	};
-
-  	Fragment.prototype.unbind = function unbind$$() {
-  		this.items.forEach(unbind);
-  		this.bound = false;
-
-  		return this;
-  	};
-
-  	Fragment.prototype.unrender = function unrender$$(shouldDestroy) {
-  		this.items.forEach(shouldDestroy ? unrenderAndDestroy : unrender);
-  		this.rendered = false;
-  	};
-
-  	Fragment.prototype.update = function update() {
-  		if (this.dirty) {
-  			this.items.forEach(_update);
-  			this.dirty = false;
-  		}
-  	};
-
-  	Fragment.prototype.valueOf = function valueOf() {
-  		if (this.items.length === 1) {
-  			return this.items[0].valueOf();
-  		}
-
-  		if (this.dirtyValue) {
-  			var values = {};
-  			var source = processItems(this.items, values, this.ractive._guid);
-  			var parsed = parseJSON(source, values);
-
-  			this.value = parsed ? parsed.value : this.toString();
-
-  			this.dirtyValue = false;
-  		}
-
-  		return this.value;
-  	};
-
-  	return Fragment;
   })();
 
   var div = doc ? createElement('div') : null;
@@ -7730,7 +7342,7 @@ var classCallCheck = function (instance, Constructor) {
   	if (name === 'style' && node.style.setAttribute) return updateIEStyleAttribute;
 
   	// special case - class names. IE fucks things up, again
-  	if (name === 'class' && (!node.namespaceURI || node.namespaceURI === html)) return updateClassName;
+  	if (name === 'class' && (!node.namespaceURI || node.namespaceURI === _html)) return updateClassName;
 
   	if (attribute.useProperty) return updateProperty;
 
@@ -7881,35 +7493,32 @@ var classCallCheck = function (instance, Constructor) {
 
   var propertyNames = {
   	'accept-charset': 'acceptCharset',
-  	'accesskey': 'accessKey',
-  	'bgcolor': 'bgColor',
+  	accesskey: 'accessKey',
+  	bgcolor: 'bgColor',
   	'class': 'className',
-  	'codebase': 'codeBase',
-  	'colspan': 'colSpan',
-  	'contenteditable': 'contentEditable',
-  	'datetime': 'dateTime',
-  	'dirname': 'dirName',
+  	codebase: 'codeBase',
+  	colspan: 'colSpan',
+  	contenteditable: 'contentEditable',
+  	datetime: 'dateTime',
+  	dirname: 'dirName',
   	'for': 'htmlFor',
   	'http-equiv': 'httpEquiv',
-  	'ismap': 'isMap',
-  	'maxlength': 'maxLength',
-  	'novalidate': 'noValidate',
-  	'pubdate': 'pubDate',
-  	'readonly': 'readOnly',
-  	'rowspan': 'rowSpan',
-  	'tabindex': 'tabIndex',
-  	'usemap': 'useMap'
+  	ismap: 'isMap',
+  	maxlength: 'maxLength',
+  	novalidate: 'noValidate',
+  	pubdate: 'pubDate',
+  	readonly: 'readOnly',
+  	rowspan: 'rowSpan',
+  	tabindex: 'tabIndex',
+  	usemap: 'useMap'
   };
 
   function determineNameAndNamespace (attribute, name) {
-  	var colonIndex, namespacePrefix;
-
   	// are we dealing with a namespaced attribute, e.g. xlink:href?
-  	colonIndex = name.indexOf(':');
+  	var colonIndex = name.indexOf(':');
   	if (colonIndex !== -1) {
-
   		// looks like we are, yes...
-  		namespacePrefix = name.substr(0, colonIndex);
+  		var namespacePrefix = name.substr(0, colonIndex);
 
   		// ...unless it's a namespace *declaration*, which we ignore (on the assumption
   		// that only valid namespaces will be used)
@@ -7999,7 +7608,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.node = node;
 
   		// should we use direct property access, or setAttribute?
-  		if (!node.namespaceURI || node.namespaceURI === html) {
+  		if (!node.namespaceURI || node.namespaceURI === _html) {
   			var propertyName = propertyNames[this.name] || this.name;
 
   			if (node[propertyName] !== undefined) {
@@ -8058,7 +7667,7 @@ var classCallCheck = function (instance, Constructor) {
   	return Attribute;
   })(Item);
 
-  function _makeDirty(query) {
+  function __makeDirty(query) {
   	query.makeDirty();
   }
 
@@ -8156,9 +7765,9 @@ var classCallCheck = function (instance, Constructor) {
   	}
 
   	Element.prototype.bind = function bind() {
-  		this.attributes.forEach(_bind);
-  		this.conditionalAttributes.forEach(_bind);
-  		this.eventHandlers.forEach(_bind);
+  		this.attributes.forEach(__bind);
+  		this.conditionalAttributes.forEach(__bind);
+  		this.eventHandlers.forEach(__bind);
 
   		if (this.decorator) this.decorator.bind();
   		if (this.fragment) this.fragment.bind();
@@ -8241,14 +7850,14 @@ var classCallCheck = function (instance, Constructor) {
   		return attribute ? attribute.getValue() : undefined;
   	};
 
-  	Element.prototype.rebind = function rebind$$() {
-  		this.attributes.forEach(rebind);
-  		this.conditionalAttributes.forEach(rebind);
+  	Element.prototype.rebind = function rebind() {
+  		this.attributes.forEach(_rebind);
+  		this.conditionalAttributes.forEach(_rebind);
   		if (this.decorator) this.decorator.rebind();
   		if (this.fragment) this.fragment.rebind();
   		if (this.binding) this.binding.rebind();
 
-  		this.liveQueries.forEach(_makeDirty);
+  		this.liveQueries.forEach(__makeDirty);
   	};
 
   	Element.prototype.render = function render(target) {
@@ -8284,15 +7893,15 @@ var classCallCheck = function (instance, Constructor) {
   			this.fragment.render(node);
   		}
 
-  		this.attributes.forEach(_render);
-  		this.conditionalAttributes.forEach(_render);
+  		this.attributes.forEach(__render);
+  		this.conditionalAttributes.forEach(__render);
 
   		if (this.decorator) runloop.scheduleTask(function () {
   			return _this2.decorator.render();
   		}, true);
   		if (this.binding) this.binding.render();
 
-  		this.eventHandlers.forEach(_render);
+  		this.eventHandlers.forEach(__render);
 
   		_updateLiveQueries(this);
 
@@ -8347,15 +7956,15 @@ var classCallCheck = function (instance, Constructor) {
   		return str;
   	};
 
-  	Element.prototype.unbind = function unbind$$() {
-  		this.attributes.forEach(unbind);
-  		this.conditionalAttributes.forEach(unbind);
+  	Element.prototype.unbind = function unbind() {
+  		this.attributes.forEach(_unbind);
+  		this.conditionalAttributes.forEach(_unbind);
 
   		if (this.decorator) this.decorator.unbind();
   		if (this.fragment) this.fragment.unbind();
   	};
 
-  	Element.prototype.unrender = function unrender$$(shouldDestroy) {
+  	Element.prototype.unrender = function unrender(shouldDestroy) {
   		if (!this.rendered) return;
   		this.rendered = false;
 
@@ -8376,7 +7985,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		if (this.fragment) this.fragment.unrender();
 
-  		this.eventHandlers.forEach(unrender);
+  		this.eventHandlers.forEach(_unrender);
 
   		if (this.binding) this.binding.unrender();
   		if (!shouldDestroy && this.decorator) this.decorator.unrender();
@@ -8400,9 +8009,9 @@ var classCallCheck = function (instance, Constructor) {
 
   	Element.prototype.update = function update() {
   		if (this.dirty) {
-  			this.attributes.forEach(_update);
-  			this.conditionalAttributes.forEach(_update);
-  			this.eventHandlers.forEach(_update);
+  			this.attributes.forEach(__update);
+  			this.conditionalAttributes.forEach(__update);
+  			this.eventHandlers.forEach(__update);
 
   			if (this.decorator) this.decorator.update();
   			if (this.fragment) this.fragment.update();
@@ -8455,7 +8064,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	if (parent) {
   		// ...or HTML, if the parent is a <foreignObject>
-  		if (parent.name === 'foreignobject') return html;
+  		if (parent.name === 'foreignobject') return _html;
 
   		// ...or inherit from the parent node
   		return parent.node.namespaceURI;
@@ -8687,11 +8296,11 @@ var classCallCheck = function (instance, Constructor) {
   	var element = this._ractive.proxy;
 
   	runloop.start();
-  	element.formBindings.forEach(updateModel);
+  	element.formBindings.forEach(_updateModel);
   	runloop.end();
   }
 
-  function updateModel(binding) {
+  function _updateModel(binding) {
   	binding.model.set(binding.resetValue);
   }
 
@@ -8755,18 +8364,18 @@ var classCallCheck = function (instance, Constructor) {
   	} while (instance = instance.parent);
   }
 
-  var css;
-  var update;
+  var _css;
+  var _update;
   var styleElement;
   var head;
   var styleSheet;
   var inDom;
-  var prefix = '/* Ractive.js component styles */\n';
+  var _prefix = '/* Ractive.js component styles */\n';
   var styles = [];
   var dirty = false;
   if (!doc) {
   	// TODO handle encapsulated CSS in server-rendered HTML!
-  	css = {
+  	_css = {
   		add: noop,
   		apply: noop
   	};
@@ -8782,8 +8391,8 @@ var classCallCheck = function (instance, Constructor) {
   	// use styleSheet.cssText instead
   	styleSheet = styleElement.styleSheet;
 
-  	update = function () {
-  		var css = prefix + styles.map(function (s) {
+  	_update = function () {
+  		var css = _prefix + styles.map(function (s) {
   			return '\n/* {' + s.id + '} */\n' + s.styles;
   		}).join('\n');
 
@@ -8799,7 +8408,7 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	css = {
+  	_css = {
   		add: function (s) {
   			styles.push(s);
   			dirty = true;
@@ -8807,7 +8416,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		apply: function () {
   			if (dirty) {
-  				update();
+  				_update();
   				dirty = false;
   			}
   		}
@@ -8816,7 +8425,7 @@ var classCallCheck = function (instance, Constructor) {
 
   var _renderHook = new Hook('render');
   var _completeHook = new Hook('complete');
-  function render(ractive, target, anchor) {
+  function _render(ractive, target, anchor) {
   	// if `noIntro` is `true`, temporarily disable transitions
   	var transitionsEnabled = ractive.transitionsEnabled;
   	if (ractive.noIntro) ractive.transitionsEnabled = false;
@@ -8836,7 +8445,7 @@ var classCallCheck = function (instance, Constructor) {
   	ractive.anchor = anchor;
 
   	// ensure encapsulated CSS is up-to-date
-  	if (ractive.cssId) css.apply();
+  	if (ractive.cssId) _css.apply();
 
   	if (target) {
   		(target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(ractive);
@@ -8862,7 +8471,7 @@ var classCallCheck = function (instance, Constructor) {
   	return queue[ractive._guid] || (queue[ractive._guid] = []);
   }
 
-  function fire(hookQueue, ractive) {
+  function _fire(hookQueue, ractive) {
   	var childQueue = getChildQueue(hookQueue.queue, ractive);
 
   	hookQueue.hook.fire(ractive);
@@ -8870,7 +8479,7 @@ var classCallCheck = function (instance, Constructor) {
   	// queue is "live" because components can end up being
   	// added while hooks fire on parents that modify data values.
   	while (childQueue.length) {
-  		fire(hookQueue, childQueue.shift());
+  		_fire(hookQueue, childQueue.shift());
   	}
 
   	delete hookQueue.queue[ractive._guid];
@@ -8895,7 +8504,7 @@ var classCallCheck = function (instance, Constructor) {
   		// If this is *isn't* a child of a component that's in process,
   		// it should call methods or fire at this point
   		if (!parent || !this.inProcess[parent._guid]) {
-  			fire(this, ractive);
+  			_fire(this, ractive);
   		}
   		// elsewise, handoff to parent to fire when ready
   		else {
@@ -8908,15 +8517,15 @@ var classCallCheck = function (instance, Constructor) {
   	return HookQueue;
   })();
 
+  var TEMPLATE_VERSION = 3;
+
   var templateConfigurator = {
   	name: 'template',
 
-  	extend: function extend(Parent, proto, options) {
-  		var template;
-
+  	extend: function (Parent, proto, options) {
   		// only assign if exists
   		if ('template' in options) {
-  			template = options.template;
+  			var template = options.template;
 
   			if (typeof template === 'function') {
   				proto.template = template;
@@ -8926,16 +8535,15 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	},
 
-  	init: function init(Parent, ractive, options) {
-  		var template, fn;
-
+  	init: function (Parent, ractive, options) {
   		// TODO because of prototypal inheritance, we might just be able to use
   		// ractive.template, and not bother passing through the Parent object.
   		// At present that breaks the test mocks' expectations
-  		template = 'template' in options ? options.template : Parent.prototype.template;
+  		var template = 'template' in options ? options.template : Parent.prototype.template;
+  		template = template || { v: TEMPLATE_VERSION, t: [] };
 
   		if (typeof template === 'function') {
-  			fn = template;
+  			var fn = template;
   			template = getDynamicTemplate(ractive, fn);
 
   			ractive._config.template = {
@@ -8958,11 +8566,10 @@ var classCallCheck = function (instance, Constructor) {
   	},
 
   	reset: function (ractive) {
-  		var result = resetValue(ractive),
-  		    parsed;
+  		var result = resetValue(ractive);
 
   		if (result) {
-  			parsed = parseIfString(result, ractive);
+  			var parsed = parseIfString(result, ractive);
 
   			ractive.template = parsed.t;
   			extendPartials(ractive.partials, parsed.p, true);
@@ -8973,15 +8580,14 @@ var classCallCheck = function (instance, Constructor) {
   };
 
   function resetValue(ractive) {
-  	var initial = ractive._config.template,
-  	    result;
+  	var initial = ractive._config.template;
 
   	// If this isn't a dynamic template, there's nothing to do
   	if (!initial || !initial.fn) {
   		return;
   	}
 
-  	result = getDynamicTemplate(ractive, initial.fn);
+  	var result = getDynamicTemplate(ractive, initial.fn);
 
   	// TODO deep equality check to prevent unnecessary re-rendering
   	// in the case of already-parsed templates
@@ -8993,14 +8599,14 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function getDynamicTemplate(ractive, fn) {
-  	var helper = createHelper(parser.getParseOptions(ractive));
+  	var helper = createHelper(_parser.getParseOptions(ractive));
   	return fn.call(ractive, helper);
   }
 
   function createHelper(parseOptions) {
-  	var helper = create(parser);
+  	var helper = create(_parser);
   	helper.parse = function (template, options) {
-  		return parser.parse(template, options || parseOptions);
+  		return _parser.parse(template, options || parseOptions);
   	};
   	return helper;
   }
@@ -9009,10 +8615,10 @@ var classCallCheck = function (instance, Constructor) {
   	if (typeof template === 'string') {
   		// ID of an element containing the template?
   		if (template[0] === '#') {
-  			template = parser.fromId(template);
+  			template = _parser.fromId(template);
   		}
 
-  		template = parse(template, parser.getParseOptions(ractive));
+  		template = parse(template, _parser.getParseOptions(ractive));
   	}
 
   	// Check that the template even exists
@@ -9063,8 +8669,8 @@ var classCallCheck = function (instance, Constructor) {
   	name: 'data',
 
   	extend: function (Parent, proto, options) {
-  		var key = undefined,
-  		    value = undefined;
+  		var key = undefined;
+  		var value = undefined;
 
   		// check for non-primitives, which could cause mutation-related bugs
   		if (options.data && isObject(options.data)) {
@@ -9091,7 +8697,7 @@ var classCallCheck = function (instance, Constructor) {
   		// unless it's a non-POJO (in which case alarm bells should ring)
   		if (result && result.constructor === Object) {
   			for (var prop in result) {
-  				if (typeof result[prop] === 'function') result[prop] = bind(result[prop], ractive);
+  				if (typeof result[prop] === 'function') result[prop] = _bind(result[prop], ractive);
   			}
   		}
 
@@ -9167,81 +8773,71 @@ var classCallCheck = function (instance, Constructor) {
   var selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>\~:]))+)((?::[^\s\+\>\~\(]+(?:\([^\)]+\))?)?\s*[\s\+\>\~]?)\s*/g;
   var mediaQueryPattern = /^@media/;
   var dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
+
+  function trim(str) {
+  	return str.trim();
+  }
+
+  function extractString(unit) {
+  	return unit.str;
+  }
+
+  function transformSelector(selector, parent) {
+  	var selectorUnits = [];
+  	var match = undefined;
+
+  	while (match = selectorUnitPattern.exec(selector)) {
+  		selectorUnits.push({
+  			str: match[0],
+  			base: match[1],
+  			modifiers: match[2]
+  		});
+  	}
+
+  	// For each simple selector within the selector, we need to create a version
+  	// that a) combines with the id, and b) is inside the id
+  	var base = selectorUnits.map(extractString);
+
+  	var transformed = [];
+  	var i = selectorUnits.length;
+
+  	while (i--) {
+  		var appended = base.slice();
+
+  		// Pseudo-selectors should go after the attribute selector
+  		var unit = selectorUnits[i];
+  		appended[i] = unit.base + parent + unit.modifiers || '';
+
+  		var prepended = base.slice();
+  		prepended[i] = parent + ' ' + prepended[i];
+
+  		transformed.push(appended.join(' '), prepended.join(' '));
+  	}
+
+  	return transformed.join(', ');
+  }
   function transformCss(css, id) {
-  	var transformed, dataAttr, addGuid;
+  	var dataAttr = '[data-ractive-css~="{' + id + '}"]';
 
-  	dataAttr = '[data-ractive-css~="{' + id + '}"]';
-
-  	addGuid = function (selector) {
-  		var selectorUnits,
-  		    match,
-  		    unit,
-  		    base,
-  		    prepended,
-  		    appended,
-  		    i,
-  		    transformed = [];
-
-  		selectorUnits = [];
-
-  		while (match = selectorUnitPattern.exec(selector)) {
-  			selectorUnits.push({
-  				str: match[0],
-  				base: match[1],
-  				modifiers: match[2]
-  			});
-  		}
-
-  		// For each simple selector within the selector, we need to create a version
-  		// that a) combines with the id, and b) is inside the id
-  		base = selectorUnits.map(extractString);
-
-  		i = selectorUnits.length;
-  		while (i--) {
-  			appended = base.slice();
-
-  			// Pseudo-selectors should go after the attribute selector
-  			unit = selectorUnits[i];
-  			appended[i] = unit.base + dataAttr + unit.modifiers || '';
-
-  			prepended = base.slice();
-  			prepended[i] = dataAttr + ' ' + prepended[i];
-
-  			transformed.push(appended.join(' '), prepended.join(' '));
-  		}
-
-  		return transformed.join(', ');
-  	};
+  	var transformed = undefined;
 
   	if (dataRvcGuidPattern.test(css)) {
   		transformed = css.replace(dataRvcGuidPattern, dataAttr);
   	} else {
   		transformed = css.replace(commentsPattern, '').replace(selectorsPattern, function (match, $1) {
-  			var selectors, transformed;
-
   			// don't transform media queries!
   			if (mediaQueryPattern.test($1)) return match;
 
-  			selectors = $1.split(',').map(trim);
-  			transformed = selectors.map(addGuid).join(', ') + ' ';
+  			var selectors = $1.split(',').map(trim);
+  			var transformed = selectors.map(function (selector) {
+  				return transformSelector(selector, dataAttr);
+  			}).join(', ') + ' ';
 
   			return match.replace($1, transformed);
   		});
   	}
 
   	return transformed;
-  }
-
-  function trim(str) {
-  	if (str.trim) {
-  		return str.trim();
-  	}
-
-  	return str.replace(/^\s+/, '').replace(/\s+$/, '');
-  }
-
-  function extractString(unit) {
-  	return unit.str;
   }
 
   var _uid = 1;
@@ -9255,7 +8851,7 @@ var classCallCheck = function (instance, Constructor) {
   			var styles = options.noCssTransform ? options.css : transformCss(options.css, id);
 
   			proto.cssId = id;
-  			css.add({ id: id, styles: styles });
+  			_css.add({ id: id, styles: styles });
   		}
   	},
 
@@ -9271,8 +8867,8 @@ var classCallCheck = function (instance, Constructor) {
   };
 
   function _combine(a, b) {
-  	var c = a.slice(),
-  	    i = b.length;
+  	var c = a.slice();
+  	var i = b.length;
 
   	while (i--) {
   		if (! ~c.indexOf(b[i])) {
@@ -9283,49 +8879,44 @@ var classCallCheck = function (instance, Constructor) {
   	return c;
   }
 
-  var _registryNames;
-  var Registry;
-  var registries;
-  _registryNames = ['adaptors', 'components', 'computed', 'decorators', 'easing', 'events', 'interpolators', 'partials', 'transitions'];
+  var _registryNames = ['adaptors', 'components', 'computed', 'decorators', 'easing', 'events', 'interpolators', 'partials', 'transitions'];
 
-  Registry = function (name, useDefaults) {
-  	this.name = name;
-  	this.useDefaults = useDefaults;
-  };
+  var Registry = (function () {
+  	function Registry(name, useDefaults) {
+  		classCallCheck(this, Registry);
 
-  Registry.prototype = {
-  	constructor: Registry,
+  		this.name = name;
+  		this.useDefaults = useDefaults;
+  	}
 
-  	extend: function (Parent, proto, options) {
+  	Registry.prototype.extend = function extend(Parent, proto, options) {
   		this.configure(this.useDefaults ? Parent.defaults : Parent, this.useDefaults ? proto : proto.constructor, options);
-  	},
+  	};
 
-  	init: function () {
-  		/*this.configure(
-    	this.useDefaults ? Parent.defaults : Parent,
-    	ractive,
-    	options );*/
-  	},
+  	Registry.prototype.init = function init() {
+  		// noop
+  	};
 
-  	configure: function (Parent, target, options) {
-  		var name = this.name,
-  		    option = options[name],
-  		    registry;
+  	Registry.prototype.configure = function configure(Parent, target, options) {
+  		var name = this.name;
+  		var option = options[name];
 
-  		registry = create(Parent[name]);
+  		var registry = create(Parent[name]);
 
   		for (var key in option) {
   			registry[key] = option[key];
   		}
 
   		target[name] = registry;
-  	},
+  	};
 
-  	reset: function (ractive) {
+  	Registry.prototype.reset = function reset(ractive) {
   		var registry = ractive[this.name];
   		var changed = false;
+
   		Object.keys(registry).forEach(function (key) {
   			var item = registry[key];
+
   			if (item._fn) {
   				if (item._fn.isOwner) {
   					registry[key] = item._fn;
@@ -9335,11 +8926,14 @@ var classCallCheck = function (instance, Constructor) {
   				changed = true;
   			}
   		});
-  		return changed;
-  	}
-  };
 
-  registries = _registryNames.map(function (name) {
+  		return changed;
+  	};
+
+  	return Registry;
+  })();
+
+  var registries = _registryNames.map(function (name) {
   	return new Registry(name, name === 'computed');
   });
 
@@ -9372,19 +8966,16 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function wrap(parent, name, method) {
-  	if (!/_super/.test(method)) {
-  		return method;
-  	}
+  	if (!/_super/.test(method)) return method;
 
-  	var wrapper = function wrapSuper() {
-  		var superMethod = getSuperMethod(wrapper._parent, name),
-  		    hasSuper = ('_super' in this),
-  		    oldSuper = this._super,
-  		    result;
+  	function wrapper() {
+  		var superMethod = getSuperMethod(wrapper._parent, name);
+  		var hasSuper = ('_super' in this);
+  		var oldSuper = this._super;
 
   		this._super = superMethod;
 
-  		result = method.apply(this, arguments);
+  		var result = method.apply(this, arguments);
 
   		if (hasSuper) {
   			this._super = oldSuper;
@@ -9393,7 +8984,7 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		return result;
-  	};
+  	}
 
   	wrapper._parent = parent;
   	wrapper._method = method;
@@ -9402,62 +8993,54 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function getSuperMethod(parent, name) {
-  	var value, method;
-
   	if (name in parent) {
-  		value = parent[name];
+  		var _ret = (function () {
+  			var value = parent[name];
 
-  		if (typeof value === 'function') {
-  			method = value;
-  		} else {
-  			method = function returnValue() {
-  				return value;
+  			return {
+  				v: typeof value === 'function' ? value : function () {
+  					return value;
+  				}
   			};
-  		}
-  	} else {
-  		method = noop;
+  		})();
+
+  		if (typeof _ret === 'object') return _ret.v;
   	}
 
-  	return method;
+  	return noop;
   }
 
-  var config;
-  var order;
-  var defaultKeys;
-  var custom;
-  var isBlacklisted;
-  var isStandardKey;
-  custom = {
+  var custom = {
   	adapt: adaptConfigurator,
   	css: cssConfigurator,
   	data: dataConfigurator,
   	template: templateConfigurator
   };
 
-  defaultKeys = Object.keys(defaultOptions);
+  var defaultKeys = Object.keys(_defaults);
 
-  isStandardKey = makeObj(defaultKeys.filter(function (key) {
+  var isStandardKey = makeObj(defaultKeys.filter(function (key) {
   	return !custom[key];
   }));
 
   // blacklisted keys that we don't double extend
-  isBlacklisted = makeObj(defaultKeys.concat(registries.map(function (r) {
+  var isBlacklisted = makeObj(defaultKeys.concat(registries.map(function (r) {
   	return r.name;
   })));
 
-  order = [].concat(defaultKeys.filter(function (key) {
+  var order = [].concat(defaultKeys.filter(function (key) {
   	return !registries[key] && !custom[key];
   }), registries,
   //custom.data,
   custom.template, custom.css);
 
-  config = {
+  var config = {
   	extend: function (Parent, proto, options) {
-  		return configure('extend', Parent, proto, options);
+  		return _configure('extend', Parent, proto, options);
   	},
 
   	init: function (Parent, ractive, options) {
-  		return configure('init', Parent, ractive, options);
+  		return _configure('init', Parent, ractive, options);
   	},
 
   	reset: function (ractive) {
@@ -9473,7 +9056,7 @@ var classCallCheck = function (instance, Constructor) {
   	order: order
   };
 
-  function configure(method, Parent, target, options) {
+  function _configure(method, Parent, target, options) {
   	deprecate(options);
 
   	for (var key in options) {
@@ -9544,9 +9127,10 @@ var classCallCheck = function (instance, Constructor) {
   	configHook.fire(ractive);
   	initHook.begin(ractive);
 
+  	var fragment = undefined;
+
   	// Render virtual DOM
   	if (ractive.template) {
-  		// TODO ractive.template is always truthy, because of the defaults...
   		var cssIds = undefined;
 
   		if (options.cssIds || ractive.cssId) {
@@ -9557,23 +9141,18 @@ var classCallCheck = function (instance, Constructor) {
   			}
   		}
 
-  		ractive.fragment = new Fragment({
+  		ractive.fragment = fragment = new Fragment({
   			owner: ractive,
   			template: ractive.template,
   			cssIds: cssIds,
   			indexRefs: options.indexRefs || {},
   			keyRefs: options.keyRefs || {}
-  		});
+  		}).bind(ractive.viewmodel);
   	}
 
   	initHook.end(ractive);
 
-  	// TODO initHook moved to before binding... will this break
-  	// this.findComponent inside oninit? Is that a problem?
-  	// Should be onrender anyway, right?
-  	if (ractive.fragment) {
-  		ractive.fragment.bind(ractive.viewmodel);
-
+  	if (fragment) {
   		// render automatically ( if `el` is specified )
   		var el = getElement(ractive.el);
   		if (el) {
@@ -9592,21 +9171,19 @@ var classCallCheck = function (instance, Constructor) {
   	}
   }
 
-  var pattern = /\$\{([^\}]+)\}/g;
+  var _pattern = /\$\{([^\}]+)\}/g;
 
   function createFunctionFromString(ractive, str) {
-  	var functionBody, hasThis, fn;
+  	var hasThis = undefined;
 
-  	functionBody = 'return (' + str.replace(pattern, function (match, keypath) {
+  	var functionBody = 'return (' + str.replace(_pattern, function (match, keypath) {
   		hasThis = true;
   		return '__ractive.get("' + keypath + '")';
   	}) + ');';
 
-  	if (hasThis) {
-  		functionBody = 'var __ractive = this; ' + functionBody;
-  	}
+  	if (hasThis) functionBody = 'var __ractive = this; ' + functionBody;
 
-  	fn = new Function(functionBody);
+  	var fn = new Function(functionBody);
   	return hasThis ? fn.bind(ractive) : fn;
   }
   function getComputationSignature(ractive, key, signature) {
@@ -9619,7 +9196,7 @@ var classCallCheck = function (instance, Constructor) {
   	var setterString = undefined;
 
   	if (typeof signature === 'function') {
-  		getter = bind(signature, ractive);
+  		getter = _bind(signature, ractive);
   		getterString = signature.toString();
   		getterUseStack = true;
   	}
@@ -9634,7 +9211,7 @@ var classCallCheck = function (instance, Constructor) {
   			getter = createFunctionFromString(ractive, signature.get);
   			getterString = signature.get;
   		} else if (typeof signature.get === 'function') {
-  			getter = bind(signature.get, ractive);
+  			getter = _bind(signature.get, ractive);
   			getterString = signature.get.toString();
   			getterUseStack = true;
   		} else {
@@ -9642,7 +9219,7 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		if (typeof signature.set === 'function') {
-  			setter = bind(signature.set, ractive);
+  			setter = _bind(signature.set, ractive);
   			setterString = signature.set.toString();
   		}
   	}
@@ -9756,11 +9333,11 @@ var classCallCheck = function (instance, Constructor) {
   		return result;
   	};
 
-  	Computation.prototype.handleChange = function handleChange$$() {
+  	Computation.prototype.handleChange = function handleChange() {
   		this.dirty = true;
 
-  		this.deps.forEach(handleChange);
-  		this.children.forEach(handleChange);
+  		this.deps.forEach(_handleChange);
+  		this.children.forEach(_handleChange);
   		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
   	};
 
@@ -9852,7 +9429,7 @@ var classCallCheck = function (instance, Constructor) {
   		var _this = this;
 
   		if (shouldCapture) capture(this);
-  		var result = _extend({}, this.value);
+  		var result = __extend({}, this.value);
 
   		Object.keys(this.mappings).forEach(function (key) {
   			result[key] = _this.mappings[key].value;
@@ -9902,8 +9479,8 @@ var classCallCheck = function (instance, Constructor) {
   			this.adapt();
   		}
 
-  		this.deps.forEach(handleChange);
-  		this.children.forEach(mark);
+  		this.deps.forEach(_handleChange);
+  		this.children.forEach(_mark);
   		this.clearUnresolveds(); // TODO do we need to do this with primitive values? if not, what about e.g. unresolved `length` property of null -> string?
   	};
 
@@ -10235,20 +9812,10 @@ var classCallCheck = function (instance, Constructor) {
   	return MagicWrapper;
   })();
 
-  var magicArrayAdaptor;
-  var MagicArrayWrapper;
-  if (magicAdaptor) {
-  	magicArrayAdaptor = {
-  		filter: function (object, keypath, ractive) {
-  			return magicAdaptor.filter(object, keypath, ractive) && arrayAdaptor.filter(object);
-  		},
+  var MagicArrayWrapper = (function () {
+  	function MagicArrayWrapper(ractive, array, keypath) {
+  		classCallCheck(this, MagicArrayWrapper);
 
-  		wrap: function (ractive, array, keypath) {
-  			return new MagicArrayWrapper(ractive, array, keypath);
-  		}
-  	};
-
-  	MagicArrayWrapper = function (ractive, array, keypath) {
   		this.value = array;
 
   		this.magic = true;
@@ -10265,21 +9832,33 @@ var classCallCheck = function (instance, Constructor) {
   				this.arrayWrapper.__model = model;
   			}
   		});
+  	}
+
+  	MagicArrayWrapper.prototype.get = function get() {
+  		return this.value;
   	};
 
-  	MagicArrayWrapper.prototype = {
-  		get: function () {
-  			return this.value;
-  		},
-  		teardown: function () {
-  			this.arrayWrapper.teardown();
-  			this.magicWrapper.teardown();
-  		},
-  		reset: function (value) {
-  			return this.magicWrapper.reset(value);
-  		}
+  	MagicArrayWrapper.prototype.teardown = function teardown() {
+  		this.arrayWrapper.teardown();
+  		this.magicWrapper.teardown();
   	};
-  }
+
+  	MagicArrayWrapper.prototype.reset = function reset(value) {
+  		return this.magicWrapper.reset(value);
+  	};
+
+  	return MagicArrayWrapper;
+  })();
+
+  var magicArrayAdaptor = {
+  	filter: function (object, keypath, ractive) {
+  		return magicAdaptor.filter(object, keypath, ractive) && arrayAdaptor.filter(object);
+  	},
+
+  	wrap: function (ractive, array, keypath) {
+  		return new MagicArrayWrapper(ractive, array, keypath);
+  	}
+  };
 
   var constructHook = new Hook('construct');
 
@@ -10299,7 +9878,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	// Add registries
   	registryNames.forEach(function (name) {
-  		ractive[name] = _extend(create(ractive.constructor[name] || null), options[name]);
+  		ractive[name] = __extend(create(ractive.constructor[name] || null), options[name]);
   	});
 
   	// Create a viewmodel
@@ -10312,7 +9891,7 @@ var classCallCheck = function (instance, Constructor) {
   	ractive.viewmodel = viewmodel;
 
   	// Add computed properties
-  	var computed = _extend(create(ractive.constructor.prototype.computed), options.computed);
+  	var computed = __extend(create(ractive.constructor.prototype.computed), options.computed);
 
   	for (var key in computed) {
   		var signature = getComputationSignature(ractive, key, computed[key]);
@@ -10321,8 +9900,8 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function combine(a, b) {
-  	var c = a.slice(),
-  	    i = b.length;
+  	var c = a.slice();
+  	var i = b.length;
 
   	while (i--) {
   		if (! ~c.indexOf(b[i])) {
@@ -10334,15 +9913,13 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function getAdaptors(ractive, protoAdapt, options) {
-  	var adapt, magic$$, modifyArrays;
-
   	protoAdapt = protoAdapt.map(lookup);
-  	adapt = ensureArray(options.adapt).map(lookup);
+  	var adapt = ensureArray(options.adapt).map(lookup);
 
   	adapt = combine(protoAdapt, adapt);
 
-  	magic$$ = 'magic' in options ? options.magic : ractive.magic;
-  	modifyArrays = 'modifyArrays' in options ? options.modifyArrays : ractive.modifyArrays;
+  	var magic$$ = 'magic' in options ? options.magic : ractive.magic;
+  	var modifyArrays = 'modifyArrays' in options ? options.modifyArrays : ractive.modifyArrays;
 
   	if (magic$$) {
   		if (!magic) {
@@ -10387,9 +9964,6 @@ var classCallCheck = function (instance, Constructor) {
   	// like dynamic functions or original values
   	ractive._config = {};
 
-  	// animations (so we can stop any in progress at teardown)
-  	ractive._animations = [];
-
   	// nodes registry
   	ractive.nodes = {};
 
@@ -10425,7 +9999,7 @@ var classCallCheck = function (instance, Constructor) {
   	}
   }
 
-  function makeDirty(query) {
+  function _makeDirty(query) {
   	query.makeDirty();
   }
 
@@ -10509,7 +10083,7 @@ var classCallCheck = function (instance, Constructor) {
   					viewmodel.joinKey(localKey).set(parsed ? parsed.value : template);
   				} else if (isArray(template)) {
   					if (template.length === 1 && template[0].t === INTERPOLATOR) {
-  						model = resolve(_this.parentFragment, template[0]);
+  						model = _resolve(_this.parentFragment, template[0]);
 
   						if (!model) {
   							warnOnceIfDebug('The ' + localKey + '=\'{{' + template[0].r + '}}\' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity', { ractive: _this.instance }); // TODO add docs page explaining this
@@ -10551,7 +10125,7 @@ var classCallCheck = function (instance, Constructor) {
   			cssIds: this.parentFragment.cssIds
   		});
 
-  		this.eventHandlers.forEach(_bind);
+  		this.eventHandlers.forEach(__bind);
   	};
 
   	Component.prototype.bubble = function bubble() {
@@ -10608,12 +10182,12 @@ var classCallCheck = function (instance, Constructor) {
   		return this.instance.fragment.firstNode();
   	};
 
-  	Component.prototype.rebind = function rebind$$() {
+  	Component.prototype.rebind = function rebind() {
   		var _this3 = this;
 
-  		this.complexMappings.forEach(rebind);
+  		this.complexMappings.forEach(_rebind);
 
-  		this.liveQueries.forEach(makeDirty);
+  		this.liveQueries.forEach(_makeDirty);
 
   		// update relevant mappings
   		var viewmodel = this.instance.viewmodel;
@@ -10624,7 +10198,7 @@ var classCallCheck = function (instance, Constructor) {
   				var model = undefined;
 
   				if (isArray(template) && template.length === 1 && template[0].t === INTERPOLATOR) {
-  					model = resolve(_this3.parentFragment, template[0]);
+  					model = _resolve(_this3.parentFragment, template[0]);
 
   					if (!model) {
   						// TODO is this even possible?
@@ -10641,11 +10215,11 @@ var classCallCheck = function (instance, Constructor) {
   		this.instance.fragment.rebind(viewmodel);
   	};
 
-  	Component.prototype.render = function render$$(target) {
-  		render(this.instance, target, null);
+  	Component.prototype.render = function render(target) {
+  		_render(this.instance, target, null);
 
   		this.checkYielders();
-  		this.eventHandlers.forEach(_render);
+  		this.eventHandlers.forEach(__render);
   		updateLiveQueries(this);
 
   		this.rendered = true;
@@ -10671,13 +10245,13 @@ var classCallCheck = function (instance, Constructor) {
   		return this.instance.toHTML();
   	};
 
-  	Component.prototype.unbind = function unbind$$() {
-  		this.complexMappings.forEach(unbind);
+  	Component.prototype.unbind = function unbind() {
+  		this.complexMappings.forEach(_unbind);
 
   		var instance = this.instance;
   		instance.viewmodel.teardown();
   		instance.fragment.unbind();
-  		instance._observers.forEach(cancel);
+  		instance._observers.forEach(_cancel);
 
   		removeFromLiveComponentQueries(this);
 
@@ -10688,12 +10262,12 @@ var classCallCheck = function (instance, Constructor) {
   		teardownHook.fire(instance);
   	};
 
-  	Component.prototype.unrender = function unrender$$(shouldDestroy) {
+  	Component.prototype.unrender = function unrender(shouldDestroy) {
   		var _this5 = this;
 
   		this.shouldDestroy = shouldDestroy;
   		this.instance.unrender();
-  		this.eventHandlers.forEach(unrender);
+  		this.eventHandlers.forEach(_unrender);
   		this.liveQueries.forEach(function (query) {
   			return query.remove(_this5.instance);
   		});
@@ -10702,7 +10276,7 @@ var classCallCheck = function (instance, Constructor) {
   	Component.prototype.update = function update() {
   		this.instance.fragment.update();
   		this.checkYielders();
-  		this.eventHandlers.forEach(_update);
+  		this.eventHandlers.forEach(__update);
   		this.dirty = false;
   	};
 
@@ -10712,8 +10286,8 @@ var classCallCheck = function (instance, Constructor) {
   // finds the component constructor in the registry or view hierarchy registries
 
   function getComponentConstructor(ractive, name) {
-  	var Component,
-  	    instance = findInstance('components', ractive, name);
+  	var instance = findInstance('components', ractive, name);
+  	var Component = undefined;
 
   	if (instance) {
   		Component = instance.components[name];
@@ -10843,32 +10417,342 @@ var classCallCheck = function (instance, Constructor) {
   	return new Item(options);
   }
 
+  function unrenderAndDestroy(item) {
+  	item.unrender(true);
+  }
+
+  var Fragment = (function () {
+  	function Fragment(options) {
+  		classCallCheck(this, Fragment);
+
+  		this.owner = options.owner; // The item that owns this fragment - an element, section, partial, or attribute
+
+  		this.isRoot = !options.owner.parentFragment;
+  		this.parent = this.isRoot ? null : this.owner.parentFragment;
+  		this.ractive = options.ractive || (this.isRoot ? options.owner : this.parent.ractive);
+
+  		this.componentParent = this.isRoot && this.ractive.component ? this.ractive.component.parentFragment : null;
+
+  		this.context = null;
+  		this.rendered = false;
+  		this.indexRefs = options.indexRefs || (this.parent ? this.parent.indexRefs : []);
+  		this.keyRefs = options.keyRefs || (this.parent ? this.parent.keyRefs : {});
+
+  		// encapsulated styles should be inherited until they get applied by an element
+  		this.cssIds = 'cssIds' in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
+
+  		this.resolvers = [];
+
+  		this.dirty = false;
+  		this.dirtyArgs = this.dirtyValue = true; // TODO getArgsList is nonsense - should deprecate legacy directives style
+
+  		this.template = options.template || [];
+  		this.createItems();
+  	}
+
+  	Fragment.prototype.bind = function bind(context) {
+  		this.context = context;
+  		this.items.forEach(__bind);
+  		this.bound = true;
+
+  		// in rare cases, a forced resolution (or similar) will cause the
+  		// fragment to be dirty before it's even finished binding. In those
+  		// cases we update immediately
+  		if (this.dirty) this.update();
+
+  		return this;
+  	};
+
+  	Fragment.prototype.bubble = function bubble() {
+  		this.dirtyArgs = this.dirtyValue = true;
+
+  		if (!this.dirty) {
+  			this.dirty = true;
+
+  			if (this.isRoot) {
+  				// TODO encapsulate 'is component root, but not overall root' check?
+  				if (this.ractive.component) {
+  					this.ractive.component.bubble();
+  				} else if (this.bound) {
+  					runloop.addFragment(this);
+  				}
+  			} else {
+  				this.owner.bubble();
+  			}
+  		}
+  	};
+
+  	Fragment.prototype.createItems = function createItems() {
+  		var _this = this;
+
+  		this.items = this.template.map(function (template, index) {
+  			return createItem({ parentFragment: _this, template: template, index: index });
+  		});
+  	};
+
+  	Fragment.prototype.detach = function detach() {
+  		var docFrag = createDocumentFragment();
+  		this.items.forEach(function (item) {
+  			return docFrag.appendChild(item.detach());
+  		});
+  		return docFrag;
+  	};
+
+  	Fragment.prototype.find = function find(selector) {
+  		var len = this.items.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var found = this.items[i].find(selector);
+  			if (found) return found;
+  		}
+  	};
+
+  	Fragment.prototype.findAll = function findAll(selector, query) {
+  		if (this.items) {
+  			var len = this.items.length;
+  			var i = undefined;
+
+  			for (i = 0; i < len; i += 1) {
+  				var item = this.items[i];
+
+  				if (item.findAll) {
+  					item.findAll(selector, query);
+  				}
+  			}
+  		}
+
+  		return query;
+  	};
+
+  	Fragment.prototype.findComponent = function findComponent(name) {
+  		var len = this.items.length;
+  		var i = undefined;
+
+  		for (i = 0; i < len; i += 1) {
+  			var found = this.items[i].findComponent(name);
+  			if (found) return found;
+  		}
+  	};
+
+  	Fragment.prototype.findAllComponents = function findAllComponents(name, query) {
+  		if (this.items) {
+  			var len = this.items.length;
+  			var i = undefined;
+
+  			for (i = 0; i < len; i += 1) {
+  				var item = this.items[i];
+
+  				if (item.findAllComponents) {
+  					item.findAllComponents(name, query);
+  				}
+  			}
+  		}
+
+  		return query;
+  	};
+
+  	Fragment.prototype.findContext = function findContext() {
+  		var fragment = this;
+  		while (!fragment.context) fragment = fragment.parent;
+  		return fragment.context;
+  	};
+
+  	Fragment.prototype.findNextNode = function findNextNode(item) {
+  		var nextItem = this.items[item.index + 1];
+
+  		if (nextItem) return nextItem.firstNode();
+
+  		// if this is the root fragment, and there are no more items,
+  		// it means we're at the end...
+  		if (this.isRoot) {
+  			if (this.ractive.component) {
+  				return this.ractive.component.parentFragment.findNextNode(this.ractive.component);
+  			}
+
+  			// TODO possible edge case with other content
+  			// appended to this.ractive.el?
+  			return null;
+  		}
+
+  		return this.owner.findNextNode(this); // the argument is in case the parent is a RepeatedFragment
+  	};
+
+  	Fragment.prototype.findParentNode = function findParentNode() {
+  		var fragment = this;
+
+  		do {
+  			if (fragment.owner.type === ELEMENT) {
+  				return fragment.owner.node;
+  			}
+
+  			if (fragment.isRoot && !fragment.ractive.component) {
+  				// TODO encapsulate check
+  				return fragment.ractive.el;
+  			}
+
+  			fragment = fragment.componentParent || fragment.parent; // TODO ugh
+  		} while (fragment);
+
+  		throw new Error('Could not find parent node'); // TODO link to issue tracker
+  	};
+
+  	Fragment.prototype.findRepeatingFragment = function findRepeatingFragment() {
+  		var fragment = this;
+  		// TODO better check than fragment.parent.iterations
+  		while (fragment.parent && !fragment.isIteration) {
+  			fragment = fragment.parent || fragment.componentParent;
+  		}
+
+  		return fragment;
+  	};
+
+  	Fragment.prototype.firstNode = function firstNode() {
+  		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode(this.owner);
+  	};
+
+  	// TODO ideally, this would be deprecated in favour of an
+  	// expression-like approach
+
+  	Fragment.prototype.getArgsList = function getArgsList() {
+  		if (this.dirtyArgs) {
+  			var values = {};
+  			var source = processItems(this.items, values, this.ractive._guid);
+  			var parsed = parseJSON('[' + source + ']', values);
+
+  			this.argsList = parsed ? parsed.value : [this.toString()];
+
+  			this.dirtyArgs = false;
+  		}
+
+  		return this.argsList;
+  	};
+
+  	Fragment.prototype.rebind = function rebind(context) {
+  		this.context = context;
+
+  		this.items.forEach(_rebind);
+  	};
+
+  	Fragment.prototype.render = function render(target) {
+  		if (this.rendered) throw new Error('Fragment is already rendered!');
+  		this.rendered = true;
+
+  		this.items.forEach(function (item) {
+  			return item.render(target);
+  		});
+  	};
+
+  	Fragment.prototype.resetTemplate = function resetTemplate(template) {
+  		var wasBound = this.bound;
+  		var wasRendered = this.rendered;
+
+  		// TODO ensure transitions are disabled globally during reset
+
+  		if (wasBound) {
+  			if (wasRendered) this.unrender(true);
+  			this.unbind();
+  		}
+
+  		this.template = template;
+  		this.createItems();
+
+  		if (wasBound) {
+  			this.bind(this.context);
+
+  			if (wasRendered) {
+  				var parentNode = this.findParentNode();
+  				var anchor = this.parent ? this.parent.findNextNode(this.owner) : null;
+
+  				if (anchor) {
+  					var docFrag = createDocumentFragment();
+  					this.render(docFrag);
+  					parentNode.insertBefore(docFrag, anchor);
+  				} else {
+  					this.render(parentNode);
+  				}
+  			}
+  		}
+  	};
+
+  	Fragment.prototype.resolve = function resolve(template, callback) {
+  		if (!this.context) {
+  			return this.parent.resolve(template, callback);
+  		}
+
+  		var resolver = new ReferenceResolver(this, template, callback);
+  		this.resolvers.push(resolver);
+
+  		return resolver; // so we can e.g. force resolution
+  	};
+
+  	Fragment.prototype.toHtml = function toHtml() {
+  		return this.toString();
+  	};
+
+  	Fragment.prototype.toString = function toString(escape) {
+  		return this.items.map(escape ? toEscapedString : _toString).join('');
+  	};
+
+  	Fragment.prototype.unbind = function unbind() {
+  		this.items.forEach(_unbind);
+  		this.bound = false;
+
+  		return this;
+  	};
+
+  	Fragment.prototype.unrender = function unrender(shouldDestroy) {
+  		this.items.forEach(shouldDestroy ? unrenderAndDestroy : _unrender);
+  		this.rendered = false;
+  	};
+
+  	Fragment.prototype.update = function update() {
+  		if (this.dirty) {
+  			this.items.forEach(__update);
+  			this.dirty = false;
+  		}
+  	};
+
+  	Fragment.prototype.valueOf = function valueOf() {
+  		if (this.items.length === 1) {
+  			return this.items[0].valueOf();
+  		}
+
+  		if (this.dirtyValue) {
+  			var values = {};
+  			var source = processItems(this.items, values, this.ractive._guid);
+  			var parsed = parseJSON(source, values);
+
+  			this.value = parsed ? parsed.value : this.toString();
+
+  			this.dirtyValue = false;
+  		}
+
+  		return this.value;
+  	};
+
+  	return Fragment;
+  })();
+
   // TODO should resetTemplate be asynchronous? i.e. should it be a case
   // of outro, update template, intro? I reckon probably not, since that
   // could be achieved with unrender-resetTemplate-render. Also, it should
   // conceptually be similar to resetPartial, which couldn't be async
 
   function Ractive$resetTemplate(template) {
-  	var transitionsEnabled, component;
-
   	templateConfigurator.init(null, this, { template: template });
 
-  	transitionsEnabled = this.transitionsEnabled;
+  	var transitionsEnabled = this.transitionsEnabled;
   	this.transitionsEnabled = false;
 
   	// Is this is a component, we need to set the `shouldDestroy`
   	// flag, otherwise it will assume by default that a parent node
   	// will be detached, and therefore it doesn't need to bother
   	// detaching its own nodes
-  	if (component = this.component) {
-  		component.shouldDestroy = true;
-  	}
-
+  	var component = this.component;
+  	if (component) component.shouldDestroy = true;
   	this.unrender();
-
-  	if (component) {
-  		component.shouldDestroy = false;
-  	}
+  	if (component) component.shouldDestroy = false;
 
   	// remove existing fragment and create new one
   	this.fragment.unbind();
@@ -10922,7 +10806,7 @@ var classCallCheck = function (instance, Constructor) {
   	});
   }
 
-  function forceResetTemplate(partial) {
+  function _forceResetTemplate(partial) {
   	partial.forceResetTemplate();
   }
 
@@ -10933,7 +10817,7 @@ var classCallCheck = function (instance, Constructor) {
   	var promise = runloop.start(this, true);
 
   	this.partials[name] = partial;
-  	collection.forEach(forceResetTemplate);
+  	collection.forEach(_forceResetTemplate);
 
   	runloop.end();
 
@@ -11002,13 +10886,13 @@ var classCallCheck = function (instance, Constructor) {
   		// Teardown any existing instances *before* trying to set up the new one -
   		// avoids certain weird bugs
   		var others = target.__ractive_instances__;
-  		if (others) others.forEach(teardown);
+  		if (others) others.forEach(_teardown);
 
   		// make sure we are the only occupants
   		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
   	}
 
-  	return render(this, target, anchor);
+  	return _render(this, target, anchor);
   }
 
   var _push = makeArrayMethod('push');
@@ -11016,7 +10900,6 @@ var classCallCheck = function (instance, Constructor) {
   var pop = makeArrayMethod('pop');
 
   function Ractive$once(eventName, handler) {
-
   	var listener = this.on(eventName, function () {
   		handler.apply(this, arguments);
   		listener.cancel();
@@ -11037,31 +10920,33 @@ var classCallCheck = function (instance, Constructor) {
   function Ractive$on(eventName, callback) {
   	var _this = this;
 
-  	var listeners, n, eventNames;
-
   	// allow mutliple listeners to be bound in one go
   	if (typeof eventName === 'object') {
-  		listeners = [];
+  		var _ret = (function () {
+  			var listeners = [];
+  			var n = undefined;
 
-  		for (n in eventName) {
-  			if (eventName.hasOwnProperty(n)) {
-  				listeners.push(this.on(n, eventName[n]));
-  			}
-  		}
-
-  		return {
-  			cancel: function () {
-  				var listener;
-
-  				while (listener = listeners.pop()) {
-  					listener.cancel();
+  			for (n in eventName) {
+  				if (eventName.hasOwnProperty(n)) {
+  					listeners.push(_this.on(n, eventName[n]));
   				}
   			}
-  		};
+
+  			return {
+  				v: {
+  					cancel: function () {
+  						var listener = undefined;
+  						while (listener = listeners.pop()) listener.cancel();
+  					}
+  				}
+  			};
+  		})();
+
+  		if (typeof _ret === 'object') return _ret.v;
   	}
 
   	// Handle multiple space-separated event names
-  	eventNames = eventName.split(' ').map(_trim).filter(notEmptyString);
+  	var eventNames = eventName.split(' ').map(_trim).filter(notEmptyString);
 
   	eventNames.forEach(function (eventName) {
   		(_this._subs[eventName] || (_this._subs[eventName] = [])).push(callback);
@@ -11077,8 +10962,6 @@ var classCallCheck = function (instance, Constructor) {
   function Ractive$off(eventName, callback) {
   	var _this = this;
 
-  	var eventNames;
-
   	// if no arguments specified, remove all callbacks
   	if (!eventName) {
   		// TODO use this code instead, once the following issue has been resolved
@@ -11090,16 +10973,16 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	} else {
   		// Handle multiple space-separated event names
-  		eventNames = eventName.split(' ').map(_trim).filter(notEmptyString);
+  		var eventNames = eventName.split(' ').map(_trim).filter(notEmptyString);
 
   		eventNames.forEach(function (eventName) {
-  			var subscribers, index;
+  			var subscribers = _this._subs[eventName];
 
   			// If we have subscribers for this event...
-  			if (subscribers = _this._subs[eventName]) {
+  			if (subscribers) {
   				// ...if a callback was specified, only remove that
   				if (callback) {
-  					index = subscribers.indexOf(callback);
+  					var index = subscribers.indexOf(callback);
   					if (index !== -1) {
   						subscribers.splice(index, 1);
   					}
@@ -11119,11 +11002,11 @@ var classCallCheck = function (instance, Constructor) {
   var onceOptions = { init: false, once: true };
   function observeOnce(keypath, callback, options) {
   	if (isObject(keypath) || typeof keypath === 'function') {
-  		options = _extend(callback || {}, onceOptions);
+  		options = __extend(callback || {}, onceOptions);
   		return this.observe(keypath, options);
   	}
 
-  	options = _extend(options || {}, onceOptions);
+  	options = __extend(options || {}, onceOptions);
   	return this.observe(keypath, callback, options);
   }
 
@@ -11265,7 +11148,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	return {
   		cancel: function () {
-  			observers.forEach(cancel);
+  			observers.forEach(_cancel);
   		}
   	};
   }
@@ -11627,11 +11510,9 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function getParent(item) {
-  	var parentFragment;
+  	var parentFragment = item.parentFragment;
 
-  	if (parentFragment = item.parentFragment) {
-  		return parentFragment.owner;
-  	}
+  	if (parentFragment) return parentFragment.owner;
 
   	if (item.component && (parentFragment = item.component.parentFragment)) {
   		return parentFragment.owner;
@@ -11639,11 +11520,8 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function getAncestry(item) {
-  	var ancestry, ancestor;
-
-  	ancestry = [item];
-
-  	ancestor = getParent(item);
+  	var ancestry = [item];
+  	var ancestor = getParent(item);
 
   	while (ancestor) {
   		ancestry.push(ancestor);
@@ -11673,12 +11551,10 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Query.prototype.cancel = function cancel() {
-  		var liveQueries, selector, index;
+  		var liveQueries = this._root[this.isComponentQuery ? 'liveComponentQueries' : 'liveQueries'];
+  		var selector = this.selector;
 
-  		liveQueries = this._root[this.isComponentQuery ? 'liveComponentQueries' : 'liveQueries'];
-  		selector = this.selector;
-
-  		index = liveQueries.indexOf(selector);
+  		var index = liveQueries.indexOf(selector);
 
   		if (index !== -1) {
   			liveQueries.splice(index, 1);
@@ -11706,10 +11582,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	Query.prototype.remove = function remove(nodeOrComponent) {
   		var index = this.result.indexOf(this.isComponentQuery ? nodeOrComponent.instance : nodeOrComponent);
-
-  		if (index !== -1) {
-  			this.result.splice(index, 1);
-  		}
+  		if (index !== -1) this.result.splice(index, 1);
   	};
 
   	Query.prototype.update = function update() {
@@ -11725,15 +11598,13 @@ var classCallCheck = function (instance, Constructor) {
   })();
 
   function Ractive$findAllComponents(selector, options) {
-  	var liveQueries, query;
-
   	options = options || {};
-  	liveQueries = this._liveComponentQueries;
+  	var liveQueries = this._liveComponentQueries;
 
   	// Shortcut: if we're maintaining a live query with this
   	// selector, we don't need to traverse the parallel DOM
-  	if (query = liveQueries[selector]) {
-
+  	var query = liveQueries[selector];
+  	if (query) {
   		// Either return the exact same query, or (if not live) a snapshot
   		return options && options.live ? query : query.slice();
   	}
@@ -11754,19 +11625,15 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function Ractive$findAll(selector, options) {
-  	var liveQueries, query;
-
-  	if (!this.el) {
-  		return [];
-  	}
+  	if (!this.el) return [];
 
   	options = options || {};
-  	liveQueries = this._liveQueries;
+  	var liveQueries = this._liveQueries;
 
   	// Shortcut: if we're maintaining a live query with this
   	// selector, we don't need to traverse the parallel DOM
-  	if (query = liveQueries[selector]) {
-
+  	var query = liveQueries[selector];
+  	if (query) {
   		// Either return the exact same query, or (if not live) a snapshot
   		return options && options.live ? query : query.slice();
   	}
@@ -11811,273 +11678,106 @@ var classCallCheck = function (instance, Constructor) {
   	return this.el;
   }
 
-  var Animation = function (options) {
-  	var key;
+  // These are a subset of the easing equations found at
+  // https://raw.github.com/danro/easing-js - license info
+  // follows:
 
-  	this.startTime = Date.now();
+  // --------------------------------------------------
+  // easing.js v0.5.4
+  // Generic set of easing functions with AMD support
+  // https://github.com/danro/easing-js
+  // This code may be freely distributed under the MIT license
+  // http://danro.mit-license.org/
+  // --------------------------------------------------
+  // All functions adapted from Thomas Fuchs & Jeremy Kahn
+  // Easing Equations (c) 2003 Robert Penner, BSD license
+  // https://raw.github.com/danro/easing-js/master/LICENSE
+  // --------------------------------------------------
 
-  	// from and to
-  	for (key in options) {
-  		if (options.hasOwnProperty(key)) {
-  			this[key] = options[key];
-  		}
-  	}
+  // In that library, the functions named easeIn, easeOut, and
+  // easeInOut below are named easeInCubic, easeOutCubic, and
+  // (you guessed it) easeInOutCubic.
+  //
+  // You can add additional easing functions to this list, and they
+  // will be globally available.
 
-  	this.interpolator = interpolate(this.from, this.to, this.root, this.interpolator);
-  	this.running = true;
-
-  	this.tick();
-  };
-
-  Animation.prototype = {
-  	tick: function () {
-  		var elapsed, t, value, timeNow, index, keypath;
-
-  		keypath = this.keypath;
-
-  		if (this.running) {
-  			timeNow = Date.now();
-  			elapsed = timeNow - this.startTime;
-
-  			if (elapsed >= this.duration) {
-  				if (keypath !== null) {
-  					runloop.start(this.root);
-
-  					if (this.model) {
-  						this.model.set(this.to);
-  					}
-
-  					runloop.end();
-  				}
-
-  				if (this.step) {
-  					this.step(1, this.to);
-  				}
-
-  				this.complete(this.to);
-
-  				index = this.root._animations.indexOf(this);
-
-  				// TODO investigate why this happens
-  				if (index === -1) {
-  					warnIfDebug('Animation was not found');
-  				}
-
-  				this.root._animations.splice(index, 1);
-
-  				this.running = false;
-  				return false; // remove from the stack
-  			}
-
-  			t = this.easing ? this.easing(elapsed / this.duration) : elapsed / this.duration;
-
-  			if (keypath !== null) {
-  				value = this.interpolator(t);
-  				runloop.start(this.root);
-
-  				if (this.model) {
-  					this.model.set(value);
-  				}
-
-  				runloop.end();
-  			}
-
-  			if (this.step) {
-  				this.step(t, value);
-  			}
-
-  			return true; // keep in the stack
-  		}
-
-  		return false; // remove from the stack
+  var easing = {
+  	linear: function (pos) {
+  		return pos;
   	},
-
-  	stop: function () {
-  		var index;
-
-  		this.running = false;
-
-  		index = this.root._animations.indexOf(this);
-
-  		// TODO investigate why this happens
-  		if (index === -1) {
-  			warnIfDebug('Animation was not found');
+  	easeIn: function (pos) {
+  		return Math.pow(pos, 3);
+  	},
+  	easeOut: function (pos) {
+  		return Math.pow(pos - 1, 3) + 1;
+  	},
+  	easeInOut: function (pos) {
+  		if ((pos /= 0.5) < 1) {
+  			return 0.5 * Math.pow(pos, 3);
   		}
-
-  		this.root._animations.splice(index, 1);
+  		return 0.5 * (Math.pow(pos - 2, 3) + 2);
   	}
   };
 
   var noAnimation = { stop: noop };
-  function Ractive$animate(keypath, to, options) {
-  	var promise, fulfilPromise, k, animation, animations, easing, duration, step, complete, makeValueCollector, currentValues, collectValue, dummy, dummyOptions;
+  var linear = easing.linear;
 
-  	promise = new _Promise(function (fulfil) {
-  		return fulfilPromise = fulfil;
-  	});
-
-  	// animate multiple keypaths
-  	if (typeof keypath === 'object') {
-  		options = to || {};
-  		easing = options.easing;
-  		duration = options.duration;
-
-  		animations = [];
-
-  		// we don't want to pass the `step` and `complete` handlers, as they will
-  		// run for each animation! So instead we'll store the handlers and create
-  		// our own...
-  		step = options.step;
-  		complete = options.complete;
-
-  		if (step || complete) {
-  			currentValues = {};
-
-  			options.step = null;
-  			options.complete = null;
-
-  			makeValueCollector = function (keypath) {
-  				return function (t, value) {
-  					currentValues[keypath] = value;
-  				};
-  			};
-  		}
-
-  		for (k in keypath) {
-  			if (keypath.hasOwnProperty(k)) {
-  				if (step || complete) {
-  					collectValue = makeValueCollector(k);
-  					options = { easing: easing, duration: duration };
-
-  					if (step) {
-  						options.step = collectValue;
-  					}
-  				}
-
-  				options.complete = complete ? collectValue : noop;
-  				animations.push(animate(this, k, keypath[k], options));
-  			}
-  		}
-
-  		// Create a dummy animation, to facilitate step/complete
-  		// callbacks, and Promise fulfilment
-  		dummyOptions = { easing: easing, duration: duration };
-
-  		if (step) {
-  			dummyOptions.step = function (t) {
-  				return step(t, currentValues);
-  			};
-  		}
-
-  		if (complete) {
-  			promise.then(function (t) {
-  				return complete(t, currentValues);
-  			});
-  		}
-
-  		dummyOptions.complete = fulfilPromise;
-
-  		dummy = animate(this, null, null, dummyOptions);
-  		animations.push(dummy);
-
-  		promise.stop = function () {
-  			var animation;
-
-  			while (animation = animations.pop()) {
-  				animation.stop();
-  			}
-
-  			if (dummy) {
-  				dummy.stop();
-  			}
-  		};
-
-  		return promise;
-  	}
-
-  	// animate a single keypath
+  function getOptions(options, instance) {
   	options = options || {};
 
-  	if (options.complete) {
-  		promise.then(options.complete);
+  	var easing = undefined;
+  	if (options.easing) {
+  		easing = typeof options.easing === 'function' ? options.easing : instance.easing[options.easing];
   	}
 
-  	options.complete = fulfilPromise;
-  	animation = animate(this, keypath, to, options);
-
-  	promise.stop = function () {
-  		return animation.stop();
+  	return {
+  		easing: easing || linear,
+  		duration: 'duration' in options ? options.duration : 400,
+  		complete: options.complete || noop,
+  		step: options.step || noop
   	};
-  	return promise;
   }
+  function Ractive$animate(keypath, to, options) {
+  	if (typeof keypath === 'object') {
+  		var keys = Object.keys(keypath);
 
-  function animate(root, keypath, to, options) {
-  	var easing, duration, animation, from;
-
-  	var model = undefined;
-
-  	if (keypath) {
-  		// TODO revisit 'dummy' approach to handling multiple
-  		// animations? this seems kind of hokey
-  		model = root.viewmodel.joinAll(normalise(keypath).split('.'));
-  		from = model.get();
-
-  		// cancel any existing animation
-  		// TODO what about upstream/downstream keypaths?
-  		animations.abort(model, root);
+  		throw new Error('ractive.animate(...) no longer supports objects. Instead of ractive.animate({\n  ' + keys.map(function (key) {
+  			return '\'' + key + '\': ' + keypath[key];
+  		}).join('\n  ') + '\n}, {...}), do\n\n' + keys.map(function (key) {
+  			return 'ractive.animate(\'' + key + '\', ' + keypath[key] + ', {...});';
+  		}).join('\n') + '\n');
   	}
+
+  	options = getOptions(options);
+
+  	var model = this.viewmodel.joinAll(splitKeypath(keypath));
+  	var from = model.get();
 
   	// don't bother animating values that stay the same
   	if (isEqual(from, to)) {
-  		if (options.complete) {
-  			options.complete(options.to);
-  		}
+  		options.complete(options.to);
+  		return noAnimation; // TODO should this have .then and .catch methods?
+  	}
+
+  	var interpolator = interpolate(from, to, this, options.interpolator);
+
+  	// if we can't interpolate the value, set it immediately
+  	if (!interpolator) {
+  		runloop.start();
+  		model.set(to);
+  		runloop.end();
 
   		return noAnimation;
   	}
 
-  	// easing function
-  	if (options.easing) {
-  		if (typeof options.easing === 'function') {
-  			easing = options.easing;
-  		} else {
-  			easing = root.easing[options.easing];
-  		}
-
-  		if (typeof easing !== 'function') {
-  			easing = null;
-  		}
-  	}
-
-  	// duration
-  	duration = options.duration === undefined ? 400 : options.duration;
-
-  	// TODO store keys, use an internal set method
-  	animation = new Animation({
-  		model: model,
-  		from: from,
-  		to: to,
-  		root: root,
-  		duration: duration,
-  		easing: easing,
-  		interpolator: options.interpolator,
-
-  		// TODO wrap callbacks if necessary, to use instance as context
-  		step: options.step,
-  		complete: options.complete
-  	});
-
-  	animations.add(animation);
-  	root._animations.push(animation);
-
-  	return animation;
+  	return model.animate(from, to, options, interpolator);
   }
 
   function Ractive$add(keypath, d) {
-  	return add(this, keypath, d === undefined ? 1 : +d);
+  	return _add(this, keypath, d === undefined ? 1 : +d);
   }
 
-  var proto = {
+  var _proto = {
   	add: Ractive$add,
   	animate: Ractive$animate,
   	detach: Ractive$detach,
@@ -12121,47 +11821,6 @@ var classCallCheck = function (instance, Constructor) {
   	updateModel: Ractive$updateModel
   };
 
-  // These are a subset of the easing equations found at
-  // https://raw.github.com/danro/easing-js - license info
-  // follows:
-
-  // --------------------------------------------------
-  // easing.js v0.5.4
-  // Generic set of easing functions with AMD support
-  // https://github.com/danro/easing-js
-  // This code may be freely distributed under the MIT license
-  // http://danro.mit-license.org/
-  // --------------------------------------------------
-  // All functions adapted from Thomas Fuchs & Jeremy Kahn
-  // Easing Equations (c) 2003 Robert Penner, BSD license
-  // https://raw.github.com/danro/easing-js/master/LICENSE
-  // --------------------------------------------------
-
-  // In that library, the functions named easeIn, easeOut, and
-  // easeInOut below are named easeInCubic, easeOutCubic, and
-  // (you guessed it) easeInOutCubic.
-  //
-  // You can add additional easing functions to this list, and they
-  // will be globally available.
-
-  var easing = {
-  	linear: function (pos) {
-  		return pos;
-  	},
-  	easeIn: function (pos) {
-  		return Math.pow(pos, 3);
-  	},
-  	easeOut: function (pos) {
-  		return Math.pow(pos - 1, 3) + 1;
-  	},
-  	easeInOut: function (pos) {
-  		if ((pos /= 0.5) < 1) {
-  			return 0.5 * Math.pow(pos, 3);
-  		}
-  		return 0.5 * (Math.pow(pos - 2, 3) + 2);
-  	}
-  };
-
   function getNodeInfo (node) {
   	if (!node || !node._ractive) return {};
 
@@ -12170,8 +11829,8 @@ var classCallCheck = function (instance, Constructor) {
   	return {
   		ractive: storage.ractive,
   		keypath: storage.context.getKeypath(),
-  		index: _extend({}, storage.fragment.indexRefs),
-  		key: _extend({}, storage.fragment.keyRefs)
+  		index: __extend({}, storage.fragment.indexRefs),
+  		key: __extend({}, storage.fragment.keyRefs)
   	};
   }
 
@@ -12280,7 +11939,7 @@ var classCallCheck = function (instance, Constructor) {
   	});
   }
 
-  function extend() {
+  function _extend() {
   	for (var _len = arguments.length, options = Array(_len), _key = 0; _key < _len; _key++) {
   		options[_key] = arguments[_key];
   	}
@@ -12323,7 +11982,7 @@ var classCallCheck = function (instance, Constructor) {
   		defaults: { value: proto },
 
   		// extendable
-  		extend: { value: extend, writable: true, configurable: true },
+  		extend: { value: _extend, writable: true, configurable: true },
 
   		// Parent - for IE8, can't use Object.getPrototypeOf
   		_Parent: { value: Parent }
@@ -12335,7 +11994,7 @@ var classCallCheck = function (instance, Constructor) {
   	dataConfigurator.extend(Parent, proto, options);
 
   	if (options.computed) {
-  		proto.computed = _extend(create(Parent.prototype.computed), options.computed);
+  		proto.computed = __extend(create(Parent.prototype.computed), options.computed);
   	}
 
   	Child.prototype = proto;
@@ -12359,7 +12018,7 @@ var classCallCheck = function (instance, Constructor) {
   	initialise(this, options || {}, {});
   }
 
-  _extend(Ractive.prototype, proto, defaultOptions);
+  __extend(Ractive.prototype, _proto, _defaults);
   Ractive.prototype.constructor = Ractive;
 
   // alias prototype as `defaults`
@@ -12373,7 +12032,7 @@ var classCallCheck = function (instance, Constructor) {
   	DEBUG_PROMISES: { writable: true, value: true },
 
   	// static methods:
-  	extend: { value: extend },
+  	extend: { value: _extend },
   	getNodeInfo: { value: getNodeInfo },
   	parse: { value: parse },
 
