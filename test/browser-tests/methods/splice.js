@@ -83,3 +83,32 @@ test( 'splice with one argument (#1943)', t => {
 
 	t.htmlEqual( fixture.innerHTML, '1' );
 });
+
+test( 'splice on array removes correct elements (#2065)', t => {
+	const Item = Ractive.extend({
+		template: '{{value}}'
+	});
+
+	let ractive = new Ractive({
+		el: fixture,
+		template: '{{#items}}<Item />{{/}}',
+		components: { Item },
+	});
+
+	const items = [ { value: 1 }, { value: 2 }, { value: 3 } ];
+
+	ractive.set('items', items.slice( 0 ) );
+	ractive.splice( 'items', 0, 1 );
+	t.deepEqual( ractive.get( 'items' ), [ { value: 2 }, { value: 3 } ] )
+	t.htmlEqual( fixture.innerHTML, '23' );
+
+	ractive.set('items', items.slice( 0 ) );
+	ractive.splice( 'items', 1, 1 );
+	t.deepEqual( ractive.get( 'items' ), [ { value: 1 }, { value: 3 } ] )
+	t.htmlEqual( fixture.innerHTML, '13' );
+
+	ractive.set('items', items.slice( 0 ) );
+	ractive.splice( 'items', 2, 1 );
+	t.deepEqual( ractive.get( 'items' ), [ { value: 1 }, { value: 2 } ] )
+	t.htmlEqual( fixture.innerHTML, '12' );
+});
