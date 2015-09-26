@@ -304,6 +304,18 @@ test( 'Partials with expressions may also have context', function( t ) {
 	t.htmlEqual( fixture.innerHTML, 'inverted - 1 : normal - 2');
 });
 
+test( 'Partials with context should still have access to special refs (#2164)', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{>foo bar.baz}}',
+		partials: {
+			foo: `{{ @keypath + '.bop' }}`
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bar.baz.bop' );
+});
+
 test( 'Partials .toString() works when not the first child of parent (#1163)', t => {
 	const ractive = new Ractive({
 		template: '<div>Foo {{>foo}}</div>',
