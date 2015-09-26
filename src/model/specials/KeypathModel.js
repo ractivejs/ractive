@@ -12,6 +12,10 @@ export default class KeypathModel {
 		return this.value;
 	}
 
+	getKeypath () {
+		return this.value;
+	}
+
 	handleChange () {
 		this.value = this.parent.getKeypath();
 		this.dependants.forEach( handleChange );
