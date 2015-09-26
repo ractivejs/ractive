@@ -63,8 +63,13 @@ test( 'all animations are updated in a single batch', t => {
 	});
 
 	Ractive.Promise.all([ p1, p2 ]).then( () => {
-		t.equal( fooSteps, bazSteps );
-		t.equal( barSteps, bazSteps );
+		// slightly non-deterministic, so we fuzz it –
+		// important thing is that computation doesn't
+		// update for all changes to both foo and bar
+		const FUZZ = 1.2;
+
+		t.ok( bazSteps < fooSteps * FUZZ );
+		t.ok( bazSteps < barSteps * FUZZ );
 
 		done();
 	});
