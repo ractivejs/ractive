@@ -1,4 +1,5 @@
 import { capture } from '../global/capture';
+import Promise from '../utils/Promise';
 import { isEqual, isNumeric } from '../utils/is';
 import { removeFromArray } from '../utils/array';
 import { handleChange, mark, teardown } from '../shared/methodCallers';

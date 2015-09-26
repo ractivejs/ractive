@@ -62,7 +62,7 @@ test( 'all animations are updated in a single batch', t => {
 		step: () => barSteps += 1
 	});
 
-	Promise.all([ p1, p2 ]).then( () => {
+	Ractive.Promise.all([ p1, p2 ]).then( () => {
 		t.equal( fooSteps, bazSteps );
 		t.equal( barSteps, bazSteps );
 
