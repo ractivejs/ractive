@@ -78,3 +78,30 @@ test( 'Links cannot have overlapping paths', t => {
 		ractive.link( 'foo', 'foo.bar.baz' );
 	}, /to itself/ );
 });
+
+test( 'Links should not outlive their instance', t => {
+	let r = new Ractive({
+		el: fixture,
+		template: '{{#if foo}}<bar />{{/if}}',
+		components: {
+			bar: Ractive.extend({
+				template: '{{baz}}',
+				onrender() {
+					this.link( 'bip.bop', 'baz' );
+				}
+			})
+		},
+		data: {
+			bip: { bop: 'boop' }
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '' );
+	r.set( 'foo', true );
+	t.equal( 'boop', r.findComponent( 'bar' ).get( 'baz' ) );
+	t.htmlEqual( fixture.innerHTML, 'boop' );
+	r.set( 'foo', false );
+	t.htmlEqual( fixture.innerHTML, '' );
+	t.ok( !r.get( 'baz' ) );
+	t.ok(r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0);
+});

@@ -1,4 +1,5 @@
 import { splitKeypath } from '../../shared/keypaths';
+import resolveReference from '../../view/resolvers/resolveReference';
 import runloop from '../../global/runloop';
 import Promise from '../../utils/Promise';
 
@@ -7,7 +8,7 @@ export default function link( there, here ) {
 		throw new Error( 'A keypath cannot be linked to itself.' );
 	}
 
-	let unlink, run;
+	let unlink, run, model;
 
 	let ln = this._links[ here ];
 
@@ -21,7 +22,17 @@ export default function link( there, here ) {
 
 	run = runloop.start();
 
-	ln = new Link( this.viewmodel.joinAll( splitKeypath( there ) ), this.viewmodel.joinAll( splitKeypath( here ) ), this );
+	// may need to allow a mapping to resolve implicitly
+	const sourcePath = splitKeypath( there );
+	if ( !this.viewmodel.has( sourcePath[0] ) && this.component ) {
+		model = resolveReference( this.component.parentFragment, sourcePath[0] );
+
+		if ( model ) {
+			this.viewmodel.map( sourcePath[0], model );
+		}
+	}
+
+	ln = new Link( this.viewmodel.joinAll( sourcePath ), this.viewmodel.joinAll( splitKeypath( here ) ), this );
 	this._links[ here ] = ln;
 	ln.source.handleChange();
 
