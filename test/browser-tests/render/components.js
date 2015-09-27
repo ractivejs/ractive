@@ -68,3 +68,35 @@ test( 'Top-level list sections in components do not cause elements to be out of 
 
 	t.htmlEqual( fixture.innerHTML, '<h1>Names</h1><p>one</p><p>two</p><p>three</p><p>four</p>' );
 });
+
+test( 'Components can be provided an alternate context with a "this" mapping (#2166)', t => {
+	const Foo = Ractive.extend({
+		template: '{{foo.bop}} {{bar.baz}}'
+	});
+	const Bar = Ractive.extend({
+		template: '{{bar.baz}} {{bat + 10}}'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<Foo this="{{.}}" /> <Bar this="{{foo}}" />',
+		components: { Foo, Bar },
+		data: {
+			foo: {
+				bop: 'infoo',
+				bar: {
+					baz: 'foobaz'
+				},
+				bat: 32
+			},
+			bar: {
+				baz: 'inbar'
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'infoo inbar foobaz 42' );
+	r.set( 'foo.bop', 'stillinfoo' );
+	r.add( 'foo.bat', 4200 );
+	t.htmlEqual( fixture.innerHTML, 'stillinfoo inbar foobaz 4242' );
+});
