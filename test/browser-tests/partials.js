@@ -813,3 +813,37 @@ test( 'Inline partials can override instance partials if they exist on a node di
 
 	t.htmlEqual( fixture.innerHTML, '<div><span>Something happens one</span></div><div><span>Something happens two</span></div>' );
 });
+
+test( 'partial expressions will use inline content if they resolve to an object with a template string property', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{>foo}}',
+		data: {
+			foo: { template: 'this is a {{bar}}' },
+			bar: 'test'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'this is a test' );
+	r.set( 'bar', 'turnip' );
+	t.htmlEqual( fixture.innerHTML, 'this is a turnip' );
+	r.set( 'foo.template', '{{bar}}s are tasty' );
+	t.htmlEqual( fixture.innerHTML, 'turnips are tasty' );
+});
+
+test( 'partial expressions will use inline content if they resolve to a pre-parsed template', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{>foo}}',
+		data: {
+			foo: Ractive.parse( 'this is a {{bar}}' ),
+			bar: 'test'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'this is a test' );
+	r.set( 'bar', 'turnip' );
+	t.htmlEqual( fixture.innerHTML, 'this is a turnip' );
+	r.set( 'foo', Ractive.parse( '{{bar}}s are tasty' ) );
+	t.htmlEqual( fixture.innerHTML, 'turnips are tasty' );
+});
