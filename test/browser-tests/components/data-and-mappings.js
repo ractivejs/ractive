@@ -1164,3 +1164,28 @@ test( 'Components with alt context should have correct event context', t => {
 	t.equal( btns.length, 3 );
 	btns.forEach( b => b.click() );
 });
+
+test( 'Components with alt context should merge context for data get', t => {
+	const Foo = Ractive.extend({
+		template: '',
+		data() { return { bar: 'bop', biz: 'buzz', lap: 10 }; }
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		components: { Foo },
+		template: '<Foo this="{{.}}" bar="what" />',
+		data: {
+			foo: 'bar',
+			bar: 'baz',
+			lap: 22
+		}
+	});
+
+	const f = r.findComponent( 'Foo' );
+	const data = f.get();
+	t.equal( data.foo, 'bar' );
+	t.equal( data.bar, 'what' );
+	t.equal( data.lap, 10 );
+	t.equal( data.biz, 'buzz' );
+});
