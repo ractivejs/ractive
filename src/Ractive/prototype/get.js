@@ -13,10 +13,14 @@ export default function Ractive$get ( keypath ) {
 		// if this is an inline component, we may need to create
 		// an implicit mapping
 		if ( this.component ) {
-			model = resolveReference( this.component.parentFragment, key );
+			if ( this.viewmodel.has( 'this' ) && this.viewmodel.joinKey( 'this' ).has( key ) ) {
+				keys.unshift( 'this' );
+			} else {
+				model = resolveReference( this.component.parentFragment, key );
 
-			if ( model ) {
-				this.viewmodel.map( key, model );
+				if ( model ) {
+					this.viewmodel.map( key, model );
+				}
 			}
 		}
 	}
