@@ -806,6 +806,14 @@ const parseTests = [
 		error: `Partial definitions can only be at the top level of the template, or immediately inside components at line 1 character 17:
 {{#if whatever}}{{#partial nope}}...{{/partial}}{{/if}}
                 ^----`
+	},
+	{
+		name: 'text-only mode',
+		template: `no <elements or="attributes" /> or &amp; entities {{just}} text, [[refs]], and {{#if foo}}sections{{/if}}`,
+		options: {
+			textOnlyMode: true
+		},
+		parsed: {v:3,t:['no <elements or="attributes" /> or &amp; entities ',{t:2,r:'just'},' text, ',{t:2,r:'refs',s:true},', and ',{t:4,n:50,r:'foo',f:['sections']}]}
 	}
 ];
 
