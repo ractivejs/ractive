@@ -14,7 +14,7 @@ function isEmpty ( value ) {
 function getType ( value, hasIndexRef ) {
 	if ( hasIndexRef || isArray( value ) ) return SECTION_EACH;
 	if ( isObject( value ) || typeof value === 'function' ) return SECTION_WITH;
-	if ( value === undefined ) return null;
+	if ( value === undefined || value === null ) return null;
 	return SECTION_IF;
 }
 

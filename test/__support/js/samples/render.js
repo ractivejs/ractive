@@ -1172,7 +1172,15 @@ const renderTests = [
 		name: 'No whitespace other than leading/trailing line break is stripped (#1851)',
 		template: '<pre>\r\tfoo\n\t</pre><textarea>\r\n\tfoo\r\t</textarea>',
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
-	}
+	},
+	{
+		name: 'Section should not bind a type on null (#2178)',
+		template: '{{#items}}{{.}}{{/items}}',
+		data: { items: null },
+		result: '',
+		new_data: { items: [1,2] },
+		new_result: '12'
+	},
 ];
 
 function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }
