@@ -58,7 +58,7 @@ function readElement ( parser ) {
 
 	start = parser.pos;
 
-	if ( parser.textOnlyMode || parser.inside || parser.inAttribute ) {
+	if ( parser.inside || parser.inAttribute ) {
 		return null;
 	}
 
