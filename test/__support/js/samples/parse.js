@@ -818,6 +818,13 @@ const parseTests = [
 		error: `Expected closing delimiter '}}' after reference at line 1 character 4:
 {{ { 'foo' } }}
    ^----`
+	},
+	{
+		name: 'es2015 object literal shorthand no numbers',
+		template: `{{ { 4 } }}`,
+		error: `Expected a valid reference, but found '4' instead. at line 1 character 8:
+{{ { 4 } }}
+       ^----`
 	}
 ];
 
