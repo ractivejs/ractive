@@ -20,4 +20,6 @@ export default function readKey ( parser ) {
 	if ( token = parser.matchPattern( namePattern ) ) {
 		return token;
 	}
+
+	return null;
 }
