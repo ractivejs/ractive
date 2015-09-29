@@ -135,6 +135,17 @@ export default class EventDirective {
 			event.index = this.parentFragment.indexRefs;
 
 			if ( passedArgs ) passedArgs.unshift( event );
+
+			// check to see if we need to adjust the keypath
+			if ( this.ractive.component ) {
+				const mappings = this.ractive.viewmodel.mappings;
+				for ( let k in mappings ) {
+					if ( event.keypath.indexOf( mappings[k].getKeypath() ) === 0 ) {
+						event.keypath = event.keypath.replace( mappings[k].getKeypath(), k );
+						break;
+					}
+				}
+			}
 		}
 
 		if ( this.method ) {
