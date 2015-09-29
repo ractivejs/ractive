@@ -142,6 +142,9 @@ export default class EventDirective {
 				for ( let k in mappings ) {
 					if ( event.keypath.indexOf( mappings[k].getKeypath() ) === 0 ) {
 						event.keypath = event.keypath.replace( mappings[k].getKeypath(), k );
+						if ( k === 'this' ) {
+							event.keypath = event.keypath.replace( 'this.', '' );
+						}
 						break;
 					}
 				}
