@@ -1172,6 +1172,18 @@ const renderTests = [
 		name: 'No whitespace other than leading/trailing line break is stripped (#1851)',
 		template: '<pre>\r\tfoo\n\t</pre><textarea>\r\n\tfoo\r\t</textarea>',
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
+	},
+	{
+		name: 'An array ref can go from null to set in a generic section and still work (#2178)',
+		template: '{{#foo}}{{.}}{{/foo}}',
+		data: { foo: null },
+		result: '',
+		steps: [
+			{
+				data: { foo: [ 1, 2, 3 ] },
+				result: '123'
+			}
+		]
 	}
 ];
 
