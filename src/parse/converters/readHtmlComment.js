@@ -8,7 +8,7 @@ export default function readHtmlComment ( parser ) {
 
 	start = parser.pos;
 
-	if ( !parser.matchString( OPEN_COMMENT ) ) {
+	if ( parser.textOnlyMode || !parser.matchString( OPEN_COMMENT ) ) {
 		return null;
 	}
 
