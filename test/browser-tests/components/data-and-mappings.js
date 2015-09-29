@@ -1189,3 +1189,44 @@ test( 'Components with alt context should merge context for data get', t => {
 	t.equal( data.lap, 10 );
 	t.equal( data.biz, 'buzz' );
 });
+
+test( 'Alt context should work in a loop', t => {
+	const Foo = Ractive.extend({
+		template: '',
+		data() { return { dogGoes: 'woof' }; }
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: `
+			{{#things}}
+				<Foo this='{{this}}'/>
+			{{/}}
+		`,
+		components: { Foo },
+		data: {
+			things: [
+				{ bar: true, zip: true},
+				{ qux: true, zap: true },
+			]
+		}
+	});
+
+	const comps = r.findAllComponents();
+
+	// ensure model is being passed
+	t.equal( comps[0].get('bar'), true);
+	t.equal( comps[0].get('zip'), true);
+
+	t.equal( comps[1].get('qux'), true);
+	t.equal( comps[1].get('zap'), true);
+
+	// and ensure other object's properties in `things` aren't being shared
+	t.strictEqual( comps[0].get('qux'), undefined);
+	t.strictEqual( comps[0].get('zap'), undefined);
+	t.equal( comps[0].get('dogGoes'), 'woof');
+
+	t.strictEqual( comps[1].get('bar'), undefined);
+	t.strictEqual( comps[1].get('zip'), undefined);
+	t.equal( comps[1].get('dogGoes'), 'woof');
+});
