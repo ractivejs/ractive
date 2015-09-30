@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Sep 26 2015 03:30:31 GMT+0000 (UTC) - commit 3de5b6e347b3e267498824e63e948558f93fe1e0
+	Wed Sep 30 2015 18:21:30 GMT+0000 (UTC) - commit 3d96d2072555568c03a553be47beb6e3699f7c5a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2858,6 +2858,8 @@ var classCallCheck = function (instance, Constructor) {
   	if (ref === '@keypath') return context.getKeypathModel();
   	if (ref === '@index') {
   		var repeater = fragment.findRepeatingFragment();
+  		// make sure the found fragment is actually an iteration
+  		if (!repeater.isIteration) return;
   		return repeater.context.getIndexModel(repeater.index);
   	}
   	if (ref === '@key') return fragment.findRepeatingFragment().context.getKeyModel();
