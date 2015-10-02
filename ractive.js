@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Sep 30 2015 18:21:30 GMT+0000 (UTC) - commit 3d96d2072555568c03a553be47beb6e3699f7c5a
+	Fri Oct 02 2015 16:06:11 GMT+0000 (UTC) - commit 825f74f0ded6e2e6a21de6026f2bbafc53672433
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12110,6 +12110,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		// update relevant mappings
   		var viewmodel = this.instance.viewmodel;
+  		viewmodel.mappings = {};
 
   		if (this.template.a) {
   			Object.keys(this.template.a).forEach(function (localKey) {
