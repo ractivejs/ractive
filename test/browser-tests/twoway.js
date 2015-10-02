@@ -245,7 +245,7 @@ test( 'Named checkbox bindings are kept in sync with data changes (#1610)', t =>
 	t.deepEqual( ractive.get( 'colors' ), [ 'green' ] );
 
 	fire( ractive.find( 'input' ), 'click' );
-	t.deepEqual( ractive.get( 'colors' ), [ 'red', 'green' ]);
+	t.deepEqual( ractive.get( 'colors' ), [ 'green', 'red' ]);
 });
 
 test( 'The model updates to reflect which radio input is checked at render time', t => {
@@ -887,4 +887,25 @@ test( '`twoway=0` is not mistaken for `twoway`', t => {
 
 	fire( input, 'change' );
 	t.equal( ractive.get( 'foo' ), undefined );
+});
+
+test( 'checkbox name binding with the same value on multiple boxes still works (#2163)', t => {
+	const common = {};
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}<input type="checkbox" name="{{list}}" value="{{.}}" />{{/each}}',
+		data: { list: [ common ], items: [ common, common, {} ] }
+	});
+
+	const inputs = r.findAll( 'input' );
+	t.ok( inputs[0].checked && inputs[1].checked && !inputs[2].checked );
+
+	fire( inputs[0], 'click' );
+	t.ok( !( inputs[0].checked || inputs[1].checked || inputs[2].checked ) );
+
+	fire( inputs[2], 'click' );
+	t.ok( !inputs[0].checked && !inputs[1].checked && inputs[2].checked );
+
+	fire( inputs[1], 'click' );
+	t.ok( inputs[0].checked && inputs[1].checked && inputs[2].checked );
 });
