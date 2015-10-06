@@ -1,3 +1,5 @@
+import { splitKeypath } from '../shared/keypaths';
+
 var starMaps = {};
 
 // This function takes a keypath such as 'foo.bar.baz', and returns
@@ -9,7 +11,7 @@ var starMaps = {};
 export default function getPotentialWildcardMatches ( keypath ) {
 	var keys, starMap, mapper, i, result, wildcardKeypath;
 
-	keys = keypath.split( '.' );
+	keys = splitKeypath( keypath );
 	if( !( starMap = starMaps[ keys.length ]) ) {
 		starMap = getStarMap( keys.length );
 	}

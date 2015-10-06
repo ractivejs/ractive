@@ -1172,6 +1172,18 @@ const renderTests = [
 		name: 'No whitespace other than leading/trailing line break is stripped (#1851)',
 		template: '<pre>\r\tfoo\n\t</pre><textarea>\r\n\tfoo\r\t</textarea>',
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
+	},
+	{
+		name: `Escaped '.'s in keypaths`,
+		template: `{{foo\\.bar}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
+		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		result: '123'
+	},
+	{
+		name: `Escaped '.'s in refined keypaths`,
+		template: `{{.['foo.bar']}}{{foo['bar.baz']}}{{foo['bar']['baz']}}`,
+		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		result: '123'
 	}
 ];
 
