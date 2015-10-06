@@ -208,6 +208,15 @@ test( 'Multi switch each block object -> array -> object -> array (#2054)', t =>
 	t.htmlEqual( fixture.innerHTML, expected );
 });
 
+test( 'iteration special refs outside of an iteration should not error', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{@index}}{{@key}}'
+	});
+
+	t.ok( true, 'hey, it didn\'t throw' );
+});
+
 if ( typeof Object.create === 'function' ) {
 	test( 'data of type Object.create(null) (#1825)', t => {
 		const ractive = new Ractive({
