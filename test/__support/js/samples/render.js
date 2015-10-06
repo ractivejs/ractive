@@ -1174,14 +1174,6 @@ const renderTests = [
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
 	},
 	{
-		name: 'Section should not bind a type on null (#2178)',
-		template: '{{#items}}{{.}}{{/items}}',
-		data: { items: null },
-		result: '',
-		new_data: { items: [1,2] },
-		new_result: '12'
-	},
-	{
 		name: 'Model should be able to properly resolve class instances as context',
 		template: '<div class="{{prototypeProperty}}"></div>{{#items}}<div class="{{prototypeProperty}}"></div>{{/items}}',
 		data: function () {
