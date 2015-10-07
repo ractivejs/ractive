@@ -54,7 +54,8 @@ StandardParser = Parser.extend({
 
 		this.interpolate = {
 			script: !options.interpolate || options.interpolate.script !== false,
-			style: !options.interpolate || options.interpolate.style !== false
+			style: !options.interpolate || options.interpolate.style !== false,
+			textarea: true
 		};
 
 		if ( options.sanitize === true ) {
