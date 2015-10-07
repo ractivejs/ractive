@@ -12,7 +12,9 @@ export default function Ractive$render ( target, anchor ) {
 		if ( others ) others.forEach( teardown );
 
 		// make sure we are the only occupants
-		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+		if ( !this.enhance ) {
+			target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+		}
 	}
 
 	return render( this, target, anchor );

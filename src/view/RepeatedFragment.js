@@ -172,11 +172,11 @@ export default class RepeatedFragment {
 		}
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		// TODO use docFrag.cloneNode...
 
 		if ( this.iterations ) {
-			this.iterations.forEach( fragment => fragment.render( target ) );
+			this.iterations.forEach( fragment => fragment.render( target, occupants ) );
 		}
 
 		this.rendered = true;

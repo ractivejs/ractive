@@ -70,8 +70,8 @@ export default class Yielder extends Item {
 		throw new Error( 'Yielder$rebind is not yet implemented!' );
 	}
 
-	render ( target ) {
-		return this.fragment.render( target );
+	render ( target, occupants ) {
+		return this.fragment.render( target, occupants );
 	}
 
 	setTemplate ( name ) {

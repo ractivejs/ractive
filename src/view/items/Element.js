@@ -12,7 +12,7 @@ import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
-import { createElement, matches } from '../../utils/dom';
+import { createElement, matches, sliceChildNodes } from '../../utils/dom';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
@@ -207,12 +207,29 @@ export default class Element extends Item {
 		this.liveQueries.forEach( makeDirty );
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		// TODO determine correct namespace
 		this.namespace = getNamespace( this );
 
-		const node = createElement( this.template.e, this.namespace, this.getAttribute( 'is' ) );
-		this.node = node;
+		let node, existing = false;
+
+		if ( occupants ) {
+			let n;
+			while ( ( n = occupants.shift() ) ) {
+				if ( n.nodeName === this.template.e.toUpperCase() && n.namespaceURI === this.namespace ) {
+					this.node = node = n;
+					existing = true;
+					break;
+				} else {
+					n.remove();
+				}
+			}
+		}
+
+		if ( !node ) {
+			node = createElement( this.template.e, this.namespace, this.getAttribute( 'is' ) );
+			this.node = node;
+		}
 
 		const context = this.parentFragment.findContext();
 
@@ -233,7 +250,13 @@ export default class Element extends Item {
 		}
 
 		if ( this.fragment ) {
-			this.fragment.render( node );
+			const children = existing ? sliceChildNodes( node ) : undefined;
+			this.fragment.render( node, children );
+
+			// clean up leftover children
+			if ( children ) {
+				children.forEach( n => n.remove() );
+			}
 		}
 
 		this.attributes.forEach( render );
@@ -255,7 +278,9 @@ export default class Element extends Item {
 			this._introTransition = transition; // so we can abort if it gets removed
 		}
 
-		target.appendChild( node );
+		if ( !existing ) {
+			target.appendChild( node );
+		}
 
 		this.rendered = true;
 	}

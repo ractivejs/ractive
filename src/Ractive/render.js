@@ -1,13 +1,13 @@
 import { doc } from '../config/environment';
 import css from '../global/css';
 import Hook from '../events/Hook';
-import { getElement } from '../utils/dom';
+import { getElement, sliceChildNodes } from '../utils/dom';
 import runloop from '../global/runloop';
 
 const renderHook = new Hook( 'render' );
 const completeHook = new Hook( 'complete' );
 
-export default function render ( ractive, target, anchor ) {
+export default function render ( ractive, target, anchor, occupants ) {
 	// if `noIntro` is `true`, temporarily disable transitions
 	const transitionsEnabled = ractive.transitionsEnabled;
 	if ( ractive.noIntro ) ractive.transitionsEnabled = false;
@@ -35,7 +35,7 @@ export default function render ( ractive, target, anchor ) {
 			ractive.fragment.render( docFrag );
 			target.insertBefore( docFrag, anchor );
 		} else {
-			ractive.fragment.render( target );
+			ractive.fragment.render( target, occupants || ( ractive.enhance ? sliceChildNodes( target ) : undefined ) );
 		}
 	}
 
