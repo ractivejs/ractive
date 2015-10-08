@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Oct 08 2015 21:42:26 GMT+0000 (UTC) - commit 4245ee163f683e320708d09781c31dcc2410d358
+	Thu Oct 08 2015 21:45:01 GMT+0000 (UTC) - commit 973b4a02916083edbdf61dc37396361b76b94be2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1792,6 +1792,14 @@ var classCallCheck = function (instance, Constructor) {
   			return false;
   		};
   	}
+  }
+
+  function detachNode(node) {
+  	if (node && typeof node.parentNode !== 'unknown' && node.parentNode) {
+  		node.parentNode.removeChild(node);
+  	}
+
+  	return node;
   }
 
   function safeToStringValue(value) {
@@ -3795,7 +3803,7 @@ var classCallCheck = function (instance, Constructor) {
   	}
 
   	Interpolator.prototype.detach = function detach() {
-  		return this.node.parentNode.removeChild(this.node);
+  		return detachNode(this.node);
   	};
 
   	Interpolator.prototype.firstNode = function firstNode() {
@@ -4935,7 +4943,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	Triple.prototype.unrender = function unrender() {
   		if (this.nodes) this.nodes.forEach(function (node) {
-  			return node.parentNode.removeChild(node);
+  			return detachNode(node);
   		});
   		this.rendered = false;
   	};
@@ -6545,6 +6553,7 @@ var classCallCheck = function (instance, Constructor) {
   function isBindable(attribute) {
   	return attribute && attribute.template.length === 1 && attribute.template[0].t === INTERPOLATOR && !attribute.template[0].s;
   }
+
   function selectBinding(element) {
   	var attributes = element.attributeByName;
 
@@ -7800,10 +7809,7 @@ var classCallCheck = function (instance, Constructor) {
   	Element.prototype.detach = function detach() {
   		if (this.decorator) this.decorator.unrender();
 
-  		var parentNode = this.node.parentNode;
-  		if (parentNode) parentNode.removeChild(this.node);
-
-  		return this.node;
+  		return detachNode(this.node);
   	};
 
   	Element.prototype.find = function find(selector) {
@@ -8091,6 +8097,43 @@ var classCallCheck = function (instance, Constructor) {
 
   	return Input;
   })(Element);
+
+  var Textarea = (function (_Input) {
+  	inherits(Textarea, _Input);
+
+  	function Textarea(options) {
+  		classCallCheck(this, Textarea);
+
+  		var template = options.template;
+
+  		if (template.f && (!template.a || !template.a.value) && isBindable({ template: template.f })) {
+  			if (!template.a) template.a = {};
+  			template.a.value = template.f;
+  			template.f = [];
+  		}
+
+  		_Input.call(this, options);
+  	}
+
+  	Textarea.prototype.bubble = function bubble() {
+  		var _this = this;
+
+  		if (!this.dirty) {
+  			this.dirty = true;
+
+  			if (this.rendered && !this.binding && this.fragment) {
+  				runloop.scheduleTask(function () {
+  					_this.dirty = false;
+  					_this.node.value = _this.fragment.toString();
+  				});
+  			}
+
+  			this.parentFragment.bubble(); // default behaviour
+  		}
+  	};
+
+  	return Textarea;
+  })(Input);
 
   function valueContains(selectValue, optionValue) {
   	var i = selectValue.length;
@@ -10335,10 +10378,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Text.prototype.detach = function detach() {
-  		if (!this.node.parentNode) {
-  			throw new Error('TODO an unexpected situation arose');
-  		}
-  		return this.node.parentNode.removeChild(this.node);
+  		return detachNode(this.node);
   	};
 
   	Text.prototype.firstNode = function firstNode() {
@@ -10393,7 +10433,7 @@ var classCallCheck = function (instance, Constructor) {
   	input: Input,
   	option: Option,
   	select: Select,
-  	textarea: Input // it may turn out we need a separate Textarea class, but until then...
+  	textarea: Textarea
   };
   function createItem(options) {
   	if (typeof options.template === 'string') {
