@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 02 2015 16:06:11 GMT+0000 (UTC) - commit 825f74f0ded6e2e6a21de6026f2bbafc53672433
+	Thu Oct 08 2015 21:42:26 GMT+0000 (UTC) - commit 4245ee163f683e320708d09781c31dcc2410d358
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3687,7 +3687,10 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function readRefinement(parser) {
-  	parser.allowWhitespace();
+  	// some things call for strict refinement (partial names), meaning no space between reference and refinement
+  	if (!parser.strictRefinement) {
+  		parser.allowWhitespace();
+  	}
 
   	// "." name
   	if (parser.matchString('.')) {
@@ -4516,9 +4519,9 @@ var classCallCheck = function (instance, Constructor) {
   	// blindly. Instead, we use the `relaxedNames` flag to indicate that
   	// `foo-bar` should be read as a single name, rather than 'subtract
   	// bar from foo'
-  	parser.relaxedNames = true;
+  	parser.relaxedNames = parser.strictRefinement = true;
   	var expression = readExpression(parser);
-  	parser.relaxedNames = false;
+  	parser.relaxedNames = parser.strictRefinement = false;
 
   	parser.allowWhitespace();
   	var context = readExpression(parser);

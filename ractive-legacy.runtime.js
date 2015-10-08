@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 02 2015 16:06:11 GMT+0000 (UTC) - commit 825f74f0ded6e2e6a21de6026f2bbafc53672433
+	Thu Oct 08 2015 21:42:26 GMT+0000 (UTC) - commit 4245ee163f683e320708d09781c31dcc2410d358
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
