@@ -888,3 +888,33 @@ test( '`twoway=0` is not mistaken for `twoway`', t => {
 	fire( input, 'change' );
 	t.equal( ractive.get( 'foo' ), undefined );
 });
+
+test( 'textarea with a single interpolator as content should set up a twoway binding (#2197)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<textarea>{{foo}}</textarea>',
+		data: { foo: 'bar' }
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.set( 'foo', 'baz' );
+	t.equal( r.find( 'textarea' ).value, 'baz' );
+	r.find( 'textarea' ).value = 'bop';
+	r.updateModel( 'foo' );
+	t.equal( r.get( 'foo' ), 'bop' );
+});
+
+test( 'textarea with a single static interpolator as content should not set up a twoway binding', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<textarea>[[foo]]</textarea>',
+		data: { foo: 'bar' }
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.set( 'foo', 'baz' );
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.find( 'textarea' ).value = 'bop';
+	r.updateModel( 'foo' );
+	t.equal( r.get( 'foo' ), 'baz' );
+});
