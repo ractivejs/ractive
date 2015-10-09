@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 19:33:51 GMT+0000 (UTC) - commit a7ae62289b721f362c0a54f1842b9756646b84be
+	Fri Oct 09 2015 20:35:22 GMT+0000 (UTC) - commit e92c01b21ba39e889cad14b8efef398fc9069fa2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4031,6 +4031,12 @@ var classCallCheck = function (instance, Constructor) {
   		do {
   			pos = parser.pos;
   			remaining = parser.remaining();
+
+  			if (!remaining) {
+  				parser.error('Missing end ' + (parser.elementStack.length > 1 ? 'tags' : 'tag') + ' (' + parser.elementStack.reverse().map(function (x) {
+  					return '</' + x + '>';
+  				}).join('') + ')');
+  			}
 
   			// if for example we're in an <li> element, and we see another
   			// <li> tag, close the first so they become siblings
