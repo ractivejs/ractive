@@ -1174,6 +1174,18 @@ const renderTests = [
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
 	},
 	{
+		name: 'An array ref can go from null to set in a generic section and still work (#2178)',
+		template: '{{#foo}}{{.}}{{/foo}}',
+		data: { foo: null },
+		result: '',
+		steps: [
+			{
+				data: { foo: [ 1, 2, 3 ] },
+				result: '123'
+			}
+		]
+	},
+	{
 		name: 'Model should be able to properly resolve class instances as context',
 		template: '<div class="{{prototypeProperty}}"></div>{{#items}}<div class="{{prototypeProperty}}"></div>{{/items}}',
 		data () {
