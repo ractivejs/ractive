@@ -909,3 +909,44 @@ test( 'checkbox name binding with the same value on multiple boxes still works (
 	fire( inputs[1], 'click' );
 	t.ok( inputs[0].checked && inputs[1].checked && inputs[2].checked );
 });
+
+test( 'textarea with a single interpolator as content should set up a twoway binding (#2197)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<textarea>{{foo}}</textarea>',
+		data: { foo: 'bar' }
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.set( 'foo', 'baz' );
+	t.equal( r.find( 'textarea' ).value, 'baz' );
+	r.find( 'textarea' ).value = 'bop';
+	r.updateModel( 'foo' );
+	t.equal( r.get( 'foo' ), 'bop' );
+});
+
+test( 'textarea with a single static interpolator as content should not set up a twoway binding', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<textarea>[[foo]]</textarea>',
+		data: { foo: 'bar' }
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.set( 'foo', 'baz' );
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.find( 'textarea' ).value = 'bop';
+	r.updateModel( 'foo' );
+	t.equal( r.get( 'foo' ), 'baz' );
+});
+
+test( 'teaxtareas with non-model context should still bind correctly (#2099)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with { foo: 'bar' }}}<textarea>{{.foo}}</textarea><button on-click="set(@keypath + '.foo', 'baz')">click me</button>{{/with}}`
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.find( 'button' ).click();
+	t.equal( r.find( 'textarea' ).value, 'baz' );
+});

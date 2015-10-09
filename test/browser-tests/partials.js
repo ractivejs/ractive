@@ -813,3 +813,18 @@ test( 'Inline partials can override instance partials if they exist on a node di
 
 	t.htmlEqual( fixture.innerHTML, '<div><span>Something happens one</span></div><div><span>Something happens two</span></div>' );
 });
+
+test( `Partials can have context that starts with '.' (#1880)`, t => {
+	new Ractive({
+		el: fixture,
+		template: '{{#with foo}}{{>foo .bar}}{{/with}}',
+		data: {
+			foo: { bar: { baz: 'bat' } }
+		},
+		partials: {
+			foo: '{{.baz}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bat' );
+});
