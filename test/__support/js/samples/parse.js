@@ -808,6 +808,13 @@ const parseTests = [
                 ^----`
 	},
 	{
+		name: 'unclosed element',
+		template: '<ul><li>',
+		error: `Missing end tags (</li></ul>) at line 1 character 9:
+<ul><li>
+        ^----`
+	},
+	{
 		name: 'es2015 object literal property shorthand',
 		template: `{{ { foo, bar } }}`,
 		parsed: {v:3,t:[{t:2,x:{r:['foo','bar'],s:'{foo:_0,bar:_1}'}}]}

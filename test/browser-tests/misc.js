@@ -1316,14 +1316,14 @@ test( 'Implicitly-closed elements without closing section tag (#1124)', t => {
 	// it corrects malformed HTML before stubbing it
 	let ractive = new Ractive({
 		el: fixture,
-		template: '<ul><li>one<li>two<li>three'
+		template: '<ul><li>one<li>two<li>three</li></ul>'
 	});
 
 	t.equal( ractive.findAll( 'ul > li' ).length, 3 );
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<table><tr><td>one<td>two<td>three'
+		template: '<table><tr><td>one<td>two<td>three</td></tr></table>'
 	});
 
 	t.equal( ractive.findAll( 'tr > td' ).length, 3 );
