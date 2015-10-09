@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 01:55:59 GMT+0000 (UTC) - commit 10e95601d5c3c35d5ac89d77d112ff21b3971ce7
+	Fri Oct 09 2015 14:59:22 GMT+0000 (UTC) - commit f8c1dabfe3ae7f14623c870c1e71909568fbeab9
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -872,7 +872,11 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function splitKeypath(keypath) {
-  	return normalise(keypath).split('.');
+  	var parts = normalise(keypath).replace('\\.', '$').split('.');
+  	for (var i = parts.length - 1; i >= 0; i--) {
+  		parts[i] = parts[i].replace('$', '\\.');
+  	}
+  	return parts;
   }
 
   function Ractive$updateModel(keypath, cascade) {
@@ -1011,7 +1015,7 @@ var classCallCheck = function (instance, Constructor) {
 
   function makeArrayMethod (methodName) {
   	return function (keypath) {
-  		var model = this.viewmodel.joinAll(normalise(keypath).split('.'));
+  		var model = this.viewmodel.joinAll(splitKeypath(keypath));
   		var array = model.get();
 
   		if (!isArray(array)) {
@@ -2375,7 +2379,7 @@ var classCallCheck = function (instance, Constructor) {
   }
   function resolveAmbiguousReference(fragment, ref) {
   	var localViewmodel = fragment.findContext().root;
-  	var keys = ref.split('.');
+  	var keys = splitKeypath(ref);
   	var key = keys[0];
 
   	var hasContextChain = undefined;
@@ -2430,7 +2434,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.reference = normalise(reference);
   		this.callback = callback;
 
-  		this.keys = reference.split('.');
+  		this.keys = splitKeypath(reference);
   		this.resolved = false;
 
   		// TODO the consumer should take care of addUnresolved
@@ -2837,7 +2841,7 @@ var classCallCheck = function (instance, Constructor) {
   		if (parent) {
   			this.parent = parent;
   			this.root = parent.root;
-  			this.key = key;
+  			this.key = unescape(key);
   			this.isReadonly = parent.isReadonly;
 
   			if (parent.value) {
@@ -3073,7 +3077,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	Model.prototype.getKeyModel = function getKeyModel() {
   		// TODO... different to IndexModel because key can never change
-  		return new KeyModel(this.key);
+  		return new KeyModel(_escape(this.key));
   	};
 
   	Model.prototype.getKeypathModel = function getKeypathModel() {
@@ -3082,12 +3086,12 @@ var classCallCheck = function (instance, Constructor) {
 
   	Model.prototype.getKeypath = function getKeypath() {
   		// TODO keypaths inside components... tricky
-  		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
+  		return this.parent.isRoot ? _escape(this.key) : this.parent.getKeypath() + '.' + _escape(this.key);
   	};
 
   	Model.prototype.has = function has(key) {
   		var value = this.get();
-  		return value && hasProp.call(value, key);
+  		return value && hasProp.call(value, unescape(key));
   	};
 
   	Model.prototype.joinKey = function joinKey(key) {
@@ -3257,6 +3261,20 @@ var classCallCheck = function (instance, Constructor) {
   	return Model;
   })();
 
+  function _escape(key) {
+  	if (typeof key === 'string') {
+  		return key.replace('.', '\\.');
+  	}
+  	return key;
+  }
+
+  function unescape(key) {
+  	if (typeof key === 'string') {
+  		return key.replace('\\.', '.');
+  	}
+  	return key;
+  }
+
   var ComputationChild = (function (_Model) {
   	inherits(ComputationChild, _Model);
 
@@ -3316,7 +3334,7 @@ var classCallCheck = function (instance, Constructor) {
   	if (ref === '@key') return fragment.findRepeatingFragment().context.getKeyModel();
 
   	// ancestor references
-  	if (ref[0] === '~') return context.root.joinAll(ref.slice(2).split('.'));
+  	if (ref[0] === '~') return context.root.joinAll(splitKeypath(ref.slice(2)));
   	if (ref[0] === '.') {
   		var parts = ref.split('/');
 
@@ -3332,7 +3350,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		// special case - `{{.foo}}` means the same as `{{./foo}}`
   		if (ref[0] === '.') ref = ref.slice(1);
-  		return context.joinAll(ref.split('.'));
+  		return context.joinAll(splitKeypath(ref));
   	}
 
   	return resolveAmbiguousReference(fragment, ref);
@@ -6620,7 +6638,7 @@ var classCallCheck = function (instance, Constructor) {
   function getPotentialWildcardMatches(keypath) {
   	var keys, starMap, mapper, i, result, wildcardKeypath;
 
-  	keys = keypath.split('.');
+  	keys = splitKeypath(keypath);
   	if (!(starMap = starMaps[keys.length])) {
   		starMap = getStarMap(keys.length);
   	}
@@ -6848,7 +6866,7 @@ var classCallCheck = function (instance, Constructor) {
   							// on-click="foo(event.node)"
   							return {
   								event: true,
-  								keys: ref.length > 5 ? ref.slice(6).split('.') : [],
+  								keys: ref.length > 5 ? splitKeypath(ref.slice(6)) : [],
   								unbind: noop
   							};
   						}
