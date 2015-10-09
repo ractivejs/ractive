@@ -830,3 +830,18 @@ test( 'resetting a dynamic partial to its reference name should replace the part
 	r.resetPartial( 'part2', 'part2' );
 	t.htmlEqual( fixture.innerHTML, 'part1part2' );
 });
+
+test( `Partials can have context that starts with '.' (#1880)`, t => {
+	new Ractive({
+		el: fixture,
+		template: '{{#with foo}}{{>foo .bar}}{{/with}}',
+		data: {
+			foo: { bar: { baz: 'bat' } }
+		},
+		partials: {
+			foo: '{{.baz}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bat' );
+});

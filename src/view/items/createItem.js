@@ -9,6 +9,7 @@ import Option from './element/specials/Option';
 import Partial from './Partial';
 import Section from './Section';
 import Select from './element/specials/Select';
+import Textarea from './element/specials/Textarea';
 import Text from './Text';
 import Triple from './Triple';
 import Yielder from './Yielder';
@@ -28,7 +29,7 @@ const specialElements = {
 	input: Input,
 	option: Option,
 	select: Select,
-	textarea: Input // it may turn out we need a separate Textarea class, but until then...
+	textarea: Textarea
 };
 
 export default function createItem ( options ) {
