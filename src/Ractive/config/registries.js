@@ -1,9 +1,7 @@
 import '../../legacy';
 import { create } from '../../utils/object';
 
-var registryNames, Registry, registries;
-
-registryNames = [
+const registryNames = [
 	'adaptors',
 	'components',
 	'computed',
@@ -15,45 +13,43 @@ registryNames = [
 	'transitions'
 ];
 
-Registry = function ( name, useDefaults ) {
-	this.name = name;
-	this.useDefaults = useDefaults;
-};
+class Registry {
+	constructor ( name, useDefaults ) {
+		this.name = name;
+		this.useDefaults = useDefaults;
+	}
 
-Registry.prototype = {
-	constructor: Registry,
-
-	extend: function ( Parent, proto, options ) {
+	extend ( Parent, proto, options ) {
 		this.configure(
 			this.useDefaults ? Parent.defaults : Parent,
 			this.useDefaults ? proto : proto.constructor,
 			options );
-	},
+	}
 
-	init: function () {
-		/*this.configure(
-			this.useDefaults ? Parent.defaults : Parent,
-			ractive,
-			options );*/
-	},
+	init () {
+		// noop
+	}
 
-	configure: function ( Parent, target, options ) {
-		var name = this.name, option = options[ name ], registry;
+	configure ( Parent, target, options ) {
+		const name = this.name;
+		const option = options[ name ];
 
-		registry = create( Parent[name] );
+		const registry = create( Parent[name] );
 
 		for ( let key in option ) {
 			registry[ key ] = option[ key ];
 		}
 
 		target[ name ] = registry;
-	},
+	}
 
-	reset: function ( ractive ) {
-		var registry = ractive[ this.name ];
-		var changed = false;
+	reset ( ractive ) {
+		const registry = ractive[ this.name ];
+		let changed = false;
+
 		Object.keys( registry ).forEach( key => {
-			var item = registry[key];
+			const item = registry[ key ];
+			
 			if ( item._fn ) {
 				if ( item._fn.isOwner ) {
 					registry[key] = item._fn;
@@ -63,10 +59,11 @@ Registry.prototype = {
 				changed = true;
 			}
 		});
+
 		return changed;
 	}
-};
+}
 
-registries = registryNames.map( name => new Registry( name, name === 'computed' ) );
+const registries = registryNames.map( name => new Registry( name, name === 'computed' ) );
 
 export default registries;

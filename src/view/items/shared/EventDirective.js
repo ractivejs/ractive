@@ -5,11 +5,11 @@ import createFunction from '../../../shared/createFunction';
 import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
+import { splitKeypath } from '../../../shared/keypaths';
 
-const eventPattern = /^event(?:\.(.+))?$/,
-	  argumentsPattern = /^arguments\.(\d*)$/,
-	  dollarArgsPattern = /^\$(\d*)$/;
-
+const eventPattern = /^event(?:\.(.+))?$/;
+const argumentsPattern = /^arguments\.(\d*)$/;
+const dollarArgsPattern = /^\$(\d*)$/;
 
 export default class EventDirective {
 	constructor ( owner, event, template ) {
@@ -53,7 +53,7 @@ export default class EventDirective {
 						// on-click="foo(event.node)"
 						return {
 							event: true,
-							keys: ref.length > 5 ? ref.slice( 6 ).split( '.' ) : [],
+							keys: ref.length > 5 ? splitKeypath( ref.slice( 6 ) ) : [],
 							unbind: noop
 						};
 					}
@@ -176,8 +176,8 @@ export default class EventDirective {
 
 
 			// make event available as `this.event`
-			const ractive = this.ractive,
-				  oldEvent = ractive.event;
+			const ractive = this.ractive;
+			const oldEvent = ractive.event;
 
 			ractive.event = event;
 			ractive[ this.method ].apply( ractive, args );

@@ -2,6 +2,7 @@ import { doc } from '../../config/environment';
 import { TEXT } from '../../config/types';
 import { escapeHtml } from '../../utils/html';
 import Item from './shared/Item';
+import { detachNode } from '../../utils/dom';
 
 export default class Text extends Item {
 	constructor ( options ) {
@@ -14,10 +15,7 @@ export default class Text extends Item {
 	}
 
 	detach () {
-		if ( !this.node.parentNode ) {
-			throw new Error( 'TODO an unexpected situation arose' );
-		}
-		return this.node.parentNode.removeChild( this.node );
+		return detachNode( this.node );
 	}
 
 	firstNode () {

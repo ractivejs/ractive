@@ -7,14 +7,17 @@ export default class Partial extends Mustache {
 	bind () {
 		super.bind();
 
+		// keep track of the reference name for future resets
+		this.refName = this.template.r;
+
 		// name matches take priority over expressions
-		let template = this.template.r ? getPartialTemplate( this.ractive, this.template.r, this.parentFragment ) || null : null;
+		let template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.parentFragment ) || null : null;
 
 		if ( template ) {
 			this.named = true;
 			this.setTemplate( this.template.r, template );
-		} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.template.r ) {
-			this.setTemplate( this.template.r, template );
+		} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.refName ) {
+			this.setTemplate( this.refName, template );
 		} else {
 			this.setTemplate( this.model.get() );
 		}
@@ -50,7 +53,17 @@ export default class Partial extends Mustache {
 	}
 
 	forceResetTemplate () {
-		this.partialTemplate = getPartialTemplate( this.ractive, this.name, this.parentFragment );
+		this.partialTemplate = undefined;
+
+		// on reset, check for the reference name first
+		if ( this.refName ) {
+			this.partialTemplate = getPartialTemplate( this.ractive, this.refName, this.parentFragment );
+		}
+
+		// then look for the resolved name
+		if ( !this.partialTemplate ) {
+			this.partialTemplate = getPartialTemplate( this.ractive, this.name, this.parentFragment );
+		}
 
 		if ( !this.partialTemplate ) {
 			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );

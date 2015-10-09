@@ -304,6 +304,18 @@ test( 'Partials with expressions may also have context', function( t ) {
 	t.htmlEqual( fixture.innerHTML, 'inverted - 1 : normal - 2');
 });
 
+test( 'Partials with context should still have access to special refs (#2164)', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{>foo bar.baz}}',
+		partials: {
+			foo: `{{ @keypath + '.bop' }}`
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bar.baz.bop' );
+});
+
 test( 'Partials .toString() works when not the first child of parent (#1163)', t => {
 	const ractive = new Ractive({
 		template: '<div>Foo {{>foo}}</div>',
@@ -800,4 +812,36 @@ test( 'Inline partials can override instance partials if they exist on a node di
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div><span>Something happens one</span></div><div><span>Something happens two</span></div>' );
+});
+
+test( 'resetting a dynamic partial to its reference name should replace the partial (#2185)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{>part1}}{{>part2}}',
+		partials: { part3: 'part3' },
+		data: { part1: 'part3', part2: 'nope' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'part3' );
+
+	r.resetPartial( 'part1', 'part1' );
+	t.htmlEqual( fixture.innerHTML, 'part1' );
+
+	r.resetPartial( 'part2', 'part2' );
+	t.htmlEqual( fixture.innerHTML, 'part1part2' );
+});
+
+test( `Partials can have context that starts with '.' (#1880)`, t => {
+	new Ractive({
+		el: fixture,
+		template: '{{#with foo}}{{>foo .bar}}{{/with}}',
+		data: {
+			foo: { bar: { baz: 'bat' } }
+		},
+		partials: {
+			foo: '{{.baz}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bat' );
 });

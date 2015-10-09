@@ -4,13 +4,11 @@ import { splitKeypath } from '../../shared/keypaths';
 import runloop from '../../global/runloop';
 
 export default function Ractive$set ( keypath, value ) {
-	var map, promise;
-
-	promise = runloop.start( this, true );
+	const promise = runloop.start( this, true );
 
 	// Set multiple keypaths in one go
 	if ( isObject( keypath ) ) {
-		map = keypath;
+		const map = keypath;
 
 		for ( keypath in map ) {
 			if ( map.hasOwnProperty( keypath) ) {

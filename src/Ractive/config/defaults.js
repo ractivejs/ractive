@@ -1,13 +1,10 @@
-import { TEMPLATE_VERSION } from '../../config/template';
-
-var defaultOptions = {
-
+export default {
 	// render placement:
 	el:                 void 0,
 	append:				false,
 
 	// template:
-	template:           { v: TEMPLATE_VERSION, t: [] },
+	template:           null,
 
 	// parse:     // TODO static delimiters?
 	preserveWhitespace: false,
@@ -36,5 +33,3 @@ var defaultOptions = {
 	css:                null,
 	noCssTransform:     false
 };
-
-export default defaultOptions;

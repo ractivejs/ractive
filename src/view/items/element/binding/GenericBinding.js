@@ -3,11 +3,9 @@ import { isNumeric } from '../../../../utils/is';
 import handleDomEvent from './handleDomEvent';
 
 function handleBlur () {
-	var value;
-
 	handleDomEvent.call( this );
 
-	value = this._ractive.binding.model.get();
+	const value = this._ractive.binding.model.get();
 	this.value = value == undefined ? '' : value;
 }
 
@@ -74,7 +72,7 @@ export default class GenericBinding extends Binding {
 	}
 
 	unrender () {
-		var node = this.element.node;
+		const node = this.element.node;
 		this.rendered = false;
 
 		node.removeEventListener( 'change', handleDomEvent, false );

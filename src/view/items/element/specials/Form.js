@@ -18,7 +18,7 @@ export default class Form extends Element {
 }
 
 function handleReset () {
-	var element = this._ractive.proxy;
+	const element = this._ractive.proxy;
 
 	runloop.start();
 	element.formBindings.forEach( updateModel );

@@ -15,11 +15,12 @@ function validate ( data ) {
 	}
 }
 
-var dataConfigurator = {
+export default {
 	name: 'data',
 
 	extend: ( Parent, proto, options ) => {
-		let key, value;
+		let key;
+		let value;
 
 		// check for non-primitives, which could cause mutation-related bugs
 		if ( options.data && isObject( options.data ) ) {
@@ -65,14 +66,12 @@ var dataConfigurator = {
 		return result || {};
 	},
 
-	reset: function ( ractive ) {
-		var result = this.init( ractive.constructor, ractive, ractive.viewmodel );
+	reset ( ractive ) {
+		const result = this.init( ractive.constructor, ractive, ractive.viewmodel );
 		ractive.viewmodel.root.set( result );
 		return true;
 	}
 };
-
-export default dataConfigurator;
 
 function combine ( parentValue, childValue ) {
 	validate( childValue );

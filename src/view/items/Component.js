@@ -216,6 +216,7 @@ export default class Component extends Item {
 
 		// update relevant mappings
 		const viewmodel = this.instance.viewmodel;
+		viewmodel.mappings = {};
 
 		if ( this.template.a ) {
 			Object.keys( this.template.a ).forEach( localKey => {

@@ -24,8 +24,10 @@ export default function initialise ( ractive, userOptions, options ) {
 	configHook.fire( ractive );
 	initHook.begin( ractive );
 
+	let fragment;
+
 	// Render virtual DOM
-	if ( ractive.template ) { // TODO ractive.template is always truthy, because of the defaults...
+	if ( ractive.template ) {
 		let cssIds;
 
 		if ( options.cssIds || ractive.cssId ) {
@@ -36,23 +38,18 @@ export default function initialise ( ractive, userOptions, options ) {
 			}
 		}
 
-		ractive.fragment = new Fragment({
+		ractive.fragment = fragment = new Fragment({
 			owner: ractive,
 			template: ractive.template,
 			cssIds,
 			indexRefs: options.indexRefs || {},
 			keyRefs: options.keyRefs || {}
-		});
+		}).bind( ractive.viewmodel );
 	}
 
 	initHook.end( ractive );
 
-	// TODO initHook moved to before binding... will this break
-	// this.findComponent inside oninit? Is that a problem?
-	// Should be onrender anyway, right?
-	if ( ractive.fragment ) {
-		ractive.fragment.bind( ractive.viewmodel );
-
+	if ( fragment ) {
 		// render automatically ( if `el` is specified )
 		const el = getElement( ractive.el );
 		if ( el ) {

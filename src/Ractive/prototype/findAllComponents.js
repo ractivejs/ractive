@@ -1,15 +1,13 @@
 import Query from './shared/Query';
 
 export default function Ractive$findAllComponents ( selector, options ) {
-	var liveQueries, query;
-
 	options = options || {};
-	liveQueries = this._liveComponentQueries;
+	let liveQueries = this._liveComponentQueries;
 
 	// Shortcut: if we're maintaining a live query with this
 	// selector, we don't need to traverse the parallel DOM
-	if ( query = liveQueries[ selector ] ) {
-
+	let query = liveQueries[ selector ];
+	if ( query ) {
 		// Either return the exact same query, or (if not live) a snapshot
 		return ( options && options.live ) ? query : query.slice();
 	}

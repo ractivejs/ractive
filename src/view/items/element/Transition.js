@@ -100,8 +100,6 @@ export default class Transition {
 		}
 
 		return new Promise( fulfil => {
-			var propertyNames, changedProperties, computedStyle, current, i, prop;
-
 			// Edge case - if duration is zero, set style synchronously and complete
 			if ( !options.duration ) {
 				this.setStyle( to );
@@ -110,20 +108,18 @@ export default class Transition {
 			}
 
 			// Get a list of the properties we're animating
-			propertyNames = Object.keys( to );
-			changedProperties = [];
+			const propertyNames = Object.keys( to );
+			let changedProperties = [];
 
 			// Store the current styles
-			computedStyle = getComputedStyle( this.node );
+			const computedStyle = getComputedStyle( this.node );
 
-			i = propertyNames.length;
+			let i = propertyNames.length;
 			while ( i-- ) {
-				prop = propertyNames[i];
-				current = computedStyle[ prefix( prop ) ];
+				const prop = propertyNames[i];
+				let current = computedStyle[ prefix( prop ) ];
 
-				if ( current === '0px' ) {
-					current = 0;
-				}
+				if ( current === '0px' ) current = 0;
 
 				// we need to know if we're actually changing anything
 				if ( current != to[ prop ] ) { // use != instead of !==, so we can compare strings with numbers
@@ -147,31 +143,25 @@ export default class Transition {
 	}
 
 	getStyle ( props ) {
-		var computedStyle, styles, i, prop, value;
-
-		computedStyle = getComputedStyle( this.node );
+		const computedStyle = getComputedStyle( this.node );
 
 		if ( typeof props === 'string' ) {
-			value = computedStyle[ prefix( props ) ];
-			if ( value === '0px' ) {
-				value = 0;
-			}
-			return value;
+			let value = computedStyle[ prefix( props ) ];
+			return value === '0px' ? 0 : value;
 		}
 
 		if ( !isArray( props ) ) {
 			throw new Error( 'Transition$getStyle must be passed a string, or an array of strings representing CSS properties' );
 		}
 
-		styles = {};
+		let styles = {};
 
-		i = props.length;
+		let i = props.length;
 		while ( i-- ) {
-			prop = props[i];
-			value = computedStyle[ prefix( prop ) ];
-			if ( value === '0px' ) {
-				value = 0;
-			}
+			const prop = props[i];
+			let value = computedStyle[ prefix( prop ) ];
+
+			if ( value === '0px' ) value = 0;
 			styles[ prop ] = value;
 		}
 
@@ -199,13 +189,12 @@ export default class Transition {
 	}
 
 	setStyle ( style, value ) {
-		var prop;
-
 		if ( typeof style === 'string' ) {
 			this.node.style[ prefix( style ) ] = value;
 		}
 
 		else {
+			let prop;
 			for ( prop in style ) {
 				if ( style.hasOwnProperty( prop ) ) {
 					this.node.style[ prefix( prop ) ] = style[ prop ];
@@ -217,10 +206,10 @@ export default class Transition {
 	}
 
 	start () {
-		var node, originalStyle, completed;
+		const node = this.node = this.owner.node;
+		const originalStyle = node.getAttribute( 'style' );
 
-		node = this.node = this.owner.node;
-		originalStyle = node.getAttribute( 'style' );
+		let completed;
 
 		// create t.complete() - we don't want this on the prototype,
 		// because we don't want `this` silliness when passing it as

@@ -4,7 +4,8 @@ import { findInstance } from '../../../shared/registry';
 
 // finds the component constructor in the registry or view hierarchy registries
 export default function getComponentConstructor ( ractive, name ) {
-	var Component, instance = findInstance( 'components', ractive, name );
+	const instance = findInstance( 'components', ractive, name );
+	let Component;
 
 	if ( instance ) {
 		Component = instance.components[ name ];

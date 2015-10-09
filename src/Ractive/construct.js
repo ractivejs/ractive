@@ -63,7 +63,8 @@ export default function construct ( ractive, options ) {
 }
 
 function combine ( a, b ) {
-	var c = a.slice(), i = b.length;
+	const c = a.slice();
+	let i = b.length;
 
 	while ( i-- ) {
 		if ( !~c.indexOf( b[i] ) ) {
@@ -75,15 +76,13 @@ function combine ( a, b ) {
 }
 
 function getAdaptors ( ractive, protoAdapt, options ) {
-	var adapt, magic, modifyArrays;
-
 	protoAdapt = protoAdapt.map( lookup );
-	adapt = ensureArray( options.adapt ).map( lookup );
+	let adapt = ensureArray( options.adapt ).map( lookup );
 
 	adapt = combine( protoAdapt, adapt );
 
-	magic = 'magic' in options ? options.magic : ractive.magic;
-	modifyArrays = 'modifyArrays' in options ? options.modifyArrays : ractive.modifyArrays;
+	const magic = 'magic' in options ? options.magic : ractive.magic;
+	const modifyArrays = 'modifyArrays' in options ? options.modifyArrays : ractive.modifyArrays;
 
 	if ( magic ) {
 		if ( !magicSupported ) {
@@ -128,9 +127,6 @@ function initialiseProperties ( ractive ) {
 	// storage for item configuration from instantiation to reset,
 	// like dynamic functions or original values
 	ractive._config = {};
-
-	// animations (so we can stop any in progress at teardown)
-	ractive._animations = [];
 
 	// nodes registry
 	ractive.nodes = {};

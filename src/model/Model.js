@@ -1,7 +1,9 @@
 import { capture } from '../global/capture';
+import Promise from '../utils/Promise';
 import { isEqual, isNumeric } from '../utils/is';
 import { removeFromArray } from '../utils/array';
 import { handleChange, mark, teardown } from '../shared/methodCallers';
+import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
@@ -35,10 +37,12 @@ export default class Model {
 
 		this.value = undefined;
 
+		this.ticker = null;
+
 		if ( parent ) {
 			this.parent = parent;
 			this.root = parent.root;
-			this.key = key;
+			this.key = unescape( key );
 			this.isReadonly = parent.isReadonly;
 
 			if ( parent.value ) {
@@ -80,6 +84,83 @@ export default class Model {
 		}
 
 		this.unresolvedByKey[ key ].push( resolver );
+	}
+
+	animate ( from, to, options, interpolator ) {
+		if ( this.ticker ) this.ticker.stop();
+
+		let fulfilPromise;
+		const promise = new Promise( fulfil => fulfilPromise = fulfil );
+
+		this.ticker = new Ticker({
+			duration: options.duration,
+			easing: options.easing,
+			step: t => {
+				const value = interpolator( t );
+				this.applyValue( value );
+				if ( options.step ) options.step( t, value );
+			},
+			complete: () => {
+				this.applyValue( to );
+				if ( options.complete ) options.complete( to );
+
+				this.ticker = null;
+				fulfilPromise();
+			}
+		});
+
+		promise.stop = this.ticker.stop;
+		return promise;
+	}
+
+	applyValue ( value ) {
+		if ( isEqual( value, this.value ) ) return;
+
+		// TODO deprecate this nonsense
+		this.root.changes[ this.getKeypath() ] = value;
+
+		if ( this.parent.wrapper && this.parent.wrapper.set ) {
+			this.parent.wrapper.set( this.key, value );
+			this.parent.value = this.parent.wrapper.get();
+
+			this.value = this.parent.value[ this.key ];
+			// TODO should this value be adapted? probably
+		} else if ( this.wrapper ) {
+			const shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
+
+			if ( shouldTeardown ) {
+				this.wrapper.teardown();
+				this.wrapper = null;
+				this.parent.value[ this.key ] = this.value = value;
+				this.adapt();
+			} else {
+				this.value = this.wrapper.get();
+			}
+		} else {
+			const parentValue = this.parent.value || this.parent.createBranch( this.key );
+			parentValue[ this.key ] = value;
+
+			this.value = value;
+			this.adapt();
+		}
+
+		this.parent.clearUnresolveds();
+		this.clearUnresolveds();
+
+		// notify dependants
+		const previousOriginatingModel = originatingModel; // for the array.length special case
+		originatingModel = this;
+
+		this.children.forEach( mark );
+		this.deps.forEach( handleChange );
+
+		let parent = this.parent;
+		while ( parent ) {
+			parent.deps.forEach( handleChange );
+			parent = parent.parent;
+		}
+
+		originatingModel = previousOriginatingModel;
 	}
 
 	clearUnresolveds ( specificKey ) {
@@ -185,7 +266,7 @@ export default class Model {
 
 	getKeyModel () {
 		// TODO... different to IndexModel because key can never change
-		return new KeyModel( this.key );
+		return new KeyModel( escape( this.key ) );
 	}
 
 	getKeypathModel () {
@@ -194,12 +275,24 @@ export default class Model {
 
 	getKeypath () {
 		// TODO keypaths inside components... tricky
-		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
+		return this.parent.isRoot ? escape( this.key ) : this.parent.getKeypath() + '.' + escape( this.key );
 	}
 
 	has ( key ) {
 		const value = this.get();
-		return value && hasProp.call( value, key );
+		if ( !value ) return false;
+
+		key = unescape( key );
+		if ( hasProp.call( value, key ) ) return true;
+
+		// We climb up the constructor chain to find if one of them contains the key
+		let constructor = value.constructor;
+		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
+			if ( hasProp.call( constructor.prototype, key ) ) return true;
+			constructor = constructor.constructor;
+		}
+
+		return false;
 	}
 
 	joinKey ( key ) {
@@ -287,53 +380,8 @@ export default class Model {
 	}
 
 	set ( value ) {
-		if ( isEqual( value, this.value ) ) return;
-
-		// TODO deprecate this nonsense
-		this.root.changes[ this.getKeypath() ] = value;
-
-		if ( this.parent.wrapper && this.parent.wrapper.set ) {
-			this.parent.wrapper.set( this.key, value );
-			this.parent.value = this.parent.wrapper.get();
-
-			this.value = this.parent.value[ this.key ];
-			// TODO should this value be adapted? probably
-		} else if ( this.wrapper ) {
-			const shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
-
-			if ( shouldTeardown ) {
-				this.wrapper.teardown();
-				this.wrapper = null;
-				this.parent.value[ this.key ] = this.value = value;
-				this.adapt();
-			} else {
-				this.value = this.wrapper.get();
-			}
-		} else {
-			const parentValue = this.parent.value || this.parent.createBranch( this.key );
-			parentValue[ this.key ] = value;
-
-			this.value = value;
-			this.adapt();
-		}
-
-		this.parent.clearUnresolveds();
-		this.clearUnresolveds();
-
-		// notify dependants
-		const previousOriginatingModel = originatingModel; // for the array.length special case
-		originatingModel = this;
-
-		this.children.forEach( mark );
-		this.deps.forEach( handleChange );
-
-		let parent = this.parent;
-		while ( parent ) {
-			parent.deps.forEach( handleChange );
-			parent = parent.parent;
-		}
-
-		originatingModel = previousOriginatingModel;
+		if ( this.ticker ) this.ticker.stop();
+		this.applyValue( value );
 	}
 
 	shuffle ( newIndices ) {
@@ -408,4 +456,18 @@ export default class Model {
 		this.children.forEach( updateKeypathDependants );
 		if ( this.keypathModel ) this.keypathModel.handleChange();
 	}
+}
+
+function escape( key ) {
+	if ( typeof key === 'string' ) {
+		return key.replace( '.', '\\.' );
+	}
+	return key;
+}
+
+function unescape( key ) {
+	if ( typeof key === 'string' ) {
+		return key.replace( '\\.', '.' );
+	}
+	return key;
 }

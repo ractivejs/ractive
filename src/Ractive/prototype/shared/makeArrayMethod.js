@@ -1,13 +1,13 @@
 import { isArray } from '../../../utils/is';
-import { normalise } from '../../../shared/keypaths';
+import { splitKeypath } from '../../../shared/keypaths';
 import runloop from '../../../global/runloop';
 import getNewIndices from '../../../shared/getNewIndices';
 
-var arrayProto = Array.prototype;
+const arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		const model = this.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
+		const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
 		const array = model.get();
 
 		if ( !isArray( array ) ) {
