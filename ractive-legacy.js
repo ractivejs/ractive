@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 16:43:58 GMT+0000 (UTC) - commit 333c6542137311c0da9f00ffe2182b1d7e1838d2
+	Fri Oct 09 2015 19:28:58 GMT+0000 (UTC) - commit 1fea89788b14c26ed5031621fa0705712afd9fbd
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2118,6 +2118,8 @@ var classCallCheck = function (instance, Constructor) {
   	if (token = parser.matchPattern(namePattern$1)) {
   		return token;
   	}
+
+  	return null;
   }
 
   function readKeyValuePair(parser) {
@@ -2128,6 +2130,8 @@ var classCallCheck = function (instance, Constructor) {
   	// allow whitespace between '{' and key
   	parser.allowWhitespace();
 
+  	var refKey = parser.nextChar() !== '\'' && parser.nextChar() !== '"';
+
   	key = readKey(parser);
   	if (key === null) {
   		parser.pos = start;
@@ -2136,6 +2140,22 @@ var classCallCheck = function (instance, Constructor) {
 
   	// allow whitespace between key and ':'
   	parser.allowWhitespace();
+
+  	// es2015 shorthand property
+  	if (refKey && (parser.nextChar() === ',' || parser.nextChar() === '}')) {
+  		if (!namePattern$1.test(key)) {
+  			parser.error('Expected a valid reference, but found \'' + key + '\' instead.');
+  		}
+
+  		return {
+  			t: KEY_VALUE_PAIR,
+  			k: key,
+  			v: {
+  				t: REFERENCE,
+  				n: key
+  			}
+  		};
+  	}
 
   	// next character must be ':'
   	if (!parser.matchString(':')) {

@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 16:43:58 GMT+0000 (UTC) - commit 333c6542137311c0da9f00ffe2182b1d7e1838d2
+	Fri Oct 09 2015 19:28:58 GMT+0000 (UTC) - commit 1fea89788b14c26ed5031621fa0705712afd9fbd
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9397,6 +9397,8 @@ var classCallCheck = function (instance, Constructor) {
   	if (token = parser.matchPattern(name)) {
   		return token;
   	}
+
+  	return null;
   }
 
   // simple JSON parser, without the restrictions of JSON parse
