@@ -1,6 +1,7 @@
-import { KEY_VALUE_PAIR } from '../../../../../../config/types';
+import { KEY_VALUE_PAIR, REFERENCE } from '../../../../../../config/types';
 import readKey from '../../../shared/readKey';
 import readExpression from '../../../../readExpression';
+import { name as namePattern } from '../../../shared/patterns';
 
 export default function readKeyValuePair ( parser ) {
 	var start, key, value;
@@ -10,6 +11,8 @@ export default function readKeyValuePair ( parser ) {
 	// allow whitespace between '{' and key
 	parser.allowWhitespace();
 
+	const refKey = parser.nextChar() !== '\'' && parser.nextChar() !== '"';
+
 	key = readKey( parser );
 	if ( key === null ) {
 		parser.pos = start;
@@ -18,6 +21,22 @@ export default function readKeyValuePair ( parser ) {
 
 	// allow whitespace between key and ':'
 	parser.allowWhitespace();
+
+	// es2015 shorthand property
+	if ( refKey && ( parser.nextChar() === ',' || parser.nextChar() === '}' ) ) {
+		if ( !namePattern.test( key ) ) {
+			parser.error( `Expected a valid reference, but found '${key}' instead.` );
+		}
+
+		return {
+			t: KEY_VALUE_PAIR,
+			k: key,
+			v: {
+				t: REFERENCE,
+				n: key
+			}
+		};
+	}
 
 	// next character must be ':'
 	if ( !parser.matchString( ':' ) ) {
