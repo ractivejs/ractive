@@ -96,4 +96,8 @@ export default class Yielder extends Item {
 	unrender ( shouldDestroy ) {
 		this.fragment.unrender( shouldDestroy );
 	}
+
+	update () {
+		this.fragment.update();
+	}
 }

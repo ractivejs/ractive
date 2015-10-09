@@ -848,6 +848,23 @@ test( 'partial expressions will use inline content if they resolve to a pre-pars
 	t.htmlEqual( fixture.innerHTML, 'turnips are tasty' );
 });
 
+test( 'resetting a dynamic partial to its reference name should replace the partial (#2185)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{>part1}}{{>part2}}',
+		partials: { part3: 'part3' },
+		data: { part1: 'part3', part2: 'nope' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'part3' );
+
+	r.resetPartial( 'part1', 'part1' );
+	t.htmlEqual( fixture.innerHTML, 'part1' );
+
+	r.resetPartial( 'part2', 'part2' );
+	t.htmlEqual( fixture.innerHTML, 'part1part2' );
+});
+
 test( `Partials can have context that starts with '.' (#1880)`, t => {
 	new Ractive({
 		el: fixture,

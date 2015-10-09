@@ -11,7 +11,7 @@ globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIC
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
-var legalReference = /^[a-zA-Z$_0-9]+(?:(?:\.[a-zA-Z$_0-9]+)|(?:\[[0-9]+\]))*/;
+var legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
 var relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
 
 export default function readReference ( parser ) {
