@@ -918,3 +918,14 @@ test( 'textarea with a single static interpolator as content should not set up a
 	r.updateModel( 'foo' );
 	t.equal( r.get( 'foo' ), 'baz' );
 });
+
+test( 'teaxtareas with non-model context should still bind correctly (#2099)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with { foo: 'bar' }}}<textarea>{{.foo}}</textarea><button on-click="set(@keypath + '.foo', 'baz')">click me</button>{{/with}}`
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.find( 'button' ).click();
+	t.equal( r.find( 'textarea' ).value, 'baz' );
+});

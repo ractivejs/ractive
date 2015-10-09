@@ -9,7 +9,7 @@ export default class Textarea extends Input {
 		if ( template.f && (!template.a || !template.a.value) && isBindable( { template: template.f } ) ) {
 			if ( !template.a ) template.a = {};
 			template.a.value = template.f;
-			template.f = [];
+			delete template.f;
 		}
 
 		super( options );
