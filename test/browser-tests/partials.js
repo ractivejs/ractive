@@ -585,10 +585,10 @@ test( 'Inline partials may be defined with a partial section', t => {
 		template: `
 			{{#partial foo}}foo{{/partial}}
 			{{>foo}}
-			<Widget />
+			<Widget/>
 			<Widget>
 				{{#partial foo}}bar{{/partial}}
-			<Widget>`,
+			</Widget>`,
 		components: {
 			Widget: Ractive.extend({
 				template: '{{>foo}}'
