@@ -280,7 +280,26 @@ export default class Model {
 
 	has ( key ) {
 		const value = this.get();
-		return value && hasProp.call( value, key );
+		if ( !value ) {
+			return false;
+		}
+
+		var hasProperty = hasProp.call( value, key );
+		if ( hasProperty ) {
+			return true;
+		}
+
+		// We climb up the constructor chain to find if one of them contains the key
+		var constructor = value.constructor;
+		while ( constructor !== Function && constructor !== Array && constructor !== Object) {
+			if ( hasProp.call( constructor.prototype, key ) ) {
+				return true;
+			}
+
+			constructor = constructor.constructor;
+		}
+
+		return false;
 	}
 
 	joinKey ( key ) {

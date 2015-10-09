@@ -1172,6 +1172,23 @@ const renderTests = [
 		name: 'No whitespace other than leading/trailing line break is stripped (#1851)',
 		template: '<pre>\r\tfoo\n\t</pre><textarea>\r\n\tfoo\r\t</textarea>',
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
+	},
+	{
+		name: 'Model should be able to properly resolve class instances as context',
+		template: '<div class="{{prototypeProperty}}"></div>{{#items}}<div class="{{prototypeProperty}}"></div>{{/items}}',
+		data: function () {
+			var parent = function () {};
+			parent.prototype.prototypeProperty = 'hello';
+
+			var child = function () {};
+			child.prototype = new parent();
+
+			var data = new child();
+			data.items = [data];
+
+			return data;
+		},
+		result: '<div class="hello"></div><div class="hello"></div>'
 	}
 ];
 
