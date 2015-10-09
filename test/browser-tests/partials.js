@@ -847,3 +847,18 @@ test( 'partial expressions will use inline content if they resolve to a pre-pars
 	r.set( 'foo', Ractive.parse( '{{bar}}s are tasty' ) );
 	t.htmlEqual( fixture.innerHTML, 'turnips are tasty' );
 });
+
+test( `Partials can have context that starts with '.' (#1880)`, t => {
+	new Ractive({
+		el: fixture,
+		template: '{{#with foo}}{{>foo .bar}}{{/with}}',
+		data: {
+			foo: { bar: { baz: 'bat' } }
+		},
+		partials: {
+			foo: '{{.baz}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bat' );
+});

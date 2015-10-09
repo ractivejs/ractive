@@ -11,9 +11,9 @@ export default function readPartial ( parser, tag ) {
 	// blindly. Instead, we use the `relaxedNames` flag to indicate that
 	// `foo-bar` should be read as a single name, rather than 'subtract
 	// bar from foo'
-	parser.relaxedNames = true;
+	parser.relaxedNames = parser.strictRefinement = true;
 	const expression = readExpression( parser );
-	parser.relaxedNames = false;
+	parser.relaxedNames = parser.strictRefinement = false;
 
 	parser.allowWhitespace();
 	const context = readExpression( parser );

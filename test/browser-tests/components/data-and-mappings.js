@@ -1061,3 +1061,39 @@ test( 'Bindings, mappings, and upstream computations should not cause infinite m
 
 	t.htmlEqual( fixture.innerHTML, '{"bar":""}<input />' );
 });
+
+test( 'components should update their mappings on rebind to prevent weirdness with shuffling (#2147)', t => {
+	const Item = Ractive.extend({
+		template: '{{value}}'
+	});
+
+	const ractive = new Ractive({
+		el:fixture,
+		template: `
+			<div>--23--</div>
+			<div id="s1">{{#s1}}<Item />{{/}}</div>
+			<div>--13--</div>
+			<div id="s2">{{#s2}}<Item />{{/}}</div>
+			<div>--12--</div>
+			<div id="s3">{{#s3}}<Item />{{/}}</div>
+		`,
+		components: { Item },
+	});
+
+	const items = [ { value: 1 }, { value: 2 }, { value: 3 } ];
+
+	ractive.set('s1', items.slice() );
+	ractive.splice( 's1', 0, 1 );
+	t.deepEqual( ractive.get( 's1' ), [ { value: 2 }, { value: 3 } ] );
+	t.htmlEqual( ractive.find( '#s1' ).innerHTML, '23' );
+
+	ractive.set('s2', items.slice() );
+	ractive.splice( 's2', 1, 1 );
+	t.deepEqual( ractive.get( 's2' ), [ { value: 1 }, { value: 3 } ] );
+	t.htmlEqual( ractive.find( '#s2' ).innerHTML, '13' );
+
+	ractive.set('s3', items.slice() );
+	ractive.splice( 's3', 2, 1 );
+	t.deepEqual( ractive.get( 's3' ), [ { value: 1 }, { value: 2 } ] );
+	t.htmlEqual( ractive.find( '#s3' ).innerHTML, '12' );
+});

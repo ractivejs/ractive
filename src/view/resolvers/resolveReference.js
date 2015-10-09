@@ -9,6 +9,8 @@ export default function resolveReference ( fragment, ref ) {
 	if ( ref === '@keypath' ) return context.getKeypathModel();
 	if ( ref === '@index' ) {
 		const repeater = fragment.findRepeatingFragment();
+		// make sure the found fragment is actually an iteration
+		if ( !repeater.isIteration ) return;
 		return repeater.context.getIndexModel( repeater.index );
 	}
 	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.getKeyModel();
