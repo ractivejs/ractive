@@ -1219,6 +1219,30 @@ const renderTests = [
 		template: `{{foo[key]}}`,
 		data: { foo: { 'bar.baz': 'yep' }, key: 'bar.baz' },
 		result: 'yep'
+	},
+	{
+		name: 'Rendering order of repeated section with complex condition (#2204)',
+		template: `
+			<div>
+				{{#each fields :n}}
+					{{#if n === 0 && foo }}
+						{{this}}
+					{{else}}
+						{{this}}
+					{{/if}}
+				{{/each}}
+			</div>
+		`,
+		data: {
+			fields: [ 'x', 'y' ],
+			foo: true
+		},
+		result: '<div>xy</div>',
+		new_data: {
+			fields: [ 'x', 'y' ],
+			foo: false
+		},
+		new_result: '<div>xy</div>'
 	}
 ];
 
