@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 01:17:13 GMT+0000 (UTC) - commit cdb5c621ac612d0e6d079f43bd333c1d39f9d076
+	Fri Oct 09 2015 01:55:59 GMT+0000 (UTC) - commit 10e95601d5c3c35d5ac89d77d112ff21b3971ce7
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7321,7 +7321,7 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		// create children
-  		if (options.template.f) {
+  		if (options.template.f && !options.noContent) {
   			this.fragment = new Fragment({
   				template: options.template.f,
   				owner: this,
@@ -7663,11 +7663,17 @@ var classCallCheck = function (instance, Constructor) {
 
   		var template = options.template;
 
-  		if (template.f && (!template.a || !template.a.value) && isBindable({ template: template.f })) {
-  			if (!template.a) template.a = {};
-  			template.a.value = template.f;
-  			delete template.f;
+  		// if there is a bindable value, there should be no body
+  		if (template.a && template.a.value && isBindable({ template: template.a.value })) {
+  			options.noContent = true;
   		}
+
+  		// otherwise, if there is a single bindable interpolator as content, move it to the value attr
+  		else if (template.f && (!template.a || !template.a.value) && isBindable({ template: template.f })) {
+  				if (!template.a) template.a = {};
+  				template.a.value = template.f;
+  				options.noContent = true;
+  			}
 
   		_Input.call(this, options);
   	}
