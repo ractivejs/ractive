@@ -910,6 +910,48 @@ test( 'checkbox name binding with the same value on multiple boxes still works (
 	t.ok( inputs[0].checked && inputs[1].checked && inputs[2].checked );
 });
 
+test( 'checkbox name bindings work across component boundaries (#2163)', t => {
+	const things = [
+		{id: 1, color: '#cc8'},
+		{id: 2, color: '#c88'},
+		{id: 4, color: '#8c8'},
+		{id: 8, color: '#8cc'}
+	];
+
+	const Switcher = Ractive.extend({
+		template: `
+			<label class='switcher'>
+				<input type='checkbox' value='{{id}}' name='{{name}}'>
+				{{yield}}
+			</label>`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#each things}}
+				<Switcher name='{{filters}}'>{{id}}</Switcher>
+			{{/each}}`,
+		data () {
+			return { things, filters: [ 2, 4 ] };
+		},
+		components: { Switcher }
+	});
+
+	Ractive.components.Switcher = Switcher;
+
+	const inputs = ractive.findAll( 'input' );
+	const checked = () => inputs.map( input => input.checked );
+
+	t.deepEqual( checked(), [ false, true, true, false ]);
+
+	fire( inputs[0], 'click' );
+	t.deepEqual( checked(), [ true, true, true, false ]);
+
+	fire( inputs[1], 'click' );
+	t.deepEqual( checked(), [ true, false, true, false ]);
+});
+
 test( 'textarea with a single interpolator as content should set up a twoway binding (#2197)', t => {
 	const r = new Ractive({
 		el: fixture,
