@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 16:20:47 GMT+0000 (UTC) - commit 67bfb1de347973463b9bf60552b5ccf0875ef0f9
+	Fri Oct 09 2015 16:43:58 GMT+0000 (UTC) - commit 333c6542137311c0da9f00ffe2182b1d7e1838d2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7096,6 +7096,10 @@ var classCallCheck = function (instance, Constructor) {
   		this.fragment.unrender(shouldDestroy);
   	};
 
+  	Yielder.prototype.update = function update() {
+  		this.fragment.update();
+  	};
+
   	return Yielder;
   })(Item);
 
@@ -9010,18 +9014,23 @@ var classCallCheck = function (instance, Constructor) {
   	return CheckboxBinding;
   })(Binding);
 
-  var groups = {};
-  function getBindingGroup(id, group, model, getValue) {
-  	var hash = id + group + model.getKeypath();
-  	return groups[hash] || (groups[hash] = new BindingGroup(model, getValue));
+  function getBindingGroup(group, model, getValue) {
+  	var hash = group + "-bindingGroup";
+  	return model[hash] || (model[hash] = new BindingGroup(hash, model, getValue));
   }
 
   var BindingGroup = (function () {
-  	function BindingGroup(model, getValue) {
+  	function BindingGroup(hash, model, getValue) {
+  		var _this = this;
+
   		classCallCheck(this, BindingGroup);
 
   		this.model = model;
-  		this.getValue = getValue;
+  		this.hash = hash;
+  		this.getValue = function () {
+  			_this.value = getValue.call(_this);
+  			return _this.value;
+  		};
 
   		this.bindings = [];
   	}
@@ -9031,6 +9040,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	BindingGroup.prototype.bind = function bind() {
+  		this.value = this.model.get();
   		this.model.registerTwowayBinding(this);
   		this.bound = true;
   	};
@@ -9045,24 +9055,26 @@ var classCallCheck = function (instance, Constructor) {
   	BindingGroup.prototype.unbind = function unbind() {
   		this.model.unregisterTwowayBinding(this);
   		this.bound = false;
+  		delete this.model[this.hash];
   	};
 
   	return BindingGroup;
   })();
 
-  function isChecked(binding) {
-  	return binding.node.checked;
-  }
-
-  function getValue$1(binding) {
-  	return binding.element.getAttribute('value');
-  }
-
-  function getGroupValue() {
-  	return this.bindings.filter(isChecked).map(getValue$1);
-  }
-
   var push$1 = [].push;
+
+  function getValue$1() {
+  	var all = this.bindings.filter(function (b) {
+  		return b.node.checked;
+  	}).map(function (b) {
+  		return b.element.getAttribute('value');
+  	});
+  	var res = [];
+  	all.forEach(function (v) {
+  		if (!arrayContains(res, v)) res.push(v);
+  	});
+  	return res;
+  }
 
   var CheckboxNameBinding = (function (_Binding) {
   	inherits(CheckboxNameBinding, _Binding);
@@ -9077,7 +9089,7 @@ var classCallCheck = function (instance, Constructor) {
   		// Each input has a reference to an array containing it and its
   		// group, as two-way binding depends on being able to ascertain
   		// the status of all inputs within the group
-  		this.group = getBindingGroup(this.ractive._guid, 'checkboxes', this.model, getGroupValue);
+  		this.group = getBindingGroup('checkboxes', this.model, getValue$1);
   		this.group.add(this);
 
   		if (this.noInitialValue) {
@@ -9090,7 +9102,9 @@ var classCallCheck = function (instance, Constructor) {
   			var existingValue = this.model.get();
   			var bindingValue = this.element.getAttribute('value');
 
-  			push$1.call(existingValue, bindingValue); // to avoid triggering runloop with array adaptor
+  			if (!arrayContains(existingValue, bindingValue)) {
+  				push$1.call(existingValue, bindingValue); // to avoid triggering runloop with array adaptor
+  			}
   		}
   	}
 
@@ -9119,11 +9133,18 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	CheckboxNameBinding.prototype.getValue = function getValue() {
-  		return this.group.getValue();
+  		return this.group.value;
   	};
 
   	CheckboxNameBinding.prototype.handleChange = function handleChange() {
   		this.isChecked = this.element.node.checked;
+  		this.group.value = this.model.get();
+  		var value = this.element.getAttribute('value');
+  		if (this.isChecked && !arrayContains(this.group.value, value)) {
+  			this.group.value.push(value);
+  		} else if (!this.isChecked && arrayContains(this.group.value, value)) {
+  			removeFromArray(this.group.value, value);
+  		}
   		_Binding.prototype.handleChange.call(this);
   	};
 
@@ -9429,7 +9450,6 @@ var classCallCheck = function (instance, Constructor) {
 
   		_Binding.call(this, element, 'checked');
 
-  		// TODO this should use getBindingGroup
   		this.siblings = getSiblings(this.ractive._guid + this.element.getAttribute('name'));
   		this.siblings.push(this);
   	}
@@ -9470,11 +9490,12 @@ var classCallCheck = function (instance, Constructor) {
   	return RadioBinding;
   })(Binding);
 
-  function getGroupValue$1() {
-  	var i = this.bindings.length;
-  	while (i--) {
-  		var binding = this.bindings[i];
-  		if (binding.node.checked) return binding.element.getAttribute('value');
+  function getValue$2() {
+  	var checked = this.bindings.filter(function (b) {
+  		return b.node.checked;
+  	});
+  	if (checked.length > 0) {
+  		return checked[0].element.getAttribute('value');
   	}
   }
 
@@ -9486,8 +9507,12 @@ var classCallCheck = function (instance, Constructor) {
 
   		_Binding.call(this, element, 'name');
 
-  		this.group = getBindingGroup(this.ractive._guid, 'radioname', this.model, getGroupValue$1);
+  		this.group = getBindingGroup('radioname', this.model, getValue$2);
   		this.group.add(this);
+
+  		if (element.checked) {
+  			this.group.value = this.getValue();
+  		}
   	}
 
   	RadioNameBinding.prototype.bind = function bind() {
@@ -9521,6 +9546,7 @@ var classCallCheck = function (instance, Constructor) {
   		// If this <input> is the one that's checked, then the value of its
   		// `name` model gets set to its value
   		if (this.node.checked) {
+  			this.group.value = this.getValue();
   			_Binding.prototype.handleChange.call(this);
   		}
   	};
