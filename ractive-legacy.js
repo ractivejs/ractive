@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 19:28:58 GMT+0000 (UTC) - commit 1fea89788b14c26ed5031621fa0705712afd9fbd
+	Fri Oct 09 2015 19:33:51 GMT+0000 (UTC) - commit a7ae62289b721f362c0a54f1842b9756646b84be
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7063,6 +7063,7 @@ var classCallCheck = function (instance, Constructor) {
   		_Mustache.call(this, options);
 
   		this.sectionType = options.template.n || null;
+  		this.templateSectionType = this.sectionType;
   		this.fragment = null;
   	}
 
@@ -7071,48 +7072,8 @@ var classCallCheck = function (instance, Constructor) {
 
   		// if we managed to bind, we need to create children
   		if (this.model) {
-  			var value = this.model.parent ? this.model.get() : this.model.value;
-  			var fragment = undefined;
-
-  			if (!this.sectionType) this.sectionType = getType(value, this.template.i);
-
-  			if (isEmpty(value) && this.sectionType !== SECTION_WITH) {
-  				// TODO again, WITH should not render if empty
-  				if (this.sectionType === SECTION_UNLESS) {
-  					this.fragment = new Fragment({
-  						owner: this,
-  						template: this.template.f
-  					}).bind();
-  				}
-
-  				// otherwise, create no children
-  				return;
-  			}
-
-  			if (this.sectionType === SECTION_UNLESS) return;
-
-  			if (this.sectionType === SECTION_IF) {
-  				fragment = new Fragment({
-  					owner: this,
-  					template: this.template.f
-  				}).bind();
-  			}
-
-  			// TODO should only be WITH, and it should behave like IF_WITH
-  			else if (this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH) {
-  					fragment = new Fragment({
-  						owner: this,
-  						template: this.template.f
-  					}).bind(this.model);
-  				} else {
-  					fragment = new RepeatedFragment({
-  						owner: this,
-  						template: this.template.f,
-  						indexRef: this.template.i
-  					}).bind(this.model);
-  				}
-
-  			this.fragment = fragment;
+  			this.dirty = true;
+  			this.update();
   		} else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
   			this.fragment = new Fragment({
   				owner: this,
@@ -7186,15 +7147,22 @@ var classCallCheck = function (instance, Constructor) {
   		this.rendered = false;
   	};
 
-  	// TODO DRY this out - lot of repeated stuff between this and bind()
-
   	Section.prototype.update = function update() {
   		if (!this.dirty) return;
   		if (!this.model) return; // TODO can this happen?
 
-  		var value = this.model.get();
+  		var value = this.model.isRoot ? this.model.value : this.model.get();
+  		var lastType = this.sectionType;
 
-  		if (this.sectionType === null) this.sectionType = getType(value, this.template.i);
+  		// watch for switching section types
+  		if (this.sectionType === null || this.templateSectionType === null) this.sectionType = getType(value, this.template.i);
+  		if (lastType && lastType !== this.sectionType && this.fragment) {
+  			if (this.rendered) {
+  				this.fragment.unbind().unrender(true);
+  			}
+
+  			this.fragment = null;
+  		}
 
   		var newFragment = undefined;
 
