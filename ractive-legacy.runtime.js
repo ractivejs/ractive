@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Oct 08 2015 21:45:01 GMT+0000 (UTC) - commit 973b4a02916083edbdf61dc37396361b76b94be2
+	Fri Oct 09 2015 01:17:13 GMT+0000 (UTC) - commit cdb5c621ac612d0e6d079f43bd333c1d39f9d076
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8109,7 +8109,7 @@ var classCallCheck = function (instance, Constructor) {
   		if (template.f && (!template.a || !template.a.value) && isBindable({ template: template.f })) {
   			if (!template.a) template.a = {};
   			template.a.value = template.f;
-  			template.f = [];
+  			delete template.f;
   		}
 
   		_Input.call(this, options);
