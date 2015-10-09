@@ -16,6 +16,7 @@ import { createElement, matches } from '../../utils/dom';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
+import { detachNode } from '../../utils/dom';
 
 function makeDirty ( query ) {
 	query.makeDirty();
@@ -97,7 +98,7 @@ export default class Element extends Item {
 		}
 
 		// create children
-		if ( options.template.f ) {
+		if ( options.template.f && !options.noContent ) {
 			this.fragment = new Fragment({
 				template: options.template.f,
 				owner: this,
@@ -145,10 +146,7 @@ export default class Element extends Item {
 	detach () {
 		if ( this.decorator ) this.decorator.unrender();
 
-		const parentNode = this.node.parentNode;
-		if ( parentNode ) parentNode.removeChild( this.node );
-
-		return this.node;
+		return detachNode( this.node );
 	}
 
 	find ( selector ) {

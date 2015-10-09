@@ -1181,6 +1181,41 @@ const renderTests = [
 		new_data: { items: [1,2] },
 		new_result: '12'
 	},
+	{
+		name: 'Model should be able to properly resolve class instances as context',
+		template: '<div class="{{prototypeProperty}}"></div>{{#items}}<div class="{{prototypeProperty}}"></div>{{/items}}',
+		data () {
+			function parent () {}
+			parent.prototype.prototypeProperty = 'hello';
+
+			function child () {}
+			child.prototype = new parent();
+
+			let data = new child();
+			data.items = [data];
+
+			return data;
+		},
+		result: '<div class="hello"></div><div class="hello"></div>'
+	},
+	{
+		name: `Escaped '.'s in keypaths`,
+		template: `{{foo\\.bar}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
+		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		result: '123'
+	},
+	{
+		name: `Escaped '.'s in refined keypaths`,
+		template: `{{.['foo.bar']}}{{foo['bar.baz']}}{{foo['bar']['baz']}}`,
+		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		result: '123'
+	},
+	{
+		name: `Escaped '.'s in reference expressions`,
+		template: `{{foo[key]}}`,
+		data: { foo: { 'bar.baz': 'yep' }, key: 'bar.baz' },
+		result: 'yep'
+	}
 ];
 
 function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }

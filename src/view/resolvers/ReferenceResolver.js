@@ -1,4 +1,4 @@
-import { normalise } from '../../shared/keypaths';
+import { splitKeypath, normalise } from '../../shared/keypaths';
 import { removeFromArray } from '../../utils/array';
 import resolveAmbiguousReference from './resolveAmbiguousReference';
 
@@ -8,7 +8,7 @@ export default class ReferenceResolver {
 		this.reference = normalise( reference );
 		this.callback = callback;
 
-		this.keys = reference.split( '.' );
+		this.keys = splitKeypath( reference );
 		this.resolved = false;
 
 		// TODO the consumer should take care of addUnresolved

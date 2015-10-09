@@ -2,10 +2,11 @@ import { doc } from '../../config/environment';
 import { escapeHtml } from '../../utils/html';
 import { safeToStringValue } from '../../utils/dom';
 import Mustache from './shared/Mustache';
+import { detachNode } from '../../utils/dom';
 
 export default class Interpolator extends Mustache {
 	detach () {
-		return this.node.parentNode.removeChild( this.node );
+		return detachNode( this.node );
 	}
 
 	firstNode () {
