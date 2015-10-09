@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 16:07:42 GMT+0000 (UTC) - commit 8baec685d7a6d59301bb5d448beb463ac24bced1
+	Fri Oct 09 2015 16:20:47 GMT+0000 (UTC) - commit 67bfb1de347973463b9bf60552b5ccf0875ef0f9
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6063,14 +6063,17 @@ var classCallCheck = function (instance, Constructor) {
   	Partial.prototype.bind = function bind() {
   		_Mustache.prototype.bind.call(this);
 
+  		// keep track of the reference name for future resets
+  		this.refName = this.template.r;
+
   		// name matches take priority over expressions
-  		var template = this.template.r ? getPartialTemplate(this.ractive, this.template.r, this.parentFragment) || null : null;
+  		var template = this.refName ? getPartialTemplate(this.ractive, this.refName, this.parentFragment) || null : null;
 
   		if (template) {
   			this.named = true;
   			this.setTemplate(this.template.r, template);
-  		} else if ((!this.model || typeof this.model.get() !== 'string') && this.template.r) {
-  			this.setTemplate(this.template.r, template);
+  		} else if ((!this.model || typeof this.model.get() !== 'string') && this.refName) {
+  			this.setTemplate(this.refName, template);
   		} else {
   			this.setTemplate(this.model.get());
   		}
@@ -6106,7 +6109,17 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Partial.prototype.forceResetTemplate = function forceResetTemplate() {
-  		this.partialTemplate = getPartialTemplate(this.ractive, this.name, this.parentFragment);
+  		this.partialTemplate = undefined;
+
+  		// on reset, check for the reference name first
+  		if (this.refName) {
+  			this.partialTemplate = getPartialTemplate(this.ractive, this.refName, this.parentFragment);
+  		}
+
+  		// then look for the resolved name
+  		if (!this.partialTemplate) {
+  			this.partialTemplate = getPartialTemplate(this.ractive, this.name, this.parentFragment);
+  		}
 
   		if (!this.partialTemplate) {
   			warnOnceIfDebug('Could not find template for partial \'' + this.name + '\'');
@@ -12794,7 +12807,7 @@ var classCallCheck = function (instance, Constructor) {
   function collect(source, name, dest) {
   	source.forEach(function (item) {
   		// queue to rerender if the item is a partial and the current name matches
-  		if (item.type === PARTIAL && item.name === name) {
+  		if (item.type === PARTIAL && (item.refName === name || item.name === name)) {
   			dest.push(item);
   			return; // go no further
   		}
