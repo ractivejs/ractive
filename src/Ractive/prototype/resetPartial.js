@@ -5,7 +5,7 @@ import { PARTIAL, COMPONENT, ELEMENT } from '../../config/types';
 function collect( source, name, dest ) {
 	source.forEach( item => {
 		// queue to rerender if the item is a partial and the current name matches
-		if ( item.type === PARTIAL && item.name === name ) {
+		if ( item.type === PARTIAL && ( item.refName ===  name || item.name === name ) ) {
 			dest.push( item );
 			return; // go no further
 		}

@@ -2,6 +2,7 @@ import { createDocumentFragment, matches } from '../../utils/dom';
 import Mustache from './shared/Mustache';
 import insertHtml from './triple/insertHtml';
 import { decodeCharacterReferences } from '../../utils/html';
+import { detachNode } from '../../utils/dom';
 
 export default class Triple extends Mustache {
 	constructor ( options ) {
@@ -74,7 +75,7 @@ export default class Triple extends Mustache {
 	}
 
 	unrender () {
-		if ( this.nodes ) this.nodes.forEach( node => node.parentNode.removeChild( node ) );
+		if ( this.nodes ) this.nodes.forEach( node => detachNode( node ) );
 		this.rendered = false;
 	}
 

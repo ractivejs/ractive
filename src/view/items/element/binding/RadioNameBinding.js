@@ -2,11 +2,10 @@ import Binding from './Binding';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
-function getGroupValue () {
-	let i = this.bindings.length;
-	while ( i-- ) {
-		const binding = this.bindings[i];
-		if ( binding.node.checked ) return binding.element.getAttribute( 'value' );
+function getValue() {
+	const checked = this.bindings.filter( b => b.node.checked );
+	if ( checked.length > 0 ) {
+		return checked[0].element.getAttribute( 'value' );
 	}
 }
 
@@ -14,8 +13,12 @@ export default class RadioNameBinding extends Binding {
 	constructor ( element ) {
 		super( element, 'name' );
 
-		this.group = getBindingGroup( this.ractive._guid, 'radioname', this.model, getGroupValue );
+		this.group = getBindingGroup( 'radioname', this.model, getValue );
 		this.group.add( this );
+
+		if ( element.checked ) {
+			this.group.value = this.getValue();
+		}
 	}
 
 	bind () {
@@ -45,6 +48,7 @@ export default class RadioNameBinding extends Binding {
 		// If this <input> is the one that's checked, then the value of its
 		// `name` model gets set to its value
 		if ( this.node.checked ) {
+			this.group.value = this.getValue();
 			super.handleChange();
 		}
 	}

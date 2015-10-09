@@ -42,7 +42,7 @@ export default class Model {
 		if ( parent ) {
 			this.parent = parent;
 			this.root = parent.root;
-			this.key = key;
+			this.key = unescape( key );
 			this.isReadonly = parent.isReadonly;
 
 			if ( parent.value ) {
@@ -266,7 +266,7 @@ export default class Model {
 
 	getKeyModel () {
 		// TODO... different to IndexModel because key can never change
-		return new KeyModel( this.key );
+		return new KeyModel( escape( this.key ) );
 	}
 
 	getKeypathModel () {
@@ -275,12 +275,24 @@ export default class Model {
 
 	getKeypath () {
 		// TODO keypaths inside components... tricky
-		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
+		return this.parent.isRoot ? escape( this.key ) : this.parent.getKeypath() + '.' + escape( this.key );
 	}
 
 	has ( key ) {
 		const value = this.get();
-		return value && hasProp.call( value, key );
+		if ( !value ) return false;
+
+		key = unescape( key );
+		if ( hasProp.call( value, key ) ) return true;
+
+		// We climb up the constructor chain to find if one of them contains the key
+		let constructor = value.constructor;
+		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
+			if ( hasProp.call( constructor.prototype, key ) ) return true;
+			constructor = constructor.constructor;
+		}
+
+		return false;
 	}
 
 	joinKey ( key ) {
@@ -444,4 +456,18 @@ export default class Model {
 		this.children.forEach( updateKeypathDependants );
 		if ( this.keypathModel ) this.keypathModel.handleChange();
 	}
+}
+
+function escape( key ) {
+	if ( typeof key === 'string' ) {
+		return key.replace( '.', '\\.' );
+	}
+	return key;
+}
+
+function unescape( key ) {
+	if ( typeof key === 'string' ) {
+		return key.replace( '\\.', '.' );
+	}
+	return key;
 }
