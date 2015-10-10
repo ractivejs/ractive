@@ -9,6 +9,8 @@ import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 
+const escapePattern = /\./g;
+const unescapePattern = /\\\./g;
 const hasProp = Object.prototype.hasOwnProperty;
 
 function updateFromBindings ( model ) {
@@ -460,14 +462,14 @@ export default class Model {
 
 function escape( key ) {
 	if ( typeof key === 'string' ) {
-		return key.replace( '.', '\\.' );
+		return key.replace( escapePattern, '\\.' );
 	}
 	return key;
 }
 
 function unescape( key ) {
 	if ( typeof key === 'string' ) {
-		return key.replace( '\\.', '.' );
+		return key.replace( unescapePattern, '.' );
 	}
 	return key;
 }

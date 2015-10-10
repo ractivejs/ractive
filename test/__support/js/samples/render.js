@@ -1204,8 +1204,8 @@ const renderTests = [
 	},
 	{
 		name: `Escaped '.'s in keypaths`,
-		template: `{{foo\\.bar}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
-		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		template: `{{foo\\.bar\\.baz}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
+		data: { 'foo.bar.baz': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
 		result: '123'
 	},
 	{

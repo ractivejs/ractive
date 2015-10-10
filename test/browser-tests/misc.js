@@ -1516,24 +1516,24 @@ test( 'Promise.all works with non-promises (#1642)', t => {
 test( 'Setting an escaped . keypath', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: '{{ foo\\.bar }}',
+		template: `{{ foo\\.bar\\.baz }}`,
 		data: {}
 	});
 
 	t.htmlEqual( fixture.innerHTML, '' );
-	r.set( 'foo\\.bar', 'yep' );
+	r.set( 'foo\\.bar\\.baz', 'yep' );
 	t.htmlEqual( fixture.innerHTML, 'yep' );
 });
 
 test( 'Getting an escaped . keypath', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: `{{ .['foo.bar'] }}`,
-		data: { 'foo.bar': 'yep' }
+		template: `{{ .['foo.bar.baz'] }}`,
+		data: { 'foo.bar.baz': 'yep' }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'yep' );
-	t.equal( r.get( 'foo\\.bar' ), 'yep' );
+	t.equal( r.get( 'foo\\.bar\\.baz' ), 'yep' );
 });
 
 if ( hasUsableConsole ) {
