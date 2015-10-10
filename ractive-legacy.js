@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 09 2015 20:35:22 GMT+0000 (UTC) - commit e92c01b21ba39e889cad14b8efef398fc9069fa2
+	Sat Oct 10 2015 15:46:20 GMT+0000 (UTC) - commit afc5fc2e3a1276d2a66317c5844bbf6dece3568e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13109,7 +13109,15 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Fragment.prototype.firstNode = function firstNode() {
-  		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode(this.owner);
+  		var node = undefined;
+  		for (var i = 0; i < this.items.length; i++) {
+  			node = this.items[i].firstNode();
+
+  			if (node) {
+  				return node;
+  			}
+  		}
+  		return this.parent.findNextNode(this.owner);
   	};
 
   	// TODO ideally, this would be deprecated in favour of an
