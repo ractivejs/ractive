@@ -190,7 +190,15 @@ export default class Fragment {
 	}
 
 	firstNode () {
-		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode( this.owner );
+		let node;
+		for ( let i = 0; i < this.items.length; i++ ) {
+			node = this.items[i].firstNode();
+
+			if ( node ) {
+				return node;
+			}
+		}
+		return this.parent.findNextNode( this.owner );
 	}
 
 	// TODO ideally, this would be deprecated in favour of an
