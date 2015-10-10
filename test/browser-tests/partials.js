@@ -585,10 +585,10 @@ test( 'Inline partials may be defined with a partial section', t => {
 		template: `
 			{{#partial foo}}foo{{/partial}}
 			{{>foo}}
-			<Widget />
+			<Widget/>
 			<Widget>
 				{{#partial foo}}bar{{/partial}}
-			<Widget>`,
+			</Widget>`,
 		components: {
 			Widget: Ractive.extend({
 				template: '{{>foo}}'
@@ -812,4 +812,36 @@ test( 'Inline partials can override instance partials if they exist on a node di
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div><span>Something happens one</span></div><div><span>Something happens two</span></div>' );
+});
+
+test( 'resetting a dynamic partial to its reference name should replace the partial (#2185)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{>part1}}{{>part2}}',
+		partials: { part3: 'part3' },
+		data: { part1: 'part3', part2: 'nope' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'part3' );
+
+	r.resetPartial( 'part1', 'part1' );
+	t.htmlEqual( fixture.innerHTML, 'part1' );
+
+	r.resetPartial( 'part2', 'part2' );
+	t.htmlEqual( fixture.innerHTML, 'part1part2' );
+});
+
+test( `Partials can have context that starts with '.' (#1880)`, t => {
+	new Ractive({
+		el: fixture,
+		template: '{{#with foo}}{{>foo .bar}}{{/with}}',
+		data: {
+			foo: { bar: { baz: 'bat' } }
+		},
+		partials: {
+			foo: '{{.baz}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bat' );
 });

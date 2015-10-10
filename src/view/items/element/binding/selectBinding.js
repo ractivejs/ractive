@@ -11,7 +11,7 @@ import RadioBinding from './RadioBinding';
 import RadioNameBinding from './RadioNameBinding';
 import SingleSelectBinding from './SingleSelectBinding';
 
-function isBindable ( attribute ) {
+export function isBindable ( attribute ) {
 	return attribute &&
 	       attribute.template.length === 1 &&
 	       attribute.template[0].t === INTERPOLATOR &&

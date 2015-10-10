@@ -814,6 +814,32 @@ const parseTests = [
 			textOnlyMode: true
 		},
 		parsed: {v:3,t:['no <elements or="attributes" /> or &amp; entities ',{t:2,r:'just'},' text, ',{t:2,r:'refs',s:true},', and ',{t:4,n:50,r:'foo',f:['sections']}]}
+	},
+	{
+		name: 'unclosed element',
+		template: '<ul><li>',
+		error: `Missing end tags (</li></ul>) at line 1 character 9:
+<ul><li>
+        ^----`
+	},
+	{
+		name: 'es2015 object literal property shorthand',
+		template: `{{ { foo, bar } }}`,
+		parsed: {v:3,t:[{t:2,x:{r:['foo','bar'],s:'{foo:_0,bar:_1}'}}]}
+	},
+	{
+		name: 'es2015 object literal shorthand reference only',
+		template: `{{ { 'foo' } }}`,
+		error: `Expected closing delimiter '}}' after reference at line 1 character 4:
+{{ { 'foo' } }}
+   ^----`
+	},
+	{
+		name: 'es2015 object literal shorthand no numbers',
+		template: `{{ { 4 } }}`,
+		error: `Expected a valid reference, but found '4' instead. at line 1 character 8:
+{{ { 4 } }}
+       ^----`
 	}
 ];
 

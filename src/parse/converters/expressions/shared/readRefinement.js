@@ -4,7 +4,10 @@ import { name as namePattern } from './patterns';
 import readExpression from '../../readExpression';
 
 export default function readRefinement ( parser ) {
-	parser.allowWhitespace();
+	// some things call for strict refinement (partial names), meaning no space between reference and refinement
+	if ( !parser.strictRefinement ) {
+		parser.allowWhitespace();
+	}
 
 	// "." name
 	if ( parser.matchString( '.' ) ) {

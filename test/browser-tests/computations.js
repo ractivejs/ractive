@@ -215,8 +215,8 @@ test( 'Regression test for #836', t => {
 
 	new Ractive({
 		el: fixture,
-		template: '<widget>',
-		components: { widget: Widget }
+		template: '<Widget/>',
+		components: { Widget }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'yes' );

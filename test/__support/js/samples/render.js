@@ -1172,6 +1172,77 @@ const renderTests = [
 		name: 'No whitespace other than leading/trailing line break is stripped (#1851)',
 		template: '<pre>\r\tfoo\n\t</pre><textarea>\r\n\tfoo\r\t</textarea>',
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
+	},
+	{
+		name: 'An array ref can go from null to set in a generic section and still work (#2178)',
+		template: '{{#foo}}{{.}}{{/foo}}',
+		data: { foo: null },
+		result: '',
+		steps: [
+			{
+				data: { foo: [ 1, 2, 3 ] },
+				result: '123'
+			}
+		]
+	},
+	{
+		name: 'Model should be able to properly resolve class instances as context',
+		template: '<div class="{{prototypeProperty}}"></div>{{#items}}<div class="{{prototypeProperty}}"></div>{{/items}}',
+		data () {
+			function parent () {}
+			parent.prototype.prototypeProperty = 'hello';
+
+			function child () {}
+			child.prototype = new parent();
+
+			let data = new child();
+			data.items = [data];
+
+			return data;
+		},
+		result: '<div class="hello"></div><div class="hello"></div>'
+	},
+	{
+		name: `Escaped '.'s in keypaths`,
+		template: `{{foo\\.bar}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
+		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		result: '123'
+	},
+	{
+		name: `Escaped '.'s in refined keypaths`,
+		template: `{{.['foo.bar']}}{{foo['bar.baz']}}{{foo['bar']['baz']}}`,
+		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		result: '123'
+	},
+	{
+		name: `Escaped '.'s in reference expressions`,
+		template: `{{foo[key]}}`,
+		data: { foo: { 'bar.baz': 'yep' }, key: 'bar.baz' },
+		result: 'yep'
+	},
+	{
+		name: 'Rendering order of repeated section with complex condition (#2204)',
+		template: `
+			<div>
+				{{#each fields :n}}
+					{{#if n === 0 && foo }}
+						{{this}}
+					{{else}}
+						{{this}}
+					{{/if}}
+				{{/each}}
+			</div>
+		`,
+		data: {
+			fields: [ 'x', 'y' ],
+			foo: true
+		},
+		result: '<div>xy</div>',
+		new_data: {
+			fields: [ 'x', 'y' ],
+			foo: false
+		},
+		new_result: '<div>xy</div>'
 	}
 ];
 

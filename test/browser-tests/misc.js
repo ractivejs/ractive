@@ -1316,14 +1316,14 @@ test( 'Implicitly-closed elements without closing section tag (#1124)', t => {
 	// it corrects malformed HTML before stubbing it
 	let ractive = new Ractive({
 		el: fixture,
-		template: '<ul><li>one<li>two<li>three'
+		template: '<ul><li>one<li>two<li>three</li></ul>'
 	});
 
 	t.equal( ractive.findAll( 'ul > li' ).length, 3 );
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<table><tr><td>one<td>two<td>three'
+		template: '<table><tr><td>one<td>two<td>three</td></tr></table>'
 	});
 
 	t.equal( ractive.findAll( 'tr > td' ).length, 3 );
@@ -1511,6 +1511,29 @@ test( 'Promise.all works with non-promises (#1642)', t => {
 		t.deepEqual( values, [ 1, 2 ]);
 		done();
 	});
+});
+
+test( 'Setting an escaped . keypath', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{ foo\\.bar }}',
+		data: {}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '' );
+	r.set( 'foo\\.bar', 'yep' );
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
+
+test( 'Getting an escaped . keypath', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{ .['foo.bar'] }}`,
+		data: { 'foo.bar': 'yep' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+	t.equal( r.get( 'foo\\.bar' ), 'yep' );
 });
 
 if ( hasUsableConsole ) {
