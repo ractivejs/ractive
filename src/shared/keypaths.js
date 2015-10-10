@@ -1,6 +1,5 @@
 const refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
-const escapePattern = /\\\./g;
-const unescapePattern = /\$/g;
+const splitPattern = /([^\\](?:\\\\)*)\./;
 const escapeKeyPattern = /\./g;
 const unescapeKeyPattern = /\\\./g;
 
@@ -17,11 +16,14 @@ export function normalise ( ref ) {
 }
 
 export function splitKeypath ( keypath ) {
-	let parts = normalise( keypath ).replace( escapePattern, '$' ).split( '.' );
-	for ( let i = parts.length - 1; i >= 0; i-- ) {
-		parts[i] = parts[i].replace( unescapePattern, '\\.' );
+	let parts = normalise( keypath ).split( splitPattern ),
+		result = [];
+
+	for ( let i = 0; i < parts.length; i += 2 ) {
+		result.push( parts[i] + ( parts[i + 1] || '' ) );
 	}
-	return parts;
+
+	return result;
 }
 
 export function unescapeKey ( key ) {

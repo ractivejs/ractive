@@ -1536,6 +1536,22 @@ test( 'Getting an escaped . keypath', t => {
 	t.equal( r.get( 'foo\\.bar\\.baz' ), 'yep' );
 });
 
+test( '$ can be used in keypaths', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{ $$ }}{{ .['..'] }}`,
+		data: { $$: 'get() works' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'get() works' );
+	t.equal( r.get( '$$' ), 'get() works' );
+
+	r.set( '$$', 'set() works as well' );
+
+	t.htmlEqual( fixture.innerHTML, 'set() works as well' );
+	t.equal( r.get( '$$' ), 'set() works as well' );
+});
+
 if ( hasUsableConsole ) {
 	test( 'Ractive.DEBUG can be changed', t => {
 		t.expect( 0 );
