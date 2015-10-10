@@ -1552,6 +1552,25 @@ test( '$ can be used in keypaths', t => {
 	t.equal( r.get( '$$' ), 'set() works as well' );
 });
 
+test( '. escapes can be escaped', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{ .['foo\\\\'].bar }}{{ .['foo\\\\.bar'] }}`,
+		data: { 'foo\\': { bar: 1 }, 'foo\\.bar': 2 }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '12' );
+	t.equal( r.get( 'foo\\\\.bar' ), 1 );
+	t.equal( r.get( 'foo\\\\\\.bar' ), 2 );
+
+	r.set( 'foo\\\\.bar', 11 );
+	r.set( 'foo\\\\\\.bar', 12 );console.log(r.get());
+
+	t.htmlEqual( fixture.innerHTML, '1112' );
+	t.equal( r.get( 'foo\\\\.bar' ), 11 );
+	t.equal( r.get( 'foo\\\\\\.bar' ), 12 );
+});
+
 if ( hasUsableConsole ) {
 	test( 'Ractive.DEBUG can be changed', t => {
 		t.expect( 0 );
