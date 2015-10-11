@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Oct 10 2015 15:46:20 GMT+0000 (UTC) - commit afc5fc2e3a1276d2a66317c5844bbf6dece3568e
+	Sun Oct 11 2015 00:09:45 GMT+0000 (UTC) - commit b7110238904ac2501246ccc9b3d8d8f0321b9052
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3252,28 +3252,15 @@ var classCallCheck = function (instance, Constructor) {
   	return triple;
   }
 
+  var pattern$1 = /[-/\\^$*+?.()|[\]{}]/g;
+  function escapeRegExp(str) {
+  	return str.replace(pattern$1, '\\$&');
+  }
+
+  var regExpCache = {};
+
   function getLowestIndex (haystack, needles) {
-  	var i, index, lowest;
-
-  	i = needles.length;
-  	while (i--) {
-  		index = haystack.indexOf(needles[i]);
-
-  		// short circuit
-  		if (!index) {
-  			return 0;
-  		}
-
-  		if (index === -1) {
-  			continue;
-  		}
-
-  		if (!lowest || index < lowest) {
-  			lowest = index;
-  		}
-  	}
-
-  	return lowest || -1;
+  	return haystack.search(regExpCache[needles.join()] || (regExpCache[needles.join()] = new RegExp(needles.map(escapeRegExp).join('|'))));
   }
 
   // https://github.com/kangax/html-minifier/issues/63#issuecomment-37763316
@@ -4659,11 +4646,6 @@ var classCallCheck = function (instance, Constructor) {
   		n: name,
   		f: content
   	};
-  }
-
-  var pattern$1 = /[-/\\^$*+?.()|[\]{}]/g;
-  function escapeRegExp(str) {
-  	return str.replace(pattern$1, '\\$&');
   }
 
   var startPattern = /^<!--\s*/;
