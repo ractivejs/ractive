@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Oct 11 2015 00:09:45 GMT+0000 (UTC) - commit b7110238904ac2501246ccc9b3d8d8f0321b9052
+	Sun Oct 11 2015 09:23:18 GMT+0000 (UTC) - commit dad1334740d09ce8364552e2235b9400b12f4482
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -95,17 +95,39 @@ var classCallCheck = function (instance, Constructor) {
   };
 
   var refPattern = /\[\s*(\*|[0-9]|[1-9][0-9]+)\s*\]/g;
+  var splitPattern = /([^\\](?:\\\\)*)\./;
+  var escapeKeyPattern = /\\|\./g;
+  var unescapeKeyPattern = /((?:\\)+)\1|\\(\.)/g;
+
+  function escapeKey(key) {
+  	if (typeof key === 'string') {
+  		return key.replace(escapeKeyPattern, '\\$&');
+  	}
+
+  	return key;
+  }
 
   function normalise(ref) {
   	return ref ? ref.replace(refPattern, '.$1') : '';
   }
 
   function splitKeypath(keypath) {
-  	var parts = normalise(keypath).replace('\\.', '$').split('.');
-  	for (var i = parts.length - 1; i >= 0; i--) {
-  		parts[i] = parts[i].replace('$', '\\.');
+  	var parts = normalise(keypath).split(splitPattern),
+  	    result = [];
+
+  	for (var i = 0; i < parts.length; i += 2) {
+  		result.push(parts[i] + (parts[i + 1] || ''));
   	}
-  	return parts;
+
+  	return result;
+  }
+
+  function unescapeKey(key) {
+  	if (typeof key === 'string') {
+  		return key.replace(unescapeKeyPattern, '$1$2');
+  	}
+
+  	return key;
   }
 
   function noop () {}
@@ -5032,7 +5054,7 @@ var classCallCheck = function (instance, Constructor) {
   		if (parent) {
   			this.parent = parent;
   			this.root = parent.root;
-  			this.key = unescape(key);
+  			this.key = unescapeKey(key);
   			this.isReadonly = parent.isReadonly;
 
   			if (parent.value) {
@@ -5268,7 +5290,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	Model.prototype.getKeyModel = function getKeyModel() {
   		// TODO... different to IndexModel because key can never change
-  		return new KeyModel(escape(this.key));
+  		return new KeyModel(escapeKey(this.key));
   	};
 
   	Model.prototype.getKeypathModel = function getKeypathModel() {
@@ -5277,14 +5299,14 @@ var classCallCheck = function (instance, Constructor) {
 
   	Model.prototype.getKeypath = function getKeypath() {
   		// TODO keypaths inside components... tricky
-  		return this.parent.isRoot ? escape(this.key) : this.parent.getKeypath() + '.' + escape(this.key);
+  		return this.parent.isRoot ? escapeKey(this.key) : this.parent.getKeypath() + '.' + escapeKey(this.key);
   	};
 
   	Model.prototype.has = function has(key) {
   		var value = this.get();
   		if (!value) return false;
 
-  		key = unescape(key);
+  		key = unescapeKey(key);
   		if (hasProp.call(value, key)) return true;
 
   		// We climb up the constructor chain to find if one of them contains the key
@@ -5463,20 +5485,6 @@ var classCallCheck = function (instance, Constructor) {
 
   	return Model;
   })();
-
-  function escape(key) {
-  	if (typeof key === 'string') {
-  		return key.replace('.', '\\.');
-  	}
-  	return key;
-  }
-
-  function unescape(key) {
-  	if (typeof key === 'string') {
-  		return key.replace('\\.', '.');
-  	}
-  	return key;
-  }
 
   var ComputationChild = (function (_Model) {
   	inherits(ComputationChild, _Model);
@@ -5740,7 +5748,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.isUnresolved = false;
 
   		var keys = this.members.map(function (model) {
-  			return model.get();
+  			return escapeKey(model.get());
   		});
   		var model = this.base.joinAll(keys);
 
@@ -10664,7 +10672,7 @@ var classCallCheck = function (instance, Constructor) {
   			var originalDescriptor = Object.getOwnPropertyDescriptor(_this.value, key);
   			_this.originalDescriptors[key] = originalDescriptor;
 
-  			var childKeypath = keypath ? keypath + '.' + key : key;
+  			var childKeypath = keypath ? keypath + '.' + escapeKey(key) : escapeKey(key);
 
   			var descriptor = createOrWrapDescriptor(originalDescriptor, ractive, childKeypath);
 
