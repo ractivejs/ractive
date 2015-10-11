@@ -1564,7 +1564,7 @@ test( '. escapes can be escaped', t => {
 	t.equal( r.get( 'foo\\\\\\.bar' ), 2 );
 
 	r.set( 'foo\\\\.bar', 11 );
-	r.set( 'foo\\\\\\.bar', 12 );console.log(r.get());
+	r.set( 'foo\\\\\\.bar', 12 );
 
 	t.htmlEqual( fixture.innerHTML, '1112' );
 	t.equal( r.get( 'foo\\\\.bar' ), 11 );
