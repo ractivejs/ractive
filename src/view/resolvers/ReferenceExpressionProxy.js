@@ -76,12 +76,12 @@ export default class ReferenceExpressionProxy extends Model {
 		// if some members are not resolved, abort
 		let i = this.members.length;
 		while ( i-- ) {
-			if ( !this.members[i] || this.members[i].get() === undefined ) return;
+			if ( !this.members[i] ) return;
 		}
 
 		this.isUnresolved = false;
 
-		const keys = this.members.map( model => escapeKey( model.get() ) );
+		const keys = this.members.map( model => escapeKey( String( model.get() ) ) );
 		const model = this.base.joinAll( keys );
 
 		if ( this.model ) {
