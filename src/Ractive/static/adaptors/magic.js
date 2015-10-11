@@ -1,3 +1,5 @@
+import { escapeKey } from '../../../shared/keypaths';
+
 let magicAdaptor;
 
 try {
@@ -81,7 +83,7 @@ class MagicWrapper {
 			const originalDescriptor = Object.getOwnPropertyDescriptor( this.value, key );
 			this.originalDescriptors[ key ] = originalDescriptor;
 
-			const childKeypath = keypath ? `${keypath}.${key}` : key;
+			const childKeypath = keypath ? `${keypath}.${escapeKey( key )}` : escapeKey( key );
 
 			const descriptor = createOrWrapDescriptor( originalDescriptor, ractive, childKeypath );
 
