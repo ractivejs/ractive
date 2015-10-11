@@ -78,19 +78,19 @@ export default class Attribute extends Item {
 
 		// should we use direct property access, or setAttribute?
 		if ( !node.namespaceURI || node.namespaceURI === html ) {
-			const propertyName = propertyNames[ this.name ] || this.name;
+			this.propertyName = propertyNames[ this.name ] || this.name;
 
-			if ( node[ propertyName ] !== undefined ) {
-				this.propertyName = propertyName;
+			if ( node[ this.propertyName ] !== undefined ) {
+				this.useProperty = true;
 			}
 
 			// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 			// node.selected = true rather than node.setAttribute( 'selected', '' )
 			if ( booleanAttributes.test( this.name ) || this.isTwoway ) {
-				this.useProperty = true;
+				this.isBoolean = true;
 			}
 
-			if ( propertyName === 'value' ) {
+			if ( this.propertyName === 'value' ) {
 				node._ractive.value = this.value;
 			}
 		}

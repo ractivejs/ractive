@@ -1249,6 +1249,14 @@ const renderTests = [
 			foo: false
 		},
 		new_result: '<div>xy</div>'
+	},
+	{
+		name: 'Boolean attributes are set using setAttribute() if needed (#2201)',
+		template: `<div itemscope="{{foo}}"></div>`,
+		data: { foo: true },
+		result: '<div itemscope=""></div>',
+		new_data: { foo: false },
+		new_result: '<div></div>'
 	}
 ];
 
