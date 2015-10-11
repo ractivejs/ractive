@@ -26,6 +26,15 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 			}
 		}
 
+		if ( fragment.owner.aliases && fragment.owner.aliases.hasOwnProperty( key ) ) {
+			let model = fragment.owner.aliases[ key ];
+
+			if ( keys.length === 1 ) return model;
+			else if ( typeof model.joinAll === 'function' ) {
+				return model.joinAll( keys.slice( 1 ) );
+			}
+		}
+
 		if ( fragment.context ) {
 			// TODO better encapsulate the component check
 			if ( !fragment.isRoot || fragment.ractive.component ) hasContextChain = true;

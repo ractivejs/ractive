@@ -1,4 +1,4 @@
-import { SECTION, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from '../../../config/types';
+import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from '../../../config/types';
 import { READERS } from '../../_parse';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
@@ -7,13 +7,14 @@ import handlebarsBlockCodes from './handlebarsBlockCodes';
 import readExpression from '../readExpression';
 import flattenExpression from '../../utils/flattenExpression';
 import refineExpression from '../../utils/refineExpression';
+import readAliases from './readAliases';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
 export default function readSection ( parser, tag ) {
-	var start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose;
+	var start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose, aliases;
 
 	start = parser.pos;
 
@@ -37,20 +38,30 @@ export default function readSection ( parser, tag ) {
 
 	parser.allowWhitespace();
 
-	expression = readExpression( parser );
-
-	if ( !expression ) {
-		parser.error( 'Expected expression' );
+	if ( block === 'with' ) {
+		aliases = readAliases( parser );
+		if ( aliases ) {
+			section.z = aliases;
+			section.t = ALIAS;
+		}
 	}
 
-	// optional index and key references
-	if ( i = parser.matchPattern( indexRefPattern ) ) {
-		let extra;
+	if ( !aliases ) {
+		expression = readExpression( parser );
 
-		if ( extra = parser.matchPattern( keyIndexRefPattern ) ) {
-			section.i = i + ',' + extra;
-		} else {
-			section.i = i;
+		if ( !expression ) {
+			parser.error( 'Expected expression' );
+		}
+
+		// optional index and key references
+		if ( i = parser.matchPattern( indexRefPattern ) ) {
+			let extra;
+
+			if ( extra = parser.matchPattern( keyIndexRefPattern ) ) {
+				section.i = i + ',' + extra;
+			} else {
+				section.i = i;
+			}
 		}
 	}
 
@@ -75,7 +86,7 @@ export default function readSection ( parser, tag ) {
 			closed = true;
 		}
 
-		else if ( child = readElseIf( parser, tag ) ) {
+		else if ( !aliases && ( child = readElseIf( parser, tag ) ) ) {
 			if ( section.n === SECTION_UNLESS ) {
 				parser.error( '{{else}} not allowed in {{#unless}}' );
 			}
@@ -98,7 +109,7 @@ export default function readSection ( parser, tag ) {
 			conditions.push( invert( child.x ) );
 		}
 
-		else if ( child = readElse( parser, tag ) ) {
+		else if ( !aliases && ( child = readElse( parser, tag ) ) ) {
 			if ( section.n === SECTION_UNLESS ) {
 				parser.error( '{{else}} not allowed in {{#unless}}' );
 			}
@@ -146,7 +157,9 @@ export default function readSection ( parser, tag ) {
 		section.l = unlessBlock;
 	}
 
-	refineExpression( expression, section );
+	if ( !aliases ) {
+		refineExpression( expression, section );
+	}
 
 	// TODO if a section is empty it should be discarded. Don't do
 	// that here though - we need to clean everything up first, as

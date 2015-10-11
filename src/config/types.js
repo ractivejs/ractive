@@ -14,6 +14,7 @@ export const COMPONENT         = 15;
 export const YIELDER           = 16;
 export const INLINE_PARTIAL    = 17;
 export const DOCTYPE           = 18;
+export const ALIAS             = 19;
 
 export const NUMBER_LITERAL    = 20;
 export const STRING_LITERAL    = 21;
