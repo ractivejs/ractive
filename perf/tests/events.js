@@ -21,7 +21,7 @@ var tests = [
 					{{#each items }}
 						<li on-click='foo()'>{{this}} world</li>
 					{{/each}}
-					<ul>`,
+					</ul>`,
 				data: {
 					items: window.items
 				},
