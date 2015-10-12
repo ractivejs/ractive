@@ -2,8 +2,9 @@ import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
 
 const legalAlias = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
+const asRE = /^as/i;
 
-export default function readAliases( parser ) {
+export function readAliases( parser ) {
 	let aliases = [], alias, start = parser.pos;
 
 	parser.allowWhitespace();
@@ -11,6 +12,7 @@ export default function readAliases( parser ) {
 	alias = readAlias( parser );
 
 	if ( alias ) {
+		alias.x = refineExpression( alias.x, {} );
 		aliases.push( alias );
 
 		parser.allowWhitespace();
@@ -22,6 +24,7 @@ export default function readAliases( parser ) {
 				parser.error( 'Expected another alias.' );
 			}
 
+			alias.x = refineExpression( alias.x, {} );
 			aliases.push( alias );
 
 			parser.allowWhitespace();
@@ -34,7 +37,7 @@ export default function readAliases( parser ) {
 	return null;
 }
 
-function readAlias( parser ) {
+export function readAlias( parser ) {
 	let expr, alias, start = parser.pos;
 
 	parser.allowWhitespace();
@@ -48,7 +51,7 @@ function readAlias( parser ) {
 
 	parser.allowWhitespace();
 
-	if ( !parser.matchPattern( /as/i ) ) {
+	if ( !parser.matchPattern( asRE ) ) {
 		parser.pos = start;
 		return null;
 	}
@@ -61,5 +64,5 @@ function readAlias( parser ) {
 		parser.error( 'Expected a legal alias name.' );
 	}
 
-	return { n: alias, x: refineExpression( expr, {} ) };
+	return { n: alias, x: expr };
 }

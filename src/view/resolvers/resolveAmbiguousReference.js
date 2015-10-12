@@ -11,6 +11,7 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 
 	let hasContextChain;
 	let crossedComponentBoundary;
+	let aliases;
 
 	while ( fragment ) {
 		// repeated fragments
@@ -26,8 +27,9 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 			}
 		}
 
-		if ( fragment.owner.aliases && fragment.owner.aliases.hasOwnProperty( key ) ) {
-			let model = fragment.owner.aliases[ key ];
+		// alias node or iteration
+		if ( ( ( aliases = fragment.owner.aliases ) || ( aliases = fragment.aliases ) ) && aliases.hasOwnProperty( key ) ) {
+			let model = aliases[ key ];
 
 			if ( keys.length === 1 ) return model;
 			else if ( typeof model.joinAll === 'function' ) {
