@@ -48,7 +48,7 @@ export default function getUpdateDelegate ( attribute ) {
 	// special case - class names. IE fucks things up, again
 	if ( name === 'class' && ( !node.namespaceURI || node.namespaceURI === html ) ) return updateClassName;
 
-	if ( attribute.useProperty ) return updateProperty;
+	if ( attribute.isBoolean ) return updateBoolean;
 
 	if ( attribute.namespace ) return updateNamespacedAttribute;
 
@@ -179,11 +179,19 @@ function updateClassName () {
 	this.node.className = safeToStringValue( this.getValue() );
 }
 
-function updateProperty () {
+function updateBoolean () {
 	// with two-way binding, only update if the change wasn't initiated by the user
 	// otherwise the cursor will often be sent to the wrong place
 	if ( !this.locked ) {
-		this.node[ this.propertyName ] = this.getValue();
+		if ( this.useProperty ) {
+			this.node[ this.propertyName ] = this.getValue();
+		} else {
+			if ( this.getValue() ) {
+				this.node.setAttribute( this.propertyName, '' );
+			} else {
+				this.node.removeAttribute( this.propertyName );
+			}
+		}
 	}
 }
 
