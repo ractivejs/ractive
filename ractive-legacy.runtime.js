@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Oct 12 2015 01:31:38 GMT+0000 (UTC) - commit d8f1c4ee6ee6ab6f4e84473a09b010f6a635b3b2
+	Mon Oct 12 2015 01:38:34 GMT+0000 (UTC) - commit 4613550f67c42c4b3ca3acb199d1adb0eb7118f9
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4801,7 +4801,7 @@ var classCallCheck = function (instance, Constructor) {
   	// special case - class names. IE fucks things up, again
   	if (name === 'class' && (!node.namespaceURI || node.namespaceURI === html)) return updateClassName;
 
-  	if (attribute.useProperty) return updateProperty;
+  	if (attribute.isBoolean) return updateBoolean;
 
   	if (attribute.namespace) return updateNamespacedAttribute;
 
@@ -4932,11 +4932,19 @@ var classCallCheck = function (instance, Constructor) {
   	this.node.className = safeToStringValue(this.getValue());
   }
 
-  function updateProperty() {
+  function updateBoolean() {
   	// with two-way binding, only update if the change wasn't initiated by the user
   	// otherwise the cursor will often be sent to the wrong place
   	if (!this.locked) {
-  		this.node[this.propertyName] = this.getValue();
+  		if (this.useProperty) {
+  			this.node[this.propertyName] = this.getValue();
+  		} else {
+  			if (this.getValue()) {
+  				this.node.setAttribute(this.propertyName, '');
+  			} else {
+  				this.node.removeAttribute(this.propertyName);
+  			}
+  		}
   	}
   }
 
@@ -5039,19 +5047,19 @@ var classCallCheck = function (instance, Constructor) {
 
   		// should we use direct property access, or setAttribute?
   		if (!node.namespaceURI || node.namespaceURI === html) {
-  			var propertyName = propertyNames[this.name] || this.name;
+  			this.propertyName = propertyNames[this.name] || this.name;
 
-  			if (node[propertyName] !== undefined) {
-  				this.propertyName = propertyName;
+  			if (node[this.propertyName] !== undefined) {
+  				this.useProperty = true;
   			}
 
   			// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
   			// node.selected = true rather than node.setAttribute( 'selected', '' )
   			if (booleanAttributes.test(this.name) || this.isTwoway) {
-  				this.useProperty = true;
+  				this.isBoolean = true;
   			}
 
-  			if (propertyName === 'value') {
+  			if (this.propertyName === 'value') {
   				node._ractive.value = this.value;
   			}
   		}
