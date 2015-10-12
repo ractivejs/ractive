@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Oct 11 2015 16:36:17 GMT+0000 (UTC) - commit 45a91f75a8b0c69210e77715ff4681ad50023dfa
+	Mon Oct 12 2015 01:31:38 GMT+0000 (UTC) - commit d8f1c4ee6ee6ab6f4e84473a09b010f6a635b3b2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3303,13 +3303,13 @@ var classCallCheck = function (instance, Constructor) {
   		// if some members are not resolved, abort
   		var i = this.members.length;
   		while (i--) {
-  			if (!this.members[i] || this.members[i].get() === undefined) return;
+  			if (!this.members[i]) return;
   		}
 
   		this.isUnresolved = false;
 
   		var keys = this.members.map(function (model) {
-  			return escapeKey(model.get());
+  			return escapeKey(String(model.get()));
   		});
   		var model = this.base.joinAll(keys);
 
