@@ -1257,6 +1257,17 @@ const renderTests = [
 		result: '<div itemscope=""></div>',
 		new_data: { foo: false },
 		new_result: '<div></div>'
+	},
+	{
+		name: '`undefined` and `null` can be used as object keys (#1878)',
+		template: `{{dict[null]}}, {{dict[undefined]}}`,
+		data: {
+			dict: {
+				null: 'null value',
+				undefined: 'undefined value'
+			}
+		},
+		result: 'null value, undefined value'
 	}
 ];
 
