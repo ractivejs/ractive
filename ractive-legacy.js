@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Oct 13 2015 11:35:29 GMT+0000 (UTC) - commit 74b23e3579f406ba1cc49848cfeaebc15cca90be
+	Tue Oct 13 2015 18:01:53 GMT+0000 (UTC) - commit 818e6f22fff7e1d0e9e4755362dfcc8f5ef2758d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3407,7 +3407,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	parser.pos += index;
 
-  	return parser.inside ? remaining.substr(0, index) : decodeCharacterReferences(remaining.substr(0, index));
+  	return parser.inside && parser.inside !== 'textarea' ? remaining.substr(0, index) : decodeCharacterReferences(remaining.substr(0, index));
   }
 
   var leadingLinebreak = /^\s*\r?\n/;
