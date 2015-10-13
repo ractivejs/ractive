@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Oct 12 2015 01:40:22 GMT+0000 (UTC) - commit 41608844592c10435c00ccd66185cadf0e006af4
+	Tue Oct 13 2015 11:35:29 GMT+0000 (UTC) - commit 74b23e3579f406ba1cc49848cfeaebc15cca90be
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7666,21 +7666,42 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Decorator.prototype.update = function update() {
-  		if (this.dynamicName) {
-  			var _name = this.nameFragment.toString();
+  		if (!this.dirty) return;
 
-  			if (_name !== this.name) {
-  				this.name = _name;
-  				this.unrender();
-  				this.render();
-  			}
-  		} else if (this.intermediary.update) {
-  			var args = this.dynamicArgs ? this.argsFragment.getArgsList() : this.args;
-  			this.intermediary.update.apply(this.ractive, args);
-  		} else {
+  		var nameChanged = false;
+
+  		if (this.dynamicName && this.nameFragment.dirty) {
+  			var _name = this.nameFragment.toString();
+  			nameChanged = _name !== this.name;
+  			this.name = _name;
+  		}
+
+  		if (nameChanged || !this.intermediary.update) {
   			this.unrender();
   			this.render();
+  		} else {
+  			if (this.dynamicArgs) {
+  				if (this.argsFragment.dirty) {
+  					var args = this.argsFragment.getArgsList();
+  					this.intermediary.update.apply(this.ractive, args);
+  				}
+  			} else {
+  				this.intermediary.update.apply(this.ractive, this.args);
+  			}
   		}
+
+  		// need to run these for unrender/render cases
+  		// so can't just be in conditional if above
+
+  		if (this.dynamicName && this.nameFragment.dirty) {
+  			this.nameFragment.update();
+  		}
+
+  		if (this.dynamicArgs && this.argsFragment.dirty) {
+  			this.argsFragment.update();
+  		}
+
+  		this.dirty = false;
   	};
 
   	return Decorator;
