@@ -97,37 +97,29 @@ export default class Decorator {
 
 		if ( this.dynamicName && this.nameFragment.dirty ) {
 			const name = this.nameFragment.toString();
-
 			nameChanged = name !== this.name;
-
-			if ( nameChanged ) {
-				this.name = name;
-				this.unrender();
-				this.render();
-			}
+			this.name = name;
 		}
 
-		if ( !nameChanged ) {
-			if ( this.intermediary.update ) {
-				if ( this.dynamicArgs ) {
-					if ( this.argsFragment.dirty ) {
-						const args = this.argsFragment.getArgsList();
-						this.intermediary.update.apply( this.ractive, args );
-					}
-				}
-				else {
-					this.intermediary.update.apply( this.ractive, this.args );
+		if ( nameChanged || !this.intermediary.update ) {
+			this.unrender();
+			this.render();
+		}
+		else {
+			if ( this.dynamicArgs ) {
+				if ( this.argsFragment.dirty ) {
+					const args = this.argsFragment.getArgsList();
+					this.intermediary.update.apply( this.ractive, args );
 				}
 			}
-
 			else {
-				this.unrender();
-				this.render();
+				this.intermediary.update.apply( this.ractive, this.args );
 			}
 		}
 
 		// need to run these for unrender/render cases
 		// so can't just be in conditional if above
+
 		if ( this.dynamicName && this.nameFragment.dirty ) {
 			this.nameFragment.update();
 		}
