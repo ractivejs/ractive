@@ -1268,6 +1268,11 @@ const renderTests = [
 			}
 		},
 		result: 'null value, undefined value'
+	},
+	{
+		name: 'HTML entities inside <textarea> are decoded (#2218)',
+		template: '<textarea>&acute;&eacute;</textarea>',
+		result: '<textarea>´é</textarea>'
 	}
 ];
 

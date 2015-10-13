@@ -38,5 +38,5 @@ export default function readText ( parser ) {
 
 	parser.pos += index;
 
-	return parser.inside ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
+	return parser.inside && parser.inside !== 'textarea' ? remaining.substr( 0, index ) : decodeCharacterReferences( remaining.substr( 0, index ) );
 }
