@@ -60,30 +60,6 @@ test( '@keypath refs can be aliased', t => {
 	t.htmlEqual( fixture.innerHTML, 'items.0items.1items.2items.3' );
 });
 
-test( 'multiple nested aliases', t => {
-	new Ractive({
-		el: fixture,
-		template:`
-			{{#each items as item}}{{#if item.foo}}
-				{{#with @keypath as key, item.foo as v1}}
-					{{#each v1.bar as v2}}{{#with @keypath as key2}}
-						{{#each v2.baz}}{{key}} {{key2}} {{.}}{{/each}}
-					{{/with}}{{/each}}
-				{{/with}}
-			{{/if}}{{/each}}
-		`,
-		data: {
-			items: [
-				{ foo: { bar: [ { baz: [ 1 ] } ] } },
-				{ foo: { bar: [ { baz: [ 2 ] } ] } },
-				{ foo: { bar: [ { baz: [ 3 ] } ] } }
-			]
-		}
-	});
-
-	t.htmlEqual( fixture.innerHTML, 'items.0 items.0.foo.bar.0 1items.1 items.1.foo.bar.0 2items.2 items.2.foo.bar.0 3' );
-});
-
 test( 'aliased complex computations are cached', t => {
 	let normal = 0, aliased = 0;
 
@@ -106,6 +82,30 @@ test( 'aliased complex computations are cached', t => {
 
 // TODO: no idea why these fail in phantom an pass in browser, but they should probably pass both
 if ( !/phantom/i.test( navigator.userAgent ) ) {
+	test( 'multiple nested aliases', t => {
+		new Ractive({
+			el: fixture,
+			template:`
+				{{#each items as item}}{{#if item.foo}}
+					{{#with @keypath as key, item.foo as v1}}
+						{{#each v1.bar as v2}}{{#with @keypath as key2}}
+							{{#each v2.baz}}{{key}} {{key2}} {{.}}{{/each}}
+						{{/with}}{{/each}}
+					{{/with}}
+				{{/if}}{{/each}}
+			`,
+			data: {
+				items: [
+					{ foo: { bar: [ { baz: [ 1 ] } ] } },
+					{ foo: { bar: [ { baz: [ 2 ] } ] } },
+					{ foo: { bar: [ { baz: [ 3 ] } ] } }
+				]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'items.0 items.0.foo.bar.0 1items.1 items.1.foo.bar.0 2items.2 items.2.foo.bar.0 3' );
+	});
+
 	test( 'basic aliased array iteration', t => {
 		new Ractive({
 			el: fixture,
