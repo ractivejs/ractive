@@ -1,7 +1,7 @@
 const selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
 const commentsPattern = /\/\*.*?\*\//g;
 const selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?::[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
-const mediaQueryPattern = /^@media/;
+const excludePattern = /^(?:@|\d+%)/;
 const dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 
 function trim ( str ) {
@@ -58,8 +58,8 @@ export default function transformCss ( css, id ) {
 		transformed = css
 		.replace( commentsPattern, '' )
 		.replace( selectorsPattern, ( match, $1 ) => {
-			// don't transform media queries!
-			if ( mediaQueryPattern.test( $1 ) ) return match;
+			// don't transform at-rules and keyframe declarations
+			if ( excludePattern.test( $1 ) ) return match;
 
 			const selectors = $1.split( ',' ).map( trim );
 			const transformed = selectors
