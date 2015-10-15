@@ -80,6 +80,17 @@ test( 'aliased complex computations are cached', t => {
 	t.equal( aliased, 1 );
 });
 
+test( 'unresolved aliases should resolve if a suitable model appears', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#with foo.bar as baz}}{{baz}}{{/with}}'
+	});
+
+	t.htmlEqual( fixture.innerHTML, '' );
+	r.set( 'foo', { bar: 'yep' } );
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
+
 // TODO: no idea why these fail in phantom an pass in browser, but they should probably pass both
 if ( !/phantom/i.test( navigator.userAgent ) ) {
 	test( 'multiple nested aliases', t => {
