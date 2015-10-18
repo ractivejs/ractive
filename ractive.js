@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Oct 13 2015 18:01:53 GMT+0000 (UTC) - commit 818e6f22fff7e1d0e9e4755362dfcc8f5ef2758d
+	Sun Oct 18 2015 16:54:37 GMT+0000 (UTC) - commit b63202fca75989deec5888d063936a6348c88e83
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4775,7 +4775,9 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function stopCapturing() {
-  	return stack.pop();
+  	var dependencies = stack.pop();
+  	captureGroup = stack[stack.length - 1];
+  	return dependencies;
   }
 
   function capture(model) {
