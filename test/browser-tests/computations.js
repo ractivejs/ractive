@@ -171,6 +171,31 @@ test( 'Computed values can depend on other computed values', t => {
 	t.htmlEqual( fixture.innerHTML, '6 - 36 - 216' );
 });
 
+test( 'Computed values with mix of computed and non-computed dependencies updates when non-computed dependencies change (#2228)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{number}}',
+		data: {
+			a: 40,
+			b: 0
+		},
+		computed: {
+			yes () {
+				return true;
+			},
+
+			number () {
+				return this.get( 'yes' ) ? ( this.get( 'a' ) + this.get( 'b' ) ) : 99;
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '40' );
+
+	ractive.set( 'b', 2 );
+	t.htmlEqual( fixture.innerHTML, '42' );
+});
+
 test( 'Computations that cause errors are considered undefined', t => {
 	const ractive = new Ractive({
 		el: fixture,
