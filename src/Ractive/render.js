@@ -1,7 +1,7 @@
 import { doc } from '../config/environment';
 import css from '../global/css';
 import Hook from '../events/Hook';
-import { getElement, sliceChildNodes } from '../utils/dom';
+import { getElement } from '../utils/dom';
 import runloop from '../global/runloop';
 
 const renderHook = new Hook( 'render' );

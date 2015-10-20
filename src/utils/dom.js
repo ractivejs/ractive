@@ -145,8 +145,4 @@ function safeToStringValue( value ) {
 	return ( value == null || !value.toString ) ? '' : '' + value;
 }
 
-function sliceChildNodes( parent ) {
-	return Array.prototype.slice.call( parent.childNodes );
-}
-
-export { createElement, detachNode, getElement, matches, safeToStringValue, sliceChildNodes };
+export { createElement, detachNode, getElement, matches, safeToStringValue };

@@ -10,9 +10,10 @@ import { findInViewHierarchy } from '../../shared/registry';
 import { DOMEvent, CustomEvent } from './element/ElementEvents';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
+import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
-import { createElement, matches, sliceChildNodes } from '../../utils/dom';
+import { createElement, matches } from '../../utils/dom';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
@@ -250,7 +251,7 @@ export default class Element extends Item {
 		}
 
 		if ( this.fragment ) {
-			const children = existing ? sliceChildNodes( node ) : undefined;
+			const children = existing ? toArray( node.childNodes ) : undefined;
 			this.fragment.render( node, children );
 
 			// clean up leftover children
