@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Oct 18 2015 16:54:37 GMT+0000 (UTC) - commit b63202fca75989deec5888d063936a6348c88e83
+	Tue Oct 20 2015 19:38:06 GMT+0000 (UTC) - commit 82b152a7c87b7ad87ddf4c9ce801ec09ecd3623d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11485,7 +11485,7 @@ var classCallCheck = function (instance, Constructor) {
   var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
   var commentsPattern = /\/\*.*?\*\//g;
   var selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?::[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
-  var mediaQueryPattern = /^@media/;
+  var excludePattern = /^(?:@|\d+%)/;
   var dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 
   function trim$1(str) {
@@ -11539,8 +11539,8 @@ var classCallCheck = function (instance, Constructor) {
   		transformed = css.replace(dataRvcGuidPattern, dataAttr);
   	} else {
   		transformed = css.replace(commentsPattern, '').replace(selectorsPattern, function (match, $1) {
-  			// don't transform media queries!
-  			if (mediaQueryPattern.test($1)) return match;
+  			// don't transform at-rules and keyframe declarations
+  			if (excludePattern.test($1)) return match;
 
   			var selectors = $1.split(',').map(trim$1);
   			var transformed = selectors.map(function (selector) {
