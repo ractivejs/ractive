@@ -189,3 +189,15 @@ test( 'components', t => {
 	t.htmlEqual( fixture.innerHTML, '<ul><li>apples</li><li>oranges</li></ul>' );
 	t.deepEqual( ractive.findAll( 'li' ), [].slice.call( lis ) );
 });
+
+test( 'two-way binding is initialised from DOM', t => {
+	fixture.innerHTML = '<input type="number" value="42"/>';
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input type="number" value="{{answer}}"/>',
+		enhance: true
+	});
+
+	t.equal( ractive.get( 'answer' ), 42 );
+});
