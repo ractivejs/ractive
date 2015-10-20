@@ -73,17 +73,18 @@ test( 'nested elements', t => {
 });
 
 test( 'attributes are added/removed as appropriate', t => {
-	fixture.innerHTML = '<p data-one></p>';
-	const p = fixture.querySelector( 'p' );
+	fixture.innerHTML = '<button disabled data-live="false"></button>';
+	const button = fixture.querySelector( 'button' );
 
 	const ractive = new Ractive({
 		el: fixture,
-		template: '<p data-two></p>',
+		template: '<button class="live"></button>',
 		enhance: true
 	});
 
-	t.htmlEqual( fixture.innerHTML, '<p data-two></p>' );
-	t.strictEqual( p, ractive.find( 'p' ) );
+	t.htmlEqual( fixture.innerHTML, '<button class="live"></button>' );
+	t.strictEqual( button, ractive.find( 'button' ) );
+	t.ok( !button.disabled );
 });
 
 test( 'conditional sections inherit existing DOM', t => {
