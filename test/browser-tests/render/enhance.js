@@ -1,81 +1,191 @@
 import { test } from 'qunit';
 
-test( 'progressive enhancement of simple templates should reuse matching structure', t => {
-	const str = fixture.innerHTML = 'testing <div class="foo">this is a <strong>test</strong><ul><li>1</li><li>2</li><li>3</li></ul></div> 123';
-	const div = fixture.querySelector( 'div' ), li = fixture.querySelectorAll( 'li' )[2];
-	div.found = true;
-	li.found = true;
-
-	const r = new Ractive({
-		el: fixture,
-		template: '{{first}} <div class="{{two + three}}o">{{>four}}<ul>{{#each five}}<li>{{.}}</li>{{/each}}</ul></div>{{#if six}}345{{else}} 123{{/if}}',
-		data: {
-			first: 'testing',
-			two: 'f',
-			three: 'o',
-			five: [ 1, 2, 3 ],
-			six: false
-		},
-		partials: {
-			four: 'this is a <strong>{{first.substr(0, 4)}}</strong>'
-		},
-		enhance: true
-	});
-
-	t.htmlEqual( fixture.innerHTML, str );
-	t.ok( r.find( 'div' ).found );
-	t.ok( r.findAll( 'li' )[2].found );
+test( 'Cannot use append and enhance at the same time', t => {
+	t.throws( () => {
+		new Ractive({
+			enhance: true,
+			append: true
+		});
+	}, /Cannot use append and enhance at the same time/ );
 });
 
-// PHANTOMJS, Y U NO LIKE THIS TEST?!!?!!1!!one!!
-if ( !/phantom/i.test( navigator.userAgent ) ) {
-	test( 'progressive enhancement with mismatched simple template should make it match', t => {
-		const str = 'testing <div class="foo">this is a <strong>test</strong><ul><li>1</li><li>2</li><li>3</li></ul></div> 123';
-		fixture.innerHTML = 'testing <div class="bar">this is a <em>test</em><ul><li>1</li><li>3</li></ul></div>';
-		const div = fixture.querySelector( 'div' );
-		div.found = true;
+test( 'basic progressive enhancement', t => {
+	fixture.innerHTML = '<p></p>';
+	const p = fixture.querySelector( 'p' );
 
-		const r = new Ractive({
-			el: fixture,
-			template: '{{first}} <div class="{{two + three}}o">{{>four}}<ul>{{#each five}}<li>{{.}}</li>{{/each}}</ul></div>{{#if six}}345{{else}} 123{{/if}}',
-			data: {
-				first: 'testing',
-				two: 'f',
-				three: 'o',
-				five: [ 1, 2, 3 ],
-				six: false
-			},
-			partials: {
-				four: 'this is a <strong>{{first.substr(0, 4)}}</strong>'
-			},
-			enhance: true
-		});
-
-		t.htmlEqual( fixture.innerHTML, str );
-		t.ok( r.find( 'div' ).found );
-	});
-}
-
-test( 'progressive enhancement should work with components', t => {
-	const str = '<ul><li class="apples1">1</li><li class="oranges2">2</li></ul>';
-	fixture.innerHTML = str;
-	const li = fixture.querySelectorAll( 'li' )[1];
-	li.found = true;
-
-	const Item = Ractive.extend({
-		template: '<li class="{{name}}{{idx}}">{{idx}}</li>'
-	});
-
-	const r = new Ractive({
+	const ractive = new Ractive({
 		el: fixture,
-		components: { Item },
-		template: '<ul>{{#each items}}<Item name="{{.}}" idx="{{@index + 1}}" />{{/each}}</ul>',
-		data: {
-			items: [ 'apples', 'oranges' ]
+		template: '<p></p>',
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p></p>' );
+	t.strictEqual( p, ractive.find( 'p' ) );
+});
+
+test( 'missing nodes are added', t => {
+	fixture.innerHTML = '<p></p>';
+	const p = fixture.querySelector( 'p' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<p></p><p></p>',
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p></p><p></p>' );
+	t.strictEqual( p, ractive.find( 'p' ) );
+});
+
+test( 'excess nodes are removed', t => {
+	fixture.innerHTML = '<p></p><p></p>';
+	const ps = fixture.querySelectorAll( 'p' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<p></p>',
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p></p>' );
+	t.strictEqual( ps[0], ractive.find( 'p' ) );
+	t.ok( ps[1].parentNode !== fixture );
+});
+
+test( 'nested elements', t => {
+	const html = '<div><p><strong>it works!</strong></p></div>';
+	fixture.innerHTML = html;
+
+	const div = fixture.querySelector( 'div' );
+	const p = fixture.querySelector( 'p' );
+	const strong = fixture.querySelector( 'strong' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: html,
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, html );
+	t.strictEqual( div, ractive.find( 'div' ) );
+	t.strictEqual( p, ractive.find( 'p' ) );
+	t.strictEqual( strong, ractive.find( 'strong' ) );
+});
+
+test( 'attributes are added/removed as appropriate', t => {
+	fixture.innerHTML = '<p data-one></p>';
+	const p = fixture.querySelector( 'p' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<p data-two></p>',
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p data-two></p>' );
+	t.strictEqual( p, ractive.find( 'p' ) );
+});
+
+test( 'conditional sections inherit existing DOM', t => {
+	fixture.innerHTML = '<p></p>';
+	const p = fixture.querySelector( 'p' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{#if foo}}<p></p>{{/if}}',
+		data: { foo: true },
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p></p>' );
+	t.strictEqual( p, ractive.find( 'p' ) );
+});
+
+test( 'list sections inherit existing DOM', t => {
+	fixture.innerHTML = '<ul><li>a</li><li>b</li><li>c</li></ul>';
+	const lis = fixture.querySelectorAll( 'li' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<ul>
+				{{#each items}}<li>{{this}}</li>{{/each}}
+			</ul>
+		`,
+		data: { items: [ 'a', 'b', 'c' ] },
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<ul><li>a</li><li>b</li><li>c</li></ul>' );
+	t.deepEqual( ractive.findAll( 'li' ), [].slice.call( lis ) );
+});
+
+test( 'interpolator in text sandwich', t => {
+	fixture.innerHTML = '<p>before</p> hello, world! <p>after</p>';
+	const ps = fixture.querySelectorAll( 'p' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `<p>before</p> hello, {{name}}! <p>after</p>`,
+		data: { name: 'world' },
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>before</p> hello, world! <p>after</p>' );
+	t.deepEqual( ractive.findAll( 'p' ), [].slice.call( ps ) );
+});
+
+test( 'mismatched interpolator in text sandwich', t => {
+	fixture.innerHTML = '<p>before</p> hello, world! <p>after</p>';
+	const ps = fixture.querySelectorAll( 'p' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `<p>before</p> hello, {{name}}! <p>after</p>`,
+		data: { name: 'everybody' },
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<p>before</p> hello, everybody! <p>after</p>' );
+	t.deepEqual( ractive.findAll( 'p' ), [].slice.call( ps ) );
+});
+
+test( 'partials', t => {
+	fixture.innerHTML = '<p>I am a partial</p>';
+	const p = fixture.querySelector( 'p' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{>foo}}',
+		partials: {
+			foo: '<p>I am a partial</p>'
 		},
 		enhance: true
 	});
 
-	t.htmlEqual( fixture.innerHTML, str );
-	t.ok( r.findAll( 'li' )[1].found );
+	t.htmlEqual( fixture.innerHTML, '<p>I am a partial</p>' );
+	t.strictEqual( ractive.find( 'p' ), p );
+});
+
+test( 'components', t => {
+	fixture.innerHTML = '<ul><li>apples</li><li>oranges</li></ul>';
+	const lis = fixture.querySelectorAll( 'li' );
+
+	const Item = Ractive.extend({
+		template: '<li>{{name}}</li>'
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		components: { Item },
+		template: `
+			<ul>
+				{{#each items}}<Item name='{{this}}'/>{{/each}}
+			</ul>`,
+		data: { items: [ 'apples', 'oranges' ] },
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<ul><li>apples</li><li>oranges</li></ul>' );
+	t.deepEqual( ractive.findAll( 'li' ), [].slice.call( lis ) );
 });
