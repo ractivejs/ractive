@@ -193,6 +193,7 @@ test( 'components', t => {
 
 test( 'two-way binding is initialised from DOM', t => {
 	fixture.innerHTML = '<input type="number" value="42"/>';
+	const input = fixture.querySelector( 'input' );
 
 	const ractive = new Ractive({
 		el: fixture,
@@ -201,4 +202,5 @@ test( 'two-way binding is initialised from DOM', t => {
 	});
 
 	t.equal( ractive.get( 'answer' ), 42 );
+	t.strictEqual( ractive.find( 'input' ), input );
 });

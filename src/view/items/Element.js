@@ -262,6 +262,9 @@ export default class Element extends Item {
 		}
 
 		if ( existing ) {
+			// store initial values for two-way binding
+			if ( this.binding && this.binding.wasUndefined ) this.binding.setFromNode( node );
+
 			// remove unused attributes
 			let i = node.attributes.length;
 			while ( i-- ) {
