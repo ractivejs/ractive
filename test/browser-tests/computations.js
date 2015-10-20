@@ -703,3 +703,19 @@ test( 'ComputationChild dependencies are captured (#2132)', t => {
 	ractive.toggle( 'odd' );
 	t.htmlEqual( fixture.innerHTML, '<p>d/d</p><p>e/e</p>' );
 });
+
+test( 'ExpressionProxy should notify its deps when it resolves (#2214)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '-{{#with foo}}{{#if bar[0] && bar[0] === bar[1]}}ok{{/if}}{{/with}}',
+		data: {
+			foo: {}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '-' );
+
+	r.set( 'bar', [ 1, 1 ] );
+
+	t.htmlEqual( fixture.innerHTML, '-ok' );
+});
