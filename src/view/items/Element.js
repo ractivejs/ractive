@@ -13,7 +13,7 @@ import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
-import { createElement, matches } from '../../utils/dom';
+import { createElement, detachNode, matches } from '../../utils/dom';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
@@ -212,7 +212,8 @@ export default class Element extends Item {
 		// TODO determine correct namespace
 		this.namespace = getNamespace( this );
 
-		let node, existing = false;
+		let node;
+		let existing = false;
 
 		if ( occupants ) {
 			let n;
@@ -222,7 +223,7 @@ export default class Element extends Item {
 					existing = true;
 					break;
 				} else {
-					n.remove();
+					detachNode( n );
 				}
 			}
 		}
@@ -256,7 +257,16 @@ export default class Element extends Item {
 
 			// clean up leftover children
 			if ( children ) {
-				children.forEach( n => n.remove() );
+				children.forEach( detachNode );
+			}
+		}
+
+		if ( existing ) {
+			// remove unused attributes
+			let i = node.attributes.length;
+			while ( i-- ) {
+				const name = node.attributes[i].name;
+				if ( !( name in this.template.a ) ) node.removeAttribute( name );
 			}
 		}
 
