@@ -30,8 +30,8 @@ export default class Select extends Element {
 		}
 	}
 
-	render ( target ) {
-		super.render( target );
+	render ( target, occupants ) {
+		super.render( target, occupants );
 		this.sync();
 
 		const node = this.node;

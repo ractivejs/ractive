@@ -241,8 +241,8 @@ export default class Component extends Item {
 		this.instance.fragment.rebind( viewmodel );
 	}
 
-	render ( target ) {
-		render( this.instance, target, null );
+	render ( target, occupants ) {
+		render( this.instance, target, null, occupants );
 
 		this.checkYielders();
 		this.eventHandlers.forEach( callRender );

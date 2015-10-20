@@ -68,6 +68,11 @@ function configure ( method, Parent, target, options ) {
 		}
 	}
 
+	// disallow combination of `append` and `enhance`
+	if ( options.append && options.enhance ) {
+		throw new Error( 'Cannot use append and enhance at the same time' );
+	}
+
 	registries.forEach( registry => {
 		registry[ method ]( Parent, target, options );
 	});

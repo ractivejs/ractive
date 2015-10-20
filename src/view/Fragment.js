@@ -225,11 +225,11 @@ export default class Fragment {
 		this.items.forEach( rebind );
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 		this.rendered = true;
 
-		this.items.forEach( item => item.render( target ) );
+		this.items.forEach( item => item.render( target, occupants ) );
 	}
 
 	resetTemplate ( template ) {

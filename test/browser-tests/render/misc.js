@@ -1,6 +1,8 @@
 import { test } from 'qunit';
 import { svg } from 'config/environment';
 
+/* globals window, document, navigator */
+
 if ( svg ) {
 	test( 'Style elements have content inserted that becomes .textContent gh #569', t => {
 		new Ractive({
