@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Oct 20 2015 19:38:06 GMT+0000 (UTC) - commit 82b152a7c87b7ad87ddf4c9ce801ec09ecd3623d
+	Tue Oct 20 2015 19:48:25 GMT+0000 (UTC) - commit 223a489118cb0fb4f37330952e8bb68e91565a97
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2737,6 +2737,8 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.computation = computation;
   		computation.register(this);
+
+  		this.handleChange();
   	};
 
   	ExpressionProxy.prototype.get = function get() {
