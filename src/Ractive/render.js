@@ -35,7 +35,7 @@ export default function render ( ractive, target, anchor, occupants ) {
 			ractive.fragment.render( docFrag );
 			target.insertBefore( docFrag, anchor );
 		} else {
-			ractive.fragment.render( target, occupants || ( ractive.enhance ? sliceChildNodes( target ) : undefined ) );
+			ractive.fragment.render( target, occupants );
 		}
 	}
 

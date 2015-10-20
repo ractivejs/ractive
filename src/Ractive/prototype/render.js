@@ -1,4 +1,5 @@
 import { getElement } from '../../utils/dom';
+import { toArray } from '../../utils/array';
 import render from '../render';
 import { teardown } from '../../shared/methodCallers';
 
@@ -17,5 +18,12 @@ export default function Ractive$render ( target, anchor ) {
 		}
 	}
 
-	return render( this, target, anchor );
+	let occupants = this.enhance ? toArray( target.childNodes ) : null;
+	const promise = render( this, target, anchor, occupants );
+
+	if ( occupants ) {
+		while ( occupants.length ) target.removeChild( occupants.pop() );
+	}
+
+	return promise;
 }
