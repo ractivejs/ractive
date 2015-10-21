@@ -183,12 +183,11 @@ export default class RepeatedFragment {
 	}
 
 	shuffle ( newIndices ) {
-		if ( this.pendingNewIndices ) {
-			throw new Error( 'Section was already shuffled!' );
-		}
+		if ( !this.pendingNewIndices ) this.previousIterations = this.iterations.slice();
 
-		this.pendingNewIndices = newIndices;
-		this.previousIterations = this.iterations.slice();
+		if ( !this.pendingNewIndices ) this.pendingNewIndices = [];
+
+		this.pendingNewIndices.push( newIndices );
 
 		const iterations = [];
 
@@ -198,10 +197,11 @@ export default class RepeatedFragment {
 			const fragment = this.iterations[ oldIndex ];
 			iterations[ newIndex ] = fragment;
 
-			if ( newIndex !== oldIndex ) fragment.dirty = true;
+			if ( newIndex !== oldIndex && fragment ) fragment.dirty = true;
 		});
 
 		this.iterations = iterations;
+
 		this.bubble();
 	}
 
@@ -325,7 +325,14 @@ export default class RepeatedFragment {
 	}
 
 	updatePostShuffle () {
-		const newIndices = this.pendingNewIndices;
+		const newIndices = this.pendingNewIndices[ 0 ];
+
+		// map first shuffle through
+		this.pendingNewIndices.slice( 1 ).forEach( indices => {
+			newIndices.forEach( ( newIndex, oldIndex ) => {
+				newIndices[ oldIndex ] = indices[ newIndex ];
+			});
+		});
 
 		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
 		// storing them in a document fragment for later reinsertion) seems a bit hokey,
