@@ -109,7 +109,7 @@ export default class Attribute extends Item {
 		}
 
 		// Special case – bound radio `name` attributes
-		if ( this.name === 'name' && this.element.name === 'input' && this.interpolator ) {
+		if ( this.name === 'name' && this.element.name === 'input' && this.interpolator && this.element.getAttribute( 'type' ) === 'radio' ) {
 			return `name="{{${this.interpolator.model.getKeypath()}}}"`;
 		}
 

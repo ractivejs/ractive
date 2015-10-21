@@ -1273,6 +1273,12 @@ const renderTests = [
 		name: 'HTML entities inside <textarea> are decoded (#2218)',
 		template: '<textarea>&acute;&eacute;</textarea>',
 		result: '<textarea>´é</textarea>'
+	},
+	{
+		name: '`name` attribute is interpolated if input isn\'t a radio button (#2230)',
+		template: '<input name="{{name}}">',
+		data: { name: 'foo' },
+		result: '<input name="foo">'
 	}
 ];
 
