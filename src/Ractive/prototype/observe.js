@@ -1,5 +1,5 @@
 import runloop from '../../global/runloop';
-import { isEqual, isObject } from '../../utils/is';
+import { isArray, isEqual, isObject } from '../../utils/is';
 import { splitKeypath } from '../../shared/keypaths';
 import { cancel } from '../../shared/methodCallers';
 import resolveReference from '../../view/resolvers/resolveReference';
@@ -136,7 +136,7 @@ class PatternObserver {
 
 		const pattern = keys.join( '\\.' ).replace( /\*/g, '(.+)' );
 		const baseKeypath = baseModel.getKeypath();
-		this.pattern = new RegExp( `^${baseKeypath ? baseKeypath + '.' : ''}${pattern}$` );
+		this.pattern = new RegExp( `^${baseKeypath ? baseKeypath + '\\.' : ''}${pattern}$` );
 
 		this.oldValues = {};
 		this.newValues = {};
@@ -166,6 +166,8 @@ class PatternObserver {
 
 	dispatch () {
 		Object.keys( this.newValues ).forEach( keypath => {
+			if ( this.newKeys && !this.newKeys[ keypath ] ) return;
+
 			const newValue = this.newValues[ keypath ];
 			const oldValue = this.oldValues[ keypath ];
 
@@ -179,7 +181,26 @@ class PatternObserver {
 		});
 
 		this.oldValues = this.newValues;
+		this.newKeys = null;
 		this.dirty = false;
+	}
+
+	shuffle( newIndices ) {
+		if ( !isArray( this.baseModel.value ) ) return;
+
+		const base = this.baseModel.getKeypath();
+		const max = this.baseModel.value.length;
+		const suffix = this.keys.length > 1 ? '.' + this.keys.slice( 1 ).join( '.' ) : '';
+
+		this.newKeys = {};
+		for ( let i = 0; i < newIndices.length; i++ ) {
+			if ( newIndices[ i ] === -1 || newIndices[ i ] === i ) continue;
+			this.newKeys[ `${base}.${i}${suffix}` ] = true;
+		}
+
+		for ( let i = newIndices.touchedFrom; i < max; i++ ) {
+			this.newKeys[ `${base}.${i}${suffix}` ] = true;
+		}
 	}
 
 	handleChange () {
