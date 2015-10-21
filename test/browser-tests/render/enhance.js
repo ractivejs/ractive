@@ -326,3 +326,26 @@ test( 'two-way binding with checkbox input', t => {
 	t.ok( !inputs[0].checked );
 	t.ok(  inputs[1].checked );
 });
+
+test( 'two-way binding with checkbox name input', t => {
+	fixture.innerHTML = `
+		<input type='checkbox' value='foo' checked>
+		<input type='checkbox' value='bar'>
+		<input type='checkbox' value='baz' checked>`;
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<input type='checkbox' name='{{selected}}' value='foo'>
+			<input type='checkbox' name='{{selected}}' value='bar'>
+			<input type='checkbox' name='{{selected}}' value='baz'>`,
+		enhance: true
+	});
+
+	const inputs = ractive.findAll( 'input' );
+	t.ok(  inputs[0].checked );
+	t.ok( !inputs[1].checked );
+	t.ok(  inputs[2].checked );
+
+	t.deepEqual( ractive.get( 'selected' ), [ 'foo', 'baz' ]);
+});
