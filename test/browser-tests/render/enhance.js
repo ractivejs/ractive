@@ -87,6 +87,21 @@ test( 'attributes are added/removed as appropriate', t => {
 	t.ok( !button.disabled );
 });
 
+test( 'attributes are removed if none exist in template', t => {
+	fixture.innerHTML = `<button disabled>don't click me</button>`;
+	const button = fixture.querySelector( 'button' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<button>do click me</button>',
+		enhance: true
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<button>do click me</button>' );
+	t.strictEqual( button, ractive.find( 'button' ) );
+	t.ok( !button.disabled );
+});
+
 test( 'conditional sections inherit existing DOM', t => {
 	fixture.innerHTML = '<p></p>';
 	const p = fixture.querySelector( 'p' );

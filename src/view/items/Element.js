@@ -266,7 +266,7 @@ export default class Element extends Item {
 			let i = node.attributes.length;
 			while ( i-- ) {
 				const name = node.attributes[i].name;
-				if ( !( name in this.template.a ) ) node.removeAttribute( name );
+				if ( !this.template.a || !( name in this.template.a ) ) node.removeAttribute( name );
 			}
 		}
 
