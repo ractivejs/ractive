@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Oct 21 2015 02:32:48 GMT+0000 (UTC) - commit d1697c7a7d32c64a3206f713777ab0022034c31b
+	Wed Oct 21 2015 02:42:29 GMT+0000 (UTC) - commit 3da2d26d886184aa7d20ea685a5179cf052f4328
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7243,7 +7243,7 @@ var classCallCheck = function (instance, Constructor) {
   			var i = node.attributes.length;
   			while (i--) {
   				var _name = node.attributes[i].name;
-  				if (!(_name in this.template.a)) node.removeAttribute(_name);
+  				if (!this.template.a || !(_name in this.template.a)) node.removeAttribute(_name);
   			}
   		}
 
