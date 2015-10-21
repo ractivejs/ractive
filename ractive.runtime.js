@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Oct 20 2015 19:48:25 GMT+0000 (UTC) - commit 223a489118cb0fb4f37330952e8bb68e91565a97
+	Wed Oct 21 2015 02:32:48 GMT+0000 (UTC) - commit d1697c7a7d32c64a3206f713777ab0022034c31b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3125,11 +3125,32 @@ var classCallCheck = function (instance, Constructor) {
   		return this.model ? safeToStringValue(this.model.get()) : '';
   	};
 
-  	Interpolator.prototype.render = function render(target) {
-  		this.rendered = true;
-  		this.node = doc.createTextNode(this.getString());
+  	Interpolator.prototype.render = function render(target, occupants) {
+  		var value = this.getString();
 
-  		target.appendChild(this.node);
+  		this.rendered = true;
+
+  		if (occupants) {
+  			var n = occupants[0];
+  			if (n && n.nodeType === 3) {
+  				occupants.shift();
+  				if (n.nodeValue !== value) {
+  					n.nodeValue = value;
+  				}
+  			} else {
+  				n = this.node = doc.createTextNode(value);
+  				if (occupants[0]) {
+  					target.insertBefore(n, occupants[0]);
+  				} else {
+  					target.appendChild(n);
+  				}
+  			}
+
+  			this.node = n;
+  		} else {
+  			this.node = doc.createTextNode(value);
+  			target.appendChild(this.node);
+  		}
   	};
 
   	Interpolator.prototype.toString = function toString(escape) {
@@ -3353,8 +3374,8 @@ var classCallCheck = function (instance, Constructor) {
   		this.fragment.rebind();
   	};
 
-  	Partial.prototype.render = function render(target) {
-  		this.fragment.render(target);
+  	Partial.prototype.render = function render(target, occupants) {
+  		this.fragment.render(target, occupants);
   	};
 
   	Partial.prototype.setTemplate = function setTemplate(name, template) {
@@ -3574,12 +3595,12 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	RepeatedFragment.prototype.render = function render(target) {
+  	RepeatedFragment.prototype.render = function render(target, occupants) {
   		// TODO use docFrag.cloneNode...
 
   		if (this.iterations) {
   			this.iterations.forEach(function (fragment) {
-  				return fragment.render(target);
+  				return fragment.render(target, occupants);
   			});
   		}
 
@@ -3874,9 +3895,9 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	Section.prototype.render = function render(target) {
+  	Section.prototype.render = function render(target, occupants) {
   		this.rendered = true;
-  		if (this.fragment) this.fragment.render(target);
+  		if (this.fragment) this.fragment.render(target, occupants);
   	};
 
   	Section.prototype.shuffle = function shuffle(newIndices) {
@@ -4254,8 +4275,8 @@ var classCallCheck = function (instance, Constructor) {
   		throw new Error('Yielder$rebind is not yet implemented!');
   	};
 
-  	Yielder.prototype.render = function render(target) {
-  		return this.fragment.render(target);
+  	Yielder.prototype.render = function render(target, occupants) {
+  		return this.fragment.render(target, occupants);
   	};
 
   	Yielder.prototype.setTemplate = function setTemplate(name) {
@@ -6133,6 +6154,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		// initialise value, if it's undefined
   		var value = model.get();
+  		this.wasUndefined = value === undefined;
 
   		if (value === undefined && this.getInitialValue) {
   			value = this.getInitialValue();
@@ -6173,6 +6195,10 @@ var classCallCheck = function (instance, Constructor) {
   		this.node = this.element.node;
   		this.node._ractive.binding = this;
   		this.rendered = true; // TODO is this used anywhere?
+  	};
+
+  	Binding.prototype.setFromNode = function setFromNode(node) {
+  		this.model.set(node.value);
   	};
 
   	Binding.prototype.unbind = function unbind() {
@@ -6645,6 +6671,11 @@ var classCallCheck = function (instance, Constructor) {
   	NumericBinding.prototype.getValue = function getValue() {
   		var value = parseFloat(this.node.value);
   		return isNaN(value) ? undefined : value;
+  	};
+
+  	NumericBinding.prototype.setFromNode = function setFromNode(node) {
+  		var value = parseFloat(node.value);
+  		if (!isNaN(value)) this.model.set(value);
   	};
 
   	return NumericBinding;
@@ -7147,14 +7178,32 @@ var classCallCheck = function (instance, Constructor) {
   		this.liveQueries.forEach(makeDirty$1);
   	};
 
-  	Element.prototype.render = function render(target) {
+  	Element.prototype.render = function render(target, occupants) {
   		var _this2 = this;
 
   		// TODO determine correct namespace
   		this.namespace = getNamespace(this);
 
-  		var node = createElement(this.template.e, this.namespace, this.getAttribute('is'));
-  		this.node = node;
+  		var node = undefined;
+  		var existing = false;
+
+  		if (occupants) {
+  			var n = undefined;
+  			while (n = occupants.shift()) {
+  				if (n.nodeName === this.template.e.toUpperCase() && n.namespaceURI === this.namespace) {
+  					this.node = node = n;
+  					existing = true;
+  					break;
+  				} else {
+  					detachNode(n);
+  				}
+  			}
+  		}
+
+  		if (!node) {
+  			node = createElement(this.template.e, this.namespace, this.getAttribute('is'));
+  			this.node = node;
+  		}
 
   		var context = this.parentFragment.findContext();
 
@@ -7177,7 +7226,25 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		if (this.fragment) {
-  			this.fragment.render(node);
+  			var children = existing ? toArray(node.childNodes) : undefined;
+  			this.fragment.render(node, children);
+
+  			// clean up leftover children
+  			if (children) {
+  				children.forEach(detachNode);
+  			}
+  		}
+
+  		if (existing) {
+  			// store initial values for two-way binding
+  			if (this.binding && this.binding.wasUndefined) this.binding.setFromNode(node);
+
+  			// remove unused attributes
+  			var i = node.attributes.length;
+  			while (i--) {
+  				var _name = node.attributes[i].name;
+  				if (!(_name in this.template.a)) node.removeAttribute(_name);
+  			}
   		}
 
   		this.attributes.forEach(_render);
@@ -7201,7 +7268,9 @@ var classCallCheck = function (instance, Constructor) {
   			this._introTransition = transition; // so we can abort if it gets removed
   		}
 
-  		target.appendChild(node);
+  		if (!existing) {
+  			target.appendChild(node);
+  		}
 
   		this.rendered = true;
   	};
@@ -7369,8 +7438,8 @@ var classCallCheck = function (instance, Constructor) {
   		_Element.apply(this, arguments);
   	}
 
-  	Input.prototype.render = function render(target) {
-  		_Element.prototype.render.call(this, target);
+  	Input.prototype.render = function render(target, occupants) {
+  		_Element.prototype.render.call(this, target, occupants);
   		this.node.defaultValue = this.node.value;
   	};
 
@@ -7454,8 +7523,8 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	Select.prototype.render = function render(target) {
-  		_Element.prototype.render.call(this, target);
+  	Select.prototype.render = function render(target, occupants) {
+  		_Element.prototype.render.call(this, target, occupants);
   		this.sync();
 
   		var node = this.node;
@@ -7610,8 +7679,8 @@ var classCallCheck = function (instance, Constructor) {
   		this.formBindings = [];
   	}
 
-  	Form.prototype.render = function render(target) {
-  		_Element.prototype.render.call(this, target);
+  	Form.prototype.render = function render(target, occupants) {
+  		_Element.prototype.render.call(this, target, occupants);
   		this.node.addEventListener('reset', handleReset, false);
   	};
 
@@ -8989,6 +9058,11 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	}
 
+  	// disallow combination of `append` and `enhance`
+  	if (options.append && options.enhance) {
+  		throw new Error('Cannot use append and enhance at the same time');
+  	}
+
   	registries.forEach(function (registry) {
   		registry[method](Parent, target, options);
   	});
@@ -9086,7 +9160,7 @@ var classCallCheck = function (instance, Constructor) {
 
   var renderHook$1 = new Hook('render');
   var completeHook$1 = new Hook('complete');
-  function render(ractive, target, anchor) {
+  function render(ractive, target, anchor, occupants) {
   	// if `noIntro` is `true`, temporarily disable transitions
   	var transitionsEnabled = ractive.transitionsEnabled;
   	if (ractive.noIntro) ractive.transitionsEnabled = false;
@@ -9116,7 +9190,7 @@ var classCallCheck = function (instance, Constructor) {
   			ractive.fragment.render(docFrag);
   			target.insertBefore(docFrag, anchor);
   		} else {
-  			ractive.fragment.render(target);
+  			ractive.fragment.render(target, occupants);
   		}
   	}
 
@@ -9845,8 +9919,8 @@ var classCallCheck = function (instance, Constructor) {
   		this.instance.fragment.rebind(viewmodel);
   	};
 
-  	Component.prototype.render = function render$$(target) {
-  		render(this.instance, target, null);
+  	Component.prototype.render = function render$$(target, occupants) {
+  		render(this.instance, target, null, occupants);
 
   		this.checkYielders();
   		this.eventHandlers.forEach(_render);
@@ -9939,10 +10013,30 @@ var classCallCheck = function (instance, Constructor) {
   		// noop
   	};
 
-  	Text.prototype.render = function render(target) {
-  		this.node = doc.createTextNode(this.template);
-  		target.appendChild(this.node);
+  	Text.prototype.render = function render(target, occupants) {
   		this.rendered = true;
+
+  		if (occupants) {
+  			var n = occupants[0];
+  			if (n && n.nodeType === 3) {
+  				occupants.shift();
+  				if (n.nodeValue !== this.template) {
+  					n.nodeValue = this.template;
+  				}
+  			} else {
+  				n = this.node = doc.createTextNode(this.template);
+  				if (occupants[0]) {
+  					target.insertBefore(n, occupants[0]);
+  				} else {
+  					target.appendChild(n);
+  				}
+  			}
+
+  			this.node = n;
+  		} else {
+  			this.node = doc.createTextNode(this.template);
+  			target.appendChild(this.node);
+  		}
   	};
 
   	Text.prototype.toString = function toString(escape) {
@@ -10347,12 +10441,12 @@ var classCallCheck = function (instance, Constructor) {
   		this.items.forEach(_rebind);
   	};
 
-  	Fragment.prototype.render = function render(target) {
+  	Fragment.prototype.render = function render(target, occupants) {
   		if (this.rendered) throw new Error('Fragment is already rendered!');
   		this.rendered = true;
 
   		this.items.forEach(function (item) {
-  			return item.render(target);
+  			return item.render(target, occupants);
   		});
   	};
 
@@ -10602,10 +10696,19 @@ var classCallCheck = function (instance, Constructor) {
   		if (others) others.forEach(teardown);
 
   		// make sure we are the only occupants
-  		target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+  		if (!this.enhance) {
+  			target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+  		}
   	}
 
-  	return render(this, target, anchor);
+  	var occupants = this.enhance ? toArray(target.childNodes) : null;
+  	var promise = render(this, target, anchor, occupants);
+
+  	if (occupants) {
+  		while (occupants.length) target.removeChild(occupants.pop());
+  	}
+
+  	return promise;
   }
 
   var push = makeArrayMethod('push');
@@ -11753,6 +11856,7 @@ var classCallCheck = function (instance, Constructor) {
   	Promise: { value: Promise$1 },
 
   	// support
+  	enhance: { writable: true, value: false },
   	svg: { value: svg },
   	magic: { value: magicSupported },
 
