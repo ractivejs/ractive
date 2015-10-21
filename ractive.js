@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Oct 21 2015 02:42:29 GMT+0000 (UTC) - commit 3da2d26d886184aa7d20ea685a5179cf052f4328
+	Wed Oct 21 2015 09:31:48 GMT+0000 (UTC) - commit a3f37d4896f705c74d6e0c16738f3741f92a7d3e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7461,7 +7461,7 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		// Special case – bound radio `name` attributes
-  		if (this.name === 'name' && this.element.name === 'input' && this.interpolator) {
+  		if (this.name === 'name' && this.element.name === 'input' && this.interpolator && this.element.getAttribute('type') === 'radio') {
   			return 'name="{{' + this.interpolator.model.getKeypath() + '}}"';
   		}
 
