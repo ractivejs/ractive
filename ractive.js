@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Oct 21 2015 09:31:48 GMT+0000 (UTC) - commit a3f37d4896f705c74d6e0c16738f3741f92a7d3e
+	Wed Oct 21 2015 14:41:14 GMT+0000 (UTC) - commit b11a4126a6dc622a1c74bbdf6e6447dcc20a7d22
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9054,6 +9054,10 @@ var classCallCheck = function (instance, Constructor) {
   		return this.node.checked;
   	};
 
+  	CheckboxBinding.prototype.setFromNode = function setFromNode(node) {
+  		this.model.set(node.checked);
+  	};
+
   	return CheckboxBinding;
   })(Binding);
 
@@ -9108,7 +9112,7 @@ var classCallCheck = function (instance, Constructor) {
 
   function getValue$1() {
   	var all = this.bindings.filter(function (b) {
-  		return b.node.checked;
+  		return b.node && b.node.checked;
   	}).map(function (b) {
   		return b.element.getAttribute('value');
   	});
@@ -9171,7 +9175,7 @@ var classCallCheck = function (instance, Constructor) {
   		// and populate it using any `checked` attributes that
   		// exist (which users should avoid, but which we should
   		// support anyway to avoid breaking expectations)
-  		this.noInitialValue = true;
+  		this.noInitialValue = true; // TODO are noInitialValue and wasUndefined the same thing?
   		return [];
   	};
 
@@ -9216,6 +9220,19 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
+  	CheckboxNameBinding.prototype.setFromNode = function setFromNode(node) {
+  		this.group.bindings.forEach(function (binding) {
+  			return binding.wasUndefined = true;
+  		});
+
+  		if (node.checked) {
+  			var valueSoFar = this.group.getValue();
+  			valueSoFar.push(this.element.getAttribute('value'));
+
+  			this.group.model.set(valueSoFar);
+  		}
+  	};
+
   	CheckboxNameBinding.prototype.unbind = function unbind() {
   		this.group.remove(this);
   	};
@@ -9243,6 +9260,10 @@ var classCallCheck = function (instance, Constructor) {
   		return this.element.fragment ? this.element.fragment.toString() : '';
   	};
 
+  	ContentEditableBinding.prototype.getValue = function getValue() {
+  		return this.element.node.innerHTML;
+  	};
+
   	ContentEditableBinding.prototype.render = function render() {
   		_Binding.prototype.render.call(this);
 
@@ -9260,6 +9281,10 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
+  	ContentEditableBinding.prototype.setFromNode = function setFromNode(node) {
+  		this.model.set(node.innerHTML);
+  	};
+
   	ContentEditableBinding.prototype.unrender = function unrender() {
   		var node = this.node;
 
@@ -9267,10 +9292,6 @@ var classCallCheck = function (instance, Constructor) {
   		node.removeEventListener('change', handleDomEvent, false);
   		node.removeEventListener('input', handleDomEvent, false);
   		node.removeEventListener('keyup', handleDomEvent, false);
-  	};
-
-  	ContentEditableBinding.prototype.getValue = function getValue() {
-  		return this.element.node.innerHTML;
   	};
 
   	return ContentEditableBinding;
@@ -9441,6 +9462,18 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
+  	MultipleSelectBinding.prototype.setFromNode = function setFromNode(node) {
+  		var i = node.selectedOptions.length;
+  		var result = new Array(i);
+
+  		while (i--) {
+  			var option = node.selectedOptions[i];
+  			result[i] = option._ractive ? option._ractive.value : option.value;
+  		}
+
+  		this.model.set(result);
+  	};
+
   	MultipleSelectBinding.prototype.setValue = function setValue() {
   		throw new Error('TODO not implemented yet');
   	};
@@ -9524,6 +9557,10 @@ var classCallCheck = function (instance, Constructor) {
   		if (this.node.attachEvent) {
   			this.node.addEventListener('click', handleDomEvent, false);
   		}
+  	};
+
+  	RadioBinding.prototype.setFromNode = function setFromNode(node) {
+  		this.model.set(node.checked);
   	};
 
   	RadioBinding.prototype.unbind = function unbind() {
@@ -9611,6 +9648,12 @@ var classCallCheck = function (instance, Constructor) {
 
   		if (node.attachEvent) {
   			node.addEventListener('click', handleDomEvent, false);
+  		}
+  	};
+
+  	RadioNameBinding.prototype.setFromNode = function setFromNode(node) {
+  		if (node.checked) {
+  			this.group.model.set(this.element.getAttribute('value'));
   		}
   	};
 
@@ -9718,6 +9761,11 @@ var classCallCheck = function (instance, Constructor) {
   	SingleSelectBinding.prototype.render = function render() {
   		_Binding.prototype.render.call(this);
   		this.node.addEventListener('change', handleDomEvent, false);
+  	};
+
+  	SingleSelectBinding.prototype.setFromNode = function setFromNode(node) {
+  		var option = node.selectedOptions[0];
+  		this.model.set(option._ractive ? option._ractive.value : option.value);
   	};
 
   	// TODO this method is an anomaly... is it necessary?
