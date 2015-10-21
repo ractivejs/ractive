@@ -207,6 +207,20 @@ test( 'components', t => {
 });
 
 test( 'two-way binding is initialised from DOM', t => {
+	fixture.innerHTML = '<input value="it works"/>';
+	const input = fixture.querySelector( 'input' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input value="{{message}}"/>',
+		enhance: true
+	});
+
+	t.strictEqual( ractive.get( 'message' ), 'it works' );
+	t.strictEqual( ractive.find( 'input' ), input );
+});
+
+test( 'two-way binding with number input', t => {
 	fixture.innerHTML = '<input type="number" value="42"/>';
 	const input = fixture.querySelector( 'input' );
 
@@ -216,6 +230,99 @@ test( 'two-way binding is initialised from DOM', t => {
 		enhance: true
 	});
 
-	t.equal( ractive.get( 'answer' ), 42 );
+	t.strictEqual( ractive.get( 'answer' ), 42 );
 	t.strictEqual( ractive.find( 'input' ), input );
+});
+
+test( 'two-way binding with range input', t => {
+	fixture.innerHTML = '<input type="range" value="42"/>';
+	const input = fixture.querySelector( 'input' );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input type="range" value="{{answer}}"/>',
+		enhance: true
+	});
+
+	t.strictEqual( ractive.get( 'answer' ), 42 );
+	t.strictEqual( ractive.find( 'input' ), input );
+});
+
+test( 'two-way binding with single select', t => {
+	fixture.innerHTML = `
+		<select>
+			<option>isomorphic</option>
+			<option selected>universal</option>
+			<option>who cares</option>
+		</select>
+	`;
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<select value='{{selected}}'>
+				{{#each options}}<option value='{{this}}'>{{desc}}</option>{{/each}}
+			</select>
+		`,
+		data: {
+			options: [
+				{ desc: 'isomorphic' },
+				{ desc: 'universal' },
+				{ desc: 'who cares' }
+			]
+		},
+		enhance: true
+	});
+
+	t.equal( ractive.get( 'selected.desc' ), 'universal' );
+});
+
+test( 'two-way binding with multiple select', t => {
+	fixture.innerHTML = `
+		<select multiple>
+			<option>isomorphic</option>
+			<option selected>universal</option>
+			<option selected>who cares</option>
+		</select>
+	`;
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<select multiple value='{{selected}}'>
+				{{#each options}}<option value='{{this}}'>{{desc}}</option>{{/each}}
+			</select>
+		`,
+		data: {
+			options: [
+				{ desc: 'isomorphic' },
+				{ desc: 'universal' },
+				{ desc: 'who cares' }
+			]
+		},
+		enhance: true
+	});
+
+	t.deepEqual( ractive.get( 'selected' ), [
+		{ desc: 'universal' },
+		{ desc: 'who cares' }
+	]);
+});
+
+test( 'two-way binding with checkbox input', t => {
+	fixture.innerHTML = `
+		<input type='checkbox'>
+		<input type='checkbox' checked>`;
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<input type='checkbox' checked='{{a}}'>
+			<input type='checkbox' checked='{{b}}'>`,
+		enhance: true
+	});
+
+	const inputs = ractive.findAll( 'input' );
+	t.ok( !inputs[0].checked );
+	t.ok(  inputs[1].checked );
 });
