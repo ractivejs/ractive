@@ -389,3 +389,15 @@ test( 'two-way binding with radio name inputs', t => {
 
 	t.equal( ractive.get( 'selected' ), 'universal' );
 });
+
+test( 'two-way binding with contenteditable', t => {
+	fixture.innerHTML = `<div contenteditable='true'><p>hello</p></div>`;
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `<div contenteditable='true' value='{{value}}'></div>`,
+		enhance: true
+	});
+
+	t.equal( ractive.get( 'value' ), '<p>hello</p>' );
+});
