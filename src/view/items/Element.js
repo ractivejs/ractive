@@ -17,7 +17,6 @@ import { createElement, detachNode, matches } from '../../utils/dom';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
-import { detachNode } from '../../utils/dom';
 
 function makeDirty ( query ) {
 	query.makeDirty();
