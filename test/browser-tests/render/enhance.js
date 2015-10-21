@@ -349,3 +349,24 @@ test( 'two-way binding with checkbox name input', t => {
 
 	t.deepEqual( ractive.get( 'selected' ), [ 'foo', 'baz' ]);
 });
+
+test( 'two-way binding with radio inputs', t => {
+	fixture.innerHTML = `
+		<input type='radio'>
+		<input type='radio' checked>
+		<input type='radio'>
+	`;
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<input type='radio' checked='{{a}}'>
+			<input type='radio' checked='{{b}}'>
+			<input type='radio' checked='{{c}}'>`,
+		enhance: true
+	});
+
+	t.ok( !ractive.get( 'a' ) );
+	t.ok(  ractive.get( 'b' ) );
+	t.ok( !ractive.get( 'c' ) );
+});
