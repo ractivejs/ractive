@@ -370,3 +370,22 @@ test( 'two-way binding with radio inputs', t => {
 	t.ok(  ractive.get( 'b' ) );
 	t.ok( !ractive.get( 'c' ) );
 });
+
+test( 'two-way binding with radio name inputs', t => {
+	fixture.innerHTML = `
+		<input type='radio' value='isomorphic'>
+		<input type='radio' value='universal' checked>
+		<input type='radio' value='who cares'>
+	`;
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<input type='radio' name='{{selected}}' value='isomorphic'>
+			<input type='radio' name='{{selected}}' value='universal'>
+			<input type='radio' name='{{selected}}' value='who cares'>`,
+		enhance: true
+	});
+
+	t.equal( ractive.get( 'selected' ), 'universal' );
+});
