@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Oct 21 2015 14:41:14 GMT+0000 (UTC) - commit b11a4126a6dc622a1c74bbdf6e6447dcc20a7d22
+	Thu Oct 22 2015 00:25:28 GMT+0000 (UTC) - commit 98e37e5ead643fc1f4619b8f3d9b65dd71fa1ece
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6822,7 +6822,10 @@ var classCallCheck = function (instance, Constructor) {
 
   	RepeatedFragment.prototype.findNextNode = function findNextNode(iteration) {
   		if (iteration.index < this.iterations.length - 1) {
-  			return this.iterations[iteration.index + 1].firstNode();
+  			for (var i = iteration.index + 1; i < this.iterations.length; i++) {
+  				var node = this.iterations[i].firstNode();
+  				if (node) return node;
+  			}
   		}
 
   		return this.owner.findNextNode();
