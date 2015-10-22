@@ -253,6 +253,25 @@ test( 'Components inherited from more than one generation off work with named yi
 	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
 });
 
+test( 'yielders should properly update with their container instance (#2235)', t => {
+	const Foo = Ractive.extend({
+		template: '{{yield}}'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<Foo>{{foo}}</Foo>',
+		data: {
+			foo: 'foo'
+		},
+		components: { Foo }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foo' );
+	r.set( 'foo', 'bar' );
+	t.htmlEqual( fixture.innerHTML, 'bar' );
+});
+
 if ( hasUsableConsole ) {
 	test( 'Yield with missing partial (#1681)', t => {
 		onWarn( msg => {
