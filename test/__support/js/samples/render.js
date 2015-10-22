@@ -1204,21 +1204,27 @@ const renderTests = [
 	},
 	{
 		name: `Escaped '.'s in keypaths`,
-		template: `{{foo\\.bar}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
-		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
-		result: '123'
+		template: `{{foo\\.bar\\.baz}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
+		data: { 'foo.bar.baz': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		result: '123',
+		new_data: { 'foo\\.bar\\.baz': 3 },
+		new_result: '323'
 	},
 	{
 		name: `Escaped '.'s in refined keypaths`,
 		template: `{{.['foo.bar']}}{{foo['bar.baz']}}{{foo['bar']['baz']}}`,
 		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
-		result: '123'
+		result: '123',
+		new_data: { 'foo\\.bar': 3 },
+		new_result: '323'
 	},
 	{
 		name: `Escaped '.'s in reference expressions`,
 		template: `{{foo[key]}}`,
 		data: { foo: { 'bar.baz': 'yep' }, key: 'bar.baz' },
-		result: 'yep'
+		result: 'yep',
+		new_data: { 'foo.bar\\.baz': 'nope' },
+		new_result: 'nope'
 	},
 	{
 		name: 'Rendering order of repeated section with complex condition (#2204)',
@@ -1243,6 +1249,36 @@ const renderTests = [
 			foo: false
 		},
 		new_result: '<div>xy</div>'
+	},
+	{
+		name: 'Boolean attributes are set using setAttribute() if needed (#2201)',
+		template: `<div itemscope="{{foo}}"></div>`,
+		data: { foo: true },
+		result: '<div itemscope=""></div>',
+		new_data: { foo: false },
+		new_result: '<div></div>'
+	},
+	{
+		name: '`undefined` and `null` can be used as object keys (#1878)',
+		template: `{{dict[null]}}, {{dict[undefined]}}`,
+		data: {
+			dict: {
+				null: 'null value',
+				undefined: 'undefined value'
+			}
+		},
+		result: 'null value, undefined value'
+	},
+	{
+		name: 'HTML entities inside <textarea> are decoded (#2218)',
+		template: '<textarea>&acute;&eacute;</textarea>',
+		result: '<textarea>´é</textarea>'
+	},
+	{
+		name: '`name` attribute is interpolated if input isn\'t a radio button (#2230)',
+		template: '<input name="{{name}}">',
+		data: { name: 'foo' },
+		result: '<input name="foo">'
 	}
 ];
 

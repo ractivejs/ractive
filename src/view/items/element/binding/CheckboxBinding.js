@@ -28,4 +28,8 @@ export default class CheckboxBinding extends Binding {
 	getValue () {
 		return this.node.checked;
 	}
+
+	setFromNode ( node ) {
+		this.model.set( node.checked );
+	}
 }

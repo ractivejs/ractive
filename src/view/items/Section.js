@@ -82,9 +82,9 @@ export default class Section extends Mustache {
 		}
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		this.rendered = true;
-		if ( this.fragment ) this.fragment.render( target );
+		if ( this.fragment ) this.fragment.render( target, occupants );
 	}
 
 	shuffle ( newIndices ) {

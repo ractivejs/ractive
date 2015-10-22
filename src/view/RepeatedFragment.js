@@ -151,7 +151,10 @@ export default class RepeatedFragment {
 
 	findNextNode ( iteration ) {
 		if ( iteration.index < this.iterations.length - 1 ) {
-			return this.iterations[ iteration.index + 1 ].firstNode();
+			for ( let i = iteration.index + 1; i < this.iterations.length; i++ ) {
+				let node = this.iterations[ i ].firstNode();
+				if ( node ) return node;
+			}
 		}
 
 		return this.owner.findNextNode();
@@ -172,11 +175,11 @@ export default class RepeatedFragment {
 		}
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		// TODO use docFrag.cloneNode...
 
 		if ( this.iterations ) {
-			this.iterations.forEach( fragment => fragment.render( target ) );
+			this.iterations.forEach( fragment => fragment.render( target, occupants ) );
 		}
 
 		this.rendered = true;

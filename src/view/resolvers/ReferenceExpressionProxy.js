@@ -5,6 +5,7 @@ import resolveReference from './resolveReference';
 import resolve from './resolve';
 import { unbind } from '../../shared/methodCallers';
 import { removeFromArray } from '../../utils/array';
+import { escapeKey } from '../../shared/keypaths';
 
 export default class ReferenceExpressionProxy extends Model {
 	constructor ( fragment, template ) {
@@ -75,12 +76,12 @@ export default class ReferenceExpressionProxy extends Model {
 		// if some members are not resolved, abort
 		let i = this.members.length;
 		while ( i-- ) {
-			if ( !this.members[i] || this.members[i].get() === undefined ) return;
+			if ( !this.members[i] ) return;
 		}
 
 		this.isUnresolved = false;
 
-		const keys = this.members.map( model => model.get() );
+		const keys = this.members.map( model => escapeKey( String( model.get() ) ) );
 		const model = this.base.joinAll( keys );
 
 		if ( this.model ) {

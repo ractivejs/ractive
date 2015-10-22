@@ -68,6 +68,12 @@ export default class RadioNameBinding extends Binding {
 		}
 	}
 
+	setFromNode ( node ) {
+		if ( node.checked ) {
+			this.group.model.set( this.element.getAttribute( 'value' ) );
+		}
+	}
+
 	unbind () {
 		this.group.remove( this );
 

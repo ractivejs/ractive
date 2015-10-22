@@ -24,7 +24,7 @@ var tests = [
 					{{#each messages }}
 						<li>{{message}}{{number}}</li>
 					{{/each}}
-					<ul>`,
+					</ul>`,
 				data: {
 					messages: window.messages
 				}
@@ -43,7 +43,7 @@ var tests = [
 					{{#each messages: title }}
 						<li>{{title}}: {{this.message}}</li>
 					{{/each}}
-					<ul>`,
+					</ul>`,
 				data: {
 					messages: window.hash
 				}
@@ -65,7 +65,7 @@ var tests = [
 					{{#each messages }}
 						{{>message}}
 					{{/each}}
-					<ul>`,
+					</ul>`,
 				data: {
 					messages: window.messages
 				}
@@ -85,7 +85,7 @@ var tests = [
 					{{#each messages }}
 						<message/>
 					{{/each}}
-					<ul>`,
+					</ul>`,
 				components: {
 					message: Ractive.extend({
 						template: '<li>{{message}}{{number}}</li>'
@@ -109,7 +109,7 @@ var tests = [
 					{{#each messages }}
 						<message message='{{message}}' number='{{number}}'/>
 					{{/each}}
-					<ul>`,
+					</ul>`,
 				components: {
 					message: Ractive.extend({
 						template: '<li>{{message}}{{number}}</li>'

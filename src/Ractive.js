@@ -59,6 +59,7 @@ defineProperties( Ractive, {
 	Promise:        { value: Promise },
 
 	// support
+	enhance:        { writable: true, value: false },
 	svg:            { value: svg },
 	magic:          { value: magic },
 

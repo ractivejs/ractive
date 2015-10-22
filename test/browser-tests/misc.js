@@ -1516,24 +1516,59 @@ test( 'Promise.all works with non-promises (#1642)', t => {
 test( 'Setting an escaped . keypath', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: '{{ foo\\.bar }}',
+		template: `{{ foo\\.bar\\.baz }}`,
 		data: {}
 	});
 
 	t.htmlEqual( fixture.innerHTML, '' );
-	r.set( 'foo\\.bar', 'yep' );
+	r.set( 'foo\\.bar\\.baz', 'yep' );
 	t.htmlEqual( fixture.innerHTML, 'yep' );
 });
 
 test( 'Getting an escaped . keypath', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: `{{ .['foo.bar'] }}`,
-		data: { 'foo.bar': 'yep' }
+		template: `{{ .['foo.bar.baz'] }}`,
+		data: { 'foo.bar.baz': 'yep' }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'yep' );
-	t.equal( r.get( 'foo\\.bar' ), 'yep' );
+	t.equal( r.get( 'foo\\.bar\\.baz' ), 'yep' );
+});
+
+test( '$ can be used in keypaths', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{ $$ }}{{ .['..'] }}`,
+		data: { $$: 'get() works' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'get() works' );
+	t.equal( r.get( '$$' ), 'get() works' );
+
+	r.set( '$$', 'set() works as well' );
+
+	t.htmlEqual( fixture.innerHTML, 'set() works as well' );
+	t.equal( r.get( '$$' ), 'set() works as well' );
+});
+
+test( '. escapes can be escaped', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{ .['foo\\\\'].bar }}{{ .['foo\\\\.bar'] }}`,
+		data: { 'foo\\': { bar: 1 }, 'foo\\.bar': 2 }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '12' );
+	t.equal( r.get( 'foo\\\\.bar' ), 1 );
+	t.equal( r.get( 'foo\\\\\\.bar' ), 2 );
+
+	r.set( 'foo\\\\.bar', 11 );
+	r.set( 'foo\\\\\\.bar', 12 );
+
+	t.htmlEqual( fixture.innerHTML, '1112' );
+	t.equal( r.get( 'foo\\\\.bar' ), 11 );
+	t.equal( r.get( 'foo\\\\\\.bar' ), 12 );
 });
 
 if ( hasUsableConsole ) {

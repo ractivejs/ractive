@@ -171,6 +171,31 @@ test( 'Computed values can depend on other computed values', t => {
 	t.htmlEqual( fixture.innerHTML, '6 - 36 - 216' );
 });
 
+test( 'Computed values with mix of computed and non-computed dependencies updates when non-computed dependencies change (#2228)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '{{number}}',
+		data: {
+			a: 40,
+			b: 0
+		},
+		computed: {
+			yes () {
+				return true;
+			},
+
+			number () {
+				return this.get( 'yes' ) ? ( this.get( 'a' ) + this.get( 'b' ) ) : 99;
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '40' );
+
+	ractive.set( 'b', 2 );
+	t.htmlEqual( fixture.innerHTML, '42' );
+});
+
 test( 'Computations that cause errors are considered undefined', t => {
 	const ractive = new Ractive({
 		el: fixture,
@@ -677,4 +702,20 @@ test( 'ComputationChild dependencies are captured (#2132)', t => {
 	t.htmlEqual( fixture.innerHTML, '<p>a/a</p><p>b/b</p><p>c/c</p>' );
 	ractive.toggle( 'odd' );
 	t.htmlEqual( fixture.innerHTML, '<p>d/d</p><p>e/e</p>' );
+});
+
+test( 'ExpressionProxy should notify its deps when it resolves (#2214)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '-{{#with foo}}{{#if bar[0] && bar[0] === bar[1]}}ok{{/if}}{{/with}}',
+		data: {
+			foo: {}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '-' );
+
+	r.set( 'bar', [ 1, 1 ] );
+
+	t.htmlEqual( fixture.innerHTML, '-ok' );
 });

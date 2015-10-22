@@ -80,8 +80,8 @@ export default class Partial extends Mustache {
 		this.fragment.rebind();
 	}
 
-	render ( target ) {
-		this.fragment.render( target );
+	render ( target, occupants ) {
+		this.fragment.render( target, occupants );
 	}
 
 	setTemplate ( name, template ) {

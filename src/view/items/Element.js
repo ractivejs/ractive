@@ -10,13 +10,13 @@ import { findInViewHierarchy } from '../../shared/registry';
 import { DOMEvent, CustomEvent } from './element/ElementEvents';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
+import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
-import { createElement, matches } from '../../utils/dom';
+import { createElement, detachNode, matches } from '../../utils/dom';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
-import { detachNode } from '../../utils/dom';
 
 function makeDirty ( query ) {
 	query.makeDirty();
@@ -205,12 +205,30 @@ export default class Element extends Item {
 		this.liveQueries.forEach( makeDirty );
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		// TODO determine correct namespace
 		this.namespace = getNamespace( this );
 
-		const node = createElement( this.template.e, this.namespace, this.getAttribute( 'is' ) );
-		this.node = node;
+		let node;
+		let existing = false;
+
+		if ( occupants ) {
+			let n;
+			while ( ( n = occupants.shift() ) ) {
+				if ( n.nodeName === this.template.e.toUpperCase() && n.namespaceURI === this.namespace ) {
+					this.node = node = n;
+					existing = true;
+					break;
+				} else {
+					detachNode( n );
+				}
+			}
+		}
+
+		if ( !node ) {
+			node = createElement( this.template.e, this.namespace, this.getAttribute( 'is' ) );
+			this.node = node;
+		}
 
 		const context = this.parentFragment.findContext();
 
@@ -231,7 +249,25 @@ export default class Element extends Item {
 		}
 
 		if ( this.fragment ) {
-			this.fragment.render( node );
+			const children = existing ? toArray( node.childNodes ) : undefined;
+			this.fragment.render( node, children );
+
+			// clean up leftover children
+			if ( children ) {
+				children.forEach( detachNode );
+			}
+		}
+
+		if ( existing ) {
+			// store initial values for two-way binding
+			if ( this.binding && this.binding.wasUndefined ) this.binding.setFromNode( node );
+
+			// remove unused attributes
+			let i = node.attributes.length;
+			while ( i-- ) {
+				const name = node.attributes[i].name;
+				if ( !this.template.a || !( name in this.template.a ) ) node.removeAttribute( name );
+			}
 		}
 
 		this.attributes.forEach( render );
@@ -253,7 +289,9 @@ export default class Element extends Item {
 			this._introTransition = transition; // so we can abort if it gets removed
 		}
 
-		target.appendChild( node );
+		if ( !existing ) {
+			target.appendChild( node );
+		}
 
 		this.rendered = true;
 	}

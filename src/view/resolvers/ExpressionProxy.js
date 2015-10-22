@@ -75,6 +75,8 @@ export default class ExpressionProxy extends Model {
 
 		this.computation = computation;
 		computation.register( this );
+
+		this.handleChange();
 	}
 
 	get () {
