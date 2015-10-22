@@ -151,7 +151,10 @@ export default class RepeatedFragment {
 
 	findNextNode ( iteration ) {
 		if ( iteration.index < this.iterations.length - 1 ) {
-			return this.iterations[ iteration.index + 1 ].firstNode();
+			for ( let i = iteration.index + 1; i < this.iterations.length; i++ ) {
+				let node = this.iterations[ i ].firstNode();
+				if ( node ) return node;
+			}
 		}
 
 		return this.owner.findNextNode();

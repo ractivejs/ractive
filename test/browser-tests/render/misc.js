@@ -219,6 +219,23 @@ test( 'iteration special refs outside of an iteration should not error', t => {
 	t.ok( true, 'hey, it didn\'t throw' );
 });
 
+test( 'a repeated section should skip empty iterations when looking for a next node for insertion (#2234)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}{{#if .bool}}{{.val}}{{/if}}{{/each}}',
+		data: {
+			items: [ { bool: true, val: 1 }, { bool: true, val: 2 }, { bool: true, val: 3 } ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '123' );
+	r.set( 'items.0.bool', false );
+	r.set( 'items.1.bool', false );
+	t.htmlEqual( fixture.innerHTML, '3' );
+	r.set( 'items.0.bool', true );
+	t.htmlEqual( fixture.innerHTML, '13' );
+});
+
 if ( typeof Object.create === 'function' ) {
 	test( 'data of type Object.create(null) (#1825)', t => {
 		const ractive = new Ractive({
