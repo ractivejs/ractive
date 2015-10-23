@@ -219,6 +219,19 @@ test( 'iteration special refs outside of an iteration should not error', t => {
 	t.ok( true, 'hey, it didn\'t throw' );
 });
 
+test( 'static delimiters should be configurable (#2240)', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{one}} {{{two}}} [[three]] [[[four]]]',
+		delimiters: [ '{#', '#}' ],
+		tripleDelimiters: [ '{{#', '#}}' ],
+		staticDelimiters: [ '[#', '#]' ],
+		staticTripleDelimiters: [ '[[#', '#]]' ]
+	});
+
+	t.htmlEqual( fixture.innerHTML, '{{one}} {{{two}}} [[three]] [[[four]]]');
+});
+
 test( 'a repeated section should skip empty iterations when looking for a next node for insertion (#2234)', t => {
 	const r = new Ractive({
 		el: fixture,

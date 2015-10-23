@@ -8,6 +8,8 @@ const parseOptions = [
 	'stripComments',
 	'delimiters',
 	'tripleDelimiters',
+	'staticDelimiters',
+	'staticTripleDelimiters',
 	'interpolate'
 ];
 
