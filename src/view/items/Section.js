@@ -109,9 +109,9 @@ export default class Section extends Mustache {
 
 	update () {
 		if ( !this.dirty ) return;
-		if ( !this.model ) return; // TODO can this happen?
+		if ( !this.model && this.sectionType !== SECTION_UNLESS ) return;
 
-		const value = this.model.isRoot ? this.model.value : this.model.get();
+		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
 		const lastType = this.sectionType;
 
 		// watch for switching section types
