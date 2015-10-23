@@ -46,7 +46,8 @@ export default class Yielder extends Item {
 	bubble () {
 		if ( !this.dirty ) {
 			runloop.addFragment( this.fragment );
-			super.bubble();
+			this.containerFragment.bubble();
+			this.dirty = true;
 		}
 	}
 
@@ -107,5 +108,6 @@ export default class Yielder extends Item {
 
 	update () {
 		this.fragment.update();
+		this.dirty = false;
 	}
 }
