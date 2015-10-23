@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 23 2015 06:53:50 GMT+0000 (UTC) - commit d0303727866a0a03b7d26f5ade75ac285f592494
+	Fri Oct 23 2015 08:27:42 GMT+0000 (UTC) - commit 700c444da1a4054d195cb6debe64a1d14af62f25
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -66,12 +66,14 @@ var classCallCheck = function (instance, Constructor) {
   	// template:
   	template: null,
 
-  	// parse:     // TODO static delimiters?
+  	// parse:
   	preserveWhitespace: false,
   	sanitize: false,
   	stripComments: true,
   	delimiters: ['{{', '}}'],
   	tripleDelimiters: ['{{{', '}}}'],
+  	staticDelimiters: ['[[', ']]'],
+  	staticTripleDelimiters: ['[[[', ']]]'],
   	interpolate: false,
 
   	// data & binding:
@@ -1934,7 +1936,7 @@ var classCallCheck = function (instance, Constructor) {
 
   var parse = null;
 
-  var parseOptions = ['preserveWhitespace', 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters', 'interpolate'];
+  var parseOptions = ['preserveWhitespace', 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters', 'staticDelimiters', 'staticTripleDelimiters', 'interpolate'];
 
   var parser = {
   	fromId: fromId, isHashedId: isHashedId, isParsed: isParsed, getParseOptions: getParseOptions, createHelper: createHelper$1,
