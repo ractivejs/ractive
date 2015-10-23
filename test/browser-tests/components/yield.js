@@ -226,6 +226,28 @@ test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t
 	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
 });
 
+test( 'yielded fragments that are updated from an observer should actually update (#2225)', t => {
+	const cmp = Ractive.extend({
+		template: '{{yield}}',
+		onrender() {
+			this.observe( 'bar', v => this.set( 'baz', `${v} yep` ) );
+		}
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '-<cmp bar="{{foo}}" baz="{{bat}}">{{bat}}</cmp>',
+		data: {
+			foo: ''
+		},
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '- yep' );
+	r.set( 'foo', 2 );
+	t.htmlEqual( fixture.innerHTML, '-2 yep' );
+});
+
 test( 'Components inherited from more than one generation off work with named yields', t => {
 	let widget = Ractive.extend({
 		template: '{{yield foo}}'
