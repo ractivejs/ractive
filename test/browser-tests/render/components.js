@@ -68,3 +68,19 @@ test( 'Top-level list sections in components do not cause elements to be out of 
 
 	t.htmlEqual( fixture.innerHTML, '<h1>Names</h1><p>one</p><p>two</p><p>three</p><p>four</p>' );
 });
+
+test( 'An unless section in a component should still work with an ambiguous condition should still update (#2165)', t => {
+	const cmp = Ractive.extend({
+		template: '{{#unless nope}}{{foo}}{{/unless}}'
+	});
+	const r = new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{bar}}" />',
+		data: { bar: 'yep' },
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+	r.set( 'bar', 'still' );
+	t.htmlEqual( fixture.innerHTML, 'still' );
+});
