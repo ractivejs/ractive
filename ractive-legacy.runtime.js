@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Oct 22 2015 00:25:28 GMT+0000 (UTC) - commit 98e37e5ead643fc1f4619b8f3d9b65dd71fa1ece
+	Fri Oct 23 2015 06:53:50 GMT+0000 (UTC) - commit d0303727866a0a03b7d26f5ade75ac285f592494
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4370,9 +4370,9 @@ var classCallCheck = function (instance, Constructor) {
 
   	Section.prototype.update = function update() {
   		if (!this.dirty) return;
-  		if (!this.model) return; // TODO can this happen?
+  		if (!this.model && this.sectionType !== SECTION_UNLESS) return;
 
-  		var value = this.model.isRoot ? this.model.value : this.model.get();
+  		var value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
   		var lastType = this.sectionType;
 
   		// watch for switching section types
