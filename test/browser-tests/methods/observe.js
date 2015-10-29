@@ -33,7 +33,7 @@ test( 'Observers with { defer: true } fire after the DOM updates', t => {
 	ractive.set( 'foo', true );
 });
 
-test( 'Observers with { defer: true } fire after nodes removed from DOM', t => {
+test( 'Observers with { defer: true } fire after non-transitioned nodes removed from DOM (#1869)', t => {
 	t.expect( 1 );
 
 	const ractive = new Ractive({
