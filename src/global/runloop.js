@@ -46,10 +46,6 @@ const runloop = {
 		batch.transitionManager.add( transition );
 	},
 
-	// registerDecorator ( decorator ) {
-	// 	batch.transitionManager.addDecorator( decorator );
-	// },
-
 	// synchronise node detachments with transition ends
 	detachWhenReady ( thing ) {
 		batch.transitionManager.detachQueue.push( thing );
