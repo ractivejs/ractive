@@ -33,6 +33,22 @@ test( 'Observers with { defer: true } fire after the DOM updates', t => {
 	ractive.set( 'foo', true );
 });
 
+test( 'Observers with { defer: true } fire after nodes removed from DOM', t => {
+	t.expect( 1 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
+		data: { items: [ 1, 2, 3 ] }
+	});
+
+	ractive.observe( 'items', function () {
+		t.equal( this.findAll('li').length, this.el.querySelectorAll('li').length );
+	}, { init: false, defer: true });
+
+	ractive.pop( 'items' );
+});
+
 test( 'Observer can be created without an options argument', t => {
 	t.expect( 1 );
 

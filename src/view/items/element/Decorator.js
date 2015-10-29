@@ -87,7 +87,7 @@ export default class Decorator {
 	}
 
 	unrender () {
-		this.intermediary.teardown();
+		if ( this.intermediary ) this.intermediary.teardown();
 	}
 
 	update () {

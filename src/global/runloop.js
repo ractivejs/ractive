@@ -30,8 +30,6 @@ const runloop = {
 
 	end () {
 		flushChanges();
-
-		batch.transitionManager.init();
 		batch = batch.previousBatch;
 	},
 
@@ -48,9 +46,9 @@ const runloop = {
 		batch.transitionManager.add( transition );
 	},
 
-	registerDecorator ( decorator ) {
-		batch.transitionManager.addDecorator( decorator );
-	},
+	// registerDecorator ( decorator ) {
+	// 	batch.transitionManager.addDecorator( decorator );
+	// },
 
 	// synchronise node detachments with transition ends
 	detachWhenReady ( thing ) {
