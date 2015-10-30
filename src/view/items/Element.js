@@ -198,6 +198,7 @@ export default class Element extends Item {
 	rebind () {
 		this.attributes.forEach( rebind );
 		this.conditionalAttributes.forEach( rebind );
+		this.eventHandlers.forEach( rebind );
 		if ( this.decorator ) this.decorator.rebind();
 		if ( this.fragment ) this.fragment.rebind();
 		if ( this.binding ) this.binding.rebind();

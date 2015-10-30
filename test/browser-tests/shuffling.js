@@ -88,7 +88,7 @@ test( 'yielders shuffle correctly', t => {
 });
 
 test( 'event directives should shuffle correctly', t => {
-	t.expect( 3 );
+	t.expect( 4 );
 
 	let count = 0;
 
@@ -100,7 +100,7 @@ test( 'event directives should shuffle correctly', t => {
 		}
 	});
 
-	r.on( 'foo', ( ev, bar ) => {
+	let listener = r.on( 'foo', ( ev, bar ) => {
 		count++;
 		t.equal( r.get( 'items.0.bar' ), bar );
 	});
@@ -109,6 +109,14 @@ test( 'event directives should shuffle correctly', t => {
 	r.unshift( 'items', { bar: 'bat' } );
 	fire(  r.find( '#div0' ), 'click' );
 	t.equal( count, 2 );
+
+	listener.cancel();
+
+	r.on( 'foo', ev => {
+		t.equal( ev.keypath, 'items.1' );
+	});
+
+	fire( r.find( '#div1' ), 'click' );
 });
 
 // TODO reinstate this in some form. Commented out for purposes of #1740

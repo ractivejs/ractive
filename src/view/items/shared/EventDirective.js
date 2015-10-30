@@ -198,7 +198,8 @@ export default class EventDirective {
 	}
 
 	rebind () {
-		// pretty sure this never gets called, but this should be appropriate if it ever does
+		this.context = this.parentFragment.findContext();
+
 		if ( this.template.m ) {
 			this.resolvers.forEach( rebind );
 		} else {
