@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 23 2015 08:27:42 GMT+0000 (UTC) - commit 700c444da1a4054d195cb6debe64a1d14af62f25
+	Fri Oct 30 2015 03:09:25 GMT+0000 (UTC) - commit a785b713659974ad67f0568a8162571795a63aaf
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7525,7 +7525,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Yielder.prototype.rebind = function rebind() {
-  		throw new Error('Yielder$rebind is not yet implemented!');
+  		this.fragment.rebind();
   	};
 
   	Yielder.prototype.render = function render(target, occupants) {
@@ -7906,7 +7906,7 @@ var classCallCheck = function (instance, Constructor) {
   		var value = this.getValue();
 
   		// Special case - select and textarea values (should not be stringified)
-  		if (this.name === 'value' && (this.element.getAttribute('contenteditable') !== undefined || (this.element.name === 'select' || this.element.name === 'textarea'))) {
+  		if (this.name === 'value' && (this.element.getAttribute('contenteditable') !== undefined || this.element.name === 'select' || this.element.name === 'textarea')) {
   			return;
   		}
 
@@ -7973,7 +7973,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	ConditionalAttribute.prototype.rebind = function rebind() {
-  		throw new Error('ConditionalAttribute$rebind is not yet implemented'); // TODO test
+  		this.fragment.rebind();
   	};
 
   	ConditionalAttribute.prototype.render = function render() {
@@ -8556,7 +8556,13 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	EventDirective.prototype.rebind = function rebind() {
-  		throw new Error('EventDirective$rebind not yet implemented!'); // TODO add tests
+  		// pretty sure this never gets called, but this should be appropriate if it ever does
+  		if (this.template.m) {
+  			this.resolvers.forEach(_rebind);
+  		} else {
+  			if (this.action.rebind) this.action.rebind();
+  			if (this.args.rebind) this.args.rebind();
+  		}
   	};
 
   	EventDirective.prototype.render = function render() {
