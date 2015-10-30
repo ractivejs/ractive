@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 30 2015 05:41:08 GMT+0000 (UTC) - commit e0d21ee45bd73860477697df335b1082a58dec51
+	Fri Oct 30 2015 07:55:59 GMT+0000 (UTC) - commit 8deb14777abd1d90b89570263004506fabd3443a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1037,7 +1037,7 @@ var classCallCheck = function (instance, Constructor) {
   		var array = model.get();
 
   		if (!isArray(array)) {
-  			throw new Error('shuffle array method ' + methodName + ' called on non-array at ' + keypath.getKeypath());
+  			throw new Error('shuffle array method ' + methodName + ' called on non-array at ' + model.getKeypath());
   		}
 
   		for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -8111,14 +8111,8 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	EventDirective.prototype.rebind = function rebind() {
-  		this.context = this.parentFragment.findContext();
-
-  		if (this.template.m) {
-  			this.resolvers.forEach(_rebind);
-  		} else {
-  			if (this.action.rebind) this.action.rebind();
-  			if (this.args.rebind) this.args.rebind();
-  		}
+  		this.unbind();
+  		this.bind();
   	};
 
   	EventDirective.prototype.render = function render() {
@@ -8132,9 +8126,7 @@ var classCallCheck = function (instance, Constructor) {
   			this.resolvers.forEach(_unbind);
   			this.resolvers = [];
 
-  			this.models.forEach(function (model) {
-  				if (model) model.unbind();
-  			});
+  			this.models = null;
   		} else {
   			// TODO this is brittle and non-explicit, fix it
   			if (this.action.unbind) this.action.unbind();
