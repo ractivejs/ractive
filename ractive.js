@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 30 2015 03:09:25 GMT+0000 (UTC) - commit a785b713659974ad67f0568a8162571795a63aaf
+	Fri Oct 30 2015 05:41:08 GMT+0000 (UTC) - commit e0d21ee45bd73860477697df335b1082a58dec51
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8111,7 +8111,8 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	EventDirective.prototype.rebind = function rebind() {
-  		// pretty sure this never gets called, but this should be appropriate if it ever does
+  		this.context = this.parentFragment.findContext();
+
   		if (this.template.m) {
   			this.resolvers.forEach(_rebind);
   		} else {
@@ -10033,6 +10034,7 @@ var classCallCheck = function (instance, Constructor) {
   	Element.prototype.rebind = function rebind() {
   		this.attributes.forEach(_rebind);
   		this.conditionalAttributes.forEach(_rebind);
+  		this.eventHandlers.forEach(_rebind);
   		if (this.decorator) this.decorator.rebind();
   		if (this.fragment) this.fragment.rebind();
   		if (this.binding) this.binding.rebind();
