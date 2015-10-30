@@ -96,9 +96,7 @@ test( 'yielders shuffle correctly', t => {
 });
 
 test( 'event directives should shuffle correctly', t => {
-	t.expect( 4 );
-
-	let count = 0;
+	t.expect( 5 );
 
 	const r = new Ractive({
 		el: fixture,
@@ -109,20 +107,67 @@ test( 'event directives should shuffle correctly', t => {
 	});
 
 	let listener = r.on( 'foo', ( ev, bar ) => {
-		count++;
 		t.equal( r.get( 'items.0.bar' ), bar );
 	});
 
 	fire( r.find( '#div0' ), 'click' );
 	r.unshift( 'items', { bar: 'bat' } );
 	fire(  r.find( '#div0' ), 'click' );
-	t.equal( count, 2 );
 
 	listener.cancel();
 
 	r.on( 'foo', ev => {
 		t.equal( ev.keypath, 'items.1' );
 	});
+
+	fire( r.find( '#div1' ), 'click' );
+
+	r.push( 'items', {} );
+	r.splice( 'items', 0, 1 );
+	t.equal( r.findAll( 'div' )[ 1 ].id, 'div1' );
+
+	fire( r.find( '#div1' ), 'click' );
+});
+
+test( 'method event directives should shuffle correctly', t => {
+	t.expect( 9 );
+
+	let group = 0;
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}<div id="div{{@index}}" on-click="foo(@keypath, .bar)" />{{/each}}',
+		data: {
+			items: [ { bar: 'baz' } ]
+		},
+		foo( path, bar ) {
+			if ( group === 0 ) {
+				t.equal( bar, r.get( 'items.0.bar' ) );
+				t.equal( path, 'items.0' );
+			} else {
+				t.equal( path, 'items.1' );
+				t.equal( this.event.keypath, 'items.1' );
+			}
+		}
+	});
+
+	let listener = r.on( 'foo', ( path ) => {
+		t.equal( r.get( 'items.0' ), path );
+	});
+
+	fire( r.find( '#div0' ), 'click' );
+	r.unshift( 'items', { bar: 'bar' } );
+	fire(  r.find( '#div0' ), 'click' );
+
+	listener.cancel();
+
+	group = 1;
+
+	fire( r.find( '#div1' ), 'click' );
+
+	r.push( 'items', {} );
+	r.splice( 'items', 0, 1 );
+	t.equal( r.findAll( 'div' )[ 1 ].id, 'div1' );
 
 	fire( r.find( '#div1' ), 'click' );
 });

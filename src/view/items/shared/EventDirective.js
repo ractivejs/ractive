@@ -198,14 +198,8 @@ export default class EventDirective {
 	}
 
 	rebind () {
-		this.context = this.parentFragment.findContext();
-
-		if ( this.template.m ) {
-			this.resolvers.forEach( rebind );
-		} else {
-			if ( this.action.rebind ) this.action.rebind();
-			if ( this.args.rebind ) this.args.rebind();
-		}
+		this.unbind();
+		this.bind();
 	}
 
 	render () {
@@ -219,9 +213,7 @@ export default class EventDirective {
 			this.resolvers.forEach( unbind );
 			this.resolvers = [];
 
-			this.models.forEach( model => {
-				if ( model ) model.unbind();
-			});
+			this.models = null;
 		}
 
 		else {
