@@ -54,6 +54,14 @@ test( '#if sections only render once when arrays are mutated', t => {
 	t.htmlEqual( fixture.innerHTML, 'yes' );
 });
 
+test( 'an appropriate error is thrown when shuffling a non-array keypath', t => {
+	const r = new Ractive({});
+
+	t.throws( () => {
+		r.push('foo', 1);
+	}, /.*push.*non-array.*foo.*/i);
+});
+
 test( 'conditional attributes shuffle correctly', t => {
 	const r = new Ractive({
 		el: fixture,
