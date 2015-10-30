@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 test( 'Pattern observers on arrays fire correctly after mutations (mirror of test in observe.js)', t => {
 	const ractive = new Ractive({
@@ -51,6 +52,63 @@ test( '#if sections only render once when arrays are mutated', t => {
 
 	ractive.splice( 'list', 0, 0, 'e', 'f' );
 	t.htmlEqual( fixture.innerHTML, 'yes' );
+});
+
+test( 'conditional attributes shuffle correctly', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}<div {{#if .cond}}foo="{{.bar}}"{{/if}}>yep</div>{{/each}}',
+		data: {
+			items: [ { cond: true, bar: 'baz' } ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div foo="baz">yep</div>' );
+	r.unshift( 'items', { cond: true, bar: 'bat' } );
+	t.htmlEqual( fixture.innerHTML, '<div foo="bat">yep</div><div foo="baz">yep</div>' );
+});
+
+test( 'yielders shuffle correctly', t => {
+	const cmp = Ractive.extend({
+		template: '{{yield}}'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		components: { cmp },
+		template: '{{#each items}}<cmp>{{.bar}}</cmp>{{/each}}',
+		data: {
+			items: [ { bar: 'baz' } ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'baz' );
+	r.unshift( 'items', { bar: 'bat' } );
+	t.htmlEqual( fixture.innerHTML, 'batbaz' );
+});
+
+test( 'event directives should shuffle correctly', t => {
+	t.expect( 3 );
+
+	let count = 0;
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}<div id="div{{@index}}" on-click="foo:{{.bar}}" />{{/each}}',
+		data: {
+			items: [ { bar: 'baz' } ]
+		}
+	});
+
+	r.on( 'foo', ( ev, bar ) => {
+		count++;
+		t.equal( r.get( 'items.0.bar' ), bar );
+	});
+
+	fire( r.find( '#div0' ), 'click' );
+	r.unshift( 'items', { bar: 'bat' } );
+	fire(  r.find( '#div0' ), 'click' );
+	t.equal( count, 2 );
 });
 
 // TODO reinstate this in some form. Commented out for purposes of #1740

@@ -67,7 +67,7 @@ export default class Yielder extends Item {
 	}
 
 	rebind () {
-		throw new Error( 'Yielder$rebind is not yet implemented!' );
+		this.fragment.rebind();
 	}
 
 	render ( target, occupants ) {

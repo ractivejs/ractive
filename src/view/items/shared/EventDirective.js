@@ -2,7 +2,7 @@ import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
 import createFunction from '../../../shared/createFunction';
-import { unbind } from '../../../shared/methodCallers';
+import { rebind, unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
@@ -198,7 +198,13 @@ export default class EventDirective {
 	}
 
 	rebind () {
-		throw new Error( 'EventDirective$rebind not yet implemented!' ); // TODO add tests
+		// pretty sure this never gets called, but this should be appropriate if it ever does
+		if ( this.template.m ) {
+			this.resolvers.forEach( rebind );
+		} else {
+			if ( this.action.rebind ) this.action.rebind();
+			if ( this.args.rebind ) this.args.rebind();
+		}
 	}
 
 	render () {
