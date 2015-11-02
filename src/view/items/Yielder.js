@@ -1,7 +1,6 @@
 import Item from './shared/Item';
 import Fragment from '../Fragment';
 import parse from '../../parse/_parse';
-import runloop from '../../global/runloop';
 import { warnIfDebug } from '../../utils/log';
 import { removeFromArray } from '../../utils/array';
 
@@ -45,7 +44,6 @@ export default class Yielder extends Item {
 
 	bubble () {
 		if ( !this.dirty ) {
-			runloop.addFragment( this.fragment );
 			this.containerFragment.bubble();
 			this.dirty = true;
 		}
