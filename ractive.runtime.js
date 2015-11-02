@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 00:53:04 GMT+0000 (UTC) - commit e710159db0b4ec378ba7a71068387cd0fd2c9a1d
+	Mon Nov 02 2015 01:01:53 GMT+0000 (UTC) - commit 0155d0eb3b6797c8b74b4b58b1b648aa891fa9b8
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -29,6 +29,21 @@ var inherits = function (subClass, superClass) {
     }
   });
   if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+var defineProperty = function (obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
 };
 
 var classCallCheck = function (instance, Constructor) {
@@ -1688,6 +1703,7 @@ var classCallCheck = function (instance, Constructor) {
   var COMPONENT = 15;
   var YIELDER = 16;
   var DOCTYPE = 18;
+  var ALIAS = 19;
 
   var NUMBER_LITERAL = 20;
   var STRING_LITERAL = 21;
@@ -1742,44 +1758,8 @@ var classCallCheck = function (instance, Constructor) {
   	return Item;
   })();
 
-  var Doctype = (function (_Item) {
-  	inherits(Doctype, _Item);
-
-  	function Doctype() {
-  		classCallCheck(this, Doctype);
-
-  		_Item.apply(this, arguments);
-  	}
-
-  	Doctype.prototype.bind = function bind() {
-  		// noop
-  	};
-
-  	Doctype.prototype.render = function render() {
-  		// noop
-  	};
-
-  	Doctype.prototype.teardown = function teardown() {
-  		// noop
-  	};
-
-  	Doctype.prototype.toString = function toString() {
-  		return '<!DOCTYPE' + this.template.a + '>';
-  	};
-
-  	Doctype.prototype.unbind = function unbind() {
-  		// noop
-  	};
-
-  	Doctype.prototype.unrender = function unrender() {
-  		// noop
-  	};
-
-  	return Doctype;
-  })(Item);
-
   function badReference(key) {
-  	throw new Error("An index or key reference (" + key + ") cannot have child properties");
+  	throw new Error('An index or key reference (' + key + ') cannot have child properties');
   }
   function resolveAmbiguousReference(fragment, ref) {
   	var localViewmodel = fragment.findContext().root;
@@ -1788,6 +1768,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	var hasContextChain = undefined;
   	var crossedComponentBoundary = undefined;
+  	var aliases = undefined;
 
   	while (fragment) {
   		// repeated fragments
@@ -1800,6 +1781,15 @@ var classCallCheck = function (instance, Constructor) {
   			if (key === fragment.parent.indexRef) {
   				if (keys.length > 1) badReference(key);
   				return fragment.context.getIndexModel(fragment.index);
+  			}
+  		}
+
+  		// alias node or iteration
+  		if (((aliases = fragment.owner.aliases) || (aliases = fragment.aliases)) && aliases.hasOwnProperty(key)) {
+  			var model = aliases[key];
+
+  			if (keys.length === 1) return model;else if (typeof model.joinAll === 'function') {
+  				return model.joinAll(keys.slice(1));
   			}
   		}
 
@@ -2930,6 +2920,140 @@ var classCallCheck = function (instance, Constructor) {
   	}
   }
 
+  function resolveAliases(section) {
+  	if (section.template.z) {
+  		section.aliases = {};
+
+  		var refs = section.template.z;
+  		for (var i = 0; i < refs.length; i++) {
+  			section.aliases[refs[i].n] = resolve$1(section.parentFragment, refs[i].x);
+  		}
+  	}
+  }
+
+  var Alias = (function (_Item) {
+  	inherits(Alias, _Item);
+
+  	function Alias(options) {
+  		classCallCheck(this, Alias);
+
+  		_Item.call(this, options);
+
+  		this.fragment = null;
+  	}
+
+  	Alias.prototype.bind = function bind() {
+  		resolveAliases(this);
+
+  		this.fragment = new Fragment({
+  			owner: this,
+  			template: this.template.f
+  		}).bind();
+  	};
+
+  	Alias.prototype.detach = function detach() {
+  		return this.fragment ? this.fragment.detach() : createDocumentFragment();
+  	};
+
+  	Alias.prototype.find = function find(selector) {
+  		if (this.fragment) {
+  			return this.fragment.find(selector);
+  		}
+  	};
+
+  	Alias.prototype.findAll = function findAll(selector, query) {
+  		if (this.fragment) {
+  			this.fragment.findAll(selector, query);
+  		}
+  	};
+
+  	Alias.prototype.findComponent = function findComponent(name) {
+  		if (this.fragment) {
+  			return this.fragment.findComponent(name);
+  		}
+  	};
+
+  	Alias.prototype.findAllComponents = function findAllComponents(name, query) {
+  		if (this.fragment) {
+  			this.fragment.findAllComponents(name, query);
+  		}
+  	};
+
+  	Alias.prototype.firstNode = function firstNode() {
+  		return this.fragment && this.fragment.firstNode();
+  	};
+
+  	Alias.prototype.rebind = function rebind() {
+  		resolveAliases(this);
+  		if (this.fragment) this.fragment.rebind();
+  	};
+
+  	Alias.prototype.render = function render(target) {
+  		this.rendered = true;
+  		if (this.fragment) this.fragment.render(target);
+  	};
+
+  	Alias.prototype.toString = function toString(escape) {
+  		return this.fragment ? this.fragment.toString(escape) : '';
+  	};
+
+  	Alias.prototype.unbind = function unbind() {
+  		this.aliases = {};
+  		if (this.fragment) this.fragment.unbind();
+  	};
+
+  	Alias.prototype.unrender = function unrender(shouldDestroy) {
+  		if (this.rendered && this.fragment) this.fragment.unrender(shouldDestroy);
+  		this.rendered = false;
+  	};
+
+  	Alias.prototype.update = function update() {
+  		if (!this.dirty) return;
+
+  		this.fragment.update();
+
+  		this.dirty = false;
+  	};
+
+  	return Alias;
+  })(Item);
+
+  var Doctype = (function (_Item) {
+  	inherits(Doctype, _Item);
+
+  	function Doctype() {
+  		classCallCheck(this, Doctype);
+
+  		_Item.apply(this, arguments);
+  	}
+
+  	Doctype.prototype.bind = function bind() {
+  		// noop
+  	};
+
+  	Doctype.prototype.render = function render() {
+  		// noop
+  	};
+
+  	Doctype.prototype.teardown = function teardown() {
+  		// noop
+  	};
+
+  	Doctype.prototype.toString = function toString() {
+  		return '<!DOCTYPE' + this.template.a + '>';
+  	};
+
+  	Doctype.prototype.unbind = function unbind() {
+  		// noop
+  	};
+
+  	Doctype.prototype.unrender = function unrender() {
+  		// noop
+  	};
+
+  	return Doctype;
+  })(Item);
+
   var Mustache = (function (_Item) {
   	inherits(Mustache, _Item);
 
@@ -3508,6 +3632,12 @@ var classCallCheck = function (instance, Constructor) {
   		fragment.isIteration = true;
 
   		var model = this.context.joinKey(key);
+
+  		// set up an iteration alias if there is one
+  		if (this.owner.template.z) {
+  			fragment.aliases = defineProperty({}, this.owner.template.z[0].n, model);
+  		}
+
   		return fragment.bind(model);
   	};
 
@@ -3573,12 +3703,18 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	RepeatedFragment.prototype.rebind = function rebind(context) {
+  		var _this2 = this;
+
   		this.context = context;
 
   		// {{#each array}}...
   		if (isArray(context.get())) {
   			this.iterations.forEach(function (fragment, i) {
-  				fragment.rebind(context.joinKey(i));
+  				var model = context.joinKey(i);
+  				if (_this2.owner.template.z) {
+  					fragment.aliases = defineProperty({}, _this2.owner.template.z[0].n, model);
+  				}
+  				fragment.rebind(model);
   			});
   		}
   	};
@@ -3596,7 +3732,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	RepeatedFragment.prototype.shuffle = function shuffle(newIndices) {
-  		var _this2 = this;
+  		var _this3 = this;
 
   		if (!this.pendingNewIndices) this.previousIterations = this.iterations.slice();
 
@@ -3609,7 +3745,7 @@ var classCallCheck = function (instance, Constructor) {
   		newIndices.forEach(function (newIndex, oldIndex) {
   			if (newIndex === -1) return;
 
-  			var fragment = _this2.iterations[oldIndex];
+  			var fragment = _this3.iterations[oldIndex];
   			iterations[newIndex] = fragment;
 
   			if (newIndex !== oldIndex && fragment) fragment.dirty = true;
@@ -3637,7 +3773,7 @@ var classCallCheck = function (instance, Constructor) {
   	// TODO smart update
 
   	RepeatedFragment.prototype.update = function update() {
-  		var _this3 = this;
+  		var _this4 = this;
 
   		// skip dirty check, since this is basically just a facade
 
@@ -3715,10 +3851,10 @@ var classCallCheck = function (instance, Constructor) {
   			} else if (isObject(value)) {
   				Object.keys(value).forEach(function (key) {
   					if (!oldKeys || !(key in oldKeys)) {
-  						fragment = _this3.createIteration(key, i);
+  						fragment = _this4.createIteration(key, i);
 
-  						_this3.iterations.push(fragment);
-  						if (_this3.rendered) fragment.render(docFrag);
+  						_this4.iterations.push(fragment);
+  						if (_this4.rendered) fragment.render(docFrag);
 
   						i += 1;
   					}
@@ -3735,7 +3871,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	RepeatedFragment.prototype.updatePostShuffle = function updatePostShuffle() {
-  		var _this4 = this;
+  		var _this5 = this;
 
   		var newIndices = this.pendingNewIndices[0];
 
@@ -3753,13 +3889,17 @@ var classCallCheck = function (instance, Constructor) {
   		var reinsertFrom = null;
 
   		newIndices.forEach(function (newIndex, oldIndex) {
-  			var fragment = _this4.previousIterations[oldIndex];
+  			var fragment = _this5.previousIterations[oldIndex];
 
   			if (newIndex === -1) {
   				fragment.unbind().unrender(true);
   			} else {
   				fragment.index = newIndex;
-  				fragment.rebind(_this4.context.joinKey(newIndex));
+  				var model = _this5.context.joinKey(newIndex);
+  				if (_this5.owner.template.z) {
+  					fragment.aliases = defineProperty({}, _this5.owner.template.z[0].n, model);
+  				}
+  				fragment.rebind(model);
 
   				if (reinsertFrom === null && newIndex !== previousNewIndex + 1) {
   					reinsertFrom = oldIndex;
@@ -10140,6 +10280,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   var constructors = {};
+  constructors[ALIAS] = Alias;
   constructors[DOCTYPE] = Doctype;
   constructors[INTERPOLATOR] = Interpolator;
   constructors[PARTIAL] = Partial;
