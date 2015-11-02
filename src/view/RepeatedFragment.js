@@ -102,6 +102,12 @@ export default class RepeatedFragment {
 		fragment.isIteration = true;
 
 		const model = this.context.joinKey( key );
+
+		// set up an iteration alias if there is one
+		if ( this.owner.template.z ) {
+			fragment.aliases = { [this.owner.template.z[0].n]: model };
+		}
+
 		return fragment.bind( model );
 	}
 
@@ -170,7 +176,11 @@ export default class RepeatedFragment {
 		// {{#each array}}...
 		if ( isArray( context.get() ) ) {
 			this.iterations.forEach( ( fragment, i ) => {
-				fragment.rebind( context.joinKey( i ) );
+				const model = context.joinKey( i );
+				if ( this.owner.template.z ) {
+					fragment.aliases = { [this.owner.template.z[0].n]: model };
+				}
+				fragment.rebind( model );
 			});
 		}
 	}
@@ -350,7 +360,11 @@ export default class RepeatedFragment {
 				fragment.unbind().unrender( true );
 			} else {
 				fragment.index = newIndex;
-				fragment.rebind( this.context.joinKey( newIndex ) );
+				const model = this.context.joinKey( newIndex );
+				if ( this.owner.template.z ) {
+					fragment.aliases = { [this.owner.template.z[0].n]: model };
+				}
+				fragment.rebind( model );
 
 				if ( reinsertFrom === null && ( newIndex !== previousNewIndex + 1 ) ) {
 					reinsertFrom = oldIndex;

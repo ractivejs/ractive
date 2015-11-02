@@ -11,6 +11,7 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 
 	let hasContextChain;
 	let crossedComponentBoundary;
+	let aliases;
 
 	while ( fragment ) {
 		// repeated fragments
@@ -23,6 +24,16 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 			if ( key === fragment.parent.indexRef ) {
 				if ( keys.length > 1 ) badReference( key );
 				return fragment.context.getIndexModel( fragment.index );
+			}
+		}
+
+		// alias node or iteration
+		if ( ( ( aliases = fragment.owner.aliases ) || ( aliases = fragment.aliases ) ) && aliases.hasOwnProperty( key ) ) {
+			let model = aliases[ key ];
+
+			if ( keys.length === 1 ) return model;
+			else if ( typeof model.joinAll === 'function' ) {
+				return model.joinAll( keys.slice( 1 ) );
 			}
 		}
 
