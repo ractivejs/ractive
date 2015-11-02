@@ -1,4 +1,6 @@
 import { test } from 'qunit';
+import { hasUsableConsole, onWarn } from 'test-config';
+
 
 test( 'Basic decorator', t => {
 	new Ractive({
@@ -20,6 +22,21 @@ test( 'Basic decorator', t => {
 
 	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
 });
+
+if ( hasUsableConsole ) {
+	test( 'Missing decorator', t => {
+		t.expect( 1 );
+
+	    onWarn( msg => {
+	      t.ok( /Missing "foo" decorators plugin/.test( msg ) );
+	    });
+
+		new Ractive({
+			el: fixture,
+			template: '<div decorator="foo">missing</div>',
+		});
+	});
+}
 
 test( 'Decorator with a static argument', t => {
 	new Ractive({

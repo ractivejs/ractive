@@ -1,5 +1,5 @@
 import { missingPlugin } from '../../../config/errors';
-import { fatal } from '../../../utils/log';
+import { fatal, warnOnce } from '../../../utils/log';
 
 class DOMEvent {
 	constructor ( name, owner ) {
@@ -18,7 +18,7 @@ class DOMEvent {
 		const name = this.name;
 
 		if ( !( `on${name}` in node ) ) {
-			missingPlugin( name, 'events' );
+			warnOnce( missingPlugin( name, 'events' ) );
 		}
 
 		node.addEventListener( name, this.handler = function( event ) {

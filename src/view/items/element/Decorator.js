@@ -1,4 +1,5 @@
 import { findInViewHierarchy } from '../../../shared/registry';
+import { warnOnce } from '../../../utils/log';
 import { missingPlugin } from '../../../config/errors';
 import Fragment from '../../Fragment';
 import noop from '../../../utils/noop';
@@ -66,7 +67,7 @@ export default class Decorator {
 		const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
 
 		if ( !fn ) {
-			missingPlugin( this.name, 'decorators' );
+			warnOnce( missingPlugin( this.name, 'decorators' ) );
 			this.intermediary = missingDecorator;
 			return;
 		}
