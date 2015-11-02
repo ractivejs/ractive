@@ -174,6 +174,35 @@ test( 'component "on-" with ...arguments', t => {
 	component.fire( 'bar', 'bar', 100 );
 });
 
+test( 'component "on-" with additive ...arguments', t => {
+	t.expect( 7 );
+
+	const Component = Ractive.extend({
+		template: `<span id="test" on-click="foo:'foo', 42">click me</span>`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<Component on-foo="foo(\'fooarg\', ...arguments)" on-bar="bar(\'bararg\', ...arguments)"/>',
+		components: { Component },
+		foo ( arg1, e, arg2, arg3 ) {
+			t.equal( arg1, 'fooarg' );
+			t.equal( e.original.type, 'click' );
+			t.equal( arg2, 'foo' );
+			t.equal( arg3, 42 );
+		},
+		bar ( arg1, arg2, arg3 ) {
+			t.equal( arg1, 'bararg' );
+			t.equal( arg2, 'bar' );
+			t.equal( arg3, 100 );
+		}
+	});
+
+	const component = ractive.findComponent( 'Component' );
+	fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar', 100 );
+});
+
 test( 'component "on-" with arguments[n]', t => {
 	t.expect( 5 );
 
