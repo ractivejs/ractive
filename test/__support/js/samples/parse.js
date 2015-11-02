@@ -808,6 +808,14 @@ const parseTests = [
                 ^----`
 	},
 	{
+		name: 'text-only mode',
+		template: `no <elements or="attributes" /> or &amp; entities {{just}} text, [[refs]], and {{#if foo}}sections{{/if}}`,
+		options: {
+			textOnlyMode: true
+		},
+		parsed: {v:3,t:['no <elements or="attributes" /> or &amp; entities ',{t:2,r:'just'},' text, ',{t:2,r:'refs',s:true},', and ',{t:4,n:50,r:'foo',f:['sections']}]}
+	},
+	{
 		name: 'unclosed element',
 		template: '<ul><li>',
 		error: `Missing end tags (</li></ul>) at line 1 character 9:
