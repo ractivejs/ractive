@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 03:01:38 GMT+0000 (UTC) - commit 05e004a1db99c1e5a9c9ec1fdee4206de77d3076
+	Mon Nov 02 2015 19:47:45 GMT+0000 (UTC) - commit 6ad8e24936aa333a4008e45701f8b6e25cfbc29c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4407,6 +4407,10 @@ var classCallCheck = function (instance, Constructor) {
 
   	Yielder.prototype.findAllComponents = function findAllComponents(name, queryResult) {
   		this.fragment.findAllComponents(name, queryResult);
+  	};
+
+  	Yielder.prototype.findNextNode = function findNextNode() {
+  		return this.containerFragment.findNextNode(this);
   	};
 
   	Yielder.prototype.firstNode = function firstNode() {
@@ -10581,7 +10585,11 @@ var classCallCheck = function (instance, Constructor) {
   				return fragment.ractive.el;
   			}
 
-  			fragment = fragment.componentParent || fragment.parent; // TODO ugh
+  			if (fragment.owner.type === YIELDER) {
+  				fragment = fragment.owner.containerFragment;
+  			} else {
+  				fragment = fragment.componentParent || fragment.parent; // TODO ugh
+  			}
   		} while (fragment);
 
   		throw new Error('Could not find parent node'); // TODO link to issue tracker
