@@ -69,6 +69,10 @@ export default class Yielder extends Item {
 		this.fragment.findAllComponents( name, queryResult );
 	}
 
+	findNextNode() {
+		return this.containerFragment.findNextNode( this );
+	}
+
 	firstNode () {
 		return this.fragment.firstNode();
 	}
