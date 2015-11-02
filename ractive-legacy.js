@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 01:13:59 GMT+0000 (UTC) - commit 29d309a06576970aae6525bd8d25c7f912df4419
+	Mon Nov 02 2015 01:33:35 GMT+0000 (UTC) - commit 1eb021129d1f53eb54f79817e6fce058abc2888c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7747,6 +7747,13 @@ var classCallCheck = function (instance, Constructor) {
   		}).bind();
   	};
 
+  	Yielder.prototype.bubble = function bubble() {
+  		if (!this.dirty) {
+  			this.containerFragment.bubble();
+  			this.dirty = true;
+  		}
+  	};
+
   	Yielder.prototype.detach = function detach() {
   		return this.fragment.detach();
   	};
@@ -7804,6 +7811,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	Yielder.prototype.update = function update() {
   		this.fragment.update();
+  		this.dirty = false;
   	};
 
   	return Yielder;
