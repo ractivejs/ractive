@@ -145,7 +145,6 @@ export default class Element extends Item {
 
 	detach () {
 		if ( this.decorator ) this.decorator.unrender();
-
 		return detachNode( this.node );
 	}
 
