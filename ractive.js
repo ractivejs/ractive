@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 01:33:35 GMT+0000 (UTC) - commit 1eb021129d1f53eb54f79817e6fce058abc2888c
+	Mon Nov 02 2015 03:01:38 GMT+0000 (UTC) - commit 05e004a1db99c1e5a9c9ec1fdee4206de77d3076
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7035,7 +7035,7 @@ var classCallCheck = function (instance, Constructor) {
   					}).bind(this.model);
   				}
   			} else {
-  				var fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty(value) : !!value;
+  				var fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty(value) : !!value && !isEmpty(value);
 
   				if (this.fragment) {
   					if (fragmentShouldExist) {
