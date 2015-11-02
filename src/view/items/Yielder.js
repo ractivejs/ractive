@@ -42,6 +42,13 @@ export default class Yielder extends Item {
 		}).bind();
 	}
 
+	bubble () {
+		if ( !this.dirty ) {
+			this.containerFragment.bubble();
+			this.dirty = true;
+		}
+	}
+
 	detach () {
 		return this.fragment.detach();
 	}
@@ -99,5 +106,6 @@ export default class Yielder extends Item {
 
 	update () {
 		this.fragment.update();
+		this.dirty = false;
 	}
 }
