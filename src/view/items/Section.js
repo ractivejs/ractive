@@ -171,7 +171,7 @@ export default class Section extends Mustache {
 		}
 
 		else {
-			const fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value;
+			const fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value && !isEmpty( value );
 
 			if ( this.fragment ) {
 				if ( fragmentShouldExist ) {

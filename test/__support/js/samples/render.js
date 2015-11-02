@@ -803,6 +803,22 @@ const renderTests = [
 		result: '<div class="falsey"></div>'
 	},
 	{
+		name: '#if/else with empty array',
+		template: '{{#if list}}yep{{else}}nope{{/if}}',
+		data: { list: [] },
+		result: 'nope',
+		new_data: { list: [ 1 ] },
+		new_result: 'yep'
+	},
+	{
+		name: '#if/else with empty object',
+		template: '{{#if obj}}yep{{else}}nope{{/if}}',
+		data: { obj: {} },
+		result: 'nope',
+		new_data: { obj: { yep: true } },
+		new_result: 'yep'
+	},
+	{
 		name: 'Restricting references with `this`',
 		template: '{{#foo}}{{this.bar}}{{/foo}}',
 		data: { foo: {}, bar: 'fail' },
