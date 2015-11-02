@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 00:37:47 GMT+0000 (UTC) - commit 50c2dee97e13f6863ef6d5187b109080e788efa2
+	Mon Nov 02 2015 00:39:40 GMT+0000 (UTC) - commit 44d0d26e9b3ea02949f37ebbf8aaf029f5309dbb
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4851,7 +4851,7 @@ var classCallCheck = function (instance, Constructor) {
   		var fn = findInViewHierarchy('decorators', this.ractive, this.name);
 
   		if (!fn) {
-  			missingPlugin(this.name, 'decorators');
+  			warnOnce(missingPlugin(this.name, 'decorators'));
   			this.intermediary = missingDecorator;
   			return;
   		}
@@ -5350,7 +5350,7 @@ var classCallCheck = function (instance, Constructor) {
   		var name = this.name;
 
   		if (!('on' + name in node)) {
-  			missingPlugin(name, 'events');
+  			warnOnce(missingPlugin(name, 'events'));
   		}
 
   		node.addEventListener(name, this.handler = function (event) {
