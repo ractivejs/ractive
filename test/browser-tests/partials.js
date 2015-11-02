@@ -858,7 +858,6 @@ test( 'Context computations are not called unnecessarily (#2224)', t => {
 		data: {
 			foo: { bar: 42 },
 			y ( num ) {
-				console.trace( 'here' )
 				t.equal( num, 42 );
 				return num;
 			}
