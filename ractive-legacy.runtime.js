@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Oct 30 2015 07:55:59 GMT+0000 (UTC) - commit 8deb14777abd1d90b89570263004506fabd3443a
+	Mon Nov 02 2015 00:37:47 GMT+0000 (UTC) - commit 50c2dee97e13f6863ef6d5187b109080e788efa2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -615,58 +615,6 @@ var classCallCheck = function (instance, Constructor) {
   		}
   }
 
-  function _bind(x) {
-    x.bind();
-  }
-
-  function cancel(x) {
-    x.cancel();
-  }
-
-  function _handleChange(x) {
-    x.handleChange();
-  }
-
-  function _mark(x) {
-    x.mark();
-  }
-
-  function _render(x) {
-    x.render();
-  }
-
-  function _rebind(x) {
-    x.rebind();
-  }
-
-  function teardown(x) {
-    x.teardown();
-  }
-
-  function _unbind(x) {
-    x.unbind();
-  }
-
-  function _unrender(x) {
-    x.unrender();
-  }
-
-  function unrenderAndDestroy$1(x) {
-    x.unrender(true);
-  }
-
-  function _update(x) {
-    x.update();
-  }
-
-  function _toString(x) {
-    return x.toString();
-  }
-
-  function toEscapedString(x) {
-    return x.toString(true);
-  }
-
   var TransitionManager = (function () {
   	function TransitionManager(callback, parent) {
   		classCallCheck(this, TransitionManager);
@@ -681,7 +629,6 @@ var classCallCheck = function (instance, Constructor) {
   		this.totalChildren = this.outroChildren = 0;
 
   		this.detachQueue = [];
-  		this.decoratorQueue = [];
   		this.outrosComplete = false;
 
   		if (parent) {
@@ -701,12 +648,6 @@ var classCallCheck = function (instance, Constructor) {
   		this.outroChildren += 1;
   	};
 
-  	// TODO can we move decorator stuff to element detach() methods?
-
-  	TransitionManager.prototype.addDecorator = function addDecorator(decorator) {
-  		this.decoratorQueue.push(decorator);
-  	};
-
   	TransitionManager.prototype.decrementOutros = function decrementOutros() {
   		this.outroChildren -= 1;
   		check(this);
@@ -718,14 +659,8 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	TransitionManager.prototype.detachNodes = function detachNodes() {
-  		this.decoratorQueue.forEach(teardown);
   		this.detachQueue.forEach(detach);
   		this.children.forEach(_detachNodes);
-  	};
-
-  	TransitionManager.prototype.init = function init() {
-  		this.ready = true;
-  		check(this);
   	};
 
   	TransitionManager.prototype.remove = function remove(transition) {
@@ -738,6 +673,8 @@ var classCallCheck = function (instance, Constructor) {
   		this.intros.concat(this.outros).forEach(function (t) {
   			return t.start();
   		});
+  		this.ready = true;
+  		check(this);
   	};
 
   	return TransitionManager;
@@ -810,8 +747,6 @@ var classCallCheck = function (instance, Constructor) {
 
   	end: function () {
   		flushChanges();
-
-  		batch.transitionManager.init();
   		batch = batch.previousBatch;
   	},
 
@@ -826,10 +761,6 @@ var classCallCheck = function (instance, Constructor) {
   	registerTransition: function (transition) {
   		transition._manager = batch.transitionManager;
   		batch.transitionManager.add(transition);
-  	},
-
-  	registerDecorator: function (decorator) {
-  		batch.transitionManager.addDecorator(decorator);
   	},
 
   	// synchronise node detachments with transition ends
@@ -1116,6 +1047,58 @@ var classCallCheck = function (instance, Constructor) {
   	}
 
   	return this.set(keypath, !this.get(keypath));
+  }
+
+  function _bind(x) {
+    x.bind();
+  }
+
+  function cancel(x) {
+    x.cancel();
+  }
+
+  function _handleChange(x) {
+    x.handleChange();
+  }
+
+  function _mark(x) {
+    x.mark();
+  }
+
+  function _render(x) {
+    x.render();
+  }
+
+  function _rebind(x) {
+    x.rebind();
+  }
+
+  function _teardown(x) {
+    x.teardown();
+  }
+
+  function _unbind(x) {
+    x.unbind();
+  }
+
+  function _unrender(x) {
+    x.unrender();
+  }
+
+  function unrenderAndDestroy$1(x) {
+    x.unrender(true);
+  }
+
+  function _update(x) {
+    x.update();
+  }
+
+  function _toString(x) {
+    return x.toString();
+  }
+
+  function toEscapedString(x) {
+    return x.toString(true);
   }
 
   var teardownHook = new Hook('teardown');
@@ -3018,8 +3001,8 @@ var classCallCheck = function (instance, Constructor) {
   		});
   	};
 
-  	Model.prototype.teardown = function teardown$$() {
-  		this.children.forEach(teardown);
+  	Model.prototype.teardown = function teardown() {
+  		this.children.forEach(_teardown);
   		if (this.wrapper) this.wrapper.teardown();
   	};
 
@@ -5334,7 +5317,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Decorator.prototype.unrender = function unrender() {
-  		this.intermediary.teardown();
+  		if (this.intermediary) this.intermediary.teardown();
   	};
 
   	Decorator.prototype.update = function update() {
@@ -7615,7 +7598,6 @@ var classCallCheck = function (instance, Constructor) {
 
   	Element.prototype.detach = function detach() {
   		if (this.decorator) this.decorator.unrender();
-
   		return detachNode(this.node);
   	};
 
@@ -11191,7 +11173,7 @@ var classCallCheck = function (instance, Constructor) {
   		// Teardown any existing instances *before* trying to set up the new one -
   		// avoids certain weird bugs
   		var others = target.__ractive_instances__;
-  		if (others) others.forEach(teardown);
+  		if (others) others.forEach(_teardown);
 
   		// make sure we are the only occupants
   		if (!this.enhance) {
