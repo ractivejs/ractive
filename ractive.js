@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 00:39:40 GMT+0000 (UTC) - commit 44d0d26e9b3ea02949f37ebbf8aaf029f5309dbb
+	Mon Nov 02 2015 00:53:04 GMT+0000 (UTC) - commit e710159db0b4ec378ba7a71068387cd0fd2c9a1d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6401,12 +6401,11 @@ var classCallCheck = function (instance, Constructor) {
   	RepeatedFragment.prototype.shuffle = function shuffle(newIndices) {
   		var _this2 = this;
 
-  		if (this.pendingNewIndices) {
-  			throw new Error('Section was already shuffled!');
-  		}
+  		if (!this.pendingNewIndices) this.previousIterations = this.iterations.slice();
 
-  		this.pendingNewIndices = newIndices;
-  		this.previousIterations = this.iterations.slice();
+  		if (!this.pendingNewIndices) this.pendingNewIndices = [];
+
+  		this.pendingNewIndices.push(newIndices);
 
   		var iterations = [];
 
@@ -6416,10 +6415,11 @@ var classCallCheck = function (instance, Constructor) {
   			var fragment = _this2.iterations[oldIndex];
   			iterations[newIndex] = fragment;
 
-  			if (newIndex !== oldIndex) fragment.dirty = true;
+  			if (newIndex !== oldIndex && fragment) fragment.dirty = true;
   		});
 
   		this.iterations = iterations;
+
   		this.bubble();
   	};
 
@@ -6540,7 +6540,14 @@ var classCallCheck = function (instance, Constructor) {
   	RepeatedFragment.prototype.updatePostShuffle = function updatePostShuffle() {
   		var _this4 = this;
 
-  		var newIndices = this.pendingNewIndices;
+  		var newIndices = this.pendingNewIndices[0];
+
+  		// map first shuffle through
+  		this.pendingNewIndices.slice(1).forEach(function (indices) {
+  			newIndices.forEach(function (newIndex, oldIndex) {
+  				newIndices[oldIndex] = indices[newIndex];
+  			});
+  		});
 
   		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
   		// storing them in a document fragment for later reinsertion) seems a bit hokey,
@@ -13472,7 +13479,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		var pattern = keys.join('\\.').replace(/\*/g, '(.+)');
   		var baseKeypath = baseModel.getKeypath();
-  		this.pattern = new RegExp('^' + (baseKeypath ? baseKeypath + '.' : '') + pattern + '$');
+  		this.pattern = new RegExp('^' + (baseKeypath ? baseKeypath + '\\.' : '') + pattern + '$');
 
   		this.oldValues = {};
   		this.newValues = {};
@@ -13504,6 +13511,8 @@ var classCallCheck = function (instance, Constructor) {
   		var _this3 = this;
 
   		Object.keys(this.newValues).forEach(function (keypath) {
+  			if (_this3.newKeys && !_this3.newKeys[keypath]) return;
+
   			var newValue = _this3.newValues[keypath];
   			var oldValue = _this3.oldValues[keypath];
 
@@ -13517,7 +13526,26 @@ var classCallCheck = function (instance, Constructor) {
   		});
 
   		this.oldValues = this.newValues;
+  		this.newKeys = null;
   		this.dirty = false;
+  	};
+
+  	PatternObserver.prototype.shuffle = function shuffle(newIndices) {
+  		if (!isArray(this.baseModel.value)) return;
+
+  		var base = this.baseModel.getKeypath();
+  		var max = this.baseModel.value.length;
+  		var suffix = this.keys.length > 1 ? '.' + this.keys.slice(1).join('.') : '';
+
+  		this.newKeys = {};
+  		for (var i = 0; i < newIndices.length; i++) {
+  			if (newIndices[i] === -1 || newIndices[i] === i) continue;
+  			this.newKeys[base + '.' + i + suffix] = true;
+  		}
+
+  		for (var i = newIndices.touchedFrom; i < max; i++) {
+  			this.newKeys[base + '.' + i + suffix] = true;
+  		}
   	};
 
   	PatternObserver.prototype.handleChange = function handleChange() {
