@@ -48,6 +48,12 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 
 				return fragment.context.joinAll( keys );
 			}
+
+			// check special 'this' mapping to see if we can resolve there
+			if ( fragment.ractive.component && fragment.context.has( 'this' ) ) {
+				const altContext = fragment.context.joinKey( 'this' );
+				if ( altContext.has( key ) ) return altContext.joinAll( keys );
+			}
 		}
 
 		if ( fragment.componentParent && !fragment.ractive.isolated ) {

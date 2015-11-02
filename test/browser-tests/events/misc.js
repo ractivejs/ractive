@@ -260,6 +260,40 @@ try {
 			});
 		}, /invalid input/i );
 	});
+
+	test( 'component events in a mapped context have their keypath adjusted to the mapping', t => {
+		const Foo = Ractive.extend({
+			template: `
+				{{#with mapped}}<button on-click="test1(event)">Click Me</button>{{/with}}
+				{{#with mapped.foo}}<button on-click="test2(event)">Click Me</button>{{/with}}
+				{{#with foo.bar}}<button on-click="test3(event)">Click Me</button>{{/with}}
+			`,
+			data() { return { foo: { bar: 'yep' } }; },
+			test1(event) {
+				t.equal( event.keypath, 'mapped' );
+				t.equal( event.context.foo, 'bar' );
+			},
+			test2(event) {
+				t.equal( event.keypath, 'mapped.foo' );
+				t.equal( event.context, 'bar' );
+			},
+			test3(event) {
+				t.equal( event.keypath, 'foo.bar' );
+				t.equal( event.context, 'yep' );
+			}
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			components: { Foo },
+			template: '<Foo mapped="{{some.deep.key.path}}" />',
+			data: { some: { deep: { key: { path: { foo: 'bar' } } } } }
+		});
+
+		let btns = r.findAll( 'button' );
+		t.equal( btns.length, 3 );
+		btns.forEach( b => b.click() );
+	});
 } catch ( err ) {
 	// do nothing
 }

@@ -28,14 +28,22 @@ export default function Ractive$set ( keypath, value ) {
 
 
 function set ( ractive, keypath, value ) {
+	const keys = splitKeypath( keypath );
+	const model = ractive.viewmodel;
+
 	if ( typeof value === 'function' ) value = bind( value, ractive );
 
 	if ( /\*/.test( keypath ) ) {
-		ractive.viewmodel.findMatches( splitKeypath( keypath ) ).forEach( model => {
+		model.findMatches( keys ).forEach( model => {
 			model.set( value );
 		});
 	} else {
-		const model = ractive.viewmodel.joinAll( splitKeypath( keypath ) );
-		model.set( value );
+		// prefer component alternate context to data
+		if ( ractive.component && !model.has( keys[0] ) && model.has( 'this' ) ) {
+			keys.unshift( 'this' );
+			ractive.viewmodel.joinAll( keys ).set( value );
+		} else {
+			ractive.viewmodel.joinAll( keys ).set( value );
+		}
 	}
 }

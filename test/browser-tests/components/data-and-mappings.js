@@ -1062,6 +1062,175 @@ test( 'Bindings, mappings, and upstream computations should not cause infinite m
 	t.htmlEqual( fixture.innerHTML, '{"bar":""}<input />' );
 });
 
+test( 'Components can be provided an alternate context with a "this" mapping (#2166)', t => {
+	const Foo = Ractive.extend({
+		template: '{{foo.bop}} {{bar.baz}}'
+	});
+	const Bar = Ractive.extend({
+		template: '{{bar.baz}} {{bat + 10}}'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<Foo this="{{.}}" /> <Bar this="{{foo}}" />',
+		components: { Foo, Bar },
+		data: {
+			foo: {
+				bop: 'infoo',
+				bar: {
+					baz: 'foobaz'
+				},
+				bat: 32
+			},
+			bar: {
+				baz: 'inbar'
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'infoo inbar foobaz 42' );
+	r.set( 'foo.bop', 'stillinfoo' );
+	r.add( 'foo.bat', 4200 );
+	t.htmlEqual( fixture.innerHTML, 'stillinfoo inbar foobaz 4242' );
+});
+
+test( 'Components with alt context prefer the alt context in set for new values', t => {
+	const Foo = Ractive.extend({
+		template: '',
+		data() { return { bar: {} }; }
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<Foo this="{{foo}}" />',
+		data: {
+			foo: { bar: {} }
+		},
+		components: { Foo }
+	});
+
+	const f = r.findComponent('Foo');
+
+	// if data is explicit, it should be used
+	f.set( 'bar.baz', 21 );
+	t.equal( f.get( 'bar.baz' ), 21 );
+	t.ok( !r.get( 'foo.bar.baz' ) );
+
+	// otherwise, alt context should be used
+	f.set( 'bip.bop', 'yep' );
+	t.equal( r.get( 'foo.bip.bop' ), 'yep' );
+
+	// also other set-ish methods
+	f.set( 'bip.boo', 41 );
+	f.add( 'bip.boo' );
+	t.equal( r.get( 'foo.bip.boo' ), 42, 'add works' );
+
+	f.subtract( 'bip.boo' );
+	t.equal( r.get( 'foo.bip.boo' ), 41, 'subtract works' );
+});
+
+test( 'Components with alt context should have correct event context', t => {
+	const Foo = Ractive.extend({
+		template: `
+			<button on-click="check0(event)">Click Me</button>
+			{{#with bar}}<button on-click="check1(event)">Click Me</button>{{/with}}
+			{{#with bip}}<button on-click="check2(event)">Click Me</button>{{/with}}
+		`,
+		data() { return { bar: true }; },
+		check0( event ) {
+			t.equal( event.keypath, '' );
+			t.equal( event.context.bar, true, 'root context event' );
+		},
+		check1( event ) {
+			t.equal( event.keypath, 'bar' );
+			t.equal( event.context, this.get( 'bar' ), 'local context event' );
+		},
+		check2( event ) {
+			t.equal( event.keypath, 'bip' );
+			t.equal( event.context, this.get( 'bip' ), 'alt context event' );
+		}
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<Foo this="{{foo}}" />',
+		components: { Foo },
+		data: {
+			foo: { bar: false, bip: true }
+		}
+	});
+
+	const btns = r.findAll( 'button' );
+	t.equal( btns.length, 3 );
+	btns.forEach( b => b.click() );
+});
+
+test( 'Components with alt context should merge context for data get', t => {
+	const Foo = Ractive.extend({
+		template: '',
+		data() { return { bar: 'bop', biz: 'buzz', lap: 10 }; }
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		components: { Foo },
+		template: '<Foo this="{{.}}" bar="what" />',
+		data: {
+			foo: 'bar',
+			bar: 'baz',
+			lap: 22
+		}
+	});
+
+	const f = r.findComponent( 'Foo' );
+	const data = f.get();
+	t.equal( data.foo, 'bar' );
+	t.equal( data.bar, 'what' );
+	t.equal( data.lap, 10 );
+	t.equal( data.biz, 'buzz' );
+});
+
+test( 'Alt context should work in a loop', t => {
+	const Foo = Ractive.extend({
+		template: '',
+		data() { return { dogGoes: 'woof' }; }
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: `
+			{{#things}}
+				<Foo this='{{this}}'/>
+			{{/}}
+		`,
+		components: { Foo },
+		data: {
+			things: [
+				{ bar: true, zip: true},
+				{ qux: true, zap: true },
+			]
+		}
+	});
+
+	const comps = r.findAllComponents();
+
+	// ensure model is being passed
+	t.equal( comps[0].get('bar'), true);
+	t.equal( comps[0].get('zip'), true);
+
+	t.equal( comps[1].get('qux'), true);
+	t.equal( comps[1].get('zap'), true);
+
+	// and ensure other object's properties in `things` aren't being shared
+	t.strictEqual( comps[0].get('qux'), undefined);
+	t.strictEqual( comps[0].get('zap'), undefined);
+	t.equal( comps[0].get('dogGoes'), 'woof');
+
+	t.strictEqual( comps[1].get('bar'), undefined);
+	t.strictEqual( comps[1].get('zip'), undefined);
+	t.equal( comps[1].get('dogGoes'), 'woof');
+});
+
 test( 'components should update their mappings on rebind to prevent weirdness with shuffling (#2147)', t => {
 	const Item = Ractive.extend({
 		template: '{{value}}'
