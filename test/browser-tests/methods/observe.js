@@ -840,3 +840,46 @@ test( 'Observer fires on initialisation for computed properties', t => {
 
 	t.deepEqual( observed, { num: 21, doubled: 42 });
 });
+
+test( `observers that cause a shuffle shouldn't throw (#2222)`, t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `-{{#each items}}{{.}}{{/each}}
+			{{#each watches}}{{.}}{{/each}}`,
+		data: {
+			items: [],
+			watches: []
+		},
+		oninit() {
+			this.observe( 'items.*', ( n, o, k ) => {
+				this.push( 'watches', `${n} - ${k} ` );
+			});
+		}
+	});
+
+	r.push( 'items', 1, 2 );
+	t.htmlEqual( fixture.innerHTML, '-12 1 - items.0 2 - items.1' );
+});
+
+test( `a pattern observer that is shuffled with objects should only notify on the new keys`, t => {
+	let count = 0;
+
+	const r = new Ractive({
+		el: fixture,
+		template: '',
+		data: {
+			items: [ { val: 1 } , { val: 2 } ]
+		},
+		oninit() {
+			this.observe( 'items.*', () => {
+				count++;
+			});
+		}
+	});
+
+	t.equal( count, 2 );
+	r.push( 'items', { val: 3 } );
+	t.equal( count, 3 );
+	r.unshift( 'items', { val: 0 } );
+	t.equal( count, 7 );
+});
