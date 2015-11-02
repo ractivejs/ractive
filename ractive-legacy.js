@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 01:01:53 GMT+0000 (UTC) - commit 0155d0eb3b6797c8b74b4b58b1b648aa891fa9b8
+	Mon Nov 02 2015 01:13:59 GMT+0000 (UTC) - commit 29d309a06576970aae6525bd8d25c7f912df4419
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3473,11 +3473,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	remaining = parser.remaining();
 
-  	barrier = parser.inside ? '</' + parser.inside : '<';
-
-  	if (parser.inside && !parser.interpolate[parser.inside]) {
-  		index = remaining.indexOf(barrier);
-  	} else {
+  	if (parser.textOnlyMode) {
   		disallowed = parser.tags.map(function (t) {
   			return t.open;
   		});
@@ -3485,18 +3481,33 @@ var classCallCheck = function (instance, Constructor) {
   			return '\\' + t.open;
   		}));
 
-  		// http://developers.whatwg.org/syntax.html#syntax-attributes
-  		if (parser.inAttribute === true) {
-  			// we're inside an unquoted attribute value
-  			disallowed.push('"', '\'', '=', '<', '>', '`');
-  		} else if (parser.inAttribute) {
-  			// quoted attribute value
-  			disallowed.push(parser.inAttribute);
-  		} else {
-  			disallowed.push(barrier);
-  		}
-
   		index = getLowestIndex(remaining, disallowed);
+  	} else {
+  		barrier = parser.inside ? '</' + parser.inside : '<';
+
+  		if (parser.inside && !parser.interpolate[parser.inside]) {
+  			index = remaining.indexOf(barrier);
+  		} else {
+  			disallowed = parser.tags.map(function (t) {
+  				return t.open;
+  			});
+  			disallowed = disallowed.concat(parser.tags.map(function (t) {
+  				return '\\' + t.open;
+  			}));
+
+  			// http://developers.whatwg.org/syntax.html#syntax-attributes
+  			if (parser.inAttribute === true) {
+  				// we're inside an unquoted attribute value
+  				disallowed.push('"', '\'', '=', '<', '>', '`');
+  			} else if (parser.inAttribute) {
+  				// quoted attribute value
+  				disallowed.push(parser.inAttribute);
+  			} else {
+  				disallowed.push(barrier);
+  			}
+
+  			index = getLowestIndex(remaining, disallowed);
+  		}
   	}
 
   	if (!index) {
@@ -3509,7 +3520,11 @@ var classCallCheck = function (instance, Constructor) {
 
   	parser.pos += index;
 
-  	return parser.inside && parser.inside !== 'textarea' ? remaining.substr(0, index) : decodeCharacterReferences(remaining.substr(0, index));
+  	if (parser.inside && parser.inside !== 'textarea' || parser.textOnlyMode) {
+  		return remaining.substr(0, index);
+  	} else {
+  		return decodeCharacterReferences(remaining.substr(0, index));
+  	}
   }
 
   var leadingLinebreak = /^\s*\r?\n/;
@@ -4911,6 +4926,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.sanitizeElements = options.sanitize && options.sanitize.elements;
   		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
   		this.includeLinePositions = options.includeLinePositions;
+  		this.textOnlyMode = options.textOnlyMode;
   	},
 
   	postProcess: function (result) {
