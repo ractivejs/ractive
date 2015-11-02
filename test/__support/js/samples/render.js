@@ -1279,6 +1279,12 @@ const renderTests = [
 		template: '<input name="{{name}}">',
 		data: { name: 'foo' },
 		result: '<input name="foo">'
+	},
+	{
+		name: 'Object, Boolean, String, Number are available in templates',
+		template: '{{Object.keys(foo)}} {{Boolean(1)}} {{String(42)[0]}} {{Number("42").toFixed(1)}}',
+		data: { foo: { a: 1, b: 2 } },
+		result: 'a,b true 4 42.0'
 	}
 ];
 
