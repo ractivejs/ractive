@@ -19,6 +19,15 @@ test( 'option element with custom selected logic works without error and correct
 	t.equal( ractive.find('select').value , 2 );
 });
 
+test( 'element inside option is an error', t => {
+	t.throws( () => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<select><option><blink/></option></select>'
+		});
+	}, /An <option> element cannot contain other elements \(encountered <blink>\)/ );
+});
+
 test( 'Input with uppercase tag name binds correctly', t => {
 	const ractive = new Ractive({
 		el: fixture,
