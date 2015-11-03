@@ -183,7 +183,7 @@ test( 'component "on-" with additive ...arguments', t => {
 
 	const ractive = new Ractive({
 		el: fixture,
-		template: '<Component on-foo="foo(\'fooarg\', ...arguments)" on-bar="bar(\'bararg\', ...arguments)"/>',
+		template: `<Component on-foo="foo('fooarg', ...arguments)" on-bar="bar('bararg', ...arguments)"/>`,
 		components: { Component },
 		foo ( arg1, e, arg2, arg3 ) {
 			t.equal( arg1, 'fooarg' );
@@ -212,7 +212,7 @@ test( 'component "on-" with arguments[n]', t => {
 
 	const ractive = new Ractive({
 		el: fixture,
-		template: '<Component on-foo="foo(arguments[2], \'qux\', arguments[0])" on-bar="bar(arguments[0], 100)"/>',
+		template: `<Component on-foo="foo(arguments[2], 'qux', arguments[0])" on-bar="bar(arguments[0], 100)"/>`,
 		components: { Component },
 		foo ( arg1, arg2, arg3 ) {
 			t.equal( arg1, 42 );
