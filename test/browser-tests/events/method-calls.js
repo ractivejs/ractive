@@ -174,6 +174,16 @@ test( 'component "on-" with ...arguments', t => {
 	component.fire( 'bar', 'bar', 100 );
 });
 
+test( 'component ...arguments must be last argument', t => {
+	t.throws( () => {
+		new Ractive({
+			template: `<c on-foo="foo(...arguments, 'arg after spread')"/>`
+		});
+	}, /Expected a property name/);
+
+
+});
+
 test( 'component "on-" with additive ...arguments', t => {
 	t.expect( 7 );
 
