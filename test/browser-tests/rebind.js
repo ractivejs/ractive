@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { onWarn } from 'test-config';
 
 test('Section with item that has expression only called once when created', t => {
 	let called = 0;
@@ -327,4 +328,25 @@ test( 'index rebinds get passed through conditional sections correctly', t => {
 	ractive.splice( 'foo', 1, 1 );
 
 	t.htmlEqual( fixture.innerHTML, '00<br/>1<br/>22<br/>' );
+});
+
+test( 'Computations are not triggered prematurely on rebind (#2259)', t => {
+	t.expect( 0 );
+
+	onWarn( () => {
+		t.ok( false, 'should not warn' );
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#each items}}
+				<p>{{id.toFixed(1)}}</p>
+			{{/each}}`,
+		data: {
+			items: [{ id: 1 }, { id: 2 }]
+		}
+	});
+
+	ractive.splice( 'items', 0, 1 );
 });
