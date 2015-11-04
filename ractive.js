@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Nov 04 2015 21:26:03 GMT+0000 (UTC) - commit 481ee5e2ff97e3343137eea6b2c8cd31e920ab91
+	Wed Nov 04 2015 21:28:23 GMT+0000 (UTC) - commit 0176d885300bf57dbdbd5652f2c921691914ecf1
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1883,7 +1883,7 @@ var classCallCheck = function (instance, Constructor) {
   var globals;
   var keywords;
   // if a reference is a browser global, we don't deference it later, so it needs special treatment
-  globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)\b/;
+  globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null|Object|Number|String|Boolean)\b/;
 
   // keywords are not valid references, with the exception of `this`
   keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
