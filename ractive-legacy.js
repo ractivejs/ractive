@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Nov 04 2015 21:31:06 GMT+0000 (UTC) - commit 83953ec0321b56c33b1f352ea666d52472b752ee
+	Wed Nov 04 2015 22:08:26 GMT+0000 (UTC) - commit 9b36f2fdbd7a8f815241d50c7bbdc2ebd95dba7b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6561,14 +6561,13 @@ var classCallCheck = function (instance, Constructor) {
 
   		if (model === this.model) return;
 
-  		var oldValue = this.model.get();
   		this.model.unregister(this);
 
   		this.model = model;
 
   		if (model) {
   			model.register(this);
-  			if (model.get() !== oldValue) this.handleChange();
+  			this.handleChange();
   		}
   	};
 
