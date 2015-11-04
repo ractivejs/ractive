@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Nov 04 2015 21:28:23 GMT+0000 (UTC) - commit 0176d885300bf57dbdbd5652f2c921691914ecf1
+	Wed Nov 04 2015 21:31:06 GMT+0000 (UTC) - commit 83953ec0321b56c33b1f352ea666d52472b752ee
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10585,6 +10585,10 @@ var classCallCheck = function (instance, Constructor) {
   				break;
   			}
   			fragment = fragment.parent;
+  		}
+
+  		if (this.parent && this.parent.name === 'option') {
+  			throw new Error('An <option> element cannot contain other elements (encountered <' + this.name + '>)');
   		}
 
   		// create attributes
