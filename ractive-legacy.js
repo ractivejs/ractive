@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 19:47:45 GMT+0000 (UTC) - commit 6ad8e24936aa333a4008e45701f8b6e25cfbc29c
+	Wed Nov 04 2015 21:26:03 GMT+0000 (UTC) - commit 481ee5e2ff97e3343137eea6b2c8cd31e920ab91
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4355,6 +4355,7 @@ var classCallCheck = function (instance, Constructor) {
 
   var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/;
   var methodCallExcessPattern = /\)\s*$/;
+  var spreadPattern = /(\s*,{0,1}\s*\.{3}arguments\s*)$/;
   var ExpressionParser;
   ExpressionParser = Parser$1.extend({
   	converters: [readExpression]
@@ -4363,7 +4364,7 @@ var classCallCheck = function (instance, Constructor) {
   // TODO clean this up, it's shocking
 
   function processDirective(tokens, parentParser) {
-  	var result, match, parser, args, token, colonIndex, directiveName, directiveArgs, parsed;
+  	var result, match, token, colonIndex, directiveName, directiveArgs, parsed;
 
   	if (typeof tokens === 'string') {
   		if (match = methodCallPattern.exec(tokens)) {
@@ -4377,13 +4378,16 @@ var classCallCheck = function (instance, Constructor) {
   			result = { m: match[1] };
   			var sliced = tokens.slice(result.m.length + 1, end);
 
-  			if (sliced === '...arguments') {
-  				// TODO: what the heck should this be???
-  				// maybe ExpressionParser should understand ES6???
+  			// does the method include spread of ...arguments?
+  			var args = sliced.replace(spreadPattern, '');
+
+  			// if so, other arguments should be appended to end of method arguments
+  			if (sliced !== args) {
   				result.g = true;
-  			} else {
-  				args = '[' + sliced + ']';
-  				parser = new ExpressionParser(args);
+  			}
+
+  			if (args) {
+  				var parser = new ExpressionParser('[' + args + ']');
   				result.a = flattenExpression(parser.result[0]);
   			}
 
@@ -4957,13 +4961,13 @@ var classCallCheck = function (instance, Constructor) {
 
   var parseOptions = ['preserveWhitespace', 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters', 'staticDelimiters', 'staticTripleDelimiters', 'interpolate'];
 
-  var parser$1 = {
+  var parser = {
   	fromId: fromId, isHashedId: isHashedId, isParsed: isParsed, getParseOptions: getParseOptions, createHelper: createHelper$1,
   	parse: doParse
   };
 
   function createHelper$1(parseOptions) {
-  	var helper = create(parser$1);
+  	var helper = create(parser);
   	helper.parse = function (template, options) {
   		return doParse(template, options || parseOptions);
   	};
@@ -5107,14 +5111,14 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function getDynamicTemplate(ractive, fn) {
-  	var helper = createHelper(parser$1.getParseOptions(ractive));
+  	var helper = createHelper(parser.getParseOptions(ractive));
   	return fn.call(ractive, helper);
   }
 
   function createHelper(parseOptions) {
-  	var helper = create(parser$1);
+  	var helper = create(parser);
   	helper.parse = function (template, options) {
-  		return parser$1.parse(template, options || parseOptions);
+  		return parser.parse(template, options || parseOptions);
   	};
   	return helper;
   }
@@ -5123,10 +5127,10 @@ var classCallCheck = function (instance, Constructor) {
   	if (typeof template === 'string') {
   		// ID of an element containing the template?
   		if (template[0] === '#') {
-  			template = parser$1.fromId(template);
+  			template = parser.fromId(template);
   		}
 
-  		template = parse(template, parser$1.getParseOptions(ractive));
+  		template = parse(template, parser.getParseOptions(ractive));
   	}
 
   	// Check that the template even exists
@@ -6679,10 +6683,10 @@ var classCallCheck = function (instance, Constructor) {
   	if (partial) return partial;
 
   	// Does it exist on the page as a script tag?
-  	partial = parser$1.fromId(name, { noThrow: true });
+  	partial = parser.fromId(name, { noThrow: true });
   	if (partial) {
   		// parse and register to this ractive instance
-  		var parsed = parser$1.parse(partial, parser$1.getParseOptions(ractive));
+  		var parsed = parser.parse(partial, parser.getParseOptions(ractive));
 
   		// register (and return main partial if there are others in the template)
   		return ractive.partials[name] = parsed.t;
@@ -6708,7 +6712,7 @@ var classCallCheck = function (instance, Constructor) {
   	if (typeof partial === 'function') {
   		fn = partial.bind(instance);
   		fn.isOwner = instance.partials.hasOwnProperty(name);
-  		partial = fn.call(ractive, parser$1);
+  		partial = fn.call(ractive, parser);
   	}
 
   	if (!partial && partial !== '') {
@@ -6718,9 +6722,9 @@ var classCallCheck = function (instance, Constructor) {
 
   	// If this was added manually to the registry,
   	// but hasn't been parsed, parse it now
-  	if (!parser$1.isParsed(partial)) {
+  	if (!parser.isParsed(partial)) {
   		// use the parseOptions of the ractive instance on which it was found
-  		var parsed = parser$1.parse(partial, parser$1.getParseOptions(instance));
+  		var parsed = parser.parse(partial, parser.getParseOptions(instance));
 
   		// Partials cannot contain nested partials!
   		// TODO add a test for this
@@ -8671,56 +8675,57 @@ var classCallCheck = function (instance, Constructor) {
   		if (template.m) {
   			this.method = template.m;
 
-  			if (this.passthru = template.g) {
-  				// on-click="foo(...arguments)"
-  				// no models or args, just pass thru values
-  			} else {
-  					this.resolvers = [];
-  					this.models = template.a.r.map(function (ref, i) {
-  						if (eventPattern.test(ref)) {
-  							// on-click="foo(event.node)"
-  							return {
-  								event: true,
-  								keys: ref.length > 5 ? splitKeypath(ref.slice(6)) : [],
-  								unbind: noop
-  							};
-  						}
+  			// pass-thru "...arguments"
+  			this.passthru = !!template.g;
 
-  						var argMatch = argumentsPattern.exec(ref);
-  						if (argMatch) {
-  							// on-click="foo(arguments[0])"
-  							return {
-  								argument: true,
-  								index: argMatch[1]
-  							};
-  						}
+  			if (template.a) {
+  				this.resolvers = [];
+  				this.models = template.a.r.map(function (ref, i) {
 
-  						var dollarMatch = dollarArgsPattern.exec(ref);
-  						if (dollarMatch) {
-  							// on-click="foo($1)"
-  							return {
-  								argument: true,
-  								index: dollarMatch[1] - 1
-  							};
-  						}
+  					if (eventPattern.test(ref)) {
+  						// on-click="foo(event.node)"
+  						return {
+  							event: true,
+  							keys: ref.length > 5 ? splitKeypath(ref.slice(6)) : [],
+  							unbind: noop
+  						};
+  					}
 
-  						var resolver = undefined;
+  					var argMatch = argumentsPattern.exec(ref);
+  					if (argMatch) {
+  						// on-click="foo(arguments[0])"
+  						return {
+  							argument: true,
+  							index: argMatch[1]
+  						};
+  					}
 
-  						var model = resolveReference(_this.parentFragment, ref);
-  						if (!model) {
-  							resolver = _this.parentFragment.resolve(ref, function (model) {
-  								_this.models[i] = model;
-  								removeFromArray(_this.resolvers, resolver);
-  							});
+  					var dollarMatch = dollarArgsPattern.exec(ref);
+  					if (dollarMatch) {
+  						// on-click="foo($1)"
+  						return {
+  							argument: true,
+  							index: dollarMatch[1] - 1
+  						};
+  					}
 
-  							_this.resolvers.push(resolver);
-  						}
+  					var resolver = undefined;
 
-  						return model;
-  					});
+  					var model = resolveReference(_this.parentFragment, ref);
+  					if (!model) {
+  						resolver = _this.parentFragment.resolve(ref, function (model) {
+  							_this.models[i] = model;
+  							removeFromArray(_this.resolvers, resolver);
+  						});
 
-  					this.argsFn = createFunction(template.a.s, template.a.r.length);
-  				}
+  						_this.resolvers.push(resolver);
+  					}
+
+  					return model;
+  				});
+
+  				this.argsFn = createFunction(template.a.s, template.a.r.length);
+  			}
   		} else {
   			// TODO deprecate this style of directive
   			this.action = typeof template === 'string' ? // on-click='foo'
@@ -8749,14 +8754,14 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	EventDirective.prototype.fire = function fire(event, passedArgs) {
+  	EventDirective.prototype.fire = function fire(event) {
+  		var passedArgs = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
   		// augment event object
   		if (event) {
   			event.keypath = this.context.getKeypath();
   			event.context = this.context.get();
   			event.index = this.parentFragment.indexRefs;
-
-  			if (passedArgs) passedArgs.unshift(event);
   		}
 
   		if (this.method) {
@@ -8766,9 +8771,9 @@ var classCallCheck = function (instance, Constructor) {
 
   			var args = undefined;
 
-  			if (this.passthru) {
-  				args = passedArgs;
-  			} else {
+  			if (event) passedArgs.unshift(event);
+
+  			if (this.models) {
   				var values = this.models.map(function (model) {
   					if (!model) return undefined;
 
@@ -8794,6 +8799,10 @@ var classCallCheck = function (instance, Constructor) {
   				args = this.argsFn.apply(null, values);
   			}
 
+  			if (this.passthru) {
+  				args = args ? args.concat(passedArgs) : passedArgs;
+  			}
+
   			// make event available as `this.event`
   			var ractive = this.ractive;
   			var oldEvent = ractive.event;
@@ -8804,6 +8813,8 @@ var classCallCheck = function (instance, Constructor) {
   		} else {
   			var action = this.action.toString();
   			var args = this.template.d ? this.args.getArgsList() : this.args;
+
+  			if (passedArgs.length) args = args.concat(passedArgs);
 
   			if (event) event.name = action;
 

@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 02 2015 19:47:45 GMT+0000 (UTC) - commit 6ad8e24936aa333a4008e45701f8b6e25cfbc29c
+	Wed Nov 04 2015 21:26:03 GMT+0000 (UTC) - commit 481ee5e2ff97e3343137eea6b2c8cd31e920ab91
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5306,56 +5306,57 @@ var classCallCheck = function (instance, Constructor) {
   		if (template.m) {
   			this.method = template.m;
 
-  			if (this.passthru = template.g) {
-  				// on-click="foo(...arguments)"
-  				// no models or args, just pass thru values
-  			} else {
-  					this.resolvers = [];
-  					this.models = template.a.r.map(function (ref, i) {
-  						if (eventPattern.test(ref)) {
-  							// on-click="foo(event.node)"
-  							return {
-  								event: true,
-  								keys: ref.length > 5 ? splitKeypath(ref.slice(6)) : [],
-  								unbind: noop
-  							};
-  						}
+  			// pass-thru "...arguments"
+  			this.passthru = !!template.g;
 
-  						var argMatch = argumentsPattern.exec(ref);
-  						if (argMatch) {
-  							// on-click="foo(arguments[0])"
-  							return {
-  								argument: true,
-  								index: argMatch[1]
-  							};
-  						}
+  			if (template.a) {
+  				this.resolvers = [];
+  				this.models = template.a.r.map(function (ref, i) {
 
-  						var dollarMatch = dollarArgsPattern.exec(ref);
-  						if (dollarMatch) {
-  							// on-click="foo($1)"
-  							return {
-  								argument: true,
-  								index: dollarMatch[1] - 1
-  							};
-  						}
+  					if (eventPattern.test(ref)) {
+  						// on-click="foo(event.node)"
+  						return {
+  							event: true,
+  							keys: ref.length > 5 ? splitKeypath(ref.slice(6)) : [],
+  							unbind: noop
+  						};
+  					}
 
-  						var resolver = undefined;
+  					var argMatch = argumentsPattern.exec(ref);
+  					if (argMatch) {
+  						// on-click="foo(arguments[0])"
+  						return {
+  							argument: true,
+  							index: argMatch[1]
+  						};
+  					}
 
-  						var model = resolveReference(_this.parentFragment, ref);
-  						if (!model) {
-  							resolver = _this.parentFragment.resolve(ref, function (model) {
-  								_this.models[i] = model;
-  								removeFromArray(_this.resolvers, resolver);
-  							});
+  					var dollarMatch = dollarArgsPattern.exec(ref);
+  					if (dollarMatch) {
+  						// on-click="foo($1)"
+  						return {
+  							argument: true,
+  							index: dollarMatch[1] - 1
+  						};
+  					}
 
-  							_this.resolvers.push(resolver);
-  						}
+  					var resolver = undefined;
 
-  						return model;
-  					});
+  					var model = resolveReference(_this.parentFragment, ref);
+  					if (!model) {
+  						resolver = _this.parentFragment.resolve(ref, function (model) {
+  							_this.models[i] = model;
+  							removeFromArray(_this.resolvers, resolver);
+  						});
 
-  					this.argsFn = createFunction(template.a.s, template.a.r.length);
-  				}
+  						_this.resolvers.push(resolver);
+  					}
+
+  					return model;
+  				});
+
+  				this.argsFn = createFunction(template.a.s, template.a.r.length);
+  			}
   		} else {
   			// TODO deprecate this style of directive
   			this.action = typeof template === 'string' ? // on-click='foo'
@@ -5384,14 +5385,14 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	EventDirective.prototype.fire = function fire(event, passedArgs) {
+  	EventDirective.prototype.fire = function fire(event) {
+  		var passedArgs = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
   		// augment event object
   		if (event) {
   			event.keypath = this.context.getKeypath();
   			event.context = this.context.get();
   			event.index = this.parentFragment.indexRefs;
-
-  			if (passedArgs) passedArgs.unshift(event);
   		}
 
   		if (this.method) {
@@ -5401,9 +5402,9 @@ var classCallCheck = function (instance, Constructor) {
 
   			var args = undefined;
 
-  			if (this.passthru) {
-  				args = passedArgs;
-  			} else {
+  			if (event) passedArgs.unshift(event);
+
+  			if (this.models) {
   				var values = this.models.map(function (model) {
   					if (!model) return undefined;
 
@@ -5429,6 +5430,10 @@ var classCallCheck = function (instance, Constructor) {
   				args = this.argsFn.apply(null, values);
   			}
 
+  			if (this.passthru) {
+  				args = args ? args.concat(passedArgs) : passedArgs;
+  			}
+
   			// make event available as `this.event`
   			var ractive = this.ractive;
   			var oldEvent = ractive.event;
@@ -5439,6 +5444,8 @@ var classCallCheck = function (instance, Constructor) {
   		} else {
   			var action = this.action.toString();
   			var args = this.template.d ? this.args.getArgsList() : this.args;
+
+  			if (passedArgs.length) args = args.concat(passedArgs);
 
   			if (event) event.name = action;
 
