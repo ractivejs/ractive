@@ -10,4 +10,8 @@ export default class RactiveModel extends Model {
 		this.ractive = ractive;
 		this.changes = {};
 	}
+
+	getKeypath() {
+		return '@ractive';
+	}
 }

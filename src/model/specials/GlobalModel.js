@@ -10,6 +10,10 @@ class GlobalModel extends Model {
 		this.adaptors = [];
 		this.changes = {};
 	}
+
+	getKeypath() {
+		return '@global';
+	}
 }
 
 export default new GlobalModel();
