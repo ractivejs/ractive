@@ -1,5 +1,6 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
+import { hasUsableConsole, onWarn } from 'test-config';
 
 test( 'custom event invoked and torndown', t => {
 	t.expect( 3 );
@@ -42,3 +43,18 @@ test( 'custom event invoked and torndown', t => {
 	ractive.unrender();
 	fire( span, 'click' );
 });
+
+if ( hasUsableConsole ) {
+	test( 'Missing event plugin', t => {
+		t.expect( 1 );
+
+	    onWarn( msg => {
+	      t.ok( /Missing "foo" events plugin/.test( msg ) );
+	    });
+
+		new Ractive({
+			el: fixture,
+			template: '<div on-foo="">missing</div>',
+		});
+	});
+}

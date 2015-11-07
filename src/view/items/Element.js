@@ -41,6 +41,10 @@ export default class Element extends Item {
 			fragment = fragment.parent;
 		}
 
+		if ( this.parent && this.parent.name === 'option' ) {
+			throw new Error( `An <option> element cannot contain other elements (encountered <${this.name}>)` );
+		}
+
 		// create attributes
 		this.attributeByName = {};
 		this.attributes = [];
@@ -145,7 +149,6 @@ export default class Element extends Item {
 
 	detach () {
 		if ( this.decorator ) this.decorator.unrender();
-
 		return detachNode( this.node );
 	}
 

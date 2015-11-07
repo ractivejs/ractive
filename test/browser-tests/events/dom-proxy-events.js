@@ -551,8 +551,8 @@ test( 'Proxy event arguments update correctly (#2098)', t => {
 	fire( button, 'click' );
 });
 
-test( 'component "on-" supply own event proxy arguments', t => {
-	t.expect( 4 );
+test( 'component "on-" supply own event proxy arguments (but original args are tacked on)', t => {
+	t.expect( 5 );
 
 	const Component = Ractive.extend({
 		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
@@ -575,7 +575,9 @@ test( 'component "on-" supply own event proxy arguments', t => {
 		t.equal( arg1, 'qux' );
 	});
 	ractive.on( 'bizz-reproxy', function () {
-		t.equal( arguments.length, 0 );
+		// original args are implicitly included...
+		t.equal( arguments.length, 1 );
+		t.equal( arguments[0], 'buzz' );
 	});
 
 	const component = ractive.findComponent( 'Component' );
@@ -585,7 +587,7 @@ test( 'component "on-" supply own event proxy arguments', t => {
 });
 
 test( 'component "on-" handles reproxy of arguments correctly', t => {
-	t.expect( 4 );
+	t.expect( 5 );
 
 	const Component = Ractive.extend({
 		template: '<span id="test" on-click="foo:\'foo\'">click me</span>'
@@ -599,10 +601,12 @@ test( 'component "on-" handles reproxy of arguments correctly', t => {
 
 	ractive.on( 'foo-reproxy', ( e, ...args ) => {
 		t.equal( e.original.type, 'click' );
-		t.equal( args.length, 0 );
+		t.equal( args.length, 1 );
 	});
 	ractive.on( 'bar-reproxy', function () {
-		t.equal( arguments.length, 0 );
+		t.equal( arguments.length, 1 );
+		// implicitly included
+		t.equal( arguments[0], 'bar' );
 	});
 	ractive.on( 'bizz-reproxy', function () {
 		t.equal( arguments.length, 0 );

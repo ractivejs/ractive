@@ -102,6 +102,12 @@ export default class RepeatedFragment {
 		fragment.isIteration = true;
 
 		const model = this.context.joinKey( key );
+
+		// set up an iteration alias if there is one
+		if ( this.owner.template.z ) {
+			fragment.aliases = { [this.owner.template.z[0].n]: model };
+		}
+
 		return fragment.bind( model );
 	}
 
@@ -170,7 +176,11 @@ export default class RepeatedFragment {
 		// {{#each array}}...
 		if ( isArray( context.get() ) ) {
 			this.iterations.forEach( ( fragment, i ) => {
-				fragment.rebind( context.joinKey( i ) );
+				const model = context.joinKey( i );
+				if ( this.owner.template.z ) {
+					fragment.aliases = { [this.owner.template.z[0].n]: model };
+				}
+				fragment.rebind( model );
 			});
 		}
 	}
@@ -186,12 +196,11 @@ export default class RepeatedFragment {
 	}
 
 	shuffle ( newIndices ) {
-		if ( this.pendingNewIndices ) {
-			throw new Error( 'Section was already shuffled!' );
-		}
+		if ( !this.pendingNewIndices ) this.previousIterations = this.iterations.slice();
 
-		this.pendingNewIndices = newIndices;
-		this.previousIterations = this.iterations.slice();
+		if ( !this.pendingNewIndices ) this.pendingNewIndices = [];
+
+		this.pendingNewIndices.push( newIndices );
 
 		const iterations = [];
 
@@ -201,10 +210,11 @@ export default class RepeatedFragment {
 			const fragment = this.iterations[ oldIndex ];
 			iterations[ newIndex ] = fragment;
 
-			if ( newIndex !== oldIndex ) fragment.dirty = true;
+			if ( newIndex !== oldIndex && fragment ) fragment.dirty = true;
 		});
 
 		this.iterations = iterations;
+
 		this.bubble();
 	}
 
@@ -328,7 +338,14 @@ export default class RepeatedFragment {
 	}
 
 	updatePostShuffle () {
-		const newIndices = this.pendingNewIndices;
+		const newIndices = this.pendingNewIndices[ 0 ];
+
+		// map first shuffle through
+		this.pendingNewIndices.slice( 1 ).forEach( indices => {
+			newIndices.forEach( ( newIndex, oldIndex ) => {
+				newIndices[ oldIndex ] = indices[ newIndex ];
+			});
+		});
 
 		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
 		// storing them in a document fragment for later reinsertion) seems a bit hokey,
@@ -343,7 +360,11 @@ export default class RepeatedFragment {
 				fragment.unbind().unrender( true );
 			} else {
 				fragment.index = newIndex;
-				fragment.rebind( this.context.joinKey( newIndex ) );
+				const model = this.context.joinKey( newIndex );
+				if ( this.owner.template.z ) {
+					fragment.aliases = { [this.owner.template.z[0].n]: model };
+				}
+				fragment.rebind( model );
 
 				if ( reinsertFrom === null && ( newIndex !== previousNewIndex + 1 ) ) {
 					reinsertFrom = oldIndex;
