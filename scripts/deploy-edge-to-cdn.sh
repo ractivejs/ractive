@@ -40,8 +40,6 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 	rm -r cdn/edge
 	cp -r build/ cdn/edge
 
-	( cd cdn
-		echo "Surging..."
-		../node_modules/.bin/surge cdn.ractivejs.org
-	)
+	echo "Surging..."
+	node_modules/.bin/surge cdn cdn.ractivejs.org
 fi
