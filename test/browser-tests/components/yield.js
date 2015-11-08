@@ -294,6 +294,25 @@ test( 'yielders should properly update with their container instance (#2235)', t
 	t.htmlEqual( fixture.innerHTML, 'bar' );
 });
 
+test( 'yielders should search the container for their anchor (#2235)', t => {
+	const Foo = Ractive.extend({
+		template: '<div>{{yield}}</div>'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<Foo>{{#if foo}}bar{{/if}}</Foo>',
+		data: {
+			foo: false
+		},
+		components: { Foo }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div></div>' );
+	r.set( 'foo', true );
+	t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+});
+
 if ( hasUsableConsole ) {
 	test( 'Yield with missing partial (#1681)', t => {
 		onWarn( msg => {

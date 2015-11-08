@@ -1097,3 +1097,24 @@ test( 'components should update their mappings on rebind to prevent weirdness wi
 	t.deepEqual( ractive.get( 's3' ), [ { value: 1 }, { value: 2 } ] );
 	t.htmlEqual( ractive.find( '#s3' ).innerHTML, '12' );
 });
+
+test( 'Interpolators based on computed mappings update correctly #2261)', t => {
+	const Component = Ractive.extend({
+		template: `{{active ? "active" : "inactive"}}`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<Component active="{{tab == 'foo'}}"/>
+			<Component active="{{tab == 'bar'}}"/>`,
+		data: {
+			tab: 'foo'
+		},
+		components: { Component }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'active inactive' );
+	ractive.set( 'tab', 'bar' );
+	t.htmlEqual( fixture.innerHTML, 'inactive active' );
+});

@@ -1,4 +1,4 @@
-import { ELEMENT } from '../config/types';
+import { ELEMENT, YIELDER } from '../config/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';
@@ -173,7 +173,11 @@ export default class Fragment {
 				return fragment.ractive.el;
 			}
 
-			fragment = fragment.componentParent || fragment.parent; // TODO ugh
+			if ( fragment.owner.type === YIELDER ) {
+				fragment = fragment.owner.containerFragment;
+			} else {
+				fragment = fragment.componentParent || fragment.parent; // TODO ugh
+			}
 		} while ( fragment );
 
 		throw new Error( 'Could not find parent node' ); // TODO link to issue tracker
