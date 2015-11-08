@@ -42,6 +42,6 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 
 	( cd cdn
 		echo "Surging..."
-		node_modules/.bin/surge cdn.ractivejs.org
+		../node_modules/.bin/surge cdn.ractivejs.org
 	)
 fi
