@@ -41,15 +41,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 	cp -r build/ cdn/edge
 
 	( cd cdn
-		echo "Setting credentials..."
-		git remote rm origin
-		git remote add origin https://Rich-Harris:${GH_TOKEN}@${CDN_REF}
-
-		echo "Adding files..."
-		git add -A
-		git commit -m "Updated edge version"
-
-		echo "Pushing to GitHub..."
-		git push --quiet origin gh-pages 2> /dev/null
+		echo "Surging..."
+		node_modules/.bin/surge cdn.ractivejs.org
 	)
 fi
