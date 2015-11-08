@@ -270,13 +270,36 @@ export default class Model {
 		return new KeyModel( escapeKey( this.key ) );
 	}
 
-	getKeypathModel () {
-		return this.keypathModel || ( this.keypathModel = new KeypathModel( this ) );
+	getKeypathModel ( ractive ) {
+		let keypath = this.getKeypath(), model = this.keypathModel || ( this.keypathModel = new KeypathModel( this ) );
+
+		if ( ractive && ractive.component ) {
+			let mapped = this.getKeypath( ractive );
+			if ( mapped !== keypath ) {
+				let map = ractive.viewmodel.keypathModels || ( ractive.viewmodel.keypathModels = {} );
+				let child = map[ keypath ] || ( map[ keypath ] = new KeypathModel( this, ractive ) );
+				model.addChild( child );
+				return child;
+			}
+		}
+
+		return model;
 	}
 
-	getKeypath () {
-		// TODO keypaths inside components... tricky
-		return this.parent.isRoot ? escapeKey( this.key ) : this.parent.getKeypath() + '.' + escapeKey( this.key );
+	getKeypath ( ractive ) {
+		let root = this.parent.isRoot ? escapeKey( this.key ) : this.parent.getKeypath() + '.' + escapeKey( this.key );
+
+		if ( ractive && ractive.component ) {
+			let map = ractive.viewmodel.mappings;
+			for ( let k in map ) {
+				if ( root.indexOf( map[ k ].getKeypath() ) >= 0 ) {
+					root = root.replace( map[ k ].getKeypath(), k );
+					break;
+				}
+			}
+		}
+
+		return root;
 	}
 
 	has ( key ) {
@@ -431,6 +454,11 @@ export default class Model {
 	teardown () {
 		this.children.forEach( teardown );
 		if ( this.wrapper ) this.wrapper.teardown();
+		if ( this.keypathModels ) {
+			for ( let k in this.keypathModels ) {
+				this.keypathModels[ k ].teardown();
+			}
+		}
 	}
 
 	unregister ( dependant ) {

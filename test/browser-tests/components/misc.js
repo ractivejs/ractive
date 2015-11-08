@@ -869,3 +869,66 @@ test( 'component w/ empty select/option value does not throw (#2139)', t => {
 
 	ractive.set('persons', [{}]);
 });
+
+test( 'component @keypath references should be relative to the component', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{baz.bat}}" />',
+		data: {
+			baz: { bat: { bar: 'yep' } }
+		},
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foo.bar' );
+});
+
+test( 'component @rootpath references should be relative to the root', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}{{@rootpath}}{{/with}}'
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{baz.bat}}" />',
+		data: {
+			baz: { bat: { bar: 'yep' } }
+		},
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'baz.bat.bar' );
+});
+
+test( 'component @keypath references should shuffle correctly', t => {
+	const cmp = Ractive.extend({
+		template: `{{#with foo.bar}}{{.}} {{@keypath}} {{@rootpath}} {{#each ../list}}{{@keypath}}|{{/each}}{{/with}}`
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items as item}}<cmp foo="{{item.baz}}" />{{/each}}',
+		data: {
+			items: [ { baz: { bar: 1, list: [] } } ],
+			flag: false
+		},
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '1 foo.bar items.0.baz.bar' );
+
+	r.unshift( 'items', { baz: { bar: 2, list: [] } } );
+	t.htmlEqual( fixture.innerHTML, '2 foo.bar items.0.baz.bar 1 foo.bar items.1.baz.bar' );
+
+	r.push( 'items.1.baz.list', 1 );
+	r.unshift( 'items.1.baz.list', 2 );
+	t.htmlEqual( fixture.innerHTML, '2 foo.bar items.0.baz.bar 1 foo.bar items.1.baz.bar foo.list.0|foo.list.1|' );
+
+	r.push( 'items.0.baz.list', 1 );
+	r.unshift( 'items.0.baz.list', 2 );
+	t.htmlEqual( fixture.innerHTML, '2 foo.bar items.0.baz.bar foo.list.0|foo.list.1|1 foo.bar items.1.baz.bar foo.list.0|foo.list.1|' );
+});

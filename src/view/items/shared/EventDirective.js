@@ -2,7 +2,7 @@ import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
 import createFunction from '../../../shared/createFunction';
-import { rebind, unbind } from '../../../shared/methodCallers';
+import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
@@ -132,7 +132,8 @@ export default class EventDirective {
 
 		// augment event object
 		if ( event ) {
-			event.keypath = this.context.getKeypath();
+			event.keypath = this.context.getKeypath( this.ractive );
+			event.rootpath = this.context.getKeypath();
 			event.context = this.context.get();
 			event.index = this.parentFragment.indexRefs;
 		}
