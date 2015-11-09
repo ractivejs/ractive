@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Nov 08 2015 17:43:56 GMT+0000 (UTC) - commit e38fffdb71829a0c60851f1ce2f7217289e19ecd
+	Mon Nov 09 2015 15:48:55 GMT+0000 (UTC) - commit 53d948d2f9d151097139b1ba91eeb695fa778ce4
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1836,7 +1836,7 @@ var classCallCheck = function (instance, Constructor) {
   	if (ref === '@key') return fragment.findRepeatingFragment().context.getKeyModel();
 
   	// ancestor references
-  	if (ref[0] === '~') return context.root.joinAll(splitKeypath(ref.slice(2)));
+  	if (ref[0] === '~') return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
   	if (ref[0] === '.') {
   		var parts = ref.split('/');
 
