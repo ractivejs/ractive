@@ -172,6 +172,18 @@ test( 'method event directives should shuffle correctly', t => {
 	fire( r.find( '#div1' ), 'click' );
 });
 
+test( 'method event directives with no args should shuffle without throwing', t => {
+	t.expect( 0 );
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}<button on-click="foo()">clickme</button>{{/each}}',
+		data: { items: [ 1 ] }
+	});
+
+	r.unshift( 'items', 2 );
+});
+
 // TODO reinstate this in some form. Commented out for purposes of #1740
 // test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 // 	let ractive = new Ractive({

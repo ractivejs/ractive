@@ -2,7 +2,7 @@ import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
 import createFunction from '../../../shared/createFunction';
-import { rebind, unbind } from '../../../shared/methodCallers';
+import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
@@ -213,7 +213,7 @@ export default class EventDirective {
 		const template = this.template;
 
 		if ( template.m ) {
-			this.resolvers.forEach( unbind );
+			if ( this.resolvers ) this.resolvers.forEach( unbind );
 			this.resolvers = [];
 
 			this.models = null;
