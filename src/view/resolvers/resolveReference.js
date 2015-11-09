@@ -17,7 +17,7 @@ export default function resolveReference ( fragment, ref ) {
 	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.getKeyModel();
 
 	// ancestor references
-	if ( ref[0] === '~' ) return context.root.joinAll( splitKeypath( ref.slice( 2 ) ) );
+	if ( ref[0] === '~' ) return fragment.ractive.viewmodel.joinAll( splitKeypath( ref.slice( 2 ) ) );
 	if ( ref[0] === '.' ) {
 		const parts = ref.split( '/' );
 

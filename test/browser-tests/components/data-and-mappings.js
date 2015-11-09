@@ -1118,3 +1118,23 @@ test( 'Interpolators based on computed mappings update correctly #2261)', t => {
 	ractive.set( 'tab', 'bar' );
 	t.htmlEqual( fixture.innerHTML, 'inactive active' );
 });
+
+test( 'root references inside a component should resolve to the component', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}{{~/test}}{{/with}}',
+		data: function() {
+			return { test: 'yep' };
+		}
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{baz.bat}}" />',
+		components: { cmp },
+		data: {
+			baz: { bat: 'nope' }
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
