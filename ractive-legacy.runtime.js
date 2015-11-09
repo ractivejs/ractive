@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 09 2015 15:48:55 GMT+0000 (UTC) - commit 53d948d2f9d151097139b1ba91eeb695fa778ce4
+	Mon Nov 09 2015 17:48:04 GMT+0000 (UTC) - commit b4b31c1daf36a9af74351fe9fccf581132942f57
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5913,7 +5913,7 @@ var classCallCheck = function (instance, Constructor) {
   		var template = this.template;
 
   		if (template.m) {
-  			this.resolvers.forEach(_unbind);
+  			if (this.resolvers) this.resolvers.forEach(_unbind);
   			this.resolvers = [];
 
   			this.models = null;
