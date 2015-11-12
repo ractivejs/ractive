@@ -62,6 +62,9 @@ export default class Computation extends Model {
 
 		this.boundsSensitive = true;
 		this.dirty = true;
+
+		// computations don't shuffle
+		this.shuffle = undefined;
 	}
 
 	get ( shouldCapture ) {
