@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Nov 09 2015 17:48:04 GMT+0000 (UTC) - commit b4b31c1daf36a9af74351fe9fccf581132942f57
+	Fri Nov 13 2015 20:16:17 GMT+0000 (UTC) - commit b81575c95fedcfb057fde244e0ca302bf7b2de28
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8883,6 +8883,9 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.boundsSensitive = true;
   		this.dirty = true;
+
+  		// TODO: computations don't shuffle, but this is a bit hackish
+  		this.shuffle = undefined;
   	}
 
   	Computation.prototype.get = function get(shouldCapture) {
