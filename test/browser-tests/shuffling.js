@@ -214,6 +214,20 @@ test( 'shuffling a computation should not cause the computation to shuffle (#226
 	t.htmlEqual( fixture.innerHTML, '' );
 });
 
+test( 'shuffled sections that unrender at the same time should not leave orphans (#2277)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#if items.length}}{{#each items}}{{.}}{{/each}}{{/if}}`,
+		data: {
+			items: [ 1 ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '1' );
+	r.splice( 'items', 0, 1 );
+	t.htmlEqual( fixture.innerHTML, '' );
+});
+
 // TODO reinstate this in some form. Commented out for purposes of #1740
 // test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 // 	let ractive = new Ractive({
