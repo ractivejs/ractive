@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Nov 13 2015 20:16:17 GMT+0000 (UTC) - commit b81575c95fedcfb057fde244e0ca302bf7b2de28
+	Sun Nov 15 2015 17:43:30 GMT+0000 (UTC) - commit 73ffceece57ad5e5d51d6ed73581de312aa77e69
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3766,6 +3766,11 @@ var classCallCheck = function (instance, Constructor) {
 
   	RepeatedFragment.prototype.unrender = function unrender(shouldDestroy) {
   		this.iterations.forEach(shouldDestroy ? unrenderAndDestroy$1 : _unrender);
+  		if (this.pendingNewIndices && this.previousIterations) {
+  			this.previousIterations.forEach(function (fragment) {
+  				if (fragment.rendered) shouldDestroy ? unrenderAndDestroy$1(fragment) : _unrender(fragment);
+  			});
+  		}
   		this.rendered = false;
   	};
 
