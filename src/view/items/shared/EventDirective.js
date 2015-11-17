@@ -214,7 +214,7 @@ export default class EventDirective {
 		const template = this.template;
 
 		if ( template.m ) {
-			this.resolvers.forEach( unbind );
+			if ( this.resolvers ) this.resolvers.forEach( unbind );
 			this.resolvers = [];
 
 			this.models = null;

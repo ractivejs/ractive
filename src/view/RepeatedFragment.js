@@ -231,6 +231,11 @@ export default class RepeatedFragment {
 
 	unrender ( shouldDestroy ) {
 		this.iterations.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
+		if ( this.pendingNewIndices && this.previousIterations ) {
+			this.previousIterations.forEach( fragment => {
+				if ( fragment.rendered ) shouldDestroy ? unrenderAndDestroy( fragment ) : unrender( fragment );
+			});
+		}
 		this.rendered = false;
 	}
 

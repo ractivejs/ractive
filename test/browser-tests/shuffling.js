@@ -172,6 +172,62 @@ test( 'method event directives should shuffle correctly', t => {
 	fire( r.find( '#div1' ), 'click' );
 });
 
+test( 'method event directives with no args should shuffle without throwing', t => {
+	t.expect( 0 );
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}<button on-click="foo()">clickme</button>{{/each}}',
+		data: { items: [ 1 ] }
+	});
+
+	r.unshift( 'items', 2 );
+});
+
+test( 'shuffling around a computation with an index ref', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each items.slice(1)}}{{2 * @index}} {{@index * .}}|{{/each}}`,
+		data: {
+			items: [ 1, 2 ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '0 0|' );
+	r.splice( 'items', 1, 0, 3, 4 );
+	t.htmlEqual( fixture.innerHTML, '0 0|2 4|4 4|' );
+	r.splice( 'items', 0, 1 );
+	t.htmlEqual( fixture.innerHTML, '0 0|2 2|' );
+});
+
+test( 'shuffling a computation should not cause the computation to shuffle (#2267 #2269)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each items.slice(1)}}{{.}}{{/each}}`,
+		data: {
+			items: [ 1, 2 ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '2' );
+	r.splice( 'items', 0, 1 );
+	t.htmlEqual( fixture.innerHTML, '' );
+});
+
+test( 'shuffled sections that unrender at the same time should not leave orphans (#2277)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#if items.length}}{{#each items}}{{.}}{{/each}}{{/if}}`,
+		data: {
+			items: [ 1 ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '1' );
+	r.splice( 'items', 0, 1 );
+	t.htmlEqual( fixture.innerHTML, '' );
+});
+
 // TODO reinstate this in some form. Commented out for purposes of #1740
 // test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 // 	let ractive = new Ractive({

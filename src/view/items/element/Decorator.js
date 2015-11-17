@@ -102,19 +102,21 @@ export default class Decorator {
 			this.name = name;
 		}
 
-		if ( nameChanged || !this.intermediary.update ) {
-			this.unrender();
-			this.render();
-		}
-		else {
-			if ( this.dynamicArgs ) {
-				if ( this.argsFragment.dirty ) {
-					const args = this.argsFragment.getArgsList();
-					this.intermediary.update.apply( this.ractive, args );
-				}
+		if ( this.intermediary ) {
+			if ( nameChanged || !this.intermediary.update ) {
+				this.unrender();
+				this.render();
 			}
 			else {
-				this.intermediary.update.apply( this.ractive, this.args );
+				if ( this.dynamicArgs ) {
+					if ( this.argsFragment.dirty ) {
+						const args = this.argsFragment.getArgsList();
+						this.intermediary.update.apply( this.ractive, args );
+					}
+				}
+				else {
+					this.intermediary.update.apply( this.ractive, this.args );
+				}
 			}
 		}
 

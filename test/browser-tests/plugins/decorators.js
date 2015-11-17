@@ -353,3 +353,23 @@ test( 'Decorator teardown should happen after outros have completed (#1481)', t 
 
 	t.equal( div.style.color, 'red' );
 });
+
+test( 'Decorators can have their parameters change before they are rendered (#2278)', t => {
+	t.expect( 0 );
+
+	const dec = function() {
+		return { teardown() {} };
+	};
+
+	new Ractive({
+		el: fixture,
+		decorator: { dec },
+		template: '<div decorator="dec:{{foo}}" />',
+		data: {
+			foo: 1
+		},
+		oninit() {
+			this.set( 'foo', 2 );
+		}
+	});
+});
