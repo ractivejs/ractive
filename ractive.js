@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Nov 15 2015 21:44:30 GMT+0000 (UTC) - commit 84f962ad0ea16dd2409304d05f5d4e743cf744fc
+	Tue Nov 17 2015 07:25:22 GMT+0000 (UTC) - commit 21427b6721a7b8e326ac46430c59e095124eb9ba
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -29,21 +29,6 @@ var inherits = function (subClass, superClass) {
     }
   });
   if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-};
-
-var defineProperty = function (obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
 };
 
 var classCallCheck = function (instance, Constructor) {
@@ -6558,7 +6543,8 @@ var classCallCheck = function (instance, Constructor) {
 
   		// set up an iteration alias if there is one
   		if (this.owner.template.z) {
-  			fragment.aliases = defineProperty({}, this.owner.template.z[0].n, model);
+  			fragment.aliases = {};
+  			fragment.aliases[this.owner.template.z[0].n] = model;
   		}
 
   		return fragment.bind(model);
@@ -6635,7 +6621,8 @@ var classCallCheck = function (instance, Constructor) {
   			this.iterations.forEach(function (fragment, i) {
   				var model = context.joinKey(i);
   				if (_this2.owner.template.z) {
-  					fragment.aliases = defineProperty({}, _this2.owner.template.z[0].n, model);
+  					fragment.aliases = {};
+  					fragment.aliases[_this2.owner.template.z[0].n] = model;
   				}
   				fragment.rebind(model);
   			});
@@ -6825,7 +6812,8 @@ var classCallCheck = function (instance, Constructor) {
   				fragment.index = newIndex;
   				var model = _this5.context.joinKey(newIndex);
   				if (_this5.owner.template.z) {
-  					fragment.aliases = defineProperty({}, _this5.owner.template.z[0].n, model);
+  					fragment.aliases = {};
+  					fragment.aliases[_this5.owner.template.z[0].n] = model;
   				}
   				fragment.rebind(model);
 
