@@ -91,63 +91,60 @@ test( 'unresolved aliases should resolve if a suitable model appears', t => {
 	t.htmlEqual( fixture.innerHTML, 'yep' );
 });
 
-// TODO: no idea why these fail in phantom an pass in browser, but they should probably pass both
-if ( !/phantom/i.test( navigator.userAgent ) ) {
-	test( 'multiple nested aliases', t => {
-		new Ractive({
-			el: fixture,
-			template:`
-				{{#each items as item}}{{#if item.foo}}
-					{{#with @keypath as key, item.foo as v1}}
-						{{#each v1.bar as v2}}{{#with @keypath as key2}}
-							{{#each v2.baz}}{{key}} {{key2}} {{.}}{{/each}}
-						{{/with}}{{/each}}
-					{{/with}}
-				{{/if}}{{/each}}
-			`,
-			data: {
-				items: [
-					{ foo: { bar: [ { baz: [ 1 ] } ] } },
-					{ foo: { bar: [ { baz: [ 2 ] } ] } },
-					{ foo: { bar: [ { baz: [ 3 ] } ] } }
-				]
-			}
-		});
-
-		t.htmlEqual( fixture.innerHTML, 'items.0 items.0.foo.bar.0 1items.1 items.1.foo.bar.0 2items.2 items.2.foo.bar.0 3' );
+test( 'multiple nested aliases', t => {
+	new Ractive({
+		el: fixture,
+		template:`
+			{{#each items as item}}{{#if item.foo}}
+				{{#with @keypath as key, item.foo as v1}}
+					{{#each v1.bar as v2}}{{#with @keypath as key2}}
+						{{#each v2.baz}}{{key}} {{key2}} {{.}}{{/each}}
+					{{/with}}{{/each}}
+				{{/with}}
+			{{/if}}{{/each}}
+		`,
+		data: {
+			items: [
+				{ foo: { bar: [ { baz: [ 1 ] } ] } },
+				{ foo: { bar: [ { baz: [ 2 ] } ] } },
+				{ foo: { bar: [ { baz: [ 3 ] } ] } }
+			]
+		}
 	});
 
-	test( 'basic aliased array iteration', t => {
-		new Ractive({
-			el: fixture,
-			template: `{{#each items as item:i}}|{{i+1}}-{{item}}{{/each}}`,
-			data: { items: [ 'a', 'b', 'c' ] }
-		});
+	t.htmlEqual( fixture.innerHTML, 'items.0 items.0.foo.bar.0 1items.1 items.1.foo.bar.0 2items.2 items.2.foo.bar.0 3' );
+});
 
-		t.htmlEqual( fixture.innerHTML, '|1-a|2-b|3-c' );
+test( 'basic aliased array iteration', t => {
+	new Ractive({
+		el: fixture,
+		template: `{{#each items as item:i}}|{{i+1}}-{{item}}{{/each}}`,
+		data: { items: [ 'a', 'b', 'c' ] }
 	});
 
-	test( 'basic aliased object iteration', t => {
-		new Ractive({
-			el: fixture,
-			template: `{{#each items as item:k,i}}|{{k}}-{{i+1}}-{{item}}{{/each}}`,
-			data: { items: { k1: 'a', k2: 'b', k3: 'c' } }
-		});
+	t.htmlEqual( fixture.innerHTML, '|1-a|2-b|3-c' );
+});
 
-		t.htmlEqual( fixture.innerHTML, '|k1-1-a|k2-2-b|k3-3-c' );
+test( 'basic aliased object iteration', t => {
+	new Ractive({
+		el: fixture,
+		template: `{{#each items as item:k,i}}|{{k}}-{{i+1}}-{{item}}{{/each}}`,
+		data: { items: { k1: 'a', k2: 'b', k3: 'c' } }
 	});
 
-	test( 'aliased array iteration shuffle', t => {
-		const r = new Ractive({
-			el: fixture,
-			template: `{{#each items as item:i}}|{{i+1}}-{{item}}{{/each}}`,
-			data: { items: [ 'a', 'b', 'c' ] }
-		});
+	t.htmlEqual( fixture.innerHTML, '|k1-1-a|k2-2-b|k3-3-c' );
+});
 
-		t.htmlEqual( fixture.innerHTML, '|1-a|2-b|3-c' );
-
-		r.splice( 'items', 1, 0, 'd' );
-
-		t.htmlEqual( fixture.innerHTML, '|1-a|2-d|3-b|4-c' );
+test( 'aliased array iteration shuffle', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each items as item:i}}|{{i+1}}-{{item}}{{/each}}`,
+		data: { items: [ 'a', 'b', 'c' ] }
 	});
-}
+
+	t.htmlEqual( fixture.innerHTML, '|1-a|2-b|3-c' );
+
+	r.splice( 'items', 1, 0, 'd' );
+
+	t.htmlEqual( fixture.innerHTML, '|1-a|2-d|3-b|4-c' );
+});
