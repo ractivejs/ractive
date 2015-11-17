@@ -105,7 +105,8 @@ export default class RepeatedFragment {
 
 		// set up an iteration alias if there is one
 		if ( this.owner.template.z ) {
-			fragment.aliases = { [this.owner.template.z[0].n]: model };
+			fragment.aliases = {};
+			fragment.aliases[ this.owner.template.z[0].n ] = model;
 		}
 
 		return fragment.bind( model );
@@ -178,7 +179,8 @@ export default class RepeatedFragment {
 			this.iterations.forEach( ( fragment, i ) => {
 				const model = context.joinKey( i );
 				if ( this.owner.template.z ) {
-					fragment.aliases = { [this.owner.template.z[0].n]: model };
+					fragment.aliases = {};
+					fragment.aliases[ this.owner.template.z[0].n ] = model;
 				}
 				fragment.rebind( model );
 			});
@@ -367,7 +369,8 @@ export default class RepeatedFragment {
 				fragment.index = newIndex;
 				const model = this.context.joinKey( newIndex );
 				if ( this.owner.template.z ) {
-					fragment.aliases = { [this.owner.template.z[0].n]: model };
+					fragment.aliases = {};
+					fragment.aliases[ this.owner.template.z[0].n ] = model;
 				}
 				fragment.rebind( model );
 
