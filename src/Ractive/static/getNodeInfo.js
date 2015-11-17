@@ -7,8 +7,8 @@ export default function( node ) {
 
 	return {
 		ractive: storage.ractive,
-		keypath: storage.context.getKeypath( storage.ractive ),
-		rootpath: storage.context.getKeypath(),
+		keypath: storage.keypath,
+		rootpath: storage.rootpath,
 		index: extend( {}, storage.fragment.indexRefs ),
 		key: extend( {}, storage.fragment.keyRefs )
 	};

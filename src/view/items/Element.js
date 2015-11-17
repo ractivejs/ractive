@@ -242,7 +242,8 @@ export default class Element extends Item {
 				ractive: this.ractive,
 				fragment: this.parentFragment,
 				context,
-				keypath: context.getKeypath()
+				keypath: context.getKeypath( this.ractive ),
+				rootpath: context.getKeypath()
 			}
 		});
 

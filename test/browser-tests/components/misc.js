@@ -932,3 +932,25 @@ test( 'component @keypath references should shuffle correctly', t => {
 	r.unshift( 'items.0.baz.list', 2 );
 	t.htmlEqual( fixture.innerHTML, '2 foo.bar items.0.baz.bar foo.list.0|foo.list.1|1 foo.bar items.1.baz.bar foo.list.0|foo.list.1|' );
 });
+
+test( 'component dom has correct keypaths in node info', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}<inner />{{/with}}'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#with baz}}<outer /><cmp foo="{{.bat}}" />{{/with}}',
+		data: {
+			baz: { bat: { bar: 'yep' } }
+		},
+		components: { cmp }
+	});
+
+	const outer = Ractive.getNodeInfo ( r.find( 'outer' ) ), inner = Ractive.getNodeInfo( r.find( 'inner' ) );
+
+	t.equal( outer.keypath, 'baz' );
+	t.equal( outer.rootpath, 'baz' );
+	t.equal( inner.keypath, 'foo.bar' );
+	t.equal( inner.rootpath, 'baz.bat.bar' );
+});
