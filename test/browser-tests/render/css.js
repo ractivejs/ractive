@@ -1,7 +1,7 @@
 import { test } from 'qunit';
-import legacy from 'legacy';
+import getComputedStylePolyfill from 'utils/getComputedStyle';
 
-const getComputedStyle = window.getComputedStyle || legacy.getComputedStyle;
+const getComputedStyle = window.getComputedStyle || getComputedStylePolyfill;
 
 // normalise colours
 const hexCodes = {

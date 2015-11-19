@@ -32,46 +32,8 @@ if ( gobble.env() === 'production' ) {
 			},
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
-			dest: 'ractive-legacy.js',
+			dest: 'ractive.js',
 			banner: banner
-		}),
-
-		src.transform( 'rollup-babel', {
-			format: 'umd',
-			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-					return src.replace( /<@version@>/g, version );
-				}
-
-				if ( /legacy\.js/.test( path ) ) {
-					return 'export default null;';
-				}
-
-				return src;
-			},
-			banner: banner,
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive.js'
-		}),
-
-		src.transform( 'rollup-babel', {
-			format: 'umd',
-			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-					return src.replace( /<@version@>/g, version );
-				}
-
-				if ( /legacy\.js|_parse\.js/.test( path ) ) {
-					return 'export default null;';
-				}
-
-				return src;
-			},
-			banner: banner,
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive.runtime.js'
 		}),
 
 		src.transform( 'rollup-babel', {
@@ -90,7 +52,7 @@ if ( gobble.env() === 'production' ) {
 			banner: banner,
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
-			dest: 'ractive-legacy.runtime.js'
+			dest: 'ractive.runtime.js'
 		})
 	]);
 } else {
@@ -99,7 +61,7 @@ if ( gobble.env() === 'production' ) {
 			format: 'umd',
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
-			dest: 'ractive-legacy.js'
+			dest: 'ractive.js'
 		}),
 
 		sandbox

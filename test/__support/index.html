@@ -11,11 +11,39 @@
 	<div id='qunit'></div>
 	<div id='qunit-fixture'></div>
 
+	<script src='es5-shim.js'></script>
 	<script src='qunit.js'></script>
 	<script src='qunit-html.js'></script>
 	<script src='simulant.js'></script>
 
-	<script src='../ractive-legacy.js'></script>
+	<script>
+		// TEMP, to get things to work in IE8. Longer term we'll need
+		// to figure out a way to make classes work in ES3 envs...
+		Object.create = Object.create || (function () {
+			var F = function () {};
+
+			return function ( proto, props ) {
+				if ( proto === null ) {
+					return {};
+				}
+
+				F.prototype = proto;
+				var obj = new F();
+
+				if ( props ) {
+					for ( var prop in props ) {
+						if ( props.hasOwnProperty( prop ) ) {
+							obj[ prop ] = props[ prop ].value;
+						}
+					}
+				}
+
+				return obj;
+			};
+		}());
+	</script>
+
+	<script src='../ractive.js'></script>
 
 	<script>
 		var fixture = document.getElementById( 'qunit-fixture' );

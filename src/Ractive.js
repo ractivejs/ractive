@@ -27,7 +27,7 @@ if (
 	typeof Array.prototype.filter !== FUNCTION   ||
 	( win && typeof win.addEventListener !== FUNCTION )
 ) {
-	throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
+	throw new Error( `It looks like you're attempting to use Ractive in an older browser. You should include https://github.com/es-shims/es5-shim (or equivalent) in your project before ractive.js` );
 }
 
 export default function Ractive ( options ) {

@@ -1,18 +1,18 @@
 import { win } from '../../../config/environment';
-import legacy from '../../../legacy';
+import { visible } from '../../../config/visibility';
+import { missingPlugin } from '../../../config/errors';
+import { findInViewHierarchy } from '../../../shared/registry';
 import { isArray } from '../../../utils/is';
-import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { extend } from '../../../utils/object';
-import { missingPlugin } from '../../../config/errors';
+import Promise from '../../../utils/Promise';
+import getComputedStylePolyfill from '../../../utils/getComputedStyle';
 import Fragment from '../../Fragment';
-import { findInViewHierarchy } from '../../../shared/registry';
-import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
-import Promise from '../../../utils/Promise';
+import prefix from './transitions/prefix';
 
-const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
+const getComputedStyle = win && ( win.getComputedStyle || getComputedStylePolyfill );
 const resolved = Promise.resolve();
 
 export default class Transition {

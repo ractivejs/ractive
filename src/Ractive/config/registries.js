@@ -1,4 +1,3 @@
-import '../../legacy';
 import { create } from '../../utils/object';
 
 const registryNames = [

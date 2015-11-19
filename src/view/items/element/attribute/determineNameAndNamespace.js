@@ -1,4 +1,4 @@
-import * as namespaces from '../../../../config/namespaces';
+import namespaces from '../../../../config/namespaces';
 
 export default function ( attribute, name ) {
 	// are we dealing with a namespaced attribute, e.g. xlink:href?
