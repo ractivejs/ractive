@@ -228,6 +228,42 @@ test( 'shuffled sections that unrender at the same time should not leave orphans
 	t.htmlEqual( fixture.innerHTML, '' );
 });
 
+test( 'dropping elements in some complex scenarios from an observer after a shuffle should not leave orphans (#2269 part 2)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each items}}{{>~/which}}{{/each}}`,
+		data: {
+			which: 'foo'
+		},
+		partials: {
+			foo: '{{#if .foo}}{{#each .bar}}{{.}}{{/each}}{{/if}}',
+			bar: '{{#if .foo}}BAR{{/if}}'
+		}
+	});
+
+	r.observe( 'which', v => {
+		r.set( 'items', [] );
+		r.push( 'items', {} );
+		if ( v === 'bar' ) {
+			r.set( 'items.0.foo', true );
+			r.set( 'items.0.bar', [] );
+			r.push( 'items.0.bar', 1 );
+			r.push( 'items.0.bar', 0 );
+		} else {
+			r.set( 'items.0.bar', [] );
+			r.push( 'items.0.bar', 2 );
+			r.push( 'items.0.bar', 4 );
+			r.set( 'items.0.foo', true );
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '24' );
+	r.set( 'which', 'bar' );
+	t.htmlEqual( fixture.innerHTML, 'BAR' );
+	r.set( 'which', 'foo' );
+	t.htmlEqual( fixture.innerHTML, '24' );
+});
+
 // TODO reinstate this in some form. Commented out for purposes of #1740
 // test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 // 	let ractive = new Ractive({

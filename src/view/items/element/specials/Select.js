@@ -23,7 +23,7 @@ export default class Select extends Element {
 				runloop.scheduleTask( () => {
 					this.sync();
 					this.dirty = false;
-				});
+				}, true );
 			}
 
 			this.parentFragment.bubble(); // default behaviour
