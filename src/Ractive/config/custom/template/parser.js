@@ -1,6 +1,8 @@
 import { doc } from '../../../../config/environment';
 import parse from '../../../../parse/_parse';
 import { create } from '../../../../utils/object';
+import { fatal } from '../../../../utils/log';
+import createFunction from '../../../../parse/utils/createFunction';
 
 const parseOptions = [
 	'preserveWhitespace',
@@ -15,7 +17,8 @@ const parseOptions = [
 
 const parser = {
 	fromId, isHashedId, isParsed, getParseOptions, createHelper,
-	parse: doParse
+	parse: doParse,
+	createFunction: doCreateFunction
 };
 
 function createHelper ( parseOptions ) {
@@ -24,12 +27,20 @@ function createHelper ( parseOptions ) {
 	return helper;
 }
 
-function doParse ( template, parseOptions ) {
-	if ( !parse ) {
-		throw new Error( 'Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser' );
+function throwNoParse ( method, error ) {
+	if ( !method ) {
+		fatal( `Missing Ractive.parse - cannot parse ${error}. Either preparse or use the version that includes the parser` );
 	}
+}
 
+function doParse ( template, parseOptions ) {
+	throwNoParse( parse, 'template' );
 	return parse( template, parseOptions || this.options );
+}
+
+function doCreateFunction ( body, length ) {
+	throwNoParse( createFunction, 'new expression functions' );
+	return createFunction( body, length );
 }
 
 function fromId ( id, options ) {
