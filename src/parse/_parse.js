@@ -15,6 +15,7 @@ import readPartialDefinitionComment from './converters/readPartialDefinitionComm
 import readPartialDefinitionSection from './converters/readPartialDefinitionSection';
 import readTemplate from './converters/readTemplate';
 import cleanup from './utils/cleanup';
+import insertExpressions from './utils/insertExpressions';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -71,6 +72,7 @@ StandardParser = Parser.extend({
 		this.sanitizeElements = options.sanitize && options.sanitize.elements;
 		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
 		this.includeLinePositions = options.includeLinePositions;
+		this.insertExpressions = options.insertExpressions;
 		this.textOnlyMode = options.textOnlyMode;
 	},
 
@@ -85,6 +87,11 @@ StandardParser = Parser.extend({
 		}
 
 		cleanup( result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace );
+
+		if ( this.insertExpressions ) {
+			result[0].e = {};
+			insertExpressions( result[0].t, result[0].e );
+		}
 
 		return result[0];
 	},

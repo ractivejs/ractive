@@ -2,6 +2,7 @@ import { TEMPLATE_VERSION } from '../../../../config/template';
 import { create } from '../../../../utils/object';
 import parse from '../../../../parse/_parse';
 import parser from './parser';
+import { functions } from '../../../../shared/getFunction';
 
 export default {
 	name: 'template',
@@ -46,6 +47,12 @@ export default {
 
 		if ( template.p ) {
 			extendPartials( ractive.partials, template.p );
+		}
+
+		if ( template.e ) {
+			Object.keys( template.e ).forEach( ( str ) => {
+				functions[ str ] = template.e[ str ];
+			});
 		}
 	},
 
