@@ -2,7 +2,7 @@ import { isArray, isObject } from '../../utils/is';
 
 export default function insertExpressions ( obj, expressions ) {
 	Object.keys( obj ).forEach( key => {
-		if ( key === 's' ) {
+		if ( key === 's' && isArray( obj.r ) ) {
 			expressions[ obj.s ] = createFunction( obj );
 		} else if ( isArray( obj[ key ] ) || isObject( obj[ key ] ) ) {
 			insertExpressions( obj[ key ], expressions );
