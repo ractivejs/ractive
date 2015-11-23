@@ -23,5 +23,5 @@ function createFunction ( x ) {
 	//
 	// With this workaround, we get a little more compact:
 	//     function (_0){return _0*2}
-	return new Function( [], `return function(${args.join(',')}){return(${x.s})}` )();
+	return new Function( [], `return function (${args.join(',')}){return(${x.s})}` )();
 }

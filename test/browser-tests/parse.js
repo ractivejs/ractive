@@ -23,6 +23,14 @@ tests.forEach( theTest => {
 			}, 'Expected ParseError' );
 		} else {
 			const parsed = Ractive.parse( theTest.template, theTest.options );
+
+			if ( parsed.e ) {
+				t.deepEqual( Object.keys( parsed.e ), Object.keys( theTest.parsed.e ) );
+
+				delete parsed.e;
+				delete theTest.parsed.e;
+			}
+
 			t.deepEqual( parsed, theTest.parsed );
 		}
 	});
