@@ -1,27 +1,41 @@
+import createFunction from './createFunction';
 import { isArray, isObject } from '../../utils/is';
 
 export default function insertExpressions ( obj, expressions ) {
-	Object.keys( obj ).forEach( key => {
-		if ( key === 's' ) {
-			expressions[ obj.s ] = createFunction( obj );
-		} else if ( isArray( obj[ key ] ) || isObject( obj[ key ] ) ) {
-			insertExpressions( obj[ key ], expressions );
-		}
-	});
-}
+	if ( !obj ) return;
 
-function createFunction ( x ) {
-	let i = x.r.length,
-		args = new Array( i );
+	if ( isArray( obj ) ) {
+		obj.forEach( each => {
+			expressions = insertExpressions( each, expressions );
+		});
+	}
+	else if ( isObject( obj ) ) {
+		Object.keys( obj ).forEach( key => {
+			let ref = obj[ key ];
+			if ( key === 'x' ) {
+				// look out for double-nexted .x, ie. {{#with 3 * 2 + 10 as num}}{{num}}{{/with}}
+				if ( ref.x ) ref = ref.x;
 
-	while ( i-- ) {
-		args[i] = `_${i}`;
+				const { s, r } = ref;
+				if ( !expressions ) expressions = {};
+				if ( !expressions[ s ] ) {
+					expressions[ s ] = createFunction( s, r.length );
+				}
+
+			}
+			else if ( key === 'a' ) {
+				// don't iterate attributes, ie. <svg x='100'>
+				Object.keys( ref ).forEach( key => {
+					expressions = insertExpressions( ref[key], expressions );
+				});
+
+			}
+			else {
+				expressions = insertExpressions( ref, expressions );
+			}
+		});
 	}
 
-	// Functions created directly with new Function() look like this:
-	//     function anonymous (_0 /**/) { return _0*2 }
-	//
-	// With this workaround, we get a little more compact:
-	//     function (_0){return _0*2}
-	return new Function( [], `return function (${args.join(',')}){return(${x.s})}` )();
+	return expressions;
 }
+
