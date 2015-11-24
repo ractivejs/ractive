@@ -89,8 +89,9 @@ StandardParser = Parser.extend({
 		cleanup( result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace );
 
 		if ( this.csp ) {
-			const expressions = insertExpressions( result[0].t );
-			if ( expressions ) result[0].e = expressions;
+			const expr = {};
+			insertExpressions( result[0].t, expr );
+			if ( Object.keys( expr ).length ) result[0].e = expr;
 		}
 
 		return result[0];
