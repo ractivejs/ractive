@@ -12,7 +12,7 @@ export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	partial = parser.fromId( name, { noThrow: true } );
 	if ( partial ) {
 		// parse and register to this ractive instance
-		let parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
+		let parsed = parser.parseFor( partial, ractive );
 
 		// register (and return main partial if there are others in the template)
 		return ractive.partials[ name ] = parsed.t;
@@ -48,7 +48,7 @@ function getPartialFromRegistry ( ractive, name, parentFragment ) {
 	// but hasn't been parsed, parse it now
 	if ( !parser.isParsed( partial ) ) {
 		// use the parseOptions of the ractive instance on which it was found
-		let parsed = parser.parse( partial, parser.getParseOptions( instance ) );
+		let parsed = parser.parseFor( partial, instance );
 
 		// Partials cannot contain nested partials!
 		// TODO add a test for this

@@ -73,6 +73,7 @@ StandardParser = Parser.extend({
 		this.sanitizeEventAttributes = options.sanitize && options.sanitize.eventAttributes;
 		this.includeLinePositions = options.includeLinePositions;
 		this.textOnlyMode = options.textOnlyMode;
+		this.csp = options.csp;
 	},
 
 	postProcess ( result ) {
@@ -87,8 +88,10 @@ StandardParser = Parser.extend({
 
 		cleanup( result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace );
 
-		const expressions = insertExpressions( result[0].t );
-		if ( expressions ) result[0].e = expressions;
+		if ( this.csp ) {
+			const expressions = insertExpressions( result[0].t );
+			if ( expressions ) result[0].e = expressions;
+		}
 
 		return result[0];
 	},

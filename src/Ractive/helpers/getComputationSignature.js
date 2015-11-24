@@ -1,21 +1,6 @@
 import { fatal } from '../../utils/log';
 import bind from '../../utils/bind';
-
-const pattern = /\$\{([^\}]+)\}/g;
-
-function createFunctionFromString ( ractive, str ) {
-	let hasThis;
-
-	let functionBody = 'return (' + str.replace( pattern, ( match, keypath ) => {
-		hasThis = true;
-		return '__ractive.get("' + keypath + '")';
-	}) + ');';
-
-	if ( hasThis ) functionBody = `var __ractive = this; ${functionBody}`;
-
-	const fn = new Function( functionBody );
-	return hasThis ? fn.bind( ractive ) : fn;
-}
+import parser from '../config/custom/template/parser';
 
 export default function getComputationSignature ( ractive, key, signature ) {
 	let getter;
@@ -33,13 +18,13 @@ export default function getComputationSignature ( ractive, key, signature ) {
 	}
 
 	if ( typeof signature === 'string' ) {
-		getter = createFunctionFromString( ractive, signature );
+		getter = parser.createFunctionFromString( signature, ractive );
 		getterString = signature;
 	}
 
 	if ( typeof signature === 'object' ) {
 		if ( typeof signature.get === 'string' ) {
-			getter = createFunctionFromString( ractive, signature.get );
+			getter = parser.createFunctionFromString( signature.get, ractive );
 			getterString = signature.get;
 		} else if ( typeof signature.get === 'function' ) {
 			getter = bind( signature.get, ractive );
