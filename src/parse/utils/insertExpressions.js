@@ -1,4 +1,4 @@
-import { createFunction } from './functions';
+import { createFunction } from './createFunction';
 import { isArray, isObject } from '../../utils/is';
 
 export default function insertExpressions ( obj, expressions ) {

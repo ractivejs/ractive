@@ -36,7 +36,7 @@ tests.forEach( theTest => {
 				const expectedKeys = Object.keys( theTest.parsed.e );
 				t.deepEqual( Object.keys( parsed.e ),  expectedKeys );
 				expectedKeys.forEach( key => {
-					// this is regex voodoo to normalize function compare in phantomjs
+					// normalize function whitepace for browser vs phantomjs
 					let actual = parsed.e[ key ].toString().replace( ') \{', ')\{');
 					t.equal( actual, theTest.parsed.e[ key ] );
 				});

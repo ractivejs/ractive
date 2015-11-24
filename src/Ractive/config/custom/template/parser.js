@@ -1,5 +1,5 @@
 import { create } from '../../../../utils/object';
-import { createFunction, createFunctionFromString } from '../../../../parse/utils/functions';
+import { createFunction, createFunctionFromString } from '../../../../parse/utils/createFunction';
 import { doc } from '../../../../config/environment';
 import { fatal } from '../../../../utils/log';
 import { addFunctions } from '../../../../shared/getFunction';
