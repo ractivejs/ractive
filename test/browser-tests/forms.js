@@ -125,3 +125,14 @@ test( 'textareas without binding allow any template content (#2063)', t => {
 	r.set( 'baz', '<strong>change3</strong>' );
 	t.equal( fixture.querySelector( 'textarea' ).value, '<i>change1</i>change2 <strong>change3</strong>' );
 });
+
+test( 'input that has binding change to undefined should be blank (#2279)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" />'
+	});
+
+	t.equal( r.find( 'input' ).value, '' );
+	r.set( 'foo', undefined );
+	t.equal( r.find( 'input' ).value, '' );
+});
