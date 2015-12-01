@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Nov 17 2015 07:25:22 GMT+0000 (UTC) - commit 21427b6721a7b8e326ac46430c59e095124eb9ba
+	Tue Dec 01 2015 17:50:22 GMT+0000 (UTC) - commit 34aba0cedcda6466e0d5921e5db22af510cb2a83
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -9399,7 +9399,7 @@ var classCallCheck = function (instance, Constructor) {
 
   var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
   var commentsPattern = /\/\*.*?\*\//g;
-  var selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?::[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
+  var selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
   var excludePattern = /^(?:@|\d+%)/;
   var dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 
