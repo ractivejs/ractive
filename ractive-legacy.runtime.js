@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Dec 01 2015 17:50:22 GMT+0000 (UTC) - commit 34aba0cedcda6466e0d5921e5db22af510cb2a83
+	Tue Dec 01 2015 19:55:22 GMT+0000 (UTC) - commit b3db214b0ea3c2050161893b4f9263db40385a79
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4920,6 +4920,7 @@ var classCallCheck = function (instance, Constructor) {
   	attribute.name = name;
   }
 
+  var textTypes = [undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit'];
   function getUpdateDelegate(attribute) {
   	var element = attribute.element;
   	var name = attribute.name;
@@ -4932,7 +4933,7 @@ var classCallCheck = function (instance, Constructor) {
   			return element.getAttribute('multiple') ? updateMultipleSelectValue : updateSelectValue;
   		}
 
-  		if (element.name === 'textarea') return updateValue;
+  		if (element.name === 'textarea') return updateStringValue;
 
   		// special case - contenteditable
   		if (element.getAttribute('contenteditable') != null) return updateContentEditableValue;
@@ -4946,6 +4947,8 @@ var classCallCheck = function (instance, Constructor) {
 
   			// type='radio' name='{{twoway}}'
   			if (type === 'radio' && element.binding && element.binding.attribute.name === 'name') return updateRadioValue;
+
+  			if (~textTypes.indexOf(type)) return updateStringValue;
   		}
 
   		return updateValue;
@@ -5058,6 +5061,17 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.node.value = this.node._ractive.value = value;
   		this.node.setAttribute('value', value);
+  	}
+  }
+
+  function updateStringValue() {
+  	if (!this.locked) {
+  		var value = this.getValue();
+
+  		this.node._ractive.value = value;
+
+  		this.node.value = safeToStringValue(value);
+  		this.node.setAttribute('value', safeToStringValue(value));
   	}
   }
 
