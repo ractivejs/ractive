@@ -212,6 +212,15 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
+
+					function addChildKey ( key ) {
+						matches.push( model.joinKey( key ) );
+					}
+
+					function addChildren ( children ) {
+						Object.keys( children ).forEach( addChildKey );
+					}
+
 					if ( isArray( model.value ) ) {
 						// special case - array.length. This is a horrible kludge, but
 						// it'll do for now. Alternatives welcome
@@ -219,24 +228,17 @@ export default class Model {
 							matches.push( originatingModel );
 						}
 
-						model.value.forEach( ( member, i ) => {
-							matches.push( model.joinKey( i ) );
-						});
+						model.value.map( ( m, i ) => i ).forEach( addChildKey );
 					}
 
 					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
-						function push ( children ) {
-							Object.keys( children ).forEach( key => {
-								matches.push( model.joinKey( key ) );
-							});
-						}
 
-						push( model.value );
+						addChildren( model.value );
 
-						// special case - computed properties and mappings
+						// special case - computed properties and mappings of root
 						if ( model.isRoot ) {
-							push( model.computations );
-							push( model.mappings );
+							addChildren( model.computations );
+							addChildren( model.mappings );
 						}
 					}
 				});
