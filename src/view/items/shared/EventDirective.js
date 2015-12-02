@@ -132,7 +132,8 @@ export default class EventDirective {
 
 		// augment event object
 		if ( event ) {
-			event.keypath = this.context.getKeypath();
+			event.keypath = this.context.getKeypath( this.ractive );
+			event.rootpath = this.context.getKeypath();
 			event.context = this.context.get();
 			event.index = this.parentFragment.indexRefs;
 		}
