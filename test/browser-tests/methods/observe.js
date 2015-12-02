@@ -883,3 +883,29 @@ test( `a pattern observer that is shuffled with objects should only notify on th
 	r.unshift( 'items', { val: 0 } );
 	t.equal( count, 7 );
 });
+
+test( `wildcard * fires in components for mapped data`, t => {
+	t.expect(3);
+
+	let expect = 'foo';
+
+	const widget = Ractive.extend({
+		oninit () {
+			this.observe( '*', v => t.equal( v, expect ) );
+		}
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: `<widget value='{{foo}}'/>`,
+		data: {
+			foo: 'foo'
+		},
+		components: { widget }
+	});
+
+	expect = 'bar';
+	r.set( 'foo', 'bar' );
+	expect = 'qux';
+	r.findComponent( 'widget' ).set( 'value', 'qux' );
+});

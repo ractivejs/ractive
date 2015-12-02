@@ -147,7 +147,9 @@ class PatternObserver {
 
 		this.dirty = false;
 
-		this.baseModel.findMatches( this.keys ).forEach( model => {
+		const models = baseModel.findMatches( this.keys );
+
+		models.forEach( model => {
 			this.newValues[ model.getKeypath() ] = model.get();
 		});
 
@@ -157,7 +159,12 @@ class PatternObserver {
 			this.oldValues = this.newValues;
 		}
 
-		baseModel.register( this );
+		if ( baseModel.isRoot && keys.length === 1 && keys[0] === '*' ) {
+			models.forEach( model => model.register( this ) );
+		}
+		else {
+			baseModel.register( this );
+		}
 	}
 
 	cancel () {

@@ -234,6 +234,10 @@ export default class Model {
 							Object.keys( model.computations ).forEach( key => {
 								matches.push( model.joinKey( key ) );
 							});
+
+							Object.keys( model.mappings ).forEach( key => {
+								matches.push( model.mappings[ key ] );
+							});
 						}
 					}
 				});
