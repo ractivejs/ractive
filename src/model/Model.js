@@ -225,19 +225,18 @@ export default class Model {
 					}
 
 					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
-						Object.keys( model.value ).forEach( key => {
-							matches.push( model.joinKey( key ) );
-						});
-
-						// special case - computed properties. TODO mappings also?
-						if ( model.isRoot ) {
-							Object.keys( model.computations ).forEach( key => {
+						function push ( children ) {
+							Object.keys( children ).forEach( key => {
 								matches.push( model.joinKey( key ) );
 							});
+						}
 
-							Object.keys( model.mappings ).forEach( key => {
-								matches.push( model.mappings[ key ] );
-							});
+						push( model.value );
+
+						// special case - computed properties and mappings
+						if ( model.isRoot ) {
+							push( model.computations );
+							push( model.mappings );
 						}
 					}
 				});
