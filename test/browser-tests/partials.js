@@ -845,3 +845,18 @@ test( `Partials can have context that starts with '.' (#1880)`, t => {
 
 	t.htmlEqual( fixture.innerHTML, 'bat' );
 });
+
+test( 'Partials can be given alias context (#2298)', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{>foo foo.bar as bat, bip.bop as boo}}',
+		data: {
+			foo: { bar: 'one' }, bip: { bop: 'two' }
+		},
+		partials: {
+			foo: '{{bat}} {{boo}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'one two' );
+});
