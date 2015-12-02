@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Dec 01 2015 19:55:22 GMT+0000 (UTC) - commit b3db214b0ea3c2050161893b4f9263db40385a79
+	Wed Dec 02 2015 22:48:47 GMT+0000 (UTC) - commit 31344769647193462ee4f4528d118d2bb2fa14af
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3313,10 +3313,6 @@ var classCallCheck = function (instance, Constructor) {
   	var expression = readExpression(parser);
   	parser.relaxedNames = parser.strictRefinement = false;
 
-  	parser.allowWhitespace();
-  	var context = readExpression(parser);
-  	parser.allowWhitespace();
-
   	if (!expression) return null;
 
   	var partial = { t: PARTIAL };
@@ -3324,17 +3320,33 @@ var classCallCheck = function (instance, Constructor) {
 
   	parser.allowWhitespace();
 
-  	// if we have another expression - e.g. `{{>foo bar}}` - then
-  	// we turn it into `{{#with bar}}{{>foo}}{{/with}}`
-  	if (context) {
+  	// check for alias context e.g. `{{>foo bar as bat, bip as bop}}` then
+  	// turn it into `{{#with bar as bat, bip as bop}}{{>foo}}{{/with}}`
+  	var aliases = readAliases(parser);
+  	if (aliases) {
   		partial = {
-  			t: SECTION,
-  			n: SECTION_WITH,
+  			t: ALIAS,
+  			z: aliases,
   			f: [partial]
   		};
-
-  		refineExpression(context, partial);
   	}
+
+  	// otherwise check for literal context e.g. `{{>foo bar}}` then
+  	// turn it into `{{#with bar}}{{>foo}}{{/with}}`
+  	else {
+  			var context = readExpression(parser);
+  			if (context) {
+  				partial = {
+  					t: SECTION,
+  					n: SECTION_WITH,
+  					f: [partial]
+  				};
+
+  				refineExpression(context, partial);
+  			}
+  		}
+
+  	parser.allowWhitespace();
 
   	if (!parser.matchString(tag.close)) {
   		parser.error('Expected closing delimiter \'' + tag.close + '\'');
