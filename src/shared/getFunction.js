@@ -1,7 +1,15 @@
 import { create } from '../utils/object';
-import parser from '../Ractive/config/custom/template/parser';
+import { createFunction } from '../Ractive/config/runtime-parser';
 
 const functions = create( null );
+
+export default function getFunction ( str, i ) {
+	if ( functions[ str ] ) return functions[ str ];
+
+	// this probably won't ever be run because
+	// adding templates and partials loads functions
+	return functions[ str ] = parser.createFunction( str, i );
+}
 
 export function addFunctions( template ) {
 	if ( !template ) return;
@@ -16,10 +24,4 @@ export function addFunctions( template ) {
 	});
 }
 
-export default function getFunction ( str, i ) {
-	if ( functions[ str ] ) return functions[ str ];
 
-	// this probably won't ever be run because
-	// adding templates and partials loads functions
-	return functions[ str ] = parser.createFunction( str, i );
-}

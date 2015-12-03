@@ -1,6 +1,6 @@
 import { fatal } from '../../utils/log';
 import bind from '../../utils/bind';
-import parser from '../config/custom/template/parser';
+import { createFunctionFromString } from '../config/runtime-parser';
 
 export default function getComputationSignature ( ractive, key, signature ) {
 	let getter;
@@ -18,13 +18,13 @@ export default function getComputationSignature ( ractive, key, signature ) {
 	}
 
 	if ( typeof signature === 'string' ) {
-		getter = parser.createFunctionFromString( signature, ractive );
+		getter = createFunctionFromString( signature, ractive );
 		getterString = signature;
 	}
 
 	if ( typeof signature === 'object' ) {
 		if ( typeof signature.get === 'string' ) {
-			getter = parser.createFunctionFromString( signature.get, ractive );
+			getter = createFunctionFromString( signature.get, ractive );
 			getterString = signature.get;
 		} else if ( typeof signature.get === 'function' ) {
 			getter = bind( signature.get, ractive );

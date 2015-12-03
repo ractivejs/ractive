@@ -1,6 +1,6 @@
 import { noRegistryFunctionReturn } from '../../../config/errors';
 import { warnIfDebug } from '../../../utils/log';
-import parser from '../../../Ractive/config/custom/template/parser';
+import parser from '../../../Ractive/config/runtime-parser';
 import { findInstance } from '../../../shared/registry';
 
 export default function getPartialTemplate ( ractive, name, parentFragment ) {
