@@ -181,7 +181,15 @@ export default class EventDirective {
 			const oldEvent = ractive.event;
 
 			ractive.event = event;
-			ractive[ this.method ].apply( ractive, args );
+			const result = ractive[ this.method ].apply( ractive, args );
+
+			// Auto prevent and stop if return is explicitly false
+			let original;
+			if ( result === false && ( original = event.original ) ) {
+				original.preventDefault && original.preventDefault();
+				original.stopPropagation && original.stopPropagation();
+			}
+
 			ractive.event = oldEvent;
 		}
 
