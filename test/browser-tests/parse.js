@@ -1,8 +1,6 @@
 import { test } from 'qunit';
 import tests from 'samples/parse';
 
-const fnPattern = /(?:^function\s?\(.*\))(\s+){/;
-
 test( 'Mismatched template version causes error', function ( t ) {
 	t.throws( function () {
 		new Ractive({
