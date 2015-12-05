@@ -7,14 +7,15 @@ export default {
 	template:               null,
 
 	// parse:
-	preserveWhitespace:     false,
-	sanitize:               false,
-	stripComments:          true,
 	delimiters:             [ '{{', '}}' ],
 	tripleDelimiters:       [ '{{{', '}}}' ],
 	staticDelimiters:       [ '[[', ']]' ],
 	staticTripleDelimiters: [ '[[[', ']]]' ],
+	csp: 					true,
 	interpolate:            false,
+	preserveWhitespace:     false,
+	sanitize:               false,
+	stripComments:          true,
 
 	// data & binding:
 	data:                   {},

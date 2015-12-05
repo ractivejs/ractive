@@ -1,7 +1,7 @@
 import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
-import createFunction from '../../../shared/createFunction';
+import getFunction from '../../../shared/getFunction';
 import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
@@ -91,7 +91,7 @@ export default class EventDirective {
 					return model;
 				});
 
-				this.argsFn = createFunction( template.a.s, template.a.r.length );
+				this.argsFn = getFunction( template.a.s, template.a.r.length );
 			}
 
 		}
