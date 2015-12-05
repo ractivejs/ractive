@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Dec 05 2015 21:55:24 GMT+0000 (UTC) - commit b664a66509721a6136ceab2db6b7675d333b2a02
+	Sat Dec 05 2015 21:58:11 GMT+0000 (UTC) - commit f47d54bcd768bc975b3e563d77d2710ccbd28a26
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5506,7 +5506,15 @@ var classCallCheck = function (instance, Constructor) {
   			var oldEvent = ractive.event;
 
   			ractive.event = event;
-  			ractive[this.method].apply(ractive, args);
+  			var result = ractive[this.method].apply(ractive, args);
+
+  			// Auto prevent and stop if return is explicitly false
+  			var original = undefined;
+  			if (result === false && (original = event.original)) {
+  				original.preventDefault && original.preventDefault();
+  				original.stopPropagation && original.stopPropagation();
+  			}
+
   			ractive.event = oldEvent;
   		} else {
   			var action = this.action.toString();
