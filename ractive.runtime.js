@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Dec 02 2015 22:48:47 GMT+0000 (UTC) - commit 31344769647193462ee4f4528d118d2bb2fa14af
+	Sat Dec 05 2015 21:55:24 GMT+0000 (UTC) - commit b664a66509721a6136ceab2db6b7675d333b2a02
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -67,14 +67,15 @@ var classCallCheck = function (instance, Constructor) {
   	template: null,
 
   	// parse:
-  	preserveWhitespace: false,
-  	sanitize: false,
-  	stripComments: true,
   	delimiters: ['{{', '}}'],
   	tripleDelimiters: ['{{{', '}}}'],
   	staticDelimiters: ['[[', ']]'],
   	staticTripleDelimiters: ['[[[', ']]]'],
+  	csp: true,
   	interpolate: false,
+  	preserveWhitespace: false,
+  	sanitize: false,
+  	stripComments: true,
 
   	// data & binding:
   	data: {},
@@ -1214,6 +1215,38 @@ var classCallCheck = function (instance, Constructor) {
 
   var TEMPLATE_VERSION = 3;
 
+  var pattern = /\$\{([^\}]+)\}/g;
+
+  function fromExpression(body) {
+  	var length = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+
+  	var args = new Array(length);
+
+  	while (length--) {
+  		args[length] = '_' + length;
+  	}
+
+  	// Functions created directly with new Function() look like this:
+  	//     function anonymous (_0 /**/) { return _0*2 }
+  	//
+  	// With this workaround, we get a little more compact:
+  	//     function (_0){return _0*2}
+  	return new Function([], 'return function (' + args.join(',') + '){return(' + body + ');};')();
+  }
+
+  function fromComputationString(str, bindTo) {
+  	var hasThis = undefined;
+
+  	var functionBody = 'return (' + str.replace(pattern, function (match, keypath) {
+  		hasThis = true;
+  		return '__ractive.get("' + keypath + '")';
+  	}) + ');';
+
+  	if (hasThis) functionBody = 'var __ractive = this; ' + functionBody;
+  	var fn = new Function(functionBody);
+  	return hasThis ? fn.bind(bindTo) : fn;
+  }
+
   var html = 'http://www.w3.org/1999/xhtml';
   var mathml = 'http://www.w3.org/1998/Math/MathML';
   var svg$1 = 'http://www.w3.org/2000/svg';
@@ -1472,79 +1505,107 @@ var classCallCheck = function (instance, Constructor) {
 
   var hasOwn = Object.prototype.hasOwnProperty;
 
+  var functions = create(null);
+  function getFunction(str, i) {
+  	if (functions[str]) return functions[str];
+  	return functions[str] = createFunction(str, i);
+  }
+
+  function addFunctions(template) {
+  	if (!template) return;
+
+  	var exp = template.e;
+
+  	if (!exp) return;
+
+  	Object.keys(exp).forEach(function (str) {
+  		if (functions[str]) return;
+  		functions[str] = exp[str];
+  	});
+  }
+
   var parse = null;
 
-  var parseOptions = ['preserveWhitespace', 'sanitize', 'stripComments', 'delimiters', 'tripleDelimiters', 'staticDelimiters', 'staticTripleDelimiters', 'interpolate'];
+  var parseOptions = ['delimiters', 'tripleDelimiters', 'staticDelimiters', 'staticTripleDelimiters', 'csp', 'interpolate', 'preserveWhitespace', 'sanitize', 'stripComments'];
+
+  var TEMPLATE_INSTRUCTIONS = 'Either preparse or use a ractive runtime source that includes the parser. ';
+
+  var COMPUTATION_INSTRUCTIONS = 'Either use:\n\n\tRactive.parse.computedStrings( component.computed )\n\nat build time to pre-convert the strings to functions, or use functions instead of strings in computed properties.';
+
+  function throwNoParse(method, error, instructions) {
+  	if (!method) {
+  		fatal('Missing Ractive.parse - cannot parse ' + error + '. ' + instructions);
+  	}
+  }
+
+  function createFunction(body, length) {
+  	throwNoParse(fromExpression, 'new expression function', TEMPLATE_INSTRUCTIONS);
+  	return fromExpression(body, length);
+  }
+
+  function createFunctionFromString(str, bindTo) {
+  	throwNoParse(fromComputationString, 'compution string "${str}"', COMPUTATION_INSTRUCTIONS);
+  	return fromComputationString(str, bindTo);
+  }
 
   var parser = {
-  	fromId: fromId, isHashedId: isHashedId, isParsed: isParsed, getParseOptions: getParseOptions, createHelper: createHelper$1,
-  	parse: doParse
+
+  	fromId: function (id, options) {
+  		if (!doc) {
+  			if (options && options.noThrow) {
+  				return;
+  			}
+  			throw new Error('Cannot retrieve template #' + id + ' as Ractive is not running in a browser.');
+  		}
+
+  		if (id) id = id.replace(/^#/, '');
+
+  		var template = undefined;
+
+  		if (!(template = doc.getElementById(id))) {
+  			if (options && options.noThrow) {
+  				return;
+  			}
+  			throw new Error('Could not find template element with id #' + id);
+  		}
+
+  		if (template.tagName.toUpperCase() !== 'SCRIPT') {
+  			if (options && options.noThrow) {
+  				return;
+  			}
+  			throw new Error('Template element with id #' + id + ', must be a <script> element');
+  		}
+
+  		return 'textContent' in template ? template.textContent : template.innerHTML;
+  	},
+
+  	isParsed: function (template) {
+  		return !(typeof template === 'string');
+  	},
+
+  	getParseOptions: function (ractive) {
+  		// Could be Ractive or a Component
+  		if (ractive.defaults) {
+  			ractive = ractive.defaults;
+  		}
+
+  		return parseOptions.reduce(function (val, key) {
+  			val[key] = ractive[key];
+  			return val;
+  		}, {});
+  	},
+
+  	parse: function (template, options) {
+  		throwNoParse(parse, 'template', TEMPLATE_INSTRUCTIONS);
+  		var parsed = parse(template, options);
+  		addFunctions(parsed);
+  		return parsed;
+  	},
+
+  	parseFor: function (template, ractive) {
+  		return this.parse(template, this.getParseOptions(ractive));
+  	}
   };
-
-  function createHelper$1(parseOptions) {
-  	var helper = create(parser);
-  	helper.parse = function (template, options) {
-  		return doParse(template, options || parseOptions);
-  	};
-  	return helper;
-  }
-
-  function doParse(template, parseOptions) {
-  	if (!parse) {
-  		throw new Error('Missing Ractive.parse - cannot parse template. Either preparse or use the version that includes the parser');
-  	}
-
-  	return parse(template, parseOptions || this.options);
-  }
-
-  function fromId(id, options) {
-  	if (!doc) {
-  		if (options && options.noThrow) {
-  			return;
-  		}
-  		throw new Error('Cannot retrieve template #' + id + ' as Ractive is not running in a browser.');
-  	}
-
-  	if (isHashedId(id)) id = id.substring(1);
-
-  	var template = undefined;
-
-  	if (!(template = doc.getElementById(id))) {
-  		if (options && options.noThrow) {
-  			return;
-  		}
-  		throw new Error('Could not find template element with id #' + id);
-  	}
-
-  	if (template.tagName.toUpperCase() !== 'SCRIPT') {
-  		if (options && options.noThrow) {
-  			return;
-  		}
-  		throw new Error('Template element with id #' + id + ', must be a <script> element');
-  	}
-
-  	return 'textContent' in template ? template.textContent : template.innerHTML;
-  }
-
-  function isHashedId(id) {
-  	return id && id[0] === '#';
-  }
-
-  function isParsed(template) {
-  	return !(typeof template === 'string');
-  }
-
-  function getParseOptions(ractive) {
-  	// Could be Ractive or a Component
-  	if (ractive.defaults) {
-  		ractive = ractive.defaults;
-  	}
-
-  	return parseOptions.reduce(function (val, key) {
-  		val[key] = ractive[key];
-  		return val;
-  	}, {});
-  }
 
   var templateConfigurator = {
   	name: 'template',
@@ -1557,7 +1618,7 @@ var classCallCheck = function (instance, Constructor) {
   			if (typeof template === 'function') {
   				proto.template = template;
   			} else {
-  				proto.template = parseIfString(template, proto);
+  				proto.template = parseTemplate(template, proto);
   			}
   		}
   	},
@@ -1579,7 +1640,7 @@ var classCallCheck = function (instance, Constructor) {
   			};
   		}
 
-  		template = parseIfString(template, ractive);
+  		template = parseTemplate(template, ractive);
 
   		// TODO the naming of this is confusing - ractive.template refers to [...],
   		// but Component.prototype.template refers to {v:1,t:[],p:[]}...
@@ -1596,7 +1657,7 @@ var classCallCheck = function (instance, Constructor) {
   		var result = resetValue(ractive);
 
   		if (result) {
-  			var parsed = parseIfString(result, ractive);
+  			var parsed = parseTemplate(result, ractive);
 
   			ractive.template = parsed.t;
   			extendPartials(ractive.partials, parsed.p, true);
@@ -1620,50 +1681,60 @@ var classCallCheck = function (instance, Constructor) {
   	// in the case of already-parsed templates
   	if (result !== initial.result) {
   		initial.result = result;
-  		result = parseIfString(result, ractive);
   		return result;
   	}
   }
 
   function getDynamicTemplate(ractive, fn) {
-  	var helper = createHelper(parser.getParseOptions(ractive));
-  	return fn.call(ractive, helper);
-  }
+  	return fn.call(ractive, {
+  		fromId: parser.fromId,
+  		isParsed: parser.isParsed,
+  		parse: function (template) {
+  			var options = arguments.length <= 1 || arguments[1] === undefined ? parser.getParseOptions(ractive) : arguments[1];
 
-  function createHelper(parseOptions) {
-  	var helper = create(parser);
-  	helper.parse = function (template, options) {
-  		return parser.parse(template, options || parseOptions);
-  	};
-  	return helper;
-  }
-
-  function parseIfString(template, ractive) {
-  	if (typeof template === 'string') {
-  		// ID of an element containing the template?
-  		if (template[0] === '#') {
-  			template = parser.fromId(template);
+  			return parser.parse(template, options);
   		}
+  	});
+  }
 
-  		template = parse(template, parser.getParseOptions(ractive));
+  function parseTemplate(template, ractive) {
+  	if (typeof template === 'string') {
+  		// parse will validate and add expression functions
+  		template = parseAsString(template, ractive);
+  	} else {
+  		// need to validate and add exp for already parsed template
+  		validate$1(template);
+  		addFunctions(template);
   	}
 
+  	return template;
+  }
+
+  function parseAsString(template, ractive) {
+  	// ID of an element containing the template?
+  	if (template[0] === '#') {
+  		template = parser.fromId(template);
+  	}
+
+  	return parser.parseFor(template, ractive);
+  }
+
+  function validate$1(template) {
+
   	// Check that the template even exists
-  	else if (template == undefined) {
-  			throw new Error('The template cannot be ' + template + '.');
+  	if (template == undefined) {
+  		throw new Error('The template cannot be ' + template + '.');
+  	}
+
+  	// Check the parsed template has a version at all
+  	else if (typeof template.v !== 'number') {
+  			throw new Error('The template parser was passed a non-string template, but the template doesn\'t have a version.  Make sure you\'re passing in the template you think you are.');
   		}
 
-  		// Check the parsed template has a version at all
-  		else if (typeof template.v !== 'number') {
-  				throw new Error('The template parser was passed a non-string template, but the template doesn\'t have a version.  Make sure you\'re passing in the template you think you are.');
+  		// Check we're using the correct version
+  		else if (template.v !== TEMPLATE_VERSION) {
+  				throw new Error('Mismatched template version (expected ' + TEMPLATE_VERSION + ', got ' + template.v + ') Please ensure you are using the latest version of Ractive.js in your build process as well as in your app');
   			}
-
-  			// Check we're using the correct version
-  			else if (template.v !== TEMPLATE_VERSION) {
-  					throw new Error('Mismatched template version (expected ' + TEMPLATE_VERSION + ', got ' + template.v + ') Please ensure you are using the latest version of Ractive.js in your build process as well as in your app');
-  				}
-
-  	return template;
   }
 
   function extendPartials(existingPartials, newPartials, overwrite) {
@@ -2607,18 +2678,6 @@ var classCallCheck = function (instance, Constructor) {
   	return ComputationChild;
   })(Model);
 
-  var functionCache = {};
-  function createFunction(str, i) {
-  	if (functionCache[str]) return functionCache[str];
-
-  	var args = new Array(i);
-  	while (i--) args[i] = "_" + i;
-
-  	var fn = new Function(args.join(','), "return (" + str + ")");
-
-  	return functionCache[str] = fn;
-  }
-
   function getValue(model) {
   	return model ? model.get(true) : undefined;
   }
@@ -2638,7 +2697,7 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.isReadonly = true;
 
-  		this.fn = createFunction(template.s, template.r.length);
+  		this.fn = getFunction(template.s, template.r.length);
   		this.computation = null;
 
   		this.resolvers = [];
@@ -3301,7 +3360,7 @@ var classCallCheck = function (instance, Constructor) {
   	partial = parser.fromId(name, { noThrow: true });
   	if (partial) {
   		// parse and register to this ractive instance
-  		var parsed = parser.parse(partial, parser.getParseOptions(ractive));
+  		var parsed = parser.parseFor(partial, ractive);
 
   		// register (and return main partial if there are others in the template)
   		return ractive.partials[name] = parsed.t;
@@ -3339,7 +3398,7 @@ var classCallCheck = function (instance, Constructor) {
   	// but hasn't been parsed, parse it now
   	if (!parser.isParsed(partial)) {
   		// use the parseOptions of the ractive instance on which it was found
-  		var parsed = parser.parse(partial, parser.getParseOptions(instance));
+  		var parsed = parser.parseFor(partial, instance);
 
   		// Partials cannot contain nested partials!
   		// TODO add a test for this
@@ -5363,7 +5422,7 @@ var classCallCheck = function (instance, Constructor) {
   					return model;
   				});
 
-  				this.argsFn = createFunction(template.a.s, template.a.r.length);
+  				this.argsFn = getFunction(template.a.s, template.a.r.length);
   			}
   		} else {
   			// TODO deprecate this style of directive
@@ -8665,21 +8724,6 @@ var classCallCheck = function (instance, Constructor) {
   	return RootModel;
   })(Model);
 
-  var pattern = /\$\{([^\}]+)\}/g;
-
-  function createFunctionFromString(ractive, str) {
-  	var hasThis = undefined;
-
-  	var functionBody = 'return (' + str.replace(pattern, function (match, keypath) {
-  		hasThis = true;
-  		return '__ractive.get("' + keypath + '")';
-  	}) + ');';
-
-  	if (hasThis) functionBody = 'var __ractive = this; ' + functionBody;
-
-  	var fn = new Function(functionBody);
-  	return hasThis ? fn.bind(ractive) : fn;
-  }
   function getComputationSignature(ractive, key, signature) {
   	var getter = undefined;
   	var setter = undefined;
@@ -8696,13 +8740,13 @@ var classCallCheck = function (instance, Constructor) {
   	}
 
   	if (typeof signature === 'string') {
-  		getter = createFunctionFromString(ractive, signature);
+  		getter = createFunctionFromString(signature, ractive);
   		getterString = signature;
   	}
 
   	if (typeof signature === 'object') {
   		if (typeof signature.get === 'string') {
-  			getter = createFunctionFromString(ractive, signature.get);
+  			getter = createFunctionFromString(signature.get, ractive);
   			getterString = signature.get;
   		} else if (typeof signature.get === 'function') {
   			getter = bind(signature.get, ractive);
