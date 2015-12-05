@@ -16,6 +16,7 @@ import readPartialDefinitionSection from './converters/readPartialDefinitionSect
 import readTemplate from './converters/readTemplate';
 import cleanup from './utils/cleanup';
 import insertExpressions from './utils/insertExpressions';
+import { fromComputationString } from './utils/createFunction';
 
 // See https://github.com/ractivejs/template-spec for information
 // about the Ractive template specification
@@ -29,6 +30,18 @@ let StandardParser;
 export default function parse ( template, options ) {
 	return new StandardParser( template, options || {} ).result;
 }
+
+parse.computedStrings = function( computed ) {
+	if ( !computed ) return [];
+
+	Object.keys( computed ).forEach( key => {
+		const value = computed[ key ];
+		if ( typeof value === 'string' ) {
+			computed[ key ] = fromComputationString( value );
+		}
+	});
+};
+
 
 export const READERS = [ readMustache, readHtmlComment, readElement, readText ];
 export const PARTIAL_READERS = [ readPartialDefinitionComment, readPartialDefinitionSection ];
@@ -88,7 +101,7 @@ StandardParser = Parser.extend({
 
 		cleanup( result[0].t, this.stripComments, this.preserveWhitespace, !this.preserveWhitespace, !this.preserveWhitespace );
 
-		if ( this.csp ) {
+		if ( this.csp !== false ) {
 			const expr = {};
 			insertExpressions( result[0].t, expr );
 			if ( Object.keys( expr ).length ) result[0].e = expr;

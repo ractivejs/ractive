@@ -6,9 +6,11 @@ const functions = create( null );
 export default function getFunction ( str, i ) {
 	if ( functions[ str ] ) return functions[ str ];
 
-	// this probably won't ever be run because
-	// adding templates and partials loads functions
-	return functions[ str ] = parser.createFunction( str, i );
+	// Adding templates and partials loads functions
+	// so not sure this is necessary. But if there are
+	// expressions that have not been converted functions,
+	// this would do that.
+	return functions[ str ] = createFunction( str, i );
 }
 
 export function addFunctions( template ) {

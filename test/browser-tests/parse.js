@@ -32,7 +32,7 @@ tests.forEach( theTest => {
 		} else {
 			const parsed = Ractive.parse( theTest.template, theTest.options );
 
-			if ( parsed.e ) {
+			if ( parsed.e && theTest.parsed.e ) {
 				const expectedKeys = Object.keys( theTest.parsed.e );
 				t.deepEqual( Object.keys( parsed.e ),  expectedKeys );
 				expectedKeys.forEach( key => {

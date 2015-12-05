@@ -1,5 +1,4 @@
-import { createFunction } from './createFunction';
-import { create } from '../../utils/object';
+import { fromExpression } from './createFunction';
 import { isArray, isObject } from '../../utils/is';
 
 export default function insertExpressions ( obj, expr ) {
@@ -18,7 +17,7 @@ function isExpression( key, obj ) {
 
 function addTo( obj, expr ) {
 	const { s, r } = obj;
-	if ( !expr[ s ] ) expr[ s ] = createFunction( s, r.length );
+	if ( !expr[ s ] ) expr[ s ] = fromExpression( s, r.length );
 }
 
 function hasChildren( ref ) {

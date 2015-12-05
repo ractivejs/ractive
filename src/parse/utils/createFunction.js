@@ -1,6 +1,6 @@
 const pattern = /\$\{([^\}]+)\}/g;
 
-export function createFunction ( body, length = 0 ) {
+export function fromExpression ( body, length = 0 ) {
 	const args = new Array( length );
 
 	while ( length-- ) {
@@ -15,12 +15,12 @@ export function createFunction ( body, length = 0 ) {
 	return new Function( [], `return function (${args.join(',')}){return(${body});};` )();
 }
 
-export function createFunctionFromString ( str, bindTo ) {
+export function fromComputationString ( str, bindTo ) {
 	let hasThis;
 
 	let functionBody = 'return (' + str.replace( pattern, ( match, keypath ) => {
 		hasThis = true;
-		return '__ractive.get("' + keypath + '")';
+		return `__ractive.get("${keypath}")`;
 	}) + ');';
 
 	if ( hasThis ) functionBody = `var __ractive = this; ${functionBody}`;
