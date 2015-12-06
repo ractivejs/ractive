@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Dec 05 2015 22:04:38 GMT+0000 (UTC) - commit ba74c6ffd10eb3693137b0fa08825520c08a71c9
+	Sun Dec 06 2015 15:43:00 GMT+0000 (UTC) - commit 97e0009f36c20c4d6e37a8562909d373a0a67211
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1252,17 +1252,9 @@ var classCallCheck = function (instance, Constructor) {
   var svg$1 = 'http://www.w3.org/2000/svg';
   var xlink = 'http://www.w3.org/1999/xlink';
   var xml = 'http://www.w3.org/XML/1998/namespace';
-  var xmlns = 'http://www.w3.org/2000/xmlns/';
+  var xmlns = 'http://www.w3.org/2000/xmlns';
 
-
-  var namespaces = {
-  	html: html,
-  	mathml: mathml,
-  	svg: svg$1,
-  	xlink: xlink,
-  	xml: xml,
-  	xmlns: xmlns
-  };
+  var namespaces = { html: html, mathml: mathml, svg: svg$1, xlink: xlink, xml: xml, xmlns: xmlns };
 
   var createElement;
   var matches;
@@ -7946,33 +7938,6 @@ var classCallCheck = function (instance, Constructor) {
   	return Yielder;
   })(Item);
 
-  function determineNameAndNamespace (attribute, name) {
-  	// are we dealing with a namespaced attribute, e.g. xlink:href?
-  	var colonIndex = name.indexOf(':');
-  	if (colonIndex !== -1) {
-  		// looks like we are, yes...
-  		var namespacePrefix = name.substr(0, colonIndex);
-
-  		// ...unless it's a namespace *declaration*, which we ignore (on the assumption
-  		// that only valid namespaces will be used)
-  		if (namespacePrefix !== 'xmlns') {
-  			name = name.substring(colonIndex + 1);
-
-  			attribute.name = name;
-  			attribute.namespace = namespaces[namespacePrefix.toLowerCase()];
-  			attribute.namespacePrefix = namespacePrefix;
-
-  			if (!attribute.namespace) {
-  				throw 'Unknown namespace ("' + namespacePrefix + '")';
-  			}
-
-  			return;
-  		}
-  	}
-
-  	attribute.name = name;
-  }
-
   var textTypes = [undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit'];
   function getUpdateDelegate(attribute) {
   	var element = attribute.element;
@@ -8023,7 +7988,7 @@ var classCallCheck = function (instance, Constructor) {
 
   	if (attribute.isBoolean) return updateBoolean;
 
-  	if (attribute.namespace) return updateNamespacedAttribute;
+  	if (attribute.namespace && attribute.namespace !== attribute.node.namespaceURI) return updateNamespacedAttribute;
 
   	return updateAttribute;
   }
@@ -8184,7 +8149,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function updateNamespacedAttribute() {
-  	this.node.setAttributeNS(this.namespace, this.name, safeToStringValue(this.getString()));
+  	this.node.setAttributeNS(this.namespace, this.name.slice(this.name.indexOf(':') + 1), safeToStringValue(this.getString()));
   }
 
   var propertyNames = {
@@ -8209,6 +8174,17 @@ var classCallCheck = function (instance, Constructor) {
   	usemap: 'useMap'
   };
 
+  function lookupNamespace(node, prefix) {
+  	var qualified = 'xmlns:' + prefix;
+
+  	while (node) {
+  		if (node.hasAttribute(qualified)) return node.getAttribute(qualified);
+  		node = node.parentNode;
+  	}
+
+  	return namespaces[prefix];
+  }
+
   var Attribute = (function (_Item) {
   	inherits(Attribute, _Item);
 
@@ -8217,8 +8193,8 @@ var classCallCheck = function (instance, Constructor) {
 
   		_Item.call(this, options);
 
-  		determineNameAndNamespace(this, options.name);
-
+  		this.name = options.name;
+  		this.namespace = null;
   		this.element = options.element;
   		this.parentFragment = options.element.parentFragment; // shared
   		this.ractive = this.parentFragment.ractive;
@@ -8277,7 +8253,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.node = node;
 
   		// should we use direct property access, or setAttribute?
-  		if (!node.namespaceURI || node.namespaceURI === html) {
+  		if (!node.namespaceURI || node.namespaceURI === namespaces.html) {
   			this.propertyName = propertyNames[this.name] || this.name;
 
   			if (node[this.propertyName] !== undefined) {
@@ -8292,6 +8268,15 @@ var classCallCheck = function (instance, Constructor) {
 
   			if (this.propertyName === 'value') {
   				node._ractive.value = this.value;
+  			}
+  		}
+
+  		if (node.namespaceURI) {
+  			var index = this.name.indexOf(':');
+  			if (index !== -1) {
+  				this.namespace = lookupNamespace(node, this.name.slice(0, index));
+  			} else {
+  				this.namespace = node.namespaceURI;
   			}
   		}
 
