@@ -283,6 +283,8 @@ export default class Component extends Item {
 			removeFromArray( instance.el.__ractive_instances__, instance );
 		}
 
+		Object.keys( instance._links ).forEach( k => instance._links[k].unlink() );
+
 		teardownHook.fire( instance );
 	}
 

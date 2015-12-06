@@ -21,6 +21,8 @@ export default function Ractive$teardown () {
 	this.shouldDestroy = true;
 	const promise = ( this.fragment.rendered ? this.unrender() : Promise.resolve() );
 
+	Object.keys( this._links ).forEach( k => this._links[k].unlink() );
+
 	teardownHook.fire( this );
 
 	return promise;
