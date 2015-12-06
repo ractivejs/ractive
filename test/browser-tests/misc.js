@@ -1586,6 +1586,63 @@ if ( hasUsableConsole ) {
 	});
 }
 
+test( '@ractive special ref gives access to the ractive instance', t => {
+	const DEBUG = Ractive.DEBUG;
+	const r = new Ractive({
+		el: fixture,
+		template: `{{@ractive.constructor.VERSION}} {{@ractive.foo}} <input type="checkbox" checked="{{@ractive.constructor.DEBUG}}" />`
+	});
+
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION}  <input type="checkbox" />` );
+
+	r.foo = 'bar';
+	r.update('@ractive.foo');
+
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} bar <input type="checkbox" />` );
+
+	fire( r.find( 'input' ), 'click' );
+	t.equal( Ractive.DEBUG, !DEBUG );
+
+	fire( r.find( 'input' ), 'click' );
+	t.equal( Ractive.DEBUG, DEBUG );
+
+	r.set( '@ractive.foo', 'baz' );
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} baz <input type="checkbox" />` );
+
+	r.foo = 'bat';
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} baz <input type="checkbox" />` );
+	r.update( '@ractive.foo' );
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} bat <input type="checkbox" />` );
+
+	Ractive.DEBUG = DEBUG;
+});
+
+test( '@global special ref gives access to the vm global object', t => {
+	/* global global, window */
+	const target = typeof global !== 'undefined' ? global : window;
+	const r = new Ractive({
+		el: fixture,
+		template: `{{@global.foo.bar}} <input value="{{@global.foo.bar}}" />`
+	});
+	const input = r.find( 'input' );
+
+	t.htmlEqual( fixture.innerHTML, ' <input />' );
+
+	target.foo = { bar: 'baz' };
+	r.update( '@global.foo' );
+	t.htmlEqual( fixture.innerHTML, 'baz <input />' );
+	t.equal( input.value, 'baz' );
+
+	input.value = 'bat';
+	fire( r.find( 'input' ), 'change' );
+	t.htmlEqual( fixture.innerHTML, 'bat <input />' );
+	t.equal( target.foo.bar, 'bat' );
+
+	r.set( '@global.foo.bar', 10 );
+	t.htmlEqual( fixture.innerHTML, '10 <input />' );
+	t.equal( target.foo.bar, 10 );
+});
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {
