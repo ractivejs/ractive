@@ -466,6 +466,8 @@ test( 'Reference expression radio bindings rebind correctly inside reference exp
 });
 
 test( 'Ambiguous reference expressions in two-way bindings attach to correct context', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -588,6 +590,9 @@ test( 'input[type="checkbox"] works with array mutated on init (#1305)', t => {
 });
 
 test( 'Downstream expression objects in two-way bindings do not trigger a warning (#1421)', t => {
+	// TODO what exactly is being tested here...?
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo()}}<input value="{{.}}">{{/}}',
@@ -643,6 +648,8 @@ test( 'Changes made after render to unresolved', t => {
 });
 
 test( 'If there happen to be unresolved references next to binding resolved references, the unresolveds should not be evicted by mistake (#1608)', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -982,7 +989,9 @@ test( 'textarea with a single static interpolator as content should not set up a
 	t.equal( r.get( 'foo' ), 'baz' );
 });
 
-test( 'teaxtareas with non-model context should still bind correctly (#2099)', t => {
+test( 'textareas with non-model context should still bind correctly (#2099)', t => {
+	onWarn( () => {} ); // suppress
+
 	const r = new Ractive({
 		el: fixture,
 		template: `{{#with { foo: 'bar' }}}<textarea>{{.foo}}</textarea><button on-click="set(@keypath + '.foo', 'baz')">click me</button>{{/with}}`
