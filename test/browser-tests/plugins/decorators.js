@@ -27,9 +27,9 @@ if ( hasUsableConsole ) {
 	test( 'Missing decorator', t => {
 		t.expect( 1 );
 
-	    onWarn( msg => {
-	      t.ok( /Missing "foo" decorators plugin/.test( msg ) );
-	    });
+		onWarn( msg => {
+			t.ok( /Missing "foo" decorator plugin/.test( msg ) );
+		});
 
 		new Ractive({
 			el: fixture,
@@ -276,6 +276,8 @@ test( 'Teardown before init should work', t => {
 
 
 test( 'Dynamic and empty dynamic decorator and empty', t => {
+	onWarn( msg => t.ok( /Missing "" decorator plugin/.test( msg ) ) );
+
 	const ractive = new Ractive({
 		el: fixture,
 		debug: true,
@@ -357,13 +359,11 @@ test( 'Decorator teardown should happen after outros have completed (#1481)', t 
 test( 'Decorators can have their parameters change before they are rendered (#2278)', t => {
 	t.expect( 0 );
 
-	const dec = function() {
-		return { teardown() {} };
-	};
+	const dec = () => ({ teardown() {} });
 
 	new Ractive({
 		el: fixture,
-		decorator: { dec },
+		decorators: { dec },
 		template: '<div decorator="dec:{{foo}}" />',
 		data: {
 			foo: 1

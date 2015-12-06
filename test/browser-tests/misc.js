@@ -175,6 +175,8 @@ test( 'Setting nested properties with a keypath correctly updates value of inter
 test( 'Functions are called with the ractive instance as context', t => {
 	t.expect( 1 );
 
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ foo() }}'
@@ -188,21 +190,16 @@ test( 'Functions are called with the ractive instance as context', t => {
 test( 'Methods are called with their object as context', t => {
 	t.expect( 1 );
 
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ foo.bar() }}'
 	});
 
-	let ran;
-
 	const foo = {
 		bar () {
-			// TODO why is this running twice?
-			if ( !ran ) {
-				t.equal( this, foo );
-			}
-
-			ran = true;
+			t.equal( this, foo );
 		}
 	};
 
@@ -249,6 +246,8 @@ test( 'Bindings without explicit keypaths can survive a splice operation', t => 
 	t.expect( 1 );
 
 	let items = new Array( 3 );
+
+	onWarn( () => {} ); // suppress
 
 	const ractive = new Ractive({
 		el: fixture,
@@ -605,6 +604,8 @@ try {
 	});
 
 	test( 'Implicit iterators work in magic mode', t => {
+		onWarn( msg => t.ok( /should be a plain JavaScript object/.test( msg ) ) );
+
 		let items = [
 			{ name: 'one' },
 			{ name: 'two' },

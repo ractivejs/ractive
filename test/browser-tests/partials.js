@@ -376,7 +376,7 @@ test( 'Partials can be changed with resetPartial', t => {
 });
 
 test( 'Partials with variable names can be changed with resetPartial', t => {
-	onWarn( msg => /Could not find template for partial 'partial'/.test( msg ) );
+	onWarn( msg => t.ok( /Could not find template for partial 'partial'/.test( msg ) ) );
 
 	const ractive = new Ractive({
 		el: fixture,
@@ -399,7 +399,7 @@ test( 'Partials with variable names can be changed with resetPartial', t => {
 });
 
 test( 'Partials with expression names can be changed with resetPartial', t => {
-	onWarn( msg => /Could not find template for partial 'undefinedPartial'/.test( msg ) );
+	onWarn( msg => t.ok( /Could not find template for partial 'undefinedPartial'/.test( msg ) ) );
 
 	const ractive = new Ractive({
 		el: fixture,
@@ -607,7 +607,7 @@ test( 'Inline partials may be defined with a partial section', t => {
 });
 
 test( '(Only) inline partials can be yielded', t => {
-	onWarn( msg => /Could not find template for partial 'foo'/.test( msg ) );
+	onWarn( msg => t.ok( /Could not find template for partial "foo"/.test( msg ) ) );
 
 	const Widget = Ractive.extend({
 		template: '{{yield foo}}',
@@ -761,9 +761,9 @@ test( 'Several inline partials containing elements can be defined (#1736)', t =>
 });
 
 test( 'Removing a missing partial (#1808)', t => {
-	t.expect( 0 );
+	t.expect( 1 );
 
-	onWarn( msg => /Could not find template for partial 'item'/.test( msg ) );
+	onWarn( msg => t.ok( /Could not find template for partial 'item'/.test( msg ) ) );
 
 	const ractive = new Ractive({
 		template: '{{#items}}{{>item}}{{/}}',
@@ -826,7 +826,7 @@ test( 'Inline partials can override instance partials if they exist on a node di
 });
 
 test( 'resetting a dynamic partial to its reference name should replace the partial (#2185)', t => {
-	onWarn( msg => /Could not find template for partial 'nope'/.test( msg ) );
+	onWarn( msg => t.ok( /Could not find template for partial 'nope'/.test( msg ) ) );
 
 	const r = new Ractive({
 		el: fixture,
