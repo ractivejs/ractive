@@ -83,7 +83,7 @@ if ( svg ) {
 				</svg>`
 		});
 
-		const documentProperties = ractive.find( 'documentProperties' );
+		const documentProperties = fixture.firstElementChild.firstElementChild;
 		t.equal( documentProperties.namespaceURI, 'http://www.w3.org/2000/svg' );
 	});
 
