@@ -13,11 +13,11 @@ export default class Attribute extends Item {
 	constructor ( options ) {
 		super( options );
 
-		determineNameAndNamespace( this, options.name );
-
 		this.element = options.element;
 		this.parentFragment = options.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
+
+		determineNameAndNamespace( this, options.name );
 
 		this.rendered = false;
 		this.updateDelegate = null;

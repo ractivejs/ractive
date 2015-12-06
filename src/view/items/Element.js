@@ -6,6 +6,7 @@ import Attribute from './element/Attribute';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import Decorator from './element/Decorator';
 import EventDirective from './shared/EventDirective';
+import lookupNamespace from './shared/lookupNamespace';
 import { findInViewHierarchy } from '../../shared/registry';
 import { DOMEvent, CustomEvent } from './element/ElementEvents';
 import Transition from './element/Transition';
@@ -22,13 +23,18 @@ function makeDirty ( query ) {
 	query.makeDirty();
 }
 
+const pattern = /(?:(\w+):)?([\w\-]+)/;
+
 export default class Element extends Item {
 	constructor ( options ) {
 		super( options );
 
 		this.liveQueries = []; // TODO rare case. can we handle differently?
 
-		this.name = options.template.e.toLowerCase();
+		const match = pattern.exec( options.template.e.toLowerCase() );
+
+		this.namespacePrefix = match[1];
+		this.name = match[2];
 		this.isVoid = voidElementNames.test( this.name );
 
 		// find parent element
@@ -436,6 +442,9 @@ function getNamespace ( element ) {
 	// Use specified namespace...
 	const xmlns = element.getAttribute( 'xmlns' );
 	if ( xmlns ) return xmlns;
+
+	const locallyDefined = lookupNamespace( element, element.namespacePrefix );
+	if ( locallyDefined ) return locallyDefined;
 
 	// ...or SVG namespace, if this is an <svg> element
 	if ( element.name === 'svg' ) return svg;
