@@ -74,6 +74,16 @@ test( 'ractive.find() and ractive.findAll() work inside an onchange handler (#15
 	ractive.set( 'items', [ 'foo', 'bar', 'baz' ] );
 });
 
+test( 'ractive.find() throws error if instance is unrendered (#2008)', t => {
+	const ractive = new Ractive({
+		template: '<p>unrendered</p>'
+	});
+
+	t.throws( () => {
+		ractive.find( 'p' );
+	}, /Cannot call ractive\.find\('p'\) unless instance is rendered to the DOM/ );
+});
+
 
 // TODO add tests (and add the functionality)...
 // * cancelling a live query (also, followed by teardown)
