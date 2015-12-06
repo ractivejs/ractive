@@ -1,4 +1,5 @@
 import { default as templateConfigurator } from '../config/custom/template';
+import { createDocumentFragment } from '../../utils/dom';
 import Fragment from '../../view/Fragment';
 
 // TODO should resetTemplate be asynchronous? i.e. should it be a case
@@ -22,15 +23,17 @@ export default function Ractive$resetTemplate ( template ) {
 	if ( component ) component.shouldDestroy = false;
 
 	// remove existing fragment and create new one
-	this.fragment.unbind();
+	this.fragment.unbind().unrender( true );
+
 	this.fragment = new Fragment({
 		template: this.template,
 		root: this,
 		owner: this
 	});
-	this.fragment.bind( this.viewmodel );
 
-	this.render( this.el, this.anchor );
+	const docFrag = createDocumentFragment();
+	this.fragment.bind( this.viewmodel ).render( docFrag );
+	this.el.insertBefore( docFrag, this.anchor );
 
 	this.transitionsEnabled = transitionsEnabled;
 }

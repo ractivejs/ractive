@@ -512,8 +512,7 @@ test( 'Double teardown is handled gracefully (#1218)', t => {
 });
 
 test( 'component.teardown() causes component to be removed from the DOM (#1223)', t => {
-	// TODO we get an incorrect console warning here:
-	// ractive.unrender() was called on a Ractive instance that was not rendered
+	onWarn( () => {} ); // suppress
 
 	const Widget = Ractive.extend({
 		template: '<p>I am here!</p>'
