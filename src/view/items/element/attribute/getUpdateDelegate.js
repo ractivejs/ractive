@@ -215,5 +215,5 @@ function updateAttribute () {
 }
 
 function updateNamespacedAttribute () {
-	this.node.setAttributeNS( this.namespace, this.name, safeToStringValue( this.getString() ) );
+	this.node.setAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ), safeToStringValue( this.getString() ) );
 }
