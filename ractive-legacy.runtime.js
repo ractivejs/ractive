@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Dec 06 2015 15:43:00 GMT+0000 (UTC) - commit 97e0009f36c20c4d6e37a8562909d373a0a67211
+	Sun Dec 06 2015 15:49:25 GMT+0000 (UTC) - commit c66b19ff7f261e5a47e311ff1563e5cbd509ab93
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2313,44 +2313,6 @@ var classCallCheck = function (instance, Constructor) {
   	}
   }
 
-  function resolveReference(fragment, ref) {
-  	var context = fragment.findContext();
-
-  	// special references
-  	// TODO does `this` become `.` at parse time?
-  	if (ref === '.' || ref === 'this') return context;
-  	if (ref === '@keypath') return context.getKeypathModel();
-  	if (ref === '@index') {
-  		var repeater = fragment.findRepeatingFragment();
-  		// make sure the found fragment is actually an iteration
-  		if (!repeater.isIteration) return;
-  		return repeater.context.getIndexModel(repeater.index);
-  	}
-  	if (ref === '@key') return fragment.findRepeatingFragment().context.getKeyModel();
-
-  	// ancestor references
-  	if (ref[0] === '~') return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
-  	if (ref[0] === '.') {
-  		var parts = ref.split('/');
-
-  		while (parts[0] === '.' || parts[0] === '..') {
-  			var part = parts.shift();
-
-  			if (part === '..') {
-  				context = context.parent;
-  			}
-  		}
-
-  		ref = parts.join('/');
-
-  		// special case - `{{.foo}}` means the same as `{{./foo}}`
-  		if (ref[0] === '.') ref = ref.slice(1);
-  		return context.joinAll(splitKeypath(ref));
-  	}
-
-  	return resolveAmbiguousReference(fragment, ref);
-  }
-
   var stack = [];
   var captureGroup = undefined;
 
@@ -3071,6 +3033,73 @@ var classCallCheck = function (instance, Constructor) {
 
   	return Model;
   })();
+
+  var GlobalModel = (function (_Model) {
+  	inherits(GlobalModel, _Model);
+
+  	function GlobalModel() {
+  		classCallCheck(this, GlobalModel);
+
+  		_Model.call(this, null, '@global');
+  		this.value = typeof global !== 'undefined' ? global : window;
+  		this.isRoot = true;
+  		this.root = this;
+  		this.adaptors = [];
+  		this.changes = {};
+  	}
+
+  	GlobalModel.prototype.getKeypath = function getKeypath() {
+  		return '@global';
+  	};
+
+  	return GlobalModel;
+  })(Model);
+
+  var GlobalModel$1 = new GlobalModel();
+
+  function resolveReference(fragment, ref) {
+  	var context = fragment.findContext();
+
+  	// special references
+  	// TODO does `this` become `.` at parse time?
+  	if (ref === '.' || ref === 'this') return context;
+  	if (ref === '@keypath') return context.getKeypathModel();
+  	if (ref === '@index') {
+  		var repeater = fragment.findRepeatingFragment();
+  		// make sure the found fragment is actually an iteration
+  		if (!repeater.isIteration) return;
+  		return repeater.context.getIndexModel(repeater.index);
+  	}
+  	if (ref === '@key') return fragment.findRepeatingFragment().context.getKeyModel();
+  	if (ref === '@ractive') {
+  		return fragment.ractive.viewmodel.getRactiveModel();
+  	}
+  	if (ref === '@global') {
+  		return GlobalModel$1;
+  	}
+
+  	// ancestor references
+  	if (ref[0] === '~') return fragment.ractive.viewmodel.joinAll(splitKeypath(ref.slice(2)));
+  	if (ref[0] === '.') {
+  		var parts = ref.split('/');
+
+  		while (parts[0] === '.' || parts[0] === '..') {
+  			var part = parts.shift();
+
+  			if (part === '..') {
+  				context = context.parent;
+  			}
+  		}
+
+  		ref = parts.join('/');
+
+  		// special case - `{{.foo}}` means the same as `{{./foo}}`
+  		if (ref[0] === '.') ref = ref.slice(1);
+  		return context.joinAll(splitKeypath(ref));
+  	}
+
+  	return resolveAmbiguousReference(fragment, ref);
+  }
 
   var ComputationChild = (function (_Model) {
   	inherits(ComputationChild, _Model);
@@ -9054,6 +9083,28 @@ var classCallCheck = function (instance, Constructor) {
   	return Computation;
   })(Model);
 
+  var RactiveModel = (function (_Model) {
+  	inherits(RactiveModel, _Model);
+
+  	function RactiveModel(ractive) {
+  		classCallCheck(this, RactiveModel);
+
+  		_Model.call(this, null, '');
+  		this.value = ractive;
+  		this.isRoot = true;
+  		this.root = this;
+  		this.adaptors = [];
+  		this.ractive = ractive;
+  		this.changes = {};
+  	}
+
+  	RactiveModel.prototype.getKeypath = function getKeypath() {
+  		return '@ractive';
+  	};
+
+  	return RactiveModel;
+  })(Model);
+
   var RootModel = (function (_Model) {
   	inherits(RootModel, _Model);
 
@@ -9117,11 +9168,18 @@ var classCallCheck = function (instance, Constructor) {
   		return '';
   	};
 
+  	RootModel.prototype.getRactiveModel = function getRactiveModel() {
+  		return this.ractiveModel || (this.ractiveModel = new RactiveModel(this.ractive));
+  	};
+
   	RootModel.prototype.has = function has(key) {
   		return key in this.mappings || key in this.computations || _Model.prototype.has.call(this, key);
   	};
 
   	RootModel.prototype.joinKey = function joinKey(key) {
+  		if (key === '@global') return GlobalModel$1;
+  		if (key === '@ractive') return this.getRactiveModel();
+
   		return this.mappings.hasOwnProperty(key) ? this.mappings[key] : this.computations.hasOwnProperty(key) ? this.computations[key] : _Model.prototype.joinKey.call(this, key);
   	};
 
