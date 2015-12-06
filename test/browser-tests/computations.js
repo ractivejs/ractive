@@ -197,6 +197,8 @@ test( 'Computed values with mix of computed and non-computed dependencies update
 });
 
 test( 'Computations that cause errors are considered undefined', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{uppercaseBar}}',
