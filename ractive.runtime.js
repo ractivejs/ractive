@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Dec 06 2015 16:04:09 GMT+0000 (UTC) - commit 07ed72a1720504b77ea954de41faacc0137a1d6c
+	Sun Dec 06 2015 17:01:11 GMT+0000 (UTC) - commit f1d84412387c9dd574e5bef438d8897c257c6b49
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1019,6 +1019,18 @@ var classCallCheck = function (instance, Constructor) {
   	return promise;
   }
 
+  function unlink(here) {
+  	var ln = this._links[here];
+
+  	if (ln) {
+  		ln.unlink();
+  		delete this._links[here];
+  		return this.set(here, ln.intialValue);
+  	} else {
+  		return Promise$1.resolve(true);
+  	}
+  }
+
   function Ractive$toHTML() {
   	return this.fragment.toString(true);
   }
@@ -1108,6 +1120,8 @@ var classCallCheck = function (instance, Constructor) {
   // and generally cleaning up after itself
 
   function Ractive$teardown() {
+  	var _this = this;
+
   	this.fragment.unbind();
   	this.viewmodel.teardown();
 
@@ -1119,6 +1133,10 @@ var classCallCheck = function (instance, Constructor) {
 
   	this.shouldDestroy = true;
   	var promise = this.fragment.rendered ? this.unrender() : Promise$1.resolve();
+
+  	Object.keys(this._links).forEach(function (k) {
+  		return _this._links[k].unlink();
+  	});
 
   	teardownHook.fire(this);
 
@@ -8955,6 +8973,9 @@ var classCallCheck = function (instance, Constructor) {
   	// observers
   	ractive._observers = [];
 
+  	// links
+  	ractive._links = {};
+
   	if (!ractive.component) {
   		ractive.root = ractive;
   		ractive.parent = ractive.container = null; // TODO container still applicable?
@@ -10289,6 +10310,10 @@ var classCallCheck = function (instance, Constructor) {
   			removeFromArray(instance.el.__ractive_instances__, instance);
   		}
 
+  		Object.keys(instance._links).forEach(function (k) {
+  			return instance._links[k].unlink();
+  		});
+
   		teardownHook$1.fire(instance);
   	};
 
@@ -11524,6 +11549,95 @@ var classCallCheck = function (instance, Constructor) {
   	return promise;
   }
 
+  function link(there, here) {
+  	if (here === there || (there + '.').indexOf(here + '.') === 0 || (here + '.').indexOf(there + '.') === 0) {
+  		throw new Error('A keypath cannot be linked to itself.');
+  	}
+
+  	var unlink = undefined,
+  	    run = undefined,
+  	    model = undefined;
+
+  	var ln = this._links[here];
+
+  	if (ln) {
+  		if (ln.source.model.str !== there || ln.dest.model.str !== here) {
+  			unlink = this.unlink(here);
+  		} else {
+  			return Promise$1.resolve(true);
+  		}
+  	}
+
+  	run = runloop.start();
+
+  	// may need to allow a mapping to resolve implicitly
+  	var sourcePath = splitKeypath(there);
+  	if (!this.viewmodel.has(sourcePath[0]) && this.component) {
+  		model = resolveReference(this.component.parentFragment, sourcePath[0]);
+
+  		if (model) {
+  			this.viewmodel.map(sourcePath[0], model);
+  		}
+  	}
+
+  	ln = new Link(this.viewmodel.joinAll(sourcePath), this.viewmodel.joinAll(splitKeypath(here)), this);
+  	this._links[here] = ln;
+  	ln.source.handleChange();
+
+  	runloop.end();
+
+  	return Promise$1.all([unlink, run]);
+  }
+
+  var Link = (function () {
+  	function Link(source, dest, ractive) {
+  		classCallCheck(this, Link);
+
+  		this.source = new LinkSide(source, this);
+  		this.dest = new LinkSide(dest, this);
+  		this.ractive = ractive;
+  		this.locked = false;
+  		this.initialValue = dest.get();
+  	}
+
+  	Link.prototype.sync = function sync(side) {
+  		if (!this.locked) {
+  			this.locked = true;
+
+  			if (side === this.dest) {
+  				this.source.model.set(this.dest.model.get());
+  			} else {
+  				this.dest.model.set(this.source.model.get());
+  			}
+
+  			this.locked = false;
+  		}
+  	};
+
+  	Link.prototype.unlink = function unlink() {
+  		this.source.model.unregister(this.source);
+  		this.dest.model.unregister(this.dest);
+  	};
+
+  	return Link;
+  })();
+
+  var LinkSide = (function () {
+  	function LinkSide(model, owner) {
+  		classCallCheck(this, LinkSide);
+
+  		this.model = model;
+  		this.owner = owner;
+  		model.register(this);
+  	}
+
+  	LinkSide.prototype.handleChange = function handleChange() {
+  		this.owner.sync(this);
+  	};
+
+  	return LinkSide;
+  })();
+
   var insertHook = new Hook('insert');
   function Ractive$insert(target, anchor) {
   	if (!this.fragment.rendered) {
@@ -11956,6 +12070,7 @@ var classCallCheck = function (instance, Constructor) {
   	fire: Ractive$fire,
   	get: Ractive$get,
   	insert: Ractive$insert,
+  	link: link,
   	merge: Ractive$merge,
   	observe: observe,
   	observeList: observeList,
@@ -11981,6 +12096,7 @@ var classCallCheck = function (instance, Constructor) {
   	toggle: Ractive$toggle,
   	toHTML: Ractive$toHTML,
   	toHtml: Ractive$toHTML,
+  	unlink: unlink,
   	unrender: Ractive$unrender,
   	unshift: unshift,
   	update: Ractive$update,
