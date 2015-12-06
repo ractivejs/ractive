@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Dec 06 2015 22:48:20 GMT+0000 (UTC) - commit 7e81f496652b912e0501d3e1e5127872a05f5cdd
+	Sun Dec 06 2015 22:50:50 GMT+0000 (UTC) - commit 0ae1ea4e2fba3118a5e32c4bbf6283c6075fcf38
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5427,18 +5427,20 @@ var classCallCheck = function (instance, Constructor) {
   			if (key === '*') {
   				matches = [];
   				existingMatches.forEach(function (model) {
-  					if (isArray(model.value)) {
+  					var value = model.get();
+
+  					if (isArray(value)) {
   						// special case - array.length. This is a horrible kludge, but
   						// it'll do for now. Alternatives welcome
   						if (originatingModel && originatingModel.parent === model && originatingModel.key === 'length') {
   							matches.push(originatingModel);
   						}
 
-  						model.value.forEach(function (member, i) {
+  						value.forEach(function (member, i) {
   							matches.push(model.joinKey(i));
   						});
-  					} else if (isObject(model.value) || typeof model.value === 'function') {
-  						Object.keys(model.value).forEach(function (key) {
+  					} else if (isObject(value) || typeof value === 'function') {
+  						Object.keys(value).forEach(function (key) {
   							matches.push(model.joinKey(key));
   						});
 
@@ -5448,6 +5450,8 @@ var classCallCheck = function (instance, Constructor) {
   								matches.push(model.joinKey(key));
   							});
   						}
+  					} else if (value != null) {
+  						throw new Error('Cannot get values of ' + model.getKeypath() + '.* as ' + model.getKeypath() + ' is not an array, object or function');
   					}
   				});
   			} else {
