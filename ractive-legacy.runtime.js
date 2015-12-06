@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Dec 06 2015 15:49:25 GMT+0000 (UTC) - commit c66b19ff7f261e5a47e311ff1563e5cbd509ab93
+	Sun Dec 06 2015 16:04:09 GMT+0000 (UTC) - commit 07ed72a1720504b77ea954de41faacc0137a1d6c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12238,7 +12238,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function Ractive$findAll(selector, options) {
-  	if (!this.el) return [];
+  	if (!this.el) throw new Error('Cannot call ractive.findAll(\'' + selector + '\', ...) unless instance is rendered to the DOM');
 
   	options = options || {};
   	var liveQueries = this._liveQueries;
@@ -12267,9 +12267,7 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function Ractive$find(selector) {
-  	if (!this.el) {
-  		return null;
-  	}
+  	if (!this.el) throw new Error("Cannot call ractive.find('" + selector + "') unless instance is rendered to the DOM");
 
   	return this.fragment.find(selector);
   }
