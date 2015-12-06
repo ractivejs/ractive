@@ -54,7 +54,7 @@ export default function getUpdateDelegate ( attribute ) {
 
 	if ( attribute.isBoolean ) return updateBoolean;
 
-	if ( attribute.namespace ) return updateNamespacedAttribute;
+	if ( attribute.namespace && attribute.namespace !== attribute.node.namespaceURI ) return updateNamespacedAttribute;
 
 	return updateAttribute;
 }
