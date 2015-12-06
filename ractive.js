@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Dec 06 2015 17:01:11 GMT+0000 (UTC) - commit f1d84412387c9dd574e5bef438d8897c257c6b49
+	Sun Dec 06 2015 22:48:20 GMT+0000 (UTC) - commit 7e81f496652b912e0501d3e1e5127872a05f5cdd
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8101,7 +8101,7 @@ var classCallCheck = function (instance, Constructor) {
   		var fn = findInViewHierarchy('decorators', this.ractive, this.name);
 
   		if (!fn) {
-  			warnOnce(missingPlugin(this.name, 'decorators'));
+  			warnOnce(missingPlugin(this.name, 'decorator'));
   			this.intermediary = missingDecorator;
   			return;
   		}
@@ -13468,15 +13468,17 @@ var classCallCheck = function (instance, Constructor) {
   	if (component) component.shouldDestroy = false;
 
   	// remove existing fragment and create new one
-  	this.fragment.unbind();
+  	this.fragment.unbind().unrender(true);
+
   	this.fragment = new Fragment({
   		template: this.template,
   		root: this,
   		owner: this
   	});
-  	this.fragment.bind(this.viewmodel);
 
-  	this.render(this.el, this.anchor);
+  	var docFrag = createDocumentFragment();
+  	this.fragment.bind(this.viewmodel).render(docFrag);
+  	this.el.insertBefore(docFrag, this.anchor);
 
   	this.transitionsEnabled = transitionsEnabled;
   }
