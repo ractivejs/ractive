@@ -883,3 +883,15 @@ test( `a pattern observer that is shuffled with objects should only notify on th
 	r.unshift( 'items', { val: 0 } );
 	t.equal( count, 7 );
 });
+
+test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
+	const ractive = new Ractive({
+		data: { msg: 'hello world' }
+	});
+
+	t.throws( () => {
+		ractive.observe( 'msg.*', () => {
+			t.ok( false, 'observer should not fire' );
+		});
+	}, /Cannot get values of msg\.\* as msg is not an array, object or function/ );
+});
