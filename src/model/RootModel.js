@@ -3,6 +3,8 @@ import { extend } from '../utils/object';
 import Computation from './Computation';
 import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
+import RactiveModel from './specials/RactiveModel';
+import GlobalModel from './specials/GlobalModel';
 
 export default class RootModel extends Model {
 	constructor ( options ) {
@@ -60,11 +62,18 @@ export default class RootModel extends Model {
 		return '';
 	}
 
+	getRactiveModel() {
+		return this.ractiveModel || ( this.ractiveModel = new RactiveModel( this.ractive ) );
+	}
+
 	has ( key ) {
 		return ( key in this.mappings ) || ( key in this.computations ) || super.has( key );
 	}
 
 	joinKey ( key ) {
+		if ( key === '@global' ) return GlobalModel;
+		if ( key === '@ractive' ) return this.getRactiveModel();
+
 		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
 		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
 		       super.joinKey( key );

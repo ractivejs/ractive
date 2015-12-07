@@ -489,6 +489,8 @@ test( 'oninit() only fires once on a component (#943 #927), oncomplete fires eac
 test( 'Double teardown is handled gracefully (#1218)', t => {
 	t.expect( 0 );
 
+	onWarn( () => {} ); // suppress
+
 	const Widget = Ractive.extend({
 		template: '<p>foo: {{foo}}</p>'
 	});
@@ -510,6 +512,8 @@ test( 'Double teardown is handled gracefully (#1218)', t => {
 });
 
 test( 'component.teardown() causes component to be removed from the DOM (#1223)', t => {
+	onWarn( () => {} ); // suppress
+
 	const Widget = Ractive.extend({
 		template: '<p>I am here!</p>'
 	});
@@ -567,6 +571,8 @@ test( 'Decorators and transitions are only initialised post-render, when compone
 });
 
 test( 'Data is synced as soon as an unresolved mapping is resolved', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '<Outer/>',
@@ -689,6 +695,8 @@ test( 'Multiple components two-way binding', t => {
 });
 
 test( 'Explicit mappings with uninitialised data', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '<Foo/>',
@@ -719,6 +727,8 @@ test( 'Implicit mappings with uninitialised data', t => {
 });
 
 test( 'Two-way bindings on an unresolved key can force resolution', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#context}}<Foo value="{{value}}" />{{/}}',
@@ -733,6 +743,8 @@ test( 'Two-way bindings on an unresolved key can force resolution', t => {
 });
 
 test( 'Component mappings used in computations resolve correctly with the mapping (#1645)', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '<C1/>',
@@ -770,6 +782,8 @@ test( 'Component attributes with an empty string come back with an empty string'
 
 test( 'Unresolved keypath can be safely torn down', t => {
 	t.expect( 0 );
+
+	onWarn( () => {} ); // suppress
 
 	const ractive = new Ractive({
 		el: fixture,

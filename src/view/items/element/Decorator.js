@@ -67,7 +67,7 @@ export default class Decorator {
 		const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
 
 		if ( !fn ) {
-			warnOnce( missingPlugin( this.name, 'decorators' ) );
+			warnOnce( missingPlugin( this.name, 'decorator' ) );
 			this.intermediary = missingDecorator;
 			return;
 		}

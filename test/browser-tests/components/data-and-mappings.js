@@ -416,6 +416,7 @@ test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{
 test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
 	const ractive = new Ractive({
 		el: fixture,
+		data: { qux: { foo: {} } },
 		template: `
 			{{#with qux}}
 				<One foo='{{foo}}'/>
@@ -427,7 +428,6 @@ test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo
 		}
 	});
 
-	ractive.set( 'qux.foo', {} );
 	t.htmlEqual( fixture.innerHTML, '<p></p><p></p>' );
 
 	ractive.findComponent( 'One' ).set( 'foo.bar', 'baz' );
@@ -635,6 +635,7 @@ test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
 		el: fixture,
 		template: '<List items="{{sorted_items}}"/>',
 		components: { List },
+		data: () => ({ items: [] }),
 		computed: {
 			sorted_items () {
 				return this.get( 'items' ).slice().sort( ( a, b ) => a.rank - b.rank );

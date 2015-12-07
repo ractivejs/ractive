@@ -1,5 +1,6 @@
 import resolveAmbiguousReference from './resolveAmbiguousReference';
 import { splitKeypath } from '../../shared/keypaths';
+import GlobalModel from '../../model/specials/GlobalModel';
 
 export default function resolveReference ( fragment, ref ) {
 	let context = fragment.findContext();
@@ -16,6 +17,12 @@ export default function resolveReference ( fragment, ref ) {
 		return repeater.context.getIndexModel( repeater.index );
 	}
 	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.getKeyModel();
+	if ( ref === '@ractive' ) {
+		return fragment.ractive.viewmodel.getRactiveModel();
+	}
+	if ( ref === '@global' ) {
+		return GlobalModel;
+	}
 
 	// ancestor references
 	if ( ref[0] === '~' ) return fragment.ractive.viewmodel.joinAll( splitKeypath( ref.slice( 2 ) ) );

@@ -212,20 +212,22 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
-					if ( isArray( model.value ) ) {
+					const value = model.get();
+
+					if ( isArray( value ) ) {
 						// special case - array.length. This is a horrible kludge, but
 						// it'll do for now. Alternatives welcome
 						if ( originatingModel && originatingModel.parent === model && originatingModel.key === 'length' ) {
 							matches.push( originatingModel );
 						}
 
-						model.value.forEach( ( member, i ) => {
+						value.forEach( ( member, i ) => {
 							matches.push( model.joinKey( i ) );
 						});
 					}
 
-					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
-						Object.keys( model.value ).forEach( key => {
+					else if ( isObject( value ) || typeof value === 'function' ) {
+						Object.keys( value ).forEach( key => {
 							matches.push( model.joinKey( key ) );
 						});
 
@@ -235,6 +237,10 @@ export default class Model {
 								matches.push( model.joinKey( key ) );
 							});
 						}
+					}
+
+					else if ( value != null ) {
+						throw new Error( `Cannot get values of ${model.getKeypath()}.* as ${model.getKeypath()} is not an array, object or function` );
 					}
 				});
 			} else {

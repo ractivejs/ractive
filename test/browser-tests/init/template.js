@@ -1,7 +1,7 @@
 import { test } from 'qunit';
 import { beforeEach } from 'test-config';
 import { TEMPLATE_VERSION } from 'config/template';
-import config from 'Ractive/config/custom/template/template';
+import config from 'Ractive/config/custom/template';
 import { isObject } from 'utils/is';
 import { create } from 'utils/object';
 
