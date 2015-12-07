@@ -912,3 +912,15 @@ test( `wildcard * fires in components for mapped data`, t => {
 	expect = 'qux';
 	r.findComponent( 'widget' ).set( 'value', 'qux' );
 });
+
+test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
+	const ractive = new Ractive({
+		data: { msg: 'hello world' }
+	});
+
+	t.throws( () => {
+		ractive.observe( 'msg.*', () => {
+			t.ok( false, 'observer should not fire' );
+		});
+	}, /Cannot get values of msg\.\* as msg is not an array, object or function/ );
+});

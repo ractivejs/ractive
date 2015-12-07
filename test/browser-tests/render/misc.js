@@ -178,16 +178,6 @@ test( 'Sections survive unrender-render (#1553)', t => {
 	t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p><p>3</p>' );
 });
 
-test( 'Namespaced attributes are set correctly', t => {
-	const ractive = new Ractive({
-		template: '<svg><use xlink:href="#yup" /></svg>'
-	});
-
-	ractive.render( fixture );
-
-	t.equal(ractive.find('use').getAttributeNS('http://www.w3.org/1999/xlink', 'href'), '#yup');
-});
-
 test( 'Multi switch each block object -> array -> object -> array (#2054)', t => {
 	const arrayData = ['a', 'b', 'c'];
 	const objectData = { a: 'a', b: 'b', c: 'c' };

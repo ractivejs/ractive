@@ -266,3 +266,51 @@ test( 'component "on-" with $n', t => {
 	fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
 });
+
+
+test( 'preventDefault and stopPropagation if method returns false', t => {
+	t.expect( 6 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<span id="return_false" on-click="returnFalse()">click me</span>
+			<span id="return_undefined" on-click="returnUndefined()">click me</span>
+			<span id="return_zero" on-click="returnZero()">click me</span>`,
+
+		returnFalse () {
+			t.ok( true );
+			mockOriginalEvent( this.event.original );
+			return false;
+		},
+
+		returnUndefined () {
+			t.ok( true );
+			mockOriginalEvent( this.event.original );
+		},
+
+		returnZero () {
+			t.ok( true );
+			mockOriginalEvent( this.event.original );
+			return 0;
+		}
+	});
+
+	let preventedDefault = false;
+	let stoppedPropagation = false;
+
+	function mockOriginalEvent ( original ) {
+		preventedDefault = stoppedPropagation = false;
+		original.preventDefault = () => preventedDefault = true;
+		original.stopPropagation = () => stoppedPropagation = true;
+	}
+
+	fire( ractive.nodes.return_false, 'click' );
+	t.ok( preventedDefault && stoppedPropagation );
+
+	fire( ractive.nodes.return_undefined, 'click' );
+	t.ok( !preventedDefault && !stoppedPropagation );
+
+	fire( ractive.nodes.return_zero, 'click' );
+	t.ok( !preventedDefault && !stoppedPropagation );
+});

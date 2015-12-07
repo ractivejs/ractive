@@ -1301,6 +1301,12 @@ const renderTests = [
 		template: '{{Object.keys(foo)}} {{Boolean(1)}} {{String(42)[0]}} {{Number("42").toFixed(1)}}',
 		data: { foo: { a: 1, b: 2 } },
 		result: 'a,b true 4 42.0'
+	},
+	{
+		name: 'keyword reference',
+		template: '{{new}}',
+		data: { new: 'old' },
+		result: 'old'
 	}
 ];
 

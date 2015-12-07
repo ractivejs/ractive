@@ -221,25 +221,31 @@ export default class Model {
 						Object.keys( children ).forEach( addChildKey );
 					}
 
-					if ( isArray( model.value ) ) {
+					const value = model.get();
+
+					if ( isArray( value ) ) {
 						// special case - array.length. This is a horrible kludge, but
 						// it'll do for now. Alternatives welcome
 						if ( originatingModel && originatingModel.parent === model && originatingModel.key === 'length' ) {
 							matches.push( originatingModel );
 						}
 
-						model.value.map( ( m, i ) => i ).forEach( addChildKey );
+						value.map( ( m, i ) => i ).forEach( addChildKey );
 					}
 
-					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
+					else if ( isObject( value ) || typeof value === 'function' ) {
 
-						addChildren( model.value );
+						addChildren( value );
 
 						// special case - computed properties and mappings of root
 						if ( model.isRoot ) {
 							addChildren( model.computations );
 							addChildren( model.mappings );
 						}
+					}
+
+					else if ( value != null ) {
+						throw new Error( `Cannot get values of ${model.getKeypath()}.* as ${model.getKeypath()} is not an array, object or function` );
 					}
 				});
 			} else {

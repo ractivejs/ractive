@@ -19,7 +19,7 @@ export default function readReference ( parser ) {
 
 	startPos = parser.pos;
 
-	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key)/ );
+	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|ractive|global)/ );
 
 	if ( !name ) {
 		prefix = parser.matchPattern( prefixPattern ) || '';

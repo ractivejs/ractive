@@ -54,7 +54,7 @@ export default function getUpdateDelegate ( attribute ) {
 
 	if ( attribute.isBoolean ) return updateBoolean;
 
-	if ( attribute.namespace ) return updateNamespacedAttribute;
+	if ( attribute.namespace && attribute.namespace !== attribute.node.namespaceURI ) return updateNamespacedAttribute;
 
 	return updateAttribute;
 }
@@ -215,5 +215,5 @@ function updateAttribute () {
 }
 
 function updateNamespacedAttribute () {
-	this.node.setAttributeNS( this.namespace, this.name, safeToStringValue( this.getString() ) );
+	this.node.setAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ), safeToStringValue( this.getString() ) );
 }

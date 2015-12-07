@@ -1,7 +1,7 @@
 import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
-import createFunction from '../../../shared/createFunction';
+import getFunction from '../../../shared/getFunction';
 import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
@@ -91,7 +91,7 @@ export default class EventDirective {
 					return model;
 				});
 
-				this.argsFn = createFunction( template.a.s, template.a.r.length );
+				this.argsFn = getFunction( template.a.s, template.a.r.length );
 			}
 
 		}
@@ -182,7 +182,15 @@ export default class EventDirective {
 			const oldEvent = ractive.event;
 
 			ractive.event = event;
-			ractive[ this.method ].apply( ractive, args );
+			const result = ractive[ this.method ].apply( ractive, args );
+
+			// Auto prevent and stop if return is explicitly false
+			let original;
+			if ( result === false && ( original = event.original ) ) {
+				original.preventDefault && original.preventDefault();
+				original.stopPropagation && original.stopPropagation();
+			}
+
 			ractive.event = oldEvent;
 		}
 

@@ -1,8 +1,11 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
+import { onWarn } from 'test-config';
 
 test( 'touch events safe to include when they don\'t exist in browser', t => {
 	t.expect( 1 );
+
+	onWarn( () => {} ); // suppress
 
 	const ractive = new Ractive({
 		el: fixture,

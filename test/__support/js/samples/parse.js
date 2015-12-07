@@ -840,6 +840,25 @@ const parseTests = [
 		error: `Expected a valid reference, but found '4' instead. at line 1 character 8:
 {{ { 4 } }}
        ^----`
+	},
+	{
+		name: 'csp: true',
+		template: '{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} intro="slide:{{x + 4}}" on-click="proxy:{{x + 5}}" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>',
+		options: { csp: true },
+		parsed: {
+			v:3,t:[{t:2,x:{ r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:['data-id=',{t:2,x:{r:['x'],s:'_0+3'}}],n:50,x:{r:['x'],s:'_0+2'}}],t1:{n:'slide',d:[{t:2,x:{r:['x'],s:'_0+4'}}]},v:{click:{n:'proxy',d:[{t:2,x:{r:['x'],s:'_0+5'}}]},focus:{m:'method',a:{r:['x'],s:'[_0+5]'}}},f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
+			// these are intentially made strings for testing purposes
+			// actual template has javascript function objects
+			e:{
+				'_0+1':'function (_0){return(_0+1);}',
+				'_0+3':'function (_0){return(_0+3);}',
+				'_0+2':'function (_0){return(_0+2);}',
+				'_0+4':'function (_0){return(_0+4);}',
+				'_0+5':'function (_0){return(_0+5);}',
+				'[_0+5]':'function (_0){return([_0+5]);}',
+				'_0+6':'function (_0){return(_0+6);}'
+			}
+		}
 	}
 ];
 
