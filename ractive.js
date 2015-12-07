@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Dec 07 2015 01:00:10 GMT+0000 (UTC) - commit fba023c42e18d995a7055cc5f293942a41fcc75d
+	Mon Dec 07 2015 01:57:16 GMT+0000 (UTC) - commit 8c513f1ed12e9d7980fcedaa4b06eb0265218c49
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2282,6 +2282,15 @@ var classCallCheck = function (instance, Constructor) {
   	expression = readExpression(parser);
 
   	if (!expression) {
+  		// valid reference but invalid expression e.g. `{{new}}`?
+  		var ref = parser.matchPattern(/^(\w+)/);
+  		if (ref) {
+  			return {
+  				t: REFERENCE,
+  				n: ref
+  			};
+  		}
+
   		return null;
   	}
 
