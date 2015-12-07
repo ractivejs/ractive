@@ -148,6 +148,68 @@ test( 'event.keypath is set to the innermost context', t => {
 	fire( ractive.nodes.test, 'click' );
 });
 
+test( 'event.keypath is set to the mapped keypath in a component', t => {
+	t.expect( 4 );
+
+	const cmp = Ractive.extend({
+		template: '{{#with baz}}<span id="test" on-click="someEvent">click me</span>{{/with}}<cmp2 oof="{{baz}}" />'
+	});
+	const cmp2 = Ractive.extend({
+		template: '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}'
+	});
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<cmp baz="{{foo}}" />',
+		data: {
+			foo: { bar: 'test' }
+		},
+		components: { cmp, cmp2 }
+	});
+
+	ractive.on( 'cmp.someEvent', function ( event ) {
+		t.equal( event.keypath, 'baz' );
+		t.equal( event.context.bar, 'test' );
+	});
+	ractive.on( 'cmp2.someEvent', function ( event ) {
+		t.equal( event.keypath, 'oof' );
+		t.equal( event.context.bar, 'test' );
+	});
+
+	fire( ractive.find( '#test' ), 'click' );
+	fire( ractive.find( '#test2' ), 'click' );
+});
+
+test( 'event.rootpath is set to the non-mapped keypath in a component', t => {
+	t.expect( 4 );
+
+	const cmp = Ractive.extend({
+		template: '{{#with baz}}<span id="test" on-click="someEvent">click me</span>{{/with}}<cmp2 oof="{{baz}}" />'
+	});
+	const cmp2 = Ractive.extend({
+		template: '{{#with oof}}<span id="test2" on-click="someEvent">click me</span>{{/with}}'
+	});
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<cmp baz="{{foo}}" />',
+		data: {
+			foo: { bar: 'test' }
+		},
+		components: { cmp, cmp2 }
+	});
+
+	ractive.on( 'cmp.someEvent', function ( event ) {
+		t.equal( event.rootpath, 'foo' );
+		t.equal( event.context.bar, 'test' );
+	});
+	ractive.on( 'cmp2.someEvent', function ( event ) {
+		t.equal( event.rootpath, 'foo' );
+		t.equal( event.context.bar, 'test' );
+	});
+
+	fire( ractive.find( '#test' ), 'click' );
+	fire( ractive.find( '#test2' ), 'click' );
+});
+
 test( 'event.index stores current indices against their references', t => {
 	t.expect( 4 );
 

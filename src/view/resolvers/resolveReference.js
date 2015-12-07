@@ -8,7 +8,8 @@ export default function resolveReference ( fragment, ref ) {
 	// special references
 	// TODO does `this` become `.` at parse time?
 	if ( ref === '.' || ref === 'this' ) return context;
-	if ( ref === '@keypath' ) return context.getKeypathModel();
+	if ( ref === '@keypath' ) return context.getKeypathModel( fragment.ractive );
+	if ( ref === '@rootpath' ) return context.getKeypathModel();
 	if ( ref === '@index' ) {
 		const repeater = fragment.findRepeatingFragment();
 		// make sure the found fragment is actually an iteration
