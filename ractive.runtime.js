@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Dec 07 2015 22:02:13 GMT+0000 (UTC) - commit 53e0817b1115ba9cd6602b6c06989d2e650168b6
+	Mon Dec 07 2015 22:22:07 GMT+0000 (UTC) - commit a48905ef60165b816ae279aae65e4fd13db51895
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2372,6 +2372,15 @@ var classCallCheck = function (instance, Constructor) {
   			if (key === '*') {
   				matches = [];
   				existingMatches.forEach(function (model) {
+
+  					function addChildKey(key) {
+  						matches.push(model.joinKey(key));
+  					}
+
+  					function addChildren(children) {
+  						Object.keys(children).forEach(addChildKey);
+  					}
+
   					var value = model.get();
 
   					if (isArray(value)) {
@@ -2381,19 +2390,17 @@ var classCallCheck = function (instance, Constructor) {
   							matches.push(originatingModel);
   						}
 
-  						value.forEach(function (member, i) {
-  							matches.push(model.joinKey(i));
-  						});
+  						value.map(function (m, i) {
+  							return i;
+  						}).forEach(addChildKey);
   					} else if (isObject(value) || typeof value === 'function') {
-  						Object.keys(value).forEach(function (key) {
-  							matches.push(model.joinKey(key));
-  						});
 
-  						// special case - computed properties. TODO mappings also?
+  						addChildren(value);
+
+  						// special case - computed properties and mappings of root
   						if (model.isRoot) {
-  							Object.keys(model.computations).forEach(function (key) {
-  								matches.push(model.joinKey(key));
-  							});
+  							addChildren(model.computations);
+  							addChildren(model.mappings);
   						}
   					} else if (value != null) {
   						throw new Error('Cannot get values of ' + model.getKeypath() + '.* as ' + model.getKeypath() + ' is not an array, object or function');
@@ -11402,22 +11409,22 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		var model = viewmodel.joinAll(keys);
-  		return new Observer(options.context || ractive, model, callback, options);
+  		return new Observer(ractive, model, callback, options);
   	}
 
   	// pattern observers - more complex case
   	var baseModel = wildcardIndex === 0 ? viewmodel : viewmodel.joinAll(keys.slice(0, wildcardIndex));
 
-  	return new PatternObserver(options.context || ractive, baseModel, keys.splice(wildcardIndex), callback, options);
+  	return new PatternObserver(ractive, baseModel, keys.splice(wildcardIndex), callback, options);
   }
 
   var Observer = (function () {
-  	function Observer(context, model, callback, options) {
+  	function Observer(ractive, model, callback, options) {
   		classCallCheck(this, Observer);
 
-  		this.context = context;
+  		this.context = options.context || ractive;
   		this.model = model;
-  		this.keypath = model.getKeypath();
+  		this.keypath = model.getKeypath(ractive);
   		this.callback = callback;
 
   		this.oldValue = undefined;
@@ -11465,18 +11472,19 @@ var classCallCheck = function (instance, Constructor) {
   })();
 
   var PatternObserver = (function () {
-  	function PatternObserver(context, baseModel, keys, callback, options) {
+  	function PatternObserver(ractive, baseModel, keys, callback, options) {
   		var _this2 = this;
 
   		classCallCheck(this, PatternObserver);
 
-  		this.context = context;
+  		this.context = options.context || ractive;
+  		this.ractive = ractive;
   		this.baseModel = baseModel;
   		this.keys = keys;
   		this.callback = callback;
 
   		var pattern = keys.join('\\.').replace(/\*/g, '(.+)');
-  		var baseKeypath = baseModel.getKeypath();
+  		var baseKeypath = baseModel.getKeypath(ractive);
   		this.pattern = new RegExp('^' + (baseKeypath ? baseKeypath + '\\.' : '') + pattern + '$');
 
   		this.oldValues = {};
@@ -11488,8 +11496,10 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.dirty = false;
 
-  		this.baseModel.findMatches(this.keys).forEach(function (model) {
-  			_this2.newValues[model.getKeypath()] = model.get();
+  		var models = baseModel.findMatches(this.keys);
+
+  		models.forEach(function (model) {
+  			_this2.newValues[model.getKeypath(_this2.ractive)] = model.get();
   		});
 
   		if (options.init !== false) {
@@ -11498,7 +11508,13 @@ var classCallCheck = function (instance, Constructor) {
   			this.oldValues = this.newValues;
   		}
 
-  		baseModel.register(this);
+  		if (baseModel.isRoot && keys.length === 1 && keys[0] === '*') {
+  			models.forEach(function (model) {
+  				return model.register(_this2);
+  			});
+  		} else {
+  			baseModel.register(this);
+  		}
   	}
 
   	PatternObserver.prototype.cancel = function cancel() {
@@ -11531,7 +11547,7 @@ var classCallCheck = function (instance, Constructor) {
   	PatternObserver.prototype.shuffle = function shuffle(newIndices) {
   		if (!isArray(this.baseModel.value)) return;
 
-  		var base = this.baseModel.getKeypath();
+  		var base = this.baseModel.getKeypath(this.ractive);
   		var max = this.baseModel.value.length;
   		var suffix = this.keys.length > 1 ? '.' + this.keys.slice(1).join('.') : '';
 
@@ -11560,7 +11576,7 @@ var classCallCheck = function (instance, Constructor) {
   			// });
 
   			this.baseModel.findMatches(this.keys).forEach(function (model) {
-  				var keypath = model.getKeypath();
+  				var keypath = model.getKeypath(_this4.ractive);
   				_this4.newValues[keypath] = model.get();
   			});
 
