@@ -212,6 +212,15 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
+
+					function addChildKey ( key ) {
+						matches.push( model.joinKey( key ) );
+					}
+
+					function addChildren ( children ) {
+						Object.keys( children ).forEach( addChildKey );
+					}
+
 					const value = model.get();
 
 					if ( isArray( value ) ) {
@@ -221,21 +230,17 @@ export default class Model {
 							matches.push( originatingModel );
 						}
 
-						value.forEach( ( member, i ) => {
-							matches.push( model.joinKey( i ) );
-						});
+						value.map( ( m, i ) => i ).forEach( addChildKey );
 					}
 
 					else if ( isObject( value ) || typeof value === 'function' ) {
-						Object.keys( value ).forEach( key => {
-							matches.push( model.joinKey( key ) );
-						});
 
-						// special case - computed properties. TODO mappings also?
+						addChildren( value );
+
+						// special case - computed properties and mappings of root
 						if ( model.isRoot ) {
-							Object.keys( model.computations ).forEach( key => {
-								matches.push( model.joinKey( key ) );
-							});
+							addChildren( model.computations );
+							addChildren( model.mappings );
 						}
 					}
 

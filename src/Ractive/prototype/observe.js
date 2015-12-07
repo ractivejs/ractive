@@ -67,7 +67,7 @@ function createObserver ( ractive, keypath, callback, options ) {
 		}
 
 		const model = viewmodel.joinAll( keys );
-		return new Observer( options.context || ractive, model, callback, options );
+		return new Observer( ractive, model, callback, options );
 	}
 
 	// pattern observers - more complex case
@@ -75,14 +75,14 @@ function createObserver ( ractive, keypath, callback, options ) {
 		viewmodel :
 		viewmodel.joinAll( keys.slice( 0, wildcardIndex ) );
 
-	return new PatternObserver( options.context || ractive, baseModel, keys.splice( wildcardIndex ), callback, options );
+	return new PatternObserver( ractive, baseModel, keys.splice( wildcardIndex ), callback, options );
 }
 
 class Observer {
-	constructor ( context, model, callback, options ) {
-		this.context = context;
+	constructor ( ractive, model, callback, options ) {
+		this.context = options.context || ractive;
 		this.model = model;
-		this.keypath = model.getKeypath();
+		this.keypath = model.getKeypath( ractive );
 		this.callback = callback;
 
 		this.oldValue = undefined;
@@ -128,14 +128,15 @@ class Observer {
 }
 
 class PatternObserver {
-	constructor ( context, baseModel, keys, callback, options ) {
-		this.context = context;
+	constructor ( ractive, baseModel, keys, callback, options ) {
+		this.context = options.context || ractive;
+		this.ractive = ractive;
 		this.baseModel = baseModel;
 		this.keys = keys;
 		this.callback = callback;
 
 		const pattern = keys.join( '\\.' ).replace( /\*/g, '(.+)' );
-		const baseKeypath = baseModel.getKeypath();
+		const baseKeypath = baseModel.getKeypath( ractive );
 		this.pattern = new RegExp( `^${baseKeypath ? baseKeypath + '\\.' : ''}${pattern}$` );
 
 		this.oldValues = {};
@@ -147,8 +148,10 @@ class PatternObserver {
 
 		this.dirty = false;
 
-		this.baseModel.findMatches( this.keys ).forEach( model => {
-			this.newValues[ model.getKeypath() ] = model.get();
+		const models = baseModel.findMatches( this.keys );
+
+		models.forEach( model => {
+			this.newValues[ model.getKeypath( this.ractive ) ] = model.get();
 		});
 
 		if ( options.init !== false ) {
@@ -157,7 +160,12 @@ class PatternObserver {
 			this.oldValues = this.newValues;
 		}
 
-		baseModel.register( this );
+		if ( baseModel.isRoot && keys.length === 1 && keys[0] === '*' ) {
+			models.forEach( model => model.register( this ) );
+		}
+		else {
+			baseModel.register( this );
+		}
 	}
 
 	cancel () {
@@ -188,7 +196,7 @@ class PatternObserver {
 	shuffle( newIndices ) {
 		if ( !isArray( this.baseModel.value ) ) return;
 
-		const base = this.baseModel.getKeypath();
+		const base = this.baseModel.getKeypath( this.ractive );
 		const max = this.baseModel.value.length;
 		const suffix = this.keys.length > 1 ? '.' + this.keys.slice( 1 ).join( '.' ) : '';
 
@@ -215,7 +223,7 @@ class PatternObserver {
 			// });
 
 			this.baseModel.findMatches( this.keys ).forEach( model => {
-				const keypath = model.getKeypath();
+				const keypath = model.getKeypath( this.ractive );
 				this.newValues[ keypath ] = model.get();
 			});
 
