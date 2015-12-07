@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Dec 07 2015 01:57:16 GMT+0000 (UTC) - commit 8c513f1ed12e9d7980fcedaa4b06eb0265218c49
+	Mon Dec 07 2015 22:02:13 GMT+0000 (UTC) - commit 53e0817b1115ba9cd6602b6c06989d2e650168b6
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2108,13 +2108,20 @@ var classCallCheck = function (instance, Constructor) {
   })();
 
   var KeypathModel = (function () {
-  	function KeypathModel(parent) {
+  	function KeypathModel(parent, ractive) {
   		classCallCheck(this, KeypathModel);
 
   		this.parent = parent;
-  		this.value = parent.getKeypath();
+  		this.ractive = ractive;
+  		this.value = ractive ? parent.getKeypath(ractive) : parent.getKeypath();
   		this.dependants = [];
+  		this.children = [];
   	}
+
+  	KeypathModel.prototype.addChild = function addChild(model) {
+  		this.children.push(model);
+  		model.owner = this;
+  	};
 
   	KeypathModel.prototype.get = function get() {
   		return this.value;
@@ -2125,12 +2132,25 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	KeypathModel.prototype.handleChange = function handleChange() {
-  		this.value = this.parent.getKeypath();
+  		this.value = this.ractive ? this.parent.getKeypath(this.ractive) : this.parent.getKeypath();
+  		if (this.ractive && this.owner) {
+  			this.ractive.viewmodel.keypathModels[this.owner.value] = this;
+  		}
+  		this.children.forEach(_handleChange);
   		this.dependants.forEach(_handleChange);
   	};
 
   	KeypathModel.prototype.register = function register(dependant) {
   		this.dependants.push(dependant);
+  	};
+
+  	KeypathModel.prototype.removeChild = function removeChild(model) {
+  		removeFromArray(this.children, model);
+  	};
+
+  	KeypathModel.prototype.teardown = function teardown() {
+  		if (this.owner) this.owner.removeChild(this);
+  		this.children.forEach(_teardown);
   	};
 
   	KeypathModel.prototype.unregister = function unregister(dependant) {
@@ -2418,13 +2438,37 @@ var classCallCheck = function (instance, Constructor) {
   		return new KeyModel(escapeKey(this.key));
   	};
 
-  	Model.prototype.getKeypathModel = function getKeypathModel() {
-  		return this.keypathModel || (this.keypathModel = new KeypathModel(this));
+  	Model.prototype.getKeypathModel = function getKeypathModel(ractive) {
+  		var keypath = this.getKeypath(),
+  		    model = this.keypathModel || (this.keypathModel = new KeypathModel(this));
+
+  		if (ractive && ractive.component) {
+  			var mapped = this.getKeypath(ractive);
+  			if (mapped !== keypath) {
+  				var map = ractive.viewmodel.keypathModels || (ractive.viewmodel.keypathModels = {});
+  				var child = map[keypath] || (map[keypath] = new KeypathModel(this, ractive));
+  				model.addChild(child);
+  				return child;
+  			}
+  		}
+
+  		return model;
   	};
 
-  	Model.prototype.getKeypath = function getKeypath() {
-  		// TODO keypaths inside components... tricky
-  		return this.parent.isRoot ? escapeKey(this.key) : this.parent.getKeypath() + '.' + escapeKey(this.key);
+  	Model.prototype.getKeypath = function getKeypath(ractive) {
+  		var root = this.parent.isRoot ? escapeKey(this.key) : this.parent.getKeypath() + '.' + escapeKey(this.key);
+
+  		if (ractive && ractive.component) {
+  			var map = ractive.viewmodel.mappings;
+  			for (var k in map) {
+  				if (root.indexOf(map[k].getKeypath()) >= 0) {
+  					root = root.replace(map[k].getKeypath(), k);
+  					break;
+  				}
+  			}
+  		}
+
+  		return root;
   	};
 
   	Model.prototype.has = function has(key) {
@@ -2581,6 +2625,11 @@ var classCallCheck = function (instance, Constructor) {
   	Model.prototype.teardown = function teardown() {
   		this.children.forEach(_teardown);
   		if (this.wrapper) this.wrapper.teardown();
+  		if (this.keypathModels) {
+  			for (var k in this.keypathModels) {
+  				this.keypathModels[k].teardown();
+  			}
+  		}
   	};
 
   	Model.prototype.unregister = function unregister(dependant) {
@@ -2640,7 +2689,8 @@ var classCallCheck = function (instance, Constructor) {
   	// special references
   	// TODO does `this` become `.` at parse time?
   	if (ref === '.' || ref === 'this') return context;
-  	if (ref === '@keypath') return context.getKeypathModel();
+  	if (ref === '@keypath') return context.getKeypathModel(fragment.ractive);
+  	if (ref === '@rootpath') return context.getKeypathModel();
   	if (ref === '@index') {
   		var repeater = fragment.findRepeatingFragment();
   		// make sure the found fragment is actually an iteration
@@ -5508,7 +5558,8 @@ var classCallCheck = function (instance, Constructor) {
 
   		// augment event object
   		if (event) {
-  			event.keypath = this.context.getKeypath();
+  			event.keypath = this.context.getKeypath(this.ractive);
+  			event.rootpath = this.context.getKeypath();
   			event.context = this.context.get();
   			event.index = this.parentFragment.indexRefs;
   		}
@@ -7544,7 +7595,8 @@ var classCallCheck = function (instance, Constructor) {
   				ractive: this.ractive,
   				fragment: this.parentFragment,
   				context: context,
-  				keypath: context.getKeypath()
+  				keypath: context.getKeypath(this.ractive),
+  				rootpath: context.getKeypath()
   			}
   		});
 
@@ -12116,7 +12168,8 @@ var classCallCheck = function (instance, Constructor) {
 
   	return {
   		ractive: storage.ractive,
-  		keypath: storage.context.getKeypath(),
+  		keypath: storage.keypath,
+  		rootpath: storage.rootpath,
   		index: extend({}, storage.fragment.indexRefs),
   		key: extend({}, storage.fragment.keyRefs)
   	};
