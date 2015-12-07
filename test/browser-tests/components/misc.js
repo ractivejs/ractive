@@ -901,6 +901,27 @@ test( 'component @keypath references should be relative to the component', t => 
 	t.htmlEqual( fixture.innerHTML, 'foo.bar' );
 });
 
+test( 'nested component @keypath references should be relative to the nested component', t => {
+	const cmp1 = Ractive.extend({
+		template: '{{#with foo.bar}}{{@keypath}}{{/with}} {{#with baz.notbat}}{{@keypath}}{{/with}}'
+	}),
+	cmp2 = Ractive.extend({
+		template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
+		components: { cmp1 }
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp2 baz="{{~/bop}}" />',
+		data: {
+			bop: { bat: { bar: 'yep' } }
+		},
+		components: { cmp2 }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foo.bar baz.notbat' );
+});
+
 test( 'component @rootpath references should be relative to the root', t => {
 	const cmp = Ractive.extend({
 		template: '{{#with foo.bar}}{{@rootpath}}{{/with}}'
