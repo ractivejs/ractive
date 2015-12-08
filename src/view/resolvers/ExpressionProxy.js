@@ -1,7 +1,7 @@
 import Model from '../../model/Model';
 import ComputationChild from '../../model/ComputationChild';
 import { handleChange, unbind } from '../../shared/methodCallers';
-import createFunction from '../../shared/createFunction';
+import getFunction from '../../shared/getFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
 
@@ -18,7 +18,7 @@ export default class ExpressionProxy extends Model {
 
 		this.isReadonly = true;
 
-		this.fn = createFunction( template.s, template.r.length );
+		this.fn = getFunction( template.s, template.r.length );
 		this.computation = null;
 
 		this.resolvers = [];
@@ -75,10 +75,12 @@ export default class ExpressionProxy extends Model {
 
 		this.computation = computation;
 		computation.register( this );
+
+		this.handleChange();
 	}
 
-	get () {
-		return this.computation.get();
+	get ( shouldCapture ) {
+		return this.computation.get( shouldCapture );
 	}
 
 	getKeypath () {

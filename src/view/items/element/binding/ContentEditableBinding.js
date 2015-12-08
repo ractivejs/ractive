@@ -6,6 +6,10 @@ export default class ContentEditableBinding extends Binding {
 		return this.element.fragment ? this.element.fragment.toString() : '';
 	}
 
+	getValue () {
+		return this.element.node.innerHTML;
+	}
+
 	render () {
 		super.render();
 
@@ -23,6 +27,10 @@ export default class ContentEditableBinding extends Binding {
 		}
 	}
 
+	setFromNode ( node ) {
+		this.model.set( node.innerHTML );
+	}
+
 	unrender () {
 		const node = this.node;
 
@@ -30,9 +38,5 @@ export default class ContentEditableBinding extends Binding {
 		node.removeEventListener( 'change', handleDomEvent, false );
 		node.removeEventListener( 'input', handleDomEvent, false );
 		node.removeEventListener( 'keyup', handleDomEvent, false );
-	}
-
-	getValue () {
-		return this.element.node.innerHTML;
 	}
 }

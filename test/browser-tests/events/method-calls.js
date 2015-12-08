@@ -174,6 +174,45 @@ test( 'component "on-" with ...arguments', t => {
 	component.fire( 'bar', 'bar', 100 );
 });
 
+test( 'component ...arguments must be last argument', t => {
+	t.throws( () => {
+		new Ractive({
+			template: `<c on-foo="foo(...arguments, 'arg after spread')"/>`
+		});
+	}, /Expected a property name/);
+
+
+});
+
+test( 'component "on-" with additive ...arguments', t => {
+	t.expect( 7 );
+
+	const Component = Ractive.extend({
+		template: `<span id="test" on-click="foo:'foo', 42">click me</span>`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `<Component on-foo="foo('fooarg', ...arguments)" on-bar="bar('bararg', ...arguments)"/>`,
+		components: { Component },
+		foo ( arg1, e, arg2, arg3 ) {
+			t.equal( arg1, 'fooarg' );
+			t.equal( e.original.type, 'click' );
+			t.equal( arg2, 'foo' );
+			t.equal( arg3, 42 );
+		},
+		bar ( arg1, arg2, arg3 ) {
+			t.equal( arg1, 'bararg' );
+			t.equal( arg2, 'bar' );
+			t.equal( arg3, 100 );
+		}
+	});
+
+	const component = ractive.findComponent( 'Component' );
+	fire( component.nodes.test, 'click' );
+	component.fire( 'bar', 'bar', 100 );
+});
+
 test( 'component "on-" with arguments[n]', t => {
 	t.expect( 5 );
 
@@ -183,7 +222,7 @@ test( 'component "on-" with arguments[n]', t => {
 
 	const ractive = new Ractive({
 		el: fixture,
-		template: '<Component on-foo="foo(arguments[2], \'qux\', arguments[0])" on-bar="bar(arguments[0], 100)"/>',
+		template: `<Component on-foo="foo(arguments[2], 'qux', arguments[0])" on-bar="bar(arguments[0], 100)"/>`,
 		components: { Component },
 		foo ( arg1, arg2, arg3 ) {
 			t.equal( arg1, 42 );
@@ -226,4 +265,52 @@ test( 'component "on-" with $n', t => {
 	const component = ractive.findComponent( 'Component' );
 	fire( component.nodes.test, 'click' );
 	component.fire( 'bar', 'bar' );
+});
+
+
+test( 'preventDefault and stopPropagation if method returns false', t => {
+	t.expect( 6 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<span id="return_false" on-click="returnFalse()">click me</span>
+			<span id="return_undefined" on-click="returnUndefined()">click me</span>
+			<span id="return_zero" on-click="returnZero()">click me</span>`,
+
+		returnFalse () {
+			t.ok( true );
+			mockOriginalEvent( this.event.original );
+			return false;
+		},
+
+		returnUndefined () {
+			t.ok( true );
+			mockOriginalEvent( this.event.original );
+		},
+
+		returnZero () {
+			t.ok( true );
+			mockOriginalEvent( this.event.original );
+			return 0;
+		}
+	});
+
+	let preventedDefault = false;
+	let stoppedPropagation = false;
+
+	function mockOriginalEvent ( original ) {
+		preventedDefault = stoppedPropagation = false;
+		original.preventDefault = () => preventedDefault = true;
+		original.stopPropagation = () => stoppedPropagation = true;
+	}
+
+	fire( ractive.nodes.return_false, 'click' );
+	t.ok( preventedDefault && stoppedPropagation );
+
+	fire( ractive.nodes.return_undefined, 'click' );
+	t.ok( !preventedDefault && !stoppedPropagation );
+
+	fire( ractive.nodes.return_zero, 'click' );
+	t.ok( !preventedDefault && !stoppedPropagation );
 });

@@ -7,7 +7,7 @@ import handleDomEvent from './handleDomEvent';
 const push = [].push;
 
 function getValue() {
-	const all = this.bindings.filter(b => b.node.checked).map(b => b.element.getAttribute( 'value' ));
+	const all = this.bindings.filter(b => b.node && b.node.checked).map(b => b.element.getAttribute( 'value' ));
 	let res = [];
 	all.forEach(v => { if ( !arrayContains( res, v ) ) res.push( v ); });
 	return res;
@@ -61,7 +61,7 @@ export default class CheckboxNameBinding extends Binding {
 		// and populate it using any `checked` attributes that
 		// exist (which users should avoid, but which we should
 		// support anyway to avoid breaking expectations)
-		this.noInitialValue = true;
+		this.noInitialValue = true; // TODO are noInitialValue and wasUndefined the same thing?
 		return [];
 	}
 
@@ -103,6 +103,17 @@ export default class CheckboxNameBinding extends Binding {
 		// in case of IE emergency, bind to click event as well
 		if ( node.attachEvent ) {
 			node.addEventListener( 'click', handleDomEvent, false );
+		}
+	}
+
+	setFromNode ( node ) {
+		this.group.bindings.forEach( binding => binding.wasUndefined = true );
+
+		if ( node.checked ) {
+			const valueSoFar = this.group.getValue();
+			valueSoFar.push( this.element.getAttribute( 'value' ) );
+
+			this.group.model.set( valueSoFar );
 		}
 	}
 

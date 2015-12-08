@@ -416,6 +416,7 @@ test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{
 test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
 	const ractive = new Ractive({
 		el: fixture,
+		data: { qux: { foo: {} } },
 		template: `
 			{{#with qux}}
 				<One foo='{{foo}}'/>
@@ -427,7 +428,6 @@ test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo
 		}
 	});
 
-	ractive.set( 'qux.foo', {} );
 	t.htmlEqual( fixture.innerHTML, '<p></p><p></p>' );
 
 	ractive.findComponent( 'One' ).set( 'foo.bar', 'baz' );
@@ -635,6 +635,7 @@ test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
 		el: fixture,
 		template: '<List items="{{sorted_items}}"/>',
 		components: { List },
+		data: () => ({ items: [] }),
 		computed: {
 			sorted_items () {
 				return this.get( 'items' ).slice().sort( ( a, b ) => a.rank - b.rank );
@@ -1096,4 +1097,45 @@ test( 'components should update their mappings on rebind to prevent weirdness wi
 	ractive.splice( 's3', 2, 1 );
 	t.deepEqual( ractive.get( 's3' ), [ { value: 1 }, { value: 2 } ] );
 	t.htmlEqual( ractive.find( '#s3' ).innerHTML, '12' );
+});
+
+test( 'Interpolators based on computed mappings update correctly #2261)', t => {
+	const Component = Ractive.extend({
+		template: `{{active ? "active" : "inactive"}}`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<Component active="{{tab == 'foo'}}"/>
+			<Component active="{{tab == 'bar'}}"/>`,
+		data: {
+			tab: 'foo'
+		},
+		components: { Component }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'active inactive' );
+	ractive.set( 'tab', 'bar' );
+	t.htmlEqual( fixture.innerHTML, 'inactive active' );
+});
+
+test( 'root references inside a component should resolve to the component', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}{{~/test}}{{/with}}',
+		data: function() {
+			return { test: 'yep' };
+		}
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{baz.bat}}" />',
+		components: { cmp },
+		data: {
+			baz: { bat: 'nope' }
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
 });

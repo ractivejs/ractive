@@ -489,6 +489,8 @@ test( 'oninit() only fires once on a component (#943 #927), oncomplete fires eac
 test( 'Double teardown is handled gracefully (#1218)', t => {
 	t.expect( 0 );
 
+	onWarn( () => {} ); // suppress
+
 	const Widget = Ractive.extend({
 		template: '<p>foo: {{foo}}</p>'
 	});
@@ -510,6 +512,8 @@ test( 'Double teardown is handled gracefully (#1218)', t => {
 });
 
 test( 'component.teardown() causes component to be removed from the DOM (#1223)', t => {
+	onWarn( () => {} ); // suppress
+
 	const Widget = Ractive.extend({
 		template: '<p>I am here!</p>'
 	});
@@ -567,6 +571,8 @@ test( 'Decorators and transitions are only initialised post-render, when compone
 });
 
 test( 'Data is synced as soon as an unresolved mapping is resolved', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '<Outer/>',
@@ -689,6 +695,8 @@ test( 'Multiple components two-way binding', t => {
 });
 
 test( 'Explicit mappings with uninitialised data', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '<Foo/>',
@@ -719,6 +727,8 @@ test( 'Implicit mappings with uninitialised data', t => {
 });
 
 test( 'Two-way bindings on an unresolved key can force resolution', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#context}}<Foo value="{{value}}" />{{/}}',
@@ -733,6 +743,8 @@ test( 'Two-way bindings on an unresolved key can force resolution', t => {
 });
 
 test( 'Component mappings used in computations resolve correctly with the mapping (#1645)', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '<C1/>',
@@ -770,6 +782,8 @@ test( 'Component attributes with an empty string come back with an empty string'
 
 test( 'Unresolved keypath can be safely torn down', t => {
 	t.expect( 0 );
+
+	onWarn( () => {} ); // suppress
 
 	const ractive = new Ractive({
 		el: fixture,
@@ -868,4 +882,110 @@ test( 'component w/ empty select/option value does not throw (#2139)', t => {
 	});
 
 	ractive.set('persons', [{}]);
+});
+
+test( 'component @keypath references should be relative to the component', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{baz.bat}}" />',
+		data: {
+			baz: { bat: { bar: 'yep' } }
+		},
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foo.bar' );
+});
+
+test( 'nested component @keypath references should be relative to the nested component', t => {
+	const cmp1 = Ractive.extend({
+		template: '{{#with foo.bar}}{{@keypath}}{{/with}} {{#with baz.notbat}}{{@keypath}}{{/with}}'
+	}),
+	cmp2 = Ractive.extend({
+		template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
+		components: { cmp1 }
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp2 baz="{{~/bop}}" />',
+		data: {
+			bop: { bat: { bar: 'yep' } }
+		},
+		components: { cmp2 }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foo.bar baz.notbat' );
+});
+
+test( 'component @rootpath references should be relative to the root', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}{{@rootpath}}{{/with}}'
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{baz.bat}}" />',
+		data: {
+			baz: { bat: { bar: 'yep' } }
+		},
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'baz.bat.bar' );
+});
+
+test( 'component @keypath references should shuffle correctly', t => {
+	const cmp = Ractive.extend({
+		template: `{{#with foo.bar}}{{.}} {{@keypath}} {{@rootpath}} {{#each ../list}}{{@keypath}}|{{/each}}{{/with}}`
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items as item}}<cmp foo="{{item.baz}}" />{{/each}}',
+		data: {
+			items: [ { baz: { bar: 1, list: [] } } ],
+			flag: false
+		},
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '1 foo.bar items.0.baz.bar' );
+
+	r.unshift( 'items', { baz: { bar: 2, list: [] } } );
+	t.htmlEqual( fixture.innerHTML, '2 foo.bar items.0.baz.bar 1 foo.bar items.1.baz.bar' );
+
+	r.push( 'items.1.baz.list', 1 );
+	r.unshift( 'items.1.baz.list', 2 );
+	t.htmlEqual( fixture.innerHTML, '2 foo.bar items.0.baz.bar 1 foo.bar items.1.baz.bar foo.list.0|foo.list.1|' );
+
+	r.push( 'items.0.baz.list', 1 );
+	r.unshift( 'items.0.baz.list', 2 );
+	t.htmlEqual( fixture.innerHTML, '2 foo.bar items.0.baz.bar foo.list.0|foo.list.1|1 foo.bar items.1.baz.bar foo.list.0|foo.list.1|' );
+});
+
+test( 'component dom has correct keypaths in node info', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}<inner />{{/with}}'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#with baz}}<outer /><cmp foo="{{.bat}}" />{{/with}}',
+		data: {
+			baz: { bat: { bar: 'yep' } }
+		},
+		components: { cmp }
+	});
+
+	const outer = Ractive.getNodeInfo ( r.find( 'outer' ) ), inner = Ractive.getNodeInfo( r.find( 'inner' ) );
+
+	t.equal( outer.keypath, 'baz' );
+	t.equal( outer.rootpath, 'baz' );
+	t.equal( inner.keypath, 'foo.bar' );
+	t.equal( inner.rootpath, 'baz.bat.bar' );
 });

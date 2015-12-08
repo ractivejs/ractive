@@ -7,8 +7,8 @@ export default class Form extends Element {
 		this.formBindings = [];
 	}
 
-	render ( target ) {
-		super.render( target );
+	render ( target, occupants ) {
+		super.render( target, occupants );
 		this.node.addEventListener( 'reset', handleReset, false );
 	}
 

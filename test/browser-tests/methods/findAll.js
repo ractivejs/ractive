@@ -58,3 +58,13 @@ test( 'Nodes belonging to components are removed from live queries when those co
 		t.equal( divs.length, length );
 	});
 });
+
+test( 'ractive.findAll() throws error if instance is unrendered (#2008)', t => {
+	const ractive = new Ractive({
+		template: '<p>unrendered</p>'
+	});
+
+	t.throws( () => {
+		ractive.findAll( 'p' );
+	}, /Cannot call ractive\.findAll\('p', \.\.\.\) unless instance is rendered to the DOM/ );
+});

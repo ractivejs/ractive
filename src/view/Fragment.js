@@ -1,4 +1,4 @@
-import { ELEMENT } from '../config/types';
+import { ELEMENT, YIELDER } from '../config/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';
@@ -173,7 +173,11 @@ export default class Fragment {
 				return fragment.ractive.el;
 			}
 
-			fragment = fragment.componentParent || fragment.parent; // TODO ugh
+			if ( fragment.owner.type === YIELDER ) {
+				fragment = fragment.owner.containerFragment;
+			} else {
+				fragment = fragment.componentParent || fragment.parent; // TODO ugh
+			}
 		} while ( fragment );
 
 		throw new Error( 'Could not find parent node' ); // TODO link to issue tracker
@@ -190,7 +194,15 @@ export default class Fragment {
 	}
 
 	firstNode () {
-		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode( this.owner );
+		let node;
+		for ( let i = 0; i < this.items.length; i++ ) {
+			node = this.items[i].firstNode();
+
+			if ( node ) {
+				return node;
+			}
+		}
+		return this.parent.findNextNode( this.owner );
 	}
 
 	// TODO ideally, this would be deprecated in favour of an
@@ -217,11 +229,11 @@ export default class Fragment {
 		this.items.forEach( rebind );
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 		this.rendered = true;
 
-		this.items.forEach( item => item.render( target ) );
+		this.items.forEach( item => item.render( target, occupants ) );
 	}
 
 	resetTemplate ( template ) {

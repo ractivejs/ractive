@@ -42,6 +42,13 @@ export default class Yielder extends Item {
 		}).bind();
 	}
 
+	bubble () {
+		if ( !this.dirty ) {
+			this.containerFragment.bubble();
+			this.dirty = true;
+		}
+	}
+
 	detach () {
 		return this.fragment.detach();
 	}
@@ -62,16 +69,20 @@ export default class Yielder extends Item {
 		this.fragment.findAllComponents( name, queryResult );
 	}
 
+	findNextNode() {
+		return this.containerFragment.findNextNode( this );
+	}
+
 	firstNode () {
 		return this.fragment.firstNode();
 	}
 
 	rebind () {
-		throw new Error( 'Yielder$rebind is not yet implemented!' );
+		this.fragment.rebind();
 	}
 
-	render ( target ) {
-		return this.fragment.render( target );
+	render ( target, occupants ) {
+		return this.fragment.render( target, occupants );
 	}
 
 	setTemplate ( name ) {
@@ -99,5 +110,6 @@ export default class Yielder extends Item {
 
 	update () {
 		this.fragment.update();
+		this.dirty = false;
 	}
 }

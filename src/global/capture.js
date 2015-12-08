@@ -6,7 +6,9 @@ export function startCapturing () {
 }
 
 export function stopCapturing () {
-	return stack.pop();
+	const dependencies = stack.pop();
+	captureGroup = stack[ stack.length - 1 ];
+	return dependencies;
 }
 
 export function capture ( model ) {

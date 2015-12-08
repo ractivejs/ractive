@@ -189,9 +189,7 @@ test( 'resetTemplate removes an inline component from the DOM (#928)', t => {
 		},
 		components: {
 			Widget: Ractive.extend({
-				template ( data ) {
-					return data.type === 1 ? 'ONE' : 'TWO';
-				},
+				template: 'ONE',
 				oninit () {
 					this.observe( 'type', type => {
 						this.resetTemplate( type === 1 ? 'ONE' : 'TWO' );
@@ -201,6 +199,7 @@ test( 'resetTemplate removes an inline component from the DOM (#928)', t => {
 		}
 	});
 
+	t.htmlEqual( fixture.innerHTML, 'ONE' );
 	ractive.set( 'type', 2 );
 	t.htmlEqual( fixture.innerHTML, 'TWO' );
 });

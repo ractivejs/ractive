@@ -36,7 +36,7 @@ export default class ConditionalAttribute extends Item {
 	}
 
 	rebind () {
-		throw new Error( 'ConditionalAttribute$rebind is not yet implemented' ); // TODO test
+		this.fragment.rebind();
 	}
 
 	render () {

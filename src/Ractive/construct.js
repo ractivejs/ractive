@@ -142,6 +142,9 @@ function initialiseProperties ( ractive ) {
 	// observers
 	ractive._observers = [];
 
+	// links
+	ractive._links = {};
+
 	if(!ractive.component){
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null; // TODO container still applicable?

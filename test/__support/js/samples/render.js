@@ -803,6 +803,22 @@ const renderTests = [
 		result: '<div class="falsey"></div>'
 	},
 	{
+		name: '#if/else with empty array',
+		template: '{{#if list}}yep{{else}}nope{{/if}}',
+		data: { list: [] },
+		result: 'nope',
+		new_data: { list: [ 1 ] },
+		new_result: 'yep'
+	},
+	{
+		name: '#if/else with empty object',
+		template: '{{#if obj}}yep{{else}}nope{{/if}}',
+		data: { obj: {} },
+		result: 'nope',
+		new_data: { obj: { yep: true } },
+		new_result: 'yep'
+	},
+	{
 		name: 'Restricting references with `this`',
 		template: '{{#foo}}{{this.bar}}{{/foo}}',
 		data: { foo: {}, bar: 'fail' },
@@ -1174,6 +1190,18 @@ const renderTests = [
 		result: '<pre>\tfoo\n\t</pre><textarea>\tfoo\r\t</textarea>'
 	},
 	{
+		name: 'An array ref can go from null to set in a generic section and still work (#2178)',
+		template: '{{#foo}}{{.}}{{/foo}}',
+		data: { foo: null },
+		result: '',
+		steps: [
+			{
+				data: { foo: [ 1, 2, 3 ] },
+				result: '123'
+			}
+		]
+	},
+	{
 		name: 'Model should be able to properly resolve class instances as context',
 		template: '<div class="{{prototypeProperty}}"></div>{{#items}}<div class="{{prototypeProperty}}"></div>{{/items}}',
 		data () {
@@ -1192,21 +1220,93 @@ const renderTests = [
 	},
 	{
 		name: `Escaped '.'s in keypaths`,
-		template: `{{foo\\.bar}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
-		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
-		result: '123'
+		template: `{{foo\\.bar\\.baz}}{{foo.bar\\.baz}}{{foo.bar.baz}}`,
+		data: { 'foo.bar.baz': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
+		result: '123',
+		new_data: { 'foo\\.bar\\.baz': 3 },
+		new_result: '323'
 	},
 	{
 		name: `Escaped '.'s in refined keypaths`,
 		template: `{{.['foo.bar']}}{{foo['bar.baz']}}{{foo['bar']['baz']}}`,
 		data: { 'foo.bar': 1, foo: { 'bar.baz': 2, bar: { baz: 3 } } },
-		result: '123'
+		result: '123',
+		new_data: { 'foo\\.bar': 3 },
+		new_result: '323'
 	},
 	{
 		name: `Escaped '.'s in reference expressions`,
 		template: `{{foo[key]}}`,
 		data: { foo: { 'bar.baz': 'yep' }, key: 'bar.baz' },
-		result: 'yep'
+		result: 'yep',
+		new_data: { 'foo.bar\\.baz': 'nope' },
+		new_result: 'nope'
+	},
+	{
+		name: 'Rendering order of repeated section with complex condition (#2204)',
+		template: `
+			<div>
+				{{#each fields :n}}
+					{{#if n === 0 && foo }}
+						{{this}}
+					{{else}}
+						{{this}}
+					{{/if}}
+				{{/each}}
+			</div>
+		`,
+		data: {
+			fields: [ 'x', 'y' ],
+			foo: true
+		},
+		result: '<div>xy</div>',
+		new_data: {
+			fields: [ 'x', 'y' ],
+			foo: false
+		},
+		new_result: '<div>xy</div>'
+	},
+	{
+		name: 'Boolean attributes are set using setAttribute() if needed (#2201)',
+		template: `<div itemscope="{{foo}}"></div>`,
+		data: { foo: true },
+		result: '<div itemscope=""></div>',
+		new_data: { foo: false },
+		new_result: '<div></div>'
+	},
+	{
+		name: '`undefined` and `null` can be used as object keys (#1878)',
+		template: `{{dict[null]}}, {{dict[undefined]}}`,
+		data: {
+			dict: {
+				null: 'null value',
+				undefined: 'undefined value'
+			}
+		},
+		result: 'null value, undefined value'
+	},
+	{
+		name: 'HTML entities inside <textarea> are decoded (#2218)',
+		template: '<textarea>&acute;&eacute;</textarea>',
+		result: '<textarea>´é</textarea>'
+	},
+	{
+		name: '`name` attribute is interpolated if input isn\'t a radio button (#2230)',
+		template: '<input name="{{name}}">',
+		data: { name: 'foo' },
+		result: '<input name="foo">'
+	},
+	{
+		name: 'Object, Boolean, String, Number are available in templates',
+		template: '{{Object.keys(foo)}} {{Boolean(1)}} {{String(42)[0]}} {{Number("42").toFixed(1)}}',
+		data: { foo: { a: 1, b: 2 } },
+		result: 'a,b true 4 42.0'
+	},
+	{
+		name: 'keyword reference',
+		template: '{{new}}',
+		data: { new: 'old' },
+		result: 'old'
 	}
 ];
 

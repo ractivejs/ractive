@@ -241,8 +241,8 @@ export default class Component extends Item {
 		this.instance.fragment.rebind( viewmodel );
 	}
 
-	render ( target ) {
-		render( this.instance, target, null );
+	render ( target, occupants ) {
+		render( this.instance, target, null, occupants );
 
 		this.checkYielders();
 		this.eventHandlers.forEach( callRender );
@@ -282,6 +282,8 @@ export default class Component extends Item {
 		if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
 			removeFromArray( instance.el.__ractive_instances__, instance );
 		}
+
+		Object.keys( instance._links ).forEach( k => instance._links[k].unlink() );
 
 		teardownHook.fire( instance );
 	}

@@ -23,6 +23,7 @@ export default class Section extends Mustache {
 		super( options );
 
 		this.sectionType = options.template.n || null;
+		this.templateSectionType = this.sectionType;
 		this.fragment = null;
 	}
 
@@ -31,52 +32,9 @@ export default class Section extends Mustache {
 
 		// if we managed to bind, we need to create children
 		if ( this.model ) {
-			const value = this.model.parent ? this.model.get() : this.model.value;
-			let fragment;
-
-			if ( !this.sectionType ) this.sectionType = getType( value, this.template.i );
-
-			if ( isEmpty( value ) && this.sectionType !== SECTION_WITH ) { // TODO again, WITH should not render if empty
-				if ( this.sectionType === SECTION_UNLESS ) {
-					this.fragment = new Fragment({
-						owner: this,
-						template: this.template.f
-					}).bind();
-				}
-
-				// otherwise, create no children
-				return;
-			}
-
-			if ( this.sectionType === SECTION_UNLESS ) return;
-
-			if ( this.sectionType === SECTION_IF ) {
-				fragment = new Fragment({
-					owner: this,
-					template: this.template.f
-				}).bind();
-			}
-
-			// TODO should only be WITH, and it should behave like IF_WITH
-			else if ( this.sectionType === SECTION_WITH || this.sectionType === SECTION_IF_WITH ) {
-				fragment = new Fragment({
-					owner: this,
-					template: this.template.f
-				}).bind( this.model );
-			}
-
-			else {
-				fragment = new RepeatedFragment({
-					owner: this,
-					template: this.template.f,
-					indexRef: this.template.i
-				}).bind( this.model );
-			}
-
-
-			this.fragment = fragment;
-		}
-		else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
+			this.dirty = true;
+			this.update();
+		} else if (this.sectionType && this.sectionType === SECTION_UNLESS) {
 			this.fragment = new Fragment({
 				owner: this,
 				template: this.template.f
@@ -124,9 +82,9 @@ export default class Section extends Mustache {
 		}
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		this.rendered = true;
-		if ( this.fragment ) this.fragment.render( target );
+		if ( this.fragment ) this.fragment.render( target, occupants );
 	}
 
 	shuffle ( newIndices ) {
@@ -149,14 +107,22 @@ export default class Section extends Mustache {
 		this.rendered = false;
 	}
 
-	// TODO DRY this out - lot of repeated stuff between this and bind()
 	update () {
 		if ( !this.dirty ) return;
-		if ( !this.model ) return; // TODO can this happen?
+		if ( !this.model && this.sectionType !== SECTION_UNLESS ) return;
 
-		const value = this.model.get();
+		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
+		const lastType = this.sectionType;
 
-		if ( this.sectionType === null ) this.sectionType = getType( value, this.template.i );
+		// watch for switching section types
+		if ( this.sectionType === null || this.templateSectionType === null ) this.sectionType = getType( value, this.template.i );
+		if ( lastType && lastType !== this.sectionType && this.fragment ) {
+			if ( this.rendered ) {
+				this.fragment.unbind().unrender( true );
+			}
+
+			this.fragment = null;
+		}
 
 		let newFragment;
 
@@ -205,7 +171,7 @@ export default class Section extends Mustache {
 		}
 
 		else {
-			const fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value;
+			const fragmentShouldExist = this.sectionType === SECTION_UNLESS ? isEmpty( value ) : !!value && !isEmpty( value );
 
 			if ( this.fragment ) {
 				if ( fragmentShouldExist ) {

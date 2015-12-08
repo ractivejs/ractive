@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { onWarn } from 'test-config';
 
 // MUSTACHE SPEC COMPLIANCE TESTS
 // ==============================
@@ -1191,6 +1192,10 @@ testModules.forEach( theModule => {
 		if ( theTest.unpassable || ( isOldIe && theTest.oldIe ) ) return;
 
 		test( `[${theModule.name}] ${theTest.name}`, t => {
+			onWarn( msg => {
+				t.ok( /Could not find template/.test( msg ) ); // only warning that should appear
+			});
+
 			new Ractive({
 				el: fixture,
 				template: theTest.template,

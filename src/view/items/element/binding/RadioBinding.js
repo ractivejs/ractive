@@ -41,6 +41,10 @@ export default class RadioBinding extends Binding {
 		}
 	}
 
+	setFromNode ( node ) {
+		this.model.set( node.checked );
+	}
+
 	unbind () {
 		removeFromArray( this.siblings, this );
 	}

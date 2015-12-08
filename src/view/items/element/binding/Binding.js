@@ -52,6 +52,7 @@ export default class Binding {
 
 		// initialise value, if it's undefined
 		let value = model.get();
+		this.wasUndefined = value === undefined;
 
 		if ( value === undefined && this.getInitialValue ) {
 			value = this.getInitialValue();
@@ -88,6 +89,10 @@ export default class Binding {
 		this.node = this.element.node;
 		this.node._ractive.binding = this;
 		this.rendered = true; // TODO is this used anywhere?
+	}
+
+	setFromNode ( node ) {
+		this.model.set( node.value );
 	}
 
 	unbind () {

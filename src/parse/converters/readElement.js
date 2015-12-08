@@ -177,6 +177,14 @@ function readElement ( parser ) {
 			pos = parser.pos;
 			remaining = parser.remaining();
 
+			if ( !remaining ) {
+				parser.error( `Missing end ${
+					parser.elementStack.length > 1 ? 'tags' : 'tag'
+				} (${
+					parser.elementStack.reverse().map( x => `</${x}>` ).join( '' )
+				})` );
+			}
+
 			// if for example we're in an <li> element, and we see another
 			// <li> tag, close the first so they become siblings
 			if ( !canContain( lowerCaseName, remaining ) ) {

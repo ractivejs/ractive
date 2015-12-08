@@ -1,20 +1,30 @@
 import { INTERPOLATOR } from '../../../config/types';
-import { html } from '../../../config/namespaces';
+import namespaces from '../../../config/namespaces';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
-import determineNameAndNamespace from './attribute/determineNameAndNamespace';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { isArray } from '../../../utils/is';
 import { safeToStringValue } from '../../../utils/dom';
 import { booleanAttributes } from '../../../utils/html';
 
+function lookupNamespace ( node, prefix ) {
+	const qualified = `xmlns:${prefix}`;
+
+	while ( node ) {
+		if ( node.hasAttribute( qualified ) ) return node.getAttribute( qualified );
+		node = node.parentNode;
+	}
+
+	return namespaces[ prefix ];
+}
+
 export default class Attribute extends Item {
 	constructor ( options ) {
 		super( options );
 
-		determineNameAndNamespace( this, options.name );
-
+		this.name = options.name;
+		this.namespace = null;
 		this.element = options.element;
 		this.parentFragment = options.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
@@ -77,21 +87,30 @@ export default class Attribute extends Item {
 		this.node = node;
 
 		// should we use direct property access, or setAttribute?
-		if ( !node.namespaceURI || node.namespaceURI === html ) {
-			const propertyName = propertyNames[ this.name ] || this.name;
+		if ( !node.namespaceURI || node.namespaceURI === namespaces.html ) {
+			this.propertyName = propertyNames[ this.name ] || this.name;
 
-			if ( node[ propertyName ] !== undefined ) {
-				this.propertyName = propertyName;
+			if ( node[ this.propertyName ] !== undefined ) {
+				this.useProperty = true;
 			}
 
 			// is attribute a boolean attribute or 'value'? If so we're better off doing e.g.
 			// node.selected = true rather than node.setAttribute( 'selected', '' )
 			if ( booleanAttributes.test( this.name ) || this.isTwoway ) {
-				this.useProperty = true;
+				this.isBoolean = true;
 			}
 
-			if ( propertyName === 'value' ) {
+			if ( this.propertyName === 'value' ) {
 				node._ractive.value = this.value;
+			}
+		}
+
+		if ( node.namespaceURI ) {
+			const index = this.name.indexOf( ':' );
+			if ( index !== -1 ) {
+				this.namespace = lookupNamespace( node, this.name.slice( 0, index ) );
+			} else {
+				this.namespace = node.namespaceURI;
 			}
 		}
 
@@ -109,7 +128,7 @@ export default class Attribute extends Item {
 		}
 
 		// Special case – bound radio `name` attributes
-		if ( this.name === 'name' && this.element.name === 'input' && this.interpolator ) {
+		if ( this.name === 'name' && this.element.name === 'input' && this.interpolator && this.element.getAttribute( 'type' ) === 'radio' ) {
 			return `name="{{${this.interpolator.model.getKeypath()}}}"`;
 		}
 

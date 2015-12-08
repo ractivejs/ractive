@@ -1,7 +1,7 @@
 import Query from './shared/Query';
 
 export default function Ractive$findAll ( selector, options ) {
-	if ( !this.el ) return [];
+	if ( !this.el ) throw new Error( `Cannot call ractive.findAll('${selector}', ...) unless instance is rendered to the DOM` );
 
 	options = options || {};
 	let liveQueries = this._liveQueries;

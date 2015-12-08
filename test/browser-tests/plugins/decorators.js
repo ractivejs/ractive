@@ -1,4 +1,6 @@
 import { test } from 'qunit';
+import { hasUsableConsole, onWarn } from 'test-config';
+
 
 test( 'Basic decorator', t => {
 	new Ractive({
@@ -20,6 +22,21 @@ test( 'Basic decorator', t => {
 
 	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
 });
+
+if ( hasUsableConsole ) {
+	test( 'Missing decorator', t => {
+		t.expect( 1 );
+
+		onWarn( msg => {
+			t.ok( /Missing "foo" decorator plugin/.test( msg ) );
+		});
+
+		new Ractive({
+			el: fixture,
+			template: '<div decorator="foo">missing</div>',
+		});
+	});
+}
 
 test( 'Decorator with a static argument', t => {
 	new Ractive({
@@ -90,6 +107,8 @@ test( 'Decorator with a dynamic argument that changes, without update() method',
 	t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 	ractive.set( 'foo', 'qux' );
 	t.htmlEqual( fixture.innerHTML, '<div>qux</div>' );
+	ractive.set( 'foo', 'bar' );
+	t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 });
 
 test( 'Decorator with a dynamic argument that changes, with update() method', t => {
@@ -119,6 +138,8 @@ test( 'Decorator with a dynamic argument that changes, with update() method', t 
 	t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 	ractive.set( 'foo', 'qux' );
 	t.htmlEqual( fixture.innerHTML, '<div>qux</div>' );
+	ractive.set( 'foo', 'bar' );
+	t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 });
 
 if ( Ractive.magic ) {
@@ -181,6 +202,8 @@ test( 'Unnecessary whitespace is trimmed (#810)', t => {
 });
 
 test( 'Rebinding causes decorators to update, if arguments are index references', t => {
+	t.expect(1);
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#each letters :i}}<p decorator="check:{{i}}"></p>{{/each}}',
@@ -204,6 +227,9 @@ test( 'Rebinding causes decorators to update, if arguments are index references'
 });
 
 test( 'Rebinding safe if decorators have no arguments', t => {
+	// second time is for teardown
+	t.expect(2);
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#each letters :i}}<p decorator="whatever"></p>{{/each}}',
@@ -250,6 +276,8 @@ test( 'Teardown before init should work', t => {
 
 
 test( 'Dynamic and empty dynamic decorator and empty', t => {
+	onWarn( msg => t.ok( /Missing "" decorator plugin/.test( msg ) ) );
+
 	const ractive = new Ractive({
 		el: fixture,
 		debug: true,
@@ -262,6 +290,10 @@ test( 'Dynamic and empty dynamic decorator and empty', t => {
 			test ( node ) {
 				node.innerHTML = 'pass';
 				return { teardown () {} };
+			},
+			test2 ( node ) {
+				node.innerHTML = 'pass2';
+				return { teardown () {} };
 			}
 		}
 	});
@@ -271,6 +303,8 @@ test( 'Dynamic and empty dynamic decorator and empty', t => {
 	ractive.set( 'foo', 'test' );
 	ractive.set( 'x', true );
 	t.htmlEqual( fixture.innerHTML, '<div>pass</div>' );
+	ractive.set( 'foo', 'test2' );
+	t.htmlEqual( fixture.innerHTML, '<div>pass2</div>' );
 });
 
 test( 'Decorator teardown should happen after outros have completed (#1481)', t => {
@@ -320,4 +354,22 @@ test( 'Decorator teardown should happen after outros have completed (#1481)', t 
 	});
 
 	t.equal( div.style.color, 'red' );
+});
+
+test( 'Decorators can have their parameters change before they are rendered (#2278)', t => {
+	t.expect( 0 );
+
+	const dec = () => ({ teardown() {} });
+
+	new Ractive({
+		el: fixture,
+		decorators: { dec },
+		template: '<div decorator="dec:{{foo}}" />',
+		data: {
+			foo: 1
+		},
+		oninit() {
+			this.set( 'foo', 2 );
+		}
+	});
 });

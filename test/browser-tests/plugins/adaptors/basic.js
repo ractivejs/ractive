@@ -1,6 +1,7 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
 import Model from 'helpers/Model';
+import { onWarn } from 'test-config';
 
 const adaptor = Model.adaptor;
 
@@ -59,6 +60,8 @@ test( 'Adaptors can change data as it is .set() (#442)', t => {
 });
 
 test( 'ractive.reset() calls are forwarded to wrappers if the root data object is wrapped', t => {
+	onWarn( msg => t.ok( /plain JavaScript object/.test( msg ) ) );
+
 	let model = new Model({
 		foo: 'BAR',
 		unwanted: 'here'

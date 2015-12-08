@@ -6,7 +6,7 @@ var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
 	keywords;
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
-globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)\b/;
+globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null|Object|Number|String|Boolean)\b/;
 
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
@@ -19,7 +19,7 @@ export default function readReference ( parser ) {
 
 	startPos = parser.pos;
 
-	name = parser.matchPattern( /^@(?:keypath|index|key)/ );
+	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|ractive|global)/ );
 
 	if ( !name ) {
 		prefix = parser.matchPattern( prefixPattern ) || '';

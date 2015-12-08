@@ -62,6 +62,18 @@ export default class MultipleSelectBinding extends Binding {
 		}
 	}
 
+	setFromNode ( node ) {
+		let i = node.selectedOptions.length;
+		let result = new Array( i );
+
+		while ( i-- ) {
+			const option = node.selectedOptions[i];
+			result[i] = option._ractive ? option._ractive.value : option.value;
+		}
+
+		this.model.set( result );
+	}
+
 	setValue () {
 		throw new Error( 'TODO not implemented yet' );
 	}

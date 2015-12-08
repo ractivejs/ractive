@@ -1,7 +1,6 @@
-import { TEMPLATE_VERSION } from '../../../../config/template';
-import { create } from '../../../../utils/object';
-import parse from '../../../../parse/_parse';
-import parser from './parser';
+import { TEMPLATE_VERSION } from '../../../config/template';
+import parser from '../runtime-parser';
+import { addFunctions } from '../../../shared/getFunction';
 
 export default {
 	name: 'template',
@@ -14,7 +13,7 @@ export default {
 			if ( typeof template === 'function' ) {
 				proto.template = template;
 			} else {
-				proto.template = parseIfString( template, proto );
+				proto.template = parseTemplate( template, proto );
 			}
 		}
 	},
@@ -36,7 +35,7 @@ export default {
 			};
 		}
 
-		template = parseIfString( template, ractive );
+		template = parseTemplate( template, ractive );
 
 		// TODO the naming of this is confusing - ractive.template refers to [...],
 		// but Component.prototype.template refers to {v:1,t:[],p:[]}...
@@ -53,7 +52,7 @@ export default {
 		const result = resetValue( ractive );
 
 		if ( result ) {
-			const parsed = parseIfString( result, ractive );
+			const parsed = parseTemplate( result, ractive );
 
 			ractive.template = parsed.t;
 			extendPartials( ractive.partials, parsed.p, true );
@@ -77,36 +76,47 @@ function resetValue ( ractive ) {
 	// in the case of already-parsed templates
 	if ( result !== initial.result ) {
 		initial.result = result;
-		result = parseIfString( result, ractive );
 		return result;
 	}
 }
 
 function getDynamicTemplate ( ractive, fn ) {
-	const helper = createHelper( parser.getParseOptions( ractive ) );
-	return fn.call( ractive, helper );
-}
-
-function createHelper ( parseOptions ) {
-	const helper = create( parser );
-	helper.parse = function ( template, options ){
-		return parser.parse( template, options || parseOptions );
-	};
-	return helper;
-}
-
-function parseIfString ( template, ractive ) {
-	if ( typeof template === 'string' ) {
-		// ID of an element containing the template?
-		if ( template[0] === '#' ) {
-			template = parser.fromId( template );
+	return fn.call( ractive, {
+		fromId: parser.fromId,
+		isParsed: parser.isParsed,
+		parse ( template, options = parser.getParseOptions( ractive ) ) {
+			return parser.parse( template, options );
 		}
+	});
+}
 
-		template = parse( template, parser.getParseOptions( ractive ) );
+function parseTemplate ( template, ractive ) {
+	if ( typeof template === 'string' ) {
+		// parse will validate and add expression functions
+		template = parseAsString( template, ractive );
+	}
+	else {
+		// need to validate and add exp for already parsed template
+		validate( template );
+		addFunctions( template );
 	}
 
+	return template;
+}
+
+function parseAsString ( template, ractive ) {
+	// ID of an element containing the template?
+	if ( template[0] === '#' ) {
+		template = parser.fromId( template );
+	}
+
+	return parser.parseFor( template, ractive );
+}
+
+function validate( template ) {
+
 	// Check that the template even exists
-	else if ( template == undefined ) {
+	if ( template == undefined ) {
 		throw new Error( `The template cannot be ${template}.` );
 	}
 
@@ -119,8 +129,6 @@ function parseIfString ( template, ractive ) {
 	else if ( template.v !== TEMPLATE_VERSION ) {
 		throw new Error( `Mismatched template version (expected ${TEMPLATE_VERSION}, got ${template.v}) Please ensure you are using the latest version of Ractive.js in your build process as well as in your app` );
 	}
-
-	return template;
 }
 
 function extendPartials ( existingPartials, newPartials, overwrite ) {

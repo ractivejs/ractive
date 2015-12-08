@@ -8,6 +8,7 @@ import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
+import { escapeKey, unescapeKey } from '../shared/keypaths';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -42,7 +43,7 @@ export default class Model {
 		if ( parent ) {
 			this.parent = parent;
 			this.root = parent.root;
-			this.key = unescape( key );
+			this.key = unescapeKey( key );
 			this.isReadonly = parent.isReadonly;
 
 			if ( parent.value ) {
@@ -211,29 +212,40 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
-					if ( isArray( model.value ) ) {
+
+					function addChildKey ( key ) {
+						matches.push( model.joinKey( key ) );
+					}
+
+					function addChildren ( children ) {
+						Object.keys( children ).forEach( addChildKey );
+					}
+
+					const value = model.get();
+
+					if ( isArray( value ) ) {
 						// special case - array.length. This is a horrible kludge, but
 						// it'll do for now. Alternatives welcome
 						if ( originatingModel && originatingModel.parent === model && originatingModel.key === 'length' ) {
 							matches.push( originatingModel );
 						}
 
-						model.value.forEach( ( member, i ) => {
-							matches.push( model.joinKey( i ) );
-						});
+						value.map( ( m, i ) => i ).forEach( addChildKey );
 					}
 
-					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
-						Object.keys( model.value ).forEach( key => {
-							matches.push( model.joinKey( key ) );
-						});
+					else if ( isObject( value ) || typeof value === 'function' ) {
 
-						// special case - computed properties. TODO mappings also?
+						addChildren( value );
+
+						// special case - computed properties and mappings of root
 						if ( model.isRoot ) {
-							Object.keys( model.computations ).forEach( key => {
-								matches.push( model.joinKey( key ) );
-							});
+							addChildren( model.computations );
+							addChildren( model.mappings );
 						}
+					}
+
+					else if ( value != null ) {
+						throw new Error( `Cannot get values of ${model.getKeypath()}.* as ${model.getKeypath()} is not an array, object or function` );
 					}
 				});
 			} else {
@@ -266,23 +278,46 @@ export default class Model {
 
 	getKeyModel () {
 		// TODO... different to IndexModel because key can never change
-		return new KeyModel( escape( this.key ) );
+		return new KeyModel( escapeKey( this.key ) );
 	}
 
-	getKeypathModel () {
-		return this.keypathModel || ( this.keypathModel = new KeypathModel( this ) );
+	getKeypathModel ( ractive ) {
+		let keypath = this.getKeypath(), model = this.keypathModel || ( this.keypathModel = new KeypathModel( this ) );
+
+		if ( ractive && ractive.component ) {
+			let mapped = this.getKeypath( ractive );
+			if ( mapped !== keypath ) {
+				let map = ractive.viewmodel.keypathModels || ( ractive.viewmodel.keypathModels = {} );
+				let child = map[ keypath ] || ( map[ keypath ] = new KeypathModel( this, ractive ) );
+				model.addChild( child );
+				return child;
+			}
+		}
+
+		return model;
 	}
 
-	getKeypath () {
-		// TODO keypaths inside components... tricky
-		return this.parent.isRoot ? escape( this.key ) : this.parent.getKeypath() + '.' + escape( this.key );
+	getKeypath ( ractive ) {
+		let root = this.parent.isRoot ? escapeKey( this.key ) : this.parent.getKeypath() + '.' + escapeKey( this.key );
+
+		if ( ractive && ractive.component ) {
+			let map = ractive.viewmodel.mappings;
+			for ( let k in map ) {
+				if ( root.indexOf( map[ k ].getKeypath() ) >= 0 ) {
+					root = root.replace( map[ k ].getKeypath(), k );
+					break;
+				}
+			}
+		}
+
+		return root;
 	}
 
 	has ( key ) {
 		const value = this.get();
 		if ( !value ) return false;
 
-		key = unescape( key );
+		key = unescapeKey( key );
 		if ( hasProp.call( value, key ) ) return true;
 
 		// We climb up the constructor chain to find if one of them contains the key
@@ -430,6 +465,11 @@ export default class Model {
 	teardown () {
 		this.children.forEach( teardown );
 		if ( this.wrapper ) this.wrapper.teardown();
+		if ( this.keypathModels ) {
+			for ( let k in this.keypathModels ) {
+				this.keypathModels[ k ].teardown();
+			}
+		}
 	}
 
 	unregister ( dependant ) {
@@ -456,18 +496,4 @@ export default class Model {
 		this.children.forEach( updateKeypathDependants );
 		if ( this.keypathModel ) this.keypathModel.handleChange();
 	}
-}
-
-function escape( key ) {
-	if ( typeof key === 'string' ) {
-		return key.replace( '.', '\\.' );
-	}
-	return key;
-}
-
-function unescape( key ) {
-	if ( typeof key === 'string' ) {
-		return key.replace( '\\.', '.' );
-	}
-	return key;
 }

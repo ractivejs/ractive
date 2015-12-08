@@ -175,6 +175,8 @@ test( 'Setting nested properties with a keypath correctly updates value of inter
 test( 'Functions are called with the ractive instance as context', t => {
 	t.expect( 1 );
 
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ foo() }}'
@@ -188,21 +190,16 @@ test( 'Functions are called with the ractive instance as context', t => {
 test( 'Methods are called with their object as context', t => {
 	t.expect( 1 );
 
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{ foo.bar() }}'
 	});
 
-	let ran;
-
 	const foo = {
 		bar () {
-			// TODO why is this running twice?
-			if ( !ran ) {
-				t.equal( this, foo );
-			}
-
-			ran = true;
+			t.equal( this, foo );
 		}
 	};
 
@@ -249,6 +246,8 @@ test( 'Bindings without explicit keypaths can survive a splice operation', t => 
 	t.expect( 1 );
 
 	let items = new Array( 3 );
+
+	onWarn( () => {} ); // suppress
 
 	const ractive = new Ractive({
 		el: fixture,
@@ -605,6 +604,8 @@ try {
 	});
 
 	test( 'Implicit iterators work in magic mode', t => {
+		onWarn( msg => t.ok( /should be a plain JavaScript object/.test( msg ) ) );
+
 		let items = [
 			{ name: 'one' },
 			{ name: 'two' },
@@ -1316,14 +1317,14 @@ test( 'Implicitly-closed elements without closing section tag (#1124)', t => {
 	// it corrects malformed HTML before stubbing it
 	let ractive = new Ractive({
 		el: fixture,
-		template: '<ul><li>one<li>two<li>three'
+		template: '<ul><li>one<li>two<li>three</li></ul>'
 	});
 
 	t.equal( ractive.findAll( 'ul > li' ).length, 3 );
 
 	ractive = new Ractive({
 		el: fixture,
-		template: '<table><tr><td>one<td>two<td>three'
+		template: '<table><tr><td>one<td>two<td>three</td></tr></table>'
 	});
 
 	t.equal( ractive.findAll( 'tr > td' ).length, 3 );
@@ -1516,24 +1517,59 @@ test( 'Promise.all works with non-promises (#1642)', t => {
 test( 'Setting an escaped . keypath', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: '{{ foo\\.bar }}',
+		template: `{{ foo\\.bar\\.baz }}`,
 		data: {}
 	});
 
 	t.htmlEqual( fixture.innerHTML, '' );
-	r.set( 'foo\\.bar', 'yep' );
+	r.set( 'foo\\.bar\\.baz', 'yep' );
 	t.htmlEqual( fixture.innerHTML, 'yep' );
 });
 
 test( 'Getting an escaped . keypath', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: `{{ .['foo.bar'] }}`,
-		data: { 'foo.bar': 'yep' }
+		template: `{{ .['foo.bar.baz'] }}`,
+		data: { 'foo.bar.baz': 'yep' }
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'yep' );
-	t.equal( r.get( 'foo\\.bar' ), 'yep' );
+	t.equal( r.get( 'foo\\.bar\\.baz' ), 'yep' );
+});
+
+test( '$ can be used in keypaths', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{ $$ }}{{ .['..'] }}`,
+		data: { $$: 'get() works' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'get() works' );
+	t.equal( r.get( '$$' ), 'get() works' );
+
+	r.set( '$$', 'set() works as well' );
+
+	t.htmlEqual( fixture.innerHTML, 'set() works as well' );
+	t.equal( r.get( '$$' ), 'set() works as well' );
+});
+
+test( '. escapes can be escaped', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{ .['foo\\\\'].bar }}{{ .['foo\\\\.bar'] }}`,
+		data: { 'foo\\': { bar: 1 }, 'foo\\.bar': 2 }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '12' );
+	t.equal( r.get( 'foo\\\\.bar' ), 1 );
+	t.equal( r.get( 'foo\\\\\\.bar' ), 2 );
+
+	r.set( 'foo\\\\.bar', 11 );
+	r.set( 'foo\\\\\\.bar', 12 );
+
+	t.htmlEqual( fixture.innerHTML, '1112' );
+	t.equal( r.get( 'foo\\\\.bar' ), 11 );
+	t.equal( r.get( 'foo\\\\\\.bar' ), 12 );
 });
 
 if ( hasUsableConsole ) {
@@ -1550,6 +1586,63 @@ if ( hasUsableConsole ) {
 		Ractive.DEBUG = DEBUG;
 	});
 }
+
+test( '@ractive special ref gives access to the ractive instance', t => {
+	const DEBUG = Ractive.DEBUG;
+	const r = new Ractive({
+		el: fixture,
+		template: `{{@ractive.constructor.VERSION}} {{@ractive.foo}} <input type="checkbox" checked="{{@ractive.constructor.DEBUG}}" />`
+	});
+
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION}  <input type="checkbox" />` );
+
+	r.foo = 'bar';
+	r.update('@ractive.foo');
+
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} bar <input type="checkbox" />` );
+
+	fire( r.find( 'input' ), 'click' );
+	t.equal( Ractive.DEBUG, !DEBUG );
+
+	fire( r.find( 'input' ), 'click' );
+	t.equal( Ractive.DEBUG, DEBUG );
+
+	r.set( '@ractive.foo', 'baz' );
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} baz <input type="checkbox" />` );
+
+	r.foo = 'bat';
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} baz <input type="checkbox" />` );
+	r.update( '@ractive.foo' );
+	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} bat <input type="checkbox" />` );
+
+	Ractive.DEBUG = DEBUG;
+});
+
+test( '@global special ref gives access to the vm global object', t => {
+	/* global global, window */
+	const target = typeof global !== 'undefined' ? global : window;
+	const r = new Ractive({
+		el: fixture,
+		template: `{{@global.foo.bar}} <input value="{{@global.foo.bar}}" />`
+	});
+	const input = r.find( 'input' );
+
+	t.htmlEqual( fixture.innerHTML, ' <input />' );
+
+	target.foo = { bar: 'baz' };
+	r.update( '@global.foo' );
+	t.htmlEqual( fixture.innerHTML, 'baz <input />' );
+	t.equal( input.value, 'baz' );
+
+	input.value = 'bat';
+	fire( r.find( 'input' ), 'change' );
+	t.htmlEqual( fixture.innerHTML, 'bat <input />' );
+	t.equal( target.foo.bar, 'bat' );
+
+	r.set( '@global.foo.bar', 10 );
+	t.htmlEqual( fixture.innerHTML, '10 <input />' );
+	t.equal( target.foo.bar, 10 );
+});
 
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how

@@ -1,4 +1,5 @@
 import { findInViewHierarchy } from '../../../shared/registry';
+import { warnOnce } from '../../../utils/log';
 import { missingPlugin } from '../../../config/errors';
 import Fragment from '../../Fragment';
 import noop from '../../../utils/noop';
@@ -66,7 +67,7 @@ export default class Decorator {
 		const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
 
 		if ( !fn ) {
-			missingPlugin( this.name, 'decorators' );
+			warnOnce( missingPlugin( this.name, 'decorator' ) );
 			this.intermediary = missingDecorator;
 			return;
 		}
@@ -87,28 +88,49 @@ export default class Decorator {
 	}
 
 	unrender () {
-		this.intermediary.teardown();
+		if ( this.intermediary ) this.intermediary.teardown();
 	}
 
 	update () {
-		if ( this.dynamicName ) {
-			const name = this.nameFragment.toString();
+		if ( !this.dirty ) return;
 
-			if ( name !== this.name ) {
-				this.name = name;
+		let nameChanged = false;
+
+		if ( this.dynamicName && this.nameFragment.dirty ) {
+			const name = this.nameFragment.toString();
+			nameChanged = name !== this.name;
+			this.name = name;
+		}
+
+		if ( this.intermediary ) {
+			if ( nameChanged || !this.intermediary.update ) {
 				this.unrender();
 				this.render();
 			}
+			else {
+				if ( this.dynamicArgs ) {
+					if ( this.argsFragment.dirty ) {
+						const args = this.argsFragment.getArgsList();
+						this.intermediary.update.apply( this.ractive, args );
+					}
+				}
+				else {
+					this.intermediary.update.apply( this.ractive, this.args );
+				}
+			}
 		}
 
-		else if ( this.intermediary.update ) {
-			const args = this.dynamicArgs ? this.argsFragment.getArgsList() : this.args;
-			this.intermediary.update.apply( this.ractive, args );
+		// need to run these for unrender/render cases
+		// so can't just be in conditional if above
+
+		if ( this.dynamicName && this.nameFragment.dirty ) {
+			this.nameFragment.update();
 		}
 
-		else {
-			this.unrender();
-			this.render();
+		if ( this.dynamicArgs && this.argsFragment.dirty ) {
+			this.argsFragment.update();
 		}
+
+		this.dirty = false;
 	}
 }
