@@ -3,7 +3,7 @@ import Mustache from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
 import { isArray } from '../../utils/is';
-import parser from '../../Ractive/config/custom/template/parser';
+import parser from '../../Ractive/config/runtime-parser';
 
 export default class Partial extends Mustache {
 	bind () {
