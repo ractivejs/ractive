@@ -32,7 +32,12 @@ export default class Hook {
 	fire ( ractive, arg ) {
 		function call ( method ) {
 			if ( ractive[ method ] ) {
-				arg ? ractive[ method ]( arg ) : ractive[ method ]();
+				try {
+          arg ? ractive[ method ]( arg ) : ractive[ method ]();
+        } catch (e) {
+          ractive.fire('error', e);
+          console.error(e);
+        };
 				return true;
 			}
 		}
