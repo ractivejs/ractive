@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Dec 07 2015 22:22:07 GMT+0000 (UTC) - commit a48905ef60165b816ae279aae65e4fd13db51895
+	Sun Dec 13 2015 16:24:32 GMT+0000 (UTC) - commit 58153b9db05fcc6715d2df952c16bb4982c0ec7d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10773,9 +10773,13 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Fragment.prototype.findNextNode = function findNextNode(item) {
-  		var nextItem = this.items[item.index + 1];
+  		// search for the next node going forward
+  		for (var i = item.index + 1; i < this.items.length; i++) {
+  			if (!this.items[i]) continue;
 
-  		if (nextItem) return nextItem.firstNode();
+  			var node = this.items[i].firstNode();
+  			if (node) return node;
+  		}
 
   		// if this is the root fragment, and there are no more items,
   		// it means we're at the end...
