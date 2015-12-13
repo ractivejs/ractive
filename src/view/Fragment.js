@@ -142,9 +142,13 @@ export default class Fragment {
 	}
 
 	findNextNode ( item ) {
-		const nextItem = this.items[ item.index + 1 ];
+		// search for the next node going forward
+		for ( let i = item.index + 1; i < this.items.length; i++ ) {
+			if ( !this.items[ i ] ) continue;
 
-		if ( nextItem ) return nextItem.firstNode();
+			let node = this.items[ i ].firstNode();
+			if ( node ) return node;
+		}
 
 		// if this is the root fragment, and there are no more items,
 		// it means we're at the end...

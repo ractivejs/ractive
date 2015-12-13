@@ -239,6 +239,19 @@ test( 'a repeated section should skip empty iterations when looking for a next n
 	t.htmlEqual( fixture.innerHTML, '13' );
 });
 
+test( 'fragment should skip non-rendered items when searching for its next node (#2317)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#if step === 3}}3{{/if}}{{#if step === 1}}1{{/if}}{{#if step === 2}}2{{/if}}text',
+		data: { step: 1 }
+	});
+
+	r.set( 'step', 2 );
+	t.htmlEqual( fixture.innerHTML, '2text' );
+	r.set( 'step', 3 );
+	t.htmlEqual( fixture.innerHTML, '3text' );
+});
+
 if ( typeof Object.create === 'function' ) {
 	test( 'data of type Object.create(null) (#1825)', t => {
 		const ractive = new Ractive({
