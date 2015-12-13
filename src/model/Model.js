@@ -212,41 +212,7 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
-
-					function addChildKey ( key ) {
-						matches.push( model.joinKey( key ) );
-					}
-
-					function addChildren ( children ) {
-						Object.keys( children ).forEach( addChildKey );
-					}
-
-					const value = model.get();
-
-					if ( isArray( value ) ) {
-						// special case - array.length. This is a horrible kludge, but
-						// it'll do for now. Alternatives welcome
-						if ( originatingModel && originatingModel.parent === model && originatingModel.key === 'length' ) {
-							matches.push( originatingModel );
-						}
-
-						value.map( ( m, i ) => i ).forEach( addChildKey );
-					}
-
-					else if ( isObject( value ) || typeof value === 'function' ) {
-
-						addChildren( value );
-
-						// special case - computed properties and mappings of root
-						if ( model.isRoot ) {
-							addChildren( model.computations );
-							addChildren( model.mappings );
-						}
-					}
-
-					else if ( value != null ) {
-						throw new Error( `Cannot get values of ${model.getKeypath()}.* as ${model.getKeypath()} is not an array, object or function` );
-					}
+					matches.push.apply( matches, model.getValueChildren( model.get() ) );
 				});
 			} else {
 				matches = existingMatches.map( model => model.joinKey( key ) );
@@ -311,6 +277,34 @@ export default class Model {
 		}
 
 		return root;
+	}
+
+	getValueChildren ( value ) {
+
+		let children;
+		if ( isArray( value ) ) {
+			children = [];
+			// special case - array.length. This is a horrible kludge, but
+			// it'll do for now. Alternatives welcome
+			if ( originatingModel && originatingModel.parent === this && originatingModel.key === 'length' ) {
+				children.push( originatingModel );
+			}
+			value.forEach( ( m, i ) => {
+				children.push( this.joinKey( i ) )
+			});
+
+		}
+
+		else if ( isObject( value ) || typeof value === 'function' ) {
+			children = Object.keys( value ).map( key => this.joinKey( key ) );
+		}
+
+		else if ( value != null ) {
+			// TODO: this will return incorrect keypath if model is mapped
+			throw new Error( `Cannot get values of ${this.getKeypath()}.* as ${this.getKeypath()} is not an array, object or function` );
+		}
+
+		return children;
 	}
 
 	has ( key ) {

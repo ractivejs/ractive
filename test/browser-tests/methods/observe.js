@@ -884,16 +884,23 @@ test( `a pattern observer that is shuffled with objects should only notify on th
 	t.equal( count, 7 );
 });
 
-test( `wildcard * fires in components for mapped data`, t => {
-	t.expect(6);
+test( `wildcard * and root fire in components for mapped and local data`, t => {
+	t.expect(16);
 
-	let expect = 'foo';
+	let wckeypath = 'value';
+	let wcexpect = 'foo';
+	let rootexpect = { value: 'foo' };
 
 	const widget = Ractive.extend({
 		oninit () {
 			this.observe( '*', ( n, o, k ) => {
-				t.equal( n, expect );
-				t.equal( k, 'value' );
+				t.equal( n, wcexpect, 'wildcard value' );
+				t.equal( k, wckeypath, 'wildcard keypath' );
+			});
+
+			this.observe( ( n, o, k ) => {
+				t.deepEqual( n, rootexpect, 'root value' );
+				t.equal( k, '', 'root keypath' );
 			});
 		}
 	});
@@ -907,10 +914,19 @@ test( `wildcard * fires in components for mapped data`, t => {
 		components: { widget }
 	});
 
-	expect = 'bar';
+	wcexpect = 'bar';
+	rootexpect = { value: 'bar' };
 	r.set( 'foo', 'bar' );
-	expect = 'qux';
+
+	wcexpect = 'qux';
+	rootexpect = { value: 'qux' };
 	r.findComponent( 'widget' ).set( 'value', 'qux' );
+
+	wckeypath = 'bizz';
+	wcexpect = 'buzz';
+	rootexpect = { value: 'qux', bizz: 'buzz' };
+	r.findComponent( 'widget' ).set( 'bizz', 'buzz' );
+});
 });
 
 test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
