@@ -1,7 +1,9 @@
-import { warnOnceIfDebug } from '../../utils/log';
+import { warnOnceIfDebug, warnIfDebug } from '../../utils/log';
 import Mustache from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
+import { isArray } from '../../utils/is';
+import parser from '../../Ractive/config/runtime-parser';
 
 export default class Partial extends Mustache {
 	bind () {
@@ -12,10 +14,16 @@ export default class Partial extends Mustache {
 
 		// name matches take priority over expressions
 		let template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.parentFragment ) || null : null;
+		let templateObj;
 
 		if ( template ) {
 			this.named = true;
 			this.setTemplate( this.template.r, template );
+		} else if ( this.model && ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || isArray( templateObj.t ) ) ) {
+			if ( templateObj.template ) {
+				templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
+			}
+			this.setTemplate( this.template.r, templateObj.t );
 		} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.refName ) {
 			this.setTemplate( this.refName, template );
 		} else {
@@ -110,10 +118,22 @@ export default class Partial extends Mustache {
 	}
 
 	update () {
+		let template;
+
 		if ( this.dirty ) {
 			if ( !this.named ) {
-				if ( this.model && typeof this.model.get() === 'string' && this.model.get() !== this.name ) {
-					this.setTemplate( this.model.get() );
+				if ( this.model ) {
+					template = this.model.get();
+				}
+
+				if ( template && typeof template === 'string' && template !== this.name ) {
+					this.setTemplate( template );
+					this.fragment.resetTemplate( this.partialTemplate );
+				} else if ( template && typeof template === 'object' && ( typeof template.template === 'string' || isArray( template.t ) ) ) {
+					if ( template.template ) {
+						template = parsePartial( this.name, template.template, this.ractive );
+					}
+					this.setTemplate( this.name, template.t );
 					this.fragment.resetTemplate( this.partialTemplate );
 				}
 			}
@@ -122,4 +142,16 @@ export default class Partial extends Mustache {
 			this.dirty = false;
 		}
 	}
+}
+
+function parsePartial( name, partial, ractive ) {
+	let parsed;
+
+	try {
+		parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
+	} catch (e) {
+		warnIfDebug( `Could not parse partial from expression '${name}'\n${e.message}` );
+	}
+
+	return parsed || { t: [] };
 }
