@@ -927,6 +927,30 @@ test( `wildcard * and root fire in components for mapped and local data`, t => {
 	rootexpect = { value: 'qux', bizz: 'buzz' };
 	r.findComponent( 'widget' ).set( 'bizz', 'buzz' );
 });
+
+test( 'wildcard * and root include computed but not expressions', t => {
+	let wildcard = 0, root = 0;
+
+	new Ractive({
+		el: fixture,
+		template: `{{ foo + 2 }}`,
+		data: { foo: 1 },
+		computed: { bar: '${foo} + 1'},
+		oninit () {
+			this.observe( '*', ( n, o, k ) => {
+				t.ok( k[0] !== '@' );
+				wildcard++;
+			});
+
+			this.observe( ( n, o, k ) => {
+				t.ok( k[0] !== '@' );
+				root++;
+			});
+		}
+	});
+
+	t.equal( wildcard, 2, 'wildcard count' );
+	t.equal( root, 1, 'root count' );
 });
 
 test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
@@ -939,4 +963,17 @@ test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', 
 			t.ok( false, 'observer should not fire' );
 		});
 	}, /Cannot get values of msg\.\* as msg is not an array, object or function/ );
+})
+
+test( 'wildcard * fires on new property', t => {
+	t.expect( 2 );
+
+	const ractive = new Ractive({ data: { qux: 'qux' } });
+
+	ractive.observe( '*', ( n, o, k ) => {
+		t.equal( k, 'foo' );
+		t.equal( n, 'bar' );
+	}, { init: false} );
+
+	ractive.set( 'foo', 'bar' );
 });

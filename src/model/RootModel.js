@@ -106,6 +106,7 @@ export default class RootModel extends Model {
 	map ( localKey, origin ) {
 		// TODO remapping
 		this.mappings[ localKey ] = origin;
+		origin.register( this );
 	}
 
 	set ( value ) {
