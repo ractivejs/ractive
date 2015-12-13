@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Dec 13 2015 16:24:32 GMT+0000 (UTC) - commit 58153b9db05fcc6715d2df952c16bb4982c0ec7d
+	Sun Dec 13 2015 17:18:41 GMT+0000 (UTC) - commit c7263c4daaf127e44b632fa84f23b357a724d2c8
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4018,10 +4018,16 @@ var classCallCheck = function (instance, Constructor) {
 
   		// name matches take priority over expressions
   		var template = this.refName ? getPartialTemplate(this.ractive, this.refName, this.parentFragment) || null : null;
+  		var templateObj = undefined;
 
   		if (template) {
   			this.named = true;
   			this.setTemplate(this.template.r, template);
+  		} else if (this.model && (templateObj = this.model.get()) && typeof templateObj === 'object' && (typeof templateObj.template === 'string' || isArray(templateObj.t))) {
+  			if (templateObj.template) {
+  				templateObj = parsePartial(this.template.r, templateObj.template, this.ractive);
+  			}
+  			this.setTemplate(this.template.r, templateObj.t);
   		} else if ((!this.model || typeof this.model.get() !== 'string') && this.refName) {
   			this.setTemplate(this.refName, template);
   		} else {
@@ -4116,10 +4122,22 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Partial.prototype.update = function update() {
+  		var template = undefined;
+
   		if (this.dirty) {
   			if (!this.named) {
-  				if (this.model && typeof this.model.get() === 'string' && this.model.get() !== this.name) {
-  					this.setTemplate(this.model.get());
+  				if (this.model) {
+  					template = this.model.get();
+  				}
+
+  				if (template && typeof template === 'string' && template !== this.name) {
+  					this.setTemplate(template);
+  					this.fragment.resetTemplate(this.partialTemplate);
+  				} else if (template && typeof template === 'object' && (typeof template.template === 'string' || isArray(template.t))) {
+  					if (template.template) {
+  						template = parsePartial(this.name, template.template, this.ractive);
+  					}
+  					this.setTemplate(this.name, template.t);
   					this.fragment.resetTemplate(this.partialTemplate);
   				}
   			}
@@ -4131,6 +4149,18 @@ var classCallCheck = function (instance, Constructor) {
 
   	return Partial;
   })(Mustache);
+
+  function parsePartial(name, partial, ractive) {
+  	var parsed = undefined;
+
+  	try {
+  		parsed = parser.parse(partial, parser.getParseOptions(ractive));
+  	} catch (e) {
+  		warnIfDebug('Could not parse partial from expression \'' + name + '\'\n' + e.message);
+  	}
+
+  	return parsed || { t: [] };
+  }
 
   function getRefs(ref, value, parent) {
   	var refs = undefined;
