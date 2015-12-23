@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Dec 13 2015 17:18:41 GMT+0000 (UTC) - commit c7263c4daaf127e44b632fa84f23b357a724d2c8
+	Wed Dec 23 2015 00:12:38 GMT+0000 (UTC) - commit 7a79a5901c44a508bd4ef54c826380b00333a2df
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5576,9 +5576,7 @@ var classCallCheck = function (instance, Constructor) {
 
   function parseAttributes(str, isSvg) {
   	var tagName = isSvg ? 'svg' : 'div';
-  	div$1.innerHTML = '<' + tagName + ' ' + str + '></' + tagName + '>';
-
-  	return toArray(div$1.childNodes[0].attributes);
+  	return str ? (div$1.innerHTML = '<' + tagName + ' ' + str + '></' + tagName + '>') && toArray(div$1.childNodes[0].attributes) : [];
   }
 
   function notIn(haystack, needle) {
