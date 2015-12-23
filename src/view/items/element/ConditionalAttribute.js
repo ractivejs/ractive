@@ -92,9 +92,10 @@ export default class ConditionalAttribute extends Item {
 
 function parseAttributes ( str, isSvg ) {
 	const tagName = isSvg ? 'svg' : 'div';
-	div.innerHTML = `<${tagName} ${str}></${tagName}>`;
-
-	return toArray( div.childNodes[0].attributes );
+	return str
+		? (div.innerHTML = `<${tagName} ${str}></${tagName}>`) &&
+			toArray(div.childNodes[0].attributes)
+		: [];
 }
 
 function notIn ( haystack, needle ) {
