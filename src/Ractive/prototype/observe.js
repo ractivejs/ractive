@@ -58,7 +58,8 @@ function createObserver ( ractive, keypath, callback, options ) {
 	if ( !~wildcardIndex ) {
 		const key = keys[0];
 
-		if ( !viewmodel.has( key ) ) {
+		// if not the root model itself, check if viewmodel has key.
+		if ( key !== '' && !viewmodel.has( key ) ) {
 			// if this is an inline component, we may need to create an implicit mapping
 			if ( ractive.component ) {
 				const model = resolveReference( ractive.component.parentFragment, key );
@@ -160,12 +161,8 @@ class PatternObserver {
 			this.oldValues = this.newValues;
 		}
 
-		if ( baseModel.isRoot && keys.length === 1 && keys[0] === '*' ) {
-			models.forEach( model => model.register( this ) );
-		}
-		else {
-			baseModel.register( this );
-		}
+		baseModel.register( this );
+
 	}
 
 	cancel () {
@@ -182,8 +179,11 @@ class PatternObserver {
 			if ( this.strict && newValue === oldValue ) return;
 			if ( isEqual( newValue, oldValue ) ) return;
 
-			const wildcards = this.pattern.exec( keypath ).slice( 1 );
-			const args = [ newValue, oldValue, keypath ].concat( wildcards );
+			let args = [ newValue, oldValue, keypath ];
+			if ( keypath ) {
+				const wildcards = this.pattern.exec( keypath ).slice( 1 );
+				args = args.concat( wildcards );
+			}
 
 			this.callback.apply( this.context, args );
 		});

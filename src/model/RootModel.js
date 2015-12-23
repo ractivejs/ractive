@@ -41,19 +41,29 @@ export default class RootModel extends Model {
 		return computation;
 	}
 
+	extendChildren ( fn ) {
+		const mappings = this.mappings;
+		Object.keys( mappings ).forEach( key => {
+			fn( key, mappings[ key ] );
+		});
+
+		const computations = this.computations;
+		Object.keys( computations ).forEach( key => {
+			const computation = computations[ key ];
+			// exclude template expressions
+			if ( !computation.isExpression ) {
+				fn( key, computation );
+			}
+		});
+	}
+
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
 		let result = extend( {}, this.value );
 
-		Object.keys( this.mappings ).forEach( key => {
-			result[ key ] = this.mappings[ key ].value;
-		});
-
-		Object.keys( this.computations ).forEach( key => {
-			if ( key[0] !== '@' ) { // exclude template expressions
-				result[ key ] = this.computations[ key ].value;
-			}
-		});
+		this.extendChildren( ( key, model ) => {
+			result[ key ] = model.value;
+		})
 
 		return result;
 	}
@@ -64,6 +74,20 @@ export default class RootModel extends Model {
 
 	getRactiveModel() {
 		return this.ractiveModel || ( this.ractiveModel = new RactiveModel( this.ractive ) );
+	}
+
+	getValueChildren () {
+		const children = super.getValueChildren( this.value );
+
+		this.extendChildren( ( key, model ) => {
+			children.push( model );
+		})
+
+		return children;
+	}
+
+	handleChange () {
+		this.deps.forEach( handleChange );
 	}
 
 	has ( key ) {
@@ -82,6 +106,7 @@ export default class RootModel extends Model {
 	map ( localKey, origin ) {
 		// TODO remapping
 		this.mappings[ localKey ] = origin;
+		origin.register( this );
 	}
 
 	set ( value ) {
