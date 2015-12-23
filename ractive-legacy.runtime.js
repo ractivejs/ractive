@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Dec 23 2015 00:12:38 GMT+0000 (UTC) - commit 7a79a5901c44a508bd4ef54c826380b00333a2df
+	Wed Dec 23 2015 00:17:32 GMT+0000 (UTC) - commit 3044c304c25e7819869abf176fa0bf91de2d191a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2817,39 +2817,7 @@ var classCallCheck = function (instance, Constructor) {
   			if (key === '*') {
   				matches = [];
   				existingMatches.forEach(function (model) {
-
-  					function addChildKey(key) {
-  						matches.push(model.joinKey(key));
-  					}
-
-  					function addChildren(children) {
-  						Object.keys(children).forEach(addChildKey);
-  					}
-
-  					var value = model.get();
-
-  					if (isArray(value)) {
-  						// special case - array.length. This is a horrible kludge, but
-  						// it'll do for now. Alternatives welcome
-  						if (originatingModel && originatingModel.parent === model && originatingModel.key === 'length') {
-  							matches.push(originatingModel);
-  						}
-
-  						value.map(function (m, i) {
-  							return i;
-  						}).forEach(addChildKey);
-  					} else if (isObject(value) || typeof value === 'function') {
-
-  						addChildren(value);
-
-  						// special case - computed properties and mappings of root
-  						if (model.isRoot) {
-  							addChildren(model.computations);
-  							addChildren(model.mappings);
-  						}
-  					} else if (value != null) {
-  						throw new Error('Cannot get values of ' + model.getKeypath() + '.* as ' + model.getKeypath() + ' is not an array, object or function');
-  					}
+  					matches.push.apply(matches, model.getValueChildren(model.get()));
   				});
   			} else {
   				matches = existingMatches.map(function (model) {
@@ -2921,6 +2889,32 @@ var classCallCheck = function (instance, Constructor) {
   		}
 
   		return root;
+  	};
+
+  	Model.prototype.getValueChildren = function getValueChildren(value) {
+  		var _this3 = this;
+
+  		var children = undefined;
+  		if (isArray(value)) {
+  			children = [];
+  			// special case - array.length. This is a horrible kludge, but
+  			// it'll do for now. Alternatives welcome
+  			if (originatingModel && originatingModel.parent === this && originatingModel.key === 'length') {
+  				children.push(originatingModel);
+  			}
+  			value.forEach(function (m, i) {
+  				children.push(_this3.joinKey(i));
+  			});
+  		} else if (isObject(value) || typeof value === 'function') {
+  			children = Object.keys(value).map(function (key) {
+  				return _this3.joinKey(key);
+  			});
+  		} else if (value != null) {
+  			// TODO: this will return incorrect keypath if model is mapped
+  			throw new Error('Cannot get values of ' + this.getKeypath() + '.* as ' + this.getKeypath() + ' is not an array, object or function');
+  		}
+
+  		return children;
   	};
 
   	Model.prototype.has = function has(key) {
@@ -3030,7 +3024,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Model.prototype.shuffle = function shuffle(newIndices) {
-  		var _this3 = this;
+  		var _this4 = this;
 
   		var indexModels = [];
   		var max = 0,
@@ -3041,7 +3035,7 @@ var classCallCheck = function (instance, Constructor) {
 
   			if (! ~newIndex) return;
 
-  			var model = _this3.indexModels[oldIndex];
+  			var model = _this4.indexModels[oldIndex];
 
   			if (!model) return;
 
@@ -9082,7 +9076,9 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.root = this.parent = viewmodel;
   		this.signature = signature;
+
   		this.key = key; // not actually used, but helps with debugging
+  		this.isExpression = key && key[0] === '@';
 
   		this.isReadonly = !this.signature.setter;
 
@@ -9253,21 +9249,28 @@ var classCallCheck = function (instance, Constructor) {
   		return computation;
   	};
 
-  	RootModel.prototype.get = function get(shouldCapture) {
-  		var _this = this;
+  	RootModel.prototype.extendChildren = function extendChildren(fn) {
+  		var mappings = this.mappings;
+  		Object.keys(mappings).forEach(function (key) {
+  			fn(key, mappings[key]);
+  		});
 
+  		var computations = this.computations;
+  		Object.keys(computations).forEach(function (key) {
+  			var computation = computations[key];
+  			// exclude template expressions
+  			if (!computation.isExpression) {
+  				fn(key, computation);
+  			}
+  		});
+  	};
+
+  	RootModel.prototype.get = function get(shouldCapture) {
   		if (shouldCapture) capture(this);
   		var result = extend({}, this.value);
 
-  		Object.keys(this.mappings).forEach(function (key) {
-  			result[key] = _this.mappings[key].value;
-  		});
-
-  		Object.keys(this.computations).forEach(function (key) {
-  			if (key[0] !== '@') {
-  				// exclude template expressions
-  				result[key] = _this.computations[key].value;
-  			}
+  		this.extendChildren(function (key, model) {
+  			result[key] = model.value;
   		});
 
   		return result;
@@ -9279,6 +9282,20 @@ var classCallCheck = function (instance, Constructor) {
 
   	RootModel.prototype.getRactiveModel = function getRactiveModel() {
   		return this.ractiveModel || (this.ractiveModel = new RactiveModel(this.ractive));
+  	};
+
+  	RootModel.prototype.getValueChildren = function getValueChildren() {
+  		var children = _Model.prototype.getValueChildren.call(this, this.value);
+
+  		this.extendChildren(function (key, model) {
+  			children.push(model);
+  		});
+
+  		return children;
+  	};
+
+  	RootModel.prototype.handleChange = function handleChange() {
+  		this.deps.forEach(_handleChange);
   	};
 
   	RootModel.prototype.has = function has(key) {
@@ -9295,6 +9312,7 @@ var classCallCheck = function (instance, Constructor) {
   	RootModel.prototype.map = function map(localKey, origin) {
   		// TODO remapping
   		this.mappings[localKey] = origin;
+  		origin.register(this);
   	};
 
   	RootModel.prototype.set = function set(value) {
@@ -9328,14 +9346,14 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	RootModel.prototype.updateFromBindings = function updateFromBindings(cascade) {
-  		var _this2 = this;
+  		var _this = this;
 
   		_Model.prototype.updateFromBindings.call(this, cascade);
 
   		if (cascade) {
   			// TODO computations as well?
   			Object.keys(this.mappings).forEach(function (key) {
-  				var model = _this2.mappings[key];
+  				var model = _this.mappings[key];
   				model.updateFromBindings(cascade);
   			});
   		}
@@ -11877,7 +11895,8 @@ var classCallCheck = function (instance, Constructor) {
   	if (! ~wildcardIndex) {
   		var key = keys[0];
 
-  		if (!viewmodel.has(key)) {
+  		// if not the root model itself, check if viewmodel has key.
+  		if (key !== '' && !viewmodel.has(key)) {
   			// if this is an inline component, we may need to create an implicit mapping
   			if (ractive.component) {
   				var _model = resolveReference(ractive.component.parentFragment, key);
@@ -11985,13 +12004,7 @@ var classCallCheck = function (instance, Constructor) {
   			this.oldValues = this.newValues;
   		}
 
-  		if (baseModel.isRoot && keys.length === 1 && keys[0] === '*') {
-  			models.forEach(function (model) {
-  				return model.register(_this2);
-  			});
-  		} else {
-  			baseModel.register(this);
-  		}
+  		baseModel.register(this);
   	}
 
   	PatternObserver.prototype.cancel = function cancel() {
@@ -12010,8 +12023,11 @@ var classCallCheck = function (instance, Constructor) {
   			if (_this3.strict && newValue === oldValue) return;
   			if (isEqual(newValue, oldValue)) return;
 
-  			var wildcards = _this3.pattern.exec(keypath).slice(1);
-  			var args = [newValue, oldValue, keypath].concat(wildcards);
+  			var args = [newValue, oldValue, keypath];
+  			if (keypath) {
+  				var wildcards = _this3.pattern.exec(keypath).slice(1);
+  				args = args.concat(wildcards);
+  			}
 
   			_this3.callback.apply(_this3.context, args);
   		});
