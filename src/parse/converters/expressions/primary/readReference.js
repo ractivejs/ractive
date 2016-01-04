@@ -15,7 +15,7 @@ var legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(
 var relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
 
 export default function readReference ( parser ) {
-	var startPos, prefix, name, global, reference, lastDotIndex;
+	var startPos, prefix, name, global, reference, fullLength, lastDotIndex;
 
 	startPos = parser.pos;
 
@@ -53,16 +53,19 @@ export default function readReference ( parser ) {
 		};
 	}
 
+	fullLength = ( prefix || '' ).length + name.length;
 	reference = ( prefix || '' ) + normalise( name );
 
 	if ( parser.matchString( '(' ) ) {
 		// if this is a method invocation (as opposed to a function) we need
 		// to strip the method name from the reference combo, else the context
 		// will be wrong
+		// but only if the reference was actually a member and not a refinement
 		lastDotIndex = reference.lastIndexOf( '.' );
-		if ( lastDotIndex !== -1 ) {
+		if ( lastDotIndex !== -1 && name[ name.length - 1 ] !== ']' ) {
+			let refLength = reference.length;
 			reference = reference.substr( 0, lastDotIndex );
-			parser.pos = startPos + reference.length;
+			parser.pos = startPos + (fullLength - ( refLength - lastDotIndex ) );
 		} else {
 			parser.pos -= 1;
 		}
