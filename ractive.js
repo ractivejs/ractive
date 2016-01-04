@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Dec 23 2015 00:17:32 GMT+0000 (UTC) - commit 3044c304c25e7819869abf176fa0bf91de2d191a
+	Mon Jan 04 2016 22:00:51 GMT+0000 (UTC) - commit f4a02377e74f0d7838b173377706a69abb5dfcac
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1938,7 +1938,7 @@ var classCallCheck = function (instance, Constructor) {
   var legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
   var relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
   function readReference(parser) {
-  	var startPos, prefix, name, global, reference, lastDotIndex;
+  	var startPos, prefix, name, global, reference, fullLength, lastDotIndex;
 
   	startPos = parser.pos;
 
@@ -1975,16 +1975,19 @@ var classCallCheck = function (instance, Constructor) {
   		};
   	}
 
+  	fullLength = (prefix || '').length + name.length;
   	reference = (prefix || '') + normalise(name);
 
   	if (parser.matchString('(')) {
   		// if this is a method invocation (as opposed to a function) we need
   		// to strip the method name from the reference combo, else the context
   		// will be wrong
+  		// but only if the reference was actually a member and not a refinement
   		lastDotIndex = reference.lastIndexOf('.');
-  		if (lastDotIndex !== -1) {
+  		if (lastDotIndex !== -1 && name[name.length - 1] !== ']') {
+  			var refLength = reference.length;
   			reference = reference.substr(0, lastDotIndex);
-  			parser.pos = startPos + reference.length;
+  			parser.pos = startPos + (fullLength - (refLength - lastDotIndex));
   		} else {
   			parser.pos -= 1;
   		}
