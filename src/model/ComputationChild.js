@@ -1,8 +1,34 @@
 import { capture } from '../global/capture';
 import Model from './Model';
-import { handleChange } from '../shared/methodCallers';
+import { handleChange, mark } from '../shared/methodCallers';
 
 export default class ComputationChild extends Model {
+	constructor ( parent, key ) {
+		super( parent, key );
+
+		const parentValue = parent.get();
+		if ( parentValue ) {
+			this.value = parentValue[ key ];
+			this.adapt();
+		}
+
+		if ( this.root.ractive.computationChildBinding ) this.isReadonly = false;
+	}
+
+	applyValue ( value ) {
+		super.applyValue( value );
+
+		// find the computation and mark the things it depends on
+		let computation, parent = this.parent;
+		while ( !computation && ( parent = parent.parent ) ) {
+			computation = parent.computation;
+		}
+
+		if ( computation ) {
+			computation.dependencies.forEach( mark );
+		}
+	}
+
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
 
