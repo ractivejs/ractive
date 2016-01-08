@@ -12,7 +12,7 @@ export default class ComputationChild extends Model {
 			this.adapt();
 		}
 
-		if ( this.root.ractive.computationChildBinding ) this.isReadonly = false;
+		if ( this.root.ractive.derivedBindings ) this.isReadonly = false;
 	}
 
 	applyValue ( value ) {
