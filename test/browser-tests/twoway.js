@@ -1,3 +1,5 @@
+/* global document  */
+
 import { test } from 'qunit';
 import { fire } from 'simulant';
 import { hasUsableConsole, onWarn } from 'test-config';
@@ -1000,4 +1002,44 @@ test( 'textareas with non-model context should still bind correctly (#2099)', t 
 	t.equal( r.find( 'textarea' ).value, 'bar' );
 	r.find( 'button' ).click();
 	t.equal( r.find( 'textarea' ).value, 'baz' );
+});
+
+test( 'ComputationChild will allow bindings if requested', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each some.expr()}}<div>{{.val}}</div><input value="{{.val}}" />{{/each}}`,
+		data: {
+			array: [ { val: 'a' } ]
+		},
+		derivedBindings: true
+	});
+	r.set( 'some.expr', function() { return r.get('array'); } );
+
+	const input = r.find( 'input' );
+	const label = r.find( 'div' );
+
+	t.equal( label.innerHTML, 'a' );
+	input.value = 'test1';
+	fire( input, 'change' );
+	t.equal( label.innerHTML, 'test1' );
+});
+
+test( 'ComputationChild bindings also notify other interested parties when changed', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each some.expr()}}<input value="{{.val}}" />{{/each}}<div>{{'yep' + JSON.stringify(some.expr())}}</div>`,
+		data: {
+			array: [ { val: 'a' } ]
+		},
+		derivedBindings: true
+	});
+	r.set( 'some.expr', function() { return r.get('array'); } );
+
+	const input = r.find( 'input' );
+	const label = r.find( 'div' );
+
+	t.equal( label.innerHTML, 'yep[{"val":"a"}]' );
+	input.value = 'test1';
+	fire( input, 'change' );
+	t.equal( label.innerHTML, 'yep[{"val":"test1"}]' );
 });
