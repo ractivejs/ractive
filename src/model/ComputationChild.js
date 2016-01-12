@@ -21,7 +21,7 @@ export default class ComputationChild extends Model {
 		// find the computation and mark the things it depends on
 		let computation, parent = this.parent;
 		while ( !computation && ( parent = parent.parent ) ) {
-			computation = parent.computation;
+			computation = parent.computation || ( parent.isExpression ? parent : undefined );
 		}
 
 		if ( computation ) {
