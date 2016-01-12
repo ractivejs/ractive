@@ -721,3 +721,40 @@ test( 'ExpressionProxy should notify its deps when it resolves (#2214)', t => {
 
 	t.htmlEqual( fixture.innerHTML, '-ok' );
 });
+
+test( 'writable ComputationChild should find its computation if it is directly attached', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#some.foo()}}{{.bar}}{{/}}',
+		derivedBindings: true,
+		data: { obj: { bar: 'yep' } }
+	});
+
+	r.set( 'some.foo', function() { return r.get( 'obj' ); } );
+
+	t.equal( fixture.innerHTML, 'yep' );
+
+	r.set( '@some\\.foo().bar', 'baz' );
+
+	t.equal( fixture.innerHTML, 'baz' );
+});
+
+test( 'computations should be stored at their escaped path so that they can be looked up from a normalized split path', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#some.foo()}}<span>{{.bar}}</span><button on-click="go(event)">click me</button>{{/}}',
+		derivedBindings: true,
+		data: { obj: { bar: 'yep' } },
+		go( ev ) {
+			this.set( `${ev.keypath}.bar`, 'baz' );
+		}
+	});
+
+	r.set( 'some.foo', function() { return r.get( 'obj' ); } );
+
+	t.equal( r.find( 'span' ).innerHTML, 'yep' );
+
+	r.find( 'button' ).click();
+
+	t.equal( r.find( 'span' ).innerHTML, 'baz' );
+});
