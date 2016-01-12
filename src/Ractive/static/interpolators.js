@@ -2,6 +2,10 @@ import { hasOwn } from '../../utils/object';
 import { isArray, isObject, isNumeric } from '../../utils/is';
 import interpolate from '../../shared/interpolate';
 
+function snap ( to ) {
+	return () => to;
+}
+
 var interpolators = {
 	number: function ( from, to ) {
 		var delta;
@@ -74,7 +78,7 @@ var interpolators = {
 			if ( hasOwn.call( from, prop ) ) {
 				if ( hasOwn.call( to, prop ) ) {
 					properties.push( prop );
-					interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] );
+					interpolators[ prop ] = interpolate( from[ prop ], to[ prop ] ) || snap( to[ prop ] );
 				}
 
 				else {
