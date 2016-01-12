@@ -5,6 +5,7 @@ import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import GlobalModel from './specials/GlobalModel';
+import { escapeKey } from '../shared/keypaths';
 
 export default class RootModel extends Model {
 	constructor ( options ) {
@@ -36,7 +37,7 @@ export default class RootModel extends Model {
 
 	compute ( key, signature ) {
 		const computation = new Computation( this, signature, key );
-		this.computations[ key ] = computation;
+		this.computations[ escapeKey( key ) ] = computation;
 
 		return computation;
 	}
