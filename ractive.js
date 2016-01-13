@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Jan 04 2016 22:00:51 GMT+0000 (UTC) - commit f4a02377e74f0d7838b173377706a69abb5dfcac
+	Wed Jan 13 2016 03:41:34 GMT+0000 (UTC) - commit eab2cfbeb67aa15b585471d9d5228457775661e3
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -14364,7 +14364,7 @@ var classCallCheck = function (instance, Constructor) {
   	if (!this.viewmodel.has(key)) {
   		// if this is an inline component, we may need to create
   		// an implicit mapping
-  		if (this.component) {
+  		if (this.component && !this.isolated) {
   			model = resolveReference(this.component.parentFragment, key);
 
   			if (model) {
