@@ -1,0 +1,1 @@
+export const stateKeyword =  /^@(?:keypath|rootpath|index|key|ractive|global)/;

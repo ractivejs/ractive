@@ -4,7 +4,9 @@ export default class RactiveModel extends Model {
 	constructor ( ractive ) {
 		super( null, '' );
 		this.value = ractive;
-		this.isRoot = true;
+		// removed because state keypaths need to include @ractive
+		// are there other sideeffects?
+		// this.isRoot = true;
 		this.root = this;
 		this.adaptors = [];
 		this.ractive = ractive;
