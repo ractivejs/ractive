@@ -739,6 +739,24 @@ test( 'writable ComputationChild should find its computation if it is directly a
 	t.equal( fixture.innerHTML, 'baz' );
 });
 
+test( 'writable ComputationChild should find its computation if it is not an expression', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{obj.bar}}',
+		derivedBindings: true,
+		data: { obj: { bar: 'yep' } },
+		computed: {
+			foo() { return this.get('obj'); }
+		}
+	});
+
+	t.equal( fixture.innerHTML, 'yep' );
+
+	r.set( 'foo.bar', 'baz' );
+
+	t.equal( fixture.innerHTML, 'baz' );
+});
+
 test( 'computations should be stored at their escaped path so that they can be looked up from a normalized split path', t => {
 	const r = new Ractive({
 		el: fixture,

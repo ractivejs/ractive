@@ -19,9 +19,9 @@ export default class ComputationChild extends Model {
 		super.applyValue( value );
 
 		// find the computation and mark the things it depends on
-		let computation, parent = this.parent;
-		while ( !computation && ( parent = parent.parent ) ) {
-			computation = parent.computation || ( parent.isExpression ? parent : undefined );
+		let computation, source = this;
+		while ( !computation && ( source = source.parent ) ) {
+			computation = source.computation || ( source.signature ? source : undefined );
 		}
 
 		if ( computation ) {
