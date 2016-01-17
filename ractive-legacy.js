@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Jan 13 2016 03:41:34 GMT+0000 (UTC) - commit eab2cfbeb67aa15b585471d9d5228457775661e3
+	Sun Jan 17 2016 05:53:23 GMT+0000 (UTC) - commit ff361aa2149d6f94d32b43332c0b88493e2d2189
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -697,7 +697,7 @@ var classCallCheck = function (instance, Constructor) {
   	// we notify the parent if there is one, otherwise
   	// start detaching nodes
   	if (!tm.outrosComplete) {
-  		if (tm.parent) {
+  		if (tm.parent && !tm.parent.outrosComplete) {
   			tm.parent.decrementOutros(tm);
   		} else {
   			tm.detachNodes();
