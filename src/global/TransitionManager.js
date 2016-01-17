@@ -74,7 +74,7 @@ function check ( tm ) {
 	// we notify the parent if there is one, otherwise
 	// start detaching nodes
 	if ( !tm.outrosComplete ) {
-		if ( tm.parent ) {
+		if ( tm.parent && !tm.parent.outrosComplete ) {
 			tm.parent.decrementOutros( tm );
 		} else {
 			tm.detachNodes();

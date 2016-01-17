@@ -356,3 +356,19 @@ test( 'Conditional sections that become truthy are not rendered if a parent simu
 
 	t.ok( !transitionRan );
 });
+
+test( 'Nodes that are affected by deferred observers should actually get dettached (#2310)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#if bar}}<span>baz</span>{{/if}}`,
+		data: { foo: true, bar: true }
+	});
+
+	r.observe( 'foo', v => r.set( 'bar', v ), { defer: true } );
+
+	t.htmlEqual( fixture.innerHTML, '<span>baz</span>' );
+	r.set( 'foo', false );
+	t.htmlEqual( fixture.innerHTML, '' );
+	r.set( 'foo', true );
+	t.htmlEqual( fixture.innerHTML, '<span>baz</span>' );
+});
