@@ -372,3 +372,21 @@ test( 'Nodes that are affected by deferred observers should actually get dettach
 	r.set( 'foo', true );
 	t.htmlEqual( fixture.innerHTML, '<span>baz</span>' );
 });
+
+test( 'Context of transition function is current instance', t => {
+	t.expect( 1 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{#if visible}}<div intro='test'></div>{{/if}}`,
+		data: { visible: false },
+		transitions: {
+			test ( transition ) {
+				t.ok( this === ractive );
+				transition.complete;
+			}
+		}
+	});
+
+	ractive.set( 'visible', true );
+});
