@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Jan 17 2016 05:53:23 GMT+0000 (UTC) - commit ff361aa2149d6f94d32b43332c0b88493e2d2189
+	Wed Jan 20 2016 03:07:38 GMT+0000 (UTC) - commit 52101b5c793b5520664b83ed91bf524a00c68653
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3738,6 +3738,9 @@ var classCallCheck = function (instance, Constructor) {
   		this.parentFragment = this;
   		this.owner = options.owner;
   		this.ractive = this.parent.ractive;
+
+  		// encapsulated styles should be inherited until they get applied by an element
+  		this.cssIds = 'cssIds' in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
 
   		this.context = null;
   		this.rendered = false;
