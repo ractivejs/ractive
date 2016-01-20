@@ -298,3 +298,34 @@ test( 'data-ractive-css only gets applied to one level of elements', t => {
 	t.ok( ractive.find( 'div' ).hasAttribute( 'data-ractive-css' ) );
 	t.ok( !ractive.find( 'p' ).hasAttribute( 'data-ractive-css' ) );
 });
+
+test( 'top-level elements inside each blocks get encapsulated styles', t => {
+	const Widget = Ractive.extend({
+		template: `
+			<div class='one'>a</div>
+
+			{{#each list}}
+				<div class='two'>{{this}}</div>
+			{{/each}}`,
+		css: `
+			div { font-weight: 900; }
+			.one { color: red; }
+			.two { color: blue; }`
+	});
+
+	const ractive = new Widget({
+		el: fixture,
+		data: {
+			list: [ 1 ]
+		}
+	});
+
+	const one = ractive.find( '.one' );
+	const two = ractive.find( '.two' );
+
+	t.equal( getComputedStyle( one ).fontWeight, 900 );
+	t.equal( getComputedStyle( two ).fontWeight, 900 );
+
+	t.equal( getHexColor( one ), hexCodes.red );
+	t.equal( getHexColor( two ), hexCodes.blue );
+});

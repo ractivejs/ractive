@@ -29,6 +29,9 @@ export default class RepeatedFragment {
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
 
+		// encapsulated styles should be inherited until they get applied by an element
+		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
+
 		this.context = null;
 		this.rendered = false;
 		this.iterations = [];
