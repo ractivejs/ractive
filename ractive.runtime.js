@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Jan 20 2016 03:07:38 GMT+0000 (UTC) - commit 52101b5c793b5520664b83ed91bf524a00c68653
+	Wed Jan 20 2016 03:11:24 GMT+0000 (UTC) - commit b74a42655bfec822b1cf75bda21ad479000b687a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6436,7 +6436,7 @@ var classCallCheck = function (instance, Constructor) {
   			return;
   		}
 
-  		this._fn.apply(this.root, [this].concat(this.params));
+  		this._fn.apply(this.ractive, [this].concat(this.params));
   	};
 
   	return Transition;
