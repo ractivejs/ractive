@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Jan 20 2016 03:11:24 GMT+0000 (UTC) - commit b74a42655bfec822b1cf75bda21ad479000b687a
+	Wed Jan 20 2016 03:15:29 GMT+0000 (UTC) - commit 3fee42cc3e929d91b390faedcf5caf8a411bfecc
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8857,6 +8857,12 @@ var classCallCheck = function (instance, Constructor) {
   	visible = true;
   }
 
+  function snap(to) {
+  	return function () {
+  		return to;
+  	};
+  }
+
   var interpolators = {
   	number: function (from, to) {
   		var delta;
@@ -8931,7 +8937,7 @@ var classCallCheck = function (instance, Constructor) {
   			if (hasOwn.call(from, prop)) {
   				if (hasOwn.call(to, prop)) {
   					properties.push(prop);
-  					interpolators[prop] = interpolate(from[prop], to[prop]);
+  					interpolators[prop] = interpolate(from[prop], to[prop]) || snap(to[prop]);
   				} else {
   					intermediate[prop] = from[prop];
   				}
