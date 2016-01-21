@@ -15,7 +15,7 @@ function getValue() {
 
 export default class CheckboxNameBinding extends Binding {
 	constructor ( element ) {
-		super( element, 'name' );
+		if ( super( element, 'name' ) === false ) return false;
 
 		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
 

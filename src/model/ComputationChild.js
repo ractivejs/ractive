@@ -18,6 +18,9 @@ export default class ComputationChild extends Model {
 	applyValue ( value ) {
 		super.applyValue( value );
 
+		// if the parent is an expression with a computation, make sure the computation cache is updated too
+		if ( this.parent.computation && this.parent.computation.value ) this.parent.computation.value[ this.key ] = value;
+
 		// find the computation and mark the things it depends on
 		let computation, source = this;
 		while ( !computation && ( source = source.parent ) ) {
