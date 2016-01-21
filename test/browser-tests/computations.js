@@ -734,7 +734,7 @@ test( 'writable ComputationChild should find its computation if it is directly a
 
 	t.equal( fixture.innerHTML, 'yep' );
 
-	r.set( '@some\\.foo().bar', 'baz' );
+	r.set( '#some\\.foo().bar', 'baz' );
 
 	t.equal( fixture.innerHTML, 'baz' );
 });
