@@ -503,6 +503,19 @@ test( 'Static bindings can only be one-way (#1149)', t => {
 	t.htmlEqual( fixture.innerHTML, '<input>static' );
 });
 
+test( 'input[type="checkbox"] with bound checked and name attributes, updates as expected (#1749)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input type="checkbox" name="{{name}}" checked="{{on}}">',
+		data: {
+			name: 'foo',
+			on: 'true',
+		}
+	});
+
+	t.ok( ractive.find( 'input' ).checked );
+});
+
 test( 'input[type="checkbox"] with bound name updates as expected (#1305)', t => {
 	const ractive = new Ractive({
 		el: fixture,
