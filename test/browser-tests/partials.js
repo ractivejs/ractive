@@ -1,3 +1,5 @@
+/* global document */
+
 import { test } from 'qunit';
 import { hasUsableConsole, onWarn } from 'test-config';
 
@@ -906,4 +908,23 @@ test( 'Partials can be given alias context (#2298)', t => {
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'one two' );
+});
+
+test( 'Partials can be parsed from a partial template (#1445)', t => {
+	fixture.innerHTML = '<div id="fixture-tmp"></div>';
+	let script = document.createElement( 'script' );
+	script.setAttribute( 'type', 'text/html' );
+	script.setAttribute( 'id', 'foo' );
+	script[ 'textContent' in script ? 'textContent' : 'innerHTML' ] = `
+		{{#partial bar}}inner{{/partial}}
+		outer
+	`;
+	fixture.appendChild( script );
+
+	new Ractive({
+		el: '#fixture-tmp',
+		template: `{{>foo}} {{>bar}}`
+	});
+
+	t.htmlEqual( fixture.childNodes[0].innerHTML, 'outer inner' );
 });
