@@ -2,6 +2,7 @@ import { noRegistryFunctionReturn } from '../../../config/errors';
 import { warnIfDebug } from '../../../utils/log';
 import parser from '../../../Ractive/config/runtime-parser';
 import { findInstance } from '../../../shared/registry';
+import { fillGaps } from '../../../utils/object';
 
 export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	// If the partial in instance or view heirarchy instances, great
@@ -13,6 +14,9 @@ export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	if ( partial ) {
 		// parse and register to this ractive instance
 		let parsed = parser.parseFor( partial, ractive );
+
+		// register extra partials on the ractive instance if they don't already exist
+		if ( parsed.p ) fillGaps( ractive.partials, parsed.p );
 
 		// register (and return main partial if there are others in the template)
 		return ractive.partials[ name ] = parsed.t;

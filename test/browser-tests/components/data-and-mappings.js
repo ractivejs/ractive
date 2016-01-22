@@ -341,6 +341,25 @@ test( 'Isolated components do not interact with ancestor viewmodels', t => {
 	t.htmlEqual( fixture.innerHTML, 'you should see me.' );
 });
 
+test( 'isolated components do not interact with ancestor viewmodels via API (#2335)', t => {
+	const cmp = Ractive.extend({
+		template: '{{foo}}',
+		oninit() {
+			this.set( 'foo', this.get( 'bar' ) ? 'nope' : 'yep' );
+		},
+		isolated: true
+	});
+
+	Ractive({
+		el: fixture,
+		data: { bar: true },
+		template: '<cmp />',
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
+
 test( 'Children do not nuke parent data when inheriting from ancestors', t => {
 	const Widget = Ractive.extend({
 		template: '<p>value: {{thing.value}}</p>'
