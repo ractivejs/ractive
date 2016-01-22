@@ -14,6 +14,11 @@ export default function getPartialTemplate ( ractive, name, parentFragment ) {
 		// parse and register to this ractive instance
 		let parsed = parser.parseFor( partial, ractive );
 
+		// register extra partials on the ractive instance if they don't already exist
+		for ( let k in parsed.p ) {
+			if ( !( k in ractive.partials ) ) ractive.partials[ k ] = parsed.p[ k ];
+		}
+
 		// register (and return main partial if there are others in the template)
 		return ractive.partials[ name ] = parsed.t;
 	}
