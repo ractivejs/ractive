@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Jan 22 2016 06:47:12 GMT+0000 (UTC) - commit c62329e20104ccfbd1890859b05e093d9afd09dc
+	Fri Jan 22 2016 19:00:25 GMT+0000 (UTC) - commit 5fba0430f3c307db94f7c00a0feb742e960337be
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1509,6 +1509,22 @@ var classCallCheck = function (instance, Constructor) {
   			}
   		}
   	}
+
+  	return target;
+  }
+
+  function fillGaps(target) {
+  	for (var _len2 = arguments.length, sources = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+  		sources[_key2 - 1] = arguments[_key2];
+  	}
+
+  	sources.forEach(function (s) {
+  		for (var key in s) {
+  			if (hasOwn.call(s, key) && !(key in target)) {
+  				target[key] = s[key];
+  			}
+  		}
+  	});
 
   	return target;
   }
@@ -3472,9 +3488,7 @@ var classCallCheck = function (instance, Constructor) {
   		var parsed = parser.parseFor(partial, ractive);
 
   		// register extra partials on the ractive instance if they don't already exist
-  		for (var k in parsed.p) {
-  			if (!(k in ractive.partials)) ractive.partials[k] = parsed.p[k];
-  		}
+  		if (parsed.p) fillGaps(ractive.partials, parsed.p);
 
   		// register (and return main partial if there are others in the template)
   		return ractive.partials[name] = parsed.t;
