@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Jan 20 2016 03:15:29 GMT+0000 (UTC) - commit 3fee42cc3e929d91b390faedcf5caf8a411bfecc
+	Fri Jan 22 2016 06:43:58 GMT+0000 (UTC) - commit ee84a851d75aaa11eb6b0c02b1535a513323ad9c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11096,8 +11096,9 @@ var classCallCheck = function (instance, Constructor) {
   		this.node.addEventListener('reset', handleReset, false);
   	};
 
-  	Form.prototype.unrender = function unrender() {
+  	Form.prototype.unrender = function unrender(shouldDestroy) {
   		this.node.removeEventListener('reset', handleReset, false);
+  		_Element.prototype.unrender.call(this, shouldDestroy);
   	};
 
   	return Form;
