@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Jan 22 2016 06:43:58 GMT+0000 (UTC) - commit ee84a851d75aaa11eb6b0c02b1535a513323ad9c
+	Fri Jan 22 2016 06:47:12 GMT+0000 (UTC) - commit c62329e20104ccfbd1890859b05e093d9afd09dc
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6906,6 +6906,11 @@ var classCallCheck = function (instance, Constructor) {
   	if (partial) {
   		// parse and register to this ractive instance
   		var parsed = parser.parseFor(partial, ractive);
+
+  		// register extra partials on the ractive instance if they don't already exist
+  		for (var k in parsed.p) {
+  			if (!(k in ractive.partials)) ractive.partials[k] = parsed.p[k];
+  		}
 
   		// register (and return main partial if there are others in the template)
   		return ractive.partials[name] = parsed.t;
