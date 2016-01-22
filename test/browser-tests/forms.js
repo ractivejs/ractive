@@ -136,3 +136,16 @@ test( 'input that has binding change to undefined should be blank (#2279)', t =>
 	r.set( 'foo', undefined );
 	t.equal( r.find( 'input' ).value, '' );
 });
+
+test( 'forms should unrender properly #2352', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: 'foo: {{#if foo}}<form>Yep</form>{{/if}}',
+		data: { foo: true }
+	});
+
+	r.toggle( 'foo' );
+	t.htmlEqual( fixture.innerHTML, 'foo:' );
+	r.toggle( 'foo' );
+	t.htmlEqual( fixture.innerHTML, 'foo: <form>Yep</form>' );
+});
