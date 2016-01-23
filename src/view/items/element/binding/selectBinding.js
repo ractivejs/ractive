@@ -44,7 +44,7 @@ export default function selectBinding ( element ) {
 					// A checkbox with bindings for both name and checked - see https://github.com/ractivejs/ractive/issues/1749
 					return CheckboxBinding;
 				}
-  			}
+			}
 
 			if ( bindName ) {
 				return type === 'radio' ? RadioNameBinding : CheckboxNameBinding;
