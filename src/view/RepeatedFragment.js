@@ -19,6 +19,10 @@ function getRefs ( ref, value, parent ) {
 	return refs;
 }
 
+function activeIterations( array ) {
+	return array.filter( i => !!i );
+}
+
 export default class RepeatedFragment {
 	constructor ( options ) {
 		this.parent = options.owner.parentFragment;
@@ -117,7 +121,7 @@ export default class RepeatedFragment {
 
 	detach () {
 		const docFrag = createDocumentFragment();
-		this.iterations.forEach( fragment => docFrag.appendChild( fragment.detach() ) );
+		activeIterations( this.iterations ).forEach( fragment => docFrag.appendChild( fragment.detach() ) );
 		return docFrag;
 	}
 
@@ -126,6 +130,7 @@ export default class RepeatedFragment {
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
+			if ( !this.iterations[i] ) continue;
 			const found = this.iterations[i].find( selector );
 			if ( found ) return found;
 		}
@@ -136,6 +141,7 @@ export default class RepeatedFragment {
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
+			if ( !this.iterations[i] ) continue;
 			this.iterations[i].findAll( selector, query );
 		}
 	}
@@ -145,6 +151,7 @@ export default class RepeatedFragment {
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
+			if ( !this.iterations[i] ) continue;
 			const found = this.iterations[i].findComponent( name );
 			if ( found ) return found;
 		}
@@ -155,6 +162,7 @@ export default class RepeatedFragment {
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
+			if ( !this.iterations[i] ) continue;
 			this.iterations[i].findAllComponents( name, query );
 		}
 	}
@@ -162,6 +170,7 @@ export default class RepeatedFragment {
 	findNextNode ( iteration ) {
 		if ( iteration.index < this.iterations.length - 1 ) {
 			for ( let i = iteration.index + 1; i < this.iterations.length; i++ ) {
+				if ( !this.iterations[i] ) continue;
 				let node = this.iterations[ i ].firstNode();
 				if ( node ) return node;
 			}
@@ -178,8 +187,8 @@ export default class RepeatedFragment {
 		this.context = context;
 
 		// {{#each array}}...
-		if ( isArray( context.get() ) ) {
-			this.iterations.forEach( ( fragment, i ) => {
+		if ( context && isArray( context.get() ) ) {
+			activeIterations( this.iterations ).forEach( ( fragment, i ) => {
 				const model = context.joinKey( i );
 				if ( this.owner.template.z ) {
 					fragment.aliases = {};
@@ -194,7 +203,7 @@ export default class RepeatedFragment {
 		// TODO use docFrag.cloneNode...
 
 		if ( this.iterations ) {
-			this.iterations.forEach( fragment => fragment.render( target, occupants ) );
+			activeIterations( this.iterations ).forEach( fragment => fragment.render( target, occupants ) );
 		}
 
 		this.rendered = true;
@@ -225,17 +234,17 @@ export default class RepeatedFragment {
 
 	toString ( escape ) {
 		return this.iterations ?
-			this.iterations.map( escape ? toEscapedString : toString ).join( '' ) :
+			activeIterations( this.iterations ).map( escape ? toEscapedString : toString ).join( '' ) :
 			'';
 	}
 
 	unbind () {
-		this.iterations.forEach( unbind );
+		activeIterations( this.iterations ).forEach( unbind );
 		return this;
 	}
 
 	unrender ( shouldDestroy ) {
-		this.iterations.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
+		activeIterations( this.iterations ).forEach( shouldDestroy ? unrenderAndDestroy : unrender );
 		if ( this.pendingNewIndices && this.previousIterations ) {
 			this.previousIterations.forEach( fragment => {
 				if ( fragment.rendered ) shouldDestroy ? unrenderAndDestroy( fragment ) : unrender( fragment );
@@ -384,6 +393,9 @@ export default class RepeatedFragment {
 
 			previousNewIndex = newIndex;
 		});
+		for ( let i = newIndices.length; i < this.previousIterations.length; i++ ) {
+			this.previousIterations[ i ].unbind().unrender( true );
+		}
 
 		// create new iterations
 		const docFrag = this.rendered ? createDocumentFragment() : null;
