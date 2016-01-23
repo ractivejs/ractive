@@ -509,11 +509,27 @@ test( 'input[type="checkbox"] with bound checked and name attributes, updates as
 		template: '<input type="checkbox" name="{{name}}" checked="{{on}}">',
 		data: {
 			name: 'foo',
-			on: 'true',
+			on: 'true'
 		}
 	});
 
-	t.ok( ractive.find( 'input' ).checked );
+	const checkbox = ractive.find( 'input' );
+
+	// Assert initial bindings
+	t.ok( checkbox.checked );
+	t.equal( checkbox.name, 'foo' );
+
+	// Test name binding
+	ractive.set( 'name', 'bar' );
+
+	t.equal( checkbox.name, 'bar' );
+	t.ok( checkbox.checked );
+
+	// Test checked binding
+	ractive.set( 'on', false );
+
+	t.ok( !checkbox.checked );
+	t.equal( checkbox.name, 'bar' );
 });
 
 test( 'input[type="checkbox"] with bound name updates as expected (#1305)', t => {
