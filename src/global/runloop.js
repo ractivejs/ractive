@@ -46,6 +46,8 @@ const runloop = {
 		batch.transitionManager.add( transition );
 	},
 
+	active () { return !!batch; },
+
 	// synchronise node detachments with transition ends
 	detachWhenReady ( thing ) {
 		batch.transitionManager.detachQueue.push( thing );

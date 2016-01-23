@@ -4,6 +4,7 @@ import { handleChange, unbind } from '../../shared/methodCallers';
 import getFunction from '../../shared/getFunction';
 import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
+import runloop from '../../global/runloop';
 
 function getValue ( model ) {
 	return model ? model.get( true ) : undefined;
@@ -77,6 +78,11 @@ export default class ExpressionProxy extends Model {
 		computation.register( this );
 
 		this.handleChange();
+	}
+
+	clearUnresolveds () {
+		if ( this.fragment.dirty && runloop.active() ) runloop.scheduleTask( () => this.clearUnresolveds() );
+		else super.clearUnresolveds();
 	}
 
 	get ( shouldCapture ) {
