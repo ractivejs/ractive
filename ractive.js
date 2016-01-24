@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Jan 22 2016 19:00:25 GMT+0000 (UTC) - commit 5fba0430f3c307db94f7c00a0feb742e960337be
+	Sun Jan 24 2016 01:55:02 GMT+0000 (UTC) - commit 4c748ecda50a5f16fe4bfef80ef86e41ddde9077
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10378,9 +10378,14 @@ var classCallCheck = function (instance, Constructor) {
   			var bindName = isBindable(attributes.name);
   			var bindChecked = isBindable(attributes.checked);
 
-  			// we can either bind the name attribute, or the checked attribute - not both
+  			// for radios we can either bind the name attribute, or the checked attribute - not both
   			if (bindName && bindChecked) {
-  				warnIfDebug('A radio input can have two-way binding on its name attribute, or its checked attribute - not both', { ractive: element.root });
+  				if (type === 'radio') {
+  					warnIfDebug('A radio input can have two-way binding on its name attribute, or its checked attribute - not both', { ractive: element.root });
+  				} else {
+  					// A checkbox with bindings for both name and checked - see https://github.com/ractivejs/ractive/issues/1749
+  					return CheckboxBinding;
+  				}
   			}
 
   			if (bindName) {
