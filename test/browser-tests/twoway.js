@@ -1043,3 +1043,61 @@ test( 'ComputationChild bindings also notify other interested parties when chang
 	fire( input, 'change' );
 	t.equal( label.innerHTML, 'yep[{"val":"test1"}]' );
 });
+
+test( 'ComputationChild name bindings work for checkboxes', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foos()}}<input type="checkbox" name="{{.array}}" value="{{+1}}" /><input type="checkbox" name="{{.array}}" value="{{+2}}" />{{/with}}`,
+		data: {
+			foo: { array: [ 1, 2 ] }
+		},
+		derivedBindings: true
+	});
+
+	r.set( 'foos',function() { return r.get( 'foo' ); });
+
+	const [ check1, check2 ] = r.findAll( 'input' );
+
+	t.equal( check1.checked, true );
+	t.equal( check2.checked, true );
+
+	r.set( 'foo.array', [] );
+
+	t.equal( check1.checked, false );
+	t.equal( check2.checked, false );
+
+	fire( check1, 'click' );
+	fire( check2, 'click' );
+
+	t.equal( r.get( 'foo.array.0' ), 1 );
+	t.equal( r.get( 'foo.array.1' ), 2 );
+});
+
+test( 'ComputationChild name bindings work for radio buttons', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foos()}}<input type="radio" name="{{.value}}" value="{{+1}}" /><input type="radio" name="{{.value}}" value="{{+2}}" />{{/with}}`,
+		data: {
+			foo: { value: 1 }
+		},
+		derivedBindings: true
+	});
+
+	r.set( 'foos',function() { return r.get( 'foo' ); });
+
+	const [ radio1, radio2 ] = r.findAll( 'input' );
+
+	t.equal( radio1.checked, true );
+	t.equal( radio2.checked, false );
+
+	r.set( 'foo.value', 2 );
+
+	t.equal( radio1.checked, false );
+	t.equal( radio2.checked, true );
+
+	fire( radio1, 'click' );
+	t.equal( r.get( 'foo.value' ), 1 );
+
+	fire( radio2, 'click' );
+	t.equal( r.get( 'foo.value' ), 2 );
+});
