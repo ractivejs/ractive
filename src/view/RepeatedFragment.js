@@ -177,17 +177,14 @@ export default class RepeatedFragment {
 	rebind ( context ) {
 		this.context = context;
 
-		// {{#each array}}...
-		if ( isArray( context.get() ) ) {
-			this.iterations.forEach( ( fragment, i ) => {
-				const model = context.joinKey( i );
-				if ( this.owner.template.z ) {
-					fragment.aliases = {};
-					fragment.aliases[ this.owner.template.z[0].n ] = model;
-				}
-				fragment.rebind( model );
-			});
-		}
+		this.iterations.forEach( ( fragment ) => {
+			const model = context.joinKey( fragment.key || fragment.index );
+			if ( this.owner.template.z ) {
+				fragment.aliases = {};
+				fragment.aliases[ this.owner.template.z[0].n ] = model;
+			}
+			fragment.rebind( model );
+		});
 	}
 
 	render ( target, occupants ) {

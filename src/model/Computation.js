@@ -1,3 +1,5 @@
+/* global console */
+
 import { capture, startCapturing, stopCapturing } from '../global/capture';
 import { warnIfDebug } from '../utils/log';
 import Model from './Model';
@@ -49,7 +51,7 @@ export default class Computation extends Model {
 		this.signature = signature;
 
 		this.key = key; // not actually used, but helps with debugging
-		this.isExpression = key && key[0] === '@'
+		this.isExpression = key && key[0] === '@';
 
 		this.isReadonly = !this.signature.setter;
 
@@ -65,7 +67,7 @@ export default class Computation extends Model {
 		this.boundsSensitive = true;
 		this.dirty = true;
 
-		// TODO: computations don't shuffle, but this is a bit hackish
+		// TODO: is there a less hackish way to do this?
 		this.shuffle = undefined;
 	}
 

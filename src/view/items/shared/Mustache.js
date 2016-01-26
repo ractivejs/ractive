@@ -46,6 +46,13 @@ export default class Mustache extends Item {
 	rebind () {
 		if ( this.isStatic || !this.model ) return;
 
+		// watch for expression proxies
+		if ( this.model.isExpression && this.model.rebind ) {
+			this.model.rebind();
+			this.handleChange();
+			return;
+		}
+
 		const model = resolve( this.parentFragment, this.template );
 
 		if ( model === this.model ) return;
@@ -63,6 +70,7 @@ export default class Mustache extends Item {
 	unbind () {
 		if ( !this.isStatic ) {
 			this.model && this.model.unregister( this );
+			this.model = undefined;
 			this.resolver && this.resolver.unbind();
 		}
 	}
