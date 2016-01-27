@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Jan 24 2016 01:55:02 GMT+0000 (UTC) - commit 4c748ecda50a5f16fe4bfef80ef86e41ddde9077
+	Wed Jan 27 2016 06:16:55 GMT+0000 (UTC) - commit bd55c5e4880b78dc88a9600653a242b56c281948
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5899,14 +5899,6 @@ var classCallCheck = function (instance, Constructor) {
   		return branch;
   	};
 
-  	Model.prototype.discard = function discard() {
-  		var _this2 = this;
-
-  		this.deps.forEach(function (d) {
-  			if (d.boundsSensitive) _this2.unregister(d);
-  		});
-  	};
-
   	Model.prototype.findMatches = function findMatches(keys) {
   		var len = keys.length;
 
@@ -5995,7 +5987,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Model.prototype.getValueChildren = function getValueChildren(value) {
-  		var _this3 = this;
+  		var _this2 = this;
 
   		var children = undefined;
   		if (isArray(value)) {
@@ -6006,11 +5998,11 @@ var classCallCheck = function (instance, Constructor) {
   				children.push(originatingModel);
   			}
   			value.forEach(function (m, i) {
-  				children.push(_this3.joinKey(i));
+  				children.push(_this2.joinKey(i));
   			});
   		} else if (isObject(value) || typeof value === 'function') {
   			children = Object.keys(value).map(function (key) {
-  				return _this3.joinKey(key);
+  				return _this2.joinKey(key);
   			});
   		} else if (value != null) {
   			// TODO: this will return incorrect keypath if model is mapped
@@ -6127,18 +6119,14 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Model.prototype.shuffle = function shuffle(newIndices) {
-  		var _this4 = this;
+  		var _this3 = this;
 
   		var indexModels = [];
-  		var max = 0,
-  		    child = undefined;
 
   		newIndices.forEach(function (newIndex, oldIndex) {
-  			if (newIndex > max) max = newIndex;
-
   			if (! ~newIndex) return;
 
-  			var model = _this4.indexModels[oldIndex];
+  			var model = _this3.indexModels[oldIndex];
 
   			if (!model) return;
 
@@ -6148,12 +6136,6 @@ var classCallCheck = function (instance, Constructor) {
   				model.rebind(newIndex);
   			}
   		});
-
-  		// some children, notably computations, need to be notified when they are
-  		// no longer attached to anything so they don't recompute
-  		while (child = this.childByKey[++max]) {
-  			if (typeof child.discard === 'function') child.discard();
-  		}
 
   		this.indexModels = indexModels;
 
@@ -6343,12 +6325,12 @@ var classCallCheck = function (instance, Constructor) {
   		this.computation = null;
 
   		this.resolvers = [];
-  		this.models = template.r.map(function (ref, index) {
-  			var model = resolveReference(fragment, ref);
+  		this.models = this.template.r.map(function (ref, index) {
+  			var model = resolveReference(_this.fragment, ref);
   			var resolver = undefined;
 
   			if (!model) {
-  				resolver = fragment.resolve(ref, function (model) {
+  				resolver = _this.fragment.resolve(ref, function (model) {
   					removeFromArray(_this.resolvers, resolver);
   					_this.models[index] = model;
   					_this.bubble();
@@ -6810,6 +6792,7 @@ var classCallCheck = function (instance, Constructor) {
   	Mustache.prototype.unbind = function unbind() {
   		if (!this.isStatic) {
   			this.model && this.model.unregister(this);
+  			this.model = undefined;
   			this.resolver && this.resolver.unbind();
   		}
   	};
@@ -7348,17 +7331,14 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.context = context;
 
-  		// {{#each array}}...
-  		if (isArray(context.get())) {
-  			this.iterations.forEach(function (fragment, i) {
-  				var model = context.joinKey(i);
-  				if (_this2.owner.template.z) {
-  					fragment.aliases = {};
-  					fragment.aliases[_this2.owner.template.z[0].n] = model;
-  				}
-  				fragment.rebind(model);
-  			});
-  		}
+  		this.iterations.forEach(function (fragment) {
+  			var model = context.joinKey(fragment.key || fragment.index);
+  			if (_this2.owner.template.z) {
+  				fragment.aliases = {};
+  				fragment.aliases[_this2.owner.template.z[0].n] = model;
+  			}
+  			fragment.rebind(model);
+  		});
   	};
 
   	RepeatedFragment.prototype.render = function render(target, occupants) {
@@ -12119,7 +12099,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.boundsSensitive = true;
   		this.dirty = true;
 
-  		// TODO: computations don't shuffle, but this is a bit hackish
+  		// TODO: is there a less hackish way to do this?
   		this.shuffle = undefined;
   	}
 
