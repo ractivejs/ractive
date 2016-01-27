@@ -22,12 +22,12 @@ export default class ExpressionProxy extends Model {
 		this.computation = null;
 
 		this.resolvers = [];
-		this.models = template.r.map( ( ref, index ) => {
-			const model = resolveReference( fragment, ref );
+		this.models = this.template.r.map( ( ref, index ) => {
+			const model = resolveReference( this.fragment, ref );
 			let resolver;
 
 			if ( !model ) {
-				resolver = fragment.resolve( ref, model => {
+				resolver = this.fragment.resolve( ref, model => {
 					removeFromArray( this.resolvers, resolver );
 					this.models[ index ] = model;
 					this.bubble();
