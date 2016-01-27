@@ -63,6 +63,7 @@ export default class Mustache extends Item {
 	unbind () {
 		if ( !this.isStatic ) {
 			this.model && this.model.unregister( this );
+			this.model = undefined;
 			this.resolver && this.resolver.unbind();
 		}
 	}

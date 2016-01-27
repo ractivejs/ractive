@@ -83,3 +83,17 @@ test( 'splice with one argument (#1943)', t => {
 
 	t.htmlEqual( fixture.innerHTML, '1' );
 });
+
+test( 'a nested object iteration should rebind with an outer array iteration when it is spliced (#2321)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each arr}}{{#each .obj:k}}{{k}}-{{.}}{{/each}}{{/each}}`,
+		data: {
+			arr: [ { obj: { name: 'Rich ' } }, { obj: { name: 'Marty ' } } ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'name-Rich name-Marty' );
+	r.splice( 'arr', 0, 1 );
+	t.htmlEqual( fixture.innerHTML, 'name-Marty' );
+});
