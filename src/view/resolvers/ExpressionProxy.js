@@ -17,12 +17,29 @@ export default class ExpressionProxy extends Model {
 		this.template = template;
 
 		this.isReadonly = true;
-		this.isExpression = true;
 
 		this.fn = getFunction( template.s, template.r.length );
 		this.computation = null;
 
-		this.bind();
+		this.resolvers = [];
+		this.models = this.template.r.map( ( ref, index ) => {
+			const model = resolveReference( this.fragment, ref );
+			let resolver;
+
+			if ( !model ) {
+				resolver = this.fragment.resolve( ref, model => {
+					removeFromArray( this.resolvers, resolver );
+					this.models[ index ] = model;
+					this.bubble();
+				});
+
+				this.resolvers.push( resolver );
+			}
+
+			return model;
+		});
+
+		this.bubble();
 	}
 
 	bubble () {
@@ -63,7 +80,6 @@ export default class ExpressionProxy extends Model {
 	}
 
 	get ( shouldCapture ) {
-		if ( !this.computation ) return;
 		return this.computation.get( shouldCapture );
 	}
 
@@ -92,33 +108,6 @@ export default class ExpressionProxy extends Model {
 
 	mark () {
 		this.handleChange();
-	}
-
-	bind () {
-		this.resolvers = [];
-		this.models = this.template.r.map( ( ref, index ) => {
-			const model = resolveReference( this.fragment, ref );
-			let resolver;
-
-			if ( !model ) {
-				resolver = this.fragment.resolve( ref, model => {
-					removeFromArray( this.resolvers, resolver );
-					this.models[ index ] = model;
-					this.bubble();
-				});
-
-				this.resolvers.push( resolver );
-			}
-
-			return model;
-		});
-
-		this.bubble();
-	}
-
-	rebind () {
-		this.unbind();
-		this.bind();
 	}
 
 	retrieve () {
