@@ -1,62 +1,53 @@
 import { doc } from '../config/environment';
-import noop from '../utils/noop';
 
-var css,
-	update,
-	styleElement,
-	head,
-	styleSheet,
-	inDom,
-	prefix = '/* Ractive.js component styles */\n',
-	styles = [],
-	dirty = false;
+const PREFIX = '/* Ractive.js component styles */\n';
 
-if ( !doc ) {
-	// TODO handle encapsulated CSS in server-rendered HTML!
-	css = {
-		add: noop,
-		apply: noop
-	};
-} else {
+// Holds current definitions of styles
+let styleDefinitions = [];
+
+// Flag to tell if we need to update the CSS
+let isDirty = false;
+
+// These only make sense on the browser. See additional setup below.
+let styleElement = null;
+let styleSheet = null;
+let styleProperty = null;
+
+function add( styleDefinition ){
+	styleDefinitions.push( styleDefinition );
+	isDirty = true;
+};
+
+function toCSS(){
+	return PREFIX + styleDefinitions.map( s => `\n/* {${s.id}} */\n${s.styles}` ).join( '\n' );
+}
+
+function apply(){
+
+	// Apply only seems to make sense when we're in the DOM. Server-side renders
+	// can call toCSS to get the updated CSS.
+	if( !doc || !isDirty ) return;
+
+	styleElement[styleProperty] = toCSS();
+
+	isDirty = false;
+}
+
+// If we're on the browser, additional setup needed.
+if(doc && (!styleElement || !styleElement.parentNode)){
+
 	styleElement = doc.createElement( 'style' );
 	styleElement.type = 'text/css';
 
-	head = doc.getElementsByTagName( 'head' )[0];
+	doc.getElementsByTagName( 'head' )[0].appendChild(styleElement);
 
-	inDom = false;
-
-	// Internet Exploder won't let you use styleSheet.innerHTML - we have to
-	// use styleSheet.cssText instead
 	styleSheet = styleElement.styleSheet;
 
-	update = function () {
-		let css = prefix + styles.map( s => `\n/* {${s.id}} */\n${s.styles}` ).join( '\n' );
-
-		if ( styleSheet ) {
-			styleSheet.cssText = css;
-		} else {
-			styleElement.innerHTML = css;
-		}
-
-		if ( !inDom ) {
-			head.appendChild( styleElement );
-			inDom = true;
-		}
-	};
-
-	css = {
-		add ( s ) {
-			styles.push( s );
-			dirty = true;
-		},
-
-		apply () {
-			if ( dirty ) {
-				update();
-				dirty = false;
-			}
-		}
-	};
+	styleProperty = styleSheet ? 'cssText' : 'innerHTML';
 }
 
-export default css;
+export default {
+	add,
+	apply,
+	toCSS
+};
