@@ -16,7 +16,7 @@ let styleProperty = null;
 function add( styleDefinition ){
 	styleDefinitions.push( styleDefinition );
 	isDirty = true;
-};
+}
 
 function toCSS(){
 	return PREFIX + styleDefinitions.map( s => `\n/* {${s.id}} */\n${s.styles}` ).join( '\n' );

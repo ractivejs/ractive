@@ -2,9 +2,9 @@
 let Ractive = require('../../ractive');
 let assert = require('assert');
 
-describe('ractive.toCSS()', function() {
+describe('ractive.toCSS()', () => {
 
-	it('should be able to return CSS for a single component', function() {
+	it('should be able to return CSS for a single component', () => {
 
 		let Component = Ractive.extend({
 			template: `
@@ -33,7 +33,7 @@ describe('ractive.toCSS()', function() {
 
 	});
 
-	it('should be able to return CSS for nested components', function() {
+	it('should be able to return CSS for nested components', () => {
 
 		let ChildComponent = Ractive.extend({
 			template: `

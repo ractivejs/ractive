@@ -1,3 +1,5 @@
+import { test } from 'qunit';
+
 test( 'toCSS with a single component', t => {
 
 	let Component = Ractive.extend({
