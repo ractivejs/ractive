@@ -1,19 +1,19 @@
 import css from '../../../../global/css';
 import transformCss from './transform';
-
-let uid = 1;
+import { uuid } from '../../../../utils/id';
 
 export default {
 	name: 'css',
 
 	extend: ( Parent, proto, options ) => {
-		if ( options.css ) {
-			let id = uid++;
-			let styles = options.noCssTransform ? options.css : transformCss( options.css, id );
+		if ( !options.css ) return;
 
-			proto.cssId = id;
-			css.add({ id, styles });
-		}
+		let id = uuid();
+		let styles = options.noCssTransform ? options.css : transformCss( options.css, id );
+
+		proto.cssId = id;
+		css.add({ id, styles });
+
 	},
 
 	init: () => {}
