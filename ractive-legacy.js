@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Jan 27 2016 06:16:55 GMT+0000 (UTC) - commit bd55c5e4880b78dc88a9600653a242b56c281948
+	Mon Feb 01 2016 12:30:31 GMT+0000 (UTC) - commit 131a942a5a75e1b9e3589f58f2348fb03606d262
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -15171,7 +15171,7 @@ var classCallCheck = function (instance, Constructor) {
   		}).join('\n') + '\n');
   	}
 
-  	options = getOptions(options);
+  	options = getOptions(options, this);
 
   	var model = this.viewmodel.joinAll(splitKeypath(keypath));
   	var from = model.get();
