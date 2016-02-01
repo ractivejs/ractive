@@ -1,8 +1,10 @@
 import { findInViewHierarchy } from '../../../shared/registry';
+import findElement from '../shared/findElement';
 import { warnOnce } from '../../../utils/log';
 import { missingPlugin } from '../../../config/errors';
 import Fragment from '../../Fragment';
 import noop from '../../../utils/noop';
+import runloop from '../../../global/runloop';
 
 const missingDecorator = {
 	update: noop,
@@ -10,32 +12,32 @@ const missingDecorator = {
 };
 
 export default class Decorator {
-	constructor ( owner, template ) {
-		this.owner = owner;
-		this.template = template;
+	constructor ( options ) {
+		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
+		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
+		this.parentFragment = this.owner.parentFragment;
+		this.ractive = this.owner.ractive;
+		let template = this.template = options.template;
 
-		this.parentFragment = owner.parentFragment;
-		this.ractive = owner.ractive;
-
-		this.dynamicName = typeof template.n === 'object';
-		this.dynamicArgs = !!template.d;
+		this.dynamicName = typeof template.f.n === 'object';
+		this.dynamicArgs = !!template.f.d;
 
 		if ( this.dynamicName ) {
 			this.nameFragment = new Fragment({
 				owner: this,
-				template: template.n
+				template: template.f.n
 			});
 		} else {
-			this.name = template.n || template;
+			this.name = template.f.n || template.f;
 		}
 
 		if ( this.dynamicArgs ) {
 			this.argsFragment = new Fragment({
 				owner: this,
-				template: template.d
+				template: template.f.d
 			});
 		} else {
-			this.args = template.a || [];
+			this.args = template.f.a || [];
 		}
 
 		this.node = null;
@@ -64,22 +66,24 @@ export default class Decorator {
 	}
 
 	render () {
-		const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
+		runloop.scheduleTask( () => {
+			const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
 
-		if ( !fn ) {
-			warnOnce( missingPlugin( this.name, 'decorator' ) );
-			this.intermediary = missingDecorator;
-			return;
-		}
+			if ( !fn ) {
+				warnOnce( missingPlugin( this.name, 'decorator' ) );
+				this.intermediary = missingDecorator;
+				return;
+			}
 
-		this.node = this.owner.node;
+			this.node = this.element.node;
 
-		const args = this.dynamicArgs ? this.argsFragment.getArgsList() : this.args;
-		this.intermediary = fn.apply( this.ractive, [ this.node ].concat( args ) );
+			const args = this.dynamicArgs ? this.argsFragment.getArgsList() : this.args;
+			this.intermediary = fn.apply( this.ractive, [ this.node ].concat( args ) );
 
-		if ( !this.intermediary || !this.intermediary.teardown ) {
-			throw new Error( `The '${this.name}' decorator must return an object with a teardown method` );
-		}
+			if ( !this.intermediary || !this.intermediary.teardown ) {
+				throw new Error( `The '${this.name}' decorator must return an object with a teardown method` );
+			}
+		}, true );
 	}
 
 	unbind () {

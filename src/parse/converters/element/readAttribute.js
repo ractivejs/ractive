@@ -1,8 +1,21 @@
+import { ATTRIBUTE, DECORATOR, BINDING_FLAG, TRANSITION, EVENT } from '../../../config/types';
 import getLowestIndex from '../utils/getLowestIndex';
 import readMustache from '../readMustache';
 import { decodeCharacterReferences } from '../../../utils/html';
+import processDirective from './processDirective';
 
 var attributeNamePattern = /^[^\s"'>\/=]+/,
+	onPattern = /^on/,
+	proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
+	reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
+	decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/,
+	directives = { 'intro-outro': { t: TRANSITION, v: 't0' },
+				   intro: { t: TRANSITION, v: 't1' },
+				   outro: { t: TRANSITION, v: 't2' },
+				   lazy: { t: BINDING_FLAG, v: 'l' },
+				   twoway: { t: BINDING_FLAG, v: 't' },
+				   decorator: { t: DECORATOR }
+				 },
 	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
 
 export default function readAttribute ( parser ) {
@@ -15,11 +28,11 @@ export default function readAttribute ( parser ) {
 		return null;
 	}
 
-	attr = { name };
+	attr = { n: name };
 
 	value = readAttributeValue( parser );
 	if ( value != null ) { // not null/undefined
-		attr.value = value;
+		attr.f = value;
 	}
 
 	return attr;
@@ -161,4 +174,52 @@ function readQuotedStringToken ( parser, quoteMark ) {
 
 	parser.pos += index;
 	return haystack.substr( 0, index );
+}
+
+export function readAttributeOrDirective ( parser ) {
+		var match,
+			attribute,
+		    directive;
+
+		attribute = readAttribute( parser );
+
+		if ( !attribute ) return null;
+
+		// intro, outro, decorator
+		if ( directive = directives[ attribute.n ] ) {
+			attribute.t = directive.t;
+			attribute.v = directive.v;
+
+			if ( directive.t === TRANSITION || directive.t === DECORATOR ) attribute.f = processDirective( attribute.f, parser );
+		}
+
+		// decorators
+		else if ( match = decoratorPattern.exec( attribute.n ) ) {
+			attribute.t = DECORATOR;
+			attribute.n = match[1];
+			attribute.f = processDirective( attribute.f, parser );
+		}
+
+		// on-click etc
+		else if ( match = proxyEventPattern.exec( attribute.n ) ) {
+			attribute.n = match[1];
+			attribute.t = EVENT;
+			attribute.f = processDirective( attribute.f, parser );
+
+			if ( reservedEventNames.test( attribute.f.n ) ) {
+				parser.pos -= attribute.n.length;
+				parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
+			}
+		}
+
+		else {
+			if ( parser.sanitizeEventAttributes && onPattern.test( attribute.n ) ) {
+				return { exclude: true };
+			} else {
+				attribute.f = attribute.f || ( attribute.f === '' ? '' : 0 );
+				attribute.t = ATTRIBUTE;
+			}
+		}
+
+		return attribute;
 }

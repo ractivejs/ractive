@@ -6,15 +6,10 @@ import cleanup from '../utils/cleanup';
 import readMustache from './readMustache';
 import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
-import readAttribute from './element/readAttribute';
-import processDirective from './element/processDirective';
+import { readAttributeOrDirective } from './element/readAttribute';
 
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,
-	onPattern = /^on/,
-	proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
-	reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
-	directives = { 'intro-outro': 't0', intro: 't1', outro: 't2', decorator: 'o' },
 	exclude = { exclude: true },
 	disallowedContents;
 
@@ -41,11 +36,7 @@ export default readElement;
 function readElement ( parser ) {
 	var start,
 		element,
-		directiveName,
-		match,
-		addProxyEvent,
 		attribute,
-		directive,
 		selfClosing,
 		children,
 		partials,
@@ -99,51 +90,21 @@ function readElement ( parser ) {
 		parser.error( 'Illegal tag name' );
 	}
 
-	addProxyEvent = function ( name, directive ) {
-		var directiveName = directive.n || directive;
-
-		if ( reservedEventNames.test( directiveName ) ) {
-			parser.pos -= directiveName.length;
-			parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
-		}
-
-		element.v[ name ] = directive;
-	};
-
 	parser.allowWhitespace();
 
+	parser.inTag = true;
+
 	// directives and attributes
-	while ( attribute = readMustache( parser ) || readAttribute( parser ) ) {
-		// regular attributes
-		if ( attribute.name ) {
-			// intro, outro, decorator
-			if ( directiveName = directives[ attribute.name ] ) {
-				element[ directiveName ] = processDirective( attribute.value, parser );
-			}
-
-			// on-click etc
-			else if ( match = proxyEventPattern.exec( attribute.name ) ) {
-				if ( !element.v ) element.v = {};
-				directive = processDirective( attribute.value, parser );
-				addProxyEvent( match[1], directive );
-			}
-
-			else {
-				if ( !parser.sanitizeEventAttributes || !onPattern.test( attribute.name ) ) {
-					if ( !element.a ) element.a = {};
-					element.a[ attribute.name ] = attribute.value || ( attribute.value === '' ? '' : 0 );
-				}
-			}
-		}
-
-		// {{#if foo}}class='foo'{{/if}}
-		else {
+	while ( attribute = readMustache( parser ) ) {
+		if ( attribute !== false ) {
 			if ( !element.m ) element.m = [];
 			element.m.push( attribute );
 		}
 
 		parser.allowWhitespace();
 	}
+
+	parser.inTag = false;
 
 	// allow whitespace before closing solidus
 	parser.allowWhitespace();

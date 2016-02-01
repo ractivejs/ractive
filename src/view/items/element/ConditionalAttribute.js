@@ -7,6 +7,9 @@ import Item from '../shared/Item';
 
 const div = doc ? createElement( 'div' ) : null;
 
+var attributes = false;
+export function inAttributes() { return attributes; }
+
 export default class ConditionalAttribute extends Item {
 	constructor ( options ) {
 		super( options );
@@ -43,6 +46,10 @@ export default class ConditionalAttribute extends Item {
 		this.node = this.owner.node;
 		this.isSvg = this.node.namespaceURI === svg;
 
+		attributes = true;
+		this.fragment.render();
+		attributes = false;
+
 		this.rendered = true;
 		this.dirty = true; // TODO this seems hacky, but necessary for tests to pass in browser AND node.js
 		this.update();
@@ -65,7 +72,9 @@ export default class ConditionalAttribute extends Item {
 		let attrs;
 
 		if ( this.dirty ) {
+			attributes = true;
 			this.fragment.update();
+			attributes = false;
 
 			if ( this.rendered ) {
 				str = this.fragment.toString();

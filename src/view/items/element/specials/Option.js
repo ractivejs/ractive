@@ -44,6 +44,11 @@ export default class Option extends Element {
 		this.select.options.push( this );
 	}
 
+	getAttribute ( name ) {
+		const attribute = this.attributeByName[ name ];
+		return attribute ? attribute.getValue() : name === 'value' ? this.fragment.valueOf() : undefined;
+	}
+
 	isSelected () {
 		const optionValue = this.getAttribute( 'value' );
 

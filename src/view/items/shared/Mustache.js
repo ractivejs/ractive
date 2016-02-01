@@ -8,6 +8,7 @@ export default class Mustache extends Item {
 		this.parentFragment = options.parentFragment;
 		this.template = options.template;
 		this.index = options.index;
+		if ( options.owner ) this.parent = options.owner;
 
 		this.isStatic = !!options.template.s;
 

@@ -1,6 +1,7 @@
 import { win } from '../../../config/environment';
 import legacy from '../../../legacy';
 import { isArray } from '../../../utils/is';
+import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { extend } from '../../../utils/object';
@@ -16,19 +17,24 @@ const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyl
 const resolved = Promise.resolve();
 
 export default class Transition {
-	constructor ( owner, template, isIntro ) {
-		this.owner = owner;
-		this.isIntro = isIntro;
-		this.ractive = owner.ractive;
+	constructor ( options ) {//owner, template, isIntro ) {
+		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
+		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
+		this.ractive = this.owner.ractive;
+		this.template = options.template;
 
-		const ractive = owner.ractive;
+		if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
+		if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
 
-		let name = template.n || template;
+		const ractive = this.owner.ractive;
+
+		let name = options.template.f;
+		if ( typeof name.n === 'string' ) name = name.n;
 
 		if ( typeof name !== 'string' ) {
 			const fragment = new Fragment({
-				owner,
-				template: name
+				owner: this.owner,
+				template: name.n
 			}).bind(); // TODO need a way to capture values without bind()
 
 			name = fragment.toString();
@@ -42,16 +48,16 @@ export default class Transition {
 
 		this.name = name;
 
-		if ( template.a ) {
-			this.params = template.a;
+		if ( options.template.f.a ) {
+			this.params = options.template.f.a;
 		}
 
-		else if ( template.d ) {
+		else if ( options.template.f.d ) {
 			// TODO is there a way to interpret dynamic arguments without all the
 			// 'dependency thrashing'?
 			const fragment = new Fragment({
-				owner,
-				template: template.d
+				owner: this.owner,
+				template: options.template.f.d
 			}).bind();
 
 			this.params = fragment.getArgsList();
@@ -142,6 +148,8 @@ export default class Transition {
 		});
 	}
 
+	bind () {}
+
 	getStyle ( props ) {
 		const computedStyle = getComputedStyle( this.node );
 
@@ -188,6 +196,13 @@ export default class Transition {
 		return extend( {}, defaults, params );
 	}
 
+	rebind () {
+		this.unbind();
+		this.bind();
+	}
+
+	render () {}
+
 	setStyle ( style, value ) {
 		if ( typeof style === 'string' ) {
 			this.node.style[ prefix( style ) ] = value;
@@ -206,7 +221,7 @@ export default class Transition {
 	}
 
 	start () {
-		const node = this.node = this.owner.node;
+		const node = this.node = this.element.node;
 		const originalStyle = node.getAttribute( 'style' );
 
 		let completed;
@@ -236,4 +251,10 @@ export default class Transition {
 
 		this._fn.apply( this.ractive, [ this ].concat( this.params ) );
 	}
+
+	unbind () {}
+
+	unrender () {}
+
+	update () {}
 }

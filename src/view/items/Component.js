@@ -1,11 +1,13 @@
 import runloop from '../../global/runloop';
 import { warnIfDebug, warnOnceIfDebug } from '../../utils/log';
-import { COMPONENT, INTERPOLATOR, YIELDER } from '../../config/types';
+import { ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, INTERPOLATOR, TRANSITION, YIELDER } from '../../config/types';
 import Item from './shared/Item';
+import ConditionalAttribute from './element/ConditionalAttribute';
 import construct from '../../Ractive/construct';
 import initialise from '../../Ractive/initialise';
 import render from '../../Ractive/render';
 import { create } from '../../utils/object';
+import createItem from './createItem';
 import { removeFromArray } from '../../utils/array';
 import { isArray } from '../../utils/is';
 import resolve from '../resolvers/resolve';
@@ -44,7 +46,6 @@ export default class Component extends Item {
 		this.instance = instance;
 		this.name = options.template.e;
 		this.parentFragment = options.parentFragment;
-		this.complexMappings = [];
 
 		this.liveQueries = [];
 
@@ -83,6 +84,35 @@ export default class Component extends Item {
 		// for components and just for ractive...
 		instance._inlinePartials = partials;
 
+		this.attributeByName = {};
+
+		this.attributes = [];
+		( this.template.m || [] ).forEach( template => {
+			switch ( template.t ) {
+				case ATTRIBUTE:
+				case EVENT:
+				case TRANSITION:
+					this.attributes.push( createItem({
+						owner: this,
+						parentFragment: this.parentFragment,
+						template
+					}) );
+					break;
+
+				case BINDING_FLAG:
+				case DECORATOR:
+					break;
+
+				default:
+					this.attributes.push( new ConditionalAttribute({
+						owner: this,
+						parentFragment: this.parentFragment,
+						template
+					}) );
+					break;
+			}
+		});
+
 		this.eventHandlers = [];
 		if ( this.template.v ) this.setupEvents();
 	}
@@ -91,60 +121,7 @@ export default class Component extends Item {
 		const viewmodel = this.instance.viewmodel;
 		const childData = viewmodel.value;
 
-		// determine mappings
-		if ( this.template.a ) {
-			Object.keys( this.template.a ).forEach( localKey => {
-				const template = this.template.a[ localKey ];
-				let model;
-				let fragment;
-
-				if ( template === 0 ) {
-					// empty attributes are `true`
-					viewmodel.joinKey( localKey ).set( true );
-				}
-
-				else if ( typeof template === 'string' ) {
-					const parsed = parseJSON( template );
-					viewmodel.joinKey( localKey ).set( parsed ? parsed.value : template );
-				}
-
-				else if ( isArray( template ) ) {
-					if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
-						model = resolve( this.parentFragment, template[0] );
-
-						if ( !model ) {
-							warnOnceIfDebug( `The ${localKey}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.instance }); // TODO add docs page explaining this
-							this.parentFragment.ractive.get( localKey ); // side-effect: create mappings as necessary
-							model = this.parentFragment.findContext().joinKey( localKey );
-						}
-
-						viewmodel.map( localKey, model );
-
-						if ( model.get() === undefined && localKey in childData ) {
-							model.set( childData[ localKey ] );
-						}
-					}
-
-					else {
-						fragment = new Fragment({
-							owner: this,
-							template
-						}).bind();
-
-						model = viewmodel.joinKey( localKey );
-						model.set( fragment.valueOf() );
-
-						// this is a *bit* of a hack
-						fragment.bubble = () => {
-							Fragment.prototype.bubble.call( fragment );
-							model.set( fragment.valueOf() );
-						};
-
-						this.complexMappings.push( fragment );
-					}
-				}
-			});
-		}
+		this.attributes.forEach( bind );
 
 		initialise( this.instance, {
 			partials: this._partials
@@ -210,41 +187,19 @@ export default class Component extends Item {
 	}
 
 	rebind () {
-		this.complexMappings.forEach( rebind );
+		this.instance.viewmodel.mappings = {};
+		this.attributes.forEach( rebind );
 
 		this.liveQueries.forEach( makeDirty );
 
-		// update relevant mappings
-		const viewmodel = this.instance.viewmodel;
-		viewmodel.mappings = {};
-
-		if ( this.template.a ) {
-			Object.keys( this.template.a ).forEach( localKey => {
-				const template = this.template.a[ localKey ];
-				let model;
-
-				if ( isArray( template ) && template.length === 1 && template[0].t === INTERPOLATOR ) {
-					model = resolve( this.parentFragment, template[0] );
-
-					if ( !model ) {
-						// TODO is this even possible?
-						warnOnceIfDebug( `The ${localKey}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.instance });
-						this.parentFragment.ractive.get( localKey ); // side-effect: create mappings as necessary
-						model = this.parentFragment.findContext().joinKey( localKey );
-					}
-
-					viewmodel.map( localKey, model );
-				}
-			});
-		}
-
-		this.instance.fragment.rebind( viewmodel );
+		this.instance.fragment.rebind( this.instance.viewmodel );
 	}
 
 	render ( target, occupants ) {
 		render( this.instance, target, null, occupants );
 
 		this.checkYielders();
+		this.attributes.forEach( callRender );
 		this.eventHandlers.forEach( callRender );
 		updateLiveQueries( this );
 
@@ -270,7 +225,7 @@ export default class Component extends Item {
 	}
 
 	unbind () {
-		this.complexMappings.forEach( unbind );
+		this.attributes.forEach( unbind );
 
 		const instance = this.instance;
 		instance.viewmodel.teardown();
@@ -291,6 +246,7 @@ export default class Component extends Item {
 	unrender ( shouldDestroy ) {
 		this.shouldDestroy = shouldDestroy;
 		this.instance.unrender();
+		this.attributes.forEach( unrender );
 		this.eventHandlers.forEach( unrender );
 		this.liveQueries.forEach( query => query.remove( this.instance ) );
 	}
@@ -298,6 +254,7 @@ export default class Component extends Item {
 	update () {
 		this.instance.fragment.update();
 		this.checkYielders();
+		this.attributes.forEach( update );
 		this.eventHandlers.forEach( update );
 		this.dirty = false;
 	}

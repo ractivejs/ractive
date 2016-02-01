@@ -3,6 +3,7 @@ import { TEXT } from '../../config/types';
 import { escapeHtml } from '../../utils/html';
 import Item from './shared/Item';
 import { detachNode } from '../../utils/dom';
+import { inAttributes } from './element/ConditionalAttribute';
 
 export default class Text extends Item {
 	constructor ( options ) {
@@ -27,6 +28,7 @@ export default class Text extends Item {
 	}
 
 	render ( target, occupants ) {
+		if ( inAttributes() ) return;
 		this.rendered = true;
 
 		if ( occupants ) {

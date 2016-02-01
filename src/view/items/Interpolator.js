@@ -3,6 +3,7 @@ import { escapeHtml } from '../../utils/html';
 import { safeToStringValue } from '../../utils/dom';
 import Mustache from './shared/Mustache';
 import { detachNode } from '../../utils/dom';
+import { inAttributes } from './element/ConditionalAttribute';
 
 export default class Interpolator extends Mustache {
 	detach () {
@@ -18,6 +19,7 @@ export default class Interpolator extends Mustache {
 	}
 
 	render ( target, occupants ) {
+		if ( inAttributes() ) return;
 		const value = this.getString();
 
 		this.rendered = true;

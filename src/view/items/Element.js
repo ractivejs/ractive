@@ -1,19 +1,19 @@
-import { ELEMENT } from '../../config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, ELEMENT, EVENT, TRANSITION } from '../../config/types';
 import runloop from '../../global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
-import Attribute from './element/Attribute';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import Decorator from './element/Decorator';
-import EventDirective from './shared/EventDirective';
-import { findInViewHierarchy } from '../../shared/registry';
-import { DOMEvent, CustomEvent } from './element/ElementEvents';
+//import EventDirective from './shared/EventDirective';
+//import { findInViewHierarchy } from '../../shared/registry';
+//import { DOMEvent, CustomEvent } from './element/ElementEvents';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches } from '../../utils/dom';
+import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
@@ -47,58 +47,45 @@ export default class Element extends Item {
 
 		// create attributes
 		this.attributeByName = {};
+
 		this.attributes = [];
+		( this.template.m || [] ).forEach( template => {
+			switch ( template.t ) {
+				case ATTRIBUTE:
+				case BINDING_FLAG:
+				case DECORATOR:
+				case EVENT:
+				case TRANSITION:
+					this.attributes.push( createItem({
+						owner: this,
+						parentFragment: this.parentFragment,
+						template
+					}) );
+					break;
 
-		if ( this.template.a ) {
-			Object.keys( this.template.a ).forEach( name => {
-				// TODO process this at parse time
-				if ( name === 'twoway' || name === 'lazy' ) return;
-
-				const attribute = new Attribute({
-					name,
-					element: this,
-					parentFragment: this.parentFragment,
-					template: this.template.a[ name ]
-				});
-
-				this.attributeByName[ name ] = attribute;
-
-				if ( name !== 'value' && name !== 'type' ) this.attributes.push( attribute );
-			});
-
-			if ( this.attributeByName.type ) this.attributes.unshift( this.attributeByName.type );
-			if ( this.attributeByName.value ) this.attributes.push( this.attributeByName.value );
-		}
-
-		// create conditional attributes
-		this.conditionalAttributes = ( this.template.m || [] ).map( template => {
-			return new ConditionalAttribute({
-				owner: this,
-				parentFragment: this.parentFragment,
-				template
-			});
+				default:
+					this.attributes.push( new ConditionalAttribute({
+						owner: this,
+						parentFragment: this.parentFragment,
+						template
+					}) );
+					break;
+			}
 		});
+
+		let i = this.attributes.length, foundValue = false;
+		while ( i-- ) {
+			let attr = this.attributes[ i ];
+			if ( attr.name === 'type' ) this.attributes.splice( this.attributes.length - ( foundValue ? 2 : 1 ), 0, this.attributes.splice( i, 1 )[ 0 ] );
+			else if ( attr.name === 'value' ) {
+				foundValue = true;
+				this.attributes.push( this.attributes.splice( i, 1 )[ 0 ] );
+			}
+		}
 
 		// create decorator
 		if ( this.template.o ) {
 			this.decorator = new Decorator( this, this.template.o );
-		}
-
-		// attach event handlers
-		this.eventHandlers = [];
-		if ( this.template.v ) {
-			Object.keys( this.template.v ).forEach( key => {
-				const eventNames = key.split( '-' );
-				const template = this.template.v[ key ];
-
-				eventNames.forEach( eventName => {
-					const fn = findInViewHierarchy( 'events', this.ractive, eventName );
-					// we need to pass in "this" in order to get
-					// access to node when it is created.
-					const event = fn ? new CustomEvent( fn, this ) : new DOMEvent( eventName, this );
-					this.eventHandlers.push( new EventDirective( this, event, template ) );
-				});
-			});
 		}
 
 		// create children
@@ -114,25 +101,20 @@ export default class Element extends Item {
 	}
 
 	bind () {
+		this.attributes.binding = true;
 		this.attributes.forEach( bind );
-		this.conditionalAttributes.forEach( bind );
-		this.eventHandlers.forEach( bind );
+		this.attributes.binding = false;
+		//this.eventHandlers.forEach( bind );
 
 		if ( this.decorator ) this.decorator.bind();
 		if ( this.fragment ) this.fragment.bind();
 
 		// create two-way binding if necessary
-		if ( this.binding = this.createTwowayBinding() ) this.binding.bind();
+		if ( !this.binding ) this.recreateTwowayBinding();
 	}
 
 	createTwowayBinding () {
-		const attributes = this.template.a;
-
-		if ( !attributes ) return null;
-
-		const shouldBind = 'twoway' in attributes ?
-			attributes.twoway === 0 || attributes.twoway === 'true' : // covers `twoway` and `twoway='true'`
-			this.ractive.twoway;
+		const shouldBind = 'twoway' in this ? this.twoway : this.ractive.twoway;
 
 		if ( !shouldBind ) return null;
 
@@ -200,13 +182,24 @@ export default class Element extends Item {
 
 	rebind () {
 		this.attributes.forEach( rebind );
-		this.conditionalAttributes.forEach( rebind );
-		this.eventHandlers.forEach( rebind );
+		//this.eventHandlers.forEach( rebind );
 		if ( this.decorator ) this.decorator.rebind();
 		if ( this.fragment ) this.fragment.rebind();
 		if ( this.binding ) this.binding.rebind();
 
 		this.liveQueries.forEach( makeDirty );
+	}
+
+	recreateTwowayBinding () {
+		if ( this.binding ) {
+			this.binding.unbind();
+			this.binding.unrender();
+		}
+
+		if ( this.binding = this.createTwowayBinding() ) {
+			this.binding.bind();
+			if ( this.rendered ) this.binding.render();
+		}
 	}
 
 	render ( target, occupants ) {
@@ -276,22 +269,17 @@ export default class Element extends Item {
 		}
 
 		this.attributes.forEach( render );
-		this.conditionalAttributes.forEach( render );
 
 		if ( this.decorator ) runloop.scheduleTask( () => this.decorator.render(), true );
 		if ( this.binding ) this.binding.render();
 
-		this.eventHandlers.forEach( render );
+		//this.eventHandlers.forEach( render );
 
 		updateLiveQueries( this );
 
-		// transitions
-		const transitionTemplate = this.template.t0 || this.template.t1;
-		if ( transitionTemplate && this.ractive.transitionsEnabled ) {
-			const transition = new Transition( this, transitionTemplate, true );
-			runloop.registerTransition( transition );
-
-			this._introTransition = transition; // so we can abort if it gets removed
+		if ( this._introTransition && this.ractive.transitionsEnabled ) {
+			this._introTransition.isIntro = true;
+			runloop.registerTransition( this._introTransition );
 		}
 
 		if ( !existing ) {
@@ -304,8 +292,7 @@ export default class Element extends Item {
 	toString () {
 		const tagName = this.template.e;
 
-		let attrs = this.attributes.map( stringifyAttribute ).join( '' ) +
-		            this.conditionalAttributes.map( stringifyAttribute ).join( '' );
+		let attrs = this.attributes.map( stringifyAttribute ).join( '' );
 
 		// Special case - selected options
 		if ( this.name === 'option' && this.isSelected() ) {
@@ -341,8 +328,8 @@ export default class Element extends Item {
 
 	unbind () {
 		this.attributes.forEach( unbind );
-		this.conditionalAttributes.forEach( unbind );
 
+		if ( this.binding ) this.binding.unbind();
 		if ( this.decorator ) this.decorator.unbind();
 		if ( this.fragment ) this.fragment.unbind();
 	}
@@ -354,7 +341,7 @@ export default class Element extends Item {
 		// unrendering before intro completed? complete it now
 		// TODO should be an API for aborting transitions
 		let transition = this._introTransition;
-		if ( transition ) transition.complete();
+		if ( transition && transition.complete ) transition.complete();
 
 		// Detach as soon as we can
 		if ( this.name === 'option' ) {
@@ -368,16 +355,15 @@ export default class Element extends Item {
 
 		if ( this.fragment ) this.fragment.unrender();
 
-		this.eventHandlers.forEach( unrender );
+		//this.eventHandlers.forEach( unrender );
+		this.attributes.forEach( unrender );
 
 		if ( this.binding ) this.binding.unrender();
 		if ( !shouldDestroy && this.decorator ) this.decorator.unrender();
 
-		// outro transition
-		const transitionTemplate = this.template.t0 || this.template.t2;
-		if ( transitionTemplate && this.ractive.transitionsEnabled ) {
-			const transition = new Transition( this, transitionTemplate, false );
-			runloop.registerTransition( transition );
+		if ( this._outroTransition && this.ractive.transitionsEnabled ) {
+			this._outroTransition.isIntro = false;
+			runloop.registerTransition( this._outroTransition );
 		}
 
 		// special case
@@ -393,8 +379,7 @@ export default class Element extends Item {
 	update () {
 		if ( this.dirty ) {
 			this.attributes.forEach( update );
-			this.conditionalAttributes.forEach( update );
-			this.eventHandlers.forEach( update );
+			//this.eventHandlers.forEach( update );
 
 			if ( this.decorator ) this.decorator.update();
 			if ( this.fragment ) this.fragment.update();

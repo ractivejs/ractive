@@ -32,10 +32,6 @@ function collect( source, name, dest ) {
 			if ( isArray( item.attributes ) ) {
 				collect( item.attributes, name, dest );
 			}
-
-			if ( isArray( item.conditionalAttributes ) ) {
-				collect( item.conditionalAttributes, name, dest );
-			}
 		}
 	});
 }

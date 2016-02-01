@@ -1,12 +1,16 @@
-import { INTERPOLATOR } from '../../../config/types';
+import { INTERPOLATOR, COMPONENT, ELEMENT } from '../../../config/types';
+import { warnOnceIfDebug } from '../../../utils/log';
 import namespaces from '../../../config/namespaces';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
+import findElement from '../shared/findElement';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
+import resolve from '../../resolvers/resolve';
 import { isArray } from '../../../utils/is';
 import { safeToStringValue } from '../../../utils/dom';
 import { booleanAttributes } from '../../../utils/html';
+import parseJSON from '../../../utils/parseJSON';
 
 function lookupNamespace ( node, prefix ) {
 	const qualified = `xmlns:${prefix}`;
@@ -23,38 +27,95 @@ export default class Attribute extends Item {
 	constructor ( options ) {
 		super( options );
 
-		this.name = options.name;
+		this.name = options.template.n;
 		this.namespace = null;
-		this.element = options.element;
-		this.parentFragment = options.element.parentFragment; // shared
+
+		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
+		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
+		this.parentFragment = this.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
 
 		this.rendered = false;
 		this.updateDelegate = null;
 		this.fragment = null;
-		this.value = null;
 
-		if ( !isArray( options.template ) ) {
-			this.value = options.template;
-			if ( this.value === 0 ) {
-				this.value = '';
+		this.element.attributeByName[ this.name ] = this;
+
+		if ( this.element.type === ELEMENT ) {
+			if ( !isArray( options.template.f ) ) {
+				this.value = options.template.f;
+				if ( this.value === 0 ) {
+					this.value = '';
+				}
+			} else {
+				this.fragment = new Fragment({
+					owner: this,
+					template: options.template.f
+				});
 			}
-		} else {
-			this.fragment = new Fragment({
-				owner: this,
-				template: options.template
-			});
-		}
 
-		this.interpolator = this.fragment &&
-		                    this.fragment.items.length === 1 &&
-		                    this.fragment.items[0].type === INTERPOLATOR &&
-		                    this.fragment.items[0];
+			this.interpolator = this.fragment &&
+								this.fragment.items.length === 1 &&
+								this.fragment.items[0].type === INTERPOLATOR &&
+								this.fragment.items[0];
+		} else {
+			this.value = options.template.f;
+		}
 	}
 
 	bind () {
 		if ( this.fragment ) {
 			this.fragment.bind();
+		}
+
+		if ( this.element.type === COMPONENT ) {
+			let template = this.template.f;
+			let viewmodel = this.element.instance.viewmodel;
+			let childData = viewmodel.value;
+
+			if ( template === 0 ) {
+				// empty attributes are `true`
+				viewmodel.joinKey( this.name ).set( true );
+			}
+
+			else if ( typeof template === 'string' ) {
+				const parsed = parseJSON( template );
+				viewmodel.joinKey( this.name ).set( parsed ? parsed.value : template );
+			}
+
+			else if ( isArray( template ) ) {
+				if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
+					this.model = resolve( this.parentFragment, template[0] );
+
+					if ( !this.model ) {
+						warnOnceIfDebug( `The ${this.name}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.element.instance }); // TODO add docs page explaining this
+						this.parentFragment.ractive.get( this.name ); // side-effect: create mappings as necessary
+						this.model = this.parentFragment.findContext().joinKey( this.name );
+					}
+
+					viewmodel.map( this.name, this.model );
+
+					if ( this.model.get() === undefined && this.name in childData ) {
+						this.model.set( childData[ this.name ] );
+					}
+				}
+
+				else {
+					this.boundFragment = new Fragment({
+						owner: this,
+						template
+					}).bind();
+
+					this.model = viewmodel.joinKey( this.name );
+					this.model.set( this.boundFragment.valueOf() );
+
+					// this is a *bit* of a hack
+					this.boundFragment.bubble = () => {
+						Fragment.prototype.bubble.call( this.boundFragment );
+						this.model.set( this.boundFragment.valueOf() );
+					};
+				}
+			}
 		}
 	}
 
@@ -83,6 +144,8 @@ export default class Attribute extends Item {
 	}
 
 	render () {
+		if ( this.element.type === COMPONENT ) return;
+
 		const node = this.element.node;
 		this.node = node;
 
@@ -147,6 +210,14 @@ export default class Attribute extends Item {
 
 	unbind () {
 		if ( this.fragment ) this.fragment.unbind();
+		if ( this.boundFragment ) this.boundFragment.unbind();
+	}
+
+	unrender () {
+		if ( this.element.type === COMPONENT ) return;
+		this.updateDelegate( true );
+
+		this.rendered = false;
 	}
 
 	update () {
