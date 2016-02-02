@@ -35,6 +35,15 @@ export default class Option extends Element {
 		this.select.options.push( this );
 	}
 
+	bubble () {
+		// if we're using content as value, may need to update here
+		let value = this.getAttribute( 'value' );
+		if ( this.node.value !== value ) {
+			this.node._ractive.value = value;
+		}
+		super.bubble();
+	}
+
 	getAttribute ( name ) {
 		const attribute = this.attributeByName[ name ];
 		return attribute ? attribute.getValue() : name === 'value' && this.fragment ? this.fragment.valueOf() : undefined;
