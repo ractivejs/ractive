@@ -14,7 +14,7 @@ export default class BindingFlag extends Item {
 
 		if ( this.element.type === ELEMENT ) {
 			if ( !isArray( options.template.f ) ) {
-				set( this, options.template.f, false );
+				set( this, 'f' in options.template ? options.template.f : true, false );
 			} else {
 				this.fragment = new Fragment({
 					owner: this,
@@ -75,18 +75,18 @@ export default class BindingFlag extends Item {
 function set ( flag, value, update ) {
 	if ( value === 0 ) {
 		flag.value = true;
-	} else if ( value === "true" ) {
+	} else if ( value === 'true' ) {
 		flag.value = true;
-	} else if ( value === "false") {
+	} else if ( value === 'false' || value === '0' ) {
 		flag.value = false;
 	} else {
 		flag.value = value;
 	}
 
 	if ( update && !flag.element.attributes.binding && flag.element[ flag.flag ] !== flag.value ) {
-		flag.element[ flag.flag ] = flag.value;
 		flag.element.recreateTwowayBinding();
 	}
+	flag.element[ flag.flag ] = flag.value;
 
 	return flag.value;
 }
