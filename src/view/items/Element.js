@@ -70,12 +70,11 @@ export default class Element extends Item {
 			}
 		});
 
-		let i = this.attributes.length, foundValue = false;
+		let i = this.attributes.length;
 		while ( i-- ) {
 			let attr = this.attributes[ i ];
-			if ( attr.name === 'type' ) this.attributes.splice( this.attributes.length - ( foundValue ? 2 : 1 ), 0, this.attributes.splice( i, 1 )[ 0 ] );
+			if ( attr.name === 'type' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
 			else if ( attr.name === 'value' ) {
-				foundValue = true;
 				this.attributes.push( this.attributes.splice( i, 1 )[ 0 ] );
 			}
 		}
