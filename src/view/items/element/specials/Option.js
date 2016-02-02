@@ -11,15 +11,6 @@ function findParentSelect ( element ) {
 
 export default class Option extends Element {
 	constructor ( options ) {
-		const template = options.template;
-		if ( !template.a ) template.a = {};
-
-		// If the value attribute is missing, use the element's content,
-		// as long as it isn't disabled
-		if ( template.a.value === undefined && !( 'disabled' in template ) ) {
-			template.a.value = template.f || '';
-		}
-
 		super( options );
 
 		this.select = findParentSelect( this.parent );
@@ -46,7 +37,7 @@ export default class Option extends Element {
 
 	getAttribute ( name ) {
 		const attribute = this.attributeByName[ name ];
-		return attribute ? attribute.getValue() : name === 'value' ? this.fragment.valueOf() : undefined;
+		return attribute ? attribute.getValue() : name === 'value' && this.fragment ? this.fragment.valueOf() : undefined;
 	}
 
 	isSelected () {
@@ -69,6 +60,14 @@ export default class Option extends Element {
 					return true;
 				}
 			}
+		}
+	}
+
+	render ( target, occupants ) {
+		super.render( target, occupants );
+
+		if ( !this.attributeByName.value ) {
+			this.node._ractive.value = this.getAttribute( 'value' );
 		}
 	}
 
