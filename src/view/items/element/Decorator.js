@@ -42,6 +42,8 @@ export default class Decorator {
 
 		this.node = null;
 		this.intermediary = null;
+
+		this.element.decorators.push( this );
 	}
 
 	bind () {
@@ -91,8 +93,8 @@ export default class Decorator {
 		if ( this.dynamicArgs ) this.argsFragment.unbind();
 	}
 
-	unrender () {
-		if ( this.intermediary ) this.intermediary.teardown();
+	unrender ( shouldDestroy ) {
+		if ( !shouldDestroy && this.intermediary ) this.intermediary.teardown();
 	}
 
 	update () {

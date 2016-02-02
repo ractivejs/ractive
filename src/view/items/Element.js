@@ -3,15 +3,10 @@ import runloop from '../../global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import Decorator from './element/Decorator';
-//import EventDirective from './shared/EventDirective';
-//import { findInViewHierarchy } from '../../shared/registry';
-//import { DOMEvent, CustomEvent } from './element/ElementEvents';
-import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
-import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
+import { bind, rebind, render, unbind, unrender, unrenderAndDestroy, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches } from '../../utils/dom';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
@@ -44,6 +39,8 @@ export default class Element extends Item {
 		if ( this.parent && this.parent.name === 'option' ) {
 			throw new Error( `An <option> element cannot contain other elements (encountered <${this.name}>)` );
 		}
+
+		this.decorators = [];
 
 		// create attributes
 		this.attributeByName = {};
@@ -83,11 +80,6 @@ export default class Element extends Item {
 			}
 		}
 
-		// create decorator
-		if ( this.template.o ) {
-			this.decorator = new Decorator( this, this.template.o );
-		}
-
 		// create children
 		if ( options.template.f && !options.noContent ) {
 			this.fragment = new Fragment({
@@ -106,7 +98,6 @@ export default class Element extends Item {
 		this.attributes.binding = false;
 		//this.eventHandlers.forEach( bind );
 
-		if ( this.decorator ) this.decorator.bind();
 		if ( this.fragment ) this.fragment.bind();
 
 		// create two-way binding if necessary
@@ -130,7 +121,7 @@ export default class Element extends Item {
 	}
 
 	detach () {
-		if ( this.decorator ) this.decorator.unrender();
+		this.decorators.forEach( d => d.unrender( false ) );
 		return detachNode( this.node );
 	}
 
@@ -183,7 +174,6 @@ export default class Element extends Item {
 	rebind () {
 		this.attributes.forEach( rebind );
 		//this.eventHandlers.forEach( rebind );
-		if ( this.decorator ) this.decorator.rebind();
 		if ( this.fragment ) this.fragment.rebind();
 		if ( this.binding ) this.binding.rebind();
 
@@ -270,10 +260,7 @@ export default class Element extends Item {
 
 		this.attributes.forEach( render );
 
-		if ( this.decorator ) runloop.scheduleTask( () => this.decorator.render(), true );
 		if ( this.binding ) this.binding.render();
-
-		//this.eventHandlers.forEach( render );
 
 		updateLiveQueries( this );
 
@@ -330,7 +317,6 @@ export default class Element extends Item {
 		this.attributes.forEach( unbind );
 
 		if ( this.binding ) this.binding.unbind();
-		if ( this.decorator ) this.decorator.unbind();
 		if ( this.fragment ) this.fragment.unbind();
 	}
 
@@ -355,11 +341,9 @@ export default class Element extends Item {
 
 		if ( this.fragment ) this.fragment.unrender();
 
-		//this.eventHandlers.forEach( unrender );
-		this.attributes.forEach( unrender );
+		this.attributes.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
 
 		if ( this.binding ) this.binding.unrender();
-		if ( !shouldDestroy && this.decorator ) this.decorator.unrender();
 
 		if ( this._outroTransition && this.ractive.transitionsEnabled ) {
 			this._outroTransition.isIntro = false;
@@ -381,7 +365,6 @@ export default class Element extends Item {
 			this.attributes.forEach( update );
 			//this.eventHandlers.forEach( update );
 
-			if ( this.decorator ) this.decorator.update();
 			if ( this.fragment ) this.fragment.update();
 
 			this.dirty = false;
