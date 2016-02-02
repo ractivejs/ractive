@@ -9,6 +9,11 @@ const div = doc ? createElement( 'div' ) : null;
 
 var attributes = false;
 export function inAttributes() { return attributes; }
+export function doInAttributes( fn ) {
+	attributes = true;
+	fn();
+	attributes = false;
+}
 
 export default class ConditionalAttribute extends Item {
 	constructor ( options ) {
