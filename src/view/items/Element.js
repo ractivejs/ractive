@@ -237,8 +237,11 @@ export default class Element extends Item {
 			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
 		}
 
+		if ( existing && this.foundNode ) this.foundNode( node );
+
 		if ( this.fragment ) {
 			const children = existing ? toArray( node.childNodes ) : undefined;
+
 			this.fragment.render( node, children );
 
 			// clean up leftover children
@@ -250,12 +253,11 @@ export default class Element extends Item {
 		if ( existing ) {
 			// store initial values for two-way binding
 			if ( this.binding && this.binding.wasUndefined ) this.binding.setFromNode( node );
-
 			// remove unused attributes
 			let i = node.attributes.length;
 			while ( i-- ) {
 				const name = node.attributes[i].name;
-				if ( !this.template.a || !( name in this.template.a ) ) node.removeAttribute( name );
+				if ( !( name in this.attributeByName ) ) node.removeAttribute( name );
 			}
 		}
 

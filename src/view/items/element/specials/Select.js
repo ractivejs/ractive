@@ -30,6 +30,10 @@ export default class Select extends Element {
 		}
 	}
 
+	foundNode ( node ) {
+		if ( this.binding && node.selectedOptions.length > 0 ) this.selectedOptions = toArray( node.selectedOptions );
+	}
+
 	render ( target, occupants ) {
 		super.render( target, occupants );
 		this.sync();
@@ -50,6 +54,16 @@ export default class Select extends Element {
 		if ( !selectNode ) return;
 
 		const options = toArray( selectNode.options );
+
+		if ( this.selectedOptions ) {
+			options.forEach( o => {
+				if ( this.selectedOptions.indexOf( o ) >= 0 ) o.selected = true;
+				else o.selected = false;
+			});
+			this.binding.setFromNode( selectNode );
+			delete this.selectedOptions;
+			return;
+		}
 
 		const selectValue = this.getAttribute( 'value' );
 		const isMultiple = this.getAttribute( 'multiple' );
