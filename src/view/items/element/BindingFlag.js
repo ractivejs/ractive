@@ -13,9 +13,7 @@ export default class BindingFlag extends Item {
 		this.flag = options.template.v === 'l' ? 'lazy' : 'twoway';
 
 		if ( this.element.type === ELEMENT ) {
-			if ( !isArray( options.template.f ) ) {
-				set( this, 'f' in options.template ? options.template.f : true, false );
-			} else {
+			if ( isArray( options.template.f ) ) {
 				this.fragment = new Fragment({
 					owner: this,
 					template: options.template.f
@@ -41,7 +39,12 @@ export default class BindingFlag extends Item {
 		}
 	}
 
-	getValue () { return this.fragment ? this.fragment.valueOf() : this.value; }
+	getValue () {
+		if ( this.fragment ) return this.fragment.valueOf();
+		else if ( 'value' in this ) return this.value;
+		else if ( 'f' in this.template ) return this.template.f;
+		else return true;
+	}
 
 	rebind () {
 		this.unbind();
@@ -83,10 +86,11 @@ function set ( flag, value, update ) {
 		flag.value = value;
 	}
 
-	if ( update && !flag.element.attributes.binding && flag.element[ flag.flag ] !== flag.value ) {
+	let current = flag.element[ flag.flag ];
+	flag.element[ flag.flag ] = flag.value;
+	if ( update && !flag.element.attributes.binding && current !== flag.value ) {
 		flag.element.recreateTwowayBinding();
 	}
-	flag.element[ flag.flag ] = flag.value;
 
 	return flag.value;
 }
