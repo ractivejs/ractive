@@ -12,9 +12,10 @@ export default {
 		let styles = options.noCssTransform ? options.css : transformCss( options.css, id );
 
 		proto.cssId = id;
-		css.add({ id, styles });
+		css.add( { id, styles } );
 
 	},
 
 	init: () => {}
+
 };

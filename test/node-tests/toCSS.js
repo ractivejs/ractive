@@ -1,12 +1,12 @@
 /*global require, describe, it */
-let Ractive = require('../../ractive');
-let assert = require('assert');
+const Ractive = require( '../../ractive' );
+const assert = require( 'assert' );
 
-describe('ractive.toCSS()', () => {
+describe( 'ractive.toCSS()', () => {
 
-	it('should be able to return CSS for a single component', () => {
+	it( 'should be able to return CSS for a single component', () => {
 
-		let Component = Ractive.extend({
+		const Component = Ractive.extend( {
 			template: `
 				<div class="child-component">
 					<p>This is also red</p>
@@ -18,24 +18,24 @@ describe('ractive.toCSS()', () => {
 					color: green
 				}
 			`
-		});
+		} );
 
-		let app = new Component({
+		const app = new Component( {
 			el: fixture
-		});
+		} );
 
-		let css = app.toCSS();
+		const css = app.toCSS();
 
 		// Look for the selector
-		assert(!!~css.indexOf('.green[data-ractive-css~="{1}"], [data-ractive-css~="{1}"] .green'));
+		assert( ~css.indexOf( `.green[data-ractive-css~="{${app.cssId}}"], [data-ractive-css~="{${app.cssId}}"] .green` ) );
 
 		app.teardown();
 
-	});
+	} );
 
-	it('should be able to return CSS for nested components', () => {
+	it( 'should be able to return CSS for nested components', () => {
 
-		let ChildComponent = Ractive.extend({
+		const ChildComponent = Ractive.extend( {
 			template: `
 				<div class="child-component">
 					<p>This is also red</p>
@@ -47,9 +47,9 @@ describe('ractive.toCSS()', () => {
 					color: green
 				}
 			`
-		});
+		} );
 
-		let ParentComponent = Ractive.extend({
+		const ParentComponent = Ractive.extend( {
 			template: `
 				<div class="parent-component">
 					<p>This should be red</p>
@@ -68,18 +68,21 @@ describe('ractive.toCSS()', () => {
 			components: {
 				ChildComponent
 			}
-		});
+		} );
 
-		let app = new ParentComponent();
-		let css = app.toCSS();
+		const app = new ParentComponent();
+
+		const css = app.toCSS();
+		const parentCssId = ParentComponent.prototype.cssId;
+		const childCssId = ChildComponent.prototype.cssId;
 
 		// Look for the selectors
-		assert(!!~css.indexOf('.green[data-ractive-css~="{1}"], [data-ractive-css~="{1}"] .green'));
-		assert(!!~css.indexOf('.parent-component[data-ractive-css~="{2}"], [data-ractive-css~="{2}"] .parent-component'));
-		assert(!!~css.indexOf('.blue[data-ractive-css~="{2}"], [data-ractive-css~="{2}"] .blue'));
+		assert( ~css.indexOf( `.green[data-ractive-css~="{${childCssId}}"], [data-ractive-css~="{${childCssId}}"] .green` ) );
+		assert( ~css.indexOf( `.parent-component[data-ractive-css~="{${parentCssId}}"], [data-ractive-css~="{${parentCssId}}"] .parent-component` ) );
+		assert( ~css.indexOf( `.blue[data-ractive-css~="{${parentCssId}}"], [data-ractive-css~="{${parentCssId}}"] .blue` ) );
 
 		app.teardown();
 
-	});
+	} );
 
-});
+} );
