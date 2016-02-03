@@ -11,6 +11,7 @@ import findElement from './findElement';
 import { findInViewHierarchy } from '../../../shared/registry';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
+import runloop from '../../../global/runloop';
 
 const eventPattern = /^event(?:\.(.+))?$/;
 const argumentsPattern = /^arguments\.(\d*)$/;
@@ -234,7 +235,8 @@ export default class EventDirective {
 	}
 
 	render () {
-		this.events.forEach( e => e.listen( this ) );
+		// render events after everything else, so they fire after bindings
+		runloop.scheduleTask( () => this.events.forEach( e => e.listen( this ), true ) );
 	}
 
 	toString() { return ''; }
