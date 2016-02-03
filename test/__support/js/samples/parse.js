@@ -4,7 +4,7 @@ function deindent ( strings ) {
 }
 
 const parseTests = [
-	{
+	/*{
 		name: 'Empty string',
 		template: ``,
 		parsed: {v:3,t:[]}
@@ -880,7 +880,7 @@ const parseTests = [
 		name: 'expression with multiple numeric refinement alt #2325',
 		template: '{{foo[0].bar[10].baz["12"].bat()}}',
 		parsed: {v:3,t:[{t:2,x:{r:["foo.0.bar.10.baz"],s:"_0[\"12\"].bat()"}}]}
-	}
+	}*/
 ];
 
 export default parseTests;
