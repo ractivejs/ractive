@@ -82,7 +82,7 @@ export default class Element extends Item {
 		}
 
 		// create children
-		if ( options.template.f && !options.noContent ) {
+		if ( options.template.f && !options.deferContent ) {
 			this.fragment = new Fragment({
 				template: options.template.f,
 				owner: this,

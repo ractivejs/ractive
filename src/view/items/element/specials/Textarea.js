@@ -1,24 +1,30 @@
+import { ATTRIBUTE } from '../../../../config/types';
 import Input from './Input';
 import { isBindable } from '../binding/selectBinding';
 import runloop from '../../../../global/runloop';
+import createItem from '../../createItem';
+import Fragment from '../../../Fragment';
 
 export default class Textarea extends Input {
 	constructor( options ) {
 		const template = options.template;
 
-		// if there is a bindable value, there should be no body
-		if ( template.a && template.a.value && isBindable( { template: template.a.value } ) ) {
-			options.noContent = true;
-		}
-
-		// otherwise, if there is a single bindable interpolator as content, move it to the value attr
-		else if ( template.f && (!template.a || !template.a.value) && isBindable( { template: template.f } ) ) {
-			if ( !template.a ) template.a = {};
-			template.a.value = template.f;
-			options.noContent = true;
-		}
+		options.deferContent = true;
 
 		super( options );
+
+		// check for single interpolator binding
+		if ( !this.attributeByName.value ) {
+			if ( template.f && isBindable( { template } ) ) {
+				this.attributes.push( createItem( {
+					owner: this,
+					template: { t: ATTRIBUTE, f: template.f, n: 'value' },
+					parentFragment: this.parentFragment
+				} ) );
+			} else {
+				this.fragment = new Fragment({ owner: this, cssIds: null, template: template.f });
+			}
+		}
 	}
 
 	bubble () {
