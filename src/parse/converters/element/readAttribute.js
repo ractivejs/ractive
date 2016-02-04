@@ -9,7 +9,8 @@ var attributeNamePattern = /^[^\s"'>\/=]+/,
 	proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
 	reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
 	decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/,
-	directives = { 'intro-outro': { t: TRANSITION, v: 't0' },
+	directives = {
+				   'intro-outro': { t: TRANSITION, v: 't0' },
 				   intro: { t: TRANSITION, v: 't1' },
 				   outro: { t: TRANSITION, v: 't2' },
 				   lazy: { t: BINDING_FLAG, v: 'l' },
@@ -19,13 +20,26 @@ var attributeNamePattern = /^[^\s"'>\/=]+/,
 	unquotedAttributeValueTextPattern = /^[^\s"'=<>`]+/;
 
 export default function readAttribute ( parser ) {
-	var attr, name, value;
+	var attr, name, value, i, nearest, idx;
 
 	parser.allowWhitespace();
 
 	name = parser.matchPattern( attributeNamePattern );
 	if ( !name ) {
 		return null;
+	}
+
+	// check for accidental delimiter consumption e.g. <tag bool{{>attrs}} />
+	nearest = name.length;
+	for ( i = 0; i < parser.tags.length; i++ ) {
+		if ( ~( idx = name.indexOf( parser.tags[ i ].open ) ) ) {
+			if ( idx < nearest ) nearest = idx;
+		}
+	}
+	if ( nearest < name.length ) {
+		parser.pos -= name.length - nearest;
+		name = name.substr( 0, nearest );
+		return { n: name };
 	}
 
 	attr = { n: name };
