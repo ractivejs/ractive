@@ -1,3 +1,5 @@
+/* global document */
+
 import { test } from 'qunit';
 import { fire } from 'simulant';
 import { hasUsableConsole, onWarn } from 'test-config';
@@ -1029,4 +1031,100 @@ test( 'textareas with non-model context should still bind correctly (#2099)', t 
 	t.equal( r.find( 'textarea' ).value, 'bar' );
 	r.find( 'button' ).click();
 	t.equal( r.find( 'textarea' ).value, 'baz' );
+});
+
+test( 'conditional twoway should apply/unapply correctly', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `<input value="{{foo}}" {{#if twoway}}twoway{{/if}} /><span>{{foo}}</span>`,
+		data: { twoway: false },
+		twoway: false
+	});
+
+	const [ input, span ] = r.findAll( '*' );
+
+	r.set( 'foo', 'test' );
+	t.equal( input.value, 'test' );
+
+	input.value = 'foo';
+	fire( input, 'input' );
+	t.equal( span.innerHTML, 'test' );
+
+	r.set( 'twoway', true );
+	input.value = 'bar';
+	fire( input, 'input' );
+	t.equal( span.innerHTML, 'bar' );
+});
+
+test( 'bound twoway should apply/unapply correctly', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `<input value="{{foo}}" twoway="{{#if twoway}}true{{else}}false{{/if}}" /><span>{{foo}}</span>`,
+		data: { twoway: false },
+		twoway: false
+	});
+
+	const [ input, span ] = r.findAll( '*' );
+
+	r.set( 'foo', 'test' );
+	t.equal( input.value, 'test' );
+
+	input.value = 'foo';
+	fire( input, 'input' );
+	t.equal( span.innerHTML, 'test' );
+
+	r.set( 'twoway', true );
+	input.value = 'bar';
+	fire( input, 'input' );
+	t.equal( span.innerHTML, 'bar' );
+});
+
+test( 'conditional lazy should apply/unapply correctly', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `<input value="{{foo}}" {{#if lazy}}lazy{{/if}} /><span>{{foo}}</span>`,
+		data: { lazy: false },
+		lazy: false
+	});
+
+	const [ input, span ] = r.findAll( '*' );
+
+	r.set( 'foo', 'test' );
+	t.equal( input.value, 'test' );
+
+	input.value = 'foo';
+	fire( input, 'input' );
+	t.equal( span.innerHTML, 'foo' );
+
+	r.set( 'lazy', true );
+	input.value = 'bar';
+	fire( input, 'input' );
+	t.equal( span.innerHTML, 'foo' );
+	fire( input, 'blur' );
+	t.equal( span.innerHTML, 'bar' );
+});
+
+test( 'bound lazy should apply/unapply correctly', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `<input value="{{foo}}" lazy="{{#if lazy}}true{{else}}false{{/if}}" /><span>{{foo}}</span>`,
+		data: { lazy: false },
+		lazy: false
+	});
+
+	const [ input, span ] = r.findAll( '*' );
+
+	r.set( 'foo', 'test' );
+	t.equal( input.value, 'test' );
+
+	input.value = 'foo';
+	fire( input, 'input' );
+	t.equal( span.innerHTML, 'foo' );
+
+	r.set( 'lazy', true );
+	input.value = 'bar';
+	fire( input, 'input' );
+	t.equal( span.innerHTML, 'foo' );
+	fire( input, 'blur' );
+	t.equal( span.innerHTML, 'bar' );
 });
