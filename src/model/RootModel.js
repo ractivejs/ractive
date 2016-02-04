@@ -5,6 +5,9 @@ import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
 import RactiveModel from './specials/RactiveModel';
 import GlobalModel from './specials/GlobalModel';
+import { unescapeKey } from '../shared/keypaths';
+
+const hasProp = Object.prototype.hasOwnProperty;
 
 export default class RootModel extends Model {
 	constructor ( options ) {
@@ -63,7 +66,7 @@ export default class RootModel extends Model {
 
 		this.extendChildren( ( key, model ) => {
 			result[ key ] = model.value;
-		})
+		});
 
 		return result;
 	}
@@ -81,7 +84,7 @@ export default class RootModel extends Model {
 
 		this.extendChildren( ( key, model ) => {
 			children.push( model );
-		})
+		});
 
 		return children;
 	}
@@ -91,7 +94,21 @@ export default class RootModel extends Model {
 	}
 
 	has ( key ) {
-		return ( key in this.mappings ) || ( key in this.computations ) || super.has( key );
+		if ( ( key in this.mappings ) || ( key in this.computations ) ) return true;
+
+		let value = this.value;
+
+		key = unescapeKey( key );
+		if ( hasProp.call( value, key ) ) return true;
+
+		// We climb up the constructor chain to find if one of them contains the key
+		let constructor = value.constructor;
+		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
+			if ( hasProp.call( constructor.prototype, key ) ) return true;
+			constructor = constructor.constructor;
+		}
+
+		return false;
 	}
 
 	joinKey ( key ) {
