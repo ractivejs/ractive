@@ -252,6 +252,8 @@ export default class Transition {
 		this._fn.apply( this.ractive, [ this ].concat( this.params ) );
 	}
 
+	toString () { return ''; }
+
 	unbind () {}
 
 	unrender () {}

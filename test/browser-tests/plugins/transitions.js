@@ -383,10 +383,85 @@ test( 'Context of transition function is current instance', t => {
 		transitions: {
 			test ( transition ) {
 				t.ok( this === ractive );
-				transition.complete;
+				transition.complete();
 			}
 		}
 	});
 
 	ractive.set( 'visible', true );
+});
+
+test( 'intro transitions can be conditional', t => {
+	let count = 0;
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#if foo}}<div {{#if bar}}intro="go"{{/if}}></div>{{/if}}`,
+		data: { foo: true, bar: true },
+		transitions: {
+			go ( t ) {
+				count++;
+				t.complete();
+			}
+		}
+	});
+
+	t.equal( count, 1 );
+	r.set({ foo: false, bar: false });
+	r.set( 'foo', true );
+	t.equal( count, 1 );
+	r.set({ foo: false, bar: true });
+	r.set( 'foo', true );
+	t.equal( count, 2 );
+});
+
+test( 'outro transitions can be conditional', t => {
+	let count = 0;
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#if foo}}<div {{#if bar}}outro="go"{{/if}}></div>{{/if}}`,
+		data: { foo: true, bar: true },
+		transitions: {
+			go ( t ) {
+				count++;
+				t.complete();
+			}
+		}
+	});
+
+	t.equal( count, 0 );
+	r.set({ foo: false, bar: false });
+	t.equal( count, 1 );
+	r.set( 'foo', true );
+	r.set( 'foo', false );
+	t.equal( count, 1 );
+	r.set( 'bar', true );
+	r.set( 'foo', true );
+	r.set( 'foo', false );
+	t.equal( count, 2 );
+});
+
+test( 'intro-outro transitions can be conditional', t => {
+	let count = 0;
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#if foo}}<div {{#if bar}}intro-outro="go"{{/if}}></div>{{/if}}`,
+		data: { foo: true, bar: true },
+		transitions: {
+			go ( t ) {
+				count++;
+				t.complete();
+			}
+		}
+	});
+
+	t.equal( count, 1 );
+	r.set({ foo: false, bar: false });
+	t.equal( count, 2 );
+	r.set( 'foo', true );
+	r.set( 'foo', false );
+	t.equal( count, 2 );
+	r.set( 'bar', true );
+	r.set( 'foo', true );
+	r.set( 'foo', false );
+	t.equal( count, 4 );
 });
