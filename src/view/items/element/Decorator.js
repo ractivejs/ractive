@@ -88,13 +88,15 @@ export default class Decorator {
 		}, true );
 	}
 
+	toString () { return ''; }
+
 	unbind () {
 		if ( this.dynamicName ) this.nameFragment.unbind();
 		if ( this.dynamicArgs ) this.argsFragment.unbind();
 	}
 
 	unrender ( shouldDestroy ) {
-		if ( !shouldDestroy && this.intermediary ) this.intermediary.teardown();
+		if ( ( !shouldDestroy || this.element.rendered ) && this.intermediary ) this.intermediary.teardown();
 	}
 
 	update () {

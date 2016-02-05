@@ -373,3 +373,67 @@ test( 'Decorators can have their parameters change before they are rendered (#22
 		}
 	});
 });
+
+test( 'basic conditional decorator', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<div {{#if foo}}decorator="foo"{{/if}}>bar</div>',
+		data: { foo: true },
+		decorators: {
+			foo ( node ) {
+				const contents = node.innerHTML;
+				node.innerHTML = 'foo';
+
+				return {
+					teardown () {
+						node.innerHTML = contents;
+					}
+				};
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+	r.set( 'foo', false );
+	t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
+	r.set( 'foo', true );
+	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+});
+
+test( 'conditional decorator with else', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<div {{#if foo}}decorator="foo"{{else}}decorator="baz"{{/if}}>bar</div>',
+		data: { foo: true },
+		decorators: {
+			foo ( node ) {
+				const contents = node.innerHTML;
+				node.innerHTML = 'foo';
+
+				return {
+					teardown () {
+						node.innerHTML = contents;
+					}
+				};
+			},
+			baz ( node ) {
+				const contents = node.innerHTML;
+				node.innerHTML = 'baz';
+
+				return {
+					teardown () {
+						node.innerHTML = contents;
+					}
+				};
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+	r.set( 'foo', false );
+	t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
+	r.set( 'foo', true );
+	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+	r.set( 'foo', false );
+	t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
+});
