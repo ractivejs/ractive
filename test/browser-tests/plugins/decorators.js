@@ -437,3 +437,24 @@ test( 'conditional decorator with else', t => {
 	r.set( 'foo', false );
 	t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 });
+
+test( 'decorators can be named with as-${name}', t => {
+	new Ractive({
+		el: fixture,
+		template: '<div as-foo>this text will be overwritten</div>',
+		decorators: {
+			foo ( node ) {
+				const contents = node.innerHTML;
+				node.innerHTML = 'foo';
+
+				return {
+					teardown () {
+						node.innerHTML = contents;
+					}
+				};
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+});

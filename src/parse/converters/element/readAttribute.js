@@ -210,8 +210,9 @@ export function readAttributeOrDirective ( parser ) {
 		// decorators
 		else if ( match = decoratorPattern.exec( attribute.n ) ) {
 			attribute.t = DECORATOR;
-			attribute.n = match[1];
 			attribute.f = processDirective( attribute.f, parser );
+			if ( typeof attribute.f === 'object' ) attribute.f.n = match[1];
+			else attribute.f = match[1];
 		}
 
 		// on-click etc
