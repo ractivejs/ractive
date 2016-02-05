@@ -2,87 +2,109 @@
 const Ractive = require( '../../ractive' );
 const assert = require( 'assert' );
 
+
 describe( 'ractive.toCSS()', () => {
 
-	it( 'should be able to return CSS for a single component', () => {
+	it( 'should render CSS with a single component instance', () => {
 
 		const Component = Ractive.extend( {
-			template: `
-				<div class="child-component">
-					<p>This is also red</p>
-					<p class="green">This should be green</p>
-				</div>
-			`,
+			template: `<div></div>`,
 			css: `
-				.green {
-					color: green
-				}
-			`
+			.green {
+				color: green
+			}
+		`
 		} );
 
-		const app = new Component( {
-			el: fixture
-		} );
+		const app = new Component( {} );
 
+		const cssId = Component.prototype.cssId;
 		const css = app.toCSS();
 
 		// Look for the selector
-		assert( ~css.indexOf( `.green[data-ractive-css~="{${app.cssId}}"], [data-ractive-css~="{${app.cssId}}"] .green` ) );
+		assert( !!~css.indexOf( `.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green`, `.green selector for ${cssId} should exist` ) );
 
 		app.teardown();
 
 	} );
 
-	it( 'should be able to return CSS for nested components', () => {
+	it( 'should render CSS with nested component instances', () => {
+
+		const GrandChildComponent = Ractive.extend( {
+			template: `<div></div>`,
+			css: `
+			.green {
+				color: green;
+			}
+		`
+		} );
 
 		const ChildComponent = Ractive.extend( {
 			template: `
-				<div class="child-component">
-					<p>This is also red</p>
-					<p class="green">This should be green</p>
-				</div>
-			`,
+			<div></div>
+			<GrandChildComponent />
+		`,
 			css: `
-				.green {
-					color: green
-				}
-			`
+			.red {
+				color: red;
+			}
+		`,
+			components: {
+				GrandChildComponent
+			}
 		} );
 
 		const ParentComponent = Ractive.extend( {
 			template: `
-				<div class="parent-component">
-					<p>This should be red</p>
-					<p class="blue">This should be blue</p>
-					<ChildComponent />
-				</div>
-			`,
+			<div></div>
+			<ChildComponent />
+		`,
 			css: `
-				.parent-component{
-					color: red;
-				}
-				.blue{
-					color: blue;
-				}
-			`,
+			.blue{
+				color: blue;
+			}
+		`,
 			components: {
 				ChildComponent
 			}
 		} );
 
-		const app = new ParentComponent();
+		const app = new ParentComponent( {} );
 
 		const css = app.toCSS();
-		const parentCssId = ParentComponent.prototype.cssId;
+		const grandChildCssId = GrandChildComponent.prototype.cssId;
 		const childCssId = ChildComponent.prototype.cssId;
+		const parentCssId = ParentComponent.prototype.cssId;
 
 		// Look for the selectors
-		assert( ~css.indexOf( `.green[data-ractive-css~="{${childCssId}}"], [data-ractive-css~="{${childCssId}}"] .green` ) );
-		assert( ~css.indexOf( `.parent-component[data-ractive-css~="{${parentCssId}}"], [data-ractive-css~="{${parentCssId}}"] .parent-component` ) );
-		assert( ~css.indexOf( `.blue[data-ractive-css~="{${parentCssId}}"], [data-ractive-css~="{${parentCssId}}"] .blue` ) );
+		assert( !!~css.indexOf( `.green[data-ractive-css~="{${grandChildCssId}}"], [data-ractive-css~="{${grandChildCssId}}"] .green` ), `.green selector for ${grandChildCssId} should exist` );
+
+		assert( !!~css.indexOf( `.red[data-ractive-css~="{${childCssId}}"], [data-ractive-css~="{${childCssId}}"] .red` ), `.red selector for ${childCssId} should exist` );
+
+		assert( !!~css.indexOf( `.blue[data-ractive-css~="{${parentCssId}}"], [data-ractive-css~="{${parentCssId}}"] .blue` ), `.blue selector for ${parentCssId} should exist` );
 
 		app.teardown();
 
 	} );
+
+	it( 'should NEVER render CSS with a Ractive instance', () => {
+
+		const app = new Ractive( {
+			template: `<div></div>`,
+			css: `
+			.green {
+				color: green
+			}
+		`
+		} );
+
+		const css = app.toCSS();
+
+		assert( !~css.indexOf( `.green[data-ractive-css~="{${app.cssId}}"], [data-ractive-css~="{${app.cssId}}"] .green`, `.green selector for ${app.cssId} should NEVER exist` ) );
+
+		app.teardown();
+
+	} );
+
 
 } );
