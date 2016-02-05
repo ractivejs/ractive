@@ -1,4 +1,4 @@
-import css from '../../../../global/css';
+import { addCSS } from '../../../../global/css';
 import transformCss from './transform';
 import { uuid } from '../../../../utils/id';
 import { warnIfDebug } from '../../../../utils/log';
@@ -10,11 +10,12 @@ export default {
 	extend: ( Parent, proto, options ) => {
 		if ( !options.css ) return;
 
-		let id = uuid();
-		let styles = options.noCssTransform ? options.css : transformCss( options.css, id );
+		const id = uuid();
+		const styles = options.noCssTransform ? options.css : transformCss( options.css, id );
 
 		proto.cssId = id;
-		css.add( { id, styles } );
+
+		addCSS( { id, styles } );
 
 	},
 
