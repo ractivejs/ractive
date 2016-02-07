@@ -12,8 +12,9 @@ export default class Form extends Element {
 		this.node.addEventListener( 'reset', handleReset, false );
 	}
 
-	unrender () {
+	unrender ( shouldDestroy ) {
 		this.node.removeEventListener( 'reset', handleReset, false );
+		super.unrender( shouldDestroy );
 	}
 }
 

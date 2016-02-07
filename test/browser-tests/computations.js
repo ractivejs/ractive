@@ -721,3 +721,27 @@ test( 'ExpressionProxy should notify its deps when it resolves (#2214)', t => {
 
 	t.htmlEqual( fixture.innerHTML, '-ok' );
 });
+
+test( 'computations should not recompute when spliced out', t => {
+	let count = 0;
+
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each foo}}{{ check(.) ? 'yep ' : 'nope ' }}{{/each}}`,
+		data: {
+			foo: [ 1, 20 ],
+			check(n) {
+				count++;
+				return n > 10;
+			}
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'nope yep' );
+	t.equal( count, 2 );
+	r.splice( 'foo', 0, 1 );
+	t.equal( count, 3 );
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+	r.set( 'foo', [] );
+	t.equal( count, 3 );
+});

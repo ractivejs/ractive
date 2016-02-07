@@ -7,8 +7,6 @@ import parser from '../../Ractive/config/runtime-parser';
 
 export default class Partial extends Mustache {
 	bind () {
-		super.bind();
-
 		// keep track of the reference name for future resets
 		this.refName = this.template.r;
 
@@ -19,15 +17,20 @@ export default class Partial extends Mustache {
 		if ( template ) {
 			this.named = true;
 			this.setTemplate( this.template.r, template );
-		} else if ( this.model && ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || isArray( templateObj.t ) ) ) {
-			if ( templateObj.template ) {
-				templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
+		}
+
+		if ( !template ) {
+			super.bind();
+			if ( this.model && ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || isArray( templateObj.t ) ) ) {
+				if ( templateObj.template ) {
+					templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
+				}
+				this.setTemplate( this.template.r, templateObj.t );
+			} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.refName ) {
+				this.setTemplate( this.refName, template );
+			} else {
+				this.setTemplate( this.model.get() );
 			}
-			this.setTemplate( this.template.r, templateObj.t );
-		} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.refName ) {
-			this.setTemplate( this.refName, template );
-		} else {
-			this.setTemplate( this.model.get() );
 		}
 
 		this.fragment = new Fragment({
