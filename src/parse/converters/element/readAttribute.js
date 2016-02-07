@@ -128,7 +128,7 @@ function readUnquotedAttributeValue ( parser ) {
 	tokens = [];
 
 	token = readMustache( parser ) || readUnquotedAttributeValueToken( parser );
-	while ( token !== null ) {
+	while ( token ) {
 		tokens.push( token );
 		token = readMustache( parser ) || readUnquotedAttributeValueToken( parser );
 	}
@@ -202,7 +202,8 @@ export function readAttributeOrDirective ( parser ) {
 		// intro, outro, decorator
 		if ( directive = directives[ attribute.n ] ) {
 			attribute.t = directive.t;
-			attribute.v = directive.v;
+			if ( directive.v ) attribute.v = directive.v;
+			delete attribute.n; // no name necessary
 
 			if ( directive.t === TRANSITION || directive.t === DECORATOR ) attribute.f = processDirective( attribute.f, parser );
 		}
@@ -221,8 +222,8 @@ export function readAttributeOrDirective ( parser ) {
 			attribute.t = EVENT;
 			attribute.f = processDirective( attribute.f, parser );
 
-			if ( reservedEventNames.test( attribute.f.n ) ) {
-				parser.pos -= attribute.n.length;
+			if ( reservedEventNames.test( attribute.f.n || attribute.f ) ) {
+				parser.pos -= ( attribute.f.n || attribute.f ).length;
 				parser.error( 'Cannot use reserved event names (change, reset, teardown, update, construct, config, init, render, unrender, detach, insert)' );
 			}
 		}

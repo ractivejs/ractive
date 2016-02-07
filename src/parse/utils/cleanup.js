@@ -104,6 +104,7 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 		// Clean up conditional attributes
 		if ( item.m ) {
 			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+			if ( item.m.length < 1 ) delete item.m;
 		}
 	}
 

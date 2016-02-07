@@ -65,7 +65,12 @@ function readMustacheOfType ( parser, tag ) {
 		let rewind = parser.pos;
 		if ( !readRegexpLiteral( parser ) ) {
 			parser.pos = rewind - ( tag.close.length );
-			parser.error( 'Attempted to close a section that wasn\'t open' );
+			if ( parser.inAttribute ) {
+				parser.pos = start;
+				return null;
+			} else {
+				parser.error( 'Attempted to close a section that wasn\'t open' );
+			}
 		} else {
 			parser.pos = rewind;
 		}
