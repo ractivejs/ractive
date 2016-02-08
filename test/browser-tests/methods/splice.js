@@ -97,3 +97,33 @@ test( 'a nested object iteration should rebind with an outer array iteration whe
 	r.splice( 'arr', 0, 1 );
 	t.htmlEqual( fixture.innerHTML, 'name-Marty' );
 });
+
+test( 'splice returns the result of the actual splice alongside the promise', t => {
+	const r = new Ractive({
+		data: { array: [ 1, 2, 3 ] }
+	});
+
+	const res = r.splice( 'array', 0, 2 );
+	t.equal( res.result.length, 2 );
+	t.equal( res.result[0], 1 );
+	t.equal( res.result[1], 2 );
+});
+
+test( 'splice returns the ractive instance alongside the promise', t => {
+	const r = new Ractive({
+		data: { array: [ 1, 2, 3 ] }
+	});
+
+	t.strictEqual( r.splice( 'array', 0, 2 ).ractive, r );
+});
+
+test( 'splice can be given context along with the keypath for resolution', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar}}<span></span>{{/with}}`,
+		data: { foo: { bar: { baz: [] } } }
+	});
+
+	r.splice( '.baz', r.find( 'span' ), 0, 0, 'yep' );
+	t.equal( r.get( 'foo.bar.baz.0' ), 'yep' );
+});

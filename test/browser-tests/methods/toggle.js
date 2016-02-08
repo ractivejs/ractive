@@ -49,3 +49,14 @@ test( 'each keypath that matches a wildcard is toggled individually (#1604)', t 
 	t.ok(  ractive.get( 'items[1].active' ) );
 	t.ok( !ractive.get( 'items[2].active' ) );
 });
+
+test( 'toggle supports toggling keypaths with context', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar}}<span></span>{{/with}}`,
+		data: { foo: { bar: { baz: false } } }
+	});
+
+	r.toggle( '.baz', r.find( 'span' ) );
+	t.ok( r.get( 'foo.bar.baz' ) );
+});

@@ -1,7 +1,7 @@
 import { badArguments } from '../../config/errors';
 import { splitKeypath } from '../../shared/keypaths';
 
-export default function Ractive$toggle ( keypath ) {
+export default function Ractive$toggle ( keypath, context ) {
 	if ( typeof keypath !== 'string' ) {
 		throw new TypeError( badArguments );
 	}
@@ -18,5 +18,5 @@ export default function Ractive$toggle ( keypath ) {
 		return this.set( changes );
 	}
 
-	return this.set( keypath, !this.get( keypath ) );
+	return this.set( keypath, !this.get( keypath, context ), context );
 }

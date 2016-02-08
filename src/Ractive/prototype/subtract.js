@@ -1,5 +1,5 @@
 import add from './shared/add';
 
-export default function Ractive$subtract ( keypath, d ) {
-	return add( this, keypath, ( d === undefined ? -1 : -d ) );
+export default function Ractive$subtract ( ...args ) {
+	return add( this, args, -1 );
 }

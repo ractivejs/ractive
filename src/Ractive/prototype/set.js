@@ -1,9 +1,10 @@
-import { isObject } from '../../utils/is';
+import { isObject, isRactiveElement } from '../../utils/is';
 import bind from '../../utils/bind';
 import { splitKeypath } from '../../shared/keypaths';
 import runloop from '../../global/runloop';
+import resolveReference from '../../view/resolvers/resolveReference';
 
-export default function Ractive$set ( keypath, value ) {
+export default function Ractive$set ( keypath, value, context ) {
 	const promise = runloop.start( this, true );
 
 	// Set multiple keypaths in one go
@@ -11,14 +12,14 @@ export default function Ractive$set ( keypath, value ) {
 		const map = keypath;
 
 		for ( keypath in map ) {
-			if ( map.hasOwnProperty( keypath) ) {
-				set( this, keypath, map[ keypath ] );
+			if ( map.hasOwnProperty( keypath ) ) {
+				set( this, keypath, map[ keypath ], value );
 			}
 		}
 	}
 	// Set a single keypath
 	else {
-		set( this, keypath, value );
+		set( this, keypath, value, context );
 	}
 
 	runloop.end();
@@ -26,8 +27,7 @@ export default function Ractive$set ( keypath, value ) {
 	return promise;
 }
 
-
-function set ( ractive, keypath, value ) {
+function set ( ractive, keypath, value, context ) {
 	if ( typeof value === 'function' ) value = bind( value, ractive );
 
 	if ( /\*/.test( keypath ) ) {
@@ -35,7 +35,10 @@ function set ( ractive, keypath, value ) {
 			model.set( value );
 		});
 	} else {
-		const model = ractive.viewmodel.joinAll( splitKeypath( keypath ) );
-		model.set( value );
+		if ( isRactiveElement( context ) ) {
+			resolveReference( context._ractive.fragment, keypath ).set( value );
+		} else {
+			ractive.viewmodel.joinAll( splitKeypath( keypath ) ).set( value );
+		}
 	}
 }
