@@ -1,6 +1,8 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
 
+/* global document, setTimeout */
+
 // TODO finish moving these into more sensible locations
 
 test( 'Grandchild component teardown when nested in element (#1360)', t => {
@@ -163,6 +165,16 @@ test( 'correct function scope for this.bar() in template', t => {
 	fire( ractive.find( 'button' ), 'click' );
 
 	t.equal( ractive.get( 'foo' ), '42' );
+});
+
+test( 'element is included in event context where there is an event object', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar.baz.bat.bip.bop.boop}}<button on-click="set('.', 'yep', event.el)">click me</button>{{/with}}`
+	});
+
+	fire( r.find( 'button' ), 'click' );
+	t.equal( r.get( 'foo.bar.baz.bat.bip.bop.boop' ), 'yep' );
 });
 
 // phantom and IE8 don't like these tests, but browsers are ok with them

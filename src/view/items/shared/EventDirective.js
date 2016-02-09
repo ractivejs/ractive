@@ -6,6 +6,7 @@ import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
+import { ELEMENT } from '../../../config/types';
 
 const eventPattern = /^event(?:\.(.+))?$/;
 const argumentsPattern = /^arguments\.(\d*)$/;
@@ -136,6 +137,7 @@ export default class EventDirective {
 			event.rootpath = this.context.getKeypath();
 			event.context = this.context.get();
 			event.index = this.parentFragment.indexRefs;
+			if ( this.owner.type === ELEMENT ) event.el = event.element = this.owner.node;
 		}
 
 		if ( this.method ) {
