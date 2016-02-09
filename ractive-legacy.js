@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Feb 04 2016 20:16:56 GMT+0000 (UTC) - commit d35141c6b3293e9ed3b221cf0aa773e747e82db0
+	Tue Feb 09 2016 15:18:39 GMT+0000 (UTC) - commit 9766109caa6d56fe4b2a70d355b1830169394507
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5755,8 +5755,12 @@ var classCallCheck = function (instance, Constructor) {
 
   	Model.prototype.adapt = function adapt() {
   		var adaptors = this.root.adaptors;
-  		var value = this.value;
   		var len = adaptors.length;
+
+  		// Exit early if no adaptors
+  		if (len === 0) return;
+
+  		var value = this.value;
 
   		// TODO remove this legacy nonsense
   		var ractive = this.root.ractive;
