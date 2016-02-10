@@ -25,3 +25,15 @@ test( 'Works across component boundary', t => {
 	t.equal( fixture.innerHTML, '<input value="changed">changed' );
 	t.equal( ractive.findComponent( 'widget' ).get( 'bar' ), 'changed' );
 });
+
+test( 'can be used with element context', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar}}<input value="{{.baz}}" />{{/with}}`,
+		data: { foo: { bar: { baz: 'nope' } } }
+	});
+
+	r.find( 'input' ).value = 'yep';
+	r.updateModel( '.baz', r.find( 'input' ) );
+	t.equal( r.get( 'foo.bar.baz' ), 'yep' );
+});

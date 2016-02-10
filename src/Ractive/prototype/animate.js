@@ -1,9 +1,10 @@
 import runloop from '../../global/runloop';
 import interpolate from '../../shared/interpolate';
-import { isEqual } from '../../utils/is';
+import { isEqual, isRactiveElement } from '../../utils/is';
 import { splitKeypath } from '../../shared/keypaths';
 import easing from '../../Ractive/static/easing';
 import noop from '../../utils/noop';
+import resolveReference from '../../view/resolvers/resolveReference';
 
 const noAnimation = { stop: noop };
 const linear = easing.linear;
@@ -26,7 +27,15 @@ function getOptions ( options, instance ) {
 	};
 }
 
-export default function Ractive$animate ( keypath, to, options ) {
+export default function Ractive$animate ( keypath, to, options, overflow ) {
+	let model;
+
+	if ( isRactiveElement( to ) ) {
+		model = resolveReference( to._ractive.fragment, keypath );
+		to = options;
+		options = overflow;
+	}
+
 	if ( typeof keypath === 'object' ) {
 		const keys = Object.keys( keypath );
 
@@ -40,7 +49,7 @@ ${keys.map( key => `ractive.animate('${key}', ${keypath[ key ]}, {...});` ).join
 
 	options = getOptions( options, this );
 
-	const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
+	if ( !model ) model = this.viewmodel.joinAll( splitKeypath( keypath ) );
 	const from = model.get();
 
 	// don't bother animating values that stay the same
