@@ -55,3 +55,25 @@ test( 'each keypath that matches a wildcard is added to individually (#1604)', t
 	t.equal( ractive.get( 'items[1].count' ), 3 );
 	t.equal( ractive.get( 'items[2].count' ), 4 );
 });
+
+test( 'add supports context with increment', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar}}<span></span>{{/with}}`,
+		data: { foo: { bar: { baz: 1 } } }
+	});
+
+	r.add( '.baz', 5, r.find( 'span' ) );
+	t.equal( r.get( 'foo.bar.baz' ), 6 );
+});
+
+test( 'add supports context without increment', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar}}<span></span>{{/with}}`,
+		data: { foo: { bar: { baz: 1 } } }
+	});
+
+	r.add( '.baz', r.find( 'span' ) );
+	t.equal( r.get( 'foo.bar.baz' ), 2 );
+});

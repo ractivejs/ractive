@@ -22,3 +22,23 @@ test( 'Returns mappings on root .get()', t => {
 	t.deepEqual( ractive.findComponent( 'Widget' ).get(), expected );
 	t.deepEqual( fixture.innerHTML, JSON.stringify( expected ) );
 });
+
+test( 'use context to resolve get path if given', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar.baz.bat}}<span>{{.last}}</span>{{/with}}`,
+		data: { foo: { bar: { baz: { bat: { last: 'yep' } } } } }
+	});
+
+	t.equal( r.get( '.last', r.find( 'span' ) ), 'yep' );
+});
+
+test( 'context gets have access to aliases', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar as alias}}<span></span>{{/with}}`,
+		data: { foo: { bar: { val: 'yep' } } }
+	});
+
+	t.equal( r.get( 'alias.val', r.find( 'span' ) ), 'yep' );
+});

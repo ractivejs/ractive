@@ -1,9 +1,15 @@
+import { isRactiveElement } from '../../utils/is';
 import { splitKeypath } from '../../shared/keypaths';
 import resolveReference from '../../view/resolvers/resolveReference';
 import runloop from '../../global/runloop';
 import Promise from '../../utils/Promise';
 
-export default function link( there, here ) {
+export default function link( there, here, context ) {
+	if ( isRactiveElement( context ) ) {
+		let model = resolveReference( context._ractive.fragment, there );
+		if ( model ) there = model.getKeypath();
+	}
+
 	if ( here === there || (there + '.').indexOf( here + '.' ) === 0 || (here + '.').indexOf( there + '.' ) === 0 ) {
 		throw new Error( 'A keypath cannot be linked to itself.' );
 	}

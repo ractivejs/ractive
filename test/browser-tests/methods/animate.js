@@ -1,5 +1,7 @@
 import { test } from 'qunit';
 
+/* global setTimeout */
+
 test( 'Values that cannot be interpolated change to their final value immediately', t => {
 	const ractive = new Ractive({
 		el: fixture,
@@ -168,4 +170,19 @@ test( 'Named easing functions are taken from the instance', t => {
 	});
 
 	ractive.animate( 'x', 1, { easing: 'easeOut' });
+});
+
+test( 'animate can get used with a context', t => {
+	const done = t.async();
+
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with foo.bar}}<span>{{.baz}}</span>{{/with}}`,
+		data: { foo: { bar: { baz: 1 } } }
+	});
+
+	r.animate( '.baz', r.find( 'span' ), 10 ).then( () => {
+		t.equal( r.get( 'foo.bar.baz' ), 10 );
+		done();
+	});
 });

@@ -30,3 +30,7 @@ export function isNumeric ( thing ) {
 export function isObject ( thing ) {
 	return ( thing && toString.call( thing ) === '[object Object]' );
 }
+
+export function isRactiveElement ( thing ) {
+	return thing && typeof thing === 'object' && '_ractive' in thing && 'nodeType' in thing;
+}

@@ -105,3 +105,15 @@ test( 'Links should not outlive their instance', t => {
 	t.ok( !r.get( 'baz' ) );
 	t.ok(r.viewmodel.joinAll(['bip', 'bop']).deps.length === 0);
 });
+
+test( 'links can be set up using element context', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{ foo }} {{#with bar.baz.bat}}<span>{{.}}</span>{{/with}}',
+		data: { bar: { baz: { bat: 'linked' } } }
+	});
+
+	t.htmlEqual( fixture.innerHTML, ' <span>linked</span>' );
+	r.link( '.', 'foo', r.find( 'span' ) );
+	t.htmlEqual( fixture.innerHTML, 'linked <span>linked</span>' );
+});
