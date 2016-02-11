@@ -55,8 +55,12 @@ export default class Model {
 
 	adapt () {
 		const adaptors = this.root.adaptors;
-		const value = this.value;
 		const len = adaptors.length;
+
+		// Exit early if no adaptors
+		if ( len === 0 ) return;
+
+		const value = this.value;
 
 		// TODO remove this legacy nonsense
 		const ractive = this.root.ractive;
