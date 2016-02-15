@@ -13,7 +13,7 @@ ExpressionParser = Parser.extend({
 });
 
 // TODO clean this up, it's shocking
-export default function processDirective ( tokens, parentParser ) {
+export default function processDirective ( tokens, parentParser, event = false ) {
 	var result,
 		match,
 		token,
@@ -23,7 +23,7 @@ export default function processDirective ( tokens, parentParser ) {
 		parsed;
 
 	if ( typeof tokens === 'string' ) {
-		if ( match = methodCallPattern.exec( tokens ) ) {
+		if ( event && ( match = methodCallPattern.exec( tokens ) ) ) {
 			let end = tokens.lastIndexOf(')');
 
 			// check for invalid method calls
@@ -48,6 +48,13 @@ export default function processDirective ( tokens, parentParser ) {
 			}
 
 			return result;
+		}
+
+		if ( event && ~tokens.indexOf( '(' ) ) {
+			const parser = new ExpressionParser( tokens );
+			if ( parser.result && parser.result[0] && parser.result[0].x && !parser.remaining().length ) {
+				return { x: flattenExpression( parser.result[0] ) };
+			}
 		}
 
 		if ( tokens.indexOf( ':' ) === -1 ) {

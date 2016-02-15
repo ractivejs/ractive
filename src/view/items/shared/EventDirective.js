@@ -39,6 +39,50 @@ export default class EventDirective {
 
 		const template = this.template;
 
+		const mapModels = ( refs ) => refs.map( ( ref, i ) => {
+
+			if ( eventPattern.test( ref ) ) {
+				// on-click="foo(event.node)"
+				return {
+					event: true,
+					keys: ref.length > 5 ? splitKeypath( ref.slice( 6 ) ) : [],
+					unbind: noop
+				};
+			}
+
+			const argMatch = argumentsPattern.exec( ref );
+			if ( argMatch ) {
+				// on-click="foo(arguments[0])"
+				return {
+					argument: true,
+					index: argMatch[1]
+				};
+			}
+
+			const dollarMatch = dollarArgsPattern.exec( ref );
+			if ( dollarMatch ) {
+				// on-click="foo($1)"
+				return {
+					argument: true,
+					index: dollarMatch[1] - 1
+				};
+			}
+
+			let resolver;
+
+			const model = resolveReference( this.parentFragment, ref );
+			if ( !model ) {
+				resolver = this.parentFragment.resolve( ref, model => {
+					this.models[i] = model;
+					removeFromArray( this.resolvers, resolver );
+				});
+
+				this.resolvers.push( resolver );
+			}
+
+			return model;
+		});
+
 		if ( template.m ) {
 			this.method = template.m;
 
@@ -47,53 +91,17 @@ export default class EventDirective {
 
 			if ( template.a ) {
 				this.resolvers = [];
-				this.models = template.a.r.map( ( ref, i ) => {
-
-					if ( eventPattern.test( ref ) ) {
-						// on-click="foo(event.node)"
-						return {
-							event: true,
-							keys: ref.length > 5 ? splitKeypath( ref.slice( 6 ) ) : [],
-							unbind: noop
-						};
-					}
-
-					const argMatch = argumentsPattern.exec( ref );
-					if ( argMatch ) {
-						// on-click="foo(arguments[0])"
-						return {
-							argument: true,
-							index: argMatch[1]
-						};
-					}
-
-					const dollarMatch = dollarArgsPattern.exec( ref );
-					if ( dollarMatch ) {
-						// on-click="foo($1)"
-						return {
-							argument: true,
-							index: dollarMatch[1] - 1
-						};
-					}
-
-					let resolver;
-
-					const model = resolveReference( this.parentFragment, ref );
-					if ( !model ) {
-						resolver = this.parentFragment.resolve( ref, model => {
-							this.models[i] = model;
-							removeFromArray( this.resolvers, resolver );
-						});
-
-						this.resolvers.push( resolver );
-					}
-
-					return model;
-				});
 
 				this.argsFn = getFunction( template.a.s, template.a.r.length );
-			}
 
+				this.models = mapModels( template.a.r );
+			}
+		}
+
+		else if ( template.x ) {
+			this.fn = getFunction( template.x.s, template.x.r.length );
+			this.resolvers = [];
+			this.models = mapModels( template.x.r );
 		}
 
 		else {
@@ -138,8 +146,8 @@ export default class EventDirective {
 			event.index = this.parentFragment.indexRefs;
 		}
 
-		if ( this.method ) {
-			if ( typeof this.ractive[ this.method ] !== 'function' ) {
+		if ( this.method || this.fn ) {
+			if ( !this.fn && typeof this.ractive[ this.method ] !== 'function' ) {
 				throw new Error( `Attempted to call a non-existent method ("${this.method}")` );
 			}
 
@@ -170,7 +178,7 @@ export default class EventDirective {
 					return model.get();
 				});
 
-				args = this.argsFn.apply( null, values );
+				args = this.fn ? values : this.argsFn.apply( null, values );
 			}
 
 			if ( this.passthru ) {
@@ -182,7 +190,7 @@ export default class EventDirective {
 			const oldEvent = ractive.event;
 
 			ractive.event = event;
-			const result = ractive[ this.method ].apply( ractive, args );
+			const result = this.fn ? this.fn.apply( ractive, args ) : ractive[ this.method ].apply( ractive, args );
 
 			// Auto prevent and stop if return is explicitly false
 			let original;
@@ -240,11 +248,9 @@ export default class EventDirective {
 	}
 
 	update () {
-		if ( this.method ) return; // nothing to do
-
 		// ugh legacy
-		if ( this.action.update ) this.action.update();
-		if ( this.template.d ) this.args.update();
+		if ( this.action && this.action.update ) this.action.update();
+		if ( this.args && this.args.update ) this.args.update();
 
 		this.dirty = false;
 	}
