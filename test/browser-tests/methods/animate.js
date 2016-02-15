@@ -28,6 +28,17 @@ test( 'ractive.animate() returns a promise that resolves when the animation comp
 	});
 });
 
+test( 'ractive.animate() returns a promise even if nothing changes', t => {
+	t.expect( 3 );
+
+	const ractive = new Ractive();
+	const promise = ractive.animate( 'foo', 'x' );
+
+	t.ok( promise.then );
+	t.ok( promise.catch );
+	t.ok( promise.stop );
+});
+
 test( 'all animations are updated in a single batch', t => {
 	const done = t.async();
 
