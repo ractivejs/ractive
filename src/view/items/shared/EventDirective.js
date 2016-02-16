@@ -3,14 +3,13 @@ import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
 import getFunction from '../../../shared/getFunction';
 import { unbind } from '../../../shared/methodCallers';
-import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
 
-const eventPattern = /^event(?:\.(.+))?$/;
-const argumentsPattern = /^arguments\.(\d*)$/;
-const dollarArgsPattern = /^\$(\d*)$/;
+const specialPattern = /^(event|arguments)(\..+)?$/;
+const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
+// TODO: clean up leftover method stuff
 export default class EventDirective {
 	constructor ( owner, event, template ) {
 		this.owner = owner;
@@ -21,13 +20,10 @@ export default class EventDirective {
 		this.parentFragment = owner.parentFragment;
 
 		this.context = null;
-		this.passthru = false;
 
 		// method calls
-		this.method = null;
 		this.resolvers = null;
 		this.models = null;
-		this.argsFn = null;
 
 		// handler directive
 		this.action = null;
@@ -39,69 +35,42 @@ export default class EventDirective {
 
 		const template = this.template;
 
-		const mapModels = ( refs ) => refs.map( ( ref, i ) => {
-
-			if ( eventPattern.test( ref ) ) {
-				// on-click="foo(event.node)"
-				return {
-					event: true,
-					keys: ref.length > 5 ? splitKeypath( ref.slice( 6 ) ) : [],
-					unbind: noop
-				};
-			}
-
-			const argMatch = argumentsPattern.exec( ref );
-			if ( argMatch ) {
-				// on-click="foo(arguments[0])"
-				return {
-					argument: true,
-					index: argMatch[1]
-				};
-			}
-
-			const dollarMatch = dollarArgsPattern.exec( ref );
-			if ( dollarMatch ) {
-				// on-click="foo($1)"
-				return {
-					argument: true,
-					index: dollarMatch[1] - 1
-				};
-			}
-
-			let resolver;
-
-			const model = resolveReference( this.parentFragment, ref );
-			if ( !model ) {
-				resolver = this.parentFragment.resolve( ref, model => {
-					this.models[i] = model;
-					removeFromArray( this.resolvers, resolver );
-				});
-
-				this.resolvers.push( resolver );
-			}
-
-			return model;
-		});
-
-		if ( template.m ) {
-			this.method = template.m;
-
-			// pass-thru "...arguments"
-			this.passthru = !!template.g;
-
-			if ( template.a ) {
-				this.resolvers = [];
-
-				this.argsFn = getFunction( template.a.s, template.a.r.length );
-
-				this.models = mapModels( template.a.r );
-			}
-		}
-
-		else if ( template.x ) {
+		if ( template.x ) {
 			this.fn = getFunction( template.x.s, template.x.r.length );
 			this.resolvers = [];
-			this.models = mapModels( template.x.r );
+			this.models = template.x.r.map( ( ref, i ) => {
+				const specialMatch = specialPattern.exec( ref );
+				if ( specialMatch ) {
+					// on-click="foo(event.node)"
+					return {
+						special: specialMatch[1],
+						keys: specialMatch[2] ? splitKeypath( specialMatch[2].substr(1) ) : []
+					};
+				}
+
+				const dollarMatch = dollarArgsPattern.exec( ref );
+				if ( dollarMatch ) {
+					// on-click="foo($1)"
+					return {
+						special: 'arguments',
+						keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[1].substr( 1 ) ) : [] )
+					};
+				}
+
+				let resolver;
+
+				const model = resolveReference( this.parentFragment, ref );
+				if ( !model ) {
+					resolver = this.parentFragment.resolve( ref, model => {
+						this.models[i] = model;
+						removeFromArray( this.resolvers, resolver );
+					});
+
+					this.resolvers.push( resolver );
+				}
+
+				return model;
+			});
 		}
 
 		else {
@@ -146,43 +115,29 @@ export default class EventDirective {
 			event.index = this.parentFragment.indexRefs;
 		}
 
-		if ( this.method || this.fn ) {
-			if ( !this.fn && typeof this.ractive[ this.method ] !== 'function' ) {
-				throw new Error( `Attempted to call a non-existent method ("${this.method}")` );
-			}
-
-			let args;
+		if ( this.fn ) {
+			let values = [];
 
 			if ( event ) passedArgs.unshift( event );
 
 			if ( this.models ) {
-				const values = this.models.map( model => {
-					if ( !model ) return undefined;
+				this.models.forEach( model => {
+					if ( !model ) return values.push( undefined );
 
-					if ( model.event ) {
-						let obj = event;
+					if ( model.special ) {
+						let obj = model.special === 'event' ? event : passedArgs;
 						let keys = model.keys.slice();
 
 						while ( keys.length ) obj = obj[ keys.shift() ];
-						return obj;
-					}
-
-					if ( model.argument ) {
-						return passedArgs ? passedArgs[ model.index ] : void 0;
+						return values.push( obj );
 					}
 
 					if ( model.wrapper ) {
-						return model.wrapper.value;
+						return values.push( model.wrapper.value );
 					}
 
-					return model.get();
+					values.push( model.get() );
 				});
-
-				args = this.fn ? values : this.argsFn.apply( null, values );
-			}
-
-			if ( this.passthru ) {
-				args = args ? args.concat( passedArgs ) : passedArgs;
 			}
 
 			// make event available as `this.event`
@@ -190,7 +145,7 @@ export default class EventDirective {
 			const oldEvent = ractive.event;
 
 			ractive.event = event;
-			const result = this.fn ? this.fn.apply( ractive, args ) : ractive[ this.method ].apply( ractive, args );
+			const result = this.fn.apply( ractive, values );
 
 			// Auto prevent and stop if return is explicitly false
 			let original;
@@ -227,20 +182,9 @@ export default class EventDirective {
 	}
 
 	unbind () {
-		const template = this.template;
-
-		if ( template.m ) {
-			if ( this.resolvers ) this.resolvers.forEach( unbind );
-			this.resolvers = [];
-
-			this.models = null;
-		}
-
-		else {
-			// TODO this is brittle and non-explicit, fix it
-			if ( this.action.unbind ) this.action.unbind();
-			if ( this.args.unbind ) this.args.unbind();
-		}
+		if ( this.resolvers ) this.resolvers.forEach( unbind );
+		if ( this.action && this.action.unbind ) this.action.unbind();
+		if ( this.args && this.args.unbind ) this.args.unbind();
 	}
 
 	unrender () {

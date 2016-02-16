@@ -3,13 +3,12 @@ import readExpression from '../readExpression';
 import flattenExpression from '../../utils/flattenExpression';
 import parseJSON from '../../../utils/parseJSON';
 
-var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/,
-	methodCallExcessPattern = /\)\s*$/,
-	spreadPattern = /(\s*,{0,1}\s*\.{3}arguments\s*)$/,
+var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(.*\)\s*$/,
 	ExpressionParser;
 
 ExpressionParser = Parser.extend({
-	converters: [ readExpression ]
+	converters: [ readExpression ],
+	spreadArgs: true
 });
 
 // TODO clean this up, it's shocking
@@ -24,35 +23,15 @@ export default function processDirective ( tokens, parentParser, event = false )
 
 	if ( typeof tokens === 'string' ) {
 		if ( event && ( match = methodCallPattern.exec( tokens ) ) ) {
-			let end = tokens.lastIndexOf(')');
-
-			// check for invalid method calls
-			if ( !methodCallExcessPattern.test( tokens ) ) {
-				parentParser.error( `Invalid input after method call expression '${tokens.slice(end + 1)}'` );
-			}
-
-			result = { m: match[1] };
-			const sliced = tokens.slice( result.m.length + 1, end );
-
-			// does the method include spread of ...arguments?
-			const args = sliced.replace( spreadPattern, '' );
-
-			// if so, other arguments should be appended to end of method arguments
-			if ( sliced !== args ) {
-				result.g = true;
-			}
-
-			if ( args ) {
-				const parser = new ExpressionParser( '[' + args + ']' );
-				result.a = flattenExpression( parser.result[0] );
-			}
-
-			return result;
+			tokens = `@ractive.${match[1]}${tokens.substr(match[1].length)}`;
 		}
 
 		if ( event && ~tokens.indexOf( '(' ) ) {
 			const parser = new ExpressionParser( tokens );
-			if ( parser.result && parser.result[0] && parser.result[0].x && !parser.remaining().length ) {
+			if ( parser.result && parser.result[0] && parser.result[0].x ) {
+				if ( parser.remaining().length ) {
+					parentParser.error( `Invalid input after event expression '${parser.remaining()}'` );
+				}
 				return { x: flattenExpression( parser.result[0] ) };
 			}
 		}
@@ -121,6 +100,10 @@ export default function processDirective ( tokens, parentParser, event = false )
 		}
 	} else {
 		result = directiveName;
+	}
+
+	if ( event ) {
+		// TODO: convert to expression
 	}
 
 	return result;
