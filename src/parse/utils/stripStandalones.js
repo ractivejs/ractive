@@ -1,8 +1,8 @@
 import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from '../../config/types';
 import { lastItem } from '../../utils/array';
 
-var leadingLinebreak = /^\s*\r?\n/,
-	trailingLinebreak = /\r?\n\s*$/;
+var leadingLinebreak = /^[ \t\f\r\n]*\r?\n/,
+	trailingLinebreak = /\r?\n[ \t\f\r\n]*$/;
 
 export default function ( items ) {
 	var i, current, backOne, backTwo, lastSectionItem;
