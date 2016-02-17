@@ -266,3 +266,13 @@ if ( typeof Object.create === 'function' ) {
 		t.equal( ractive.toHTML(), expected );
 	});
 }
+
+test( 'space entity refs should not be consumed during trimming (#2327)', t => {
+	new Ractive({
+		el: fixture,
+		template: '\n  {{#if check}}\n    &nbsp;\n    {{first}}\n    &nbsp;\n    {{second}}\n    &nbsp;\n  {{/if}}\n',
+		data: { check: true, first: 1, second: 2 }
+	});
+
+	t.equal( fixture.innerHTML, '&nbsp; 1 &nbsp; 2 &nbsp;' );
+});
