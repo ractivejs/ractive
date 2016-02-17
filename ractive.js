@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Feb 09 2016 15:18:39 GMT+0000 (UTC) - commit 9766109caa6d56fe4b2a70d355b1830169394507
+	Wed Feb 17 2016 03:48:40 GMT+0000 (UTC) - commit 5f0aa15319dfb548eafd9d50a2bde6826c736df1
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3184,8 +3184,8 @@ var classCallCheck = function (instance, Constructor) {
   	}
   }
 
-  var leadingLinebreak = /^\s*\r?\n/;
-  var trailingLinebreak = /\r?\n\s*$/;
+  var leadingLinebreak = /^[ \t\f\r\n]*\r?\n/;
+  var trailingLinebreak = /\r?\n[ \t\f\r\n]*$/;
   function stripStandalones (items) {
   	var i, current, backOne, backTwo, lastSectionItem;
 
