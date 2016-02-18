@@ -159,3 +159,13 @@ test( 'interpolates correctly between objects with identical properties', t => {
 		done();
 	});
 });
+
+test( 'Named easing functions are taken from the instance', t => {
+	t.expect( 0 );
+
+	const ractive = new Ractive({
+		data: { x: 0 }
+	});
+
+	ractive.animate( 'x', 1, { easing: 'easeOut' });
+});
