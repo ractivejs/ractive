@@ -9,7 +9,11 @@ test( 'Mismatched template version causes error', function ( t ) {
 	});
 });
 
+const phantom = /phantomjs/i.test( navigator.userAgent );
+
 tests.forEach( theTest => {
+	if ( theTest.skipPhantom && phantom ) return;
+
 	test( theTest.name, function ( t ) {
 		// disable for tests unless explicitly specified
 		// we can just test the signatures, so set false

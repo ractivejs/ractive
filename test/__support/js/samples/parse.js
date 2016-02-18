@@ -858,7 +858,8 @@ const parseTests = [
 				'_0.method(_1+5)':'function (_0,_1){return(_0.method(_1+5));}',
 				'_0+6':'function (_0){return(_0+6);}'
 			}
-		}
+		},
+		skipPhantom: true // phantom is not a fan of this test any more, but Chrome and Firefox still like it
 	},
 	// #2325
 	{
