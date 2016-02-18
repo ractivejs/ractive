@@ -9,7 +9,6 @@ import { splitKeypath } from '../../../shared/keypaths';
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
-// TODO: clean up leftover method stuff
 export default class EventDirective {
 	constructor ( owner, event, template ) {
 		this.owner = owner;

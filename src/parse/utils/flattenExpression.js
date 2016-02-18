@@ -50,7 +50,8 @@ export default function flattenExpression ( expression ) {
 
 			case INVOCATION:
 				if ( node.spread ) {
-					return `(spread$${ count++ } = ${ stringify(node.x) }).apply(spread$${ count - 1 }, [].concat(${ node.o ? node.o.map( a => a.n && a.n.indexOf( '...' ) === 0 ? stringify( a ) : '[' + stringify(a) + ']' ).join( ',' ) : '' }) )`;
+					let id = count++;
+					return `(spread$${ id } = ${ stringify(node.x) }).apply(spread$${ id }, [].concat(${ node.o ? node.o.map( a => a.n && a.n.indexOf( '...' ) === 0 ? stringify( a ) : '[' + stringify(a) + ']' ).join( ',' ) : '' }) )`;
 				} else {
 					return stringify( node.x ) + '(' + ( node.o ? node.o.map( stringify ).join( ',' ) : '' ) + ')';
 				}
