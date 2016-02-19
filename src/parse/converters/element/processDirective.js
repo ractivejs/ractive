@@ -27,13 +27,18 @@ export default function processDirective ( tokens, parentParser, event = false )
 		}
 
 		if ( event && ~tokens.indexOf( '(' ) ) {
-			const parser = new ExpressionParser( tokens );
+			const parser = new ExpressionParser( '[' + tokens + ']' );
 			if ( parser.result && parser.result[0] ) {
 				if ( parser.remaining().length ) {
 					parentParser.error( `Invalid input after event expression '${parser.remaining()}'` );
 				}
 				return { x: flattenExpression( parser.result[0] ) };
 			}
+
+			if ( tokens.indexOf( ':' ) > tokens.indexOf( '(' ) || !~tokens.indexOf( ':' ) ) {
+				parentParser.error( `Invalid input in event expression '${tokens}'` );
+			}
+
 		}
 
 		if ( tokens.indexOf( ':' ) === -1 ) {

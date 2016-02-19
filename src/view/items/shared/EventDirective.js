@@ -144,7 +144,7 @@ export default class EventDirective {
 			const oldEvent = ractive.event;
 
 			ractive.event = event;
-			const result = this.fn.apply( ractive, values );
+			const result = this.fn.apply( ractive, values ).pop();
 
 			// Auto prevent and stop if return is explicitly false
 			let original;

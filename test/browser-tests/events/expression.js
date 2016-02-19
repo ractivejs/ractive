@@ -95,3 +95,15 @@ test( 'expression events work with complex expressions', t => {
 	t.equal( r.get( 'foo' ), 42 );
 	t.equal( r.get( 'bar' ), true );
 });
+
+test( 'comma-ish operator can be used with expression events', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `<button on-click="@ractive.set('foo', 42), @ractive.toggle('bar')">click me</button>`
+	});
+
+	fire( r.find( 'button' ), 'click' );
+
+	t.equal( r.get( 'foo' ), 42 );
+	t.equal( r.get( 'bar' ), true );
+});
