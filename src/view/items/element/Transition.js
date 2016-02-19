@@ -1,6 +1,7 @@
 import { win } from '../../../config/environment';
 import legacy from '../../../legacy';
 import { isArray } from '../../../utils/is';
+import { removeFromArray } from '../../../utils/array';
 import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
@@ -12,16 +13,20 @@ import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
 import resetStyle from './transitions/resetStyle';
 import Promise from '../../../utils/Promise';
+import { unbind } from '../../../shared/methodCallers';
+import resolveReference from '../../resolvers/resolveReference';
+import getFunction from '../../../shared/getFunction';
 
 const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
 const resolved = Promise.resolve();
 
 export default class Transition {
-	constructor ( options ) {//owner, template, isIntro ) {
+	constructor ( options ) {
 		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
 		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
 		this.ractive = this.owner.ractive;
 		this.template = options.template;
+		this.parentFragment = options.parentFragment;
 
 		if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
 		if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
@@ -48,7 +53,7 @@ export default class Transition {
 
 		this.name = name;
 
-		if ( options.template.f.a ) {
+		if ( options.template.f.a && !options.template.f.a.s ) {
 			this.params = options.template.f.a;
 		}
 
@@ -148,7 +153,27 @@ export default class Transition {
 		});
 	}
 
-	bind () {}
+	bind () {
+		// TODO: dry up after deprecation is done
+		if ( this.template.f.a && this.template.f.a.s ) {
+			this.resolvers = [];
+			this.models = this.template.f.a.r.map( ( ref, i ) => {
+				let resolver;
+				const model = resolveReference( this.parentFragment, ref );
+				if ( !model ) {
+					resolver = this.parentFragment.resolve( ref, model => {
+						this.models[i] = model;
+						removeFromArray( this.resolvers, resolver );
+					});
+
+					this.resolvers.push( resolver );
+				}
+
+				return model;
+			});
+			this.argsFn = getFunction( this.template.f.a.s, this.template.f.a.r.length );
+		}
+	}
 
 	getStyle ( props ) {
 		const computedStyle = getComputedStyle( this.node );
@@ -225,6 +250,7 @@ export default class Transition {
 		const originalStyle = node.getAttribute( 'style' );
 
 		let completed;
+		let args = this.params;
 
 		// create t.complete() - we don't want this on the prototype,
 		// because we don't want `this` silliness when passing it as
@@ -249,12 +275,23 @@ export default class Transition {
 			return;
 		}
 
-		this._fn.apply( this.ractive, [ this ].concat( this.params ) );
+		if ( this.argsFn ) {
+			const values = this.models.map( model => {
+				if ( !model ) return undefined;
+
+				return model.get();
+			});
+			args = this.argsFn.apply( this.ractive, values );
+		}
+
+		this._fn.apply( this.ractive, [ this ].concat( args ) );
 	}
 
 	toString () { return ''; }
 
-	unbind () {}
+	unbind () {
+		if ( this.resolvers ) this.resolvers.forEach( unbind );
+	}
 
 	unrender () {}
 

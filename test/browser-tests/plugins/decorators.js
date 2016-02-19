@@ -458,3 +458,25 @@ test( 'decorators can be named with as-${name}', t => {
 
 	t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
 });
+
+test( 'decorators can be named with as-${name} with args', t => {
+	new Ractive({
+		el: fixture,
+		template: `<div as-foo="bar, 'baz'">this text will be overwritten</div>`,
+		decorators: {
+			foo ( node, t1, t2 ) {
+				const contents = node.innerHTML;
+				node.innerHTML = t1 + ' ' + t2;
+
+				return {
+					teardown () {
+						node.innerHTML = contents;
+					}
+				};
+			}
+		},
+		data: { bar: 'foo' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div>foo baz</div>' );
+});

@@ -1,3 +1,4 @@
+import { DECORATOR, TRANSITION } from '../../../config/types';
 import Parser from '../../Parser';
 import readExpression from '../readExpression';
 import flattenExpression from '../../utils/flattenExpression';
@@ -13,7 +14,7 @@ ExpressionParser = Parser.extend({
 });
 
 // TODO clean this up, it's shocking
-export default function processDirective ( tokens, parentParser ) {
+export default function processDirective ( tokens, parentParser, type ) {
 	var result,
 		match,
 		token,
@@ -23,6 +24,11 @@ export default function processDirective ( tokens, parentParser ) {
 		parsed;
 
 	if ( typeof tokens === 'string' ) {
+		if ( type === DECORATOR || type === TRANSITION ) {
+			const parser = new ExpressionParser( `[${tokens}]` );
+			return { a: flattenExpression( parser.result[0] ) };
+		}
+
 		if ( match = methodCallPattern.exec( tokens ) ) {
 			let end = tokens.lastIndexOf(')');
 

@@ -9,6 +9,7 @@ var attributeNamePattern = /^[^\s"'>\/=]+/,
 	proxyEventPattern = /^on-([a-zA-Z\\*\\.$_][a-zA-Z\\*\\.$_0-9\-]+)$/,
 	reservedEventNames = /^(?:change|reset|teardown|update|construct|config|init|render|unrender|detach|insert)$/,
 	decoratorPattern = /^as-([a-z-A-Z][-a-zA-Z_0-9]*)$/,
+	transitionPattern = /^([a-zA-Z](?:(?!-in-out)[-a-zA-Z_0-9])*)-(in|out|in-out)$/,
 	directives = {
 				   'intro-outro': { t: TRANSITION, v: 't0' },
 				   intro: { t: TRANSITION, v: 't1' },
@@ -211,9 +212,18 @@ export function readAttributeOrDirective ( parser ) {
 		// decorators
 		else if ( match = decoratorPattern.exec( attribute.n ) ) {
 			attribute.t = DECORATOR;
-			attribute.f = processDirective( attribute.f, parser );
+			attribute.f = processDirective( attribute.f, parser, DECORATOR );
 			if ( typeof attribute.f === 'object' ) attribute.f.n = match[1];
 			else attribute.f = match[1];
+		}
+
+		// transitions
+		else if ( match = transitionPattern.exec( attribute.n ) ) {
+			attribute.t = TRANSITION;
+			attribute.f = processDirective( attribute.f, parser, TRANSITION );
+			if ( typeof attribute.f === 'object' ) attribute.f.n = match[1];
+			else attribute.f = match[1];
+			attribute.v = match[2] === 'in-out' ? 't0' : match[2] === 'in' ? 't1' : 't2';
 		}
 
 		// on-click etc

@@ -1,6 +1,8 @@
 import { test } from 'qunit';
 import { afterEach, beforeEach, hasUsableConsole, onWarn } from 'test-config';
 
+/* global setTimeout */
+
 let Ractive_original;
 
 beforeEach( () => {
@@ -296,12 +298,11 @@ test( 'Parameter objects are not polluted (#1239)', t => {
 	t.notEqual( objects[0], objects[1] );
 });
 
-// TEMP so whole test suite doesn't hang. tagging with keypaths-ftw
-/*
-asyncTest( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
+test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
 	var ractive, tooLate;
+	const done = t.async();
 
-	expect( 0 );
+	t.expect( 0 );
 
 	ractive = new Ractive({
 		el: fixture,
@@ -315,7 +316,7 @@ asyncTest( 'An intro will be aborted if a corresponding outro begins before it c
 
 	ractive.set( 'showBox', true ).then( function ( t ) {
 		if ( !tooLate ) {
-			QUnit.start();
+			done();
 		}
 	});
 
@@ -327,7 +328,7 @@ asyncTest( 'An intro will be aborted if a corresponding outro begins before it c
 		tooLate = true;
 	}, 200 );
 });
-*/
+
 test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
 	let transitionRan = false;
 
@@ -464,4 +465,88 @@ test( 'intro-outro transitions can be conditional', t => {
 	r.set( 'foo', true );
 	r.set( 'foo', false );
 	t.equal( count, 4 );
+});
+
+test( 'intros can be named attributes', t => {
+	let count = 0;
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#if foo}}<div go-in></div>{{/if}}',
+		data: { foo: true },
+		transitions: {
+			go ( t ) {
+				count++;
+				t.complete();
+			}
+		}
+	});
+
+	t.equal( count, 1 );
+	r.set( 'foo', false );
+	r.set( 'foo', true );
+	t.equal( count, 2 );
+});
+
+test( 'outros can be named attributes', t => {
+	let count = 0;
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#if foo}}<div go-out></div>{{/if}}',
+		data: { foo: true },
+		transitions: {
+			go ( t ) {
+				count++;
+				t.complete();
+			}
+		}
+	});
+
+	r.set( 'foo', false );
+	t.equal( count, 1 );
+	r.set( 'foo', true );
+	r.set( 'foo', false );
+	t.equal( count, 2 );
+});
+
+test( 'intro-outros can be named attributes', t => {
+	let count = 0;
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#if foo}}<div go-in-out></div>{{/if}}',
+		data: { foo: true },
+		transitions: {
+			go ( t ) {
+				count++;
+				t.complete();
+			}
+		}
+	});
+
+	t.equal( count, 1 );
+	r.set( 'foo', false );
+	t.equal( count, 2 );
+	r.set( 'foo', true );
+	t.equal( count, 3 );
+	r.set( 'foo', false );
+	t.equal( count, 4 );
+});
+
+
+test( 'named attribute transitions can have normal expression args', t => {
+	let count = 0;
+	new Ractive({
+		el: fixture,
+		template: `{{#if foo}}<div go-in="bar, 'bat'"></div>{{/if}}`,
+		data: { foo: true, bar: 'foo' },
+		transitions: {
+			go ( trans, bar, str ) {
+				count++;
+				t.equal( bar, 'foo' );
+				t.equal( str, 'bat' );
+				trans.complete();
+			}
+		}
+	});
+
+	t.equal( count, 1 );
 });
