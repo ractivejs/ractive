@@ -28,7 +28,7 @@ export default function processDirective ( tokens, parentParser, event = false )
 
 		if ( event && ~tokens.indexOf( '(' ) ) {
 			const parser = new ExpressionParser( tokens );
-			if ( parser.result && parser.result[0] && parser.result[0].x ) {
+			if ( parser.result && parser.result[0] ) {
 				if ( parser.remaining().length ) {
 					parentParser.error( `Invalid input after event expression '${parser.remaining()}'` );
 				}

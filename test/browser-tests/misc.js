@@ -1644,6 +1644,29 @@ test( '@global special ref gives access to the vm global object', t => {
 	t.equal( target.foo.bar, 10 );
 });
 
+test( 'spread args can be applied to any invocation expression', t => {
+	t.expect( 4 );
+
+	const r = new Ractive({
+		el: fixture,
+		template: `{{.count(...list).and(...foo, ...bar)}}`,
+		data: {
+			list: [], foo: [ 1, 2 ], bar: [ 4, 5, 6 ],
+			count() {
+				const r = this;
+				t.equal( arguments.length, this.get( 'list.length' ) );
+				return {
+					and () {
+						t.equal( arguments.length, r.get( 'foo.length' ) + r.get( 'bar.length' ) );
+					}
+				};
+			}
+		}
+	});
+
+	r.push( 'list', 'a', 'b', 'c' );
+});
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {

@@ -52,7 +52,7 @@ export default class EventDirective {
 					// on-click="foo($1)"
 					return {
 						special: 'arguments',
-						keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[1].substr( 1 ) ) : [] )
+						keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypath( dollarMatch[2].substr( 1 ) ) : [] )
 					};
 				}
 
