@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Feb 17 2016 03:48:40 GMT+0000 (UTC) - commit 5f0aa15319dfb548eafd9d50a2bde6826c736df1
+	Fri Feb 19 2016 23:33:53 GMT+0000 (UTC) - commit c5132e4ab8079acfcc142c230ea77f4e52df3877
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -29,6 +29,16 @@ var inherits = function (subClass, superClass) {
     }
   });
   if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+var toConsumableArray = function (arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+    return arr2;
+  } else {
+    return Array.from(arr);
+  }
 };
 
 var classCallCheck = function (instance, Constructor) {
@@ -1033,6 +1043,69 @@ var classCallCheck = function (instance, Constructor) {
 
   function Ractive$toHTML() {
   	return this.fragment.toString(true);
+  }
+
+  var PREFIX = '/* Ractive.js component styles */';
+
+  // Holds current definitions of styles.
+  var styleDefinitions = [];
+
+  // Flag to tell if we need to update the CSS
+  var isDirty = false;
+
+  // These only make sense on the browser. See additional setup below.
+  var styleElement = null;
+  var styleSheet = null;
+  var styleProperty = null;
+
+  function addCSS(styleDefinition) {
+  	styleDefinitions.push(styleDefinition);
+  	isDirty = true;
+  }
+
+  function applyCSS() {
+
+  	// Apply only seems to make sense when we're in the DOM. Server-side renders
+  	// can call toCSS to get the updated CSS.
+  	if (!doc || !isDirty) return;
+
+  	styleElement[styleProperty] = getCSS(null);
+
+  	isDirty = false;
+  }
+
+  function getCSS(cssIds) {
+
+  	var filteredStyleDefinitions = cssIds ? styleDefinitions.filter(function (style) {
+  		return ~cssIds.indexOf(style.id);
+  	}) : styleDefinitions;
+
+  	return filteredStyleDefinitions.reduce(function (styles, style) {
+  		return styles + '\n\n/* {' + style.id + '} */\n' + style.styles;
+  	}, PREFIX);
+  }
+
+  // If we're on the browser, additional setup needed.
+  if (doc && (!styleElement || !styleElement.parentNode)) {
+
+  	styleElement = doc.createElement('style');
+  	styleElement.type = 'text/css';
+
+  	doc.getElementsByTagName('head')[0].appendChild(styleElement);
+
+  	styleSheet = styleElement.styleSheet;
+
+  	styleProperty = styleSheet ? 'cssText' : 'innerHTML';
+  }
+
+  function Ractive$toCSS() {
+  	var cssIds = [this.cssId].concat(toConsumableArray(this.findAllComponents().map(function (c) {
+  		return c.cssId;
+  	})));
+  	var uniqueCssIds = Object.keys(cssIds.reduce(function (ids, id) {
+  		return ids[id] = true, ids;
+  	}, {}));
+  	return getCSS(uniqueCssIds);
   }
 
   // Error messages that are used (or could be) in multiple places
@@ -6227,16 +6300,16 @@ var classCallCheck = function (instance, Constructor) {
   	});
   }
 
-  var prefix$1 = undefined;
+  var prefix = undefined;
 
   if (!isClient) {
-  	prefix$1 = null;
+  	prefix = null;
   } else {
   	(function () {
   		var prefixCache = {};
   		var testStyle = createElement('div').style;
 
-  		prefix$1 = function (prop) {
+  		prefix = function (prop) {
   			prop = camelCase(prop);
 
   			if (!prefixCache[prop]) {
@@ -6262,16 +6335,16 @@ var classCallCheck = function (instance, Constructor) {
   	})();
   }
 
-  var prefix$2 = prefix$1;
+  var prefix$1 = prefix;
 
   var visible = undefined;
   var hidden = 'hidden';
 
   if (doc) {
-  	var prefix$3 = undefined;
+  	var prefix$2 = undefined;
 
   	if (hidden in doc) {
-  		prefix$3 = '';
+  		prefix$2 = '';
   	} else {
   		var i$2 = vendors.length;
   		while (i$2--) {
@@ -6279,14 +6352,14 @@ var classCallCheck = function (instance, Constructor) {
   			hidden = vendor + 'Hidden';
 
   			if (hidden in doc) {
-  				prefix$3 = vendor;
+  				prefix$2 = vendor;
   				break;
   			}
   		}
   	}
 
-  	if (prefix$3 !== undefined) {
-  		doc.addEventListener(prefix$3 + 'visibilitychange', onChange);
+  	if (prefix$2 !== undefined) {
+  		doc.addEventListener(prefix$2 + 'visibilitychange', onChange);
   		onChange();
   	} else {
   		// gah, we're in an old browser
@@ -6520,7 +6593,7 @@ var classCallCheck = function (instance, Constructor) {
   				// which properties
   				var hashPrefix = (t.node.namespaceURI || '') + t.node.tagName;
 
-  				t.node.style[TRANSITION_PROPERTY] = changedProperties.map(prefix$2).map(hyphenate).join(',');
+  				t.node.style[TRANSITION_PROPERTY] = changedProperties.map(prefix$1).map(hyphenate).join(',');
   				t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
   				t.node.style[TRANSITION_DURATION] = options.duration / 1000 + 's';
 
@@ -6558,7 +6631,7 @@ var classCallCheck = function (instance, Constructor) {
   						hash = hashPrefix + prop;
 
   						if (CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[hash]) {
-  							t.node.style[prefix$2(prop)] = to[prop];
+  							t.node.style[prefix$1(prop)] = to[prop];
 
   							// If we're not sure if CSS transitions are supported for
   							// this tag/property combo, find out now
@@ -6572,7 +6645,7 @@ var classCallCheck = function (instance, Constructor) {
 
   								// Reset, if we're going to use timers after all
   								if (cannotUseCssTransitions[hash]) {
-  									t.node.style[prefix$2(prop)] = originalValue;
+  									t.node.style[prefix$1(prop)] = originalValue;
   								}
   							}
   						}
@@ -6601,7 +6674,7 @@ var classCallCheck = function (instance, Constructor) {
 
   							// ...then kick off a timer-based transition
   							propertiesToTransitionInJs.push({
-  								name: prefix$2(prop),
+  								name: prefix$1(prop),
   								interpolator: interpolator,
   								suffix: suffix
   							});
@@ -6777,7 +6850,7 @@ var classCallCheck = function (instance, Constructor) {
   			var i = propertyNames.length;
   			while (i--) {
   				var prop = propertyNames[i];
-  				var current = computedStyle[prefix$2(prop)];
+  				var current = computedStyle[prefix$1(prop)];
 
   				if (current === '0px') current = 0;
 
@@ -6788,7 +6861,7 @@ var classCallCheck = function (instance, Constructor) {
 
   					// make the computed style explicit, so we can animate where
   					// e.g. height='auto'
-  					_this.node.style[prefix$2(prop)] = current;
+  					_this.node.style[prefix$1(prop)] = current;
   				}
   			}
 
@@ -6807,7 +6880,7 @@ var classCallCheck = function (instance, Constructor) {
   		var computedStyle = getComputedStyle(this.node);
 
   		if (typeof props === 'string') {
-  			var value = computedStyle[prefix$2(props)];
+  			var value = computedStyle[prefix$1(props)];
   			return value === '0px' ? 0 : value;
   		}
 
@@ -6820,7 +6893,7 @@ var classCallCheck = function (instance, Constructor) {
   		var i = props.length;
   		while (i--) {
   			var prop = props[i];
-  			var value = computedStyle[prefix$2(prop)];
+  			var value = computedStyle[prefix$1(prop)];
 
   			if (value === '0px') value = 0;
   			styles[prop] = value;
@@ -6849,12 +6922,12 @@ var classCallCheck = function (instance, Constructor) {
 
   	Transition.prototype.setStyle = function setStyle(style, value) {
   		if (typeof style === 'string') {
-  			this.node.style[prefix$2(style)] = value;
+  			this.node.style[prefix$1(style)] = value;
   		} else {
   			var prop = undefined;
   			for (prop in style) {
   				if (style.hasOwnProperty(prop)) {
-  					this.node.style[prefix$2(prop)] = style[prop];
+  					this.node.style[prefix$1(prop)] = style[prop];
   				}
   			}
   		}
@@ -9627,67 +9700,6 @@ var classCallCheck = function (instance, Constructor) {
   	return HookQueue;
   })();
 
-  var css;
-  var update;
-  var styleElement;
-  var head$1;
-  var styleSheet;
-  var inDom;
-  var prefix = '/* Ractive.js component styles */\n';
-  var styles = [];
-  var dirty = false;
-  if (!doc) {
-  	// TODO handle encapsulated CSS in server-rendered HTML!
-  	css = {
-  		add: noop,
-  		apply: noop
-  	};
-  } else {
-  	styleElement = doc.createElement('style');
-  	styleElement.type = 'text/css';
-
-  	head$1 = doc.getElementsByTagName('head')[0];
-
-  	inDom = false;
-
-  	// Internet Exploder won't let you use styleSheet.innerHTML - we have to
-  	// use styleSheet.cssText instead
-  	styleSheet = styleElement.styleSheet;
-
-  	update = function () {
-  		var css = prefix + styles.map(function (s) {
-  			return '\n/* {' + s.id + '} */\n' + s.styles;
-  		}).join('\n');
-
-  		if (styleSheet) {
-  			styleSheet.cssText = css;
-  		} else {
-  			styleElement.innerHTML = css;
-  		}
-
-  		if (!inDom) {
-  			head$1.appendChild(styleElement);
-  			inDom = true;
-  		}
-  	};
-
-  	css = {
-  		add: function (s) {
-  			styles.push(s);
-  			dirty = true;
-  		},
-
-  		apply: function () {
-  			if (dirty) {
-  				update();
-  				dirty = false;
-  			}
-  		}
-  	};
-  }
-
-  var css$1 = css;
-
   var selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
   var commentsPattern = /\/\*.*?\*\//g;
   var selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
@@ -9760,22 +9772,36 @@ var classCallCheck = function (instance, Constructor) {
   	return transformed;
   }
 
-  var uid$1 = 1;
+  function s4() {
+  	return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+  }
+
+  function uuid() {
+  	return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+  }
 
   var cssConfigurator = {
   	name: 'css',
 
+  	// Called when creating a new component definition
   	extend: function (Parent, proto, options) {
-  		if (options.css) {
-  			var id = uid$1++;
-  			var styles = options.noCssTransform ? options.css : transformCss(options.css, id);
+  		if (!options.css) return;
 
-  			proto.cssId = id;
-  			css$1.add({ id: id, styles: styles });
-  		}
+  		var id = uuid();
+  		var styles = options.noCssTransform ? options.css : transformCss(options.css, id);
+
+  		proto.cssId = id;
+
+  		addCSS({ id: id, styles: styles });
   	},
 
-  	init: function () {}
+  	// Called when creating a new component instance
+  	init: function (Parent, target, options) {
+  		if (!options.css) return;
+
+  		warnIfDebug('\nThe css option is currently not supported on a per-instance basis and will be discarded. Instead, we recommend instantiating from a component definition with a css option.\n\nconst Component = Ractive.extend({\n\t...\n\tcss: \'/* your css */\',\n\t...\n});\n\nconst componentInstance = new Component({ ... })\n\t\t');
+  	}
+
   };
 
   var adaptConfigurator = {
@@ -10118,7 +10144,7 @@ var classCallCheck = function (instance, Constructor) {
   	ractive.anchor = anchor;
 
   	// ensure encapsulated CSS is up-to-date
-  	if (ractive.cssId) css$1.apply();
+  	if (ractive.cssId) applyCSS();
 
   	if (target) {
   		(target.__ractive_instances__ || (target.__ractive_instances__ = [])).push(ractive);
@@ -12698,6 +12724,8 @@ var classCallCheck = function (instance, Constructor) {
   	subtract: Ractive$subtract,
   	teardown: Ractive$teardown,
   	toggle: Ractive$toggle,
+  	toCSS: Ractive$toCSS,
+  	toCss: Ractive$toCSS,
   	toHTML: Ractive$toHTML,
   	toHtml: Ractive$toHTML,
   	unlink: unlink,
@@ -12922,6 +12950,7 @@ var classCallCheck = function (instance, Constructor) {
   	extend: { value: extend$1 },
   	getNodeInfo: { value: getNodeInfo },
   	parse: { value: parse },
+  	getCSS: { value: getCSS },
 
   	// namespaced constructors
   	Promise: { value: Promise$1 },
