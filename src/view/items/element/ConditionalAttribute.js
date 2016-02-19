@@ -49,7 +49,9 @@ export default class ConditionalAttribute extends Item {
 
 	render () {
 		this.node = this.owner.node;
-		this.isSvg = this.node.namespaceURI === svg;
+		if ( this.node ) {
+			this.isSvg = this.node.namespaceURI === svg;
+		}
 
 		attributes = true;
 		this.fragment.render();
@@ -81,7 +83,7 @@ export default class ConditionalAttribute extends Item {
 			this.fragment.update();
 			attributes = false;
 
-			if ( this.rendered ) {
+			if ( this.rendered && this.node ) {
 				str = this.fragment.toString();
 				attrs = parseAttributes( str, this.isSvg );
 

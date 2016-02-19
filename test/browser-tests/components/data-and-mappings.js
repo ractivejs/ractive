@@ -1158,3 +1158,20 @@ test( 'root references inside a component should resolve to the component', t =>
 
 	t.htmlEqual( fixture.innerHTML, 'yep' );
 });
+
+test( 'condition mapping updates correctly', t => {
+	const cmp = Ractive.extend({
+		template: '{{foo}}'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<cmp {{#if cond}}foo="{{bar}}"{{else}}foo="{{baz}}"{{/if}} />',
+		data: { cond: true, bar: 'bar', baz: 'baz' },
+		components: { cmp }
+	});
+
+	t.equal( fixture.innerHTML, 'bar' );
+	r.toggle( 'cond' );
+	t.equal( fixture.innerHTML, 'baz' );
+});

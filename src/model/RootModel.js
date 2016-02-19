@@ -121,9 +121,21 @@ export default class RootModel extends Model {
 	}
 
 	map ( localKey, origin ) {
-		// TODO remapping
+		let remapped = false;
+		if ( this.mappings[ localKey ] && this.mappings[ localKey ] !== origin ) {
+			this.mappings[ localKey ].unregister( this );
+			remapped = this.mappings[ localKey ];
+		}
 		this.mappings[ localKey ] = origin;
 		origin.register( this );
+		return remapped;
+	}
+
+	resetMappings () {
+		for ( let k in this.mappings ) {
+			this.mappings[k].unregister( this );
+		}
+		this.mappings = {};
 	}
 
 	set ( value ) {

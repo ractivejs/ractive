@@ -187,7 +187,8 @@ export default class Component extends Item {
 	}
 
 	rebind () {
-		this.instance.viewmodel.mappings = {};
+		// TODO: it feels like there should be a better way than wwholesale discarding the mappings
+		this.instance.viewmodel.resetMappings();
 		this.attributes.forEach( rebind );
 
 		this.liveQueries.forEach( makeDirty );

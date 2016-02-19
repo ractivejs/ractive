@@ -11,6 +11,7 @@ import { isArray } from '../../../utils/is';
 import { safeToStringValue } from '../../../utils/dom';
 import { booleanAttributes } from '../../../utils/html';
 import parseJSON from '../../../utils/parseJSON';
+import runloop from '../../../global/runloop';
 
 function lookupNamespace ( node, prefix ) {
 	const qualified = `xmlns:${prefix}`;
@@ -93,7 +94,15 @@ export default class Attribute extends Item {
 						this.model = this.parentFragment.findContext().joinKey( this.name );
 					}
 
-					viewmodel.map( this.name, this.model );
+					// map the model and check for remap
+					const remapped = viewmodel.map( this.name, this.model );
+					if ( remapped && !viewmodel.rebinding ) {
+						viewmodel.rebinding = true;
+						runloop.scheduleTask( () => {
+							this.element.rebind();
+							viewmodel.rebinding = false;
+						});
+					}
 
 					if ( this.model.get() === undefined && this.name in childData ) {
 						this.model.set( childData[ this.name ] );
