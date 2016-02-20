@@ -12,6 +12,6 @@ export default class RactiveModel extends Model {
 	}
 
 	getKeypath() {
-		return '@ractive';
+		return '@this';
 	}
 }

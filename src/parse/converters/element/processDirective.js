@@ -2,6 +2,7 @@ import Parser from '../../Parser';
 import readExpression from '../readExpression';
 import flattenExpression from '../../utils/flattenExpression';
 import parseJSON from '../../../utils/parseJSON';
+import { warnOnceIfDebug } from '../../../utils/log';
 
 var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(.*\)\s*$/,
 	ExpressionParser;
@@ -23,7 +24,8 @@ export default function processDirective ( tokens, parentParser, event = false )
 
 	if ( typeof tokens === 'string' ) {
 		if ( event && ( match = methodCallPattern.exec( tokens ) ) ) {
-			tokens = `@ractive.${match[1]}${tokens.substr(match[1].length)}`;
+			warnOnceIfDebug( `Unqualified method events are deprecated. Prefix methods with '@this.' to call methods on the current Ractive instance.` );
+			tokens = `@this.${match[1]}${tokens.substr(match[1].length)}`;
 		}
 
 		if ( event && ~tokens.indexOf( '(' ) ) {
@@ -107,8 +109,8 @@ export default function processDirective ( tokens, parentParser, event = false )
 		result = directiveName;
 	}
 
-	if ( event ) {
-		// TODO: convert to expression
+	if ( directiveArgs.length ) {
+		warnOnceIfDebug( `Proxy events with arguments are deprecated. You can fire events with arguments using "@this.fire('eventName', arg1, arg2, ...)".` );
 	}
 
 	return result;

@@ -846,7 +846,7 @@ const parseTests = [
 		template: '{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} intro="slide:{{x + 4}}" on-click="proxy:{{x + 5}}" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>',
 		options: { csp: true },
 		parsed: {
-			v:3,t:[{t:2,x:{ r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:['data-id=',{t:2,x:{r:['x'],s:'_0+3'}}],n:50,x:{r:['x'],s:'_0+2'}}],t1:{n:'slide',d:[{t:2,x:{r:['x'],s:'_0+4'}}]},v:{click:{n:'proxy',d:[{t:2,x:{r:['x'],s:'_0+5'}}]},focus:{x:{r:['@ractive','x'],s:'[_0.method(_1+5)]'}}},f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
+			v:3,t:[{t:2,x:{ r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:['data-id=',{t:2,x:{r:['x'],s:'_0+3'}}],n:50,x:{r:['x'],s:'_0+2'}}],t1:{n:'slide',d:[{t:2,x:{r:['x'],s:'_0+4'}}]},v:{click:{n:'proxy',d:[{t:2,x:{r:['x'],s:'_0+5'}}]},focus:{x:{r:['@this','x'],s:'[_0.method(_1+5)]'}}},f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
 			// these are intentially made strings for testing purposes
 			// actual template has javascript function objects
 			e:{

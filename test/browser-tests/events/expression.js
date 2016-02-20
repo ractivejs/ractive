@@ -4,7 +4,7 @@ import { fire } from 'simulant';
 test( 'events can be handled as expressions', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: `<button on-click="@ractive.set('foo', 42)">click me</button>`,
+		template: `<button on-click="@this.set('foo', 42)">click me</button>`,
 		data: { foo: 'nope' }
 	});
 	const button = r.find( 'button' );
@@ -87,7 +87,7 @@ test( 'expression events can handle dollar arg keypath access', t => {
 test( 'expression events work with complex expressions', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: `<button on-click="@ractive.set('foo', 42) && @ractive.toggle('bar')">click me</button>`
+		template: `<button on-click="@this.set('foo', 42) && @this.toggle('bar')">click me</button>`
 	});
 
 	fire( r.find( 'button' ), 'click' );
@@ -99,7 +99,7 @@ test( 'expression events work with complex expressions', t => {
 test( 'comma-ish operator can be used with expression events', t => {
 	const r = new Ractive({
 		el: fixture,
-		template: `<button on-click="@ractive.set('foo', 42), @ractive.toggle('bar')">click me</button>`
+		template: `<button on-click="@this.set('foo', 42), @this.toggle('bar')">click me</button>`
 	});
 
 	fire( r.find( 'button' ), 'click' );

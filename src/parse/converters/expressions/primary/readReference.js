@@ -20,7 +20,7 @@ export default function readReference ( parser ) {
 
 	startPos = parser.pos;
 
-	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|ractive|global)/ );
+	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|this|global)/ );
 
 	spread = !name && parser.spreadArgs && parser.matchPattern( spreadPattern );
 

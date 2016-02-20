@@ -1587,17 +1587,17 @@ if ( hasUsableConsole ) {
 	});
 }
 
-test( '@ractive special ref gives access to the ractive instance', t => {
+test( '@this special ref gives access to the ractive instance', t => {
 	const DEBUG = Ractive.DEBUG;
 	const r = new Ractive({
 		el: fixture,
-		template: `{{@ractive.constructor.VERSION}} {{@ractive.foo}} <input type="checkbox" checked="{{@ractive.constructor.DEBUG}}" />`
+		template: `{{@this.constructor.VERSION}} {{@this.foo}} <input type="checkbox" checked="{{@this.constructor.DEBUG}}" />`
 	});
 
 	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION}  <input type="checkbox" />` );
 
 	r.foo = 'bar';
-	r.update('@ractive.foo');
+	r.update('@this.foo');
 
 	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} bar <input type="checkbox" />` );
 
@@ -1607,12 +1607,12 @@ test( '@ractive special ref gives access to the ractive instance', t => {
 	fire( r.find( 'input' ), 'click' );
 	t.equal( Ractive.DEBUG, DEBUG );
 
-	r.set( '@ractive.foo', 'baz' );
+	r.set( '@this.foo', 'baz' );
 	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} baz <input type="checkbox" />` );
 
 	r.foo = 'bat';
 	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} baz <input type="checkbox" />` );
-	r.update( '@ractive.foo' );
+	r.update( '@this.foo' );
 	t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} bat <input type="checkbox" />` );
 
 	Ractive.DEBUG = DEBUG;
