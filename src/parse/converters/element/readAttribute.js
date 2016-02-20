@@ -3,6 +3,7 @@ import getLowestIndex from '../utils/getLowestIndex';
 import readMustache from '../readMustache';
 import { decodeCharacterReferences } from '../../../utils/html';
 import processDirective from './processDirective';
+import { warnOnceIfDebug } from '../../../utils/log';
 
 var attributeNamePattern = /^[^\s"'>\/=]+/,
 	onPattern = /^on/,
@@ -207,10 +208,17 @@ export function readAttributeOrDirective ( parser ) {
 			delete attribute.n; // no name necessary
 
 			if ( directive.t === TRANSITION || directive.t === DECORATOR ) attribute.f = processDirective( attribute.f, parser );
+
+			if ( directive.t === TRANSITION ) {
+				warnOnceIfDebug( `${ directive.v === 't0' ? 'intro-outro' : directive.v === 't1' ? 'intro' : 'outro' } is deprecated. To specify tranisitions, use the transition name suffixed with '-in', '-out', or '-in-out' as an attribute. Arguments can be specified in the attribute value as a simple list of expressions without mustaches.` );
+			} else if ( directive.t === DECORATOR ) {
+				warnOnceIfDebug( `decorator is deprecated. To specify decorators, use the decorator name prefixed with 'as-' as an attribute. Arguments can be specified in the attribute value as a simple list of expressions without mustaches.` );
+			}
 		}
 
 		// decorators
 		else if ( match = decoratorPattern.exec( attribute.n ) ) {
+			delete attribute.n;
 			attribute.t = DECORATOR;
 			attribute.f = processDirective( attribute.f, parser, DECORATOR );
 			if ( typeof attribute.f === 'object' ) attribute.f.n = match[1];
@@ -219,6 +227,7 @@ export function readAttributeOrDirective ( parser ) {
 
 		// transitions
 		else if ( match = transitionPattern.exec( attribute.n ) ) {
+			delete attribute.n;
 			attribute.t = TRANSITION;
 			attribute.f = processDirective( attribute.f, parser, TRANSITION );
 			if ( typeof attribute.f === 'object' ) attribute.f.n = match[1];
