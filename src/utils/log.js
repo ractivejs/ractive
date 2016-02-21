@@ -31,7 +31,7 @@ function printWarning ( message, args ) {
 		}
 	}
 
-	console.warn( `%cRactive.js:\n%c${message}`, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);', ...args );
+	console.warn( `%cRactive.js: %c${message}`, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);', ...args );
 }
 
 // The public APIs of this module.

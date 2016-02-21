@@ -141,7 +141,7 @@ if ( hasUsableConsole ) {
 
 		onWarn( err => {
 			// Firefox & Safari don't include the error message in the stack for some reason
-			t.ok( /error happened during rendering/.test( err ) && ( /evil handler/.test( err ) || /oncomplete@/.test( err ) ) );
+			t.ok( /error ocurred during rendering/.test( err ) && ( /evil handler/.test( err ) || /oncomplete@/.test( err ) ) );
 			done();
 		});
 
