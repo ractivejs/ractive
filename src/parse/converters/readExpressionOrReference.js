@@ -1,4 +1,4 @@
-import { REFERENCE } from '../../config/types';
+import { REFERENCE } from '../../constants/types';
 import readExpression from './readExpression';
 import readReference from './expressions/primary/readReference';
 

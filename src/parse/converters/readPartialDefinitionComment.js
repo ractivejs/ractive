@@ -1,4 +1,4 @@
-import { INLINE_PARTIAL } from '../../config/types';
+import { INLINE_PARTIAL } from '../../constants/types';
 import { warnOnceIfDebug } from '../../utils/log';
 import { READERS } from '../_parse';
 import escapeRegExp from '../../utils/escapeRegExp';

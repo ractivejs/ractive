@@ -1,4 +1,4 @@
-import { ELEMENT, YIELDER } from '../config/types';
+import { ELEMENT, YIELDER } from '../constants/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';

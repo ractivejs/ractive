@@ -1,5 +1,5 @@
 import Model from '../../model/Model';
-import { REFERENCE } from '../../config/types';
+import { REFERENCE } from '../../constants/types';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';

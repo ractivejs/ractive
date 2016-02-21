@@ -1,4 +1,4 @@
-import { ALIAS, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
+import { ALIAS, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../constants/types';
 import Alias from './Alias';
 import Component from './Component';
 import Doctype from './Doctype';

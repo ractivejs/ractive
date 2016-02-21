@@ -1,4 +1,4 @@
-import { REFINEMENT } from '../../../../config/types';
+import { REFINEMENT } from '../../../../constants/types';
 import { expectedExpression } from './errors';
 import { name as namePattern } from './patterns';
 import readExpression from '../../readExpression';

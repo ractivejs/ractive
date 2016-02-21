@@ -1,4 +1,4 @@
-import { missingPlugin } from '../../../../config/errors';
+import { MISSING_PLUGIN } from '../../../../messages/errors';
 import { isClient } from '../../../../config/environment';
 import { warnIfDebug, warnOnceIfDebug } from '../../../../utils/log';
 import { createElement } from '../../../../utils/dom';
@@ -160,7 +160,7 @@ if ( !isClient ) {
 						easing = t.ractive.easing[ options.easing ];
 
 						if ( !easing ) {
-							warnOnceIfDebug( missingPlugin( options.easing, 'easing' ) );
+							warnOnceIfDebug( MISSING_PLUGIN, options.easing, 'easing' );
 							easing = linear;
 						}
 					} else if ( typeof options.easing === 'function' ) {

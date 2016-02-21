@@ -1,4 +1,4 @@
-import { INTERPOLATOR } from '../../../config/types';
+import { INTERPOLATOR } from '../../../constants/types';
 import readExpressionOrReference from '../readExpressionOrReference';
 import refineExpression from '../../utils/refineExpression';
 

@@ -1,4 +1,4 @@
-import { TRIPLE } from '../../../config/types';
+import { TRIPLE } from '../../../constants/types';
 import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
 

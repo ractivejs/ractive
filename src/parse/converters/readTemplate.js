@@ -1,4 +1,4 @@
-import { TEMPLATE_VERSION } from '../../config/template';
+import { TEMPLATE_VERSION } from '../../constants/template';
 import { create } from '../../utils/object';
 import { READERS, PARTIAL_READERS } from '../_parse';
 import cleanup from '../utils/cleanup';

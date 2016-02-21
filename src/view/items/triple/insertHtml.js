@@ -1,4 +1,4 @@
-import { svg } from '../../../config/namespaces';
+import { svg } from '../../../constants/namespaces';
 import { createElement } from '../../../utils/dom';
 
 let elementCache = {};

@@ -2,6 +2,7 @@ import { addCSS } from '../../../../global/css';
 import transformCss from './transform';
 import { uuid } from '../../../../utils/id';
 import { warnIfDebug } from '../../../../utils/log';
+import { INSTANCE_CSS_UNSUPPORTED } from '../../../../messages/warnings';
 
 export default {
 	name: 'css',
@@ -23,17 +24,7 @@ export default {
 	init: ( Parent, target, options ) => {
 		if ( !options.css ) return;
 
-		warnIfDebug( `
-The css option is currently not supported on a per-instance basis and will be discarded. Instead, we recommend instantiating from a component definition with a css option.
-
-const Component = Ractive.extend({
-	...
-	css: '/* your css */',
-	...
-});
-
-const componentInstance = new Component({ ... })
-		` );
+		warnIfDebug( INSTANCE_CSS_UNSUPPORTED );
 	}
 
 };

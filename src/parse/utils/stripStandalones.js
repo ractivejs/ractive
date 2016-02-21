@@ -1,4 +1,4 @@
-import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from '../../config/types';
+import { COMMENT, DELIMCHANGE, SECTION, INVERTED } from '../../constants/types';
 import { lastItem } from '../../utils/array';
 
 var leadingLinebreak = /^[ \t\f\r\n]*\r?\n/,

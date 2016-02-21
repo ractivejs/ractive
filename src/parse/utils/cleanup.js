@@ -1,4 +1,4 @@
-import { COMMENT, ELEMENT } from '../../config/types';
+import { COMMENT, ELEMENT } from '../../constants/types';
 import { isArray } from '../../utils/is';
 import stripStandalones from './stripStandalones';
 import trimWhitespace from './trimWhitespace';

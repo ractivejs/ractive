@@ -1,4 +1,4 @@
-import { TEMPLATE_VERSION } from '../../../config/template';
+import { TEMPLATE_VERSION } from '../../../constants/template';
 import parser from '../runtime-parser';
 import { addFunctions } from '../../../shared/getFunction';
 

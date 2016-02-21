@@ -1,5 +1,5 @@
 import { doc } from '../../../config/environment';
-import { svg } from '../../../config/namespaces';
+import { svg } from '../../../constants/namespaces';
 import { createElement } from '../../../utils/dom';
 import { toArray } from '../../../utils/array';
 import Fragment from '../../Fragment';

@@ -1,4 +1,4 @@
-import { GLOBAL, REFERENCE } from '../../../../config/types';
+import { GLOBAL, REFERENCE } from '../../../../constants/types';
 import { normalise } from '../../../../shared/keypaths';
 
 var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,

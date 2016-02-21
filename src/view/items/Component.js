@@ -1,6 +1,6 @@
 import runloop from '../../global/runloop';
 import { warnIfDebug, warnOnceIfDebug } from '../../utils/log';
-import { COMPONENT, INTERPOLATOR, YIELDER } from '../../config/types';
+import { COMPONENT, INTERPOLATOR, YIELDER } from '../../constants/types';
 import Item from './shared/Item';
 import construct from '../../Ractive/construct';
 import initialise from '../../Ractive/initialise';

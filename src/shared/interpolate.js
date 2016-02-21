@@ -1,5 +1,5 @@
 import { fatal } from '../utils/log';
-import { missingPlugin } from '../config/errors';
+import { MISSING_PLUGIN } from '../messages/errors';
 import interpolators from '../Ractive/static/interpolators';
 import { findInViewHierarchy } from './registry';
 
@@ -10,7 +10,7 @@ export default function interpolate ( from, to, ractive, type ) {
 		let interpol = findInViewHierarchy( 'interpolators', ractive, type );
 		if ( interpol ) return interpol( from, to ) || null;
 
-		fatal( missingPlugin( type, 'interpolator' ) );
+		fatal( MISSING_PLUGIN, type, 'interpolator' );
 	}
 
 	return interpolators.number( from, to ) ||

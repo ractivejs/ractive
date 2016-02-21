@@ -1,4 +1,4 @@
-import { ELSEIF } from '../../../../config/types';
+import { ELSEIF } from '../../../../constants/types';
 import readExpression from '../../readExpression';
 
 var elsePattern = /^\s*elseif\s+/;

@@ -1,4 +1,4 @@
-import { CONDITIONAL } from '../../../config/types';
+import { CONDITIONAL } from '../../../constants/types';
 import readLogicalOr from './readLogicalOr';
 import { expectedExpression } from './shared/errors';
 import readExpression from '../readExpression';
