@@ -1,5 +1,5 @@
 import { test } from 'qunit';
-import { hasUsableConsole, onWarn, onLog } from 'test-config';
+import { hasUsableConsole, onWarn } from 'test-config';
 
 test( 'detach and insert hooks fire', t => {
 	let fired = [];
@@ -135,24 +135,13 @@ test( 'correct behaviour of deprecated beforeInit hook (#1395)', t => {
 
 if ( hasUsableConsole ) {
 	test( 'error in oncomplete sent to console', t => {
-		t.expect( 2 );
+		t.expect( 1 );
 
 		const done = t.async();
 
-		onWarn( msg => {
-			if ( /DEBUG_PROMISES/.test( msg ) ) {
-				return;
-			}
-
-			t.ok( /error happened during rendering/.test( msg ) );
-		});
-
-		onLog( stack => {
-			if ( /debug mode/.test( stack ) ) {
-				return;
-			}
-
-			t.ok( /evil handler/.test( stack ) || /oncomplete@/.test( stack ) ); // Firefox & Safari don't include the error message in the stack for some reason
+		onWarn( err => {
+			// Firefox & Safari don't include the error message in the stack for some reason
+			t.ok( /error happened during rendering/.test( err ) && ( /evil handler/.test( err ) || /oncomplete@/.test( err ) ) );
 			done();
 		});
 

@@ -9,10 +9,6 @@ function format ( message, args ) {
 	return message.replace( /%s/g, () => args.shift() );
 }
 
-// printWarning and printLog are custom implementations of console.warn and
-// console.log. Should any modifications be done, they're the ones you should
-// be modifying.
-
 function printWarning ( message, args ) {
 
 	// extract information about the instance this message pertains to, if applicable
@@ -38,21 +34,7 @@ function printWarning ( message, args ) {
 	console.warn( `%cRactive.js:\n%c${message}`, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);', ...args );
 }
 
-function printLog ( message, args ){
-	console.log( `%cRactive.js:\n%c${message}`, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);', ...args );
-}
-
 // The public APIs of this module.
-
-function log ( message, ...args ) {
-	message = format( message, args );
-	printLog( message, args );
-}
-
-function logIfDebug () {
-	if ( !Ractive.DEBUG ) return;
-	log( ...arguments );
-}
 
 function warn ( message, ...args ) {
 	message = format( message, args );
@@ -88,5 +70,5 @@ function fatal( message, ...args ) {
 
 if ( !hasConsole ) printWarning = printLog = format = noop;
 
-export { fatal, log, logIfDebug, warn, warnOnce, warnIfDebug, warnOnceIfDebug };
+export { fatal, warn, warnOnce, warnIfDebug, warnOnceIfDebug };
 

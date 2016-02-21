@@ -51,7 +51,3 @@ export function initModule ( id ) {
 export function onWarn ( fn ) {
 	console.warn = fn;
 }
-
-export function onLog ( fn ) {
-	console.log = fn;
-}

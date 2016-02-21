@@ -14,7 +14,7 @@ import { getCSS } from './global/css';
 import { LEGACY_PLATFORM } from './messages/errors';
 import noop from './utils/noop';
 import { fatal, warnOnceIfDebug } from './utils/log';
-import { DEBUG_ENABLED } from './messages/warnings';
+import { DEBUG_WELCOME, DEBUG_ENABLED, PROMISE_DEBUG_ENABLED } from './messages/warnings';
 
 // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
 // older browsers, these are made available via a shim - here, we do a quick
@@ -51,7 +51,12 @@ for ( let i = 0; i < requiredFunctions.length; i++ ) {
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
 
-	warnOnceIfDebug( DEBUG_ENABLED, Ractive.VERSION );
+	// Moved debug mode warnings out here. They're more of pre-flight checks than
+	// construction or initialization warnings. But they need to happen after the
+	// user has the chance to set them to false. So... here.
+	warnOnceIfDebug( DEBUG_WELCOME, Ractive.VERSION );
+	warnOnceIfDebug( DEBUG_ENABLED );
+	warnOnceIfDebug( PROMISE_DEBUG_ENABLED );
 
 	construct( this, options || {} );
 	initialise( this, options || {}, {} );

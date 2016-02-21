@@ -1,10 +1,11 @@
-import { logIfDebug, warnIfDebug, warnOnceIfDebug } from '../utils/log';
+import { warnIfDebug } from '../utils/log';
 import { getElement } from '../utils/dom';
 import config from './config/config';
 import Fragment from '../view/Fragment';
 import Hook from '../events/Hook';
 import HookQueue from '../events/HookQueue';
 import Ractive from '../Ractive';
+import { RENDER_FAILED } from '../messages/errors';
 
 let configHook = new Hook( 'config' );
 let initHook = new HookQueue( 'init' );
@@ -53,17 +54,10 @@ export default function initialise ( ractive, userOptions, options ) {
 		// render automatically ( if `el` is specified )
 		const el = getElement( ractive.el );
 		if ( el ) {
-			let promise = ractive.render( el, ractive.append );
-
-			if ( Ractive.DEBUG_PROMISES ) {
-				promise.catch( err => {
-					warnOnceIfDebug( 'Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;' );
-					warnIfDebug( 'An error happened during rendering', { ractive });
-					err.stack && logIfDebug( err.stack );
-
-					throw err;
-				});
-			}
+			ractive.render( el, ractive.append ).catch( err => {
+				if ( Ractive.DEBUG_PROMISES ) warnIfDebug( RENDER_FAILED, err.stack, { ractive });
+				throw err;
+			});
 		}
 	}
 }
