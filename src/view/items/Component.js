@@ -182,8 +182,10 @@ export default class Component extends Item {
 	}
 
 	rebind () {
-		// TODO: it feels like there should be a better way than wwholesale discarding the mappings
+		// implicit mappings can cause issues during shuffles, so remap everythiing as necessary
+		// TODO: it's probably better not to throw ALL of the mappings away on rebind
 		this.instance.viewmodel.resetMappings();
+
 		this.attributes.forEach( rebind );
 
 		this.liveQueries.forEach( makeDirty );
