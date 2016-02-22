@@ -121,13 +121,13 @@ export default class RootModel extends Model {
 	}
 
 	map ( localKey, origin ) {
-		let remapped = false;
-		if ( this.mappings[ localKey ] && this.mappings[ localKey ] !== origin ) {
-			this.mappings[ localKey ].unregister( this );
-			remapped = this.mappings[ localKey ];
+		let remapped = this.mappings[ localKey ];
+		if ( remapped !== origin ) {
+			if ( remapped ) remapped.unregister( this );
+
+			this.mappings[ localKey ] = origin;
+			origin.register( this );
 		}
-		this.mappings[ localKey ] = origin;
-		origin.register( this );
 		return remapped;
 	}
 
@@ -166,6 +166,15 @@ export default class RootModel extends Model {
 
 	update () {
 		// noop
+	}
+
+	unmap ( localKey ) {
+		const model = this.mappings[ localKey ];
+		if ( model ) {
+			model.unregister( this );
+			delete this.mappings[ localKey ];
+		}
+		return model;
 	}
 
 	updateFromBindings ( cascade ) {

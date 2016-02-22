@@ -96,11 +96,11 @@ export default class Attribute extends Item {
 
 					// map the model and check for remap
 					const remapped = viewmodel.map( this.name, this.model );
-					if ( remapped && !viewmodel.rebinding ) {
-						viewmodel.rebinding = true;
+					if ( remapped !== this.model && this.element.bound && !this.rebinding && !this.element.rebinding ) {
+						this.element.rebinding = true;
 						runloop.scheduleTask( () => {
 							this.element.rebind();
-							viewmodel.rebinding = false;
+							this.element.rebinding = false;
 						});
 					}
 
@@ -148,8 +148,10 @@ export default class Attribute extends Item {
 	}
 
 	rebind () {
+		this.rebinding = true;
 		this.unbind();
 		this.bind();
+		this.rebinding = false;
 	}
 
 	render () {
@@ -220,6 +222,19 @@ export default class Attribute extends Item {
 	unbind () {
 		if ( this.fragment ) this.fragment.unbind();
 		if ( this.boundFragment ) this.boundFragment.unbind();
+
+		if ( this.element.type === COMPONENT && this.element.bound && !this.rebinding ) {
+			const viewmodel = this.element.instance.viewmodel;
+			if ( viewmodel.unmap( this.name ) ) {
+				if ( !this.element.rebinding ) {
+					this.element.rebinding = true;
+					runloop.scheduleTask( () => {
+						this.element.rebind();
+						this.element.rebinding = false;
+					});
+				}
+			}
+		}
 	}
 
 	unrender () {

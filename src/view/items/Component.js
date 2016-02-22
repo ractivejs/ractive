@@ -1,6 +1,6 @@
 import runloop from '../../global/runloop';
-import { warnIfDebug, warnOnceIfDebug } from '../../utils/log';
-import { ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, INTERPOLATOR, TRANSITION, YIELDER } from '../../config/types';
+import { warnIfDebug } from '../../utils/log';
+import { ATTRIBUTE, BINDING_FLAG, COMPONENT, DECORATOR, EVENT, TRANSITION, YIELDER } from '../../config/types';
 import Item from './shared/Item';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import construct from '../../Ractive/construct';
@@ -9,12 +9,8 @@ import render from '../../Ractive/render';
 import { create } from '../../utils/object';
 import createItem from './createItem';
 import { removeFromArray } from '../../utils/array';
-import { isArray } from '../../utils/is';
-import resolve from '../resolvers/resolve';
 import { bind, cancel, rebind, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
 import Hook from '../../events/Hook';
-import Fragment from '../Fragment';
-import parseJSON from '../../utils/parseJSON';
 import EventDirective from './shared/EventDirective';
 import RactiveEvent from './component/RactiveEvent';
 import updateLiveQueries from './component/updateLiveQueries';
@@ -118,9 +114,6 @@ export default class Component extends Item {
 	}
 
 	bind () {
-		const viewmodel = this.instance.viewmodel;
-		const childData = viewmodel.value;
-
 		this.attributes.forEach( bind );
 
 		initialise( this.instance, {
@@ -132,6 +125,8 @@ export default class Component extends Item {
 		});
 
 		this.eventHandlers.forEach( bind );
+
+		this.bound = true;
 	}
 
 	bubble () {
@@ -226,6 +221,8 @@ export default class Component extends Item {
 	}
 
 	unbind () {
+		this.bound = false;
+
 		this.attributes.forEach( unbind );
 
 		const instance = this.instance;
@@ -245,6 +242,8 @@ export default class Component extends Item {
 	}
 
 	unrender ( shouldDestroy ) {
+		this.rendered = false;
+
 		this.shouldDestroy = shouldDestroy;
 		this.instance.unrender();
 		this.attributes.forEach( unrender );
