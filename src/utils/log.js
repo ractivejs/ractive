@@ -3,93 +3,38 @@ import { hasConsole } from '../config/environment';
 import Ractive from '../Ractive';
 import noop from './noop';
 
-var alreadyWarned = {}, log, printWarning, welcome;
-
-if ( hasConsole ) {
-	let welcomeIntro = [
-		`%cRactive.js %c<@version@> %cin debug mode, %cmore...`,
-		'color: rgb(114, 157, 52); font-weight: normal;',
-		'color: rgb(85, 85, 85); font-weight: normal;',
-		'color: rgb(85, 85, 85); font-weight: normal;',
-		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
-	];
-	let welcomeMessage = `You're running Ractive <@version@> in debug mode - messages will be printed to the console to help you fix problems and optimise your application.
-
-To disable debug mode, add this line at the start of your app:
-  Ractive.DEBUG = false;
-
-To disable debug mode when your app is minified, add this snippet:
-  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});
-
-Get help and support:
-  http://docs.ractivejs.org
-  http://stackoverflow.com/questions/tagged/ractivejs
-  http://groups.google.com/forum/#!forum/ractive-js
-  http://twitter.com/ractivejs
-
-Found a bug? Raise an issue:
-  https://github.com/ractivejs/ractive/issues
-
-`;
-
-	welcome = () => {
-		let hasGroup = !!console.groupCollapsed;
-		console[ hasGroup ? 'groupCollapsed' : 'log' ].apply( console, welcomeIntro );
-		console.log( welcomeMessage );
-		if ( hasGroup ) {
-			console.groupEnd( welcomeIntro );
-		}
-
-		welcome = noop;
-	};
-
-	printWarning = ( message, args ) => {
-		welcome();
-
-		// extract information about the instance this message pertains to, if applicable
-		if ( typeof args[ args.length - 1 ] === 'object' ) {
-			let options = args.pop();
-			let ractive = options ? options.ractive : null;
-
-			if ( ractive ) {
-				// if this is an instance of a component that we know the name of, add
-				// it to the message
-				let name;
-				if ( ractive.component && ( name = ractive.component.name ) ) {
-					message = `<${name}> ${message}`;
-				}
-
-				let node;
-				if ( node = ( options.node || ( ractive.fragment && ractive.fragment.rendered && ractive.find( '*' ) ) ) ) {
-					args.push( node );
-				}
-			}
-		}
-
-		console.warn.apply( console, [ '%cRactive.js: %c' + message, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);' ].concat( args ) );
-	};
-
-	log = function () {
-		console.log.apply( console, arguments );
-	};
-} else {
-	printWarning = log = welcome = noop;
-}
+const messagesAlreadyWarned = {};
 
 function format ( message, args ) {
 	return message.replace( /%s/g, () => args.shift() );
 }
 
-function fatal ( message, ...args ) {
-	message = format( message, args );
-	throw new Error( message );
+function printWarning ( message, args ) {
+
+	// extract information about the instance this message pertains to, if applicable
+	if ( typeof args[ args.length - 1 ] === 'object' ) {
+		let options = args.pop();
+		let ractive = options ? options.ractive : null;
+
+		if ( ractive ) {
+			// if this is an instance of a component that we know the name of, add
+			// it to the message
+			let name;
+			if ( ractive.component && ( name = ractive.component.name ) ) {
+				message = `<${name}> ${message}`;
+			}
+
+			let node;
+			if ( node = ( options.node || ( ractive.fragment && ractive.fragment.rendered && ractive.find( '*' ) ) ) ) {
+				args.push( node );
+			}
+		}
+	}
+
+	console.warn( `%cRactive.js: %c${message}`, 'color: rgb(114, 157, 52);', 'color: rgb(85, 85, 85);', ...args );
 }
 
-function logIfDebug () {
-	if ( Ractive.DEBUG ) {
-		log.apply( null, arguments );
-	}
-}
+// The public APIs of this module.
 
 function warn ( message, ...args ) {
 	message = format( message, args );
@@ -99,24 +44,31 @@ function warn ( message, ...args ) {
 function warnOnce ( message, ...args ) {
 	message = format( message, args );
 
-	if ( alreadyWarned[ message ] ) {
-		return;
-	}
+	if ( message && messagesAlreadyWarned[ message ] ) return;
 
-	alreadyWarned[ message ] = true;
+	messagesAlreadyWarned[ message ] = true;
 	printWarning( message, args );
 }
 
 function warnIfDebug () {
-	if ( Ractive.DEBUG ) {
-		warn.apply( null, arguments );
-	}
+	if ( !Ractive.DEBUG ) return;
+	warn( ...arguments );
 }
 
 function warnOnceIfDebug () {
-	if ( Ractive.DEBUG ) {
-		warnOnce.apply( null, arguments );
-	}
+	if ( !Ractive.DEBUG ) return;
+	warnOnce( ...arguments );
 }
 
-export { fatal, log, logIfDebug, warn, warnOnce, warnIfDebug, warnOnceIfDebug, welcome };
+function fatal( message, ...args ) {
+	message = format( message, args );
+	throw new Error( message );
+}
+
+// Override when no console is found. Note that we're also noop'ing format to
+// avoid the operation when we actually cannot log.
+
+if ( !hasConsole ) printWarning = printLog = format = noop;
+
+export { fatal, warn, warnOnce, warnIfDebug, warnOnceIfDebug };
+

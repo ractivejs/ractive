@@ -1,5 +1,5 @@
 import { doc } from '../../config/environment';
-import { TEXT } from '../../config/types';
+import { TEXT } from '../../constants/types';
 import { escapeHtml } from '../../utils/html';
 import Item from './shared/Item';
 import { detachNode } from '../../utils/dom';

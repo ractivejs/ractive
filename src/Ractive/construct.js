@@ -1,5 +1,5 @@
-import { fatal, welcome } from '../utils/log';
-import { missingPlugin } from '../config/errors';
+import { fatal } from '../utils/log';
+import { MISSING_PLUGIN } from '../messages/errors';
 import { magic as magicSupported } from '../config/environment';
 import { ensureArray } from '../utils/array';
 import { findInViewHierarchy } from '../shared/registry';
@@ -11,7 +11,6 @@ import dataConfigurator from './config/custom/data';
 import RootModel from '../model/RootModel';
 import Hook from '../events/Hook';
 import getComputationSignature from './helpers/getComputationSignature';
-import Ractive from '../Ractive';
 
 const constructHook = new Hook( 'construct' );
 
@@ -29,7 +28,6 @@ const registryNames = [
 let uid = 0;
 
 export default function construct ( ractive, options ) {
-	if ( Ractive.DEBUG ) welcome();
 
 	initialiseProperties( ractive );
 
@@ -108,7 +106,7 @@ function getAdaptors ( ractive, protoAdapt, options ) {
 			adaptor = findInViewHierarchy( 'adaptors', ractive, adaptor );
 
 			if ( !adaptor ) {
-				fatal( missingPlugin( adaptor, 'adaptor' ) );
+				fatal( MISSING_PLUGIN, adaptor, 'adaptor' );
 			}
 		}
 

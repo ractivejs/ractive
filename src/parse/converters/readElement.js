@@ -1,4 +1,4 @@
-import { DOCTYPE, ELEMENT } from '../../config/types';
+import { DOCTYPE, ELEMENT } from '../../constants/types';
 import { voidElementNames } from '../../utils/html';
 import { create } from '../../utils/object';
 import { READERS, PARTIAL_READERS } from '../_parse';

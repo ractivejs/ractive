@@ -1,9 +1,9 @@
-import { badArguments } from '../../config/errors';
+import { BAD_ARGUMENTS } from '../../messages/errors';
 import { splitKeypath } from '../../shared/keypaths';
 
 export default function Ractive$toggle ( keypath ) {
 	if ( typeof keypath !== 'string' ) {
-		throw new TypeError( badArguments );
+		throw new TypeError( BAD_ARGUMENTS );
 	}
 
 	let changes;

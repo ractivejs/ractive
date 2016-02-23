@@ -1,4 +1,4 @@
-import { missingPlugin } from '../../../config/errors';
+import { MISSING_PLUGIN } from '../../../messages/errors';
 import { fatal, warnOnce } from '../../../utils/log';
 
 class DOMEvent {
@@ -18,7 +18,7 @@ class DOMEvent {
 		const name = this.name;
 
 		if ( !( `on${name}` in node ) ) {
-			warnOnce( missingPlugin( name, 'events' ) );
+			warnOnce( MISSING_PLUGIN, name, 'events' );
 		}
 
 		node.addEventListener( name, this.handler = function( event ) {

@@ -1,4 +1,4 @@
-import { ELSE } from '../../../../config/types';
+import { ELSE } from '../../../../constants/types';
 
 var elsePattern = /^\s*else\s*/;
 

@@ -1,4 +1,4 @@
-import { noRegistryFunctionReturn } from '../../../config/errors';
+import { NO_REGISTRY_FUNCTION_RETURN } from '../../../messages/errors';
 import { warnIfDebug } from '../../../utils/log';
 import parser from '../../../Ractive/config/runtime-parser';
 import { findInstance } from '../../../shared/registry';
@@ -44,7 +44,7 @@ function getPartialFromRegistry ( ractive, name, parentFragment ) {
 	}
 
 	if ( !partial && partial !== '' ) {
-		warnIfDebug( noRegistryFunctionReturn, name, 'partial', 'partial', { ractive });
+		warnIfDebug( NO_REGISTRY_FUNCTION_RETURN, name, 'partial', 'partial', { ractive });
 		return;
 	}
 

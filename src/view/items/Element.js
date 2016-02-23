@@ -1,4 +1,4 @@
-import { ELEMENT } from '../../config/types';
+import { ELEMENT } from '../../constants/types';
 import runloop from '../../global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
@@ -14,7 +14,7 @@ import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches } from '../../utils/dom';
-import { html, svg } from '../../config/namespaces';
+import { html, svg } from '../../constants/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
 

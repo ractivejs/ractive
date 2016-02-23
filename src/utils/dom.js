@@ -1,5 +1,5 @@
 import { isClient, svg, vendors, win, doc } from '../config/environment';
-import { html } from '../config/namespaces';
+import { html } from '../constants/namespaces';
 
 var createElement, matches, div, methodNames, unprefixed, prefixed, i, j, makeFunction;
 

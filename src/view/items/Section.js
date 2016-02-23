@@ -1,5 +1,5 @@
 import { createDocumentFragment } from '../../utils/dom';
-import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_UNLESS, SECTION_WITH } from '../../config/types';
+import { SECTION_EACH, SECTION_IF, SECTION_IF_WITH, SECTION_UNLESS, SECTION_WITH } from '../../constants/types';
 import { isArray, isObject } from '../../utils/is';
 import Fragment from '../Fragment';
 import RepeatedFragment from '../RepeatedFragment';

@@ -1,4 +1,4 @@
-import { PARTIAL, SECTION, SECTION_WITH, ALIAS } from '../../../config/types';
+import { PARTIAL, SECTION, SECTION_WITH, ALIAS } from '../../../constants/types';
 import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
 import { readAliases } from './readAliases';

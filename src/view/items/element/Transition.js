@@ -4,7 +4,7 @@ import { isArray } from '../../../utils/is';
 import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { extend } from '../../../utils/object';
-import { missingPlugin } from '../../../config/errors';
+import { MISSING_PLUGIN } from '../../../messages/errors';
 import Fragment from '../../Fragment';
 import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
@@ -61,7 +61,7 @@ export default class Transition {
 		this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
 		if ( !this._fn ) {
-			warnOnceIfDebug( missingPlugin( name, 'transition' ), { ractive });
+			warnOnceIfDebug( MISSING_PLUGIN, name, 'transition', { ractive } );
 		}
 	}
 

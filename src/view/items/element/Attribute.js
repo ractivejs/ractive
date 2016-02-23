@@ -1,5 +1,5 @@
-import { INTERPOLATOR } from '../../../config/types';
-import namespaces from '../../../config/namespaces';
+import { INTERPOLATOR } from '../../../constants/types';
+import namespaces from '../../../constants/namespaces';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
 import getUpdateDelegate from './attribute/getUpdateDelegate';

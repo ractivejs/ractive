@@ -11,28 +11,52 @@ import getNodeInfo from './Ractive/static/getNodeInfo';
 import construct from './Ractive/construct';
 import initialise from './Ractive/initialise';
 import { getCSS } from './global/css';
+import { LEGACY_PLATFORM } from './messages/errors';
+import noop from './utils/noop';
+import { fatal, warnOnceIfDebug } from './utils/log';
+import { DEBUG_WELCOME, DEBUG_ENABLED, PROMISE_DEBUG_ENABLED } from './messages/warnings';
 
 // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
 // older browsers, these are made available via a shim - here, we do a quick
 // pre-flight check to make sure that either a) we're not in a shit browser,
 // or b) we're using a Ractive-legacy.js build
-const FUNCTION = 'function';
 
-if (
-	typeof Date.now !== FUNCTION                 ||
-	typeof String.prototype.trim !== FUNCTION    ||
-	typeof Object.keys !== FUNCTION              ||
-	typeof Array.prototype.indexOf !== FUNCTION  ||
-	typeof Array.prototype.forEach !== FUNCTION  ||
-	typeof Array.prototype.map !== FUNCTION      ||
-	typeof Array.prototype.filter !== FUNCTION   ||
-	( win && typeof win.addEventListener !== FUNCTION )
-) {
-	throw new Error( 'It looks like you\'re attempting to use Ractive.js in an older browser. You\'ll need to use one of the \'legacy builds\' in order to continue - see http://docs.ractivejs.org/latest/legacy-builds for more information.' );
+const requiredFunctions = [
+	// ES5
+	Date.now,
+	Object.keys,
+	String.prototype.trim,
+	Array.prototype.indexOf,
+	Array.prototype.forEach,
+	Array.prototype.map,
+	Array.prototype.filter,
+	Array.prototype.reduce,
+	Array.prototype.every,
+	Function.prototype.bind,
+	// ES6
+	Promise,
+	// HTML5
+	win ? win.requestAnimationFrame : noop,
+	// Not in IE
+	win ? win.addEventListener : noop,
+	win ? win.getComputedStyle : noop
+];
+
+for ( let i = 0; i < requiredFunctions.length; i++ ) {
+	if ( typeof requiredFunctions[i] !== 'function' ) {
+		fatal( LEGACY_PLATFORM );
+	}
 }
 
 export default function Ractive ( options ) {
 	if ( !( this instanceof Ractive ) ) return new Ractive( options );
+
+	// Moved debug mode warnings out here. They're more of pre-flight checks than
+	// construction or initialization warnings. But they need to happen after the
+	// user has the chance to set them to false. So... here.
+	warnOnceIfDebug( DEBUG_WELCOME, Ractive.VERSION );
+	warnOnceIfDebug( DEBUG_ENABLED );
+	warnOnceIfDebug( PROMISE_DEBUG_ENABLED );
 
 	construct( this, options || {} );
 	initialise( this, options || {}, {} );
@@ -78,3 +102,4 @@ defineProperties( Ractive, {
 	partials:       { writable: true, value: {} },
 	transitions:    { writable: true, value: {} }
 });
+

@@ -1,4 +1,4 @@
-import { html } from '../../../../config/namespaces';
+import { html } from '../../../../constants/namespaces';
 import { safeToStringValue } from '../../../../utils/dom';
 import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
