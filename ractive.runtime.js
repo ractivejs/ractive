@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Feb 23 2016 22:35:05 GMT+0000 (UTC) - commit 0bef498598d1e9f4490a4a255b597c7977fc1426
+	Tue Feb 23 2016 22:55:46 GMT+0000 (UTC) - commit 79adc4a57944169a0a61ce2e6fd4d1a74f4f0e92
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1273,9 +1273,9 @@ var classCallCheck = function (instance, Constructor) {
   	if (isObject(keypath)) {
   		var map = keypath;
 
-  		for (keypath in map) {
-  			if (map.hasOwnProperty(keypath)) {
-  				set(this, keypath, map[keypath]);
+  		for (var k in map) {
+  			if (map.hasOwnProperty(k)) {
+  				set(this, k, map[k]);
   			}
   		}
   	}
