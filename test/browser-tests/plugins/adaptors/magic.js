@@ -49,6 +49,64 @@ try {
 		t.htmlEqual( fixture.innerHTML, 'Fozzie: bear' );
 	});
 
+	test( 'Test that splice array works in magic mode', t => {
+		const items = [
+			{ name: 'a' },
+			{ name: 'b' },
+			{ name: 'c' }
+		];
+
+		new Ractive({
+			template: '{{#each items}} {{name}} {{/each}}',
+			el: fixture,
+			data: { items: items },
+			magic: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'abc' );
+
+		arr.splice( 0, 1 );
+
+		t.htmlEqual( fixture.innerHTML, 'bc' );
+	});
+
+	test( 'test moving one array to another #2005', t => {
+
+		var parents = [
+		    { name: 'first', children: [] },
+			{ name: 'second', children: [] },
+			{ name: 'third', children: [] },
+			{ name: 'fourth', children: [] }
+		],
+		third = parents[2];
+
+		new Ractive({
+			template: '{{#parents}}<li>{{this.name}}</li><ul>{{#this.children}}<li>{{this.name}}</li>{{/}}</ul>{{/}}',
+			el: fixture,
+			data: { parents: parents },
+			magic: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<li>first</li><ul></ul><li>second</li><ul></ul><li>third</li><ul></ul><li>fourth</li><ul></ul>' );
+
+		third.children.push( parents[0] );
+		parents.splice( 0, 1 );
+		t.htmlEqual( fixture.innerHTML, '<li>second</li><ul></ul><li>third</li><ul><li>first</li></ul><li>fourth</li><ul></ul>' );
+
+		// Keep slicing until all parents are removed
+		third.children.push( parents[0] );
+		parents.splice( 0, 1 );
+		t.htmlEqual( fixture.innerHTML, '<li>third</li><ul><li>first</li><li>second</li></ul><li>fourth</li><ul></ul>' );
+
+		parents.splice( 0, 1 );
+		third.children.push( parents[0] );
+		t.htmlEqual( fixture.innerHTML, '<li>fourth</li><ul></ul>' );
+
+		parents.splice( 0, 1 );
+		third.children.push( parents[0] );
+		t.htmlEqual( fixture.innerHTML, '' );
+	});
+
 	test( 'Multiple instances can share an object', t => {
 		const muppet = makeObj();
 
@@ -196,7 +254,6 @@ try {
 	});
 
 	// TODO: fix this, failing since keypath-ftw
-	/*
 	test( "Magic adapters shouldn't tear themselves down while resetting (#1342)", t => {
 		let list = 'abcde'.split('');
 		let ractive = new MagicRactive({
@@ -215,7 +272,6 @@ try {
 		list.pop();
 		t.htmlEqual( fixture.innerHTML, 'abc' );
 	});
-	*/
 
 	test( 'Data passed into component updates from outside component in magic mode', t => {
 		const Widget = Ractive.extend({

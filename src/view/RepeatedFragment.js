@@ -210,6 +210,10 @@ export default class RepeatedFragment {
 			if ( newIndex === -1 ) return;
 
 			const fragment = this.iterations[ oldIndex ];
+
+			// guard against null fragment - #2005 (feels like treating the symptom, not the cause?)
+			if ( fragment == null ) return;
+
 			iterations[ newIndex ] = fragment;
 
 			if ( newIndex !== oldIndex && fragment ) fragment.dirty = true;
@@ -362,6 +366,9 @@ export default class RepeatedFragment {
 
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			const fragment = this.previousIterations[ oldIndex ];
+
+			// guard against null fragment - #2005 (feels like treating the symptom, not the cause?)
+			if ( fragment == null ) return;
 
 			if ( newIndex === -1 ) {
 				fragment.unbind().unrender( true );

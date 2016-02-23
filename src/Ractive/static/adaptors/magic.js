@@ -98,7 +98,7 @@ class MagicWrapper {
 	}
 
 	reset () {
-		throw new Error( 'TODO magic adaptor reset' ); // does this ever happen?
+		return false;
 	}
 
 	set ( key, value ) {
