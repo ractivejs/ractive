@@ -10,9 +10,9 @@ export default function Ractive$set ( keypath, value ) {
 	if ( isObject( keypath ) ) {
 		const map = keypath;
 
-		for ( keypath in map ) {
-			if ( map.hasOwnProperty( keypath) ) {
-				set( this, keypath, map[ keypath ] );
+		for ( const k in map ) {
+			if ( map.hasOwnProperty( k) ) {
+				set( this, k, map[k] );
 			}
 		}
 	}
