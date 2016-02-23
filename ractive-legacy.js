@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Feb 19 2016 23:33:53 GMT+0000 (UTC) - commit c5132e4ab8079acfcc142c230ea77f4e52df3877
+	Tue Feb 23 2016 22:35:05 GMT+0000 (UTC) - commit 0bef498598d1e9f4490a4a255b597c7977fc1426
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -15191,7 +15191,9 @@ var classCallCheck = function (instance, Constructor) {
   	}
   };
 
-  var noAnimation = { stop: noop };
+  var noAnimation = Promise$1.resolve();
+  defineProperty(noAnimation, 'stop', { value: noop });
+
   var linear = easing.linear;
 
   function getOptions(options, instance) {
