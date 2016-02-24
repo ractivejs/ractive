@@ -3,22 +3,6 @@ import { createDocumentFragment } from '../utils/dom';
 import { isArray, isObject } from '../utils/is';
 import { toEscapedString, toString, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
 
-function getRefs ( ref, value, parent ) {
-	let refs;
-
-	if ( ref ) {
-		refs = {};
-		Object.keys( parent ).forEach( ref => {
-			refs[ ref ] = parent[ ref ];
-		});
-		refs[ ref ] = value;
-	} else {
-		refs = parent;
-	}
-
-	return refs;
-}
-
 export default class RepeatedFragment {
 	constructor ( options ) {
 		this.parent = options.owner.parentFragment;
@@ -88,15 +72,9 @@ export default class RepeatedFragment {
 	}
 
 	createIteration ( key, index ) {
-		const parentFragment = this.owner.parentFragment;
-		const keyRefs = getRefs( this.keyRef, key, parentFragment.keyRefs );
-		const indexRefs = getRefs( this.indexRef, index, parentFragment.indexRefs );
-
 		const fragment = new Fragment({
 			owner: this,
-			template: this.template,
-			indexRefs,
-			keyRefs
+			template: this.template
 		});
 
 		// TODO this is a bit hacky
