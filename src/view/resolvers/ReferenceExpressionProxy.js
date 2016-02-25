@@ -5,7 +5,45 @@ import resolveReference from './resolveReference';
 import resolve from './resolve';
 import { unbind } from '../../shared/methodCallers';
 import { removeFromArray } from '../../utils/array';
+import { isEqual } from '../../utils/is';
 import { escapeKey } from '../../shared/keypaths';
+
+class ReferenceExpressionChild extends Model {
+	constructor ( parent, key ) {
+		super ( parent, key );
+	}
+
+	applyValue ( value ) {
+		if ( isEqual( value, this.value ) ) return;
+
+		let parent = this.parent, keys = [ this.key ];
+		while ( parent ) {
+			if ( parent.base ) {
+				let target = parent.model.joinAll( keys );
+				target.applyValue( value );
+				break;
+			}
+
+			keys.unshift( parent.key );
+
+			parent = parent.parent;
+		}
+
+		super.applyValue( value );
+	}
+
+	joinKey ( key ) {
+		if ( key === undefined || key === '' ) return this;
+
+		if ( !this.childByKey.hasOwnProperty( key ) ) {
+			const child = new ReferenceExpressionChild( this, key );
+			this.children.push( child );
+			this.childByKey[ key ] = child;
+		}
+
+		return this.childByKey[ key ];
+	}
+}
 
 export default class ReferenceExpressionProxy extends Model {
 	constructor ( fragment, template ) {
@@ -126,6 +164,18 @@ export default class ReferenceExpressionProxy extends Model {
 
 	handleChange () {
 		this.mark();
+	}
+
+	joinKey ( key ) {
+		if ( key === undefined || key === '' ) return this;
+
+		if ( !this.childByKey.hasOwnProperty( key ) ) {
+			const child = new ReferenceExpressionChild( this, key );
+			this.children.push( child );
+			this.childByKey[ key ] = child;
+		}
+
+		return this.childByKey[ key ];
 	}
 
 	retrieve () {
