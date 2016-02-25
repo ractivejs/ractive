@@ -1644,6 +1644,18 @@ test( '@global special ref gives access to the vm global object', t => {
 	t.equal( target.foo.bar, 10 );
 });
 
+test( 'shuffled elements have the correct keypath in their node info', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each list}}<span>{{.}}</span>{{/each}}',
+		data: { list: [ 42, 42, 42 ] }
+	});
+
+	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
+	r.unshift( 'list', 42 );
+	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
+});
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {
