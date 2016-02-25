@@ -124,6 +124,8 @@ export default class Partial extends Mustache {
 		let template;
 
 		if ( this.dirty ) {
+			this.dirty = false;
+
 			if ( !this.named ) {
 				if ( this.model ) {
 					template = this.model.get();
@@ -142,7 +144,6 @@ export default class Partial extends Mustache {
 			}
 
 			this.fragment.update();
-			this.dirty = false;
 		}
 	}
 }

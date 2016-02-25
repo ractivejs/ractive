@@ -392,14 +392,14 @@ export default class Element extends Item {
 
 	update () {
 		if ( this.dirty ) {
+			this.dirty = false;
+
 			this.attributes.forEach( update );
 			this.conditionalAttributes.forEach( update );
 			this.eventHandlers.forEach( update );
 
 			if ( this.decorator ) this.decorator.update();
 			if ( this.fragment ) this.fragment.update();
-
-			this.dirty = false;
 		}
 	}
 }

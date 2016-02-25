@@ -65,6 +65,8 @@ export default class ConditionalAttribute extends Item {
 		let attrs;
 
 		if ( this.dirty ) {
+			this.dirty = false;
+
 			this.fragment.update();
 
 			if ( this.rendered ) {
@@ -83,8 +85,6 @@ export default class ConditionalAttribute extends Item {
 
 				this.attributes = attrs;
 			}
-
-			this.dirty = false;
 		}
 	}
 }

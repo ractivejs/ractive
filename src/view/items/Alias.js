@@ -87,10 +87,9 @@ export default class Alias extends Item {
 	}
 
 	update () {
-		if ( !this.dirty ) return;
-
-		this.fragment.update();
-
-		this.dirty = false;
+		if ( this.dirty ) {
+			this.dirty = false;
+			this.fragment.update();
+		}
 	}
 }

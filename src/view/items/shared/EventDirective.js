@@ -240,12 +240,12 @@ export default class EventDirective {
 	}
 
 	update () {
-		if ( this.method ) return; // nothing to do
+		if ( this.method || !this.dirty ) return; // nothing to do
+
+		this.dirty = false;
 
 		// ugh legacy
 		if ( this.action.update ) this.action.update();
 		if ( this.template.d ) this.args.update();
-
-		this.dirty = false;
 	}
 }
