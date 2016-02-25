@@ -73,8 +73,8 @@ export default class Yielder extends Item {
 		return this.containerFragment.findNextNode( this );
 	}
 
-	firstNode () {
-		return this.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.fragment.firstNode( skipParent );
 	}
 
 	rebind () {
