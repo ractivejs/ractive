@@ -234,16 +234,10 @@ export default class Element extends Item {
 			this.node = node;
 		}
 
-		const context = this.parentFragment.findContext();
-
 		defineProperty( node, '_ractive', {
 			value: {
 				proxy: this,
-				ractive: this.ractive,
-				fragment: this.parentFragment,
-				context,
-				keypath: context.getKeypath( this.ractive ),
-				rootpath: context.getKeypath()
+				fragment: this.parentFragment
 			}
 		});
 

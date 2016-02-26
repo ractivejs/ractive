@@ -60,7 +60,7 @@ test( 'Instances with multiple components still fire oncomplete() handlers (#486
 	});
 });
 
-test( 'Correct value is given to node._ractive.keypath when a component is torn down and re-rendered (#470)', t => {
+test( 'Correct value exists for node info keypath when a component is torn down and re-rendered (#470)', t => {
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo}}<Widget visible="{{visible}}"/>{{/foo}}',
@@ -72,12 +72,12 @@ test( 'Correct value is given to node._ractive.keypath when a component is torn 
 		}
 	});
 
-	t.equal( ractive.find( 'p' )._ractive.keypath, '' );
+	t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).keypath, '' );
 
 	ractive.set( 'visible', false );
 	ractive.set( 'visible', true );
 
-	t.equal( ractive.find( 'p' )._ractive.keypath, '' );
+	t.equal( Ractive.getNodeInfo( ractive.find( 'p' ) ).keypath, '' );
 });
 
 test( 'Nested components fire the oninit() event correctly (#511)', t => {

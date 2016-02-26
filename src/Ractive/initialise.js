@@ -41,9 +41,7 @@ export default function initialise ( ractive, userOptions, options ) {
 		ractive.fragment = fragment = new Fragment({
 			owner: ractive,
 			template: ractive.template,
-			cssIds,
-			indexRefs: options.indexRefs || {},
-			keyRefs: options.keyRefs || {}
+			cssIds
 		}).bind( ractive.viewmodel );
 	}
 
