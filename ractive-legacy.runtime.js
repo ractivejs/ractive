@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Feb 26 2016 19:01:45 GMT+0000 (UTC) - commit 0f40e51073cce784918dfb2ae882c7af11437f12
+	Fri Feb 26 2016 19:04:51 GMT+0000 (UTC) - commit 7856937375f3e0302074a4e10e0d08431bd3182c
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3643,8 +3643,8 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	Alias.prototype.firstNode = function firstNode() {
-  		return this.fragment && this.fragment.firstNode();
+  	Alias.prototype.firstNode = function firstNode(skipParent) {
+  		return this.fragment && this.fragment.firstNode(skipParent);
   	};
 
   	Alias.prototype.rebind = function rebind() {
@@ -4140,8 +4140,8 @@ var classCallCheck = function (instance, Constructor) {
   		this.fragment.findAllComponents(name, query);
   	};
 
-  	Partial.prototype.firstNode = function firstNode() {
-  		return this.fragment.firstNode();
+  	Partial.prototype.firstNode = function firstNode(skipParent) {
+  		return this.fragment.firstNode(skipParent);
   	};
 
   	Partial.prototype.forceResetTemplate = function forceResetTemplate() {
@@ -4386,7 +4386,7 @@ var classCallCheck = function (instance, Constructor) {
   	RepeatedFragment.prototype.findNextNode = function findNextNode(iteration) {
   		if (iteration.index < this.iterations.length - 1) {
   			for (var i = iteration.index + 1; i < this.iterations.length; i++) {
-  				var node = this.iterations[i].firstNode();
+  				var node = this.iterations[i].firstNode(true);
   				if (node) return node;
   			}
   		}
@@ -4394,8 +4394,8 @@ var classCallCheck = function (instance, Constructor) {
   		return this.owner.findNextNode();
   	};
 
-  	RepeatedFragment.prototype.firstNode = function firstNode() {
-  		return this.iterations[0] ? this.iterations[0].firstNode() : null;
+  	RepeatedFragment.prototype.firstNode = function firstNode(skipParent) {
+  		return this.iterations[0] ? this.iterations[0].firstNode(skipParent) : null;
   	};
 
   	RepeatedFragment.prototype.rebind = function rebind(context) {
@@ -4718,8 +4718,8 @@ var classCallCheck = function (instance, Constructor) {
   		}
   	};
 
-  	Section.prototype.firstNode = function firstNode() {
-  		return this.fragment && this.fragment.firstNode();
+  	Section.prototype.firstNode = function firstNode(skipParent) {
+  		return this.fragment && this.fragment.firstNode(skipParent);
   	};
 
   	Section.prototype.rebind = function rebind() {
@@ -5113,8 +5113,8 @@ var classCallCheck = function (instance, Constructor) {
   		return this.containerFragment.findNextNode(this);
   	};
 
-  	Yielder.prototype.firstNode = function firstNode() {
-  		return this.fragment.firstNode();
+  	Yielder.prototype.firstNode = function firstNode(skipParent) {
+  		return this.fragment.firstNode(skipParent);
   	};
 
   	Yielder.prototype.rebind = function rebind() {
@@ -10843,8 +10843,8 @@ var classCallCheck = function (instance, Constructor) {
   		this.instance.fragment.findAllComponents(name, query);
   	};
 
-  	Component.prototype.firstNode = function firstNode() {
-  		return this.instance.fragment.firstNode();
+  	Component.prototype.firstNode = function firstNode(skipParent) {
+  		return this.instance.fragment.firstNode(skipParent);
   	};
 
   	Component.prototype.rebind = function rebind() {
@@ -11327,7 +11327,7 @@ var classCallCheck = function (instance, Constructor) {
   		for (var i = item.index + 1; i < this.items.length; i++) {
   			if (!this.items[i]) continue;
 
-  			var node = this.items[i].firstNode();
+  			var node = this.items[i].firstNode(true);
   			if (node) return node;
   		}
 
@@ -11379,15 +11379,18 @@ var classCallCheck = function (instance, Constructor) {
   		return fragment;
   	};
 
-  	Fragment.prototype.firstNode = function firstNode() {
+  	Fragment.prototype.firstNode = function firstNode(skipParent) {
   		var node = undefined;
   		for (var i = 0; i < this.items.length; i++) {
-  			node = this.items[i].firstNode();
+  			node = this.items[i].firstNode(true);
 
   			if (node) {
   				return node;
   			}
   		}
+
+  		if (skipParent) return null;
+
   		return this.parent.findNextNode(this.owner);
   	};
 
