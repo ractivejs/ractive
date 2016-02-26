@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Feb 26 2016 19:11:54 GMT+0000 (UTC) - commit 9cad3ea92c9a78640c183ce3d9d700f6b17eaf87
+	Fri Feb 26 2016 19:15:25 GMT+0000 (UTC) - commit 7337196b5f61194a5ce77797b2e2462f15510ec0
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7181,11 +7181,19 @@ var classCallCheck = function (instance, Constructor) {
   		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
   		// storing them in a document fragment for later reinsertion) seems a bit hokey,
   		// but it seems to work for now
-  		var previousNewIndex = -1;
-  		var reinsertFrom = null;
+  		var len = this.context.get().length;
+  		var i = undefined,
+  		    maxIdx = 0,
+  		    merged = false;
 
   		newIndices.forEach(function (newIndex, oldIndex) {
   			var fragment = _this5.previousIterations[oldIndex];
+
+  			// check for merged shuffles
+  			if (!merged && newIndex !== -1) {
+  				if (newIndex < maxIdx) merged = true;
+  				if (newIndex > maxIdx) maxIdx = newIndex;
+  			}
 
   			if (newIndex === -1) {
   				fragment.unbind().unrender(true);
@@ -7197,40 +7205,46 @@ var classCallCheck = function (instance, Constructor) {
   					fragment.aliases[_this5.owner.template.z[0].n] = model;
   				}
   				fragment.rebind(model);
-
-  				if (reinsertFrom === null && newIndex !== previousNewIndex + 1) {
-  					reinsertFrom = oldIndex;
-  				}
   			}
-
-  			previousNewIndex = newIndex;
   		});
 
   		// create new iterations
   		var docFrag = this.rendered ? createDocumentFragment() : null;
   		var parentNode = this.rendered ? this.parent.findParentNode() : null;
 
-  		var len = this.context.get().length;
-  		var i = undefined;
+  		if (merged) {
+  			for (i = 0; i < len; i += 1) {
+  				var frag = this.iterations[i];
 
-  		for (i = 0; i < len; i += 1) {
-  			var existingFragment = this.iterations[i];
-
-  			if (this.rendered) {
-  				if (existingFragment) {
-  					if (reinsertFrom !== null && i >= reinsertFrom) {
-  						docFrag.appendChild(existingFragment.detach());
-  					} else if (docFrag.childNodes.length) {
-  						parentNode.insertBefore(docFrag, existingFragment.firstNode());
+  				if (this.rendered) {
+  					if (frag) {
+  						docFrag.appendChild(frag.detach());
+  					} else {
+  						this.iterations[i] = this.createIteration(i, i);
+  						this.iterations[i].render(docFrag);
   					}
-  				} else {
-  					this.iterations[i] = this.createIteration(i, i);
-  					this.iterations[i].render(docFrag);
+  				}
+
+  				if (!this.rendered) {
+  					if (!frag) {
+  						this.iterations[i] = this.createIteration(i, i);
+  					}
   				}
   			}
+  		} else {
+  			for (i = 0; i < len; i++) {
+  				var frag = this.iterations[i];
 
-  			if (!this.rendered) {
-  				if (!existingFragment) {
+  				if (this.rendered) {
+  					if (frag && docFrag.childNodes.length) {
+  						parentNode.insertBefore(docFrag, frag.firstNode());
+  					}
+
+  					if (!frag) {
+  						frag = this.iterations[i] = this.createIteration(i, i);
+  						frag.render(docFrag);
+  					}
+  				} else if (!frag) {
   					this.iterations[i] = this.createIteration(i, i);
   				}
   			}
