@@ -140,7 +140,7 @@ export default class RepeatedFragment {
 	findNextNode ( iteration ) {
 		if ( iteration.index < this.iterations.length - 1 ) {
 			for ( let i = iteration.index + 1; i < this.iterations.length; i++ ) {
-				let node = this.iterations[ i ].firstNode();
+				let node = this.iterations[ i ].firstNode( true );
 				if ( node ) return node;
 			}
 		}
@@ -148,8 +148,8 @@ export default class RepeatedFragment {
 		return this.owner.findNextNode();
 	}
 
-	firstNode () {
-		return this.iterations[0] ? this.iterations[0].firstNode() : null;
+	firstNode ( skipParent ) {
+		return this.iterations[0] ? this.iterations[0].firstNode( skipParent ) : null;
 	}
 
 	rebind ( context ) {

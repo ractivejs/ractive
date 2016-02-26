@@ -203,8 +203,8 @@ export default class Component extends Item {
 		this.instance.fragment.findAllComponents( name, query );
 	}
 
-	firstNode () {
-		return this.instance.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.instance.fragment.firstNode( skipParent );
 	}
 
 	rebind () {

@@ -59,8 +59,8 @@ export default class Partial extends Mustache {
 		this.fragment.findAllComponents( name, query );
 	}
 
-	firstNode () {
-		return this.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.fragment.firstNode( skipParent );
 	}
 
 	forceResetTemplate () {

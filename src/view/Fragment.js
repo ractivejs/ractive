@@ -144,7 +144,7 @@ export default class Fragment {
 		for ( let i = item.index + 1; i < this.items.length; i++ ) {
 			if ( !this.items[ i ] ) continue;
 
-			let node = this.items[ i ].firstNode();
+			let node = this.items[ i ].firstNode( true );
 			if ( node ) return node;
 		}
 
@@ -195,15 +195,18 @@ export default class Fragment {
 		return fragment;
 	}
 
-	firstNode () {
+	firstNode ( skipParent ) {
 		let node;
 		for ( let i = 0; i < this.items.length; i++ ) {
-			node = this.items[i].firstNode();
+			node = this.items[i].firstNode( true );
 
 			if ( node ) {
 				return node;
 			}
 		}
+
+		if ( skipParent ) return null;
+
 		return this.parent.findNextNode( this.owner );
 	}
 

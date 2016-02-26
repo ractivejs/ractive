@@ -70,8 +70,8 @@ export default class Section extends Mustache {
 		}
 	}
 
-	firstNode () {
-		return this.fragment && this.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.fragment && this.fragment.firstNode( skipParent );
 	}
 
 	rebind () {
