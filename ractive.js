@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Feb 26 2016 19:04:51 GMT+0000 (UTC) - commit 7856937375f3e0302074a4e10e0d08431bd3182c
+	Fri Feb 26 2016 19:08:10 GMT+0000 (UTC) - commit abc316ceb51a90c29a40d7b50b069e4f5959b287
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2497,7 +2497,6 @@ var classCallCheck = function (instance, Constructor) {
   	}
   }
 
-  var arrayMemberPattern = /^[0-9][1-9]*$/;
   function refineExpression(expression, mustache) {
   	var referenceExpression;
 
@@ -2506,14 +2505,10 @@ var classCallCheck = function (instance, Constructor) {
   			expression = expression.x;
   		}
 
-  		// special case - integers should be treated as array members references,
-  		// rather than as expressions in their own right
   		if (expression.t === REFERENCE) {
   			mustache.r = expression.n;
   		} else {
-  			if (expression.t === NUMBER_LITERAL && arrayMemberPattern.test(expression.v)) {
-  				mustache.r = expression.v;
-  			} else if (referenceExpression = getReferenceExpression(expression)) {
+  			if (referenceExpression = getReferenceExpression(expression)) {
   				mustache.rx = referenceExpression;
   			} else {
   				mustache.x = flattenExpression(expression);
