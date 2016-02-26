@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Feb 26 2016 19:08:10 GMT+0000 (UTC) - commit abc316ceb51a90c29a40d7b50b069e4f5959b287
+	Fri Feb 26 2016 19:11:54 GMT+0000 (UTC) - commit 9cad3ea92c9a78640c183ce3d9d700f6b17eaf87
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6059,15 +6059,59 @@ var classCallCheck = function (instance, Constructor) {
   	return ExpressionProxy;
   })(Model);
 
-  var ReferenceExpressionProxy = (function (_Model) {
-  	inherits(ReferenceExpressionProxy, _Model);
+  var ReferenceExpressionChild = (function (_Model) {
+  	inherits(ReferenceExpressionChild, _Model);
+
+  	function ReferenceExpressionChild(parent, key) {
+  		classCallCheck(this, ReferenceExpressionChild);
+
+  		_Model.call(this, parent, key);
+  	}
+
+  	ReferenceExpressionChild.prototype.applyValue = function applyValue(value) {
+  		if (isEqual(value, this.value)) return;
+
+  		var parent = this.parent,
+  		    keys = [this.key];
+  		while (parent) {
+  			if (parent.base) {
+  				var target = parent.model.joinAll(keys);
+  				target.applyValue(value);
+  				break;
+  			}
+
+  			keys.unshift(parent.key);
+
+  			parent = parent.parent;
+  		}
+
+  		_Model.prototype.applyValue.call(this, value);
+  	};
+
+  	ReferenceExpressionChild.prototype.joinKey = function joinKey(key) {
+  		if (key === undefined || key === '') return this;
+
+  		if (!this.childByKey.hasOwnProperty(key)) {
+  			var child = new ReferenceExpressionChild(this, key);
+  			this.children.push(child);
+  			this.childByKey[key] = child;
+  		}
+
+  		return this.childByKey[key];
+  	};
+
+  	return ReferenceExpressionChild;
+  })(Model);
+
+  var ReferenceExpressionProxy = (function (_Model2) {
+  	inherits(ReferenceExpressionProxy, _Model2);
 
   	function ReferenceExpressionProxy(fragment, template) {
   		var _this = this;
 
   		classCallCheck(this, ReferenceExpressionProxy);
 
-  		_Model.call(this, null, null);
+  		_Model2.call(this, null, null);
   		this.root = fragment.ractive.viewmodel;
 
   		this.resolvers = [];
@@ -6193,6 +6237,18 @@ var classCallCheck = function (instance, Constructor) {
 
   	ReferenceExpressionProxy.prototype.handleChange = function handleChange() {
   		this.mark();
+  	};
+
+  	ReferenceExpressionProxy.prototype.joinKey = function joinKey(key) {
+  		if (key === undefined || key === '') return this;
+
+  		if (!this.childByKey.hasOwnProperty(key)) {
+  			var child = new ReferenceExpressionChild(this, key);
+  			this.children.push(child);
+  			this.childByKey[key] = child;
+  		}
+
+  		return this.childByKey[key];
   	};
 
   	ReferenceExpressionProxy.prototype.retrieve = function retrieve() {
