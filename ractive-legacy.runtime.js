@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Feb 26 2016 18:57:57 GMT+0000 (UTC) - commit 52ef65adcd069de445a17c30b6d8f65a94d12486
+	Fri Feb 26 2016 19:01:45 GMT+0000 (UTC) - commit 0f40e51073cce784918dfb2ae882c7af11437f12
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4243,22 +4243,6 @@ var classCallCheck = function (instance, Constructor) {
   	return parsed || { t: [] };
   }
 
-  function getRefs(ref, value, parent) {
-  	var refs = undefined;
-
-  	if (ref) {
-  		refs = {};
-  		Object.keys(parent).forEach(function (ref) {
-  			refs[ref] = parent[ref];
-  		});
-  		refs[ref] = value;
-  	} else {
-  		refs = parent;
-  	}
-
-  	return refs;
-  }
-
   var RepeatedFragment = (function () {
   	function RepeatedFragment(options) {
   		classCallCheck(this, RepeatedFragment);
@@ -4332,15 +4316,9 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	RepeatedFragment.prototype.createIteration = function createIteration(key, index) {
-  		var parentFragment = this.owner.parentFragment;
-  		var keyRefs = getRefs(this.keyRef, key, parentFragment.keyRefs);
-  		var indexRefs = getRefs(this.indexRef, index, parentFragment.indexRefs);
-
   		var fragment = new Fragment({
   			owner: this,
-  			template: this.template,
-  			indexRefs: indexRefs,
-  			keyRefs: keyRefs
+  			template: this.template
   		});
 
   		// TODO this is a bit hacky
@@ -5996,6 +5974,29 @@ var classCallCheck = function (instance, Constructor) {
   	return !stopEvent;
   }
 
+  function gatherRefs(fragment) {
+  	var key = {},
+  	    index = {};
+
+  	// walk up the template gather refs as we go
+  	while (fragment) {
+  		if (fragment.parent && (fragment.parent.indexRef || fragment.parent.keyRef)) {
+  			var ref = fragment.parent.indexRef;
+  			if (ref && !(ref in index)) index[ref] = fragment.index;
+  			ref = fragment.parent.keyRef;
+  			if (ref && !(ref in key)) key[ref] = fragment.key;
+  		}
+
+  		if (fragment.componentParent && !fragment.ractive.isolated) {
+  			fragment = fragment.componentParent;
+  		} else {
+  			fragment = fragment.parent;
+  		}
+  	}
+
+  	return { key: key, index: index };
+  }
+
   var eventPattern = /^event(?:\.(.+))?$/;
   var argumentsPattern = /^arguments\.(\d*)$/;
   var dollarArgsPattern = /^\$(\d*)$/;
@@ -6119,10 +6120,12 @@ var classCallCheck = function (instance, Constructor) {
 
   		// augment event object
   		if (event) {
+  			var refs = gatherRefs(this.parentFragment);
   			event.keypath = this.context.getKeypath(this.ractive);
   			event.rootpath = this.context.getKeypath();
   			event.context = this.context.get();
-  			event.index = this.parentFragment.indexRefs;
+  			event.index = refs.index;
+  			event.key = refs.key;
   		}
 
   		if (this.method) {
@@ -8159,16 +8162,10 @@ var classCallCheck = function (instance, Constructor) {
   			this.node = node;
   		}
 
-  		var context = this.parentFragment.findContext();
-
   		defineProperty(node, '_ractive', {
   			value: {
   				proxy: this,
-  				ractive: this.ractive,
-  				fragment: this.parentFragment,
-  				context: context,
-  				keypath: context.getKeypath(this.ractive),
-  				rootpath: context.getKeypath()
+  				fragment: this.parentFragment
   			}
   		});
 
@@ -10100,9 +10097,7 @@ var classCallCheck = function (instance, Constructor) {
   		ractive.fragment = fragment = new Fragment({
   			owner: ractive,
   			template: ractive.template,
-  			cssIds: cssIds,
-  			indexRefs: options.indexRefs || {},
-  			keyRefs: options.keyRefs || {}
+  			cssIds: cssIds
   		}).bind(ractive.viewmodel);
   	}
 
@@ -10792,8 +10787,6 @@ var classCallCheck = function (instance, Constructor) {
   		initialise(this.instance, {
   			partials: this._partials
   		}, {
-  			indexRefs: this.instance.isolated ? {} : this.parentFragment.indexRefs,
-  			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs,
   			cssIds: this.parentFragment.cssIds
   		});
 
@@ -11208,8 +11201,6 @@ var classCallCheck = function (instance, Constructor) {
 
   		this.context = null;
   		this.rendered = false;
-  		this.indexRefs = options.indexRefs || (this.parent ? this.parent.indexRefs : []);
-  		this.keyRefs = options.keyRefs || (this.parent ? this.parent.keyRefs : {});
 
   		// encapsulated styles should be inherited until they get applied by an element
   		this.cssIds = 'cssIds' in options ? options.cssIds : this.parent ? this.parent.cssIds : null;
@@ -12746,13 +12737,21 @@ var classCallCheck = function (instance, Constructor) {
   	if (!node || !node._ractive) return {};
 
   	var storage = node._ractive;
+  	var ractive = storage.fragment.ractive;
+
+  	var _gatherRefs = gatherRefs(storage.fragment);
+
+  	var key = _gatherRefs.key;
+  	var index = _gatherRefs.index;
+
+  	var context = storage.fragment.findContext();
 
   	return {
-  		ractive: storage.ractive,
-  		keypath: storage.keypath,
-  		rootpath: storage.rootpath,
-  		index: extend({}, storage.fragment.indexRefs),
-  		key: extend({}, storage.fragment.keyRefs)
+  		ractive: ractive,
+  		keypath: context.getKeypath(ractive),
+  		rootpath: context.getKeypath(),
+  		index: index,
+  		key: key
   	};
   }
 
