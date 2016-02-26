@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Feb 23 2016 22:55:46 GMT+0000 (UTC) - commit 79adc4a57944169a0a61ce2e6fd4d1a74f4f0e92
+	Fri Feb 26 2016 18:57:57 GMT+0000 (UTC) - commit 52ef65adcd069de445a17c30b6d8f65a94d12486
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -803,15 +803,20 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function flushChanges() {
-  	batch.immediateObservers.forEach(dispatch);
+  	var which = batch.immediateObservers;
+  	batch.immediateObservers = [];
+  	which.forEach(dispatch);
 
   	// Now that changes have been fully propagated, we can update the DOM
   	// and complete other tasks
   	var i = batch.fragments.length;
   	var fragment = undefined;
 
+  	which = batch.fragments;
+  	batch.fragments = [];
+
   	while (i--) {
-  		fragment = batch.fragments[i];
+  		fragment = which[i];
 
   		// TODO deprecate this. It's annoying and serves no useful function
   		var ractive = fragment.ractive;
@@ -820,11 +825,12 @@ var classCallCheck = function (instance, Constructor) {
 
   		fragment.update();
   	}
-  	batch.fragments.length = 0;
 
   	batch.transitionManager.start();
 
-  	batch.deferredObservers.forEach(dispatch);
+  	which = batch.deferredObservers;
+  	batch.deferredObservers = [];
+  	which.forEach(dispatch);
 
   	var tasks = batch.tasks;
   	batch.tasks = [];
@@ -836,7 +842,7 @@ var classCallCheck = function (instance, Constructor) {
   	// If updating the view caused some model blowback - e.g. a triple
   	// containing <option> elements caused the binding on the <select>
   	// to update - then we start over
-  	if (batch.fragments.length) return flushChanges();
+  	if (batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length) return flushChanges();
   }
 
   function Ractive$updateModel(keypath, cascade) {
@@ -6308,11 +6314,10 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Alias.prototype.update = function update() {
-  		if (!this.dirty) return;
-
-  		this.fragment.update();
-
-  		this.dirty = false;
+  		if (this.dirty) {
+  			this.dirty = false;
+  			this.fragment.update();
+  		}
   	};
 
   	return Alias;
@@ -6493,11 +6498,10 @@ var classCallCheck = function (instance, Constructor) {
 
   	Interpolator.prototype.update = function update() {
   		if (this.dirty) {
+  			this.dirty = false;
   			if (this.rendered) {
   				this.node.data = this.getString();
   			}
-
-  			this.dirty = false;
   		}
   	};
 
@@ -6747,6 +6751,8 @@ var classCallCheck = function (instance, Constructor) {
   		var template = undefined;
 
   		if (this.dirty) {
+  			this.dirty = false;
+
   			if (!this.named) {
   				if (this.model) {
   					template = this.model.get();
@@ -6765,7 +6771,6 @@ var classCallCheck = function (instance, Constructor) {
   			}
 
   			this.fragment.update();
-  			this.dirty = false;
   		}
   	};
 
@@ -7322,6 +7327,8 @@ var classCallCheck = function (instance, Constructor) {
   		if (!this.dirty) return;
   		if (!this.model && this.sectionType !== SECTION_UNLESS) return;
 
+  		this.dirty = false;
+
   		var value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
   		var lastType = this.sectionType;
 
@@ -7417,8 +7424,6 @@ var classCallCheck = function (instance, Constructor) {
 
   			this.fragment = newFragment;
   		}
-
-  		this.dirty = false;
   	};
 
   	return Section;
@@ -7587,6 +7592,8 @@ var classCallCheck = function (instance, Constructor) {
 
   	Triple.prototype.update = function update() {
   		if (this.rendered && this.dirty) {
+  			this.dirty = false;
+
   			this.unrender();
   			var docFrag = createDocumentFragment();
   			this.render(docFrag);
@@ -7595,8 +7602,6 @@ var classCallCheck = function (instance, Constructor) {
   			var anchor = this.parentFragment.findNextNode(this);
 
   			parentNode.insertBefore(docFrag, anchor);
-
-  			this.dirty = false;
   		}
   	};
 
@@ -7712,8 +7717,8 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Yielder.prototype.update = function update() {
-  		this.fragment.update();
   		this.dirty = false;
+  		this.fragment.update();
   	};
 
   	return Yielder;
@@ -8093,9 +8098,9 @@ var classCallCheck = function (instance, Constructor) {
 
   	Attribute.prototype.update = function update() {
   		if (this.dirty) {
+  			this.dirty = false;
   			if (this.fragment) this.fragment.update();
   			if (this.rendered) this.updateDelegate();
-  			this.dirty = false;
   		}
   	};
 
@@ -8168,6 +8173,8 @@ var classCallCheck = function (instance, Constructor) {
   		var attrs = undefined;
 
   		if (this.dirty) {
+  			this.dirty = false;
+
   			this.fragment.update();
 
   			if (this.rendered) {
@@ -8188,8 +8195,6 @@ var classCallCheck = function (instance, Constructor) {
 
   				this.attributes = attrs;
   			}
-
-  			this.dirty = false;
   		}
   	};
 
@@ -8305,6 +8310,8 @@ var classCallCheck = function (instance, Constructor) {
   	Decorator.prototype.update = function update() {
   		if (!this.dirty) return;
 
+  		this.dirty = false;
+
   		var nameChanged = false;
 
   		if (this.dynamicName && this.nameFragment.dirty) {
@@ -8339,8 +8346,6 @@ var classCallCheck = function (instance, Constructor) {
   		if (this.dynamicArgs && this.argsFragment.dirty) {
   			this.argsFragment.update();
   		}
-
-  		this.dirty = false;
   	};
 
   	return Decorator;
@@ -8764,13 +8769,13 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	EventDirective.prototype.update = function update() {
-  		if (this.method) return; // nothing to do
+  		if (this.method || !this.dirty) return; // nothing to do
+
+  		this.dirty = false;
 
   		// ugh legacy
   		if (this.action.update) this.action.update();
   		if (this.template.d) this.args.update();
-
-  		this.dirty = false;
   	};
 
   	return EventDirective;
@@ -10861,14 +10866,14 @@ var classCallCheck = function (instance, Constructor) {
 
   	Element.prototype.update = function update() {
   		if (this.dirty) {
+  			this.dirty = false;
+
   			this.attributes.forEach(_update);
   			this.conditionalAttributes.forEach(_update);
   			this.eventHandlers.forEach(_update);
 
   			if (this.decorator) this.decorator.update();
   			if (this.fragment) this.fragment.update();
-
-  			this.dirty = false;
   		}
   	};
 
@@ -11742,9 +11747,9 @@ var classCallCheck = function (instance, Constructor) {
   		if (shouldCapture) capture(this);
 
   		if (this.dirty) {
+  			this.dirty = false;
   			this.value = this.getValue();
   			this.adapt();
-  			this.dirty = false;
   		}
 
   		return this.value;
@@ -13063,10 +13068,10 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Component.prototype.update = function update() {
+  		this.dirty = false;
   		this.instance.fragment.update();
   		this.checkYielders();
   		this.eventHandlers.forEach(_update);
-  		this.dirty = false;
   	};
 
   	return Component;
@@ -13609,8 +13614,8 @@ var classCallCheck = function (instance, Constructor) {
 
   	Fragment.prototype.update = function update() {
   		if (this.dirty) {
-  			this.items.forEach(_update);
   			this.dirty = false;
+  			this.items.forEach(_update);
   		}
   	};
 
