@@ -296,9 +296,9 @@ export default class Component extends Item {
 	}
 
 	update () {
+		this.dirty = false;
 		this.instance.fragment.update();
 		this.checkYielders();
 		this.eventHandlers.forEach( update );
-		this.dirty = false;
 	}
 }

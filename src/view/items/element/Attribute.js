@@ -151,9 +151,9 @@ export default class Attribute extends Item {
 
 	update () {
 		if ( this.dirty ) {
+			this.dirty = false;
 			if ( this.fragment ) this.fragment.update();
 			if ( this.rendered ) this.updateDelegate();
-			this.dirty = false;
 		}
 	}
 }

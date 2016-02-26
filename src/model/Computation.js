@@ -75,9 +75,9 @@ export default class Computation extends Model {
 		if ( shouldCapture ) capture( this );
 
 		if ( this.dirty ) {
+			this.dirty = false;
 			this.value = this.getValue();
 			this.adapt();
-			this.dirty = false;
 		}
 
 		return this.value;

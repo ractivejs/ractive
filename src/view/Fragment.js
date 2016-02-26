@@ -305,8 +305,8 @@ export default class Fragment {
 
 	update () {
 		if ( this.dirty ) {
-			this.items.forEach( update );
 			this.dirty = false;
+			this.items.forEach( update );
 		}
 	}
 

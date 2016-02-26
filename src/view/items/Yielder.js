@@ -109,7 +109,7 @@ export default class Yielder extends Item {
 	}
 
 	update () {
-		this.fragment.update();
 		this.dirty = false;
+		this.fragment.update();
 	}
 }

@@ -77,15 +77,20 @@ function dispatch ( observer ) {
 }
 
 function flushChanges () {
-	batch.immediateObservers.forEach( dispatch );
+	let which = batch.immediateObservers;
+	batch.immediateObservers = [];
+	which.forEach( dispatch );
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
 	let i = batch.fragments.length;
 	let fragment;
 
+	which = batch.fragments;
+	batch.fragments = [];
+
 	while ( i-- ) {
-		fragment = batch.fragments[i];
+		fragment = which[i];
 
 		// TODO deprecate this. It's annoying and serves no useful function
 		const ractive = fragment.ractive;
@@ -94,11 +99,12 @@ function flushChanges () {
 
 		fragment.update();
 	}
-	batch.fragments.length = 0;
 
 	batch.transitionManager.start();
 
-	batch.deferredObservers.forEach( dispatch );
+	which = batch.deferredObservers;
+	batch.deferredObservers = [];
+	which.forEach( dispatch );
 
 	const tasks = batch.tasks;
 	batch.tasks = [];
@@ -110,5 +116,5 @@ function flushChanges () {
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.fragments.length ) return flushChanges();
+	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length ) return flushChanges();
 }
