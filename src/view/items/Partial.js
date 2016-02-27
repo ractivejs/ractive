@@ -60,8 +60,8 @@ export default class Partial extends Mustache {
 		this.fragment.findAllComponents( name, query );
 	}
 
-	firstNode () {
-		return this.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.fragment.firstNode( skipParent );
 	}
 
 	forceResetTemplate () {
@@ -130,6 +130,8 @@ export default class Partial extends Mustache {
 		let template;
 
 		if ( this.dirty ) {
+			this.dirty = false;
+
 			if ( !this.named ) {
 				if ( this.model ) {
 					template = this.model.get();
@@ -148,7 +150,6 @@ export default class Partial extends Mustache {
 			}
 
 			this.fragment.update();
-			this.dirty = false;
 		}
 	}
 }

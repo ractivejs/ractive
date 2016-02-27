@@ -70,8 +70,8 @@ export default class Section extends Mustache {
 		}
 	}
 
-	firstNode () {
-		return this.fragment && this.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.fragment && this.fragment.firstNode( skipParent );
 	}
 
 	rebind () {
@@ -110,6 +110,8 @@ export default class Section extends Mustache {
 	update () {
 		if ( !this.dirty ) return;
 		if ( !this.model && this.sectionType !== SECTION_UNLESS ) return;
+
+		this.dirty = false;
 
 		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
 		const lastType = this.sectionType;
@@ -210,7 +212,5 @@ export default class Section extends Mustache {
 
 			this.fragment = newFragment;
 		}
-
-		this.dirty = false;
 	}
 }

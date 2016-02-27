@@ -1,20 +1,39 @@
-import css from '../../../../global/css';
+import { addCSS } from '../../../../global/css';
 import transformCss from './transform';
-
-let uid = 1;
+import { uuid } from '../../../../utils/id';
+import { warnIfDebug } from '../../../../utils/log';
 
 export default {
 	name: 'css',
 
+	// Called when creating a new component definition
 	extend: ( Parent, proto, options ) => {
-		if ( options.css ) {
-			let id = uid++;
-			let styles = options.noCssTransform ? options.css : transformCss( options.css, id );
+		if ( !options.css ) return;
 
-			proto.cssId = id;
-			css.add({ id, styles });
-		}
+		const id = uuid();
+		const styles = options.noCssTransform ? options.css : transformCss( options.css, id );
+
+		proto.cssId = id;
+
+		addCSS( { id, styles } );
+
 	},
 
-	init: () => {}
+	// Called when creating a new component instance
+	init: ( Parent, target, options ) => {
+		if ( !options.css ) return;
+
+		warnIfDebug( `
+The css option is currently not supported on a per-instance basis and will be discarded. Instead, we recommend instantiating from a component definition with a css option.
+
+const Component = Ractive.extend({
+	...
+	css: '/* your css */',
+	...
+});
+
+const componentInstance = new Component({ ... })
+		` );
+	}
+
 };

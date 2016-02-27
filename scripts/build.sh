@@ -21,6 +21,8 @@ rm -rf tmp/*
 echo "> building Ractive..."
 export COMMIT_HASH=`git rev-parse HEAD`
 
+export VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
+
 # temporarily allow command failure
 set +e
 $MOD/gobble build tmp
@@ -50,6 +52,7 @@ compress () {
 		--mangle \
 		--source-map $dest.map \
 		--output $dest \
+		--preamble "/* Ractive.js v${VERSION}-${COMMIT_HASH} - License MIT */" \
 		-- $src \
 		> /dev/null 2>&1
 
@@ -79,10 +82,12 @@ cp tmp/*.js build
 cp tmp/*.map build
 
 echo "> copying *.json files to build folder..."
-VERSION=$(cat package.json | grep "version" | sed 's/"version": "\(.*\)",/\1/' | sed 's/[[:space:]]//g')
 for FILE in scripts/templates/*.json; do
 	cat $FILE | sed "s/VERSION_PLACEHOLDER/$VERSION/" > build/${FILE#scripts/templates/}
 done
+
+echo "> copying README.md to build folder..."
+cp README.md build
 
 echo "> build complete"
 

@@ -119,8 +119,6 @@ export default class Component extends Item {
 		initialise( this.instance, {
 			partials: this._partials
 		}, {
-			indexRefs: this.instance.isolated ? {} : this.parentFragment.indexRefs,
-			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs,
 			cssIds: this.parentFragment.cssIds
 		});
 
@@ -177,8 +175,8 @@ export default class Component extends Item {
 		this.instance.fragment.findAllComponents( name, query );
 	}
 
-	firstNode () {
-		return this.instance.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.instance.fragment.firstNode( skipParent );
 	}
 
 	rebind () {
@@ -254,10 +252,10 @@ export default class Component extends Item {
 	}
 
 	update () {
+		this.dirty = false;
 		this.instance.fragment.update();
 		this.checkYielders();
 		this.attributes.forEach( update );
 		this.eventHandlers.forEach( update );
-		this.dirty = false;
 	}
 }

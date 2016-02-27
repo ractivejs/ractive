@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 
 [ true, false ].forEach( modifyArrays => {
 	test( `ractive.splice() (modifyArrays: ${modifyArrays})`, t => {
@@ -96,4 +97,35 @@ test( 'a nested object iteration should rebind with an outer array iteration whe
 	t.htmlEqual( fixture.innerHTML, 'name-Rich name-Marty' );
 	r.splice( 'arr', 0, 1 );
 	t.htmlEqual( fixture.innerHTML, 'name-Marty' );
+});
+
+test( 'splicing should not make node index info get out of sync (#2400)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each arr:i}}<span>{{.}}</span>{{/each}}`,
+		data: { arr: [ 1, 2, 3 ] }
+	});
+
+	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[1] ).index.i, 1 );
+	r.unshift( 'arr' );
+	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[1] ).index.i, 1 );
+});
+
+test( 'splicing should not make event index info get out of sync (#2399)', t => {
+	t.expect( 2 );
+
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each arr:i}}<span on-click="go">{{.}}</span>{{/each}}`,
+		data: { arr: [ 1, 2, 3 ] }
+	});
+
+
+	r.on( 'go', ev => {
+		t.equal( ev.index.i, 1 );
+	});
+
+	fire( r.findAll( 'span' )[1], 'click' );
+	r.unshift( 'arr' );
+	fire( r.findAll( 'span' )[1], 'click' );
 });

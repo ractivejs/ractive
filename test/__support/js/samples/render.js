@@ -1315,7 +1315,18 @@ const renderTests = [
 		template: '{{new}}',
 		data: { new: 'old' },
 		result: 'old'
+	},
+	{
+		name: 'int lit in an interpolator is a number, not a reference (#2397)',
+		template: '{{123}}',
+		result: '123'
+	},
+	{
+		name: 'integers can be aliased (#2397)',
+		template: '{{#with 1 as num, 42 as answer}}{{num}} {{answer}}{{/with}}',
+		result: '1 42'
 	}
+
 ];
 
 function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }

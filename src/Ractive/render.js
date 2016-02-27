@@ -1,5 +1,5 @@
 import { doc } from '../config/environment';
-import css from '../global/css';
+import { applyCSS } from '../global/css';
 import Hook from '../events/Hook';
 import { getElement } from '../utils/dom';
 import runloop from '../global/runloop';
@@ -25,7 +25,7 @@ export default function render ( ractive, target, anchor, occupants ) {
 	ractive.anchor = anchor;
 
 	// ensure encapsulated CSS is up-to-date
-	if ( ractive.cssId ) css.apply();
+	if ( ractive.cssId ) applyCSS();
 
 	if ( target ) {
 		( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( ractive );

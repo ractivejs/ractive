@@ -1138,3 +1138,32 @@ test( 'bound lazy should apply/unapply correctly', t => {
 		t.ok( true ); // phantom...
 	}
 });
+
+test( 'binding to an reference proxy does not cause out-of-syncitude with the actual model', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<span>{{foo.bar.baz}}</span>{{#with foo[what]}}<input value="{{.baz}}" />{{/with}}',
+		data: {
+			foo: {
+				bar: { baz: 'yep' },
+				bat: { baz: 'also yep' }
+			},
+			what: 'bar'
+		}
+	});
+
+	const span = r.find( 'span' );
+	const input = r.find( 'input' );
+
+	t.equal( span.innerHTML, 'yep' );
+
+	input.value = 'hey';
+	fire( input, 'change' );
+	t.equal( span.innerHTML, 'hey' );
+
+	r.set( 'foo.bar.baz', 'yep again' );
+	t.equal( input.value, 'yep again' );
+
+	r.set( 'what', 'bat' );
+	t.equal( input.value, 'also yep' );
+});

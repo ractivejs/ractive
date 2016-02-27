@@ -59,11 +59,10 @@ export default class Interpolator extends Mustache {
 
 	update () {
 		if ( this.dirty ) {
+			this.dirty = false;
 			if ( this.rendered ) {
 				this.node.data = this.getString();
 			}
-
-			this.dirty = false;
 		}
 	}
 

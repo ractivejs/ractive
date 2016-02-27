@@ -32,6 +32,7 @@ import splice from './prototype/splice';
 import subtract from './prototype/subtract';
 import teardown from './prototype/teardown';
 import toggle from './prototype/toggle';
+import toCSS from './prototype/toCSS';
 import toHTML from './prototype/toHTML';
 import unlink from './prototype/unlink';
 import unrender from './prototype/unrender';
@@ -76,6 +77,8 @@ export default {
 	subtract,
 	teardown,
 	toggle,
+	toCSS,
+	toCss: toCSS,
 	toHTML,
 	toHtml: toHTML,
 	unlink,

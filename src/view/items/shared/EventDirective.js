@@ -12,6 +12,7 @@ import { findInViewHierarchy } from '../../../shared/registry';
 import { DOMEvent, CustomEvent } from '../element/ElementEvents';
 import RactiveEvent from '../component/RactiveEvent';
 import runloop from '../../../global/runloop';
+import gatherRefs from '../../helpers/gatherRefs';
 
 const eventPattern = /^event(?:\.(.+))?$/;
 const argumentsPattern = /^arguments\.(\d*)$/;
@@ -152,10 +153,12 @@ export default class EventDirective {
 
 		// augment event object
 		if ( event ) {
+			const refs = gatherRefs( this.parentFragment );
 			event.keypath = this.context.getKeypath( this.ractive );
 			event.rootpath = this.context.getKeypath();
 			event.context = this.context.get();
-			event.index = this.parentFragment.indexRefs;
+			event.index = refs.index;
+			event.key = refs.key;
 		}
 
 		if ( this.method ) {
@@ -263,12 +266,12 @@ export default class EventDirective {
 	}
 
 	update () {
-		if ( this.method ) return; // nothing to do
+		if ( this.method || !this.dirty ) return; // nothing to do
+
+		this.dirty = false;
 
 		// ugh legacy
 		if ( this.action.update ) this.action.update();
 		if ( this.template.f.d ) this.args.update();
-
-		this.dirty = false;
 	}
 }
