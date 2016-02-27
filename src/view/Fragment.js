@@ -23,8 +23,6 @@ export default class Fragment {
 
 		this.context = null;
 		this.rendered = false;
-		this.indexRefs = options.indexRefs || ( this.parent ? this.parent.indexRefs : [] );
-		this.keyRefs = options.keyRefs || ( this.parent ? this.parent.keyRefs : {} );
 
 		// encapsulated styles should be inherited until they get applied by an element
 		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
@@ -146,7 +144,7 @@ export default class Fragment {
 		for ( let i = item.index + 1; i < this.items.length; i++ ) {
 			if ( !this.items[ i ] ) continue;
 
-			let node = this.items[ i ].firstNode();
+			let node = this.items[ i ].firstNode( true );
 			if ( node ) return node;
 		}
 
@@ -197,15 +195,18 @@ export default class Fragment {
 		return fragment;
 	}
 
-	firstNode () {
+	firstNode ( skipParent ) {
 		let node;
 		for ( let i = 0; i < this.items.length; i++ ) {
-			node = this.items[i].firstNode();
+			node = this.items[i].firstNode( true );
 
 			if ( node ) {
 				return node;
 			}
 		}
+
+		if ( skipParent ) return null;
+
 		return this.parent.findNextNode( this.owner );
 	}
 
@@ -305,8 +306,8 @@ export default class Fragment {
 
 	update () {
 		if ( this.dirty ) {
-			this.items.forEach( update );
 			this.dirty = false;
+			this.items.forEach( update );
 		}
 	}
 

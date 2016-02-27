@@ -1,7 +1,5 @@
-import { REFERENCE, BRACKETED, NUMBER_LITERAL, MEMBER, REFINEMENT } from '../../config/types';
+import { REFERENCE, BRACKETED, MEMBER, REFINEMENT } from '../../config/types';
 import flattenExpression from './flattenExpression';
-
-var arrayMemberPattern = /^[0-9][1-9]*$/;
 
 export default function refineExpression ( expression, mustache ) {
 	var referenceExpression;
@@ -11,14 +9,10 @@ export default function refineExpression ( expression, mustache ) {
 			expression = expression.x;
 		}
 
-		// special case - integers should be treated as array members references,
-		// rather than as expressions in their own right
 		if ( expression.t === REFERENCE ) {
 			mustache.r = expression.n;
 		} else {
-			if ( expression.t === NUMBER_LITERAL && arrayMemberPattern.test( expression.v ) ) {
-				mustache.r = expression.v;
-			} else if ( referenceExpression = getReferenceExpression( expression ) ) {
+			if ( referenceExpression = getReferenceExpression( expression ) ) {
 				mustache.rx = referenceExpression;
 			} else {
 				mustache.x = flattenExpression( expression );

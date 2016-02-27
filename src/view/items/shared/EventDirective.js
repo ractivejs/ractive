@@ -6,6 +6,7 @@ import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
+import gatherRefs from '../../helpers/gatherRefs';
 
 const eventPattern = /^event(?:\.(.+))?$/;
 const argumentsPattern = /^arguments\.(\d*)$/;
@@ -132,10 +133,12 @@ export default class EventDirective {
 
 		// augment event object
 		if ( event ) {
+			const refs = gatherRefs( this.parentFragment );
 			event.keypath = this.context.getKeypath( this.ractive );
 			event.rootpath = this.context.getKeypath();
 			event.context = this.context.get();
-			event.index = this.parentFragment.indexRefs;
+			event.index = refs.index;
+			event.key = refs.key;
 		}
 
 		if ( this.method ) {
@@ -240,12 +243,12 @@ export default class EventDirective {
 	}
 
 	update () {
-		if ( this.method ) return; // nothing to do
+		if ( this.method || !this.dirty ) return; // nothing to do
+
+		this.dirty = false;
 
 		// ugh legacy
 		if ( this.action.update ) this.action.update();
 		if ( this.template.d ) this.args.update();
-
-		this.dirty = false;
 	}
 }
