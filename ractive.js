@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Feb 28 2016 05:07:13 GMT+0000 (UTC) - commit 240778c504b2746078a50e4d3fa4872c233c1f52
+	Sun Feb 28 2016 15:26:56 GMT+0000 (UTC) - commit 9085396013226e409bd2a9f6b3bbfd01991a0692
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13895,7 +13895,7 @@ var classCallCheck = function (instance, Constructor) {
   function Ractive$on(eventName, callback) {
   	var _this = this;
 
-  	// allow mutliple listeners to be bound in one go
+  	// allow multiple listeners to be bound in one go
   	if (typeof eventName === 'object') {
   		var _ret = (function () {
   			var listeners = [];
