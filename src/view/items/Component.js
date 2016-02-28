@@ -298,5 +298,6 @@ export default class Component extends Item {
 		this.instance.fragment.update();
 		this.checkYielders();
 		this.eventHandlers.forEach( update );
+		this.complexMappings.forEach( update );
 	}
 }
