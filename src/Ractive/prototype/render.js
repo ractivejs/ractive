@@ -14,14 +14,8 @@ export default function Ractive$render ( target, anchor ) {
 
 		// make sure we are the only occupants
 		if ( !this.enhance ) {
-	      //removeChild() is faster than innerHTML = ''
-		//test1: http://jsperf.com/innerhtml-vs-removechild/15
-		//test2: https://jsperf.com/innerhtml-vs-removechild/96
-                 while ( target.firstChild ) {
-                    target.removeChild ( target.firstChild );
-                 }
-                 target.textContent = '';
-            }
+			target.innerHTML = ''; // TODO is this quicker than removeChild? Initial research inconclusive
+		}
 	}
 
 	let occupants = this.enhance ? toArray( target.childNodes ) : null;
