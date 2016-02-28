@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Feb 27 2016 00:08:12 GMT+0000 (UTC) - commit 93ec6a355d4f162e8420e1a1d6c949bc1f846b0b
+	Sun Feb 28 2016 05:07:13 GMT+0000 (UTC) - commit 240778c504b2746078a50e4d3fa4872c233c1f52
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6084,8 +6084,6 @@ var classCallCheck = function (instance, Constructor) {
 
   			parent = parent.parent;
   		}
-
-  		_Model.prototype.applyValue.call(this, value);
   	};
 
   	ReferenceExpressionChild.prototype.joinKey = function joinKey(key) {
@@ -13130,6 +13128,7 @@ var classCallCheck = function (instance, Constructor) {
   		this.instance.fragment.update();
   		this.checkYielders();
   		this.eventHandlers.forEach(_update);
+  		this.complexMappings.forEach(_update);
   	};
 
   	return Component;
