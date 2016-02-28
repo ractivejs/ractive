@@ -14,7 +14,7 @@ export default function Ractive$render ( target, anchor ) {
 
 		// make sure we are the only occupants
 		if ( !this.enhance ) {
-	      	//removeChild() is faster than innerHTML = ''
+			//removeChild() is faster than innerHTML = ''
 			//test1: http://jsperf.com/innerhtml-vs-removechild/15
 			//test2: https://jsperf.com/innerhtml-vs-removechild/96
 			while ( target.firstChild ) {
