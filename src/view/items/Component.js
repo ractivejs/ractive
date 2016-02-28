@@ -2,6 +2,7 @@ import runloop from '../../global/runloop';
 import { warnIfDebug, warnOnceIfDebug } from '../../utils/log';
 import { COMPONENT, INTERPOLATOR, YIELDER } from '../../config/types';
 import Item from './shared/Item';
+import { stateKeyword } from '../../shared/patterns';
 import construct from '../../Ractive/construct';
 import initialise from '../../Ractive/initialise';
 import render from '../../Ractive/render';
@@ -95,9 +96,10 @@ export default class Component extends Item {
 		if ( this.template.a ) {
 			Object.keys( this.template.a ).forEach( localKey => {
 				const template = this.template.a[ localKey ];
+				const isState = !stateKeyword.test(localKey) && localKey[0] === '@';
 				let model;
 				let fragment;
-
+				
 				if ( template === 0 ) {
 					// empty attributes are `true`
 					viewmodel.joinKey( localKey ).set( true );
@@ -118,10 +120,15 @@ export default class Component extends Item {
 							model = this.parentFragment.findContext().joinKey( localKey );
 						}
 
-						viewmodel.map( localKey, model );
+						if ( isState ) {
+							viewmodel.joinKey( localKey ).set( model.get() );
+						}
+						else {
+							viewmodel.map( localKey, model );
 
-						if ( model.get() === undefined && localKey in childData ) {
-							model.set( childData[ localKey ] );
+							if ( model.get() === undefined && localKey in childData ) {
+								model.set( childData[ localKey ] );
+							}
 						}
 					}
 
@@ -134,13 +141,15 @@ export default class Component extends Item {
 						model = viewmodel.joinKey( localKey );
 						model.set( fragment.valueOf() );
 
-						// this is a *bit* of a hack
-						fragment.bubble = () => {
-							Fragment.prototype.bubble.call( fragment );
-							model.set( fragment.valueOf() );
-						};
+						if ( !isState ) {
+							// this is a *bit* of a hack
+							fragment.bubble = () => {
+								Fragment.prototype.bubble.call( fragment );
+								model.set( fragment.valueOf() );
+							};
 
-						this.complexMappings.push( fragment );
+							this.complexMappings.push( fragment );
+						}
 					}
 				}
 			});

@@ -1,5 +1,6 @@
 import { capture } from '../global/capture';
 import { extend } from '../utils/object';
+import { stateKeyword } from '../shared/patterns';
 import Computation from './Computation';
 import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
@@ -114,6 +115,14 @@ export default class RootModel extends Model {
 	joinKey ( key ) {
 		if ( key === '@global' ) return GlobalModel;
 		if ( key === '@ractive' ) return this.getRactiveModel();
+        
+        // state joins: not a keyword, starts with '@' but not a computation/expression
+        if ( key && !stateKeyword.test( key ) && key[0] === '@' && key[1] !== '{' ) {
+            if ( key[1] === '@' ) {
+                return this.getRactiveModel().joinKey( 'root' ).joinKey( key.slice(2) );
+            }
+            return this.getRactiveModel().joinKey( key.slice(1) );
+        }
 
 		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
 		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :

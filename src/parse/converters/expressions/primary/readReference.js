@@ -1,26 +1,50 @@
 import { GLOBAL, REFERENCE } from '../../../../config/types';
 import { normalise } from '../../../../shared/keypaths';
+import { stateKeyword as stateKeywordPattern } from '../../../../shared/patterns';
 
-var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
-	globals,
-	keywords;
+const prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/;
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
-globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null|Object|Number|String|Boolean)\b/;
+const globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null|Object|Number|String|Boolean)\b/;
 
 // keywords are not valid references, with the exception of `this`
-keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
+const keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
+
+// shortcut state references, ie @foo or @['foo'] for @ractive.foo,
+// or @@foo or @@['foo'] for @ractive.root.foo 
+const statePattern = /^@{1,2}(?:[[\w|$]|\[]+)/;
 
 var legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
 var relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
 
 export default function readReference ( parser ) {
-	var startPos, prefix, name, global, reference, fullLength, lastDotIndex;
+	var startPos, prefix, name, global, reference, fullLength, lastDotIndex, 
+        isRoot, isBracket, fill = '.', gap = 1;
 
 	startPos = parser.pos;
 
-	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|ractive|global)/ );
+	name = parser.matchPattern( stateKeywordPattern );
 
+    if ( !name && parser.matchPattern( statePattern ) ) {
+        name = '@ractive';
+        isRoot = parser.pos - startPos > 2;
+        if ( isRoot ) gap = 2;
+        isBracket = parser.str[ startPos + gap ] === '[';
+        
+        if ( !isRoot && isBracket ) {
+            parser.pos = startPos + 1;
+        }
+        else {
+            
+            if ( isRoot ) {
+                fill = '.root' + ( isBracket ? '' : '.' );
+            }
+            
+            parser.str = parser.str.slice( 0, startPos - 1 ) + fill + parser.str.slice( startPos + gap );
+            parser.pos = startPos - 1;
+        }
+    }
+    
 	if ( !name ) {
 		prefix = parser.matchPattern( prefixPattern ) || '';
 		name = ( !prefix && parser.relaxedNames && parser.matchPattern( relaxedName ) ) ||
