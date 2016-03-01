@@ -2,7 +2,6 @@ import { capture } from '../global/capture';
 import Promise from '../utils/Promise';
 import { isEqual, isNumeric } from '../utils/is';
 import { removeFromArray } from '../utils/array';
-import { handleChange, mark, teardown } from '../shared/methodCallers';
 import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
@@ -156,12 +155,15 @@ export default class Model {
 		const previousOriginatingModel = originatingModel; // for the array.length special case
 		originatingModel = this;
 
-		this.children.forEach( mark );
-		this.deps.forEach( handleChange );
+		let i = this.children.length;
+		while ( i-- ) this.children[i].mark();
+		i = this.deps.length;
+		while ( i-- ) this.deps[i].handleChange( this );
 
 		let parent = this.parent;
 		while ( parent ) {
-			parent.deps.forEach( handleChange );
+			i = parent.deps.length;
+			while ( i-- ) parent.deps[i].handleChange( parent, this );
 			parent = parent.parent;
 		}
 
@@ -351,9 +353,11 @@ export default class Model {
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 
-			this.children.forEach( mark );
+			let i = this.children.length;
+			while ( i-- ) this.children[i].mark();
 
-			this.deps.forEach( handleChange );
+			i = this.deps.length;
+			while ( i-- ) this.deps[i].handleChange( this );
 			this.clearUnresolveds();
 		}
 	}
@@ -433,21 +437,24 @@ export default class Model {
 		this.indexModels = indexModels;
 
 		// shuffles need to happen before marks...
-		this.deps.forEach( dep => {
-			if ( dep.shuffle ) dep.shuffle( newIndices );
-		});
+		let i = this.deps.length;
+		while ( i-- ) {
+			if ( this.deps[i].shuffle ) this.deps[i].shuffle( newIndices );
+		}
 
 		this.updateKeypathDependants();
 		this.mark();
 
 		// ...but handleChange must happen after (TODO document why)
-		this.deps.forEach( dep => {
-			if ( !dep.shuffle ) dep.handleChange();
-		});
+		i = this.deps.length;
+		while ( i-- ) {
+			if ( !this.deps[i].shuffle ) this.deps[i].handleChange( this );
+		}
 	}
 
 	teardown () {
-		this.children.forEach( teardown );
+		let i = this.children.length;
+		while ( i-- ) this.children[i].teardown();
 		if ( this.wrapper ) this.wrapper.teardown();
 		if ( this.keypathModels ) {
 			for ( let k in this.keypathModels ) {
@@ -478,6 +485,6 @@ export default class Model {
 
 	updateKeypathDependants () {
 		this.children.forEach( updateKeypathDependants );
-		if ( this.keypathModel ) this.keypathModel.handleChange();
+		if ( this.keypathModel ) this.keypathModel.handleChange( this.keypathModel );
 	}
 }

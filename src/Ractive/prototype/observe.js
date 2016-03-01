@@ -155,18 +155,30 @@ class PatternObserver {
 			this.newValues[ model.getKeypath( this.ractive ) ] = model.get();
 		});
 
+		baseModel.register( this );
+
+		this.models = models;
+		this.touchedKeys = {};
+		let observer = this;
+		this.registrar = {
+			handleChange( model ) {
+				observer.newValues[ model.getKeypath( observer.ractive ) ] = model.get();
+			}
+		};
+		let i = models.length;
+		while ( i-- ) models[i].register( this.registrar );
+
 		if ( options.init !== false ) {
 			this.dispatch();
 		} else {
 			this.oldValues = this.newValues;
+			this.newValues = {};
 		}
-
-		baseModel.register( this );
-
 	}
 
 	cancel () {
 		this.baseModel.unregister( this );
+		this.models.forEach( m => m.unregister( this.registrar ) );
 	}
 
 	dispatch () {
@@ -186,9 +198,11 @@ class PatternObserver {
 			}
 
 			this.callback.apply( this.context, args );
+
+			this.oldValues[ keypath ] = this.newValues[ keypath ];
 		});
 
-		this.oldValues = this.newValues;
+		this.newValues = {};
 		this.newKeys = null;
 		this.dirty = false;
 	}
@@ -211,9 +225,16 @@ class PatternObserver {
 		}
 	}
 
-	handleChange () {
+	handleChange ( _model, source ) {
 		if ( !this.dirty ) {
-			this.newValues = {};
+			let oldValues = this.oldValues;
+
+			if ( source === this.baseModel ) {
+				let i = this.models.length;
+				while ( i-- ) this.models[i].unregister( this.registrar );
+				this.models = [];
+				oldValues = {};
+			}
 
 			// handle case where previously extant keypath no longer exists -
 			// observer should still fire, with undefined as new value
@@ -224,7 +245,11 @@ class PatternObserver {
 
 			this.baseModel.findMatches( this.keys ).forEach( model => {
 				const keypath = model.getKeypath( this.ractive );
-				this.newValues[ keypath ] = model.get();
+				if ( !( keypath in oldValues ) && !~this.models.indexOf( model ) ) {
+					this.newValues[ keypath ] = model.get();
+
+					model.register( this.registrar );
+				}
 			});
 
 			runloop.addObserver( this, this.defer );
