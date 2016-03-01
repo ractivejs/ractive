@@ -28,8 +28,6 @@ class ReferenceExpressionChild extends Model {
 
 			parent = parent.parent;
 		}
-
-		super.applyValue( value );
 	}
 
 	joinKey ( key ) {

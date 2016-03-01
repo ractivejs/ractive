@@ -2,7 +2,7 @@ import trim from './shared/trim';
 import notEmptyString from './shared/notEmptyString';
 
 export default function Ractive$on ( eventName, callback ) {
-	// allow mutliple listeners to be bound in one go
+	// allow multiple listeners to be bound in one go
 	if ( typeof eventName === 'object' ) {
 		let listeners = [];
 		let n;
