@@ -145,12 +145,16 @@ function updateValue () {
 }
 
 function updateStringValue () {
-	const value = this.getValue();
+	let value = this.getValue();
 
 	this.node._ractive.value = value;
 
-	this.node.value = safeToStringValue( value );
-	this.node.setAttribute( 'value', safeToStringValue( value ) );
+	value = safeToStringValue( value );
+
+	if ( this.node.value !== value ) {
+		this.node.value = value;
+		this.node.setAttribute( 'value', value );
+	}
 }
 
 function updateRadioName () {
