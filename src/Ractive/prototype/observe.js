@@ -1,6 +1,6 @@
 import runloop from '../../global/runloop';
 import { isArray, isEqual, isObject } from '../../utils/is';
-import { splitKeypath } from '../../shared/keypaths';
+import { escapeKey, splitKeypath } from '../../shared/keypaths';
 import { cancel } from '../../shared/methodCallers';
 import resolveReference from '../../view/resolvers/resolveReference';
 
@@ -136,9 +136,10 @@ class PatternObserver {
 		this.keys = keys;
 		this.callback = callback;
 
-		const pattern = keys.join( '\\.' ).replace( /\*/g, '(.+)' );
-		const baseKeypath = baseModel.getKeypath( ractive );
+		const pattern = keys.join( '\\.' ).replace( /\*/g, '(.+?)' );
+		const baseKeypath = escapeKey( baseModel.getKeypath( ractive ) );
 		this.pattern = new RegExp( `^${baseKeypath ? baseKeypath + '\\.' : ''}${pattern}$` );
+		this.matcher = new RegExp( `^(${baseKeypath ? baseKeypath + '\\.' : ''}(${pattern}))(?:\\.|$)` );
 
 		this.oldValues = {};
 		this.newValues = {};
@@ -156,17 +157,7 @@ class PatternObserver {
 		});
 
 		baseModel.register( this );
-
-		this.models = models;
-		this.touchedKeys = {};
-		let observer = this;
-		this.registrar = {
-			handleChange( model ) {
-				observer.newValues[ model.getKeypath( observer.ractive ) ] = model.get();
-			}
-		};
-		let i = models.length;
-		while ( i-- ) models[i].register( this.registrar );
+		this.baseModel.watch();
 
 		if ( options.init !== false ) {
 			this.dispatch();
@@ -178,15 +169,38 @@ class PatternObserver {
 
 	cancel () {
 		this.baseModel.unregister( this );
-		this.models.forEach( m => m.unregister( this.registrar ) );
+		this.baseModel.unwatch();
 	}
 
 	dispatch () {
-		Object.keys( this.newValues ).forEach( keypath => {
+		const models = runloop.models();
+		let i = models.length;
+
+		while ( i-- ) {
+			const model = models[i];
+			const keypath = model.getKeypath( this.ractive );
+			const match = this.matcher.exec( keypath );
+
+			if ( match && !( match[1] in this.newValues ) ) {
+				this.newValues[ match[1] ] = this.baseModel.joinAll( splitKeypath( match[2] ) ).get();
+			}
+		}
+
+		const newValues = this.newValues;
+		const keys = Object.keys( newValues );
+
+		let oldValues = {};
+		i = keys.length;
+		while ( i-- ) oldValues[ keys[i] ] = this.oldValues[ keys[i] ];
+
+		this.newValues = {};
+		this.dirty = false;
+
+		Object.keys( newValues ).forEach( keypath => {
 			if ( this.newKeys && !this.newKeys[ keypath ] ) return;
 
-			const newValue = this.newValues[ keypath ];
-			const oldValue = this.oldValues[ keypath ];
+			const newValue = newValues[ keypath ];
+			const oldValue = oldValues[ keypath ];
 
 			if ( this.strict && newValue === oldValue ) return;
 			if ( isEqual( newValue, oldValue ) ) return;
@@ -199,12 +213,10 @@ class PatternObserver {
 
 			this.callback.apply( this.context, args );
 
-			this.oldValues[ keypath ] = this.newValues[ keypath ];
+			this.oldValues[ keypath ] = newValues[ keypath ];
 		});
 
-		this.newValues = {};
 		this.newKeys = null;
-		this.dirty = false;
 	}
 
 	shuffle( newIndices ) {
@@ -225,37 +237,13 @@ class PatternObserver {
 		}
 	}
 
-	handleChange ( _model, source ) {
+	handleChange () {
 		if ( !this.dirty ) {
-			let oldValues = this.oldValues;
-
-			if ( source === this.baseModel ) {
-				let i = this.models.length;
-				while ( i-- ) this.models[i].unregister( this.registrar );
-				this.models = [];
-				oldValues = {};
-			}
-
-			// handle case where previously extant keypath no longer exists -
-			// observer should still fire, with undefined as new value
-			// TODO huh. according to the test suite that's not the case...
-			// Object.keys( this.oldValues ).forEach( keypath => {
-			// 	this.newValues[ keypath ] = undefined;
-			// });
-
-			this.baseModel.findMatches( this.keys ).forEach( model => {
-				const keypath = model.getKeypath( this.ractive );
-				if ( !( keypath in oldValues ) && !~this.models.indexOf( model ) ) {
-					this.newValues[ keypath ] = model.get();
-
-					model.register( this.registrar );
-				}
-			});
-
-			runloop.addObserver( this, this.defer );
 			this.dirty = true;
+			runloop.addObserver( this, this.defer );
 
 			if ( this.once ) this.cancel();
+
 		}
 	}
 }

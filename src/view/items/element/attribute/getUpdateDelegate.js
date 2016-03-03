@@ -90,22 +90,20 @@ function updateMultipleSelectValue () {
 function updateSelectValue () {
 	const value = this.getValue();
 
-	if ( !this.locked ) { // TODO is locked still a thing?
-		this.node._ractive.value = value;
+	this.node._ractive.value = value;
 
-		const options = this.node.options;
-		let i = options.length;
+	const options = this.node.options;
+	let i = options.length;
 
-		while ( i-- ) {
-			const option = options[i];
-			const optionValue = option._ractive ?
-				option._ractive.value :
-				option.value; // options inserted via a triple don't have _ractive
+	while ( i-- ) {
+		const option = options[i];
+		const optionValue = option._ractive ?
+			option._ractive.value :
+			option.value; // options inserted via a triple don't have _ractive
 
-			if ( optionValue == value ) { // double equals as we may be comparing numbers with strings
-				option.selected = true;
-				break;
-			}
+		if ( optionValue == value ) { // double equals as we may be comparing numbers with strings
+			option.selected = true;
+			break;
 		}
 	}
 
@@ -117,9 +115,7 @@ function updateSelectValue () {
 function updateContentEditableValue () {
 	const value = this.getValue();
 
-	if ( !this.locked ) {
-		this.node.innerHTML = value === undefined ? '' : value;
-	}
+	this.node.innerHTML = value === undefined ? '' : value;
 }
 
 function updateRadioValue () {
@@ -142,23 +138,19 @@ function updateRadioValue () {
 }
 
 function updateValue () {
-	if ( !this.locked ) {
-		const value = this.getValue();
+	const value = this.getValue();
 
-		this.node.value = this.node._ractive.value = value;
-		this.node.setAttribute( 'value', value );
-	}
+	this.node.value = this.node._ractive.value = value;
+	this.node.setAttribute( 'value', value );
 }
 
 function updateStringValue () {
-	if ( !this.locked ) {
-		const value = this.getValue();
+	const value = this.getValue();
 
-		this.node._ractive.value = value;
+	this.node._ractive.value = value;
 
-		this.node.value = safeToStringValue( value );
-		this.node.setAttribute( 'value', safeToStringValue( value ) );
-	}
+	this.node.value = safeToStringValue( value );
+	this.node.setAttribute( 'value', safeToStringValue( value ) );
 }
 
 function updateRadioName () {
@@ -195,17 +187,13 @@ function updateClassName () {
 }
 
 function updateBoolean () {
-	// with two-way binding, only update if the change wasn't initiated by the user
-	// otherwise the cursor will often be sent to the wrong place
-	if ( !this.locked ) {
-		if ( this.useProperty ) {
-			this.node[ this.propertyName ] = this.getValue();
+	if ( this.useProperty ) {
+		this.node[ this.propertyName ] = this.getValue();
+	} else {
+		if ( this.getValue() ) {
+			this.node.setAttribute( this.propertyName, '' );
 		} else {
-			if ( this.getValue() ) {
-				this.node.setAttribute( this.propertyName, '' );
-			} else {
-				this.node.removeAttribute( this.propertyName );
-			}
+			this.node.removeAttribute( this.propertyName );
 		}
 	}
 }

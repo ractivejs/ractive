@@ -429,7 +429,7 @@ test( 'Post-blur validation works (#771)', t => {
 	input.value = 'bar';
 	fire( input, 'change' );
 
-	t.equal( input.value, 'bar' );
+	t.equal( input.value, 'BAR' );
 	t.equal( ractive.get( 'foo' ), 'BAR' );
 	t.htmlEqual( fixture.innerHTML, '<input>BAR' );
 

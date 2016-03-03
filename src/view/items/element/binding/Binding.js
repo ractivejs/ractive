@@ -72,9 +72,7 @@ export default class Binding {
 
 	handleChange () {
 		runloop.start( this.root );
-		this.attribute.locked = true;
 		this.model.set( this.getValue() );
-		runloop.scheduleTask( () => this.attribute.locked = false );
 		runloop.end();
 	}
 
