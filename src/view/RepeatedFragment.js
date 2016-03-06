@@ -228,6 +228,9 @@ export default class RepeatedFragment {
 			return;
 		}
 
+		if ( this.updating ) return;
+		this.updating = true;
+
 		const value = this.context.get(),
 			  wasArray = this.isArray;
 
@@ -320,6 +323,8 @@ export default class RepeatedFragment {
 				parentNode.insertBefore( docFrag, anchor );
 			}
 		}
+
+		this.updating = false;
 	}
 
 	updatePostShuffle () {

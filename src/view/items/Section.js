@@ -109,8 +109,10 @@ export default class Section extends Mustache {
 
 	update () {
 		if ( !this.dirty ) return;
+		if ( this.updating ) return;
 		if ( !this.model && this.sectionType !== SECTION_UNLESS ) return;
 
+		this.updating = true;
 		this.dirty = false;
 
 		const value = !this.model ? undefined : this.model.isRoot ? this.model.value : this.model.get();
@@ -212,5 +214,7 @@ export default class Section extends Mustache {
 
 			this.fragment = newFragment;
 		}
+
+		this.updating = false;
 	}
 }
