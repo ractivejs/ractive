@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Feb 28 2016 15:26:56 GMT+0000 (UTC) - commit 9085396013226e409bd2a9f6b3bbfd01991a0692
+	Mon Mar 14 2016 20:52:19 GMT+0000 (UTC) - commit 7b3eadc213e050540af6d8f39a0ef76d5302235f
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4090,6 +4090,9 @@ var classCallCheck = function (instance, Constructor) {
   			return;
   		}
 
+  		if (this.updating) return;
+  		this.updating = true;
+
   		var value = this.context.get(),
   		    wasArray = this.isArray;
 
@@ -4176,6 +4179,8 @@ var classCallCheck = function (instance, Constructor) {
   				parentNode.insertBefore(docFrag, anchor);
   			}
   		}
+
+  		this.updating = false;
   	};
 
   	RepeatedFragment.prototype.updatePostShuffle = function updatePostShuffle() {
@@ -11114,9 +11119,11 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Fragment.prototype.update = function update() {
-  		if (this.dirty) {
+  		if (this.dirty && !this.updating) {
   			this.dirty = false;
+  			this.updating = true;
   			this.items.forEach(_update);
+  			this.updating = false;
   		}
   	};
 
