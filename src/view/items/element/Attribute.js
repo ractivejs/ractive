@@ -78,8 +78,15 @@ export default class Attribute extends Item {
 	}
 
 	rebind () {
+		const current = this.getValue();
+
 		this.unbind();
 		this.bind();
+
+		// the value may have actually changed if it depends on a template context (@index, etc)
+		if ( this.getValue() !== current ) {
+			this.bubble();
+		}
 	}
 
 	render () {
