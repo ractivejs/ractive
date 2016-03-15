@@ -1167,3 +1167,27 @@ test( 'binding to an reference proxy does not cause out-of-syncitude with the ac
 	r.set( 'what', 'bat' );
 	t.equal( input.value, 'also yep' );
 });
+
+test( `binding a select with mismatched option values shouldn't break section rendering (#2424)`, t => {
+	const cmp = Ractive.extend({ template: `<div>{{yield}}</div>` });
+	const r = new Ractive({
+		el: fixture,
+		components: { cmp },
+		template: `{{#if .condition}}<span>Once</span>
+			{{#each .foo}}<cmp><select value="{{.bar}}">
+				<option></option>
+				<option>a</option>
+				<option>b</option>
+				<option>c</option>
+			</select></cmp>{{/each}}
+		{{/if}}`
+	});
+
+	r.set({
+		condition: true,
+		foo: [{ bar: 'd' }, { bar: 'e' }, { bar: 'f' }]
+	});
+
+	t.equal( fixture.querySelectorAll( 'span' ).length, 1 );
+	t.equal( fixture.querySelectorAll( 'div' ).length, 3 );
+});
