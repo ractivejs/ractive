@@ -1,5 +1,4 @@
 import Element from '../../Element';
-import runloop from '../../../../global/runloop';
 import { toArray } from '../../../../utils/array';
 
 function valueContains ( selectValue, optionValue ) {
