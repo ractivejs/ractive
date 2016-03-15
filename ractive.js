@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Mar 14 2016 20:52:19 GMT+0000 (UTC) - commit 7b3eadc213e050540af6d8f39a0ef76d5302235f
+	Tue Mar 15 2016 02:52:15 GMT+0000 (UTC) - commit 6ff7104a6bbc47f7a918a2e890f36a51534f5f4e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8076,8 +8076,7 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Attribute.prototype.rebind = function rebind() {
-  		this.unbind();
-  		this.bind();
+  		if (this.fragment) this.fragment.rebind();
   	};
 
   	Attribute.prototype.render = function render() {
