@@ -96,7 +96,7 @@ export default class Attribute extends Item {
 
 					// map the model and check for remap
 					const remapped = viewmodel.map( this.name, this.model );
-					if ( remapped !== this.model && this.element.bound && !this.rebinding && !this.element.rebinding ) {
+					if ( remapped !== this.model && this.element.bound && !this.element.rebinding ) {
 						this.element.rebinding = true;
 						runloop.scheduleTask( () => {
 							this.element.rebind();
@@ -148,7 +148,52 @@ export default class Attribute extends Item {
 	}
 
 	rebind () {
-		if (this.fragment) this.fragment.rebind();
+		if ( this.fragment ) this.fragment.rebind();
+
+		// handle remapping
+		// TODO: DRY this up
+		if ( this.element.type === COMPONENT ) {
+			const template = this.template.f;
+			const viewmodel = this.element.instance.viewmodel;
+			const childData = viewmodel.value;
+
+			if ( this.boundFragment ) this.boundFragment.unbind();
+
+			if ( isArray( template ) ) {
+				if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
+					this.model = resolve( this.parentFragment, template[0] );
+
+					if ( !this.model ) {
+						warnOnceIfDebug( `The ${this.name}='{{${template[0].r}}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity`, { ractive: this.element.instance }); // TODO add docs page explaining this
+						this.parentFragment.ractive.get( this.name ); // side-effect: create mappings as necessary
+						this.model = this.parentFragment.findContext().joinKey( this.name );
+					}
+
+					// map the model and check for remap
+					viewmodel.map( this.name, this.model );
+
+					if ( this.model.get() === undefined && this.name in childData ) {
+						this.model.set( childData[ this.name ] );
+					}
+				}
+
+				else {
+					this.boundFragment = new Fragment({
+						owner: this,
+						template
+					}).bind();
+
+					this.model = viewmodel.joinKey( this.name );
+					this.model.set( this.boundFragment.valueOf() );
+
+					// this is a *bit* of a hack
+					this.boundFragment.bubble = () => {
+						Fragment.prototype.bubble.call( this.boundFragment );
+						this.model.set( this.boundFragment.valueOf() );
+					};
+				}
+			}
+		}
 	}
 
 	render () {
@@ -220,7 +265,7 @@ export default class Attribute extends Item {
 		if ( this.fragment ) this.fragment.unbind();
 		if ( this.boundFragment ) this.boundFragment.unbind();
 
-		if ( this.element.type === COMPONENT && this.element.bound && !this.rebinding ) {
+		if ( this.element.type === COMPONENT && this.element.bound ) {
 			const viewmodel = this.element.instance.viewmodel;
 			if ( viewmodel.unmap( this.name ) ) {
 				if ( !this.element.rebinding ) {
@@ -245,6 +290,7 @@ export default class Attribute extends Item {
 		if ( this.dirty ) {
 			this.dirty = false;
 			if ( this.fragment ) this.fragment.update();
+			if ( this.boundFragment ) this.boundFragment.update();
 			if ( this.rendered ) this.updateDelegate();
 		}
 	}

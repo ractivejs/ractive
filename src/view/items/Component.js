@@ -257,6 +257,5 @@ export default class Component extends Item {
 		this.checkYielders();
 		this.attributes.forEach( update );
 		this.eventHandlers.forEach( update );
-		this.complexMappings.forEach( update );
 	}
 }

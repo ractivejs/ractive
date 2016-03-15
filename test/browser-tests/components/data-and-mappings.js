@@ -1209,6 +1209,7 @@ test( 'complex mappings continue to update with their dependencies', t => {
 
 	let c = r.findComponent( 'cmp' );
 
+	t.htmlEqual( fixture.innerHTML, 'foo?' );
 	r.set( 'bar', 'maybe' );
 	t.equal( c.get( 'bar' ), 'maybe' );
 	t.htmlEqual( fixture.innerHTML, 'foo? maybe' );
