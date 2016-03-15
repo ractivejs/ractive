@@ -18,14 +18,6 @@ export default class Select extends Element {
 	bubble () {
 		if ( !this.dirty ) {
 			this.dirty = true;
-
-			if ( this.rendered ) {
-				runloop.scheduleTask( () => {
-					this.sync();
-					this.dirty = false;
-				});
-			}
-
 			this.parentFragment.bubble(); // default behaviour
 		}
 	}
