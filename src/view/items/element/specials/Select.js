@@ -15,13 +15,6 @@ export default class Select extends Element {
 		this.options = [];
 	}
 
-	bubble () {
-		if ( !this.dirty ) {
-			this.dirty = true;
-			this.parentFragment.bubble(); // default behaviour
-		}
-	}
-
 	render ( target, occupants ) {
 		super.render( target, occupants );
 		this.sync();
