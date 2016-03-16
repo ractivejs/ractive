@@ -236,8 +236,7 @@ export default class Element extends Item {
 
 		defineProperty( node, '_ractive', {
 			value: {
-				proxy: this,
-				fragment: this.parentFragment
+				proxy: this
 			}
 		});
 

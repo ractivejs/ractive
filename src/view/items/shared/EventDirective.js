@@ -6,7 +6,7 @@ import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
-import gatherRefs from '../../helpers/gatherRefs';
+import { addHelpers } from '../../helpers/contextMethods';
 
 const eventPattern = /^event(?:\.(.+))?$/;
 const argumentsPattern = /^arguments\.(\d*)$/;
@@ -132,13 +132,8 @@ export default class EventDirective {
 	fire ( event, passedArgs = [] ) {
 
 		// augment event object
-		if ( event ) {
-			const refs = gatherRefs( this.parentFragment );
-			event.keypath = this.context.getKeypath( this.ractive );
-			event.rootpath = this.context.getKeypath();
-			event.context = this.context.get();
-			event.index = refs.index;
-			event.key = refs.key;
+		if ( event && !event.hasOwnProperty( '_element' ) ) {
+		   addHelpers( event, this.owner );
 		}
 
 		if ( this.method ) {
