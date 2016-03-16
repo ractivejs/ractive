@@ -228,6 +228,25 @@ test( 'shuffled sections that unrender at the same time should not leave orphans
 	t.htmlEqual( fixture.innerHTML, '' );
 });
 
+test( `shuffled elements with attributes depending on template context (@index, etc) should have appropriately updated attributes (#2422)`, t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#each foo}}<span data-wat="{{50 * @index}}">{{50 * @index}}</span>{{/each}}`,
+		data: { foo: [ 0, 0, 0 ] }
+	});
+
+	r.push( 'foo', 0 );
+
+	let spans = r.findAll( 'span' );
+
+	for ( let i = 0; i < spans.length; i++ ) t.equal( spans[i].getAttribute( 'data-wat' ), spans[i].innerHTML );
+
+	r.splice( 'foo', 2, 1 );
+	r.splice( 'foo', 1, 0, 0 );
+
+	for ( let i = 0; i < spans.length; i++ ) t.equal( spans[i].getAttribute( 'data-wat' ), spans[i].innerHTML );
+});
+
 // TODO reinstate this in some form. Commented out for purposes of #1740
 // test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 // 	let ractive = new Ractive({
