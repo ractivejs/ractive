@@ -12,7 +12,7 @@ export default function resolveReference ( fragment, ref ) {
 	if ( ref === '.' || ref === 'this' ) return context;
 	if ( ref.indexOf( '@keypath' ) === 0 ) {
 		const match = keypathExpr.exec( ref );
-		if ( match[1] ) {
+		if ( match && match[1] ) {
 			const model = resolveReference( fragment, match[1] );
 			if ( model ) return model.getKeypathModel( fragment.ractive );
 		}
@@ -20,7 +20,7 @@ export default function resolveReference ( fragment, ref ) {
 	}
 	if ( ref.indexOf( '@rootpath' ) === 0 ) {
 		const match = keypathExpr.exec( ref );
-		if ( match[1] ) {
+		if ( match && match[1] ) {
 			const model = resolveReference( fragment, match[1] );
 			if ( model ) return model.getKeypathModel();
 		}
