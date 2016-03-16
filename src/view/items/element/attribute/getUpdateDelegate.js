@@ -153,6 +153,9 @@ function updateStringValue () {
 
 	if ( this.node.value !== value ) {
 		this.node.value = value;
+	}
+
+	if ( this.node.getAttribute( 'value' ) !== value ) {
 		this.node.setAttribute( 'value', value );
 	}
 }
