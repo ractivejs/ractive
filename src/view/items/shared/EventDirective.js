@@ -5,6 +5,7 @@ import getFunction from '../../../shared/getFunction';
 import { unbind } from '../../../shared/methodCallers';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
+import gatherRefs from '../../helpers/gatherRefs';
 
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
@@ -108,10 +109,12 @@ export default class EventDirective {
 
 		// augment event object
 		if ( event ) {
+			const refs = gatherRefs( this.parentFragment );
 			event.keypath = this.context.getKeypath( this.ractive );
 			event.rootpath = this.context.getKeypath();
 			event.context = this.context.get();
-			event.index = this.parentFragment.indexRefs;
+			event.index = refs.index;
+			event.key = refs.key;
 		}
 
 		if ( this.fn ) {
@@ -191,10 +194,12 @@ export default class EventDirective {
 	}
 
 	update () {
+		if ( this.method || !this.dirty ) return; // nothing to do
+
+		this.dirty = false;
+
 		// ugh legacy
 		if ( this.action && this.action.update ) this.action.update();
 		if ( this.args && this.args.update ) this.args.update();
-
-		this.dirty = false;
 	}
 }

@@ -325,38 +325,6 @@ test( 'Partial templates will be drawn from script tags if not already registere
 	t.htmlEqual( fixture.innerHTML, '123' );
 });
 
-// ARGH these tests don't work in phantomJS
-/*test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', t => {
-	const ractive, p, docFrag;
-
-	ractive = new Ractive({
-		el: fixture,
-		template: '<p>{{foo}}</p>',
-		data: { foo: 'whee!' }
-	});
-
-	p = ractive.find( 'p' );
-
-	docFrag = ractive.detach();
-	t.ok( docFrag instanceof DocumentFragment );
-	t.ok( docFrag.contains( p ) );
-});
-
-test( 'ractive.detach() works with a previously unrendered ractive', t => {
-	const ractive, p, docFrag;
-
-	ractive = new Ractive({
-		template: '<p>{{foo}}</p>',
-		data: { foo: 'whee!' }
-	});
-
-	p = ractive.find( 'p' );
-
-	docFrag = ractive.detach();
-	t.ok( docFrag instanceof DocumentFragment );
-	t.ok( docFrag.contains( p ) );
-});*/
-
 test( 'ractive.insert() moves an instance to a different location', t => {
 	const one = document.createElement( 'div' );
 	const two = document.createElement( 'div' );
@@ -558,19 +526,6 @@ test( 'ractive.insert() with triples doesn\'t invoke Yoda (#391)', t => {
 	ractive.insert( fixture );
 	t.htmlEqual( fixture.innerHTML, ' you are <i>very puzzled now</i>' );
 });
-
-// commenting out. PhantomJS.
-// test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', t => {
-// 	const ractive = new Ractive({
-// 		el: fixture,
-// 		template: '<input value="{{foo}}">',
-// 		data: {
-// 			foo: null
-// 		}
-// 	});
-//
-// 	t.equal( ractive.find( 'input' ).value, '' );
-// });
 
 // only run these tests if magic mode is supported
 try {
@@ -1667,6 +1622,18 @@ test( 'spread args can be applied to any invocation expression', t => {
 	r.push( 'list', 'a', 'b', 'c' );
 });
 
+test( 'shuffled elements have the correct keypath in their node info', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each list}}<span>{{.}}</span>{{/each}}',
+		data: { list: [ 42, 42, 42 ] }
+	});
+
+	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
+	r.unshift( 'list', 42 );
+	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
+});
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {
@@ -1689,94 +1656,117 @@ test( 'spread args can be applied to any invocation expression', t => {
 // 	t.htmlEqual( fixture.innerHTML, '<p>one.txt</p><p>two.txt</p><p>three.txt</p>' );
 // });
 
-// These tests run fine in the browser but not in PhantomJS. WTF I don't even.
-// Anyway I can't be bothered to figure it out right now so I'm just commenting
-// these out so it will build
+if ( !/phantom/i.test( navigator.userAgent ) ) {
+	test( '<input value="{{foo}}"> where foo === null should not render a value (#390)', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<input value="{{foo}}">',
+			data: {
+				foo: null
+			}
+		});
 
-/*test( 'Components with two-way bindings set parent values on initialisation', t => {
-	var Dropdown, ractive;
-
-	Dropdown = Ractive.extend({
-		template: '<select value="{{value}}">{{#options}}<option value="{{this}}">{{ this[ display ] }}</option>{{/options}}</select>'
+		t.equal( ractive.find( 'input' ).value, '' );
 	});
 
-	ractive = new Ractive({
-		el: fixture,
-		template: '<h2>Select an option:</h2><dropdown options="{{numbers}}" value="{{number}}" display="word"/><p>Selected: {{number.digit}}</p>',
-		data: {
-			numbers: [
-				{ word: 'one', digit: 1 },
-				{ word: 'two', digit: 2 },
-				{ word: 'three', digit: 3 },
-				{ word: 'four', digit: 4 }
-			]
-		},
-		components: {
-			dropdown: Dropdown
-		}
+	test( 'ractive.detach() removes an instance from the DOM and returns a document fragment', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<p>{{foo}}</p>',
+			data: { foo: 'whee!' }
+		});
+
+		const p = ractive.find( 'p' );
+
+		const docFrag = ractive.detach();
+		t.ok( docFrag instanceof DocumentFragment );
+		t.ok( docFrag.contains( p ) );
 	});
 
-	t.deepEqual( ractive.get( 'number' ), { word: 'one', digit: 1 });
-});
+	test( 'ractive.detach() works with a previously unrendered ractive', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<p>{{foo}}</p>',
+			data: { foo: 'whee!' }
+		});
 
+		const p = ractive.find( 'p' );
 
+		const docFrag = ractive.detach();
+		t.ok( docFrag instanceof DocumentFragment );
+		t.ok( docFrag.contains( p ) );
+	});
 
-{
-	name: 'Tearing down expression mustaches and recreating them does\'t throw errors',
-	test: function () {
-		const ractive;
+	test( 'Components with two-way bindings set parent values on initialisation', t => {
+		var Dropdown, ractive;
+
+		Dropdown = Ractive.extend({
+			template: '<select value="{{value}}">{{#options}}<option value="{{this}}">{{ this[ display ] }}</option>{{/options}}</select>'
+		});
 
 		ractive = new Ractive({
+			el: fixture,
+			template: '<h2>Select an option:</h2><dropdown options="{{numbers}}" value="{{number}}" display="word"/><p>Selected: {{number.digit}}</p>',
+			data: {
+				numbers: [
+					{ word: 'one', digit: 1 },
+					{ word: 'two', digit: 2 },
+					{ word: 'three', digit: 3 },
+					{ word: 'four', digit: 4 }
+				]
+			},
+			components: {
+				dropdown: Dropdown
+			}
+		});
+
+		t.deepEqual( ractive.get( 'number' ), { word: 'one', digit: 1 });
+	});
+
+	test( 'Tearing down expression mustaches and recreating them does\'t throw errors', t => {
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#condition}}{{( a+b )}} {{( a+b )}} {{( a+b )}}{{/condition}}',
 			data: { a: 1, b: 2, condition: true }
 		});
 
-		equal( fixture.innerHTML, '3 3 3' );
+		t.equal( fixture.innerHTML, '3 3 3' );
 
 		ractive.set( 'condition', false );
-		equal( fixture.innerHTML, '' );
+		t.equal( fixture.innerHTML, '' );
 
 		ractive.set( 'condition', true );
-		equal( fixture.innerHTML, '3 3 3' );
-	}
-},
-{
-	name: 'Updating an expression section doesn\'t throw errors',
-	test: function () {
-		const ractive, array;
+		t.equal( fixture.innerHTML, '3 3 3' );
+	});
 
-		array = [{ foo: 1 }, { foo: 2 }, { foo: 3 }, { foo: 4 }, { foo: 5 }];
+	test( 'Updating an expression section doesn\'t throw errors', t => {
+		const array = [{ foo: 1 }, { foo: 2 }, { foo: 3 }, { foo: 4 }, { foo: 5 }];
 
-		ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#( array.slice( 0, 3 ) )}}{{foo}}{{/()}}',
-			data: { array: array }
+			data: { array }
 		});
 
-		equal( fixture.innerHTML, '123' );
+		t.equal( fixture.innerHTML, '123' );
 
 		array.push({ foo: 6 });
-		equal( fixture.innerHTML, '123' );
+		t.equal( fixture.innerHTML, '123' );
 
 		array.unshift({ foo: 0 });
-		equal( fixture.innerHTML, '012' );
+		t.equal( fixture.innerHTML, '012' );
 
 		ractive.set( 'array', [] );
-		equal( array._ractive, undefined );
-		equal( fixture.innerHTML, '' );
+		t.equal( array._ractive, undefined );
+		t.equal( fixture.innerHTML, '' );
 
 		ractive.set( 'array', array );
-		ok( array._ractive );
-		equal( fixture.innerHTML, '012' );
-	}
-},
-{
-	name: 'Updating a list section with child list expressions doesn\'t throw errors',
-	test: function () {
-		const ractive, array;
+		t.ok( array._ractive );
+		t.equal( fixture.innerHTML, '012' );
+	});
 
-		array = [
+	test( 'Updating a list section with child list expressions doesn\'t throw errors', t => {
+		const array = [
 			{ foo: [ 1, 2, 3, 4, 5 ] },
 			{ foo: [ 2, 3, 4, 5, 6 ] },
 			{ foo: [ 3, 4, 5, 6, 7 ] },
@@ -1784,26 +1774,26 @@ test( 'spread args can be applied to any invocation expression', t => {
 			{ foo: [ 5, 6, 7, 8, 9 ] }
 		];
 
-		ractive = new Ractive({
+		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#array}}<p>{{#( foo.slice( 0, 3 ) )}}{{.}}{{/()}}</p>{{/array}}',
 			data: { array: array }
 		});
 
-		equal( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
+		t.equal( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
 
 		array.push({ foo: [ 6, 7, 8, 9, 10 ] });
-		equal( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+		t.equal( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
 		array.unshift({ foo: [ 0, 1, 2, 3, 4 ] });
-		equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+		t.equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
 		ractive.set( 'array', [] );
-		equal( array._ractive, undefined );
+		t.equal( array._ractive, undefined );
 		equal( fixture.innerHTML, '' );
 
 		ractive.set( 'array', array );
-		ok( array._ractive );
-		equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
-	}
-}*/
+		t.ok( array._ractive );
+		t.equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+	});
+}

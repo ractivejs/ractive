@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { fire } from 'simulant';
 import Model from 'helpers/Model';
 
 test( 'Static data is propagated from parent to child', t => {
@@ -1157,4 +1158,24 @@ test( 'root references inside a component should resolve to the component', t =>
 	});
 
 	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
+
+test( 'complex mappings continue to update with their dependencies', t => {
+	const cmp = Ractive.extend({
+		template: '{{foo}}'
+	});
+	const r = new Ractive({
+		el: fixture,
+		template: '<cmp foo="foo? {{bar}}" />',
+		components: { cmp }
+	});
+
+	let c = r.findComponent( 'cmp' );
+
+	r.set( 'bar', 'maybe' );
+	t.equal( c.get( 'bar' ), 'maybe' );
+	t.htmlEqual( fixture.innerHTML, 'foo? maybe' );
+	r.set( 'bar', 'yes' );
+	t.equal( c.get( 'bar' ), 'yes' );
+	t.htmlEqual( fixture.innerHTML, 'foo? yes' );
 });

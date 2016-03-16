@@ -94,6 +94,8 @@ export default class Decorator {
 	update () {
 		if ( !this.dirty ) return;
 
+		this.dirty = false;
+
 		let nameChanged = false;
 
 		if ( this.dynamicName && this.nameFragment.dirty ) {
@@ -130,7 +132,5 @@ export default class Decorator {
 		if ( this.dynamicArgs && this.argsFragment.dirty ) {
 			this.argsFragment.update();
 		}
-
-		this.dirty = false;
 	}
 }
