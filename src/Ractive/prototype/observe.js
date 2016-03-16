@@ -243,7 +243,6 @@ class PatternObserver {
 			runloop.addObserver( this, this.defer );
 
 			if ( this.once ) this.cancel();
-
 		}
 	}
 }
