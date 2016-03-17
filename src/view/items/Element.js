@@ -234,16 +234,10 @@ export default class Element extends Item {
 			this.node = node;
 		}
 
-		const context = this.parentFragment.findContext();
-
 		defineProperty( node, '_ractive', {
 			value: {
 				proxy: this,
-				ractive: this.ractive,
-				fragment: this.parentFragment,
-				context,
-				keypath: context.getKeypath( this.ractive ),
-				rootpath: context.getKeypath()
+				fragment: this.parentFragment
 			}
 		});
 
@@ -392,14 +386,14 @@ export default class Element extends Item {
 
 	update () {
 		if ( this.dirty ) {
+			this.dirty = false;
+
 			this.attributes.forEach( update );
 			this.conditionalAttributes.forEach( update );
 			this.eventHandlers.forEach( update );
 
 			if ( this.decorator ) this.decorator.update();
 			if ( this.fragment ) this.fragment.update();
-
-			this.dirty = false;
 		}
 	}
 }
