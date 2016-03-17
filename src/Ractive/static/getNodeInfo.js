@@ -1,7 +1,8 @@
 import gatherRefs from '../../view/helpers/gatherRefs';
 import { addHelpers } from '../../view/helpers/contextMethods';
+import { doc } from '../../config/environment';
 
-const query = document && document.querySelector;
+const query = doc && doc.querySelector;
 
 export default function( node ) {
 	if ( typeof node === 'string' && query ) {
