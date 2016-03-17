@@ -89,7 +89,7 @@ function getBinding () {
 }
 
 function setBinding ( value ) {
-	this.ractive.set( this.getBindingPath(), value );
+	return this.ractive.set( this.getBindingPath(), value );
 }
 
 // deprecated getters
