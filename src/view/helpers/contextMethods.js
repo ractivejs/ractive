@@ -145,7 +145,7 @@ export function addHelpers ( obj, element ) {
 		rootpath: { get: rootpath },
 		context: { get: context },
 		index: { get: index },
-		key: { get: index }
+		key: { get: key }
 	});
 
 	return obj;
