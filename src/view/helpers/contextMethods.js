@@ -21,7 +21,7 @@ function resolve ( path, ractive ) {
 
 	const model = resolveReference( frag, path );
 
-	return model ? model.getKeypath( ractive === undefined ? frag.ractive : ractive ) : undefined;
+	return model ? model.getKeypath( ractive === undefined ? frag.ractive : ractive ) : path;
 }
 
 // the usual mutation suspects
@@ -31,6 +31,14 @@ function add ( keypath, value ) {
 
 function animate ( keypath, value, options ) {
 	return this.ractive.animate( this.resolve( keypath ), value, options );
+}
+
+function link ( source, dest ) {
+	return this.ractive.link( this.resolve( source ), this.resolve( dest ) );
+}
+
+function merge ( keypath, array ) {
+	return this.ractive.merge( this.resolve( keypath ), array );
 }
 
 function pop ( keypath ) {
@@ -63,9 +71,21 @@ function toggle ( keypath ) {
 	return this.ractive.toggle( this.resolve( keypath ) );
 }
 
+function unlink ( dest ) {
+	return this.ractive.unlink( dest );
+}
+
 function unshift ( keypath, ...add ) {
 	add.unshift( this.resolve( keypath ) );
 	return this.ractive.unshift.apply( this.ractive, add );
+}
+
+function update ( keypath ) {
+	return this.ractive.update( this.resolve( keypath ) );
+}
+
+function updateModel ( keypath, cascade ) {
+	return this.ractive.updateModel( this.resolve( keypath ), cascade );
 }
 
 // two-way binding related helpers
@@ -127,6 +147,8 @@ export function addHelpers ( obj, element ) {
 
 		add: { value: add },
 		animate: { value: animate },
+		link: { value: link },
+		merge: { value: merge },
 		pop: { value: pop },
 		push: { value: push },
 		set: { value: set },
@@ -134,7 +156,10 @@ export function addHelpers ( obj, element ) {
 		splice: { value: splice },
 		subtract: { value: subtract },
 		toggle: { value: toggle },
+		unlink: { value: unlink },
 		unshift: { value: unshift },
+		update: { value: update },
+		updateModel: { value: updateModel },
 
 		isBound: { value: isBound },
 		getBindingPath: { value: getBindingPath },
