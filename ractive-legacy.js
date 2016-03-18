@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Mar 18 2016 00:32:55 GMT+0000 (UTC) - commit fc25a0662acc4e7b37ce0acda6422f858180fa3f
+	Fri Mar 18 2016 00:36:04 GMT+0000 (UTC) - commit 74608bd3e85e83192ded095894be4c948bd2c2e4
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -5441,6 +5441,10 @@ var classCallCheck = function (instance, Constructor) {
 
   	Item.prototype.findNextNode = function findNextNode() {
   		return this.parentFragment.findNextNode(this);
+  	};
+
+  	Item.prototype.valueOf = function valueOf() {
+  		return this.toString();
   	};
 
   	return Item;
@@ -13387,6 +13391,7 @@ var classCallCheck = function (instance, Constructor) {
   						// this is a *bit* of a hack
   						fragment.bubble = function () {
   							Fragment.prototype.bubble.call(fragment);
+  							fragment.update();
   							model.set(fragment.valueOf());
   						};
 
