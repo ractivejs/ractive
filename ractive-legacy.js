@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Mar 15 2016 02:52:15 GMT+0000 (UTC) - commit 6ff7104a6bbc47f7a918a2e890f36a51534f5f4e
+	Fri Mar 18 2016 00:32:55 GMT+0000 (UTC) - commit fc25a0662acc4e7b37ce0acda6422f858180fa3f
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -11515,23 +11515,6 @@ var classCallCheck = function (instance, Constructor) {
   		_Element.call(this, options);
   		this.options = [];
   	}
-
-  	Select.prototype.bubble = function bubble() {
-  		var _this = this;
-
-  		if (!this.dirty) {
-  			this.dirty = true;
-
-  			if (this.rendered) {
-  				runloop.scheduleTask(function () {
-  					_this.sync();
-  					_this.dirty = false;
-  				});
-  			}
-
-  			this.parentFragment.bubble(); // default behaviour
-  		}
-  	};
 
   	Select.prototype.render = function render(target, occupants) {
   		_Element.prototype.render.call(this, target, occupants);
