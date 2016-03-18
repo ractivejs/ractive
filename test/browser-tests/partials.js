@@ -928,3 +928,30 @@ test( 'Partials can be parsed from a partial template (#1445)', t => {
 
 	t.htmlEqual( fixture.childNodes[0].innerHTML, 'outer inner' );
 });
+
+
+test( 'Context computations are not called unnecessarily (#2224)', t => {
+	t.expect( 2 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#if foo}}
+				{{>p { x: y( foo.bar )} }}
+			{{/if}}`,
+		data: {
+			foo: { bar: 42 },
+			y ( num ) {
+				t.equal( num, 42 );
+				return num;
+			}
+		},
+		partials: {
+			p: '{{x}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '42' );
+
+	ractive.set( 'foo', null );
+});
