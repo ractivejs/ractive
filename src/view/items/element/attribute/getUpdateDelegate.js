@@ -3,6 +3,7 @@ import { safeToStringValue } from '../../../../utils/dom';
 import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
+import { readStyle, readClass } from '../../../helpers/specialAttrs';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 
@@ -46,8 +47,7 @@ export default function getUpdateDelegate ( attribute ) {
 		if ( node.type === 'checkbox' ) return updateCheckboxName;
 	}
 
-	// special case - style attributes in Internet Exploder
-	if ( name === 'style' && node.style.setAttribute ) return updateIEStyleAttribute;
+	if ( name === 'style' ) return updateStyleAttribute;
 
 	// special case - class names. IE fucks things up, again
 	if ( name === 'class' && ( !node.namespaceURI || node.namespaceURI === html ) ) return updateClassName;
@@ -186,12 +186,45 @@ function updateCheckboxName () {
 	}
 }
 
-function updateIEStyleAttribute () {
-	this.node.style.setAttribute( 'cssText', this.getValue() || '' );
+function updateStyleAttribute () {
+	const props = readStyle( this.getValue() || '' );
+	const style = this.node.style;
+	const keys = Object.keys( props );
+	const prev = this.previous || [];
+
+	let i = keys.length;
+	while ( i-- ) {
+		if ( keys[i] in style ) style[ keys[i] ] = props[ keys[i] ];
+	}
+
+	// remove now-missing attrs
+	i = prev.length;
+	while ( i-- ) {
+		if ( !~keys.indexOf( prev[i] ) && prev[i] in style ) style[ prev[i] ] = '';
+	}
+
+	this.previous = keys;
 }
 
 function updateClassName () {
-	this.node.className = safeToStringValue( this.getValue() );
+	const value = readClass( safeToStringValue( this.getValue() ) );
+	const attr = readClass( this.node.className );
+	const prev = this.previous || [];
+
+	let i = value.length;
+	while ( i-- ) {
+		if ( !~attr.indexOf( value[i] ) ) attr.push( value[i] );
+	}
+
+	// remove now-missing classes
+	i = prev.length;
+	while ( i-- ) {
+		if ( !~value.indexOf( prev[i] ) ) attr.splice( attr.indexOf( prev[i] ), 1 );
+	}
+
+	this.node.className = attr.join( ' ' );
+
+	this.previous = value;
 }
 
 function updateBoolean () {
