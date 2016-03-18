@@ -4,6 +4,8 @@ import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 
+const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
+
 export default function getUpdateDelegate ( attribute ) {
 	const { element, name } = attribute;
 
@@ -15,7 +17,7 @@ export default function getUpdateDelegate ( attribute ) {
 			return element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
 		}
 
-		if ( element.name === 'textarea' ) return updateValue;
+		if ( element.name === 'textarea' ) return updateStringValue;
 
 		// special case - contenteditable
 		if ( element.getAttribute( 'contenteditable' ) != null ) return updateContentEditableValue;
@@ -29,6 +31,8 @@ export default function getUpdateDelegate ( attribute ) {
 
 			// type='radio' name='{{twoway}}'
 			if ( type === 'radio' && element.binding && element.binding.attribute.name === 'name' ) return updateRadioValue;
+
+			if ( ~textTypes.indexOf( type ) ) return updateStringValue;
 		}
 
 		return updateValue;
@@ -50,7 +54,7 @@ export default function getUpdateDelegate ( attribute ) {
 
 	if ( attribute.isBoolean ) return updateBoolean;
 
-	if ( attribute.namespace ) return updateNamespacedAttribute;
+	if ( attribute.namespace && attribute.namespace !== attribute.node.namespaceURI ) return updateNamespacedAttribute;
 
 	return updateAttribute;
 }
@@ -146,6 +150,17 @@ function updateValue () {
 	}
 }
 
+function updateStringValue () {
+	if ( !this.locked ) {
+		const value = this.getValue();
+
+		this.node._ractive.value = value;
+
+		this.node.value = safeToStringValue( value );
+		this.node.setAttribute( 'value', safeToStringValue( value ) );
+	}
+}
+
 function updateRadioName () {
 	this.node.checked = ( this.getValue() == this.node._ractive.value );
 }
@@ -200,5 +215,5 @@ function updateAttribute () {
 }
 
 function updateNamespacedAttribute () {
-	this.node.setAttributeNS( this.namespace, this.name, safeToStringValue( this.getString() ) );
+	this.node.setAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ), safeToStringValue( this.getString() ) );
 }

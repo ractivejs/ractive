@@ -466,6 +466,8 @@ test( 'Reference expression radio bindings rebind correctly inside reference exp
 });
 
 test( 'Ambiguous reference expressions in two-way bindings attach to correct context', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -499,6 +501,35 @@ test( 'Static bindings can only be one-way (#1149)', t => {
 	ractive.updateModel();
 	t.equal( ractive.get( 'foo' ), 'static' );
 	t.htmlEqual( fixture.innerHTML, '<input>static' );
+});
+
+test( 'input[type="checkbox"] with bound checked and name attributes, updates as expected (#1749)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input type="checkbox" name="{{name}}" checked="{{on}}">',
+		data: {
+			name: 'foo',
+			on: 'true'
+		}
+	});
+
+	const checkbox = ractive.find( 'input' );
+
+	// Assert initial bindings
+	t.ok( checkbox.checked );
+	t.equal( checkbox.name, 'foo' );
+
+	// Test name binding
+	ractive.set( 'name', 'bar' );
+
+	t.equal( checkbox.name, 'bar' );
+	t.ok( checkbox.checked );
+
+	// Test checked binding
+	ractive.set( 'on', false );
+
+	t.ok( !checkbox.checked );
+	t.equal( checkbox.name, 'bar' );
 });
 
 test( 'input[type="checkbox"] with bound name updates as expected (#1305)', t => {
@@ -588,6 +619,9 @@ test( 'input[type="checkbox"] works with array mutated on init (#1305)', t => {
 });
 
 test( 'Downstream expression objects in two-way bindings do not trigger a warning (#1421)', t => {
+	// TODO what exactly is being tested here...?
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo()}}<input value="{{.}}">{{/}}',
@@ -643,6 +677,8 @@ test( 'Changes made after render to unresolved', t => {
 });
 
 test( 'If there happen to be unresolved references next to binding resolved references, the unresolveds should not be evicted by mistake (#1608)', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -982,7 +1018,9 @@ test( 'textarea with a single static interpolator as content should not set up a
 	t.equal( r.get( 'foo' ), 'baz' );
 });
 
-test( 'teaxtareas with non-model context should still bind correctly (#2099)', t => {
+test( 'textareas with non-model context should still bind correctly (#2099)', t => {
+	onWarn( () => {} ); // suppress
+
 	const r = new Ractive({
 		el: fixture,
 		template: `{{#with { foo: 'bar' }}}<textarea>{{.foo}}</textarea><button on-click="set(@keypath + '.foo', 'baz')">click me</button>{{/with}}`
@@ -991,4 +1029,57 @@ test( 'teaxtareas with non-model context should still bind correctly (#2099)', t
 	t.equal( r.find( 'textarea' ).value, 'bar' );
 	r.find( 'button' ).click();
 	t.equal( r.find( 'textarea' ).value, 'baz' );
+});
+
+test( 'binding to an reference proxy does not cause out-of-syncitude with the actual model', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<span>{{foo.bar.baz}}</span>{{#with foo[what]}}<input value="{{.baz}}" />{{/with}}',
+		data: {
+			foo: {
+				bar: { baz: 'yep' },
+				bat: { baz: 'also yep' }
+			},
+			what: 'bar'
+		}
+	});
+
+	const span = r.find( 'span' );
+	const input = r.find( 'input' );
+
+	t.equal( span.innerHTML, 'yep' );
+
+	input.value = 'hey';
+	fire( input, 'change' );
+	t.equal( span.innerHTML, 'hey' );
+
+	r.set( 'foo.bar.baz', 'yep again' );
+	t.equal( input.value, 'yep again' );
+
+	r.set( 'what', 'bat' );
+	t.equal( input.value, 'also yep' );
+});
+
+test( `binding a select with mismatched option values shouldn't break section rendering (#2424)`, t => {
+	const cmp = Ractive.extend({ template: `<div>{{yield}}</div>` });
+	const r = new Ractive({
+		el: fixture,
+		components: { cmp },
+		template: `{{#if .condition}}<span>Once</span>
+			{{#each .foo}}<cmp><select value="{{.bar}}">
+				<option></option>
+				<option>a</option>
+				<option>b</option>
+				<option>c</option>
+			</select></cmp>{{/each}}
+		{{/if}}`
+	});
+
+	r.set({
+		condition: true,
+		foo: [{ bar: 'd' }, { bar: 'e' }, { bar: 'f' }]
+	});
+
+	t.equal( fixture.querySelectorAll( 'span' ).length, 1 );
+	t.equal( fixture.querySelectorAll( 'div' ).length, 3 );
 });

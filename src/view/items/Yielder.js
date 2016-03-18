@@ -69,8 +69,12 @@ export default class Yielder extends Item {
 		this.fragment.findAllComponents( name, queryResult );
 	}
 
-	firstNode () {
-		return this.fragment.firstNode();
+	findNextNode() {
+		return this.containerFragment.findNextNode( this );
+	}
+
+	firstNode ( skipParent ) {
+		return this.fragment.firstNode( skipParent );
 	}
 
 	rebind () {
@@ -105,7 +109,7 @@ export default class Yielder extends Item {
 	}
 
 	update () {
-		this.fragment.update();
 		this.dirty = false;
+		this.fragment.update();
 	}
 }

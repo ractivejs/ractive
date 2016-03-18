@@ -28,6 +28,17 @@ test( 'ractive.animate() returns a promise that resolves when the animation comp
 	});
 });
 
+test( 'ractive.animate() returns a promise even if nothing changes', t => {
+	t.expect( 3 );
+
+	const ractive = new Ractive();
+	const promise = ractive.animate( 'foo', 'x' );
+
+	t.ok( promise.then );
+	t.ok( promise.catch );
+	t.ok( promise.stop );
+});
+
 test( 'all animations are updated in a single batch', t => {
 	const done = t.async();
 
@@ -130,4 +141,42 @@ test( 'set operations cancel existing animations on the same keypath', t => {
 
 	// wait to check step function isn't called
 	setTimeout( done, 50 );
+});
+
+test( 'interpolates correctly between objects with identical properties', t => {
+	t.expect( 3 );
+
+	const done = t.async();
+
+	const ractive = new Ractive({
+		data: { obj: { x: 1, y: 2 } }
+	});
+
+	let ignore = false;
+
+	ractive.animate( 'obj', { x: 1, y: 3 }, {
+		step ( pos, { x, y }) {
+			if ( ignore ) return;
+
+			//const { x, y } = ractive.get( 'obj' );
+			t.equal( x, 1 );
+			t.ok( y > 2 && y <= 3 );
+
+			ignore = true;
+		},
+		duration: 50
+	}).then( () => {
+		t.deepEqual( ractive.get( 'obj' ), { x: 1, y: 3 });
+		done();
+	});
+});
+
+test( 'Named easing functions are taken from the instance', t => {
+	t.expect( 0 );
+
+	const ractive = new Ractive({
+		data: { x: 0 }
+	});
+
+	ractive.animate( 'x', 1, { easing: 'easeOut' });
 });

@@ -73,4 +73,27 @@ if ( svg ) {
 		t.equal( ractive.find( 'text' ).namespaceURI, svg );
 		t.htmlEqual( fixture.innerHTML, '<svg><text>yup</text></svg>' );
 	});
+
+	test( 'Custom namespaces are supported (#2038)', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			template: `
+				<svg xmlns='http://www.w3.org/2000/svg' xmlns:v='http://schemas.microsoft.com/visio/2003/SVGExtensions/' >
+					<v:documentProperties v:langID='2057' v:viewMarkup='false'></v:documentProperties>
+				</svg>`
+		});
+
+		const documentProperties = fixture.firstElementChild.firstElementChild;
+		t.equal( documentProperties.namespaceURI, 'http://www.w3.org/2000/svg' );
+	});
+
+	test( 'Namespaced attributes are set correctly', t => {
+		const ractive = new Ractive({
+			template: '<svg><use xlink:href="#yup" /></svg>'
+		});
+
+		ractive.render( fixture );
+
+		t.equal(ractive.find('use').getAttributeNS('http://www.w3.org/1999/xlink', 'href'), '#yup');
+	});
 }

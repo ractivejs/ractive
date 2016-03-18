@@ -1,7 +1,8 @@
 import { noRegistryFunctionReturn } from '../../../config/errors';
 import { warnIfDebug } from '../../../utils/log';
-import parser from '../../../Ractive/config/custom/template/parser';
+import parser from '../../../Ractive/config/runtime-parser';
 import { findInstance } from '../../../shared/registry';
+import { fillGaps } from '../../../utils/object';
 
 export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	// If the partial in instance or view heirarchy instances, great
@@ -12,7 +13,10 @@ export default function getPartialTemplate ( ractive, name, parentFragment ) {
 	partial = parser.fromId( name, { noThrow: true } );
 	if ( partial ) {
 		// parse and register to this ractive instance
-		let parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
+		let parsed = parser.parseFor( partial, ractive );
+
+		// register extra partials on the ractive instance if they don't already exist
+		if ( parsed.p ) fillGaps( ractive.partials, parsed.p );
 
 		// register (and return main partial if there are others in the template)
 		return ractive.partials[ name ] = parsed.t;
@@ -48,7 +52,7 @@ function getPartialFromRegistry ( ractive, name, parentFragment ) {
 	// but hasn't been parsed, parse it now
 	if ( !parser.isParsed( partial ) ) {
 		// use the parseOptions of the ractive instance on which it was found
-		let parsed = parser.parse( partial, parser.getParseOptions( instance ) );
+		let parsed = parser.parseFor( partial, instance );
 
 		// Partials cannot contain nested partials!
 		// TODO add a test for this

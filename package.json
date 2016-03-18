@@ -89,6 +89,7 @@
     "rollup": "^0.15.0",
     "sander": "^0.2.4",
     "sorcery": "^0.6.3",
+    "surge": "^0.17.2",
     "uglify-js": "^2.4.16"
   },
   "testling": {

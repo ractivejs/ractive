@@ -5,6 +5,14 @@ var parseTests = require( './samples/parse' );
 
 describe( 'Ractive.parse()', function () {
 	parseTests.forEach( function ( test ) {
+
+		// disable for tests unless explicitly specified
+		// we can just test the signatures, so set csp false
+		test.options = test.options || { csp: false };
+		if ( !test.options.hasOwnProperty( 'csp' ) ) {
+			test.options.csp = false;
+		}
+
 		it( test.name, function () {
 			if (test.error) {
 				assert.throws( function () {

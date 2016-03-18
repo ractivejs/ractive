@@ -81,6 +81,8 @@ export default class Triple extends Mustache {
 
 	update () {
 		if ( this.rendered && this.dirty ) {
+			this.dirty = false;
+
 			this.unrender();
 			const docFrag = createDocumentFragment();
 			this.render( docFrag );
@@ -89,8 +91,6 @@ export default class Triple extends Mustache {
 			const anchor = this.parentFragment.findNextNode( this );
 
 			parentNode.insertBefore( docFrag, anchor );
-
-			this.dirty = false;
 		}
 	}
 }

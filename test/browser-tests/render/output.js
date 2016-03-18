@@ -2,6 +2,7 @@ import { test } from 'qunit';
 import 'legacy';
 import { svg } from 'config/environment';
 import tests from 'samples/render';
+import { onWarn } from 'test-config';
 
 function getData ( data ) {
 	return typeof data === 'function' ? data() : deepClone( data );
@@ -13,6 +14,9 @@ tests.forEach( theTest => {
 
 	test( theTest.name, t => {
 		const data = getData( theTest.data );
+
+		// suppress warnings about non-POJOs
+		onWarn( msg => t.ok( /plain JavaScript object/.test( msg ) ) );
 
 		const ractive = new Ractive({
 			el: fixture,

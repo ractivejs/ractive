@@ -1,6 +1,6 @@
 const selectorsPattern = /(?:^|\})?\s*([^\{\}]+)\s*\{/g;
 const commentsPattern = /\/\*.*?\*\//g;
-const selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?::[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
+const selectorUnitPattern = /((?:(?:\[[^\]+]\])|(?:[^\s\+\>~:]))+)((?:::?[^\s\+\>\~\(:]+(?:\([^\)]+\))?)*\s*[\s\+\>\~]?)\s*/g;
 const excludePattern = /^(?:@|\d+%)/;
 const dataRvcGuidPattern = /\[data-ractive-css~="\{[a-z0-9-]+\}"]/g;
 

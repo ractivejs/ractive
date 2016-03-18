@@ -12,7 +12,7 @@ export default function Ractive$get ( keypath ) {
 	if ( !this.viewmodel.has( key ) ) {
 		// if this is an inline component, we may need to create
 		// an implicit mapping
-		if ( this.component ) {
+		if ( this.component && !this.isolated ) {
 			model = resolveReference( this.component.parentFragment, key );
 
 			if ( model ) {

@@ -803,6 +803,22 @@ const renderTests = [
 		result: '<div class="falsey"></div>'
 	},
 	{
+		name: '#if/else with empty array',
+		template: '{{#if list}}yep{{else}}nope{{/if}}',
+		data: { list: [] },
+		result: 'nope',
+		new_data: { list: [ 1 ] },
+		new_result: 'yep'
+	},
+	{
+		name: '#if/else with empty object',
+		template: '{{#if obj}}yep{{else}}nope{{/if}}',
+		data: { obj: {} },
+		result: 'nope',
+		new_data: { obj: { yep: true } },
+		new_result: 'yep'
+	},
+	{
 		name: 'Restricting references with `this`',
 		template: '{{#foo}}{{this.bar}}{{/foo}}',
 		data: { foo: {}, bar: 'fail' },
@@ -1279,7 +1295,30 @@ const renderTests = [
 		template: '<input name="{{name}}">',
 		data: { name: 'foo' },
 		result: '<input name="foo">'
+	},
+	{
+		name: 'Object, Boolean, String, Number are available in templates',
+		template: '{{Object.keys(foo)}} {{Boolean(1)}} {{String(42)[0]}} {{Number("42").toFixed(1)}}',
+		data: { foo: { a: 1, b: 2 } },
+		result: 'a,b true 4 42.0'
+	},
+	{
+		name: 'keyword reference',
+		template: '{{new}}',
+		data: { new: 'old' },
+		result: 'old'
+	},
+	{
+		name: 'int lit in an interpolator is a number, not a reference (#2397)',
+		template: '{{123}}',
+		result: '123'
+	},
+	{
+		name: 'integers can be aliased (#2397)',
+		template: '{{#with 1 as num, 42 as answer}}{{num}} {{answer}}{{/with}}',
+		result: '1 42'
 	}
+
 ];
 
 function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }

@@ -1,20 +1,30 @@
 import { INTERPOLATOR } from '../../../config/types';
-import { html } from '../../../config/namespaces';
+import namespaces from '../../../config/namespaces';
 import Fragment from '../../Fragment';
 import Item from '../shared/Item';
-import determineNameAndNamespace from './attribute/determineNameAndNamespace';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { isArray } from '../../../utils/is';
 import { safeToStringValue } from '../../../utils/dom';
 import { booleanAttributes } from '../../../utils/html';
 
+function lookupNamespace ( node, prefix ) {
+	const qualified = `xmlns:${prefix}`;
+
+	while ( node ) {
+		if ( node.hasAttribute( qualified ) ) return node.getAttribute( qualified );
+		node = node.parentNode;
+	}
+
+	return namespaces[ prefix ];
+}
+
 export default class Attribute extends Item {
 	constructor ( options ) {
 		super( options );
 
-		determineNameAndNamespace( this, options.name );
-
+		this.name = options.name;
+		this.namespace = null;
 		this.element = options.element;
 		this.parentFragment = options.element.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
@@ -68,8 +78,7 @@ export default class Attribute extends Item {
 	}
 
 	rebind () {
-		this.unbind();
-		this.bind();
+		if (this.fragment) this.fragment.rebind();
 	}
 
 	render () {
@@ -77,7 +86,7 @@ export default class Attribute extends Item {
 		this.node = node;
 
 		// should we use direct property access, or setAttribute?
-		if ( !node.namespaceURI || node.namespaceURI === html ) {
+		if ( !node.namespaceURI || node.namespaceURI === namespaces.html ) {
 			this.propertyName = propertyNames[ this.name ] || this.name;
 
 			if ( node[ this.propertyName ] !== undefined ) {
@@ -92,6 +101,15 @@ export default class Attribute extends Item {
 
 			if ( this.propertyName === 'value' ) {
 				node._ractive.value = this.value;
+			}
+		}
+
+		if ( node.namespaceURI ) {
+			const index = this.name.indexOf( ':' );
+			if ( index !== -1 ) {
+				this.namespace = lookupNamespace( node, this.name.slice( 0, index ) );
+			} else {
+				this.namespace = node.namespaceURI;
 			}
 		}
 
@@ -132,9 +150,9 @@ export default class Attribute extends Item {
 
 	update () {
 		if ( this.dirty ) {
+			this.dirty = false;
 			if ( this.fragment ) this.fragment.update();
 			if ( this.rendered ) this.updateDelegate();
-			this.dirty = false;
 		}
 	}
 }

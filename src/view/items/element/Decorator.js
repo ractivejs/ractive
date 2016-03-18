@@ -67,7 +67,7 @@ export default class Decorator {
 		const fn = findInViewHierarchy( 'decorators', this.ractive, this.name );
 
 		if ( !fn ) {
-			warnOnce( missingPlugin( this.name, 'decorators' ) );
+			warnOnce( missingPlugin( this.name, 'decorator' ) );
 			this.intermediary = missingDecorator;
 			return;
 		}
@@ -94,6 +94,8 @@ export default class Decorator {
 	update () {
 		if ( !this.dirty ) return;
 
+		this.dirty = false;
+
 		let nameChanged = false;
 
 		if ( this.dynamicName && this.nameFragment.dirty ) {
@@ -102,19 +104,21 @@ export default class Decorator {
 			this.name = name;
 		}
 
-		if ( nameChanged || !this.intermediary.update ) {
-			this.unrender();
-			this.render();
-		}
-		else {
-			if ( this.dynamicArgs ) {
-				if ( this.argsFragment.dirty ) {
-					const args = this.argsFragment.getArgsList();
-					this.intermediary.update.apply( this.ractive, args );
-				}
+		if ( this.intermediary ) {
+			if ( nameChanged || !this.intermediary.update ) {
+				this.unrender();
+				this.render();
 			}
 			else {
-				this.intermediary.update.apply( this.ractive, this.args );
+				if ( this.dynamicArgs ) {
+					if ( this.argsFragment.dirty ) {
+						const args = this.argsFragment.getArgsList();
+						this.intermediary.update.apply( this.ractive, args );
+					}
+				}
+				else {
+					this.intermediary.update.apply( this.ractive, this.args );
+				}
 			}
 		}
 
@@ -128,7 +132,5 @@ export default class Decorator {
 		if ( this.dynamicArgs && this.argsFragment.dirty ) {
 			this.argsFragment.update();
 		}
-
-		this.dirty = false;
 	}
 }

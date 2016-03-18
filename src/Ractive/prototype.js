@@ -10,6 +10,7 @@ import findParent from './prototype/findParent';
 import fire from './prototype/fire';
 import get from './prototype/get';
 import insert from './prototype/insert';
+import link from './prototype/link';
 import merge from './prototype/merge';
 import observe from './prototype/observe';
 import observeList from './prototype/observeList';
@@ -31,7 +32,9 @@ import splice from './prototype/splice';
 import subtract from './prototype/subtract';
 import teardown from './prototype/teardown';
 import toggle from './prototype/toggle';
+import toCSS from './prototype/toCSS';
 import toHTML from './prototype/toHTML';
+import unlink from './prototype/unlink';
 import unrender from './prototype/unrender';
 import unshift from './prototype/unshift';
 import update from './prototype/update';
@@ -50,6 +53,7 @@ export default {
 	fire,
 	get,
 	insert,
+	link,
 	merge,
 	observe,
 	observeList,
@@ -73,8 +77,11 @@ export default {
 	subtract,
 	teardown,
 	toggle,
+	toCSS,
+	toCss: toCSS,
 	toHTML,
 	toHtml: toHTML,
+	unlink,
 	unrender,
 	unshift,
 	update,

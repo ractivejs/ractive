@@ -3,22 +3,6 @@ import { createDocumentFragment } from '../utils/dom';
 import { isArray, isObject } from '../utils/is';
 import { toEscapedString, toString, unbind, unrender, unrenderAndDestroy, update } from '../shared/methodCallers';
 
-function getRefs ( ref, value, parent ) {
-	let refs;
-
-	if ( ref ) {
-		refs = {};
-		Object.keys( parent ).forEach( ref => {
-			refs[ ref ] = parent[ ref ];
-		});
-		refs[ ref ] = value;
-	} else {
-		refs = parent;
-	}
-
-	return refs;
-}
-
 export default class RepeatedFragment {
 	constructor ( options ) {
 		this.parent = options.owner.parentFragment;
@@ -28,6 +12,9 @@ export default class RepeatedFragment {
 		this.parentFragment = this;
 		this.owner = options.owner;
 		this.ractive = this.parent.ractive;
+
+		// encapsulated styles should be inherited until they get applied by an element
+		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
 
 		this.context = null;
 		this.rendered = false;
@@ -85,15 +72,9 @@ export default class RepeatedFragment {
 	}
 
 	createIteration ( key, index ) {
-		const parentFragment = this.owner.parentFragment;
-		const keyRefs = getRefs( this.keyRef, key, parentFragment.keyRefs );
-		const indexRefs = getRefs( this.indexRef, index, parentFragment.indexRefs );
-
 		const fragment = new Fragment({
 			owner: this,
-			template: this.template,
-			indexRefs,
-			keyRefs
+			template: this.template
 		});
 
 		// TODO this is a bit hacky
@@ -105,7 +86,8 @@ export default class RepeatedFragment {
 
 		// set up an iteration alias if there is one
 		if ( this.owner.template.z ) {
-			fragment.aliases = { [this.owner.template.z[0].n]: model };
+			fragment.aliases = {};
+			fragment.aliases[ this.owner.template.z[0].n ] = model;
 		}
 
 		return fragment.bind( model );
@@ -158,7 +140,7 @@ export default class RepeatedFragment {
 	findNextNode ( iteration ) {
 		if ( iteration.index < this.iterations.length - 1 ) {
 			for ( let i = iteration.index + 1; i < this.iterations.length; i++ ) {
-				let node = this.iterations[ i ].firstNode();
+				let node = this.iterations[ i ].firstNode( true );
 				if ( node ) return node;
 			}
 		}
@@ -166,23 +148,21 @@ export default class RepeatedFragment {
 		return this.owner.findNextNode();
 	}
 
-	firstNode () {
-		return this.iterations[0] ? this.iterations[0].firstNode() : null;
+	firstNode ( skipParent ) {
+		return this.iterations[0] ? this.iterations[0].firstNode( skipParent ) : null;
 	}
 
 	rebind ( context ) {
 		this.context = context;
 
-		// {{#each array}}...
-		if ( isArray( context.get() ) ) {
-			this.iterations.forEach( ( fragment, i ) => {
-				const model = context.joinKey( i );
-				if ( this.owner.template.z ) {
-					fragment.aliases = { [this.owner.template.z[0].n]: model };
-				}
-				fragment.rebind( model );
-			});
-		}
+		this.iterations.forEach( ( fragment ) => {
+			const model = context.joinKey( fragment.key || fragment.index );
+			if ( this.owner.template.z ) {
+				fragment.aliases = {};
+				fragment.aliases[ this.owner.template.z[0].n ] = model;
+			}
+			fragment.rebind( model );
+		});
 	}
 
 	render ( target, occupants ) {
@@ -231,6 +211,11 @@ export default class RepeatedFragment {
 
 	unrender ( shouldDestroy ) {
 		this.iterations.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
+		if ( this.pendingNewIndices && this.previousIterations ) {
+			this.previousIterations.forEach( fragment => {
+				if ( fragment.rendered ) shouldDestroy ? unrenderAndDestroy( fragment ) : unrender( fragment );
+			});
+		}
 		this.rendered = false;
 	}
 
@@ -242,6 +227,9 @@ export default class RepeatedFragment {
 			this.updatePostShuffle();
 			return;
 		}
+
+		if ( this.updating ) return;
+		this.updating = true;
 
 		const value = this.context.get(),
 			  wasArray = this.isArray;
@@ -335,6 +323,8 @@ export default class RepeatedFragment {
 				parentNode.insertBefore( docFrag, anchor );
 			}
 		}
+
+		this.updating = false;
 	}
 
 	updatePostShuffle () {
@@ -350,11 +340,18 @@ export default class RepeatedFragment {
 		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
 		// storing them in a document fragment for later reinsertion) seems a bit hokey,
 		// but it seems to work for now
-		let previousNewIndex = -1;
-		let reinsertFrom = null;
+		const len = this.context.get().length;
+		let i, maxIdx = 0, merged = false;
 
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			const fragment = this.previousIterations[ oldIndex ];
+
+			// check for merged shuffles
+			if ( !merged && newIndex !== -1 ) {
+				if ( newIndex < maxIdx ) merged = true;
+				if ( newIndex > maxIdx ) maxIdx = newIndex;
+			}
+
 
 			if ( newIndex === -1 ) {
 				fragment.unbind().unrender( true );
@@ -362,45 +359,50 @@ export default class RepeatedFragment {
 				fragment.index = newIndex;
 				const model = this.context.joinKey( newIndex );
 				if ( this.owner.template.z ) {
-					fragment.aliases = { [this.owner.template.z[0].n]: model };
+					fragment.aliases = {};
+					fragment.aliases[ this.owner.template.z[0].n ] = model;
 				}
 				fragment.rebind( model );
-
-				if ( reinsertFrom === null && ( newIndex !== previousNewIndex + 1 ) ) {
-					reinsertFrom = oldIndex;
-				}
 			}
-
-			previousNewIndex = newIndex;
 		});
 
 		// create new iterations
 		const docFrag = this.rendered ? createDocumentFragment() : null;
 		const parentNode = this.rendered ? this.parent.findParentNode() : null;
 
-		const len = this.context.get().length;
-		let i;
+		if ( merged ) {
+			for ( i = 0; i < len; i += 1 ) {
+				let frag = this.iterations[i];
 
-		for ( i = 0; i < len; i += 1 ) {
-			let existingFragment = this.iterations[i];
-
-			if ( this.rendered ) {
-				if ( existingFragment ) {
-					if ( reinsertFrom !== null && i >= reinsertFrom ) {
-						docFrag.appendChild( existingFragment.detach() );
+				if ( this.rendered ) {
+					if ( frag ) {
+						docFrag.appendChild( frag.detach() );
+					} else {
+						this.iterations[i] = this.createIteration( i, i );
+						this.iterations[i].render( docFrag );
 					}
+				}
 
-					else if ( docFrag.childNodes.length ) {
-						parentNode.insertBefore( docFrag, existingFragment.firstNode() );
+				if ( !this.rendered ) {
+					if ( !frag ) {
+						this.iterations[i] = this.createIteration( i, i );
 					}
-				} else {
-					this.iterations[i] = this.createIteration( i, i );
-					this.iterations[i].render( docFrag );
 				}
 			}
+		} else {
+			for ( i = 0; i < len; i++ ) {
+				let frag = this.iterations[i];
 
-			if ( !this.rendered ) {
-				if ( !existingFragment ) {
+				if ( this.rendered ) {
+					if ( frag && docFrag.childNodes.length ) {
+						parentNode.insertBefore( docFrag, frag.firstNode() );
+					}
+
+					if ( !frag ) {
+						frag = this.iterations[i] = this.createIteration( i, i );
+						frag.render( docFrag );
+					}
+				} else if ( !frag ) {
 					this.iterations[i] = this.createIteration( i, i );
 				}
 			}

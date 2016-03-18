@@ -1,11 +1,12 @@
 import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
-import createFunction from '../../../shared/createFunction';
-import { rebind, unbind } from '../../../shared/methodCallers';
+import getFunction from '../../../shared/getFunction';
+import { unbind } from '../../../shared/methodCallers';
 import noop from '../../../utils/noop';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
+import gatherRefs from '../../helpers/gatherRefs';
 
 const eventPattern = /^event(?:\.(.+))?$/;
 const argumentsPattern = /^arguments\.(\d*)$/;
@@ -42,13 +43,13 @@ export default class EventDirective {
 		if ( template.m ) {
 			this.method = template.m;
 
-			if ( this.passthru = template.g ) {
-				// on-click="foo(...arguments)"
-				// no models or args, just pass thru values
-			}
-			else {
+			// pass-thru "...arguments"
+			this.passthru = !!template.g;
+
+			if ( template.a ) {
 				this.resolvers = [];
 				this.models = template.a.r.map( ( ref, i ) => {
+
 					if ( eventPattern.test( ref ) ) {
 						// on-click="foo(event.node)"
 						return {
@@ -91,7 +92,7 @@ export default class EventDirective {
 					return model;
 				});
 
-				this.argsFn = createFunction( template.a.s, template.a.r.length );
+				this.argsFn = getFunction( template.a.s, template.a.r.length );
 			}
 
 		}
@@ -128,14 +129,16 @@ export default class EventDirective {
 		}
 	}
 
-	fire ( event, passedArgs ) {
+	fire ( event, passedArgs = [] ) {
+
 		// augment event object
 		if ( event ) {
-			event.keypath = this.context.getKeypath();
+			const refs = gatherRefs( this.parentFragment );
+			event.keypath = this.context.getKeypath( this.ractive );
+			event.rootpath = this.context.getKeypath();
 			event.context = this.context.get();
-			event.index = this.parentFragment.indexRefs;
-
-			if ( passedArgs ) passedArgs.unshift( event );
+			event.index = refs.index;
+			event.key = refs.key;
 		}
 
 		if ( this.method ) {
@@ -145,10 +148,9 @@ export default class EventDirective {
 
 			let args;
 
-			if ( this.passthru ) {
-				args = passedArgs;
-			}
-			else {
+			if ( event ) passedArgs.unshift( event );
+
+			if ( this.models ) {
 				const values = this.models.map( model => {
 					if ( !model ) return undefined;
 
@@ -174,19 +176,32 @@ export default class EventDirective {
 				args = this.argsFn.apply( null, values );
 			}
 
+			if ( this.passthru ) {
+				args = args ? args.concat( passedArgs ) : passedArgs;
+			}
 
 			// make event available as `this.event`
 			const ractive = this.ractive;
 			const oldEvent = ractive.event;
 
 			ractive.event = event;
-			ractive[ this.method ].apply( ractive, args );
+			const result = ractive[ this.method ].apply( ractive, args );
+
+			// Auto prevent and stop if return is explicitly false
+			let original;
+			if ( result === false && ( original = event.original ) ) {
+				original.preventDefault && original.preventDefault();
+				original.stopPropagation && original.stopPropagation();
+			}
+
 			ractive.event = oldEvent;
 		}
 
 		else {
 			const action = this.action.toString();
 			let args = this.template.d ? this.args.getArgsList() : this.args;
+
+			if ( passedArgs.length ) args = args.concat( passedArgs );
 
 			if ( event ) event.name = action;
 
@@ -210,7 +225,7 @@ export default class EventDirective {
 		const template = this.template;
 
 		if ( template.m ) {
-			this.resolvers.forEach( unbind );
+			if ( this.resolvers ) this.resolvers.forEach( unbind );
 			this.resolvers = [];
 
 			this.models = null;
@@ -228,12 +243,12 @@ export default class EventDirective {
 	}
 
 	update () {
-		if ( this.method ) return; // nothing to do
+		if ( this.method || !this.dirty ) return; // nothing to do
+
+		this.dirty = false;
 
 		// ugh legacy
 		if ( this.action.update ) this.action.update();
 		if ( this.template.d ) this.args.update();
-
-		this.dirty = false;
 	}
 }

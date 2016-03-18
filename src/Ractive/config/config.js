@@ -2,7 +2,7 @@ import { warnIfDebug } from '../../utils/log';
 import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
-import templateConfigurator from './custom/template/template';
+import templateConfigurator from './custom/template';
 import defaults from './defaults';
 import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';

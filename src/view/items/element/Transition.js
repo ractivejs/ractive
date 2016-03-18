@@ -234,6 +234,6 @@ export default class Transition {
 			return;
 		}
 
-		this._fn.apply( this.root, [ this ].concat( this.params ) );
+		this._fn.apply( this.ractive, [ this ].concat( this.params ) );
 	}
 }
