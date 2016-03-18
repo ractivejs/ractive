@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Mar 18 2016 01:30:22 GMT+0000 (UTC) - commit 582adbb2aae7200079efe8af93d883203c0e7eb5
+	Fri Mar 18 2016 06:50:58 GMT+0000 (UTC) - commit 11d24eb453d7ad38328eb5fb252b533639566a6f
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -861,10 +861,23 @@ var classCallCheck = function (instance, Constructor) {
 
   var updateHook = new Hook('update');
   function Ractive$update(keypath) {
-  	var model = keypath ? this.viewmodel.joinAll(splitKeypath(keypath)) : this.viewmodel;
+  	if (keypath) keypath = splitKeypath(keypath);
+
+  	var model = keypath ? this.viewmodel.joinAll(keypath) : this.viewmodel;
 
   	var promise = runloop.start(this, true);
+
   	model.mark();
+
+  	if (keypath) {
+  		// there may be unresolved refs that are now resolvable up the context tree
+  		var _parent = model.parent;
+  		while (keypath.length && _parent) {
+  			if (_parent.clearUnresolveds) _parent.clearUnresolveds(keypath.pop());
+  			_parent = _parent.parent;
+  		}
+  	}
+
   	runloop.end();
 
   	updateHook.fire(this, model);
