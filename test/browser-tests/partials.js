@@ -895,6 +895,32 @@ test( `Partials can have context that starts with '.' (#1880)`, t => {
 	t.htmlEqual( fixture.innerHTML, 'bat' );
 });
 
+test( 'Context computations are not called unnecessarily (#2224)', t => {
+	t.expect( 2 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#if foo}}
+				{{>p { x: y( foo.bar )} }}
+			{{/if}}`,
+		data: {
+			foo: { bar: 42 },
+			y ( num ) {
+				t.equal( num, 42 );
+				return num;
+			}
+		},
+		partials: {
+			p: '{{x}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '42' );
+
+	ractive.set( 'foo', null );
+});
+
 test( 'Partials can be given alias context (#2298)', t => {
 	new Ractive({
 		el: fixture,
