@@ -23,9 +23,9 @@ test( `style attributes only update the styles in their content`, t => {
 	const span = r.find( 'span' );
 
 	span.style.display = 'block';
-	r.set( 'styles', 'color: red; height: 87.312%;' );
+	r.set( 'styles', 'color: red; height: 87.5%;' );
 
 	t.equal( span.style.display, 'block' );
 	t.equal( span.style.color, 'red' );
-	t.equal( span.style.height, '87.312%' );
+	t.equal( span.style.height, '87.5%' );
 });
