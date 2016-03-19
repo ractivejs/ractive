@@ -192,9 +192,10 @@ function updateStyleAttribute () {
 	const keys = Object.keys( props );
 	const prev = this.previous || [];
 
-	let i = keys.length;
-	while ( i-- ) {
+	let i = 0;
+	while ( i < keys.length ) {
 		if ( keys[i] in style ) style[ keys[i] ] = props[ keys[i] ];
+		i++;
 	}
 
 	// remove now-missing attrs
@@ -211,9 +212,10 @@ function updateClassName () {
 	const attr = readClass( this.node.className );
 	const prev = this.previous || [];
 
-	let i = value.length;
-	while ( i-- ) {
+	let i = 0;
+	while ( i < value.length ) {
 		if ( !~attr.indexOf( value[i] ) ) attr.push( value[i] );
+		i++;
 	}
 
 	// remove now-missing classes
