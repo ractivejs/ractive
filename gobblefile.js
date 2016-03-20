@@ -28,7 +28,7 @@ var test;
 function noop () {}
 
 function adjustAndSkip ( pattern ) {
-	return { transform ( src, path ) {
+	return { transform: function ( src, path ) {
 		if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
 			return src.replace( /<@version@>/g, version );
 		}
@@ -120,7 +120,7 @@ test = (function () {
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
 		var promises = testFiles.sort().map( function ( mod ) {
 			var transform = {
-				resolveId ( importee, importer ) {
+				resolveId: function ( importee, importer ) {
 					if ( globals[ importee ] ) return false;
 
 					if ( !importer ) return importee;
@@ -131,7 +131,7 @@ test = (function () {
 
 					return path.resolve( inputdir, importee ) + '.js';
 				},
-				load ( id ) {
+				load: function ( id ) {
 					var code = sander.readFileSync( id, { encoding: 'utf-8' });
 
 					if ( /test-config/.test( id ) ) return code;
