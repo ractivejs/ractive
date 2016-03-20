@@ -5,7 +5,7 @@ import { createElement } from './dom';
 var create, defineProperty, defineProperties;
 
 try {
-	Object.defineProperty({}, 'test', { value: 0 });
+	Object.defineProperty({}, 'test', { get() {}, set() {} });
 
 	if ( doc ) {
 		Object.defineProperty( createElement( 'div' ), 'test', { value: 0 });

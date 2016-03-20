@@ -6,13 +6,45 @@ var junk = require( 'junk' );
 var Promise = sander.Promise;
 var path = require( 'path' );
 var rollup = require( 'rollup' );
+var babel = require( 'rollup-plugin-babel' )({
+	plugins: [
+		[ "transform-es2015-classes", { loose: true } ]
+	]
+});
+var legacyBabel = require( 'rollup-plugin-babel' )({
+	plugins: [
+		"transform-es3-property-literals",
+		[ "transform-es2015-classes", { loose: true } ]
+	]
+});
 var sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' );
 var version = require( './package.json' ).version;
 
 var src = gobble( 'src' );
-var es5 = src.transform( 'babel' );
+var es5 = src;
 var lib;
 var test;
+
+function noop () {}
+
+function adjustAndSkip ( pattern ) {
+	return { transform ( src, path ) {
+		if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
+			return src.replace( /<@version@>/g, version );
+		}
+
+		if ( pattern && pattern.test( path ) ) {
+			return 'export default null;';
+		}
+
+		return src;
+	} };
+}
+
+function bloodyIE8 ( src ) {
+	src = src.replace( /\.typeof/g, "['typeof']" ).replace( /\.catch/g, "['catch']" );
+	return src;
+}
 
 if ( gobble.env() === 'production' ) {
 	var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
@@ -21,86 +53,51 @@ if ( gobble.env() === 'production' ) {
 		.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
 
 	lib = gobble([
-		src.transform( 'rollup-babel', {
+		src.transform( 'rollup', {
+			plugins: [ adjustAndSkip(), legacyBabel ],
 			format: 'umd',
-			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-					return src.replace( /<@version@>/g, version );
-				}
-
-				return src;
-			},
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.js',
 			banner: banner
-		}),
+		}).transform( bloodyIE8 ),
 
-		src.transform( 'rollup-babel', {
+		src.transform( 'rollup', {
+			plugins: [ adjustAndSkip( /legacy\.js/ ), babel ],
 			format: 'umd',
-			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-					return src.replace( /<@version@>/g, version );
-				}
-
-				if ( /legacy\.js/.test( path ) ) {
-					return 'export default null;';
-				}
-
-				return src;
-			},
 			banner: banner,
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive.js'
 		}),
 
-		src.transform( 'rollup-babel', {
+		src.transform( 'rollup', {
+			plugins: [ adjustAndSkip( /legacy\,js|_parse\.js/ ), babel ],
 			format: 'umd',
-			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-					return src.replace( /<@version@>/g, version );
-				}
-
-				if ( /legacy\.js|_parse\.js/.test( path ) ) {
-					return 'export default null;';
-				}
-
-				return src;
-			},
 			banner: banner,
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive.runtime.js'
 		}),
 
-		src.transform( 'rollup-babel', {
+		src.transform( 'rollup', {
+			plugins: [ adjustAndSkip( /_parse\.js/ ), legacyBabel ],
 			format: 'umd',
-			transform: function ( src, path ) {
-				if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-					return src.replace( /<@version@>/g, version );
-				}
-
-				if ( /_parse\.js/.test( path ) ) {
-					return 'export default null;';
-				}
-
-				return src;
-			},
 			banner: banner,
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.runtime.js'
-		})
+		}).transform( bloodyIE8 )
 	]);
 } else {
 	lib = gobble([
 		es5.transform( 'rollup', {
+			plugins: [ adjustAndSkip(), legacyBabel ],
 			format: 'umd',
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.js'
-		}),
+		}).transform( bloodyIE8 ),
 
 		sandbox
 	]);
@@ -108,25 +105,22 @@ if ( gobble.env() === 'production' ) {
 
 test = (function () {
 	var testFiles = sander.lsrSync( 'test/browser-tests' ).filter( junk.not );
+	var globals = {
+		qunit: 'QUnit',
+		simulant: 'simulant'
+	};
+
 
 	var testModules = gobble([
 		gobble([
 			gobble( 'test/browser-tests' ).moveTo( 'browser-tests' ),
 			gobble( 'test/__support/js' )
-		]).transform( 'babel', {
-			sourceMap: false
-		}),
+		]),
 		es5
 	]).transform( function bundleTests ( inputdir, outputdir, options ) {
-		var globals = {
-			qunit: 'QUnit',
-			simulant: 'simulant'
-		};
-
 		var promises = testFiles.sort().map( function ( mod ) {
-			return rollup.rollup({
-				entry: inputdir + '/browser-tests/' + mod,
-				resolveId: function ( importee, importer ) {
+			var transform = {
+				resolveId ( importee, importer ) {
 					if ( globals[ importee ] ) return false;
 
 					if ( !importer ) return importee;
@@ -137,15 +131,22 @@ test = (function () {
 
 					return path.resolve( inputdir, importee ) + '.js';
 				},
-				load: function ( id ) {
+				load ( id ) {
 					var code = sander.readFileSync( id, { encoding: 'utf-8' });
 
 					if ( /test-config/.test( id ) ) return code;
 
 					return 'import { initModule } from \'test-config\';\n' +
-					       'initModule(\'' + mod.replace( /\\/g, '/' ) + '\' );\n\n' +
-					        code;
+						'initModule(\'' + mod.replace( /\\/g, '/' ) + '\' );\n\n' +
+						code;
 				}
+			};
+
+			return rollup.rollup({
+				entry: inputdir + '/browser-tests/' + mod,
+				plugins: [ transform, legacyBabel ],
+				globals: globals,
+				onwarn: noop
 			}).then( function ( bundle ) {
 				return bundle.write({
 					dest: outputdir + '/' + mod,
@@ -156,7 +157,7 @@ test = (function () {
 		});
 
 		return Promise.all( promises );
-	});
+	}).transform( bloodyIE8 );
 
 	return gobble([
 		gobble( 'test/__support/index.html' )
@@ -170,24 +171,25 @@ test = (function () {
 		gobble( 'test/node-tests' ).moveTo( 'node-tests' ),
 		gobble( 'test/__support/js/samples' )
 			.include( '*.js' )
-			.transform( 'babel', {
-				whitelist: [
-					'es3.memberExpressionLiterals',
-					'es3.propertyLiterals',
-					'es6.arrowFunctions',
-					'es6.blockScoping',
-					'es6.constants',
-					'es6.destructuring',
-					'es6.parameters',
-					'es6.spread',
-					'es6.properties.shorthand',
-					'es6.properties.computed',
-					'es6.templateLiterals',
-					'es6.classes',
-					'es6.modules'
-				],
-				loose: [ 'es6.classes' ],
-				sourceMap: false
+			.transform( function bundleSamples ( inputDir, outputDir, options ) {
+				return sander.lsr(inputDir).then( function ( files ) {
+					var promises = files.map( function ( file ) {
+						return rollup.rollup({
+							entry: inputDir + '/' + file,
+							plugins: [ legacyBabel ],
+							globals: globals,
+							onwarn: noop
+						}).then( function ( bundle ) {
+							return bundle.write({
+								dest: outputDir + '/' + file,
+								format: 'cjs',
+								globals: globals,
+								moduleName: 'tests'
+							});
+						});
+					});
+					return Promise.all(promises);
+				});
 			})
 			.moveTo( 'node-tests/samples' )
 	]).moveTo( 'test' );
