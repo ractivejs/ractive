@@ -36,4 +36,8 @@ export default class Item {
 	findNextNode () {
 		return this.parentFragment.findNextNode( this );
 	}
+
+	valueOf () {
+		return this.toString();
+	}
 }
