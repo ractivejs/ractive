@@ -376,14 +376,40 @@ test( 'rebinds of IF sections do not add new context (#2454)', function ( t ) {
 	t.htmlEqual( fixture.innerHTML, 'bar' );
 });
 
-test( 'rebinds of UNLESS sections do not add new context (#2454)', function ( t ) {
+test( 'rebinds of if/else sections do not add new context (#2454)', function ( t ) {
 	const ractive = new Ractive({
 		el: fixture,
 		template: `
 {{#items}}
 	{{#disabled}} 
-	{{else}} 
-		{{this.name}} 
+		disabled!
+	{{else}}
+		{{this.name}}
+	{{/}}
+{{/}}`,
+		data: {
+			items: [
+				{ name: "foo", disabled: false },
+				{ name: "bar", disabled: false }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foobar' );
+
+	// Remove first item and test that the second item is still present, and not a new context.
+	ractive.splice( 'items', 0, 1 );
+
+	t.htmlEqual( fixture.innerHTML, 'bar' );
+});
+
+test( 'rebinds of UNLESS sections do not add new context (#2454)', function ( t ) {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+{{#items}}
+	{{^disabled}} 
+		{{this.name}}
 	{{/}}
 {{/}}`,
 		data: {
