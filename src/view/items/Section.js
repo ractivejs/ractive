@@ -78,7 +78,7 @@ export default class Section extends Mustache {
 		super.rebind();
 
 		if ( this.fragment ) {
-			this.fragment.rebind( this.sectionType === SECTION_IF ? null : this.model );
+			this.fragment.rebind( this.sectionType === SECTION_IF || this.sectionType === SECTION_UNLESS ? null : this.model );
 		}
 	}
 

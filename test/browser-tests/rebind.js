@@ -350,3 +350,80 @@ test( 'Computations are not triggered prematurely on rebind (#2259)', t => {
 
 	ractive.splice( 'items', 0, 1 );
 });
+
+test( 'rebinds of IF sections do not add new context (#2454)', function ( t ) {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+{{#items}}
+	{{#disabled}} 
+		{{this.name}} 
+	{{/}}
+{{/}}`,
+		data: {
+			items: [
+				{ name: "foo", disabled: true },
+				{ name: "bar", disabled: true }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foobar' );
+
+	// Remove first item and test that the second item is still present, and not a new context.
+	ractive.splice( 'items', 0, 1 );
+
+	t.htmlEqual( fixture.innerHTML, 'bar' );
+});
+
+test( 'rebinds of if/else sections do not add new context (#2454)', function ( t ) {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+{{#items}}
+	{{#disabled}} 
+		disabled!
+	{{else}}
+		{{this.name}}
+	{{/}}
+{{/}}`,
+		data: {
+			items: [
+				{ name: "foo", disabled: false },
+				{ name: "bar", disabled: false }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foobar' );
+
+	// Remove first item and test that the second item is still present, and not a new context.
+	ractive.splice( 'items', 0, 1 );
+
+	t.htmlEqual( fixture.innerHTML, 'bar' );
+});
+
+test( 'rebinds of UNLESS sections do not add new context (#2454)', function ( t ) {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+{{#items}}
+	{{^disabled}} 
+		{{this.name}}
+	{{/}}
+{{/}}`,
+		data: {
+			items: [
+				{ name: "foo", disabled: false },
+				{ name: "bar", disabled: false }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foobar' );
+
+	// Remove first item and test that the second item is still present, and not a new context.
+	ractive.splice( 'items', 0, 1 );
+
+	t.htmlEqual( fixture.innerHTML, 'bar' );
+});
