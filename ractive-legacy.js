@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Mar 21 2016 21:22:06 GMT+0000 (UTC) - commit 4ed22fe8406b8e3085a86936aa479a30f16c3e61
+	Mon Mar 21 2016 21:30:55 GMT+0000 (UTC) - commit 114e82b00d42dca1dd3b451fb02088a46adc4cf8
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7802,7 +7802,7 @@ var classCallCheck = function (instance, Constructor) {
   		_Mustache.prototype.rebind.call(this);
 
   		if (this.fragment) {
-  			this.fragment.rebind(this.sectionType === SECTION_IF ? null : this.model);
+  			this.fragment.rebind(this.sectionType === SECTION_IF || this.sectionType === SECTION_UNLESS ? null : this.model);
   		}
   	};
 
