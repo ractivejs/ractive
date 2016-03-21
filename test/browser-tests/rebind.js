@@ -362,7 +362,7 @@ test( 'rebinds of IF sections do not add new context (#2454)', function ( t ) {
 {{/}}`,
 		data: {
 			items: [
-				{ name: "foo", disabled: true},
+				{ name: "foo", disabled: true },
 				{ name: "bar", disabled: true }
 			]
 		}
@@ -388,7 +388,7 @@ test( 'rebinds of UNLESS sections do not add new context (#2454)', function ( t 
 {{/}}`,
 		data: {
 			items: [
-				{ name: "foo", disabled: false},
+				{ name: "foo", disabled: false },
 				{ name: "bar", disabled: false }
 			]
 		}
