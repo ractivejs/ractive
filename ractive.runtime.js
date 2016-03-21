@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Mar 18 2016 06:50:58 GMT+0000 (UTC) - commit 11d24eb453d7ad38328eb5fb252b533639566a6f
+	Mon Mar 21 2016 21:22:06 GMT+0000 (UTC) - commit 4ed22fe8406b8e3085a86936aa479a30f16c3e61
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1588,19 +1588,19 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function extend(target) {
-  	var prop, source;
+  	var prop;
 
   	for (var _len = arguments.length, sources = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
   		sources[_key - 1] = arguments[_key];
   	}
 
-  	while (source = sources.shift()) {
+  	sources.forEach(function (source) {
   		for (prop in source) {
   			if (hasOwn.call(source, prop)) {
   				target[prop] = source[prop];
   			}
   		}
-  	}
+  	});
 
   	return target;
   }
