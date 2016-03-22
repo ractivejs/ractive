@@ -14,6 +14,10 @@ export default class Select extends Element {
 		this.options = [];
 	}
 
+	foundNode ( node ) {
+		if ( this.binding && node.selectedOptions.length > 0 ) this.selectedOptions = toArray( node.selectedOptions );
+	}
+
 	render ( target, occupants ) {
 		super.render( target, occupants );
 		this.sync();
