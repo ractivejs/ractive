@@ -137,6 +137,7 @@ export default class Component extends Item {
 						// this is a *bit* of a hack
 						fragment.bubble = () => {
 							Fragment.prototype.bubble.call( fragment );
+							fragment.update();
 							model.set( fragment.valueOf() );
 						};
 
