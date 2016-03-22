@@ -505,3 +505,21 @@ test( 'safe to render options into select outside of ractive', t => {
 
 	t.htmlEqual( select.innerHTML, '<option>a</option>' );
 });
+
+test( `select options fragment should update correctly (#2428)`, t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `
+			<select multiple>{{#each .list}}{{#if .selected}}<option value="{{@index}}">{{.name}}</option>{{/if}}{{/each}}</select>
+			{{#each .list}}<input type="checkbox" checked="{{.selected}}" />{{/each}}
+		`,
+		data: {}
+	});
+	r.set( 'list', [ { value: 'a', selected: true }, { value: 'b', selected: false }, { value: 'c' } ] );
+
+	t.equal( r.findAll( 'option' ).length, 1 );
+
+	r.set( 'list.2.selected', true );
+
+	t.equal( r.findAll( 'option' ).length, 2 );
+});

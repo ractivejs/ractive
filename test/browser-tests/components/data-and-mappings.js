@@ -1217,3 +1217,18 @@ test( 'complex mappings continue to update with their dependencies', t => {
 	t.equal( c.get( 'bar' ), 'yes' );
 	t.htmlEqual( fixture.innerHTML, 'foo? yes' );
 });
+
+test( `complex mappings work with a single section (#2444)`, t => {
+	const cmp = Ractive.extend({
+		template: '{{foo}}'
+	});
+	const r = new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{#if thing}}{{thing}} is yep{{/if}}" />',
+		components: { cmp },
+		data: { thing: '' }
+	});
+
+	r.set( 'thing', 'hey' );
+	t.htmlEqual( fixture.innerHTML, 'hey is yep' );
+});

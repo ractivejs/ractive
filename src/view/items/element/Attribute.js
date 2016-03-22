@@ -121,6 +121,7 @@ export default class Attribute extends Item {
 					// this is a *bit* of a hack
 					this.boundFragment.bubble = () => {
 						Fragment.prototype.bubble.call( this.boundFragment );
+						this.boundFragment.update();
 						this.model.set( this.boundFragment.valueOf() );
 					};
 				}

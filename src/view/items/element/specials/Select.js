@@ -1,5 +1,4 @@
 import Element from '../../Element';
-import runloop from '../../../../global/runloop';
 import { toArray } from '../../../../utils/array';
 
 function valueContains ( selectValue, optionValue ) {
@@ -13,25 +12,6 @@ export default class Select extends Element {
 	constructor ( options ) {
 		super( options );
 		this.options = [];
-	}
-
-	bubble () {
-		if ( !this.dirty ) {
-			this.dirty = true;
-
-			if ( this.rendered ) {
-				runloop.scheduleTask( () => {
-					this.sync();
-					this.dirty = false;
-				});
-			}
-
-			this.parentFragment.bubble(); // default behaviour
-		}
-	}
-
-	foundNode ( node ) {
-		if ( this.binding && node.selectedOptions.length > 0 ) this.selectedOptions = toArray( node.selectedOptions );
 	}
 
 	render ( target, occupants ) {

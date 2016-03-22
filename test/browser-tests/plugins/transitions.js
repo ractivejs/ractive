@@ -298,6 +298,23 @@ test( 'Parameter objects are not polluted (#1239)', t => {
 	t.notEqual( objects[0], objects[1] );
 });
 
+test( 'processParams extends correctly if no default provided (#2446)', t => {
+	t.expect( 1 );
+
+	new Ractive({
+		el: fixture,
+		template: '<p intro="foo:{duration: 1000}"></p>',
+		transitions: {
+			foo ( transition, params ) {
+				params = transition.processParams( params );
+
+				// Test that the duration param is present
+				t.equal( params.duration, 1000 );
+			}
+		}
+	});
+});
+
 test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
 	var ractive, tooLate;
 	const done = t.async();
