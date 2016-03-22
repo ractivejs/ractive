@@ -1,7 +1,9 @@
-/* global document */
+/* global document, navigator */
 
 import { test } from 'qunit';
 import { hasUsableConsole, onWarn } from 'test-config';
+
+const phantom = /phantom/i.test( navigator.userAgent );
 
 const partialsFn = {
 	foo () {
@@ -231,7 +233,8 @@ test( 'Partials work in attributes (#917)', t => {
 
 	ractive.set( 'height', 200 );
 
-	t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
+	// phantom leaves a trailing space in inline styles...
+	t.htmlEqual( fixture.innerHTML, `<div style="height: 200px;${ phantom ? ' ' : '' }"></div>` );
 });
 
 test( 'Partial name can be a reference', t => {
