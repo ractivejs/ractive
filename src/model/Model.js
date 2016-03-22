@@ -454,6 +454,7 @@ export default class Model {
 				this.keypathModels[ k ].teardown();
 			}
 		}
+		this.deps = [];
 	}
 
 	unregister ( dependant ) {

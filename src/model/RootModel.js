@@ -152,6 +152,13 @@ export default class RootModel extends Model {
 		return this.value;
 	}
 
+	teardown () {
+		super.teardown();
+		Object.keys( this.computations ).forEach( key => {
+			this.computations[ key ].teardown();
+		});
+	}
+
 	update () {
 		// noop
 	}
