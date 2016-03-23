@@ -22,15 +22,18 @@ const consoleLog = console.log;
 export const hasUsableConsole = typeof consoleWarn === 'function';
 
 export function initModule ( id ) {
+	const before = beforeEachCallbacks;
+	const after = afterEachCallbacks;
+
 	beforeEachCallbacks = [];
 	afterEachCallbacks = [];
 
 	module( id, {
 		beforeEach () {
-			beforeEachCallbacks.forEach( call );
+			before.forEach( call );
 		},
 		afterEach () {
-			afterEachCallbacks.forEach( call );
+			after.forEach( call );
 
 			// TODO this shouldn't really be necessary...
 			if ( fixture.__ractive_instances__ ) {

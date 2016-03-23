@@ -110,15 +110,49 @@ test = (function () {
 		simulant: 'simulant'
 	};
 
+	var browserTests = gobble( 'test/browser-tests' ).moveTo( 'browser-tests' ).transform( function bundleTests ( inputdir, outputdir, options ) {
+		testFiles.sort();
+		var modules = [];
+
+		var files = Promise.all( testFiles.map( function( f ) {
+			return sander.readFile( inputdir, 'browser-tests', f ).then( function( data ) {
+				data = data.toString( 'utf8' );
+				if ( data.indexOf( 'initModule(' ) !== -1 ) {
+					modules.push( f );
+					return sander.link( inputdir, 'browser-tests', f ).to( outputdir, 'browser-tests', f );
+				} else {
+					console.log( 'WARNING: not including test ' + f );
+				}
+			});
+		}));
+		return files.then( function() {
+			var imprts = [], stmts = [];
+
+			modules.map( function( f ) {
+				var mod = f.replace( /[^a-z]/gi, '_' );
+				imprts.push( 'import ' + mod + ' from \'./' + f + '\';' );
+				stmts.push( mod + '();' );
+			});
+
+			return sander.writeFile( outputdir, 'browser-tests/all.js', imprts.join( '\n' ) + stmts.join( '\n' ) );
+		});
+	});
 
 	var testModules = gobble([
-		gobble([
-			gobble( 'test/browser-tests' ).moveTo( 'browser-tests' ),
-			gobble( 'test/__support/js' )
-		]),
+		gobble([ browserTests, gobble( 'test/__support/js' ).moveTo( 'browser-tests' ) ]),
 		es5
-	]).transform( function bundleTests ( inputdir, outputdir, options ) {
-		var promises = testFiles.sort().map( function ( mod ) {
+	]).transform( 'rollup', {
+			plugins: [ adjustAndSkip(), legacyBabel ],
+			format: 'umd',
+			entry: 'browser-tests/all.js',
+			moduleName: 'tests',
+			dest: 'all.js',
+			globals: {
+				qunit: 'QUnit',
+				simulant: 'simulant'
+			}
+	}).transform( bloodyIE8 );
+		/*var promises = testFiles.sort().map( function ( mod ) {
 			var transform = {
 				resolveId: function ( importee, importer ) {
 					if ( globals[ importee ] ) return false;
@@ -157,15 +191,20 @@ test = (function () {
 		});
 
 		return Promise.all( promises );
-	}).transform( bloodyIE8 );
+		*/
+	//}).transform( bloodyIE8 );
 
 	return gobble([
 		gobble( 'test/__support/index.html' )
 			.transform( 'replace', {
+				scriptBlock: '<script src="all.js"></script>'
+			}),
+		/*gobble( 'test/__support/index.html' )
+			.transform( 'replace', {
 				scriptBlock: testFiles.map( function ( src ) {
 					return '<script src="' + src + '"></script>';
 				}).join( '\n\t' )
-			}),
+			}),*/
 		testModules,
 		gobble( 'test/__support/files' ),
 		gobble( 'test/node-tests' ).moveTo( 'node-tests' ),
