@@ -76,15 +76,15 @@ try {
 export { create, defineProperty, defineProperties };
 
 export function extend ( target, ...sources ) {
-	var prop, source;
+	var prop;
 
-	while ( source = sources.shift() ) {
+	sources.forEach( source => {
 		for ( prop in source ) {
 			if ( hasOwn.call( source, prop ) ) {
 				target[ prop ] = source[ prop ];
 			}
 		}
-	}
+	});
 
 	return target;
 }

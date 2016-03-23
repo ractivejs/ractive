@@ -300,12 +300,28 @@ export default function() {
 		t.notEqual( objects[0], objects[1] );
 	});
 
-	// TEMP so whole test suite doesn't hang. tagging with keypaths-ftw
-	/*
-	asyncTest( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
-		var ractive, tooLate;
+	test( 'processParams extends correctly if no default provided (#2446)', t => {
+		let uid = 0;
+		let objects = [];
 
-		expect( 0 );
+		new Ractive({
+			el: fixture,
+			template: '<p intro="foo:{duration: 1000}"></p>',
+			transitions: {
+				foo ( transition, params ) {
+					params = transition.processParams( params );
+
+					// Test that the duration param is present
+					t.equal( params.duration, 1000 );
+				}
+			}
+		});
+	});
+
+	test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
+		const done = t.async();
+
+		var ractive, tooLate;
 
 		ractive = new Ractive({
 			el: fixture,
@@ -317,11 +333,10 @@ export default function() {
 			}
 		});
 
-		ractive.set( 'showBox', true ).then( function ( t ) {
-			if ( !tooLate ) {
-				QUnit.start();
-			}
-		});
+		ractive.set( 'showBox', true ).then( function () {
+			if ( !tooLate ) t.ok( true );
+			else t.ok( false, 'too late' );
+		}).then( done, done );
 
 		setTimeout( function () {
 			ractive.set( 'showBox', false );
@@ -331,7 +346,7 @@ export default function() {
 			tooLate = true;
 		}, 200 );
 	});
-	*/
+
 	test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
 		let transitionRan = false;
 
