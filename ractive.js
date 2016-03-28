@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Mar 21 2016 21:30:55 GMT+0000 (UTC) - commit 114e82b00d42dca1dd3b451fb02088a46adc4cf8
+	Mon Mar 28 2016 19:30:13 GMT+0000 (UTC) - commit 5c4ab5aa4f9bf9a624164bd605f40cd42aed2285
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2627,8 +2627,7 @@ var classCallCheck = function (instance, Constructor) {
   var handlebarsBlockCodes = {
   	'each': SECTION_EACH,
   	'if': SECTION_IF,
-  	'if-with': SECTION_IF_WITH,
-  	'with': SECTION_WITH,
+  	'with': SECTION_IF_WITH,
   	'unless': SECTION_UNLESS
   };
 
@@ -2938,14 +2937,6 @@ var classCallCheck = function (instance, Constructor) {
   	} while (!closed);
 
   	if (unlessBlock) {
-  		// special case - `with` should become `if-with` (TODO is this right?
-  		// seems to me that `with` ought to behave consistently, regardless
-  		// of the presence/absence of `else`. In other words should always
-  		// be `if-with`
-  		if (section.n === SECTION_WITH) {
-  			section.n = SECTION_IF_WITH;
-  		}
-
   		section.l = unlessBlock;
   	}
 
@@ -7420,7 +7411,7 @@ var classCallCheck = function (instance, Constructor) {
   			}
   		}
 
-  		// TODO same comment as before - WITH should be IF_WITH
+  		// WITH is now IF_WITH; WITH is only used for {{>partial context}}
   		else if (this.sectionType === SECTION_WITH) {
   				if (this.fragment) {
   					this.fragment.update();
