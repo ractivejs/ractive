@@ -1611,6 +1611,16 @@ test( 'shuffled elements have the correct keypath in their node info', t => {
 	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
 });
 
+test( 'ractive.escapeKey() works correctly', t => {
+	t.equal( Ractive.escapeKey( 'foo.bar' ), 'foo\\.bar' );
+	t.equal( Ractive.escapeKey( 'foo\\.bar' ), 'foo\\\\\\.bar' );
+});
+
+test( 'ractive.unescapeKey() works correctly', t => {
+	t.equal( Ractive.unescapeKey( 'foo\\.bar' ), 'foo.bar' );
+	t.equal( Ractive.unescapeKey( 'foo\\\\\\.bar' ), 'foo\\.bar' );
+});
+
 // Is there a way to artificially create a FileList? Leaving this commented
 // out until someone smarter than me figures out how
 // test( '{{#each}} iterates over a FileList (#1220)', t => {
