@@ -477,7 +477,7 @@ test( 'Ambiguous reference expressions in two-way bindings attach to correct con
 			{{/with}}`,
 		data: {
 			bar: 0,
-			obj: {}
+			obj: { x: 1 }
 		}
 	});
 
@@ -732,7 +732,7 @@ if ( hasUsableConsole ) {
 			el: fixture,
 			template: `{{#with whatever}}<input value='{{uniqueToThisTest}}'>{{/with}}`,
 			data: {
-				whatever: {}
+				whatever: { x: 1 }
 			}
 		});
 	});
