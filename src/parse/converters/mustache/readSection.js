@@ -1,4 +1,4 @@
-import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from '../../../config/types';
+import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from '../../../config/types';
 import { READERS } from '../../_parse';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
@@ -153,14 +153,6 @@ export default function readSection ( parser, tag ) {
 	} while ( !closed );
 
 	if ( unlessBlock ) {
-		// special case - `with` should become `if-with` (TODO is this right?
-		// seems to me that `with` ought to behave consistently, regardless
-		// of the presence/absence of `else`. In other words should always
-		// be `if-with`
-		if ( section.n === SECTION_WITH ) {
-			section.n = SECTION_IF_WITH;
-		}
-
 		section.l = unlessBlock;
 	}
 

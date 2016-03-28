@@ -141,7 +141,7 @@ export default class Section extends Mustache {
 			}
 		}
 
-		// TODO same comment as before - WITH should be IF_WITH
+		// WITH is now IF_WITH; WITH is only used for {{>partial context}}
 		else if ( this.sectionType === SECTION_WITH ) {
 			if ( this.fragment ) {
 				this.fragment.update();

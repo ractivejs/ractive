@@ -711,7 +711,7 @@ test( 'ExpressionProxy should notify its deps when it resolves (#2214)', t => {
 		el: fixture,
 		template: '-{{#with foo}}{{#if bar[0] && bar[0] === bar[1]}}ok{{/if}}{{/with}}',
 		data: {
-			foo: {}
+			foo: { x: 1 }
 		}
 	});
 
