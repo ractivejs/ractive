@@ -1328,6 +1328,12 @@ const renderTests = [
 		name: '{{#with obj}} doesn\'t render if obj is false/null/undefined',
 		template: '{{#with obj}}foo{{/with}}',
 		result: ''
+	},
+	{
+		name: '{{@key}} references aren\'t escaped',
+		template: '{{#each obj}}{{@key}}{{/each}}',
+		data: { obj: { 'foo.bar': 1 } },
+		result: 'foo.bar'
 	}
 ];
 
