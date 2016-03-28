@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Mar 28 2016 19:30:13 GMT+0000 (UTC) - commit 5c4ab5aa4f9bf9a624164bd605f40cd42aed2285
+	Mon Mar 28 2016 20:32:32 GMT+0000 (UTC) - commit c9283d8c22f9cba09ef17aee57d753a4bbf1e98a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7821,6 +7821,8 @@ var classCallCheck = function (instance, Constructor) {
   			}).join(' '));
   		}
 
+  		if (existing && this.foundNode) this.foundNode(node);
+
   		if (this.fragment) {
   			var children = existing ? toArray(node.childNodes) : undefined;
   			this.fragment.render(node, children);
@@ -8102,6 +8104,10 @@ var classCallCheck = function (instance, Constructor) {
   		this.options = [];
   	}
 
+  	Select.prototype.foundNode = function foundNode(node) {
+  		if (this.binding && node.selectedOptions.length > 0) this.selectedOptions = toArray(node.selectedOptions);
+  	};
+
   	Select.prototype.render = function render(target, occupants) {
   		_Element.prototype.render.call(this, target, occupants);
   		this.sync();
@@ -8117,11 +8123,22 @@ var classCallCheck = function (instance, Constructor) {
   	};
 
   	Select.prototype.sync = function sync() {
+  		var _this = this;
+
   		var selectNode = this.node;
 
   		if (!selectNode) return;
 
   		var options = toArray(selectNode.options);
+
+  		if (this.selectedOptions) {
+  			options.forEach(function (o) {
+  				if (_this.selectedOptions.indexOf(o) >= 0) o.selected = true;else o.selected = false;
+  			});
+  			this.binding.setFromNode(selectNode);
+  			delete this.selectedOptions;
+  			return;
+  		}
 
   		var selectValue = this.getAttribute('value');
   		var isMultiple = this.getAttribute('multiple');
