@@ -247,6 +247,8 @@ export default class Element extends Item {
 			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
 		}
 
+		if ( existing && this.foundNode ) this.foundNode( node );
+
 		if ( this.fragment ) {
 			const children = existing ? toArray( node.childNodes ) : undefined;
 			this.fragment.render( node, children );
