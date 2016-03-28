@@ -1,6 +1,6 @@
 import { escapeKey, splitKeypath as splitKeypathI, unescapeKey } from '../../shared/keypaths';
 
-export function joinKeypath ( ...keys ) {
+export function joinKeys ( ...keys ) {
 	return keys.map( escapeKey ).join( '.' );
 }
 

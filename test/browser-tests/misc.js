@@ -1621,9 +1621,9 @@ test( 'ractive.unescapeKey() works correctly', t => {
 	t.equal( Ractive.unescapeKey( 'foo\\\\\\.bar' ), 'foo\\.bar' );
 });
 
-test( 'ractive.joinKeypath() works correctly', t => {
-	t.equal( Ractive.joinKeypath( 'foo', 'bar.baz' ), 'foo.bar\\.baz' );
-	t.equal( Ractive.joinKeypath( 'foo', 'bar\\.baz' ), 'foo.bar\\\\\\.baz' );
+test( 'ractive.joinKeys() works correctly', t => {
+	t.equal( Ractive.joinKeys( 'foo', 'bar.baz' ), 'foo.bar\\.baz' );
+	t.equal( Ractive.joinKeys( 'foo', 'bar\\.baz' ), 'foo.bar\\\\\\.baz' );
 });
 
 test( 'ractive.splitKeypath() works correctly', t => {
