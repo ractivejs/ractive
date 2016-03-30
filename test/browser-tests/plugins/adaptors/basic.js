@@ -417,8 +417,5 @@ test( 'adaptors should not cause death during branching caused by two-way bindin
 
 	r.set( 'foo', [] );
 	t.equal( r.get( 'foo.0.bar.0' ), '' );
-
-	r.set( 'foo.0.bar.0', 42 );
-	t.equal( r.find( 'select' ).selectedOptions[0].innerHTML, 'answer' );
 });
 
