@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Mar 28 2016 20:32:32 GMT+0000 (UTC) - commit c9283d8c22f9cba09ef17aee57d753a4bbf1e98a
+	Wed Mar 30 2016 21:57:21 GMT+0000 (UTC) - commit da2b79a5f56adf4d7425f795fa817deabee7b2ab
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2849,7 +2849,8 @@ var classCallCheck = function (instance, Constructor) {
   				if (shouldTeardown) {
   					this.wrapper.teardown();
   					this.wrapper = null;
-  					this.parent.value[this.key] = this.value = value;
+  					var parentValue = this.parent.value || this.parent.createBranch(this.key);
+  					parentValue[this.key] = this.value = value;
   					this.adapt();
   				} else {
   					this.value = this.wrapper.get();
