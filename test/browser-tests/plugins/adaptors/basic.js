@@ -405,3 +405,20 @@ test( 'Components made with Ractive.extend() can include adaptors', t => {
 
 	delete Ractive.adaptors.foo;
 });
+
+test( 'adaptors should not cause death during branching caused by two-way binding (#2467)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `<select value="{{foo.0.bar.0}}"><option></option><option value="{{42}}">answer</option></select>`,
+		modifyArrays: true
+	});
+
+	t.equal( r.get( 'foo.0.bar.0' ), '' );
+
+	r.set( 'foo', [] );
+	t.equal( r.get( 'foo.0.bar.0' ), '' );
+
+	r.set( 'foo.0.bar.0', 42 );
+	t.equal( r.find( 'select' ).selectedOptions[0].innerHTML, 'answer' );
+});
+
