@@ -138,7 +138,8 @@ export default class Model {
 			if ( shouldTeardown ) {
 				this.wrapper.teardown();
 				this.wrapper = null;
-				this.parent.value[ this.key ] = this.value = value;
+				const parentValue = this.parent.value || this.parent.createBranch( this.key );
+				parentValue[ this.key ] = this.value = value;
 				this.adapt();
 			} else {
 				this.value = this.wrapper.get();

@@ -577,7 +577,7 @@ test( 'Data is synced as soon as an unresolved mapping is resolved', t => {
 		el: fixture,
 		template: '<Outer/>',
 		data: {
-			item: {}
+			item: { x: 1 }
 		},
 		components: {
 			Outer: Ractive.extend({
@@ -903,7 +903,7 @@ test( 'component @keypath references should be relative to the component', t => 
 
 test( 'nested component @keypath references should be relative to the nested component', t => {
 	const cmp1 = Ractive.extend({
-		template: '{{#with foo.bar}}{{@keypath}}{{/with}} {{#with baz.notbat}}{{@keypath}}{{/with}}'
+		template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
 	}),
 	cmp2 = Ractive.extend({
 		template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
@@ -919,7 +919,7 @@ test( 'nested component @keypath references should be relative to the nested com
 		components: { cmp2 }
 	});
 
-	t.htmlEqual( fixture.innerHTML, 'foo.bar baz.notbat' );
+	t.htmlEqual( fixture.innerHTML, 'foo.bar' );
 });
 
 test( 'component @rootpath references should be relative to the root', t => {
