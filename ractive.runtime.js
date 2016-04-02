@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Apr 01 2016 20:12:31 GMT+0000 (UTC) - commit a18301727578f8054a96c7bab244acd374cd019b
+	Sat Apr 02 2016 12:54:14 GMT+0000 (UTC) - commit 330ec64a4420831a067d0144f06e0245aa48b1b4
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -125,12 +125,18 @@ var classCallCheck = function (instance, Constructor) {
   }
 
   function splitKeypath(keypath) {
-  	var parts = normalise(keypath).split(splitPattern),
-  	    result = [];
+  	var result = [],
+  	    match = undefined;
 
-  	for (var i = 0; i < parts.length; i += 2) {
-  		result.push(parts[i] + (parts[i + 1] || ''));
+  	keypath = normalise(keypath);
+
+  	while (match = splitPattern.exec(keypath)) {
+  		var index = match.index + match[1].length;
+  		result.push(keypath.substr(0, index));
+  		keypath = keypath.substr(index + 1);
   	}
+
+  	result.push(keypath);
 
   	return result;
   }
@@ -2196,11 +2202,11 @@ var classCallCheck = function (instance, Constructor) {
   	}
 
   	KeyModel.prototype.get = function get() {
-  		return this.value;
+  		return unescapeKey(this.value);
   	};
 
   	KeyModel.prototype.getKeypath = function getKeypath() {
-  		return this.value;
+  		return unescapeKey(this.value);
   	};
 
   	KeyModel.prototype.rebind = function rebind(key) {
@@ -12385,6 +12391,18 @@ var classCallCheck = function (instance, Constructor) {
   	updateModel: Ractive$updateModel
   };
 
+  function joinKeys() {
+  	for (var _len = arguments.length, keys = Array(_len), _key = 0; _key < _len; _key++) {
+  		keys[_key] = arguments[_key];
+  	}
+
+  	return keys.map(escapeKey).join('.');
+  }
+
+  function splitKeypath$1(keypath) {
+  	return splitKeypath(keypath).map(unescapeKey);
+  }
+
   function getNodeInfo (node) {
   	if (!node || !node._ractive) return {};
 
@@ -12606,8 +12624,12 @@ var classCallCheck = function (instance, Constructor) {
 
   	// static methods:
   	extend: { value: extend$1 },
+  	escapeKey: { value: escapeKey },
   	getNodeInfo: { value: getNodeInfo },
+  	joinKeys: { value: joinKeys },
   	parse: { value: parse },
+  	splitKeypath: { value: splitKeypath$1 },
+  	unescapeKey: { value: unescapeKey },
   	getCSS: { value: getCSS },
 
   	// namespaced constructors
