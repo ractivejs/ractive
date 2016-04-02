@@ -13,9 +13,6 @@ export default class RootModel extends Model {
 	constructor ( options ) {
 		super( null, null );
 
-		// TODO deprecate this
-		this.changes = {};
-
 		this.isRoot = true;
 		this.root = this;
 		this.ractive = options.ractive; // TODO sever this link
@@ -35,6 +32,16 @@ export default class RootModel extends Model {
 		this.flush();
 
 		return this._changeHash;
+	}
+
+	checkChildren ( unsafe, instance ) {
+		const children = super.checkChildren( unsafe, instance );
+
+		this.extendChildren( ( key, model ) => {
+			children.push( model );
+		});
+
+		return children;
 	}
 
 	compute ( key, signature ) {
@@ -77,16 +84,6 @@ export default class RootModel extends Model {
 
 	getRactiveModel() {
 		return this.ractiveModel || ( this.ractiveModel = new RactiveModel( this.ractive ) );
-	}
-
-	getValueChildren () {
-		const children = super.getValueChildren( this.value );
-
-		this.extendChildren( ( key, model ) => {
-			children.push( model );
-		});
-
-		return children;
 	}
 
 	handleChange () {

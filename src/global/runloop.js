@@ -22,7 +22,8 @@ const runloop = {
 			tasks: [],
 			immediateObservers: [],
 			deferredObservers: [],
-			instance: instance
+			instance: instance,
+			models: []
 		};
 
 		return promise;
@@ -37,9 +38,15 @@ const runloop = {
 		addToArray( batch.fragments, fragment );
 	},
 
+	addModel ( model ) {
+		if ( batch ) addToArray( batch.models, model );
+	},
+
 	addObserver ( observer, defer ) {
 		addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
 	},
+
+	models () { return batch ? batch.currentModels || batch.models : []; },
 
 	registerTransition ( transition ) {
 		transition._manager = batch.transitionManager;
@@ -77,27 +84,22 @@ function dispatch ( observer ) {
 }
 
 function flushChanges () {
-	let which = batch.immediateObservers;
+	let which = batch.currentModels = batch.models;
+	batch.models = [];
+	fireChangeEvents( which );
+
+	which = batch.immediateObservers;
 	batch.immediateObservers = [];
 	which.forEach( dispatch );
 
 	// Now that changes have been fully propagated, we can update the DOM
 	// and complete other tasks
 	let i = batch.fragments.length;
-	let fragment;
-
 	which = batch.fragments;
 	batch.fragments = [];
 
 	while ( i-- ) {
-		fragment = which[i];
-
-		// TODO deprecate this. It's annoying and serves no useful function
-		const ractive = fragment.ractive;
-		changeHook.fire( ractive, ractive.viewmodel.changes );
-		ractive.viewmodel.changes = {};
-
-		fragment.update();
+		which[i].update();
 	}
 
 	batch.transitionManager.start();
@@ -116,5 +118,32 @@ function flushChanges () {
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length ) return flushChanges();
+	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.models.length ) return flushChanges();
+}
+
+function fireChangeEvents ( models ) {
+	const ractives = [];
+	const changes = {};
+
+	let i = models.length;
+	while ( i-- ) {
+		let model = models[i], ractive = model.root.ractive;
+
+		// some models have no instance (@global)
+		if ( !ractive ) continue;
+
+		if ( ractives.indexOf( ractive ) === -1 ) {
+			ractives.push( ractive );
+			changes[ ractive._guid ] = {};
+		}
+
+		changes[ ractive._guid ][ model.getKeypath() ] = model.get();
+	}
+
+	i = ractives.length;
+	while ( i-- ) {
+		let ractive = ractives[i];
+
+		changeHook.fire( ractive, changes[ ractive._guid ] );
+	}
 }

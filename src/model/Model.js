@@ -2,13 +2,13 @@ import { capture } from '../global/capture';
 import Promise from '../utils/Promise';
 import { isEqual, isNumeric } from '../utils/is';
 import { removeFromArray } from '../utils/array';
-import { handleChange, mark, teardown } from '../shared/methodCallers';
 import Ticker from '../shared/Ticker';
 import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
+import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -19,8 +19,6 @@ function updateFromBindings ( model ) {
 function updateKeypathDependants ( model ) {
 	model.updateKeypathDependants();
 }
-
-let originatingModel = null;
 
 export default class Model {
 	constructor ( parent, key ) {
@@ -121,8 +119,7 @@ export default class Model {
 	applyValue ( value ) {
 		if ( isEqual( value, this.value ) ) return;
 
-		// TODO deprecate this nonsense
-		this.root.changes[ this.getKeypath() ] = value;
+		runloop.addModel( this );
 
 		if ( this.parent.wrapper && this.parent.wrapper.set ) {
 			this.parent.wrapper.set( this.key, value );
@@ -153,20 +150,53 @@ export default class Model {
 		this.parent.clearUnresolveds();
 		this.clearUnresolveds();
 
-		// notify dependants
-		const previousOriginatingModel = originatingModel; // for the array.length special case
-		originatingModel = this;
+		// if this is an observed path, expand children
+		if ( this.isWatched ) {
+			this.checkChildren();
+		}
 
-		this.children.forEach( mark );
-		this.deps.forEach( handleChange );
+		// notify dependants
+		let i = this.children.length;
+		while ( i-- ) this.children[i].mark();
+		i = this.deps.length;
+		while ( i-- ) this.deps[i].handleChange( this );
 
 		let parent = this.parent;
 		while ( parent ) {
-			parent.deps.forEach( handleChange );
+			i = parent.deps.length;
+			while ( i-- ) parent.deps[i].handleChange( parent, this );
 			parent = parent.parent;
 		}
+	}
 
-		originatingModel = previousOriginatingModel;
+	checkChildren ( unsafe, instance ) {
+		const result = [];
+
+		if ( isArray( this.value ) ) {
+			let i = this.value.length;
+			while ( i-- ) {
+				if ( !( i in this.childByKey ) ) {
+					this.joinKey( i );
+				}
+				result.unshift( this.childByKey[i] );
+			}
+
+		}
+
+		else if ( isObject( this.value ) || typeof this.value === 'function' ) {
+			const keys = Object.keys( this.value );
+			let i = keys.length;
+			while ( i-- ) {
+				if ( !( keys[i] in this.childByKey ) ) this.joinKey( keys[i] );
+				result.unshift( this.childByKey[keys[i]] );
+			}
+		}
+
+		else if ( this.value != null && unsafe ) {
+			throw new Error( `Cannot get values of ${this.getKeypath(instance)}.* as ${this.getKeypath(instance)} is not an array, object or function` );
+		}
+
+		return result;
 	}
 
 	clearUnresolveds ( specificKey ) {
@@ -200,7 +230,7 @@ export default class Model {
 		return branch;
 	}
 
-	findMatches ( keys ) {
+	findMatches ( keys, instance ) {
 		const len = keys.length;
 
 		let existingMatches = [ this ];
@@ -213,7 +243,8 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
-					matches.push.apply( matches, model.getValueChildren( model.get() ) );
+					matches.push.apply( matches, model.checkChildren( true, instance ) );
+					//matches.push.apply( matches, model.getValueChildren( model.get() ) );
 				});
 			} else {
 				matches = existingMatches.map( model => model.joinKey( key ) );
@@ -280,34 +311,6 @@ export default class Model {
 		return root;
 	}
 
-	getValueChildren ( value ) {
-
-		let children;
-		if ( isArray( value ) ) {
-			children = [];
-			// special case - array.length. This is a horrible kludge, but
-			// it'll do for now. Alternatives welcome
-			if ( originatingModel && originatingModel.parent === this && originatingModel.key === 'length' ) {
-				children.push( originatingModel );
-			}
-			value.forEach( ( m, i ) => {
-				children.push( this.joinKey( i ) );
-			});
-
-		}
-
-		else if ( isObject( value ) || typeof value === 'function' ) {
-			children = Object.keys( value ).map( key => this.joinKey( key ) );
-		}
-
-		else if ( value != null ) {
-			// TODO: this will return incorrect keypath if model is mapped
-			throw new Error( `Cannot get values of ${this.getKeypath()}.* as ${this.getKeypath()} is not an array, object or function` );
-		}
-
-		return children;
-	}
-
 	has ( key ) {
 		const value = this.get();
 		if ( !value ) return false;
@@ -325,6 +328,18 @@ export default class Model {
 		return false;
 	}
 
+	isWatched () {
+		if ( this.watchers ) return true;
+
+		let parent = this.parent;
+
+		while ( parent ) {
+			if ( parent.watchers ) return true;
+
+			parent = parent.parent;
+		}
+	}
+
 	joinKey ( key ) {
 		if ( key === undefined || key === '' ) return this;
 
@@ -332,6 +347,7 @@ export default class Model {
 			const child = new Model( this, key );
 			this.children.push( child );
 			this.childByKey[ key ] = child;
+			runloop.addModel( child );
 		}
 
 		return this.childByKey[ key ];
@@ -352,9 +368,17 @@ export default class Model {
 		if ( !isEqual( value, this.value ) ) {
 			this.value = value;
 
-			this.children.forEach( mark );
+			runloop.addModel( this );
+			// if this has a pattern observer upstream somewhere, laod all of the things
+			if ( this.isWatched() ) {
+				this.checkChildren();
+			}
 
-			this.deps.forEach( handleChange );
+			let i = this.children.length;
+			while ( i-- ) this.children[i].mark();
+
+			i = this.deps.length;
+			while ( i-- ) this.deps[i].handleChange( this );
 			this.clearUnresolveds();
 		}
 	}
@@ -434,21 +458,24 @@ export default class Model {
 		this.indexModels = indexModels;
 
 		// shuffles need to happen before marks...
-		this.deps.forEach( dep => {
-			if ( dep.shuffle ) dep.shuffle( newIndices );
-		});
+		let i = this.deps.length;
+		while ( i-- ) {
+			if ( this.deps[i].shuffle ) this.deps[i].shuffle( newIndices );
+		}
 
 		this.updateKeypathDependants();
 		this.mark();
 
 		// ...but handleChange must happen after (TODO document why)
-		this.deps.forEach( dep => {
-			if ( !dep.shuffle ) dep.handleChange();
-		});
+		i = this.deps.length;
+		while ( i-- ) {
+			if ( !this.deps[i].shuffle ) this.deps[i].handleChange( this );
+		}
 	}
 
 	teardown () {
-		this.children.forEach( teardown );
+		let i = this.children.length;
+		while ( i-- ) this.children[i].teardown();
 		if ( this.wrapper ) this.wrapper.teardown();
 		if ( this.keypathModels ) {
 			for ( let k in this.keypathModels ) {
@@ -465,6 +492,10 @@ export default class Model {
 		removeFromArray( this.bindings, binding );
 	}
 
+	unwatch () {
+		if ( this.watchers ) this.watchers--;
+	}
+
 	updateFromBindings ( cascade ) {
 		let i = this.bindings.length;
 		while ( i-- ) {
@@ -479,6 +510,11 @@ export default class Model {
 
 	updateKeypathDependants () {
 		this.children.forEach( updateKeypathDependants );
-		if ( this.keypathModel ) this.keypathModel.handleChange();
+		if ( this.keypathModel ) this.keypathModel.handleChange( this.keypathModel );
+	}
+
+	watch () {
+		if ( !this.watchers ) this.watchers = 1;
+		else this.watchers++;
 	}
 }
