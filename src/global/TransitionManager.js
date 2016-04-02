@@ -1,5 +1,4 @@
 import { removeFromArray } from '../utils/array';
-import { teardown } from '../shared/methodCallers';
 
 export default class TransitionManager {
 	constructor ( callback, parent ) {
@@ -13,7 +12,6 @@ export default class TransitionManager {
 		this.totalChildren = this.outroChildren = 0;
 
 		this.detachQueue = [];
-		this.decoratorQueue = [];
 		this.outrosComplete = false;
 
 		if ( parent ) {
@@ -33,11 +31,6 @@ export default class TransitionManager {
 		this.outroChildren += 1;
 	}
 
-	// TODO can we move decorator stuff to element detach() methods?
-	addDecorator ( decorator ) {
-		this.decoratorQueue.push( decorator );
-	}
-
 	decrementOutros () {
 		this.outroChildren -= 1;
 		check( this );
@@ -49,14 +42,8 @@ export default class TransitionManager {
 	}
 
 	detachNodes () {
-		this.decoratorQueue.forEach( teardown );
 		this.detachQueue.forEach( detach );
 		this.children.forEach( _detachNodes );
-	}
-
-	init () {
-		this.ready = true;
-		check( this );
 	}
 
 	remove ( transition ) {
@@ -67,6 +54,8 @@ export default class TransitionManager {
 
 	start () {
 		this.intros.concat( this.outros ).forEach( t => t.start() );
+		this.ready = true;
+		check( this );
 	}
 }
 
@@ -85,7 +74,7 @@ function check ( tm ) {
 	// we notify the parent if there is one, otherwise
 	// start detaching nodes
 	if ( !tm.outrosComplete ) {
-		if ( tm.parent ) {
+		if ( tm.parent && !tm.parent.outrosComplete ) {
 			tm.parent.decrementOutros( tm );
 		} else {
 			tm.detachNodes();

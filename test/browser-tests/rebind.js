@@ -1,4 +1,5 @@
 import { test } from 'qunit';
+import { onWarn } from 'test-config';
 
 test('Section with item that has expression only called once when created', t => {
 	let called = 0;
@@ -327,4 +328,102 @@ test( 'index rebinds get passed through conditional sections correctly', t => {
 	ractive.splice( 'foo', 1, 1 );
 
 	t.htmlEqual( fixture.innerHTML, '00<br/>1<br/>22<br/>' );
+});
+
+test( 'Computations are not triggered prematurely on rebind (#2259)', t => {
+	t.expect( 0 );
+
+	onWarn( () => {
+		t.ok( false, 'should not warn' );
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#each items}}
+				<p>{{id.toFixed(1)}}</p>
+			{{/each}}`,
+		data: {
+			items: [{ id: 1 }, { id: 2 }]
+		}
+	});
+
+	ractive.splice( 'items', 0, 1 );
+});
+
+test( 'rebinds of IF sections do not add new context (#2454)', function ( t ) {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+{{#items}}
+	{{#disabled}} 
+		{{this.name}} 
+	{{/}}
+{{/}}`,
+		data: {
+			items: [
+				{ name: "foo", disabled: true },
+				{ name: "bar", disabled: true }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foobar' );
+
+	// Remove first item and test that the second item is still present, and not a new context.
+	ractive.splice( 'items', 0, 1 );
+
+	t.htmlEqual( fixture.innerHTML, 'bar' );
+});
+
+test( 'rebinds of if/else sections do not add new context (#2454)', function ( t ) {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+{{#items}}
+	{{#disabled}} 
+		disabled!
+	{{else}}
+		{{this.name}}
+	{{/}}
+{{/}}`,
+		data: {
+			items: [
+				{ name: "foo", disabled: false },
+				{ name: "bar", disabled: false }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foobar' );
+
+	// Remove first item and test that the second item is still present, and not a new context.
+	ractive.splice( 'items', 0, 1 );
+
+	t.htmlEqual( fixture.innerHTML, 'bar' );
+});
+
+test( 'rebinds of UNLESS sections do not add new context (#2454)', function ( t ) {
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+{{#items}}
+	{{^disabled}} 
+		{{this.name}}
+	{{/}}
+{{/}}`,
+		data: {
+			items: [
+				{ name: "foo", disabled: false },
+				{ name: "bar", disabled: false }
+			]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foobar' );
+
+	// Remove first item and test that the second item is still present, and not a new context.
+	ractive.splice( 'items', 0, 1 );
+
+	t.htmlEqual( fixture.innerHTML, 'bar' );
 });

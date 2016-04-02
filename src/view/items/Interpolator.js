@@ -2,10 +2,11 @@ import { doc } from '../../config/environment';
 import { escapeHtml } from '../../utils/html';
 import { safeToStringValue } from '../../utils/dom';
 import Mustache from './shared/Mustache';
+import { detachNode } from '../../utils/dom';
 
 export default class Interpolator extends Mustache {
 	detach () {
-		return this.node.parentNode.removeChild( this.node );
+		return detachNode( this.node );
 	}
 
 	firstNode () {
@@ -16,11 +17,32 @@ export default class Interpolator extends Mustache {
 		return this.model ? safeToStringValue( this.model.get() ) : '';
 	}
 
-	render ( target ) {
-		this.rendered = true;
-		this.node = doc.createTextNode( this.getString() );
+	render ( target, occupants ) {
+		const value = this.getString();
 
-		target.appendChild( this.node );
+		this.rendered = true;
+
+		if ( occupants ) {
+			let n = occupants[0];
+			if ( n && n.nodeType === 3 ) {
+				occupants.shift();
+				if ( n.nodeValue !== value ) {
+					n.nodeValue = value;
+				}
+			} else {
+				n = this.node = doc.createTextNode( value );
+				if ( occupants[0] ) {
+					target.insertBefore( n, occupants[0] );
+				} else {
+					target.appendChild( n );
+				}
+			}
+
+			this.node = n;
+		} else {
+			this.node = doc.createTextNode( value );
+			target.appendChild( this.node );
+		}
 	}
 
 	toString ( escape ) {
@@ -35,11 +57,10 @@ export default class Interpolator extends Mustache {
 
 	update () {
 		if ( this.dirty ) {
+			this.dirty = false;
 			if ( this.rendered ) {
 				this.node.data = this.getString();
 			}
-
-			this.dirty = false;
 		}
 	}
 

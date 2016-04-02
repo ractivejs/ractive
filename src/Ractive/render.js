@@ -1,5 +1,5 @@
 import { doc } from '../config/environment';
-import css from '../global/css';
+import { applyCSS } from '../global/css';
 import Hook from '../events/Hook';
 import { getElement } from '../utils/dom';
 import runloop from '../global/runloop';
@@ -7,7 +7,7 @@ import runloop from '../global/runloop';
 const renderHook = new Hook( 'render' );
 const completeHook = new Hook( 'complete' );
 
-export default function render ( ractive, target, anchor ) {
+export default function render ( ractive, target, anchor, occupants ) {
 	// if `noIntro` is `true`, temporarily disable transitions
 	const transitionsEnabled = ractive.transitionsEnabled;
 	if ( ractive.noIntro ) ractive.transitionsEnabled = false;
@@ -25,7 +25,7 @@ export default function render ( ractive, target, anchor ) {
 	ractive.anchor = anchor;
 
 	// ensure encapsulated CSS is up-to-date
-	if ( ractive.cssId ) css.apply();
+	if ( ractive.cssId ) applyCSS();
 
 	if ( target ) {
 		( target.__ractive_instances__ || ( target.__ractive_instances__ = [] ) ).push( ractive );
@@ -35,7 +35,7 @@ export default function render ( ractive, target, anchor ) {
 			ractive.fragment.render( docFrag );
 			target.insertBefore( docFrag, anchor );
 		} else {
-			ractive.fragment.render( target );
+			ractive.fragment.render( target, occupants );
 		}
 	}
 

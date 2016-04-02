@@ -11,7 +11,7 @@ import RadioBinding from './RadioBinding';
 import RadioNameBinding from './RadioNameBinding';
 import SingleSelectBinding from './SingleSelectBinding';
 
-function isBindable ( attribute ) {
+export function isBindable ( attribute ) {
 	return attribute &&
 	       attribute.template.length === 1 &&
 	       attribute.template[0].t === INTERPOLATOR &&
@@ -36,9 +36,14 @@ export default function selectBinding ( element ) {
 			const bindName = isBindable( attributes.name );
 			const bindChecked = isBindable( attributes.checked );
 
-			// we can either bind the name attribute, or the checked attribute - not both
+			// for radios we can either bind the name attribute, or the checked attribute - not both
 			if ( bindName && bindChecked ) {
-				warnIfDebug( 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both', { ractive: element.root });
+				if ( type === 'radio' ) {
+					warnIfDebug( 'A radio input can have two-way binding on its name attribute, or its checked attribute - not both', { ractive: element.root });
+				} else {
+					// A checkbox with bindings for both name and checked - see https://github.com/ractivejs/ractive/issues/1749
+					return CheckboxBinding;
+				}
 			}
 
 			if ( bindName ) {

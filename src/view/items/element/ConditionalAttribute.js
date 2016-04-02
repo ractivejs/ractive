@@ -36,7 +36,7 @@ export default class ConditionalAttribute extends Item {
 	}
 
 	rebind () {
-		throw new Error( 'ConditionalAttribute$rebind is not yet implemented' ); // TODO test
+		this.fragment.rebind();
 	}
 
 	render () {
@@ -65,6 +65,8 @@ export default class ConditionalAttribute extends Item {
 		let attrs;
 
 		if ( this.dirty ) {
+			this.dirty = false;
+
 			this.fragment.update();
 
 			if ( this.rendered ) {
@@ -83,8 +85,6 @@ export default class ConditionalAttribute extends Item {
 
 				this.attributes = attrs;
 			}
-
-			this.dirty = false;
 		}
 	}
 }
@@ -92,9 +92,10 @@ export default class ConditionalAttribute extends Item {
 
 function parseAttributes ( str, isSvg ) {
 	const tagName = isSvg ? 'svg' : 'div';
-	div.innerHTML = `<${tagName} ${str}></${tagName}>`;
-
-	return toArray( div.childNodes[0].attributes );
+	return str
+		? (div.innerHTML = `<${tagName} ${str}></${tagName}>`) &&
+			toArray(div.childNodes[0].attributes)
+		: [];
 }
 
 function notIn ( haystack, needle ) {

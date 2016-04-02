@@ -245,7 +245,7 @@ test( 'Named checkbox bindings are kept in sync with data changes (#1610)', t =>
 	t.deepEqual( ractive.get( 'colors' ), [ 'green' ] );
 
 	fire( ractive.find( 'input' ), 'click' );
-	t.deepEqual( ractive.get( 'colors' ), [ 'red', 'green' ]);
+	t.deepEqual( ractive.get( 'colors' ), [ 'green', 'red' ]);
 });
 
 test( 'The model updates to reflect which radio input is checked at render time', t => {
@@ -466,6 +466,8 @@ test( 'Reference expression radio bindings rebind correctly inside reference exp
 });
 
 test( 'Ambiguous reference expressions in two-way bindings attach to correct context', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -475,7 +477,7 @@ test( 'Ambiguous reference expressions in two-way bindings attach to correct con
 			{{/with}}`,
 		data: {
 			bar: 0,
-			obj: {}
+			obj: { x: 1 }
 		}
 	});
 
@@ -499,6 +501,35 @@ test( 'Static bindings can only be one-way (#1149)', t => {
 	ractive.updateModel();
 	t.equal( ractive.get( 'foo' ), 'static' );
 	t.htmlEqual( fixture.innerHTML, '<input>static' );
+});
+
+test( 'input[type="checkbox"] with bound checked and name attributes, updates as expected (#1749)', t => {
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<input type="checkbox" name="{{name}}" checked="{{on}}">',
+		data: {
+			name: 'foo',
+			on: 'true'
+		}
+	});
+
+	const checkbox = ractive.find( 'input' );
+
+	// Assert initial bindings
+	t.ok( checkbox.checked );
+	t.equal( checkbox.name, 'foo' );
+
+	// Test name binding
+	ractive.set( 'name', 'bar' );
+
+	t.equal( checkbox.name, 'bar' );
+	t.ok( checkbox.checked );
+
+	// Test checked binding
+	ractive.set( 'on', false );
+
+	t.ok( !checkbox.checked );
+	t.equal( checkbox.name, 'bar' );
 });
 
 test( 'input[type="checkbox"] with bound name updates as expected (#1305)', t => {
@@ -588,6 +619,9 @@ test( 'input[type="checkbox"] works with array mutated on init (#1305)', t => {
 });
 
 test( 'Downstream expression objects in two-way bindings do not trigger a warning (#1421)', t => {
+	// TODO what exactly is being tested here...?
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: '{{#foo()}}<input value="{{.}}">{{/}}',
@@ -643,6 +677,8 @@ test( 'Changes made after render to unresolved', t => {
 });
 
 test( 'If there happen to be unresolved references next to binding resolved references, the unresolveds should not be evicted by mistake (#1608)', t => {
+	onWarn( () => {} ); // suppress
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: `
@@ -696,7 +732,7 @@ if ( hasUsableConsole ) {
 			el: fixture,
 			template: `{{#with whatever}}<input value='{{uniqueToThisTest}}'>{{/with}}`,
 			data: {
-				whatever: {}
+				whatever: { x: 1 }
 			}
 		});
 	});
@@ -887,4 +923,163 @@ test( '`twoway=0` is not mistaken for `twoway`', t => {
 
 	fire( input, 'change' );
 	t.equal( ractive.get( 'foo' ), undefined );
+});
+
+test( 'checkbox name binding with the same value on multiple boxes still works (#2163)', t => {
+	const common = {};
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}<input type="checkbox" name="{{list}}" value="{{.}}" />{{/each}}',
+		data: { list: [ common ], items: [ common, common, {} ] }
+	});
+
+	const inputs = r.findAll( 'input' );
+	t.ok( inputs[0].checked && inputs[1].checked && !inputs[2].checked );
+
+	fire( inputs[0], 'click' );
+	t.ok( !( inputs[0].checked || inputs[1].checked || inputs[2].checked ) );
+
+	fire( inputs[2], 'click' );
+	t.ok( !inputs[0].checked && !inputs[1].checked && inputs[2].checked );
+
+	fire( inputs[1], 'click' );
+	t.ok( inputs[0].checked && inputs[1].checked && inputs[2].checked );
+});
+
+test( 'checkbox name bindings work across component boundaries (#2163)', t => {
+	const things = [
+		{id: 1, color: '#cc8'},
+		{id: 2, color: '#c88'},
+		{id: 4, color: '#8c8'},
+		{id: 8, color: '#8cc'}
+	];
+
+	const Switcher = Ractive.extend({
+		template: `
+			<label class='switcher'>
+				<input type='checkbox' value='{{id}}' name='{{name}}'>
+				{{yield}}
+			</label>`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#each things}}
+				<Switcher name='{{filters}}'>{{id}}</Switcher>
+			{{/each}}`,
+		data () {
+			return { things, filters: [ 2, 4 ] };
+		},
+		components: { Switcher }
+	});
+
+	Ractive.components.Switcher = Switcher;
+
+	const inputs = ractive.findAll( 'input' );
+	const checked = () => inputs.map( input => input.checked );
+
+	t.deepEqual( checked(), [ false, true, true, false ]);
+
+	fire( inputs[0], 'click' );
+	t.deepEqual( checked(), [ true, true, true, false ]);
+
+	fire( inputs[1], 'click' );
+	t.deepEqual( checked(), [ true, false, true, false ]);
+});
+
+test( 'textarea with a single interpolator as content should set up a twoway binding (#2197)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<textarea>{{foo}}</textarea>',
+		data: { foo: 'bar' }
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.set( 'foo', 'baz' );
+	t.equal( r.find( 'textarea' ).value, 'baz' );
+	r.find( 'textarea' ).value = 'bop';
+	r.updateModel( 'foo' );
+	t.equal( r.get( 'foo' ), 'bop' );
+});
+
+test( 'textarea with a single static interpolator as content should not set up a twoway binding', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<textarea>[[foo]]</textarea>',
+		data: { foo: 'bar' }
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.set( 'foo', 'baz' );
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.find( 'textarea' ).value = 'bop';
+	r.updateModel( 'foo' );
+	t.equal( r.get( 'foo' ), 'baz' );
+});
+
+test( 'textareas with non-model context should still bind correctly (#2099)', t => {
+	onWarn( () => {} ); // suppress
+
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#with { foo: 'bar' }}}<textarea>{{.foo}}</textarea><button on-click="set(@keypath + '.foo', 'baz')">click me</button>{{/with}}`
+	});
+
+	t.equal( r.find( 'textarea' ).value, 'bar' );
+	r.find( 'button' ).click();
+	t.equal( r.find( 'textarea' ).value, 'baz' );
+});
+
+test( 'binding to an reference proxy does not cause out-of-syncitude with the actual model', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<span>{{foo.bar.baz}}</span>{{#with foo[what]}}<input value="{{.baz}}" />{{/with}}',
+		data: {
+			foo: {
+				bar: { baz: 'yep' },
+				bat: { baz: 'also yep' }
+			},
+			what: 'bar'
+		}
+	});
+
+	const span = r.find( 'span' );
+	const input = r.find( 'input' );
+
+	t.equal( span.innerHTML, 'yep' );
+
+	input.value = 'hey';
+	fire( input, 'change' );
+	t.equal( span.innerHTML, 'hey' );
+
+	r.set( 'foo.bar.baz', 'yep again' );
+	t.equal( input.value, 'yep again' );
+
+	r.set( 'what', 'bat' );
+	t.equal( input.value, 'also yep' );
+});
+
+test( `binding a select with mismatched option values shouldn't break section rendering (#2424)`, t => {
+	const cmp = Ractive.extend({ template: `<div>{{yield}}</div>` });
+	const r = new Ractive({
+		el: fixture,
+		components: { cmp },
+		template: `{{#if .condition}}<span>Once</span>
+			{{#each .foo}}<cmp><select value="{{.bar}}">
+				<option></option>
+				<option>a</option>
+				<option>b</option>
+				<option>c</option>
+			</select></cmp>{{/each}}
+		{{/if}}`
+	});
+
+	r.set({
+		condition: true,
+		foo: [{ bar: 'd' }, { bar: 'e' }, { bar: 'f' }]
+	});
+
+	t.equal( fixture.querySelectorAll( 'span' ).length, 1 );
+	t.equal( fixture.querySelectorAll( 'div' ).length, 3 );
 });

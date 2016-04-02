@@ -13,7 +13,6 @@ export default class RadioBinding extends Binding {
 	constructor ( element ) {
 		super( element, 'checked' );
 
-		// TODO this should use getBindingGroup
 		this.siblings = getSiblings( this.ractive._guid + this.element.getAttribute( 'name' ) );
 		this.siblings.push( this );
 	}
@@ -40,6 +39,10 @@ export default class RadioBinding extends Binding {
 		if ( this.node.attachEvent ) {
 			this.node.addEventListener( 'click', handleDomEvent, false );
 		}
+	}
+
+	setFromNode ( node ) {
+		this.model.set( node.checked );
 	}
 
 	unbind () {

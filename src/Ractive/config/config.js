@@ -2,29 +2,27 @@ import { warnIfDebug } from '../../utils/log';
 import adaptConfigurator from './custom/adapt';
 import cssConfigurator from './custom/css/css';
 import dataConfigurator from './custom/data';
-import templateConfigurator from './custom/template/template';
+import templateConfigurator from './custom/template';
 import defaults from './defaults';
 import registries from './registries';
 import wrapPrototype from './wrapPrototypeMethod';
 import deprecate from './deprecate';
 
-var config, order, defaultKeys, custom, isBlacklisted, isStandardKey;
-
-custom = {
+const custom = {
 	adapt: adaptConfigurator,
 	css: cssConfigurator,
 	data: dataConfigurator,
 	template: templateConfigurator
 };
 
-defaultKeys = Object.keys( defaults );
+const defaultKeys = Object.keys( defaults );
 
-isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
+const isStandardKey = makeObj( defaultKeys.filter( key => !custom[ key ] ) );
 
 // blacklisted keys that we don't double extend
-isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
+const isBlacklisted = makeObj( defaultKeys.concat( registries.map( r => r.name ) ) );
 
-order = [].concat(
+const order = [].concat(
 	defaultKeys.filter( key => !registries[ key ] && !custom[ key ] ),
 	registries,
 	//custom.data,
@@ -32,7 +30,7 @@ order = [].concat(
 	custom.css
 );
 
-config = {
+const config = {
 	extend: ( Parent, proto, options ) => configure( 'extend', Parent, proto, options ),
 
 	init: ( Parent, ractive, options ) => configure( 'init', Parent, ractive, options ),
@@ -70,6 +68,11 @@ function configure ( method, Parent, target, options ) {
 		}
 	}
 
+	// disallow combination of `append` and `enhance`
+	if ( options.append && options.enhance ) {
+		throw new Error( 'Cannot use append and enhance at the same time' );
+	}
+
 	registries.forEach( registry => {
 		registry[ method ]( Parent, target, options );
 	});
@@ -97,7 +100,7 @@ function extendOtherMethods ( parent, target, options ) {
 }
 
 function makeObj ( array ) {
-	var obj = {};
+	let obj = {};
 	array.forEach( x => obj[x] = true );
 	return obj;
 }

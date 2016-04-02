@@ -335,6 +335,24 @@ test( 'An intro will be aborted if a corresponding outro begins before it comple
 	}, 200 );
 });
 
+test( 'processParams extends correctly if no default provided (#2446)', t => {
+	let uid = 0;
+	let objects = [];
+
+	new Ractive({
+		el: fixture,
+		template: '<p intro="foo:{duration: 1000}"></p>',
+		transitions: {
+			foo ( transition, params ) {
+				params = transition.processParams( params );
+
+				// Test that the duration param is present
+				t.equal( params.duration, 1000 );
+			}
+		}
+	});
+});
+
 test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
 	let transitionRan = false;
 	const done = t.async();
@@ -367,4 +385,36 @@ test( 'Conditional sections that become truthy are not rendered if a parent simu
 	t.ok( !transitionRan );
 });
 
+test( 'Nodes that are affected by deferred observers should actually get dettached (#2310)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `{{#if bar}}<span>baz</span>{{/if}}`,
+		data: { foo: true, bar: true }
+	});
 
+	r.observe( 'foo', v => r.set( 'bar', v ), { defer: true } );
+
+	t.htmlEqual( fixture.innerHTML, '<span>baz</span>' );
+	r.set( 'foo', false );
+	t.htmlEqual( fixture.innerHTML, '' );
+	r.set( 'foo', true );
+	t.htmlEqual( fixture.innerHTML, '<span>baz</span>' );
+});
+
+test( 'Context of transition function is current instance', t => {
+	t.expect( 1 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `{{#if visible}}<div intro='test'></div>{{/if}}`,
+		data: { visible: false },
+		transitions: {
+			test ( transition ) {
+				t.ok( this === ractive );
+				transition.complete;
+			}
+		}
+	});
+
+	ractive.set( 'visible', true );
+});

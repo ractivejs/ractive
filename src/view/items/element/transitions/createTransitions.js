@@ -21,7 +21,12 @@ if ( !isClient ) {
 	let cannotUseCssTransitions = {};
 
 	// determine some facts about our environment
-	let TRANSITION, TRANSITIONEND, CSS_TRANSITIONS_ENABLED, TRANSITION_DURATION, TRANSITION_PROPERTY, TRANSITION_TIMING_FUNCTION;
+	let TRANSITION;
+	let TRANSITIONEND;
+	let CSS_TRANSITIONS_ENABLED;
+	let TRANSITION_DURATION;
+	let TRANSITION_PROPERTY;
+	let TRANSITION_TIMING_FUNCTION;
 
 	if ( testStyle.transition !== undefined ) {
 		TRANSITION = 'transition';
@@ -45,17 +50,17 @@ if ( !isClient ) {
 
 		// Wait a beat (otherwise the target styles will be applied immediately)
 		// TODO use a fastdom-style mechanism?
-		setTimeout( function () {
+		setTimeout( () => {
+			let jsTransitionsComplete;
+			let cssTransitionsComplete;
 
-			let jsTransitionsComplete, cssTransitionsComplete;
-
-			const checkComplete = function () {
+			function checkComplete () {
 				if ( jsTransitionsComplete && cssTransitionsComplete ) {
 					// will changes to events and fire have an unexpected consequence here?
 					t.ractive.fire( t.name + ':end', t.node, t.isIntro );
 					resolve();
 				}
-			};
+			}
 
 			// this is used to keep track of which elements can use CSS to animate
 			// which properties
@@ -73,10 +78,9 @@ if ( !isClient ) {
 			style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
 			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
-			const transitionEndHandler = function ( event ) {
-				var index;
+			function transitionEndHandler ( event ) {
+				const index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
 
-				index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
 				if ( index !== -1 ) {
 					changedProperties.splice( index, 1 );
 				}
@@ -94,12 +98,19 @@ if ( !isClient ) {
 
 				cssTransitionsComplete = true;
 				checkComplete();
-			};
+			}
 
 			t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
 
-			setTimeout( function () {
-				var i = changedProperties.length, hash, originalValue, index, propertiesToTransitionInJs = [], prop, suffix, interpolator;
+			setTimeout( () => {
+				let i = changedProperties.length;
+				let hash;
+				let originalValue;
+				let index;
+				let propertiesToTransitionInJs = [];
+				let prop;
+				let suffix;
+				let interpolator;
 
 				while ( i-- ) {
 					prop = changedProperties[i];
@@ -154,7 +165,6 @@ if ( !isClient ) {
 					}
 				}
 
-
 				// javascript transitions
 				if ( propertiesToTransitionInJs.length ) {
 					let easing;
@@ -176,12 +186,10 @@ if ( !isClient ) {
 						duration: options.duration,
 						easing,
 						step ( pos ) {
-							var prop, i;
-
-							i = propertiesToTransitionInJs.length;
+							let i = propertiesToTransitionInJs.length;
 							while ( i-- ) {
-								prop = propertiesToTransitionInJs[i];
-								style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
+								const prop = propertiesToTransitionInJs[i];
+								t.node.style[ prop.name ] = prop.interpolator( pos ) + prop.suffix;
 							}
 						},
 						complete () {
@@ -192,7 +200,6 @@ if ( !isClient ) {
 				} else {
 					jsTransitionsComplete = true;
 				}
-
 
 				if ( !changedProperties.length ) {
 					// We need to cancel the transitionEndHandler, and deal with

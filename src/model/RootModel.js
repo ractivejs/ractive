@@ -3,6 +3,11 @@ import { extend } from '../utils/object';
 import Computation from './Computation';
 import Model from './Model';
 import { handleChange, mark } from '../shared/methodCallers';
+import RactiveModel from './specials/RactiveModel';
+import GlobalModel from './specials/GlobalModel';
+import { unescapeKey } from '../shared/keypaths';
+
+const hasProp = Object.prototype.hasOwnProperty;
 
 export default class RootModel extends Model {
 	constructor ( options ) {
@@ -39,18 +44,28 @@ export default class RootModel extends Model {
 		return computation;
 	}
 
+	extendChildren ( fn ) {
+		const mappings = this.mappings;
+		Object.keys( mappings ).forEach( key => {
+			fn( key, mappings[ key ] );
+		});
+
+		const computations = this.computations;
+		Object.keys( computations ).forEach( key => {
+			const computation = computations[ key ];
+			// exclude template expressions
+			if ( !computation.isExpression ) {
+				fn( key, computation );
+			}
+		});
+	}
+
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
 		let result = extend( {}, this.value );
 
-		Object.keys( this.mappings ).forEach( key => {
-			result[ key ] = this.mappings[ key ].value;
-		});
-
-		Object.keys( this.computations ).forEach( key => {
-			if ( key[0] !== '@' ) { // exclude template expressions
-				result[ key ] = this.computations[ key ].value;
-			}
+		this.extendChildren( ( key, model ) => {
+			result[ key ] = model.value;
 		});
 
 		return result;
@@ -60,11 +75,46 @@ export default class RootModel extends Model {
 		return '';
 	}
 
+	getRactiveModel() {
+		return this.ractiveModel || ( this.ractiveModel = new RactiveModel( this.ractive ) );
+	}
+
+	getValueChildren () {
+		const children = super.getValueChildren( this.value );
+
+		this.extendChildren( ( key, model ) => {
+			children.push( model );
+		});
+
+		return children;
+	}
+
+	handleChange () {
+		this.deps.forEach( handleChange );
+	}
+
 	has ( key ) {
-		return ( key in this.mappings ) || ( key in this.computations ) || super.has( key );
+		if ( ( key in this.mappings ) || ( key in this.computations ) ) return true;
+
+		let value = this.value;
+
+		key = unescapeKey( key );
+		if ( hasProp.call( value, key ) ) return true;
+
+		// We climb up the constructor chain to find if one of them contains the key
+		let constructor = value.constructor;
+		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
+			if ( hasProp.call( constructor.prototype, key ) ) return true;
+			constructor = constructor.constructor;
+		}
+
+		return false;
 	}
 
 	joinKey ( key ) {
+		if ( key === '@global' ) return GlobalModel;
+		if ( key === '@ractive' ) return this.getRactiveModel();
+
 		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
 		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
 		       super.joinKey( key );
@@ -73,6 +123,7 @@ export default class RootModel extends Model {
 	map ( localKey, origin ) {
 		// TODO remapping
 		this.mappings[ localKey ] = origin;
+		origin.register( this );
 	}
 
 	set ( value ) {

@@ -1,7 +1,7 @@
 import { warnIfDebug } from '../../../../utils/log';
 
 // TODO: deprecate in future release
-var deprecations = {
+const deprecations = {
 	construct: {
 		deprecated: 'beforeInit',
 		replacement: 'onconstruct'
@@ -22,31 +22,31 @@ var deprecations = {
 	}
 };
 
-function Hook ( event ) {
-	this.event = event;
-	this.method = 'on' + event;
-	this.deprecate = deprecations[ event ];
+export default class Hook {
+	constructor ( event ) {
+		this.event = event;
+		this.method = 'on' + event;
+		this.deprecate = deprecations[ event ];
+	}
+
+	fire ( ractive, arg ) {
+		function call ( method ) {
+			if ( ractive[ method ] ) {
+				arg ? ractive[ method ]( arg ) : ractive[ method ]();
+				return true;
+			}
+		}
+
+		call( this.method );
+
+		if ( !ractive[ this.method ] && this.deprecate && call( this.deprecate.deprecated ) ) {
+			if ( this.deprecate.message ) {
+				warnIfDebug( this.deprecate.message );
+			} else {
+				warnIfDebug( 'The method "%s" has been deprecated in favor of "%s" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.', this.deprecate.deprecated, this.deprecate.replacement );
+			}
+		}
+
+		arg ? ractive.fire( this.event, arg ) : ractive.fire( this.event );
+	}
 }
-
-Hook.prototype.fire = function ( ractive, arg ) {
-	function call ( method ) {
-		if ( ractive[ method ] ) {
-			arg ? ractive[ method ]( arg ) : ractive[ method ]();
-			return true;
-		}
-	}
-
-	call( this.method );
-
-	if ( !ractive[ this.method ] && this.deprecate && call( this.deprecate.deprecated ) ) {
-		if ( this.deprecate.message ) {
-			warnIfDebug( this.deprecate.message );
-		} else {
-			warnIfDebug( 'The method "%s" has been deprecated in favor of "%s" and will likely be removed in a future release. See http://docs.ractivejs.org/latest/migrating for more information.', this.deprecate.deprecated, this.deprecate.replacement );
-		}
-	}
-
-	arg ? ractive.fire( this.event, arg ) : ractive.fire( this.event );
-};
-
-export default Hook;

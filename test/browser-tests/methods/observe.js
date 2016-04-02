@@ -33,6 +33,22 @@ test( 'Observers with { defer: true } fire after the DOM updates', t => {
 	ractive.set( 'foo', true );
 });
 
+test( 'Observers with { defer: true } fire after non-transitioned nodes removed from DOM (#1869)', t => {
+	t.expect( 1 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>',
+		data: { items: [ 1, 2, 3 ] }
+	});
+
+	ractive.observe( 'items', function () {
+		t.equal( this.findAll('li').length, this.el.querySelectorAll('li').length );
+	}, { init: false, defer: true });
+
+	ractive.pop( 'items' );
+});
+
 test( 'Observer can be created without an options argument', t => {
 	t.expect( 1 );
 
@@ -823,4 +839,141 @@ test( 'Observer fires on initialisation for computed properties', t => {
 	});
 
 	t.deepEqual( observed, { num: 21, doubled: 42 });
+});
+
+test( `observers that cause a shuffle shouldn't throw (#2222)`, t => {
+	const r = new Ractive({
+		el: fixture,
+		template: `-{{#each items}}{{.}}{{/each}}
+			{{#each watches}}{{.}}{{/each}}`,
+		data: {
+			items: [],
+			watches: []
+		},
+		oninit() {
+			this.observe( 'items.*', ( n, o, k ) => {
+				this.push( 'watches', `${n} - ${k} ` );
+			});
+		}
+	});
+
+	r.push( 'items', 1, 2 );
+	t.htmlEqual( fixture.innerHTML, '-12 1 - items.0 2 - items.1' );
+});
+
+test( `a pattern observer that is shuffled with objects should only notify on the new keys`, t => {
+	let count = 0;
+
+	const r = new Ractive({
+		el: fixture,
+		template: '',
+		data: {
+			items: [ { val: 1 } , { val: 2 } ]
+		},
+		oninit() {
+			this.observe( 'items.*', () => {
+				count++;
+			});
+		}
+	});
+
+	t.equal( count, 2 );
+	r.push( 'items', { val: 3 } );
+	t.equal( count, 3 );
+	r.unshift( 'items', { val: 0 } );
+	t.equal( count, 7 );
+});
+
+test( `wildcard * and root fire in components for mapped and local data`, t => {
+	t.expect(16);
+
+	let wckeypath = 'value';
+	let wcexpect = 'foo';
+	let rootexpect = { value: 'foo' };
+
+	const widget = Ractive.extend({
+		oninit () {
+			this.observe( '*', ( n, o, k ) => {
+				t.equal( n, wcexpect, 'wildcard value' );
+				t.equal( k, wckeypath, 'wildcard keypath' );
+			});
+
+			this.observe( ( n, o, k ) => {
+				t.deepEqual( n, rootexpect, 'root value' );
+				t.equal( k, '', 'root keypath' );
+			});
+		}
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: `<widget value='{{foo}}'/>`,
+		data: {
+			foo: 'foo'
+		},
+		components: { widget }
+	});
+
+	wcexpect = 'bar';
+	rootexpect = { value: 'bar' };
+	r.set( 'foo', 'bar' );
+
+	wcexpect = 'qux';
+	rootexpect = { value: 'qux' };
+	r.findComponent( 'widget' ).set( 'value', 'qux' );
+
+	wckeypath = 'bizz';
+	wcexpect = 'buzz';
+	rootexpect = { value: 'qux', bizz: 'buzz' };
+	r.findComponent( 'widget' ).set( 'bizz', 'buzz' );
+});
+
+test( 'wildcard * and root include computed but not expressions', t => {
+	let wildcard = 0, root = 0;
+
+	new Ractive({
+		el: fixture,
+		template: `{{ foo + 2 }}`,
+		data: { foo: 1 },
+		computed: { bar: '${foo} + 1'},
+		oninit () {
+			this.observe( '*', ( n, o, k ) => {
+				t.ok( k[0] !== '@' );
+				wildcard++;
+			});
+
+			this.observe( ( n, o, k ) => {
+				t.ok( k[0] !== '@' );
+				root++;
+			});
+		}
+	});
+
+	t.equal( wildcard, 2, 'wildcard count' );
+	t.equal( root, 1, 'root count' );
+});
+
+test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
+	const ractive = new Ractive({
+		data: { msg: 'hello world' }
+	});
+
+	t.throws( () => {
+		ractive.observe( 'msg.*', () => {
+			t.ok( false, 'observer should not fire' );
+		});
+	}, /Cannot get values of msg\.\* as msg is not an array, object or function/ );
+})
+
+test( 'wildcard * fires on new property', t => {
+	t.expect( 2 );
+
+	const ractive = new Ractive({ data: { qux: 'qux' } });
+
+	ractive.observe( '*', ( n, o, k ) => {
+		t.equal( k, 'foo' );
+		t.equal( n, 'bar' );
+	}, { init: false} );
+
+	ractive.set( 'foo', 'bar' );
 });

@@ -1,5 +1,4 @@
 import Element from '../../Element';
-import runloop from '../../../../global/runloop';
 import { toArray } from '../../../../utils/array';
 
 function valueContains ( selectValue, optionValue ) {
@@ -15,23 +14,12 @@ export default class Select extends Element {
 		this.options = [];
 	}
 
-	bubble () {
-		if ( !this.dirty ) {
-			this.dirty = true;
-
-			if ( this.rendered ) {
-				runloop.scheduleTask( () => {
-					this.sync();
-					this.dirty = false;
-				});
-			}
-
-			this.parentFragment.bubble(); // default behaviour
-		}
+	foundNode ( node ) {
+		if ( this.binding && node.selectedOptions.length > 0 ) this.selectedOptions = toArray( node.selectedOptions );
 	}
 
-	render ( target ) {
-		super.render( target );
+	render ( target, occupants ) {
+		super.render( target, occupants );
 		this.sync();
 
 		const node = this.node;
@@ -50,6 +38,16 @@ export default class Select extends Element {
 		if ( !selectNode ) return;
 
 		const options = toArray( selectNode.options );
+
+		if ( this.selectedOptions ) {
+			options.forEach( o => {
+				if ( this.selectedOptions.indexOf( o ) >= 0 ) o.selected = true;
+				else o.selected = false;
+			});
+			this.binding.setFromNode( selectNode );
+			delete this.selectedOptions;
+			return;
+		}
 
 		const selectValue = this.getAttribute( 'value' );
 		const isMultiple = this.getAttribute( 'multiple' );

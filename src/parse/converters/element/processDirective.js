@@ -5,6 +5,7 @@ import parseJSON from '../../../utils/parseJSON';
 
 var methodCallPattern = /^([a-zA-Z_$][a-zA-Z_$0-9]*)\(/,
 	methodCallExcessPattern = /\)\s*$/,
+	spreadPattern = /(\s*,{0,1}\s*\.{3}arguments\s*)$/,
 	ExpressionParser;
 
 ExpressionParser = Parser.extend({
@@ -15,8 +16,6 @@ ExpressionParser = Parser.extend({
 export default function processDirective ( tokens, parentParser ) {
 	var result,
 		match,
-		parser,
-		args,
 		token,
 		colonIndex,
 		directiveName,
@@ -35,14 +34,16 @@ export default function processDirective ( tokens, parentParser ) {
 			result = { m: match[1] };
 			const sliced = tokens.slice( result.m.length + 1, end );
 
-			if ( sliced === '...arguments' ) {
-				// TODO: what the heck should this be???
-				// maybe ExpressionParser should understand ES6???
+			// does the method include spread of ...arguments?
+			const args = sliced.replace( spreadPattern, '' );
+
+			// if so, other arguments should be appended to end of method arguments
+			if ( sliced !== args ) {
 				result.g = true;
 			}
-			else {
-				args = '[' + sliced + ']';
-				parser = new ExpressionParser( args );
+
+			if ( args ) {
+				const parser = new ExpressionParser( '[' + args + ']' );
 				result.a = flattenExpression( parser.result[0] );
 			}
 

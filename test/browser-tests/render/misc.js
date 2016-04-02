@@ -1,6 +1,8 @@
 import { test } from 'qunit';
 import { svg } from 'config/environment';
 
+/* globals window, document, navigator */
+
 if ( svg ) {
 	test( 'Style elements have content inserted that becomes .textContent gh #569', t => {
 		new Ractive({
@@ -176,16 +178,6 @@ test( 'Sections survive unrender-render (#1553)', t => {
 	t.htmlEqual( fixture.innerHTML, '<p>1</p><p>2</p><p>3</p>' );
 });
 
-test( 'Namespaced attributes are set correctly', t => {
-	const ractive = new Ractive({
-		template: '<svg><use xlink:href="#yup" /></svg>'
-	});
-
-	ractive.render( fixture );
-
-	t.equal(ractive.find('use').getAttributeNS('http://www.w3.org/1999/xlink', 'href'), '#yup');
-});
-
 test( 'Multi switch each block object -> array -> object -> array (#2054)', t => {
 	const arrayData = ['a', 'b', 'c'];
 	const objectData = { a: 'a', b: 'b', c: 'c' };
@@ -208,6 +200,58 @@ test( 'Multi switch each block object -> array -> object -> array (#2054)', t =>
 	t.htmlEqual( fixture.innerHTML, expected );
 });
 
+test( 'iteration special refs outside of an iteration should not error', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{@index}}{{@key}}'
+	});
+
+	t.ok( true, 'hey, it didn\'t throw' );
+});
+
+test( 'static delimiters should be configurable (#2240)', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{one}} {{{two}}} [[three]] [[[four]]]',
+		delimiters: [ '{#', '#}' ],
+		tripleDelimiters: [ '{{#', '#}}' ],
+		staticDelimiters: [ '[#', '#]' ],
+		staticTripleDelimiters: [ '[[#', '#]]' ]
+	});
+
+	t.htmlEqual( fixture.innerHTML, '{{one}} {{{two}}} [[three]] [[[four]]]');
+});
+
+test( 'a repeated section should skip empty iterations when looking for a next node for insertion (#2234)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#each items}}{{#if .bool}}{{.val}}{{/if}}{{/each}}',
+		data: {
+			items: [ { bool: true, val: 1 }, { bool: true, val: 2 }, { bool: true, val: 3 } ]
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '123' );
+	r.set( 'items.0.bool', false );
+	r.set( 'items.1.bool', false );
+	t.htmlEqual( fixture.innerHTML, '3' );
+	r.set( 'items.0.bool', true );
+	t.htmlEqual( fixture.innerHTML, '13' );
+});
+
+test( 'fragment should skip non-rendered items when searching for its next node (#2317)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{#if step === 3}}3{{/if}}{{#if step === 1}}1{{/if}}{{#if step === 2}}2{{/if}}text',
+		data: { step: 1 }
+	});
+
+	r.set( 'step', 2 );
+	t.htmlEqual( fixture.innerHTML, '2text' );
+	r.set( 'step', 3 );
+	t.htmlEqual( fixture.innerHTML, '3text' );
+});
+
 if ( typeof Object.create === 'function' ) {
 	test( 'data of type Object.create(null) (#1825)', t => {
 		const ractive = new Ractive({
@@ -222,3 +266,13 @@ if ( typeof Object.create === 'function' ) {
 		t.equal( ractive.toHTML(), expected );
 	});
 }
+
+test( 'space entity refs should not be consumed during trimming (#2327)', t => {
+	new Ractive({
+		el: fixture,
+		template: '\n  {{#if check}}\n    &nbsp;\n    {{first}}\n    &nbsp;\n    {{second}}\n    &nbsp;\n  {{/if}}\n',
+		data: { check: true, first: 1, second: 2 }
+	});
+
+	t.equal( fixture.innerHTML, '&nbsp; 1 &nbsp; 2 &nbsp;' );
+});

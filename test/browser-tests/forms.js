@@ -100,3 +100,52 @@ test( 'Resetting a form resets widgets with no bindings', t => {
 	t.equal( nodes.select.value, 'b' );
 	t.equal( nodes.textarea.value, 'qwert' );
 });
+
+test( 'textarea with html content and no bindings should render the html text as a normal textarea would (#2198)', t => {
+	new Ractive({
+		el: fixture,
+		template: '<textarea><div class="foo"><strong>bar</strong></div><p>WAT</p></textarea>'
+	});
+
+	t.equal( fixture.querySelector( 'textarea' ).value, '<div class="foo"><strong>bar</strong></div><p>WAT</p>' );
+});
+
+test( 'textareas without binding allow any template content (#2063)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<textarea><i>{{foo}}</i>{{bar}} {{{baz}}}</textarea>',
+		data: { foo: 'part1', bar: 'part2', baz: '<div>hello</div>' }
+	});
+
+	t.equal( fixture.querySelector( 'textarea' ).value, '<i>part1</i>part2 <div>hello</div>' );
+	r.set( 'foo', 'change1' );
+	t.equal( fixture.querySelector( 'textarea' ).value, '<i>change1</i>part2 <div>hello</div>' );
+	r.set( 'bar', 'change2' );
+	t.equal( fixture.querySelector( 'textarea' ).value, '<i>change1</i>change2 <div>hello</div>' );
+	r.set( 'baz', '<strong>change3</strong>' );
+	t.equal( fixture.querySelector( 'textarea' ).value, '<i>change1</i>change2 <strong>change3</strong>' );
+});
+
+test( 'input that has binding change to undefined should be blank (#2279)', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '<input value="{{foo}}" />'
+	});
+
+	t.equal( r.find( 'input' ).value, '' );
+	r.set( 'foo', undefined );
+	t.equal( r.find( 'input' ).value, '' );
+});
+
+test( 'forms should unrender properly #2352', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: 'foo: {{#if foo}}<form>Yep</form>{{/if}}',
+		data: { foo: true }
+	});
+
+	r.toggle( 'foo' );
+	t.htmlEqual( fixture.innerHTML, 'foo:' );
+	r.toggle( 'foo' );
+	t.htmlEqual( fixture.innerHTML, 'foo: <form>Yep</form>' );
+});

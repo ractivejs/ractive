@@ -1,7 +1,7 @@
 import Hook from '../../events/Hook';
 import { removeFromArray } from '../../utils/array';
 
-var detachHook = new Hook( 'detach' );
+const detachHook = new Hook( 'detach' );
 
 export default function Ractive$detach () {
 	if ( this.isDetached ) {

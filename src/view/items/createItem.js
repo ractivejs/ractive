@@ -1,4 +1,5 @@
-import { DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
+import { ALIAS, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
+import Alias from './Alias';
 import Component from './Component';
 import Doctype from './Doctype';
 import Form from './element/specials/Form';
@@ -9,12 +10,14 @@ import Option from './element/specials/Option';
 import Partial from './Partial';
 import Section from './Section';
 import Select from './element/specials/Select';
+import Textarea from './element/specials/Textarea';
 import Text from './Text';
 import Triple from './Triple';
 import Yielder from './Yielder';
 import getComponentConstructor from './component/getComponentConstructor';
 
 const constructors = {};
+constructors[ ALIAS ] = Alias;
 constructors[ DOCTYPE ] = Doctype;
 constructors[ INTERPOLATOR ] = Interpolator;
 constructors[ PARTIAL ] = Partial;
@@ -28,7 +31,7 @@ const specialElements = {
 	input: Input,
 	option: Option,
 	select: Select,
-	textarea: Input // it may turn out we need a separate Textarea class, but until then...
+	textarea: Textarea
 };
 
 export default function createItem ( options ) {

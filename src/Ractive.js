@@ -10,6 +10,7 @@ import parse from './parse/_parse';
 import getNodeInfo from './Ractive/static/getNodeInfo';
 import construct from './Ractive/construct';
 import initialise from './Ractive/initialise';
+import { getCSS } from './global/css';
 
 // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
 // older browsers, these are made available via a shim - here, we do a quick
@@ -54,11 +55,13 @@ defineProperties( Ractive, {
 	extend:         { value: extend },
 	getNodeInfo:    { value: getNodeInfo },
 	parse:          { value: parse },
+	getCSS:         { value: getCSS },
 
 	// namespaced constructors
 	Promise:        { value: Promise },
 
 	// support
+	enhance:        { writable: true, value: false },
 	svg:            { value: svg },
 	magic:          { value: magic },
 

@@ -1,4 +1,4 @@
-import { SECTION, SECTION_IF, SECTION_UNLESS, SECTION_WITH, SECTION_IF_WITH, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from '../../../config/types';
+import { ALIAS, SECTION, SECTION_IF, SECTION_UNLESS, PREFIX_OPERATOR, INFIX_OPERATOR, BRACKETED } from '../../../config/types';
 import { READERS } from '../../_parse';
 import readClosing from './section/readClosing';
 import readElse from './section/readElse';
@@ -7,13 +7,14 @@ import handlebarsBlockCodes from './handlebarsBlockCodes';
 import readExpression from '../readExpression';
 import flattenExpression from '../../utils/flattenExpression';
 import refineExpression from '../../utils/refineExpression';
+import { readAlias, readAliases } from './readAliases';
 
 var indexRefPattern = /^\s*:\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	keyIndexRefPattern = /^\s*,\s*([a-zA-Z_$][a-zA-Z_$0-9]*)/,
 	handlebarsBlockPattern = new RegExp( '^(' + Object.keys( handlebarsBlockCodes ).join( '|' ) + ')\\b' );
 
 export default function readSection ( parser, tag ) {
-	var start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose;
+	var start, expression, section, child, children, hasElse, block, unlessBlock, conditions, closed, i, expectedClose, aliasOnly = false;
 
 	start = parser.pos;
 
@@ -37,20 +38,37 @@ export default function readSection ( parser, tag ) {
 
 	parser.allowWhitespace();
 
-	expression = readExpression( parser );
-
-	if ( !expression ) {
-		parser.error( 'Expected expression' );
+	if ( block === 'with' ) {
+		let aliases = readAliases( parser );
+		if ( aliases ) {
+			aliasOnly = true;
+			section.z = aliases;
+			section.t = ALIAS;
+		}
+	} else if ( block === 'each' ) {
+		let alias = readAlias( parser );
+		if ( alias ) {
+			section.z = [ { n: alias.n, x: { r: '.' } } ];
+			expression = alias.x;
+		}
 	}
 
-	// optional index and key references
-	if ( i = parser.matchPattern( indexRefPattern ) ) {
-		let extra;
+	if ( !aliasOnly ) {
+		if ( !expression ) expression = readExpression( parser );
 
-		if ( extra = parser.matchPattern( keyIndexRefPattern ) ) {
-			section.i = i + ',' + extra;
-		} else {
-			section.i = i;
+		if ( !expression ) {
+			parser.error( 'Expected expression' );
+		}
+
+		// optional index and key references
+		if ( i = parser.matchPattern( indexRefPattern ) ) {
+			let extra;
+
+			if ( extra = parser.matchPattern( keyIndexRefPattern ) ) {
+				section.i = i + ',' + extra;
+			} else {
+				section.i = i;
+			}
 		}
 	}
 
@@ -75,7 +93,7 @@ export default function readSection ( parser, tag ) {
 			closed = true;
 		}
 
-		else if ( child = readElseIf( parser, tag ) ) {
+		else if ( !aliasOnly && ( child = readElseIf( parser, tag ) ) ) {
 			if ( section.n === SECTION_UNLESS ) {
 				parser.error( '{{else}} not allowed in {{#unless}}' );
 			}
@@ -98,7 +116,7 @@ export default function readSection ( parser, tag ) {
 			conditions.push( invert( child.x ) );
 		}
 
-		else if ( child = readElse( parser, tag ) ) {
+		else if ( !aliasOnly && ( child = readElse( parser, tag ) ) ) {
 			if ( section.n === SECTION_UNLESS ) {
 				parser.error( '{{else}} not allowed in {{#unless}}' );
 			}
@@ -135,18 +153,12 @@ export default function readSection ( parser, tag ) {
 	} while ( !closed );
 
 	if ( unlessBlock ) {
-		// special case - `with` should become `if-with` (TODO is this right?
-		// seems to me that `with` ought to behave consistently, regardless
-		// of the presence/absence of `else`. In other words should always
-		// be `if-with`
-		if ( section.n === SECTION_WITH ) {
-			section.n = SECTION_IF_WITH;
-		}
-
 		section.l = unlessBlock;
 	}
 
-	refineExpression( expression, section );
+	if ( !aliasOnly ) {
+		refineExpression( expression, section );
+	}
 
 	// TODO if a section is empty it should be discarded. Don't do
 	// that here though - we need to clean everything up first, as

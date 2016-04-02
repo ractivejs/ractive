@@ -1,14 +1,17 @@
+import { splitKeypath } from '../../shared/keypaths';
+
 function badReference ( key ) {
 	throw new Error( `An index or key reference (${key}) cannot have child properties` );
 }
 
 export default function resolveAmbiguousReference ( fragment, ref ) {
 	const localViewmodel = fragment.findContext().root;
-	const keys = ref.split( '.' );
+	const keys = splitKeypath( ref );
 	const key = keys[0];
 
 	let hasContextChain;
 	let crossedComponentBoundary;
+	let aliases;
 
 	while ( fragment ) {
 		// repeated fragments
@@ -21,6 +24,16 @@ export default function resolveAmbiguousReference ( fragment, ref ) {
 			if ( key === fragment.parent.indexRef ) {
 				if ( keys.length > 1 ) badReference( key );
 				return fragment.context.getIndexModel( fragment.index );
+			}
+		}
+
+		// alias node or iteration
+		if ( ( ( aliases = fragment.owner.aliases ) || ( aliases = fragment.aliases ) ) && aliases.hasOwnProperty( key ) ) {
+			let model = aliases[ key ];
+
+			if ( keys.length === 1 ) return model;
+			else if ( typeof model.joinAll === 'function' ) {
+				return model.joinAll( keys.slice( 1 ) );
 			}
 		}
 

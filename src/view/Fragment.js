@@ -1,4 +1,4 @@
-import { ELEMENT } from '../config/types';
+import { ELEMENT, YIELDER } from '../config/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';
@@ -23,8 +23,6 @@ export default class Fragment {
 
 		this.context = null;
 		this.rendered = false;
-		this.indexRefs = options.indexRefs || ( this.parent ? this.parent.indexRefs : [] );
-		this.keyRefs = options.keyRefs || ( this.parent ? this.parent.keyRefs : {} );
 
 		// encapsulated styles should be inherited until they get applied by an element
 		this.cssIds = 'cssIds' in options ? options.cssIds : ( this.parent ? this.parent.cssIds : null );
@@ -142,9 +140,13 @@ export default class Fragment {
 	}
 
 	findNextNode ( item ) {
-		const nextItem = this.items[ item.index + 1 ];
+		// search for the next node going forward
+		for ( let i = item.index + 1; i < this.items.length; i++ ) {
+			if ( !this.items[ i ] ) continue;
 
-		if ( nextItem ) return nextItem.firstNode();
+			let node = this.items[ i ].firstNode( true );
+			if ( node ) return node;
+		}
 
 		// if this is the root fragment, and there are no more items,
 		// it means we're at the end...
@@ -173,7 +175,11 @@ export default class Fragment {
 				return fragment.ractive.el;
 			}
 
-			fragment = fragment.componentParent || fragment.parent; // TODO ugh
+			if ( fragment.owner.type === YIELDER ) {
+				fragment = fragment.owner.containerFragment;
+			} else {
+				fragment = fragment.componentParent || fragment.parent; // TODO ugh
+			}
 		} while ( fragment );
 
 		throw new Error( 'Could not find parent node' ); // TODO link to issue tracker
@@ -189,8 +195,19 @@ export default class Fragment {
 		return fragment;
 	}
 
-	firstNode () {
-		return this.items[0] ? this.items[0].firstNode() : this.parent.findNextNode( this.owner );
+	firstNode ( skipParent ) {
+		let node;
+		for ( let i = 0; i < this.items.length; i++ ) {
+			node = this.items[i].firstNode( true );
+
+			if ( node ) {
+				return node;
+			}
+		}
+
+		if ( skipParent ) return null;
+
+		return this.parent.findNextNode( this.owner );
 	}
 
 	// TODO ideally, this would be deprecated in favour of an
@@ -217,11 +234,11 @@ export default class Fragment {
 		this.items.forEach( rebind );
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		if ( this.rendered ) throw new Error( 'Fragment is already rendered!' );
 		this.rendered = true;
 
-		this.items.forEach( item => item.render( target ) );
+		this.items.forEach( item => item.render( target, occupants ) );
 	}
 
 	resetTemplate ( template ) {
@@ -288,9 +305,11 @@ export default class Fragment {
 	}
 
 	update () {
-		if ( this.dirty ) {
-			this.items.forEach( update );
+		if ( this.dirty && !this.updating ) {
 			this.dirty = false;
+			this.updating = true;
+			this.items.forEach( update );
+			this.updating = false;
 		}
 	}
 

@@ -1,17 +1,17 @@
 import { isArray } from '../../../utils/is';
-import { normalise } from '../../../shared/keypaths';
+import { splitKeypath } from '../../../shared/keypaths';
 import runloop from '../../../global/runloop';
 import getNewIndices from '../../../shared/getNewIndices';
 
-var arrayProto = Array.prototype;
+const arrayProto = Array.prototype;
 
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
-		const model = this.viewmodel.joinAll( normalise( keypath ).split( '.' ) );
+		const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
 		const array = model.get();
 
 		if ( !isArray( array ) ) {
-			throw new Error( `shuffle array method ${methodName} called on non-array at ${keypath.getKeypath()}` );
+			throw new Error( `shuffle array method ${methodName} called on non-array at ${model.getKeypath()}` );
 		}
 
 		const newIndices = getNewIndices( array.length, methodName, args );

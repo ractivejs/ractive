@@ -6,7 +6,7 @@ import processWrapper from './processWrapper';
 const mutatorMethods = [ 'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift' ];
 let patchedArrayProto = [];
 
-mutatorMethods.forEach( function ( methodName ) {
+mutatorMethods.forEach( methodName => {
 	const method = function ( ...args ) {
 		const newIndices = getNewIndices( this.length, methodName, args );
 

@@ -137,6 +137,7 @@ export default class Component extends Item {
 						// this is a *bit* of a hack
 						fragment.bubble = () => {
 							Fragment.prototype.bubble.call( fragment );
+							fragment.update();
 							model.set( fragment.valueOf() );
 						};
 
@@ -149,8 +150,6 @@ export default class Component extends Item {
 		initialise( this.instance, {
 			partials: this._partials
 		}, {
-			indexRefs: this.instance.isolated ? {} : this.parentFragment.indexRefs,
-			keyRefs: this.instance.isolated ? {} : this.parentFragment.keyRefs,
 			cssIds: this.parentFragment.cssIds
 		});
 
@@ -205,8 +204,8 @@ export default class Component extends Item {
 		this.instance.fragment.findAllComponents( name, query );
 	}
 
-	firstNode () {
-		return this.instance.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.instance.fragment.firstNode( skipParent );
 	}
 
 	rebind () {
@@ -216,6 +215,7 @@ export default class Component extends Item {
 
 		// update relevant mappings
 		const viewmodel = this.instance.viewmodel;
+		viewmodel.mappings = {};
 
 		if ( this.template.a ) {
 			Object.keys( this.template.a ).forEach( localKey => {
@@ -240,8 +240,8 @@ export default class Component extends Item {
 		this.instance.fragment.rebind( viewmodel );
 	}
 
-	render ( target ) {
-		render( this.instance, target, null );
+	render ( target, occupants ) {
+		render( this.instance, target, null, occupants );
 
 		this.checkYielders();
 		this.eventHandlers.forEach( callRender );
@@ -282,6 +282,8 @@ export default class Component extends Item {
 			removeFromArray( instance.el.__ractive_instances__, instance );
 		}
 
+		Object.keys( instance._links ).forEach( k => instance._links[k].unlink() );
+
 		teardownHook.fire( instance );
 	}
 
@@ -293,9 +295,10 @@ export default class Component extends Item {
 	}
 
 	update () {
+		this.dirty = false;
 		this.instance.fragment.update();
 		this.checkYielders();
 		this.eventHandlers.forEach( update );
-		this.dirty = false;
+		this.complexMappings.forEach( update );
 	}
 }

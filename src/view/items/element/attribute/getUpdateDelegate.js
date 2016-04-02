@@ -4,6 +4,8 @@ import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 
+const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
+
 export default function getUpdateDelegate ( attribute ) {
 	const { element, name } = attribute;
 
@@ -15,7 +17,7 @@ export default function getUpdateDelegate ( attribute ) {
 			return element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
 		}
 
-		if ( element.name === 'textarea' ) return updateValue;
+		if ( element.name === 'textarea' ) return updateStringValue;
 
 		// special case - contenteditable
 		if ( element.getAttribute( 'contenteditable' ) != null ) return updateContentEditableValue;
@@ -29,6 +31,8 @@ export default function getUpdateDelegate ( attribute ) {
 
 			// type='radio' name='{{twoway}}'
 			if ( type === 'radio' && element.binding && element.binding.attribute.name === 'name' ) return updateRadioValue;
+
+			if ( ~textTypes.indexOf( type ) ) return updateStringValue;
 		}
 
 		return updateValue;
@@ -48,9 +52,9 @@ export default function getUpdateDelegate ( attribute ) {
 	// special case - class names. IE fucks things up, again
 	if ( name === 'class' && ( !node.namespaceURI || node.namespaceURI === html ) ) return updateClassName;
 
-	if ( attribute.useProperty ) return updateProperty;
+	if ( attribute.isBoolean ) return updateBoolean;
 
-	if ( attribute.namespace ) return updateNamespacedAttribute;
+	if ( attribute.namespace && attribute.namespace !== attribute.node.namespaceURI ) return updateNamespacedAttribute;
 
 	return updateAttribute;
 }
@@ -146,6 +150,17 @@ function updateValue () {
 	}
 }
 
+function updateStringValue () {
+	if ( !this.locked ) {
+		const value = this.getValue();
+
+		this.node._ractive.value = value;
+
+		this.node.value = safeToStringValue( value );
+		this.node.setAttribute( 'value', safeToStringValue( value ) );
+	}
+}
+
 function updateRadioName () {
 	this.node.checked = ( this.getValue() == this.node._ractive.value );
 }
@@ -179,11 +194,19 @@ function updateClassName () {
 	this.node.className = safeToStringValue( this.getValue() );
 }
 
-function updateProperty () {
+function updateBoolean () {
 	// with two-way binding, only update if the change wasn't initiated by the user
 	// otherwise the cursor will often be sent to the wrong place
 	if ( !this.locked ) {
-		this.node[ this.propertyName ] = this.getValue();
+		if ( this.useProperty ) {
+			this.node[ this.propertyName ] = this.getValue();
+		} else {
+			if ( this.getValue() ) {
+				this.node.setAttribute( this.propertyName, '' );
+			} else {
+				this.node.removeAttribute( this.propertyName );
+			}
+		}
 	}
 }
 
@@ -192,5 +215,5 @@ function updateAttribute () {
 }
 
 function updateNamespacedAttribute () {
-	this.node.setAttributeNS( this.namespace, this.name, safeToStringValue( this.getString() ) );
+	this.node.setAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ), safeToStringValue( this.getString() ) );
 }

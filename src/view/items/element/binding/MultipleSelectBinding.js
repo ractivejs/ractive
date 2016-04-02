@@ -5,7 +5,7 @@ import { arrayContentsMatch } from '../../../../utils/array';
 
 export default class MultipleSelectBinding extends Binding {
 	forceUpdate () {
-		var value = this.getValue();
+		const value = this.getValue();
 
 		if ( value !== undefined ) {
 			this.attribute.locked = true;
@@ -60,6 +60,18 @@ export default class MultipleSelectBinding extends Binding {
 			// get value from DOM, if possible
 			this.handleChange();
 		}
+	}
+
+	setFromNode ( node ) {
+		let i = node.selectedOptions.length;
+		let result = new Array( i );
+
+		while ( i-- ) {
+			const option = node.selectedOptions[i];
+			result[i] = option._ractive ? option._ractive.value : option.value;
+		}
+
+		this.model.set( result );
 	}
 
 	setValue () {

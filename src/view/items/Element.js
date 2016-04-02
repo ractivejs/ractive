@@ -10,9 +10,10 @@ import { findInViewHierarchy } from '../../shared/registry';
 import { DOMEvent, CustomEvent } from './element/ElementEvents';
 import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
+import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
-import { createElement, matches } from '../../utils/dom';
+import { createElement, detachNode, matches } from '../../utils/dom';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
@@ -38,6 +39,10 @@ export default class Element extends Item {
 				break;
 			}
 			fragment = fragment.parent;
+		}
+
+		if ( this.parent && this.parent.name === 'option' ) {
+			throw new Error( `An <option> element cannot contain other elements (encountered <${this.name}>)` );
 		}
 
 		// create attributes
@@ -97,7 +102,7 @@ export default class Element extends Item {
 		}
 
 		// create children
-		if ( options.template.f ) {
+		if ( options.template.f && !options.noContent ) {
 			this.fragment = new Fragment({
 				template: options.template.f,
 				owner: this,
@@ -144,11 +149,7 @@ export default class Element extends Item {
 
 	detach () {
 		if ( this.decorator ) this.decorator.unrender();
-
-		const parentNode = this.node.parentNode;
-		if ( parentNode ) parentNode.removeChild( this.node );
-
-		return this.node;
+		return detachNode( this.node );
 	}
 
 	find ( selector ) {
@@ -200,6 +201,7 @@ export default class Element extends Item {
 	rebind () {
 		this.attributes.forEach( rebind );
 		this.conditionalAttributes.forEach( rebind );
+		this.eventHandlers.forEach( rebind );
 		if ( this.decorator ) this.decorator.rebind();
 		if ( this.fragment ) this.fragment.rebind();
 		if ( this.binding ) this.binding.rebind();
@@ -207,22 +209,35 @@ export default class Element extends Item {
 		this.liveQueries.forEach( makeDirty );
 	}
 
-	render ( target ) {
+	render ( target, occupants ) {
 		// TODO determine correct namespace
 		this.namespace = getNamespace( this );
 
-		const node = createElement( this.template.e, this.namespace, this.getAttribute( 'is' ) );
-		this.node = node;
+		let node;
+		let existing = false;
 
-		const context = this.parentFragment.findContext();
+		if ( occupants ) {
+			let n;
+			while ( ( n = occupants.shift() ) ) {
+				if ( n.nodeName === this.template.e.toUpperCase() && n.namespaceURI === this.namespace ) {
+					this.node = node = n;
+					existing = true;
+					break;
+				} else {
+					detachNode( n );
+				}
+			}
+		}
+
+		if ( !node ) {
+			node = createElement( this.template.e, this.namespace, this.getAttribute( 'is' ) );
+			this.node = node;
+		}
 
 		defineProperty( node, '_ractive', {
 			value: {
 				proxy: this,
-				ractive: this.ractive,
-				fragment: this.parentFragment,
-				context,
-				keypath: context.getKeypath()
+				fragment: this.parentFragment
 			}
 		});
 
@@ -232,8 +247,28 @@ export default class Element extends Item {
 			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
 		}
 
+		if ( existing && this.foundNode ) this.foundNode( node );
+
 		if ( this.fragment ) {
-			this.fragment.render( node );
+			const children = existing ? toArray( node.childNodes ) : undefined;
+			this.fragment.render( node, children );
+
+			// clean up leftover children
+			if ( children ) {
+				children.forEach( detachNode );
+			}
+		}
+
+		if ( existing ) {
+			// store initial values for two-way binding
+			if ( this.binding && this.binding.wasUndefined ) this.binding.setFromNode( node );
+
+			// remove unused attributes
+			let i = node.attributes.length;
+			while ( i-- ) {
+				const name = node.attributes[i].name;
+				if ( !this.template.a || !( name in this.template.a ) ) node.removeAttribute( name );
+			}
 		}
 
 		this.attributes.forEach( render );
@@ -249,7 +284,9 @@ export default class Element extends Item {
 		// store so we can abort if it gets removed
 		this._introTransition = getTransition( this, this.template.t0 || this.template.t1, 'intro' );
 
-		target.appendChild( node );
+		if ( !existing ) {
+			target.appendChild( node );
+		}
 
 		this.rendered = true;
 	}
@@ -341,14 +378,14 @@ export default class Element extends Item {
 
 	update () {
 		if ( this.dirty ) {
+			this.dirty = false;
+
 			this.attributes.forEach( update );
 			this.conditionalAttributes.forEach( update );
 			this.eventHandlers.forEach( update );
 
 			if ( this.decorator ) this.decorator.update();
 			if ( this.fragment ) this.fragment.update();
-
-			this.dirty = false;
 		}
 	}
 }

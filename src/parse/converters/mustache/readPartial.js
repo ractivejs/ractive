@@ -1,6 +1,7 @@
-import { PARTIAL, SECTION, SECTION_WITH } from '../../../config/types';
+import { PARTIAL, SECTION, SECTION_WITH, ALIAS } from '../../../config/types';
 import readExpression from '../readExpression';
 import refineExpression from '../../utils/refineExpression';
+import { readAliases } from './readAliases';
 
 export default function readPartial ( parser, tag ) {
 	if ( !parser.matchString( '>' ) ) return null;
@@ -11,13 +12,9 @@ export default function readPartial ( parser, tag ) {
 	// blindly. Instead, we use the `relaxedNames` flag to indicate that
 	// `foo-bar` should be read as a single name, rather than 'subtract
 	// bar from foo'
-	parser.relaxedNames = true;
+	parser.relaxedNames = parser.strictRefinement = true;
 	const expression = readExpression( parser );
-	parser.relaxedNames = false;
-
-	parser.allowWhitespace();
-	const context = readExpression( parser );
-	parser.allowWhitespace();
+	parser.relaxedNames = parser.strictRefinement = false;
 
 	if ( !expression ) return null;
 
@@ -26,17 +23,33 @@ export default function readPartial ( parser, tag ) {
 
 	parser.allowWhitespace();
 
-	// if we have another expression - e.g. `{{>foo bar}}` - then
-	// we turn it into `{{#with bar}}{{>foo}}{{/with}}`
-	if ( context ) {
+	// check for alias context e.g. `{{>foo bar as bat, bip as bop}}` then
+	// turn it into `{{#with bar as bat, bip as bop}}{{>foo}}{{/with}}`
+	const aliases = readAliases( parser );
+	if ( aliases ) {
 		partial = {
-			t: SECTION,
-			n: SECTION_WITH,
+			t: ALIAS,
+			z: aliases,
 			f: [ partial ]
 		};
-
-		refineExpression( context, partial );
 	}
+
+	// otherwise check for literal context e.g. `{{>foo bar}}` then
+	// turn it into `{{#with bar}}{{>foo}}{{/with}}`
+	else {
+		const context = readExpression( parser );
+		if ( context) {
+			partial = {
+				t: SECTION,
+				n: SECTION_WITH,
+				f: [ partial ]
+			};
+
+			refineExpression( context, partial );
+		}
+	}
+
+	parser.allowWhitespace();
 
 	if ( !parser.matchString( tag.close ) ) {
 		parser.error( `Expected closing delimiter '${tag.close}'` );

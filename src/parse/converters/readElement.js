@@ -166,7 +166,7 @@ function readElement ( parser ) {
 
 		// Special case - if we open a script element, further tags should
 		// be ignored unless they're a closing script element
-		if ( lowerCaseName === 'script' || lowerCaseName === 'style' ) {
+		if ( lowerCaseName === 'script' || lowerCaseName === 'style' || lowerCaseName === 'textarea' ) {
 			parser.inside = lowerCaseName;
 		}
 
@@ -176,6 +176,14 @@ function readElement ( parser ) {
 		do {
 			pos = parser.pos;
 			remaining = parser.remaining();
+
+			if ( !remaining ) {
+				parser.error( `Missing end ${
+					parser.elementStack.length > 1 ? 'tags' : 'tag'
+				} (${
+					parser.elementStack.reverse().map( x => `</${x}>` ).join( '' )
+				})` );
+			}
 
 			// if for example we're in an <li> element, and we see another
 			// <li> tag, close the first so they become siblings

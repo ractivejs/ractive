@@ -1,3 +1,5 @@
+/* global document */
+
 import { test } from 'qunit';
 import { hasUsableConsole, onWarn } from 'test-config';
 
@@ -109,6 +111,7 @@ test( 'partial function has access to parser helper', t => {
 		partials: {
 			foo ( parser ) {
 				t.ok( parser.fromId );
+				return 'x';
 			}
 		}
 	});
@@ -304,6 +307,18 @@ test( 'Partials with expressions may also have context', function( t ) {
 	t.htmlEqual( fixture.innerHTML, 'inverted - 1 : normal - 2');
 });
 
+test( 'Partials with context should still have access to special refs (#2164)', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{>foo bar.baz}}',
+		partials: {
+			foo: `{{ @keypath + '.bop' }}`
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bar.baz.bop' );
+});
+
 test( 'Partials .toString() works when not the first child of parent (#1163)', t => {
 	const ractive = new Ractive({
 		template: '<div>Foo {{>foo}}</div>',
@@ -338,6 +353,8 @@ test( 'Dynamic partial works with merge (#1313)', t => {
 });
 
 test( 'Nameless expressions with no matching partial don\'t throw', t => {
+	onWarn( msg => t.ok( /Could not find template for partial 'missing'/.test( msg ) ) );
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: `{{> 'miss' + 'ing' }}`
@@ -361,6 +378,8 @@ test( 'Partials can be changed with resetPartial', t => {
 });
 
 test( 'Partials with variable names can be changed with resetPartial', t => {
+	onWarn( msg => t.ok( /Could not find template for partial 'partial'/.test( msg ) ) );
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: 'wrapped {{>partial}} around',
@@ -382,6 +401,8 @@ test( 'Partials with variable names can be changed with resetPartial', t => {
 });
 
 test( 'Partials with expression names can be changed with resetPartial', t => {
+	onWarn( msg => t.ok( /Could not find template for partial 'undefinedPartial'/.test( msg ) ) );
+
 	const ractive = new Ractive({
 		el: fixture,
 		template: `wrapped {{>foo + 'Partial'}} around`,
@@ -573,10 +594,10 @@ test( 'Inline partials may be defined with a partial section', t => {
 		template: `
 			{{#partial foo}}foo{{/partial}}
 			{{>foo}}
-			<Widget />
+			<Widget/>
 			<Widget>
 				{{#partial foo}}bar{{/partial}}
-			<Widget>`,
+			</Widget>`,
 		components: {
 			Widget: Ractive.extend({
 				template: '{{>foo}}'
@@ -588,6 +609,8 @@ test( 'Inline partials may be defined with a partial section', t => {
 });
 
 test( '(Only) inline partials can be yielded', t => {
+	onWarn( msg => t.ok( /Could not find template for partial "foo"/.test( msg ) ) );
+
 	const Widget = Ractive.extend({
 		template: '{{yield foo}}',
 		partials: { foo: 'bar' }
@@ -740,7 +763,9 @@ test( 'Several inline partials containing elements can be defined (#1736)', t =>
 });
 
 test( 'Removing a missing partial (#1808)', t => {
-	t.expect( 0 );
+	t.expect( 1 );
+
+	onWarn( msg => t.ok( /Could not find template for partial 'item'/.test( msg ) ) );
 
 	const ractive = new Ractive({
 		template: '{{#items}}{{>item}}{{/}}',
@@ -800,4 +825,132 @@ test( 'Inline partials can override instance partials if they exist on a node di
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<div><span>Something happens one</span></div><div><span>Something happens two</span></div>' );
+});
+
+test( 'partial expressions will use inline content if they resolve to an object with a template string property', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{>foo}}',
+		data: {
+			foo: { template: 'this is a {{bar}}' },
+			bar: 'test'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'this is a test' );
+	r.set( 'bar', 'turnip' );
+	t.htmlEqual( fixture.innerHTML, 'this is a turnip' );
+	r.set( 'foo.template', '{{bar}}s are tasty' );
+	t.htmlEqual( fixture.innerHTML, 'turnips are tasty' );
+});
+
+test( 'partial expressions will use inline content if they resolve to a pre-parsed template', t => {
+	const r = new Ractive({
+		el: fixture,
+		template: '{{>foo}}',
+		data: {
+			foo: Ractive.parse( 'this is a {{bar}}' ),
+			bar: 'test'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'this is a test' );
+	r.set( 'bar', 'turnip' );
+	t.htmlEqual( fixture.innerHTML, 'this is a turnip' );
+	r.set( 'foo', Ractive.parse( '{{bar}}s are tasty' ) );
+	t.htmlEqual( fixture.innerHTML, 'turnips are tasty' );
+});
+
+test( 'resetting a dynamic partial to its reference name should replace the partial (#2185)', t => {
+	onWarn( msg => t.ok( /Could not find template for partial 'nope'/.test( msg ) ) );
+
+	const r = new Ractive({
+		el: fixture,
+		template: '{{>part1}}{{>part2}}',
+		partials: { part3: 'part3' },
+		data: { part1: 'part3', part2: 'nope' }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'part3' );
+
+	r.resetPartial( 'part1', 'part1' );
+	t.htmlEqual( fixture.innerHTML, 'part1' );
+
+	r.resetPartial( 'part2', 'part2' );
+	t.htmlEqual( fixture.innerHTML, 'part1part2' );
+});
+
+test( `Partials can have context that starts with '.' (#1880)`, t => {
+	new Ractive({
+		el: fixture,
+		template: '{{#with foo}}{{>foo .bar}}{{/with}}',
+		data: {
+			foo: { bar: { baz: 'bat' } }
+		},
+		partials: {
+			foo: '{{.baz}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'bat' );
+});
+
+test( 'Context computations are not called unnecessarily (#2224)', t => {
+	t.expect( 2 );
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			{{#if foo}}
+				{{>p { x: y( foo.bar )} }}
+			{{/if}}`,
+		data: {
+			foo: { bar: 42 },
+			y ( num ) {
+				t.equal( num, 42 );
+				return num;
+			}
+		},
+		partials: {
+			p: '{{x}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, '42' );
+
+	ractive.set( 'foo', null );
+});
+
+test( 'Partials can be given alias context (#2298)', t => {
+	new Ractive({
+		el: fixture,
+		template: '{{>foo foo.bar as bat, bip.bop as boo}}',
+		data: {
+			foo: { bar: 'one' }, bip: { bop: 'two' }
+		},
+		partials: {
+			foo: '{{bat}} {{boo}}'
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'one two' );
+});
+
+test( 'Partials can be parsed from a partial template (#1445)', t => {
+	fixture.innerHTML = '<div id="fixture-tmp"></div>';
+	let script = document.createElement( 'script' );
+	script.setAttribute( 'type', 'text/html' );
+	script.setAttribute( 'id', 'foo' );
+	script[ 'textContent' in script ? 'textContent' : 'innerHTML' ] = `
+		{{#partial bar}}inner{{/partial}}
+		outer
+	`;
+	fixture.appendChild( script );
+
+	new Ractive({
+		el: '#fixture-tmp',
+		template: `{{>foo}} {{>bar}}`
+	});
+
+	t.htmlEqual( fixture.childNodes[0].innerHTML, 'outer inner' );
 });

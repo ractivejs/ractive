@@ -1,46 +1,47 @@
-export var TEXT              = 1;
-export var INTERPOLATOR      = 2;
-export var TRIPLE            = 3;
-export var SECTION           = 4;
-export var INVERTED          = 5;
-export var CLOSING           = 6;
-export var ELEMENT           = 7;
-export var PARTIAL           = 8;
-export var COMMENT           = 9;
-export var DELIMCHANGE       = 10;
-export var ATTRIBUTE         = 13;
-export var CLOSING_TAG       = 14;
-export var COMPONENT         = 15;
-export var YIELDER           = 16;
-export var INLINE_PARTIAL    = 17;
-export var DOCTYPE           = 18;
+export const TEXT              = 1;
+export const INTERPOLATOR      = 2;
+export const TRIPLE            = 3;
+export const SECTION           = 4;
+export const INVERTED          = 5;
+export const CLOSING           = 6;
+export const ELEMENT           = 7;
+export const PARTIAL           = 8;
+export const COMMENT           = 9;
+export const DELIMCHANGE       = 10;
+export const ATTRIBUTE         = 13;
+export const CLOSING_TAG       = 14;
+export const COMPONENT         = 15;
+export const YIELDER           = 16;
+export const INLINE_PARTIAL    = 17;
+export const DOCTYPE           = 18;
+export const ALIAS             = 19;
 
-export var NUMBER_LITERAL    = 20;
-export var STRING_LITERAL    = 21;
-export var ARRAY_LITERAL     = 22;
-export var OBJECT_LITERAL    = 23;
-export var BOOLEAN_LITERAL   = 24;
-export var REGEXP_LITERAL    = 25;
+export const NUMBER_LITERAL    = 20;
+export const STRING_LITERAL    = 21;
+export const ARRAY_LITERAL     = 22;
+export const OBJECT_LITERAL    = 23;
+export const BOOLEAN_LITERAL   = 24;
+export const REGEXP_LITERAL    = 25;
 
-export var GLOBAL            = 26;
-export var KEY_VALUE_PAIR    = 27;
+export const GLOBAL            = 26;
+export const KEY_VALUE_PAIR    = 27;
 
 
-export var REFERENCE         = 30;
-export var REFINEMENT        = 31;
-export var MEMBER            = 32;
-export var PREFIX_OPERATOR   = 33;
-export var BRACKETED         = 34;
-export var CONDITIONAL       = 35;
-export var INFIX_OPERATOR    = 36;
+export const REFERENCE         = 30;
+export const REFINEMENT        = 31;
+export const MEMBER            = 32;
+export const PREFIX_OPERATOR   = 33;
+export const BRACKETED         = 34;
+export const CONDITIONAL       = 35;
+export const INFIX_OPERATOR    = 36;
 
-export var INVOCATION        = 40;
+export const INVOCATION        = 40;
 
-export var SECTION_IF        = 50;
-export var SECTION_UNLESS    = 51;
-export var SECTION_EACH      = 52;
-export var SECTION_WITH      = 53;
-export var SECTION_IF_WITH   = 54;
+export const SECTION_IF        = 50;
+export const SECTION_UNLESS    = 51;
+export const SECTION_EACH      = 52;
+export const SECTION_WITH      = 53;
+export const SECTION_IF_WITH   = 54;
 
-export var ELSE              = 60;
-export var ELSEIF            = 61;
+export const ELSE              = 60;
+export const ELSEIF            = 61;

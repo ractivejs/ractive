@@ -341,6 +341,25 @@ test( 'Isolated components do not interact with ancestor viewmodels', t => {
 	t.htmlEqual( fixture.innerHTML, 'you should see me.' );
 });
 
+test( 'isolated components do not interact with ancestor viewmodels via API (#2335)', t => {
+	const cmp = Ractive.extend({
+		template: '{{foo}}',
+		oninit() {
+			this.set( 'foo', this.get( 'bar' ) ? 'nope' : 'yep' );
+		},
+		isolated: true
+	});
+
+	Ractive({
+		el: fixture,
+		data: { bar: true },
+		template: '<cmp />',
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
+
 test( 'Children do not nuke parent data when inheriting from ancestors', t => {
 	const Widget = Ractive.extend({
 		template: '<p>value: {{thing.value}}</p>'
@@ -416,6 +435,7 @@ test( 'foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{
 test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo="{{foo}}"/>', t => {
 	const ractive = new Ractive({
 		el: fixture,
+		data: { qux: { foo: {} } },
 		template: `
 			{{#with qux}}
 				<One foo='{{foo}}'/>
@@ -427,7 +447,6 @@ test( 'qux.foo.bar should stay in sync between <one foo="{{foo}}"/> and <two foo
 		}
 	});
 
-	ractive.set( 'qux.foo', {} );
 	t.htmlEqual( fixture.innerHTML, '<p></p><p></p>' );
 
 	ractive.findComponent( 'One' ).set( 'foo.bar', 'baz' );
@@ -635,6 +654,7 @@ test( 'Insane variable shadowing bug doesn\'t appear (#710)', t => {
 		el: fixture,
 		template: '<List items="{{sorted_items}}"/>',
 		components: { List },
+		data: () => ({ items: [] }),
 		computed: {
 			sorted_items () {
 				return this.get( 'items' ).slice().sort( ( a, b ) => a.rank - b.rank );
@@ -1060,4 +1080,116 @@ test( 'Bindings, mappings, and upstream computations should not cause infinite m
 	});
 
 	t.htmlEqual( fixture.innerHTML, '{"bar":""}<input />' );
+});
+
+test( 'components should update their mappings on rebind to prevent weirdness with shuffling (#2147)', t => {
+	const Item = Ractive.extend({
+		template: '{{value}}'
+	});
+
+	const ractive = new Ractive({
+		el:fixture,
+		template: `
+			<div>--23--</div>
+			<div id="s1">{{#s1}}<Item />{{/}}</div>
+			<div>--13--</div>
+			<div id="s2">{{#s2}}<Item />{{/}}</div>
+			<div>--12--</div>
+			<div id="s3">{{#s3}}<Item />{{/}}</div>
+		`,
+		components: { Item },
+	});
+
+	const items = [ { value: 1 }, { value: 2 }, { value: 3 } ];
+
+	ractive.set('s1', items.slice() );
+	ractive.splice( 's1', 0, 1 );
+	t.deepEqual( ractive.get( 's1' ), [ { value: 2 }, { value: 3 } ] );
+	t.htmlEqual( ractive.find( '#s1' ).innerHTML, '23' );
+
+	ractive.set('s2', items.slice() );
+	ractive.splice( 's2', 1, 1 );
+	t.deepEqual( ractive.get( 's2' ), [ { value: 1 }, { value: 3 } ] );
+	t.htmlEqual( ractive.find( '#s2' ).innerHTML, '13' );
+
+	ractive.set('s3', items.slice() );
+	ractive.splice( 's3', 2, 1 );
+	t.deepEqual( ractive.get( 's3' ), [ { value: 1 }, { value: 2 } ] );
+	t.htmlEqual( ractive.find( '#s3' ).innerHTML, '12' );
+});
+
+test( 'Interpolators based on computed mappings update correctly #2261)', t => {
+	const Component = Ractive.extend({
+		template: `{{active ? "active" : "inactive"}}`
+	});
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: `
+			<Component active="{{tab == 'foo'}}"/>
+			<Component active="{{tab == 'bar'}}"/>`,
+		data: {
+			tab: 'foo'
+		},
+		components: { Component }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'active inactive' );
+	ractive.set( 'tab', 'bar' );
+	t.htmlEqual( fixture.innerHTML, 'inactive active' );
+});
+
+test( 'root references inside a component should resolve to the component', t => {
+	const cmp = Ractive.extend({
+		template: '{{#with foo.bar}}{{~/test}}{{/with}}',
+		data: function() {
+			return { test: 'yep' };
+		}
+	});
+
+	new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{baz.bat}}" />',
+		components: { cmp },
+		data: {
+			baz: { bat: { bar: 1 } }
+		}
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'yep' );
+});
+
+test( 'complex mappings continue to update with their dependencies', t => {
+	const cmp = Ractive.extend({
+		template: '{{foo}}'
+	});
+	const r = new Ractive({
+		el: fixture,
+		template: '<cmp foo="foo? {{bar}}" />',
+		components: { cmp }
+	});
+
+	let c = r.findComponent( 'cmp' );
+
+	r.set( 'bar', 'maybe' );
+	t.equal( c.get( 'bar' ), 'maybe' );
+	t.htmlEqual( fixture.innerHTML, 'foo? maybe' );
+	r.set( 'bar', 'yes' );
+	t.equal( c.get( 'bar' ), 'yes' );
+	t.htmlEqual( fixture.innerHTML, 'foo? yes' );
+});
+
+test( `complex mappings work with a single section (#2444)`, t => {
+	const cmp = Ractive.extend({
+		template: '{{foo}}'
+	});
+	const r = new Ractive({
+		el: fixture,
+		template: '<cmp foo="{{#if thing}}{{thing}} is yep{{/if}}" />',
+		components: { cmp },
+		data: { thing: '' }
+	});
+
+	r.set( 'thing', 'hey' );
+	t.htmlEqual( fixture.innerHTML, 'hey is yep' );
 });

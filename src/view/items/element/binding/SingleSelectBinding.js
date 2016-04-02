@@ -62,17 +62,15 @@ export default class SingleSelectBinding extends Binding {
 	}
 
 	getValue () {
-		var options, i, len, option, optionValue;
+		const options = this.node.options;
+		const len = options.length;
 
-		options = this.node.options;
-		len = options.length;
-
+		let i;
 		for ( i = 0; i < len; i += 1 ) {
-			option = options[i];
+			const option = options[i];
 
 			if ( options[i].selected && !options[i].disabled ) {
-				optionValue = option._ractive ? option._ractive.value : option.value;
-				return optionValue;
+				return option._ractive ? option._ractive.value : option.value;
 			}
 		}
 	}
@@ -80,6 +78,11 @@ export default class SingleSelectBinding extends Binding {
 	render () {
 		super.render();
 		this.node.addEventListener( 'change', handleDomEvent, false );
+	}
+
+	setFromNode ( node ) {
+		const option = node.selectedOptions[0];
+		this.model.set( option._ractive ? option._ractive.value : option.value );
 	}
 
 	// TODO this method is an anomaly... is it necessary?

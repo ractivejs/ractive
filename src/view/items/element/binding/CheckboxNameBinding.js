@@ -1,35 +1,28 @@
 import Binding from './Binding';
 import { isArray } from '../../../../utils/is';
-import { arrayContains } from '../../../../utils/array';
+import { arrayContains, removeFromArray } from '../../../../utils/array';
 import getBindingGroup from './getBindingGroup';
 import handleDomEvent from './handleDomEvent';
 
-function isChecked ( binding ) {
-	return binding.node.checked;
-}
-
-function getValue ( binding ) {
-	return binding.element.getAttribute( 'value' );
-}
-
-function getGroupValue () {
-	return this.bindings.filter( isChecked ).map( getValue );
-}
-
 const push = [].push;
+
+function getValue() {
+	const all = this.bindings.filter(b => b.node && b.node.checked).map(b => b.element.getAttribute( 'value' ));
+	let res = [];
+	all.forEach(v => { if ( !arrayContains( res, v ) ) res.push( v ); });
+	return res;
+}
 
 export default class CheckboxNameBinding extends Binding {
 	constructor ( element ) {
 		super( element, 'name' );
-
-		var existingValue, bindingValue;
 
 		this.checkboxName = true; // so that ractive.updateModel() knows what to do with this
 
 		// Each input has a reference to an array containing it and its
 		// group, as two-way binding depends on being able to ascertain
 		// the status of all inputs within the group
-		this.group = getBindingGroup( this.ractive._guid, 'checkboxes', this.model, getGroupValue );
+		this.group = getBindingGroup( 'checkboxes', this.model, getValue );
 		this.group.add( this );
 
 		if ( this.noInitialValue ) {
@@ -39,10 +32,12 @@ export default class CheckboxNameBinding extends Binding {
 		// If no initial value was set, and this input is checked, we
 		// update the model
 		if ( this.group.noInitialValue && this.element.getAttribute( 'checked' ) ) {
-			existingValue = this.model.get();
-			bindingValue = this.element.getAttribute( 'value' );
+			const existingValue = this.model.get();
+			const bindingValue = this.element.getAttribute( 'value' );
 
-			push.call( existingValue, bindingValue ); // to avoid triggering runloop with array adaptor
+			if ( !arrayContains( existingValue, bindingValue ) ) {
+				push.call( existingValue, bindingValue ); // to avoid triggering runloop with array adaptor
+			}
 		}
 	}
 
@@ -53,7 +48,7 @@ export default class CheckboxNameBinding extends Binding {
 	}
 
 	changed () {
-		var wasChecked = !!this.isChecked;
+		const wasChecked = !!this.isChecked;
 		this.isChecked = this.node.checked;
 		return this.isChecked === wasChecked;
 	}
@@ -66,16 +61,23 @@ export default class CheckboxNameBinding extends Binding {
 		// and populate it using any `checked` attributes that
 		// exist (which users should avoid, but which we should
 		// support anyway to avoid breaking expectations)
-		this.noInitialValue = true;
+		this.noInitialValue = true; // TODO are noInitialValue and wasUndefined the same thing?
 		return [];
 	}
 
 	getValue () {
-		return this.group.getValue();
+		return this.group.value;
 	}
 
 	handleChange () {
 		this.isChecked = this.element.node.checked;
+		this.group.value = this.model.get();
+		const value = this.element.getAttribute( 'value' );
+		if ( this.isChecked && !arrayContains( this.group.value, value ) ) {
+			this.group.value.push( value );
+		} else if ( !this.isChecked && arrayContains( this.group.value, value ) ) {
+			removeFromArray( this.group.value, value );
+		}
 		super.handleChange();
 	}
 
@@ -104,12 +106,23 @@ export default class CheckboxNameBinding extends Binding {
 		}
 	}
 
+	setFromNode ( node ) {
+		this.group.bindings.forEach( binding => binding.wasUndefined = true );
+
+		if ( node.checked ) {
+			const valueSoFar = this.group.getValue();
+			valueSoFar.push( this.element.getAttribute( 'value' ) );
+
+			this.group.model.set( valueSoFar );
+		}
+	}
+
 	unbind () {
 		this.group.remove( this );
 	}
 
 	unrender () {
-		var node = this.element.node;
+		const node = this.element.node;
 
 		node.removeEventListener( 'change', handleDomEvent, false );
 		node.removeEventListener( 'click', handleDomEvent, false );

@@ -1,16 +1,18 @@
 import { removeFromArray } from '../../../../utils/array';
 
-let groups = {};
-
-export default function getBindingGroup ( id, group, model, getValue ) {
-	const hash = id + group + model.getKeypath();
-	return groups[ hash ] || ( groups[ hash ] = new BindingGroup( model, getValue ) );
+export default function getBindingGroup ( group, model, getValue ) {
+	const hash = `${group}-bindingGroup`;
+	return model[hash] || ( model[ hash ] = new BindingGroup( hash, model, getValue ) );
 }
 
 class BindingGroup {
-	constructor ( model, getValue ) {
+	constructor ( hash, model, getValue ) {
 		this.model = model;
-		this.getValue = getValue;
+		this.hash = hash;
+		this.getValue = () => {
+			this.value = getValue.call(this);
+			return this.value;
+		};
 
 		this.bindings = [];
 	}
@@ -20,6 +22,7 @@ class BindingGroup {
 	}
 
 	bind () {
+		this.value = this.model.get();
 		this.model.registerTwowayBinding( this );
 		this.bound = true;
 	}
@@ -34,5 +37,6 @@ class BindingGroup {
 	unbind () {
 		this.model.unregisterTwowayBinding( this );
 		this.bound = false;
+		delete this.model[this.hash];
 	}
 }

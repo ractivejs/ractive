@@ -1,22 +1,36 @@
-import { warnOnceIfDebug } from '../../utils/log';
+import { warnOnceIfDebug, warnIfDebug } from '../../utils/log';
 import Mustache from './shared/Mustache';
 import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
+import { isArray } from '../../utils/is';
+import parser from '../../Ractive/config/runtime-parser';
 
 export default class Partial extends Mustache {
 	bind () {
-		super.bind();
+		// keep track of the reference name for future resets
+		this.refName = this.template.r;
 
 		// name matches take priority over expressions
-		let template = this.template.r ? getPartialTemplate( this.ractive, this.template.r, this.parentFragment ) || null : null;
+		let template = this.refName ? getPartialTemplate( this.ractive, this.refName, this.parentFragment ) || null : null;
+		let templateObj;
 
 		if ( template ) {
 			this.named = true;
 			this.setTemplate( this.template.r, template );
-		} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.template.r ) {
-			this.setTemplate( this.template.r, template );
-		} else {
-			this.setTemplate( this.model.get() );
+		}
+
+		if ( !template ) {
+			super.bind();
+			if ( this.model && ( templateObj = this.model.get() ) && typeof templateObj === 'object' && ( typeof templateObj.template === 'string' || isArray( templateObj.t ) ) ) {
+				if ( templateObj.template ) {
+					templateObj = parsePartial( this.template.r, templateObj.template, this.ractive );
+				}
+				this.setTemplate( this.template.r, templateObj.t );
+			} else if ( ( !this.model || typeof this.model.get() !== 'string' ) && this.refName ) {
+				this.setTemplate( this.refName, template );
+			} else {
+				this.setTemplate( this.model.get() );
+			}
 		}
 
 		this.fragment = new Fragment({
@@ -45,12 +59,22 @@ export default class Partial extends Mustache {
 		this.fragment.findAllComponents( name, query );
 	}
 
-	firstNode () {
-		return this.fragment.firstNode();
+	firstNode ( skipParent ) {
+		return this.fragment.firstNode( skipParent );
 	}
 
 	forceResetTemplate () {
-		this.partialTemplate = getPartialTemplate( this.ractive, this.name, this.parentFragment );
+		this.partialTemplate = undefined;
+
+		// on reset, check for the reference name first
+		if ( this.refName ) {
+			this.partialTemplate = getPartialTemplate( this.ractive, this.refName, this.parentFragment );
+		}
+
+		// then look for the resolved name
+		if ( !this.partialTemplate ) {
+			this.partialTemplate = getPartialTemplate( this.ractive, this.name, this.parentFragment );
+		}
 
 		if ( !this.partialTemplate ) {
 			warnOnceIfDebug( `Could not find template for partial '${this.name}'` );
@@ -67,8 +91,8 @@ export default class Partial extends Mustache {
 		this.fragment.rebind();
 	}
 
-	render ( target ) {
-		this.fragment.render( target );
+	render ( target, occupants ) {
+		this.fragment.render( target, occupants );
 	}
 
 	setTemplate ( name, template ) {
@@ -97,16 +121,41 @@ export default class Partial extends Mustache {
 	}
 
 	update () {
+		let template;
+
 		if ( this.dirty ) {
+			this.dirty = false;
+
 			if ( !this.named ) {
-				if ( this.model && typeof this.model.get() === 'string' && this.model.get() !== this.name ) {
-					this.setTemplate( this.model.get() );
+				if ( this.model ) {
+					template = this.model.get();
+				}
+
+				if ( template && typeof template === 'string' && template !== this.name ) {
+					this.setTemplate( template );
+					this.fragment.resetTemplate( this.partialTemplate );
+				} else if ( template && typeof template === 'object' && ( typeof template.template === 'string' || isArray( template.t ) ) ) {
+					if ( template.template ) {
+						template = parsePartial( this.name, template.template, this.ractive );
+					}
+					this.setTemplate( this.name, template.t );
 					this.fragment.resetTemplate( this.partialTemplate );
 				}
 			}
 
 			this.fragment.update();
-			this.dirty = false;
 		}
 	}
+}
+
+function parsePartial( name, partial, ractive ) {
+	let parsed;
+
+	try {
+		parsed = parser.parse( partial, parser.getParseOptions( ractive ) );
+	} catch (e) {
+		warnIfDebug( `Could not parse partial from expression '${name}'\n${e.message}` );
+	}
+
+	return parsed || { t: [] };
 }

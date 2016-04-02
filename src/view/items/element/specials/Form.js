@@ -7,18 +7,19 @@ export default class Form extends Element {
 		this.formBindings = [];
 	}
 
-	render ( target ) {
-		super.render( target );
+	render ( target, occupants ) {
+		super.render( target, occupants );
 		this.node.addEventListener( 'reset', handleReset, false );
 	}
 
-	unrender () {
+	unrender ( shouldDestroy ) {
 		this.node.removeEventListener( 'reset', handleReset, false );
+		super.unrender( shouldDestroy );
 	}
 }
 
 function handleReset () {
-	var element = this._ractive.proxy;
+	const element = this._ractive.proxy;
 
 	runloop.start();
 	element.formBindings.forEach( updateModel );

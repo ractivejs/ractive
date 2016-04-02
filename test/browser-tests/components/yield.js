@@ -226,6 +226,28 @@ test( 'Named yield with Ractive.extend() works as with new Ractive() (#1680)', t
 	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
 });
 
+test( 'yielded fragments that are updated from an observer should actually update (#2225)', t => {
+	const cmp = Ractive.extend({
+		template: '{{yield}}',
+		onrender() {
+			this.observe( 'bar', v => this.set( 'baz', `${v} yep` ) );
+		}
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '-<cmp bar="{{foo}}" baz="{{bat}}">{{bat}}</cmp>',
+		data: {
+			foo: ''
+		},
+		components: { cmp }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '- yep' );
+	r.set( 'foo', 2 );
+	t.htmlEqual( fixture.innerHTML, '-2 yep' );
+});
+
 test( 'Components inherited from more than one generation off work with named yields', t => {
 	let widget = Ractive.extend({
 		template: '{{yield foo}}'
@@ -251,6 +273,44 @@ test( 'Components inherited from more than one generation off work with named yi
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>this is foo</p>' );
+});
+
+test( 'yielders should properly update with their container instance (#2235)', t => {
+	const Foo = Ractive.extend({
+		template: '{{yield}}'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<Foo>{{foo}}</Foo>',
+		data: {
+			foo: 'foo'
+		},
+		components: { Foo }
+	});
+
+	t.htmlEqual( fixture.innerHTML, 'foo' );
+	r.set( 'foo', 'bar' );
+	t.htmlEqual( fixture.innerHTML, 'bar' );
+});
+
+test( 'yielders should search the container for their anchor (#2235)', t => {
+	const Foo = Ractive.extend({
+		template: '<div>{{yield}}</div>'
+	});
+
+	const r = new Ractive({
+		el: fixture,
+		template: '<Foo>{{#if foo}}bar{{/if}}</Foo>',
+		data: {
+			foo: false
+		},
+		components: { Foo }
+	});
+
+	t.htmlEqual( fixture.innerHTML, '<div></div>' );
+	r.set( 'foo', true );
+	t.htmlEqual( fixture.innerHTML, '<div>bar</div>' );
 });
 
 if ( hasUsableConsole ) {

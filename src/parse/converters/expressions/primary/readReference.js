@@ -6,20 +6,20 @@ var prefixPattern = /^(?:~\/|(?:\.\.\/)+|\.\/(?:\.\.\/)*|\.)/,
 	keywords;
 
 // if a reference is a browser global, we don't deference it later, so it needs special treatment
-globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null)\b/;
+globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIComponent|encodeURI|isFinite|isNaN|parseFloat|parseInt|JSON|Math|NaN|undefined|null|Object|Number|String|Boolean)\b/;
 
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
-var legalReference = /^[a-zA-Z$_0-9]+(?:(?:\.[a-zA-Z$_0-9]+)|(?:\[[0-9]+\]))*/;
+var legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
 var relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
 
 export default function readReference ( parser ) {
-	var startPos, prefix, name, global, reference, lastDotIndex;
+	var startPos, prefix, name, global, reference, fullLength, lastDotIndex;
 
 	startPos = parser.pos;
 
-	name = parser.matchPattern( /^@(?:keypath|index|key)/ );
+	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|ractive|global)/ );
 
 	if ( !name ) {
 		prefix = parser.matchPattern( prefixPattern ) || '';
@@ -53,16 +53,19 @@ export default function readReference ( parser ) {
 		};
 	}
 
+	fullLength = ( prefix || '' ).length + name.length;
 	reference = ( prefix || '' ) + normalise( name );
 
 	if ( parser.matchString( '(' ) ) {
 		// if this is a method invocation (as opposed to a function) we need
 		// to strip the method name from the reference combo, else the context
 		// will be wrong
+		// but only if the reference was actually a member and not a refinement
 		lastDotIndex = reference.lastIndexOf( '.' );
-		if ( lastDotIndex !== -1 ) {
+		if ( lastDotIndex !== -1 && name[ name.length - 1 ] !== ']' ) {
+			let refLength = reference.length;
 			reference = reference.substr( 0, lastDotIndex );
-			parser.pos = startPos + reference.length;
+			parser.pos = startPos + (fullLength - ( refLength - lastDotIndex ) );
 		} else {
 			parser.pos -= 1;
 		}

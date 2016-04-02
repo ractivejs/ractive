@@ -1,4 +1,5 @@
 import { capture } from '../global/capture';
+import Promise from '../utils/Promise';
 import { isEqual, isNumeric } from '../utils/is';
 import { removeFromArray } from '../utils/array';
 import { handleChange, mark, teardown } from '../shared/methodCallers';
@@ -7,6 +8,7 @@ import getPrefixer from './helpers/getPrefixer';
 import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
+import { escapeKey, unescapeKey } from '../shared/keypaths';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -41,7 +43,7 @@ export default class Model {
 		if ( parent ) {
 			this.parent = parent;
 			this.root = parent.root;
-			this.key = key;
+			this.key = unescapeKey( key );
 			this.isReadonly = parent.isReadonly;
 
 			if ( parent.value ) {
@@ -53,8 +55,12 @@ export default class Model {
 
 	adapt () {
 		const adaptors = this.root.adaptors;
-		const value = this.value;
 		const len = adaptors.length;
+
+		// Exit early if no adaptors
+		if ( len === 0 ) return;
+
+		const value = this.value;
 
 		// TODO remove this legacy nonsense
 		const ractive = this.root.ractive;
@@ -130,7 +136,8 @@ export default class Model {
 			if ( shouldTeardown ) {
 				this.wrapper.teardown();
 				this.wrapper = null;
-				this.parent.value[ this.key ] = this.value = value;
+				const parentValue = this.parent.value || this.parent.createBranch( this.key );
+				parentValue[ this.key ] = this.value = value;
 				this.adapt();
 			} else {
 				this.value = this.wrapper.get();
@@ -193,10 +200,6 @@ export default class Model {
 		return branch;
 	}
 
-	discard () {
-		this.deps.forEach( d => { if ( d.boundsSensitive ) this.unregister( d ); } );
-	}
-
 	findMatches ( keys ) {
 		const len = keys.length;
 
@@ -210,30 +213,7 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
-					if ( isArray( model.value ) ) {
-						// special case - array.length. This is a horrible kludge, but
-						// it'll do for now. Alternatives welcome
-						if ( originatingModel && originatingModel.parent === model && originatingModel.key === 'length' ) {
-							matches.push( originatingModel );
-						}
-
-						model.value.forEach( ( member, i ) => {
-							matches.push( model.joinKey( i ) );
-						});
-					}
-
-					else if ( isObject( model.value ) || typeof model.value === 'function' ) {
-						Object.keys( model.value ).forEach( key => {
-							matches.push( model.joinKey( key ) );
-						});
-
-						// special case - computed properties. TODO mappings also?
-						if ( model.isRoot ) {
-							Object.keys( model.computations ).forEach( key => {
-								matches.push( model.joinKey( key ) );
-							});
-						}
-					}
+					matches.push.apply( matches, model.getValueChildren( model.get() ) );
 				});
 			} else {
 				matches = existingMatches.map( model => model.joinKey( key ) );
@@ -265,21 +245,84 @@ export default class Model {
 
 	getKeyModel () {
 		// TODO... different to IndexModel because key can never change
-		return new KeyModel( this.key );
+		return new KeyModel( escapeKey( this.key ) );
 	}
 
-	getKeypathModel () {
-		return this.keypathModel || ( this.keypathModel = new KeypathModel( this ) );
+	getKeypathModel ( ractive ) {
+		let keypath = this.getKeypath(), model = this.keypathModel || ( this.keypathModel = new KeypathModel( this ) );
+
+		if ( ractive && ractive.component ) {
+			let mapped = this.getKeypath( ractive );
+			if ( mapped !== keypath ) {
+				let map = ractive.viewmodel.keypathModels || ( ractive.viewmodel.keypathModels = {} );
+				let child = map[ keypath ] || ( map[ keypath ] = new KeypathModel( this, ractive ) );
+				model.addChild( child );
+				return child;
+			}
+		}
+
+		return model;
 	}
 
-	getKeypath () {
-		// TODO keypaths inside components... tricky
-		return this.parent.isRoot ? this.key : this.parent.getKeypath() + '.' + this.key;
+	getKeypath ( ractive ) {
+		let root = this.parent.isRoot ? escapeKey( this.key ) : this.parent.getKeypath() + '.' + escapeKey( this.key );
+
+		if ( ractive && ractive.component ) {
+			let map = ractive.viewmodel.mappings;
+			for ( let k in map ) {
+				if ( root.indexOf( map[ k ].getKeypath() ) >= 0 ) {
+					root = root.replace( map[ k ].getKeypath(), k );
+					break;
+				}
+			}
+		}
+
+		return root;
+	}
+
+	getValueChildren ( value ) {
+
+		let children;
+		if ( isArray( value ) ) {
+			children = [];
+			// special case - array.length. This is a horrible kludge, but
+			// it'll do for now. Alternatives welcome
+			if ( originatingModel && originatingModel.parent === this && originatingModel.key === 'length' ) {
+				children.push( originatingModel );
+			}
+			value.forEach( ( m, i ) => {
+				children.push( this.joinKey( i ) );
+			});
+
+		}
+
+		else if ( isObject( value ) || typeof value === 'function' ) {
+			children = Object.keys( value ).map( key => this.joinKey( key ) );
+		}
+
+		else if ( value != null ) {
+			// TODO: this will return incorrect keypath if model is mapped
+			throw new Error( `Cannot get values of ${this.getKeypath()}.* as ${this.getKeypath()} is not an array, object or function` );
+		}
+
+		return children;
 	}
 
 	has ( key ) {
 		const value = this.get();
-		return value && hasProp.call( value, key );
+		if ( !value ) return false;
+
+		key = unescapeKey( key );
+		if ( hasProp.call( value, key ) ) return true;
+
+		// We climb up the constructor chain to find if one of them contains the key
+		let constructor = value.constructor;
+		while ( constructor !== Function && constructor !== Array && constructor !== Object ) {
+			if ( hasProp.call( constructor.prototype, key ) ) return true;
+			constructor = constructor.constructor;
+		}
+
+		return false;
 	}
 
 	joinKey ( key ) {
@@ -373,11 +416,8 @@ export default class Model {
 
 	shuffle ( newIndices ) {
 		const indexModels = [];
-		let max = 0, child;
 
 		newIndices.forEach( ( newIndex, oldIndex ) => {
-			if ( newIndex > max ) max = newIndex;
-
 			if ( !~newIndex ) return;
 
 			const model = this.indexModels[ oldIndex ];
@@ -391,14 +431,7 @@ export default class Model {
 			}
 		});
 
-		// some children, notably computations, need to be notified when they are
-		// no longer attached to anything so they don't recompute
-		while ( ( child = this.childByKey[ ++max ] ) ) {
-			if ( typeof child.discard === 'function' ) child.discard();
-		}
-
 		this.indexModels = indexModels;
-
 
 		// shuffles need to happen before marks...
 		this.deps.forEach( dep => {
@@ -417,6 +450,11 @@ export default class Model {
 	teardown () {
 		this.children.forEach( teardown );
 		if ( this.wrapper ) this.wrapper.teardown();
+		if ( this.keypathModels ) {
+			for ( let k in this.keypathModels ) {
+				this.keypathModels[ k ].teardown();
+			}
+		}
 	}
 
 	unregister ( dependant ) {

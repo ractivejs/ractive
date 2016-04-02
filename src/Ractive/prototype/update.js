@@ -2,17 +2,28 @@ import Hook from '../../events/Hook';
 import runloop from '../../global/runloop';
 import { splitKeypath } from '../../shared/keypaths';
 
-var updateHook = new Hook( 'update' );
+const updateHook = new Hook( 'update' );
 
 export default function Ractive$update ( keypath ) {
-	var promise, model;
+	if ( keypath ) keypath = splitKeypath( keypath );
 
-	model = keypath ?
-		this.viewmodel.joinAll( splitKeypath( keypath ) ) :
+	const model = keypath ?
+		this.viewmodel.joinAll( keypath ) :
 		this.viewmodel;
 
-	promise = runloop.start( this, true );
+	const promise = runloop.start( this, true );
+
 	model.mark();
+
+	if ( keypath ) {
+		// there may be unresolved refs that are now resolvable up the context tree
+		let parent = model.parent;
+		while ( keypath.length && parent ) {
+			if ( parent.clearUnresolveds ) parent.clearUnresolveds( keypath.pop() );
+			parent = parent.parent;
+		}
+	}
+
 	runloop.end();
 
 	updateHook.fire( this, model );
