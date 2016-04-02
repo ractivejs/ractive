@@ -1,7 +1,7 @@
 <p align="center"><img src ="https://avatars1.githubusercontent.com/u/4751469?v=3&s=100"></p>
 
 # Ractive.js - Next-generation DOM manipulation
-[![Build Status](https://img.shields.io/travis/ractivejs/ractive/dev.svg?style=flat-square)](https://travis-ci.org/ractivejs/ractive) [![Coverage Status](https://img.shields.io/coveralls/ractivejs/ractive/dev.svg?style=flat-square)](https://coveralls.io/github/ractivejs/ractive?branch=dev) [![npm version](https://img.shields.io/npm/v/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![npm downloads](https://img.shields.io/npm/dm/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![devDependency Status](https://david-dm.org/RactiveJS/Ractive/dev-status.png)](https://david-dm.org/RactiveJS/Ractive#info=devDependencies) [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/RactiveJS/ractive/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+[![Build Status](https://img.shields.io/travis/ractivejs/ractive/dev.svg?style=flat-square)](https://travis-ci.org/ractivejs/ractive) [![Coverage Status](https://img.shields.io/coveralls/ractivejs/ractive/dev.svg?style=flat-square)](https://coveralls.io/github/ractivejs/ractive?branch=dev) [![npm version](https://img.shields.io/npm/v/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![npm downloads](https://img.shields.io/npm/dm/ractive.svg?style=flat-square)](https://www.npmjs.com/package/ractive) [![devDependency Status](https://img.shields.io/david/dev/ractivejs/ractive.svg?style=flat-square)](https://david-dm.org/RactiveJS/Ractive#info=devDependencies) [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/RactiveJS/ractive/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
  
 
 ## What is Ractive.js?
@@ -78,12 +78,6 @@ To run a complete build including linting, testing and minification:
 npm run build
 ```
 
-
-## Reporting security vulnerabilities
-
-If you think you've found a security vulnerability, please email [ractive-js-security@googlegroups.com](mailto:ractive-js-security@googlegroups.com) with details, and someone from the core team will respond to you.
-
-
 ## Browser support
 
 Tested successfully in IE8+ and all modern browsers. For legacy browser support, use the builds with suffix `legacy` in the filename. These builds include polyfills and other essential features required by Ractive. If your experience differs [please let us know](https://github.com/ractivejs/ractive/issues/new)!
@@ -91,5 +85,5 @@ Tested successfully in IE8+ and all modern browsers. For legacy browser support,
 
 ## License
 
-Copyright (c) 2012-15 Rich Harris and contributors. Released under an [MIT license](LICENSE.md).
+Copyright (c) 2012-16 Rich Harris and contributors. Released under an [MIT license](LICENSE.md).
 
