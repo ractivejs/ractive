@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Apr 02 2016 12:54:14 GMT+0000 (UTC) - commit 330ec64a4420831a067d0144f06e0245aa48b1b4
+	Sat Apr 02 2016 16:17:16 GMT+0000 (UTC) - commit a2d2541b891a3f2e3dbba526b6c449f50055f884
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2994,8 +2994,28 @@ var classCallCheck = function (instance, Constructor) {
   		return this.get();
   	};
 
+  	ExpressionProxy.prototype.teardown = function teardown() {
+  		this.unbind();
+  		this.fragment = undefined;
+  		if (this.computation) {
+  			this.computation.teardown();
+  		}
+  		this.computation = undefined;
+  		_Model.prototype.teardown.call(this);
+  	};
+
+  	ExpressionProxy.prototype.unregister = function unregister(dep) {
+  		_Model.prototype.unregister.call(this, dep);
+  		if (!this.deps.length) this.teardown();
+  	};
+
   	ExpressionProxy.prototype.unbind = function unbind() {
   		this.resolvers.forEach(_unbind);
+
+  		var i = this.models.length;
+  		while (i--) {
+  			if (this.models[i]) this.models[i].unregister(this);
+  		}
   	};
 
   	return ExpressionProxy;
@@ -8932,6 +8952,15 @@ var classCallCheck = function (instance, Constructor) {
   		this.dependencies = dependencies;
   	};
 
+  	Computation.prototype.teardown = function teardown() {
+  		var i = this.dependencies.length;
+  		while (i--) {
+  			if (this.dependencies[i]) this.dependencies[i].unregister(this);
+  		}
+  		if (this.root.computations[this.key] === this) delete this.root.computations[this.key];
+  		_Model.prototype.teardown.call(this);
+  	};
+
   	return Computation;
   })(Model);
 
@@ -9102,6 +9131,16 @@ var classCallCheck = function (instance, Constructor) {
 
   	RootModel.prototype.retrieve = function retrieve() {
   		return this.value;
+  	};
+
+  	RootModel.prototype.teardown = function teardown() {
+  		var keys = Object.keys(this.mappings);
+  		var i = keys.length;
+  		while (i--) {
+  			if (this.mappings[keys[i]]) this.mappings[keys[i]].unregister(this);
+  		}
+
+  		_Model.prototype.teardown.call(this);
   	};
 
   	RootModel.prototype.update = function update() {
