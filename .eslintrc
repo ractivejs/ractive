@@ -1,4 +1,12 @@
 {
+	"extends": "eslint:recommended",
+	"env": {
+		"es6": true,
+		"browser": true
+	},
+	"ecmaFeatures": {
+		"modules": true
+	},
 	"rules": {
 		"indent": [ 2, "tab", { "SwitchCase": 1 }],
 		"quotes": [ 2, "single" ],
@@ -14,15 +22,6 @@
 		"one-var": [ 2, "never" ],
 		"prefer-arrow-callback": 2,
 		"arrow-spacing": 2,
-
 		"no-cond-assign": 0
-	},
-	"env": {
-		"es6": true,
-		"browser": true
-	},
-	"extends": "eslint:recommended",
-	"ecmaFeatures": {
-		"modules": true
 	}
 }
