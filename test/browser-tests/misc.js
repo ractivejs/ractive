@@ -627,7 +627,8 @@ test( 'Foo.extend(Bar), where both Foo and Bar are Ractive instances, returns on
 
 
 test( 'Regression test for #460', t => {
-	let items = [
+	let done = t.async(),
+		items = [
 		{ desc: 'foo' },
 		{ desc: 'bar' },
 		{ desc: 'baz' }
@@ -642,6 +643,7 @@ test( 'Regression test for #460', t => {
 	ractive.pop( 'items' ).then( () => {
 		ractive.push( 'items', { desc: 'baz' });
 		t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
+		done();
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
