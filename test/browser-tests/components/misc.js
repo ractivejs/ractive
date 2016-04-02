@@ -580,7 +580,7 @@ export default function() {
 			el: fixture,
 			template: '<Outer/>',
 			data: {
-				item: {}
+				item: { x: 1 }
 			},
 			components: {
 				Outer: Ractive.extend({
@@ -906,7 +906,7 @@ export default function() {
 
 	test( 'nested component @keypath references should be relative to the nested component', t => {
 		const cmp1 = Ractive.extend({
-			template: '{{#with foo.bar}}{{@keypath}}{{/with}} {{#with baz.notbat}}{{@keypath}}{{/with}}'
+			template: '{{#with foo.bar}}{{@keypath}}{{/with}}'
 		}),
 		cmp2 = Ractive.extend({
 			template: '{{#with baz.bat}}<cmp1 foo="{{.}}" />{{/with}}',
@@ -922,7 +922,7 @@ export default function() {
 			components: { cmp2 }
 		});
 
-		t.htmlEqual( fixture.innerHTML, 'foo.bar baz.notbat' );
+		t.htmlEqual( fixture.innerHTML, 'foo.bar' );
 	});
 
 	test( 'component @rootpath references should be relative to the root', t => {

@@ -1156,7 +1156,7 @@ export default function() {
 			template: '<cmp foo="{{baz.bat}}" />',
 			components: { cmp },
 			data: {
-				baz: { bat: 'nope' }
+				baz: { bat: { bar: 1 } }
 			}
 		});
 

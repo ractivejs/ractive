@@ -715,7 +715,7 @@ export default function() {
 			el: fixture,
 			template: '-{{#with foo}}{{#if bar[0] && bar[0] === bar[1]}}ok{{/if}}{{/with}}',
 			data: {
-				foo: {}
+				foo: { x: 1 }
 			}
 		});
 

@@ -481,7 +481,7 @@ export default function() {
 				{{/with}}`,
 			data: {
 				bar: 0,
-				obj: {}
+				obj: { x: 1 }
 			}
 		});
 
@@ -651,6 +651,7 @@ export default function() {
 			},
 			onrender () {
 				inputs = this.findAll( 'input' );
+				whatever: { x: 1 }
 			}
 		});
 
@@ -736,7 +737,7 @@ export default function() {
 				el: fixture,
 				template: `{{#with whatever}}<input value='{{uniqueToThisTest}}'>{{/with}}`,
 				data: {
-					whatever: {}
+					whatever: { x: 1 }
 				}
 			});
 		});
