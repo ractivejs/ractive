@@ -40,7 +40,7 @@ test( 'Animated style', t => {
 		el: fixture,
 		template: `
 			{{#if show}}
-				<div intro-outro="test">content...</div>
+				<div intro="test">content...</div>
 			{{/if show}}`,
 		transitions: {
 			test ( transition ) {
@@ -214,37 +214,6 @@ if ( hasUsableConsole ) {
 	});
 }
 
-test( 'Transitions work the first time (#916)', t => {
-	// we're using line height for testing because it's a numerical CSS property that IE8 supports
-	const done = t.async();
-
-	const ractive = new Ractive({
-		el: fixture,
-		template: '<div intro="changeLineHeight"></div>',
-		oncomplete () {
-			t.equal( div.style.lineHeight, '' );
-			done();
-		},
-		transitions: {
-			changeLineHeight ( t ) {
-				let targetLineHeight;
-
-				if ( t.isIntro ) {
-					targetLineHeight = t.getStyle( 'lineHeight' );
-					t.setStyle( 'lineHeight', 0 );
-				} else {
-					targetLineHeight = 0;
-				}
-
-				t.animateStyle( 'lineHeight', targetLineHeight, { duration: 50 } ).then( t.complete );
-			}
-		}
-	});
-
-	const div = ractive.find( 'div' );
-	t.equal( div.style.lineHeight, 0 );
-});
-
 test( 'Nodes are detached synchronously if there are no outro transitions (#856)', t => {
 	const ractive = new Ractive({
 		el: fixture,
@@ -274,6 +243,10 @@ test( 'Regression test for #1157', t => {
 });
 
 test( 'Parameter objects are not polluted (#1239)', t => {
+	const done = t.async();
+
+	t.expect(3)
+
 	let uid = 0;
 	let objects = [];
 
@@ -285,15 +258,81 @@ test( 'Parameter objects are not polluted (#1239)', t => {
 				params = t.processParams( params, {
 					uid: uid++
 				});
-
 				objects.push( params );
+				t.complete();
 			}
 		},
-		data: { list: [ 0, 0 ] }
+		data: { list: [ 0, 0 ] },
+		oncomplete () {
+			t.ok( true );
+			done();
+		},
 	});
 
 	t.equal( objects.length, 2 );
 	t.notEqual( objects[0], objects[1] );
+});
+
+test( 'Transitions work the first time (#916)', t => {
+	const done = t.async();
+	t.expect(2);
+
+	const ractive = new Ractive({
+		el: fixture,
+		template: '<div intro="changeLineHeight"></div>',
+		oncomplete () {
+			t.equal( div.style.lineHeight, '' );
+			done();
+		},
+		transitions: {
+			changeLineHeight ( t ) {
+				let targetLineHeight;
+
+				if ( t.isIntro ) {
+					targetLineHeight = t.getStyle( 'lineHeight' );
+					t.setStyle( 'lineHeight', 0 );
+				} else {
+					targetLineHeight = 0;
+				}
+
+				return t.animateStyle( 'lineHeight', targetLineHeight, { duration: 50 } );
+			}
+		}
+	});
+
+	const div = ractive.find( 'div' );
+	t.equal( div.style.lineHeight, 0 );
+});
+
+test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
+	var ractive, tooLate;
+
+	const done = t.async();
+	t.expect( 0 );
+
+	ractive = new Ractive({
+		el: fixture,
+		template: '{{#showBox}}<div intro="wait:2000" outro="wait:1"></div>{{/showBox}}',
+		transitions: {
+			wait: function ( t, ms ) {
+				setTimeout( t.complete, ms );
+			}
+		}
+	});
+
+	ractive.set( 'showBox', true ).then( function ( t ) {
+		if ( !tooLate ) {
+			done();
+		}
+	});
+
+	setTimeout( function () {
+		ractive.set( 'showBox', false );
+	}, 0 );
+
+	setTimeout( function () {
+		tooLate = true;
+	}, 200 );
 });
 
 test( 'processParams extends correctly if no default provided (#2446)', t => {
@@ -314,40 +353,10 @@ test( 'processParams extends correctly if no default provided (#2446)', t => {
 	});
 });
 
-// TEMP so whole test suite doesn't hang. tagging with keypaths-ftw
-/*
-asyncTest( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
-	var ractive, tooLate;
-
-	expect( 0 );
-
-	ractive = new Ractive({
-		el: fixture,
-		template: '{{#showBox}}<div intro="wait:2000" outro="wait:1"></div>{{/showBox}}',
-		transitions: {
-			wait: function ( t, ms ) {
-				setTimeout( t.complete, ms );
-			}
-		}
-	});
-
-	ractive.set( 'showBox', true ).then( function ( t ) {
-		if ( !tooLate ) {
-			QUnit.start();
-		}
-	});
-
-	setTimeout( function () {
-		ractive.set( 'showBox', false );
-	}, 0 );
-
-	setTimeout( function () {
-		tooLate = true;
-	}, 200 );
-});
-*/
 test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
 	let transitionRan = false;
+	const done = t.async();
+	t.expect(1);
 
 	const ractive = new Ractive({
 		el: fixture,
@@ -366,7 +375,8 @@ test( 'Conditional sections that become truthy are not rendered if a parent simu
 		data: {
 			foo: '',
 			bar: ''
-		}
+		},
+		oncomplete () { done() }
 	});
 
 	ractive.set( 'foo', 'x' );
