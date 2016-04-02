@@ -12,4 +12,3 @@ branches:
   only:
     - master
     - dev
-    - coverage
