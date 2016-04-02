@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Apr 02 2016 16:17:16 GMT+0000 (UTC) - commit a2d2541b891a3f2e3dbba526b6c449f50055f884
+	Sat Apr 02 2016 16:37:27 GMT+0000 (UTC) - commit b14d592475d6f3b0c4220b109e5390ce2570beec
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -882,6 +882,14 @@ var classCallCheck = function (instance, Constructor) {
   			if (_parent.clearUnresolveds) _parent.clearUnresolveds(keypath.pop());
   			_parent = _parent.parent;
   		}
+  	}
+
+  	// notify upstream
+  	var parent = model.parent;
+  	while (parent) {
+  		var i = parent.deps.length;
+  		while (i--) parent.deps[i].handleChange();
+  		parent = parent.parent;
   	}
 
   	runloop.end();
