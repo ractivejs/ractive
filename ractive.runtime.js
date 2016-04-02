@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Apr 02 2016 22:08:50 GMT+0000 (UTC) - commit 654fdd8b37cbc74838f3a27ca942f65487c2b4ea
+	Sat Apr 02 2016 22:38:06 GMT+0000 (UTC) - commit 9b0c45d6fce87b096196d37a489feb00fee63411
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1074,6 +1074,1117 @@ var classCallCheck = function (instance, Constructor) {
   	}
   }
 
+  var legacy = null;
+
+  var html = 'http://www.w3.org/1999/xhtml';
+  var mathml = 'http://www.w3.org/1998/Math/MathML';
+  var svg$1 = 'http://www.w3.org/2000/svg';
+  var xlink = 'http://www.w3.org/1999/xlink';
+  var xml = 'http://www.w3.org/XML/1998/namespace';
+  var xmlns = 'http://www.w3.org/2000/xmlns';
+
+  var namespaces = { html: html, mathml: mathml, svg: svg$1, xlink: xlink, xml: xml, xmlns: xmlns };
+
+  var createElement;
+  var matches;
+  var div;
+  var methodNames;
+  var unprefixed;
+  var prefixed;
+  var i$1;
+  var j$1;
+  var makeFunction;
+  // Test for SVG support
+  if (!svg) {
+  	createElement = function (type, ns, extend) {
+  		if (ns && ns !== html) {
+  			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
+  		}
+
+  		return extend ? doc.createElement(type, extend) : doc.createElement(type);
+  	};
+  } else {
+  	createElement = function (type, ns, extend) {
+  		if (!ns || ns === html) {
+  			return extend ? doc.createElement(type, extend) : doc.createElement(type);
+  		}
+
+  		return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
+  	};
+  }
+
+  function createDocumentFragment() {
+  	return doc.createDocumentFragment();
+  }
+
+  function getElement(input) {
+  	var output;
+
+  	if (!input || typeof input === 'boolean') {
+  		return;
+  	}
+
+  	if (!win || !doc || !input) {
+  		return null;
+  	}
+
+  	// We already have a DOM node - no work to do. (Duck typing alert!)
+  	if (input.nodeType) {
+  		return input;
+  	}
+
+  	// Get node from string
+  	if (typeof input === 'string') {
+  		// try ID first
+  		output = doc.getElementById(input);
+
+  		// then as selector, if possible
+  		if (!output && doc.querySelector) {
+  			output = doc.querySelector(input);
+  		}
+
+  		// did it work?
+  		if (output && output.nodeType) {
+  			return output;
+  		}
+  	}
+
+  	// If we've been given a collection (jQuery, Zepto etc), extract the first item
+  	if (input[0] && input[0].nodeType) {
+  		return input[0];
+  	}
+
+  	return null;
+  }
+
+  if (!isClient) {
+  	matches = null;
+  } else {
+  	div = createElement('div');
+  	methodNames = ['matches', 'matchesSelector'];
+
+  	makeFunction = function (methodName) {
+  		return function (node, selector) {
+  			return node[methodName](selector);
+  		};
+  	};
+
+  	i$1 = methodNames.length;
+
+  	while (i$1-- && !matches) {
+  		unprefixed = methodNames[i$1];
+
+  		if (div[unprefixed]) {
+  			matches = makeFunction(unprefixed);
+  		} else {
+  			j$1 = vendors.length;
+  			while (j$1--) {
+  				prefixed = vendors[i$1] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
+
+  				if (div[prefixed]) {
+  					matches = makeFunction(prefixed);
+  					break;
+  				}
+  			}
+  		}
+  	}
+
+  	// IE8...
+  	if (!matches) {
+  		matches = function (node, selector) {
+  			var nodes, parentNode, i$1;
+
+  			parentNode = node.parentNode;
+
+  			if (!parentNode) {
+  				// empty dummy <div>
+  				div.innerHTML = '';
+
+  				parentNode = div;
+  				node = node.cloneNode();
+
+  				div.appendChild(node);
+  			}
+
+  			nodes = parentNode.querySelectorAll(selector);
+
+  			i$1 = nodes.length;
+  			while (i$1--) {
+  				if (nodes[i$1] === node) {
+  					return true;
+  				}
+  			}
+
+  			return false;
+  		};
+  	}
+  }
+
+  function detachNode(node) {
+  	if (node && typeof node.parentNode !== 'unknown' && node.parentNode) {
+  		node.parentNode.removeChild(node);
+  	}
+
+  	return node;
+  }
+
+  function safeToStringValue(value) {
+  	return value == null || !value.toString ? '' : '' + value;
+  }
+
+  function camelCase (hyphenatedStr) {
+  	return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
+  		return $1.toUpperCase();
+  	});
+  }
+
+  var prefix = undefined;
+
+  if (!isClient) {
+  	prefix = null;
+  } else {
+  	(function () {
+  		var prefixCache = {};
+  		var testStyle = createElement('div').style;
+
+  		prefix = function (prop) {
+  			prop = camelCase(prop);
+
+  			if (!prefixCache[prop]) {
+  				if (testStyle[prop] !== undefined) {
+  					prefixCache[prop] = prop;
+  				} else {
+  					// test vendors...
+  					var capped = prop.charAt(0).toUpperCase() + prop.substring(1);
+
+  					var i = vendors.length;
+  					while (i--) {
+  						var vendor = vendors[i];
+  						if (testStyle[vendor + capped] !== undefined) {
+  							prefixCache[prop] = vendor + capped;
+  							break;
+  						}
+  					}
+  				}
+  			}
+
+  			return prefixCache[prop];
+  		};
+  	})();
+  }
+
+  var prefix$1 = prefix;
+
+  var create;
+  var defineProperty;
+  var defineProperties;
+  try {
+  	Object.defineProperty({}, 'test', { value: 0 });
+
+  	if (doc) {
+  		Object.defineProperty(createElement('div'), 'test', { value: 0 });
+  	}
+
+  	defineProperty = Object.defineProperty;
+  } catch (err) {
+  	// Object.defineProperty doesn't exist, or we're in IE8 where you can
+  	// only use it with DOM objects (what were you smoking, MSFT?)
+  	defineProperty = function (obj, prop, desc) {
+  		obj[prop] = desc.value;
+  	};
+  }
+
+  try {
+  	try {
+  		Object.defineProperties({}, { test: { value: 0 } });
+  	} catch (err) {
+  		// TODO how do we account for this? noMagic = true;
+  		throw err;
+  	}
+
+  	if (doc) {
+  		Object.defineProperties(createElement('div'), { test: { value: 0 } });
+  	}
+
+  	defineProperties = Object.defineProperties;
+  } catch (err) {
+  	defineProperties = function (obj, props) {
+  		var prop;
+
+  		for (prop in props) {
+  			if (props.hasOwnProperty(prop)) {
+  				defineProperty(obj, prop, props[prop]);
+  			}
+  		}
+  	};
+  }
+
+  try {
+  	Object.create(null);
+
+  	create = Object.create;
+  } catch (err) {
+  	// sigh
+  	create = (function () {
+  		var F = function () {};
+
+  		return function (proto, props) {
+  			var obj;
+
+  			if (proto === null) {
+  				return {};
+  			}
+
+  			F.prototype = proto;
+  			obj = new F();
+
+  			if (props) {
+  				Object.defineProperties(obj, props);
+  			}
+
+  			return obj;
+  		};
+  	})();
+  }
+
+  function extend(target) {
+  	var prop;
+
+  	for (var _len = arguments.length, sources = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+  		sources[_key - 1] = arguments[_key];
+  	}
+
+  	sources.forEach(function (source) {
+  		for (prop in source) {
+  			if (hasOwn.call(source, prop)) {
+  				target[prop] = source[prop];
+  			}
+  		}
+  	});
+
+  	return target;
+  }
+
+  function fillGaps(target) {
+  	for (var _len2 = arguments.length, sources = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+  		sources[_key2 - 1] = arguments[_key2];
+  	}
+
+  	sources.forEach(function (s) {
+  		for (var key in s) {
+  			if (hasOwn.call(s, key) && !(key in target)) {
+  				target[key] = s[key];
+  			}
+  		}
+  	});
+
+  	return target;
+  }
+
+  var hasOwn = Object.prototype.hasOwnProperty;
+
+  // Error messages that are used (or could be) in multiple places
+  var badArguments = 'Bad arguments';
+  var noRegistryFunctionReturn = 'A function was specified for "%s" %s, but no %s was returned';
+  var missingPlugin = function (name, type) {
+    return 'Missing "' + name + '" ' + type + ' plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#' + type + 's';
+  };
+
+  function findInViewHierarchy(registryName, ractive, name) {
+  	var instance = findInstance(registryName, ractive, name);
+  	return instance ? instance[registryName][name] : null;
+  }
+
+  function findInstance(registryName, ractive, name) {
+  	while (ractive) {
+  		if (name in ractive[registryName]) {
+  			return ractive;
+  		}
+
+  		if (ractive.isolated) {
+  			return null;
+  		}
+
+  		ractive = ractive.parent;
+  	}
+  }
+
+  var visible = undefined;
+  var hidden = 'hidden';
+
+  if (doc) {
+  	var prefix$2 = undefined;
+
+  	if (hidden in doc) {
+  		prefix$2 = '';
+  	} else {
+  		var i$2 = vendors.length;
+  		while (i$2--) {
+  			var vendor = vendors[i$2];
+  			hidden = vendor + 'Hidden';
+
+  			if (hidden in doc) {
+  				prefix$2 = vendor;
+  				break;
+  			}
+  		}
+  	}
+
+  	if (prefix$2 !== undefined) {
+  		doc.addEventListener(prefix$2 + 'visibilitychange', onChange);
+  		onChange();
+  	} else {
+  		// gah, we're in an old browser
+  		if ('onfocusout' in doc) {
+  			doc.addEventListener('focusout', onHide);
+  			doc.addEventListener('focusin', onShow);
+  		} else {
+  			win.addEventListener('pagehide', onHide);
+  			win.addEventListener('blur', onHide);
+
+  			win.addEventListener('pageshow', onShow);
+  			win.addEventListener('focus', onShow);
+  		}
+
+  		visible = true; // until proven otherwise. Not ideal but hey
+  	}
+  }
+
+  function onChange() {
+  	visible = !doc[hidden];
+  }
+
+  function onHide() {
+  	visible = false;
+  }
+
+  function onShow() {
+  	visible = true;
+  }
+
+  function snap(to) {
+  	return function () {
+  		return to;
+  	};
+  }
+
+  var interpolators = {
+  	number: function (from, to) {
+  		var delta;
+
+  		if (!isNumeric(from) || !isNumeric(to)) {
+  			return null;
+  		}
+
+  		from = +from;
+  		to = +to;
+
+  		delta = to - from;
+
+  		if (!delta) {
+  			return function () {
+  				return from;
+  			};
+  		}
+
+  		return function (t) {
+  			return from + t * delta;
+  		};
+  	},
+
+  	array: function (from, to) {
+  		var intermediate, interpolators, len, i;
+
+  		if (!isArray(from) || !isArray(to)) {
+  			return null;
+  		}
+
+  		intermediate = [];
+  		interpolators = [];
+
+  		i = len = Math.min(from.length, to.length);
+  		while (i--) {
+  			interpolators[i] = interpolate(from[i], to[i]);
+  		}
+
+  		// surplus values - don't interpolate, but don't exclude them either
+  		for (i = len; i < from.length; i += 1) {
+  			intermediate[i] = from[i];
+  		}
+
+  		for (i = len; i < to.length; i += 1) {
+  			intermediate[i] = to[i];
+  		}
+
+  		return function (t) {
+  			var i = len;
+
+  			while (i--) {
+  				intermediate[i] = interpolators[i](t);
+  			}
+
+  			return intermediate;
+  		};
+  	},
+
+  	object: function (from, to) {
+  		var properties, len, interpolators, intermediate, prop;
+
+  		if (!isObject(from) || !isObject(to)) {
+  			return null;
+  		}
+
+  		properties = [];
+  		intermediate = {};
+  		interpolators = {};
+
+  		for (prop in from) {
+  			if (hasOwn.call(from, prop)) {
+  				if (hasOwn.call(to, prop)) {
+  					properties.push(prop);
+  					interpolators[prop] = interpolate(from[prop], to[prop]) || snap(to[prop]);
+  				} else {
+  					intermediate[prop] = from[prop];
+  				}
+  			}
+  		}
+
+  		for (prop in to) {
+  			if (hasOwn.call(to, prop) && !hasOwn.call(from, prop)) {
+  				intermediate[prop] = to[prop];
+  			}
+  		}
+
+  		len = properties.length;
+
+  		return function (t) {
+  			var i = len,
+  			    prop;
+
+  			while (i--) {
+  				prop = properties[i];
+
+  				intermediate[prop] = interpolators[prop](t);
+  			}
+
+  			return intermediate;
+  		};
+  	}
+  };
+
+  var interpolators$1 = interpolators;
+
+  function interpolate(from, to, ractive, type) {
+  	if (from === to) return null;
+
+  	if (type) {
+  		var interpol = findInViewHierarchy('interpolators', ractive, type);
+  		if (interpol) return interpol(from, to) || null;
+
+  		fatal(missingPlugin(type, 'interpolator'));
+  	}
+
+  	return interpolators$1.number(from, to) || interpolators$1.array(from, to) || interpolators$1.object(from, to) || null;
+  }
+
+  var requestAnimationFrame;
+
+  // If window doesn't exist, we don't need requestAnimationFrame
+  if (!win) {
+  	requestAnimationFrame = null;
+  } else {
+  	// https://gist.github.com/paulirish/1579671
+  	(function (vendors, lastTime, win) {
+
+  		var x, setTimeout;
+
+  		if (win.requestAnimationFrame) {
+  			return;
+  		}
+
+  		for (x = 0; x < vendors.length && !win.requestAnimationFrame; ++x) {
+  			win.requestAnimationFrame = win[vendors[x] + 'RequestAnimationFrame'];
+  		}
+
+  		if (!win.requestAnimationFrame) {
+  			setTimeout = win.setTimeout;
+
+  			win.requestAnimationFrame = function (callback) {
+  				var currTime, timeToCall, id;
+
+  				currTime = Date.now();
+  				timeToCall = Math.max(0, 16 - (currTime - lastTime));
+  				id = setTimeout(function () {
+  					callback(currTime + timeToCall);
+  				}, timeToCall);
+
+  				lastTime = currTime + timeToCall;
+  				return id;
+  			};
+  		}
+  	})(vendors, 0, win);
+
+  	requestAnimationFrame = win.requestAnimationFrame;
+  }
+
+  var rAF = requestAnimationFrame;
+
+  var getTime = win && win.performance && typeof win.performance.now === 'function' ? function () {
+  	return win.performance.now();
+  } : function () {
+  	return Date.now();
+  };
+
+  // TODO what happens if a transition is aborted?
+
+  var tickers = [];
+  var running = false;
+
+  function tick() {
+  	runloop.start();
+
+  	var now = getTime();
+
+  	var i = undefined;
+  	var ticker = undefined;
+
+  	for (i = 0; i < tickers.length; i += 1) {
+  		ticker = tickers[i];
+
+  		if (!ticker.tick(now)) {
+  			// ticker is complete, remove it from the stack, and decrement i so we don't miss one
+  			tickers.splice(i--, 1);
+  		}
+  	}
+
+  	runloop.end();
+
+  	if (tickers.length) {
+  		rAF(tick);
+  	} else {
+  		running = false;
+  	}
+  }
+
+  var Ticker = (function () {
+  	function Ticker(options) {
+  		classCallCheck(this, Ticker);
+
+  		this.duration = options.duration;
+  		this.step = options.step;
+  		this.complete = options.complete;
+  		this.easing = options.easing;
+
+  		this.start = getTime();
+  		this.end = this.start + this.duration;
+
+  		this.running = true;
+
+  		tickers.push(this);
+  		if (!running) rAF(tick);
+  	}
+
+  	Ticker.prototype.tick = function tick(now) {
+  		if (!this.running) return false;
+
+  		if (now > this.end) {
+  			if (this.step) this.step(1);
+  			if (this.complete) this.complete(1);
+
+  			return false;
+  		}
+
+  		var elapsed = now - this.start;
+  		var eased = this.easing(elapsed / this.duration);
+
+  		if (this.step) this.step(eased);
+
+  		return true;
+  	};
+
+  	Ticker.prototype.stop = function stop() {
+  		if (this.abort) this.abort();
+  		this.running = false;
+  	};
+
+  	return Ticker;
+  })();
+
+  var unprefixPattern = new RegExp('^-(?:' + vendors.join('|') + ')-');
+
+  function unprefix (prop) {
+  	return prop.replace(unprefixPattern, '');
+  }
+
+  var vendorPattern = new RegExp('^(?:' + vendors.join('|') + ')([A-Z])');
+
+  function hyphenate (str) {
+  	if (!str) return ''; // edge case
+
+  	if (vendorPattern.test(str)) str = '-' + str;
+
+  	return str.replace(/[A-Z]/g, function (match) {
+  		return '-' + match.toLowerCase();
+  	});
+  }
+
+  var createTransitions = undefined;
+
+  if (!isClient) {
+  	createTransitions = null;
+  } else {
+  	(function () {
+  		var testStyle = createElement('div').style;
+  		var linear = function (x) {
+  			return x;
+  		};
+
+  		var canUseCssTransitions = {};
+  		var cannotUseCssTransitions = {};
+
+  		// determine some facts about our environment
+  		var TRANSITION = undefined;
+  		var TRANSITIONEND = undefined;
+  		var CSS_TRANSITIONS_ENABLED = undefined;
+  		var TRANSITION_DURATION = undefined;
+  		var TRANSITION_PROPERTY = undefined;
+  		var TRANSITION_TIMING_FUNCTION = undefined;
+
+  		if (testStyle.transition !== undefined) {
+  			TRANSITION = 'transition';
+  			TRANSITIONEND = 'transitionend';
+  			CSS_TRANSITIONS_ENABLED = true;
+  		} else if (testStyle.webkitTransition !== undefined) {
+  			TRANSITION = 'webkitTransition';
+  			TRANSITIONEND = 'webkitTransitionEnd';
+  			CSS_TRANSITIONS_ENABLED = true;
+  		} else {
+  			CSS_TRANSITIONS_ENABLED = false;
+  		}
+
+  		if (TRANSITION) {
+  			TRANSITION_DURATION = TRANSITION + 'Duration';
+  			TRANSITION_PROPERTY = TRANSITION + 'Property';
+  			TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
+  		}
+
+  		createTransitions = function (t, to, options, changedProperties, resolve) {
+
+  			// Wait a beat (otherwise the target styles will be applied immediately)
+  			// TODO use a fastdom-style mechanism?
+  			setTimeout(function () {
+  				var jsTransitionsComplete = undefined;
+  				var cssTransitionsComplete = undefined;
+
+  				function checkComplete() {
+  					if (jsTransitionsComplete && cssTransitionsComplete) {
+  						// will changes to events and fire have an unexpected consequence here?
+  						t.ractive.fire(t.name + ':end', t.node, t.isIntro);
+  						resolve();
+  					}
+  				}
+
+  				// this is used to keep track of which elements can use CSS to animate
+  				// which properties
+  				var hashPrefix = (t.node.namespaceURI || '') + t.node.tagName;
+
+  				// need to reset transition properties
+  				var style = t.node.style;
+  				var previous = {
+  					property: style[TRANSITION_PROPERTY],
+  					timing: style[TRANSITION_TIMING_FUNCTION],
+  					duration: style[TRANSITION_DURATION]
+  				};
+
+  				style[TRANSITION_PROPERTY] = changedProperties.map(prefix$1).map(hyphenate).join(',');
+  				style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
+  				style[TRANSITION_DURATION] = options.duration / 1000 + 's';
+
+  				function transitionEndHandler(event) {
+  					var index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
+
+  					if (index !== -1) {
+  						changedProperties.splice(index, 1);
+  					}
+
+  					if (changedProperties.length) {
+  						// still transitioning...
+  						return;
+  					}
+
+  					style[TRANSITION_PROPERTY] = previous.property;
+  					style[TRANSITION_TIMING_FUNCTION] = previous.duration;
+  					style[TRANSITION_DURATION] = previous.timing;
+
+  					t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
+
+  					cssTransitionsComplete = true;
+  					checkComplete();
+  				}
+
+  				t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
+
+  				setTimeout(function () {
+  					var i = changedProperties.length;
+  					var hash = undefined;
+  					var originalValue = undefined;
+  					var index = undefined;
+  					var propertiesToTransitionInJs = [];
+  					var prop = undefined;
+  					var suffix = undefined;
+  					var interpolator = undefined;
+
+  					while (i--) {
+  						prop = changedProperties[i];
+  						hash = hashPrefix + prop;
+
+  						if (CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[hash]) {
+  							style[prefix$1(prop)] = to[prop];
+
+  							// If we're not sure if CSS transitions are supported for
+  							// this tag/property combo, find out now
+  							if (!canUseCssTransitions[hash]) {
+  								originalValue = t.getStyle(prop);
+
+  								// if this property is transitionable in this browser,
+  								// the current style will be different from the target style
+  								canUseCssTransitions[hash] = t.getStyle(prop) != to[prop];
+  								cannotUseCssTransitions[hash] = !canUseCssTransitions[hash];
+
+  								// Reset, if we're going to use timers after all
+  								if (cannotUseCssTransitions[hash]) {
+  									style[prefix$1(prop)] = originalValue;
+  								}
+  							}
+  						}
+
+  						if (!CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[hash]) {
+  							// we need to fall back to timer-based stuff
+  							if (originalValue === undefined) {
+  								originalValue = t.getStyle(prop);
+  							}
+
+  							// need to remove this from changedProperties, otherwise transitionEndHandler
+  							// will get confused
+  							index = changedProperties.indexOf(prop);
+  							if (index === -1) {
+  								warnIfDebug('Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!', { node: t.node });
+  							} else {
+  								changedProperties.splice(index, 1);
+  							}
+
+  							// TODO Determine whether this property is animatable at all
+
+  							suffix = /[^\d]*$/.exec(to[prop])[0];
+  							interpolator = interpolate(parseFloat(originalValue), parseFloat(to[prop])) || function () {
+  								return to[prop];
+  							};
+
+  							// ...then kick off a timer-based transition
+  							propertiesToTransitionInJs.push({
+  								name: prefix$1(prop),
+  								interpolator: interpolator,
+  								suffix: suffix
+  							});
+  						}
+  					}
+
+  					// javascript transitions
+  					if (propertiesToTransitionInJs.length) {
+  						var easing = undefined;
+
+  						if (typeof options.easing === 'string') {
+  							easing = t.ractive.easing[options.easing];
+
+  							if (!easing) {
+  								warnOnceIfDebug(missingPlugin(options.easing, 'easing'));
+  								easing = linear;
+  							}
+  						} else if (typeof options.easing === 'function') {
+  							easing = options.easing;
+  						} else {
+  							easing = linear;
+  						}
+
+  						new Ticker({
+  							duration: options.duration,
+  							easing: easing,
+  							step: function (pos) {
+  								var i = propertiesToTransitionInJs.length;
+  								while (i--) {
+  									var _prop = propertiesToTransitionInJs[i];
+  									t.node.style[_prop.name] = _prop.interpolator(pos) + _prop.suffix;
+  								}
+  							},
+  							complete: function () {
+  								jsTransitionsComplete = true;
+  								checkComplete();
+  							}
+  						});
+  					} else {
+  						jsTransitionsComplete = true;
+  					}
+
+  					if (!changedProperties.length) {
+  						// We need to cancel the transitionEndHandler, and deal with
+  						// the fact that it will never fire
+  						t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
+  						cssTransitionsComplete = true;
+  						checkComplete();
+  					}
+  				}, 0);
+  			}, options.delay || 0);
+  		};
+  	})();
+  }
+
+  var createTransitions$1 = createTransitions;
+
+  function resetStyle(node, style) {
+  	if (style) {
+  		node.setAttribute('style', style);
+  	} else {
+  		// Next line is necessary, to remove empty style attribute!
+  		// See http://stackoverflow.com/a/7167553
+  		node.getAttribute('style');
+  		node.removeAttribute('style');
+  	}
+  }
+
+  var getComputedStyle = win && (win.getComputedStyle || legacy.getComputedStyle);
+  var resolved = Promise$1.resolve();
+
+  var Transition = (function () {
+  	function Transition(ractive, node, name, params, eventName) {
+  		classCallCheck(this, Transition);
+
+  		this.ractive = ractive;
+  		this.node = node;
+  		this.name = name;
+  		this.params = params;
+
+  		// TODO this will need to change...
+  		this.eventName = eventName;
+  		this.isIntro = eventName !== 'outro';
+
+  		if (typeof name === 'function') {
+  			this._fn = name;
+  		} else {
+  			this._fn = findInViewHierarchy('transitions', ractive, name);
+
+  			if (!this._fn) {
+  				warnOnceIfDebug(missingPlugin(name, 'transition'), { ractive: ractive });
+  			}
+  		}
+  	}
+
+  	Transition.prototype.animateStyle = function animateStyle(style, value, options) {
+  		var _this = this;
+
+  		if (arguments.length === 4) {
+  			throw new Error('t.animateStyle() returns a promise - use .then() instead of passing a callback');
+  		}
+
+  		// Special case - page isn't visible. Don't animate anything, because
+  		// that way you'll never get CSS transitionend events
+  		if (!visible) {
+  			this.setStyle(style, value);
+  			return resolved;
+  		}
+
+  		var to = undefined;
+
+  		if (typeof style === 'string') {
+  			to = {};
+  			to[style] = value;
+  		} else {
+  			to = style;
+
+  			// shuffle arguments
+  			options = value;
+  		}
+
+  		// As of 0.3.9, transition authors should supply an `option` object with
+  		// `duration` and `easing` properties (and optional `delay`), plus a
+  		// callback function that gets called after the animation completes
+
+  		// TODO remove this check in a future version
+  		if (!options) {
+  			warnOnceIfDebug('The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name);
+  			options = this;
+  		}
+
+  		return new Promise$1(function (fulfil) {
+  			// Edge case - if duration is zero, set style synchronously and complete
+  			if (!options.duration) {
+  				_this.setStyle(to);
+  				fulfil();
+  				return;
+  			}
+
+  			// Get a list of the properties we're animating
+  			var propertyNames = Object.keys(to);
+  			var changedProperties = [];
+
+  			// Store the current styles
+  			var computedStyle = getComputedStyle(_this.node);
+
+  			var i = propertyNames.length;
+  			while (i--) {
+  				var prop = propertyNames[i];
+  				var current = computedStyle[prefix$1(prop)];
+
+  				if (current === '0px') current = 0;
+
+  				// we need to know if we're actually changing anything
+  				if (current != to[prop]) {
+  					// use != instead of !==, so we can compare strings with numbers
+  					changedProperties.push(prop);
+
+  					// make the computed style explicit, so we can animate where
+  					// e.g. height='auto'
+  					_this.node.style[prefix$1(prop)] = current;
+  				}
+  			}
+
+  			// If we're not actually changing anything, the transitionend event
+  			// will never fire! So we complete early
+  			if (!changedProperties.length) {
+  				fulfil();
+  				return;
+  			}
+
+  			createTransitions$1(_this, to, options, changedProperties, fulfil);
+  		});
+  	};
+
+  	Transition.prototype.getStyle = function getStyle(props) {
+  		var computedStyle = getComputedStyle(this.node);
+
+  		if (typeof props === 'string') {
+  			var value = computedStyle[prefix$1(props)];
+  			return value === '0px' ? 0 : value;
+  		}
+
+  		if (!isArray(props)) {
+  			throw new Error('Transition$getStyle must be passed a string, or an array of strings representing CSS properties');
+  		}
+
+  		var styles = {};
+
+  		var i = props.length;
+  		while (i--) {
+  			var prop = props[i];
+  			var value = computedStyle[prefix$1(prop)];
+
+  			if (value === '0px') value = 0;
+  			styles[prop] = value;
+  		}
+
+  		return styles;
+  	};
+
+  	Transition.prototype.processParams = function processParams(params, defaults) {
+  		if (typeof params === 'number') {
+  			params = { duration: params };
+  		} else if (typeof params === 'string') {
+  			if (params === 'slow') {
+  				params = { duration: 600 };
+  			} else if (params === 'fast') {
+  				params = { duration: 200 };
+  			} else {
+  				params = { duration: 400 };
+  			}
+  		} else if (!params) {
+  			params = {};
+  		}
+
+  		return extend({}, defaults, params);
+  	};
+
+  	Transition.prototype.setStyle = function setStyle(style, value) {
+  		if (typeof style === 'string') {
+  			this.node.style[prefix$1(style)] = value;
+  		} else {
+  			var prop = undefined;
+  			for (prop in style) {
+  				if (style.hasOwnProperty(prop)) {
+  					this.node.style[prefix$1(prop)] = style[prop];
+  				}
+  			}
+  		}
+
+  		return this;
+  	};
+
+  	Transition.prototype.start = function start() {
+  		var _this2 = this;
+
+  		var node = this.node;
+  		var originalStyle = node.getAttribute('style');
+
+  		var completed = undefined;
+
+  		// create t.complete() - we don't want this on the prototype,
+  		// because we don't want `this` silliness when passing it as
+  		// an argument
+  		this.complete = function (noReset) {
+  			if (completed) {
+  				return;
+  			}
+
+  			if (!noReset && _this2.eventName === 'intro') {
+  				resetStyle(node, originalStyle);
+  			}
+
+  			_this2._manager.remove(_this2);
+
+  			completed = true;
+  		};
+
+  		// If the transition function doesn't exist, abort
+  		if (!this._fn) {
+  			this.complete();
+  			return;
+  		}
+
+  		var promise = this._fn.apply(this.ractive, [this].concat(this.params));
+  		if (promise) promise.then(this.complete);
+  	};
+
+  	return Transition;
+  })();
+
+  function Ractive$transition(name, node, params) {
+
+  	if (node instanceof HTMLElement) {
+  		// good to go
+  	} else if (isObject(node)) {
+  			// omitted, use event node
+  			params = node;
+  		}
+
+  	// if we allow query selector, then it won't work
+  	// simple params like "fast"
+
+  	// else if ( typeof node === 'string' ) {
+  	// 	// query selector
+  	// 	node = this.find( node )
+  	// }
+
+  	node = node || this.event.node;
+
+  	if (!node) {
+  		fatal('No node was supplied for transition ' + name);
+  	}
+
+  	var transition = new Transition(this, node, name, params);
+  	var promise = runloop.start(this, true);
+  	runloop.registerTransition(transition);
+  	runloop.end();
+  	return promise;
+  }
+
   function Ractive$toHTML() {
   	return this.fragment.toString(true);
   }
@@ -1140,13 +2251,6 @@ var classCallCheck = function (instance, Constructor) {
   	}, {}));
   	return getCSS(uniqueCssIds);
   }
-
-  // Error messages that are used (or could be) in multiple places
-  var badArguments = 'Bad arguments';
-  var noRegistryFunctionReturn = 'A function was specified for "%s" %s, but no %s was returned';
-  var missingPlugin = function (name, type) {
-    return 'Missing "' + name + '" ' + type + ' plugin. You may need to download a plugin via http://docs.ractivejs.org/latest/plugins#' + type + 's';
-  };
 
   function Ractive$toggle(keypath) {
   	if (typeof keypath !== 'string') {
@@ -1370,272 +2474,6 @@ var classCallCheck = function (instance, Constructor) {
   	var fn = new Function(functionBody);
   	return hasThis ? fn.bind(bindTo) : fn;
   }
-
-  var html = 'http://www.w3.org/1999/xhtml';
-  var mathml = 'http://www.w3.org/1998/Math/MathML';
-  var svg$1 = 'http://www.w3.org/2000/svg';
-  var xlink = 'http://www.w3.org/1999/xlink';
-  var xml = 'http://www.w3.org/XML/1998/namespace';
-  var xmlns = 'http://www.w3.org/2000/xmlns';
-
-  var namespaces = { html: html, mathml: mathml, svg: svg$1, xlink: xlink, xml: xml, xmlns: xmlns };
-
-  var createElement;
-  var matches;
-  var div;
-  var methodNames;
-  var unprefixed;
-  var prefixed;
-  var i$1;
-  var j$1;
-  var makeFunction;
-  // Test for SVG support
-  if (!svg) {
-  	createElement = function (type, ns, extend) {
-  		if (ns && ns !== html) {
-  			throw 'This browser does not support namespaces other than http://www.w3.org/1999/xhtml. The most likely cause of this error is that you\'re trying to render SVG in an older browser. See http://docs.ractivejs.org/latest/svg-and-older-browsers for more information';
-  		}
-
-  		return extend ? doc.createElement(type, extend) : doc.createElement(type);
-  	};
-  } else {
-  	createElement = function (type, ns, extend) {
-  		if (!ns || ns === html) {
-  			return extend ? doc.createElement(type, extend) : doc.createElement(type);
-  		}
-
-  		return extend ? doc.createElementNS(ns, type, extend) : doc.createElementNS(ns, type);
-  	};
-  }
-
-  function createDocumentFragment() {
-  	return doc.createDocumentFragment();
-  }
-
-  function getElement(input) {
-  	var output;
-
-  	if (!input || typeof input === 'boolean') {
-  		return;
-  	}
-
-  	if (!win || !doc || !input) {
-  		return null;
-  	}
-
-  	// We already have a DOM node - no work to do. (Duck typing alert!)
-  	if (input.nodeType) {
-  		return input;
-  	}
-
-  	// Get node from string
-  	if (typeof input === 'string') {
-  		// try ID first
-  		output = doc.getElementById(input);
-
-  		// then as selector, if possible
-  		if (!output && doc.querySelector) {
-  			output = doc.querySelector(input);
-  		}
-
-  		// did it work?
-  		if (output && output.nodeType) {
-  			return output;
-  		}
-  	}
-
-  	// If we've been given a collection (jQuery, Zepto etc), extract the first item
-  	if (input[0] && input[0].nodeType) {
-  		return input[0];
-  	}
-
-  	return null;
-  }
-
-  if (!isClient) {
-  	matches = null;
-  } else {
-  	div = createElement('div');
-  	methodNames = ['matches', 'matchesSelector'];
-
-  	makeFunction = function (methodName) {
-  		return function (node, selector) {
-  			return node[methodName](selector);
-  		};
-  	};
-
-  	i$1 = methodNames.length;
-
-  	while (i$1-- && !matches) {
-  		unprefixed = methodNames[i$1];
-
-  		if (div[unprefixed]) {
-  			matches = makeFunction(unprefixed);
-  		} else {
-  			j$1 = vendors.length;
-  			while (j$1--) {
-  				prefixed = vendors[i$1] + unprefixed.substr(0, 1).toUpperCase() + unprefixed.substring(1);
-
-  				if (div[prefixed]) {
-  					matches = makeFunction(prefixed);
-  					break;
-  				}
-  			}
-  		}
-  	}
-
-  	// IE8...
-  	if (!matches) {
-  		matches = function (node, selector) {
-  			var nodes, parentNode, i$1;
-
-  			parentNode = node.parentNode;
-
-  			if (!parentNode) {
-  				// empty dummy <div>
-  				div.innerHTML = '';
-
-  				parentNode = div;
-  				node = node.cloneNode();
-
-  				div.appendChild(node);
-  			}
-
-  			nodes = parentNode.querySelectorAll(selector);
-
-  			i$1 = nodes.length;
-  			while (i$1--) {
-  				if (nodes[i$1] === node) {
-  					return true;
-  				}
-  			}
-
-  			return false;
-  		};
-  	}
-  }
-
-  function detachNode(node) {
-  	if (node && typeof node.parentNode !== 'unknown' && node.parentNode) {
-  		node.parentNode.removeChild(node);
-  	}
-
-  	return node;
-  }
-
-  function safeToStringValue(value) {
-  	return value == null || !value.toString ? '' : '' + value;
-  }
-
-  var legacy = null;
-
-  var create;
-  var defineProperty;
-  var defineProperties;
-  try {
-  	Object.defineProperty({}, 'test', { value: 0 });
-
-  	if (doc) {
-  		Object.defineProperty(createElement('div'), 'test', { value: 0 });
-  	}
-
-  	defineProperty = Object.defineProperty;
-  } catch (err) {
-  	// Object.defineProperty doesn't exist, or we're in IE8 where you can
-  	// only use it with DOM objects (what were you smoking, MSFT?)
-  	defineProperty = function (obj, prop, desc) {
-  		obj[prop] = desc.value;
-  	};
-  }
-
-  try {
-  	try {
-  		Object.defineProperties({}, { test: { value: 0 } });
-  	} catch (err) {
-  		// TODO how do we account for this? noMagic = true;
-  		throw err;
-  	}
-
-  	if (doc) {
-  		Object.defineProperties(createElement('div'), { test: { value: 0 } });
-  	}
-
-  	defineProperties = Object.defineProperties;
-  } catch (err) {
-  	defineProperties = function (obj, props) {
-  		var prop;
-
-  		for (prop in props) {
-  			if (props.hasOwnProperty(prop)) {
-  				defineProperty(obj, prop, props[prop]);
-  			}
-  		}
-  	};
-  }
-
-  try {
-  	Object.create(null);
-
-  	create = Object.create;
-  } catch (err) {
-  	// sigh
-  	create = (function () {
-  		var F = function () {};
-
-  		return function (proto, props) {
-  			var obj;
-
-  			if (proto === null) {
-  				return {};
-  			}
-
-  			F.prototype = proto;
-  			obj = new F();
-
-  			if (props) {
-  				Object.defineProperties(obj, props);
-  			}
-
-  			return obj;
-  		};
-  	})();
-  }
-
-  function extend(target) {
-  	var prop;
-
-  	for (var _len = arguments.length, sources = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-  		sources[_key - 1] = arguments[_key];
-  	}
-
-  	sources.forEach(function (source) {
-  		for (prop in source) {
-  			if (hasOwn.call(source, prop)) {
-  				target[prop] = source[prop];
-  			}
-  		}
-  	});
-
-  	return target;
-  }
-
-  function fillGaps(target) {
-  	for (var _len2 = arguments.length, sources = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-  		sources[_key2 - 1] = arguments[_key2];
-  	}
-
-  	sources.forEach(function (s) {
-  		for (var key in s) {
-  			if (hasOwn.call(s, key) && !(key in target)) {
-  				target[key] = s[key];
-  			}
-  		}
-  	});
-
-  	return target;
-  }
-
-  var hasOwn = Object.prototype.hasOwnProperty;
 
   var functions = create(null);
   function getFunction(str, i) {
@@ -2030,129 +2868,6 @@ var classCallCheck = function (instance, Constructor) {
   		captureGroup.push(model);
   	}
   }
-
-  var requestAnimationFrame;
-
-  // If window doesn't exist, we don't need requestAnimationFrame
-  if (!win) {
-  	requestAnimationFrame = null;
-  } else {
-  	// https://gist.github.com/paulirish/1579671
-  	(function (vendors, lastTime, win) {
-
-  		var x, setTimeout;
-
-  		if (win.requestAnimationFrame) {
-  			return;
-  		}
-
-  		for (x = 0; x < vendors.length && !win.requestAnimationFrame; ++x) {
-  			win.requestAnimationFrame = win[vendors[x] + 'RequestAnimationFrame'];
-  		}
-
-  		if (!win.requestAnimationFrame) {
-  			setTimeout = win.setTimeout;
-
-  			win.requestAnimationFrame = function (callback) {
-  				var currTime, timeToCall, id;
-
-  				currTime = Date.now();
-  				timeToCall = Math.max(0, 16 - (currTime - lastTime));
-  				id = setTimeout(function () {
-  					callback(currTime + timeToCall);
-  				}, timeToCall);
-
-  				lastTime = currTime + timeToCall;
-  				return id;
-  			};
-  		}
-  	})(vendors, 0, win);
-
-  	requestAnimationFrame = win.requestAnimationFrame;
-  }
-
-  var rAF = requestAnimationFrame;
-
-  var getTime = win && win.performance && typeof win.performance.now === 'function' ? function () {
-  	return win.performance.now();
-  } : function () {
-  	return Date.now();
-  };
-
-  // TODO what happens if a transition is aborted?
-
-  var tickers = [];
-  var running = false;
-
-  function tick() {
-  	runloop.start();
-
-  	var now = getTime();
-
-  	var i = undefined;
-  	var ticker = undefined;
-
-  	for (i = 0; i < tickers.length; i += 1) {
-  		ticker = tickers[i];
-
-  		if (!ticker.tick(now)) {
-  			// ticker is complete, remove it from the stack, and decrement i so we don't miss one
-  			tickers.splice(i--, 1);
-  		}
-  	}
-
-  	runloop.end();
-
-  	if (tickers.length) {
-  		rAF(tick);
-  	} else {
-  		running = false;
-  	}
-  }
-
-  var Ticker = (function () {
-  	function Ticker(options) {
-  		classCallCheck(this, Ticker);
-
-  		this.duration = options.duration;
-  		this.step = options.step;
-  		this.complete = options.complete;
-  		this.easing = options.easing;
-
-  		this.start = getTime();
-  		this.end = this.start + this.duration;
-
-  		this.running = true;
-
-  		tickers.push(this);
-  		if (!running) rAF(tick);
-  	}
-
-  	Ticker.prototype.tick = function tick(now) {
-  		if (!this.running) return false;
-
-  		if (now > this.end) {
-  			if (this.step) this.step(1);
-  			if (this.complete) this.complete(1);
-
-  			return false;
-  		}
-
-  		var elapsed = now - this.start;
-  		var eased = this.easing(elapsed / this.duration);
-
-  		if (this.step) this.step(eased);
-
-  		return true;
-  	};
-
-  	Ticker.prototype.stop = function stop() {
-  		if (this.abort) this.abort();
-  		this.running = false;
-  	};
-
-  	return Ticker;
-  })();
 
   var prefixers = {};
 
@@ -3626,25 +4341,6 @@ var classCallCheck = function (instance, Constructor) {
 
   	return Interpolator;
   })(Mustache);
-
-  function findInViewHierarchy(registryName, ractive, name) {
-  	var instance = findInstance(registryName, ractive, name);
-  	return instance ? instance[registryName][name] : null;
-  }
-
-  function findInstance(registryName, ractive, name) {
-  	while (ractive) {
-  		if (name in ractive[registryName]) {
-  			return ractive;
-  		}
-
-  		if (ractive.isolated) {
-  			return null;
-  		}
-
-  		ractive = ractive.parent;
-  	}
-  }
 
   function getPartialTemplate(ractive, name, parentFragment) {
   	// If the partial in instance or view heirarchy instances, great
@@ -5981,684 +6677,6 @@ var classCallCheck = function (instance, Constructor) {
   	return CustomEvent;
   })();
 
-  function camelCase (hyphenatedStr) {
-  	return hyphenatedStr.replace(/-([a-zA-Z])/g, function (match, $1) {
-  		return $1.toUpperCase();
-  	});
-  }
-
-  var prefix = undefined;
-
-  if (!isClient) {
-  	prefix = null;
-  } else {
-  	(function () {
-  		var prefixCache = {};
-  		var testStyle = createElement('div').style;
-
-  		prefix = function (prop) {
-  			prop = camelCase(prop);
-
-  			if (!prefixCache[prop]) {
-  				if (testStyle[prop] !== undefined) {
-  					prefixCache[prop] = prop;
-  				} else {
-  					// test vendors...
-  					var capped = prop.charAt(0).toUpperCase() + prop.substring(1);
-
-  					var i = vendors.length;
-  					while (i--) {
-  						var vendor = vendors[i];
-  						if (testStyle[vendor + capped] !== undefined) {
-  							prefixCache[prop] = vendor + capped;
-  							break;
-  						}
-  					}
-  				}
-  			}
-
-  			return prefixCache[prop];
-  		};
-  	})();
-  }
-
-  var prefix$1 = prefix;
-
-  var visible = undefined;
-  var hidden = 'hidden';
-
-  if (doc) {
-  	var prefix$2 = undefined;
-
-  	if (hidden in doc) {
-  		prefix$2 = '';
-  	} else {
-  		var i$2 = vendors.length;
-  		while (i$2--) {
-  			var vendor = vendors[i$2];
-  			hidden = vendor + 'Hidden';
-
-  			if (hidden in doc) {
-  				prefix$2 = vendor;
-  				break;
-  			}
-  		}
-  	}
-
-  	if (prefix$2 !== undefined) {
-  		doc.addEventListener(prefix$2 + 'visibilitychange', onChange);
-  		onChange();
-  	} else {
-  		// gah, we're in an old browser
-  		if ('onfocusout' in doc) {
-  			doc.addEventListener('focusout', onHide);
-  			doc.addEventListener('focusin', onShow);
-  		} else {
-  			win.addEventListener('pagehide', onHide);
-  			win.addEventListener('blur', onHide);
-
-  			win.addEventListener('pageshow', onShow);
-  			win.addEventListener('focus', onShow);
-  		}
-
-  		visible = true; // until proven otherwise. Not ideal but hey
-  	}
-  }
-
-  function onChange() {
-  	visible = !doc[hidden];
-  }
-
-  function onHide() {
-  	visible = false;
-  }
-
-  function onShow() {
-  	visible = true;
-  }
-
-  function snap(to) {
-  	return function () {
-  		return to;
-  	};
-  }
-
-  var interpolators = {
-  	number: function (from, to) {
-  		var delta;
-
-  		if (!isNumeric(from) || !isNumeric(to)) {
-  			return null;
-  		}
-
-  		from = +from;
-  		to = +to;
-
-  		delta = to - from;
-
-  		if (!delta) {
-  			return function () {
-  				return from;
-  			};
-  		}
-
-  		return function (t) {
-  			return from + t * delta;
-  		};
-  	},
-
-  	array: function (from, to) {
-  		var intermediate, interpolators, len, i;
-
-  		if (!isArray(from) || !isArray(to)) {
-  			return null;
-  		}
-
-  		intermediate = [];
-  		interpolators = [];
-
-  		i = len = Math.min(from.length, to.length);
-  		while (i--) {
-  			interpolators[i] = interpolate(from[i], to[i]);
-  		}
-
-  		// surplus values - don't interpolate, but don't exclude them either
-  		for (i = len; i < from.length; i += 1) {
-  			intermediate[i] = from[i];
-  		}
-
-  		for (i = len; i < to.length; i += 1) {
-  			intermediate[i] = to[i];
-  		}
-
-  		return function (t) {
-  			var i = len;
-
-  			while (i--) {
-  				intermediate[i] = interpolators[i](t);
-  			}
-
-  			return intermediate;
-  		};
-  	},
-
-  	object: function (from, to) {
-  		var properties, len, interpolators, intermediate, prop;
-
-  		if (!isObject(from) || !isObject(to)) {
-  			return null;
-  		}
-
-  		properties = [];
-  		intermediate = {};
-  		interpolators = {};
-
-  		for (prop in from) {
-  			if (hasOwn.call(from, prop)) {
-  				if (hasOwn.call(to, prop)) {
-  					properties.push(prop);
-  					interpolators[prop] = interpolate(from[prop], to[prop]) || snap(to[prop]);
-  				} else {
-  					intermediate[prop] = from[prop];
-  				}
-  			}
-  		}
-
-  		for (prop in to) {
-  			if (hasOwn.call(to, prop) && !hasOwn.call(from, prop)) {
-  				intermediate[prop] = to[prop];
-  			}
-  		}
-
-  		len = properties.length;
-
-  		return function (t) {
-  			var i = len,
-  			    prop;
-
-  			while (i--) {
-  				prop = properties[i];
-
-  				intermediate[prop] = interpolators[prop](t);
-  			}
-
-  			return intermediate;
-  		};
-  	}
-  };
-
-  var interpolators$1 = interpolators;
-
-  function interpolate(from, to, ractive, type) {
-  	if (from === to) return null;
-
-  	if (type) {
-  		var interpol = findInViewHierarchy('interpolators', ractive, type);
-  		if (interpol) return interpol(from, to) || null;
-
-  		fatal(missingPlugin(type, 'interpolator'));
-  	}
-
-  	return interpolators$1.number(from, to) || interpolators$1.array(from, to) || interpolators$1.object(from, to) || null;
-  }
-
-  var unprefixPattern = new RegExp('^-(?:' + vendors.join('|') + ')-');
-
-  function unprefix (prop) {
-  	return prop.replace(unprefixPattern, '');
-  }
-
-  var vendorPattern = new RegExp('^(?:' + vendors.join('|') + ')([A-Z])');
-
-  function hyphenate (str) {
-  	if (!str) return ''; // edge case
-
-  	if (vendorPattern.test(str)) str = '-' + str;
-
-  	return str.replace(/[A-Z]/g, function (match) {
-  		return '-' + match.toLowerCase();
-  	});
-  }
-
-  var createTransitions = undefined;
-
-  if (!isClient) {
-  	createTransitions = null;
-  } else {
-  	(function () {
-  		var testStyle = createElement('div').style;
-  		var linear = function (x) {
-  			return x;
-  		};
-
-  		var canUseCssTransitions = {};
-  		var cannotUseCssTransitions = {};
-
-  		// determine some facts about our environment
-  		var TRANSITION = undefined;
-  		var TRANSITIONEND = undefined;
-  		var CSS_TRANSITIONS_ENABLED = undefined;
-  		var TRANSITION_DURATION = undefined;
-  		var TRANSITION_PROPERTY = undefined;
-  		var TRANSITION_TIMING_FUNCTION = undefined;
-
-  		if (testStyle.transition !== undefined) {
-  			TRANSITION = 'transition';
-  			TRANSITIONEND = 'transitionend';
-  			CSS_TRANSITIONS_ENABLED = true;
-  		} else if (testStyle.webkitTransition !== undefined) {
-  			TRANSITION = 'webkitTransition';
-  			TRANSITIONEND = 'webkitTransitionEnd';
-  			CSS_TRANSITIONS_ENABLED = true;
-  		} else {
-  			CSS_TRANSITIONS_ENABLED = false;
-  		}
-
-  		if (TRANSITION) {
-  			TRANSITION_DURATION = TRANSITION + 'Duration';
-  			TRANSITION_PROPERTY = TRANSITION + 'Property';
-  			TRANSITION_TIMING_FUNCTION = TRANSITION + 'TimingFunction';
-  		}
-
-  		createTransitions = function (t, to, options, changedProperties, resolve) {
-
-  			// Wait a beat (otherwise the target styles will be applied immediately)
-  			// TODO use a fastdom-style mechanism?
-  			setTimeout(function () {
-  				var jsTransitionsComplete = undefined;
-  				var cssTransitionsComplete = undefined;
-
-  				function checkComplete() {
-  					if (jsTransitionsComplete && cssTransitionsComplete) {
-  						// will changes to events and fire have an unexpected consequence here?
-  						t.ractive.fire(t.name + ':end', t.node, t.isIntro);
-  						resolve();
-  					}
-  				}
-
-  				// this is used to keep track of which elements can use CSS to animate
-  				// which properties
-  				var hashPrefix = (t.node.namespaceURI || '') + t.node.tagName;
-
-  				t.node.style[TRANSITION_PROPERTY] = changedProperties.map(prefix$1).map(hyphenate).join(',');
-  				t.node.style[TRANSITION_TIMING_FUNCTION] = hyphenate(options.easing || 'linear');
-  				t.node.style[TRANSITION_DURATION] = options.duration / 1000 + 's';
-
-  				function transitionEndHandler(event) {
-  					var index = changedProperties.indexOf(camelCase(unprefix(event.propertyName)));
-  					if (index !== -1) {
-  						changedProperties.splice(index, 1);
-  					}
-
-  					if (changedProperties.length) {
-  						// still transitioning...
-  						return;
-  					}
-
-  					t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
-
-  					cssTransitionsComplete = true;
-  					checkComplete();
-  				}
-
-  				t.node.addEventListener(TRANSITIONEND, transitionEndHandler, false);
-
-  				setTimeout(function () {
-  					var i = changedProperties.length;
-  					var hash = undefined;
-  					var originalValue = undefined;
-  					var index = undefined;
-  					var propertiesToTransitionInJs = [];
-  					var prop = undefined;
-  					var suffix = undefined;
-  					var interpolator = undefined;
-
-  					while (i--) {
-  						prop = changedProperties[i];
-  						hash = hashPrefix + prop;
-
-  						if (CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[hash]) {
-  							t.node.style[prefix$1(prop)] = to[prop];
-
-  							// If we're not sure if CSS transitions are supported for
-  							// this tag/property combo, find out now
-  							if (!canUseCssTransitions[hash]) {
-  								originalValue = t.getStyle(prop);
-
-  								// if this property is transitionable in this browser,
-  								// the current style will be different from the target style
-  								canUseCssTransitions[hash] = t.getStyle(prop) != to[prop];
-  								cannotUseCssTransitions[hash] = !canUseCssTransitions[hash];
-
-  								// Reset, if we're going to use timers after all
-  								if (cannotUseCssTransitions[hash]) {
-  									t.node.style[prefix$1(prop)] = originalValue;
-  								}
-  							}
-  						}
-
-  						if (!CSS_TRANSITIONS_ENABLED || cannotUseCssTransitions[hash]) {
-  							// we need to fall back to timer-based stuff
-  							if (originalValue === undefined) {
-  								originalValue = t.getStyle(prop);
-  							}
-
-  							// need to remove this from changedProperties, otherwise transitionEndHandler
-  							// will get confused
-  							index = changedProperties.indexOf(prop);
-  							if (index === -1) {
-  								warnIfDebug('Something very strange happened with transitions. Please raise an issue at https://github.com/ractivejs/ractive/issues - thanks!', { node: t.node });
-  							} else {
-  								changedProperties.splice(index, 1);
-  							}
-
-  							// TODO Determine whether this property is animatable at all
-
-  							suffix = /[^\d]*$/.exec(to[prop])[0];
-  							interpolator = interpolate(parseFloat(originalValue), parseFloat(to[prop])) || function () {
-  								return to[prop];
-  							};
-
-  							// ...then kick off a timer-based transition
-  							propertiesToTransitionInJs.push({
-  								name: prefix$1(prop),
-  								interpolator: interpolator,
-  								suffix: suffix
-  							});
-  						}
-  					}
-
-  					// javascript transitions
-  					if (propertiesToTransitionInJs.length) {
-  						var easing = undefined;
-
-  						if (typeof options.easing === 'string') {
-  							easing = t.ractive.easing[options.easing];
-
-  							if (!easing) {
-  								warnOnceIfDebug(missingPlugin(options.easing, 'easing'));
-  								easing = linear;
-  							}
-  						} else if (typeof options.easing === 'function') {
-  							easing = options.easing;
-  						} else {
-  							easing = linear;
-  						}
-
-  						new Ticker({
-  							duration: options.duration,
-  							easing: easing,
-  							step: function (pos) {
-  								var i = propertiesToTransitionInJs.length;
-  								while (i--) {
-  									var _prop = propertiesToTransitionInJs[i];
-  									t.node.style[_prop.name] = _prop.interpolator(pos) + _prop.suffix;
-  								}
-  							},
-  							complete: function () {
-  								jsTransitionsComplete = true;
-  								checkComplete();
-  							}
-  						});
-  					} else {
-  						jsTransitionsComplete = true;
-  					}
-
-  					if (!changedProperties.length) {
-  						// We need to cancel the transitionEndHandler, and deal with
-  						// the fact that it will never fire
-  						t.node.removeEventListener(TRANSITIONEND, transitionEndHandler, false);
-  						cssTransitionsComplete = true;
-  						checkComplete();
-  					}
-  				}, 0);
-  			}, options.delay || 0);
-  		};
-  	})();
-  }
-
-  var createTransitions$1 = createTransitions;
-
-  function resetStyle(node, style) {
-  	if (style) {
-  		node.setAttribute('style', style);
-  	} else {
-  		// Next line is necessary, to remove empty style attribute!
-  		// See http://stackoverflow.com/a/7167553
-  		node.getAttribute('style');
-  		node.removeAttribute('style');
-  	}
-  }
-
-  var getComputedStyle = win && (win.getComputedStyle || legacy.getComputedStyle);
-  var resolved = Promise$1.resolve();
-
-  var Transition = (function () {
-  	function Transition(owner, template, isIntro) {
-  		classCallCheck(this, Transition);
-
-  		this.owner = owner;
-  		this.isIntro = isIntro;
-  		this.ractive = owner.ractive;
-
-  		var ractive = owner.ractive;
-
-  		var name = template.n || template;
-
-  		if (typeof name !== 'string') {
-  			var fragment = new Fragment({
-  				owner: owner,
-  				template: name
-  			}).bind(); // TODO need a way to capture values without bind()
-
-  			name = fragment.toString();
-  			fragment.unbind();
-
-  			if (name === '') {
-  				// empty string okay, just no transition
-  				return;
-  			}
-  		}
-
-  		this.name = name;
-
-  		if (template.a) {
-  			this.params = template.a;
-  		} else if (template.d) {
-  			// TODO is there a way to interpret dynamic arguments without all the
-  			// 'dependency thrashing'?
-  			var fragment = new Fragment({
-  				owner: owner,
-  				template: template.d
-  			}).bind();
-
-  			this.params = fragment.getArgsList();
-  			fragment.unbind();
-  		}
-
-  		this._fn = findInViewHierarchy('transitions', ractive, name);
-
-  		if (!this._fn) {
-  			warnOnceIfDebug(missingPlugin(name, 'transition'), { ractive: ractive });
-  		}
-  	}
-
-  	Transition.prototype.animateStyle = function animateStyle(style, value, options) {
-  		var _this = this;
-
-  		if (arguments.length === 4) {
-  			throw new Error('t.animateStyle() returns a promise - use .then() instead of passing a callback');
-  		}
-
-  		// Special case - page isn't visible. Don't animate anything, because
-  		// that way you'll never get CSS transitionend events
-  		if (!visible) {
-  			this.setStyle(style, value);
-  			return resolved;
-  		}
-
-  		var to = undefined;
-
-  		if (typeof style === 'string') {
-  			to = {};
-  			to[style] = value;
-  		} else {
-  			to = style;
-
-  			// shuffle arguments
-  			options = value;
-  		}
-
-  		// As of 0.3.9, transition authors should supply an `option` object with
-  		// `duration` and `easing` properties (and optional `delay`), plus a
-  		// callback function that gets called after the animation completes
-
-  		// TODO remove this check in a future version
-  		if (!options) {
-  			warnOnceIfDebug('The "%s" transition does not supply an options object to `t.animateStyle()`. This will break in a future version of Ractive. For more info see https://github.com/RactiveJS/Ractive/issues/340', this.name);
-  			options = this;
-  		}
-
-  		return new Promise$1(function (fulfil) {
-  			// Edge case - if duration is zero, set style synchronously and complete
-  			if (!options.duration) {
-  				_this.setStyle(to);
-  				fulfil();
-  				return;
-  			}
-
-  			// Get a list of the properties we're animating
-  			var propertyNames = Object.keys(to);
-  			var changedProperties = [];
-
-  			// Store the current styles
-  			var computedStyle = getComputedStyle(_this.node);
-
-  			var i = propertyNames.length;
-  			while (i--) {
-  				var prop = propertyNames[i];
-  				var current = computedStyle[prefix$1(prop)];
-
-  				if (current === '0px') current = 0;
-
-  				// we need to know if we're actually changing anything
-  				if (current != to[prop]) {
-  					// use != instead of !==, so we can compare strings with numbers
-  					changedProperties.push(prop);
-
-  					// make the computed style explicit, so we can animate where
-  					// e.g. height='auto'
-  					_this.node.style[prefix$1(prop)] = current;
-  				}
-  			}
-
-  			// If we're not actually changing anything, the transitionend event
-  			// will never fire! So we complete early
-  			if (!changedProperties.length) {
-  				fulfil();
-  				return;
-  			}
-
-  			createTransitions$1(_this, to, options, changedProperties, fulfil);
-  		});
-  	};
-
-  	Transition.prototype.getStyle = function getStyle(props) {
-  		var computedStyle = getComputedStyle(this.node);
-
-  		if (typeof props === 'string') {
-  			var value = computedStyle[prefix$1(props)];
-  			return value === '0px' ? 0 : value;
-  		}
-
-  		if (!isArray(props)) {
-  			throw new Error('Transition$getStyle must be passed a string, or an array of strings representing CSS properties');
-  		}
-
-  		var styles = {};
-
-  		var i = props.length;
-  		while (i--) {
-  			var prop = props[i];
-  			var value = computedStyle[prefix$1(prop)];
-
-  			if (value === '0px') value = 0;
-  			styles[prop] = value;
-  		}
-
-  		return styles;
-  	};
-
-  	Transition.prototype.processParams = function processParams(params, defaults) {
-  		if (typeof params === 'number') {
-  			params = { duration: params };
-  		} else if (typeof params === 'string') {
-  			if (params === 'slow') {
-  				params = { duration: 600 };
-  			} else if (params === 'fast') {
-  				params = { duration: 200 };
-  			} else {
-  				params = { duration: 400 };
-  			}
-  		} else if (!params) {
-  			params = {};
-  		}
-
-  		return extend({}, defaults, params);
-  	};
-
-  	Transition.prototype.setStyle = function setStyle(style, value) {
-  		if (typeof style === 'string') {
-  			this.node.style[prefix$1(style)] = value;
-  		} else {
-  			var prop = undefined;
-  			for (prop in style) {
-  				if (style.hasOwnProperty(prop)) {
-  					this.node.style[prefix$1(prop)] = style[prop];
-  				}
-  			}
-  		}
-
-  		return this;
-  	};
-
-  	Transition.prototype.start = function start() {
-  		var _this2 = this;
-
-  		var node = this.node = this.owner.node;
-  		var originalStyle = node.getAttribute('style');
-
-  		var completed = undefined;
-
-  		// create t.complete() - we don't want this on the prototype,
-  		// because we don't want `this` silliness when passing it as
-  		// an argument
-  		this.complete = function (noReset) {
-  			if (completed) {
-  				return;
-  			}
-
-  			if (!noReset && _this2.isIntro) {
-  				resetStyle(node, originalStyle);
-  			}
-
-  			_this2._manager.remove(_this2);
-
-  			completed = true;
-  		};
-
-  		// If the transition function doesn't exist, abort
-  		if (!this._fn) {
-  			this.complete();
-  			return;
-  		}
-
-  		this._fn.apply(this.ractive, [this].concat(this.params));
-  	};
-
-  	return Transition;
-  })();
-
   function updateLiveQueries$1(element) {
   	// Does this need to be added to any live queries?
   	var node = element.node;
@@ -7892,14 +7910,8 @@ var classCallCheck = function (instance, Constructor) {
 
   		updateLiveQueries$1(this);
 
-  		// transitions
-  		var transitionTemplate = this.template.t0 || this.template.t1;
-  		if (transitionTemplate && this.ractive.transitionsEnabled) {
-  			var transition = new Transition(this, transitionTemplate, true);
-  			runloop.registerTransition(transition);
-
-  			this._introTransition = transition; // so we can abort if it gets removed
-  		}
+  		// store so we can abort if it gets removed
+  		this._introTransition = getTransition(this, this.template.t0 || this.template.t1, 'intro');
 
   		if (!existing) {
   			target.appendChild(node);
@@ -7980,11 +7992,7 @@ var classCallCheck = function (instance, Constructor) {
   		if (!shouldDestroy && this.decorator) this.decorator.unrender();
 
   		// outro transition
-  		var transitionTemplate = this.template.t0 || this.template.t2;
-  		if (transitionTemplate && this.ractive.transitionsEnabled) {
-  			var _transition = new Transition(this, transitionTemplate, false);
-  			runloop.registerTransition(_transition);
-  		}
+  		getTransition(this, this.template.t0 || this.template.t2, 'outro');
 
   		// special case
   		var id = this.attributeByName.id;
@@ -8011,6 +8019,51 @@ var classCallCheck = function (instance, Constructor) {
 
   	return Element;
   })(Item);
+
+  function getTransition(owner, template, eventName) {
+  	if (!template || !owner.ractive.transitionsEnabled) return;
+
+  	var name = getTransitionName(owner, template);
+  	if (!name) return;
+
+  	var params = getTransitionParams(owner, template);
+  	var transition = new Transition(owner.ractive, owner.node, name, params, eventName);
+  	runloop.registerTransition(transition);
+  	return transition;
+  }
+
+  function getTransitionName(owner, template) {
+  	var name = template.n || template;
+
+  	if (typeof name === 'string') return name;
+
+  	var fragment = new Fragment({
+  		owner: owner,
+  		template: name
+  	}).bind(); // TODO need a way to capture values without bind()
+
+  	name = fragment.toString();
+  	fragment.unbind();
+
+  	return name;
+  }
+
+  function getTransitionParams(owner, template) {
+  	if (template.a) return template.a;
+  	if (!template.d) return;
+
+  	// TODO is there a way to interpret dynamic arguments without all the
+  	// 'dependency thrashing'?
+  	var fragment = new Fragment({
+  		owner: owner,
+  		template: template.d
+  	}).bind();
+
+  	var params = fragment.getArgsList();
+  	fragment.unbind();
+
+  	return params;
+  }
 
   function inputIsCheckedRadio(element) {
   	var attributes = element.attributeByName;
@@ -12431,6 +12484,7 @@ var classCallCheck = function (instance, Constructor) {
   	toCss: Ractive$toCSS,
   	toHTML: Ractive$toHTML,
   	toHtml: Ractive$toHTML,
+  	transition: Ractive$transition,
   	unlink: unlink,
   	unrender: Ractive$unrender,
   	unshift: unshift,
