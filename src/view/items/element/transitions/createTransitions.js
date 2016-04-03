@@ -66,12 +66,21 @@ if ( !isClient ) {
 			// which properties
 			const hashPrefix = ( t.node.namespaceURI || '' ) + t.node.tagName;
 
-			t.node.style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
-			t.node.style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
-			t.node.style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
+			// need to reset transition properties
+			const style = t.node.style;
+			const previous = {
+				property: style[ TRANSITION_PROPERTY ],
+				timing: style[ TRANSITION_TIMING_FUNCTION ],
+				duration: style[ TRANSITION_DURATION ]
+			};
+
+			style[ TRANSITION_PROPERTY ] = changedProperties.map( prefix ).map( hyphenate ).join( ',' );
+			style[ TRANSITION_TIMING_FUNCTION ] = hyphenate( options.easing || 'linear' );
+			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 			function transitionEndHandler ( event ) {
 				const index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
+
 				if ( index !== -1 ) {
 					changedProperties.splice( index, 1 );
 				}
@@ -80,6 +89,10 @@ if ( !isClient ) {
 					// still transitioning...
 					return;
 				}
+
+				style[ TRANSITION_PROPERTY ] = previous.property;
+				style[ TRANSITION_TIMING_FUNCTION ] = previous.duration;
+				style[ TRANSITION_DURATION ] = previous.timing;
 
 				t.node.removeEventListener( TRANSITIONEND, transitionEndHandler, false );
 
@@ -104,7 +117,7 @@ if ( !isClient ) {
 					hash = hashPrefix + prop;
 
 					if ( CSS_TRANSITIONS_ENABLED && !cannotUseCssTransitions[ hash ] ) {
-						t.node.style[ prefix( prop ) ] = to[ prop ];
+						style[ prefix( prop ) ] = to[ prop ];
 
 						// If we're not sure if CSS transitions are supported for
 						// this tag/property combo, find out now
@@ -118,7 +131,7 @@ if ( !isClient ) {
 
 							// Reset, if we're going to use timers after all
 							if ( cannotUseCssTransitions[ hash ] ) {
-								t.node.style[ prefix( prop ) ] = originalValue;
+								style[ prefix( prop ) ] = originalValue;
 							}
 						}
 					}

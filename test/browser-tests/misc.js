@@ -627,7 +627,8 @@ test( 'Foo.extend(Bar), where both Foo and Bar are Ractive instances, returns on
 
 
 test( 'Regression test for #460', t => {
-	let items = [
+	let done = t.async(),
+		items = [
 		{ desc: 'foo' },
 		{ desc: 'bar' },
 		{ desc: 'baz' }
@@ -642,6 +643,7 @@ test( 'Regression test for #460', t => {
 	ractive.pop( 'items' ).then( () => {
 		ractive.push( 'items', { desc: 'baz' });
 		t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p><p>baz:</p>' );
+		done();
 	});
 
 	t.htmlEqual( fixture.innerHTML, '<p>foo:</p><p>bar:</p>' );
@@ -1609,6 +1611,26 @@ test( 'shuffled elements have the correct keypath in their node info', t => {
 	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
 	r.unshift( 'list', 42 );
 	t.equal( Ractive.getNodeInfo( r.findAll( 'span' )[2] ).keypath, 'list.2' );
+});
+
+test( 'ractive.escapeKey() works correctly', t => {
+	t.equal( Ractive.escapeKey( 'foo.bar' ), 'foo\\.bar' );
+	t.equal( Ractive.escapeKey( 'foo\\.bar' ), 'foo\\\\\\.bar' );
+});
+
+test( 'ractive.unescapeKey() works correctly', t => {
+	t.equal( Ractive.unescapeKey( 'foo\\.bar' ), 'foo.bar' );
+	t.equal( Ractive.unescapeKey( 'foo\\\\\\.bar' ), 'foo\\.bar' );
+});
+
+test( 'ractive.joinKeys() works correctly', t => {
+	t.equal( Ractive.joinKeys( 'foo', 'bar.baz' ), 'foo.bar\\.baz' );
+	t.equal( Ractive.joinKeys( 'foo', 'bar\\.baz' ), 'foo.bar\\\\\\.baz' );
+});
+
+test( 'ractive.splitKeypath() works correctly', t => {
+	t.deepEqual( Ractive.splitKeypath( 'foo.bar\\.baz' ), [ 'foo', 'bar.baz' ] );
+	t.deepEqual( Ractive.splitKeypath( 'foo.bar\\\\\\.baz' ), [ 'foo', 'bar\\.baz' ] );
 });
 
 // Is there a way to artificially create a FileList? Leaving this commented
