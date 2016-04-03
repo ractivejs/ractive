@@ -4,14 +4,24 @@ var gobble = require( 'gobble' );
 var sander = require( 'sander' );
 var junk = require( 'junk' );
 var Promise = sander.Promise;
-var path = require( 'path' );
 var rollup = require( 'rollup' );
+var legacyBabelOptions = {
+	presets: [ 'es2015-native-modules' ],
+	plugins: [
+		"transform-es3-property-literals",
+		[ "transform-es2015-classes", { loose: true } ]
+	]
+};
 var babel = require( 'rollup-plugin-babel' )({
+	compact: false,
+	presets: [ "es2015-rollup" ],
 	plugins: [
 		[ "transform-es2015-classes", { loose: true } ]
 	]
 });
 var legacyBabel = require( 'rollup-plugin-babel' )({
+	compact: false,
+	presets: [ "es2015-rollup" ],
 	plugins: [
 		"transform-es3-property-literals",
 		[ "transform-es2015-classes", { loose: true } ]
@@ -91,8 +101,8 @@ if ( gobble.env() === 'production' ) {
 	]);
 } else {
 	lib = gobble([
-		es5.transform( 'rollup', {
-			plugins: [ adjustAndSkip(), legacyBabel ],
+		es5.transform( 'babel', legacyBabelOptions ).transform( 'rollup', {
+			plugins: [ adjustAndSkip() ],
 			format: 'umd',
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
@@ -143,8 +153,8 @@ test = (function () {
 	var testModules = gobble([
 		gobble([ browserTests, gobble( 'test/__support/js' ).moveTo( 'browser-tests' ) ]),
 		es5
-	]).transform( 'rollup', {
-			plugins: [ adjustAndSkip(), legacyBabel ],
+	]).transform( 'babel', legacyBabelOptions ).transform( 'rollup', {
+			plugins: [ adjustAndSkip() ],
 			format: 'umd',
 			entry: 'browser-tests/all.js',
 			moduleName: 'tests',

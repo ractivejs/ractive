@@ -101,6 +101,7 @@
     "uglify-js": "^2.6.2",
 
     "babel-preset-es2015-rollup": "^1",
+    "babel-preset-es2015-native-modules": "^6",
     "babel-plugin-transform-es3-property-literals": "^6",
     "babel-plugin-transform-es2015-classes": "^6"
   },
