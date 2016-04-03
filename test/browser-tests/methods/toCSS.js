@@ -9,7 +9,6 @@ export default function() {
 		return new Ractive.Promise( ( resolve, reject ) => {
 
 			const frame = document.createElement( 'iframe' );
-			document.body.appendChild( frame );
 
 			frame.style.width = '0';
 			frame.style.height = '0';
@@ -35,6 +34,8 @@ export default function() {
 
 				script.src = '../ractive-legacy.js';
 			};
+			
+			document.body.appendChild( frame );
 		} );
 
 	}

@@ -3,6 +3,7 @@
 	"unused": true,
 	"undef": true,
 	"boss": true,
+	"browser": true,
 	"globals": {
 		"module": true,
 		"define": true,

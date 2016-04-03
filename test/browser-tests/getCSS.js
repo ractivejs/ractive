@@ -9,7 +9,6 @@ export default function() {
 		return new Ractive.Promise((resolve, reject) => {
 
 			const frame = document.createElement('iframe');
-			document.body.appendChild(frame);
 
 			// need to use onload in FF; http://stackoverflow.com/questions/9967478/iframe-content-disappears-on-firefox
 			frame.onload = () => {
@@ -35,6 +34,8 @@ export default function() {
 
 				script.src = '../ractive-legacy.js';
 			};
+
+			document.body.appendChild(frame);
 		});
 
 	}
