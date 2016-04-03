@@ -154,7 +154,6 @@ export default class ReferenceExpressionProxy extends Model {
 				this.deps.forEach( handleChange );
 				this.clearUnresolveds();
 			}
-			this.value = value;
 		}
 		return value;
 	}
