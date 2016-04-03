@@ -2,6 +2,7 @@ import runloop from '../../../../global/runloop';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
 import { arrayContentsMatch } from '../../../../utils/array';
+import getSelectedOptions from '../../../../utils/getSelectedOptions';
 
 export default class MultipleSelectBinding extends Binding {
 	forceUpdate () {
@@ -63,11 +64,12 @@ export default class MultipleSelectBinding extends Binding {
 	}
 
 	setFromNode ( node ) {
-		let i = node.selectedOptions.length;
+		let selectedOptions = getSelectedOptions( node );
+		let i = selectedOptions.length;
 		let result = new Array( i );
 
 		while ( i-- ) {
-			const option = node.selectedOptions[i];
+			const option = selectedOptions[i];
 			result[i] = option._ractive ? option._ractive.value : option.value;
 		}
 

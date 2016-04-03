@@ -1,6 +1,7 @@
 import runloop from '../../../../global/runloop';
 import Binding from './Binding';
 import handleDomEvent from './handleDomEvent';
+import getSelectedOptions from '../../../../utils/getSelectedOptions';
 
 export default class SingleSelectBinding extends Binding {
 	forceUpdate () {
@@ -81,7 +82,7 @@ export default class SingleSelectBinding extends Binding {
 	}
 
 	setFromNode ( node ) {
-		const option = node.selectedOptions[0];
+		const option = getSelectedOptions( node )[0];
 		this.model.set( option._ractive ? option._ractive.value : option.value );
 	}
 

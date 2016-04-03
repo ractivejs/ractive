@@ -1,5 +1,6 @@
 import Element from '../../Element';
 import { toArray } from '../../../../utils/array';
+import getSelectedOptions from '../../../../utils/getSelectedOptions';
 
 function valueContains ( selectValue, optionValue ) {
 	let i = selectValue.length;
@@ -15,7 +16,13 @@ export default class Select extends Element {
 	}
 
 	foundNode ( node ) {
-		if ( this.binding && node.selectedOptions.length > 0 ) this.selectedOptions = toArray( node.selectedOptions );
+		if ( this.binding ) {
+			let selectedOptions = getSelectedOptions( node );
+
+			if ( selectedOptions.length > 0 ) {
+				this.selectedOptions = selectedOptions;
+			}
+		}
 	}
 
 	render ( target, occupants ) {
