@@ -1,13 +1,10 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
 import { hasUsableConsole, onWarn } from './test-config';
-import { isArray } from '../utils/is';
 import { initModule } from './test-config';
 
 export default function() {
 	initModule( 'misc.js' );
-
-	Array.isArray || ( Array.isArray = thing => isArray( thing ) ); // IE8... don't ask
 
 	test( 'Subclass instance data extends prototype data', t => {
 		const Subclass = Ractive.extend({
