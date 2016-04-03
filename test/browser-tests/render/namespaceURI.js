@@ -1,7 +1,10 @@
 import { test } from 'qunit';
 import { svg } from '../../config/environment';
+import { initModule } from '../test-config';
 
 export default function() {
+	initModule( 'render/namespaceURI.js' );
+
 	if ( svg ) {
 		const html = 'http://www.w3.org/1999/xhtml';
 		const svg = 'http://www.w3.org/2000/svg';

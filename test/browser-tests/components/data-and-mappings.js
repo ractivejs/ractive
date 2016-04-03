@@ -1122,34 +1122,30 @@ export default function() {
 		t.htmlEqual( ractive.find( '#s3' ).innerHTML, '12' );
 	});
 
-test( 'updates to children of mappings update correctly in the parent (#2469)', t => {
-	const cmp = Ractive.extend({
-		template: '{{#each foo.baz}}{{@key}}{{/each}}'
+	test( 'updates to children of mappings update correctly in the parent (#2469)', t => {
+		const cmp = Ractive.extend({
+			template: '{{#each foo.baz}}{{@key}}{{/each}}'
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: `<cmp foo="{{bar}}" />-`,
+			data: {
+				bar: { baz: { a: 1, b: 2 } }
+			},
+			components: { cmp }
+		});
+
+		t.equal( fixture.innerHTML, 'ab-' );
+
+		const c = r.findComponent( 'cmp' );
+
+		delete c.get( 'foo' ).baz.a;
+		c.update( 'foo.baz.a' );
+
+		t.equal( fixture.innerHTML, 'b-' );
 	});
 
-	const r = new Ractive({
-		el: fixture,
-		template: `<cmp foo="{{bar}}" />-`,
-		data: {
-			bar: { baz: { a: 1, b: 2 } }
-		},
-		components: { cmp }
-	});
-
-	t.equal( fixture.innerHTML, 'ab-' );
-
-	const c = r.findComponent( 'cmp' );
-
-	delete c.get( 'foo' ).baz.a;
-	c.update( 'foo.baz.a' );
-
-	t.equal( fixture.innerHTML, 'b-' );
-});
-
-test( 'Interpolators based on computed mappings update correctly #2261)', t => {
-	const Component = Ractive.extend({
-		template: `{{active ? "active" : "inactive"}}`
-	});
 	test( 'Interpolators based on computed mappings update correctly #2261)', t => {
 		const Component = Ractive.extend({
 			template: `{{active ? "active" : "inactive"}}`

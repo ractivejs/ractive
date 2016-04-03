@@ -115,6 +115,8 @@ test = (function () {
 		var modules = [];
 
 		var files = Promise.all( testFiles.map( function( f ) {
+			f = f.replace(/\\/g, '/');
+
 			return sander.readFile( inputdir, 'browser-tests', f ).then( function( data ) {
 				data = data.toString( 'utf8' );
 				if ( data.indexOf( 'initModule(' ) !== -1 ) {
