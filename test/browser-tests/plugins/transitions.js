@@ -44,7 +44,7 @@ export default function() {
 			el: fixture,
 			template: `
 				{{#if show}}
-					<div intro-outro="test">content...</div>
+					<div intro="test">content...</div>
 				{{/if show}}`,
 			transitions: {
 				test ( transition ) {
@@ -278,9 +278,13 @@ export default function() {
 	});
 
 	test( 'Parameter objects are not polluted (#1239)', t => {
+		const done = t.async();
+	
+		t.expect(3)
+	
 		let uid = 0;
 		let objects = [];
-
+	
 		new Ractive({
 			el: fixture,
 			template: '{{#each list}}<p intro="foo:{}"></p>{{/each}}',
@@ -289,11 +293,15 @@ export default function() {
 					params = t.processParams( params, {
 						uid: uid++
 					});
-
 					objects.push( params );
+					t.complete();
 				}
 			},
-			data: { list: [ 0, 0 ] }
+			data: { list: [ 0, 0 ] },
+			oncomplete () {
+				t.ok( true );
+				done();
+			},
 		});
 
 		t.equal( objects.length, 2 );
@@ -301,9 +309,6 @@ export default function() {
 	});
 
 	test( 'processParams extends correctly if no default provided (#2446)', t => {
-		let uid = 0;
-		let objects = [];
-
 		new Ractive({
 			el: fixture,
 			template: '<p intro="foo:{duration: 1000}"></p>',
@@ -319,10 +324,11 @@ export default function() {
 	});
 
 	test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
-		const done = t.async();
-
 		var ractive, tooLate;
-
+	
+		const done = t.async();
+		t.expect( 0 );
+	
 		ractive = new Ractive({
 			el: fixture,
 			template: '{{#showBox}}<div intro="wait:2000" outro="wait:1"></div>{{/showBox}}',
@@ -332,24 +338,42 @@ export default function() {
 				}
 			}
 		});
-
-		ractive.set( 'showBox', true ).then( function () {
-			if ( !tooLate ) t.ok( true );
-			else t.ok( false, 'too late' );
-		}).then( done, done );
-
+	
+		ractive.set( 'showBox', true ).then( function ( t ) {
+			if ( !tooLate ) {
+				done();
+			}
+		});
+	
 		setTimeout( function () {
 			ractive.set( 'showBox', false );
 		}, 0 );
-
+	
 		setTimeout( function () {
 			tooLate = true;
 		}, 200 );
 	});
 
+	test( 'processParams extends correctly if no default provided (#2446)', t => {
+		new Ractive({
+			el: fixture,
+			template: '<p intro="foo:{duration: 1000}"></p>',
+			transitions: {
+				foo ( transition, params ) {
+					params = transition.processParams( params );
+	
+					// Test that the duration param is present
+					t.equal( params.duration, 1000 );
+				}
+			}
+		});
+	});
+	
 	test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
 		let transitionRan = false;
-
+		const done = t.async();
+		t.expect(1);
+	
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -367,7 +391,8 @@ export default function() {
 			data: {
 				foo: '',
 				bar: ''
-			}
+			},
+			oncomplete () { done() }
 		});
 
 		ractive.set( 'foo', 'x' );

@@ -136,57 +136,59 @@ export default function() {
 
 	} );
 
+if (!window.__karma__) {
 	test( 'toCSS with components constructed from Ractive of different environments', t => {
 		t.expect( 5 );
-
+	
 		const done1 = t.async();
 		const done2 = t.async();
 		const done3 = t.async();
 		const done4 = t.async();
 		const done5 = t.async();
-
+	
 		// Simulate two separate Ractive environments using iframes
 		Ractive.Promise.all( [ createIsolatedEnv(), createIsolatedEnv() ] ).then( envs => {
-
+	
 			const ComponentA = createComponentDefinition( envs[ 0 ].Ractive );
 			const ComponentB = createComponentDefinition( envs[ 1 ].Ractive );
-
+	
 			const cssIdA = ComponentA.prototype.cssId;
 			const cssIdB = ComponentB.prototype.cssId;
-
+	
 			const instanceA = new ComponentA( {
 				el: envs[ 0 ].body
 			} );
 			const instanceB = new ComponentB( {
 				el: envs[ 1 ].body
 			} );
-
+	
 			const cssA = instanceA.toCSS();
 			const cssB = instanceB.toCSS();
-
+	
 			t.notEqual( cssIdA, cssIdB, `Two top-level components from different environments should not have the same ID` );
 			done1();
-
+	
 			t.ok( !!~cssA.indexOf( `.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green` ), `.green selector for ${cssIdA} should exist on instance A` );
 			done2();
-
+	
 			t.ok( !~cssA.indexOf( `.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green` ), `.green selector for ${cssIdB} should NEVER exist on instance A` );
 			done3();
-
+	
 			t.ok( !!~cssB.indexOf( `.green[data-ractive-css~="{${cssIdB}}"], [data-ractive-css~="{${cssIdB}}"] .green` ), `.green selector for ${cssIdB} should exist on instance B` );
 			done4();
-
+	
 			t.ok( !~cssB.indexOf( `.green[data-ractive-css~="{${cssIdA}}"], [data-ractive-css~="{${cssIdA}}"] .green` ), `.green selector for ${cssIdA} should NEVER exist on instance B` );
 			done5();
-
+	
 			instanceA.teardown();
 			instanceB.teardown();
 			envs[ 0 ].env.remove();
 			envs[ 1 ].env.remove();
-
+	
 		} );
-
+	
 	} );
+}
 
 	test( 'toCSS with a Ractive instance', t => {
 

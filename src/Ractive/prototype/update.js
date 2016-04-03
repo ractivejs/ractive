@@ -24,6 +24,14 @@ export default function Ractive$update ( keypath ) {
 		}
 	}
 
+	// notify upstream
+	let parent = model.parent;
+	while ( parent ) {
+		let i = parent.deps.length;
+		while ( i-- ) parent.deps[i].handleChange();
+		parent = parent.parent;
+	}
+
 	runloop.end();
 
 	updateHook.fire( this, model );

@@ -76,8 +76,9 @@ export default function() {
 
 	} );
 
-	test( 'getCSS with component definitions constructed from Ractive of different environments', t => {
-		t.expect( 5 );
+if (!window.__karma__) {
+	test('getCSS with component definitions constructed from Ractive of different environments', t => {
+		t.expect(5);
 
 		const done1 = t.async();
 		const done2 = t.async();
@@ -117,5 +118,5 @@ export default function() {
 
 		} );
 
-	} );
+	});
 }
