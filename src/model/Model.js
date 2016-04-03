@@ -46,8 +46,10 @@ export default class Model {
 			this.key = unescapeKey( key );
 			this.isReadonly = parent.isReadonly;
 
-			if ( parent.value ) {
-				this.value = parent.value[ this.key ];
+			const parentValue = parent.get();
+
+			if ( parentValue ) {
+				this.value = parentValue[ this.key ];
 				this.adapt();
 			}
 		}
@@ -455,6 +457,7 @@ export default class Model {
 				this.keypathModels[ k ].teardown();
 			}
 		}
+		this.deps = [];
 	}
 
 	unregister ( dependant ) {

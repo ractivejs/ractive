@@ -1,9 +1,10 @@
+import { capture } from '../../global/capture';
 import Model from '../../model/Model';
 import { REFERENCE } from '../../config/types';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
-import { unbind } from '../../shared/methodCallers';
+import { handleChange, mark, unbind } from '../../shared/methodCallers';
 import { removeFromArray } from '../../utils/array';
 import { isEqual } from '../../utils/is';
 import { escapeKey } from '../../shared/keypaths';
@@ -28,6 +29,19 @@ class ReferenceExpressionChild extends Model {
 
 			parent = parent.parent;
 		}
+	}
+
+	get ( shouldCapture ) {
+		if ( shouldCapture ) capture( this );
+		const parentValue = this.parent.get();
+		return parentValue && this.key in parentValue ? parentValue[ this.key ] : undefined;
+	}
+
+	mark () {
+		this.children.forEach( mark );
+
+		this.deps.forEach( handleChange );
+		this.clearUnresolveds();
 	}
 
 	joinKey ( key ) {
@@ -174,6 +188,15 @@ export default class ReferenceExpressionProxy extends Model {
 		}
 
 		return this.childByKey[ key ];
+	}
+
+	mark () {
+		this.dirty = true; // TODO does this have any effect on a ReferenceExpressionProxy?
+
+		this.children.forEach( mark );
+
+		this.deps.forEach( handleChange );
+		this.clearUnresolveds();
 	}
 
 	retrieve () {

@@ -153,6 +153,10 @@ export default class RootModel extends Model {
 	}
 
 	teardown () {
+		Object.keys( this.computations ).forEach( key => {
+			this.computations[ key ].teardown();
+		});
+
 		const keys = Object.keys( this.mappings );
 		let i = keys.length;
 		while ( i-- ){
