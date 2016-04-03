@@ -11,6 +11,8 @@ import getNodeInfo from './Ractive/static/getNodeInfo';
 import construct from './Ractive/construct';
 import initialise from './Ractive/initialise';
 import { getCSS } from './global/css';
+import { escapeKey, unescapeKey } from './shared/keypaths';
+import { joinKeys, splitKeypath } from './Ractive/static/keypaths';
 
 // Ractive.js makes liberal use of things like Array.prototype.indexOf. In
 // older browsers, these are made available via a shim - here, we do a quick
@@ -53,8 +55,12 @@ defineProperties( Ractive, {
 
 	// static methods:
 	extend:         { value: extend },
+	escapeKey:      { value: escapeKey },
 	getNodeInfo:    { value: getNodeInfo },
+	joinKeys:       { value: joinKeys },
 	parse:          { value: parse },
+	splitKeypath:   { value: splitKeypath },
+	unescapeKey:    { value: unescapeKey },
 	getCSS:         { value: getCSS },
 
 	// namespaced constructors
