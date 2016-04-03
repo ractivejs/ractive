@@ -79,6 +79,7 @@
     "cheerio": "^0.20.0",
     "eslint": "^1.3.1",
     "gobble": "^0.10.1",
+    "gobble-babel": "^6.0.0",
     "gobble-cli": "^0.6.0",
     "gobble-replace": "^0.3.1",
     "gobble-rollup": "^0.25.0",
