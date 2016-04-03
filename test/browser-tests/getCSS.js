@@ -11,28 +11,30 @@ export default function() {
 			const frame = document.createElement('iframe');
 			document.body.appendChild(frame);
 
-			frame.style.width = '0';
-			frame.style.height = '0';
+			// need to use onload in FF; http://stackoverflow.com/questions/9967478/iframe-content-disappears-on-firefox
+			frame.onload = () => {
+				frame.style.width = '0';
+				frame.style.height = '0';
 
-			const win = frame.contentWindow || frame;
-			const doc = frame.contentDocument || frame.contentWindow.document;
+				const win = frame.contentWindow || frame;
+				const doc = frame.contentDocument || frame.contentWindow.document;
 
-			const script = document.createElement('script');
-			doc.body.appendChild(script);
+				const script = document.createElement('script');
+				doc.body.appendChild(script);
 
-			script.onload = () => {
-				resolve({
-					Ractive: win.Ractive,
-					env: frame,
-					body: doc.body
-				});
+				script.onload = () => {
+					resolve({
+						Ractive: win.Ractive,
+						env: frame,
+						body: doc.body
+					});
+				};
+				script.onerror = () => {
+					reject();
+				};
+
+				script.src = '../ractive-legacy.js';
 			};
-			script.onerror = () => {
-				reject();
-			};
-
-			script.src = '../ractive-legacy.js';
-
 		});
 
 	}
