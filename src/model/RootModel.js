@@ -152,6 +152,16 @@ export default class RootModel extends Model {
 		return this.value;
 	}
 
+	teardown () {
+		const keys = Object.keys( this.mappings );
+		let i = keys.length;
+		while ( i-- ){
+			if ( this.mappings[ keys[i] ] ) this.mappings[ keys[i] ].unregister( this );
+		}
+
+		super.teardown();
+	}
+
 	update () {
 		// noop
 	}

@@ -1317,8 +1317,24 @@ const renderTests = [
 		name: 'integers can be aliased (#2397)',
 		template: '{{#with 1 as num, 42 as answer}}{{num}} {{answer}}{{/with}}',
 		result: '1 42'
+	},
+	{
+		name: '{{#with obj}} doesn\'t render if obj is empty',
+		template: '{{#with obj}}foo{{/with}}',
+		data: { obj: {} },
+		result: ''
+	},
+	{
+		name: '{{#with obj}} doesn\'t render if obj is false/null/undefined',
+		template: '{{#with obj}}foo{{/with}}',
+		result: ''
+	},
+	{
+		name: '{{@key}} references aren\'t escaped',
+		template: '{{#each obj}}{{@key}}{{/each}}',
+		data: { obj: { 'foo.bar': 1 } },
+		result: 'foo.bar'
 	}
-
 ];
 
 function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }

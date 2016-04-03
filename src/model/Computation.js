@@ -157,4 +157,13 @@ export default class Computation extends Model {
 
 		this.dependencies = dependencies;
 	}
+
+	teardown () {
+		let i = this.dependencies.length;
+		while ( i-- ) {
+			if ( this.dependencies[i] ) this.dependencies[i].unregister( this );
+		}
+		if ( this.root.computations[this.key] === this ) delete this.root.computations[this.key];
+		super.teardown();
+	}
 }
