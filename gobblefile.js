@@ -72,7 +72,7 @@ if ( gobble.env() === 'production' ) {
 		}),
 
 		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\,js|_parse\.js/ ), babel ],
+			plugins: [ adjustAndSkip( /legacy\.js|_parse\.js/ ), babel ],
 			format: 'umd',
 			banner: banner,
 			entry: 'Ractive.js',
