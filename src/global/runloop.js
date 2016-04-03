@@ -34,7 +34,7 @@ const runloop = {
 	},
 
 	addFragment ( fragment ) {
-		addToArray( batch.fragments, fragment );
+		if ( batch ) addToArray( batch.fragments, fragment );
 	},
 
 	addObserver ( observer, defer ) {
@@ -42,13 +42,15 @@ const runloop = {
 	},
 
 	registerTransition ( transition ) {
-		transition._manager = batch.transitionManager;
-		batch.transitionManager.add( transition );
+		if ( batch ) {
+			transition._manager = batch.transitionManager;
+			batch.transitionManager.add( transition );
+		}
 	},
 
 	// synchronise node detachments with transition ends
 	detachWhenReady ( thing ) {
-		batch.transitionManager.detachQueue.push( thing );
+		if ( batch ) batch.transitionManager.detachQueue.push( thing );
 	},
 
 	scheduleTask ( task, postRender ) {
