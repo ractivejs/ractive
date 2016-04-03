@@ -1,60 +1,65 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
+import { initModule } from '../test-config';
 
-test( 'Transitions method', t => {
-	const done = t.async();
-	t.expect(3);
+export default function() {
+	initModule( 'methods/transition.js' );
 
-	const ractive = new Ractive({
-		el: fixture,
-		template: '<div></div>',
-		transitions: { fade }
-	});
+	test( 'Transitions method', t => {
+		const done = t.async();
+		t.expect(3);
 
-	function fade ( t ) {
-		t.setStyle( 'opacity', 0 );
-		return t.animateStyle( 'opacity', t.params.opacity, { duration: 50 } );
-	}
-
-	const div = ractive.find( 'div' );
-	t.equal( div.style.opacity, '' );
-
-	// string name of transition
-	ractive.transition( 'fade', div, { opacity: .5 } )
-		.then( () => {
-			t.equal( div.style.opacity, .5 );
-			// function
-			return ractive.transition( fade, div, { opacity: 1 } );
-		})
-		.then( () => {
-			t.equal( div.style.opacity, 1 );
-			done();
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<div></div>',
+			transitions: { fade }
 		});
-});
 
-test( 'Use transitions from event with implicit node', t => {
-	const done = t.async();
-	t.expect(2);
+		function fade ( t ) {
+			t.setStyle( 'opacity', 0 );
+			return t.animateStyle( 'opacity', t.params.opacity, { duration: 50 } );
+		}
 
-	const ractive = new Ractive({
-		el: fixture,
-		template: `<div on-click='transition("fade")'></div>`,
-		transitions: { fade }
+		const div = ractive.find( 'div' );
+		t.equal( div.style.opacity, '' );
+
+		// string name of transition
+		ractive.transition( 'fade', div, { opacity: .5 } )
+			.then( () => {
+				t.equal( div.style.opacity, .5 );
+				// function
+				return ractive.transition( fade, div, { opacity: 1 } );
+			})
+			.then( () => {
+				t.equal( div.style.opacity, 1 );
+				done();
+			});
 	});
 
-	function fade ( t ) {
-		t.setStyle( 'opacity', 1 );
-		return t.animateStyle( 'opacity', 0, { duration: 50 } );
-	}
+	test( 'Use transitions from event with implicit node', t => {
+		const done = t.async();
+		t.expect(2);
 
-	const div = ractive.find( 'div' );
-	t.equal( div.style.opacity, '' );
+		const ractive = new Ractive({
+			el: fixture,
+			template: `<div on-click='transition("fade")'></div>`,
+			transitions: { fade }
+		});
 
-	fire( div, 'click' );
+		function fade ( t ) {
+			t.setStyle( 'opacity', 1 );
+			return t.animateStyle( 'opacity', 0, { duration: 50 } );
+		}
 
-	setTimeout( () => {
-		t.equal( div.style.opacity, 0 );
-		done();
-	}, 100);
+		const div = ractive.find( 'div' );
+		t.equal( div.style.opacity, '' );
 
-});
+		fire( div, 'click' );
+
+		setTimeout( () => {
+			t.equal( div.style.opacity, 0 );
+			done();
+		}, 100);
+
+	});
+}

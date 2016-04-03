@@ -3,7 +3,7 @@ import { escapeKey } from '../../../shared/keypaths';
 let magicAdaptor;
 
 try {
-	Object.defineProperty({}, 'test', { value: 0 });
+	Object.defineProperty({}, 'test', { get() {}, set() {} });
 
 	magicAdaptor = {
 		filter ( value ) {

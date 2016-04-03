@@ -1,5 +1,6 @@
 import { win, doc } from './config/environment';
 import noop from './utils/noop';
+import { defineProperty, defineProperties } from './utils/object';
 
 var exportedShims;
 
@@ -18,6 +19,32 @@ if ( !win ) {
 		String.prototype.trim = function () {
 			return this.replace(/^\s+/, '').replace(/\s+$/, '');
 		};
+	}
+
+	// Polyfill for Object.create
+	if ( !Object.create ) {
+		Object.create = (function () {
+			var Temp = function () {};
+			return function ( prototype, properties ) {
+				if ( typeof prototype !== 'object' ) {
+					throw new TypeError( 'Prototype must be an object' );
+				}
+				Temp.prototype = prototype;
+				var result = new Temp();
+				defineProperties( result, properties );
+				Temp.prototype = null;
+				return result;
+			};
+		})();
+	}
+
+	// Polyfill Object.defineProperty
+	if ( !Object.defineProperty ) {
+		Object.defineProperty = defineProperty;
+	}
+
+	if ( !Object.freeze ) {
+		Object.freeze = function () { 'LOL'; };
 	}
 
 	// Polyfill for Object.keys

@@ -1,89 +1,94 @@
 import { test } from 'qunit';
+import { initModule } from '../test-config';
 
-test( 'List observers report array modifications', t => {
-	let shuffle;
+export default function() {
+	initModule( 'methods/observeList.js' );
 
-	const ractive = new Ractive({
-		data: { fruits: [ 'apple', 'orange', 'banana' ] },
-		oninit () {
-			this.observeList( 'fruits', ( shfl ) => {
-				shuffle = shfl;
-			});
-		}
+	test( 'List observers report array modifications', t => {
+		let shuffle;
+
+		const ractive = new Ractive({
+			data: { fruits: [ 'apple', 'orange', 'banana' ] },
+			oninit () {
+				this.observeList( 'fruits', ( shfl ) => {
+					shuffle = shfl;
+				});
+			}
+		});
+
+		t.deepEqual( shuffle.inserted, [ 'apple', 'orange', 'banana' ] );
+		t.deepEqual( shuffle.deleted, [] );
+		t.ok( !shuffle.start );
+
+		ractive.splice( 'fruits', 1, 2, 'pear' );
+
+		t.deepEqual( shuffle.inserted, [ 'pear' ] );
+		t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
+		t.equal( shuffle.start, 1 );
 	});
 
-	t.deepEqual( shuffle.inserted, [ 'apple', 'orange', 'banana' ] );
-	t.deepEqual( shuffle.deleted, [] );
-	t.ok( !shuffle.start );
+	test( 'List observers correctly report value change on no init', t => {
+		let shuffle;
 
-	ractive.splice( 'fruits', 1, 2, 'pear' );
+		const ractive = new Ractive({
+			data: { fruits: [ 'apple', 'orange', 'banana' ] },
+			oninit () {
+				this.observeList( 'fruits', ( shfl ) => {
+					shuffle = shfl;
+				}, { init: false } );
+			}
+		});
 
-	t.deepEqual( shuffle.inserted, [ 'pear' ] );
-	t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
-	t.equal( shuffle.start, 1 );
-});
+		ractive.splice( 'fruits', 1, 2, 'pear' );
 
-test( 'List observers correctly report value change on no init', t => {
-	let shuffle;
-
-	const ractive = new Ractive({
-		data: { fruits: [ 'apple', 'orange', 'banana' ] },
-		oninit () {
-			this.observeList( 'fruits', ( shfl ) => {
-				shuffle = shfl;
-			}, { init: false } );
-		}
+		t.deepEqual( shuffle.inserted, [ 'pear' ] );
+		t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
+		t.equal( shuffle.start, 1 );
 	});
 
-	ractive.splice( 'fruits', 1, 2, 'pear' );
+	test( 'List observers report full array value changes as inserted/deleted', t => {
+		let shuffle;
 
-	t.deepEqual( shuffle.inserted, [ 'pear' ] );
-	t.deepEqual( shuffle.deleted, [ 'orange', 'banana' ] );
-	t.equal( shuffle.start, 1 );
-});
+		const ractive = new Ractive({
+			data: { fruits: [ 'apple', 'orange', 'banana' ] },
+			oninit () {
+				this.observeList( 'fruits', ( shfl ) => {
+					shuffle = shfl;
+				}, { init: false } );
+			}
+		});
 
-test( 'List observers report full array value changes as inserted/deleted', t => {
-	let shuffle;
+		ractive.set( 'fruits', [ 'pear', 'mango' ] );
 
-	const ractive = new Ractive({
-		data: { fruits: [ 'apple', 'orange', 'banana' ] },
-		oninit () {
-			this.observeList( 'fruits', ( shfl ) => {
-				shuffle = shfl;
-			}, { init: false } );
-		}
+		t.deepEqual( shuffle.inserted, [ 'pear', 'mango' ] );
+		t.deepEqual( shuffle.deleted, [ 'apple', 'orange', 'banana' ] );
 	});
 
-	ractive.set( 'fruits', [ 'pear', 'mango' ] );
+	test( 'Pattern observers on arrays fire correctly after mutations', t => {
+		const ractive = new Ractive({
+			data: {
+				items: [ 'a', 'b', 'c' ]
+			}
+		});
 
-	t.deepEqual( shuffle.inserted, [ 'pear', 'mango' ] );
-	t.deepEqual( shuffle.deleted, [ 'apple', 'orange', 'banana' ] );
-});
+		let index;
+		let deleted;
+		let inserted;
 
-test( 'Pattern observers on arrays fire correctly after mutations', t => {
-	const ractive = new Ractive({
-		data: {
-			items: [ 'a', 'b', 'c' ]
-		}
+		ractive.observeList( 'items', shuffle => {
+			index = shuffle.start;
+			inserted = shuffle.inserted;
+			deleted = shuffle.deleted;
+		}, { init: false });
+
+		ractive.push( 'items', 'd' );
+		t.equal( index, '3' );
+		t.equal( deleted[0], undefined );
+		t.equal( inserted[0], 'd' );
+
+		ractive.pop( 'items' );
+		t.equal( index, '3' );
+		t.equal( inserted[0], undefined );
+		t.equal( deleted[0], 'd' );
 	});
-
-	let index;
-	let deleted;
-	let inserted;
-
-	ractive.observeList( 'items', shuffle => {
-		index = shuffle.start;
-		inserted = shuffle.inserted;
-		deleted = shuffle.deleted;
-	}, { init: false });
-
-	ractive.push( 'items', 'd' );
-	t.equal( index, '3' );
-	t.equal( deleted[0], undefined );
-	t.equal( inserted[0], 'd' );
-
-	ractive.pop( 'items' );
-	t.equal( index, '3' );
-	t.equal( inserted[0], undefined );
-	t.equal( deleted[0], 'd' );
-});
+}

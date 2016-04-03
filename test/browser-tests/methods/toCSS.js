@@ -1,137 +1,140 @@
-import { test }
-from 'qunit';
+import { test } from 'qunit';
+import { initModule } from '../test-config';
 
-function createIsolatedEnv() {
+export default function() {
+	initModule( 'methods/toCSS.js' );
 
-	return new Ractive.Promise( ( resolve, reject ) => {
+	function createIsolatedEnv() {
 
-		const frame = document.createElement( 'iframe' );
-		document.body.appendChild( frame );
+		return new Ractive.Promise( ( resolve, reject ) => {
 
-		frame.style.width = '0';
-		frame.style.height = '0';
+			const frame = document.createElement( 'iframe' );
+			document.body.appendChild( frame );
 
-		const win = frame.contentWindow || frame;
-		const doc = frame.contentDocument || frame.contentWindow.document;
+			frame.style.width = '0';
+			frame.style.height = '0';
 
-		const script = document.createElement( 'script' );
-		doc.body.appendChild( script );
+			const win = frame.contentWindow || frame;
+			const doc = frame.contentDocument || frame.contentWindow.document;
 
-		script.onload = () => {
-			resolve( {
-				Ractive: win.Ractive,
-				env: frame,
-				body: doc.body
-			} );
-		};
-		script.onerror = () => {
-			reject();
-		};
+			const script = document.createElement( 'script' );
+			doc.body.appendChild( script );
 
-		script.src = '../ractive-legacy.js';
+			script.onload = () => {
+				resolve( {
+					Ractive: win.Ractive,
+					env: frame,
+					body: doc.body
+				} );
+			};
+			script.onerror = () => {
+				reject();
+			};
+
+			script.src = '../ractive-legacy.js';
+
+		} );
+
+	}
+
+	function createComponentDefinition( Ractive ) {
+
+		return Ractive.extend( {
+			template: `<div></div>`,
+			css: `
+				.green {
+					color: green
+				}
+			`
+		} );
+
+	}
+
+	test( 'toCSS with a single component instance', t => {
+
+		const Component = Ractive.extend( {
+			template: `<div></div>`,
+			css: `
+				.green {
+					color: green
+				}
+			`
+		} );
+
+		const app = new Component( {
+			el: fixture
+		} );
+
+		const cssId = Component.prototype.cssId;
+		const css = app.toCSS();
+
+		// Look for the selector
+		t.ok( !!~css.indexOf( `.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green`, `.green selector for ${cssId} should exist` ) );
+
+		app.teardown();
 
 	} );
 
-}
+	test( 'toCSS with nested component instances', t => {
 
-function createComponentDefinition( Ractive ) {
+		const GrandChildComponent = Ractive.extend( {
+			template: `<div></div>`,
+			css: `
+				.green {
+					color: green;
+				}
+			`
+		} );
 
-	return Ractive.extend( {
-		template: `<div></div>`,
-		css: `
-			.green {
-				color: green
+		const ChildComponent = Ractive.extend( {
+			template: `
+				<div></div>
+				<GrandChildComponent />
+			`,
+			css: `
+				.red {
+					color: red;
+				}
+			`,
+			components: {
+				GrandChildComponent
 			}
-		`
-	} );
+		} );
 
-}
-
-test( 'toCSS with a single component instance', t => {
-
-	const Component = Ractive.extend( {
-		template: `<div></div>`,
-		css: `
-			.green {
-				color: green
+		const ParentComponent = Ractive.extend( {
+			template: `
+				<div></div>
+				<ChildComponent />
+			`,
+			css: `
+				.blue{
+					color: blue;
+				}
+			`,
+			components: {
+				ChildComponent
 			}
-		`
+		} );
+
+		const app = new ParentComponent( {
+			el: fixture
+		} );
+
+		const css = app.toCSS();
+		const grandChildCssId = GrandChildComponent.prototype.cssId;
+		const childCssId = ChildComponent.prototype.cssId;
+		const parentCssId = ParentComponent.prototype.cssId;
+
+		// Look for the selectors
+		t.ok( !!~css.indexOf( `.green[data-ractive-css~="{${grandChildCssId}}"], [data-ractive-css~="{${grandChildCssId}}"] .green` ), `.green selector for ${grandChildCssId} should exist` );
+
+		t.ok( !!~css.indexOf( `.red[data-ractive-css~="{${childCssId}}"], [data-ractive-css~="{${childCssId}}"] .red` ), `.red selector for ${childCssId} should exist` );
+
+		t.ok( !!~css.indexOf( `.blue[data-ractive-css~="{${parentCssId}}"], [data-ractive-css~="{${parentCssId}}"] .blue` ), `.blue selector for ${parentCssId} should exist` );
+
+		app.teardown();
+
 	} );
-
-	const app = new Component( {
-		el: fixture
-	} );
-
-	const cssId = Component.prototype.cssId;
-	const css = app.toCSS();
-
-	// Look for the selector
-	t.ok( !!~css.indexOf( `.green[data-ractive-css~="{${cssId}}"], [data-ractive-css~="{${cssId}}"] .green`, `.green selector for ${cssId} should exist` ) );
-
-	app.teardown();
-
-} );
-
-test( 'toCSS with nested component instances', t => {
-
-	const GrandChildComponent = Ractive.extend( {
-		template: `<div></div>`,
-		css: `
-			.green {
-				color: green;
-			}
-		`
-	} );
-
-	const ChildComponent = Ractive.extend( {
-		template: `
-			<div></div>
-			<GrandChildComponent />
-		`,
-		css: `
-			.red {
-				color: red;
-			}
-		`,
-		components: {
-			GrandChildComponent
-		}
-	} );
-
-	const ParentComponent = Ractive.extend( {
-		template: `
-			<div></div>
-			<ChildComponent />
-		`,
-		css: `
-			.blue{
-				color: blue;
-			}
-		`,
-		components: {
-			ChildComponent
-		}
-	} );
-
-	const app = new ParentComponent( {
-		el: fixture
-	} );
-
-	const css = app.toCSS();
-	const grandChildCssId = GrandChildComponent.prototype.cssId;
-	const childCssId = ChildComponent.prototype.cssId;
-	const parentCssId = ParentComponent.prototype.cssId;
-
-	// Look for the selectors
-	t.ok( !!~css.indexOf( `.green[data-ractive-css~="{${grandChildCssId}}"], [data-ractive-css~="{${grandChildCssId}}"] .green` ), `.green selector for ${grandChildCssId} should exist` );
-
-	t.ok( !!~css.indexOf( `.red[data-ractive-css~="{${childCssId}}"], [data-ractive-css~="{${childCssId}}"] .red` ), `.red selector for ${childCssId} should exist` );
-
-	t.ok( !!~css.indexOf( `.blue[data-ractive-css~="{${parentCssId}}"], [data-ractive-css~="{${parentCssId}}"] .blue` ), `.blue selector for ${parentCssId} should exist` );
-
-	app.teardown();
-
-} );
 
 if (!window.__karma__) {
 	test( 'toCSS with components constructed from Ractive of different environments', t => {
@@ -187,22 +190,23 @@ if (!window.__karma__) {
 	} );
 }
 
-test( 'toCSS with a Ractive instance', t => {
+	test( 'toCSS with a Ractive instance', t => {
 
-	const app = new Ractive( {
-		el: fixture,
-		template: `<div></div>`,
-		css: `
-			.green {
-				color: green
-			}
-		`
+		const app = new Ractive( {
+			el: fixture,
+			template: `<div></div>`,
+			css: `
+				.green {
+					color: green
+				}
+			`
+		} );
+
+		const css = app.toCSS();
+
+		t.ok( !~css.indexOf( `.green[data-ractive-css~="{${app.cssId}}"], [data-ractive-css~="{${app.cssId}}"] .green`, `.green selector for ${app.cssId} should NEVER exist` ) );
+
+		app.teardown();
+
 	} );
-
-	const css = app.toCSS();
-
-	t.ok( !~css.indexOf( `.green[data-ractive-css~="{${app.cssId}}"], [data-ractive-css~="{${app.cssId}}"] .green`, `.green selector for ${app.cssId} should NEVER exist` ) );
-
-	app.teardown();
-
-} );
+}
