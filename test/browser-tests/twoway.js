@@ -695,7 +695,7 @@ export default function() {
 					<div>{{foo}}: {{#foo}}true{{else}}false{{/}}</div>
 				{{/}}`,
 			data: {
-				context: {}
+				context: { x: true }
 			}
 		});
 
