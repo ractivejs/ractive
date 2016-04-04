@@ -1,4 +1,4 @@
-import { ALIAS, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
+import { ALIAS, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
 import Alias from './Alias';
 import Attribute from './element/Attribute';
@@ -11,6 +11,7 @@ import Element from './Element';
 import EventDirective from './shared/EventDirective';
 import Interpolator from './Interpolator';
 import Input from './element/specials/Input';
+import Mapping from './component/Mapping';
 import Option from './element/specials/Option';
 import Partial from './Partial';
 import Section from './Section';
@@ -21,6 +22,7 @@ import Transition from './element/Transition';
 import Triple from './Triple';
 import Yielder from './Yielder';
 import getComponentConstructor from './component/getComponentConstructor';
+import findElement from './shared/findElement';
 
 const constructors = {};
 constructors[ ALIAS ] = Alias;
@@ -64,7 +66,20 @@ export default function createItem ( options ) {
 		return new ElementConstructor( options );
 	}
 
-	const Item = constructors[ options.template.t ];
+	let Item;
+
+	// component mappings are a special case of attribute
+	if ( options.template.t === ATTRIBUTE ) {
+		let el = options.owner;
+		if ( !el || ( el.type !== COMPONENT && el.type !== ELEMENT ) ) {
+			el = findElement( options.parentFragment );
+		}
+		options.element = el;
+
+		Item = el.type === COMPONENT ? Mapping : Attribute;
+	} else {
+		Item = constructors[ options.template.t ];
+	}
 
 	if ( !Item ) throw new Error( `Unrecognised item type ${options.template.t}` );
 
