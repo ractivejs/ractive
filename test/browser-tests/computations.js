@@ -2,8 +2,6 @@ import { test } from 'qunit';
 import { hasUsableConsole, onWarn } from './test-config';
 import { initModule } from './test-config';
 
-const phantom = /phantom/i.test( navigator.userAgent );
-
 export default function() {
 	initModule( 'computations.js' );
 
@@ -132,10 +130,10 @@ export default function() {
 		});
 
 		// once again... phantom trailing space in style
-		t.htmlEqual( fixture.innerHTML, `<div style="width: 100px; height: 100px;${ phantom ? ' ' : '' }">10000px squared</div>` );
+		t.htmlEqual( fixture.innerHTML.replace(/\s+/g, ''), `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace(/\s+/g, '' ) );
 
 		ractive.set( 'width', 200 );
-		t.htmlEqual( fixture.innerHTML, `<div style="width: 200px; height: 100px;${ phantom ? ' ' : '' }">20000px squared</div>` );
+		t.htmlEqual( fixture.innerHTML.replace(/\s+/g, ''), `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace(/\s+/g, '') );
 	});
 
 	test( 'Instances can augment default computed properties of components', t => {
@@ -156,10 +154,10 @@ export default function() {
 		});
 
 		// phantom leaves a trailing space in the style... can't make this crap up
-		t.htmlEqual( fixture.innerHTML, `<div style="width: 100px; height: 100px;${ phantom ? ' ' : '' }">10000px squared</div>` );
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace( /\s+/g, '' ) );
 
 		ractive.set( 'width', 200 );
-		t.htmlEqual( fixture.innerHTML, `<div style="width: 200px; height: 100px;${ phantom ? ' ' : '' }">20000px squared</div>` );
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace( /\s+/g, '' ) );
 	});
 
 	test( 'Computed values can depend on other computed values', t => {
