@@ -946,7 +946,7 @@ export default function() {
 			data: {
 				currentStep: 0,
 				stepsQuantity: 2,
-				steps: [{}, {}],
+				steps: [{ x: true }, { x: true }],
 				bool: true
 			}
 		});
@@ -1364,7 +1364,7 @@ export default function() {
 			},
 			data: {
 				bars: [1, 2],
-				baz: { bat: {} }
+				baz: { bat: { x: true } }
 			}
 		});
 
