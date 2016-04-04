@@ -13,7 +13,7 @@ function isEmpty ( value ) {
 
 function getType ( value, hasIndexRef ) {
 	if ( hasIndexRef || isArray( value ) ) return SECTION_EACH;
-	if ( isObject( value ) || typeof value === 'function' ) return SECTION_WITH;
+	if ( isObject( value ) || typeof value === 'function' ) return SECTION_IF_WITH;
 	if ( value === undefined ) return null;
 	return SECTION_IF;
 }
