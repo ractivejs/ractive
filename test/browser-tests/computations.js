@@ -129,11 +129,11 @@ export default function() {
 			components: { Box }
 		});
 
-		// once again... phantom trailing space in style
-		t.htmlEqual( fixture.innerHTML.replace(/\s+/g, ''), `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace(/\s+/g, '' ) );
+		// once again... phantom trailing space in style... sometimes
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace( /\s+/g, '' ) );
 
 		ractive.set( 'width', 200 );
-		t.htmlEqual( fixture.innerHTML.replace(/\s+/g, ''), `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace(/\s+/g, '') );
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace( /\s+/g, '' ) );
 	});
 
 	test( 'Instances can augment default computed properties of components', t => {
@@ -153,7 +153,7 @@ export default function() {
 			computed: { irrelevant: '"foo"' }
 		});
 
-		// phantom leaves a trailing space in the style... can't make this crap up
+		// phantom sometimes leaves a trailing space in the style... can't make this crap up
 		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace( /\s+/g, '' ) );
 
 		ractive.set( 'width', 200 );
