@@ -1334,7 +1334,19 @@ const renderTests = [
 		template: '{{#each obj}}{{@key}}{{/each}}',
 		data: { obj: { 'foo.bar': 1 } },
 		result: 'foo.bar'
-	}
+	},
+	{
+		name: '{{#obj}} doesn\'t render if obj is empty',
+		template: '{{#obj}}foo{{/obj}}',
+		data: { obj: {} },
+		result: ''
+	},
+	{
+		name: '{{#obj}} renders if obj is truthy',
+		template: '{{#obj}}foo{{/obj}}',
+		data: { obj: { x: 1 } },
+		result: 'foo'
+	},
 ];
 
 function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }
