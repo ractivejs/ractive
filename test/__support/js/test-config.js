@@ -16,10 +16,15 @@ function call ( fn ) {
 	fn();
 }
 
-const consoleWarn = console.warn;
-const consoleLog = console.log;
+let consoleWarn;
+let consoleLog;
 
-export const hasUsableConsole = typeof consoleWarn === 'function';
+export const hasUsableConsole = typeof console !== 'undefined' && typeof console.warn === 'function';
+
+if ( hasUsableConsole ) {
+	consoleWarn = console.warn;
+	consoleLog = console.log;
+}
 
 export function initModule ( id ) {
 	const before = beforeEachCallbacks;
@@ -45,16 +50,26 @@ export function initModule ( id ) {
 				fixture.__ractive_instances__ = null;
 			}
 
-			console.warn = consoleWarn;
-			console.log = consoleLog;
+			if ( hasUsableConsole ) {
+				console.warn = consoleWarn;
+				console.log = consoleLog;
+			}
 		}
 	});
 }
 
 export function onWarn ( fn ) {
+	if ( !hasUsableConsole ) {
+		return;
+	}
+
 	console.warn = fn;
 }
 
 export function onLog ( fn ) {
+	if ( !hasUsableConsole ) {
+		return;
+	}
+
 	console.log = fn;
 }
