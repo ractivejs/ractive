@@ -5,7 +5,6 @@ import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { extend } from '../../../utils/object';
 import { missingPlugin } from '../../../config/errors';
-import Fragment from '../../Fragment';
 import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
@@ -16,52 +15,25 @@ const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyl
 const resolved = Promise.resolve();
 
 export default class Transition {
-	constructor ( owner, template, isIntro ) {
-		this.owner = owner;
-		this.isIntro = isIntro;
-		this.ractive = owner.ractive;
-
-		const ractive = owner.ractive;
-
-		let name = template.n || template;
-
-		if ( typeof name !== 'string' ) {
-			const fragment = new Fragment({
-				owner,
-				template: name
-			}).bind(); // TODO need a way to capture values without bind()
-
-			name = fragment.toString();
-			fragment.unbind();
-
-			if ( name === '' ) {
-				// empty string okay, just no transition
-				return;
-			}
-		}
-
+	constructor ( ractive, node, name, params, eventName ) {
+		this.ractive = ractive;
+		this.node = node;
 		this.name = name;
+		this.params = params;
 
-		if ( template.a ) {
-			this.params = template.a;
+		// TODO this will need to change...
+		this.eventName = eventName;
+		this.isIntro = eventName !== 'outro';
+
+		if ( typeof name === 'function' ) {
+			this._fn = name;
 		}
+		else {
+			this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
-		else if ( template.d ) {
-			// TODO is there a way to interpret dynamic arguments without all the
-			// 'dependency thrashing'?
-			const fragment = new Fragment({
-				owner,
-				template: template.d
-			}).bind();
-
-			this.params = fragment.getArgsList();
-			fragment.unbind();
-		}
-
-		this._fn = findInViewHierarchy( 'transitions', ractive, name );
-
-		if ( !this._fn ) {
-			warnOnceIfDebug( missingPlugin( name, 'transition' ), { ractive });
+			if ( !this._fn ) {
+				warnOnceIfDebug( missingPlugin( name, 'transition' ), { ractive });
+			}
 		}
 	}
 
@@ -206,7 +178,7 @@ export default class Transition {
 	}
 
 	start () {
-		const node = this.node = this.owner.node;
+		const node = this.node;
 		const originalStyle = node.getAttribute( 'style' );
 
 		let completed;
@@ -219,7 +191,7 @@ export default class Transition {
 				return;
 			}
 
-			if ( !noReset && this.isIntro ) {
+			if ( !noReset && this.eventName === 'intro' ) {
 				resetStyle( node, originalStyle);
 			}
 
@@ -234,6 +206,7 @@ export default class Transition {
 			return;
 		}
 
-		this._fn.apply( this.ractive, [ this ].concat( this.params ) );
+		const promise = this._fn.apply( this.ractive, [ this ].concat( this.params ) );
+		if ( promise ) promise.then( this.complete );
 	}
 }
