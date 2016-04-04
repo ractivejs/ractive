@@ -1,8 +1,11 @@
 sudo: false
 language: node_js
 node_js:
-- '0.10'
-script: set -e; mkdir -p build; npm run build; chmod u+x scripts/deploy-edge-to-cdn.sh; ./scripts/deploy-edge-to-cdn.sh
+  - '5'
+  - '4'
+  - '0.12'
+  - '0.10'
+script: set -e; mkdir -p build; npm run build; if [[ $(node --version) == v5* ]]; then npm run coveralls; chmod u+x scripts/deploy-edge-to-cdn.sh; ./scripts/deploy-edge-to-cdn.sh; fi
 env:
   global:
   - GH_REF: github.com/ractivejs/ractive.git

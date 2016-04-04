@@ -247,6 +247,8 @@ export default class Element extends Item {
 			node.setAttribute( 'data-ractive-css', this.parentFragment.cssIds.map( x => `{${x}}` ).join( ' ' ) );
 		}
 
+		if ( existing && this.foundNode ) this.foundNode( node );
+
 		if ( this.fragment ) {
 			const children = existing ? toArray( node.childNodes ) : undefined;
 			this.fragment.render( node, children );
@@ -279,14 +281,8 @@ export default class Element extends Item {
 
 		updateLiveQueries( this );
 
-		// transitions
-		const transitionTemplate = this.template.t0 || this.template.t1;
-		if ( transitionTemplate && this.ractive.transitionsEnabled ) {
-			const transition = new Transition( this, transitionTemplate, true );
-			runloop.registerTransition( transition );
-
-			this._introTransition = transition; // so we can abort if it gets removed
-		}
+		// store so we can abort if it gets removed
+		this._introTransition = getTransition( this, this.template.t0 || this.template.t1, 'intro' );
 
 		if ( !existing ) {
 			target.appendChild( node );
@@ -368,11 +364,7 @@ export default class Element extends Item {
 		if ( !shouldDestroy && this.decorator ) this.decorator.unrender();
 
 		// outro transition
-		const transitionTemplate = this.template.t0 || this.template.t2;
-		if ( transitionTemplate && this.ractive.transitionsEnabled ) {
-			const transition = new Transition( this, transitionTemplate, false );
-			runloop.registerTransition( transition );
-		}
+		getTransition( this, this.template.t0 || this.template.t2, 'outro' );
 
 		// special case
 		const id = this.attributeByName.id;
@@ -396,6 +388,51 @@ export default class Element extends Item {
 			if ( this.fragment ) this.fragment.update();
 		}
 	}
+}
+
+function getTransition( owner, template, eventName ) {
+	if ( !template || !owner.ractive.transitionsEnabled ) return;
+
+	const name = getTransitionName( owner, template );
+	if ( !name ) return;
+
+	const params = getTransitionParams( owner, template );
+	const transition = new Transition( owner.ractive, owner.node, name, params, eventName );
+	runloop.registerTransition( transition );
+	return transition;
+}
+
+function getTransitionName ( owner, template ) {
+	let name = template.n || template;
+
+	if ( typeof name === 'string' ) return name;
+
+	const fragment = new Fragment({
+		owner,
+		template: name
+	}).bind(); // TODO need a way to capture values without bind()
+
+	name = fragment.toString();
+	fragment.unbind();
+
+	return name;
+}
+
+function getTransitionParams ( owner, template ) {
+	if ( template.a ) return template.a;
+	if ( !template.d )  return;
+
+	// TODO is there a way to interpret dynamic arguments without all the
+	// 'dependency thrashing'?
+	const fragment = new Fragment({
+		owner,
+		template: template.d
+	}).bind();
+
+	const params = fragment.getArgsList();
+	fragment.unbind();
+
+	return params;
 }
 
 function inputIsCheckedRadio ( element ) {

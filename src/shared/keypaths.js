@@ -16,12 +16,18 @@ export function normalise ( ref ) {
 }
 
 export function splitKeypath ( keypath ) {
-	let parts = normalise( keypath ).split( splitPattern ),
-		result = [];
+	let result = [],
+		match;
 
-	for ( let i = 0; i < parts.length; i += 2 ) {
-		result.push( parts[i] + ( parts[i + 1] || '' ) );
+	keypath = normalise( keypath );
+
+	while ( match = splitPattern.exec( keypath ) ) {
+		let index = match.index + match[1].length;
+		result.push( keypath.substr( 0, index ) );
+		keypath = keypath.substr( index + 1 );
 	}
+
+	result.push(keypath);
 
 	return result;
 }
