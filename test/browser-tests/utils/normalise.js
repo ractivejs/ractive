@@ -1,10 +1,15 @@
 import { test } from 'qunit';
-import { normalise } from 'shared/keypaths';
+import { normalise } from '../../shared/keypaths';
+import { initModule } from '../test-config';
 
-test( 'Regular keypath', function ( t ) {
-	t.equal( normalise( 'foo.bar' ), 'foo.bar' );
-});
+export default function() {
+	initModule( 'utils/normalise.js' );
 
-test( 'Keypath with array notation', function ( t ) {
-	t.equal( normalise( 'foo[1]' ), 'foo.1' );
-});
+	test( 'Regular keypath', function ( t ) {
+		t.equal( normalise( 'foo.bar' ), 'foo.bar' );
+	});
+
+	test( 'Keypath with array notation', function ( t ) {
+		t.equal( normalise( 'foo[1]' ), 'foo.1' );
+	});
+}

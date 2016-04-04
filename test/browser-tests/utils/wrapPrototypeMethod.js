@@ -1,113 +1,118 @@
 import { test } from 'qunit';
-import wrap from 'Ractive/config/wrapPrototypeMethod';
-import { create } from 'utils/object';
+import wrap from '../../Ractive/config/wrapPrototypeMethod';
+import { create } from '../../utils/object';
+import { initModule } from '../test-config';
 
-function callSuper () { this._super(); }
+export default function() {
+	initModule( 'utils/wrapPrototypeMethod.js' );
 
-test( 'can call _super on parent', t => {
-	t.expect(1);
+	function callSuper () { this._super(); }
 
-	const parent = { talk: () => t.ok( true ) };
-	const instance = create( parent );
+	test( 'can call _super on parent', t => {
+		t.expect(1);
 
-	instance.talk = wrap( parent, 'talk', callSuper );
+		const parent = { talk: () => t.ok( true ) };
+		const instance = create( parent );
 
-	instance.talk();
-});
+		instance.talk = wrap( parent, 'talk', callSuper );
 
-test( '"this" in methods refers to correct instance', t => {
-	t.expect(2);
-
-	const parent = {
-		talk () { // no fat arrows! that would bind "this" to test method or module!
-			t.equal( this, instance, '_super method has correct "this"' );
-		}
-	};
-
-	const instance = create( parent );
-
-	instance.talk = wrap( parent, 'talk', function () {
-		t.equal( this, instance, 'instance method has correct "this"' );
-		this._super();
+		instance.talk();
 	});
 
-	instance.talk();
-});
+	test( '"this" in methods refers to correct instance', t => {
+		t.expect(2);
 
-test( 'can find _super in prototype chain', t => {
-	t.expect(1);
+		const parent = {
+			talk () { // no fat arrows! that would bind "this" to test method or module!
+				t.equal( this, instance, '_super method has correct "this"' );
+			}
+		};
 
-	const grandparent = { talk: () => t.ok( true ) };
-	const parent = create( grandparent );
-	const instance = create( parent );
+		const instance = create( parent );
 
-	instance.talk = wrap( parent, 'talk', callSuper );
-	instance.talk();
-});
+		instance.talk = wrap( parent, 'talk', function () {
+			t.equal( this, instance, 'instance method has correct "this"' );
+			this._super();
+		});
 
-test( 'safe to use _super with no parent', t => {
-	t.expect( 1 );
-
-	const parent = {};
-	const instance = create( parent );
-
-	instance.talk = wrap( parent, 'talk', function () {
-		this._super();
-		t.ok( true );
+		instance.talk();
 	});
 
-	instance.talk();
-});
+	test( 'can find _super in prototype chain', t => {
+		t.expect(1);
 
-test( 'parent _super can be added later', t => {
-	t.expect( 1 );
+		const grandparent = { talk: () => t.ok( true ) };
+		const parent = create( grandparent );
+		const instance = create( parent );
 
-	const parent = {};
-	const instance = create( parent );
+		instance.talk = wrap( parent, 'talk', callSuper );
+		instance.talk();
+	});
 
-	instance.talk = wrap( parent, 'talk', callSuper );
+	test( 'safe to use _super with no parent', t => {
+		t.expect( 1 );
 
-	parent.talk = () => t.ok( true );
-	instance.talk();
-});
+		const parent = {};
+		const instance = create( parent );
 
-test( 'only wraps when this._super used in method', t => {
-	t.expect( 1 );
+		instance.talk = wrap( parent, 'talk', function () {
+			this._super();
+			t.ok( true );
+		});
 
-	const parent = { talk: () => t.ok( true ) };
-	const method = function () {};
+		instance.talk();
+	});
 
-	t.equal( wrap( parent, 'talk', method ), method );
-});
+	test( 'parent _super can be added later', t => {
+		t.expect( 1 );
 
-test( 'if this._super is non-function, returns as value', t => {
-	t.expect( 1 );
+		const parent = {};
+		const instance = create( parent );
 
-	const data = { foo: 'bar' };
-	const parent = { talk: data };
-	const instance = create( parent );
-	const method = function () { return this._super(); };
+		instance.talk = wrap( parent, 'talk', callSuper );
 
-	instance.talk = wrap( parent, 'talk', method );
+		parent.talk = () => t.ok( true );
+		instance.talk();
+	});
 
-	t.equal( instance.talk() , data );
-});
+	test( 'only wraps when this._super used in method', t => {
+		t.expect( 1 );
 
-test( 'parent instance can be changed', t => {
-	t.expect( 2 );
+		const parent = { talk: () => t.ok( true ) };
+		const method = function () {};
 
-	const parent = { talk: () => false };
-	const newParent = { talk: () => t.ok( true ) };
-	const instance = create( parent );
+		t.equal( wrap( parent, 'talk', method ), method );
+	});
 
-	instance.talk = wrap( parent, 'talk', callSuper );
-	t.equal( instance.talk._parent, parent );
-	instance.talk._parent = newParent;
+	test( 'if this._super is non-function, returns as value', t => {
+		t.expect( 1 );
 
-	instance.talk();
-});
+		const data = { foo: 'bar' };
+		const parent = { talk: data };
+		const instance = create( parent );
+		const method = function () { return this._super(); };
 
-test( 'can access original via _method', t => {
-	const method = wrap( parent, 'talk', callSuper );
-	t.equal( method._method, callSuper );
-});
+		instance.talk = wrap( parent, 'talk', method );
+
+		t.equal( instance.talk() , data );
+	});
+
+	test( 'parent instance can be changed', t => {
+		t.expect( 2 );
+
+		const parent = { talk: () => false };
+		const newParent = { talk: () => t.ok( true ) };
+		const instance = create( parent );
+
+		instance.talk = wrap( parent, 'talk', callSuper );
+		t.equal( instance.talk._parent, parent );
+		instance.talk._parent = newParent;
+
+		instance.talk();
+	});
+
+	test( 'can access original via _method', t => {
+		const method = wrap( parent, 'talk', callSuper );
+		t.equal( method._method, callSuper );
+	});
+}

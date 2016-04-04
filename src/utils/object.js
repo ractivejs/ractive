@@ -5,7 +5,7 @@ import { createElement } from './dom';
 var create, defineProperty, defineProperties;
 
 try {
-	Object.defineProperty({}, 'test', { value: 0 });
+	Object.defineProperty({}, 'test', { get() {}, set() {} });
 
 	if ( doc ) {
 		Object.defineProperty( createElement( 'div' ), 'test', { value: 0 });
@@ -76,15 +76,15 @@ try {
 export { create, defineProperty, defineProperties };
 
 export function extend ( target, ...sources ) {
-	var prop, source;
+	var prop;
 
-	while ( source = sources.shift() ) {
+	sources.forEach( source => {
 		for ( prop in source ) {
 			if ( hasOwn.call( source, prop ) ) {
 				target[ prop ] = source[ prop ];
 			}
 		}
-	}
+	});
 
 	return target;
 }
