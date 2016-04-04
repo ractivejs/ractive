@@ -1,5 +1,6 @@
 import { removeFromArray } from '../../utils/array';
 import { handleChange } from '../../shared/methodCallers';
+import { unescapeKey } from '../../shared/keypaths';
 
 export default class KeyModel {
 	constructor ( key ) {
@@ -9,11 +10,11 @@ export default class KeyModel {
 	}
 
 	get () {
-		return this.value;
+		return unescapeKey( this.value );
 	}
 
 	getKeypath () {
-		return this.value;
+		return unescapeKey( this.value );
 	}
 
 	rebind ( key ) {

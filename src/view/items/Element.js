@@ -342,6 +342,7 @@ export default class Element extends Item {
 
 		if ( this.binding ) this.binding.unrender();
 
+		// outro transition
 		if ( this._outroTransition && this.ractive.transitionsEnabled ) {
 			this._outroTransition.isIntro = false;
 			runloop.registerTransition( this._outroTransition );

@@ -7,7 +7,6 @@ import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
 import { extend } from '../../../utils/object';
 import { missingPlugin } from '../../../config/errors';
-import Fragment from '../../Fragment';
 import { findInViewHierarchy } from '../../../shared/registry';
 import { visible } from '../../../config/visibility';
 import createTransitions from './transitions/createTransitions';
@@ -16,9 +15,16 @@ import Promise from '../../../utils/Promise';
 import { unbind } from '../../../shared/methodCallers';
 import resolveReference from '../../resolvers/resolveReference';
 import getFunction from '../../../shared/getFunction';
+import Fragment from '../../Fragment';
 
 const getComputedStyle = win && ( win.getComputedStyle || legacy.getComputedStyle );
 const resolved = Promise.resolve();
+
+const names = {
+	t0: 'intro-outro',
+	t1: 'intro',
+	t2: 'outro'
+};
 
 export default class Transition {
 	constructor ( options ) {
@@ -28,51 +34,67 @@ export default class Transition {
 		this.template = options.template;
 		this.parentFragment = options.parentFragment;
 
-		if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
-		if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
+		if ( options.template ) {
+			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
+			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
+			this.eventName = names[ options.template.v ];
+		}
 
 		const ractive = this.owner.ractive;
 
-		let name = options.template.f;
-		if ( typeof name.n === 'string' ) name = name.n;
+		if ( options.name ) {
+			this.name = options.name;
+		} else {
+			let name = options.template.f;
+			if ( typeof name.n === 'string' ) name = name.n;
 
-		if ( typeof name !== 'string' ) {
-			const fragment = new Fragment({
-				owner: this.owner,
-				template: name.n
-			}).bind(); // TODO need a way to capture values without bind()
+			if ( typeof name !== 'string' ) {
+				const fragment = new Fragment({
+					owner: this.owner,
+					template: name.n
+				}).bind(); // TODO need a way to capture values without bind()
 
-			name = fragment.toString();
-			fragment.unbind();
+				name = fragment.toString();
+				fragment.unbind();
 
-			if ( name === '' ) {
-				// empty string okay, just no transition
-				return;
+				if ( name === '' ) {
+					// empty string okay, just no transition
+					return;
+				}
+			}
+
+			this.name = name;
+		}
+
+		if ( options.params ) {
+			this.params = options.params;
+		} else {
+			if ( options.template.f.a && !options.template.f.a.s ) {
+				this.params = options.template.f.a;
+			}
+
+			else if ( options.template.f.d ) {
+				// TODO is there a way to interpret dynamic arguments without all the
+				// 'dependency thrashing'?
+				const fragment = new Fragment({
+					owner: this.owner,
+					template: options.template.f.d
+				}).bind();
+
+				this.params = fragment.getArgsList();
+				fragment.unbind();
 			}
 		}
 
-		this.name = name;
-
-		if ( options.template.f.a && !options.template.f.a.s ) {
-			this.params = options.template.f.a;
+		if ( typeof this.name === 'function' ) {
+			this._fn = this.name;
+			this.name = this._fn.name;
+		} else {
+			this._fn = findInViewHierarchy( 'transitions', ractive, this.name );
 		}
-
-		else if ( options.template.f.d ) {
-			// TODO is there a way to interpret dynamic arguments without all the
-			// 'dependency thrashing'?
-			const fragment = new Fragment({
-				owner: this.owner,
-				template: options.template.f.d
-			}).bind();
-
-			this.params = fragment.getArgsList();
-			fragment.unbind();
-		}
-
-		this._fn = findInViewHierarchy( 'transitions', ractive, name );
 
 		if ( !this._fn ) {
-			warnOnceIfDebug( missingPlugin( name, 'transition' ), { ractive });
+			warnOnceIfDebug( missingPlugin( this.name, 'transition' ), { ractive });
 		}
 	}
 
@@ -123,7 +145,7 @@ export default class Transition {
 			let changedProperties = [];
 
 			// Store the current styles
-			const computedStyle = getComputedStyle( this.node );
+			const computedStyle = getComputedStyle( this.owner.node );
 
 			let i = propertyNames.length;
 			while ( i-- ) {
@@ -138,7 +160,7 @@ export default class Transition {
 
 					// make the computed style explicit, so we can animate where
 					// e.g. height='auto'
-					this.node.style[ prefix( prop ) ] = current;
+					this.owner.node.style[ prefix( prop ) ] = current;
 				}
 			}
 
@@ -176,7 +198,7 @@ export default class Transition {
 	}
 
 	getStyle ( props ) {
-		const computedStyle = getComputedStyle( this.node );
+		const computedStyle = getComputedStyle( this.owner.node );
 
 		if ( typeof props === 'string' ) {
 			let value = computedStyle[ prefix( props ) ];
@@ -230,14 +252,14 @@ export default class Transition {
 
 	setStyle ( style, value ) {
 		if ( typeof style === 'string' ) {
-			this.node.style[ prefix( style ) ] = value;
+			this.owner.node.style[ prefix( style ) ] = value;
 		}
 
 		else {
 			let prop;
 			for ( prop in style ) {
 				if ( style.hasOwnProperty( prop ) ) {
-					this.node.style[ prefix( prop ) ] = style[ prop ];
+					this.owner.node.style[ prefix( prop ) ] = style[ prop ];
 				}
 			}
 		}
@@ -260,7 +282,7 @@ export default class Transition {
 				return;
 			}
 
-			if ( !noReset && this.isIntro ) {
+			if ( !noReset && this.eventName === 'intro' ) {
 				resetStyle( node, originalStyle);
 			}
 
@@ -275,6 +297,7 @@ export default class Transition {
 			return;
 		}
 
+		// get expression args if supplied
 		if ( this.argsFn ) {
 			const values = this.models.map( model => {
 				if ( !model ) return undefined;
@@ -284,7 +307,8 @@ export default class Transition {
 			args = this.argsFn.apply( this.ractive, values );
 		}
 
-		this._fn.apply( this.ractive, [ this ].concat( args ) );
+		const promise = this._fn.apply( this.ractive, [ this ].concat( args ) );
+		if ( promise ) promise.then( this.complete );
 	}
 
 	toString () { return ''; }
