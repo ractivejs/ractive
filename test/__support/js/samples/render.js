@@ -1347,6 +1347,14 @@ const renderTests = [
 		data: { obj: { x: 1 } },
 		result: 'foo'
 	},
+	{
+		name: 'regression test for #2490',
+		template: '{{#obj:key}}{{key}},{{@key}},{{@index}}{{/obj}}',
+		data: {},
+		result: '',
+		new_data: { obj: { key1: true, key2: true, key3: true } },
+		new_result: 'key1,key1,0key2,key2,1key3,key3,2'
+	},
 ];
 
 function max() { return Math.max.apply(Math, Array.prototype.slice.call(arguments, 0)); }
