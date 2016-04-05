@@ -71,6 +71,9 @@ export default class Model {
 		for ( i = 0; i < len; i += 1 ) {
 			const adaptor = adaptors[i];
 			if ( adaptor.filter( value, keypath, ractive ) ) {
+				// tear previous adaptor down if present
+				if ( this.wrapper ) this.wrapper.teardown();
+
 				this.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
 				this.wrapper.value = this.value;
 				this.wrapper.__model = this; // massive temporary hack to enable array adaptor
@@ -350,7 +353,11 @@ export default class Model {
 		const value = this.retrieve();
 
 		if ( !isEqual( value, this.value ) ) {
+			const old = this.value;
 			this.value = value;
+
+			// make sure the wrapper stays in sync
+			if ( old !== value ) this.adapt();
 
 			this.children.forEach( mark );
 
