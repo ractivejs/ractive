@@ -828,6 +828,18 @@ export default function() {
 		}
 	});
 
+	test( 'select with no matching value option selects none (#2494)', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '<select value="{{foo}}"><option>1</option><option>2</option></select>'
+		});
+
+		t.equal( r.get( 'foo' ), '1' );
+
+		r.set( 'foo', 'nerp' );
+		t.equal( r.find( 'select' ).selectedIndex, -1 );
+	});
+
 	test( 'type attribute does not have to be first (#1968)', t => {
 		const ractive = new Ractive({
 			el: fixture,
