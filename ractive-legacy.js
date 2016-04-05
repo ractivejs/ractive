@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Apr 04 2016 23:17:54 GMT+0000 (UTC) - commit e995b34c63d6ee0e53e397c38d0a5b4747ef4556
+	Tue Apr 05 2016 00:56:37 GMT+0000 (UTC) - commit f713069f5ffc20d8cf03a356e783057711d029fb
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -13633,7 +13633,6 @@
 
   		this.indexRef = options.indexRef;
   		this.keyRef = options.keyRef;
-  		this.indexByKey = null; // for `{{#each object}}...`
 
   		this.pendingNewIndices = null;
   		this.previousIterations = null;
@@ -13668,9 +13667,7 @@
   					this.indexRef = refs[1];
   				}
 
-  				this.indexByKey = {};
   				this.iterations = Object.keys(value).map(function (key, index) {
-  					_this.indexByKey[key] = index;
   					return _this.createIteration(key, index);
   				});
   			}
@@ -13919,6 +13916,13 @@
   					i += 1;
   				}
   			} else if (isObject(value)) {
+  				// TODO this is a dreadful hack. There must be a neater way
+  				if (this.indexRef && !this.keyRef) {
+  					var refs = this.indexRef.split(',');
+  					this.keyRef = refs[0];
+  					this.indexRef = refs[1];
+  				}
+
   				Object.keys(value).forEach(function (key) {
   					if (!oldKeys || !(key in oldKeys)) {
   						fragment = _this4.createIteration(key, i);
