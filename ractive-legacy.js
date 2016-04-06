@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Apr 06 2016 04:04:17 GMT+0000 (UTC) - commit 5493030a9cc34b833a3ca99e0578a5ab334a293f
+	Wed Apr 06 2016 06:02:37 GMT+0000 (UTC) - commit 1507b3d61caa8225205a509b5bad8c93495b9693
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2779,14 +2779,17 @@
   		var ractive = this.root.ractive;
   		var keypath = this.getKeypath();
 
+  		// tear previous adaptor down if present
+  		if (this.wrapper) {
+  			this.wrapper.teardown();
+  			this.wrapper = null;
+  		}
+
   		var i = void 0;
 
   		for (i = 0; i < len; i += 1) {
   			var adaptor = adaptors[i];
   			if (adaptor.filter(value, keypath, ractive)) {
-  				// tear previous adaptor down if present
-  				if (this.wrapper) this.wrapper.teardown();
-
   				this.wrapper = adaptor.wrap(ractive, value, keypath, getPrefixer(keypath));
   				this.wrapper.value = this.value;
   				this.wrapper.__model = this; // massive temporary hack to enable array adaptor
