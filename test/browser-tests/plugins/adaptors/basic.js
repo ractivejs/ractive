@@ -18,14 +18,16 @@ export default function() {
 			return object instanceof Foo;
 		},
 		wrap ( ractive, foo ) {
-			return {
+			const wrapper = {
 				get () {
 					return foo.content;
 				},
 				teardown () {
-
+					delete foo._wrapper;
 				}
 			};
+			foo._wrapper = wrapper;
+			return wrapper;
 		}
 	};
 
@@ -386,6 +388,39 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<p>whee!</p>' );
 
 		delete Ractive.adaptors.foo;
+	});
+
+	test( 'adaptors should work with update (#2493)', t => {
+		const thing = new Foo( 'one' );
+		const r = new Ractive({
+			adapt: [ 'foo' ],
+			adaptors: { foo: fooAdaptor },
+			el: fixture,
+			template: '{{thing}}',
+			data: { thing }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'one' );
+		thing.content = 'two';
+		r.update();
+		t.htmlEqual( fixture.innerHTML, 'two' );
+	});
+
+	test( 'adaptors that adapt whilst marking should tear down old instances', t => {
+		const obj = { foo: new Foo( 'one' ) };
+		const r = new Ractive({
+			adapt: [ 'foo' ],
+			adaptors: { foo: fooAdaptor },
+			el: fixture,
+			template: '{{obj.foo}}',
+			data: { obj }
+		});
+
+		const foo = obj.foo;
+		t.ok( foo._wrapper );
+		obj.foo = new Foo( 'two' );
+		r.update( 'obj' );
+		t.ok( !foo._wrapper );
 	});
 
 	test( 'Components made with Ractive.extend() can include adaptors', t => {
