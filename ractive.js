@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Apr 05 2016 13:37:28 GMT+0000 (UTC) - commit 47ec9d84631f07596b958b264f41677795fdbd00
+	Wed Apr 06 2016 04:02:47 GMT+0000 (UTC) - commit e4e83cdfe6ee61f69253cbcbce2d0b397ac5d009
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10019,13 +10019,12 @@
   			if (optionValue == value) {
   				// double equals as we may be comparing numbers with strings
   				option.selected = true;
-  				break;
+  				return;
   			}
   		}
-  	}
 
-  	// if we're still here, it means the new value didn't match any of the options...
-  	// TODO figure out what to do in this situation
+  		this.node.selectedIndex = -1;
+  	}
   }
 
   function updateContentEditableValue() {
@@ -12819,7 +12818,7 @@
 
   		// If the value attribute is missing, use the element's content,
   		// as long as it isn't disabled
-  		if (template.a.value === undefined && !('disabled' in template)) {
+  		if (template.a.value === undefined && !('disabled' in template.a)) {
   			template.a.value = template.f || '';
   		}
 
@@ -13863,10 +13862,6 @@
   			});
 
   			if (!optionWasSelected && !isMultiple) {
-  				if (options[0]) {
-  					options[0].selected = true;
-  				}
-
   				if (this.binding) {
   					this.binding.forceUpdate();
   				}
