@@ -981,4 +981,20 @@ export default function() {
 
 		ractive.set( 'foo', 'bar' );
 	});
+
+	test( 'References to observers are not retained after cancel()', t => {
+		const ractive = new Ractive({ data: { counter: 0 } });
+		const obs = ractive.observe( 'counter', ( newValue, oldValue ) => {
+			if ( oldValue ) {
+				return obs.cancel();
+			}
+		});
+
+		t.equal( ractive._observers.length, 1 );
+
+		ractive.add( 'counter' );
+		obs.cancel();
+
+		t.equal( ractive._observers.length, 0 );
+	});
 }
