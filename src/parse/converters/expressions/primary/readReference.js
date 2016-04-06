@@ -14,7 +14,7 @@ keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finall
 const legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
 const relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
 const specials = /^@(?:keypath|rootpath|index|key|ractive|global)/;
-const specialCall = /\s*\(/;
+const specialCall = /^\s*\(/;
 
 export default function readReference ( parser ) {
 	var startPos, prefix, name, global, reference, fullLength, lastDotIndex;
