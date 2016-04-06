@@ -42,8 +42,16 @@ export default function observe ( keypath, callback, options ) {
 	this._observers.push.apply( this._observers, observers );
 
 	return {
-		cancel () {
-			observers.forEach( cancel );
+		cancel: () => {
+			observers.forEach( (observer) => {
+				let index = this._observers.indexOf( observer );
+
+				if ( index !== -1 ) {
+					this._observers.splice( index , 1 );
+				}
+
+				observer.cancel();
+			} );
 		}
 	};
 }
