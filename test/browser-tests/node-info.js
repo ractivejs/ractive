@@ -338,4 +338,34 @@ export default function() {
 		info.setBinding( 'yep' );
 		t.equal( r.get( 'foo.bar.baz' ), 'yep' );
 	});
+
+	test( 'node info with query selector', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo.bar}}<span id="baz">yep</span>{{/with}}`,
+			data: { foo: { bar: { baz: true } } }
+		});
+
+		t.equal( Ractive.getNodeInfo( '#baz' ).resolve(), 'foo.bar' );
+	});
+
+	test( 'node info from instance', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo.bar}}<span id="baz">yep</span>{{/with}}`,
+			data: { foo: { bar: { baz: true } } }
+		});
+
+		t.equal( r.getNodeInfo( r.find( '#baz' ) ).resolve(), 'foo.bar' );
+	});
+
+	test( 'node info from instance with selector', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with foo.bar}}<span id="baz">yep</span>{{/with}}`,
+			data: { foo: { bar: { baz: true } } }
+		});
+
+		t.equal( r.getNodeInfo( '#baz' ).resolve(), 'foo.bar' );
+	});
 }
