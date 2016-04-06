@@ -66,14 +66,17 @@ export default class Model {
 		const ractive = this.root.ractive;
 		const keypath = this.getKeypath();
 
+		// tear previous adaptor down if present
+		if ( this.wrapper ) {
+			this.wrapper.teardown();
+			this.wrapper = null;
+		}
+
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
 			const adaptor = adaptors[i];
 			if ( adaptor.filter( value, keypath, ractive ) ) {
-				// tear previous adaptor down if present
-				if ( this.wrapper ) this.wrapper.teardown();
-
 				this.wrapper = adaptor.wrap( ractive, value, keypath, getPrefixer( keypath ) );
 				this.wrapper.value = this.value;
 				this.wrapper.__model = this; // massive temporary hack to enable array adaptor
