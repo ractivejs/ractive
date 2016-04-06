@@ -396,12 +396,46 @@ export default function() {
 			adapt: [ 'foo' ],
 			adaptors: { foo: fooAdaptor },
 			el: fixture,
-			template: '{{thing}}',
-			data: { thing }
+			template: '{{thing}}'
 		});
 
+		r.set( 'thing', thing );
 		t.htmlEqual( fixture.innerHTML, 'one' );
 		thing.content = 'two';
+		r.update();
+		t.htmlEqual( fixture.innerHTML, 'two' );
+	});
+
+	test( 'extra case for #2493', t => {
+		const thing = { thing: 'one' };
+		const adaptor = {
+			filter ( child, parent, keypath ) {
+				if ( !child || !child.thing ) return false;
+				if ( parent && parent._wrapper && parent._wrapper[ keypath ] ) return false;
+				return true;
+			},
+
+			wrap ( parent, child, keypath ) {
+				if ( !parent._wrapper ) parent._wrapper = {};
+				parent._wrapper[ keypath ] = child;
+
+				return {
+					get () { return child.thing; },
+					teardown () { delete parent._wrapper[ keypath ]; }
+				};
+			}
+		};
+
+		const r = new Ractive({
+			adapt: [ 'foo' ],
+			adaptors: { foo: adaptor },
+			el: fixture,
+			template: '{{thing}}'
+		});
+
+		r.set( 'thing', thing );
+		t.htmlEqual( fixture.innerHTML, 'one' );
+		thing.thing = 'two';
 		r.update();
 		t.htmlEqual( fixture.innerHTML, 'two' );
 	});
