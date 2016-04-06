@@ -420,6 +420,6 @@ export default function() {
 		t.equal( r.get( 'foo.0.bar.0' ), '' );
 
 		r.set( 'foo', [] );
-		t.equal( r.get( 'foo.0.bar.0' ), '' );
+		t.equal( r.get( 'foo.0.bar.0' ), undefined );
 	});
 }

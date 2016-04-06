@@ -76,10 +76,6 @@ export default class Select extends Element {
 			});
 
 			if ( !optionWasSelected && !isMultiple ) {
-				if ( options[0] ) {
-					options[0].selected = true;
-				}
-
 				if ( this.binding ) {
 					this.binding.forceUpdate();
 				}
