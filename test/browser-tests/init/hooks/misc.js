@@ -151,12 +151,12 @@ export default function() {
 				t.ok( /error happened during rendering/.test( msg ) );
 			});
 
-			onLog( stack => {
-				if ( /debug mode/.test( stack ) ) {
+			onLog( error => {
+				if ( /debug mode/.test( error ) ) {
 					return;
 				}
 
-				t.ok( /evil handler/.test( stack ) || /oncomplete@/.test( stack ) ); // Firefox & Safari don't include the error message in the stack for some reason
+				t.ok( error instanceof Error );
 				done();
 			});
 

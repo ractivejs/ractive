@@ -129,7 +129,7 @@ test = (function () {
 
 			return sander.readFile( inputdir, 'browser-tests', f ).then( function( data ) {
 				data = data.toString( 'utf8' );
-				if ( data.indexOf( 'initModule(' ) !== -1 ) {
+				if ( f.indexOf( 'polyfills.js' ) !== -1 || data.indexOf( 'initModule(' ) !== -1 ) {
 					modules.push( f );
 					return sander.link( inputdir, 'browser-tests', f ).to( outputdir, 'browser-tests', f );
 				} else {
