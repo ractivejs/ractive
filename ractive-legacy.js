@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Apr 06 2016 06:02:37 GMT+0000 (UTC) - commit 1507b3d61caa8225205a509b5bad8c93495b9693
+	Thu Apr 07 2016 20:01:11 GMT+0000 (UTC) - commit 82b28d40d7b69ecb1acfbaee8b56f0006d339bc1
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3506,8 +3506,11 @@
   	this._observers.push.apply(this._observers, observers);
 
   	return {
-  		cancel: function cancel$$() {
-  			observers.forEach(cancel);
+  		cancel: function cancel() {
+  			observers.forEach(function (observer) {
+  				removeFromArray(_this._observers, observer);
+  				observer.cancel();
+  			});
   		}
   	};
   }
