@@ -35,6 +35,7 @@ export default class Model {
 		this.unresolvedByKey = {};
 
 		this.bindings = [];
+		this.patternObservers = [];
 
 		this.value = undefined;
 
@@ -166,9 +167,11 @@ export default class Model {
 		this.children.forEach( mark );
 		this.deps.forEach( handleChange );
 
-		let parent = this.parent;
+		let parent = this.parent, prev = this;
 		while ( parent ) {
+			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( prev.key ) );
 			parent.deps.forEach( handleChange );
+			prev = parent;
 			parent = parent.parent;
 		}
 
@@ -411,6 +414,11 @@ export default class Model {
 		this.deps.push( dep );
 	}
 
+	registerPatternObserver ( observer ) {
+		this.patternObservers.push( observer );
+		this.register( observer );
+	}
+
 	registerTwowayBinding ( binding ) {
 		this.bindings.push( binding );
 	}
@@ -469,6 +477,11 @@ export default class Model {
 
 	unregister ( dependant ) {
 		removeFromArray( this.deps, dependant );
+	}
+
+	unregisterPatternObserver ( observer ) {
+		removeFromArray( this.patternObservers, observer );
+		this.unregister( observer );
 	}
 
 	unregisterTwowayBinding ( binding ) {

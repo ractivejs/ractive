@@ -967,7 +967,25 @@ export default function() {
 				t.ok( false, 'observer should not fire' );
 			});
 		}, /Cannot get values of msg\.\* as msg is not an array, object or function/ );
-	})
+	});
+
+	test( 'pattern observers only observe changed values (#2420)', t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: 1 }, { foo: 2 } ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o, k ) => {
+			t.equal( k, 'list.1' );
+			t.deepEqual( o, { foo: 2 } );
+			t.deepEqual( n, { foo: 'yep' } );
+		}, { init: false });
+
+		r.set( 'list.1', { foo: 'yep' } );
+	});
 
 	test( 'wildcard * fires on new property', t => {
 		t.expect( 2 );

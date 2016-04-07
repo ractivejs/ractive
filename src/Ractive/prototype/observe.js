@@ -1,6 +1,6 @@
 import runloop from '../../global/runloop';
 import { isArray, isEqual, isObject } from '../../utils/is';
-import { splitKeypath } from '../../shared/keypaths';
+import { splitKeypath, escapeKey } from '../../shared/keypaths';
 import { cancel } from '../../shared/methodCallers';
 import resolveReference from '../../view/resolvers/resolveReference';
 
@@ -148,6 +148,7 @@ class PatternObserver {
 		this.strict = options.strict;
 
 		this.dirty = false;
+		this.changed = [];
 
 		const models = baseModel.findMatches( this.keys );
 
@@ -161,12 +162,11 @@ class PatternObserver {
 			this.oldValues = this.newValues;
 		}
 
-		baseModel.register( this );
-
+		baseModel.registerPatternObserver( this );
 	}
 
 	cancel () {
-		this.baseModel.unregister( this );
+		this.baseModel.unregisterPatternObserver( this );
 	}
 
 	dispatch () {
@@ -193,7 +193,11 @@ class PatternObserver {
 		this.dirty = false;
 	}
 
-	shuffle( newIndices ) {
+	notify ( key ) {
+		this.changed.push( key );
+	}
+
+	shuffle ( newIndices ) {
 		if ( !isArray( this.baseModel.value ) ) return;
 
 		const base = this.baseModel.getKeypath( this.ractive );
@@ -222,10 +226,25 @@ class PatternObserver {
 			// 	this.newValues[ keypath ] = undefined;
 			// });
 
-			this.baseModel.findMatches( this.keys ).forEach( model => {
-				const keypath = model.getKeypath( this.ractive );
-				this.newValues[ keypath ] = model.get();
-			});
+			if ( !this.changed.length ) {
+				this.baseModel.findMatches( this.keys ).forEach( model => {
+					const keypath = model.getKeypath( this.ractive );
+					this.newValues[ keypath ] = model.get();
+				});
+			} else {
+				const ok = this.baseModel.isRoot ?
+					this.changed :
+					this.changed.map( key => this.baseModel.getKeypath( this.ractive ) + '.' + escapeKey( key ) );
+
+				this.baseModel.findMatches( this.keys ).forEach( model => {
+					const keypath = model.getKeypath( this.ractive );
+					if ( ok.find( k => keypath.indexOf( k ) === 0 ) ) {
+						this.newValues[ keypath ] = model.get();
+					}
+				});
+
+				this.changed.length = 0;
+			}
 
 			runloop.addObserver( this, this.defer );
 			this.dirty = true;
