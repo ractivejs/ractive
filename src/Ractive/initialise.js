@@ -57,7 +57,7 @@ export default function initialise ( ractive, userOptions, options ) {
 				promise.catch( err => {
 					warnOnceIfDebug( 'Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;' );
 					warnIfDebug( 'An error happened during rendering', { ractive });
-					err.stack && logIfDebug( err.stack );
+					logIfDebug( err );
 
 					throw err;
 				});

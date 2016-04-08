@@ -67,7 +67,7 @@ export default function() {
 		const ractive = new Ractive({
 			el: fixture,
 			template: '{{#foo}}<Widget visible="{{visible}}"/>{{/foo}}',
-			data: { foo: {}, visible: true },
+			data: { foo: { x: true }, visible: true },
 			components: {
 				Widget: Ractive.extend({
 					template: '{{#visible}}<p>{{test}}</p>{{/visible}}'

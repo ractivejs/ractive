@@ -18,14 +18,16 @@ export default function() {
 			return object instanceof Foo;
 		},
 		wrap ( ractive, foo ) {
-			return {
+			const wrapper = {
 				get () {
 					return foo.content;
 				},
 				teardown () {
-
+					delete foo._wrapper;
 				}
 			};
+			foo._wrapper = wrapper;
+			return wrapper;
 		}
 	};
 
@@ -388,6 +390,73 @@ export default function() {
 		delete Ractive.adaptors.foo;
 	});
 
+	test( 'adaptors should work with update (#2493)', t => {
+		const thing = new Foo( 'one' );
+		const r = new Ractive({
+			adapt: [ 'foo' ],
+			adaptors: { foo: fooAdaptor },
+			el: fixture,
+			template: '{{thing}}'
+		});
+
+		r.set( 'thing', thing );
+		t.htmlEqual( fixture.innerHTML, 'one' );
+		thing.content = 'two';
+		r.update();
+		t.htmlEqual( fixture.innerHTML, 'two' );
+	});
+
+	test( 'extra case for #2493', t => {
+		const thing = { thing: 'one' };
+		const adaptor = {
+			filter ( child, parent, keypath ) {
+				if ( !child || !child.thing ) return false;
+				if ( parent && parent._wrapper && parent._wrapper[ keypath ] ) return false;
+				return true;
+			},
+
+			wrap ( parent, child, keypath ) {
+				if ( !parent._wrapper ) parent._wrapper = {};
+				parent._wrapper[ keypath ] = child;
+
+				return {
+					get () { return child.thing; },
+					teardown () { delete parent._wrapper[ keypath ]; }
+				};
+			}
+		};
+
+		const r = new Ractive({
+			adapt: [ 'foo' ],
+			adaptors: { foo: adaptor },
+			el: fixture,
+			template: '{{thing}}'
+		});
+
+		r.set( 'thing', thing );
+		t.htmlEqual( fixture.innerHTML, 'one' );
+		thing.thing = 'two';
+		r.update();
+		t.htmlEqual( fixture.innerHTML, 'two' );
+	});
+
+	test( 'adaptors that adapt whilst marking should tear down old instances', t => {
+		const obj = { foo: new Foo( 'one' ) };
+		const r = new Ractive({
+			adapt: [ 'foo' ],
+			adaptors: { foo: fooAdaptor },
+			el: fixture,
+			template: '{{obj.foo}}',
+			data: { obj }
+		});
+
+		const foo = obj.foo;
+		t.ok( foo._wrapper );
+		obj.foo = new Foo( 'two' );
+		r.update( 'obj' );
+		t.ok( !foo._wrapper );
+	});
+
 	test( 'Components made with Ractive.extend() can include adaptors', t => {
 		Ractive.adaptors.foo = fooAdaptor;
 
@@ -420,6 +489,6 @@ export default function() {
 		t.equal( r.get( 'foo.0.bar.0' ), '' );
 
 		r.set( 'foo', [] );
-		t.equal( r.get( 'foo.0.bar.0' ), '' );
+		t.equal( r.get( 'foo.0.bar.0' ), undefined );
 	});
 }
