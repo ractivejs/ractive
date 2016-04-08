@@ -49,8 +49,12 @@ export default function getUpdateDelegate ( attribute ) {
 
 	if ( name === 'style' ) return updateStyleAttribute;
 
+	if ( name.indexOf( 'style-' ) === 0 ) return updateInlineStyle;
+
 	// special case - class names. IE fucks things up, again
 	if ( name === 'class' && ( !node.namespaceURI || node.namespaceURI === html ) ) return updateClassName;
+
+	if ( name.indexOf( 'class-' ) === 0 ) return updateInlineClass;
 
 	if ( attribute.isBoolean ) return updateBoolean;
 
@@ -206,6 +210,15 @@ function updateStyleAttribute () {
 	this.previous = keys;
 }
 
+const camelize = /(-.)/g;
+function updateInlineStyle () {
+	if ( !this.styleName ) {
+		this.styleName = this.name.substr( 6 ).replace( camelize, s => s.charAt( 1 ).toUpperCase() );
+	}
+
+	this.node.style[ this.styleName ] = this.getValue();
+}
+
 function updateClassName () {
 	const value = readClass( safeToStringValue( this.getValue() ) );
 	const attr = readClass( this.node.className );
@@ -226,6 +239,17 @@ function updateClassName () {
 	this.node.className = attr.join( ' ' );
 
 	this.previous = value;
+}
+
+function updateInlineClass () {
+	const name = this.name.substr( 6 );
+	const attr = readClass( this.node.className );
+	const value = this.getValue();
+
+	if ( value && !~attr.indexOf( name ) ) attr.push( name );
+	else if ( !value && ~attr.indexOf( name ) ) attr.splice( attr.indexOf( name ), 1 );
+
+	this.node.className = attr.join( ' ' );
 }
 
 function updateBoolean () {
