@@ -219,7 +219,8 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
-					matches.push.apply( matches, model.getValueChildren( model.get() ) );
+					const children = model.getValueChildren( model.get() );
+					if ( children ) matches.push.apply( matches, children );
 				});
 			} else {
 				matches = existingMatches.map( model => model.joinKey( key ) );
@@ -287,7 +288,6 @@ export default class Model {
 	}
 
 	getValueChildren ( value ) {
-
 		let children;
 		if ( isArray( value ) ) {
 			children = [];
@@ -307,8 +307,7 @@ export default class Model {
 		}
 
 		else if ( value != null ) {
-			// TODO: this will return incorrect keypath if model is mapped
-			throw new Error( `Cannot get values of ${this.getKeypath()}.* as ${this.getKeypath()} is not an array, object or function` );
+			return false;
 		}
 
 		return children;
