@@ -219,8 +219,7 @@ export default class Model {
 			if ( key === '*' ) {
 				matches = [];
 				existingMatches.forEach( model => {
-					const children = model.getValueChildren( model.get() );
-					if ( children ) matches.push.apply( matches, children );
+					matches.push.apply( matches, model.getValueChildren( model.get() ) );
 				});
 			} else {
 				matches = existingMatches.map( model => model.joinKey( key ) );
@@ -307,7 +306,7 @@ export default class Model {
 		}
 
 		else if ( value != null ) {
-			return false;
+			return [];
 		}
 
 		return children;
