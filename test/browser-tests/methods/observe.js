@@ -958,16 +958,33 @@ export default function() {
 	});
 
 	test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
+		t.expect(0);
 		const ractive = new Ractive({
 			data: { msg: 'hello world' }
 		});
 
-		t.throws( () => {
-			ractive.observe( 'msg.*', () => {
-				t.ok( false, 'observer should not fire' );
-			});
-		}, /Cannot get values of msg\.\* as msg is not an array, object or function/ );
-	})
+		ractive.observe( 'msg.*', () => {
+			t.ok( false, 'observer should not fire' );
+		});
+	});
+
+	test( `pattern observer doesn't die on primitive values (#2503)`, t => {
+		const done = t.async();
+		const r = new Ractive({
+			el: fixture,
+			template: '',
+			data: { foo: 0 }
+		});
+
+		r.observe( '* *.*', (n, o, k) => {
+			t.equal( n, 1 );
+			t.equal( o, 0 );
+			t.equal( k, 'foo' );
+			done();
+		}, { init: false });
+
+		r.add( 'foo' );
+	});
 
 	test( 'wildcard * fires on new property', t => {
 		t.expect( 2 );
