@@ -3,6 +3,7 @@ import { safeToStringValue } from '../../../../utils/dom';
 import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
+import { readStyle, readClass } from '../../../helpers/specialAttrs';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 
@@ -46,11 +47,14 @@ export default function getUpdateDelegate ( attribute ) {
 		if ( node.type === 'checkbox' ) return updateCheckboxName;
 	}
 
-	// special case - style attributes in Internet Exploder
-	if ( name === 'style' && node.style.setAttribute ) return updateIEStyleAttribute;
+	if ( name === 'style' ) return updateStyleAttribute;
+
+	if ( name.indexOf( 'style-' ) === 0 ) return updateInlineStyle;
 
 	// special case - class names. IE fucks things up, again
 	if ( name === 'class' && ( !node.namespaceURI || node.namespaceURI === html ) ) return updateClassName;
+
+	if ( name.indexOf( 'class-' ) === 0 ) return updateInlineClass;
 
 	if ( attribute.isBoolean ) return updateBoolean;
 
@@ -104,13 +108,12 @@ function updateSelectValue () {
 
 			if ( optionValue == value ) { // double equals as we may be comparing numbers with strings
 				option.selected = true;
-				break;
+				return;
 			}
 		}
-	}
 
-	// if we're still here, it means the new value didn't match any of the options...
-	// TODO figure out what to do in this situation
+		this.node.selectedIndex = -1;
+	}
 }
 
 
@@ -186,12 +189,67 @@ function updateCheckboxName () {
 	}
 }
 
-function updateIEStyleAttribute () {
-	this.node.style.setAttribute( 'cssText', this.getValue() || '' );
+function updateStyleAttribute () {
+	const props = readStyle( this.getValue() || '' );
+	const style = this.node.style;
+	const keys = Object.keys( props );
+	const prev = this.previous || [];
+
+	let i = 0;
+	while ( i < keys.length ) {
+		if ( keys[i] in style ) style[ keys[i] ] = props[ keys[i] ];
+		i++;
+	}
+
+	// remove now-missing attrs
+	i = prev.length;
+	while ( i-- ) {
+		if ( !~keys.indexOf( prev[i] ) && prev[i] in style ) style[ prev[i] ] = '';
+	}
+
+	this.previous = keys;
+}
+
+const camelize = /(-.)/g;
+function updateInlineStyle () {
+	if ( !this.styleName ) {
+		this.styleName = this.name.substr( 6 ).replace( camelize, s => s.charAt( 1 ).toUpperCase() );
+	}
+
+	this.node.style[ this.styleName ] = this.getValue();
 }
 
 function updateClassName () {
-	this.node.className = safeToStringValue( this.getValue() );
+	const value = readClass( safeToStringValue( this.getValue() ) );
+	const attr = readClass( this.node.className );
+	const prev = this.previous || [];
+
+	let i = 0;
+	while ( i < value.length ) {
+		if ( !~attr.indexOf( value[i] ) ) attr.push( value[i] );
+		i++;
+	}
+
+	// remove now-missing classes
+	i = prev.length;
+	while ( i-- ) {
+		if ( !~value.indexOf( prev[i] ) ) attr.splice( attr.indexOf( prev[i] ), 1 );
+	}
+
+	this.node.className = attr.join( ' ' );
+
+	this.previous = value;
+}
+
+function updateInlineClass () {
+	const name = this.name.substr( 6 );
+	const attr = readClass( this.node.className );
+	const value = this.getValue();
+
+	if ( value && !~attr.indexOf( name ) ) attr.push( name );
+	else if ( !value && ~attr.indexOf( name ) ) attr.splice( attr.indexOf( name ), 1 );
+
+	this.node.className = attr.join( ' ' );
 }
 
 function updateBoolean () {

@@ -24,7 +24,6 @@ export default class RepeatedFragment {
 
 		this.indexRef = options.indexRef;
 		this.keyRef = options.keyRef;
-		this.indexByKey = null; // for `{{#each object}}...`
 
 		this.pendingNewIndices = null;
 		this.previousIterations = null;
@@ -57,9 +56,7 @@ export default class RepeatedFragment {
 				this.indexRef = refs[1];
 			}
 
-			this.indexByKey = {};
 			this.iterations = Object.keys( value ).map( ( key, index ) => {
-				this.indexByKey[ key ] = index;
 				return this.createIteration( key, index );
 			});
 		}
@@ -304,6 +301,13 @@ export default class RepeatedFragment {
 			}
 
 			else if ( isObject( value ) ) {
+				// TODO this is a dreadful hack. There must be a neater way
+				if ( this.indexRef && !this.keyRef ) {
+					const refs = this.indexRef.split( ',' );
+					this.keyRef = refs[0];
+					this.indexRef = refs[1];
+				}
+
 				Object.keys( value ).forEach( key => {
 					if ( !oldKeys || !( key in oldKeys ) ) {
 						fragment = this.createIteration( key, i );

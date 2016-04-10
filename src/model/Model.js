@@ -66,6 +66,12 @@ export default class Model {
 		const ractive = this.root.ractive;
 		const keypath = this.getKeypath();
 
+		// tear previous adaptor down if present
+		if ( this.wrapper ) {
+			this.wrapper.teardown();
+			this.wrapper = null;
+		}
+
 		let i;
 
 		for ( i = 0; i < len; i += 1 ) {
@@ -281,7 +287,6 @@ export default class Model {
 	}
 
 	getValueChildren ( value ) {
-
 		let children;
 		if ( isArray( value ) ) {
 			children = [];
@@ -301,8 +306,7 @@ export default class Model {
 		}
 
 		else if ( value != null ) {
-			// TODO: this will return incorrect keypath if model is mapped
-			throw new Error( `Cannot get values of ${this.getKeypath()}.* as ${this.getKeypath()} is not an array, object or function` );
+			return [];
 		}
 
 		return children;
@@ -350,7 +354,11 @@ export default class Model {
 		const value = this.retrieve();
 
 		if ( !isEqual( value, this.value ) ) {
+			const old = this.value;
 			this.value = value;
+
+			// make sure the wrapper stays in sync
+			if ( old !== value ) this.adapt();
 
 			this.children.forEach( mark );
 

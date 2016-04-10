@@ -11,10 +11,16 @@ export default function ( methodName ) {
 
 		if ( model.isReadonly ) throw new Error( `shuffle array method ${methodName} called on readonly data at ${model.getKeypath()}` );
 
-		const array = model.get();
+		let array = model.get();
 
 		if ( !isArray( array ) ) {
-			throw new Error( `shuffle array method ${methodName} called on non-array at ${model.getKeypath()}` );
+			if ( array === undefined ) {
+				array = [];
+				const result = arrayProto[ methodName ].apply( array, args );
+				return this.set( keypath, array ).then( () => result );
+			} else {
+				throw new Error( `shuffle array method ${methodName} called on non-array at ${model.getKeypath()}` );
+			}
 		}
 
 		const newIndices = getNewIndices( array.length, methodName, args );
