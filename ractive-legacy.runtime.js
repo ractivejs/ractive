@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Apr 07 2016 20:01:11 GMT+0000 (UTC) - commit 82b28d40d7b69ecb1acfbaee8b56f0006d339bc1
+	Sun Apr 10 2016 01:56:51 GMT+0000 (UTC) - commit a979c240cfc5d64f2a8b929cffef84c2ed92dbf8
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4035,15 +4035,31 @@
 
   function makeArrayMethod (methodName) {
   	return function (keypath) {
+  		var _this = this;
+
   		var model = this.viewmodel.joinAll(splitKeypathI(keypath));
   		var array = model.get();
 
-  		if (!isArray(array)) {
-  			throw new Error('shuffle array method ' + methodName + ' called on non-array at ' + model.getKeypath());
-  		}
-
   		for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
   			args[_key - 1] = arguments[_key];
+  		}
+
+  		if (!isArray(array)) {
+  			if (array === undefined) {
+  				var _ret = function () {
+  					array = [];
+  					var result = arrayProto[methodName].apply(array, args);
+  					return {
+  						v: _this.set(keypath, array).then(function () {
+  							return result;
+  						})
+  					};
+  				}();
+
+  				if ((typeof _ret === 'undefined' ? 'undefined' : babelHelpers['typeof'](_ret)) === "object") return _ret.v;
+  			} else {
+  				throw new Error('shuffle array method ' + methodName + ' called on non-array at ' + model.getKeypath());
+  			}
   		}
 
   		var newIndices = getNewIndices(array.length, methodName, args);
