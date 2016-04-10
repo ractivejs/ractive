@@ -129,10 +129,11 @@ export default function() {
 			components: { Box }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div style="width: 100px; height: 100px;">10000px squared</div>' );
+		// once again... phantom trailing space in style... sometimes
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace( /\s+/g, '' ) );
 
 		ractive.set( 'width', 200 );
-		t.htmlEqual( fixture.innerHTML, '<div style="width: 200px; height: 100px;">20000px squared</div>' );
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace( /\s+/g, '' ) );
 	});
 
 	test( 'Instances can augment default computed properties of components', t => {
@@ -152,10 +153,11 @@ export default function() {
 			computed: { irrelevant: '"foo"' }
 		});
 
-		t.htmlEqual( fixture.innerHTML, '<div style="width: 100px; height: 100px;">10000px squared</div>' );
+		// phantom sometimes leaves a trailing space in the style... can't make this crap up
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 100px; height: 100px;">10000px squared</div>`.replace( /\s+/g, '' ) );
 
 		ractive.set( 'width', 200 );
-		t.htmlEqual( fixture.innerHTML, '<div style="width: 200px; height: 100px;">20000px squared</div>' );
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="width: 200px; height: 100px;">20000px squared</div>`.replace( /\s+/g, '' ) );
 	});
 
 	test( 'Computed values can depend on other computed values', t => {

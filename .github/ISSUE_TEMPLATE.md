@@ -1,4 +1,4 @@
-**Description of the bug:**:
+**Description of the bug:**
 
 **Versions affected:**
 

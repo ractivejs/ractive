@@ -1,4 +1,4 @@
-**Description of the pull request:**:
+**Description of the pull request:**
 
 **Fixes the following issues:**
 

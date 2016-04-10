@@ -59,7 +59,9 @@ export default function() {
 	});
 
 	test( 'an appropriate error is thrown when shuffling a non-array keypath', t => {
-		const r = new Ractive({});
+		const r = new Ractive({
+			data: { foo: null }
+		});
 
 		t.throws( () => {
 			r.push('foo', 1);

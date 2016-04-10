@@ -1,13 +1,10 @@
 import { test } from 'qunit';
 import { fire } from 'simulant';
 import { hasUsableConsole, onWarn } from './test-config';
-import { isArray } from '../utils/is';
 import { initModule } from './test-config';
 
 export default function() {
 	initModule( 'misc.js' );
-
-	Array.isArray || ( Array.isArray = thing => isArray( thing ) ); // IE8... don't ask
 
 	test( 'Subclass instance data extends prototype data', t => {
 		const Subclass = Ractive.extend({
@@ -949,7 +946,7 @@ export default function() {
 			data: {
 				currentStep: 0,
 				stepsQuantity: 2,
-				steps: [{}, {}],
+				steps: [{ x: true }, { x: true }],
 				bool: true
 			}
 		});
@@ -1367,7 +1364,7 @@ export default function() {
 			},
 			data: {
 				bars: [1, 2],
-				baz: { bat: {} }
+				baz: { bat: { x: true } }
 			}
 		});
 

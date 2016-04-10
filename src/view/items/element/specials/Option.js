@@ -11,6 +11,15 @@ function findParentSelect ( element ) {
 
 export default class Option extends Element {
 	constructor ( options ) {
+		const template = options.template;
+		if ( !template.a ) template.a = {};
+
+		// If the value attribute is missing, use the element's content,
+		// as long as it isn't disabled
+		if ( template.a.value === undefined && !( 'disabled' in template.a ) ) {
+			template.a.value = template.f || '';
+		}
+
 		super( options );
 
 		this.select = findParentSelect( this.parent );
