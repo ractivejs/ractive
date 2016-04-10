@@ -56,6 +56,20 @@ export default function() {
 		});
 	});
 
+	test( 'grow an array if pushing to an undefined keypath', t => {
+		const done = t.async();
+
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each items}}{{.}}{{/each}}`,
+		});
+
+		const result = r.push( 'items', 1 );
+		t.htmlEqual( fixture.innerHTML, '1' );
+
+		result.then( res => t.equal( res, 1 ) ).then( done, done );
+	});
+
 	test( 'Interpolators that directly reference arrays are updated on array mutation (#1074)', t => {
 		const ractive = new Ractive({
 			el: fixture,
