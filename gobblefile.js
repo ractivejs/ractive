@@ -56,6 +56,11 @@ function bloodyIE8 ( src ) {
 	return src;
 }
 
+function noConflict ( src ) {
+	src = src.replace( 'global.Ractive = factory()', '(function() { var current = global.Ractive; var next = factory(); next.noConflict = function() { global.Ractive = current; return next; }; return global.Ractive = next; })()' );
+	return src;
+}
+
 if ( gobble.env() === 'production' ) {
 	var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
 		.replace( '${version}', version )
@@ -70,7 +75,7 @@ if ( gobble.env() === 'production' ) {
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.js',
 			banner: banner
-		}).transform( bloodyIE8 ),
+		}).transform( bloodyIE8 ).transform( noConflict ),
 
 		src.transform( 'rollup', {
 			plugins: [ adjustAndSkip( /legacy\.js/ ), babel ],
@@ -79,7 +84,7 @@ if ( gobble.env() === 'production' ) {
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive.js'
-		}),
+		}).transform( noConflict ),
 
 		src.transform( 'rollup', {
 			plugins: [ adjustAndSkip( /legacy\.js|_parse\.js/ ), babel ],
@@ -88,7 +93,7 @@ if ( gobble.env() === 'production' ) {
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive.runtime.js'
-		}),
+		}).transform( noConflict ),
 
 		src.transform( 'rollup', {
 			plugins: [ adjustAndSkip( /_parse\.js/ ), legacyBabel ],
@@ -97,7 +102,7 @@ if ( gobble.env() === 'production' ) {
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.runtime.js'
-		}).transform( bloodyIE8 )
+		}).transform( bloodyIE8 ).transform( noConflict )
 	]);
 } else {
 	lib = gobble([
@@ -107,7 +112,7 @@ if ( gobble.env() === 'production' ) {
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.js'
-		}).transform( bloodyIE8 ),
+		}).transform( bloodyIE8 ).transform( noConflict ),
 
 		sandbox
 	]);
