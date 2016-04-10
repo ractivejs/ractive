@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Apr 10 2016 02:02:24 GMT+0000 (UTC) - commit cd095d454028849a174e5c57315e40490a7cb3b2
+	Sun Apr 10 2016 06:48:50 GMT+0000 (UTC) - commit 726499ee696ac1d9522359eaf19bbed5e103e119
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2878,21 +2878,22 @@
     		throw new Error('A keypath cannot be linked to itself.');
     	}
 
-    	var unlink = void 0,
-    	    run = void 0,
-    	    model = void 0;
+    	var promise = runloop.start();
 
+    	var model = void 0;
     	var ln = this._links[here];
 
     	if (ln) {
     		if (ln.source.model.str !== there || ln.dest.model.str !== here) {
-    			unlink = this.unlink(here);
+    			ln.unlink();
+    			delete this._links[here];
+    			this.viewmodel.joinAll(splitKeypathI(here)).set(ln.initialValue);
     		} else {
-    			return Promise$1.resolve(true);
+    			// already linked, so nothing to do
+    			runloop.end();
+    			return promise;
     		}
     	}
-
-    	run = runloop.start();
 
     	// may need to allow a mapping to resolve implicitly
     	var sourcePath = splitKeypathI(there);
@@ -2910,7 +2911,7 @@
 
     	runloop.end();
 
-    	return Promise$1.all([unlink, run]);
+    	return promise;
     }
 
     var Link = function () {
