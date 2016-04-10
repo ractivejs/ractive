@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Apr 10 2016 01:58:44 GMT+0000 (UTC) - commit dbd6724a54ce53e9923e877f661c861ba4cfdfd8
+	Sun Apr 10 2016 02:02:24 GMT+0000 (UTC) - commit cd095d454028849a174e5c57315e40490a7cb3b2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2558,8 +2558,7 @@
     				return _this2.joinKey(key);
     			});
     		} else if (value != null) {
-    			// TODO: this will return incorrect keypath if model is mapped
-    			throw new Error('Cannot get values of ' + this.getKeypath() + '.* as ' + this.getKeypath() + ' is not an array, object or function');
+    			return [];
     		}
 
     		return children;
