@@ -290,7 +290,6 @@ export default class Model {
 	}
 
 	getValueChildren ( value ) {
-
 		let children;
 		if ( isArray( value ) ) {
 			children = [];
@@ -310,8 +309,7 @@ export default class Model {
 		}
 
 		else if ( value != null ) {
-			// TODO: this will return incorrect keypath if model is mapped
-			throw new Error( `Cannot get values of ${this.getKeypath()}.* as ${this.getKeypath()} is not an array, object or function` );
+			return [];
 		}
 
 		return children;

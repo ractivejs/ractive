@@ -1,10 +1,12 @@
-/* global document */
+/* global document, navigator */
 
 import { test } from 'qunit';
 import { initModule, hasUsableConsole, onWarn } from './test-config';
 
 export default function() {
 	initModule( 'partials.js' );
+
+	const phantom = /phantom/i.test( navigator.userAgent );
 
 	const partialsFn = {
 		foo () {
@@ -234,7 +236,8 @@ export default function() {
 
 		ractive.set( 'height', 200 );
 
-		t.htmlEqual( fixture.innerHTML, '<div style="height: 200px;"></div>' );
+		// phantom leaves a trailing space in inline styles... depending on the phase of the moon and what color underwear you're wearing
+		t.htmlEqual( fixture.innerHTML.replace( /\s+/g, '' ), `<div style="height: 200px;"></div>`.replace( /\s+/g, '' ) );
 	});
 
 	test( 'Partial name can be a reference', t => {
@@ -529,7 +532,7 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<div class="wrapped foo around" id="foo"></div>' );
 		ractive.resetPartial( 'foo', 'nfoo' );
-		t.htmlEqual( fixture.innerHTML, '<div class="wrapped nfoo around" id="nfoo"></div>' );
+		t.htmlEqual( fixture.innerHTML, '<div class="wrapped around nfoo" id="nfoo"></div>' );
 	});
 
 	test( 'Partials in attribute blocks can be changed with resetPartial', t => {

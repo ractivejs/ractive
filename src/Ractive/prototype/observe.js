@@ -1,7 +1,7 @@
 import runloop from '../../global/runloop';
 import { isArray, isEqual, isObject } from '../../utils/is';
 import { splitKeypath, escapeKey } from '../../shared/keypaths';
-import { cancel } from '../../shared/methodCallers';
+import { removeFromArray } from '../../utils/array';
 import resolveReference from '../../view/resolvers/resolveReference';
 
 export default function observe ( keypath, callback, options ) {
@@ -42,8 +42,11 @@ export default function observe ( keypath, callback, options ) {
 	this._observers.push.apply( this._observers, observers );
 
 	return {
-		cancel () {
-			observers.forEach( cancel );
+		cancel: () => {
+			observers.forEach( ( observer ) => {
+				removeFromArray ( this._observers, observer );
+				observer.cancel();
+			} );
 		}
 	};
 }

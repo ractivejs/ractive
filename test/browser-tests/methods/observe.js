@@ -958,15 +958,14 @@ export default function() {
 	});
 
 	test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
+		t.expect(0);
 		const ractive = new Ractive({
 			data: { msg: 'hello world' }
 		});
 
-		t.throws( () => {
-			ractive.observe( 'msg.*', () => {
-				t.ok( false, 'observer should not fire' );
-			});
-		}, /Cannot get values of msg\.\* as msg is not an array, object or function/ );
+		ractive.observe( 'msg.*', () => {
+			t.ok( false, 'observer should not fire' );
+		});
 	});
 
 	test( 'pattern observers only observe changed values (#2420)', t => {
@@ -1005,6 +1004,24 @@ export default function() {
 		r.update( 'list.1.foo' );
 	});
 
+	test( `pattern observer doesn't die on primitive values (#2503)`, t => {
+		const done = t.async();
+		const r = new Ractive({
+			el: fixture,
+			template: '',
+			data: { foo: 0 }
+		});
+
+		r.observe( '* *.*', (n, o, k) => {
+			t.equal( n, 1 );
+			t.equal( o, 0 );
+			t.equal( k, 'foo' );
+			done();
+		}, { init: false });
+
+		r.add( 'foo' );
+	});
+
 	test( 'wildcard * fires on new property', t => {
 		t.expect( 2 );
 
@@ -1016,5 +1033,21 @@ export default function() {
 		}, { init: false} );
 
 		ractive.set( 'foo', 'bar' );
+	});
+
+	test( 'References to observers are not retained after cancel()', t => {
+		const ractive = new Ractive({ data: { counter: 0 } });
+		const obs = ractive.observe( 'counter', ( newValue, oldValue ) => {
+			if ( oldValue ) {
+				return obs.cancel();
+			}
+		});
+
+		t.equal( ractive._observers.length, 1 );
+
+		ractive.add( 'counter' );
+		obs.cancel();
+
+		t.equal( ractive._observers.length, 0 );
 	});
 }

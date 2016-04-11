@@ -1765,6 +1765,16 @@ export default function() {
 			t.equal( fixture.innerHTML, '012' );
 		});
 
+		test( 'noConflict reinstates original Ractive value (#2066)', t => {
+			const r = Ractive;
+			const noConflict = r.noConflict();
+
+			t.equal( Ractive, undefined );
+			t.equal( r, noConflict );
+
+			Ractive = r;
+		});
+
 		test( 'Updating a list section with child list expressions doesn\'t throw errors', t => {
 			const array = [
 				{ foo: [ 1, 2, 3, 4, 5 ] },
