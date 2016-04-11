@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sun Apr 10 2016 06:48:50 GMT+0000 (UTC) - commit 726499ee696ac1d9522359eaf19bbed5e103e119
+	Mon Apr 11 2016 19:30:36 GMT+0000 (UTC) - commit 4a5b7cd4b74fa1ba240781aba5b86a3292bee644
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12,7 +12,7 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
-    (global.Ractive = factory());
+    ((function() { var current = global.Ractive; var next = factory(); next.noConflict = function() { global.Ractive = current; return next; }; return global.Ractive = next; })());
 }(this, function () { 'use strict';
 
     var babelHelpers = {};
