@@ -105,6 +105,7 @@ function updateSelectValue ( reset ) {
 
 		const options = this.node.options;
 		let i = options.length;
+		let wasSelected = false;
 
 		if ( reset ) {
 			while ( i-- ) options[i].selected = false;
@@ -114,15 +115,16 @@ function updateSelectValue ( reset ) {
 				const optionValue = option._ractive ?
 					option._ractive.value :
 					option.value; // options inserted via a triple don't have _ractive
+				if ( option.disabled && option.selected ) wasSelected = true;
 
 				if ( optionValue == value ) { // double equals as we may be comparing numbers with strings
 					option.selected = true;
-					break;
+					return;
 				}
 			}
 		}
 
-		this.node.selectedIndex = -1;
+		if ( !wasSelected ) this.node.selectedIndex = -1;
 	}
 }
 
