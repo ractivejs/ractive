@@ -24,15 +24,8 @@ export default function Ractive$update ( keypath ) {
 		}
 	}
 
-	// notify upstream
-	let parent = model.parent, prev = model;
-	while ( parent ) {
-		if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( prev.key ) );
-		let i = parent.deps.length;
-		while ( i-- ) parent.deps[i].handleChange();
-		prev = parent;
-		parent = parent.parent;
-	}
+	// notify upstream of changes
+	model.notifyUpstream();
 
 	runloop.end();
 

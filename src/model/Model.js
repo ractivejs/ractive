@@ -167,13 +167,7 @@ export default class Model {
 		this.children.forEach( mark );
 		this.deps.forEach( handleChange );
 
-		let parent = this.parent, prev = this;
-		while ( parent ) {
-			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( prev.key ) );
-			parent.deps.forEach( handleChange );
-			prev = parent;
-			parent = parent.parent;
-		}
+		this.notifyUpstream();
 
 		originatingModel = previousOriginatingModel;
 	}
@@ -406,6 +400,16 @@ export default class Model {
 		this.parent.value[ this.key ] = array;
 		this._merged = true;
 		this.shuffle( newIndices );
+	}
+
+	notifyUpstream () {
+		let parent = this.parent, prev = this;
+		while ( parent ) {
+			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( prev.key ) );
+			parent.deps.forEach( handleChange );
+			prev = parent;
+			parent = parent.parent;
+		}
 	}
 
 	register ( dep ) {
