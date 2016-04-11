@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Apr 11 2016 19:30:36 GMT+0000 (UTC) - commit 4a5b7cd4b74fa1ba240781aba5b86a3292bee644
+	Mon Apr 11 2016 21:23:16 GMT+0000 (UTC) - commit 96f593b59316029485d39293115425f2ae305294
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8040,7 +8040,10 @@
     	// remove now-missing classes
     	i = prev.length;
     	while (i--) {
-    		if (! ~value.indexOf(prev[i])) attr.splice(attr.indexOf(prev[i]), 1);
+    		if (! ~value.indexOf(prev[i])) {
+    			var idx = attr.indexOf(prev[i]);
+    			if (~idx) attr.splice(idx, 1);
+    		}
     	}
 
     	this.node.className = attr.join(' ');
