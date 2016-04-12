@@ -51,8 +51,7 @@ class ArrayWrapper {
 	}
 
 	reset ( value ) {
-		if ( this.value === value ) return true;
-		return false;
+		return this.value === value;
 	}
 
 	teardown () {
