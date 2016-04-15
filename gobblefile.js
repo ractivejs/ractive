@@ -10,7 +10,6 @@ var rollupBuble = require( 'rollup-plugin-buble' );
 var sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' );
 var version = require( './package.json' ).version;
 
-var bubleOptions = { target: { ie: 9 } };
 var bubleLegacyOptions = { target: { ie: 8 } };
 
 var src = gobble( 'src' );
@@ -39,59 +38,32 @@ function noConflict ( src ) {
 	return src;
 }
 
+function buildLib ( dest, pattern ) {
+	return es5.transform( 'rollup', {
+		plugins: [ adjustAndSkip( pattern ) ],
+		format: 'umd',
+		entry: 'Ractive.js',
+		moduleName: 'Ractive',
+		dest: dest,
+		banner: banner
+	});
+}
+
+var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
+	.replace( '${version}', version )
+	.replace( '${time}', new Date() )
+	.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
+
 if ( gobble.env() === 'production' ) {
-	var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
-		.replace( '${version}', version )
-		.replace( '${time}', new Date() )
-		.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
-
 	lib = gobble([
-		es5.transform( 'rollup', {
-			plugins: [ adjustAndSkip() ],
-			format: 'umd',
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive-legacy.js',
-			banner: banner
-		}),
-
-		es5.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\.js/ ) ],
-			format: 'umd',
-			banner: banner,
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive.js'
-		}),
-
-		es5.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\.js|_parse\.js/ ) ],
-			format: 'umd',
-			banner: banner,
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive.runtime.js'
-		}),
-
-		es5.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /_parse\.js/ ) ],
-			format: 'umd',
-			banner: banner,
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive-legacy.runtime.js'
-		})
+		buildLib( 'ractive-legacy.js' ),
+		buildLib( 'ractive.js', /legacy\.js/ ),
+		buildLib( 'ractive.runtime.js', /legacy\.js|_parse\.js/ ),
+		buildLib( 'ractive-legacy.runtime.js', /_parse\.js/ )
 	]).transform( noConflict );
 } else {
 	lib = gobble([
-		es5.transform( 'rollup', {
-			plugins: [ adjustAndSkip() ],
-			format: 'umd',
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive-legacy.js'
-		}).transform( noConflict ),
-
+		buildLib( 'ractive-legacy.js' ),
 		sandbox
 	]);
 }
@@ -149,59 +121,13 @@ test = (function () {
 			simulant: 'simulant'
 		}
 	});
-		/*var promises = testFiles.sort().map( function ( mod ) {
-			var transform = {
-				resolveId: function ( importee, importer ) {
-					if ( globals[ importee ] ) return false;
-
-					if ( !importer ) return importee;
-
-					if ( importee[0] === '.' ) {
-						return path.resolve( path.dirname( importer ), importee ) + '.js';
-					}
-
-					return path.resolve( inputdir, importee ) + '.js';
-				},
-				load: function ( id ) {
-					var code = sander.readFileSync( id, { encoding: 'utf-8' });
-
-					if ( /test-config/.test( id ) ) return code;
-
-					return 'import { initModule } from \'test-config\';\n' +
-						'initModule(\'' + mod.replace( /\\/g, '/' ) + '\' );\n\n' +
-						code;
-				}
-			};
-
-			return rollup.rollup({
-				entry: inputdir + '/browser-tests/' + mod,
-				plugins: [ transform, legacyBabel ],
-				globals: globals,
-				onwarn: noop
-			}).then( function ( bundle ) {
-				return bundle.write({
-					dest: outputdir + '/' + mod,
-					format: 'iife',
-					globals: globals
-				});
-			});
-		});
-
-		return Promise.all( promises );
-		*/
-	//}).transform( bloodyIE8 );
 
 	return gobble([
 		gobble( 'test/__support/index.html' )
 			.transform( 'replace', {
 				scriptBlock: '<script src="all.js"></script>'
 			}),
-		/*gobble( 'test/__support/index.html' )
-			.transform( 'replace', {
-				scriptBlock: testFiles.map( function ( src ) {
-					return '<script src="' + src + '"></script>';
-				}).join( '\n\t' )
-			}),*/
+
 		testModules,
 		gobble( 'test/__support/files' ),
 		gobble( 'test/node-tests' ).moveTo( 'node-tests' ),
