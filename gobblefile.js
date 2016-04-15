@@ -5,30 +5,13 @@ var sander = require( 'sander' );
 var junk = require( 'junk' );
 var Promise = sander.Promise;
 var rollup = require( 'rollup' );
-var legacyBabelOptions = {
-	presets: [ 'es2015-native-modules' ],
-	plugins: [
-		"transform-es3-property-literals",
-		[ "transform-es2015-classes", { loose: true } ]
-	]
-};
-var babel = require( 'rollup-plugin-babel' )({
-	compact: false,
-	presets: [ "es2015-rollup" ],
-	plugins: [
-		[ "transform-es2015-classes", { loose: true } ]
-	]
-});
-var legacyBabel = require( 'rollup-plugin-babel' )({
-	compact: false,
-	presets: [ "es2015-rollup" ],
-	plugins: [
-		"transform-es3-property-literals",
-		[ "transform-es2015-classes", { loose: true } ]
-	]
-});
+var rollupBuble = require( 'rollup-plugin-buble' );
+
 var sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' );
 var version = require( './package.json' ).version;
+
+var bubleOptions = { target: { ie: 9 } };
+var bubleLegacyOptions = { target: { ie: 8 } };
 
 var src = gobble( 'src' );
 var es5 = src;
@@ -51,11 +34,6 @@ function adjustAndSkip ( pattern ) {
 	} };
 }
 
-function bloodyIE8 ( src ) {
-	src = src.replace( /\.typeof/g, "['typeof']" ).replace( /\.catch/g, "['catch']" );
-	return src;
-}
-
 function noConflict ( src ) {
 	src = src.replace( 'global.Ractive = factory()', '(function() { var current = global.Ractive; var next = factory(); next.noConflict = function() { global.Ractive = current; return next; }; return global.Ractive = next; })()' );
 	return src;
@@ -69,16 +47,16 @@ if ( gobble.env() === 'production' ) {
 
 	lib = gobble([
 		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip(), legacyBabel ],
+			plugins: [ adjustAndSkip(), rollupBuble( bubleLegacyOptions ) ],
 			format: 'umd',
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.js',
 			banner: banner
-		}).transform( bloodyIE8 ).transform( noConflict ),
+		}).transform( noConflict ),
 
 		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\.js/ ), babel ],
+			plugins: [ adjustAndSkip( /legacy\.js/ ), rollupBuble( bubleOptions ) ],
 			format: 'umd',
 			banner: banner,
 			entry: 'Ractive.js',
@@ -87,7 +65,7 @@ if ( gobble.env() === 'production' ) {
 		}).transform( noConflict ),
 
 		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\.js|_parse\.js/ ), babel ],
+			plugins: [ adjustAndSkip( /legacy\.js|_parse\.js/ ), rollupBuble( bubleOptions ) ],
 			format: 'umd',
 			banner: banner,
 			entry: 'Ractive.js',
@@ -96,23 +74,23 @@ if ( gobble.env() === 'production' ) {
 		}).transform( noConflict ),
 
 		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /_parse\.js/ ), legacyBabel ],
+			plugins: [ adjustAndSkip( /_parse\.js/ ), rollupBuble( bubleLegacyOptions ) ],
 			format: 'umd',
 			banner: banner,
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.runtime.js'
-		}).transform( bloodyIE8 ).transform( noConflict )
+		}).transform( noConflict )
 	]);
 } else {
 	lib = gobble([
-		es5.transform( 'babel', legacyBabelOptions ).transform( 'rollup', {
+		src.transform( 'buble', bubleLegacyOptions ).transform( 'rollup', {
 			plugins: [ adjustAndSkip() ],
 			format: 'umd',
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.js'
-		}).transform( bloodyIE8 ).transform( noConflict ),
+		}).transform( noConflict ),
 
 		sandbox
 	]);
@@ -158,7 +136,7 @@ test = (function () {
 	var testModules = gobble([
 		gobble([ browserTests, gobble( 'test/__support/js' ).moveTo( 'browser-tests' ) ]),
 		es5
-	]).transform( 'babel', legacyBabelOptions ).transform( 'rollup', {
+	]).transform( 'buble', bubleLegacyOptions ).transform( 'rollup', {
 			plugins: [ adjustAndSkip() ],
 			format: 'umd',
 			entry: 'browser-tests/all.js',
@@ -168,7 +146,7 @@ test = (function () {
 				qunit: 'QUnit',
 				simulant: 'simulant'
 			}
-	}).transform( bloodyIE8 );
+	});
 		/*var promises = testFiles.sort().map( function ( mod ) {
 			var transform = {
 				resolveId: function ( importee, importer ) {
@@ -232,7 +210,7 @@ test = (function () {
 					var promises = files.map( function ( file ) {
 						return rollup.rollup({
 							entry: inputDir + '/' + file,
-							plugins: [ legacyBabel ],
+							plugins: [ rollupBuble( bubleLegacyOptions ) ],
 							globals: globals,
 							onwarn: noop
 						}).then( function ( bundle ) {
