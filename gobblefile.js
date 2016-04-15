@@ -46,7 +46,7 @@ function buildLib ( dest, pattern ) {
 		moduleName: 'Ractive',
 		dest: dest,
 		banner: banner
-	});
+	}).transform( noConflict );
 }
 
 var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
