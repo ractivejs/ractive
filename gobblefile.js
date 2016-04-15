@@ -14,7 +14,7 @@ var bubleOptions = { target: { ie: 9 } };
 var bubleLegacyOptions = { target: { ie: 8 } };
 
 var src = gobble( 'src' );
-var es5 = src;
+var es5 = src.transform( 'buble', { target: { ie: 8 } });
 var lib;
 var test;
 
@@ -46,45 +46,45 @@ if ( gobble.env() === 'production' ) {
 		.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
 
 	lib = gobble([
-		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip(), rollupBuble( bubleLegacyOptions ) ],
+		es5.transform( 'rollup', {
+			plugins: [ adjustAndSkip() ],
 			format: 'umd',
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.js',
 			banner: banner
-		}).transform( noConflict ),
+		}),
 
-		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\.js/ ), rollupBuble( bubleOptions ) ],
+		es5.transform( 'rollup', {
+			plugins: [ adjustAndSkip( /legacy\.js/ ) ],
 			format: 'umd',
 			banner: banner,
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive.js'
-		}).transform( noConflict ),
+		}),
 
-		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\.js|_parse\.js/ ), rollupBuble( bubleOptions ) ],
+		es5.transform( 'rollup', {
+			plugins: [ adjustAndSkip( /legacy\.js|_parse\.js/ ) ],
 			format: 'umd',
 			banner: banner,
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive.runtime.js'
-		}).transform( noConflict ),
+		}),
 
-		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /_parse\.js/ ), rollupBuble( bubleLegacyOptions ) ],
+		es5.transform( 'rollup', {
+			plugins: [ adjustAndSkip( /_parse\.js/ ) ],
 			format: 'umd',
 			banner: banner,
 			entry: 'Ractive.js',
 			moduleName: 'Ractive',
 			dest: 'ractive-legacy.runtime.js'
-		}).transform( noConflict )
-	]);
+		})
+	]).transform( noConflict );
 } else {
 	lib = gobble([
-		src.transform( 'buble', bubleLegacyOptions ).transform( 'rollup', {
+		es5.transform( 'rollup', {
 			plugins: [ adjustAndSkip() ],
 			format: 'umd',
 			entry: 'Ractive.js',
@@ -134,18 +134,20 @@ test = (function () {
 	});
 
 	var testModules = gobble([
-		gobble([ browserTests, gobble( 'test/__support/js' ).moveTo( 'browser-tests' ) ]),
-		es5
-	]).transform( 'buble', bubleLegacyOptions ).transform( 'rollup', {
-			plugins: [ adjustAndSkip() ],
-			format: 'umd',
-			entry: 'browser-tests/all.js',
-			moduleName: 'tests',
-			dest: 'all.js',
-			globals: {
-				qunit: 'QUnit',
-				simulant: 'simulant'
-			}
+		es5,
+		gobble([ browserTests, gobble( 'test/__support/js' )
+			.moveTo( 'browser-tests' ) ])
+			.transform( 'buble', bubleLegacyOptions )
+	]).transform( 'rollup', {
+		plugins: [ adjustAndSkip() ],
+		format: 'umd',
+		entry: 'browser-tests/all.js',
+		moduleName: 'tests',
+		dest: 'all.js',
+		globals: {
+			qunit: 'QUnit',
+			simulant: 'simulant'
+		}
 	});
 		/*var promises = testFiles.sort().map( function ( mod ) {
 			var transform = {
