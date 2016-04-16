@@ -18,6 +18,7 @@ export default function ( methodName ) {
 		const result = arrayProto[ methodName ].apply( array, args );
 
 		const promise = runloop.start( this, true ).then( () => result );
+		promise.result = result;
 
 		if ( newIndices ) {
 			model.shuffle( newIndices );
