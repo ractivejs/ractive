@@ -265,7 +265,10 @@ function updateClassName ( reset ) {
 	// remove now-missing classes
 	i = prev.length;
 	while ( i-- ) {
-		if ( !~value.indexOf( prev[i] ) ) attr.splice( attr.indexOf( prev[i] ), 1 );
+		if ( !~value.indexOf( prev[i] ) ) {
+			const idx = attr.indexOf( prev[i] );
+			if ( ~idx ) attr.splice( idx, 1 );
+		}
 	}
 
 	this.node.className = attr.join( ' ' );
