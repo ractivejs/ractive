@@ -9,6 +9,7 @@ import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
+import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -35,6 +36,7 @@ export default class Model {
 		this.unresolvedByKey = {};
 
 		this.bindings = [];
+		this.patternObservers = [];
 
 		this.value = undefined;
 
@@ -128,7 +130,7 @@ export default class Model {
 		if ( isEqual( value, this.value ) ) return;
 
 		// TODO deprecate this nonsense
-		this.root.changes[ this.getKeypath() ] = value;
+		this.registerChange( this.getKeypath(), value );
 
 		if ( this.parent.wrapper && this.parent.wrapper.set ) {
 			this.parent.wrapper.set( this.key, value );
@@ -166,11 +168,7 @@ export default class Model {
 		this.children.forEach( mark );
 		this.deps.forEach( handleChange );
 
-		let parent = this.parent;
-		while ( parent ) {
-			parent.deps.forEach( handleChange );
-			parent = parent.parent;
-		}
+		this.notifyUpstream();
 
 		originatingModel = previousOriginatingModel;
 	}
@@ -405,8 +403,32 @@ export default class Model {
 		this.shuffle( newIndices );
 	}
 
+	notifyUpstream () {
+		let parent = this.parent, prev = this;
+		while ( parent ) {
+			if ( parent.patternObservers.length ) parent.patternObservers.forEach( o => o.notify( prev.key ) );
+			parent.deps.forEach( handleChange );
+			prev = parent;
+			parent = parent.parent;
+		}
+	}
+
 	register ( dep ) {
 		this.deps.push( dep );
+	}
+
+	registerChange ( key, value ) {
+		if ( !this.isRoot ) {
+			this.root.registerChange( key, value );
+		} else {
+			this.changes[ key ] = value;
+			runloop.addInstance( this.root.ractive );
+		}
+	}
+
+	registerPatternObserver ( observer ) {
+		this.patternObservers.push( observer );
+		this.register( observer );
 	}
 
 	registerTwowayBinding ( binding ) {
@@ -467,6 +489,11 @@ export default class Model {
 
 	unregister ( dependant ) {
 		removeFromArray( this.deps, dependant );
+	}
+
+	unregisterPatternObserver ( observer ) {
+		removeFromArray( this.patternObservers, observer );
+		this.unregister( observer );
 	}
 
 	unregisterTwowayBinding ( binding ) {

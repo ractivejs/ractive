@@ -94,6 +94,34 @@ export default function() {
 		ractive.set( 'bool', true );
 	});
 
+	test( 'change hook fires even if no fragments changed (#2090)', t => {
+		t.expect( 8 );
+
+		let count = 1, next = false;
+		const r = new Ractive({
+			data: { foo: 1 }
+		});
+
+		r.on( 'change', delta => {
+			t.equal( Object.keys(delta).length, 1 );
+
+			if ( !next ) t.equal( delta.foo, count );
+			else t.equal( delta.bar, 'yep' );
+		});
+
+		count++;
+		r.set( 'foo', count );
+
+		count = 42;
+		r.set( 'foo', count );
+
+		next = true;
+		r.set( 'bar', 'yep' );
+
+		r.get().bar = 'hmm';
+		r.update( 'bar' );
+	});
+
 	test( 'correct behaviour of deprecated beforeInit hook (#1395)', t => {
 		t.expect( 6 );
 

@@ -468,12 +468,12 @@ export default function() {
 			data: { foo: { bar: { baz: 1 } } }
 		});
 
-		ractive.observe( 'foo.*', function ( n, o, keypath ) {
-			t.ok( this === window )
+		ractive.observe( 'foo.*', function () {
+			t.ok( this === window );
 		}, { context: window });
 
-		ractive.observe( 'foo', function ( n, o, keypath ) {
-			t.ok( this === window )
+		ractive.observe( 'foo', function () {
+			t.ok( this === window );
 		}, { context: window });
 
 		ractive.set( 'foo.bar.baz', 2 );
@@ -966,6 +966,42 @@ export default function() {
 		ractive.observe( 'msg.*', () => {
 			t.ok( false, 'observer should not fire' );
 		});
+	});
+
+	test( 'pattern observers only observe changed values (#2420)', t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: 1 }, { foo: 2 } ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o, k ) => {
+			t.equal( k, 'list.1' );
+			t.deepEqual( o, { foo: 2 } );
+			t.deepEqual( n, { foo: 'yep' } );
+		}, { init: false });
+
+		r.set( 'list.1', { foo: 'yep' } );
+	});
+
+	test( 'pattern observers only observe changed values on update', t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: 1 }, { foo: 2 } ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o, k ) => {
+			t.equal( k, 'list.1' );
+			t.deepEqual( n, { foo: 'yep' } );
+		}, { init: false });
+
+		r.get( 'list.1' ).foo = 'yep';
+		r.update( 'list.1.foo' );
 	});
 
 	test( `pattern observer doesn't die on primitive values (#2503)`, t => {
