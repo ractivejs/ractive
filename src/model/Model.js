@@ -9,6 +9,7 @@ import { isArray, isObject } from '../utils/is';
 import KeyModel from './specials/KeyModel';
 import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
+import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
@@ -129,7 +130,7 @@ export default class Model {
 		if ( isEqual( value, this.value ) ) return;
 
 		// TODO deprecate this nonsense
-		this.root.changes[ this.getKeypath() ] = value;
+		this.registerChange( this.getKeypath(), value );
 
 		if ( this.parent.wrapper && this.parent.wrapper.set ) {
 			this.parent.wrapper.set( this.key, value );
@@ -414,6 +415,15 @@ export default class Model {
 
 	register ( dep ) {
 		this.deps.push( dep );
+	}
+
+	registerChange ( key, value ) {
+		if ( !this.isRoot ) {
+			this.root.registerChange( key, value );
+		} else {
+			this.changes[ key ] = value;
+			runloop.addInstance( this.root.ractive );
+		}
 	}
 
 	registerPatternObserver ( observer ) {
