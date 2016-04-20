@@ -152,6 +152,7 @@ class PatternObserver {
 
 		this.dirty = false;
 		this.changed = [];
+		this.partial = false;
 
 		const models = baseModel.findMatches( this.keys );
 
@@ -191,15 +192,14 @@ class PatternObserver {
 			this.callback.apply( this.context, args );
 		});
 
-		if ( this.changed.length ) {
+		if ( this.partial ) {
 			for ( const k in this.newValues ) {
-				this.oldValues[ k ] = this.newValues;
+				this.oldValues[k] = this.newValues[k];
 			}
 		} else {
 			this.oldValues = this.newValues;
 		}
 
-		this.changed.length = 0;
 		this.newKeys = null;
 		this.dirty = false;
 	}
@@ -242,6 +242,7 @@ class PatternObserver {
 					const keypath = model.getKeypath( this.ractive );
 					this.newValues[ keypath ] = model.get();
 				});
+				this.partial = false;
 			} else {
 				const ok = this.baseModel.isRoot ?
 					this.changed :
@@ -254,10 +255,12 @@ class PatternObserver {
 						this.newValues[ keypath ] = model.get();
 					}
 				});
+				this.partial = true;
 			}
 
 			runloop.addObserver( this, this.defer );
 			this.dirty = true;
+			this.changed.length = 0;
 
 			if ( this.once ) this.cancel();
 		}
