@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Apr 20 2016 23:03:26 GMT+0000 (UTC) - commit 79741398504b0437fb043492ffd1de076f35cdff
+	Wed Apr 20 2016 23:19:37 GMT+0000 (UTC) - commit 4e4199b5564da022952f81bc81fb9a24072c3505
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3558,7 +3558,15 @@
   		this$1.callback.apply( this$1.context, args );
   	});
 
-  	this.oldValues = this.newValues;
+  	if ( this.changed.length ) {
+  		for ( var k in this.newValues ) {
+  			this.oldValues[ k ] = this.newValues;
+  		}
+  	} else {
+  		this.oldValues = this.newValues;
+  	}
+
+  	this.changed.length = 0;
   	this.newKeys = null;
   	this.dirty = false;
   };
@@ -3617,8 +3625,6 @@
   					this$1.newValues[ keypath ] = model.get();
   				}
   			});
-
-  			this.changed.length = 0;
   		}
 
   		runloop.addObserver( this, this.defer );
