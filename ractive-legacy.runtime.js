@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Apr 20 2016 23:30:30 GMT+0000 (UTC) - commit 25341bbb53a71600f0ba85edfdf5991590002f0d
+	Wed Apr 20 2016 23:39:55 GMT+0000 (UTC) - commit abdad6a6cdfe8c66d4900c603b0417389999862f
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -6521,7 +6521,7 @@
   			var promise = ractive.render( el, ractive.append );
 
   			if ( Ractive.DEBUG_PROMISES ) {
-  				promise.catch( function ( err ) {
+  				promise['catch']( function ( err ) {
   					warnOnceIfDebug( 'Promise debugging is enabled, to help solve errors that happen asynchronously. Some browsers will log unhandled promise rejections, in which case you can safely disable promise debugging:\n  Ractive.DEBUG_PROMISES = false;' );
   					warnIfDebug( 'An error happened during rendering', { ractive: ractive });
   					logIfDebug( err );
@@ -6823,9 +6823,9 @@
   // will be replaced with those values
 
   var specials = {
-  	true: true,
-  	false: false,
-  	null: null,
+  	'true': true,
+  	'false': false,
+  	'null': null,
   	undefined: undefined
   };
 
@@ -7949,13 +7949,13 @@
   	'accept-charset': 'acceptCharset',
   	accesskey: 'accessKey',
   	bgcolor: 'bgColor',
-  	class: 'className',
+  	'class': 'className',
   	codebase: 'codeBase',
   	colspan: 'colSpan',
   	contenteditable: 'contentEditable',
   	datetime: 'dateTime',
   	dirname: 'dirName',
-  	for: 'htmlFor',
+  	'for': 'htmlFor',
   	'http-equiv': 'httpEquiv',
   	ismap: 'isMap',
   	maxlength: 'maxLength',
