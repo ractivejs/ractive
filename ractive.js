@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Apr 20 2016 23:19:37 GMT+0000 (UTC) - commit 4e4199b5564da022952f81bc81fb9a24072c3505
+	Wed Apr 20 2016 23:30:30 GMT+0000 (UTC) - commit 25341bbb53a71600f0ba85edfdf5991590002f0d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3038,6 +3038,7 @@
 
   	this.dirty = false;
   	this.changed = [];
+  	this.partial = false;
 
   	var models = baseModel.findMatches( this.keys );
 
@@ -3079,15 +3080,14 @@
   		this$1.callback.apply( this$1.context, args );
   	});
 
-  	if ( this.changed.length ) {
+  	if ( this.partial ) {
   		for ( var k in this.newValues ) {
-  			this.oldValues[ k ] = this.newValues;
+  			this.oldValues[k] = this.newValues[k];
   		}
   	} else {
   		this.oldValues = this.newValues;
   	}
 
-  	this.changed.length = 0;
   	this.newKeys = null;
   	this.dirty = false;
   };
@@ -3134,6 +3134,7 @@
   				var keypath = model.getKeypath( this$1.ractive );
   				this$1.newValues[ keypath ] = model.get();
   			});
+  			this.partial = false;
   		} else {
   			var ok = this.baseModel.isRoot ?
   				this.changed :
@@ -3146,10 +3147,12 @@
   					this$1.newValues[ keypath ] = model.get();
   				}
   			});
+  			this.partial = true;
   		}
 
   		runloop.addObserver( this, this.defer );
   		this.dirty = true;
+  		this.changed.length = 0;
 
   		if ( this.once ) this.cancel();
   	}
