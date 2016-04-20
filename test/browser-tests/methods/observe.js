@@ -1003,6 +1003,24 @@ export default function() {
 		r.set( 'list.1.foo', 'yep' );
 	});
 
+	test( 'subsequent single segment pattern observers still have the correct old value', t => {
+		t.expect( 4 );
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: {} }, { foo: 2 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o ) => {
+			t.deepEqual( o, { foo: 'yep' } );
+			t.deepEqual( n, { foo: 'yep' } );
+		}, { init: false });
+
+		r.set( 'list.1.foo', 'yep' );
+		r.set( 'list.0.foo', 'yep' );
+	});
+
 	test( 'pattern observers only observe changed values on update', t => {
 		t.expect( 2 );
 

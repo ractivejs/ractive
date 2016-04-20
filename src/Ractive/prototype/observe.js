@@ -191,7 +191,15 @@ class PatternObserver {
 			this.callback.apply( this.context, args );
 		});
 
-		this.oldValues = this.newValues;
+		if ( this.changed.length ) {
+			for ( const k in this.newValues ) {
+				this.oldValues[ k ] = this.newValues;
+			}
+		} else {
+			this.oldValues = this.newValues;
+		}
+
+		this.changed.length = 0;
 		this.newKeys = null;
 		this.dirty = false;
 	}
@@ -246,8 +254,6 @@ class PatternObserver {
 						this.newValues[ keypath ] = model.get();
 					}
 				});
-
-				this.changed.length = 0;
 			}
 
 			runloop.addObserver( this, this.defer );
