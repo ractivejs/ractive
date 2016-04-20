@@ -64,4 +64,20 @@ export default function () {
 		r.toggle( 'bar' );
 		t.equal( span.className, '' );
 	});
+
+	test( `class attributes don't try to remove missing attributes (#2510)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span class="bar{{#if foo}} foo{{/if}}" />`,
+			data: { foo: true }
+		});
+		const span = r.find( 'span' );
+
+		t.equal( span.className, 'bar foo' );
+		span.className = 'bar baz';
+		r.toggle( 'foo' );
+		t.equal( span.className, 'bar baz' );
+		r.toggle( 'foo' );
+		t.equal( span.className, 'bar baz foo' );
+	});
 }
