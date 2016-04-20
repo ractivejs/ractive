@@ -242,7 +242,7 @@ class PatternObserver {
 				this.baseModel.findMatches( this.keys ).forEach( model => {
 					const keypath = model.getKeypath( this.ractive );
 					// is this model on a changed keypath?
-					if ( ok.filter( k => keypath.indexOf( k ) === 0 ).length ) {
+					if ( ok.filter( k => keypath.indexOf( k ) === 0 && ( keypath.length === k.length || keypath[k.length] === '.' ) ).length ) {
 						this.newValues[ keypath ] = model.get();
 					}
 				});

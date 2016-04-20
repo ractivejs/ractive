@@ -530,7 +530,6 @@ export default function() {
 
 		foo = { bar: { baz: 2 } };
 		ractive.set( 'foo', foo );
-
 	});
 
 	test( 'Pattern observers can have multiple wildcards', t => {
@@ -984,6 +983,24 @@ export default function() {
 		}, { init: false });
 
 		r.set( 'list.1', { foo: 'yep' } );
+	});
+
+	test( 'pattern observers only observe changed values with exact keypath matches (#2420)', t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: {} }, { foo: 2 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o, k ) => {
+			t.equal( k, 'list.1' );
+			t.deepEqual( o, { foo: 'yep' } );
+			t.deepEqual( n, { foo: 'yep' } );
+		}, { init: false });
+
+		r.set( 'list.1.foo', 'yep' );
 	});
 
 	test( 'pattern observers only observe changed values on update', t => {
