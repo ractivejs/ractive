@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Apr 20 2016 21:56:00 GMT+0000 (UTC) - commit bfee1c4fb6e4c8b3688860007830f9865db55321
+	Wed Apr 20 2016 23:03:26 GMT+0000 (UTC) - commit 79741398504b0437fb043492ffd1de076f35cdff
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3613,7 +3613,7 @@
   			this.baseModel.findMatches( this.keys ).forEach( function ( model ) {
   				var keypath = model.getKeypath( this$1.ractive );
   				// is this model on a changed keypath?
-  				if ( ok.filter( function ( k ) { return keypath.indexOf( k ) === 0; } ).length ) {
+  				if ( ok.filter( function ( k ) { return keypath.indexOf( k ) === 0 && ( keypath.length === k.length || keypath[k.length] === '.' ); } ).length ) {
   					this$1.newValues[ keypath ] = model.get();
   				}
   			});
