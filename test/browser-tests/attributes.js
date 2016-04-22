@@ -34,6 +34,19 @@ export default function () {
 		t.equal( span.style.height, '87.5%' );
 	});
 
+	test( `style attributes don't try to use a boolean value (#2522)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span style="{{#if foo}}{{else}}color: red{{/if}}" />`,
+			data: { foo: false }
+		});
+		const span = r.find( 'span' );
+
+		t.equal( span.style.color, 'red' );
+		r.set( 'foo', true );
+		t.equal( span.style.color, '' );
+	});
+
 	test( `style attributes can be inline directives`, t => {
 		const r = new Ractive({
 			el: fixture,
