@@ -100,10 +100,8 @@ function check ( tm ) {
 // check through the detach queue to see if a node is up or downstream from a
 // transition and if not, go ahead and detach it
 function detachImmediate ( manager ) {
-	if ( manager.totalChildren ) return;
-
 	const queue = manager.detachQueue;
-	const outros = manager.outros;
+	const outros = collectAllOutros( manager );
 
 	let i = queue.length, j = 0, node, trans;
 	start: while ( i-- ) {
@@ -118,5 +116,21 @@ function detachImmediate ( manager ) {
 		// no match, we can drop it
 		queue[i].detach();
 		queue.splice( i, 1 );
+	}
+}
+
+function collectAllOutros ( manager, list ) {
+	if ( !list ) {
+		list = [];
+		let parent = manager;
+		while ( parent.parent ) parent = parent.parent;
+		return collectAllOutros( parent, list );
+	} else {
+		let i = manager.children.length;
+		while ( i-- ) {
+			list = collectAllOutros( manager.children[i], list );
+		}
+		list = list.concat( manager.outros );
+		return list;
 	}
 }
