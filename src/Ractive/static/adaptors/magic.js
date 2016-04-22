@@ -97,8 +97,8 @@ class MagicWrapper {
 		return this.value;
 	}
 
-	reset () {
-		throw new Error( 'TODO magic adaptor reset' ); // does this ever happen?
+	reset ( value ) {
+		return this.value === value;
 	}
 
 	set ( key, value ) {

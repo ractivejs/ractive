@@ -59,6 +59,8 @@ export default class Model {
 		const adaptors = this.root.adaptors;
 		const len = adaptors.length;
 
+		this.rewrap = false;
+
 		// Exit early if no adaptors
 		if ( len === 0 ) return;
 
@@ -70,8 +72,21 @@ export default class Model {
 
 		// tear previous adaptor down if present
 		if ( this.wrapper ) {
-			this.wrapper.teardown();
-			this.wrapper = null;
+			const shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
+
+			if ( shouldTeardown ) {
+				this.wrapper.teardown();
+				this.wrapper = null;
+
+				// don't branch for undefined values
+				if ( this.value !== undefined ) {
+					const parentValue = this.parent.value || this.parent.createBranch( this.key );
+					if ( parentValue[ this.key ] !== this.value ) parentValue[ this.key ] = value;
+				}
+			} else {
+				this.value = this.wrapper.get();
+				return;
+			}
 		}
 
 		let i;
@@ -137,19 +152,10 @@ export default class Model {
 			this.parent.value = this.parent.wrapper.get();
 
 			this.value = this.parent.value[ this.key ];
-			// TODO should this value be adapted? probably
+			this.adapt();
 		} else if ( this.wrapper ) {
-			const shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
-
-			if ( shouldTeardown ) {
-				this.wrapper.teardown();
-				this.wrapper = null;
-				const parentValue = this.parent.value || this.parent.createBranch( this.key );
-				parentValue[ this.key ] = this.value = value;
-				this.adapt();
-			} else {
-				this.value = this.wrapper.get();
-			}
+			this.value = value;
+			this.adapt();
 		} else {
 			const parentValue = this.parent.value || this.parent.createBranch( this.key );
 			parentValue[ this.key ] = value;
@@ -356,7 +362,7 @@ export default class Model {
 			this.value = value;
 
 			// make sure the wrapper stays in sync
-			if ( old !== value ) this.adapt();
+			if ( old !== value || this.rewrap ) this.adapt();
 
 			this.children.forEach( mark );
 
@@ -448,6 +454,8 @@ export default class Model {
 		const indexModels = [];
 
 		newIndices.forEach( ( newIndex, oldIndex ) => {
+			if ( newIndex !== oldIndex && this.childByKey[oldIndex] ) this.childByKey[oldIndex].shuffled();
+
 			if ( !~newIndex ) return;
 
 			const model = this.indexModels[ oldIndex ];
@@ -475,6 +483,18 @@ export default class Model {
 		this.deps.forEach( dep => {
 			if ( !dep.shuffle ) dep.handleChange();
 		});
+	}
+
+	shuffled () {
+		let i = this.children.length;
+		while ( i-- ) {
+			this.children[i].shuffled();
+		}
+		if ( this.wrapper ) {
+			this.wrapper.teardown();
+			this.wrapper = null;
+			this.rewrap = true;
+		}
 	}
 
 	teardown () {

@@ -11,6 +11,8 @@ export default function Ractive$update ( keypath ) {
 		this.viewmodel.joinAll( keypath ) :
 		this.viewmodel;
 
+	if ( model.parent && model.parent.wrapper ) return this.update( model.parent.getKeypath( this ) );
+
 	const promise = runloop.start( this, true );
 
 	model.mark();
