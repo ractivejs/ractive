@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Apr 20 2016 23:39:55 GMT+0000 (UTC) - commit abdad6a6cdfe8c66d4900c603b0417389999862f
+	Fri Apr 22 2016 20:01:06 GMT+0000 (UTC) - commit bf6be683125c69a6aa9fae95d10e9a6a79ae1d8e
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -7166,6 +7166,8 @@
 
   function readStyle ( css ) {
       var values = [];
+
+      if ( typeof css !== 'string' ) return {};
 
       return css.replace( escape, function ( match ) { return ("\u0000" + (values.push( match ) - 1)); })
           .replace( remove, '' )
