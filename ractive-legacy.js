@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Apr 22 2016 20:13:44 GMT+0000 (UTC) - commit abe0d570642476ae620a26297bf555bd9c999cf5
+	Fri Apr 22 2016 20:17:22 GMT+0000 (UTC) - commit af9dbf1e958a4c03827bafe0f70295c9a738733a
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -15498,7 +15498,7 @@
   	var promise = runloop.start( this, true );
 
   	model.mark();
-  	model.registerChange( model.getKeypath(), model.retrieve() );
+  	model.registerChange( model.getKeypath(), model.get() );
 
   	if ( keypath ) {
   		// there may be unresolved refs that are now resolvable up the context tree
