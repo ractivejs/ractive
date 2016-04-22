@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Apr 22 2016 20:01:06 GMT+0000 (UTC) - commit bf6be683125c69a6aa9fae95d10e9a6a79ae1d8e
+	Fri Apr 22 2016 20:13:44 GMT+0000 (UTC) - commit abe0d570642476ae620a26297bf555bd9c999cf5
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2185,6 +2185,8 @@
   		var adaptors = this.root.adaptors;
   	var len = adaptors.length;
 
+  	this.rewrap = false;
+
   	// Exit early if no adaptors
   	if ( len === 0 ) return;
 
@@ -2196,8 +2198,21 @@
 
   	// tear previous adaptor down if present
   	if ( this.wrapper ) {
-  		this.wrapper.teardown();
-  		this.wrapper = null;
+  		var shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
+
+  		if ( shouldTeardown ) {
+  			this.wrapper.teardown();
+  			this.wrapper = null;
+
+  			// don't branch for undefined values
+  			if ( this.value !== undefined ) {
+  				var parentValue = this.parent.value || this.parent.createBranch( this.key );
+  				if ( parentValue[ this.key ] !== this.value ) parentValue[ this.key ] = value;
+  			}
+  		} else {
+  			this.value = this.wrapper.get();
+  			return;
+  		}
   	}
 
   	var i;
@@ -2265,22 +2280,13 @@
   		this.parent.value = this.parent.wrapper.get();
 
   		this.value = this.parent.value[ this.key ];
-  		// TODO should this value be adapted? probably
+  		this.adapt();
   	} else if ( this.wrapper ) {
-  		var shouldTeardown = !this.wrapper.reset || this.wrapper.reset( value ) === false;
-
-  		if ( shouldTeardown ) {
-  			this.wrapper.teardown();
-  			this.wrapper = null;
-  			var parentValue = this.parent.value || this.parent.createBranch( this.key );
-  			parentValue[ this.key ] = this.value = value;
-  			this.adapt();
-  		} else {
-  			this.value = this.wrapper.get();
-  		}
+  		this.value = value;
+  		this.adapt();
   	} else {
-  		var parentValue$1 = this.parent.value || this.parent.createBranch( this.key );
-  		parentValue$1[ this.key ] = value;
+  		var parentValue = this.parent.value || this.parent.createBranch( this.key );
+  		parentValue[ this.key ] = value;
 
   		this.value = value;
   		this.adapt();
@@ -2490,7 +2496,7 @@
   		this.value = value;
 
   		// make sure the wrapper stays in sync
-  		if ( old !== value ) this.adapt();
+  		if ( old !== value || this.rewrap ) this.adapt();
 
   		this.children.forEach( mark );
 
@@ -2584,6 +2590,8 @@
   		var indexModels = [];
 
   	newIndices.forEach( function ( newIndex, oldIndex ) {
+  		if ( newIndex !== oldIndex && this$1.childByKey[oldIndex] ) this$1.childByKey[oldIndex].shuffled();
+
   		if ( !~newIndex ) return;
 
   		var model = this$1.indexModels[ oldIndex ];
@@ -2611,6 +2619,20 @@
   	this.deps.forEach( function ( dep ) {
   		if ( !dep.shuffle ) dep.handleChange();
   	});
+  };
+
+  Model.prototype.shuffled = function shuffled () {
+  	var this$1 = this;
+
+  		var i = this.children.length;
+  	while ( i-- ) {
+  		this$1.children[i].shuffled();
+  	}
+  	if ( this.wrapper ) {
+  		this.wrapper.teardown();
+  		this.wrapper = null;
+  		this.rewrap = true;
+  	}
   };
 
   Model.prototype.teardown = function teardown$1 () {
@@ -3480,6 +3502,7 @@
   		var result = arrayProto[ methodName ].apply( array, args );
 
   		var promise = runloop.start( this, true ).then( function () { return result; } );
+  		promise.result = result;
 
   		if ( newIndices ) {
   			model.shuffle( newIndices );
@@ -5175,6 +5198,10 @@
   	return this.value;
   };
 
+  ArrayWrapper.prototype.reset = function reset ( value ) {
+  	return this.value === value;
+  };
+
   ArrayWrapper.prototype.teardown = function teardown () {
   	var array, storage, wrappers, instances, index;
 
@@ -5320,8 +5347,8 @@
   	return this.value;
   };
 
-  MagicWrapper.prototype.reset = function reset () {
-  	throw new Error( 'TODO magic adaptor reset' ); // does this ever happen?
+  MagicWrapper.prototype.reset = function reset ( value ) {
+  	return this.value === value;
   };
 
   MagicWrapper.prototype.set = function set ( key, value ) {
@@ -5372,7 +5399,7 @@
   };
 
   MagicArrayWrapper.prototype.reset = function reset ( value ) {
-  	return this.magicWrapper.reset( value );
+  	return this.arrayWrapper.reset( value ) && this.magicWrapper.reset( value );
   };
 
   var magicArrayAdaptor = {
@@ -12392,6 +12419,8 @@
   	var model = keypath ?
   		this.viewmodel.joinAll( keypath ) :
   		this.viewmodel;
+
+  	if ( model.parent && model.parent.wrapper ) return this.update( model.parent.getKeypath( this ) );
 
   	var promise = runloop.start( this, true );
 
