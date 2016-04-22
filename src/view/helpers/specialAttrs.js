@@ -9,6 +9,8 @@ const value = /\0(\d+)/g;
 export function readStyle ( css ) {
     let values = [];
 
+    if ( typeof css !== 'string' ) return {};
+
     return css.replace( escape, match => `\0${values.push( match ) - 1}`)
         .replace( remove, '' )
         .split( ';' )
