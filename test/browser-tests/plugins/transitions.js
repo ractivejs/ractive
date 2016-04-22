@@ -417,25 +417,27 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<span>baz</span>' );
 	});
 
-	test( 'Nodes not affected by a transition should be immediately handled (#2027)', t => {
-		const done = t.async();
-		t.expect( 3 );
+	if ( !/phantom/i.test( navigator.userAgent ) ) {
+		test( 'Nodes not affected by a transition should be immediately handled (#2027)', t => {
+			const done = t.async();
+			t.expect( 3 );
 
-		function trans() {
-			t.ok( true, 'transition actually ran' );
-			return new Promise( ok => setTimeout( ok, 500 ) );
-		}
-		const r = new Ractive({
-			el: fixture,
-			template: `{{#if foo}}<span outro="trans" id="span1" /><span id="span2" />{{/if}}`,
-			data: { foo: true },
-			transitions: { trans }
+			function trans() {
+				t.ok( true, 'transition actually ran' );
+				return new Promise( ok => setTimeout( ok, 200 ) );
+			}
+			const r = new Ractive({
+				el: fixture,
+				template: `{{#if foo}}<span outro="trans" id="span1" /><span id="span2" />{{/if}}`,
+				data: { foo: true },
+				transitions: { trans }
+			});
+
+			r.set( 'foo', false ).then( done, done );
+			t.ok( !/span2/.test( fixture.innerHTML ), 'span2 is gone immediately' );
+			t.ok( /span1/.test( fixture.innerHTML ), 'span1 hangs around until the transition is done' );
 		});
-
-		r.set( 'foo', false ).then( done, done );
-		t.ok( !fixture.querySelector( '#span2' ), 'span2 is gone immediately' );
-		t.ok( fixture.querySelector( '#span1', 'span1 hangs around until the transition is done' ) );
-	});
+	}
 
 	test( 'Context of transition function is current instance', t => {
 		t.expect( 1 );
