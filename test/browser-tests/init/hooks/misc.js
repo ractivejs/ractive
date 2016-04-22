@@ -122,6 +122,29 @@ export default function() {
 		r.update( 'bar' );
 	});
 
+	test( 'change event fires with correct value if the key is computed (#2520)', t => {
+		t.expect( 1 );
+
+		let foo = 'hello';
+		const r = new Ractive({
+			computed: {
+				foo: {
+					get() { return foo; },
+					set( value ) {
+						foo = value;
+						this.update( 'foo' );
+					}
+				}
+			}
+		});
+
+		r.on( 'change', ( changes ) => {
+			t.equal( changes.foo, 'yep' );
+		});
+
+		r.set( 'foo', 'yep' );
+	});
+
 	test( 'correct behaviour of deprecated beforeInit hook (#1395)', t => {
 		t.expect( 6 );
 

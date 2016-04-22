@@ -14,7 +14,7 @@ export default function Ractive$update ( keypath ) {
 	const promise = runloop.start( this, true );
 
 	model.mark();
-	model.registerChange( model.getKeypath(), model.retrieve() );
+	model.registerChange( model.getKeypath(), model.get() );
 
 	if ( keypath ) {
 		// there may be unresolved refs that are now resolvable up the context tree
