@@ -78,7 +78,6 @@ export default class Attribute extends Item {
 	}
 
 	rebind () {
-		if ( this.binding && this.binding.locked ) this.binding.locked = false;
 		if ( this.fragment ) this.fragment.rebind();
 	}
 
