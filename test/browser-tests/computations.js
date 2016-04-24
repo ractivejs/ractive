@@ -1,6 +1,5 @@
 import { test } from 'qunit';
-import { hasUsableConsole, onWarn } from './test-config';
-import { initModule } from './test-config';
+import { initModule, hasUsableConsole, onWarn } from './test-config';
 
 export default function() {
 	initModule( 'computations.js' );
