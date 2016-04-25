@@ -15,6 +15,7 @@ const runloop = {
 			promise = new Promise( f => ( fulfilPromise = f ) );
 		}
 
+		// TODO: this is a temporary hack that needs to go away with a probably breaking change
 		if ( batch ) batch.children++;
 
 		batch = {

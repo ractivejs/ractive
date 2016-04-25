@@ -419,7 +419,7 @@ export default function() {
 		t.ok( !inputs[1].checked );
 	});
 
-	test( `bindings that trigger their own immediate should not get stuck (#2427)`, t => {
+	test( `bindings that trigger their own immediate update via computation should not get stuck (#2427)`, t => {
 		const r = new Ractive({
 			el: fixture,
 			data: {
@@ -675,7 +675,6 @@ export default function() {
 			},
 			onrender () {
 				inputs = this.findAll( 'input' );
-				whatever: { x: 1 }
 			}
 		});
 
