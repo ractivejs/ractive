@@ -1,26 +1,27 @@
 import { splitKeypath } from '../../shared/keypaths';
 import resolveReference from '../../view/resolvers/resolveReference';
 import runloop from '../../global/runloop';
-import Promise from '../../utils/Promise';
 
 export default function link( there, here ) {
 	if ( here === there || (there + '.').indexOf( here + '.' ) === 0 || (here + '.').indexOf( there + '.' ) === 0 ) {
 		throw new Error( 'A keypath cannot be linked to itself.' );
 	}
 
-	let unlink, run, model;
+	const promise = runloop.start();
 
+	let model;
 	let ln = this._links[ here ];
 
 	if ( ln ) {
 		if ( ln.source.model.str !== there || ln.dest.model.str !== here ) {
-			unlink = this.unlink( here );
-		} else {
-			return Promise.resolve( true );
+			ln.unlink();
+			delete this._links[ here ];
+			this.viewmodel.joinAll( splitKeypath( here ) ).set( ln.initialValue );
+		} else { // already linked, so nothing to do
+			runloop.end();
+			return promise;
 		}
 	}
-
-	run = runloop.start();
 
 	// may need to allow a mapping to resolve implicitly
 	const sourcePath = splitKeypath( there );
@@ -38,7 +39,7 @@ export default function link( there, here ) {
 
 	runloop.end();
 
-	return Promise.all( [ unlink, run ] );
+	return promise;
 }
 
 class Link {

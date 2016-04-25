@@ -5,33 +5,15 @@ var sander = require( 'sander' );
 var junk = require( 'junk' );
 var Promise = sander.Promise;
 var rollup = require( 'rollup' );
-var legacyBabelOptions = {
-	presets: [ 'es2015-native-modules' ],
-	plugins: [
-		"transform-es3-property-literals",
-		[ "transform-es2015-classes", { loose: true } ]
-	]
-};
-var babel = require( 'rollup-plugin-babel' )({
-	compact: false,
-	presets: [ "es2015-rollup" ],
-	plugins: [
-		[ "transform-es2015-classes", { loose: true } ]
-	]
-});
-var legacyBabel = require( 'rollup-plugin-babel' )({
-	compact: false,
-	presets: [ "es2015-rollup" ],
-	plugins: [
-		"transform-es3-property-literals",
-		[ "transform-es2015-classes", { loose: true } ]
-	]
-});
+var rollupBuble = require( 'rollup-plugin-buble' );
+
 var sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' );
 var version = require( './package.json' ).version;
 
+var bubleLegacyOptions = { target: { ie: 8 } };
+
 var src = gobble( 'src' );
-var es5 = src;
+var es5 = src.transform( 'buble', { target: { ie: 8 } });
 var lib;
 var test;
 
@@ -51,64 +33,37 @@ function adjustAndSkip ( pattern ) {
 	} };
 }
 
-function bloodyIE8 ( src ) {
-	src = src.replace( /\.typeof/g, "['typeof']" ).replace( /\.catch/g, "['catch']" );
+function noConflict ( src ) {
+	src = src.replace( 'global.Ractive = factory()', '(function() { var current = global.Ractive; var next = factory(); next.noConflict = function() { global.Ractive = current; return next; }; return global.Ractive = next; })()' );
 	return src;
 }
 
+function buildLib ( dest, pattern ) {
+	return es5.transform( 'rollup', {
+		plugins: [ adjustAndSkip( pattern ) ],
+		format: 'umd',
+		entry: 'Ractive.js',
+		moduleName: 'Ractive',
+		dest: dest,
+		banner: banner
+	}).transform( noConflict );
+}
+
+var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
+	.replace( '${version}', version )
+	.replace( '${time}', new Date() )
+	.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
+
 if ( gobble.env() === 'production' ) {
-	var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
-		.replace( '${version}', version )
-		.replace( '${time}', new Date() )
-		.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
-
 	lib = gobble([
-		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip(), legacyBabel ],
-			format: 'umd',
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive-legacy.js',
-			banner: banner
-		}).transform( bloodyIE8 ),
-
-		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\.js/ ), babel ],
-			format: 'umd',
-			banner: banner,
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive.js'
-		}),
-
-		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /legacy\.js|_parse\.js/ ), babel ],
-			format: 'umd',
-			banner: banner,
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive.runtime.js'
-		}),
-
-		src.transform( 'rollup', {
-			plugins: [ adjustAndSkip( /_parse\.js/ ), legacyBabel ],
-			format: 'umd',
-			banner: banner,
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive-legacy.runtime.js'
-		}).transform( bloodyIE8 )
-	]);
+		buildLib( 'ractive-legacy.js' ),
+		buildLib( 'ractive.js', /legacy\.js/ ),
+		buildLib( 'ractive.runtime.js', /legacy\.js|_parse\.js/ ),
+		buildLib( 'ractive-legacy.runtime.js', /_parse\.js/ )
+	]).transform( noConflict );
 } else {
 	lib = gobble([
-		es5.transform( 'babel', legacyBabelOptions ).transform( 'rollup', {
-			plugins: [ adjustAndSkip() ],
-			format: 'umd',
-			entry: 'Ractive.js',
-			moduleName: 'Ractive',
-			dest: 'ractive-legacy.js'
-		}).transform( bloodyIE8 ),
-
+		buildLib( 'ractive-legacy.js' ),
 		sandbox
 	]);
 }
@@ -151,72 +106,28 @@ test = (function () {
 	});
 
 	var testModules = gobble([
-		gobble([ browserTests, gobble( 'test/__support/js' ).moveTo( 'browser-tests' ) ]),
-		es5
-	]).transform( 'babel', legacyBabelOptions ).transform( 'rollup', {
-			plugins: [ adjustAndSkip() ],
-			format: 'umd',
-			entry: 'browser-tests/all.js',
-			moduleName: 'tests',
-			dest: 'all.js',
-			globals: {
-				qunit: 'QUnit',
-				simulant: 'simulant'
-			}
-	}).transform( bloodyIE8 );
-		/*var promises = testFiles.sort().map( function ( mod ) {
-			var transform = {
-				resolveId: function ( importee, importer ) {
-					if ( globals[ importee ] ) return false;
-
-					if ( !importer ) return importee;
-
-					if ( importee[0] === '.' ) {
-						return path.resolve( path.dirname( importer ), importee ) + '.js';
-					}
-
-					return path.resolve( inputdir, importee ) + '.js';
-				},
-				load: function ( id ) {
-					var code = sander.readFileSync( id, { encoding: 'utf-8' });
-
-					if ( /test-config/.test( id ) ) return code;
-
-					return 'import { initModule } from \'test-config\';\n' +
-						'initModule(\'' + mod.replace( /\\/g, '/' ) + '\' );\n\n' +
-						code;
-				}
-			};
-
-			return rollup.rollup({
-				entry: inputdir + '/browser-tests/' + mod,
-				plugins: [ transform, legacyBabel ],
-				globals: globals,
-				onwarn: noop
-			}).then( function ( bundle ) {
-				return bundle.write({
-					dest: outputdir + '/' + mod,
-					format: 'iife',
-					globals: globals
-				});
-			});
-		});
-
-		return Promise.all( promises );
-		*/
-	//}).transform( bloodyIE8 );
+		es5,
+		gobble([ browserTests, gobble( 'test/__support/js' )
+			.moveTo( 'browser-tests' ) ])
+			.transform( 'buble', bubleLegacyOptions )
+	]).transform( 'rollup', {
+		plugins: [ adjustAndSkip() ],
+		format: 'umd',
+		entry: 'browser-tests/all.js',
+		moduleName: 'tests',
+		dest: 'all.js',
+		globals: {
+			qunit: 'QUnit',
+			simulant: 'simulant'
+		}
+	});
 
 	return gobble([
 		gobble( 'test/__support/index.html' )
 			.transform( 'replace', {
 				scriptBlock: '<script src="all.js"></script>'
 			}),
-		/*gobble( 'test/__support/index.html' )
-			.transform( 'replace', {
-				scriptBlock: testFiles.map( function ( src ) {
-					return '<script src="' + src + '"></script>';
-				}).join( '\n\t' )
-			}),*/
+
 		testModules,
 		gobble( 'test/__support/files' ),
 		gobble( 'test/node-tests' ).moveTo( 'node-tests' ),
@@ -227,7 +138,7 @@ test = (function () {
 					var promises = files.map( function ( file ) {
 						return rollup.rollup({
 							entry: inputDir + '/' + file,
-							plugins: [ legacyBabel ],
+							plugins: [ rollupBuble( bubleLegacyOptions ) ],
 							globals: globals,
 							onwarn: noop
 						}).then( function ( bundle ) {

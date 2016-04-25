@@ -396,14 +396,109 @@ export default function() {
 			adapt: [ 'foo' ],
 			adaptors: { foo: fooAdaptor },
 			el: fixture,
-			template: '{{thing}}',
-			data: { thing }
+			template: '{{thing}}'
 		});
 
+		r.set( 'thing', thing );
 		t.htmlEqual( fixture.innerHTML, 'one' );
 		thing.content = 'two';
 		r.update();
 		t.htmlEqual( fixture.innerHTML, 'two' );
+	});
+
+	test( 'extra case for #2493', t => {
+		const thing = { thing: 'one' };
+		const adaptor = {
+			filter ( child, parent, keypath ) {
+				if ( !child || !child.thing ) return false;
+				if ( parent && parent._wrapper && parent._wrapper[ keypath ] ) return false;
+				return true;
+			},
+
+			wrap ( parent, child, keypath ) {
+				if ( !parent._wrapper ) parent._wrapper = {};
+				parent._wrapper[ keypath ] = child;
+
+				return {
+					get () { return child.thing; },
+					teardown () { delete parent._wrapper[ keypath ]; }
+				};
+			}
+		};
+
+		const r = new Ractive({
+			adapt: [ 'foo' ],
+			adaptors: { foo: adaptor },
+			el: fixture,
+			template: '{{thing}}'
+		});
+
+		r.set( 'thing', thing );
+		t.htmlEqual( fixture.innerHTML, 'one' );
+		thing.thing = 'two';
+		r.update();
+		t.htmlEqual( fixture.innerHTML, 'two' );
+	});
+
+	test( 'adaptors with deeper keypaths should also work with update (#2500)', t => {
+		const thing = { thing: { a: 1, b: 4 } };
+		const adaptor = {
+			filter ( child, parent, keypath ) {
+				if ( !child || !child.thing ) return false;
+				if ( parent && parent._wrapper && parent._wrapper[ keypath ] ) return false;
+				return true;
+			},
+
+			wrap ( parent, child, keypath ) {
+				if ( !parent._wrapper ) parent._wrapper = {};
+				parent._wrapper[ keypath ] = child;
+
+				return {
+					get () {
+						var res = {};
+						for ( let k in child.thing ) res[k] = child.thing[k] + 1;
+						return res;
+					},
+					teardown () { delete parent._wrapper[ keypath ]; }
+				};
+			}
+		};
+
+		const r = new Ractive({
+			adapt: [ 'foo' ],
+			adaptors: { foo: adaptor },
+			el: fixture,
+			template: '{{thing.a}} {{thing.b}}'
+		});
+
+		r.set( 'thing', thing );
+		t.htmlEqual( fixture.innerHTML, '2 5' );
+
+		thing.thing.a = 2;
+		r.update( 'thing.a' );
+		t.htmlEqual( fixture.innerHTML, '3 5' );
+
+		thing.thing.b = 5;
+		r.update( 'thing.b' );
+		t.htmlEqual( fixture.innerHTML, '3 6' );
+
+		thing.thing.a = 1;
+		thing.thing.b = 2;
+		r.update( 'thing' );
+		t.htmlEqual( fixture.innerHTML, '2 3' );
+
+		thing.thing.a = 5;
+		thing.thing.b = 10;
+		r.update();
+		t.htmlEqual( fixture.innerHTML, '6 11' );
+
+		thing.thing = { a: 2, b: 4 };
+		r.update( 'thing' );
+		t.htmlEqual( fixture.innerHTML, '3 5' );
+
+		thing.thing = { a: 1, b: 4 };
+		r.update();
+		t.htmlEqual( fixture.innerHTML, '2 5' );
 	});
 
 	test( 'adaptors that adapt whilst marking should tear down old instances', t => {

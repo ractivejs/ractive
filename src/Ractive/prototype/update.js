@@ -11,9 +11,12 @@ export default function Ractive$update ( keypath ) {
 		this.viewmodel.joinAll( keypath ) :
 		this.viewmodel;
 
+	if ( model.parent && model.parent.wrapper ) return this.update( model.parent.getKeypath( this ) );
+
 	const promise = runloop.start( this, true );
 
 	model.mark();
+	model.registerChange( model.getKeypath(), model.get() );
 
 	if ( keypath ) {
 		// there may be unresolved refs that are now resolvable up the context tree
@@ -24,13 +27,8 @@ export default function Ractive$update ( keypath ) {
 		}
 	}
 
-	// notify upstream
-	let parent = model.parent;
-	while ( parent ) {
-		let i = parent.deps.length;
-		while ( i-- ) parent.deps[i].handleChange();
-		parent = parent.parent;
-	}
+	// notify upstream of changes
+	model.notifyUpstream();
 
 	runloop.end();
 

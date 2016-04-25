@@ -8,12 +8,14 @@ class GlobalModel extends Model {
 		this.isRoot = true;
 		this.root = this;
 		this.adaptors = [];
-		this.changes = {};
 	}
 
 	getKeypath() {
 		return '@global';
 	}
+
+	// global model doesn't contribute changes events because it has no instance
+	registerChange () {}
 }
 
 export default new GlobalModel();
