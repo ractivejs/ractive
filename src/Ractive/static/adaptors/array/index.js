@@ -50,6 +50,10 @@ class ArrayWrapper {
 		return this.value;
 	}
 
+	reset ( value ) {
+		return this.value === value;
+	}
+
 	teardown () {
 		var array, storage, wrappers, instances, index;
 

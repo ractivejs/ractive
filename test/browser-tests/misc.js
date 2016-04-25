@@ -1790,21 +1790,21 @@ export default function() {
 				data: { array: array }
 			});
 
-			t.equal( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
 
 			array.push({ foo: [ 6, 7, 8, 9, 10 ] });
-			t.equal( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
 			array.unshift({ foo: [ 0, 1, 2, 3, 4 ] });
-			t.equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
 			ractive.set( 'array', [] );
 			t.equal( array._ractive, undefined );
-			equal( fixture.innerHTML, '' );
+			t.htmlEqual( fixture.innerHTML, '' );
 
 			ractive.set( 'array', array );
 			t.ok( array._ractive );
-			t.equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 		});
 	}
 }
