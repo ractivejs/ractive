@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Apr 22 2016 20:17:22 GMT+0000 (UTC) - commit af9dbf1e958a4c03827bafe0f70295c9a738733a
+	Mon Apr 25 2016 19:30:36 GMT+0000 (UTC) - commit 67b5b224e7fc6e9dd27470c12607b6fe3beea978
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1619,6 +1619,7 @@
   };
 
   TransitionManager.prototype.start = function start () {
+  	detachImmediate( this );
   	this.intros.concat( this.outros ).forEach( function ( t ) { return t.start(); } );
   	this.ready = true;
   	check( this );
@@ -1658,6 +1659,44 @@
   		if ( tm.parent ) {
   			tm.parent.decrementTotal();
   		}
+  	}
+  }
+
+  // check through the detach queue to see if a node is up or downstream from a
+  // transition and if not, go ahead and detach it
+  function detachImmediate ( manager ) {
+  	var queue = manager.detachQueue;
+  	var outros = collectAllOutros( manager );
+
+  	var i = queue.length, j = 0, node, trans;
+  	start: while ( i-- ) {
+  		node = queue[i].node;
+  		j = outros.length;
+  		while ( j-- ) {
+  			trans = outros[j].node;
+  			// check to see if the node is, contains, or is contained by the transitioning node
+  			if ( trans === node || trans.contains( node ) || node.contains( trans ) ) continue start;
+  		}
+
+  		// no match, we can drop it
+  		queue[i].detach();
+  		queue.splice( i, 1 );
+  	}
+  }
+
+  function collectAllOutros ( manager, list ) {
+  	if ( !list ) {
+  		list = [];
+  		var parent = manager;
+  		while ( parent.parent ) parent = parent.parent;
+  		return collectAllOutros( parent, list );
+  	} else {
+  		var i = manager.children.length;
+  		while ( i-- ) {
+  			list = collectAllOutros( manager.children[i], list );
+  		}
+  		list = list.concat( manager.outros );
+  		return list;
   	}
   }
 
