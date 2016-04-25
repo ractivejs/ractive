@@ -67,7 +67,8 @@ function updateId ( reset ) {
 	const { node } = this;
 	const value = this.getValue();
 
-	delete this.ractive.nodes[ node.id ];
+	// remove the mapping to this node if it hasn't already been replaced
+	if ( this.ractive.nodes[ node.id ] === node ) delete this.ractive.nodes[ node.id ];
 	if ( reset ) return node.removeAttribute( 'id' );
 
 	this.ractive.nodes[ value ] = node;

@@ -122,7 +122,8 @@ export default class Element extends Item {
 	}
 
 	detach () {
-		this.decorators.forEach( d => d.unrender( false ) );
+		this.attributes.forEach( unrender );
+
 		return detachNode( this.node );
 	}
 
@@ -338,20 +339,12 @@ export default class Element extends Item {
 
 		if ( this.fragment ) this.fragment.unrender();
 
-		this.attributes.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
-
 		if ( this.binding ) this.binding.unrender();
 
 		// outro transition
 		if ( this._outroTransition && this.ractive.transitionsEnabled ) {
 			this._outroTransition.isIntro = false;
 			runloop.registerTransition( this._outroTransition );
-		}
-
-		// special case
-		const id = this.attributeByName.id;
-		if ( id  ) {
-			delete this.ractive.nodes[ id.getValue() ];
 		}
 
 		removeFromLiveQueries( this );
