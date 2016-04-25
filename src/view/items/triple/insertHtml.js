@@ -46,6 +46,16 @@ export default function ( html, node, docFrag ) {
 		container = container.querySelector( '.x' );
 	}
 
+	else if ( node.tagName === 'TEXTAREA' ) {
+		container = createElement( 'div' );
+
+		if ( typeof container.textContent !== 'undefined' ) {
+			container.textContent = html;
+		} else {
+			container.innerHTML = html;
+		}
+	}
+
 	else {
 		container = element( node.tagName );
 		container.innerHTML = html;

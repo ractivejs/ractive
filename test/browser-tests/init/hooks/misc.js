@@ -94,6 +94,57 @@ export default function() {
 		ractive.set( 'bool', true );
 	});
 
+	test( 'change hook fires even if no fragments changed (#2090)', t => {
+		t.expect( 8 );
+
+		let count = 1, next = false;
+		const r = new Ractive({
+			data: { foo: 1 }
+		});
+
+		r.on( 'change', delta => {
+			t.equal( Object.keys(delta).length, 1 );
+
+			if ( !next ) t.equal( delta.foo, count );
+			else t.equal( delta.bar, 'yep' );
+		});
+
+		count++;
+		r.set( 'foo', count );
+
+		count = 42;
+		r.set( 'foo', count );
+
+		next = true;
+		r.set( 'bar', 'yep' );
+
+		r.get().bar = 'hmm';
+		r.update( 'bar' );
+	});
+
+	test( 'change event fires with correct value if the key is computed (#2520)', t => {
+		t.expect( 1 );
+
+		let foo = 'hello';
+		const r = new Ractive({
+			computed: {
+				foo: {
+					get() { return foo; },
+					set( value ) {
+						foo = value;
+						this.update( 'foo' );
+					}
+				}
+			}
+		});
+
+		r.on( 'change', ( changes ) => {
+			t.equal( changes.foo, 'yep' );
+		});
+
+		r.set( 'foo', 'yep' );
+	});
+
 	test( 'correct behaviour of deprecated beforeInit hook (#1395)', t => {
 		t.expect( 6 );
 
@@ -151,12 +202,12 @@ export default function() {
 				t.ok( /error happened during rendering/.test( msg ) );
 			});
 
-			onLog( stack => {
-				if ( /debug mode/.test( stack ) ) {
+			onLog( error => {
+				if ( /debug mode/.test( error ) ) {
 					return;
 				}
 
-				t.ok( /evil handler/.test( stack ) || /oncomplete@/.test( stack ) ); // Firefox & Safari don't include the error message in the stack for some reason
+				t.ok( error instanceof Error );
 				done();
 			});
 

@@ -5,6 +5,7 @@ import { warnIfDebug } from '../utils/log';
 import Model from './Model';
 import ComputationChild from './ComputationChild';
 import { handleChange } from '../shared/methodCallers';
+import { hasConsole } from '../config/environment';
 
 // TODO this is probably a bit anal, maybe we should leave it out
 function prettify ( fnBody ) {
@@ -95,11 +96,13 @@ export default class Computation extends Model {
 			// TODO this is all well and good in Chrome, but...
 			// ...also, should encapsulate this stuff better, and only
 			// show it if Ractive.DEBUG
-			if ( console.groupCollapsed ) console.groupCollapsed( '%cshow details', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;' );
-			const functionBody = prettify( this.signature.getterString );
-			const stack = this.signature.getterUseStack ? '\n\n' + truncateStack( err.stack ) : '';
-			console.error( `${err.name}: ${err.message}\n\n${functionBody}${stack}` );
-			if ( console.groupCollapsed ) console.groupEnd();
+			if ( hasConsole ) {
+				if ( console.groupCollapsed ) console.groupCollapsed( '%cshow details', 'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;' );
+				const functionBody = prettify( this.signature.getterString );
+				const stack = this.signature.getterUseStack ? '\n\n' + truncateStack( err.stack ) : '';
+				console.error( `${err.name}: ${err.message}\n\n${functionBody}${stack}` );
+				if ( console.groupCollapsed ) console.groupEnd();
+			}
 		}
 
 		const dependencies = stopCapturing();

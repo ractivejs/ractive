@@ -1,7 +1,7 @@
 import runloop from '../../global/runloop';
 import { isArray, isEqual, isObject } from '../../utils/is';
-import { splitKeypath } from '../../shared/keypaths';
-import { cancel } from '../../shared/methodCallers';
+import { splitKeypath, escapeKey } from '../../shared/keypaths';
+import { removeFromArray } from '../../utils/array';
 import resolveReference from '../../view/resolvers/resolveReference';
 
 export default function observe ( keypath, callback, options ) {
@@ -42,8 +42,11 @@ export default function observe ( keypath, callback, options ) {
 	this._observers.push.apply( this._observers, observers );
 
 	return {
-		cancel () {
-			observers.forEach( cancel );
+		cancel: () => {
+			observers.forEach( ( observer ) => {
+				removeFromArray ( this._observers, observer );
+				observer.cancel();
+			} );
 		}
 	};
 }
@@ -148,6 +151,8 @@ class PatternObserver {
 		this.strict = options.strict;
 
 		this.dirty = false;
+		this.changed = [];
+		this.partial = false;
 
 		const models = baseModel.findMatches( this.keys );
 
@@ -161,12 +166,11 @@ class PatternObserver {
 			this.oldValues = this.newValues;
 		}
 
-		baseModel.register( this );
-
+		baseModel.registerPatternObserver( this );
 	}
 
 	cancel () {
-		this.baseModel.unregister( this );
+		this.baseModel.unregisterPatternObserver( this );
 	}
 
 	dispatch () {
@@ -188,12 +192,23 @@ class PatternObserver {
 			this.callback.apply( this.context, args );
 		});
 
-		this.oldValues = this.newValues;
+		if ( this.partial ) {
+			for ( const k in this.newValues ) {
+				this.oldValues[k] = this.newValues[k];
+			}
+		} else {
+			this.oldValues = this.newValues;
+		}
+
 		this.newKeys = null;
 		this.dirty = false;
 	}
 
-	shuffle( newIndices ) {
+	notify ( key ) {
+		this.changed.push( key );
+	}
+
+	shuffle ( newIndices ) {
 		if ( !isArray( this.baseModel.value ) ) return;
 
 		const base = this.baseModel.getKeypath( this.ractive );
@@ -222,13 +237,30 @@ class PatternObserver {
 			// 	this.newValues[ keypath ] = undefined;
 			// });
 
-			this.baseModel.findMatches( this.keys ).forEach( model => {
-				const keypath = model.getKeypath( this.ractive );
-				this.newValues[ keypath ] = model.get();
-			});
+			if ( !this.changed.length ) {
+				this.baseModel.findMatches( this.keys ).forEach( model => {
+					const keypath = model.getKeypath( this.ractive );
+					this.newValues[ keypath ] = model.get();
+				});
+				this.partial = false;
+			} else {
+				const ok = this.baseModel.isRoot ?
+					this.changed :
+					this.changed.map( key => this.baseModel.getKeypath( this.ractive ) + '.' + escapeKey( key ) );
+
+				this.baseModel.findMatches( this.keys ).forEach( model => {
+					const keypath = model.getKeypath( this.ractive );
+					// is this model on a changed keypath?
+					if ( ok.filter( k => keypath.indexOf( k ) === 0 && ( keypath.length === k.length || keypath[k.length] === '.' ) ).length ) {
+						this.newValues[ keypath ] = model.get();
+					}
+				});
+				this.partial = true;
+			}
 
 			runloop.addObserver( this, this.defer );
 			this.dirty = true;
+			this.changed.length = 0;
 
 			if ( this.once ) this.cancel();
 		}

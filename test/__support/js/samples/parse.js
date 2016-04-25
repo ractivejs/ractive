@@ -1,5 +1,4 @@
-function deindent ( strings ) {
-	const string = strings[0];
+function deindent ( string ) {
 	return string.trim().replace( /\t\t\t/gm, '' );
 }
 
@@ -515,24 +514,24 @@ const parseTests = [
 	},
 	{
 		name: 'SVG trace',
-		template: deindent`
+		template: deindent( `
 			<svg xmlns='http://www.w3.org/2000/svg'>
 				<circle cx='{{x}}' cy='{{y}}' r='{{r}}'/>
-			</svg>`,
+			</svg>` ),
 		options: {includeLinePositions:true},
 		parsed: {v:3,t:[{t:7,e:'svg',a:{xmlns:'http://www.w3.org/2000/svg'},f:[{t:7,e:'circle',a:{cx:[{t:2,r:'x',p:[2,14,54]}],cy:[{t:2,r:'y',p:[2,25,65]}],r:[{t:2,r:'r',p:[2,35,75]}]},p:[2,2,42]}],p:[1,1,0]}]}
 	},
 	{
 		name: 'Multiline trace',
 		options: {includeLinePositions:true},
-		template: deindent`
+		template: deindent( `
 			hi{{name}}
 			<div>blah
 				{{#foo}}wew<span>Ain't
 					that {{grand}}?
 					</span>
 				{{/foo}}
-			</div>`,
+			</div>` ),
 		parsed: {v:3,t:['hi',{t:2,p:[1,3,2],r:'name'},' ',{t:7,e:'div',p:[2,1,11],f:['blah ',{t:4,p:[3,2,22],r:'foo',f:['wew',{t:7,e:'span',p:[3,13,33],f:['Ain\'t that ',{t:2,p:[4,8,52],r:'grand'},'?']}]}]}]}
 	},
 	{

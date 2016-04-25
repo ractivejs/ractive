@@ -279,12 +279,12 @@ export default function() {
 
 	test( 'Parameter objects are not polluted (#1239)', t => {
 		const done = t.async();
-	
+
 		t.expect(3)
-	
+
 		let uid = 0;
 		let objects = [];
-	
+
 		new Ractive({
 			el: fixture,
 			template: '{{#each list}}<p intro="foo:{}"></p>{{/each}}',
@@ -325,10 +325,10 @@ export default function() {
 
 	test( 'An intro will be aborted if a corresponding outro begins before it completes', t => {
 		var ractive, tooLate;
-	
+
 		const done = t.async();
 		t.expect( 0 );
-	
+
 		ractive = new Ractive({
 			el: fixture,
 			template: '{{#showBox}}<div intro="wait:2000" outro="wait:1"></div>{{/showBox}}',
@@ -338,17 +338,17 @@ export default function() {
 				}
 			}
 		});
-	
+
 		ractive.set( 'showBox', true ).then( function ( t ) {
 			if ( !tooLate ) {
 				done();
 			}
 		});
-	
+
 		setTimeout( function () {
 			ractive.set( 'showBox', false );
 		}, 0 );
-	
+
 		setTimeout( function () {
 			tooLate = true;
 		}, 200 );
@@ -361,19 +361,19 @@ export default function() {
 			transitions: {
 				foo ( transition, params ) {
 					params = transition.processParams( params );
-	
+
 					// Test that the duration param is present
 					t.equal( params.duration, 1000 );
 				}
 			}
 		});
 	});
-	
+
 	test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
 		let transitionRan = false;
 		const done = t.async();
 		t.expect(1);
-	
+
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
@@ -416,6 +416,28 @@ export default function() {
 		r.set( 'foo', true );
 		t.htmlEqual( fixture.innerHTML, '<span>baz</span>' );
 	});
+
+	if ( !/phantom/i.test( navigator.userAgent ) ) {
+		test( 'Nodes not affected by a transition should be immediately handled (#2027)', t => {
+			const done = t.async();
+			t.expect( 3 );
+
+			function trans() {
+				t.ok( true, 'transition actually ran' );
+				return new Promise( ok => setTimeout( ok, 200 ) );
+			}
+			const r = new Ractive({
+				el: fixture,
+				template: `{{#if foo}}<span outro="trans" id="span1" /><span id="span2" />{{/if}}`,
+				data: { foo: true },
+				transitions: { trans }
+			});
+
+			r.set( 'foo', false ).then( done, done );
+			t.ok( !/span2/.test( fixture.innerHTML ), 'span2 is gone immediately' );
+			t.ok( /span1/.test( fixture.innerHTML ), 'span1 hangs around until the transition is done' );
+		});
+	}
 
 	test( 'Context of transition function is current instance', t => {
 		t.expect( 1 );

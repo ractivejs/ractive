@@ -31,7 +31,7 @@ class MagicArrayWrapper {
 	}
 
 	reset ( value ) {
-		return this.magicWrapper.reset( value );
+		return this.arrayWrapper.reset( value ) && this.magicWrapper.reset( value );
 	}
 }
 

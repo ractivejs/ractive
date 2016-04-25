@@ -13,9 +13,8 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "dev" ]; then
 	lastRemoteCommit=$(git show -s --format=%at)
 	cd ../
 
-	if [[ lastRemoteCommit < lastLocalCommit ]]; then
+	if [[ $lastRemoteCommit < $lastLocalCommit ]]; then
 		echo "Deploying to build branch"
-		git clone https://Rich-Harris:${GH_TOKEN}@${GH_REF} -b build build-branch
 		cp build/* build-branch
 
 		( cd build-branch

@@ -468,12 +468,12 @@ export default function() {
 			data: { foo: { bar: { baz: 1 } } }
 		});
 
-		ractive.observe( 'foo.*', function ( n, o, keypath ) {
-			t.ok( this === window )
+		ractive.observe( 'foo.*', function () {
+			t.ok( this === window );
 		}, { context: window });
 
-		ractive.observe( 'foo', function ( n, o, keypath ) {
-			t.ok( this === window )
+		ractive.observe( 'foo', function () {
+			t.ok( this === window );
 		}, { context: window });
 
 		ractive.set( 'foo.bar.baz', 2 );
@@ -530,7 +530,6 @@ export default function() {
 
 		foo = { bar: { baz: 2 } };
 		ractive.set( 'foo', foo );
-
 	});
 
 	test( 'Pattern observers can have multiple wildcards', t => {
@@ -958,16 +957,108 @@ export default function() {
 	});
 
 	test( 'Pattern observer expects * to only apply to arrays and objects (#1923)', t => {
+		t.expect(0);
 		const ractive = new Ractive({
 			data: { msg: 'hello world' }
 		});
 
-		t.throws( () => {
-			ractive.observe( 'msg.*', () => {
-				t.ok( false, 'observer should not fire' );
-			});
-		}, /Cannot get values of msg\.\* as msg is not an array, object or function/ );
-	})
+		ractive.observe( 'msg.*', () => {
+			t.ok( false, 'observer should not fire' );
+		});
+	});
+
+	test( 'pattern observers only observe changed values (#2420)', t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: 1 }, { foo: 2 } ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o, k ) => {
+			t.equal( k, 'list.1' );
+			t.deepEqual( o, { foo: 2 } );
+			t.deepEqual( n, { foo: 'yep' } );
+		}, { init: false });
+
+		r.set( 'list.1', { foo: 'yep' } );
+	});
+
+	test( 'pattern observers only observe changed values with exact keypath matches (#2420)', t => {
+		t.expect( 3 );
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: {} }, { foo: 2 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o, k ) => {
+			t.equal( k, 'list.1' );
+			t.deepEqual( o, { foo: 'yep' } );
+			t.deepEqual( n, { foo: 'yep' } );
+		}, { init: false });
+
+		r.set( 'list.1.foo', 'yep' );
+	});
+
+	test( 'subsequent single segment pattern observers still have the correct old value', t => {
+		t.expect( 6 );
+		let str = 'yep';
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: {} }, { foo: 2 }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o ) => {
+			t.deepEqual( o, { foo: str } );
+			t.deepEqual( n, { foo: str } );
+		}, { init: false });
+
+		r.set( 'list.1.foo', str );
+		r.set( 'list.0.foo', str );
+		str = 'ha';
+		r.set( 'list.0.foo', str );
+	});
+
+	test( 'pattern observers only observe changed values on update', t => {
+		t.expect( 2 );
+
+		const r = new Ractive({
+			data: {
+				list: [ { foo: 1 }, { foo: 2 } ]
+			}
+		});
+
+		r.observe( 'list.*', ( n, o, k ) => {
+			t.equal( k, 'list.1' );
+			t.deepEqual( n, { foo: 'yep' } );
+		}, { init: false });
+
+		r.get( 'list.1' ).foo = 'yep';
+		r.update( 'list.1.foo' );
+	});
+
+	test( `pattern observer doesn't die on primitive values (#2503)`, t => {
+		const done = t.async();
+		const r = new Ractive({
+			el: fixture,
+			template: '',
+			data: { foo: 0 }
+		});
+
+		r.observe( '* *.*', (n, o, k) => {
+			t.equal( n, 1 );
+			t.equal( o, 0 );
+			t.equal( k, 'foo' );
+			done();
+		}, { init: false });
+
+		r.add( 'foo' );
+	});
 
 	test( 'wildcard * fires on new property', t => {
 		t.expect( 2 );
@@ -980,5 +1071,21 @@ export default function() {
 		}, { init: false} );
 
 		ractive.set( 'foo', 'bar' );
+	});
+
+	test( 'References to observers are not retained after cancel()', t => {
+		const ractive = new Ractive({ data: { counter: 0 } });
+		const obs = ractive.observe( 'counter', ( newValue, oldValue ) => {
+			if ( oldValue ) {
+				return obs.cancel();
+			}
+		});
+
+		t.equal( ractive._observers.length, 1 );
+
+		ractive.add( 'counter' );
+		obs.cancel();
+
+		t.equal( ractive._observers.length, 0 );
 	});
 }

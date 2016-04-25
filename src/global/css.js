@@ -10,8 +10,7 @@ let isDirty = false;
 
 // These only make sense on the browser. See additional setup below.
 let styleElement = null;
-let styleSheet = null;
-let styleProperty = null;
+let useCssText = null;
 
 export function addCSS( styleDefinition ) {
 	styleDefinitions.push( styleDefinition );
@@ -24,7 +23,11 @@ export function applyCSS() {
 	// can call toCSS to get the updated CSS.
 	if ( !doc || !isDirty ) return;
 
-	styleElement[ styleProperty ] = getCSS( null );
+	if ( useCssText ) {
+		styleElement.styleSheet.cssText = getCSS( null );
+	} else {
+		styleElement.innerHTML = getCSS( null );
+	}
 
 	isDirty = false;
 }
@@ -45,7 +48,5 @@ if ( doc && ( !styleElement || !styleElement.parentNode ) ) {
 
 	doc.getElementsByTagName( 'head' )[ 0 ].appendChild( styleElement );
 
-	styleSheet = styleElement.styleSheet;
-
-	styleProperty = styleSheet ? 'cssText' : 'innerHTML';
+	useCssText = !!styleElement.styleSheet;
 }
