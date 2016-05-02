@@ -72,7 +72,7 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 
 		// setup test
 		context.setupComplete = function ( err, setupResult ) {
-			var start, runStart, duration, totalDuration, count = 0, label = version + ': ' + test.name, steps = [];
+			var start, runStart, duration, totalDuration, count = 0, label = version + ': ' + test.name, steps = [], died = false;
 
 			if ( err ) {
 				return callback( err );
@@ -89,7 +89,7 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 
 			context.setupResult = setupResult;
 
-			while ( duration < durationMax && totalDuration < totalDurationMax ) {
+			while ( !died && duration < durationMax && totalDuration < totalDurationMax ) {
 				if ( test.beforeEach ) {
 					context.eval( '(' + test.beforeEach.toString() + ')()' );
 				}
@@ -99,12 +99,16 @@ function runTest ( context, test, version, ractiveUrl, callback ) {
 
 				try {
 					if ( Object.prototype.toString.call( test.test ) === '[object Array]' ) {
-						test.test.forEach( t => runStep( context, t, ( err, res ) => {
-							if ( err ) {
-								return callback( err, { name: test.name, steps } );
-							}
-							steps.push( res );
-						}) );
+						for ( let i = 0; i < test.test.length; i++ ) {
+							const t = test.test[i];
+							runStep( context, t, ( err, res ) => {
+								steps.push( res );
+								if ( err ) {
+									res.error = err;
+									died = true;
+								}
+							});
+						}
 					} else {
 						context.eval( '(' + test.test.toString() + ')(setupResult)' );
 					}
@@ -157,7 +161,7 @@ function runStep ( context, test, callback ) {
 		try {
 			context.eval( '(' + test.test.toString() + ')(setupResult)' );
 		} catch ( e ) {
-			return callback( e );
+			return callback( e, { name: test.name } );
 		}
 
 		duration += now() - runStart;

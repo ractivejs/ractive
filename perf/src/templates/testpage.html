@@ -118,7 +118,7 @@
 							</tr>
 							{{#each .steps}}
 								<tr>
-									<td>&gt;&gt;&gt; {{.name}}</td><td>{{.count}}</td><td>{{formatTime(.average)}}</td>
+									<td {{#if .error}}class='error'{{/if}}>&gt;&gt;&gt; {{.name}}{{#if .error}}<br />{{.error.message}}{{/if}}</td><td>{{.count}}</td><td>{{formatTime(.average)}}</td>
 								</tr>
 							{{/each}}
 						{{/each}}
