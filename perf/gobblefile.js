@@ -17,9 +17,7 @@ module.exports = gobble([
 	// most recent build
 	gobble( '../build' ).moveTo( 'builds/edge' ),
 
-	gobble( 'tests' ).transform( 'es6-transpiler', {
-		disallowUnknownReferences: false
-	}).transform( function ( inputdir, outputdir, options ) {
+	gobble( 'tests' ).transform( 'buble' ).transform( function ( inputdir, outputdir, options ) {
 		var pageTemplate, indexTemplate;
 
 		pageTemplate = makeTemplate( sander.readFileSync( 'src/templates/testpage.html' ).toString() );
@@ -58,9 +56,7 @@ module.exports = gobble([
 		});
 	}),
 
-	gobble( 'src/app' ).transform( 'es6-transpiler', {
-		disallowUnknownReferences: false
-	})
+	gobble( 'src/app' ).transform( 'buble' )
 ]);
 
 

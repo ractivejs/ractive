@@ -61,8 +61,16 @@
 
 		iframe {
 			position: fixed;
+			left: 0;
 			right: 0;
 			bottom: 0;
+			background-color: #fff;
+			height: 0;
+			width: 100vw;
+			transition: height 0.3s ease-in-out;
+		}
+		iframe.visible {
+			height: 50vh;
 		}
 
 		.error {
@@ -83,7 +91,7 @@
 			{{#each versions}}
 				<option>{{this}}</option>
 			{{/each}}
-		</select></p>
+		</select> <label><input type="checkbox" checked="{{~/showResult}}" /> Show Result?</label></p>
 
 		<button disabled='{{running}}' on-click='run()'>{{running ? "running" : "run" }} benchmark suite</button>
 
@@ -97,14 +105,22 @@
 			<p class='results-header'><strong>{{version}}</strong> - total time {{formatTime(total)}}ms</p>
 
 			{{#if errored}}
-				<p class='error'>{{message}}</p>
-			{{else}}
+				<p class='error'>{{#if .testName}}Error during {{.testName}}:{{/if}}{{message}}</p>
+			{{/if}}
+			{{#if results}}
 				<table>
 					<thead><tr><th>test name</th><th>iterations</th><th>avg. duration</th></tr></thead>
 
 					<tbody>
 						{{#each tests}}
-							<tr><td on-click='runInNewWindow(test,version,ractiveUrl)'>{{name}}</td><td>{{count}}</td><td>{{formatTime(average)}}</td></tr>
+							<tr>
+								<td on-click='runInNewWindow(test,version,ractiveUrl)'>{{name}}</td><td>{{count}}</td><td>{{formatTime(average)}}</td>
+							</tr>
+							{{#each .steps}}
+								<tr>
+									<td>&gt;&gt;&gt; {{.name}}</td><td>{{.count}}</td><td>{{formatTime(.average)}}</td>
+								</tr>
+							{{/each}}
 						{{/each}}
 					</tbody>
 				</table>
@@ -144,11 +160,12 @@
 				this.set( 'running', true );
 
 				runSuite( tests, version, '<%= srcPrefix %>/builds/' + version + '/ractive-legacy.js', function ( err, result ) {
+					result = result || {};
+
 					if ( err ) {
-						result = {
-							errored: true,
-							message: err.message || err
-						};
+						if ( err.testName ) result.testName = err.testName;
+						result.errored = true;
+						result.message = err.message || err;
 					}
 
 					result.version = version;
@@ -183,6 +200,14 @@
 					}
 				});
 			}
+		});
+
+		ractive.observe( 'showResult', function( v ) {
+			var frame = document.querySelector( 'iframe' );
+			if ( !frame ) return;
+
+			if ( !v && frame.classList.contains( 'visible' ) ) frame.classList.remove( 'visible' );
+			if ( v && !frame.classList.contains( 'visible' ) ) frame.classList.add( 'visible' );
 		});
 	</script>
 </body>
