@@ -271,6 +271,19 @@ export default function() {
 		});
 	}
 
+	test( 'unresolveds that go out of scope should be unregistered', t => {
+		t.expect( 0 );
+
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each bar}}<span class="{{#if foo * 2 == 4}}yep{{/if}}">test</span>{{/each}}`,
+			data: { bar: [ 1 ] }
+		});
+
+		r.set( 'bar', [] );
+		r.set( 'foo', 2 );
+	});
+
 	test( 'space entity refs should not be consumed during trimming (#2327)', t => {
 		new Ractive({
 			el: fixture,
