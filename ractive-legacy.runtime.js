@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon May 02 2016 20:10:47 GMT+0000 (UTC) - commit 06cce6cef124077bde07889bd954470eda64ed54
+	Mon May 02 2016 22:23:02 GMT+0000 (UTC) - commit 3c485fe5c9b4724a6ddd33d52aa89e2c828c8d80
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3091,6 +3091,14 @@
 
   Model.prototype.registerTwowayBinding = function registerTwowayBinding ( binding ) {
   	this.bindings.push( binding );
+  };
+
+  Model.prototype.removeUnresolved = function removeUnresolved ( key, resolver ) {
+  	var resolvers = this.unresolvedByKey[ key ];
+
+  	if ( resolvers ) {
+  		removeFromArray( resolvers, resolver );
+  	}
   };
 
   Model.prototype.retrieve = function retrieve () {
@@ -12346,7 +12354,20 @@
   };
 
   ReferenceResolver.prototype.unbind = function unbind () {
-  	removeFromArray( this.fragment.unresolved, this );
+  	var this$1 = this;
+
+  		removeFromArray( this.fragment.unresolved, this );
+
+  	if ( this.resolved ) return;
+
+  	var fragment = this.fragment;
+  	while ( fragment ) {
+  		if ( fragment.context ) {
+  			fragment.context.removeUnresolved( this$1.keys[0], this$1 );
+  		}
+
+  		fragment = fragment.componentParent || fragment.parent;
+  	}
   };
 
   // TODO all this code needs to die
