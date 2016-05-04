@@ -23,6 +23,29 @@ function handleDelay ( delay ) {
 	};
 }
 
+function LazyDispatcher ( self ) {
+	return function lazyDispatcher () {
+		// any lazy setting for this element overrides the root
+		// if the value is a number, it's a timeout
+		let lazy = self.ractive.lazy;
+		let timeout = false;
+
+		lazy = this.attributes.lazy.value;
+
+		if ( lazy === 'false' ) lazy = false;
+
+		if ( isNumeric( lazy ) ) {
+			timeout = +lazy;
+			lazy = false;
+		}
+
+		const handler = timeout ? handleDelay( timeout ) : handleDomEvent;
+		
+		if( !lazy )
+			handler.apply( this, arguments );
+	};
+}
+
 export default class GenericBinding extends Binding {
 	getInitialValue () {
 		return '';
@@ -35,39 +58,16 @@ export default class GenericBinding extends Binding {
 	render () {
 		super.render();
 
-		// any lazy setting for this element overrides the root
-		// if the value is a number, it's a timeout
-		let lazy = this.ractive.lazy;
-		let timeout = false;
-
-		// TODO handle at parse time
-		if ( this.element.template.a && ( 'lazy' in this.element.template.a ) ) {
-			lazy = this.element.template.a.lazy;
-			if ( lazy === 0 ) lazy = true; // empty attribute
-		}
-
-		// TODO handle this at parse time as well?
-		if ( lazy === 'false' ) lazy = false;
-
-		if ( isNumeric( lazy ) ) {
-			timeout = +lazy;
-			lazy = false;
-		}
-
-		this.handler = timeout ? handleDelay( timeout ) : handleDomEvent;
-
 		const node = this.node;
+		
+		this.handler = LazyDispatcher( this );
 
-		node.addEventListener( 'change', handleDomEvent, false );
-
-		if ( !lazy ) {
-			node.addEventListener( 'input', this.handler, false );
-
-			if ( node.attachEvent ) {
-				node.addEventListener( 'keyup', this.handler, false );
-			}
+		node.addEventListener( 'input', this.handler, false );
+		if ( node.attachEvent ) {
+			node.addEventListener( 'keyup', this.handler, false );
 		}
-
+		
+		node.addEventListener( 'change', handleDomEvent, false );
 		node.addEventListener( 'blur', handleBlur, false );
 	}
 

@@ -52,7 +52,7 @@ export default class Element extends Item {
 		if ( this.template.a ) {
 			Object.keys( this.template.a ).forEach( name => {
 				// TODO process this at parse time
-				if ( name === 'twoway' || name === 'lazy' ) return;
+				if ( name === 'twoway' ) return;
 
 				const attribute = new Attribute({
 					name,

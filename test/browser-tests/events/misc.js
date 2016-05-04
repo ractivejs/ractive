@@ -201,6 +201,70 @@ export default function() {
 			fire( node, 'input' );
 			t.equal( ractive.get( 'foo' ), 'bar' );
 		});
+		
+		test( 'lazy may be dynamic', t => {
+			const done = t.async();
+
+			let ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}" lazy="{{isLazy}}" />',
+				data: { foo: 'test', isLazy: true }
+			});
+
+			let node = ractive.find( 'input' );
+			node.value = 'bar';
+			fire( node, 'input' );
+			t.equal( ractive.get( 'foo' ), 'test' );
+			fire( node, 'blur' );
+			t.equal( ractive.get( 'foo' ), 'bar' );
+
+			ractive.set( 'isLazy', false );
+
+			node = ractive.find( 'input' );
+			node.value = 'bar';
+			fire( node, 'input' );
+			t.equal( ractive.get( 'foo' ), 'bar' );
+			
+			
+			
+			
+			ractive = new Ractive({
+				el: fixture,
+				template: '<input value="{{foo}}" lazy="{{lazyTimeout}}" />',
+				data: { foo: 'test', lazyTimeout: 20 }
+			});
+			
+			node = ractive.find( 'input' );
+			node.value = 'bar';
+			fire( node, 'input' );
+			t.equal( ractive.get( 'foo' ), 'test' );
+
+			setTimeout( () => {
+				t.equal( ractive.get( 'foo' ), 'test' );
+			}, 5 );
+
+			setTimeout( () => {
+				t.equal( ractive.get( 'foo' ), 'bar' );
+				
+				ractive.set( 'lazyTimeout', 10 );
+
+				let node = ractive.find( 'input' );
+				node.value = 'baz';
+				fire( node, 'input' );
+				t.equal( ractive.get( 'foo' ), 'bar' );
+
+				setTimeout( () => {
+					t.equal( ractive.get( 'foo' ), 'bar' );
+				}, 5 );
+
+				setTimeout( () => {
+					t.equal( ractive.get( 'foo' ), 'baz' );
+					done();
+				}, 15 );
+			}, 30 );			
+			
+			
+		});
 
 		test( 'lazy may be set to a number to trigger on a timeout', t => {
 			const done = t.async();
