@@ -30,9 +30,12 @@ function LazyDispatcher ( self ) {
 		let lazy = self.ractive.lazy;
 		let timeout = false;
 
-		lazy = this.attributes.lazy.value;
+		if( this.attributes.lazy )
+			lazy = this.attributes.lazy.value;
+		
+		lazy = lazy === '' ? true : lazy;
 
-		if ( lazy === 'false' ) lazy = false;
+		lazy = ( lazy === 'false' || lazy === '0' ) ? false : lazy;
 
 		if ( isNumeric( lazy ) ) {
 			timeout = +lazy;
