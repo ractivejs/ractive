@@ -5,7 +5,7 @@ import Item from '../shared/Item';
 import getUpdateDelegate from './attribute/getUpdateDelegate';
 import propertyNames from './attribute/propertyNames';
 import { isArray } from '../../../utils/is';
-import { safeToStringValue } from '../../../utils/dom';
+import { safeAttributeString } from '../../../utils/dom';
 import { booleanAttributes } from '../../../utils/html';
 
 function lookupNamespace ( node, prefix ) {
@@ -131,14 +131,15 @@ export default class Attribute extends Item {
 			return `name="{{${this.interpolator.model.getKeypath()}}}"`;
 		}
 
+		// Special case - style and class attributes and directives
+		if ( this.name === 'style' || this.name === 'class' || this.styleName || this.inlineClass ) {
+			return;
+		}
+
 		if ( booleanAttributes.test( this.name ) ) return value ? this.name : '';
 		if ( value == null ) return '';
 
-		const str = safeToStringValue( this.getString() )
-			.replace( /&/g, '&amp;' )
-			.replace( /"/g, '&quot;' )
-			.replace( /'/g, '&#39;' );
-
+		const str = safeAttributeString( this.getString() );
 		return str ?
 			`${this.name}="${str}"` :
 			this.name;

@@ -141,8 +141,25 @@ function detachNode ( node ) {
 	return node;
 }
 
-function safeToStringValue( value ) {
+function safeToStringValue ( value ) {
 	return ( value == null || !value.toString ) ? '' : '' + value;
 }
 
-export { createElement, detachNode, getElement, matches, safeToStringValue };
+function safeAttributeString ( string ) {
+	return safeToStringValue( string )
+		.replace( /&/g, '&amp;' )
+		.replace( /"/g, '&quot;' )
+		.replace( /'/g, '&#39;' );
+}
+
+const camel = /(-.)/g;
+function camelize ( string ) {
+	return string.replace( camel, s => s.charAt( 1 ).toUpperCase() );
+}
+
+const decamel = /[A-Z]/g;
+function decamelize ( string ) {
+	return string.replace( decamel, s => `-${s.toLowerCase()}` );
+}
+
+export { createElement, detachNode, getElement, matches, safeToStringValue, safeAttributeString, camelize, decamelize };

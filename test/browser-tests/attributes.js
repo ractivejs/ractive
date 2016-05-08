@@ -93,4 +93,22 @@ export default function () {
 		r.toggle( 'foo' );
 		t.equal( span.className, 'bar baz foo' );
 	});
+
+	test( `class directives and class attributes both contribute to toHTML (#2537)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span class-bip="{{true}}" class="foo bar" class-bop="{{true}}" /><span class-foo="{{true}}" class-bar-baz="{{true}}" />`
+		});
+
+		t.equal( r.toHTML(), `<span class="bip foo bar bop"></span><span class="foo bar-baz"></span>` );
+	});
+
+	test( `style directives and style attributes both contribute to toHTML (#2537)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span style-text-decoration="underline" style="color: green" style-fontSize="12pt" /><span style-text-decoration="underline" style-fontSize="12pt" />`
+		});
+
+		t.equal( r.toHTML(), `<span style="text-decoration: underline; color: green; font-size: 12pt;"></span><span style="text-decoration: underline; font-size: 12pt;"></span>` );
+	});
 }
