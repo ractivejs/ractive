@@ -319,7 +319,7 @@ export default class Element extends Item {
 				if ( style && !endsWithSemi.test( style ) ) style += ';';
 			} else if ( attr.styleName ) {
 				style = ( style || '' ) + ( style ? ' ' : '' ) +  `${decamelize( attr.styleName )}: ${safeAttributeString( attr.getString() )};`;
-			} else if ( attr.inlineClass ) {
+			} else if ( attr.inlineClass && attr.getValue() ) {
 				cls = ( cls || '' ) + ( cls ? ' ' : '' ) + attr.inlineClass;
 			}
 		});

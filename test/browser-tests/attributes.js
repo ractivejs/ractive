@@ -97,7 +97,7 @@ export default function () {
 	test( `class directives and class attributes both contribute to toHTML (#2537)`, t => {
 		const r = new Ractive({
 			el: fixture,
-			template: `<span class-bip="{{true}}" class="foo bar" class-bop="{{true}}" /><span class-foo="{{true}}" class-bar-baz="{{true}}" />`
+			template: `<span class-bip="{{true}}" class-nope="{{false}}" class="foo bar" class-bop="{{true}}" /><span class-foo="{{true}}" class-bar-baz="{{true}}" />`
 		});
 
 		t.equal( r.toHTML(), `<span class="bip foo bar bop"></span><span class="foo bar-baz"></span>` );
