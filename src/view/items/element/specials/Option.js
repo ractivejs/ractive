@@ -53,14 +53,14 @@ export default class Option extends Element {
 
 		const selectValue = this.select.getAttribute( 'value' );
 
-		if ( this.select.isSelected( selectValue, optionValue ) ) {
+		if ( this.select.compare( selectValue, optionValue ) ) {
 			return true;
 		}
 
 		if ( this.select.getAttribute( 'multiple' ) && isArray( selectValue ) ) {
 			let i = selectValue.length;
 			while ( i-- ) {
-				if ( this.select.isSelected( selectValue[i], optionValue ) ) {
+				if ( this.select.compare( selectValue[i], optionValue ) ) {
 					return true;
 				}
 			}

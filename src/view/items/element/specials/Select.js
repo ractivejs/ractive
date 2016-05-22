@@ -65,7 +65,7 @@ export default class Select extends Element {
 			let optionWasSelected;
 
 			options.forEach( o => {
-				const shouldSelect = this.isSelected(o, selectValue);
+				const shouldSelect = this.compare(o, selectValue);
 
 				if ( shouldSelect ) {
 					optionWasSelected = true;
@@ -87,7 +87,7 @@ export default class Select extends Element {
 			this.binding.forceUpdate();
 		}
 	}
-	isSelected (o, selectValue) {
+	compare (o, selectValue) {
 		const isMultiple = this.getAttribute( 'multiple' );
 		const comparator = this.getAttribute( 'value-comparator' );
 		const optionValue = o._ractive ? o._ractive.value : o.value;
