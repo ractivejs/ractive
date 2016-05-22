@@ -4,6 +4,52 @@ import { initModule } from './test-config';
 export default function() {
 	initModule( 'select.js' );
 
+	test( 'Use as a string to compare', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			comparatorFn: function(option, value) {
+				return option.id == value.id;
+			},
+			template: `
+				<select id="select" value-comparator="id" value="{{selected}}">
+					{{#options}}
+						<option value="{{.}}">{{.}}</option>
+					{{/options}}
+				</select>`
+		});
+
+		ractive.set({
+			selected: { id: 2 },
+			options: [ { id: 1 }, { id: 2 }, { id: 3 } ]
+		});
+
+		t.equal( ractive.get( 'selected.id' ), '2' );
+		t.equal( ractive.nodes.select.value, { id: 2 } );
+	});
+
+	test( 'Use as a function to compare', t => {
+		const ractive = new Ractive({
+			el: fixture,
+			comparatorFn: function(option, value) {
+				return option.id == value.id;
+			},
+			template: `
+				<select id="select" value-comparator="{{@ractive.comparatorFn}}" value="{{selected}}">
+					{{#options}}
+						<option value="{{.}}">{{.}}</option>
+					{{/options}}
+				</select>`
+		});
+
+		ractive.set({
+			selected: { id: 2 },
+			options: [ { id: 1 }, { id: 2 }, { id: 3 } ]
+		});
+
+		t.equal( ractive.get( 'selected.id' ), '2' );
+		t.equal( ractive.nodes.select.value, { id: 2 } );
+	});
+
 	test( 'If a select\'s value attribute is updated at the same time as the available options, the correct option will be selected', t => {
 		const ractive = new Ractive({
 			el: fixture,
