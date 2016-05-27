@@ -1,5 +1,5 @@
 import { html } from '../../../../config/namespaces';
-import { safeToStringValue } from '../../../../utils/dom';
+import { safeToStringValue, camelize } from '../../../../utils/dom';
 import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
@@ -210,10 +210,9 @@ function updateStyleAttribute () {
 	this.previous = keys;
 }
 
-const camelize = /(-.)/g;
 function updateInlineStyle () {
 	if ( !this.styleName ) {
-		this.styleName = this.name.substr( 6 ).replace( camelize, s => s.charAt( 1 ).toUpperCase() );
+		this.styleName = camelize( this.name.substr( 6 ) );
 	}
 
 	this.node.style[ this.styleName ] = this.getValue();
@@ -248,6 +247,8 @@ function updateInlineClass () {
 	const name = this.name.substr( 6 );
 	const attr = readClass( this.node.className );
 	const value = this.getValue();
+
+	if ( !this.inlineClass ) this.inlineClass = name;
 
 	if ( value && !~attr.indexOf( name ) ) attr.push( name );
 	else if ( !value && ~attr.indexOf( name ) ) attr.splice( attr.indexOf( name ), 1 );

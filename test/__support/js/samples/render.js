@@ -134,7 +134,7 @@ const renderTests = [
 		name: 'Attribute with sections',
 		template: '<ul>{{#todos:i}}<li data-index="{{i}}" class="{{#completed}}completed{{/completed}}{{^completed}}view{{/completed}}">{{desc}}</li>{{/todos}}</ul>',
 		data: { todos: [{ desc: 'debug Ractive', completed: false }, { desc: 'release Ractive', completed: false }, { desc: 'make cup of tea', completed: true }]},
-		result: '<ul><li data-index="0" class="view">debug Ractive</li><li data-index="1" class="view">release Ractive</li><li data-index="2" class="completed">make cup of tea</li></ul>'
+		result: '<ul><li class="view" data-index="0">debug Ractive</li><li class="view" data-index="1">release Ractive</li><li class="completed" data-index="2">make cup of tea</li></ul>'
 	},
 	{
 		name: 'Conditional section with true condition',
