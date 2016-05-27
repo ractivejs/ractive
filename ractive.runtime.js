@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon May 02 2016 22:23:02 GMT+0000 (UTC) - commit 3c485fe5c9b4724a6ddd33d52aa89e2c828c8d80
+	Fri May 27 2016 13:59:19 GMT+0000 (UTC) - commit eb6c7d5670878bf483e50383556451a636060ff6
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2763,7 +2763,7 @@
   		return repeater.context.getIndexModel( repeater.index );
   	}
   	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.getKeyModel();
-  	if ( ref === '@ractive' ) {
+  	if ( ref === '@this' ) {
   		return fragment.ractive.viewmodel.getRactiveModel();
   	}
   	if ( ref === '@global' ) {
@@ -5647,7 +5647,7 @@
   	RactiveModel.prototype.constructor = RactiveModel;
 
   	RactiveModel.prototype.getKeypath = function getKeypath() {
-  		return '@ractive';
+  		return '@this';
   	};
 
   	return RactiveModel;
@@ -5762,7 +5762,7 @@
 
   	RootModel.prototype.joinKey = function joinKey ( key ) {
   		if ( key === '@global' ) return GlobalModel$1;
-  		if ( key === '@ractive' ) return this.getRactiveModel();
+  		if ( key === '@this' ) return this.getRactiveModel();
 
   		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
   		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
@@ -6590,9 +6590,8 @@
   	return { key: key, index: index };
   }
 
-  var eventPattern = /^event(?:\.(.+))?$/;
-  var argumentsPattern = /^arguments\.(\d*)$/;
-  var dollarArgsPattern = /^\$(\d*)$/;
+  var specialPattern = /^(event|arguments)(\..+)?$/;
+  var dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
   var EventDirective = function EventDirective ( owner, event, template ) {
   	this.owner = owner;
@@ -6603,13 +6602,10 @@
   	this.parentFragment = owner.parentFragment;
 
   	this.context = null;
-  	this.passthru = false;
 
   	// method calls
-  	this.method = null;
   	this.resolvers = null;
   	this.models = null;
-  	this.argsFn = null;
 
   	// handler directive
   	this.action = null;
@@ -6623,61 +6619,42 @@
 
   	var template = this.template;
 
-  	if ( template.m ) {
-  		this.method = template.m;
+  	if ( template.x ) {
+  		this.fn = getFunction( template.x.s, template.x.r.length );
+  		this.resolvers = [];
+  		this.models = template.x.r.map( function ( ref, i ) {
+  			var specialMatch = specialPattern.exec( ref );
+  			if ( specialMatch ) {
+  				// on-click="foo(event.node)"
+  				return {
+  					special: specialMatch[1],
+  					keys: specialMatch[2] ? splitKeypathI( specialMatch[2].substr(1) ) : []
+  				};
+  			}
 
-  		// pass-thru "...arguments"
-  		this.passthru = !!template.g;
+  			var dollarMatch = dollarArgsPattern.exec( ref );
+  			if ( dollarMatch ) {
+  				// on-click="foo($1)"
+  				return {
+  					special: 'arguments',
+  					keys: [ dollarMatch[1] - 1 ].concat( dollarMatch[2] ? splitKeypathI( dollarMatch[2].substr( 1 ) ) : [] )
+  				};
+  			}
 
-  		if ( template.a ) {
-  			this.resolvers = [];
-  			this.models = template.a.r.map( function ( ref, i ) {
+  			var resolver;
 
-  				if ( eventPattern.test( ref ) ) {
-  					// on-click="foo(event.node)"
-  					return {
-  						event: true,
-  						keys: ref.length > 5 ? splitKeypathI( ref.slice( 6 ) ) : [],
-  						unbind: noop
-  					};
-  				}
+  			var model = resolveReference( this$1.parentFragment, ref );
+  			if ( !model ) {
+  				resolver = this$1.parentFragment.resolve( ref, function ( model ) {
+  					this$1.models[i] = model;
+  					removeFromArray( this$1.resolvers, resolver );
+  				});
 
-  				var argMatch = argumentsPattern.exec( ref );
-  				if ( argMatch ) {
-  					// on-click="foo(arguments[0])"
-  					return {
-  						argument: true,
-  						index: argMatch[1]
-  					};
-  				}
+  				this$1.resolvers.push( resolver );
+  			}
 
-  				var dollarMatch = dollarArgsPattern.exec( ref );
-  				if ( dollarMatch ) {
-  					// on-click="foo($1)"
-  					return {
-  						argument: true,
-  						index: dollarMatch[1] - 1
-  					};
-  				}
-
-  				var resolver;
-
-  				var model = resolveReference( this$1.parentFragment, ref );
-  				if ( !model ) {
-  					resolver = this$1.parentFragment.resolve( ref, function ( model ) {
-  						this$1.models[i] = model;
-  						removeFromArray( this$1.resolvers, resolver );
-  					});
-
-  					this$1.resolvers.push( resolver );
-  				}
-
-  				return model;
-  			});
-
-  			this.argsFn = getFunction( template.a.s, template.a.r.length );
-  		}
-
+  			return model;
+  		});
   	}
 
   	else {
@@ -6726,43 +6703,29 @@
   		event.key = refs.key;
   	}
 
-  	if ( this.method ) {
-  		if ( typeof this.ractive[ this.method ] !== 'function' ) {
-  			throw new Error( ("Attempted to call a non-existent method (\"" + (this.method) + "\")") );
-  		}
-
-  		var args;
+  	if ( this.fn ) {
+  		var values = [];
 
   		if ( event ) passedArgs.unshift( event );
 
   		if ( this.models ) {
-  			var values = this.models.map( function ( model ) {
-  				if ( !model ) return undefined;
+  			this.models.forEach( function ( model ) {
+  				if ( !model ) return values.push( undefined );
 
-  				if ( model.event ) {
-  					var obj = event;
+  				if ( model.special ) {
+  					var obj = model.special === 'event' ? event : passedArgs;
   					var keys = model.keys.slice();
 
   					while ( keys.length ) obj = obj[ keys.shift() ];
-  					return obj;
-  				}
-
-  				if ( model.argument ) {
-  					return passedArgs ? passedArgs[ model.index ] : void 0;
+  					return values.push( obj );
   				}
 
   				if ( model.wrapper ) {
-  					return model.wrapper.value;
+  					return values.push( model.wrapper.value );
   				}
 
-  				return model.get();
+  				values.push( model.get() );
   			});
-
-  			args = this.argsFn.apply( null, values );
-  		}
-
-  		if ( this.passthru ) {
-  			args = args ? args.concat( passedArgs ) : passedArgs;
   		}
 
   		// make event available as `this.event`
@@ -6770,7 +6733,7 @@
   		var oldEvent = ractive.event;
 
   		ractive.event = event;
-  		var result = ractive[ this.method ].apply( ractive, args );
+  		var result = this.fn.apply( ractive, values ).pop();
 
   		// Auto prevent and stop if return is explicitly false
   		var original;
@@ -6784,15 +6747,15 @@
 
   	else {
   		var action = this.action.toString();
-  		var args$1 = this.template.d ? this.args.getArgsList() : this.args;
+  		var args = this.template.d ? this.args.getArgsList() : this.args;
 
-  		if ( passedArgs.length ) args$1 = args$1.concat( passedArgs );
+  		if ( passedArgs.length ) args = args.concat( passedArgs );
 
   		if ( event ) event.name = action;
 
   		fireEvent( this.ractive, action, {
   			event: event,
-  			args: args$1
+  			args: args
   		});
   	}
   };
@@ -6807,20 +6770,9 @@
   };
 
   EventDirective.prototype.unbind = function unbind$1 () {
-  	var template = this.template;
-
-  	if ( template.m ) {
-  		if ( this.resolvers ) this.resolvers.forEach( unbind );
-  		this.resolvers = [];
-
-  		this.models = null;
-  	}
-
-  	else {
-  		// TODO this is brittle and non-explicit, fix it
-  		if ( this.action.unbind ) this.action.unbind();
-  		if ( this.args.unbind ) this.args.unbind();
-  	}
+  	if ( this.resolvers ) this.resolvers.forEach( unbind );
+  	if ( this.action && this.action.unbind ) this.action.unbind();
+  	if ( this.args && this.args.unbind ) this.args.unbind();
   };
 
   EventDirective.prototype.unrender = function unrender () {
@@ -6833,8 +6785,8 @@
   	this.dirty = false;
 
   	// ugh legacy
-  	if ( this.action.update ) this.action.update();
-  	if ( this.template.d ) this.args.update();
+  	if ( this.action && this.action.update ) this.action.update();
+  	if ( this.args && this.args.update ) this.args.update();
   };
 
   var RactiveEvent = function RactiveEvent ( ractive, name ) {
