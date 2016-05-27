@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri May 27 2016 13:59:19 GMT+0000 (UTC) - commit eb6c7d5670878bf483e50383556451a636060ff6
+	Fri May 27 2016 14:00:50 GMT+0000 (UTC) - commit 32144cebb9abf78273c2b0433954d14e1e0565b2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -269,8 +269,25 @@
   	return node;
   }
 
-  function safeToStringValue( value ) {
+  function safeToStringValue ( value ) {
   	return ( value == null || !value.toString ) ? '' : '' + value;
+  }
+
+  function safeAttributeString ( string ) {
+  	return safeToStringValue( string )
+  		.replace( /&/g, '&amp;' )
+  		.replace( /"/g, '&quot;' )
+  		.replace( /'/g, '&#39;' );
+  }
+
+  var camel = /(-.)/g;
+  function camelize ( string ) {
+  	return string.replace( camel, function ( s ) { return s.charAt( 1 ).toUpperCase(); } );
+  }
+
+  var decamel = /[A-Z]/g;
+  function decamelize ( string ) {
+  	return string.replace( decamel, function ( s ) { return ("-" + (s.toLowerCase())); } );
   }
 
   var create;
@@ -10141,10 +10158,9 @@
   	this.previous = keys;
   }
 
-  var camelize = /(-.)/g;
   function updateInlineStyle () {
   	if ( !this.styleName ) {
-  		this.styleName = this.name.substr( 6 ).replace( camelize, function ( s ) { return s.charAt( 1 ).toUpperCase(); } );
+  		this.styleName = camelize( this.name.substr( 6 ) );
   	}
 
   	this.node.style[ this.styleName ] = this.getValue();
@@ -10179,6 +10195,8 @@
   	var name = this.name.substr( 6 );
   	var attr = readClass( this.node.className );
   	var value = this.getValue();
+
+  	if ( !this.inlineClass ) this.inlineClass = name;
 
   	if ( value && !~attr.indexOf( name ) ) attr.push( name );
   	else if ( !value && ~attr.indexOf( name ) ) attr.splice( attr.indexOf( name ), 1 );
@@ -10358,14 +10376,15 @@
   			return ("name=\"{{" + (this.interpolator.model.getKeypath()) + "}}\"");
   		}
 
+  		// Special case - style and class attributes and directives
+  		if ( this.name === 'style' || this.name === 'class' || this.styleName || this.inlineClass ) {
+  			return;
+  		}
+
   		if ( booleanAttributes.test( this.name ) ) return value ? this.name : '';
   		if ( value == null ) return '';
 
-  		var str = safeToStringValue( this.getString() )
-  			.replace( /&/g, '&amp;' )
-  			.replace( /"/g, '&quot;' )
-  			.replace( /'/g, '&#39;' );
-
+  		var str = safeAttributeString( this.getString() );
   		return str ?
   			("" + (this.name) + "=\"" + str + "\"") :
   			this.name;
@@ -12142,6 +12161,8 @@
   	query.makeDirty();
   }
 
+  var endsWithSemi = /;\s*$/;
+
   var Element = (function (Item) {
   	function Element ( options ) {
   		var this$1 = this;
@@ -12433,6 +12454,24 @@
   		if ( this.name === 'input' && inputIsCheckedRadio( this ) ) {
   			attrs += ' checked';
   		}
+
+  		// Special case style and class attributes and directives
+  		var style, cls;
+  		this.attributes.forEach( function ( attr ) {
+  			if ( attr.name === 'class' ) {
+  				cls = ( cls || '' ) + ( cls ? ' ' : '' ) + safeAttributeString( attr.getString() );
+  			} else if ( attr.name === 'style' ) {
+  				style = ( style || '' ) + ( style ? ' ' : '' ) + safeAttributeString( attr.getString() );
+  				if ( style && !endsWithSemi.test( style ) ) style += ';';
+  			} else if ( attr.styleName ) {
+  				style = ( style || '' ) + ( style ? ' ' : '' ) +  "" + (decamelize( attr.styleName )) + ": " + (safeAttributeString( attr.getString() )) + ";";
+  			} else if ( attr.inlineClass && attr.getValue() ) {
+  				cls = ( cls || '' ) + ( cls ? ' ' : '' ) + attr.inlineClass;
+  			}
+  		});
+  		// put classes first, then inline style
+  		if ( style !== undefined ) attrs = ' style' + ( style ? ("=\"" + style + "\"") : '' ) + attrs;
+  		if ( cls !== undefined ) attrs = ' class' + (cls ? ("=\"" + cls + "\"") : '') + attrs;
 
   		var str = "<" + tagName + "" + attrs + ">";
 
