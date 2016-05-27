@@ -11,15 +11,18 @@ globals = /^(?:Array|console|Date|RegExp|decodeURIComponent|decodeURI|encodeURIC
 // keywords are not valid references, with the exception of `this`
 keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch|throw|try|typeof|var|void|while|with)$/;
 
-var legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
-var relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
+const legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
+const relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
+const spreadPattern = /^\s*\.{3}/;
 
 export default function readReference ( parser ) {
-	var startPos, prefix, name, global, reference, fullLength, lastDotIndex;
+	var startPos, prefix, name, global, reference, fullLength, lastDotIndex, spread;
 
 	startPos = parser.pos;
 
-	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|ractive|global)/ );
+	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|this|global)/ );
+
+	spread = !name && parser.spreadArgs && parser.matchPattern( spreadPattern );
 
 	if ( !name ) {
 		prefix = parser.matchPattern( prefixPattern ) || '';
@@ -49,11 +52,11 @@ export default function readReference ( parser ) {
 
 		return {
 			t: GLOBAL,
-			v: global
+			v: ( spread ? '...' : '' ) + global
 		};
 	}
 
-	fullLength = ( prefix || '' ).length + name.length;
+	fullLength = ( spread ? 3 : 0 ) + ( prefix || '' ).length + name.length;
 	reference = ( prefix || '' ) + normalise( name );
 
 	if ( parser.matchString( '(' ) ) {
@@ -73,6 +76,6 @@ export default function readReference ( parser ) {
 
 	return {
 		t: REFERENCE,
-		n: reference.replace( /^this\./, './' ).replace( /^this$/, '.' )
+		n: ( spread ? '...' : '' ) + reference.replace( /^this\./, './' ).replace( /^this$/, '.' )
 	};
 }

@@ -113,7 +113,7 @@ export default class RootModel extends Model {
 
 	joinKey ( key ) {
 		if ( key === '@global' ) return GlobalModel;
-		if ( key === '@ractive' ) return this.getRactiveModel();
+		if ( key === '@this' ) return this.getRactiveModel();
 
 		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
 		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :

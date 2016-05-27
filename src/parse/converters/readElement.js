@@ -124,7 +124,7 @@ function readElement ( parser ) {
 			// on-click etc
 			else if ( match = proxyEventPattern.exec( attribute.name ) ) {
 				if ( !element.v ) element.v = {};
-				directive = processDirective( attribute.value, parser );
+				directive = processDirective( attribute.value, parser, true );
 				addProxyEvent( match[1], directive );
 			}
 
