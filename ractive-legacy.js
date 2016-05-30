@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri May 27 2016 14:00:50 GMT+0000 (UTC) - commit 32144cebb9abf78273c2b0433954d14e1e0565b2
+	Mon May 30 2016 21:48:42 GMT+0000 (UTC) - commit 8c1ebf9a0b777c443f3a27aa52f2b862fe654e30
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -12846,7 +12846,7 @@
   		if ( occupants ) {
   			var n;
   			while ( ( n = occupants.shift() ) ) {
-  				if ( n.nodeName === this$1.template.e.toUpperCase() && n.namespaceURI === this$1.namespace ) {
+  				if ( n.nodeName.toUpperCase() === this$1.template.e.toUpperCase() && n.namespaceURI === this$1.namespace ) {
   					this$1.node = node = n;
   					existing = true;
   					break;
