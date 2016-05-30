@@ -124,6 +124,7 @@ export default class Element extends Item {
 
 	detach () {
 		this.attributes.forEach( unrender );
+
 		return detachNode( this.node );
 	}
 
@@ -363,12 +364,6 @@ export default class Element extends Item {
 		if ( this._outroTransition && this.ractive.transitionsEnabled ) {
 			this._outroTransition.isIntro = false;
 			runloop.registerTransition( this._outroTransition );
-		}
-
-		// special case
-		const id = this.attributeByName.id;
-		if ( id  ) {
-			delete this.ractive.nodes[ id.getValue() ];
 		}
 
 		removeFromLiveQueries( this );
