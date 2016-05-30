@@ -221,7 +221,7 @@ export default class Element extends Item {
 		if ( occupants ) {
 			let n;
 			while ( ( n = occupants.shift() ) ) {
-				if ( n.nodeName === this.template.e.toUpperCase() && n.namespaceURI === this.namespace ) {
+				if ( n.nodeName.toUpperCase() === this.template.e.toUpperCase() && n.namespaceURI === this.namespace ) {
 					this.node = node = n;
 					existing = true;
 					break;
