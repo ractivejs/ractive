@@ -34,7 +34,7 @@ export default function() {
 				return option.id == value.id;
 			},
 			template: `
-				<select id="select" value-comparator="{{@ractive.comparatorFn}}" value="{{selected}}">
+				<select id="select" value-comparator="{{@this.comparatorFn}}" value="{{selected}}">
 					{{#options}}
 						<option value="{{.}}">{{.}}</option>
 					{{/options}}

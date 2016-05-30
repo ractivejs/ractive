@@ -219,6 +219,125 @@ export default function() {
 		t.ok( !ractive.nodes.green.checked );
 	});
 
+	test( 'Checkbox Name bindings use property attributes to determined if checked or not', t => {
+		let ractive = new Ractive({
+			el: fixture,
+			data: {
+				selected: [ { id: 'green' } ],
+				colors: [ { id: 'red', name: 'Red' }, { id: 'green', name: 'Green' }, { id: 'blue', name: 'Blue' } ]
+			},
+			template: '{{#each colors}}<input id="{{id}}" type="checkbox" name="{{selected}}" value-comparator="id" value="{{.}}">{{/each}}'
+		});
+		t.deepEqual( ractive.get( 'selected' ), [ { id: 'green' } ] );
+		t.ok( !ractive.nodes.red.checked );
+		t.ok( !ractive.nodes.blue.checked );
+		t.ok( ractive.nodes.green.checked );
+
+		ractive = new Ractive({
+			el: fixture,
+			data: {
+				selected: [ { id: 'green' }, { id: 'red' } ],
+				colors: [ { id: 'red', name: 'Red' }, { id: 'green', name: 'Green' }, { id: 'blue', name: 'Blue' } ]
+			},
+			template: '{{#each colors}}<input id="{{id}}" type="checkbox" name="{{selected}}" value-comparator="id" value="{{.}}">{{/each}}'
+		});
+		t.deepEqual( ractive.get( 'selected' ), [ { id: 'green' }, { id: 'red' } ] );
+		t.ok( ractive.nodes.red.checked );
+		t.ok( !ractive.nodes.blue.checked );
+		t.ok( ractive.nodes.green.checked );
+
+		// using function as comparator
+		ractive = new Ractive({
+			el: fixture,
+			comparatorFn: function( v, a ) {
+				return v.id === a.id;
+			},
+			data: {
+				selected: [ { id: 'green' } ],
+				colors: [ { id: 'red', name: 'Red' }, { id: 'green', name: 'Green' }, { id: 'blue', name: 'Blue' } ]
+			},
+			template: '{{#each colors}}<input id="{{id}}" type="checkbox" name="{{selected}}" value-comparator="{{@this.comparatorFn}}" value="{{.}}">{{/each}}'
+		});
+		t.deepEqual( ractive.get( 'selected' ), [ { id: 'green' } ] );
+		t.ok( !ractive.nodes.red.checked );
+		t.ok( !ractive.nodes.blue.checked );
+		t.ok( ractive.nodes.green.checked );
+
+		ractive = new Ractive({
+			el: fixture,
+			data: {
+				selected: [],
+				colors: [ { id: 'red', name: 'Red' }, { id: 'green', name: 'Green' }, { id: 'blue', name: 'Blue' } ]
+			},
+			template: '{{#each colors}}<input id="{{id}}" type="checkbox" name="{{selected}}" value-comparator="id" value="{{.}}">{{/each}}'
+		});
+		t.deepEqual( ractive.get( 'selected' ), [] );
+		t.ok( !ractive.nodes.red.checked );
+		t.ok( !ractive.nodes.blue.checked );
+		t.ok( !ractive.nodes.green.checked );
+
+		fire( ractive.find( '#blue' ), 'click' );
+
+		t.deepEqual( ractive.get( 'selected' ), [ { id: 'blue', name: "Blue" } ] );
+
+		fire( ractive.find( '#green' ), 'click' );
+
+		t.deepEqual( ractive.get( 'selected' ), [ { id: 'blue', name: "Blue" }, { id: 'green', name: 'Green'} ] );
+	});
+
+	test( 'Radio Name bindings use value-comparator to determined if checked or not', t => {
+		let ractive = new Ractive({
+			el: fixture,
+			data: {
+				selected: { id: 'green' },
+				colors: [ { id: 'red', name: 'Red' }, { id: 'green', name: 'Green' }, { id: 'blue', name: 'Blue' } ]
+			},
+			template: '{{#each colors}}<input id="{{id}}" type="radio" name="{{selected}}" value-comparator="id" value="{{.}}">{{/each}}'
+		});
+		t.deepEqual( ractive.get( 'selected' ), { id: 'green' } );
+		t.ok( !ractive.nodes.red.checked );
+		t.ok( !ractive.nodes.blue.checked );
+		t.ok( ractive.nodes.green.checked );
+
+		// using function as comparator
+		ractive = new Ractive({
+			el: fixture,
+			comparatorFn: function( v, a ) {
+				return v.id === a.id;
+			},
+			data: {
+				selected: { id: 'green' },
+				colors: [ { id: 'red', name: 'Red' }, { id: 'green', name: 'Green' }, { id: 'blue', name: 'Blue' } ]
+			},
+			template: '{{#each colors}}<input id="{{id}}" type="radio" name="{{selected}}" value-comparator="{{@this.comparatorFn}}" value="{{.}}">{{/each}}'
+		});
+		t.deepEqual( ractive.get( 'selected' ), { id: 'green' } );
+		t.ok( !ractive.nodes.red.checked );
+		t.ok( !ractive.nodes.blue.checked );
+		t.ok( ractive.nodes.green.checked );
+
+		ractive = new Ractive({
+			el: fixture,
+			data: {
+				selected: undefined,
+				colors: [ { id: 'red', name: 'Red' }, { id: 'green', name: 'Green' }, { id: 'blue', name: 'Blue' } ]
+			},
+			template: '{{#each colors}}<input id="{{id}}" type="radio" name="{{selected}}" value-comparator="id" value="{{.}}">{{/each}}'
+		});
+		t.deepEqual( ractive.get( 'selected' ), undefined );
+		t.ok( !ractive.nodes.red.checked );
+		t.ok( !ractive.nodes.blue.checked );
+		t.ok( !ractive.nodes.green.checked );
+
+		fire( ractive.find( '#blue' ), 'click' );
+
+		t.deepEqual( ractive.get( 'selected' ), { id: 'blue', name: "Blue" } );
+
+		fire( ractive.find( '#green' ), 'click' );
+
+		t.deepEqual( ractive.get( 'selected' ), { id: 'green', name: 'Green'} );
+	});
+
 	test( 'The model overrides which checkbox inputs are checked at render time', t => {
 		const ractive = new Ractive({
 			el: fixture,
