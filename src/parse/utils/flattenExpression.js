@@ -2,14 +2,25 @@ import { REFERENCE, BOOLEAN_LITERAL, GLOBAL, NUMBER_LITERAL, REGEXP_LITERAL, STR
 import { isObject } from '../../utils/is';
 
 export default function flattenExpression ( expression ) {
-	var refs;
+	var refs, count = 0, stringified;
 
 	extractRefs( expression, refs = [] );
+	stringified = stringify( expression );
+
+	refs = refs.map( r => r.indexOf( '...' ) === 0 ? r.substr( 3 ) : r );
 
 	return {
 		r: refs,
-		s: stringify( expression )
+		s: getVars(stringified)
 	};
+
+	function getVars(expr) {
+		let vars = [];
+		for ( let i = count - 1; i >= 0; i-- ) {
+			vars.push( `spread$${i}` );
+		}
+		return vars.length ? `(function(){var ${vars.join(',')};return(${expr});})()` : expr;
+	}
 
 	function stringify ( node ) {
 		switch ( node.t ) {
@@ -38,7 +49,12 @@ export default function flattenExpression ( expression ) {
 				return stringify( node.o[0] ) + ( node.s.substr( 0, 2 ) === 'in' ? ' ' + node.s + ' ' : node.s ) + stringify( node.o[1] );
 
 			case INVOCATION:
-				return stringify( node.x ) + '(' + ( node.o ? node.o.map( stringify ).join( ',' ) : '' ) + ')';
+				if ( node.spread ) {
+					let id = count++;
+					return `(spread$${ id } = ${ stringify(node.x) }).apply(spread$${ id }, [].concat(${ node.o ? node.o.map( a => a.n && a.n.indexOf( '...' ) === 0 ? stringify( a ) : '[' + stringify(a) + ']' ).join( ',' ) : '' }) )`;
+				} else {
+					return stringify( node.x ) + '(' + ( node.o ? node.o.map( stringify ).join( ',' ) : '' ) + ')';
+				}
 
 			case BRACKETED:
 				return '(' + stringify( node.x ) + ')';
@@ -78,6 +94,9 @@ function extractRefs ( node, refs ) {
 		} else {
 			i = list.length;
 			while ( i-- ) {
+				if ( list[i].n && list[i].n.indexOf('...') === 0 ) {
+					node.spread = true;
+				}
 				extractRefs( list[i], refs );
 			}
 		}

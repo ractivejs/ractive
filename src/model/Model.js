@@ -441,6 +441,14 @@ export default class Model {
 		this.bindings.push( binding );
 	}
 
+	removeUnresolved ( key, resolver ) {
+		const resolvers = this.unresolvedByKey[ key ];
+
+		if ( resolvers ) {
+			removeFromArray( resolvers, resolver );
+		}
+	}
+
 	retrieve () {
 		return this.parent.value ? this.parent.value[ this.key ] : undefined;
 	}

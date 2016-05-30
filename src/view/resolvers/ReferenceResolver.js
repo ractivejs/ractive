@@ -45,5 +45,16 @@ export default class ReferenceResolver {
 
 	unbind () {
 		removeFromArray( this.fragment.unresolved, this );
+
+		if ( this.resolved ) return;
+
+		let fragment = this.fragment;
+		while ( fragment ) {
+			if ( fragment.context ) {
+				fragment.context.removeUnresolved( this.keys[0], this );
+			}
+
+			fragment = fragment.componentParent || fragment.parent;
+		}
 	}
 }

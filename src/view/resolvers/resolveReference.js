@@ -33,7 +33,7 @@ export default function resolveReference ( fragment, ref ) {
 		return repeater.context.getIndexModel( repeater.index );
 	}
 	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.getKeyModel();
-	if ( ref === '@ractive' ) {
+	if ( ref === '@this' ) {
 		return fragment.ractive.viewmodel.getRactiveModel();
 	}
 	if ( ref === '@global' ) {
