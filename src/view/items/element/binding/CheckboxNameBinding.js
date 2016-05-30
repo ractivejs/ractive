@@ -130,19 +130,17 @@ export default class CheckboxNameBinding extends Binding {
 
 	arrayContains ( selectValue, optionValue ) {
 		let i = selectValue.length;
-		const compare = this.element.compare;
 		while ( i-- ) {
 			if ( this.element.compare( optionValue, selectValue[i] ) ) return true;
 		}
 		return false;
 	}
 
-	removeFromArray( array, item ) {
+	removeFromArray ( array, item ) {
 		if (!array) return;
 		let i = array.length;
-		const compare = this.element.compare;
 		while( i-- ) {
-			if ( this.element.compare ( item, array[i] ) ) {
+			if ( this.element.compare( item, array[i] ) ) {
 				array.splice( i, 1 );
 			}
 		}

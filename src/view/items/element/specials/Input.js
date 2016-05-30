@@ -7,9 +7,9 @@ export default class Input extends Element {
 	}
 	compare ( value, attrValue ) {
 		const comparator = this.getAttribute( 'value-comparator' );
-		if (comparator) {
-			if (typeof comparator === 'function') {
-				return comparator(value, attrValue);
+		if ( comparator ) {
+			if ( typeof comparator === 'function' ) {
+				return comparator( value, attrValue );
 			}
 			if (value && attrValue) {
 				return value[comparator] == attrValue[comparator];

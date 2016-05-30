@@ -58,15 +58,11 @@ export default class Select extends Element {
 			let optionWasSelected;
 
 			options.forEach( o => {
-				let shouldSelect = false;
 				const optionValue = o._ractive ? o._ractive.value : o.value;
 				const isMultiple = this.getAttribute( 'multiple' );
 
-				if (isMultiple) {
-					shouldSelect = this.valueContains ( selectValue, optionValue );
-				} else {
-					shouldSelect = this.compare(optionValue, selectValue);
-				}
+				let shouldSelect = isMultiple? this.valueContains( selectValue, optionValue )
+				                             : this.compare( optionValue, selectValue );
 
 				if ( shouldSelect ) {
 					optionWasSelected = true;
@@ -96,11 +92,11 @@ export default class Select extends Element {
 	}
 	compare (optionValue, selectValue) {
 		const comparator = this.getAttribute( 'value-comparator' );
-		if (comparator) {
+		if ( comparator ) {
 			if (typeof comparator === 'function') {
-				return comparator(selectValue, optionValue);
+				return comparator( selectValue, optionValue );
 			}
-			if (selectValue && optionValue) {
+			if ( selectValue && optionValue ) {
 				return selectValue[comparator] == optionValue[comparator];
 			}
 		}
