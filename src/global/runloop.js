@@ -1,5 +1,5 @@
 import Hook from '../events/Hook';
-import { addToArray } from '../utils/array';
+import { addToArray, removeFromArray } from '../utils/array';
 import Promise from '../utils/Promise';
 import TransitionManager from './TransitionManager';
 
@@ -22,6 +22,7 @@ const runloop = {
 			tasks: [],
 			immediateObservers: [],
 			deferredObservers: [],
+			ractives: [],
 			instance: instance
 		};
 
@@ -35,6 +36,10 @@ const runloop = {
 
 	addFragment ( fragment ) {
 		addToArray( batch.fragments, fragment );
+	},
+
+	addInstance ( instance ) {
+		if ( batch ) addToArray( batch.ractives, instance );
 	},
 
 	addObserver ( observer, defer ) {
@@ -88,6 +93,8 @@ function flushChanges () {
 
 	which = batch.fragments;
 	batch.fragments = [];
+	const ractives = batch.ractives;
+	batch.ractives = [];
 
 	while ( i-- ) {
 		fragment = which[i];
@@ -96,8 +103,16 @@ function flushChanges () {
 		const ractive = fragment.ractive;
 		changeHook.fire( ractive, ractive.viewmodel.changes );
 		ractive.viewmodel.changes = {};
+		removeFromArray( ractives, ractive );
 
 		fragment.update();
+	}
+
+	i = ractives.length;
+	while ( i-- ) {
+		const ractive = ractives[i];
+		changeHook.fire( ractive, ractive.viewmodel.changes );
+		ractive.viewmodel.changes = {};
 	}
 
 	batch.transitionManager.start();
@@ -116,5 +131,5 @@ function flushChanges () {
 	// If updating the view caused some model blowback - e.g. a triple
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
-	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length ) return flushChanges();
+	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length ) return flushChanges();
 }

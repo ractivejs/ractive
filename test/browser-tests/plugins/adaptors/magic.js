@@ -199,27 +199,24 @@ export default function() {
 			t.htmlEqual( fixture.innerHTML, '<p>David Copperfield</p>' );
 		});
 
-		// TODO: fix this, failing since keypath-ftw
-		/*
-		   test( "Magic adapters shouldn't tear themselves down while resetting (#1342)", t => {
-		   let list = 'abcde'.split('');
-		   let ractive = new MagicRactive({
-el: fixture,
-template: '{{#list}}{{.}}{{/}}',
-data: { list: list },
-magic: true
-});
+		test( "Magic adapters shouldn't tear themselves down while resetting (#1342)", t => {
+			let list = 'abcde'.split('');
+			new MagicRactive({
+				el: fixture,
+				template: '{{#list}}{{.}}{{/}}',
+				data: { list: list },
+				magic: true
+			});
 
-t.htmlEqual( fixture.innerHTML, 'abcde' );
-// if the wrapper causes itself to be recreated, this is where it happens
-// during reset
-list.pop();
-t.htmlEqual( fixture.innerHTML, 'abcd' );
-// since the wrapper now has two magic adapters, two fragments get popped
-list.pop();
-t.htmlEqual( fixture.innerHTML, 'abc' );
-});
-*/
+			t.htmlEqual( fixture.innerHTML, 'abcde' );
+			// if the wrapper causes itself to be recreated, this is where it happens
+			// during reset
+			list.pop();
+			t.htmlEqual( fixture.innerHTML, 'abcd' );
+			// since the wrapper now has two magic adapters, two fragments get popped
+			list.pop();
+			t.htmlEqual( fixture.innerHTML, 'abc' );
+		});
 
 		test( 'Data passed into component updates from outside component in magic mode', t => {
 			const Widget = Ractive.extend({
@@ -240,6 +237,28 @@ t.htmlEqual( fixture.innerHTML, 'abc' );
 			data.world = 'venus';
 
 			t.htmlEqual( fixture.innerHTML, 'venusvenus' );
+		});
+
+		test( `splicing arrays around a magic array doesn't cause rendering errors (#2005)`, t => {
+			const items = [
+				{ num: 1, items: [] },
+				{ num: 2, items: [] },
+				{ num: 3, items: [] },
+				{ num: 4, items: [] }
+			];
+			const third = items[2];
+			new Ractive({
+				el: fixture,
+				template: `{{#items}}{{.num}}{{#.items}}-{{.num}}{{/}}{{/}}`,
+				data: { items },
+				magic: true
+			});
+
+			t.htmlEqual( fixture.innerHTML, '1234' );
+			third.items.push(items.splice(0, 1)[0]);
+			t.htmlEqual( fixture.innerHTML, '23-14' );
+			third.items.push(items.splice(0, 1)[0]);
+			t.htmlEqual( fixture.innerHTML, '3-1-24' );
 		});
 
 		test( 'Indirect changes propagate across components in magic mode (#480)', t => {

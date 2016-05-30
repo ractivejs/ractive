@@ -6,7 +6,6 @@ import cleanup from '../utils/cleanup';
 import readMustache from './readMustache';
 import readClosing from './mustache/section/readClosing';
 import readClosingTag from './element/readClosingTag';
-import { readAttributeOrDirective } from './element/readAttribute';
 
 var tagNamePattern = /^[a-zA-Z]{1,}:?[a-zA-Z0-9\-]*/,
 	validTagNameFollower = /^[\s\n\/>]/,

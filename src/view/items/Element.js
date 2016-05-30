@@ -6,8 +6,8 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
-import { bind, rebind, render, unbind, unrender, unrenderAndDestroy, update } from '../../shared/methodCallers';
-import { createElement, detachNode, matches } from '../../utils/dom';
+import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
+import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
@@ -16,6 +16,8 @@ import selectBinding from './element/binding/selectBinding';
 function makeDirty ( query ) {
 	query.makeDirty();
 }
+
+const endsWithSemi = /;\s*$/;
 
 export default class Element extends Item {
 	constructor ( options ) {
@@ -97,7 +99,6 @@ export default class Element extends Item {
 		this.attributes.binding = true;
 		this.attributes.forEach( bind );
 		this.attributes.binding = false;
-		//this.eventHandlers.forEach( bind );
 
 		if ( this.fragment ) this.fragment.bind();
 
@@ -122,7 +123,7 @@ export default class Element extends Item {
 	}
 
 	detach () {
-		this.decorators.forEach( d => d.unrender( false ) );
+		this.attributes.forEach( unrender );
 		return detachNode( this.node );
 	}
 
@@ -174,7 +175,7 @@ export default class Element extends Item {
 
 	rebind () {
 		this.attributes.forEach( rebind );
-		//this.eventHandlers.forEach( rebind );
+
 		if ( this.fragment ) this.fragment.rebind();
 		if ( this.binding ) this.binding.rebind();
 
@@ -288,6 +289,24 @@ export default class Element extends Item {
 			attrs += ' checked';
 		}
 
+		// Special case style and class attributes and directives
+		let style, cls;
+		this.attributes.forEach( attr => {
+			if ( attr.name === 'class' ) {
+				cls = ( cls || '' ) + ( cls ? ' ' : '' ) + safeAttributeString( attr.getString() );
+			} else if ( attr.name === 'style' ) {
+				style = ( style || '' ) + ( style ? ' ' : '' ) + safeAttributeString( attr.getString() );
+				if ( style && !endsWithSemi.test( style ) ) style += ';';
+			} else if ( attr.styleName ) {
+				style = ( style || '' ) + ( style ? ' ' : '' ) +  `${decamelize( attr.styleName )}: ${safeAttributeString( attr.getString() )};`;
+			} else if ( attr.inlineClass && attr.getValue() ) {
+				cls = ( cls || '' ) + ( cls ? ' ' : '' ) + attr.inlineClass;
+			}
+		});
+		// put classes first, then inline style
+		if ( style !== undefined ) attrs = ' style' + ( style ? `="${style}"` : '' ) + attrs;
+		if ( cls !== undefined ) attrs = ' class' + (cls ? `="${cls}"` : '') + attrs;
+
 		let str = `<${tagName}${attrs}>`;
 
 		if ( this.isVoid ) return str;
@@ -338,8 +357,6 @@ export default class Element extends Item {
 
 		if ( this.fragment ) this.fragment.unrender();
 
-		this.attributes.forEach( shouldDestroy ? unrenderAndDestroy : unrender );
-
 		if ( this.binding ) this.binding.unrender();
 
 		// outro transition
@@ -363,7 +380,6 @@ export default class Element extends Item {
 			this.dirty = false;
 
 			this.attributes.forEach( update );
-			//this.eventHandlers.forEach( update );
 
 			if ( this.fragment ) this.fragment.update();
 		}

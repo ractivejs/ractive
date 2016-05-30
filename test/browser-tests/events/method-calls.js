@@ -49,7 +49,7 @@ export default function() {
 		// is a world of facepalm http://jsfiddle.net/geoz2tks/
 		const onerror = window.onerror;
 		window.onerror = function ( err ) {
-			t.ok( /Attempted to call a non-existent method \(\"activate\"\)/.test( err ) );
+			t.ok( /is not a function/.test( err ) );
 			return true;
 		};
 
@@ -176,16 +176,6 @@ export default function() {
 		const component = ractive.findComponent( 'Component' );
 		fire( component.nodes.test, 'click' );
 		component.fire( 'bar', 'bar', 100 );
-	});
-
-	test( 'component ...arguments must be last argument', t => {
-		t.throws( () => {
-			new Ractive({
-				template: `<c on-foo="foo(...arguments, 'arg after spread')"/>`
-			});
-		}, /Expected a property name/);
-
-
 	});
 
 	test( 'component "on-" with additive ...arguments', t => {

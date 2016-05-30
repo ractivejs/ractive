@@ -239,7 +239,7 @@ export function readAttributeOrDirective ( parser ) {
 		else if ( match = proxyEventPattern.exec( attribute.n ) ) {
 			attribute.n = match[1];
 			attribute.t = EVENT;
-			attribute.f = processDirective( attribute.f, parser );
+			attribute.f = processDirective( attribute.f, parser, EVENT );
 
 			if ( reservedEventNames.test( attribute.f.n || attribute.f ) ) {
 				parser.pos -= ( attribute.f.n || attribute.f ).length;

@@ -1,5 +1,5 @@
 import { html } from '../../../../config/namespaces';
-import { safeToStringValue } from '../../../../utils/dom';
+import { safeToStringValue, camelize } from '../../../../utils/dom';
 import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
@@ -67,7 +67,8 @@ function updateId ( reset ) {
 	const { node } = this;
 	const value = this.getValue();
 
-	delete this.ractive.nodes[ node.id ];
+	// remove the mapping to this node if it hasn't already been replaced
+	if ( this.ractive.nodes[ node.id ] === node ) delete this.ractive.nodes[ node.id ];
 	if ( reset ) return node.removeAttribute( 'id' );
 
 	this.ractive.nodes[ value ] = node;
@@ -242,10 +243,9 @@ function updateStyleAttribute ( reset ) {
 	this.previous = keys;
 }
 
-const camelize = /(-.)/g;
 function updateInlineStyle ( reset ) {
 	if ( !this.styleName ) {
-		this.styleName = this.name.substr( 6 ).replace( camelize, s => s.charAt( 1 ).toUpperCase() );
+		this.styleName = camelize( this.name.substr( 6 ) );
 	}
 
 	this.node.style[ this.styleName ] = reset ? '' : this.getValue();
@@ -280,6 +280,8 @@ function updateInlineClass ( reset ) {
 	const name = this.name.substr( 6 );
 	const attr = readClass( this.node.className );
 	const value = reset ? false : this.getValue();
+
+	if ( !this.inlineClass ) this.inlineClass = name;
 
 	if ( value && !~attr.indexOf( name ) ) attr.push( name );
 	else if ( !value && ~attr.indexOf( name ) ) attr.splice( attr.indexOf( name ), 1 );

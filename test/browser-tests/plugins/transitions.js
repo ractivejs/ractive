@@ -354,6 +354,21 @@ export default function() {
 		}, 200 );
 	});
 
+	test( 'processParams extends correctly if no default provided (#2446)', t => {
+		new Ractive({
+			el: fixture,
+			template: '<p intro="foo:{duration: 1000}"></p>',
+			transitions: {
+				foo ( transition, params ) {
+					params = transition.processParams( params );
+
+					// Test that the duration param is present
+					t.equal( params.duration, 1000 );
+				}
+			}
+		});
+	});
+
 	test( 'Conditional sections that become truthy are not rendered if a parent simultaneously becomes falsy (#1483)', t => {
 		let transitionRan = false;
 		const done = t.async();
@@ -401,6 +416,28 @@ export default function() {
 		r.set( 'foo', true );
 		t.htmlEqual( fixture.innerHTML, '<span>baz</span>' );
 	});
+
+	if ( !/phantom/i.test( navigator.userAgent ) ) {
+		test( 'Nodes not affected by a transition should be immediately handled (#2027)', t => {
+			const done = t.async();
+			t.expect( 3 );
+
+			function trans() {
+				t.ok( true, 'transition actually ran' );
+				return new Promise( ok => setTimeout( ok, 400 ) );
+			}
+			const r = new Ractive({
+				el: fixture,
+				template: `{{#if foo}}<span outro="trans" id="span1" /><span id="span2" />{{/if}}`,
+				data: { foo: true },
+				transitions: { trans }
+			});
+
+			r.set( 'foo', false ).then( done, done );
+			t.ok( !/span2/.test( fixture.innerHTML ), 'span2 is gone immediately' );
+			t.ok( /span1/.test( fixture.innerHTML ), 'span1 hangs around until the transition is done' );
+		});
+	}
 
 	test( 'Context of transition function is current instance', t => {
 		t.expect( 1 );

@@ -53,6 +53,7 @@ export default class TransitionManager {
 	}
 
 	start () {
+		detachImmediate( this );
 		this.intros.concat( this.outros ).forEach( t => t.start() );
 		this.ready = true;
 		check( this );
@@ -93,5 +94,43 @@ function check ( tm ) {
 		if ( tm.parent ) {
 			tm.parent.decrementTotal();
 		}
+	}
+}
+
+// check through the detach queue to see if a node is up or downstream from a
+// transition and if not, go ahead and detach it
+function detachImmediate ( manager ) {
+	const queue = manager.detachQueue;
+	const outros = collectAllOutros( manager );
+
+	let i = queue.length, j = 0, node, trans;
+	start: while ( i-- ) {
+		node = queue[i].node;
+		j = outros.length;
+		while ( j-- ) {
+			trans = outros[j].element.node;
+			// check to see if the node is, contains, or is contained by the transitioning node
+			if ( trans === node || trans.contains( node ) || node.contains( trans ) ) continue start;
+		}
+
+		// no match, we can drop it
+		queue[i].detach();
+		queue.splice( i, 1 );
+	}
+}
+
+function collectAllOutros ( manager, list ) {
+	if ( !list ) {
+		list = [];
+		let parent = manager;
+		while ( parent.parent ) parent = parent.parent;
+		return collectAllOutros( parent, list );
+	} else {
+		let i = manager.children.length;
+		while ( i-- ) {
+			list = collectAllOutros( manager.children[i], list );
+		}
+		list = list.concat( manager.outros );
+		return list;
 	}
 }

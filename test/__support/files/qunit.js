@@ -117,7 +117,7 @@ config = {
 	requireExpects: false,
 
 	// depth up-to which object will be dumped
-	maxDepth: 10,
+	maxDepth: 15,
 
 	// add checkboxes that are persisted in the query-string
 	// when enabled, the id is set to `true` as a `QUnit.config` property

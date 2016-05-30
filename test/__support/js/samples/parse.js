@@ -845,7 +845,7 @@ const parseTests = [
 		template: '{{x + 1}}<a {{#if x + 2}}data-id={{x + 3}}{{/if}} intro="slide:{{x + 4}}" on-click="proxy:{{x + 5}}" on-focus="method(x + 5)">{{foo.bar[x + 6].baz}}</a>',
 		options: { csp: true },
 		parsed: {
-			v:4,t:[{t:2,x:{r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:[{n:'data-id',f:[{t:2,x:{r:['x'],s:'_0+3'}}],t:13}],n:50,x:{r:['x'],s:'_0+2'}},{v:'t1',f:{n:'slide',d:[{t:2,x:{r:['x'],s:'_0+4'}}]},t:72},{n:'click',f:{n:'proxy',d:[{t:2,x:{r:['x'],s:'_0+5'}}]},t:70},{n:'focus',f:{m:'method',a:{r:['x'],s:'[_0+5]'}},t:70}],f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
+			v:4,t:[{t:2,x:{r:['x'],s:'_0+1'}},{t:7,e:'a',m:[{t:4,f:[{n:'data-id',f:[{t:2,x:{r:['x'],s:'_0+3'}}],t:13}],n:50,x:{r:['x'],s:'_0+2'}},{v:'t1',f:{n:'slide',d:[{t:2,x:{r:['x'],s:'_0+4'}}]},t:72},{n:'click',f:{n:'proxy',d:[{t:2,x:{r:['x'],s:'_0+5'}}]},t:70},{n:'focus',f:{x:{r:['@this','x'],s:'[_0.method(_1+5)]'}},t:70}],f:[{t:2,rx:{r:'foo.bar',m:[{r:['x'],s:'_0+6'},'baz']}}]}],
 			// these are intentially made strings for testing purposes
 			// actual template has javascript function objects
 			e:{
@@ -854,10 +854,11 @@ const parseTests = [
 				'_0+2':'function (_0){return(_0+2);}',
 				'_0+4':'function (_0){return(_0+4);}',
 				'_0+5':'function (_0){return(_0+5);}',
-				'[_0+5]':'function (_0){return([_0+5]);}',
+				'[_0.method(_1+5)]':'function (_0,_1){return([_0.method(_1+5)]);}',
 				'_0+6':'function (_0){return(_0+6);}'
 			}
-		}
+		},
+		skipPhantom: true // phantom is not a fan of this test any more, but Chrome and Firefox still like it
 	},
 	// #2325
 	{

@@ -1545,17 +1545,17 @@ export default function() {
 		});
 	}
 
-	test( '@ractive special ref gives access to the ractive instance', t => {
+	test( '@this special ref gives access to the ractive instance', t => {
 		const DEBUG = Ractive.DEBUG;
 		const r = new Ractive({
 			el: fixture,
-			template: `{{@ractive.constructor.VERSION}} {{@ractive.foo}} <input type="checkbox" checked="{{@ractive.constructor.DEBUG}}" />`
+			template: `{{@this.constructor.VERSION}} {{@this.foo}} <input type="checkbox" checked="{{@this.constructor.DEBUG}}" />`
 		});
 
 		t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION}  <input type="checkbox" />` );
 
 		r.foo = 'bar';
-		r.update('@ractive.foo');
+		r.update('@this.foo');
 
 		t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} bar <input type="checkbox" />` );
 
@@ -1565,12 +1565,12 @@ export default function() {
 		fire( r.find( 'input' ), 'click' );
 		t.equal( Ractive.DEBUG, DEBUG );
 
-		r.set( '@ractive.foo', 'baz' );
+		r.set( '@this.foo', 'baz' );
 		t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} baz <input type="checkbox" />` );
 
 		r.foo = 'bat';
 		t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} baz <input type="checkbox" />` );
-		r.update( '@ractive.foo' );
+		r.update( '@this.foo' );
 		t.htmlEqual( fixture.innerHTML, `${Ractive.VERSION} bat <input type="checkbox" />` );
 
 		Ractive.DEBUG = DEBUG;
@@ -1617,6 +1617,29 @@ export default function() {
 	test( 'ractive.escapeKey() works correctly', t => {
 		t.equal( Ractive.escapeKey( 'foo.bar' ), 'foo\\.bar' );
 		t.equal( Ractive.escapeKey( 'foo\\.bar' ), 'foo\\\\\\.bar' );
+	});
+
+	test( 'spread args can be applied to any invocation expression', t => {
+		t.expect( 4 );
+
+		const r = new Ractive({
+			el: fixture,
+			template: `{{.count(...list).and(...foo, ...bar)}}`,
+			data: {
+				list: [], foo: [ 1, 2 ], bar: [ 4, 5, 6 ],
+				count() {
+					const r = this;
+					t.equal( arguments.length, this.get( 'list.length' ) );
+					return {
+						and () {
+							t.equal( arguments.length, r.get( 'foo.length' ) + r.get( 'bar.length' ) );
+						}
+					};
+				}
+			}
+		});
+
+		r.push( 'list', 'a', 'b', 'c' );
 	});
 
 	test( 'ractive.unescapeKey() works correctly', t => {
@@ -1790,21 +1813,21 @@ export default function() {
 				data: { array: array }
 			});
 
-			t.equal( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p>' );
 
 			array.push({ foo: [ 6, 7, 8, 9, 10 ] });
-			t.equal( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
 			array.unshift({ foo: [ 0, 1, 2, 3, 4 ] });
-			t.equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 
 			ractive.set( 'array', [] );
 			t.equal( array._ractive, undefined );
-			equal( fixture.innerHTML, '' );
+			t.htmlEqual( fixture.innerHTML, '' );
 
 			ractive.set( 'array', array );
 			t.ok( array._ractive );
-			t.equal( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
+			t.htmlEqual( fixture.innerHTML, '<p>012</p><p>123</p><p>234</p><p>345</p><p>456</p><p>567</p><p>678</p>' );
 		});
 	}
 }

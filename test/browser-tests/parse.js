@@ -2,8 +2,12 @@ import { test } from 'qunit';
 import tests from './samples/parse';
 import { initModule } from './test-config';
 
+/* global navigator */
+
 export default function() {
 	initModule( 'parse.js' );
+
+	const phantom = /phantomjs/i.test( navigator.userAgent );
 
 	test( 'Mismatched template version causes error', function ( t ) {
 		t.throws( function () {
@@ -14,6 +18,8 @@ export default function() {
 	});
 
 	tests.forEach( theTest => {
+		if ( theTest.skipPhantom && phantom ) return;
+
 		test( theTest.name, function ( t ) {
 			// disable for tests unless explicitly specified
 			// we can just test the signatures, so set false
