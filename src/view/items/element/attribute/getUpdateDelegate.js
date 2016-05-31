@@ -221,7 +221,7 @@ function updateInlineStyle () {
 function updateClassName () {
 	const value = readClass( safeToStringValue( this.getValue() ) );
 	const attr = readClass( this.node.className );
-	const prev = this.previous || [];
+	const prev = this.previous || attr.slice( 0 );
 
 	let i = 0;
 	while ( i < value.length ) {
