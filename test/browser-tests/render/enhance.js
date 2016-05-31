@@ -128,6 +128,20 @@ export default function() {
 		t.ok( !button.disabled );
 	});
 
+	test( 'redundant classes are removed', t => {
+		fixture.innerHTML = '<div class="someCls someClsToRemove">foo</div>';
+		const div = fixture.querySelector( 'div' );
+
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<div class="someCls someClsToAdd">foo</div>',
+			enhance: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div class="someCls someClsToAdd">foo</div>' );
+		t.strictEqual( div, ractive.find( 'div' ) );
+	});
+
 	test( 'conditional sections inherit existing DOM', t => {
 		fixture.innerHTML = '<p></p>';
 		const p = fixture.querySelector( 'p' );
