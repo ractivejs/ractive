@@ -238,7 +238,11 @@ function updateClassName () {
 		}
 	}
 
-	this.node.className = attr.join( ' ' );
+	const className = attr.join( ' ' );
+
+	if ( className !== this.node.className ) {
+		this.node.className = className;
+	}
 
 	this.previous = value;
 }
