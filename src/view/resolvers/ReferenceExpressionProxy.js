@@ -3,7 +3,7 @@ import { REFERENCE } from '../../config/types';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
-import { unbind } from '../../shared/methodCallers';
+import { handleChange, mark, unbind } from '../../shared/methodCallers';
 import { removeFromArray } from '../../utils/array';
 import { isEqual } from '../../utils/is';
 import { escapeKey } from '../../shared/keypaths';
@@ -142,11 +142,26 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	get () {
-		return this.model ? this.model.get() : undefined;
+		const value = this.model ? this.model.get() : undefined;
+		if ( this.dirty ) {
+			this.dirty = false;
+
+			if ( !isEqual( value, this.value ) ) {
+				this.value = value;
+
+				this.children.forEach( mark );
+
+				this.deps.forEach( handleChange );
+				this.clearUnresolveds();
+			}
+		}
+		return value;
 	}
 
 	// indirect two-way bindings
 	getValue () {
+		if ( this.dirty ) this.get();
+
 		let i = this.bindings.length;
 		while ( i-- ) {
 			const value = this.bindings[i].getValue();
@@ -162,6 +177,12 @@ export default class ReferenceExpressionProxy extends Model {
 
 	handleChange () {
 		this.mark();
+	}
+
+	mark () {
+		this.dirty = true;
+		this.children.forEach( mark );
+		this.deps.forEach( handleChange );
 	}
 
 	joinKey ( key ) {
