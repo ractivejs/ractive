@@ -26,6 +26,7 @@ export default {
 	isolated:               false,
 	twoway:                 true,
 	lazy:                   false,
+	derivedBindings:		false,
 
 	// transitions:
 	noIntro:                false,

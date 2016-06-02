@@ -8,6 +8,9 @@ const arrayProto = Array.prototype;
 export default function ( methodName ) {
 	return function ( keypath, ...args ) {
 		const model = this.viewmodel.joinAll( splitKeypath( keypath ) );
+
+		if ( model.isReadonly ) throw new Error( `shuffle array method ${methodName} called on readonly data at ${model.getKeypath()}` );
+
 		let array = model.get();
 
 		if ( !isArray( array ) ) {

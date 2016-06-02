@@ -11,7 +11,7 @@ function getValue() {
 
 export default class RadioNameBinding extends Binding {
 	constructor ( element ) {
-		super( element, 'name' );
+		if ( super( element, 'name' ) === false ) return false;
 
 		this.group = getBindingGroup( 'radioname', this.model, getValue );
 		this.group.add( this );

@@ -52,7 +52,7 @@ export default class Computation extends Model {
 		this.signature = signature;
 
 		this.key = key; // not actually used, but helps with debugging
-		this.isExpression = key && key[0] === '@';
+		this.isExpression = key && key[0] === '#';
 
 		this.isReadonly = !this.signature.setter;
 

@@ -42,7 +42,7 @@ export default class Binding {
 
 		// TODO include index/key/keypath refs as read-only
 		else if ( model.isReadonly ) {
-			const keypath = model.getKeypath().replace( /^@/, '' );
+			const keypath = model.getKeypath().replace( /^#/, '' );
 			warnOnceIfDebug( `Cannot use two-way binding on <${element.name}> element: ${keypath} is read-only. To suppress this warning use <${element.name} twoway='false'...>`, { ractive: this.ractive });
 			return false;
 		}

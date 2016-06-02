@@ -157,7 +157,7 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	getKeypath () {
-		return this.model ? this.model.getKeypath() : '@undefined';
+		return this.model ? this.model.getKeypath() : '#undefined';
 	}
 
 	handleChange () {
