@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Jun 09 2016 03:20:47 GMT+0000 (UTC) - commit 14a0729be50c95d8da7479a75078d7adafa15f45
+	Thu Jun 09 2016 03:41:28 GMT+0000 (UTC) - commit d2a4bee5ab6b1dcc6802cf63606e1c5501872561
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -786,7 +786,8 @@
   	// Object.defineProperty doesn't exist, or we're in IE8 where you can
   	// only use it with DOM objects (what were you smoking, MSFT?)
   	defineProperty = function ( obj, prop, desc ) {
-  		obj[ prop ] = desc.value;
+  		if ( desc.get ) obj[ prop ] = desc.get();
+  		else obj[ prop ] = desc.value;
   	};
   }
 
@@ -3244,14 +3245,30 @@
 
   var GlobalModel$1 = new GlobalModel();
 
+  var keypathExpr = /^@[^\(]+\(([^\)]+)\)/;
+
   function resolveReference ( fragment, ref ) {
   	var context = fragment.findContext();
 
   	// special references
   	// TODO does `this` become `.` at parse time?
   	if ( ref === '.' || ref === 'this' ) return context;
-  	if ( ref === '@keypath' ) return context.getKeypathModel( fragment.ractive );
-  	if ( ref === '@rootpath' ) return context.getKeypathModel();
+  	if ( ref.indexOf( '@keypath' ) === 0 ) {
+  		var match = keypathExpr.exec( ref );
+  		if ( match && match[1] ) {
+  			var model = resolveReference( fragment, match[1] );
+  			if ( model ) return model.getKeypathModel( fragment.ractive );
+  		}
+  		return context.getKeypathModel( fragment.ractive );
+  	}
+  	if ( ref.indexOf( '@rootpath' ) === 0 ) {
+  		var match$1 = keypathExpr.exec( ref );
+  		if ( match$1 && match$1[1] ) {
+  			var model$1 = resolveReference( fragment, match$1[1] );
+  			if ( model$1 ) return model$1.getKeypathModel();
+  		}
+  		return context.getKeypathModel();
+  	}
   	if ( ref === '@index' ) {
   		var repeater = fragment.findRepeatingFragment();
   		// make sure the found fragment is actually an iteration
@@ -3313,6 +3330,232 @@
   	return model.get( true );
   }
 
+  function gatherRefs( fragment ) {
+  	var key = {}, index = {};
+
+  	// walk up the template gather refs as we go
+  	while ( fragment ) {
+  		if ( fragment.parent && ( fragment.parent.indexRef || fragment.parent.keyRef ) ) {
+  			var ref = fragment.parent.indexRef;
+  			if ( ref && !( ref in index ) ) index[ref] = fragment.index;
+  			ref = fragment.parent.keyRef;
+  			if ( ref && !( ref in key ) ) key[ref] = fragment.key;
+  		}
+
+  		if ( fragment.componentParent && !fragment.ractive.isolated ) {
+  			fragment = fragment.componentParent;
+  		} else {
+  			fragment = fragment.parent;
+  		}
+  	}
+
+  	return { key: key, index: index };
+  }
+
+  // get relative keypaths and values
+  function get ( keypath ) {
+  	if ( !keypath ) return this._element.parentFragment.findContext().get();
+
+  	var model = resolveReference( this._element.parentFragment, keypath );
+
+  	return model ? model.get() : undefined;
+  }
+
+  function resolve$1 ( path, ractive ) {
+  	var frag = this._element.parentFragment;
+
+  	if ( typeof path !== 'string' ) {
+  		return frag.findContext().getKeypath( path === undefined ? frag.ractive : path );
+  	}
+
+  	var model = resolveReference( frag, path );
+
+  	return model ? model.getKeypath( ractive === undefined ? frag.ractive : ractive ) : path;
+  }
+
+  // the usual mutation suspects
+  function add$1 ( keypath, value ) {
+  	return this.ractive.add( this.resolve( keypath ), value );
+  }
+
+  function animate ( keypath, value, options ) {
+  	return this.ractive.animate( this.resolve( keypath ), value, options );
+  }
+
+  function link ( source, dest ) {
+  	return this.ractive.link( this.resolve( source ), this.resolve( dest ) );
+  }
+
+  function merge ( keypath, array ) {
+  	return this.ractive.merge( this.resolve( keypath ), array );
+  }
+
+  function pop ( keypath ) {
+  	return this.ractive.pop( this.resolve( keypath ) );
+  }
+
+  function push ( keypath ) {
+  	var values = [], len = arguments.length - 1;
+  	while ( len-- > 0 ) values[ len ] = arguments[ len + 1 ];
+
+  	values.unshift( this.resolve( keypath ) );
+  	return this.ractive.push.apply( this.ractive, values );
+  }
+
+  function set ( keypath, value ) {
+  	return this.ractive.set( this.resolve( keypath ), value );
+  }
+
+  function shift ( keypath ) {
+  	return this.ractive.shift( this.resolve( keypath ) );
+  }
+
+  function splice ( keypath, index, drop ) {
+  	var add = [], len = arguments.length - 3;
+  	while ( len-- > 0 ) add[ len ] = arguments[ len + 3 ];
+
+  	add.unshift( this.resolve( keypath ), index, drop );
+  	return this.ractive.splice.apply( this.ractive, add );
+  }
+
+  function subtract ( keypath, value ) {
+  	return this.ractive.subtract( this.resolve( keypath ), value );
+  }
+
+  function toggle ( keypath ) {
+  	return this.ractive.toggle( this.resolve( keypath ) );
+  }
+
+  function unlink ( dest ) {
+  	return this.ractive.unlink( dest );
+  }
+
+  function unshift ( keypath ) {
+  	var add = [], len = arguments.length - 1;
+  	while ( len-- > 0 ) add[ len ] = arguments[ len + 1 ];
+
+  	add.unshift( this.resolve( keypath ) );
+  	return this.ractive.unshift.apply( this.ractive, add );
+  }
+
+  function update$1 ( keypath ) {
+  	return this.ractive.update( this.resolve( keypath ) );
+  }
+
+  function updateModel ( keypath, cascade ) {
+  	return this.ractive.updateModel( this.resolve( keypath ), cascade );
+  }
+
+  // two-way binding related helpers
+  function isBound () {
+  	var el = this._element;
+
+  	if ( el.binding ) return true;
+  	else return false;
+  }
+
+  function getBindingPath ( ractive ) {
+  	var el = this._element;
+
+  	if ( el.binding && el.binding.model ) return el.binding.model.getKeypath( ractive || el.parentFragment.ractive );
+  }
+
+  function getBinding () {
+  	var el = this._element;
+
+  	if ( el.binding && el.binding.model ) return el.binding.model.get();
+  }
+
+  function setBinding ( value ) {
+  	return this.ractive.set( this.getBindingPath(), value );
+  }
+
+  // deprecated getters
+  function keypath () {
+  	warnOnceIfDebug( ("Object property keypath is deprecated, please use resolve() instead.") );
+  	return this.resolve();
+  }
+
+  function rootpath () {
+  	warnOnceIfDebug( ("Object property rootpath is deprecated, please use resolve( ractive.root ) instead.") );
+  	return this.resolve( this.ractive.root );
+  }
+
+  function context () {
+  	warnOnceIfDebug( ("Object property context is deprecated, please use get() instead.") );
+  	return this.get();
+  }
+
+  function index () {
+  	warnOnceIfDebug( ("Object property index is deprecated, you can use get( \"indexName\" ) instead.") );
+  	return gatherRefs( this._element.parentFragment ).index;
+  }
+
+  function key () {
+  	warnOnceIfDebug( ("Object property key is deprecated, you can use get( \"keyName\" ) instead.") );
+  	return gatherRefs( this._element.parentFragment ).key;
+  }
+
+  function addHelpers ( obj, element ) {
+  	defineProperties( obj, {
+  		_element: { value: element },
+  		ractive: { value: element.parentFragment.ractive },
+  		resolve: { value: resolve$1 },
+  		get: { value: get },
+
+  		add: { value: add$1 },
+  		animate: { value: animate },
+  		link: { value: link },
+  		merge: { value: merge },
+  		pop: { value: pop },
+  		push: { value: push },
+  		set: { value: set },
+  		shift: { value: shift },
+  		splice: { value: splice },
+  		subtract: { value: subtract },
+  		toggle: { value: toggle },
+  		unlink: { value: unlink },
+  		unshift: { value: unshift },
+  		update: { value: update$1 },
+  		updateModel: { value: updateModel },
+
+  		isBound: { value: isBound },
+  		getBindingPath: { value: getBindingPath },
+  		getBinding: { value: getBinding },
+  		setBinding: { value: setBinding },
+
+  		keypath: { get: keypath },
+  		rootpath: { get: rootpath },
+  		context: { get: context },
+  		index: { get: index },
+  		key: { get: key }
+  	});
+
+  	return obj;
+  }
+
+  var query = doc && doc.querySelector;
+
+  function staticInfo( node ) {
+  	if ( typeof node === 'string' && query ) {
+  		node = query.call( document, node );
+  	}
+
+  	if ( !node || !node._ractive ) return {};
+
+  	var storage = node._ractive;
+
+  	return addHelpers( {}, storage.proxy );
+  }
+
+  function getNodeInfo( node ) {
+  	if ( typeof node === 'string' ) {
+  		node = this.find( node );
+  	}
+
+  	return staticInfo( node );
+  }
+
   var insertHook = new Hook( 'insert' );
 
   function Ractive$insert ( target, anchor ) {
@@ -3345,7 +3588,7 @@
   	});
   }
 
-  function link( there, here ) {
+  function link$1( there, here ) {
   	if ( here === there || (there + '.').indexOf( here + '.' ) === 0 || (here + '.').indexOf( there + '.' ) === 0 ) {
   		throw new Error( 'A keypath cannot be linked to itself.' );
   	}
@@ -3995,6 +4238,10 @@
   				args.push( length - args[0] );
   			}
 
+  			if ( typeof args[1] !== 'number' ) {
+  				args[1] = length - args[0];
+  			}
+
   			// ensure we only remove elements that exist
   			args[1] = Math.min( args[1], length - args[0] );
 
@@ -4059,9 +4306,9 @@
   	};
   }
 
-  var pop = makeArrayMethod( 'pop' );
+  var pop$1 = makeArrayMethod( 'pop' );
 
-  var push = makeArrayMethod( 'push' );
+  var push$1 = makeArrayMethod( 'push' );
 
   var PREFIX = '/* Ractive.js component styles */';
 
@@ -5354,7 +5601,7 @@
 
   		this.resolvers = [];
 
-  		this.base = resolve$1( fragment, template );
+  		this.base = resolve$2( fragment, template );
   		var baseResolver;
 
   		if ( !this.base ) {
@@ -5503,7 +5750,7 @@
   	return ReferenceExpressionProxy;
   }(Model));
 
-  function resolve$1 ( fragment, template ) {
+  function resolve$2 ( fragment, template ) {
   	if ( template.r ) {
   		return resolveReference( fragment, template.r );
   	}
@@ -5523,7 +5770,7 @@
 
   		var refs = section.template.z;
   		for ( var i = 0; i < refs.length; i++ ) {
-  			section.aliases[ refs[i].n ] = resolve$1( section.parentFragment, refs[i].x );
+  			section.aliases[ refs[i].n ] = resolve$2( section.parentFragment, refs[i].x );
   		}
   	}
   }
@@ -7064,28 +7311,6 @@
   	return parser.result;
   }
 
-  function gatherRefs( fragment ) {
-  	var key = {}, index = {};
-
-  	// walk up the template gather refs as we go
-  	while ( fragment ) {
-  		if ( fragment.parent && ( fragment.parent.indexRef || fragment.parent.keyRef ) ) {
-  			var ref = fragment.parent.indexRef;
-  			if ( ref && !( ref in index ) ) index[ref] = fragment.index;
-  			ref = fragment.parent.keyRef;
-  			if ( ref && !( ref in key ) ) key[ref] = fragment.key;
-  		}
-
-  		if ( fragment.componentParent && !fragment.ractive.isolated ) {
-  			fragment = fragment.componentParent;
-  		} else {
-  			fragment = fragment.parent;
-  		}
-  	}
-
-  	return { key: key, index: index };
-  }
-
   var specialPattern = /^(event|arguments)(\..+)?$/;
   var dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
@@ -7190,13 +7415,8 @@
   	// augment event object
   	if ( passedArgs === void 0 ) passedArgs = [];
 
-  		if ( event ) {
-  		var refs = gatherRefs( this.parentFragment );
-  		event.keypath = this.context.getKeypath( this.ractive );
-  		event.rootpath = this.context.getKeypath();
-  		event.context = this.context.get();
-  		event.index = refs.index;
-  		event.key = refs.key;
+  		if ( event && !event.hasOwnProperty( '_element' ) ) {
+  		   addHelpers( event, this.owner );
   	}
 
   	if ( this.fn ) {
@@ -7436,7 +7656,7 @@
 
   				else if ( isArray( template ) ) {
   					if ( template.length === 1 && template[0].t === INTERPOLATOR ) {
-  						model = resolve$1( this$1.parentFragment, template[0] );
+  						model = resolve$2( this$1.parentFragment, template[0] );
 
   						if ( !model ) {
   							warnOnceIfDebug( ("The " + localKey + "='{{" + (template[0].r) + "}}' mapping is ambiguous, and may cause unexpected results. Consider initialising your data to eliminate the ambiguity"), { ractive: this$1.instance }); // TODO add docs page explaining this
@@ -7553,7 +7773,7 @@
   				var model;
 
   				if ( isArray( template ) && template.length === 1 && template[0].t === INTERPOLATOR ) {
-  					model = resolve$1( this$1.parentFragment, template[0] );
+  					model = resolve$2( this$1.parentFragment, template[0] );
 
   					if ( !model ) {
   						// TODO is this even possible?
@@ -9302,7 +9522,7 @@
   	delete this.model[this.hash];
   };
 
-  var push$1 = [].push;
+  var push$2 = [].push;
 
   function getValue$1() {
   	var all = this.bindings.filter(function ( b ) { return b.node && b.node.checked; }).map(function ( b ) { return b.element.getAttribute( 'value' ); });
@@ -9334,7 +9554,7 @@
   			var bindingValue = this.element.getAttribute( 'value' );
 
   			if ( !arrayContains( existingValue, bindingValue ) ) {
-  				push$1.call( existingValue, bindingValue ); // to avoid triggering runloop with array adaptor
+  				push$2.call( existingValue, bindingValue ); // to avoid triggering runloop with array adaptor
   			}
   		}
   	}
@@ -10250,8 +10470,7 @@
 
   		defineProperty( node, '_ractive', {
   			value: {
-  				proxy: this,
-  				fragment: this.parentFragment
+  				proxy: this
   			}
   		});
 
@@ -10545,11 +10764,11 @@
   	var element = this._ractive.proxy;
 
   	runloop.start();
-  	element.formBindings.forEach( updateModel );
+  	element.formBindings.forEach( updateModel$1 );
   	runloop.end();
   }
 
-  function updateModel ( binding ) {
+  function updateModel$1 ( binding ) {
   	binding.model.set( binding.resetValue );
   }
 
@@ -10574,7 +10793,7 @@
   		// try to find a model for this view
   		var this$1 = this;
 
-  		var model = resolve$1( this.parentFragment, this.template );
+  		var model = resolve$2( this.parentFragment, this.template );
   		var value = model ? model.get() : undefined;
 
   		if ( this.isStatic ) {
@@ -10603,7 +10822,7 @@
   	Mustache.prototype.rebind = function rebind () {
   		if ( this.isStatic || !this.model ) return;
 
-  		var model = resolve$1( this.parentFragment, this.template );
+  		var model = resolve$2( this.parentFragment, this.template );
 
   		if ( model === this.model ) return;
 
@@ -12782,13 +13001,13 @@
 
   		for ( var k in map ) {
   			if ( map.hasOwnProperty( k) ) {
-  				set( this, k, map[k] );
+  				set$1( this, k, map[k] );
   			}
   		}
   	}
   	// Set a single keypath
   	else {
-  		set( this, keypath, value );
+  		set$1( this, keypath, value );
   	}
 
   	runloop.end();
@@ -12797,7 +13016,7 @@
   }
 
 
-  function set ( ractive, keypath, value ) {
+  function set$1 ( ractive, keypath, value ) {
   	if ( typeof value === 'function' ) value = bind$1( value, ractive );
 
   	if ( /\*/.test( keypath ) ) {
@@ -12810,11 +13029,11 @@
   	}
   }
 
-  var shift = makeArrayMethod( 'shift' );
+  var shift$1 = makeArrayMethod( 'shift' );
 
   var sort = makeArrayMethod( 'sort' );
 
-  var splice = makeArrayMethod( 'splice' );
+  var splice$1 = makeArrayMethod( 'splice' );
 
   function Ractive$subtract ( keypath, d ) {
   	return add( this, keypath, ( d === undefined ? -1 : -d ) );
@@ -12908,7 +13127,7 @@
   	return promise;
   }
 
-  function unlink( here ) {
+  function unlink$1( here ) {
   	var ln = this._links[ here ];
 
   	if ( ln ) {
@@ -12943,7 +13162,7 @@
   	return promise;
   }
 
-  var unshift = makeArrayMethod( 'unshift' );
+  var unshift$1 = makeArrayMethod( 'unshift' );
 
   var updateHook = new Hook( 'update' );
 
@@ -13006,8 +13225,9 @@
   	findParent: Ractive$findParent,
   	fire: Ractive$fire,
   	get: Ractive$get,
+  	getNodeInfo: getNodeInfo,
   	insert: Ractive$insert,
-  	link: link,
+  	link: link$1,
   	merge: Ractive$merge,
   	observe: observe,
   	observeList: observeList,
@@ -13017,17 +13237,17 @@
   	off: Ractive$off,
   	on: Ractive$on,
   	once: Ractive$once,
-  	pop: pop,
-  	push: push,
+  	pop: pop$1,
+  	push: push$1,
   	render: Ractive$render,
   	reset: Ractive$reset,
   	resetPartial: resetPartial,
   	resetTemplate: Ractive$resetTemplate,
   	reverse: reverse,
   	set: Ractive$set,
-  	shift: shift,
+  	shift: shift$1,
   	sort: sort,
-  	splice: splice,
+  	splice: splice$1,
   	subtract: Ractive$subtract,
   	teardown: Ractive$teardown,
   	toggle: Ractive$toggle,
@@ -13036,9 +13256,9 @@
   	toHTML: Ractive$toHTML,
   	toHtml: Ractive$toHTML,
   	transition: Ractive$transition,
-  	unlink: unlink,
+  	unlink: unlink$1,
   	unrender: Ractive$unrender,
-  	unshift: unshift,
+  	unshift: unshift$1,
   	update: Ractive$update,
   	updateModel: Ractive$updateModel
   };
@@ -13202,23 +13422,6 @@
   	return Child;
   }
 
-  function getNodeInfo( node ) {
-  	if ( !node || !node._ractive ) return {};
-
-  	var storage = node._ractive;
-  	var ractive = storage.fragment.ractive;
-  	var ref = gatherRefs( storage.fragment ), key = ref.key, index = ref.index;
-  	var context = storage.fragment.findContext();
-
-  	return {
-  		ractive: ractive,
-  		keypath: context.getKeypath( ractive ),
-  		rootpath: context.getKeypath(),
-  		index: index,
-  		key: key
-  	};
-  }
-
   function joinKeys () {
   	var keys = [], len = arguments.length;
   	while ( len-- ) keys[ len ] = arguments[ len ];
@@ -13272,7 +13475,7 @@
   	// static methods:
   	extend:         { value: extend },
   	escapeKey:      { value: escapeKey },
-  	getNodeInfo:    { value: getNodeInfo },
+  	getNodeInfo:    { value: staticInfo },
   	joinKeys:       { value: joinKeys },
   	parse:          { value: parse },
   	splitKeypath:   { value: splitKeypath },
