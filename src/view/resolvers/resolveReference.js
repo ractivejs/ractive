@@ -2,14 +2,30 @@ import resolveAmbiguousReference from './resolveAmbiguousReference';
 import { splitKeypath } from '../../shared/keypaths';
 import GlobalModel from '../../model/specials/GlobalModel';
 
+const keypathExpr = /^@[^\(]+\(([^\)]+)\)/;
+
 export default function resolveReference ( fragment, ref ) {
 	let context = fragment.findContext();
 
 	// special references
 	// TODO does `this` become `.` at parse time?
 	if ( ref === '.' || ref === 'this' ) return context;
-	if ( ref === '@keypath' ) return context.getKeypathModel( fragment.ractive );
-	if ( ref === '@rootpath' ) return context.getKeypathModel();
+	if ( ref.indexOf( '@keypath' ) === 0 ) {
+		const match = keypathExpr.exec( ref );
+		if ( match && match[1] ) {
+			const model = resolveReference( fragment, match[1] );
+			if ( model ) return model.getKeypathModel( fragment.ractive );
+		}
+		return context.getKeypathModel( fragment.ractive );
+	}
+	if ( ref.indexOf( '@rootpath' ) === 0 ) {
+		const match = keypathExpr.exec( ref );
+		if ( match && match[1] ) {
+			const model = resolveReference( fragment, match[1] );
+			if ( model ) return model.getKeypathModel();
+		}
+		return context.getKeypathModel();
+	}
 	if ( ref === '@index' ) {
 		const repeater = fragment.findRepeatingFragment();
 		// make sure the found fragment is actually an iteration
