@@ -419,6 +419,30 @@ export default function() {
 		t.ok( !inputs[1].checked );
 	});
 
+	test( `bindings that trigger their own immediate update via computation should not get stuck (#2427)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			data: {
+				list: [ { v: 'a', o: 0 }, { v: 'a', o: 1 }, { v: 'b', o: 2 }, { v: 'c', o: 3 } ]
+			},
+			computed: {
+				rows() {
+					var list = this.get( 'list' ).slice(0);
+					return list.sort( ( a, b ) => a.v.localeCompare( b.v ) ).map( o => o.o );
+				}
+			},
+			template: `{{#each rows}}{{#with list[.]}}<input value="{{.v}}" />{{/with}}{{/each}}`
+		});
+		const inputs = r.findAll( 'input' );
+		inputs[0].value = 'z';
+		fire( inputs[0], 'change' );
+
+		t.equal( inputs[0].value, 'a' );
+		t.equal( inputs[1].value, 'b' );
+		t.equal( inputs[2].value, 'c' );
+		t.equal( inputs[3].value, 'z' );
+	});
+
 	test( 'Post-blur validation works (#771)', t => {
 		const ractive = new Ractive({
 			el: fixture,
@@ -651,7 +675,6 @@ export default function() {
 			},
 			onrender () {
 				inputs = this.findAll( 'input' );
-				whatever: { x: 1 }
 			}
 		});
 

@@ -4,6 +4,7 @@ import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 import { readStyle, readClass } from '../../../helpers/specialAttrs';
+import runloop from '../../../../global/runloop';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 
@@ -120,7 +121,7 @@ function updateSelectValue () {
 function updateContentEditableValue () {
 	const value = this.getValue();
 
-	if ( !this.locked ) {
+	if ( !this.locked || ( !runloop.children() && this.node.innerHTML !== ( value || '' ) ) ) {
 		this.node.innerHTML = value === undefined ? '' : value;
 	}
 }
@@ -145,8 +146,8 @@ function updateRadioValue () {
 }
 
 function updateValue () {
-	if ( !this.locked ) {
-		const value = this.getValue();
+	const value = this.getValue();
+	if ( !this.locked || ( !runloop.children() && value !== this.node.value ) ) {
 
 		this.node.value = this.node._ractive.value = value;
 		this.node.setAttribute( 'value', value );
@@ -154,9 +155,8 @@ function updateValue () {
 }
 
 function updateStringValue () {
-	if ( !this.locked ) {
-		const value = this.getValue();
-
+	const value = this.getValue();
+	if ( !this.locked || ( !runloop.children() && safeToStringValue( value ) !== this.node.value ) ) {
 		this.node._ractive.value = value;
 
 		this.node.value = safeToStringValue( value );

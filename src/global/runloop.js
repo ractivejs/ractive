@@ -15,6 +15,9 @@ const runloop = {
 			promise = new Promise( f => ( fulfilPromise = f ) );
 		}
 
+		// TODO: this is a temporary hack that needs to go away with a probably breaking change
+		if ( batch ) batch.children++;
+
 		batch = {
 			previousBatch: batch,
 			transitionManager: new TransitionManager( fulfilPromise, batch && batch.transitionManager ),
@@ -23,7 +26,8 @@ const runloop = {
 			immediateObservers: [],
 			deferredObservers: [],
 			ractives: [],
-			instance: instance
+			instance: instance,
+			children: 0
 		};
 
 		return promise;
@@ -45,6 +49,8 @@ const runloop = {
 	addObserver ( observer, defer ) {
 		addToArray( defer ? batch.deferredObservers : batch.immediateObservers, observer );
 	},
+
+	children () { return batch.children; },
 
 	registerTransition ( transition ) {
 		transition._manager = batch.transitionManager;
