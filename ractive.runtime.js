@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Wed Jun 08 2016 18:52:29 GMT+0000 (UTC) - commit 60862488b33c976aeca6a3486f776616c2ff8511
+	Thu Jun 09 2016 03:16:28 GMT+0000 (UTC) - commit 27a23044dd411d0fd055682aeb65a21a0c5654ba
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -4971,8 +4971,8 @@
   		this.bubble();
   	};
 
-  	ReferenceExpressionProxy.prototype.get = function get () {
-  		return this.model ? this.model.get() : undefined;
+  	ReferenceExpressionProxy.prototype.get = function get ( shouldCapture ) {
+  		return this.model ? this.model.get( shouldCapture ) : undefined;
   	};
 
   	// indirect two-way bindings
