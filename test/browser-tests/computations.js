@@ -728,6 +728,27 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '-ok' );
 	});
 
+	test( 'reference expression proxy should play nicely with capture (#2550)', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#with wat[idx]}}{{ident(.)}}{{/with}}`,
+			computed: {
+				wat() {
+					return this.get('arr');
+				}
+			},
+			data: {
+				arr: [ 1, 2, 3 ],
+				idx: 0,
+				ident( v ) { return v; }
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '1' );
+		r.set( 'arr', [ 4, 5, 6 ]);
+		t.htmlEqual( fixture.innerHTML, '4' );
+	});
+
 	test( 'computations should not recompute when spliced out', t => {
 		let count = 0;
 
