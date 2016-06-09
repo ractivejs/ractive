@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Jun 09 2016 03:16:28 GMT+0000 (UTC) - commit 27a23044dd411d0fd055682aeb65a21a0c5654ba
+	Thu Jun 09 2016 03:20:47 GMT+0000 (UTC) - commit 14a0729be50c95d8da7479a75078d7adafa15f45
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -10169,7 +10169,7 @@
   function updateClassName () {
   	var value = readClass( safeToStringValue( this.getValue() ) );
   	var attr = readClass( this.node.className );
-  	var prev = this.previous || [];
+  	var prev = this.previous || attr.slice( 0 );
 
   	var i = 0;
   	while ( i < value.length ) {
@@ -10186,7 +10186,11 @@
   		}
   	}
 
-  	this.node.className = attr.join( ' ' );
+  	var className = attr.join( ' ' );
+
+  	if ( className !== this.node.className ) {
+  		this.node.className = className;
+  	}
 
   	this.previous = value;
   }
