@@ -13,6 +13,8 @@ keywords = /^(?:break|case|catch|continue|debugger|default|delete|do|else|finall
 
 const legalReference = /^(?:[a-zA-Z$_0-9]|\\\.)+(?:(?:\.(?:[a-zA-Z$_0-9]|\\\.)+)|(?:\[[0-9]+\]))*/;
 const relaxedName = /^[a-zA-Z_$][-\/a-zA-Z_$0-9]*/;
+const specials = /^@(?:keypath|rootpath|index|key|this|global)/;
+const specialCall = /^\s*\(/;
 const spreadPattern = /^\s*\.{3}/;
 
 export default function readReference ( parser ) {
@@ -20,7 +22,19 @@ export default function readReference ( parser ) {
 
 	startPos = parser.pos;
 
-	name = parser.matchPattern( /^@(?:keypath|rootpath|index|key|this|global)/ );
+	name = parser.matchPattern( specials );
+
+	if ( name === '@keypath' || name === '@rootpath' ) {
+		if ( parser.matchPattern( specialCall ) ) {
+			let ref = readReference( parser );
+			if ( !ref ) parser.error( `Expected a valid reference for a keypath expression` );
+
+			parser.allowWhitespace();
+
+			if ( !parser.matchString( ')' ) ) parser.error( `Unclosed keypath expression` );
+			name += `(${ref.n})`;
+		}
+	}
 
 	spread = !name && parser.spreadArgs && parser.matchPattern( spreadPattern );
 
@@ -32,6 +46,9 @@ export default function readReference ( parser ) {
 		if ( !name && prefix === '.' ) {
 			prefix = '';
 			name = '.';
+		} else if ( !name && prefix ) {
+			name = prefix;
+			prefix = '';
 		}
 	}
 

@@ -27,6 +27,28 @@ export default function() {
 		t.strictEqual( p, ractive.find( 'p' ) );
 	});
 
+	test( 'progressive enhancement for svg elements', t => {
+		/*
+		 * list is grabbed from https://developer.mozilla.org/en-US/docs/Web/SVG/Element using the following code:
+		 * 
+		 * Array.prototype.slice.call( document.getElementById( 'SVG_elements' ).nextElementSibling.querySelectorAll( 'code' )).map( el => el.innerText )
+		 */
+		const listOfSvgElements = [ '<a>', '<altGlyph>', '<altGlyphDef>', '<altGlyphItem>', '<animate>', '<animateColor>', '<animateMotion>', '<animateTransform>', '<circle>', '<clipPath>', '<color-profile>', '<cursor>', '<defs>', '<desc>', '<ellipse>', '<feBlend>', '<feColorMatrix>', '<feComponentTransfer>', '<feComposite>', '<feConvolveMatrix>', '<feDiffuseLighting>', '<feDisplacementMap>', '<feDistantLight>', '<feFlood>', '<feFuncA>', '<feFuncB>', '<feFuncG>', '<feFuncR>', '<feGaussianBlur>', '<feImage>', '<feMerge>', '<feMergeNode>', '<feMorphology>', '<feOffset>', '<fePointLight>', '<feSpecularLighting>', '<feSpotLight>', '<feTile>', '<feTurbulence>', '<filter>', '<font>', '<font-face>', '<font-face-format>', '<font-face-name>', '<font-face-src>', '<font-face-uri>', '<foreignObject>', '<g>', '<glyph>', '<glyphRef>', '<hkern>', '<image>', '<line>', '<linearGradient>', '<marker>', '<mask>', '<metadata>', '<missing-glyph>', '<mpath>', '<path>', '<pattern>', '<polygon>', '<polyline>', '<radialGradient>', '<rect>', '<script>', '<set>', '<stop>', '<style>', '<svg>', '<switch>', '<symbol>', '<text>', '<textPath>', '<title>', '<tref>', '<tspan>', '<use>', '<view>', '<vkern>' ];
+		const allAvailableSvgElements = '<svg>' + listOfSvgElements.map( el => `${el}${el.replace('<', '</')}` ).join( '' ) + '</svg>';
+
+		fixture.innerHTML = allAvailableSvgElements;
+		const svg = fixture.querySelector( 'svg' );
+
+		const ractive = new Ractive({
+			el: fixture,
+			template: allAvailableSvgElements,
+			enhance: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, allAvailableSvgElements );
+		t.strictEqual( svg, ractive.find( 'svg' ) );
+	});
+
 	test( 'missing nodes are added', t => {
 		fixture.innerHTML = '<p></p>';
 		const p = fixture.querySelector( 'p' );
@@ -104,6 +126,20 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<button>do click me</button>' );
 		t.strictEqual( button, ractive.find( 'button' ) );
 		t.ok( !button.disabled );
+	});
+
+	test( 'redundant classes are removed', t => {
+		fixture.innerHTML = '<div class="someCls someClsToRemove">foo</div>';
+		const div = fixture.querySelector( 'div' );
+
+		const ractive = new Ractive({
+			el: fixture,
+			template: '<div class="someCls someClsToAdd">foo</div>',
+			enhance: true
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div class="someCls someClsToAdd">foo</div>' );
+		t.strictEqual( div, ractive.find( 'div' ) );
 	});
 
 	test( 'conditional sections inherit existing DOM', t => {

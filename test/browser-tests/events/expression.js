@@ -3,7 +3,7 @@ import { fire } from 'simulant';
 import { initModule } from '../test-config';
 
 export default function() {
-	initModule( 'events/expression.js' );
+	initModule('event/expression.js');
 
 	test( 'events can be handled as expressions', t => {
 		const r = new Ractive({

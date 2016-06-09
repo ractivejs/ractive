@@ -16,7 +16,8 @@ try {
 	// Object.defineProperty doesn't exist, or we're in IE8 where you can
 	// only use it with DOM objects (what were you smoking, MSFT?)
 	defineProperty = function ( obj, prop, desc ) {
-		obj[ prop ] = desc.value;
+		if ( desc.get ) obj[ prop ] = desc.get();
+		else obj[ prop ] = desc.value;
 	};
 }
 

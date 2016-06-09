@@ -141,8 +141,8 @@ export default class ReferenceExpressionProxy extends Model {
 		this.bubble();
 	}
 
-	get () {
-		return this.model ? this.model.get() : undefined;
+	get ( shouldCapture ) {
+		return this.model ? this.model.get( shouldCapture ) : undefined;
 	}
 
 	// indirect two-way bindings

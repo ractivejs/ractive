@@ -254,7 +254,7 @@ function updateInlineStyle ( reset ) {
 function updateClassName ( reset ) {
 	const value = reset ? [] : readClass( safeToStringValue( this.getValue() ) );
 	const attr = readClass( this.node.className );
-	const prev = this.previous || [];
+	const prev = this.previous || attr.slice( 0 );
 
 	let i = 0;
 	while ( i < value.length ) {
@@ -271,7 +271,11 @@ function updateClassName ( reset ) {
 		}
 	}
 
-	this.node.className = attr.join( ' ' );
+	const className = attr.join( ' ' );
+
+	if ( className !== this.node.className ) {
+		this.node.className = className;
+	}
 
 	this.previous = value;
 }
