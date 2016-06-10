@@ -540,6 +540,43 @@ export default function() {
 		delete Ractive.adaptors.foo;
 	});
 
+	test( 'adapted values passed to expressions should be unwrapped (#2513)', t => {
+		class Foo {
+			constructor () {
+				this.content = 'sup';
+			}
+
+			bar () { return 'hey'; }
+		}
+
+		const fooAdaptor = {
+			filter ( object ) {
+				return object instanceof Foo;
+			},
+			wrap ( ractive, foo ) {
+				const wrapper = {
+					get () {
+						return foo.content;
+					},
+					teardown () {
+						delete foo._wrapper;
+					}
+				};
+				foo._wrapper = wrapper;
+				return wrapper;
+			}
+		};
+
+		new Ractive({
+			el: fixture,
+			template: '{{ foo }} {{ (foo).bar() }}',
+			data: { foo: new Foo() },
+			adapt: [ fooAdaptor ]
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'sup hey' );
+	});
+
 	test( 'adaptors should not cause death during branching caused by two-way binding (#2467)', t => {
 		const r = new Ractive({
 			el: fixture,

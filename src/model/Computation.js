@@ -81,7 +81,8 @@ export default class Computation extends Model {
 			this.adapt();
 		}
 
-		return this.value;
+		// if capturing, this value needs to be unwrapped because it's for external use
+		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
 	}
 
 	getValue () {
