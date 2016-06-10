@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Jun 09 2016 03:41:28 GMT+0000 (UTC) - commit d2a4bee5ab6b1dcc6802cf63606e1c5501872561
+	Fri Jun 10 2016 04:49:08 GMT+0000 (UTC) - commit ed9564e3f95e9befe619b92ed35e3a46375164f7
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -8153,6 +8153,12 @@
   	var value = readClass( safeToStringValue( this.getValue() ) );
   	var attr = readClass( this.node.className );
   	var prev = this.previous || attr.slice( 0 );
+
+  	// TODO: if/when conditional attrs land, avoid this by shifting class attrs to the front
+  	if ( !this.directives ) {
+  		this.directives = this.element.attributes.filter( function ( a ) { return a.name.substr( 0, 6 ) === 'class-'; } );
+  	}
+  	value.push.apply( value, this.directives.map( function ( d ) { return d.inlineClass; } ) );
 
   	var i = 0;
   	while ( i < value.length ) {
