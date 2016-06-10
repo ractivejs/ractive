@@ -120,4 +120,13 @@ export default function () {
 
 		t.equal( r.toHTML(), `<span style="text-decoration: underline; color: green; font-size: 12pt;"></span><span style="text-decoration: underline; font-size: 12pt;"></span>` );
 	});
+
+	test( 'attribute namespaces declared next to the attribute should render (#2560)', t => {
+		new Ractive({
+			el: fixture,
+			template: '<svg><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://foo.com/bar#baz" /></svg>'
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<svg><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://foo.com/bar#baz"></use></svg>' );
+	});
 }
