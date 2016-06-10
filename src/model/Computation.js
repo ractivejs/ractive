@@ -72,7 +72,7 @@ export default class Computation extends Model {
 		this.shuffle = undefined;
 	}
 
-	get ( shouldCapture ) {
+	get ( shouldCapture, unwrap ) {
 		if ( shouldCapture ) capture( this );
 
 		if ( this.dirty ) {
@@ -81,7 +81,7 @@ export default class Computation extends Model {
 			this.adapt();
 		}
 
-		return this.value;
+		return unwrap && this.wrapper ? this.wrapper.value : this.value;
 	}
 
 	getValue () {

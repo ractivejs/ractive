@@ -235,9 +235,9 @@ export default class Model {
 		return matches;
 	}
 
-	get ( shouldCapture ) {
+	get ( shouldCapture, unwrap ) {
 		if ( shouldCapture ) capture( this );
-		return this.value;
+		return unwrap && this.wrapper ? this.wrapper.value : this.value;
 	}
 
 	getIndexModel ( fragmentIndex ) {

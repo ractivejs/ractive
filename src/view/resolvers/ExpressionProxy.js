@@ -6,7 +6,7 @@ import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
 
 function getValue ( model ) {
-	return model ? model.get( true ) : undefined;
+	return model ? model.get( true, true ) : undefined;
 }
 
 export default class ExpressionProxy extends Model {
@@ -79,8 +79,8 @@ export default class ExpressionProxy extends Model {
 		this.handleChange();
 	}
 
-	get ( shouldCapture ) {
-		return this.computation.get( shouldCapture );
+	get ( shouldCapture, unwrap ) {
+		return this.computation.get( shouldCapture, unwrap );
 	}
 
 	getKeypath () {

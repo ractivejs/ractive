@@ -23,9 +23,5 @@ export default function Ractive$get ( keypath ) {
 	}
 
 	model = this.viewmodel.joinAll( keys );
-	// if the model is wrapped, the wrapped value should be returned
-	if ( model.wrapper ) {
-		capture( model );
-		return model.wrapper.value;
-	} else return model.get( true );
+	return model.get( true, true );
 }
