@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Jun 10 2016 04:49:08 GMT+0000 (UTC) - commit ed9564e3f95e9befe619b92ed35e3a46375164f7
+	Fri Jun 10 2016 15:54:47 GMT+0000 (UTC) - commit 844f6f3036ac4cf1eba8758a536fb71feb2fc27b
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -1272,6 +1272,18 @@
 
   	addFragment: function ( fragment ) {
   		addToArray( batch.fragments, fragment );
+  	},
+
+  	// TODO: come up with a better way to handle fragments that trigger their own update
+  	addFragmentToRoot: function ( fragment ) {
+  		if ( !batch ) return;
+
+  		var b = batch;
+  		while ( b.previousBatch ) {
+  			b = b.previousBatch;
+  		}
+
+  		addToArray( b.fragments, fragment );
   	},
 
   	addInstance: function ( instance ) {
@@ -15087,11 +15099,15 @@
   };
 
   Fragment.prototype.update = function update$1 () {
-  	if ( this.dirty && !this.updating ) {
-  		this.dirty = false;
-  		this.updating = true;
-  		this.items.forEach( update );
-  		this.updating = false;
+  	if ( this.dirty ) {
+  		if ( !this.updating ) {
+  			this.dirty = false;
+  			this.updating = true;
+  			this.items.forEach( update );
+  			this.updating = false;
+  		} else if ( this.isRoot ) {
+  			runloop.addFragmentToRoot( this );
+  		}
   	}
   };
 
