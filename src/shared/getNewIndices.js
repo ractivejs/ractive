@@ -73,6 +73,10 @@ function getSpliceEquivalent ( length, methodName, args ) {
 				args.push( length - args[0] );
 			}
 
+			if ( typeof args[1] !== 'number' ) {
+				args[1] = length - args[0];
+			}
+
 			// ensure we only remove elements that exist
 			args[1] = Math.min( args[1], length - args[0] );
 

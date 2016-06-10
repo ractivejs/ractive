@@ -1,18 +1,17 @@
 import gatherRefs from '../../view/helpers/gatherRefs';
+import { addHelpers } from '../../view/helpers/contextMethods';
+import { doc } from '../../config/environment';
+
+const query = doc && doc.querySelector;
 
 export default function( node ) {
+	if ( typeof node === 'string' && query ) {
+		node = query.call( document, node );
+	}
+
 	if ( !node || !node._ractive ) return {};
 
 	const storage = node._ractive;
-	const ractive = storage.fragment.ractive;
-	const { key, index } = gatherRefs( storage.fragment );
-	const context = storage.fragment.findContext();
 
-	return {
-		ractive,
-		keypath: context.getKeypath( ractive ),
-		rootpath: context.getKeypath(),
-		index,
-		key
-	};
+	return addHelpers( {}, storage.proxy );
 }
