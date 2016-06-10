@@ -38,6 +38,18 @@ const runloop = {
 		addToArray( batch.fragments, fragment );
 	},
 
+	// TODO: come up with a better way to handle fragments that trigger their own update
+	addFragmentToRoot ( fragment ) {
+		if ( !batch ) return;
+
+		let b = batch;
+		while ( b.previousBatch ) {
+			b = b.previousBatch;
+		}
+
+		addToArray( b.fragments, fragment );
+	},
+
 	addInstance ( instance ) {
 		if ( batch ) addToArray( batch.ractives, instance );
 	},
