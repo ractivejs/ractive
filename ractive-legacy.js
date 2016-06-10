@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Jun 10 2016 15:54:47 GMT+0000 (UTC) - commit 844f6f3036ac4cf1eba8758a536fb71feb2fc27b
+	Fri Jun 10 2016 21:35:34 GMT+0000 (UTC) - commit 590cb66aaa2e7857925939e5109b1d7cf2d1267d
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2917,7 +2917,8 @@
 
   Model.prototype.get = function get ( shouldCapture ) {
   	if ( shouldCapture ) capture( this );
-  	return this.value;
+  	// if capturing, this value needs to be unwrapped because it's for external use
+  	return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
   };
 
   Model.prototype.getIndexModel = function getIndexModel ( fragmentIndex ) {
@@ -3366,11 +3367,11 @@
 
   // get relative keypaths and values
   function get ( keypath ) {
-  	if ( !keypath ) return this._element.parentFragment.findContext().get();
+  	if ( !keypath ) return this._element.parentFragment.findContext().get( true );
 
   	var model = resolveReference( this._element.parentFragment, keypath );
 
-  	return model ? model.get() : undefined;
+  	return model ? model.get( true ) : undefined;
   }
 
   function resolve$1 ( path, ractive ) {
@@ -3475,7 +3476,7 @@
   function getBinding () {
   	var el = this._element;
 
-  	if ( el.binding && el.binding.model ) return el.binding.model.get();
+  	if ( el.binding && el.binding.model ) return el.binding.model.get( true );
   }
 
   function setBinding ( value ) {
@@ -8593,7 +8594,7 @@
   }(Model));
 
   function getValue ( model ) {
-  	return model ? model.get( true ) : undefined;
+  	return model ? model.get( true, true ) : undefined;
   }
 
   var ExpressionProxy = (function (Model) {
@@ -9464,7 +9465,8 @@
   			this.adapt();
   		}
 
-  		return this.value;
+  		// if capturing, this value needs to be unwrapped because it's for external use
+  		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
   	};
 
   	Computation.prototype.getValue = function getValue () {
