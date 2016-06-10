@@ -4,6 +4,7 @@ import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 import { readStyle, readClass } from '../../../helpers/specialAttrs';
+import { xmlns } from '../../../../config/namespaces';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 
@@ -287,5 +288,8 @@ function updateAttribute () {
 }
 
 function updateNamespacedAttribute () {
-	this.node.setAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ), safeToStringValue( this.getString() ) );
+	// don't output xmlns attrs
+	if ( this.namespace !== xmlns ) {
+		this.node.setAttributeNS( this.namespace, this.name.slice( this.name.indexOf( ':' ) + 1 ), safeToStringValue( this.getString() ) );
+	}
 }
