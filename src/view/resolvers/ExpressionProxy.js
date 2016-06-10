@@ -79,8 +79,8 @@ export default class ExpressionProxy extends Model {
 		this.handleChange();
 	}
 
-	get ( shouldCapture, unwrap ) {
-		return this.computation.get( shouldCapture, unwrap );
+	get ( shouldCapture ) {
+		return this.computation.get( shouldCapture );
 	}
 
 	getKeypath () {

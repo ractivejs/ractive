@@ -3,7 +3,6 @@ import Model from './Model';
 import { handleChange } from '../shared/methodCallers';
 
 export default class ComputationChild extends Model {
-	// TODO: can this ever be wrapped?
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
 

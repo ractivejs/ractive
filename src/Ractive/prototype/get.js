@@ -1,6 +1,5 @@
 import { splitKeypath } from '../../shared/keypaths';
 import resolveReference from '../../view/resolvers/resolveReference';
-import { capture } from '../../global/capture';
 
 export default function Ractive$get ( keypath ) {
 	if ( !keypath ) return this.viewmodel.get( true );
@@ -23,5 +22,5 @@ export default function Ractive$get ( keypath ) {
 	}
 
 	model = this.viewmodel.joinAll( keys );
-	return model.get( true, true );
+	return model.get( true );
 }
