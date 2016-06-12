@@ -1,5 +1,5 @@
 import { test } from 'qunit';
-import { initModule } from './test-config';
+import { initModule, hasUsableConsole, onWarn } from './test-config';
 
 export default function () {
 	initModule( 'attributes.js' );
@@ -59,6 +59,44 @@ export default function () {
 		r.set( 'color', 'green' );
 		t.equal( span.style.color, 'green' );
 	});
+
+	if ( hasUsableConsole ) {
+		test( `invalid inline style attributes warn in debug mode`, t => {
+			t.expect( 1 );
+
+			onWarn( msg => {
+				t.ok( /inline style attribute.*color.*gren.*not match.*green/i.test( msg ), 'warns informatively' );
+			});
+
+			const r = new Ractive({
+				el: fixture,
+				template: `<span style-color="{{foo}}" />`,
+				data: { foo: 'green' }
+			});
+
+			r.set( 'foo', 'gren' );
+			r.set( 'foo', 'green' );
+			r.set( 'foo', 'gren' );
+		});
+
+		test( `invalid inline style properties warn in debug mode`, t => {
+			t.expect( 1 );
+
+			onWarn( msg => {
+				t.ok( /inline style property.*color.*gren.*not match.*green/i.test( msg ), 'warns informatively' );
+			});
+
+			const r = new Ractive({
+				el: fixture,
+				template: `<span style="color: {{foo}};" />`,
+				data: { foo: 'green' }
+			});
+
+			r.set( 'foo', 'gren' );
+			r.set( 'foo', 'green' );
+			r.set( 'foo', 'gren' );
+		});
+	}
 
 	test( `class attributes can be inline directives`, t => {
 		const r = new Ractive({

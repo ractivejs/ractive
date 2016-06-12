@@ -4,6 +4,7 @@ import { arrayContains } from '../../../../utils/array';
 import { isArray } from '../../../../utils/is';
 import noop from '../../../../utils/noop';
 import { readStyle, readClass } from '../../../helpers/specialAttrs';
+import { warnOnceIfDebug } from '../../../../utils/log';
 
 const textTypes = [ undefined, 'text', 'search', 'url', 'email', 'hidden', 'password', 'search', 'reset', 'submit' ];
 
@@ -197,7 +198,10 @@ function updateStyleAttribute () {
 
 	let i = 0;
 	while ( i < keys.length ) {
-		if ( keys[i] in style ) style[ keys[i] ] = props[ keys[i] ];
+		if ( keys[i] in style ) {
+			style[ keys[i] ] = props[ keys[i] ];
+			if ( style[ keys[i] ] !== props[ keys[i] ] ) warnOnceIfDebug( `Inline style property '${keys[i]}' new value '${props[ keys[i] ]}' does not match the applied value '${style[ keys[i] ]}'.` );
+		}
 		i++;
 	}
 
@@ -214,8 +218,11 @@ function updateInlineStyle () {
 	if ( !this.styleName ) {
 		this.styleName = camelize( this.name.substr( 6 ) );
 	}
+	const key = this.styleName;
+	const value = this.getValue();
 
-	this.node.style[ this.styleName ] = this.getValue();
+	this.node.style[ key ] = value;
+	if ( this.node.style[ key ] !== value ) warnOnceIfDebug( `Inline style attribute '${key}' new value '${value}' does not match the applied value '${this.node.style[ key ]}'.` );
 }
 
 function updateClassName () {
