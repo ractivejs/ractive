@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Jun 13 2016 05:28:25 GMT+0000 (UTC) - commit cb5bcd919339cf2b70d9a27a89752094b83a5359
+	Mon Jun 13 2016 18:50:08 GMT+0000 (UTC) - commit dcbb7fcb17a818c4d75e5527ae70edb0e9f52d49
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -3720,6 +3720,65 @@
   	return promise;
   }
 
+  var ReferenceResolver = function ReferenceResolver ( fragment, reference, callback ) {
+  	var this$1 = this;
+
+  		this.fragment = fragment;
+  	this.reference = normalise( reference );
+  	this.callback = callback;
+
+  	this.keys = splitKeypathI( reference );
+  	this.resolved = false;
+
+  	// TODO the consumer should take care of addUnresolved
+  	// we attach to all the contexts between here and the root
+  	// - whenever their values change, they can quickly
+  	// check to see if we can resolve
+  	while ( fragment ) {
+  		if ( fragment.context ) {
+  			fragment.context.addUnresolved( this$1.keys[0], this$1 );
+  		}
+
+  		fragment = fragment.componentParent || fragment.parent;
+  	}
+  };
+
+  ReferenceResolver.prototype.attemptResolution = function attemptResolution () {
+  	if ( this.resolved ) return;
+
+  	var model = resolveAmbiguousReference( this.fragment, this.reference );
+
+  	if ( model ) {
+  		this.resolved = true;
+  		this.callback( model );
+  	}
+  };
+
+  ReferenceResolver.prototype.forceResolution = function forceResolution () {
+  	if ( this.resolved ) return;
+
+  	var model = this.fragment.findContext().joinAll( this.keys );
+  	this.callback( model );
+  	this.resolved = true;
+  };
+
+  ReferenceResolver.prototype.unbind = function unbind () {
+  	var this$1 = this;
+
+  		removeFromArray( this.fragment.unresolved, this );
+
+  	if ( this.resolved ) return;
+
+  	var fragment = this.fragment;
+  	while ( fragment ) {
+  		if ( fragment.context ) {
+  			fragment.context.removeUnresolved( this$1.keys[0], this$1 );
+  		}
+
+  		fragment = fragment.componentParent || fragment.parent;
+  	}
+  };
+
   function observe ( keypath, callback, options ) {
   	var this$1 = this;
 
@@ -3774,22 +3833,25 @@
 
   	var keys = splitKeypathI( keypath );
   	var wildcardIndex = keys.indexOf( '*' );
+  	options.keypath = keypath;
 
   	// normal keypath - no wildcards
   	if ( !~wildcardIndex ) {
   		var key = keys[0];
+  		var model;
 
   		// if not the root model itself, check if viewmodel has key.
   		if ( key !== '' && !viewmodel.has( key ) ) {
   			// if this is an inline component, we may need to create an implicit mapping
   			if ( ractive.component ) {
-  				var model = resolveReference( ractive.component.parentFragment, key );
+  				model = resolveReference( ractive.component.parentFragment, key );
   				if ( model ) viewmodel.map( key, model );
   			}
+  		} else {
+  			model = viewmodel.joinAll( keys );
   		}
 
-  		var model$1 = viewmodel.joinAll( keys );
-  		return new Observer( ractive, model$1, callback, options );
+  		return new Observer( ractive, model, callback, options );
   	}
 
   	// pattern observers - more complex case
@@ -3801,19 +3863,19 @@
   }
 
   var Observer = function Observer ( ractive, model, callback, options ) {
-  	this.context = options.context || ractive;
-  	this.model = model;
-  	this.keypath = model.getKeypath( ractive );
+  	var this$1 = this;
+
+  		this.context = options.context || ractive;
   	this.callback = callback;
+  	this.ractive = ractive;
 
-  	this.oldValue = undefined;
-  	this.newValue = model.get();
-
-  	this.defer = options.defer;
-  	this.once = options.once;
-  	this.strict = options.strict;
-
-  	this.dirty = false;
+  	if ( model ) this.resolved( model );
+  	else {
+  		this.keypath = options.keypath;
+  		this.resolver = new ReferenceResolver( ractive.fragment, options.keypath, function ( model ) {
+  			this$1.resolved( model );
+  		});
+  	}
 
   	if ( options.init !== false ) {
   		this.dispatch();
@@ -3821,11 +3883,19 @@
   		this.oldValue = this.newValue;
   	}
 
-  	model.register( this );
+  	this.defer = options.defer;
+  	this.once = options.once;
+  	this.strict = options.strict;
+
+  	this.dirty = false;
   };
 
   Observer.prototype.cancel = function cancel () {
-  	this.model.unregister( this );
+  	if ( this.model ) {
+  		this.model.unregister( this );
+  	} else {
+  		this.resolver.unbind();
+  	}
   };
 
   Observer.prototype.dispatch = function dispatch () {
@@ -3845,6 +3915,16 @@
 
   		if ( this.once ) this.cancel();
   	}
+  };
+
+  Observer.prototype.resolved = function resolved ( model ) {
+  	this.model = model;
+  	this.keypath = model.getKeypath( this.ractive );
+
+  	this.oldValue = undefined;
+  	this.newValue = model.get();
+
+  	model.register( this );
   };
 
   var PatternObserver = function PatternObserver ( ractive, baseModel, keys, callback, options ) {
@@ -15726,65 +15806,6 @@
 
   	return new Item( options );
   }
-
-  var ReferenceResolver = function ReferenceResolver ( fragment, reference, callback ) {
-  	var this$1 = this;
-
-  		this.fragment = fragment;
-  	this.reference = normalise( reference );
-  	this.callback = callback;
-
-  	this.keys = splitKeypathI( reference );
-  	this.resolved = false;
-
-  	// TODO the consumer should take care of addUnresolved
-  	// we attach to all the contexts between here and the root
-  	// - whenever their values change, they can quickly
-  	// check to see if we can resolve
-  	while ( fragment ) {
-  		if ( fragment.context ) {
-  			fragment.context.addUnresolved( this$1.keys[0], this$1 );
-  		}
-
-  		fragment = fragment.componentParent || fragment.parent;
-  	}
-  };
-
-  ReferenceResolver.prototype.attemptResolution = function attemptResolution () {
-  	if ( this.resolved ) return;
-
-  	var model = resolveAmbiguousReference( this.fragment, this.reference );
-
-  	if ( model ) {
-  		this.resolved = true;
-  		this.callback( model );
-  	}
-  };
-
-  ReferenceResolver.prototype.forceResolution = function forceResolution () {
-  	if ( this.resolved ) return;
-
-  	var model = this.fragment.findContext().joinAll( this.keys );
-  	this.callback( model );
-  	this.resolved = true;
-  };
-
-  ReferenceResolver.prototype.unbind = function unbind () {
-  	var this$1 = this;
-
-  		removeFromArray( this.fragment.unresolved, this );
-
-  	if ( this.resolved ) return;
-
-  	var fragment = this.fragment;
-  	while ( fragment ) {
-  		if ( fragment.context ) {
-  			fragment.context.removeUnresolved( this$1.keys[0], this$1 );
-  		}
-
-  		fragment = fragment.componentParent || fragment.parent;
-  	}
-  };
 
   // TODO all this code needs to die
   function processItems ( items, values, guid, counter ) {
