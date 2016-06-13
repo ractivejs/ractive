@@ -9,6 +9,8 @@ var rollupBuble = require( 'rollup-plugin-buble' );
 
 var sandbox = gobble( 'sandbox' ).moveTo( 'sandbox' );
 var version = require( './package.json' ).version;
+var hash = process.env.COMMIT_HASH || 'unknown';
+var versionExt = ~version.indexOf( '-edge' ) ? '-' + hash : '';
 
 var bubleLegacyOptions = { target: { ie: 8 } };
 
@@ -22,7 +24,7 @@ function noop () {}
 function adjustAndSkip ( pattern ) {
 	return { transform: function ( src, path ) {
 		if ( /(Ractive\.js|utils[\/\\]log\.js)$/.test( path ) ) {
-			return src.replace( /<@version@>/g, version );
+			return src.replace( /<@version@>/g, version + versionExt );
 		}
 
 		if ( pattern && pattern.test( path ) ) {
@@ -52,7 +54,7 @@ function buildLib ( dest, pattern ) {
 var banner = sander.readFileSync( __dirname, 'src/banner.js' ).toString()
 	.replace( '${version}', version )
 	.replace( '${time}', new Date() )
-	.replace( '${commitHash}', process.env.COMMIT_HASH || 'unknown' );
+	.replace( '${commitHash}', hash );
 
 if ( gobble.env() === 'production' ) {
 	lib = gobble([

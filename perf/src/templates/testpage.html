@@ -144,22 +144,30 @@
 			template: '#template',
 			data: {
 				running: false,
-				versions: [ '0.4.0', '0.5.0', '0.5.4', '0.5.5', '0.5.6', '0.5.7', '0.5.8', '0.6.0', '0.6.1', '0.7.2', '0.7.3', 'control', 'edge' ],
-				selectedVersion: 'edge',
+				versions: [ '0.4.0', '0.5.0', '0.5.4', '0.5.5', '0.5.6', '0.5.7', '0.5.8', '0.6.0', '0.6.1', '0.7.2', '0.7.3', 'edge', 'control', 'dev' ],
+				selectedVersion: 'dev',
 				results: [],
 				formatTime: function ( ms ) {
 					return ms.toFixed( 1 );
 				}
 			},
 			run: function () {
-				var version, start;
+				var version, start, url;
 
 				version = this.get( 'selectedVersion' );
 				start = Date.now();
 
+				if ( version === 'edge' ) {
+					url = 'http://cdn.ractivejs.org/edge/ractive-legacy.js';
+				} else if ( version === 'dev' ) {
+					url = '<%= srcPrefix %>/builds/edge/ractive-legacy.js';
+				} else {
+					url = '<%= srcPrefix %>/builds/' + version + '/ractive-legacy.js';
+				}
+
 				this.set( 'running', true );
 
-				runSuite( tests, version, '<%= srcPrefix %>/builds/' + version + '/ractive-legacy.js', function ( err, result ) {
+				runSuite( tests, version, url, function ( err, result ) {
 					result = result || {};
 
 					if ( err ) {
