@@ -424,7 +424,7 @@ export default function() {
 
 			function trans() {
 				t.ok( true, 'transition actually ran' );
-				return new Promise( ok => setTimeout( ok, 200 ) );
+				return new Promise( ok => setTimeout( ok, 400 ) );
 			}
 			const r = new Ractive({
 				el: fixture,
@@ -449,11 +449,170 @@ export default function() {
 			transitions: {
 				test ( transition ) {
 					t.ok( this === ractive );
-					transition.complete;
+					transition.complete();
 				}
 			}
 		});
 
 		ractive.set( 'visible', true );
+	});
+
+	test( 'intro transitions can be conditional', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if foo}}<div {{#if bar}}intro="go"{{/if}}></div>{{/if}}`,
+			data: { foo: true, bar: true },
+			transitions: {
+				go ( t ) {
+					count++;
+					t.complete();
+				}
+			}
+		});
+
+		t.equal( count, 1 );
+		r.set({ foo: false, bar: false });
+		r.set( 'foo', true );
+		t.equal( count, 1 );
+		r.set({ foo: false, bar: true });
+		r.set( 'foo', true );
+		t.equal( count, 2 );
+	});
+
+	test( 'outro transitions can be conditional', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if foo}}<div {{#if bar}}outro="go"{{/if}}></div>{{/if}}`,
+			data: { foo: true, bar: true },
+			transitions: {
+				go ( t ) {
+					count++;
+					t.complete();
+				}
+			}
+		});
+
+		t.equal( count, 0 );
+		r.set({ foo: false, bar: false });
+		t.equal( count, 1 );
+		r.set( 'foo', true );
+		r.set( 'foo', false );
+		t.equal( count, 1 );
+		r.set( 'bar', true );
+		r.set( 'foo', true );
+		r.set( 'foo', false );
+		t.equal( count, 2 );
+	});
+
+	test( 'intro-outro transitions can be conditional', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if foo}}<div {{#if bar}}intro-outro="go"{{/if}}></div>{{/if}}`,
+			data: { foo: true, bar: true },
+			transitions: {
+				go ( t ) {
+					count++;
+					t.complete();
+				}
+			}
+		});
+
+		t.equal( count, 1 );
+		r.set({ foo: false, bar: false });
+		t.equal( count, 2 );
+		r.set( 'foo', true );
+		r.set( 'foo', false );
+		t.equal( count, 2 );
+		r.set( 'bar', true );
+		r.set( 'foo', true );
+		r.set( 'foo', false );
+		t.equal( count, 4 );
+	});
+
+	test( 'intros can be named attributes', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#if foo}}<div go-in></div>{{/if}}',
+			data: { foo: true },
+			transitions: {
+				go ( t ) {
+					count++;
+					t.complete();
+				}
+			}
+		});
+
+		t.equal( count, 1 );
+		r.set( 'foo', false );
+		r.set( 'foo', true );
+		t.equal( count, 2 );
+	});
+
+	test( 'outros can be named attributes', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#if foo}}<div go-out></div>{{/if}}',
+			data: { foo: true },
+			transitions: {
+				go ( t ) {
+					count++;
+					t.complete();
+				}
+			}
+		});
+
+		r.set( 'foo', false );
+		t.equal( count, 1 );
+		r.set( 'foo', true );
+		r.set( 'foo', false );
+		t.equal( count, 2 );
+	});
+
+	test( 'intro-outros can be named attributes', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#if foo}}<div go-in-out></div>{{/if}}',
+			data: { foo: true },
+			transitions: {
+				go ( t ) {
+					count++;
+					t.complete();
+				}
+			}
+		});
+
+		t.equal( count, 1 );
+		r.set( 'foo', false );
+		t.equal( count, 2 );
+		r.set( 'foo', true );
+		t.equal( count, 3 );
+		r.set( 'foo', false );
+		t.equal( count, 4 );
+	});
+
+
+	test( 'named attribute transitions can have normal expression args', t => {
+		let count = 0;
+		new Ractive({
+			el: fixture,
+			template: `{{#if foo}}<div go-in="bar, 'bat'"></div>{{/if}}`,
+			data: { foo: true, bar: 'foo' },
+			transitions: {
+				go ( trans, bar, str ) {
+					count++;
+					t.equal( bar, 'foo' );
+					t.equal( str, 'bat' );
+					trans.complete();
+				}
+			}
+		});
+
+		t.equal( count, 1 );
 	});
 }

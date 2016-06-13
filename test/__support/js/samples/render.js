@@ -1034,6 +1034,14 @@ const renderTests = [
 		new_data: { foo: false },
 		new_result: '<p data-bar="nope"></p>'
 	},
+	{
+		name: 'conditional boolean attribute',
+		template: '<input type="checkbox" {{#if foo}}checked{{/if}} />',
+		data: { foo: true },
+		result: '<input type="checkbox" checked />',
+		new_data: { foo: false },
+		new_result: '<input type="checkbox" />'
+	},
 
 	// elseif
 	{

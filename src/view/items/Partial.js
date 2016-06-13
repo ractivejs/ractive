@@ -4,6 +4,7 @@ import Fragment from '../Fragment';
 import getPartialTemplate from './partial/getPartialTemplate';
 import { isArray } from '../../utils/is';
 import parser from '../../Ractive/config/runtime-parser';
+import { doInAttributes } from './element/ConditionalAttribute';
 
 export default class Partial extends Mustache {
 	bind () {
@@ -81,7 +82,12 @@ export default class Partial extends Mustache {
 			this.partialTemplate = [];
 		}
 
-		this.fragment.resetTemplate( this.partialTemplate );
+		if ( this.inAttribute ) {
+			doInAttributes( () => this.fragment.resetTemplate( this.partialTemplate ) );
+		} else {
+			this.fragment.resetTemplate( this.partialTemplate );
+		}
+
 		this.bubble();
 	}
 

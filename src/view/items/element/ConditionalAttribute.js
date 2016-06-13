@@ -7,6 +7,14 @@ import Item from '../shared/Item';
 
 const div = doc ? createElement( 'div' ) : null;
 
+var attributes = false;
+export function inAttributes() { return attributes; }
+export function doInAttributes( fn ) {
+	attributes = true;
+	fn();
+	attributes = false;
+}
+
 export default class ConditionalAttribute extends Item {
 	constructor ( options ) {
 		super( options );
@@ -41,7 +49,13 @@ export default class ConditionalAttribute extends Item {
 
 	render () {
 		this.node = this.owner.node;
-		this.isSvg = this.node.namespaceURI === svg;
+		if ( this.node ) {
+			this.isSvg = this.node.namespaceURI === svg;
+		}
+
+		attributes = true;
+		this.fragment.render();
+		attributes = false;
 
 		this.rendered = true;
 		this.dirty = true; // TODO this seems hacky, but necessary for tests to pass in browser AND node.js
@@ -67,9 +81,11 @@ export default class ConditionalAttribute extends Item {
 		if ( this.dirty ) {
 			this.dirty = false;
 
+			attributes = true;
 			this.fragment.update();
+			attributes = false;
 
-			if ( this.rendered ) {
+			if ( this.rendered && this.node ) {
 				str = this.fragment.toString();
 				attrs = parseAttributes( str, this.isSvg );
 

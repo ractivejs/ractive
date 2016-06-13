@@ -8,6 +8,7 @@ export default class Mustache extends Item {
 		this.parentFragment = options.parentFragment;
 		this.template = options.template;
 		this.index = options.index;
+		if ( options.owner ) this.parent = options.owner;
 
 		this.isStatic = !!options.template.s;
 
@@ -44,20 +45,19 @@ export default class Mustache extends Item {
 	}
 
 	rebind () {
-		if ( this.isStatic || !this.model ) return;
+		if ( this.isStatic ) return;
 
 		const model = resolve( this.parentFragment, this.template );
 
 		if ( model === this.model ) return;
 
-		this.model.unregister( this );
+		if ( this.model ) this.model.unregister( this );
 
 		this.model = model;
 
-		if ( model ) {
-			model.register( this );
-			this.handleChange();
-		}
+		if ( model ) model.register( this );
+
+		this.handleChange();
 	}
 
 	unbind () {

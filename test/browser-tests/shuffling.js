@@ -249,8 +249,24 @@ export default function() {
 
 		r.splice( 'foo', 2, 1 );
 		r.splice( 'foo', 1, 0, 0 );
+		spans = r.findAll( 'span' );
 
 		for ( let i = 0; i < spans.length; i++ ) t.equal( spans[i].getAttribute( 'data-wat' ), spans[i].innerHTML );
+	});
+
+	test( 'computations with reference expressions that resolve to an array length should be marked on shuffle (#2541)', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{foo[v].length + 1}}',
+			data: {
+				foo: { bar: [ 1, 2 ] },
+				v: 'bar'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '3' );
+		r.push( 'foo.bar', 3 );
+		t.htmlEqual( fixture.innerHTML, '4' );
 	});
 
 	// TODO reinstate this in some form. Commented out for purposes of #1740

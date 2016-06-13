@@ -40,14 +40,9 @@ export default class GenericBinding extends Binding {
 		let lazy = this.ractive.lazy;
 		let timeout = false;
 
-		// TODO handle at parse time
-		if ( this.element.template.a && ( 'lazy' in this.element.template.a ) ) {
-			lazy = this.element.template.a.lazy;
-			if ( lazy === 0 ) lazy = true; // empty attribute
+		if ( 'lazy' in this.element ) {
+			lazy = this.element.lazy;
 		}
-
-		// TODO handle this at parse time as well?
-		if ( lazy === 'false' ) lazy = false;
 
 		if ( isNumeric( lazy ) ) {
 			timeout = +lazy;

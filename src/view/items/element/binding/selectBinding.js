@@ -13,9 +13,10 @@ import SingleSelectBinding from './SingleSelectBinding';
 
 export function isBindable ( attribute ) {
 	return attribute &&
-	       attribute.template.length === 1 &&
-	       attribute.template[0].t === INTERPOLATOR &&
-	       !attribute.template[0].s;
+		   attribute.template.f &&
+	       attribute.template.f.length === 1 &&
+	       attribute.template.f[0].t === INTERPOLATOR &&
+	       !attribute.template.f[0].s;
 }
 
 export default function selectBinding ( element ) {

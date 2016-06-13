@@ -3,7 +3,6 @@ import Transition from '../../view/items/element/Transition';
 import { fatal } from '../../utils/log';
 import { isObject } from '../../utils/is';
 
-
 export default function Ractive$transition ( name, node, params ) {
 
 	if ( node instanceof HTMLElement ) {
@@ -24,11 +23,13 @@ export default function Ractive$transition ( name, node, params ) {
 
 	node = node || this.event.node;
 
-	if ( !node ) {
+	if ( !node || !node._ractive ) {
 		fatal( `No node was supplied for transition ${name}` );
 	}
 
-	const transition = new Transition( this, node, name, params );
+	params = params || {};
+	const owner = node._ractive.proxy;
+	const transition = new Transition({ owner, parentFragment: owner.parentFragment, name, params });
 	const promise = runloop.start( this, true );
 	runloop.registerTransition( transition );
 	runloop.end();

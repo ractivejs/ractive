@@ -100,7 +100,7 @@ export default function () {
 			template: `<span class-foo="{{true}}" class="bar" />`
 		});
 
-		t.equal( r.find( 'span' ).className, 'foo bar' );
+		t.equal( r.find( 'span' ).className, 'bar foo' );
 	});
 
 	test( `class directives and class attributes both contribute to toHTML (#2537)`, t => {
@@ -109,7 +109,7 @@ export default function () {
 			template: `<span class-bip="{{true}}" class-nope="{{false}}" class="foo bar" class-bop="{{true}}" /><span class-foo="{{true}}" class-bar-baz="{{true}}" />`
 		});
 
-		t.equal( r.toHTML(), `<span class="bip foo bar bop"></span><span class="foo bar-baz"></span>` );
+		t.equal( r.toHTML(), `<span class="foo bar bip bop"></span><span class="foo bar-baz"></span>` );
 	});
 
 	test( `style directives and style attributes both contribute to toHTML (#2537)`, t => {

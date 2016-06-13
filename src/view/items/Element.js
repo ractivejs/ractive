@@ -1,19 +1,14 @@
-import { ELEMENT } from '../../config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, ELEMENT, EVENT, TRANSITION } from '../../config/types';
 import runloop from '../../global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
-import Attribute from './element/Attribute';
 import ConditionalAttribute from './element/ConditionalAttribute';
-import Decorator from './element/Decorator';
-import EventDirective from './shared/EventDirective';
-import { findInViewHierarchy } from '../../shared/registry';
-import { DOMEvent, CustomEvent } from './element/ElementEvents';
-import Transition from './element/Transition';
 import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
+import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
@@ -47,64 +42,50 @@ export default class Element extends Item {
 			throw new Error( `An <option> element cannot contain other elements (encountered <${this.name}>)` );
 		}
 
+		this.decorators = [];
+
 		// create attributes
 		this.attributeByName = {};
+
 		this.attributes = [];
+		( this.template.m || [] ).forEach( template => {
+			switch ( template.t ) {
+				case ATTRIBUTE:
+				case BINDING_FLAG:
+				case DECORATOR:
+				case EVENT:
+				case TRANSITION:
+					this.attributes.push( createItem({
+						owner: this,
+						parentFragment: this.parentFragment,
+						template
+					}) );
+					break;
 
-		if ( this.template.a ) {
-			Object.keys( this.template.a ).forEach( name => {
-				// TODO process this at parse time
-				if ( name === 'twoway' || name === 'lazy' ) return;
-
-				const attribute = new Attribute({
-					name,
-					element: this,
-					parentFragment: this.parentFragment,
-					template: this.template.a[ name ]
-				});
-
-				this.attributeByName[ name ] = attribute;
-
-				if ( name !== 'value' && name !== 'type' ) this.attributes.push( attribute );
-			});
-
-			if ( this.attributeByName.type ) this.attributes.unshift( this.attributeByName.type );
-			if ( this.attributeByName.value ) this.attributes.push( this.attributeByName.value );
-		}
-
-		// create conditional attributes
-		this.conditionalAttributes = ( this.template.m || [] ).map( template => {
-			return new ConditionalAttribute({
-				owner: this,
-				parentFragment: this.parentFragment,
-				template
-			});
+				default:
+					this.attributes.push( new ConditionalAttribute({
+						owner: this,
+						parentFragment: this.parentFragment,
+						template
+					}) );
+					break;
+			}
 		});
 
-		// create decorator
-		if ( this.template.o ) {
-			this.decorator = new Decorator( this, this.template.o );
-		}
-
-		// attach event handlers
-		this.eventHandlers = [];
-		if ( this.template.v ) {
-			Object.keys( this.template.v ).forEach( key => {
-				const eventNames = key.split( '-' );
-				const template = this.template.v[ key ];
-
-				eventNames.forEach( eventName => {
-					const fn = findInViewHierarchy( 'events', this.ractive, eventName );
-					// we need to pass in "this" in order to get
-					// access to node when it is created.
-					const event = fn ? new CustomEvent( fn, this ) : new DOMEvent( eventName, this );
-					this.eventHandlers.push( new EventDirective( this, event, template ) );
-				});
-			});
+		let i = this.attributes.length;
+		while ( i-- ) {
+			let attr = this.attributes[ i ];
+			if ( attr.name === 'type' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
+			else if ( attr.name === 'max' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
+			else if ( attr.name === 'min' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
+			else if ( attr.name === 'class' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
+			else if ( attr.name === 'value' ) {
+				this.attributes.push( this.attributes.splice( i, 1 )[ 0 ] );
+			}
 		}
 
 		// create children
-		if ( options.template.f && !options.noContent ) {
+		if ( options.template.f && !options.deferContent ) {
 			this.fragment = new Fragment({
 				template: options.template.f,
 				owner: this,
@@ -116,25 +97,18 @@ export default class Element extends Item {
 	}
 
 	bind () {
+		this.attributes.binding = true;
 		this.attributes.forEach( bind );
-		this.conditionalAttributes.forEach( bind );
-		this.eventHandlers.forEach( bind );
+		this.attributes.binding = false;
 
-		if ( this.decorator ) this.decorator.bind();
 		if ( this.fragment ) this.fragment.bind();
 
 		// create two-way binding if necessary
-		if ( this.binding = this.createTwowayBinding() ) this.binding.bind();
+		if ( !this.binding ) this.recreateTwowayBinding();
 	}
 
 	createTwowayBinding () {
-		const attributes = this.template.a;
-
-		if ( !attributes ) return null;
-
-		const shouldBind = 'twoway' in attributes ?
-			attributes.twoway === 0 || attributes.twoway === 'true' : // covers `twoway` and `twoway='true'`
-			this.ractive.twoway;
+		const shouldBind = 'twoway' in this ? this.twoway : this.ractive.twoway;
 
 		if ( !shouldBind ) return null;
 
@@ -150,7 +124,8 @@ export default class Element extends Item {
 	}
 
 	detach () {
-		if ( this.decorator ) this.decorator.unrender();
+		this.attributes.forEach( unrender );
+
 		return detachNode( this.node );
 	}
 
@@ -202,13 +177,23 @@ export default class Element extends Item {
 
 	rebind () {
 		this.attributes.forEach( rebind );
-		this.conditionalAttributes.forEach( rebind );
-		this.eventHandlers.forEach( rebind );
-		if ( this.decorator ) this.decorator.rebind();
+
 		if ( this.fragment ) this.fragment.rebind();
 		if ( this.binding ) this.binding.rebind();
 
 		this.liveQueries.forEach( makeDirty );
+	}
+
+	recreateTwowayBinding () {
+		if ( this.binding ) {
+			this.binding.unbind();
+			this.binding.unrender();
+		}
+
+		if ( this.binding = this.createTwowayBinding() ) {
+			this.binding.bind();
+			if ( this.rendered ) this.binding.render();
+		}
 	}
 
 	render ( target, occupants ) {
@@ -252,6 +237,7 @@ export default class Element extends Item {
 
 		if ( this.fragment ) {
 			const children = existing ? toArray( node.childNodes ) : undefined;
+
 			this.fragment.render( node, children );
 
 			// clean up leftover children
@@ -263,27 +249,24 @@ export default class Element extends Item {
 		if ( existing ) {
 			// store initial values for two-way binding
 			if ( this.binding && this.binding.wasUndefined ) this.binding.setFromNode( node );
-
 			// remove unused attributes
 			let i = node.attributes.length;
 			while ( i-- ) {
 				const name = node.attributes[i].name;
-				if ( !this.template.a || !( name in this.template.a ) ) node.removeAttribute( name );
+				if ( !( name in this.attributeByName ) ) node.removeAttribute( name );
 			}
 		}
 
 		this.attributes.forEach( render );
-		this.conditionalAttributes.forEach( render );
 
-		if ( this.decorator ) runloop.scheduleTask( () => this.decorator.render(), true );
 		if ( this.binding ) this.binding.render();
-
-		this.eventHandlers.forEach( render );
 
 		updateLiveQueries( this );
 
-		// store so we can abort if it gets removed
-		this._introTransition = getTransition( this, this.template.t0 || this.template.t1, 'intro' );
+		if ( this._introTransition && this.ractive.transitionsEnabled ) {
+			this._introTransition.isIntro = true;
+			runloop.registerTransition( this._introTransition );
+		}
 
 		if ( !existing ) {
 			target.appendChild( node );
@@ -295,8 +278,7 @@ export default class Element extends Item {
 	toString () {
 		const tagName = this.template.e;
 
-		let attrs = this.attributes.map( stringifyAttribute ).join( '' ) +
-		            this.conditionalAttributes.map( stringifyAttribute ).join( '' );
+		let attrs = this.attributes.map( stringifyAttribute ).join( '' );
 
 		// Special case - selected options
 		if ( this.name === 'option' && this.isSelected() ) {
@@ -350,9 +332,8 @@ export default class Element extends Item {
 
 	unbind () {
 		this.attributes.forEach( unbind );
-		this.conditionalAttributes.forEach( unbind );
 
-		if ( this.decorator ) this.decorator.unbind();
+		if ( this.binding ) this.binding.unbind();
 		if ( this.fragment ) this.fragment.unbind();
 	}
 
@@ -363,7 +344,7 @@ export default class Element extends Item {
 		// unrendering before intro completed? complete it now
 		// TODO should be an API for aborting transitions
 		let transition = this._introTransition;
-		if ( transition ) transition.complete();
+		if ( transition && transition.complete ) transition.complete();
 
 		// Detach as soon as we can
 		if ( this.name === 'option' ) {
@@ -377,18 +358,12 @@ export default class Element extends Item {
 
 		if ( this.fragment ) this.fragment.unrender();
 
-		this.eventHandlers.forEach( unrender );
-
 		if ( this.binding ) this.binding.unrender();
-		if ( !shouldDestroy && this.decorator ) this.decorator.unrender();
 
 		// outro transition
-		getTransition( this, this.template.t0 || this.template.t2, 'outro' );
-
-		// special case
-		const id = this.attributeByName.id;
-		if ( id  ) {
-			delete this.ractive.nodes[ id.getValue() ];
+		if ( this._outroTransition && this.ractive.transitionsEnabled ) {
+			this._outroTransition.isIntro = false;
+			runloop.registerTransition( this._outroTransition );
 		}
 
 		removeFromLiveQueries( this );
@@ -400,58 +375,10 @@ export default class Element extends Item {
 			this.dirty = false;
 
 			this.attributes.forEach( update );
-			this.conditionalAttributes.forEach( update );
-			this.eventHandlers.forEach( update );
 
-			if ( this.decorator ) this.decorator.update();
 			if ( this.fragment ) this.fragment.update();
 		}
 	}
-}
-
-function getTransition( owner, template, eventName ) {
-	if ( !template || !owner.ractive.transitionsEnabled ) return;
-
-	const name = getTransitionName( owner, template );
-	if ( !name ) return;
-
-	const params = getTransitionParams( owner, template );
-	const transition = new Transition( owner.ractive, owner.node, name, params, eventName );
-	runloop.registerTransition( transition );
-	return transition;
-}
-
-function getTransitionName ( owner, template ) {
-	let name = template.n || template;
-
-	if ( typeof name === 'string' ) return name;
-
-	const fragment = new Fragment({
-		owner,
-		template: name
-	}).bind(); // TODO need a way to capture values without bind()
-
-	name = fragment.toString();
-	fragment.unbind();
-
-	return name;
-}
-
-function getTransitionParams ( owner, template ) {
-	if ( template.a ) return template.a;
-	if ( !template.d )  return;
-
-	// TODO is there a way to interpret dynamic arguments without all the
-	// 'dependency thrashing'?
-	const fragment = new Fragment({
-		owner,
-		template: template.d
-	}).bind();
-
-	const params = fragment.getArgsList();
-	fragment.unbind();
-
-	return params;
 }
 
 function inputIsCheckedRadio ( element ) {

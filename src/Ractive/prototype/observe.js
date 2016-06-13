@@ -3,6 +3,7 @@ import { isArray, isEqual, isObject } from '../../utils/is';
 import { splitKeypath, escapeKey } from '../../shared/keypaths';
 import { removeFromArray } from '../../utils/array';
 import resolveReference from '../../view/resolvers/resolveReference';
+import ReferenceResolver from '../../view/resolvers/ReferenceResolver';
 
 export default function observe ( keypath, callback, options ) {
 	let observers = [];
@@ -56,21 +57,24 @@ function createObserver ( ractive, keypath, callback, options ) {
 
 	const keys = splitKeypath( keypath );
 	const wildcardIndex = keys.indexOf( '*' );
+	options.keypath = keypath;
 
 	// normal keypath - no wildcards
 	if ( !~wildcardIndex ) {
 		const key = keys[0];
+		let model;
 
 		// if not the root model itself, check if viewmodel has key.
 		if ( key !== '' && !viewmodel.has( key ) ) {
 			// if this is an inline component, we may need to create an implicit mapping
 			if ( ractive.component ) {
-				const model = resolveReference( ractive.component.parentFragment, key );
+				model = resolveReference( ractive.component.parentFragment, key );
 				if ( model ) viewmodel.map( key, model );
 			}
+		} else {
+			model = viewmodel.joinAll( keys );
 		}
 
-		const model = viewmodel.joinAll( keys );
 		return new Observer( ractive, model, callback, options );
 	}
 
@@ -85,18 +89,16 @@ function createObserver ( ractive, keypath, callback, options ) {
 class Observer {
 	constructor ( ractive, model, callback, options ) {
 		this.context = options.context || ractive;
-		this.model = model;
-		this.keypath = model.getKeypath( ractive );
 		this.callback = callback;
+		this.ractive = ractive;
 
-		this.oldValue = undefined;
-		this.newValue = model.get();
-
-		this.defer = options.defer;
-		this.once = options.once;
-		this.strict = options.strict;
-
-		this.dirty = false;
+		if ( model ) this.resolved( model );
+		else {
+			this.keypath = options.keypath;
+			this.resolver = new ReferenceResolver( ractive.fragment, options.keypath, model => {
+				this.resolved( model );
+			});
+		}
 
 		if ( options.init !== false ) {
 			this.dispatch();
@@ -104,11 +106,19 @@ class Observer {
 			this.oldValue = this.newValue;
 		}
 
-		model.register( this );
+		this.defer = options.defer;
+		this.once = options.once;
+		this.strict = options.strict;
+
+		this.dirty = false;
 	}
 
 	cancel () {
-		this.model.unregister( this );
+		if ( this.model ) {
+			this.model.unregister( this );
+		} else {
+			this.resolver.unbind();
+		}
 	}
 
 	dispatch () {
@@ -128,6 +138,16 @@ class Observer {
 
 			if ( this.once ) this.cancel();
 		}
+	}
+
+	resolved ( model ) {
+		this.model = model;
+		this.keypath = model.getKeypath( this.ractive );
+
+		this.oldValue = undefined;
+		this.newValue = model.get();
+
+		model.register( this );
 	}
 }
 

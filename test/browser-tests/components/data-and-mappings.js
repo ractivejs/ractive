@@ -1154,8 +1154,8 @@ export default function() {
 		const ractive = new Ractive({
 			el: fixture,
 			template: `
-				<Component active="{{tab == 'foo'}}"/>
-				<Component active="{{tab == 'bar'}}"/>`,
+			<Component active="{{tab == 'foo'}}"/>
+			<Component active="{{tab == 'bar'}}"/>`,
 			data: {
 				tab: 'foo'
 			},
@@ -1166,6 +1166,45 @@ export default function() {
 		ractive.set( 'tab', 'bar' );
 		t.htmlEqual( fixture.innerHTML, 'inactive active' );
 	});
+
+	test( 'conditional mapping updates correctly', t => {
+		const cmp = Ractive.extend({
+			template: '{{foo}}'
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp {{#if cond}}foo="{{bar}}"{{else}}foo="{{baz}}"{{/if}} />',
+			data: { cond: true, bar: 'bar', baz: 'baz' },
+			components: { cmp }
+		});
+
+		t.equal( fixture.innerHTML, 'bar' );
+		r.toggle( 'cond' );
+		t.equal( fixture.innerHTML, 'baz' );
+		r.toggle( 'cond' );
+		t.equal( fixture.innerHTML, 'bar' );
+	});
+
+	test( 'conditional mappings unmap correctly', t => {
+		const cmp = Ractive.extend({
+			template: '{{foo}}'
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp {{#if cond}}foo="{{bar}}"{{/if}} />',
+			data: { cond: true, bar: 'bar' },
+			components: { cmp }
+		});
+
+		t.equal( fixture.innerHTML, 'bar' );
+		r.toggle( 'cond' );
+		t.equal( fixture.innerHTML, '' );
+		r.toggle( 'cond' );
+		t.equal( fixture.innerHTML, 'bar' );
+	});
+
 
 	test( 'root references inside a component should resolve to the component', t => {
 		const cmp = Ractive.extend({
@@ -1220,5 +1259,26 @@ export default function() {
 
 		r.set( 'thing', 'hey' );
 		t.htmlEqual( fixture.innerHTML, 'hey is yep' );
+	});
+
+	test( `observers and ambiguous mappings play nicely together (#2142)`, t => {
+		t.expect( 3 );
+
+		const cmp = Ractive.extend({
+			template: '{{test}}',
+			onrender () {
+				this.observe( 'test', ( n, o ) => t.equal( n, 'foo' ) || t.equal( o, undefined ), { init: false } );
+			}
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#with dummy}}<cmp />{{/with}}',
+			data: { dummy: { x: 1 } },
+			components: { cmp }
+		});
+
+		r.set( 'test', 'foo' );
+		t.htmlEqual( fixture.innerHTML, 'foo' );
 	});
 }
