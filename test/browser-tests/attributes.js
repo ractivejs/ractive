@@ -94,6 +94,15 @@ export default function () {
 		t.equal( span.className, 'bar baz foo' );
 	});
 
+	test( `class attributes don't override class directives at render (#2565)`, t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span class-foo="{{true}}" class="bar" />`
+		});
+
+		t.equal( r.find( 'span' ).className, 'foo bar' );
+	});
+
 	test( `class directives and class attributes both contribute to toHTML (#2537)`, t => {
 		const r = new Ractive({
 			el: fixture,

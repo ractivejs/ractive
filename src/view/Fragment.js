@@ -306,11 +306,15 @@ export default class Fragment {
 	}
 
 	update () {
-		if ( this.dirty && !this.updating ) {
-			this.dirty = false;
-			this.updating = true;
-			this.items.forEach( update );
-			this.updating = false;
+		if ( this.dirty ) {
+			if ( !this.updating ) {
+				this.dirty = false;
+				this.updating = true;
+				this.items.forEach( update );
+				this.updating = false;
+			} else if ( this.isRoot ) {
+				runloop.addFragmentToRoot( this );
+			}
 		}
 	}
 

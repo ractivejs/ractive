@@ -2,7 +2,7 @@ import { test } from 'qunit';
 import { svg } from '../../config/environment';
 import { initModule } from '../test-config';
 
-/* globals window, document, navigator */
+/* globals window, document */
 
 export default function() {
 	initModule( 'render/misc' );
@@ -282,6 +282,34 @@ export default function() {
 
 		r.set( 'bar', [] );
 		r.set( 'foo', 2 );
+	});
+
+	test( 'instances that are made dirty while updating should not get stuck (#2554)', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<span>{{bar}}</span>{{#if foo}}<input type="checkbox" checked="{{baf}}" />{{bar}}{{/if}}`,
+			computed: {
+				foo () {
+					this.set( 'bar', 'yep' );
+					return this.get( 'cond' );
+				},
+				baf () {
+					this.set( 'bar', 'hmm' );
+					return this.get( 'cond' );
+				}
+			},
+			data: {
+				cond: false,
+				bar: '???'
+			}
+		});
+
+		const span = r.find( 'span' );
+
+		t.htmlEqual( span.innerHTML, 'yep' );
+		r.set( 'cond', true );
+		r.set( 'bar', 'y' );
+		t.htmlEqual( span.innerHTML, 'y' );
 	});
 
 	test( 'space entity refs should not be consumed during trimming (#2327)', t => {

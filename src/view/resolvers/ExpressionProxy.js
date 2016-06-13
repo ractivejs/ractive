@@ -6,7 +6,7 @@ import resolveReference from './resolveReference';
 import { removeFromArray } from '../../utils/array';
 
 function getValue ( model ) {
-	return model ? model.get( true ) : undefined;
+	return model ? model.get( true, true ) : undefined;
 }
 
 export default class ExpressionProxy extends Model {

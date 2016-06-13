@@ -237,7 +237,8 @@ export default class Model {
 
 	get ( shouldCapture ) {
 		if ( shouldCapture ) capture( this );
-		return this.value;
+		// if capturing, this value needs to be unwrapped because it's for external use
+		return shouldCapture && this.wrapper ? this.wrapper.value : this.value;
 	}
 
 	getIndexModel ( fragmentIndex ) {

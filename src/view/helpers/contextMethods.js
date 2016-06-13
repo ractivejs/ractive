@@ -5,11 +5,11 @@ import { warnOnceIfDebug } from '../../utils/log';
 
 // get relative keypaths and values
 function get ( keypath ) {
-	if ( !keypath ) return this._element.parentFragment.findContext().get();
+	if ( !keypath ) return this._element.parentFragment.findContext().get( true );
 
 	const model = resolveReference( this._element.parentFragment, keypath );
 
-	return model ? model.get() : undefined;
+	return model ? model.get( true ) : undefined;
 }
 
 function resolve ( path, ractive ) {
@@ -105,7 +105,7 @@ function getBindingPath ( ractive ) {
 function getBinding () {
 	const el = this._element;
 
-	if ( el.binding && el.binding.model ) return el.binding.model.get();
+	if ( el.binding && el.binding.model ) return el.binding.model.get( true );
 }
 
 function setBinding ( value ) {
