@@ -177,6 +177,9 @@ export default class Model {
 		this.notifyUpstream();
 
 		originatingModel = previousOriginatingModel;
+
+		// keep track of array length
+		if ( isArray( value ) ) this.length = value.length;
 	}
 
 	clearUnresolveds ( specificKey ) {
@@ -365,6 +368,9 @@ export default class Model {
 			// make sure the wrapper stays in sync
 			if ( old !== value || this.rewrap ) this.adapt();
 
+			// keep track of array lengths
+			if ( isArray( value ) ) this.length = value.length;
+
 			this.children.forEach( mark );
 
 			this.deps.forEach( handleChange );
@@ -485,6 +491,7 @@ export default class Model {
 			if ( dep.shuffle ) dep.shuffle( newIndices );
 		});
 
+		const upstream = this.length !== this.value.length;
 		this.updateKeypathDependants();
 		this.mark();
 
@@ -492,6 +499,9 @@ export default class Model {
 		this.deps.forEach( dep => {
 			if ( !dep.shuffle ) dep.handleChange();
 		});
+
+		// if the length has changed, notify upstream
+		if ( upstream ) this.notifyUpstream();
 	}
 
 	shuffled () {

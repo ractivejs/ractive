@@ -772,4 +772,19 @@ export default function() {
 		r.set( 'foo', [] );
 		t.equal( count, 3 );
 	});
+
+	test( 'computations with a reference expression should update with the full reference too', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{foo[v].wat + '!'}}`,
+			data: {
+				foo: { bar: { wat: 'nope' } },
+				v: 'bar'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'nope!' );
+		r.set( 'foo.bar.wat', 'yep' );
+		t.htmlEqual( fixture.innerHTML, 'yep!' );
+	});
 }
