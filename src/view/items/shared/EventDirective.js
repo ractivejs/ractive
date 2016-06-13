@@ -1,3 +1,4 @@
+import { COMPONENT } from '../../../config/types';
 import { removeFromArray } from '../../../utils/array';
 import fireEvent from '../../../events/fireEvent';
 import Fragment from '../../Fragment';
@@ -5,19 +6,38 @@ import getFunction from '../../../shared/getFunction';
 import { unbind } from '../../../shared/methodCallers';
 import resolveReference from '../../resolvers/resolveReference';
 import { splitKeypath } from '../../../shared/keypaths';
+import findElement from './findElement';
+import { findInViewHierarchy } from '../../../shared/registry';
+import { DOMEvent, CustomEvent } from '../element/ElementEvents';
+import RactiveEvent from '../component/RactiveEvent';
+import runloop from '../../../global/runloop';
 import { addHelpers } from '../../helpers/contextMethods';
 
 const specialPattern = /^(event|arguments)(\..+)?$/;
 const dollarArgsPattern = /^\$(\d+)(\..+)?$/;
 
 export default class EventDirective {
-	constructor ( owner, event, template ) {
-		this.owner = owner;
-		this.event = event;
-		this.template = template;
+	constructor ( options ) {
+		this.owner = options.owner || options.parentFragment.owner || findElement( options.parentFragment );
+		this.element = this.owner.attributeByName ? this.owner : findElement( options.parentFragment );
+		this.template = options.template;
+		this.parentFragment = options.parentFragment;
+		this.ractive = options.parentFragment.ractive;
 
-		this.ractive = owner.parentFragment.ractive;
-		this.parentFragment = owner.parentFragment;
+		this.events = [];
+
+		if ( this.element.type === COMPONENT ) {
+			this.template.n.split( '-' ).forEach( n => {
+				this.events.push( new RactiveEvent( this.element.instance, n ) );
+			});
+		} else {
+			this.template.n.split( '-' ).forEach( n => {
+				const fn = findInViewHierarchy( 'events', this.ractive, n );
+				// we need to pass in "this" in order to get
+				// access to node when it is created.
+				this.events.push(fn ? new CustomEvent( fn, this.element ) : new DOMEvent( n, this.element ));
+			});
+		}
 
 		this.context = null;
 
@@ -33,7 +53,7 @@ export default class EventDirective {
 	bind () {
 		this.context = this.parentFragment.findContext();
 
-		const template = this.template;
+		const template = this.template.f;
 
 		if ( template.x ) {
 			this.fn = getFunction( template.x.s, template.x.r.length );
@@ -94,8 +114,8 @@ export default class EventDirective {
 					[]; // no arguments
 		}
 
-		if ( this.template.n && typeof this.template.n !== 'string' ) this.action.bind();
-		if ( this.template.d ) this.args.bind();
+		if ( this.action && typeof this.action !== 'string' ) this.action.bind();
+		if ( this.args && template.d ) this.args.bind();
 	}
 
 	bubble () {
@@ -156,7 +176,7 @@ export default class EventDirective {
 
 		else {
 			const action = this.action.toString();
-			let args = this.template.d ? this.args.getArgsList() : this.args;
+			let args = this.template.f.d ? this.args.getArgsList() : this.args;
 
 			if ( passedArgs.length ) args = args.concat( passedArgs );
 
@@ -175,17 +195,31 @@ export default class EventDirective {
 	}
 
 	render () {
-		this.event.listen( this );
+		// render events after everything else, so they fire after bindings
+		runloop.scheduleTask( () => this.events.forEach( e => e.listen( this ), true ) );
 	}
 
+	toString() { return ''; }
+
 	unbind () {
-		if ( this.resolvers ) this.resolvers.forEach( unbind );
-		if ( this.action && this.action.unbind ) this.action.unbind();
-		if ( this.args && this.args.unbind ) this.args.unbind();
+		const template = this.template.f;
+
+		if ( template.m ) {
+			if ( this.resolvers ) this.resolvers.forEach( unbind );
+			this.resolvers = [];
+
+			this.models = null;
+		}
+
+		else {
+			// TODO this is brittle and non-explicit, fix it
+			if ( this.action && this.action.unbind ) this.action.unbind();
+			if ( this.args && this.args.unbind ) this.args.unbind();
+		}
 	}
 
 	unrender () {
-		this.event.unlisten();
+		this.events.forEach( e => e.unlisten() );
 	}
 
 	update () {

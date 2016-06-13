@@ -135,8 +135,9 @@ export default class Fragment {
 
 	findContext () {
 		let fragment = this;
-		while ( !fragment.context ) fragment = fragment.parent;
-		return fragment.context;
+		while ( fragment && !fragment.context ) fragment = fragment.parent;
+		if ( !fragment ) return this.ractive.viewmodel;
+		else return fragment.context;
 	}
 
 	findNextNode ( item ) {

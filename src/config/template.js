@@ -1,1 +1,1 @@
-export var TEMPLATE_VERSION = 3;
+export var TEMPLATE_VERSION = 4;

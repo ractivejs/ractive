@@ -1,6 +1,7 @@
 import { DELIMCHANGE } from '../../config/types';
 import readDelimiterChange from './mustache/readDelimiterChange';
 import readRegexpLiteral from './expressions/primary/literal/readRegexpLiteral';
+import { readAttributeOrDirective } from './element/readAttribute';
 
 var delimiterChangeToken = { t: DELIMCHANGE, exclude: true };
 
@@ -15,6 +16,14 @@ export default function readMustache ( parser ) {
 
 	for ( i = 0; i < parser.tags.length; i += 1 ) {
 		if ( mustache = readMustacheOfType( parser, parser.tags[i] ) ) {
+			return mustache;
+		}
+	}
+
+	if ( parser.inTag && !parser.inAttribute ) {
+		mustache = readAttributeOrDirective( parser );
+		if ( mustache ) {
+			parser.allowWhitespace();
 			return mustache;
 		}
 	}
@@ -56,7 +65,12 @@ function readMustacheOfType ( parser, tag ) {
 		let rewind = parser.pos;
 		if ( !readRegexpLiteral( parser ) ) {
 			parser.pos = rewind - ( tag.close.length );
-			parser.error( 'Attempted to close a section that wasn\'t open' );
+			if ( parser.inAttribute ) {
+				parser.pos = start;
+				return null;
+			} else {
+				parser.error( 'Attempted to close a section that wasn\'t open' );
+			}
 		} else {
 			parser.pos = rewind;
 		}

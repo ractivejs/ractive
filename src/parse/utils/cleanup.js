@@ -11,6 +11,8 @@ let leadingNewLine = /^(?:\r\n|\r|\n)/;
 let trailingNewLine = /(?:\r\n|\r|\n)$/;
 
 export default function cleanup ( items, stripComments, preserveWhitespace, removeLeadingWhitespace, removeTrailingWhitespace ) {
+	if ( typeof items === 'string' ) return;
+
 	var i,
 		item,
 		previousItem,
@@ -71,6 +73,16 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 			}
 
 			cleanup( item.f, stripComments, preserveWhitespaceInsideFragment, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
+
+			// clean up name templates (events, decorators, etc)
+			if ( isArray( item.f.n ) ) {
+				cleanup( item.f.n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespace );
+			}
+
+			// clean up arg templates (events, decorators, etc)
+			if ( isArray( item.f.d ) ) {
+				cleanup( item.f.d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespace );
+			}
 		}
 
 		// Split if-else blocks into two (an if, and an unless)
@@ -89,27 +101,10 @@ export default function cleanup ( items, stripComments, preserveWhitespace, remo
 				}
 			}
 		}
-
 		// Clean up conditional attributes
 		if ( item.m ) {
 			cleanup( item.m, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
-		}
-
-		// Clean up event handlers
-		if ( item.v ) {
-			for ( key in item.v ) {
-				if ( item.v.hasOwnProperty( key ) ) {
-					// clean up names
-					if ( isArray( item.v[ key ].n ) ) {
-						cleanup( item.v[ key ].n, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
-					}
-
-					// clean up params
-					if ( isArray( item.v[ key ].d ) ) {
-						cleanup( item.v[ key ].d, stripComments, preserveWhitespace, removeLeadingWhitespaceInsideFragment, removeTrailingWhitespaceInsideFragment );
-					}
-				}
-			}
+			if ( item.m.length < 1 ) delete item.m;
 		}
 	}
 

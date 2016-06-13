@@ -1,3 +1,4 @@
+import { DECORATOR, TRANSITION, EVENT } from '../../../config/types';
 import Parser from '../../Parser';
 import readExpression from '../readExpression';
 import flattenExpression from '../../utils/flattenExpression';
@@ -13,7 +14,7 @@ ExpressionParser = Parser.extend({
 });
 
 // TODO clean this up, it's shocking
-export default function processDirective ( tokens, parentParser, event = false ) {
+export default function processDirective ( tokens, parentParser, type ) {
 	var result,
 		match,
 		token,
@@ -23,12 +24,17 @@ export default function processDirective ( tokens, parentParser, event = false )
 		parsed;
 
 	if ( typeof tokens === 'string' ) {
-		if ( event && ( match = methodCallPattern.exec( tokens ) ) ) {
+		if ( type === DECORATOR || type === TRANSITION ) {
+			const parser = new ExpressionParser( `[${tokens}]` );
+			return { a: flattenExpression( parser.result[0] ) };
+		}
+
+		if ( type === EVENT && ( match = methodCallPattern.exec( tokens ) ) ) {
 			warnOnceIfDebug( `Unqualified method events are deprecated. Prefix methods with '@this.' to call methods on the current Ractive instance.` );
 			tokens = `@this.${match[1]}${tokens.substr(match[1].length)}`;
 		}
 
-		if ( event && ~tokens.indexOf( '(' ) ) {
+		if ( type === EVENT && ~tokens.indexOf( '(' ) ) {
 			const parser = new ExpressionParser( '[' + tokens + ']' );
 			if ( parser.result && parser.result[0] ) {
 				if ( parser.remaining().length ) {

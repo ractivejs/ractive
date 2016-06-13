@@ -249,6 +249,7 @@ export default function() {
 
 		r.splice( 'foo', 2, 1 );
 		r.splice( 'foo', 1, 0, 0 );
+		spans = r.findAll( 'span' );
 
 		for ( let i = 0; i < spans.length; i++ ) t.equal( spans[i].getAttribute( 'data-wat' ), spans[i].innerHTML );
 	});
