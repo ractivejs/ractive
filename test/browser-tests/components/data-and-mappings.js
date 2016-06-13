@@ -1260,4 +1260,25 @@ export default function() {
 		r.set( 'thing', 'hey' );
 		t.htmlEqual( fixture.innerHTML, 'hey is yep' );
 	});
+
+	test( `observers and ambiguous mappings play nicely together (#2142)`, t => {
+		t.expect( 3 );
+
+		const cmp = Ractive.extend({
+			template: '{{test}}',
+			onrender () {
+				this.observe( 'test', ( n, o ) => t.equal( n, 'foo' ) || t.equal( o, undefined ), { init: false } );
+			}
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#with dummy}}<cmp />{{/with}}',
+			data: { dummy: { x: 1 } },
+			components: { cmp }
+		});
+
+		r.set( 'test', 'foo' );
+		t.htmlEqual( fixture.innerHTML, 'foo' );
+	});
 }
