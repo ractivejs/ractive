@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Jun 13 2016 00:56:15 GMT+0000 (UTC) - commit cc294d4da1080ded203e6a733d7dd6b12cd884d4
+	Mon Jun 13 2016 05:28:25 GMT+0000 (UTC) - commit cb5bcd919339cf2b70d9a27a89752094b83a5359
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -2374,6 +2374,9 @@
   	this.notifyUpstream();
 
   	originatingModel = previousOriginatingModel;
+
+  	// keep track of array length
+  	if ( isArray( value ) ) this.length = value.length;
   };
 
   Model.prototype.clearUnresolveds = function clearUnresolveds ( specificKey ) {
@@ -2568,6 +2571,9 @@
   		// make sure the wrapper stays in sync
   		if ( old !== value || this.rewrap ) this.adapt();
 
+  		// keep track of array lengths
+  		if ( isArray( value ) ) this.length = value.length;
+
   		this.children.forEach( mark );
 
   		this.deps.forEach( handleChange );
@@ -2690,6 +2696,7 @@
   		if ( dep.shuffle ) dep.shuffle( newIndices );
   	});
 
+  	var upstream = this.length !== this.value.length;
   	this.updateKeypathDependants();
   	this.mark();
 
@@ -2697,6 +2704,9 @@
   	this.deps.forEach( function ( dep ) {
   		if ( !dep.shuffle ) dep.handleChange();
   	});
+
+  	// if the length has changed, notify upstream
+  	if ( upstream ) this.notifyUpstream();
   };
 
   Model.prototype.shuffled = function shuffled () {
