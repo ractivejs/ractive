@@ -78,6 +78,7 @@ export default class Element extends Item {
 			if ( attr.name === 'type' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
 			else if ( attr.name === 'max' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
 			else if ( attr.name === 'min' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
+			else if ( attr.name === 'class' ) this.attributes.unshift( this.attributes.splice( i, 1 )[ 0 ] );
 			else if ( attr.name === 'value' ) {
 				this.attributes.push( this.attributes.splice( i, 1 )[ 0 ] );
 			}

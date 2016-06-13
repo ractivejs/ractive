@@ -256,12 +256,6 @@ function updateClassName ( reset ) {
 	const attr = readClass( this.node.className );
 	const prev = this.previous || attr.slice( 0 );
 
-	// TODO: if/when conditional attrs land, avoid this by shifting class attrs to the front
-	if ( !this.directives ) {
-		this.directives = this.element.attributes.filter( a => a.name.substr( 0, 6 ) === 'class-' );
-	}
-	value.push.apply( value, this.directives.map( d => d.inlineClass ) );
-
 	let i = 0;
 	while ( i < value.length ) {
 		if ( !~attr.indexOf( value[i] ) ) attr.push( value[i] );
