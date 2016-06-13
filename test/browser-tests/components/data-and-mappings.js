@@ -1262,12 +1262,12 @@ export default function() {
 	});
 
 	test( `observers and ambiguous mappings play nicely together (#2142)`, t => {
-		t.expect( 2 );
+		t.expect( 3 );
 
 		const cmp = Ractive.extend({
 			template: '{{test}}',
 			onrender () {
-				this.observe( 'test', () => t.ok( true ), { init: false } );
+				this.observe( 'test', ( n, o ) => t.equal( n, 'foo' ) || t.equal( o, undefined ), { init: false } );
 			}
 		});
 
