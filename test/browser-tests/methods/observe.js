@@ -1088,4 +1088,54 @@ export default function() {
 
 		t.equal( ractive._observers.length, 0 );
 	});
+
+	test( 'observers on implicit mappings should resolve correctly (#2572)', t => {
+		t.expect( 2 );
+
+		let count = 0;
+		const cmp = Ractive.extend({
+			oninit () {
+				this.observe( this.get( 'target' ), n => {
+					if ( count ) {
+						t.equal( n, 1 );
+					} else {
+						count++;
+						t.equal( n, 0 );
+					}
+				});
+			}
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp target="foo.bar" />',
+			data: {
+				foo: { bar: 0 }
+			},
+			components: { cmp }
+		});
+
+		r.add( 'foo.bar' );
+	});
+
+	test( 'observing in an isolated component should not create implicit mappings', t => {
+		t.expect( 0 );
+
+		const cmp = Ractive.extend({
+			oninit () {
+				this.observe( 'foo.bar', () => t.ok( false ) );
+			},
+			isolated: true
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			data: {
+				foo: { bar: 0 }
+			},
+			components: { cmp }
+		});
+
+		r.add( 'foo.bar' );
+	});
 }
