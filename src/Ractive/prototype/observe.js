@@ -67,9 +67,12 @@ function createObserver ( ractive, keypath, callback, options ) {
 		// if not the root model itself, check if viewmodel has key.
 		if ( key !== '' && !viewmodel.has( key ) ) {
 			// if this is an inline component, we may need to create an implicit mapping
-			if ( ractive.component ) {
+			if ( ractive.component && !ractive.isolated ) {
 				model = resolveReference( ractive.component.parentFragment, key );
-				if ( model ) viewmodel.map( key, model );
+				if ( model ) {
+					viewmodel.map( key, model );
+					model = viewmodel.joinAll( keys );
+				}
 			}
 		} else {
 			model = viewmodel.joinAll( keys );
