@@ -1117,4 +1117,25 @@ export default function() {
 
 		r.add( 'foo.bar' );
 	});
+
+	test( 'observing in an isolated component should not create implicit mappings', t => {
+		t.expect( 0 );
+
+		const cmp = Ractive.extend({
+			oninit () {
+				this.observe( 'foo.bar', () => t.ok( false ) );
+			},
+			isolated: true
+		});
+
+		const r = new Ractive({
+			el: fixture,
+			data: {
+				foo: { bar: 0 }
+			},
+			components: { cmp }
+		});
+
+		r.add( 'foo.bar' );
+	});
 }
