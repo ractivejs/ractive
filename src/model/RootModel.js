@@ -131,6 +131,11 @@ export default class RootModel extends Model {
 		return remapped;
 	}
 
+	mark () {
+		Object.keys( this.mappings ).forEach( k => this.mappings[k].mark() );
+		super.mark();
+	}
+
 	resetMappings () {
 		for ( let k in this.mappings ) {
 			this.mappings[k].unregister( this );

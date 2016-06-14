@@ -17,4 +17,23 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'yep' );
 	});
+
+	test( 'mappings are also marked along with the rest of the model (#2574)', t => {
+		const cmp = Ractive.extend({
+			template: '{{foo.bar}}'
+		});
+
+		const data = { bar: { bar: 'yep' } };
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp foo="{{bar}}" />',
+			data,
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'yep' );
+		data.bar.bar = 'still yep';
+		r.findComponent().update();
+		t.htmlEqual( fixture.innerHTML, 'still yep' );
+	});
 }
