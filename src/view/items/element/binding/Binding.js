@@ -74,7 +74,11 @@ export default class Binding {
 		runloop.start( this.root );
 		this.attribute.locked = true;
 		this.model.set( this.getValue() );
-		runloop.scheduleTask( () => this.attribute.locked = false );
+
+		// if the value changes before observers fire, unlock to be updatable cause something weird and potentially freezy is up
+		if ( this.model.get() !== this.getValue() ) this.attribute.locked = false;
+		else runloop.scheduleTask( () => this.attribute.locked = false );
+
 		runloop.end();
 	}
 
