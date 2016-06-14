@@ -275,7 +275,7 @@ export default class Fragment {
 	}
 
 	resolve ( template, callback ) {
-		if ( !this.context ) {
+		if ( !this.context && this.parent.resolve ) {
 			return this.parent.resolve( template, callback );
 		}
 
