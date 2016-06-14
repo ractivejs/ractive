@@ -132,13 +132,7 @@ export default class RootModel extends Model {
 	}
 
 	mark () {
-		const keys = Object.keys( this.mappings );
-
-		let i = keys.length;
-		while ( i-- ) {
-			this.mappings[ keys[i] ].mark();
-		}
-
+		Object.keys( this.mappings ).forEach( k => this.mappings[k].mark() );
 		super.mark();
 	}
 
