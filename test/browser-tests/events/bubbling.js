@@ -217,4 +217,18 @@ export default function() {
 		fire( component.nodes.test, 'click' );
 		t.ok( true );
 	});
+
+	test( 'firing an event from an event directive cancels bubble if the sub-event also cancels', t => {
+		t.expect( 0 );
+
+		const r = new Ractive({
+			el: fixture,
+			template: `<div on-click="@this.fire('no')"><button on-click="@this.fire('go')">click</button></div>`,
+		});
+
+		r.on( 'no', () => t.ok( false, 'the event bubbled' ) );
+		r.on( 'go', () => false );
+
+		fire( r.find( 'button' ), 'click' );
+	});
 }
