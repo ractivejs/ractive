@@ -69,6 +69,8 @@ function getSpliceEquivalent ( length, methodName, args ) {
 				args[0] = length + Math.max( args[0], -length );
 			}
 
+			if ( args[0] === undefined ) args[0] = 0;
+
 			while ( args.length < 2 ) {
 				args.push( length - args[0] );
 			}

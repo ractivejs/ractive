@@ -133,4 +133,17 @@ export default function() {
 		r.unshift( 'arr' );
 		fire( r.findAll( 'span' )[1], 'click' );
 	});
+
+	test( 'splicing with an undefined index should be equivalent to 0', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each arr}}{{.}}{{/each}}`,
+			data: { arr: [ 1, 2, 3, 4 ] }
+		});
+
+		r.splice( 'arr', undefined, 1 );
+		t.htmlEqual( fixture.innerHTML, '234' );
+		r.splice( 'arr', undefined, 2, 6, 5 );
+		t.htmlEqual( fixture.innerHTML, '654' );
+	});
 }
