@@ -88,4 +88,20 @@ export default function() {
 		r.set( 'bar', 'still' );
 		t.htmlEqual( fixture.innerHTML, 'still' );
 	});
+
+	test( 'components should be able to resolve @index refs from their context', t => {
+		const cmp = Ractive.extend({
+			template: '{{@index}}'
+		});
+		new Ractive({
+			el: fixture,
+			template: '{{#each list}}<cmp />{{/each}}',
+			data: {
+				list: [ 0, 0, 0 ]
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '012' );
+	});
 }

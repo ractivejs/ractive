@@ -189,7 +189,7 @@ export default class Fragment {
 	findRepeatingFragment () {
 		let fragment = this;
 		// TODO better check than fragment.parent.iterations
-		while ( fragment.parent && !fragment.isIteration ) {
+		while ( ( fragment.parent || fragment.componentParent ) && !fragment.isIteration ) {
 			fragment = fragment.parent || fragment.componentParent;
 		}
 
