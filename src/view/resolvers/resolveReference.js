@@ -19,6 +19,11 @@ export default function resolveReference ( fragment, ref ) {
 		return context.getKeypathModel( fragment.ractive );
 	}
 	if ( ref.indexOf( '@rootpath' ) === 0 ) {
+		// check to see if this is an empty component root
+		while ( context.isRoot && context.ractive.component ) {
+			context = context.ractive.component.parentFragment.findContext();
+		}
+
 		const match = keypathExpr.exec( ref );
 		if ( match && match[1] ) {
 			const model = resolveReference( fragment, match[1] );
