@@ -1,9 +1,10 @@
+import { capture } from '../../global/capture';
 import Model from '../../model/Model';
 import { REFERENCE } from '../../config/types';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
-import { unbind } from '../../shared/methodCallers';
+import { handleChange, mark, unbind } from '../../shared/methodCallers';
 import { removeFromArray } from '../../utils/array';
 import { isEqual } from '../../utils/is';
 import { escapeKey } from '../../shared/keypaths';
@@ -46,6 +47,7 @@ class ReferenceExpressionChild extends Model {
 export default class ReferenceExpressionProxy extends Model {
 	constructor ( fragment, template ) {
 		super( null, null );
+		this.dirty = true;
 		this.root = fragment.ractive.viewmodel;
 
 		this.resolvers = [];
@@ -65,7 +67,7 @@ export default class ReferenceExpressionProxy extends Model {
 		}
 
 		const intermediary = {
-			handleChange: () => this.bubble()
+			handleChange: () => this.handleChange()
 		};
 
 		this.members = template.m.map( ( template, i ) => {
@@ -86,7 +88,7 @@ export default class ReferenceExpressionProxy extends Model {
 						this.members[i] = model;
 
 						model.register( intermediary );
-						this.bubble();
+						this.handleChange();
 
 						removeFromArray( this.resolvers, resolver );
 					});
@@ -120,6 +122,8 @@ export default class ReferenceExpressionProxy extends Model {
 		const keys = this.members.map( model => escapeKey( String( model.get() ) ) );
 		const model = this.base.joinAll( keys );
 
+		if ( model === this.model ) return;
+
 		if ( this.model ) {
 			this.model.unregister( this );
 			this.model.unregisterTwowayBinding( this );
@@ -133,20 +137,31 @@ export default class ReferenceExpressionProxy extends Model {
 
 		if ( this.keypathModel ) this.keypathModel.handleChange();
 
-		this.mark();
+		this.handleChange();
 	}
 
 	forceResolution () {
 		this.resolvers.forEach( resolver => resolver.forceResolution() );
+		this.dirty = true;
 		this.bubble();
 	}
 
 	get ( shouldCapture ) {
-		return this.model ? this.model.get( shouldCapture ) : undefined;
+		if ( this.dirty ) {
+			this.bubble();
+			this.value = this.model ? this.model.get( shouldCapture ) : undefined;
+			this.dirty = false;
+			this.mark();
+			return this.value;
+		} else {
+			return this.model ? this.model.get( shouldCapture ) : undefined;
+		}
 	}
 
 	// indirect two-way bindings
 	getValue () {
+		this.value = this.model ? this.model.get() : undefined;
+
 		let i = this.bindings.length;
 		while ( i-- ) {
 			const value = this.bindings[i].getValue();
@@ -161,6 +176,7 @@ export default class ReferenceExpressionProxy extends Model {
 	}
 
 	handleChange () {
+		this.dirty = true;
 		this.mark();
 	}
 
@@ -176,8 +192,17 @@ export default class ReferenceExpressionProxy extends Model {
 		return this.childByKey[ key ];
 	}
 
+	mark () {
+		if ( this.dirty ) {
+			this.deps.forEach( handleChange );
+		}
+
+		this.children.forEach( mark );
+		this.clearUnresolveds();
+	}
+
 	retrieve () {
-		return this.get();
+		return this.value;
 	}
 
 	set ( value ) {
@@ -187,5 +212,9 @@ export default class ReferenceExpressionProxy extends Model {
 
 	unbind () {
 		this.resolvers.forEach( unbind );
+		if ( this.model ) {
+			this.model.unregister( this );
+			this.model.unregisterTwowayBinding( this );
+		}
 	}
 }
