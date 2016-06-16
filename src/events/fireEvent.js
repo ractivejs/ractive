@@ -18,7 +18,7 @@ export default function fireEvent ( ractive, eventName, options = {} ) {
 
 	var eventNames = getWildcardNames( eventName );
 
-	fireEventAs( ractive, eventNames, options.event, options.args, true );
+	return fireEventAs( ractive, eventNames, options.event, options.args, true );
 }
 
 function getWildcardNames ( eventName ) {
@@ -58,6 +58,8 @@ function fireEventAs  ( ractive, eventNames, event, args, initialFire = false ) 
 
 		fireEventAs( ractive.parent, eventNames, event, args );
 	}
+
+	return bubble;
 }
 
 function notifySubscribers ( ractive, subscribers, event, args ) {
