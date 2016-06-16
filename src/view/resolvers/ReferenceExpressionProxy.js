@@ -137,7 +137,7 @@ export default class ReferenceExpressionProxy extends Model {
 
 		if ( this.keypathModel ) this.keypathModel.handleChange();
 
-		this.handleChange();
+		if ( !this.dirty ) this.handleChange();
 	}
 
 	forceResolution () {
