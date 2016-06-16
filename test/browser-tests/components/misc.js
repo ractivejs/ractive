@@ -1035,4 +1035,21 @@ export default function() {
 
 		fire( r.find( 'button' ), 'click' );
 	});
+
+	test( '@rootpath should be accurate in a yielder', t => {
+		const end = Ractive.extend({
+			template: '{{#with other.path}}{{yield}}{{/with}}',
+			data: { other: { path: { yep: true } } }
+		});
+		new Ractive({
+			el: fixture,
+			template: '{{#with root.next.next.next.next}}<end>{{@rootpath}} {{.stop}}</end>{{/with}}',
+			data: {
+				root: { next: { next: { next: { next: { stop: true } } } } }
+			},
+			components: { end }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'root.next.next.next.next true' );
+	});
 }
