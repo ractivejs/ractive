@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Jun 16 2016 03:38:46 GMT+0000 (UTC) - commit ef0ffb6a5bdd1f6a42f9326303c5c99e76e78f1f
+	Thu Jun 16 2016 07:11:56 GMT+0000 (UTC) - commit 8361c8d892f8bf4fcea1cec427c92d5d082c0907
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-ef0ffb6a5bdd1f6a42f9326303c5c99e76e78f1f %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-8361c8d892f8bf4fcea1cec427c92d5d082c0907 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-ef0ffb6a5bdd1f6a42f9326303c5c99e76e78f1f in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-8361c8d892f8bf4fcea1cec427c92d5d082c0907 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -1151,6 +1151,10 @@
   	this.children.forEach( _detachNodes );
   };
 
+  TransitionManager.prototype.ready = function ready () {
+  	detachImmediate( this );
+  };
+
   TransitionManager.prototype.remove = function remove ( transition ) {
   	var list = transition.isIntro ? this.intros : this.outros;
   	removeFromArray( list, transition );
@@ -1158,7 +1162,7 @@
   };
 
   TransitionManager.prototype.start = function start () {
-  	detachImmediate( this );
+  	this.children.forEach( function ( c ) { return c.start(); } );
   	this.intros.concat( this.outros ).forEach( function ( t ) { return t.start(); } );
   	this.ready = true;
   	check( this );
@@ -1267,6 +1271,9 @@
 
   	end: function () {
   		flushChanges();
+
+  		if ( !batch.previousBatch ) batch.transitionManager.start();
+
   		batch = batch.previousBatch;
   	},
 
@@ -1361,7 +1368,7 @@
   		ractive$1.viewmodel.changes = {};
   	}
 
-  	batch.transitionManager.start();
+  	batch.transitionManager.ready();
 
   	which = batch.deferredObservers;
   	batch.deferredObservers = [];
@@ -3862,6 +3869,8 @@
   			if ( args[0] !== undefined && args[0] < 0 ) {
   				args[0] = length + Math.max( args[0], -length );
   			}
+
+  			if ( args[0] === undefined ) args[0] = 0;
 
   			while ( args.length < 2 ) {
   				args.push( length - args[0] );
@@ -9311,7 +9320,8 @@
   	};
 
   	Element.prototype.detach = function detach () {
-  		this.attributes.forEach( unrender );
+  		// if this element is no longer rendered, the transitinos are complete and the attributes can be torn down
+  		if ( !this.rendered ) this.attributes.forEach( unrender );
 
   		return detachNode( this.node );
   	};
@@ -11130,21 +11140,15 @@
   	// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
   	// storing them in a document fragment for later reinsertion) seems a bit hokey,
   	// but it seems to work for now
-  	var len = this.context.get().length;
-  	var i, maxIdx = 0, merged = false;
+  	var len = this.context.get().length, oldLen = this.previousIterations.length;
+  	var i;
+  	var removed = {};
 
   	newIndices.forEach( function ( newIndex, oldIndex ) {
   		var fragment = this$1.previousIterations[ oldIndex ];
 
-  		// check for merged shuffles
-  		if ( !merged && newIndex !== -1 ) {
-  			if ( newIndex < maxIdx ) merged = true;
-  			if ( newIndex > maxIdx ) maxIdx = newIndex;
-  		}
-
-
   		if ( newIndex === -1 ) {
-  			fragment.unbind().unrender( true );
+  			removed[ oldIndex ] = fragment;
   		} else {
   			fragment.index = newIndex;
   			var model = this$1.context.joinKey( newIndex );
@@ -11156,51 +11160,36 @@
   		}
   	});
 
-  	// create new iterations
+  	// create new/move existing iterations
   	var docFrag = this.rendered ? createDocumentFragment() : null;
   	var parentNode = this.rendered ? this.parent.findParentNode() : null;
 
-  	if ( merged ) {
-  		for ( i = 0; i < len; i += 1 ) {
-  			var frag = this$1.iterations[i];
+  	for ( i = 0; i < len; i++ ) {
+  		var frag = this$1.iterations[i];
 
-  			if ( this$1.rendered ) {
-  				if ( frag ) {
-  					docFrag.appendChild( frag.detach() );
-  				} else {
-  					this$1.iterations[i] = this$1.createIteration( i, i );
-  					this$1.iterations[i].render( docFrag );
-  				}
-  			}
+  		if ( !frag ) this$1.iterations[i] = this$1.createIteration( i, i );
 
-  			if ( !this$1.rendered ) {
-  				if ( !frag ) {
-  					this$1.iterations[i] = this$1.createIteration( i, i );
-  				}
+  		if ( this$1.rendered ) {
+  			if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
+
+  			if ( frag ) docFrag.appendChild( frag.detach() );
+  			else {
+  				this$1.iterations[i].render( docFrag );
   			}
   		}
-  	} else {
-  		for ( i = 0; i < len; i++ ) {
-  			var frag$1 = this$1.iterations[i];
+  	}
 
-  			if ( this$1.rendered ) {
-  				if ( frag$1 && docFrag.childNodes.length ) {
-  					parentNode.insertBefore( docFrag, frag$1.firstNode() );
-  				}
-
-  				if ( !frag$1 ) {
-  					frag$1 = this$1.iterations[i] = this$1.createIteration( i, i );
-  					frag$1.render( docFrag );
-  				}
-  			} else if ( !frag$1 ) {
-  				this$1.iterations[i] = this$1.createIteration( i, i );
-  			}
-  		}
+  	// append any leftovers
+  	for ( i = len; i < oldLen; i++ ) {
+  		if ( this$1.rendered && removed[i] ) docFrag.appendChild( removed[i].detach() );
   	}
 
   	if ( this.rendered && docFrag.childNodes.length ) {
   		parentNode.insertBefore( docFrag, this.owner.findNextNode() );
   	}
+
+  	// trigger removal on old nodes
+  	Object.keys( removed ).forEach( function ( k ) { return removed[k].unbind().unrender( true ); } );
 
   	this.iterations.forEach( update );
 
@@ -11983,69 +11972,7 @@
   	this.ractive = this.owner.ractive;
   	this.template = options.template;
   	this.parentFragment = options.parentFragment;
-
-  	if ( options.template ) {
-  		if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
-  		if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
-  		this.eventName = names[ options.template.v ];
-  	}
-
-  	var ractive = this.owner.ractive;
-
-  	if ( options.name ) {
-  		this.name = options.name;
-  	} else {
-  		var name = options.template.f;
-  		if ( typeof name.n === 'string' ) name = name.n;
-
-  		if ( typeof name !== 'string' ) {
-  			var fragment = new Fragment({
-  				owner: this.owner,
-  				template: name.n
-  			}).bind(); // TODO need a way to capture values without bind()
-
-  			name = fragment.toString();
-  			fragment.unbind();
-
-  			if ( name === '' ) {
-  				// empty string okay, just no transition
-  				return;
-  			}
-  		}
-
-  		this.name = name;
-  	}
-
-  	if ( options.params ) {
-  		this.params = options.params;
-  	} else {
-  		if ( options.template.f.a && !options.template.f.a.s ) {
-  			this.params = options.template.f.a;
-  		}
-
-  		else if ( options.template.f.d ) {
-  			// TODO is there a way to interpret dynamic arguments without all the
-  			// 'dependency thrashing'?
-  			var fragment$1 = new Fragment({
-  				owner: this.owner,
-  				template: options.template.f.d
-  			}).bind();
-
-  			this.params = fragment$1.getArgsList();
-  			fragment$1.unbind();
-  		}
-  	}
-
-  	if ( typeof this.name === 'function' ) {
-  		this._fn = this.name;
-  		this.name = this._fn.name;
-  	} else {
-  		this._fn = findInViewHierarchy( 'transitions', ractive, this.name );
-  	}
-
-  	if ( !this._fn ) {
-  		warnOnceIfDebug( missingPlugin( this.name, 'transition' ), { ractive: ractive });
-  	}
+  	this.options = options;
   };
 
   Transition.prototype.animateStyle = function animateStyle ( style, value, options ) {
@@ -12128,10 +12055,74 @@
   };
 
   Transition.prototype.bind = function bind () {
-  	// TODO: dry up after deprecation is done
   	var this$1 = this;
 
-  		if ( this.template.f.a && this.template.f.a.s ) {
+  		var options = this.options
+  	if ( options.template ) {
+  		if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
+  		if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
+  		this.eventName = names[ options.template.v ];
+  	}
+
+  	var ractive = this.owner.ractive;
+
+  	if ( options.name ) {
+  		this.name = options.name;
+  	} else {
+  		var name = options.template.f;
+  		if ( typeof name.n === 'string' ) name = name.n;
+
+  		if ( typeof name !== 'string' ) {
+  			var fragment = new Fragment({
+  				owner: this.owner,
+  				template: name.n
+  			}).bind(); // TODO need a way to capture values without bind()
+
+  			name = fragment.toString();
+  			fragment.unbind();
+
+  			if ( name === '' ) {
+  				// empty string okay, just no transition
+  				return;
+  			}
+  		}
+
+  		this.name = name;
+  	}
+
+  	if ( options.params ) {
+  		this.params = options.params;
+  	} else {
+  		if ( options.template.f.a && !options.template.f.a.s ) {
+  			this.params = options.template.f.a;
+  		}
+
+  		else if ( options.template.f.d ) {
+  			// TODO is there a way to interpret dynamic arguments without all the
+  			// 'dependency thrashing'?
+  			var fragment$1 = new Fragment({
+  				owner: this.owner,
+  				template: options.template.f.d
+  			}).bind();
+
+  			this.params = fragment$1.getArgsList();
+  			fragment$1.unbind();
+  		}
+  	}
+
+  	if ( typeof this.name === 'function' ) {
+  		this._fn = this.name;
+  		this.name = this._fn.name;
+  	} else {
+  		this._fn = findInViewHierarchy( 'transitions', ractive, this.name );
+  	}
+
+  	if ( !this._fn ) {
+  		warnOnceIfDebug( missingPlugin( this.name, 'transition' ), { ractive: ractive });
+  	}
+
+  	// TODO: dry up after deprecation is done
+  	if ( options.template && this.template.f.a && this.template.f.a.s ) {
   		this.resolvers = [];
   		this.models = this.template.f.a.r.map( function ( ref, i ) {
   			var resolver;
@@ -12903,7 +12894,7 @@
   Fragment.prototype.findRepeatingFragment = function findRepeatingFragment () {
   	var fragment = this;
   	// TODO better check than fragment.parent.iterations
-  	while ( fragment.parent && !fragment.isIteration ) {
+  	while ( ( fragment.parent || fragment.componentParent ) && !fragment.isIteration ) {
   		fragment = fragment.parent || fragment.componentParent;
   	}
 
@@ -12991,7 +12982,7 @@
   };
 
   Fragment.prototype.resolve = function resolve ( template, callback ) {
-  	if ( !this.context ) {
+  	if ( !this.context && this.parent.resolve ) {
   		return this.parent.resolve( template, callback );
   	}
 
@@ -13223,9 +13214,13 @@
   	params = params || {};
   	var owner = node._ractive.proxy;
   	var transition = new Transition({ owner: owner, parentFragment: owner.parentFragment, name: name, params: params });
+  	transition.bind();
+
   	var promise = runloop.start( this, true );
   	runloop.registerTransition( transition );
   	runloop.end();
+
+  	promise.then( function () { return transition.unbind(); } );
   	return promise;
   }
 
@@ -13593,7 +13588,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-ef0ffb6a5bdd1f6a42f9326303c5c99e76e78f1f' },
+  	VERSION:        { value: '0.8.0-edge-8361c8d892f8bf4fcea1cec427c92d5d082c0907' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
