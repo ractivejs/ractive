@@ -54,6 +54,8 @@ export default class Attribute extends Item {
 			this.fragment.items.length === 1 &&
 			this.fragment.items[0].type === INTERPOLATOR &&
 			this.fragment.items[0];
+
+		if ( this.interpolator ) this.interpolator.owner = this;
 	}
 
 	bind () {

@@ -13,6 +13,8 @@ export default function getUpdateDelegate ( attribute ) {
 	if ( name === 'id' ) return updateId;
 
 	if ( name === 'value' ) {
+		if ( attribute.interpolator ) attribute.interpolator.bound = true;
+
 		// special case - selects
 		if ( element.name === 'select' && name === 'value' ) {
 			return element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
@@ -56,7 +58,11 @@ export default function getUpdateDelegate ( attribute ) {
 
 	if ( name.indexOf( 'class-' ) === 0 ) return updateInlineClass;
 
-	if ( attribute.isBoolean ) return updateBoolean;
+	if ( attribute.isBoolean ) {
+		const type = element.getAttribute( 'type' );
+		if ( attribute.interpolator && name === 'checked' && ( type === 'checkbox' || type === 'radio' ) ) attribute.interpolator.bound = true;
+		return updateBoolean;
+	}
 
 	if ( attribute.namespace && attribute.namespace !== attribute.node.namespaceURI ) return updateNamespacedAttribute;
 

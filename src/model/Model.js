@@ -546,6 +546,12 @@ export default class Model {
 			if ( value !== this.value ) this.set( value );
 		}
 
+		// check for one-way bindings if there are no two-ways
+		if ( !this.bindings.length ) {
+			const oneway = findBoundValue( this.deps );
+			if ( oneway && oneway.value !== this.value ) this.set( oneway.value );
+		}
+
 		if ( cascade ) {
 			this.children.forEach( updateFromBindings );
 		}
@@ -554,5 +560,20 @@ export default class Model {
 	updateKeypathDependants () {
 		this.children.forEach( updateKeypathDependants );
 		if ( this.keypathModel ) this.keypathModel.handleChange();
+	}
+}
+
+export function findBoundValue( list ) {
+	let i = list.length;
+	while ( i-- ) {
+		if ( list[i].bound ) {
+			const owner = list[i].owner;
+			if ( owner ) {
+				const value = owner.name === 'checked' ?
+					owner.node.checked :
+					owner.node.value;
+				return { value };
+			}
+		}
 	}
 }
