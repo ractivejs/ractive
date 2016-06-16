@@ -787,4 +787,86 @@ export default function() {
 		r.set( 'foo.bar.wat', 'yep' );
 		t.htmlEqual( fixture.innerHTML, 'yep!' );
 	});
+
+	test( 'computations should not recompute when parent section is destroyed', t => {
+		let count = 0;
+
+		const ractive = new Ractive({
+			el: fixture,
+
+			template: `
+			{{#if foo}}
+			{{map[key]}}
+			{{/if}}
+			`,
+
+			data: { key: 'x' },
+
+			computed: {
+				map () {
+					this.get( 'foo' );
+					count += 1;
+
+					return { x: 'test' };
+				}
+			}
+		});
+
+		ractive.set( 'foo', true );
+		t.equal( count, 1 );
+
+		ractive.set( 'foo', false );
+		t.equal( count, 1 );
+
+		ractive.set( 'foo', true );
+		t.equal( count, 2 );
+
+		ractive.set( 'foo', false );
+		t.equal( count, 2 );
+	});
+
+	test( 'computations should not recompute when parent component is destroyed', t => {
+		let count = 0;
+
+		const Foo = Ractive.extend({
+			template: `{{map[key]}}`,
+
+			data: () => ({
+				key: 'x'
+			}),
+
+			computed: {
+				map () {
+					this.get( 'foo' );
+					count += 1;
+
+					return { x: 'test' };
+				}
+			}
+		});
+
+		const ractive = new Ractive({
+			el: fixture,
+
+			template: `
+			{{#if foo}}
+			<Foo foo='{{foo}}'/>
+			{{/if}}
+			`,
+
+			components: { Foo }
+		});
+
+		ractive.set( 'foo', true );
+		t.equal( count, 1 );
+
+		ractive.set( 'foo', false );
+		t.equal( count, 1 );
+
+		ractive.set( 'foo', true );
+		t.equal( count, 2 );
+
+		ractive.set( 'foo', false );
+		t.equal( count, 2 );
+	});
 }
