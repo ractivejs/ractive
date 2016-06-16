@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Jun 16 2016 02:44:09 GMT+0000 (UTC) - commit 3ed3446857f313e5a9fa1e21e50b99df0b5d54b9
+	Thu Jun 16 2016 03:38:46 GMT+0000 (UTC) - commit ef0ffb6a5bdd1f6a42f9326303c5c99e76e78f1f
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-3ed3446857f313e5a9fa1e21e50b99df0b5d54b9 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-ef0ffb6a5bdd1f6a42f9326303c5c99e76e78f1f %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-3ed3446857f313e5a9fa1e21e50b99df0b5d54b9 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-ef0ffb6a5bdd1f6a42f9326303c5c99e76e78f1f in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -5221,6 +5221,11 @@
   		return this.childByKey[ key ];
   	};
 
+  	ReferenceExpressionChild.prototype.retrieve = function retrieve () {
+  		var parent = this.parent.get();
+  		return parent && this.key in parent ? parent[ this.key ] : undefined;
+  	};
+
   	return ReferenceExpressionChild;
   }(Model));
 
@@ -5229,6 +5234,7 @@
   		var this$1 = this;
 
   		Model.call( this, null, null );
+  		this.dirty = true;
   		this.root = fragment.ractive.viewmodel;
 
   		this.resolvers = [];
@@ -5248,7 +5254,7 @@
   		}
 
   		var intermediary = {
-  			handleChange: function () { return this$1.bubble(); }
+  			handleChange: function () { return this$1.handleChange(); }
   		};
 
   		this.members = template.m.map( function ( template, i ) {
@@ -5269,7 +5275,7 @@
   						this$1.members[i] = model;
 
   						model.register( intermediary );
-  						this$1.bubble();
+  						this$1.handleChange();
 
   						removeFromArray( this$1.resolvers, resolver );
   					});
@@ -5308,6 +5314,8 @@
   		var keys = this.members.map( function ( model ) { return escapeKey( String( model.get() ) ); } );
   		var model = this.base.joinAll( keys );
 
+  		if ( model === this.model ) return;
+
   		if ( this.model ) {
   			this.model.unregister( this );
   			this.model.unregisterTwowayBinding( this );
@@ -5321,21 +5329,32 @@
 
   		if ( this.keypathModel ) this.keypathModel.handleChange();
 
-  		this.mark();
+  		if ( !this.dirty ) this.handleChange();
   	};
 
   	ReferenceExpressionProxy.prototype.forceResolution = function forceResolution () {
   		this.resolvers.forEach( function ( resolver ) { return resolver.forceResolution(); } );
+  		this.dirty = true;
   		this.bubble();
   	};
 
   	ReferenceExpressionProxy.prototype.get = function get ( shouldCapture ) {
-  		return this.model ? this.model.get( shouldCapture ) : undefined;
+  		if ( this.dirty ) {
+  			this.bubble();
+  			this.value = this.model ? this.model.get( shouldCapture ) : undefined;
+  			this.dirty = false;
+  			this.mark();
+  			return this.value;
+  		} else {
+  			return this.model ? this.model.get( shouldCapture ) : undefined;
+  		}
   	};
 
   	// indirect two-way bindings
   	ReferenceExpressionProxy.prototype.getValue = function getValue () {
   		var this$1 = this;
+
+  		this.value = this.model ? this.model.get() : undefined;
 
   		var i = this.bindings.length;
   		while ( i-- ) {
@@ -5350,7 +5369,8 @@
   		return this.model ? this.model.getKeypath() : '@undefined';
   	};
 
-  	ReferenceExpressionProxy.prototype.handleChange = function handleChange () {
+  	ReferenceExpressionProxy.prototype.handleChange = function handleChange$1 () {
+  		this.dirty = true;
   		this.mark();
   	};
 
@@ -5366,8 +5386,17 @@
   		return this.childByKey[ key ];
   	};
 
+  	ReferenceExpressionProxy.prototype.mark = function mark$1 () {
+  		if ( this.dirty ) {
+  			this.deps.forEach( handleChange );
+  		}
+
+  		this.children.forEach( mark );
+  		this.clearUnresolveds();
+  	};
+
   	ReferenceExpressionProxy.prototype.retrieve = function retrieve () {
-  		return this.get();
+  		return this.value;
   	};
 
   	ReferenceExpressionProxy.prototype.set = function set ( value ) {
@@ -5377,6 +5406,10 @@
 
   	ReferenceExpressionProxy.prototype.unbind = function unbind$1 () {
   		this.resolvers.forEach( unbind );
+  		if ( this.model ) {
+  			this.model.unregister( this );
+  			this.model.unregisterTwowayBinding( this );
+  		}
   	};
 
   	return ReferenceExpressionProxy;
@@ -13560,7 +13593,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-3ed3446857f313e5a9fa1e21e50b99df0b5d54b9' },
+  	VERSION:        { value: '0.8.0-edge-ef0ffb6a5bdd1f6a42f9326303c5c99e76e78f1f' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
