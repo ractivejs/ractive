@@ -42,6 +42,11 @@ class ReferenceExpressionChild extends Model {
 
 		return this.childByKey[ key ];
 	}
+
+	retrieve () {
+		const parent = this.parent.get();
+		return parent && this.key in parent ? parent[ this.key ] : undefined;
+	}
 }
 
 export default class ReferenceExpressionProxy extends Model {
