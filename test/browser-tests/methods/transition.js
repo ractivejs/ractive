@@ -24,9 +24,9 @@ export default function() {
 		t.equal( div.style.opacity, '' );
 
 		// string name of transition
-		ractive.transition( 'fade', div, { opacity: .5 } )
+		ractive.transition( 'fade', div, { opacity: 0.5 } )
 			.then( () => {
-				t.equal( div.style.opacity, .5 );
+				t.equal( div.style.opacity, 0.5 );
 				// function
 				return ractive.transition( fade, div, { opacity: 1 } );
 			})

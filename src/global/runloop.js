@@ -31,6 +31,9 @@ const runloop = {
 
 	end () {
 		flushChanges();
+
+		if ( !batch.previousBatch ) batch.transitionManager.start();
+
 		batch = batch.previousBatch;
 	},
 
@@ -127,7 +130,7 @@ function flushChanges () {
 		ractive.viewmodel.changes = {};
 	}
 
-	batch.transitionManager.start();
+	batch.transitionManager.ready();
 
 	which = batch.deferredObservers;
 	batch.deferredObservers = [];

@@ -344,21 +344,15 @@ export default class RepeatedFragment {
 		// This algorithm (for detaching incorrectly-ordered fragments from the DOM and
 		// storing them in a document fragment for later reinsertion) seems a bit hokey,
 		// but it seems to work for now
-		const len = this.context.get().length;
-		let i, maxIdx = 0, merged = false;
+		const len = this.context.get().length, oldLen = this.previousIterations.length;
+		let i;
+		const removed = {};
 
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			const fragment = this.previousIterations[ oldIndex ];
 
-			// check for merged shuffles
-			if ( !merged && newIndex !== -1 ) {
-				if ( newIndex < maxIdx ) merged = true;
-				if ( newIndex > maxIdx ) maxIdx = newIndex;
-			}
-
-
 			if ( newIndex === -1 ) {
-				fragment.unbind().unrender( true );
+				removed[ oldIndex ] = fragment;
 			} else {
 				fragment.index = newIndex;
 				const model = this.context.joinKey( newIndex );
@@ -370,51 +364,36 @@ export default class RepeatedFragment {
 			}
 		});
 
-		// create new iterations
+		// create new/move existing iterations
 		const docFrag = this.rendered ? createDocumentFragment() : null;
 		const parentNode = this.rendered ? this.parent.findParentNode() : null;
 
-		if ( merged ) {
-			for ( i = 0; i < len; i += 1 ) {
-				let frag = this.iterations[i];
+		for ( i = 0; i < len; i++ ) {
+			const frag = this.iterations[i];
 
-				if ( this.rendered ) {
-					if ( frag ) {
-						docFrag.appendChild( frag.detach() );
-					} else {
-						this.iterations[i] = this.createIteration( i, i );
-						this.iterations[i].render( docFrag );
-					}
-				}
+			if ( !frag ) this.iterations[i] = this.createIteration( i, i );
 
-				if ( !this.rendered ) {
-					if ( !frag ) {
-						this.iterations[i] = this.createIteration( i, i );
-					}
+			if ( this.rendered ) {
+				if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
+
+				if ( frag ) docFrag.appendChild( frag.detach() );
+				else {
+					this.iterations[i].render( docFrag );
 				}
 			}
-		} else {
-			for ( i = 0; i < len; i++ ) {
-				let frag = this.iterations[i];
+		}
 
-				if ( this.rendered ) {
-					if ( frag && docFrag.childNodes.length ) {
-						parentNode.insertBefore( docFrag, frag.firstNode() );
-					}
-
-					if ( !frag ) {
-						frag = this.iterations[i] = this.createIteration( i, i );
-						frag.render( docFrag );
-					}
-				} else if ( !frag ) {
-					this.iterations[i] = this.createIteration( i, i );
-				}
-			}
+		// append any leftovers
+		for ( i = len; i < oldLen; i++ ) {
+			if ( this.rendered && removed[i] ) docFrag.appendChild( removed[i].detach() );
 		}
 
 		if ( this.rendered && docFrag.childNodes.length ) {
 			parentNode.insertBefore( docFrag, this.owner.findNextNode() );
 		}
+
+		// trigger removal on old nodes
+		Object.keys( removed ).forEach( k => removed[k].unbind().unrender( true ) );
 
 		this.iterations.forEach( update );
 

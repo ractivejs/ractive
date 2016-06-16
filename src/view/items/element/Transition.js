@@ -33,69 +33,7 @@ export default class Transition {
 		this.ractive = this.owner.ractive;
 		this.template = options.template;
 		this.parentFragment = options.parentFragment;
-
-		if ( options.template ) {
-			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
-			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
-			this.eventName = names[ options.template.v ];
-		}
-
-		const ractive = this.owner.ractive;
-
-		if ( options.name ) {
-			this.name = options.name;
-		} else {
-			let name = options.template.f;
-			if ( typeof name.n === 'string' ) name = name.n;
-
-			if ( typeof name !== 'string' ) {
-				const fragment = new Fragment({
-					owner: this.owner,
-					template: name.n
-				}).bind(); // TODO need a way to capture values without bind()
-
-				name = fragment.toString();
-				fragment.unbind();
-
-				if ( name === '' ) {
-					// empty string okay, just no transition
-					return;
-				}
-			}
-
-			this.name = name;
-		}
-
-		if ( options.params ) {
-			this.params = options.params;
-		} else {
-			if ( options.template.f.a && !options.template.f.a.s ) {
-				this.params = options.template.f.a;
-			}
-
-			else if ( options.template.f.d ) {
-				// TODO is there a way to interpret dynamic arguments without all the
-				// 'dependency thrashing'?
-				const fragment = new Fragment({
-					owner: this.owner,
-					template: options.template.f.d
-				}).bind();
-
-				this.params = fragment.getArgsList();
-				fragment.unbind();
-			}
-		}
-
-		if ( typeof this.name === 'function' ) {
-			this._fn = this.name;
-			this.name = this._fn.name;
-		} else {
-			this._fn = findInViewHierarchy( 'transitions', ractive, this.name );
-		}
-
-		if ( !this._fn ) {
-			warnOnceIfDebug( missingPlugin( this.name, 'transition' ), { ractive });
-		}
+		this.options = options;
 	}
 
 	animateStyle ( style, value, options ) {
@@ -176,8 +114,72 @@ export default class Transition {
 	}
 
 	bind () {
+		const options = this.options
+		if ( options.template ) {
+			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
+			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
+			this.eventName = names[ options.template.v ];
+		}
+
+		const ractive = this.owner.ractive;
+
+		if ( options.name ) {
+			this.name = options.name;
+		} else {
+			let name = options.template.f;
+			if ( typeof name.n === 'string' ) name = name.n;
+
+			if ( typeof name !== 'string' ) {
+				const fragment = new Fragment({
+					owner: this.owner,
+					template: name.n
+				}).bind(); // TODO need a way to capture values without bind()
+
+				name = fragment.toString();
+				fragment.unbind();
+
+				if ( name === '' ) {
+					// empty string okay, just no transition
+					return;
+				}
+			}
+
+			this.name = name;
+		}
+
+		if ( options.params ) {
+			this.params = options.params;
+		} else {
+			if ( options.template.f.a && !options.template.f.a.s ) {
+				this.params = options.template.f.a;
+			}
+
+			else if ( options.template.f.d ) {
+				// TODO is there a way to interpret dynamic arguments without all the
+				// 'dependency thrashing'?
+				const fragment = new Fragment({
+					owner: this.owner,
+					template: options.template.f.d
+				}).bind();
+
+				this.params = fragment.getArgsList();
+				fragment.unbind();
+			}
+		}
+
+		if ( typeof this.name === 'function' ) {
+			this._fn = this.name;
+			this.name = this._fn.name;
+		} else {
+			this._fn = findInViewHierarchy( 'transitions', ractive, this.name );
+		}
+
+		if ( !this._fn ) {
+			warnOnceIfDebug( missingPlugin( this.name, 'transition' ), { ractive });
+		}
+
 		// TODO: dry up after deprecation is done
-		if ( this.template.f.a && this.template.f.a.s ) {
+		if ( options.template && this.template.f.a && this.template.f.a.s ) {
 			this.resolvers = [];
 			this.models = this.template.f.a.r.map( ( ref, i ) => {
 				let resolver;

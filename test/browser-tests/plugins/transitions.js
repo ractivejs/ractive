@@ -71,6 +71,7 @@ export default function() {
 		const done = t.async();
 
 		let shouldHaveCompleted;
+		let p;
 
 		const Widget = Ractive.extend({
 			template: '<p outro="test">foo</p>',
@@ -89,7 +90,7 @@ export default function() {
 			data: { foo: true }
 		});
 
-		const p = ractive.find( 'p' );
+		p = ractive.find( 'p' );
 
 		ractive.set( 'foo', false ).then( function () {
 			t.ok( shouldHaveCompleted, 'promise was fulfilled before transition had completed' );
@@ -222,6 +223,8 @@ export default function() {
 		// we're using line height for testing because it's a numerical CSS property that IE8 supports
 		const done = t.async();
 
+		let div;
+
 		const ractive = new Ractive({
 			el: fixture,
 			template: '<div intro="changeLineHeight"></div>',
@@ -245,7 +248,7 @@ export default function() {
 			}
 		});
 
-		const div = ractive.find( 'div' );
+		div = ractive.find( 'div' );
 		t.equal( div.style.lineHeight, 0 );
 	});
 
@@ -280,7 +283,7 @@ export default function() {
 	test( 'Parameter objects are not polluted (#1239)', t => {
 		const done = t.async();
 
-		t.expect(3)
+		t.expect(3);
 
 		let uid = 0;
 		let objects = [];
@@ -339,7 +342,7 @@ export default function() {
 			}
 		});
 
-		ractive.set( 'showBox', true ).then( function ( t ) {
+		ractive.set( 'showBox', true ).then( function () {
 			if ( !tooLate ) {
 				done();
 			}
@@ -392,7 +395,7 @@ export default function() {
 				foo: '',
 				bar: ''
 			},
-			oncomplete () { done() }
+			oncomplete () { done(); }
 		});
 
 		ractive.set( 'foo', 'x' );
@@ -614,5 +617,26 @@ export default function() {
 		});
 
 		t.equal( count, 1 );
+	});
+
+	test( 'old-style transition args bind correctly in an iterative section', t => {
+		t.expect( 1 );
+		const done = t.async();
+
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each foo:i}}<div intro-outro="go:{ delay: {{ delay * 10 + i }} }" />{{/each}}',
+			data: {
+				delay: 10
+			},
+			transitions: {
+				go ( trans, opts ) {
+					t.equal( opts.delay, 100 );
+					trans.complete();
+				}
+			}
+		});
+
+		r.push( 'foo', true ).then( done, done );
 	});
 }

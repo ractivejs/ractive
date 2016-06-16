@@ -124,7 +124,8 @@ export default class Element extends Item {
 	}
 
 	detach () {
-		this.attributes.forEach( unrender );
+		// if this element is no longer rendered, the transitinos are complete and the attributes can be torn down
+		if ( !this.rendered ) this.attributes.forEach( unrender );
 
 		return detachNode( this.node );
 	}

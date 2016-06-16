@@ -46,6 +46,10 @@ export default class TransitionManager {
 		this.children.forEach( _detachNodes );
 	}
 
+	ready () {
+		detachImmediate( this );
+	}
+
 	remove ( transition ) {
 		var list = transition.isIntro ? this.intros : this.outros;
 		removeFromArray( list, transition );
@@ -53,7 +57,7 @@ export default class TransitionManager {
 	}
 
 	start () {
-		detachImmediate( this );
+		this.children.forEach( c => c.start() );
 		this.intros.concat( this.outros ).forEach( t => t.start() );
 		this.ready = true;
 		check( this );
