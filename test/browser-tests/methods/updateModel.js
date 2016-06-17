@@ -29,4 +29,38 @@ export default function() {
 		t.equal( fixture.innerHTML, '<input value="changed">changed' );
 		t.equal( ractive.findComponent( 'widget' ).get( 'bar' ), 'changed' );
 	});
+
+	test( 'one-way bindings can be used to update the model (#1963)', t => {
+		const cmp = Ractive.extend({
+			twoway: false,
+			template: '<input value="{{obj.foo}}" /><input value="{{obj[obj.key]}}" /><input type="checkbox" checked="{{obj.bar.baz}}" />'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '<cmp obj="{{some.thing}}" />',
+			data: {
+				some: {
+					thing: {
+						key: 'test',
+						test: 'wat',
+						foo: 'str',
+						bar: { baz: false }
+					}
+				}
+			},
+			components: { cmp }
+		});
+
+		const [ larry, curly, moe ] = r.findAll( 'input' );
+
+		larry.value = 'larry';
+		curly.value = 'curly';
+		moe.checked = true;
+
+		r.updateModel();
+
+		t.equal( r.get( 'some.thing.foo' ), 'larry' );
+		t.equal( r.get( 'some.thing.test' ), 'curly' );
+		t.equal( r.get( 'some.thing.bar.baz' ), true );
+	});
 }

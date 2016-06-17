@@ -1,5 +1,4 @@
-import { capture } from '../../global/capture';
-import Model from '../../model/Model';
+import Model, { findBoundValue } from '../../model/Model';
 import { REFERENCE } from '../../config/types';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
@@ -172,6 +171,10 @@ export default class ReferenceExpressionProxy extends Model {
 			const value = this.bindings[i].getValue();
 			if ( value !== this.value ) return value;
 		}
+
+		// check one-way bindings
+		const oneway = findBoundValue( this.deps );
+		if ( oneway ) return oneway.value;
 
 		return this.value;
 	}
