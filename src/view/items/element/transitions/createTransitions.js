@@ -80,8 +80,6 @@ if ( !isClient ) {
 			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 			function transitionEndHandler ( event ) {
-				clearTimeout( cssTimeout );
-
 				const index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
 
 				if ( index !== -1 ) {
@@ -93,6 +91,7 @@ if ( !isClient ) {
 					return;
 				}
 
+				clearTimeout( cssTimeout );
 				cssTransitionsDone();
 			}
 
