@@ -1,5 +1,6 @@
 import { test } from 'qunit';
 import { initModule, hasUsableConsole, onWarn } from '../test-config';
+import { fire } from 'simulant';
 
 // TODO tidy up, move some of these tests into separate files
 
@@ -991,5 +992,64 @@ export default function() {
 		t.equal( outer.rootpath, 'baz' );
 		t.equal( inner.keypath, 'foo.bar' );
 		t.equal( inner.rootpath, 'baz.bat.bar' );
+	});
+
+	test( 'component @rootpaths should skip root contexts (#2026)', t => {
+		const end = Ractive.extend({
+			template: '{{@rootpath}}'
+		});
+		const middle = Ractive.extend({
+			template: '{{#if middle}}{{#with middle}}<middle middle="{{.next}}" />{{/with}}{{else}}<end />{{/if}}'
+		});
+		new Ractive({
+			el: fixture,
+			template: '{{#with root.next.next.next.next}}<end />{{/with}} <middle middle="{{root}}" />',
+			data: {
+				root: { next: { next: { next: { next: { stop: true } } } } }
+			},
+			components: { middle, end }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'root.next.next.next.next root.next.next.next.next' );
+	});
+
+	test( '@rootpath should be accurate in events fired from within components (#2026)', t => {
+		const end = Ractive.extend({
+			template: '<button on-click="go">click me</button>'
+		});
+		const middle = Ractive.extend({
+			template: '{{#if middle}}{{#with middle}}<middle middle="{{.next}}" />{{/with}}{{else}}<end />{{/if}}'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '<middle middle="{{root}}" />',
+			data: {
+				root: { next: { next: { next: { next: { stop: true } } } } }
+			},
+			components: { middle, end }
+		});
+
+		r.on( '*.go', ev => {
+			t.ok( ev.resolve( '@rootpath' ), 'root.next.next.next.next' );
+		});
+
+		fire( r.find( 'button' ), 'click' );
+	});
+
+	test( '@rootpath should be accurate in a yielder', t => {
+		const end = Ractive.extend({
+			template: '{{#with other.path}}{{yield}}{{/with}}',
+			data: { other: { path: { yep: true } } }
+		});
+		new Ractive({
+			el: fixture,
+			template: '{{#with root.next.next.next.next}}<end>{{@rootpath}} {{.stop}}</end>{{/with}}',
+			data: {
+				root: { next: { next: { next: { next: { stop: true } } } } }
+			},
+			components: { end }
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'root.next.next.next.next true' );
 	});
 }
