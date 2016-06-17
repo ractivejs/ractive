@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Fri Jun 17 2016 01:13:08 GMT+0000 (UTC) - commit c9234d72c5c5e2085a2dfbbef77cda0315556f5c
+	Fri Jun 17 2016 01:15:02 GMT+0000 (UTC) - commit d32e73be8eafd5618d6c1274719962484070a0f7
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-c9234d72c5c5e2085a2dfbbef77cda0315556f5c %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-d32e73be8eafd5618d6c1274719962484070a0f7 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-c9234d72c5c5e2085a2dfbbef77cda0315556f5c in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-d32e73be8eafd5618d6c1274719962484070a0f7 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -2764,6 +2764,12 @@
   		if ( value !== this$1.value ) this$1.set( value );
   	}
 
+  	// check for one-way bindings if there are no two-ways
+  	if ( !this.bindings.length ) {
+  		var oneway = findBoundValue( this.deps );
+  		if ( oneway && oneway.value !== this.value ) this.set( oneway.value );
+  	}
+
   	if ( cascade ) {
   		this.children.forEach( updateFromBindings );
   	}
@@ -2773,6 +2779,21 @@
   	this.children.forEach( updateKeypathDependants );
   	if ( this.keypathModel ) this.keypathModel.handleChange();
   };
+
+  function findBoundValue( list ) {
+  	var i = list.length;
+  	while ( i-- ) {
+  		if ( list[i].bound ) {
+  			var owner = list[i].owner;
+  			if ( owner ) {
+  				var value = owner.name === 'checked' ?
+  					owner.node.checked :
+  					owner.node.value;
+  				return { value: value };
+  			}
+  		}
+  	}
+  }
 
   var GlobalModel = (function (Model) {
   	function GlobalModel ( ) {
@@ -8615,6 +8636,10 @@
   			if ( value !== this$1.value ) return value;
   		}
 
+  		// check one-way bindings
+  		var oneway = findBoundValue( this.deps );
+  		if ( oneway ) return oneway.value;
+
   		return this.value;
   	};
 
@@ -8839,6 +8864,8 @@
   	if ( name === 'id' ) return updateId;
 
   	if ( name === 'value' ) {
+  		if ( attribute.interpolator ) attribute.interpolator.bound = true;
+
   		// special case - selects
   		if ( element.name === 'select' && name === 'value' ) {
   			return element.getAttribute( 'multiple' ) ? updateMultipleSelectValue : updateSelectValue;
@@ -8882,7 +8909,11 @@
 
   	if ( name.indexOf( 'class-' ) === 0 ) return updateInlineClass;
 
-  	if ( attribute.isBoolean ) return updateBoolean;
+  	if ( attribute.isBoolean ) {
+  		var type$1 = element.getAttribute( 'type' );
+  		if ( attribute.interpolator && name === 'checked' && ( type$1 === 'checkbox' || type$1 === 'radio' ) ) attribute.interpolator.bound = true;
+  		return updateBoolean;
+  	}
 
   	if ( attribute.namespace && attribute.namespace !== attribute.node.namespaceURI ) return updateNamespacedAttribute;
 
@@ -9218,6 +9249,8 @@
   			this.fragment.items.length === 1 &&
   			this.fragment.items[0].type === INTERPOLATOR &&
   			this.fragment.items[0];
+
+  		if ( this.interpolator ) this.interpolator.owner = this;
   	}
 
   	Attribute.prototype = Object.create( Item && Item.prototype );
@@ -16293,7 +16326,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-c9234d72c5c5e2085a2dfbbef77cda0315556f5c' },
+  	VERSION:        { value: '0.8.0-edge-d32e73be8eafd5618d6c1274719962484070a0f7' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
