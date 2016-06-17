@@ -53,6 +53,7 @@ if ( !isClient ) {
 		setTimeout( () => {
 			let jsTransitionsComplete;
 			let cssTransitionsComplete;
+			let cssTimeout;
 
 			function checkComplete () {
 				if ( jsTransitionsComplete && cssTransitionsComplete ) {
@@ -79,6 +80,8 @@ if ( !isClient ) {
 			style[ TRANSITION_DURATION ] = ( options.duration / 1000 ) + 's';
 
 			function transitionEndHandler ( event ) {
+				clearTimeout( cssTimeout );
+
 				const index = changedProperties.indexOf( camelCase( unprefix( event.propertyName ) ) );
 
 				if ( index !== -1 ) {
@@ -90,6 +93,10 @@ if ( !isClient ) {
 					return;
 				}
 
+				cssTransitionsDone();
+			}
+
+			function cssTransitionsDone () {
 				style[ TRANSITION_PROPERTY ] = previous.property;
 				style[ TRANSITION_TIMING_FUNCTION ] = previous.duration;
 				style[ TRANSITION_DURATION ] = previous.timing;
@@ -101,6 +108,12 @@ if ( !isClient ) {
 			}
 
 			t.node.addEventListener( TRANSITIONEND, transitionEndHandler, false );
+
+			// safety net in case transitionend never fires
+			cssTimeout = setTimeout( () => {
+				changedProperties = [];
+				cssTransitionsDone();
+			}, options.duration + ( options.delay || 0 ) + 10 );
 
 			setTimeout( () => {
 				let i = changedProperties.length;
