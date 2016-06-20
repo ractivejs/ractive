@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Jun 20 2016 06:46:36 GMT+0000 (UTC) - commit bc189ec4d7f4ff718c0221dcbb0f4e6e22534eb9
+	Mon Jun 20 2016 19:35:46 GMT+0000 (UTC) - commit 96547fcc5285dc0d650b6138216a9dbc505759f2
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -911,13 +911,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-bc189ec4d7f4ff718c0221dcbb0f4e6e22534eb9 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-96547fcc5285dc0d650b6138216a9dbc505759f2 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-bc189ec4d7f4ff718c0221dcbb0f4e6e22534eb9 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-96547fcc5285dc0d650b6138216a9dbc505759f2 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -4546,6 +4546,11 @@
   }
 
   function Ractive$render ( target, anchor ) {
+  	if ( this.torndown ) {
+  		warnIfDebug( 'ractive.render() was called on a Ractive instance that was already torn down' );
+  		return Promise.resolve();
+  	}
+
   	target = getElement( target ) || this.el;
 
   	if ( !this.append && target ) {
@@ -11764,10 +11769,11 @@
   				resolver = this$1.parentFragment.resolve( ref, function ( model ) {
   					this$1.models[i] = model;
   					removeFromArray( this$1.resolvers, resolver );
+  					model.register( this$1 );
   				});
 
   				this$1.resolvers.push( resolver );
-  			}
+  			} else model.register( this$1 );
 
   			return model;
   		});
@@ -11781,6 +11787,8 @@
   		this.owner.bubble();
   	}
   };
+
+  Decorator.prototype.handleChange = function handleChange () { this.bubble(); };
 
   Decorator.prototype.rebind = function rebind () {
   	if ( this.dynamicName ) this.nameFragment.rebind();
@@ -11830,9 +11838,14 @@
   Decorator.prototype.toString = function toString () { return ''; };
 
   Decorator.prototype.unbind = function unbind$1 () {
-  	if ( this.dynamicName ) this.nameFragment.unbind();
+  	var this$1 = this;
+
+  		if ( this.dynamicName ) this.nameFragment.unbind();
   	if ( this.dynamicArgs ) this.argsFragment.unbind();
   	if ( this.resolvers ) this.resolvers.forEach( unbind );
+  	if ( this.models ) this.models.forEach( function ( m ) {
+  		if ( m ) m.unregister( this$1 );
+  	});
   };
 
   Decorator.prototype.unrender = function unrender ( shouldDestroy ) {
@@ -16381,6 +16394,12 @@
   function Ractive$teardown () {
   	var this$1 = this;
 
+  	if ( this.torndown ) {
+  		warnIfDebug( 'ractive.teardown() was called on a Ractive instance that was already torn down' );
+  		return Promise$1.resolve();
+  	}
+
+  	this.torndown = true;
   	this.fragment.unbind();
   	this.viewmodel.teardown();
 
@@ -16831,7 +16850,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-bc189ec4d7f4ff718c0221dcbb0f4e6e22534eb9' },
+  	VERSION:        { value: '0.8.0-edge-96547fcc5285dc0d650b6138216a9dbc505759f2' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
