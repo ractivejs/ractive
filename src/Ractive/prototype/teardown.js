@@ -2,6 +2,7 @@ import Hook from '../../events/Hook';
 import Promise from '../../utils/Promise';
 import { removeFromArray } from '../../utils/array';
 import { cancel } from '../../shared/methodCallers';
+import { warnIfDebug } from '../../utils/log';
 
 const teardownHook = new Hook( 'teardown' );
 
@@ -9,6 +10,12 @@ const teardownHook = new Hook( 'teardown' );
 // and generally cleaning up after itself
 
 export default function Ractive$teardown () {
+	if ( this.torndown ) {
+		warnIfDebug( 'ractive.teardown() was called on a Ractive instance that was already torn down' );
+		return Promise.resolve();
+	}
+
+	this.torndown = true;
 	this.fragment.unbind();
 	this.viewmodel.teardown();
 
