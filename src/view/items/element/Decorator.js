@@ -72,10 +72,11 @@ export default class Decorator {
 					resolver = this.parentFragment.resolve( ref, model => {
 						this.models[i] = model;
 						removeFromArray( this.resolvers, resolver );
+						model.register( this );
 					});
 
 					this.resolvers.push( resolver );
-				}
+				} else model.register( this );
 
 				return model;
 			});
@@ -89,6 +90,8 @@ export default class Decorator {
 			this.owner.bubble();
 		}
 	}
+
+	handleChange () { this.bubble(); }
 
 	rebind () {
 		if ( this.dynamicName ) this.nameFragment.rebind();
@@ -139,6 +142,9 @@ export default class Decorator {
 		if ( this.dynamicName ) this.nameFragment.unbind();
 		if ( this.dynamicArgs ) this.argsFragment.unbind();
 		if ( this.resolvers ) this.resolvers.forEach( unbind );
+		if ( this.models ) this.models.forEach( m => {
+			if ( m ) m.unregister( this );
+		});
 	}
 
 	unrender ( shouldDestroy ) {

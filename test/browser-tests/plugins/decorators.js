@@ -484,4 +484,31 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, '<div>foo baz</div>' );
 	});
+
+	test( 'named decorators update with their args (#2590)', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `<div as-foo="bar">bar here</div>`,
+			decorators: {
+				foo ( node, bar ) {
+					const contents = node.innerHTML;
+					node.innerHTML = bar;
+
+					return {
+						update ( bar ) {
+							node.innerHTML = bar;
+						},
+						teardown ()  {
+							node.innerHTML = contents;
+						}
+					};
+				}
+			},
+			data: { bar: 'foo' }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '<div>foo</div>' );
+		r.set( 'bar', 'baz' );
+		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
+	});
 }
