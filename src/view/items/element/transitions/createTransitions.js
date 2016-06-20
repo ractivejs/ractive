@@ -55,8 +55,11 @@ if ( !isClient ) {
 			let cssTransitionsComplete;
 			let cssTimeout;
 
+			function transitionDone () { clearTimeout( cssTimeout ); }
+
 			function checkComplete () {
 				if ( jsTransitionsComplete && cssTransitionsComplete ) {
+					t.unregisterCompleteHandler( transitionDone );
 					// will changes to events and fire have an unexpected consequence here?
 					t.ractive.fire( t.name + ':end', t.node, t.isIntro );
 					resolve();
@@ -112,7 +115,8 @@ if ( !isClient ) {
 			cssTimeout = setTimeout( () => {
 				changedProperties = [];
 				cssTransitionsDone();
-			}, options.duration + ( options.delay || 0 ) + 10 );
+			}, options.duration + ( options.delay || 0 ) + 50 );
+			t.registerCompleteHandler( transitionDone );
 
 			setTimeout( () => {
 				let i = changedProperties.length;

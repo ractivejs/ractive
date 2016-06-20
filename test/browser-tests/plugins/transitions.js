@@ -639,4 +639,86 @@ export default function() {
 
 		r.push( 'foo', true ).then( done, done );
 	});
+
+	test( `transitions have a timeout safety net (#2463)`, t => {
+		const done = t.async();
+		t.expect( 1 );
+
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#if show}}<div go-out>foo</div>{{/if}}`,
+			data: {
+				show: true
+			},
+			transitions: {
+				go ( trans ) {
+					if ( trans.isIntro ) {
+						trans.setStyle( 'opacity', 1 );
+						trans.complete();
+					} else {
+						trans.animateStyle( 'opacity', 0, { duration: 100 } ).then( () => {
+							trans.complete();
+						});
+						setTimeout( () => {
+							trans.node.style.transition = '';
+							trans.node.style.transitionDelay = '';
+							trans.node.style.transitionFunction = '';
+						}, 20 );
+					}
+				}
+			}
+		});
+
+		r.set( 'show', false ).then( () => {
+			t.ok( !r.find( 'div' ), 'node has been removed' );
+			done();
+		});
+	});
+
+	test( `transition safety net doesn't break with manual render/unrender`, t => {
+		const done = t.async();
+		let r, count = 0;
+
+		function go ( trans ) {
+			if ( trans.isIntro ) {
+				trans.setStyle( 'opacity', 0 );
+				trans.animateStyle( 'opacity', 1, { duration: 100 } ).then( () => {
+					trans.complete();
+				});
+			} else {
+				trans.animateStyle( 'opacity', 0, { duration: 300 } ).then( () => {
+					trans.complete();
+				});
+			}
+		}
+
+		function next () {
+			count++;
+			const rep = new Ractive({
+				template: `<div go-in-out>foo {{count}}</div>`,
+				transitions: { go },
+				data: { count }
+			});
+			if ( r ) {
+				r.teardown().then( () => {
+					rep.render( fixture );
+				});
+				r = rep;
+			} else {
+				rep.render( fixture );
+				r = rep;
+			}
+		}
+
+		next();
+
+		setTimeout( next, 50 );
+		setTimeout( next, 50 );
+		setTimeout( next, 50 );
+
+		setTimeout( () => {
+			t.htmlEqual( fixture.innerHTML, '<div style="opacity: 1;">foo 4</div>' );
+			done();
+		}, 400);
+	});
 }

@@ -1,7 +1,7 @@
 import { win } from '../../../config/environment';
 import legacy from '../../../legacy';
 import { isArray } from '../../../utils/is';
-import { removeFromArray } from '../../../utils/array';
+import { addToArray, removeFromArray } from '../../../utils/array';
 import findElement from '../shared/findElement';
 import prefix from './transitions/prefix';
 import { warnOnceIfDebug } from '../../../utils/log';
@@ -34,6 +34,7 @@ export default class Transition {
 		this.template = options.template;
 		this.parentFragment = options.parentFragment;
 		this.options = options;
+		this.onComplete = [];
 	}
 
 	animateStyle ( style, value, options ) {
@@ -114,7 +115,7 @@ export default class Transition {
 	}
 
 	bind () {
-		const options = this.options
+		const options = this.options;
 		if ( options.template ) {
 			if ( options.template.v === 't0' || options.template.v == 't1' ) this.element._introTransition = this;
 			if ( options.template.v === 't0' || options.template.v == 't2' ) this.element._outroTransition = this;
@@ -250,6 +251,10 @@ export default class Transition {
 		this.bind();
 	}
 
+	registerCompleteHandler ( fn ) {
+		addToArray( this.onComplete, fn );
+	}
+
 	render () {}
 
 	setStyle ( style, value ) {
@@ -284,6 +289,7 @@ export default class Transition {
 				return;
 			}
 
+			this.onComplete.forEach( fn => fn() );
 			if ( !noReset && this.eventName === 'intro' ) {
 				resetStyle( node, originalStyle);
 			}
@@ -317,6 +323,10 @@ export default class Transition {
 
 	unbind () {
 		if ( this.resolvers ) this.resolvers.forEach( unbind );
+	}
+
+	unregisterCompleteHandler ( fn ) {
+		removeFromArray( this.onComplete, fn );
 	}
 
 	unrender () {}
