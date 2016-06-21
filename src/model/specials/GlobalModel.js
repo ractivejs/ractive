@@ -16,6 +16,11 @@ class GlobalModel extends Model {
 
 	// global model doesn't contribute changes events because it has no instance
 	registerChange () {}
+
+	// the global model doesn't shuffle
+	tryRebind () {
+		return false;
+	}
 }
 
 export default new GlobalModel();

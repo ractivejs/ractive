@@ -26,6 +26,9 @@ const runloop = {
 			instance: instance
 		};
 
+		// carry through a forced rebind
+		if ( batch.previousBatch && batch.previousBatch.shuffles === false ) batch.shuffles = false;
+
 		return promise;
 	},
 
@@ -87,6 +90,33 @@ const runloop = {
 
 			_batch.tasks.push( task );
 		}
+	},
+
+	addShuffle ( model, indices ) {
+		if ( batch ) {
+			if ( batch.shuffles === false ) return;
+			else if ( !batch.shuffles ) batch.shuffles = [];
+
+			batch.shuffles.push({
+				model,
+				indices,
+				keypath: `${model.getKeypath()}.`
+			});
+		}
+	},
+
+	findShuffle ( keypath ) {
+		return findShuffle( keypath, batch );
+	},
+
+	forceRebind () {
+		if ( batch ) {
+			batch.shuffles = false;
+		}
+	},
+
+	isForceRebinding () {
+		if ( batch ) return batch.shuffles === false;
 	}
 };
 
@@ -147,4 +177,17 @@ function flushChanges () {
 	// containing <option> elements caused the binding on the <select>
 	// to update - then we start over
 	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length ) return flushChanges();
+}
+
+function findShuffle ( keypath, group ) {
+	if ( !group ) return;
+	else if ( group.shuffles === false ) return false;
+	else if ( !group.shuffles ) return;
+
+	let i = group.shuffles.length;
+	while ( i-- ) {
+		if ( keypath.indexOf( group.shuffles[i].keypath ) === 0 ) return group.shuffles[i];
+	}
+
+	if ( group.previousBatch ) return this.findShuffle( keypath, group.previousBatch );
 }

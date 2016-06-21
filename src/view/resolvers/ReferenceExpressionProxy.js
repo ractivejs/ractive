@@ -218,6 +218,11 @@ export default class ReferenceExpressionProxy extends Model {
 		this.model.set( value );
 	}
 
+	// TODO: this should really shuffle
+	tryRebind () {
+		return;
+	}
+
 	unbind () {
 		this.resolvers.forEach( unbind );
 		if ( this.model ) {

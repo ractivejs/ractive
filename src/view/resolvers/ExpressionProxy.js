@@ -124,6 +124,27 @@ export default class ExpressionProxy extends Model {
 		super.teardown();
 	}
 
+	tryRebind () {
+		let dirty = false;
+		this.models.forEach( ( m, i ) => {
+			if ( m ) {
+				let next = m.tryRebind();
+				if ( next === false ) return;
+				if ( next ) {
+					this.models.splice( i, 1, next );
+				} else {
+					dirty = true;
+				}
+			}
+		});
+
+		if ( dirty ) {
+			return;
+		}
+
+		return this;
+	}
+
 	unregister( dep ) {
 		super.unregister( dep );
 		if ( !this.deps.length ) this.teardown();
