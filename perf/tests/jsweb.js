@@ -14,6 +14,7 @@ var tests = [
 						template:
 `<table>
 	<tr><th>name</th><th>index</th><th>remove</th></tr>
+	{{#if show}}
 	{{#rows:i}}
 	<tr class="{{#selected === .id}}selected{{/}}">
 		<td>{{.id}}</td>
@@ -22,8 +23,9 @@ var tests = [
 		<td><button on-click="remove:{{i}}">remove</button></td>
 	</tr>
 	{{/rows}}
+	{{/if}}
 </table>`,
-						data: { rows: [] }
+						data: { rows: [], show: true }
 					});
 
 					var id = 0;
@@ -53,12 +55,21 @@ var tests = [
 			},
 
 			{
-				name: 'add 100 rows',
+				name: 'add 100 rows (accumulates)',
 				test() {
 					/* global ractive, gen */
-					ractive.push( 'rows', gen( 100 ) );
-				},
-				maxCount: 5
+					const rows = gen( 100 );
+					rows.unshift( 'rows' );
+					ractive.push.apply( ractive, rows );
+				}
+			},
+
+			{
+				name: 'reset to 1000 rows',
+				test() {
+					/* global ractive, gen */
+					ractive.set( 'rows', gen() );
+				}
 			},
 
 			{
@@ -71,6 +82,14 @@ var tests = [
 			},
 
 			{
+				name: 'reset to 1000 rows',
+				test() {
+					/* global ractive, gen */
+					ractive.set( 'rows', gen() );
+				}
+			},
+
+			{
 				name: 'remove first row',
 				test() {
 					/* global ractive */
@@ -80,12 +99,64 @@ var tests = [
 			},
 
 			{
+				name: 'reset to 1000 rows',
+				test() {
+					/* global ractive, gen */
+					ractive.set( 'rows', gen() );
+				}
+			},
+
+			{
 				name: 'remove last row',
 				test() {
 					/* global ractive */
 					ractive.pop( 'rows' );
 				},
 				maxCount: 100
+			},
+
+			{
+				name: 'reset to 1000 rows',
+				test() {
+					/* global ractive, gen */
+					ractive.set( 'rows', gen() );
+				}
+			},
+
+			{
+				name: 'hide rows',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', false );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'show rows',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', true );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'hide rows again',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', false );
+				},
+				maxCount: 1
+			},
+
+			{
+				name: 'show rows again',
+				test() {
+					/* global ractive */
+					ractive.set( 'show', true );
+				},
+				maxCount: 1
 			},
 
 			{
@@ -108,6 +179,24 @@ var tests = [
 					const rows = ractive.get( 'rows' );
 					const row = rows[ random( rows.length - 1 ) ];
 					ractive.set( 'selected', row.id );
+				}
+			},
+
+			{
+				name: 'generate 10,000 rows',
+				test() {
+					/* global ractive, gen */
+					ractive.set( 'rows', gen( 10000 ) );
+				}
+			},
+
+			{
+				name: 'add 1000 more rows to the 10,000 (accumulates)',
+				test() {
+					/* global ractive, gen */
+					const rows = gen();
+					rows.unshift( 'rows' );
+					ractive.push.apply( ractive, rows );
 				}
 			}
 		]
