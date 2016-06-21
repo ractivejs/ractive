@@ -152,10 +152,5 @@ export default class ExpressionProxy extends Model {
 
 	unbind () {
 		this.resolvers.forEach( unbind );
-
-		let i = this.models.length;
-		while ( i-- ) {
-			if ( this.models[i] ) this.models[i].unregister( this );
-		}
 	}
 }

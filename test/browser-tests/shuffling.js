@@ -269,6 +269,22 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '4' );
 	});
 
+	test( 'shuffled computations are updated with their shuffled member', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each list as item:i}}{{item + i}}{{/each}}`,
+			data: {
+				list: [ 1 ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, '1' );
+		r.unshift( 'list', 2 );
+		t.htmlEqual( fixture.innerHTML, '22' );
+		r.set( 'list.1', 10 );
+		t.htmlEqual( fixture.innerHTML, '211' );
+	});
+
 	// TODO reinstate this in some form. Commented out for purposes of #1740
 	// test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 	// 	let ractive = new Ractive({
