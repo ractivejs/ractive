@@ -285,6 +285,45 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '211' );
 	});
 
+	test( 'children of shuffled reference expressions survive the shuffle', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each lists[name]}}{{.foo}}{{/each}}',
+			data: {
+				lists: {
+					list: [ { foo: 'bar' } ]
+				},
+				name: 'list'
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+		r.unshift( 'lists.list', { foo: 'foo' } );
+		t.htmlEqual( fixture.innerHTML, 'foobar' );
+		r.set( 'lists.list.1.foo', 'baz' );
+		t.htmlEqual( fixture.innerHTML, 'foobaz' );
+	});
+
+	test( 'reference expression members shuffle safely', t => {
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each lists[name.0]}}{{.foo}}{{/each}}',
+			data: {
+				lists: {
+					list: [ { foo: 'bar' } ],
+					other: [ { foo: 'baz' } ]
+				},
+				name: [ 'list', 'other' ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'bar' );
+		r.shift( 'name' );
+		t.htmlEqual( fixture.innerHTML, 'baz' );
+		r.set( 'lists.other.0.foo', 'bat' );
+		t.htmlEqual( fixture.innerHTML, 'bat' );
+	});
+
 	// TODO reinstate this in some form. Commented out for purposes of #1740
 	// test( `Array shuffling only adjusts context and doesn't tear stuff down to rebuild it`, t => {
 	// 	let ractive = new Ractive({

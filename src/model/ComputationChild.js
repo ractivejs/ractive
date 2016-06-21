@@ -30,11 +30,6 @@ export default class ComputationChild extends Model {
 		return this.childByKey[ key ];
 	}
 
-	// TODO: this should probably just work off of the parent
-	tryRebind () {
-		return;
-	}
-
 	// TODO this causes problems with inter-component mappings
 	// set () {
 	// 	throw new Error( `Cannot set read-only property of computed value (${this.getKeypath()})` );
