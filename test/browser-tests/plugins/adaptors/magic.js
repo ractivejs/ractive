@@ -148,6 +148,36 @@ export default function() {
 			t.htmlEqual( fixture.innerHTML, 'baz' );
 		});
 
+		test( 'Magic mode preserves "this" for existing accessors', t => {
+			let data = {};
+			var thisObservedInGetter = undefined;
+			var thisObservedInSetter = undefined;
+
+			Object.defineProperty( data, 'propertyLoggingObservedThisOnCall', {
+				get () {
+					thisObservedInGetter = this;
+					return 'foo';
+				},
+				set ( value ) {
+					thisObservedInSetter = this;
+				},
+				configurable: true,
+				enumerable: true
+			});
+
+			new MagicRactive({
+				el: fixture,
+				template: '{{foo}}',
+				data
+			});
+
+			let foo = data.propertyLoggingObservedThisOnCall;
+			t.strictEqual( thisObservedInGetter, data );
+
+			data.propertyLoggingObservedThisOnCall = 'foo';
+			t.strictEqual( thisObservedInSetter, data );
+		});
+
 		test( 'Setting properties in magic mode triggers change events', t => {
 			t.expect( 1 );
 

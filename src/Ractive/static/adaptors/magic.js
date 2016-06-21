@@ -30,16 +30,16 @@ function createOrWrapDescriptor ( originalDescriptor, ractive, keypath ) {
 	let dependants = [{ ractive, keypath }];
 
 	const descriptor = {
-		get: () => {
-			return 'value' in originalDescriptor ? originalDescriptor.value : originalDescriptor.get();
+		get: function () {
+			return 'value' in originalDescriptor ? originalDescriptor.value : originalDescriptor.get.call( this );
 		},
-		set: value => {
+		set: function (value) {
 			if ( setting ) return;
 
 			if ( 'value' in originalDescriptor ) {
 				originalDescriptor.value = value;
 			} else {
-				originalDescriptor.set( value );
+				originalDescriptor.set.call( this, value );
 			}
 
 			setting = true;
