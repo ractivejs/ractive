@@ -61,7 +61,7 @@ export default function attachChild ( child, options = {} ) {
 		child.el = null;
 	} else {
 		runloop.forceRebind();
-		runloop.scheduleTask( () => child.fragment.rebind() );
+		runloop.scheduleTask( () => child.fragment.rebind( child.viewmodel ) );
 
 		// TODO: update live queries
 	}

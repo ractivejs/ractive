@@ -142,7 +142,11 @@ export default class RootModel extends Model {
 		}
 		this.mappings = {};
 
-		// TODO: add the mapPaths back here
+		const external = this.ractive._mappings;
+		for ( let k in external ) {
+			this.mappings[ k ] = external[ k ];
+			external[ k ].register( this );
+		}
 	}
 
 	set ( value ) {

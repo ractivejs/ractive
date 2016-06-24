@@ -150,7 +150,7 @@ function initialiseProperties ( ractive ) {
 	ractive._anchors = [];
 
 	// manual mappings
-	ractive._mappings = [];
+	ractive._mappings = {};
 
 	if(!ractive.component){
 		ractive.root = ractive;

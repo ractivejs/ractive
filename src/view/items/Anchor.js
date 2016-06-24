@@ -156,7 +156,7 @@ function renderItem ( anchor, meta ) {
 	if ( meta.lastBound !== anchor ) {
 		meta.lastBound = anchor;
 		runloop.forceRebind();
-		meta.ractive.fragment.rebind();
+		meta.ractive.fragment.rebind( meta.ractive.viewmodel );
 	}
 }
 
