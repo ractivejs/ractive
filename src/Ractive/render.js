@@ -3,6 +3,7 @@ import { applyCSS } from '../global/css';
 import Hook from '../events/Hook';
 import { getElement } from '../utils/dom';
 import runloop from '../global/runloop';
+import { createFragment } from './initialise';
 
 const renderHook = new Hook( 'render' );
 const completeHook = new Hook( 'complete' );
@@ -17,6 +18,11 @@ export default function render ( ractive, target, anchor, occupants ) {
 
 	if ( ractive.fragment.rendered ) {
 		throw new Error( 'You cannot call ractive.render() on an already rendered instance! Call ractive.unrender() first' );
+	}
+
+	if ( ractive.destroyed ) {
+		ractive.destroyed = false;
+		ractive.fragment = createFragment( ractive ).bind( ractive.viewmodel );
 	}
 
 	anchor = getElement( anchor ) || ractive.anchor;

@@ -8,6 +8,7 @@ export const ELEMENT           = 7;
 export const PARTIAL           = 8;
 export const COMMENT           = 9;
 export const DELIMCHANGE       = 10;
+export const ANCHOR            = 11;
 export const ATTRIBUTE         = 13;
 export const CLOSING_TAG       = 14;
 export const COMPONENT         = 15;

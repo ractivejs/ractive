@@ -113,6 +113,8 @@ export default class Query {
 			liveQueries.splice( index, 1 );
 			liveQueries[ selector ] = null;
 		}
+
+		this.cancelled = true;
 	}
 
 	init () {

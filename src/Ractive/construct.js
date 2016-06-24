@@ -145,6 +145,13 @@ function initialiseProperties ( ractive ) {
 	// links
 	ractive._links = {};
 
+	// external children
+	ractive._children = [];
+	ractive._anchors = [];
+
+	// manual mappings
+	ractive._mappings = [];
+
 	if(!ractive.component){
 		ractive.root = ractive;
 		ractive.parent = ractive.container = null; // TODO container still applicable?

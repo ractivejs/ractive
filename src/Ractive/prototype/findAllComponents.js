@@ -23,6 +23,15 @@ export default function Ractive$findAllComponents ( selector, options ) {
 
 	this.fragment.findAllComponents( selector, query );
 
+	// search non-fragment children
+	this._children.forEach( c => {
+		if ( !c.target && c.ractive.fragment && c.ractive.fragment.rendered ) {
+			if ( query.test( c ) ) query.add( c.ractive );
+
+			c.ractive.fragment.findAllComponents( selector, query );
+		}
+	});
+
 	query.init();
 	return query.result;
 }

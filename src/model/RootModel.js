@@ -116,8 +116,8 @@ export default class RootModel extends Model {
 		if ( key === '@this' ) return this.getRactiveModel();
 
 		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
-		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
-		       super.joinKey( key );
+			this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
+			super.joinKey( key );
 	}
 
 	map ( localKey, origin ) {
@@ -141,6 +141,8 @@ export default class RootModel extends Model {
 			this.mappings[k].unregister( this );
 		}
 		this.mappings = {};
+
+		// TODO: add the mapPaths back here
 	}
 
 	set ( value ) {

@@ -1,6 +1,7 @@
-import { ALIAS, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
+import { ALIAS, ANCHOR, COMPONENT, DOCTYPE, ELEMENT, INTERPOLATOR, PARTIAL, SECTION, TRIPLE, YIELDER } from '../../config/types';
 import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
 import Alias from './Alias';
+import Anchor from './Anchor';
 import Attribute from './element/Attribute';
 import BindingFlag from './element/BindingFlag';
 import Component from './Component';
@@ -26,6 +27,7 @@ import findElement from './shared/findElement';
 
 const constructors = {};
 constructors[ ALIAS ] = Alias;
+constructors[ ANCHOR ] = Anchor;
 constructors[ DOCTYPE ] = Doctype;
 constructors[ INTERPOLATOR ] = Interpolator;
 constructors[ PARTIAL ] = Partial;

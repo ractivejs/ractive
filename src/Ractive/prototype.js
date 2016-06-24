@@ -1,6 +1,8 @@
 import add from './prototype/add';
 import animate from './prototype/animate';
+import attachChild from './prototype/attachChild';
 import detach from './prototype/detach';
+import detachChild from './prototype/detachChild';
 import find from './prototype/find';
 import findAll from './prototype/findAll';
 import findAllComponents from './prototype/findAllComponents';
@@ -12,6 +14,7 @@ import get from './prototype/get';
 import getNodeInfo from './prototype/getNodeInfo';
 import insert from './prototype/insert';
 import link from './prototype/link';
+import mapPath from './prototype/mapPath';
 import merge from './prototype/merge';
 import observe from './prototype/observe';
 import observeList from './prototype/observeList';
@@ -37,6 +40,7 @@ import toCSS from './prototype/toCSS';
 import toHTML from './prototype/toHTML';
 import transition from './prototype/transition';
 import unlink from './prototype/unlink';
+import unmapPath from './prototype/unmapPath';
 import unrender from './prototype/unrender';
 import unshift from './prototype/unshift';
 import update from './prototype/update';
@@ -45,7 +49,9 @@ import updateModel from './prototype/updateModel';
 export default {
 	add,
 	animate,
+	attachChild,
 	detach,
+	detachChild,
 	find,
 	findAll,
 	findAllComponents,
@@ -57,6 +63,7 @@ export default {
 	getNodeInfo,
 	insert,
 	link,
+	mapPath,
 	merge,
 	observe,
 	observeList,
@@ -86,6 +93,7 @@ export default {
 	toHtml: toHTML,
 	transition,
 	unlink,
+	unmapPath,
 	unrender,
 	unshift,
 	update,
