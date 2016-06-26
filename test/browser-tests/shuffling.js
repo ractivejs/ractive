@@ -394,4 +394,7 @@ export default function() {
 
 	removedElementsTest( 'splice', ractive => ractive.splice( 'options', 1, 1 ) );
 	removedElementsTest( 'merge', ractive => ractive.merge( 'options', [ 'a', 'c' ] ) );
+
+	// TODO: add tests for shuffling added mappings
+	// TODO: add tests for shuffling attached children
 }

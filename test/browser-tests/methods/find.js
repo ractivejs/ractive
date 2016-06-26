@@ -88,6 +88,43 @@ export default function() {
 		}, /Cannot call ractive\.find\('p'\) unless instance is rendered to the DOM/ );
 	});
 
+	test( `find() finds elements in targeted attached children`, t => {
+		const r1 = new Ractive({
+			template: '<div id="r1"></div>'
+		});
+		const r2 = new Ractive({
+			el: fixture,
+			template: '{{#if show}}<div id="r2"></div>{{/if}}{{>>foo}}',
+			data: {
+				show: true
+			}
+		});
+
+		r2.attachChild( r1, { target: 'foo' } );
+
+		t.ok( r2.find( 'div' ).id === 'r2' );
+		r2.set( 'show', false );
+		t.ok( r2.find( 'div' ).id === 'r1' );
+	});
+
+	test( `find() doesn't find elements in non-targeted attached children`, t => {
+		const r1 = new Ractive({
+			template: '<div id="r1"></div>'
+		});
+		const r2 = new Ractive({
+			el: fixture,
+			template: '{{#if show}}<div id="r2"></div>{{/if}}{{>>foo}}',
+			data: {
+				show: true
+			}
+		});
+
+		r2.attachChild( r1 );
+
+		t.ok( r2.find( 'div' ).id === 'r2' );
+		r2.set( 'show', false );
+		t.ok( r2.find( 'div' ) === undefined );
+	});
 
 	// TODO add tests (and add the functionality)...
 	// * cancelling a live query (also, followed by teardown)

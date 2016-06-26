@@ -72,4 +72,6 @@ export default function() {
 			ractive.findAll( 'p' );
 		}, /Cannot call ractive\.findAll\('p', \.\.\.\) unless instance is rendered to the DOM/ );
 	});
+
+	// TODO: tests for attached children
 }

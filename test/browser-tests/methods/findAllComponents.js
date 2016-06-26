@@ -96,4 +96,6 @@ export default function() {
 		ractive.set( 'shown', false );
 		t.equal( widgets.length, 0 );
 	});
+
+	// TODO: tests for attached children
 }
