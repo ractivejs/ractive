@@ -1,6 +1,6 @@
 import runloop from '../../global/runloop';
 
-export default function unmapPath ( dest ) {
+export default function removeMapping ( dest ) {
 	const model = this._mappings[ dest ];
 	if ( !model ) return;
 

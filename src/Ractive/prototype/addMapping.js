@@ -2,7 +2,7 @@ import { splitKeypath } from '../../shared/keypaths';
 import runloop from '../../global/runloop';
 import resolveReference from '../../view/resolvers/resolveReference';
 
-export default function mapPath ( dest, src, opts = {} ) {
+export default function addMapping ( dest, src, opts = {} ) {
 	if ( splitKeypath( dest ).length !== 1 ) throw new Error( `Mappings must be a single top-level key. ${dest} is invalid.` );
 	const keys = splitKeypath( src );
 

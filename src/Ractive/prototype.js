@@ -1,4 +1,5 @@
 import add from './prototype/add';
+import addMapping from './prototype/addMapping';
 import animate from './prototype/animate';
 import attachChild from './prototype/attachChild';
 import detach from './prototype/detach';
@@ -14,7 +15,6 @@ import get from './prototype/get';
 import getNodeInfo from './prototype/getNodeInfo';
 import insert from './prototype/insert';
 import link from './prototype/link';
-import mapPath from './prototype/mapPath';
 import merge from './prototype/merge';
 import observe from './prototype/observe';
 import observeList from './prototype/observeList';
@@ -24,6 +24,7 @@ import on from './prototype/on';
 import once from './prototype/once';
 import pop from './prototype/pop';
 import push from './prototype/push';
+import removeMapping from './prototype/removeMapping';
 import render from './prototype/render';
 import reset from './prototype/reset';
 import resetPartial from './prototype/resetPartial';
@@ -40,7 +41,6 @@ import toCSS from './prototype/toCSS';
 import toHTML from './prototype/toHTML';
 import transition from './prototype/transition';
 import unlink from './prototype/unlink';
-import unmapPath from './prototype/unmapPath';
 import unrender from './prototype/unrender';
 import unshift from './prototype/unshift';
 import update from './prototype/update';
@@ -48,6 +48,7 @@ import updateModel from './prototype/updateModel';
 
 export default {
 	add,
+	addMapping,
 	animate,
 	attachChild,
 	detach,
@@ -63,7 +64,6 @@ export default {
 	getNodeInfo,
 	insert,
 	link,
-	mapPath,
 	merge,
 	observe,
 	observeList,
@@ -75,6 +75,7 @@ export default {
 	once,
 	pop,
 	push,
+	removeMapping,
 	render,
 	reset,
 	resetPartial,
@@ -93,7 +94,6 @@ export default {
 	toHtml: toHTML,
 	transition,
 	unlink,
-	unmapPath,
 	unrender,
 	unshift,
 	update,
