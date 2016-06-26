@@ -26,5 +26,5 @@ Ractive's parser is responsible for taking the (mostly :wink:) human-friendly mu
 
 Each item expressable in Ractive-flavored mustache has its own parsing function that may also be comprised of other parsing functions. Each bit of ES syntax that Ractive understands for expressions also has its own parsing function. The parser starts at the beginning of the template string and starts applying each parsing function in precedence order. Each function will then consume as much of the template as needed to return an item, like an element, a section, a partial, a bit of text, or an interpolator. It may also return nothing. Most items can also contain children, including items of the same type as themselves, and will thus recurse by trying to parse their content.
 
-There is more information about Ractive's parsing in the [parser overview](parser/).
+There is more information about Ractive's parsing in the [parser overview](parse/).
 
