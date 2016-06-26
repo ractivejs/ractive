@@ -249,9 +249,9 @@ export default class Model {
 
 		// non-numeric keys are a special of a numeric index in a object iteration
 		if ( typeof this.key === 'string' && fragmentIndex !== undefined ) {
-			return new KeyModel( fragmentIndex );
+			return new KeyModel( fragmentIndex, this );
 		} else if ( !indexModels[ this.key ] ) {
-			indexModels[ this.key ] = new KeyModel( this.key );
+			indexModels[ this.key ] = new KeyModel( this.key, this );
 		}
 
 		return indexModels[ this.key ];
@@ -259,7 +259,7 @@ export default class Model {
 
 	getKeyModel () {
 		// TODO... different to IndexModel because key can never change
-		return new KeyModel( escapeKey( this.key ) );
+		return new KeyModel( escapeKey( this.key ), this );
 	}
 
 	getKeypathModel ( ractive ) {
@@ -279,7 +279,9 @@ export default class Model {
 	}
 
 	getKeypath ( ractive ) {
-		let root = this.parent.isRoot ? escapeKey( this.key ) : this.parent.getKeypath() + '.' + escapeKey( this.key );
+		if ( ! this.keypath ) this.keypath = this.parent.isRoot ? escapeKey( this.key ) : this.parent.getKeypath() + '.' + escapeKey( this.key );
+
+		let root = this.keypath;
 
 		if ( ractive && ractive.component ) {
 			let map = ractive.viewmodel.mappings;
@@ -468,6 +470,8 @@ export default class Model {
 	shuffle ( newIndices ) {
 		const indexModels = [];
 
+		runloop.addShuffle( this, newIndices );
+
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			if ( newIndex !== oldIndex && this.childByKey[oldIndex] ) this.childByKey[oldIndex].shuffled();
 
@@ -501,7 +505,9 @@ export default class Model {
 		});
 
 		// if the length has changed, notify upstream
-		if ( upstream ) this.notifyUpstream();
+		if ( upstream ) {
+			this.notifyUpstream();
+		}
 	}
 
 	shuffled () {
@@ -524,6 +530,37 @@ export default class Model {
 				this.keypathModels[ k ].teardown();
 			}
 		}
+	}
+
+	// try to find a new model for this on after a shuffle
+	// false means this model wasn't shuffled
+	// undefined means there is no new model
+	// otherwise, the result is the new model
+	tryRebind () {
+		const shuffle = runloop.findShuffle( this.getKeypath() );
+
+		// a false shuffle means this is a forced rebind
+		if ( shuffle === false ) return;
+		else if ( !shuffle ) return false;
+
+		const path = [];
+		let model = this;
+
+		while ( model && model !== shuffle.model ) {
+			path.unshift( model.key );
+			model = model.parent;
+		}
+
+		// this must not actually be shuffling e.g. coincidental keypath overlap
+		// or it could be a non-index
+		if ( !model || typeof path[0] !== 'number' ) return false;
+
+		// if the model is removed, return undefined
+		if ( shuffle.indices[ path[0] ] === -1 ) return;
+
+		path[0] = shuffle.indices[ path[0] ];
+
+		return model.joinAll( path );
 	}
 
 	unregister ( dependant ) {

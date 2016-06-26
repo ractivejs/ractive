@@ -190,8 +190,21 @@ export default class EventDirective {
 	}
 
 	rebind () {
-		this.unbind();
-		this.bind();
+		if ( this.args && this.args.rebind ) this.args.rebind();
+		if ( this.action && this.action.rebind ) this.action.rebind();
+		if ( this.models ) {
+			this.models.forEach( ( m, i ) => {
+				if ( m && m.tryRebind ) {
+					const next = m.tryRebind();
+
+					if ( next === false ) return;
+					if ( next ) {
+						this.models.splice( i, 1, next );
+					} else {
+					}
+				}
+			});
+		}
 	}
 
 	render () {

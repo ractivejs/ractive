@@ -71,6 +71,7 @@ export default class Mapping extends Item {
 			if ( viewmodel.unmap( this.name ) ) {
 				if ( !this.element.rebinding ) {
 					this.element.rebinding = true;
+					runloop.forceRebind();
 					runloop.scheduleTask( () => {
 						this.element.rebind();
 						this.element.rebinding = false;
@@ -112,6 +113,7 @@ function createMapping ( item, check ) {
 			const remapped = viewmodel.map( item.name, item.model );
 			if ( remapped !== item.model && item.element.bound && !item.element.rebinding ) {
 				item.element.rebinding = true;
+				runloop.forceRebind();
 				runloop.scheduleTask( () => {
 					item.element.rebind();
 					item.element.rebinding = false;
