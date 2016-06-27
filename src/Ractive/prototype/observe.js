@@ -104,6 +104,7 @@ class Observer {
 		}
 
 		if ( options.init !== false ) {
+			this.dirty = true;
 			this.dispatch();
 		} else {
 			this.oldValue = this.newValue;
