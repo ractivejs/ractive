@@ -1138,4 +1138,36 @@ export default function() {
 
 		r.add( 'foo.bar' );
 	});
+
+	test( 'observers should not be re-entrant when they init (#2594)', t => {
+		let count = 0;
+		new Ractive({
+			el: fixture,
+			data: { list: [ 0, 0 ] },
+			oninit () {
+				this.observe( 'list', () => {
+					count++;
+					this.set( 'list', [] );
+				});
+			}
+		});
+
+		t.equal( count, 1 );
+	});
+
+	test( 'pattern observers should not be re-entrant when they init', t => {
+		let count = 0;
+		new Ractive({
+			el: fixture,
+			data: { obj: { list: [ 0, 0 ] } },
+			oninit () {
+				this.observe( 'obj.*', ( n, o, k ) => {
+					count++;
+					this.set( k, [] );
+				});
+			}
+		});
+
+		t.equal( count, 1 );
+	});
 }
