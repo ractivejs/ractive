@@ -169,7 +169,88 @@ export default function() {
 		t.equal( count, 2 );
 	});
 
-	// TODO: tests involving transitions
-	// TODO: test for attaching the same child twice or attaching a child that is attached elsewhere
+	test( 'attaching an already attached child throws an appropriate error', t => {
+		const r1 = new Ractive({});
+		const r2 = new Ractive({});
+
+		r1.attachChild( r2 );
+
+		t.throws( () => {
+			r1.attachChild( r2 );
+		}, /already attached.*this instance/ );
+	});
+
+	test( 'attaching child that is attached elsewhere throws an appropriate error', t => {
+		const r1 = new Ractive({});
+		const r2 = new Ractive({});
+		const r3 = new Ractive({});
+
+		r1.attachChild( r2 );
+
+		t.throws( () => {
+			r3.attachChild( r2 );
+		}, /already attached.*different instance/ );
+	});
+
+	test( `attaching and detaching a child triggers transitions`, t => {
+		let ins = 0, outs = 0;
+		function go ( trans ) {
+			if ( trans.isIntro ) ins++;
+			else outs++;
+			trans.complete();
+		}
+
+		const r1 = new Ractive({
+			el: fixture,
+			template: '{{>>anchor}}'
+		});
+		const r2 = new Ractive({
+			transitions: { go },
+			template: '<div go-in-out>...</div>'
+		});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		r1.detachChild( r2 );
+
+		t.equal( ins, 1 );
+		t.equal( outs, 1 );
+	});
+
+	test( `transitions while detaching and reattaching child should carry on`, t => {
+		let ins = 0, outs = 0;
+		const done = t.async();
+
+		function go ( trans ) {
+			if ( trans.isIntro ) ins++;
+			else outs++;
+			setTimeout( trans.complete, 50 );
+		}
+
+		const r1 = new Ractive({
+			el: fixture,
+			template: '{{>>a1}}{{>>a2}}'
+		});
+		const r2 = new Ractive({
+			transitions: { go },
+			template: '<div go-in-out>...</div>'
+		});
+
+		r1.attachChild( r2, { target: 'a1' } );
+		t.htmlEqual( fixture.innerHTML, '<div>...</div>' );
+		r1.detachChild( r2 );
+		t.htmlEqual( fixture.innerHTML, '<div>...</div>' );
+		r1.attachChild( r2, { target: 'a2' } );
+		t.htmlEqual( fixture.innerHTML, '<div>...</div><div>...</div>' );
+		r1.detachChild( r2 );
+		t.htmlEqual( fixture.innerHTML, '<div>...</div><div>...</div>' );
+
+		setTimeout( () => {
+			t.equal( ins, 2 );
+			t.equal( outs, 2 );
+
+			t.equal( fixture.innerHTML, '' );
+			done();
+		}, 60 );
+	});
 }
 

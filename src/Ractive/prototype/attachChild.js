@@ -4,21 +4,10 @@ import runloop from '../../global/runloop';
 const attachHook = new Hook( 'attachchild' );
 
 export default function attachChild ( child, options = {} ) {
-	// options
-	// what to do on unrender
-	// what to do on teardown
-	// target anchor to render
-	// mappings
-
 	const children = this._children;
 
-	let i = children.length;
-	while ( i-- ) {
-		if ( children[i].ractive === child ) {
-			if ( child.parent !== this ) throw new Error( `Instance ${child._guid} is already attached to a different parent ${child.parent._guid}. Please detach it from the other instance using detachChild first.` );
-			else throw new Error( `Instance ${child._guid} is already attached to this instance.` );
-		}
-	}
+	if ( child.parent && child.parent !== this ) throw new Error( `Instance ${child._guid} is already attached to a different instance ${child.parent._guid}. Please detach it from the other instance using detachChild first.` );
+	else if ( child.parent ) throw new Error( `Instance ${child._guid} is already attached to this instance.` );
 
 	const anchors = this._anchors;
 	const meta = {

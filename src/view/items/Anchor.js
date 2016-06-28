@@ -42,7 +42,7 @@ export default class Anchor extends Item {
 
 	detach () {
 		const docFrag = createDocumentFragment();
-		this.items.forEach( item => docFrag.appendChild( item.detach() ) );
+		this.activeItems.forEach( i => docFrag.appendChild( i.ractive.fragment.detach() ) );
 		return docFrag;
 	}
 
@@ -83,6 +83,17 @@ export default class Anchor extends Item {
 
 			i.ractive.fragment.findAllComponents( name, query );
 		});
+	}
+
+	firstNode () {
+		for ( let i = 0; i < this.activeItems.length; i++ ) {
+			const node = this.activeItems[i].ractive.fragment.firstNode();
+			if ( node ) return node;
+		}
+	}
+
+	rebind () {
+		this.items.forEach( i => i.ractive.fragment.rebind() );
 	}
 
 	removeChild ( meta ) {

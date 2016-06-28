@@ -26,5 +26,14 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, '<div id="r1"></div><div id="r2">r2</div>' );
 	});
 
-	// TODO: test for detaching a non-attached child
+	test( `detaching a non-attached child throws an error`, t => {
+		const r = new Ractive({
+			el: fixture
+		});
+		const other = new Ractive({});
+
+		t.throws( () => {
+			r.detachChild( other );
+		}, /not attached/ );
+	});
 }
