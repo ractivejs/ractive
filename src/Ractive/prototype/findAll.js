@@ -27,8 +27,8 @@ export default function Ractive$findAll ( selector, options ) {
 
 	// seach non-fragment children
 	this._children.forEach( c => {
-		if ( !c.target && c.ractive.fragment && c.ractive.fragment.rendered ) {
-			c.ractive.fragment.findAll( selector, query );
+		if ( !c.target && c.instance.fragment && c.instance.fragment.rendered ) {
+			c.instance.fragment.findAll( selector, query );
 		}
 	});
 

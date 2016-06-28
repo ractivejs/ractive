@@ -3,9 +3,7 @@ import { createDocumentFragment } from '../../utils/dom';
 import { addToArray, removeFromArray } from '../../utils/array';
 import render from '../../Ractive/render';
 import runloop from '../../global/runloop';
-
-// when anchors appear, register and find children that want to be there
-// when achors disappear, unrender children and release them back to the pool
+import updateLiveQueries from './component/updateLiveQueries';
 
 export default class Anchor extends Item {
 	constructor ( options ) {
@@ -18,8 +16,6 @@ export default class Anchor extends Item {
 
 		this.items = [];
 		this.activeItems = [];
-
-		this.liveQueries = [];
 	}
 
 	addChild ( meta ) {
@@ -42,7 +38,7 @@ export default class Anchor extends Item {
 
 	detach () {
 		const docFrag = createDocumentFragment();
-		this.activeItems.forEach( i => docFrag.appendChild( i.ractive.fragment.detach() ) );
+		this.activeItems.forEach( i => docFrag.appendChild( i.instance.fragment.detach() ) );
 		return docFrag;
 	}
 
@@ -50,7 +46,7 @@ export default class Anchor extends Item {
 		const items = this.activeItems;
 
 		for ( let i = 0; i < items.length; i++ ) {
-			const node = items[i].ractive.fragment.find( selector );
+			const node = items[i].instance.fragment.find( selector );
 			if ( node ) return node;
 		}
 	}
@@ -59,41 +55,41 @@ export default class Anchor extends Item {
 		const items = this.activeItems;
 
 		for ( let i = 0; i < items.length; i++ ) {
-			items[i].ractive.fragment.findAll( selector, query );
+			items[i].instance.fragment.findAll( selector, query );
 		}
 
 		return query;
 	}
 
 	findComponent ( name ) {
-		if ( !name && this.items.length ) return this.items[0].ractive;
+		if ( !name && this.items.length ) return this.items[0].instance;
 
 		for ( let i = 0; i < this.items.length; i++ ) {
-			if ( this.items[i].name === name ) return this.items[i].ractive;
-			const child = this.items[i].ractive.findComponent( name );
+			if ( this.items[i].name === name ) return this.items[i].instance;
+			const child = this.items[i].instance.findComponent( name );
 			if ( child ) return child;
 		}
 	}
 
 	findAllComponents ( name, query ) {
 		this.activeItems.forEach( i => {
-			if ( query.test( i ) ) query.add( i.ractive );
+			if ( query.test( i ) ) query.add( i.instance );
 
-			if ( query.live ) this.liveQueries.push( query );
+			if ( query.live ) i.liveQueries.push( query );
 
-			i.ractive.fragment.findAllComponents( name, query );
+			i.instance.fragment.findAllComponents( name, query );
 		});
 	}
 
 	firstNode () {
 		for ( let i = 0; i < this.activeItems.length; i++ ) {
-			const node = this.activeItems[i].ractive.fragment.firstNode();
+			const node = this.activeItems[i].instance.fragment.firstNode();
 			if ( node ) return node;
 		}
 	}
 
 	rebind () {
-		this.items.forEach( i => i.ractive.fragment.rebind() );
+		this.items.forEach( i => i.instance.fragment.rebind() );
 	}
 
 	removeChild ( meta ) {
@@ -120,7 +116,6 @@ export default class Anchor extends Item {
 			}
 		});
 
-
 		if ( this.multi ) {
 			this.items.forEach( i => renderItem( this, i ) );
 		} else if ( this.items.length ) {
@@ -134,7 +129,7 @@ export default class Anchor extends Item {
 
 	update () {
 		this.dirty = false;
-		this.items.forEach( i => i.ractive.fragment.update() );
+		this.items.forEach( i => i.instance.fragment.update() );
 	}
 
 	unrender ( shouldDestroy ) {
@@ -161,14 +156,16 @@ function renderItem ( anchor, meta ) {
 	anchor.activeItems.push( meta );
 	const nextNode = anchor.parentFragment.findNextNode( anchor );
 
-	if ( meta.ractive.fragment.rendered ) meta.ractive.unrender();
-	render( meta.ractive, anchor.target, anchor.target.contains( nextNode ) ? nextNode : null );
+	if ( meta.instance.fragment.rendered ) meta.instance.unrender();
+	render( meta.instance, anchor.target, anchor.target.contains( nextNode ) ? nextNode : null );
 
 	if ( meta.lastBound !== anchor ) {
 		meta.lastBound = anchor;
 		runloop.forceRebind();
-		meta.ractive.fragment.rebind( meta.ractive.viewmodel );
+		meta.instance.fragment.rebind( meta.instance.viewmodel );
 	}
+
+	updateLiveQueries( meta );
 }
 
 function unrenderItem ( anchor, meta ) {
@@ -176,7 +173,10 @@ function unrenderItem ( anchor, meta ) {
 
 	removeFromArray( anchor.activeItems, meta );
 	meta.shouldDestroy = true;
-	meta.ractive.unrender();
-	meta.ractive.el = meta.ractive.anchor = null;
+	meta.instance.unrender();
+	meta.instance.el = meta.instance.anchor = null;
 	meta.parentFragment = null;
+
+	meta.liveQueries.forEach( q => q.remove( meta.instance ) );
+	meta.liveQueries = [];
 }

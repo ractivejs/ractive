@@ -14,8 +14,16 @@ function sortByDocumentPosition ( node, otherNode ) {
 }
 
 function sortByItemPosition ( a, b ) {
-	const ancestryA = getAncestry( a.component || a._ractive.proxy );
-	const ancestryB = getAncestry( b.component || b._ractive.proxy );
+	const baseA = a.component || a._ractive.proxy;
+	const baseB = b.component || b._ractive.proxy;
+
+	// allow for attached childdren outside the template
+	if ( baseA.target === false && baseB.target === false ) return 0;
+	else if ( baseA.target === false ) return 1;
+	else if ( baseB.target === false ) return -1;
+
+	const ancestryA = getAncestry( baseA );
+	const ancestryB = getAncestry( baseB );
 
 	let oldestA = lastItem( ancestryA );
 	let oldestB = lastItem( ancestryB );
@@ -131,8 +139,8 @@ export default class Query {
 		}
 	}
 
-	remove ( nodeOrComponent ) {
-		const index = this.result.indexOf( this.isComponentQuery ? nodeOrComponent.instance : nodeOrComponent );
+	remove ( item ) {
+		const index = this.result.indexOf( item );
 		if ( index !== -1 ) this.result.splice( index, 1 );
 	}
 

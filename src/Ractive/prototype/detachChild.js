@@ -9,7 +9,7 @@ export default function detachChild ( child ) {
 
 	let i = children.length;
 	while ( i-- ) {
-		if ( children[i].ractive === child ) {
+		if ( children[i].instance === child ) {
 			index = i;
 			meta = children[i];
 			break;
@@ -34,6 +34,34 @@ export default function detachChild ( child ) {
 
 	detachHook.fire( child );
 
+	if ( !meta.anchor ) {
+		// keep live queries up to date
+		child.findAll( '*' ).forEach( el => {
+			el._ractive.proxy.liveQueries.forEach( q => {
+				// remove from non-self queries
+				if ( isParent( this, q.ractive ) ) el._ractive.proxy.removeFromQuery( q );
+			});
+		});
+
+		// keep live component queries up to date
+		child.findAllComponents().forEach( cmp => {
+			cmp.component.liveQueries.forEach( q => {
+				if ( isParent( this, q.ractive ) ) cmp.component.removeFromQuery( q );
+			});
+		});
+
+		meta.liveQueries.forEach( q => meta.removeFromQuery( q ) );
+	}
+
 	promise.ractive = child;
 	return promise.then( () => child );
+}
+
+function isParent ( target, check ) {
+	while ( target ) {
+		if ( target === check ) return true;
+		target = target.parent;
+	}
+
+	return false;
 }

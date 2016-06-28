@@ -1,5 +1,8 @@
 import Hook from '../../events/Hook';
 import runloop from '../../global/runloop';
+import updateLiveQueries from '../../view/items/element/updateLiveQueries';
+import updateLiveComponentQueries from '../../view/items/component/updateLiveQueries';
+import { removeFromArray } from '../../utils/array';
 
 const attachHook = new Hook( 'attachchild' );
 
@@ -11,11 +14,13 @@ export default function attachChild ( child, options = {} ) {
 
 	const anchors = this._anchors;
 	const meta = {
-		ractive: child,
+		instance: child,
+		ractive: this,
 		name: options.name || child.constructor.name || 'Ractive',
 		liveQueries: [],
-		target: options.target,
-		bubble () { runloop.addFragment( this.ractive.fragment ); }
+		target: options.target || false,
+		bubble,
+		removeFromQuery
 	};
 
 	// child should be rendered to an anchor
@@ -52,7 +57,11 @@ export default function attachChild ( child, options = {} ) {
 		runloop.forceRebind();
 		runloop.scheduleTask( () => child.fragment.rebind( child.viewmodel ) );
 
-		// TODO: update live queries
+		if ( child.fragment.rendered ) {
+			child.findAll( '*' ).forEach( el => updateLiveQueries( el._ractive.proxy ) );
+			child.findAllComponents().forEach( cmp => updateLiveComponentQueries( cmp.component ) );
+			updateLiveComponentQueries( meta );
+		}
 	}
 
 	if ( meta.anchor ) meta.anchor.addChild( meta );
@@ -61,4 +70,11 @@ export default function attachChild ( child, options = {} ) {
 
 	promise.ractive = child;
 	return promise.then( () => child );
+}
+
+function bubble () { runloop.addFragment( this.instance.fragment ); }
+
+function removeFromQuery ( query ) {
+	query.remove( this.instance );
+	removeFromArray( this.liveQueries, query );
 }

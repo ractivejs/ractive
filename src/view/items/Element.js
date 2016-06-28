@@ -4,7 +4,7 @@ import Item from './shared/Item';
 import Fragment from '../Fragment';
 import ConditionalAttribute from './element/ConditionalAttribute';
 import updateLiveQueries from './element/updateLiveQueries';
-import { toArray } from '../../utils/array';
+import { removeFromArray, toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
 import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
@@ -197,6 +197,11 @@ export default class Element extends Item {
 		}
 	}
 
+	removeFromQuery( query ) {
+		removeFromArray( this.liveQueries, query );
+		query.remove( this.node );
+	}
+
 	render ( target, occupants ) {
 		// TODO determine correct namespace
 		this.namespace = getNamespace( this );
@@ -367,7 +372,8 @@ export default class Element extends Item {
 			runloop.registerTransition( this._outroTransition );
 		}
 
-		removeFromLiveQueries( this );
+		this.liveQueries.forEach( query => query.remove( this.node ) );
+		this.liveQueries = [];
 		// TODO forms are a special case
 	}
 
@@ -401,14 +407,6 @@ function inputIsCheckedRadio ( element ) {
 function stringifyAttribute ( attribute ) {
 	const str = attribute.toString();
 	return str ? ' ' + str : '';
-}
-
-function removeFromLiveQueries ( element ) {
-	let i = element.liveQueries.length;
-	while ( i-- ) {
-		const query = element.liveQueries[i];
-		query.remove( element.node );
-	}
 }
 
 function getNamespace ( element ) {

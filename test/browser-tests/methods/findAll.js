@@ -73,5 +73,86 @@ export default function() {
 		}, /Cannot call ractive\.findAll\('p', \.\.\.\) unless instance is rendered to the DOM/ );
 	});
 
-	// TODO: tests for attached children
+	test( 'findAll searches non-targeted attached children last', t => {
+		fixture.innerHTML = '<div></div><div></div>';
+		const r1 = new Ractive({
+			el: fixture.children[0],
+			template: '<div id="r1" />'
+		});
+		const r2 = new Ractive({
+			el: fixture.children[1],
+			template: '<div id="r2" />'
+		});
+
+		r1.attachChild( r2 );
+
+		const all = r1.findAll( 'div' );
+
+		t.equal( all.length, 2 );
+		t.strictEqual( all[0], r1.find( '#r1' ) );
+		t.strictEqual( all[1], r2.find( '#r2' ) );
+	});
+
+	test( 'findAll searches targeted attached children in order', t => {
+		const r1 = new Ractive({
+			el: fixture,
+			template: '{{>>anchor}}<div id="r1" />'
+		});
+		const r2 = new Ractive({
+			template: '<div id="r2" />'
+		});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+
+		const all = r1.findAll( 'div' );
+
+		t.equal( all.length, 2 );
+		t.strictEqual( all[1], r1.find( '#r1' ) );
+		t.strictEqual( all[0], r2.find( '#r2' ) );
+	});
+
+	test( 'live findAll searches with attached children stay up to date', t => {
+		fixture.innerHTML = '<div></div><div></div>';
+		const r1 = new Ractive({
+			el: fixture.children[0],
+			template: '{{>>anchor}}<div id="r1" />'
+		});
+		const r2 = new Ractive({
+			template: '<div id="r2" />'
+		});
+		const r3 = new Ractive({
+			el: fixture.children[1],
+			template: '<div id="r3" />'
+		});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		r1.attachChild( r3 );
+
+		const all = r1.findAll( 'div', { live: true } );
+
+		t.equal( all.length, 3 );
+		t.strictEqual( all[1], r1.find( '#r1' ) );
+		t.strictEqual( all[0], r2.find( '#r2' ) );
+		t.strictEqual( all[2], r3.find( '#r3' ) );
+
+		r1.detachChild( r3 );
+		t.equal( all.length, 2 );
+		t.strictEqual( all[1], r1.find( '#r1' ) );
+		t.strictEqual( all[0], r2.find( '#r2' ) );
+
+		r1.detachChild( r2 );
+		t.equal( all.length, 1 );
+		t.strictEqual( all[0], r1.find( '#r1' ) );
+
+		r1.attachChild( r3 );
+		t.equal( all.length, 2 );
+		t.strictEqual( all[0], r1.find( '#r1' ) );
+		t.strictEqual( all[1], r3.find( '#r3' ) );
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		t.equal( all.length, 3 );
+		t.strictEqual( all[1], r1.find( '#r1' ) );
+		t.strictEqual( all[0], r2.find( '#r2' ) );
+		t.strictEqual( all[2], r3.find( '#r3' ) );
+	});
 }
