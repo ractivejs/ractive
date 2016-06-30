@@ -101,7 +101,10 @@ export default class Query {
 		this.live = live;
 		this.isComponentQuery = isComponentQuery;
 
+		this.refs = 1;
+
 		this.result = [];
+		this.result.cancel = () => this.cancel();
 
 		this.dirty = true;
 	}
@@ -112,17 +115,22 @@ export default class Query {
 	}
 
 	cancel () {
-		let liveQueries = this._root[ this.isComponentQuery ? 'liveComponentQueries' : 'liveQueries' ];
-		const selector = this.selector;
+		if ( --this.refs ) return;
 
-		const index = liveQueries.indexOf( selector );
+		this.cancelled = true;
+
+		let liveQueries = this.ractive[ this.isComponentQuery ? '_liveComponentQueries' : '_liveQueries' ];
+
+		const index = liveQueries.indexOf( this );
 
 		if ( index !== -1 ) {
 			liveQueries.splice( index, 1 );
-			liveQueries[ selector ] = null;
 		}
 
-		this.cancelled = true;
+		this.result.forEach( item => {
+			item = this.isComponentQuery ? item.component : item._ractive.proxy;
+			item.removeFromQuery( this );
+		});
 	}
 
 	init () {
@@ -140,8 +148,10 @@ export default class Query {
 	}
 
 	remove ( item ) {
-		const index = this.result.indexOf( item );
-		if ( index !== -1 ) this.result.splice( index, 1 );
+		if ( !this.cancelled ) {
+			const index = this.result.indexOf( item );
+			if ( index !== -1 ) this.result.splice( index, 1 );
+		}
 	}
 
 	update () {

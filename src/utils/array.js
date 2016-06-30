@@ -75,3 +75,10 @@ export function toArray ( arrayLike ) {
 
 	return array;
 }
+
+export function find ( array, fn ) {
+	const len = array.length;
+	for ( let i = 0; i < len; i++ ) {
+		if ( fn( array[i] ) ) return array[i];
+	}
+}

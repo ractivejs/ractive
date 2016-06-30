@@ -42,12 +42,12 @@ export default class Anchor extends Item {
 		return docFrag;
 	}
 
-	find ( selector ) {
+	find ( selector, options ) {
 		const items = this.activeItems;
 
 		for ( let i = 0; i < items.length; i++ ) {
-			const node = items[i].instance.fragment.find( selector );
-			if ( node ) return node;
+			const found = items[i].instance.find( selector, options );
+			if ( found ) return found;
 		}
 	}
 
@@ -55,29 +55,34 @@ export default class Anchor extends Item {
 		const items = this.activeItems;
 
 		for ( let i = 0; i < items.length; i++ ) {
-			items[i].instance.fragment.findAll( selector, query );
+			items[i].instance.findAll( selector, { _query: query } );
 		}
 
 		return query;
 	}
 
-	findComponent ( name ) {
-		if ( !name && this.items.length ) return this.items[0].instance;
+	findComponent ( name, options ) {
+		const items = options.remote ? this.items : this.activeItems;
 
-		for ( let i = 0; i < this.items.length; i++ ) {
-			if ( this.items[i].name === name ) return this.items[i].instance;
-			const child = this.items[i].instance.findComponent( name );
-			if ( child ) return child;
+		if ( !name && items.length ) return items[0].instance;
+
+		for ( let i = 0; i < items.length; i++ ) {
+			if ( items[i].name === name ) return items[i].instance;
+			const found = items[i].instance.findComponent( name, options );
+			if ( found ) return found;
 		}
 	}
 
 	findAllComponents ( name, query ) {
-		this.activeItems.forEach( i => {
-			if ( query.test( i ) ) query.add( i.instance );
+		const items = query.remote ? this.items : this.activeItems;
 
-			if ( query.live ) i.liveQueries.push( query );
+		items.forEach( i => {
+			if ( query.test( i ) ) {
+				query.add( i.instance );
+				if ( query.live ) i.liveQueries.push( query );
+			}
 
-			i.instance.fragment.findAllComponents( name, query );
+			i.instance.findAllComponents( name, { _query: query } );
 		});
 	}
 

@@ -34,7 +34,7 @@ export default function detachChild ( child ) {
 
 	detachHook.fire( child );
 
-	if ( !meta.anchor ) {
+	if ( !meta.anchor && child.fragment.rendered ) {
 		// keep live queries up to date
 		child.findAll( '*' ).forEach( el => {
 			el._ractive.proxy.liveQueries.forEach( q => {
@@ -62,6 +62,4 @@ function isParent ( target, check ) {
 		if ( target === check ) return true;
 		target = target.parent;
 	}
-
-	return false;
 }

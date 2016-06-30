@@ -136,19 +136,19 @@ export default class Component extends Item {
 		return this.instance.fragment.detach();
 	}
 
-	find ( selector ) {
-		return this.instance.fragment.find( selector );
+	find ( selector, options ) {
+		return this.instance.find( selector, options );
 	}
 
 	findAll ( selector, query ) {
-		this.instance.fragment.findAll( selector, query );
+		this.instance.findAll( selector, { _query: query } );
 	}
 
-	findComponent ( name ) {
+	findComponent ( name, options ) {
 		if ( !name || this.name === name ) return this.instance;
 
 		if ( this.instance.fragment ) {
-			return this.instance.fragment.findComponent( name );
+			return this.instance.findComponent( name, options );
 		}
 	}
 
@@ -161,7 +161,7 @@ export default class Component extends Item {
 			}
 		}
 
-		this.instance.fragment.findAllComponents( name, query );
+		this.instance.findAllComponents( name, { _query: query } );
 	}
 
 	firstNode ( skipParent ) {

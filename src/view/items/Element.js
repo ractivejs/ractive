@@ -130,10 +130,10 @@ export default class Element extends Item {
 		return detachNode( this.node );
 	}
 
-	find ( selector ) {
+	find ( selector, options ) {
 		if ( matches( this.node, selector ) ) return this.node;
 		if ( this.fragment ) {
-			return this.fragment.find( selector );
+			return this.fragment.find( selector, options );
 		}
 	}
 
@@ -151,9 +151,9 @@ export default class Element extends Item {
 		}
 	}
 
-	findComponent ( name ) {
+	findComponent ( name, options ) {
 		if ( this.fragment ) {
-			return this.fragment.findComponent( name );
+			return this.fragment.findComponent( name, options );
 		}
 	}
 

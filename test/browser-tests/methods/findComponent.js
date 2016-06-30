@@ -58,7 +58,7 @@ export default function() {
 		t.equal( findAll.length, 1);
 	});
 
-	test( 'findComponent finds non-targeted attached children last', t => {
+	test( 'findComponent finds non-targeted attached children last when asked', t => {
 		const cmp = Ractive.extend({});
 		const r = new Ractive({
 			el: fixture,
@@ -70,17 +70,17 @@ export default function() {
 		const r2 = new cmp();
 		r.attachChild( r2, { name: 'cmp' } );
 
-		let res = r.findComponent();
+		let res = r.findComponent( { remote: true } );
 		t.ok( res && res !== r2 );
 
-		res = r.findComponent( 'cmp' );
+		res = r.findComponent( 'cmp', { remote: true } );
 		t.ok( res && res !== r2 );
 
 		r.set( 'show', false );
-		res = r.findComponent();
+		res = r.findComponent( { remote: true } );
 		t.ok( res && res === r2 );
 
-		res = r.findComponent( 'cmp' );
+		res = r.findComponent( 'cmp', { remote: true } );
 		t.ok( res && res === r2 );
 	});
 
