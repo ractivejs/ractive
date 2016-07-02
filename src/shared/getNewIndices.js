@@ -36,6 +36,7 @@ export default function getNewIndices ( length, methodName, args ) {
 
 	removeStart = Math.min( length, spliceArguments[0] );
 	removeEnd = removeStart + spliceArguments[1];
+	newIndices.startIndex = removeStart;
 
 	for ( i = 0; i < removeStart; i += 1 ) {
 		newIndices.push( i );

@@ -353,7 +353,7 @@ export default class RepeatedFragment {
 
 			if ( newIndex === -1 ) {
 				removed[ oldIndex ] = fragment;
-			} else {
+			} else if ( fragment.index !== newIndex ) {
 				fragment.index = newIndex;
 				const model = this.context.joinKey( newIndex );
 				if ( this.owner.template.z ) {
@@ -368,8 +368,20 @@ export default class RepeatedFragment {
 		const docFrag = this.rendered ? createDocumentFragment() : null;
 		const parentNode = this.rendered ? this.parent.findParentNode() : null;
 
-		for ( i = 0; i < len; i++ ) {
+		const contiguous = 'startIndex' in newIndices;
+		i = contiguous ? newIndices.startIndex : 0;
+
+		for ( i; i < len; i++ ) {
 			const frag = this.iterations[i];
+
+			if ( frag && contiguous ) {
+				// attach any built-up iterations
+				if ( this.rendered ) {
+					if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
+					if ( docFrag.childNodes.length  ) parentNode.insertBefore( docFrag, frag.firstNode() );
+				}
+				continue;
+			}
 
 			if ( !frag ) this.iterations[i] = this.createIteration( i, i );
 
@@ -384,12 +396,14 @@ export default class RepeatedFragment {
 		}
 
 		// append any leftovers
-		for ( i = len; i < oldLen; i++ ) {
-			if ( this.rendered && removed[i] ) docFrag.appendChild( removed[i].detach() );
-		}
+		if ( this.rendered ) {
+			for ( i = len; i < oldLen; i++ ) {
+				if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
+			}
 
-		if ( this.rendered && docFrag.childNodes.length ) {
-			parentNode.insertBefore( docFrag, this.owner.findNextNode() );
+			if ( docFrag.childNodes.length ) {
+				parentNode.insertBefore( docFrag, this.owner.findNextNode() );
+			}
 		}
 
 		// trigger removal on old nodes
