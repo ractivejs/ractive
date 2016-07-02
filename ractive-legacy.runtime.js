@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Jun 27 2016 03:33:00 GMT+0000 (UTC) - commit 60a94804ac53e6f2fc693d3bd40cc69724a4c881
+	Sat Jul 02 2016 23:24:26 GMT+0000 (UTC) - commit 40bdaa96ddacde70ed27baaf7147e6d60e0ecfae
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -911,13 +911,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-60a94804ac53e6f2fc693d3bd40cc69724a4c881 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-40bdaa96ddacde70ed27baaf7147e6d60e0ecfae %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-60a94804ac53e6f2fc693d3bd40cc69724a4c881 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-40bdaa96ddacde70ed27baaf7147e6d60e0ecfae in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -4461,6 +4461,7 @@
 
   	removeStart = Math.min( length, spliceArguments[0] );
   	removeEnd = removeStart + spliceArguments[1];
+  	newIndices.startIndex = removeStart;
 
   	for ( i = 0; i < removeStart; i += 1 ) {
   		newIndices.push( i );
@@ -11875,7 +11876,7 @@
 
   		if ( newIndex === -1 ) {
   			removed[ oldIndex ] = fragment;
-  		} else {
+  		} else if ( fragment.index !== newIndex ) {
   			fragment.index = newIndex;
   			var model = this$1.context.joinKey( newIndex );
   			if ( this$1.owner.template.z ) {
@@ -11890,8 +11891,20 @@
   	var docFrag = this.rendered ? createDocumentFragment() : null;
   	var parentNode = this.rendered ? this.parent.findParentNode() : null;
 
-  	for ( i = 0; i < len; i++ ) {
+  	var contiguous = 'startIndex' in newIndices;
+  	i = contiguous ? newIndices.startIndex : 0;
+
+  	for ( i; i < len; i++ ) {
   		var frag = this$1.iterations[i];
+
+  		if ( frag && contiguous ) {
+  			// attach any built-up iterations
+  			if ( this$1.rendered ) {
+  				if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
+  				if ( docFrag.childNodes.length  ) parentNode.insertBefore( docFrag, frag.firstNode() );
+  			}
+  			continue;
+  		}
 
   		if ( !frag ) this$1.iterations[i] = this$1.createIteration( i, i );
 
@@ -11906,12 +11919,14 @@
   	}
 
   	// append any leftovers
-  	for ( i = len; i < oldLen; i++ ) {
-  		if ( this$1.rendered && removed[i] ) docFrag.appendChild( removed[i].detach() );
-  	}
+  	if ( this.rendered ) {
+  		for ( i = len; i < oldLen; i++ ) {
+  			if ( removed[i] ) docFrag.appendChild( removed[i].detach() );
+  		}
 
-  	if ( this.rendered && docFrag.childNodes.length ) {
-  		parentNode.insertBefore( docFrag, this.owner.findNextNode() );
+  		if ( docFrag.childNodes.length ) {
+  			parentNode.insertBefore( docFrag, this.owner.findNextNode() );
+  		}
   	}
 
   	// trigger removal on old nodes
@@ -14346,7 +14361,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-60a94804ac53e6f2fc693d3bd40cc69724a4c881' },
+  	VERSION:        { value: '0.8.0-edge-40bdaa96ddacde70ed27baaf7147e6d60e0ecfae' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
