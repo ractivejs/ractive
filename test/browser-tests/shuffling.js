@@ -394,4 +394,37 @@ export default function() {
 
 	removedElementsTest( 'splice', ractive => ractive.splice( 'options', 1, 1 ) );
 	removedElementsTest( 'merge', ractive => ractive.merge( 'options', [ 'a', 'c' ] ) );
+
+	test( 'manual mappings update correctly during shuffle', t => {
+		const r1 = new Ractive({
+			el: fixture,
+			template: '{{>>anchor}}',
+			data: { list: [ 0, 1 ] }
+		});
+		const r2 = new Ractive({
+			template: '{{item}}'
+		});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		r2.addMapping( 'item', 'list.1' );
+		t.htmlEqual( fixture.innerHTML, '1' );
+		r1.unshift( 'list', 2 );
+		t.htmlEqual( fixture.innerHTML, '0' );
+	});
+
+	test( 'targeted attached children shuffle correctly', t => {
+		const r1 = new Ractive({
+			el: fixture,
+			template: '{{#each list as item}}{{#if @index === 1}}{{>>anchor}}{{/if}}{{/each}}',
+			data: { list: [ 0, 1, 2 ] }
+		});
+		const r2 = new Ractive({
+			template: '{{item}}'
+		});
+
+		r1.attachChild( r2, { target: 'anchor' } );
+		t.htmlEqual( fixture.innerHTML, '1' );
+		r1.unshift( 'list', 3 );
+		t.htmlEqual( fixture.innerHTML, '0' );
+	});
 }

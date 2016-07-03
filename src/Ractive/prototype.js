@@ -1,6 +1,9 @@
 import add from './prototype/add';
+import addMapping from './prototype/addMapping';
 import animate from './prototype/animate';
+import attachChild from './prototype/attachChild';
 import detach from './prototype/detach';
+import detachChild from './prototype/detachChild';
 import find from './prototype/find';
 import findAll from './prototype/findAll';
 import findAllComponents from './prototype/findAllComponents';
@@ -21,6 +24,7 @@ import on from './prototype/on';
 import once from './prototype/once';
 import pop from './prototype/pop';
 import push from './prototype/push';
+import removeMapping from './prototype/removeMapping';
 import render from './prototype/render';
 import reset from './prototype/reset';
 import resetPartial from './prototype/resetPartial';
@@ -44,8 +48,11 @@ import updateModel from './prototype/updateModel';
 
 export default {
 	add,
+	addMapping,
 	animate,
+	attachChild,
 	detach,
+	detachChild,
 	find,
 	findAll,
 	findAllComponents,
@@ -68,6 +75,7 @@ export default {
 	once,
 	pop,
 	push,
+	removeMapping,
 	render,
 	reset,
 	resetPartial,

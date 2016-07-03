@@ -116,8 +116,8 @@ export default class RootModel extends Model {
 		if ( key === '@this' ) return this.getRactiveModel();
 
 		return this.mappings.hasOwnProperty( key ) ? this.mappings[ key ] :
-		       this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
-		       super.joinKey( key );
+			this.computations.hasOwnProperty( key ) ? this.computations[ key ] :
+			super.joinKey( key );
 	}
 
 	map ( localKey, origin ) {
@@ -141,6 +141,12 @@ export default class RootModel extends Model {
 			this.mappings[k].unregister( this );
 		}
 		this.mappings = {};
+
+		const external = this.ractive._mappings;
+		for ( let k in external ) {
+			this.mappings[ k ] = external[ k ];
+			external[ k ].register( this );
+		}
 	}
 
 	set ( value ) {
