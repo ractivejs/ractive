@@ -65,7 +65,6 @@ export default class Computation extends Model {
 
 		this.deps = [];
 
-		this.boundsSensitive = true;
 		this.dirty = true;
 
 		// TODO: is there a less hackish way to do this?
@@ -169,5 +168,11 @@ export default class Computation extends Model {
 		}
 		if ( this.root.computations[this.key] === this ) delete this.root.computations[this.key];
 		super.teardown();
+	}
+
+	unregister ( dependent ) {
+		super.unregister( dependent );
+		// tear down expressions with no deps, because they will be replaced when needed
+		if ( this.isExpression && this.deps.length === 0 ) this.teardown();
 	}
 }

@@ -394,4 +394,23 @@ export default function() {
 
 	removedElementsTest( 'splice', ractive => ractive.splice( 'options', 1, 1 ) );
 	removedElementsTest( 'merge', ractive => ractive.merge( 'options', [ 'a', 'c' ] ) );
+
+	test( `mapped unresolved computations should shuffle correctly (#2602)`, t => {
+		const cmp = Ractive.extend({
+			template: '{{foo.baz || 1}}-{{foo.bar}}|'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: `{{#each list}}<cmp foo="{{.}}" />{{/each}}`,
+			data: {
+				list: [ { bar: 1 }, { bar: 2 }, { bar: 3 } ]
+			},
+			components: { cmp }
+		});
+
+		t.htmlEqual( fixture.innerHTML, '1-1|1-2|1-3|' );
+		r.splice( 'list', 0, 0, r.splice( 'list', 2, 1 ).result[0] );
+		r.findAllComponents()[1].set( 'foo.baz', 10 );
+		t.htmlEqual( fixture.innerHTML, '1-3|10-1|1-2|' );
+	});
 }

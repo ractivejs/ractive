@@ -9,6 +9,16 @@ function getValue ( model ) {
 	return model ? model.get( true, true ) : undefined;
 }
 
+function createResolver ( proxy, ref, index ) {
+	const resolver = proxy.fragment.resolve( ref, model => {
+		removeFromArray( proxy.resolvers, resolver );
+		proxy.models[ index ] = model;
+		proxy.bubble();
+	});
+
+	proxy.resolvers.push( resolver );
+}
+
 export default class ExpressionProxy extends Model {
 	constructor ( fragment, template ) {
 		super( fragment.ractive.viewmodel, null );
@@ -24,16 +34,9 @@ export default class ExpressionProxy extends Model {
 		this.resolvers = [];
 		this.models = this.template.r.map( ( ref, index ) => {
 			const model = resolveReference( this.fragment, ref );
-			let resolver;
 
 			if ( !model ) {
-				resolver = this.fragment.resolve( ref, model => {
-					removeFromArray( this.resolvers, resolver );
-					this.models[ index ] = model;
-					this.bubble();
-				});
-
-				this.resolvers.push( resolver );
+				createResolver( this, ref, index );
 			}
 
 			return model;
@@ -126,6 +129,8 @@ export default class ExpressionProxy extends Model {
 
 	tryRebind () {
 		let dirty = false;
+		const unresolved = [];
+
 		this.models.forEach( ( m, i ) => {
 			if ( m ) {
 				let next = m.tryRebind();
@@ -135,12 +140,22 @@ export default class ExpressionProxy extends Model {
 				} else {
 					dirty = true;
 				}
+			} else {
+				unresolved.push( i );
 			}
+		});
+
+		// update resolvers
+		this.resolvers.forEach( unbind );
+		unresolved.forEach( idx => {
+			createResolver( this, this.template.r[ idx ], idx );
 		});
 
 		if ( dirty ) {
 			return;
 		}
+
+		this.bubble();
 
 		return this;
 	}
