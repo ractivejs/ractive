@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Jul 02 2016 23:24:26 GMT+0000 (UTC) - commit 40bdaa96ddacde70ed27baaf7147e6d60e0ecfae
+	Mon Jul 04 2016 22:29:59 GMT+0000 (UTC) - commit 428b634a8ec7d62858884e8e68565f2b35682065
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -911,13 +911,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-40bdaa96ddacde70ed27baaf7147e6d60e0ecfae %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-428b634a8ec7d62858884e8e68565f2b35682065 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-40bdaa96ddacde70ed27baaf7147e6d60e0ecfae in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-428b634a8ec7d62858884e8e68565f2b35682065 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -5682,6 +5682,16 @@
   	return model ? model.get( true, true ) : undefined;
   }
 
+  function createResolver ( proxy, ref, index ) {
+  	var resolver = proxy.fragment.resolve( ref, function ( model ) {
+  		removeFromArray( proxy.resolvers, resolver );
+  		proxy.models[ index ] = model;
+  		proxy.bubble();
+  	});
+
+  	proxy.resolvers.push( resolver );
+  }
+
   var ExpressionProxy = (function (Model) {
   	function ExpressionProxy ( fragment, template ) {
   		var this$1 = this;
@@ -5699,16 +5709,9 @@
   		this.resolvers = [];
   		this.models = this.template.r.map( function ( ref, index ) {
   			var model = resolveReference( this$1.fragment, ref );
-  			var resolver;
 
   			if ( !model ) {
-  				resolver = this$1.fragment.resolve( ref, function ( model ) {
-  					removeFromArray( this$1.resolvers, resolver );
-  					this$1.models[ index ] = model;
-  					this$1.bubble();
-  				});
-
-  				this$1.resolvers.push( resolver );
+  				createResolver( this$1, ref, index );
   			}
 
   			return model;
@@ -5808,6 +5811,8 @@
   		var this$1 = this;
 
   		var dirty = false;
+  		var unresolved = [];
+
   		this.models.forEach( function ( m, i ) {
   			if ( m ) {
   				var next = m.tryRebind();
@@ -5817,12 +5822,22 @@
   				} else {
   					dirty = true;
   				}
+  			} else {
+  				unresolved.push( i );
   			}
+  		});
+
+  		// update resolvers
+  		this.resolvers.forEach( unbind );
+  		unresolved.forEach( function ( idx ) {
+  			createResolver( this$1, this$1.template.r[ idx ], idx );
   		});
 
   		if ( dirty ) {
   			return;
   		}
+
+  		this.bubble();
 
   		return this;
   	};
@@ -7502,7 +7517,6 @@
 
   		this.deps = [];
 
-  		this.boundsSensitive = true;
   		this.dirty = true;
 
   		// TODO: is there a less hackish way to do this?
@@ -7613,6 +7627,12 @@
   		}
   		if ( this.root.computations[this.key] === this ) delete this.root.computations[this.key];
   		Model.prototype.teardown.call(this);
+  	};
+
+  	Computation.prototype.unregister = function unregister ( dependent ) {
+  		Model.prototype.unregister.call( this, dependent );
+  		// tear down expressions with no deps, because they will be replaced when needed
+  		if ( this.isExpression && this.deps.length === 0 ) this.teardown();
   	};
 
   	return Computation;
@@ -14361,7 +14381,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-40bdaa96ddacde70ed27baaf7147e6d60e0ecfae' },
+  	VERSION:        { value: '0.8.0-edge-428b634a8ec7d62858884e8e68565f2b35682065' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
