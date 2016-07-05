@@ -147,6 +147,7 @@ export default class ExpressionProxy extends Model {
 
 		// update resolvers
 		this.resolvers.forEach( unbind );
+		this.resolvers.length = 0;
 		unresolved.forEach( idx => {
 			createResolver( this, this.template.r[ idx ], idx );
 		});
