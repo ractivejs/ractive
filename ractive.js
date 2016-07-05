@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Mon Jul 04 2016 22:29:59 GMT+0000 (UTC) - commit 428b634a8ec7d62858884e8e68565f2b35682065
+	Tue Jul 05 2016 17:50:42 GMT+0000 (UTC) - commit b3402d94d3ca4e50094c52df31e8a686d165baa6
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-428b634a8ec7d62858884e8e68565f2b35682065 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-b3402d94d3ca4e50094c52df31e8a686d165baa6 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-428b634a8ec7d62858884e8e68565f2b35682065 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-b3402d94d3ca4e50094c52df31e8a686d165baa6 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -8589,6 +8589,7 @@
 
   		// update resolvers
   		this.resolvers.forEach( unbind );
+  		this.resolvers.length = 0;
   		unresolved.forEach( function ( idx ) {
   			createResolver( this$1, this$1.template.r[ idx ], idx );
   		});
@@ -16602,7 +16603,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-428b634a8ec7d62858884e8e68565f2b35682065' },
+  	VERSION:        { value: '0.8.0-edge-b3402d94d3ca4e50094c52df31e8a686d165baa6' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
