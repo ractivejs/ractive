@@ -413,4 +413,29 @@ export default function() {
 		r.findAllComponents()[1].set( 'foo.baz', 10 );
 		t.htmlEqual( fixture.innerHTML, '1-3|10-1|1-2|' );
 	});
+
+	test( 'pattern observers should shuffle correctly (#2601)', t => {
+		let count = 0;
+		const cmp = Ractive.extend({
+			template: '{{foo.bar}}',
+			onconfig () {
+				this.observe( 'foo.*', () => count++, { init: false } );
+			}
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}<cmp foo="{{.}}" />{{/each}}',
+			components: { cmp },
+			data: {
+				list: [ { bar: 'a' },  { bar: 'b' }, { bar: 'c' } ]
+			}
+		});
+
+		t.htmlEqual( fixture.innerHTML, 'abc' );
+		r.splice( 'list', 0, 0, r.splice( 'list', 2, 1 ).result[0] );
+		t.htmlEqual( fixture.innerHTML, 'cab' );
+		r.splice( 'list', 0, 0, r.splice( 'list', 2, 1 ).result[0] );
+		t.htmlEqual( fixture.innerHTML, 'bca' );
+		t.equal( count, 6 );
+	});
 }

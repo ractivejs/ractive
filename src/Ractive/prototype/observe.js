@@ -209,8 +209,10 @@ class PatternObserver {
 
 			let args = [ newValue, oldValue, keypath ];
 			if ( keypath ) {
-				const wildcards = this.pattern.exec( keypath ).slice( 1 );
-				args = args.concat( wildcards );
+				const wildcards = this.pattern.exec( keypath );
+				if ( wildcards ) {
+					args = args.concat( wildcards.slice( 1 ) );
+				}
 			}
 
 			this.callback.apply( this.context, args );
