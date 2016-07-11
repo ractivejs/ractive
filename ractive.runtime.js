@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Thu Jul 07 2016 21:05:04 GMT+0000 (UTC) - commit 7fd81db369cb2c88509296f43af96d13f86a8319
+	Mon Jul 11 2016 18:21:11 GMT+0000 (UTC) - commit 16b528c99f67e007528b4b170bc3d53dd91e8503
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-7fd81db369cb2c88509296f43af96d13f86a8319 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-16b528c99f67e007528b4b170bc3d53dd91e8503 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-7fd81db369cb2c88509296f43af96d13f86a8319 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-16b528c99f67e007528b4b170bc3d53dd91e8503 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -1266,9 +1266,6 @@
   			instance: instance
   		};
 
-  		// carry through a forced rebind
-  		if ( batch.previousBatch && batch.previousBatch.shuffles === false ) batch.shuffles = false;
-
   		return promise;
   	},
 
@@ -1330,33 +1327,6 @@
 
   			_batch.tasks.push( task );
   		}
-  	},
-
-  	addShuffle: function ( model, indices ) {
-  		if ( batch ) {
-  			if ( batch.shuffles === false ) return;
-  			else if ( !batch.shuffles ) batch.shuffles = [];
-
-  			batch.shuffles.push({
-  				model: model,
-  				indices: indices,
-  				keypath: ("" + (model.getKeypath()) + ".")
-  			});
-  		}
-  	},
-
-  	findShuffle: function ( keypath ) {
-  		return findShuffle( keypath, batch );
-  	},
-
-  	forceRebind: function () {
-  		if ( batch ) {
-  			batch.shuffles = false;
-  		}
-  	},
-
-  	isForceRebinding: function () {
-  		if ( batch ) return batch.shuffles === false;
   	}
   };
 
@@ -1415,19 +1385,6 @@
   	// containing <option> elements caused the binding on the <select>
   	// to update - then we start over
   	if ( batch.fragments.length || batch.immediateObservers.length || batch.deferredObservers.length || batch.ractives.length ) return flushChanges();
-  }
-
-  function findShuffle ( keypath, group ) {
-  	if ( !group ) return;
-  	else if ( group.shuffles === false ) return false;
-  	else if ( !group.shuffles ) return;
-
-  	var i = group.shuffles.length;
-  	while ( i-- ) {
-  		if ( keypath.indexOf( group.shuffles[i].keypath ) === 0 ) return group.shuffles[i];
-  	}
-
-  	if ( group.previousBatch ) return this.findShuffle( keypath, group.previousBatch );
   }
 
   var noAnimation = Promise$1.resolve();
@@ -2207,32 +2164,6 @@
   	this.dependants.push( dependant );
   };
 
-  KeyModel.prototype.tryRebind = function tryRebind () {
-  	var shuffle = runloop.findShuffle( this.parent.getKeypath() );
-
-  	if ( shuffle === false ) return;
-  	else if ( !shuffle ) return false;
-
-  	var path = [];
-  	var model = this.parent;
-  	while ( model && model.parent !== shuffle.model ) {
-  		path.unshift( model.key );
-  		model = model.parent;
-  	}
-
-  	if ( !model ) return false;
-  	if ( typeof path[0] !== 'number' || shuffle.indicies[ path[0] ] === -1 ) return;
-
-  	// parent is shuffling
-  	if ( path.length === 1 ) {
-  		return this.parent.parent.getIndexModel( shuffle.indices[ this.value ] );
-  	} else {
-  		path[0] = shuffle.indices[ path[0] ];
-  		if ( typeof this.value === 'number' ) return model.joinAll( path ).getIndexModel( this.value );
-  		else return model.joinAll( path ).join( this.value ).getKeyModel();
-  	}
-  };
-
   KeyModel.prototype.unregister = function unregister ( dependant ) {
   	removeFromArray( this.dependants, dependant );
   };
@@ -2278,12 +2209,6 @@
   KeypathModel.prototype.teardown = function teardown$1 () {
   	if ( this.owner ) this.owner.removeChild( this );
   	this.children.forEach( teardown );
-  };
-
-  KeypathModel.prototype.tryRebind = function tryRebind () {
-  	var next = this.parent.tryRebind();
-  	if ( next ) return next.getKeypathModel( this.ractive );
-  	return next;
   };
 
   KeypathModel.prototype.unregister = function unregister ( dependant ) {
@@ -2760,8 +2685,6 @@
 
   		var indexModels = [];
 
-  	runloop.addShuffle( this, newIndices );
-
   	newIndices.forEach( function ( newIndex, oldIndex ) {
   		if ( newIndex !== oldIndex && this$1.childByKey[oldIndex] ) this$1.childByKey[oldIndex].shuffled();
 
@@ -2822,37 +2745,6 @@
   			this.keypathModels[ k ].teardown();
   		}
   	}
-  };
-
-  // try to find a new model for this on after a shuffle
-  // false means this model wasn't shuffled
-  // undefined means there is no new model
-  // otherwise, the result is the new model
-  Model.prototype.tryRebind = function tryRebind () {
-  	var shuffle = runloop.findShuffle( this.getKeypath() );
-
-  	// a false shuffle means this is a forced rebind
-  	if ( shuffle === false ) return;
-  	else if ( !shuffle ) return false;
-
-  	var path = [];
-  	var model = this;
-
-  	while ( model && model !== shuffle.model ) {
-  		path.unshift( model.key );
-  		model = model.parent;
-  	}
-
-  	// this must not actually be shuffling e.g. coincidental keypath overlap
-  	// or it could be a non-index
-  	if ( !model || typeof path[0] !== 'number' ) return false;
-
-  	// if the model is removed, return undefined
-  	if ( shuffle.indices[ path[0] ] === -1 ) return;
-
-  	path[0] = shuffle.indices[ path[0] ];
-
-  	return model.joinAll( path );
   };
 
   Model.prototype.unregister = function unregister ( dependant ) {
@@ -2926,11 +2818,6 @@
 
   	// global model doesn't contribute changes events because it has no instance
   	GlobalModel.prototype.registerChange = function registerChange () {};
-
-  	// the global model doesn't shuffle
-  	GlobalModel.prototype.tryRebind = function tryRebind () {
-  		return false;
-  	};
 
   	return GlobalModel;
   }(Model));
@@ -5330,42 +5217,6 @@
   		Model.prototype.teardown.call(this);
   	};
 
-  	ExpressionProxy.prototype.tryRebind = function tryRebind () {
-  		var this$1 = this;
-
-  		var dirty = false;
-  		var unresolved = [];
-
-  		this.models.forEach( function ( m, i ) {
-  			if ( m ) {
-  				var next = m.tryRebind();
-  				if ( next === false ) return;
-  				if ( next ) {
-  					this$1.models.splice( i, 1, next );
-  				} else {
-  					dirty = true;
-  				}
-  			} else {
-  				unresolved.push( i );
-  			}
-  		});
-
-  		// update resolvers
-  		this.resolvers.forEach( unbind );
-  		this.resolvers.length = 0;
-  		unresolved.forEach( function ( idx ) {
-  			createResolver( this$1, this$1.template.r[ idx ], idx );
-  		});
-
-  		if ( dirty ) {
-  			return;
-  		}
-
-  		this.bubble();
-
-  		return this;
-  	};
-
   	ExpressionProxy.prototype.unregister = function unregister( dep ) {
   		Model.prototype.unregister.call( this, dep );
   		if ( !this.deps.length ) this.teardown();
@@ -5447,6 +5298,10 @@
   			this.resolvers.push( baseResolver );
   		}
 
+  		var intermediary = {
+  			handleChange: function () { return this$1.handleChange(); }
+  		};
+
   		this.members = template.m.map( function ( template, i ) {
   			if ( typeof template === 'string' ) {
   				return { get: function () { return template; } };
@@ -5459,12 +5314,12 @@
   				model = resolveReference( fragment, template.n );
 
   				if ( model ) {
-  					model.register( this$1 );
+  					model.register( intermediary );
   				} else {
   					resolver = fragment.resolve( template.n, function ( model ) {
   						this$1.members[i] = model;
 
-  						model.register( this$1 );
+  						model.register( intermediary );
   						this$1.handleChange();
 
   						removeFromArray( this$1.resolvers, resolver );
@@ -5477,7 +5332,7 @@
   			}
 
   			model = new ExpressionProxy( fragment, template );
-  			model.register( this$1 );
+  			model.register( intermediary );
   			return model;
   		});
 
@@ -5596,39 +5451,6 @@
   	ReferenceExpressionProxy.prototype.set = function set ( value ) {
   		if ( !this.model ) throw new Error( 'Unresolved reference expression. This should not happen!' );
   		this.model.set( value );
-  	};
-
-  	// TODO: this should really shuffle
-  	ReferenceExpressionProxy.prototype.tryRebind = function tryRebind () {
-  		var this$1 = this;
-
-  		var dirty = false;
-
-  		if ( this.base ) {
-  			var next = this.base.tryRebind();
-  			if ( next ) {
-  				this.base = next;
-  			} else if ( next !== false ) return;
-  		}
-
-  		this.members.forEach( function ( m, i ) {
-  			if ( m ) {
-  				var next = m.tryRebind();
-  				if ( next ) {
-  					this$1.members.splice( i, 1, next );
-  					m.unregister( this$1 );
-  					next.register( this$1 );
-  				}
-  				else if ( next !== false ) dirty = true;
-  			}
-  		});
-
-  		// if something couldn't rebind, tell the caller to re-resolve
-  		if ( dirty ) return;
-
-  		this.bubble();
-
-  		return this;
   	};
 
   	ReferenceExpressionProxy.prototype.unbind = function unbind$1 () {
@@ -7180,11 +7002,6 @@
   		return '@this';
   	};
 
-  	// root models don't shuffle
-  	RactiveModel.prototype.tryRebind = function tryRebind () {
-  		return false;
-  	};
-
   	return RactiveModel;
   }(Model));
 
@@ -7365,11 +7182,6 @@
   		}
 
   		Model.prototype.teardown.call(this);
-  	};
-
-  	// root models don't shuffle
-  	RootModel.prototype.tryRebind = function tryRebind () {
-  		return this;
   	};
 
   	RootModel.prototype.update = function update () {
@@ -7960,23 +7772,8 @@
   };
 
   EventDirective.prototype.rebind = function rebind () {
-  	var this$1 = this;
-
-  		if ( this.args && this.args.rebind ) this.args.rebind();
-  	if ( this.action && this.action.rebind ) this.action.rebind();
-  	if ( this.models ) {
-  		this.models.forEach( function ( m, i ) {
-  			if ( m && m.tryRebind ) {
-  				var next = m.tryRebind();
-
-  				if ( next === false ) return;
-  				if ( next ) {
-  					this$1.models.splice( i, 1, next );
-  				} else {
-  				}
-  			}
-  		});
-  	}
+  	this.unbind();
+  	this.bind();
   };
 
   EventDirective.prototype.render = function render () {
@@ -9979,14 +9776,9 @@
   	};
 
   	Mustache.prototype.rebind = function rebind () {
-  		var force = runloop.isForceRebinding();
-  		if ( this.isStatic || ( !force && !this.model ) ) return;
+  		if ( this['static'] ) return;
 
-  		var model;
-  		if ( this.model ) model = this.model.tryRebind();
-
-  		if ( model === false ) return;
-  		else if ( !model ) model = resolve$2( this.parentFragment, this.template );
+  		var model = resolve$2( this.parentFragment, this.template );
 
   		if ( model === this.model ) return;
 
@@ -10609,7 +10401,6 @@
   			if ( viewmodel.unmap( this.name ) ) {
   				if ( !this.element.rebinding ) {
   					this.element.rebinding = true;
-  					runloop.forceRebind();
   					runloop.scheduleTask( function () {
   						this$1.element.rebind();
   						this$1.element.rebinding = false;
@@ -10653,7 +10444,6 @@
   			var remapped = viewmodel.map( item.name, item.model );
   			if ( remapped !== item.model && item.element.bound && !item.element.rebinding ) {
   				item.element.rebinding = true;
-  				runloop.forceRebind();
   				runloop.scheduleTask( function () {
   					item.element.rebind();
   					item.element.rebinding = false;
@@ -13905,7 +13695,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-7fd81db369cb2c88509296f43af96d13f86a8319' },
+  	VERSION:        { value: '0.8.0-edge-16b528c99f67e007528b4b170bc3d53dd91e8503' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
