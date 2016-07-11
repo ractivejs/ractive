@@ -14,9 +14,4 @@ export default class RactiveModel extends Model {
 	getKeypath() {
 		return '@this';
 	}
-
-	// root models don't shuffle
-	tryRebind () {
-		return false;
-	}
 }

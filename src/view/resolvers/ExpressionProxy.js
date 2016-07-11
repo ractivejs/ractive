@@ -127,40 +127,6 @@ export default class ExpressionProxy extends Model {
 		super.teardown();
 	}
 
-	tryRebind () {
-		let dirty = false;
-		const unresolved = [];
-
-		this.models.forEach( ( m, i ) => {
-			if ( m ) {
-				let next = m.tryRebind();
-				if ( next === false ) return;
-				if ( next ) {
-					this.models.splice( i, 1, next );
-				} else {
-					dirty = true;
-				}
-			} else {
-				unresolved.push( i );
-			}
-		});
-
-		// update resolvers
-		this.resolvers.forEach( unbind );
-		this.resolvers.length = 0;
-		unresolved.forEach( idx => {
-			createResolver( this, this.template.r[ idx ], idx );
-		});
-
-		if ( dirty ) {
-			return;
-		}
-
-		this.bubble();
-
-		return this;
-	}
-
 	unregister( dep ) {
 		super.unregister( dep );
 		if ( !this.deps.length ) this.teardown();

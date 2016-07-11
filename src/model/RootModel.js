@@ -179,11 +179,6 @@ export default class RootModel extends Model {
 		super.teardown();
 	}
 
-	// root models don't shuffle
-	tryRebind () {
-		return this;
-	}
-
 	update () {
 		// noop
 	}

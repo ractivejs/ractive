@@ -470,8 +470,6 @@ export default class Model {
 	shuffle ( newIndices ) {
 		const indexModels = [];
 
-		runloop.addShuffle( this, newIndices );
-
 		newIndices.forEach( ( newIndex, oldIndex ) => {
 			if ( newIndex !== oldIndex && this.childByKey[oldIndex] ) this.childByKey[oldIndex].shuffled();
 
@@ -530,37 +528,6 @@ export default class Model {
 				this.keypathModels[ k ].teardown();
 			}
 		}
-	}
-
-	// try to find a new model for this on after a shuffle
-	// false means this model wasn't shuffled
-	// undefined means there is no new model
-	// otherwise, the result is the new model
-	tryRebind () {
-		const shuffle = runloop.findShuffle( this.getKeypath() );
-
-		// a false shuffle means this is a forced rebind
-		if ( shuffle === false ) return;
-		else if ( !shuffle ) return false;
-
-		const path = [];
-		let model = this;
-
-		while ( model && model !== shuffle.model ) {
-			path.unshift( model.key );
-			model = model.parent;
-		}
-
-		// this must not actually be shuffling e.g. coincidental keypath overlap
-		// or it could be a non-index
-		if ( !model || typeof path[0] !== 'number' ) return false;
-
-		// if the model is removed, return undefined
-		if ( shuffle.indices[ path[0] ] === -1 ) return;
-
-		path[0] = shuffle.indices[ path[0] ];
-
-		return model.joinAll( path );
 	}
 
 	unregister ( dependant ) {

@@ -70,6 +70,10 @@ export default class ReferenceExpressionProxy extends Model {
 			this.resolvers.push( baseResolver );
 		}
 
+		const intermediary = {
+			handleChange: () => this.handleChange()
+		};
+
 		this.members = template.m.map( ( template, i ) => {
 			if ( typeof template === 'string' ) {
 				return { get: () => template };
@@ -82,12 +86,12 @@ export default class ReferenceExpressionProxy extends Model {
 				model = resolveReference( fragment, template.n );
 
 				if ( model ) {
-					model.register( this );
+					model.register( intermediary );
 				} else {
 					resolver = fragment.resolve( template.n, model => {
 						this.members[i] = model;
 
-						model.register( this );
+						model.register( intermediary );
 						this.handleChange();
 
 						removeFromArray( this.resolvers, resolver );
@@ -100,7 +104,7 @@ export default class ReferenceExpressionProxy extends Model {
 			}
 
 			model = new ExpressionProxy( fragment, template );
-			model.register( this );
+			model.register( intermediary );
 			return model;
 		});
 
@@ -212,37 +216,6 @@ export default class ReferenceExpressionProxy extends Model {
 	set ( value ) {
 		if ( !this.model ) throw new Error( 'Unresolved reference expression. This should not happen!' );
 		this.model.set( value );
-	}
-
-	// TODO: this should really shuffle
-	tryRebind () {
-		let dirty = false;
-
-		if ( this.base ) {
-			const next = this.base.tryRebind();
-			if ( next ) {
-				this.base = next;
-			} else if ( next !== false ) return;
-		}
-
-		this.members.forEach( ( m, i ) => {
-			if ( m ) {
-				const next = m.tryRebind();
-				if ( next ) {
-					this.members.splice( i, 1, next );
-					m.unregister( this );
-					next.register( this );
-				}
-				else if ( next !== false ) dirty = true;
-			}
-		});
-
-		// if something couldn't rebind, tell the caller to re-resolve
-		if ( dirty ) return;
-
-		this.bubble();
-
-		return this;
 	}
 
 	unbind () {

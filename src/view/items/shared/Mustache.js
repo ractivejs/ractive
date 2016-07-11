@@ -1,6 +1,5 @@
 import Item from './Item';
 import resolve from '../../resolvers/resolve';
-import runloop from '../../../global/runloop';
 
 export default class Mustache extends Item {
 	constructor ( options ) {
@@ -46,14 +45,9 @@ export default class Mustache extends Item {
 	}
 
 	rebind () {
-		const force = runloop.isForceRebinding();
-		if ( this.isStatic || ( !force && !this.model ) ) return;
+		if ( this.static ) return;
 
-		let model;
-		if ( this.model ) model = this.model.tryRebind();
-
-		if ( model === false ) return;
-		else if ( !model ) model = resolve( this.parentFragment, this.template );
+		const model = resolve( this.parentFragment, this.template );
 
 		if ( model === this.model ) return;
 

@@ -45,12 +45,6 @@ export default class KeypathModel {
 		this.children.forEach( teardown );
 	}
 
-	tryRebind () {
-		const next = this.parent.tryRebind();
-		if ( next ) return next.getKeypathModel( this.ractive );
-		return next;
-	}
-
 	unregister ( dependant ) {
 		removeFromArray( this.dependants, dependant );
 	}
