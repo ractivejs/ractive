@@ -6,7 +6,7 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
-import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
+import { bind, rebind, render, unbind, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
@@ -123,9 +123,14 @@ export default class Element extends Item {
 			null;
 	}
 
+	destroyed () {
+		this.attributes.forEach( a => a.destroyed() );
+		if ( this.fragment ) this.fragment.destroyed();
+	}
+
 	detach () {
-		// if this element is no longer rendered, the transitinos are complete and the attributes can be torn down
-		if ( !this.rendered ) this.attributes.forEach( unrender );
+		// if this element is no longer rendered, the transitions are complete and the attributes can be torn down
+		if ( !this.rendered ) this.destroyed();
 
 		return detachNode( this.node );
 	}

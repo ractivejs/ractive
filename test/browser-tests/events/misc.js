@@ -267,4 +267,33 @@ export default function() {
 	} catch ( err ) {
 		// do nothing
 	}
+
+	test( 'events in nested elements are torn down properly (#2608)', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#if foo}}<div><div on-foo="bar" /></div>{{/if}}',
+			data: { foo: true },
+			events: {
+				foo () {
+					count++;
+
+					return {
+						teardown () {
+							count--;
+						}
+					};
+				}
+			}
+		});
+
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 0 );
+		r.toggle( 'foo' );
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 0 );
+		r.toggle( 'foo' );
+	});
 }

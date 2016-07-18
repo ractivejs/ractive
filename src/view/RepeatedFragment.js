@@ -90,6 +90,10 @@ export default class RepeatedFragment {
 		return fragment.bind( model );
 	}
 
+	destroyed () {
+		this.iterations.forEach( i => i.destroyed() );
+	}
+
 	detach () {
 		const docFrag = createDocumentFragment();
 		this.iterations.forEach( fragment => docFrag.appendChild( fragment.detach() ) );
