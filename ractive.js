@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Tue Jul 19 2016 07:49:53 GMT+0000 (UTC) - commit f7d70c323bdf9e84332efbc6fb447e10074708a7
+	Tue Jul 19 2016 19:09:34 GMT+0000 (UTC) - commit 5e65eb81588249c32e13d8ba44ede45c3712e034
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-f7d70c323bdf9e84332efbc6fb447e10074708a7 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-5e65eb81588249c32e13d8ba44ede45c3712e034 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-f7d70c323bdf9e84332efbc6fb447e10074708a7 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-5e65eb81588249c32e13d8ba44ede45c3712e034 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -8266,6 +8266,8 @@
   	}
   };
 
+  Item.prototype.destroyed = function destroyed () {};
+
   Item.prototype.find = function find () {
   	return null;
   };
@@ -9278,6 +9280,10 @@
   			this.element.bubble();
   			this.dirty = true;
   		}
+  	};
+
+  	Attribute.prototype.destroyed = function destroyed () {
+  		this.updateDelegate( true );
   	};
 
   	Attribute.prototype.getString = function getString () {
@@ -10846,6 +10852,10 @@
   	}
   };
 
+  EventDirective.prototype.destroyed = function destroyed () {
+  	this.events.forEach( function ( e ) { return e.unlisten(); } );
+  };
+
   EventDirective.prototype.fire = function fire ( event, passedArgs ) {
 
   	// augment event object
@@ -11318,6 +11328,10 @@
   		this.dirty = true;
   		this.owner.bubble();
   	}
+  };
+
+  Decorator.prototype.destroyed = function destroyed () {
+  	if ( this.intermediary ) this.intermediary.teardown();
   };
 
   Decorator.prototype.handleChange = function handleChange () { this.bubble(); };
@@ -12521,9 +12535,14 @@
   			null;
   	};
 
+  	Element.prototype.destroyed = function destroyed () {
+  		this.attributes.forEach( function ( a ) { return a.destroyed(); } );
+  		if ( this.fragment ) this.fragment.destroyed();
+  	};
+
   	Element.prototype.detach = function detach () {
-  		// if this element is no longer rendered, the transitinos are complete and the attributes can be torn down
-  		if ( !this.rendered ) this.attributes.forEach( unrender );
+  		// if this element is no longer rendered, the transitions are complete and the attributes can be torn down
+  		if ( !this.rendered ) this.destroyed();
 
   		return detachNode( this.node );
   	};
@@ -12738,7 +12757,7 @@
   		if ( this.fragment ) this.fragment.unbind();
   	};
 
-  	Element.prototype.unrender = function unrender$1 ( shouldDestroy ) {
+  	Element.prototype.unrender = function unrender ( shouldDestroy ) {
   		if ( !this.rendered ) return;
   		this.rendered = false;
 
@@ -13628,6 +13647,10 @@
   	}
 
   	return fragment.bind( model );
+  };
+
+  RepeatedFragment.prototype.destroyed = function destroyed () {
+  	this.iterations.forEach( function ( i ) { return i.destroyed(); } );
   };
 
   RepeatedFragment.prototype.detach = function detach () {
@@ -14935,6 +14958,8 @@
   	}
   };
 
+  Transition.prototype.destroyed = function destroyed () {};
+
   Transition.prototype.getStyle = function getStyle ( props ) {
   	var computedStyle = getComputedStyle( this.owner.node );
 
@@ -15568,6 +15593,10 @@
   		this.items = this.template.map( function ( template, index ) {
   		return createItem({ parentFragment: this$1, template: template, index: index });
   	});
+  };
+
+  Fragment.prototype.destroyed = function destroyed () {
+  	this.items.forEach( function ( i ) { return i.destroyed(); } );
   };
 
   Fragment.prototype.detach = function detach () {
@@ -16396,7 +16425,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-f7d70c323bdf9e84332efbc6fb447e10074708a7' },
+  	VERSION:        { value: '0.8.0-edge-5e65eb81588249c32e13d8ba44ede45c3712e034' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
