@@ -118,6 +118,7 @@ class Observer {
 	}
 
 	cancel () {
+		this.cancelled = true;
 		if ( this.model ) {
 			this.model.unregister( this );
 		} else {
@@ -126,9 +127,11 @@ class Observer {
 	}
 
 	dispatch () {
-		this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
-		this.oldValue = this.newValue;
-		this.dirty = false;
+		if ( !this.cancelled ) {
+			this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
+			this.oldValue = this.newValue;
+			this.dirty = false;
+		}
 	}
 
 	handleChange () {
@@ -140,7 +143,7 @@ class Observer {
 			runloop.addObserver( this, this.defer );
 			this.dirty = true;
 
-			if ( this.once ) this.cancel();
+			if ( this.once ) runloop.scheduleTask( () => this.cancel() );
 		}
 	}
 
