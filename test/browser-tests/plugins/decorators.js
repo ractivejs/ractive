@@ -511,4 +511,31 @@ export default function() {
 		r.set( 'bar', 'baz' );
 		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 	});
+
+	test( 'decorators in nested elements are torn down (#2608)', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#if foo}}<div><div as-foo /></div>{{/if}}',
+			decorators: {
+				foo () {
+					count++;
+					return {
+						teardown () {
+							count--;
+						}
+					};
+				}
+			},
+			data: { foo: true }
+		});
+
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 0 );
+		r.toggle( 'foo' );
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 0 );
+	});
 }

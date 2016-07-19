@@ -200,6 +200,8 @@ export default class Transition {
 		}
 	}
 
+	destroyed () {}
+
 	getStyle ( props ) {
 		const computedStyle = getComputedStyle( this.owner.node );
 
