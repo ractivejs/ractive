@@ -143,6 +143,10 @@ export default class Component extends Item {
 		});
 	}
 
+	destroyed () {
+		this.instance.fragment.destroyed();
+	}
+
 	detach () {
 		return this.instance.fragment.detach();
 	}
