@@ -144,7 +144,7 @@ export default class Component extends Item {
 	}
 
 	destroyed () {
-		this.instance.fragment.destroyed();
+		if ( this.instance.fragment ) this.instance.fragment.destroyed();
 	}
 
 	detach () {
