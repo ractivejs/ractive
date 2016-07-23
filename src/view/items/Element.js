@@ -10,6 +10,7 @@ import { bind, rebind, render, unbind, update } from '../../shared/methodCallers
 import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
+import findElement from './shared/findElement';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
 
@@ -29,14 +30,7 @@ export default class Element extends Item {
 		this.isVoid = voidElementNames.test( this.name );
 
 		// find parent element
-		let fragment = this.parentFragment;
-		while ( fragment ) {
-			if ( fragment.owner.type === ELEMENT ) {
-				this.parent = fragment.owner;
-				break;
-			}
-			fragment = fragment.parent;
-		}
+		this.parent = findElement( this.parentFragment, false );
 
 		if ( this.parent && this.parent.name === 'option' ) {
 			throw new Error( `An <option> element cannot contain other elements (encountered <${this.name}>)` );
