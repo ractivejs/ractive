@@ -1,6 +1,6 @@
 /*
 	Ractive.js v0.8.0-edge
-	Sat Jul 23 2016 21:34:48 GMT+0000 (UTC) - commit 6f420daa1c1f248740305986683a028b3640a289
+	Sat Jul 23 2016 22:35:41 GMT+0000 (UTC) - commit 4f16624e6d0f6e3d444c2933c1f307c9b52c3182
 
 	http://ractivejs.org
 	http://twitter.com/RactiveJS
@@ -432,13 +432,13 @@
   var welcome;
   if ( hasConsole ) {
   	var welcomeIntro = [
-  		("%cRactive.js %c0.8.0-edge-6f420daa1c1f248740305986683a028b3640a289 %cin debug mode, %cmore..."),
+  		("%cRactive.js %c0.8.0-edge-4f16624e6d0f6e3d444c2933c1f307c9b52c3182 %cin debug mode, %cmore..."),
   		'color: rgb(114, 157, 52); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(85, 85, 85); font-weight: normal;',
   		'color: rgb(82, 140, 224); font-weight: normal; text-decoration: underline;'
   	];
-  	var welcomeMessage = "You're running Ractive 0.8.0-edge-6f420daa1c1f248740305986683a028b3640a289 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
+  	var welcomeMessage = "You're running Ractive 0.8.0-edge-4f16624e6d0f6e3d444c2933c1f307c9b52c3182 in debug mode - messages will be printed to the console to help you fix problems and optimise your application.\n\nTo disable debug mode, add this line at the start of your app:\n  Ractive.DEBUG = false;\n\nTo disable debug mode when your app is minified, add this snippet:\n  Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});\n\nGet help and support:\n  http://docs.ractivejs.org\n  http://stackoverflow.com/questions/tagged/ractivejs\n  http://groups.google.com/forum/#!forum/ractive-js\n  http://twitter.com/ractivejs\n\nFound a bug? Raise an issue:\n  https://github.com/ractivejs/ractive/issues\n\n";
 
   	welcome = function () {
   		var hasGroup = !!console.groupCollapsed;
@@ -5582,9 +5582,12 @@
   	return Alias;
   }(Item));
 
-  function findElement( start ) {
-  	while ( start && start.type !== ELEMENT && start.type !== COMPONENT ) {
+  function findElement( start, orComponent ) {
+  	if ( orComponent === void 0 ) orComponent = true;
+
+  	while ( start && start.type !== ELEMENT && ( !orComponent || start.type !== COMPONENT ) ) {
   		if ( start.owner ) start = start.owner;
+  		else if ( start.component ) start = start.component.parentFragment;
   		else if ( start.parent ) start = start.parent;
   		else if ( start.parentFragment ) start = start.parentFragment;
   		else start = undefined;
@@ -9307,14 +9310,7 @@
   		this.isVoid = voidElementNames.test( this.name );
 
   		// find parent element
-  		var fragment = this.parentFragment;
-  		while ( fragment ) {
-  			if ( fragment.owner.type === ELEMENT ) {
-  				this$1.parent = fragment.owner;
-  				break;
-  			}
-  			fragment = fragment.parent;
-  		}
+  		this.parent = findElement( this.parentFragment, false );
 
   		if ( this.parent && this.parent.name === 'option' ) {
   			throw new Error( ("An <option> element cannot contain other elements (encountered <" + (this.name) + ">)") );
@@ -13742,7 +13738,7 @@
   	magic:          { value: magicSupported },
 
   	// version
-  	VERSION:        { value: '0.8.0-edge-6f420daa1c1f248740305986683a028b3640a289' },
+  	VERSION:        { value: '0.8.0-edge-4f16624e6d0f6e3d444c2933c1f307c9b52c3182' },
 
   	// plugins
   	adaptors:       { writable: true, value: {} },
