@@ -516,7 +516,7 @@ export default function() {
 		let count = 0;
 		const r = new Ractive({
 			el: fixture,
-			template: '{{#if foo}}<div><div as-foo /></div>{{/if}}',
+			template: '{{#if foo}}<div>{{#if true}}{{#each [1]}}{{>bar}}{{/each}}{{/if}}</div>{{/if}}',
 			decorators: {
 				foo () {
 					count++;
@@ -527,7 +527,10 @@ export default function() {
 					};
 				}
 			},
-			data: { foo: true }
+			data: { foo: true },
+			partials: {
+				bar: '<div><div as-foo /></div>'
+			}
 		});
 
 		t.equal( count, 1 );
