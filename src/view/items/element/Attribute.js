@@ -13,7 +13,7 @@ function lookupNamespace ( node, prefix ) {
 	const qualified = `xmlns:${prefix}`;
 
 	while ( node ) {
-		if ( node.hasAttribute( qualified ) ) return node.getAttribute( qualified );
+		if ( node.hasAttribute && node.hasAttribute( qualified ) ) return node.getAttribute( qualified );
 		node = node.parentNode;
 	}
 

@@ -30,7 +30,7 @@ export default function() {
 	test( 'progressive enhancement for svg elements', t => {
 		/*
 		 * list is grabbed from https://developer.mozilla.org/en-US/docs/Web/SVG/Element using the following code:
-		 * 
+		 *
 		 * Array.prototype.slice.call( document.getElementById( 'SVG_elements' ).nextElementSibling.querySelectorAll( 'code' )).map( el => el.innerText )
 		 */
 		const listOfSvgElements = [ '<a>', '<altGlyph>', '<altGlyphDef>', '<altGlyphItem>', '<animate>', '<animateColor>', '<animateMotion>', '<animateTransform>', '<circle>', '<clipPath>', '<color-profile>', '<cursor>', '<defs>', '<desc>', '<ellipse>', '<feBlend>', '<feColorMatrix>', '<feComponentTransfer>', '<feComposite>', '<feConvolveMatrix>', '<feDiffuseLighting>', '<feDisplacementMap>', '<feDistantLight>', '<feFlood>', '<feFuncA>', '<feFuncB>', '<feFuncG>', '<feFuncR>', '<feGaussianBlur>', '<feImage>', '<feMerge>', '<feMergeNode>', '<feMorphology>', '<feOffset>', '<fePointLight>', '<feSpecularLighting>', '<feSpotLight>', '<feTile>', '<feTurbulence>', '<filter>', '<font>', '<font-face>', '<font-face-format>', '<font-face-name>', '<font-face-src>', '<font-face-uri>', '<foreignObject>', '<g>', '<glyph>', '<glyphRef>', '<hkern>', '<image>', '<line>', '<linearGradient>', '<marker>', '<mask>', '<metadata>', '<missing-glyph>', '<mpath>', '<path>', '<pattern>', '<polygon>', '<polyline>', '<radialGradient>', '<rect>', '<script>', '<set>', '<stop>', '<style>', '<svg>', '<switch>', '<symbol>', '<text>', '<textPath>', '<title>', '<tref>', '<tspan>', '<use>', '<view>', '<vkern>' ];
@@ -442,5 +442,19 @@ export default function() {
 		});
 
 		t.equal( ractive.get( 'value' ), '<p>hello</p>' );
+	});
+
+	test( 'standard namespaced attributes without namespace declaration (#2623)', t => {
+		fixture.innerHTML = '<svg><use xlink:href="#foo" /></svg>';
+		const svg = fixture.querySelector( 'svg' );
+		const use = fixture.querySelector( 'use' );
+		const r = new Ractive({
+			el: fixture,
+			template: '<svg><use xlink:href="#foo" /></svg>',
+			enhance: true
+		});
+
+		t.strictEqual( r.find( 'svg' ), svg );
+		t.strictEqual( r.find( 'use' ), use );
 	});
 }
