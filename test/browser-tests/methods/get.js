@@ -58,7 +58,7 @@ export default function() {
 			}
 		});
 
-		const expected = { foo: 'mine', bar: 'foo', qux: 'qux' };
+		const expected = { foo: 'mine', qux: 'qux', bar: 'foo' };
 		t.deepEqual( ractive.findComponent( 'Widget' ).get(), expected );
 		t.deepEqual( fixture.innerHTML, JSON.stringify( expected ) );
 	});

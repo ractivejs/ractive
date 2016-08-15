@@ -1,13 +1,9 @@
-import Promise from '../../utils/Promise';
+import { splitKeypath } from '../../shared/keypaths';
+import runloop from '../../global/runloop';
 
 export default function unlink( here ) {
-	let ln = this._links[ here ];
-
-	if ( ln ) {
-		ln.unlink();
-		delete this._links[ here ];
-		return this.set( here, ln.intialValue );
-	} else {
-		return Promise.resolve( true );
-	}
+	const promise = runloop.start();
+	this.viewmodel.joinAll( splitKeypath( here ), { lastLink: false } ).unlink();
+	runloop.end();
+	return promise;
 }

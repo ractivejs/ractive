@@ -4,7 +4,7 @@ import { capture, startCapturing, stopCapturing } from '../global/capture';
 import { warnIfDebug } from '../utils/log';
 import Model from './Model';
 import ComputationChild from './ComputationChild';
-import { handleChange } from '../shared/methodCallers';
+import { handleChange, marked } from '../shared/methodCallers';
 import { hasConsole } from '../config/environment';
 
 // TODO this is probably a bit anal, maybe we should leave it out
@@ -114,6 +114,7 @@ export default class Computation extends Model {
 	handleChange () {
 		this.dirty = true;
 
+		this.links.forEach( marked );
 		this.deps.forEach( handleChange );
 		this.children.forEach( handleChange );
 		this.clearUnresolveds(); // TODO same question as on Model - necessary for primitives?
@@ -133,6 +134,10 @@ export default class Computation extends Model {
 
 	mark () {
 		this.handleChange();
+	}
+
+	rebinding ( next, previous ) {
+		// TODO: model swap
 	}
 
 	set ( value ) {

@@ -1,9 +1,10 @@
-import Model, { findBoundValue } from '../../model/Model';
+import Model from '../../model/Model';
+import { findBoundValue } from '../../model/ModelBase';
 import { REFERENCE } from '../../config/types';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
-import { handleChange, mark, unbind } from '../../shared/methodCallers';
+import { handleChange, mark, marked, unbind } from '../../shared/methodCallers';
 import { removeFromArray } from '../../utils/array';
 import { isEqual } from '../../utils/is';
 import { escapeKey } from '../../shared/keypaths';
@@ -70,8 +71,22 @@ export default class ReferenceExpressionProxy extends Model {
 			this.resolvers.push( baseResolver );
 		}
 
-		const intermediary = {
-			handleChange: () => this.handleChange()
+		const intermediary = this.intermediary = {
+			handleChange: () => this.handleChange(),
+			rebinding: ( next, previous ) => {
+				if ( previous === this.base ) {
+					this.base = next;
+				} else {
+					const idx = this.members.indexOf( previous );
+					if ( ~idx ) {
+						this.members.splice( idx, 1, next );
+					}
+				}
+
+				if ( previous ) previous.unregister( this.intermediary );
+				// TODO: set up resolver for missing models
+				this.bubble();
+			}
 		};
 
 		this.members = template.m.map( ( template, i ) => {
@@ -114,7 +129,9 @@ export default class ReferenceExpressionProxy extends Model {
 
 	bubble () {
 		if ( !this.base ) return;
+		if ( !this.dirty ) this.handleChange();
 
+		/*
 		// if some members are not resolved, abort
 		let i = this.members.length;
 		while ( i-- ) {
@@ -142,6 +159,7 @@ export default class ReferenceExpressionProxy extends Model {
 		if ( this.keypathModel ) this.keypathModel.handleChange();
 
 		if ( !this.dirty ) this.handleChange();
+		*/
 	}
 
 	forceResolution () {
@@ -153,6 +171,31 @@ export default class ReferenceExpressionProxy extends Model {
 	get ( shouldCapture ) {
 		if ( this.dirty ) {
 			this.bubble();
+
+			let i = this.members.length, resolved = true;
+			while ( resolved && i-- ) {
+				if ( !this.members[i] ) resolved = false;
+			}
+
+			if ( this.base && resolved ) {
+				this.members.forEach( m => m.register && m.register( this.intermediary ) );
+				const keys = this.members.map( m => escapeKey( String( m.get() ) ) );
+				const model = this.base.joinAll( keys );
+
+				if ( model !== this.model ) {
+					if ( this.model ) {
+						this.model.unregister( this );
+						this.model.unregisterTwowayBinding( this );
+					}
+
+					this.model = model;
+					this.model.register( this );
+					this.model.registerTwowayBinding( this );
+
+					if ( this.keypathModel ) this.keypathModel.handleChange();
+				}
+			}
+
 			this.value = this.model ? this.model.get( shouldCapture ) : undefined;
 			this.dirty = false;
 			this.mark();
@@ -205,6 +248,7 @@ export default class ReferenceExpressionProxy extends Model {
 			this.deps.forEach( handleChange );
 		}
 
+		this.links.forEach( marked );
 		this.children.forEach( mark );
 		this.clearUnresolveds();
 	}

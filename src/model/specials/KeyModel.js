@@ -1,17 +1,18 @@
-import { removeFromArray } from '../../utils/array';
-import { handleChange } from '../../shared/methodCallers';
+import { addToArray, removeFromArray } from '../../utils/array';
 import { unescapeKey } from '../../shared/keypaths';
-import runloop from '../../global/runloop';
+import { capture } from '../../global/capture';
 
 export default class KeyModel {
 	constructor ( key, parent ) {
 		this.value = key;
-		this.isReadonly = true;
-		this.dependants = [];
+		this.isReadonly = this.isKey = true;
+		this.deps = [];
+		this.links = [];
 		this.parent = parent;
 	}
 
-	get () {
+	get ( shouldCapture ) {
+		if ( shouldCapture ) capture( this );
 		return unescapeKey( this.value );
 	}
 
@@ -19,16 +20,27 @@ export default class KeyModel {
 		return unescapeKey( this.value );
 	}
 
-	rebind ( key ) {
-		this.value = key;
-		this.dependants.forEach( handleChange );
+	rebinding ( next, previous ) {
+		let i = this.deps.length;
+		while ( i-- ) this.deps[i].rebinding( next, previous );
+
+		i = this.links.length;
+		while ( i-- ) this.links[i].rebinding( next, previous );
 	}
 
 	register ( dependant ) {
-		this.dependants.push( dependant );
+		this.deps.push( dependant );
+	}
+
+	registerLink ( link ) {
+		addToArray( this.links, link );
 	}
 
 	unregister ( dependant ) {
-		removeFromArray( this.dependants, dependant );
+		removeFromArray( this.deps, dependant );
+	}
+
+	unregisterLink ( link ) {
+		removeFromArray( this.links, link );
 	}
 }

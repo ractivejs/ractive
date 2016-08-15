@@ -91,12 +91,6 @@ export default class Partial extends Mustache {
 		this.bubble();
 	}
 
-	rebind () {
-		super.unbind();
-		super.bind();
-		this.fragment.rebind();
-	}
-
 	render ( target, occupants ) {
 		this.fragment.render( target, occupants );
 	}
@@ -131,6 +125,7 @@ export default class Partial extends Mustache {
 
 		if ( this.dirty ) {
 			this.dirty = false;
+			super.update();
 
 			if ( !this.named ) {
 				if ( this.model ) {

@@ -149,16 +149,14 @@ export default class RepeatedFragment {
 		return this.iterations[0] ? this.iterations[0].firstNode( skipParent ) : null;
 	}
 
-	rebind ( context ) {
-		this.context = context;
-
-		this.iterations.forEach( ( fragment ) => {
-			const model = context.joinKey( fragment.key || fragment.index );
+	rebinding ( next ) {
+		this.context = next;
+		this.iterations.forEach( fragment => {
+			const model = next ? next.joinKey( fragment.key || fragment.index ) : undefined;
 			if ( this.owner.template.z ) {
 				fragment.aliases = {};
 				fragment.aliases[ this.owner.template.z[0].n ] = model;
 			}
-			fragment.rebind( model );
 		});
 	}
 
@@ -193,6 +191,10 @@ export default class RepeatedFragment {
 		this.iterations = iterations;
 
 		this.bubble();
+	}
+
+	shuffled () {
+		this.iterations.forEach( i => i.shuffled() );
 	}
 
 	toString ( escape ) {
@@ -354,13 +356,13 @@ export default class RepeatedFragment {
 			if ( newIndex === -1 ) {
 				removed[ oldIndex ] = fragment;
 			} else if ( fragment.index !== newIndex ) {
-				fragment.index = newIndex;
 				const model = this.context.joinKey( newIndex );
+				fragment.index = newIndex;
+				fragment.context = model;
 				if ( this.owner.template.z ) {
 					fragment.aliases = {};
 					fragment.aliases[ this.owner.template.z[0].n ] = model;
 				}
-				fragment.rebind( model );
 			}
 		});
 
@@ -412,5 +414,7 @@ export default class RepeatedFragment {
 		this.iterations.forEach( update );
 
 		this.pendingNewIndices = null;
+
+		this.shuffled();
 	}
 }

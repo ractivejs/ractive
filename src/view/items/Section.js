@@ -74,11 +74,11 @@ export default class Section extends Mustache {
 		return this.fragment && this.fragment.firstNode( skipParent );
 	}
 
-	rebind () {
-		super.rebind();
-
-		if ( this.fragment ) {
-			this.fragment.rebind( this.sectionType === SECTION_IF || this.sectionType === SECTION_UNLESS ? null : this.model );
+	rebinding ( next ) {
+		if ( super.rebinding( next ) ) {
+			if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
+				this.fragment.rebinding( next );
+			}
 		}
 	}
 
@@ -109,6 +109,12 @@ export default class Section extends Mustache {
 
 	update () {
 		if ( !this.dirty ) return;
+
+		super.update();
+		if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
+			this.fragment.context = this.model;
+		}
+
 		if ( !this.model && this.sectionType !== SECTION_UNLESS ) return;
 
 		this.dirty = false;

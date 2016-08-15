@@ -9,7 +9,7 @@ import render from '../../Ractive/render';
 import { create } from '../../utils/object';
 import createItem from './createItem';
 import { removeFromArray } from '../../utils/array';
-import { bind, cancel, rebind, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
+import { bind, cancel, render as callRender, unbind, unrender, update } from '../../shared/methodCallers';
 import Hook from '../../events/Hook';
 import EventDirective from './shared/EventDirective';
 import RactiveEvent from './component/RactiveEvent';
@@ -179,18 +179,6 @@ export default class Component extends Item {
 		return this.instance.fragment.firstNode( skipParent );
 	}
 
-	rebind () {
-		// implicit mappings can cause issues during shuffles, so remap everythiing as necessary
-		// TODO: it's probably better not to throw ALL of the mappings away on rebind
-		this.instance.viewmodel.resetMappings();
-
-		this.attributes.forEach( rebind );
-
-		this.liveQueries.forEach( makeDirty );
-
-		this.instance.fragment.rebind( this.instance.viewmodel );
-	}
-
 	render ( target, occupants ) {
 		render( this.instance, target, null, occupants );
 
@@ -216,6 +204,11 @@ export default class Component extends Item {
 		});
 	}
 
+	shuffled () {
+		this.liveQueries.forEach( makeDirty );
+		super.shuffled();
+	}
+
 	toString () {
 		return this.instance.toHTML();
 	}
@@ -235,8 +228,6 @@ export default class Component extends Item {
 		if ( instance.fragment.rendered && instance.el.__ractive_instances__ ) {
 			removeFromArray( instance.el.__ractive_instances__, instance );
 		}
-
-		Object.keys( instance._links ).forEach( k => instance._links[k].unlink() );
 
 		teardownHook.fire( instance );
 	}

@@ -93,14 +93,8 @@ export default class Decorator {
 
 	handleChange () { this.bubble(); }
 
-	rebind () {
-		if ( this.dynamicName ) this.nameFragment.rebind();
-		if ( this.dynamicArgs ) this.argsFragment.rebind();
-		if ( this.argsFn ) {
-			this.unbind();
-			this.bind();
-			if ( this.rendered ) this.update();
-		}
+	rebinding () {
+		// TODO
 	}
 
 	render () {

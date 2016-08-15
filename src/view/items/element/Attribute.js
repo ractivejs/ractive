@@ -83,10 +83,6 @@ export default class Attribute extends Item {
 		return this.fragment ? this.fragment.valueOf() : booleanAttributes.test( this.name ) ? true : this.value;
 	}
 
-	rebind () {
-		if ( this.fragment ) this.fragment.rebind();
-	}
-
 	render () {
 		const node = this.element.node;
 		this.node = node;

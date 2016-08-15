@@ -14,9 +14,9 @@ export default function resolveReference ( fragment, ref ) {
 		const match = keypathExpr.exec( ref );
 		if ( match && match[1] ) {
 			const model = resolveReference( fragment, match[1] );
-			if ( model ) return model.getKeypathModel( fragment.ractive );
+			if ( model ) return model.getKeypathModel();
 		}
-		return context.getKeypathModel( fragment.ractive );
+		return context.getKeypathModel();
 	}
 	if ( ref.indexOf( '@rootpath' ) === 0 ) {
 		// check to see if this is an empty component root
@@ -27,17 +27,16 @@ export default function resolveReference ( fragment, ref ) {
 		const match = keypathExpr.exec( ref );
 		if ( match && match[1] ) {
 			const model = resolveReference( fragment, match[1] );
-			if ( model ) return model.getKeypathModel();
+			if ( model ) return model.getKeypathModel( fragment.ractive.root );
 		}
-		return context.getKeypathModel();
+		return context.getKeypathModel( fragment.ractive.root );
 	}
-	if ( ref === '@index' ) {
+	if ( ref === '@index' || ref === '@key' ) {
 		const repeater = fragment.findRepeatingFragment();
 		// make sure the found fragment is actually an iteration
 		if ( !repeater.isIteration ) return;
-		return repeater.context.getIndexModel( repeater.index );
+		return repeater.context.getKeyModel( repeater[ ref[1] === 'i' ? 'index' : 'key' ] );
 	}
-	if ( ref === '@key' ) return fragment.findRepeatingFragment().context.getKeyModel();
 	if ( ref === '@this' ) {
 		return fragment.ractive.viewmodel.getRactiveModel();
 	}

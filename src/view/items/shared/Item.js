@@ -37,6 +37,10 @@ export default class Item {
 		return this.parentFragment.findNextNode( this );
 	}
 
+	shuffled () {
+		if ( this.fragment ) this.fragment.shuffled();
+	}
+
 	valueOf () {
 		return this.toString();
 	}

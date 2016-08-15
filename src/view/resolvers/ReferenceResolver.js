@@ -1,6 +1,7 @@
 import { splitKeypath, normalise } from '../../shared/keypaths';
 import { removeFromArray } from '../../utils/array';
 import resolveAmbiguousReference from './resolveAmbiguousReference';
+import runloop from '../../global/runloop';
 
 export default class ReferenceResolver {
 	constructor ( fragment, reference, callback ) {
@@ -11,6 +12,8 @@ export default class ReferenceResolver {
 		this.keys = splitKeypath( reference );
 		this.resolved = false;
 
+		this.contexts = [];
+
 		// TODO the consumer should take care of addUnresolved
 		// we attach to all the contexts between here and the root
 		// - whenever their values change, they can quickly
@@ -18,6 +21,7 @@ export default class ReferenceResolver {
 		while ( fragment ) {
 			if ( fragment.context ) {
 				fragment.context.addUnresolved( this.keys[0], this );
+				this.contexts.push( fragment.context );
 			}
 
 			fragment = fragment.componentParent || fragment.parent;
@@ -43,18 +47,16 @@ export default class ReferenceResolver {
 		this.resolved = true;
 	}
 
+	rebinding ( next, previous ) {
+		if ( previous ) previous.removeUnresolved( this.keys[0], this );
+		if ( next ) runloop.scheduleTask( () => next.addUnresolved( this.keys[0], this ) );
+	}
+
 	unbind () {
 		removeFromArray( this.fragment.unresolved, this );
 
 		if ( this.resolved ) return;
 
-		let fragment = this.fragment;
-		while ( fragment ) {
-			if ( fragment.context ) {
-				fragment.context.removeUnresolved( this.keys[0], this );
-			}
-
-			fragment = fragment.componentParent || fragment.parent;
-		}
+		this.contexts.forEach( c => c.removeUnresolved( this.keys[0], this ) );
 	}
 }

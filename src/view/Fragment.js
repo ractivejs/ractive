@@ -2,7 +2,7 @@ import { ELEMENT, YIELDER } from '../config/types';
 import runloop from '../global/runloop';
 import createItem from './items/createItem';
 import ReferenceResolver from './resolvers/ReferenceResolver';
-import { bind, rebind, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
+import { bind, toEscapedString, toString, unbind, unrender, update } from '../shared/methodCallers';
 import processItems from './helpers/processItems';
 import parseJSON from '../utils/parseJSON';
 import { createDocumentFragment } from '../utils/dom';
@@ -229,10 +229,8 @@ export default class Fragment {
 		return this.argsList;
 	}
 
-	rebind ( context ) {
-		this.context = context;
-
-		this.items.forEach( rebind );
+	rebinding ( next ) {
+		this.context = next;
 	}
 
 	render ( target, occupants ) {
@@ -283,6 +281,10 @@ export default class Fragment {
 		this.resolvers.push( resolver );
 
 		return resolver; // so we can e.g. force resolution
+	}
+
+	shuffled () {
+		this.items.forEach( i => i.shuffled() );
 	}
 
 	toHtml () {

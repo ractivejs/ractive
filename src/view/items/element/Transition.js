@@ -246,11 +246,6 @@ export default class Transition {
 		return extend( {}, defaults, params );
 	}
 
-	rebind () {
-		this.unbind();
-		this.bind();
-	}
-
 	registerCompleteHandler ( fn ) {
 		addToArray( this.onComplete, fn );
 	}

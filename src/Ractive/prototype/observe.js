@@ -3,6 +3,7 @@ import { isArray, isEqual, isObject } from '../../utils/is';
 import { splitKeypath, escapeKey } from '../../shared/keypaths';
 import { removeFromArray } from '../../utils/array';
 import resolveReference from '../../view/resolvers/resolveReference';
+import { modelMatches } from '../../view/resolvers/resolve';
 import ReferenceResolver from '../../view/resolvers/ReferenceResolver';
 
 export default function observe ( keypath, callback, options ) {
@@ -144,6 +145,15 @@ class Observer {
 		}
 	}
 
+	rebinding ( next ) {
+		debugger
+		// TODO: set up a resolver if next is undefined?
+		if ( next && !modelMatches( next, this.keypath ) ) return false;
+
+		if ( this.model ) this.model.unregister( this );
+		if ( next ) runloop.scheduleTask( () => this.resolved( next ) );
+	}
+
 	resolved ( model ) {
 		this.model = model;
 		this.keypath = model.getKeypath( this.ractive );
@@ -232,6 +242,10 @@ class PatternObserver {
 
 	notify ( key ) {
 		this.changed.push( key );
+	}
+
+	rebinding ( next, prev ) {
+		debugger
 	}
 
 	shuffle ( newIndices ) {

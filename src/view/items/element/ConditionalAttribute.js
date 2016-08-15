@@ -43,10 +43,6 @@ export default class ConditionalAttribute extends Item {
 		}
 	}
 
-	rebind () {
-		this.fragment.rebind();
-	}
-
 	render () {
 		this.node = this.owner.node;
 		if ( this.node ) {

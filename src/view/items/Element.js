@@ -6,7 +6,7 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
-import { bind, rebind, render, unbind, unrender, update } from '../../shared/methodCallers';
+import { bind, render, unbind, unrender, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
@@ -176,15 +176,6 @@ export default class Element extends Item {
 		return attribute ? attribute.getValue() : undefined;
 	}
 
-	rebind () {
-		this.attributes.forEach( rebind );
-
-		if ( this.fragment ) this.fragment.rebind();
-		if ( this.binding ) this.binding.rebind();
-
-		this.liveQueries.forEach( makeDirty );
-	}
-
 	recreateTwowayBinding () {
 		if ( this.binding ) {
 			this.binding.unbind();
@@ -274,6 +265,11 @@ export default class Element extends Item {
 		}
 
 		this.rendered = true;
+	}
+
+	shuffled () {
+		this.liveQueries.forEach( makeDirty );
+		super.shuffled();
 	}
 
 	toString () {

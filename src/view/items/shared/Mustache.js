@@ -1,5 +1,5 @@
 import Item from './Item';
-import resolve from '../../resolvers/resolve';
+import resolve, { modelMatches } from '../../resolvers/resolve';
 
 export default class Mustache extends Item {
 	constructor ( options ) {
@@ -44,20 +44,18 @@ export default class Mustache extends Item {
 		this.bubble();
 	}
 
-	rebind () {
-		if ( this.static ) return;
+	rebinding ( next ) {
+		if ( this.static ) return false;
+		if ( next === this.model ) return false;
+		if ( next && !modelMatches( next, this.template ) ) return false;
 
-		const model = resolve( this.parentFragment, this.template );
-
-		if ( model === this.model ) return;
-
-		if ( this.model ) this.model.unregister( this );
-
-		this.model = model;
-
-		if ( model ) model.register( this );
-
+		if ( this.model ) {
+			this.model.unregister( this );
+			this.model = null;
+		}
+		this.newModel = next;
 		this.handleChange();
+		return true;
 	}
 
 	unbind () {
@@ -65,6 +63,14 @@ export default class Mustache extends Item {
 			this.model && this.model.unregister( this );
 			this.model = undefined;
 			this.resolver && this.resolver.unbind();
+		}
+	}
+
+	update () {
+		if ( this.newModel ) {
+			this.model = this.newModel;
+			this.model.register( this );
+			this.newModel = undefined;
 		}
 	}
 }
