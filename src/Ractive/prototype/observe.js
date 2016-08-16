@@ -256,8 +256,8 @@ class PatternObserver {
 	}
 
 	handleChange () {
-		if ( !this.dirty ) {
-			this.newValues = {};
+		if ( !this.dirty || this.changed.length ) {
+			if ( !this.dirty ) this.newValues = {};
 
 			// handle case where previously extant keypath no longer exists -
 			// observer should still fire, with undefined as new value
