@@ -136,7 +136,10 @@ class Observer {
 
 	handleChange () {
 		if ( !this.dirty ) {
-			this.newValue = this.model.get();
+			const newValue = this.model.get();
+			if ( isEqual( newValue, this.oldValue ) ) return;
+
+			this.newValue = newValue;
 
 			if ( this.strict && this.newValue === this.oldValue ) return;
 

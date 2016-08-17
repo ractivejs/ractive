@@ -1170,4 +1170,29 @@ export default function() {
 
 		t.equal( count, 1 );
 	});
+
+	test( `observers only fire for a computation when it actually changes (#2629)`, t => {
+		const r = new Ractive({
+			computed: {
+				int () {
+					return Math.round( this.get( 'number' ) );
+				}
+			},
+			data: {
+				number: 1,
+				observerCalledTimes: 0
+			}
+		});
+
+		r.observe( 'int', function () {
+			this.add( 'observerCalledTimes', 1 );
+		});
+
+		r.set( 'number', 1.1 );
+		r.set( 'number', 1.2 );
+		r.set( 'number', 1.3 );
+		r.set( 'number', 1.4 );
+
+		t.equal( r.get( 'observerCalledTimes' ), 1 );
+	});
 }
