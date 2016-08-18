@@ -41,7 +41,7 @@ export default class RootModel extends Model {
 		return computation;
 	}
 
-	createLink ( keypath, target ) {
+	createLink ( keypath, target, targetPath ) {
 		const keys = splitKeypath( keypath );
 
 		let model = this;
@@ -50,7 +50,7 @@ export default class RootModel extends Model {
 			model = this.childByKey[ key ] || this.joinKey( key );
 		}
 
-		return model.link( target );
+		return model.link( target, targetPath );
 	}
 
 	get ( shouldCapture, options ) {

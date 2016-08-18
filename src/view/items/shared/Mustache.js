@@ -1,5 +1,6 @@
 import Item from './Item';
-import resolve, { modelMatches } from '../../resolvers/resolve';
+import resolve from '../../resolvers/resolve';
+import { rebindMatch } from '../../../shared/rebind';
 
 export default class Mustache extends Item {
 	constructor ( options ) {
@@ -44,10 +45,10 @@ export default class Mustache extends Item {
 		this.bubble();
 	}
 
-	rebinding ( next ) {
+	rebinding ( next, previous ) {
+		next = rebindMatch( this.template, next, previous );
 		if ( this.static ) return false;
 		if ( next === this.model ) return false;
-		if ( next && !modelMatches( next, this.template ) ) return false;
 
 		if ( this.model ) {
 			this.model.unregister( this );

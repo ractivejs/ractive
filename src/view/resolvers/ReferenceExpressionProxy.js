@@ -4,6 +4,7 @@ import { REFERENCE } from '../../config/types';
 import ExpressionProxy from './ExpressionProxy';
 import resolveReference from './resolveReference';
 import resolve from './resolve';
+import { rebindMatch } from '../../shared/rebind';
 import { handleChange, mark, marked, unbind } from '../../shared/methodCallers';
 import { removeFromArray } from '../../utils/array';
 import { isEqual } from '../../utils/is';
@@ -54,6 +55,7 @@ export default class ReferenceExpressionProxy extends Model {
 		super( null, null );
 		this.dirty = true;
 		this.root = fragment.ractive.viewmodel;
+		this.template = template;
 
 		this.resolvers = [];
 
@@ -75,16 +77,27 @@ export default class ReferenceExpressionProxy extends Model {
 			handleChange: () => this.handleChange(),
 			rebinding: ( next, previous ) => {
 				if ( previous === this.base ) {
-					this.base = next;
+					next = rebindMatch( template, next, previous );
+					if ( next !== this.base ) {
+						this.base.unregister( intermediary );
+						this.base = next;
+						// TODO: if there is no next, set up a resolver?
+					}
 				} else {
 					const idx = this.members.indexOf( previous );
 					if ( ~idx ) {
-						this.members.splice( idx, 1, next );
+						// only direct references will rebind... expressions handle themselves
+						next = rebindMatch( template.m[idx].n, next, previous );
+						if ( next !== this.members[idx] ) {
+							this.members.splice( idx, 1, next );
+							// TODO: if there is no next, set up a resolver?
+						}
 					}
 				}
 
-				if ( previous ) previous.unregister( this.intermediary );
-				// TODO: set up resolver for missing models
+				if ( next !== previous ) previous.unregister( intermediary );
+				if ( next ) next.addShuffleTask( () => next.register( intermediary ) );
+
 				this.bubble();
 			}
 		};
@@ -130,36 +143,6 @@ export default class ReferenceExpressionProxy extends Model {
 	bubble () {
 		if ( !this.base ) return;
 		if ( !this.dirty ) this.handleChange();
-
-		/*
-		// if some members are not resolved, abort
-		let i = this.members.length;
-		while ( i-- ) {
-			if ( !this.members[i] ) return;
-		}
-
-		this.isUnresolved = false;
-
-		const keys = this.members.map( model => escapeKey( String( model.get() ) ) );
-		const model = this.base.joinAll( keys );
-
-		if ( model === this.model ) return;
-
-		if ( this.model ) {
-			this.model.unregister( this );
-			this.model.unregisterTwowayBinding( this );
-		}
-
-		this.model = model;
-		this.parent = model.parent;
-
-		model.register( this );
-		model.registerTwowayBinding( this );
-
-		if ( this.keypathModel ) this.keypathModel.handleChange();
-
-		if ( !this.dirty ) this.handleChange();
-		*/
 	}
 
 	forceResolution () {
@@ -178,7 +161,6 @@ export default class ReferenceExpressionProxy extends Model {
 			}
 
 			if ( this.base && resolved ) {
-				this.members.forEach( m => m.register && m.register( this.intermediary ) );
 				const keys = this.members.map( m => escapeKey( String( m.get() ) ) );
 				const model = this.base.joinAll( keys );
 
@@ -189,6 +171,7 @@ export default class ReferenceExpressionProxy extends Model {
 					}
 
 					this.model = model;
+					this.parent = model.parent;
 					this.model.register( this );
 					this.model.registerTwowayBinding( this );
 
@@ -256,6 +239,8 @@ export default class ReferenceExpressionProxy extends Model {
 	retrieve () {
 		return this.value;
 	}
+
+	rebinding () { } // NOOP
 
 	set ( value ) {
 		if ( !this.model ) throw new Error( 'Unresolved reference expression. This should not happen!' );

@@ -74,10 +74,10 @@ export default class Section extends Mustache {
 		return this.fragment && this.fragment.firstNode( skipParent );
 	}
 
-	rebinding ( next ) {
-		if ( super.rebinding( next ) ) {
+	rebinding ( next, previous ) {
+		if ( super.rebinding( next, previous ) ) {
 			if ( this.fragment && this.sectionType !== SECTION_IF && this.sectionType !== SECTION_UNLESS ) {
-				this.fragment.rebinding( next );
+				this.fragment.rebinding( next, previous );
 			}
 		}
 	}

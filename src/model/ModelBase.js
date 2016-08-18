@@ -1,4 +1,5 @@
 import KeyModel from './specials/KeyModel';
+import KeypathModel from './specials/KeypathModel';
 import { escapeKey, unescapeKey } from '../shared/keypaths';
 import { handleChange } from '../shared/methodCallers';
 import { addToArray, removeFromArray } from '../utils/array';
@@ -6,6 +7,8 @@ import { isArray, isObject } from '../utils/is';
 import runloop from '../global/runloop';
 
 const hasProp = Object.prototype.hasOwnProperty;
+
+let shuffleTasks = [];
 
 export default class ModelBase {
 	constructor ( parent ) {
@@ -37,6 +40,8 @@ export default class ModelBase {
 
 		this.unresolvedByKey[ key ].push( resolver );
 	}
+
+	addShuffleTask ( task ) { shuffleTasks.push( task ); }
 
 	clearUnresolveds ( specificKey ) {
 		let i = this.unresolved.length;
@@ -199,9 +204,8 @@ export default class ModelBase {
 		i = this.links.length;
 		while ( i-- ) {
 			const link = this.links[i];
-			//if ( link.parent.isLink ) link.rebinding( next ? link.parent.joinKey( next.key ) : undefined, link, false );
-			//else link.relinking( next );
-			if ( next && link.owner._link ) link.relinking( next );
+			// only relink the root of the link tree
+			if ( link.owner._link ) link.relinking( next, previous );
 		}
 
 		i = this.children.length;
@@ -329,3 +333,13 @@ export function findBoundValue( list ) {
 		}
 	}
 }
+
+export function fireShuffleTasks () {
+	const tasks = shuffleTasks;
+	shuffleTasks = [];
+	let i = tasks.length;
+	while ( i-- ) tasks[i]();
+}
+
+KeyModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;
+KeypathModel.prototype.addShuffleTask = ModelBase.prototype.addShuffleTask;

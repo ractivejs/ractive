@@ -1,4 +1,4 @@
-import ModelBase from './ModelBase';
+import ModelBase, { fireShuffleTasks } from './ModelBase';
 import LinkModel from './LinkModel';
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
@@ -278,6 +278,8 @@ export default class Model extends ModelBase {
 				this.keyModels[i].rebinding( this.keyModels[ idx ], this.keyModels[i] );
 			}
 		}
+
+		fireShuffleTasks();
 
 		const upstream = this.length !== this.value.length;
 

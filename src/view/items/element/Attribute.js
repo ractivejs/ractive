@@ -29,7 +29,7 @@ export default class Attribute extends Item {
 
 		this.owner = options.owner || options.parentFragment.owner || options.element || findElement( options.parentFragment );
 		this.element = options.element || (this.owner.attributeByName ? this.owner : findElement( options.parentFragment ) );
-		this.parentFragment = this.element.parentFragment; // shared
+		this.parentFragment = options.parentFragment; // shared
 		this.ractive = this.parentFragment.ractive;
 
 		this.rendered = false;
@@ -66,6 +66,7 @@ export default class Attribute extends Item {
 
 	bubble () {
 		if ( !this.dirty ) {
+			this.parentFragment.bubble();
 			this.element.bubble();
 			this.dirty = true;
 		}

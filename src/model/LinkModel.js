@@ -3,6 +3,7 @@ import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
 import { handleChange, mark, marked, teardown } from '../shared/methodCallers';
 import runloop from '../global/runloop';
+import { rebindMatch } from '../shared/rebind';
 
 export default class LinkModel extends ModelBase {
 	constructor ( parent, owner, target, key ) {
@@ -11,6 +12,7 @@ export default class LinkModel extends ModelBase {
 		this.owner = owner;
 		this.target = target;
 		this.key = key === undefined ? owner.key : key;
+		if ( owner.isLink ) this.keypath = `${owner.keypath}.${this.key}`;
 
 		target.registerLink( this );
 
@@ -78,6 +80,7 @@ export default class LinkModel extends ModelBase {
 	}
 
 	relinking ( target, root = true ) {
+		if ( this.keypath ) target = rebindMatch( this.keypath, target, this.target );
 		if ( !target || this.target === target ) return;
 
 		this.target.unregisterLink( this );
@@ -150,8 +153,9 @@ export default class LinkModel extends ModelBase {
 	}
 }
 
-ModelBase.prototype.link = function link ( model ) {
+ModelBase.prototype.link = function link ( model, keypath ) {
 	const lnk = this._link || new LinkModel( this.parent, this, model, this.key );
+	lnk.keypath = keypath;
 	if ( this._link ) this._link.relinking( model );
 	this.rebinding( lnk, this );
 	if ( !this._link ) this.parent.clearUnresolveds();

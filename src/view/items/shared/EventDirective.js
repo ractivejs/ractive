@@ -196,10 +196,10 @@ export default class EventDirective {
 		if ( !this.models ) return;
 		const idx = this.models.indexOf( previous );
 
-		if ( !~idx ) {
+		if ( ~idx ) {
 			this.models.splice( idx, 1, next );
 			previous.unregister( this );
-			if ( next ) next.register( this );
+			if ( next ) next.addShuffleTask( () => next.register( this ) );
 		}
 	}
 

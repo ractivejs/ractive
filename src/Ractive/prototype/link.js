@@ -17,7 +17,7 @@ export default function link( there, here ) {
 		model = model.joinAll( sourcePath.slice( 1 ) );
 	}
 
-	this.viewmodel.joinAll( splitKeypath( here ) ).link( model || this.viewmodel.joinAll( sourcePath ) );
+	this.viewmodel.joinAll( splitKeypath( here ) ).link( model || this.viewmodel.joinAll( sourcePath ), there );
 
 	runloop.end();
 

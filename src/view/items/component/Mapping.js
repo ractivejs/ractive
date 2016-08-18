@@ -86,7 +86,7 @@ function createMapping ( item ) {
 			item.model = item.parentFragment.findContext().joinKey( item.name );
 		}
 
-		item.link = viewmodel.createLink( item.name, item.model );
+		item.link = viewmodel.createLink( item.name, item.model, template[0].r );
 
 		if ( item.model.get() === undefined && item.name in childData ) {
 			item.model.set( childData[ item.name ] );
