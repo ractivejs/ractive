@@ -438,4 +438,54 @@ export default function() {
 		t.htmlEqual( fixture.innerHTML, 'bca' );
 		t.equal( count, 6 );
 	});
+
+	test( 'components that are spliced out should not fire observers - #2604', t => {
+		const cmp = Ractive.extend({
+			template: '<div />',
+			onconfig () {
+				this.observe( 'item.foo', () => {
+					this.set( 'item.bar', 0 );
+				}, { defer: true });
+			}
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}<cmp item="{{.}}" />{{/each}}',
+			data: {
+				list: [ { foo: 1 }, { foo: 2 }, { foo: 3 } ]
+			},
+			components: { cmp }
+		});
+
+		t.equal( r.findAll( 'div' ).length, 3 );
+		const i = r.get( 'list' ).pop();
+		r.unshift( 'list', i );
+		t.equal( r.findAll( 'div' ).length, 3 );
+	});
+
+	test( 'components that are spliced out should not fire pattern observers - #2604', t => {
+		let count = 0;
+		const cmp = Ractive.extend({
+			template: '<div />',
+			onconfig () {
+				this.observe( 'item.*', () => {
+					count++;
+				}, { defer: true });
+			}
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#each list}}<cmp item="{{.}}" />{{/each}}',
+			data: {
+				list: [ { foo: 1 }, { foo: 2 }, { foo: 3 } ]
+			},
+			components: { cmp }
+		});
+
+		t.equal( count, 3 );
+		const i = r.get( 'list' ).pop();
+		t.equal( count, 3 );
+		r.unshift( 'list', i );
+		t.equal( count, 6 );
+	});
 }

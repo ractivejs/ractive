@@ -1,4 +1,4 @@
-import { ATTRIBUTE, BINDING_FLAG, DECORATOR, ELEMENT, EVENT, TRANSITION } from '../../config/types';
+import { ATTRIBUTE, BINDING_FLAG, DECORATOR, EVENT, TRANSITION } from '../../config/types';
 import runloop from '../../global/runloop';
 import Item from './shared/Item';
 import Fragment from '../Fragment';
@@ -6,10 +6,11 @@ import ConditionalAttribute from './element/ConditionalAttribute';
 import updateLiveQueries from './element/updateLiveQueries';
 import { toArray } from '../../utils/array';
 import { escapeHtml, voidElementNames } from '../../utils/html';
-import { bind, render, unbind, unrender, update } from '../../shared/methodCallers';
+import { bind, render, unbind, update } from '../../shared/methodCallers';
 import { createElement, detachNode, matches, safeAttributeString, decamelize } from '../../utils/dom';
 import createItem from './createItem';
 import { html, svg } from '../../config/namespaces';
+import findElement from './shared/findElement';
 import { defineProperty } from '../../utils/object';
 import selectBinding from './element/binding/selectBinding';
 
@@ -29,14 +30,7 @@ export default class Element extends Item {
 		this.isVoid = voidElementNames.test( this.name );
 
 		// find parent element
-		let fragment = this.parentFragment;
-		while ( fragment ) {
-			if ( fragment.owner.type === ELEMENT ) {
-				this.parent = fragment.owner;
-				break;
-			}
-			fragment = fragment.parent;
-		}
+		this.parent = findElement( this.parentFragment, false );
 
 		if ( this.parent && this.parent.name === 'option' ) {
 			throw new Error( `An <option> element cannot contain other elements (encountered <${this.name}>)` );
@@ -123,9 +117,14 @@ export default class Element extends Item {
 			null;
 	}
 
+	destroyed () {
+		this.attributes.forEach( a => a.destroyed() );
+		if ( this.fragment ) this.fragment.destroyed();
+	}
+
 	detach () {
-		// if this element is no longer rendered, the transitinos are complete and the attributes can be torn down
-		if ( !this.rendered ) this.attributes.forEach( unrender );
+		// if this element is no longer rendered, the transitions are complete and the attributes can be torn down
+		if ( !this.rendered ) this.destroyed();
 
 		return detachNode( this.node );
 	}

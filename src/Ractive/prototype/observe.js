@@ -119,6 +119,7 @@ class Observer {
 	}
 
 	cancel () {
+		this.cancelled = true;
 		if ( this.model ) {
 			this.model.unregister( this );
 		} else {
@@ -127,21 +128,26 @@ class Observer {
 	}
 
 	dispatch () {
-		this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
-		this.oldValue = this.newValue;
-		this.dirty = false;
+		if ( !this.cancelled ) {
+			this.callback.call( this.context, this.newValue, this.oldValue, this.keypath );
+			this.oldValue = this.newValue;
+			this.dirty = false;
+		}
 	}
 
 	handleChange () {
 		if ( !this.dirty ) {
-			this.newValue = this.model.get();
+			const newValue = this.model.get();
+			if ( isEqual( newValue, this.oldValue ) ) return;
+
+			this.newValue = newValue;
 
 			if ( this.strict && this.newValue === this.oldValue ) return;
 
 			runloop.addObserver( this, this.defer );
 			this.dirty = true;
 
-			if ( this.once ) this.cancel();
+			if ( this.once ) runloop.scheduleTask( () => this.cancel() );
 		}
 	}
 
@@ -267,8 +273,8 @@ class PatternObserver {
 	}
 
 	handleChange () {
-		if ( !this.dirty ) {
-			this.newValues = {};
+		if ( !this.dirty || this.changed.length ) {
+			if ( !this.dirty ) this.newValues = {};
 
 			// handle case where previously extant keypath no longer exists -
 			// observer should still fire, with undefined as new value

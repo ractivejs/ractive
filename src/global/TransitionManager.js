@@ -79,13 +79,13 @@ function check ( tm ) {
 	// we notify the parent if there is one, otherwise
 	// start detaching nodes
 	if ( !tm.outrosComplete ) {
+		tm.outrosComplete = true;
+
 		if ( tm.parent && !tm.parent.outrosComplete ) {
 			tm.parent.decrementOutros( tm );
 		} else {
 			tm.detachNodes();
 		}
-
-		tm.outrosComplete = true;
 	}
 
 	// Once everything is done, we can notify parent transition
@@ -95,7 +95,8 @@ function check ( tm ) {
 			tm.callback();
 		}
 
-		if ( tm.parent ) {
+		if ( tm.parent && !tm.notifiedTotal ) {
+			tm.notifiedTotal = true;
 			tm.parent.decrementTotal();
 		}
 	}

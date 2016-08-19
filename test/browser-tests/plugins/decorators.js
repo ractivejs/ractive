@@ -511,4 +511,65 @@ export default function() {
 		r.set( 'bar', 'baz' );
 		t.htmlEqual( fixture.innerHTML, '<div>baz</div>' );
 	});
+
+	test( 'decorators in nested elements are torn down (#2608)', t => {
+		let count = 0;
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#if foo}}<div>{{#if true}}{{#each [1]}}{{>bar}}{{/each}}{{/if}}</div>{{/if}}',
+			decorators: {
+				foo () {
+					count++;
+					return {
+						teardown () {
+							count--;
+						}
+					};
+				}
+			},
+			data: { foo: true },
+			partials: {
+				bar: '<div><div as-foo /></div>'
+			}
+		});
+
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 0 );
+		r.toggle( 'foo' );
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 0 );
+	});
+
+	test( 'decorators in nested components are torn down (#2608)', t => {
+		let count = 0;
+		const cmp = Ractive.extend({
+			template: '<div as-foo />'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '{{#if foo}}<div><cmp/></div>{{/if}}',
+			decorators: {
+				foo () {
+					count++;
+					return {
+						teardown () {
+							count--;
+						}
+					};
+				}
+			},
+			components: { cmp },
+			data: { foo: true }
+		});
+
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 0 );
+		r.toggle( 'foo' );
+		t.equal( count, 1 );
+		r.toggle( 'foo' );
+		t.equal( count, 0 );
+	});
 }

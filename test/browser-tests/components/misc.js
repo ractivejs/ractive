@@ -1052,4 +1052,42 @@ export default function() {
 
 		t.htmlEqual( fixture.innerHTML, 'root.next.next.next.next true' );
 	});
+
+	test( 'nested components play nice with the transition manager - #2578', t => {
+		const done = t.async();
+		let count = 0, count1 = 0, count2 = 0;
+
+		const cmp2 = Ractive.extend({
+			template: 'yep',
+			oncomplete () {
+				count2++;
+			}
+		});
+		const cmp1 = Ractive.extend({
+			template: '<cmp2 />',
+			components: { cmp2 },
+			oncomplete () {
+				count1++;
+			}
+		});
+
+		new Ractive({
+			el: fixture,
+			template: '{{#each items}}<cmp1 />{{/each}}',
+			data: {
+				items: [ 0, 0, 0 ]
+			},
+			components: { cmp1 },
+			oncomplete () {
+				count++;
+			}
+		});
+
+		setTimeout( () => {
+			t.equal( count, 1 );
+			t.equal( count1, 3 );
+			t.equal( count2, 3 );
+			done();
+		}, 200 );
+	});
 }

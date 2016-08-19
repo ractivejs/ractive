@@ -1170,4 +1170,51 @@ export default function() {
 
 		t.equal( count, 1 );
 	});
+
+	test( 'pattern observers handle multi-key set correctly (#2631)', t => {
+		const list = [];
+		const r = new Ractive({
+			data: {
+				list: [ { a: 1 }, { a: 2 }, { a: 3 } ]
+			},
+			onconfig () {
+				this.observe( 'list.*.a', (n, o, k, i) => {
+					list[i] = n;
+				});
+			}
+		});
+
+		t.deepEqual( list, [ 1, 2, 3 ] );
+		r.set({
+			'list.0.a': 3,
+			'list.1.a': 4,
+			'list.2.a': 5
+		});
+		t.deepEqual( list, [ 3, 4, 5 ] );
+	});
+
+	test( `observers only fire for a computation when it actually changes (#2629)`, t => {
+		const r = new Ractive({
+			computed: {
+				int () {
+					return Math.round( this.get( 'number' ) );
+				}
+			},
+			data: {
+				number: 1,
+				observerCalledTimes: 0
+			}
+		});
+
+		r.observe( 'int', function () {
+			this.add( 'observerCalledTimes', 1 );
+		});
+
+		r.set( 'number', 1.1 );
+		r.set( 'number', 1.2 );
+		r.set( 'number', 1.3 );
+		r.set( 'number', 1.4 );
+
+		t.equal( r.get( 'observerCalledTimes' ), 1 );
+	});
 }

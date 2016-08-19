@@ -135,4 +135,32 @@ export default function() {
 			t.ok( 'testMember' in p );
 		});
 	}
+
+	test( 'svg elements contributed by a component should have the correct namespace - #2621', t => {
+		t.expect( 7 );
+		const svg = 'http://www.w3.org/2000/svg';
+		const point = Ractive.extend({
+			template: '<circle x="{{.x}}" y="{{.y}}" r="{{.r}}"></circle>'
+		});
+		const r = new Ractive({
+			el: fixture,
+			template: '<svg><g>{{#each points}}{{>.type}}{{/each}}</g></svg>',
+			data: {
+				points: [
+					{ x: 10, y: 10, r: 10, type: 'point' },
+					{ x: 20, y: 20, r: 2, type: 'point' }
+				]
+			},
+			partials: {
+				point: '<point />'
+			},
+			components: { point }
+		});
+
+		t.equal( r.findAll( 'circle' ).length, 2 );
+		r.findAll( 'circle' ).forEach( e => t.equal( e.namespaceURI, svg ) );
+		r.push( 'points', { x: 50, y: 50, r: 10, type: 'point' } );
+		t.equal( r.findAll( 'circle' ).length, 3 );
+		r.findAll( 'circle' ).forEach( e => t.equal( e.namespaceURI, svg ) );
+	});
 }

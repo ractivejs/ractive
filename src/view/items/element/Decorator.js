@@ -91,6 +91,10 @@ export default class Decorator {
 		}
 	}
 
+	destroyed () {
+		if ( this.intermediary ) this.intermediary.teardown();
+	}
+
 	handleChange () { this.bubble(); }
 
 	rebinding () {

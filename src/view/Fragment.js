@@ -73,6 +73,10 @@ export default class Fragment {
 		});
 	}
 
+	destroyed () {
+		this.items.forEach( i => i.destroyed() );
+	}
+
 	detach () {
 		const docFrag = createDocumentFragment();
 		this.items.forEach( item => docFrag.appendChild( item.detach() ) );

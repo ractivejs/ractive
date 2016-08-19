@@ -17,6 +17,8 @@ export default class Item {
 		}
 	}
 
+	destroyed () {}
+
 	find () {
 		return null;
 	}

@@ -126,6 +126,10 @@ export default class EventDirective {
 		}
 	}
 
+	destroyed () {
+		this.events.forEach( e => e.unlisten() );
+	}
+
 	fire ( event, passedArgs = [] ) {
 
 		// augment event object
