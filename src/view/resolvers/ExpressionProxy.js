@@ -48,15 +48,9 @@ export default class ExpressionProxy extends Model {
 	}
 
 	bubble () {
-		// TODO the @ prevents computed props from shadowing keypaths, but the real
-		// question is why it's a computed prop in the first place... (hint, it's
-		// to do with {{else}} blocks)
-		this.keypath = '@' + this.template.s.replace( /_(\d+)/g, ( match, i ) => {
-			if ( i >= this.models.length ) return match;
-
-			const model = this.models[i];
-			return model ? model.getKeypath() : '@undefined';
-		});
+		// refresh the keypath
+		this.keypath = undefined;
+		this.getKeypath();
 
 		this.dirty = true;
 
@@ -76,7 +70,20 @@ export default class ExpressionProxy extends Model {
 	}
 
 	getKeypath () {
-		return this.computation ? this.computation.getKeypath() : '@undefined';
+		if ( !this.template ) return '@undefined';
+		if ( !this.keypath ) {
+			// TODO the @ prevents computed props from shadowing keypaths, but the real
+			// question is why it's a computed prop in the first place... (hint, it's
+			// to do with {{else}} blocks)
+			this.keypath = '@' + this.template.s.replace( /_(\d+)/g, ( match, i ) => {
+				if ( i >= this.models.length ) return match;
+
+				const model = this.models[i];
+				return model ? model.getKeypath() : '@undefined';
+			});
+		}
+
+		return this.keypath;
 	}
 
 	getValue () {
