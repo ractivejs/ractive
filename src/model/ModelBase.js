@@ -205,7 +205,7 @@ export default class ModelBase {
 		while ( i-- ) {
 			const link = this.links[i];
 			// only relink the root of the link tree
-			if ( link.owner._link ) link.relinking( next, previous );
+			if ( link.owner._link ) link.relinking( next );
 		}
 
 		i = this.children.length;

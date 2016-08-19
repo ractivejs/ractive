@@ -419,7 +419,10 @@ export default function() {
 		const cmp = Ractive.extend({
 			template: '{{foo.bar}}',
 			onconfig () {
-				this.observe( 'foo.*', () => count++, { init: false } );
+				this.observe( 'foo.*', v => {
+					count++;
+					t.equal( v, 'd' );
+				}, { init: false } );
 			}
 		});
 		const r = new Ractive({
@@ -432,11 +435,16 @@ export default function() {
 		});
 
 		t.htmlEqual( fixture.innerHTML, 'abc' );
-		r.splice( 'list', 0, 0, r.splice( 'list', 2, 1 ).result[0] );
+		let item = r.splice( 'list', 2, 1 ).result[0];
+		r.splice( 'list', 0, 0, item );
 		t.htmlEqual( fixture.innerHTML, 'cab' );
-		r.splice( 'list', 0, 0, r.splice( 'list', 2, 1 ).result[0] );
+		item = r.splice( 'list', 2, 1 ).result[0];
+		r.splice( 'list', 0, 0, item );
 		t.htmlEqual( fixture.innerHTML, 'bca' );
-		t.equal( count, 6 );
+		t.equal( count, 0 );
+
+		r.set( 'list.0.bar', 'd' );
+		t.equal( count, 1 );
 	});
 
 	test( 'components that are spliced out should not fire observers - #2604', t => {
@@ -486,6 +494,6 @@ export default function() {
 		const i = r.get( 'list' ).pop();
 		t.equal( count, 3 );
 		r.unshift( 'list', i );
-		t.equal( count, 6 );
+		t.equal( count, 4 );
 	});
 }

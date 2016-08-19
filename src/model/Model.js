@@ -203,8 +203,8 @@ export default class Model extends ModelBase {
 			// keep track of array lengths
 			if ( isArray( value ) ) this.length = value.length;
 
-			this.links.forEach( marked );
 			this.children.forEach( mark );
+			this.links.forEach( marked );
 
 			this.deps.forEach( handleChange );
 			this.clearUnresolveds();
@@ -279,11 +279,10 @@ export default class Model extends ModelBase {
 			}
 		}
 
-		fireShuffleTasks();
-
 		const upstream = this.length !== this.value.length;
 
 		this.links.forEach( l => l.shuffle( newIndices ) );
+		fireShuffleTasks();
 
 		i = this.deps.length;
 		while ( i-- ) {

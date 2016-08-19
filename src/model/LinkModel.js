@@ -1,8 +1,7 @@
 import ModelBase from './ModelBase';
 import KeypathModel from './specials/KeypathModel';
 import { capture } from '../global/capture';
-import { handleChange, mark, marked, teardown } from '../shared/methodCallers';
-import runloop from '../global/runloop';
+import { handleChange, marked, teardown } from '../shared/methodCallers';
 import { rebindMatch } from '../shared/rebind';
 
 export default class LinkModel extends ModelBase {
@@ -67,7 +66,6 @@ export default class LinkModel extends ModelBase {
 
 	marked () {
 		this.links.forEach( marked );
-		this.children.forEach( mark );
 
 		this.deps.forEach( handleChange );
 		this.clearUnresolveds();
@@ -75,12 +73,11 @@ export default class LinkModel extends ModelBase {
 
 	relinked () {
 		this.target.registerLink( this );
-		this.handleChange();
 		this.children.forEach( c => c.relinked() );
 	}
 
 	relinking ( target, root = true ) {
-		if ( this.keypath ) target = rebindMatch( this.keypath, target, this.target );
+		if ( root && this.keypath ) target = rebindMatch( this.keypath, target, this.target );
 		if ( !target || this.target === target ) return;
 
 		this.target.unregisterLink( this );
@@ -91,7 +88,10 @@ export default class LinkModel extends ModelBase {
 			c.relinking( target.joinKey( c.key ), false );
 		});
 
-		if ( root ) runloop.scheduleTask( () => this.relinked() );
+		if ( root ) this.addShuffleTask( () => {
+			this.relinked();
+			this.notifyUpstream();
+		});
 	}
 
 	set ( value ) {
